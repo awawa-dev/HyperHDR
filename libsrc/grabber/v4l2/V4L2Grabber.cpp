@@ -1123,8 +1123,8 @@ bool V4L2Grabber::process_image(const void *p, int size)
 				{						
 					V4L2Worker *_workerThread = new V4L2Worker();
 					
-				    	connect(this, SIGNAL(quit()), _workerThread, SLOT(quit()));			    	
-				    	connect(this, SIGNAL(deleteLater()), _workerThread, SLOT(deleteLater()));			    	
+				    	//connect(this, SIGNAL(quit()), _workerThread, SLOT(quit()));			    	
+				    	//connect(this, SIGNAL(deleteLater()), _workerThread, SLOT(deleteLater()));			    	
 				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
 				    	
 				    	workers[i] = _workerThread;
