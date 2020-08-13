@@ -14,6 +14,7 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
+#include <grabber/V4L2Worker.h>
 #include <grabber/VideoStandard.h>
 #include <utils/Components.h>
 #include <cec/CECEvent.h>
@@ -171,6 +172,8 @@ public slots:
 	void stop();
 
 	void handleCecEvent(CECEvent event);
+	
+	void newWorkerFrame(Image<ColorRgb> data);	
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -220,7 +223,7 @@ private:
 	{
 		Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
 	}
-
+	
 private:
 	enum io_method
 	{
@@ -302,6 +305,8 @@ private:
 	unsigned char *lutBuffer;
 	// frame counter
 	int _currentFrame;
+		
+	V4L2Worker** workers;
 	
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);

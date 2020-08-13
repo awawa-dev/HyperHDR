@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -70,6 +69,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
 	, _currentFrame(0)
+	, workers(NULL)
 
 
 {
@@ -1092,11 +1092,69 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	}
 	else
 	{
-		process_image(reinterpret_cast<const uint8_t *>(p), size);
+
+		
+/*		std::thread t(V4L2Worker::process_image_jpg_mt,temp, size,_width,  _height, _subsamp, _pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight,_currentFrame++,_hdrToneMappingEnabled,lutBuffer);
+		t.detach();*/
+		
+		if (workers == NULL)
+		{
+			workers = new V4L2Worker*[4];
+			for (int i=0;i<4;i++)
+			{						
+				V4L2Worker *_workerThread = new V4L2Worker();
+//		    		connect( workerThread, SIGNAL(finished()),
+//			    		 workerThread, SLOT(deleteLater()));            		             		             		 
+			    		 
+				// Move this service to a new thread
+			    	//this->moveToThread(_workerThread);
+			  
+			    	// Make sure that we notify ourselves when the thread
+			    	// is finished in order to correctly clean-up the thread.
+			    	//connect(_workerThread, SIGNAL(finished()), this, SLOT(OnFinished()));
+
+			    	// The thread will quit when the sercives
+			    	// signals that it's finished.
+			    	//connect(this, SIGNAL(Finished()), _workerThread, SLOT(quit()));
+
+			    	// The thread will be scheduled for deletion when the 
+			    	// service signals that it's finished
+			    	//connect(this, SIGNAL(Finished()), _workerThread, SLOT(deleteLater()));
+			    	
+			    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>)), this , SLOT(newWorkerFrame(Image<ColorRgb>)));
+			    	workers[i] = _workerThread;
+		    	}
+            	}	 
+            	
+		for (int i=0;i<4;i++)
+			if (workers[i]->isFinished() ||
+			    !workers[i]->isRunning() )
+			{			
+				V4L2Worker *_workerThread = workers[i];			
+				uint8_t* _tempBuffer = new uint8_t[size];
+				
+				memcpy(_tempBuffer,(uint8_t*)p,size);							
+				//_workerThread->moveToThread(_tempBuffer);            	
+				
+				_workerThread->setup(_tempBuffer, size,_width,  _height,
+				_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
+				_cropBottom, _cropRight,_currentFrame++,_hdrToneMappingEnabled,lutBuffer);		
+		
+				_workerThread->start();		
+			}
+/*
+	V4L2Worker::process_image_jpg_mt(temp, size,_width,  _height, _subsamp, _pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight,_currentFrame++,_hdrToneMappingEnabled,lutBuffer);		
+*/		
+		//process_image(reinterpret_cast<const uint8_t *>(p), size);
 		return true;
+		
 	}
 
 	return false;
+}
+
+void V4L2Grabber::newWorkerFrame(Image<ColorRgb> data){
+	emit newFrame(data);
 }
 
 void V4L2Grabber::process_image(const uint8_t * data, int size)
