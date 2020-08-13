@@ -55,7 +55,7 @@ void V4L2Worker::run()
 }
 		
 void V4L2Worker::process_image_jpg_mt()
-{	
+{		
 	typedef std::chrono::high_resolution_clock Time;
     	typedef std::chrono::milliseconds ms;
     	typedef std::chrono::duration<float> fsec;
@@ -143,16 +143,8 @@ void V4L2Worker::process_image_jpg_mt()
 				outPixel.blue  = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
 			}
 	}
-	
-	auto t1 = Time::now();    
-	fsec fs = t1 - t0;
-    	ms d = std::chrono::duration_cast<ms>(fs);
-	auto now = std::chrono::system_clock::now();
-	auto in_time_t = std::chrono::system_clock::to_time_t(now);
-	std::cout << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X")  << " Frame MT " << _currentFrame << " duration:" << d.count() << std::endl;
-
-	//-------------------------------------------------------------------------------------------------------------------------------------------------	
-	emit newFrame(image);	
+		
+	emit newFrame(image,_currentFrame);	
 }
 
 

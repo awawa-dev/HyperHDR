@@ -48,7 +48,7 @@ public:
 		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
 		   bool __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
 signals:
-    	void newFrame(Image<ColorRgb> data);		   
+    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount);		   
 private:	
 	void process_image_jpg_mt();	
 	

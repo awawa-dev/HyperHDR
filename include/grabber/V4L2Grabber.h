@@ -173,7 +173,7 @@ public slots:
 
 	void handleCecEvent(CECEvent event);
 	
-	void newWorkerFrame(Image<ColorRgb> data);	
+	void newWorkerFrame(Image<ColorRgb> image,unsigned int sourceCount);	
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -223,6 +223,8 @@ private:
 	{
 		Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
 	}
+	
+	void checkSignalDetectionEnabled(Image<ColorRgb> image);
 	
 private:
 	enum io_method
@@ -304,9 +306,11 @@ private:
 	// memory buffer for 3DLUT HDR tone mapping
 	unsigned char *lutBuffer;
 	// frame counter
-	int _currentFrame;
+	volatile unsigned int _currentFrame;
 		
-	V4L2Worker** workers;
+	// MT workers
+	unsigned int	workersCount;
+	V4L2Worker**	workers;
 	
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);

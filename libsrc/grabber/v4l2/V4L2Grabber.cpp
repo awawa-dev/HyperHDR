@@ -69,6 +69,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
 	, _currentFrame(0)
+	, workersCount(0)
 	, workers(NULL)
 
 
@@ -140,6 +141,12 @@ V4L2Grabber::~V4L2Grabber()
 		free(lutBuffer);
 	lutBuffer = NULL;
 
+
+	for(unsigned i=0; i < workersCount; i++)
+		workers[i]->deleteLater();
+	delete[] workers;
+	workers = NULL;
+	
 	uninit();
 }
 
@@ -1076,9 +1083,9 @@ int V4L2Grabber::read_frame()
 }
 
 bool V4L2Grabber::process_image(const void *p, int size)
-{
-
-	if ( (_fpsSoftwareDecimation > 1) && ((_currentFrame++) % _fpsSoftwareDecimation != 0))
+{	
+	unsigned int processFrameIndex = _currentFrame++;
+	if ( (processFrameIndex % _fpsSoftwareDecimation != 0) && (_fpsSoftwareDecimation > 1))
 		return false;
 
 	// We do want a new frame...
@@ -1092,60 +1099,47 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	}
 	else
 	{
+#ifdef HAVE_TURBO_JPEG
+		if (_pixelFormat == PixelFormat::MJPEG)
+		{		
+			if (workers == NULL)
+			{
+				workersCount = QThread::idealThreadCount();
+				workers = new V4L2Worker*[workersCount];
+				for (unsigned i=0;i<workersCount;i++)
+				{						
+					V4L2Worker *_workerThread = new V4L2Worker();
+					
+				    	connect(this, SIGNAL(finished()), _workerThread, SLOT(quit()));			    	
+				    	connect(this, SIGNAL(finished()), _workerThread, SLOT(deleteLater()));			    	
+				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
+				    	
+				    	workers[i] = _workerThread;
+			    	}
+		    	}	 
+		    	
+			for (unsigned int i=0;i<workersCount;i++)
+				if (workers[i]->isFinished() ||
+				    !workers[i]->isRunning() )
+				{			
+					V4L2Worker *_workerThread = workers[i];			
+					uint8_t* _tempBuffer = new uint8_t[size];
+					
+					memcpy(_tempBuffer,(uint8_t*)p,size);							
+					
+					_workerThread->setup(_tempBuffer, size,_width,  _height,
+					_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
+					_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);		
 
-		
-/*		std::thread t(V4L2Worker::process_image_jpg_mt,temp, size,_width,  _height, _subsamp, _pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight,_currentFrame++,_hdrToneMappingEnabled,lutBuffer);
-		t.detach();*/
-		
-		if (workers == NULL)
-		{
-			workers = new V4L2Worker*[4];
-			for (int i=0;i<4;i++)
-			{						
-				V4L2Worker *_workerThread = new V4L2Worker();
-//		    		connect( workerThread, SIGNAL(finished()),
-//			    		 workerThread, SLOT(deleteLater()));            		             		             		 
-			    		 
-				// Move this service to a new thread
-			    	//this->moveToThread(_workerThread);
-			  
-			    	// Make sure that we notify ourselves when the thread
-			    	// is finished in order to correctly clean-up the thread.
-			    	//connect(_workerThread, SIGNAL(finished()), this, SLOT(OnFinished()));
+					Debug(_log, "Frame index = %d => send to decode to the thread", processFrameIndex);			
+					_workerThread->start();
 
-			    	// The thread will quit when the sercives
-			    	// signals that it's finished.
-			    	//connect(this, SIGNAL(Finished()), _workerThread, SLOT(quit()));
-
-			    	// The thread will be scheduled for deletion when the 
-			    	// service signals that it's finished
-			    	//connect(this, SIGNAL(Finished()), _workerThread, SLOT(deleteLater()));
-			    	
-			    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>)), this , SLOT(newWorkerFrame(Image<ColorRgb>)));
-			    	workers[i] = _workerThread;
-		    	}
-            	}	 
-            	
-		for (int i=0;i<4;i++)
-			if (workers[i]->isFinished() ||
-			    !workers[i]->isRunning() )
-			{			
-				V4L2Worker *_workerThread = workers[i];			
-				uint8_t* _tempBuffer = new uint8_t[size];
-				
-				memcpy(_tempBuffer,(uint8_t*)p,size);							
-				//_workerThread->moveToThread(_tempBuffer);            	
-				
-				_workerThread->setup(_tempBuffer, size,_width,  _height,
-				_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
-				_cropBottom, _cropRight,_currentFrame++,_hdrToneMappingEnabled,lutBuffer);		
-		
-				_workerThread->start();		
-			}
-/*
-	V4L2Worker::process_image_jpg_mt(temp, size,_width,  _height, _subsamp, _pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight,_currentFrame++,_hdrToneMappingEnabled,lutBuffer);		
-*/		
-		//process_image(reinterpret_cast<const uint8_t *>(p), size);
+					break;		
+				}
+		}
+		else
+#endif		
+			process_image(reinterpret_cast<const uint8_t *>(p), size);
 		return true;
 		
 	}
@@ -1153,8 +1147,69 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	return false;
 }
 
-void V4L2Grabber::newWorkerFrame(Image<ColorRgb> data){
-	emit newFrame(data);
+void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount)
+{
+	Debug(_log, "Frame index = %d <= received from the thread and it's ready", sourceCount);
+	
+	if (_cecDetectionEnabled && _cecStandbyActivated)
+		return;
+		
+	checkSignalDetectionEnabled(image);
+}
+
+void V4L2Grabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
+{
+	if (_signalDetectionEnabled)
+	{
+		// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
+		bool noSignal = true;
+
+		// top left
+		unsigned xOffset  = image.width()  * _x_frac_min;
+		unsigned yOffset  = image.height() * _y_frac_min;
+
+		// bottom right
+		unsigned xMax     = image.width()  * _x_frac_max;
+		unsigned yMax     = image.height() * _y_frac_max;
+
+
+		for (unsigned x = xOffset; noSignal && x < xMax; ++x)
+		{
+			for (unsigned y = yOffset; noSignal && y < yMax; ++y)
+			{
+				noSignal &= (ColorRgb&)image(x, y) <= _noSignalThresholdColor;
+			}
+		}
+
+		if (noSignal)
+		{
+			++_noSignalCounter;
+		}
+		else
+		{
+			if (_noSignalCounter >= _noSignalCounterThreshold)
+			{
+				_noSignalDetected = true;
+				Info(_log, "Signal detected");
+			}
+
+			_noSignalCounter = 0;
+		}
+
+		if ( _noSignalCounter < _noSignalCounterThreshold)
+		{
+			emit newFrame(image);
+		}
+		else if (_noSignalCounter == _noSignalCounterThreshold)
+		{
+			_noSignalDetected = false;
+			Info(_log, "Signal lost");
+		}
+	}
+	else
+	{
+		emit newFrame(image);
+	}
 }
 
 void V4L2Grabber::process_image(const uint8_t * data, int size)
@@ -1326,57 +1381,7 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 			_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 	}
 
-	if (_signalDetectionEnabled)
-	{
-		// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
-		bool noSignal = true;
-
-		// top left
-		unsigned xOffset  = image.width()  * _x_frac_min;
-		unsigned yOffset  = image.height() * _y_frac_min;
-
-		// bottom right
-		unsigned xMax     = image.width()  * _x_frac_max;
-		unsigned yMax     = image.height() * _y_frac_max;
-
-
-		for (unsigned x = xOffset; noSignal && x < xMax; ++x)
-		{
-			for (unsigned y = yOffset; noSignal && y < yMax; ++y)
-			{
-				noSignal &= (ColorRgb&)image(x, y) <= _noSignalThresholdColor;
-			}
-		}
-
-		if (noSignal)
-		{
-			++_noSignalCounter;
-		}
-		else
-		{
-			if (_noSignalCounter >= _noSignalCounterThreshold)
-			{
-				_noSignalDetected = true;
-				Info(_log, "Signal detected");
-			}
-
-			_noSignalCounter = 0;
-		}
-
-		if ( _noSignalCounter < _noSignalCounterThreshold)
-		{
-			emit newFrame(image);
-		}
-		else if (_noSignalCounter == _noSignalCounterThreshold)
-		{
-			_noSignalDetected = false;
-			Info(_log, "Signal lost");
-		}
-	}
-	else
-	{
-		emit newFrame(image);
-	}
+	checkSignalDetectionEnabled(image);
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
