@@ -87,11 +87,10 @@ void V4L2Worker::process_image_jpg_mt()
 
 	tjDestroy(_decompress);
 
-	if (imageFrame.isNull())
-	{
-		delete data;		
-		return;
-	}
+	delete data;
+
+	if (imageFrame.isNull())				
+		return;	
 
 	if (_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0)
 	{
