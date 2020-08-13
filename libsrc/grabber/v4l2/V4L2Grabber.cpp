@@ -142,10 +142,13 @@ V4L2Grabber::~V4L2Grabber()
 	lutBuffer = NULL;
 
 
-	for(unsigned i=0; i < workersCount; i++)
-		workers[i]->deleteLater();
-	delete[] workers;
-	workers = NULL;
+	if (workers!=NULL)
+	{
+		for(unsigned i=0; i < workersCount; i++)
+			workers[i]->deleteLater();
+		delete[] workers;
+		workers = NULL;
+	}
 	
 	uninit();
 }
@@ -391,6 +394,15 @@ void V4L2Grabber::stop()
 {
 	if (_streamNotifier != nullptr && _streamNotifier->isEnabled())
 	{
+		if (workers != NULL)
+		{
+			for(unsigned i=0; i < workersCount; i++)
+			{
+				workers[i]->quit();
+				workers[i]->wait();
+			}
+		}
+
 		stop_capturing();
 		_streamNotifier->setEnabled(false);
 		uninit_device();
@@ -1100,18 +1112,19 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	else
 	{
 #ifdef HAVE_TURBO_JPEG
-		if (_pixelFormat == PixelFormat::MJPEG)
+		if (_pixelFormat == PixelFormat::MJPEG && _initialized)
 		{		
 			if (workers == NULL)
 			{
 				workersCount = QThread::idealThreadCount();
 				workers = new V4L2Worker*[workersCount];
+				Debug(_log, "Worker's thread count  = %d", workersCount);			
 				for (unsigned i=0;i<workersCount;i++)
 				{						
 					V4L2Worker *_workerThread = new V4L2Worker();
 					
-				    	connect(this, SIGNAL(finished()), _workerThread, SLOT(quit()));			    	
-				    	connect(this, SIGNAL(finished()), _workerThread, SLOT(deleteLater()));			    	
+				    	connect(this, SIGNAL(quit()), _workerThread, SLOT(quit()));			    	
+				    	connect(this, SIGNAL(deleteLater()), _workerThread, SLOT(deleteLater()));			    	
 				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
 				    	
 				    	workers[i] = _workerThread;
