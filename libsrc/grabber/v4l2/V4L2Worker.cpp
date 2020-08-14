@@ -116,6 +116,7 @@ void V4L2Worker::process_image_jpg_mt()
 	if (_decompress == nullptr)
 	{
 		delete data;
+		emit finished();
 		return;
 	}
 	
@@ -126,6 +127,7 @@ void V4L2Worker::process_image_jpg_mt()
 		
 		tjDestroy(_decompress);
 		delete data;
+		emit finished();
 		return;
 	}
 
@@ -137,14 +139,18 @@ void V4L2Worker::process_image_jpg_mt()
 			
 		tjDestroy(_decompress);
 		delete data;
+		emit finished();
 		return;
 	}
 	
 	tjDestroy(_decompress);
 	delete data;
 
-	if (imageFrame.isNull())				
+	if (imageFrame.isNull())
+	{				
+		emit finished();
 		return;	
+	}
 
 	if (_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0)
 	{
