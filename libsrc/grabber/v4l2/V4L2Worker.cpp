@@ -28,12 +28,11 @@
 
 #include "grabber/V4L2Worker.h"
 
-bool	V4L2Worker::isActive = false;
+volatile bool	V4L2Worker::isActive = false;
 
 V4L2WorkerManager::V4L2WorkerManager():
 	workersCount(0),
-	workers(nullptr),
-	isActive(false)
+	workers(nullptr)	
 {
 
 }
@@ -55,24 +54,24 @@ V4L2WorkerManager::~V4L2WorkerManager()
 
 void V4L2WorkerManager::Start()
 {
-	isActive = true;
+	V4L2Worker::isActive = true;
 }
 
 void V4L2WorkerManager::InitWorkers()
 {
 	
 	workersCount = QThread::idealThreadCount();
-	workers = new QThread*[workersCount];
+	workers = new V4L2Worker*[workersCount];
 				
 	for (unsigned i=0;i<workersCount;i++)
 	{								
-		workers[i] = nullptr;
+		workers[i] = new V4L2Worker();
 	}
 }
 
 void V4L2WorkerManager::Stop()
 {
-	isActive =  false;
+	V4L2Worker::isActive =  false;
 
 	if (workers != nullptr)
 	{
@@ -84,8 +83,24 @@ void V4L2WorkerManager::Stop()
 			}
 	}
 }
+
+bool V4L2WorkerManager::isActive()
+{
+	return V4L2Worker::isActive;
+}
 	
+V4L2Worker::V4L2Worker():
+		_decompress(nullptr)
+{
 	
+}
+
+V4L2Worker::~V4L2Worker(){
+	if (_decompress == nullptr)
+		tjDestroy(_decompress);
+
+}
+
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
@@ -106,28 +121,28 @@ void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int 
 	lutBuffer = _lutBuffer;	
 }
 
-				
+void V4L2Worker::run()
+{
+	if (isActive)
+		process_image_jpg_mt();		
+	
+	delete data;
+	data = nullptr;
+	
+	//emit finished(this);	
+}
+
 void V4L2Worker::process_image_jpg_mt()
 {		
-	Image<ColorRgb> image(_width, _height);
+	Image<ColorRgb> image(_width, _height);	
 		
-	tjhandle _decompress = tjInitDecompress();
-		
-	if (_decompress == nullptr)
-	{
-		delete data;
-		emit finished();
-		return;
-	}
+	if (_decompress == nullptr)	
+		_decompress = tjInitDecompress();	
 	
 	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
 	{	
 		QString info = QString(tjGetErrorStr());
-		emit newFrameError(info,_currentFrame);
-		
-		tjDestroy(_decompress);
-		delete data;
-		emit finished();
+		emit newFrameError(info,_currentFrame);				
 		return;
 	}
 
@@ -136,19 +151,13 @@ void V4L2Worker::process_image_jpg_mt()
 	{		
 		QString info = QString(tjGetErrorStr());
 		emit newFrameError(info,_currentFrame);
-			
-		tjDestroy(_decompress);
-		delete data;
-		emit finished();
 		return;
 	}
 	
-	tjDestroy(_decompress);
-	delete data;
-
 	if (imageFrame.isNull())
-	{				
-		emit finished();
+	{
+		QString info = QString("Empty frame detected");
+		emit newFrameError(info,_currentFrame);
 		return;	
 	}
 
@@ -172,7 +181,7 @@ void V4L2Worker::process_image_jpg_mt()
     	unsigned int totalBytes = (imageFrame.width() * imageFrame.height() * 3);
     	
     	// apply LUT table mapping
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB        	
     	if (lutBuffer != NULL && _hdrToneMappingEnabled)
     	{
     		unsigned char* source = imageFrame.bits();
@@ -194,11 +203,9 @@ void V4L2Worker::process_image_jpg_mt()
     	
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB
 	image.copy(imageFrame.bits(),totalBytes);					    			
-	
-		
+			
 	// exit
 	emit newFrame(image,_currentFrame);		
-	emit finished();
 }
 
 
