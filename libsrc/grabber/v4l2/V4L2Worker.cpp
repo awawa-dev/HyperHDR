@@ -121,6 +121,9 @@ void V4L2Worker::process_image_jpg_mt()
 	
 	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
 	{	
+		QString info = QString(tjGetErrorStr());
+		emit newFrameError(info,_currentFrame);
+		
 		tjDestroy(_decompress);
 		delete data;
 		return;
@@ -129,6 +132,9 @@ void V4L2Worker::process_image_jpg_mt()
 	QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
 	if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 	{		
+		QString info = QString(tjGetErrorStr());
+		emit newFrameError(info,_currentFrame);
+			
 		tjDestroy(_decompress);
 		delete data;
 		return;

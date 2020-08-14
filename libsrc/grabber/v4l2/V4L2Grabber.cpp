@@ -1120,6 +1120,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					_V4L2WorkerManager.workers[i] = new QThread();			
 					V4L2Worker* _workerThread = new V4L2Worker();
 					
+					connect(_workerThread, SIGNAL(newFrameError(QString,unsigned int)), this , SLOT(newWorkerFrameError(QString,unsigned int)));
 				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
 					connect(_V4L2WorkerManager.workers[i], SIGNAL(started()), _workerThread, SLOT(process_image_jpg_mt()));
 					connect(_workerThread, SIGNAL(finished()), _V4L2WorkerManager.workers[i], SLOT(quit()));
@@ -1148,6 +1149,12 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 	return false;
 }
+
+void V4L2Grabber::newWorkerFrameError(QString error, unsigned int sourceCount)
+{
+	Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, error);	
+}
+
 
 void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount)
 {

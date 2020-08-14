@@ -48,6 +48,7 @@ public:
 		   	
 signals:
     	void newFrame(Image<ColorRgb> data, unsigned int sourceCount);	
+    	void newFrameError(QString,unsigned int);
     	void finished();	   
 public slots:
 	void process_image_jpg_mt();

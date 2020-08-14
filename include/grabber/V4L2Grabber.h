@@ -174,8 +174,9 @@ public slots:
 	void handleCecEvent(CECEvent event);
 	
 	void newWorkerFrame(Image<ColorRgb> image,unsigned int sourceCount);	
-
+	void newWorkerFrameError(QString error,unsigned int sourceCount);
 signals:
+	
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);
 
