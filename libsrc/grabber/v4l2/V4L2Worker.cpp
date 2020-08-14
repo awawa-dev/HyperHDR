@@ -28,7 +28,57 @@
 
 #include "grabber/V4L2Worker.h"
 
+bool	V4L2Worker::isActive = false;
 
+V4L2WorkerManager::V4L2WorkerManager():
+	workersCount(0),
+	workers(NULL)
+{
+
+}
+
+V4L2WorkerManager::~V4L2WorkerManager()
+{
+	if (workers!=NULL)
+	{
+		for(unsigned i=0; i < workersCount; i++)
+			workers[i]->deleteLater();
+		delete[] workers;
+		workers = NULL;
+	}	
+}
+
+void V4L2WorkerManager::Start()
+{
+	V4L2Worker::isActive = true;
+}
+
+void V4L2WorkerManager::InitWorkers()
+{
+	workersCount = QThread::idealThreadCount();
+	workers = new V4L2Worker*[workersCount];
+				
+	for (unsigned i=0;i<workersCount;i++)
+	{						
+		V4L2Worker *_workerThread = new V4L2Worker();									   
+		workers[i] = _workerThread;
+	}
+}
+
+void V4L2WorkerManager::Stop()
+{
+	V4L2Worker::isActive =  false;
+
+	if (workers != NULL)
+	{
+		for(unsigned i=0; i < workersCount; i++)
+		{
+			workers[i]->quit();
+			workers[i]->wait();
+		}
+	}
+}
+		
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
@@ -51,16 +101,19 @@ void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int 
 
 void V4L2Worker::run()
 {
+	if (!isActive)	
+		return;
+
 	process_image_jpg_mt();
 }
 		
 void V4L2Worker::process_image_jpg_mt()
-{		
-	typedef std::chrono::high_resolution_clock Time;
+{	
+	/*typedef std::chrono::high_resolution_clock Time;
     	typedef std::chrono::milliseconds ms;
     	typedef std::chrono::duration<float> fsec;
-    	auto t0 = Time::now();
-    
+    	auto t0 = Time::now();*/
+    	
 	Image<ColorRgb> image(_width, _height);
 
 	tjhandle _decompress = tjInitDecompress();

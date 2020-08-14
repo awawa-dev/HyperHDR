@@ -37,21 +37,24 @@
 #endif
 
 /// MT worker for V4L2 devices
+class V4L2WorkerManager;
 class V4L2Worker : public  QThread
 {
 	Q_OBJECT
-	
+	friend class V4L2WorkerManager;	
 public:	
 	void run();
 	void setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
 		   bool __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
+		   	
 signals:
     	void newFrame(Image<ColorRgb> data, unsigned int sourceCount);		   
 private:	
 	void process_image_jpg_mt();	
-	
+	static	bool	isActive;			   
+
 	uint8_t	*data;
 	int		size;
 	int		_width;
@@ -64,5 +67,22 @@ private:
 	unsigned	_cropRight;
 	int		_currentFrame;
 	bool 		_hdrToneMappingEnabled;
-	unsigned char*	lutBuffer;	
+	unsigned char*	lutBuffer;		
+};
+
+class V4L2WorkerManager : public  QObject
+{
+	Q_OBJECT
+
+public:
+	V4L2WorkerManager();
+	~V4L2WorkerManager();
+	
+	void InitWorkers();
+	void Stop();
+	void Start();
+	
+	// MT workers
+	unsigned int	workersCount;
+	V4L2Worker**	workers;
 };

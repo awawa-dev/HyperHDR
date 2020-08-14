@@ -68,11 +68,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	,_hdrToneMappingEnabled(0)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
-	, _currentFrame(0)
-	, workersCount(0)
-	, workers(NULL)
-
-
+	, _currentFrame(0)	
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -140,15 +136,6 @@ V4L2Grabber::~V4L2Grabber()
 	if (lutBuffer!=NULL)
 		free(lutBuffer);
 	lutBuffer = NULL;
-
-
-	if (workers!=NULL)
-	{
-		for(unsigned i=0; i < workersCount; i++)
-			workers[i]->deleteLater();
-		delete[] workers;
-		workers = NULL;
-	}
 	
 	uninit();
 }
@@ -374,6 +361,7 @@ bool V4L2Grabber::start()
 {
 	try
 	{
+		_V4L2WorkerManager.Start();
 		if (init() && _streamNotifier != nullptr && !_streamNotifier->isEnabled())
 		{
 			_streamNotifier->setEnabled(true);
@@ -394,14 +382,7 @@ void V4L2Grabber::stop()
 {
 	if (_streamNotifier != nullptr && _streamNotifier->isEnabled())
 	{
-		if (workers != NULL)
-		{
-			for(unsigned i=0; i < workersCount; i++)
-			{
-				workers[i]->quit();
-				workers[i]->wait();
-			}
-		}
+		_V4L2WorkerManager.Stop();		
 
 		stop_capturing();
 		_streamNotifier->setEnabled(false);
@@ -1114,41 +1095,35 @@ bool V4L2Grabber::process_image(const void *p, int size)
 #ifdef HAVE_TURBO_JPEG
 		if (_pixelFormat == PixelFormat::MJPEG && _initialized)
 		{		
-			if (workers == NULL)
-			{
-				workersCount = QThread::idealThreadCount();
-				workers = new V4L2Worker*[workersCount];
-				Debug(_log, "Worker's thread count  = %d", workersCount);			
-				for (unsigned i=0;i<workersCount;i++)
-				{						
-					V4L2Worker *_workerThread = new V4L2Worker();
-					
-				    	//connect(this, SIGNAL(quit()), _workerThread, SLOT(quit()));			    	
-				    	//connect(this, SIGNAL(deleteLater()), _workerThread, SLOT(deleteLater()));			    	
+			if (_V4L2WorkerManager.workers == NULL)
+			{	
+				_V4L2WorkerManager.InitWorkers();
+				Debug(_log, "Worker's thread count  = %d", _V4L2WorkerManager.workersCount);		
+							
+				for (unsigned i=0;i<_V4L2WorkerManager.workersCount  && _V4L2WorkerManager.workers !=NULL;i++)
+				{			
+					V4L2Worker *_workerThread = _V4L2WorkerManager.workers[i];							
 				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
-				    	
-				    	workers[i] = _workerThread;
-			    	}
+				}
 		    	}	 
 		    	
-			for (unsigned int i=0;i<workersCount;i++)
-				if (workers[i]->isFinished() ||
-				    !workers[i]->isRunning() )
-				{			
-					V4L2Worker *_workerThread = workers[i];			
-					uint8_t* _tempBuffer = new uint8_t[size];
-					
+			for (unsigned int i=0;i<_V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers !=NULL;i++)
+			{			
+				V4L2Worker *_workerThread = _V4L2WorkerManager.workers[i];			
+				if (_workerThread->isFinished() || !_workerThread->isRunning() )
+				{					
+					uint8_t* _tempBuffer = new uint8_t[size];					
 					memcpy(_tempBuffer,(uint8_t*)p,size);							
 					
 					_workerThread->setup(_tempBuffer, size,_width,  _height,
-					_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
-					_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);		
+						_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
+						_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);		
 
-					Debug(_log, "Frame index = %d => send to decode to the thread", processFrameIndex);			
 					_workerThread->start();
-
+					Debug(_log, "Frame index = %d => send to decode to the thread", processFrameIndex);			
 					break;		
 				}
+			}
 		}
 		else
 #endif		

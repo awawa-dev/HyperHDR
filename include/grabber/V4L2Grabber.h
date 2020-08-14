@@ -308,9 +308,7 @@ private:
 	// frame counter
 	volatile unsigned int _currentFrame;
 		
-	// MT workers
-	unsigned int	workersCount;
-	V4L2Worker**	workers;
+	V4L2WorkerManager _V4L2WorkerManager;
 	
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
