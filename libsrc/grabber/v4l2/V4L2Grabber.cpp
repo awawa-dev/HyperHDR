@@ -1095,23 +1095,36 @@ bool V4L2Grabber::process_image(const void *p, int size)
 #ifdef HAVE_TURBO_JPEG
 		if (_pixelFormat == PixelFormat::MJPEG && _initialized)
 		{		
-			if (_V4L2WorkerManager.workers == NULL)
+			if (_V4L2WorkerManager.workers == nullptr)
 			{	
 				_V4L2WorkerManager.InitWorkers();
 				Debug(_log, "Worker's thread count  = %d", _V4L2WorkerManager.workersCount);		
 							
-				for (unsigned i=0;i<_V4L2WorkerManager.workersCount  && _V4L2WorkerManager.workers !=NULL;i++)
-				{			
-					V4L2Worker *_workerThread = _V4L2WorkerManager.workers[i];							
-				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
-				}
 		    	}	 
 		    	
-			for (unsigned int i=0;i<_V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers !=NULL;i++)
+			for (unsigned int i=0;_V4L2WorkerManager.isActive && 
+						i < _V4L2WorkerManager.workersCount && 
+						_V4L2WorkerManager.workers != nullptr; i++)
 			{			
-				V4L2Worker *_workerThread = _V4L2WorkerManager.workers[i];			
-				if (_workerThread->isFinished() || !_workerThread->isRunning() )
-				{					
+
+				
+				if (_V4L2WorkerManager.workers[i]!=nullptr &&
+				    _V4L2WorkerManager.workers[i]->isFinished())
+				{
+					_V4L2WorkerManager.workers[i]->deleteLater();					
+					_V4L2WorkerManager.workers[i] = nullptr;
+				}
+						
+				if (_V4L2WorkerManager.workers[i] == nullptr)
+				{				
+					_V4L2WorkerManager.workers[i] = new QThread();			
+					V4L2Worker* _workerThread = new V4L2Worker();
+					
+				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
+					connect(_V4L2WorkerManager.workers[i], SIGNAL(started()), _workerThread, SLOT(process_image_jpg_mt()));
+					connect(_workerThread, SIGNAL(finished()), _V4L2WorkerManager.workers[i], SLOT(quit()));
+					//connect(_V4L2WorkerManager.workers[i], SIGNAL(deleteLater()), _workerThread, SLOT(deleteLater()));
+										
 					uint8_t* _tempBuffer = new uint8_t[size];					
 					memcpy(_tempBuffer,(uint8_t*)p,size);							
 					
@@ -1119,7 +1132,8 @@ bool V4L2Grabber::process_image(const void *p, int size)
 						_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
 						_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);		
 
-					_workerThread->start();
+					_workerThread->moveToThread(_V4L2WorkerManager.workers[i]);
+					_V4L2WorkerManager.workers[i]->start();
 					Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
 					break;		
 				}

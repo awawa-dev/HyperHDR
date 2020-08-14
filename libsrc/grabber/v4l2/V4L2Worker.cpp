@@ -32,66 +32,60 @@ bool	V4L2Worker::isActive = false;
 
 V4L2WorkerManager::V4L2WorkerManager():
 	workersCount(0),
-	workers(NULL)
+	workers(nullptr),
+	isActive(false)
 {
 
 }
 
 V4L2WorkerManager::~V4L2WorkerManager()
 {
-	if (workers!=NULL)
+	if (workers!=nullptr)
 	{
 		for(unsigned i=0; i < workersCount; i++)
-			workers[i]->deleteLater();
+			if (workers[i]!=nullptr)
+			{
+				workers[i]->deleteLater();
+				workers[i] = nullptr;
+			}
 		delete[] workers;
-		workers = NULL;
+		workers = nullptr;
 	}	
 }
 
 void V4L2WorkerManager::Start()
 {
-	V4L2Worker::isActive = true;
+	isActive = true;
 }
 
 void V4L2WorkerManager::InitWorkers()
 {
+	
 	workersCount = QThread::idealThreadCount();
-	workers = new V4L2Worker*[workersCount];
+	workers = new QThread*[workersCount];
 				
 	for (unsigned i=0;i<workersCount;i++)
-	{						
-		V4L2Worker *_workerThread = new V4L2Worker();									   
-		workers[i] = _workerThread;
+	{								
+		workers[i] = nullptr;
 	}
 }
 
 void V4L2WorkerManager::Stop()
 {
-	V4L2Worker::isActive =  false;
+	isActive =  false;
 
-	if (workers != NULL)
+	if (workers != nullptr)
 	{
 		for(unsigned i=0; i < workersCount; i++)
-		{
-			workers[i]->quit();
-			workers[i]->wait();
-		}
+			if (workers[i]!=nullptr)
+			{
+				workers[i]->quit();
+				workers[i]->wait();				
+			}
 	}
 }
 	
 	
-V4L2Worker::V4L2Worker()
-{
-	//_decompress = tjInitDecompress();
-}
-	
-V4L2Worker::~V4L2Worker()
-{
-	//if (_decompress == nullptr)
-	//	tjDestroy(_decompress);	
-	//_decompress = nullptr;	
-}
-		
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
@@ -112,22 +106,15 @@ void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int 
 	lutBuffer = _lutBuffer;	
 }
 
-void V4L2Worker::run()
-{
-	if (!isActive)	
-		return;
-
-	process_image_jpg_mt();
-}
 				
 void V4L2Worker::process_image_jpg_mt()
 {		
 	Image<ColorRgb> image(_width, _height);
-	tjhandle	_decompress = tjInitDecompress();
-	
+		
+	tjhandle _decompress = tjInitDecompress();
+		
 	if (_decompress == nullptr)
 	{
-		tjDestroy(_decompress);
 		delete data;
 		return;
 	}
@@ -173,7 +160,7 @@ void V4L2Worker::process_image_jpg_mt()
     	unsigned int totalBytes = (imageFrame.width() * imageFrame.height() * 3);
     	
     	// apply LUT table mapping
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
     	if (lutBuffer != NULL && _hdrToneMappingEnabled)
     	{
     		unsigned char* source = imageFrame.bits();
@@ -197,7 +184,9 @@ void V4L2Worker::process_image_jpg_mt()
 	image.copy(imageFrame.bits(),totalBytes);					    			
 	
 		
-	emit newFrame(image,_currentFrame);	
+	// exit
+	emit newFrame(image,_currentFrame);		
+	emit finished();
 }
 
 
