@@ -82,14 +82,14 @@ void V4L2WorkerManager::Stop()
 	
 V4L2Worker::V4L2Worker()
 {
-	_decompress = tjInitDecompress();
+	//_decompress = tjInitDecompress();
 }
 	
 V4L2Worker::~V4L2Worker()
 {
-	if (_decompress == nullptr)
-		tjDestroy(_decompress);	
-	_decompress = nullptr;	
+	//if (_decompress == nullptr)
+	//	tjDestroy(_decompress);	
+	//_decompress = nullptr;	
 }
 		
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
@@ -123,16 +123,18 @@ void V4L2Worker::run()
 void V4L2Worker::process_image_jpg_mt()
 {		
 	Image<ColorRgb> image(_width, _height);
-
+	tjhandle	_decompress = tjInitDecompress();
 	
 	if (_decompress == nullptr)
 	{
+		tjDestroy(_decompress);
 		delete data;
 		return;
 	}
 	
 	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
 	{	
+		tjDestroy(_decompress);
 		delete data;
 		return;
 	}
@@ -140,10 +142,12 @@ void V4L2Worker::process_image_jpg_mt()
 	QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
 	if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 	{		
+		tjDestroy(_decompress);
 		delete data;
 		return;
 	}
-
+	
+	tjDestroy(_decompress);
 	delete data;
 
 	if (imageFrame.isNull())				

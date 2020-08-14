@@ -71,8 +71,7 @@ private:
 	int		_currentFrame;
 	bool 		_hdrToneMappingEnabled;
 	unsigned char*	lutBuffer;		
-	
-	tjhandle	_decompress;
+
 };
 
 class V4L2WorkerManager : public  QObject

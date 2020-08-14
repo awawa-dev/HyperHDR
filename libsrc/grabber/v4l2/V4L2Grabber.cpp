@@ -1120,7 +1120,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 						_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);		
 
 					_workerThread->start();
-					Debug(_log, "Frame index = %d => send to decode to the thread", processFrameIndex);			
+					Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
 					break;		
 				}
 			}

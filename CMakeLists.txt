@@ -67,6 +67,12 @@ ELSE()
 	SET ( DEFAULT_CEC         OFF )
 ENDIF()
 
+message(STATUS "PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES “BCM28|armv7|armv71”)
+    add_compile_options(-march=armv8-a+crc -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations)
+    message(STATUS "RPI 3 armv7 detected for optimalization")
+endif()
+
 if ( NOT DEFINED PLATFORM )
 	if ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86" )
 		SET( PLATFORM "x11")
