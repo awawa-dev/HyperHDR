@@ -1120,11 +1120,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					_V4L2WorkerManager.workers[i] = new QThread();			
 					V4L2Worker* _workerThread = new V4L2Worker();
 					
-					connect(_workerThread, SIGNAL(newFrameError(QString,unsigned int)), this , SLOT(newWorkerFrameError(QString,unsigned int)));
-				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
-					connect(_V4L2WorkerManager.workers[i], SIGNAL(started()), _workerThread, SLOT(process_image_jpg_mt()));
-					connect(_workerThread, SIGNAL(finished()), _V4L2WorkerManager.workers[i], SLOT(quit()));
-					//connect(_V4L2WorkerManager.workers[i], SIGNAL(deleteLater()), _workerThread, SLOT(deleteLater()));
+					
 										
 					uint8_t* _tempBuffer = new uint8_t[size];					
 					memcpy(_tempBuffer,(uint8_t*)p,size);							
@@ -1134,6 +1130,15 @@ bool V4L2Grabber::process_image(const void *p, int size)
 						_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);		
 
 					_workerThread->moveToThread(_V4L2WorkerManager.workers[i]);
+					
+					
+					connect(_workerThread, SIGNAL(newFrameError(QString,unsigned int)), this , SLOT(newWorkerFrameError(QString,unsigned int)));
+				    	connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
+					connect(_V4L2WorkerManager.workers[i], SIGNAL(started()), _workerThread, SLOT(process_image_jpg_mt()));
+					connect(_workerThread, SIGNAL(finished()), _V4L2WorkerManager.workers[i], SLOT(quit()));
+					connect(_workerThread, SIGNAL(finished()), _workerThread, SLOT(deleteLater()));
+					
+					
 					_V4L2WorkerManager.workers[i]->start();
 					Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
 					break;		
