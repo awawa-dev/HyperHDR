@@ -66,6 +66,11 @@ public:
 		return *this;
 	}
 
+	void copy(unsigned char *s,unsigned int size)
+	{
+		memcpy(_d_ptr->memptr(), s, size);
+	}
+	
 	///
 	/// Destructor
 	///

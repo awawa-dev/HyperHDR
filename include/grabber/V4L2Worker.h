@@ -43,6 +43,9 @@ class V4L2Worker : public  QThread
 	Q_OBJECT
 	friend class V4L2WorkerManager;	
 public:	
+	V4L2Worker();
+	~V4L2Worker();
+	
 	void run();
 	void setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
@@ -68,6 +71,8 @@ private:
 	int		_currentFrame;
 	bool 		_hdrToneMappingEnabled;
 	unsigned char*	lutBuffer;		
+	
+	tjhandle	_decompress;
 };
 
 class V4L2WorkerManager : public  QObject

@@ -78,6 +78,19 @@ void V4L2WorkerManager::Stop()
 		}
 	}
 }
+	
+	
+V4L2Worker::V4L2Worker()
+{
+	_decompress = tjInitDecompress();
+}
+	
+V4L2Worker::~V4L2Worker()
+{
+	if (_decompress == nullptr)
+		tjDestroy(_decompress);	
+	_decompress = nullptr;	
+}
 		
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
@@ -106,17 +119,12 @@ void V4L2Worker::run()
 
 	process_image_jpg_mt();
 }
-		
+				
 void V4L2Worker::process_image_jpg_mt()
-{	
-	/*typedef std::chrono::high_resolution_clock Time;
-    	typedef std::chrono::milliseconds ms;
-    	typedef std::chrono::duration<float> fsec;
-    	auto t0 = Time::now();*/
-    	
+{		
 	Image<ColorRgb> image(_width, _height);
 
-	tjhandle _decompress = tjInitDecompress();
+	
 	if (_decompress == nullptr)
 	{
 		delete data;
@@ -138,8 +146,6 @@ void V4L2Worker::process_image_jpg_mt()
 		return;
 	}
 
-	tjDestroy(_decompress);
-
 	delete data;
 
 	if (imageFrame.isNull())				
@@ -149,53 +155,45 @@ void V4L2Worker::process_image_jpg_mt()
 	{
 		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
 		imageFrame = imageFrame.copy(rect);
-		std::cout << "crop";				
 	}
 	if (_pixelDecimation>1)
 	{
 		imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
-		std::cout << "decimation";		
 	}
 
 	if ((image.width() != unsigned(imageFrame.width())) || (image.height() != unsigned(imageFrame.height())))
 	{
 		image.resize(imageFrame.width(), imageFrame.height());
-		std::cout << "resize";
 	}
 
-	if (lutBuffer == NULL || !_hdrToneMappingEnabled)
-	{		
-		for (int y=0; y<imageFrame.height(); ++y)
-			for (int x=0; x<imageFrame.width(); ++x)
-			{
-				QColor inPixel(imageFrame.pixel(x,y));
-				ColorRgb & outPixel = image(x,y);
-				outPixel.red   = inPixel.red();
-				outPixel.green = inPixel.green();
-				outPixel.blue  = inPixel.blue();
-			}
-	}
-	else
-	{
 
-
-		for (int y=0; y<imageFrame.height(); ++y)
-			for (int x=0; x<imageFrame.width(); ++x)
-			{
-				QColor inPixel(imageFrame.pixel(x,y));
-				ColorRgb & outPixel = image(x,y);
-
-				size_t ind_lutd = (
-					LUTD_Y_STRIDE(inPixel.red()) +
-					LUTD_U_STRIDE(inPixel.green()) +
-					LUTD_V_STRIDE(inPixel.blue())
-				);
-
-				outPixel.red   = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-				outPixel.green = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-				outPixel.blue  = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-			}
-	}
+	// prepare to copy buffer	
+    	unsigned int totalBytes = (imageFrame.width() * imageFrame.height() * 3);
+    	
+    	// apply LUT table mapping
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB
+    	if (lutBuffer != NULL && _hdrToneMappingEnabled)
+    	{
+    		unsigned char* source = imageFrame.bits();
+    		for (unsigned int i=0;i+3<totalBytes;i+=3)
+    		{
+    			unsigned char* r = source++;
+    			unsigned char* g = source++;
+    			unsigned char* b = source++;	    				    			
+    			size_t ind_lutd = (
+				LUTD_Y_STRIDE(*r) +
+				LUTD_U_STRIDE(*g) +
+				LUTD_V_STRIDE(*b)
+			);
+			*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+			*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+			*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+    		}
+    	}
+    	
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB
+	image.copy(imageFrame.bits(),totalBytes);					    			
+	
 		
 	emit newFrame(image,_currentFrame);	
 }
