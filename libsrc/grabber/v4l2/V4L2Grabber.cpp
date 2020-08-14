@@ -1152,7 +1152,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::newWorkerFrameError(QString error, unsigned int sourceCount)
 {
-	Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, error);	
+	Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
 }
 
 
