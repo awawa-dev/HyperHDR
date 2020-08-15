@@ -184,21 +184,36 @@ void V4L2Worker::process_image_jpg_mt()
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB        	
     	if (lutBuffer != NULL && _hdrToneMappingEnabled)
     	{
+    		unsigned int width = imageFrame.width();
+		unsigned int height = imageFrame.height();    		
+    		unsigned int sizeX= (width * 10)/100;
+    		unsigned int sizeY= (height *15)/100;		
     		unsigned char* source = imageFrame.bits();
-    		for (unsigned int i=0;i+3<totalBytes;i+=3)
-    		{
-    			unsigned char* r = source++;
-    			unsigned char* g = source++;
-    			unsigned char* b = source++;	    				    			
-    			size_t ind_lutd = (
-				LUTD_Y_STRIDE(*r) +
-				LUTD_U_STRIDE(*g) +
-				LUTD_V_STRIDE(*b)
-			);
-			*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-			*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-			*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-    		}
+    		
+    		for (unsigned int y=0; y<height; y++)
+    		{    	
+    			unsigned char* orgSource = source;		
+	    		for (unsigned int x=0; x<width; x++)    		
+				if (x>sizeX && x<width-sizeX && y>sizeY && y<height-sizeY)
+				{
+					x = width - sizeX;
+					source = orgSource + (x + 1) * 3;
+				}
+				else
+	    			{
+		    			unsigned char* r = source++;
+		    			unsigned char* g = source++;
+		    			unsigned char* b = source++;	    				    			
+		    			size_t ind_lutd = (
+						LUTD_Y_STRIDE(*r) +
+						LUTD_U_STRIDE(*g) +
+						LUTD_V_STRIDE(*b)
+					);
+					*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+					*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+					*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+		    		}
+		}
     	}
     	
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB
