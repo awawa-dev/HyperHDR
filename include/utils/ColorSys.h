@@ -2,6 +2,8 @@
 
 // STL includes
 #include <cstdint>
+// HDR definition
+#include "ImageResampler.h"
 
 ///
 /// Color transformation to adjust the saturation and luminance of a RGB color value
@@ -65,4 +67,27 @@ public:
 	/// number and scaled between 0 and 360
 	///
 	static void hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue);
+
+	///
+	///	Translates a YUV (luminance, chrominance, chrominance) color to an RGB (red, green, blue) color
+	///
+	/// @param[in] y The luminance YUV-component
+	/// @param[in] u The chrominance YUV-component
+	/// @param[in] v The chrominance YUV-component
+	/// @param[out] red The red RGB-component
+	/// @param[out] green The green RGB-component
+	/// @param[out] blue The blue RGB-component
+	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);
+	
+	///
+	///	Translates a YUV (luminance, chrominance, chrominance) color to an RGB (red, green, blue) color applying LUT transformation
+	///
+	/// @param[in] y The luminance YUV-component
+	/// @param[in] u The chrominance YUV-component
+	/// @param[in] v The chrominance YUV-component
+	/// @param[out] red The red RGB-component
+	/// @param[out] green The green RGB-component
+	/// @param[out] blue The blue RGB-component
+	/// @param[lutBuffer] lut array	
+	static void yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b, unsigned char *lutBuffer);  	
 };

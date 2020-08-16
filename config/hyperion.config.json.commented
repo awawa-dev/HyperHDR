@@ -122,26 +122,26 @@
 	///  * fpsSoftwareDecimation	: process every n'th received frame [default=1]	
 	"grabberV4L2" :
 	{
-		"device"               : "auto",
-		"width"                : 0,
-		"height"               : 0,
-		"standard"             : "NO_CHANGE",
-		"sizeDecimation"       : 8,
-		"priority"             : 240,
-		"cropLeft"             : 0,
-		"cropRight"            : 0,
-		"cropTop"              : 0,
-		"cropBottom"           : 0,
-		"redSignalThreshold"   : 5,
-		"greenSignalThreshold" : 5,
-		"blueSignalThreshold"  : 5,
-		"signalDetection"      : false,
-		"cecDetection"         : false,
-		"sDVOffsetMin"         : 0.25,
-		"sDHOffsetMin"         : 0.25,
-		"sDVOffsetMax"         : 0.75,
-		"sDHOffsetMax"         : 0.75,
-		"hdrToneMapping"		   : false,
+		"device"               	: "auto",
+		"width"                	: 0,
+		"height"               	: 0,
+		"standard"             	: "NO_CHANGE",
+		"sizeDecimation"       	: 8,
+		"priority"             	: 240,
+		"cropLeft"             	: 0,
+		"cropRight"            	: 0,
+		"cropTop"              	: 0,
+		"cropBottom"           	: 0,
+		"redSignalThreshold"   	: 5,
+		"greenSignalThreshold" 	: 5,
+		"blueSignalThreshold"  	: 5,
+		"signalDetection"      	: false,
+		"cecDetection"         	: false,
+		"sDVOffsetMin"         	: 0.25,
+		"sDHOffsetMin"         	: 0.25,
+		"sDVOffsetMax"         	: 0.75,
+		"sDHOffsetMax"         	: 0.75,
+		"hdrToneMapping"		: false,
 		"fpsSoftwareDecimation"	: 1		
 	},
 
@@ -540,3 +540,4 @@
 		}
 	]
 }
+
