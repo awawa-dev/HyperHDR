@@ -42,38 +42,43 @@ class V4L2Worker : public  QThread
 {
 	Q_OBJECT	
 	friend class V4L2WorkerManager;
-public:	
-	void setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
-		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
-		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
-		   bool __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
-	void run();
 	
-	V4L2Worker();
-	~V4L2Worker();	
-signals:
-    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount);	
-    	void newFrameError(QString,unsigned int);
-//    	void finished();	   
-public slots:
-	void process_image_jpg_mt();
-private:			
+	public:	
+		void setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
+			   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
+			   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
+			   bool __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
+		void run();
+		
+		V4L2Worker();
+		~V4L2Worker();	
+	signals:
+	    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount);	
+	    	void newFrameError(QString,unsigned int);   
+	    					
+	private:								
+	#ifdef HAVE_TURBO_JPEG	
+		void process_image_jpg_mt();
+		tjhandle 	_decompress;		
+	#else
+		void*	 	_decompress;
+	#endif
+		
 	static	volatile bool	isActive;	
-	tjhandle 	_decompress;
-
-	uint8_t	*data;
-	int		size;
-	int		_width;
-	int		_height;
-	int		_subsamp;
-	int		_pixelDecimation;
-	unsigned	_cropLeft;
-	unsigned	_cropTop;
-	unsigned	_cropBottom;
-	unsigned	_cropRight;
-	int		_currentFrame;
-	bool 		_hdrToneMappingEnabled;
-	unsigned char*	lutBuffer;
+		
+		uint8_t	*data;
+		int		size;
+		int		_width;
+		int		_height;
+		int		_subsamp;
+		int		_pixelDecimation;
+		unsigned	_cropLeft;
+		unsigned	_cropTop;
+		unsigned	_cropBottom;
+		unsigned	_cropRight;
+		int		_currentFrame;
+		bool 		_hdrToneMappingEnabled;
+		unsigned char*	lutBuffer;
 };
 
 class V4L2WorkerManager : public  QObject

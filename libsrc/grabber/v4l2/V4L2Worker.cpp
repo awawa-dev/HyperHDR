@@ -28,6 +28,8 @@
 
 #include "grabber/V4L2Worker.h"
 
+
+
 volatile bool	V4L2Worker::isActive = false;
 
 V4L2WorkerManager::V4L2WorkerManager():
@@ -88,7 +90,7 @@ bool V4L2WorkerManager::isActive()
 {
 	return V4L2Worker::isActive;
 }
-	
+
 V4L2Worker::V4L2Worker():
 		_decompress(nullptr)
 {
@@ -123,17 +125,18 @@ void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int 
 
 void V4L2Worker::run()
 {
+	#ifdef HAVE_TURBO_JPEG	
 	if (isActive)
-		process_image_jpg_mt();		
+		process_image_jpg_mt();	
+	#endif	
 	
 	delete data;
-	data = nullptr;
-	
-	//emit finished(this);	
+	data = nullptr;	
 }
 
+#ifdef HAVE_TURBO_JPEG	
 void V4L2Worker::process_image_jpg_mt()
-{		
+{				
 	Image<ColorRgb> image(_width, _height);	
 		
 	if (_decompress == nullptr)	
@@ -220,7 +223,7 @@ void V4L2Worker::process_image_jpg_mt()
 	image.copy(imageFrame.bits(),totalBytes);					    			
 			
 	// exit
-	emit newFrame(image,_currentFrame);		
+	emit newFrame(image,_currentFrame);				
 }
-
+#endif
 
