@@ -133,10 +133,9 @@ void V4L2Grabber::setHdrToneMappingEnabled(bool enable)
 
 V4L2Grabber::~V4L2Grabber()
 {
-	if (lutBuffer!=NULL)
-		free(lutBuffer);
+	free(lutBuffer);
 	lutBuffer = NULL;
-	
+
 	uninit();
 }
 
