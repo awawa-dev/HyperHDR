@@ -12,4 +12,4 @@ jobs:
         uses: kolpav/purge-artifacts-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          expire-in: 14days # all artifacts at least 14 days old
+          expire-in: 14days # all artifacts at least 14 days old 

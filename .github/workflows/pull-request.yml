@@ -36,7 +36,7 @@ jobs:
         with:
           submodules: true
 
-      # Append PR number to version
+      # Append PR number to version 
       - name: Append PR number to version
         shell: bash
         run: |
