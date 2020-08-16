@@ -98,9 +98,10 @@ V4L2Worker::V4L2Worker():
 }
 
 V4L2Worker::~V4L2Worker(){
+#ifdef HAVE_TURBO_JPEG	
 	if (_decompress == nullptr)
 		tjDestroy(_decompress);
-
+#endif	
 }
 
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
