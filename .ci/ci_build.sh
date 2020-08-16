@@ -55,7 +55,8 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		hyperionproject/hyperion-ci:$DOCKER_TAG \
-		/bin/bash -c "mkdir hyperion && cp -r source/. /hyperion &&
+		/bin/bash -c "sudo apt-get install libturbojpeg0-dev -y &&
+		mkdir hyperion && cp -r source/. /hyperion &&
 		cd /hyperion && mkdir build && cd build &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
