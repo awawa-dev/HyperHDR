@@ -36,3 +36,4 @@ private:
 	int _cropBottom;
 	VideoMode _videoMode;
 };
+

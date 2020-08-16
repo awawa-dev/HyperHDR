@@ -1092,7 +1092,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	else
 	{
 #ifdef HAVE_TURBO_JPEG
-		if (_pixelFormat == PixelFormat::MJPEG && _initialized)
+		if (_pixelFormat == PixelFormat::MJPEG && _V4L2WorkerManager.isActive())
 		{		
 			if (_V4L2WorkerManager.workers == nullptr)
 			{	
