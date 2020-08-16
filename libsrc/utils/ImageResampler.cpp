@@ -256,3 +256,4 @@ void ImageResampler::processImageHDR2SDR(const uint8_t * data, int width, int he
 		}
 	}
 }
+

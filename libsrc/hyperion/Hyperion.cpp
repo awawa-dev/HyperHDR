@@ -39,7 +39,6 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
-
 Hyperion::Hyperion(quint8 instance)
 	: QObject()
 	, _instIndex(instance)
@@ -449,7 +448,6 @@ QList<int> Hyperion::getActivePriorities() const
 {
 	return _muxer.getPriorities();
 }
-
 
 Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 {
