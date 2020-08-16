@@ -118,8 +118,8 @@
 	///  * sDVOffsetMin         : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
 	///  * sDHOffsetMax         : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
 	///  * sDVOffsetMax         : area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
-	///  * hdrToneMapping		    : enable HDR to SDR tone mapping [default=false]
-	///  * fpsSoftwareDecimation	: process every n'th received frame [default=1]	
+	///  * hdrToneMapping	     : enable HDR to SDR tone mapping [default=false]
+	///  * fpsSoftwareDecimation: process every n'th received frame [default=1]	
 	"grabberV4L2" :
 	{
 		"device"               	: "auto",

@@ -76,4 +76,3 @@ void ColorSys::yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8
 	g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
 	b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];					
 }
-
