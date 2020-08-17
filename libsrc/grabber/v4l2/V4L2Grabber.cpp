@@ -122,13 +122,13 @@ void V4L2Grabber::setFpsSoftwareDecimation(int decimation)
 	Debug(_log,"setFpsSoftwareDecimation to: %i", decimation);
 }
 
-void V4L2Grabber::setHdrToneMappingEnabled(bool enable)
+void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 {
-	_hdrToneMappingEnabled = enable;
-	if (lutBuffer!=NULL || !enable)
-		Debug(_log,"setHdrToneMappingEnabled to: %s", enable ? "true" : "false");
+	_hdrToneMappingEnabled = mode;
+	if (lutBuffer!=NULL || !mode)
+		Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 	else
-		Error(_log,"setHdrToneMappingEnabled to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
+		Error(_log,"setHdrToneMappingMode to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
 }
 
 V4L2Grabber::~V4L2Grabber()
@@ -356,11 +356,28 @@ void V4L2Grabber::setSignalDetectionOffset(double horizontalMin, double vertical
 	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
 }
 
+void	V4L2Grabber::ResetCounter(uint64_t from)
+{
+	frameStat.frameBegin = from;
+	frameStat.averageFrame = 0;
+	frameStat.badFrame = 0;
+	frameStat.goodFrame = 0;
+}
+
 bool V4L2Grabber::start()
 {
 	try
 	{
+		ResetCounter(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
 		_V4L2WorkerManager.Start();
+		
+		#ifdef HAVE_JPEG_DECODER
+		if (_V4L2WorkerManager.workersCount<=1)
+			Info(_log, "Multithreading for MJPEG is disabled. Available thread's count %d",_V4L2WorkerManager.workersCount );
+		else
+			Info(_log, "Multithreading for MJPEG is enabled. Available thread's count %d",_V4L2WorkerManager.workersCount );
+		#endif
+		
 		if (init() && _streamNotifier != nullptr && !_streamNotifier->isEnabled())
 		{
 			_streamNotifier->setEnabled(true);
@@ -1091,19 +1108,36 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	}
 	else
 	{
-#ifdef HAVE_TURBO_JPEG
-		if (_pixelFormat == PixelFormat::MJPEG && _V4L2WorkerManager.isActive())
+#ifdef HAVE_JPEG_DECODER
+		if (_pixelFormat == PixelFormat::MJPEG && _V4L2WorkerManager.isActive() && _V4L2WorkerManager.workersCount>1)
 		{		
+			// benchmark
+			uint64_t currentTime=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+			long	 diff = currentTime - frameStat.frameBegin;
+			if ( diff >=1000)
+			{
+				int total = (frameStat.badFrame+frameStat.goodFrame);
+				int av = (total>0)?frameStat.averageFrame:0;
+				Debug(_log, "MJPEG FPS: %d, av. delay: %dms, good: %d, bad: %d (%dms)", 
+					total,
+					av,
+					frameStat.goodFrame,
+					frameStat.badFrame,
+					diff);
+
+				ResetCounter(currentTime);				
+			}
+			
 			if (_V4L2WorkerManager.workers == nullptr)
 			{	
 				_V4L2WorkerManager.InitWorkers();
 				Debug(_log, "Worker's thread count  = %d", _V4L2WorkerManager.workersCount);	
 				
-				for (unsigned int i=0; i < _V4L2WorkerManager.workersCount; i++)
+				for (unsigned int i=0; i < _V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers != nullptr; i++)
 				{
-					V4L2Worker* _workerThread=_V4L2WorkerManager.workers[i];
+					V4L2Worker* _workerThread=_V4L2WorkerManager.workers[i];					
 					connect(_workerThread, SIGNAL(newFrameError(QString,unsigned int)), this , SLOT(newWorkerFrameError(QString,unsigned int)));
-					connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int)));
+					connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int,quint64)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int,quint64)));
 					//connect(_workerThread, SIGNAL(finished()), _V4L2WorkerManager.workers[i], SLOT(quit()));							
 				}
 		    	}	 
@@ -1122,11 +1156,16 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					memcpy(_tempBuffer,(uint8_t*)p,size);							
 					
 					_workerThread->setup(_tempBuffer, size,_width,  _height,
-						_subsamp, _pixelDecimation,  _cropLeft,  _cropTop,
-						_cropBottom, _cropRight, processFrameIndex,_hdrToneMappingEnabled,lutBuffer);							
+			#ifdef HAVE_TURBO_JPEG
+						_subsamp, 
+			#else
+						0,
+			#endif			 
+						_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
+						processFrameIndex,currentTime,_hdrToneMappingEnabled,lutBuffer);							
 														
 					_V4L2WorkerManager.workers[i]->start();
-					Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
+					//Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
 					break;		
 				}
 			}
@@ -1143,13 +1182,17 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::newWorkerFrameError(QString error, unsigned int sourceCount)
 {
+	frameStat.badFrame++;
 	Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
 }
 
 
-void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount)
+void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount, quint64 _frameBegin)
 {
-	Debug(_log, "Frame index = %d <= received from the thread and it's ready", sourceCount);
+	frameStat.goodFrame++;
+	frameStat.averageFrame += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-_frameBegin;
+	
+	//Debug(_log, "Frame index = %d <= received from the thread and it's ready", sourceCount);
 	
 	if (_cecDetectionEnabled && _cecStandbyActivated)
 		return;

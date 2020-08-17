@@ -36,7 +36,7 @@ V4L2WorkerManager::V4L2WorkerManager():
 	workersCount(0),
 	workers(nullptr)	
 {
-
+	workersCount = QThread::idealThreadCount();
 }
 
 V4L2WorkerManager::~V4L2WorkerManager()
@@ -60,14 +60,15 @@ void V4L2WorkerManager::Start()
 }
 
 void V4L2WorkerManager::InitWorkers()
-{
-	
-	workersCount = QThread::idealThreadCount();
-	workers = new V4L2Worker*[workersCount];
-				
-	for (unsigned i=0;i<workersCount;i++)
-	{								
-		workers[i] = new V4L2Worker();
+{	
+	if (workersCount>1)
+	{
+		workers = new V4L2Worker*[workersCount];
+					
+		for (unsigned i=0;i<workersCount;i++)
+		{								
+			workers[i] = new V4L2Worker();
+		}
 	}
 }
 
@@ -106,8 +107,8 @@ V4L2Worker::~V4L2Worker(){
 
 void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
-		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
-		   bool __hdrToneMappingEnabled,unsigned char* _lutBuffer)
+		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
+		   int __hdrToneMappingEnabled,unsigned char* _lutBuffer)
 {
 	data = _data;
 	size = _size;
@@ -120,13 +121,14 @@ void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int 
 	_cropBottom = __cropBottom;
 	_cropRight = __cropRight;
 	_currentFrame = __currentFrame;
+	_frameBegin = __frameBegin;
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	lutBuffer = _lutBuffer;	
 }
 
 void V4L2Worker::run()
 {
-	#ifdef HAVE_TURBO_JPEG	
+	#ifdef HAVE_JPEG_DECODER
 	if (isActive)
 		process_image_jpg_mt();	
 	#endif	
@@ -135,28 +137,120 @@ void V4L2Worker::run()
 	data = nullptr;	
 }
 
-#ifdef HAVE_TURBO_JPEG	
+
+#ifdef HAVE_JPEG_DECODER
 void V4L2Worker::process_image_jpg_mt()
 {				
-	Image<ColorRgb> image(_width, _height);	
-		
-	if (_decompress == nullptr)	
-		_decompress = tjInitDecompress();	
 	
-	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
-	{	
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(info,_currentFrame);				
-		return;
-	}
+	Image<ColorRgb> image(_width, _height);		
+	
+	#ifdef HAVE_JPEG
+		_decompress = new jpeg_decompress_struct;
+		_error = new errorManager;
 
-	QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
-	if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-	{		
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(info,_currentFrame);
-		return;
-	}
+		_decompress->err = jpeg_std_error(&_error->pub);
+		_error->pub.error_exit = &errorHandler;
+		_error->pub.output_message = &outputHandler;
+
+		jpeg_create_decompress(_decompress);
+
+		if (setjmp(_error->setjmp_buffer))
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			
+			QString info = QString("JPG: buffer failed");
+			emit newFrameError(info,_currentFrame);
+			return;
+		}
+
+		jpeg_mem_src(_decompress, const_cast<uint8_t*>(data), size);
+
+		if (jpeg_read_header(_decompress, (bool) TRUE) != JPEG_HEADER_OK)
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			
+			QString info = QString("JPG: header failed");
+			emit newFrameError(info,_currentFrame);
+			return;
+		}
+
+		_decompress->scale_num = 1;
+		_decompress->scale_denom = 1;
+		_decompress->out_color_space = JCS_RGB;
+		_decompress->dct_method = JDCT_IFAST;
+
+		if (!jpeg_start_decompress(_decompress))
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			
+			QString info = QString("JPG: decompress failed");
+			emit newFrameError(info,_currentFrame);
+			return;
+		}
+
+		if (_decompress->out_color_components != 3)
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			
+			QString info = QString("JPG: incorrent color space");
+			emit newFrameError(info,_currentFrame);
+			return;	
+		}
+
+		QImage imageFrame = QImage(_decompress->output_width, _decompress->output_height, QImage::Format_RGB888);
+
+		int y = 0;
+		while (_decompress->output_scanline < _decompress->output_height)
+		{
+			uchar *row = imageFrame.scanLine(_decompress->output_scanline);
+			jpeg_read_scanlines(_decompress, &row, 1);
+			y++;
+		}
+
+		jpeg_finish_decompress(_decompress);
+		jpeg_destroy_decompress(_decompress);
+		delete _decompress;
+		delete _error;
+
+		if (_error->pub.num_warnings > 0)
+		{
+			QString info = QString("JPG library: there was some warnings");
+			emit newFrameError(info,_currentFrame);
+			return;	
+		}
+	#endif
+	#ifdef HAVE_TURBO_JPEG		
+		if (_decompress == nullptr)	
+			_decompress = tjInitDecompress();	
+		
+		if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
+		{	
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(info,_currentFrame);				
+			return;
+		}
+		
+		QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
+		
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+		{		
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(info,_currentFrame);
+			return;
+		}
+	#endif	
 	
 	if (imageFrame.isNull())
 	{
@@ -188,35 +282,59 @@ void V4L2Worker::process_image_jpg_mt()
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB        	
     	if (lutBuffer != NULL && _hdrToneMappingEnabled)
     	{
-    		unsigned int width = imageFrame.width();
-		unsigned int height = imageFrame.height();    		
-    		unsigned int sizeX= (width * 10)/100;
-    		unsigned int sizeY= (height *15)/100;		
-    		unsigned char* source = imageFrame.bits();
-    		
-    		for (unsigned int y=0; y<height; y++)
-    		{    	
-    			unsigned char* orgSource = source;		
-	    		for (unsigned int x=0; x<width; x++)    		
-				if (x>sizeX && x<width-sizeX && y>sizeY && y<height-sizeY)
-				{
-					x = width - sizeX;
-					source = orgSource + (x + 1) * 3;
-				}
-				else
-	    			{
-		    			unsigned char* r = source++;
-		    			unsigned char* g = source++;
-		    			unsigned char* b = source++;	    				    			
-		    			size_t ind_lutd = (
-						LUTD_Y_STRIDE(*r) +
-						LUTD_U_STRIDE(*g) +
-						LUTD_V_STRIDE(*b)
-					);
-					*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-					*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-					*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-		    		}
+    		if (_hdrToneMappingEnabled == 2)
+    		{
+    			// border mode
+	    		unsigned int width = imageFrame.width();
+			unsigned int height = imageFrame.height();    		
+	    		unsigned int sizeX= (width * 10)/100;
+	    		unsigned int sizeY= (height *17)/100;		
+	    		unsigned char* source = imageFrame.bits();
+	    		
+	    		for (unsigned int y=0; y<height; y++)
+	    		{    	
+	    			unsigned char* orgSource = source;		
+		    		for (unsigned int x=0; x<width; x++)    		
+					if (x>sizeX && x<width-sizeX && y>sizeY && y<height-sizeY)
+					{
+						x = width - sizeX;
+						source = orgSource + (x + 1) * 3;
+					}
+					else
+		    			{
+			    			unsigned char* r = source++;
+			    			unsigned char* g = source++;
+			    			unsigned char* b = source++;	    				    			
+			    			size_t ind_lutd = (
+							LUTD_Y_STRIDE(*r) +
+							LUTD_U_STRIDE(*g) +
+							LUTD_V_STRIDE(*b)
+						);
+						*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+						*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+						*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+			    		}
+			}
+		}
+		else		
+		{
+			// fullscreen
+			unsigned char* source = imageFrame.bits();
+			unsigned char* dest = source + totalBytes;
+	    		while (source < dest)
+	    		{
+	    			unsigned char* r = source++;
+	    			unsigned char* g = source++;
+	    			unsigned char* b = source++;	    				    			
+	    			size_t ind_lutd = (
+					LUTD_Y_STRIDE(*r) +
+					LUTD_U_STRIDE(*g) +
+					LUTD_V_STRIDE(*b)
+				);
+				*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+				*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+				*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+	    		}
 		}
     	}
     	
@@ -224,7 +342,7 @@ void V4L2Worker::process_image_jpg_mt()
 	image.copy(imageFrame.bits(),totalBytes);					    			
 			
 	// exit
-	emit newFrame(image,_currentFrame);				
+	emit newFrame(image,_currentFrame, _frameBegin);				
 }
 #endif
 

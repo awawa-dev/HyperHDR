@@ -115,9 +115,9 @@ void V4L2Wrapper::loadLutFile(QString path)
 	_grabber.loadLutFile(path);
 }
 
-void V4L2Wrapper::setHdrToneMappingEnabled(bool enable)
+void V4L2Wrapper::setHdrToneMappingEnabled(int mode)
 {
-	_grabber.setHdrToneMappingEnabled(enable);
+	_grabber.setHdrToneMappingEnabled(mode);
 }
 
 void V4L2Wrapper::setFpsSoftwareDecimation(int decimation)
@@ -155,7 +155,14 @@ void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
 
 		// HDR tone mapping
-		_grabber.setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false));
+		if (!obj["hdrToneMapping"].toBool(false))	
+		{
+			_grabber.setHdrToneMappingEnabled(0);
+		}
+		else
+		{
+			_grabber.setHdrToneMappingEnabled(obj["hdrToneMappingMode"].toInt(1));
+		}
 		
 		// software frame skipping
 		_grabber.setFpsSoftwareDecimation(obj["fpsSoftwareDecimation"].toInt(1));

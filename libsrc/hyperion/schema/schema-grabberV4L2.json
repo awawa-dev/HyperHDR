@@ -267,6 +267,22 @@
 			"required" : true,
 			"propertyOrder" : 25
 		},
+		"hdrToneMappingMode" :
+		{
+			"type" : "integer",	
+			"title" : "edt_conf_v4l2_hdrToneMappingMode_title",		
+			"append" : "edt_append_mode",
+			"minimum" : 1,
+			"maximum" : 2,
+			"default" : 1,
+			"required" : true,
+			"propertyOrder" : 26,
+			"options": {
+				"dependencies": {
+					"hdrToneMapping": true
+				}
+			}
+		},		
 		"fpsSoftwareDecimation" :
 		{
 			"type" : "integer",
@@ -275,7 +291,7 @@
 			"maximum" : 60,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 26
+			"propertyOrder" : 27
 		}
 	},
 	"additionalProperties" : true

@@ -46,22 +46,47 @@ class V4L2Worker : public  QThread
 	public:	
 		void setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
 			   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
-			   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, 
-			   bool __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
+			   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64 __frameBegin,
+			   int __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
 		void run();
 		
 		V4L2Worker();
 		~V4L2Worker();	
 	signals:
-	    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount);	
-	    	void newFrameError(QString,unsigned int);   
+	    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount, quint64 _frameBegin);	
+	    	void newFrameError(QString,unsigned int sourceCount);   
 	    					
 	private:								
-	#ifdef HAVE_TURBO_JPEG	
-		void process_image_jpg_mt();
-		tjhandle 	_decompress;		
+	#ifdef HAVE_TURBO_JPEG		
+		tjhandle 	_decompress;			
+	#endif
+	
+	#ifdef HAVE_JPEG_DECODER
+		void process_image_jpg_mt();	
 	#else
-		void*	 	_decompress;
+		void*	 	_decompress;		
+	#endif
+	
+	#ifdef HAVE_JPEG
+		struct errorManager
+		{
+			jpeg_error_mgr pub;
+			jmp_buf setjmp_buffer;
+		};
+
+		static void errorHandler(j_common_ptr cInfo)
+		{
+			errorManager* mgr = reinterpret_cast<errorManager*>(cInfo->err);
+			longjmp(mgr->setjmp_buffer, 1);
+		}
+
+		static void outputHandler(j_common_ptr cInfo)
+		{
+			// Suppress fprintf warnings.
+		}
+
+		jpeg_decompress_struct* _decompress;
+		errorManager* _error;
 	#endif
 		
 	static	volatile bool	isActive;	
@@ -77,7 +102,8 @@ class V4L2Worker : public  QThread
 		unsigned	_cropBottom;
 		unsigned	_cropRight;
 		int		_currentFrame;
-		bool 		_hdrToneMappingEnabled;
+		uint64_t	_frameBegin;
+		uint8_t	_hdrToneMappingEnabled;
 		unsigned char*	lutBuffer;
 };
 

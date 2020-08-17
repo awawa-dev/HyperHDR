@@ -549,9 +549,17 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				grabberConfig["sizeDecimation"].toInt(8));
 				
 		// HDR stuff		
-		_v4l2Grabber->loadLutFile(_rootPath);				
-		_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMapping"].toBool(false));
+		_v4l2Grabber->loadLutFile(_rootPath);			
+		if (!grabberConfig["hdrToneMapping"].toBool(false))	
+		{
+			_v4l2Grabber->setHdrToneMappingEnabled(0);
+		}
+		else
+		{
+			_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));
+		}
 		
+		Debug(_log, "V4L2 grabber created");
 		// software frame skipping
 		_v4l2Grabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
 		

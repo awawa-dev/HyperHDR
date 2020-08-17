@@ -3,6 +3,7 @@
 // stl includes
 #include <vector>
 #include <map>
+#include <chrono>
 
 // Qt includes
 #include <QObject>
@@ -164,7 +165,7 @@ public:
 	///
 	/// @brief enable HDR to SDR tone mapping (v4l2)
 	///
-	void setHdrToneMappingEnabled(bool enable);
+	void setHdrToneMappingEnabled(int mode);
 public slots:
 
 	bool start();
@@ -173,7 +174,7 @@ public slots:
 
 	void handleCecEvent(CECEvent event);
 	
-	void newWorkerFrame(Image<ColorRgb> image,unsigned int sourceCount);	
+	void newWorkerFrame(Image<ColorRgb> image,unsigned int sourceCount, quint64 _frameBegin);	
 	void newWorkerFrameError(QString error,unsigned int sourceCount);
 signals:
 	
@@ -270,13 +271,20 @@ private:
 
 private:
 	QString _deviceName;
-	std::map<QString, QString>						_v4lDevices;
+	std::map<QString, QString>			_v4lDevices;
 	QMap<QString, V4L2Grabber::DeviceProperties>	_deviceProperties;
-	VideoStandard									_videoStandard;
-	io_method										_ioMethod;
-	int												_fileDescriptor;
-	std::vector<buffer>								_buffers;
-
+	VideoStandard					_videoStandard;
+	io_method					_ioMethod;
+	int						_fileDescriptor;
+	std::vector<buffer>				_buffers;
+	
+	// statistics
+	struct {
+		uint64_t	frameBegin;
+		int   		averageFrame;
+		unsigned int	badFrame,goodFrame;
+	} frameStat;
+		
 	PixelFormat _pixelFormat;
 	int         _pixelDecimation;
 	int         _lineLength;
@@ -301,7 +309,7 @@ private:
 	bool _deviceAutoDiscoverEnabled;
 	
 	// enable/disable HDR tone mapping
-	bool _hdrToneMappingEnabled;
+	uint8_t _hdrToneMappingEnabled;
 	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
 	int _fpsSoftwareDecimation;
 	// memory buffer for 3DLUT HDR tone mapping
@@ -311,6 +319,7 @@ private:
 		
 	V4L2WorkerManager _V4L2WorkerManager;
 	
+	void	ResetCounter(uint64_t from);	
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

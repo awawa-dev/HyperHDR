@@ -118,8 +118,9 @@
 	///  * sDVOffsetMin         : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
 	///  * sDHOffsetMax         : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
 	///  * sDVOffsetMax         : area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
-	///  * hdrToneMapping		    : enable HDR to SDR tone mapping [default=false]
-	///  * fpsSoftwareDecimation	: process every n'th received frame [default=1]	
+	///  * hdrToneMapping       : enable HDR to SDR tone mapping using LUT table [default=0, on=1, border mode =2]
+	///  * hdrToneMappingMode   : LUT effect apply mode [fullscreen=1, border mode =2]
+	///  * fpsSoftwareDecimation: process every n'th received frame [default=1]	
 	"grabberV4L2" :
 	{
 		"device"               : "auto",
@@ -141,8 +142,9 @@
 		"sDHOffsetMin"         : 0.25,
 		"sDVOffsetMax"         : 0.75,
 		"sDHOffsetMax"         : 0.75,
-		"hdrToneMapping"		   : false,
-		"fpsSoftwareDecimation"	: 1		
+		"hdrToneMapping"       : false,
+		"hdrToneMappingMode"   : 1,	
+		"fpsSoftwareDecimation": 1		
 	},
 
 	///  The configuration for the frame-grabber, contains the following items:

@@ -47,7 +47,7 @@ public slots:
 	///
 	/// @brief enable HDR to SDR tone mapping (v4l2)
 	///
-	void setHdrToneMappingEnabled(bool enable);	
+	void setHdrToneMappingEnabled(int mode);	
 	
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
