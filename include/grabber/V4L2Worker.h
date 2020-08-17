@@ -48,6 +48,7 @@ class V4L2Worker : public  QThread
 			   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 			   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64 __frameBegin,
 			   int __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
+		void startOnThisThread();
 		void run();
 		
 		V4L2Worker();
@@ -56,13 +57,14 @@ class V4L2Worker : public  QThread
 	    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount, quint64 _frameBegin);	
 	    	void newFrameError(QString,unsigned int sourceCount);   
 	    					
-	private:								
+	private:
+		void process_image_jpg_mt();								
+		
 	#ifdef HAVE_TURBO_JPEG		
 		tjhandle 	_decompress;			
 	#endif
 	
-	#ifdef HAVE_JPEG_DECODER
-		void process_image_jpg_mt();	
+	#ifdef HAVE_JPEG_DECODER			
 	#else
 		void*	 	_decompress;		
 	#endif

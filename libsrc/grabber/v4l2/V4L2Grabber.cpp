@@ -1109,7 +1109,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	else
 	{
 #ifdef HAVE_JPEG_DECODER
-		if (_pixelFormat == PixelFormat::MJPEG && _V4L2WorkerManager.isActive() && _V4L2WorkerManager.workersCount>1)
+		if (_pixelFormat == PixelFormat::MJPEG && _V4L2WorkerManager.isActive())
 		{		
 			// benchmark
 			uint64_t currentTime=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -1163,8 +1163,11 @@ bool V4L2Grabber::process_image(const void *p, int size)
 			#endif			 
 						_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
 						processFrameIndex,currentTime,_hdrToneMappingEnabled,lutBuffer);							
-														
-					_V4L2WorkerManager.workers[i]->start();
+								
+					if (_V4L2WorkerManager.workersCount>1)					
+						_V4L2WorkerManager.workers[i]->start();
+					else
+						_V4L2WorkerManager.workers[i]->startOnThisThread();
 					//Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
 					break;		
 				}
@@ -1263,166 +1266,10 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 
 	Image<ColorRgb> image(_width, _height);
 
-/* ----------------------------------------------------------
- * ----------- BEGIN of JPEG decoder related code -----------
- * --------------------------------------------------------*/
-
-#ifdef HAVE_JPEG_DECODER
-	if (_pixelFormat == PixelFormat::MJPEG)
-	{
-#endif
-#ifdef HAVE_JPEG
-		_decompress = new jpeg_decompress_struct;
-		_error = new errorManager;
-
-		_decompress->err = jpeg_std_error(&_error->pub);
-		_error->pub.error_exit = &errorHandler;
-		_error->pub.output_message = &outputHandler;
-
-		jpeg_create_decompress(_decompress);
-
-		if (setjmp(_error->setjmp_buffer))
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			return;
-		}
-
-		jpeg_mem_src(_decompress, const_cast<uint8_t*>(data), size);
-
-		if (jpeg_read_header(_decompress, (bool) TRUE) != JPEG_HEADER_OK)
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			return;
-		}
-
-		_decompress->scale_num = 1;
-		_decompress->scale_denom = 1;
-		_decompress->out_color_space = JCS_RGB;
-		_decompress->dct_method = JDCT_IFAST;
-
-		if (!jpeg_start_decompress(_decompress))
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			return;
-		}
-
-		if (_decompress->out_color_components != 3)
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			return;
-		}
-
-		QImage imageFrame = QImage(_decompress->output_width, _decompress->output_height, QImage::Format_RGB888);
-
-		int y = 0;
-		while (_decompress->output_scanline < _decompress->output_height)
-		{
-			uchar *row = imageFrame.scanLine(_decompress->output_scanline);
-			jpeg_read_scanlines(_decompress, &row, 1);
-			y++;
-		}
-
-		jpeg_finish_decompress(_decompress);
-		jpeg_destroy_decompress(_decompress);
-		delete _decompress;
-		delete _error;
-
-		if (imageFrame.isNull() || _error->pub.num_warnings > 0)
-			return;
-#endif
-#ifdef HAVE_TURBO_JPEG
-		_decompress = tjInitDecompress();
-		if (_decompress == nullptr)
-			return;
-
-		if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
-		{
-			tjDestroy(_decompress);
-			return;
-		}
-
-		QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-		{
-			tjDestroy(_decompress);
-			return;
-		}
-
-		tjDestroy(_decompress);
-
-		if (imageFrame.isNull())
-			return;
-#endif
-#ifdef HAVE_JPEG_DECODER
-		if (_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0)
-		{
-			QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
-			imageFrame = imageFrame.copy(rect);
-		}
-		if (_pixelDecimation>1)
-			imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
-
-		if ((image.width() != unsigned(imageFrame.width())) || (image.height() != unsigned(imageFrame.height())))
-			image.resize(imageFrame.width(), imageFrame.height());
-
-		if (lutBuffer == NULL || !_hdrToneMappingEnabled)
-		{		
-			for (int y=0; y<imageFrame.height(); ++y)
-				for (int x=0; x<imageFrame.width(); ++x)
-				{
-					QColor inPixel(imageFrame.pixel(x,y));
-					ColorRgb & outPixel = image(x,y);
-					outPixel.red   = inPixel.red();
-					outPixel.green = inPixel.green();
-					outPixel.blue  = inPixel.blue();
-				}
-		}
-		else
-		{
-
-
-			for (int y=0; y<imageFrame.height(); ++y)
-				for (int x=0; x<imageFrame.width(); ++x)
-				{
-					QColor inPixel(imageFrame.pixel(x,y));
-					ColorRgb & outPixel = image(x,y);
-
-					size_t ind_lutd = (
-						LUTD_Y_STRIDE(inPixel.red()) +
-						LUTD_U_STRIDE(inPixel.green()) +
-						LUTD_V_STRIDE(inPixel.blue())
-					);
-
-					outPixel.red   = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-					outPixel.green = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-					outPixel.blue  = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-				}
-		}
-	}
+	if (lutBuffer == NULL || !_hdrToneMappingEnabled)
+		_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
 	else
-#endif
-
-/* ----------------------------------------------------------
- * ------------ END of JPEG decoder related code ------------
- * --------------------------------------------------------*/
-	{
-		if (lutBuffer == NULL || !_hdrToneMappingEnabled)
-			_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
-		else
-			_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
-	}
+		_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 
 	checkSignalDetectionEnabled(image);
 }

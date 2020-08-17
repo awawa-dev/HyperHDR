@@ -61,7 +61,7 @@ void V4L2WorkerManager::Start()
 
 void V4L2WorkerManager::InitWorkers()
 {	
-	if (workersCount>1)
+	if (workersCount>=1)
 	{
 		workers = new V4L2Worker*[workersCount];
 					
@@ -135,6 +135,11 @@ void V4L2Worker::run()
 	
 	delete data;
 	data = nullptr;	
+}
+
+void V4L2Worker::startOnThisThread()
+{	
+	this->run();
 }
 
 
@@ -274,7 +279,6 @@ void V4L2Worker::process_image_jpg_mt()
 		image.resize(imageFrame.width(), imageFrame.height());
 	}
 
-
 	// prepare to copy buffer	
     	unsigned int totalBytes = (imageFrame.width() * imageFrame.height() * 3);
     	
@@ -339,7 +343,7 @@ void V4L2Worker::process_image_jpg_mt()
     	}
     	
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB
-	image.copy(imageFrame.bits(),totalBytes);					    			
+	image.copy(imageFrame.bits(),totalBytes);			
 			
 	// exit
 	emit newFrame(image,_currentFrame, _frameBegin);				
