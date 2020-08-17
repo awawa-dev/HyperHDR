@@ -1117,7 +1117,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 			if ( diff >=1000)
 			{
 				int total = (frameStat.badFrame+frameStat.goodFrame);
-				int av = (total>0)?frameStat.averageFrame:0;
+				int av = (total>0)?frameStat.averageFrame/total:0;
 				Debug(_log, "MJPEG FPS: %d, av. delay: %dms, good: %d, bad: %d (%dms)", 
 					total,
 					av,
