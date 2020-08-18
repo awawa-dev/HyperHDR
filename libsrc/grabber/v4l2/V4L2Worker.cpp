@@ -341,9 +341,20 @@ void V4L2Worker::process_image_jpg_mt()
 	    		}
 		}
     	}
-    	
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB
-	image.copy(imageFrame.bits(),totalBytes);			
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
+    	if (imageFrame.width()%4)
+    	{
+    		// fix array aligment
+    		for (unsigned int y=0; y<imageFrame.height(); y++)
+    		{
+			unsigned char* source = imageFrame.scanLine(y);
+			unsigned char* dest = (unsigned char*)image.memptr()+y*image.width()*3;    		
+			memcpy(dest,source,imageFrame.width()*3);
+    		}
+    		
+    	}
+	else
+		image.copy(imageFrame.bits(),totalBytes);			
 			
 	// exit
 	emit newFrame(image,_currentFrame, _frameBegin);				
