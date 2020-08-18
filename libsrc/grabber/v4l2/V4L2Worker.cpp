@@ -345,7 +345,8 @@ void V4L2Worker::process_image_jpg_mt()
     	if (imageFrame.width()%4)
     	{
     		// fix array aligment
-    		for (unsigned int y=0; y<imageFrame.height(); y++)
+    		unsigned int height = (unsigned int)imageFrame.height();  
+    		for (unsigned int y=0; y<height; y++)
     		{
 			unsigned char* source = imageFrame.scanLine(y);
 			unsigned char* dest = (unsigned char*)image.memptr()+y*image.width()*3;    		

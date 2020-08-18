@@ -124,7 +124,10 @@ private:
 
 	/// the current streaming led values
 	std::vector<ColorRgb> _currentLedValues;
-
+	
+	// when the last image was send to protect buffer overflow
+	uint64_t _lastSendImage;
+	
 	///
 	/// @brief Handle the switches of Hyperion instances
 	/// @param instance the instance to switch

@@ -4,6 +4,7 @@
 // stl includes
 #include <iostream>
 #include <iterator>
+#include <chrono>
 
 // Qt includes
 #include <QResource>
@@ -76,6 +77,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_jsonCB = new JsonCB(this);
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
+	_lastSendImage = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 }
 
@@ -1515,6 +1517,15 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb> &ledColors)
 
 void JsonAPI::setImage(const Image<ColorRgb> &image)
 {
+	// protect buffer from overflow
+	uint64_t _currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	if (_currentTime - _lastSendImage <200)
+	{
+		//Debug(_log, "setImage buffer overflow protection %d",_currentTime - _lastSendImage);
+		return;
+	}	
+	_lastSendImage = _currentTime;
+	
 	QImage jpgImage((const uint8_t *)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
 	QByteArray ba;
 	QBuffer buffer(&ba);
