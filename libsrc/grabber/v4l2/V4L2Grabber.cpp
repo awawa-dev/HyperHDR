@@ -1199,10 +1199,7 @@ void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount
 	frameStat.averageFrame += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-_frameBegin;
 	
 	//Debug(_log, "Frame index = %d <= received from the thread and it's ready", sourceCount);
-	
-	if (_cecDetectionEnabled && _cecStandbyActivated)
-		return;
-		
+
 	checkSignalDetectionEnabled(image);
 }
 
