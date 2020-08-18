@@ -60,6 +60,7 @@ class V4L2Worker : public  QThread
 	    	void newFrameError(QString,unsigned int sourceCount);   
 	    					
 	private:
+		void runMe();
 		void process_image_jpg_mt();								
 		
 	#ifdef HAVE_TURBO_JPEG		

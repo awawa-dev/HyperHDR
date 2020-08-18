@@ -93,7 +93,8 @@ bool V4L2WorkerManager::isActive()
 }
 
 V4L2Worker::V4L2Worker():
-		_decompress(nullptr)
+		_decompress(nullptr),
+		data(nullptr)
 {
 	
 }
@@ -103,6 +104,9 @@ V4L2Worker::~V4L2Worker(){
 	if (_decompress == nullptr)
 		tjDestroy(_decompress);
 #endif	
+	if (data != nullptr)
+		delete data;
+	data = nullptr;	
 }
 
 void V4L2Worker::setup(VideoMode __videoMode,PixelFormat __pixelFormat, 
@@ -133,6 +137,11 @@ void V4L2Worker::setup(VideoMode __videoMode,PixelFormat __pixelFormat,
 
 void V4L2Worker::run()
 {
+	runMe();	
+}
+
+void V4L2Worker::runMe()
+{
 	if (isActive)
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
@@ -161,13 +170,14 @@ void V4L2Worker::run()
 	}
 	
 	// cleanup
-	delete data;
+	if (data != nullptr)
+		delete data;
 	data = nullptr;	
 }
 
 void V4L2Worker::startOnThisThread()
 {	
-	this->run();
+	runMe();
 }
 
 
