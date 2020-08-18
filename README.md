@@ -4,10 +4,9 @@ This fork is based on [Hyperion](https://github.com/hyperion-project/hyperion.ng
 
 ### Features:
 
-* Really low CPU on SoCs like Raspberry Pi
+* Really low CPU usage on SoCs like Raspberry Pi
 * HDR color correction
 * support for multitreading for USB grabbers
-* 
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
