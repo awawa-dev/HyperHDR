@@ -8,6 +8,8 @@ This fork is based on [Hyperion](https://github.com/hyperion-project/hyperion.ng
 * HDR color correction
 * support for multitreading for USB grabbers
 
+<img src='https://i.postimg.cc/RZnQtydk/changes.png' border='0' alt='changes'/>
+
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
 [![GitHub license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE)
