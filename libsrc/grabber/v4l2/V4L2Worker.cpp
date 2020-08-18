@@ -105,11 +105,16 @@ V4L2Worker::~V4L2Worker(){
 #endif	
 }
 
-void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int __subsamp, 
-		   int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
-		   unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
-		   int __hdrToneMappingEnabled,unsigned char* _lutBuffer)
+void V4L2Worker::setup(VideoMode __videoMode,PixelFormat __pixelFormat, 
+			uint8_t * _data, int _size,int __width, int __height, int __lineLength,
+			int __subsamp, 
+			int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
+			unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
+			int __hdrToneMappingEnabled,unsigned char* _lutBuffer)
 {
+	_lineLength = __lineLength;
+	_videoMode = __videoMode;
+	_pixelFormat = __pixelFormat;
 	data = _data;
 	size = _size;
 	_width = __width;
@@ -128,11 +133,34 @@ void V4L2Worker::setup(uint8_t * _data, int _size,int __width, int __height,int 
 
 void V4L2Worker::run()
 {
-	#ifdef HAVE_JPEG_DECODER
 	if (isActive)
-		process_image_jpg_mt();	
-	#endif	
+	{
+		if (_pixelFormat == PixelFormat::MJPEG)
+		{
+		#ifdef HAVE_JPEG_DECODER		
+			process_image_jpg_mt();	
+		#endif	
+		}
+		else
+		{
+			Image<ColorRgb> image(_width, _height);
+			ImageResampler _imageResampler;
+			
+			_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
+			_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
+			_imageResampler.setCropping(_cropLeft, _cropRight, _cropTop, _cropBottom);
+			_imageResampler.setVideoMode(_videoMode);
 	
+			if (lutBuffer == NULL || !_hdrToneMappingEnabled)
+				_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+			else
+				_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+				
+			emit newFrame(image,_currentFrame, _frameBegin);		
+		}
+	}
+	
+	// cleanup
 	delete data;
 	data = nullptr;	
 }

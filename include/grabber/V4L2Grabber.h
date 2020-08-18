@@ -210,8 +210,6 @@ private:
 
 	bool process_image(const void *p, int size);
 
-	void process_image(const uint8_t *p, int size);
-
 	int xioctl(int request, void *arg);
 
 	int xioctl(int fileDescriptor, int request, void *arg);

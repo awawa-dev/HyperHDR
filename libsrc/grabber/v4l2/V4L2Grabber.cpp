@@ -1094,8 +1094,14 @@ int V4L2Grabber::read_frame()
 bool V4L2Grabber::process_image(const void *p, int size)
 {	
 	unsigned int processFrameIndex = _currentFrame++;
+	
+	// frame skipping
 	if ( (processFrameIndex % _fpsSoftwareDecimation != 0) && (_fpsSoftwareDecimation > 1))
 		return false;
+		
+	// CEC detection
+	if (_cecDetectionEnabled && _cecStandbyActivated)
+		return false;		
 
 	// We do want a new frame...
 #ifdef HAVE_JPEG_DECODER
@@ -1108,8 +1114,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	}
 	else
 	{
-#ifdef HAVE_JPEG_DECODER
-		if (_pixelFormat == PixelFormat::MJPEG && _V4L2WorkerManager.isActive())
+		if (_V4L2WorkerManager.isActive())
 		{		
 			// benchmark
 			uint64_t currentTime=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -1118,7 +1123,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 			{
 				int total = (frameStat.badFrame+frameStat.goodFrame);
 				int av = (total>0)?frameStat.averageFrame/total:0;
-				Debug(_log, "MJPEG FPS: %d, av. delay: %dms, good: %d, bad: %d (%dms)", 
+				Debug(_log, "VidFrame FPS: %d, av. delay: %dms, good: %d, bad: %d (%dms)", 
 					total,
 					av,
 					frameStat.goodFrame,
@@ -1138,7 +1143,6 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					V4L2Worker* _workerThread=_V4L2WorkerManager.workers[i];					
 					connect(_workerThread, SIGNAL(newFrameError(QString,unsigned int)), this , SLOT(newWorkerFrameError(QString,unsigned int)));
 					connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int,quint64)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int,quint64)));
-					//connect(_workerThread, SIGNAL(finished()), _V4L2WorkerManager.workers[i], SLOT(quit()));							
 				}
 		    	}	 
 		    	
@@ -1155,7 +1159,10 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					uint8_t* _tempBuffer = new uint8_t[size];					
 					memcpy(_tempBuffer,(uint8_t*)p,size);							
 					
-					_workerThread->setup(_tempBuffer, size,_width,  _height,
+					_workerThread->setup(
+						_videoMode,
+						_pixelFormat,
+						_tempBuffer, size, _width, _height, _lineLength,
 			#ifdef HAVE_TURBO_JPEG
 						_subsamp, 
 			#else
@@ -1172,12 +1179,8 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					break;		
 				}
 			}
-		}
-		else
-#endif		
-			process_image(reinterpret_cast<const uint8_t *>(p), size);
-		return true;
-		
+			return true;			
+		}		
 	}
 
 	return false;
@@ -1256,22 +1259,6 @@ void V4L2Grabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 	{
 		emit newFrame(image);
 	}
-}
-
-void V4L2Grabber::process_image(const uint8_t * data, int size)
-{
-
-	if (_cecDetectionEnabled && _cecStandbyActivated)
-		return;
-
-	Image<ColorRgb> image(_width, _height);
-
-	if (lutBuffer == NULL || !_hdrToneMappingEnabled)
-		_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
-	else
-		_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
-
-	checkSignalDetectionEnabled(image);
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
