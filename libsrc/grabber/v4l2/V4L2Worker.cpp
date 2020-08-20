@@ -35,7 +35,7 @@ volatile bool	V4L2Worker::_isActive = false;
 V4L2WorkerManager::V4L2WorkerManager():	
 	workers(nullptr)	
 {
-	workersCount = QThread::idealThreadCount();
+	workersCount = std::max(QThread::idealThreadCount(),1);
 }
 
 V4L2WorkerManager::~V4L2WorkerManager()
