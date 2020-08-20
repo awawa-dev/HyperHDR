@@ -32,8 +32,7 @@
 
 volatile bool	V4L2Worker::isActive = false;
 
-V4L2WorkerManager::V4L2WorkerManager():
-	workersCount(0),
+V4L2WorkerManager::V4L2WorkerManager():	
 	workers(nullptr)	
 {
 	workersCount = QThread::idealThreadCount();
@@ -93,8 +92,7 @@ bool V4L2WorkerManager::isActive()
 }
 
 V4L2Worker::V4L2Worker():
-		_decompress(nullptr),
-		data(nullptr)
+		_decompress(nullptr)
 {
 	
 }
@@ -103,23 +101,22 @@ V4L2Worker::~V4L2Worker(){
 #ifdef HAVE_TURBO_JPEG	
 	if (_decompress == nullptr)
 		tjDestroy(_decompress);
-#endif	
-	if (data != nullptr)
-		delete data;
-	data = nullptr;	
+#endif			
 }
 
-void V4L2Worker::setup(VideoMode __videoMode,PixelFormat __pixelFormat, 
-			uint8_t * _data, int _size,int __width, int __height, int __lineLength,
+void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, VideoMode __videoMode,PixelFormat __pixelFormat, 
+			uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 			int __subsamp, 
 			int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 			unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
 			int __hdrToneMappingEnabled,unsigned char* _lutBuffer)
 {
+	_workerIndex = __workerIndex;  
+	memcpy(&_v4l2Buf,__v4l2Buf,sizeof (v4l2_buffer));
 	_lineLength = __lineLength;
 	_videoMode = __videoMode;
 	_pixelFormat = __pixelFormat;
-	data = _data;
+	sharedData = _sharedData;
 	size = _size;
 	_width = __width;
 	_height = __height;
@@ -133,6 +130,11 @@ void V4L2Worker::setup(VideoMode __videoMode,PixelFormat __pixelFormat,
 	_frameBegin = __frameBegin;
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	lutBuffer = _lutBuffer;	
+}
+
+v4l2_buffer* V4L2Worker::GetV4L2Buffer()
+{
+	return &_v4l2Buf;
 }
 
 void V4L2Worker::run()
@@ -161,18 +163,13 @@ void V4L2Worker::runMe()
 			_imageResampler.setVideoMode(_videoMode);
 	
 			if (lutBuffer == NULL || !_hdrToneMappingEnabled)
-				_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+				_imageResampler.processImage(sharedData, _width, _height, _lineLength, _pixelFormat, image);
 			else
-				_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+				_imageResampler.processImageHDR2SDR(sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
-			emit newFrame(image,_currentFrame, _frameBegin);		
+			emit newFrame(_workerIndex, image,_currentFrame, _frameBegin);		
 		}
-	}
-	
-	// cleanup
-	if (data != nullptr)
-		delete data;
-	data = nullptr;	
+	}		
 }
 
 void V4L2Worker::startOnThisThread()
@@ -205,11 +202,11 @@ void V4L2Worker::process_image_jpg_mt()
 			delete _error;
 			
 			QString info = QString("JPG: buffer failed");
-			emit newFrameError(info,_currentFrame);
+			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;
 		}
 
-		jpeg_mem_src(_decompress, const_cast<uint8_t*>(data), size);
+		jpeg_mem_src(_decompress, const_cast<uint8_t*>(sharedData), size);
 
 		if (jpeg_read_header(_decompress, (bool) TRUE) != JPEG_HEADER_OK)
 		{
@@ -219,7 +216,7 @@ void V4L2Worker::process_image_jpg_mt()
 			delete _error;
 			
 			QString info = QString("JPG: header failed");
-			emit newFrameError(info,_currentFrame);
+			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;
 		}
 
@@ -236,7 +233,7 @@ void V4L2Worker::process_image_jpg_mt()
 			delete _error;
 			
 			QString info = QString("JPG: decompress failed");
-			emit newFrameError(info,_currentFrame);
+			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;
 		}
 
@@ -248,7 +245,7 @@ void V4L2Worker::process_image_jpg_mt()
 			delete _error;
 			
 			QString info = QString("JPG: incorrent color space");
-			emit newFrameError(info,_currentFrame);
+			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;	
 		}
 
@@ -270,7 +267,7 @@ void V4L2Worker::process_image_jpg_mt()
 		if (_error->pub.num_warnings > 0)
 		{
 			QString info = QString("JPG library: there was some warnings");
-			emit newFrameError(info,_currentFrame);
+			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;	
 		}
 	#endif
@@ -278,19 +275,19 @@ void V4L2Worker::process_image_jpg_mt()
 		if (_decompress == nullptr)	
 			_decompress = tjInitDecompress();	
 		
-		if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
+		if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(sharedData), size, &_width, &_height, &_subsamp) != 0)
 		{	
 			QString info = QString(tjGetErrorStr());
-			emit newFrameError(info,_currentFrame);				
+			emit newFrameError(_workerIndex, info,_currentFrame);				
 			return;
 		}
 		
 		QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
 		
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 		{		
 			QString info = QString(tjGetErrorStr());
-			emit newFrameError(info,_currentFrame);
+			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;
 		}
 	#endif	
@@ -298,7 +295,7 @@ void V4L2Worker::process_image_jpg_mt()
 	if (imageFrame.isNull())
 	{
 		QString info = QString("Empty frame detected");
-		emit newFrameError(info,_currentFrame);
+		emit newFrameError(_workerIndex, info,_currentFrame);
 		return;	
 	}
 
@@ -396,7 +393,7 @@ void V4L2Worker::process_image_jpg_mt()
 		image.copy(imageFrame.bits(),totalBytes);			
 			
 	// exit
-	emit newFrame(image,_currentFrame, _frameBegin);				
+	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);				
 }
 #endif
 
