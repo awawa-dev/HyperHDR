@@ -18,6 +18,7 @@
 #include <grabber/VideoStandard.h>
 #include <utils/Components.h>
 #include <cec/CECEvent.h>
+#include <linux/videodev2.h>
 
 // general JPEG decoder includes
 #ifdef HAVE_JPEG_DECODER
@@ -44,8 +45,10 @@ class V4L2Worker : public  QThread
 	friend class V4L2WorkerManager;
 	
 	public:	
-		void setup(VideoMode __videoMode, PixelFormat __pixelFormat,
-				uint8_t * _data, int _size,int __width, int __height, int __lineLength,
+		void setup(
+				unsigned int _workerIndex, v4l2_buffer* __v4l2Buf,
+				VideoMode __videoMode, PixelFormat __pixelFormat,
+				uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 				int __subsamp, 
 				int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
 				unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64 __frameBegin,
@@ -53,11 +56,13 @@ class V4L2Worker : public  QThread
 		void startOnThisThread();
 		void run();
 		
+		v4l2_buffer* GetV4L2Buffer();
+		
 		V4L2Worker();
 		~V4L2Worker();	
 	signals:
-	    	void newFrame(Image<ColorRgb> data, unsigned int sourceCount, quint64 _frameBegin);	
-	    	void newFrameError(QString,unsigned int sourceCount);   
+	    	void newFrame(unsigned int workerIndex, Image<ColorRgb> data, unsigned int sourceCount, quint64 _frameBegin);	
+	    	void newFrameError(unsigned int workerIndex, QString,unsigned int sourceCount);   
 	    					
 	private:
 		void runMe();
@@ -94,10 +99,13 @@ class V4L2Worker : public  QThread
 		errorManager* _error;
 	#endif
 		
-	static	volatile bool	isActive;	
+	static	volatile bool	isActive;
+	
+		unsigned int 	_workerIndex;
+		struct v4l2_buffer _v4l2Buf;
 		VideoMode 	_videoMode;	
 		PixelFormat	_pixelFormat;		
-		uint8_t	*data;
+		uint8_t	*sharedData;
 		int		size;
 		int		_width;
 		int		_height;

@@ -174,8 +174,8 @@ public slots:
 
 	void handleCecEvent(CECEvent event);
 	
-	void newWorkerFrame(Image<ColorRgb> image,unsigned int sourceCount, quint64 _frameBegin);	
-	void newWorkerFrameError(QString error,unsigned int sourceCount);
+	void newWorkerFrame(unsigned int _workerIndex, Image<ColorRgb> image,unsigned int sourceCount, quint64 _frameBegin);	
+	void newWorkerFrameError(unsigned int _workerIndex, QString error,unsigned int sourceCount);
 signals:
 	
 	void newFrame(const Image<ColorRgb> & image);
@@ -193,12 +193,8 @@ private:
 	bool open_device();
 
 	void close_device();
-
-	void init_read(unsigned int buffer_size);
-
-	void init_mmap();
-
-	void init_userp(unsigned int buffer_size);
+	
+	void init_mmap();	
 
 	void init_device(VideoStandard videoStandard);
 
@@ -208,7 +204,7 @@ private:
 
 	void stop_capturing();
 
-	bool process_image(const void *p, int size);
+	bool process_image(v4l2_buffer* buf, const void *frameImageBuffer, int size);
 
 	int xioctl(int request, void *arg);
 
@@ -229,9 +225,9 @@ private:
 private:
 	enum io_method
 	{
-			IO_METHOD_READ,
-			IO_METHOD_MMAP,
-			IO_METHOD_USERPTR
+			
+			IO_METHOD_MMAP
+			
 	};
 
 	struct buffer

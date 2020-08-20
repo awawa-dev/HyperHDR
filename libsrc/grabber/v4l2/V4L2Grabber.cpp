@@ -455,20 +455,6 @@ void V4L2Grabber::close_device()
 	_streamNotifier = nullptr;
 }
 
-void V4L2Grabber::init_read(unsigned int buffer_size)
-{
-	_buffers.resize(1);
-
-	_buffers[0].length = buffer_size;
-	_buffers[0].start = malloc(buffer_size);
-
-	if (!_buffers[0].start)
-	{
-		throw_exception("Out of memory");
-		return;
-	}
-}
-
 void V4L2Grabber::init_mmap()
 {
 	struct v4l2_requestbuffers req;
@@ -533,45 +519,6 @@ void V4L2Grabber::init_mmap()
 	}
 }
 
-void V4L2Grabber::init_userp(unsigned int buffer_size)
-{
-	struct v4l2_requestbuffers req;
-
-	CLEAR(req);
-
-	req.count  = 4;
-	req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory = V4L2_MEMORY_USERPTR;
-
-	if (-1 == xioctl(VIDIOC_REQBUFS, &req))
-	{
-		if (EINVAL == errno)
-		{
-			throw_exception("'" + _deviceName + "' does not support user pointer");
-			return;
-		}
-		else
-		{
-			throw_errno_exception("VIDIOC_REQBUFS");
-			return;
-		}
-	}
-
-	_buffers.resize(4);
-
-	for (size_t n_buffers = 0; n_buffers < 4; ++n_buffers)
-	{
-		_buffers[n_buffers].length = buffer_size;
-		_buffers[n_buffers].start = malloc(buffer_size);
-
-		if (!_buffers[n_buffers].start)
-		{
-			throw_exception("Out of memory");
-			return;
-		}
-	}
-}
-
 void V4L2Grabber::init_device(VideoStandard videoStandard)
 {
 	struct v4l2_capability cap;
@@ -598,19 +545,8 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	}
 
 	switch (_ioMethod)
-	{
-		case IO_METHOD_READ:
-		{
-			if (!(cap.capabilities & V4L2_CAP_READWRITE))
-			{
-				throw_exception("'" + _deviceName + "' does not support read i/o");
-				return;
-			}
-		}
-		break;
-
-		case IO_METHOD_MMAP:
-		case IO_METHOD_USERPTR:
+	{		
+		case IO_METHOD_MMAP:		
 		{
 			if (!(cap.capabilities & V4L2_CAP_STREAMING))
 			{
@@ -843,17 +779,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	}
 
 	switch (_ioMethod)
-	{
-		case IO_METHOD_READ:
-			init_read(fmt.fmt.pix.sizeimage);
-		break;
-
+	{		
 		case IO_METHOD_MMAP:
 			init_mmap();
-		break;
-
-		case IO_METHOD_USERPTR:
-			init_userp(fmt.fmt.pix.sizeimage);
 		break;
 	}
 }
@@ -861,11 +789,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 void V4L2Grabber::uninit_device()
 {
 	switch (_ioMethod)
-	{
-		case IO_METHOD_READ:
-			free(_buffers[0].start);
-		break;
-
+	{		
 		case IO_METHOD_MMAP:
 		{
 			for (size_t i = 0; i < _buffers.size(); ++i)
@@ -875,14 +799,7 @@ void V4L2Grabber::uninit_device()
 					return;
 				}
 		}
-		break;
-
-		case IO_METHOD_USERPTR:
-		{
-			for (size_t i = 0; i < _buffers.size(); ++i)
-				free(_buffers[i].start);
-		}
-		break;
+		break;		
 	}
 
 	_buffers.resize(0);
@@ -891,11 +808,7 @@ void V4L2Grabber::uninit_device()
 void V4L2Grabber::start_capturing()
 {
 	switch (_ioMethod)
-	{
-		case IO_METHOD_READ:
-			/* Nothing to do. */
-			break;
-
+	{		
 		case IO_METHOD_MMAP:
 		{
 			for (size_t i = 0; i < _buffers.size(); ++i)
@@ -920,34 +833,7 @@ void V4L2Grabber::start_capturing()
 				return;
 			}
 			break;
-		}
-		case IO_METHOD_USERPTR:
-		{
-			for (size_t i = 0; i < _buffers.size(); ++i)
-			{
-				struct v4l2_buffer buf;
-
-				CLEAR(buf);
-				buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-				buf.memory = V4L2_MEMORY_USERPTR;
-				buf.index = i;
-				buf.m.userptr = (unsigned long)_buffers[i].start;
-				buf.length = _buffers[i].length;
-
-				if (-1 == xioctl(VIDIOC_QBUF, &buf))
-				{
-					throw_errno_exception("VIDIOC_QBUF");
-					return;
-				}
-			}
-			v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			if (-1 == xioctl(VIDIOC_STREAMON, &type))
-			{
-				throw_errno_exception("VIDIOC_STREAMON");
-				return;
-			}
-			break;
-		}
+		}		
 	}
 }
 
@@ -956,12 +842,8 @@ void V4L2Grabber::stop_capturing()
 	enum v4l2_buf_type type;
 
 	switch (_ioMethod)
-	{
-		case IO_METHOD_READ:
-			break; /* Nothing to do. */
-
-		case IO_METHOD_MMAP:
-		case IO_METHOD_USERPTR:
+	{		
+		case IO_METHOD_MMAP:		
 		{
 			type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			ErrorIf((xioctl(VIDIOC_STREAMOFF, &type) == -1), _log, "VIDIOC_STREAMOFF  error code  %d, %s", errno, strerror(errno));
@@ -979,28 +861,7 @@ int V4L2Grabber::read_frame()
 		struct v4l2_buffer buf;
 
 		switch (_ioMethod)
-		{
-			case IO_METHOD_READ:
-			{
-				int size;
-				if ((size = read(_fileDescriptor, _buffers[0].start, _buffers[0].length)) == -1)
-				{
-					switch (errno)
-					{
-						case EAGAIN:
-							return 0;
-
-						case EIO: /* Could ignore EIO, see spec. */
-						default:
-							throw_errno_exception("read");
-						return 0;
-					}
-				}
-
-				rc = process_image(_buffers[0].start, size);
-			}
-			break;
-
+		{			
 			case IO_METHOD_MMAP:
 			{
 				CLEAR(buf);
@@ -1028,58 +889,15 @@ int V4L2Grabber::read_frame()
 
 				assert(buf.index < _buffers.size());
 
-				rc = process_image(_buffers[buf.index].start, buf.bytesused);
-
-				if (-1 == xioctl(VIDIOC_QBUF, &buf))
+				rc = process_image(&buf, _buffers[buf.index].start, buf.bytesused);
+				// if error get next frame, other wise leave it to signals
+				if (!rc && -1 == xioctl(VIDIOC_QBUF, &buf))
 				{
 					throw_errno_exception("VIDIOC_QBUF");
 					return 0;
 				}
 			}
-			break;
-
-			case IO_METHOD_USERPTR:
-			{
-				CLEAR(buf);
-
-				buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-				buf.memory = V4L2_MEMORY_USERPTR;
-
-				if (-1 == xioctl(VIDIOC_DQBUF, &buf))
-				{
-					switch (errno)
-					{
-						case EAGAIN:
-							return 0;
-
-						case EIO: /* Could ignore EIO, see spec. */
-						default:
-						{
-							throw_errno_exception("VIDIOC_DQBUF");
-							stop();
-							getV4Ldevices();
-						}
-						return 0;
-					}
-				}
-
-				for (size_t i = 0; i < _buffers.size(); ++i)
-				{
-					if (buf.m.userptr == (unsigned long)_buffers[i].start && buf.length == _buffers[i].length)
-					{
-						break;
-					}
-				}
-
-				rc = process_image((void *)buf.m.userptr, buf.bytesused);
-
-				if (-1 == xioctl(VIDIOC_QBUF, &buf))
-				{
-					throw_errno_exception("VIDIOC_QBUF");
-					return 0;
-				}
-			}
-			break;
+			break;			
 		}
 	}
 	catch (std::exception& e)
@@ -1091,17 +909,18 @@ int V4L2Grabber::read_frame()
 	return rc ? 1 : 0;
 }
 
-bool V4L2Grabber::process_image(const void *p, int size)
+bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, int size)
 {	
+	bool frameSend = false;
 	unsigned int processFrameIndex = _currentFrame++;
 	
 	// frame skipping
 	if ( (processFrameIndex % _fpsSoftwareDecimation != 0) && (_fpsSoftwareDecimation > 1))
-		return false;
+		return frameSend;
 		
 	// CEC detection
 	if (_cecDetectionEnabled && _cecStandbyActivated)
-		return false;		
+		return frameSend;		
 
 	// We do want a new frame...
 #ifdef HAVE_JPEG_DECODER
@@ -1141,8 +960,8 @@ bool V4L2Grabber::process_image(const void *p, int size)
 				for (unsigned int i=0; i < _V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers != nullptr; i++)
 				{
 					V4L2Worker* _workerThread=_V4L2WorkerManager.workers[i];					
-					connect(_workerThread, SIGNAL(newFrameError(QString,unsigned int)), this , SLOT(newWorkerFrameError(QString,unsigned int)));
-					connect(_workerThread, SIGNAL(newFrame(Image<ColorRgb>,unsigned int,quint64)), this , SLOT(newWorkerFrame(Image<ColorRgb>, unsigned int,quint64)));
+					connect(_workerThread, SIGNAL(newFrameError(unsigned int, QString,unsigned int)), this , SLOT(newWorkerFrameError(unsigned int, QString,unsigned int)));
+					connect(_workerThread, SIGNAL(newFrame(unsigned int, Image<ColorRgb>,unsigned int,quint64)), this , SLOT(newWorkerFrame(unsigned int, Image<ColorRgb>, unsigned int,quint64)));
 				}
 		    	}	 
 		    	
@@ -1153,16 +972,14 @@ bool V4L2Grabber::process_image(const void *p, int size)
 						
 				if (_V4L2WorkerManager.workers[i]->isFinished() || !_V4L2WorkerManager.workers[i]->isRunning())
 				{				
-					V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];
-										
-										
-					uint8_t* _tempBuffer = new uint8_t[size];					
-					memcpy(_tempBuffer,(uint8_t*)p,size);							
+					V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];											
 					
 					_workerThread->setup(
+						i, 
+						buf,
 						_videoMode,
 						_pixelFormat,
-						_tempBuffer, size, _width, _height, _lineLength,
+						(uint8_t *)frameImageBuffer, size, _width, _height, _lineLength,
 			#ifdef HAVE_TURBO_JPEG
 						_subsamp, 
 			#else
@@ -1176,24 +993,33 @@ bool V4L2Grabber::process_image(const void *p, int size)
 					else
 						_V4L2WorkerManager.workers[i]->startOnThisThread();
 					//Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
+					frameSend = true;
 					break;		
 				}
-			}
-			return true;			
+			}						
 		}		
 	}
 
-	return false;
+	return frameSend;
 }
 
-void V4L2Grabber::newWorkerFrameError(QString error, unsigned int sourceCount)
+void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, unsigned int sourceCount)
 {
 	frameStat.badFrame++;
 	Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	
+	// get next frame
+	if (workerIndex>_V4L2WorkerManager.workersCount || 
+  	   _V4L2WorkerManager.workers == nullptr ||
+  	   _V4L2WorkerManager.isActive() == false ||
+	    xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+	{
+		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver", sourceCount);	
+	}
 }
 
 
-void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount, quint64 _frameBegin)
+void V4L2Grabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, unsigned int sourceCount, quint64 _frameBegin)
 {
 	frameStat.goodFrame++;
 	frameStat.averageFrame += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-_frameBegin;
@@ -1201,6 +1027,15 @@ void V4L2Grabber::newWorkerFrame(Image<ColorRgb> image, unsigned int sourceCount
 	//Debug(_log, "Frame index = %d <= received from the thread and it's ready", sourceCount);
 
 	checkSignalDetectionEnabled(image);
+	
+	// get next frame
+	if (workerIndex>_V4L2WorkerManager.workersCount || 
+  	   _V4L2WorkerManager.workers == nullptr ||
+  	   _V4L2WorkerManager.isActive() == false ||
+	    xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+	{
+		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver", sourceCount);	
+	}
 }
 
 void V4L2Grabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
