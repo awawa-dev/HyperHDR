@@ -374,9 +374,9 @@ bool V4L2Grabber::start()
 		
 		#ifdef HAVE_JPEG_DECODER
 		if (_V4L2WorkerManager.workersCount<=1)
-			Info(_log, "Multithreading for MJPEG is disabled. Available thread's count %d",_V4L2WorkerManager.workersCount );
+			Info(_log, "Multithreading for V4L2 is disabled. Available thread's count %d",_V4L2WorkerManager.workersCount );
 		else
-			Info(_log, "Multithreading for MJPEG is enabled. Available thread's count %d",_V4L2WorkerManager.workersCount );
+			Info(_log, "Multithreading for V4L2 is enabled. Available thread's count %d",_V4L2WorkerManager.workersCount );
 		#endif
 		
 		if (init() && _streamNotifier != nullptr && !_streamNotifier->isEnabled())
