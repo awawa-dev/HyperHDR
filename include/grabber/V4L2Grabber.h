@@ -276,7 +276,7 @@ private:
 	struct {
 		uint64_t	frameBegin;
 		int   		averageFrame;
-		unsigned int	badFrame,goodFrame;
+		unsigned int	badFrame,goodFrame,segment;
 	} frameStat;
 		
 	PixelFormat _pixelFormat;

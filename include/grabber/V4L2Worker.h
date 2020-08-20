@@ -11,6 +11,7 @@
 #include <QMap>
 #include <QMultiMap>
 #include <QThread>
+#include <QSemaphore>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -57,6 +58,8 @@ class V4L2Worker : public  QThread
 		void run();
 		
 		v4l2_buffer* GetV4L2Buffer();
+		bool isBusy();
+		void noBusy();
 		
 		V4L2Worker();
 		~V4L2Worker();	
@@ -99,8 +102,9 @@ class V4L2Worker : public  QThread
 		errorManager* _error;
 	#endif
 		
-	static	volatile bool	isActive;
-	
+	static	volatile bool	_isActive;
+		volatile bool  _isBusy;
+		QSemaphore	_semaphore;
 		unsigned int 	_workerIndex;
 		struct v4l2_buffer _v4l2Buf;
 		VideoMode 	_videoMode;	
