@@ -362,6 +362,7 @@ void	V4L2Grabber::ResetCounter(uint64_t from)
 	frameStat.averageFrame = 0;
 	frameStat.badFrame = 0;
 	frameStat.goodFrame = 0;
+	frameStat.segment = 0;
 }
 
 bool V4L2Grabber::start()
@@ -938,16 +939,17 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 			// benchmark
 			uint64_t currentTime=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 			long	 diff = currentTime - frameStat.frameBegin;
-			if ( diff >=1000)
+			if ( diff >=1000*60)
 			{
 				int total = (frameStat.badFrame+frameStat.goodFrame);
 				int av = (total>0)?frameStat.averageFrame/total:0;
-				Debug(_log, "VidFrame FPS: %d, av. delay: %dms, good: %d, bad: %d (%dms)", 
-					total,
+				Debug(_log, "Video FPS: %.2f, av. delay: %dms, good: %d, bad: %d (%.2f,%d)", 
+					total/60.0,
 					av,
 					frameStat.goodFrame,
 					frameStat.badFrame,
-					diff);
+					diff/1000.0,
+					frameStat.segment);
 
 				ResetCounter(currentTime);				
 			}
@@ -965,38 +967,41 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 				}
 		    	}	 
 		    	
+		    	frameStat.segment|=(1<<buf->index);
+		    	
 			for (unsigned int i=0;_V4L2WorkerManager.isActive() && 
 						i < _V4L2WorkerManager.workersCount && 
 						_V4L2WorkerManager.workers != nullptr; i++)
-			{			
+			{													
+				if ((_V4L2WorkerManager.workers[i]->isFinished() || !_V4L2WorkerManager.workers[i]->isRunning()))
+					// aquire lock
+					if ( _V4L2WorkerManager.workers[i]->isBusy() == false)
+					{		
+						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];											
 						
-				if (_V4L2WorkerManager.workers[i]->isFinished() || !_V4L2WorkerManager.workers[i]->isRunning())
-				{				
-					V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];											
-					
-					_workerThread->setup(
-						i, 
-						buf,
-						_videoMode,
-						_pixelFormat,
-						(uint8_t *)frameImageBuffer, size, _width, _height, _lineLength,
-			#ifdef HAVE_TURBO_JPEG
-						_subsamp, 
-			#else
-						0,
-			#endif			 
-						_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
-						processFrameIndex,currentTime,_hdrToneMappingEnabled,lutBuffer);							
-								
-					if (_V4L2WorkerManager.workersCount>1)					
-						_V4L2WorkerManager.workers[i]->start();
-					else
-						_V4L2WorkerManager.workers[i]->startOnThisThread();
-					//Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
-					frameSend = true;
-					break;		
-				}
-			}						
+						_workerThread->setup(
+							i, 
+							buf,
+							_videoMode,
+							_pixelFormat,
+							(uint8_t *)frameImageBuffer, size, _width, _height, _lineLength,
+				#ifdef HAVE_TURBO_JPEG
+							_subsamp, 
+				#else
+							0,
+				#endif			 
+							_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
+							processFrameIndex,currentTime,_hdrToneMappingEnabled,lutBuffer);							
+									
+						if (_V4L2WorkerManager.workersCount>1)					
+							_V4L2WorkerManager.workers[i]->start();
+						else
+							_V4L2WorkerManager.workers[i]->startOnThisThread();
+						//Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
+						frameSend = true;
+						break;		
+					}
+				}						
 		}		
 	}
 
@@ -1006,16 +1011,22 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, unsigned int sourceCount)
 {
 	frameStat.badFrame++;
-	Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
 	
 	// get next frame
-	if (workerIndex>_V4L2WorkerManager.workersCount || 
-  	   _V4L2WorkerManager.workers == nullptr ||
-  	   _V4L2WorkerManager.isActive() == false ||
-	    xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+	if (workerIndex >_V4L2WorkerManager.workersCount)
+		Error(_log, "Frame index = %d, index out of range", sourceCount);	
+		
+	else if (_V4L2WorkerManager.workers == nullptr ||
+		 _V4L2WorkerManager.isActive() == false ||
+		 xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
 	{
-		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver", sourceCount);	
+		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = %d, worker = %d, is_active = %d.", 
+				sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());	
 	}
+	
+	if (workerIndex <=_V4L2WorkerManager.workersCount)
+		_V4L2WorkerManager.workers[workerIndex]->noBusy();	
 }
 
 
@@ -1029,13 +1040,19 @@ void V4L2Grabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image
 	checkSignalDetectionEnabled(image);
 	
 	// get next frame
-	if (workerIndex>_V4L2WorkerManager.workersCount || 
-  	   _V4L2WorkerManager.workers == nullptr ||
-  	   _V4L2WorkerManager.isActive() == false ||
-	    xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+	if (workerIndex >_V4L2WorkerManager.workersCount)
+		Error(_log, "Frame index = %d, index out of range", sourceCount);	
+		
+	else if (_V4L2WorkerManager.workers == nullptr ||
+		 _V4L2WorkerManager.isActive() == false ||
+		 xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
 	{
-		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver", sourceCount);	
+		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = %d, worker = %d, is_active = %d.", 
+				sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());	
 	}
+	
+	if (workerIndex <=_V4L2WorkerManager.workersCount)
+		_V4L2WorkerManager.workers[workerIndex]->noBusy();
 }
 
 void V4L2Grabber::checkSignalDetectionEnabled(Image<ColorRgb> image)

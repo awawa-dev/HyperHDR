@@ -30,7 +30,7 @@
 
 
 
-volatile bool	V4L2Worker::isActive = false;
+volatile bool	V4L2Worker::_isActive = false;
 
 V4L2WorkerManager::V4L2WorkerManager():	
 	workers(nullptr)	
@@ -55,7 +55,7 @@ V4L2WorkerManager::~V4L2WorkerManager()
 
 void V4L2WorkerManager::Start()
 {
-	V4L2Worker::isActive = true;
+	V4L2Worker::_isActive = true;
 }
 
 void V4L2WorkerManager::InitWorkers()
@@ -73,7 +73,7 @@ void V4L2WorkerManager::InitWorkers()
 
 void V4L2WorkerManager::Stop()
 {
-	V4L2Worker::isActive =  false;
+	V4L2Worker::_isActive =  false;
 
 	if (workers != nullptr)
 	{
@@ -88,11 +88,13 @@ void V4L2WorkerManager::Stop()
 
 bool V4L2WorkerManager::isActive()
 {
-	return V4L2Worker::isActive;
+	return V4L2Worker::_isActive;
 }
 
 V4L2Worker::V4L2Worker():
-		_decompress(nullptr)
+		_decompress(nullptr),
+		_isBusy(false),
+		_semaphore(1)
 {
 	
 }
@@ -144,7 +146,7 @@ void V4L2Worker::run()
 
 void V4L2Worker::runMe()
 {
-	if (isActive)
+	if (_isActive)
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
 		{
@@ -177,6 +179,27 @@ void V4L2Worker::startOnThisThread()
 	runMe();
 }
 
+bool V4L2Worker::isBusy()
+{	
+	bool temp;
+	_semaphore.acquire();
+	if (_isBusy)
+		temp = true;
+	else
+	{
+		temp = false;	
+		_isBusy = true;
+	}
+	_semaphore.release();
+	return temp;
+}
+
+void V4L2Worker::noBusy()
+{	
+	_semaphore.acquire();
+	_isBusy = false;
+	_semaphore.release();
+}
 
 #ifdef HAVE_JPEG_DECODER
 void V4L2Worker::process_image_jpg_mt()
