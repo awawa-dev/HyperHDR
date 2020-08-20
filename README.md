@@ -4,7 +4,11 @@ This fork is based on [Hyperion](https://github.com/hyperion-project/hyperion.ng
 
 ## Download package
 
-to be done soon
+Rpi 3 Debian Buster<br/>
+<a href = "https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Buster-Rpi3-armv7l.deb">https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Buster-Rpi3-armv7l.deb</a>
+<br/>
+Ubuntu <br/>
+<a href = "https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Ubuntu-x86_64.deb">https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Ubuntu-x86_64.deb</a>
 
 ### New features of this fork:
 
