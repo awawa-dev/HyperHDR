@@ -2,13 +2,9 @@
 
 This fork is based on [Hyperion](https://github.com/hyperion-project/hyperion.ng) that is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufacturers. It supports many LED devices and video grabbers. The project is still in a alpha development stage (no stable release available).
 
-## Download package
+## Download packages & sources
 
-<b>Rpi 3 Debian Buster</b><br/>
-<a href = "https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Buster-Rpi3-armv7l.deb">https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Buster-Rpi3-armv7l.deb</a>
-<br/><br/>
-<b>Ubuntu</b><br/>
-<a href = "https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Ubuntu-x86_64.deb">https://github.com/awawa-dev/hyperion.ng/releases/download/v3.2.0.7A/Hyperion-3.2.0.7A-Linux-Ubuntu-x86_64.deb</a>
+https://github.com/awawa-dev/hyperion.ng/releases/tag/v4.2.0.7A
 
 ### New features of this fork:
 
