@@ -17,6 +17,137 @@ var m1=0.1593017578125;
 var m2=78.84375;
 
 
+/// import starts here (credits go for https://github.com/lildadou/FastLED )
+
+  var parsers = {
+    "3dl": {
+      parseHeader: function(lines) {        
+		while (lines[0] !== 'undefined')
+		{
+			if (lines[0].indexOf("#")==-1)
+				break;
+			lines.shift();
+		}
+		
+        var header = lines.shift().split(" ").map(parseInt);
+        var cubeSize = header.length;
+        return {        
+          cubeSize: cubeSize,
+		  max : 0
+        };
+      },
+      parseEntry: function(textEntry) {
+        var e = textEntry.split(" ").map(function (c) { return parseInt(c); });
+        return {
+          r: e[0],
+          g: e[1],
+          b: e[2]
+        };
+      }
+    }
+  };
+
+  function onFileChange() {
+    var reader = new FileReader();
+    var file = this.files[0];
+    var fileExt = file.name.split('.').pop();
+    if (parsers[fileExt] === undefined) {
+      alert("This file ext is not supported");
+      return;
+    }
+
+    reader.onloadend = function(readerEvent) {
+      onFileReaded(readerEvent.target.result, fileExt);
+    };
+    reader.readAsText(file);
+  }
+
+  function onFileReaded(fileContent, fileExt) {
+    var lutModel = parseFileContent(fileContent, parsers[fileExt]);
+	
+	lut = new Uint8Array(256*256*256*3);
+	for (var r = 0; r < 256; r++)
+	{		
+		for (var g = 0; g < 256; g++)
+		{	
+			for (var b = 0; b < 256; b++)
+			{
+				var ir =  clamp( Math.floor (r /  (256/lutModel.header.cubeSize)),0,lutModel.header.cubeSize-1);
+				var ig =  clamp( Math.floor (g /  (256/lutModel.header.cubeSize)),0,lutModel.header.cubeSize-1);
+				var ib =  clamp( Math.floor (b /  (256/lutModel.header.cubeSize)),0,lutModel.header.cubeSize-1);
+				var res = Array(3);
+				var t = lutModel.cube[ir][ig][ib];
+				res[0] =  t.r;
+				res[1] =  t.g;
+				res[2] =  t.b;
+				
+				if (lutModel.header.max>300)
+				{
+					for (var s=0;s<3;s++)
+						res[s]=clamp(Math.floor((res[s]*255)/4096),0,255);
+				}
+				var index = lutIndex(r,g,b);
+				lut[index + lutIndexC(0)]=res[0];
+				lut[index + lutIndexC(1)]=res[1];
+				lut[index + lutIndexC(2)]=res[2];							
+			}
+		}
+	}   
+	rendertest();
+  }
+
+  function parseFileContent(fileContent, parser) {
+    var lines = fileContent.split("\n");
+    var header = parser.parseHeader(lines);
+    var cubeDims = header.cubeSize;
+    var cubeArray = makeCube(cubeDims);
+    var indexes = [0, 0, -1];
+    while (hasNext3DIndex(indexes, cubeDims)) {
+      inc3DIndex(indexes, cubeDims);
+      var line = lines.shift();
+      var lutEntry = parser.parseEntry(line);
+	  if (lutEntry.r>header.max)
+		  header.max = lutEntry.r;
+	  if (lutEntry.g>header.max)
+		  header.max = lutEntry.g;
+	  if (lutEntry.b>header.max)
+		  header.max = lutEntry.b;	  
+      cubeArray[indexes[0]][indexes[1]][indexes[2]] = lutEntry;	  
+    }
+
+    return {
+      header: header,
+      cube: cubeArray
+    };
+  }
+
+  function makeCube(dim, depth) {
+    var _d = (typeof depth === "undefined")?3:depth;
+    var result = Array(dim).fill(0);
+    if (_d > 1) {
+      return result.map(makeCube.bind(null, dim, _d-1));
+    } else {
+      return result;
+    }
+  }
+
+  function hasNext3DIndex(indexes, dim) {
+    return indexes.reduce(function (acc, i) { return acc+i;}, 0) < (dim-1)*3;
+  }
+
+  function inc3DIndex(indexes, dim) {
+    indexes[2] += 1;
+    for (var i=2; i > 0; i--) {
+      if (indexes[i] >= dim) {
+        indexes[i-1] += 1;
+        indexes[i] %= dim;
+      }
+    }
+
+    return indexes;
+}
+///import ends
+
 function clamp(val,min,max)
 {
 	return Math.min(Math.max(min, val), max);
@@ -164,6 +295,9 @@ function load()
 	c.renderImage(data);
 
 	document.getElementById('inpImage').onchange = handleImage;	
+	
+	var lutFileInput = document.getElementById('lut-file-input');
+    lutFileInput.addEventListener('change', onFileChange, false);
 }
 
 function MakeLut()
@@ -264,6 +398,11 @@ async function TestImage()
 
 			
 
+	rendertest();
+}
+
+function rendertest()
+{
 	var canvas = document.getElementById('myCanvas');
 	var context = canvas.getContext('2d');
 	context.drawImage(document.getElementById('backup'), 0, 0);
@@ -351,7 +490,9 @@ function extendedReinhard(c_in, l_new, l_old)
 			</td>
 			<td>
 				 <input type="file" id="inpImage" style="display:none"/>
-				 <button type="button" style="width:200px" onclick="document.getElementById('inpImage').click()">Upload test image</button>
+				 <button type="button" style="width:200px" onclick="document.getElementById('inpImage').click()">Upload test image</button><br/>
+				 <input id="lut-file-input" type="file" accept=".3dl" style="display:none">
+				 <button type="button" style="width:200px" onclick="document.getElementById('lut-file-input').click()">Import 3dl LUT table</button>
 			</td>
 		</tr>
 
