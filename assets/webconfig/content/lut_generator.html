@@ -84,7 +84,7 @@ var m2=78.84375;
 				if (lutModel.header.max>300)
 				{
 					for (var s=0;s<3;s++)
-						res[s]=clamp(Math.floor((res[s]*255)/4096),0,255);
+						res[s]=clamp(Math.floor(res[s]*255/4096),0,255);
 				}
 				var index = lutIndex(r,g,b);
 				lut[index + lutIndexC(0)]=res[0];
@@ -318,6 +318,7 @@ function MakeLut()
 
 function MakeLutPart(i)
 {
+	var bt2020 = (document.getElementById('bt2020').checked)?1:0;
 	var algo = (document.getElementById('algoR').checked)?"R":"H";
 	var gain = 100;
 	var peak = 1;
@@ -330,7 +331,7 @@ function MakeLutPart(i)
 		{	
 			for (var b = 0; b < 256; b++)
 			{
-				var res = MakeLutElem(r,g,b,algo,gain,1);
+				var res = MakeLutElem(r,g,b,algo,bt2020,gain,1);
 				var index = lutIndex(r,g,b);
 				lut[index + lutIndexC(0)]=res[0];
 				lut[index + lutIndexC(1)]=res[1];
@@ -348,7 +349,7 @@ function RefreshProgress(i)
 }
 
 
-function MakeLutElem(r,g,b,algo,gain,peak)
+function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 {	
 	var input = new Array(3);
 	
@@ -357,12 +358,16 @@ function MakeLutElem(r,g,b,algo,gain,peak)
 	input[2] = b / 255.0;
 	
 	
+
+
+	
+	
+	
 	for (var chnl = 0; chnl < 3; chnl++) {
 		input[chnl] = gam_pq_lin(input[chnl])*gain;
 	}
 
 	
-
 	if (algo=="R")
 	{
 		var l_old = (0.2126 * input[0] + 0.7152 * input[1] + 0.0722 * input[2]);
@@ -382,7 +387,21 @@ function MakeLutElem(r,g,b,algo,gain,peak)
 		input[chnl] = gam_lin_srgb(input[chnl]);
 	}
 
-
+	if (bt2020==1)
+	{
+		// bt2020_bt709
+		var cmat = [
+			 1.6605, -0.5876, -0.0728,
+			-0.1246,  1.1329, -0.0083,
+			-0.0182, -0.1006,  1.1187
+		];
+		
+		var buf_rgb = new Array(3);
+		buf_rgb[0] = input[0] * cmat[0] + input[1] * cmat[1] + input[2] * cmat[2]; //Red
+		buf_rgb[1] = input[0] * cmat[3] + input[1] * cmat[4] + input[2] * cmat[5]; //Green
+		buf_rgb[2] = input[0] * cmat[6] + input[1] * cmat[7] + input[2] * cmat[8]; //Blue
+		input = buf_rgb;
+	}
 
 	input[0] = clamp((input[0] * 255.0), 0, 255);
 	input[1] = clamp((input[1] * 255.0), 0, 255);
@@ -449,29 +468,37 @@ function extendedReinhard(c_in, l_new, l_old)
 	<td>
 		<table>
 		<tr height="64px" width="100%">
-			<td width="50%" colspan="2">
+			<td width="30%" colspan="2">
 				<label for="lut_progress">Generating LUT:</label>
 			</td>
-			<td>
+			<td colspan="2">
 		 		<progress width="100%" id="lut_progress" value="0" max="100"></progress>
 			</td>
 		</tr>
 		<tr height="64px">   
 			<td colspan="2">
-				Enter gain (default 100):
+				Enter gain (default 70):
 			</td>
+			<td colspan="2">
+				<input type="number" id="gain" min="0" max="10000" value=70>
 			<td>
-				<input type="number" id="gain" min="0" max="10000" value=100>
+		</tr>
+		<tr height="64px">   
+			<td colspan="2">
+				BT.2020 to BT.709:
+			</td>
+			<td colspan="2">
+				<input type="checkbox" id="bt2020" checked>
 			<td>
 		</tr>
 		<tr height="64px">
 			<td>
-				Hable<input type="radio" id="algoH" name="algo" value="H" checked>
+					Hable<input type="radio" id="algoH" name="algo" value="H" checked>
 			</td>
 			<td>				
 			        Reinhard<input type="radio" id="algoR" name="algo" value="R" >
 			</td>
-			<td>
+			<td colspan="2">
 
 			        None<input type="radio" id="algoN" name="algo" value="N">
 			</td>
@@ -480,7 +507,7 @@ function extendedReinhard(c_in, l_new, l_old)
 			<td colspan="2">
 				 <button type="button" onclick="MakeLut()" style="width:200px">Generate LUT</button>
 			</td>
-			<td>
+			<td colspan="2">
 				 <button type="button" onclick="SaveLut()" style="width:200px">Save LUT</button>
 			</td>
 		</tr>
@@ -491,8 +518,10 @@ function extendedReinhard(c_in, l_new, l_old)
 			<td>
 				 <input type="file" id="inpImage" style="display:none"/>
 				 <button type="button" style="width:200px" onclick="document.getElementById('inpImage').click()">Upload test image</button><br/>
+			</td>
+			<td>				 
 				 <input id="lut-file-input" type="file" accept=".3dl" style="display:none">
-				 <button type="button" style="width:200px" onclick="document.getElementById('lut-file-input').click()">Import 3dl LUT table</button>
+				 <button type="button" style="width:200px" onclick="document.getElementById('lut-file-input').click()">Import 3dl Autodesk lut table</button>
 			</td>
 		</tr>
 
