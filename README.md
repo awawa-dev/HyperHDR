@@ -4,13 +4,19 @@ This fork is based on [Hyperion](https://github.com/hyperion-project/hyperion.ng
 
 ## Download packages & sources
 
-https://github.com/awawa-dev/hyperion.ng/releases/tag/v4.2.0.7A
+https://github.com/awawa-dev/hyperion.ng/releases
 
 ### New features of this fork:
 
 * <b>Really low CPU</b> usage on SoCs like Raspberry Pi using v4l2 grabbers
 * HDR color correction
 * support for multitreading for USB grabbers
+
+<b>Before and after on some HDR/BT2020 content that was broken by the video grabber:</b>
+<img src='https://i.postimg.cc/SRdv0VFd/compare0.png'/>
+<img src='https://i.postimg.cc/7PncTPGz/compare1.png'/>
+<img src='https://i.postimg.cc/9FXkP3Zn/compare2.png'/>
+
 
 <img src='https://i.postimg.cc/RZnQtydk/changes.png' border='0' alt='changes'/>
 
