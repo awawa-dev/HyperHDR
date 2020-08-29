@@ -150,8 +150,14 @@ void V4L2Worker::runMe()
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
 		{
-		#ifdef HAVE_JPEG_DECODER		
-			process_image_jpg_mt();	
+		#ifdef HAVE_JPEG_DECODER	
+			#ifdef HAVE_TURBO_JPEG		
+				if (!(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0 || _pixelDecimation>1))
+					process_image_jpg_mt_turbo();	
+				else
+			#endif	
+				process_image_jpg_mt();					
+			
 		#endif	
 		}
 		else
@@ -201,7 +207,35 @@ void V4L2Worker::noBusy()
 	_semaphore.release();
 }
 
-#ifdef HAVE_JPEG_DECODER
+
+void V4L2Worker::process_image_jpg_mt_turbo()
+{				
+	Image<ColorRgb> image(_width, _height);		
+		
+	if (_decompress == nullptr)	
+		_decompress = tjInitDecompress();	
+	
+	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(sharedData), size, &_width, &_height, &_subsamp) != 0)
+	{	
+		QString info = QString(tjGetErrorStr());
+		emit newFrameError(_workerIndex, info,_currentFrame);				
+		return;
+	}
+			
+	if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), size, (unsigned char*)image.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+	{		
+		QString info = QString(tjGetErrorStr());
+		emit newFrameError(_workerIndex, info,_currentFrame);
+		return;
+	}
+
+	// apply LUT	
+    	applyLUT((unsigned char*)image.memptr(), _width, _height, _width*3);
+			
+	// exit
+	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);	
+}
+
 void V4L2Worker::process_image_jpg_mt()
 {				
 	
@@ -337,71 +371,12 @@ void V4L2Worker::process_image_jpg_mt()
 		image.resize(imageFrame.width(), imageFrame.height());
 	}
 
-	// prepare to copy buffer	
-    	unsigned int totalBytes = (imageFrame.width() * imageFrame.height() * 3);
-    	
-    	// apply LUT table mapping
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB        	
-    	if (lutBuffer != NULL && _hdrToneMappingEnabled)
-    	{
-    		if (_hdrToneMappingEnabled == 2)
-    		{
-    			// border mode
-	    		unsigned int width = imageFrame.width();
-			unsigned int height = imageFrame.height();    		
-	    		unsigned int sizeX= (width * 10)/100;
-	    		unsigned int sizeY= (height *17)/100;		
-	    		unsigned char* source = imageFrame.bits();
-	    		
-	    		for (unsigned int y=0; y<height; y++)
-	    		{    	
-	    			unsigned char* orgSource = source;		
-		    		for (unsigned int x=0; x<width; x++)    		
-					if (x>sizeX && x<width-sizeX && y>sizeY && y<height-sizeY)
-					{
-						x = width - sizeX;
-						source = orgSource + (x + 1) * 3;
-					}
-					else
-		    			{
-			    			unsigned char* r = source++;
-			    			unsigned char* g = source++;
-			    			unsigned char* b = source++;	    				    			
-			    			size_t ind_lutd = (
-							LUTD_Y_STRIDE(*r) +
-							LUTD_U_STRIDE(*g) +
-							LUTD_V_STRIDE(*b)
-						);
-						*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-						*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-						*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-			    		}
-			}
-		}
-		else		
-		{
-			// fullscreen
-			unsigned char* source = imageFrame.bits();
-			unsigned char* dest = source + totalBytes;
-	    		while (source < dest)
-	    		{
-	    			unsigned char* r = source++;
-	    			unsigned char* g = source++;
-	    			unsigned char* b = source++;	    				    			
-	    			size_t ind_lutd = (
-					LUTD_Y_STRIDE(*r) +
-					LUTD_U_STRIDE(*g) +
-					LUTD_V_STRIDE(*b)
-				);
-				*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-				*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-				*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-	    		}
-		}
-    	}
+	// apply LUT
+	applyLUT(imageFrame.bits(), imageFrame.width(), imageFrame.height(), imageFrame.bytesPerLine());
+	
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
-    	if (imageFrame.width()%4)
-    	{
+    	if (imageFrame.width() % 4)
+    	{    		
     		// fix array aligment
     		unsigned int height = (unsigned int)imageFrame.height();  
     		for (unsigned int y=0; y<height; y++)
@@ -413,10 +388,71 @@ void V4L2Worker::process_image_jpg_mt()
     		
     	}
 	else
-		image.copy(imageFrame.bits(),totalBytes);			
+		image.copy(imageFrame.bits(), imageFrame.width()*imageFrame.height()*3);			
 			
 	// exit
 	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);				
 }
-#endif
+
+#define LUT(source) \
+{\
+	unsigned char* r = source++;			\
+	unsigned char* g = source++;			\
+	unsigned char* b = source++;			\
+	size_t ind_lutd = (LUTD_Y_STRIDE(*r) + LUTD_U_STRIDE(*g) + LUTD_V_STRIDE(*b));	\
+	*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
+	*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
+	*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
+}
+
+void V4L2Worker::applyLUT(unsigned char* target, unsigned int width ,unsigned int height, unsigned int bytesPerLine)
+{
+	// prepare to copy buffer	
+    	unsigned int totalBytes = bytesPerLine * height;
+    	
+    	// apply LUT table mapping
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB        	
+    	if (lutBuffer != NULL && _hdrToneMappingEnabled)
+    	{
+    		if (_hdrToneMappingEnabled == 2)
+    		{
+    			// border mode
+	    		unsigned int sizeX= (width * 10)/100;
+	    		unsigned int sizeY= (height *15)/100;		
+	    		
+	    		for (unsigned int y=0; y<height; y++)
+	    		{    	
+	    			unsigned char* startSource = target + bytesPerLine * y;		
+	    			unsigned char* endSource = startSource + bytesPerLine;
+	    			
+	    			if (y<sizeY || y>height-sizeY)
+	    			{
+	    				while (startSource < endSource)
+			    			LUT(startSource);
+	    			}
+	    			else
+	    			{
+			    		for (unsigned int x=0; x<sizeX; x++)    		
+			    			LUT(startSource);
+			    			
+			    		startSource += (width-2*sizeX)*3;
+			    		
+			    		while (startSource < endSource)
+			    			LUT(startSource);
+			    	}
+			}
+		}
+		else		
+		{
+			// fullscreen
+			unsigned char* startSource = target;
+			unsigned char* endSource = startSource + totalBytes;
+	    		while (startSource < endSource)
+	    		{
+	    			LUT(startSource);
+	    		}
+		}
+    	}
+}
+
 
