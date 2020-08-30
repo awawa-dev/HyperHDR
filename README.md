@@ -1,10 +1,11 @@
 ## About 
 
-This fork is based on [Hyperion](https://github.com/hyperion-project/hyperion.ng) that is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufacturers. It supports many LED devices and video grabbers. The project is still in a alpha development stage (no stable release available).
+Based on [Hyperion NG](https://github.com/hyperion-project/hyperion.ng) with some performance tweaks especially for MJPEG grabbers with support for HDR/BT2020 with LUT tables. 
+Single and multi thread optimalization (Rpi2/3/4) for USB v4l2 grabber.
 
 ## Download packages & sources
 
-https://github.com/awawa-dev/hyperion.ng/releases
+https://github.com/awawa-dev/HyperHDR/releases
 
 ### New features of this fork:
 
