@@ -1,7 +1,7 @@
 ## About 
 
 Based on [Hyperion NG](https://github.com/hyperion-project/hyperion.ng) with some performance tweaks especially for MJPEG grabbers with support for HDR/BT2020 using LUT tables. 
-Single and multi thread optimalization (Rpi2/3/4) for USB v4l2 grabber.
+Single and multi-threaded optimization (Rpi2/3/4) for USB v4l2 grabber.
 
 ## Download packages & sources
 
