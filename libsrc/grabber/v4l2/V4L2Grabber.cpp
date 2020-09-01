@@ -33,10 +33,10 @@
 #define LUT_FILE_SIZE 50331648
 
 V4L2Grabber::V4L2Grabber(const QString & device
-		, const unsigned width
-		, const unsigned height
-		, const unsigned fps
-		, const unsigned input
+		, unsigned width
+		, unsigned height
+		, unsigned fps
+		, unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation	
@@ -1258,7 +1258,7 @@ bool V4L2Grabber::setFramerate(int fps)
 	return false;
 }
 
-QStringList V4L2Grabber::getV4L2devices()
+QStringList V4L2Grabber::getV4L2devices() const
 {
 	QStringList result = QStringList();
 	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
@@ -1268,22 +1268,22 @@ QStringList V4L2Grabber::getV4L2devices()
 	return result;
 }
 
-QString V4L2Grabber::getV4L2deviceName(QString devicePath)
+QString V4L2Grabber::getV4L2deviceName(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).name;
 }
 
-QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(QString devicePath)
+QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).inputs;
 }
 
-QStringList V4L2Grabber::getResolutions(QString devicePath)
+QStringList V4L2Grabber::getResolutions(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).resolutions;
 }
 
-QStringList V4L2Grabber::getFramerates(QString devicePath)
+QStringList V4L2Grabber::getFramerates(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).framerates;
 }
