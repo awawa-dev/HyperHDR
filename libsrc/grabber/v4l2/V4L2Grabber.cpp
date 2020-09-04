@@ -70,8 +70,10 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	,_hdrToneMappingEnabled(0)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
+	, _lutBufferInit(false)
 	, _currentFrame(0)
-	, _configurationPath(configurationPath)	
+	, _configurationPath(configurationPath)
+	
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -88,13 +90,7 @@ void V4L2Grabber::loadLutFile(const QString & color)
 	// load lut
 	QString fileName3d = QString("%1%2%3%4").arg(_configurationPath,"/lut_",color,".3d");
 	
-	// reset buffer
-	if (lutBuffer != NULL)
-	{
-		Debug(_log,"LUT buffer released");
-		free(lutBuffer);
-		lutBuffer = NULL;
-	}
+	_lutBufferInit = false;
 	
 	if (_hdrToneMappingEnabled)
 	{
@@ -106,15 +102,17 @@ void V4L2Grabber::loadLutFile(const QString & color)
 			length = ftell(file);
 			fseek(file, 0, SEEK_SET);
 			if (length ==  LUT_FILE_SIZE) {
-				lutBuffer = (unsigned char *)malloc(length + 1);
+				if (lutBuffer==NULL)
+					lutBuffer = (unsigned char *)malloc(length + 1);
 				if(fread(lutBuffer, 1, length, file)!=length)
-				{
-					free(lutBuffer);
-					lutBuffer = NULL;
+				{					
 					Error(_log,"Error reading LUT file %s", QSTRING_CSTR(fileName3d));
 				}
 				else
-					Debug(_log,"LUT file has been loaded");
+				{
+					_lutBufferInit = true;
+					Debug(_log,"LUT file has been loaded");					
+				}
 			}
 			else
 				Error(_log,"LUT file has invalid length: %i %s", length, QSTRING_CSTR(fileName3d));
@@ -139,16 +137,22 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 	else
 		Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
 		
-	if (_initialized)	
+	if (_V4L2WorkerManager.isActive())	
 	{
-		stop();
-		start();
+		Debug(_log,"setHdrToneMappingMode replacing LUT");
+		_V4L2WorkerManager.Stop();
+		if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
+			loadLutFile("yuv");
+		else
+			loadLutFile("rgb");				
+		_V4L2WorkerManager.Start();
 	}
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
-	free(lutBuffer);
+	if (lutBuffer!=NULL)
+		free(lutBuffer);
 	lutBuffer = NULL;
 
 	uninit();
@@ -998,9 +1002,11 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 					{		
 						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];	
 						
-						if ((_pixelFormat==PixelFormat::UYVY || _pixelFormat==PixelFormat::YUYV)  && lutBuffer == NULL)
-						{
-							lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
+						if ((_pixelFormat==PixelFormat::UYVY || _pixelFormat==PixelFormat::YUYV)  && !_lutBufferInit)
+						{														
+							if (lutBuffer == NULL)
+								lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
+								
 							for (int y = 0; y<256; y++)
 								for (int u= 0; u<256; u++)
 									for (int v = 0; v<256; v++)
@@ -1010,7 +1016,10 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 											lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
 											lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 
 											lutBuffer[ind_lutd + LUTD_C_STRIDE(2)]);
-									}
+									}				
+									
+							_lutBufferInit = true;
+										
 							Debug(_log,"Internal LUT table for YUV conversion created");
 						}			
 						
@@ -1026,7 +1035,8 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 							0,
 				#endif			 
 							_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
-							processFrameIndex,currentTime,_hdrToneMappingEnabled,lutBuffer);							
+							processFrameIndex,currentTime,_hdrToneMappingEnabled,
+							(_lutBufferInit)? lutBuffer: NULL);							
 									
 						if (_V4L2WorkerManager.workersCount>1)					
 							_V4L2WorkerManager.workers[i]->start();

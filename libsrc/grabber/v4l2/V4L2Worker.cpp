@@ -163,16 +163,14 @@ void V4L2Worker::runMe()
 		else
 		{
 			Image<ColorRgb> image(_width, _height);
-			ImageResampler _imageResampler;
 			
-			_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
-			_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
-			_imageResampler.setCropping(_cropLeft, _cropRight, _cropTop, _cropBottom);
-			_imageResampler.setVideoMode(_videoMode);
+			ImageResampler::processImage(
+				_videoMode,
+				_cropLeft, _cropRight, _cropTop, _cropBottom,
+				_pixelDecimation, _pixelDecimation,
+				sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
-			_imageResampler.processImage(sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
-				
-			emit newFrame(_workerIndex, image,_currentFrame, _frameBegin);		
+			emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);		
 		}
 	}		
 }

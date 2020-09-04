@@ -60,9 +60,13 @@ void ImageResampler::setVideoMode(VideoMode mode)
 		LUT(dest, red, green, blue);\
 }
 
-void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage) const
+void ImageResampler::processImage(
+	VideoMode _videoMode,
+	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
+	int _horizontalDecimation, int _verticalDecimation,
+	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, _Y, _U, _V, _Y2;
+	uint8_t _red, _green, _blue, _Y, _U, _V;
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
 
@@ -93,68 +97,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 			break;
 		default:
 			break;
-	}		
-	
-	// fast copy
-	if (_cropLeft==0 && cropRight == 0 && _cropTop ==0 && cropBottom == 0 && _verticalDecimation==1 && _horizontalDecimation==1)
-	{		
-		uint8_t         *destMemory  = (uint8_t *)outputImage.memptr();
-                int             destLineSize = outputImage.width()*3;
-
-                if (pixelFormat == PixelFormat::YUYV)
-                {
-                        for(int y=0; y < height; y++)
-                        {
-                                uint8_t *index = (uint8_t *)data + lineLength * y;
-                                uint8_t *dest = destMemory + destLineSize * y;
-
-                                for (int x=0; x < (width >> 1); x++)
-                                {
-                                        _Y = *(index++);       // Y
-                                        _U = *(index++);       // U
-                                        _Y2 = *(index++);      // Y2
-                                        _V = *(index++);       // V
-                                        uint32_t gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
-                                        uint32_t ind_lutd = LUTD_R_STRIDE(_Y) + gb;
-                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-                                        ind_lutd = LUTD_R_STRIDE(_Y2) + gb;
-                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-                                }
-                        }                        
-                        return;
-                }
-		else if (pixelFormat == PixelFormat::UYVY)
-		{
-			for(int y=0; y < height; y++)
-                       {
-                               uint8_t *index = (uint8_t *)data + lineLength * y;
-                               uint8_t *dest = destMemory + destLineSize * y;
-				
-				for (int x=0; x < (width >> 1); x++)
-				{
-					_U = *(index++);   // U
-					_Y = *(index++);   // Y					
-					_V = *(index++);   // V					
-					_Y2 = *(index++);  // Y2
-					
-					uint32_t gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
-					uint32_t ind_lutd = LUTD_R_STRIDE(_Y) + gb;
-					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-					ind_lutd = LUTD_R_STRIDE(_Y2) + gb;
-					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
-				}				
-			}
-			return;
-		}
-	}
+	}				
 
 	// calculate the output size
 	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;

@@ -310,8 +310,9 @@ private:
 	int            _fpsSoftwareDecimation;
 	
 	// memory buffer for 3DLUT HDR tone mapping
-	unsigned char  *lutBuffer;
-		
+	unsigned char  *lutBuffer;		
+	bool 		_lutBufferInit;
+	
 	// frame counter
 	volatile unsigned int _currentFrame;
 		
