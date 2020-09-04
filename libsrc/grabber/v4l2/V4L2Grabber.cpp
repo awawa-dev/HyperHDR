@@ -121,7 +121,8 @@ void V4L2Grabber::loadLutFile(const QString & color)
 			
 				if (lutBuffer==NULL)
 					lutBuffer = (unsigned char *)malloc(length + 1);
-				if(fread(lutBuffer, 1, length, file)!=length)
+					
+				if(fread(lutBuffer, 1, LUT_FILE_SIZE, file) != LUT_FILE_SIZE)
 				{					
 					Error(_log,"Error reading LUT file %s", QSTRING_CSTR(fileName3d));
 				}
