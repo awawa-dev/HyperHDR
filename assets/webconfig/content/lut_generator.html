@@ -84,7 +84,7 @@ var m2=78.84375;
 				if (lutModel.header.max>300)
 				{
 					for (var s=0;s<3;s++)
-						res[s]=clamp(Math.floor(res[s]*255/4096),0,255);
+						res[s]=clamp(Math.floor(res[s]*255/4095),0,255);
 				}
 				var index = lutIndex(r,g,b);
 				lut[index + lutIndexC(0)]=res[0];
@@ -234,11 +234,84 @@ function handleImage(e){
 }
 
 var makeLutSemaphore=0;
+var saveFinished =0;
 
 async function SaveLut() {
 	await checkLut(false);
-	var data = new Blob([lut], {type: "application/octet-stream"});
-	saveData(data, "lut_rgb.3d");
+	
+	saveFinished =0;
+	document.getElementById("lut_progress").value = 0;
+	
+	var HDRyuv = new Uint8Array(256*256*256*3);
+	for (var Y = 0; Y < 256; Y++)
+	{
+	 
+	  (function() {
+	  		var y = Y;	  
+	  		setTimeout(function() {
+				for (var u = 0; u < 256; u++)
+				  for (var v = 0; v < 256; v++)
+				  {
+				  	var c = y - 16;
+					var d = u - 128;
+					var e = v - 128;
+
+					var _R = clamp((298 * c + 409 * e + 128) >> 8,0,255);
+					var _G = clamp((298 * c - 100 * d - 208 * e + 128) >> 8,0,255);
+					var _B = clamp((298 * c + 516 * d + 128) >> 8,0,255);
+
+				  	var indexRgb = lutIndex(_R, _G, _B);
+					var index = lutIndex(y,u,v);
+					HDRyuv[index + lutIndexC(0)]=lut[indexRgb + lutIndexC(0)];
+					HDRyuv[index + lutIndexC(1)]=lut[indexRgb + lutIndexC(1)];
+					HDRyuv[index + lutIndexC(2)]=lut[indexRgb + lutIndexC(2)];
+
+				  }
+		            	document.getElementById("lut_progress").value = (y*50)/255;
+		            	saveFinished++;
+		        }, 0);
+	  })();
+	  
+	} 
+	
+	document.getElementById("lut_progress").value = 50;
+	
+	var yuv = new Uint8Array(256*256*256*3);
+	for (var Y = 0; Y < 256; Y++)
+	{
+	 
+	  (function() {
+	  		var y = Y;	
+	  		
+	  		setTimeout(function() {
+	  		    for (var u = 0; u < 256; u++)
+				  for (var v = 0; v < 256; v++)
+				  {
+				  	var c = y - 16;
+					var d = u - 128;
+					var e = v - 128;
+
+					var _R = clamp((298 * c + 409 * e + 128) >> 8,0,255);
+					var _G = clamp((298 * c - 100 * d - 208 * e + 128) >> 8,0,255);
+					var _B = clamp((298 * c + 516 * d + 128) >> 8,0,255);
+					
+					var index = lutIndex(y,u,v);
+					yuv[index + lutIndexC(0)]=_R;
+					yuv[index + lutIndexC(1)]=_G;
+					yuv[index + lutIndexC(2)]=_B;
+
+				  }
+		            document.getElementById("lut_progress").value = 50+(y*50)/255;
+		            saveFinished++;
+		        }, 0);
+	  })();
+	  
+	} 
+	
+	while (saveFinished<256*2)
+		await new Promise(r => setTimeout(r, 750));
+	var data = new Blob([lut,HDRyuv,yuv], {type: "application/octet-stream"});
+	saveData(data, "lut_tables.3d");
 }
 
 async function checkLut(force)

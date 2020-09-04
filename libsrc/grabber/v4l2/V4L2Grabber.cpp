@@ -87,12 +87,14 @@ V4L2Grabber::V4L2Grabber(const QString & device
 
 void V4L2Grabber::loadLutFile(const QString & color)
 {	
+	bool is_yuv = (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0);
+	
 	// load lut
-	QString fileName3d = QString("%1%2%3%4").arg(_configurationPath,"/lut_",color,".3d");
+	QString fileName3d = QString("%1%2").arg(_configurationPath,"/lut_tables.3d");
 	
 	_lutBufferInit = false;
 	
-	if (_hdrToneMappingEnabled)
+	if (_hdrToneMappingEnabled || is_yuv)
 	{
 		if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
 			size_t length;
@@ -100,8 +102,23 @@ void V4L2Grabber::loadLutFile(const QString & color)
 			
 			fseek(file, 0, SEEK_END);
 			length = ftell(file);
-			fseek(file, 0, SEEK_SET);
-			if (length ==  LUT_FILE_SIZE) {
+									
+			if (length ==  LUT_FILE_SIZE*3) {
+				unsigned index = 0;
+				if (is_yuv && _hdrToneMappingEnabled)
+				{
+					Debug(_log,"Index 1 for HDR YUV");
+					index = LUT_FILE_SIZE;
+				}
+				else if (is_yuv)
+				{
+					Debug(_log,"Index 2 for YUV");				
+					index = LUT_FILE_SIZE*2;
+				}
+				else 
+					Debug(_log,"Index 0 for HDR RGB");								
+				fseek(file, index, SEEK_SET);
+			
 				if (lutBuffer==NULL)
 					lutBuffer = (unsigned char *)malloc(length + 1);
 				if(fread(lutBuffer, 1, length, file)!=length)
@@ -115,7 +132,7 @@ void V4L2Grabber::loadLutFile(const QString & color)
 				}
 			}
 			else
-				Error(_log,"LUT file has invalid length: %i %s", length, QSTRING_CSTR(fileName3d));
+				Error(_log,"LUT file has invalid length: %i %s. Please generate new one LUT table using the generator page.", length, QSTRING_CSTR(fileName3d));
 			fclose(file);
 		}
 		else
