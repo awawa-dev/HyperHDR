@@ -117,10 +117,7 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, quint16 port
 YeelightLight::~YeelightLight()
 {
 	log (3,"~YeelightLight()","" );
-	if ( _tcpSocket != nullptr)
-	{
-		delete _tcpSocket;
-	}
+	delete _tcpSocket;
 	log (2,"~YeelightLight()","void" );
 }
 
@@ -575,7 +572,7 @@ bool YeelightLight::identify()
 	return rc;
 }
 
-bool YeelightLight::isInMusicMode( bool deviceCheck)
+bool YeelightLight::isInMusicMode(bool deviceCheck)
 {
 	bool inMusicMode = false;
 
@@ -899,7 +896,7 @@ bool YeelightLight::setColorHSV(const ColorRgb &colorRGB)
 }
 
 
-void YeelightLight::setTransitionEffect ( YeelightLight::API_EFFECT effect ,int duration )
+void YeelightLight::setTransitionEffect(YeelightLight::API_EFFECT effect, int duration)
 {
 	if( effect != _transitionEffect )
 	{
@@ -914,7 +911,7 @@ void YeelightLight::setTransitionEffect ( YeelightLight::API_EFFECT effect ,int 
 
 }
 
-void YeelightLight::setBrightnessConfig (int min, int max, bool switchoff,  int extraTime, double factor )
+void YeelightLight::setBrightnessConfig(int min, int max, bool switchoff, int extraTime, double factor)
 {
 	_brightnessMin = min;
 	_isBrightnessSwitchOffMinimum = switchoff;
@@ -968,7 +965,7 @@ void YeelightLight::log(int logLevel, const char* msg, const char* type, ...)
 //---------------------------------------------------------------------------------
 
 LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	  ,_lightsCount (0)
 	  ,_outputColorModel(0)
 	  ,_transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
@@ -982,10 +979,6 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 	  ,_debuglevel(0)
 	  ,_musicModeServerPort(-1)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceYeelight::~LedDeviceYeelight()

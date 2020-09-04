@@ -16,6 +16,7 @@
 
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
+#include <utils/Image.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -546,10 +547,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				grabberConfig["input"].toInt(-1),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-				grabberConfig["sizeDecimation"].toInt(8));
+				grabberConfig["sizeDecimation"].toInt(8),
+				_rootPath);
 				
 		// HDR stuff		
-		_v4l2Grabber->loadLutFile(_rootPath);			
 		if (!grabberConfig["hdrToneMapping"].toBool(false))	
 		{
 			_v4l2Grabber->setHdrToneMappingEnabled(0);
@@ -718,7 +719,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
 
 void HyperionDaemon::createCecHandler()
 {
-#ifdef ENABLE_CEC
+#if defined(ENABLE_V4L2) && defined(ENABLE_CEC)
 	_cecHandler = new CECHandler;
 
 	QThread * thread = new QThread(this);

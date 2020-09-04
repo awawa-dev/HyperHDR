@@ -6,13 +6,14 @@
 #include <QTimer>
 
 V4L2Wrapper::V4L2Wrapper(const QString &device,
-		const unsigned grabWidth,
-		const unsigned grabHeight,
-		const unsigned fps,
-		const unsigned input,
+		unsigned grabWidth,
+		unsigned grabHeight,
+		unsigned fps,
+		unsigned input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
-		int pixelDecimation )
+		int pixelDecimation,
+		const QString & configurationPath )
 	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device,
 			grabWidth,
@@ -21,7 +22,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 			input,
 			videoStandard,
 			pixelFormat,
-			pixelDecimation)
+			pixelDecimation,
+			configurationPath)
 {
 	_ggrabber = &_grabber;
 
@@ -85,7 +87,7 @@ void V4L2Wrapper::setSignalDetectionEnable(bool enable)
 	_grabber.setSignalDetectionEnable(enable);
 }
 
-bool V4L2Wrapper::getSignalDetectionEnable()
+bool V4L2Wrapper::getSignalDetectionEnable() const
 {
 	return _grabber.getSignalDetectionEnabled();
 }
@@ -95,12 +97,12 @@ void V4L2Wrapper::setCecDetectionEnable(bool enable)
 	_grabber.setCecDetectionEnable(enable);
 }
 
-bool V4L2Wrapper::getCecDetectionEnable()
+bool V4L2Wrapper::getCecDetectionEnable() const
 {
 	return _grabber.getCecDetectionEnabled();
 }
 
-void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+void V4L2Wrapper::setDeviceVideoStandard(const QString& device, VideoStandard videoStandard)
 {
 	_grabber.setDeviceVideoStandard(device, videoStandard);
 }
@@ -108,11 +110,6 @@ void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStan
 void V4L2Wrapper::handleCecEvent(CECEvent event)
 {
 	_grabber.handleCecEvent(event);
-}
-
-void V4L2Wrapper::loadLutFile(QString path)
-{
-	_grabber.loadLutFile(path);
 }
 
 void V4L2Wrapper::setHdrToneMappingEnabled(int mode)

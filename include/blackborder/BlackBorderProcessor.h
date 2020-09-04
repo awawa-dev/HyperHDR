@@ -1,4 +1,3 @@
-
 #pragma once
 
 // QT includes
@@ -25,7 +24,7 @@ namespace hyperion
 		Q_OBJECT
 	public:
 		BlackBorderProcessor(Hyperion* hyperion, QObject* parent);
-		~BlackBorderProcessor();
+		~BlackBorderProcessor() override;
 		///
 		/// Return the current (detected) border
 		/// @return The current border

@@ -22,6 +22,7 @@
 #include <QFileInfo>
 
 #include "grabber/V4L2Grabber.h"
+#include "utils/ColorSys.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -33,13 +34,14 @@
 #define LUT_FILE_SIZE 50331648
 
 V4L2Grabber::V4L2Grabber(const QString & device
-		, const unsigned width
-		, const unsigned height
-		, const unsigned fps
-		, const unsigned input
+		, unsigned width
+		, unsigned height
+		, unsigned fps
+		, unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
-		, int pixelDecimation	
+		, int pixelDecimation
+		, const QString & configurationPath
 		)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
@@ -68,7 +70,10 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	,_hdrToneMappingEnabled(0)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
-	, _currentFrame(0)	
+	, _lutBufferInit(false)
+	, _currentFrame(0)
+	, _configurationPath(configurationPath)
+	
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -80,40 +85,60 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setDeviceVideoStandard(device, videoStandard);	
 }
 
-void V4L2Grabber::loadLutFile(QString path)
-{
-	//load lut
-	QString fileName3d = path +"/lut_rgb.3d";
+void V4L2Grabber::loadLutFile(const QString & color)
+{	
+	bool is_yuv = (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0);
 	
-	if (lutBuffer!=NULL)
-		free(lutBuffer);
-	lutBuffer = NULL;
+	// load lut
+	QString fileName3d = QString("%1%2").arg(_configurationPath,"/lut_tables.3d");
 	
-	if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
-		size_t length;
-		Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
-		
-		fseek(file, 0, SEEK_END);
-		length = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		if (length ==  LUT_FILE_SIZE) {
-			lutBuffer = (unsigned char *)malloc(length + 1);
-			if(fread(lutBuffer, 1, length, file)!=length)
-			{
-				free(lutBuffer);
-				lutBuffer = NULL;
-				Debug(_log,"Error reading LUT file");
+	_lutBufferInit = false;
+	
+	if (_hdrToneMappingEnabled || is_yuv)
+	{
+		if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
+			size_t length;
+			Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
+			
+			fseek(file, 0, SEEK_END);
+			length = ftell(file);
+									
+			if (length ==  LUT_FILE_SIZE*3) {
+				unsigned index = 0;
+				if (is_yuv && _hdrToneMappingEnabled)
+				{
+					Debug(_log,"Index 1 for HDR YUV");
+					index = LUT_FILE_SIZE;
+				}
+				else if (is_yuv)
+				{
+					Debug(_log,"Index 2 for YUV");				
+					index = LUT_FILE_SIZE*2;
+				}
+				else 
+					Debug(_log,"Index 0 for HDR RGB");								
+				fseek(file, index, SEEK_SET);
+			
+				if (lutBuffer==NULL)
+					lutBuffer = (unsigned char *)malloc(length + 1);
+					
+				if(fread(lutBuffer, 1, LUT_FILE_SIZE, file) != LUT_FILE_SIZE)
+				{					
+					Error(_log,"Error reading LUT file %s", QSTRING_CSTR(fileName3d));
+				}
+				else
+				{
+					_lutBufferInit = true;
+					Debug(_log,"LUT file has been loaded");					
+				}
 			}
 			else
-				Debug(_log,"LUT file has been loaded");
+				Error(_log,"LUT file has invalid length: %i %s. Please generate new one LUT table using the generator page.", length, QSTRING_CSTR(fileName3d));
+			fclose(file);
 		}
 		else
-			Debug(_log,"LUT file has invalid length: %i", length);
-		fclose(file);
-	}
-	else
-		Debug(_log,"LUT file NOT found: %s", QSTRING_CSTR(fileName3d));
-		
+			Error(_log,"LUT file NOT found: %s", QSTRING_CSTR(fileName3d));
+	}					
 }
 
 void V4L2Grabber::setFpsSoftwareDecimation(int decimation)
@@ -128,12 +153,24 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 	if (lutBuffer!=NULL || !mode)
 		Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 	else
-		Error(_log,"setHdrToneMappingMode to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
+		Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
+		
+	if (_V4L2WorkerManager.isActive())	
+	{
+		Debug(_log,"setHdrToneMappingMode replacing LUT");
+		_V4L2WorkerManager.Stop();
+		if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
+			loadLutFile("yuv");
+		else
+			loadLutFile("rgb");				
+		_V4L2WorkerManager.Start();
+	}
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
-	free(lutBuffer);
+	if (lutBuffer!=NULL)
+		free(lutBuffer);
 	lutBuffer = NULL;
 
 	uninit();
@@ -739,6 +776,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	{
 		case V4L2_PIX_FMT_UYVY:
 		{
+			loadLutFile("yuv");
 			_pixelFormat = PixelFormat::UYVY;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=UYVY");
@@ -747,6 +785,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		case V4L2_PIX_FMT_YUYV:
 		{
+			loadLutFile("yuv");		
 			_pixelFormat = PixelFormat::YUYV;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=YUYV");
@@ -755,6 +794,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		case V4L2_PIX_FMT_RGB32:
 		{
+			loadLutFile("rgb");				
 			_pixelFormat = PixelFormat::RGB32;
 			_frameByteSize = _width * _height * 4;
 			Debug(_log, "Pixel format=RGB32");
@@ -764,6 +804,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 #ifdef HAVE_JPEG_DECODER
 		case V4L2_PIX_FMT_MJPEG:
 		{
+			loadLutFile("rgb");						
 			_pixelFormat = PixelFormat::MJPEG;
 			Debug(_log, "Pixel format=MJPEG");
 		}
@@ -942,7 +983,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 			if ( diff >=1000*60)
 			{
 				int total = (frameStat.badFrame+frameStat.goodFrame);
-				int av = (total>0)?frameStat.averageFrame/total:0;
+				int av = (frameStat.goodFrame>0)?frameStat.averageFrame/frameStat.goodFrame:0;
 				Debug(_log, "Video FPS: %.2f, av. delay: %dms, good: %d, bad: %d (%.2f,%d)", 
 					total/60.0,
 					av,
@@ -977,7 +1018,28 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 					// aquire lock
 					if ( _V4L2WorkerManager.workers[i]->isBusy() == false)
 					{		
-						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];											
+						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];	
+						
+						if ((_pixelFormat==PixelFormat::UYVY || _pixelFormat==PixelFormat::YUYV)  && !_lutBufferInit)
+						{														
+							if (lutBuffer == NULL)
+								lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
+								
+							for (int y = 0; y<256; y++)
+								for (int u= 0; u<256; u++)
+									for (int v = 0; v<256; v++)
+									{
+										uint32_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
+										ColorSys::yuv2rgb(y, u, v, 
+											lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
+											lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 
+											lutBuffer[ind_lutd + LUTD_C_STRIDE(2)]);
+									}				
+									
+							_lutBufferInit = true;
+										
+							Debug(_log,"Internal LUT table for YUV conversion created");
+						}			
 						
 						_workerThread->setup(
 							i, 
@@ -991,7 +1053,8 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 							0,
 				#endif			 
 							_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
-							processFrameIndex,currentTime,_hdrToneMappingEnabled,lutBuffer);							
+							processFrameIndex,currentTime,_hdrToneMappingEnabled,
+							(_lutBufferInit)? lutBuffer: NULL);							
 									
 						if (_V4L2WorkerManager.workersCount>1)					
 							_V4L2WorkerManager.workers[i]->start();
@@ -1258,7 +1321,7 @@ bool V4L2Grabber::setFramerate(int fps)
 	return false;
 }
 
-QStringList V4L2Grabber::getV4L2devices()
+QStringList V4L2Grabber::getV4L2devices() const
 {
 	QStringList result = QStringList();
 	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
@@ -1268,22 +1331,22 @@ QStringList V4L2Grabber::getV4L2devices()
 	return result;
 }
 
-QString V4L2Grabber::getV4L2deviceName(QString devicePath)
+QString V4L2Grabber::getV4L2deviceName(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).name;
 }
 
-QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(QString devicePath)
+QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).inputs;
 }
 
-QStringList V4L2Grabber::getResolutions(QString devicePath)
+QStringList V4L2Grabber::getResolutions(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).resolutions;
 }
 
-QStringList V4L2Grabber::getFramerates(QString devicePath)
+QStringList V4L2Grabber::getFramerates(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).framerates;
 }

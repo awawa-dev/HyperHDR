@@ -117,7 +117,8 @@ int main(int argc, char** argv)
 					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
-					std::max(1, argSizeDecimation.getInt(parser)));
+					std::max(1, argSizeDecimation.getInt(parser)),
+					QString(""));
 
 		// set signal detection
 		grabber.setSignalDetectionEnable(! parser.isSet(argSignalDetection));

@@ -56,8 +56,7 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 		{
 			_oldThreshold = newThreshold;
 
-			if(_detector != nullptr)
-				delete _detector;
+			delete _detector;
 
 			_detector = new BlackBorderDetector(newThreshold);
 		}
@@ -89,8 +88,8 @@ void BlackBorderProcessor::handleCompStateChangeRequest(hyperion::Components com
 	}
 }
 
-void BlackBorderProcessor::setHardDisable(bool disable) {
-
+void BlackBorderProcessor::setHardDisable(bool disable)
+{
 	if (disable)
 	{
 		_enabled = false;

@@ -60,17 +60,18 @@ public:
 			const unsigned input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
-			int pixelDecimation
+			int pixelDecimation,
+			const QString & configurationPath
 	);
 	~V4L2Grabber() override;
 
-	QRectF getSignalDetectionOffset()
+	QRectF getSignalDetectionOffset() const
 	{
 		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
 	}
 
-	bool getSignalDetectionEnabled() { return _signalDetectionEnabled; }
-	bool getCecDetectionEnabled() { return _cecDetectionEnabled; }
+	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
+	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
 
 	int grabFrame(Image<ColorRgb> &);
 
@@ -130,32 +131,27 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getV4L2devices() override;
+	QStringList getV4L2devices() const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QString getV4L2deviceName(QString devicePath) override;
+	QString getV4L2deviceName(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath) override;
+	QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getResolutions(QString devicePath) override;
+	QStringList getResolutions(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getFramerates(QString devicePath) override;
-	
-	///
-	/// @brief load LUT file for HDR to SDR tone mapping (v4l2)
-	///
-	void loadLutFile(QString path);
+	QStringList getFramerates(const QString& devicePath) const override;		
 	
 	///
 	/// @brief set software decimation (v4l2)
@@ -166,6 +162,7 @@ public:
 	/// @brief enable HDR to SDR tone mapping (v4l2)
 	///
 	void setHdrToneMappingEnabled(int mode);
+
 public slots:
 
 	bool start();
@@ -185,9 +182,12 @@ private slots:
 	int read_frame();
 
 private:
+	void loadLutFile(const QString & color);
+	
 	void getV4Ldevices();
 
 	bool init();
+
 	void uninit();
 
 	bool open_device();
@@ -265,12 +265,13 @@ private:
 
 private:
 	QString _deviceName;
-	std::map<QString, QString>			_v4lDevices;
-	QMap<QString, V4L2Grabber::DeviceProperties>	_deviceProperties;
-	VideoStandard					_videoStandard;
-	io_method					_ioMethod;
-	int						_fileDescriptor;
-	std::vector<buffer>				_buffers;
+	std::map<QString, QString> _v4lDevices;
+	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
+
+	VideoStandard       _videoStandard;
+	io_method           _ioMethod;
+	int                 _fileDescriptor;
+	std::vector<buffer> _buffers;
 	
 	// statistics
 	struct {
@@ -278,7 +279,7 @@ private:
 		int   		averageFrame;
 		unsigned int	badFrame,goodFrame,segment;
 	} frameStat;
-		
+
 	PixelFormat _pixelFormat;
 	int         _pixelDecimation;
 	int         _lineLength;
@@ -303,13 +304,21 @@ private:
 	bool _deviceAutoDiscoverEnabled;
 	
 	// enable/disable HDR tone mapping
-	uint8_t _hdrToneMappingEnabled;
+	uint8_t       _hdrToneMappingEnabled;
+	
 	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
-	int _fpsSoftwareDecimation;
+	int            _fpsSoftwareDecimation;
+	
 	// memory buffer for 3DLUT HDR tone mapping
-	unsigned char *lutBuffer;
+	unsigned char  *lutBuffer;		
+	bool 		_lutBufferInit;
+	
 	// frame counter
 	volatile unsigned int _currentFrame;
+		
+	// hyperion configuration folder
+	QString        _configurationPath;		
+	
 		
 	V4L2WorkerManager _V4L2WorkerManager;
 	
