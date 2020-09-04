@@ -12,7 +12,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		unsigned input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
-		int pixelDecimation )
+		int pixelDecimation,
+		const QString & configurationPath )
 	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device,
 			grabWidth,
@@ -21,7 +22,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 			input,
 			videoStandard,
 			pixelFormat,
-			pixelDecimation)
+			pixelDecimation,
+			configurationPath)
 {
 	_ggrabber = &_grabber;
 
@@ -108,11 +110,6 @@ void V4L2Wrapper::setDeviceVideoStandard(const QString& device, VideoStandard vi
 void V4L2Wrapper::handleCecEvent(CECEvent event)
 {
 	_grabber.handleCecEvent(event);
-}
-
-void V4L2Wrapper::loadLutFile(QString path)
-{
-	_grabber.loadLutFile(path);
 }
 
 void V4L2Wrapper::setHdrToneMappingEnabled(int mode)

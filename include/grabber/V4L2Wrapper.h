@@ -15,7 +15,8 @@ public:
 			const unsigned input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
-			int pixelDecimation );
+			int pixelDecimation,
+			const QString & configurationPath );
 	~V4L2Wrapper() override;
 
 	bool getSignalDetectionEnable() const;
@@ -32,12 +33,7 @@ public slots:
 	void setCecDetectionEnable(bool enable);
 	void setDeviceVideoStandard(const QString& device, VideoStandard videoStandard);
 	void handleCecEvent(CECEvent event);
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
-	
-	///
-	/// @brief load LUT file for HDR to SDR tone mapping (v4l2)
-	///
-	void loadLutFile(QString path);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;		
 	
 	///
 	/// @brief set software decimation (v4l2)

@@ -22,6 +22,7 @@
 #include <QFileInfo>
 
 #include "grabber/V4L2Grabber.h"
+#include "utils/ColorSys.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -39,7 +40,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
-		, int pixelDecimation	
+		, int pixelDecimation
+		, const QString & configurationPath
 		)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
@@ -68,7 +70,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	,_hdrToneMappingEnabled(0)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
-	, _currentFrame(0)	
+	, _currentFrame(0)
+	, _configurationPath(configurationPath)	
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -80,40 +83,58 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setDeviceVideoStandard(device, videoStandard);	
 }
 
-void V4L2Grabber::loadLutFile(QString path)
-{
-	//load lut
-	QString fileName3d = path +"/lut_rgb.3d";
+void V4L2Grabber::loadLutFile(const QString & color)
+{	
+	// load lut
+	QString fileName3d = QString("%1%2%3%4").arg(_configurationPath,"/lut_",color,".3d");
 	
-	if (lutBuffer!=NULL)
-		free(lutBuffer);
+	// reset buffer
+	free(lutBuffer);
 	lutBuffer = NULL;
 	
-	if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
-		size_t length;
-		Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
-		
-		fseek(file, 0, SEEK_END);
-		length = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		if (length ==  LUT_FILE_SIZE) {
-			lutBuffer = (unsigned char *)malloc(length + 1);
-			if(fread(lutBuffer, 1, length, file)!=length)
-			{
-				free(lutBuffer);
-				lutBuffer = NULL;
-				Debug(_log,"Error reading LUT file");
+	if (_hdrToneMappingEnabled)
+	{
+		if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
+			size_t length;
+			Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
+			
+			fseek(file, 0, SEEK_END);
+			length = ftell(file);
+			fseek(file, 0, SEEK_SET);
+			if (length ==  LUT_FILE_SIZE) {
+				lutBuffer = (unsigned char *)malloc(length + 1);
+				if(fread(lutBuffer, 1, length, file)!=length)
+				{
+					free(lutBuffer);
+					lutBuffer = NULL;
+					Error(_log,"Error reading LUT file %s", QSTRING_CSTR(fileName3d));
+				}
+				else
+					Debug(_log,"LUT file has been loaded");
 			}
 			else
-				Debug(_log,"LUT file has been loaded");
+				Error(_log,"LUT file has invalid length: %i %s", length, QSTRING_CSTR(fileName3d));
+			fclose(file);
 		}
 		else
-			Debug(_log,"LUT file has invalid length: %i", length);
-		fclose(file);
+			Error(_log,"LUT file NOT found: %s", QSTRING_CSTR(fileName3d));
 	}
-	else
-		Debug(_log,"LUT file NOT found: %s", QSTRING_CSTR(fileName3d));
 		
+	if (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0 && lutBuffer == NULL)
+	{
+		lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
+		for (int y = 0; y<256; y++)
+			for (int u= 0; u<256; u++)
+				for (int v = 0; v<256; v++)
+				{
+					size_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
+					ColorSys::yuv2rgb(y, u, v, 
+						lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
+						lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 
+						lutBuffer[ind_lutd + LUTD_C_STRIDE(2)]);
+				}
+		Debug(_log,"Internal LUT table for YUV conversion created");
+	}		
 }
 
 void V4L2Grabber::setFpsSoftwareDecimation(int decimation)
@@ -128,7 +149,13 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 	if (lutBuffer!=NULL || !mode)
 		Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 	else
-		Error(_log,"setHdrToneMappingMode to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
+		Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
+		
+	if (_initialized)	
+	{
+		stop();
+		start();
+	}
 }
 
 V4L2Grabber::~V4L2Grabber()
@@ -739,6 +766,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	{
 		case V4L2_PIX_FMT_UYVY:
 		{
+			loadLutFile("yuv");
 			_pixelFormat = PixelFormat::UYVY;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=UYVY");
@@ -747,6 +775,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		case V4L2_PIX_FMT_YUYV:
 		{
+			loadLutFile("yuv");		
 			_pixelFormat = PixelFormat::YUYV;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=YUYV");
@@ -755,6 +784,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		case V4L2_PIX_FMT_RGB32:
 		{
+			loadLutFile("rgb");				
 			_pixelFormat = PixelFormat::RGB32;
 			_frameByteSize = _width * _height * 4;
 			Debug(_log, "Pixel format=RGB32");
@@ -764,6 +794,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 #ifdef HAVE_JPEG_DECODER
 		case V4L2_PIX_FMT_MJPEG:
 		{
+			loadLutFile("rgb");						
 			_pixelFormat = PixelFormat::MJPEG;
 			Debug(_log, "Pixel format=MJPEG");
 		}
@@ -942,7 +973,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 			if ( diff >=1000*60)
 			{
 				int total = (frameStat.badFrame+frameStat.goodFrame);
-				int av = (total>0)?frameStat.averageFrame/total:0;
+				int av = (frameStat.goodFrame>0)?frameStat.averageFrame/frameStat.goodFrame:0;
 				Debug(_log, "Video FPS: %.2f, av. delay: %dms, good: %d, bad: %d (%.2f,%d)", 
 					total/60.0,
 					av,

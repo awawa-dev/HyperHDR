@@ -60,7 +60,8 @@ public:
 			const unsigned input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
-			int pixelDecimation
+			int pixelDecimation,
+			const QString & configurationPath
 	);
 	~V4L2Grabber() override;
 
@@ -150,12 +151,7 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getFramerates(const QString& devicePath) const override;
-	
-	///
-	/// @brief load LUT file for HDR to SDR tone mapping (v4l2)
-	///
-	void loadLutFile(QString path);
+	QStringList getFramerates(const QString& devicePath) const override;		
 	
 	///
 	/// @brief set software decimation (v4l2)
@@ -186,6 +182,8 @@ private slots:
 	int read_frame();
 
 private:
+	void loadLutFile(const QString & color);
+	
 	void getV4Ldevices();
 
 	bool init();
@@ -306,13 +304,20 @@ private:
 	bool _deviceAutoDiscoverEnabled;
 	
 	// enable/disable HDR tone mapping
-	uint8_t _hdrToneMappingEnabled;
+	uint8_t       _hdrToneMappingEnabled;
+	
 	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
-	int _fpsSoftwareDecimation;
+	int            _fpsSoftwareDecimation;
+	
 	// memory buffer for 3DLUT HDR tone mapping
-	unsigned char *lutBuffer;
+	unsigned char  *lutBuffer;
+		
 	// frame counter
 	volatile unsigned int _currentFrame;
+		
+	// hyperion configuration folder
+	QString        _configurationPath;		
+	
 		
 	V4L2WorkerManager _V4L2WorkerManager;
 	

@@ -169,11 +169,8 @@ void V4L2Worker::runMe()
 			_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 			_imageResampler.setCropping(_cropLeft, _cropRight, _cropTop, _cropBottom);
 			_imageResampler.setVideoMode(_videoMode);
-	
-			if (lutBuffer == NULL || !_hdrToneMappingEnabled)
-				_imageResampler.processImage(sharedData, _width, _height, _lineLength, _pixelFormat, image);
-			else
-				_imageResampler.processImageHDR2SDR(sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+				
+			_imageResampler.processImage(sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
 			emit newFrame(_workerIndex, image,_currentFrame, _frameBegin);		
 		}
@@ -399,7 +396,7 @@ void V4L2Worker::process_image_jpg_mt()
 	unsigned char* r = source++;			\
 	unsigned char* g = source++;			\
 	unsigned char* b = source++;			\
-	size_t ind_lutd = (LUTD_Y_STRIDE(*r) + LUTD_U_STRIDE(*g) + LUTD_V_STRIDE(*b));	\
+	size_t ind_lutd = (LUTD_R_STRIDE(*r) + LUTD_G_STRIDE(*g) + LUTD_B_STRIDE(*b));	\
 	*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
 	*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
 	*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
