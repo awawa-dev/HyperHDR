@@ -1005,7 +1005,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 								for (int u= 0; u<256; u++)
 									for (int v = 0; v<256; v++)
 									{
-										size_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
+										uint32_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
 										ColorSys::yuv2rgb(y, u, v, 
 											lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
 											lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 

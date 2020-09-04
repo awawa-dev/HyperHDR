@@ -42,7 +42,7 @@ void ImageResampler::setVideoMode(VideoMode mode)
 
 #define LUT(dest, red, green, blue) \
 {\
-	unsigned long ind_lutd = (LUTD_R_STRIDE(red) + LUTD_G_STRIDE(green) + LUTD_B_STRIDE(blue));	\
+	uint32_t ind_lutd = (LUTD_R_STRIDE(red) + LUTD_G_STRIDE(green) + LUTD_B_STRIDE(blue));	\
 	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
 	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
 	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
@@ -114,8 +114,8 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
                                         _U = *(index++);       // U
                                         _Y2 = *(index++);      // Y2
                                         _V = *(index++);       // V
-                                        unsigned long gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
-                                        unsigned long ind_lutd = LUTD_R_STRIDE(_Y) + gb;
+                                        uint32_t gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
+                                        uint32_t ind_lutd = LUTD_R_STRIDE(_Y) + gb;
                                         *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
                                         *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
                                         *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
@@ -141,8 +141,8 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					_V = *(index++);   // V					
 					_Y2 = *(index++);  // Y2
 					
-					unsigned long gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
-					unsigned long ind_lutd = LUTD_R_STRIDE(_Y) + gb;
+					uint32_t gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
+					uint32_t ind_lutd = LUTD_R_STRIDE(_Y) + gb;
 					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
 					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
 					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];

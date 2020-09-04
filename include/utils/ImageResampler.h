@@ -9,9 +9,9 @@
 // some stuff for HDR tone mapping
 #define IMG_BITS 8
 #define LUTD_BITS IMG_BITS
-#define LUTD_R_STRIDE(y) (y << (0 * LUTD_BITS)) // Y: Shift by (2**LUTD_BITS)**0
-#define LUTD_G_STRIDE(u) (u << (1 * LUTD_BITS)) // U: Shift by (2**LUTD_BITS)**1
-#define LUTD_B_STRIDE(v) (v << (2 * LUTD_BITS)) // V: Shift by (2**LUTD_BITS)**2
+#define LUTD_R_STRIDE(y) (y << (0 * LUTD_BITS)) // Y/R: Shift by (2**LUTD_BITS)**0
+#define LUTD_G_STRIDE(u) (u << (1 * LUTD_BITS)) // U/G: Shift by (2**LUTD_BITS)**1
+#define LUTD_B_STRIDE(v) (v << (2 * LUTD_BITS)) // V/B: Shift by (2**LUTD_BITS)**2
 #define LUTD_C_STRIDE(c) (c << (3 * LUTD_BITS)) // C: Shift by (2**LUTD_BITS)**3
 
 class ImageResampler
