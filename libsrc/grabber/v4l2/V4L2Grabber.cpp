@@ -89,8 +89,12 @@ void V4L2Grabber::loadLutFile(const QString & color)
 	QString fileName3d = QString("%1%2%3%4").arg(_configurationPath,"/lut_",color,".3d");
 	
 	// reset buffer
-	free(lutBuffer);
-	lutBuffer = NULL;
+	if (lutBuffer != NULL)
+	{
+		Debug(_log,"LUT buffer released");
+		free(lutBuffer);
+		lutBuffer = NULL;
+	}
 	
 	if (_hdrToneMappingEnabled)
 	{
@@ -118,23 +122,7 @@ void V4L2Grabber::loadLutFile(const QString & color)
 		}
 		else
 			Error(_log,"LUT file NOT found: %s", QSTRING_CSTR(fileName3d));
-	}
-		
-	if (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0 && lutBuffer == NULL)
-	{
-		lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
-		for (int y = 0; y<256; y++)
-			for (int u= 0; u<256; u++)
-				for (int v = 0; v<256; v++)
-				{
-					size_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
-					ColorSys::yuv2rgb(y, u, v, 
-						lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
-						lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 
-						lutBuffer[ind_lutd + LUTD_C_STRIDE(2)]);
-				}
-		Debug(_log,"Internal LUT table for YUV conversion created");
-	}		
+	}					
 }
 
 void V4L2Grabber::setFpsSoftwareDecimation(int decimation)
@@ -1008,7 +996,23 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 					// aquire lock
 					if ( _V4L2WorkerManager.workers[i]->isBusy() == false)
 					{		
-						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];											
+						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];	
+						
+						if ((_pixelFormat==PixelFormat::UYVY || _pixelFormat==PixelFormat::YUYV)  && lutBuffer == NULL)
+						{
+							lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
+							for (int y = 0; y<256; y++)
+								for (int u= 0; u<256; u++)
+									for (int v = 0; v<256; v++)
+									{
+										size_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
+										ColorSys::yuv2rgb(y, u, v, 
+											lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
+											lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 
+											lutBuffer[ind_lutd + LUTD_C_STRIDE(2)]);
+									}
+							Debug(_log,"Internal LUT table for YUV conversion created");
+						}			
 						
 						_workerThread->setup(
 							i, 

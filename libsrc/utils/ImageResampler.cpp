@@ -42,7 +42,7 @@ void ImageResampler::setVideoMode(VideoMode mode)
 
 #define LUT(dest, red, green, blue) \
 {\
-	size_t ind_lutd = (LUTD_R_STRIDE(red) + LUTD_G_STRIDE(green) + LUTD_B_STRIDE(blue));	\
+	unsigned long ind_lutd = (LUTD_R_STRIDE(red) + LUTD_G_STRIDE(green) + LUTD_B_STRIDE(blue));	\
 	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
 	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
 	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
@@ -62,7 +62,7 @@ void ImageResampler::setVideoMode(VideoMode mode)
 
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage) const
 {	
-	uint8_t _red, _green, _blue;
+	uint8_t _red, _green, _blue, _Y, _U, _V, _Y2;
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
 
@@ -97,52 +97,59 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	
 	// fast copy
 	if (_cropLeft==0 && cropRight == 0 && _cropTop ==0 && cropBottom == 0 && _verticalDecimation==1 && _horizontalDecimation==1)
-	{
-		uint8_t 	*destMemory  = (uint8_t *)outputImage.memptr();
-		int 		destLineSize = outputImage.width()*3;		
-		
-		if (pixelFormat == PixelFormat::YUYV)
-		{
-			for(int y=0; y < height; y++)
-			{
-				int index = lineLength * y;
-				uint8_t *currentDest = destMemory + destLineSize * y;
-				
-				for (int x=0; x < (width >> 1); x++)
-				{
-					_red = data[index];  	  // Y
-					_green = data[index+1];  // U
-					_blue = data[index+3];   // V
-					// LUT mapping
-					LUT(currentDest, _red, _green, _blue);
-					
-					_red = data[index+2];	  // Y2					
-					// LUT mapping
-					LUT(currentDest, _red, _green, _blue);
-					index += 4;
-				}				
-			}
-			return;
-		}
+	{		
+		uint8_t         *destMemory  = (uint8_t *)outputImage.memptr();
+                int             destLineSize = outputImage.width()*3;
+
+                if (pixelFormat == PixelFormat::YUYV)
+                {
+                        for(int y=0; y < height; y++)
+                        {
+                                uint8_t *index = (uint8_t *)data + lineLength * y;
+                                uint8_t *dest = destMemory + destLineSize * y;
+
+                                for (int x=0; x < (width >> 1); x++)
+                                {
+                                        _Y = *(index++);       // Y
+                                        _U = *(index++);       // U
+                                        _Y2 = *(index++);      // Y2
+                                        _V = *(index++);       // V
+                                        unsigned long gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
+                                        unsigned long ind_lutd = LUTD_R_STRIDE(_Y) + gb;
+                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+                                        ind_lutd = LUTD_R_STRIDE(_Y2) + gb;
+                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+                                        *(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+                                }
+                        }                        
+                        return;
+                }
 		else if (pixelFormat == PixelFormat::UYVY)
 		{
 			for(int y=0; y < height; y++)
-			{
-				int index = lineLength * y;
-				uint8_t *currentDest = destMemory + destLineSize * y;
+                       {
+                               uint8_t *index = (uint8_t *)data + lineLength * y;
+                               uint8_t *dest = destMemory + destLineSize * y;
 				
 				for (int x=0; x < (width >> 1); x++)
 				{
-					_red = data[index+1];    // Y
-					_green = data[index];    // U
-					_blue = data[index+2];   // V
-					// LUT mapping
-					LUT(currentDest, _red, _green, _blue);
+					_U = *(index++);   // U
+					_Y = *(index++);   // Y					
+					_V = *(index++);   // V					
+					_Y2 = *(index++);  // Y2
 					
-					_red = data[index+3];	  // Y2
-					// LUT mapping
-					LUT(currentDest, _red, _green, _blue);
-					index += 4;
+					unsigned long gb = LUTD_G_STRIDE(_U) + LUTD_B_STRIDE(_V);
+					unsigned long ind_lutd = LUTD_R_STRIDE(_Y) + gb;
+					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+					ind_lutd = LUTD_R_STRIDE(_Y2) + gb;
+					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+					*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
 				}				
 			}
 			return;
@@ -171,21 +178,21 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				case PixelFormat::UYVY:
 				{
 					int index = lineLength_ySource + (xSource << 1);
-					_red = data[index+1]; 					       // Y
-					_green = ((xSource&1) == 0) ? data[index  ] : data[index-2]; // U
-					_blue = ((xSource&1) == 0) ? data[index+2] : data[index  ];  // V	
+					_Y = data[index+1]; 					   // Y
+					_U = ((xSource&1) == 0) ? data[index  ] : data[index-2]; // U
+					_V = ((xSource&1) == 0) ? data[index+2] : data[index  ]; // V	
 					// LUT mapping
-					LUT(currentDest, _red, _green, _blue);
+					LUT(currentDest, _Y, _U, _V);
 				}
 				break;
 				case PixelFormat::YUYV:
 				{
 					int index = lineLength_ySource + (xSource << 1);
-					_red = data[index];						// Y
-					_green = ((xSource&1) == 0) ? data[index+1] : data[index-1];  // U
-					_blue = ((xSource&1) == 0) ? data[index+3] : data[index+1];   // V
+					_Y = data[index];					    // Y
+					_U = ((xSource&1) == 0) ? data[index+1] : data[index-1];  // U
+					_V = ((xSource&1) == 0) ? data[index+3] : data[index+1];  // V
 					// LUT mapping
-					LUT(currentDest, _red, _green, _blue);
+					LUT(currentDest, _Y, _U, _V);
 				}
 				break;
 				case PixelFormat::BGR16:

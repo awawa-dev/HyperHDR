@@ -396,7 +396,7 @@ void V4L2Worker::process_image_jpg_mt()
 	unsigned char* r = source++;			\
 	unsigned char* g = source++;			\
 	unsigned char* b = source++;			\
-	size_t ind_lutd = (LUTD_R_STRIDE(*r) + LUTD_G_STRIDE(*g) + LUTD_B_STRIDE(*b));	\
+	unsigned long ind_lutd = (LUTD_R_STRIDE(*r) + LUTD_G_STRIDE(*g) + LUTD_B_STRIDE(*b));	\
 	*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
 	*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
 	*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
