@@ -391,13 +391,13 @@ void V4L2Worker::process_image_jpg_mt()
 
 #define LUT(source) \
 {\
-	unsigned char* r = source++;			\
-	unsigned char* g = source++;			\
-	unsigned char* b = source++;			\
-	uint32_t ind_lutd = (LUTD_R_STRIDE(*r) + LUTD_G_STRIDE(*g) + LUTD_B_STRIDE(*b));	\
-	*r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
-	*g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
-	*b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
+	uint8_t* r = source++;			\
+	uint8_t* g = source++;			\
+	uint8_t* b = source++;			\
+	uint32_t ind_lutd = LUT_INDEX(*r,*g,*b);	\
+	*r = lutBuffer[ind_lutd];	\
+	*g = lutBuffer[ind_lutd + 1];	\
+	*b = lutBuffer[ind_lutd + 2];	\
 }
 
 void V4L2Worker::applyLUT(unsigned char* target, unsigned int width ,unsigned int height, unsigned int bytesPerLine)

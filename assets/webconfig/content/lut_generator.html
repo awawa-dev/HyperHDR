@@ -155,12 +155,12 @@ function clamp(val,min,max)
 
 function lutIndex(r,g,b)
 {
-	return (r << (0 * 8)) + (g << (1 * 8)) + (b << (2 * 8));
+	return (r  + (g << 8) + (b  << 16)) * 3;
 }
 
 function lutIndexC(c)
 {
-	return  (c << (3 * 8));
+	return  c;
 }
 
 function gam_pq_lin(v) {
@@ -274,7 +274,7 @@ async function SaveLut() {
 	  
 	} 
 	
-	document.getElementById("lut_progress").value = 50;
+	
 	
 	var yuv = new Uint8Array(256*256*256*3);
 	for (var Y = 0; Y < 256; Y++)
@@ -308,10 +308,12 @@ async function SaveLut() {
 	  
 	} 
 	
+	
+	
 	while (saveFinished<256*2)
 		await new Promise(r => setTimeout(r, 750));
 	var data = new Blob([lut,HDRyuv,yuv], {type: "application/octet-stream"});
-	saveData(data, "lut_tables.3d");
+	saveData(data, "lut_lin_tables.3d");
 }
 
 async function checkLut(force)

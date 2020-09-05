@@ -42,10 +42,10 @@ void ImageResampler::setVideoMode(VideoMode mode)
 
 #define LUT(dest, red, green, blue) \
 {\
-	uint32_t ind_lutd = (LUTD_R_STRIDE(red) + LUTD_G_STRIDE(green) + LUTD_B_STRIDE(blue));	\
-	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];	\
-	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];	\
-	*(dest++) = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];	\
+	uint32_t ind_lutd = LUT_INDEX(red, green, blue);	\
+	*(dest++) = lutBuffer[ind_lutd];	\
+	*(dest++) = lutBuffer[ind_lutd + 1];	\
+	*(dest++) = lutBuffer[ind_lutd + 2];	\
 }
 
 #define LUTIF(dest, red, green, blue) \
