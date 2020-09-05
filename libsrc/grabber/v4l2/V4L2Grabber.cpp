@@ -90,7 +90,7 @@ void V4L2Grabber::loadLutFile(const QString & color)
 	bool is_yuv = (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0);
 	
 	// load lut
-	QString fileName3d = QString("%1%2").arg(_configurationPath,"/lut_tables.3d");
+	QString fileName3d = QString("%1%2").arg(_configurationPath,"/lut_lin_tables.3d");
 	
 	_lutBufferInit = false;
 	
@@ -1029,16 +1029,16 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 								for (int u= 0; u<256; u++)
 									for (int v = 0; v<256; v++)
 									{
-										uint32_t ind_lutd = (LUTD_R_STRIDE(y) + LUTD_G_STRIDE(u) + LUTD_B_STRIDE(v));
+										uint32_t ind_lutd = LUT_INDEX(y, u, v);
 										ColorSys::yuv2rgb(y, u, v, 
-											lutBuffer[ind_lutd + LUTD_C_STRIDE(0)], 
-											lutBuffer[ind_lutd + LUTD_C_STRIDE(1)], 
-											lutBuffer[ind_lutd + LUTD_C_STRIDE(2)]);
+											lutBuffer[ind_lutd ], 
+											lutBuffer[ind_lutd + 1], 
+											lutBuffer[ind_lutd + 2]);
 									}				
 									
 							_lutBufferInit = true;
 										
-							Debug(_log,"Internal LUT table for YUV conversion created");
+							Error(_log,"You forgot to put lut_lin_tables.3d file in the Hyperion configuration folder. Internal LUT table for YUV conversion has been created instead.");
 						}			
 						
 						_workerThread->setup(
