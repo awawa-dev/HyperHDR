@@ -66,7 +66,7 @@ void ImageResampler::processImage(
 	int _horizontalDecimation, int _verticalDecimation,
 	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, _Y, _U, _V;
+	uint8_t _red, _green, _blue, _Y, _U, _V, buffer[4];
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
 			
@@ -121,31 +121,24 @@ void ImageResampler::processImage(
 			uint8_t *currentDest = destMemory + destLineSize * yDest;	
 			uint8_t *endDest = currentDest + destLineSize - (cropRight<<1);
 			uint8_t *currentSource = (uint8_t *) data +  (lineLength * ySource) + (_cropLeft<<1);
-			
+			uint32_t ind_lutd, ind_lutd2;
 			while(currentDest<endDest)
 			{
+				memcpy(&buffer,currentSource,4);			
 				if (pixelFormat == PixelFormat::YUYV)
 				{
-					uint8_t buffer[4];
-					memcpy(&buffer,currentSource,4);
-					uint32_t ind_lutd  = LUT_INDEX(buffer[0], buffer[1], buffer[3]);
-					uint32_t ind_lutd2 = LUT_INDEX(buffer[2], buffer[1], buffer[3]);
-					memcpy(currentDest, (const void*)&(lutBuffer[ind_lutd]),3);
-					memcpy(currentDest+3, (const void*)&(lutBuffer[ind_lutd2]),3);
-					currentDest+=6;
-					currentSource+=4;					
+					ind_lutd  = LUT_INDEX(buffer[0], buffer[1], buffer[3]);
+					ind_lutd2 = LUT_INDEX(buffer[2], buffer[1], buffer[3]);
 				}
 				else if (pixelFormat == PixelFormat::UYVY)
-				{
-					uint8_t buffer[4];
-					memcpy(&buffer,currentSource,4);
-					uint32_t ind_lutd  = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
-					uint32_t ind_lutd2 = LUT_INDEX(buffer[3], buffer[0], buffer[2]);
-					memcpy(currentDest, (const void*)&(lutBuffer[ind_lutd]),3);
-					memcpy(currentDest+3, (const void*)&(lutBuffer[ind_lutd2]),3);
-					currentDest+=6;
-					currentSource+=4;					
+				{					
+					ind_lutd  = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
+					ind_lutd2 = LUT_INDEX(buffer[3], buffer[0], buffer[2]);
 				}
+				memcpy(currentDest, (const void*)&(lutBuffer[ind_lutd]),3);
+				memcpy(currentDest+3, (const void*)&(lutBuffer[ind_lutd2]),3);
+				currentDest+=6;
+				currentSource+=4;
 			}		
 		}
 		return;
