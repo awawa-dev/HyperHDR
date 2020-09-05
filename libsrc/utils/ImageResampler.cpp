@@ -66,10 +66,10 @@ void ImageResampler::processImage(
 	int _horizontalDecimation, int _verticalDecimation,
 	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, _Y, _U, _V;
+	uint8_t _red, _green, _blue, _Y, _Y2, _U, _V;
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
-
+			
 	// validate format
 	if (pixelFormat!=PixelFormat::UYVY && pixelFormat!=PixelFormat::YUYV &&
 	    pixelFormat!=PixelFormat::BGR16 && pixelFormat!=PixelFormat::BGR24 &&
@@ -97,7 +97,11 @@ void ImageResampler::processImage(
 			break;
 		default:
 			break;
-	}				
+	}	
+	
+	// sanity check, odd values doesnt work for yuv either way
+	_cropLeft = (_cropLeft>>1)<<1;
+	cropRight = (cropRight>>1)<<1;				
 
 	// calculate the output size
 	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
@@ -109,13 +113,71 @@ void ImageResampler::processImage(
 	uint8_t 	*destMemory  = (uint8_t *)outputImage.memptr();
 	int 		destLineSize = outputImage.width()*3;	
 	
+	
+	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY) && _horizontalDecimation == 1 && _verticalDecimation == 1)
+	{
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		{
+			uint8_t *currentDest = destMemory + destLineSize * yDest;	
+			uint8_t *endDest = currentDest + destLineSize;
+			int 	lineLength_ySource = lineLength * ySource;
+			uint8_t *currentSource = (uint8_t *) data +  lineLength_ySource + (_cropLeft<<1);
+			
+			while(currentDest<endDest)
+			{
+				if (pixelFormat == PixelFormat::YUYV)
+				{
+					_Y = *(currentSource++);       // Y
+					_U = *(currentSource++);       // U
+					_Y2 = *(currentSource++);      // Y2
+					_V = *(currentSource++);       // V
+
+					uint32_t ind_lutd  = LUT_INDEX(_Y, _U, _V);
+					uint32_t ind_lutd2 = LUT_INDEX(_Y2, _U, _V);                                        
+					*(currentDest++) = lutBuffer[ind_lutd];
+					*(currentDest++) = lutBuffer[ind_lutd + 1];
+					*(currentDest++) = lutBuffer[ind_lutd + 2];
+					*(currentDest++) = lutBuffer[ind_lutd2];
+					*(currentDest++) = lutBuffer[ind_lutd2 + 1];
+					*(currentDest++) = lutBuffer[ind_lutd2 + 2];					
+				}
+				else if (pixelFormat == PixelFormat::UYVY)
+				{
+					_U = *(currentSource++);   // U
+					_Y = *(currentSource++);   // Y					
+					_V = *(currentSource++);   // V					
+					_Y2 = *(currentSource++);  // Y2
+
+					uint32_t ind_lutd  = LUT_INDEX(_Y, _U, _V);
+					uint32_t ind_lutd2 = LUT_INDEX(_Y2, _U, _V);                                        
+					*(currentDest++) = lutBuffer[ind_lutd];
+					*(currentDest++) = lutBuffer[ind_lutd + 1];
+					*(currentDest++) = lutBuffer[ind_lutd + 2];
+					*(currentDest++) = lutBuffer[ind_lutd2];
+					*(currentDest++) = lutBuffer[ind_lutd2 + 1];
+					*(currentDest++) = lutBuffer[ind_lutd2 + 2];
+				}
+			}
+		
+		}
+		return;
+	}
+	
+	
+	
 	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
 		uint8_t *currentDest = destMemory + destLineSize * yDest;	
 		int 	lineLength_ySource = lineLength * ySource;
-
+		
 		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
-		{			
+		{	
+			// i hate it...
+			if (_horizontalDecimation == 1)		
+			{	
+								
+			}		
+				
 			switch (pixelFormat)
 			{
 				case PixelFormat::UYVY:
@@ -186,6 +248,7 @@ void ImageResampler::processImage(
 	}
 }
 
+// the old way. but it is used in ther modules so I leave it as it is
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
 	int cropRight  = _cropRight;
