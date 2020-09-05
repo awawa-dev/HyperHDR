@@ -119,7 +119,7 @@ void ImageResampler::processImage(
 		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
 		{
 			uint8_t *currentDest = destMemory + destLineSize * yDest;	
-			uint8_t *endDest = currentDest + destLineSize - (cropRight<<1);
+			uint8_t *endDest = currentDest + destLineSize;
 			uint8_t *currentSource = (uint8_t *) data +  (lineLength * ySource) + (_cropLeft<<1);
 			uint32_t ind_lutd, ind_lutd2;
 			while(currentDest<endDest)
