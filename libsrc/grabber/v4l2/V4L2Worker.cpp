@@ -225,7 +225,7 @@ void V4L2Worker::process_image_jpg_mt_turbo()
 	}
 
 	// apply LUT	
-    	applyLUT((unsigned char*)image.memptr(), _width, _height, _width*3);
+    	applyLUT((unsigned char*)image.memptr(), (unsigned char*)image.memptr(), _width, _height, _width*3);
 			
 	// exit
 	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);	
@@ -367,86 +367,74 @@ void V4L2Worker::process_image_jpg_mt()
 	}
 
 	// apply LUT
-	applyLUT(imageFrame.bits(), imageFrame.width(), imageFrame.height(), imageFrame.bytesPerLine());
-	
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
-    	if (imageFrame.width() % 4)
-    	{    		
-    		// fix array aligment
-    		unsigned int height = (unsigned int)imageFrame.height();  
-    		for (unsigned int y=0; y<height; y++)
-    		{
-			unsigned char* source = imageFrame.scanLine(y);
-			unsigned char* dest = (unsigned char*)image.memptr()+y*image.width()*3;    		
-			memcpy(dest,source,imageFrame.width()*3);
-    		}
-    		
-    	}
+	if (lutBuffer != NULL && _hdrToneMappingEnabled)
+		applyLUT((unsigned char*)image.memptr(), imageFrame.bits(), imageFrame.width(), imageFrame.height(), imageFrame.bytesPerLine());
 	else
-		image.copy(imageFrame.bits(), imageFrame.width()*imageFrame.height()*3);			
-			
+	{	
+	    	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
+	    	if (imageFrame.width() % 4)
+	    	{    		
+	    		// fix array aligment
+	    		unsigned int height = (unsigned int)imageFrame.height();  
+	    		for (unsigned int y=0; y<height; y++)
+	    		{
+				unsigned char* source = imageFrame.scanLine(y);
+				unsigned char* dest = (unsigned char*)image.memptr()+y*image.width()*3;    		
+				memcpy(dest,source,imageFrame.width()*3);
+	    		}
+	    		
+	    	}
+		else
+			image.copy(imageFrame.bits(), imageFrame.width()*imageFrame.height()*3);			
+	}	
+		
 	// exit
 	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);				
 }
 
-#define LUT(source) \
+#define LUT(dest,source) \
 {\
-	uint8_t* r = source++;			\
-	uint8_t* g = source++;			\
-	uint8_t* b = source++;			\
-	uint32_t ind_lutd = LUT_INDEX(*r,*g,*b);	\
-	*r = lutBuffer[ind_lutd];	\
-	*g = lutBuffer[ind_lutd + 1];	\
-	*b = lutBuffer[ind_lutd + 2];	\
+	memcpy(buffer, source, 3); \
+	uint32_t ind_lutd = LUT_INDEX(buffer[0],buffer[1],buffer[2]);	\
+	memcpy(dest, (void *) &(lutBuffer[ind_lutd]),3); \
+	dest += 3;	\
+	source += 3;	\
 }
 
-void V4L2Worker::applyLUT(unsigned char* target, unsigned int width ,unsigned int height, unsigned int bytesPerLine)
-{
-	// prepare to copy buffer	
-    	unsigned int totalBytes = bytesPerLine * height;
-    	
+void V4L2Worker::applyLUT(unsigned char* _target, unsigned char* _source, unsigned int width ,unsigned int height, unsigned int bytesPerLine)
+{	
     	// apply LUT table mapping
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB        	
+    	// bytes are in order of RGB 3 bytes because of TJPF_RGB   
+    	uint8_t buffer[3];     	
     	if (lutBuffer != NULL && _hdrToneMappingEnabled)
-    	{
-    		if (_hdrToneMappingEnabled == 2)
-    		{
-    			// border mode
-	    		unsigned int sizeX= (width * 10)/100;
-	    		unsigned int sizeY= (height *15)/100;		
-	    		
-	    		for (unsigned int y=0; y<height; y++)
-	    		{    	
-	    			unsigned char* startSource = target + bytesPerLine * y;		
-	    			unsigned char* endSource = startSource + bytesPerLine;
-	    			
-	    			if (y<sizeY || y>height-sizeY)
-	    			{
-	    				while (startSource < endSource)
-			    			LUT(startSource);
-	    			}
-	    			else
-	    			{
-			    		for (unsigned int x=0; x<sizeX; x++)    		
-			    			LUT(startSource);
-			    			
-			    		startSource += (width-2*sizeX)*3;
-			    		
-			    		while (startSource < endSource)
-			    			LUT(startSource);
-			    	}
-			}
+    	{    		
+    		unsigned int sizeX= (width * 10)/100;
+    		unsigned int sizeY= (height *15)/100;		
+    		
+    		for (unsigned int y=0; y<height; y++)
+    		{    	
+    			unsigned char* startSource = _source + bytesPerLine * y;
+    			unsigned char* startDest = _target + width * 3 * y;
+    			unsigned char* endDest = startDest + width * 3;
+    			
+    			if (_hdrToneMappingEnabled != 2 || y<sizeY || y>height-sizeY)
+    			{
+    				while (startDest < endDest)
+		    			LUT(startDest, startSource);
+    			}
+    			else
+    			{
+		    		for (unsigned int x=0; x<sizeX; x++)    		
+		    			LUT(startDest, startSource);
+		    			
+		    		startSource += (width-2*sizeX)*3;
+		    		startDest += (width-2*sizeX)*3; 
+		    		
+		    		while (startSource < endDest)
+		    			LUT(startDest, startSource);
+		    	}
 		}
-		else		
-		{
-			// fullscreen
-			unsigned char* startSource = target;
-			unsigned char* endSource = startSource + totalBytes;
-	    		while (startSource < endSource)
-	    		{
-	    			LUT(startSource);
-	    		}
-		}
+		
     	}
 }
 
