@@ -66,7 +66,7 @@ void ImageResampler::processImage(
 	int _horizontalDecimation, int _verticalDecimation,
 	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, _Y, _Y2, _U, _V;
+	uint8_t _red, _green, _blue, _Y, _U, _V;
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
 			
@@ -119,9 +119,8 @@ void ImageResampler::processImage(
 		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
 		{
 			uint8_t *currentDest = destMemory + destLineSize * yDest;	
-			uint8_t *endDest = currentDest + destLineSize;
-			int 	lineLength_ySource = lineLength * ySource;
-			uint8_t *currentSource = (uint8_t *) data +  lineLength_ySource + (_cropLeft<<1);
+			uint8_t *endDest = currentDest + destLineSize - (cropRight<<1);
+			uint8_t *currentSource = (uint8_t *) data +  (lineLength * ySource) + (_cropLeft<<1);
 			
 			while(currentDest<endDest)
 			{
