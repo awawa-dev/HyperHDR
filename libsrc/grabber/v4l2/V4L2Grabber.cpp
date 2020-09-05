@@ -1038,7 +1038,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 									
 							_lutBufferInit = true;
 										
-							Debug(_log,"Internal LUT table for YUV conversion created");
+							Error(_log,"You forgot to put lut_lin_tables.3d file in the Hyperion configuration folder. Internal LUT table for YUV conversion has been created instead.");
 						}			
 						
 						_workerThread->setup(
