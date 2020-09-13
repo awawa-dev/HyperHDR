@@ -51,7 +51,7 @@ class V4L2Worker : public  QThread
 				VideoMode __videoMode, PixelFormat __pixelFormat,
 				uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 				int __subsamp, 
-				int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
+				unsigned  __cropLeft, unsigned  __cropTop, 
 				unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64 __frameBegin,
 				int __hdrToneMappingEnabled,unsigned char* _lutBuffer);	
 		void startOnThisThread();
@@ -69,8 +69,7 @@ class V4L2Worker : public  QThread
 	    					
 	private:
 		void runMe();
-		void process_image_jpg_mt();							
-		void process_image_jpg_mt_turbo();										
+		void process_image_jpg_mt();																			
 		void applyLUT(unsigned char* _target, unsigned char* _source, unsigned int width ,unsigned int height, unsigned int bytesPerLine);
 	#ifdef HAVE_TURBO_JPEG		
 		tjhandle 	_decompress;			
@@ -116,7 +115,6 @@ class V4L2Worker : public  QThread
 		int		_height;
 		int		_lineLength;
 		int		_subsamp;
-		int		_pixelDecimation;
 		unsigned	_cropLeft;
 		unsigned	_cropTop;
 		unsigned	_cropBottom;

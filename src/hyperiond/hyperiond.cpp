@@ -547,7 +547,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				grabberConfig["input"].toInt(-1),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-				grabberConfig["sizeDecimation"].toInt(8),
 				_rootPath);
 				
 		// HDR stuff		

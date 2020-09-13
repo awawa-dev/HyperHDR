@@ -88,7 +88,10 @@
 			"minimum" : 1,
 			"maximum" : 30,
 			"default" : 6,
-			"required" : true,
+			"required" : false,
+			"options" : {
+				"hidden":true
+			},
 			"propertyOrder" : 11
 		},
 		"cropLeft" :
@@ -97,6 +100,7 @@
 			"title" : "edt_conf_v4l2_cropLeft_title",
 			"minimum" : 0,
 			"default" : 0,
+			"step" : 2,			
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 12
@@ -107,6 +111,7 @@
 			"title" : "edt_conf_v4l2_cropRight_title",
 			"minimum" : 0,
 			"default" : 0,
+			"step" : 2,			
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 13
@@ -117,6 +122,7 @@
 			"title" : "edt_conf_v4l2_cropTop_title",
 			"minimum" : 0,
 			"default" : 0,
+			"step" : 2,			
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 14
@@ -127,6 +133,7 @@
 			"title" : "edt_conf_v4l2_cropBottom_title",
 			"minimum" : 0,
 			"default" : 0,
+			"step" : 2,			
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 15

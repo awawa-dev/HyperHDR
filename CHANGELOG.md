@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add XCB grabber, a faster and safer alternative for X11 grabbing (#912)
 
 ### Changed
+- Improved UDP-Device Error handling (#961)
 
 ### Fixed
 - webui: Works now with HTTPS port 443 (#923 with #924)
+- Adalight issue (#903 with #991)
 ### Removed
 
 ## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23

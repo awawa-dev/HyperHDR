@@ -22,8 +22,7 @@ public:
 	void processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const;
 	static void processImage(
 		VideoMode _mode,
-		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-		int _horizontalDecimation, int _verticalDecimation,	
+		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,			
 		const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage);
 
 private:

@@ -63,10 +63,9 @@ void ImageResampler::setVideoMode(VideoMode mode)
 void ImageResampler::processImage(
 	VideoMode _videoMode,
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-	int _horizontalDecimation, int _verticalDecimation,
 	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, _Y, _U, _V, buffer[4];
+	uint8_t _red, _green, _blue, buffer[4];
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
 			
@@ -104,8 +103,8 @@ void ImageResampler::processImage(
 	cropRight = (cropRight>>1)<<1;				
 
 	// calculate the output size
-	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
-	int outputHeight = (height - _cropTop - cropBottom - (_verticalDecimation >> 1) + _verticalDecimation - 1) / _verticalDecimation;
+	int outputWidth = (width - _cropLeft - cropRight);
+	int outputHeight = (height - _cropTop - cropBottom);
 
 	if (outputImage.width() != unsigned(outputWidth) || outputImage.height() != unsigned(outputHeight))
 		outputImage.resize(outputWidth, outputHeight);
@@ -114,7 +113,7 @@ void ImageResampler::processImage(
 	int 		destLineSize = outputImage.width()*3;	
 	
 	
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY) && _horizontalDecimation == 1 && _verticalDecimation == 1)
+	if (pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY)
 	{
 		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
 		{
@@ -146,41 +145,15 @@ void ImageResampler::processImage(
 	
 	
 	
-	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
+	for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ySource++, ++yDest)
 	{
 		uint8_t *currentDest = destMemory + destLineSize * yDest;	
 		int 	lineLength_ySource = lineLength * ySource;
 		
-		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
-		{	
-			// i hate it...
-			if (_horizontalDecimation == 1)		
-			{	
-								
-			}		
-				
+		for (int xDest = 0, xSource = _cropLeft; xDest < outputWidth; xSource++, ++xDest)
+		{					
 			switch (pixelFormat)
-			{
-				case PixelFormat::UYVY:
-				{
-					int index = lineLength_ySource + (xSource << 1);
-					_Y = data[index+1]; 					   // Y
-					_U = ((xSource&1) == 0) ? data[index  ] : data[index-2]; // U
-					_V = ((xSource&1) == 0) ? data[index+2] : data[index  ]; // V	
-					// LUT mapping
-					LUT(currentDest, _Y, _U, _V);
-				}
-				break;
-				case PixelFormat::YUYV:
-				{
-					int index = lineLength_ySource + (xSource << 1);
-					_Y = data[index];					    // Y
-					_U = ((xSource&1) == 0) ? data[index+1] : data[index-1];  // U
-					_V = ((xSource&1) == 0) ? data[index+3] : data[index+1];  // V
-					// LUT mapping
-					LUT(currentDest, _Y, _U, _V);
-				}
-				break;
+			{				
 				case PixelFormat::BGR16:
 				{
 					int index = lineLength_ySource + (xSource << 1);										
