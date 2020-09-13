@@ -1049,7 +1049,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 				#else
 							0,
 				#endif			 
-							1,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
+							_cropLeft,  _cropTop, _cropBottom, _cropRight, 		
 							processFrameIndex,currentTime,_hdrToneMappingEnabled,
 							(_lutBufferInit)? lutBuffer: NULL);							
 									

@@ -109,7 +109,7 @@ V4L2Worker::~V4L2Worker(){
 void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, VideoMode __videoMode,PixelFormat __pixelFormat, 
 			uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 			int __subsamp, 
-			int __pixelDecimation, unsigned  __cropLeft, unsigned  __cropTop, 
+			unsigned  __cropLeft, unsigned  __cropTop, 
 			unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
 			int __hdrToneMappingEnabled,unsigned char* _lutBuffer)
 {
@@ -123,7 +123,6 @@ void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Video
 	_width = __width;
 	_height = __height;
 	_subsamp = __subsamp;
-	_pixelDecimation = __pixelDecimation;
 	_cropLeft = __cropLeft;
 	_cropTop = __cropTop;
 	_cropBottom = __cropBottom;
@@ -152,7 +151,7 @@ void V4L2Worker::runMe()
 		{
 		#ifdef HAVE_JPEG_DECODER	
 			#ifdef HAVE_TURBO_JPEG		
-				if (!(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0 || _pixelDecimation>1))
+				if (!(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
 					process_image_jpg_mt_turbo();	
 				else
 			#endif	
@@ -167,7 +166,6 @@ void V4L2Worker::runMe()
 			ImageResampler::processImage(
 				_videoMode,
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
-				_pixelDecimation, _pixelDecimation,
 				sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
 			emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);		
@@ -355,11 +353,7 @@ void V4L2Worker::process_image_jpg_mt()
 	{
 		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
 		imageFrame = imageFrame.copy(rect);
-	}
-	if (_pixelDecimation>1)
-	{
-		imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
-	}
+	}	
 
 	if ((image.width() != unsigned(imageFrame.width())) || (image.height() != unsigned(imageFrame.height())))
 	{

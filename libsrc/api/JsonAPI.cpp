@@ -1,15 +1,13 @@
 // project includes
 #include <api/JsonAPI.h>
 
+
 // stl includes
-#include <iostream>
-#include <iterator>
 #include <chrono>
 
 // Qt includes
 #include <QResource>
 #include <QDateTime>
-#include <QCryptographicHash>
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
@@ -19,7 +17,6 @@
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
-
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
 
@@ -50,30 +47,9 @@ using namespace hyperion;
 
 JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener)
 	: API(log, localConnection, parent)
-/*	, _authManager(AuthManager::getInstance()) // moved to API
-	, _authorized(false)
-	, _adminAuthorized(false)
-	, _apiAuthRequired(_authManager->isAuthRequired())
-	, _noListener(noListener)
-	, _peerAddress(peerAddress)
-	, _log(log)  // moved to API
-	, _localConnection(localConnection)
-	, _instanceManager(HyperionIManager::getInstance())
-	, _hyperion(nullptr) // moved
-	, _jsonCB(new JsonCB(this))
-	, _streaming_logging_activated(false)
-	, _ledStreamTimer(new QTimer(this))  */
 {
-	//_authManager = AuthManager::getInstance(); // moved to API init
-	//_authorized = false; // moved INIT api
-	//_adminAuthorized = false; // moved INIT api
-	//_apiAuthRequired = _authManager->isAuthRequired();
 	_noListener = noListener;
 	_peerAddress = peerAddress;
-	//_log = log;  // moved to API
-	// _localConnection = localConnection; moved init ti api
-	//_instanceManager = HyperionIManager::getInstance();
-	//_hyperion = nullptr; // moved
 	_jsonCB = new JsonCB(this);
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
@@ -201,7 +177,7 @@ proceed:
 	else if (command == "leddevice")
 		handleLedDeviceCommand(message, command, tan);
 
-	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
+	// BEGIN | The following commands are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
 		handleClearallCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
@@ -332,7 +308,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	activePriorities.removeAll(255);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	foreach (int priority, activePriorities)
+	for(int priority : activePriorities)
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
 		QJsonObject item;
