@@ -1495,7 +1495,7 @@ void JsonAPI::setImage(const Image<ColorRgb> &image)
 {
 	// protect buffer from overflow
 	uint64_t _currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	if (_currentTime - _lastSendImage <200)
+	if (_currentTime - _lastSendImage < 100)
 	{
 		//Debug(_log, "setImage buffer overflow protection %d",_currentTime - _lastSendImage);
 		return;
