@@ -263,16 +263,12 @@ void V4L2Worker::process_image_jpg_mt()
 			QString info = QString("JPG: incorrent color space");
 			emit newFrameError(_workerIndex, info,_currentFrame);
 			return;	
-		}
-
-		QImage imageFrame = QImage(_decompress->output_width, _decompress->output_height, QImage::Format_RGB888);
-
-		int y = 0;
+		}		
+		
 		while (_decompress->output_scanline < _decompress->output_height)
 		{
 			uchar *row = (unsigned char*)srcImage.memptr()+_decompress->output_scanline*image.width()*3; 
 			jpeg_read_scanlines(_decompress, &row, 1);
-			y++;
 		}
 
 		jpeg_finish_decompress(_decompress);
