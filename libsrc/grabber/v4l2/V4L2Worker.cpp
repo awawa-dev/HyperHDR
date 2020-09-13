@@ -302,19 +302,27 @@ void V4L2Worker::process_image_jpg_mt()
 		}
 	#endif	
 	
+	// got image, process it	
 	if ( !(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
 	{
 		// apply LUT	
     		applyLUT((unsigned char*)srcImage.memptr(), (unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height(), srcImage.width()*3);
     		
-    		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);
-    		return;
+    		// exit
+    		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);    		
     	}
     	else
     	{    	
     		// calculate the output size
 		int outputWidth = (_width - _cropLeft - _cropRight);
 		int outputHeight = (_height - _cropTop - _cropBottom);
+		
+		if (outputWidth <= 0 || outputHeight <= 0)
+		{
+			QString info = QString("Invalid cropping");
+			emit newFrameError(_workerIndex, info,_currentFrame);
+			return;	
+		}
 		
 		Image<ColorRgb> destImage(outputWidth, outputHeight);
 		
