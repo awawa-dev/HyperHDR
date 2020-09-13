@@ -40,7 +40,6 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
-		, int pixelDecimation
 		, const QString & configurationPath
 		)
 	: Grabber("V4L2:"+device)
@@ -50,7 +49,6 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _pixelFormat(pixelFormat)
-	, _pixelDecimation(-1)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
 	, _noSignalCounterThreshold(40)
@@ -74,8 +72,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _currentFrame(0)
 	, _configurationPath(configurationPath)
 	
-{
-	setPixelDecimation(pixelDecimation);
+{	
 	getV4Ldevices();
 
 	// init
@@ -1052,7 +1049,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 				#else
 							0,
 				#endif			 
-							_pixelDecimation,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
+							1,  _cropLeft,  _cropTop, _cropBottom, _cropRight, 		
 							processFrameIndex,currentTime,_hdrToneMappingEnabled,
 							(_lutBufferInit)? lutBuffer: NULL);							
 									
@@ -1255,16 +1252,6 @@ void V4L2Grabber::setCecDetectionEnable(bool enable)
 	{
 		_cecDetectionEnabled = enable;
 		Info(_log, QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled").toLocal8Bit());
-	}
-}
-
-void V4L2Grabber::setPixelDecimation(int pixelDecimation)
-{
-	if (_pixelDecimation != pixelDecimation)
-	{
-		_pixelDecimation = pixelDecimation;
-		_imageResampler.setHorizontalPixelDecimation(pixelDecimation);
-		_imageResampler.setVerticalPixelDecimation(pixelDecimation);
 	}
 }
 

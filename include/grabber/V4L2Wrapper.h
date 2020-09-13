@@ -14,8 +14,7 @@ public:
 			const unsigned fps,
 			const unsigned input,
 			VideoStandard videoStandard,
-			PixelFormat pixelFormat,
-			int pixelDecimation,
+			PixelFormat pixelFormat,			
 			const QString & configurationPath );
 	~V4L2Wrapper() override;
 

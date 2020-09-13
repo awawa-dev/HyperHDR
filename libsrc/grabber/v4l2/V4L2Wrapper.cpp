@@ -11,8 +11,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		unsigned fps,
 		unsigned input,
 		VideoStandard videoStandard,
-		PixelFormat pixelFormat,
-		int pixelDecimation,
+		PixelFormat pixelFormat,		
 		const QString & configurationPath )
 	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device,
@@ -22,7 +21,6 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 			input,
 			videoStandard,
 			pixelFormat,
-			pixelDecimation,
 			configurationPath)
 {
 	_ggrabber = &_grabber;
@@ -127,10 +125,7 @@ void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument&
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
 	{
 		// extract settings
-		const QJsonObject& obj = config.object();
-
-		// pixel decimation for v4l
-		_grabber.setPixelDecimation(obj["sizeDecimation"].toInt(8));
+		const QJsonObject& obj = config.object();		
 
 		// crop for v4l
 		_grabber.setCropping(

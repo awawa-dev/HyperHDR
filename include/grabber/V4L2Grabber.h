@@ -60,7 +60,6 @@ public:
 			const unsigned input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
-			int pixelDecimation,
 			const QString & configurationPath
 	);
 	~V4L2Grabber() override;
@@ -74,12 +73,6 @@ public:
 	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
 
 	int grabFrame(Image<ColorRgb> &);
-
-	///
-	/// @brief  set new PixelDecimation value to ImageResampler
-	/// @param  pixelDecimation  The new pixelDecimation value
-	///
-	void setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// @brief  overwrite Grabber.h implementation
@@ -281,7 +274,6 @@ private:
 	} frameStat;
 
 	PixelFormat _pixelFormat;
-	int         _pixelDecimation;
 	int         _lineLength;
 	int         _frameByteSize;
 
