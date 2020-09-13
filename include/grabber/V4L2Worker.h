@@ -70,7 +70,7 @@ class V4L2Worker : public  QThread
 	private:
 		void runMe();
 		void process_image_jpg_mt();																			
-		void applyLUT(unsigned char* _target, unsigned char* _source, unsigned int width ,unsigned int height, unsigned int bytesPerLine);
+		void applyLUT(unsigned char* _source, unsigned int width ,unsigned int height);
 	#ifdef HAVE_TURBO_JPEG		
 		tjhandle 	_decompress;			
 	#endif
