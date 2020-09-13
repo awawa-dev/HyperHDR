@@ -149,14 +149,8 @@ void V4L2Worker::runMe()
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
 		{
-		#ifdef HAVE_JPEG_DECODER	
-			#ifdef HAVE_TURBO_JPEG		
-				if (!(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
-					process_image_jpg_mt_turbo();	
-				else
-			#endif	
-				process_image_jpg_mt();					
-			
+		#ifdef HAVE_JPEG_DECODER				
+			process_image_jpg_mt();								
 		#endif	
 		}
 		else
@@ -201,38 +195,10 @@ void V4L2Worker::noBusy()
 }
 
 
-void V4L2Worker::process_image_jpg_mt_turbo()
-{				
-	Image<ColorRgb> image(_width, _height);		
-		
-	if (_decompress == nullptr)	
-		_decompress = tjInitDecompress();	
-	
-	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(sharedData), size, &_width, &_height, &_subsamp) != 0)
-	{	
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);				
-		return;
-	}
-			
-	if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), size, (unsigned char*)image.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-	{		
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);
-		return;
-	}
-
-	// apply LUT	
-    	applyLUT((unsigned char*)image.memptr(), (unsigned char*)image.memptr(), _width, _height, _width*3);
-			
-	// exit
-	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);	
-}
-
 void V4L2Worker::process_image_jpg_mt()
 {				
 	
-	Image<ColorRgb> image(_width, _height);		
+	Image<ColorRgb> srcImage(_width, _height);		
 	
 	#ifdef HAVE_JPEG
 		_decompress = new jpeg_decompress_struct;
@@ -304,7 +270,7 @@ void V4L2Worker::process_image_jpg_mt()
 		int y = 0;
 		while (_decompress->output_scanline < _decompress->output_height)
 		{
-			uchar *row = imageFrame.scanLine(_decompress->output_scanline);
+			uchar *row = (unsigned char*)srcImage.memptr()+_decompress->output_scanline*image.width()*3; 
 			jpeg_read_scanlines(_decompress, &row, 1);
 			y++;
 		}
@@ -331,10 +297,8 @@ void V4L2Worker::process_image_jpg_mt()
 			emit newFrameError(_workerIndex, info,_currentFrame);				
 			return;
 		}
-		
-		QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
-		
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+				
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), size, (unsigned char*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 		{		
 			QString info = QString(tjGetErrorStr());
 			emit newFrameError(_workerIndex, info,_currentFrame);
@@ -342,48 +306,35 @@ void V4L2Worker::process_image_jpg_mt()
 		}
 	#endif	
 	
-	if (imageFrame.isNull())
+	if ( !(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
 	{
-		QString info = QString("Empty frame detected");
-		emit newFrameError(_workerIndex, info,_currentFrame);
-		return;	
-	}
-
-	if (_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0)
-	{
-		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
-		imageFrame = imageFrame.copy(rect);
-	}	
-
-	if ((image.width() != unsigned(imageFrame.width())) || (image.height() != unsigned(imageFrame.height())))
-	{
-		image.resize(imageFrame.width(), imageFrame.height());
-	}
-
-	// apply LUT
-	if (lutBuffer != NULL && _hdrToneMappingEnabled)
-		applyLUT((unsigned char*)image.memptr(), imageFrame.bits(), imageFrame.width(), imageFrame.height(), imageFrame.bytesPerLine());
-	else
-	{	
-	    	// bytes are in order of RGB 3 bytes because of TJPF_RGB    	
-	    	if (imageFrame.width() % 4)
-	    	{    		
-	    		// fix array aligment
-	    		unsigned int height = (unsigned int)imageFrame.height();  
-	    		for (unsigned int y=0; y<height; y++)
-	    		{
-				unsigned char* source = imageFrame.scanLine(y);
-				unsigned char* dest = (unsigned char*)image.memptr()+y*image.width()*3;    		
-				memcpy(dest,source,imageFrame.width()*3);
-	    		}
-	    		
-	    	}
-		else
-			image.copy(imageFrame.bits(), imageFrame.width()*imageFrame.height()*3);			
-	}	
+		// apply LUT	
+    		applyLUT((unsigned char*)srcImage.memptr(), (unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height(), srcImage.width()*3);
+    		
+    		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);
+    		return;
+    	}
+    	else
+    	{    	
+    		// calculate the output size
+		int outputWidth = (_width - _cropLeft - _cropRight);
+		int outputHeight = (_height - _cropTop - _cropBottom);
 		
-	// exit
-	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);				
+		Image<ColorRgb> destImage(outputWidth, outputHeight);
+		
+		for (unsigned int y = 0; y < destImage.height(); y++)
+		{
+			unsigned char* source = (unsigned char*)srcImage.memptr() + (y + _cropTop)*srcImage.width()*3 + _cropLeft*3;
+			unsigned char* dest = (unsigned char*)destImage.memptr() + y*destImage.width()*3;    		
+			memcpy(dest, source, destImage.width()*3);				
+		}
+		
+		// apply LUT	
+    		applyLUT((unsigned char*)destImage.memptr(), (unsigned char*)destImage.memptr(), destImage.width(), destImage.height(), destImage.width()*3);
+    		
+    		// exit
+		emit newFrame(_workerIndex, destImage, _currentFrame, _frameBegin);	
+	}
 }
 
 #define LUT(dest,source) \

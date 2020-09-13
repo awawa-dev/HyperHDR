@@ -65,7 +65,7 @@ void ImageResampler::processImage(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, _Y, _U, _V, buffer[4];
+	uint8_t _red, _green, _blue, buffer[4];
 	int     cropRight  = _cropRight;
 	int     cropBottom = _cropBottom;
 			
@@ -153,27 +153,7 @@ void ImageResampler::processImage(
 		for (int xDest = 0, xSource = _cropLeft; xDest < outputWidth; xSource++, ++xDest)
 		{					
 			switch (pixelFormat)
-			{
-				case PixelFormat::UYVY:
-				{
-					int index = lineLength_ySource + (xSource << 1);
-					_Y = data[index+1]; 					   // Y
-					_U = ((xSource&1) == 0) ? data[index  ] : data[index-2]; // U
-					_V = ((xSource&1) == 0) ? data[index+2] : data[index  ]; // V	
-					// LUT mapping
-					LUT(currentDest, _Y, _U, _V);
-				}
-				break;
-				case PixelFormat::YUYV:
-				{
-					int index = lineLength_ySource + (xSource << 1);
-					_Y = data[index];					    // Y
-					_U = ((xSource&1) == 0) ? data[index+1] : data[index-1];  // U
-					_V = ((xSource&1) == 0) ? data[index+3] : data[index+1];  // V
-					// LUT mapping
-					LUT(currentDest, _Y, _U, _V);
-				}
-				break;
+			{				
 				case PixelFormat::BGR16:
 				{
 					int index = lineLength_ySource + (xSource << 1);										
