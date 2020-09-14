@@ -306,7 +306,7 @@ void V4L2Worker::process_image_jpg_mt()
 	if ( !(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
 	{
 		// apply LUT	
-    		applyLUT((unsigned char*)srcImage.memptr(), (unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height(), srcImage.width()*3);
+    		applyLUT((unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height());
     		
     		// exit
     		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);    		
@@ -334,23 +334,22 @@ void V4L2Worker::process_image_jpg_mt()
 		}
 		
 		// apply LUT	
-    		applyLUT((unsigned char*)destImage.memptr(), (unsigned char*)destImage.memptr(), destImage.width(), destImage.height(), destImage.width()*3);
+    		applyLUT((unsigned char*)destImage.memptr(), destImage.width(), destImage.height());
     		
     		// exit
 		emit newFrame(_workerIndex, destImage, _currentFrame, _frameBegin);	
 	}
 }
 
-#define LUT(dest,source) \
+#define LUT(source) \
 {\
 	memcpy(buffer, source, 3); \
 	uint32_t ind_lutd = LUT_INDEX(buffer[0],buffer[1],buffer[2]);	\
-	memcpy(dest, (void *) &(lutBuffer[ind_lutd]),3); \
-	dest += 3;	\
+	memcpy(source, (void *) &(lutBuffer[ind_lutd]),3); \
 	source += 3;	\
 }
 
-void V4L2Worker::applyLUT(unsigned char* _target, unsigned char* _source, unsigned int width ,unsigned int height, unsigned int bytesPerLine)
+void V4L2Worker::applyLUT(unsigned char* _source, unsigned int width ,unsigned int height)
 {	
     	// apply LUT table mapping
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB   
@@ -362,25 +361,23 @@ void V4L2Worker::applyLUT(unsigned char* _target, unsigned char* _source, unsign
     		
     		for (unsigned int y=0; y<height; y++)
     		{    	
-    			unsigned char* startSource = _source + bytesPerLine * y;
-    			unsigned char* startDest = _target + width * 3 * y;
-    			unsigned char* endDest = startDest + width * 3;
+    			unsigned char* startSource = _source + width * 3 * y;
+    			unsigned char* endSource = startSource + width * 3;
     			
     			if (_hdrToneMappingEnabled != 2 || y<sizeY || y>height-sizeY)
     			{
-    				while (startDest < endDest)
-		    			LUT(startDest, startSource);
+    				while (startSource < endSource)
+		    			LUT(startSource);
     			}
     			else
     			{
 		    		for (unsigned int x=0; x<sizeX; x++)    		
-		    			LUT(startDest, startSource);
+		    			LUT(startSource);
 		    			
-		    		startSource += (width-2*sizeX)*3;
-		    		startDest += (width-2*sizeX)*3; 
+		    		startSource += (width-2*sizeX)*3;		    		
 		    		
-		    		while (startSource < endDest)
-		    			LUT(startDest, startSource);
+		    		while (startSource < endSource)
+		    			LUT(startSource);
 		    	}
 		}
 		
