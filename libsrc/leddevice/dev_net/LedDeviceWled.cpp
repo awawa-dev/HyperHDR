@@ -215,15 +215,10 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 			apiPort   = API_DEFAULT_PORT;
 		}
 
-		if ( filter.startsWith("/") )
-			filter.remove(0,1);
-
 		initRestAPI(apiHost, apiPort);
-		_restApi->setPath(API_PATH_INFO);
+		_restApi->setPath(filter);
 
-		// Perform request
-		// TODO: WLED::getProperties - Check, if filter is supported
-		httpResponse response = _restApi->put(filter);
+		httpResponse response = _restApi->get();
 		if ( response.error() )
 		{
 			Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
@@ -240,9 +235,7 @@ void LedDeviceWled::identify(const QJsonObject& /*params*/)
 {
 #if 0
 	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
 
-	// Get Nanoleaf device properties
 	QString host = params["host"].toString("");
 	if ( !host.isEmpty() )
 	{
