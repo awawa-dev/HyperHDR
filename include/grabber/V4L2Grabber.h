@@ -155,6 +155,8 @@ public:
 	/// @brief enable HDR to SDR tone mapping (v4l2)
 	///
 	void setHdrToneMappingEnabled(int mode);
+	
+	void setEncoding(QString enc);
 
 public slots:
 
@@ -315,6 +317,8 @@ private:
 	V4L2WorkerManager _V4L2WorkerManager;
 	
 	void	ResetCounter(uint64_t from);	
+	
+	QString        _enc;
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

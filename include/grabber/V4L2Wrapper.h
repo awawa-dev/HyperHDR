@@ -44,6 +44,8 @@ public slots:
 	///
 	void setHdrToneMappingEnabled(int mode);	
 	
+	void setEncoding(QString enc);
+	
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);

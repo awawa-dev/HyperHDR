@@ -121,6 +121,7 @@
 	///  * hdrToneMapping       : enable HDR to SDR tone mapping using LUT table [default=0, on=1, border mode =2]
 	///  * hdrToneMappingMode   : LUT effect apply mode [fullscreen=1, border mode =2]
 	///  * fpsSoftwareDecimation: process every n'th received frame [default=1]	
+	///  * v4l2Encoding         : force encoding: NONE, MJPEG, YUYV
 	"grabberV4L2" :
 	{
 		"device"               : "auto",
@@ -144,7 +145,8 @@
 		"sDHOffsetMax"         : 0.75,
 		"hdrToneMapping"       : false,
 		"hdrToneMappingMode"   : 1,	
-		"fpsSoftwareDecimation": 1		
+		"fpsSoftwareDecimation": 1,
+		"v4l2Encoding"         : "NONE"
 	},
 
 	///  The configuration for the frame-grabber, contains the following items:

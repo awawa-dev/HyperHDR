@@ -120,6 +120,11 @@ void V4L2Wrapper::setFpsSoftwareDecimation(int decimation)
 	_grabber.setFpsSoftwareDecimation(decimation);
 }
 
+void V4L2Wrapper::setEncoding(QString enc)
+{
+	_grabber.setEncoding(enc);
+}
+
 void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
@@ -172,5 +177,7 @@ void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		_grabber.setDeviceVideoStandard(
 			obj["device"].toString("auto"),
 			parseVideoStandard(obj["standard"].toString("no-change")));
+			
+		_grabber.setEncoding(obj["v4l2Encoding"].toString("NONE"));
 	}
 }
