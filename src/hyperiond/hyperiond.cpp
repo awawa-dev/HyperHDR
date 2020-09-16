@@ -562,6 +562,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		Debug(_log, "V4L2 grabber created");
 		// software frame skipping
 		_v4l2Grabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
+		_v4l2Grabber->setEncoding(grabberConfig["v4l2Encoding"].toString("NONE"));
 		
 		_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,

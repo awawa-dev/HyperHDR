@@ -299,6 +299,15 @@
 			"default" : 1,
 			"required" : true,
 			"propertyOrder" : 27
+		},
+		"v4l2Encoding" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_v4l2_v4l2Encoding_title",
+			"enum" : ["NONE", "mjpeg", "yuyv", "bgr16", "bgr24", "rgb32", "bgr32", "uyvy"],
+			"default" : "NONE",			
+			"required" : true,
+			"propertyOrder" : 28
 		}
 	},
 	"additionalProperties" : true

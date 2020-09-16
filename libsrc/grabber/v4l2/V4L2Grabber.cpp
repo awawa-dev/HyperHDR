@@ -71,6 +71,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _lutBufferInit(false)
 	, _currentFrame(0)
 	, _configurationPath(configurationPath)
+	, _enc("NONE")
 	
 {	
 	getV4Ldevices();
@@ -79,7 +80,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
-	setDeviceVideoStandard(device, videoStandard);	
+	setDeviceVideoStandard(device, videoStandard);
+	Debug(_log,"Init pixel format: %i", static_cast<int>(_pixelFormat));	
 }
 
 void V4L2Grabber::loadLutFile(const QString & color)
@@ -1353,3 +1355,26 @@ void V4L2Grabber::handleCecEvent(CECEvent event)
 		default: break;
 	}
 }
+
+void V4L2Grabber::setEncoding(QString enc)
+{
+	bool active = _V4L2WorkerManager.isActive();
+	
+	_enc = enc;
+	_pixelFormat = parsePixelFormat(_enc);
+	Debug(_log,"Force encoding (setEncoding): %s (%i)", QSTRING_CSTR(_enc), static_cast<int>(_pixelFormat));
+			
+	if (_pixelFormat != PixelFormat::NO_CHANGE)
+	{
+		
+		Debug(_log,"Restarting v4l2 grabber");
+		uninit();
+		init();		
+				
+		if (active)	
+		{	
+			start();	
+		}
+	}
+}
+

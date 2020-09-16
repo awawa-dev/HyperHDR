@@ -80,7 +80,8 @@
 		"sDHOffsetMax"          : 0.75,
 		"hdrToneMapping"        : false,
 		"hdrToneMappingMode"    : 1,		
-		"fpsSoftwareDecimation" : 1
+		"fpsSoftwareDecimation" : 1,
+		"v4l2Encoding"          : "NONE"
 	},
 
 	"framegrabber" :
