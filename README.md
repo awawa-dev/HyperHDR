@@ -20,7 +20,7 @@ https://github.com/awawa-dev/HyperHDR/releases
 <img src='https://i.postimg.cc/9FXkP3Zn/compare2.png'/>
 
 
-<img src='https://i.postimg.cc/C1FxYfks/option2.png'/>
+<img src='https://i.postimg.cc/prymCNLj/screenshot8.png'/>
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
