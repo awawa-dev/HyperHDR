@@ -19,8 +19,11 @@ https://github.com/awawa-dev/HyperHDR/releases
 <img src='https://i.postimg.cc/7PncTPGz/compare1.png'/>
 <img src='https://i.postimg.cc/9FXkP3Zn/compare2.png'/>
 
-
+Configuration:
 <img src='https://i.postimg.cc/prymCNLj/screenshot8.png'/>
+
+Lut table generator:
+<img src='https://i.postimg.cc/mgVhv219/lutgenerator.png'/>
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
