@@ -18,8 +18,11 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        dockerImage: [ armv6l, armv7l ]
+        dockerImage: [ x86_64, armv6l, armv7l ]
         include:
+          - dockerImage: x86_64
+            dockerName: Debian Buster (x86_64)
+	    platform: x11
           - dockerImage: armv6l
             dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             platform: rpi
@@ -47,7 +50,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
-          path: deploy/Hyperion-*
+          path: deploy/Hyper*
 
 
 ######################
@@ -146,7 +149,7 @@ jobs:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags')
     needs: [Linux, windows, Docs]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -173,7 +176,7 @@ jobs:
       - name: Create draft release
         uses: softprops/action-gh-release@v1
         with:
-          name: Hyperion ${{ env.VERSION }}
+          name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}
           files: "artifacts/**"
           draft: true

@@ -63,10 +63,10 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
-		cp /hyperion/build/Hyperion-* /deploy/ 2>/dev/null || : &&
+		cp /hyperion/build/Hyper* /deploy/ 2>/dev/null || : &&
 		cd /hyperion && source /hyperion/test/testrunner.sh || exit 4 &&
 		exit 0;
-		exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
+		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 
 	# overwrite file owner to current user
 	sudo chown -fR $(stat -c "%U:%G" ${CI_BUILD_DIR}/deploy) ${CI_BUILD_DIR}/deploy

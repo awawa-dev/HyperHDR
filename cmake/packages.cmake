@@ -73,7 +73,7 @@ SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm
 
 # OSX "Bundle" generator TODO Add more osx generators
 # https://cmake.org/cmake/help/v3.10/module/CPackBundle.html
-SET ( CPACK_BUNDLE_NAME "Hyperion" )
+SET ( CPACK_BUNDLE_NAME "HyperHDR" )
 SET ( CPACK_BUNDLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Hyperion.icns )
 SET ( CPACK_BUNDLE_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist )
 SET ( CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/cmake/osxbundle/launch.sh" )
@@ -98,13 +98,13 @@ SET ( CPACK_NSIS_MUI_ICON ${NSIS_HYP_ICO})
 SET ( CPACK_NSIS_MUI_UNIICON ${NSIS_HYP_ICO})
 SET ( CPACK_NSIS_MUI_HEADERIMAGE ${NSIS_HYP_LOGO_HORI} )
 SET ( CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${NSIS_HYP_LOGO_VERT})
-SET ( CPACK_NSIS_DISPLAY_NAME "Hyperion Ambient Light")
-SET ( CPACK_NSIS_PACKAGE_NAME "Hyperion" )
+SET ( CPACK_NSIS_DISPLAY_NAME "HyperHDR Ambient Light")
+SET ( CPACK_NSIS_PACKAGE_NAME "HyperHDR" )
 SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperiond.exe")
-SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
-SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
+SET ( CPACK_NSIS_HELP_LINK "https://hyperion-project.org/threads/sdr-hdr-1080p-4k-capable-setup-with-hyperion-ng-for-media-center.10652/")
+SET ( CPACK_NSIS_URL_INFO_ABOUT "https://github.com/awawa-dev/HyperHDR")
 SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
-SET ( CPACK_NSIS_BRANDING_TEXT "Hyperion-${HYPERION_VERSION}")
+SET ( CPACK_NSIS_BRANDING_TEXT "HyperHDR-${HYPERION_VERSION}")
 # additional hyperiond startmenu link, won't be created if the user disables startmenu links
 SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
 SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")
@@ -165,8 +165,8 @@ cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime and hyp
 cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
 # Components base
 cpack_add_component(Hyperion
-	DISPLAY_NAME "Hyperion"
-	DESCRIPTION "Hyperion runtime"
+	DISPLAY_NAME "HyperHDR"
+	DESCRIPTION "HyperHDR runtime"
 	INSTALL_TYPES Full Min
 	GROUP Runtime
 	REQUIRED
