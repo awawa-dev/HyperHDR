@@ -36,7 +36,7 @@ jobs:
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: stretch
+          DOCKER_TAG: buster
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
         shell: bash
