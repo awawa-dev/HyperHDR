@@ -31,10 +31,10 @@ endif()
 # Apply to all packages, some of these can be overwritten with generator specific content
 # https://cmake.org/cmake/help/v3.5/module/CPack.html
 
-SET ( CPACK_PACKAGE_NAME "Hyperion" )
+SET ( CPACK_PACKAGE_NAME "HyperHDR" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
-SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+SET ( CPACK_PACKAGE_FILE_NAME "HyperHDR-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
 SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
 SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
