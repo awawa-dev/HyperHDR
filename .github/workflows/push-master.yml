@@ -22,7 +22,7 @@ jobs:
         include:
           - dockerImage: x86_64
             dockerName: Debian Buster (x86_64)
-	    platform: x11
+            platform: x11
           - dockerImage: armv6l
             dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             platform: rpi
