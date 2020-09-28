@@ -57,7 +57,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "sudo apt-get install libjpeg-turbo -y &&
+		/bin/bash -c "sudo apt-get update && sudo apt-get install libjpeg-turbo -y &&
 		mkdir hyperion && cp -r source/. /hyperion &&
 		cd /hyperion && mkdir build && cd build &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
