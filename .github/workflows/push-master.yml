@@ -15,23 +15,17 @@ jobs:
 
   Linux:
     name: ${{ matrix.dockerName }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
+        dockerImage: [ armv6l, armv7l ]
         include:
-          - dockerImage: x86_64
-            dockerName: Debian Stretch (x86_64)
-            platform: x11
           - dockerImage: armv6l
-            dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
+            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             platform: rpi
           - dockerImage: armv7l
-            dockerName: Debian Stretch (Raspberry Pi 2 & 3)
+            dockerName: Debian Buster (Raspberry Pi 2 & 3)
             platform: rpi
-          - dockerImage: aarch64
-            dockerName: Debian Stretch (Generic AARCH64)
-            platform: amlogic
 
     steps:
       - uses: actions/checkout@v1
@@ -55,36 +49,6 @@ jobs:
         with:
           path: deploy/Hyperion-*
 
-######################
-###### macOS #########
-######################
-
-  macOS:
-    name: macOS
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: true
-
-      # install dependencies
-      - name: Install dependencies
-        shell: bash
-        run: ./.ci/ci_install.sh
-
-      # build process
-      - name: Build packages
-        env:
-          PLATFORM: osx
-        shell: bash
-        run: ./.ci/ci_build.sh
-
-      # upload artifacts (only on tagged commit)
-      - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
-        with:
-          path: build/Hyperion-*
 
 ######################
 ###### Windows #######
