@@ -107,7 +107,7 @@ jobs:
 
   Docs:
     name: Documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: docs
@@ -145,7 +145,7 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, macOS, windows, Docs]
+    needs: [Linux, windows, Docs]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
