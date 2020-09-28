@@ -1,3 +1,5 @@
 IMG_NAME='HyperHDR'
+DEPLOY_DIR="${BASE_DIR}/deploy/armv7"
 STAGE_LIST='stage0 stage1 stage2 stage-hyperbian'
 TARGET_HOSTNAME='HyperHDR'
+ENABLE_SSH=1
