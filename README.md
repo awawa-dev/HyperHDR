@@ -7,6 +7,10 @@ Single and multi-threaded optimization (Rpi2/3/4) for USB v4l2 grabber.
 
 https://github.com/awawa-dev/HyperHDR/releases
 
+You can use ready SD card images just like Hyperbian.
+Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/
+SSH is enabled on default. Default LUT table is already included!
+
 ### New features of this fork:
 
 * <b>Really low CPU</b> usage on SoCs like Raspberry Pi using v4l2 grabbers
