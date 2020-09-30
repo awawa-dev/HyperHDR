@@ -1,14 +1,14 @@
 ## About 
 
-Based on [Hyperion NG](https://github.com/hyperion-project/hyperion.ng) with some performance tweaks especially for MJPEG/YUV grabbers with support for HDR/BT2020 using LUT tables. 
+Based on [Hyperion NG](https://github.com/hyperion-project/hyperion.ng) with some performance tweaks especially for MJPEG/YUV grabbers with support for HDR/BT2020 using LUT tables.<br/>
 Single and multi-threaded optimization (Rpi2/3/4) for USB v4l2 grabber.
 
 ## Download packages & sources
 
 https://github.com/awawa-dev/HyperHDR/releases
 
-You can use ready SD card images just like Hyperbian.
-Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/
+You can use prepared SD card images just like Hyperbian.<br/>
+Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/<br/>
 SSH is enabled on default. Default LUT table is already included!
 
 ### New features of this fork:
@@ -23,10 +23,10 @@ SSH is enabled on default. Default LUT table is already included!
 <img src='https://i.postimg.cc/7PncTPGz/compare1.png'/>
 <img src='https://i.postimg.cc/9FXkP3Zn/compare2.png'/>
 
-Configuration:
+<br/><b>Configuration:</b>
 <img src='https://i.postimg.cc/prymCNLj/screenshot8.png'/>
 
-Lut table generator:
+<br/><b>Lut table generator:</b>
 <img src='https://i.postimg.cc/mgVhv219/lutgenerator.png'/>
 
 ## License
