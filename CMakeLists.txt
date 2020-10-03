@@ -41,7 +41,7 @@ SET ( DEFAULT_DISPMANX                    OFF )
 SET ( DEFAULT_OSX                         OFF )
 SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_XCB                         OFF )
-SET ( DEFAULT_QT                          ON  )
+SET ( DEFAULT_QT                          ON )#
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
@@ -54,9 +54,9 @@ SET ( DEFAULT_EXPERIMENTAL                OFF )
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2        ON )
 	SET ( DEFAULT_SPIDEV      ON )
-	SET ( DEFAULT_TINKERFORGE ON )
-	SET ( DEFAULT_FB          ON )
-	SET ( DEFAULT_USB_HID     ON )
+	SET ( DEFAULT_TINKERFORGE ON )#
+	SET ( DEFAULT_FB          ON )#
+	SET ( DEFAULT_USB_HID     ON )#
 	SET ( DEFAULT_CEC         OFF )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
@@ -118,7 +118,7 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
 elseif ( "${PLATFORM}" MATCHES "rpi" )
-	SET ( DEFAULT_DISPMANX   ON )
+	SET ( DEFAULT_DISPMANX   OFF )
 	SET ( DEFAULT_WS281XPWM  ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
 	SET ( DEFAULT_AMLOGIC    ON )
@@ -356,6 +356,15 @@ ENDIF()
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
+
+# GL dispatcher
+find_library (GLD GLdispatch)
+if(NOT GLD)
+  message(FATAL_ERROR "GLdispatch library not found")
+endif()
+
+message("Found: ${GLD}")
+add_library(GLD SHARED IMPORTED)
 
 # Add JPEG library
 if (ENABLE_V4L2)
