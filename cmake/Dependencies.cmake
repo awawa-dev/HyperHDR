@@ -87,6 +87,24 @@ macro(DeployUnix TARGET)
 			OUTPUT_VARIABLE QT_PLUGINS_DIR
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
+		
+		if(GLD)
+			SET(resolved_file ${GLD})
+			message(STATUS "Adding: ${resolved_file}")
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Added: ${resolved_file}")
+			set(resolved_file "${resolved_file}.0")
+			if(EXISTS ${resolved_file})
+				message(STATUS "Adding: ${resolved_file}")
+				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+				message(STATUS "Added: ${resolved_file}")
+			endif()
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added: ${file_canonical}")
+		endif()
 
 		# Copy Qt plugins to 'share/hyperion/lib'
 		if(QT_PLUGINS_DIR)
@@ -130,6 +148,7 @@ macro(DeployUnix TARGET)
 
 		# Copy dependencies to 'share/hyperion/lib'
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
+			message("Installing: " ${PREREQUISITE_LIB})
 			install(
 				FILES ${PREREQUISITE_LIB}
 				DESTINATION "share/hyperion/lib"
