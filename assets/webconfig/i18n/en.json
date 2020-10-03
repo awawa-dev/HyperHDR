@@ -933,5 +933,5 @@
     "edt_conf_v4l2_fpsSoftwareDecimation_title" : "Software frame skipping",
     "edt_conf_v4l2_fpsSoftwareDecimation_expl" : "To save resources every n'th frame will be processed only. For ex. if grabber is set to 30FPS with this option set to 5 the final result will be around 6FPS (1 - disabled)",
     "edt_conf_v4l2_v4l2Encoding_title" : "Force encoding format on grabber",	
-    "edt_conf_v4l2_v4l2Encoding_expl" : "Force video encoding for multiformat capable grabbers (make sure that's correct)",    
+    "edt_conf_v4l2_v4l2Encoding_expl" : "Force video encoding for multiformat capable grabbers (make sure that's correct)"
 }

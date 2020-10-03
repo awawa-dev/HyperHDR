@@ -76,6 +76,16 @@ if ( NOT DEFINED PLATFORM )
 		SET( PLATFORM "x11")
 	elseif ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
 		SET( PLATFORM "rpi")
+
+		# GL dispatcher
+		find_library (GLD GLdispatch)
+		if(NOT GLD)
+			message(FATAL_ERROR "GLdispatch library not found. Install libglvnd-dev")
+		endif()
+
+		message("Found: ${GLD}")
+		add_library(GLD SHARED IMPORTED)
+
 		FILE( READ /proc/cpuinfo SYSTEM_CPUINFO )
 		STRING ( TOLOWER "${SYSTEM_CPUINFO}" SYSTEM_CPUINFO )
 		if ( "${SYSTEM_CPUINFO}" MATCHES "amlogic" AND ${CMAKE_SIZEOF_VOID_P} EQUAL 4 )
@@ -357,14 +367,6 @@ find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
-# GL dispatcher
-find_library (GLD GLdispatch)
-if(NOT GLD)
-  message(FATAL_ERROR "GLdispatch library not found")
-endif()
-
-message("Found: ${GLD}")
-add_library(GLD SHARED IMPORTED)
 
 # Add JPEG library
 if (ENABLE_V4L2)
