@@ -34,8 +34,8 @@ bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 		Info(_log, "[SK9822] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
 
 		const unsigned int startFrameSize = 4;
-		const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), 4);
-		const unsigned int bufferSize = (_ledCount * 4) + startFrameSize + endFrameSize + ((_ledCount/32) + 1)*4;
+		const unsigned int endFrameSize = ((_ledCount/32) + 1)*4;
+		const unsigned int bufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
 		_ledBuffer.resize(bufferSize, 0x00);
 		//_ledBuffer[0] = 0x00;
