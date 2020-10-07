@@ -34,14 +34,13 @@ bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 		Info(_log, "[SK9822] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
 
 		const unsigned int startFrameSize = 4;
+		// update PWM on the end of frame
 		const unsigned int endFrameSize = ((_ledCount/32) + 1)*4;
 		const unsigned int bufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
+		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize(bufferSize, 0x00);
-		//_ledBuffer[0] = 0x00;
-		//_ledBuffer[1] = 0x00;
-		//_ledBuffer[2] = 0x00;
-		//_ledBuffer[3] = 0x00;
+		// first 4 bytes are zeroes, start frame, PWM updated
 
 		isInitOK = true;
 	}
@@ -120,10 +119,6 @@ void LedDeviceSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t> &txBuf, con
 		txBuf[b + 1] = red;
 		txBuf[b + 2] = green;
 		txBuf[b + 3] = blue;
-
-		//if(iLed == 0) {
-		//	std::cout << std::to_string((int)rgb.red) << "," << std::to_string((int)rgb.green) << "," << std::to_string((int)rgb.blue) << ": " << std::to_string(maxValue) << (maxValue >= threshold ? " >= " : " < ") << std::to_string(threshold) << " -> " << std::to_string((int)(level&SK9822_GBC_MAX_LEVEL))<< "@" << std::to_string((int)red) << "," << std::to_string((int)green) << "," << std::to_string((int)blue) << std::endl;
-		//}
 	}
 }
 
