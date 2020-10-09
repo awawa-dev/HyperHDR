@@ -75,7 +75,13 @@
 				"backlightThreshold"  : 0,
 				"backlightColored"  : false,
 				"brightness" : 100,
-				"brightnessCompensation" : 80
+				"brightnessCompensation" : 80,
+				"classic_config"   : false,
+				"temperatureRed"   : 255,
+				"temperatureGreen" : 255,
+				"temperatureBlue"  : 255,
+				"saturationGain"   : 1.0000,
+				"luminanceGain"    : 1.0000				
 			}
 		]
 	},

@@ -52,13 +52,39 @@ public:
 
 	/// @return The current adjustB value
 	uint8_t getAdjustmentB() const;
+	
+	uint8_t adjustmentR(uint8_t inputR) const;
 
+	uint8_t adjustmentG(uint8_t inputG) const;
+
+	uint8_t adjustmentB(uint8_t inputB) const;
+	
+	void setCorrection(uint8_t correction);
+	
+	uint8_t getCorrection() const;
+	
+	uint8_t correction(uint8_t input) const;
 private:
 	/// color channels
 	enum ColorChannel { RED=0, GREEN=1, BLUE=2 };
 
 	/// reset init of color mapping
 	void resetInitialized();
+
+	/// (re)-initilize the color mapping
+	void initializeAdjustMapping(uint8_t _adjustR, uint8_t _adjustG, uint8_t _adjustB);
+	void initializeCorrectionMapping(uint8_t correction);
+	
+	int _mappingAdjR[256];
+	int _mappingAdjG[256];
+	int _mappingAdjB[256];	
+	
+	/// The correction of R channel
+	int _correction;
+	
+	/// The mapping from input color to output color
+	int _mappingCorection[256];
+	
 
 	/// The adjustment of RGB channel
 	uint8_t _adjust[3];

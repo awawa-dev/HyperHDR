@@ -46,6 +46,14 @@
 						"default" : "*",
 						"propertyOrder" : 2
 					},
+					"classic_config" :
+					{
+						"type" : "boolean",
+						"title" : "edt_conf_color_classic_config_title",
+						"default" : true,
+						"required" : true,
+						"propertyOrder" : 3
+					},
 					"white" :
 					{
 						"type" : "array",
@@ -60,6 +68,11 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"propertyOrder" : 4
 					},
 					"red" :
@@ -124,6 +137,11 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"propertyOrder" : 8
 					},
 					"magenta" :
@@ -140,6 +158,11 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"propertyOrder" : 9
 					},
 					"yellow" :
@@ -156,6 +179,11 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"propertyOrder" : 10
 					},
 					"backlightThreshold" :
@@ -175,6 +203,11 @@
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
 						"default" : false,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"propertyOrder" : 12
 					},
 					"brightness" :
@@ -185,6 +218,11 @@
 						"minimum" : 0,
 						"maximum": 100,
 						"default" : 100,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"append" : "edt_append_percent",
 						"propertyOrder" : 13
 					},
@@ -196,6 +234,11 @@
 						"minimum" : 0,
 						"maximum": 100,
 						"default" : 0,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"append" : "edt_append_percent",
 						"propertyOrder" : 14
 					},
@@ -231,6 +274,86 @@
 						"default" : 1.5,
 						"step" : 0.1,
 						"propertyOrder" : 17
+					},
+					"temperatureRed" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_temperatureRed_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 255,
+						"default" : 255,
+						"step" : 1,
+						"options": {
+							"dependencies": {
+								"classic_config": true
+							}
+						},
+						"propertyOrder" : 18
+					},
+					"temperatureGreen" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_temperatureGreen_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 255,
+						"default" : 255,
+						"step" : 1,
+						"options": {
+							"dependencies": {
+								"classic_config": true
+							}
+						},
+						"propertyOrder" : 19
+					},
+					"temperatureBlue" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_temperatureBlue_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 255,
+						"default" : 255,
+						"step" : 1,
+						"options": {
+							"dependencies": {
+								"classic_config": true
+							}
+						},
+						"propertyOrder" : 20
+					},
+					"saturationGain" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_saturationGain_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 10,
+						"default" : 1,
+						"step" : 0.05,
+						"options": {
+							"dependencies": {
+								"classic_config": true
+							}
+						},
+						"propertyOrder" : 21
+					},
+					"luminanceGain" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_luminanceGain_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 10,
+						"default" : 1,
+						"step" : 0.05,
+						"options": {
+							"dependencies": {
+								"classic_config": true
+							}
+						},
+						"propertyOrder" : 22
 					}
 				},
 				"additionalProperties" : false

@@ -425,6 +425,12 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
 		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
 		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
+		
+		
+		
+		adjustment["temperatureRed"] = colorAdjustment->_rgbRedAdjustment.getCorrection();
+		adjustment["temperatureGreen"] = colorAdjustment->_rgbGreenAdjustment.getCorrection();
+		adjustment["temperatureBlue"] = colorAdjustment->_rgbBlueAdjustment.getCorrection();		
 
 		adjustmentArray.append(adjustment);
 	}
@@ -728,22 +734,38 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 		return;
 	}
 
-	if (adjustment.contains("red"))
+	
+	if (adjustment.contains("temperatureRed"))
 	{
+		colorAdjustment->_rgbRedAdjustment.setCorrection(adjustment["temperatureRed"].toInt());
+	}
+	
+	if (adjustment.contains("temperatureGreen"))
+	{
+		colorAdjustment->_rgbGreenAdjustment.setCorrection(adjustment["temperatureGreen"].toInt());
+	}
+	
+	if (adjustment.contains("temperatureBlue"))
+	{
+		colorAdjustment->_rgbBlueAdjustment.setCorrection(adjustment["temperatureBlue"].toInt());
+	}
+		
+	if (adjustment.contains("red"))
+	{					
 		const QJsonArray &values = adjustment["red"].toArray();
-		colorAdjustment->_rgbRedAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());		
 	}
 
 	if (adjustment.contains("green"))
-	{
+	{		
 		const QJsonArray &values = adjustment["green"].toArray();
-		colorAdjustment->_rgbGreenAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());	
 	}
 
 	if (adjustment.contains("blue"))
-	{
+	{		
 		const QJsonArray &values = adjustment["blue"].toArray();
-		colorAdjustment->_rgbBlueAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());		
 	}
 	if (adjustment.contains("cyan"))
 	{
@@ -795,7 +817,15 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 	{
 		colorAdjustment->_rgbTransform.setBrightnessCompensation(adjustment["brightnessCompensation"].toInt());
 	}
-
+	if (adjustment.contains("saturationGain"))
+	{
+		colorAdjustment->_rgbTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
+	}
+	if (adjustment.contains("luminanceGain"))
+	{
+		colorAdjustment->_rgbTransform.setLuminanceGain(adjustment["luminanceGain"].toDouble());
+	}
+	
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
 
