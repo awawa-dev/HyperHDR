@@ -2,6 +2,8 @@
 
 // STL includes
 #include <cstdint>
+#include <QString>
+#include <utils/Logger.h>
 
 ///
 /// Color transformation to adjust the saturation and value of a RGB color value
@@ -24,7 +26,11 @@ public:
 	/// @param backlightColored use color in backlight
 	/// @param brightnessHigh The used higher brightness
 	///
-	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
+	RgbTransform(
+				bool classic_config,				
+				double saturationGain,
+				double luminanceGain,
+	double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
 
 	/// @return The current red gamma value
 	double getGammaR() const;
@@ -39,6 +45,9 @@ public:
 	/// @param gammaG New green gamma value
 	/// @param gammaB New blue gamma value
 	void setGamma(double gammaR,double gammaG=-1, double gammaB=-1);
+	
+	void setSaturationGain(double saturationGain);
+	void setLuminanceGain(double luminanceGain);
 
 	/// @return The current lower brightness
 	int getBacklightThreshold() const;
@@ -91,7 +100,7 @@ public:
 	/// @note The values are updated in place.
 	///
 	void transform(uint8_t & red, uint8_t & green, uint8_t & blue);
-
+	void transformSatLum(uint8_t & red, uint8_t & green, uint8_t & blue);
 private:
 	///
 	/// init
@@ -104,12 +113,19 @@ private:
 	/// @param brightness The used brightness
 	/// @param brightnessCompensation The used brightness compensation
 	///
-	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
+	void init(
+		bool classic_config,		
+		double saturationGain,
+		double luminanceGain,
+		double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
 
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
 
 	void updateBrightnessComponents();
+	
+	void rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance);
+	void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t & red, uint8_t & green, uint8_t & blue);
 
 	/// backlight variables
 	bool      _backLightEnabled
@@ -133,4 +149,13 @@ private:
 		, _brightness_rgb
 		, _brightness_cmy
 		, _brightness_w;
+		
+	/// Logger instance
+	Logger * _log;		
+		
+	public:		
+	bool _classic_config;	
+	double _saturationGain;
+	double _luminanceGain;
+	double _luminanceMinimum;
 };

@@ -67,14 +67,20 @@ namespace hyperion {
 		const double gammaR             = colorConfig["gammaRed"].toDouble(1.0);
 		const double gammaG             = colorConfig["gammaGreen"].toDouble(1.0);
 		const double gammaB             = colorConfig["gammaBlue"].toDouble(1.0);
+		
+		
+		const bool   classic_config = colorConfig["classic_config"].toBool(false);		
+		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0000);
+		const double luminanceGain = colorConfig["luminanceGain"].toDouble(1.0000);
 
-		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessComp);
+		return RgbTransform(classic_config, saturationGain, luminanceGain, 
+				gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessComp);
 	}
 
 	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
-		return RgbChannelAdjustment(
+		return RgbChannelAdjustment(			
 			channelConfig[0].toInt(defaultR),
 			channelConfig[1].toInt(defaultG),
 			channelConfig[2].toInt(defaultB),
@@ -97,6 +103,10 @@ namespace hyperion {
 		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
 		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
 		adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
+		
+		adjustment->_rgbRedAdjustment.setCorrection(adjustmentConfig["temperatureRed"].toInt(255));
+		adjustment->_rgbBlueAdjustment.setCorrection(adjustmentConfig["temperatureBlue"].toInt(255));
+		adjustment->_rgbGreenAdjustment.setCorrection(adjustmentConfig["temperatureGreen"].toInt(255));				
 
 		return adjustment;
 	}

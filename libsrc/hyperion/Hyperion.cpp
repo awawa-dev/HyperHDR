@@ -572,8 +572,8 @@ void Hyperion::update()
 	// emit rawLedColors before transform
 	emit rawLedColors(_ledBuffer);
 
-	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-
+	_raw2ledAdjustment->applyAdjustment(_ledBuffer);	
+	
 	int i = 0;
 	for (ColorRgb& color : _ledBuffer)
 	{

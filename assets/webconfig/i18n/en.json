@@ -933,5 +933,17 @@
     "edt_conf_v4l2_fpsSoftwareDecimation_title" : "Software frame skipping",
     "edt_conf_v4l2_fpsSoftwareDecimation_expl" : "To save resources every n'th frame will be processed only. For ex. if grabber is set to 30FPS with this option set to 5 the final result will be around 6FPS (1 - disabled)",
     "edt_conf_v4l2_v4l2Encoding_title" : "Force encoding format on grabber",	
-    "edt_conf_v4l2_v4l2Encoding_expl" : "Force video encoding for multiformat capable grabbers (make sure that's correct)"
+    "edt_conf_v4l2_v4l2Encoding_expl" : "Force video encoding for multiformat capable grabbers (make sure that's correct)",
+    "edt_conf_color_classic_config_title"   : "Classic Hyperion calibration",
+    "edt_conf_color_classic_config_expl"   : "Classic Hyperion calibration",
+    "edt_conf_color_temperatureRed_title"   : "Temperature Red",
+    "edt_conf_color_temperatureRed_expl"   : "Temperature Red",
+    "edt_conf_color_temperatureGreen_title" : "Temperature Green",
+    "edt_conf_color_temperatureGreen_expl" : "Temperature Green",
+    "edt_conf_color_temperatureBlue_title"  : "Temperature Blue",
+    "edt_conf_color_temperatureBlue_expl"  : "Temperature Blue",
+    "edt_conf_color_saturationGain_title"   : "Saturation",
+    "edt_conf_color_saturationGain_expl"   : "Saturation gain",
+    "edt_conf_color_luminanceGain_title"    : "Luminance",
+    "edt_conf_color_luminanceGain_expl"    : "Luminance gain"
 }
