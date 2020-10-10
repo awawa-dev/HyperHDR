@@ -130,8 +130,10 @@ private:
 	/// backlight variables
 	bool      _backLightEnabled
 		, _backlightColored;
-	double    _backlightThreshold
-		, _sumBrightnessLow;
+	double    _backlightThreshold;
+
+	uint8_t _sumBrightnessYLow;
+	uint8_t _sumBrightnessRGBLow;		
 
 	/// gamma variables
 	double    _gammaR

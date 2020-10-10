@@ -52,3 +52,11 @@ void ColorSys::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, 
 	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
 	b = clamp((298 * c + 516 * d + 128) >> 8);
 }
+
+void ColorSys::rgb2yuv(int r, int g, int b, uint8_t &y, uint8_t &u, uint8_t &v)
+{
+	y = clamp(( (  66 * (r) + 129 * (g) +  25 * (b) + 128) >> 8) +  16);
+	u = clamp(( ( -38 * (r) -  74 * (g) + 112 * (b) + 128) >> 8) + 128);
+	v = clamp(( ( 112 * (r) -  94 * (g) -  18 * (b) + 128) >> 8) + 128);
+}
+

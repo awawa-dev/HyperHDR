@@ -77,5 +77,7 @@ public:
 	/// @param[out] red The red RGB-component
 	/// @param[out] green The green RGB-component
 	/// @param[out] blue The blue RGB-component
-	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);		
+	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);
+	
+	static void rgb2yuv(int r, int g, int b, uint8_t &y, uint8_t &u, uint8_t &v);		
 };

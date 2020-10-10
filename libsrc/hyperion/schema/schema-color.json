@@ -202,12 +202,7 @@
 						"type" : "boolean",
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
-						"default" : false,
-						"options": {
-							"dependencies": {
-								"classic_config": false
-							}
-						},
+						"default" : false,						
 						"propertyOrder" : 12
 					},
 					"brightness" :

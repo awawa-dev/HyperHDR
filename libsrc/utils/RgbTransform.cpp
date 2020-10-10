@@ -1,5 +1,6 @@
 #include <QtCore/qmath.h>
 #include <utils/RgbTransform.h>
+#include <utils/ColorSys.h>
 
 RgbTransform::RgbTransform():
 	_log(Logger::getInstance(QString("RgbTransform")))
@@ -41,6 +42,11 @@ void RgbTransform::init(
 	setBrightness(brightness);
 	setBrightnessCompensation(brightnessCompensation);
 	initializeMapping();
+}
+
+inline uint8_t clamp(int x)
+{
+	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
 }
 
 double RgbTransform::getGammaR() const
@@ -97,7 +103,13 @@ int RgbTransform::getBacklightThreshold() const
 void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow   = 765.0 * ((qPow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);
+	
+	int lowVal = (int) ((_backlightThreshold/100.0)*255.0);
+	uint8_t rgb = clamp(lowVal), y, u, v;
+	ColorSys::rgb2yuv(rgb, rgb, rgb, y, u, v);
+	
+	_sumBrightnessYLow   = y;
+	_sumBrightnessRGBLow = rgb;
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -176,29 +188,20 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	green = _mappingG[green];
 	blue  = _mappingB[blue];
 
-	// apply brightnesss
-	int rgbSum = red+green+blue;
+	// apply brightnesss	
+	uint8_t y, u, v;
+	ColorSys::rgb2yuv(red, green, blue, y, u, v);
 
-	if ( _backLightEnabled && _sumBrightnessLow>0 && rgbSum < _sumBrightnessLow)
+	if ( _backLightEnabled && _sumBrightnessYLow>0 && y < _sumBrightnessYLow)
 	{
 		if (_backlightColored)
 		{
-			if (rgbSum == 0)
-			{
-				if (red  ==0) red   = 1;
-				if (green==0) green = 1;
-				if (blue ==0) blue  = 1;
-				rgbSum = red+green+blue;
-			}
-			double cL =qMin((int)(_sumBrightnessLow /rgbSum), 255);
-
-			red   *= cL;
-			green *= cL;
-			blue  *= cL;
+			y = _sumBrightnessYLow;
+			ColorSys::yuv2rgb(y, u, v, red, green, blue);
 		}
 		else
 		{
-			red   = qMin((int)(_sumBrightnessLow/3.0), 255);
+			red   = _sumBrightnessRGBLow;
 			green = red;
 			blue  = red;
 		}
