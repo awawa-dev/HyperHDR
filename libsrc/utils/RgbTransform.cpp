@@ -104,7 +104,7 @@ void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
 	
-	int lowVal = (int) ((_backlightThreshold/100.0)*255.0);
+	int lowVal = (int) (_backlightThreshold);
 	uint8_t rgb = clamp(lowVal), y, u, v;
 	ColorSys::rgb2yuv(rgb, rgb, rgb, y, u, v);
 	
