@@ -22,6 +22,7 @@ SSH is enabled on default. Default LUT table is already included!
 * HDR/BT2020 color & gamma correction
 * LUT table generator with import feature
 * support for the old color calibration with luminance and saturation gain (classic Hyperion)
+* Debian Buster with Qt5 targeted installers
 
 ### FAQ:
 
@@ -38,7 +39,7 @@ The folder is hidden for most FTP clients.
 
 Use YUV encoding format if it's possible.
 
-Enabling backlight can produce flickering in dark scenes as always it does. That's because pixels from frame's sequence can balance on the threshold level. Use coloured backlight threshold on the lowest setting and enable smoothing with maximum continues ouput at 100hz.
+Enabling backlight can produce flickering in dark scenes as always it does. That's because pixels from frames' sequence can balance on the threshold level. Use coloured backlight threshold on the lowest setting and enable smoothing with maximum continues output at 100hz.
 
 <b>Before and after on some HDR/BT2020 content that was broken by the video grabber:</b>
 <img src='https://i.postimg.cc/SRdv0VFd/compare0.png'/>
