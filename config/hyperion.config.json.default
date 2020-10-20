@@ -22,7 +22,7 @@
 
 	"color" :
 	{
-		"imageToLedMappingType" : "multicolor_mean",
+		"imageToLedMappingType" : "advanced",
 		"channelAdjustment" :
 		[
 			{

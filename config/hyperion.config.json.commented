@@ -56,7 +56,7 @@
 	///                                   0 means white is 3x brighter than red, yellow is 2x brighter than red
 	"color" :
 	{
-		"imageToLedMappingType" : "multicolor_mean",
+		"imageToLedMappingType" : "advanced",
 		"channelAdjustment" :
 		[
 			{

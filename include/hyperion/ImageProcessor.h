@@ -237,4 +237,7 @@ private:
 
 	/// Hyperion instance pointer
 	Hyperion* _hyperion;
+	
+	// lut advanced operator
+	uint16_t advanced[256];	
 };

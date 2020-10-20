@@ -4,6 +4,7 @@
 // STL includes
 #include <cassert>
 #include <sstream>
+#include <math.h>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -198,6 +199,38 @@ namespace hyperion
 			return {avgRed, avgGreen, avgBlue};
 		}
 
+		template <typename Pixel_T>
+		ColorRgb calcMeanAdvColor(const Image<Pixel_T> & image, const std::vector<unsigned> & colors, uint16_t* lut) const
+		{
+			const auto colorVecSize = colors.size();
+
+			if (colorVecSize == 0)
+			{
+				return ColorRgb::BLACK;
+			}
+
+			// Accumulate the sum of each seperate color channel
+			uint_fast32_t cummRed   = 0;
+			uint_fast32_t cummGreen = 0;
+			uint_fast32_t cummBlue  = 0;
+			const auto& imgData = image.memptr();
+
+			for (const unsigned colorOffset : colors)
+			{
+				const auto& pixel = imgData[colorOffset];
+				cummRed   += lut[pixel.red];
+				cummGreen += lut[pixel.green];
+				cummBlue  += lut[pixel.blue];
+			}
+
+			// Compute the average of each color channel
+			const uint8_t avgRed   = uint8_t(sqrt(cummRed/colorVecSize));
+			const uint8_t avgGreen = uint8_t(sqrt(cummGreen/colorVecSize));
+			const uint8_t avgBlue  = uint8_t(sqrt(cummBlue/colorVecSize));
+
+			// Return the computed color
+			return {avgRed, avgGreen, avgBlue};
+		}
 		///
 		/// Calculates the 'mean color' over the given image. This is the mean over each color-channel
 		/// (red, green, blue)

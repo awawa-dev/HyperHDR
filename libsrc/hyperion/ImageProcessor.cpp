@@ -12,6 +12,9 @@ using namespace hyperion;
 // global transform method
 int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 {
+	if (mappingType == "advanced" )
+		return 2;
+		
 	if (mappingType == "unicolor_mean" )
 		return 1;
 
@@ -20,6 +23,9 @@ int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 // global transform method
 QString ImageProcessor::mappingTypeToStr(int mappingType)
 {
+	if (mappingType == 2 )
+		return "advanced";
+		
 	if (mappingType == 1 )
 		return "unicolor_mean";
 
@@ -41,6 +47,9 @@ ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
 	handleSettingsUpdate(settings::COLOR, _hyperion->getSetting(settings::COLOR));
 	// listen for changes in color - ledmapping
 	connect(_hyperion, &Hyperion::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
+	
+	for (int i = 0; i < 256; i++)
+		advanced[i] = i * i;
 }
 
 ImageProcessor::~ImageProcessor()
