@@ -134,6 +134,36 @@
 					"required" : false,
 					"minimum" : 0,
 					"maximum" : 100
+				},
+				"luminanceGain": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 10
+				},
+				"saturationGain": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 10
+				},
+				"temperatureRed" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 255
+				},
+				"temperatureGreen" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 255
+				},
+				"temperatureBlue" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 255
 				}
 			},
 			"additionalProperties": false

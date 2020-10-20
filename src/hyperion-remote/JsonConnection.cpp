@@ -406,7 +406,10 @@ void JsonConnection::setAdjustment(
 		int    *backlightThreshold,
 		int    *backlightColored,
 		int    *brightness,
-		int    *brightnessC)
+		int    *brightnessC,
+		double *luminanceGain,
+		double *saturationGain,
+		const QColor & temperatureAdjustment)
 {
 	qDebug() << "Set color adjustments";
 
@@ -438,6 +441,26 @@ void JsonConnection::setAdjustment(
 	addAdjustmentIfValid("yellow",  yellowAdjustment);
 	addAdjustmentIfValid("white",   whiteAdjustment);
 	addAdjustmentIfValid("black",   blackAdjustment);
+	
+	
+	if (luminanceGain != nullptr)
+	{
+		adjust["luminanceGain"] = *luminanceGain;
+	}
+	
+	
+	if (saturationGain != nullptr)
+	{
+		adjust["saturationGain"] = *saturationGain;
+	}
+	
+	if (temperatureAdjustment.isValid())
+	{
+		adjust["temperatureRed"] = temperatureAdjustment.red();
+		adjust["temperatureGreen"] = temperatureAdjustment.green();
+		adjust["temperatureBlue"] = temperatureAdjustment.blue();
+	}
+		
 
 	if (backlightThreshold != nullptr)
 	{

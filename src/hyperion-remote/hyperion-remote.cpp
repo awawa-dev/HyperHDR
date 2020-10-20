@@ -117,6 +117,9 @@ int main(int argc, char * argv[])
 		ColorOption     & argYAdjust            = parser.add<ColorOption>  ('Y', "yellowAdjustment"       , "Set the adjustment of the yellow color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argWAdjust            = parser.add<ColorOption>  ('W', "whiteAdjustment"        , "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argbAdjust            = parser.add<ColorOption>  ('b', "blackAdjustment"        , "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
+		DoubleOption    & argLumAdjust          = parser.add<DoubleOption>  ('X', "luminanceGain"          , "Luminance gain (1=default)");
+		DoubleOption    & argSatAdjust          = parser.add<DoubleOption>  ('Z', "saturationGain"         , "Saturation gain (1=default)");		
+		ColorOption     & argTempAdjust          = parser.add<ColorOption>  ('T', "temperatureAdjustment"  , "Set the adjustment of color's temperature (requires in hex format as RRGGBB)");		
 		Option          & argMapping            = parser.add<Option>       ('m', "ledMapping"             , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
 		Option          & argVideoMode          = parser.add<Option>       ('V', "videoMode"              , "Set the video mode valid values: 2D, 3DSBS, 3DTAB");
 		IntOption       & argSource             = parser.add<IntOption>    (0x0, "sourceSelect"           , "Set current active priority channel and deactivate auto source switching");
@@ -139,7 +142,7 @@ int main(int argc, char * argv[])
 		// check if at least one of the available color transforms is set
 		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust) || parser.isSet(argCAdjust) || parser.isSet(argMAdjust)
 			|| parser.isSet(argYAdjust) || parser.isSet(argWAdjust) || parser.isSet(argbAdjust) || parser.isSet(argGamma)|| parser.isSet(argBrightness)|| parser.isSet(argBrightnessC)
-			|| parser.isSet(argBacklightThreshold) || parser.isSet(argBacklightColored);
+			|| parser.isSet(argBacklightThreshold) || parser.isSet(argBacklightColored) || parser.isSet(argLumAdjust) || parser.isSet(argSatAdjust) || parser.isSet(argTempAdjust);
 
 		// check that exactly one command was given
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect),
@@ -177,6 +180,9 @@ int main(int argc, char * argv[])
 			showHelp(argCAdjust);
 			showHelp(argMAdjust);
 			showHelp(argYAdjust);
+			showHelp(argLumAdjust);
+			showHelp(argSatAdjust);
+			showHelp(argTempAdjust);
 			return 1;
 		}
 
@@ -310,7 +316,10 @@ int main(int argc, char * argv[])
 				argBacklightThreshold.getIntPtr(parser),
 				argBacklightColored.getIntPtr(parser),
 				argBrightness.getIntPtr(parser),
-				argBrightnessC.getIntPtr(parser)
+				argBrightnessC.getIntPtr(parser),
+				argLumAdjust.getDoublePtr(parser),
+				argSatAdjust.getDoublePtr(parser),
+				argTempAdjust.getColor(parser)								
 			);
 		}
 	}

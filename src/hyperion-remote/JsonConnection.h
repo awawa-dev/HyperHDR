@@ -167,7 +167,10 @@ public:
 		int    *backlightThreshold,
 		int    *backlightColored,
 		int    *brightness,
-		int    *brightnessC);
+		int    *brightnessC,
+		double *luminanceGain,
+		double *saturationGain,
+		const QColor & temperatureAdjustment);
 
 	///
 	/// sets the image to leds mapping type
