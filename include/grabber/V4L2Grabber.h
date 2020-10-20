@@ -177,6 +177,8 @@ private slots:
 	int read_frame();
 
 private:
+	QString GetSharedLut();
+	
 	void loadLutFile(const QString & color);
 	
 	void getV4Ldevices();

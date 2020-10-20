@@ -14,6 +14,7 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
+#include <limits.h>
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
@@ -84,18 +85,52 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	Debug(_log,"Init pixel format: %i", static_cast<int>(_pixelFormat));	
 }
 
+QString V4L2Grabber::GetSharedLut()
+{
+	char result[ PATH_MAX ];
+	
+	ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+	std::string appPath = std::string( result, (count > 0) ? count : 0 );
+
+	std::size_t found = appPath.find_last_of("/\\");
+	QString ret = QString("%1%2").arg(QString::fromStdString(appPath.substr(0,found)),"/../lut");
+	QFileInfo info(ret);
+	ret = info.absoluteFilePath();
+	Debug(_log,"LUT folder location: '%s'", QSTRING_CSTR(ret));
+	return ret;
+}
+
 void V4L2Grabber::loadLutFile(const QString & color)
 {	
 	bool is_yuv = (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0);
 	
 	// load lut
-	QString fileName3d = QString("%1%2").arg(_configurationPath,"/lut_lin_tables.3d");
-	
+	QString fileName1 = QString("%1%2").arg(_configurationPath,"/lut_lin_tables.3d");
+	QString fileName2 = QString("%1%2").arg(GetSharedLut(),"/lut_lin_tables.3d");
+	QString fileName3 = QString("/usr/share/hyperion/lut/lut_lin_tables.3d");
+		
 	_lutBufferInit = false;
 	
 	if (_hdrToneMappingEnabled || is_yuv)
 	{
-		if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
+		QString fileName3d = fileName1;
+		FILE *file = fopen(QSTRING_CSTR(fileName3d), "r");
+		
+		if (!file)
+		{
+			Debug(_log,"LUT table: trying distro file location");
+			fileName3d = fileName2;
+			file = fopen(QSTRING_CSTR(fileName3d), "r");
+		}
+		
+		if (!file)
+		{
+			Debug(_log,"LUT table: fallback to static path");
+			fileName3d = fileName3;
+			file = fopen(QSTRING_CSTR(fileName3d), "r");
+		}	
+		
+		if (file) {
 			size_t length;
 			Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
 			

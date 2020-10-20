@@ -122,17 +122,21 @@ fi
 
 echo ${start_msg}
 
+echo "Extracting LUT table..."
+tar -xf /usr/share/hyperion/lut/lut_lin_tables.tar.xz -C /usr/share/hyperion/lut/
+rm -f -v /usr/share/hyperion/lut/lut_lin_tables.tar.xz
+
 echo "-----------------------------------------------------------------------------"
-echo "---> Hyperion has been installed/updated!"
+echo "---> HyperHDR has been installed/updated!"
 echo "---> "
 $STARTUP_MSG
 echo "---> For configuration, visit with your browser: ${NET_IP}:8090"
 echo "---> or if already used by another service try: ${NET_IP}:8091"
 $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
-echo "Webpage: www.hyperion-project.org"
+echo "Webpage: https://github.com/awawa-dev/HyperHDR"
 echo "Wiki: wiki.hyperion-project.org"
-echo "Forum: forum.hyperion-project.org"
+echo "Forum: https://hyperion-project.org/threads/sdr-hdr-1080p-4k-capable-setup-with-hyperion-ng-for-media-center.10652/"
 echo "-----------------------------------------------------------------------------"
 
 

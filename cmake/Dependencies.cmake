@@ -155,6 +155,10 @@ macro(DeployUnix TARGET)
 				COMPONENT "Hyperion"
 			)
 		endforeach()
+		
+		# install LUT
+		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperion/lut" COMPONENT "Hyperion")
+		
 
 		# Detect the Python version and modules directory
 		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
