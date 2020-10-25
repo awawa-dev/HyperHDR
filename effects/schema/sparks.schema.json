@@ -1,0 +1,69 @@
+{
+	"type":"object",
+	"script" : "sparks.py",
+	"title":"edt_eff_sparks_header",
+	"required":true,
+	"properties":{
+		"color": {
+			"type": "array",
+			"title":"edt_eff_color",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"options": {
+				"dependencies": {
+					"random-color": false
+				}
+			},
+			"propertyOrder" : 1
+		},
+		"rotation-time": {
+			"type": "number",
+			"title":"edt_eff_rotationtime",
+			"default": 2.0,
+			"minimum" : 0.1,
+			"append" : "edt_append_s",
+			"propertyOrder" : 2
+		},
+		"sleep-time": {
+			"type": "number",
+			"title":"edt_eff_sleeptime",
+			"default": 0.05,
+			"minimum" : 0.01,
+			"propertyOrder" : 3
+		},
+		"brightness": {
+			"type": "integer",
+			"title":"edt_eff_brightness",
+			"default": 100,
+			"minimum" : 0,
+			"maximum" : 100,
+			"step" : 10,
+			"append" : "edt_append_percent",
+			"propertyOrder" : 4
+		},
+		"saturation": {
+			"type": "integer",
+			"title":"edt_eff_saturation",
+			"default": 100,
+			"minimum" : 0,
+			"maximum" : 100,
+			"step" : 10,
+			"append" : "edt_append_percent",
+			"propertyOrder" : 5
+		},
+		"random-color": {
+			"type": "boolean",
+			"title":"edt_eff_colorrandom",
+			"default": false,
+			"propertyOrder" : 6
+		}
+	},
+	"additionalProperties": false
+}

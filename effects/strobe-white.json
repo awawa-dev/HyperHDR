@@ -1,0 +1,15 @@
+{
+	"name" : "Strobe white",
+	"script" : "fade.py",
+	"args" :
+	{
+		"color-start": [ 255, 255, 255 ],
+		"color-end": [ 0, 0, 0 ],
+		"fade-in-time" : 0,
+		"fade-out-time" : 100,
+		"color-start-time" : 50,
+		"color-end-time" : 10,
+		"repeat-count" : 0,
+		"maintain-end-color" : true
+	}
+}

@@ -1,0 +1,32 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_effp_heading_title",
+	"properties" :
+	{
+		"paths" :
+		{
+			"type" : "array",
+			"title" : "edt_conf_effp_paths_title",
+			"default" : ["$ROOT/custom-effects"],
+			"items" : {
+				"type": "string",
+				"title" : "edt_conf_effp_paths_itemtitle"
+			},
+			"minItems" : 1,
+			"propertyOrder" : 1
+		},
+		"disable" :
+		{
+			"type" : "array",
+			"title" : "edt_conf_effp_disable_title",
+			"default" : [""],
+			"items" : {
+				"type": "string",
+				"title" : "edt_conf_effp_disable_itemtitle"
+			},
+			"required" : true,
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties" : false
+}

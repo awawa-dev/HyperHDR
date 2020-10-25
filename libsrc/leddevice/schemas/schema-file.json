@@ -1,0 +1,39 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_outputPath_title",
+			"default" : "/dev/null",
+			"propertyOrder" : 1
+		},
+		"printTimeStamp": {
+			"type": "boolean",
+			"title":"edt_dev_spec_printTimeStamp_title",
+			"default": false,
+			"access" : "advanced",
+			"propertyOrder" : 2
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 0,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 3
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 4
+		}			
+	},
+	"additionalProperties": true
+}

@@ -1,0 +1,44 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"VID": {
+			"type": "string",
+			"title":"edt_dev_spec_vid_title",
+			"default" : "0x2341",
+			"propertyOrder" : 1
+		},
+		"PID": {
+			"type": "string",
+			"title":"edt_dev_spec_pid_title",
+			"default" : "0x8036",
+			"propertyOrder" : 2
+		},
+		"delayAfterConnect": {
+			"type": "integer",
+			"title":"edt_dev_spec_delayAfterConnect_title",
+			"default": 0,
+			"propertyOrder" : 3
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 0,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 4
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 5
+		}		
+	},
+	"additionalProperties": true
+}

@@ -1,0 +1,15 @@
+{
+	"name" : "Rainbow swirl fast",
+	"script" : "swirl.py",
+	"args" :
+	{
+		"rotation-time" : 7.0,
+		"center_x" : 0.5,
+		"center_y" : 0.5,
+		"reverse" : false,
+		"custom-colors":[],
+		"random-center":false,
+		"custom-colors2":[],
+		"enable-second":false
+	}
+}

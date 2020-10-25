@@ -1,0 +1,110 @@
+{
+	"type":"object",
+	"script" : "candle.py",
+	"title":"edt_eff_candle_header",
+	"required":true,
+	"properties":{
+		"candles": {
+			"type": "string",
+			"title":"edt_eff_whichleds",
+			"enum" : ["all","all-together","list"],
+			"default" : "all",
+			"options" : {
+				"enum_titles" : ["edt_eff_enum_all", "edt_eff_enum_all-together", "edt_eff_enum_list"]
+			},
+			"propertyOrder" : 1
+		},
+		"ledlist": {
+			"type": "string",
+			"title":"edt_eff_ledlist",
+			"default" : "1,11,21",
+			"options": {
+				"dependencies": {
+					"candles": "list"
+				}
+			},
+			"propertyOrder" : 2
+		},
+		"color": {
+		"type": "array",
+		"title":"edt_eff_color",
+		"format":"colorpicker",
+			"default": [255,138,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 3
+		},
+		"colorShift": {
+			"type": "integer",
+			"title":"edt_eff_colorshift",
+			"default": 1,
+			"minimum" : 0,
+			"maximum": 30,
+			"append" : "edt_append_percent",
+			"propertyOrder" : 4
+		},
+		"brightness": {
+			"type": "integer",
+			"title":"edt_eff_brightness",
+			"default": 100,
+			"minimum" : 1,
+			"maximum": 100,
+			"step" : 10,
+			"append" : "edt_append_percent",
+			"propertyOrder" : 5
+		},
+		"sleepTime": {
+			"type": "number",
+			"title":"edt_eff_sleeptime",
+			"default": 0.15,
+			"minimum" : 0.01,
+			"maximum": 1,
+			"step": 0.01,
+			"append" : "edt_append_s",
+			"propertyOrder" : 6
+		},
+		"smoothing-custom-settings" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_custom",
+			"default" : false,
+			"propertyOrder" : 7
+		},
+		"smoothing-time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_time_ms",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 8
+		},
+		"smoothing-updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_eff_smooth_updateFrequency",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 9
+		}
+	},
+	"additionalProperties": false
+}

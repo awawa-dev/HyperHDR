@@ -1,0 +1,63 @@
+{
+	"type":"object",
+	"script" : "random.py",
+	"title":"edt_eff_random_header",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"edt_eff_speed",
+			"default": 1000,
+			"minimum" : 10,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 1
+		},
+		"saturation": {
+			"type": "number",
+			"title":"edt_eff_saturation",
+			"default": 1.0,
+			"minimum" : 0.1,
+			"maximum" : 1.0,
+			"step" : 0.1,
+			"propertyOrder" : 2
+		},
+		"smoothing-custom-settings" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_custom",
+			"default" : false,
+			"propertyOrder" : 3
+		},
+		"smoothing-time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_time_ms",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"smoothing-updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_eff_smooth_updateFrequency",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 5
+		}
+	},
+	"additionalProperties": false
+}

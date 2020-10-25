@@ -1,0 +1,55 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["image"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"priority": {
+			"type": "integer",
+			"minimum" : 1,
+			"maximum" : 253,
+			"required": true
+		},
+		"origin": {
+			"type": "string",
+			"minLength" : 4,
+			"maxLength" : 20,
+			"required": false
+		},
+		"duration": {
+			"type": "integer",
+			"required": false
+		},
+		"imagewidth": {
+			"type" : "integer",
+			"minimum": 0
+		},
+		"imageheight": {
+			"type" : "integer",
+			"minimum": 0
+		},
+		"imagedata": {
+			"type": "string",
+			"required": true
+		},
+		"format": {
+			"type": "string",
+			"enum" : ["auto"]
+		},
+		"scale": {
+			"type": "integer",
+			"minimum" : 25,
+			"maximum" : 2000
+		},
+		"name": {
+			"type": "string"
+		}
+	},
+	"additionalProperties": false
+}

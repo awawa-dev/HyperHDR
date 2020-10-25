@@ -1,0 +1,13 @@
+{
+	"name" : "Sparks",
+	"script" : "sparks.py",
+	"args" :
+	{
+		"rotation-time" : 3.0,
+		"sleep-time"    : 0.05,
+		"brightness"    : 100,
+		"saturation"    : 100,
+		"color"         : [255,255,255],
+		"random-color"  : false
+	}
+}

@@ -1,0 +1,15 @@
+{
+	"name" : "Cinema brighten lights",
+	"script" : "fade.py",
+	"args" :
+	{
+		"color-start"   : [ 136, 97, 7 ],
+		"color-end" : [ 238, 173, 47 ],
+		"fade-in-time" : 5000,
+		"fade-out-time" : 0,
+		"color-start-time" : 0,
+		"color-end-time" : 0,
+		"repeat-count" : 1,
+		"maintain-end-color" : true
+	}
+}

@@ -1,0 +1,60 @@
+// Generated config file
+
+// Define to enable the dispmanx grabber
+#cmakedefine ENABLE_DISPMANX
+
+// Define to enable the v4l2 grabber
+#cmakedefine ENABLE_V4L2
+
+// Define to enable the framebuffer grabber
+#cmakedefine ENABLE_FB
+
+// Define to enable the amlogic grabber
+#cmakedefine ENABLE_AMLOGIC
+
+// Define to enable the osx grabber
+#cmakedefine ENABLE_OSX
+
+// Define to enable the x11 grabber
+#cmakedefine ENABLE_X11
+
+// Define to enable the xcb grabber
+#cmakedefine ENABLE_XCB
+
+// Define to enable the qt grabber
+#cmakedefine ENABLE_QT
+
+// Define to enable the spi-device
+#cmakedefine ENABLE_SPIDEV
+
+// Define to enable the ws281x-pwm-via-dma-device using jgarff's library
+#cmakedefine ENABLE_WS281XPWM
+
+// Define to enable the tinkerforge device
+#cmakedefine ENABLE_TINKERFORGE
+
+// Define to enable avahi
+#cmakedefine ENABLE_AVAHI
+
+// Define to enable cec
+#cmakedefine ENABLE_CEC
+
+// Define to enable the usb / hid devices
+#cmakedefine ENABLE_USB_HID
+
+// Define to enable profiler for development purpose
+#cmakedefine ENABLE_PROFILER
+
+// Define to enable experimental features
+#cmakedefine ENABLE_EXPERIMENTAL
+
+// the hyperion build id string
+#define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
+#define HYPERION_GIT_REMOTE "${HYPERION_GIT_REMOTE}"
+
+#define HYPERION_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}"
+#define HYPERION_VERSION_MINOR "${HYPERION_VERSION_MINOR}"
+#define HYPERION_VERSION_PATCH "${HYPERION_VERSION_PATCH}"
+#define HYPERION_VERSION "${HYPERION_VERSION}"
+
+#define HYPERION_JSON_VERSION "1.0.0"

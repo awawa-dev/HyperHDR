@@ -1,0 +1,72 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_PBFiFo_title",
+			"default" : "/dev/pi-blaster",
+			"propertyOrder" : 1
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 5,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 2
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 3
+		},		
+		"gpiomap": {
+			"type": "array",
+			"title":"edt_dev_spec_gpioMap_title",
+			"propertyOrder" : 3,
+			"minimum" : 1,
+			"maximum" : 27,
+			"items" : {
+				"type" : "object",
+				"required" : true,
+				"properties" :
+				{
+					"gpio" :
+					{
+						"type" : "integer",
+						"title" : "edt_dev_spec_gpioBcm_title",
+						"minimum" : 0,
+						"maximum" : 27,
+						"required" : true,
+						"propertyOrder" : 1
+					},
+					"ledindex" :
+					{
+						"type" : "integer",
+						"title" : "edt_dev_spec_ledIndex_title",
+						"minimum" : 0,
+						"required" : true,
+						"propertyOrder" : 2
+					},
+					"ledcolor" :
+					{
+						"type" : "string",
+						"title" : "edt_dev_spec_colorComponent_title",
+						"enum" : ["r","g","b","w"],
+						"required" : true,
+						"propertyOrder" : 3
+					}
+				}
+			},
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties": true
+}

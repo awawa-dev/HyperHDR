@@ -1,0 +1,44 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["authorize"]
+		},
+		"subcommand" : {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["requestToken","createToken","renameToken","deleteToken","getTokenList","logout","login","tokenRequired","adminRequired","newPasswordRequired","newPassword","answerRequest","getPendingTokenRequests"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"password": {
+			"type": "string",
+			"minLength" : 8
+		},
+		"newPassword": {
+			"type": "string",
+			"minLength" : 8
+		},
+		"token": {
+			"type": "string",
+			"minLength" : 36
+		},
+		"comment" : {
+			"type" : "string",
+			"minLength" : 5
+		},
+		"id" : {
+			"type" : "string",
+			"minLength" : 5,
+			"maxLength" : 5
+		},
+		"accept" : {
+			"type" : "boolean"
+		}
+	},
+	"additionalProperties": false
+}

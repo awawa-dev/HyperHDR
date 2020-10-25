@@ -1,0 +1,63 @@
+{
+	"type":"object",
+	"script" : "shutdown.py",
+	"title":"edt_eff_systemshutdown_header",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"edt_eff_speed",
+			"default": 1.0,
+			"minimum" : 0.3,
+			"step" : 0.1,
+			"propertyOrder" : 1
+		},
+		"alarm-color": {
+			"type": "array",
+			"title":"edt_eff_alarmcolor",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 2
+		},
+		"post-color": {
+			"type": "array",
+			"title":"edt_eff_postcolor",
+			"format" : "colorpicker",
+			"default": [255,174,11],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 3
+		},
+		"initial-blink": {
+			"type": "boolean",
+			"title":"edt_eff_initial_blink",
+			"default": true,
+			"propertyOrder" : 4
+		},
+		"set-post-color": {
+			"type": "boolean",
+			"title":"edt_eff_set_post_color",
+			"default": true,
+			"propertyOrder" : 5
+		},
+		"shutdown-enabled": {
+			"type": "boolean",
+			"title":"edt_eff_enableshutdown",
+			"default": false,
+			"propertyOrder" : 6
+		}
+	},
+	"additionalProperties": false
+}
