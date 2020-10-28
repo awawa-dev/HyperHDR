@@ -1,7 +1,7 @@
 ## About 
 
 Based on [Hyperion NG](https://github.com/hyperion-project/hyperion.ng) with some performance tweaks especially for MJPEG/YUV grabbers with support for HDR/BT2020 using LUT tables.<br/>
-Single and multi-threaded optimization (Rpi2/3/4) for USB v4l2 grabber.
+Single and multi-threaded optimization (Rpi2/3/4) for USB v4l2 grabber.<br/>
 Direct support for the devices under Windows 10.
 
 ## Support
@@ -45,7 +45,7 @@ Use YUV encoding format if it's possible.
 <img src='https://i.postimg.cc/7PncTPGz/compare1.png'/>
 <img src='https://i.postimg.cc/9FXkP3Zn/compare2.png'/>
 
-<br/><br/><b>Direct support for USB grabber under Windows 10:</b><br/>
+<br/><br/><b>Direct support for USB grabbers under Windows 10:</b><br/>
 <img src='https://i.postimg.cc/NG6NQkGb/p1.jpg'/>
 
 <br/><br/><b>USB grabber configuration:</b><br/>
