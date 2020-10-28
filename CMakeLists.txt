@@ -9,6 +9,7 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
 file (STRINGS "version" HYPERION_VERSION)
 SetVersionNumber(HYPERION ${HYPERION_VERSION})
 
+
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 # auto prepare .qrc files
