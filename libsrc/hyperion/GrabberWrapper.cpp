@@ -69,36 +69,12 @@ QStringList GrabberWrapper::availableGrabbers()
 {
 	QStringList grabbers;
 
-	#ifdef ENABLE_DISPMANX
-	grabbers << "dispmanx";
-	#endif
-
 	#ifdef ENABLE_V4L2
 	grabbers << "v4l2";
 	#endif
-
-	#ifdef ENABLE_FB
-	grabbers << "framebuffer";
-	#endif
-
-	#ifdef ENABLE_AMLOGIC
-	grabbers << "amlogic";
-	#endif
-
-	#ifdef ENABLE_OSX
-	grabbers << "osx";
-	#endif
-
-	#ifdef ENABLE_X11
-	grabbers << "x11";
-	#endif
-
-	#ifdef ENABLE_XCB
-	grabbers << "xcb";
-	#endif
-
-	#ifdef ENABLE_QT
-	grabbers << "qt";
+	
+	#ifdef ENABLE_QTC
+	grabbers << "v4l2";
 	#endif
 
 	return grabbers;

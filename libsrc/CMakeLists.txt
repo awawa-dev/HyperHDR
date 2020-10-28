@@ -20,10 +20,6 @@ add_subdirectory(db)
 add_subdirectory(api)
 add_subdirectory(python)
 
-if(ENABLE_CEC)
-	add_subdirectory(cec)
-endif()
-
 if(ENABLE_AVAHI)
 	add_subdirectory(bonjour)
 endif()

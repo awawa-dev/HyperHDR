@@ -125,29 +125,8 @@ SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 # Components base
 SET ( CPACK_COMPONENTS_ALL "Hyperion" "hyperion_remote" )
 # optional compiled
-if(ENABLE_QT)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
-endif()
-if(ENABLE_AMLOGIC)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_aml" )
-endif()
 if(ENABLE_V4L2)
 	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_v4l2" )
-endif()
-if(ENABLE_X11)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_x11" )
-endif()
-if(ENABLE_XCB)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_xcb" )
-endif()
-if(ENABLE_DISPMANX)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dispmanx" )
-endif()
-if(ENABLE_FB)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_framebuffer" )
-endif()
-if(ENABLE_OSX)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_osx" )
 endif()
 
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
@@ -180,24 +159,6 @@ cpack_add_component(hyperion_remote
 )
 
 # optional compiled
-if(ENABLE_QT)
-	cpack_add_component(hyperion_qt
-		DISPLAY_NAME "Qt Standalone Screencap"
-		DESCRIPTION "Qt based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_AMLOGIC)
-	cpack_add_component(hyperion_aml
-		DISPLAY_NAME "Amlogic Standalone Screencap"
-		DESCRIPTION "Amlogic based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
 if(ENABLE_V4L2)
 	cpack_add_component(hyperion_v4l2
 		DISPLAY_NAME "V4l2 Standalone Screencap"
@@ -207,49 +168,3 @@ if(ENABLE_V4L2)
 		DEPENDS Hyperion
 	)
 endif()
-if(ENABLE_X11)
-	cpack_add_component(hyperion_x11
-		DISPLAY_NAME "X11 Standalone Screencap"
-		DESCRIPTION "X11 based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_X11)
-	cpack_add_component(hyperion_xcb
-		DISPLAY_NAME "XCB Standalone Screencap"
-		DESCRIPTION "XCB based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_DISPMANX)
-	cpack_add_component(hyperion_dispmanx
-		DISPLAY_NAME "RPi dispmanx Standalone Screencap"
-		DESCRIPTION "Raspbery Pi dispmanx based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_FB)
-	cpack_add_component(hyperion_framebuffer
-		DISPLAY_NAME "Framebuffer Standalone Screencap"
-		DESCRIPTION "Framebuffer based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_OSX)
-	cpack_add_component(hyperion_osx
-		DISPLAY_NAME "Mac osx Standalone Screencap"
-		DESCRIPTION "Mac osx based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-

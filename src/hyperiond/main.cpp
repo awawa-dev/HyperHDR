@@ -38,10 +38,6 @@
 
 #include "detectProcess.h"
 
-#ifdef ENABLE_X11
-#include <X11/Xlib.h>
-#endif
-
 #include "hyperiond.h"
 #include "systray.h"
 
@@ -104,23 +100,6 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 #else
 	if (!forceNoGui)
 	{
-		// if x11, then test if xserver is available
-		#if defined(ENABLE_X11)
-		Display* dpy = XOpenDisplay(NULL);
-		if (dpy != NULL)
-		{
-			XCloseDisplay(dpy);
-			isGuiApp = true;
-		}
-		#elif defined(ENABLE_XCB)
-			int screen_num;
-			xcb_connection_t * connection = xcb_connect(nullptr, &screen_num);
-			if (!xcb_connection_has_error(connection))
-			{
-				isGuiApp = true;
-			}
-			xcb_disconnect(connection);
-		#endif
 	}
 #endif
 

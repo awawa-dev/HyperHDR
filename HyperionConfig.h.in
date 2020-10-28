@@ -6,6 +6,9 @@
 // Define to enable the v4l2 grabber
 #cmakedefine ENABLE_V4L2
 
+// Define to enable the QTC grabber
+#cmakedefine ENABLE_QTC
+
 // Define to enable the framebuffer grabber
 #cmakedefine ENABLE_FB
 

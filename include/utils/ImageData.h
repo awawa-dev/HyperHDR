@@ -18,27 +18,24 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-template <typename Pixel_T>
+
 class ImageData : public QSharedData
 {
 public:
-	typedef Pixel_T pixel_type;
-
-	ImageData(unsigned width, unsigned height, const Pixel_T background) :
+	ImageData(unsigned width, unsigned height)://, const ColorRgb background) :
 		_width(width),
 		_height(height),
-		_pixels(new Pixel_T[width * height + 1])
-	{
-		std::fill(_pixels, _pixels + width * height, background);
+		_pixels((unsigned char*) calloc(width * height *3 + 3, 1))
+	{		
+		//!!!!!!!!!!!!!!!!!!std::fill(_pixels, _pixels + width * height, background);
 	}
 
-	ImageData(const ImageData & other) :
-		QSharedData(other),
+	ImageData(const ImageData & other) :		
 		_width(other._width),
 		_height(other._height),
-		_pixels(new Pixel_T[other._width * other._height + 1])
+		_pixels((unsigned char*) calloc(other._width * other._height *3 + 3, 1))
 	{
-		memcpy(_pixels, other._pixels, (long) other._width * other._height * sizeof(Pixel_T));
+		memcpy(_pixels, other._pixels, (long) other._width * other._height * 3);
 	}
 
 	ImageData& operator=(ImageData rhs)
@@ -71,7 +68,11 @@ public:
 
 	~ImageData()
 	{
-		delete[] _pixels;
+		if (_pixels!=NULL)
+		{
+			free(_pixels);
+			_pixels = NULL;
+		}
 	}
 
 	inline unsigned width() const
@@ -82,31 +83,16 @@ public:
 	inline unsigned height() const
 	{
 		return _height;
+	}	
+
+	const ColorRgb& operator()(unsigned x, unsigned y) const
+	{
+		return *((ColorRgb*)&(_pixels[toIndex(x,y)]));
 	}
 
-	uint8_t red(unsigned pixel) const
+	ColorRgb& operator()(unsigned x, unsigned y)
 	{
-		return (_pixels + pixel)->red;
-	}
-
-	uint8_t green(unsigned pixel) const
-	{
-		return (_pixels + pixel)->green;
-	}
-
-	uint8_t blue(unsigned pixel) const
-	{
-		return (_pixels + pixel)->blue;
-	}
-
-	const Pixel_T& operator()(unsigned x, unsigned y) const
-	{
-		return _pixels[toIndex(x,y)];
-	}
-
-	Pixel_T& operator()(unsigned x, unsigned y)
-	{
-		return _pixels[toIndex(x,y)];
+		return *((ColorRgb*)&(_pixels[toIndex(x,y)]));
 	}
 
 	void resize(unsigned width, unsigned height)
@@ -116,41 +102,35 @@ public:
 
 		if ((width * height) > unsigned((_width * _height)))
 		{
-			delete[] _pixels;
-			_pixels = new Pixel_T[width*height + 1];
+			free(_pixels);
+			_pixels = (unsigned char*) calloc(width*height*3 + 3, 1);
 		}
 
 		_width = width;
 		_height = height;
 	}
 
-	Pixel_T* memptr()
+	ColorRgb* memptr()
 	{
-		return _pixels;
+		return (ColorRgb*) _pixels;
 	}
 
-	const Pixel_T* memptr() const
+	const ColorRgb* memptr() const
 	{
-		return _pixels;
+		return (ColorRgb*) _pixels;
 	}
 
-	void toRgb(ImageData<ColorRgb>& image) const
+	void toRgb(ImageData& image) const
 	{
 		if (image.width() != _width || image.height() != _height)
 			image.resize(_width, _height);
-
-		const unsigned imageSize = _width * _height;
-
-		for (unsigned idx = 0; idx < imageSize; idx++)
-		{
-			const Pixel_T & color = _pixels[idx];
-			image.memptr()[idx] = ColorRgb{color.red, color.green, color.blue};
-		}
+		
+		memcpy(image.memptr(), _pixels, _width * _height *3 );		
 	}
 
 	ssize_t size() const
 	{
-		return  (ssize_t) _width * _height * sizeof(Pixel_T);
+		return  (ssize_t) _width * _height * 3;
 	}
 
 	void clear()
@@ -159,17 +139,17 @@ public:
 		{
 			_width = 1;
 			_height = 1;
-			delete[] _pixels;
-			_pixels = new Pixel_T[2];
+			free(_pixels);
+			_pixels = (unsigned char*) calloc(2*3, 1);
 		}
 
-		memset(_pixels, 0, (unsigned long) _width * _height * sizeof(Pixel_T));
+		memset(_pixels, 0, (unsigned long) _width * _height * 3);
 	}
 
 private:
 	inline unsigned toIndex(unsigned x, unsigned y) const
 	{
-		return y * _width + x;
+		return (y * _width  + x) * 3;
 	}
 
 private:
@@ -178,5 +158,5 @@ private:
 	/// The height of the image
 	unsigned _height;
 	/// The pixels of the image
-	Pixel_T* _pixels;
+	unsigned char* _pixels;
 };

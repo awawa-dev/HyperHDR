@@ -11,13 +11,12 @@ public:
 	typedef Pixel_T pixel_type;
 
 	Image() :
-		Image(1, 1, Pixel_T())
+		Image(1, 1)
 	{
 	}
 
 	Image(unsigned width, unsigned height) :
-		Image(width, height, Pixel_T())
-
+		_d_ptr(new ImageData(width, height))
 	{
 	}
 
@@ -28,11 +27,16 @@ public:
 	/// @param height The height of the image
 	/// @param background The color of the image
 	///
-	Image(unsigned width, unsigned height, const Pixel_T background) :
-		_d_ptr(new ImageData<Pixel_T>(width, height, background))
+	/*Image(unsigned width, unsigned height, const Pixel_T background) :
+		_d_ptr(new ImageData(width, height, background))
 	{
 	}
+	Image(unsigned width, unsigned height) :
+		Image(width, height, ColorRgb())
 
+	{
+	}
+*/
 	///
 	/// Copy constructor for an image
 	/// @param other The image which will be copied
@@ -76,6 +80,7 @@ public:
 	///
 	~Image()
 	{
+		//delete _d_ptr;
 	}
 
 	///
@@ -97,30 +102,7 @@ public:
 	{
 		return _d_ptr->height();
 	}
-
-	uint8_t red(unsigned pixel) const
-	{
-		return _d_ptr->red(pixel);
-	}
-
-	uint8_t green(unsigned pixel) const
-	{
-		return _d_ptr->green(pixel);
-	}
-
-	///
-	/// Returns a const reference to a specified pixel in the image
-	///
-	/// @param x The x index
-	/// @param y The y index
-	///
-	/// @return const reference to specified pixel
-	///
-	uint8_t blue(unsigned pixel) const
-	{
-		return _d_ptr->blue(pixel);
-	}
-
+	
 	///
 	/// Returns a reference to a specified pixel in the image
 	///
@@ -209,6 +191,6 @@ private:
 	}
 
 private:
-	QSharedDataPointer<ImageData<Pixel_T>>  _d_ptr;
+	QSharedDataPointer<ImageData>  _d_ptr;
 };
 

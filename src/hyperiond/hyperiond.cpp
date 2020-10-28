@@ -55,10 +55,6 @@
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
 
-#ifdef ENABLE_CEC
-#include <cec/CECHandler.h>
-#endif
-
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool logLvlOverwrite)
@@ -74,15 +70,8 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 		, _sslWebserver(nullptr)
 		, _jsonServer(nullptr)
 		, _v4l2Grabber(nullptr)
-		, _dispmanx(nullptr)
-		, _x11Grabber(nullptr)
-		, _xcbGrabber(nullptr)
-		, _amlGrabber(nullptr)
-		, _fbGrabber(nullptr)
-		, _osxGrabber(nullptr)
-		, _qtGrabber(nullptr)
+		, _qtcGrabber(nullptr)
 		, _ssdp(nullptr)
-		, _cecHandler(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
 		, _rootPath(rootPath)
 {
@@ -102,8 +91,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
-
-	createCecHandler();
 
 	// init EffectFileHandler
 	EffectFileHandler *efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -136,9 +123,8 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
 // ---- grabber -----
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT)
 	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
-#endif
+
 
 	// init system capture (framegrabber)
 	handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
@@ -224,36 +210,16 @@ void HyperionDaemon::freeObjects()
 		_sslWebserver = nullptr;
 	}
 
-#ifdef ENABLE_CEC
-	if (_cecHandler)
-	{
-		auto cecHandlerThread = _cecHandler->thread();
-		cecHandlerThread->quit();
-		cecHandlerThread->wait();
-		delete cecHandlerThread;
-		delete _cecHandler;
-		_cecHandler = nullptr;
-	}
-#endif
-
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
 	delete _bonjourBrowserWrapper;
-	delete _amlGrabber;
-	delete _dispmanx;
-	delete _fbGrabber;
-	delete _osxGrabber;
-	delete _qtGrabber;
 	delete _v4l2Grabber;
+	delete _qtcGrabber;
 
 	_v4l2Grabber = nullptr;
+	_qtcGrabber = nullptr;
 	_bonjourBrowserWrapper = nullptr;
-	_amlGrabber = nullptr;
-	_dispmanx = nullptr;
-	_fbGrabber = nullptr;
-	_osxGrabber = nullptr;
-	_qtGrabber = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -347,11 +313,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		_grabber_ge2d_mode = grabberConfig["ge2d_mode"].toInt(0);
 		_grabber_device = grabberConfig["amlogic_grabber"].toString("amvideocap0");
 
-#ifdef ENABLE_OSX
-		QString type = "osx";
-#else
 		QString type = grabberConfig["type"].toString("auto");
-#endif
+
 
 		// auto eval of type
 		if (type == "auto")
@@ -377,13 +340,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				QByteArray envDisplay = qgetenv("DISPLAY");
 				if ( !envDisplay.isEmpty() )
 				{
-				#if defined(ENABLE_X11)
-					type = "x11";
-				#elif defined(ENABLE_XCB)
-					type = "xcb";
-				#else
-					type = "qt";
-				#endif
+				
 				}
 				// qt -> if nothing other applies
 				else
@@ -398,121 +355,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			Info(_log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 
 			// stop all capture interfaces
-			#ifdef ENABLE_FB
-			if(_fbGrabber != nullptr)
-			{
-				_fbGrabber->stop();
-				delete _fbGrabber;
-				_fbGrabber = nullptr;
-			}
-			#endif
-			#ifdef ENABLE_DISPMANX
-			if(_dispmanx != nullptr)
-			{
-				_dispmanx->stop();
-				delete _dispmanx;
-				_dispmanx = nullptr;
-			}
-			#endif
-			#ifdef ENABLE_AMLOGIC
-			if(_amlGrabber != nullptr)
-			{
-				_amlGrabber->stop();
-				delete _amlGrabber;
-				_amlGrabber = nullptr;
-			}
-			#endif
-			#ifdef ENABLE_OSX
-			if(_osxGrabber != nullptr)
-			{
-				_osxGrabber->stop();
-				delete _osxGrabber;
-				_osxGrabber = nullptr;
-			}
-			#endif
-			#ifdef ENABLE_X11
-			if(_x11Grabber != nullptr)
-			{
-				 _x11Grabber->stop();
-				 delete _x11Grabber;
-				 _x11Grabber = nullptr;
-			}
-			#endif
-			#ifdef ENABLE_XCB
-			if(_xcbGrabber != nullptr)
-			{
-				 _xcbGrabber->stop();
-				 delete _xcbGrabber;
-				 _xcbGrabber = nullptr;
-			}
-			#endif
-			#ifdef ENABLE_QT
-			if(_qtGrabber != nullptr)
-			{
-				_qtGrabber->stop();
-				delete _qtGrabber;
-				_qtGrabber = nullptr;
-			}
-			#endif
 
 			// create/start capture interface
-			if (type == "framebuffer")
-			{
-				if (_fbGrabber == nullptr)
-					createGrabberFramebuffer(grabberConfig);
-				#ifdef ENABLE_FB
-				_fbGrabber->tryStart();
-				#endif
-			}
-			else if (type == "dispmanx")
-			{
-				if (_dispmanx == nullptr)
-					createGrabberDispmanx();
-				#ifdef ENABLE_DISPMANX
-				_dispmanx->tryStart();
-				#endif
-			}
-			else if (type == "amlogic")
-			{
-				if (_amlGrabber == nullptr)
-					createGrabberAmlogic();
-				#ifdef ENABLE_AMLOGIC
-				_amlGrabber->tryStart();
-				#endif
-			}
-			else if (type == "osx")
-			{
-				if (_osxGrabber == nullptr)
-					createGrabberOsx(grabberConfig);
-				#ifdef ENABLE_OSX
-				_osxGrabber->tryStart();
-				#endif
-			}
-			else if (type == "x11")
-			{
-				if (_x11Grabber == nullptr)
-					createGrabberX11(grabberConfig);
-				#ifdef ENABLE_X11
-				_x11Grabber->tryStart();
-				#endif
-			}
-			else if (type == "xcb")
-			{
-				if (_xcbGrabber == nullptr)
-					createGrabberXcb(grabberConfig);
-				#ifdef ENABLE_XCB
-				_xcbGrabber->tryStart();
-				#endif
-			}
-			else if (type == "qt")
-			{
-				if (_qtGrabber == nullptr)
-					createGrabberQt(grabberConfig);
-				#ifdef ENABLE_QT
-				_qtGrabber->tryStart();
-				#endif
-			}
-			else
 			{
 				Error(_log, "Unknown platform capture type: %s", QSTRING_CSTR(type));
 				return;
@@ -523,22 +367,67 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	else if (settingsType == settings::V4L2)
 	{
 		const QJsonObject &grabberConfig = config.object();
-#ifdef ENABLE_CEC
-		QString operation;
-		if (_cecHandler && grabberConfig["cecDetection"].toBool(false))
-		{
-			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
+
+#ifdef ENABLE_QTC
+		if (_qtcGrabber == nullptr)
+		{		
+			_qtcGrabber = new QTCWrapper(
+					grabberConfig["device"].toString("auto"),
+					grabberConfig["width"].toInt(0),
+					grabberConfig["height"].toInt(0),
+					grabberConfig["fps"].toInt(15),
+					grabberConfig["input"].toInt(-1),
+					parseVideoStandard(grabberConfig["standard"].toString("no-change")),
+					parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
+					_rootPath);
+					
+			// HDR stuff		
+			if (!grabberConfig["hdrToneMapping"].toBool(false))	
+			{
+				_qtcGrabber->setHdrToneMappingEnabled(0);
+			}
+			else
+			{
+				_qtcGrabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));
+			}
+			
+			Debug(_log, "QTC grabber created");
+			// software frame skipping
+			_qtcGrabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
+			_qtcGrabber->setEncoding(grabberConfig["v4l2Encoding"].toString("NONE"));
+			
+			_qtcGrabber->setSignalThreshold(
+					grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0);
+			_qtcGrabber->setCropping(
+					grabberConfig["cropLeft"].toInt(0),
+					grabberConfig["cropRight"].toInt(0),
+					grabberConfig["cropTop"].toInt(0),
+					grabberConfig["cropBottom"].toInt(0));
+
+			_qtcGrabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
+			_qtcGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
+			_qtcGrabber->setSignalDetectionOffset(
+					grabberConfig["sDHOffsetMin"].toDouble(0.25),
+					grabberConfig["sDVOffsetMin"].toDouble(0.25),
+					grabberConfig["sDHOffsetMax"].toDouble(0.75),
+					grabberConfig["sDVOffsetMax"].toDouble(0.75));
+			Debug(_log, "QTC grabber created");
+
+			// connect to HyperionDaemon signal
+			connect(this, &HyperionDaemon::videoMode, _qtcGrabber, &QTCWrapper::setVideoMode);
+			connect(this, &HyperionDaemon::settingsChanged, _qtcGrabber, &QTCWrapper::handleSettingsUpdate);
 		}
-		else
-		{
-			QMetaObject::invokeMethod(_cecHandler, "stop", Qt::QueuedConnection);
-		}
+#else
+		Error(_log, "The QTC grabber can not be instantiated, because it has been left out from the build");
 #endif
 
-		if (_v4l2Grabber != nullptr)
-			return;
 
 #ifdef ENABLE_V4L2
+		if (_v4l2Grabber != nullptr)
+			return;
+		
 		_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				grabberConfig["width"].toInt(0),
@@ -590,150 +479,4 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
 	}
-}
-
-void HyperionDaemon::createGrabberDispmanx()
-{
-#ifdef ENABLE_DISPMANX
-	_dispmanx = new DispmanxWrapper(_grabber_width, _grabber_height, _grabber_frequency);
-	_dispmanx->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
-
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _dispmanx, &DispmanxWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _dispmanx, &DispmanxWrapper::handleSettingsUpdate);
-
-	Info(_log, "DISPMANX frame grabber created");
-#else
-	Error(_log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberAmlogic()
-{
-#ifdef ENABLE_AMLOGIC
-	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height);
-	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
-
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _amlGrabber, &AmlogicWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _amlGrabber, &AmlogicWrapper::handleSettingsUpdate);
-
-	Info(_log, "AMLOGIC grabber created");
-#else
-	Error(_log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberX11(const QJsonObject &grabberConfig)
-{
-#ifdef ENABLE_X11
-	_x11Grabber = new X11Wrapper(
-			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-			grabberConfig["pixelDecimation"].toInt(8),
-			_grabber_frequency);
-	_x11Grabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
-
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _x11Grabber, &X11Wrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
-
-	Info(_log, "X11 grabber created");
-#else
-	Error(_log, "The X11 grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberXcb(const QJsonObject &grabberConfig)
-{
-#ifdef ENABLE_XCB
-	_xcbGrabber = new XcbWrapper(
-			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-			grabberConfig["pixelDecimation"].toInt(8),
-			_grabber_frequency);
-	_xcbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
-
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _xcbGrabber, &XcbWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _xcbGrabber, &XcbWrapper::handleSettingsUpdate);
-
-	Info(_log, "XCB grabber created");
-#else
-	Error(_log, "The XCB grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberQt(const QJsonObject &grabberConfig)
-{
-#ifdef ENABLE_QT
-	_qtGrabber = new QtWrapper(
-			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-			grabberConfig["pixelDecimation"].toInt(8),
-			grabberConfig["display"].toInt(0),
-			_grabber_frequency);
-
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _qtGrabber, &QtWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _qtGrabber, &QtWrapper::handleSettingsUpdate);
-
-	Info(_log, "Qt grabber created");
-#else
-	Error(_log, "The Qt grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberFramebuffer(const QJsonObject &grabberConfig)
-{
-#ifdef ENABLE_FB
-	// Construct and start the framebuffer grabber if the configuration is present
-	_fbGrabber = new FramebufferWrapper(
-			grabberConfig["device"].toString("/dev/fb0"),
-			_grabber_width, _grabber_height, _grabber_frequency);
-	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _fbGrabber, &FramebufferWrapper::handleSettingsUpdate);
-
-	Info(_log, "Framebuffer grabber created");
-#else
-	Error(_log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
-{
-#ifdef ENABLE_OSX
-	// Construct and start the osx grabber if the configuration is present
-	_osxGrabber = new OsxWrapper(
-			grabberConfig["display"].toInt(0),
-			_grabber_width, _grabber_height, _grabber_frequency);
-
-	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _osxGrabber, &OsxWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _osxGrabber, &OsxWrapper::handleSettingsUpdate);
-
-	Info(_log, "OSX grabber created");
-#else
-	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createCecHandler()
-{
-#if defined(ENABLE_V4L2) && defined(ENABLE_CEC)
-	_cecHandler = new CECHandler;
-
-	QThread * thread = new QThread(this);
-	thread->setObjectName("CECThread");
-	_cecHandler->moveToThread(thread);
-	thread->start();
-
-	connect(_cecHandler, &CECHandler::cecEvent, [&] (CECEvent event) {
-		if (_v4l2Grabber)
-			_v4l2Grabber->handleCecEvent(event);
-	});
-
-	Info(_log, "CEC handler created");
-#else
-	Error(_log, "The CEC handler can not be instantiated, because it has been left out from the build");
-#endif
 }

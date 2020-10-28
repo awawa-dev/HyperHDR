@@ -99,6 +99,8 @@ bool Grabber::setFramerate(int fps)
 {
 	if((fps > 0) && (_fps != fps))
 	{
+		Debug(_log, "Set new fps: %d", fps);
+		
 		_fps = fps;
 		return true;
 	}

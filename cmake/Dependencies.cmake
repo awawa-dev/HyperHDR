@@ -27,10 +27,6 @@ macro(DeployUnix TARGET)
 			"libz"
 		)
 
-		if(ENABLE_DISPMANX)
-			list(APPEND SYSTEM_LIBS_SKIP "libcec")
-		endif()
-
 		if (APPLE)
 			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 		endif(APPLE)

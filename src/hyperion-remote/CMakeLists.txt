@@ -38,12 +38,6 @@ target_link_libraries(${PROJECT_NAME}
 	Qt5::Core
 	Qt5::Network)
 
-if (ENABLE_AMLOGIC)
-	target_link_libraries(${PROJECT_NAME}
-		pcre16 dl z
-	)
-endif()
-
 if(NOT WIN32)
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_remote" )
 else()

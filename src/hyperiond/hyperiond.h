@@ -4,52 +4,16 @@
 #include <QObject>
 #include <QJsonObject>
 
-#ifdef ENABLE_DISPMANX
-	#include <grabber/DispmanxWrapper.h>
-#else
-	typedef QObject DispmanxWrapper;
-#endif
-
 #ifdef ENABLE_V4L2
 	#include <grabber/V4L2Wrapper.h>
 #else
 	typedef QObject V4L2Wrapper;
 #endif
 
-#ifdef ENABLE_FB
-	#include <grabber/FramebufferWrapper.h>
+#ifdef ENABLE_QTC
+	#include <grabber/QTCWrapper.h>
 #else
-	typedef QObject FramebufferWrapper;
-#endif
-
-#ifdef ENABLE_AMLOGIC
-	#include <grabber/AmlogicWrapper.h>
-#else
-	typedef QObject AmlogicWrapper;
-#endif
-
-#ifdef ENABLE_OSX
-	#include <grabber/OsxWrapper.h>
-#else
-	typedef QObject OsxWrapper;
-#endif
-
-#ifdef ENABLE_X11
-	#include <grabber/X11Wrapper.h>
-#else
-	typedef QObject X11Wrapper;
-#endif
-
-#ifdef ENABLE_XCB
-	#include <grabber/XcbWrapper.h>
-#else
-	typedef QObject XcbWrapper;
-#endif
-
-#ifdef ENABLE_QT
-	#include <grabber/QtWrapper.h>
-#else
-	typedef QObject QtWrapper;
+	typedef QObject QTCWrapper;
 #endif
 
 #include <utils/Logger.h>
@@ -71,7 +35,7 @@ class FlatBufferServer;
 class ProtoServer;
 class AuthManager;
 class NetOrigin;
-class CECHandler;
+
 
 class HyperionDaemon : public QObject
 {
@@ -145,14 +109,6 @@ private slots:
 	void setVideoMode(VideoMode mode);
 
 private:
-	void createGrabberDispmanx();
-	void createGrabberAmlogic();
-	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
-	void createGrabberOsx(const QJsonObject & grabberConfig);
-	void createGrabberX11(const QJsonObject & grabberConfig);
-	void createGrabberXcb(const QJsonObject & grabberConfig);
-	void createGrabberQt(const QJsonObject & grabberConfig);
-	void createCecHandler();
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -164,15 +120,8 @@ private:
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
 	V4L2Wrapper*               _v4l2Grabber;
-	DispmanxWrapper*           _dispmanx;
-	X11Wrapper*                _x11Grabber;
-	XcbWrapper*                _xcbGrabber;
-	AmlogicWrapper*            _amlGrabber;
-	FramebufferWrapper*        _fbGrabber;
-	OsxWrapper*                _osxGrabber;
-	QtWrapper*                 _qtGrabber;
+	QTCWrapper*                _qtcGrabber;
 	SSDPHandler*               _ssdp;
-	CECHandler*                _cecHandler;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
 

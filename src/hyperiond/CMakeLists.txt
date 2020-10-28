@@ -54,57 +54,20 @@ if (ENABLE_AVAHI)
 	target_link_libraries(hyperiond bonjour)
 endif ()
 
-if (ENABLE_AMLOGIC)
-	target_link_libraries(hyperiond
-		Qt5::Core
-		pcre16 dl z
-	)
-endif()
-
-if (ENABLE_DISPMANX)
-	IF ( "${PLATFORM}" MATCHES rpi)
-		find_package(BCM REQUIRED)
-		include_directories(${BCM_INCLUDE_DIRS})
-	ELSE()
-		SET(BCM_INCLUDE_DIRS "")
-		SET(BCM_LIBRARIES "")
-	ENDIF()
-	target_link_libraries(hyperiond dispmanx-grabber)
-endif ()
-
-if (ENABLE_FB)
-	target_link_libraries(hyperiond framebuffer-grabber)
-endif ()
-
-if (ENABLE_OSX)
-	target_link_libraries(hyperiond osx-grabber)
-endif ()
-
 if (ENABLE_V4L2)
 	target_link_libraries(hyperiond v4l2-grabber)
 endif ()
 
-if (ENABLE_AMLOGIC)
-	target_link_libraries(hyperiond amlogic-grabber)
+if (ENABLE_QTC)
+	target_link_libraries(hyperiond qtc-grabber)
 endif ()
+
 
 if (ENABLE_X11)
 	if(APPLE)
 		include_directories("/opt/X11/include")
 	endif(APPLE)
 	target_link_libraries(hyperiond	x11-grabber)
-endif ()
-
-if (ENABLE_XCB)
-	target_link_libraries(hyperiond	xcb-grabber)
-endif ()
-
-if (ENABLE_QT)
-	target_link_libraries(hyperiond	qt-grabber)
-endif ()
-
-if (ENABLE_CEC)
-        target_link_libraries(hyperiond cechandler)
 endif ()
 
 if(NOT WIN32)
@@ -134,7 +97,7 @@ endif()
 # Copy dependencies (not for OSX)
 include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
 
-if (NOT ENABLE_OSX AND NOT WIN32) # Unix
+if (NOT WIN32) # Unix
 	DeployUnix("hyperiond")
 elseif(WIN32) # Windows
 	DeployWindows("hyperiond")

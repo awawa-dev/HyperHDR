@@ -36,12 +36,6 @@ else()
 endif()
 
 # Set build variables
-SET ( DEFAULT_AMLOGIC                     OFF )
-SET ( DEFAULT_DISPMANX                    OFF )
-SET ( DEFAULT_OSX                         OFF )
-SET ( DEFAULT_X11                         OFF )
-SET ( DEFAULT_XCB                         OFF )
-SET ( DEFAULT_QT                          ON )#
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
@@ -50,21 +44,22 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
+SET ( DEFAULT_QTC                         OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2        ON )
 	SET ( DEFAULT_SPIDEV      ON )
-	SET ( DEFAULT_TINKERFORGE ON )#
-	SET ( DEFAULT_FB          ON )#
-	SET ( DEFAULT_USB_HID     ON )#
-	SET ( DEFAULT_CEC         OFF )
+	SET ( DEFAULT_TINKERFORGE ON )
+	SET ( DEFAULT_FB          ON )
+	SET ( DEFAULT_USB_HID     ON )
+ELSEIF ( WIN32 )
+	SET ( DEFAULT_QTC         ON )	
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
 	SET ( DEFAULT_SPIDEV      OFF )
 	SET ( DEFAULT_TINKERFORGE OFF )
 	SET ( DEFAULT_USB_HID     OFF )
-	SET ( DEFAULT_CEC         OFF )
 ENDIF()
 
 if ( NOT DEFINED PLATFORM )
@@ -114,10 +109,8 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
-	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
-	SET ( DEFAULT_DISPMANX   OFF )
 	SET ( DEFAULT_WS281XPWM  ON )
 	
 	# GL dispatcher
@@ -160,22 +153,6 @@ STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
 ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
-option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
-message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
-
-option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ${DEFAULT_DISPMANX} )
-message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
-
-if (ENABLE_AMLOGIC)
-	SET(ENABLE_FB ON)
-else()
-	option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
-endif()
-message(STATUS "ENABLE_FB = ${ENABLE_FB}")
-
-option(ENABLE_OSX "Enable the osx grabber" ${DEFAULT_OSX} )
-message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
-
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
 
@@ -194,20 +171,8 @@ message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
 
-option(ENABLE_CEC "Enable the libcec and CEC control" ${DEFAULT_CEC} )
-message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
-
-option(ENABLE_X11 "Enable the X11 grabber" ${DEFAULT_X11})
-message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
-
-option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
-message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
-
-option(ENABLE_QT "Enable the qt grabber" ${DEFAULT_QT})
-message(STATUS "ENABLE_QT = ${ENABLE_QT}")
-
-option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
-message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
+option(ENABLE_QTC "Enable the QTC grabber" ${DEFAULT_QTC})
+message(STATUS "ENABLE_QTC = ${ENABLE_QTC}")
 
 option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
@@ -319,6 +284,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
 		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
 	endif()
+
 endif()
 
 # Use GNU gold linker if available
@@ -396,6 +362,24 @@ if (ENABLE_V4L2)
 	endif()
 endif()
 
+# Add JPEG library
+if (ENABLE_QTC)
+	# Turbo JPEG
+	find_package(TurboJPEG)
+	if (TURBOJPEG_FOUND)
+		add_definitions(-DHAVE_TURBO_JPEG)
+		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
+		include_directories(${TurboJPEG_INCLUDE_DIRS})
+	else()
+		message( FATAL_ERROR  "JPEG library not found, MJPEG camera format won't work in QTC grabber.")
+	endif (TURBOJPEG_FOUND)
+
+	if (TURBOJPEG_FOUND OR JPEG_FOUND)
+		add_definitions(-DHAVE_JPEG_DECODER)
+	endif()
+endif()
+
+
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
@@ -404,9 +388,6 @@ endif()
 add_subdirectory(dependencies)
 add_subdirectory(libsrc)
 add_subdirectory(src)
-if (ENABLE_TESTS)
-	add_subdirectory(test)
-endif ()
 
 # Add resources directory
 add_subdirectory(resources)

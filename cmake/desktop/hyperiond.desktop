@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Hyperion
-GenericName=Hyperion Ambient Lighting
-Comment=Hyperion mimics the well known Ambilight from Philips
+GenericName=HyperHDR Ambient Lighting
+Comment=HyperHDR mimics the well known Ambilight from Philips
 Icon=/usr/share/pixmaps/hyperion/hyperiond_128.png
 Terminal=false
 TryExec=hyperiond
