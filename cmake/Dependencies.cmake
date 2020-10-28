@@ -283,6 +283,21 @@ macro(DeployWindows TARGET)
 			)
 		endif(OPENSSL_FOUND)
 
+		# Copy OpenSSL Libs
+		if (TURBOJPEG_FOUND)
+			find_file(TurboJPEG_DLL
+				NAMES "turbojpeg.dll"
+				PATHS ${TurboJPEG_INCLUDE_DIRS}/.. ${TurboJPEG_INCLUDE_DIRS}/../bin
+				NO_DEFAULT_PATH
+			)
+
+			install(
+				FILES ${TurboJPEG_DLL}
+				DESTINATION "bin"
+				COMPONENT "Hyperion"
+			)
+		endif(TURBOJPEG_FOUND)
+
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
 		install(
@@ -329,6 +344,8 @@ macro(DeployWindows TARGET)
 				COMPONENT "Hyperion"
 			)
 		endforeach()
+
+		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "Hyperion")
 
 	else()
 		# Run CMake after target was built

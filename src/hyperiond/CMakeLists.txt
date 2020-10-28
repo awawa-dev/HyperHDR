@@ -85,7 +85,7 @@ else()
 
 	#set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
 	#set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
-	#include( InstallRequiredSystemLibraries )
+	include( InstallRequiredSystemLibraries )
 endif()
 
 if(CMAKE_HOST_UNIX)
