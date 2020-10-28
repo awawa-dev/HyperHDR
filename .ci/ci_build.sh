@@ -33,7 +33,6 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	cd build
 	cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
 	make -j $(sysctl -n hw.ncpu) package || exit 3
-	cd ${CI_BUILD_DIR} && source /${CI_BUILD_DIR}/test/testrunner.sh || exit 4
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
@@ -64,7 +63,6 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperion/build/Hyper* /deploy/ 2>/dev/null || : &&
-		cd /hyperion && source /hyperion/test/testrunner.sh || exit 4 &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 
