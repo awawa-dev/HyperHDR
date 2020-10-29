@@ -347,10 +347,25 @@ macro(DeployWindows TARGET)
 
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
+			RESULT_VARIABLE STATUS
+			OUTPUT_VARIABLE OUTPUT1			
 		)
+		if(STATUS AND NOT STATUS EQUAL 0)
+		    message( FATAL_ERROR "LUT tar.xz Bad exit status")
+		else()
+		    message( STATUS "LUT tar.xz tar extracted")			
+		endif()
+
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y 
+			RESULT_VARIABLE STATUS
+			OUTPUT_VARIABLE OUTPUT1			
 		)
+		if(STATUS AND NOT STATUS EQUAL 0)
+		    message( FATAL_ERROR "LUT tar Bad exit status")
+		else()
+		    message( STATUS "LUT tar extracted")			
+		endif()
 
 		install(
 			FILES ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d
