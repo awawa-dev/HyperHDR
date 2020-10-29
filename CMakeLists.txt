@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-IF ( WIN32 )
-	set(CMAKE_VERBOSE_MAKEFILE ON)
-ENDIF()
-
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(hyperion)
