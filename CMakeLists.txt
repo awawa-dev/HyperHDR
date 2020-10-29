@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 
+IF ( WIN32 )
+	set(CMAKE_VERBOSE_MAKEFILE ON)
+ENDIF()
+
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(hyperion)
@@ -342,9 +346,12 @@ if (ENABLE_QTC)
 	endif()
 
 	# 7zip
+	cmake_policy(SET CMP0053 NEW)
+	set(MYENV "PROGRAMFILES(X86)")
+
 	find_program(SEVENZIP_BIN
 		NAMES 7z 7za
-		HINTS "${MINGWDIR}" "${MINGWLIBS}/bin" "$ENV{ProgramFiles(x86)}/7-zip" "$ENV{ProgramFiles}/7-zip" "$ENV{ProgramW6432}/7-zip"
+		HINTS "${MINGWDIR}" "${MINGWLIBS}/bin" "$MYENV/7-zip" "$ENV{ProgramFiles}/7-zip" "$ENV{ProgramW6432}/7-zip"
 		PATH_SUFFIXES bin
 		DOC "7zip executable"
 	)
