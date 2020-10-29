@@ -345,6 +345,26 @@ macro(DeployWindows TARGET)
 			)
 		endforeach()
 
+
+		add_custom_command(
+			TARGET ${TARGET} POST_BUILD
+			COMMAND "${SEVENZIP_BIN}" e \"${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz\" -o\"${CMAKE_CURRENT_BINARY_DIR}\" -aoa -y 
+		)
+		add_custom_command(
+			TARGET ${TARGET} POST_BUILD
+			COMMAND "${SEVENZIP_BIN}" e \"${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar\" -o\"${CMAKE_CURRENT_BINARY_DIR}\" -aoa -y 
+		)
+		add_custom_command(
+			TARGET ${TARGET} POST_BUILD
+			COMMAND del -F \"${CMAKE_CURRENT_BINARY_DIR}\\lut_lin_tables.tar\"
+		)
+		install(
+			FILES ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d
+			DESTINATION "bin"
+			COMPONENT "Hyperion"
+		)
+
+
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "Hyperion")
 
 	else()

@@ -26,6 +26,7 @@
 
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QCoreApplication>
 
 #include "grabber/QTCGrabber.h"
 #include "utils/ColorSys.h"
@@ -309,18 +310,8 @@ QTCGrabber::QTCGrabber(const QString & device
 
 QString QTCGrabber::GetSharedLut()
 {	
-/*	char result[ MAX_PATH ];
 	
-	ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
-	std::string appPath = std::string( result, (count > 0) ? count : 0 );
-
-	std::size_t found = appPath.find_last_of("/\\");
-	QString ret = QString("%1%2").arg(QString::fromStdString(appPath.substr(0,found)),"/../lut");
-	QFileInfo info(ret);
-	ret = info.absoluteFilePath();
-	Debug(_log,"LUT folder location: '%s'", QSTRING_CSTR(ret));
-	return ret;*/
-	return "";
+	return QCoreApplication::applicationDirPath();
 }
 
 void QTCGrabber::loadLutFile(const QString & color)
@@ -331,7 +322,6 @@ void QTCGrabber::loadLutFile(const QString & color)
 	// load lut
 	QString fileName1 = QString("%1%2").arg(_configurationPath,"/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut(),"/lut_lin_tables.3d");
-	QString fileName3 = QString("/usr/share/hyperion/lut/lut_lin_tables.3d");
 	Debug(_log,"loadLutFile: '%s'", QSTRING_CSTR(fileName1));	
 	
 	_lutBufferInit = false;
@@ -350,14 +340,7 @@ void QTCGrabber::loadLutFile(const QString & color)
 			fileName3d = fileName2;
 			err = fopen_s(&file, QSTRING_CSTR(fileName3d), "rb");
 		}
-		
-		if( err != 0 )
-		{
-			Debug(_log,"LUT table: fallback to static path");
-			fileName3d = fileName3;
-			err = fopen_s(&file, QSTRING_CSTR(fileName3d), "rb");
-		}	
-		
+				
 		if( err == 0 )
 		{
 			size_t length;

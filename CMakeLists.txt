@@ -325,7 +325,7 @@ if (ENABLE_V4L2)
 	endif()
 endif()
 
-# Add JPEG library
+
 if (ENABLE_QTC)
 	# Turbo JPEG
 	find_package(TurboJPEG)
@@ -340,6 +340,21 @@ if (ENABLE_QTC)
 	if (TURBOJPEG_FOUND OR JPEG_FOUND)
 		add_definitions(-DHAVE_JPEG_DECODER)
 	endif()
+
+	# 7zip
+	find_program(SEVENZIP_BIN
+		NAMES 7z 7za
+		HINTS "${MINGWDIR}" "${MINGWLIBS}/bin" "$ENV{ProgramFiles(x86)}/7-zip" "$ENV{ProgramFiles}/7-zip" "$ENV{ProgramW6432}/7-zip"
+		PATH_SUFFIXES bin
+		DOC "7zip executable"
+	)
+
+	if (SEVENZIP_BIN)
+		message( STATUS "7-zip found: ${SEVENZIP_BIN}")
+	else()
+		message( FATAL_ERROR  "Please install 7-zip")
+	endif (SEVENZIP_BIN)
+
 endif()
 
 
