@@ -286,7 +286,7 @@ macro(DeployWindows TARGET)
 		# Copy OpenSSL Libs
 		if (TURBOJPEG_FOUND)
 			find_file(TurboJPEG_DLL
-				NAMES "turbojpeg.dll"
+				NAMES "turbojpeg.dll" "jpeg62.dll"
 				PATHS ${TurboJPEG_INCLUDE_DIRS}/.. ${TurboJPEG_INCLUDE_DIRS}/../bin
 				NO_DEFAULT_PATH
 			)
