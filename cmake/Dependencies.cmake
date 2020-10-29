@@ -348,16 +348,20 @@ macro(DeployWindows TARGET)
 
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
-			COMMAND "${SEVENZIP_BIN}" e \"${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz\" -o\"${CMAKE_CURRENT_BINARY_DIR}\" -aoa -y 
+			COMMAND "${SEVENZIP_BIN}" e "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y && "${SEVENZIP_BIN}" e "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar" -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y 
+			COMMENT "EXTRACTING LUT TABLE USING 7-zip: ${SEVENZIP_BIN}"
+			VERBATIM
 		)
-		add_custom_command(
-			TARGET ${TARGET} POST_BUILD
-			COMMAND "${SEVENZIP_BIN}" e \"${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar\" -o\"${CMAKE_CURRENT_BINARY_DIR}\" -aoa -y 
-		)
-		add_custom_command(
-			TARGET ${TARGET} POST_BUILD
-			COMMAND del -F \"${CMAKE_CURRENT_BINARY_DIR}\\lut_lin_tables.tar\"
-		)
+
+
+#		add_custom_command(
+#			TARGET ${TARGET} POST_BUILD
+#			COMMAND "${SEVENZIP_BIN}" e "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar" -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y 
+#			COMMENT "EXTRACTING ${SEVENZIP_BIN} e ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y\n"
+#			VERBATIM
+#		)
+
+
 		install(
 			FILES ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d
 			DESTINATION "bin"
