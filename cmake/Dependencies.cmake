@@ -345,7 +345,6 @@ macro(DeployWindows TARGET)
 			)
 		endforeach()
 
-
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
 		)
