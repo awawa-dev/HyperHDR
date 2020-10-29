@@ -521,6 +521,16 @@ void JsonConnection::setVideoMode(QString videoMode)
 	parseReply(reply);
 }
 
+void JsonConnection::setVideoModeHdr(int hdr)
+{
+	QJsonObject command;
+	command["command"] = QString("videomodehdr");
+	command["HDR"] = hdr;
+
+	QJsonObject reply = sendMessage(command);
+	parseReply(reply);
+}
+
 void JsonConnection::setToken(const QString &token)
 {
 	// create command

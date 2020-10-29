@@ -56,6 +56,7 @@ public:
 	/// @brief Get the current videoMode
 	///
 	VideoMode getVideoMode() const { return _currVideoMode; };
+	int       getVideoModeHdr() const { return _currVideoModeHdr; };
 
 	///
 	/// @brief get the settings
@@ -79,6 +80,7 @@ signals:
 	/// @brief After eval of setVideoMode this signal emits with a new one on change
 	///
 	void videoMode(VideoMode mode);
+	void videoModeHdr(int hdr);
 
 	///////////////////////////////////////
 	/// FROM HYPERION TO HYPERIONDAEMON ///
@@ -107,6 +109,7 @@ private slots:
 	/// @param mode  The requested video mode
 	///
 	void setVideoMode(VideoMode mode);
+	void setVideoModeHdr(int hdr);
 
 private:
 
@@ -138,6 +141,7 @@ private:
 	QString                    _prevType;
 
 	VideoMode                  _currVideoMode;
+	int                        _currVideoModeHdr;
 	SettingsManager*           _settingsManager;
 	
 	// application root path

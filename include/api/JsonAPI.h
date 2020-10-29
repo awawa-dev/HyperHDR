@@ -261,7 +261,13 @@ private:
 	/// @param message the incoming message
 	///
 	void handleVideoModeCommand(const QJsonObject &message, const QString &command, int tan);
-
+	
+	/// Handle an incoming JSON VideoMode message
+	///
+	/// @param message the incoming message
+	///
+	void handleVideoModeHdrCommand(const QJsonObject &message, const QString &command, int tan);
+	
 	/// Handle an incoming JSON plugin message
 	///
 	/// @param message the incoming message

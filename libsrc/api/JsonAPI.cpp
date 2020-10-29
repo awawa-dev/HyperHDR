@@ -174,6 +174,8 @@ proceed:
 		handleProcessingCommand(message, command, tan);
 	else if (command == "videomode")
 		handleVideoModeCommand(message, command, tan);
+	else if (command == "videomodehdr")
+		handleVideoModeHdrCommand(message, command, tan);
 	else if (command == "instance")
 		handleInstanceCommand(message, command, tan);
 	else if (command == "leddevice")
@@ -522,6 +524,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	grabbers["available"] = availableGrabbers;
 	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
+	info["videomodehdr"] = _hyperion->getCurrentVideoModeHdr();
 	info["grabbers"] = grabbers;
 
 	// get available components
@@ -1099,6 +1102,13 @@ void JsonAPI::handleVideoModeCommand(const QJsonObject &message, const QString &
 	API::setVideoMode(parse3DMode(message["videoMode"].toString("2D")));
 	sendSuccessReply(command, tan);
 }
+
+void JsonAPI::handleVideoModeHdrCommand(const QJsonObject &message, const QString &command, int tan)
+{
+	API::setVideoModeHdr(message["HDR"].toInt());
+	sendSuccessReply(command, tan);
+}
+
 
 void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &command, int tan)
 {

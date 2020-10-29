@@ -24,6 +24,7 @@ $(document).ready(function() {
     createHint("intro", $.i18n('remote_components_intro', $.i18n('remote_losthint')), "comp_intro");
     createHint("intro", $.i18n('remote_maptype_intro', $.i18n('remote_losthint')), "maptype_intro");
     createHint("intro", $.i18n('remote_videoMode_intro', $.i18n('remote_losthint')), "videomode_intro");
+	createHint("intro", $.i18n('remote_videoModeHdr_intro', $.i18n('remote_losthint')), "videomodehdr_intro");
   }
 
   //color adjustment
@@ -327,6 +328,23 @@ $(document).ready(function() {
       $('#videomodebtns').append('<button type="button" id="vModeBtn_'+videoModes[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestVideoMode(\''+videoModes[ix]+'\');">'+$.i18n('remote_videoMode_'+videoModes[ix])+'</button><br/>');
     }
   }
+  
+  function updateVideoModeHdr()
+  {
+    var videoModes = ["OFF","ON","BORDER"];
+	var videoModesVal = [0,1,2];
+    var currVideoMode = window.serverInfo.videomodehdr;
+
+    $('#videomodehdrbtns').html("");
+    for(var ix = 0; ix < videoModes.length; ix++)
+    {
+      if(currVideoMode == videoModesVal[ix])
+        var btn_style = 'btn-success';
+      else
+        var btn_style = 'btn-primary';
+      $('#videomodehdrbtns').append('<button type="button" id="vModeHdrBtn_'+videoModesVal[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestVideoModeHdr('+videoModesVal[ix]+');">'+videoModes[ix]+'</button><br/>');
+    }
+  }
 
   // colorpicker and effect
   if (getStorage('rmcpcolor') != null)
@@ -393,6 +411,7 @@ $(document).ready(function() {
   updateInputSelect();
   updateLedMapping();
   updateVideoMode();
+  updateVideoModeHdr();
   updateEffectlist();
 
   // interval updates
@@ -415,6 +434,11 @@ $(document).ready(function() {
   $(window.hyperion).on("cmd-videomode-update", function(event){
     window.serverInfo.videomode = event.response.data.videomode;
     updateVideoMode();
+  });
+
+  $(window.hyperion).on("cmd-videomodehdr-update", function(event){
+    window.serverInfo.videomodehdr = event.response.data.videomodehdr;
+    updateVideoModeHdr();
   });
 
   $(window.hyperion).on("cmd-effects-update", function(event){

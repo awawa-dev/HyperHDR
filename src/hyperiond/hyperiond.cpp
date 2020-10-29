@@ -73,6 +73,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 		, _qtcGrabber(nullptr)
 		, _ssdp(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
+		, _currVideoModeHdr(0)
 		, _rootPath(rootPath)
 {
 	HyperionDaemon::daemon = this;
@@ -121,6 +122,11 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 	connect(_instanceManager, &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
 	// return videoMode changes from Daemon to HyperionIManager
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
+	
+	// forward videoModes from HyperionIManager to Daemon evaluation
+	connect(_instanceManager, &HyperionIManager::requestVideoModeHdr, this, &HyperionDaemon::setVideoModeHdr);
+	// return videoMode changes from Daemon to HyperionIManager
+	connect(this, &HyperionDaemon::videoModeHdr, _instanceManager, &HyperionIManager::newVideoModeHdr);
 
 // ---- grabber -----
 	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
@@ -150,6 +156,16 @@ void HyperionDaemon::setVideoMode(VideoMode mode)
 		emit videoMode(mode);
 	}
 }
+
+void HyperionDaemon::setVideoModeHdr(int hdr)
+{
+	if (_currVideoModeHdr != hdr)
+	{
+		_currVideoModeHdr = hdr;
+		emit videoModeHdr(hdr);
+	}
+}
+
 
 QJsonDocument HyperionDaemon::getSetting(settings::type type) const
 {
@@ -389,6 +405,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else
 			{
 				_qtcGrabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));
+				setVideoModeHdr(grabberConfig["hdrToneMappingMode"].toInt(1));
 			}
 			
 			Debug(_log, "QTC grabber created");
@@ -417,7 +434,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, _qtcGrabber, &QTCWrapper::setVideoMode);
-			connect(this, &HyperionDaemon::settingsChanged, _qtcGrabber, &QTCWrapper::handleSettingsUpdate);
+			connect(this, &HyperionDaemon::videoModeHdr, _qtcGrabber, &QTCWrapper::setHdrToneMappingEnabled);
+			connect(this, &HyperionDaemon::settingsChanged, _qtcGrabber, &QTCWrapper::handleSettingsUpdate);			
 		}
 #else
 		Error(_log, "The QTC grabber can not be instantiated, because it has been left out from the build");
@@ -445,7 +463,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		}
 		else
 		{
-			_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));
+			_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));	
+			setVideoModeHdr(grabberConfig["hdrToneMappingMode"].toInt(1));			
 		}
 		
 		Debug(_log, "V4L2 grabber created");
@@ -474,6 +493,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		// connect to HyperionDaemon signal
 		connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
+		connect(this, &HyperionDaemon::videoModeHdr, _v4l2Grabber, &V4L2Wrapper::setHdrToneMappingEnabled);		
 		connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");

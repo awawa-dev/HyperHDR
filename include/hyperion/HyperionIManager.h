@@ -119,6 +119,7 @@ signals:
 	/// @brief PIPE videoMode back to Hyperion
 	///
 	void newVideoMode(VideoMode mode);
+	void newVideoModeHdr(int hdr);
 
 	///////////////////////////////////////
 	/// FROM HYPERION TO HYPERIONDAEMON ///
@@ -133,7 +134,7 @@ signals:
 	/// @brief PIPE videoMode request changes from Hyperion to HyperionDaemon
 	///
 	void requestVideoMode(VideoMode mode);
-
+	void requestVideoModeHdr(int hdr);
 	///
 	/// @brief PIPE component state changes from Hyperion to HyperionDaemon
 	///

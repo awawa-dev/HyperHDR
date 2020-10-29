@@ -100,6 +100,12 @@ private slots:
 	void handleVideoModeChange(VideoMode mode);
 
 	///
+	/// @brief Handle video mode change
+	/// @param mode  The new videoMode
+	///
+	void handleVideoModeHdrChange(int hdr);
+	
+	///
 	/// @brief Handle effect list change
 	///
 	void handleEffectListChange();

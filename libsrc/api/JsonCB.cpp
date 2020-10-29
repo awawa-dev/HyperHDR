@@ -39,7 +39,7 @@ JsonCB::JsonCB(QObject* parent)
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
+	<< "adjustment-update" << "videomode-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -102,6 +102,14 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			disconnect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange);
 		else
 			connect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange, Qt::UniqueConnection);
+	}
+	
+	if(type == "videomodehdr-update")
+	{
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange);
+		else
+			connect(_hyperion, &Hyperion::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
 	}
 
 	if(type == "effects-update")
@@ -362,6 +370,13 @@ void JsonCB::handleVideoModeChange(VideoMode mode)
 	QJsonObject data;
 	data["videomode"] = QString(videoMode2String(mode));
 	doCallback("videomode-update", QVariant(data));
+}
+
+void JsonCB::handleVideoModeHdrChange(int hdr)
+{
+	QJsonObject data;
+	data["videomodehdr"] = hdr;
+	doCallback("videomodehdr-update", QVariant(data));
 }
 
 void JsonCB::handleEffectListChange()

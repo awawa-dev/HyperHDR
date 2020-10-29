@@ -91,6 +91,8 @@ public:
 	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
 	VideoMode getCurrentVideoMode() const;
+	
+	int getCurrentVideoModeHdr() const;
 
 	///
 	/// @brief Get the current active led device
@@ -355,6 +357,8 @@ public slots:
 	/// @param[in] mode The new video mode
 	///
 	void setVideoMode(VideoMode mode);
+	
+	void setVideoModeHdr(int hdr);
 
 	///
 	/// @brief Init after thread start
@@ -411,11 +415,13 @@ signals:
 	/// @brief Is emitted from clients who request a videoMode change
 	///
 	void videoMode(VideoMode mode);
+	void videoModeHdr(int hdr);
 
 	///
 	/// @brief A new videoMode was requested (called from Daemon!)
 	///
 	void newVideoMode(VideoMode mode);
+	void newVideoModeHdr(int hdr);
 
 	///
 	/// @brief Emits whenever a config part changed. SIGNAL PIPE helper for SettingsManager -> HyperionDaemon
@@ -472,6 +478,7 @@ private slots:
 	/// @brief Apply new videoMode from Daemon to _currVideoMode
 	///
 	void handleNewVideoMode(VideoMode mode) { _currVideoMode = mode; }
+	void handleNewVideoModeHdr(int hdr) { _currVideoModeHdr = hdr; }
 
 
 	void handlPriorityChangedLedDevice(const quint8& priority);
@@ -538,6 +545,7 @@ private:
 	std::vector<ColorRgb> _ledBuffer;
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
+	int       _currVideoModeHdr = 1;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;

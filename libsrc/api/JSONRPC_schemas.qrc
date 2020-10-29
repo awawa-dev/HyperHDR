@@ -18,6 +18,7 @@
         <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
         <file alias="schema-processing">JSONRPC_schema/schema-processing.json</file>
         <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
+        <file alias="schema-videomodehdr">JSONRPC_schema/schema-videomodehdr.json</file>
         <file alias="schema-authorize">JSONRPC_schema/schema-authorize.json</file>
         <file alias="schema-instance">JSONRPC_schema/schema-instance.json</file>
         <file alias="schema-leddevice">JSONRPC_schema/schema-leddevice.json</file>	

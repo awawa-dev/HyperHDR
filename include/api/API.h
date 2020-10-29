@@ -106,6 +106,8 @@ protected:
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
     void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID);
+	
+	void setVideoModeHdr(int hdr, hyperion::Components callerComp = hyperion::COMP_INVALID);	
 
     ///
     /// @brief Set an effect

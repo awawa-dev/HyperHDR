@@ -237,6 +237,10 @@ $(document).ready(function () {
 		window.serverInfo.videomode = event.response.data.videomode
 	});
 
+	$(window.hyperion).on("cmd-videomodehdr-update", function (event) {
+		window.serverInfo.videomodehdr = event.response.data.videomodehdr
+	});	
+
 	$(window.hyperion).on("cmd-components-update", function (event) {
 		let obj = event.response.data
 

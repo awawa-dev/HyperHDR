@@ -305,7 +305,7 @@ function requestInstanceSwitch(inst)
 
 function requestServerInfo()
 {
-	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
+	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "effects-update", "settings-update", "instance-update"]');
 }
 
 function requestSysInfo()
@@ -445,6 +445,12 @@ function requestVideoMode(newMode)
 {
 	sendToHyperion("videomode", "", '"videoMode": "'+newMode+'"');
 }
+
+function requestVideoModeHdr(newMode)
+{
+	sendToHyperion("videomodehdr", "", '"HDR": '+newMode+'');
+}
+
 
 function requestAdjustment(type, value, complete)
 {

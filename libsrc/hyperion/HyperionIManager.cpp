@@ -87,9 +87,11 @@ bool HyperionIManager::startInstance(quint8 inst, bool block)
 			// from Hyperion
 			connect(hyperion, &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
 			connect(hyperion, &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
+			connect(hyperion, &Hyperion::videoModeHdr, this, &HyperionIManager::requestVideoModeHdr);
 			connect(hyperion, &Hyperion::compStateChangeRequest, this, &HyperionIManager::compStateChangeRequest);
 			// to Hyperion
 			connect(this, &HyperionIManager::newVideoMode, hyperion, &Hyperion::newVideoMode);
+			connect(this, &HyperionIManager::newVideoModeHdr, hyperion, &Hyperion::newVideoModeHdr);
 
 			// add to queue and start
 			_startQueue << inst;

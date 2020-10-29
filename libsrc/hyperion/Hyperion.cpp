@@ -70,6 +70,7 @@ void Hyperion::start()
 
 	// get newVideoMode from HyperionIManager
 	connect(this, &Hyperion::newVideoMode, this, &Hyperion::handleNewVideoMode);
+	connect(this, &Hyperion::newVideoModeHdr, this, &Hyperion::handleNewVideoModeHdr);
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -514,10 +515,21 @@ void Hyperion::setVideoMode(VideoMode mode)
 	emit videoMode(mode);
 }
 
+void Hyperion::setVideoModeHdr(int hdr)
+{
+	emit videoModeHdr(hdr);
+}
+
 VideoMode Hyperion::getCurrentVideoMode() const
 {
 	return _currVideoMode;
 }
+
+int Hyperion::getCurrentVideoModeHdr() const
+{
+	return _currVideoModeHdr;
+}
+
 
 QString Hyperion::getActiveDeviceType() const
 {

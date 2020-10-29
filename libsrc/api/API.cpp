@@ -211,6 +211,11 @@ void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
+void API::setVideoModeHdr(int hdr, hyperion::Components callerComp)
+{
+    QMetaObject::invokeMethod(_hyperion, "setVideoModeHdr", Qt::QueuedConnection, Q_ARG(int, hdr));
+}
+
 void API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 {
     if (!dat.args.isEmpty())
