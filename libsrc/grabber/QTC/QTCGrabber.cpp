@@ -4,6 +4,7 @@
 #include <mfreadwrite.h>
 #include <shlwapi.h>
 #include <mferror.h>
+#include <strmif.h>
 
 #include <iostream>
 #include <sstream>
@@ -281,6 +282,8 @@ QTCGrabber::QTCGrabber(const QString & device
 	, _configurationPath(configurationPath)
 	, _enc(pixelFormat)
 	, READER(NULL)
+	, _brightness(0)
+	, _contrast(0)
 	
 {	
 	// init
@@ -456,7 +459,7 @@ bool QTCGrabber::init()
 	Debug(_log,"init");	
 	
 	
-	if (!_initialized)
+	if (!_initialized && _isMF)
 	{
 		QString foundDevice = "";
 		int     foundIndex = -1;
@@ -861,7 +864,67 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 	if (device)
 	{
 		Debug(_log,  "Device opened");
+		
+		if (_brightness>0 || _contrast>0)					
+		{
+			
+			IAMVideoProcAmp *pProcAmp = NULL;
+			hr = device->QueryInterface(IID_PPV_ARGS(&pProcAmp));
+			if (SUCCEEDED(hr))
+			{
+				long lMin, lMax, lStep, lDefault, lCaps, Val;
+				
+				if (_brightness>0)
+				{
+					hr = pProcAmp->GetRange(VideoProcAmp_Brightness, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+					if (SUCCEEDED(hr))
+					{
+						Debug(_log, "Brightness: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+						
+						hr = pProcAmp->Get(VideoProcAmp_Brightness, &Val,  &lCaps);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Current brightness set to: %i",Val);
+						
+						hr = pProcAmp->Set(VideoProcAmp_Brightness, _brightness, VideoProcAmp_Flags_Manual);
+						if (SUCCEEDED(hr))
+						{
+							Debug(_log, "Brightness set to: %i",_brightness);
+						}
+						else
+							Error(_log, "Could not set brightness");
+					}
+					else
+						Error(_log, "Brigthness is not supported by the grabber");
+				}
+				
+				if (_contrast>0)
+				{
+					hr = pProcAmp->GetRange(VideoProcAmp_Contrast, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+					if (SUCCEEDED(hr))
+					{
+						Debug(_log, "Contrast: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+						
+						hr = pProcAmp->Get(VideoProcAmp_Contrast, &Val,  &lCaps);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Current contrast set to: %i",Val);
 					
+						hr = pProcAmp->Set(VideoProcAmp_Contrast, _contrast, VideoProcAmp_Flags_Manual);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Contrast set to: %i",_contrast);
+						else
+							Error(_log, "Could not set contrast");
+					}
+					else
+						Error(_log, "Contrast is not supported by the grabber");
+				}					
+				
+				pProcAmp->Release();
+			}
+						
+		}
+		
 		hr1 = MFCreateAttributes(&pAttributes, 1);	
 		
 		if (CHECK(hr1))		
@@ -1354,11 +1417,29 @@ void QTCGrabber::setEncoding(QString enc)
 			
 	if (_oldEnc != _enc)
 	{
-		Debug(_log,"Restarting v4l2 grabber");
+		Debug(_log,"Restarting QTCGrabber grabber");
 		
 		bool started = _initialized;
 		uninit();
 		if(started) start();
 	}
+}
+
+void QTCGrabber::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+{
+	if (_brightness != brightness || _contrast != contrast)
+	{
+		Debug(_log,"Set brightness to %i, contrast to %i",_brightness,_contrast);
+		_brightness = brightness;
+		_contrast = contrast;
+		
+		Debug(_log,"Restarting QTCGrabber grabber");
+		
+		bool started = _initialized;
+		uninit();
+		if(started) start();
+	}
+	else
+		Debug(_log,"setBrightnessContrast nothing change");
 }
 

@@ -424,6 +424,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					grabberConfig["cropBottom"].toInt(0));
 
 			_qtcGrabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
+			
+			_qtcGrabber->setBrightnessContrast(grabberConfig["hardware_brightness"].toInt(0), grabberConfig["hardware_contrast"].toInt(0));
+			
 			_qtcGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			_qtcGrabber->setSignalDetectionOffset(
 					grabberConfig["sDHOffsetMin"].toDouble(0.25),
@@ -483,6 +486,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				grabberConfig["cropBottom"].toInt(0));
 
 		_v4l2Grabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
+		
+		_v4l2Grabber->setBrightnessContrast(grabberConfig["hardware_brightness"].toInt(0), grabberConfig["hardware_contrast"].toInt(0));
+		
 		_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 		_v4l2Grabber->setSignalDetectionOffset(
 				grabberConfig["sDHOffsetMin"].toDouble(0.25),

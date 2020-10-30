@@ -112,7 +112,9 @@
 		"hdrToneMapping"        : false,
 		"hdrToneMappingMode"    : 1,		
 		"fpsSoftwareDecimation" : 1,
-		"v4l2Encoding"          : "NONE"
+		"v4l2Encoding"          : "NONE",
+		"hardware_brightness"   : 0,
+		"hardware_contrast"     : 0
 	},
 
 	"framegrabber" :

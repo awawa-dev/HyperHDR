@@ -161,6 +161,8 @@ public:
 	void setHdrToneMappingEnabled(int mode);
 	
 	void setEncoding(QString enc);
+	
+	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
 
 public slots:
 
@@ -291,5 +293,7 @@ private:
 	PixelFormat        _enc;
 
 	IMFSourceReader* READER;
+	
+	uint8_t _brightness,_contrast;
 	//static format_t fmt_array[];
 };

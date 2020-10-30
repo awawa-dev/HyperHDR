@@ -122,6 +122,12 @@ void QTCWrapper::setEncoding(QString enc)
 	_grabber.setEncoding(enc);
 }
 
+void QTCWrapper::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+{
+	_grabber.setBrightnessContrast(brightness, contrast);
+}
+
+
 void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
@@ -144,6 +150,8 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 
 		// device framerate
 		_grabber.setFramerate(obj["fps"].toInt(15));
+		
+		_grabber.setBrightnessContrast(obj["hardware_brightness"].toInt(0), obj["hardware_contrast"].toInt(0));
 
 		// CEC Standby
 		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));

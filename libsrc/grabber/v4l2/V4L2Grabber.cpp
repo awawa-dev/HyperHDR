@@ -73,6 +73,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _currentFrame(0)
 	, _configurationPath(configurationPath)
 	, _enc("NONE")
+	, _brightness(0)
+	, _contrast(0)
 	
 {	
 	getV4Ldevices();
@@ -805,6 +807,69 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	// set the line length
 	_lineLength = fmt.fmt.pix.bytesperline;
 
+	if (_brightness>0)
+	{
+		struct v4l2_ext_control ctrl[1];
+		struct v4l2_ext_controls ctrls;
+		int ret;
+
+		memset(&ctrl, 0, sizeof(ctrl));
+		ctrl[0].id = V4L2_CID_BRIGHTNESS;
+
+		memset(&ctrls, 0, sizeof(ctrls));		
+		ctrls.count = 1;
+		ctrls.controls = ctrl;
+
+		ret = xioctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+		if (ret < 0) {
+			Error(_log, "Brigthness is not supported by the grabber");
+		}
+		else
+		{
+		
+			Debug(_log, "Brightness current: %i", ctrl[0].value);	
+			ctrl[0].value = _brightness;
+			ret = xioctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+			if (ret < 0) {
+				Error(_log, "Could not set brightness");				
+			}
+			else
+				Debug(_log, "Brightness set to: %i",_brightness);
+		}
+	}
+	
+	if (_contrast>0)
+	{
+		struct v4l2_ext_control ctrl[1];
+		struct v4l2_ext_controls ctrls;
+		int ret;
+
+		memset(&ctrl, 0, sizeof(ctrl));
+		ctrl[0].id = V4L2_CID_CONTRAST;
+
+		memset(&ctrls, 0, sizeof(ctrls));
+		ctrls.request_fd = req;
+		ctrls.count = 1;
+		ctrls.controls = ctrl;
+
+		ret = xioctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+		if (ret < 0) {
+			Error(_log, "Contrast is not supported by the grabber");
+		}
+		else
+		{
+		
+			Debug(_log, "Contrast current: %i", ctrl[0].value);	
+			ctrl[0].value = _contrast;
+			ret = xioctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+			if (ret < 0) {
+				Error(_log, "Could not set contrast");				
+			}
+			else
+				Debug(_log, "Contrast set to: %i",_contrast);
+		}
+	}
+
 	// check pixel format and frame size
 	switch (fmt.fmt.pix.pixelformat)
 	{
@@ -1413,3 +1478,20 @@ void V4L2Grabber::setEncoding(QString enc)
 	}
 }
 
+void V4L2Grabber::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+{
+	if (_brightness != brightness || _contrast != contrast)
+	{
+		Debug(_log,"Set brightness to %i, contrast to %i",_brightness,_contrast);
+		_brightness = brightness;
+		_contrast = contrast;
+		
+		Debug(_log,"Restarting v4l2 grabber");
+		
+		bool started = _initialized;
+		uninit();
+		if(started) start();
+	}
+	else
+		Debug(_log,"setBrightnessContrast nothing change");
+}

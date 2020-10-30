@@ -957,5 +957,9 @@
 	"remote_maptype_label_advanced"         : "Advanced squared",
     "remote_maptype_label_weighted"         : "Advanced weighted squared",
 	"remote_videoModeHdr_intro"             : "Turn on/off HDR tone mapping for USB grabber. $1",
-	"remote_videoModeHdr_label"             : "HDR tone mapping"
+	"remote_videoModeHdr_label"             : "HDR tone mapping",
+	"edt_conf_v4l2_hardware_brightness_title"   : "Hardware brightness control",
+	"edt_conf_v4l2_hardware_brightness_expl"    : "Set hardware brightness if device support it, check logs (0=disabled)",
+	"edt_conf_v4l2_hardware_contrast_title"   : "Hardware contrast control",
+	"edt_conf_v4l2_hardware_contrast_expl"    : "Set hardware contrast if device support it, check logs (0=disabled)"
 }

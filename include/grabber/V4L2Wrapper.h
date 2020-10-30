@@ -46,6 +46,8 @@ public slots:
 	
 	void setEncoding(QString enc);
 	
+	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
+	
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);

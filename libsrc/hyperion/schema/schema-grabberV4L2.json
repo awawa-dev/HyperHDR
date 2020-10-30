@@ -266,13 +266,29 @@
 			"required" : true,
 			"propertyOrder" : 24
 		},
+		"hardware_brightness" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_hardware_brightness_title",
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 25
+		},
+		"hardware_contrast" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_hardware_contrast_title",
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 26
+		},
 		"hdrToneMapping" :
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_v4l2_hdrToneMapping_title",
 			"default" : false,
 			"required" : true,
-			"propertyOrder" : 25
+			"propertyOrder" : 27
 		},
 		"hdrToneMappingMode" :
 		{
@@ -283,7 +299,7 @@
 			"maximum" : 2,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 26,
+			"propertyOrder" : 28,
 			"options": {
 				"dependencies": {
 					"hdrToneMapping": true
@@ -298,7 +314,7 @@
 			"maximum" : 60,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 27
+			"propertyOrder" : 29
 		},
 		"v4l2Encoding" :
 		{
@@ -307,7 +323,7 @@
 			"enum" : ["NONE", "mjpeg", "yuyv", "bgr16", "bgr24", "rgb32", "bgr32", "uyvy"],
 			"default" : "NONE",			
 			"required" : true,
-			"propertyOrder" : 28
+			"propertyOrder" : 30
 		}
 	},
 	"additionalProperties" : true

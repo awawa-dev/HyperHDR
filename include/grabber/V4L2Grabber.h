@@ -157,6 +157,8 @@ public:
 	void setHdrToneMappingEnabled(int mode);
 	
 	void setEncoding(QString enc);
+	
+	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
 
 public slots:
 
@@ -321,6 +323,7 @@ private:
 	void	ResetCounter(uint64_t from);	
 	
 	QString        _enc;
+	uint8_t _brightness,_contrast;
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };
