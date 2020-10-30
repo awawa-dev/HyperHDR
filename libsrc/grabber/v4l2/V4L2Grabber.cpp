@@ -411,7 +411,7 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 	_noSignalThresholdColor.red   = uint8_t(255*redSignalThreshold);
 	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
 	_noSignalThresholdColor.blue  = uint8_t(255*blueSignalThreshold);
-	_noSignalCounterThreshold     = qMax(1, _noSignalCounterThreshold);
+	_noSignalCounterThreshold     = qMax(1, noSignalCounterThreshold);
 
 	Info(_log, "Signal threshold set to: {%d, %d, %d} and frames: %d", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold );
 }
