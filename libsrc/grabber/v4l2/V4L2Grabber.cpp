@@ -847,8 +847,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		memset(&ctrl, 0, sizeof(ctrl));
 		ctrl[0].id = V4L2_CID_CONTRAST;
 
-		memset(&ctrls, 0, sizeof(ctrls));
-		ctrls.request_fd = req;
+		memset(&ctrls, 0, sizeof(ctrls));		
 		ctrls.count = 1;
 		ctrls.controls = ctrl;
 
