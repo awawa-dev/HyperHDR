@@ -25,7 +25,7 @@ public slots:
 	bool start() override;
 	void stop() override;
 
-	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold);
+	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);

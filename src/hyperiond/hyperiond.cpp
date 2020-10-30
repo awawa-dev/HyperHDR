@@ -416,7 +416,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			_qtcGrabber->setSignalThreshold(
 					grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
 					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0);
+					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["noSignalCounterThreshold"].toInt(50) );
+					
 			_qtcGrabber->setCropping(
 					grabberConfig["cropLeft"].toInt(0),
 					grabberConfig["cropRight"].toInt(0),
@@ -478,7 +480,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
-				grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0);
+				grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
+				grabberConfig["noSignalCounterThreshold"].toInt(50) );
 		_v4l2Grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),

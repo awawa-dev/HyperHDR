@@ -748,9 +748,9 @@ void QTCGrabber::setSignalThreshold(double redSignalThreshold, double greenSigna
 	_noSignalThresholdColor.red   = uint8_t(255*redSignalThreshold);
 	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
 	_noSignalThresholdColor.blue  = uint8_t(255*blueSignalThreshold);
-	_noSignalCounterThreshold     = qMax(1, noSignalCounterThreshold);
+	_noSignalCounterThreshold     = qMax(1, _noSignalCounterThreshold);
 
-	Info(_log, "Signal threshold set to: {%d, %d, %d}", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue );
+	Info(_log, "Signal threshold set to: {%d, %d, %d} and frames: %d", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold );
 }
 
 void QTCGrabber::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)

@@ -202,6 +202,21 @@
 			"required" : true,
 			"propertyOrder" : 20
 		},
+		"noSignalCounterThreshold" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_noSignalCounterThreshold_title",
+			"minimum" : 1,
+			"maximum" : 1000,
+			"default" : 200,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 21
+		},		
 		"sDVOffsetMin" :
 		{
 			"type" : "number",
@@ -216,7 +231,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 21
+			"propertyOrder" : 22
 		},
 		"sDVOffsetMax" :
 		{
@@ -232,7 +247,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 22
+			"propertyOrder" : 23
 		},
 		"sDHOffsetMin" :
 		{
@@ -248,7 +263,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 23
+			"propertyOrder" : 24
 		},
 		"sDHOffsetMax" :
 		{
@@ -264,7 +279,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 24
+			"propertyOrder" : 25
 		},
 		"hardware_brightness" :
 		{
@@ -272,7 +287,7 @@
 			"title" : "edt_conf_v4l2_hardware_brightness_title",
 			"default" : 0,
 			"required" : true,
-			"propertyOrder" : 25
+			"propertyOrder" : 26
 		},
 		"hardware_contrast" :
 		{
@@ -280,7 +295,7 @@
 			"title" : "edt_conf_v4l2_hardware_contrast_title",
 			"default" : 0,
 			"required" : true,
-			"propertyOrder" : 26
+			"propertyOrder" : 27
 		},
 		"hdrToneMapping" :
 		{
@@ -288,7 +303,7 @@
 			"title" : "edt_conf_v4l2_hdrToneMapping_title",
 			"default" : false,
 			"required" : true,
-			"propertyOrder" : 27
+			"propertyOrder" : 28
 		},
 		"hdrToneMappingMode" :
 		{
@@ -299,7 +314,7 @@
 			"maximum" : 2,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 28,
+			"propertyOrder" : 29,
 			"options": {
 				"dependencies": {
 					"hdrToneMapping": true
@@ -314,7 +329,7 @@
 			"maximum" : 60,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 29
+			"propertyOrder" : 30
 		},
 		"v4l2Encoding" :
 		{
@@ -323,7 +338,7 @@
 			"enum" : ["NONE", "mjpeg", "yuyv", "bgr16", "bgr24", "rgb32", "bgr32", "uyvy"],
 			"default" : "NONE",			
 			"required" : true,
-			"propertyOrder" : 30
+			"propertyOrder" : 31
 		}
 	},
 	"additionalProperties" : true

@@ -961,5 +961,7 @@
 	"edt_conf_v4l2_hardware_brightness_title"   : "Hardware brightness control",
 	"edt_conf_v4l2_hardware_brightness_expl"    : "Set hardware brightness if device support it, check logs (0=disabled)",
 	"edt_conf_v4l2_hardware_contrast_title"   : "Hardware contrast control",
-	"edt_conf_v4l2_hardware_contrast_expl"    : "Set hardware contrast if device support it, check logs (0=disabled)"
+	"edt_conf_v4l2_hardware_contrast_expl"    : "Set hardware contrast if device support it, check logs (0=disabled)",
+	"edt_conf_v4l2_noSignalCounterThreshold_title" : "Signal Counter Threshold",
+	"edt_conf_v4l2_noSignalCounterThreshold_expl" : "Count of frames (check that with grabber's current FPS mode) after which the no signal is triggered"
 }

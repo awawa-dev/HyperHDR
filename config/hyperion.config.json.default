@@ -103,6 +103,7 @@
 		"redSignalThreshold"    : 5,
 		"greenSignalThreshold"  : 5,
 		"blueSignalThreshold"   : 5,
+		"noSignalCounterThreshold" : 200,
 		"signalDetection"       : false,
 		"cecDetection"          : false,
 		"sDVOffsetMin"          : 0.25,

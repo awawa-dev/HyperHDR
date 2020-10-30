@@ -49,9 +49,9 @@ void QTCWrapper::stop()
 	GrabberWrapper::stop();
 }
 
-void QTCWrapper::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold)
+void QTCWrapper::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
-	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
+	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, noSignalCounterThreshold);
 }
 
 void QTCWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -178,7 +178,8 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 		_grabber.setSignalThreshold(
 			obj["redSignalThreshold"].toDouble(0.0)/100.0,
 			obj["greenSignalThreshold"].toDouble(0.0)/100.0,
-			obj["blueSignalThreshold"].toDouble(0.0)/100.0);
+			obj["blueSignalThreshold"].toDouble(0.0)/100.0,
+			obj["noSignalCounterThreshold"].toInt(50) );
 		_grabber.setDeviceVideoStandard(
 			obj["device"].toString("auto"),
 			parseVideoStandard(obj["standard"].toString("no-change")));

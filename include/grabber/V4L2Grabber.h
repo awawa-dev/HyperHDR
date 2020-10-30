@@ -81,7 +81,7 @@ public:
 					double redSignalThreshold,
 					double greenSignalThreshold,
 					double blueSignalThreshold,
-					int noSignalCounterThreshold = 50) override;
+					int noSignalCounterThreshold) override;
 
 	///
 	/// @brief  overwrite Grabber.h implementation
