@@ -16,7 +16,7 @@ You can use prepared SD card images just like Hyperbian.<br/>
 Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/<br/>
 SSH is enabled on default. Default LUT table is already included!
 
-### New features of this fork:
+### Main features of this fork:
 
 * <b>Really low CPU</b> usage on SoCs like Raspberry Pi using v4l2 grabbers
 * support for multithreading for USB grabbers
@@ -25,6 +25,28 @@ SSH is enabled on default. Default LUT table is already included!
 * LUT table generator with import feature
 * support for the old color calibration with luminance and saturation gain (classic Hyperion)
 * Debian Buster with Qt5 targeted installers
+
+##
+Changelog:
+- Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion 2.0.0.8A thanks to optimization & using of multi-threading
+- Direct support for USB grabbers under Windows 10 using Microsoft Media Foundation (really fast & of course multi-threaded)
+- Build for newer Raspbian Buster. It's a complete migration from older Raspbian Stretch.
+- Option for hyperion-remote, JSON API and web GUI remote to turn on/off HDR tone mapping
+- MJPEG & YUV HDR LUT tone mapping
+- Hardware brightness&contrast control for USB grabbers (both Windows and Linux)
+- Ready to write SD images of HyperHDR
+- New option to choose video encoding format (for multi format grabbers for ex. Ezcap 269, MS2109 clones).
+- Add configurable Signal Threshold Counter option for signal detection
+- Option for luminescence & saturation for hyperion-remote
+- New advanced LED mean color algorithm in image->LED mapping
+- New weighted advanced LED mean color algorithm in image->LED mapping
+- Improved backlight algorithm to minimize leds flickering on the dark scenes (smoothing with continues output is still recommended)
+- Add old style color calibration
+- Fix for SK9822 leds on SPI (aka fake APA102)
+- Required libglvnd library dependency included for tar container.
+- Improved YUV decoding using LUT tables for speed up
+- Windows installer contains default LUT table
+- Installers for DEB & RPM now include LUT table 
 
 ### FAQ:
 
