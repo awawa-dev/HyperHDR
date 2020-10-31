@@ -40,7 +40,7 @@ Changelog:
 - Option for luminescence & saturation for hyperion-remote
 - New advanced LED mean color algorithm in image->LED mapping
 - New weighted advanced LED mean color algorithm in image->LED mapping
-- Improved backlight algorithm to minimize leds flickering on the dark scenes (smoothing with continues output is still recommended)
+- Improved backlight algorithm to minimize leds flickering on the dark scenes (smoothing is still recommended)
 - Add old style color calibration (from Hyperion classic) using luminance, saturation et.
 - Fix for SK9822 leds on SPI (aka fake APA102)
 - Required libglvnd library dependency included for tar container.
