@@ -209,11 +209,11 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 		// no error set must be a success or registered or video
 		const auto videoMode = reply->video();
 		const auto registered = reply->registered();
-		if (videoMode != -1) {
+		/*if (videoMode != -1) {
 			// We got a video reply.
 			emit setVideoMode(static_cast<VideoMode>(videoMode));
 			return true;
-		}
+		}*/
 
 		 // We got a registered reply.
 		if (registered == -1 || registered != _priority)

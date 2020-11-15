@@ -105,6 +105,8 @@ SET ( CPACK_NSIS_HELP_LINK "https://hyperion-project.org/threads/sdr-hdr-1080p-4
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://github.com/awawa-dev/HyperHDR")
 SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
 SET ( CPACK_NSIS_BRANDING_TEXT "HyperHDR-${HYPERION_VERSION}")
+# custom nsis plugin directory
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
 # additional hyperiond startmenu link, won't be created if the user disables startmenu links
 SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
 SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")

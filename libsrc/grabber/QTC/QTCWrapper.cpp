@@ -9,8 +9,7 @@ QTCWrapper::QTCWrapper(const QString &device,
 		unsigned grabWidth,
 		unsigned grabHeight,
 		unsigned fps,
-		unsigned input,
-		VideoStandard videoStandard,
+		unsigned input,		
 		PixelFormat pixelFormat,		
 		const QString & configurationPath )
 	: GrabberWrapper("V4L2:QTC:"+device, &_grabber, grabWidth, grabHeight, 10)
@@ -18,8 +17,7 @@ QTCWrapper::QTCWrapper(const QString &device,
 			grabWidth,
 			grabHeight,
 			fps,
-			input,
-			videoStandard,
+			input,			
 			pixelFormat,
 			configurationPath)
 {
@@ -100,9 +98,9 @@ bool QTCWrapper::getCecDetectionEnable() const
 	return _grabber.getCecDetectionEnabled();
 }
 
-void QTCWrapper::setDeviceVideoStandard(const QString& device, VideoStandard videoStandard)
+void QTCWrapper::setDeviceVideoStandard(const QString& device)
 {
-	_grabber.setDeviceVideoStandard(device, videoStandard);
+	_grabber.setDeviceVideoStandard(device);
 }
 
 
@@ -122,9 +120,9 @@ void QTCWrapper::setEncoding(QString enc)
 	_grabber.setEncoding(enc);
 }
 
-void QTCWrapper::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+void QTCWrapper::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	_grabber.setBrightnessContrast(brightness, contrast);
+	_grabber.setBrightnessContrastSaturationHue(brightness, contrast, saturation, hue);
 }
 
 
@@ -151,7 +149,10 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 		// device framerate
 		_grabber.setFramerate(obj["fps"].toInt(15));
 		
-		_grabber.setBrightnessContrast(obj["hardware_brightness"].toInt(0), obj["hardware_contrast"].toInt(0));
+		_grabber.setBrightnessContrastSaturationHue(obj["hardware_brightness"].toInt(0), 
+													obj["hardware_contrast"].toInt(0),
+													obj["hardware_saturation"].toInt(0),
+													obj["hardware_hue"].toInt(0));
 
 		// CEC Standby
 		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
@@ -180,9 +181,7 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 			obj["greenSignalThreshold"].toDouble(0.0)/100.0,
 			obj["blueSignalThreshold"].toDouble(0.0)/100.0,
 			obj["noSignalCounterThreshold"].toInt(50) );
-		_grabber.setDeviceVideoStandard(
-			obj["device"].toString("auto"),
-			parseVideoStandard(obj["standard"].toString("no-change")));
+		_grabber.setDeviceVideoStandard(obj["device"].toString("auto"));
 			
 		_grabber.setEncoding(obj["v4l2Encoding"].toString("NONE"));
 	}

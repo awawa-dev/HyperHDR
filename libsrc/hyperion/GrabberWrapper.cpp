@@ -80,12 +80,12 @@ QStringList GrabberWrapper::availableGrabbers()
 	return grabbers;
 }
 
-void GrabberWrapper::setVideoMode(VideoMode mode)
+void GrabberWrapper::setHdrToneMappingEnabled(int mode)
 {
 	if (_ggrabber != nullptr)
 	{
-		Info(_log,"setvideomode");
-		_ggrabber->setVideoMode(mode);
+		Info(_log,"setvideomodehdr");
+		_ggrabber->setHdrToneMappingEnabled(mode);
 	}
 }
 

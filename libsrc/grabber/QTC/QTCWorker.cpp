@@ -118,7 +118,7 @@ QTCWorker::~QTCWorker(){
 	}
 }
 
-void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFormat __pixelFormat, 
+void QTCWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat, 
 			uint8_t * _sharedData, int __size,int __width, int __height, int __lineLength,
 			int __subsamp, 
 			unsigned  __cropLeft, unsigned  __cropTop, 
@@ -127,7 +127,6 @@ void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFor
 {
 	_workerIndex = __workerIndex;  	
 	_lineLength = __lineLength;
-	_videoMode = __videoMode;
 	_pixelFormat = __pixelFormat;		
 	_size = __size;
 	_width = __width;
@@ -174,8 +173,7 @@ void QTCWorker::runMe()
 			
 			Image<ColorRgb> image=Image<ColorRgb>();
 			
-			ImageResampler::processImage(
-				_videoMode,
+			ImageResampler::processImage(				
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
 				_localData , _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
@@ -224,18 +222,24 @@ void QTCWorker::process_image_jpg_mt()
 	
 	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &_subsamp) != 0)
 	{	
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);				
-		return;
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(_workerIndex, info,_currentFrame);				
+			return;
+		}
 	}
 	
 	Image<ColorRgb> srcImage(_width, _height);
 	
 	if (tjDecompress2(_decompress, _localData , _size, (unsigned char*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 	{		
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);
-		return;		
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(_workerIndex, info,_currentFrame);
+			return;		
+		}
 	}		
 	
 	// got image, process it	

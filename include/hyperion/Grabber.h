@@ -5,8 +5,6 @@
 
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
-#include <utils/VideoMode.h>
-#include <grabber/VideoStandard.h>
 #include <utils/ImageResampler.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -28,7 +26,7 @@ public:
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	virtual void setVideoMode(VideoMode mode);
+	virtual void setHdrToneMappingEnabled(int mode);
 
 	///
 	/// @brief Apply new crop values, on errors reject the values
@@ -88,7 +86,7 @@ public:
 	///
 	/// @brief Apply device and videoStanded (used from v4l)
 	///
-	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard) {}
+	virtual void setDeviceVideoStandard(QString device) {}
 
 	///
 	/// @brief Apply display index (used from qt)
@@ -155,7 +153,7 @@ protected:
 	bool _useImageResampler;
 
 	/// the selected VideoMode
-	VideoMode    _videoMode;
+	int    _hdr;
 
 	/// With of the captured snapshot [pixels]
 	int _width;
@@ -174,6 +172,9 @@ protected:
 
 	bool _enabled;
 
+	// enable/disable HDR tone mapping
+	uint8_t       _hdrToneMappingEnabled;
+	
 	/// logger instance
 	Logger * _log;
 

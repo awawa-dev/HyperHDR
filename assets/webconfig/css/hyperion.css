@@ -8261,3 +8261,18 @@ input[type="radio"] .styled:checked + label::after {
     animation-iteration-count: 1 !important;
   }
 }
+
+/*////////////////////////////////////////////////////////////////////////*/
+code.db_info {
+	color: DarkGreen !important;
+}
+code.db_debug {
+	color: #555500 !important;
+}
+code.db_warning {
+	color: MediumVioletRed !important;
+}
+code.db_error {
+	color: #B00000 !important;
+}
+/*////////////////////////////////////////////////////////////////////////*/

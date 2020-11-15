@@ -14,12 +14,12 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_smooth_type_title",
-			"enum" : ["linear"],
+			"enum" : ["linear", "decay"],
 			"default" : "linear",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_linear"],
-				"hidden":true
+				"enum_titles" : ["edt_conf_enum_linear", "edt_conf_enum_decay"]
 			},
+			"required" : true,
 			"propertyOrder" : 2
 		},
 		"time_ms" :
@@ -27,8 +27,8 @@
 			"type" : "integer",
 			"title" : "edt_conf_smooth_time_ms_title",
 			"minimum" : 25,
-			"maximum": 600,
-			"default" : 200,
+			"maximum": 5000,
+			"default" : 150,
 			"append" : "edt_append_ms",
 			"propertyOrder" : 3
 		},
@@ -37,10 +37,70 @@
 			"type" : "number",
 			"title" : "edt_conf_smooth_updateFrequency_title",
 			"minimum" : 1.0,
-			"maximum" : 100.0,
-			"default" : 25.0,
+			"maximum" : 2000.0,
+			"default" : 90,
 			"append" : "edt_append_hz",
 			"propertyOrder" : 4
+		},
+		"interpolationRate" :
+		{
+			"type" : "number",
+			"options": {
+				"dependencies": {
+					"type": "decay"
+				}
+			},
+			"title" : "edt_conf_smooth_interpolationRate_title",
+			"minimum" : 1.0,
+			"maximum": 1000.0,
+			"default" : 120,
+			"append" : "edt_append_hz",
+			"required" : true,
+			"propertyOrder" : 5
+		},
+		"outputRate" :
+		{
+			"type" : "number",
+			"options": {
+				"dependencies": {
+					"type": "decay"
+				}
+			},			
+			"title" : "edt_conf_smooth_outputRate_title",
+			"minimum" : 1.0,
+			"maximum": 1000.0,
+			"default" : 120,
+			"append" : "edt_append_hz",
+			"required" : true,
+			"propertyOrder" : 6
+		},
+		"decay" :
+		{
+			"type" : "number",
+			"options": {
+				"dependencies": {
+					"type": "decay"
+				}
+			},
+			"title" : "edt_conf_smooth_decay_title",
+			"default" : 1.0,
+			"minimum" : 1.0,
+			"maximum": 20.0,
+			"required" : true,
+			"propertyOrder" : 7
+		},
+		"dithering" :
+		{
+			"type" : "boolean",
+			"options": {
+				"dependencies": {
+					"type": "decay"
+				}
+			},
+			"title" : "edt_conf_smooth_dithering_title",
+			"default" : true,
+			"required" : true,
+			"propertyOrder" : 8
 		},
 		"updateDelay" :
 		{
@@ -50,14 +110,14 @@
 			"maximum": 2048,
 			"default" : 0,
 			"append" : "edt_append_ms",
-			"propertyOrder" : 5
+			"propertyOrder" : 9
 		},
 		"continuousOutput" :
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_smooth_continuousOutput_title",
 			"default" : true,
-			"propertyOrder" : 6
+			"propertyOrder" : 10
 		}
 	},
 	"additionalProperties" : false

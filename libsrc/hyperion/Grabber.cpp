@@ -3,7 +3,6 @@
 Grabber::Grabber(const QString& grabberName, int width, int height, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: _imageResampler()
 	, _useImageResampler(true)
-	, _videoMode(VideoMode::VIDEO_2D)
 	, _width(width)
 	, _height(height)
 	, _fps(15)
@@ -13,9 +12,9 @@ Grabber::Grabber(const QString& grabberName, int width, int height, int cropLeft
 	, _cropTop(0)
 	, _cropBottom(0)
 	, _enabled(true)
+	, _hdrToneMappingEnabled(0)	
 	, _log(Logger::getInstance(grabberName.toUpper()))
-{
-	Grabber::setVideoMode(VideoMode::VIDEO_2D);
+{	
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
@@ -23,16 +22,6 @@ void Grabber::setEnabled(bool enable)
 {
 	Info(_log,"Capture interface is now %s", enable ? "enabled" : "disabled");
 	_enabled = enable;
-}
-
-void Grabber::setVideoMode(VideoMode mode)
-{
-	Debug(_log,"Set videomode to %d", mode);
-	_videoMode = mode;
-	if ( _useImageResampler )
-	{
-		_imageResampler.setVideoMode(_videoMode);
-	}
 }
 
 void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -106,4 +95,12 @@ bool Grabber::setFramerate(int fps)
 	}
 
 	return false;
+}
+
+void Grabber::setHdrToneMappingEnabled(int mode)
+{
+	if (_hdrToneMappingEnabled != mode)
+	{
+		_hdrToneMappingEnabled = mode;		
+	}
 }

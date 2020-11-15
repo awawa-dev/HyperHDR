@@ -11,7 +11,6 @@
 // hyperion util
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
 #include <flatbuffers/flatbuffers.h>
@@ -100,7 +99,7 @@ signals:
 	///
 	/// @brief emits when a new videoMode was requested from flatbuf client
 	///
-	void setVideoMode(VideoMode videoMode);
+	///void setVideoModeHdr(int hdr);
 
 private:
 

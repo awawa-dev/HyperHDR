@@ -1,7 +1,6 @@
 // project includes
 #include <api/JsonAPI.h>
 
-
 // stl includes
 #include <chrono>
 
@@ -54,6 +53,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
 	_lastSendImage = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 }
 
@@ -172,8 +172,6 @@ proceed:
 		handleLoggingCommand(message, command, tan);
 	else if (command == "processing")
 		handleProcessingCommand(message, command, tan);
-	else if (command == "videomode")
-		handleVideoModeCommand(message, command, tan);
 	else if (command == "videomodehdr")
 		handleVideoModeHdrCommand(message, command, tan);
 	else if (command == "instance")
@@ -249,9 +247,10 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &com
 	dat.data = message["imageData"].toString("").toUtf8();
 	dat.args = message["effect"].toObject()["args"].toObject();
 
-	API::setEffect(dat);
-
-	sendSuccessReply(command, tan);
+	if (API::setEffect(dat))
+		sendSuccessReply(command, tan);
+	else
+		sendErrorReply("Effect '" + dat.effectName + "' not found", command, tan);
 }
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const QString &command, int tan)
@@ -280,6 +279,10 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["kernelType"] = data.kernelType;
 	system["kernelVersion"] = data.kernelVersion;
 	system["architecture"] = data.architecture;
+	system["cpuModelName"] = data.cpuModelName;
+	system["cpuModelType"] = data.cpuModelType;
+	system["cpuHardware"] = data.cpuHardware;
+	system["cpuRevision"] = data.cpuRevision;
 	system["wordSize"] = data.wordSize;
 	system["productType"] = data.productType;
 	system["productVersion"] = data.productVersion;
@@ -294,6 +297,8 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperion["time"] = QString(__DATE__ " " __TIME__);
 	hyperion["id"] = _authManager->getID();
+	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
+
 	info["hyperion"] = hyperion;
 
 	// send the result
@@ -357,8 +362,11 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 			item["value"] = LEDcolor;
 		}
-		// priorities[priorities.size()] = item;
-		priorities.append(item);
+
+
+		(priority == currentPriority)
+		? priorities.prepend(item)
+		: priorities.append(item);
 	}
 
 	info["priorities"] = priorities;
@@ -427,9 +435,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
 		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
 		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
-		
-		
-		
 		adjustment["temperatureRed"] = colorAdjustment->_rgbRedAdjustment.getCorrection();
 		adjustment["temperatureGreen"] = colorAdjustment->_rgbGreenAdjustment.getCorrection();
 		adjustment["temperatureBlue"] = colorAdjustment->_rgbBlueAdjustment.getCorrection();		
@@ -468,15 +473,14 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonObject grabbers;
 	QJsonArray availableGrabbers;
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_QTC) 
 
+#if defined(ENABLE_V4L2) || defined(ENABLE_QTC) 
 	// get available grabbers
 	//grabbers["active"] = ????;
 	for (auto grabber : GrabberWrapper::availableGrabbers())
 	{
 		availableGrabbers.append(grabber);
 	}
-
 #endif
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_QTC)
@@ -523,7 +527,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 #endif
 
 	grabbers["available"] = availableGrabbers;
-	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
 	info["videomodehdr"] = _hyperion->getCurrentVideoModeHdr();
 	info["grabbers"] = grabbers;
 
@@ -737,7 +740,6 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 		return;
 	}
 
-	
 	if (adjustment.contains("temperatureRed"))
 	{
 		colorAdjustment->_rgbRedAdjustment.setCorrection(adjustment["temperatureRed"].toInt());
@@ -904,8 +906,14 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const QString &
 		QJsonObject config = message["config"].toObject();
 		if (API::isHyperionEnabled())
 		{
-			API::saveSettings(config);
-			sendSuccessReply(command, tan);
+			if ( API::saveSettings(config) )
+			{
+				sendSuccessReply(command, tan);
+			}
+			else
+			{
+				sendErrorReply("Save settings failed", command, tan);
+			}
 		}
 		else
 			sendErrorReply("Saving configuration while Hyperion is disabled isn't possible", command, tan);
@@ -1097,18 +1105,11 @@ void JsonAPI::handleProcessingCommand(const QJsonObject &message, const QString 
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleVideoModeCommand(const QJsonObject &message, const QString &command, int tan)
-{
-	API::setVideoMode(parse3DMode(message["videoMode"].toString("2D")));
-	sendSuccessReply(command, tan);
-}
-
 void JsonAPI::handleVideoModeHdrCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	API::setVideoModeHdr(message["HDR"].toInt());
 	sendSuccessReply(command, tan);
 }
-
 
 void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &command, int tan)
 {
@@ -1230,7 +1231,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		const QString &comment = message["comment"].toString().trimmed();
 		const bool &acc = message["accept"].toBool(true);
 		if (acc)
-			API::setNewTokenRequest(comment, id);
+			API::setNewTokenRequest(comment, id, tan);
 		else
 			API::cancelNewTokenRequest(comment, id);
 		// client should wait for answer
@@ -1367,9 +1368,9 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 
 	if (subc == "startInstance")
 	{
-		// silent fail
-		API::startInstance(inst);
-		sendSuccessReply(command + "-" + subc, tan);
+		connect(this, &API::onStartInstanceResponse, [=] (const int &tan) { sendSuccessReply(command + "-" + subc, tan); });
+		if (!API::startInstance(inst, tan))
+			sendErrorReply("Can't start Hyperion instance index " + QString::number(inst), command + "-" + subc, tan);
 		return;
 	}
 
@@ -1610,7 +1611,7 @@ void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
 	sendSuccessDataReply(QJsonDocument(obj), "authorize-tokenRequest", 1);
 }
 
-void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id)
+void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan)
 {
 	const QString cmd = "authorize-requestToken";
 	QJsonObject result;
@@ -1619,9 +1620,9 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 	result["id"] = id;
 
 	if (success)
-		sendSuccessDataReply(QJsonDocument(result), cmd);
+		sendSuccessDataReply(QJsonDocument(result), cmd, tan);
 	else
-		sendErrorReply("Token request timeout or denied", cmd, 5);
+		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
 void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name)

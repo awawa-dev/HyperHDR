@@ -1,4 +1,4 @@
-name: Hyperion CI Build
+name: HyperHDR CI Build
 on:
   push:
     branches-ignore:
@@ -24,10 +24,10 @@ jobs:
             dockerName: Debian Buster (x86_64)
             platform: x11
           - dockerImage: armv6l
-            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
-            platform: rpi
+            dockerName: Debian Buster (Raspberry Pi 1 & 2 & ZERO)
+            platform: rpi         
           - dockerImage: armv7l
-            dockerName: Debian Buster (Raspberry Pi 2 & 3)
+            dockerName: Debian Buster (Raspberry Pi 3 & 4)
             platform: rpi
 
     steps:
@@ -52,7 +52,14 @@ jobs:
         with:
           path: deploy/Hyper*
 
-
+      # Upload artifacts from commit
+      - name: Upload artifacts from commit
+        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.dockerImage }}
+          path: deploy/Hyper*
+          
 ######################
 ###### Windows #######
 ######################
@@ -99,7 +106,7 @@ jobs:
       - name: Install Python, NSIS, OpenSSL, TurboJPG, 7zip
         shell: powershell
         run: |
-          choco install --no-progress python nsis openssl libjpeg-turbo 7zip.install -y
+          choco install --no-progress python nsis openssl 7zip.install -y
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
@@ -118,43 +125,14 @@ jobs:
         with:
           path: build/Hyper*
           
-######################
-#### Documentation ###
-######################
-
-  Docs:
-    name: Documentation
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      # Build Docs
-      - name: Build docs
-        run: |
-          cd docs
-          npm install -g yarn
-          yarn install
-          yarn docs:build
-
-      # Deploy to gh-pages (only on tagged commit)
-      - name: Deploy to gh-pages
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/dist
-          cname: docs.hyperion-project.org
-
+      # Upload artifacts from commit
+      #- name: Upload artifacts from commit
+      #  if: (startsWith(github.event.ref, 'refs/tags') != true)
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: windows
+      #    path: build/Hyper*          
+          
 ################################
 ###### Publish Releases ########
 ################################
@@ -162,7 +140,7 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, windows, Docs]
+    needs: [Linux, windows]
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout

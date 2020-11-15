@@ -11,7 +11,6 @@
 #include <utils/Components.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <utils/settings.h>
 
 class Grabber;
@@ -35,7 +34,7 @@ public:
 
 	static GrabberWrapper* instance;
 	static GrabberWrapper* getInstance(){ return instance; }
-
+	void setHdrToneMappingEnabled(int mode);
 	///
 	/// Starts the grabber wich produces led values with the specified update rate
 	///
@@ -118,11 +117,6 @@ public slots:
 	///
 	virtual void action() = 0;
 
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	virtual void setVideoMode(VideoMode videoMode);
 
 	///
 	/// Set the crop values

@@ -27,6 +27,7 @@ sudo apt-get install                 \
 	libssl-dev                   \
 	libjpeg-dev                  \
 	libqt5sql5-sqlite            \
+	libqt5svg5-dev               \
 	zlib1g-dev                   \
 
 if [ -e /dev/vc-cma -a -e /dev/vc-mem ]
@@ -34,7 +35,7 @@ then
 	sudo apt-get install libraspberrypi-dev
 fi
 
-git clone --recursive https://github.com/hyperion-project/hyperion.ng.git ${TARGET}
+git clone --recursive https://github.com/awawa-dev/HyperHDR.git ${TARGET}
 
 rm -rf $TARGET/build
 mkdir -p $TARGET/build

@@ -5,7 +5,7 @@
 RgbTransform::RgbTransform():
 	_log(Logger::getInstance(QString("RgbTransform")))
 {
-	init(true,1.0,1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100);
+	init(false,1.0,1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100);
 }
 
 RgbTransform::RgbTransform(

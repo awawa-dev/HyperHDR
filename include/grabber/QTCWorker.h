@@ -16,7 +16,6 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-#include <grabber/VideoStandard.h>
 #include <utils/Components.h>
 
 
@@ -37,7 +36,7 @@ class QTCWorker : public  QThread
 	public:	
 		void setup(
 				unsigned int _workerIndex, 
-				VideoMode __videoMode, PixelFormat __pixelFormat,
+				PixelFormat __pixelFormat,
 				uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 				int __subsamp, 
 				unsigned  __cropLeft, unsigned  __cropTop, 
@@ -67,8 +66,7 @@ class QTCWorker : public  QThread
 	static	volatile bool	_isActive;
 		volatile bool  _isBusy;
 		QSemaphore	_semaphore;
-		unsigned int 	_workerIndex;		
-		VideoMode 	_videoMode;	
+		unsigned int 	_workerIndex;				
 		PixelFormat	_pixelFormat;		
 		uint8_t* _localData;
 		int 	 _localDataSize;

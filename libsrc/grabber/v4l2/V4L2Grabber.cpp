@@ -39,13 +39,11 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, unsigned height
 		, unsigned fps
 		, unsigned input
-		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, const QString & configurationPath
 		)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
-	, _videoStandard(videoStandard)
 	, _ioMethod(IO_METHOD_MMAP)
 	, _fileDescriptor(-1)
 	, _buffers()
@@ -65,16 +63,17 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _y_frac_max(0.75)
 	, _streamNotifier(nullptr)
 	, _initialized(false)
-	, _deviceAutoDiscoverEnabled(false)
-	,_hdrToneMappingEnabled(0)	
+	, _deviceAutoDiscoverEnabled(false)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
 	, _lutBufferInit(false)
 	, _currentFrame(0)
 	, _configurationPath(configurationPath)
-	, _enc("NONE")
+	, _enc(pixelFormat)
 	, _brightness(0)
 	, _contrast(0)
+	, _saturation(0)
+	, _hue(0)
 	
 {	
 	getV4Ldevices();
@@ -83,7 +82,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
-	setDeviceVideoStandard(device, videoStandard);
+	setDeviceVideoStandard(device);
 	Debug(_log,"Init pixel format: %i", static_cast<int>(_pixelFormat));	
 }
 
@@ -185,22 +184,27 @@ void V4L2Grabber::setFpsSoftwareDecimation(int decimation)
 
 void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 {
-	_hdrToneMappingEnabled = mode;
-	if (lutBuffer!=NULL || !mode)
-		Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
-	else
-		Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
-		
-	if (_V4L2WorkerManager.isActive())	
+	if (_hdrToneMappingEnabled != mode || lutBuffer == NULL)
 	{
-		Debug(_log,"setHdrToneMappingMode replacing LUT");
-		_V4L2WorkerManager.Stop();
-		if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
-			loadLutFile("yuv");
+		_hdrToneMappingEnabled = mode;
+		if (lutBuffer!=NULL || !mode)
+			Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 		else
-			loadLutFile("rgb");				
-		_V4L2WorkerManager.Start();
+			Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
+			
+		if (_V4L2WorkerManager.isActive())	
+		{
+			Debug(_log,"setHdrToneMappingMode replacing LUT and restarting");
+			_V4L2WorkerManager.Stop();
+			if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
+				loadLutFile("yuv");
+			else
+				loadLutFile("rgb");				
+			_V4L2WorkerManager.Start();
+		}
 	}
+	else
+		Debug(_log,"setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 }
 
 V4L2Grabber::~V4L2Grabber()
@@ -283,7 +287,7 @@ bool V4L2Grabber::init()
 				if (open_device())
 				{
 					opened = true;
-					init_device(_videoStandard);
+					init_device();
 					_initialized = true;
 				}
 			}
@@ -593,7 +597,7 @@ void V4L2Grabber::init_mmap()
 	}
 }
 
-void V4L2Grabber::init_device(VideoStandard videoStandard)
+void V4L2Grabber::init_device()
 {
 	struct v4l2_capability cap;
 	CLEAR(cap);
@@ -671,58 +675,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		?	Debug(_log, "Input settings not supported.")
 		:	Debug(_log, "Set device input to: %s", v4l2Input.name);
 	}
-
-	// set the video standard if needed and supported
-	struct v4l2_standard standard;
-	CLEAR(standard);
-
-	if (-1 != xioctl(VIDIOC_ENUMSTD, &standard))
-	{
-		switch (videoStandard)
-		{
-			case VideoStandard::PAL:
-			{
-				standard.id = V4L2_STD_PAL;
-				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
-				{
-					throw_errno_exception("VIDIOC_S_STD");
-					break;
-				}
-				Debug(_log, "Video standard=PAL");
-			}
-			break;
-
-			case VideoStandard::NTSC:
-			{
-				standard.id = V4L2_STD_NTSC;
-				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
-				{
-					throw_errno_exception("VIDIOC_S_STD");
-					break;
-				}
-				Debug(_log, "Video standard=NTSC");
-			}
-			break;
-
-			case VideoStandard::SECAM:
-			{
-				standard.id = V4L2_STD_SECAM;
-				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
-				{
-					throw_errno_exception("VIDIOC_S_STD");
-					break;
-				}
-				Debug(_log, "Video standard=SECAM");
-			}
-			break;
-
-			case VideoStandard::NO_CHANGE:
-			default:
-				// No change to device settings
-				break;
-		}
-	}
-
+	
 	// get the current settings
 	struct v4l2_format fmt;
 	CLEAR(fmt);
@@ -807,7 +760,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	// set the line length
 	_lineLength = fmt.fmt.pix.bytesperline;
 
-	if (_brightness>0)
+	if (_brightness!=0)
 	{
 		struct v4l2_ext_control ctrl[1];
 		struct v4l2_ext_controls ctrls;
@@ -838,7 +791,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 	}
 	
-	if (_contrast>0)
+	if (_contrast!=0)
 	{
 		struct v4l2_ext_control ctrl[1];
 		struct v4l2_ext_controls ctrls;
@@ -866,6 +819,68 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			}
 			else
 				Debug(_log, "Contrast set to: %i",_contrast);
+		}
+	}
+	
+	if (_saturation!=0)
+	{
+		struct v4l2_ext_control ctrl[1];
+		struct v4l2_ext_controls ctrls;
+		int ret;
+
+		memset(&ctrl, 0, sizeof(ctrl));
+		ctrl[0].id = V4L2_CID_SATURATION;
+
+		memset(&ctrls, 0, sizeof(ctrls));		
+		ctrls.count = 1;
+		ctrls.controls = ctrl;
+
+		ret = xioctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+		if (ret < 0) {
+			Error(_log, "Saturation is not supported by the grabber");
+		}
+		else
+		{
+		
+			Debug(_log, "Saturation current: %i", ctrl[0].value);	
+			ctrl[0].value = _saturation;
+			ret = xioctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+			if (ret < 0) {
+				Error(_log, "Could not set saturation");				
+			}
+			else
+				Debug(_log, "Saturation set to: %i",_saturation);
+		}
+	}
+	
+	if (_hue!=0)
+	{
+		struct v4l2_ext_control ctrl[1];
+		struct v4l2_ext_controls ctrls;
+		int ret;
+
+		memset(&ctrl, 0, sizeof(ctrl));
+		ctrl[0].id = V4L2_CID_HUE;
+
+		memset(&ctrls, 0, sizeof(ctrls));		
+		ctrls.count = 1;
+		ctrls.controls = ctrl;
+
+		ret = xioctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+		if (ret < 0) {
+			Error(_log, "Hue is not supported by the grabber");
+		}
+		else
+		{
+		
+			Debug(_log, "Hue current: %i", ctrl[0].value);	
+			ctrl[0].value = _hue;
+			ret = xioctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+			if (ret < 0) {
+				Error(_log, "Could not set hue");				
+			}
+			else
+				Debug(_log, "Hue set to: %i",_hue);
 		}
 	}
 
@@ -1141,8 +1156,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void *frameImageBuffer, 
 						
 						_workerThread->setup(
 							i, 
-							buf,
-							_videoMode,
+							buf,							
 							_pixelFormat,
 							(uint8_t *)frameImageBuffer, size, _width, _height, _lineLength,
 				#ifdef HAVE_TURBO_JPEG
@@ -1356,20 +1370,20 @@ void V4L2Grabber::setCecDetectionEnable(bool enable)
 	}
 }
 
-void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+void V4L2Grabber::setDeviceVideoStandard(QString device)
 {
-	if (_deviceName != device || _videoStandard != videoStandard)
+	if (_deviceName != device)
 	{
-		// extract input of device
-		QChar input = device.at(device.size() - 1);
-		_input = input.isNumber() ? input.digitValue() : -1;
-
-		bool started = _initialized;
-		uninit();
+		Debug(_log,"setDeviceVideoStandard restarting v4l2 grabber. Old: '%s' new: '%s'",QSTRING_CSTR(_deviceName) , QSTRING_CSTR(device));
+		
 		_deviceName = device;
-		_videoStandard = videoStandard;
 
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting V4L2Grabber grabber");
+			uninit();
+			start();
+		}
 	}
 }
 
@@ -1377,9 +1391,12 @@ bool V4L2Grabber::setInput(int input)
 {
 	if(Grabber::setInput(input))
 	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting V4L2Grabber grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
@@ -1389,9 +1406,12 @@ bool V4L2Grabber::setWidthHeight(int width, int height)
 {
 	if(Grabber::setWidthHeight(width,height))
 	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting V4L2Grabber grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
@@ -1401,9 +1421,12 @@ bool V4L2Grabber::setFramerate(int fps)
 {
 	if(Grabber::setFramerate(fps))
 	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting V4L2Grabber grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
@@ -1459,38 +1482,41 @@ void V4L2Grabber::setEncoding(QString enc)
 {
 	bool active = _V4L2WorkerManager.isActive();
 	
-	_enc = enc;
-	_pixelFormat = parsePixelFormat(_enc);
-	Debug(_log,"Force encoding (setEncoding): %s (%i)", QSTRING_CSTR(_enc), static_cast<int>(_pixelFormat));
+	_enc = parsePixelFormat(enc);	
+	Debug(_log,"Force encoding (setEncoding): %s (%s)", QSTRING_CSTR(pixelFormatToString(_enc)), QSTRING_CSTR(pixelFormatToString(_pixelFormat)));
 			
-	if (_pixelFormat != PixelFormat::NO_CHANGE)
+	if (_pixelFormat != _enc)
 	{
-		
-		Debug(_log,"Restarting v4l2 grabber");
-		uninit();
-		init();		
-				
-		if (active)	
-		{	
-			start();	
+		_pixelFormat = _enc;
+		if (_initialized)
+		{
+			Debug(_log,"Restarting V4L2Grabber grabber");
+			uninit();
+			start();
 		}
 	}
 }
 
-void V4L2Grabber::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+void V4L2Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	if (_brightness != brightness || _contrast != contrast)
-	{
-		Debug(_log,"Set brightness to %i, contrast to %i",_brightness,_contrast);
+	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
+	{		
 		_brightness = brightness;
 		_contrast = contrast;
+		_saturation = saturation;
+		_hue = hue;
 		
-		Debug(_log,"Restarting v4l2 grabber");
+		Debug(_log,"Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
 		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		Debug(_log,"Restarting V4L2Grabber grabber");
+		
+		if (_initialized)
+		{
+			Debug(_log,"Restarting v4l2 grabber");
+			uninit();
+			start();
+		}
 	}
 	else
-		Debug(_log,"setBrightnessContrast nothing change");
+		Debug(_log,"setBrightnessContrastSaturationHue nothing changed");
 }

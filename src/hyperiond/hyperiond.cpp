@@ -57,10 +57,10 @@
 
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool logLvlOverwrite)
+HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode)
 		: QObject(parent), _log(Logger::getInstance("DAEMON"))
-		, _instanceManager(new HyperionIManager(rootPath, this))
-		, _authManager(new AuthManager(this))
+		, _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
+		, _authManager(new AuthManager(this, readonlyMode))
 #ifdef ENABLE_AVAHI
 		, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 #endif
@@ -72,7 +72,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 		, _v4l2Grabber(nullptr)
 		, _qtcGrabber(nullptr)
 		, _ssdp(nullptr)
-		, _currVideoMode(VideoMode::VIDEO_2D)
 		, _currVideoModeHdr(0)
 		, _rootPath(rootPath)
 {
@@ -82,12 +81,11 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 	qRegisterMetaType<settings::type>("settings::type");
-	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// init settings
-	_settingsManager = new SettingsManager(0, this);
+	_settingsManager = new SettingsManager(0, this, readonlyMode);
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -117,11 +115,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
-
-	// forward videoModes from HyperionIManager to Daemon evaluation
-	connect(_instanceManager, &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
-	// return videoMode changes from Daemon to HyperionIManager
-	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 	
 	// forward videoModes from HyperionIManager to Daemon evaluation
 	connect(_instanceManager, &HyperionIManager::requestVideoModeHdr, this, &HyperionDaemon::setVideoModeHdr);
@@ -146,15 +139,6 @@ HyperionDaemon::~HyperionDaemon()
 {
 	delete _settingsManager;
 	delete _pyInit;
-}
-
-void HyperionDaemon::setVideoMode(VideoMode mode)
-{
-	if (_currVideoMode != mode)
-	{
-		_currVideoMode = mode;
-		emit videoMode(mode);
-	}
 }
 
 void HyperionDaemon::setVideoModeHdr(int hdr)
@@ -285,7 +269,12 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->start();
 
 	// Create SSDP server in thread
-	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(), getSetting(settings::GENERAL).object()["name"].toString());
+	_ssdp = new SSDPHandler(_webserver,
+							getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
+							getSetting(settings::PROTOSERVER).object()["port"].toInt(),
+							getSetting(settings::JSONSERVER).object()["port"].toInt(),
+							getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
+							getSetting(settings::GENERAL).object()["name"].toString());
 	QThread *ssdpThread = new QThread(this);
 	ssdpThread->setObjectName("SSDPThread");
 	_ssdp->moveToThread(ssdpThread);
@@ -329,62 +318,13 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		_grabber_ge2d_mode = grabberConfig["ge2d_mode"].toInt(0);
 		_grabber_device = grabberConfig["amlogic_grabber"].toString("amvideocap0");
 
-		QString type = grabberConfig["type"].toString("auto");
-
-
-		// auto eval of type
-		if (type == "auto")
-		{
-			// dispmanx -> on raspi
-			if (QFile::exists("/dev/vchiq"))
-			{
-				type = "dispmanx";
-			}
-			// amlogic -> /dev/amvideo exists
-			else if (QFile::exists("/dev/amvideo"))
-			{
-				type = "amlogic";
-
-				if (!QFile::exists("/dev/" + _grabber_device))
-				{
-					Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
-				}
-			}
-			else
-			{
-				// x11 -> if DISPLAY is set
-				QByteArray envDisplay = qgetenv("DISPLAY");
-				if ( !envDisplay.isEmpty() )
-				{
-				
-				}
-				// qt -> if nothing other applies
-				else
-				{
-					type = "qt";
-				}
-			}
-		}
-
-		if (_prevType != type)
-		{
-			Info(_log, "set screen capture device to '%s'", QSTRING_CSTR(type));
-
-			// stop all capture interfaces
-
-			// create/start capture interface
-			{
-				Error(_log, "Unknown platform capture type: %s", QSTRING_CSTR(type));
-				return;
-			}
-			_prevType = type;
-		}
+		QString type = grabberConfig["type"].toString("auto");				
 	}
 	else if (settingsType == settings::V4L2)
 	{
 		const QJsonObject &grabberConfig = config.object();
 
-#ifdef ENABLE_QTC
+#if defined(ENABLE_QTC)
 		if (_qtcGrabber == nullptr)
 		{		
 			_qtcGrabber = new QTCWrapper(
@@ -392,8 +332,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					grabberConfig["width"].toInt(0),
 					grabberConfig["height"].toInt(0),
 					grabberConfig["fps"].toInt(15),
-					grabberConfig["input"].toInt(-1),
-					parseVideoStandard(grabberConfig["standard"].toString("no-change")),
+					grabberConfig["input"].toInt(-1),					
 					parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 					_rootPath);
 					
@@ -427,7 +366,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 			_qtcGrabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
 			
-			_qtcGrabber->setBrightnessContrast(grabberConfig["hardware_brightness"].toInt(0), grabberConfig["hardware_contrast"].toInt(0));
+			_qtcGrabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0), 
+													grabberConfig["hardware_contrast"].toInt(0),
+													grabberConfig["hardware_saturation"].toInt(0),
+													grabberConfig["hardware_hue"].toInt(0));
 			
 			_qtcGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			_qtcGrabber->setSignalDetectionOffset(
@@ -438,16 +380,15 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			Debug(_log, "QTC grabber created");
 
 			// connect to HyperionDaemon signal
-			connect(this, &HyperionDaemon::videoMode, _qtcGrabber, &QTCWrapper::setVideoMode);
 			connect(this, &HyperionDaemon::videoModeHdr, _qtcGrabber, &QTCWrapper::setHdrToneMappingEnabled);
 			connect(this, &HyperionDaemon::settingsChanged, _qtcGrabber, &QTCWrapper::handleSettingsUpdate);			
 		}
-#else
-		Error(_log, "The QTC grabber can not be instantiated, because it has been left out from the build");
+#else if !defined(ENABLE_V4L2)
+		Warning(_log, "The QTC grabber can not be instantiated, because it has been left out from the build");
 #endif
 
 
-#ifdef ENABLE_V4L2
+#if defined(ENABLE_V4L2)
 		if (_v4l2Grabber != nullptr)
 			return;
 		
@@ -457,7 +398,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				grabberConfig["height"].toInt(0),
 				grabberConfig["fps"].toInt(15),
 				grabberConfig["input"].toInt(-1),
-				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				_rootPath);
 				
@@ -490,7 +430,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		_v4l2Grabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
 		
-		_v4l2Grabber->setBrightnessContrast(grabberConfig["hardware_brightness"].toInt(0), grabberConfig["hardware_contrast"].toInt(0));
+		_v4l2Grabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0), 
+													grabberConfig["hardware_contrast"].toInt(0),
+													grabberConfig["hardware_saturation"].toInt(0),
+													grabberConfig["hardware_hue"].toInt(0));
 		
 		_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 		_v4l2Grabber->setSignalDetectionOffset(
@@ -501,11 +444,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		Debug(_log, "V4L2 grabber created");
 
 		// connect to HyperionDaemon signal
-		connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 		connect(this, &HyperionDaemon::videoModeHdr, _v4l2Grabber, &V4L2Wrapper::setHdrToneMappingEnabled);		
 		connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
-#else
-		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+#else if !defined(ENABLE_QTC)	
+		Warning(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
 	}
 }

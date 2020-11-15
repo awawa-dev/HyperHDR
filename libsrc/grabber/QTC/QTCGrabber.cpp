@@ -247,14 +247,12 @@ QTCGrabber::QTCGrabber(const QString & device
 		, unsigned width
 		, unsigned height
 		, unsigned fps
-		, unsigned input
-		, VideoStandard videoStandard
+		, unsigned input		
 		, PixelFormat pixelFormat
 		, const QString & configurationPath
 		)
 	: Grabber("V4L2:QTC:"+device)
 	, _deviceName()
-	, _videoStandard(videoStandard)
 	, _ioMethod(IO_METHOD_MMAP)
 	, _fileDescriptor(-1)
 	, _buffers()
@@ -273,8 +271,7 @@ QTCGrabber::QTCGrabber(const QString & device
 	, _x_frac_max(0.75)
 	, _y_frac_max(0.75)
 	, _initialized(false)
-	, _deviceAutoDiscoverEnabled(false)
-	,_hdrToneMappingEnabled(0)	
+	, _deviceAutoDiscoverEnabled(false)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
 	, _lutBufferInit(false)
@@ -288,6 +285,9 @@ QTCGrabber::QTCGrabber(const QString & device
 {	
 	// init
 	_isMF = false;
+	
+	CoInitializeEx(0, COINIT_MULTITHREADED);
+	
 	HRESULT hr = MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
 	if (!CHECK(hr))
 	{			
@@ -307,7 +307,7 @@ QTCGrabber::QTCGrabber(const QString & device
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
-	setDeviceVideoStandard(device, videoStandard);
+	setDeviceVideoStandard(device);
 	Debug(_log,"Init pixel format: %i", static_cast<int>(_pixelFormat));	
 }
 
@@ -398,22 +398,27 @@ void QTCGrabber::setFpsSoftwareDecimation(int decimation)
 
 void QTCGrabber::setHdrToneMappingEnabled(int mode)
 {
-	_hdrToneMappingEnabled = mode;
-	if (lutBuffer!=NULL || !mode)
-		Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
-	else
-		Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
-		
-	if (_QTCWorkerManager.isActive())	
+	if (_hdrToneMappingEnabled != mode || lutBuffer == NULL)
 	{
-		Debug(_log,"setHdrToneMappingMode replacing LUT");
-		_QTCWorkerManager.Stop();
-		if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
-			loadLutFile("yuv");
+		_hdrToneMappingEnabled = mode;
+		if (lutBuffer!=NULL || !mode)
+			Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 		else
-			loadLutFile("rgb");				
-		_QTCWorkerManager.Start();
+			Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
+			
+		if (_QTCWorkerManager.isActive())	
+		{
+			Debug(_log,"setHdrToneMappingMode replacing LUT and restarting");
+			_QTCWorkerManager.Stop();
+			if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
+				loadLutFile("yuv");
+			else
+				loadLutFile("rgb");				
+			_QTCWorkerManager.Start();
+		}
 	}
+	else
+		Debug(_log,"setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
 }
 
 QTCGrabber::~QTCGrabber()
@@ -831,16 +836,21 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 	IMFAttributes* pAttributes;
 	IMFAttributes* attr;
 
-	hr = MFCreateAttributes(&attr, 3);
+	hr = MFCreateAttributes(&attr, 2);
 	if (CHECK(hr))
 	{
 
 		hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
 		if (CHECK(hr))
-		{
-			WCHAR name[1024];			
+		{			
+			int size = guid.length() + 1024;
+			wchar_t *name = new wchar_t[size];			
+			memset(name, 0, size);
 			guid.toWCharArray(name);
-			hr = attr->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, name);
+			
+			hr = attr->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)name);
+			delete name;
+			
 			if (CHECK(hr) && _sourceReaderCB)
 			{
 				
@@ -865,7 +875,7 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 	{
 		Debug(_log,  "Device opened");
 		
-		if (_brightness>0 || _contrast>0)					
+		if (_brightness!=0 || _contrast!=0 || _saturation!=0 || _hue!=0)					
 		{
 			
 			IAMVideoProcAmp *pProcAmp = NULL;
@@ -874,7 +884,7 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 			{
 				long lMin, lMax, lStep, lDefault, lCaps, Val;
 				
-				if (_brightness>0)
+				if (_brightness!=0)
 				{
 					hr = pProcAmp->GetRange(VideoProcAmp_Brightness, &lMin, &lMax, &lStep, &lDefault, &lCaps);
 
@@ -898,7 +908,7 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 						Error(_log, "Brigthness is not supported by the grabber");
 				}
 				
-				if (_contrast>0)
+				if (_contrast!=0)
 				{
 					hr = pProcAmp->GetRange(VideoProcAmp_Contrast, &lMin, &lMax, &lStep, &lDefault, &lCaps);
 
@@ -918,7 +928,52 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 					}
 					else
 						Error(_log, "Contrast is not supported by the grabber");
-				}					
+				}	
+
+				if (_saturation!=0)
+				{
+					hr = pProcAmp->GetRange(VideoProcAmp_Saturation, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+					if (SUCCEEDED(hr))
+					{
+						Debug(_log, "Saturation: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+						
+						hr = pProcAmp->Get(VideoProcAmp_Saturation, &Val,  &lCaps);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Current saturation set to: %i",Val);
+					
+						hr = pProcAmp->Set(VideoProcAmp_Saturation, _saturation, VideoProcAmp_Flags_Manual);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Saturation set to: %i",_saturation);
+						else
+							Error(_log, "Could not set saturation");
+					}
+					else
+						Error(_log, "Saturation is not supported by the grabber");
+				}
+				
+				
+				if (_hue!=0)
+				{
+					hr = pProcAmp->GetRange(VideoProcAmp_Hue, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+					if (SUCCEEDED(hr))
+					{
+						Debug(_log, "Hue: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+						
+						hr = pProcAmp->Get(VideoProcAmp_Hue, &Val,  &lCaps);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Current hue set to: %i",Val);
+					
+						hr = pProcAmp->Set(VideoProcAmp_Hue, _hue, VideoProcAmp_Flags_Manual);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Hue set to: %i",_hue);
+						else
+							Error(_log, "Could not set hue");
+					}
+					else
+						Error(_log, "Hue is not supported by the grabber");
+				}
 				
 				pProcAmp->Release();
 			}
@@ -1192,8 +1247,7 @@ bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
 						}			
 						
 						_workerThread->setup(
-							i, 							
-							_videoMode,
+							i, 														
 							_pixelFormat,
 							(uint8_t *)frameImageBuffer, size, _width, _height, _lineLength,				
 							_subsamp, 				
@@ -1325,29 +1379,29 @@ void QTCGrabber::setCecDetectionEnable(bool enable)
 	}
 }
 
-void QTCGrabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+void QTCGrabber::setDeviceVideoStandard(QString device)
 {
+	QString olddeviceName = _deviceName;
 	if (_deviceName != device)
 	{
-		bool started = _initialized;
-		uninit();
+		Debug(_log,"setDeviceVideoStandard restarting v4l2 grabber. Old: '%s' new: '%s'",QSTRING_CSTR(_deviceName) , QSTRING_CSTR(device));
 		
 		_deviceName = device;
 
-		if(started) start();
+		if (!olddeviceName.isEmpty())
+		{
+			Debug(_log,"Restarting QTCGrabber grabber for new device");
+			uninit();
+			
+			start();
+		}
+		
 	}
 }
 
 bool QTCGrabber::setInput(int input)
 {
-	if(Grabber::setInput(input))
-	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
-		return true;
-	}
-	return false;
+	return true;	
 }
 
 bool QTCGrabber::setWidthHeight(int width, int height)
@@ -1356,9 +1410,12 @@ bool QTCGrabber::setWidthHeight(int width, int height)
 	{
 		Debug(_log,"setWidthHeight Restarting v4l2 grabber %i",_initialized);
 		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting QTCGrabber grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
@@ -1368,9 +1425,12 @@ bool QTCGrabber::setFramerate(int fps)
 {
 	if(Grabber::setFramerate(fps))
 	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting QTCGrabber grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
@@ -1417,29 +1477,34 @@ void QTCGrabber::setEncoding(QString enc)
 			
 	if (_oldEnc != _enc)
 	{
-		Debug(_log,"Restarting QTCGrabber grabber");
-		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting QTCGrabber grabber");
+			uninit();
+			start();
+		}
 	}
 }
 
-void QTCGrabber::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+void QTCGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	if (_brightness != brightness || _contrast != contrast)
-	{
-		Debug(_log,"Set brightness to %i, contrast to %i",_brightness,_contrast);
+	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
+	{		
 		_brightness = brightness;
 		_contrast = contrast;
+		_saturation = saturation;
+		_hue = hue;
 		
-		Debug(_log,"Restarting QTCGrabber grabber");
-		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		Debug(_log,"Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
+						
+		if (_initialized)
+		{
+			Debug(_log,"Restarting QTCGrabber grabber");
+			uninit();
+			start();
+		}
 	}
 	else
-		Debug(_log,"setBrightnessContrast nothing change");
+		Debug(_log,"setBrightnessContrastSaturationHue nothing changed");
 }
 

@@ -16,7 +16,6 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
-#include <utils/VideoMode.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -88,9 +87,7 @@ public:
 
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
-	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
-
-	VideoMode getCurrentVideoMode() const;
+	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);	
 	
 	int getCurrentVideoModeHdr() const;
 
@@ -99,6 +96,8 @@ public:
 	/// @return The device name
 	///
 	QString getActiveDeviceType() const;
+
+	bool getReadOnlyMode() {return _readOnlyMode; };
 
 public slots:
 
@@ -350,13 +349,7 @@ public slots:
 	int isComponentEnabled(hyperion::Components comp) const;
 
 	/// sets the methode how image is maped to leds at ImageProcessor
-	void setLedMappingType(int mappingType);
-
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(VideoMode mode);
+	void setLedMappingType(int mappingType);	
 	
 	void setVideoModeHdr(int hdr);
 
@@ -413,14 +406,12 @@ signals:
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change
-	///
-	void videoMode(VideoMode mode);
+	///	
 	void videoModeHdr(int hdr);
 
 	///
 	/// @brief A new videoMode was requested (called from Daemon!)
 	///
-	void newVideoMode(VideoMode mode);
 	void newVideoModeHdr(int hdr);
 
 	///
@@ -476,12 +467,11 @@ private slots:
 
 	///
 	/// @brief Apply new videoMode from Daemon to _currVideoMode
-	///
-	void handleNewVideoMode(VideoMode mode) { _currVideoMode = mode; }
+	///	
 	void handleNewVideoModeHdr(int hdr) { _currVideoModeHdr = hdr; }
 
 
-	void handlPriorityChangedLedDevice(const quint8& priority);
+	void handlePriorityChangedLedDevice(const quint8& priority);
 
 private:
 	friend class HyperionDaemon;
@@ -491,7 +481,7 @@ private:
 	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
 	/// @param  instance  The instance index
 	///
-	Hyperion(quint8 instance);
+	Hyperion(quint8 instance, bool readonlyMode = false);
 
 	/// instance index
 	const quint8 _instIndex;
@@ -543,10 +533,11 @@ private:
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
-
-	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
+	
 	int       _currVideoModeHdr = 1;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+
+	bool _readOnlyMode;
 };

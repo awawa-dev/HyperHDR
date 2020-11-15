@@ -10,8 +10,6 @@
 #ifdef ENABLE_AVAHI
 #include <bonjour/bonjourrecord.h>
 #endif
-// videModes
-#include <utils/VideoMode.h>
 // settings
 #include <utils/settings.h>
 // AuthManager
@@ -92,12 +90,6 @@ private slots:
 	/// @brief Handle the adjustment update
 	///
 	void handleAdjustmentChange();
-
-	///
-	/// @brief Handle video mode change
-	/// @param mode  The new videoMode
-	///
-	void handleVideoModeChange(VideoMode mode);
 
 	///
 	/// @brief Handle video mode change

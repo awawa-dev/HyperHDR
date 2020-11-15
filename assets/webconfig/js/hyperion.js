@@ -2,7 +2,7 @@
 window.webPrio = 1;
 window.webOrigin = "Web Configuration";
 window.showOptHelp = true;
-window.gitHubReleaseApiUrl = "https://api.github.com/repos/hyperion-project/hyperion.ng/releases";
+window.gitHubReleaseApiUrl = "https://api.github.com/repos/awawa-dev/HyperHDR/releases";
 window.currentChannel = null;
 window.currentVersion = null;
 window.latestVersion = null;
@@ -477,8 +477,5 @@ async function requestLedDeviceProperties(type, params)
 function requestLedDeviceIdentification(type, params)
 {
 	sendToHyperion("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
-
-	//let data = {ledDeviceType: type, params: params};
-	//sendToHyperion("leddevice", "identify", data );
 }
 

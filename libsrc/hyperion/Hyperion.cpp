@@ -39,10 +39,10 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
-Hyperion::Hyperion(quint8 instance)
+Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	: QObject()
 	, _instIndex(instance)
-	, _settingsManager(new SettingsManager(instance, this))
+	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
@@ -54,6 +54,7 @@ Hyperion::Hyperion(quint8 instance)
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
+	, _readOnlyMode(readonlyMode)
 {
 
 }
@@ -69,7 +70,6 @@ void Hyperion::start()
 	connect(_settingsManager, &SettingsManager::settingsChanged, this, &Hyperion::settingsChanged);
 
 	// get newVideoMode from HyperionIManager
-	connect(this, &Hyperion::newVideoMode, this, &Hyperion::handleNewVideoMode);
 	connect(this, &Hyperion::newVideoModeHdr, this, &Hyperion::handleNewVideoModeHdr);
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
@@ -88,7 +88,7 @@ void Hyperion::start()
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlPriorityChangedLedDevice);
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChangedLedDevice);
 	connect(&_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
@@ -392,10 +392,8 @@ end:
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
-	// write color to muxer & queuePush
+	// write color to muxer
 	setInput(priority, newLedColors, timeout_ms);
-	if (timeout_ms <= 0)
-		_muxer.queuePush();
 }
 
 QStringList Hyperion::getAdjustmentIds() const
@@ -510,26 +508,15 @@ int Hyperion::getLedMappingType() const
 	return _imageProcessor->getUserLedMappingType();
 }
 
-void Hyperion::setVideoMode(VideoMode mode)
-{
-	emit videoMode(mode);
-}
-
 void Hyperion::setVideoModeHdr(int hdr)
 {
 	emit videoModeHdr(hdr);
-}
-
-VideoMode Hyperion::getCurrentVideoMode() const
-{
-	return _currVideoMode;
 }
 
 int Hyperion::getCurrentVideoModeHdr() const
 {
 	return _currVideoModeHdr;
 }
-
 
 QString Hyperion::getActiveDeviceType() const
 {
@@ -543,7 +530,7 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handlPriorityChangedLedDevice(const quint8& priority)
+void Hyperion::handlePriorityChangedLedDevice(const quint8& priority)
 {
 	quint8 previousPriority = _muxer.getPreviousPriority();
 

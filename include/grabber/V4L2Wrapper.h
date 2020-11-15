@@ -12,8 +12,7 @@ public:
 			const unsigned grabWidth,
 			const unsigned grabHeight,
 			const unsigned fps,
-			const unsigned input,
-			VideoStandard videoStandard,
+			const unsigned input,			
 			PixelFormat pixelFormat,			
 			const QString & configurationPath );
 	~V4L2Wrapper() override;
@@ -30,7 +29,7 @@ public slots:
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setCecDetectionEnable(bool enable);
-	void setDeviceVideoStandard(const QString& device, VideoStandard videoStandard);
+	void setDeviceVideoStandard(const QString& device);
 	void handleCecEvent(CECEvent event);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;		
 	
@@ -46,7 +45,7 @@ public slots:
 	
 	void setEncoding(QString enc);
 	
-	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 	
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
