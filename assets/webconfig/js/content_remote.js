@@ -311,23 +311,7 @@ $(document).ready(function() {
       $('#effect_select').append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
       oldEffects = newEffects;
     }
-  }
-
-  function updateVideoMode()
-  {
-    var videoModes = ["2D","3DSBS","3DTAB"];
-    var currVideoMode = window.serverInfo.videomode;
-
-    $('#videomodebtns').html("");
-    for(var ix = 0; ix < videoModes.length; ix++)
-    {
-      if(currVideoMode == videoModes[ix])
-        var btn_style = 'btn-success';
-      else
-        var btn_style = 'btn-primary';
-      $('#videomodebtns').append('<button type="button" id="vModeBtn_'+videoModes[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestVideoMode(\''+videoModes[ix]+'\');">'+$.i18n('remote_videoMode_'+videoModes[ix])+'</button><br/>');
-    }
-  }
+  }  
   
   function updateVideoModeHdr()
   {
@@ -410,7 +394,6 @@ $(document).ready(function() {
   initComponents();
   updateInputSelect();
   updateLedMapping();
-  updateVideoMode();
   updateVideoModeHdr();
   updateEffectlist();
 
@@ -429,12 +412,7 @@ $(document).ready(function() {
   $(window.hyperion).on("cmd-imageToLedMapping-update", function(event){
     window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType;
     updateLedMapping();
-  });
-
-  $(window.hyperion).on("cmd-videomode-update", function(event){
-    window.serverInfo.videomode = event.response.data.videomode;
-    updateVideoMode();
-  });
+  });  
 
   $(window.hyperion).on("cmd-videomodehdr-update", function(event){
     window.serverInfo.videomodehdr = event.response.data.videomodehdr;

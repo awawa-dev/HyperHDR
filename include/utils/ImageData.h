@@ -35,7 +35,7 @@ public:
 		_height(other._height),
 		_pixels((unsigned char*) calloc(other._width * other._height *3 + 3, 1))
 	{
-		memcpy(_pixels, other._pixels, (long) other._width * other._height * 3);
+		memcpy(_pixels, other._pixels, static_cast<ulong>(other._width) * static_cast<ulong>(other._height) * 3);
 	}
 
 	ImageData& operator=(ImageData rhs)
@@ -130,7 +130,7 @@ public:
 
 	ssize_t size() const
 	{
-		return  (ssize_t) _width * _height * 3;
+		return  static_cast<ssize_t>(_width) * static_cast<ssize_t>(_height) * 3;
 	}
 
 	void clear()
@@ -143,7 +143,7 @@ public:
 			_pixels = (unsigned char*) calloc(2*3, 1);
 		}
 
-		memset(_pixels, 0, (unsigned long) _width * _height * 3);
+		memset(_pixels, 0, static_cast<unsigned long>(_width) * static_cast<unsigned long>(_height) * 3);
 	}
 
 private:

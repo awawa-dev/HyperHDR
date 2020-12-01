@@ -511,16 +511,6 @@ void JsonConnection::setLedMapping(QString mappingType)
 	parseReply(reply);
 }
 
-void JsonConnection::setVideoMode(QString videoMode)
-{
-	QJsonObject command;
-	command["command"] = QString("videomode");
-	command["videoMode"] = videoMode.toUpper();
-
-	QJsonObject reply = sendMessage(command);
-	parseReply(reply);
-}
-
 void JsonConnection::setVideoModeHdr(int hdr)
 {
 	QJsonObject command;

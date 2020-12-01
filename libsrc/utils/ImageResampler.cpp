@@ -9,7 +9,6 @@ ImageResampler::ImageResampler()
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
-	, _videoMode(VideoMode::VIDEO_2D)
 {
 }
 
@@ -35,11 +34,6 @@ void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int c
 	_cropBottom = cropBottom;
 }
 
-void ImageResampler::setVideoMode(VideoMode mode)
-{
-	_videoMode = mode;
-}
-
 #define LUT(dest, red, green, blue) \
 {\
 	uint32_t ind_lutd = LUT_INDEX(red, green, blue);	\
@@ -61,13 +55,10 @@ void ImageResampler::setVideoMode(VideoMode mode)
 }
 
 void ImageResampler::processImage(
-	VideoMode _videoMode,
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 	const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, const uint8_t *lutBuffer, Image<ColorRgb> &outputImage)
 {	
-	uint8_t _red, _green, _blue, buffer[4];
-	int     cropRight  = _cropRight;
-	int     cropBottom = _cropBottom;
+	uint8_t _red, _green, _blue, buffer[4];	
 			
 	// validate format
 	if (pixelFormat!=PixelFormat::UYVY && pixelFormat!=PixelFormat::YUYV &&
@@ -85,26 +76,13 @@ void ImageResampler::processImage(
 		return;
 	}
 	
-	// handle 3D mode
-	switch (_videoMode)
-	{
-		case VideoMode::VIDEO_3DSBS:
-			cropRight = width >> 1;
-			break;
-		case VideoMode::VIDEO_3DTAB:
-			cropBottom = width >> 1;
-			break;
-		default:
-			break;
-	}	
-	
 	// sanity check, odd values doesnt work for yuv either way
 	_cropLeft = (_cropLeft>>1)<<1;
-	cropRight = (cropRight>>1)<<1;				
+	_cropRight = (_cropRight>>1)<<1;				
 
 	// calculate the output size
-	int outputWidth = (width - _cropLeft - cropRight);
-	int outputHeight = (height - _cropTop - cropBottom);
+	int outputWidth = (width - _cropLeft - _cropRight);
+	int outputHeight = (height - _cropTop - _cropBottom);
 
 	//if (outputImage.width() != unsigned(outputWidth) || outputImage.height() != unsigned(outputHeight))
 	outputImage.resize(outputWidth, outputHeight);
@@ -197,8 +175,7 @@ void ImageResampler::processImage(
 				break;				
 				default:
 				break;
-			}						
+			}
 		}
 	}
 }
-

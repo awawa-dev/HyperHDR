@@ -11,13 +11,12 @@
 #endif
 
 #ifdef ENABLE_QTC
-	#include <grabber/QTCWrapper.h>
+	#include <grabber/MFWrapper.h>
 #else
-	typedef QObject QTCWrapper;
+	typedef QObject MFWrapper;
 #endif
 
 #include <utils/Logger.h>
-#include <utils/VideoMode.h>
 
 // settings management
 #include <utils/settings.h>
@@ -44,18 +43,17 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, bool logLvlOverwrite);
+	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
 	~HyperionDaemon();
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer* getWebServerInstance() { return _webserver; };
+	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
 	/// @brief Get the current videoMode
 	///
-	VideoMode getVideoMode() const { return _currVideoMode; };
 	int       getVideoModeHdr() const { return _currVideoModeHdr; };
 
 	///
@@ -65,7 +63,7 @@ public:
 
 	void startNetworkServices();
 
-	static HyperionDaemon* getInstance() { return daemon; };
+	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
 
 public slots:
@@ -79,7 +77,6 @@ signals:
 	///
 	/// @brief After eval of setVideoMode this signal emits with a new one on change
 	///
-	void videoMode(VideoMode mode);
 	void videoModeHdr(int hdr);
 
 	///////////////////////////////////////
@@ -108,7 +105,6 @@ private slots:
 	/// @brief Listen for videoMode changes and emit videoMode in case of a change, update _currVideoMode
 	/// @param mode  The requested video mode
 	///
-	void setVideoMode(VideoMode mode);
 	void setVideoModeHdr(int hdr);
 
 private:
@@ -123,7 +119,7 @@ private:
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
 	V4L2Wrapper*               _v4l2Grabber;
-	QTCWrapper*                _qtcGrabber;
+	MFWrapper*                 _mfGrabber;
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
@@ -140,7 +136,6 @@ private:
 
 	QString                    _prevType;
 
-	VideoMode                  _currVideoMode;
 	int                        _currVideoModeHdr;
 	SettingsManager*           _settingsManager;
 	

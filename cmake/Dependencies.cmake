@@ -287,7 +287,7 @@ macro(DeployWindows TARGET)
 		if (TURBOJPEG_FOUND)
 			find_file(TurboJPEG_DLL
 				NAMES "turbojpeg.dll" "jpeg62.dll"
-				PATHS ${TurboJPEG_INCLUDE_DIRS}/.. ${TurboJPEG_INCLUDE_DIRS}/../bin
+				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
 				NO_DEFAULT_PATH
 			)
 
@@ -297,6 +297,35 @@ macro(DeployWindows TARGET)
 				COMPONENT "Hyperion"
 			)
 		endif(TURBOJPEG_FOUND)
+		
+		# Copy usb Libs
+		if (LIBUSB_1_LIBRARIES)
+			find_file(USBLIB_DLL
+				NAMES "libusb-1.0.dll"
+				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/libusb"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+
+			install(
+				FILES ${USBLIB_DLL}
+				DESTINATION "bin"
+				COMPONENT "Hyperion"
+			)
+			
+			find_file(HIDLIB_DLL
+				NAMES "hidapi.dll"
+				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/libusb"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+
+			install(
+				FILES ${HIDLIB_DLL}
+				DESTINATION "bin"
+				COMPONENT "Hyperion"				
+			)
+		endif(LIBUSB_1_LIBRARIES)
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")

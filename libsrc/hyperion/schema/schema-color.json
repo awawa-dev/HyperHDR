@@ -202,7 +202,7 @@
 						"type" : "boolean",
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
-						"default" : false,						
+						"default" : false,
 						"propertyOrder" : 12
 					},
 					"brightness" :

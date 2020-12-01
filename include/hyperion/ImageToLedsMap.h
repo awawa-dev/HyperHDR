@@ -102,7 +102,7 @@ namespace hyperion
 			getMeanLedColor(image, colors);
 			return colors;
 		}
-	
+
 		///
 		/// Determines the mean color for each led using the mapping the image given
 		/// at construction.
@@ -232,7 +232,7 @@ namespace hyperion
 				return ColorRgb::BLACK;
 			}
 
-			// Accumulate the sum of each seperate color channel
+			// Accumulate the sum of each separate color channel
 			uint_fast32_t cummRed   = 0;
 			uint_fast32_t cummGreen = 0;
 			uint_fast32_t cummBlue  = 0;
@@ -325,7 +325,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image) const
 		{
-			// Accumulate the sum of each seperate color channel
+			// Accumulate the sum of each separate color channel
 			uint_fast32_t cummRed   = 0;
 			uint_fast32_t cummGreen = 0;
 			uint_fast32_t cummBlue  = 0;

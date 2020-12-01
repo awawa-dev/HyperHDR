@@ -128,6 +128,11 @@ int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 	if (_blockedForDelay) {
 		return 0;
 	}
+	
+	if (size == 0){
+		Error(_log,"Failed to write to HID device (size=0)");
+		return 0;
+	}
 
 	if (_deviceHandle == nullptr)
 	{
@@ -145,42 +150,55 @@ int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 	}
 
 	// Prepend report ID to the buffer
-	uint8_t ledData[size + 1];
-	ledData[0] = 0; // Report ID
-	memcpy(ledData + 1, data, size_t(size));
-
-	// Send data via feature or out report
+	uint8_t *ledData = new uint8_t[size + 1];
 	int ret;
-	if(_useFeature){
-		ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
-	}
-	else{
-		ret = hid_write(_deviceHandle, ledData, size + 1);
-	}
-
-	// Handle first error
-	if(ret < 0)
+	
+	try
 	{
-		Error(_log,"Failed to write to HID device.");
+		ledData[0] = 0; // Report ID
+		memcpy(ledData + 1, data, size_t(size));
 
-		// Try again
-		if(_useFeature)
-		{
+		// Send data via feature or out report		
+		if(_useFeature){
 			ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
 		}
-		else
-		{
+		else{
 			ret = hid_write(_deviceHandle, ledData, size + 1);
 		}
 
-		// Writing failed again, device might have disconnected
-		if(ret < 0){
+		// Handle first error
+		if(ret < 0)
+		{
 			Error(_log,"Failed to write to HID device.");
 
-			hid_close(_deviceHandle);
-			_deviceHandle = nullptr;
+			// Try again
+			if(_useFeature)
+			{
+				ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
+			}
+			else
+			{
+				ret = hid_write(_deviceHandle, ledData, size + 1);
+			}
+
+			// Writing failed again, device might have disconnected
+			if(ret < 0){
+				Error(_log,"Failed to write to HID device.");
+
+				hid_close(_deviceHandle);
+				_deviceHandle = nullptr;
+			}
 		}
 	}
+	catch(...)
+	{
+		delete ledData;
+		ledData = NULL;		
+	}
+	
+	if (ledData != NULL)
+		delete ledData;
+	
 	return ret;
 }
 
@@ -190,7 +208,7 @@ void ProviderHID::unblockAfterDelay()
 	_blockedForDelay = false;
 }
 
-QJsonObject ProviderHID::discover()
+QJsonObject ProviderHID::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

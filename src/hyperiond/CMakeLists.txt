@@ -62,14 +62,6 @@ if (ENABLE_QTC)
 	target_link_libraries(hyperiond qtc-grabber)
 endif ()
 
-
-if (ENABLE_X11)
-	if(APPLE)
-		include_directories("/opt/X11/include")
-	endif(APPLE)
-	target_link_libraries(hyperiond	x11-grabber)
-endif ()
-
 if(NOT WIN32)
 	install ( TARGETS hyperiond DESTINATION "share/hyperion/bin" COMPONENT "Hyperion" )
 	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT "Hyperion" )

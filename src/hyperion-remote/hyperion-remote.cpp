@@ -27,7 +27,9 @@ int count(std::initializer_list<bool> values)
 	int count = 0;
 	for (bool value : values) {
 		if (value)
+		{
 			count++;
+		}
 	}
 	return count;
 }
@@ -43,14 +45,16 @@ void showHelp(Option & option){
 	qWarning() << qPrintable(QString("\t%1\t%2\t%3").arg(shortOption, longOption, option.description()));
 }
 
-int getInstaneIdbyName(const QJsonObject & reply, const QString name){
+int getInstaneIdbyName(const QJsonObject & reply, const QString & name){
 	if(reply.contains("instance")){
 		QJsonArray list = reply.value("instance").toArray();
 
-		for (const auto & entry : list)	{
+		for (const QJsonValueRef entry : list)	{
 			const QJsonObject obj = entry.toObject();
 			if(obj["friendly_name"] == name && obj["running"].toBool())
+			{
 				return obj["instance"].toInt();
+			}
 		}
 	}
 	std::cout << "Can't find a running instance with name '" << name.toStdString()<< "' at this Hyperion server, will use first instance" << std::endl;
@@ -78,23 +82,23 @@ int main(int argc, char * argv[])
 	try
 	{
 		// create the option parser and initialize all parameters
-		Parser parser("Application to send a command to hyperion using the Json interface");
+		Parser parser("Application to send a command to hyperion using the JSON interface");
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "127.0.0.1:19444");
 		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
-		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By befault it uses always the first instance");
+		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By default it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
-		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
-		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
-		ImageOption     & argImage              = parser.add<ImageOption>  ('i', "image"                  , "Set the leds to the colors according to the given image file");
+		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the LEDs should be switched on in milliseconds [default: infinity]");
+		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all LEDs to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
+		ImageOption     & argImage              = parser.add<ImageOption>  ('i', "image"                  , "Set the LEDs to the colors according to the given image file");
 		Option          & argEffect             = parser.add<Option>       ('e', "effect"                 , "Enable the effect with the given name");
 		Option          & argEffectFile         = parser.add<Option>       (0x0, "effectFile"             , "Arguments to use in combination with --createEffect");
-		Option          & argEffectArgs         = parser.add<Option>       (0x0, "effectArgs"             , "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
-		Option          & argCreateEffect       = parser.add<Option>       (0x0, "createEffect"           , "Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
-		Option          & argDeleteEffect       = parser.add<Option>       (0x0, "deleteEffect"           , "Delete a custom created Json Effect configuration file.");
+		Option          & argEffectArgs         = parser.add<Option>       (0x0, "effectArgs"             , "Arguments to use in combination with the specified effect. Should be a JSON object string.", "");
+		Option          & argCreateEffect       = parser.add<Option>       (0x0, "createEffect"           , "Write a new JSON Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
+		Option          & argDeleteEffect       = parser.add<Option>       (0x0, "deleteEffect"           , "Delete a custom created JSON Effect configuration file.");
 		BooleanOption   & argServerInfo         = parser.add<BooleanOption>('l', "list"                   , "List server info and active effects with priority and duration");
 		BooleanOption   & argSysInfo            = parser.add<BooleanOption>('s', "sysinfo"                , "show system info");
 		BooleanOption   & argClear              = parser.add<BooleanOption>('x', "clear"                  , "Clear data for the priority channel provided by the -p option");
@@ -102,12 +106,12 @@ int main(int argc, char * argv[])
 		Option          & argEnableComponent    = parser.add<Option>       ('E', "enable"                 , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
 		Option          & argDisableComponent   = parser.add<Option>       ('D', "disable"                , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
 		Option          & argId                 = parser.add<Option>       ('q', "qualifier"              , "Identifier(qualifier) of the adjustment to set");
-		IntOption       & argBrightness         = parser.add<IntOption>    ('L', "brightness"             , "Set the brightness gain of the leds");
+		IntOption       & argBrightness         = parser.add<IntOption>    ('L', "brightness"             , "Set the brightness gain of the LEDs");
 		IntOption       & argBrightnessC        = parser.add<IntOption>    (0x0, "brightnessCompensation" , "Set the brightness compensation");
 		IntOption       & argBacklightThreshold = parser.add<IntOption>    ('n', "backlightThreshold"     , "threshold for activating backlight (minimum brightness)");
 		IntOption       & argBacklightColored   = parser.add<IntOption>    (0x0, "backlightColored"       , "0 = white backlight; 1 =  colored backlight");
-		DoubleOption    & argGamma              = parser.add<DoubleOption> ('g', "gamma"                  , "Set the overall gamma of the leds");
-		BooleanOption   & argPrint              = parser.add<BooleanOption>(0x0, "print"                  , "Print the json input and output messages on stdout");
+		DoubleOption    & argGamma              = parser.add<DoubleOption> ('g', "gamma"                  , "Set the overall gamma of the LEDs");
+		BooleanOption   & argPrint              = parser.add<BooleanOption>(0x0, "print"                  , "Print the JSON input and output messages on stdout");
 		BooleanOption   & argHelp               = parser.add<BooleanOption>('h', "help"                   , "Show this help message and exit");
 		ColorOption     & argRAdjust            = parser.add<ColorOption>  ('R', "redAdjustment"          , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argGAdjust            = parser.add<ColorOption>  ('G', "greenAdjustment"        , "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
@@ -120,16 +124,15 @@ int main(int argc, char * argv[])
 		DoubleOption    & argLumAdjust          = parser.add<DoubleOption>  ('X', "luminanceGain"          , "Luminance gain (1=default)");
 		DoubleOption    & argSatAdjust          = parser.add<DoubleOption>  ('Z', "saturationGain"         , "Saturation gain (1=default)");		
 		ColorOption     & argTempAdjust          = parser.add<ColorOption>  ('T', "temperatureAdjustment"  , "Set the adjustment of color's temperature (requires in hex format as RRGGBB)");		
-		Option          & argMapping            = parser.add<Option>       ('m', "ledMapping"             , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
-		Option          & argVideoMode          = parser.add<Option>       ('V', "videoMode"              , "Set the video mode valid values: 2D, 3DSBS, 3DTAB");
+		Option          & argMapping            = parser.add<Option>       ('m', "ledMapping"             , "Set the method for image to led mapping valid values: multicolor_mean, unicolor_mean");
 		IntOption       & argHdr                = parser.add<IntOption>    ('H', "hdr"                    , "0 = HDR off; 1 =  HDR on");
 		IntOption       & argSource             = parser.add<IntOption>    (0x0, "sourceSelect"           , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto         = parser.add<BooleanOption>(0x0, "sourceAutoSelect"       , "Enables auto source, if disabled prio by manual selecting input source");
 		BooleanOption   & argOff                = parser.add<BooleanOption>(0x0, "off"                    , "Deactivates hyperion");
 		BooleanOption   & argOn                 = parser.add<BooleanOption>(0x0, "on"                     , "Activates hyperion");
 		BooleanOption   & argConfigGet          = parser.add<BooleanOption>(0x0, "configGet"              , "Print the current loaded Hyperion configuration file");
-		BooleanOption   & argSchemaGet          = parser.add<BooleanOption>(0x0, "schemaGet"              , "Print the json schema for Hyperion configuration");
-		Option          & argConfigSet          = parser.add<Option>       (0x0, "configSet"              , "Write to the actual loaded configuration file. Should be a Json object string.");
+		BooleanOption   & argSchemaGet          = parser.add<BooleanOption>(0x0, "schemaGet"              , "Print the JSON schema for Hyperion configuration");
+		Option          & argConfigSet          = parser.add<Option>       (0x0, "configSet"              , "Write to the actual loaded configuration file. Should be a JSON object string.");
 
 		// parse all _options
 		parser.process(app);
@@ -149,7 +152,7 @@ int main(int argc, char * argv[])
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect),
 		    parser.isSet(argServerInfo), parser.isSet(argSysInfo),parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
 		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
-		    parser.isSet(argMapping),parser.isSet(argVideoMode), parser.isSet(argHdr) });
+		    parser.isSet(argMapping), parser.isSet(argHdr) });
 		if (commandCount != 1)
 		{
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
@@ -166,8 +169,7 @@ int main(int argc, char * argv[])
 			showHelp(argDisableComponent);
 			showHelp(argSource);
 			showHelp(argSourceAuto);
-			showHelp(argConfigGet);
-			showHelp(argVideoMode);
+			showHelp(argConfigGet);			
 			showHelp(argHdr);
 			qWarning() << "or one or more of the available color modding operations:";
 			showHelp(argId);
@@ -205,7 +207,9 @@ int main(int argc, char * argv[])
 
 		// authorization token specified. Use it first
 		if (parser.isSet(argToken))
+		{
 			connection.setToken(argToken.value(parser));
+		}
 
 		// If a specific Hyperion instance is given, set it
 		if (parser.isSet(argInstance))
@@ -296,10 +300,6 @@ int main(int argc, char * argv[])
 		{
 			connection.setLedMapping(argMapping.value(parser));
 		}
-		else if (parser.isSet(argVideoMode))
-		{
-			connection.setVideoMode(argVideoMode.value(parser));
-		}
 		else if (parser.isSet(argHdr))
 		{
 			connection.setVideoModeHdr(argHdr.getInt(parser));
@@ -325,13 +325,13 @@ int main(int argc, char * argv[])
 				argBrightnessC.getIntPtr(parser),
 				argLumAdjust.getDoublePtr(parser),
 				argSatAdjust.getDoublePtr(parser),
-				argTempAdjust.getColor(parser)								
+				argTempAdjust.getColor(parser)
 			);
 		}
 	}
 	catch (const std::runtime_error & e)
 	{
-		// An error occured. Display error and quit
+		// An error occurred. Display error and quit
 		std::cerr << e.what() << std::endl;
 		return 1;
 	}

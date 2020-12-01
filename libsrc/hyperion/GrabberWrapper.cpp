@@ -65,6 +65,11 @@ bool GrabberWrapper::isActive() const
 	return _timer->isActive();
 }
 
+QString GrabberWrapper::getActive() const
+{
+	return _grabberName;
+}
+
 QStringList GrabberWrapper::availableGrabbers()
 {
 	QStringList grabbers;
@@ -72,7 +77,7 @@ QStringList GrabberWrapper::availableGrabbers()
 	#ifdef ENABLE_V4L2
 	grabbers << "v4l2";
 	#endif
-	
+
 	#ifdef ENABLE_QTC
 	grabbers << "v4l2";
 	#endif
@@ -80,12 +85,12 @@ QStringList GrabberWrapper::availableGrabbers()
 	return grabbers;
 }
 
-void GrabberWrapper::setVideoMode(VideoMode mode)
+void GrabberWrapper::setHdrToneMappingEnabled(int mode)
 {
 	if (_ggrabber != nullptr)
 	{
-		Info(_log,"setvideomode");
-		_ggrabber->setVideoMode(mode);
+		Info(_log,"setvideomodehdr");
+		_ggrabber->setHdrToneMappingEnabled(mode);
 	}
 }
 
@@ -142,19 +147,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen)
 {
-	if(component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
-	{
-		if(listen && !GRABBER_SYS_CLIENTS.contains(hyperionInd))
-			GRABBER_SYS_CLIENTS.append(hyperionInd);
-		else if (!listen)
-			GRABBER_SYS_CLIENTS.removeOne(hyperionInd);
-
-		if(GRABBER_SYS_CLIENTS.empty())
-			stop();
-		else
-			start();
-	}
-	else if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L"))
+	if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L"))
 	{
 		if(listen && !GRABBER_V4L_CLIENTS.contains(hyperionInd))
 			GRABBER_V4L_CLIENTS.append(hyperionInd);

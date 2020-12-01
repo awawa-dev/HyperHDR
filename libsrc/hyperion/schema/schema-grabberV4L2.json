@@ -35,11 +35,12 @@
 			"enum" : ["NO_CHANGE", "PAL","NTSC","SECAM"],
 			"default" : "NO_CHANGE",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_NO_CHANGE", "edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM"]
+				"enum_titles" : ["edt_conf_enum_NO_CHANGE", "edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM"],
+				"hidden":true
 			},
 			"required" : true,
 			"propertyOrder" : 5
-		},
+		},		
 		"width" :
 		{
 			"type" : "integer",
@@ -297,13 +298,29 @@
 			"required" : true,
 			"propertyOrder" : 27
 		},
+		"hardware_saturation" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_hardware_saturation_title",
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 28
+		},
+		"hardware_hue" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_hardware_hue_title",
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 29
+		},
 		"hdrToneMapping" :
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_v4l2_hdrToneMapping_title",
 			"default" : false,
 			"required" : true,
-			"propertyOrder" : 28
+			"propertyOrder" : 30
 		},
 		"hdrToneMappingMode" :
 		{
@@ -314,7 +331,7 @@
 			"maximum" : 2,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 29,
+			"propertyOrder" : 31,
 			"options": {
 				"dependencies": {
 					"hdrToneMapping": true
@@ -329,16 +346,16 @@
 			"maximum" : 60,
 			"default" : 1,
 			"required" : true,
-			"propertyOrder" : 30
+			"propertyOrder" : 32
 		},
 		"v4l2Encoding" :
 		{
 			"type" : "string",
 			"title" : "edt_conf_v4l2_v4l2Encoding_title",
-			"enum" : ["NONE", "mjpeg", "yuyv", "bgr16", "bgr24", "rgb32", "bgr32", "uyvy"],
+			"enum" : ["NONE", "mjpeg", "yuyv"],
 			"default" : "NONE",			
 			"required" : true,
-			"propertyOrder" : 31
+			"propertyOrder" : 33
 		}
 	},
 	"additionalProperties" : true

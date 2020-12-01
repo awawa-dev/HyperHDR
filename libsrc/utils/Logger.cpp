@@ -10,8 +10,6 @@
 #include <windows.h>
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
-#include <iostream>
-#include <cstdio>
 #endif
 #include <QDateTime>
 #include <QFileInfo>
@@ -137,8 +135,6 @@ Logger::Logger (const QString & name, LogLevel minLevel)
 		{
 			openlog (_appname.toLocal8Bit(), LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 		}
-#else
-		//freopen( "output.txt", "w", stdout );
 #endif
 	}
 }
@@ -255,7 +251,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 LoggerManager::LoggerManager()
 	: QObject()
-	, _loggerMaxMsgBufferSize(500)
+	, _loggerMaxMsgBufferSize(200)
 {
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }

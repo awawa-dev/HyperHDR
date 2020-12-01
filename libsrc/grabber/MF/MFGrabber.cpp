@@ -17,9 +17,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-//#include <sys/time.h>
-//#include <sys/mman.h>
-//#include <sys/ioctl.h>
 #include <limits.h>
 
 #include <hyperion/Hyperion.h>
@@ -29,7 +26,7 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include "grabber/QTCGrabber.h"
+#include "grabber/MFGrabber.h"
 #include "utils/ColorSys.h"
 
 
@@ -55,7 +52,7 @@
 class SourceReaderCB : public IMFSourceReaderCallback
 	{
 	public:
-		SourceReaderCB(QTCGrabber* grabber) : 
+		SourceReaderCB(MFGrabber* grabber) : 
 		  m_nRefCount(1), _grabber(grabber), m_bEOS(FALSE), m_hrStatus(S_OK)
 		{
 			InitializeCriticalSection(&m_critsec);
@@ -182,13 +179,13 @@ class SourceReaderCB : public IMFSourceReaderCallback
 	private:
 		long                m_nRefCount;        // Reference count.
 		CRITICAL_SECTION    m_critsec;
-		QTCGrabber*         _grabber;
+		MFGrabber*         _grabber;
 		BOOL                m_bEOS;
 		HRESULT             m_hrStatus;
 
 };
 
-QTCGrabber::format_t fmt_array[] =
+MFGrabber::format_t fmt_array[] =
 	{
 		{ MFVideoFormat_RGB32,	"RGB32", PixelFormat::RGB32 },
 		{ MFVideoFormat_ARGB32,"ARGB32", PixelFormat::NO_CHANGE },
@@ -243,19 +240,16 @@ QTCGrabber::format_t fmt_array[] =
 		{ MFVideoFormat_MJPG,  "MJPG", PixelFormat::MJPEG }
 	};
 
-QTCGrabber::QTCGrabber(const QString & device
+MFGrabber::MFGrabber(const QString & device
 		, unsigned width
 		, unsigned height
 		, unsigned fps
-		, unsigned input
-		, VideoStandard videoStandard
+		, unsigned input		
 		, PixelFormat pixelFormat
 		, const QString & configurationPath
 		)
-	: Grabber("V4L2:QTC:"+device)
-	, _deviceName()
-	, _videoStandard(videoStandard)
-	, _ioMethod(IO_METHOD_MMAP)
+	: Grabber("V4L2:MEDIA_FOUNDATION:"+device)
+	, _deviceName()	
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _pixelFormat(pixelFormat)
@@ -273,8 +267,7 @@ QTCGrabber::QTCGrabber(const QString & device
 	, _x_frac_max(0.75)
 	, _y_frac_max(0.75)
 	, _initialized(false)
-	, _deviceAutoDiscoverEnabled(false)
-	,_hdrToneMappingEnabled(0)	
+	, _deviceAutoDiscoverEnabled(false)	
 	, _fpsSoftwareDecimation(1)
 	, lutBuffer(NULL)
 	, _lutBufferInit(false)
@@ -288,6 +281,9 @@ QTCGrabber::QTCGrabber(const QString & device
 {	
 	// init
 	_isMF = false;
+	
+	CoInitializeEx(0, COINIT_MULTITHREADED);
+	
 	HRESULT hr = MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
 	if (!CHECK(hr))
 	{			
@@ -307,17 +303,17 @@ QTCGrabber::QTCGrabber(const QString & device
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
-	setDeviceVideoStandard(device, videoStandard);
+	setDeviceVideoStandard(device);
 	Debug(_log,"Init pixel format: %i", static_cast<int>(_pixelFormat));	
 }
 
-QString QTCGrabber::GetSharedLut()
+QString MFGrabber::GetSharedLut()
 {	
 	
 	return QCoreApplication::applicationDirPath();
 }
 
-void QTCGrabber::loadLutFile(const QString & color)
+void MFGrabber::loadLutFile(const QString & color)
 {	
 	
 	bool is_yuv = (QString::compare(color, "yuv", Qt::CaseInsensitive) == 0);
@@ -344,7 +340,7 @@ void QTCGrabber::loadLutFile(const QString & color)
 			err = fopen_s(&file, QSTRING_CSTR(fileName3d), "rb");
 		}
 				
-		if( err == 0 )
+		if( err == 0 && file != 0)
 		{
 			size_t length;
 			Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
@@ -390,33 +386,43 @@ void QTCGrabber::loadLutFile(const QString & color)
 	}					
 }
 
-void QTCGrabber::setFpsSoftwareDecimation(int decimation)
+void MFGrabber::setFpsSoftwareDecimation(int decimation)
 {
 	_fpsSoftwareDecimation = decimation;
 	Debug(_log,"setFpsSoftwareDecimation to: %i", decimation);
 }
 
-void QTCGrabber::setHdrToneMappingEnabled(int mode)
+int MFGrabber::getHdrToneMappingEnabled()
 {
-	_hdrToneMappingEnabled = mode;
-	if (lutBuffer!=NULL || !mode)
-		Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
-	else
-		Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
-		
-	if (_QTCWorkerManager.isActive())	
-	{
-		Debug(_log,"setHdrToneMappingMode replacing LUT");
-		_QTCWorkerManager.Stop();
-		if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
-			loadLutFile("yuv");
-		else
-			loadLutFile("rgb");				
-		_QTCWorkerManager.Start();
-	}
+	return _hdrToneMappingEnabled;
 }
 
-QTCGrabber::~QTCGrabber()
+void MFGrabber::setHdrToneMappingEnabled(int mode)
+{
+	if (_hdrToneMappingEnabled != mode || lutBuffer == NULL)
+	{
+		_hdrToneMappingEnabled = mode;
+		if (lutBuffer!=NULL || !mode)
+			Debug(_log,"setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
+		else
+			Warning(_log,"setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");	
+			
+		if (_MFWorkerManager.isActive())	
+		{
+			Debug(_log,"setHdrToneMappingMode replacing LUT and restarting");
+			_MFWorkerManager.Stop();
+			if ((_pixelFormat == PixelFormat::UYVY) || (_pixelFormat == PixelFormat::YUYV))
+				loadLutFile("yuv");
+			else
+				loadLutFile("rgb");				
+			_MFWorkerManager.Start();
+		}
+	}
+	else
+		Debug(_log,"setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1)? "Fullscreen": "Border mode") );
+}
+
+MFGrabber::~MFGrabber()
 {	
 	if (lutBuffer!=NULL)
 		free(lutBuffer);	
@@ -444,17 +450,17 @@ QTCGrabber::~QTCGrabber()
 	}
 }
 
-void QTCGrabber::uninit()
+void MFGrabber::uninit()
 {
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
-		Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log,"Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 		stop();
 	}
 }
 
-bool QTCGrabber::init()
+bool MFGrabber::init()
 {
 	Debug(_log,"init");	
 	
@@ -464,6 +470,8 @@ bool QTCGrabber::init()
 		QString foundDevice = "";
 		int     foundIndex = -1;
 		int     bestGuess = -1;
+		int     bestGuessMinX = INT_MAX;
+		int     bestGuessMinFPS = INT_MAX;
 		bool    autoDiscovery = (QString::compare(_deviceName, "auto", Qt::CaseInsensitive) == 0 );
 		
 		getV4Ldevices(true);
@@ -497,7 +505,7 @@ bool QTCGrabber::init()
 		
 		
 			
-		QTCGrabber::DeviceProperties dev = _deviceProperties[foundDevice];
+		MFGrabber::DeviceProperties dev = _deviceProperties[foundDevice];
 		
 		Debug(_log,  "Searching for %s %d x %d @ %d fps (%s)", QSTRING_CSTR(foundDevice), _width, _height,_fps, QSTRING_CSTR(pixelFormatToString(_enc)));
 		
@@ -505,35 +513,48 @@ bool QTCGrabber::init()
 		
 		for( int i=0; i<dev.valid.count() && foundIndex < 0; ++i )		
 		{
-			auto val = dev.valid[i];
+			bool strict = false;
+			const auto& val = dev.valid[i];
 			
-			if (bestGuess==-1)
+			if (bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && val.fps <= bestGuessMinFPS && val.fps >= 10))
+			{
 				bestGuess = i;
+				bestGuessMinFPS = val.fps;
+				bestGuessMinX = val.x;
+			}
 			
 			if(_width && _height)
 			{				
+				strict = true;
 				if (val.x != _width || val.y != _height)
 					continue;				
 			}
 					
 			if(_fps && _fps!=15)
-			{							
+			{	
+				strict = true;
 				if (val.fps != _fps)
 					continue;
 			}
 			
 			if(_enc != PixelFormat::NO_CHANGE)
 			{
+				strict = true;
 				if (val.pf != _enc)
 					continue;
 			}
 						
-			foundIndex = i;
+			if (strict)
+				foundIndex = i;
 		}
 		
 		if (foundIndex < 0 && bestGuess >= 0)
 		{
-			Debug(_log, "Forcing best guess");
+			if (!autoDiscovery)
+				Warning(_log, "Selected resolution not found in supported modes. Forcing best guess");
+			else
+				Warning(_log, "Forcing best guess");
+			
 			foundIndex = bestGuess;
 		}
 		
@@ -552,7 +573,7 @@ bool QTCGrabber::init()
 
 
 
-QString QTCGrabber::identify_format(const GUID format, PixelFormat& pixelformat)
+QString MFGrabber::identify_format(const GUID format, PixelFormat& pixelformat)
 {	
 	for (int i=0; i<sizeof(fmt_array)/sizeof(fmt_array[0]); i++)
 		if (IsEqualGUID(format, fmt_array[i].format_id))
@@ -567,7 +588,7 @@ QString QTCGrabber::identify_format(const GUID format, PixelFormat& pixelformat)
 	return "<unsupported>";
 }
 
-QString QTCGrabber::FormatRes(int w,int h, QString format)
+QString MFGrabber::FormatRes(int w,int h, QString format)
 {
 	QString ws = QString::number(w);
 	QString hs = QString::number(h);
@@ -580,7 +601,7 @@ QString QTCGrabber::FormatRes(int w,int h, QString format)
 	return ws+"x"+hs+" "+format;
 }
 
-QString QTCGrabber::FormatFrame(int fr)
+QString MFGrabber::FormatFrame(int fr)
 {
 	QString frame = QString::number(fr);
 	
@@ -590,12 +611,12 @@ QString QTCGrabber::FormatFrame(int fr)
 	return frame;
 }
 
-void QTCGrabber::getV4Ldevices()
+void MFGrabber::getV4Ldevices()
 {
 	getV4Ldevices(false);
 }
 
-void QTCGrabber::getV4Ldevices(bool silent)
+void MFGrabber::getV4Ldevices(bool silent)
 {	
 	QStringList result;	
 	HRESULT hr;
@@ -639,7 +660,7 @@ void QTCGrabber::getV4Ldevices(bool silent)
 							IMFMediaSource *pSource = NULL;
 							
 								
-							QTCGrabber::DeviceProperties properties;
+							MFGrabber::DeviceProperties properties;
 							properties.name = QString::fromUtf16((const ushort*)symlink);
 								
 							Debug(_log, "Found capture device: %s", QSTRING_CSTR(dev));	
@@ -692,25 +713,34 @@ void QTCGrabber::getV4Ldevices(bool silent)
 															QString sFrame = FormatFrame(framerate);
 															QString resolution = FormatRes(w,h,sFormat);
 															QString displayResolutions = FormatRes(w,h,"");
-																																												
-
-															if (!properties.displayResolutions.contains(displayResolutions))
-																properties.displayResolutions << displayResolutions;
 															
-															if (!properties.framerates.contains(sFrame))
-																properties.framerates << sFrame;
-															
-															DevicePropertiesItem di; 			
-															di.x = w;
-															di.y = h;
-															di.fps = framerate;
-															di.fps_a = fr1;
-															di.fps_b = fr2;
-															di.pf = pixelformat;
-															di.guid = format;
-															properties.valid.append(di);
-															if (!silent)
-																Debug(_log,  "*%s %d x %d @ %d fps %s (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(sFormat),QSTRING_CSTR(pixelFormatToString(di.pf)));
+															if (properties.name.indexOf("usb#vid_534d&pid_2109", Qt::CaseInsensitive) != -1 && 
+																w == 1920 && h == 1080 && framerate == 60)
+															{
+																if (!silent)
+																	Debug(_log,  "BLACKLIST %s %d x %d @ %d fps %s (%s)", QSTRING_CSTR(dev), w, h, framerate, QSTRING_CSTR(sFormat),QSTRING_CSTR(pixelFormatToString(pixelformat)));
+															}
+															else
+															{
+																if (!properties.displayResolutions.contains(displayResolutions))
+																	properties.displayResolutions << displayResolutions;
+																
+																if (!properties.framerates.contains(sFrame))
+																	properties.framerates << sFrame;
+																
+																DevicePropertiesItem di; 			
+																di.x = w;
+																di.y = h;
+																di.fps = framerate;
+																di.fps_a = fr1;
+																di.fps_b = fr2;
+																di.pf = pixelformat;
+																di.guid = format;
+																properties.valid.append(di);
+																
+																if (!silent)
+																	Debug(_log,  "%s %d x %d @ %d fps %s (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(sFormat),QSTRING_CSTR(pixelFormatToString(di.pf)));
+															}
 														}
 														//else
 														//	Debug(_log,  "%s %d x %d @ %d fps %s", QSTRING_CSTR(properties.name), w, h, fr1/fr2, QSTRING_CSTR(sFormat));
@@ -743,7 +773,7 @@ void QTCGrabber::getV4Ldevices(bool silent)
 	}			
 }
 
-void QTCGrabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
+void MFGrabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
 	_noSignalThresholdColor.red   = uint8_t(255*redSignalThreshold);
 	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
@@ -753,7 +783,7 @@ void QTCGrabber::setSignalThreshold(double redSignalThreshold, double greenSigna
 	Info(_log, "Signal threshold set to: {%d, %d, %d} and frames: %d", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold );
 }
 
-void QTCGrabber::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)
+void MFGrabber::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)
 {
 	// rainbow 16 stripes 0.47 0.2 0.49 0.8
 	// unicolor: 0.25 0.25 0.75 0.75
@@ -766,7 +796,7 @@ void QTCGrabber::setSignalDetectionOffset(double horizontalMin, double verticalM
 	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
 }
 
-void	QTCGrabber::ResetCounter(uint64_t from)
+void	MFGrabber::ResetCounter(uint64_t from)
 {
 	frameStat.frameBegin = from;
 	frameStat.averageFrame = 0;
@@ -775,18 +805,18 @@ void	QTCGrabber::ResetCounter(uint64_t from)
 	frameStat.segment = 0;
 }
 
-bool QTCGrabber::start()
+bool MFGrabber::start()
 {
 	
 	try
 	{
-		ResetCounter(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
-		_QTCWorkerManager.Start();
+		ResetCounter(QDateTime::currentMSecsSinceEpoch());
+		_MFWorkerManager.Start();
 				
-		if (_QTCWorkerManager.workersCount<=1)
-			Info(_log, "Multithreading for QTC is disabled. Available thread's count %d",_QTCWorkerManager.workersCount );
+		if (_MFWorkerManager.workersCount<=1)
+			Info(_log, "Multithreading for MEDIA_FOUNDATION is disabled. Available thread's count %d",_MFWorkerManager.workersCount );
 		else
-			Info(_log, "Multithreading for QTC is enabled. Available thread's count %d",_QTCWorkerManager.workersCount );		
+			Info(_log, "Multithreading for MEDIA_FOUNDATION is enabled. Available thread's count %d",_MFWorkerManager.workersCount );		
 		
 		if (init())
 		{			
@@ -803,11 +833,11 @@ bool QTCGrabber::start()
 	return false;
 }
 
-void QTCGrabber::stop()
+void MFGrabber::stop()
 {
 	if (_initialized)
 	{								
-		_QTCWorkerManager.Stop();				
+		_MFWorkerManager.Stop();				
 		uninit_device();		
 		_deviceProperties.clear();
 		_initialized = false;
@@ -817,7 +847,7 @@ void QTCGrabber::stop()
 
 
 
-bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
+bool MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 {
 	bool result = false;
 	PixelFormat pixelformat;
@@ -827,20 +857,25 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 	
 	Debug(_log,  "Init %s, %d x %d @ %d fps (%s) => %s", QSTRING_CSTR(deviceName), props.x, props.y, props.fps, QSTRING_CSTR(sFormat), QSTRING_CSTR(guid));
 	
-	IMFMediaSource* device;    
+	IMFMediaSource* device = NULL;    
 	IMFAttributes* pAttributes;
 	IMFAttributes* attr;
 
-	hr = MFCreateAttributes(&attr, 3);
+	hr = MFCreateAttributes(&attr, 2);
 	if (CHECK(hr))
 	{
 
 		hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
 		if (CHECK(hr))
-		{
-			WCHAR name[1024];			
+		{			
+			int size = guid.length() + 1024;
+			wchar_t *name = new wchar_t[size];			
+			memset(name, 0, size);
 			guid.toWCharArray(name);
-			hr = attr->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, name);
+			
+			hr = attr->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)name);
+			delete[] name;
+			
 			if (CHECK(hr) && _sourceReaderCB)
 			{
 				
@@ -861,11 +896,11 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 		error = QString("MFCreateAttributes_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE %1").arg(hr);
 	
 	
-	if (device)
+	if (device != NULL)
 	{
 		Debug(_log,  "Device opened");
 		
-		if (_brightness>0 || _contrast>0)					
+		if (_brightness!=0 || _contrast!=0 || _saturation!=0 || _hue!=0)					
 		{
 			
 			IAMVideoProcAmp *pProcAmp = NULL;
@@ -874,7 +909,7 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 			{
 				long lMin, lMax, lStep, lDefault, lCaps, Val;
 				
-				if (_brightness>0)
+				if (_brightness!=0)
 				{
 					hr = pProcAmp->GetRange(VideoProcAmp_Brightness, &lMin, &lMax, &lStep, &lDefault, &lCaps);
 
@@ -898,7 +933,7 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 						Error(_log, "Brigthness is not supported by the grabber");
 				}
 				
-				if (_contrast>0)
+				if (_contrast!=0)
 				{
 					hr = pProcAmp->GetRange(VideoProcAmp_Contrast, &lMin, &lMax, &lStep, &lDefault, &lCaps);
 
@@ -918,7 +953,52 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 					}
 					else
 						Error(_log, "Contrast is not supported by the grabber");
-				}					
+				}	
+
+				if (_saturation!=0)
+				{
+					hr = pProcAmp->GetRange(VideoProcAmp_Saturation, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+					if (SUCCEEDED(hr))
+					{
+						Debug(_log, "Saturation: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+						
+						hr = pProcAmp->Get(VideoProcAmp_Saturation, &Val,  &lCaps);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Current saturation set to: %i",Val);
+					
+						hr = pProcAmp->Set(VideoProcAmp_Saturation, _saturation, VideoProcAmp_Flags_Manual);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Saturation set to: %i",_saturation);
+						else
+							Error(_log, "Could not set saturation");
+					}
+					else
+						Error(_log, "Saturation is not supported by the grabber");
+				}
+				
+				
+				if (_hue!=0)
+				{
+					hr = pProcAmp->GetRange(VideoProcAmp_Hue, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+					if (SUCCEEDED(hr))
+					{
+						Debug(_log, "Hue: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+						
+						hr = pProcAmp->Get(VideoProcAmp_Hue, &Val,  &lCaps);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Current hue set to: %i",Val);
+					
+						hr = pProcAmp->Set(VideoProcAmp_Hue, _hue, VideoProcAmp_Flags_Manual);
+						if (SUCCEEDED(hr))
+							Debug(_log, "Hue set to: %i",_hue);
+						else
+							Error(_log, "Could not set hue");
+					}
+					else
+						Error(_log, "Hue is not supported by the grabber");
+				}
 				
 				pProcAmp->Release();
 			}
@@ -1069,7 +1149,7 @@ bool QTCGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 	return result;
 }
 
-void QTCGrabber::uninit_device()
+void MFGrabber::uninit_device()
 {
 	if (READER != NULL)
 	{
@@ -1078,7 +1158,7 @@ void QTCGrabber::uninit_device()
 	}
 }
 
-void QTCGrabber::start_capturing()
+void MFGrabber::start_capturing()
 {	
 	if (READER)
 	{
@@ -1089,7 +1169,7 @@ void QTCGrabber::start_capturing()
 	}	
 }
 
-void QTCGrabber::receive_image(const void *frameImageBuffer, int size, QString message)
+void MFGrabber::receive_image(const void *frameImageBuffer, int size, QString message)
 {
 	if (frameImageBuffer == NULL || size ==0)
 		Error(_log,  "Received empty image frame: %s", QSTRING_CSTR(message));
@@ -1103,7 +1183,7 @@ void QTCGrabber::receive_image(const void *frameImageBuffer, int size, QString m
 	start_capturing();
 }
 
-bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
+bool MFGrabber::process_image(const void *frameImageBuffer, int size)
 {	
 	bool frameSend = false;
 	
@@ -1124,10 +1204,10 @@ bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
 	}
 	else
 	{
-		if (_QTCWorkerManager.isActive())
+		if (_MFWorkerManager.isActive())
 		{		
 			// benchmark
-			uint64_t currentTime=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+			uint64_t currentTime= QDateTime::currentMSecsSinceEpoch();
 			long	 diff = currentTime - frameStat.frameBegin;
 			if ( diff >=1000*60)
 			{
@@ -1144,14 +1224,14 @@ bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
 				ResetCounter(currentTime);				
 			}
 			
-			if (_QTCWorkerManager.workers == nullptr)
+			if (_MFWorkerManager.workers == nullptr)
 			{	
-				_QTCWorkerManager.InitWorkers();
-				Debug(_log, "Worker's thread count  = %d", _QTCWorkerManager.workersCount);	
+				_MFWorkerManager.InitWorkers();
+				Debug(_log, "Worker's thread count  = %d", _MFWorkerManager.workersCount);	
 				
-				for (unsigned int i=0; i < _QTCWorkerManager.workersCount && _QTCWorkerManager.workers != nullptr; i++)
+				for (unsigned int i=0; i < _MFWorkerManager.workersCount && _MFWorkerManager.workers != nullptr; i++)
 				{
-					QTCWorker* _workerThread=_QTCWorkerManager.workers[i];					
+					MFWorker* _workerThread=_MFWorkerManager.workers[i];					
 					connect(_workerThread, SIGNAL(newFrameError(unsigned int, QString,unsigned int)), this , SLOT(newWorkerFrameError(unsigned int, QString,unsigned int)));
 					connect(_workerThread, SIGNAL(newFrame(unsigned int, const Image<ColorRgb> &,unsigned int,quint64)), this , SLOT(newWorkerFrame(unsigned int, const Image<ColorRgb> &, unsigned int,quint64)));
 				}
@@ -1159,41 +1239,42 @@ bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
 		    	
 			
 			
-			for (unsigned int i=0;_QTCWorkerManager.isActive() && 
-						i < _QTCWorkerManager.workersCount && 
-						_QTCWorkerManager.workers != nullptr; i++)
+			for (unsigned int i=0;_MFWorkerManager.isActive() && 
+						i < _MFWorkerManager.workersCount && 
+						_MFWorkerManager.workers != nullptr; i++)
 			{													
-				if ((_QTCWorkerManager.workers[i]->isFinished() || !_QTCWorkerManager.workers[i]->isRunning()))
+				if ((_MFWorkerManager.workers[i]->isFinished() || !_MFWorkerManager.workers[i]->isRunning()))
 					// aquire lock
-					if ( _QTCWorkerManager.workers[i]->isBusy() == false)
+					if ( _MFWorkerManager.workers[i]->isBusy() == false)
 					{		
-						QTCWorker* _workerThread = _QTCWorkerManager.workers[i];	
+						MFWorker* _workerThread = _MFWorkerManager.workers[i];	
 						frameStat.segment|=(1<<(i));
 						
 						if ((_pixelFormat==PixelFormat::UYVY || _pixelFormat==PixelFormat::YUYV)  && !_lutBufferInit)
 						{														
 							if (lutBuffer == NULL)
 								lutBuffer = (unsigned char *)malloc(LUT_FILE_SIZE + 1);
-								
-							for (int y = 0; y<256; y++)
-								for (int u= 0; u<256; u++)
-									for (int v = 0; v<256; v++)
-									{
-										uint32_t ind_lutd = LUT_INDEX(y, u, v);
-										ColorSys::yuv2rgb(y, u, v, 
-											lutBuffer[ind_lutd ], 
-											lutBuffer[ind_lutd + 1], 
-											lutBuffer[ind_lutd + 2]);
-									}				
-									
-							_lutBufferInit = true;
-										
+
+							if (lutBuffer != NULL)
+							{
+								for (int y = 0; y < 256; y++)
+									for (int u = 0; u < 256; u++)
+										for (int v = 0; v < 256; v++)
+										{
+											uint32_t ind_lutd = LUT_INDEX(y, u, v);
+											ColorSys::yuv2rgb(y, u, v,
+												lutBuffer[ind_lutd],
+												lutBuffer[ind_lutd + 1],
+												lutBuffer[ind_lutd + 2]);
+										}
+								_lutBufferInit = true;
+							}
+																	
 							Error(_log,"You forgot to put lut_lin_tables.3d file in the Hyperion configuration folder. Internal LUT table for YUV conversion has been created instead.");
 						}			
 						
 						_workerThread->setup(
-							i, 							
-							_videoMode,
+							i, 														
 							_pixelFormat,
 							(uint8_t *)frameImageBuffer, size, _width, _height, _lineLength,				
 							_subsamp, 				
@@ -1201,10 +1282,10 @@ bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
 							processFrameIndex,currentTime,_hdrToneMappingEnabled,
 							(_lutBufferInit)? lutBuffer: NULL);							
 									
-						if (_QTCWorkerManager.workersCount>1)					
-							_QTCWorkerManager.workers[i]->start();
+						if (_MFWorkerManager.workersCount>1)					
+							_MFWorkerManager.workers[i]->start();
 						else
-							_QTCWorkerManager.workers[i]->startOnThisThread();
+							_MFWorkerManager.workers[i]->startOnThisThread();
 						//Debug(_log, "Frame index = %d => send to decode to the thread = %i", processFrameIndex,i);			
 						frameSend = true;
 						break;		
@@ -1217,42 +1298,42 @@ bool QTCGrabber::process_image(const void *frameImageBuffer, int size)
 	
 }
 
-void QTCGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, unsigned int sourceCount)
+void MFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, unsigned int sourceCount)
 {
 	
 	frameStat.badFrame++;
 	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
 	
 	// get next frame	
-	if (workerIndex >_QTCWorkerManager.workersCount)
+	if (workerIndex >_MFWorkerManager.workersCount)
 		Error(_log, "Frame index = %d, index out of range", sourceCount);	
 				
-	if (workerIndex <=_QTCWorkerManager.workersCount)
-		_QTCWorkerManager.workers[workerIndex]->noBusy();	
+	if (workerIndex <=_MFWorkerManager.workersCount)
+		_MFWorkerManager.workers[workerIndex]->noBusy();	
 	
 }
 
 
-void QTCGrabber::newWorkerFrame(unsigned int workerIndex, const Image<ColorRgb>& image, unsigned int sourceCount, quint64 _frameBegin)
+void MFGrabber::newWorkerFrame(unsigned int workerIndex, const Image<ColorRgb>& image, unsigned int sourceCount, quint64 _frameBegin)
 {
 	
 	frameStat.goodFrame++;
-	frameStat.averageFrame += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-_frameBegin;
+	frameStat.averageFrame += QDateTime::currentMSecsSinceEpoch() - _frameBegin;
 	
 	//Debug(_log, "Frame index = %d <= received from the thread and it's ready", sourceCount);	
 		
 	checkSignalDetectionEnabled(image);
 	
 	// get next frame	
-	if (workerIndex >_QTCWorkerManager.workersCount)
+	if (workerIndex >_MFWorkerManager.workersCount)
 		Error(_log, "Frame index = %d, index out of range", sourceCount);	
 				
-	if (workerIndex <=_QTCWorkerManager.workersCount)
-		_QTCWorkerManager.workers[workerIndex]->noBusy();
+	if (workerIndex <=_MFWorkerManager.workersCount)
+		_MFWorkerManager.workers[workerIndex]->noBusy();
 	
 }
 
-void QTCGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
+void MFGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 {
 	if (_signalDetectionEnabled)
 	{
@@ -1307,7 +1388,7 @@ void QTCGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 	}
 }
 
-void QTCGrabber::setSignalDetectionEnable(bool enable)
+void MFGrabber::setSignalDetectionEnable(bool enable)
 {
 	if (_signalDetectionEnabled != enable)
 	{
@@ -1316,7 +1397,7 @@ void QTCGrabber::setSignalDetectionEnable(bool enable)
 	}
 }
 
-void QTCGrabber::setCecDetectionEnable(bool enable)
+void MFGrabber::setCecDetectionEnable(bool enable)
 {
 	if (_cecDetectionEnabled != enable)
 	{
@@ -1325,58 +1406,64 @@ void QTCGrabber::setCecDetectionEnable(bool enable)
 	}
 }
 
-void QTCGrabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+void MFGrabber::setDeviceVideoStandard(QString device)
 {
+	QString olddeviceName = _deviceName;
 	if (_deviceName != device)
 	{
-		bool started = _initialized;
-		uninit();
+		Debug(_log,"setDeviceVideoStandard preparing to restart MEDIA_FOUNDATION grabber. Old: '%s' new: '%s'",QSTRING_CSTR(_deviceName) , QSTRING_CSTR(device));
 		
 		_deviceName = device;
 
-		if(started) start();
+		if (!olddeviceName.isEmpty())
+		{
+			Debug(_log,"Restarting MEDIA_FOUNDATION grabber for new device");
+			uninit();
+			
+			start();
+		}
+		
 	}
 }
 
-bool QTCGrabber::setInput(int input)
+bool MFGrabber::setInput(int input)
 {
-	if(Grabber::setInput(input))
-	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
-		return true;
-	}
-	return false;
+	return true;	
 }
 
-bool QTCGrabber::setWidthHeight(int width, int height)
+bool MFGrabber::setWidthHeight(int width, int height)
 {
 	if(Grabber::setWidthHeight(width,height))
 	{
-		Debug(_log,"setWidthHeight Restarting v4l2 grabber %i",_initialized);
+		Debug(_log,"setWidthHeight preparing to restarting MEDIA_FOUNDATION grabber %i",_initialized);
 		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting MEDIA_FOUNDATION grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
 }
 
-bool QTCGrabber::setFramerate(int fps)
+bool MFGrabber::setFramerate(int fps)
 {
 	if(Grabber::setFramerate(fps))
 	{
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting MEDIA_FOUNDATION grabber");
+			uninit();
+			start();
+		}
 		return true;
 	}
 	return false;
 }
 
-QStringList QTCGrabber::getV4L2devices() const
+QStringList MFGrabber::getV4L2devices() const
 {	
 	QStringList result = QStringList();
 	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
@@ -1386,60 +1473,65 @@ QStringList QTCGrabber::getV4L2devices() const
 	return result;	
 }
 
-QString QTCGrabber::getV4L2deviceName(const QString& devicePath) const
+QString MFGrabber::getV4L2deviceName(const QString& devicePath) const
 {		
 	return devicePath;
 }
 
-QMultiMap<QString, int> QTCGrabber::getV4L2deviceInputs(const QString& devicePath) const
+QMultiMap<QString, int> MFGrabber::getV4L2deviceInputs(const QString& devicePath) const
 {	
 	return _deviceProperties.value(devicePath).inputs;
 }
 
-QStringList QTCGrabber::getResolutions(const QString& devicePath) const
+QStringList MFGrabber::getResolutions(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).displayResolutions;
 }
 
-QStringList QTCGrabber::getFramerates(const QString& devicePath) const
+QStringList MFGrabber::getFramerates(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).framerates;
 }
 
 
-void QTCGrabber::setEncoding(QString enc)
+void MFGrabber::setEncoding(QString enc)
 {
 	PixelFormat _oldEnc = _enc;
-	bool active = _QTCWorkerManager.isActive();
+	bool active = _MFWorkerManager.isActive();
 	
 	_enc = parsePixelFormat(enc);	
 	Debug(_log,"Force encoding (setEncoding): %s (%s)", QSTRING_CSTR(pixelFormatToString(_enc)), QSTRING_CSTR(pixelFormatToString(_oldEnc)));
 			
 	if (_oldEnc != _enc)
 	{
-		Debug(_log,"Restarting QTCGrabber grabber");
-		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		if (_initialized)
+		{
+			Debug(_log,"Restarting MEDIA_FOUNDATION grabber");
+			uninit();
+			start();
+		}
 	}
 }
 
-void QTCGrabber::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+void MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	if (_brightness != brightness || _contrast != contrast)
-	{
-		Debug(_log,"Set brightness to %i, contrast to %i",_brightness,_contrast);
+	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
+	{		
 		_brightness = brightness;
 		_contrast = contrast;
+		_saturation = saturation;
+		_hue = hue;
 		
-		Debug(_log,"Restarting QTCGrabber grabber");
-		
-		bool started = _initialized;
-		uninit();
-		if(started) start();
+		Debug(_log,"Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
+						
+		if (_initialized)
+		{
+			Debug(_log,"Restarting MEDIA_FOUNDATION grabber");
+			uninit();
+			start();
+		}
 	}
 	else
-		Debug(_log,"setBrightnessContrast nothing change");
+		Debug(_log,"setBrightnessContrastSaturationHue nothing changed");
 }
 

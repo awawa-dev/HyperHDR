@@ -11,7 +11,6 @@
 #include <utils/Components.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <utils/settings.h>
 
 class Grabber;
@@ -35,14 +34,14 @@ public:
 
 	static GrabberWrapper* instance;
 	static GrabberWrapper* getInstance(){ return instance; }
-
+	void setHdrToneMappingEnabled(int mode);
 	///
-	/// Starts the grabber wich produces led values with the specified update rate
+	/// Starts the grabber which produces led values with the specified update rate
 	///
 	virtual bool start();
 
 	///
-	/// Starts maybe the grabber wich produces led values with the specified update rate
+	/// Starts maybe the grabber which produces led values with the specified update rate
 	///
 	virtual void tryStart();
 
@@ -90,6 +89,12 @@ public:
 	///
 	virtual QStringList getFramerates(const QString& devicePath) const;
 
+	///
+	/// @brief Get active grabber name
+	/// @return Active grabber name
+	///
+	virtual QString getActive() const;
+
 	static QStringList availableGrabbers();
 
 public:
@@ -118,11 +123,6 @@ public slots:
 	///
 	virtual void action() = 0;
 
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	virtual void setVideoMode(VideoMode videoMode);
 
 	///
 	/// Set the crop values
@@ -145,6 +145,7 @@ signals:
 	/// @brief Emit the final processed image
 	///
 	void systemImage(const QString& name, const Image<ColorRgb>& image);
+	void HdrChanged(int mode);
 
 private slots:
 	/// @brief Handle a source request event from Hyperion.

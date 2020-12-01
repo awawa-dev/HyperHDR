@@ -2,7 +2,6 @@
 
 // util
 #include <utils/Logger.h>
-#include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 
@@ -28,6 +27,12 @@ class HyperionIManager : public QObject
 	Q_OBJECT
 
 public:
+	struct PendingRequests
+	{
+		QObject *caller;
+		int     tan;
+	};
+
 	// global instance pointer
 	static HyperionIManager* getInstance() { return HIMinstance; }
 	static HyperionIManager* HIMinstance;
@@ -54,11 +59,11 @@ public slots:
 
 	///
 	/// @brief Start a Hyperion instance
-	/// @param instance  Instance index
-	/// @param block     If true return when thread has been started
+	/// @param instance     Instance index
+	/// @param block        If true return when thread has been started
 	/// @return Return true on success, false if not found in db
 	///
-	bool startInstance(quint8 inst, bool block = false);
+	bool startInstance(quint8 inst, bool block = false, QObject *caller = nullptr, int tan = 0);
 
 	///
 	/// @brief Stop a Hyperion instance
@@ -110,6 +115,13 @@ signals:
 	///
 	void change();
 
+	///
+	/// @brief Emits when the user has requested to start a instance
+	/// @param  caller  The origin caller instance who requested
+	/// @param  tan     The tan that was part of the request
+	///
+	void startInstanceResponse(QObject *caller, const int &tan);
+
 signals:
 	///////////////////////////////////////
 	/// FROM HYPERIONDAEMON TO HYPERION ///
@@ -118,7 +130,6 @@ signals:
 	///
 	/// @brief PIPE videoMode back to Hyperion
 	///
-	void newVideoMode(VideoMode mode);
 	void newVideoModeHdr(int hdr);
 
 	///////////////////////////////////////
@@ -133,8 +144,8 @@ signals:
 	///
 	/// @brief PIPE videoMode request changes from Hyperion to HyperionDaemon
 	///
-	void requestVideoMode(VideoMode mode);
 	void requestVideoModeHdr(int hdr);
+
 	///
 	/// @brief PIPE component state changes from Hyperion to HyperionDaemon
 	///
@@ -157,7 +168,7 @@ private:
 	/// @brief Construct the Manager
 	/// @param The root path of all userdata
 	///
-	HyperionIManager(const QString& rootPath, QObject* parent = nullptr);
+	HyperionIManager(const QString& rootPath, QObject* parent = nullptr, bool readonlyMode = false);
 
 	///
 	/// @brief Start all instances that are marked as enabled in db. Non blocking
@@ -181,4 +192,9 @@ private:
 	const QString _rootPath;
 	QMap<quint8, Hyperion*> _runningInstances;
 	QList<quint8> _startQueue;
+
+	bool _readonlyMode;
+
+	/// All pending requests
+	QMap<quint8, PendingRequests> _pendingRequests;
 };

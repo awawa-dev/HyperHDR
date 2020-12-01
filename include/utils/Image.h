@@ -102,7 +102,7 @@ public:
 	{
 		return _d_ptr->height();
 	}
-	
+
 	///
 	/// Returns a reference to a specified pixel in the image
 	///

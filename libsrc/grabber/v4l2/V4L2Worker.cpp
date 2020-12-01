@@ -106,7 +106,7 @@ V4L2Worker::~V4L2Worker(){
 #endif			
 }
 
-void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, VideoMode __videoMode,PixelFormat __pixelFormat, 
+void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, PixelFormat __pixelFormat, 
 			uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 			int __subsamp, 
 			unsigned  __cropLeft, unsigned  __cropTop, 
@@ -116,7 +116,6 @@ void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Video
 	_workerIndex = __workerIndex;  
 	memcpy(&_v4l2Buf,__v4l2Buf,sizeof (v4l2_buffer));
 	_lineLength = __lineLength;
-	_videoMode = __videoMode;
 	_pixelFormat = __pixelFormat;
 	sharedData = _sharedData;
 	size = _size;
@@ -157,8 +156,7 @@ void V4L2Worker::runMe()
 		{
 			Image<ColorRgb> image(_width, _height);
 			
-			ImageResampler::processImage(
-				_videoMode,
+			ImageResampler::processImage(				
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
 				sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				

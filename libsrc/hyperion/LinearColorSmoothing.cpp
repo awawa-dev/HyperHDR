@@ -83,7 +83,8 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 	_targetValues = ledValues;
 
 	// received a new target color
-	if (_previousValues.empty())
+	if ( _previousValues.empty() ||
+		 ((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 *_updateInterval , (int64_t)200)) )
 	{
 		// not initialized yet
 		_previousTime = QDateTime::currentMSecsSinceEpoch();

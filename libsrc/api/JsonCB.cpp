@@ -39,7 +39,7 @@ JsonCB::JsonCB(QObject* parent)
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
+	<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -72,12 +72,10 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 
 	if(type == "priorities-update")
 	{
-		if(unsubscribe){
+		if (unsubscribe)
 			disconnect(_prioMuxer,0 ,0 ,0);
-		} else {
+		else
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-			connect(_prioMuxer, &PriorityMuxer::autoSelectChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-		}
 	}
 
 	if(type == "imageToLedMapping-update")
@@ -94,14 +92,6 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			disconnect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange);
 		else
 			connect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
-	}
-
-	if(type == "videomode-update")
-	{
-		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange);
-		else
-			connect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange, Qt::UniqueConnection);
 	}
 	
 	if(type == "videomodehdr-update")
@@ -363,13 +353,6 @@ void JsonCB::handleAdjustmentChange()
 	}
 
 	doCallback("adjustment-update", QVariant(adjustmentArray));
-}
-
-void JsonCB::handleVideoModeChange(VideoMode mode)
-{
-	QJsonObject data;
-	data["videomode"] = QString(videoMode2String(mode));
-	doCallback("videomode-update", QVariant(data));
 }
 
 void JsonCB::handleVideoModeHdrChange(int hdr)

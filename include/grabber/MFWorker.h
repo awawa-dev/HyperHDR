@@ -16,7 +16,6 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-#include <grabber/VideoStandard.h>
 #include <utils/Components.h>
 
 
@@ -28,16 +27,16 @@
 #endif
 
 /// MT worker for V4L2 devices
-class QTCWorkerManager;
-class QTCWorker : public  QThread
+class MFWorkerManager;
+class MFWorker : public  QThread
 {
 	Q_OBJECT	
-	friend class QTCWorkerManager;
+	friend class MFWorkerManager;
 	
 	public:	
 		void setup(
 				unsigned int _workerIndex, 
-				VideoMode __videoMode, PixelFormat __pixelFormat,
+				PixelFormat __pixelFormat,
 				uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 				int __subsamp, 
 				unsigned  __cropLeft, unsigned  __cropTop, 
@@ -49,8 +48,8 @@ class QTCWorker : public  QThread
 		bool isBusy();
 		void noBusy();
 		
-		QTCWorker();
-		~QTCWorker();	
+		MFWorker();
+		~MFWorker();	
 	signals:
 	    	void newFrame(unsigned int workerIndex, const Image<ColorRgb>& data, unsigned int sourceCount, quint64 _frameBegin);	
 	    	void newFrameError(unsigned int workerIndex, QString,unsigned int sourceCount);   
@@ -67,8 +66,7 @@ class QTCWorker : public  QThread
 	static	volatile bool	_isActive;
 		volatile bool  _isBusy;
 		QSemaphore	_semaphore;
-		unsigned int 	_workerIndex;		
-		VideoMode 	_videoMode;	
+		unsigned int 	_workerIndex;				
 		PixelFormat	_pixelFormat;		
 		uint8_t* _localData;
 		int 	 _localDataSize;
@@ -87,13 +85,13 @@ class QTCWorker : public  QThread
 		unsigned char*	lutBuffer;
 };
 
-class QTCWorkerManager : public  QObject
+class MFWorkerManager : public  QObject
 {
 	Q_OBJECT
 
 public:
-	QTCWorkerManager();
-	~QTCWorkerManager();
+	MFWorkerManager();
+	~MFWorkerManager();
 	
 	bool isActive();
 	void InitWorkers();
@@ -102,5 +100,5 @@ public:
 	
 	// MT workers
 	unsigned int	workersCount;
-	QTCWorker**		workers;
+	MFWorker**		workers;
 };

@@ -441,3 +441,18 @@ pre {
     box-shadow: 0px 2px 10px 0px rgba(18, 18, 18, 0.4);
     color: #DDD;
 }
+
+/*////////////////////////////////////////////////////////////////////////*/
+code.db_info {
+	color: LightGreen !important;
+}
+code.db_debug {
+	color: LemonChiffon !important;
+}
+code.db_warning {
+	color: LightPink !important;
+}
+code.db_error {
+	color: #FF7070 !important;
+}
+/*////////////////////////////////////////////////////////////////////////*/

@@ -21,13 +21,13 @@
 #include <QDirIterator>
 #include <QFileInfo>
 
-#include "grabber/QTCWorker.h"
+#include "grabber/MFWorker.h"
 
 
 
-volatile bool	QTCWorker::_isActive = false;
+volatile bool	MFWorker::_isActive = false;
 
-QTCWorkerManager::QTCWorkerManager():	
+MFWorkerManager::MFWorkerManager():	
 	workers(nullptr)	
 {
 	int select = QThread::idealThreadCount();
@@ -42,7 +42,7 @@ QTCWorkerManager::QTCWorkerManager():
 	workersCount = std::max(select, 1);
 }
 
-QTCWorkerManager::~QTCWorkerManager()
+MFWorkerManager::~MFWorkerManager()
 {
 	if (workers!=nullptr)
 	{
@@ -57,27 +57,27 @@ QTCWorkerManager::~QTCWorkerManager()
 	}	
 }
 
-void QTCWorkerManager::Start()
+void MFWorkerManager::Start()
 {
-	QTCWorker::_isActive = true;
+	MFWorker::_isActive = true;
 }
 
-void QTCWorkerManager::InitWorkers()
+void MFWorkerManager::InitWorkers()
 {	
 	if (workersCount>=1)
 	{
-		workers = new QTCWorker*[workersCount];
+		workers = new MFWorker*[workersCount];
 					
 		for (unsigned i=0;i<workersCount;i++)
 		{								
-			workers[i] = new QTCWorker();
+			workers[i] = new MFWorker();
 		}
 	}
 }
 
-void QTCWorkerManager::Stop()
+void MFWorkerManager::Stop()
 {
-	QTCWorker::_isActive =  false;
+	MFWorker::_isActive =  false;
 
 	if (workers != nullptr)
 	{
@@ -90,12 +90,12 @@ void QTCWorkerManager::Stop()
 	}
 }
 
-bool QTCWorkerManager::isActive()
+bool MFWorkerManager::isActive()
 {
-	return QTCWorker::_isActive;
+	return MFWorker::_isActive;
 }
 
-QTCWorker::QTCWorker():
+MFWorker::MFWorker():
 		_localData(nullptr),
 		_localDataSize(0),
 		_decompress(nullptr),
@@ -105,7 +105,7 @@ QTCWorker::QTCWorker():
 	
 }
 
-QTCWorker::~QTCWorker(){
+MFWorker::~MFWorker(){
 	
 	if (_decompress == nullptr)
 		tjDestroy(_decompress);
@@ -118,7 +118,7 @@ QTCWorker::~QTCWorker(){
 	}
 }
 
-void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFormat __pixelFormat, 
+void MFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat, 
 			uint8_t * _sharedData, int __size,int __width, int __height, int __lineLength,
 			int __subsamp, 
 			unsigned  __cropLeft, unsigned  __cropTop, 
@@ -127,7 +127,6 @@ void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFor
 {
 	_workerIndex = __workerIndex;  	
 	_lineLength = __lineLength;
-	_videoMode = __videoMode;
 	_pixelFormat = __pixelFormat;		
 	_size = __size;
 	_width = __width;
@@ -156,12 +155,12 @@ void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFor
 	memcpy(_localData, _sharedData, __size);	
 }
 
-void QTCWorker::run()
+void MFWorker::run()
 {
 	runMe();	
 }
 
-void QTCWorker::runMe()
+void MFWorker::runMe()
 {
 	if (_isActive && _width > 0 && _height >0)
 	{
@@ -174,8 +173,7 @@ void QTCWorker::runMe()
 			
 			Image<ColorRgb> image=Image<ColorRgb>();
 			
-			ImageResampler::processImage(
-				_videoMode,
+			ImageResampler::processImage(				
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
 				_localData , _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
@@ -185,12 +183,12 @@ void QTCWorker::runMe()
 	}		
 }
 
-void QTCWorker::startOnThisThread()
+void MFWorker::startOnThisThread()
 {	
 	runMe();
 }
 
-bool QTCWorker::isBusy()
+bool MFWorker::isBusy()
 {	
 	bool temp;
 	_semaphore.acquire();
@@ -205,7 +203,7 @@ bool QTCWorker::isBusy()
 	return temp;
 }
 
-void QTCWorker::noBusy()
+void MFWorker::noBusy()
 {	
 	_semaphore.acquire();
 	_isBusy = false;
@@ -213,7 +211,7 @@ void QTCWorker::noBusy()
 }
 
 
-void QTCWorker::process_image_jpg_mt()
+void MFWorker::process_image_jpg_mt()
 {				
 	
 			
@@ -224,18 +222,24 @@ void QTCWorker::process_image_jpg_mt()
 	
 	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &_subsamp) != 0)
 	{	
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);				
-		return;
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(_workerIndex, info,_currentFrame);				
+			return;
+		}
 	}
 	
 	Image<ColorRgb> srcImage(_width, _height);
 	
 	if (tjDecompress2(_decompress, _localData , _size, (unsigned char*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 	{		
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);
-		return;		
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(_workerIndex, info,_currentFrame);
+			return;		
+		}
 	}		
 	
 	// got image, process it	
@@ -285,7 +289,7 @@ void QTCWorker::process_image_jpg_mt()
 	source += 3;	\
 }
 
-void QTCWorker::applyLUT(unsigned char* _source, unsigned int width ,unsigned int height)
+void MFWorker::applyLUT(unsigned char* _source, unsigned int width ,unsigned int height)
 {	
     	// apply LUT table mapping
     	// bytes are in order of RGB 3 bytes because of TJPF_RGB   
