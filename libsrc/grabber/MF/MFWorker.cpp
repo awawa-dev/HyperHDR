@@ -21,13 +21,13 @@
 #include <QDirIterator>
 #include <QFileInfo>
 
-#include "grabber/QTCWorker.h"
+#include "grabber/MFWorker.h"
 
 
 
-volatile bool	QTCWorker::_isActive = false;
+volatile bool	MFWorker::_isActive = false;
 
-QTCWorkerManager::QTCWorkerManager():	
+MFWorkerManager::MFWorkerManager():	
 	workers(nullptr)	
 {
 	int select = QThread::idealThreadCount();
@@ -42,7 +42,7 @@ QTCWorkerManager::QTCWorkerManager():
 	workersCount = std::max(select, 1);
 }
 
-QTCWorkerManager::~QTCWorkerManager()
+MFWorkerManager::~MFWorkerManager()
 {
 	if (workers!=nullptr)
 	{
@@ -57,27 +57,27 @@ QTCWorkerManager::~QTCWorkerManager()
 	}	
 }
 
-void QTCWorkerManager::Start()
+void MFWorkerManager::Start()
 {
-	QTCWorker::_isActive = true;
+	MFWorker::_isActive = true;
 }
 
-void QTCWorkerManager::InitWorkers()
+void MFWorkerManager::InitWorkers()
 {	
 	if (workersCount>=1)
 	{
-		workers = new QTCWorker*[workersCount];
+		workers = new MFWorker*[workersCount];
 					
 		for (unsigned i=0;i<workersCount;i++)
 		{								
-			workers[i] = new QTCWorker();
+			workers[i] = new MFWorker();
 		}
 	}
 }
 
-void QTCWorkerManager::Stop()
+void MFWorkerManager::Stop()
 {
-	QTCWorker::_isActive =  false;
+	MFWorker::_isActive =  false;
 
 	if (workers != nullptr)
 	{
@@ -90,12 +90,29 @@ void QTCWorkerManager::Stop()
 	}
 }
 
-bool QTCWorkerManager::isActive()
+bool MFWorkerManager::isActive()
 {
-	return QTCWorker::_isActive;
+	return MFWorker::_isActive;
 }
 
-QTCWorker::QTCWorker():
+MFWorker::MFWorker():
+
+		_workerIndex(0),
+		_lineLength(0),
+		_pixelFormat(PixelFormat::NO_CHANGE),
+		_size(0),
+		_width(0),
+		_height(0),
+		_subsamp(0),
+		_cropLeft(0),
+		_cropTop(0),
+		_cropBottom(0),
+		_cropRight(0),
+		_currentFrame(0),
+		_frameBegin(0),
+		_hdrToneMappingEnabled(0),
+		lutBuffer(0),
+
 		_localData(nullptr),
 		_localDataSize(0),
 		_decompress(nullptr),
@@ -105,7 +122,7 @@ QTCWorker::QTCWorker():
 	
 }
 
-QTCWorker::~QTCWorker(){
+MFWorker::~MFWorker(){
 	
 	if (_decompress == nullptr)
 		tjDestroy(_decompress);
@@ -118,7 +135,7 @@ QTCWorker::~QTCWorker(){
 	}
 }
 
-void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFormat __pixelFormat, 
+void MFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat, 
 			uint8_t * _sharedData, int __size,int __width, int __height, int __lineLength,
 			int __subsamp, 
 			unsigned  __cropLeft, unsigned  __cropTop, 
@@ -127,7 +144,6 @@ void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFor
 {
 	_workerIndex = __workerIndex;  	
 	_lineLength = __lineLength;
-	_videoMode = __videoMode;
 	_pixelFormat = __pixelFormat;		
 	_size = __size;
 	_width = __width;
@@ -153,15 +169,17 @@ void QTCWorker::setup(unsigned int __workerIndex, VideoMode __videoMode,PixelFor
 		_localData = (uint8_t *) malloc(__size+1);
 		_localDataSize = __size;		
 	}
-	memcpy(_localData, _sharedData, __size);	
+
+	if (_localData != NULL)
+		memcpy(_localData, _sharedData, __size);	
 }
 
-void QTCWorker::run()
+void MFWorker::run()
 {
 	runMe();	
 }
 
-void QTCWorker::runMe()
+void MFWorker::runMe()
 {
 	if (_isActive && _width > 0 && _height >0)
 	{
@@ -171,11 +189,12 @@ void QTCWorker::runMe()
 		}
 		else
 		{
+			int outputWidth = (_width - _cropLeft - _cropRight);
+			int outputHeight = (_height - _cropTop - _cropBottom);
+
+			Image<ColorRgb> image(outputWidth, outputHeight);
 			
-			Image<ColorRgb> image=Image<ColorRgb>();
-			
-			ImageResampler::processImage(
-				_videoMode,
+			ImageResampler::processImage(				
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
 				_localData , _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
 				
@@ -185,12 +204,12 @@ void QTCWorker::runMe()
 	}		
 }
 
-void QTCWorker::startOnThisThread()
+void MFWorker::startOnThisThread()
 {	
 	runMe();
 }
 
-bool QTCWorker::isBusy()
+bool MFWorker::isBusy()
 {	
 	bool temp;
 	_semaphore.acquire();
@@ -205,7 +224,7 @@ bool QTCWorker::isBusy()
 	return temp;
 }
 
-void QTCWorker::noBusy()
+void MFWorker::noBusy()
 {	
 	_semaphore.acquire();
 	_isBusy = false;
@@ -213,42 +232,45 @@ void QTCWorker::noBusy()
 }
 
 
-void QTCWorker::process_image_jpg_mt()
-{				
-	
-			
-		
+void MFWorker::process_image_jpg_mt()
+{										
 	if (_decompress == nullptr)	
 		_decompress = tjInitDecompress();	
 	
 	
 	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &_subsamp) != 0)
 	{	
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);				
-		return;
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(_workerIndex, info,_currentFrame);				
+			return;
+		}
 	}
 	
 	Image<ColorRgb> srcImage(_width, _height);
 	
 	if (tjDecompress2(_decompress, _localData , _size, (unsigned char*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 	{		
-		QString info = QString(tjGetErrorStr());
-		emit newFrameError(_workerIndex, info,_currentFrame);
-		return;		
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			QString info = QString(tjGetErrorStr());
+			emit newFrameError(_workerIndex, info,_currentFrame);
+			return;		
+		}
 	}		
 	
 	// got image, process it	
-	if ( !(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
+	if ( !(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
 	{
 		// apply LUT	
-		applyLUT((unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height());
+		ImageResampler::applyLUT((unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height(), lutBuffer, _hdrToneMappingEnabled);;
 		
 		// exit
 		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);    		
 	}
 	else
-    	{    	
+    {    	
     		// calculate the output size
 		int outputWidth = (_width - _cropLeft - _cropRight);
 		int outputHeight = (_height - _cropTop - _cropBottom);
@@ -264,60 +286,15 @@ void QTCWorker::process_image_jpg_mt()
 		
 		for (unsigned int y = 0; y < destImage.height(); y++)
 		{
-			unsigned char* source = (unsigned char*)srcImage.memptr() + (y + _cropTop)*srcImage.width()*3 + _cropLeft*3;
-			unsigned char* dest = (unsigned char*)destImage.memptr() + y*destImage.width()*3;    		
-			memcpy(dest, source, destImage.width()*3);				
+			unsigned char* source = (unsigned char*)srcImage.memptr() + (static_cast<size_t>(y) + _cropTop) * srcImage.width() * 3 + static_cast<size_t>(_cropLeft) * 3;
+			unsigned char* dest = (unsigned char*)destImage.memptr() + static_cast<size_t>(y) * destImage.width() * 3;
+			memcpy(dest, source, static_cast<size_t>(destImage.width()) * 3);
 		}
 		
 		// apply LUT	
-    	applyLUT((unsigned char*)destImage.memptr(), destImage.width(), destImage.height());
+		ImageResampler::applyLUT((unsigned char*)destImage.memptr(), destImage.width(), destImage.height(), lutBuffer, _hdrToneMappingEnabled);
     		
     	// exit		
 		emit newFrame(_workerIndex, destImage, _currentFrame, _frameBegin);	
 	}
 }
-
-#define LUT(source) \
-{\
-	memcpy(buffer, source, 3); \
-	uint32_t ind_lutd = LUT_INDEX(buffer[0],buffer[1],buffer[2]);	\
-	memcpy(source, (void *) &(lutBuffer[ind_lutd]),3); \
-	source += 3;	\
-}
-
-void QTCWorker::applyLUT(unsigned char* _source, unsigned int width ,unsigned int height)
-{	
-    	// apply LUT table mapping
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB   
-    	uint8_t buffer[3];     	
-    	if (lutBuffer != NULL && _hdrToneMappingEnabled)
-    	{    		
-    		unsigned int sizeX= (width * 10)/100;
-    		unsigned int sizeY= (height *15)/100;		
-    		
-    		for (unsigned int y=0; y<height; y++)
-    		{    	
-    			unsigned char* startSource = _source + width * 3 * y;
-    			unsigned char* endSource = startSource + width * 3;
-    			
-    			if (_hdrToneMappingEnabled != 2 || y<sizeY || y>height-sizeY)
-    			{
-    				while (startSource < endSource)
-		    			LUT(startSource);
-    			}
-    			else
-    			{
-		    		for (unsigned int x=0; x<sizeX; x++)    		
-		    			LUT(startSource);
-		    			
-		    		startSource += (width-2*sizeX)*3;		    		
-		    		
-		    		while (startSource < endSource)
-		    			LUT(startSource);
-		    	}
-			}
-		
-    	}		
-}
-
-

@@ -16,7 +16,6 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-#include <grabber/VideoStandard.h>
 #include <utils/Components.h>
 #include <cec/CECEvent.h>
 #include <linux/videodev2.h>
@@ -48,7 +47,7 @@ class V4L2Worker : public  QThread
 	public:	
 		void setup(
 				unsigned int _workerIndex, v4l2_buffer* __v4l2Buf,
-				VideoMode __videoMode, PixelFormat __pixelFormat,
+				PixelFormat __pixelFormat,
 				uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
 				int __subsamp, 
 				unsigned  __cropLeft, unsigned  __cropTop, 
@@ -70,7 +69,6 @@ class V4L2Worker : public  QThread
 	private:
 		void runMe();
 		void process_image_jpg_mt();																			
-		void applyLUT(unsigned char* _source, unsigned int width ,unsigned int height);
 	#ifdef HAVE_TURBO_JPEG		
 		tjhandle 	_decompress;			
 	#endif
@@ -103,14 +101,13 @@ class V4L2Worker : public  QThread
 	#endif
 		
 	static	volatile bool	_isActive;
-		volatile bool  _isBusy;
-		QSemaphore	_semaphore;
-		unsigned int 	_workerIndex;
-		struct v4l2_buffer _v4l2Buf;
-		VideoMode 	_videoMode;	
+		volatile bool      _isBusy;
+		QSemaphore	       _semaphore;
+		unsigned int 	   _workerIndex;
+		struct v4l2_buffer _v4l2Buf;		
 		PixelFormat	_pixelFormat;		
 		uint8_t	*sharedData;
-		int		size;
+		int		_size;
 		int		_width;
 		int		_height;
 		int		_lineLength;
@@ -119,9 +116,9 @@ class V4L2Worker : public  QThread
 		unsigned	_cropTop;
 		unsigned	_cropBottom;
 		unsigned	_cropRight;
-		int		_currentFrame;
+		int		    _currentFrame;
 		uint64_t	_frameBegin;
-		uint8_t	_hdrToneMappingEnabled;
+		uint8_t	    _hdrToneMappingEnabled;
 		unsigned char*	lutBuffer;
 };
 

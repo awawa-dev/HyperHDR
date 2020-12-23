@@ -17,8 +17,7 @@ class CaptureCont : public QObject
 	Q_OBJECT
 public:
 	CaptureCont(Hyperion* hyperion);
-
-	void setSystemCaptureEnable(bool enable);
+	
 	void setV4LCaptureEnable(bool enable);
 
 private slots:
@@ -34,13 +33,7 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
-
-	///
-	/// @brief forward system image
-	/// @param image  The image
-	///
-	void handleSystemImage(const QString& name, const Image<ColorRgb>& image);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);	
 
 	///
 	/// @brief forward v4l image
@@ -53,20 +46,10 @@ private slots:
 	///
 	void setV4lInactive();
 
-	///
-	/// @brief Is called from _systemInactiveTimer to set source after specific time to inactive
-	///
-	void setSystemInactive();
 
 private:
 	/// Hyperion instance
-	Hyperion* _hyperion;
-
-	/// Reflect state of System capture and prio
-	bool _systemCaptEnabled;
-	quint8 _systemCaptPrio;
-	QString _systemCaptName;
-	QTimer* _systemInactiveTimer;
+	Hyperion* _hyperion;	
 
 	/// Reflect state of v4l capture and prio
 	bool _v4lCaptEnabled;

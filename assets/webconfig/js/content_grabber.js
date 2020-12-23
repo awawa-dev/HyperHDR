@@ -128,8 +128,7 @@ $(document).ready( function() {
 
                 conf_editor_v4l2.getEditor(path + item).enable();
               });
-
-              conf_editor_v4l2.getEditor(path + 'standard').enable();
+              
               toggleOption('device', true);
 
             } else if (val == 'auto') {
@@ -137,9 +136,6 @@ $(document).ready( function() {
                 conf_editor_v4l2.getEditor(path + item).setValue('auto');
                 conf_editor_v4l2.getEditor(path + item).disable();
               });
-
-              conf_editor_v4l2.getEditor(path + 'standard').setValue('auto');
-              conf_editor_v4l2.getEditor(path + 'standard').disable();
 
               (toggleOption('device', false), toggleOption('input', false),
                toggleOption('width', false), toggleOption('height', false),
@@ -160,7 +156,6 @@ $(document).ready( function() {
                 conf_editor_v4l2.getEditor(path + item).enable();
               });
 
-              conf_editor_v4l2.getEditor(path + 'standard').enable();
               toggleOption('device', false);
             }
           }
@@ -197,6 +192,7 @@ $(document).ready( function() {
 
     // Framegrabber
     $('#conf_cont').append(createRow('conf_cont_fg'));
+	$('#conf_cont_fg').hide();
     $('#conf_cont_fg').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
     $('#conf_cont_fg').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
 
@@ -221,7 +217,7 @@ $(document).ready( function() {
   }, true, true);
 
   conf_editor_instCapt.on('change',function() {
-    conf_editor_instCapt.validate().length ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
+    conf_editor_instCapt.validate().length || window.readOnlyMode ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
   });
 
   $('#btn_submit_instCapt').off().on('click',function() {
@@ -234,7 +230,7 @@ $(document).ready( function() {
   }, true, true);
 
   conf_editor_fg.on('change',function() {
-    conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
+    conf_editor_fg.validate().length || window.readOnlyMode ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
 
   $('#btn_submit_fg').off().on('click',function() {
@@ -247,7 +243,7 @@ $(document).ready( function() {
     }, true, true);
 
     conf_editor_v4l2.on('change',function() {
-      conf_editor_v4l2.validate().length ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
+      conf_editor_v4l2.validate().length || window.readOnlyMode ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
     });
 
     conf_editor_v4l2.on('ready', function() {
@@ -260,7 +256,7 @@ $(document).ready( function() {
         conf_editor_v4l2.getEditor('root.grabberV4L2.available_devices').setValue('auto');
 
       if (window.serverConfig.grabberV4L2.available_devices == 'auto') {
-        ['device_inputs', 'standard', 'resolutions', 'framerates'].forEach(function(item) {
+        ['device_inputs', 'resolutions', 'framerates'].forEach(function(item) {
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
         });

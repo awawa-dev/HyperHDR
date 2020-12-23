@@ -1,5 +1,7 @@
 #include "LedDeviceAdalight.h"
 
+#include <QtEndian>
+
 #include <cassert>
 
 LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
@@ -23,11 +25,11 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 	{
 
 		_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
-
+		_awa_mode = deviceConfig["awa_mode"].toBool(false);
 		// create ledBuffer
 		unsigned int totalLedCount = _ledCount;
 
-		if (_ligthBerryAPA102Mode)
+		if (_ligthBerryAPA102Mode && !_awa_mode)
 		{
 			const unsigned int startFrameSize = 4;
 			const unsigned int bytesPerRGBLed = 4;
@@ -43,15 +45,18 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
+			_ligthBerryAPA102Mode = false;
 			totalLedCount -= 1;
-			_ledBuffer.resize(_headerSize + _ledRGBCount, 0x00);
+			_ledBuffer.resize((uint16_t)_headerSize + (uint16_t)_ledRGBCount + (uint16_t)((_awa_mode)?2:0), 0x00);
+
+			if (_awa_mode)
+				Debug(_log, "Adalight driver with activated high speeed & data integration check AWA protocol");			
 		}
 
 		_ledBuffer[0] = 'A';
-		_ledBuffer[1] = 'd';
+		_ledBuffer[1] = (_awa_mode) ? 'w' : 'd';
 		_ledBuffer[2] = 'a';
-		_ledBuffer[3] = (totalLedCount >> 8) & 0xFF; // LED count high byte
-		_ledBuffer[4] = totalLedCount & 0xFF;        // LED count low byte
+		qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
 		Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,
@@ -76,9 +81,23 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 	}
 	else
 	{
-		assert(_headerSize + ledValues.size() * sizeof(ColorRgb) <= _ledBuffer.size());
+		assert((_headerSize + ledValues.size() * sizeof(ColorRgb) + ((_awa_mode) ? 2 : 0)) <= _ledBuffer.size());
 
+		
 		memcpy(_headerSize + _ledBuffer.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+
+		if (_awa_mode)
+		{			
+			uint16_t fletcher1 = 0, fletcher2 = 0;
+			uint8_t* input = (uint8_t*)ledValues.data();
+			for (uint16_t iLed = 0; iLed < ledValues.size() * sizeof(ColorRgb); iLed++, input++)
+			{
+				fletcher1 = (fletcher1 + *input) % 255;
+				fletcher2 = (fletcher2 + fletcher1) % 255;
+			}
+			_ledBuffer[_headerSize + ledValues.size() * sizeof(ColorRgb)  ] = fletcher1;
+			_ledBuffer[_headerSize + ledValues.size() * sizeof(ColorRgb)+1] = fletcher2;
+		}
 	}
 
 	int rc = writeBytes(_ledBuffer.size(), _ledBuffer.data());

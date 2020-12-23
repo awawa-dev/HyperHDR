@@ -7,15 +7,13 @@ if (ENABLE_QTC)
 find_path(TurboJPEG_INCLUDE_DIRS
 	NAMES turbojpeg.h
 	PATHS
-	"C:/libjpeg-turbo64"
-	PATH_SUFFIXES include
+	"${CMAKE_SOURCE_DIR}/resources/include/jpeg"
 )
 
 find_library(TurboJPEG_LIBRARY
 	NAMES turbojpeg turbojpeg-static
 	PATHS
-	"C:/libjpeg-turbo64"
-	PATH_SUFFIXES bin lib
+	"${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
 )
 else()
 find_path(TurboJPEG_INCLUDE_DIRS

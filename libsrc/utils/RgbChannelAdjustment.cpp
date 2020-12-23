@@ -15,10 +15,6 @@ RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uin
 	setAdjustment(adjustR, adjustG, adjustB);
 }
 
-RgbChannelAdjustment::~RgbChannelAdjustment()
-{
-}
-
 void RgbChannelAdjustment::resetInitialized()
 {
 	//Debug(_log, "initialize mapping with %d,%d,%d", _adjust[RED], _adjust[GREEN], _adjust[BLUE]);
@@ -26,7 +22,7 @@ void RgbChannelAdjustment::resetInitialized()
 }
 
 void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
-{			
+{
 	_adjust[RED]   = adjustR;
 	_adjust[GREEN] = adjustG;
 	_adjust[BLUE]  = adjustB;

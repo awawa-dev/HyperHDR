@@ -32,22 +32,22 @@ endif()
 # https://cmake.org/cmake/help/v3.5/module/CPack.html
 
 SET ( CPACK_PACKAGE_NAME "HyperHDR" )
-SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
+SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "HyperHDR is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
 SET ( CPACK_PACKAGE_FILE_NAME "HyperHDR-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
-SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
-SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
-SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
-SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "Hyperion" )
+SET ( CPACK_PACKAGE_CONTACT "see_me_at@hyperhdr.blogspot.com")
+SET ( CPACK_PACKAGE_VENDOR "HyperHDR")
+SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;HyperHDR" )
+SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "HyperHDR" )
 SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png")
 
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
 SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERION_VERSION_PATCH}")
 SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
-SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
-SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
+SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;HyperHDR" )
+SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;HyperHDR" )
 
 # Define the install prefix path for cpack
 IF ( UNIX )
@@ -58,7 +58,7 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libglvnd0" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libglvnd0, xz-utils, libexpat1, libusb-1.0-0, libglib2.0-0, libfreetype6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
@@ -66,7 +66,7 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
-SET ( CPACK_RPM_PACKAGE_REQUIRES "libglvnd0" )
+SET ( CPACK_RPM_PACKAGE_REQUIRES "libglvnd0, xz-utils, libexpat1, libusb-1.0-0, libglib2.0-0, libfreetype6" )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
@@ -101,22 +101,24 @@ SET ( CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${NSIS_HYP_LOGO_VERT})
 SET ( CPACK_NSIS_DISPLAY_NAME "HyperHDR Ambient Light")
 SET ( CPACK_NSIS_PACKAGE_NAME "HyperHDR" )
 SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperiond.exe")
-SET ( CPACK_NSIS_HELP_LINK "https://hyperion-project.org/threads/sdr-hdr-1080p-4k-capable-setup-with-hyperion-ng-for-media-center.10652/")
+SET ( CPACK_NSIS_HELP_LINK "https://hyperhdr.blogspot.com/")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://github.com/awawa-dev/HyperHDR")
 SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
 SET ( CPACK_NSIS_BRANDING_TEXT "HyperHDR-${HYPERION_VERSION}")
+# custom nsis plugin directory
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
 # additional hyperiond startmenu link, won't be created if the user disables startmenu links
-SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
-SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")
+SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\HyperHDR (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
+SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\HyperHDR (Console).lnk'")
 
 
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
-#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
+#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\HyperHDR.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
+#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\HyperHDR.lnk'")
 # hyperiond desktop link
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
-#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\Hyperion.lnk\\\" ")
+#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\HyperHDR.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
+#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\HyperHDR.lnk' ")
+#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\HyperHDR.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
+#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\HyperHDR.lnk\\\" ")
 
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack

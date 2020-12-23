@@ -15,8 +15,7 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-#include <grabber/QTCWorker.h>
-#include <grabber/VideoStandard.h>
+#include <grabber/MFWorker.h>
 #include <utils/Components.h>
 
 // TurboJPEG decoder
@@ -30,7 +29,7 @@
 class SourceReaderCB;
 struct IMFSourceReader;
 
-class QTCGrabber : public Grabber
+class MFGrabber : public Grabber
 {
 	Q_OBJECT
 
@@ -57,16 +56,15 @@ public:
 		PixelFormat		pixel;
 	} format_t;
 
-	QTCGrabber(const QString & device,
+	MFGrabber(const QString & device,
 			const unsigned width,
 			const unsigned height,
 			const unsigned fps,
-			const unsigned input,
-			VideoStandard videoStandard,
+			const unsigned input,			
 			PixelFormat pixelFormat,
 			const QString & configurationPath
 	);
-	~QTCGrabber() override;
+	~MFGrabber() override;
 
 	QRectF getSignalDetectionOffset() const
 	{
@@ -75,6 +73,7 @@ public:
 
 	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
 	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
+	int  getHdrToneMappingEnabled();
 	void receive_image(const void *frameImageBuffer, int size, QString message);
 	int grabFrame(Image<ColorRgb> &);
 
@@ -108,7 +107,7 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
+	void setDeviceVideoStandard(QString device) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -158,11 +157,11 @@ public:
 	///
 	/// @brief enable HDR to SDR tone mapping (v4l2)
 	///
-	void setHdrToneMappingEnabled(int mode);
+	void setHdrToneMappingEnabled(int mode) override;
 	
 	void setEncoding(QString enc);
 	
-	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 
 public slots:
 
@@ -209,13 +208,7 @@ private:
 	QString identify_format(const GUID format, PixelFormat& pixelformat);
 
 	
-private:
-	enum io_method
-	{
-			
-			IO_METHOD_MMAP
-			
-	};
+private:	
 
 	struct buffer
 	{
@@ -232,10 +225,8 @@ private:
 
 private:
 	QString _deviceName;
-	QMap<QString, QTCGrabber::DeviceProperties> _deviceProperties;
-
-	VideoStandard       _videoStandard;
-	io_method           _ioMethod;
+	QMap<QString, MFGrabber::DeviceProperties> _deviceProperties;
+		
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 	bool				_isMF;
@@ -267,10 +258,7 @@ private:
 	double   _y_frac_max;
 
 	bool _initialized;
-	bool _deviceAutoDiscoverEnabled;
-	
-	// enable/disable HDR tone mapping
-	uint8_t       _hdrToneMappingEnabled;
+	bool _deviceAutoDiscoverEnabled;	
 	
 	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
 	int            _fpsSoftwareDecimation;
@@ -286,7 +274,7 @@ private:
 	QString        _configurationPath;		
 	
 		
-	QTCWorkerManager _QTCWorkerManager;
+	MFWorkerManager _MFWorkerManager;
 	
 	void	ResetCounter(uint64_t from);	
 	
@@ -294,6 +282,6 @@ private:
 
 	IMFSourceReader* READER;
 	
-	uint8_t _brightness,_contrast;
+	int _brightness,_contrast, _saturation, _hue;
 	//static format_t fmt_array[];
 };

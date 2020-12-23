@@ -48,6 +48,9 @@ public:
 	
 	void setSaturationGain(double saturationGain);
 	void setLuminanceGain(double luminanceGain);
+	double getSaturationGain() const;
+	double getLuminanceGain() const;
+	bool getClassicConfig() const;
 
 	/// @return The current lower brightness
 	int getBacklightThreshold() const;

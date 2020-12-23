@@ -54,7 +54,7 @@ $(document).ready( function() {
 		var components_html = "";
 		for (var idx=0; idx<components.length;idx++)
 		{
-			if(components[idx].name != "ALL")
+			if(components[idx].name != "ALL" && components[idx].name != "GRABBER")
 				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 		}
 		$("#tab_components").html(components_html);
@@ -70,7 +70,6 @@ $(document).ready( function() {
 		});
 
 		var instancename = window.currentHyperionInstanceName;
-		console.log ("instancename: ",instancename);
 
 		$('#dash_statush').html(hyperion_enabled ? '<span style="color:green">'+$.i18n('general_btn_on')+'</span>' : '<span style="color:red">'+$.i18n('general_btn_off')+'</span>');
 		$('#btn_hsc').html(hyperion_enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh', instancename)+'</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh', instancename)+'</button>');
@@ -99,19 +98,15 @@ $(document).ready( function() {
 
 
 	//determine platform
-	var grabbers = window.serverInfo.grabbers.available;
+	var grabbers = window.serverInfo.grabbers.active;
 	var html = "";
 
-	if(grabbers.indexOf('dispmanx') > -1)
-		html += 'Raspberry Pi';
-	else if(grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
-		html += 'X86';
-	else if(grabbers.indexOf('osx')  > -1)
-		html += 'OSX';
-	else if(grabbers.indexOf('amlogic')  > -1)
-		html += 'Amlogic';
+  if (grabbers.indexOf('V4L2:Media Foundation') > -1)
+    html += 'Windows (Microsoft Media Foundation)';
+  else if (grabbers.indexOf('V4L2') > -1)
+    html += 'Linux (V4L2)';
 	else
-		html += 'Framebuffer';
+		html += 'Unknown';
 
 	$('#dash_platform').html(html);
 

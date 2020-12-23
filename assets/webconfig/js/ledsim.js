@@ -72,7 +72,7 @@ $(document).ready(function() {
 
 		if(window.showOptHelp)
 		{
-			createHint('intro', $.i18n('main_ledsim_text'), 'ledsim_text');
+			createHint('intro', $.i18n('main_ledsim_text') + '<p style="color:red"> Refresh rate is greatly reduced in the preview window.</p>', 'ledsim_text');
 			$('#ledsim_text').css({'margin':'10px 15px 0px 15px'});
 			$('#ledsim_text .bs-callout').css("margin","0px")
 		}

@@ -11,11 +11,7 @@
 
 CaptureCont::CaptureCont(Hyperion* hyperion)
 	: QObject()
-	, _hyperion(hyperion)
-	, _systemCaptEnabled(false)
-	, _systemCaptPrio(0)
-	, _systemCaptName()
-	, _systemInactiveTimer(new QTimer(this))
+	, _hyperion(hyperion)	
 	, _v4lCaptEnabled(false)
 	, _v4lCaptPrio(0)
 	, _v4lCaptName()
@@ -25,12 +21,7 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	connect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
 
 	// comp changes
-	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);
-
-	// inactive timer system
-	connect(_systemInactiveTimer, &QTimer::timeout, this, &CaptureCont::setSystemInactive);
-	_systemInactiveTimer->setSingleShot(true);
-	_systemInactiveTimer->setInterval(5000);
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);	
 
 	// inactive timer v4l
 	connect(_v4lInactiveTimer, &QTimer::timeout, this, &CaptureCont::setV4lInactive);
@@ -50,40 +41,6 @@ void CaptureCont::handleV4lImage(const QString& name, const Image<ColorRgb> & im
 	}
 	_v4lInactiveTimer->start();
 	_hyperion->setInputImage(_v4lCaptPrio, image);
-}
-
-void CaptureCont::handleSystemImage(const QString& name, const Image<ColorRgb>& image)
-{
-	if(_systemCaptName != name)
-	{
-		_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER, "System", name);
-		_systemCaptName = name;
-	}
-	_systemInactiveTimer->start();
-	_hyperion->setInputImage(_systemCaptPrio, image);
-}
-
-void CaptureCont::setSystemCaptureEnable(bool enable)
-{
-	if(_systemCaptEnabled != enable)
-	{
-		if(enable)
-		{
-			_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &CaptureCont::handleSystemImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperion, &Hyperion::forwardSystemProtoMessage);
-		}
-		else
-		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, 0, 0);
-			_hyperion->clear(_systemCaptPrio);
-			_systemInactiveTimer->stop();
-			_systemCaptName = "";
-		}
-		_systemCaptEnabled = enable;
-		_hyperion->setNewComponentState(hyperion::COMP_GRABBER, enable);
-		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_GRABBER, int(_hyperion->getInstanceIndex()), enable);
-	}
 }
 
 void CaptureCont::setV4LCaptureEnable(bool enable)
@@ -119,24 +76,14 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			setV4LCaptureEnable(false); // clear prio
 			_v4lCaptPrio = obj["v4lPriority"].toInt(240);
 		}
-		if(_systemCaptPrio != obj["systemPriority"].toInt(250))
-		{
-			setSystemCaptureEnable(false); // clear prio
-			_systemCaptPrio = obj["systemPriority"].toInt(250);
-		}
 
 		setV4LCaptureEnable(obj["v4lEnable"].toBool(true));
-		setSystemCaptureEnable(obj["systemEnable"].toBool(true));
 	}
 }
 
 void CaptureCont::handleCompStateChangeRequest(hyperion::Components component, bool enable)
 {
-	if(component == hyperion::COMP_GRABBER)
-	{
-		setSystemCaptureEnable(enable);
-	}
-	else if(component == hyperion::COMP_V4L)
+	if(component == hyperion::COMP_V4L)
 	{
 		setV4LCaptureEnable(enable);
 	}
@@ -145,9 +92,4 @@ void CaptureCont::handleCompStateChangeRequest(hyperion::Components component, b
 void CaptureCont::setV4lInactive()
 {
 	_hyperion->setInputInactive(_v4lCaptPrio);
-}
-
-void CaptureCont::setSystemInactive()
-{
-	_hyperion->setInputInactive(_systemCaptPrio);
 }

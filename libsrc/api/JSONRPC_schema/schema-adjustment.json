@@ -18,6 +18,10 @@
 					"type" : "string",
 					"required" : false
 				},
+				"classic_config" : {
+					"type" : "boolean",
+					"required" : false
+				},
 				"red": {
 					"type": "array",
 					"required": false,

@@ -1,25 +1,23 @@
 #include <QMetaType>
 
-#include <grabber/QTCWrapper.h>
+#include <grabber/MFWrapper.h>
 
 // qt
 #include <QTimer>
 
-QTCWrapper::QTCWrapper(const QString &device,
+MFWrapper::MFWrapper(const QString &device,
 		unsigned grabWidth,
 		unsigned grabHeight,
 		unsigned fps,
-		unsigned input,
-		VideoStandard videoStandard,
+		unsigned input,		
 		PixelFormat pixelFormat,		
 		const QString & configurationPath )
-	: GrabberWrapper("V4L2:QTC:"+device, &_grabber, grabWidth, grabHeight, 10)
+	: GrabberWrapper("V4L2:Media Foundation:"+device, &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device,
 			grabWidth,
 			grabHeight,
 			fps,
-			input,
-			videoStandard,
+			input,			
 			pixelFormat,
 			configurationPath)
 {
@@ -29,106 +27,111 @@ QTCWrapper::QTCWrapper(const QString &device,
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 
 	// Handle the image in the captured thread using a direct connection
-	connect(&_grabber, &QTCGrabber::newFrame, this, &QTCWrapper::newFrame, Qt::DirectConnection);
-	connect(&_grabber, &QTCGrabber::readError, this, &QTCWrapper::readError, Qt::DirectConnection);
+	connect(&_grabber, &MFGrabber::newFrame, this, &MFWrapper::newFrame, Qt::DirectConnection);
+	connect(&_grabber, &MFGrabber::readError, this, &MFWrapper::readError, Qt::DirectConnection);
 }
 
-QTCWrapper::~QTCWrapper()
+MFWrapper::~MFWrapper()
 {
 	stop();
 }
 
-bool QTCWrapper::start()
+bool MFWrapper::start()
 {
 	return ( _grabber.start() && GrabberWrapper::start());
 }
 
-void QTCWrapper::stop()
+void MFWrapper::stop()
 {
 	_grabber.stop();
 	GrabberWrapper::stop();
 }
 
-void QTCWrapper::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
+void MFWrapper::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
 	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, noSignalCounterThreshold);
 }
 
-void QTCWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void MFWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
 {
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
-void QTCWrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
+void MFWrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
 {
 	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
 }
 
-void QTCWrapper::newFrame(const Image<ColorRgb> &image)
+void MFWrapper::newFrame(const Image<ColorRgb> &image)
 {
 	emit systemImage(_grabberName, image);
 }
 
-void QTCWrapper::readError(const char* err)
+void MFWrapper::readError(const char* err)
 {
 	Error(_log, "stop grabber, because reading device failed. (%s)", err);
 	stop();
 }
 
-void QTCWrapper::action()
+void MFWrapper::action()
 {
 	// dummy as v4l get notifications from stream
 }
 
-void QTCWrapper::setSignalDetectionEnable(bool enable)
+void MFWrapper::setSignalDetectionEnable(bool enable)
 {
 	_grabber.setSignalDetectionEnable(enable);
 }
 
-bool QTCWrapper::getSignalDetectionEnable() const
+bool MFWrapper::getSignalDetectionEnable() const
 {
 	return _grabber.getSignalDetectionEnabled();
 }
 
-void QTCWrapper::setCecDetectionEnable(bool enable)
+void MFWrapper::setCecDetectionEnable(bool enable)
 {
 	_grabber.setCecDetectionEnable(enable);
 }
 
-bool QTCWrapper::getCecDetectionEnable() const
+bool MFWrapper::getCecDetectionEnable() const
 {
 	return _grabber.getCecDetectionEnabled();
 }
 
-void QTCWrapper::setDeviceVideoStandard(const QString& device, VideoStandard videoStandard)
+void MFWrapper::setDeviceVideoStandard(const QString& device)
 {
-	_grabber.setDeviceVideoStandard(device, videoStandard);
+	_grabber.setDeviceVideoStandard(device);
 }
 
 
 
-void QTCWrapper::setHdrToneMappingEnabled(int mode)
+void MFWrapper::setHdrToneMappingEnabled(int mode)
 {
 	_grabber.setHdrToneMappingEnabled(mode);
 }
 
-void QTCWrapper::setFpsSoftwareDecimation(int decimation)
+int MFWrapper::getHdrToneMappingEnabled()
+{
+	return _grabber.getHdrToneMappingEnabled();
+}
+
+void MFWrapper::setFpsSoftwareDecimation(int decimation)
 {
 	_grabber.setFpsSoftwareDecimation(decimation);
 }
 
-void QTCWrapper::setEncoding(QString enc)
+void MFWrapper::setEncoding(QString enc)
 {
 	_grabber.setEncoding(enc);
 }
 
-void QTCWrapper::setBrightnessContrast(uint8_t brightness, uint8_t contrast)
+void MFWrapper::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	_grabber.setBrightnessContrast(brightness, contrast);
+	_grabber.setBrightnessContrastSaturationHue(brightness, contrast, saturation, hue);
 }
 
 
-void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
+void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
 	{
@@ -151,7 +154,10 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 		// device framerate
 		_grabber.setFramerate(obj["fps"].toInt(15));
 		
-		_grabber.setBrightnessContrast(obj["hardware_brightness"].toInt(0), obj["hardware_contrast"].toInt(0));
+		_grabber.setBrightnessContrastSaturationHue(obj["hardware_brightness"].toInt(0), 
+													obj["hardware_contrast"].toInt(0),
+													obj["hardware_saturation"].toInt(0),
+													obj["hardware_hue"].toInt(0));
 
 		// CEC Standby
 		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
@@ -165,6 +171,7 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 		{
 			_grabber.setHdrToneMappingEnabled(obj["hdrToneMappingMode"].toInt(1));
 		}
+		emit HdrChanged(_grabber.getHdrToneMappingEnabled());
 		
 		// software frame skipping
 		_grabber.setFpsSoftwareDecimation(obj["fpsSoftwareDecimation"].toInt(1));
@@ -180,9 +187,7 @@ void QTCWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 			obj["greenSignalThreshold"].toDouble(0.0)/100.0,
 			obj["blueSignalThreshold"].toDouble(0.0)/100.0,
 			obj["noSignalCounterThreshold"].toInt(50) );
-		_grabber.setDeviceVideoStandard(
-			obj["device"].toString("auto"),
-			parseVideoStandard(obj["standard"].toString("no-change")));
+		_grabber.setDeviceVideoStandard(obj["device"].toString("auto"));
 			
 		_grabber.setEncoding(obj["v4l2Encoding"].toString("NONE"));
 	}

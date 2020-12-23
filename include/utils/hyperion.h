@@ -36,9 +36,9 @@ namespace hyperion {
 			{
 				std::vector<ColorRgb> fg_color = {
 					ColorRgb {
-						(uint8_t)FGCONFIG_ARRAY.at(0).toInt(0),
-						(uint8_t)FGCONFIG_ARRAY.at(1).toInt(0),
-						(uint8_t)FGCONFIG_ARRAY.at(2).toInt(0)
+						static_cast<uint8_t>(FGCONFIG_ARRAY.at(0).toInt(0)),
+						static_cast<uint8_t>(FGCONFIG_ARRAY.at(1).toInt(0)),
+						static_cast<uint8_t>(FGCONFIG_ARRAY.at(2).toInt(0))
 					}
 				};
 				hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
@@ -62,28 +62,28 @@ namespace hyperion {
 	{
 		const double backlightThreshold = colorConfig["backlightThreshold"].toDouble(0.0);
 		const bool   backlightColored   = colorConfig["backlightColored"].toBool(false);
-		const double brightness         = colorConfig["brightness"].toInt(100);
-		const double brightnessComp     = colorConfig["brightnessCompensation"].toInt(100);
+		const int brightness			= colorConfig["brightness"].toInt(100);
+		const int brightnessComp		= colorConfig["brightnessCompensation"].toInt(100);
 		const double gammaR             = colorConfig["gammaRed"].toDouble(1.0);
 		const double gammaG             = colorConfig["gammaGreen"].toDouble(1.0);
 		const double gammaB             = colorConfig["gammaBlue"].toDouble(1.0);
-		
 		
 		const bool   classic_config = colorConfig["classic_config"].toBool(false);		
 		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0000);
 		const double luminanceGain = colorConfig["luminanceGain"].toDouble(1.0000);
 
 		return RgbTransform(classic_config, saturationGain, luminanceGain, 
-				gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessComp);
+				gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp));
 	}
 
 	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
-		return RgbChannelAdjustment(			
-			channelConfig[0].toInt(defaultR),
-			channelConfig[1].toInt(defaultG),
-			channelConfig[2].toInt(defaultB),
+
+		return RgbChannelAdjustment(
+			static_cast<uint8_t>(channelConfig[0].toInt(defaultR)),
+			static_cast<uint8_t>(channelConfig[1].toInt(defaultG)),
+			static_cast<uint8_t>(channelConfig[2].toInt(defaultB)),
 			"ChannelAdjust_" + channelName.toUpper()
 		);
 	}
@@ -111,7 +111,7 @@ namespace hyperion {
 		return adjustment;
 	}
 
-	MultiColorAdjustment * createLedColorsAdjustment(unsigned ledCnt, const QJsonObject & colorConfig)
+	MultiColorAdjustment * createLedColorsAdjustment(int ledCnt, const QJsonObject & colorConfig)
 	{
 		// Create the result, the transforms are added to this
 		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
@@ -243,13 +243,7 @@ namespace hyperion {
 		std::sort(midPointsY.begin(), midPointsY.end());
 		midPointsY.erase(std::unique(midPointsY.begin(), midPointsY.end()), midPointsY.end());
 
-		QSize gridSize( midPointsX.size(), midPointsY.size() );
-		//Debug(_log, "LED layout grid size: %dx%d", gridSize.width(), gridSize.height());
-
-		// Limit to 80px for performance reasons
-		const int pl = 80;
-		if(gridSize.width() > pl || gridSize.height() > pl)
-			gridSize.scale(pl, pl, Qt::KeepAspectRatio);
+		QSize gridSize( static_cast<int>(midPointsX.size()), static_cast<int>(midPointsY.size()) );
 
 		// Correct the grid in case it is malformed in width vs height
 		// Expected is at least 50% of width <-> height
@@ -257,6 +251,13 @@ namespace hyperion {
 			gridSize.setHeight(qMax(1,gridSize.width()/2));
 		else if((gridSize.width() / gridSize.height()) < 0.5)
 			gridSize.setWidth(qMax(1,gridSize.height()/2));
+
+		// Limit to 80px for performance reasons
+		const int pl = 80;
+		if(gridSize.width() > pl || gridSize.height() > pl)
+		{
+			gridSize.scale(pl, pl, Qt::KeepAspectRatio);
+		}
 
 		return gridSize;
 	}

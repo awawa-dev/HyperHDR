@@ -1,4 +1,4 @@
-name: Hyperion CI Build
+name: HyperHDR CI Build
 on:
   push:
     branches-ignore:
@@ -24,10 +24,10 @@ jobs:
             dockerName: Debian Buster (x86_64)
             platform: x11
           - dockerImage: armv6l
-            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
-            platform: rpi
+            dockerName: Debian Buster (Raspberry Pi 1 & 2 & ZERO)
+            platform: rpi         
           - dockerImage: armv7l
-            dockerName: Debian Buster (Raspberry Pi 2 & 3)
+            dockerName: Debian Buster (Raspberry Pi 3 & 4)
             platform: rpi
 
     steps:
@@ -52,7 +52,14 @@ jobs:
         with:
           path: deploy/Hyper*
 
-
+      # Upload artifacts from commit
+      #- name: Upload artifacts from commit
+      #  if: (startsWith(github.event.ref, 'refs/tags') != true)
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: ${{ matrix.dockerImage }}
+      #    path: deploy/Hyper*.deb
+          
 ######################
 ###### Windows #######
 ######################
@@ -96,10 +103,10 @@ jobs:
           MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
           MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
 
-      - name: Install Python, NSIS, OpenSSL, TurboJPG, 7zip
+      - name: Install Python, NSIS, OpenSSL, 7zip
         shell: powershell
         run: |
-          choco install --no-progress python nsis openssl libjpeg-turbo 7zip.install -y
+          choco install --no-progress python nsis openssl 7zip.install -y
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
@@ -118,43 +125,14 @@ jobs:
         with:
           path: build/Hyper*
           
-######################
-#### Documentation ###
-######################
-
-  Docs:
-    name: Documentation
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      # Build Docs
-      - name: Build docs
-        run: |
-          cd docs
-          npm install -g yarn
-          yarn install
-          yarn docs:build
-
-      # Deploy to gh-pages (only on tagged commit)
-      - name: Deploy to gh-pages
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/dist
-          cname: docs.hyperion-project.org
-
+      # Upload artifacts from commit
+      #- name: Upload artifacts from commit
+      #  if: (startsWith(github.event.ref, 'refs/tags') != true)
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: windows
+      #    path: build/Hyper*.exe
+          
 ################################
 ###### Publish Releases ########
 ################################
@@ -162,7 +140,7 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, windows, Docs]
+    needs: [Linux, windows]
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -171,14 +149,14 @@ jobs:
       # generate environment variables
       - name: Generate environment variables from version and tag
         run: |
-          echo ::set-env name=TAG::${GITHUB_REF/refs\/tags\//}
-          echo ::set-env name=VERSION::$(tr -d '\n' < version)
-          echo ::set-env name=preRelease::false
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
+          echo "preRelease=false" >> $GITHUB_ENV
 
       # If version contains alpha or beta, mark draft release as pre-release
       - name: Mark release as pre-release
         if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
-        run: echo ::set-env name=preRelease::true
+        run: echo "preRelease=true" >> $GITHUB_ENV
 
       # Download artifacts from previous build process
       - name: Download artifacts

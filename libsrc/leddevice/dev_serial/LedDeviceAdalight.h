@@ -47,6 +47,7 @@ private:
 
 	const short _headerSize;
 	bool        _ligthBerryAPA102Mode;
+	bool		_awa_mode;
 };
 
 #endif // LEDEVICETADALIGHT_H

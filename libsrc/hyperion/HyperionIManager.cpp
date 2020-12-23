@@ -9,11 +9,12 @@
 
 HyperionIManager* HyperionIManager::HIMinstance;
 
-HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent)
+HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent, bool readonlyMode)
 	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
-	, _instanceTable( new InstanceTable(rootPath, this) )
+	, _instanceTable( new InstanceTable(rootPath, this, readonlyMode) )
 	, _rootPath( rootPath )
+	, _readonlyMode(readonlyMode)
 {
 	HIMinstance = this;
 	qRegisterMetaType<InstanceState>("InstanceState");
@@ -67,7 +68,7 @@ void HyperionIManager::toggleStateAllInstances(bool pause)
 	}
 }
 
-bool HyperionIManager::startInstance(quint8 inst, bool block)
+bool HyperionIManager::startInstance(quint8 inst, bool block, QObject* caller, int tan)
 {
 	if(_instanceTable->instanceExist(inst))
 	{
@@ -75,7 +76,7 @@ bool HyperionIManager::startInstance(quint8 inst, bool block)
 		{
 			QThread* hyperionThread = new QThread();
 			hyperionThread->setObjectName("HyperionThread");
-			Hyperion* hyperion = new Hyperion(inst);
+			Hyperion* hyperion = new Hyperion(inst, _readonlyMode);
 			hyperion->moveToThread(hyperionThread);
 			// setup thread management
 			connect(hyperionThread, &QThread::started, hyperion, &Hyperion::start);
@@ -86,11 +87,10 @@ bool HyperionIManager::startInstance(quint8 inst, bool block)
 			// setup further connections
 			// from Hyperion
 			connect(hyperion, &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
-			connect(hyperion, &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
+
 			connect(hyperion, &Hyperion::videoModeHdr, this, &HyperionIManager::requestVideoModeHdr);
 			connect(hyperion, &Hyperion::compStateChangeRequest, this, &HyperionIManager::compStateChangeRequest);
 			// to Hyperion
-			connect(this, &HyperionIManager::newVideoMode, hyperion, &Hyperion::newVideoMode);
 			connect(this, &HyperionIManager::newVideoModeHdr, hyperion, &Hyperion::newVideoModeHdr);
 
 			// add to queue and start
@@ -104,6 +104,12 @@ bool HyperionIManager::startInstance(quint8 inst, bool block)
 			if(block)
 			{
 				while(!hyperionThread->isRunning()){};
+			}
+
+			if (!_pendingRequests.contains(inst) && caller != nullptr)
+			{
+				PendingRequests newDef{caller, tan};
+				_pendingRequests[inst] = newDef;
 			}
 
 			return true;
@@ -213,4 +219,11 @@ void HyperionIManager::handleStarted()
 	_runningInstances.insert(instance, hyperion);
 	emit instanceStateChanged(InstanceState::H_STARTED, instance);
 	emit change();
+
+	if (_pendingRequests.contains(instance))
+	{
+		PendingRequests def = _pendingRequests.take(instance);
+		emit startInstanceResponse(def.caller, def.tan);
+		_pendingRequests.remove(instance);
+	}
 }

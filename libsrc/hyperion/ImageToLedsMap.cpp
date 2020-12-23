@@ -67,8 +67,6 @@ ImageToLedsMap::ImageToLedsMap(
 		ledColors.reserve((size_t) maxXLedCount*maxYLedCount);
 		if (ImageProcessor::mappingTypeToInt(QString("weighted")) == _mappingType)
 		{
-			//Debug(Logger::getInstance("HYPERION"), "weighted!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		
 			bool left   = led.minX_frac == 0;
 			bool right  = led.maxX_frac == 1;			
 			bool top    = led.minY_frac == 0;
@@ -79,7 +77,7 @@ ImageToLedsMap::ImageToLedsMap(
 				unsigned mid = (minY_idx+maxYLedCount)/2;
 				for (unsigned y = minY_idx; y < mid; ++y)				
 					for (unsigned x = minX_idx; x < maxXLedCount; ++x)					
-						ledColors.push_back(-(y*width + x));
+						ledColors.push_back( -( (int32_t) (y*width + x)));
 					
 				for (unsigned y = mid; y < maxYLedCount; ++y)				
 					for (unsigned x = minX_idx; x < maxXLedCount; ++x)					
@@ -94,7 +92,7 @@ ImageToLedsMap::ImageToLedsMap(
 					
 				for (unsigned y = mid; y < maxYLedCount; ++y)				
 					for (unsigned x = minX_idx; x < maxXLedCount; ++x)					
-						ledColors.push_back(-(y*width + x));
+						ledColors.push_back( -( (int32_t) (y*width + x)));
 			}
 
 			else if (left)
@@ -105,7 +103,7 @@ ImageToLedsMap::ImageToLedsMap(
 					for (unsigned x = minX_idx; x < mid; ++x)					
 						ledColors.push_back(y*width + x);
 					for (unsigned x = mid; x < maxXLedCount; ++x)					
-						ledColors.push_back(-(y*width + x));
+						ledColors.push_back( -( (int32_t) (y*width + x)));
 				}					
 			}
 
@@ -115,7 +113,7 @@ ImageToLedsMap::ImageToLedsMap(
 				for (unsigned y = minY_idx; y < maxYLedCount; ++y)
 				{				
 					for (unsigned x = minX_idx; x < mid; ++x)					
-						ledColors.push_back(-(y*width + x));
+						ledColors.push_back( -( (int32_t) (y*width + x)));
 					for (unsigned x = mid; x < maxXLedCount; ++x)					
 						ledColors.push_back(y*width + x);
 				}

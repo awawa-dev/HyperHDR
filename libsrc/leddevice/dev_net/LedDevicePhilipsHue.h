@@ -11,11 +11,37 @@
 #include <QNetworkReply>
 #include <QtCore/qmath.h>
 #include <QStringList>
+#include <QSemaphore>
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 #include "ProviderRestApi.h"
 #include "ProviderUdpSSL.h"
+
+//Streaming message header and payload definition
+const uint8_t HEADER[] =
+	{
+		'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
+		0x01, 0x00, //version 1.0
+		0x01, //sequence number 1
+		0x00, 0x00, //Reserved write 0’s
+		0x01, //xy Brightness
+		0x00, // Reserved, write 0’s
+};
+
+const uint8_t PAYLOAD_PER_LIGHT[] =
+	{
+		0x01, 0x00, 0x06, //light ID
+		//color: 16 bpc
+		0xff, 0xff,
+		0xff, 0xff,
+		0xff, 0xff,
+		/*
+	(message.R >> 8) & 0xff, message.R & 0xff,
+	(message.G >> 8) & 0xff, message.G & 0xff,
+	(message.B >> 8) & 0xff, message.B & 0xff
+	*/
+};
 
 /**
  * A XY color point in the color space of the hue system without brightness.
@@ -124,7 +150,9 @@ public:
 	/// @param bridge the bridge
 	/// @param id the light id
 	///
-	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx);
+	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx,
+		int onBlackTimeToPowerOff,
+		int onBlackTimeToPowerOn);
 	~PhilipsHueLight();
 
 	///
@@ -152,11 +180,13 @@ public:
 	/// @return the color space of the light determined by the model id reported by the bridge.
 	CiColorTriangle getColorSpace() const;
 
-	QString getOriginalState() const;
-
-private:
-
 	void saveOriginalState(const QJsonObject& values);
+	QString getOriginalState() const;
+	bool isBusy(QSemaphore *_semaphore);
+	bool isBlack(bool isBlack);
+	bool isWhite(bool isWhite);
+	void blackScreenTriggered();
+private:
 
 	Logger* _log;
 	/// light id
@@ -177,6 +207,12 @@ private:
 
 	QString _originalState;
 	CiColor _originalColor;
+	uint64_t _lastSendColor;
+	uint64_t _lastBlack;
+	uint64_t _lastWhite;
+	bool _blackScreenTriggered;
+	int _onBlackTimeToPowerOff;
+	int _onBlackTimeToPowerOn;
 };
 
 class LedDevicePhilipsHueBridge : public ProviderUdpSSL
@@ -200,13 +236,24 @@ public:
 	bool initRestAPI(const QString &hostname, int port, const QString &token );
 
 	///
-	/// @param route the route of the POST request.
+	/// @brief Perform a REST-API GET
 	///
+	/// @param route the route of the GET request.
+	///
+	/// @return the content of the GET request.
+	///
+	QJsonDocument get(const QString& route);
+
+	///
+	/// @brief Perform a REST-API POST
+	///
+	/// @param route the route of the POST request.
 	/// @param content the content of the POST request.
 	///
-	QJsonDocument post(const QString& route, const QString& content);
+	QJsonDocument post(const QString& route, const QString& content, const bool& wait = true);
 
-	void setLightState(unsigned int lightId = 0, const QString &state = "");
+	QJsonDocument getLightState(unsigned int lightId);
+	void setLightState(unsigned int lightId = 0, const QString &state = "", const bool& wait = true);
 
 	QMap<quint16,QJsonObject> getLightMap() const;
 
@@ -316,7 +363,7 @@ public:
 	///
 	/// @brief Destructor of the LED-device
 	///
-	~LedDevicePhilipsHue();
+	~LedDevicePhilipsHue() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -329,9 +376,11 @@ public:
 	/// @brief Discover devices of this type available (for configuration).
 	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Get the Hue Bridge device's resource properties
@@ -421,7 +470,7 @@ protected:
 	///
 	/// @return True if success
 	///
-	//bool switchOn() override;
+	bool switchOn() override;
 
 	///
 	/// @brief Switch the LEDs off.
@@ -433,6 +482,8 @@ protected:
 	/// @return True, if success
 	///
 	bool switchOff() override;
+
+	bool switchOff(bool restoreState);
 
 	///
 	/// @brief Power-/turn on the LED-device.
@@ -485,7 +536,7 @@ private:
 	///
 	/// @param map Map of lightid/value pairs of bridge
 	///
-	void newLights(QMap<quint16, QJsonObject> map);
+	
 
 	bool setLights();
 
@@ -525,7 +576,6 @@ private:
 	/// The default of the Hue lights is 400 ms, but we may want it snappier.
 	int _transitionTime;
 
-	bool _lightStatesRestored;
 	bool _isInitLeds;
 
 	/// Array of the light ids.
@@ -541,9 +591,11 @@ private:
 
 	bool _allLightsBlack;
 
-	QTimer* _blackLightsTimer;
+	//QTimer* _blackLightsTimer;
 	int _blackLightsTimeout;
-	double _brightnessThreshold;
+	double _blackLevel;
+	int _onBlackTimeToPowerOff;
+	int _onBlackTimeToPowerOn;
 
 	int _handshake_timeout_min;
 	int _handshake_timeout_max;
@@ -556,5 +608,8 @@ private:
 
 	int start_retry_left;
 	int stop_retry_left;
-
+	QSemaphore _semaphore;
+	uint64_t _lastConfirm;
+	int _lastId;
+	QSemaphore _initSemaphore;
 };

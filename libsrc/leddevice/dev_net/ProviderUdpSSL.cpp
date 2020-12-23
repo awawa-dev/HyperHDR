@@ -253,9 +253,15 @@ bool ProviderUdpSSL::seedingRNG()
 
 	sslLog( "Set mbedtls_ctr_drbg_seed..." );
 
-	const char* custom = QSTRING_CSTR( _custom );
+	QString custom = _custom;
 
-	if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, reinterpret_cast<const unsigned char *>(custom), strlen(custom))) != 0)
+	if (custom.length() > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT)
+		custom = custom.left(MBEDTLS_CTR_DRBG_MAX_SEED_INPUT);
+	
+	QByteArray ba = custom.toLocal8Bit();
+	const char* customData = ba.data();
+
+	if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, reinterpret_cast<const unsigned char *>(customData), strlen(customData))) != 0)
 	{
 		sslLog( QString("mbedtls_ctr_drbg_seed FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;

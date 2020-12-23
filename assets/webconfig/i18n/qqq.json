@@ -3,7 +3,7 @@
         "authors": [
             "brindosch, paulchen-panther"
         ],
-		"project" : "Hyperion WebUI string docu",
+		"project" : "HyperHDR WebUI string docu",
 		"last-updated": "2019-01-02"
     },
 	"edt_msg_error_notset" : " When a property is not set",
