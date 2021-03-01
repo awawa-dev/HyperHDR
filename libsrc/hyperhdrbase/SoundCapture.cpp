@@ -462,9 +462,9 @@ void SoundCaptureResult::Smooth()
 				color[i].getRgb(&rr, &gg, &bb);
 
 
-				r += std::max((rr * (_currentMax - 6*(_currentMax - buffScaledResult[i])))/_currentMax,0);
-				g += std::max((gg * (_currentMax - 6*(_currentMax - buffScaledResult[i])))/_currentMax,0);
-				b += std::max((bb * (_currentMax - 6*(_currentMax - buffScaledResult[i])))/_currentMax,0);
+				r += std::max((rr * (_currentMax - 5*(_currentMax - buffScaledResult[i])))/_currentMax,0);
+				g += std::max((gg * (_currentMax - 5*(_currentMax - buffScaledResult[i])))/_currentMax,0);
+				b += std::max((bb * (_currentMax - 5*(_currentMax - buffScaledResult[i])))/_currentMax,0);
 			}
 
 			int32_t ccScale = std::max(std::max(r, g), b);
@@ -681,8 +681,8 @@ void SoundCaptureResult::ResetData()
 	_currentMax = 0;
 
 
-	memset(&mtWorking, 0, sizeof(mtWorking));
-	memset(&mtInternal, 0, sizeof(mtInternal));
+	mtWorking.Clear();
+	mtInternal.Clear();
 }
 
 void SoundCaptureResult::GetBufResult(uint8_t* dest, size_t size) {

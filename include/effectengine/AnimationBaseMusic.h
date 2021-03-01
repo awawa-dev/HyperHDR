@@ -31,6 +31,8 @@ struct MovingTarget
 	int32_t _targetFastG;
 	int32_t _targetFastB;
 	int32_t _targetFastCounter;
+
+	void Clear();
 };
 
 class AnimationBaseMusic : public AnimationBase
