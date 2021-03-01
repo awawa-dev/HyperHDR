@@ -37,6 +37,8 @@ private:
 	///
 	bool init(const QJsonObject &deviceConfig) override;
 
+	void CreateHeader();
+
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
@@ -47,6 +49,7 @@ private:
 
 	const short _headerSize;
 	bool        _ligthBerryAPA102Mode;
+	bool		_awa_mode;
 };
 
 #endif // LEDEVICETADALIGHT_H

@@ -36,7 +36,7 @@ signals:
 	///
 	/// @brief forward register data to HyperionDaemon
 	///
-	void registerGlobalInput(int priority, hyperion::Components component, const QString& origin = "FlatBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
+	void registerGlobalInput(int priority, hyperhdr::Components component, const QString& origin = "FlatBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
 
 	///
 	/// @brief Forward clear command to HyperionDaemon

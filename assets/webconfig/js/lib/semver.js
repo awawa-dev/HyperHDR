@@ -161,7 +161,7 @@ var MAIN_VERSION_IDENTIFIER = '(' + NUMERIC_IDENTIFIER + ')\\.(' + NUMERIC_IDENT
 // 先行版本号，由 ASCII 码的英数字和连接号 [0-9A-Za-z-] 组成，
 // 且“禁止 MUST NOT ”留白。数字型的标识符号“禁止 MUST NOT ”在前方补零
 var PRERELEASE_IDENTIFIER = '(?:' + NUMERIC_IDENTIFIER + '|' + NON_NUMERIC_IDENTIFIER + ')';
-var PRERELEASE = '(?:\\-(' + PRERELEASE_IDENTIFIER + '(?:\\.' + PRERELEASE_IDENTIFIER + ')*))';
+var PRERELEASE = '(?:\\.(' + PRERELEASE_IDENTIFIER + '(?:\\.' + PRERELEASE_IDENTIFIER + ')*))';
 // 编译版本号
 var BUILD = '(?:\\+(' + BUILD_IDENTIFIER + '(?:\\.' + BUILD_IDENTIFIER + ')*))';
 var FULL_VERSION_IDENTIFIER = '^v?' + MAIN_VERSION_IDENTIFIER + PRERELEASE + '?' + BUILD + '?$';
@@ -174,12 +174,14 @@ var REGEX_NUMERIC = /^[0-9]+$/;
 var SemverVersion = function () {
     function SemverVersion(version) {
         _classCallCheck(this, SemverVersion);
-
+		
         if (version instanceof SemverVersion) {
             return version;
         } else if (typeof version !== 'string') {
             throw new TypeError('Invalid Version: ' + version);
         }
+		
+		version = version.replace(/[vV]/g, '');
 
         if (version.length > MAX_LENGTH) {
             throw new TypeError('version is longer than ' + MAX_LENGTH + ' characters');

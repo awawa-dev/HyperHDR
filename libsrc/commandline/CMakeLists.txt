@@ -7,6 +7,6 @@ FILE ( GLOB Parser_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*
 add_library(commandline ${Parser_SOURCES} )
 
 target_link_libraries(commandline
-	hyperion
+	hyperhdr-base
 	Qt5::Gui
 )

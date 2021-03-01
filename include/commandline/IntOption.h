@@ -1,5 +1,4 @@
-#ifndef HYPERION_INTCOMMANDLINEOPTION_H
-#define HYPERION_INTCOMMANDLINEOPTION_H
+#pragma once
 
 #include <limits>
 #include <QtCore>
@@ -46,5 +45,3 @@ public:
 };
 
 }
-
-#endif //HYPERION_INTCOMMANDLINEOPTION_H

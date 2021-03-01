@@ -28,37 +28,57 @@
 		"useEntertainmentAPI": {
 			"type": "boolean",
 			"title":"edt_dev_spec_useEntertainmentAPI_title",
-			"default" : false,
+			"default" : true,
 			"propertyOrder" : 4
-		},
-		"transitiontime": {
-			"type": "number",
-			"title":"edt_dev_spec_transistionTime_title",
-			"default" : 1,
-			"append" : "x100ms",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": false
-				}
-			},
-			"propertyOrder" : 5
-		},
+		},		
 		"switchOffOnBlack": {
 			"type": "boolean",
 			"title":"edt_dev_spec_switchOffOnBlack_title",
-			"default" : true,
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": false
-				}
-			},
+			"default" : false,
 			"propertyOrder" : 6
+		},
+		"blackLevel": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessThreshold_title",
+			"default" : 0.009,
+			"step": 0.001,
+			"minimum" : 0.001,
+			"maximum" : 1.0,				
+			"propertyOrder" : 7
+		},
+		"onBlackTimeToPowerOff" :
+		{
+			"type" : "integer",
+			"title" : "onBlackTimeToPowerOff",
+			"append" : "edt_append_ms",
+			"minimum" : 100,
+			"maximum" : 100000,
+			"default" : 600,
+			"required" : true,
+			"propertyOrder" : 8
+		},
+		"onBlackTimeToPowerOn" :
+		{
+			"type" : "integer",
+			"title" : "onBlackTimeToPowerOn",
+			"append" : "edt_append_ms",
+			"minimum" : 100,
+			"maximum" : 100000,
+			"default" : 300,
+			"required" : true,
+			"propertyOrder" : 9
+		},
+		"candyGamma": {
+			"type": "boolean",
+			"title":"edt_dev_spec_candyGamma_title",
+			"default" : true,
+			"propertyOrder" : 10
 		},
 		"restoreOriginalState": {
 			"type": "boolean",
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : true,
-			"propertyOrder" : 7
+			"propertyOrder" : 11
 		},
 		"lightIds": {
 			"type": "array",
@@ -75,7 +95,7 @@
 					"useEntertainmentAPI": false
 				}
 			},
-			"propertyOrder" : 8
+			"propertyOrder" : 12
 		},
 		"groupId": {
 			"type": "number",
@@ -86,39 +106,8 @@
 					"useEntertainmentAPI": true
 				}
 			},
-			"propertyOrder" : 9
-		},
-		"blackLightsTimeout": {
-			"type": "number",
-			"title":"edt_dev_spec_blackLightsTimeout_title",
-			"default" : 15000,
-			"step": 500,
-			"minimum" : 10000,
-			"maximum" : 60000,
-			"access" : "advanced",
-			"append" : "edt_append_ms",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
-			"propertyOrder" : 10
-		},
-		"brightnessThreshold": {
-			"type": "number",
-			"title":"edt_dev_spec_brightnessThreshold_title",
-			"default" : 0,
-			"step": 0.005,
-			"minimum" : 0,
-			"maximum" : 1.0,
-			"access" : "advanced",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
-			"propertyOrder" : 11
-		},
+			"propertyOrder" : 13
+		},			
 		"brightnessFactor": {
 			"type": "number",
 			"title":"edt_dev_spec_brightnessFactor_title",
@@ -127,38 +116,8 @@
 			"minimum" : 0.5,
 			"maximum" : 10.0,
 			"access" : "advanced",
-			"propertyOrder" : 12
-		},
-		"brightnessMin": {
-			"type": "number",
-			"title":"edt_dev_spec_brightnessMin_title",
-			"default" : 0,
-			"step": 0.05,
-			"minimum" : 0,
-			"maximum" : 1.0,
-			"access" : "advanced",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
-			"propertyOrder" : 13
-		},
-		"brightnessMax": {
-			"type": "number",
-			"title":"edt_dev_spec_brightnessMax_title",
-			"default" : 1.0,
-			"step": 0.05,
-			"minimum" : 0,
-			"maximum" : 1.0,
-			"access" : "advanced",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
 			"propertyOrder" : 14
-		},
+		},		
 		"sslReadTimeout": {
 			"type": "number",
 			"title":"edt_dev_spec_sslReadTimeout_title",
@@ -206,7 +165,7 @@
 				}
 			},
 			"propertyOrder" : 17
-		},
+		},		
 		"verbose": {
 			"type": "boolean",
 			"title":"edt_dev_spec_verbose_title",
@@ -241,6 +200,61 @@
 			"maximum" : 4,
 			"access" : "expert",
 			"propertyOrder" : 20
+		},
+		"transitiontime": {
+			"type": "number",
+			"title":"edt_dev_spec_transistionTime_title",
+			"default" : 1,
+			"append" : "x100ms",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": false
+				}
+			},
+			"propertyOrder" : 21
+		},		
+		"blackLightsTimeout": {
+			"type": "number",			
+			"default" : 5000,
+			"options" : {
+				"hidden":true
+			},
+			"propertyOrder" : 22
+		},
+		"brightnessThreshold": {			
+			"type": "number",
+			"title":"edt_dev_spec_brightnessThreshold_title",
+			"default" : 0.0001,
+			"options" : {
+				"hidden":true
+			},
+			"propertyOrder" : 23
+		},
+		"brightnessMin": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessMin_title",
+			"default" : 0,
+			"step": 0.05,
+			"minimum" : 0,
+			"maximum" : 1.0,
+			"access" : "advanced",
+			"options": {
+				"hidden":true
+			},
+			"propertyOrder" : 24
+		},
+		"brightnessMax": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessMax_title",
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0,
+			"maximum" : 1.0,
+			"access" : "advanced",
+			"options": {
+				"hidden":true
+			},
+			"propertyOrder" : 25
 		}
 	},
 	"additionalProperties": true

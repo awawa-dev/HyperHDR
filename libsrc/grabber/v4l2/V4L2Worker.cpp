@@ -20,8 +20,8 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
-#include <hyperion/Hyperion.h>
-#include <hyperion/HyperionIManager.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
+#include <hyperhdrbase/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
@@ -94,7 +94,24 @@ bool V4L2WorkerManager::isActive()
 V4L2Worker::V4L2Worker():
 		_decompress(nullptr),
 		_isBusy(false),
-		_semaphore(1)
+		_semaphore(1),
+		_workerIndex(0),
+		_pixelFormat(PixelFormat::NO_CHANGE),
+		sharedData(nullptr),			
+		_size(0),
+		_width(0),
+		_height(0),
+		_lineLength(0),
+		_subsamp(0),
+		_cropLeft(0),
+		_cropTop(0),
+		_cropBottom(0),
+		_cropRight(0),
+		_currentFrame(0),
+		_frameBegin(0),
+		_hdrToneMappingEnabled(0),
+		lutBuffer(nullptr),
+		_qframe(false)
 {
 	
 }
@@ -106,31 +123,31 @@ V4L2Worker::~V4L2Worker(){
 #endif			
 }
 
-void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, VideoMode __videoMode,PixelFormat __pixelFormat, 
-			uint8_t * _sharedData, int _size,int __width, int __height, int __lineLength,
+void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, PixelFormat __pixelFormat, 
+			uint8_t * _sharedData, int __size,int __width, int __height, int __lineLength,
 			int __subsamp, 
 			unsigned  __cropLeft, unsigned  __cropTop, 
 			unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
-			int __hdrToneMappingEnabled,unsigned char* _lutBuffer)
+			int __hdrToneMappingEnabled, unsigned char* _lutBuffer, bool __qframe)
 {
 	_workerIndex = __workerIndex;  
 	memcpy(&_v4l2Buf,__v4l2Buf,sizeof (v4l2_buffer));
 	_lineLength = __lineLength;
-	_videoMode = __videoMode;
 	_pixelFormat = __pixelFormat;
-	sharedData = _sharedData;
-	size = _size;
-	_width = __width;
-	_height = __height;
-	_subsamp = __subsamp;
-	_cropLeft = __cropLeft;
-	_cropTop = __cropTop;
+	sharedData	= _sharedData;
+	_size		= __size;
+	_width		= __width;
+	_height		= __height;
+	_subsamp	= __subsamp;
+	_cropLeft	= __cropLeft;
+	_cropTop	= __cropTop;
 	_cropBottom = __cropBottom;
-	_cropRight = __cropRight;
+	_cropRight	= __cropRight;
 	_currentFrame = __currentFrame;
-	_frameBegin = __frameBegin;
+	_frameBegin	= __frameBegin;
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
-	lutBuffer = _lutBuffer;	
+	lutBuffer	= _lutBuffer;
+	_qframe		= __qframe;
 }
 
 v4l2_buffer* V4L2Worker::GetV4L2Buffer()
@@ -149,20 +166,38 @@ void V4L2Worker::runMe()
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
 		{
-		#ifdef HAVE_JPEG_DECODER				
-			process_image_jpg_mt();								
-		#endif	
+			if (_qframe)
+			{
+				_cropLeft = _cropRight = _cropTop = _cropBottom = 0;				
+			}
+			#ifdef HAVE_TURBO_JPEG				
+				process_image_jpg_mt();								
+			#endif	
 		}
 		else
 		{
-			Image<ColorRgb> image(_width, _height);
-			
-			ImageResampler::processImage(
-				_videoMode,
-				_cropLeft, _cropRight, _cropTop, _cropBottom,
-				sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
-				
-			emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);		
+			if (_qframe)
+			{
+				Image<ColorRgb> image(_width >> 1, _height >> 1);
+				ImageResampler::processQImage(
+					sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+
+				emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+
+			}
+			else
+			{
+				int outputWidth = (_width - _cropLeft - _cropRight);
+				int outputHeight = (_height - _cropTop - _cropBottom);
+
+				Image<ColorRgb> image(outputWidth, outputHeight);
+
+				ImageResampler::processImage(
+					_cropLeft, _cropRight, _cropTop, _cropBottom,
+					sharedData, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+
+				emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+			}
 		}
 	}		
 }
@@ -196,124 +231,49 @@ void V4L2Worker::noBusy()
 
 
 void V4L2Worker::process_image_jpg_mt()
-{				
-	
-	Image<ColorRgb> srcImage(_width, _height);		
-	
-	#ifdef HAVE_JPEG
-		_decompress = new jpeg_decompress_struct;
-		_error = new errorManager;
-
-		_decompress->err = jpeg_std_error(&_error->pub);
-		_error->pub.error_exit = &errorHandler;
-		_error->pub.output_message = &outputHandler;
-
-		jpeg_create_decompress(_decompress);
-
-		if (setjmp(_error->setjmp_buffer))
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			
-			QString info = QString("JPG: buffer failed");
-			emit newFrameError(_workerIndex, info,_currentFrame);
-			return;
-		}
-
-		jpeg_mem_src(_decompress, const_cast<uint8_t*>(sharedData), size);
-
-		if (jpeg_read_header(_decompress, (bool) TRUE) != JPEG_HEADER_OK)
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			
-			QString info = QString("JPG: header failed");
-			emit newFrameError(_workerIndex, info,_currentFrame);
-			return;
-		}
-
-		_decompress->scale_num = 1;
-		_decompress->scale_denom = 1;
-		_decompress->out_color_space = JCS_RGB;
-		_decompress->dct_method = JDCT_IFAST;
-
-		if (!jpeg_start_decompress(_decompress))
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			
-			QString info = QString("JPG: decompress failed");
-			emit newFrameError(_workerIndex, info,_currentFrame);
-			return;
-		}
-
-		if (_decompress->out_color_components != 3)
-		{
-			jpeg_abort_decompress(_decompress);
-			jpeg_destroy_decompress(_decompress);
-			delete _decompress;
-			delete _error;
-			
-			QString info = QString("JPG: incorrent color space");
-			emit newFrameError(_workerIndex, info,_currentFrame);
-			return;	
-		}		
+{	
+	if (_decompress == nullptr)	
+		_decompress = tjInitDecompress();	
 		
-		while (_decompress->output_scanline < _decompress->output_height)
+	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(sharedData), _size, &_width, &_height, &_subsamp) != 0)
+	{	
+		QString info = QString(tjGetErrorStr());
+		if (info.indexOf("extraneous bytes before marker") < 0)
 		{
-			uchar *row = (unsigned char*)srcImage.memptr()+_decompress->output_scanline*image.width()*3; 
-			jpeg_read_scanlines(_decompress, &row, 1);
-		}
-
-		jpeg_finish_decompress(_decompress);
-		jpeg_destroy_decompress(_decompress);
-		delete _decompress;
-		delete _error;
-
-		if (_error->pub.num_warnings > 0)
-		{
-			QString info = QString("JPG library: there was some warnings");
-			emit newFrameError(_workerIndex, info,_currentFrame);
-			return;	
-		}
-	#endif
-	#ifdef HAVE_TURBO_JPEG		
-		if (_decompress == nullptr)	
-			_decompress = tjInitDecompress();	
-		
-		if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(sharedData), size, &_width, &_height, &_subsamp) != 0)
-		{	
-			QString info = QString(tjGetErrorStr());
-			emit newFrameError(_workerIndex, info,_currentFrame);				
+			emit newFrameError(_workerIndex, info, _currentFrame);
 			return;
 		}
-				
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), size, (unsigned char*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-		{		
-			QString info = QString(tjGetErrorStr());
-			emit newFrameError(_workerIndex, info,_currentFrame);
+	}
+
+	tjscalingfactor sca{ 1,2 };
+	Image<ColorRgb> srcImage((_qframe) ? TJSCALED(_width, sca) : _width,
+		(_qframe) ? TJSCALED(_height, sca) : _height);
+	_width = srcImage.width();
+	_height = srcImage.height();
+
+	if (tjDecompress2(_decompress, const_cast<uint8_t*>(sharedData), _size, (unsigned char*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+	{		
+		QString info = QString(tjGetErrorStr());
+		if (info.indexOf("extraneous bytes before marker") < 0)
+		{
+			emit newFrameError(_workerIndex, info, _currentFrame);
 			return;
 		}
-	#endif	
+	}
+	
 	
 	// got image, process it	
-	if ( !(_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0))
+	if ( !(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
 	{
 		// apply LUT	
-    		applyLUT((unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height());
+		ImageResampler::applyLUT((unsigned char*)srcImage.memptr(), srcImage.width(), srcImage.height(), lutBuffer, _hdrToneMappingEnabled);
     		
-    		// exit
-    		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);    		
-    	}
-    	else
-    	{    	
-    		// calculate the output size
+    	// exit
+    	emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);    		
+    }
+    else
+    {    	
+		// calculate the output size
 		int outputWidth = (_width - _cropLeft - _cropRight);
 		int outputHeight = (_height - _cropTop - _cropBottom);
 		
@@ -328,60 +288,17 @@ void V4L2Worker::process_image_jpg_mt()
 		
 		for (unsigned int y = 0; y < destImage.height(); y++)
 		{
-			unsigned char* source = (unsigned char*)srcImage.memptr() + (y + _cropTop)*srcImage.width()*3 + _cropLeft*3;
-			unsigned char* dest = (unsigned char*)destImage.memptr() + y*destImage.width()*3;    		
-			memcpy(dest, source, destImage.width()*3);				
+			unsigned char* source = (unsigned char*)srcImage.memptr() + (static_cast<size_t>(y) + _cropTop) * srcImage.width() * 3 + static_cast<size_t>(_cropLeft) * 3;
+			unsigned char* dest = (unsigned char*)destImage.memptr() + static_cast<size_t>(y) * destImage.width() * 3;
+			memcpy(dest, source, static_cast<size_t>(destImage.width()) * 3);
 		}
 		
 		// apply LUT	
-    		applyLUT((unsigned char*)destImage.memptr(), destImage.width(), destImage.height());
+		ImageResampler::applyLUT((unsigned char*)destImage.memptr(), destImage.width(), destImage.height(), lutBuffer, _hdrToneMappingEnabled);
     		
-    		// exit
+    	// exit
 		emit newFrame(_workerIndex, destImage, _currentFrame, _frameBegin);	
 	}
-}
-
-#define LUT(source) \
-{\
-	memcpy(buffer, source, 3); \
-	uint32_t ind_lutd = LUT_INDEX(buffer[0],buffer[1],buffer[2]);	\
-	memcpy(source, (void *) &(lutBuffer[ind_lutd]),3); \
-	source += 3;	\
-}
-
-void V4L2Worker::applyLUT(unsigned char* _source, unsigned int width ,unsigned int height)
-{	
-    	// apply LUT table mapping
-    	// bytes are in order of RGB 3 bytes because of TJPF_RGB   
-    	uint8_t buffer[3];     	
-    	if (lutBuffer != NULL && _hdrToneMappingEnabled)
-    	{    		
-    		unsigned int sizeX= (width * 10)/100;
-    		unsigned int sizeY= (height *15)/100;		
-    		
-    		for (unsigned int y=0; y<height; y++)
-    		{    	
-    			unsigned char* startSource = _source + width * 3 * y;
-    			unsigned char* endSource = startSource + width * 3;
-    			
-    			if (_hdrToneMappingEnabled != 2 || y<sizeY || y>height-sizeY)
-    			{
-    				while (startSource < endSource)
-		    			LUT(startSource);
-    			}
-    			else
-    			{
-		    		for (unsigned int x=0; x<sizeX; x++)    		
-		    			LUT(startSource);
-		    			
-		    		startSource += (width-2*sizeX)*3;		    		
-		    		
-		    		while (startSource < endSource)
-		    			LUT(startSource);
-		    	}
-		}
-		
-    	}
 }
 
 

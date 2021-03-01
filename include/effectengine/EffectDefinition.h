@@ -6,7 +6,7 @@
 
 struct EffectDefinition
 {
-	QString name, script, file;
+	QString name;
 	QJsonObject args;
 	unsigned smoothCfg;
 };

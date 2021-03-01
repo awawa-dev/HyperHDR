@@ -8,10 +8,8 @@
 #include <QTimer>
 #include <QMap>
 
-// hyperion util
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
 #include <flatbuffers/flatbuffers.h>
@@ -22,7 +20,7 @@ struct Reply;
 }
 
 ///
-/// Connection class to setup an connection to the hyperion server and execute commands.
+/// Connection class to setup an connection to the hyperhdr server and execute commands.
 ///
 class FlatBufferConnection : public QObject
 {
@@ -32,7 +30,7 @@ class FlatBufferConnection : public QObject
 public:
 	///
 	/// @brief Constructor
-	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
+	/// @param address The address of the Hyperhdr server (for example "192.168.0.32:19444)
 	/// @param skipReply  If true skip reply
 	///
 	FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply);
@@ -42,7 +40,7 @@ public:
 	///
 	~FlatBufferConnection() override;
 
-	/// @brief Do not read reply messages from Hyperion if set to true
+	/// @brief Do not read reply messages from Hyperhdr if set to true
 	void setSkipReply(bool skip);
 
 	///
@@ -86,7 +84,7 @@ public slots:
 
 private slots:
 	///
-	/// @brief Try to connect to the Hyperion host
+	/// @brief Try to connect to the HyperHDR host
 	///
 	void connectToHost();
 
@@ -100,7 +98,7 @@ signals:
 	///
 	/// @brief emits when a new videoMode was requested from flatbuf client
 	///
-	void setVideoMode(VideoMode videoMode);
+	///void setVideoModeHdr(int hdr);
 
 private:
 

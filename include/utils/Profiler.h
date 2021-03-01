@@ -3,7 +3,7 @@
 #include <time.h>
 #include <map>
 #include <utils/Logger.h>
-#include <HyperionConfig.h>
+#include <HyperhdrConfig.h>
 
 /*
 The performance (real time) of any function can be tested with the help of profiler.

@@ -37,7 +37,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString 
 		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
 
 	// init connect
-	Info(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+	Info(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
 	connectToHost();
 
 	// start the connection timer
@@ -167,13 +167,13 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 		switch (_socket.state() )
 		{
 			case QAbstractSocket::UnconnectedState:
-				Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				Info(_log, "No connection to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
 				break;
 			case QAbstractSocket::ConnectedState:
-				Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				Info(_log, "Connected to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
 				break;
 			default:
-				Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				Debug(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
 				break;
 	  }
 	  _prevSocketState = _socket.state();
@@ -207,13 +207,14 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 	if (!reply->error())
 	{
 		// no error set must be a success or registered or video
-		const auto videoMode = reply->video();
+		//const auto videoMode =
+		reply->video();
 		const auto registered = reply->registered();
-		if (videoMode != -1) {
+		/*if (videoMode != -1) {
 			// We got a video reply.
 			emit setVideoMode(static_cast<VideoMode>(videoMode));
 			return true;
-		}
+		}*/
 
 		 // We got a registered reply.
 		if (registered == -1 || registered != _priority)

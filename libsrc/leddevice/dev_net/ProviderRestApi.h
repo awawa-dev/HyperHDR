@@ -156,7 +156,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QString &body = "");
+	httpResponse put(const QString &body = "", const bool wait = true);
 
 	///
 	/// @brief Execute PUT request
@@ -165,7 +165,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QUrl &url, const QString &body = "");
+	httpResponse put(const QUrl &url, const QString &body = "", const bool wait = true);
 
 	///
 	/// @brief Execute POST request

@@ -1,0 +1,10 @@
+prefix=c:/libjpeg-turbo64
+exec_prefix=c:/libjpeg-turbo64
+libdir=c:/libjpeg-turbo64/lib
+includedir=c:/libjpeg-turbo64/include
+
+Name: libturbojpeg
+Description: A SIMD-accelerated JPEG codec that provides the TurboJPEG API
+Version: 2.0.5
+Libs: -L${libdir} -lturbojpeg
+Cflags: -I${includedir}

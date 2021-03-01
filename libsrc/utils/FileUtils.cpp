@@ -6,7 +6,7 @@
 #include <QDebug>
 
 // hyperion include
-#include <hyperion/Hyperion.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
 
 namespace FileUtils {
 

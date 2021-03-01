@@ -43,41 +43,40 @@ bool BonjourBrowserWrapper::browseForServiceType(const QString &serviceType)
 
 void BonjourBrowserWrapper::currentBonjourRecordsChanged(const QList<BonjourRecord> &list)
 {
-	_hyperionSessions.clear();
+	_hyperhdrSessions.clear();
 	for ( auto rec : list )
 	{
-		_hyperionSessions.insert(rec.serviceName, rec);
+		_hyperhdrSessions.insert(rec.serviceName, rec);
 	}
 }
 
 void BonjourBrowserWrapper::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
 {
-	if ( _hyperionSessions.contains(_bonjourCurrentServiceToResolve))
+	if ( _hyperhdrSessions.contains(_bonjourCurrentServiceToResolve))
 	{
 		QString host   = hostInfo.hostName();
-		QString domain = _hyperionSessions[_bonjourCurrentServiceToResolve].replyDomain;
+		QString domain = _hyperhdrSessions[_bonjourCurrentServiceToResolve].replyDomain;
 		if (host.endsWith("."+domain))
 		{
 			host.remove(host.length()-domain.length()-1,domain.length()+1);
 		}
-		_hyperionSessions[_bonjourCurrentServiceToResolve].hostName = host;
-		_hyperionSessions[_bonjourCurrentServiceToResolve].port     = port;
-		_hyperionSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
-		//Debug(_log, "found hyperion session: %s:%d",QSTRING_CSTR(hostInfo.hostName()), port);
+		_hyperhdrSessions[_bonjourCurrentServiceToResolve].hostName = host;
+		_hyperhdrSessions[_bonjourCurrentServiceToResolve].port     = port;
+		_hyperhdrSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
 
 		//emit change
-		emit browserChange(_hyperionSessions);
+		emit browserChange(_hyperhdrSessions);
 	}
 }
 
 void BonjourBrowserWrapper::bonjourResolve()
 {
-	for(auto key : _hyperionSessions.keys())
+	for(auto key : _hyperhdrSessions.keys())
 	{
-		if (_hyperionSessions[key].port < 0)
+		if (_hyperhdrSessions[key].port < 0)
 		{
 			_bonjourCurrentServiceToResolve = key;
-			_bonjourResolver->resolveBonjourRecord(_hyperionSessions[key]);
+			_bonjourResolver->resolveBonjourRecord(_hyperhdrSessions[key]);
 			break;
 		}
 	}

@@ -1,5 +1,5 @@
-#include <protoserver/ProtoServer.h>
 #include "ProtoClientConnection.h"
+#include <protoserver/ProtoServer.h>
 
 // util
 #include <utils/NetOrigin.h>
@@ -32,12 +32,12 @@ void ProtoServer::initServer()
 	connect(_server, &QTcpServer::newConnection, this, &ProtoServer::newConnection);
 
 	// apply config
-	handleSettingsUpdate(settings::PROTOSERVER, _config);
+	handleSettingsUpdate(settings::type::PROTOSERVER, _config);
 }
 
 void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::PROTOSERVER)
+	if(type == settings::type::PROTOSERVER)
 	{
 		const QJsonObject& obj = config.object();
 

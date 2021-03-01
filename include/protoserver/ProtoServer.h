@@ -13,7 +13,7 @@ class NetOrigin;
 
 ///
 /// @brief This class creates a TCP server which accepts connections wich can then send
-/// in Protocol Buffer encoded commands. This interface to Hyperion is used by various
+/// in Protocol Buffer encoded commands. This interface to Hyperhdr is used by various
 /// third-party applications
 ///
 class ProtoServer : public QObject

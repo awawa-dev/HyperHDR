@@ -5,7 +5,7 @@
 RgbTransform::RgbTransform():
 	_log(Logger::getInstance(QString("RgbTransform")))
 {
-	init(true,1.0,1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100);
+	init(false,1.0,1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100);
 }
 
 RgbTransform::RgbTransform(
@@ -28,9 +28,10 @@ void RgbTransform::init(
 	_classic_config = classic_config;
 	_saturationGain = saturationGain;
 	_luminanceGain = luminanceGain;
-	
 	_luminanceMinimum = 0;
-	
+	_brightness = brightness;
+	_brightnessCompensation = brightnessCompensation;
+
 	Debug(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f", 
 			_classic_config, _saturationGain, _luminanceGain);
 
@@ -82,6 +83,21 @@ void RgbTransform::setLuminanceGain(double luminanceGain)
 {
 	_luminanceGain = luminanceGain;
 	Debug(_log, "set luminanceGain to %f", _luminanceGain);
+}
+
+double RgbTransform::getSaturationGain() const
+{
+	return _saturationGain;
+}
+
+double RgbTransform::getLuminanceGain() const
+{
+	return _luminanceGain;
+}
+
+bool RgbTransform::getClassicConfig() const
+{
+	return _classic_config;
 }
 
 void RgbTransform::initializeMapping()
@@ -188,7 +204,7 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	green = _mappingG[green];
 	blue  = _mappingB[blue];
 
-	// apply brightnesss	
+	// apply brightnesss
 	uint8_t y, u, v;
 	ColorSys::rgb2yuv(red, green, blue, y, u, v);
 

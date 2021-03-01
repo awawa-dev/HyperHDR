@@ -2,29 +2,62 @@ macro(DeployUnix TARGET)
 	if(EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
-
+		#"libsystemd0"
 		set(SYSTEM_LIBS_SKIP
 			"libc"
+			"libglib-2"
+			"libsystemd0"
 			"libdl"
 			"libexpat"
 			"libfontconfig"
-			"libfreetype"
-			"libgcc_s"
+			"libgcc_s"			
 			"libgcrypt"
-			"libGL"
-			"libGLdispatch"
-			"libglib-2"
-			"libGLX"
 			"libgpg-error"
 			"libm"
 			"libpthread"
 			"librt"
 			"libstdc++"
 			"libudev"
-			"libusb-1"
-			"libutil"
-			"libX11"
+			"libutil"			
 			"libz"
+			"libxrender1"
+			"libxi6"
+			"libxext6"
+			"libx11-xcb1"
+			"libsm"
+			"libqt5gui5"
+			"libice6"
+			"libdrm2"
+			"libxkbcommon0"
+			"libwacom2"
+			"libmtdev1"
+			"libinput10"
+			"libgudev-1.0-0"
+			"libffi6"
+			"libevdev2"
+			"libqt5dbus5"
+			"libuuid1"
+			"libselinux1"
+			"libmount1"
+			"libblkid1"
+			"libxcb-icccm4"
+			"libxcb-image0"
+			"libxcb-keysyms1"
+			"libxcb-randr0"
+			"libxcb-render-util0"
+			"libxcb-render0"
+			"libxcb-shape0"
+			"libxcb-shm0"
+			"libxcb-sync1"
+			"libxcb-util0"
+			"libxcb-xfixes0"
+			"libxcb-xinerama0"
+			"libxcb-xkb1"
+			"libxcb1"
+			"libxkbcommon-x11-0"
+			"libxcb-xinput0"
+			"libssl1.1"
+			"libsqlite3-0"
 		)
 
 		if (APPLE)
@@ -38,7 +71,14 @@ macro(DeployUnix TARGET)
 		set(PREREQUISITE_LIBS "")
 		foreach(DEPENDENCY ${DEPENDENCIES})
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-			list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+			
+			foreach(myitem ${SYSTEM_LIBS_SKIP})
+				string(FIND ${myitem} ${resolved} _index)
+				if (${_index} GREATER -1)
+					break()									
+				endif()
+			endforeach()
+					
 			if (${_index} GREATER -1)
 				continue() # Skip system libraries
 			else()
@@ -47,34 +87,9 @@ macro(DeployUnix TARGET)
 				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
 				get_filename_component(file_canonical ${resolved_file} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+				#message(STATUS "Basic check added: ${resolved_file}")
 			endif()
 		endforeach()
-
-		# Append the OpenSSL library to the list
-		find_package(OpenSSL 1.0.0 REQUIRED)
-		if (OPENSSL_FOUND)
-			foreach(openssl_lib ${OPENSSL_LIBRARIES})
-				get_prerequisites(${openssl_lib} openssl_deps 0 1 "" "")
-
-				foreach(openssl_dep ${openssl_deps})
-					get_filename_component(resolved ${openssl_dep} NAME_WE)
-					list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-					if (${_index} GREATER -1)
-						continue() # Skip system libraries
-					else()
-						gp_resolve_item("${openssl_lib}" "${openssl_dep}" "" "" resolved_file)
-						get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-						gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-						get_filename_component(file_canonical ${resolved_file} REALPATH)
-						gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-					endif()
-				endforeach()
-
-				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
-				get_filename_component(file_canonical ${openssl_lib} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			endforeach()
-		endif(OPENSSL_FOUND)
 
 		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
 		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
@@ -86,23 +101,48 @@ macro(DeployUnix TARGET)
 		
 		if(GLD)
 			SET(resolved_file ${GLD})
-			message(STATUS "Adding: ${resolved_file}")
+			message(STATUS "Adding GLD: ${resolved_file}")
 			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Added: ${resolved_file}")
+			message(STATUS "Added GLD: ${resolved_file}")
 			set(resolved_file "${resolved_file}.0")
 			if(EXISTS ${resolved_file})
-				message(STATUS "Adding: ${resolved_file}")
+				#message(STATUS "Adding GLD: ${resolved_file}")
 				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-				message(STATUS "Added: ${resolved_file}")
+				#message(STATUS "Added GLD: ${resolved_file}")
 			endif()
 			get_filename_component(file_canonical ${resolved_file} REALPATH)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			message(STATUS "Added: ${file_canonical}")
 		endif()
+		
+		find_library(LIB_GLX
+			NAMES libGLX libGLX.so		
+		)
+				
+		if(LIB_GLX)
+			message(STATUS "libGLX found ${LIB_GLX}")
+			SET(resolved_file ${LIB_GLX})
+			message(STATUS "Adding LIB_GLX: ${resolved_file}")
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Added LIB_GLX: ${resolved_file}")
+			set(resolved_file "${resolved_file}.0")
+			if(EXISTS ${resolved_file})
+				#message(STATUS "Adding GLX: ${resolved_file}")
+				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+				#message(STATUS "Added GLX: ${resolved_file}")
+			endif()
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added: ${file_canonical}")
+		else()
+			message(STATUS "libGLX not found")
+		endif()
 
-		# Copy Qt plugins to 'share/hyperion/lib'
+		# Copy Qt plugins to 'share/hyperhdr/lib'
 		if(QT_PLUGINS_DIR)
 			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
@@ -112,82 +152,60 @@ macro(DeployUnix TARGET)
 
 						foreach(DEPENDENCY ${PLUGINS})
 							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-							list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+							
+							foreach(myitem ${SYSTEM_LIBS_SKIP})
+									#message(STATUS "Checking ${myitem}")
+									string(FIND ${myitem} ${resolved} _index)
+									if (${_index} GREATER -1)
+										#message(STATUS "${myitem} = ${resolved}")									
+										break()									
+									endif()
+							endforeach()
+								
 							if (${_index} GREATER -1)
+								#message(STATUS "QT skipped: ${resolved}")
 								continue() # Skip system libraries
-							else()
+							else()						
+								#message(STATUS "QT included: ${resolved}")
 								gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
 								get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 								gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
 								get_filename_component(file_canonical ${resolved_file} REALPATH)
 								gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+								#message(STATUS "QT added: ${resolved_file}")
 							endif()
 						endforeach()
 
 						install(
 							FILES ${file}
-							DESTINATION "share/hyperion/lib/${PLUGIN}"
-							COMPONENT "Hyperion"
+							DESTINATION "share/hyperhdr/lib/${PLUGIN}"
+							COMPONENT "HyperHDR"
 						)
 					endforeach()
 				endif()
 			endforeach()
 		endif(QT_PLUGINS_DIR)
 
-		# Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
+		# Create a qt.conf file in 'share/hyperhdr/bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
-			DESTINATION "share/hyperion/bin"
-			COMPONENT "Hyperion"
+			DESTINATION "share/hyperhdr/bin"
+			COMPONENT "HyperHDR"
 		)
 
-		# Copy dependencies to 'share/hyperion/lib'
+		# Copy dependencies to 'share/hyperhdr/lib'
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
 			message("Installing: " ${PREREQUISITE_LIB})
 			install(
 				FILES ${PREREQUISITE_LIB}
-				DESTINATION "share/hyperion/lib"
-				COMPONENT "Hyperion"
+				DESTINATION "share/hyperhdr/lib"
+				COMPONENT "HyperHDR"
 			)
 		endforeach()
 		
 		# install LUT
-		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperion/lut" COMPONENT "Hyperion")
-		
-
-		# Detect the Python version and modules directory
-		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-
-			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
-			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-
-		else()
-
-			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-			execute_process(
-				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-
-		endif()
-
-		# Copy Python modules to 'share/hyperion/lib/python'
-		if (PYTHON_MODULES_DIR)
-
-			install(
-				DIRECTORY ${PYTHON_MODULES_DIR}/
-				DESTINATION "share/hyperion/lib/python"
-				COMPONENT "Hyperion"
-			)
-
-		endif(PYTHON_MODULES_DIR)
-
+		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")		
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
@@ -204,7 +222,6 @@ macro(DeployWindows TARGET)
 	if(EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		find_package(Qt5Core REQUIRED)
-		find_package(OpenSSL REQUIRED)
 
 		# Find the windeployqt binaries
 		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
@@ -230,7 +247,7 @@ macro(DeployWindows TARGET)
 		separate_arguments(DEPENDENCIES WINDOWS_COMMAND ${DEPS})
 		string(REPLACE "\\" "/" DEPENDENCIES "${DEPENDENCIES}")
 
-		# Copy dependencies to 'hyperion/lib' or 'hyperion'
+		# Copy dependencies to 'hyperhdr/lib' or 'hyperhdr'
 		while (DEPENDENCIES)
 			list(GET DEPENDENCIES 0 src)
 			list(GET DEPENDENCIES 1 dst)
@@ -240,110 +257,70 @@ macro(DeployWindows TARGET)
 				install(
 					FILES ${src}
 					DESTINATION "lib/${dst}"
-					COMPONENT "Hyperion"
+					COMPONENT "HyperHDR"
 				)
 			else()
 				install(
 					FILES ${src}
 					DESTINATION "bin"
-					COMPONENT "Hyperion"
+					COMPONENT "HyperHDR"
 				)
 			endif()
 
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
 
-		# Copy OpenSSL Libs
-		if (OPENSSL_FOUND)
-			string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
-			list(GET openssl_versions 0 openssl_version_major)
-			list(GET openssl_versions 1 openssl_version_minor)
-
-			set(library_suffix "-${openssl_version_major}_${openssl_version_minor}")
-			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-			  string(APPEND library_suffix "-x64")
-			endif()
-
-			find_file(OPENSSL_SSL
-				NAMES "libssl${library_suffix}.dll"
-				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
-				NO_DEFAULT_PATH
-			)
-
-			find_file(OPENSSL_CRYPTO
-				NAMES "libcrypto${library_suffix}.dll"
-				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
-				NO_DEFAULT_PATH
-			)
-
-			install(
-				FILES ${OPENSSL_SSL} ${OPENSSL_CRYPTO}
-				DESTINATION "bin"
-				COMPONENT "Hyperion"
-			)
-		endif(OPENSSL_FOUND)
-
-		# Copy OpenSSL Libs
+		# Copy TurboJPEG Libs
 		if (TURBOJPEG_FOUND)
 			find_file(TurboJPEG_DLL
 				NAMES "turbojpeg.dll" "jpeg62.dll"
-				PATHS ${TurboJPEG_INCLUDE_DIRS}/.. ${TurboJPEG_INCLUDE_DIRS}/../bin
+				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
 				NO_DEFAULT_PATH
 			)
 
 			install(
 				FILES ${TurboJPEG_DLL}
 				DESTINATION "bin"
-				COMPONENT "Hyperion"
+				COMPONENT "HyperHDR"
 			)
 		endif(TURBOJPEG_FOUND)
+		
+		# Copy usb Libs
+		if (LIBUSB_1_LIBRARIES)
+			find_file(USBLIB_DLL
+				NAMES "libusb-1.0.dll"
+				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/libusb"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+
+			install(
+				FILES ${USBLIB_DLL}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+			
+			find_file(HIDLIB_DLL
+				NAMES "hidapi.dll"
+				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/libusb"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+
+			install(
+				FILES ${HIDLIB_DLL}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"				
+			)
+		endif(LIBUSB_1_LIBRARIES)
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
 			DESTINATION "bin"
-			COMPONENT "Hyperion"
+			COMPONENT "HyperHDR"
 		)
-
-		# Download embed python package
-		# Currently only cmake version >= 3.12 implemented
-		set(url "https://www.python.org/ftp/python/${Python3_VERSION}/")
-		set(filename "python-${Python3_VERSION}-embed-amd64.zip")
-
-		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}" OR NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
-			file(DOWNLOAD "${url}${filename}" "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-				STATUS result
-			)
-
-			# Check if the download is successful
-			list(GET result 0 result_code)
-			if(NOT result_code EQUAL 0)
-				list(GET result 1 reason)
-				message(FATAL_ERROR "Could not download file ${url}${filename}: ${reason}")
-			endif()
-
-			# Unpack downloaded embed python
-			file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/python)
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
-			execute_process(
-				COMMAND ${CMAKE_COMMAND} -E tar -xfz "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
-				OUTPUT_QUIET
-			)
-		endif()
-
-		# Copy pythonXX.dll and pythonXX.zip to 'hyperion'
-		foreach(PYTHON_FILE
-			"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll"
-			"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.zip"
-		)
-			install(
-				FILES ${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_FILE}
-				DESTINATION "bin"
-				COMPONENT "Hyperion"
-			)
-		endforeach()
 
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
@@ -370,11 +347,11 @@ macro(DeployWindows TARGET)
 		install(
 			FILES ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d
 			DESTINATION "bin"
-			COMPONENT "Hyperion"
+			COMPONENT "HyperHDR"
 		)
 
 
-		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "Hyperion")
+		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
 
 	else()
 		# Run CMake after target was built

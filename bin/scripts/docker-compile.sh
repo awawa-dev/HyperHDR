@@ -1,16 +1,16 @@
 #!/bin/bash -e
 
 DOCKER="docker"
-# Git repo url of Hyperion
-GIT_REPO_URL="https://github.com/hyperion-project/hyperion.ng.git"
+# Git repo url of Hyperhdr
+GIT_REPO_URL="https://github.com/awawa-dev/HyperHDR.git"
 # GitHub Container Registry url
-REGISTRY_URL="ghcr.io/hyperion-project"
+REGISTRY_URL="ghcr.io/awawa-dev"
 # cmake build type
 BUILD_TYPE="Release"
 # the docker image at GitHub Container Registry
 BUILD_IMAGE="x86_64"
 # the docker tag at GitHub Container Registry
-BUILD_TAG="stretch"
+BUILD_TAG="buster"
 # build packages (.deb .zip ...)
 BUILD_PACKAGES=true
 # packages string inserted to cmake cmd
@@ -43,23 +43,13 @@ set -e
 
 # help print function
 function printHelp {
-echo "########################################################
-## A script to compile Hyperion inside a docker container
-## Requires installed Docker: https://www.docker.com/
-## Without arguments it will compile Hyperion for Debian Stretch (x86_64).
-## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
-##
-## Homepage: https://www.hyperion-project.org
-## Forum: https://forum.hyperion-project.org
-########################################################
-# These are possible arguments to modify the script behaviour with their default values
-#
+echo "## A script to compile Hyperhdr inside a docker container
 # docker-compile.sh -h	            # Show this help message
-# docker-compile.sh -i x86_64       # The docker image, one of x86_64 | armv6l | armv7l | rpi-raspbian
-# docker-compile.sh -t stretch      # The docker tag, stretch or buster
+# docker-compile.sh -i x86_64       # The docker image, one of x86_64, rpi012-armv6l, rpi34-armv7l
+# docker-compile.sh -t buster       # The docker buster, bullseye
 # docker-compile.sh -b Release      # cmake Release or Debug build
 # docker-compile.sh -p true         # If true build packages with CPack
-# More informations to docker tags at: https://github.com/Hyperion-Project/hyperion.docker-ci"
+"
 }
 
 while getopts i:t:b:p:h option
@@ -85,10 +75,10 @@ echo "---> Initialize with IMAGE:TAG=${BUILD_IMAGE}:${BUILD_TAG}, BUILD_TYPE=${B
 sudo rm -fr $SCRIPT_PATH/deploy >/dev/null 2>&1
 mkdir $SCRIPT_PATH/deploy >/dev/null 2>&1
 
-# get Hyperion source, cleanup previous folder
-echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
-sudo rm -fr $SCRIPT_PATH/hyperion >/dev/null 2>&1
-git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+# get Hyperhdr source, cleanup previous folder
+echo "---> Downloading Hyperhdr source code from ${GIT_REPO_URL}"
+sudo rm -fr $SCRIPT_PATH/hyperhdr >/dev/null 2>&1
+git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperhdr || { echo "---> Failed to download Hyperhdr source code! Abort"; exit 1; }
 
 # Steps:
 # Update lokal docker image
@@ -101,17 +91,17 @@ git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo
 echo "---> Startup docker..."
 $DOCKER run --rm \
 	-v "${SCRIPT_PATH}/deploy:/deploy" \
-	-v "${SCRIPT_PATH}/hyperion:/source:ro" \
+	-v "${SCRIPT_PATH}/hyperhdr:/source:ro" \
 	$REGISTRY_URL/$BUILD_IMAGE:$BUILD_TAG \
-	/bin/bash -c "mkdir hyperion && cp -r /source/. /hyperion &&
-	cd /hyperion && mkdir build && cd build &&
+	/bin/bash -c "mkdir hyperhdr && cp -r /source/. /hyperhdr &&
+	cd /hyperhdr && mkdir build && cd build &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
 	make -j $(nproc) ${PACKAGES} || exit 3 &&
 	echo '---> Copy binaries and packages to host folder: ${SCRIPT_PATH}/deploy' &&
-	cp -v /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
-	cp -v /hyperion/build/Hyperion-* /deploy/ 2>/dev/null || : &&
+	cp -v /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
+	cp -v /hyperhdr/build/Hyperhdr-* /deploy/ 2>/dev/null || : &&
 	exit 0;
-	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
+	exit 1 " || { echo "---> Hyperhdr compilation failed! Abort"; exit 4; }
 
 # overwrite file owner to current user
 sudo chown -fR $(stat -c "%U:%G" $SCRIPT_PATH/deploy) $SCRIPT_PATH/deploy

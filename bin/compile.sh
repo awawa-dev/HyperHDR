@@ -3,12 +3,12 @@
 # exit on error
 set -e
 
-TARGET=${1:-hyperion}
+TARGET=${1:-hyperhdr}
 CFG="${2:-Release}"
 INST="$( [ "${3:-}" = "install" ] && echo true || echo false )"
 
 sudo apt-get update
-sudo apt-get install                 \
+sudo apt-get install             \
 	git                          \
 	cmake                        \
 	build-essential              \
@@ -16,8 +16,6 @@ sudo apt-get install                 \
 	libqt5serialport5-dev        \
 	libusb-1.0-0-dev             \
 	libturbojpeg0-dev            \
-	python3-dev                  \
-	libcec-dev                   \
 	libxcb-util0-dev             \
 	libxcb-randr0-dev            \
 	libxrandr-dev                \
@@ -27,14 +25,15 @@ sudo apt-get install                 \
 	libssl-dev                   \
 	libjpeg-dev                  \
 	libqt5sql5-sqlite            \
-	zlib1g-dev                   \
+	libqt5svg5-dev               \
+	zlib1g-dev
 
 if [ -e /dev/vc-cma -a -e /dev/vc-mem ]
 then
 	sudo apt-get install libraspberrypi-dev
 fi
 
-git clone --recursive https://github.com/hyperion-project/hyperion.ng.git ${TARGET}
+git clone --recursive https://github.com/awawa-dev/HyperHDR.git ${TARGET}
 
 rm -rf $TARGET/build
 mkdir -p $TARGET/build

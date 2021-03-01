@@ -1,5 +1,4 @@
-#ifndef HYPERION_COLOROPTION_H
-#define HYPERION_COLOROPTION_H
+#pragma once
 
 #include "Option.h"
 #include <QColor>
@@ -38,4 +37,4 @@ public:
 
 }
 
-#endif //HYPERION_COLOROPTION_H
+

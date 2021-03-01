@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 // project includes
-#include "HyperionConfig.h"
+#include "HyperhdrConfig.h"
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
@@ -31,7 +31,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
 
 	// init
-	handleSettingsUpdate(settings::JSONSERVER, config);
+	handleSettingsUpdate(settings::type::JSONSERVER, config);
 }
 
 JsonServer::~JsonServer()
@@ -77,7 +77,7 @@ void JsonServer::stop()
 
 void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::JSONSERVER)
+	if(type == settings::type::JSONSERVER)
 	{
 		QJsonObject obj = config.object();
 		if(_port != obj["port"].toInt())

@@ -10,14 +10,12 @@
 #ifdef ENABLE_AVAHI
 #include <bonjour/bonjourrecord.h>
 #endif
-// videModes
-#include <utils/VideoMode.h>
 // settings
 #include <utils/settings.h>
 // AuthManager
-#include <hyperion/AuthManager.h>
+#include <hyperhdrbase/AuthManager.h>
 
-class Hyperion;
+class HyperHdrInstance;
 class ComponentRegister;
 class BonjourBrowserWrapper;
 class PriorityMuxer;
@@ -55,9 +53,9 @@ public:
 	void resetSubscriptions();
 
 	///
-	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
+	/// @brief Re-apply all current subs to a new HyperHDR instance, the connections to the old instance will be dropped
 	///
-	void setSubscriptionsTo(Hyperion* hyperion);
+	void setSubscriptionsTo(HyperHdrInstance* hyperhdr);
 
 signals:
 	///
@@ -70,7 +68,7 @@ private slots:
 	///
 	/// @brief handle component state changes
 	///
-	void handleComponentState(hyperion::Components comp, bool state);
+	void handleComponentState(hyperhdr::Components comp, bool state);
 #ifdef ENABLE_AVAHI
 	///
 	/// @brief handle emits from bonjour wrapper
@@ -97,21 +95,15 @@ private slots:
 	/// @brief Handle video mode change
 	/// @param mode  The new videoMode
 	///
-	void handleVideoModeChange(VideoMode mode);
-
-	///
-	/// @brief Handle video mode change
-	/// @param mode  The new videoMode
-	///
 	void handleVideoModeHdrChange(int hdr);
-	
+
 	///
 	/// @brief Handle effect list change
 	///
 	void handleEffectListChange();
 
 	///
-	/// @brief Handle a config part change. This does NOT include (global) changes from other hyperion instances
+	/// @brief Handle a config part change. This does NOT include (global) changes from other hyperhdr instances
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
@@ -125,7 +117,7 @@ private slots:
 	void handleLedsConfigChange(settings::type type, const QJsonDocument& data);
 
 	///
-	/// @brief Handle Hyperion instance manager change
+	/// @brief Handle HyperHDR instance manager change
 	///
 	void handleInstanceChange();
 
@@ -135,8 +127,8 @@ private slots:
 	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
 
 private:
-	/// pointer of Hyperion instance
-	Hyperion* _hyperion;
+	/// pointer of HyperHDR instance
+	HyperHdrInstance* _hyperhdr;
 	/// pointer of comp register
 	ComponentRegister* _componentRegister;
 #ifdef ENABLE_AVAHI

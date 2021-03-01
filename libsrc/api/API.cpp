@@ -14,10 +14,9 @@
 #include <QByteArray>
 #include <QTimer>
 
-// hyperion includes
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <HyperionConfig.h>
+#include <HyperhdrConfig.h>
 #include <utils/SysInfo.h>
 #include <utils/ColorSys.h>
 #include <utils/Process.h>
@@ -26,37 +25,47 @@
 #include <bonjour/bonjourbrowserwrapper.h>
 
 // ledmapping int <> string transform methods
-#include <hyperion/ImageProcessor.h>
+#include <hyperhdrbase/ImageProcessor.h>
 
 // api includes
 #include <api/JsonCB.h>
 
-using namespace hyperion;
+using namespace hyperhdr;
 
 API::API(Logger *log, bool localConnection, QObject *parent)
     : QObject(parent)
 {
 	qRegisterMetaType<int64_t>("int64_t");
-	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<std::map<int, registerData>>("std::map<int,registerData>");
 
     // Init
     _log = log;
     _authManager = AuthManager::getInstance();
-    _instanceManager = HyperionIManager::getInstance();
+    _instanceManager = HyperHdrIManager::getInstance();
     _localConnection = localConnection;
 
     _authorized = false;
     _adminAuthorized = false;
 
-    _hyperion = _instanceManager->getHyperionInstance(0);
+    _hyperhdr = _instanceManager->getHyperHdrInstance(0);
     _currInstanceIndex = 0;
     // TODO FIXME
-    // report back current registers when a Hyperion instance request it
+    // report back current registers when a Hyperhdr instance request it
     //connect(ApiSync::getInstance(), &ApiSync::requestActiveRegister, this, &API::requestActiveRegister, Qt::QueuedConnection);
 
     // connect to possible token responses that has been requested
-    connect(_authManager, &AuthManager::tokenResponse, this, &API::checkTokenResponse);
+    connect(_authManager, &AuthManager::tokenResponse, [=] (bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
+    {
+        if (this == caller)
+            emit onTokenResponse(success, token, comment, id, tan);
+    });
+
+    // connect to possible startInstance responses that has been requested
+    connect(_instanceManager, &HyperHdrIManager::startInstanceResponse, [=] (QObject *caller, const int &tan)
+    {
+        if (this == caller)
+            emit onStartInstanceResponse(tan);
+    });
 }
 
 void API::init()
@@ -64,7 +73,7 @@ void API::init()
     bool apiAuthRequired = _authManager->isAuthRequired();
 
     // For security we block external connections if default PW is set
-    if (!_localConnection && API::hasHyperionDefaultPw())
+    if (!_localConnection && API::hasHyperhdrDefaultPw())
     {
         emit forceClose();
     }
@@ -82,7 +91,7 @@ void API::init()
     }
 }
 
-void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperion::Components callerComp)
+void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperhdr::Components callerComp)
 {
     std::vector<ColorRgb> fledColors;
     if (ledColors.size() % 3 == 0)
@@ -90,12 +99,12 @@ void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int time
         for (unsigned i = 0; i < ledColors.size(); i += 3)
         {
             fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
-        }
-        QMetaObject::invokeMethod(_hyperion, "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
+        }		
+        QMetaObject::invokeMethod(_hyperhdr, "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
     }
 }
 
-bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components callerComp)
+bool API::setImage(ImageCmdData &data, hyperhdr::Components comp, QString &replyMsg, hyperhdr::Components callerComp)
 {
     // truncate name length
     data.imgName.truncate(16);
@@ -167,18 +176,18 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
     // copy image
     Image<ColorRgb> image(data.width, data.height);
     memcpy(image.memptr(), data.data.data(), data.data.size());
-
-    QMetaObject::invokeMethod(_hyperion, "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
-    QMetaObject::invokeMethod(_hyperion, "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
+	
+    QMetaObject::invokeMethod(_hyperhdr, "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperhdr::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
+    QMetaObject::invokeMethod(_hyperhdr, "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
 
     return true;
 }
 
-bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components callerComp)
+bool API::clearPriority(int priority, QString &replyMsg, hyperhdr::Components callerComp)
 {
     if (priority < 0 || (priority > 0 && priority < 254))
-    {
-        QMetaObject::invokeMethod(_hyperion, "clear", Qt::QueuedConnection, Q_ARG(int, priority));
+    {		
+        QMetaObject::invokeMethod(_hyperhdr, "clear", Qt::QueuedConnection, Q_ARG(int, priority));
     }
     else
     {
@@ -188,64 +197,69 @@ bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components ca
     return true;
 }
 
-bool API::setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperion::Components callerComp)
+bool API::setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperhdr::Components callerComp)
 {
     Components component = stringToComponent(comp);
+	if (component == COMP_ALL)
+	{
+		auto manager = HyperHdrIManager::getInstance();
 
-    if (component != COMP_INVALID)
-    {
-        QMetaObject::invokeMethod(_hyperion, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
+		manager->toggleStateAllInstances(compState);
+
+		return true;
+	}
+    else if (component != COMP_INVALID)
+    {		
+        QMetaObject::invokeMethod(_hyperhdr, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperhdr::Components, component), Q_ARG(bool, compState));
         return true;
     }
     replyMsg = QString("Unknown component name: %1").arg(comp);
     return false;
 }
 
-void API::setLedMappingType(int type, hyperion::Components callerComp)
-{
-    QMetaObject::invokeMethod(_hyperion, "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
+void API::setLedMappingType(int type, hyperhdr::Components callerComp)
+{	
+    QMetaObject::invokeMethod(_hyperhdr, "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
 }
 
-void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
-{
-    QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
+void API::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
+{	
+    QMetaObject::invokeMethod(_hyperhdr, "setVideoModeHdr", Qt::QueuedConnection, Q_ARG(int, hdr));
 }
 
-void API::setVideoModeHdr(int hdr, hyperion::Components callerComp)
+bool API::setEffect(const EffectCmdData &dat, hyperhdr::Components callerComp)
 {
-    QMetaObject::invokeMethod(_hyperion, "setVideoModeHdr", Qt::QueuedConnection, Q_ARG(int, hdr));
-}
-
-void API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
-{
+    int res;
     if (!dat.args.isEmpty())
-    {
-        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
+    {		
+        QMetaObject::invokeMethod(_hyperhdr, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
     }
     else
     {
-        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
+        QMetaObject::invokeMethod(_hyperhdr, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
     }
+
+    return res >= 0;
 }
 
-void API::setSourceAutoSelect(bool state, hyperion::Components callerComp)
+void API::setSourceAutoSelect(bool state, hyperhdr::Components callerComp)
+{	
+    QMetaObject::invokeMethod(_hyperhdr, "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
+}
+
+void API::setVisiblePriority(int priority, hyperhdr::Components callerComp)
 {
-    QMetaObject::invokeMethod(_hyperion, "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
+    QMetaObject::invokeMethod(_hyperhdr, "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
 }
 
-void API::setVisiblePriority(int priority, hyperion::Components callerComp)
-{
-    QMetaObject::invokeMethod(_hyperion, "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
-}
-
-void API::registerInput(int priority, hyperion::Components component, const QString &origin, const QString &owner, hyperion::Components callerComp)
+void API::registerInput(int priority, hyperhdr::Components component, const QString &origin, const QString &owner, hyperhdr::Components callerComp)
 {
     if (_activeRegisters.count(priority))
         _activeRegisters.erase(priority);
 
     _activeRegisters.insert({priority, registerData{component, origin, owner, callerComp}});
-
-    QMetaObject::invokeMethod(_hyperion, "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
+	
+    QMetaObject::invokeMethod(_hyperhdr, "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperhdr::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
 }
 
 void API::unregisterInput(int priority)
@@ -254,7 +268,7 @@ void API::unregisterInput(int priority)
         _activeRegisters.erase(priority);
 }
 
-bool API::setHyperionInstance(quint8 inst)
+bool API::setHyperhdrInstance(quint8 inst)
 {
     if (_currInstanceIndex == inst)
         return true;
@@ -263,40 +277,45 @@ bool API::setHyperionInstance(quint8 inst)
     if (!isRunning)
         return false;
 
-    disconnect(_hyperion, 0, this, 0);
-    QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(Hyperion *, _hyperion), Q_ARG(quint8, inst));
+    disconnect(_hyperhdr, 0, this, 0);	
+    QMetaObject::invokeMethod(_instanceManager, "getHyperHdrInstance", Qt::DirectConnection, Q_RETURN_ARG(HyperHdrInstance *, _hyperhdr), Q_ARG(quint8, inst));
     _currInstanceIndex = inst;
     return true;
 }
 
-std::map<hyperion::Components, bool> API::getAllComponents()
+std::map<hyperhdr::Components, bool> API::getAllComponents()
 {
-    std::map<hyperion::Components, bool> comps;
+    std::map<hyperhdr::Components, bool> comps;
     //QMetaObject::invokeMethod(_hyperion, "getAllComponents", Qt::BlockingQueuedConnection, Q_RETURN_ARG(std::map<hyperion::Components, bool>, comps));
     return comps;
 }
 
-bool API::isHyperionEnabled()
+bool API::isHyperhdrEnabled()
 {
     int res;
-    QMetaObject::invokeMethod(_hyperion, "isComponentEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(hyperion::Components, hyperion::COMP_ALL));
+    QMetaObject::invokeMethod(_hyperhdr, "isComponentEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(hyperhdr::Components, hyperhdr::COMP_ALL));
     return res > 0;
 }
 
 QVector<QVariantMap> API::getAllInstanceData()
 {
-    QVector<QVariantMap> vec;
+    QVector<QVariantMap> vec;	
     QMetaObject::invokeMethod(_instanceManager, "getInstanceData", Qt::DirectConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
     return vec;
 }
 
-void API::startInstance(quint8 index)
+bool API::startInstance(quint8 index, int tan)
 {
-    QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+    bool res;	
+    (_instanceManager->thread() != this->thread())
+    ? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
+    : res = _instanceManager->startInstance(index, false, this, tan);
+
+    return res;
 }
 
 void API::stopInstance(quint8 index)
-{
+{	
     QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
 }
 
@@ -308,7 +327,7 @@ void API::requestActiveRegister(QObject *callerInstance)
 }
 
 bool API::deleteInstance(quint8 index, QString &replyMsg)
-{
+{	
     if (_adminAuthorized)
     {
         QMetaObject::invokeMethod(_instanceManager, "deleteInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
@@ -335,7 +354,7 @@ QString API::createInstance(const QString &name)
 QString API::setInstanceName(quint8 index, const QString &name)
 {
     if (_adminAuthorized)
-    {
+    {		
         QMetaObject::invokeMethod(_instanceManager, "saveName", Qt::QueuedConnection, Q_ARG(quint8, index), Q_ARG(QString, name));
         return "";
     }
@@ -347,7 +366,7 @@ QString API::deleteEffect(const QString &name)
     if (_adminAuthorized)
     {
         QString res;
-        QMetaObject::invokeMethod(_hyperion, "deleteEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QString, name));
+        QMetaObject::invokeMethod(_hyperhdr, "deleteEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QString, name));
         return res;
     }
     return NO_AUTH;
@@ -357,21 +376,28 @@ QString API::saveEffect(const QJsonObject &data)
 {
     if (_adminAuthorized)
     {
-        QString res;
-        QMetaObject::invokeMethod(_hyperion, "saveEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QJsonObject, data));
+        QString res;		
+        QMetaObject::invokeMethod(_hyperhdr, "saveEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QJsonObject, data));
         return res;
     }
     return NO_AUTH;
 }
 
-void API::saveSettings(const QJsonObject &data)
+bool API::saveSettings(const QJsonObject &data)
 {
+	bool rc = true;
     if (!_adminAuthorized)
-        return;
-    QMetaObject::invokeMethod(_hyperion, "saveSettings", Qt::QueuedConnection, Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	{
+		rc = false;
+	}
+	else
+	{		
+		QMetaObject::invokeMethod(_hyperhdr, "saveSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, rc), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	}
+	return rc;
 }
 
-bool API::updateHyperionPassword(const QString &password, const QString &newPassword)
+bool API::updateHyperhdrPassword(const QString &password, const QString &newPassword)
 {
     if (!_adminAuthorized)
         return false;
@@ -385,7 +411,7 @@ QString API::createToken(const QString &comment, AuthManager::AuthDefinition &de
     if (!_adminAuthorized)
         return NO_AUTH;
     if (comment.isEmpty())
-        return "comment is empty";
+        return "comment is empty";	
     QMetaObject::invokeMethod(_authManager, "createToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(AuthManager::AuthDefinition, def), Q_ARG(QString, comment));
     return "";
 }
@@ -412,9 +438,9 @@ QString API::deleteToken(const QString &id)
     return "";
 }
 
-void API::setNewTokenRequest(const QString &comment, const QString &id)
-{
-    QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id));
+void API::setNewTokenRequest(const QString &comment, const QString &id, const int &tan)
+{	
+    QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id), Q_ARG(int, tan));
 }
 
 void API::cancelNewTokenRequest(const QString &comment, const QString &id)
@@ -470,12 +496,11 @@ bool API::getUserToken(QString &userToken)
 
 bool API::isTokenAuthorized(const QString &token)
 {
-    bool res;
-    QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, token));
-    if (res)
-        _authorized = true;
+	(_authManager->thread() != this->thread())
+	? QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
+	: _authorized = _authManager->isTokenAuthorized(token);
 
-    return res;
+    return _authorized;
 }
 
 bool API::isUserAuthorized(const QString &password)
@@ -492,7 +517,7 @@ bool API::isUserAuthorized(const QString &password)
     return res;
 }
 
-bool API::hasHyperionDefaultPw()
+bool API::hasHyperhdrDefaultPw()
 {
     bool res;
     QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, "hyperion"));
@@ -506,12 +531,6 @@ void API::logout()
     // Stop listenig for ADMIN ACCESS protected signals
     disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
     stopDataConnectionss();
-}
-
-void API::checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id)
-{
-    if (this == caller)
-        emit onTokenResponse(success, token, comment, id);
 }
 
 void API::stopDataConnectionss()

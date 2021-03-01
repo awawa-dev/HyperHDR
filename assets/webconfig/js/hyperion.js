@@ -2,7 +2,7 @@
 window.webPrio = 1;
 window.webOrigin = "Web Configuration";
 window.showOptHelp = true;
-window.gitHubReleaseApiUrl = "https://api.github.com/repos/hyperion-project/hyperion.ng/releases";
+window.gitHubReleaseApiUrl = "https://api.github.com/repos/awawa-dev/HyperHDR/releases";
 window.currentChannel = null;
 window.currentVersion = null;
 window.latestVersion = null;
@@ -83,7 +83,15 @@ function initWebSocket()
 				window.jsonPort = '443';
 			else
 				window.jsonPort = document.location.port;	
-			window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://'+document.location.hostname+":"+window.jsonPort) : new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
+			
+			try
+			{
+				window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://'+document.location.hostname+":"+window.jsonPort) : new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
+			}
+			catch(error)
+			{
+				alert("Connection to websocket failed. Please open this page in a new page/tab in your browser or use secure port 8092 (for example https://localhost:8092).");
+			}
 
 			window.websocket.onopen = function (event) {
 				$(window.hyperion).trigger({type:"open"});
@@ -460,9 +468,9 @@ function requestAdjustment(type, value, complete)
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
 }
 
-async function requestLedDeviceDiscovery(type)
+async function requestLedDeviceDiscovery(type, params)
 {
-	let data = { ledDeviceType: type };
+	let data = { ledDeviceType: type, params: params };
 
 	return sendAsyncToHyperion("leddevice", "discover", data, Math.floor(Math.random() * 1000) );
 }
@@ -477,8 +485,5 @@ async function requestLedDeviceProperties(type, params)
 function requestLedDeviceIdentification(type, params)
 {
 	sendToHyperion("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
-
-	//let data = {ledDeviceType: type, params: params};
-	//sendToHyperion("leddevice", "identify", data );
 }
 

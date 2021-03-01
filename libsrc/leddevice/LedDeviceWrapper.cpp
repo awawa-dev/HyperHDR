@@ -7,7 +7,7 @@
 #include "LedDevice_headers.h"
 
 // util
-#include <hyperion/Hyperion.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
 #include <utils/JsonUtils.h>
 
 // qt
@@ -18,9 +18,9 @@
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
 QMutex LedDeviceWrapper::_ledDeviceMapLock {QMutex::Recursive};
 
-LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
-	: QObject(hyperion)
-	, _hyperion(hyperion)
+LedDeviceWrapper::LedDeviceWrapper(HyperHdrInstance* hyperhdr)
+	: QObject(hyperhdr)
+	, _hyperhdr(hyperhdr)
 	, _ledDevice(nullptr)
 	, _enabled(false)
 {
@@ -32,7 +32,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 
 	#undef REGISTER
 
-	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
+	_hyperhdr->setNewComponentState(hyperhdr::COMP_LEDDEVICE, false);
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
@@ -125,7 +125,7 @@ const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 
 int LedDeviceWrapper::getLatchTime() const
 {
-	int value = 0;
+	int value = 0;	
 	QMetaObject::invokeMethod(_ledDevice, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
 	return value;
 }
@@ -146,8 +146,8 @@ QString LedDeviceWrapper::getColorOrder() const
 
 unsigned int LedDeviceWrapper::getLedCount() const
 {
-	unsigned int value = 0;
-	QMetaObject::invokeMethod(_ledDevice, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(unsigned int, value));
+	int value = 0;
+	QMetaObject::invokeMethod(_ledDevice, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
 	return value;
 }
 
@@ -156,9 +156,9 @@ bool LedDeviceWrapper::enabled() const
 	return _enabled;
 }
 
-void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool state)
+void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool state)
 {
-	if(component == hyperion::COMP_LEDDEVICE)
+	if(component == hyperhdr::COMP_LEDDEVICE)
 	{
 		if ( state )
 		{
@@ -172,19 +172,19 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 		//Get device's state, considering situations where it is not ready
 		bool deviceState = false;
 		QMetaObject::invokeMethod(_ledDevice, "componentState", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, deviceState));
-		_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, deviceState);
+		_hyperhdr->setNewComponentState(hyperhdr::COMP_LEDDEVICE, deviceState);
 		_enabled = deviceState;
 	}
 }
 
 void LedDeviceWrapper::handleInternalEnableState(bool newState)
 {
-	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, newState);
+	_hyperhdr->setNewComponentState(hyperhdr::COMP_LEDDEVICE, newState);
 	_enabled = newState;
 
 	if (_enabled)
 	{
-		_hyperion->update();
+		_hyperhdr->update();
 	}
 }
 

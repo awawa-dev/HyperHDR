@@ -75,6 +75,15 @@ int LedDeviceAPA104::write(const std::vector<ColorRgb> &ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;
+	
+	if (_ledCount != ledValues.size())
+	{
+		Warning(_log, "APA104 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount,  ledValues.size());
+		_ledCount = ledValues.size();
+		
+		_ledBuffer.resize(0, 0x00);
+		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+	}
 
 	for (const ColorRgb& color : ledValues)
 	{

@@ -13,7 +13,7 @@
     <string>6.0</string>
 
     <key>CFBundleExecutable</key>
-    <string>hyperiond</string>
+    <string>hyperhdr</string>
     <key>CFBundleIconFile</key>
     <string>Hyperion.icns</string>
 
@@ -50,7 +50,7 @@
     <string>10.6</string>
 
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2017 Hyperion team. All rights reserved.</string>
+    <string>© 2021 Awawa-dev</string>
     <!--key>NSMainNibFile</key>
     <string>MainMenu</string-->
     <key>NSPrincipalClass</key>

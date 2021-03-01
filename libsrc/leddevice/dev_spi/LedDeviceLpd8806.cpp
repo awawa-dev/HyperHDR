@@ -29,6 +29,19 @@ bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 
 int LedDeviceLpd8806::write(const std::vector<ColorRgb> &ledValues)
 {
+	if (_ledCount != ledValues.size())
+	{
+		Warning(_log, "Lpd8806 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount,  ledValues.size());
+		_ledCount = ledValues.size();
+		
+		_ledBuffer.resize(0, 0x00);
+		
+		const unsigned clearSize = _ledCount/32+1;
+		unsigned messageLength = _ledRGBCount + clearSize;
+		// Initialise the buffer
+		_ledBuffer.resize(messageLength, 0x00);
+	}
+	
 	// Copy the colors from the ColorRgb vector to the Ldp8806 data vector
 	for (unsigned iLed=0; iLed<(unsigned)_ledCount; ++iLed)
 	{

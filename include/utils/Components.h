@@ -1,11 +1,11 @@
 #pragma once
 #include <QString>
 
-namespace hyperion
+namespace hyperhdr
 {
 
 /**
- * Enumeration of components in Hyperion.
+ * Enumeration of components in HyperHDR.
  */
 enum Components
 {

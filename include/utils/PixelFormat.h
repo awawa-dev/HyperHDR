@@ -7,11 +7,10 @@
  */
 enum class PixelFormat {
 	YUYV,
-	UYVY,
-	BGR16,
-	BGR24,
-	RGB32,
-	BGR32,
+	RGB24,
+	XRGB,
+	I420,
+	NV12,
 #ifdef HAVE_JPEG_DECODER
 	MJPEG,
 #endif
@@ -26,26 +25,22 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	if (format.compare("yuyv") == 0)
 	{
 		return PixelFormat::YUYV;
-	}
-	else if (format.compare("uyvy")  == 0)
+	}	
+	else if (format.compare("rgb24")  == 0)
 	{
-		return PixelFormat::UYVY;
+		return PixelFormat::RGB24;
 	}
-	else if (format.compare("bgr16")  == 0)
+	else if (format.compare("xrgb")  == 0)
 	{
-		return PixelFormat::BGR16;
+		return PixelFormat::XRGB;
 	}
-	else if (format.compare("bgr24")  == 0)
+	else if (format.compare("i420")  == 0)
 	{
-		return PixelFormat::BGR24;
+		return PixelFormat::I420;
 	}
-	else if (format.compare("rgb32")  == 0)
+	else if (format.compare("nv12") == 0)
 	{
-		return PixelFormat::RGB32;
-	}
-	else if (format.compare("bgr32")  == 0)
-	{
-		return PixelFormat::BGR32;
+		return PixelFormat::NV12;
 	}
 #ifdef HAVE_JPEG_DECODER
 	else if (format.compare("mjpeg")  == 0)
@@ -64,26 +59,22 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	if ( pixelFormat == PixelFormat::YUYV)
 	{
 		return "yuyv";
-	}
-	else if (pixelFormat == PixelFormat::UYVY)
+	}	
+	else if (pixelFormat == PixelFormat::RGB24)
 	{
-		return "uyvy";
+		return "rgb24";
 	}
-	else if (pixelFormat == PixelFormat::BGR16)
+	else if (pixelFormat == PixelFormat::XRGB)
 	{
-		return "bgr16";
+		return "xrgb";
 	}
-	else if (pixelFormat == PixelFormat::BGR24)
+	else if (pixelFormat == PixelFormat::I420)
 	{
-		return "bgr24";
+		return "i420";
 	}
-	else if (pixelFormat == PixelFormat::RGB32)
+	else if (pixelFormat == PixelFormat::NV12)
 	{
-		return "rgb32";
-	}
-	else if (pixelFormat == PixelFormat::BGR32)
-	{
-		return "bgr32";
+		return "nv12";
 	}
 #ifdef HAVE_JPEG_DECODER
 	else if (pixelFormat == PixelFormat::MJPEG)

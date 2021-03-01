@@ -11,12 +11,9 @@ RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
 RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
 	: _channelName(channelName)
 	, _log(Logger::getInstance(channelName))
+	, _brightness(0)
 {
 	setAdjustment(adjustR, adjustG, adjustB);
-}
-
-RgbChannelAdjustment::~RgbChannelAdjustment()
-{
 }
 
 void RgbChannelAdjustment::resetInitialized()
@@ -26,7 +23,7 @@ void RgbChannelAdjustment::resetInitialized()
 }
 
 void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
-{			
+{
 	_adjust[RED]   = adjustR;
 	_adjust[GREEN] = adjustG;
 	_adjust[BLUE]  = adjustB;

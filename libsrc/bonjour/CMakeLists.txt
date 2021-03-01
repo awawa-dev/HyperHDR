@@ -8,8 +8,8 @@ FILE ( GLOB Bonjour_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/
 add_library(bonjour ${Bonjour_SOURCES} )
 
 target_link_libraries(bonjour
-		hyperion
-		hyperion-utils
+		hyperhdr-base
+		hyperhdr-utils
 		Qt5::Network
 )
 

@@ -3,7 +3,7 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc)
 
-add_subdirectory(hyperion)
+add_subdirectory(hyperhdrbase)
 add_subdirectory(commandline)
 add_subdirectory(blackborder)
 add_subdirectory(jsonserver)
@@ -18,13 +18,8 @@ add_subdirectory(grabber)
 add_subdirectory(webserver)
 add_subdirectory(db)
 add_subdirectory(api)
-add_subdirectory(python)
 
 if(ENABLE_AVAHI)
 	add_subdirectory(bonjour)
-endif()
-
-if(ENABLE_EXPERIMENTAL)
-	add_subdirectory(experimental)
 endif()
 

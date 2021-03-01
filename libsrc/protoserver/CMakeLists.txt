@@ -30,15 +30,15 @@ add_library(protoserver
 SET_SOURCE_FILES_PROPERTIES ( ${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS -w )
 
 target_link_libraries(protoclient
-	hyperion
-	hyperion-utils
-	protobuf
+	hyperhdr-base
+	hyperhdr-utils
+	libprotobuf
 	Qt5::Gui
 )
 
 target_link_libraries(protoserver
-	hyperion
-	hyperion-utils
+	hyperhdr-base
+	hyperhdr-utils
 	protoclient
 	Qt5::Gui
 )

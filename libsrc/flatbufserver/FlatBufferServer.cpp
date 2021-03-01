@@ -1,6 +1,6 @@
 #include <flatbufserver/FlatBufferServer.h>
 #include "FlatBufferClient.h"
-#include "HyperionConfig.h"
+#include "HyperhdrConfig.h"
 
 // util
 #include <utils/NetOrigin.h>
@@ -38,12 +38,12 @@ void FlatBufferServer::initServer()
 	connect(_server, &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
 
 	// apply config
-	handleSettingsUpdate(settings::FLATBUFSERVER, _config);
+	handleSettingsUpdate(settings::type::FLATBUFSERVER, _config);
 }
 
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::FLATBUFSERVER)
+	if(type == settings::type::FLATBUFSERVER)
 	{
 		const QJsonObject& obj = config.object();
 

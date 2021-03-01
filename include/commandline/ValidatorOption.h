@@ -1,5 +1,4 @@
-#ifndef HYPERION_COMMANDLINEOPTION_H
-#define HYPERION_COMMANDLINEOPTION_H
+#pragma once
 
 #include <QtCore>
 #include <QtGui>
@@ -42,4 +41,3 @@ public:
 
 }
 
-#endif //HYPERION_COMMANDLINEOPTION_H

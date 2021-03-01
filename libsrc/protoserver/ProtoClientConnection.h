@@ -1,13 +1,15 @@
 #pragma once
 
+#undef Error
+#include "message.pb.h"
+
 // util
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
-// protobuffer PROTO
-#include "message.pb.h"
+
 
 class QTcpSocket;
 class QTimer;
@@ -36,7 +38,7 @@ signals:
 	///
 	/// @brief forward register data to HyperionDaemon
 	///
-	void registerGlobalInput(int priority, hyperion::Components component, const QString& origin = "ProtoBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
+	void registerGlobalInput(int priority, hyperhdr::Components component, const QString& origin = "ProtoBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
 
 	///
 	/// @brief Forward clear command to HyperionDaemon

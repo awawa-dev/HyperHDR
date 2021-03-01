@@ -7,7 +7,8 @@
 ///
 namespace settings {
 	// all available settings sections
-	enum type  {
+	enum class type  {
+		SNDEFFECT,
 		BGEFFECT,
 		FGEFFECT,
 		BLACKBORDER,
@@ -41,27 +42,28 @@ namespace settings {
 	{
 		switch (type)
 		{
-			case BGEFFECT:      return "backgroundEffect";
-			case FGEFFECT:      return "foregroundEffect";
-			case BLACKBORDER:   return "blackborderdetector";
-			case BOBLSERVER:    return "boblightServer";
-			case COLOR:         return "color";
-			case DEVICE:        return "device";
-			case EFFECTS:       return "effects";
-			case NETFORWARD:    return "forwarder";
-			case SYSTEMCAPTURE: return "framegrabber";
-			case GENERAL:       return "general";
-			case V4L2:          return "grabberV4L2";
-			case JSONSERVER:    return "jsonServer";
-			case LEDCONFIG:     return "ledConfig";
-			case LEDS:          return "leds";
-			case LOGGER:        return "logger";
-			case SMOOTHING:     return "smoothing";
-			case WEBSERVER:     return "webConfig";
-			case INSTCAPTURE:   return "instCapture";
-			case NETWORK:       return "network";
-			case FLATBUFSERVER: return "flatbufServer";
-			case PROTOSERVER:   return "protoServer";
+			case type::SNDEFFECT:     return "soundEffect";
+			case type::BGEFFECT:      return "backgroundEffect";
+			case type::FGEFFECT:      return "foregroundEffect";
+			case type::BLACKBORDER:   return "blackborderdetector";
+			case type::BOBLSERVER:    return "boblightServer";
+			case type::COLOR:         return "color";
+			case type::DEVICE:        return "device";
+			case type::EFFECTS:       return "effects";
+			case type::NETFORWARD:    return "forwarder";
+			case type::SYSTEMCAPTURE: return "framegrabber";
+			case type::GENERAL:       return "general";
+			case type::V4L2:          return "grabberV4L2";
+			case type::JSONSERVER:    return "jsonServer";
+			case type::LEDCONFIG:     return "ledConfig";
+			case type::LEDS:          return "leds";
+			case type::LOGGER:        return "logger";
+			case type::SMOOTHING:     return "smoothing";
+			case type::WEBSERVER:     return "webConfig";
+			case type::INSTCAPTURE:   return "instCapture";
+			case type::NETWORK:       return "network";
+			case type::FLATBUFSERVER: return "flatbufServer";
+			case type::PROTOSERVER:   return "protoServer";
 			default:            return "invalid";
 		}
 	}
@@ -73,27 +75,28 @@ namespace settings {
 	///
 	inline type stringToType(const QString& type)
 	{
-		if      (type == "backgroundEffect")     return BGEFFECT;
-		else if (type == "foregroundEffect")     return FGEFFECT;
-		else if (type == "blackborderdetector")  return BLACKBORDER;
-		else if (type == "boblightServer")       return BOBLSERVER;
-		else if (type == "color")                return COLOR;
-		else if (type == "device")               return DEVICE;
-		else if (type == "effects")              return EFFECTS;
-		else if (type == "forwarder")            return NETFORWARD;
-		else if (type == "framegrabber")         return SYSTEMCAPTURE;
-		else if (type == "general")              return GENERAL;
-		else if (type == "grabberV4L2")          return V4L2;
-		else if (type == "jsonServer")           return JSONSERVER;
-		else if (type == "ledConfig")            return LEDCONFIG;
-		else if (type == "leds")                 return LEDS;
-		else if (type == "logger")               return LOGGER;
-		else if (type == "smoothing")            return SMOOTHING;
-		else if (type == "webConfig")            return WEBSERVER;
-		else if (type == "instCapture")          return INSTCAPTURE;
-		else if (type == "network")              return NETWORK;
-		else if (type == "flatbufServer")        return FLATBUFSERVER;
-		else if (type == "protoServer")          return PROTOSERVER;
-		else                                     return INVALID;
+		if      (type == "soundEffect")          return type::SNDEFFECT;
+		else if (type == "backgroundEffect")     return type::BGEFFECT;
+		else if (type == "foregroundEffect")     return type::FGEFFECT;
+		else if (type == "blackborderdetector")  return type::BLACKBORDER;
+		else if (type == "boblightServer")       return type::BOBLSERVER;
+		else if (type == "color")                return type::COLOR;
+		else if (type == "device")               return type::DEVICE;
+		else if (type == "effects")              return type::EFFECTS;
+		else if (type == "forwarder")            return type::NETFORWARD;
+		else if (type == "framegrabber")         return type::SYSTEMCAPTURE;
+		else if (type == "general")              return type::GENERAL;
+		else if (type == "grabberV4L2")          return type::V4L2;
+		else if (type == "jsonServer")           return type::JSONSERVER;
+		else if (type == "ledConfig")            return type::LEDCONFIG;
+		else if (type == "leds")                 return type::LEDS;
+		else if (type == "logger")               return type::LOGGER;
+		else if (type == "smoothing")            return type::SMOOTHING;
+		else if (type == "webConfig")            return type::WEBSERVER;
+		else if (type == "instCapture")          return type::INSTCAPTURE;
+		else if (type == "network")              return type::NETWORK;
+		else if (type == "flatbufServer")        return type::FLATBUFSERVER;
+		else if (type == "protoServer")          return type::PROTOSERVER;
+		else                                     return type::INVALID;
 	}
 }

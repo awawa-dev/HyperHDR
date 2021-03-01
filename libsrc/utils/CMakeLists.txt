@@ -9,12 +9,12 @@ if ( NOT ENABLE_PROFILER )
 	LIST ( REMOVE_ITEM Utils_SOURCES ${CURRENT_HEADER_DIR}/Profiler.h ${CURRENT_SOURCE_DIR}/Profiler.cpp )
 endif()
 
-add_library(hyperion-utils
+add_library(hyperhdr-utils
 	${Utils_SOURCES}
 )
 
-target_link_libraries(hyperion-utils
-	hyperion
+target_link_libraries(hyperhdr-utils
+	hyperhdr-base
 	Qt5::Core
 	Qt5::Gui
 	Qt5::Network

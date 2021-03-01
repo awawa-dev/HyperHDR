@@ -28,6 +28,18 @@ bool LedDeviceLpd6803::init(const QJsonObject &deviceConfig)
 
 int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
 {
+	if (_ledCount != ledValues.size())
+	{
+		Warning(_log, "Lpd6803 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount,  ledValues.size());
+		_ledCount = ledValues.size();
+		
+		_ledBuffer.resize(0, 0x00);
+		
+		unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
+		// Initialise the buffer
+		_ledBuffer.resize(messageLength, 0x00);
+	}
+	
 	// Copy the colors from the ColorRgb vector to the Ldp6803 data vector
 	for (unsigned iLed=0; iLed<(unsigned)_ledCount; ++iLed)
 	{

@@ -3,7 +3,6 @@
 // Qt includes
 #include <QSet>
 
-// Hyperion includes
 #include <utils/Components.h>
 #include <utils/Logger.h>
 #include <utils/settings.h>
@@ -16,7 +15,7 @@ class NetOrigin;
 
 ///
 /// This class creates a TCP server which accepts connections wich can then send
-/// in JSON encoded commands. This interface to Hyperion is used by hyperion-remote
+/// in JSON encoded commands. This interface to HyperHdr is used by hyperhdr-remote
 /// to control the leds
 ///
 class JsonServer : public QObject
@@ -50,7 +49,7 @@ private slots:
 
 public slots:
 	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @brief Handle settings update from Hyperhdr Settingsmanager emit or this constructor
 	/// @param type   settings type from enum
 	/// @param config configuration object
 	///

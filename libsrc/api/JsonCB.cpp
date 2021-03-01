@@ -2,20 +2,20 @@
 #include <api/JsonCB.h>
 
 // hyperion
-#include <hyperion/Hyperion.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
 
 // HyperionIManager
-#include <hyperion/HyperionIManager.h>
+#include <hyperhdrbase/HyperHdrIManager.h>
 // components
 
-#include <hyperion/ComponentRegister.h>
+#include <hyperhdrbase/ComponentRegister.h>
 // bonjour wrapper
 #ifdef ENABLE_AVAHI
 #include <bonjour/bonjourbrowserwrapper.h>
 #endif
 // priorityMuxer
 
-#include <hyperion/PriorityMuxer.h>
+#include <hyperhdrbase/PriorityMuxer.h>
 
 // utils
 #include <utils/ColorSys.h>
@@ -25,13 +25,13 @@
 #include <QVariant>
 
 // Image to led map helper
-#include <hyperion/ImageProcessor.h>
+#include <hyperhdrbase/ImageProcessor.h>
 
-using namespace hyperion;
+using namespace hyperhdr;
 
 JsonCB::JsonCB(QObject* parent)
 	: QObject(parent)
-	, _hyperion(nullptr)
+	, _hyperhdr(nullptr)
 	, _componentRegister(nullptr)
 	#ifdef ENABLE_AVAHI
 	, _bonjour(BonjourBrowserWrapper::getInstance())
@@ -39,7 +39,7 @@ JsonCB::JsonCB(QObject* parent)
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
+	<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -72,77 +72,67 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 
 	if(type == "priorities-update")
 	{
-		if(unsubscribe){
+		if (unsubscribe)
 			disconnect(_prioMuxer,0 ,0 ,0);
-		} else {
+		else
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-			connect(_prioMuxer, &PriorityMuxer::autoSelectChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-		}
 	}
 
 	if(type == "imageToLedMapping-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange);
+			disconnect(_hyperhdr, &HyperHdrInstance::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange);
 		else
-			connect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange, Qt::UniqueConnection);
+			connect(_hyperhdr, &HyperHdrInstance::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange, Qt::UniqueConnection);
 	}
 
 	if(type == "adjustment-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange);
+			disconnect(_hyperhdr, &HyperHdrInstance::adjustmentChanged, this, &JsonCB::handleAdjustmentChange);
 		else
-			connect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
-	}
-
-	if(type == "videomode-update")
-	{
-		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange);
-		else
-			connect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange, Qt::UniqueConnection);
+			connect(_hyperhdr, &HyperHdrInstance::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
 	}
 	
 	if(type == "videomodehdr-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange);
+			disconnect(_hyperhdr, &HyperHdrInstance::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange);
 		else
-			connect(_hyperion, &Hyperion::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
+			connect(_hyperhdr, &HyperHdrInstance::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
 	}
 
 	if(type == "effects-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCB::handleEffectListChange);
+			disconnect(_hyperhdr, &HyperHdrInstance::effectListUpdated, this, &JsonCB::handleEffectListChange);
 		else
-			connect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCB::handleEffectListChange, Qt::UniqueConnection);
+			connect(_hyperhdr, &HyperHdrInstance::effectListUpdated, this, &JsonCB::handleEffectListChange, Qt::UniqueConnection);
 	}
 
 	if(type == "settings-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange);
+			disconnect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleSettingsChange);
 		else
-			connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
+			connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
 	}
 
 	if(type == "leds-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange);
+			disconnect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleLedsConfigChange);
 		else
-			connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange, Qt::UniqueConnection);
+			connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleLedsConfigChange, Qt::UniqueConnection);
 	}
 
 
 	if(type == "instance-update")
 	{
 		if(unsubscribe)
-			disconnect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange);
+			disconnect(HyperHdrIManager::getInstance(), &HyperHdrIManager::change, this, &JsonCB::handleInstanceChange);
 		else
-			connect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange, Qt::UniqueConnection);
+			connect(HyperHdrIManager::getInstance(), &HyperHdrIManager::change, this, &JsonCB::handleInstanceChange, Qt::UniqueConnection);
 	}
 
 	if (type == "token-update")
@@ -164,7 +154,7 @@ void JsonCB::resetSubscriptions()
 	}
 }
 
-void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
+void JsonCB::setSubscriptionsTo(HyperHdrInstance* hyperhdr)
 {
 	// get current subs
 	QStringList currSubs(getSubscribedCommands());
@@ -173,9 +163,9 @@ void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
 	resetSubscriptions();
 
 	// update pointer
-	_hyperion = hyperion;
-	_componentRegister = &_hyperion->getComponentRegister();
-	_prioMuxer = _hyperion->getMuxerInstance();
+	_hyperhdr = hyperhdr;
+	_componentRegister = &_hyperhdr->getComponentRegister();
+	_prioMuxer = _hyperhdr->getMuxerInstance();
 
 	// re-apply subs
 	for(const auto & entry : currSubs)
@@ -197,7 +187,7 @@ void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 	emit newCallback(obj);
 }
 
-void JsonCB::handleComponentState(hyperion::Components comp, bool state)
+void JsonCB::handleComponentState(hyperhdr::Components comp, bool state)
 {
 	QJsonObject data;
 	data["name"] = componentToIdString(comp);
@@ -235,7 +225,7 @@ void JsonCB::handlePriorityUpdate()
 	int currentPriority = _prioMuxer->getCurrentPriority();
 
 	for (int priority : activePriorities) {
-		const Hyperion::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
+		const HyperHdrInstance::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
 		if (priorityInfo.timeoutTime_ms > 0 )
@@ -245,12 +235,12 @@ void JsonCB::handlePriorityUpdate()
 		if(!priorityInfo.owner.isEmpty())
 			item["owner"] = priorityInfo.owner;
 
-		item["componentId"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
+		item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
 		item["origin"] = priorityInfo.origin;
 		item["active"] = (priorityInfo.timeoutTime_ms >= -1);
 		item["visible"] = (priority == currentPriority);
 
-		if(priorityInfo.componentId == hyperion::COMP_COLOR && !priorityInfo.ledColors.empty())
+		if(priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
 		{
 			QJsonObject LEDcolor;
 
@@ -282,7 +272,7 @@ void JsonCB::handlePriorityUpdate()
 	}
 
 	data["priorities"] = priorities;
-	data["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
+	data["priorities_autoselect"] = _hyperhdr->sourceAutoSelectEnabled();
 
 	doCallback("priorities-update", QVariant(data));
 }
@@ -298,9 +288,9 @@ void JsonCB::handleImageToLedsMappingChange(int mappingType)
 void JsonCB::handleAdjustmentChange()
 {
 	QJsonArray adjustmentArray;
-	for (const QString& adjustmentId : _hyperion->getAdjustmentIds())
+	for (const QString& adjustmentId : _hyperhdr->getAdjustmentIds())
 	{
-		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
+		const ColorAdjustment * colorAdjustment = _hyperhdr->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
 			continue;
@@ -365,13 +355,6 @@ void JsonCB::handleAdjustmentChange()
 	doCallback("adjustment-update", QVariant(adjustmentArray));
 }
 
-void JsonCB::handleVideoModeChange(VideoMode mode)
-{
-	QJsonObject data;
-	data["videomode"] = QString(videoMode2String(mode));
-	doCallback("videomode-update", QVariant(data));
-}
-
 void JsonCB::handleVideoModeHdrChange(int hdr)
 {
 	QJsonObject data;
@@ -383,13 +366,11 @@ void JsonCB::handleEffectListChange()
 {
 	QJsonArray effectList;
 	QJsonObject effects;
-	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
+	const std::list<EffectDefinition> & effectsDefinitions = _hyperhdr->getEffects();
 	for (const EffectDefinition & effectDefinition : effectsDefinitions)
 	{
 		QJsonObject effect;
 		effect["name"] = effectDefinition.name;
-		effect["file"] = effectDefinition.file;
-		effect["script"] = effectDefinition.script;
 		effect["args"] = effectDefinition.args;
 		effectList.append(effect);
 	};
@@ -410,7 +391,7 @@ void JsonCB::handleSettingsChange(settings::type type, const QJsonDocument& data
 
 void JsonCB::handleLedsConfigChange(settings::type type, const QJsonDocument& data)
 {
-	if(type == settings::LEDS)
+	if(type == settings::type::LEDS)
 	{
 		QJsonObject dat;
 		dat[typeToString(type)] = data.array();
@@ -422,7 +403,7 @@ void JsonCB::handleInstanceChange()
 {
 	QJsonArray arr;
 
-	for(const auto & entry : HyperionIManager::getInstance()->getInstanceData())
+	for(const auto & entry : HyperHdrIManager::getInstance()->getInstanceData())
 	{
 		QJsonObject obj;
 		obj.insert("friendly_name", entry["friendly_name"].toString());

@@ -3,14 +3,14 @@
 // parent class
 #include <api/API.h>
 
-// hyperion includes
 #include <utils/Components.h>
-#include <hyperion/Hyperion.h>
-#include <hyperion/HyperionIManager.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
+#include <hyperhdrbase/HyperHdrIManager.h>
 
 // qt includes
 #include <QJsonObject>
 #include <QString>
+#include <QSemaphore>
 
 class QTimer;
 class JsonCB;
@@ -28,7 +28,7 @@ public:
 	/// @param log         The Logger class of the creator
 	/// @param parent      Parent QObject
 	/// @param localConnection True when the sender has origin home network
-	/// @param noListener  if true, this instance won't listen for hyperion push events
+	/// @param noListener  if true, this instance won't listen for hyperHDR push events
 	///
 	JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener = false);
 
@@ -46,13 +46,13 @@ public:
 
 public slots:
 	///
-	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
+	/// @brief Is called whenever the current HyperHDR instance pushes new led raw values (if enabled)
 	/// @param ledColors  The current led colors
 	///
 	void streamLedcolorsUpdate(const std::vector<ColorRgb> &ledColors);
 
 	///
-	/// @brief Push images whenever hyperion emits (if enabled)
+	/// @brief Push images whenever hyperHDR emits (if enabled)
 	/// @param image  The current image
 	///
 	void setImage(const Image<ColorRgb> &image);
@@ -65,8 +65,8 @@ public slots:
 private slots:
 	///
 	/// @brief Handle emits from API of a new Token request.
-	/// @param id       The id of the request
-	/// @param  The comment which needs to be accepted
+	/// @param  id      The id of the request
+	/// @param  comment The comment which needs to be accepted
 	///
 	void newPendingTokenRequest(const QString &id, const QString &comment);
 
@@ -76,11 +76,12 @@ private slots:
 	/// @param  token   The new token that is now valid
 	/// @param  comment The comment that was part of the request
 	/// @param  id      The id that was part of the request
+	/// @param  tan     The tan that was part of the request
 	///
-	void handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id);
+	void handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 	///
-	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
+	/// @brief Handle whenever the state of a instance (HyperHDRIManager) changes according to enum instanceState
 	/// @param instaneState  A state from enum
 	/// @param instance      The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
@@ -127,9 +128,11 @@ private:
 	
 	// when the last image was send to protect buffer overflow
 	uint64_t _lastSendImage;
+
+	QSemaphore _semaphore;
 	
 	///
-	/// @brief Handle the switches of Hyperion instances
+	/// @brief Handle the switches of HyperHDR instances
 	/// @param instance the instance to switch
 	/// @param forced  indicate if it was a forced switch by system
 	/// @return true on success. false if not found
@@ -255,12 +258,6 @@ private:
 	/// @param message the incoming message
 	///
 	void handleProcessingCommand(const QJsonObject &message, const QString &command, int tan);
-
-	/// Handle an incoming JSON VideoMode message
-	///
-	/// @param message the incoming message
-	///
-	void handleVideoModeCommand(const QJsonObject &message, const QString &command, int tan);
 	
 	/// Handle an incoming JSON VideoMode message
 	///

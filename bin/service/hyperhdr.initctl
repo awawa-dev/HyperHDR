@@ -1,0 +1,11 @@
+## Hyperhdr daemon initctl script
+
+description "hyperhdr"
+author "poljvd & tvdzwan"
+
+start on (runlevel [2345])
+stop on (runlevel [!2345])
+
+respawn
+
+exec /usr/bin/hyperhdr

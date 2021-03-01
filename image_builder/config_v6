@@ -2,4 +2,5 @@ IMG_NAME='HyperHDR'
 DEPLOY_DIR="${BASE_DIR}/deploy/armv6"
 STAGE_LIST='stage0 stage1 stage2 stage-hyperbian'
 TARGET_HOSTNAME='HyperHDR'
+APT_PROXY='http://127.0.0.1:3142'
 ENABLE_SSH=1

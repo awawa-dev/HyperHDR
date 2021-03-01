@@ -12,7 +12,7 @@
 #include <hidapi/hidapi.h>
 
 // Hyperion includes
-#include <hyperion/LedDevice.h>
+#include <hyperhdrbase/LedDevice.h>
 
 ///
 /// LedDevice implementation for a lightpack device (http://code.google.com/p/light-pack/)

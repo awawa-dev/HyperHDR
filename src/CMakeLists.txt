@@ -1,3 +1,2 @@
-add_subdirectory(hyperiond)
-add_subdirectory(hyperion-remote)
-
+add_subdirectory(hyperhdr)
+add_subdirectory(hyperhdr-remote)

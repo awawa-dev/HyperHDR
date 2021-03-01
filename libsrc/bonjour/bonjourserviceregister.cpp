@@ -33,8 +33,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QHostInfo>
 
 #include <utils/Logger.h>
-#include <HyperionConfig.h>
-#include <hyperion/AuthManager.h>
+#include <HyperhdrConfig.h>
+#include <hyperhdrbase/AuthManager.h>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)

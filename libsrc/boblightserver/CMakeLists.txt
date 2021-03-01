@@ -8,7 +8,7 @@ FILE ( GLOB BoblightServer_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURC
 add_library(boblightserver ${BoblightServer_SOURCES} )
 
 target_link_libraries(boblightserver
-	hyperion
-	hyperion-utils
+	hyperhdr-base
+	hyperhdr-utils
 	${QT_LIBRARIES}
 )

@@ -13,8 +13,10 @@ ENDIF()
 find_package(RpmBuilder)
 find_package(DebBuilder)
 IF(RPM_BUILDER_FOUND)
-	message(STATUS "CPACK: Found RPM builder")
-	SET ( CPACK_GENERATOR ${CPACK_GENERATOR} "RPM")
+	if (NOT "${PLATFORM}" MATCHES "rpi" )	
+		message(STATUS "CPACK: Found RPM builder")
+		SET ( CPACK_GENERATOR ${CPACK_GENERATOR} "RPM")
+	ENDIF()
 ENDIF()
 IF(DEB_BUILDER_FOUND)
 	message(STATUS "CPACK: Found DEB builder")
@@ -32,44 +34,47 @@ endif()
 # https://cmake.org/cmake/help/v3.5/module/CPack.html
 
 SET ( CPACK_PACKAGE_NAME "HyperHDR" )
-SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
+SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "HyperHDR is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
 SET ( CPACK_PACKAGE_FILE_NAME "HyperHDR-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
-SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
-SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
-SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
-SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "Hyperion" )
-SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png")
+SET ( CPACK_PACKAGE_CONTACT "see_me_at@hyperhdr.blogspot.com")
+SET ( CPACK_PACKAGE_VENDOR "HyperHDR")
+SET ( CPACK_PACKAGE_EXECUTABLES "hyperhdr;HyperHDR" )
+SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "HyperHDR" )
+SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperhdr-icon-32px.png")
 
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
 SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERION_VERSION_PATCH}")
 SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
-SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
-SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
+SET ( CPACK_PACKAGE_EXECUTABLES "hyperhdr;HyperHDR" )
+SET ( CPACK_CREATE_DESKTOP_LINKS "hyperhdr;HyperHDR" )
+SET ( CPACK_ARCHIVE_THREADS 0 )
 
 # Define the install prefix path for cpack
 IF ( UNIX )
-	#SET ( CPACK_PACKAGING_INSTALL_PREFIX "share/hyperion")
+	#SET ( CPACK_PACKAGING_INSTALL_PREFIX "share/hyperhdr")
 ENDIF()
 
 # Specific CPack Package Generators
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libglvnd0" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
+SET ( CPACK_DEBIAN_COMPRESSION_TYPE "xz" )
 
 # .rpm for rpm
 # https://cmake.org/cmake/help/v3.5/module/CPackRPM.html
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
-SET ( CPACK_RPM_PACKAGE_REQUIRES "libglvnd0" )
+SET ( CPACK_RPM_PACKAGE_REQUIRES "xz-utils" )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
+SET ( CPACK_RPM_COMPRESSION_TYPE "xz" )
 
 # OSX "Bundle" generator TODO Add more osx generators
 # https://cmake.org/cmake/help/v3.10/module/CPackBundle.html
@@ -100,34 +105,27 @@ SET ( CPACK_NSIS_MUI_HEADERIMAGE ${NSIS_HYP_LOGO_HORI} )
 SET ( CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${NSIS_HYP_LOGO_VERT})
 SET ( CPACK_NSIS_DISPLAY_NAME "HyperHDR Ambient Light")
 SET ( CPACK_NSIS_PACKAGE_NAME "HyperHDR" )
-SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperiond.exe")
-SET ( CPACK_NSIS_HELP_LINK "https://hyperion-project.org/threads/sdr-hdr-1080p-4k-capable-setup-with-hyperion-ng-for-media-center.10652/")
+SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperhdr.exe")
+SET ( CPACK_NSIS_HELP_LINK "https://hyperhdr.blogspot.com/")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://github.com/awawa-dev/HyperHDR")
-SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
+SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperhdr.exe")
 SET ( CPACK_NSIS_BRANDING_TEXT "HyperHDR-${HYPERION_VERSION}")
-# additional hyperiond startmenu link, won't be created if the user disables startmenu links
-SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
-SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")
+# custom nsis plugin directory
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
+# additional hyperhdr startmenu link, won't be created if the user disables startmenu links
+SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\HyperHDR (Console).lnk' '$INSTDIR\\\\bin\\\\hyperhdr.exe' '-d -c'")
+SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\HyperHDR (Console).lnk'")
 
 
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
-#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
-# hyperiond desktop link
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
-#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\Hyperion.lnk\\\" ")
+
 
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack
 # and https://cmake.org/cmake/help/latest/module/CPackComponent.html
 SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 # Components base
-SET ( CPACK_COMPONENTS_ALL "Hyperion" "hyperion_remote" )
-# optional compiled
-if(ENABLE_V4L2)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_v4l2" )
-endif()
+SET ( CPACK_COMPONENTS_ALL "HyperHDR" "HyperHDR_remote" )
+
 
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
 SET ( CPACK_DEB_COMPONENT_INSTALL ON )
@@ -140,31 +138,21 @@ INCLUDE ( CPack )
 
 cpack_add_install_type(Full DISPLAY_NAME "Full")
 cpack_add_install_type(Min DISPLAY_NAME "Minimal")
-cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime and hyperion-remote commandline tool")
+cpack_add_component_group(Runtime EXPANDED DESCRIPTION "HyperHdr runtime and HyperHdr_remote commandline tool")
 cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
 # Components base
-cpack_add_component(Hyperion
+cpack_add_component(HyperHDR
 	DISPLAY_NAME "HyperHDR"
 	DESCRIPTION "HyperHDR runtime"
 	INSTALL_TYPES Full Min
 	GROUP Runtime
 	REQUIRED
 )
-cpack_add_component(hyperion_remote
-	DISPLAY_NAME "Hyperion Remote"
-	DESCRIPTION "Hyperion remote cli tool"
+cpack_add_component(HyperHDR_remote
+	DISPLAY_NAME "HyperHdr Remote"
+	DESCRIPTION "HyperHdr remote cli tool"
 	INSTALL_TYPES Full
 	GROUP Runtime
-	DEPENDS Hyperion
+	DEPENDS HyperHDR
 )
 
-# optional compiled
-if(ENABLE_V4L2)
-	cpack_add_component(hyperion_v4l2
-		DISPLAY_NAME "V4l2 Standalone Screencap"
-		DESCRIPTION "Video for Linux 2 based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()

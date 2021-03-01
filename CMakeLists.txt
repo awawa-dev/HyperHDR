@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
-PROJECT(hyperion)
+PROJECT(HyperHdr)
 
 # Parse semantic version of version file
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
@@ -15,26 +15,19 @@ set(CMAKE_AUTOMOC ON)
 # auto prepare .qrc files
 set(CMAKE_AUTORCC ON)
 
-if ( POLICY CMP0026 )
-	CMAKE_POLICY( SET CMP0026 OLD )
-endif()
-
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
 if ( CCACHE_FOUND )
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
-
-if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-	if(Python_FOUND)
-		set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+	if (DEFINED ENV{CCACHE_DIR})
+		message ( STATUS "Found CCache and its env settings: $ENV{CCACHE_DIR}. Will try to use it." )
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+	else()
+		message ( WARNING "Found CCache but env settings: CCACHE_DIR is not set. Skipping." )
 	endif()
 else()
-	set(Python_ADDITIONAL_VERSIONS 3.5)
-	find_package( PythonInterp 3.5 REQUIRED )
-endif()
+	message ( STATUS "CCache is not found" )
+endif(CCACHE_FOUND)
 
 # Set build variables
 SET ( DEFAULT_WS281XPWM                   OFF )
@@ -43,21 +36,21 @@ SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
-SET ( DEFAULT_TESTS                       OFF )
-SET ( DEFAULT_EXPERIMENTAL                OFF )
-SET ( DEFAULT_QTC                         OFF )
+SET ( DEFAULT_WMF                         OFF )
+SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+	SET ( DEFAULT_SOUNDCAPLINUX ON )
 	SET ( DEFAULT_V4L2        ON )
 	SET ( DEFAULT_SPIDEV      ON )
 	SET ( DEFAULT_TINKERFORGE ON )
-	SET ( DEFAULT_FB          ON )
 	SET ( DEFAULT_USB_HID     ON )
 ELSEIF ( WIN32 )
-	SET ( DEFAULT_QTC         ON )	
+	SET ( DEFAULT_WMF             ON )
+	SET ( DEFAULT_SOUNDCAPWINDOWS ON )
+	SET ( DEFAULT_USB_HID         OFF )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
-	SET ( DEFAULT_FB          OFF )
 	SET ( DEFAULT_SPIDEV      OFF )
 	SET ( DEFAULT_TINKERFORGE OFF )
 	SET ( DEFAULT_USB_HID     OFF )
@@ -69,7 +62,7 @@ if ( NOT DEFINED PLATFORM )
 	elseif ( WIN32 )
 		SET( PLATFORM "windows")
 	elseif ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86" )
-		SET( PLATFORM "x11")
+		SET( PLATFORM "linux")
 	elseif ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
 		SET( PLATFORM "rpi")
 		
@@ -85,7 +78,7 @@ if ( NOT DEFINED PLATFORM )
 	if ( PLATFORM )
 		message( STATUS "PLATFORM is not defined, evaluated platform: ${PLATFORM}")
 	else()
-		message( FATAL_ERROR "PLATFORM is not defined and could not be evaluated. Set -DPLATFORM=<rpi|amlogic|amlogic64|x11|x11-dev|osx|osx-dev>")
+		message( FATAL_ERROR "PLATFORM is not defined and could not be evaluated. Set -DPLATFORM=<rpi|amlogic|amlogic64|linux|linux-dev|osx|osx-dev>")
 	endif()
 endif()
 
@@ -107,8 +100,7 @@ ENDMACRO()
 if ( "${PLATFORM}" MATCHES "osx" )
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
-	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_USB_HID    ON )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
@@ -122,31 +114,46 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 
 	message("Found: ${GLD}")
 	add_library(GLD SHARED IMPORTED)
+
+	if(EXISTS "/sys/firmware/devicetree/base/model" OR EXISTS "/proc/device-tree/model")
+		if(EXISTS "/sys/firmware/devicetree/base/model")
+			file(READ "/sys/firmware/devicetree/base/model" ARM_MODEL)
+		else()
+			file(READ "/proc/device-tree/model" ARM_MODEL)
+		endif()
+		
+		STRING ( TOLOWER "${ARM_MODEL}" ARM_MODEL)
+		message(STATUS "Arm model info: ${ARM_MODEL}")
 	
-	if (CMAKE_SYSTEM_PROCESSOR MATCHES "(armv7l|armv8)")
-	    add_compile_options(-march=armv8-a+crc -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations)
-	    message(STATUS "RPI 3 armv7l/8 detected for optimalization")		
+		string(FIND "${ARM_MODEL}" "raspberry" IS_RASPBERRY)
+		message(STATUS "Check if Raspberry Pi (0-yes): ${IS_RASPBERRY}")
+	else()
+		message(WARNING "Model info not exists. Assuming that it is Raspberry Pi")
+		SET (IS_RASPBERRY  0)
 	endif()
+
+	if(${IS_RASPBERRY} EQUAL -1)
+		message(STATUS "This is not Raspberry Pi. Default compiler settings.")
+	elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "(armv7l|armv8)")
+	    add_compile_options(-march=armv8-a+crc -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations)
+	    message(STATUS "RPI 3/4 (armv7l or armv8) detected for optimization")
+	else()
+		message(STATUS "Default compiler settings for Raspberry.")
+	endif()
+	
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
 	SET ( DEFAULT_AMLOGIC    ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic64" )
 	SET ( DEFAULT_AMLOGIC    ON )
-elseif ( "${PLATFORM}" MATCHES "x11" )
-	SET ( DEFAULT_X11        ON )
-	SET ( DEFAULT_XCB        ON )
-	if ( "${PLATFORM}" STREQUAL "x11-dev" )
+elseif ( "${PLATFORM}" MATCHES "linux" )
+	if ( "${PLATFORM}" STREQUAL "linux-dev" )
 		SET ( DEFAULT_AMLOGIC    ON)
 		SET ( DEFAULT_WS281XPWM  ON )
 	endif()
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
-	SET ( DEFAULT_FB         ON )
+	
 elseif (WIN32)
 	SET ( DEFAULT_AVAHI    OFF)
-endif()
-
-# enable tests for -dev builds
-if ( "${PLATFORM}" MATCHES "-dev" )
-	SET ( DEFAULT_TESTS      ON )
 endif()
 
 STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
@@ -172,14 +179,14 @@ message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
 
-option(ENABLE_QTC "Enable the QTC grabber" ${DEFAULT_QTC})
-message(STATUS "ENABLE_QTC = ${ENABLE_QTC}")
+option(ENABLE_WMF "Enable the Windows Media Foundation grabber" ${DEFAULT_WMF})
+message(STATUS "ENABLE_WMF = ${ENABLE_WMF}")
 
-option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
-message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
+option(ENABLE_SOUNDCAPWINDOWS "Enable the Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
+message(STATUS "ENABLE_SOUNDCAPWINDOWS = ${ENABLE_SOUNDCAPWINDOWS}")
 
-option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
-message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
+option(ENABLE_SOUNDCAPLINUX "Enable the Linux Sound Capture" ${DEFAULT_SOUNDCAPLINUX})
+message(STATUS "ENABLE_SOUNDCAPLINUX = ${ENABLE_SOUNDCAPLINUX}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -194,7 +201,7 @@ find_package(GitVersion)
 
 # configure a header file to pass some of the CMake settings
 # to the source code
-configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
+configure_file("${PROJECT_SOURCE_DIR}/HyperhdrConfig.h.in" "${PROJECT_BINARY_DIR}/HyperhdrConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Define the global output path of binaries
@@ -308,27 +315,19 @@ if (ENABLE_V4L2)
 		add_definitions(-DHAVE_TURBO_JPEG)
 		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
 		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	else()
-		# System JPEG
-		find_package(JPEG)
-		if (JPEG_FOUND)
-			add_definitions(-DHAVE_JPEG)
-			message( STATUS "Using system JPEG library: ${JPEG_LIBRARIES}")
-			include_directories(${JPEG_INCLUDE_DIR})
-		else()
-			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
-		endif()
+	else()		
+		message( FATAL_ERROR "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")		
 	endif (TURBOJPEG_FOUND)
 
-	if (TURBOJPEG_FOUND OR JPEG_FOUND)
+	if (TURBOJPEG_FOUND)
 		add_definitions(-DHAVE_JPEG_DECODER)
 	endif()
 endif()
 
 
-if (ENABLE_QTC)
+if (ENABLE_WMF)
 	# Turbo JPEG
-	find_package(TurboJPEG)
+	find_package(TurboJpeg)
 	if (TURBOJPEG_FOUND)
 		add_definitions(-DHAVE_TURBO_JPEG)
 		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
@@ -375,9 +374,8 @@ add_subdirectory(resources)
 
 # remove generated files on make cleaan too
 LIST( APPEND GENERATED_QRC
-	${CMAKE_BINARY_DIR}/EffectEngine.qrc
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
-	${CMAKE_BINARY_DIR}/HyperionConfig.h
+	${CMAKE_BINARY_DIR}/HyperhdrConfig.h
 )
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
 

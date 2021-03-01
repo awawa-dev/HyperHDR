@@ -8,5 +8,8 @@
 	branch = master
 [submodule "dependencies/external/protobuf"]
 	path = dependencies/external/protobuf
-	url = https://github.com/hyperion-project/protobuf.git
-	branch = master
+	url = https://github.com/protocolbuffers/protobuf.git
+	branch = 3.14.x
+[submodule "dependencies/external/mbedtls"]
+	path = dependencies/external/mbedtls
+	url = https://github.com/ARMmbed/mbedtls

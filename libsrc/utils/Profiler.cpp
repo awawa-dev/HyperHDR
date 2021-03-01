@@ -1,4 +1,4 @@
-#include "HyperionConfig.h"
+#include "HyperhdrConfig.h"
 #include <utils/Profiler.h>
 #include <utils/FileUtils.h>
 

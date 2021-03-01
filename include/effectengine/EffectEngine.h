@@ -8,50 +8,30 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
-#include <effectengine/EffectSchema.h>
 #include <utils/Logger.h>
 
 // pre-declaration
 class Effect;
-class EffectFileHandler;
+class EffectDBHandler;
 
 class EffectEngine : public QObject
 {
 	Q_OBJECT
 
 public:
-	EffectEngine(Hyperion * hyperion);
+	EffectEngine(HyperHdrInstance * hyperhdr);
 	~EffectEngine() override;
 
 	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
 
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
 
-	///
-	/// Get available schemas from EffectFileHandler
-	/// @return all schemas
-	///
-	std::list<EffectSchema> getEffectSchemas() const;
-
-	///
-	/// @brief Save an effect with EffectFileHandler
-	/// @param  obj   The effect args
-	/// @return If not empty, it contains the error
-	///
-	QString saveEffect(const QJsonObject& obj);
-
-	///
-	/// @brief Delete an effect by name.
-	/// @param  effectName  The effect name to delete
-	/// @return If not empty, it contains the error
-	///
-	QString deleteEffect(const QString& effectName);
+	
 
 	///
 	/// @brief Get all init data of the running effects and stop them
@@ -76,7 +56,7 @@ public slots:
 				, const QJsonObject &args
 				, int priority
 				, int timeout = -1
-				, const QString &pythonScript = ""
+				
 				, const QString &origin = "System"
 				, unsigned smoothCfg=0
 				, const QString &imageData = ""
@@ -98,8 +78,8 @@ private slots:
 
 private:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(const QString &script
-				,const QString &name
+	int runEffectScript(
+				const QString &name
 				, const QJsonObject &args
 				, int priority
 				, int timeout = -1
@@ -109,7 +89,7 @@ private:
 	);
 
 private:
-	Hyperion * _hyperion;
+	HyperHdrInstance * _hyperInstance;
 
 	std::list<EffectDefinition> _availableEffects;
 
@@ -120,5 +100,5 @@ private:
 	Logger * _log;
 
 	// The global effect file handler
-	EffectFileHandler* _effectFileHandler;
+	EffectDBHandler* _effectDBHandler;
 };

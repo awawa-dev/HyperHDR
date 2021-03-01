@@ -9,7 +9,7 @@
 #include <QMutex>
 
 class LedDevice;
-class Hyperion;
+class HyperHdrInstance;
 
 typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
 typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
@@ -21,7 +21,7 @@ class LedDeviceWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	explicit LedDeviceWrapper(Hyperion* hyperion);
+	explicit LedDeviceWrapper(HyperHdrInstance* hyperhdr);
 	~LedDeviceWrapper() override;
 	///
 	/// @brief Constructs a new LedDevice, moves to thread and starts
@@ -78,11 +78,11 @@ public slots:
 	/// @param component  The comp from enum
 	/// @param state      The new state
 	///
-	void handleComponentState(hyperion::Components component, bool state);
+	void handleComponentState(hyperhdr::Components component, bool state);
 
 signals:
 	///
-	/// PIPER signal for Hyperion -> LedDevice
+	/// PIPER signal for Hyperhdr -> LedDevice
 	///
 	/// @param[in] ledValues  The RGB-color per led
 	///
@@ -133,8 +133,8 @@ private:
 	void stopDeviceThread();
 
 private:
-	// parent Hyperion
-	Hyperion* _hyperion;
+	// parent Hyperhdr
+	HyperHdrInstance* _hyperhdr;
 	// Pointer of current led device
 	LedDevice* _ledDevice;
 	// the enable state

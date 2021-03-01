@@ -2,7 +2,7 @@
 #include "QtHttpRequest.h"
 #include "QtHttpHeader.h"
 
-#include <hyperion/Hyperion.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
 #include <api/JsonAPI.h>
 
 #include <QTcpSocket>
@@ -223,7 +223,7 @@ void WebSocketClient::sendClose(int status, QString reason)
 		sendBuffer.append(quint8(length));
 	}
 
-	sendBuffer.append(reason);
+	sendBuffer.append(reason.toUtf8());
 
 	_socket->write(sendBuffer);
 	_socket->flush();

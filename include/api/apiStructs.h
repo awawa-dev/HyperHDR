@@ -29,8 +29,8 @@ struct EffectCmdData
 
 struct registerData
 {
-    const hyperion::Components component;
+    const hyperhdr::Components component;
     const QString origin;
     const QString owner;
-    const hyperion::Components callerComp;
+    const hyperhdr::Components callerComp;
 };

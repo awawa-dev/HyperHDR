@@ -8,12 +8,17 @@
 			"default":"auto",
 			"propertyOrder" : 1
 		},
+		"awa_mode": {
+			"type": "boolean",
+			"title":"edt_dev_spec_awa_mode_title",
+			"default": false,
+			"propertyOrder" : 2
+		},
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
-			"default": 115200,
-			"access" : "advanced",
-			"propertyOrder" : 2
+			"default": 115200,			
+			"propertyOrder" : 3
 		},
 		"delayAfterConnect": {
 			"type": "integer",
@@ -21,24 +26,28 @@
 			"default": 0,
 			"append" : "ms",
 			"access" : "expert",
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"lightberry_apa102_mode": {
 			"type": "boolean",
 			"title":"edt_dev_spec_LBap102Mode_title",
 			"default": false,
 			"access" : "advanced",
-			"propertyOrder" : 4
+			"options": {
+				"dependencies": {
+					"awa_mode": false
+				}
+			},
+			"propertyOrder" : 5
 		},
 		"latchTime": {
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
-			"default": 30,
+			"default": 15,
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"maximum": 1000,
-			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -47,7 +56,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 7
 		}		
 	},
 	"additionalProperties": true

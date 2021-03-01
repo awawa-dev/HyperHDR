@@ -43,6 +43,8 @@ private:
 	/// @return Zero on success, else negative
 	///
 	int write(const std::vector<ColorRgb> & ledValues) override;
+	
+	void CreateHeader();
 };
 
 #endif // LEDEVICEAPA102_H

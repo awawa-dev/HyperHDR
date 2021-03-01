@@ -16,56 +16,83 @@ else
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 fi
 
-# set environment variables if not exists
-[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Debug"
+# set environment variables if not exists (debug)
+[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
 
-# Determine cmake build type; tag builds are Release, else Debug (-dev appends to platform)
-if [[ $BUILD_SOURCEBRANCH == *"refs/tags"* || $GITHUB_REF == *"refs/tags"* ]]; then
-	BUILD_TYPE=Release
-else
-	PLATFORM=${PLATFORM}-dev
-fi
+echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}"
 
 # Build the package on osx or linux
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
-	# compile prepare
+	echo "Start: osx or darwin"
+	
 	mkdir build || exit 1
 	cd build
 	cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
 	make -j $(sysctl -n hw.ncpu) package || exit 3
 	exit 0;
-	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
+	exit 1 || { echo "---> Hyperhdr compilation failed! Abort"; exit 5; }
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
-	# compile prepare
+	echo "Start: windows"
+	
 	echo "Number of Cores $NUMBER_OF_PROCESSORS"
 	mkdir build || exit 1
 	cd build
-	cmake -G "Visual Studio 16 2019" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2
+	cmake -G "Visual Studio 16 2019" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ../ || exit 2
 	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
 	exit 0;
-	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
+	exit 1 || { echo "---> Hyperhdr compilation failed! Abort"; exit 5; }
 elif [[ "$CI_NAME" == 'linux' ]]; then
-	echo "Compile Hyperion with DOCKER_IMAGE = ${DOCKER_IMAGE}, DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
+	echo "Compile Hyperhdr with DOCKER_IMAGE = ${DOCKER_IMAGE}, DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
+	
 	# set GitHub Container Registry url
-	REGISTRY_URL="ghcr.io/hyperion-project/${DOCKER_IMAGE}"
+	REGISTRY_URL="ghcr.io/awawa-dev/${DOCKER_IMAGE}"
+	
 	# take ownership of deploy dir
 	mkdir ${CI_BUILD_DIR}/deploy
 
-	# run docker
-	docker run --rm \
+	if [[ "$USE_CCACHE" == '1' ]]; then
+		echo "Using cache"
+		
+		mkdir -p .ccache
+		
+        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
+		cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M"
+		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"
+		
+		ls -a .ccache
+		# run docker
+		docker run --rm \
+		-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "sudo apt-get update && sudo apt-get install libglvnd-dev libturbojpeg0-dev -y &&
-		mkdir hyperion && cp -r source/. /hyperion &&
-		cd /hyperion && mkdir build && cd build &&
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
+		/bin/bash -c "${cache_env} && export -p && ccache -p && cd / && mkdir hyperhdr && cp -r source/. /hyperhdr &&
+		cd /hyperhdr && mkdir build && cd build &&
+		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
-		cp /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
-		cp /hyperion/build/Hyper* /deploy/ 2>/dev/null || : &&
+		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
+		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
-
+		ls -a .ccache
+	else
+		echo "Not using cache"
+		
+		# run docker
+		docker run --rm \
+		-v "${CI_BUILD_DIR}/deploy:/deploy" \
+		-v "${CI_BUILD_DIR}:/source:ro" \
+		$REGISTRY_URL:$DOCKER_TAG \
+		/bin/bash -c "cd / && mkdir hyperhdr && cp -r source/. /hyperhdr &&
+		cd /hyperhdr && mkdir build && cd build &&
+		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
+		make -j $(nproc) package || exit 3 &&
+		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
+		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
+		exit 0;
+		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+	fi
+	
 	# overwrite file owner to current user
 	sudo chown -fR $(stat -c "%U:%G" ${CI_BUILD_DIR}/deploy) ${CI_BUILD_DIR}/deploy
 fi

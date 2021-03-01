@@ -1,5 +1,4 @@
-#ifndef HYPERION_IMAGEOPTION_H
-#define HYPERION_IMAGEOPTION_H
+#pragma once
 
 #include "Option.h"
 #include <QImage>
@@ -39,5 +38,3 @@ public:
 };
 
 }
-
-#endif //HYPERION_IMAGEOPTION_H

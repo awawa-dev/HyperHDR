@@ -15,8 +15,8 @@ class NetOrigin : public QObject
 {
 	Q_OBJECT
 private:
-	friend class HyperionDaemon;
-	NetOrigin(QObject* parent = 0, Logger* log = Logger::getInstance("NETWORK"));
+	friend class HyperHdrDaemon;
+	NetOrigin(QObject* parent = nullptr, Logger* log = Logger::getInstance("NETWORK"));
 
 public:
 	///
@@ -33,8 +33,8 @@ public:
 	///
 	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local) const;
 
-	static NetOrigin* getInstance(){ return instance; };
-	static NetOrigin* instance;
+	static NetOrigin *getInstance() { return instance; }
+	static NetOrigin *instance;
 
 private slots:
 	///

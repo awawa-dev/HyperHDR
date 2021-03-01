@@ -34,7 +34,7 @@ add_library(flatbufserver
 )
 
 target_link_libraries(flatbufserver
-	hyperion-utils
+	hyperhdr-utils
 	flatbuffers
 	Qt5::Network
 	Qt5::Core

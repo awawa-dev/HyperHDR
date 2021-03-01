@@ -496,6 +496,12 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 		first[1] = clamp(buf_rgb[0] * cmat[3] + buf_rgb[1] * cmat[4] + buf_rgb[2] * cmat[5],0,1);
 		first[2] = clamp(buf_rgb[0] * cmat[6] + buf_rgb[1] * cmat[7] + buf_rgb[2] * cmat[8],0,1); 							
 	}
+	else
+	{
+		first[0] = input[0];
+		first[1] = input[1];
+		first[2] = input[2];
+	}
 	
 	
 	ite(first);

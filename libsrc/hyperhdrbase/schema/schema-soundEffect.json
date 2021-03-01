@@ -1,0 +1,23 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_sound_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"propertyOrder" : 1
+		},
+		"device" :
+		{
+			"type" : "string",
+			"format" : "select",
+			"title" : "edt_conf_sound_device_title",
+			"default" : "default",
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties" : false
+}

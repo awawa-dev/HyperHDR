@@ -11,8 +11,8 @@ add_library(database
 )
 
 target_link_libraries(database
-	hyperion
-	hyperion-utils
+	hyperhdr-base
+	hyperhdr-utils
 	Qt5::Core
 	Qt5::Sql
 )

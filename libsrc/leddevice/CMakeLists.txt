@@ -27,7 +27,7 @@ FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_SOURCE_DIR}/dev_other/*.cpp"
 )
 
-if ( WIN32 )
+if ( ENABLE_OSX OR WIN32 )
 	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.h")
 	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.cpp")
 endif()
@@ -82,8 +82,8 @@ ENDFOREACH()
 add_library(leddevice ${CMAKE_BINARY_DIR}/LedDevice_headers.h ${Leddevice_SOURCES} )
 
 target_link_libraries(leddevice
-	hyperion
-	hyperion-utils
+	hyperhdr-base
+	hyperhdr-utils
 	${CMAKE_THREAD_LIBS_INIT}
 	Qt5::Network
 	Qt5::SerialPort
@@ -105,9 +105,11 @@ endif()
 if (ENABLE_USB_HID)
 	if(APPLE)
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-mac)
-	else()
+	elseif (NOT WIN32)
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
-	endif()
+	else()
+		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} ${LIBUSB_2_LIBRARY})
+	endif (APPLE)
 endif()
 
 if (NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)

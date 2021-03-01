@@ -5,7 +5,7 @@
 #include <blackborder/BlackBorderDetector.h>
 #include <cmath>
 
-using namespace hyperion;
+using namespace hyperhdr;
 
 BlackBorderDetector::BlackBorderDetector(double threshold)
 	: _blackborderThreshold(calculateThreshold(threshold))

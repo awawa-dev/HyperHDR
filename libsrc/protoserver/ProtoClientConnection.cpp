@@ -1,11 +1,11 @@
-// project includes
-#include "ProtoClientConnection.h"
-
 // qt
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QTimer>
 #include <QRgb>
+
+// project includes
+#include "ProtoClientConnection.h"
 
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Grabber, Windows Screen grabber etc.)
 
@@ -132,7 +132,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	if(priority != _priority)
 	{
 		emit clearGlobalInput(_priority);
-		emit registerGlobalInput(priority, hyperion::COMP_PROTOSERVER, "Proto@"+_clientAddress);
+		emit registerGlobalInput(priority, hyperhdr::COMP_PROTOSERVER, "Proto@"+_clientAddress);
 		_priority = priority;
 	}
 
@@ -163,7 +163,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	if(priority != _priority)
 	{
 		emit clearGlobalInput(_priority);
-		emit registerGlobalInput(priority, hyperion::COMP_PROTOSERVER, "Proto@"+_clientAddress);
+		emit registerGlobalInput(priority, hyperhdr::COMP_PROTOSERVER, "Proto@"+_clientAddress);
 		_priority = priority;
 	}
 
@@ -214,7 +214,7 @@ void ProtoClientConnection::handleNotImplemented()
 void ProtoClientConnection::sendMessage(const google::protobuf::Message &message)
 {
 	std::string serializedReply = message.SerializeAsString();
-	uint32_t size = serializedReply.size();
+	uint32_t size = static_cast<uint32_t>(serializedReply.size());
 	uint8_t sizeData[] = {uint8_t(size >> 24), uint8_t(size >> 16), uint8_t(size >> 8), uint8_t(size)};
 	_socket->write((const char *) sizeData, sizeof(sizeData));
 	_socket->write(serializedReply.data(), serializedReply.length());

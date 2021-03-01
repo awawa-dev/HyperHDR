@@ -50,7 +50,7 @@ bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& 
 
 void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::NETWORK)
+	if(type == settings::type::NETWORK)
 	{
 		const QJsonObject& obj = config.object();
 		_internetAccessAllowed = obj["internetAccessAPI"].toBool(false);

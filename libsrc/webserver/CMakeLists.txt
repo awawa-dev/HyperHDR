@@ -1,4 +1,3 @@
-
 # Define the current source locations
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/webserver)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/webserver)
@@ -19,8 +18,8 @@ add_library(webserver
 )
 
 target_link_libraries(webserver
-	hyperion
-	hyperion-utils
-	hyperion-api
+	hyperhdr-base
+	hyperhdr-utils
+	hyperhdr-api
 	Qt5::Network
 )

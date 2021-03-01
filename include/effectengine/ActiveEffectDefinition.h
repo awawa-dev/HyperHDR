@@ -6,7 +6,6 @@
 
 struct ActiveEffectDefinition
 {
-	QString script;
 	QString name;
 	int priority;
 	int timeout;

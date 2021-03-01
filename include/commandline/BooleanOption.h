@@ -1,6 +1,4 @@
-#ifndef HYPERION_BOOLEANOPTION_H
-#define HYPERION_BOOLEANOPTION_H
-
+#pragma once
 
 #include <QtCore>
 #include "Option.h"
@@ -31,5 +29,3 @@ public:
 };
 
 }
-
-#endif //HYPERION_BOOLEANOPTION_H

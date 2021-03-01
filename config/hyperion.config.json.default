@@ -1,7 +1,7 @@
 {
 	"general" :
 	{
-		"name"       : "My Hyperion Config",
+		"name"       : "My HyperHDR Config",
 		"watchedVersionBranch" : "Stable",
 		"showOptHelp" : true
 	},
@@ -25,67 +25,73 @@
 			{
 				"backlightColored": false,
 				"backlightThreshold": 1,
-				"blue": [
-					32,
-					0,
-					255
-				],
-				"brightness": 100,
-				"brightnessCompensation": 0,
-				"classic_config": true,
-				"cyan": [
-					0,
+				"white": [
+					255,
 					255,
 					255
-				],
-				"gammaBlue": 1.25,
-				"gammaGreen": 1.17,
-				"gammaRed": 1.3,
+				],				
+				"red": [
+					255,
+					0,
+					0
+				],				
 				"green": [
 					0,
 					255,
 					0
+				],				
+				"blue": [
+					0,
+					0,
+					255
 				],
-				"id": "default",
-				"leds": "*",
-				"luminanceGain": 1,
 				"magenta": [
 					255,
 					0,
 					255
 				],
-				"red": [
-					255,
+				"cyan": [
 					0,
-					0
-				],
-				"saturationGain": 1,
-				"temperatureBlue": 255,
-				"temperatureGreen": 255,
-				"temperatureRed": 255,
-				"white": [
-					255,
-					255,
+					240,
 					255
 				],
 				"yellow": [
 					255,
 					255,
 					0
-				]
+				],				
+				"brightness": 100,
+				"brightnessCompensation": 0,
+				"classic_config": false,								
+				"gammaRed": 1.5,
+				"gammaGreen": 1.5,
+				"gammaBlue": 1.5,				
+				"id": "default",
+				"leds": "*",
+				"luminanceGain": 1,				
+				"saturationGain": 1,
+				"temperatureBlue": 255,
+				"temperatureGreen": 255,
+				"temperatureRed": 255
 			}
 		],
-		"imageToLedMappingType": "weighted"
+		"imageToLedMappingType": "advanced",
+		"sparse_processing": false
 	},	
 
-	"smoothing": {
-		"continuousOutput": false,
-		"enable": true,
-		"time_ms": 150,
-		"type": "linear",
-		"updateDelay": 0,
-		"updateFrequency": 100
-	},	
+	"smoothing" :
+	{
+		"enable"            : true,
+		"type"              : "linear",
+		"time_ms"           : 150,
+		"updateFrequency"   : 80,
+		"interpolationRate" : 120,
+		"outputRate"        : 120,
+		"decay"             : 1,
+		"dithering"         : false,
+		"updateDelay"       : 0,
+		"continuousOutput"  : false
+	},
 
 	"grabberV4L2" :
 	{
@@ -94,8 +100,6 @@
 		"width"                 : 0,
 		"height"                : 0,
 		"fps"                   : 15,
-		"standard"              : "NO_CHANGE",
-		"sizeDecimation"        : 8,
 		"cropLeft"              : 0,
 		"cropRight"             : 0,
 		"cropTop"               : 0,
@@ -105,7 +109,7 @@
 		"blueSignalThreshold"   : 5,
 		"noSignalCounterThreshold" : 200,
 		"signalDetection"       : false,
-		"cecDetection"          : false,
+		"qFrame"          		: false,
 		"sDVOffsetMin"          : 0.25,
 		"sDHOffsetMin"          : 0.25,
 		"sDVOffsetMax"          : 0.75,
@@ -115,22 +119,10 @@
 		"fpsSoftwareDecimation" : 1,
 		"v4l2Encoding"          : "NONE",
 		"hardware_brightness"   : 0,
-		"hardware_contrast"     : 0
-	},
-
-	"framegrabber" :
-	{
-		"type"               : "auto",
-		"width"              : 80,
-		"height"             : 45,
-		"frequency_Hz"       : 10,
-		"pixelDecimation"    : 8,
-		"cropLeft"           : 0,
-		"cropRight"          : 0,
-		"cropTop"            : 0,
-		"cropBottom"         : 0,
-		"device"             : "/dev/fb0"
-	},
+		"hardware_contrast"     : 0,
+		"hardware_saturation"   : 0,
+		"hardware_hue"          : 0		
+	},	
 
 	"blackborderdetector" :
 	{
@@ -154,10 +146,16 @@
 
 	"backgroundEffect" :
 	{
-		"enable"      : true,
+		"enable"      : false,
 		"type"        : "effect",
 		"color"       : [255,138,0],
 		"effect"      : "Warm mood blobs"
+	},
+	
+	"soundEffect" :
+	{
+		"enable"      : false,
+		"device"      : "default"
 	},
 
 	"forwarder" :
@@ -210,9 +208,7 @@
 	},
 
 	"instCapture" :
-	{
-		"systemEnable" : false,
-		"systemPriority" : 250,
+	{		
 		"v4lEnable" : true,
 		"v4lPriority" : 240
 	},
@@ -231,10 +227,10 @@
 	{
   	"classic":
 		{
-			"top"	 	: 8,
-			"bottom"	: 8,
-			"left"		: 5,
-			"right"		: 5,
+			"top"	 	: 1,
+			"bottom"	: 0,
+			"left"		: 0,
+			"right"		: 0,
 			"glength"	: 0,
 			"gpos"		: 0,
 			"position"	: 0,
@@ -255,8 +251,8 @@
 
 		"matrix":
 		{
-			"ledshoriz": 10,
-			"ledsvert" : 10,
+			"ledshoriz": 1,
+			"ledsvert" : 1,
 			"cabling"  : "snake",
 			"start"    : "top-left"
     		}
@@ -265,159 +261,9 @@
 	"leds":
 	[
 		{
-			"hmax": 0.125,
+			"hmax": 1,
 			"hmin": 0,
 			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.25,
-			"hmin": 0.125,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.375,
-			"hmin": 0.25,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.5,
-			"hmin": 0.375,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.625,
-			"hmin": 0.5,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.75,
-			"hmin": 0.625,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.875,
-			"hmin": 0.75,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.875,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.2,
-			"vmin": 0
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.4,
-			"vmin": 0.2
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.6,
-			"vmin": 0.4
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.8,
-			"vmin": 0.6
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 1,
-			"vmin": 0.8
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.875,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.875,
-			"hmin": 0.75,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.75,
-			"hmin": 0.625,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.625,
-			"hmin": 0.5,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.5,
-			"hmin": 0.375,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.375,
-			"hmin": 0.25,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.25,
-			"hmin": 0.125,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.125,
-			"hmin": 0,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 1,
-			"vmin": 0.8
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.8,
-			"vmin": 0.6
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.6,
-			"vmin": 0.4
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.4,
-			"vmin": 0.2
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.2,
 			"vmin": 0
 		}
 	]

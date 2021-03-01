@@ -5,7 +5,7 @@
 #include <QString>
 #include <QJsonDocument>
 
-// hyperion / utils
+// hyperhdr / utils
 #include <utils/Logger.h>
 
 // settings
@@ -15,25 +15,12 @@ class BonjourServiceRegister;
 class StaticFileServing;
 class QtHttpServer;
 
-/*
-OPENSSL command that generated the embedded key and cert file
-
-openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
-  -keyout hyperion.key -out hyperion.crt -extensions san -config \
-  <(echo "[req]";
-    echo distinguished_name=req;
-    echo "[san]";
-    echo subjectAltName=DNS:hyperion-project.org,IP:127.0.0.1
-    ) \
-  -subj /CN=hyperion-project.org
-*/
-
 class WebServer : public QObject
 {
 	Q_OBJECT
 
 public:
-	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = 0);
+	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = nullptr);
 
 	~WebServer () override;
 
@@ -63,7 +50,7 @@ public slots:
 	void onServerError        (QString msg);
 
 	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
@@ -80,11 +67,11 @@ public slots:
 	quint16 getPort() const { return _port; }
 
 private:
+	quint16              _port;
 	QJsonDocument        _config;
 	bool				 _useSsl;
 	Logger*              _log;
-	QString              _baseUrl;
-	quint16              _port;
+	QString              _baseUrl;	
 	StaticFileServing*   _staticFileServing;
 	QtHttpServer*        _server;
 	bool                 _inited = false;

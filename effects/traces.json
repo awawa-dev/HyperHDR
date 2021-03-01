@@ -1,8 +1,0 @@
-{
-	"name" : "Color traces",
-	"script" : "traces.py",
-	"args" :
-	{
-		"speed" : 1.0
-	}
-}

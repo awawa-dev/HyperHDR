@@ -1,12 +1,11 @@
 #pragma once
 
-// hyperion includes
 #include <utils/Logger.h>
 #include <utils/Components.h>
-#include <hyperion/Hyperion.h>
-#include <hyperion/HyperionIManager.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
+#include <hyperhdrbase/HyperHdrIManager.h>
 // auth manager
-#include <hyperion/AuthManager.h>
+#include <hyperhdrbase/AuthManager.h>
 
 #include <utils/ColorRgb.h>
 #include <utils/ColorSys.h>
@@ -16,12 +15,12 @@
 
 class QTimer;
 class JsonCB;
-class HyperionIManager;
+
 
 const QString NO_AUTH = "No Authorization";
 
 ///
-/// @brief API for Hyperion to be inherted from a child class with specific protocol implementations
+/// @brief API for Hyperhdr to be inherted from a child class with specific protocol implementations
 /// Workflow:
 /// 1. create the class
 /// 2. connect the forceClose signal, as the api might to close the connection for security reasons
@@ -62,74 +61,73 @@ protected:
     /// @param[in] timeout_ms The time the leds are set to the given color [ms]
     /// @param[in] origin   The setter
     ///
-    void setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms = -1, const QString &origin = "API", hyperion::Components callerComp = hyperion::COMP_INVALID);
+    void setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms = -1, const QString &origin = "API", hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Set a image
     /// @param[in]  data      The command data
     /// @param[in]  comp      The component that should be used
     /// @param[out] replyMsg  The replyMsg on failure
-    /// @param      callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param      callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// @return True on success
     ///
-    bool setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    bool setImage(ImageCmdData &data, hyperhdr::Components comp, QString &replyMsg, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Clear a priority in the Muxer, if -1 all priorities are cleared
     /// @param priority   The priority to clear
     /// @param replyMsg   the message on failure
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// @return  True on success
     ///
-    bool clearPriority(int priority, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    bool clearPriority(int priority, QString &replyMsg, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Set a new component state
     /// @param comp       The component name
     /// @param compState  The new state of the comp
     /// @param replyMsg   The reply on failure
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// @ return True on success
     ///
-    bool setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    bool setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Set a ledToImageMapping type
     /// @param type       mapping type string
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setLedMappingType(int type, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    void setLedMappingType(int type, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Set the 2D/3D modes type
     /// @param mode       The VideoMode
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID);
-	
-	void setVideoModeHdr(int hdr, hyperion::Components callerComp = hyperion::COMP_INVALID);	
+	void setVideoModeHdr(int hdr, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);	
 
     ///
     /// @brief Set an effect
     /// @param dat        The effect data
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// REQUIRED dat fields: effectName, priority, duration, origin
+	/// @return  True on success else false
     ///
-    void setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    bool setEffect(const EffectCmdData &dat, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Set source auto select enabled or disabled
     /// @param sate       The new state
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setSourceAutoSelect(bool state, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    void setSourceAutoSelect(bool state, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Set the visible priority to given priority
     /// @param priority   The priority to set
-    /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
+    /// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setVisiblePriority(int priority, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    void setVisiblePriority(int priority, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
     ///
     /// @brief Register a input or update the meta data of a previous register call
@@ -140,7 +138,7 @@ protected:
     /// @param[in] owner       Specific owner string, might be empty
     /// @param[in] callerComp  The component that call this (e.g. PROTO/FLAT)
     ///
-    void registerInput(int priority, hyperion::Components component, const QString &origin, const QString &owner, hyperion::Components callerComp);
+    void registerInput(int priority, hyperhdr::Components component, const QString &origin, const QString &owner, hyperhdr::Components callerComp);
 
     ///
     /// @brief Revoke a registerInput() call by priority. We maintain all registered priorities in this scope
@@ -154,18 +152,18 @@ protected:
     /// @param inst  The requested instance
     /// @return True on success else false
     ///
-    bool setHyperionInstance(quint8 inst);
+    bool setHyperhdrInstance(quint8 inst);
 
     ///
     /// @brief Get all contrable components and their state
     ///
-    std::map<hyperion::Components, bool> getAllComponents();
+    std::map<hyperhdr::Components, bool> getAllComponents();
 
     ///
-    /// @brief Check if Hyperion ist enabled
+    /// @brief Check if Hyperhdr ist enabled
     /// @return True when enabled else false
     ///
-    bool isHyperionEnabled();
+    bool isHyperhdrEnabled();
 
     ///
     /// @brief Get all instances data
@@ -176,8 +174,10 @@ protected:
     ///
     /// @brief Start instance
     /// @param index  The instance index
+    /// @param tan    The tan
+    /// @return  True on success else false
     ///
-    void startInstance(quint8 index);
+    bool startInstance(quint8 index, int tan = 0);
 
     ///
     /// @brief Stop instance
@@ -230,7 +230,7 @@ protected:
     /// @brief Save settings object. Requires ADMIN ACCESS
     /// @param data  The data object
     ///
-    void saveSettings(const QJsonObject &data);
+	bool saveSettings(const QJsonObject &data);
 
     ///
     /// @brief Test if we are authorized to use the interface
@@ -245,12 +245,12 @@ protected:
     bool isAdminAuthorized() { return _adminAuthorized; };
 
     ///
-    /// @brief Update the Password of Hyperion. Requires ADMIN ACCESS
+    /// @brief Update the Password of Hyperhdr. Requires ADMIN ACCESS
     /// @param password    Old password
     /// @param newPassword New password
     /// @return True on success else false
     ///
-    bool updateHyperionPassword(const QString &password, const QString &newPassword);
+    bool updateHyperhdrPassword(const QString &password, const QString &newPassword);
 
     ///
     /// @brief Get a new token from AuthManager. Requires ADMIN ACCESS
@@ -279,8 +279,9 @@ protected:
     /// @brief Set a new token request
     /// @param comment  The comment
     /// @param id       The id
+	/// @param tan      The tan
     ///
-    void setNewTokenRequest(const QString &comment, const QString &id);
+    void setNewTokenRequest(const QString &comment, const QString &id, const int &tan);
 
     ///
     /// @brief Cancel new token request
@@ -338,10 +339,10 @@ protected:
     bool isUserAuthorized(const QString &password);
 
     ///
-    /// @brief Test if Hyperion has the default PW
+    /// @brief Test if Hyperhdr has the default PW
     /// @return The result
     ///
-    bool hasHyperionDefaultPw();
+    bool hasHyperhdrDefaultPw();
 
     ///
     /// @brief Logout revokes all authorizations
@@ -356,10 +357,10 @@ protected:
     bool _localConnection;
 
     AuthManager *_authManager;
-    HyperionIManager *_instanceManager;
+    HyperHdrIManager *_instanceManager;
 
     Logger *_log;
-    Hyperion *_hyperion;
+    HyperHdrInstance *_hyperhdr;
 
 signals:
     ///
@@ -369,7 +370,7 @@ signals:
 
     ///
     /// @brief Emits whenever a new Token request is pending. This signal is just active when ADMIN ACCESS has been granted
-    /// @param id  The id of the request
+    /// @param id      The id of the request
     /// @param comment The comment of the request; If the commen is EMPTY the request has been revoked by the caller. So remove it from the pending list
     ///
     void onPendingTokenRequest(const QString &id, const QString &comment);
@@ -380,25 +381,22 @@ signals:
     /// @param  token   The new token that is now valid
     /// @param  comment The comment that was part of the request
     /// @param  id      The id that was part of the request
+    /// @param  tan     The tan that was part of the request
     ///
-    void onTokenResponse(bool success, const QString &token, const QString &comment, const QString &id);
+    void onTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
+
+    ///
+    /// @brief Handle emits from HyperhdrIManager of startInstance request, just if QObject matches with this instance it will emit.
+    /// @param  tan     The tan that was part of the request
+    ///
+    void onStartInstanceResponse(const int &tan);
 
 private slots:
     ///
-    /// @brief Is called whenever a Hyperion instance wants the current register list
+    /// @brief Is called whenever a Hyperhdr instance wants the current register list
     /// @param callerInstance  The instance should be returned in the answer call
     ///
     void requestActiveRegister(QObject *callerInstance);
-
-    ///
-    /// @brief See onTokenResponse(). Here we validate the caller instance and on success we will emit onTokenResponse()
-    /// @param  success If true the request was accepted else false and no token was created
-    /// @param  caller  The origin caller instance who requested this token
-    /// @param  token   The new token that is now valid
-    /// @param  comment The comment that was part of the request
-    /// @param  id      The id that was part of the request
-    ///
-    void checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id);
 
 private:
     void stopDataConnectionss();

@@ -10,8 +10,6 @@
 #include <windows.h>
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
-#include <iostream>
-#include <cstdio>
 #endif
 #include <QDateTime>
 #include <QFileInfo>
@@ -25,41 +23,24 @@ QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL { static_cast<int>(Logger::U
 
 namespace
 {
-const char * LogLevelStrings[]   = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
-#ifndef _WIN32
-const int    LogLevelSysLog[]    = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
-#endif
+	const char * LogLevelStrings[]   = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
+	#ifndef _WIN32
+	const int    LogLevelSysLog[]    = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+	#endif
 
-const size_t MAX_IDENTIFICATION_LENGTH = 22;
+	const size_t MAX_IDENTIFICATION_LENGTH = 22;
 
-QAtomicInteger<unsigned int> LoggerCount = 0;
-QAtomicInteger<unsigned int> LoggerId    = 0;
+	QAtomicInteger<unsigned int> LoggerCount = 0;
+	QAtomicInteger<unsigned int> LoggerId    = 0;
 
-const int MaxRepeatCountSize = 200;
-QThreadStorage<int> RepeatCount;
-QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
+	const int MaxRepeatCountSize = 200;
+	QThreadStorage<int> RepeatCount;
+	QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
 
-QString getApplicationName()
-{
-#ifdef __GLIBC__
-    const char* _appname_char = program_invocation_short_name;
-#elif !defined(_WIN32)
-    const char* _appname_char = getprogname();
-#else
-	char fileName[MAX_PATH];
-	char *_appname_char;
-	HINSTANCE hinst = GetModuleHandle(NULL);
-	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
+	QString getApplicationName()
 	{
-		_appname_char = PathFindFileName(fileName);
-		*(PathFindExtension(fileName)) = 0;
+		return "";
 	}
-	else
-		_appname_char = "unknown";
-#endif
-	return QString(_appname_char).toLower();
-
-}
 } // namespace
 
 Logger* Logger::getInstance(const QString & name, Logger::LogLevel minLevel)
@@ -124,7 +105,7 @@ Logger::Logger (const QString & name, LogLevel minLevel)
 	: QObject()
 	, _name(name)
 	, _appname(getApplicationName())
-	, _syslogEnabled(true)
+	, _syslogEnabled(false)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
 {
@@ -137,8 +118,6 @@ Logger::Logger (const QString & name, LogLevel minLevel)
 		{
 			openlog (_appname.toLocal8Bit(), LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 		}
-#else
-		//freopen( "output.txt", "w", stdout );
 #endif
 	}
 }
@@ -169,8 +148,8 @@ void Logger::write(const Logger::T_LOG_MESSAGE & message)
 			.arg(message.line)
 			.arg(message.function);
 	}
-
-	QString name = message.appName + " " + message.loggerName;
+	
+	QString name = (message.appName + " " + message.loggerName).trimmed();
 	name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
 	const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
@@ -190,6 +169,8 @@ void Logger::write(const Logger::T_LOG_MESSAGE & message)
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
 {
 	Logger::LogLevel globalLevel = static_cast<Logger::LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
+	bool writeAnyway = false;
+	bool repeatMessage = false;
 
 	if ( (globalLevel == Logger::UNSET && level < _minLevel) // no global level, use level from logger
 	  || (globalLevel > Logger::UNSET && level < globalLevel) ) // global level set, use global level
@@ -204,16 +185,18 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 	const auto repeatedSummary = [&]
 	{
-		Logger::T_LOG_MESSAGE repMsg = RepeatMessage.localData();
-		repMsg.message = "Previous line repeats " + QString::number(RepeatCount.localData()) + " times";
-		repMsg.utime   = QDateTime::currentMSecsSinceEpoch();
+		if (RepeatCount.localData() > 10)
+		{
+			Logger::T_LOG_MESSAGE repMsg = RepeatMessage.localData();
+			repMsg.message = "Previous line repeats " + QString::number(RepeatCount.localData()-10) + " times";
+			repMsg.utime = QDateTime::currentMSecsSinceEpoch();
 
-		write(repMsg);
+			write(repMsg);
 #ifndef _WIN32
-		if ( _syslogEnabled && repMsg.level >= Logger::WARNING )
-			syslog (LogLevelSysLog[repMsg.level], "Previous line repeats %d times", RepeatCount.localData());
+			if (_syslogEnabled && repMsg.level >= Logger::WARNING)
+				syslog(LogLevelSysLog[repMsg.level], "Previous line repeats %d times", RepeatCount.localData()-10);
 #endif
-
+		}
 		RepeatCount.setLocalData(0);
 	};
 
@@ -222,14 +205,19 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 		RepeatMessage.localData().message == msg   &&
 		RepeatMessage.localData().line == line)
 	{
+		repeatMessage = true;
 		if (RepeatCount.localData() >= MaxRepeatCountSize)
 			repeatedSummary();
 		else
 			RepeatCount.setLocalData(RepeatCount.localData() + 1);
+
+		if (RepeatCount.localData() < 10)
+			writeAnyway = true;		
 	}
-	else
+
+	if (!repeatMessage || writeAnyway)
 	{
-		if (RepeatCount.localData())
+		if (!repeatMessage && RepeatCount.localData())
 			repeatedSummary();
 
 		Logger::T_LOG_MESSAGE logMsg;
@@ -255,7 +243,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 LoggerManager::LoggerManager()
 	: QObject()
-	, _loggerMaxMsgBufferSize(500)
+	, _loggerMaxMsgBufferSize(300)
 {
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }

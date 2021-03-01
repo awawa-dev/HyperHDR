@@ -40,7 +40,7 @@ public:
 	///
 	/// @brief Validate a JSON structure
 	/// @param value The JSON value to check
-	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
+	/// @param ignoreRequired Ignore the "required" keyword in hyperhdr schema. Default is false
 	/// @return The first boolean is true when the arguments is valid according to the schema. The second is true when the schema contains no errors
 	/// @return TODO: Check the Schema in SetSchema() function and remove the QPair result
 	///
@@ -49,7 +49,7 @@ public:
 	///
 	/// @brief Auto correct a JSON structure
 	/// @param value The JSON value to correct
-	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
+	/// @param ignoreRequired Ignore the "required" keyword in hyperhdr schema. Default is false
 	/// @return The corrected JSON structure
 	///
 	QJsonObject getAutoCorrectedConfig(const QJsonObject & value, bool ignoreRequired = false);

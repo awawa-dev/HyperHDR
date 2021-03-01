@@ -14,11 +14,9 @@
 
 // util includes
 #include <utils/PixelFormat.h>
-#include <hyperion/Grabber.h>
+#include <hyperhdrbase/Grabber.h>
 #include <grabber/V4L2Worker.h>
-#include <grabber/VideoStandard.h>
 #include <utils/Components.h>
-#include <cec/CECEvent.h>
 
 // general JPEG decoder includes
 #ifdef HAVE_JPEG_DECODER
@@ -57,8 +55,7 @@ public:
 			const unsigned width,
 			const unsigned height,
 			const unsigned fps,
-			const unsigned input,
-			VideoStandard videoStandard,
+			const unsigned input,			
 			PixelFormat pixelFormat,
 			const QString & configurationPath
 	);
@@ -70,8 +67,7 @@ public:
 	}
 
 	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
-	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
-
+	int  getHdrToneMappingEnabled();
 	int grabFrame(Image<ColorRgb> &);
 
 	///
@@ -95,16 +91,12 @@ public:
 	/// @brief  overwrite Grabber.h implementation
 	///
 	void setSignalDetectionEnable(bool enable) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setCecDetectionEnable(bool enable) override;
+	
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
+	void setDeviceVideoStandard(QString device) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -154,19 +146,19 @@ public:
 	///
 	/// @brief enable HDR to SDR tone mapping (v4l2)
 	///
-	void setHdrToneMappingEnabled(int mode);
+	void setHdrToneMappingEnabled(int mode) override;
 	
 	void setEncoding(QString enc);
 	
-	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+
+	void setQFrameDecimation(int setQframe);
 
 public slots:
 
 	bool start();
 
 	void stop();
-
-	void handleCecEvent(CECEvent event);
 	
 	void newWorkerFrame(unsigned int _workerIndex, Image<ColorRgb> image,unsigned int sourceCount, quint64 _frameBegin);	
 	void newWorkerFrameError(unsigned int _workerIndex, QString error,unsigned int sourceCount);
@@ -195,7 +187,7 @@ private:
 	
 	void init_mmap();	
 
-	void init_device(VideoStandard videoStandard);
+	void init_device();
 
 	void uninit_device();
 
@@ -267,7 +259,6 @@ private:
 	std::map<QString, QString> _v4lDevices;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
 
-	VideoStandard       _videoStandard;
 	io_method           _ioMethod;
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
@@ -286,9 +277,7 @@ private:
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _signalDetectionEnabled;
-	bool     _cecDetectionEnabled;
-	bool     _cecStandbyActivated;
+	bool     _signalDetectionEnabled;	
 	bool     _noSignalDetected;
 	int      _noSignalCounter;
 	double   _x_frac_min;
@@ -299,10 +288,7 @@ private:
 	QSocketNotifier *_streamNotifier;
 
 	bool _initialized;
-	bool _deviceAutoDiscoverEnabled;
-	
-	// enable/disable HDR tone mapping
-	uint8_t       _hdrToneMappingEnabled;
+	bool _deviceAutoDiscoverEnabled;	
 	
 	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
 	int            _fpsSoftwareDecimation;
@@ -313,8 +299,7 @@ private:
 	
 	// frame counter
 	volatile unsigned int _currentFrame;
-		
-	// hyperion configuration folder
+			
 	QString        _configurationPath;		
 	
 		
@@ -322,8 +307,9 @@ private:
 	
 	void	ResetCounter(uint64_t from);	
 	
-	QString        _enc;
-	uint8_t _brightness,_contrast;
+	PixelFormat        _enc;
+	int _brightness,_contrast, _saturation, _hue;
+	bool _qframe;
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

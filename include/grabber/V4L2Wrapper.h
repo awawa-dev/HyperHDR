@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyperion/GrabberWrapper.h>
+#include <hyperhdrbase/GrabberWrapper.h>
 #include <grabber/V4L2Grabber.h>
 
 class V4L2Wrapper : public GrabberWrapper
@@ -12,14 +12,13 @@ public:
 			const unsigned grabWidth,
 			const unsigned grabHeight,
 			const unsigned fps,
-			const unsigned input,
-			VideoStandard videoStandard,
+			const unsigned input,			
 			PixelFormat pixelFormat,			
 			const QString & configurationPath );
 	~V4L2Wrapper() override;
 
 	bool getSignalDetectionEnable() const;
-	bool getCecDetectionEnable() const;
+	int getHdrToneMappingEnabled();
 
 public slots:
 	bool start() override;
@@ -28,10 +27,8 @@ public slots:
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
-	void setSignalDetectionEnable(bool enable);
-	void setCecDetectionEnable(bool enable);
-	void setDeviceVideoStandard(const QString& device, VideoStandard videoStandard);
-	void handleCecEvent(CECEvent event);
+	void setSignalDetectionEnable(bool enable);	
+	void setDeviceVideoStandard(const QString& device);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;		
 	
 	///
@@ -46,7 +43,9 @@ public slots:
 	
 	void setEncoding(QString enc);
 	
-	void setBrightnessContrast(uint8_t brightness, uint8_t contrast);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+
+	void setQFrameDecimation(int setQframe);
 	
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

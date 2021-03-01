@@ -20,7 +20,7 @@ class SSDPHandler : public SSDPServer
 {
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, const QString &name,  QObject * parent = nullptr);
+	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString &name,  QObject * parent = nullptr);
 	~SSDPHandler() override;
 
 	///
@@ -41,7 +41,7 @@ public slots:
 	void handleWebServerStateChange(bool newState);
 
 	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit
+	/// @brief Handle settings update from Hyperhdr Settingsmanager emit
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///

@@ -1,0 +1,15 @@
+[Unit]
+Description=HyperHdr ambient light systemd service  for user %i
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/hyperhdr
+WorkingDirectory=/usr/share/hyperhdr/bin
+User=%i
+TimeoutStopSec=5
+KillMode=mixed
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

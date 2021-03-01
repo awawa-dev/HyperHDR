@@ -20,7 +20,7 @@ BEGIN
             VALUE "Comments", "https://github.com/awawa-dev/HyperHDR"
             VALUE "FileDescription", "HyperHDR Ambient Lighting"
             VALUE "FileVersion", "${HYPERION_VERSION}"
-            VALUE "InternalName", "Hyperion"
+            VALUE "InternalName", "HyperHdr"
             VALUE "LegalCopyright", "MIT"
             VALUE "OriginalFilename", "${BINARY_NAME}"
             VALUE "ProductName", "HyperHDR Ambient Lighting"

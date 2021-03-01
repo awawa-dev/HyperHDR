@@ -7,7 +7,6 @@
 #include <QSet>
 #include <QJsonDocument>
 
-// Hyperion includes
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
@@ -15,7 +14,7 @@
 #include <utils/settings.h>
 
 class BoblightClientConnection;
-class Hyperion;
+class HyperHdrInstance;
 class QTcpServer;
 
 ///
@@ -28,10 +27,10 @@ class BoblightServer : public QObject
 public:
 	///
 	/// BoblightServer constructor
-	/// @param hyperion Hyperion instance
+	/// @param hyperhdr HyperHDR instance
 	/// @param port port number on which to start listening for connections
 	///
-	BoblightServer(Hyperion* hyperion, const QJsonDocument& config);
+	BoblightServer(HyperHdrInstance* hyperhdr, const QJsonDocument& config);
 	~BoblightServer() override;
 
 	///
@@ -54,10 +53,10 @@ public slots:
 	///
 	void stop();
 
-	void compStateChangeRequest(hyperion::Components component, bool enable);
+	void compStateChangeRequest(hyperhdr::Components component, bool enable);
 
 	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
@@ -76,8 +75,8 @@ private slots:
 	void closedConnection(BoblightClientConnection * connection);
 
 private:
-	/// Hyperion instance
-	Hyperion * _hyperion;
+	/// HyperHdr instance
+	HyperHdrInstance * _hyperhdr;
 
 	/// The TCP server object
 	QTcpServer * _server;
@@ -85,7 +84,7 @@ private:
 	/// List with open connections
 	QSet<BoblightClientConnection *> _openConnections;
 
-	/// hyperion priority
+	/// hyperhdr priority
 	int _priority;
 
 	/// Logger instance

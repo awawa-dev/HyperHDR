@@ -2,9 +2,9 @@
 
 #include <webserver/WebServer.h>
 #include "SSDPDescription.h"
-#include <hyperion/Hyperion.h>
-#include <HyperionConfig.h>
-#include <hyperion/AuthManager.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
+#include <HyperhdrConfig.h>
+#include <hyperhdrbase/AuthManager.h>
 
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
@@ -15,15 +15,17 @@
 
 static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
 
-SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, const QString& name, QObject * parent)
+SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort,  const QString& name, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
 	, _NCA(nullptr)
 {
 	setFlatBufPort(flatBufPort);
+	setProtoBufPort(protoBufPort);
 	setJsonServerPort(jsonServerPort);
-	setHyperionName(name);
+	setSSLServerPort(sslPort);
+	setHyperhdrName(name);
 }
 
 SSDPHandler::~SSDPHandler()
@@ -77,7 +79,7 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 {
 	const QJsonObject& obj = config.object();
 
-	if(type == settings::FLATBUFSERVER)
+	if(type == settings::type::FLATBUFSERVER)
 	{
 		if(obj["port"].toInt() != SSDPServer::getFlatBufPort())
 		{
@@ -85,7 +87,15 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		}
 	}
 
-	if(type == settings::JSONSERVER)
+	if(type == settings::type::PROTOSERVER)
+	{
+		if(obj["port"].toInt() != SSDPServer::getProtoBufPort())
+		{
+			SSDPServer::setProtoBufPort(obj["port"].toInt());
+		}
+	}
+
+	if(type == settings::type::JSONSERVER)
 	{
 		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
 		{
@@ -93,11 +103,19 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		}
 	}
 
-	if (type == settings::GENERAL)
+	if(type == settings::type::WEBSERVER)
 	{
-		if (obj["name"].toString() != SSDPServer::getHyperionName())
+		if(obj["sslPort"].toInt() != SSDPServer::getSSLServerPort())
 		{
-			SSDPServer::setHyperionName(obj["name"].toString());
+			SSDPServer::setSSLServerPort(obj["sslPort"].toInt());
+		}
+	}
+
+	if (type == settings::type::GENERAL)
+	{
+		if (obj["name"].toString() != SSDPServer::getHyperhdrName())
+		{
+			SSDPServer::setHyperhdrName(obj["name"].toString());
 		}
 	}
 }
@@ -188,7 +206,7 @@ QString SSDPHandler::getDescAddress() const
 
 QString SSDPHandler::getBaseAddress() const
 {
-	quint16 port = 0;
+	quint16 port = 0;	
 	QMetaObject::invokeMethod(_webserver, "getPort", Qt::BlockingQueuedConnection, Q_RETURN_ARG(quint16, port));
 	return QString("http://%1:%2/").arg(_localAddress).arg(port);
 }
@@ -199,7 +217,21 @@ QString SSDPHandler::buildDesc() const
 	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
 	/// %3 modelNumber                2.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
-	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%1)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
+	/// %5 json port                  19444
+	/// %6 ssl server port            8092
+	/// %7 protobuf port              19445
+	/// %8 flatbuf port               19400
+
+	return SSDP_DESCRIPTION.arg(
+			getBaseAddress(),
+			QString("Hyperion (%1)").arg(_localAddress),
+			QString(HYPERION_VERSION),
+			_uuid,
+			QString::number(SSDPServer::getJsonServerPort()),
+			QString::number(SSDPServer::getSSLServerPort()),
+			QString::number(SSDPServer::getProtoBufPort()),
+			QString::number(SSDPServer::getFlatBufPort())
+	);
 }
 
 void SSDPHandler::sendAnnounceList(bool alive)

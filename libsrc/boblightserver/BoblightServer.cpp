@@ -5,8 +5,7 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
-// hyperion includes
-#include <hyperion/Hyperion.h>
+#include <hyperhdrbase/HyperHdrInstance.h>
 
 // qt incl
 #include <QTcpServer>
@@ -14,11 +13,11 @@
 // netUtil
 #include <utils/NetUtils.h>
 
-using namespace hyperion;
+using namespace hyperhdr;
 
-BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
+BoblightServer::BoblightServer(HyperHdrInstance* hyperhdr,const QJsonDocument& config)
 	: QObject()
-	, _hyperion(hyperion)
+	, _hyperhdr(hyperhdr)
 	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _priority(0)
@@ -28,12 +27,12 @@ BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
 	Debug(_log, "Instance created");
 
 	// listen for component change
-	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &BoblightServer::compStateChangeRequest);
+	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &BoblightServer::compStateChangeRequest);
 	// listen new connection signal from server
 	connect(_server, &QTcpServer::newConnection, this, &BoblightServer::newConnection);
 
 	// init
-	handleSettingsUpdate(settings::BOBLSERVER, config);
+	handleSettingsUpdate(settings::type::BOBLSERVER, config);
 }
 
 BoblightServer::~BoblightServer()
@@ -51,7 +50,7 @@ void BoblightServer::start()
 
 	Info(_log, "Started on port %d", _port);
 
-	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
+	_hyperhdr->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 void BoblightServer::stop()
@@ -64,7 +63,7 @@ void BoblightServer::stop()
 	_server->close();
 
 	Info(_log, "Stopped");
-	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
+	_hyperhdr->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 bool BoblightServer::active() const
@@ -72,7 +71,7 @@ bool BoblightServer::active() const
 	return _server->isListening();
 }
 
-void BoblightServer::compStateChangeRequest(hyperion::Components component, bool enable)
+void BoblightServer::compStateChangeRequest(hyperhdr::Components component, bool enable)
 {
 	if (component == COMP_BOBLIGHTSERVER)
 	{
@@ -96,8 +95,8 @@ void BoblightServer::newConnection()
 	if (socket != nullptr)
 	{
 		Info(_log, "new connection");
-		_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(socket->peerAddress().toString()));
-		BoblightClientConnection * connection = new BoblightClientConnection(_hyperion, socket, _priority);
+		_hyperhdr->registerInput(_priority, hyperhdr::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(socket->peerAddress().toString()));
+		BoblightClientConnection * connection = new BoblightClientConnection(_hyperhdr, socket, _priority);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
@@ -116,7 +115,7 @@ void BoblightServer::closedConnection(BoblightClientConnection *connection)
 
 void BoblightServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::BOBLSERVER)
+	if(type == settings::type::BOBLSERVER)
 	{
 		QJsonObject obj = config.object();
 		_port = obj["port"].toInt();

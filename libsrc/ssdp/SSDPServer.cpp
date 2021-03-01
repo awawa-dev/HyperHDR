@@ -5,7 +5,7 @@
 #include <utils/QStringUtils.h>
 
 // Hyperion
-#include <HyperionConfig.h>
+#include <HyperhdrConfig.h>
 
 #include <QUdpSocket>
 #include <QDateTime>
@@ -96,7 +96,7 @@ void SSDPServer::initServer()
 	_udpSocket = new QUdpSocket(this);
 
 	// get system info
-	SysInfo::HyperionSysInfo data = SysInfo::get();
+	SysInfo::HyperhdrSysInfo data = SysInfo::get();
 
 	// create SERVER String
 	_serverHeader = QString("%1/%2 UPnP/1.0 Hyperion/%3")

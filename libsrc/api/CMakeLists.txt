@@ -7,14 +7,14 @@ FILE ( GLOB_RECURSE Api_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_D
 
 set(Api_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
 
-add_library(hyperion-api
+add_library(hyperhdr-api
 	${Api_SOURCES}
 	${Api_RESOURCES}
 )
 
-target_link_libraries(hyperion-api
-	hyperion
-	hyperion-utils
+target_link_libraries(hyperhdr-api
+	hyperhdr-base
+	hyperhdr-utils
 	Qt5::Core
 	Qt5::Gui
 	Qt5::Network

@@ -4,7 +4,7 @@
 #include <QByteArray>
 namespace Process {
 
-void restartHyperion(bool asNewProcess) {}
+void restartHyperhdr(bool asNewProcess) {}
 
 QByteArray command_exec(const QString& /*cmd*/, const QByteArray& /*data*/)
 {
@@ -29,19 +29,19 @@ QByteArray command_exec(const QString& /*cmd*/, const QByteArray& /*data*/)
 
 namespace Process {
 
-void restartHyperion(bool asNewProcess)
+void restartHyperhdr(bool asNewProcess)
 {
 	Logger* log = Logger::getInstance("Process");
-	Info(log, "Restarting hyperion ...");
+	Info(log, "Restarting hyperhdr ...");
 
 	std::cout << std::endl
 		<< "      *******************************************" << std::endl
-		<< "      *      hyperion will restart now          *" << std::endl
+		<< "      *      hyperhdr will restart now          *" << std::endl
 		<< "      *******************************************" << std::endl << std::endl;
 
 	auto arguments = QCoreApplication::arguments();
-	if (!arguments.contains("--wait-hyperion"))
-		arguments << "--wait-hyperion";
+	if (!arguments.contains("--wait-hyperhdr"))
+		arguments << "--wait-hyperhdr";
 
 	QProcess::startDetached(QCoreApplication::applicationFilePath(), arguments);
 

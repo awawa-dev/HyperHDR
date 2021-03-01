@@ -25,6 +25,15 @@ bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
 
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 {
+	if (_ledCount != ledValues.size())
+	{
+		Warning(_log, "P9813 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount,  ledValues.size());
+		_ledCount = ledValues.size();
+		
+		_ledBuffer.resize(0, 0x00);
+		_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
+	}
+	
 	uint8_t * dataPtr = _ledBuffer.data();
 	for (const ColorRgb & color : ledValues)
 	{

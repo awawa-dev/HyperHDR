@@ -15,7 +15,7 @@ class NetOrigin;
 
 ///
 /// @brief A TcpServer to receive images of different formats with Google Flatbuffer
-/// Images will be forwarded to all Hyperion instances
+/// Images will be forwarded to all HyperHdr instances
 ///
 class FlatBufferServer : public QObject
 {

@@ -1,5 +1,5 @@
 #include "webserver/WebServer.h"
-#include "HyperionConfig.h"
+#include "HyperhdrConfig.h"
 #include "StaticFileServing.h"
 #include "QtHttpServer.h"
 
@@ -15,6 +15,7 @@
 
 WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject * parent)
 	:  QObject(parent)
+	, _port(0)
 	, _config(config)
 	, _useSsl(useSsl)
 	, _log(Logger::getInstance("WEBSERVER"))
@@ -32,7 +33,7 @@ void WebServer::initServer()
 {
 	Debug(_log, "Initialize Webserver");
 	_server = new QtHttpServer (this);
-	_server->setServerName (QStringLiteral ("Hyperion Webserver"));
+	_server->setServerName (QStringLiteral ("HyperHDR Webserver"));
 
 	if(_useSsl)
 	{
@@ -49,7 +50,7 @@ void WebServer::initServer()
 	connect(_server, &QtHttpServer::requestNeedsReply, _staticFileServing, &StaticFileServing::onRequestNeedsReply);
 
 	// init
-	handleSettingsUpdate(settings::WEBSERVER, _config);
+	handleSettingsUpdate(settings::type::WEBSERVER, _config);
 }
 
 void WebServer::onServerStarted (quint16 port)
@@ -86,7 +87,7 @@ void WebServer::onServerError (QString msg)
 
 void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::WEBSERVER)
+	if(type == settings::type::WEBSERVER)
 	{
 		Debug(_log, "Apply Webserver settings");
 		const QJsonObject& obj = config.object();
