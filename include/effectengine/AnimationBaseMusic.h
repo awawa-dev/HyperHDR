@@ -33,6 +33,7 @@ struct MovingTarget
 	int32_t _targetFastCounter;
 
 	void Clear();
+	void CopyFrom(MovingTarget* source);
 };
 
 class AnimationBaseMusic : public AnimationBase

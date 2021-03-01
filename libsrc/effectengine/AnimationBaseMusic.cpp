@@ -19,11 +19,11 @@ bool AnimationBaseMusic::isSoundEffect()
 };
 
 void AnimationBaseMusic::store(MovingTarget* source) {
-	memcpy(&_myTarget, source, sizeof(_myTarget));
+	_myTarget.CopyFrom(source);
 };
 
 void AnimationBaseMusic::restore(MovingTarget* target) {
-	memcpy(target, &_myTarget, sizeof(_myTarget));
+	target->CopyFrom(&_myTarget);
 };
 
 void MovingTarget::Clear()
@@ -43,6 +43,25 @@ void MovingTarget::Clear()
 	_targetFastG = 0;
 	_targetFastB = 0;
 	_targetFastCounter = 0;
+};
+
+void MovingTarget::CopyFrom(MovingTarget* source)
+{
+	_averageColor = source->_averageColor;
+	_fastColor = source->_fastColor;
+	_slowColor = source->_slowColor;
+	_targetAverageR = source->_targetAverageR;
+	_targetAverageG = source->_targetAverageG;
+	_targetAverageB = source->_targetAverageB;
+	_targetAverageCounter = source->_targetAverageCounter;
+	_targetSlowR = source->_targetSlowR;
+	_targetSlowG = source->_targetSlowG;
+	_targetSlowB = source->_targetSlowB;
+	_targetSlowCounter = source->_targetSlowCounter;
+	_targetFastR = source->_targetFastR;
+	_targetFastG = source->_targetFastG;
+	_targetFastB = source->_targetFastB;
+	_targetFastCounter = source->_targetFastCounter;
 };
 
 
