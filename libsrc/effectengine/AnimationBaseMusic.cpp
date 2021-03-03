@@ -3,7 +3,7 @@
 AnimationBaseMusic::AnimationBaseMusic(QString name) :
 	AnimationBase(name)	
 {
-	memset(&_myTarget, 0, sizeof(_myTarget));
+	_myTarget.Clear();
 };
 
 QJsonObject AnimationBaseMusic::GetArgs() {
