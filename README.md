@@ -78,7 +78,7 @@ Use YUV(YUY2) / XRGB(RGB32) encoding format if it's possible. It provides better
 
 <br/>
 <br/>
-<b>Before and after HyperHDR LUT correction on some HDR/BT2020 video content that was broken by the USB grabber. Without it your ambilight colors will be washed-out:<br/></b>
+<b>Before and after HyperHDR LUT correction on HDR/BT2020 video that was broken by the USB grabber.<br/>Without it your ambilight colors will be washed-out:<br/></b>
 
 ![alt text](https://i.postimg.cc/VsbZrGBx/cfinal.jpg)
 ![alt text](https://i.postimg.cc/sXbnH7yH/afinal.jpg)
