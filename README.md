@@ -32,7 +32,7 @@ https://hyperhdr.blogspot.com/
 * HDR/BT2020 color & gamma correction
 * Support for USB grabbers under Windows 10
 * Built-in audio visualization effects
-* Optimized multi-instances handling. You can use for example your TV LED strip alongside multiple WLED or Philips Hue light sources.
+* Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
 * Support for WS8212b/WS8213 RGB & SK6812RGBW ultrafast USB serial port AWA protocol for ESP8266 at 2000000 baud with data integrity check and white channel calibration: <a href="https://github.com/awawa-dev/HyperSerialEsp8266">HyperSerialEsp8266</a>. WLED fork is also available: <a href="https://github.com/awawa-dev/HyperSerialWLED">HyperSerialWLED</a>
 
 ##
@@ -62,9 +62,7 @@ https://hyperhdr.blogspot.com/
 
 ### FAQ:
 
-<b>You don't need to use HDR source for usage of HyperHDR. You can just benefit from significant higher performance for captured video stream from USB grabber over Hyperion NG,  capability of using multithreading to avoid bottleneck resources, support for modern USB grabbers under Windows 10, improved image to led colors averaging new algorihtms, few tweaks that minimize blinking at the dark scenes and hardware support to tune up brightness, contrast, saturation and hue for a grabber.</b>
-
-The default settings in the LED color calibration are made for my setup, currently WS2801 ;) It's recommended for you to create your own.
+<b>You don't need to use HDR source for usage of HyperHDR. You can just benefit from significant higher performance for captured video stream from USB grabber over Hyperion NG,  capability of using multithreading to avoid bottleneck resources, support for modern USB grabbers under Windows 10, improved image to led colors averaging new algorihtms, music capabilities and few tweaks that minimize blinking at the dark scenes and hardware support to tune up brightness, contrast, saturation and hue for a grabber.</b>
 
 Try to play with grabber's hardware brightness and contrast as experimentents proved they can change even with some selected resolutions and FPS. And there are some different default values for brightness and contrast for Linux and Windows. Nothing is constant if you don't force specific value. For Ezcap 269 grabber I set brightness to 139 and preferable resolution is 1280x720 YUV.
 
@@ -81,10 +79,11 @@ Use YUV(YUY2) / XRGB(RGB32) encoding format if it's possible. It provides better
 <br/>
 <br/>
 <b>Before and after HyperHDR LUT correction on some HDR/BT2020 video content that was broken by the USB grabber.<br/>Without it your ambilight colors will be washed-out:<br/></b>
-<img src='https://i.postimg.cc/VsbZrGBx/cfinal.jpg'/>
-<img src='https://i.postimg.cc/sXbnH7yH/afinal.jpg'/>
-<img src='https://i.postimg.cc/zDnSY9kG/dfinal.jpg'/>
-<img src='https://i.postimg.cc/nr73yrhF/bfinal.jpg'/>
+
+![alt text](https://i.postimg.cc/VsbZrGBx/cfinal.jpg)
+![alt text](https://i.postimg.cc/sXbnH7yH/afinal.jpg)
+![alt text](https://i.postimg.cc/zDnSY9kG/dfinal.jpg)
+![alt text](https://i.postimg.cc/nr73yrhF/bfinal.jpg)
 
 <br/><br/><b>Direct support for USB grabbers under Windows 10:</b><br/>
 <img src='https://i.postimg.cc/DfwF9bsj/win10.jpg'/>
@@ -93,7 +92,7 @@ Use YUV(YUY2) / XRGB(RGB32) encoding format if it's possible. It provides better
 <img src='https://i.postimg.cc/9cbKk0N9/newscreen5.png'/>
 
 <br/><br/><b>Ultrafast USB serial port AWA protocol for ESP8266 at 2 000 000 baud:</b><br/>
-<p align="center"><img src="https://i.postimg.cc/7h0KZxnn/usage.jpg"/></p>
+<img align="left" src="https://i.postimg.cc/7h0KZxnn/usage.jpg"/>
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
