@@ -92,7 +92,7 @@ Use YUV(YUY2) / XRGB(RGB32) encoding format if it's possible. It provides better
 <img src='https://i.postimg.cc/9cbKk0N9/newscreen5.png'/>
 
 <br/><br/><b>Ultrafast USB serial port AWA protocol for ESP8266 at 2 000 000 baud:</b><br/>
-<img align="left" src="https://i.postimg.cc/7h0KZxnn/usage.jpg"/>
+<img src="https://i.postimg.cc/R0GVrhcV/usage.jpg"/>
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
