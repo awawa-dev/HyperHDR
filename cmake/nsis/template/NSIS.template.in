@@ -790,13 +790,7 @@ Section "-Core installation"
 ;End:
 
 ; Install Visual c++ Redistributable
-ExecWait '"$INSTDIR\bin\vc_redist.x64.exe" /install /quiet'
-
-; Install DirectX 9 Redistributable
-ExecWait '"$INSTDIR\bin\dx_redist.exe" /q /t:"$INSTDIR\tmp"'
-	ExecWait '"$INSTDIR\tmp\DXSETUP.exe" /silent'
-	Delete   '$INSTDIR\tmp\*.*'
-	RMDir    '$INSTDIR\tmp'
+ExecWait '"$INSTDIR\bin\vc_redist.x64.exe" /install /quiet /norestart'
 
 SectionEnd
 
