@@ -276,8 +276,7 @@ public:
 	}
 
 private:
-	template<class T>
-	friend class Image;
+	
 
 	///
 	/// Translate x and y coordinate to index of the underlying vector

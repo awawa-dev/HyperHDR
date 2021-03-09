@@ -102,7 +102,7 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
-	SET ( DEFAULT_USB_HID    ON )
+	SET ( DEFAULT_USB_HID    OFF )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
 	SET ( DEFAULT_WS281XPWM  ON )
 	

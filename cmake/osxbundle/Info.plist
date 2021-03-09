@@ -18,11 +18,11 @@
     <string>Hyperion.icns</string>
 
     <key>CFBundleIdentifier</key>
-    <string>com.hyperion-project.Hyperion</string>
+    <string>com.hyperhdr.HyperHDR</string>
     <key>CFBundleName</key>
-    <string>Hyperion</string>
+    <string>HyperHDR</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0</string>
+    <string>16.0</string>
 
     <key>BuildMachineOSBuild</key>
     <string>11G63</string>
@@ -57,6 +57,8 @@
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSCameraUsageDescription</key>
+    <string>HyperHDR needs permission to access the grabber to capture video/camera stream.</string>
 
     <key>SUEnableAutomaticChecks</key>
     <true/>

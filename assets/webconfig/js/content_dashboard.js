@@ -98,15 +98,23 @@ $(document).ready( function() {
 
 
 	//determine platform
-	var grabbers = window.serverInfo.grabbers.active;
 	var html = "";
-
-  if (grabbers.indexOf('V4L2:Media Foundation') > -1)
-    html += 'Windows (Microsoft Media Foundation)';
-  else if (grabbers.indexOf('V4L2') > -1)
-    html += 'Linux (V4L2)';
+	
+	if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined &&
+	    window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined)
+	{
+		var grabbers = window.serverInfo.grabbers.active;
+		if (grabbers.indexOf('V4L2:Media Foundation') > -1)
+			html += 'Windows (Microsoft Media Foundation)';
+		else if (grabbers.indexOf('V4L2') > -1)
+			html += 'Linux (V4L2)';
+		else
+			html += 'Unknown';
+	}
 	else
-		html += 'Unknown';
+	{
+		html = 'None';
+	}
 
 	$('#dash_platform').html(html);
 

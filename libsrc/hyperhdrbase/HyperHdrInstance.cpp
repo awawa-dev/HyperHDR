@@ -21,7 +21,7 @@
 #include <leddevice/LedDeviceWrapper.h>
 
 #include <hyperhdrbase/MultiColorAdjustment.h>
-#include "LinearColorSmoothing.h"
+#include <hyperhdrbase/LinearColorSmoothing.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>

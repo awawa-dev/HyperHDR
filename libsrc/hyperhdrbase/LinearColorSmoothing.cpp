@@ -2,7 +2,7 @@
 #include <QDateTime>
 #include <QTimer>
 
-#include "LinearColorSmoothing.h"
+#include <hyperhdrbase/LinearColorSmoothing.h>
 #include <hyperhdrbase/HyperHdrInstance.h>
 
 #include <cmath>

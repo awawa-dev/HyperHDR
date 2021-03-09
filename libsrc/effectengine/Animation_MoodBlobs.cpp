@@ -1,6 +1,8 @@
 #include <effectengine/Animation_MoodBlobs.h>
 
-#define M_PI           3.14159265358979323846
+#ifndef M_PI
+	#define M_PI           3.14159265358979323846
+#endif
 
 Animation_MoodBlobs::Animation_MoodBlobs(QString name) :
 	AnimationBase(name)

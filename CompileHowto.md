@@ -13,8 +13,8 @@ sometimes on RPI you may need the videocore IV headers
 sudo apt-get install libraspberrypi-dev
 ```
 
-## Windows (WIP)
-We assume a 64bit Windows 7 or higher. Install the following;
+## Windows
+We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
 - [CMake (Windows win64-x64 Installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2019 Build Tools](https://go.microsoft.com/fwlink/?linkid=840931) ([direct link](https://aka.ms/vs/16/release/vs_buildtools.exe))
@@ -24,6 +24,13 @@ We assume a 64bit Windows 7 or higher. Install the following;
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
 - Optional for package creation: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
+
+## MacOs
+First install brew manager.
+Next:
+- brew install qt@5
+- brew install cmake
+- brew install jpeg-turbo
 
 # Compiling and installing HyperHDR
 

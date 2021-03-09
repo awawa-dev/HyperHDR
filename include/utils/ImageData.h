@@ -19,8 +19,12 @@ typedef SSIZE_T ssize_t;
 #endif
 
 
+
 class ImageData : public QSharedData
-{
+{	
+	template<class T>
+	friend class Image;
+
 public:
 	ImageData(unsigned width, unsigned height)://, const ColorRgb background) :
 		_width(width),

@@ -26,7 +26,6 @@ const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
 const char CONFIG_GROUPID[] = "groupId";
 
 const char CONFIG_VERBOSE[] = "verbose";
-const char CONFIG_BRIGHTNESS_THRESHOLD[] = "brightnessThreshold";
 
 const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN[] = "sslHSTimeoutMin";
 const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX[] = "sslHSTimeoutMax";
