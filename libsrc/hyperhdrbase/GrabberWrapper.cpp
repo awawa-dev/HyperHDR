@@ -82,6 +82,10 @@ QStringList GrabberWrapper::availableGrabbers()
 	grabbers << "v4l2";
 	#endif
 
+	#ifdef ENABLE_AVF
+	grabbers << "v4l2";
+	#endif	
+
 	return grabbers;
 }
 

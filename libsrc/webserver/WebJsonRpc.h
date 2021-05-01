@@ -14,7 +14,7 @@ class WebJsonRpc : public QObject {
 public:
 	WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localConnection, QtHttpClientWrapper* parent);
 
-	void handleMessage(QtHttpRequest* request);
+	void handleMessage(QtHttpRequest* request, QString query="");
 
 private:
 	QtHttpServer* _server;

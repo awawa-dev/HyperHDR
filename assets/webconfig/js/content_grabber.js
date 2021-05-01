@@ -228,6 +228,24 @@ $(document).ready( function() {
     conf_editor_v4l2.on('ready', function() {
       setWatchers(v4l2_dynamic_enum_schema);
 
+      if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined &&
+	      window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined)
+	    {
+        var grabbers = window.serverInfo.grabbers.active;
+		    if (grabbers.indexOf('V4L2:macOS AVF') > -1)
+        {
+          conf_editor_v4l2.getEditor('root.grabberV4L2.device_inputs').disable();
+          conf_editor_v4l2.getEditor('root.grabberV4L2.hardware_brightness').disable();
+          conf_editor_v4l2.getEditor('root.grabberV4L2.hardware_contrast').disable();
+          conf_editor_v4l2.getEditor('root.grabberV4L2.hardware_hue').disable();
+          conf_editor_v4l2.getEditor('root.grabberV4L2.hardware_saturation').disable();
+        }
+        if (grabbers.indexOf('V4L2:Media Foundation') > -1)
+        {
+          conf_editor_v4l2.getEditor('root.grabberV4L2.device_inputs').disable();         
+        }
+      }
+
       if (window.serverConfig.grabberV4L2.available_devices == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
         toggleOption('device', true);
 

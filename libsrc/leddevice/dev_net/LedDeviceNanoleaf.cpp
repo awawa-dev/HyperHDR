@@ -1,8 +1,7 @@
 // Local-Hyperion includes
 #include "LedDeviceNanoleaf.h"
-
-#include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
+#include <ssdp/SSDPDiscover.h>
 
 // Qt includes
 #include <QEventLoop>
@@ -418,7 +417,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -458,7 +457,7 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 		QString authToken = params["token"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
 		QString apiHost = addressparts[0];
 		int apiPort;
 

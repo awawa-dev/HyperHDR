@@ -12,7 +12,7 @@ using namespace hyperhdr;
 const int64_t  DEFAUL_SETTLINGTIME    = 200;	// settlingtime in ms
 const double   DEFAUL_UPDATEFREQUENCY = 25;	// updatefrequncy in hz
 const int64_t  DEFAUL_UPDATEINTERVALL = static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY); // updateintervall in ms
-const unsigned DEFAUL_OUTPUTDEPLAY    = 0;	// outputdelay in ms
+
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
 	: QObject(hyperhdr)
@@ -22,21 +22,28 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdr
 	, _updateInterval(DEFAUL_UPDATEINTERVALL)
 	, _settlingTime(DEFAUL_SETTLINGTIME)
 	, _timer(this)
-	, _outputDelay(DEFAUL_OUTPUTDEPLAY)
-	, _writeToLedsEnable(false)
 	, _continuousOutput(false)
+	, _antiFlickeringTreshold(0)
+	, _antiFlickeringStep(0)
+	, _flushFrame(false)
+	, _targetTime(0)
+	, _previousTime(0)
 	, _pause(false)
 	, _currentConfigId(0)
 	, _enabled(false)
 	, _directMode(false)
+	, _smoothingType(SmoothingType::Linear)
+	, _infoUpdate(true)
+	, _infoInput(true)
+	, debugCounter(0)
 {
 	// init cfg 0 (default)
-	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY, DEFAUL_OUTPUTDEPLAY);
+	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
 	handleSettingsUpdate(settings::type::SMOOTHING, config);
 	selectConfig(0, true);
 
 	// add pause on cfg 1
-	SmoothingCfg cfg (true, 0, 0, 0, false);
+	SmoothingCfg cfg (true, 0, 0, false);
 	_cfgList.append(cfg);
 
 	// listen for comp changes
@@ -45,6 +52,11 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdr
 	// timer
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
+}
+
+inline uint8_t LinearColorSmoothing::clamp(int x)
+{
+	return (x < 0) ? 0 : ((x > 255) ? 255 : uint8_t(x));
 }
 
 void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -63,11 +75,19 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		SmoothingCfg	cfg (false,
 							 static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
 							 static_cast<int64_t>(1000.0/obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY)),
-							 static_cast<unsigned>(obj["updateDelay"].toInt(DEFAUL_OUTPUTDEPLAY)),
 							 false);
 
-		Debug( _log, "Creating smoothing config (%d) => direct mode: %s, pause: %s, settlingTime: %i ms, interval: %i ms (%i Hz), updateDelay: %u ms",
-					_currentConfigId, (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int32_t(cfg._settlingTime), int32_t(cfg._updateInterval), int32_t(1000.0/cfg._updateInterval), cfg._outputDelay );
+		auto smoothingType = obj["type"].toString("linear");
+		if (smoothingType == "alternative") 
+			cfg._type = SmoothingType::Alternative;		
+		else
+			cfg._type = SmoothingType::Linear;
+
+		cfg._antiFlickeringTreshold = obj["lowLightAntiFlickeringTreshold"].toInt(0);
+		cfg._antiFlickeringStep = obj["lowLightAntiFlickeringValue"].toInt(0);
+
+		Debug( _log, "Creating smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i",
+					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(cfg._type)), (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int32_t(cfg._settlingTime), int32_t(cfg._updateInterval), int32_t(1000.0/cfg._updateInterval), cfg._antiFlickeringTreshold, cfg._antiFlickeringStep);
 		_cfgList[0] = cfg;
 
 		// if current id is 0, we need to apply the settings (forced)
@@ -80,22 +100,15 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
-	bool fireTimer = false;	
-
 	if (_directMode)
 	{
-		_semaphore.acquire();
+		if (_timer.remainingTime() >= 0)
+			clearQueuedColors(true);
 
-		_timer.stop();
-		_targetValues = ledValues;
-		_previousValues.clear();
-		
-		_semaphore.release();
-
-		if (!_writeToLedsEnable || _pause || _targetValues.size() == 0)
+		if (_pause || ledValues.size() == 0)
 			return 0;
 
-		emit _hyperion->ledDeviceData(_targetValues);
+		emit _hyperion->ledDeviceData(ledValues);
 			return 0;
 	}
 
@@ -103,23 +116,36 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 	{
 		_semaphore.acquire();		
 
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		_targetValues = ledValues;
-
-		if (!_previousValues.empty() && (_previousValues.size() != _targetValues.size()))
+		if (_smoothingType == SmoothingType::Alternative)
 		{
-			Warning(_log, "Detect size changed. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
-			_previousValues.clear();			
+			if (_infoInput)
+				Info(_log, "Using alternative smoothing input (%i)", _currentConfigId);
+			_infoInput = false;
+
+			AlternateSetup(ledValues);
 		}
+		else {
+			if (_infoInput)
+				Info(_log, "Using linear smoothing input (%i)", _currentConfigId);
+			_infoInput = false;
 
-		// received a new target color
-		if (_previousValues.empty() ||
-			((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 * _updateInterval, (int64_t)1000)))
+			LinearSetup(ledValues);
+		}		
+
+		if (!_timer.isActive() && _timer.remainingTime() < 0)
 		{
-			// not initialized yet
+			_timer.start(_updateInterval);
+
+			Debug(_log, "Enabling timer. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
+		}
+		else if ((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 * _updateInterval, (int64_t)1000))
+		{
 			_previousTime = QDateTime::currentMSecsSinceEpoch();
 			_previousValues = ledValues;
-			fireTimer = true;
+
+			_timer.start(_updateInterval);
+
+			Warning(_log, "Emergency timer restart. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
 		}
 
 		_semaphore.release();
@@ -130,11 +156,9 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 		throw;
 	}
 
-	if (fireTimer)
-		_timer.start(_updateInterval);
-
 	return 0;
 }
+
 
 int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
 {
@@ -145,63 +169,217 @@ int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues
 		return -1;
 	}
 	else
-	{
+	{		
 		retval = write(ledValues);
 	}
 
 	return retval;
 }
 
-void LinearColorSmoothing::updateLeds()
+
+void LinearColorSmoothing::Antiflickering()
+{
+	if (_antiFlickeringTreshold > 0 && _antiFlickeringStep > 0 && _previousValues.size() == _targetValues.size())
+	{
+		for (size_t i = 0; i < _previousValues.size(); ++i)
+		{
+			auto newColor = _targetValues[i];
+			auto oldColor = _previousValues[i];
+			int avVal = (std::min(int(newColor.red), std::min(int(newColor.green), int(newColor.blue))) +
+				std::max(int(newColor.red), std::max(int(newColor.green), int(newColor.blue)))) / 2;
+
+			if (avVal < _antiFlickeringTreshold)
+			{
+				int minR = std::abs(int(newColor.red) - int(oldColor.red));
+				int minG = std::abs(int(newColor.green) - int(oldColor.green));
+				int minB = std::abs(int(newColor.blue) - int(oldColor.blue));
+				int select = std::max(std::max(minR, minG), minB);
+
+				if (select < _antiFlickeringStep &&
+					(newColor.red != 0 || newColor.green != 0 || newColor.blue != 0) &&
+					(oldColor.red != 0 || oldColor.green != 0 || oldColor.blue != 0))
+				{
+					_targetValues[i] = _previousValues[i];
+				}
+			}
+		}
+	}
+}
+
+void LinearColorSmoothing::AlternateSetup(const std::vector<ColorRgb>& ledValues)
+{
+	LinearSetup(ledValues);
+}
+
+inline int Ceil(int limitMin, int limitAverage, int limitMax, float kMin, float kMid, float kAbove, float kMax, int color)
+{
+	int val = std::abs(color);
+	if (val < limitMin)
+		return std::ceil(kMax * val);
+	else if (val < limitAverage)
+		return std::ceil(kAbove * val);
+	else if (val < limitMax)
+		return std::ceil(kMid * val);		
+	else
+		return std::ceil(kMin * val);
+}
+
+void LinearColorSmoothing::AlternateLinearSmoothing()
 {
 	int64_t now = QDateTime::currentMSecsSinceEpoch();
 	int64_t deltaTime = _targetTime - now;
 
-	
+	if (deltaTime <= 0 || _targetTime <= _previousTime)
+	{
+		_previousValues = _targetValues;
+		_previousTime = now;
 
+		if (_flushFrame)
+			queueColors(_previousValues);
+
+		_flushFrame = _continuousOutput;
+	}
+	else
+	{
+		_flushFrame = true;
+
+		float kOrg = std::max( 1.0f - 1.0f * deltaTime / (_targetTime - _previousTime) , 0.0001f);
+
+		float kMin = std::pow(kOrg, 1.0f);
+		float kMid = std::pow(kOrg, 0.9f);
+		float kAbove = std::pow(kOrg, 0.75f);
+		float kMax = std::pow(kOrg, 0.6f);
+
+		int redDiff = 0, greenDiff = 0, blueDiff = 0;
+		int aspectLow = 16;
+		int aspectMid = 32;
+		int aspectHigh = 60;
+
+		if (_previousValues.size() != _targetValues.size())
+		{
+			Error(_log, "Detect abnormal state. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
+		}
+		else
+		{
+			for (size_t i = 0; i < _previousValues.size(); i++)
+			{
+				ColorRgb& prev = _previousValues[i];
+				ColorRgb& target = _targetValues[i];
+
+				redDiff = target.red - prev.red;
+				greenDiff = target.green - prev.green;
+				blueDiff = target.blue - prev.blue;
+
+				if (redDiff != 0)
+					prev.red += (redDiff < 0 ? -1 : 1) * Ceil(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, redDiff);
+				if (greenDiff != 0)
+					prev.green += (greenDiff < 0 ? -1 : 1) * Ceil(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, greenDiff);
+				if (blueDiff != 0)
+					prev.blue += (blueDiff < 0 ? -1 : 1) * Ceil(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, blueDiff);
+			}
+		}
+		_previousTime = now;
+
+		queueColors(_previousValues);
+	}
+}
+
+
+void LinearColorSmoothing::LinearSetup(const std::vector<ColorRgb>& ledValues)
+{
+	_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+	_targetValues = ledValues;
+	
+	/////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
+
+	if (!_previousValues.empty() && (_previousValues.size() != _targetValues.size()))
+	{
+		Warning(_log, "Detect size changed. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
+		_previousValues.clear();
+	}
+
+	if (_previousValues.empty())
+	{
+		_previousTime = QDateTime::currentMSecsSinceEpoch();
+		_previousValues = ledValues;
+	}
+
+	Antiflickering();
+}
+
+void LinearColorSmoothing::LinearSmoothing()
+{
+	int64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t deltaTime = _targetTime - now;
+
+	if (deltaTime <= 0 || _targetTime <= _previousTime)
+	{
+		_previousValues = _targetValues;
+		_previousTime = now;
+		
+		if (_flushFrame)
+			queueColors(_previousValues);
+
+		_flushFrame = _continuousOutput;
+	}
+	else
+	{
+		_flushFrame = true;
+
+		float k = std::max(1.0f - 1.0f * deltaTime / (_targetTime - _previousTime), 0.0001f);
+
+		int redDiff = 0, greenDiff = 0, blueDiff = 0;
+
+		if (_previousValues.size() != _targetValues.size())
+		{
+			Error(_log, "Detect abnormal state. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
+		}
+		else
+		{
+			for (size_t i = 0; i < _previousValues.size(); i++)
+			{
+				ColorRgb& prev = _previousValues[i];
+				ColorRgb& target = _targetValues[i];
+
+				redDiff = target.red - prev.red;
+				greenDiff = target.green - prev.green;
+				blueDiff = target.blue - prev.blue;
+
+				if (redDiff != 0)
+					prev.red += (redDiff < 0 ? -1 : 1) * std::ceil(k * std::abs(redDiff));
+				if (greenDiff != 0)
+					prev.green += (greenDiff < 0 ? -1 : 1) * std::ceil(k * std::abs(greenDiff));
+				if (blueDiff != 0)
+					prev.blue += (blueDiff < 0 ? -1 : 1) * std::ceil(k * std::abs(blueDiff));
+			}
+		}
+		_previousTime = now;
+
+		queueColors(_previousValues);
+	}	
+}
+
+void LinearColorSmoothing::updateLeds()
+{	
 	try
 	{
 		_semaphore.acquire();
 
-		if (deltaTime <= 0)
+		if (_smoothingType == SmoothingType::Alternative)
 		{
-			_previousValues = _targetValues;
-			_previousTime = now;
+			if (_infoUpdate)
+				Info(_log, "Using alternative smoothing procedure (%i)", _currentConfigId);
+			_infoUpdate = false;
 
-			queueColors(_previousValues);
-			_writeToLedsEnable = _continuousOutput;
+			AlternateLinearSmoothing();
 		}
 		else
 		{
-			_writeToLedsEnable = true;
+			if (_infoUpdate)
+				Info(_log, "Using linear smoothing procedure (%i)", _currentConfigId);
+			_infoUpdate = false;
 
-			float k = 1.0f - 1.0f * deltaTime / (_targetTime - _previousTime);
-
-			int reddif = 0, greendif = 0, bluedif = 0;
-
-			if (_previousValues.size() != _targetValues.size())
-			{
-				Error(_log, "Detect abnormal state. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
-			}
-			else
-			{
-				for (size_t i = 0; i < _previousValues.size(); ++i)
-				{
-					ColorRgb& prev = _previousValues[i];
-					ColorRgb& target = _targetValues[i];
-
-					reddif = target.red - prev.red;
-					greendif = target.green - prev.green;
-					bluedif = target.blue - prev.blue;
-
-					prev.red += (reddif < 0 ? -1 : 1) * std::ceil(k * std::abs(reddif));
-					prev.green += (greendif < 0 ? -1 : 1) * std::ceil(k * std::abs(greendif));
-					prev.blue += (bluedif < 0 ? -1 : 1) * std::ceil(k * std::abs(bluedif));
-				}
-			}
-			_previousTime = now;
-
-			queueColors(_previousValues);
+			LinearSmoothing();
 		}
 
 		_semaphore.release();
@@ -214,61 +392,50 @@ void LinearColorSmoothing::updateLeds()
 }
 
 void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
-{
-	if (_outputDelay == 0)
+{	
+	if (!_pause)
 	{
-		// No output delay => immediate write
-		if ( _writeToLedsEnable && !_pause)
-		{
-			emit _hyperion->ledDeviceData(ledColors);
-		}
-	}
-	else
-	{
-		// Push new colors in the delay-buffer
-		if ( _writeToLedsEnable )
-			_outputQueue.push_back(ledColors);
-
-		// If the delay-buffer is filled pop the front and write to device
-		if (_outputQueue.size() > 0 )
-		{
-			if ( _outputQueue.size() > _outputDelay || !_writeToLedsEnable )
-			{
-				if (!_pause)
-				{
-					emit _hyperion->ledDeviceData(_outputQueue.front());
-				}
-				_outputQueue.pop_front();
-			}
-		}
-	}
+		emit _hyperion->ledDeviceData(ledColors);
+	}	
 }
 
-void LinearColorSmoothing::clearQueuedColors()
+void LinearColorSmoothing::clearQueuedColors(bool semaphore)
 {
 	try
 	{
-		_semaphore.acquire();
+		if (semaphore)
+			_semaphore.acquire();
+
+		Info(_log, "Clearing queued colors");
 
 		_timer.stop();
 		_previousValues.clear();
+		_previousTime = 0;
 		_targetValues.clear();
+		_targetTime = 0;
+		_flushFrame = false;
+		_infoUpdate = true;
+		_infoInput = true;
 
-		_semaphore.release();
+		if (semaphore)
+			_semaphore.release();
 	}
 	catch (...)
 	{
-		_semaphore.release();
+		if (semaphore)
+			_semaphore.release();
+
 		throw;
 	}
 }
 
 void LinearColorSmoothing::componentStateChange(hyperhdr::Components component, bool state)
 {
-	_writeToLedsEnable = state;
+	_flushFrame = state;
+
 	if(component == hyperhdr::COMP_LEDDEVICE)
 	{
-		clearQueuedColors();
+		clearQueuedColors(true);
 	}
 
 	if(component == hyperhdr::COMP_SMOOTHING)
@@ -283,7 +450,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 
 	if (!_enabled)
 	{
-		clearQueuedColors();
+		clearQueuedColors(true);
 	}
 
 	// update comp register
@@ -295,25 +462,25 @@ void LinearColorSmoothing::setPause(bool pause)
 	_pause = pause;
 }
 
-unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay, bool directMode)
+unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
-	SmoothingCfg cfg (false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay, directMode);
+	SmoothingCfg cfg (false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), directMode);
 	_cfgList.append(cfg);
 
 	return _cfgList.count() - 1;
 }
 
-unsigned LinearColorSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay, bool directMode)
+unsigned LinearColorSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned updatedCfgID = cfgID;
 	if ( cfgID < static_cast<unsigned>(_cfgList.count()) )
 	{
-		SmoothingCfg cfg (false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay, directMode);
+		SmoothingCfg cfg (false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), directMode);
 		_cfgList[updatedCfgID] = cfg;
 	}
 	else
 	{
-		updatedCfgID = addConfig ( settlingTime_ms, ledUpdateFrequency_hz, updateDelay, directMode);
+		updatedCfgID = addConfig ( settlingTime_ms, ledUpdateFrequency_hz, directMode);
 	}
 
 	return updatedCfgID;
@@ -329,27 +496,25 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 	if ( cfg < (unsigned)_cfgList.count())
 	{
 		_settlingTime     = _cfgList[cfg]._settlingTime;
-		_outputDelay      = _cfgList[cfg]._outputDelay;
 		_pause            = _cfgList[cfg]._pause;
 		_directMode       = _cfgList[cfg]._directMode;		
+		_antiFlickeringTreshold = _cfgList[cfg]._antiFlickeringTreshold;
+		_antiFlickeringStep = _cfgList[cfg]._antiFlickeringStep;
 
 
-		if (_cfgList[cfg]._updateInterval != _updateInterval)
+		if (_cfgList[cfg]._updateInterval != _updateInterval || _cfgList[cfg]._type  != _smoothingType)
 		{
-			clearQueuedColors();
+			clearQueuedColors(true);
 
 			_updateInterval = _cfgList[cfg]._updateInterval;
-			
-			if ( this->enabled() && this->_writeToLedsEnable )
-			{				
-				_timer.start(_updateInterval);
-			}
+			_smoothingType = _cfgList[cfg]._type;
 		}
+
 		_currentConfigId = cfg;
 
-
-		Info( _log, "Selecting smoothing config (%d) => direct mode: %s, pause: %s, settlingTime: %i ms, interval: %i ms (%i Hz), updateDelay: %u ms",
-					_currentConfigId, (_cfgList[cfg]._directMode)?"true":"false" , (_cfgList[cfg]._pause)?"true":"false", int32_t(_cfgList[cfg]._settlingTime), int32_t(_cfgList[cfg]._updateInterval), int32_t(1000.0/_cfgList[cfg]._updateInterval), _cfgList[cfg]._outputDelay );
+		Info( _log, "Selecting smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i",
+					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_cfgList[cfg]._type)), (_cfgList[cfg]._directMode)?"true":"false" , (_cfgList[cfg]._pause)?"true":"false", int32_t(_cfgList[cfg]._settlingTime),
+					int32_t(_cfgList[cfg]._updateInterval), int32_t(1000.0/_cfgList[cfg]._updateInterval), _cfgList[cfg]._antiFlickeringTreshold, _cfgList[cfg]._antiFlickeringStep);
 
 		return true;
 	}
@@ -357,4 +522,42 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 	// reset to default
 	_currentConfigId = 0;
 	return false;
+}
+
+void LinearColorSmoothing::DebugOutput()
+{
+	/*debugCounter = std::min(debugCounter+1,900);
+	if (_targetValues.size() > 0 && debugCounter < 900)
+	{
+		if (debugCounter < 100 || (debugCounter > 200 && debugCounter < 300) || (debugCounter > 400 && debugCounter < 500) || (debugCounter > 600 && debugCounter < 700) || debugCounter>800)
+		{
+			_targetValues[0].red = 0;
+			_targetValues[0].green = 0;
+			_targetValues[0].blue = 0;
+		}
+		else if (debugCounter >= 100 && debugCounter <= 200)
+		{
+			_targetValues[0].red = 255;
+			_targetValues[0].green = 255;
+			_targetValues[0].blue = 255;
+		}
+		else if (debugCounter >= 300 && debugCounter <= 400)
+		{
+			_targetValues[0].red = 255;
+			_targetValues[0].green = 0;
+			_targetValues[0].blue = 0;
+		}
+		else if (debugCounter >= 500 && debugCounter <= 600)
+		{
+			_targetValues[0].red = 0;
+			_targetValues[0].green = 255;
+			_targetValues[0].blue = 0;
+		}
+		else if (debugCounter >= 700 && debugCounter <= 800)
+		{
+			_targetValues[0].red = 0;
+			_targetValues[0].green = 0;
+			_targetValues[0].blue = 255;
+		}
+	}*/
 }

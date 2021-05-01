@@ -1,10 +1,9 @@
 #include "LedDeviceCololight.h"
-
-#include <utils/QStringUtils.h>
 #include <QUdpSocket>
 #include <QHostInfo>
 #include <QtEndian>
 #include <QEventLoop>
+#include <utils/QStringUtils.h>
 
 #include <chrono>
 
@@ -574,7 +573,7 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 
 				QMap<QString, QString> headers;
 				// parse request
-				QStringList entries = QStringUtils::split(data, "\n", QStringUtils::SplitBehavior::SkipEmptyParts);
+				QStringList entries = QStringUtils::SPLITTER(data, '\n');
 				for (auto entry : entries)
 				{
 					// split into key=value, be aware that value field may contain also a "="
@@ -601,9 +600,8 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 			}
 		}
 	}
-
-	QMap<QString, QMap <QString, QString>>::iterator i;
-	for (i = _services.begin(); i != _services.end(); ++i)
+	
+	for (auto i = _services.begin(); i != _services.end(); ++i)
 	{
 		QJsonObject obj;
 

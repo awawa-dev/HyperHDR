@@ -16,6 +16,12 @@
 	typedef QObject MFWrapper;
 #endif
 
+#ifdef ENABLE_AVF
+	#include <grabber/AVFWrapper.h>
+#else
+	typedef QObject AVFWrapper;
+#endif
+
 #include <utils/Logger.h>
 
 // settings management
@@ -38,6 +44,9 @@ class SoundCapWindows;
 #endif
 #ifdef ENABLE_SOUNDCAPLINUX
 class SoundCapLinux;
+#endif
+#ifdef ENABLE_SOUNDCAPMACOS
+class SoundCapMacOS;
 #endif
 
 
@@ -124,6 +133,7 @@ private:
 	JsonServer*                _jsonServer;
 	V4L2Wrapper*               _v4l2Grabber;
 	MFWrapper*                 _mfGrabber;
+	AVFWrapper*                _avfGrabber;		
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
@@ -132,6 +142,8 @@ private:
         SoundCapWindows*		_snd;
     #elif defined(ENABLE_SOUNDCAPLINUX)
         SoundCapLinux*			_snd;
+	#elif defined(ENABLE_SOUNDCAPMACOS)
+        SoundCapMacOS*			_snd;			
     #endif
 
 	unsigned                   _grabber_width;

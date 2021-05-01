@@ -103,8 +103,7 @@ void EffectEngine::handleUpdatedEffectList()
 			def.smoothCfg = _hyperInstance->updateSmoothingConfig(
 				dynamicId++,
 				def.args["smoothing-time_ms"].toInt(200),
-				def.args["smoothing-updateFrequency"].toDouble(25),
-				0,
+				def.args["smoothing-updateFrequency"].toDouble(25),			
 				def.args["smoothing-direct-mode"].toBool(false));
 		}
 		else

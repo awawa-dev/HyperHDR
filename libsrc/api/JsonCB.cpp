@@ -179,7 +179,7 @@ void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 	QJsonObject obj;
 	obj["command"] = cmd;
 
-	if(static_cast<QMetaType::Type>(data.type()) == QMetaType::QJsonArray)
+	if (data.userType() == QMetaType::QJsonArray)
 		obj["data"] = data.toJsonArray();
 	else
 		obj["data"] = data.toJsonObject();
@@ -199,7 +199,7 @@ void JsonCB::handleComponentState(hyperhdr::Components comp, bool state)
 void JsonCB::handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters)
 {
 	QJsonArray data;
-	for (const auto & session: bRegisters)
+	for (auto && session: bRegisters)
 	{
 		if (session.port<0) continue;
 		QJsonObject item;

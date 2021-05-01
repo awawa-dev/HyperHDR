@@ -19,13 +19,13 @@ WebJsonRpc::WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localC
 	_jsonAPI->initialize();
 }
 
-void WebJsonRpc::handleMessage(QtHttpRequest* request)
+void WebJsonRpc::handleMessage(QtHttpRequest* request, QString query)
 {
 	// TODO better solution. If jsonAPI emits forceClose the request is deleted and the following call to this method results in segfault
 	if(!_stopHandle)
 	{
 		QByteArray header = request->getHeader("Authorization");
-		QByteArray data = request->getRawData();
+		QByteArray data = (query.length() > 0) ? query.toUtf8() : request->getRawData();
 		_unlocked = true;
 		_jsonAPI->handleMessage(data,header);
 	}

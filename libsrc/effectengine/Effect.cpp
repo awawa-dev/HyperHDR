@@ -11,6 +11,7 @@
 #include <effectengine/Animation_RainbowSwirl.h>
 #include <effectengine/Animation_SwirlFast.h>
 #include <effectengine/Animation_AtomicSwirl.h>
+#include <effectengine/Animation_Candle.h>
 #include <effectengine/Animation_DoubleSwirl.h>
 #include <effectengine/Animation_KnightRider.h>
 #include <effectengine/Animation_Plasma.h>
@@ -176,6 +177,10 @@ Effect::Effect(HyperHdrInstance *hyperhdr, int priority, int timeout, const QStr
 	else if (name == ANIM_STROBE_WHITE)
 	{
 		_effect = new Animation_StrobeWhite();
+	}
+	else if (name == ANIM_CANDLE)
+	{
+		_effect = new Animation_Candle();
 	}
 	else if (name == AMUSIC_TESTEQ)
 	{

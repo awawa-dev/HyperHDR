@@ -107,7 +107,7 @@ void V4L2Grabber::loadLutFile(const QString & color)
 	// load lut
 	QString fileName1 = QString("%1%2").arg(_configurationPath,"/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut(),"/lut_lin_tables.3d");
-	QString fileName3 = QString("/usr/share/hyperion/lut/lut_lin_tables.3d");
+	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
 		
 	_lutBufferInit = false;
 	

@@ -4,6 +4,7 @@
 #include <effectengine/Animation_AtomicSwirl.h>
 #include <effectengine/Animation_BlueMoodBlobs.h>
 #include <effectengine/Animation_Breath.h>
+#include <effectengine/Animation_Candle.h>
 #include <effectengine/Animation_CinemaBrightenLights.h>
 #include <effectengine/Animation_CinemaDimLights.h>
 #include <effectengine/Animation_ColdMoodBlobs.h>
@@ -168,6 +169,8 @@ void EffectDBHandler::updateEffects()
 	_availableEffects.push_back(Animation_BlueMoodBlobs::getDefinition());
 
 	_availableEffects.push_back(Animation_Breath::getDefinition());
+
+	_availableEffects.push_back(Animation_Candle::getDefinition());
 
 	_availableEffects.push_back(Animation_CinemaBrightenLights::getDefinition());
 

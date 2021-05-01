@@ -7,7 +7,9 @@
 #include <QAtomicInteger>
 #include <QList>
 #include <QMutex>
-
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	#include <QRecursiveMutex>
+#endif
 // stl includes
 #include <stdio.h>
 #include <stdarg.h>
@@ -58,6 +60,13 @@ public:
 		QString      message;
 		LogLevel     level;
 		QString      levelString;
+
+		T_LOG_MESSAGE()
+		{
+			line = 0;
+			utime = 0;
+			level = LogLevel::INFO;			
+		}
 	};
 
 	static Logger*  getInstance(const QString & name = "", LogLevel minLevel=Logger::INFO);
@@ -80,8 +89,11 @@ protected:
 
 private:
 	void write(const Logger::T_LOG_MESSAGE & message);
-
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))	
+	static QRecursiveMutex       MapLock;
+#else
 	static QMutex                MapLock;
+#endif
 	static QMap<QString,Logger*> LoggerMap;
 	static QAtomicInteger<int>   GLOBAL_MIN_LOG_LEVEL;
 

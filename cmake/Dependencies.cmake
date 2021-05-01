@@ -1,3 +1,110 @@
+macro(DeployApple TARGET)
+	if(EXISTS ${TARGET_FILE})
+		execute_process(
+			COMMAND bash -c "cd ${CMAKE_CURRENT_BINARY_DIR} && tar -xzf ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz"
+			RESULT_VARIABLE STATUS
+			OUTPUT_VARIABLE OUTPUT1			
+		)			
+		if(STATUS AND NOT STATUS EQUAL 0)
+			message( FATAL_ERROR "LUT tar.xz Bad exit status (xz-tools installed?)")
+		else()
+			message( STATUS "LUT tar.xz tar extracted")			
+		endif()
+
+		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d" DESTINATION "hyperhdr.app/Contents/lut" COMPONENT "HyperHDR")			
+		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
+
+		if ( Qt5Core_FOUND )			
+			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
+		else()
+			SET (MYQT_QMAKE_EXECUTABLE "${_qt_import_prefix}/../../../bin/qmake")
+		endif()
+
+		execute_process(
+			COMMAND ${MYQT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+			OUTPUT_VARIABLE MYQT_PLUGINS_DIR
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+		install(CODE "set(MYQT_PLUGINS_DIR \"${MYQT_PLUGINS_DIR}\")"     COMPONENT "HyperHDR")
+		install(CODE "set(MY_DEPENDENCY_PATHS \"${TARGET_FILE}\")"       COMPONENT "HyperHDR")
+		install(CODE "set(MY_SYSTEM_LIBS_SKIP \"${SYSTEM_LIBS_SKIP}\")"  COMPONENT "HyperHDR")
+		install(CODE [[
+				file(GET_RUNTIME_DEPENDENCIES
+					EXECUTABLES ${MY_DEPENDENCY_PATHS}
+					RESOLVED_DEPENDENCIES_VAR _r_deps
+					UNRESOLVED_DEPENDENCIES_VAR _u_deps
+				)
+				  
+				foreach(_file ${_r_deps})										
+					string(FIND ${_file} "dylib" _index)
+					if (${_index} GREATER -1)
+						file(INSTALL
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
+							TYPE SHARED_LIBRARY
+							FILES "${_file}"
+						)
+					else()
+						file(INSTALL
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+							TYPE SHARED_LIBRARY
+							FILES "${_file}"
+						)
+					endif()
+				endforeach()
+				  
+				list(LENGTH _u_deps _u_length)
+				if("${_u_length}" GREATER 0)
+					message(WARNING "Unresolved dependencies detected!")
+				endif()
+				  
+				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
+					file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*")
+					foreach(file ${files})							
+							file(GET_RUNTIME_DEPENDENCIES
+							EXECUTABLES ${file}
+							RESOLVED_DEPENDENCIES_VAR PLUGINS
+							UNRESOLVED_DEPENDENCIES_VAR _u_deps				
+							)
+
+						foreach(DEPENDENCY ${PLUGINS})
+								file(INSTALL
+									DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+									TYPE SHARED_LIBRARY
+									FILES ${DEPENDENCY}
+								)									
+						endforeach()
+							
+						get_filename_component(singleQtLib ${file} NAME)
+						list(APPEND MYQT_PLUGINS "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/${singleQtLib}")
+						file(INSTALL
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}"
+							TYPE SHARED_LIBRARY
+							FILES ${file}
+						)
+							
+					endforeach()
+				endif()
+			endforeach()
+			
+			include(BundleUtilities)							
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+				
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
+		]] COMPONENT "HyperHDR")
+	else()		
+		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
+		add_custom_command(
+			TARGET ${TARGET} POST_BUILD
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
+			ARGS ${CMAKE_SOURCE_DIR}
+			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+			VERBATIM
+		)
+	endif()
+endmacro()
+
 macro(DeployUnix TARGET)
 	if(EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
@@ -11,7 +118,6 @@ macro(DeployUnix TARGET)
 			"libexpat"
 			"libfontconfig"
 			"libgcc_s"			
-			"libgcrypt"
 			"libgpg-error"
 			"libm"
 			"libpthread"
@@ -57,15 +163,11 @@ macro(DeployUnix TARGET)
 			"libxkbcommon-x11-0"
 			"libxcb-xinput0"
 			"libssl1.1"
-			"libsqlite3-0"
+			"libsqlite3-0"			
 		)
 
-		if (APPLE)
-			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-		endif(APPLE)
-
-		# Extract dependencies ignoring the system ones
-		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
+		# Extract dependencies ignoring the system ones		
+		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")		
 
 		# Append symlink and non-symlink dependencies to the list
 		set(PREREQUISITE_LIBS "")
@@ -91,13 +193,27 @@ macro(DeployUnix TARGET)
 			endif()
 		endforeach()
 
+		#OpenSSL
+		find_package(OpenSSL)
+		if(OPENSSL_FOUND)
+			foreach(openssl_lib ${OPENSSL_LIBRARIES})
+				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
+				get_filename_component(file_canonical ${openssl_lib} REALPATH)
+				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			endforeach()
+		else()
+			message( WARNING "OpenSSL NOT found (https instance will not work)")
+		endif()
+
 		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-		execute_process(
-			COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
-			OUTPUT_VARIABLE QT_PLUGINS_DIR
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
+		if ( Qt5Core_FOUND )			
+			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+			execute_process(
+				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+				OUTPUT_VARIABLE QT_PLUGINS_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)		
+		endif()
 		
 		if(GLD)
 			SET(resolved_file ${GLD})
@@ -204,8 +320,9 @@ macro(DeployUnix TARGET)
 			)
 		endforeach()
 		
-		# install LUT
-		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")		
+		# install LUT		
+		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")
+		
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
@@ -350,6 +467,30 @@ macro(DeployWindows TARGET)
 			COMPONENT "HyperHDR"
 		)
 
+
+		find_package(OpenSSL QUIET)
+		find_file(OPENSSL_SSL
+				NAMES ssleay32.dll ssl.dll libssl-1_1.dll libssl-1_1-x64.dll libssl
+				HINTS ${_OPENSSL_ROOT_HINTS} PATHS ${_OPENSSL_ROOT_PATHS} "C:/Program Files/OpenSSL-Win64"
+				PATH_SUFFIXES bin
+		)
+
+		find_file(OPENSSL_CRYPTO
+			NAMES libeay32.dll crypto.dll libcrypto-1_1.dll libcrypto-1_1-x64.dll libcrypto
+			HINTS ${_OPENSSL_ROOT_HINTS} PATHS ${_OPENSSL_ROOT_PATHS} "C:/Program Files/OpenSSL-Win64"
+			PATH_SUFFIXES bin
+		)
+		
+		if(OPENSSL_SSL AND OPENSSL_CRYPTO)
+			message( STATUS "OpenSSL found: ${OPENSSL_SSL} ${OPENSSL_CRYPTO}")
+			install(
+				FILES ${OPENSSL_SSL} ${OPENSSL_CRYPTO}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+		else()
+			message( WARNING "OpenSSL NOT found (HyperHDR's https instance will not work)")
+		endif()
 
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
 

@@ -11,9 +11,7 @@ enum class PixelFormat {
 	XRGB,
 	I420,
 	NV12,
-#ifdef HAVE_JPEG_DECODER
 	MJPEG,
-#endif
 	NO_CHANGE
 };
 
@@ -42,12 +40,10 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	{
 		return PixelFormat::NV12;
 	}
-#ifdef HAVE_JPEG_DECODER
 	else if (format.compare("mjpeg")  == 0)
 	{
 		return PixelFormat::MJPEG;
 	}
-#endif
 
 	// return the default NO_CHANGE
 	return PixelFormat::NO_CHANGE;
@@ -76,12 +72,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	{
 		return "nv12";
 	}
-#ifdef HAVE_JPEG_DECODER
 	else if (pixelFormat == PixelFormat::MJPEG)
 	{
 		return "mjpeg";
 	}
-#endif
 
 	// return the default NO_CHANGE
 	return "NO_CHANGE";

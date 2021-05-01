@@ -25,7 +25,7 @@ CaptureCont::CaptureCont(HyperHdrInstance* hyperhdr)
 	// inactive timer v4l
 	connect(_v4lInactiveTimer, &QTimer::timeout, this, &CaptureCont::setV4lInactive);
 	_v4lInactiveTimer->setSingleShot(true);
-	_v4lInactiveTimer->setInterval(1000);
+	_v4lInactiveTimer->setInterval(2000);
 
 	// init
 	handleSettingsUpdate(settings::type::INSTCAPTURE, _hyperhdr->getSetting(settings::type::INSTCAPTURE));

@@ -1,2 +1,4 @@
 add_subdirectory(hyperhdr)
-add_subdirectory(hyperhdr-remote)
+if (NOT APPLE)
+	add_subdirectory(hyperhdr-remote)
+endif()

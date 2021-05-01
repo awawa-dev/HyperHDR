@@ -187,6 +187,21 @@ $(document).ready(function() {
 		resetImage();
 	}
 
+	function leftPad(num, size) {
+		num = num.toString();
+		while (num.length < size) num = "0" + num;
+		return num;
+	}
+
+	$('#leds_screenshot').off().on("click", function() {
+		var link = document.createElement('a');
+		var d = new Date();
+		link.download = 'shot' + leftPad(d.getHours(),2) + leftPad(d.getMinutes(),2) + leftPad(d.getSeconds(),2) + '.png';
+		link.href = document.getElementById("image_preview_canv").toDataURL()
+		link.click();
+		link.remove();
+	});
+
 	// ------------------------------------------------------------------
 	$('#leds_toggle_num').off().on("click", function() {
 		toggleLedsNum = !toggleLedsNum

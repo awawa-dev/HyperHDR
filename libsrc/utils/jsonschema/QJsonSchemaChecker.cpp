@@ -73,7 +73,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 		QJsonObject::const_iterator defaultValue = schema.find("default");
 
 		if (attribute == "type")
-			checkType(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkType(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "properties")
 		{
 			if (value.isObject())
@@ -117,13 +117,13 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			}
 		}
 		else if (attribute == "minimum")
-			checkMinimum(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkMinimum(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "maximum")
-			checkMaximum(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkMaximum(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "minLength")
-			checkMinLength(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkMinLength(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "maxLength")
-			checkMaxLength(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkMaxLength(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "items")
 		{
 			if (value.isArray())
@@ -136,13 +136,13 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			}
 		}
 		else if (attribute == "minItems")
-			checkMinItems(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkMinItems(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "maxItems")
-			checkMaxItems(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkMaxItems(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
 		else if (attribute == "uniqueItems")
 			checkUniqueItems(value, attributeValue);
 		else if (attribute == "enum")
-			checkEnum(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue::Null));
+			checkEnum(value, attributeValue, (defaultValue != schema.end() ? *defaultValue : QJsonValue(QJsonValue::Null)));
  		else if (attribute == "required")
  			; // nothing to do. value is present so always oke
  		else if (attribute == "id")

@@ -1,3 +1,7 @@
+if (ENABLE_AVF)
+	add_subdirectory(AVF)
+endif (ENABLE_AVF)
+
 if (ENABLE_V4L2)
 	add_subdirectory(v4l2)
 endif (ENABLE_V4L2)
@@ -13,3 +17,7 @@ endif (ENABLE_SOUNDCAPLINUX)
 if (ENABLE_SOUNDCAPWINDOWS)
 	add_subdirectory(SoundCapWindows)
 endif (ENABLE_SOUNDCAPWINDOWS)
+
+if (ENABLE_SOUNDCAPMACOS)
+	add_subdirectory(SoundCapMacOS)
+endif (ENABLE_SOUNDCAPMACOS)

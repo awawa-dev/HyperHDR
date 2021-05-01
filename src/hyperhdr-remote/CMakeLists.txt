@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperhdr-remote)
 
-find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
-
 # The following I do not understand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
 # Therefore, an extra path is needed on which to find the required libraries
@@ -38,9 +36,9 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperhdr-utils
 	ssdp
-	Qt5::Gui
-	Qt5::Core
-	Qt5::Network)
+	Qt${Qt_VERSION}::Gui
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network)
 
 if(NOT WIN32)
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR_remote" )

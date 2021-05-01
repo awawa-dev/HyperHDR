@@ -1,7 +1,6 @@
 // Local-Hyperion includes
 #include "LedDeviceAtmoOrb.h"
 #include <utils/QStringUtils.h>
-
 // qt includes
 #include <QUdpSocket>
 #include <QNetworkInterface>
@@ -52,7 +51,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
 		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
 		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
-		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList orbIds = QStringUtils::SPLITTER(deviceConfig["orbIds"].toString().simplified().remove(" "), ',');
 
 		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
 		Debug(_log, "LedCount          : %d", this->getLedCount());
@@ -323,8 +322,8 @@ QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
 		close();
 	}
 
-	QMap<int, QHostAddress>::iterator i;
-	for (i = _services.begin(); i != _services.end(); ++i)
+	
+	for (auto i = _services.begin(); i != _services.end(); ++i)
 	{
 		QJsonObject obj;
 

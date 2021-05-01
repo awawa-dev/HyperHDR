@@ -58,7 +58,7 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 		if ( !obj["json"].isNull() )
 		{
 			const QJsonArray & addr = obj["json"].toArray();
-			for (const auto& entry : addr)
+			for (auto && entry : addr)
 			{
 				addJsonSlave(entry.toString());
 			}
@@ -67,7 +67,7 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 		if ( !obj["flat"].isNull() )
 		{
 			const QJsonArray & addr = obj["flat"].toArray();
-			for (const auto& entry : addr)
+			for (auto && entry : addr)
 			{
 				addFlatbufferSlave(entry.toString());
 			}
@@ -121,7 +121,7 @@ void MessageForwarder::handlePriorityChanges(quint8 priority)
 			if ( !obj["flat"].isNull() )
 			{
 				const QJsonArray & addr = obj["flat"].toArray();
-				for (const auto& entry : addr)
+				for (auto && entry : addr)
 				{
 					addFlatbufferSlave(entry.toString());
 				}

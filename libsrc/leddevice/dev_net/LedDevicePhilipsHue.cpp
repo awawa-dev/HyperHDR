@@ -1,8 +1,8 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
-
-#include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
+#include <ssdp/SSDPDiscover.h>
+
 
 #include <chrono>
 
@@ -296,7 +296,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+			QStringList addressparts = QStringUtils::SPLITTER(address, ':');
 			_hostname = addressparts[0];
 			log( "Hostname/IP", "%s", QSTRING_CSTR( _hostname ) );
 
@@ -441,7 +441,7 @@ void LedDevicePhilipsHueBridge::setBridgeConfig(const QJsonDocument &doc)
 	_deviceFirmwareVersion = jsonConfigInfo[DEV_DATA_FIRMWAREVERSION].toString();
 	_deviceAPIVersion = jsonConfigInfo[DEV_DATA_APIVERSION].toString();
 
-	QStringList apiVersionParts = QStringUtils::split(_deviceAPIVersion,".", QStringUtils::SplitBehavior::SkipEmptyParts);
+	QStringList apiVersionParts = QStringUtils::SPLITTER(_deviceAPIVersion, '.');
 	if ( !apiVersionParts.isEmpty() )
 	{
 		_api_major = apiVersionParts[0].toUInt();
@@ -1791,7 +1791,7 @@ QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -1833,7 +1833,7 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 		int lightId = params["lightId"].toInt(0);
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
 		QString apiHost = addressparts[0];
 		int apiPort;
 

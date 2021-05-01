@@ -1,8 +1,8 @@
 // Local-Hyperion includes
 #include "LedDeviceWled.h"
-
-#include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
+#include <ssdp/SSDPDiscover.h>
+
 
 // Constants
 namespace {
@@ -77,7 +77,7 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+			QStringList addressparts = QStringUtils::SPLITTER(address, ':');
 			_hostname = addressparts[0];
 			if ( addressparts.size() > 1 )
 			{
@@ -202,7 +202,7 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
 		QString apiHost = addressparts[0];
 		int apiPort;
 

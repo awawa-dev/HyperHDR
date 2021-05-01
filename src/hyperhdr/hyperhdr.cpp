@@ -61,6 +61,10 @@
 #include <grabber/SoundCapLinux.h>
 #endif
 
+#ifdef ENABLE_SOUNDCAPMACOS
+#include <grabber/SoundCapMacOS.h>
+#endif
+
 HyperHdrDaemon *HyperHdrDaemon::daemon = nullptr;
 
 HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite, bool readonlyMode)
@@ -76,8 +80,9 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _jsonServer(nullptr)
 	  , _v4l2Grabber(nullptr)
 	  , _mfGrabber(nullptr)
+	  , _avfGrabber(nullptr)
 	  , _ssdp(nullptr)
-	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX)
+	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 	  , _snd(nullptr)        
 	#endif
 	  , _currVideoModeHdr(-1)
@@ -107,8 +112,11 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
         connect(this, &HyperHdrDaemon::settingsChanged, _snd, &SoundCapWindows::handleSettingsUpdate);
 #elif defined(ENABLE_SOUNDCAPLINUX)
         // init SoundHandler
-        _snd = new SoundCapLinux(getSetting(settings::type::SNDEFFECT), this);
-        connect(this, &HyperHdrDaemon::settingsChanged, _snd, &SoundCapLinux::handleSettingsUpdate);
+	_snd = new SoundCapLinux(getSetting(settings::type::SNDEFFECT), this);
+		connect(this, &HyperHdrDaemon::settingsChanged, _snd, &SoundCapLinux::handleSettingsUpdate);
+#elif defined(ENABLE_SOUNDCAPMACOS)
+	_snd = new SoundCapMacOS(getSetting(settings::type::SNDEFFECT), this);
+		connect(this, &HyperHdrDaemon::settingsChanged, _snd, &SoundCapMacOS::handleSettingsUpdate);
 #endif
 
 	// init EffectFileHandler
@@ -149,7 +157,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 
 HyperHdrDaemon::~HyperHdrDaemon()
 {
-#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX)
+#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 	delete _snd;	
 #endif
 	delete _settingsManager;
@@ -173,7 +181,7 @@ void HyperHdrDaemon::freeObjects()
 {
 	Debug(_log, "Cleaning up HyperHdr before quit.");
 
-	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX)
+	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 		if (_snd)
 			_snd->ForcedClose();
 	#endif
@@ -238,9 +246,11 @@ void HyperHdrDaemon::freeObjects()
 
 	delete _v4l2Grabber;
 	delete _mfGrabber;
+	delete _avfGrabber;
 
 	_v4l2Grabber = nullptr;
 	_mfGrabber = nullptr;
+	_avfGrabber = nullptr;
 }
 
 void HyperHdrDaemon::startNetworkServices()
@@ -339,6 +349,68 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	{
 		const QJsonObject &grabberConfig = config.object();
 
+#if defined(ENABLE_AVF)
+		if (_avfGrabber == nullptr)
+		{		
+			_avfGrabber = new AVFWrapper(
+					grabberConfig["device"].toString("auto"),
+					grabberConfig["width"].toInt(0),
+					grabberConfig["height"].toInt(0),
+					grabberConfig["fps"].toInt(15),
+					grabberConfig["input"].toInt(-1),					
+					parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
+					_rootPath);
+					
+			// HDR stuff					
+			if (!grabberConfig["hdrToneMapping"].toBool(false))	
+			{
+				_avfGrabber->setHdrToneMappingEnabled(0);
+			}
+			else
+			{
+				_avfGrabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));				
+			}
+			setVideoModeHdr(_avfGrabber->getHdrToneMappingEnabled());
+			// software frame skipping
+			_avfGrabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
+			_avfGrabber->setEncoding(grabberConfig["v4l2Encoding"].toString("NONE"));
+			
+			_avfGrabber->setSignalThreshold(
+					grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["noSignalCounterThreshold"].toInt(50) );
+					
+			_avfGrabber->setCropping(
+					grabberConfig["cropLeft"].toInt(0),
+					grabberConfig["cropRight"].toInt(0),
+					grabberConfig["cropTop"].toInt(0),
+					grabberConfig["cropBottom"].toInt(0));
+
+			_avfGrabber->setQFrameDecimation(grabberConfig["qFrame"].toBool(false));
+			
+			_avfGrabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0), 
+													grabberConfig["hardware_contrast"].toInt(0),
+													grabberConfig["hardware_saturation"].toInt(0),
+													grabberConfig["hardware_hue"].toInt(0));
+			
+			_avfGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
+			_avfGrabber->setSignalDetectionOffset(
+					grabberConfig["sDHOffsetMin"].toDouble(0.25),
+					grabberConfig["sDVOffsetMin"].toDouble(0.25),
+					grabberConfig["sDHOffsetMax"].toDouble(0.75),
+					grabberConfig["sDVOffsetMax"].toDouble(0.75));
+			Debug(_log, "AV Foundation grabber created");
+
+			// connect to HyperionDaemon signal
+			connect(this, &HyperHdrDaemon::videoModeHdr, _avfGrabber, &AVFWrapper::setHdrToneMappingEnabled);			
+			connect(this, &HyperHdrDaemon::settingsChanged, _avfGrabber, &AVFWrapper::handleSettingsUpdate);
+			connect(_avfGrabber, &AVFWrapper::HdrChanged, this, &HyperHdrDaemon::videoModeHdr);			
+		}
+#elif  !defined(ENABLE_WMF) && !defined(ENABLE_V4L2)
+		Warning(_log, "The AVF grabber can not be instantiated, because it has been left out from the build");		
+#endif
+
 #if defined(ENABLE_WMF)
 		if (_mfGrabber == nullptr)
 		{		
@@ -397,7 +469,7 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			connect(this, &HyperHdrDaemon::settingsChanged, _mfGrabber, &MFWrapper::handleSettingsUpdate);
 			connect(_mfGrabber, &MFWrapper::HdrChanged, this, &HyperHdrDaemon::videoModeHdr);			
 		}
-#elif !defined(ENABLE_V4L2)
+#elif !defined(ENABLE_V4L2) && !defined(ENABLE_AVF)
 		Warning(_log, "The MF grabber can not be instantiated, because it has been left out from the build");		
 #endif
 
@@ -460,7 +532,7 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		connect(this, &HyperHdrDaemon::videoModeHdr, _v4l2Grabber, &V4L2Wrapper::setHdrToneMappingEnabled);		
 		connect(this, &HyperHdrDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
 		connect(_v4l2Grabber, &V4L2Wrapper::HdrChanged, this, &HyperHdrDaemon::videoModeHdr);
-#elif !defined(ENABLE_WMF)	
+#elif !defined(ENABLE_WMF) && !defined(ENABLE_AVF)
 		Warning(_log, "!The v4l2 grabber can not be instantiated, because it has been left out from the build");		
 #endif
 	}

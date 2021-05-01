@@ -30,6 +30,7 @@ else()
 endif(CCACHE_FOUND)
 
 # Set build variables
+SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
@@ -37,17 +38,19 @@ SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_WMF                         OFF )
+SET ( DEFAULT_AVF                         OFF )
 SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
+SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
-	SET ( DEFAULT_V4L2        ON )
-	SET ( DEFAULT_SPIDEV      ON )
-	SET ( DEFAULT_TINKERFORGE ON )
-	SET ( DEFAULT_USB_HID     ON )
+	SET ( DEFAULT_V4L2          ON )
+	SET ( DEFAULT_SPIDEV        ON )
+	SET ( DEFAULT_TINKERFORGE   ON )
+	SET ( DEFAULT_USB_HID       ON )
 ELSEIF ( WIN32 )
-	SET ( DEFAULT_WMF             ON )
-	SET ( DEFAULT_SOUNDCAPWINDOWS ON )
+	SET ( DEFAULT_WMF             ON  )
+	SET ( DEFAULT_SOUNDCAPWINDOWS ON  )
 	SET ( DEFAULT_USB_HID         OFF )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
@@ -98,11 +101,24 @@ MACRO(FIRSTSUBDIR result curdir)
 ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
-	# add specific prefix paths
-	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} "/usr/local/opt/qt5" )
+	SET ( DEFAULT_SOUNDCAPMACOS ON )
+	
 	include_directories("/opt/X11/include/")
+	
+	if(APPLE AND EXISTS /usr/local/opt/qt6)			
+		INCLUDE(CheckCXXCompilerFlag)
+		CHECK_CXX_COMPILER_FLAG("-Werror=unguarded-availability" REQUIRES_UNGUARDED_AVAILABILITY)
+		IF(REQUIRES_UNGUARDED_AVAILABILITY)
+			LIST(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "-Werror=unguarded-availability")
+		ENDIF()
+	
+		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt6")
+	elseif(APPLE AND EXISTS /usr/local/opt/qt5)	
+		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
+	endif()
+	
 	SET ( DEFAULT_USB_HID    OFF )
+	SET ( DEFAULT_AVF        ON  )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
 	SET ( DEFAULT_WS281XPWM  ON )
 	
@@ -182,10 +198,16 @@ message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
 option(ENABLE_WMF "Enable the Windows Media Foundation grabber" ${DEFAULT_WMF})
 message(STATUS "ENABLE_WMF = ${ENABLE_WMF}")
 
-option(ENABLE_SOUNDCAPWINDOWS "Enable the Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
+option(ENABLE_AVF "Enable the AV Foundation macOS grabber" ${DEFAULT_AVF})
+message(STATUS "ENABLE_AVF = ${ENABLE_AVF}")
+
+option(ENABLE_SOUNDCAPWINDOWS "Enable Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
 message(STATUS "ENABLE_SOUNDCAPWINDOWS = ${ENABLE_SOUNDCAPWINDOWS}")
 
-option(ENABLE_SOUNDCAPLINUX "Enable the Linux Sound Capture" ${DEFAULT_SOUNDCAPLINUX})
+option(ENABLE_SOUNDCAPMACOS "Enable macOS Sound Capture" ${DEFAULT_SOUNDCAPMACOS})
+message(STATUS "ENABLE_SOUNDCAPMACOS = ${ENABLE_SOUNDCAPMACOS}")
+
+option(ENABLE_SOUNDCAPLINUX "Enable Linux Sound Capture" ${DEFAULT_SOUNDCAPLINUX})
 message(STATUS "ENABLE_SOUNDCAPLINUX = ${ENABLE_SOUNDCAPLINUX}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -238,25 +260,6 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	endif()
 endif()
 
-# MSVC options
-if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	# Search for Windows SDK
-	find_package(WindowsSDK REQUIRED)
-	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
-	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
-
-	# Qt5 default install path with msvc2017 64bit component
-	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
-	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
-	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
-	if (NOT DEFINED ENV{Qt5_DIR})
-		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
-		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
-	endif()
-
-endif()
-
 # Use GNU gold linker if available
 if (NOT WIN32)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
@@ -275,18 +278,42 @@ if (UNIX AND NOT APPLE)
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
+# find Threads libs
+find_package(Threads REQUIRED)
+
+# find QT libs
+find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets QUIET)
+
+if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
+	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
+	SET( Qt_VERSION 6 )	
+ELSE()
+	if (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON")
+		message( STATUS "Search for QT version 6 is disabled: QT5 is preferred. Enable QT6 by setting DO_NOT_USE_QT_VERSION_6_LIBS to OFF." )
+	else()
+		message( STATUS "QT version 6 not found. Searching for QT version 5 instead." )
+	endif()
+	SET(QT_MIN_VERSION "5.5.0")
+	find_package(Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
+	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+	ENDIF()
+	SET( Qt_VERSION 5 )	
+ENDIF()
+
 # add QT5 dependency
 IF ( CMAKE_CROSSCOMPILING )
 
 	file(GLOB QT_BIN ${QT_BIN_PATH})
 
 	set(QT_MOC_EXECUTABLE ${QT_BIN}/moc)
-	add_executable(Qt5::moc IMPORTED)
-	set_property(TARGET Qt5::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
+	add_executable(Qt${Qt_VERSION}::moc IMPORTED)
+	set_property(TARGET Qt${Qt_VERSION}::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
 
 	set(QT_RCC_EXECUTABLE ${QT_BIN}/rcc)
-	add_executable(Qt5::rcc IMPORTED)
-	set_property(TARGET Qt5::rcc PROPERTY IMPORTED_LOCATION ${QT_RCC_EXECUTABLE})
+	add_executable(Qt${Qt_VERSION}::rcc IMPORTED)
+	set_property(TARGET Qt${Qt_VERSION}::rcc PROPERTY IMPORTED_LOCATION ${QT_RCC_EXECUTABLE})
 
 	message(STATUS "QT_BIN_PATH = ${QT_BIN}")
 	message(STATUS "QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")
@@ -294,16 +321,23 @@ IF ( CMAKE_CROSSCOMPILING )
 
 ENDIF()
 
-SET(QT_MIN_VERSION "5.5.0")
-find_package(Qt5 COMPONENTS Core Gui Network SerialPort Sql REQUIRED)
-message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
-IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
-	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-ENDIF()
+# MSVC options
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	# Search for Windows SDK
+	find_package(WindowsSDK REQUIRED)
+	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
+	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
+	
+	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
+	if ((Qt5Core_FOUND AND NOT (DEFINED ENV{Qt5_DIR})) OR (Qt6Core_FOUND AND NOT (DEFINED ENV{Qt6_DIR})))
+		message(STATUS "Set Qt${Qt_VERSION} module path: ${SUBDIRQT}")
+		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt${Qt_VERSION}")
+	endif()
+endif()
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
-find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
 
@@ -327,7 +361,7 @@ endif()
 
 if (ENABLE_WMF)
 	# Turbo JPEG
-	find_package(TurboJpeg)
+	find_package(TurboJPEG)
 	if (TURBOJPEG_FOUND)
 		add_definitions(-DHAVE_TURBO_JPEG)
 		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
@@ -361,7 +395,7 @@ endif()
 
 
 if(APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
+	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics" )
 endif()
 
 # Add the source/lib directories

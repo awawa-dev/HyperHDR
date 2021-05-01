@@ -106,8 +106,10 @@ $(document).ready( function() {
 		var grabbers = window.serverInfo.grabbers.active;
 		if (grabbers.indexOf('V4L2:Media Foundation') > -1)
 			html += 'Windows (Microsoft Media Foundation)';
+		else if (grabbers.indexOf('V4L2:macOS AVF') > -1)
+			html += 'macOS (AVF)';
 		else if (grabbers.indexOf('V4L2') > -1)
-			html += 'Linux (V4L2)';
+			html += 'Linux (V4L2)';		
 		else
 			html += 'Unknown';
 	}

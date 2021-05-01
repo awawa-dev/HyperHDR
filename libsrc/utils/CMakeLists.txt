@@ -15,7 +15,7 @@ add_library(hyperhdr-utils
 
 target_link_libraries(hyperhdr-utils
 	hyperhdr-base
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Network
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Gui
+	Qt${Qt_VERSION}::Network
 )

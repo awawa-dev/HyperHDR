@@ -64,7 +64,12 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void SysTray::createTrayIcon()
 {
-	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+	
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	
+#else
+	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);	
+#endif	
 
 	quitAction = new QAction(tr("&Quit"), this);
 	quitAction->setIcon(QPixmap(":/quit.svg"));
@@ -156,7 +161,7 @@ void SysTray::showColorDialog()
 	}
 	else
 	{
-		_colorDlg.show();
+		_colorDlg.show();	
 	}
 }
 
@@ -218,16 +223,20 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 				_hyperion = _instanceManager->getHyperHdrInstance(0);
 
 				createTrayIcon();
+		
 				connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
-
+#if !defined(__APPLE__)			
 				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
+#endif
+				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor&)));
 
-				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
 				QIcon icon(":/hyperhdr-icon-32px.png");
 				_trayIcon->setIcon(icon);
 				_trayIcon->show();
+#if !defined(__APPLE__)
 				setWindowIcon(icon);
+#endif
 				_colorDlg.setOptions(QColorDialog::NoButtons);
 			}
 

@@ -1,7 +1,7 @@
 #include <ssdp/SSDPDiscover.h>
-
-#include <utils/Logger.h>
 #include <utils/QStringUtils.h>
+#include <utils/Logger.h>
+
 
 // Qt includes
 #include <QUdpSocket>
@@ -79,7 +79,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 				QString address;
 				// parse request
 
-				QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
+				QStringList entries = QStringUtils::SPLITTER(data, '\n');
 				for(auto entry : entries)
 				{
 					// http header parse skip
@@ -162,7 +162,7 @@ void SSDPDiscover::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString,QString> headers;
 		// parse request
-		QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList entries = QStringUtils::SPLITTER(data, '\n');
 		for(auto entry : entries)
 		{
 			// http header parse skip
@@ -230,7 +230,7 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 				QMap<QString,QString> headers;
 				// parse request
-				QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
+				QStringList entries = QStringUtils::SPLITTER(data, '\n');
 				for(auto entry : entries)
 				{
 					// http header parse skip
@@ -300,8 +300,7 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 {
 	QJsonArray result;
 
-	QMap<QString, SSDPService>::const_iterator i;
-	for (i = _services.begin(); i != _services.end(); ++i)
+	for (auto i = _services.begin(); i != _services.end(); ++i)
 	{
 		//Debug(_log, "Device discovered at [%s]", QSTRING_CSTR( i.key() ));
 

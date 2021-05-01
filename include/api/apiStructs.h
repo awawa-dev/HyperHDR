@@ -27,10 +27,11 @@ struct EffectCmdData
     QJsonObject args;
 };
 
+
 struct registerData
 {
-    const hyperhdr::Components component;
-    const QString origin;
-    const QString owner;
-    const hyperhdr::Components callerComp;
+	hyperhdr::Components component;
+	QString origin;
+	QString owner;
+	hyperhdr::Components callerComp;
 };

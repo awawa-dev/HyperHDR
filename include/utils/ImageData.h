@@ -147,8 +147,8 @@ public:
 			free(_pixels);
 			_pixels = (unsigned char*) malloc(3 + 4);
 		}
-
-		memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
+		if (_pixels != NULL)
+			memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
 	}
 
 private:

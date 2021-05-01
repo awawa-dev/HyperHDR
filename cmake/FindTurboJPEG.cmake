@@ -4,27 +4,39 @@
 #  TurboJPEG_LIBRARY
 
 if (ENABLE_WMF)
-find_path(TurboJPEG_INCLUDE_DIRS
-	NAMES turbojpeg.h
-	PATHS
-	"${CMAKE_SOURCE_DIR}/resources/include/jpeg"
-)
+	find_path(TurboJPEG_INCLUDE_DIRS
+		NAMES turbojpeg.h
+		PATHS
+		"${CMAKE_SOURCE_DIR}/resources/include/jpeg"
+	)
 
-find_library(TurboJPEG_LIBRARY
-	NAMES turbojpeg turbojpeg-static
-	PATHS
-	"${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
-)
+	find_library(TurboJPEG_LIBRARY
+		NAMES turbojpeg turbojpeg-static
+		PATHS
+		"${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
+	)
+elseif (ENABLE_AVF)
+	find_path(TurboJPEG_INCLUDE_DIRS
+		NAMES turbojpeg.h
+		PATHS
+		"/usr/local/opt/jpeg-turbo/include"
+	)
+
+	find_library(TurboJPEG_LIBRARY
+		NAMES turbojpeg turbojpeg-static
+		PATHS
+		"/usr/local/opt/jpeg-turbo/lib"
+	)
 else()
-find_path(TurboJPEG_INCLUDE_DIRS
-	NAMES turbojpeg.h
-	PATH_SUFFIXES include
-)
+	find_path(TurboJPEG_INCLUDE_DIRS
+		NAMES turbojpeg.h
+		PATH_SUFFIXES include
+	)
 
-find_library(TurboJPEG_LIBRARY
-	NAMES turbojpeg turbojpeg-static
-	PATH_SUFFIXES bin lib
-)
+	find_library(TurboJPEG_LIBRARY
+		NAMES turbojpeg turbojpeg-static
+		PATH_SUFFIXES bin lib
+	)
 endif()
 
 if(TurboJPEG_INCLUDE_DIRS AND TurboJPEG_LIBRARY)
@@ -41,7 +53,7 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 
-find_package_handle_standard_args(TurboJpeg
+find_package_handle_standard_args(TurboJPEG
 	FOUND_VAR TURBOJPEG_FOUND
 	REQUIRED_VARS TurboJPEG_LIBRARY TurboJPEG_INCLUDE_DIRS TURBOJPEG_WORKS
 	TurboJPEG_INCLUDE_DIRS TurboJPEG_LIBRARY

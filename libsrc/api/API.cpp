@@ -96,7 +96,7 @@ void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int time
     std::vector<ColorRgb> fledColors;
     if (ledColors.size() % 3 == 0)
     {
-        for (unsigned i = 0; i < ledColors.size(); i += 3)
+        for (uint64_t i = 0; i < ledColors.size(); i += 3)
         {
             fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
         }		

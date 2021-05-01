@@ -3,69 +3,44 @@
 
 #include <QString>
 #include <QStringList>
-#include <QStringRef>
 #include <QVector>
+
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	#include <QStringView>
+#else
+	#include <QStringRef>
+#endif
 
 namespace QStringUtils {
 
-enum class SplitBehavior {
-	KeepEmptyParts,
-	SkipEmptyParts,
-};
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+	inline QStringList SPLITTER (const QString &string, QChar sep)
+	{
+		return string.split(sep, Qt::SkipEmptyParts);
+	}
+	#else
+	inline QStringList SPLITTER(const QString& string, QChar sep)
+	{
+		return string.split(sep, QString::SkipEmptyParts);
+	}
+	#endif
 
-inline QStringList split (const QString &string, const QString &sep, SplitBehavior behavior = SplitBehavior::KeepEmptyParts, Qt::CaseSensitivity cs = Qt::CaseSensitive)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return behavior == SplitBehavior::SkipEmptyParts ? string.split(sep, Qt::SkipEmptyParts , cs) : string.split(sep, Qt::KeepEmptyParts , cs);
-#else
-	return behavior == SplitBehavior::SkipEmptyParts ? string.split(sep, QString::SkipEmptyParts , cs) : string.split(sep, QString::KeepEmptyParts , cs);
-#endif
-}
-
-inline QStringList split (const QString &string, QChar sep, SplitBehavior behavior = SplitBehavior::KeepEmptyParts, Qt::CaseSensitivity cs = Qt::CaseSensitive)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return behavior == SplitBehavior::SkipEmptyParts ? string.split(sep, Qt::SkipEmptyParts , cs) : string.split(sep, Qt::KeepEmptyParts , cs);
-#else
-	return behavior == SplitBehavior::SkipEmptyParts ? string.split(sep, QString::SkipEmptyParts , cs) : string.split(sep, QString::KeepEmptyParts , cs);
-#endif
-}
-
-inline QStringList split (const QString &string, const QRegExp &rx, SplitBehavior behavior = SplitBehavior::KeepEmptyParts)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return behavior == SplitBehavior::SkipEmptyParts ? string.split(rx, Qt::SkipEmptyParts) : string.split(rx, Qt::KeepEmptyParts);
-#else
-	return behavior == SplitBehavior::SkipEmptyParts ? string.split(rx, QString::SkipEmptyParts) : string.split(rx, QString::KeepEmptyParts);
-#endif
-}
-
-inline QVector<QStringRef> splitRef(const QString &string, const QString &sep, SplitBehavior behavior = SplitBehavior::KeepEmptyParts, Qt::CaseSensitivity cs = Qt::CaseSensitive)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? Qt::SkipEmptyParts : Qt::KeepEmptyParts , cs);
-#else
-	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? QString::SkipEmptyParts : QString::KeepEmptyParts, cs);
-#endif
-}
-
-inline QVector<QStringRef> splitRef(const QString &string, QChar sep, SplitBehavior behavior = SplitBehavior::KeepEmptyParts, Qt::CaseSensitivity cs = Qt::CaseSensitive)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? Qt::SkipEmptyParts : Qt::KeepEmptyParts, cs);
-#else
-	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? QString::SkipEmptyParts : QString::KeepEmptyParts, cs);
-#endif
-}
-
-inline QVector<QStringRef> splitRef(const QString &string, const QRegExp &rx, SplitBehavior behavior = SplitBehavior::KeepEmptyParts)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return string.splitRef(rx,behavior == SplitBehavior::SkipEmptyParts ? Qt::SkipEmptyParts : Qt::KeepEmptyParts);
-#else
-	return string.splitRef(rx, behavior == SplitBehavior::SkipEmptyParts ? QString::SkipEmptyParts : QString::KeepEmptyParts);
-#endif
-}
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	inline QList<QStringView> REFSPLITTER(const QString &string, QChar sep)
+	{
+		return QStringView{ string }.split(sep, Qt::SplitBehaviorFlags::SkipEmptyParts);
+	}
+	#elif (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+	inline QVector<QStringRef> REFSPLITTER(const QString& string, QChar sep)
+	{
+		return string.splitRef(sep, Qt::SkipEmptyParts);
+	}
+	#else
+	inline QVector<QStringRef> REFSPLITTER(const QString& string, QChar sep)
+	{
+		return string.splitRef(sep, QString::SkipEmptyParts);
+	}
+	#endif
 
 }
 

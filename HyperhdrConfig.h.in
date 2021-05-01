@@ -6,6 +6,12 @@
 // Define to enable sound windows
 #cmakedefine ENABLE_SOUNDCAPWINDOWS
 
+// Define to enable sound macos
+#cmakedefine ENABLE_SOUNDCAPMACOS
+
+// Define to enable the macOS grabber
+#cmakedefine ENABLE_AVF
+
 // Define to enable the v4l2 grabber
 #cmakedefine ENABLE_V4L2
 

@@ -41,8 +41,27 @@
 	info += '- Version:         ' + shy.version + '\n';
 	info += '- UI Lang:         ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
 	info += '- UI Access:       ' + storedAccess + '\n';
-	//info += '- Log lvl:         ' + window.serverConfig.logger.level + '\n';
-	info += '- Avail Capt:      ' + window.serverInfo.grabbers.available + '\n';
+
+  info += '- Avail Capt:      ';
+  if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined &&
+      window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined)
+  {
+	  var grabbers = window.serverInfo.grabbers.active;
+	  if (grabbers.indexOf('V4L2:Media Foundation') > -1)
+		  info += 'Windows (Microsoft Media Foundation)';
+	  else if (grabbers.indexOf('V4L2:macOS AVF') > -1)
+		  info += 'macOS (AVF)';
+	  else if (grabbers.indexOf('V4L2') > -1)
+		  info += 'Linux (V4L2)';		
+	  else
+		  info += 'Unknown';
+	}
+	else
+	{
+		info = 'None';
+	}
+  info += '\n';
+
 	info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
 
 	info += '\n';

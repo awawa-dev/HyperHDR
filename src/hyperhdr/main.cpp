@@ -109,7 +109,11 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 		// add optional library path
 		app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
 		app->setApplicationDisplayName("HyperHdr");
+#if defined(__APPLE__)
+		app->setWindowIcon(QIcon(":/hyperhdr-icon-64px.png"));
+#else
 		app->setWindowIcon(QIcon(":/hyperhdr-icon-32px.png"));
+#endif
 		return app;
 	}
 

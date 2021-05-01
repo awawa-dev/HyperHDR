@@ -71,8 +71,7 @@ public:
 		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
 	}
 
-	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
-	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
+	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }	
 	int  getHdrToneMappingEnabled();
 	void receive_image(const void *frameImageBuffer, int size, QString message);
 	int grabFrame(Image<ColorRgb> &);
@@ -98,11 +97,6 @@ public:
 	/// @brief  overwrite Grabber.h implementation
 	///
 	void setSignalDetectionEnable(bool enable) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setCecDetectionEnable(bool enable) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -249,9 +243,7 @@ private:
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _signalDetectionEnabled;
-	bool     _cecDetectionEnabled;
-	bool     _cecStandbyActivated;
+	bool     _signalDetectionEnabled;	
 	bool     _noSignalDetected;
 	int      _noSignalCounter;
 	double   _x_frac_min;

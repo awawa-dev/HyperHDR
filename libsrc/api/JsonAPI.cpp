@@ -181,6 +181,8 @@ proceed:
 
 	else if (command == "clearall")
 		handleClearallCommand(message, command, tan);
+	else if (command == "help")
+		handleHelpCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
 		sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 	// END
@@ -200,7 +202,7 @@ void JsonAPI::handleColorCommand(const QJsonObject &message, const QString &comm
 	const QJsonArray &jsonColor = message["color"].toArray();
 	std::vector<uint8_t> colors;
 	// TODO faster copy
-	for (const auto &entry : jsonColor)
+	for (auto &&entry : jsonColor)
 	{
 		colors.emplace_back(uint8_t(entry.toInt()));
 	}
@@ -473,7 +475,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["ledDevices"] = ledDevices;
 
 
-#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS)
+#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPMACOS)
         if (SoundCapture::getInstance() != NULL)
         {
             QJsonObject sndgrabber;
@@ -495,7 +497,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonArray availableGrabbers;
 
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_WMF) 
+#if defined(ENABLE_V4L2) || defined(ENABLE_WMF) || defined(ENABLE_AVF) 
 	if ( GrabberWrapper::getInstance() != nullptr )
 	{
 		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
@@ -508,7 +510,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 #endif
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_WMF)
+#if defined(ENABLE_V4L2) || defined(ENABLE_WMF) || defined(ENABLE_AVF)
 
 	QJsonArray availableV4L2devices;
 	for (const auto& devicePath : GrabberWrapper::getInstance()->getV4L2devices())
@@ -748,6 +750,14 @@ void JsonAPI::handleClearallCommand(const QJsonObject &message, const QString &c
 	QString replyMsg;
 	API::clearPriority(-1, replyMsg);
 	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleHelpCommand(const QJsonObject& message, const QString& command, int tan)
+{	
+	QJsonObject req;
+	
+	req["available_commands"] = "color, image, effect, serverinfo, clear, clearall, adjustment, sourceselect, config, componentstate, ledcolors, logging, processing, sysinfo, videomodehdr, videomode, authorize, instance, leddevice, transform, correction, temperature, help";
+	sendSuccessDataReply(QJsonDocument(req), command, tan);
 }
 
 void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString &command, int tan)
@@ -1542,8 +1552,8 @@ void JsonAPI::setImage(const Image<ColorRgb> &image)
 {
 	try
 	{
-		if (!_semaphore.tryAcquire())
-			return;
+//		if (!_semaphore.tryAcquire())
+//			return;
 
 		// protect buffer from overflow
 		uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
@@ -1554,7 +1564,7 @@ void JsonAPI::setImage(const Image<ColorRgb> &image)
 			((_currentTime - _lastSendImage < 500) && image.width() >= 1920))
 		{
 			//Debug(_log, "setImage buffer overflow protection %d", _currentTime - _lastSendImage);
-			_semaphore.release();
+//			_semaphore.release();
 			return;
 		}
 		_lastSendImage = _currentTime;
@@ -1578,11 +1588,11 @@ void JsonAPI::setImage(const Image<ColorRgb> &image)
 		
 		emit callbackMessage(_streaming_image_reply);
 
-		_semaphore.release();
+//		_semaphore.release();
 	}
 	catch (...)
 	{
-		_semaphore.release();
+//		_semaphore.release();
 	}
 }
 

@@ -68,7 +68,7 @@ private:
 	QMenu            *_trayIconEfxMenu;
 	QColorDialog      _colorDlg;
 	HyperHdrDaemon   *_hyperiond;
-	HyperHdrInstance     *_hyperion;
+	HyperHdrInstance *_hyperion;
 	HyperHdrIManager *_instanceManager;
 	quint16           _webPort;
 };

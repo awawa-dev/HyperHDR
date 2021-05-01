@@ -10,6 +10,6 @@ add_library(jsonserver ${JsonServer_SOURCES} )
 target_link_libraries(jsonserver
 	hyperhdr-api
 	hyperhdr-base
-	Qt5::Network
-	Qt5::Gui
+	Qt${Qt_VERSION}::Network
+	Qt${Qt_VERSION}::Gui
 )

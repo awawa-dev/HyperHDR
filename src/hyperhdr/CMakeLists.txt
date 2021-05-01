@@ -1,5 +1,3 @@
-find_package(Qt5Widgets REQUIRED)
-
 # generate windows .rc file for this binary
 if (WIN32)
 	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
@@ -19,8 +17,6 @@ add_executable(hyperhdr
 # promote hyperhdr as GUI app
 if (WIN32)
 	target_link_options(hyperhdr PUBLIC /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
-else()
-	set_target_properties(hyperhdr PROPERTIES LINK_FLAGS_RELEASE -s)
 endif()
 
 target_link_libraries(hyperhdr
@@ -34,7 +30,7 @@ target_link_libraries(hyperhdr
 	ssdp
 	database
 	resources
-	Qt5::Widgets
+	Qt${Qt_VERSION}::Widgets
 )
 
 if (ENABLE_AVAHI)
@@ -49,15 +45,33 @@ if (ENABLE_WMF)
 	target_link_libraries(hyperhdr WMF-grabber)
 endif ()
 
-if (DEFAULT_SOUNDCAPWINDOWS)
+if (ENABLE_AVF)
+	target_link_libraries(hyperhdr 
+		AVF-grabber
+		"-framework AVFoundation"
+        "-framework Foundation"
+        "-framework CoreMedia"
+        "-framework CoreVideo"
+        "-framework Accelerate"
+        "-framework IOKit")
+endif ()
+
+if (ENABLE_SOUNDCAPWINDOWS)
 	target_link_libraries(hyperhdr SoundCapWindows)
 endif ()
 
-if (DEFAULT_SOUNDCAPLINUX)
+if (ENABLE_SOUNDCAPLINUX)
 	target_link_libraries(hyperhdr SoundCapLinux)
 endif ()
 
-if(NOT WIN32)
+if (ENABLE_SOUNDCAPMACOS)
+	target_link_libraries(hyperhdr SoundCapMacOS)
+endif ()
+
+
+if(APPLE)
+	install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )	
+elseif(NOT WIN32)
 	install ( TARGETS hyperhdr DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR" )
 	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperhdr/" COMPONENT "HyperHDR" )
 	install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperhdr-icon-32px.png DESTINATION "share/hyperhdr/icons" COMPONENT "HyperHDR" )
@@ -73,7 +87,7 @@ else()
 	include( InstallRequiredSystemLibraries )
 endif()
 
-if(CMAKE_HOST_UNIX)
+if(CMAKE_HOST_UNIX AND NOT APPLE)
 	install( CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperhdr/bin/hyperhdr\" \"${CMAKE_BINARY_DIR}/symlink_hyperhdr\" )" COMPONENT "HyperHDR" )
 	install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperhdr DESTINATION "bin" RENAME hyperhdr COMPONENT "HyperHDR" )
 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperhdr )" COMPONENT "HyperHDR" )
@@ -81,7 +95,7 @@ endif()
 
 if(WIN32)
 	if(NOT CMAKE_GITHUB_ACTION)
-		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
 		get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
 		find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
 		
@@ -104,7 +118,9 @@ endif()
 # Copy dependencies (not for OSX)
 include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
 
-if (NOT WIN32) # Unix
+if (APPLE)
+	DeployApple("hyperhdr")
+elseif (NOT WIN32) # Unix
 	DeployUnix("hyperhdr")
 elseif(WIN32) # Windows
 	DeployWindows("hyperhdr")

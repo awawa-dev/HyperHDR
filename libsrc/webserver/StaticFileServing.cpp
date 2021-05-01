@@ -1,6 +1,5 @@
-
-#include "StaticFileServing.h"
 #include <utils/QStringUtils.h>
+#include "StaticFileServing.h"
 
 #include <QStringBuilder>
 #include <QUrlQuery>
@@ -82,7 +81,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 	if (command == QStringLiteral ("GET"))
 	{
 		QString path = request->getUrl ().path ();
-		QStringList uri_parts = QStringUtils::split(path,'/', QStringUtils::SplitBehavior::SkipEmptyParts);
+		QStringList uri_parts = QStringUtils::SPLITTER(path, '/');
 		// special uri handling for server commands
 		if ( ! uri_parts.empty() )
 		{

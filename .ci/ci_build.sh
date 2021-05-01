@@ -24,13 +24,36 @@ echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docke
 # Build the package on osx or linux
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	echo "Start: osx or darwin"
-	
-	mkdir build || exit 1
-	cd build
-	cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-	make -j $(sysctl -n hw.ncpu) package || exit 3
-	exit 0;
-	exit 1 || { echo "---> Hyperhdr compilation failed! Abort"; exit 5; }
+	if [[ "$USE_CCACHE" == '1' ]]; then
+		echo "Using ccache"
+
+		# Init ccache
+		mkdir -p .ccache
+		cd .ccache
+		CCACHE_PATH=$PWD
+		cd ..
+        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
+		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M
+		echo "CCache parameters: ${cachecommand}"		
+		ls -a .ccache
+
+		mkdir build || exit 1
+		cd build
+		ccache -p
+		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+		make -j $(sysctl -n hw.ncpu) package || exit 3
+
+		exit 0;
+		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+	else
+		echo "Not using ccache"
+		mkdir build || exit 1
+		cd build
+		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+		make -j $(sysctl -n hw.ncpu) package || exit 3
+		exit 0;
+		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+	fi
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	echo "Start: windows"
 	

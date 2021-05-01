@@ -36,6 +36,6 @@ add_library(flatbufserver
 target_link_libraries(flatbufserver
 	hyperhdr-utils
 	flatbuffers
-	Qt5::Network
-	Qt5::Core
+	Qt${Qt_VERSION}::Network
+	Qt${Qt_VERSION}::Core
 )

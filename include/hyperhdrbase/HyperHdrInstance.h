@@ -85,7 +85,7 @@ public:
 	int getLedMappingType() const;
 
 	/// forward smoothing config
-	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0, bool directMode = false);	
+	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool directMode = false);	
 
 	int getCurrentVideoModeHdr() const;
 

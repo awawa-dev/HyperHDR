@@ -8,5 +8,5 @@ add_library(commandline ${Parser_SOURCES} )
 
 target_link_libraries(commandline
 	hyperhdr-base
-	Qt5::Gui
+	Qt${Qt_VERSION}::Gui
 )

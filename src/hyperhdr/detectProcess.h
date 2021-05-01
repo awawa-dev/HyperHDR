@@ -3,9 +3,9 @@
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
-#include <QRegExp>
 #include <QString>
 #include <QTextStream>
+#include <QRegularExpression>
 
 #ifdef WIN32
 // psapi.h requires windows.h to be included
@@ -54,8 +54,8 @@ QStringList getProcessIdsByProcessName(const char *processName)
 	dir.setSorting(QDir::Name | QDir::Reversed);
 
 	for (const QString & pid : dir.entryList()) {
-		QRegExp regexp("\\d*");
-		if (!regexp.exactMatch(pid))
+		QRegularExpression regexp("^\\d*$");
+		if (!regexp.match(pid).hasMatch())
 		{
 			/* Not a number, can not be PID */
 			continue;

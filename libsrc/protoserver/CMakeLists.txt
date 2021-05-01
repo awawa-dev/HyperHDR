@@ -33,12 +33,12 @@ target_link_libraries(protoclient
 	hyperhdr-base
 	hyperhdr-utils
 	libprotobuf
-	Qt5::Gui
+	Qt${Qt_VERSION}::Gui
 )
 
 target_link_libraries(protoserver
 	hyperhdr-base
 	hyperhdr-utils
 	protoclient
-	Qt5::Gui
+	Qt${Qt_VERSION}::Gui
 )

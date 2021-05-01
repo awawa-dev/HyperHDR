@@ -15,9 +15,17 @@
 #include <QFileInfo>
 #include <QMutexLocker>
 #include <QThreadStorage>
+
 #include <time.h>
 
-QMutex                 Logger::MapLock              { QMutex::Recursive };
+	
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	QRecursiveMutex        Logger::MapLock;
+#else
+	QMutex                 Logger::MapLock{ QMutex::Recursive };
+#endif
+
+
 QMap<QString,Logger*>  Logger::LoggerMap            { };
 QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL { static_cast<int>(Logger::UNSET)};
 

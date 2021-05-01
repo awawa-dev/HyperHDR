@@ -248,7 +248,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			const bool whscan = led.contains("hscan");
 			QJsonArray newLedarr;
 
-			for(const auto & entry : ledarr)
+			for(auto entry : ledarr)
 			{
 				const QJsonObject led = entry.toObject();
 				QJsonObject hscan;

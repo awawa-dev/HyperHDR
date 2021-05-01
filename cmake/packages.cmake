@@ -47,7 +47,13 @@ SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperhdr-icon-32px
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
 SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERION_VERSION_PATCH}")
-SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
+
+if ( APPLE )
+	SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/LICENSE" )
+ELSE()
+	SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
+ENDIF()
+
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperhdr;HyperHDR" )
 SET ( CPACK_CREATE_DESKTOP_LINKS "hyperhdr;HyperHDR" )
 SET ( CPACK_ARCHIVE_THREADS 0 )
@@ -76,12 +82,24 @@ SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
 SET ( CPACK_RPM_COMPRESSION_TYPE "xz" )
 
-# OSX "Bundle" generator TODO Add more osx generators
-# https://cmake.org/cmake/help/v3.10/module/CPackBundle.html
-SET ( CPACK_BUNDLE_NAME "HyperHDR" )
-SET ( CPACK_BUNDLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Hyperion.icns )
-SET ( CPACK_BUNDLE_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist )
-SET ( CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/cmake/osxbundle/launch.sh" )
+# OSX dmg generator
+if ( APPLE )
+	SET ( CPACK_GENERATOR "DragNDrop")
+	SET ( CPACK_DMG_FORMAT "UDBZ" )
+	
+	unset(CPACK_PACKAGE_ICON)
+	set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns")
+			
+	set(CPACK_DMG_DISABLE_APPLICATIONS_SYMLINK ON)		   
+	
+	set_target_properties(hyperhdr PROPERTIES
+	  MACOSX_BUNDLE TRUE
+	  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist
+	  MACOSX_BUNDLE_COPYRIGHT "awawa-dev"
+	  MACOSX_BUNDLE_BUNDLE_VERSION ${HYPERION_VERSION}
+	  MACOSX_BUNDLE_ICON_FILE "Hyperhdr.icns"
+	)
+endif()
 
 # Windows NSIS
 # Use custom script based on cpack nsis template
@@ -124,8 +142,11 @@ SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\HyperHD
 # and https://cmake.org/cmake/help/latest/module/CPackComponent.html
 SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 # Components base
-SET ( CPACK_COMPONENTS_ALL "HyperHDR" "HyperHDR_remote" )
-
+if (NOT APPLE)
+	SET ( CPACK_COMPONENTS_ALL "HyperHDR" "HyperHDR_remote" )
+else()
+	SET ( CPACK_COMPONENTS_ALL "HyperHDR" )
+endif()
 
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
 SET ( CPACK_DEB_COMPONENT_INSTALL ON )
@@ -148,11 +169,14 @@ cpack_add_component(HyperHDR
 	GROUP Runtime
 	REQUIRED
 )
-cpack_add_component(HyperHDR_remote
-	DISPLAY_NAME "HyperHdr Remote"
-	DESCRIPTION "HyperHdr remote cli tool"
-	INSTALL_TYPES Full
-	GROUP Runtime
-	DEPENDS HyperHDR
-)
+
+if (NOT APPLE)
+	cpack_add_component(HyperHDR_remote
+		DISPLAY_NAME "HyperHdr Remote"
+		DESCRIPTION "HyperHdr remote cli tool"
+		INSTALL_TYPES Full
+		GROUP Runtime
+		DEPENDS HyperHDR
+	)
+endif()
 

@@ -1,11 +1,12 @@
 #include <QtCore/qmath.h>
 #include <utils/RgbTransform.h>
 #include <utils/ColorSys.h>
+#include <cmath>
 
 RgbTransform::RgbTransform():
 	_log(Logger::getInstance(QString("RgbTransform")))
 {
-	init(false,1.0,1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100);
+	init(false, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100, true);
 }
 
 RgbTransform::RgbTransform(
@@ -16,14 +17,19 @@ RgbTransform::RgbTransform(
 	_log(Logger::getInstance(QString("RgbTransform")))
 {
 	init( classic_config, saturationGain, luminanceGain, 
-	gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessCompensation);
+		  gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessCompensation);
+}
+
+inline uint8_t clamp(int x)
+{
+	return (x < 0) ? 0 : ((x > 255) ? 255 : uint8_t(x));
 }
 
 void RgbTransform::init(
 	bool classic_config,	
 	double saturationGain,
 	double luminanceGain,
-	double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation)
+	double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, bool _silent)
 {
 	_classic_config = classic_config;
 	_saturationGain = saturationGain;
@@ -32,8 +38,9 @@ void RgbTransform::init(
 	_brightness = brightness;
 	_brightnessCompensation = brightnessCompensation;
 
-	Debug(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f", 
-			_classic_config, _saturationGain, _luminanceGain);
+	if (!_silent)
+		Debug(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i", 
+				_classic_config, _saturationGain, _luminanceGain, clamp(backlightThreshold));
 
 
 	_backLightEnabled = true;
@@ -43,11 +50,6 @@ void RgbTransform::init(
 	setBrightness(brightness);
 	setBrightnessCompensation(brightnessCompensation);
 	initializeMapping();
-}
-
-inline uint8_t clamp(int x)
-{
-	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
 }
 
 double RgbTransform::getGammaR() const
@@ -120,12 +122,11 @@ void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
 	
-	int lowVal = (int) (_backlightThreshold);
-	uint8_t rgb = clamp(lowVal), y, u, v;
-	ColorSys::rgb2yuv(rgb, rgb, rgb, y, u, v);
+	uint8_t rgb = clamp(_backlightThreshold);
 	
-	_sumBrightnessYLow   = y;
 	_sumBrightnessRGBLow = rgb;
+
+	Debug(_log, "setBacklightThreshold: %i", _sumBrightnessRGBLow);
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -205,21 +206,24 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	blue  = _mappingB[blue];
 
 	// apply brightnesss
-	uint8_t y, u, v;
-	ColorSys::rgb2yuv(red, green, blue, y, u, v);
-
-	if ( _backLightEnabled && _sumBrightnessYLow>0 && y < _sumBrightnessYLow)
+	if ( _backLightEnabled && _sumBrightnessRGBLow > 0)
 	{
 		if (_backlightColored)
 		{
-			y = _sumBrightnessYLow;
-			ColorSys::yuv2rgb(y, u, v, red, green, blue);
+			red   = std::max(red,   _sumBrightnessRGBLow);
+			green = std::max(green, _sumBrightnessRGBLow);
+			blue  = std::max(blue,  _sumBrightnessRGBLow);
 		}
 		else
 		{
-			red   = _sumBrightnessRGBLow;
-			green = red;
-			blue  = red;
+			int avVal = (std::min(int(red), std::min(int(green), int(blue))) +
+				         std::max(int(red), std::max(int(green), int(blue)))) / 2;
+			if (avVal < int(_sumBrightnessRGBLow))
+			{
+				red = _sumBrightnessRGBLow;
+				green = _sumBrightnessRGBLow;
+				blue = _sumBrightnessRGBLow;
+			}
 		}
 	}
 }

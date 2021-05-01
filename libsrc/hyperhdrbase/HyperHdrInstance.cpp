@@ -274,9 +274,9 @@ int HyperHdrInstance::getLatchTime() const
 	return _ledDeviceWrapper->getLatchTime();
 }
 
-unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay, bool directMode)
+unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
-	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, updateDelay, directMode);
+	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
 }
 
 int HyperHdrInstance::getLedCount() const
@@ -490,7 +490,11 @@ std::list<ActiveEffectDefinition> HyperHdrInstance::getActiveEffects() const
 
 QJsonObject HyperHdrInstance::getQJsonConfig() const
 {
-	return _settingsManager->getSettings();
+	QJsonObject obj;
+	if (_settingsManager != NULL)
+		return _settingsManager->getSettings();
+	else
+		return obj;
 }
 
 int HyperHdrInstance::setEffect(const QString &effectName, int priority, int timeout, const QString & origin)

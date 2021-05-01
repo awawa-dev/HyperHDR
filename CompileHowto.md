@@ -30,7 +30,7 @@ First install brew manager.
 Next:
 - brew install qt@5
 - brew install cmake
-- brew install jpeg-turbo
+- brew install xz
 
 # Compiling and installing HyperHDR
 
@@ -57,7 +57,6 @@ sudo make install/strip
 sudo make uninstall
 ```
 
-
 ### Download
  Creates hyperhdr directory and checkout the code from github
 
@@ -78,20 +77,19 @@ cd build
 
 To generate make files with automatic platform detection and default settings:
 
-This should fit to *RPI, x86
 ```
 cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-To generate files on Windows (Release+Debug capable):
-
-Platform should be auto detected and refer to windows, you can also force windows:
+Platform should be auto detected. For Windows, you can also force following settings (optional):
 
 ```sh
 # You might need to setup MSVC env first
 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 cmake -DPLATFORM=windows -G "Visual Studio 16 2019" ..
 ```
+
+In Visual Studio select _hyperhdr_ project as default for the solution to run it after compilation.
 
 ### Run make to build HyperHDR
 

@@ -58,7 +58,7 @@ void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		const QJsonArray& arr = obj["ipWhitelist"].toArray();
 		_ipWhitelist.clear();
 
-		for(const auto& e : arr)
+		for(auto && e : arr)
 		{
 			const QString& entry = e.toString("");
 			if(entry.isEmpty())

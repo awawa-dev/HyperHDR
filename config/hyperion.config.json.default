@@ -23,7 +23,7 @@
 	"color": {
 		"channelAdjustment": [
 			{
-				"backlightColored": false,
+				"backlightColored": true,
 				"backlightThreshold": 1,
 				"white": [
 					255,
@@ -52,7 +52,7 @@
 				],
 				"cyan": [
 					0,
-					240,
+					255,
 					255
 				],
 				"yellow": [
@@ -82,14 +82,11 @@
 	"smoothing" :
 	{
 		"enable"            : true,
-		"type"              : "linear",
+		"type"              : "alternative",
 		"time_ms"           : 150,
 		"updateFrequency"   : 80,
-		"interpolationRate" : 120,
-		"outputRate"        : 120,
-		"decay"             : 1,
-		"dithering"         : false,
-		"updateDelay"       : 0,
+		"lowLightAntiFlickeringTreshold" : 0,
+		"lowLightAntiFlickeringValue" : 2,
 		"continuousOutput"  : false
 	},
 
@@ -126,7 +123,7 @@
 
 	"blackborderdetector" :
 	{
-		"enable" : true,
+		"enable" : false,
 		"threshold" : 5,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,

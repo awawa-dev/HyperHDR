@@ -283,6 +283,8 @@ private:
 	///
 	void handleLedDeviceCommand(const QJsonObject &message, const QString &command, int tan);
 
+	void handleHelpCommand(const QJsonObject& message, const QString& command, int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

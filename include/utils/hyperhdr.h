@@ -1,5 +1,5 @@
 #pragma once
-
+#include <QRegularExpression>
 #include <sstream>
 
 #include <hyperhdrbase/ColorAdjustment.h>
@@ -113,11 +113,12 @@ namespace hyperhdr {
 
 	MultiColorAdjustment * createLedColorsAdjustment(int ledCnt, const QJsonObject & colorConfig)
 	{
+		
 		// Create the result, the transforms are added to this
 		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
 
 		const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
-		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
+		const QRegularExpression overallExp("^([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*$");
 
 		const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
 		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
@@ -134,7 +135,7 @@ namespace hyperhdr {
 				continue;
 			}
 
-			if (!overallExp.exactMatch(ledIndicesStr))
+			if (!overallExp.match(ledIndicesStr).hasMatch())
 			{
 				continue;
 			}

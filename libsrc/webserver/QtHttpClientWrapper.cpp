@@ -1,5 +1,4 @@
 #include <utils/QStringUtils.h>
-
 #include "QtHttpClientWrapper.h"
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
@@ -14,6 +13,9 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QHostAddress>
+
+#define REQ "request="
+#define RPC "json-rpc"
 
 const QByteArray & QtHttpClientWrapper::CRLF = QByteArrayLiteral ("\r\n");
 
@@ -59,7 +61,7 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				case AwaitingRequest: // "command url version" × 1
 				{
 					QString str = QString::fromUtf8 (line).trimmed ();
-					QStringList parts = QStringUtils::split(str,SPACE, QStringUtils::SplitBehavior::SkipEmptyParts);
+					QStringList parts = QStringUtils::SPLITTER(str, SPACE);
 					if (parts.size () == 3)
 					{
 						QString command = parts.at (0);
@@ -169,39 +171,55 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 					}
 
 					// add  post data to request and catch /jsonrpc subroute url
-					if ( m_currentRequest->getCommand() == "POST")
+					QString path = m_currentRequest->getUrl().path();
+					QString query = (m_currentRequest->getUrl().hasQuery()) ? m_currentRequest->getUrl().query(QUrl::FullyDecoded) : "";
+					QStringList uri_parts = QStringUtils::SPLITTER(path, '/');
+					bool getCallback = (m_currentRequest->getCommand() == "GET") && !uri_parts.empty() &&
+									    uri_parts.at(0) == RPC && 
+										(query.indexOf(REQ, Qt::CaseInsensitive) == 0);
+					
+					if (m_currentRequest->getCommand() == "POST" || getCallback)
 					{
 						QtHttpPostData  postData;
-						QByteArray data = m_currentRequest->getRawData();
-						QList<QByteArray> parts = data.split('&');
 
-						for (int i = 0; i < parts.size(); ++i)
+						if (getCallback)
 						{
-							QList<QByteArray> keyValue = parts.at(i).split('=');
-							QByteArray value;
-
-							if (keyValue.size()>1)
+							query = query.remove(0,QString(REQ).length());
+							if (query.trimmed().length() == 0)
 							{
-								value = QByteArray::fromPercentEncoding(keyValue.at(1));
+								query = "{\"command\":\"help\"}";
 							}
+						}
+						else
+						{
+							QByteArray data = m_currentRequest->getRawData();
+							QList<QByteArray> parts = data.split('&');
 
-							postData.insert(QString::fromUtf8(keyValue.at(0)),value);
+							query = "";
+							for (int i = 0; i < parts.size(); ++i)
+							{
+								QList<QByteArray> keyValue = parts.at(i).split('=');
+								QByteArray value;
+
+								if (keyValue.size() > 1)
+								{
+									value = QByteArray::fromPercentEncoding(keyValue.at(1));
+								}								
+								postData.insert(QString::fromUtf8(keyValue.at(0)), value);
+							}
 						}
 
 						m_currentRequest->setPostData(postData);
 
-						// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
-						QString path = m_currentRequest->getUrl ().path ();
-
-						QStringList uri_parts = QStringUtils::split(path,'/', QStringUtils::SplitBehavior::SkipEmptyParts);
-						if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
+						// catch /jsonrpc in url, we need async callback, StaticFileServing is sync						
+						if (getCallback || ( ! uri_parts.empty() && uri_parts.at(0) == RPC ))
 						{
 							if(m_webJsonRpc == Q_NULLPTR)
 							{
 								m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, m_localConnection, this);
 							}
 
-							m_webJsonRpc->handleMessage(m_currentRequest);
+							m_webJsonRpc->handleMessage(m_currentRequest, query);
 							break;
 						}
 					}

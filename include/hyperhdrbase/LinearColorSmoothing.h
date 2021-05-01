@@ -56,7 +56,7 @@ public:
 	///
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
-	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0, bool directMode = false);
+	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
 
 	///
 	/// @brief select a smoothing cfg given by cfg index from addConfig()
@@ -94,7 +94,7 @@ private:
 	 * @param ledColors The colors to queue
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
-	void clearQueuedColors();
+	void clearQueuedColors(bool semaphore);
 
 	/// write updated values as input for the smoothing filter
 	///
@@ -111,7 +111,21 @@ private:
 	///
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
-	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0, bool directMode = false);
+	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
+
+	uint8_t clamp(int x);
+
+	void Antiflickering();
+
+	void AlternateSetup(const std::vector<ColorRgb>& ledValues);
+
+	void AlternateLinearSmoothing();	
+
+	void LinearSetup(const std::vector<ColorRgb>& ledValues);
+
+	void LinearSmoothing();
+
+	void DebugOutput();
 
 	/// Logger instance
 	Logger* _log;
@@ -131,65 +145,82 @@ private:
 	/// The Qt timer object
 	QTimer _timer;
 
-	/// The timestamp at which the target data should be fully applied
-	int64_t _targetTime;
-
 	/// The target led data
 	std::vector<ColorRgb> _targetValues;
 
-	/// The timestamp of the previously written led data
-	int64_t _previousTime;
-
 	/// The previously written led data
-	std::vector<ColorRgb> _previousValues;
-
-	/// The number of updates to keep in the output queue (delayed) before being output
-	unsigned _outputDelay;
-	/// The output queue
-	std::list<std::vector<ColorRgb> > _outputQueue;
-
-	/// Prevent sending data to device when no intput data is sent
-	bool _writeToLedsEnable;
+	std::vector<ColorRgb> _previousValues;	
 
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
 
+	int32_t _antiFlickeringTreshold;
+
+	int32_t _antiFlickeringStep;
+
+	bool _flushFrame;
+
+	int64_t _targetTime;
+
+	int64_t _previousTime;
+
 	/// Flag for pausing
 	bool _pause;
+
+	enum class SmoothingType { Linear = 0, Alternative = 1 };
 
 	class SmoothingCfg
 	{
 		public:
-			bool     _pause;
-			int64_t  _settlingTime;
-			int64_t  _updateInterval;
-			unsigned _outputDelay;
-			bool     _directMode;
+			bool		  _pause;
+			int64_t		  _settlingTime;
+			int64_t		  _updateInterval;
+			bool		  _directMode;
+			SmoothingType _type;
+			int			  _antiFlickeringTreshold;
+			int			  _antiFlickeringStep;
 
 			SmoothingCfg():
 					_pause(false),
 					_settlingTime(200),
 					_updateInterval(25),
-					_outputDelay(0),
-					_directMode(false)
+					_directMode(false),
+					_type(SmoothingType::Linear),
+					_antiFlickeringTreshold(0),
+					_antiFlickeringStep(0)
 			{
 			}
 
-			SmoothingCfg(bool     pause, int64_t  settlingTime, int64_t  updateInterval,
-				unsigned outputDelay, bool     directMode):
+			SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold=0, int antiFlickeringStep=0):
 					_pause(pause),
 					_settlingTime(settlingTime),
 					_updateInterval(updateInterval),
-					_outputDelay(outputDelay),
-					_directMode(directMode)
+					_directMode(directMode),
+				    _type(type),
+					_antiFlickeringTreshold(antiFlickeringTreshold),
+					_antiFlickeringStep(antiFlickeringStep)
 			{
+			}
+
+			static QString EnumToString(SmoothingType type)
+			{
+				if (type == SmoothingType::Linear)
+					return QString("Linear");
+				else if (type == SmoothingType::Alternative)
+					return QString("Alternative");
+
+				return QString("Unknown");
 			}
 	};
 
 	/// smooth config list
 	QVector<SmoothingCfg> _cfgList;
 
-	unsigned _currentConfigId;
-	bool   _enabled;
-	bool   _directMode;
+	unsigned	  _currentConfigId;
+	bool		  _enabled;
+	bool		  _directMode;
+	SmoothingType _smoothingType;
+	bool		  _infoUpdate;
+	bool		  _infoInput;
+	int			  debugCounter;
 };

@@ -120,7 +120,7 @@ private:
 		bool classic_config,		
 		double saturationGain,
 		double luminanceGain,
-		double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
+		double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, bool _silent = false);
 
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
@@ -131,22 +131,16 @@ private:
 	void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t & red, uint8_t & green, uint8_t & blue);
 
 	/// backlight variables
-	bool      _backLightEnabled
-		, _backlightColored;
+	bool      _backLightEnabled, _backlightColored;
 	double    _backlightThreshold;
 
-	uint8_t _sumBrightnessYLow;
-	uint8_t _sumBrightnessRGBLow;		
+	uint8_t   _sumBrightnessRGBLow;		
 
 	/// gamma variables
-	double    _gammaR
-		, _gammaG
-		, _gammaB;
+	double    _gammaR, _gammaG, _gammaB;
 
 	/// The mapping from input color to output color
-	uint8_t   _mappingR[256]
-		, _mappingG[256]
-		, _mappingB[256];
+	uint8_t   _mappingR[256], _mappingG[256], _mappingB[256];
 
 	/// brightness variables
 	uint8_t   _brightness

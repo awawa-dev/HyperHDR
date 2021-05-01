@@ -21,5 +21,5 @@ target_link_libraries(webserver
 	hyperhdr-base
 	hyperhdr-utils
 	hyperhdr-api
-	Qt5::Network
+	Qt${Qt_VERSION}::Network
 )

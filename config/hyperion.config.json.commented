@@ -99,10 +99,9 @@
 	{
 		"enable"           : true,
 		"type"             : "linear",
-		"time_ms"          : 200,
-		"updateFrequency"  : 25.0000,
-		"updateDelay"      : 0,
-		"continuousOutput" : true
+		"time_ms"          : 150,
+		"updateFrequency"  : 80.0000,
+		"continuousOutput" : false
 	},
 
 	/// Configuration for the embedded V4L2 grabber
@@ -151,34 +150,7 @@
 		"hdrToneMappingMode"   : 1,	
 		"fpsSoftwareDecimation": 1,
 		"v4l2Encoding"         : "NONE"
-	},
-
-	///  The configuration for the frame-grabber, contains the following items:
-	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|xcb|framebuffer|qt) [auto]
-	///   * width        : The width of the grabbed frames [pixels]
-	///   * height       : The height of the grabbed frames [pixels]
-	///   * frequency_Hz : The frequency of the frame grab [Hz]
-	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour!
-	"framegrabber" :
-	{
-		// for all type of grabbers
-		"type"         : "framebuffer",
-		"frequency_Hz" : 10,
-		"cropLeft"     : 0,
-		"cropRight"    : 0,
-		"cropTop"      : 0,
-		"cropBottom"   : 0,
-
-		// valid for grabber: osx|dispmanx|amlogic|framebuffer
-		"width"        : 96,
-		"height"       : 96,
-
-		// valid for x11|xcb|qt
-		"pixelDecimation"           : 8,
-
-		// valid for qt
-		"display" 0
-	},
+	},	
 
 	/// The black border configuration, contains the following items:
 	///  * enable             : true if the detector should be activated

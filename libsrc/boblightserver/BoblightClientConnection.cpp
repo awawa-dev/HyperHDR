@@ -21,6 +21,7 @@
 #include <hyperhdrbase/HyperHdrInstance.h>
 #include <utils/QStringUtils.h>
 
+
 // project includes
 #include "BoblightClientConnection.h"
 
@@ -119,41 +120,41 @@ void BoblightClientConnection::socketClosed()
 void BoblightClientConnection::handleMessage(const QString & message)
 {
 	//std::cout << "boblight message: " << message.toStdString() << std::endl;
-	const QVector<QStringRef> messageParts = QStringUtils::splitRef(message, ' ', QStringUtils::SplitBehavior::SkipEmptyParts);
+	auto messageParts = QStringUtils::REFSPLITTER(message, ' ');
 	if (messageParts.size() > 0)
 	{
-		if (messageParts[0] == "hello")
+		if (messageParts[0] == QStringLiteral("hello"))
 		{
 			sendMessage("hello\n");
 			return;
 		}
-		else if (messageParts[0] == "ping")
+		else if (messageParts[0] == QStringLiteral("ping"))
 		{
 			sendMessage("ping 1\n");
 			return;
 		}
-		else if (messageParts[0] == "get" && messageParts.size() > 1)
+		else if (messageParts[0] == QStringLiteral("get") && messageParts.size() > 1)
 		{
-			if (messageParts[1] == "version")
+			if (messageParts[1] == QStringLiteral("version"))
 			{
 				sendMessage("version 5\n");
 				return;
 			}
-			else if (messageParts[1] == "lights")
+			else if (messageParts[1] == QStringLiteral("lights"))
 			{
 				sendLightMessage();
 				return;
 			}
 		}
-		else if (messageParts[0] == "set" && messageParts.size() > 2)
+		else if (messageParts[0] == QStringLiteral("set") && messageParts.size() > 2)
 		{
-			if (messageParts.size() > 3 && messageParts[1] == "light")
+			if (messageParts.size() > 3 && messageParts[1] == QStringLiteral("light"))
 			{
 				bool rc;
 				const unsigned ledIndex = parseUInt(messageParts[2], &rc);
 				if (rc && ledIndex < _ledColors.size())
 				{
-					if (messageParts[3] == "rgb" && messageParts.size() == 7)
+					if (messageParts[3] == QStringLiteral("rgb") && messageParts.size() == 7)
 					{
 						// custom parseByte accepts both ',' and '.' as decimal separator
 						// no need to replace decimal comma with decimal point
@@ -182,17 +183,17 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							return;
 						}
 					}
-					else if(messageParts[3] == "speed" ||
-						      messageParts[3] == "interpolation" ||
-						      messageParts[3] == "use" ||
-						      messageParts[3] == "singlechange")
+					else if(messageParts[3] == QStringLiteral("speed") ||
+						      messageParts[3] == QStringLiteral("interpolation") ||
+						      messageParts[3] == QStringLiteral("use") ||
+						      messageParts[3] == QStringLiteral("singlechange"))
 					{
 						// these message are ignored by Hyperion
 						return;
 					}
 				}
 			}
-			else if (messageParts.size() == 3 && messageParts[1] == "priority")
+			else if (messageParts.size() == 3 && messageParts[1] == QStringLiteral("priority"))
 			{
 				bool rc;
 				const int prio = static_cast<int>(parseUInt(messageParts[2], &rc));
@@ -225,7 +226,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 				}
 			}
 		}
-		else if (messageParts[0] == "sync")
+		else if (messageParts[0] == QStringLiteral("sync"))
 		{
 			if ( _priority >= 128 && _priority < 254)
 				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
@@ -249,7 +250,7 @@ const float ipows[] = {
 	1.0f / 10000000.0f,
 	1.0f / 100000000.0f};
 
-float BoblightClientConnection::parseFloat(const QStringRef& s, bool *ok) const
+float BoblightClientConnection::parseFloat(const QStringView& s, bool *ok) const
 {
 	// We parse radix 10
 	const char MIN_DIGIT = '0';
@@ -330,7 +331,7 @@ float BoblightClientConnection::parseFloat(const QStringRef& s, bool *ok) const
 	return f;
 }
 
-unsigned BoblightClientConnection::parseUInt(const QStringRef& s, bool *ok) const
+unsigned BoblightClientConnection::parseUInt(const QStringView& s, bool *ok) const
 {
 	// We parse radix 10
 	const char MIN_DIGIT = '0';
@@ -362,7 +363,7 @@ unsigned BoblightClientConnection::parseUInt(const QStringRef& s, bool *ok) cons
 	return n;
 }
 
-uint8_t BoblightClientConnection::parseByte(const QStringRef& s, bool *ok) const
+uint8_t BoblightClientConnection::parseByte(const QStringView& s, bool *ok) const
 {
 	const int LO = 0;
 	const int HI = 255;

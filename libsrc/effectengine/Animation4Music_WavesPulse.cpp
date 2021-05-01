@@ -76,7 +76,7 @@ bool Animation4Music_WavesPulse::getImage(Image<ColorRgb>& newImage)
 		}
 		else
 		{
-			w2 = std::min((( y * (_buffer.length() - 1)) % (scaleY / 2))*100/(scaleY / 2), 100);
+			w2 = std::min((int)(( y * (_buffer.length() - 1)) % (scaleY / 2))*100/(scaleY / 2), (int)100);
 			w1 = 100 - w2;
 		}
 		selected = QColor::fromRgb(
@@ -109,7 +109,7 @@ bool Animation4Music_WavesPulse::getImage(Image<ColorRgb>& newImage)
 		}
 		else
 		{
-			we2 = std::min((( x * (_buffer.length() - 1)) % (scaleX / 2))*100/(scaleX / 2), 100);
+			we2 = std::min((int)(( x * (_buffer.length() - 1)) % (scaleX / 2))*100/(scaleX / 2), (int)100);
 			we1 = 100 - we2;
 		}
 		selected = QColor::fromRgb(

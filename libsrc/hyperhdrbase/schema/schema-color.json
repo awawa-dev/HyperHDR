@@ -200,7 +200,7 @@
 						"required" : true,
 						"minimum" : 0,
 						"maximum": 100,
-						"default" : 0,
+						"default" : 1,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 11
 					},
@@ -209,7 +209,7 @@
 						"type" : "boolean",
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
-						"default" : false,
+						"default" : true,
 						"propertyOrder" : 12
 					},
 					"brightness" :
