@@ -2,7 +2,7 @@ name: Clean artifacts
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 1'
 
 jobs:
   clean:
@@ -12,4 +12,4 @@ jobs:
         uses: kolpav/purge-artifacts-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          expire-in: 28days # all artifacts at least 28 days old 
+          expire-in: 60days # all artifacts at least 28 days old 

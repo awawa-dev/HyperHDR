@@ -25,6 +25,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdr
 	, _continuousOutput(false)
 	, _antiFlickeringTreshold(0)
 	, _antiFlickeringStep(0)
+	, _antiFlickeringTimeout(0)
 	, _flushFrame(false)
 	, _targetTime(0)
 	, _previousTime(0)
@@ -85,9 +86,10 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 		cfg._antiFlickeringTreshold = obj["lowLightAntiFlickeringTreshold"].toInt(0);
 		cfg._antiFlickeringStep = obj["lowLightAntiFlickeringValue"].toInt(0);
+		cfg._antiFlickeringTimeout = obj["lowLightAntiFlickeringTimeout"].toInt(0);
 
-		Debug( _log, "Creating smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i",
-					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(cfg._type)), (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int32_t(cfg._settlingTime), int32_t(cfg._updateInterval), int32_t(1000.0/cfg._updateInterval), cfg._antiFlickeringTreshold, cfg._antiFlickeringStep);
+		Debug( _log, "Creating smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %ld",
+					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(cfg._type)), (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int32_t(cfg._settlingTime), int32_t(cfg._updateInterval), int32_t(1000.0/cfg._updateInterval), cfg._antiFlickeringTreshold, cfg._antiFlickeringStep, cfg._antiFlickeringTimeout);
 		_cfgList[0] = cfg;
 
 		// if current id is 0, we need to apply the settings (forced)
@@ -142,6 +144,8 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 		{
 			_previousTime = QDateTime::currentMSecsSinceEpoch();
 			_previousValues = ledValues;
+			_previousTimeouts.clear();
+			_previousTimeouts.resize(_previousValues.size(), _previousTime);
 
 			_timer.start(_updateInterval);
 
@@ -179,12 +183,15 @@ int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues
 
 void LinearColorSmoothing::Antiflickering()
 {
-	if (_antiFlickeringTreshold > 0 && _antiFlickeringStep > 0 && _previousValues.size() == _targetValues.size())
+	if (_antiFlickeringTreshold > 0 && _antiFlickeringStep > 0 && _previousValues.size() == _targetValues.size() && _previousValues.size() == _previousTimeouts.size())
 	{
+		int64_t now = QDateTime::currentMSecsSinceEpoch();
+
 		for (size_t i = 0; i < _previousValues.size(); ++i)
 		{
-			auto newColor = _targetValues[i];
-			auto oldColor = _previousValues[i];
+			auto	 newColor = _targetValues[i];
+			auto     oldColor = _previousValues[i];
+			int64_t& timeout  = _previousTimeouts[i];
 			int avVal = (std::min(int(newColor.red), std::min(int(newColor.green), int(newColor.blue))) +
 				std::max(int(newColor.red), std::max(int(newColor.green), int(newColor.blue)))) / 2;
 
@@ -199,7 +206,10 @@ void LinearColorSmoothing::Antiflickering()
 					(newColor.red != 0 || newColor.green != 0 || newColor.blue != 0) &&
 					(oldColor.red != 0 || oldColor.green != 0 || oldColor.blue != 0))
 				{
-					_targetValues[i] = _previousValues[i];
+					if (_antiFlickeringTimeout <= 0 || now - timeout < _antiFlickeringTimeout)
+						_targetValues[i] = _previousValues[i];
+					else
+						timeout = now;
 				}
 			}
 		}
@@ -232,6 +242,9 @@ void LinearColorSmoothing::AlternateLinearSmoothing()
 	if (deltaTime <= 0 || _targetTime <= _previousTime)
 	{
 		_previousValues = _targetValues;
+		_previousTimeouts.clear();
+		_previousTimeouts.resize(_previousValues.size(), now);
+
 		_previousTime = now;
 
 		if (_flushFrame)
@@ -296,12 +309,15 @@ void LinearColorSmoothing::LinearSetup(const std::vector<ColorRgb>& ledValues)
 	{
 		Warning(_log, "Detect size changed. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
 		_previousValues.clear();
+		_previousTimeouts.clear();
 	}
 
 	if (_previousValues.empty())
 	{
 		_previousTime = QDateTime::currentMSecsSinceEpoch();
 		_previousValues = ledValues;
+		_previousTimeouts.clear();
+		_previousTimeouts.resize(_previousValues.size(), _previousTime);
 	}
 
 	Antiflickering();
@@ -315,6 +331,9 @@ void LinearColorSmoothing::LinearSmoothing()
 	if (deltaTime <= 0 || _targetTime <= _previousTime)
 	{
 		_previousValues = _targetValues;
+		_previousTimeouts.clear();
+		_previousTimeouts.resize(_previousValues.size(), now);
+
 		_previousTime = now;
 		
 		if (_flushFrame)
@@ -410,6 +429,7 @@ void LinearColorSmoothing::clearQueuedColors(bool semaphore)
 
 		_timer.stop();
 		_previousValues.clear();
+		_previousTimeouts.clear();
 		_previousTime = 0;
 		_targetValues.clear();
 		_targetTime = 0;
@@ -499,7 +519,8 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 		_pause            = _cfgList[cfg]._pause;
 		_directMode       = _cfgList[cfg]._directMode;		
 		_antiFlickeringTreshold = _cfgList[cfg]._antiFlickeringTreshold;
-		_antiFlickeringStep = _cfgList[cfg]._antiFlickeringStep;
+		_antiFlickeringStep     = _cfgList[cfg]._antiFlickeringStep;
+		_antiFlickeringTimeout  = _cfgList[cfg]._antiFlickeringTimeout;
 
 
 		if (_cfgList[cfg]._updateInterval != _updateInterval || _cfgList[cfg]._type  != _smoothingType)
@@ -512,9 +533,9 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 
 		_currentConfigId = cfg;
 
-		Info( _log, "Selecting smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i",
+		Info( _log, "Selecting smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %ld",
 					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_cfgList[cfg]._type)), (_cfgList[cfg]._directMode)?"true":"false" , (_cfgList[cfg]._pause)?"true":"false", int32_t(_cfgList[cfg]._settlingTime),
-					int32_t(_cfgList[cfg]._updateInterval), int32_t(1000.0/_cfgList[cfg]._updateInterval), _cfgList[cfg]._antiFlickeringTreshold, _cfgList[cfg]._antiFlickeringStep);
+					int32_t(_cfgList[cfg]._updateInterval), int32_t(1000.0/_cfgList[cfg]._updateInterval), _cfgList[cfg]._antiFlickeringTreshold, _cfgList[cfg]._antiFlickeringStep, _cfgList[cfg]._antiFlickeringTimeout);
 
 		return true;
 	}

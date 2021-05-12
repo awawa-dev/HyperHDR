@@ -149,7 +149,8 @@ private:
 	std::vector<ColorRgb> _targetValues;
 
 	/// The previously written led data
-	std::vector<ColorRgb> _previousValues;	
+	std::vector<ColorRgb> _previousValues;
+	std::vector<int64_t>  _previousTimeouts;
 
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
@@ -157,6 +158,8 @@ private:
 	int32_t _antiFlickeringTreshold;
 
 	int32_t _antiFlickeringStep;
+
+	int64_t _antiFlickeringTimeout;
 
 	bool _flushFrame;
 
@@ -179,6 +182,7 @@ private:
 			SmoothingType _type;
 			int			  _antiFlickeringTreshold;
 			int			  _antiFlickeringStep;
+			int64_t		  _antiFlickeringTimeout;
 
 			SmoothingCfg():
 					_pause(false),
@@ -187,18 +191,20 @@ private:
 					_directMode(false),
 					_type(SmoothingType::Linear),
 					_antiFlickeringTreshold(0),
-					_antiFlickeringStep(0)
+					_antiFlickeringStep(0),
+					_antiFlickeringTimeout(0)
 			{
 			}
 
-			SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold=0, int antiFlickeringStep=0):
+			SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold=0, int antiFlickeringStep=0, int64_t antiFlickeringTimeout=0):
 					_pause(pause),
 					_settlingTime(settlingTime),
 					_updateInterval(updateInterval),
 					_directMode(directMode),
 				    _type(type),
 					_antiFlickeringTreshold(antiFlickeringTreshold),
-					_antiFlickeringStep(antiFlickeringStep)
+					_antiFlickeringStep(antiFlickeringStep),
+					_antiFlickeringTimeout(antiFlickeringTimeout)
 			{
 			}
 

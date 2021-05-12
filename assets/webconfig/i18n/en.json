@@ -958,11 +958,6 @@
   "edt_conf_enum_unicolor_advanced": "Advanced squared mean color for each led",
   "edt_conf_enum_unicolor_weighted": "Advanced squared mean color for each led (pixel distance to edge weighted)",
   "edt_append_mode": "mode",
-  "edt_conf_fg_amlogic_grabber_title": "Amlogic grabber",
-  "edt_conf_fg_amlogic_grabber_expl": ".",
-  "edt_conf_fg_ge2d_mode_title": "Ge2d mode",
-  "edt_conf_fg_ge2d_mode_expl": ".",
-  "edt_conf_fg_device_expl": ".",
   "remote_maptype_label_advanced": "Advanced squared",
   "remote_maptype_label_weighted": "Advanced weighted squared",
   "remote_videoModeHdr_intro": "Turn on/off HDR tone mapping for USB grabber. $1",
@@ -1006,5 +1001,7 @@
   "edt_conf_smooth_antiFlickeringValue_title" : "Anti-flickering minimal step",
   "edt_conf_smooth_antiFlickeringValue_expl" : "Minimal required change of color's channel (reminder: full RGB range is 0-255 each) that must be reached to affect the LED source. RGB black target (0,0,0) omits that to preserve turning off leds if the backlight is disabled",
   "main_ledsim_btn_screenshot": "Screenshot",
-  "edt_conf_enum_linear_alternative": "Alternative linear (faster)"
+  "edt_conf_enum_linear_alternative": "Alternative linear (faster)",
+  "edt_conf_smooth_antiFlickeringTimeout_title" : "Anti-flickering timeout",
+  "edt_conf_smooth_antiFlickeringTimeout_expl" : "Allow to change a RGB led color, after custom time in miliseconds, even if the step is below minimum (0 = disabled, otherwise proposed value is at least 3000 which gives 3 seconds)"
 }

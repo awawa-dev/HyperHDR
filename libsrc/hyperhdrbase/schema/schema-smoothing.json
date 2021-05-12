@@ -65,6 +65,20 @@
 			},
 			"propertyOrder" : 6
 		},
+		"lowLightAntiFlickeringTimeout" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_smooth_antiFlickeringTimeout_title",
+			"minimum" : 0,
+			"maximum": 10000,
+			"default" : 0,
+			"options": {
+				"dependencies": {
+					"lowLightAntiFlickeringTreshold": true
+				}
+			},
+			"propertyOrder" : 7
+		},
 		"continuousOutput" :
 		{
 			"type" : "boolean",
