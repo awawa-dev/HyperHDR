@@ -4,9 +4,10 @@ Open source bias lighting implementation with the audio visualization effects an
 
 ## Download packages & sources
 
+Official releases: \
 https://github.com/awawa-dev/HyperHDR/releases
 
-Installers of testing version you can find in the latest build's artifacts: :sparkles:
+Installers of latest testing version you can find in the latest build's artifacts: :sparkles: \
 https://github.com/awawa-dev/HyperHDR/actions
 
 Default LUT table is already included (in the installers) but you can generate your own or import 3dl Autodesk lut table.\
