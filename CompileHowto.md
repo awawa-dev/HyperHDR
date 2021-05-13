@@ -7,12 +7,6 @@ sudo apt-get update
 sudo apt-get install build-essential cmake git libasound2-dev libavahi-core-dev libavahi-compat-libdnssd-dev libglvnd-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libturbojpeg0-dev libusb-1.0-0-dev python3-minimal rpm qtbase5-dev
 ```
 
-sometimes on RPI you may need the videocore IV headers
-
-```
-sudo apt-get install libraspberrypi-dev
-```
-
 ## Windows
 We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)

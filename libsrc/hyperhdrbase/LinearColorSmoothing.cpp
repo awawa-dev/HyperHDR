@@ -192,14 +192,16 @@ void LinearColorSmoothing::Antiflickering()
 			auto	 newColor = _targetValues[i];
 			auto     oldColor = _previousValues[i];
 			int64_t& timeout  = _previousTimeouts[i];
+
 			int avVal = (std::min(int(newColor.red), std::min(int(newColor.green), int(newColor.blue))) +
-				std::max(int(newColor.red), std::max(int(newColor.green), int(newColor.blue)))) / 2;
+						 std::max(int(newColor.red), std::max(int(newColor.green), int(newColor.blue)))) / 2;
 
 			if (avVal < _antiFlickeringTreshold)
 			{
 				int minR = std::abs(int(newColor.red) - int(oldColor.red));
 				int minG = std::abs(int(newColor.green) - int(oldColor.green));
 				int minB = std::abs(int(newColor.blue) - int(oldColor.blue));
+
 				int select = std::max(std::max(minR, minG), minB);
 
 				if (select < _antiFlickeringStep &&
@@ -211,7 +213,11 @@ void LinearColorSmoothing::Antiflickering()
 					else
 						timeout = now;
 				}
+				else
+					timeout = now;
 			}
+			else
+				timeout = now;
 		}
 	}
 }

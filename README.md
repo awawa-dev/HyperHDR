@@ -6,6 +6,9 @@ Open source bias lighting implementation with the audio visualization effects an
 
 https://github.com/awawa-dev/HyperHDR/releases
 
+Installers of testing version you can find in the latest build's artifacts: :sparkles:
+https://github.com/awawa-dev/HyperHDR/actions
+
 Default LUT table is already included (in the installers) but you can generate your own or import 3dl Autodesk lut table.\
 For Raspberry Pi you may use prepared SD card images: [manual](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html)\
 Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/ \

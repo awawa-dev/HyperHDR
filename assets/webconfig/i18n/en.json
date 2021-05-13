@@ -936,7 +936,7 @@
   "wiz_yeelight_title": "Yeelight Wizard",
   "wiz_yeelight_unsupported": "Unsupported",
   "edt_conf_v4l2_hdrToneMapping_title": "HDR to SDR tone mapping",
-  "edt_conf_v4l2_hdrToneMapping_expl": "If enabled, HyperHDR will try to correct colors of the HDR10 content that was captured by the grabber as SDR format. 3D LUT file <b>'lut_lin_tables.3d'</b> is already included but if you want you own please put it in HyperHDR configuration folder.<br/><b>You can generate one and preview the effect on that page:</b> <a href='content/lut_generator.html'>LINK</a>. That file is also strongly recommended for YUV grabbers even if you don't use HDR.<br/>Typical configuration folder for is (check logs in DEBUG mode): Rpi &#47;home&#47;pi&#47;.hyperhdr<br/>Windows c:&#47;Users&#47;NAME&#47;.hyperhdr",
+  "edt_conf_v4l2_hdrToneMapping_expl": "If enabled, HyperHDR will try to correct colors of the HDR10 content that was captured by the grabber as SDR format. 3D LUT file <b>'lut_lin_tables.3d'</b> is already included but if you want you own please put it in HyperHDR configuration folder.<br/><b>You can generate one and preview the effect on that page:</b> <a href='content/lut_generator.html'>LINK</a>. That file is also strongly recommended for YUV grabbers even if you don't use HDR.<br/>Typical configuration folder for is (check logs in DEBUG mode):<br/> Rpi &#47;home&#47;pi&#47;.hyperhdr<br/>Windows c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "edt_conf_v4l2_hdrToneMappingMode_title": "Area for LUT mode effect",
   "edt_conf_v4l2_hdrToneMappingMode_expl": "Only MJPG: mode 1 for Fullscreen or mode 2 for faster Border Mode (dont work with black borders)",
   "edt_conf_v4l2_fpsSoftwareDecimation_title": "Software frame skipping",
