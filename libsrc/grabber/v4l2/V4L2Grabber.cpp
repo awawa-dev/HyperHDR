@@ -314,7 +314,7 @@ bool V4L2Grabber::init()
 
 		DeviceProperties dev = _deviceProperties[foundDevice];
 
-		Debug(_log, "Searching for %s %d x %d @ %d fps (%s)", QSTRING_CSTR(foundDevice), _width, _height, _fps, QSTRING_CSTR(pixelFormatToString(_enc)));
+		Debug(_log, "Searching for %s %d x %d @ %d fps, input: %i (%s)", QSTRING_CSTR(foundDevice), _width, _height, _fps, _input, QSTRING_CSTR(pixelFormatToString(_enc)));
 
 		for (int i = 0; i < dev.valid.count() && foundIndex < 0; i++)
 		{
@@ -339,6 +339,13 @@ bool V4L2Grabber::init()
 			{
 				strict = true;
 				if (val.fps != _fps)
+					continue;
+			}
+
+			if (_input >= 0)
+			{
+				strict = true;
+				if (val.input != _input)
 					continue;
 			}
 
@@ -491,89 +498,103 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				while (xioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0)
 				{
 					properties.inputs.insert(QString((char*)input.name), input.index);
+
+					struct v4l2_fmtdesc formatDesc;
+					CLEAR(formatDesc);
+
+					formatDesc.index = 0;
+					formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+					while (xioctl(fd, VIDIOC_ENUM_FMT, &formatDesc) == 0)
+					{
+						// collect available device resolutions & frame rates
+						struct v4l2_frmsizeenum frmsizeenum;
+						CLEAR(frmsizeenum);
+
+						frmsizeenum.index = 0;
+						frmsizeenum.pixel_format = formatDesc.pixelformat;
+						while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+						{
+							switch (frmsizeenum.type)
+							{
+							case V4L2_FRMSIZE_TYPE_DISCRETE:
+							{
+								struct v4l2_frmivalenum searchFrameEnum;
+								CLEAR(searchFrameEnum);
+
+								QString pixelFormat = pixelFormatToString(identifyFormat(formatDesc.pixelformat));
+								QString resolution = formatRes(frmsizeenum.discrete.width, frmsizeenum.discrete.height, pixelFormat);
+								QString displayResolutions = formatRes(frmsizeenum.discrete.width, frmsizeenum.discrete.height, "");
+
+								searchFrameEnum.index = 0;
+								searchFrameEnum.pixel_format = frmsizeenum.pixel_format;
+								searchFrameEnum.width = frmsizeenum.discrete.width;
+								searchFrameEnum.height = frmsizeenum.discrete.height;
+
+								while (xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &searchFrameEnum) >= 0)
+								{
+									int frameRate = -1;
+									switch (searchFrameEnum.type)
+									{
+									case V4L2_FRMSIZE_TYPE_DISCRETE:
+										if (searchFrameEnum.discrete.numerator != 0)
+										{
+											frameRate = searchFrameEnum.discrete.denominator / searchFrameEnum.discrete.numerator;
+										}
+										break;
+									case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+									case V4L2_FRMSIZE_TYPE_STEPWISE:
+										if (searchFrameEnum.stepwise.min.denominator != 0)
+										{
+											frameRate = searchFrameEnum.stepwise.min.denominator / searchFrameEnum.stepwise.min.numerator;
+										}
+										break;
+									}
+
+									if (frameRate > 0)
+									{
+										QString sFrame = formatFrame(frameRate);
+
+										if (!properties.displayResolutions.contains(displayResolutions))
+											properties.displayResolutions << displayResolutions;
+
+										if (!properties.framerates.contains(sFrame))
+											properties.framerates << sFrame;
+
+										DevicePropertiesItem di;
+										di.x = frmsizeenum.discrete.width;
+										di.y = frmsizeenum.discrete.height;
+										di.fps = frameRate;
+										di.pf = identifyFormat(formatDesc.pixelformat);
+										di.pixel_format = formatDesc.pixelformat;
+										di.input = input.index;
+
+										if (di.pf != PixelFormat::NO_CHANGE)
+											properties.valid.append(di);
+
+										if (!silent)
+										{
+											if (di.pf != PixelFormat::NO_CHANGE)
+												Debug(_log, "%s %d x %d @ %d fps %s", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
+											else
+												Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
+										}
+									}
+									searchFrameEnum.index++;
+								}
+							}
+							break;
+							}
+							frmsizeenum.index++;
+						}
+						formatDesc.index++;
+					}
+					/////////////////////////////////////////////////////////////					
 					input.index++;
 				}
 			}
 
-			// collect available device resolutions & frame rates
-			struct v4l2_frmsizeenum frmsizeenum;
-			CLEAR(frmsizeenum);
-
-			frmsizeenum.index = 0;
-			frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
-			while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
-			{
-				switch (frmsizeenum.type)
-				{
-					case V4L2_FRMSIZE_TYPE_DISCRETE:
-					{
-						struct v4l2_frmivalenum searchFrameEnum;
-						CLEAR(searchFrameEnum);
-
-						QString pixelFormat = pixelFormatToString(identifyFormat(fmt.fmt.pix.pixelformat));						
-						QString resolution = formatRes(frmsizeenum.discrete.width, frmsizeenum.discrete.height, pixelFormat);
-						QString displayResolutions = formatRes(frmsizeenum.discrete.width, frmsizeenum.discrete.height, "");
-
-						searchFrameEnum.index = 0;
-						searchFrameEnum.pixel_format = frmsizeenum.pixel_format;
-						searchFrameEnum.width = frmsizeenum.discrete.width;
-						searchFrameEnum.height = frmsizeenum.discrete.height;
-
-						while (xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &searchFrameEnum) >= 0)
-						{
-							int frameRate = -1;
-							switch (searchFrameEnum.type)
-							{
-								case V4L2_FRMSIZE_TYPE_DISCRETE:								
-									if (searchFrameEnum.discrete.numerator != 0)
-									{
-										frameRate = searchFrameEnum.discrete.denominator / searchFrameEnum.discrete.numerator;
-									}
-									break;
-								case V4L2_FRMSIZE_TYPE_CONTINUOUS:
-								case V4L2_FRMSIZE_TYPE_STEPWISE:								
-									if (searchFrameEnum.stepwise.min.denominator != 0)
-									{
-										frameRate = searchFrameEnum.stepwise.min.denominator / searchFrameEnum.stepwise.min.numerator;
-									}
-									break;
-							}
-
-							if (frameRate > 0)
-							{
-								QString sFrame = formatFrame(frameRate);
-
-								if (!properties.displayResolutions.contains(displayResolutions))
-									properties.displayResolutions << displayResolutions;
-
-								if (!properties.framerates.contains(sFrame))
-									properties.framerates << sFrame;
-
-								DevicePropertiesItem di;
-								di.x = frmsizeenum.discrete.width;
-								di.y = frmsizeenum.discrete.height;
-								di.fps = frameRate;
-								di.pf = identifyFormat(fmt.fmt.pix.pixelformat);
-								di.pixel_format = fmt.fmt.pix.pixelformat;
-
-								if (di.pf != PixelFormat::NO_CHANGE)
-									properties.valid.append(di);
-
-								if (!silent)
-								{
-									if (di.pf != PixelFormat::NO_CHANGE)
-										Debug(_log, "%s %d x %d @ %d fps %s", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
-									else
-										Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
-								}
-							}
-							searchFrameEnum.index++;
-						}
-					}
-					break;					
-				}
-				frmsizeenum.index++;
-			}
+			
 			_deviceProperties.insert(properties.name, properties);
 
 			if (close(fd) < 0) continue;
@@ -837,6 +858,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 	struct v4l2_input v4l2Input;
 	CLEAR(v4l2Input);
 
+	_input = props.input;
 	v4l2Input.index = _input;
 
 	if (_input >= 0 && (xioctl(VIDIOC_ENUMINPUT, &v4l2Input) == 0))
@@ -880,6 +902,8 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 	// initialize current width and height
 	_width = fmt.fmt.pix.width;
 	_height = fmt.fmt.pix.height;
+	_fps = props.fps;
+	
 
 	// display the used width and height
 	Info(_log, "Set resolution to: %d x %d", _width, _height );
@@ -1093,7 +1117,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 			throw_exception("Only pixel formats MJPEG, YUYV, RGB24, XRGB, I420 and NV12 are supported");
 		return false;
 	}
-
+	
 	return init_mmap();
 }
 

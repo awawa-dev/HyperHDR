@@ -36,7 +36,7 @@ public:
 
 	struct DevicePropertiesItem
 	{
-		int 		x, y, fps, fps_a, fps_b;
+		int 		x, y, fps, input;
 		PixelFormat pf;
 		__u32       pixel_format;
 	};
