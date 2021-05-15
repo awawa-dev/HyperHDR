@@ -19,133 +19,88 @@
 #include <utils/Components.h>
 
 // general JPEG decoder includes
-#ifdef HAVE_JPEG_DECODER
-	#include <QImage>
-	#include <QColor>
-#endif
+#include <QImage>
+#include <QColor>
+#include <turbojpeg.h>
 
-// System JPEG decoder
-#ifdef HAVE_JPEG
-	#include <jpeglib.h>
-	#include <csetjmp>
-#endif
-
-// TurboJPEG decoder
-#ifdef HAVE_TURBO_JPEG
-	#include <turbojpeg.h>
-#endif
-
-/// Capture class for V4L2 devices
-///
-/// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
 class V4L2Grabber : public Grabber
 {
 	Q_OBJECT
 
 public:
-	struct DeviceProperties
+	struct HyperHdrFormat
 	{
-		QString					name		= QString();
-		QMultiMap<QString, int>	inputs		= QMultiMap<QString, int>();
-		QStringList				resolutions	= QStringList();
-		QStringList				framerates	= QStringList();
+		__u32		v4l2Format;
+		PixelFormat innerFormat;
 	};
 
-	V4L2Grabber(const QString & device,
+	struct DevicePropertiesItem
+	{
+		int 		x, y, fps, fps_a, fps_b;
+		PixelFormat pf;
+		__u32       pixel_format;
+	};
+
+	struct DeviceProperties
+	{
+		QString						name = QString();
+		QMultiMap<QString, int>		inputs = QMultiMap<QString, int>();
+		QStringList					resolutions = QStringList();
+		QStringList					displayResolutions = QStringList();
+		QStringList					framerates = QStringList();
+		QList<DevicePropertiesItem> valid = QList<DevicePropertiesItem>();
+	};
+
+	V4L2Grabber(const QString& device,
 			const unsigned width,
 			const unsigned height,
 			const unsigned fps,
 			const unsigned input,			
 			PixelFormat pixelFormat,
-			const QString & configurationPath
+			const QString& configurationPath
 	);
 	~V4L2Grabber() override;
 
-	QRectF getSignalDetectionOffset() const
-	{
-		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
-	}
+	QRectF getSignalDetectionOffset()  const;
+	bool   getSignalDetectionEnabled() const;
 
-	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
 	int  getHdrToneMappingEnabled();
-	int grabFrame(Image<ColorRgb> &);
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
+	int  grabFrame(Image<ColorRgb> &);
+	
 	void setSignalThreshold(
 					double redSignalThreshold,
 					double greenSignalThreshold,
 					double blueSignalThreshold,
 					int noSignalCounterThreshold) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
+	
 	void setSignalDetectionOffset(
 					double verticalMin,
 					double horizontalMin,
 					double verticalMax,
 					double horizontalMax) override;
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
+
 	void setSignalDetectionEnable(bool enable) override;
 	
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	void setDeviceVideoStandard(QString device) override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	bool setInput(int input) override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	bool setWidthHeight(int width, int height) override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	bool setFramerate(int fps) override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	QStringList getV4L2devices() const override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	QString getV4L2deviceName(const QString& devicePath) const override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	QStringList getResolutions(const QString& devicePath) const override;
 
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	QStringList getFramerates(const QString& devicePath) const override;		
 	
-	///
-	/// @brief set software decimation (v4l2)
-	///
 	void setFpsSoftwareDecimation(int decimation);
 	
-	///
-	/// @brief enable HDR to SDR tone mapping (v4l2)
-	///
 	void setHdrToneMappingEnabled(int mode) override;
 	
 	void setEncoding(QString enc);
@@ -160,11 +115,11 @@ public slots:
 
 	void stop();
 	
-	void newWorkerFrame(unsigned int _workerIndex, Image<ColorRgb> image,unsigned int sourceCount, quint64 _frameBegin);	
-	void newWorkerFrameError(unsigned int _workerIndex, QString error,unsigned int sourceCount);
+	void newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin);
+	void newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount);
 signals:
 	
-	void newFrame(const Image<ColorRgb> & image);
+	void newFrame(const Image<ColorRgb>& image);
 	void readError(const char* err);
 
 private slots:
@@ -172,8 +127,10 @@ private slots:
 
 private:
 	QString GetSharedLut();
-	
-	void loadLutFile(const QString & color);
+
+	void enumerateV4L2devices(bool silent);
+
+	void loadLutFile(const QString& color);
 	
 	void getV4Ldevices();
 
@@ -181,13 +138,11 @@ private:
 
 	void uninit();
 
-	bool open_device();
-
 	void close_device();
 	
-	void init_mmap();	
+	bool init_mmap();	
 
-	void init_device();
+	bool init_device(QString selectedDeviceName, DevicePropertiesItem props);
 
 	void uninit_device();
 
@@ -195,79 +150,45 @@ private:
 
 	void stop_capturing();
 
-	bool process_image(v4l2_buffer* buf, const void *frameImageBuffer, int size);
+	bool process_image(v4l2_buffer* buf, const void* frameImageBuffer, int size);
 
-	int xioctl(int request, void *arg);
+	int xioctl(int request, void* arg);
 
-	int xioctl(int fileDescriptor, int request, void *arg);
+	int xioctl(int fileDescriptor, int request, void* arg);
 
-	void throw_exception(const QString & error)
-	{
-		Error(_log, "Throws error: %s", QSTRING_CSTR(error));
-	}
+	void throw_exception(const QString& error);
 
-	void throw_errno_exception(const QString & error)
-	{
-		Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
-	}
+	void throw_errno_exception(const QString& error);
 	
 	void checkSignalDetectionEnabled(Image<ColorRgb> image);
+
+	void resetCounter(int64_t from);
+
+	QString formatRes(int w, int h, QString format);
+
+	QString formatFrame(int fr);
+
+	PixelFormat identifyFormat(__u32 format);
 	
 private:
-	enum io_method
-	{
-			
-			IO_METHOD_MMAP
-			
-	};
-
+	
 	struct buffer
 	{
-			void   *start;
-			size_t  length;
+		void*	start;
+		size_t  length;
 	};
-
-#ifdef HAVE_JPEG
-	struct errorManager
-	{
-		jpeg_error_mgr pub;
-		jmp_buf setjmp_buffer;
-	};
-
-	static void errorHandler(j_common_ptr cInfo)
-	{
-		errorManager* mgr = reinterpret_cast<errorManager*>(cInfo->err);
-		longjmp(mgr->setjmp_buffer, 1);
-	}
-
-	static void outputHandler(j_common_ptr cInfo)
-	{
-		// Suppress fprintf warnings.
-	}
-
-	jpeg_decompress_struct* _decompress;
-	errorManager* _error;
-#endif
-
-#ifdef HAVE_TURBO_JPEG
-	tjhandle _decompress = nullptr;
-	int _subsamp;
-#endif
-
-private:
+	
 	QString _deviceName;
-	std::map<QString, QString> _v4lDevices;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
 
-	io_method           _ioMethod;
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 	
 	// statistics
 	struct {
-		uint64_t	frameBegin;
-		int   		averageFrame;
-		unsigned int	badFrame,goodFrame,segment;
+		int64_t			frameBegin;
+		int   			averageFrame;
+		unsigned int	badFrame, goodFrame, segment;
 	} frameStat;
 
 	PixelFormat _pixelFormat;
@@ -275,41 +196,32 @@ private:
 	int         _frameByteSize;
 
 	// signal detection
-	int      _noSignalCounterThreshold;
-	ColorRgb _noSignalThresholdColor;
-	bool     _signalDetectionEnabled;	
-	bool     _noSignalDetected;
-	int      _noSignalCounter;
-	double   _x_frac_min;
-	double   _y_frac_min;
-	double   _x_frac_max;
-	double   _y_frac_max;
+	int         _noSignalCounterThreshold;
+	ColorRgb	_noSignalThresholdColor;
+	bool		_signalDetectionEnabled;
+	bool		_noSignalDetected;
+	int			_noSignalCounter;
+	double		_x_frac_min;
+	double		_y_frac_min;
+	double		_x_frac_max;
+	double		_y_frac_max;
 
 	QSocketNotifier *_streamNotifier;
 
-	bool _initialized;
-	bool _deviceAutoDiscoverEnabled;	
-	
-	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
-	int            _fpsSoftwareDecimation;
-	
+	bool		_initialized;
+	bool		_deviceAutoDiscoverEnabled;
+	int			_fpsSoftwareDecimation;
+
 	// memory buffer for 3DLUT HDR tone mapping
-	unsigned char  *lutBuffer;		
-	bool 		_lutBufferInit;
+	uint8_t*	_lutBuffer;		
+	bool		_lutBufferInit;
 	
 	// frame counter
-	volatile unsigned int _currentFrame;
-			
-	QString        _configurationPath;		
+	volatile uint64_t   _currentFrame;			
+	QString				_configurationPath;				
+	V4L2WorkerManager   _V4L2WorkerManager;	
 	
-		
-	V4L2WorkerManager _V4L2WorkerManager;
-	
-	void	ResetCounter(uint64_t from);	
-	
-	PixelFormat        _enc;
-	int _brightness,_contrast, _saturation, _hue;
-	bool _qframe;
-protected:
-	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
+	PixelFormat	_enc;
+	int			_brightness,_contrast, _saturation, _hue;
+	bool		_qframe;
 };

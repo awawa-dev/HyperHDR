@@ -25,7 +25,7 @@ public:
 	static void processQImage(		
 		const uint8_t* data, int width, int height, int lineLength, const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
 
-	static void applyLUT(unsigned char* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled);
+	static void applyLUT(uint8_t* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled);
 private:
 	int _horizontalDecimation;
 	int _verticalDecimation;

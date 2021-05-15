@@ -1,6 +1,6 @@
 ## About 
 
-Open source bias lighting implementation with the audio visualization effects and video performance tweaks especially for USB grabbers. Support for HDR/BT2020 using LUT tables. Single and multi-threaded video processing optimization on **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers. Now even Raspberry Pi 3 can handle 1080p60 MJPEG stream. Direct support for the devices under Windows 10 using Microsoft Media Foundation and under macOS using AVFoundation.
+Open source ambient lighting implementation with the audio visualization effects and video performance tweaks especially for USB grabbers. Support for HDR/BT2020 using LUT tables. Single and multi-threaded video processing optimization on **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers. Now even Raspberry Pi 3 can handle 1080p60 MJPEG stream. Direct support for the devices under Windows 10 using Microsoft Media Foundation and under macOS using AVFoundation.
 
 ## Download packages & sources
 
@@ -23,14 +23,14 @@ SSH and SPI are enabled on default.
 
 [HyperHDR's discussion section](https://github.com/awawa-dev/HyperHDR/discussions) (or https://hyperhdr.blogspot.com/ )
 
-**Manuals and guides for building and configuring your own bias lighting system with HyperHDR:**
+**Manuals and guides for building and configuring your own ambient lighting system with HyperHDR:**
 
 [Step 1: Addressable led strip](https://hyperhdr.blogspot.com/2020/11/blog-post.html)\
 [Step 2: Power supply](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying.html)\
 [Step 3: USB grabber](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_12.html)\
 [Step 4: Additional stuff](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_13.html)\
 [Step 5: Device for hosting HyperHDR...macOS, Windows or Raspberry Pi?](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_14.html) :sparkles: \
-[Step 6: Installing HyperHDR bias lighting software](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html) :sparkles: \
+[Step 6: Installing HyperHDR ambient lighting software](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html) :sparkles: \
 [Step 7: How to set up HyperHDR? Part I: basic configuration](https://hyperhdr.blogspot.com/2021/04/how-to-set-up-hyperhdr-part-i-basic.html) :new:
 
 [Build-log from my SK6812 RGBW system and one thing about calibration](https://hyperhdr.blogspot.com/2020/12/my-build-log-using-sk6812-rgbw-led.html)
@@ -94,7 +94,7 @@ It's possible to switch off/on HDR tone mapping remotely with home automation sy
 \
 \
 **Before and after HyperHDR LUT correction on HDR/BT2020 video that was broken by the USB grabber.\
-Without it your bias lighting colors will be washed-out:**
+Without it your ambient lighting colors will be washed-out:**
 ![alt text](https://i.postimg.cc/VsbZrGBx/cfinal.jpg)
 ![alt text](https://i.postimg.cc/sXbnH7yH/afinal.jpg)
 ![alt text](https://i.postimg.cc/zDnSY9kG/dfinal.jpg)

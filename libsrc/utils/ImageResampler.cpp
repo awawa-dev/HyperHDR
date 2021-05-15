@@ -413,7 +413,7 @@ void ImageResampler::processQImage(
 	startSource += 3;\
 }
 
-void ImageResampler::applyLUT(unsigned char* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled)
+void ImageResampler::applyLUT(uint8_t* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled)
 { 
 	uint8_t buffer[4];
 
