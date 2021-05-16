@@ -881,12 +881,12 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 	struct v4l2_input v4l2Input;
 	CLEAR(v4l2Input);
 
-	_input = props.input;
-	v4l2Input.index = _input;
+	v4l2Input.index = props.input;
 
-	if (_input >= 0 && (xioctl(VIDIOC_ENUMINPUT, &v4l2Input) == 0))
+	if (props.input >= 0 && (xioctl(VIDIOC_ENUMINPUT, &v4l2Input) == 0))
 	{
-		if (xioctl(VIDIOC_S_INPUT, &_input) == -1)
+		int inputTemp = props.input;
+		if (xioctl(VIDIOC_S_INPUT, &inputTemp) == -1)
 			Error(_log, "Input settings are not supported.");
 		else
 			Info(_log, "Set device input to: %s", v4l2Input.name);
