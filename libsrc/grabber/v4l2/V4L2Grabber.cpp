@@ -79,6 +79,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _currentFrame(0)
 	, _configurationPath(configurationPath)
 	, _enc(pixelFormat)
+	, _actualWidth(0)
+	, _actualHeight(0)
 	, _brightness(0)
 	, _contrast(0)
 	, _saturation(0)
@@ -1133,7 +1135,10 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 			throw_exception("Only pixel formats MJPEG, YUYV, RGB24, XRGB, I420 and NV12 are supported");
 		return false;
 	}
-	
+
+	_actualWidth = props.x;
+	_actualHeight = props.y;
+
 	return init_mmap();
 }
 
@@ -1305,7 +1310,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							i,
 							buf,
 							_pixelFormat,
-							(uint8_t*)frameImageBuffer, size, _width, _height, _lineLength,
+							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, currentTime, _hdrToneMappingEnabled,
 							(_lutBufferInit) ? _lutBuffer : NULL, _qframe);

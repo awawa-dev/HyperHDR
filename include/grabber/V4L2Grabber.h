@@ -224,6 +224,7 @@ private:
 	V4L2WorkerManager   _V4L2WorkerManager;	
 	
 	PixelFormat	_enc;
+	int			_actualWidth, _actualHeight;
 	int			_brightness,_contrast, _saturation, _hue;
 	bool		_qframe;
 };
