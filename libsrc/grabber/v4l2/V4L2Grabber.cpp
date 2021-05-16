@@ -1623,3 +1623,24 @@ bool V4L2Grabber::getSignalDetectionEnabled() const
 {
 	return _signalDetectionEnabled;
 }
+
+QStringList V4L2Grabber::getVideoCodecs(const QString& devicePath) const
+{
+	QStringList returnList = { "mjpeg", "yuyv", "rgb24", "xrgb", "i420", "nv12" };
+	QStringList newList;
+
+	if (_deviceProperties.contains(devicePath))
+	{
+		DeviceProperties  selected = _deviceProperties.value(devicePath);
+		for (int i = 0; i < selected.valid.count(); i++)
+		{
+			const auto& val = selected.valid[i];
+			QString name = pixelFormatToString(val.pf);
+
+			if (!newList.contains(name))
+				newList << name;
+		}
+		returnList = newList;
+	}
+	return returnList;
+}

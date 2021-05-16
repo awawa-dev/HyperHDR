@@ -546,6 +546,15 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		}
 		device.insert("framerates", availableFramerates);
 
+		QJsonArray availableVideoCodec;
+		QStringList videoCodecs = GrabberWrapper::getInstance()->getVideoCodecs(devicePath);
+		for (auto videoCodec : videoCodecs)
+		{
+			availableVideoCodec.append(videoCodec);
+		}
+		device.insert("videoCodecs", availableVideoCodec);
+
+
 		availableV4L2devices.append(device);
 	}
 

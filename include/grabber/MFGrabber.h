@@ -141,7 +141,9 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getFramerates(const QString& devicePath) const override;		
+	QStringList getFramerates(const QString& devicePath) const override;
+
+	QStringList getVideoCodecs(const QString& devicePath) const override;
 	
 	///
 	/// @brief set software decimation (v4l2)

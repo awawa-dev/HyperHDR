@@ -1226,3 +1226,23 @@ void AVFGrabber::setQFrameDecimation(int setQframe)
 	Info(_log, QSTRING_CSTR(QString("setQFrameDecimation is now: %1").arg(_qframe ? "enabled" : "disabled")));
 }
 
+QStringList AVFGrabber::getVideoCodecs(const QString& devicePath) const
+{
+	QStringList returnList = { "mjpeg", "yuyv", "rgb24", "xrgb", "i420", "nv12" };
+	QStringList newList;
+
+	if (_deviceProperties.contains(devicePath))
+	{
+		DeviceProperties  selected = _deviceProperties.value(devicePath);
+		for (int i = 0; i < selected.valid.count(); i++)
+		{
+			const auto& val = selected.valid[i];
+			QString name = pixelFormatToString(val.pf);
+
+			if (!newList.contains(name))
+				newList << name;
+		}
+		returnList = newList;
+	}
+	return returnList;
+}

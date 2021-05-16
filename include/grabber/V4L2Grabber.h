@@ -97,7 +97,9 @@ public:
 
 	QStringList getResolutions(const QString& devicePath) const override;
 
-	QStringList getFramerates(const QString& devicePath) const override;		
+	QStringList getFramerates(const QString& devicePath) const override;
+
+	QStringList getVideoCodecs(const QString& devicePath) const override;
 	
 	void setFpsSoftwareDecimation(int decimation);
 	

@@ -33,6 +33,13 @@ $(document).ready( function() {
 			"title": "edt_conf_v4l2_framerate_title",
 			"propertyOrder" : 9,
 			"required" : true
+			},
+		"videoCodecs":
+			{
+			"type": "string",
+			"title": "edt_conf_v4l2_v4l2Encoding_title",
+			"propertyOrder" : 11,
+			"required" : true
 			}
     };
 
@@ -58,7 +65,7 @@ $(document).ready( function() {
 						  : enumTitelVals.push(v4l2_properties[i]['device']);
 					}
 				}
-				else if (key == 'resolutions' || key == 'framerates')
+				else if (key == 'resolutions' || key == 'framerates' || key == 'videoCodecs')
 				{
 					for (var i = 0; i < v4l2_properties.length; i++) 
 					{
@@ -118,7 +125,7 @@ $(document).ready( function() {
 
 				if (key == 'available_devices')
 				{
-					var V4L2properties = ['device_inputs', 'resolutions', 'framerates'];
+					var V4L2properties = ['device_inputs', 'resolutions', 'framerates', 'videoCodecs'];
 					if (val == 'auto')
 					{
 						V4L2properties.forEach(function(item) {
@@ -131,6 +138,7 @@ $(document).ready( function() {
 						toggleOption('width', false);
 						toggleOption('height', false);
 						toggleOption('fps', false);
+						toggleOption('v4l2Encoding', false);
 
 					}
 					else 
@@ -161,6 +169,9 @@ $(document).ready( function() {
 
           if (key == 'framerates')
 			  toggleOption('fps', false);
+		  
+		  if (key == 'videoCodecs')
+			  toggleOption('v4l2Encoding', false);
 
           if (key == 'device_inputs')
 			  toggleOption('input', false);
@@ -230,7 +241,7 @@ $(document).ready( function() {
 
 			if (window.serverConfig.grabberV4L2.available_devices == 'auto') 
 			{
-				['device_inputs', 'resolutions', 'framerates'].forEach(function(item) {
+				['device_inputs', 'resolutions', 'framerates', 'videoCodecs'].forEach(function(item) {
 					conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
 					conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
 				});
@@ -270,6 +281,12 @@ $(document).ready( function() {
 
 			if (v4l2Options.grabberV4L2.framerates == 'auto')
 				v4l2Options.grabberV4L2.fps = 15;
+			
+			if (v4l2Options.grabberV4L2.videoCodecs != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
+				v4l2Options.grabberV4L2.v4l2Encoding = v4l2Options.grabberV4L2.videoCodecs;
+
+			if (v4l2Options.grabberV4L2.videoCodecs == 'auto')
+				v4l2Options.grabberV4L2.v4l2Encoding = 'NO_CHANGE';
 
 			requestWriteConfig(v4l2Options);
 		});

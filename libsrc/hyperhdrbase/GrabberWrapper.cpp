@@ -176,40 +176,48 @@ void GrabberWrapper::tryStart()
 
 QStringList GrabberWrapper::getV4L2devices() const
 {
-	if(_grabberName.startsWith("V4L"))
+	if (_ggrabber != nullptr)
 		return _ggrabber->getV4L2devices();
-
-	return QStringList();
+	else
+		return QStringList();
 }
 
 QString GrabberWrapper::getV4L2deviceName(const QString& devicePath) const
 {
-	if(_grabberName.startsWith("V4L"))
+	if (_ggrabber != nullptr)
 		return _ggrabber->getV4L2deviceName(devicePath);
-
-	return QString();
+	else
+		return QString();
 }
 
 QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(const QString& devicePath) const
 {
-	if(_grabberName.startsWith("V4L"))
+	if (_ggrabber != nullptr)
 		return _ggrabber->getV4L2deviceInputs(devicePath);
-
-	return QMultiMap<QString, int>();
+	else
+		return QMultiMap<QString, int>();
 }
 
 QStringList GrabberWrapper::getResolutions(const QString& devicePath) const
 {
-	if(_grabberName.startsWith("V4L"))
+	if (_ggrabber != nullptr)
 		return _ggrabber->getResolutions(devicePath);
-
-	return QStringList();
+	else
+		return QStringList();
 }
 
 QStringList GrabberWrapper::getFramerates(const QString& devicePath) const
 {
-	if(_grabberName.startsWith("V4L"))
+	if (_ggrabber != nullptr)
 		return _ggrabber->getFramerates(devicePath);
+	else
+		return QStringList();
+}
 
-	return QStringList();
+QStringList GrabberWrapper::getVideoCodecs(const QString& devicePath) const
+{
+	if (_ggrabber != nullptr)
+		return _ggrabber->getVideoCodecs(devicePath);
+	else
+		return QStringList();
 }

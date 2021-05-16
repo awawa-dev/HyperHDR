@@ -89,6 +89,8 @@ public:
 	///
 	virtual QStringList getFramerates(const QString& devicePath) const;
 
+	virtual QStringList getVideoCodecs(const QString& devicePath) const;
+
 	///
 	/// @brief Get active grabber name
 	/// @return Active grabber name

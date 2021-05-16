@@ -147,6 +147,8 @@ public:
 	///
 	virtual QStringList getFramerates(const QString& devicePath) const { return QStringList(); }
 
+	virtual QStringList getVideoCodecs(const QString& devicePath) const { return QStringList(); }
+
 protected:
 	ImageResampler _imageResampler;
 
