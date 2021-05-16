@@ -266,8 +266,8 @@ $(document).ready( function() {
 
 			if (v4l2Options.grabberV4L2.resolutions != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
 			{
-				v4l2Options.grabberV4L2.width = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[0]);
-				v4l2Options.grabberV4L2.height = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[1]);
+				v4l2Options.grabberV4L2.width = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[0].trim());
+				v4l2Options.grabberV4L2.height = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[1].trim());
 			}
 
 			if (v4l2Options.grabberV4L2.resolutions == 'auto')

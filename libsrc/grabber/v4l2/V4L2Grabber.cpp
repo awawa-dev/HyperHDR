@@ -415,12 +415,17 @@ QString V4L2Grabber::formatRes(int w, int h, QString format)
 	QString ws = QString::number(w);
 	QString hs = QString::number(h);
 
-	while (ws.length() < 4)
-		ws = " " + ws;
-	while (hs.length() < 4)
-		hs = " " + hs;
+	if (format.isEmpty())
+		return ws + "x" + hs;
+	else
+	{		
+		while (ws.length() < 4)
+			ws = " " + ws;
+		while (hs.length() < 4)
+			hs = " " + hs;
 
-	return ws + "x" + hs + " " + format;
+		return ws + "x" + hs + " " + format;
+	}
 }
 
 QString V4L2Grabber::formatFrame(int fr)
@@ -914,15 +919,10 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		throw_errno_exception("VIDIOC_S_FMT");
 		return false;
 	}
-
-	// initialize current width and height
-	_width = fmt.fmt.pix.width;
-	_height = fmt.fmt.pix.height;
-	_fps = props.fps;
 	
 
 	// display the used width and height
-	Info(_log, "Set resolution to: %d x %d", _width, _height );
+	Info(_log, "Set resolution to: %d x %d", props.x, props.y);
 
 	// Trying to set frame rate
 	struct v4l2_streamparm streamparms;
@@ -936,7 +936,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
 		{
 			streamparms.parm.capture.timeperframe.numerator = 1;
-			streamparms.parm.capture.timeperframe.denominator = _fps;
+			streamparms.parm.capture.timeperframe.denominator = props.fps;
 
 			if (xioctl(VIDIOC_S_PARM, &streamparms) == -1)
 				Error(_log, "Frame rate settings not supported.");
@@ -1079,7 +1079,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		{
 			loadLutFile("yuv");		
 			_pixelFormat = PixelFormat::YUYV;
-			_frameByteSize = _width * _height * 2;
+			_frameByteSize = props.x * props.y * 2;
 			Info(_log, "Video pixel format is set to: YUYV");
 		}
 		break;
@@ -1088,7 +1088,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		{
 			loadLutFile("rgb");				
 			_pixelFormat = PixelFormat::XRGB;
-			_frameByteSize = _width * _height * 4;
+			_frameByteSize = props.x * props.y * 4;
 			Info(_log, "Video pixel format is set to: XRGB");
 		}
 		break;
@@ -1097,7 +1097,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		{
 			loadLutFile("rgb");
 			_pixelFormat = PixelFormat::RGB24;
-			_frameByteSize = _width * _height * 3;
+			_frameByteSize = props.x * props.y * 3;
 			Info(_log, "Video pixel format is set to: RGB24");
 		}
 		break;
@@ -1106,7 +1106,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		{
 			loadLutFile("yuv");
 			_pixelFormat = PixelFormat::I420;
-			_frameByteSize = (_width * _height * 6) / 4;
+			_frameByteSize = (props.x * props.y * 6) / 4;
 			Info(_log, "Video pixel format is set to: I420");
 		}
 		break;
@@ -1115,7 +1115,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		{
 			loadLutFile("yuv");
 			_pixelFormat = PixelFormat::NV12;
-			_frameByteSize = (_width * _height * 6) / 4;
+			_frameByteSize = (props.x * props.y * 6) / 4;
 			Info(_log, "Video pixel format is set to: NV12");
 		}
 		break;
