@@ -296,11 +296,17 @@ bool V4L2Grabber::init()
 		if (autoDiscovery)
 		{
 			Debug(_log, "Forcing auto discovery device");
-			if (_deviceProperties.count() > 0)
+			for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 			{
-				foundDevice = _deviceProperties.firstKey();
-				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				QString key = it.key();
+				if (_deviceProperties[key].valid.count() > 0)
+				{
+					foundDevice = key;
+					_deviceName = foundDevice;
+					Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				}
+				else
+					Debug(_log, "Auto discovery: device %s offers no valid video modes. Skipping.", QSTRING_CSTR(key));
 			}
 		}
 		else
@@ -376,7 +382,13 @@ bool V4L2Grabber::init()
 		{
 			try
 			{
-				if (init_device(foundDevice, dev.valid[foundIndex]))
+				Info(_log, "*********************************************************************");
+				Info(_log, "Starting V4L2 grabber. Selected: %s (%s) %d x %d @ %d fps %s", QSTRING_CSTR(foundDevice), QSTRING_CSTR(dev.name),
+					dev.valid[foundIndex].x, dev.valid[foundIndex].y, dev.valid[foundIndex].fps,
+					QSTRING_CSTR(pixelFormatToString(dev.valid[foundIndex].pf)));
+				Info(_log, "*********************************************************************");
+
+				if (init_device(dev.name, dev.valid[foundIndex]))
 				{
 					_initialized = true;
 				}
@@ -569,16 +581,10 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 										di.pixel_format = formatDesc.pixelformat;
 										di.input = input.index;
 
-										if (di.pf != PixelFormat::NO_CHANGE)
-											properties.valid.append(di);
-
-										if (!silent)
-										{
-											if (di.pf != PixelFormat::NO_CHANGE)
-												Debug(_log, "%s %d x %d @ %d fps %s", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
-											else
-												Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
-										}
+										if (di.pf == PixelFormat::NO_CHANGE)										
+											Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
+										else
+											properties.valid.append(di);										
 									}
 									searchFrameEnum.index++;
 								}
@@ -594,21 +600,31 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				}
 			}
 
-			
-			_deviceProperties.insert(properties.name, properties);
-
-			if (close(fd) < 0) continue;
+			if (close(fd) < 0)
+			{
+				Warning(_log, "Error closing '%s' device. Skipping...", QSTRING_CSTR(devName));
+				continue;
+			}
 
 			QFile devNameFile(dev+"/name");
+			QString realName = properties.name;
+
 			if (devNameFile.exists())
 			{
 				devNameFile.open(QFile::ReadOnly);
-				devName = devNameFile.readLine();
-				devName = devName.trimmed();
-				properties.name = devName;
+				realName = devNameFile.readLine().trimmed();
 				devNameFile.close();
 			}
-			_deviceProperties.insert("/dev/"+it.fileName(), properties);
+			_deviceProperties.insert(realName, properties);
+
+			if (!silent)
+			{
+				for (int i = 0; i < properties.valid.count(); i++)
+				{
+					const auto& di = properties.valid[i];
+					Info(_log, "%s (%s) %d x %d @ %d fps %s", QSTRING_CSTR(realName), QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)));
+				}
+			}
 		}
     }
 }
@@ -846,12 +862,12 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 
 		if (xioctl(VIDIOC_S_CROP, &crop) == -1)
 		{
-			Debug(_log, "Hardware cropping is not supporting: ignoring");
+			Debug(_log, "Hardware cropping is not supported: ignoring");
 		}
 	}
 	else
 	{
-		Debug(_log, "Hardware cropping is not supporting: ignoring");
+		Debug(_log, "Hardware cropping is not supported: ignoring");
 	}
 
 	// set input if needed and supported
@@ -864,7 +880,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 	if (_input >= 0 && (xioctl(VIDIOC_ENUMINPUT, &v4l2Input) == 0))
 	{
 		if (xioctl(VIDIOC_S_INPUT, &_input) == -1)
-			Error(_log, "Input settings not supported.");
+			Error(_log, "Input settings are not supported.");
 		else
 			Info(_log, "Set device input to: %s", v4l2Input.name);
 	}
@@ -1191,7 +1207,7 @@ int V4L2Grabber::read_frame()
 				case EIO:
 				default:
 				{
-					throw_errno_exception("VIDIOC_DQBUF");
+					throw_errno_exception("VIDIOC_DQBUF error. Video stream is probably broken. Refreshing list of the devices.");
 					stop();
 					getV4Ldevices();
 				}
@@ -1205,7 +1221,7 @@ int V4L2Grabber::read_frame()
 				
 		if (!rc && -1 == xioctl(VIDIOC_QBUF, &buf))
 		{
-			throw_errno_exception("VIDIOC_QBUF");
+			throw_errno_exception("VIDIOC_QBUF error. Video stream is probably broken.");
 			return 0;
 		}			
 	}
