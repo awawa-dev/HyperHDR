@@ -6,6 +6,8 @@
 #include <hyperhdrbase/HyperHdrInstance.h>
 
 #include <cmath>
+#include <stdint.h>
+#include <inttypes.h>
 
 using namespace hyperhdr;
 
@@ -75,7 +77,7 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 		SmoothingCfg	cfg (false,
 							 static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
-							 static_cast<int64_t>(1000.0/obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY)),
+							 static_cast<int64_t>(std::max(1000.0/std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), DEFAUL_UPDATEFREQUENCY), 5.0)),
 							 false);
 
 		auto smoothingType = obj["type"].toString("linear");
@@ -88,8 +90,8 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		cfg._antiFlickeringStep = obj["lowLightAntiFlickeringValue"].toInt(0);
 		cfg._antiFlickeringTimeout = obj["lowLightAntiFlickeringTimeout"].toInt(0);
 
-		Debug( _log, "Creating smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %ld",
-					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(cfg._type)), (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int32_t(cfg._settlingTime), int32_t(cfg._updateInterval), int32_t(1000.0/cfg._updateInterval), cfg._antiFlickeringTreshold, cfg._antiFlickeringStep, cfg._antiFlickeringTimeout);
+		Debug( _log, "Creating smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %i",
+					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(cfg._type)), (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int(cfg._settlingTime), int(cfg._updateInterval), int(1000.0/cfg._updateInterval), cfg._antiFlickeringTreshold, cfg._antiFlickeringStep, int(cfg._antiFlickeringTimeout));
 		_cfgList[0] = cfg;
 
 		// if current id is 0, we need to apply the settings (forced)
@@ -528,20 +530,21 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 		_antiFlickeringStep     = _cfgList[cfg]._antiFlickeringStep;
 		_antiFlickeringTimeout  = _cfgList[cfg]._antiFlickeringTimeout;
 
+		int64_t newUpdateInterval = std::max(_cfgList[cfg]._updateInterval, (int64_t)5);
 
-		if (_cfgList[cfg]._updateInterval != _updateInterval || _cfgList[cfg]._type  != _smoothingType)
+		if (newUpdateInterval != _updateInterval || _cfgList[cfg]._type  != _smoothingType)
 		{
 			clearQueuedColors(true);
 
-			_updateInterval = _cfgList[cfg]._updateInterval;
+			_updateInterval = newUpdateInterval;
 			_smoothingType = _cfgList[cfg]._type;
 		}
 
 		_currentConfigId = cfg;
 
-		Info( _log, "Selecting smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %ld",
-					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_cfgList[cfg]._type)), (_cfgList[cfg]._directMode)?"true":"false" , (_cfgList[cfg]._pause)?"true":"false", int32_t(_cfgList[cfg]._settlingTime),
-					int32_t(_cfgList[cfg]._updateInterval), int32_t(1000.0/_cfgList[cfg]._updateInterval), _cfgList[cfg]._antiFlickeringTreshold, _cfgList[cfg]._antiFlickeringStep, _cfgList[cfg]._antiFlickeringTimeout);
+		Info( _log, "Selecting smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %i",
+					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode)?"true":"false" , (_pause)?"true":"false", int(_settlingTime),
+					int(_updateInterval), int(1000.0/ _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
 
 		return true;
 	}
