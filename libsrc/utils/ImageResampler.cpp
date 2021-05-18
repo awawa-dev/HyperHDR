@@ -1,42 +1,11 @@
-#include "utils/ImageResampler.h"
+#include <utils/ImageResampler.h>
 #include <utils/ColorSys.h>
 #include <utils/Logger.h>
 
-ImageResampler::ImageResampler()
-	: _horizontalDecimation(1)
-	, _verticalDecimation(1)
-	, _cropLeft(0)
-	, _cropRight(0)
-	, _cropTop(0)
-	, _cropBottom(0)
-{
-}
-
-ImageResampler::~ImageResampler()
-{
-}
-
-void ImageResampler::setHorizontalPixelDecimation(int decimator)
-{
-	_horizontalDecimation = decimator;
-}
-
-void ImageResampler::setVerticalPixelDecimation(int decimator)
-{
-	_verticalDecimation = decimator;
-}
-
-void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
-{
-	_cropLeft   = cropLeft;
-	_cropRight  = cropRight;
-	_cropTop    = cropTop;
-	_cropBottom = cropBottom;
-}
-
 void ImageResampler::processImage(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-	const uint8_t* data, int width, int height, int lineLength, const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
+	const uint8_t* data, int width, int height, int lineLength,
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
 {
 	uint32_t ind_lutd, ind_lutd2;
 	uint8_t  buffer[8];
@@ -226,7 +195,8 @@ void ImageResampler::processImage(
 }
 
 void ImageResampler::processQImage(	
-	const uint8_t* data, int width, int height, int lineLength, const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
+	const uint8_t* data, int width, int height, int lineLength,
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
 {
 	uint32_t ind_lutd;
 	uint8_t  buffer[8];

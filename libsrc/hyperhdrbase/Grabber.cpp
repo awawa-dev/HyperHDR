@@ -1,9 +1,7 @@
 #include <hyperhdrbase/Grabber.h>
 
 Grabber::Grabber(const QString& grabberName, int width, int height, int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: _imageResampler()
-	, _useImageResampler(true)
-	, _width(width)
+	: _width(width)
 	, _height(height)
 	, _fps(15)
 	, _input(-1)
@@ -39,15 +37,6 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	_cropRight  = cropRight;
 	_cropTop    = cropTop;
 	_cropBottom = cropBottom;
-
-	if ( _useImageResampler )
-	{
-		_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
-	}
-	else
-	{
-		_imageResampler.setCropping(0, 0, 0, 0);
-	}
 
 	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
 	{

@@ -149,13 +149,9 @@ public:
 
 	virtual QStringList getVideoCodecs(const QString& devicePath) const { return QStringList(); }
 
-protected:
-	ImageResampler _imageResampler;
-
-	bool _useImageResampler;
-
-	/// the selected VideoMode
-	int    _hdr;
+protected:	
+	/// the selected HDR mode
+	int _hdr;
 
 	/// With of the captured snapshot [pixels]
 	int _width;
@@ -175,9 +171,8 @@ protected:
 	bool _enabled;
 
 	// enable/disable HDR tone mapping
-	uint8_t       _hdrToneMappingEnabled;
+	uint8_t _hdrToneMappingEnabled;
 	
 	/// logger instance
-	Logger * _log;
-
+	Logger* _log;
 };
