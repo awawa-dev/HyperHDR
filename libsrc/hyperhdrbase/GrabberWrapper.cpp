@@ -118,37 +118,6 @@ void GrabberWrapper::updateTimer(int interval)
 	}
 }
 
-void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
-{
-	if(type == settings::type::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
-	{
-		// extract settings
-		const QJsonObject& obj = config.object();
-
-		// width/height
-		_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
-
-		// display index for MAC
-		_ggrabber->setDisplayIndex(obj["display"].toInt(0));
-
-		// device path for Framebuffer
-		_ggrabber->setDevicePath(obj["device"].toString("/dev/fb0"));
-
-		// pixel decimation for x11
-		_ggrabber->setPixelDecimation(obj["pixelDecimation"].toInt(8));
-
-		// crop for system capture
-		_ggrabber->setCropping(
-			obj["cropLeft"].toInt(0),
-			obj["cropRight"].toInt(0),
-			obj["cropTop"].toInt(0),
-			obj["cropBottom"].toInt(0));
-
-		// eval new update time
-		updateTimer(1000/obj["frequency_Hz"].toInt(10));
-	}
-}
-
 void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int hyperhdrInd, bool listen)
 {
 	if(component == hyperhdr::Components::COMP_V4L && _grabberName.startsWith("V4L"))

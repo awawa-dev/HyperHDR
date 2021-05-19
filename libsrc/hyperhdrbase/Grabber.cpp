@@ -86,10 +86,13 @@ bool Grabber::setFramerate(int fps)
 	return false;
 }
 
-void Grabber::setHdrToneMappingEnabled(int mode)
+int Grabber::getImageWidth()
 {
-	if (_hdrToneMappingEnabled != mode)
-	{
-		_hdrToneMappingEnabled = mode;		
-	}
+	return _width;
 }
+
+int Grabber::getImageHeight()
+{
+	return _height;
+}
+

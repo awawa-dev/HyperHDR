@@ -99,26 +99,6 @@ public:
 
 	static QStringList availableGrabbers();
 
-public:
-	template <typename Grabber_T>
-	bool transferFrame(Grabber_T &grabber)
-	{
-		unsigned w = grabber.getImageWidth();
-		unsigned h = grabber.getImageHeight();
-		if ( _image.width() != w || _image.height() != h)
-		{
-			_image.resize(w, h);
-		}
-
-		int ret = grabber.grabFrame(_image);
-		if (ret >= 0)
-		{
-			emit systemImage(_grabberName, _image);
-			return true;
-		}
-		return false;
-	}
-
 public slots:
 	///
 	/// virtual method, should perform single frame grab and computes the led-colors
@@ -135,12 +115,7 @@ public slots:
 	///
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 
-	///
-	/// @brief Handle settings update from HyperHDRDaemon Settingsmanager emit
-	/// @param type   settingyType from enum
-	/// @param config configuration object
-	///
-	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config) = 0;
 
 signals:
 	///
@@ -170,9 +145,9 @@ protected:
 	int _updateInterval_ms;
 
 	/// The Logger instance
-	Logger * _log;
+	Logger* _log;
 
-	Grabber *_ggrabber;
+	Grabber* _ggrabber;
 
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
