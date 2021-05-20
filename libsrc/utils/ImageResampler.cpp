@@ -375,17 +375,10 @@ void ImageResampler::processQImage(
 
 
 
-#define LUT() \
-{\
-	*((uint32_t*)&buffer) = *((uint32_t*)startSource);\
-	uint32_t ind_lutd = LUT_INDEX(buffer[0],buffer[1],buffer[2]);\
-	*((uint16_t*)startSource) = *((uint16_t*)(&(lutBuffer[ind_lutd])));\
-	startSource += 3;\
-}
 
 void ImageResampler::applyLUT(uint8_t* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled)
-{ 
-	uint8_t buffer[4];
+{
+	uint8_t buffer[8];
 
 	if (lutBuffer != NULL && _hdrToneMappingEnabled)
 	{
@@ -400,17 +393,26 @@ void ImageResampler::applyLUT(uint8_t* _source, unsigned int width, unsigned int
 			if (_hdrToneMappingEnabled != 2 || y < sizeY || y > height - sizeY)
 			{
 				while (startSource < endSource)
-					LUT();
+				{
+					*((uint32_t*)&buffer) = *((uint32_t*)startSource);
+					uint32_t ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
+					memcpy(startSource, &(lutBuffer[ind_lutd]), 3);
+					startSource += 3;
+				}
 			}
 			else
 			{
-				for (unsigned int x = 0; x < sizeX; x++)
-					LUT();
-
-				startSource += (width - 2 * static_cast<size_t>(sizeX)) * 3;
-
+				unsigned int x = 0;
 				while (startSource < endSource)
-					LUT();
+				{
+					if (x++ == sizeX)
+						startSource += (width - 2 * static_cast<size_t>(sizeX)) * 3;
+
+					*((uint32_t*)&buffer) = *((uint32_t*)startSource);
+					uint32_t ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[2]);
+					memcpy(startSource, &(lutBuffer[ind_lutd]), 3);
+					startSource += 3;
+				}
 			}
 		}
 	}
