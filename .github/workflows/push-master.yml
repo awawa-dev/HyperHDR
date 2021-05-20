@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l ]
+        dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
         include:
           - dockerImage: x86_64
             dockerName: Debian Buster (x86_64)
@@ -28,6 +28,9 @@ jobs:
           - dockerImage: rpi34-armv7l
             dockerName: Debian Buster (Raspberry Pi 3 & 4)
             platform: rpi
+          - dockerImage: arm-aarch64
+            dockerName: Debian Buster (ARM aarch64)
+            platform: rpi            
 
     steps:
       # checkout
@@ -171,9 +174,12 @@ jobs:
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
-
+          
+      - name: Set up nasm
+        uses: ilammy/setup-nasm@v1
+          
       # Build packages
-      - name: Build packages
+      - name: Build packages        
         env:
           PLATFORM: windows
         shell: bash

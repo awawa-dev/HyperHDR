@@ -1,4 +1,4 @@
-// hyperion local includes
+// HyperHDR local includes
 #include "LedDeviceAtmo.h"
 
 LedDeviceAtmo::LedDeviceAtmo(const QJsonObject &deviceConfig)

@@ -4,13 +4,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/MF)
 
 FILE ( GLOB WMF_SOURCES "${CURRENT_HEADER_DIR}/MF*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(WMF-grabber ${WMF_SOURCES} )
+add_library(MF-grabber ${WMF_SOURCES} )
 
-target_link_libraries(WMF-grabber
+target_link_libraries(MF-grabber
 	hyperhdr-base
 	${QT_LIBRARIES}
 )
 
-if(TURBOJPEG_FOUND)
-	target_link_libraries(WMF-grabber ${TurboJPEG_LIBRARY})
-endif(TURBOJPEG_FOUND)
+target_include_directories(MF-grabber PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/external/libjpeg-turbo)

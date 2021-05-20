@@ -1,118 +1,150 @@
 {
 	"type": "object",
+	"required" : true,
 	"properties": {
 		"classic": {
 			"type": "object",
 			"required": true,
 			"properties": {
 				"top": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 1
 				},
 				"bottom": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 0
 				},
 				"left": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 0
 				},
 				"right": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 0
 				},
 				"glength": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 0
 				},
 				"gpos": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 0
 				},
 				"position": {
+					"required": true,
+					"type": "integer",
+					"default": 0
+				},
+				"groupX": {
+					"required": true,
+					"type": "integer",
+					"default": 0
+				},
+				"groupY": {
+					"required": true,
 					"type": "integer",
 					"default": 0
 				},
 				"reverse": {
+					"required": true,
 					"type": "boolean",
+					"format": "checkbox",
 					"default": false
 				},
 				"hdepth": {
+					"required": true,
 					"type": "integer",
 					"minimum": 1,
 					"maximum": 100,
 					"default": 8
 				},
 				"vdepth": {
+					"required": true,
 					"type": "integer",
 					"minimum": 1,
 					"maximum": 100,
 					"default": 5
 				},
 				"overlap": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"default": 0
 				},
 				"edgegap": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 50,
 					"default": 0
 				},
 				"ptlh": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
 					"default": 0
 				},
 				"ptlv": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
 					"default": 0
 				},
 				"ptrh": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
-					"default": 0
+					"default": 100
 				},
 				"ptrv": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
 					"default": 0
 				},
 				"pblh": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
 					"default": 0
 				},
 				"pblv": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
-					"default": 0
+					"default": 100
 				},
 				"pbrh": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
-					"default": 0
+					"default": 100
 				},
 				"pbrv": {
+					"required": true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 100,
-					"default": 0
+					"default": 100
 				}
 			},
 			"additionalProperties": false
@@ -122,24 +154,30 @@
 			"required": true,
 			"properties": {
 				"ledshoriz": {
+					"required" : true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 50,
-					"default": 0
+					"default": 1
 				},
 				"ledsvert": {
+					"required" : true,
 					"type": "integer",
 					"minimum": 0,
 					"maximum": 50,
-					"default": 0
+					"default": 1
 				},
 				"cabling": {
+					"required" : true,
 					"type": "string",
-					"enum": ["snake", "parallel"]
+					"enum": ["snake", "parallel"],
+					"default": "snake"
 				},
 				"start": {
+					"required" : true,
 					"type": "string",
-					"enum": ["top-left", "top-right", "bottom-left", "bottom-right"]
+					"enum": ["top-left", "top-right", "bottom-left", "bottom-right"],
+					"default": "top-left"
 				}
 			},
 			"additionalProperties": false

@@ -14,7 +14,7 @@ FULL LOGS ARE MANDATORY! You can use service like pastebin to upload them and pr
 
 
 ## Bug report, debug log and your config file (FULL LOGS ARE MANDATORY)
-<!-- In the web interface of the Hyperion config go to System > Logs and paste its content here or provide link to pastebin upload.
+<!-- In the web interface of the HyperHDR config go to System > Logs and paste its content here or provide link to pastebin upload.
 Remember, missing or partial/cut logs deserves partial answer or closing report without any attention.
 -->
 
@@ -25,4 +25,4 @@ Remember, missing or partial/cut logs deserves partial answer or closing report 
 #### What is actually happening?
 
 #### System
-<!-- In the web interface of the Hyperion config go to System > About and Paste the content of "System info" here -->
+<!-- In the web interface of the HyperHDR config go to System > About and Paste the content of "System info" here -->

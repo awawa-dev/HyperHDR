@@ -16,7 +16,7 @@
 #include <QRandomGenerator>
 #endif
 
-static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
+static const QString SSDP_IDENTIFIER("urn:hyperion-project.org:device:basic:1");
 
 SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort,  const QString& name, QObject * parent)
 	: SSDPServer(parent)
@@ -46,7 +46,7 @@ void SSDPHandler::initServer()
 	// announce targets
 	_deviceList.push_back("upnp:rootdevice");
 	_deviceList.push_back("uuid:"+_uuid);
-	_deviceList.push_back(SSDP_HYPERION_ST);
+	_deviceList.push_back(SSDP_IDENTIFIER);
 
 	// prep server
 	SSDPServer::initServer();
@@ -167,6 +167,25 @@ void SSDPHandler::handleWebServerStateChange(bool newState)
 
 QString SSDPHandler::getLocalAddress() const
 {
+	for (const auto& _interface : QNetworkInterface::allInterfaces())
+	{		
+		if ((_interface.type() != QNetworkInterface::InterfaceType::Ethernet &&
+			 _interface.type() != QNetworkInterface::InterfaceType::Wifi) ||
+			_interface.humanReadableName().indexOf("virtual", 0, Qt::CaseInsensitive) >= 0 ||
+			 !_interface.flags().testFlag(QNetworkInterface::InterfaceFlag::IsRunning) ||
+			 !_interface.flags().testFlag(QNetworkInterface::InterfaceFlag::IsUp))
+			continue;
+
+		for (const auto& addressEntr : _interface.addressEntries())
+		{
+			auto address = addressEntr.ip();
+			if ( !address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol )
+			{				
+				return address.toString();
+			}
+		}
+	}
+
 	// get the first valid IPv4 address. This is probably not that one we actually want to announce
 	for(const auto & address : QNetworkInterface::allAddresses())
 	{
@@ -184,8 +203,8 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 	const auto respond = [=] () {
 		// when searched for all devices / root devices / basic device
 		if(target == "ssdp:all")
-			sendMSearchResponse(SSDP_HYPERION_ST, address, port);
-		else if(target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == SSDP_HYPERION_ST)
+			sendMSearchResponse(SSDP_IDENTIFIER, address, port);
+		else if(target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == SSDP_IDENTIFIER)
 			sendMSearchResponse(target, address, port);
 	};
 
@@ -223,9 +242,9 @@ QString SSDPHandler::getBaseAddress() const
 
 QString SSDPHandler::buildDesc() const
 {
-	/// %1 base url                   http://192.168.0.177:80/
-	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
-	/// %3 modelNumber                2.0.0
+	/// %1 base url                   http://192.168.1.26:8090/
+	/// %2 friendly name              HyperHDR (192.168.1.26)
+	/// %3 modelNumber                17.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
 	/// %5 json port                  19444
 	/// %6 ssl server port            8092
@@ -234,8 +253,8 @@ QString SSDPHandler::buildDesc() const
 
 	return SSDP_DESCRIPTION.arg(
 			getBaseAddress(),
-			QString("Hyperion (%1)").arg(_localAddress),
-			QString(HYPERION_VERSION),
+			QString("HyperHDR (%1)").arg(_localAddress),
+			QString(HYPERHDR_VERSION),
 			_uuid,
 			QString::number(SSDPServer::getJsonServerPort()),
 			QString::number(SSDPServer::getSSLServerPort()),

@@ -1,7 +1,7 @@
 #ifndef LEDEVICELPD6803_H
 #define LEDEVICELPD6803_H
 
-// Local hyperion includes
+// Local HyperHDR includes
 #include "ProviderSpi.h"
 
 ///

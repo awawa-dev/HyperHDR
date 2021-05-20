@@ -41,11 +41,11 @@ signals:
 	void setSystemImage(const QString& name, const Image<ColorRgb>&  image);
 
 	///
-	/// @brief PIPE v4lCapture images from v4lCapture over HyperHDRDaemon to HyperHDR class
-	/// @param name   The name of the v4l capture (path) that is currently active
+	/// @brief PIPE video images from video grabber over HyperHDRDaemon to HyperHDR class
+	/// @param name   The name of the grabber capture (path) that is currently active
 	/// @param image  The prepared image
 	///
-	void setV4lImage(const QString& name, const Image<ColorRgb>& image);
+	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
 	/// @brief PIPE the register command for a new global input over HyperHDRDaemon to HyperHDR class

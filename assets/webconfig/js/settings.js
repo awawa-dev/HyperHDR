@@ -11,14 +11,18 @@ function changePassword(){
 
 	// fill default pw if default is set
 	if(window.defaultPasswordIsSet)
-		$('#oldPw').val('hyperion')
+		$('#oldPw').val('hyperhdr')
 
 	$('#id_btn_ok').off().on('click',function() {
 		var oldPw = $('#oldPw').val();
 		var newPw = $('#newPw').val();
 
-		requestChangePassword(oldPw, newPw)
+		requestChangePassword(oldPw, newPw);
+
+		$('#modal_dialog_rename').modal('toggle');
 	});
+
+
 
 	$('#newPw, #oldPw').off().on('input',function(e) {
 		($('#oldPw').val().length >= 8 && $('#newPw').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
@@ -132,10 +136,10 @@ $(document).ready( function() {
 		{
 			if(lsys != window.wSess[i].host+':'+window.wSess[i].port)
 			{
-				var hyperionAddress = window.wSess[i].address;
-				if(hyperionAddress.indexOf(':') > -1 && hyperionAddress.length == 36) hyperionAddress = '['+hyperionAddress+']';
-				hyperionAddress = 'http://'+hyperionAddress+':'+window.wSess[i].port;
-				$('#id_select').append(createSelOpt(hyperionAddress, window.wSess[i].name));
+				var hyperhdrAddress = window.wSess[i].address;
+				if(hyperhdrAddress.indexOf(':') > -1 && hyperhdrAddress.length == 36) hyperhdrAddress = '['+hyperhdrAddress+']';
+				hyperhdrAddress = 'http://'+hyperhdrAddress+':'+window.wSess[i].port;
+				$('#id_select').append(createSelOpt(hyperhdrAddress, window.wSess[i].name));
 			}
 		}
 

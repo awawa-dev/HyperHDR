@@ -1,9 +1,10 @@
 $(document).ready( function() {
 
 	// check if browser supports streaming
-	if(window.navigator.mediaDevices && window.navigator.mediaDevices.getDisplayMedia){
+	if((typeof window.navigator.mediaDevices === "undefined") || (typeof window.navigator.mediaDevices.getDisplayMedia === "undefined"))
+	{	
 		$("#btn_streamer").toggle();
-	}
+	}	
 
 	// variables
 	var streamActive = false;

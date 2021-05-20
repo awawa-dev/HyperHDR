@@ -1,4 +1,4 @@
-// Local-Hyperion includes
+// Local-HyperHDR includes
 #include "ProviderRestApi.h"
 
 // Qt includes

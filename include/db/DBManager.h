@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <QPair>
 #include <QVector>
+#include <QJsonObject>
 
 class QSqlDatabase;
 class QSqlQuery;
@@ -16,7 +17,7 @@ typedef QVector<CPair> VectorPair;
 /// @brief Database interface for SQLite3.
 ///        Inherit this class to create component specific methods based on this interface
 ///        Usage: setTable(name) once before you use read/write actions
-///        To use another database use setDb(newDB) (defaults to "hyperion")
+///        To use another database use setDb(newDB) (defaults to "hyperhdr")
 ///
 ///        Incompatible functions with SQlite3:
 ///        QSqlQuery::size() returns always -1
@@ -126,9 +127,16 @@ public:
 	///
 	void setReadonlyMode(bool readOnly) { _readonlyMode = readOnly; };
 
-private:
+	bool migrateColumn(QString newColumn, QString oldColumn);
 
+	const QJsonObject getBackup();
+
+	QString restoreBackup(const QJsonObject& backupData);
+
+protected:
 	Logger* _log;
+
+private:
 	/// databse connection & file name, defaults to hyperhdr
 	QString _dbn = "hyperhdr";
 	/// table in database

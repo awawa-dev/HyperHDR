@@ -1,7 +1,7 @@
 #ifndef LEDEVICEPAINTTPACK_H
 #define LEDEVICEPAINTTPACK_H
 
-// Hyperion includes
+// HyperHDR includes
 #include "ProviderHID.h"
 
 ///

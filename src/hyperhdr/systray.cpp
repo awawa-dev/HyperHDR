@@ -20,18 +20,18 @@
 #include "hyperhdr.h"
 #include "systray.h"
 
-SysTray::SysTray(HyperHdrDaemon *hyperiond)
+SysTray::SysTray(HyperHdrDaemon *hyperhdrd)
 	: QWidget()
 	, _colorDlg(this)
-	, _hyperiond(hyperiond)
-	, _hyperion(nullptr)
+	, _hyperhdrd(hyperhdrd)
+	, _hyperhdr(nullptr)
 	, _instanceManager(HyperHdrIManager::getInstance())
 	, _webPort(8090)
 {
 	Q_INIT_RESOURCE(resources);
 
 	// webserver port
-	WebServer* webserver = hyperiond->getWebServerInstance();
+	WebServer* webserver = hyperhdrd->getWebServerInstance();
 	connect(webserver, &WebServer::portChanged, this, &SysTray::webserverPortChanged);
 
 	// instance changes
@@ -87,7 +87,7 @@ void SysTray::createTrayIcon()
 	clearAction->setIcon(QPixmap(":/clear.svg"));
 	connect(clearAction, SIGNAL(triggered()), this, SLOT(clearEfxColor()));
 
-	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
+	const std::list<EffectDefinition> efxs = _hyperhdr->getEffects();
 	_trayIconMenu = new QMenu(this);
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
@@ -124,7 +124,7 @@ void SysTray::createTrayIcon()
 bool SysTray::getCurrentAutorunState()
 {
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+    if (reg.value("Hyperhdr", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
 	{
 		autorunAction->setText(tr("&Disable autostart"));
         return true;
@@ -141,8 +141,8 @@ void SysTray::setAutorunState()
 	bool currentState = getCurrentAutorunState();
 	QSettings reg("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
 	(currentState)
-	? reg.remove("Hyperion")
-	: reg.setValue("Hyperion", qApp->applicationFilePath().replace('/', '\\'));
+	? reg.remove("Hyperhdr")
+	: reg.setValue("Hyperhdr", qApp->applicationFilePath().replace('/', '\\'));
 #endif
 }
 
@@ -150,7 +150,7 @@ void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
- 	_hyperion->setColor(1 ,rgbColor, 0);
+ 	_hyperhdr->setColor(1 ,rgbColor, 0);
 }
 
 void SysTray::showColorDialog()
@@ -206,12 +206,12 @@ void SysTray::settings()
 void SysTray::setEffect()
 {
 	QString efxName = qobject_cast<QAction*>(sender())->text();
-	_hyperion->setEffect(efxName, 1);
+	_hyperhdr->setEffect(efxName, 1);
 }
 
 void SysTray::clearEfxColor()
 {
-	_hyperion->clear(1);
+	_hyperhdr->clear(1);
 }
 
 void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
@@ -220,7 +220,7 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 		case InstanceState::H_STARTED:
 			if(instance == 0)
 			{
-				_hyperion = _instanceManager->getHyperHdrInstance(0);
+				_hyperhdr = _instanceManager->getHyperHdrInstance(0);
 
 				createTrayIcon();
 		

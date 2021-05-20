@@ -9,7 +9,7 @@
 #include <QCoreApplication>
 #include <QLocale>
 
-// hyperion-remote include
+// hyperhdr-remote include
 #include "JsonConnection.h"
 
 // ssdp discover
@@ -57,7 +57,7 @@ int getInstaneIdbyName(const QJsonObject & reply, const QString & name){
 			}
 		}
 	}
-	std::cout << "Can't find a running instance with name '" << name.toStdString()<< "' at this Hyperion server, will use first instance" << std::endl;
+	std::cout << "Can't find a running instance with name '" << name.toStdString()<< "' at this HyperHDR server, will use first instance" << std::endl;
 	return 0;
 }
 
@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
 #endif
 	std::cout
 		<< "hyperhdr-remote:" << std::endl
-		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
+		<< "\tVersion   : " << HYPERHDR_VERSION << " (" << HYPERHDR_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 	DefaultSignalHandler::install();
@@ -82,12 +82,12 @@ int main(int argc, char * argv[])
 	try
 	{
 		// create the option parser and initialize all parameters
-		Parser parser("Application to send a command to hyperion using the JSON interface");
+		Parser parser("Application to send a command to hyperhdr using the JSON interface");
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "127.0.0.1:19444");
+		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperhdr server [default: %1]", "127.0.0.1:19444");
 		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
 		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By default it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
@@ -128,10 +128,10 @@ int main(int argc, char * argv[])
 		IntOption       & argHdr                = parser.add<IntOption>    ('H', "hdr"                    , "0 = HDR off; 1 =  HDR on");
 		IntOption       & argSource             = parser.add<IntOption>    (0x0, "sourceSelect"           , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto         = parser.add<BooleanOption>(0x0, "sourceAutoSelect"       , "Enables auto source, if disabled prio by manual selecting input source");
-		BooleanOption   & argOff                = parser.add<BooleanOption>(0x0, "off"                    , "Deactivates hyperion");
-		BooleanOption   & argOn                 = parser.add<BooleanOption>(0x0, "on"                     , "Activates hyperion");
-		BooleanOption   & argConfigGet          = parser.add<BooleanOption>(0x0, "configGet"              , "Print the current loaded Hyperion configuration file");
-		BooleanOption   & argSchemaGet          = parser.add<BooleanOption>(0x0, "schemaGet"              , "Print the JSON schema for Hyperion configuration");
+		BooleanOption   & argOff                = parser.add<BooleanOption>(0x0, "off"                    , "Deactivates hyperhdr");
+		BooleanOption   & argOn                 = parser.add<BooleanOption>(0x0, "on"                     , "Activates hyperhdr");
+		BooleanOption   & argConfigGet          = parser.add<BooleanOption>(0x0, "configGet"              , "Print the current loaded HyperHDR configuration file");
+		BooleanOption   & argSchemaGet          = parser.add<BooleanOption>(0x0, "schemaGet"              , "Print the JSON schema for HyperHDR configuration");
 		Option          & argConfigSet          = parser.add<Option>       (0x0, "configSet"              , "Write to the actual loaded configuration file. Should be a JSON object string.");
 
 		// parse all _options
@@ -202,7 +202,7 @@ int main(int argc, char * argv[])
 			}
 		}
 
-		// create the connection to the hyperion server
+		// create the connection to the hyperhdr server
 		JsonConnection connection(address, parser.isSet(argPrint));
 
 		// authorization token specified. Use it first
@@ -211,7 +211,7 @@ int main(int argc, char * argv[])
 			connection.setToken(argToken.value(parser));
 		}
 
-		// If a specific Hyperion instance is given, set it
+		// If a specific HyperHDR instance is given, set it
 		if (parser.isSet(argInstance))
 		{
 			QJsonObject reply = connection.getServerInfo();

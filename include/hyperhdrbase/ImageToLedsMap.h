@@ -67,26 +67,19 @@ namespace hyperhdr
 		unsigned verticalBorder() const;
 				
 		std::vector<ColorRgb> Process(const Image<ColorRgb>& image, uint16_t* advanced);
-		
-		void Process(const Image<ColorRgb>& image, std::vector<ColorRgb>& ledColors, uint16_t* advanced);
 
 	private:		
-		std::vector<ColorRgb> getMeanLedColor(const Image<ColorRgb>& image) const;
-
-		void getMeanLedColor(const Image<ColorRgb>& image, std::vector<ColorRgb>& ledColors) const;
+		std::vector<ColorRgb> getMeanLedColor(const Image<ColorRgb>& image) const;		
 
 		std::vector<ColorRgb> getUniLedColor(const Image<ColorRgb>& image) const;
 		
-		void getUniLedColor(const Image<ColorRgb>& image, std::vector<ColorRgb>& ledColors) const;
-
 		std::vector<ColorRgb> getMeanAdvLedColor(const Image<ColorRgb>& image, uint16_t* lut) const;
-
-		void getMeanAdvLedColor(const Image<ColorRgb>& image, std::vector<ColorRgb>& ledColors, uint16_t* lut) const;
 
 		/// The width of the indexed image
 		const unsigned _width;
 		/// The height of the indexed image
 		const unsigned _height;
+
 		const bool		_sparseProcessing;
 
 		const unsigned _horizontalBorder;
@@ -99,6 +92,10 @@ namespace hyperhdr
 
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<int32_t>> _colorsMap;
+		std::vector<int> _colorsGroups;
+
+		int _groupMin;
+		int _groupMax;
 		
 		ColorRgb calcMeanColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors) const;
 

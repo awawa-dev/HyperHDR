@@ -24,7 +24,7 @@ BoblightServer::BoblightServer(HyperHdrInstance* hyperhdr,const QJsonDocument& c
 	, _log(Logger::getInstance("BOBLIGHT"))
 	, _port(0)
 {
-	Debug(_log, "Instance created");
+	Info(_log, "Instance created");
 
 	// listen for component change
 	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &BoblightServer::compStateChangeRequest);

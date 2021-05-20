@@ -38,12 +38,12 @@ class V4L2Worker : public  QThread
 		void setup(
 				unsigned int _workerIndex, v4l2_buffer* __v4l2Buf,
 				PixelFormat __pixelFormat,
-				uint8_t*  __sharedData,
-				int		  __size,int __width, int __height, int __lineLength,
-				unsigned  __cropLeft, unsigned  __cropTop, 
-				unsigned  __cropBottom, unsigned __cropRight,
-				quint64   __currentFrame, qint64 __frameBegin,
-				int		  __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe);
+				uint8_t*	__sharedData,
+				int			__size,int __width, int __height, int __lineLength,
+				unsigned	__cropLeft, unsigned  __cropTop, 
+				unsigned	__cropBottom, unsigned __cropRight,
+				quint64		__currentFrame, qint64 __frameBegin,
+				int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe);
 
 		void startOnThisThread();
 		void run();

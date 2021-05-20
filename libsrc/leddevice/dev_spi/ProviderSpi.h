@@ -3,7 +3,7 @@
 // Linux-SPI includes
 #include <linux/spi/spidev.h>
 
-// Hyperion includes
+// HyperHDR includes
 #include <leddevice/LedDevice.h>
 
 ///
@@ -55,6 +55,9 @@ protected:
 	///
 	int writeBytes(unsigned size, const uint8_t *data);
 
+	// esp spi is pripriotary protocol
+	int writeBytesEsp8266(unsigned size, const uint8_t* data);
+
 	/// The name of the output device
 	QString _deviceName;
 
@@ -69,6 +72,8 @@ protected:
 
 	/// 1=>invert the data pattern
 	bool _spiDataInvert;
+
+	QString _spiType;
 
 	/// The transfer structure for writing to the spi-device
 	spi_ioc_transfer _spi;

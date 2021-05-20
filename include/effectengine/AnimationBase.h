@@ -24,6 +24,7 @@ public:
 	virtual bool Play(QPainter* painter)=0;
 	virtual void Init(QImage& hyperImage, int hyperLatchTime)=0;	
 	virtual bool hasLedData(QVector<ColorRgb>& buffer);
+	bool		 isStop();
 	void		 SetSleepTime(int sleepTime);
 	int			 GetSleepTime();
 	virtual bool isSoundEffect();
@@ -34,7 +35,9 @@ private:
 	QString _name;
 	int     _sleepTime;
 	bool	_isDevice;
+	bool    _stopMe;
 protected:
+	void setStopMe(bool stopMe);
 	int clamp(int v, int lo, int hi);
 };
 

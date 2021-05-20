@@ -1,7 +1,7 @@
 #ifndef PROVIDERRESTKAPI_H
 #define PROVIDERRESTKAPI_H
 
-// Local-Hyperion includes
+// Local-HyperHDR includes
 #include <utils/Logger.h>
 
 // Qt includes

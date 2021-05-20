@@ -5,7 +5,7 @@
 #include <utils/SysInfo.h>
 
 
-// Hyperion
+// HyperHDR
 #include <HyperhdrConfig.h>
 
 #include <QUdpSocket>
@@ -101,7 +101,7 @@ void SSDPServer::initServer()
 
 	// create SERVER String
 	_serverHeader = QString("%1/%2 UPnP/1.0 Hyperion/%3")
-				.arg(data.prettyName, data.productVersion, HYPERION_VERSION);
+				.arg(data.prettyName, data.productVersion, HYPERHDR_VERSION);
 
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }

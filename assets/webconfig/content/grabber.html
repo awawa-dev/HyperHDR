@@ -1,0 +1,35 @@
+<div id="hyper-subpage" class="container-fluid" style="float:left;">
+	<div class="row">
+		<div class="col-lg-12">
+			<h3 class="page-header"><i class="fa fa-camera fa-fw"></i><span  data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span></h3> 
+			<div class="container-fluid" style ="padding-right: 0px; padding-left: 0px;">
+				<div id="conf_cont" class="row"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="videoDeviceInfoPanel" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-xl modal-dialog-scrollable">
+		<div class="modal-content p-0">
+			<div class="card card-default modal-body" style="margin: 0px !important; padding: 0px !important;">
+				<div class="card-header">
+					<h4 class="modal-title" id="videoDeviceInfoPanelLabel"><b><span data-i18n="edt_conf_stream_video_device_info">Video device info</span></b></h4>				
+				</div>
+				<div id="videoDeviceInfoPanelContent" class="card-body">
+					<div id="videoDeviceInfoTable" class="container">  
+					</div>
+				</div>
+				<div class="card-footer">					
+					<button type="button" class="btn btn-danger float-end" data-bs-dismiss="modal"><span data-i18n="general_btn_exit">Exit</span></button>					
+					<button type="button" id="ready_to_set" class="btn btn-primary disabled float-end me-2"><span data-i18n="grabber_set_video_and_mode">Set</span></button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+$.getScript("/js/grabber.js");
+</script>

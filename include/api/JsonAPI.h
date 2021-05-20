@@ -285,10 +285,18 @@ private:
 
 	void handleHelpCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleCropCommand(const QJsonObject& message, const QString& command, int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
 	void handleNotImplemented(const QString &command, int tan);
+
+	void handleSaveDB(const QJsonObject& message, const QString& command, int tan);
+
+	void handleLoadDB(const QJsonObject& message, const QString& command, int tan);
+
+	void handleLoadSignalCalibration(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Send a standard reply indicating success

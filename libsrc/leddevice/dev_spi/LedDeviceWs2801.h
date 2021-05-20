@@ -1,7 +1,7 @@
 #ifndef LEDEVICEWS2801_H
 #define LEDEVICEWS2801_H
 
-// hyperion includes
+// HyperHDR includes
 #include "ProviderSpi.h"
 
 ///

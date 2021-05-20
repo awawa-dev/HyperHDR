@@ -79,7 +79,7 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 	}
 #endif
 	// base txtRec
-	std::vector<std::pair<std::string, std::string> > txtBase = {{"id",AuthManager::getInstance()->getID().toStdString()},{"version",HYPERION_VERSION}};
+	std::vector<std::pair<std::string, std::string> > txtBase = {{"id",AuthManager::getInstance()->getID().toStdString()},{"version",HYPERHDR_VERSION}};
     // create txt record
     TXTRecordRef txtRec;
     TXTRecordCreate(&txtRec,0,NULL);

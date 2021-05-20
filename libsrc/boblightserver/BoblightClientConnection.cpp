@@ -30,7 +30,7 @@ BoblightClientConnection::BoblightClientConnection(HyperHdrInstance* hyperhdr, Q
 	, _locale(QLocale::C)
 	, _socket(socket)
 	, _imageProcessor(hyperhdr->getImageProcessor())
-	, _hyperion(hyperhdr)
+	, _hyperhdr(hyperhdr)
 	, _receiveBuffer()
 	, _priority(priority)
 	, _ledColors(hyperhdr->getLedCount(), ColorRgb::BLACK)
@@ -48,8 +48,8 @@ BoblightClientConnection::BoblightClientConnection(HyperHdrInstance* hyperhdr, Q
 BoblightClientConnection::~BoblightClientConnection()
 {
 	 // clear the current channel
-	if (_priority != 0 && _priority >= 128 && _priority < 254)
-		_hyperion->clear(_priority);
+	if (_priority != 0 && _priority >= 128 && _priority < PriorityMuxer::LOWEST_EFFECT_PRIORITY)
+		_hyperhdr->clear(_priority);
 
 	delete _socket;
 }
@@ -111,7 +111,7 @@ void BoblightClientConnection::socketClosed()
 {
 	 // clear the current channel
 	if (_priority >= 128 && _priority < 254)
-		_hyperion->clear(_priority);
+		_hyperhdr->clear(_priority);
 
 	emit connectionClosed(this);
 }
@@ -174,10 +174,10 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							if (_priority == 0 || _priority < 128 || _priority >= 254)
 								return;
 
-							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
+							// send current color values to HyperHDR if this is the last led assuming leds values are send in order of id
 							if (ledIndex == _ledColors.size() -1)
 							{
-								_hyperion->setInput(_priority, _ledColors);
+								_hyperhdr->setInput(_priority, _ledColors);
 							}
 
 							return;
@@ -188,7 +188,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 						      messageParts[3] == QStringLiteral("use") ||
 						      messageParts[3] == QStringLiteral("singlechange"))
 					{
-						// these message are ignored by Hyperion
+						// these message are ignored by HyperHDR
 						return;
 					}
 				}
@@ -199,13 +199,13 @@ void BoblightClientConnection::handleMessage(const QString & message)
 				const int prio = static_cast<int>(parseUInt(messageParts[2], &rc));
 				if (rc && prio != _priority)
 				{
-					if (_priority != 0 && _hyperion->getPriorityInfo(_priority).componentId == hyperhdr::COMP_BOBLIGHTSERVER)
-						_hyperion->clear(_priority);
+					if (_priority != 0 && _hyperhdr->getPriorityInfo(_priority).componentId == hyperhdr::COMP_BOBLIGHTSERVER)
+						_hyperhdr->clear(_priority);
 
 					if (prio < 128 || prio >= 254)
 					{
 						_priority = 128;
-						while (_hyperion->getActivePriorities().contains(_priority))
+						while (_hyperhdr->getActivePriorities().contains(_priority))
 						{
 							_priority += 1;
 						}
@@ -213,12 +213,12 @@ void BoblightClientConnection::handleMessage(const QString & message)
 						// warn against invalid priority
 						Warning(_log, "The priority %i is not in the priority range between 128 and 253. Priority %i is used instead.", prio, _priority);
 						// register new priority (previously modified)
-						_hyperion->registerInput(_priority, hyperhdr::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
+						_hyperhdr->registerInput(_priority, hyperhdr::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
 					}
 					else
 					{
 						// register new priority
-						_hyperion->registerInput(prio, hyperhdr::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
+						_hyperhdr->registerInput(prio, hyperhdr::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
 						_priority = prio;
 					}
 
@@ -229,7 +229,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		else if (messageParts[0] == QStringLiteral("sync"))
 		{
 			if ( _priority >= 128 && _priority < 254)
-				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
+				_hyperhdr->setInput(_priority, _ledColors); // send current color values to HyperHDR
 
 			return;
 		}
@@ -382,11 +382,11 @@ void BoblightClientConnection::sendLightMessage()
 {
 	char buffer[256];
 
-	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
+	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperhdr->getLedCount());
 	sendMessage(QByteArray(buffer, n));
 
 	double h0, h1, v0, v1;
-	for (int i = 0; i < _hyperion->getLedCount(); ++i)
+	for (int i = 0; i < _hyperhdr->getLedCount(); ++i)
 	{
 		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
 		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);

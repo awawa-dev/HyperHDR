@@ -1,4 +1,8 @@
 #include <db/SettingsTable.h>
+#include <utils/settings.h>
+
+#define INSTANCE_COLUMN QString("hyperhdr_instance")
+#define OLD_INSTANCE_COLUMN QString("hyperion_inst")
 
 SettingsTable::SettingsTable(quint8 instance, QObject* parent)
 	: DBManager(parent)
@@ -6,7 +10,9 @@ SettingsTable::SettingsTable(quint8 instance, QObject* parent)
 {
 	setTable("settings");
 	// create table columns
-	createTable(QStringList()<<"type TEXT"<<"config TEXT"<<"hyperion_inst INTEGER"<<"updated_at TEXT");
+	migrateColumn(INSTANCE_COLUMN, OLD_INSTANCE_COLUMN);
+	createTable(QStringList()<<"type TEXT"<<"config TEXT"<< (INSTANCE_COLUMN + " INTEGER")<<"updated_at TEXT");	
+	
 };
 
 ///
@@ -25,14 +31,14 @@ bool SettingsTable::createSettingsRecord(const QString& type, const QString& con
 	cond.append(CPair("type",type));
 	// when a setting is not global we are searching also for the instance
 	if(!isSettingGlobal(type))
-		cond.append(CPair("AND hyperion_inst",_hyperhdr_inst));
+		cond.append(CPair("AND "+ INSTANCE_COLUMN,_hyperhdr_inst));
 	return createRecord(cond, map);
 }
 
 ///
 /// @brief      Test if record exist, type can be global setting or local (instance)
 /// @param[in]  type           type of setting
-/// @param[in]  hyperion_inst  The instance of hyperion assigned (might be empty)
+/// @param[in]  hyperhdr_instance  The instance of hyperhdr assigned (might be empty)
 /// @return     true on success else false
 ///
 bool SettingsTable::recordExist(const QString& type) const
@@ -41,7 +47,7 @@ bool SettingsTable::recordExist(const QString& type) const
 	cond.append(CPair("type",type));
 	// when a setting is not global we are searching also for the instance
 	if(!isSettingGlobal(type))
-		cond.append(CPair("AND hyperion_inst",_hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN,_hyperhdr_inst));
 	return recordExists(cond);
 }
 
@@ -57,7 +63,7 @@ QJsonDocument SettingsTable::getSettingsRecord(const QString& type) const
 	cond.append(CPair("type",type));
 	// when a setting is not global we are searching also for the instance
 	if(!isSettingGlobal(type))
-		cond.append(CPair("AND hyperion_inst",_hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN,_hyperhdr_inst));
 	getRecord(cond, results, QStringList("config"));
 	return QJsonDocument::fromJson(results["config"].toByteArray());
 }
@@ -74,7 +80,7 @@ QString SettingsTable::getSettingsRecordString(const QString& type) const
 	cond.append(CPair("type",type));
 	// when a setting is not global we are searching also for the instance
 	if(!isSettingGlobal(type))
-		cond.append(CPair("AND hyperion_inst",_hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN,_hyperhdr_inst));
 	getRecord(cond, results, QStringList("config"));
 	return results["config"].toString();
 }
@@ -86,16 +92,25 @@ bool SettingsTable::deleteSettingsRecordString(const QString& type) const
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
 	if (!isSettingGlobal(type))
-		cond.append(CPair("AND hyperion_inst", _hyperhdr_inst));
+		cond.append(CPair("AND "+ INSTANCE_COLUMN, _hyperhdr_inst));
 	return deleteRecord(cond);		
 }
+
+bool SettingsTable::purge(const QString& type) const
+{
+	QVariantMap results;
+	VectorPair cond;
+	cond.append(CPair("type", type));
+	// when a setting is not global we are searching also for the instance
+	return deleteRecord(cond);
+}
 ///
-/// @brief Delete all settings entries associated with this instance, called from InstanceTable of HyperionIManager
+/// @brief Delete all settings entries associated with this instance, called from InstanceTable of HyperHDRIManager
 ///
 void SettingsTable::deleteInstance() const
 {
 	VectorPair cond;
-	cond.append(CPair("hyperion_inst",_hyperhdr_inst));
+	cond.append(CPair(INSTANCE_COLUMN,_hyperhdr_inst));
 	deleteRecord(cond);
 }
 
@@ -104,11 +119,14 @@ bool SettingsTable::isSettingGlobal(const QString& type) const
 	// list of global settings
 	QStringList list;
 	// server port services
-	list << "jsonServer" << "protoServer" << "flatbufServer" << "forwarder" << "webConfig" << "network"
-		// capture
-		<< "framegrabber" << "grabberV4L2"
-		// other
-		<< "logger" << "general" << "soundEffect";
+	list << settings::typeToString(settings::type::JSONSERVER) << settings::typeToString(settings::type::PROTOSERVER)
+		<< settings::typeToString(settings::type::FLATBUFSERVER) << settings::typeToString(settings::type::NETWORK)
+		<< settings::typeToString(settings::type::NETFORWARD) << settings::typeToString(settings::type::WEBSERVER)
+		<< settings::typeToString(settings::type::VIDEOGRABBER) << settings::typeToString(settings::type::SYSTEMGRABBER) 
+		<< settings::typeToString(settings::type::LOGGER) << settings::typeToString(settings::type::GENERAL)
+		<< settings::typeToString(settings::type::SNDEFFECT) << settings::typeToString(settings::type::VIDEODETECTION)
+		// legacy
+		<< "grabberV4L2";
 
 	return list.contains(type);
 }

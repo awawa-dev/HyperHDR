@@ -34,17 +34,17 @@ public:
 
 signals:
 	///
-	/// @brief forward register data to HyperionDaemon
+	/// @brief forward register data to HyperHDRDaemon
 	///
 	void registerGlobalInput(int priority, hyperhdr::Components component, const QString& origin = "FlatBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
 
 	///
-	/// @brief Forward clear command to HyperionDaemon
+	/// @brief Forward clear command to HyperHDRDaemon
 	///
 	void clearGlobalInput(int priority, bool forceClearAll=false);
 
 	///
-	/// @brief forward prepared image to HyperionDaemon
+	/// @brief forward prepared image to HyperHDRDaemon
 	///
 	bool setGlobalInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect = false);
 

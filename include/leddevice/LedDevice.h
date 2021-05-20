@@ -1,4 +1,4 @@
-﻿#ifndef LEDEVICE_H
+#ifndef LEDEVICE_H
 #define LEDEVICE_H
 
 // qt includes

@@ -4,24 +4,32 @@
 	"properties":{
 		"leds": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_maximumLedCount_title",
 			"default": 256,
 			"propertyOrder" : 1
 		},
 		"gpio": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_gpioNumber_title",
 			"default": 18,
 			"propertyOrder" : 2
 		},
 		"dma": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_dmaNumber_title",
 			"default": 5,
 			"propertyOrder" : 3
 		},
 		"pwmchannel": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_pwmChannel_title",
 			"default": 0,
 			"minimum": 0,
@@ -30,12 +38,14 @@
 		},
 		"invert": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
 			"propertyOrder" : 5
 		},
 		"rgbw": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_useRgbwProtocol_title",
 			"default": false,
 			"propertyOrder" : 6
@@ -52,6 +62,8 @@
 		},
 		"latchTime": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_latchtime_title",
 			"default": 0,
 			"append" : "edt_append_ms",
@@ -62,6 +74,8 @@
 		},
 		"rewriteTime": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 100,			
 			"title":"edt_dev_general_rewriteTime_title",
 			"default": 1000,
 			"append" : "edt_append_ms",

@@ -1,7 +1,7 @@
 #ifndef LEDEVICETPM2NET_H
 #define LEDEVICETPM2NET_H
 
-// hyperion includes
+// hyperhdr includes
 #include "ProviderUdp.h"
 
 ///

@@ -97,6 +97,8 @@ private slots:
 	///
 	void handleVideoModeHdrChange(int hdr);
 
+	void handleGrabberStateChange(QString device, QString videoMode);
+
 	///
 	/// @brief Handle effect list change
 	///

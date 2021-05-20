@@ -10,7 +10,7 @@
 #include <QUdpSocket>
 #include <QHostInfo>
 
-// Local Hyperion includes
+// Local HyperHDR includes
 #include "ProviderUdp.h"
 
 const ushort MAX_PORT = 65535;

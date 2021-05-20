@@ -1,4 +1,4 @@
-﻿
+
 // STL includes
 #include <cstring>
 #include <cstdio>
@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-// Local Hyperion includes
+// Local HyperHDR includes
 #include "ProviderSpi.h"
 #include <utils/Logger.h>
 
@@ -21,6 +21,7 @@ ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
 	, _fid(-1)
 	, _spiMode(SPI_MODE_0)
 	, _spiDataInvert(false)
+	, _spiType("")
 {
 	memset(&_spi, 0, sizeof(_spi));
 	_latchTime_ms = 1;
@@ -38,11 +39,12 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig)
 	if ( LedDevice::init(deviceConfig) )
 	{
 		_deviceName    = deviceConfig["output"].toString(_deviceName);
+		_spiType       = deviceConfig["spitype"].toString("");
 		_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
 		_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
 		_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
-
-		Debug(_log, "_baudRate_Hz [%d], _latchTime_ms [%d]", _baudRate_Hz, _latchTime_ms);
+		
+		Debug(_log, "_baudRate_Hz [%d], _latchTime_ms [%d], _spiType: %s", _baudRate_Hz, _latchTime_ms, QSTRING_CSTR(_spiType));
 		Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
 
 		isInitOK = true;
@@ -126,6 +128,8 @@ int ProviderSpi::close()
 
 int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 {
+	uint8_t* newdata = nullptr;
+
 	if (_fid < 0)
 	{
 		return -1;
@@ -136,7 +140,7 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 
 	if (_spiDataInvert)
 	{
-		uint8_t * newdata = (uint8_t *)malloc(size);
+		newdata = (uint8_t *)malloc(size);
 		for (unsigned i = 0; i<size; i++) {
 			newdata[i] = data[i] ^ 0xff;
 		}
@@ -145,6 +149,42 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
+
+	if (newdata != nullptr)
+		free(newdata);
+
+	return retVal;
+}
+
+int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
+{
+	uint8_t* startData = (uint8_t*)data;
+	uint8_t* endData = (uint8_t*)data + size;
+	uint8_t buffer[34];
+
+	if (_fid < 0)
+	{
+		return -1;
+	}
+
+	_spi.tx_buf = __u64(&buffer);	
+	_spi.len = __u32(34);
+	_spi.delay_usecs = 0;
+
+	int retVal = 0;
+
+	while (retVal >= 0 && startData < endData)
+	{
+		memset(buffer, 0, sizeof(buffer));
+		buffer[0] = 2;
+		buffer[1] = 0;
+		for (int i = 0; i < 32 && startData < endData; i++, startData++)
+		{
+			buffer[2 + i] = *startData;
+		}
+		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+	}
 
 	return retVal;
 }

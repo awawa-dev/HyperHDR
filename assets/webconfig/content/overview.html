@@ -1,0 +1,122 @@
+			<div id="hyper-subpage" class="container-fluid" style="float:left;">
+				<div class="row">
+					<div class="col-lg-12">
+						<h3 class="page-header"><i class="fa fa-heartbeat fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h3>
+						<div id="dash_intro">
+						<div class="row">
+							<div class="col-md-6 col-lg-6">
+								<div class="card card-default">
+									<div class="card-header">
+										<i class="fa fa-info-circle fa-fw"></i>
+										<span  data-i18n="dashboard_infobox_label_title">Information</span>
+									</div>
+									<div class="card-body">
+										<div class="container px-2">
+											<div class = "row">
+												<div class="col-5 col-md-4" data-i18n="dashboard_infobox_label_statush"></div>
+												<div class="col-7 col-md-8" id="dash_statush" style="font-weight:bold">unknown</div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="dashboard_infobox_label_platform">Platform:</div>
+												<div class="col-7 col-md-8" id="dash_platform"></div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="dashboard_current_video_device">Video device</div>
+												<div class="col-7 col-md-8" id="dash_current_video_device"></div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="dashboard_current_video_mode">Video mode</div>
+												<div class="col-7 col-md-8" id="dash_current_video_mode"></div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="conf_leds_contr_label_contrtype">LED type:</div>
+												<div class="col-7 col-md-8" id="dash_leddevice"></div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="dashboard_infobox_label_instance">Instance</div>
+												<div class="col-7 col-md-8" id="dash_instance"></div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="dashboard_infobox_label_currenthyp">HyperHDR version:</div>
+												<div class="col-7 col-md-8" id="dash_currv">unknown</div>
+											</div>
+											<div class = "row mt-3">
+												<div class="col-5 col-md-4" data-i18n="dashboard_infobox_label_latesthyp">Latest version:</div>
+												<div class="col-7 col-md-8" id="dash_latev">unknown</div>
+											</div>
+										</div>
+										<hr>
+										<p style="font-weight:bold" data-i18n="dashboard_infobox_label_smartacc">Smart Access<p>
+										<span id="btn_hsc"></span>
+										<hr>
+										<span id="versioninforesult"></span>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6 col-lg-3" style="min-width: 280px">
+								<div class="card card-default">
+									<div class="card-header" id="compent_status_header">
+										<i class="fa fa-eye fa-fw"></i>
+										<span  data-i18n="dashboard_componentbox_label_title">Components status</span>
+									</div>
+									<div class="card-body">
+										  <table class="table">
+											<thead>
+												<tr>
+													<th  data-i18n="dashboard_componentbox_label_comp">Component</th>
+													<th  data-i18n="dashboard_componentbox_label_status">Status</th>
+												</tr>
+											</thead>
+											<tbody id="tab_components">
+											</tbody>
+										</table>
+									</div>
+								</div>
+								<div class="card card-default">
+									<div class="card-header">
+										<i class="fa fa-newspaper-o fa-fw"></i>
+										<span data-i18n="dashboard_newsbox_label_title">Visit HyperHDR sites</span>
+										<div class="card-tools">
+											<img src="img\hyperhdr\rainbow.png"></img>
+										</div>
+									</div>
+									<div class="card-body">
+										<div class="container" style="padding-left: 0px;padding-right: 0px;">
+											<div class="row">
+												<div class="col">
+													<a href="https://hyperhdr.blogspot.com/" target="_blank" class="unlink">
+														<div class="w-100 support-container" style="margin-top: 0px;">
+															<i class="fa fa-globe bg-color-wf"></i>
+															<h4 data-i18n="support_label_webpagetitle">Webpage</h4>
+															<p data-i18n="support_label_webpagetext">HyperHDR's blog</p>
+														</div>
+													</a>
+												</div>
+												<div class="col">										
+													<a href="https://github.com/awawa-dev/HyperHDR" target="_blank" class="unlink">
+														<div class="w-100 support-container" style="margin-top: 0px;">
+															<i class="fa fa-github bg-color-wf"></i>
+															<h4>Github</h4>
+															<p data-i18n="support_label_ghtext">HyperHDR's Github repository</p>
+														</div>
+													</a>
+												</div>
+											</div>													
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-12 col-lg-5" style="">
+								
+							</div>
+						</div>
+					</div>
+					<!-- /.col-lg-12 -->
+				</div>
+				<!-- /.row -->
+			</div>
+			<!-- /.container-fluid -->
+
+<script>
+$.getScript("/js/overview.js");
+</script>

@@ -1,0 +1,242 @@
+{
+	"type" : "object",
+	"required" : true,
+	"title" : "edt_conf_stream_heading_title",
+	"properties" :
+	{
+		"device" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_stream_device_title",
+			"default" : "auto",			
+			"required" : true,
+			"propertyOrder" : 2
+		},
+		"videoMode" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_max_resolution_title",
+			"default" : 512,
+			"minimum" : 196,
+			"maximum" : 640,						
+			"append" : "edt_append_pixel",
+			"required" : true,
+			"propertyOrder" : 7			
+		},		
+		"fps" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_framerate_title",
+			"default" : 10,
+			"minimum" : 5,
+			"maximum" : 30,
+			"append" : "fps",			
+			"required" : true,
+			"propertyOrder" : 10
+		},		
+		"hdrToneMapping" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_stream_hdrToneMapping_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 23
+		},
+		"cropLeft" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_cropLeft_title",
+			"minimum" : 0,
+			"default" : 0,
+			"step" : 2,			
+			"append" : "edt_append_pixel",
+			"required" : true,			
+			"propertyOrder" : 50
+		},
+		"cropRight" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_cropRight_title",
+			"minimum" : 0,
+			"default" : 0,
+			"step" : 2,			
+			"append" : "edt_append_pixel",
+			"required" : true,
+			"propertyOrder" : 51
+		},
+		"cropTop" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_cropTop_title",
+			"minimum" : 0,
+			"default" : 0,
+			"step" : 2,			
+			"append" : "edt_append_pixel",
+			"required" : true,	
+			"propertyOrder" : 52
+		},
+		"cropBottom" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_cropBottom_title",
+			"minimum" : 0,
+			"default" : 0,
+			"step" : 2,			
+			"append" : "edt_append_pixel",
+			"required" : true,		
+			"propertyOrder" : 53
+		},				
+		"signalDetection" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_stream_signalDetection_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 54
+		},
+		"redSignalThreshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_redSignalThreshold_title",
+			"minimum" : 0,
+			"maximum" : 100,
+			"default" : 5,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 55
+		},
+		"greenSignalThreshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_greenSignalThreshold_title",
+			"minimum" : 0,
+			"maximum" : 100,
+			"default" : 5,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 56
+		},
+		"blueSignalThreshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_blueSignalThreshold_title",
+			"minimum" : 0,
+			"maximum" : 100,
+			"default" : 5,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 57
+		},
+		"noSignalCounterThreshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_stream_noSignalCounterThreshold_title",
+			"minimum" : 1,
+			"maximum" : 1000,
+			"default" : 200,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 58
+		},		
+		"sDVOffsetMin" :
+		{
+			"type" : "number",
+			"format": "stepper",
+			"title" : "edt_conf_stream_sDVOffsetMin_title",
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"default" : 0.25,
+			"step" : 0.01,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 59
+		},
+		"sDVOffsetMax" :
+		{
+			"type" : "number",
+			"format": "stepper",
+			"title" : "edt_conf_stream_sDVOffsetMax_title",
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"default" : 0.75,
+			"step" : 0.01,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 60
+		},
+		"sDHOffsetMin" :
+		{
+			"type" : "number",
+			"format": "stepper",
+			"title" : "edt_conf_stream_sDHOffsetMin_title",
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"default" : 0.25,
+			"step" : 0.01,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 61
+		},
+		"sDHOffsetMax" :
+		{
+			"type" : "number",
+			"format": "stepper",
+			"title" : "edt_conf_stream_sDHOffsetMax_title",
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"default" : 0.75,
+			"step" : 0.01,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 62
+		}		
+	},
+	"additionalProperties" : false
+}

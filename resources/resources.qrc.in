@@ -1,5 +1,5 @@
 <RCC>
 	<qresource prefix="/">
-		${HYPERION_RES}
+		${HYPERHDR_RES}
 	</qresource>
 </RCC>

@@ -1,4 +1,5 @@
 #include <db/DBManager.h>
+#include <utils/settings.h>
 
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -7,11 +8,13 @@
 #include <QThreadStorage>
 #include <QUuid>
 #include <QDir>
-
+#include <QJsonArray>
+#include <QJsonDocument>
 #ifdef _WIN32
 	#include <stdexcept>
 #endif
 
+#define EXPORT_FILE_FORMAT_VERSION "HyperHDR_export_format_v17"
 
 static QString _rootPath;
 static QThreadStorage<QSqlDatabase> _databasePool;
@@ -451,4 +454,245 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 				break;
 		}
 	}
+}
+
+
+
+bool DBManager::migrateColumn(QString newColumn, QString oldColumn)
+{
+
+	QSqlDatabase idb = getDB();
+
+	if (!tableExists(_table))
+		return true;
+
+	QSqlRecord	 rec = idb.record(_table);
+
+	if (rec.indexOf(oldColumn) == -1 || rec.indexOf(newColumn) != -1)
+	{
+		return true;
+	}
+
+	if (_readonlyMode)
+	{
+		Error(_log, "Configuration table: '%s' needs to rename column from '%s' to '%s', but the database is readonly. Please make the configuration folder writable.", QSTRING_CSTR(_table), QSTRING_CSTR(oldColumn), QSTRING_CSTR(newColumn));
+		return false;
+	}
+
+	if (rec.indexOf(newColumn) != -1)
+	{
+		Warning(_log, "New column: %s already exists. Deleting old column: %s in table: %s", QSTRING_CSTR(newColumn), QSTRING_CSTR(oldColumn), QSTRING_CSTR(_table));
+
+		QSqlQuery query(idb);
+		QString queryTxt = QString("ALTER TABLE %1 DROP COLUMN %2").arg(_table).arg(oldColumn);
+		if (!query.exec(queryTxt))
+		{
+			Error(_log, "Failed to drop old column after migrating: '%s' in table: '%s' Error: %s for %s", QSTRING_CSTR(oldColumn), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()), QSTRING_CSTR(queryTxt));
+			return false;
+		}
+
+		return true;
+	}
+	
+	QSqlQuery query(idb);
+	QString queryTxt = QString("ALTER TABLE %1 RENAME COLUMN %2 TO %3").arg(_table).arg(oldColumn).arg(newColumn);
+	if (!query.exec(queryTxt))
+	{
+		Error(_log, "Failed to rename column after migrating: '%s' in table: '%s' Error: %s for %s", QSTRING_CSTR(oldColumn), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()), QSTRING_CSTR(queryTxt));
+		return false;
+	}
+
+	Info(_log, "Configuration table: '%s', migrated column '%s' to '%s'.", QSTRING_CSTR(_table), QSTRING_CSTR(oldColumn), QSTRING_CSTR(newColumn));
+	return true;	
+}
+
+const QJsonObject DBManager::getBackup()
+{
+	QJsonObject backup;
+	QSqlDatabase idb = getDB();
+	QStringList instanceKeys({ "enabled", "friendly_name", "instance" });
+	QStringList settingsKeys({ "config", "hyperhdr_instance", "type" });
+
+	bool rm = _readonlyMode;
+
+	_readonlyMode = true;
+	
+	QSqlQuery queryInst(idb);
+	queryInst.setForwardOnly(true);
+
+	queryInst.prepare(QString("SELECT * FROM instances"));
+	if (!queryInst.exec())
+	{
+		Error(_log, "Failed to get records from instances table");
+		_readonlyMode = rm;
+		return backup;
+	}
+
+	QSqlQuery querySet(idb);
+	querySet.setForwardOnly(true);
+
+	querySet.prepare(QString("SELECT * FROM settings"));
+	if (!querySet.exec())
+	{
+		Error(_log, "Failed to get records from settings table");
+		_readonlyMode = rm;
+		return backup;
+	}
+
+	// iterate through all found records
+	QJsonArray allInstances;
+	while (queryInst.next())
+	{
+		QJsonObject entry;
+		QSqlRecord rec = queryInst.record();
+		for (int i = 0; i < rec.count(); i++)
+			if (instanceKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
+			{
+				entry[rec.fieldName(i)] = QJsonValue::fromVariant(rec.value(i));
+			}
+		allInstances.append(entry);
+	}
+
+
+	QJsonArray allSettings;
+	while (querySet.next())
+	{
+		QJsonObject entry;
+		QSqlRecord rec = querySet.record();
+		bool valid = false;
+
+		for (int i = 0; i < rec.count(); i++)
+			if (settingsKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
+			{				
+				QVariant column = rec.value(i);
+
+				if (rec.fieldName(i) == "type")
+				{
+					for (settings::type selector = settings::type::SNDEFFECT; !valid && selector != settings::type::INVALID; selector = settings::type(((int)selector) + 1))
+					{
+						if (QString::compare(typeToString(selector), column.toString(), Qt::CaseInsensitive) == 0)
+							valid = true;
+					}
+				}
+
+				entry[rec.fieldName(i)] = QJsonValue::fromVariant(column);
+			}
+
+		if (valid)
+			allSettings.append(entry);
+	}
+
+	backup["version"] = EXPORT_FILE_FORMAT_VERSION;
+	backup["instances"] = allInstances;
+	backup["settings"] = allSettings;	
+
+	_readonlyMode = rm;
+	return backup;
+}
+
+QString DBManager::restoreBackup(const QJsonObject& backupData)
+{
+	QSqlDatabase idb = getDB();
+	const QJsonObject& message = backupData.value("config").toObject();
+	bool rm = _readonlyMode;
+
+	_readonlyMode = true;
+	
+	if (idb.transaction())
+	{
+		QSqlQuery queryDelInstances(idb);
+		queryDelInstances.prepare(QString("DELETE FROM instances"));
+
+		QSqlQuery queryDelSettings(idb);
+		queryDelSettings.prepare(QString("DELETE FROM settings"));
+
+		if (!queryDelSettings.exec() || !queryDelInstances.exec())
+		{
+			Error(_log, "Failed to clear tables before import");
+			idb.rollback();
+			_readonlyMode = rm;
+			return "Failed to clear tables before import";
+		}
+
+		const QJsonArray instances = message.value("instances").toArray();
+		if (instances.count() > 0)
+		{			
+			for(const QJsonValue & value : instances)
+			{
+				QStringList headers, placeholder;
+				QVariantList values;
+				QJsonObject obj = value.toObject();
+
+				foreach(const QString & key, obj.keys())
+				{
+					headers.append(key);
+					placeholder.append("?");
+					if (obj.value(key).isString())
+						values.append(obj.value(key).toString());
+					else
+						values.append(obj.value(key).toInt());
+				}
+
+				QSqlQuery queryInstInsert(idb);
+				queryInstInsert.prepare(QString("INSERT INTO %1 ( %2 ) VALUES ( %3 )").arg("instances").arg(headers.join(", ")).arg(placeholder.join(", ")));
+				doAddBindValue(queryInstInsert, values);
+
+				if (!queryInstInsert.exec())
+				{
+					Error(_log, "Failed to create record in table 'instances'. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+					idb.rollback();
+					_readonlyMode = rm;
+					return "Failed to create record in table 'instances': " + idb.lastError().text();
+				}
+			}			
+		}
+
+		const QJsonArray settings = message.value("settings").toArray();
+		if (settings.count() > 0)
+		{			
+			for(const QJsonValue & value : settings)
+			{
+				QStringList headers, placeholder;
+				QVariantList values;
+				QJsonObject obj = value.toObject();
+
+				foreach(const QString & key, obj.keys())
+				{
+					headers.append(key);
+					placeholder.append("?");
+					if (obj.value(key).isString())
+						values.append(obj.value(key).toString());
+					else
+						values.append(obj.value(key).toInt());
+				}
+
+				QSqlQuery querySetInsert(idb);
+				querySetInsert.prepare(QString("INSERT INTO %1 ( %2 ) VALUES ( %3 )").arg("settings").arg(headers.join(", ")).arg(placeholder.join(", ")));
+				doAddBindValue(querySetInsert, values);
+
+				if (!querySetInsert.exec())
+				{
+					Error(_log, "Failed to create record in table 'settings'. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+					idb.rollback();
+					_readonlyMode = rm;
+					return "Failed to create record in table 'settings': " + idb.lastError().text();
+				}
+			}
+		}
+	}
+	else
+	{
+		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		_readonlyMode = rm;
+		return  "Could not create a DB transaction. Error: " + idb.lastError().text();
+	}
+
+	if (!idb.commit())
+	{
+		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		_readonlyMode = rm;
+		return  "Could not commit the DB transaction. Error: " + idb.lastError().text();
+	}
+
+	return "";
 }

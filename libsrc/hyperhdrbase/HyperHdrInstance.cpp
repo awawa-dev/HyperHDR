@@ -7,6 +7,8 @@
 #include <QStringList>
 #include <QThread>
 
+#include <HyperhdrConfig.h>
+
 #include <hyperhdrbase/HyperHdrInstance.h>
 #include <hyperhdrbase/MessageForwarder.h>
 #include <hyperhdrbase/ImageProcessor.h>
@@ -33,10 +35,21 @@
 #include <hyperhdrbase/BGEffectHandler.h>
 
 // CaptureControl (Daemon capture)
-#include <hyperhdrbase/CaptureCont.h>
+#include <hyperhdrbase/VideoControl.h>
+
+// SystemControl (Daemon capture)
+#include <hyperhdrbase/SystemControl.h>
+
+#include <hyperhdrbase/GrabberWrapper.h>
 
 // Boblight
-#include <boblightserver/BoblightServer.h>
+#if defined(ENABLE_BOBLIGHT)	
+	#include <boblightserver/BoblightServer.h>
+#else
+	class BoblightServer {};
+#endif
+
+
 
 HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode)
 	: QObject()
@@ -46,17 +59,18 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode)
 	, _componentRegister(this)
 	, _ledString(hyperhdr::createLedString(getSetting(settings::type::LEDS).array(), hyperhdr::createColorOrder(getSetting(settings::type::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
-	, _muxer(static_cast<int>(_ledString.leds().size()), this)
-	, _raw2ledAdjustment(hyperhdr::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::type::COLOR).object()))
+	, _muxer(instance, static_cast<int>(_ledString.leds().size()), this)
+	, _raw2ledAdjustment(hyperhdr::createLedColorsAdjustment(instance, static_cast<int>(_ledString.leds().size()), getSetting(settings::type::COLOR).object()))
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
 	, _effectEngine(nullptr)
 	, _messageForwarder(nullptr)
-	, _log(Logger::getInstance("HYPERHDR"))
+	, _log(Logger::getInstance(QString("HYPERHDR%1").arg(instance)))
 	, _hwLedCount()
 	, _ledGridSize(hyperhdr::getLedLayoutGridSize(getSetting(settings::type::LEDS).array()))
 	, _BGEffectHandler(nullptr)
-	,_captureCont(nullptr)
+	, _videoControl(nullptr)
+	, _systemControl(nullptr)
 	, _globalLedBuffer(_ledString.leds().size(), ColorRgb::BLACK)
 	, _boblightServer(nullptr)
 	, _readOnlyMode(readonlyMode)
@@ -64,6 +78,30 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode)
 {
 
 }
+
+bool HyperHdrInstance::isCEC()
+{
+	if ((_systemControl != nullptr && _systemControl->isCEC()) ||
+		(_videoControl != nullptr &&_videoControl->isCEC()) ||
+		(GrabberWrapper::getInstance() != nullptr && GrabberWrapper::getInstance()->isCEC())
+	   )
+		return true;
+
+	return false;
+}
+
+void HyperHdrInstance::setSignalStateByCEC(bool enable)
+{
+	if (_systemControl != nullptr && _systemControl->isCEC())
+	{
+		emit _systemControl->setSysCaptureEnableSignal(enable);
+	}
+	if (_videoControl != nullptr && _videoControl->isCEC())
+	{
+		emit _videoControl->setUsbCaptureEnableSignal(enable);
+	}
+}
+
 
 HyperHdrInstance::~HyperHdrInstance()
 {
@@ -73,8 +111,6 @@ HyperHdrInstance::~HyperHdrInstance()
 void HyperHdrInstance::start()
 {
 	connect(_settingsManager, &SettingsManager::settingsChanged, this, &HyperHdrInstance::settingsChanged);
-
-	connect(this, &HyperHdrInstance::newVideoModeHdr, this, &HyperHdrInstance::handleNewVideoModeHdr);
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -135,7 +171,9 @@ void HyperHdrInstance::start()
 	_BGEffectHandler = new BGEffectHandler(this);
 
 	// create the Daemon capture interface
-	_captureCont = new CaptureCont(this);
+	_videoControl = new VideoControl(this);
+
+	_systemControl = new SystemControl(this);
 
 	// forwards global signals to the corresponding slots
 	connect(GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput, this, &HyperHdrInstance::registerInput);
@@ -146,9 +184,11 @@ void HyperHdrInstance::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
+#ifdef ENABLE_BOBLIGHT
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = new BoblightServer(this, getSetting(settings::type::BOBLSERVER));
 	connect(this, &HyperHdrInstance::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
+#endif
 
 	// instance initiated, enter thread event loop
 	emit started();
@@ -167,7 +207,8 @@ void HyperHdrInstance::freeObjects()
 
 	// delete components on exit
 	delete _boblightServer;
-	delete _captureCont;
+	delete _videoControl;
+	delete _systemControl;
 	delete _effectEngine;
 	delete _raw2ledAdjustment;
 	delete _messageForwarder;
@@ -185,12 +226,14 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		const QJsonObject obj = config.object();
 		// change in color recreate ledAdjustments
 		delete _raw2ledAdjustment;
-		_raw2ledAdjustment = hyperhdr::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), obj);
+		_raw2ledAdjustment = hyperhdr::createLedColorsAdjustment(_instIndex, static_cast<int>(_ledString.leds().size()), obj);
 
 		if (!_raw2ledAdjustment->verifyAdjustments())
-		{
+		{						
 			Warning(_log, "At least one led has no color calibration, please add all leds from your led layout to an 'LED index' field!");
 		}
+
+		emit imageToLedsMappingChanged(_imageProcessor->getUserLedMappingType());
 	}
 	else if(type == settings::type::LEDS)
 	{
@@ -219,7 +262,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
-		_raw2ledAdjustment = hyperhdr::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::type::COLOR).object());
+		_raw2ledAdjustment = hyperhdr::createLedColorsAdjustment(_instIndex, static_cast<int>(_ledString.leds().size()), getSetting(settings::type::COLOR).object());
 
 		// start cached effects
 		_effectEngine->startCachedEffects();
@@ -267,6 +310,11 @@ QJsonDocument HyperHdrInstance::getSetting(settings::type type) const
 bool HyperHdrInstance::saveSettings(const QJsonObject& config, bool correct)
 {
 	return _settingsManager->saveSettings(config, correct);
+}
+
+void HyperHdrInstance::saveCalibration(QString saveData)
+{
+	_settingsManager->saveSetting(settings::type::VIDEODETECTION, saveData);
 }
 
 int HyperHdrInstance::getLatchTime() const
@@ -521,16 +569,6 @@ int HyperHdrInstance::getLedMappingType() const
 	return _imageProcessor->getUserLedMappingType();
 }
 
-void HyperHdrInstance::setVideoModeHdr(int hdr)
-{
-	emit videoModeHdr(hdr);
-}
-
-int HyperHdrInstance::getCurrentVideoModeHdr() const
-{
-	return _currVideoModeHdr;
-}
-
 QString HyperHdrInstance::getActiveDeviceType() const
 {
 	return _ledDeviceWrapper->getActiveDeviceType();
@@ -547,17 +585,17 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 {
 	int previousPriority = _muxer.getPreviousPriority();
 
-	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
+	Info(_log, "New priority[%d], previous [%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Error(_log,"No source left -> switch LED-Device off");
+		Error(_log, "No source left -> switch LED-Device off");
 		emit _ledDeviceWrapper->switchOff();
 	}
 	else
 	{
 		if ( previousPriority == PriorityMuxer::LOWEST_PRIORITY )
 		{
-			Debug(_log,"new source available -> switch LED-Device on");
+			Info(_log, "New source available -> switch LED-Device on");
 			emit _ledDeviceWrapper->switchOn();
 		}
 	}
@@ -668,3 +706,5 @@ QString HyperHdrInstance::deleteEffect(const QString& effectName)
 {
 	return "";
 }
+
+

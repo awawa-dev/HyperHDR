@@ -58,13 +58,16 @@ public:
 	/// The lowest possible priority, which is used when no priority channels are active
 	const static int LOWEST_PRIORITY;
 
+	const static int HIGHEST_EFFECT_PRIORITY;
+	const static int LOWEST_EFFECT_PRIORITY;
+
 	///
 	/// Constructs the PriorityMuxer for the given number of LEDs (used to switch to black when
 	/// there are no priority channels
 	///
 	/// @param ledCount The number of LEDs
 	///
-	PriorityMuxer(int ledCount, QObject * parent);
+	PriorityMuxer(int instanceIndex, int ledCount, QObject * parent);
 
 	///
 	/// Destructor

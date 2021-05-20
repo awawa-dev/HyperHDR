@@ -4,7 +4,7 @@
 // STL includes
 #include <cstdio>
 
-// Hyperion-Leddevice includes
+// HyperHDR-Leddevice includes
 #include <leddevice/LedDevice.h>
 
 extern "C" {

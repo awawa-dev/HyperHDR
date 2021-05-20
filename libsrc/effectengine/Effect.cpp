@@ -29,8 +29,10 @@
 #include <effectengine/Animation_CinemaBrightenLights.h>
 #include <effectengine/Animation_CinemaDimLights.h>
 #include <effectengine/Animation_NotifyBlue.h>
+#include <effectengine/Animation_Sparks.h>
 #include <effectengine/Animation_StrobeRed.h>
 #include <effectengine/Animation_StrobeWhite.h>
+#include <effectengine/Animation_SystemShutdown.h>
 #include <effectengine/Animation4Music_TestEq.h>
 #include <effectengine/Animation4Music_PulseWhite.h>
 #include <effectengine/Animation4Music_PulseBlue.h>
@@ -84,7 +86,7 @@ Effect::Effect(HyperHdrInstance *hyperhdr, int priority, int timeout, const QStr
 	_colors.resize(_hyperhdr->getLedCount());
 	_colors.fill(ColorRgb::BLACK);
 
-	_log = Logger::getInstance("EFFECTENGINE");
+	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(hyperhdr->getInstanceIndex()).arg((name.length()>9)?name.left(6)+"...":name));
 
 	// init effect image for image based effects, size is based on led layout
 	_image.fill(Qt::black);
@@ -174,9 +176,17 @@ Effect::Effect(HyperHdrInstance *hyperhdr, int priority, int timeout, const QStr
 	{
 		_effect = new Animation_StrobeRed();
 	}
+	else if (name == ANIM_SPARKS)
+	{
+		_effect = new Animation_Sparks();
+	}
 	else if (name == ANIM_STROBE_WHITE)
 	{
 		_effect = new Animation_StrobeWhite();
+	}
+	else if (name == ANIM_SYSTEM_SHUTDOWN)
+	{
+		_effect = new Animation_SystemShutdown();
 	}
 	else if (name == ANIM_CANDLE)
 	{
@@ -345,7 +355,7 @@ void Effect::run()
 		QMetaObject::invokeMethod(SoundCapture::getInstance(), "getCaptureInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(uint32_t, _soundHandle));
 	}
 	
-
+	Info(_log, "Begin playing the effect with priority: %i", _priority);
 	while (!_interupt && (_timeout <= 0 || QDateTime::currentMSecsSinceEpoch() < _endTime))
 	{
 		if (_priority > 0)
@@ -366,10 +376,10 @@ void Effect::run()
 
 		if (!_effect->hasOwnImage())
 		{
-			_effect->Play(_painter);
+			_effect->Play(_painter);			
 
 			hasLedData = _effect->hasLedData(_ledBuffer);
-		}
+		}		
 
 		int    micro   = _effect->GetSleepTime();
 		qint64 dieTime = QDateTime::currentMSecsSinceEpoch() + micro;
@@ -397,6 +407,9 @@ void Effect::run()
 		{
 			ImageShow();
 		}
+
+		if (_effect->isStop())
+			break;
 				
 		while (!_interupt && QDateTime::currentMSecsSinceEpoch() < dieTime &&
 			   (_timeout <= 0 || QDateTime::currentMSecsSinceEpoch() < _endTime))
@@ -409,6 +422,8 @@ void Effect::run()
 				QThread::msleep(micro);			
 		}
 	}
+
+	Info(_log, "The effect quits with priority: %i", _priority);
 
 	if (_soundHandle != 0)
 	{

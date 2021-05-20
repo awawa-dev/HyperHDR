@@ -4,7 +4,7 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 
-// Hyperion includes
+// HyperHDR includes
 #include <utils/Logger.h>
 
 // Qt includes

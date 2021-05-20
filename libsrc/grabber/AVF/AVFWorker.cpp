@@ -31,30 +31,30 @@ AVFWorkerManager::AVFWorkerManager():
 	workers(nullptr)	
 {
 	int select = QThread::idealThreadCount();
-	
+
 	if (select >= 2 && select <= 3)
 		select = 2;
 	else if (select > 3 && select <= 5)
-		select = 3;	
+		select = 3;
 	else if (select > 5)
 		select = 4;
-	
+
 	workersCount = std::max(select, 1);
 }
 
 AVFWorkerManager::~AVFWorkerManager()
 {
-	if (workers!=nullptr)
+	if (workers != nullptr)
 	{
-		for(unsigned i=0; i < workersCount; i++)
-			if (workers[i]!=nullptr)
+		for (unsigned i = 0; i < workersCount; i++)
+			if (workers[i] != nullptr)
 			{
 				workers[i]->deleteLater();
 				workers[i] = nullptr;
 			}
 		delete[] workers;
 		workers = nullptr;
-	}	
+	}
 }
 
 void AVFWorkerManager::Start()
@@ -96,28 +96,28 @@ bool AVFWorkerManager::isActive()
 }
 
 AVFWorker::AVFWorker():
-		_isBusy(false),
-		_semaphore(1),
-		_workerIndex(0),
-		_pixelFormat(PixelFormat::NO_CHANGE),
-		_localData(nullptr),
-		_localDataSize(0),
-		_size(0),
-		_width(0),
-		_height(0),
-		_lineLength(0),
-		_subsamp(0),
-		_cropLeft(0),
-		_cropTop(0),
-		_cropBottom(0),
-		_cropRight(0),
-		_currentFrame(0),
-		_frameBegin(0),
-		_hdrToneMappingEnabled(0),
-		_lutBuffer(0),
-		_qframe(false)		
+	_isBusy(false),
+	_semaphore(1),
+	_workerIndex(0),
+	_pixelFormat(PixelFormat::NO_CHANGE),
+	_localData(nullptr),
+	_localDataSize(0),
+	_size(0),
+	_width(0),
+	_height(0),
+	_lineLength(0),
+	_subsamp(0),
+	_cropLeft(0),
+	_cropTop(0),
+	_cropBottom(0),
+	_cropRight(0),
+	_currentFrame(0),
+	_frameBegin(0),
+	_hdrToneMappingEnabled(0),
+	_lutBuffer(nullptr),
+	_qframe(false)
 {
-	
+
 }
 
 AVFWorker::~AVFWorker()
@@ -130,29 +130,27 @@ AVFWorker::~AVFWorker()
 	}
 }
 
-void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat, 
-			uint8_t * _sharedData, int __size,int __width, int __height, int __lineLength,
-			int __subsamp, 
-			unsigned  __cropLeft, unsigned  __cropTop, 
-			unsigned __cropBottom, unsigned __cropRight,int __currentFrame, quint64	__frameBegin,
-			int __hdrToneMappingEnabled, unsigned char* __lutBuffer, bool __qframe)
+void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
+	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
+	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
+	quint64 __currentFrame, qint64 __frameBegin,
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe)
 {
-	_workerIndex	= __workerIndex;  	
-	_lineLength		= __lineLength;
-	_pixelFormat	= __pixelFormat;		
-	_size		= __size;
-	_width		= __width;
-	_height		= __height;
-	_subsamp	= __subsamp;
-	_cropLeft	= __cropLeft;
-	_cropTop	= __cropTop;
+	_workerIndex = __workerIndex;
+	_lineLength = __lineLength;
+	_pixelFormat = __pixelFormat;
+	_size = __size;
+	_width = __width;
+	_height = __height;
+	_cropLeft = __cropLeft;
+	_cropTop = __cropTop;
 	_cropBottom = __cropBottom;
-	_cropRight	= __cropRight;
-	_currentFrame	= __currentFrame;
-	_frameBegin		= __frameBegin;
+	_cropRight = __cropRight;
+	_currentFrame = __currentFrame;
+	_frameBegin = __frameBegin;
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
-	_lutBuffer	= __lutBuffer;	
-	_qframe		= __qframe;
+	_lutBuffer = __lutBuffer;
+	_qframe = __qframe;
 
 	if (__size > _localDataSize)
 	{
@@ -162,13 +160,14 @@ void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 			_localData = NULL;
 			_localDataSize = 0;
 		}
-		_localData = (uint8_t *) malloc((size_t)__size + 1);
-		_localDataSize = __size;		
+		_localData = (uint8_t*)malloc((size_t)__size + 1);
+		_localDataSize = __size;
 	}
 
 	if (_localData != NULL)
-		memcpy(_localData, _sharedData, __size);	
+		memcpy(_localData, __sharedData, __size);
 }
+
 
 void AVFWorker::run()
 {

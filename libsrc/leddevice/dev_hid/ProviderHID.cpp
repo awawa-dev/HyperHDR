@@ -6,7 +6,7 @@
 // Qt includes
 #include <QTimer>
 
-// Local Hyperion includes
+// Local HyperHDR includes
 #include "ProviderHID.h"
 
 ProviderHID::ProviderHID(const QJsonObject &deviceConfig)

@@ -97,6 +97,9 @@ struct Led
 	double minY_frac;
 	///  The maximum horizontal scan line included for this leds color
 	double maxY_frac;
+
+	int group;
+
 	/// the color order
 	ColorOrder colorOrder;
 };

@@ -8,7 +8,7 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_gen_name_title",
-			"default" : "My Hyperion Config",
+			"default" : "My HyperHDR Config",
 			"minLength" : 4,
 			"maxLength" : 20,
 			"required" : true,
@@ -30,11 +30,23 @@
 		"showOptHelp" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_gen_showOptHelp_title",
 			"default" : true,
 			"required" : true,
 			"propertyOrder" : 3
+		},
+		"version" :
+		{
+			"type" : "integer",			
+			"default" : 1,
+			"required" : true,
+			"options" : {
+				"hidden":true
+			},
+			"propertyOrder" : 4
 		}
+
 	},
 	"additionalProperties" : false
 }

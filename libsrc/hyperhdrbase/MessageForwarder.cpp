@@ -116,7 +116,7 @@ void MessageForwarder::handlePriorityChanges(quint8 priority)
 		//	delete _forwardClients.takeFirst();
 
 		hyperhdr::Components activeCompId = _hyperhdr->getPriorityInfo(priority).componentId;
-		if (activeCompId == hyperhdr::COMP_GRABBER || activeCompId == hyperhdr::COMP_V4L)
+		if (activeCompId == hyperhdr::COMP_SYSTEMGRABBER || activeCompId == hyperhdr::COMP_VIDEOGRABBER)
 		{
 			if ( !obj["flat"].isNull() )
 			{
@@ -129,13 +129,13 @@ void MessageForwarder::handlePriorityChanges(quint8 priority)
 
 			switch(activeCompId)
 			{
-				case hyperhdr::COMP_GRABBER:
+				case hyperhdr::COMP_SYSTEMGRABBER:
 				{
 					disconnect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, 0, 0);
 					connect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 				}
 				break;
-				case hyperhdr::COMP_V4L:
+				case hyperhdr::COMP_VIDEOGRABBER:
 				{
 					disconnect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, 0, 0);
 					connect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);

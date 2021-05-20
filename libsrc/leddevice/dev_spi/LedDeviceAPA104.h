@@ -1,7 +1,7 @@
 #ifndef LEDEVICEAPA104_H
 #define LEDEVICEAPA104_H
 
-// hyperion includes
+// HyperHDR includes
 #include "ProviderSpi.h"
 
 ///

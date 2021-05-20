@@ -16,7 +16,7 @@ class SysTray : public QWidget
 	Q_OBJECT
 
 public:
-	SysTray(HyperHdrDaemon *hyperiond);
+	SysTray(HyperHdrDaemon *hyperhdrd);
 	~SysTray();
 
 
@@ -38,7 +38,7 @@ private slots:
 	void webserverPortChanged(quint16 port) { _webPort = port; };
 
 	///
-	/// @brief is called whenever a hyperion instance state changes
+	/// @brief is called whenever a hyperhdr instance state changes
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
 
@@ -47,7 +47,7 @@ private:
 
 #ifdef _WIN32
 	///
-	/// @brief Checks whether Hyperion should start at Windows system start.
+	/// @brief Checks whether HyperHDR should start at Windows system start.
 	/// @return True on success, otherwise false
 	///
 	bool getCurrentAutorunState();
@@ -67,8 +67,8 @@ private:
 	QMenu            *_trayIconMenu;
 	QMenu            *_trayIconEfxMenu;
 	QColorDialog      _colorDlg;
-	HyperHdrDaemon   *_hyperiond;
-	HyperHdrInstance *_hyperion;
+	HyperHdrDaemon   *_hyperhdrd;
+	HyperHdrInstance *_hyperhdr;
 	HyperHdrIManager *_instanceManager;
 	quint16           _webPort;
 };

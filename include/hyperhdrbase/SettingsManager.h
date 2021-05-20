@@ -38,6 +38,8 @@ public:
 	///
 	QJsonDocument getSetting(settings::type type) const;
 
+	void saveSetting(settings::type key, QString saveData);
+
 	///
 	/// @brief get the full settings object of this instance (with global settings)
 	/// @return The requested json
@@ -52,15 +54,7 @@ signals:
 	///
 	void settingsChanged(settings::type type, const QJsonDocument& data);
 
-private:
-	///
-	/// @brief Add possible migrations steps for configuration here
-	/// @param config The configuration object
-	/// @return True when a migration has been triggered
-	///
-	bool handleConfigUpgrade(QJsonObject& config);
-
-	
+private:		
 	/// Logger instance
 	Logger* _log;
 

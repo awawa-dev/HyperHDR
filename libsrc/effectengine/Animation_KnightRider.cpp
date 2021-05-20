@@ -55,14 +55,6 @@ void Animation_KnightRider::Init(
 	direction = 1;	
 }
 
-
-int clamp( int v, int lo, int hi)
-{
-	if (v < lo) return lo;
-	if (v > hi) return hi;
-	return v;
-}
-
 bool Animation_KnightRider::Play(QPainter* painter)
 {
 	bool ret = true;

@@ -12,7 +12,7 @@ set(ProtoServer_PROTOS ${CURRENT_SOURCE_DIR}/message.proto )
 
 protobuf_generate_cpp(ProtoServer_PROTO_SRCS ProtoServer_PROTO_HDRS ${ProtoServer_PROTOS} )
 
-### Split protoclient from protoserver as protoserver relates to HyperionDaemon and standalone capture binarys can't link to it
+### Split protoclient from protoserver as protoserver relates to HyperHDRDaemon and standalone capture binarys can't link to it
 
 add_library(protoclient
 	${CURRENT_SOURCE_DIR}/ProtoClientConnection.h

@@ -1,4 +1,4 @@
-// Local-Hyperion includes
+// Local-HyperHDR includes
 #include "LedDeviceAtmoOrb.h"
 #include <utils/QStringUtils.h>
 // qt includes
@@ -199,7 +199,7 @@ int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
 	// 2 = use lamp smoothing and validate by Orb ID
 	// 4 = validate by Orb ID
 
-	// When setting _useOrbSmoothing = true it's recommended to disable Hyperion's own smoothing as it will conflict (double smoothing)
+	// When setting _useOrbSmoothing = true it's recommended to disable HyperHDR's own smoothing as it will conflict (double smoothing)
 	int commandType = 4;
 	if(_useOrbSmoothing)
 	{

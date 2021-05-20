@@ -1,10 +1,12 @@
 // proj incl
 #include <api/JsonCB.h>
 
-// hyperion
+// hyperhdr
 #include <hyperhdrbase/HyperHdrInstance.h>
 
-// HyperionIManager
+#include <hyperhdrbase/GrabberWrapper.h>
+
+// HyperHDRIManager
 #include <hyperhdrbase/HyperHdrIManager.h>
 // components
 
@@ -38,7 +40,7 @@ JsonCB::JsonCB(QObject* parent)
 	#endif
 	, _prioMuxer(nullptr)
 {
-	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
+	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update"
 	<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
@@ -93,13 +95,21 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 		else
 			connect(_hyperhdr, &HyperHdrInstance::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
 	}
+
+	if (type == "grabberstate-update")
+	{
+		if (unsubscribe)
+			disconnect(GrabberWrapper::instance, &GrabberWrapper::StateChanged, this, &JsonCB::handleGrabberStateChange);
+		else
+			connect(GrabberWrapper::instance, &GrabberWrapper::StateChanged, this, &JsonCB::handleGrabberStateChange, Qt::UniqueConnection);
+	}
 	
 	if(type == "videomodehdr-update")
 	{
 		if(unsubscribe)
-			disconnect(_hyperhdr, &HyperHdrInstance::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange);
+			disconnect(GrabberWrapper::instance, &GrabberWrapper::HdrChanged, this, &JsonCB::handleVideoModeHdrChange);
 		else
-			connect(_hyperhdr, &HyperHdrInstance::newVideoModeHdr, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
+			connect(GrabberWrapper::instance, &GrabberWrapper::HdrChanged, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
 	}
 
 	if(type == "effects-update")
@@ -360,6 +370,14 @@ void JsonCB::handleVideoModeHdrChange(int hdr)
 	QJsonObject data;
 	data["videomodehdr"] = hdr;
 	doCallback("videomodehdr-update", QVariant(data));
+}
+
+void JsonCB::handleGrabberStateChange(QString device, QString videoMode)
+{
+	QJsonObject data;
+	data["device"] = device;
+	data["videoMode"] = videoMode;
+	doCallback("grabberstate-update", QVariant(data));
 }
 
 void JsonCB::handleEffectListChange()

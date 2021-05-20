@@ -6,7 +6,7 @@
 
 #include <QHostInfo>
 
-// hyperion local includes
+// hyperhdr local includes
 #include "LedDeviceUdpE131.h"
 
 const ushort E131_DEFAULT_PORT = 5568;
@@ -44,7 +44,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 	if ( ProviderUdp::init(deviceConfig) )
 	{
 		_e131_universe = deviceConfig["universe"].toInt(1);
-		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
+		_e131_source_name = deviceConfig["source-name"].toString("hyperhdr on "+QHostInfo::localHostName());
 		QString _json_cid = deviceConfig["cid"].toString("");
 
 		if (_json_cid.isEmpty())

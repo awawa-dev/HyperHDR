@@ -1,7 +1,7 @@
 #ifndef LEDEVICEDMX_H
 #define LEDEVICEDMX_H
 
-// hyperion includes
+// HyperHDR includes
 #include "ProviderRs232.h"
 
 ///

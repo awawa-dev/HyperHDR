@@ -19,6 +19,9 @@ class JsonCB;
 
 const QString NO_AUTH = "No Authorization";
 
+const QString DEFAULT_CONFIG_USER = "Hyperhdr";
+const QString DEFAULT_CONFIG_PASSWORD = "hyperhdr";
+
 ///
 /// @brief API for Hyperhdr to be inherted from a child class with specific protocol implementations
 /// Workflow:

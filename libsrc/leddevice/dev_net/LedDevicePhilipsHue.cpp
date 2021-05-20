@@ -1,4 +1,4 @@
-// Local-Hyperion includes
+// Local-HyperHDR includes
 #include "LedDevicePhilipsHue.h"
 #include <utils/QStringUtils.h>
 #include <ssdp/SSDPDiscover.h>

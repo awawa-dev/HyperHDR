@@ -1,4 +1,4 @@
-// hyperion local includes
+// HyperHDR local includes
 #include "LedDeviceKarate.h"
 
 LedDeviceKarate::LedDeviceKarate(const QJsonObject &deviceConfig)

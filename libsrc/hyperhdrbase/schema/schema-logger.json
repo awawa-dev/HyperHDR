@@ -1,6 +1,7 @@
 {
 	"type" : "object",
 	"title" : "edt_conf_log_heading_title",
+	"required" : true,
 	"properties" :
 	{
 		"level" :
@@ -8,10 +9,11 @@
 			"type" : "string",
 			"enum" : ["silent", "warn", "verbose", "debug"],
 			"title" : "edt_conf_log_level_title",
+			"required" : true,
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_logsilent", "edt_conf_enum_logwarn", "edt_conf_enum_logverbose", "edt_conf_enum_logdebug"]
 			},
-			"default" : "warn"
+			"default" : "debug"
 		}
 	},
 	"additionalProperties" : false

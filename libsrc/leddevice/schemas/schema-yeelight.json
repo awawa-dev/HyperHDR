@@ -67,6 +67,7 @@
 		},
 		"brightnessSwitchOffOnMinimum": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_switchOffOnbelowMinBrightness_title",
 			"default" : true,
 			"access" : "advanced",
@@ -95,6 +96,7 @@
 		},
 		"restoreOriginalState": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : false,
 			"propertyOrder" : 9

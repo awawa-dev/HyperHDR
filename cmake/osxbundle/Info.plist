@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
-		<key>CFBundleExecutable</key>
+		<key>CFBundleIdentifier</key>
+		<string>com.awawa-dev.hyperhdr</string>
+		<key>CFBundleName</key>
 		<string>HyperHDR</string>
+		<key>CFBundleExecutable</key>
+		<string>hyperhdr</string>
 		<key>CFBundleIconFile</key>
 		<string>Hyperhdr.icns</string>
 		<key>CFBundleInfoDictionaryVersion</key>

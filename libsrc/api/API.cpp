@@ -13,7 +13,8 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
-
+#include <hyperhdrbase/GrabberWrapper.h>
+#include <hyperhdrbase/SystemWrapper.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperhdrConfig.h>
@@ -185,7 +186,7 @@ bool API::setImage(ImageCmdData &data, hyperhdr::Components comp, QString &reply
 
 bool API::clearPriority(int priority, QString &replyMsg, hyperhdr::Components callerComp)
 {
-    if (priority < 0 || (priority > 0 && priority < 254))
+    if (priority < 0 || (priority > 0 && priority < PriorityMuxer::LOWEST_EFFECT_PRIORITY))
     {		
         QMetaObject::invokeMethod(_hyperhdr, "clear", Qt::QueuedConnection, Q_ARG(int, priority));
     }
@@ -199,7 +200,12 @@ bool API::clearPriority(int priority, QString &replyMsg, hyperhdr::Components ca
 
 bool API::setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperhdr::Components callerComp)
 {
-    Components component = stringToComponent(comp);
+	QString input(comp);
+	if (input == "GRABBER")
+		input = "SYSTEMGRABBER";
+	if (input == "V4L")
+		input = "VIDEOGRABBER";
+    Components component = stringToComponent(input);
 	if (component == COMP_ALL)
 	{
 		auto manager = HyperHdrIManager::getInstance();
@@ -208,11 +214,16 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 
 		return true;
 	}
-    else if (component != COMP_INVALID)
-    {		
-        QMetaObject::invokeMethod(_hyperhdr, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperhdr::Components, component), Q_ARG(bool, compState));
-        return true;
-    }
+	else if (component == COMP_HDR)
+	{
+		setVideoModeHdr((compState)?1:0, component);
+		return true;
+	}
+	else if (component != COMP_INVALID)
+	{
+		QMetaObject::invokeMethod(_hyperhdr, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperhdr::Components, component), Q_ARG(bool, compState));
+		return true;
+	}	
     replyMsg = QString("Unknown component name: %1").arg(comp);
     return false;
 }
@@ -223,8 +234,8 @@ void API::setLedMappingType(int type, hyperhdr::Components callerComp)
 }
 
 void API::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
-{	
-    QMetaObject::invokeMethod(_hyperhdr, "setVideoModeHdr", Qt::QueuedConnection, Q_ARG(int, hdr));
+{
+	QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(int, hdr));
 }
 
 bool API::setEffect(const EffectCmdData &dat, hyperhdr::Components callerComp)
@@ -286,7 +297,7 @@ bool API::setHyperhdrInstance(quint8 inst)
 std::map<hyperhdr::Components, bool> API::getAllComponents()
 {
     std::map<hyperhdr::Components, bool> comps;
-    //QMetaObject::invokeMethod(_hyperion, "getAllComponents", Qt::BlockingQueuedConnection, Q_RETURN_ARG(std::map<hyperion::Components, bool>, comps));
+    //QMetaObject::invokeMethod(_hyperhdr, "getAllComponents", Qt::BlockingQueuedConnection, Q_RETURN_ARG(std::map<hyperhdr::Components, bool>, comps));
     return comps;
 }
 
@@ -402,7 +413,7 @@ bool API::updateHyperhdrPassword(const QString &password, const QString &newPass
     if (!_adminAuthorized)
         return false;
     bool res;
-    QMetaObject::invokeMethod(_authManager, "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+    QMetaObject::invokeMethod(_authManager, "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_CONFIG_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
     return res;
 }
 
@@ -475,7 +486,7 @@ bool API::getPendingTokenRequests(QVector<AuthManager::AuthDefinition> &map)
 bool API::isUserTokenAuthorized(const QString &userToken)
 {
     bool res;
-    QMetaObject::invokeMethod(_authManager, "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, userToken));
+    QMetaObject::invokeMethod(_authManager, "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_CONFIG_USER), Q_ARG(QString, userToken));
     if (res)
     {
         _authorized = true;
@@ -506,7 +517,7 @@ bool API::isTokenAuthorized(const QString &token)
 bool API::isUserAuthorized(const QString &password)
 {
     bool res;
-    QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, password));
+    QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_CONFIG_USER), Q_ARG(QString, password));
     if (res)
     {
         _authorized = true;
@@ -520,7 +531,7 @@ bool API::isUserAuthorized(const QString &password)
 bool API::hasHyperhdrDefaultPw()
 {
     bool res;
-    QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, "hyperion"));
+    QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_CONFIG_USER), Q_ARG(QString, DEFAULT_CONFIG_PASSWORD));
     return res;
 }
 

@@ -18,14 +18,15 @@
 #include <hyperhdrbase/Grabber.h>
 #include <utils/Components.h>
 
-
-// TurboJPEG decoder
+// general JPEG decoder includes
 #include <QImage>
 #include <QColor>
+
+// TurboJPEG decoder
 #include <turbojpeg.h>
 
 
-/// MT worker for V4L2 devices
+/// MT worker for MF devices
 class MFWorkerManager;
 class MFWorker : public  QThread
 {
@@ -34,13 +35,15 @@ class MFWorker : public  QThread
 	
 	public:	
 		void setup(
-				unsigned int _workerIndex, 
+				unsigned int _workerIndex,
 				PixelFormat __pixelFormat,
-				uint8_t * _sharedData, int __size,int __width, int __height, int __lineLength,
-				int		  __subsamp, 
-				unsigned  __cropLeft, unsigned  __cropTop, 
-				unsigned  __cropBottom, unsigned __cropRight,int __currentFrame, quint64 __frameBegin,
-				int __hdrToneMappingEnabled, unsigned char* _lutBuffer, bool __qframe);
+				uint8_t*	__sharedData,
+				int			__size,int __width, int __height, int __lineLength,
+				unsigned	__cropLeft, unsigned  __cropTop, 
+				unsigned	__cropBottom, unsigned __cropRight,
+				quint64		__currentFrame, qint64 __frameBegin,
+				int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe);
+
 		void startOnThisThread();
 		void run();
 		
@@ -48,40 +51,39 @@ class MFWorker : public  QThread
 		void noBusy();
 		
 		MFWorker();
-		~MFWorker();	
+		~MFWorker();
+
 	signals:
-	    	void newFrame(unsigned int workerIndex, const Image<ColorRgb>& data, unsigned int sourceCount, quint64 _frameBegin);	
-	    	void newFrameError(unsigned int workerIndex, QString,unsigned int sourceCount);   
+	    void newFrame(unsigned int workerIndex, Image<ColorRgb> data, quint64 sourceCount, qint64 _frameBegin);
+	    void newFrameError(unsigned int workerIndex, QString, quint64 sourceCount);
 	    					
 	private:
 		void runMe();
-		void process_image_jpg_mt();																					
-		
-	#ifdef HAVE_TURBO_JPEG		
-		tjhandle 	_decompress;			
-	#endif		
-		
-	static	volatile bool	_isActive;
-	volatile bool		_isBusy;
-	QSemaphore			_semaphore;
-	unsigned int 		_workerIndex;				
-	PixelFormat			_pixelFormat;		
-	uint8_t*			_localData;
-	int 				_localDataSize;
-	int					_size;
-	int					_width;
-	int					_height;
-	int					_lineLength;
-	int					_subsamp;
-	unsigned			_cropLeft;
-	unsigned			_cropTop;
-	unsigned			_cropBottom;
-	unsigned			_cropRight;
-	int					_currentFrame;
-	uint64_t			_frameBegin;
-	uint8_t				_hdrToneMappingEnabled;
-	unsigned char*		_lutBuffer;
-	bool				_qframe;
+		void process_image_jpg_mt();																			
+	
+		tjhandle 	_decompress;
+
+static	volatile bool	    _isActive;
+		volatile bool       _isBusy;
+		QSemaphore	        _semaphore;
+		unsigned int 	    _workerIndex;
+		PixelFormat			_pixelFormat;		
+		uint8_t*			_localData;
+		int 				_localDataSize;
+		int			_size;
+		int			_width;
+		int			_height;
+		int			_lineLength;
+		int			_subsamp;
+		uint		_cropLeft;
+		uint		_cropTop;
+		uint		_cropBottom;
+		uint		_cropRight;
+		quint64		_currentFrame;
+		qint64		_frameBegin;
+		uint8_t	    _hdrToneMappingEnabled;
+		uint8_t*	_lutBuffer;
+		bool		_qframe;
 };
 
 class MFWorkerManager : public  QObject

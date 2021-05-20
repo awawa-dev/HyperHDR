@@ -2,9 +2,9 @@
 
 ///
 /// The xml to fill with data
-/// %1 base url                   http://192.168.0.177:80/
-/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
-/// %3 modelNumber                2.0.0
+/// %1 base url                   http://192.168.1.36:8090/
+/// %2 friendly name              HyperHDR (192.168.1.36)
+/// %3 modelNumber                17.0.0
 /// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
 ///
 /// def URN urn:schemas-upnp-org:device:Basic:1
@@ -19,12 +19,12 @@ static const QString SSDP_DESCRIPTION =	"<?xml version=\"1.0\"?>"
 											"<device>"
 												"<deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>"
 												"<friendlyName>%2</friendlyName>"
-												"<manufacturer>Hyperion Open Source Ambient Lighting</manufacturer>"
-												"<manufacturerURL>https://www.hyperion-project.org</manufacturerURL>"
-												"<modelDescription>Hyperion Open Source Ambient Light</modelDescription>"
-												"<modelName>Hyperion</modelName>"
+												"<manufacturer>HyperHDR Open Source Ambient Lighting</manufacturer>"
+												"<manufacturerURL>https://hyperhdr.blogspot.com/</manufacturerURL>"
+												"<modelDescription>HyperHDR Open Source Ambient Light</modelDescription>"
+												"<modelName>HyperHDR</modelName>"
 												"<modelNumber>%3</modelNumber>"
-												"<modelURL>https://www.hyperion-project.org</modelURL>"
+												"<modelURL>https://github.com/awawa-dev/HyperHDR</modelURL>"
 												"<serialNumber>%4</serialNumber>"
 												"<UDN>uuid:%4</UDN>"
 												"<ports>"
@@ -40,7 +40,7 @@ static const QString SSDP_DESCRIPTION =	"<?xml version=\"1.0\"?>"
 														"<height>100</height>"
 														"<width>100</width>"
 														"<depth>32</depth>"
-														"<url>img/hyperion/ssdp_icon.png</url>"
+														"<url>img/hyperhdr/ssdp_icon.png</url>"
 													"</icon>"
 												"</iconList>"
 											"</device>"

@@ -13,6 +13,8 @@ macro(DeployApple TARGET)
 
 		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d" DESTINATION "hyperhdr.app/Contents/lut" COMPONENT "HyperHDR")			
 		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 
 		if ( Qt5Core_FOUND )			
 			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
@@ -157,13 +159,11 @@ macro(DeployUnix TARGET)
 			"libxcb-sync1"
 			"libxcb-util0"
 			"libxcb-xfixes0"
-			"libxcb-xinerama0"
 			"libxcb-xkb1"
 			"libxcb1"
-			"libxkbcommon-x11-0"
-			"libxcb-xinput0"
+			"libxkbcommon-x11-0"			
 			"libssl1.1"
-			"libsqlite3-0"			
+			"libturbojpeg"
 		)
 
 		# Extract dependencies ignoring the system ones		
@@ -192,7 +192,66 @@ macro(DeployUnix TARGET)
 				#message(STATUS "Basic check added: ${resolved_file}")
 			endif()
 		endforeach()
+		
+		# Copy LIBTURBOJPEG lib
+		find_library(LIBTURBOJPEG
+			NAMES "libturbojpeg" "libturbojpeg.so"
+			PATHS "${LIB_JPEG_TURBO_LIB}"
+			NO_DEFAULT_PATH
+			REQUIRED
+		)
 
+		SET(resolved_file ${LIBTURBOJPEG})		
+		get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+		gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+		message(STATUS "Adding libturbojpeg: ${resolved_file}")		
+		set(resolved_file "${resolved_file}.0")
+		if(EXISTS ${resolved_file})
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+		endif()
+		get_filename_component(file_canonical ${resolved_file} REALPATH)
+		gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+		message(STATUS "Added libturbojpeg(2): ${file_canonical}")
+		
+		# Copy SMARTX11 lib
+		find_library(LIBSMARTX11
+			NAMES "smartX11" "smartX11.so"
+			PATHS "${CMAKE_BINARY_DIR}/lib"
+			NO_DEFAULT_PATH
+		)
+		if (LIBSMARTX11)
+			SET(resolved_file ${LIBSMARTX11})		
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Adding smartx11: ${resolved_file}")		
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added smartx11(2): ${file_canonical}")
+		endif()
+		
+		# Copy CEC lib
+		find_library(LIBSMARTCEC
+			NAMES "cec" "cec.so"
+			PATHS "${CMAKE_BINARY_DIR}/lib"
+			NO_DEFAULT_PATH			
+		)
+		if (LIBSMARTCEC)
+			SET(resolved_file ${LIBSMARTCEC})
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Adding CEC: ${resolved_file}")
+			set(resolved_file "${resolved_file}.6")
+			if(EXISTS ${resolved_file})
+				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+				message(STATUS "Adding CEC(2): ${resolved_file}")
+			endif()
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added CEC(3): ${file_canonical}")
+		endif()
+		
 		#OpenSSL
 		find_package(OpenSSL)
 		if(OPENSSL_FOUND)
@@ -215,7 +274,26 @@ macro(DeployUnix TARGET)
 			)		
 		endif()
 		
-		if(GLD)
+		
+		
+		if ( CEC_SUPPORT )
+			SET(resolved_file ${CEC_SUPPORT})
+			message(STATUS "Adding CEC support: ${resolved_file}")
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Added CEC support: ${resolved_file}")
+			set(resolved_file "${resolved_file}.2")
+			if(EXISTS ${resolved_file})
+				message(STATUS "Added CEC support: ${resolved_file}")
+				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})				
+			endif()
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added CEC support: ${file_canonical}")
+		endif()		
+		
+		if ( GLD )
 			SET(resolved_file ${GLD})
 			message(STATUS "Adding GLD: ${resolved_file}")
 			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
@@ -230,7 +308,7 @@ macro(DeployUnix TARGET)
 			endif()
 			get_filename_component(file_canonical ${resolved_file} REALPATH)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added: ${file_canonical}")
+			message(STATUS "Added GLD: ${file_canonical}")
 		endif()
 		
 		find_library(LIB_GLX
@@ -322,7 +400,8 @@ macro(DeployUnix TARGET)
 		
 		# install LUT		
 		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")
-		
+		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
@@ -338,16 +417,14 @@ endmacro()
 macro(DeployWindows TARGET)
 	if(EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
-		find_package(Qt5Core REQUIRED)
-
-		# Find the windeployqt binaries
-		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-		get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
-		find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
 
 		# Collect the runtime libraries
 		get_filename_component(COMPILER_PATH "${CMAKE_CXX_COMPILER}" DIRECTORY)
-		set(WINDEPLOYQT_PARAMS --no-angle --no-opengl-sw)
+		if (Qt_VERSION EQUAL 5)
+			set(WINDEPLOYQT_PARAMS --no-angle --no-opengl-sw)
+		else()
+			set(WINDEPLOYQT_PARAMS --no-opengl-sw)
+		endif()
 
 		execute_process(
 			COMMAND "${CMAKE_COMMAND}" -E
@@ -388,19 +465,24 @@ macro(DeployWindows TARGET)
 		endwhile()
 
 		# Copy TurboJPEG Libs
-		if (TURBOJPEG_FOUND)
-			find_file(TurboJPEG_DLL
-				NAMES "turbojpeg.dll" "jpeg62.dll"
-				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
-				NO_DEFAULT_PATH
-			)
+		find_file(TurboJPEG_DLL
+			NAMES "turbojpeg.dll" "jpeg62.dll"
+			PATHS "${LIB_JPEG_TURBO_LIB}"
+			NO_DEFAULT_PATH
+			REQUIRED
+		)
+				
+		if(NOT CMAKE_GITHUB_ACTION)
+			get_filename_component(JPEG_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
+			execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TurboJPEG_DLL} ${JPEG_RUNTIME_TARGET})
+		endif()
 
-			install(
-				FILES ${TurboJPEG_DLL}
-				DESTINATION "bin"
-				COMPONENT "HyperHDR"
-			)
-		endif(TURBOJPEG_FOUND)
+		install(
+			FILES ${TurboJPEG_DLL}
+			DESTINATION "bin"
+			COMPONENT "HyperHDR"
+		)
+		
 		
 		# Copy usb Libs
 		if (LIBUSB_1_LIBRARIES)
@@ -469,15 +551,16 @@ macro(DeployWindows TARGET)
 
 
 		find_package(OpenSSL QUIET)
+		
 		find_file(OPENSSL_SSL
-				NAMES ssleay32.dll ssl.dll libssl-1_1.dll libssl-1_1-x64.dll libssl
-				HINTS ${_OPENSSL_ROOT_HINTS} PATHS ${_OPENSSL_ROOT_PATHS} "C:/Program Files/OpenSSL-Win64"
-				PATH_SUFFIXES bin
+			NAMES libssl-1_1-x64.dll libssl-1_1.dll libssl ssleay32.dll ssl.dll
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			PATH_SUFFIXES bin
 		)
 
 		find_file(OPENSSL_CRYPTO
-			NAMES libeay32.dll crypto.dll libcrypto-1_1.dll libcrypto-1_1-x64.dll libcrypto
-			HINTS ${_OPENSSL_ROOT_HINTS} PATHS ${_OPENSSL_ROOT_PATHS} "C:/Program Files/OpenSSL-Win64"
+			NAMES libcrypto-1_1-x64.dll libcrypto-1_1.dll libcrypto libeay32.dll crypto.dll
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
 			PATH_SUFFIXES bin
 		)
 		
@@ -493,6 +576,9 @@ macro(DeployWindows TARGET)
 		endif()
 
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
+		
+		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION bin COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION bin COMPONENT "HyperHDR")
 
 	else()
 		# Run CMake after target was built

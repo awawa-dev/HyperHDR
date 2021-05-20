@@ -2,7 +2,7 @@
 #include <exception>
 #include <cstring>
 
-// Local Hyperion includes
+// Local HyperHDR includes
 #include "LedDeviceLightpack.h"
 
 // from USB_ID.h (http://code.google.com/p/light-pack/source/browse/CommonHeaders/USB_ID.h)

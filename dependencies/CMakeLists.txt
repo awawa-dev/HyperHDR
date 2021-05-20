@@ -1,3 +1,18 @@
+if ( ENABLE_CEC )
+	add_subdirectory(external/libcec)	
+ENDIF()
+
+if ( ENABLE_V4L2 OR ENABLE_MF )
+	add_subdirectory(external/libjpeg-turbo)
+	if(WIN32)
+		set (LIB_JPEG_TURBO_LIB "${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}/")
+	else()
+		set (LIB_JPEG_TURBO_LIB "${CMAKE_BINARY_DIR}/lib/")
+	endif ()
+	set (LIB_JPEG_TURBO_LIB ${LIB_JPEG_TURBO_LIB} PARENT_SCOPE)
+endif()
+
+
 add_subdirectory(build/hidapi)
 
 if ( ENABLE_TINKERFORGE )
@@ -76,11 +91,11 @@ set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use proto
 if (USE_SYSTEM_PROTO_LIBS)
 	find_package(Protobuf REQUIRED)
 else ()
-	option (protobuf_BUILD_TESTS OFF)
+	set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf with tests")
+	set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
 	
-	option(protobuf_BUILD_SHARED_LIBS OFF)
 	if (WIN32)
-		option(protobuf_MSVC_STATIC_RUNTIME OFF)
+		set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
 	endif()
 
 	add_subdirectory(external/protobuf/cmake)
@@ -100,9 +115,25 @@ else ()
 	# define the protoc executable at the parent scope
 	set(PROTOBUF_PROTOC_EXECUTABLE "$<TARGET_FILE:protoc>")
 endif()
+option(protobuf_BUILD_TESTS "" OFF)
 set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
 set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
+
+if ( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
+	target_compile_options(turbojpeg PRIVATE "-w")
+	target_compile_options(protoc PRIVATE "-w")
+	target_compile_options(libprotoc PRIVATE "-w")
+	target_compile_options(libprotobuf PRIVATE "-w")
+	target_compile_options(libprotobuf-lite PRIVATE "-w")
+endif()
+if ( MSVC )
+	target_compile_options(turbojpeg PRIVATE "/W0")
+	target_compile_options(protoc PRIVATE "/W0")
+	target_compile_options(libprotoc PRIVATE "/W0")
+	target_compile_options(libprotobuf PRIVATE "/W0")
+	target_compile_options(libprotobuf-lite PRIVATE "/W0")
+endif()
 
 message(STATUS "Using protobuf compiler: " ${PROTOBUF_PROTOC_EXECUTABLE})
 

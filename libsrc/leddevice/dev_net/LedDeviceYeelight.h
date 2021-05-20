@@ -274,14 +274,14 @@ public:
 	///
 	/// @brief Restore the Yeelight light's original state.
 	///
-	/// Restore the device's state as before hyperion color streaming started.
+	/// Restore the device's state as before hyperhdr color streaming started.
 	///
 	/// @return True, if success
 	///
 	bool restoreState();
 
 	///
-	/// @brief Check, if light was originally powered on before hyperion color streaming started..
+	/// @brief Check, if light was originally powered on before hyperhdr color streaming started..
 	///
 	/// @return True, if light was on at start
 	///
@@ -521,7 +521,7 @@ protected:
 	///
 	/// @brief Store the device's original state.
 	///
-	/// Save the device's state before hyperion color streaming starts allowing to restore state during switchOff().
+	/// Save the device's state before hyperhdr color streaming starts allowing to restore state during switchOff().
 	///
 	/// @return True if success
 	///
@@ -530,7 +530,7 @@ protected:
 	///
 	/// @brief Restore the device's original state.
 	///
-	/// Restore the device's state as before hyperion color streaming started.
+	/// Restore the device's state as before hyperhdr color streaming started.
 	/// This includes the on/off state of the device.
 	///
 	/// @return True, if success

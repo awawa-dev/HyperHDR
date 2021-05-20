@@ -2,6 +2,7 @@
 
 #include <hyperhdrbase/HyperHdrInstance.h>
 #include <db/InstanceTable.h>
+#include <hyperhdrbase/GrabberWrapper.h>
 
 // qt
 #include <QThread>
@@ -10,7 +11,7 @@ HyperHdrIManager* HyperHdrIManager::HIMinstance;
 
 HyperHdrIManager::HyperHdrIManager(const QString& rootPath, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	, _log(Logger::getInstance("HYPERHDR"))
+	, _log(Logger::getInstance("HYPERMANAGER"))
 	, _instanceTable( new InstanceTable(rootPath, this, readonlyMode) )
 	, _rootPath( rootPath )
 	, _readonlyMode(readonlyMode)
@@ -45,6 +46,8 @@ void HyperHdrIManager::startAll()
 	{
 		startInstance(entry["instance"].toInt());
 	}
+
+	emit setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (GrabberWrapper::getInstance()->getHdrToneMappingEnabled() != 0));
 }
 
 void HyperHdrIManager::stopAll()
@@ -54,6 +57,27 @@ void HyperHdrIManager::stopAll()
 	for(const auto instance : instCopy)
 	{
 		instance->stop();
+	}
+}
+
+bool HyperHdrIManager::isCEC()
+{
+	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;
+	for (const auto instance : instCopy)
+	{
+		if (instance->isCEC())
+			return true;
+	}
+
+	return false;
+}
+
+void HyperHdrIManager::setSignalStateByCEC(bool enable)
+{
+	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;
+	for (const auto instance : instCopy)
+	{
+		instance->setSignalStateByCEC(enable);
 	}
 }
 
@@ -73,28 +97,27 @@ bool HyperHdrIManager::startInstance(quint8 inst, bool block, QObject* caller, i
 	{
 		if(!_runningInstances.contains(inst) && !_startQueue.contains(inst))
 		{
-			QThread* hyperionThread = new QThread();
-			hyperionThread->setObjectName("HyperionThread");
-			HyperHdrInstance* hyperion = new HyperHdrInstance(inst, _readonlyMode);
-			hyperion->moveToThread(hyperionThread);
+			QThread* hyperhdrThread = new QThread();
+			hyperhdrThread->setObjectName("HyperHdrThread");
+			HyperHdrInstance* hyperhdr = new HyperHdrInstance(inst, _readonlyMode);
+			hyperhdr->moveToThread(hyperhdrThread);
 			// setup thread management
-			connect(hyperionThread, &QThread::started, hyperion, &HyperHdrInstance::start);
-			connect(hyperion, &HyperHdrInstance::started, this, &HyperHdrIManager::handleStarted);
-			connect(hyperion, &HyperHdrInstance::finished, this, &HyperHdrIManager::handleFinished);
-			connect(hyperion, &HyperHdrInstance::finished, hyperionThread, &QThread::quit, Qt::DirectConnection);
+			connect(hyperhdrThread, &QThread::started, hyperhdr, &HyperHdrInstance::start);
+			connect(hyperhdr, &HyperHdrInstance::started, this, &HyperHdrIManager::handleStarted);
+			connect(hyperhdr, &HyperHdrInstance::finished, this, &HyperHdrIManager::handleFinished);
+			connect(hyperhdr, &HyperHdrInstance::finished, hyperhdrThread, &QThread::quit, Qt::DirectConnection);
 
 			// setup further connections
-			// from Hyperion
-			connect(hyperion, &HyperHdrInstance::settingsChanged, this, &HyperHdrIManager::settingsChanged);
+			// from HyperHDR
+			connect(hyperhdr, &HyperHdrInstance::settingsChanged, this, &HyperHdrIManager::settingsChanged);
 
-			connect(hyperion, &HyperHdrInstance::videoModeHdr, this, &HyperHdrIManager::requestVideoModeHdr);
-			connect(hyperion, &HyperHdrInstance::compStateChangeRequest, this, &HyperHdrIManager::compStateChangeRequest);
-			// to Hyperion
-			connect(this, &HyperHdrIManager::newVideoModeHdr, hyperion, &HyperHdrInstance::newVideoModeHdr);
+			connect(hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &HyperHdrIManager::compStateChangeRequest);
+
+			connect(this, &HyperHdrIManager::setNewComponentStateToAllInstances, hyperhdr, &HyperHdrInstance::setNewComponentState);
 
 			// add to queue and start
 			_startQueue << inst;
-			hyperionThread->start();
+			hyperhdrThread->start();
 
 			// update db
 			_instanceTable->setLastUse(inst);
@@ -102,7 +125,7 @@ bool HyperHdrIManager::startInstance(quint8 inst, bool block, QObject* caller, i
 
 			if(block)
 			{
-				while(!hyperionThread->isRunning()){};
+				while(!hyperhdrThread->isRunning()){};
 			}
 
 			if (!_pendingRequests.contains(inst) && caller != nullptr)
@@ -132,18 +155,18 @@ bool HyperHdrIManager::stopInstance(quint8 inst)
 		{
 			// notify a ON_STOP rather sooner than later, queued signal listener should have some time to drop the pointer before it's deleted
 			emit instanceStateChanged(InstanceState::H_ON_STOP, inst);
-			HyperHdrInstance* hyperion = _runningInstances.value(inst);
-			hyperion->stop();
+			HyperHdrInstance* hyperhdr = _runningInstances.value(inst);
+			hyperhdr->stop();
 
 			// update db
 			_instanceTable->setEnable(inst, false);
 
 			return true;
 		}
-		Debug(_log,"Can't stop Hyperhdr instance index '%d' with name '%s' it's not running'", inst, QSTRING_CSTR(_instanceTable->getNamebyIndex(inst)));
+		Debug(_log,"Can't stop HyperHDR instance index '%d' with name '%s' it's not running'", inst, QSTRING_CSTR(_instanceTable->getNamebyIndex(inst)));
 		return false;
 	}
-	Debug(_log,"Can't stop Hyperhdr instance index '%d' it doesn't exist in DB", inst);
+	Debug(_log,"Can't stop HyperHDR instance index '%d' it doesn't exist in DB", inst);
 	return false;
 }
 
@@ -195,27 +218,27 @@ bool HyperHdrIManager::saveName(quint8 inst, const QString& name)
 
 void HyperHdrIManager::handleFinished()
 {
-	HyperHdrInstance* hyperion = qobject_cast<HyperHdrInstance*>(sender());
-	quint8 instance = hyperion->getInstanceIndex();
+	HyperHdrInstance* hyperhdr = qobject_cast<HyperHdrInstance*>(sender());
+	quint8 instance = hyperhdr->getInstanceIndex();
 
-	Info(_log,"Hyperhdr instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
+	Info(_log,"HyperHDR instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 	_runningInstances.remove(instance);
-	hyperion->thread()->deleteLater();
-	hyperion->deleteLater();
+	hyperhdr->thread()->deleteLater();
+	hyperhdr->deleteLater();
 	emit instanceStateChanged(InstanceState::H_STOPPED, instance);
 	emit change();
 }
 
 void HyperHdrIManager::handleStarted()
 {
-	HyperHdrInstance* hyperion = qobject_cast<HyperHdrInstance*>(sender());
-	quint8 instance = hyperion->getInstanceIndex();
+	HyperHdrInstance* hyperhdr = qobject_cast<HyperHdrInstance*>(sender());
+	quint8 instance = hyperhdr->getInstanceIndex();
 
-	Info(_log,"Hyperhdr instance '%s' has been started", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
+	Info(_log,"HyperHDR instance '%s' has been started", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 	_startQueue.removeAll(instance);
-	_runningInstances.insert(instance, hyperion);
+	_runningInstances.insert(instance, hyperhdr);
 	emit instanceStateChanged(InstanceState::H_STARTED, instance);
 	emit change();
 
@@ -225,4 +248,30 @@ void HyperHdrIManager::handleStarted()
 		emit startInstanceResponse(def.caller, def.tan);
 		_pendingRequests.remove(instance);
 	}
+}
+
+const QJsonObject HyperHdrIManager::getBackup()
+{
+	QJsonObject ret;
+	if (_instanceTable != nullptr)
+		return _instanceTable->getBackup();
+	return ret;
+}
+
+
+QString HyperHdrIManager::restoreBackup(const QJsonObject& message)
+{
+	if (_instanceTable != nullptr)
+		return _instanceTable->restoreBackup(message);
+	else
+		return QString("Empty instance table manager");
+}
+
+void HyperHdrIManager::saveCalibration(QString saveData)
+{
+	HyperHdrInstance* instance = HyperHdrIManager::getHyperHdrInstance(0);
+	if (instance != nullptr)
+		QMetaObject::invokeMethod(instance, "saveCalibration", Q_ARG(QString, saveData));
+	else
+		Error(_log, "Hyperhdr instance is not running...can't save the calibration data");
 }

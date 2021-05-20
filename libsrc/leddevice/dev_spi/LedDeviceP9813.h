@@ -1,7 +1,7 @@
 #ifndef LEDEVICEP9813_H
 #define LEDEVICEP9813_H
 
-// hyperion includes
+// HyperHDR includes
 #include "ProviderSpi.h"
 
 ///

@@ -2,16 +2,23 @@
 #include <iostream>
 
 #include <hyperhdrbase/HyperHdrInstance.h>
+#include <HyperhdrConfig.h>
 
 using namespace hyperhdr;
 
 ComponentRegister::ComponentRegister(HyperHdrInstance* hyperhdr)
 	: _hyperhdr(hyperhdr)
-	  , _log(Logger::getInstance("COMPONENTREG"))
+	  , _log(Logger::getInstance(QString("COMPONENTREG%1").arg(hyperhdr->getInstanceIndex())))
 {
 	// init all comps to false
 	QVector<hyperhdr::Components> vect;
-	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER << COMP_BOBLIGHTSERVER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
+	vect << COMP_ALL << COMP_HDR << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER;
+
+#if defined(ENABLE_BOBLIGHT)
+	vect << COMP_BOBLIGHTSERVER;
+#endif
+
+	vect << COMP_VIDEOGRABBER << COMP_SYSTEMGRABBER << COMP_LEDDEVICE;
 	for(auto e : vect)
 	{
 		_componentStates.emplace(e, (e == COMP_ALL));
@@ -33,7 +40,7 @@ void ComponentRegister::setNewComponentState(hyperhdr::Components comp, bool act
 {
 	if(_componentStates[comp] != activated)
 	{
-		Debug( _log, "%s: %s", componentToString(comp), (activated? "enabled" : "disabled"));
+		Info( _log, "%s: %s", componentToString(comp), (activated? "enabled" : "disabled"));
 		_componentStates[comp] = activated;
 		// emit component has changed state
 		emit updatedComponentState(comp, activated);

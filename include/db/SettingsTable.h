@@ -27,7 +27,7 @@ public:
 	///
 	/// @brief      Test if record exist, type can be global setting or local (instance)
 	/// @param[in]  type           type of setting
-	/// @param[in]  hyperhdr_inst  The instance of hyperion assigned (might be empty)
+	/// @param[in]  hyperhdr_inst  The instance of hyperhdr assigned (might be empty)
 	/// @return     true on success else false
 	///
 	bool recordExist(const QString& type) const;
@@ -48,8 +48,9 @@ public:
 
 	bool deleteSettingsRecordString(const QString& type) const;
 
+	bool purge(const QString& type) const;
 	///
-	/// @brief Delete all settings entries associated with this instance, called from InstanceTable of HyperionIManager
+	/// @brief Delete all settings entries associated with this instance, called from InstanceTable of HyperHDRIManager
 	///
 	void deleteInstance() const;
 

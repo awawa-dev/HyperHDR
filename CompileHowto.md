@@ -4,7 +4,19 @@
 
 ```
 sudo apt-get update
-sudo apt-get install build-essential cmake git libasound2-dev libavahi-core-dev libavahi-compat-libdnssd-dev libglvnd-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libturbojpeg0-dev libusb-1.0-0-dev python3-minimal rpm qtbase5-dev
+sudo apt-get install build-essential cmake git nasm libasound2-dev libavahi-core-dev libavahi-compat-libdnssd-dev libglvnd-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-minimal qtbase5-dev
+```
+
+### For X11 screen grabber
+
+```
+sudo apt-get install libx11-dev
+```
+
+### For Linux CEC support library
+
+```
+sudo apt-get install libp8-platform-dev
 ```
 
 ## Windows
@@ -14,9 +26,12 @@ We assume a 64bit Windows 10. Install the following;
 - [Visual Studio 2019 Build Tools](https://go.microsoft.com/fwlink/?linkid=840931) ([direct link](https://aka.ms/vs/16/release/vs_buildtools.exe))
   - Select C++ Buildtools
   - On the right, just select `MSVC v142 VS 2019 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
+- [nasm (win64)](https://www.nasm.us/)
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
+  - May need to add Qt path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.2.0\msvc2019_64\lib\cmake\` or `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
+  - QT6.2 requires Vulkan SDK https://vulkan.lunarg.com/sdk/home The installer should configure it, for example: `set VULKAN_SDK=C:\VulkanSDK\1.2.182.0`
 - Optional for package creation: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
 ## MacOs
@@ -49,6 +64,12 @@ bin/hyperhdr -d
 sudo make install/strip
 # optional: to uninstall (not very well tested, please keep that in mind)
 sudo make uninstall
+
+# BUILD INSTALLERS
+# build the installer after the compilation 
+cpack
+# or compile and build the package using one command
+cmake --build . --target package --config Release
 ```
 
 ### Download

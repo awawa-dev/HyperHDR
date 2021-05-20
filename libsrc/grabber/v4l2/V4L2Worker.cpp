@@ -26,7 +26,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 
-#include "grabber/V4L2Worker.h"
+#include <grabber/V4L2Worker.h>
 
 
 
@@ -235,15 +235,15 @@ void V4L2Worker::process_image_jpg_mt()
 		
 	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(_sharedData), _size, &_width, &_height, &_subsamp) != 0)
 	{	
-		QString info = QString(tjGetErrorStr());
-		if (info.indexOf("extraneous bytes before marker") < 0)
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
+			QString info = QString(tjGetErrorStr());
 			emit newFrameError(_workerIndex, info, _currentFrame);
 			return;
 		}
 	}
 
-	tjscalingfactor sca{ 1,2 };
+	tjscalingfactor sca{ 1, 2 };
 	Image<ColorRgb> srcImage((_qframe) ? TJSCALED(_width, sca) : _width,
 		(_qframe) ? TJSCALED(_height, sca) : _height);
 	_width = srcImage.width();
@@ -251,9 +251,9 @@ void V4L2Worker::process_image_jpg_mt()
 
 	if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
 	{		
-		QString info = QString(tjGetErrorStr());
-		if (info.indexOf("extraneous bytes before marker") < 0)
+		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
+			QString info = QString(tjGetErrorStr());
 			emit newFrameError(_workerIndex, info, _currentFrame);
 			return;
 		}
@@ -298,5 +298,3 @@ void V4L2Worker::process_image_jpg_mt()
 		emit newFrame(_workerIndex, destImage, _currentFrame, _frameBegin);
 	}
 }
-
-

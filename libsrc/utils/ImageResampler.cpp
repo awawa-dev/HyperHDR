@@ -418,3 +418,44 @@ void ImageResampler::applyLUT(uint8_t* _source, unsigned int width, unsigned int
 	}
 }
 
+void ImageResampler::processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
+{
+	uint32_t	ind_lutd;
+	uint8_t		buffer[8];
+	int divisionX = division * 4;
+
+	if (lineSize == 0)
+		lineSize = _actualWidth * 4;
+
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
+		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 4)));
+
+		if (_lutBuffer == nullptr)
+		{
+			sLine += 2;
+			while (dLine < dLineEnd)
+			{
+				*dLine++ = *sLine--;
+				*dLine++ = *sLine--;
+				*dLine++ = *sLine;
+				sLine += divisionX + 2;
+			}
+		}
+		else while (dLine < dLineEnd)
+		{
+			*((uint32_t*)&buffer) = *((uint32_t*)sLine);
+			sLine += divisionX;
+			ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
+			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
+			dLine += 3;
+		}
+	}
+}
+

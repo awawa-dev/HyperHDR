@@ -27,11 +27,11 @@ QStringList getProcessIdsByProcessName(const char *processName)
 		return {};
 	}
 
-	PROCESSENTRY32 pe32{};
-	pe32.dwSize = sizeof(PROCESSENTRY32);
+	PROCESSENTRY32W pe32{};
+	pe32.dwSize = sizeof(PROCESSENTRY32W);
 
 	/* Retrieve information about the first process */
-	if(!Process32First(hProcessSnap, &pe32))
+	if(!Process32FirstW(hProcessSnap, &pe32))
 	{
 		CloseHandle(hProcessSnap);
 		return {};
@@ -40,10 +40,10 @@ QStringList getProcessIdsByProcessName(const char *processName)
 	/* Walk through the snapshot of processes */
 	do
 	{
-		if (strcmp(processName, pe32.szExeFile) == 0)
+		if (QString::compare( processName, QString::fromWCharArray(pe32.szExeFile), Qt::CaseInsensitive) == 0)
 			listOfPids.append(QString::number(pe32.th32ProcessID));
 
-	} while(Process32Next(hProcessSnap, &pe32));
+	} while(Process32NextW(hProcessSnap, &pe32));
 
 	CloseHandle(hProcessSnap);
 

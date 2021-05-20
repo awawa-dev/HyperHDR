@@ -27,10 +27,13 @@ public:
 	/// @param brightnessHigh The used higher brightness
 	///
 	RgbTransform(
-				bool classic_config,				
-				double saturationGain,
-				double luminanceGain,
-	double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
+				quint8  instance,
+				bool    classic_config,				
+				double  saturationGain,
+				double  luminanceGain,
+				double  gammaR, double gammaG, double gammaB,
+				double  backlightThreshold, bool backlightColored,
+				uint8_t brightness, uint8_t brightnessCompensation);
 
 	/// @return The current red gamma value
 	double getGammaR() const;
@@ -51,6 +54,7 @@ public:
 	double getSaturationGain() const;
 	double getLuminanceGain() const;
 	bool getClassicConfig() const;
+	void setClassicConfig(bool classic_config);
 
 	/// @return The current lower brightness
 	int getBacklightThreshold() const;

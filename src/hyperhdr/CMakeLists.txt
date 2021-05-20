@@ -37,23 +37,45 @@ if (ENABLE_AVAHI)
 	target_link_libraries(hyperhdr bonjour)
 endif ()
 
+if (ENABLE_CEC)
+	target_link_libraries(hyperhdr cechandler)
+endif ()
+		
 if (ENABLE_V4L2)
 	target_link_libraries(hyperhdr v4l2-grabber)
+	target_link_libraries(hyperhdr turbojpeg)
 endif ()
 
-if (ENABLE_WMF)
-	target_link_libraries(hyperhdr WMF-grabber)
+if (ENABLE_MF)
+	target_link_libraries(hyperhdr MF-grabber)
+	target_link_libraries(hyperhdr turbojpeg)
 endif ()
+
+if (ENABLE_DX)
+	target_link_libraries(hyperhdr DX-grabber)
+endif ()
+
+if (ENABLE_X11)
+	target_link_libraries(hyperhdr X11-grabber "${CMAKE_DL_LIBS}")
+endif ()
+
+if (ENABLE_MAC_SYSTEM)
+	target_link_libraries(hyperhdr
+		MACOS-grabber
+		"-framework CoreGraphics"
+		"-framework Foundation")
+endif()
 
 if (ENABLE_AVF)
 	target_link_libraries(hyperhdr 
 		AVF-grabber
+		"-framework CoreGraphics"
 		"-framework AVFoundation"
-        "-framework Foundation"
-        "-framework CoreMedia"
-        "-framework CoreVideo"
-        "-framework Accelerate"
-        "-framework IOKit")
+		"-framework Foundation"
+		"-framework CoreMedia"
+		"-framework CoreVideo"
+		"-framework Accelerate"
+		"-framework IOKit")
 endif ()
 
 if (ENABLE_SOUNDCAPWINDOWS)
@@ -93,30 +115,28 @@ if(CMAKE_HOST_UNIX AND NOT APPLE)
 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperhdr )" COMPONENT "HyperHDR" )
 endif()
 
-if(WIN32)
-	if(NOT CMAKE_GITHUB_ACTION)
-		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-		get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
-		find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
-		
-		if (WINDEPLOYQT_EXECUTABLE)
-			set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
-			add_custom_command(TARGET hyperhdr POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:hyperhdr>")
-		endif(WINDEPLOYQT_EXECUTABLE)
-		
-		if (TURBOJPEG_FOUND)
-			find_file(TurboJPEG_DLL
-				NAMES "turbojpeg.dll" "jpeg62.dll"
-				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/jpeg"
-				NO_DEFAULT_PATH
-			)
-			add_custom_command(TARGET hyperhdr POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TurboJPEG_DLL} "$<TARGET_FILE_DIR:hyperhdr>")		
-		endif(TURBOJPEG_FOUND)
-	endif()
-endif()
-
 # Copy dependencies (not for OSX)
 include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+
+if(WIN32)
+		if (Qt_VERSION EQUAL 5)
+			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+			get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+			find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+		else()
+			get_filename_component(My_Qt6Core_EXECUTABLE_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS} ABSOLUTE)
+			find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${My_Qt6Core_EXECUTABLE_DIR}" NO_DEFAULT_PATH)
+			if (NOT WINDEPLOYQT_EXECUTABLE)
+				find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
+			endif()
+		endif()
+		
+		if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
+			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+			message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")
+			add_custom_command(TARGET hyperhdr POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:hyperhdr>")			
+		endif()
+endif()		
 
 if (APPLE)
 	DeployApple("hyperhdr")

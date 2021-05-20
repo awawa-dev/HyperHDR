@@ -5,7 +5,7 @@
 #include <QFileInfo>
 #include <QDebug>
 
-// hyperion include
+// hyperhdr include
 #include <hyperhdrbase/HyperHdrInstance.h>
 
 namespace FileUtils {

@@ -1,7 +1,7 @@
 #ifndef LEDEVICEUDPRAW_H
 #define LEDEVICEUDPRAW_H
 
-// hyperion includes
+// hyperhdr includes
 #include "ProviderUdp.h"
 
 ///

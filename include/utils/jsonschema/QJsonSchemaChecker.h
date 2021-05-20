@@ -97,6 +97,8 @@ private:
 	///
 	void checkProperties(const QJsonObject & value, const QJsonObject & schema);
 
+	bool verifyDeps(const QString& property, const QJsonObject& value, const QJsonObject& schema);
+
 	///
 	/// Checks whether certain properties of a JSON object exist under certain dependencies and are the same.
 	/// If this is not the case _error is set to true and an error-message is added
@@ -196,14 +198,6 @@ private:
 	/// @param schema The enum schema definition
 	///
 	void checkEnum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
-
-	///
-	/// @brief Return the "default" value as string. If not found, an empty string is output
-	///
-	/// @param value The JSON value to search
-	/// @return The "default" value as string
-	///
-	QString getDefaultValue(const QJsonValue & value);
 
 private:
 	/// The schema of the entire json-configuration

@@ -10,7 +10,7 @@
 	typedef QObject V4L2Wrapper;
 #endif
 
-#ifdef ENABLE_WMF
+#ifdef ENABLE_MF
 	#include <grabber/MFWrapper.h>
 #else
 	typedef QObject MFWrapper;
@@ -20,6 +20,30 @@
 	#include <grabber/AVFWrapper.h>
 #else
 	typedef QObject AVFWrapper;
+#endif
+
+#ifdef ENABLE_DX
+#include <grabber/DxWrapper.h>
+#else
+	typedef QObject DxWrapper;
+#endif
+
+#ifdef ENABLE_X11
+#include <grabber/X11Wrapper.h>
+#else
+	typedef QObject X11Wrapper;
+#endif
+
+#ifdef ENABLE_MAC_SYSTEM
+#include <grabber/macOsWrapper.h>
+#else
+	typedef QObject macOsWrapper;
+#endif
+
+#ifdef ENABLE_CEC
+#include <cec/cecHandler.h>
+#else
+	typedef QObject cecHandler;
 #endif
 
 #include <utils/Logger.h>
@@ -49,6 +73,8 @@ class SoundCapLinux;
 class SoundCapMacOS;
 #endif
 
+enum class InstanceState;
+
 
 class HyperHdrDaemon : public QObject
 {
@@ -66,11 +92,6 @@ public:
 	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
-	/// @brief Get the current videoMode
-	///
-	int       getVideoModeHdr() const { return _currVideoModeHdr; };
-
-	///
 	/// @brief get the settings
 	///
 	QJsonDocument getSetting(settings::type type) const;
@@ -80,48 +101,43 @@ public:
 	static HyperHdrDaemon* getInstance() { return daemon; }
 	static HyperHdrDaemon* daemon;
 
+	
+
 public slots:
 	void freeObjects();
+	void enableCEC(bool enabled, QString info);
+	void keyPressedCEC(int keyCode);
 
 signals:
+
 	///////////////////////////////////////
-	/// FROM HYPERIONDAEMON TO HYPERION ///
+	/// FROM HYPERHDR TO HYPERHDRDAEMON ///
 	///////////////////////////////////////
 
 	///
-	/// @brief After eval of setVideoMode this signal emits with a new one on change
-	///
-	void videoModeHdr(int hdr);
-
-	///////////////////////////////////////
-	/// FROM HYPERION TO HYPERIONDAEMON ///
-	///////////////////////////////////////
-
-	///
-	/// @brief PIPE settings events from Hyperion class to HyperionDaemon components
+	/// @brief PIPE settings events from HyperHDR class to HyperHDRDaemon components
 	///
 	void settingsChanged(settings::type type, const QJsonDocument& data);
 
 	///
-	/// @brief PIPE component state changes events from Hyperion class to HyperionDaemon components
+	/// @brief PIPE component state changes events from HyperHDR class to HyperHDRDaemon components
 	///
 	void compStateChangeRequest(hyperhdr::Components component, bool enable);
 
 private slots:
 	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
-
-	///
-	/// @brief Listen for videoMode changes and emit videoMode in case of a change, update _currVideoMode
-	/// @param mode  The requested video mode
-	///
-	void setVideoModeHdr(int hdr);
-
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);	
+public slots:
+	void instanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());
+	void handleSettingsUpdateGlobal(settings::type type, const QJsonDocument& config);	
 private:
+	void loadCEC();
+	void unloadCEC();
+	void updateCEC();
 
 	Logger*                    _log;
 	HyperHdrIManager*          _instanceManager;
@@ -133,10 +149,14 @@ private:
 	JsonServer*                _jsonServer;
 	V4L2Wrapper*               _v4l2Grabber;
 	MFWrapper*                 _mfGrabber;
-	AVFWrapper*                _avfGrabber;		
+	AVFWrapper*                _avfGrabber;
+	macOsWrapper*              _macGrabber;
+	DxWrapper*                 _dxGrabber;
+	X11Wrapper*                _x11Grabber;	
+	cecHandler*					_cecHandler;
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
-	ProtoServer*               _protoServer;
+	ProtoServer*               _protoServer;	
 
     #if defined(ENABLE_SOUNDCAPWINDOWS)
         SoundCapWindows*		_snd;
@@ -158,7 +178,6 @@ private:
 
 	QString                    _prevType;
 
-	int                        _currVideoModeHdr;
 	SettingsManager*           _settingsManager;
 	
 	// application root path

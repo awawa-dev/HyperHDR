@@ -8,9 +8,9 @@ RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
 	resetInitialized();
 }
 
-RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
+RgbChannelAdjustment::RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
 	: _channelName(channelName)
-	, _log(Logger::getInstance(channelName))
+	, _log(Logger::getInstance(channelName.replace("ChannelAdjust_", "ADJUST_") + QString::number(instance)))
 	, _brightness(0)
 {
 	setAdjustment(adjustR, adjustG, adjustB);
@@ -33,9 +33,11 @@ void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8
 
 void RgbChannelAdjustment::setCorrection(uint8_t correction)
 {
-	_correction=correction;
-	initializeCorrectionMapping(correction);	
-	Debug(_log, "set color correction to %d", _correction);	
+	if (_correction != correction)
+		Info(_log, "Set correction to %d", correction);
+
+	_correction = correction;
+	initializeCorrectionMapping(correction);
 }
 uint8_t RgbChannelAdjustment::getCorrection() const
 {

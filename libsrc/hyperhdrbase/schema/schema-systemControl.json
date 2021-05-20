@@ -1,0 +1,38 @@
+{
+	"type" : "object",
+	"required" : true,
+	"title" : "edt_conf_instC_heading_title",
+	"properties" :
+	{		
+		"systemInstanceEnable" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"required" : true,
+			"title" : "edt_conf_instC_systemEnable_title",
+			"default" : false,
+			"propertyOrder" : 1
+		},
+		"systemInstancePriority" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"required" : true,
+			"title" : "edt_conf_general_priority_title",
+			"minimum" : 100,
+			"maximum" : 253,
+			"default" : 245,
+			"propertyOrder" : 2
+		},
+		"cecControl" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"required" : true,
+			"title" : "edt_conf_cec_control_title",
+			"default" : false,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}

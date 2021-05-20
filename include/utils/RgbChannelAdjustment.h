@@ -17,7 +17,7 @@ public:
 	/// @param adjustR
 	/// @param adjustG
 	/// @param adjustB
-	RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName="");
+	RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName);
 
 	///
 	/// Transform the given array value

@@ -24,6 +24,7 @@
 #ifdef ENABLE_AVAHI
 #include <bonjour/bonjourbrowserwrapper.h>
 #endif
+
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
 #include "hyperhdr.h"
@@ -43,7 +44,7 @@
 // AuthManager
 #include <hyperhdrbase/AuthManager.h>
 
-// InstanceManager Hyperion
+// InstanceManager HyperHDR
 #include <hyperhdrbase/HyperHdrIManager.h>
 
 // NetOrigin checks
@@ -81,11 +82,14 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _v4l2Grabber(nullptr)
 	  , _mfGrabber(nullptr)
 	  , _avfGrabber(nullptr)
+	  , _macGrabber(nullptr)
+	  , _dxGrabber(nullptr)
+	  , _x11Grabber(nullptr)	  
+	  , _cecHandler(nullptr)
 	  , _ssdp(nullptr)
 	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 	  , _snd(nullptr)        
 	#endif
-	  , _currVideoModeHdr(-1)
 	  , _rootPath(rootPath)
 {
 	HyperHdrDaemon::daemon = this;
@@ -117,8 +121,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 #elif defined(ENABLE_SOUNDCAPMACOS)
 	_snd = new SoundCapMacOS(getSetting(settings::type::SNDEFFECT), this);
 		connect(this, &HyperHdrDaemon::settingsChanged, _snd, &SoundCapMacOS::handleSettingsUpdate);
-#endif
-
+#endif		
 	// init EffectFileHandler
 	EffectDBHandler* efh = new EffectDBHandler(rootPath, getSetting(settings::type::EFFECTS), this);
 	connect(this, &HyperHdrDaemon::settingsChanged, efh, &EffectDBHandler::handleSettingsUpdate);
@@ -132,27 +135,30 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	_netOrigin->handleSettingsUpdate(settings::type::NETWORK, _settingsManager->getSetting(settings::type::NETWORK));
 
 	// spawn all Hyperhdr instances (non blocking)
+	handleSettingsUpdate(settings::type::VIDEOGRABBER, getSetting(settings::type::VIDEOGRABBER));
+	handleSettingsUpdate(settings::type::SYSTEMGRABBER, getSetting(settings::type::SYSTEMGRABBER));
 	_instanceManager->startAll();
 
 	//Cleaning up Hyperhdr before quit
 	connect(parent, SIGNAL(aboutToQuit()), this, SLOT(freeObjects()));
 
-	// pipe settings changes and component state changes from HyperionIManager to Daemon
+	// pipe settings changes and component state changes from HyperHDRIManager to Daemon
 	connect(_instanceManager, &HyperHdrIManager::settingsChanged, this, &HyperHdrDaemon::settingsChanged);
 	connect(_instanceManager, &HyperHdrIManager::compStateChangeRequest, this, &HyperHdrDaemon::compStateChangeRequest);
+	connect(_instanceManager, &HyperHdrIManager::instanceStateChanged, this, &HyperHdrDaemon::instanceStateChanged);
+	connect(_instanceManager, &HyperHdrIManager::settingsChanged, this, &HyperHdrDaemon::handleSettingsUpdateGlobal);
 
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperHdrDaemon::settingsChanged, this, &HyperHdrDaemon::handleSettingsUpdate);
-	// forward videoModes from HyperionIManager to Daemon evaluation
-	connect(_instanceManager, &HyperHdrIManager::requestVideoModeHdr, this, &HyperHdrDaemon::setVideoModeHdr);
-	// return videoMode changes from Daemon to HyperionIManager
-	connect(this, &HyperHdrDaemon::videoModeHdr, _instanceManager, &HyperHdrIManager::newVideoModeHdr);
-
-	// init v4l2 capture
-	handleSettingsUpdate(settings::type::V4L2, getSetting(settings::type::V4L2));
 
 	// ---- network services -----
-	startNetworkServices();
+	startNetworkServices();	
+}
+
+void HyperHdrDaemon::instanceStateChanged(InstanceState state, quint8 instance, const QString& name)
+{
+	// cec
+	updateCEC();
 }
 
 HyperHdrDaemon::~HyperHdrDaemon()
@@ -161,15 +167,6 @@ HyperHdrDaemon::~HyperHdrDaemon()
 	delete _snd;	
 #endif
 	delete _settingsManager;
-}
-
-void HyperHdrDaemon::setVideoModeHdr(int hdr)
-{
-	if (_currVideoModeHdr != hdr)
-	{
-		_currVideoModeHdr = hdr;
-		emit videoModeHdr(hdr);
-	}
 }
 
 QJsonDocument HyperHdrDaemon::getSetting(settings::type type) const
@@ -181,12 +178,15 @@ void HyperHdrDaemon::freeObjects()
 {
 	Debug(_log, "Cleaning up HyperHdr before quit.");
 
+	// unload cec
+	unloadCEC();
+
 	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 		if (_snd)
 			_snd->ForcedClose();
 	#endif
 
-	// destroy network first as a client might want to access hyperion
+	// destroy network first as a client might want to access hyperhdr
 	delete _jsonServer;
 	_jsonServer = nullptr;
 
@@ -236,21 +236,27 @@ void HyperHdrDaemon::freeObjects()
 		_sslWebserver = nullptr;
 	}
 
-	// stop Hyperions (non blocking)
+	// stop HyperHDRs (non blocking)
 	_instanceManager->stopAll();
 
 #ifdef ENABLE_AVAHI
 	delete _bonjourBrowserWrapper;
 	_bonjourBrowserWrapper = nullptr;
-#endif
+#endif	
 
 	delete _v4l2Grabber;
 	delete _mfGrabber;
+	delete _dxGrabber;
 	delete _avfGrabber;
+	delete _macGrabber;
+	delete _x11Grabber;
 
 	_v4l2Grabber = nullptr;
 	_mfGrabber = nullptr;
+	_dxGrabber = nullptr;
 	_avfGrabber = nullptr;
+	_macGrabber = nullptr;
+	_x11Grabber = nullptr;
 }
 
 void HyperHdrDaemon::startNetworkServices()
@@ -312,8 +318,17 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer);
 	connect(ssdpThread, &QThread::finished, _ssdp, &SSDPHandler::deleteLater);
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
-	connect(this, &HyperHdrDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
+	connect(this, &HyperHdrDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);	
 	ssdpThread->start();
+}
+
+void HyperHdrDaemon::handleSettingsUpdateGlobal(settings::type settingsType, const QJsonDocument& config)
+{
+	if (settingsType == settings::type::SYSTEMCONTROL || settingsType == settings::type::VIDEOCONTROL || settingsType == settings::type::VIDEOGRABBER)
+	{
+		// cec
+		updateCEC();
+	}
 }
 
 void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument& config)
@@ -345,129 +360,32 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	{
 	}
 
-	if (settingsType == settings::type::V4L2)
+	if (settingsType == settings::type::VIDEOGRABBER)
 	{
 		const QJsonObject &grabberConfig = config.object();
 
 #if defined(ENABLE_AVF)
+		
 		if (_avfGrabber == nullptr)
-		{		
-			_avfGrabber = new AVFWrapper(
-					grabberConfig["device"].toString("auto"),
-					grabberConfig["width"].toInt(0),
-					grabberConfig["height"].toInt(0),
-					grabberConfig["fps"].toInt(15),
-					grabberConfig["input"].toInt(-1),					
-					parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-					_rootPath);
-					
-			// HDR stuff					
-			if (!grabberConfig["hdrToneMapping"].toBool(false))	
-			{
-				_avfGrabber->setHdrToneMappingEnabled(0);
-			}
-			else
-			{
-				_avfGrabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));				
-			}
-			setVideoModeHdr(_avfGrabber->getHdrToneMappingEnabled());
-			// software frame skipping
-			_avfGrabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
-			_avfGrabber->setEncoding(grabberConfig["v4l2Encoding"].toString("NONE"));
-			
-			_avfGrabber->setSignalThreshold(
-					grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["noSignalCounterThreshold"].toInt(50) );
-					
-			_avfGrabber->setCropping(
-					grabberConfig["cropLeft"].toInt(0),
-					grabberConfig["cropRight"].toInt(0),
-					grabberConfig["cropTop"].toInt(0),
-					grabberConfig["cropBottom"].toInt(0));
+		{
+			_avfGrabber = new AVFWrapper(grabberConfig["device"].toString("auto"), _rootPath);
 
-			_avfGrabber->setQFrameDecimation(grabberConfig["qFrame"].toBool(false));
-			
-			_avfGrabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0), 
-													grabberConfig["hardware_contrast"].toInt(0),
-													grabberConfig["hardware_saturation"].toInt(0),
-													grabberConfig["hardware_hue"].toInt(0));
-			
-			_avfGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
-			_avfGrabber->setSignalDetectionOffset(
-					grabberConfig["sDHOffsetMin"].toDouble(0.25),
-					grabberConfig["sDVOffsetMin"].toDouble(0.25),
-					grabberConfig["sDHOffsetMax"].toDouble(0.75),
-					grabberConfig["sDVOffsetMax"].toDouble(0.75));
-			Debug(_log, "AV Foundation grabber created");
-
-			// connect to HyperionDaemon signal
-			connect(this, &HyperHdrDaemon::videoModeHdr, _avfGrabber, &AVFWrapper::setHdrToneMappingEnabled);			
+			_avfGrabber->handleSettingsUpdate(settings::type::VIDEOGRABBER, config);
 			connect(this, &HyperHdrDaemon::settingsChanged, _avfGrabber, &AVFWrapper::handleSettingsUpdate);
-			connect(_avfGrabber, &AVFWrapper::HdrChanged, this, &HyperHdrDaemon::videoModeHdr);			
 		}
-#elif  !defined(ENABLE_WMF) && !defined(ENABLE_V4L2)
+			
+#elif  !defined(ENABLE_MF) && !defined(ENABLE_V4L2)
 		Warning(_log, "The AVF grabber can not be instantiated, because it has been left out from the build");		
 #endif
 
-#if defined(ENABLE_WMF)
+
+#if defined(ENABLE_MF)
 		if (_mfGrabber == nullptr)
 		{		
-			_mfGrabber = new MFWrapper(
-					grabberConfig["device"].toString("auto"),
-					grabberConfig["width"].toInt(0),
-					grabberConfig["height"].toInt(0),
-					grabberConfig["fps"].toInt(15),
-					grabberConfig["input"].toInt(-1),					
-					parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-					_rootPath);
-					
-			// HDR stuff					
-			if (!grabberConfig["hdrToneMapping"].toBool(false))	
-			{
-				_mfGrabber->setHdrToneMappingEnabled(0);
-			}
-			else
-			{
-				_mfGrabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));				
-			}
-			setVideoModeHdr(_mfGrabber->getHdrToneMappingEnabled());
-			// software frame skipping
-			_mfGrabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
-			_mfGrabber->setEncoding(grabberConfig["v4l2Encoding"].toString("NONE"));
-			
-			_mfGrabber->setSignalThreshold(
-					grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
-					grabberConfig["noSignalCounterThreshold"].toInt(50) );
-					
-			_mfGrabber->setCropping(
-					grabberConfig["cropLeft"].toInt(0),
-					grabberConfig["cropRight"].toInt(0),
-					grabberConfig["cropTop"].toInt(0),
-					grabberConfig["cropBottom"].toInt(0));
+			_mfGrabber = new MFWrapper(grabberConfig["device"].toString("auto"), _rootPath);
 
-			_mfGrabber->setQFrameDecimation(grabberConfig["qFrame"].toBool(false));
-			
-			_mfGrabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0), 
-													grabberConfig["hardware_contrast"].toInt(0),
-													grabberConfig["hardware_saturation"].toInt(0),
-													grabberConfig["hardware_hue"].toInt(0));
-			
-			_mfGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
-			_mfGrabber->setSignalDetectionOffset(
-					grabberConfig["sDHOffsetMin"].toDouble(0.25),
-					grabberConfig["sDVOffsetMin"].toDouble(0.25),
-					grabberConfig["sDHOffsetMax"].toDouble(0.75),
-					grabberConfig["sDVOffsetMax"].toDouble(0.75));
-			Debug(_log, "Media Foundation grabber created");
-
-			// connect to HyperionDaemon signal
-			connect(this, &HyperHdrDaemon::videoModeHdr, _mfGrabber, &MFWrapper::setHdrToneMappingEnabled);			
+			_mfGrabber->handleSettingsUpdate(settings::type::VIDEOGRABBER, config);
 			connect(this, &HyperHdrDaemon::settingsChanged, _mfGrabber, &MFWrapper::handleSettingsUpdate);
-			connect(_mfGrabber, &MFWrapper::HdrChanged, this, &HyperHdrDaemon::videoModeHdr);			
 		}
 #elif !defined(ENABLE_V4L2) && !defined(ENABLE_AVF)
 		Warning(_log, "The MF grabber can not be instantiated, because it has been left out from the build");		
@@ -475,65 +393,132 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 
 #if defined(ENABLE_V4L2)
-		if (_v4l2Grabber != nullptr)
-			return;
-		
-		_v4l2Grabber = new V4L2Wrapper(
-				grabberConfig["device"].toString("auto"),
-				grabberConfig["width"].toInt(0),
-				grabberConfig["height"].toInt(0),
-				grabberConfig["fps"].toInt(15),
-				grabberConfig["input"].toInt(-1),
-				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-				_rootPath);
-				
-		// HDR stuff				
-		if (!grabberConfig["hdrToneMapping"].toBool(false))	
+		if (_v4l2Grabber == nullptr)
 		{
-			_v4l2Grabber->setHdrToneMappingEnabled(0);
-		}
-		else
-		{
-			_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMappingMode"].toInt(1));	
-		}
-		setVideoModeHdr(_v4l2Grabber->getHdrToneMappingEnabled());
-		
-		// software frame skipping
-		_v4l2Grabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
-		_v4l2Grabber->setEncoding(grabberConfig["v4l2Encoding"].toString("NONE"));
-		
-		_v4l2Grabber->setSignalThreshold(
-				grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
-				grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
-				grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
-				grabberConfig["noSignalCounterThreshold"].toInt(50) );
-		_v4l2Grabber->setCropping(
-				grabberConfig["cropLeft"].toInt(0),
-				grabberConfig["cropRight"].toInt(0),
-				grabberConfig["cropTop"].toInt(0),
-				grabberConfig["cropBottom"].toInt(0));
+			_v4l2Grabber = new V4L2Wrapper(grabberConfig["device"].toString("auto"), _rootPath);
 
-		_v4l2Grabber->setQFrameDecimation(grabberConfig["qFrame"].toBool(false));
-		
-		_v4l2Grabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0), 
-													grabberConfig["hardware_contrast"].toInt(0),
-													grabberConfig["hardware_saturation"].toInt(0),
-													grabberConfig["hardware_hue"].toInt(0));
-		
-		_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
-		_v4l2Grabber->setSignalDetectionOffset(
-				grabberConfig["sDHOffsetMin"].toDouble(0.25),
-				grabberConfig["sDVOffsetMin"].toDouble(0.25),
-				grabberConfig["sDHOffsetMax"].toDouble(0.75),
-				grabberConfig["sDVOffsetMax"].toDouble(0.75));
-		Debug(_log, "V4L2 grabber created");
-
-		// connect to HyperionDaemon signal
-		connect(this, &HyperHdrDaemon::videoModeHdr, _v4l2Grabber, &V4L2Wrapper::setHdrToneMappingEnabled);		
-		connect(this, &HyperHdrDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
-		connect(_v4l2Grabber, &V4L2Wrapper::HdrChanged, this, &HyperHdrDaemon::videoModeHdr);
-#elif !defined(ENABLE_WMF) && !defined(ENABLE_AVF)
+			_v4l2Grabber->handleSettingsUpdate(settings::type::VIDEOGRABBER, config);
+			connect(this, &HyperHdrDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
+		}
+#elif !defined(ENABLE_MF) && !defined(ENABLE_AVF)
 		Warning(_log, "!The v4l2 grabber can not be instantiated, because it has been left out from the build");		
 #endif
+
+		emit settingsChanged(settings::type::VIDEODETECTION, getSetting(settings::type::VIDEODETECTION));
 	}
+
+	if (settingsType == settings::type::SYSTEMGRABBER)
+	{
+		const QJsonObject& grabberConfig = config.object();
+
+#if defined(ENABLE_MAC_SYSTEM)
+
+		if (_macGrabber == nullptr)
+		{
+			_macGrabber = new macOsWrapper(grabberConfig["device"].toString("auto"), _rootPath);
+
+			_macGrabber->handleSettingsUpdate(settings::type::SYSTEMGRABBER, config);
+			connect(this, &HyperHdrDaemon::settingsChanged, _macGrabber, &macOsWrapper::handleSettingsUpdate);
+		}
+
+#elif  !defined(ENABLE_DX) && !defined(ENABLE_X11)
+		Warning(_log, "The MACOS system grabber can not be instantiated, because it has been left out from the build");
+#endif
+
+#if defined(ENABLE_DX)
+		if (_dxGrabber == nullptr)
+		{
+			_dxGrabber = new DxWrapper(grabberConfig["device"].toString("auto"), _rootPath);
+
+			_dxGrabber->handleSettingsUpdate(settings::type::SYSTEMGRABBER, config);
+			connect(this, &HyperHdrDaemon::settingsChanged, _dxGrabber, &DxWrapper::handleSettingsUpdate);
+		}
+#elif !defined(ENABLE_MAC_SYSTEM) && !defined(ENABLE_X11)
+		Warning(_log, "The DX Windows system grabber can not be instantiated, because it has been left out from the build");
+#endif
+
+
+#if defined(ENABLE_X11)
+		if (_x11Grabber == nullptr)
+		{
+			_x11Grabber = new X11Wrapper(grabberConfig["device"].toString("auto"), _rootPath);
+
+			_x11Grabber->handleSettingsUpdate(settings::type::SYSTEMGRABBER, config);
+			connect(this, &HyperHdrDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
+		}
+#elif !defined(ENABLE_DX) && !defined(ENABLE_MAC_SYSTEM)
+		Warning(_log, "!The X11 Linux system grabber can not be instantiated, because it has been left out from the build");
+#endif
+	}
+}
+
+void HyperHdrDaemon::updateCEC()
+{	
+	if (_instanceManager->isCEC())
+	{
+		Info(_log, "Request CEC");
+		loadCEC();
+	}
+	else
+	{
+		Info(_log, "Unload CEC");
+		unloadCEC();
+	}
+}
+
+void HyperHdrDaemon::loadCEC()
+{
+#if defined(ENABLE_CEC)
+	if (_cecHandler != nullptr)
+		return;
+
+	Info(_log, "Opening libCEC library.");
+
+	_cecHandler = new cecHandler();
+	connect(_cecHandler, &cecHandler::stateChange, this, &HyperHdrDaemon::enableCEC);
+	connect(_cecHandler, &cecHandler::keyPressed, this, &HyperHdrDaemon::keyPressedCEC);
+	if  (_cecHandler->start())
+		Info(_log, "Success: libCEC library loaded.");
+	else
+	{
+		Error(_log, "Could not open libCEC library");
+		unloadCEC();
+	}
+#else
+	Debug(_log, "libCEC was left out from the build");
+#endif
+}
+
+void HyperHdrDaemon::unloadCEC()
+{
+#if defined(ENABLE_CEC)	
+	if (_cecHandler != nullptr)
+	{
+		disconnect(_cecHandler, &cecHandler::stateChange, this, &HyperHdrDaemon::enableCEC);
+		disconnect(_cecHandler, &cecHandler::keyPressed, this, &HyperHdrDaemon::keyPressedCEC);
+		Info(_log, "Stopping CEC");
+		_cecHandler->stop();
+		Info(_log, "Cleaning up CEC");
+		delete _cecHandler;
+		_cecHandler = nullptr;
+	}	
+#else
+	Debug(_log, "libCEC was left out from the build");
+#endif
+}
+
+void HyperHdrDaemon::enableCEC(bool enabled, QString info)
+{
+	auto manager = HyperHdrIManager::getInstance();
+
+	if (manager != nullptr)
+	{
+		Info(_log, "Received CEC command: %s, %s", (enabled) ? "enable" : "disable", QSTRING_CSTR(info));
+		manager->setSignalStateByCEC(enabled);
+	}
+}
+
+void HyperHdrDaemon::keyPressedCEC(int keyCode)
+{
+	emit GrabberWrapper::getInstance()->cecKeyPressed(keyCode);
 }

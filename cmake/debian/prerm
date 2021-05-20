@@ -6,14 +6,14 @@ echo "---HyperHdr ambient light prerm ---"
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
 # stop running daemon before we delete it
-HYPERION_RUNNING=false
-pgrep hyperhdr > /dev/null 2>&1 && HYPERION_RUNNING=true
+HYPERHDR_RUNNING=false
+pgrep hyperhdr > /dev/null 2>&1 && HYPERHDR_RUNNING=true
 
 if grep -m1 systemd /proc/1/comm > /dev/null
 then
 	echo "---> stop init deamon: systemd"
 	# systemd
-	$HYPERION_RUNNING && systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
+	$HYPERHDR_RUNNING && systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
 	# disable user specific symlink
 	echo "---> Disable service and remove entry"
 	systemctl -q disable hyperhdr"@${FOUND_USR}"
@@ -24,7 +24,7 @@ elif [ -e /sbin/initctl ]
 then
 	echo "---> stop init deamon: upstart"
 	# upstart
-	$HYPERION_RUNNING && initctl stop hyperhdr
+	$HYPERHDR_RUNNING && initctl stop hyperhdr
 	echo "---> Remove upstart service"
 	rm -v /etc/init/hyperhdr* 2>/dev/null
 	initctl reload-configuration
@@ -32,7 +32,7 @@ then
 else
 	echo "---> stop init deamon: sysV"
 	# sysV
-	$HYPERION_RUNNING && service hyperhdr stop 2>/dev/null
+	$HYPERHDR_RUNNING && service hyperhdr stop 2>/dev/null
 	echo "---> Remove sysV service"
 	update-rc.d -f hyperhdr remove
 	rm /etc/init.d/hyperhdr* 2>/dev/null

@@ -1,16 +1,16 @@
 ---
 name: Feature request
-about: Suggest an idea for Hyperion
+about: Suggest an idea for HyperHDR
 labels: feature request
 ---
 
 <!-- Please don't delete this template or we'll close your issue -->
-<!-- Before creating an issue please make sure you are using the latest version of Hyperion. -->
+<!-- Before creating an issue please make sure you are using the latest version of HyperHDR. -->
 
 ## Feature request
 
 <!-- Please ask questions on our Forum. -->
-<!-- https://hyperion-project.org -->
+<!-- https://github.com/awawa-dev/HyperHDR/discussions -->
 <!-- Issues which contain questions or support requests will be closed. -->
 
 #### What problem does this feature solve?

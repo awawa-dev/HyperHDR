@@ -26,18 +26,17 @@ class ImageData : public QSharedData
 	friend class Image;
 
 public:
-	ImageData(unsigned width, unsigned height)://, const ColorRgb background) :
+	ImageData(unsigned width, unsigned height):
 		_width(width),
 		_height(height),
-		_pixels((unsigned char*) malloc(static_cast<size_t>(width) * height *3 + 4))
+		_pixels((uint8_t*) malloc(static_cast<size_t>(width) * height *3 + 4))
 	{		
-		//!!!!!!!!!!!!!!!!!!std::fill(_pixels, _pixels + width * height, background);
 	}
 
 	ImageData(const ImageData & other) :		
 		_width(other._width),
 		_height(other._height),
-		_pixels((unsigned char*) malloc(static_cast<size_t>(other._width) * other._height *3 + 4))
+		_pixels((uint8_t*) malloc(static_cast<size_t>(other._width) * other._height *3 + 4))
 	{
 		if (_pixels != NULL)
 			memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * other._height * 3);
@@ -108,7 +107,7 @@ public:
 		if ((width * height) > unsigned((_width * _height)))
 		{
 			free(_pixels);
-			_pixels = (unsigned char*) malloc(static_cast<size_t>(width) * height * 3 + 4);
+			_pixels = (uint8_t*) malloc(static_cast<size_t>(width) * height * 3 + 4);
 		}
 
 		_width = width;
@@ -145,10 +144,19 @@ public:
 			_width = 1;
 			_height = 1;
 			free(_pixels);
-			_pixels = (unsigned char*) malloc(3 + 4);
+			_pixels = (uint8_t*) malloc(3 + 4);
 		}
 		if (_pixels != NULL)
 			memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
+	}
+
+	bool checkSignal(int x, int y, int r, int g, int b, int tolerance)
+	{
+		int index = (y * _width + x) * 3;
+		ColorRgb*  rgb = ((ColorRgb*)&(_pixels[index]));
+		int delta = std::abs(r - rgb->red) + std::abs(g - rgb->green) + std::abs(b - rgb->blue);
+
+		return delta <= tolerance;
 	}
 
 private:
@@ -163,5 +171,5 @@ private:
 	/// The height of the image
 	unsigned _height;
 	/// The pixels of the image
-	unsigned char* _pixels;
+	uint8_t* _pixels;
 };

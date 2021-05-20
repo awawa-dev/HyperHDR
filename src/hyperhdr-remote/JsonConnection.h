@@ -10,7 +10,7 @@
 class Logger;
 
 ///
-/// Connection class to setup an connection to the hyperion server and execute commands
+/// Connection class to setup an connection to the hyperhdr server and execute commands
 ///
 class JsonConnection
 {
@@ -18,7 +18,7 @@ public:
 	///
 	/// Constructor
 	///
-	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
+	/// @param address The address of the HyperHDR server (for example "192.168.0.32:19444)
 	/// @param printJson Boolean indicating if the sent and received json is written to stdout
 	///
 	JsonConnection(const QString & address, bool printJson);
@@ -126,7 +126,7 @@ public:
 	void setSourceAutoSelect();
 
 	///
-	/// Print the current loaded Hyperion configuration file
+	/// Print the current loaded HyperHDR configuration file
 	///
 	QString getConfig(std::string type);
 

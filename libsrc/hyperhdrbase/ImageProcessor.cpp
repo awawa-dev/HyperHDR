@@ -41,7 +41,7 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 
 ImageProcessor::ImageProcessor(const LedString& ledString, HyperHdrInstance* hyperhdr)
 	: QObject(hyperhdr)
-	, _log(Logger::getInstance("IMAGETOLED"))
+	, _log(Logger::getInstance(QString("IMAGETOLED%1").arg(hyperhdr->getInstanceIndex())))
 	, _ledString(ledString)
 	, _borderProcessor(new BlackBorderProcessor(hyperhdr, this))
 	, _imageToLeds(nullptr)
@@ -243,7 +243,7 @@ std::vector<ColorRgb> ImageProcessor::process(const Image<ColorRgb>& image)
 
 			if (av > 10)
 			{
-				Info(_log, "Image to led instance %i processing => FPS: %.2f, av. delay: %dms, total time: %.2fs, refreshes count: %d",
+				Warning(_log, "Performance warning. Image to led instance %i processing => FPS: %.2f, av. delay: %dms, total time: %.2fs, refreshes count: %d",
 					_instanceIndex,
 					ledFrameStat.total / 60.0,
 					av,

@@ -19,9 +19,11 @@
 #include <effectengine/Animation_RedMoodBlobs.h>
 #include <effectengine/Animation_RainbowSwirl.h>
 #include <effectengine/Animation_SeaWaves.h>
+#include <effectengine/Animation_Sparks.h>
 #include <effectengine/Animation_StrobeRed.h>
 #include <effectengine/Animation_StrobeWhite.h>
 #include <effectengine/Animation_SwirlFast.h>
+#include <effectengine/Animation_SystemShutdown.h>
 #include <effectengine/Animation_WarmMoodBlobs.h>
 #include <effectengine/Animation_WavesWithColor.h>
 #include <effectengine/Animation4Music_TestEq.h>
@@ -63,17 +65,6 @@
 #include <QDir>
 #include <QMap>
 #include <QByteArray>
-
-
-struct find_effect: std::unary_function<EffectDefinition, bool>
-{
-	QString effectName;
-	find_effect(QString effectName) :effectName(effectName) { }
-	bool operator()(EffectDefinition const& effectDefinition) const
-	{
-		return effectDefinition.name == effectName;
-	}
-};
 
 EffectDBHandler* EffectDBHandler::efhInstance = NULL;
 
@@ -200,11 +191,15 @@ void EffectDBHandler::updateEffects()
 
 	_availableEffects.push_back(Animation_RedMoodBlobs::getDefinition());
 
-	_availableEffects.push_back(Animation_SeaWaves::getDefinition());	
+	_availableEffects.push_back(Animation_SeaWaves::getDefinition());
+
+	_availableEffects.push_back(Animation_Sparks::getDefinition());
 
 	_availableEffects.push_back(Animation_StrobeRed::getDefinition());
 	
 	_availableEffects.push_back(Animation_StrobeWhite::getDefinition());
+
+	_availableEffects.push_back(Animation_SystemShutdown::getDefinition());
 
 	_availableEffects.push_back(Animation_WarmMoodBlobs::getDefinition());
 	

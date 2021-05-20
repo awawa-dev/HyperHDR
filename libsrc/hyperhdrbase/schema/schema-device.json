@@ -8,6 +8,8 @@
 		"type" :
 		{
 			"type" : "string",
+			"default" : "file",
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"hardwareLedCount" :
@@ -17,6 +19,7 @@
 			"minimum" : 1,
 			"default" : 1,
 			"access" : "expert",
+			"required" : true,
 			"propertyOrder" : 2
 		},
 		"colorOrder" :
@@ -28,6 +31,7 @@
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
 			},
+			"required" : true,
 			"propertyOrder" : 3
 		}
 	},
@@ -39,7 +43,7 @@
 			{
 				"type" :
 				{
-					"enum" : ["file", "apa102", "apa104", "ws2801", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2812spi","ws281x", "piblaster", "adalight", "dmx", "atmo", "hyperionusbasp", "lightpack", "multilightpack", "paintpack", "rawhid", "sedu", "tpm2", "karate"]
+					"enum" : ["file", "apa102", "apa104", "ws2801", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2812spi","ws281x", "awa_spi", "piblaster", "adalight", "dmx", "atmo", "lightpack", "multilightpack", "paintpack", "rawhid", "sedu", "tpm2", "karate"]
 				}
 			},
 			"additionalProperties" : true

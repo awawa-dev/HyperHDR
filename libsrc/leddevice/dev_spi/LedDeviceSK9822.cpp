@@ -1,6 +1,6 @@
 #include "LedDeviceSK9822.h"
 
-// Local Hyperion includes
+// Local HyperHDR includes
 #include <utils/Logger.h>
 
 

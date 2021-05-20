@@ -16,7 +16,7 @@ install_file()
 }
 
 
-echo "---Hyperhdr ambient light postinstall ---"
+echo "---HyperHDR ambient light postinstall ---"
 
 #check system
 CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
@@ -32,12 +32,13 @@ NET_IP=`hostname -I | cut -d " " -f1`
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
 # determine if we should use a service
+ENABLE_XSYS=0
 ENABLE_SERVICE=0
-STARTUP_MSG="echo ---> You can start HyperHdr from your menu now"
+STARTUP_MSG="echo ---> You can start HyperHDR from your menu now"
 
 if [ $CPU_RPI -eq 1 ]; then
 	ENABLE_SERVICE=1
-	STARTUP_MSG="echo ---> HyperHdr has been installed as service, it will start on each system startup"
+	STARTUP_MSG="echo ---> HyperHDR has been installed as service, it will start on each system startup"
 fi
 
 start_msg=""
@@ -50,8 +51,15 @@ rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.tar.xz
 if grep -m1 systemd /proc/1/comm > /dev/null
 then	
 	# systemd
-	echo "---> init deamon: systemd (service is enabled by default)"
-	ENABLE_SERVICE=1
+	if [ -z "${DISPLAY}" ]; then
+		echo "---> Init deamon: systemd (service is enabled by default for console systems)"
+		ENABLE_SERVICE=1
+	else
+		STARTUP_MSG="echo ---> Service is NOT enabled by default for GUI systems. You can run HyperHDR as an application or service with: 'systemctl enable (and next: start) hyperhdr@${FOUND_USR}.service'"
+		echo "---> Init deamon: GUI detected (service is NOT enabled by default, you can run HyperHDR as an application or service with 'systemctl enable (and next: start) hyperhdr@${FOUND_USR}.service')"
+		ENABLE_SERVICE=0
+		ENABLE_XSYS=1
+	fi
 	
 	install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service	
 
@@ -65,23 +73,23 @@ elif [ -e /sbin/initctl ]
 then	
 	# upstart
 	if [ $ENABLE_SERVICE -eq 1 ]; then
-		echo "---> init deamon: upstart (service is enabled by default)"
+		echo "---> Init deamon: upstart (service is enabled by default)"
 		install_file /usr/share/hyperhdr/service/hyperhdr.initctl /etc/init/hyperhdr.conf && initctl reload-configuration
 		start_msg="--> initctl start hyperhdr"
 		initctl start hyperhdr
 	else
-		echo "---> init deamon: upstart (service is NOT enabled by default)"
+		echo "---> Init deamon: upstart (service is NOT enabled by default)"
 	fi
 
 else	
 	# sysV
 	if [ $ENABLE_SERVICE -eq 1 ]; then
-		echo "---> init deamon: sysV (enabled by default)"
+		echo "---> Init deamon: sysV (enabled by default)"
 		install_file /usr/share/hyperhdr/service/hyperhdr.init /etc/init.d/hyperhdr && chmod +x /etc/init.d/hyperhdr && update-rc.d hyperhdr defaults 98 02
 		start_msg="---> service hyperhdr start"
 		service hyperhdr start
 	else
-		echo "---> init deamon: sysV (service is NOT enabled by default)"
+		echo "---> Init deamon: sysV (service is NOT enabled by default)"
 	fi
 fi
 
@@ -135,6 +143,5 @@ $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: https://github.com/awawa-dev/HyperHDR"
 echo "-----------------------------------------------------------------------------"
-
 
 exit 0

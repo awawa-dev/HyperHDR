@@ -1,7 +1,7 @@
 #ifndef LEDEVICEUDPE131_H
 #define LEDEVICEUDPE131_H
 
-// hyperion includes
+// hyperhdr includes
 #include "ProviderUdp.h"
 
 #include <QUuid>

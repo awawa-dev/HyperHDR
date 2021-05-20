@@ -6,8 +6,10 @@
 		"enable" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_general_enable_title",
 			"default" : true,
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"type" :
@@ -25,35 +27,46 @@
 		"time_ms" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 25,			
 			"title" : "edt_conf_smooth_time_ms_title",
 			"minimum" : 25,
 			"maximum": 5000,
 			"default" : 150,
 			"append" : "edt_append_ms",
+			"required" : true,
 			"propertyOrder" : 3
 		},
 		"updateFrequency" :
 		{
 			"type" : "number",
+			"format": "stepper",			
+			"step" : 5,			
 			"title" : "edt_conf_smooth_updateFrequency_title",
 			"minimum" : 1.0,
 			"maximum" : 500.0,
-			"default" : 80,
+			"default" : 50,
 			"append" : "edt_append_hz",
+			"required" : true,
 			"propertyOrder" : 4
 		},
 		"lowLightAntiFlickeringTreshold" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,			
 			"title" : "edt_conf_smooth_antiFlickeringTreshold_title",
 			"minimum" : 0,
 			"maximum": 255,
 			"default" : 0,
+			"required" : true,
 			"propertyOrder" : 5
 		},		
 		"lowLightAntiFlickeringValue" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,			
 			"title" : "edt_conf_smooth_antiFlickeringValue_title",
 			"minimum" : 1,
 			"maximum": 8,
@@ -63,11 +76,14 @@
 					"lowLightAntiFlickeringTreshold": true
 				}
 			},
+			"required" : true,
 			"propertyOrder" : 6
 		},
 		"lowLightAntiFlickeringTimeout" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 250,	
 			"title" : "edt_conf_smooth_antiFlickeringTimeout_title",
 			"minimum" : 0,
 			"maximum": 10000,
@@ -77,13 +93,16 @@
 					"lowLightAntiFlickeringTreshold": true
 				}
 			},
+			"required" : true,
 			"propertyOrder" : 7
 		},
 		"continuousOutput" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_smooth_continuousOutput_title",
 			"default" : false,
+			"required" : true,
 			"propertyOrder" : 10
 		}
 	},

@@ -26,12 +26,14 @@
 		},
 		"setFcConfig": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_FCsetConfig_title",
 			"default": false,
 			"propertyOrder" : 4
 		},
 		"manualLed": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_FCmanualControl_title",
 			"default": false,
 			"options": {
@@ -43,6 +45,7 @@
 		},
 		"ledOn": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_FCledToOn_title",
 			"default": false,
 			"options": {
@@ -54,6 +57,7 @@
 		},
 		"interpolation": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_interpolation_title",
 			"default": false,
 			"options": {
@@ -65,6 +69,7 @@
 		},
 		"dither": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_dithering_title",
 			"default": false,
 			"options": {

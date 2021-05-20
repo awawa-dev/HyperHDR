@@ -16,7 +16,7 @@
 class MultiColorAdjustment
 {
 public:
-	MultiColorAdjustment(int ledCnt);
+	MultiColorAdjustment(quint8 instance, int ledCnt);
 	~MultiColorAdjustment();
 
 	/**

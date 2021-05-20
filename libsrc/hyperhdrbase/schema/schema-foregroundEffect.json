@@ -6,8 +6,10 @@
 		"enable" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_general_enable_title",
 			"default" : true,
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"type" :
@@ -19,6 +21,7 @@
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_color", "edt_conf_enum_effect"]
 			},
+			"required" : true,
 			"propertyOrder" : 2
 		},
 		"color" :
@@ -35,6 +38,7 @@
 			},
 			"minItems" : 3,
 			"maxItems" : 3,
+			"required" : true,
 			"propertyOrder" : 3,
 			"options": {
 				"dependencies": {
@@ -47,6 +51,8 @@
 			"type" : "string",
 			"format" : "select",
 			"title" : "edt_conf_fge_effect_title",
+			"default" : "Rainbow swirl fast",
+			"required" : true,
 			"propertyOrder" : 4,
 			"options": {
 				"dependencies": {
@@ -57,10 +63,13 @@
 		"duration_ms" :
 		{
 			"type" : "integer",
+			"format": "stepper",
 			"title" : "edt_conf_fge_duration_ms_title",
 			"default" : 3000,
+			"step" : 500,
 			"minimum" : -1,
 			"append" : "edt_append_ms",
+			"required" : true,
 			"propertyOrder" : 5
 		}
 	},

@@ -18,9 +18,9 @@ const int64_t  DEFAUL_UPDATEINTERVALL = static_cast<int64_t>(1000 / DEFAUL_UPDAT
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
 	: QObject(hyperhdr)
-	, _log(Logger::getInstance("SMOOTHING"))
+	, _log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex())))
 	, _semaphore(1)
-	, _hyperion(hyperhdr)
+	, _hyperhdr(hyperhdr)
 	, _updateInterval(DEFAUL_UPDATEINTERVALL)
 	, _settlingTime(DEFAUL_SETTLINGTIME)
 	, _timer(this)
@@ -50,7 +50,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdr
 	_cfgList.append(cfg);
 
 	// listen for comp changes
-	connect(_hyperion, &HyperHdrInstance::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
+	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
 
 	// timer
 	_timer.setTimerType(Qt::PreciseTimer);
@@ -90,7 +90,7 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		cfg._antiFlickeringStep = obj["lowLightAntiFlickeringValue"].toInt(0);
 		cfg._antiFlickeringTimeout = obj["lowLightAntiFlickeringTimeout"].toInt(0);
 
-		Debug( _log, "Creating smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %i",
+		Info( _log, "Creating config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
 					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(cfg._type)), (cfg._directMode)?"true":"false", (cfg._pause)?"true":"false", int(cfg._settlingTime), int(cfg._updateInterval), int(1000.0/cfg._updateInterval), cfg._antiFlickeringTreshold, cfg._antiFlickeringStep, int(cfg._antiFlickeringTimeout));
 		_cfgList[0] = cfg;
 
@@ -112,7 +112,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 		if (_pause || ledValues.size() == 0)
 			return 0;
 
-		emit _hyperion->ledDeviceData(ledValues);
+		emit _hyperhdr->ledDeviceData(ledValues);
 			return 0;
 	}
 
@@ -140,7 +140,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 		{
 			_timer.start(_updateInterval);
 
-			Debug(_log, "Enabling timer. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
+			Info(_log, "Enabling timer. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
 		}
 		else if ((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 * _updateInterval, (int64_t)1000))
 		{
@@ -422,7 +422,7 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 {	
 	if (!_pause)
 	{
-		emit _hyperion->ledDeviceData(ledColors);
+		emit _hyperhdr->ledDeviceData(ledColors);
 	}	
 }
 
@@ -482,7 +482,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 	}
 
 	// update comp register
-	_hyperion->setNewComponentState(hyperhdr::COMP_SMOOTHING, enable);
+	_hyperhdr->setNewComponentState(hyperhdr::COMP_SMOOTHING, enable);
 }
 
 void LinearColorSmoothing::setPause(bool pause)
@@ -542,7 +542,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 
 		_currentConfigId = cfg;
 
-		Info( _log, "Selecting smoothing config (%d) => type: %s, direct mode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickeringTres: %i, antiFlickeringStep: %i, antiFlickeringTimeout: %i",
+		Info( _log, "Selecting config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
 					_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode)?"true":"false" , (_pause)?"true":"false", int(_settlingTime),
 					int(_updateInterval), int(1000.0/ _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
 

@@ -1,9 +1,9 @@
 #include <utils/Logger.h>
 #include <hyperhdrbase/MultiColorAdjustment.h>
 
-MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
+MultiColorAdjustment::MultiColorAdjustment(quint8 instance, int ledCnt)
 	: _ledAdjustments(ledCnt, nullptr)
-	, _log(Logger::getInstance("ADJUSTMENT"))
+	, _log(Logger::getInstance("ADJUSTMENT" + QString::number(instance)))
 {
 }
 

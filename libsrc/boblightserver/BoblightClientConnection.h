@@ -29,9 +29,9 @@ public:
 	///
 	/// Constructor
 	/// @param socket The Socket object for this connection
-	/// @param hyperion The Hyperion server
+	/// @param hyperhdr The HyperHDR server
 	///
-	BoblightClientConnection(HyperHdrInstance* hyperion, QTcpSocket * socket, int priority);
+	BoblightClientConnection(HyperHdrInstance* hyperhdr, QTcpSocket * socket, int priority);
 
 	///
 	/// Destructor
@@ -122,8 +122,8 @@ private:
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;
 
-	/// Link to Hyperion for writing led-values to a priority channel
-	HyperHdrInstance * _hyperion;
+	/// Link to HyperHDR for writing led-values to a priority channel
+	HyperHdrInstance * _hyperhdr;
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;

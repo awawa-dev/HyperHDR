@@ -58,7 +58,7 @@ namespace hyperhdr {
 		return stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
 	}
 
-	RgbTransform createRgbTransform(const QJsonObject& colorConfig)
+	RgbTransform createRgbTransform(quint8 instance, const QJsonObject& colorConfig)
 	{
 		const double backlightThreshold = colorConfig["backlightThreshold"].toDouble(0.0);
 		const bool   backlightColored   = colorConfig["backlightColored"].toBool(false);
@@ -72,37 +72,38 @@ namespace hyperhdr {
 		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0000);
 		const double luminanceGain = colorConfig["luminanceGain"].toDouble(1.0000);
 
-		return RgbTransform(classic_config, saturationGain, luminanceGain, 
+		return RgbTransform(instance, classic_config, saturationGain, luminanceGain,
 				gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp));
 	}
 
-	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
+	RgbChannelAdjustment createRgbChannelAdjustment(quint8 instance, const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
 
 		return RgbChannelAdjustment(
+			instance,
 			static_cast<uint8_t>(channelConfig[0].toInt(defaultR)),
 			static_cast<uint8_t>(channelConfig[1].toInt(defaultG)),
 			static_cast<uint8_t>(channelConfig[2].toInt(defaultB)),
-			"ChannelAdjust_" + channelName.toUpper()
+			"ChannelAdjust_" + channelName.toUpper()			
 		);
 	}
 
-	ColorAdjustment* createColorAdjustment(const QJsonObject & adjustmentConfig)
+	ColorAdjustment* createColorAdjustment(quint8 instance, const QJsonObject & adjustmentConfig)
 	{
 		const QString id = adjustmentConfig["id"].toString("default");
 
 		ColorAdjustment * adjustment = new ColorAdjustment();
 		adjustment->_id = id;
-		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
-		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
-		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , 255,  0,  0);
-		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  ,   0,255,  0);
-		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   ,   0,  0,255);
-		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   ,   0,255,255);
-		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
-		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
-		adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
+		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(instance, adjustmentConfig, "black"  ,   0,  0,  0);
+		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(instance, adjustmentConfig, "white"  , 255,255,255);
+		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(instance, adjustmentConfig, "red"    , 255,  0,  0);
+		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(instance, adjustmentConfig, "green"  ,   0,255,  0);
+		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(instance, adjustmentConfig, "blue"   ,   0,  0,255);
+		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(instance, adjustmentConfig, "cyan"   ,   0,255,255);
+		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(instance, adjustmentConfig, "magenta", 255,  0,255);
+		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(instance, adjustmentConfig, "yellow" , 255,255,  0);
+		adjustment->_rgbTransform         = createRgbTransform(instance, adjustmentConfig);
 		
 		adjustment->_rgbRedAdjustment.setCorrection(adjustmentConfig["temperatureRed"].toInt(255));
 		adjustment->_rgbBlueAdjustment.setCorrection(adjustmentConfig["temperatureBlue"].toInt(255));
@@ -111,11 +112,11 @@ namespace hyperhdr {
 		return adjustment;
 	}
 
-	MultiColorAdjustment * createLedColorsAdjustment(int ledCnt, const QJsonObject & colorConfig)
+	MultiColorAdjustment * createLedColorsAdjustment(quint8 instance, int ledCnt, const QJsonObject & colorConfig)
 	{
 		
 		// Create the result, the transforms are added to this
-		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
+		MultiColorAdjustment * adjustment = new MultiColorAdjustment(instance, ledCnt);
 
 		const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
 		const QRegularExpression overallExp("^([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*$");
@@ -124,7 +125,7 @@ namespace hyperhdr {
 		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
 		{
 			const QJsonObject & config = adjustmentConfigArray.at(i).toObject();
-			ColorAdjustment * colorAdjustment = createColorAdjustment(config);
+			ColorAdjustment * colorAdjustment = createColorAdjustment(instance, config);
 			adjustment->addAdjustment(colorAdjustment);
 
 			const QString ledIndicesStr = config["leds"].toString("").trimmed();
@@ -189,6 +190,7 @@ namespace hyperhdr {
 			led.maxX_frac = qMax(0.0, qMin(1.0, ledConfig["hmax"].toDouble()));
 			led.minY_frac = qMax(0.0, qMin(1.0, ledConfig["vmin"].toDouble()));
 			led.maxY_frac = qMax(0.0, qMin(1.0, ledConfig["vmax"].toDouble()));
+			led.group = ledConfig["group"].toInt(0);
 			// Fix if the user swapped min and max
 			if (led.minX_frac > led.maxX_frac)
 			{

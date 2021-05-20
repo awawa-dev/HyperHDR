@@ -6,8 +6,10 @@
 		"enable" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_general_enable_title",
 			"default" : false,
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"device" :
@@ -16,6 +18,7 @@
 			"format" : "select",
 			"title" : "edt_conf_sound_device_title",
 			"default" : "default",
+			"required" : true,
 			"propertyOrder" : 2
 		}
 	},

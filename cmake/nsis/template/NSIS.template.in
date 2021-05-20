@@ -813,7 +813,7 @@ FunctionEnd
 ;--------------------------------
 ; determine admin versus local install
 Function un.onInit
-  ; Check if Hyperion is running
+  ; Check if HyperHDR is running
   loopIsRunningCheck:
 	FindProcDLL::FindProc "hyperhdr.exe"
 	IntCmp $R0 1 0 notRunning
@@ -885,7 +885,7 @@ FunctionEnd
 ;Uninstaller Section
 
 Section "Uninstall"
-  ; Check if Hyperion is running
+  ; Check if HyperHDR is running
   loopIsRunningCheck:
     FindProcDLL::FindProc "hyperhdr.exe"
     IntCmp $R0 1 0 notRunning
@@ -992,7 +992,7 @@ SectionEnd
 ; "Program Files" for AllUsers, "My Documents" for JustMe...
 
 Function .onInit
-  ; Check if Hyperion is running
+  ; Check if HyperHDR is running
   loopIsRunningCheck:
 	FindProcDLL::FindProc "hyperhdr.exe"
 	IntCmp $R0 1 0 notRunning

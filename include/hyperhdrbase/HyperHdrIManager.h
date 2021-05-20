@@ -36,8 +36,17 @@ public:
 	// global instance pointer
 	static HyperHdrIManager* getInstance() { return HIMinstance; }
 	static HyperHdrIManager* HIMinstance;
+	
 
 public slots:
+	bool isCEC();
+
+	void setSignalStateByCEC(bool enable);
+
+	const QJsonObject getBackup();
+
+	QString restoreBackup(const QJsonObject& message);
+
 	///
 	/// @brief Is given instance running?
 	/// @param inst  The instance to check
@@ -101,6 +110,8 @@ public slots:
 	///
 	bool saveName(quint8 inst, const QString& name);
 
+	void saveCalibration(QString saveData);
+
 signals:
 	///
 	/// @brief Emits whenever the state of a instance changes according to enum instanceState
@@ -123,19 +134,6 @@ signals:
     void startInstanceResponse(QObject *caller, const int &tan);
 
 signals:
-	///////////////////////////////////////
-	/// FROM HyperHDRDAEMON TO HyperHDR ///
-	///////////////////////////////////////
-
-	///
-	/// @brief PIPE videoMode back to HyperHDR
-	///
-	void newVideoModeHdr(int hdr);
-
-	///////////////////////////////////////
-	/// FROM HyperHDR TO HyperHDRDAEMON ///
-	///////////////////////////////////////
-
 	///
 	/// @brief PIPE settings events from HyperHDR
 	///
@@ -150,6 +148,8 @@ signals:
 	/// @brief PIPE component state changes from HyperHDR to HyperHDRDaemon
 	///
 	void compStateChangeRequest(hyperhdr::Components component, bool enable);
+
+	void setNewComponentStateToAllInstances(hyperhdr::Components component, bool enable);
 
 private slots:
 	///

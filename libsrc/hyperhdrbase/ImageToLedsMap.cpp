@@ -1,6 +1,8 @@
 #include <hyperhdrbase/ImageToLedsMap.h>
 #include <hyperhdrbase/ImageProcessor.h>
 
+#define push_back_index(list, index) list.push_back((index) * 3)
+
 using namespace hyperhdr;
 
 ImageToLedsMap::ImageToLedsMap(
@@ -20,6 +22,9 @@ ImageToLedsMap::ImageToLedsMap(
 	, _verticalBorder(verticalBorder)
 	, _instanceIndex(instanceIndex)
 	, _colorsMap()
+	, _colorsGroups()
+	, _groupMin(-1)
+	, _groupMax(-1)
 {
 	// Sanity check of the size of the borders (and width and height)
 	Q_ASSERT(_width  > 2*_verticalBorder);
@@ -70,8 +75,8 @@ ImageToLedsMap::ImageToLedsMap(
 		const auto maxYLedCount = qMin(maxY_idx, yOffset+actualHeight);
 		const auto maxXLedCount = qMin(maxX_idx, xOffset+actualWidth);
 
-		std::vector<int32_t> ledColors;
-		ledColors.reserve((size_t) maxXLedCount*maxYLedCount);
+		std::vector<int32_t> ledColor;
+		ledColor.reserve((size_t) maxXLedCount*maxYLedCount);
 		if (ImageProcessor::mappingTypeToInt(QString("weighted")) == _mappingType)
 		{
 			bool left   = led.minX_frac == 0;
@@ -87,7 +92,7 @@ ImageToLedsMap::ImageToLedsMap(
 				{
 					for (unsigned x = minX_idx; x < maxXLedCount; x += increment)
 					{
-						ledColors.push_back(y * width + x);
+						push_back_index(ledColor, y * width + x);
 					}
 				}
 			}
@@ -96,22 +101,22 @@ ImageToLedsMap::ImageToLedsMap(
 				unsigned mid = (minY_idx+maxYLedCount)/2;
 				for (unsigned y = minY_idx; y < mid; y += increment)
 					for (unsigned x = minX_idx; x < maxXLedCount; x += increment)
-						ledColors.push_back( -( (int32_t) (y*width + x)));
+						push_back_index(ledColor, -( (int32_t) (y*width + x)));
 					
 				for (unsigned y = mid; y < maxYLedCount; y += increment)
 					for (unsigned x = minX_idx; x < maxXLedCount; x += increment)
-						ledColors.push_back(y*width + x);									
+						push_back_index(ledColor, y*width + x);
 			}
 			else if (top)
 			{
 				unsigned mid = (minY_idx+maxYLedCount)/2;
 				for (unsigned y = minY_idx; y < mid; y += increment)
 					for (unsigned x = minX_idx; x < maxXLedCount; x += increment)
-						ledColors.push_back(y*width + x);
+						push_back_index(ledColor, y*width + x);
 					
 				for (unsigned y = mid; y < maxYLedCount; y += increment)
 					for (unsigned x = minX_idx; x < maxXLedCount; x += increment)
-						ledColors.push_back( -( (int32_t) (y*width + x)));
+						push_back_index(ledColor, -( (int32_t) (y*width + x)));
 			}
 
 			else if (left)
@@ -120,9 +125,9 @@ ImageToLedsMap::ImageToLedsMap(
 				for (unsigned y = minY_idx; y < maxYLedCount; y += increment)
 				{				
 					for (unsigned x = minX_idx; x < mid; x += increment)
-						ledColors.push_back(y*width + x);
+						push_back_index(ledColor, y*width + x);
 					for (unsigned x = mid; x < maxXLedCount; x += increment)
-						ledColors.push_back( -( (int32_t) (y*width + x)));
+						push_back_index(ledColor, -( (int32_t) (y*width + x)));
 				}					
 			}
 
@@ -132,9 +137,9 @@ ImageToLedsMap::ImageToLedsMap(
 				for (unsigned y = minY_idx; y < maxYLedCount; y += increment)
 				{				
 					for (unsigned x = minX_idx; x < mid; x += increment)
-						ledColors.push_back( -( (int32_t) (y*width + x)));
+						push_back_index(ledColor, -( (int32_t) (y*width + x)));
 					for (unsigned x = mid; x < maxXLedCount; x += increment)
-						ledColors.push_back(y*width + x);
+						push_back_index(ledColor, y*width + x);
 				}
 			}
 								
@@ -145,17 +150,24 @@ ImageToLedsMap::ImageToLedsMap(
 			{
 				for (unsigned x = minX_idx; x < maxXLedCount; x += increment)
 				{
-					ledColors.push_back(y*width + x);
+					push_back_index(ledColor, y*width + x);
 				}
 			}
 		}
 
 		// Add the constructed vector to the map
-		_colorsMap.push_back(ledColors);
-		totalCount += ledColors.size();
+		_colorsMap.push_back(ledColor);
+
+		_colorsGroups.push_back(led.group);
+		if (_groupMin == -1 || led.group < _groupMin)
+			_groupMin = led.group;
+		if (_groupMax == -1 || led.group > _groupMax)
+			_groupMax = led.group;
+
+		totalCount += ledColor.size();
 	}
-	Info(_log, "Total index number for instance: %d is: %d. Sparse processing: %s, image size: %d x %d, area number: %d",
-		_instanceIndex, totalCount, (_sparseProcessing)?"enabled":"disabled", width, height, leds.size()); 
+	Info(_log, "Total index number is: %d. Sparse processing: %s, image size: %d x %d, area number: %d",
+				totalCount, (_sparseProcessing)?"enabled":"disabled", width, height, leds.size()); 
 }
 
 unsigned ImageToLedsMap::width() const
@@ -187,34 +199,54 @@ std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image,uint1
 		case 1: colors = getUniLedColor(image); break;
 		default: colors = getMeanLedColor(image);
 	}
-	return colors;
-}
-		
-void ImageToLedsMap::Process(const Image<ColorRgb>& image, std::vector<ColorRgb>& ledColors, uint16_t *advanced){
-	switch (_mappingType)
+
+	if (_groupMax > 0 && _mappingType != 1)
 	{
-		case 3:
-		case 2: getMeanAdvLedColor(image, ledColors, advanced); break;
-		case 1: getUniLedColor(image, ledColors); break;
-		default: getMeanLedColor(image, ledColors);
+		for (int i = std::max(_groupMin, 1); i <= _groupMax; i++)
+		{
+			int32_t r=0, g=0, b=0, c=0;
+			
+			auto groupIn = _colorsGroups.begin();
+			for (auto _rgb = colors.begin(); _rgb != colors.end(); _rgb++, groupIn++)
+				if (*groupIn == i)
+				{
+					r += (*_rgb).red;					
+					g += (*_rgb).green;
+					b += (*_rgb).blue;
+					c++;
+				}
+
+			if (c > 0)
+			{
+				r /= c;
+				g /= c;
+				b /= c;
+			}
+
+			auto groupOut = _colorsGroups.begin();
+			for (auto _rgb = colors.begin(); _rgb != colors.end(); _rgb++, groupOut++)
+				if (*groupOut == i)
+				{
+					(*_rgb).red = r;					
+					(*_rgb).green = g;
+					(*_rgb).blue = b;
+				}
+		}
 	}
+
+	return colors;
 }
 
 std::vector<ColorRgb> ImageToLedsMap::getMeanLedColor(const Image<ColorRgb> & image) const
 {
-	std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
-	getMeanLedColor(image, colors);
-	return colors;
-}
+	std::vector<ColorRgb> ledColors(_colorsMap.size(), ColorRgb{ 0,0,0 });
 
-void ImageToLedsMap::getMeanLedColor(const Image<ColorRgb> & image, std::vector<ColorRgb> & ledColors) const
-{
 	// Sanity check for the number of leds
 	//assert(_colorsMap.size() == ledColors.size());
 	if(_colorsMap.size() != ledColors.size())
 	{
 		Debug(Logger::getInstance("HYPERHDR"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
-		return;
+		return ledColors;
 	}
 
 	// Iterate each led and compute the mean
@@ -224,45 +256,40 @@ void ImageToLedsMap::getMeanLedColor(const Image<ColorRgb> & image, std::vector<
 		const ColorRgb color = calcMeanColor(image, *colors);
 		*led = color;
 	}
+
+	return ledColors;
 }
 
 std::vector<ColorRgb> ImageToLedsMap::getUniLedColor(const Image<ColorRgb> & image) const
 {
-	std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
-	getUniLedColor(image, colors);
-	return colors;
-}
+	std::vector<ColorRgb> ledColors(_colorsMap.size(), ColorRgb{ 0,0,0 });
 
-void ImageToLedsMap::getUniLedColor(const Image<ColorRgb> & image, std::vector<ColorRgb> & ledColors) const
-{
 	// Sanity check for the number of leds
 	// assert(_colorsMap.size() == ledColors.size());
 	if(_colorsMap.size() != ledColors.size())
 	{
 		Debug(Logger::getInstance("HYPERHDR"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
-		return;
+		return ledColors;
 	}
 
 	// calculate uni color
 	const ColorRgb color = calcMeanColor(image);
 	std::fill(ledColors.begin(),ledColors.end(), color);
+
+	return ledColors;
 }
+		
 		
 std::vector<ColorRgb> ImageToLedsMap::getMeanAdvLedColor(const Image<ColorRgb> & image, uint16_t* lut) const
 {
-	std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
-	getMeanAdvLedColor(image, colors, lut);
-	return colors;
-}
-		
-void ImageToLedsMap::getMeanAdvLedColor(const Image<ColorRgb> & image, std::vector<ColorRgb> & ledColors, uint16_t* lut) const
-{
+	std::vector<ColorRgb> ledColors(_colorsMap.size(), ColorRgb{ 0,0,0 });
+
 	// Sanity check for the number of leds
 	//assert(_colorsMap.size() == ledColors.size());
 	if(_colorsMap.size() != ledColors.size())
 	{
 		Debug(Logger::getInstance("HYPERHDR"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
-		return;
+		return ledColors;
 	}
 
 	// Iterate each led and compute the mean
@@ -272,6 +299,8 @@ void ImageToLedsMap::getMeanAdvLedColor(const Image<ColorRgb> & image, std::vect
 		const ColorRgb color = calcMeanAdvColor(image, *colors, lut);
 		*led = color;
 	}
+
+	return ledColors;
 }
 
 ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb> & image, const std::vector<int32_t> & colors) const
@@ -284,23 +313,22 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb> & image, const std:
 	}
 
 	// Accumulate the sum of each separate color channel
-	uint_fast32_t cummRed   = 0;
-	uint_fast32_t cummGreen = 0;
-	uint_fast32_t cummBlue  = 0;
-	const auto& imgData = image.memptr();
+	uint_fast32_t sumRed   = 0;
+	uint_fast32_t sumGreen = 0;
+	uint_fast32_t sumBlue  = 0;
+	uint8_t* imgData = (uint8_t*)image.memptr();
 
 	for (const unsigned colorOffset : colors)
 	{
-		const auto& pixel = imgData[colorOffset];
-		cummRed   += pixel.red;
-		cummGreen += pixel.green;
-		cummBlue  += pixel.blue;
+		sumRed   += imgData[colorOffset];
+		sumGreen += imgData[colorOffset + 1];
+		sumBlue  += imgData[colorOffset + 2];
 	}
 
 	// Compute the average of each color channel
-	const uint8_t avgRed   = uint8_t(cummRed/colorVecSize);
-	const uint8_t avgGreen = uint8_t(cummGreen/colorVecSize);
-	const uint8_t avgBlue  = uint8_t(cummBlue/colorVecSize);
+	const uint8_t avgRed   = uint8_t(sumRed/colorVecSize);
+	const uint8_t avgGreen = uint8_t(sumGreen/colorVecSize);
+	const uint8_t avgBlue  = uint8_t(sumBlue/colorVecSize);
 
 	// Return the computed color
 	return {avgRed, avgGreen, avgBlue};
@@ -317,31 +345,29 @@ ColorRgb ImageToLedsMap::calcMeanAdvColor(const Image<ColorRgb> & image, const s
 
 	// Accumulate the sum of each seperate color channel
 	uint_fast64_t sum1      = 0;
-	uint_fast64_t cummRed1   = 0;
-	uint_fast64_t cummGreen1 = 0;
-	uint_fast64_t cummBlue1  = 0;
+	uint_fast64_t sumRed1   = 0;
+	uint_fast64_t sumGreen1 = 0;
+	uint_fast64_t sumBlue1  = 0;
 			
 	uint_fast64_t sum2      = 0;
-	uint_fast64_t cummRed2   = 0;
-	uint_fast64_t cummGreen2 = 0;
-	uint_fast64_t cummBlue2  = 0;
+	uint_fast64_t sumRed2   = 0;
+	uint_fast64_t sumGreen2 = 0;
+	uint_fast64_t sumBlue2  = 0;
 			
-	const auto& imgData = image.memptr();
+	uint8_t* imgData = (uint8_t*)image.memptr();
 
 	for (const int32_t colorOffset : colors)
 	{
 		if (colorOffset >=0) {
-			const auto& pixel = imgData[colorOffset];
-			cummRed1   += lut[pixel.red];
-			cummGreen1 += lut[pixel.green];
-			cummBlue1  += lut[pixel.blue];
+			sumRed1   += lut[imgData[colorOffset]];
+			sumGreen1 += lut[imgData[colorOffset + 1]];
+			sumBlue1  += lut[imgData[colorOffset + 2]];
 			sum1++;
 		}
 		else {
-			const auto& pixel = imgData[-colorOffset];
-			cummRed2   += lut[pixel.red];
-			cummGreen2 += lut[pixel.green];
-			cummBlue2  += lut[pixel.blue];
+			sumRed2   += lut[imgData[(-colorOffset)]];
+			sumGreen2 += lut[imgData[(-colorOffset) + 1]];
+			sumBlue2  += lut[imgData[(-colorOffset) + 2]];
 			sum2++;
 		}				
 	}
@@ -349,17 +375,17 @@ ColorRgb ImageToLedsMap::calcMeanAdvColor(const Image<ColorRgb> & image, const s
 												
 	if (sum1>0 && sum2>0)
 	{
-		uint16_t avgRed =   std::min((uint32_t)sqrt(((cummRed1  *3)/sum1 + cummRed2  /sum2)/4), (uint32_t)255);
-		uint16_t avgGreen = std::min((uint32_t)sqrt(((cummGreen1*3)/sum1 + cummGreen2/sum2)/4), (uint32_t)255);
-		uint16_t avgBlue =  std::min((uint32_t)sqrt(((cummBlue1 *3)/sum1 + cummBlue2 /sum2)/4), (uint32_t)255);
+		uint16_t avgRed =   std::min((uint32_t)sqrt(((sumRed1  *3)/sum1 + sumRed2  /sum2)/4), (uint32_t)255);
+		uint16_t avgGreen = std::min((uint32_t)sqrt(((sumGreen1*3)/sum1 + sumGreen2/sum2)/4), (uint32_t)255);
+		uint16_t avgBlue =  std::min((uint32_t)sqrt(((sumBlue1 *3)/sum1 + sumBlue2 /sum2)/4), (uint32_t)255);
 			
 		return {(uint8_t)avgRed, (uint8_t)avgGreen, (uint8_t)avgBlue};
 	}
 	else
 	{
-		uint16_t avgRed =   std::min((uint32_t)sqrt((cummRed1   + cummRed2)  /(sum1 +sum2)), (uint32_t)255);
-		uint16_t avgGreen = std::min((uint32_t)sqrt((cummGreen1 + cummGreen2)/(sum1 +sum2)), (uint32_t)255);
-		uint16_t avgBlue =  std::min((uint32_t)sqrt((cummBlue1  + cummBlue2) /(sum1 +sum2)), (uint32_t)255);
+		uint16_t avgRed =   std::min((uint32_t)sqrt((sumRed1   + sumRed2)  /(sum1 +sum2)), (uint32_t)255);
+		uint16_t avgGreen = std::min((uint32_t)sqrt((sumGreen1 + sumGreen2)/(sum1 +sum2)), (uint32_t)255);
+		uint16_t avgBlue =  std::min((uint32_t)sqrt((sumBlue1  + sumBlue2) /(sum1 +sum2)), (uint32_t)255);
 			
 		return {(uint8_t)avgRed, (uint8_t)avgGreen, (uint8_t)avgBlue};		
 	}
@@ -368,25 +394,24 @@ ColorRgb ImageToLedsMap::calcMeanAdvColor(const Image<ColorRgb> & image, const s
 ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb> & image) const
 {
 	// Accumulate the sum of each separate color channel
-	uint_fast32_t cummRed   = 0;
-	uint_fast32_t cummGreen = 0;
-	uint_fast32_t cummBlue  = 0;
-	const unsigned imageSize = image.width() * image.height();
+	uint_fast32_t sumRed   = 0;
+	uint_fast32_t sumGreen = 0;
+	uint_fast32_t sumBlue  = 0;
+	const size_t imageSize = image.size();
 
-	const auto& imgData = image.memptr();
+	uint8_t* imgData = (uint8_t*)image.memptr();
 
-	for (unsigned idx=0; idx<imageSize; idx++)
+	for (size_t idx = 0; idx < imageSize; idx += 3)
 	{
-		const auto& pixel = imgData[idx];
-		cummRed   += pixel.red;
-		cummGreen += pixel.green;
-		cummBlue  += pixel.blue;
+		sumRed   += imgData[idx];
+		sumGreen += imgData[idx + 1];
+		sumBlue  += imgData[idx + 2];
 	}
 
 	// Compute the average of each color channel
-	const uint8_t avgRed   = uint8_t(cummRed/imageSize);
-	const uint8_t avgGreen = uint8_t(cummGreen/imageSize);
-	const uint8_t avgBlue  = uint8_t(cummBlue/imageSize);
+	const uint8_t avgRed   = uint8_t(sumRed/imageSize);
+	const uint8_t avgGreen = uint8_t(sumGreen/imageSize);
+	const uint8_t avgBlue  = uint8_t(sumBlue/imageSize);
 
 	// Return the computed color
 	return {avgRed, avgGreen, avgBlue};

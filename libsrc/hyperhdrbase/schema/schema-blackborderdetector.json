@@ -6,54 +6,71 @@
 		"enable" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_general_enable_title",
 			"default" : false,
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"threshold" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
 			"title" : "edt_conf_bb_threshold_title",
 			"minimum" : 0,
 			"maximum" : 100,
 			"default" : 5,
 			"append" : "edt_append_percent",
+			"required" : true,
 			"propertyOrder" : 2
 		},
 		"unknownFrameCnt"    :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 50,
 			"title" : "edt_conf_bb_unknownFrameCnt_title",
 			"minimum" : 0,
 			"default" : 600,
 			"access" : "expert",
+			"required" : true,
 			"propertyOrder" : 3
 		},
 		"borderFrameCnt" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
 			"title" : "edt_conf_bb_borderFrameCnt_title",
 			"minimum" : 0,
 			"default" : 50,
 			"access" : "expert",
+			"required" : true,
 			"propertyOrder" : 4
 		},
 		"maxInconsistentCnt" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
 			"title" : "edt_conf_bb_maxInconsistentCnt_title",
 			"minimum" : 0,
 			"default" : 10,
 			"access" : "expert",
+			"required" : true,
 			"propertyOrder" : 5
 		},
 		"blurRemoveCnt" :
 		{
 			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
 			"title" : "edt_conf_bb_blurRemoveCnt_title",
 			"minimum" : 0,
 			"default" : 1,
 			"access" : "expert",
+			"required" : true,
 			"propertyOrder" : 6
 		},
 		"mode" :
@@ -65,6 +82,7 @@
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd", "edt_conf_enum_bbletterbox"]
 			},
+			"required" : true,
 			"propertyOrder" : 7
 		}
 	},

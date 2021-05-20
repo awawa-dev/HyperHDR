@@ -1,0 +1,38 @@
+{
+	"type" : "object",
+	"required" : true,
+	"title" : "edt_conf_instC_heading_title",
+	"properties" :
+	{		
+		"videoInstanceEnable" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"required" : true,
+			"title" : "edt_conf_instC_v4lEnable_title",
+			"default" : true,
+			"propertyOrder" : 1
+		},
+		"videoInstancePriority" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"required" : true,
+			"title" : "edt_conf_general_priority_title",
+			"minimum" : 100,
+			"maximum" : 253,
+			"default" : 240,
+			"propertyOrder" : 2
+		},
+		"cecControl" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"required" : true,
+			"title" : "edt_conf_cec_control_title",
+			"default" : false,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}

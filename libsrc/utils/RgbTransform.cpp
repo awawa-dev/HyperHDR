@@ -4,17 +4,20 @@
 #include <cmath>
 
 RgbTransform::RgbTransform():
-	_log(Logger::getInstance(QString("RgbTransform")))
+	_log(Logger::getInstance(QString("RGB_TRANSFORM")))
 {
 	init(false, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, false, 100, 100, true);
 }
 
 RgbTransform::RgbTransform(
-	bool classic_config,	
-	double saturationGain,
-	double luminanceGain,
-	double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation):
-	_log(Logger::getInstance(QString("RgbTransform")))
+	quint8  instance,
+	bool    classic_config,	
+	double  saturationGain,
+	double  luminanceGain,
+	double  gammaR, double gammaG, double gammaB,
+	double backlightThreshold, bool backlightColored,
+	uint8_t brightness, uint8_t brightnessCompensation):
+	_log(Logger::getInstance(QString("RGB_TRANSFORM") + QString::number(instance)))
 {
 	init( classic_config, saturationGain, luminanceGain, 
 		  gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessCompensation);
@@ -39,7 +42,7 @@ void RgbTransform::init(
 	_brightnessCompensation = brightnessCompensation;
 
 	if (!_silent)
-		Debug(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i", 
+		Info(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i", 
 				_classic_config, _saturationGain, _luminanceGain, clamp(backlightThreshold));
 
 
@@ -77,14 +80,18 @@ void RgbTransform::setGamma(double gammaR, double gammaG, double gammaB)
 
 void RgbTransform::setSaturationGain(double saturationGain)
 {
-	_saturationGain = saturationGain;
-	Debug(_log, "set saturationGain to %f", _saturationGain);
+	if (_saturationGain != saturationGain)
+		Debug(_log, "set saturationGain to %f", saturationGain);
+
+	_saturationGain = saturationGain;	
 }
 
 void RgbTransform::setLuminanceGain(double luminanceGain)
 {
-	_luminanceGain = luminanceGain;
-	Debug(_log, "set luminanceGain to %f", _luminanceGain);
+	if (_luminanceGain != luminanceGain)
+		Debug(_log, "set luminanceGain to %f", luminanceGain);
+
+	_luminanceGain = luminanceGain;	
 }
 
 double RgbTransform::getSaturationGain() const
@@ -100,6 +107,11 @@ double RgbTransform::getLuminanceGain() const
 bool RgbTransform::getClassicConfig() const
 {
 	return _classic_config;
+}
+
+void RgbTransform::setClassicConfig(bool classic_config)
+{
+	_classic_config = classic_config;
 }
 
 void RgbTransform::initializeMapping()
@@ -123,10 +135,11 @@ void RgbTransform::setBacklightThreshold(int backlightThreshold)
 	_backlightThreshold = backlightThreshold;
 	
 	uint8_t rgb = clamp(_backlightThreshold);
-	
-	_sumBrightnessRGBLow = rgb;
 
-	Debug(_log, "setBacklightThreshold: %i", _sumBrightnessRGBLow);
+	if (_sumBrightnessRGBLow != rgb)
+		Info(_log, "setBacklightThreshold: %i", rgb);
+
+	_sumBrightnessRGBLow = rgb;	
 }
 
 bool RgbTransform::getBacklightColored() const

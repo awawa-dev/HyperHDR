@@ -5,7 +5,7 @@
 		"command": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["color", "image", "effect", "create-effect", "delete-effect", "serverinfo", "clear", "clearall", "adjustment", "sourceselect", "config", "componentstate", "ledcolors", "logging", "processing", "sysinfo", "videomodehdr", "videomode", "authorize", "instance", "leddevice", "transform", "correction" , "temperature", "help"]
+			"enum" : ["color", "image", "effect", "create-effect", "delete-effect", "serverinfo", "clear", "clearall", "adjustment", "sourceselect", "config", "componentstate", "ledcolors", "load-db", "save-db", "logging", "signal-calibration", "processing", "sysinfo", "videomodehdr", "video-crop", "videomode", "authorize", "instance", "leddevice", "transform", "correction" , "temperature", "help"]
 		}
 	}
 }

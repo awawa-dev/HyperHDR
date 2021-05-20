@@ -7,6 +7,7 @@
 		"apiAuth" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_net_apiAuth_title",
 			"required" : true,
 			"default" : true,
@@ -15,6 +16,7 @@
 		"internetAccessAPI" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_net_internetAccessAPI_title",
 			"required" : true,
 			"default" : false,
@@ -28,6 +30,7 @@
 		"restirctedInternetAccessAPI" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_net_restirctedInternetAccessAPI_title",
 			"required" : true,
 			"default" : false,
@@ -43,6 +46,7 @@
 			"type" : "array",
 			"title" : "edt_conf_net_ipWhitelist_title",
 			"required" : true,
+			"default" : [],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_net_ip_itemtitle",
@@ -58,6 +62,7 @@
 		"localApiAuth" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_net_localApiAuth_title",
 			"required" : true,
 			"default" : false,
@@ -71,6 +76,7 @@
 		"localAdminAuth" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_net_localAdminAuth_title",
 			"required" : true,
 			"default" : true,

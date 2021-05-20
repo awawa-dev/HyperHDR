@@ -3,7 +3,7 @@
 // db
 #include <db/AuthTable.h>
 #include <db/MetaTable.h>
-
+#include <api/API.h>
 // qt
 #include <QJsonObject>
 #include <QTimer>
@@ -36,13 +36,13 @@ AuthManager::AuthManager(QObject *parent, bool readonlyMode)
 	connect(_authBlockTimer, &QTimer::timeout, this, &AuthManager::checkAuthBlockTimeout);
 
 	// init with default user and password
-	if (!_authTable->userExist("Hyperion"))
+	if (!_authTable->userExist(DEFAULT_CONFIG_USER))
 	{
-		_authTable->createUser("Hyperion", "hyperion");
+		_authTable->createUser(DEFAULT_CONFIG_USER, DEFAULT_CONFIG_PASSWORD);
 	}
 
-	// update Hyperion user token on startup
-	_authTable->setUserToken("Hyperion");
+	// update HyperHDR user token on startup
+	_authTable->setUserToken(DEFAULT_CONFIG_USER);
 }
 
 AuthManager::AuthDefinition AuthManager::createToken(const QString &comment)

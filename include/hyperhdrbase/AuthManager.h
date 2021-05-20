@@ -172,7 +172,7 @@ public slots:
 	/// @param usr the defined user
 	/// @return       The token
 	///
-	QString getUserToken(const QString &usr = "Hyperion") const;
+	QString getUserToken(const QString &usr = "Hyperhdr") const;
 
 	///
 	/// @brief Get all available token entries

@@ -48,8 +48,8 @@ using namespace commandline;
 #ifndef _WIN32
 void signal_handler(int signum)
 {
-	// Hyperion Managment instance
-	HyperHdrIManager *_hyperion = HyperHdrIManager::getInstance();
+	// HyperHDR Managment instance
+	HyperHdrIManager *_hyperhdr = HyperHdrIManager::getInstance();
 
 	if (signum == SIGCHLD)
 	{
@@ -59,17 +59,17 @@ void signal_handler(int signum)
 	}
 	else if (signum == SIGUSR1)
 	{
-		if (_hyperion != nullptr)
+		if (_hyperhdr != nullptr)
 		{
-			_hyperion->toggleStateAllInstances(false);
+			_hyperhdr->toggleStateAllInstances(false);
 		}
 		return;
 	}
 	else if (signum == SIGUSR2)
 	{
-		if (_hyperion != nullptr)
+		if (_hyperhdr != nullptr)
 		{
-			_hyperion->toggleStateAllInstances(true);
+			_hyperhdr->toggleStateAllInstances(true);
 		}
 		return;
 	}
@@ -100,6 +100,8 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 #else
 	if (!forceNoGui)
 	{
+		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
+		std::cout << "GUI application";
 	}
 #endif
 
@@ -119,7 +121,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 
 	QCoreApplication* app = new QCoreApplication(argc, argv);
 	app->setApplicationName("HyperHdr");
-	app->setApplicationVersion(HYPERION_VERSION);
+	app->setApplicationVersion(HYPERHDR_VERSION);
 	// add optional library path
 	app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
 
@@ -159,12 +161,12 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
 
-	Parser parser("Hyperion Daemon");
+	Parser parser("HyperHDR Daemon");
 	parser.addHelpOption();
 
 	BooleanOption & versionOption       = parser.add<BooleanOption> (0x0, "version", "Show version information");
 	Option        & userDataOption      = parser.add<Option>        ('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperhdr");
-	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
+	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperhdr'");
 	BooleanOption & deleteDB            = parser.add<BooleanOption> (0x0, "deleteDatabase", "Start all over? This Option will delete the database");
 	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "Do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
@@ -183,8 +185,8 @@ int main(int argc, char** argv)
 	if (parser.isSet(versionOption))
 	{
 		std::cout
-			<< "HyperHdr Ambilight Deamon" << std::endl
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
+			<< "HyperHdr Ambient Light Deamon" << std::endl
+			<< "\tVersion   : " << HYPERHDR_VERSION << " (" << HYPERHDR_BUILD_ID << ")" << std::endl
 			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 		return 0;
@@ -354,7 +356,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		Info(log,"Starting HyperHdr - %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+		Info(log,"Starting HyperHdr - %s, %s, built: %s:%s", HYPERHDR_VERSION, HYPERHDR_BUILD_ID, __DATE__, __TIME__);
 		Debug(log,"QtVersion [%s]", QT_VERSION_STR);
 
 		if ( !readonlyMode )
@@ -366,10 +368,10 @@ int main(int argc, char** argv)
 			Warning(log,"The user data path '%s' is not writeable. HyperHdr starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
 		}
 
-		HyperHdrDaemon* hyperiond = nullptr;
+		HyperHdrDaemon* hyperhdrd = nullptr;
 		try
 		{
-			hyperiond = new HyperHdrDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode);
+			hyperhdrd = new HyperHdrDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode);
 		}
 		catch (std::exception& e)
 		{
@@ -382,7 +384,7 @@ int main(int argc, char** argv)
 		{
 			Info(log, "start systray");
 			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray tray(hyperiond);
+			SysTray tray(hyperhdrd);
 			tray.hide();
 			rc = (qobject_cast<QApplication *>(app.data()))->exec();
 		}
@@ -391,7 +393,7 @@ int main(int argc, char** argv)
 			rc = app->exec();
 		}
 		Info(log, "Application closed with code %d", rc);
-		delete hyperiond;
+		delete hyperhdrd;
 	}
 	catch (std::exception& e)
 	{

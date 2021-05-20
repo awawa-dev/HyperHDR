@@ -249,8 +249,6 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 	image.resize(width, height);
 
 	memcpy(image.memptr(), data.data()+4, imgSize);
-	//_hyperion->registerInput();
-	//_hyperion->setInputImage(priority, image, duration_s*1000);
 }
 
 

@@ -1,0 +1,20 @@
+{
+	"type":"object",
+	"required":false,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["signal-calibration"]
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["start", "stop", "get-info"]
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}

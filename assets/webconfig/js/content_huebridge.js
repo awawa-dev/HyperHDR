@@ -2,7 +2,7 @@ $(document).ready( function() {
 
 	$("#create_user").on("click", function() {
     var connectionRetries = 15;
-		var data = {"devicetype":"hyperion#"+Date.now()};
+		var data = {"devicetype":"hyperhdr#"+Date.now()};
 		var UserInterval = setInterval(function(){
 		$.ajax({
 			type: "POST",

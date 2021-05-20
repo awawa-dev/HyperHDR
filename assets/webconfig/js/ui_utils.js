@@ -10,46 +10,6 @@ function reload()
 	location.reload();
 }
 
-function storageComp()
-{
-	if (typeof(Storage) !== "undefined")
-		return true;
-	return false;
-}
-
-function getStorage(item, session)
-{
-	if(storageComp())
-	{
-		if(session === true)
-			return sessionStorage.getItem(item);
-		else
-			return localStorage.getItem(item);
-	}
-	return null;
-}
-
-function setStorage(item, value, session)
-{
-	if(storageComp())
-	{
-		if(session === true)
-			sessionStorage.setItem(item, value);
-		else
-			localStorage.setItem(item, value);
-	}
-}
-
-function removeStorage(item, session)
-{
-	if(storageComp())
-	{
-		if(session === true)
-			sessionStorage.removeItem(item);
-		else
-			localStorage.removeItem(item);
-	}
-}
 
 function debugMessage(msg)
 {
@@ -108,7 +68,7 @@ function loadContent(event, forceRefresh)
 
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 
-	if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
+	if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperHdrInstance))
 		if ((typeof lastSelectedInstance !== 'undefined') && 
 			(typeof window.serverInfo.instance[lastSelectedInstance] !== 'undefined') &&
 			 typeof(window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)
@@ -132,62 +92,67 @@ function loadContent(event, forceRefresh)
 		$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 			if(status == "error")
 			{
-				$("#page-content").html('<h3>'+$.i18n('info_404')+'</h3>');
-				removeOverlay();
+				console.log("Could not find: "+tag+" page");
+				removeStorage('lastSelectedInstance', false);
+				tag = 'overview';
+				setStorage('lasthashtag', tag, true);
+				
+				$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
+					if(status == "error")
+					{					
+						$("#page-content").html('<h3>'+tag+'<br/>'+$.i18n('info_404')+'</h3>');
+						removeOverlay();
+					}					
+				});
 			}
-			updateUiOnInstance(window.currentHyperionInstance);
 		});
 	}
 }
 
-function getInstanceNameByIndex(index)
-{
-	var instData = window.serverInfo.instance
-	for(var key in instData)
-	{
-		if(instData[key].instance == index)
-			return instData[key].friendly_name;
-	}
-	return "unknown"
-}
-
-function updateHyperionInstanceListing()
+function updateHyperhdrInstanceListing()
 {
 	var data = window.serverInfo.instance.filter(entry => entry.running);
 	$('#hyp_inst_listing').html("");
 	for(var key in data)
 	{
-		var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
-
-		var html = '<li id="hyperioninstance_'+data[key].instance+'"> \
-			<a>  \
-				<div>  \
-					<i class="fa fa-circle fa-fw '+currInstMarker+'"></i> \
-					<span>'+data[key].friendly_name+'</span> \
-				</div> \
-			</a> \
-		</li> '
+		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? "component-on fa-circle" : "component-none icon-invisible";
+		var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
+		
+		var myName = data[key].friendly_name;
+		
+		if (myName.length>20)
+			myName = myName.slice(0,17) + '...';
+		
+		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			  
+						'<div class="d-flex" style="cursor: pointer;">'+
+							'<div class="flex ps-1 pe-1"><i class="fa ' + currInstMarker + '"></i></div>'+
+							'<div class="flex pe-2 ' + currTextMarker + '"><span>'+myName+'</span></div>'+
+						'</div>'+
+				   '</a></li>';
 
 		if(data.length-1 > key)
-			html += '<li class="divider"></li>'
+			html += '<li class="dropdown-divider"></li>'
 
 		$('#hyp_inst_listing').append(html);
 
-		$('#hyperioninstance_'+data[key].instance).off().on("click",function(e){
+		$('#hyperhdrinstance_'+data[key].instance).off().on("click",function(e){
 			var inst = e.currentTarget.id.split("_")[1]
 			instanceSwitch(inst)
 		});
 	}
 }
 
-function initLanguageSelection()
+function switchLang(newLang)
 {
-	// Initialise language selection list with languages supported
-	for (var i = 0; i < availLang.length; i++)
-	{
-		$("#language-select").append('<option value="'+i+'" selected="">'+availLangText[i]+'</option>');
+	if (newLang !== storedLang)
+	{		
+		setStorage("langcode", newLang);
+		reload();
 	}
+}
 
+function initLanguageSelection()
+{		
 	var langLocale = storedLang;
 
 	// If no language has been set, resolve browser locale
@@ -199,7 +164,7 @@ function initLanguageSelection()
 	// Resolve text for language code
 	var langText = 'Please Select';
 
-	//Test, if language is supported by hyperion
+	//Test, if language is supported by hyperhdr
 	var langIdx = availLang.indexOf(langLocale);
 	if ( langIdx > -1 )
 	{
@@ -207,7 +172,7 @@ function initLanguageSelection()
 	}
 	else
 	{
-		// If language is not supported by hyperion, try fallback language
+		// If language is not supported by hyperhdr, try fallback language
 		langLocale = $.i18n().options.fallbackLocale.substring(0,2);	
 		langIdx = availLang.indexOf(langLocale);
 		if ( langIdx > -1 )
@@ -215,40 +180,46 @@ function initLanguageSelection()
 			langText = availLangText[langIdx];
 		}
 	}
-	//console.log("langLocale: ", langLocale, "langText: ", langText);
-
-	$('#language-select').prop('title', langText);
-	$("#language-select").val(langIdx);
-	$("#language-select").selectpicker("refresh");
-}
-
-function updateUiOnInstance(inst)
-{
-	if(inst != 0)
-	{
-		var currentURL = $(location).attr("href");
-		if(currentURL.indexOf('#conf_network') != -1 || currentURL.indexOf('#update') != -1 || currentURL.indexOf('#conf_webconfig') != -1 || currentURL.indexOf('#conf_grabber') != -1 || currentURL.indexOf('#conf_logging') != -1)
-			$("#hyperion_global_setting_notify").fadeIn("fast");
+	
+	var newTree = $("#language_container_menu");
+	newTree.empty();
+	for (var i = 0; i < availLang.length; i++)
+	{		
+		var newLang = $('<li>');
+		
+		var newLink = $('<a>');		
+		newLink.addClass("nav-link");
+		
+		const sendId = availLang[i];
+		newLink.on("click", function(){
+			switchLang(sendId);
+		});
+		
+		var ilink = $('<i>');
+		ilink.attr('id', "language_selector_at"+i);		
+		if (i == langIdx)
+			ilink.addClass("fa fa-check fa-fw");
 		else
-			$("#hyperion_global_setting_notify").attr("style", "display:none");
-
-		$("#dashboard_active_instance_friendly_name").html($.i18n('dashboard_active_instance') + ': ' + window.serverInfo.instance[inst].friendly_name);
-		$("#dashboard_active_instance").removeAttr("style");
-	}
-	else
-	{
-		$("#hyperion_global_setting_notify").fadeOut("fast");
-		$("#dashboard_active_instance").attr("style", "display:none");
+			ilink.addClass("fa icon-invisible fa-fw");
+		
+		var item = $('<p>');
+		item.html(availLangText[i]); 
+		
+		$(newLink).append(ilink);
+		$(newLink).append(item);
+		$(newLang).append(newLink);
+		$(newTree).append(newLang);		
 	}
 }
+
 
 function instanceSwitch(inst)
 {
 	requestInstanceSwitch(inst)
-	window.currentHyperionInstance = inst;
-	window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+	window.currentHyperHdrInstance = inst;
+	window.currentHyperHdrInstanceName = getInstanceNameByIndex(inst);
 	setStorage('lastSelectedInstance', inst, false)
-	updateHyperionInstanceListing()
+	updateHyperhdrInstanceListing()
 }
 
 function loadContentTo(containerId, fileName)
@@ -292,58 +263,58 @@ function showInfoDialog(type,header,message)
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_success_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer').html('<button type="button" class="btn btn-success" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type=="warning")
 	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer').html('<button type="button" class="btn btn-warning" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type=="error")
 	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer').html('<button type="button" class="btn btn-danger" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type == "select")
 	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "iswitch")
 	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>'+$.i18n('general_btn_iswitch')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-bs-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>'+$.i18n('general_btn_iswitch')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "uilock")
 	{
-		$('#id_body').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_body').html('<img src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
 	}
 	else if (type == "import")
 	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "delInst")
 	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "renInst")
 	{
 		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
 		$('#id_body_rename').append('<h4>'+header+'</h4>');
 		$('#id_body_rename').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "changePassword")
 	{
@@ -351,26 +322,26 @@ function showInfoDialog(type,header,message)
 		$('#id_body_rename').append('<h4>'+header+'</h4>');
 		$('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
 		$('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
 	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_checklist_title')+'</h4>');
 		$('#id_body').append(header);
-		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type == "newToken")
 	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type == "grantToken")
 	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal" id="tok_grant_acc">'+$.i18n('general_btn_grantAccess')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="tok_grant_acc">'+$.i18n('general_btn_grantAccess')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
 	}
 
 	if(type != "renInst")
@@ -380,28 +351,29 @@ function showInfoDialog(type,header,message)
 	}
 
 	if(type == "select" || type == "iswitch")
-		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
+		$('#id_body').append('<select id="id_select" class="form-select" style="margin-top:10px;width:auto;"></select>');
 
-
-	$(type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog").modal({
+	
+	const myTarget = (type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog");
+	
+	const modal = new bootstrap.Modal($(myTarget), {
 		backdrop : "static",
-		keyboard: false,
-		show: true
+		keyboard: false
 	});
+	
+	modal.show();
 
-	$(document).on('click', '[data-dismiss-modal]', function () {
-		var target = $(this).attr('data-dismiss-modal');
-		$.find(target).modal.hide();
+	$(document).on('click', myTarget, function (event) {
+		var source = $(event.target);
+		const target = modal;
+		if (source.hasClass('modal-static'))
+			target.hide();
 	});
 }
 
 function createHintH(type, text, container)
-{
-	type = String(type);
-	if(type == "intro")
-		tclass = "introd";
-
-	$('#'+container).prepend('<div class="'+tclass+'"><h4 style="font-size:16px">'+text+'</h4><hr/></div>');
+{	
+	$('#'+container).prepend('<div class="callout '+type+'"><h4 style="font-size:16px">'+text+'</h4></div><hr/>');
 }
 
 function createHint(type, text, container, buttonid, buttontxt)
@@ -435,9 +407,9 @@ function createHint(type, text, container, buttonid, buttontxt)
 		buttonid = "";
 
 	if(type == "intro")
-		$('#'+container).prepend('<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>'+$.i18n("conf_helptable_expl")+'</h4>'+text+'</div>');
+		$('#'+container).prepend('<div class="callout callout-primary" style="margin-top:0px"><h4 class="bs-main-text">'+$.i18n("conf_helptable_expl")+'</h4>'+text+'</div>');
 	else if(type == "wizard")
-		$('#'+container).prepend('<div class="bs-callout bs-callout-wizard" style="margin-top:0px"><h4>'+$.i18n("wiz_wizavail")+'</h4>'+$.i18n('wiz_guideyou',text)+buttonid+'</div>');
+		$('#'+container).prepend('<div class="callout callout-wizard" style="margin-top:0px"><h4 class="bs-main-text">'+$.i18n("wiz_wizavail")+'</h4>'+$.i18n('wiz_guideyou',text)+buttonid+'</div>');
 	else
 	{
 		createTable('','htb',container, true, tclass);
@@ -447,7 +419,7 @@ function createHint(type, text, container, buttonid, buttontxt)
 
 function createEffHint(title, text)
 {
-	return '<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>'+title+'</h4>'+text+'</div>';
+	return '<div class="callout callout-primary" style="margin-top:0px"><h4>'+title+'</h4>'+text+'</div>';
 }
 
 function valValue(id,value,min,max)
@@ -497,20 +469,56 @@ function isJsonString(str)
 	return "";
 }
 
-function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
+function isSmallScreen()
 {
+	return ($("#page-content").outerWidth() < 380);
+}
+
+function putInstanceName(targetplace)
+{
+	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
+	var instName = (lastSelectedInstance!=null) ? getInstanceNameByIndex(lastSelectedInstance) : getInstanceNameByIndex(0);
+	var maxLen = 22;
+	
+	if (isSmallScreen())
+		maxLen = 19;
+	
+	if (instName.length > maxLen+1+3)
+		instName= instName.slice(0,maxLen)+'...';
+	
+	var con = document.createElement('div');
+	con.classList.add("card-tools");
+	var span = document.createElement('span');
+	span.classList.add("badge", "bg-danger");
+	span.style.fontWeight = "normal";
+	
+	span.innerHTML = instName;
+	con.appendChild(span);
+	
+	targetplace.appendChild(con);
+}
+
+function createJsonEditor(container, schema, setconfig, usePanel, arrayre = undefined, showInstance = false)
+{
+	var targetPlace = document.getElementById(container);
+	
+	if (targetPlace.parentElement != null && targetPlace.parentElement.parentElement !=null &&
+		!targetPlace.parentElement.parentElement.classList.contains('editor_column'))
+	{
+		targetPlace.parentElement.parentElement.classList.add('editor_column');
+	}
+	
 	$('#'+container).off();
 	$('#'+container).html("");
 
 	if (typeof arrayre === 'undefined')
 		arrayre = true;
-
-	var editor = new JSONEditor(document.getElementById(container),
+	
+	var editor = new JSONEditor(targetPlace,
 	{
-		theme: 'bootstrap3',
-		iconlib: "fontawesome4",
+		theme: 'bootstrap5hyperhdr',
+		iconlib: 'fontawesome4',
 		disable_collapse: 'true',
-		form_name_root: 'sa',
 		disable_edit_json: true,
 		disable_properties: true,
 		disable_array_reorder: arrayre,
@@ -521,14 +529,22 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 		schema: {
 			title:'',
 			properties: schema
+		},
+		translateProperty: function (key) {
+			return $.i18n(key);
 		}
 	});
-
+	//alert(JSON.stringify(editor));
 	if(usePanel)
 	{
 		$('#'+container+' .well').first().removeClass('well well-sm');
 		$('#'+container+' h4').first().remove();
 		$('#'+container+' .well').first().removeClass('well well-sm');
+	}
+	
+	if (showInstance && targetPlace != null && targetPlace.parentElement != null && targetPlace.parentElement.firstElementChild.classList.contains('card-header'))
+	{
+		putInstanceName(targetPlace.parentElement.firstElementChild);
 	}
 
 	if (setconfig)
@@ -544,24 +560,8 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 
 function buildWL(link,linkt,cl)
 {
-	var baseLink = "https://docs.hyperion-project.org/";
-	var lang;
-
-	if(typeof linkt == "undefined")
-		linkt = "Placeholder";
-
-	if(storedLang == "de" || navigator.locale == "de")
-		lang = "de";
-	else
-		lang = "en";
-
-	if(cl === true)
-	{
-		linkt = $.i18n(linkt);
-		return '<div class="bs-callout bs-callout-primary"><h4>'+linkt+'</h4>'+$.i18n('general_wiki_moreto',linkt)+': <a href="'+baseLink+lang+'/'+link+'" target="_blank">'+linkt+'<a></div>'
-	}
-	else
-		return ': <a href="'+baseLink+lang+'/'+link+'" target="_blank">'+linkt+'<a>';
+	
+	return '';
 }
 
 function rgbToHex(rgb)
@@ -583,7 +583,11 @@ function hexToRgb(hex) {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16)
-    } : null;
+    } : {
+        r: 0,
+        g: 0,
+        b: 0
+    };
 }
 
 /*
@@ -629,10 +633,10 @@ function showNotification(type, message, title="", addhtml="")
 			align:'center'
 		},
 		mouse_over : 'pause',
-		template: '<div data-notify="container" class="bg-w col-md-6 bs-callout bs-callout-{0}" role="alert">' +
+		template: '<div data-notify="container" class="bg-w col-md-6 callout callout-{0}" role="alert">' +
 		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
 		'<span data-notify="icon"></span> ' +
-		'<h4 data-notify="title">{1}</h4> ' +
+		'<h4 data-notify="title">{1}</h4><br/> ' +
 		'<span data-notify="message">{2}</span>' +
 		addhtml+
 		'<div class="progress" data-notify="progressbar">' +
@@ -643,38 +647,6 @@ function showNotification(type, message, title="", addhtml="")
 	});
 }
 
-function createCP(id, color, cb)
-{
-	if(Array.isArray(color))
-		color = rgbToHex(color);
-	else if(color == "undefined")
-		color = "#AA3399";
-
-	if(color.startsWith("#"))
-	{
-		$('#'+id).colorpicker({
-			format: 'rgb',
-			customClass: 'colorpicker-2x',
-			color: color,
-			sliders: {
-				saturation: {
-					maxLeft: 200,
-					maxTop: 200
-				},
-				hue: {
-					maxTop: 200
-				},
-			}
-		});
-		$('#'+id).colorpicker().on('changeColor', function(e) {
-			var rgb = e.color.toRGB();
-			var hex = e.color.toHex();
-			cb(rgb,hex,e);
-		});
-	}
-	else
-		debugMessage('createCP: Given color is not legit');
-}
 
 // Creates a table with thead and tbody ids
 // @param string hid  : a class for thead
@@ -703,6 +675,23 @@ function createTable(hid, bid, cont, bless, tclass)
 	$('#'+cont).append(table);
 }
 
+function createDivTable(hid, bid, cont)
+{
+	var table = document.createElement('div');
+	var thead = document.createElement('div');
+	var tbody = document.createElement('div');
+
+	table.className = "table";
+	table.style.marginBottom = "0px";
+	thead.className = hid + " container";
+	tbody.className = bid + " container";
+		
+	table.appendChild(thead);	
+	table.appendChild(tbody);
+
+	$('#'+cont).append(table);
+}
+
 // Creates a table row <tr>
 // @param array list :innerHTML content for <td>/<th>
 // @param bool head  :if null or false it's body
@@ -711,15 +700,85 @@ function createTable(hid, bid, cont, bless, tclass)
 // @return : <tr> with <td> or <th> as child(s)
 function createTableRow(list, head, align)
 {
-	var row = document.createElement('tr');
+	var row = document.createElement('div');
+	
+	row.className = 'row mb-2';
 
 	for(var i = 0; i < list.length; i++)
 	{
-		if(head === true)
-			var el = document.createElement('th');
+		var el = document.createElement('div');
+		
+		if (list.length == 2)
+		{
+			if (i==0)
+				el.className = 'col-3';
+			else
+				el.className = 'col-9';
+		}
 		else
-			var el = document.createElement('td');
+			el.className = 'col';
+		
+		if(head === true)
+			el.style.fontWeight = "bold";
+		
+		if(align)
+			el.style.verticalAlign = "middle";
 
+		el.innerHTML = list[i];
+		row.appendChild(el);
+	}
+	return row;
+}
+
+function createTableFlex(hid, bid, cont, bless, tclass)
+{	
+	var table = document.createElement('div');
+	var thead = document.createElement('div');
+	var tbody = document.createElement('div');
+
+	table.className = "container";
+	
+	if(bless === true)
+		table.className += " borderless";
+	else
+		thead.style.borderBottom = "thin solid lightgray";
+	
+	if(typeof tclass !== "undefined")
+		table.className += " "+tclass;
+	table.style.marginBottom = "0px";
+	if(hid != "")
+		thead.className = hid;
+	tbody.className = bid;
+	if(hid != "")
+		table.appendChild(thead);
+	table.appendChild(tbody);
+
+	$('#'+cont).append(table);
+}
+
+function createTableRowFlex(list, head, align)
+{
+	var row = document.createElement('div');
+	
+	row.className = 'd-flex flex-row mb-2';
+
+	for(var i = 0; i < list.length; i++)
+	{
+		var el = document.createElement('div');
+		
+		if (list.length == 2)
+		{
+			if (i==0)
+				el.className = 'd-flex w-100 p-2';
+			else
+				el.className = 'w-100 d-flex p-2 justify-content-center';
+		}
+		else 
+			el.className = 'w-100 d-flex p-2';
+		
+		if(head === true)
+			el.style.fontWeight = "bold";
+		
 		if(align)
 			el.style.verticalAlign = "middle";
 
@@ -740,12 +799,68 @@ function createRow(id)
 function createOptPanel(phicon, phead, bodyid, footerid)
 {
 	phead = '<i class="fa '+phicon+' fa-fw"></i>'+phead;
-	var pfooter = document.createElement('button');
-	pfooter.className = "btn btn-primary";
-	pfooter.setAttribute("id", footerid);
-	pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
+	var saveBtn = document.createElement('button');
+	saveBtn.className = "btn btn-primary";
+	saveBtn.setAttribute("id", footerid);
+	saveBtn.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
 
-	return createPanel(phead, "", pfooter, "panel-default", bodyid);
+	const helpBtn = document.createElement('button');
+	helpBtn.className = "btn btn-warning btn-warning-noset";
+	helpBtn.style.cssFloat = "left";
+	helpBtn.innerHTML = '<i class="fa fa-fw fa-question-circle-o"></i>'+$.i18n('panel_help_button');
+	helpBtn.addEventListener("click", function() 
+		{
+			var clientObj = helpBtn.parentElement.parentElement.parentElement.parentElement;
+			var target = clientObj.nextElementSibling;
+			var act = helpBtn.classList.contains("btn-warning-set");
+			if (!act)
+			{
+				target.classList.remove("d-none");
+				helpBtn.classList.add("btn-warning-set");
+				helpBtn.classList.remove("btn-warning-noset");
+				if($(window).width() >= 977)
+				{
+					var searching = target.parentElement.firstElementChild;
+					var index = 0;
+					
+					while (searching != null && searching != clientObj)
+					{
+						if (searching.classList.contains('editor_column') ||
+							(searching.classList.contains('help-column') && ! searching.classList.contains('d-none')) )
+							index++;
+						searching = searching.nextElementSibling;
+					}
+					
+					if ((index % 2) && searching == clientObj)
+					{
+						var breaker = document.createElement('div');
+						breaker.classList.add("w-100");
+						breaker.classList.add("breaker");
+						clientObj.parentNode.insertBefore(breaker, clientObj);
+						clientObj.scrollIntoView({behavior: "smooth"}); 
+					}
+				}
+			}
+			else
+			{
+				target.classList.add("d-none");
+				helpBtn.classList.remove("btn-warning-set");
+				helpBtn.classList.add("btn-warning-noset");
+				
+				if (clientObj.previousElementSibling != null && 
+					clientObj.previousElementSibling.classList.contains("breaker"))
+				{
+					(clientObj.previousElementSibling).remove();
+					clientObj.scrollIntoView({behavior: "smooth"});
+				}
+			}			
+		}
+	); 
+	var common = document.createElement("div");	
+	common.appendChild(helpBtn);
+	common.appendChild(saveBtn);	
+	
+	return createPanel(phead, "", common, "card-default", bodyid);	
 }
 
 function sortProperties(list)
@@ -763,16 +878,16 @@ function sortProperties(list)
 }
 
 function createHelpTable(list, phead){
-	var table = document.createElement('table');
-	var thead = document.createElement('thead');
-	var tbody = document.createElement('tbody');
+	var table = document.createElement('div');
+	table.className = "container";
+	
 	list = sortProperties(list);
 
 	phead = '<i class="fa fa-fw fa-info-circle"></i>'+phead+' '+$.i18n("conf_helptable_expl");
 
 	table.className = 'table table-hover borderless';
 
-	thead.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
+	table.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
 
 	for (var key in list)
 	{
@@ -784,7 +899,7 @@ function createHelpTable(list, phead){
 			if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
 				continue;
 			var text = list[key].title.replace('title', 'expl');
-			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
+			table.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
 			if(list[key].items && list[key].items.properties)
 			{
@@ -797,15 +912,16 @@ function createHelpTable(list, phead){
 					if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
 						continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
-					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
+					table.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
 				}
 			}
 		}
 	}
-	table.appendChild(thead);
-	table.appendChild(tbody);
-
-	return createPanel(phead, table);
+	
+	var finalHelp =  createPanel(phead, table);
+	finalHelp.classList.add('d-none');
+	finalHelp.classList.add('help-column');
+	return finalHelp;
 }
 
 function createPanel(head, body, footer, type, bodyid){
@@ -818,12 +934,12 @@ function createPanel(head, body, footer, type, bodyid){
 	cont.className = "col-lg-6";
 
 	if(typeof type == 'undefined')
-		type = 'panel-default';
+		type = 'card-default';
 
-	p.className = 'panel '+type;
-	phead.className = 'panel-heading';
-	pbody.className = 'panel-body';
-	pfooter.className = 'panel-footer';
+	p.className = 'card '+type;
+	phead.className = 'card-header';
+	pbody.className = 'card-body';
+	pfooter.className = 'card-footer';
 
 	phead.innerHTML = head;
 
@@ -986,13 +1102,20 @@ function getReleases(callback)
 
 function handleDarkMode()
 {
-		$("<link/>", {
-			rel: "stylesheet",
-			type: "text/css",
-			href: "../css/darkMode.css"
-		}).appendTo("head");
+	$('body').addClass('dark-mode');
+	$('aside').addClass('dark-mode');	
 
-		setStorage("darkMode", "on", false);
-		$('#btn_darkmode_icon').removeClass('fa fa-moon-o');
-		$('#btn_darkmode_icon').addClass('fa fa-sun-o');
+	setStorage("darkMode", "on", false);
+	$('#btn_darkmode_icon').removeClass('fa-moon-o');
+	$('#btn_darkmode_icon').addClass('fa-sun-o');
+}
+
+function handleLightMode()
+{
+	$('body').removeClass('dark-mode');
+	$('aside').removeClass('dark-mode');	
+
+	setStorage("darkMode", "on", false);
+	$('#btn_darkmode_icon').addClass('fa-moon-o');
+	$('#btn_darkmode_icon').removeClass('fa-sun-o');
 }

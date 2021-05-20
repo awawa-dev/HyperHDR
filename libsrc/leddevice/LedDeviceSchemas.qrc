@@ -7,7 +7,6 @@
 		<file alias="schema-dmx">schemas/schema-dmx.json</file>
 		<file alias="schema-fadecandy">schemas/schema-fadecandy.json</file>
 		<file alias="schema-file">schemas/schema-file.json</file>
-		<file alias="schema-hyperionusbasp">schemas/schema-hyperionusbasp.json</file>
 		<file alias="schema-lightpack">schemas/schema-lightpack.json</file>
 		<file alias="schema-lpd6803">schemas/schema-lpd6803.json</file>
 		<file alias="schema-lpd8806">schemas/schema-lpd8806.json</file>
@@ -36,5 +35,6 @@
 		<file alias="schema-wled">schemas/schema-wled.json</file>
 		<file alias="schema-yeelight">schemas/schema-yeelight.json</file>
 		<file alias="schema-cololight">schemas/schema-cololight.json</file>
+		<file alias="schema-awa_spi">schemas/schema-awa_spi.json</file>
 	</qresource>
 </RCC>

@@ -1,4 +1,5 @@
 #include <db/AuthTable.h>
+#include <api/API.h>
 
 AuthTable::AuthTable(const QString& rootPath, QObject* parent, bool readonlyMode)
 	: DBManager(parent)
@@ -12,6 +13,35 @@ AuthTable::AuthTable(const QString& rootPath, QObject* parent, bool readonlyMode
 	setTable("auth");
 	// create table columns
 	createTable(QStringList()<<"user TEXT"<<"password BLOB"<<"token BLOB"<<"salt BLOB"<<"comment TEXT"<<"id TEXT"<<"created_at TEXT"<<"last_use TEXT");
+
+	// migration
+	if (userExist("Hyperion"))
+	{
+		if (readonlyMode)
+		{
+			Error(_log, "Database user needs to be updated but the database is readonly. Please make it writable.");
+		}
+		else
+		{
+			QVariantMap map;
+			map["user"] = DEFAULT_CONFIG_USER;
+
+			VectorPair cond;
+			cond.append(CPair("user", "Hyperion"));
+
+			if (updateRecord(cond, map))
+			{
+				Info(_log, "Reset user to the default one.");
+				if (isUserAuthorized(DEFAULT_CONFIG_USER, "hyperion"))
+				{
+					resetHyperhdrUser();
+					Info(_log, "Default password was resetted");
+				}
+			}
+			else
+				Error(_log, "Failed to update a user. You may need to reset user with a command line running 'hyperhdr resetPassword'");
+		}
+	}
 };
 
  
@@ -97,10 +127,10 @@ bool AuthTable::updateUserPassword(const QString& user, const QString& newPw)
 bool AuthTable::resetHyperhdrUser()
 {
 	QVariantMap map;
-	map["password"] = calcPasswordHashOfUser("Hyperion", "hyperion");
+	map["password"] = calcPasswordHashOfUser(DEFAULT_CONFIG_USER, DEFAULT_CONFIG_PASSWORD);
 
 	VectorPair cond;
-	cond.append(CPair("user", "Hyperion"));
+	cond.append(CPair("user", DEFAULT_CONFIG_USER));
 	return updateRecord(cond, map);
 }
 

@@ -1,7 +1,7 @@
 #ifndef LEDEVICEKARATE_H
 #define LEDEVICEKARATE_H
 
-// hyperion includes
+// HyperHDR includes
 #include "ProviderRs232.h"
 
 ///

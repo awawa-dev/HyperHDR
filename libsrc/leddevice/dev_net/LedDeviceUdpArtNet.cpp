@@ -1,4 +1,4 @@
-// hyperion local includes
+// hyperhdr local includes
 #include "LedDeviceUdpArtNet.h"
 
 #ifdef _WIN32

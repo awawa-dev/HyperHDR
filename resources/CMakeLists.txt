@@ -5,18 +5,18 @@
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/resources)
 
 # catch all files
-FILE ( GLOB Hyperion_RESFILES "${CURRENT_SOURCE_DIR}/icons/*" "${CURRENT_SOURCE_DIR}/ssl/*" )
+FILE ( GLOB Hyperhdr_RESFILES "${CURRENT_SOURCE_DIR}/icons/*" "${CURRENT_SOURCE_DIR}/ssl/*" )
 
 # fill resources.qrc with RESFILES
-FOREACH( f ${Hyperion_RESFILES} )
+FOREACH( f ${Hyperhdr_RESFILES} )
 	get_filename_component(fname ${f} NAME)
-	SET(HYPERION_RES "${HYPERION_RES}\n\t\t<file alias=\"${fname}\">${f}</file>")
+	SET(HYPERHDR_RES "${HYPERHDR_RES}\n\t\t<file alias=\"${fname}\">${f}</file>")
 ENDFOREACH()
 
 # prep file
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/resources.qrc.in ${CMAKE_BINARY_DIR}/resources.qrc )
-SET(Hyperion_RES ${CMAKE_BINARY_DIR}/resources.qrc)
+SET(Hyperhdr_RES ${CMAKE_BINARY_DIR}/resources.qrc)
 
 add_library(resources
-	${Hyperion_RES}
+	${Hyperhdr_RES}
 )

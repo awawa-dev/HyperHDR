@@ -125,7 +125,7 @@ void signal_handler(int signum, siginfo_t * /*info*/, void * /*context*/)
 	}
 
 	write_to_stderr("\n");
-	write_to_stderr("Hyperion caught signal :");
+	write_to_stderr("HyperHDR caught signal :");
 	write_to_stderr(name);
 	write_to_stderr("\n");
 

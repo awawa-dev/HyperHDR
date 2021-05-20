@@ -11,11 +11,11 @@
 #include <effectengine/EffectDBHandler.h>
 #include "HyperhdrConfig.h"
 
-EffectEngine::EffectEngine(HyperHdrInstance * hyperhdr)
+EffectEngine::EffectEngine(HyperHdrInstance* hyperhdr)
 	: _hyperInstance(hyperhdr)
 	, _availableEffects()
 	, _activeEffects()
-	, _log(Logger::getInstance("EFFECTENGINE"))
+	, _log(Logger::getInstance(QString("EFFECTENGINE%1").arg(hyperhdr->getInstanceIndex())))
 	, _effectDBHandler(EffectDBHandler::getInstance())
 {	
 	qRegisterMetaType<hyperhdr::Components>("hyperhdr::Components");
@@ -172,7 +172,7 @@ void EffectEngine::allChannelsCleared()
 {
 	for (Effect * effect : _activeEffects)
 	{
-		if (effect->getPriority() != 254 && !effect->isInterruptionRequested())
+		if (effect->getPriority() != PriorityMuxer::LOWEST_EFFECT_PRIORITY && !effect->isInterruptionRequested())
 		{
 			effect->requestInterruption();
 		}

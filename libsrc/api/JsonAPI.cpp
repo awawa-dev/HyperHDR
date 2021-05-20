@@ -3,8 +3,10 @@
 
 // stl includes
 #include <chrono>
+#include <csignal>
 
 // Qt includes
+#include <QCoreApplication>
 #include <QResource>
 #include <QDateTime>
 #include <QImage>
@@ -19,6 +21,7 @@
 #include <leddevice/LedDeviceFactory.h>
 
 #include <hyperhdrbase/GrabberWrapper.h>
+#include <hyperhdrbase/SystemWrapper.h>
 #include <hyperhdrbase/SoundCapture.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -178,11 +181,18 @@ proceed:
 		handleInstanceCommand(message, command, tan);
 	else if (command == "leddevice")
 		handleLedDeviceCommand(message, command, tan);
-
+	else if (command == "save-db")
+		handleSaveDB(message, command, tan);
+	else if (command == "load-db")
+		handleLoadDB(message, command, tan);
+	else if (command == "signal-calibration")
+		handleLoadSignalCalibration(message, command, tan);
 	else if (command == "clearall")
 		handleClearallCommand(message, command, tan);
 	else if (command == "help")
 		handleHelpCommand(message, command, tan);
+	else if (command == "video-crop")
+		handleCropCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
 		sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 	// END
@@ -294,15 +304,15 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["pyVersion"] = data.pyVersion;
 	info["system"] = system;
 
-	QJsonObject hyperion;
-	hyperion["version"] = QString(HYPERION_VERSION);
-	hyperion["build"] = QString(HYPERION_BUILD_ID);
-	hyperion["gitremote"] = QString(HYPERION_GIT_REMOTE);
-	hyperion["time"] = QString(__DATE__ " " __TIME__);
-	hyperion["id"] = _authManager->getID();
-	hyperion["readOnlyMode"] = _hyperhdr->getReadOnlyMode();
+	QJsonObject hyperhdr;
+	hyperhdr["version"] = QString(HYPERHDR_VERSION);
+	hyperhdr["build"] = QString(HYPERHDR_BUILD_ID);
+	hyperhdr["gitremote"] = QString(HYPERHDR_GIT_REMOTE);
+	hyperhdr["time"] = QString(__DATE__ " " __TIME__);
+	hyperhdr["id"] = _authManager->getID();
+	hyperhdr["readOnlyMode"] = _hyperhdr->getReadOnlyMode();
 
-	info["hyperion"] = hyperion;
+	info["hyperhdr"] = hyperhdr;
 
 	// send the result
 	result["info"] = info;
@@ -497,7 +507,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonArray availableGrabbers;
 
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_WMF) || defined(ENABLE_AVF) 
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF) 
 	if ( GrabberWrapper::getInstance() != nullptr )
 	{
 		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
@@ -510,17 +520,45 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 #endif
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_WMF) || defined(ENABLE_AVF)
+#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11)
+	QJsonObject systemDevice;
+	QJsonArray  systemModes;
 
-	QJsonArray availableV4L2devices;
-	for (const auto& devicePath : GrabberWrapper::getInstance()->getV4L2devices())
+	#if defined(ENABLE_DX)
+		systemDevice["device"] = "DirectX11";
+	#endif
+	#if defined(ENABLE_MAC_SYSTEM)
+		systemDevice["device"] = "macOS";
+	#endif
+	#if defined(ENABLE_X11)
+		systemDevice["device"] = "X11";
+	#endif
+
+	for (const auto& devicePath : SystemWrapper::getInstance()->getVideoDevices())
+	{
+		systemModes.append(devicePath);
+	}
+	systemDevice["modes"] = systemModes;
+	info["systemGrabbers"] = systemDevice;
+#endif
+
+#if defined(ENABLE_CEC)
+	info["hasCEC"] = 1;
+#else
+	info["hasCEC"] = 0;
+#endif
+
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)
+
+	QJsonArray availableVideoDevices;
+	for (const auto& devicePath : GrabberWrapper::getInstance()->getVideoDevices())
 	{
 		QJsonObject device;
 		device["device"] = devicePath;
-		device["name"] = GrabberWrapper::getInstance()->getV4L2deviceName(devicePath);
+		device["name"] = GrabberWrapper::getInstance()->getVideoDeviceName(devicePath);		
 
 		QJsonArray availableInputs;
-		QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getV4L2deviceInputs(devicePath);
+		QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getVideoDeviceInputs(devicePath);
 		for (auto input = inputs.begin(); input != inputs.end(); input++)
 		{
 			QJsonObject availableInput;
@@ -528,42 +566,118 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			availableInput["inputIndex"] = input.value();
 			availableInputs.append(availableInput);
 		}
-		device.insert("inputs", availableInputs);
+		device.insert("inputs", availableInputs);		
 
-		QJsonArray availableResolutions;
-		QStringList resolutions = GrabberWrapper::getInstance()->getResolutions(devicePath);
-		for (auto resolution : resolutions)
+		QJsonObject availableVideoControls;
+		QMap<Grabber::VideoControls, int> videoControls = GrabberWrapper::getInstance()->getVideoDeviceControls(devicePath);
+
+		if (videoControls.contains(Grabber::VideoControls::BrightnessDef))
+			availableVideoControls["BrightnessDef"] = QString("Brightness: <span class='text-info'>%1</span>").arg(QString::number(videoControls[Grabber::VideoControls::BrightnessDef]));
+		else
+			availableVideoControls["BrightnessDef"] = QString("Brightness: <span class='text-danger'>NO</span>");
+
+		if (videoControls.contains(Grabber::VideoControls::ContrastDef))
+			availableVideoControls["ContrastDef"] = QString("Contrast: <span class='text-info'>%1</span>").arg(QString::number(videoControls[Grabber::VideoControls::ContrastDef]));
+		else
+			availableVideoControls["ContrastDef"] = QString("Contrast: <span class='text-danger'>NO</span>");
+
+		if (videoControls.contains(Grabber::VideoControls::SaturationDef))
+			availableVideoControls["SaturationDef"] = QString("Saturation: <span class='text-info'>%1</span>").arg(QString::number(videoControls[Grabber::VideoControls::SaturationDef]));
+		else
+			availableVideoControls["SaturationDef"] = QString("Saturation: <span class='text-danger'>NO</span>");
+
+		if (videoControls.contains(Grabber::VideoControls::HueDef))
+			availableVideoControls["HueDef"] = QString("Hue: <span class='text-info'>%1</span>").arg(QString::number(videoControls[Grabber::VideoControls::HueDef]));
+		else
+			availableVideoControls["HueDef"] = QString("Hue: <span class='text-danger'>NO</span>");
+
+		device.insert("videoControls", availableVideoControls);
+
+		QList<Grabber::DevicePropertiesItem> videoModeList = GrabberWrapper::getInstance()->getVideoDeviceModesFullInfo(devicePath);
+		QJsonArray availableModeList;
+		QStringList resolutions;
+		QStringList videoCodecs;
+		std::list<int> availableFrameratesList;		
+
+		for (const auto &videoMode : videoModeList)
 		{
-			availableResolutions.append(resolution);
+			QJsonObject videoModeJson;
+			QString     resInfo = QString("%1x%2").arg(videoMode.x).arg(videoMode.y);
+			QString     codecName = pixelFormatToString(videoMode.pf);
+			if (!(std::find(std::begin(availableFrameratesList), std::end(availableFrameratesList), videoMode.fps) != std::end(availableFrameratesList)))
+			{
+				availableFrameratesList.push_back(videoMode.fps);
+			}
+
+			if (!resolutions.contains(resInfo))
+			{
+				resolutions.append(resInfo);
+			}
+
+			if (!videoCodecs.contains(codecName))
+			{
+				videoCodecs.append(codecName);
+			}
+
+			videoModeJson["width"] = videoMode.x;
+			videoModeJson["height"] = videoMode.y;
+			videoModeJson["fps"] = videoMode.fps;
+			videoModeJson["pixel_format_id"] = (int)videoMode.pf;
+			videoModeJson["pixel_format_info"] = codecName;
+
+			availableModeList.append(videoModeJson);
 		}
-		device.insert("resolutions", availableResolutions);
+		device.insert("videoModeList", availableModeList);
 
 		QJsonArray availableFramerates;
-		QStringList framerates = GrabberWrapper::getInstance()->getFramerates(devicePath);
-		for (auto framerate : framerates)
+		availableFrameratesList.sort();
+		for (int frameRate : availableFrameratesList)
 		{
-			availableFramerates.append(framerate);
+			availableFramerates.append(QString::number(frameRate));
 		}
 		device.insert("framerates", availableFramerates);
 
-		QJsonArray availableVideoCodec;
-		QStringList videoCodecs = GrabberWrapper::getInstance()->getVideoCodecs(devicePath);
-		for (auto videoCodec : videoCodecs)
+
+		QJsonArray availableResolutions;		
+		for (auto x : resolutions)
 		{
-			availableVideoCodec.append(videoCodec);
+			availableResolutions.append(x);
+		}
+		device.insert("resolutions", availableResolutions);
+
+		QJsonArray availableVideoCodec;
+		videoCodecs.sort();
+		for (auto x : videoCodecs)
+		{
+			availableVideoCodec.append(x);
 		}
 		device.insert("videoCodecs", availableVideoCodec);
 
-
-		availableV4L2devices.append(device);
+		availableVideoDevices.append(device);
 	}
 
-	grabbers["v4l2_properties"] = availableV4L2devices;
+	grabbers["video_devices"] = availableVideoDevices;
+
+	// current state
+	QJsonObject current;
+	auto currentInfo = GrabberWrapper::getInstance()->getVideoCurrentMode();
+
+	if (currentInfo.contains(Grabber::currentVideoModeInfo::device))
+		current["device"] = currentInfo[Grabber::currentVideoModeInfo::device];
+	else
+		current["device"] = "";
+
+	if (currentInfo.contains(Grabber::currentVideoModeInfo::resolution))
+		current["videoMode"] = currentInfo[Grabber::currentVideoModeInfo::resolution];
+	else
+		current["videoMode"] = "";
+
+	grabbers["current"] = current;
 
 #endif
 
 	grabbers["available"] = availableGrabbers;
-	info["videomodehdr"] = _hyperhdr->getCurrentVideoModeHdr();
+	info["videomodehdr"] = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
 	info["grabbers"] = grabbers;
 
 	// get available components
@@ -765,8 +879,19 @@ void JsonAPI::handleHelpCommand(const QJsonObject& message, const QString& comma
 {	
 	QJsonObject req;
 	
-	req["available_commands"] = "color, image, effect, serverinfo, clear, clearall, adjustment, sourceselect, config, componentstate, ledcolors, logging, processing, sysinfo, videomodehdr, videomode, authorize, instance, leddevice, transform, correction, temperature, help";
+	req["available_commands"] = "color, image, effect, serverinfo, clear, clearall, adjustment, sourceselect, config, componentstate, ledcolors, logging, processing, sysinfo, videomodehdr, videomode, video-crop, authorize, instance, leddevice, transform, correction, temperature, help";
 	sendSuccessDataReply(QJsonDocument(req), command, tan);
+}
+
+void JsonAPI::handleCropCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QJsonObject& adjustment = message["crop"].toObject();
+	int l = adjustment["left"].toInt(0);
+	int r = adjustment["right"].toInt(0);
+	int t = adjustment["top"].toInt(0);
+	int b = adjustment["bottom"].toInt(0);
+	GrabberWrapper::getInstance()->setCropping(l, r, t, b);
+	sendSuccessReply(command, tan);
 }
 
 void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString &command, int tan)
@@ -779,6 +904,11 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 	{
 		Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
 		return;
+	}
+
+	if (adjustment.contains("classic_config"))
+	{
+		colorAdjustment->_rgbTransform.setClassicConfig(adjustment["classic_config"].toBool(false));
 	}
 
 	if (adjustment.contains("temperatureRed"))
@@ -896,6 +1026,65 @@ void JsonAPI::handleSourceSelectCommand(const QJsonObject &message, const QStrin
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::handleSaveDB(const QJsonObject& message, const QString& command, int tan)
+{
+	if (_adminAuthorized)
+	{
+		QJsonObject backup = _instanceManager->getBackup();
+		if (!backup.empty())
+			sendSuccessDataReply(QJsonDocument(backup), command, tan);
+		else
+			sendErrorReply("Error while generating the backup file, please consult the HyperHDR logs.", command, tan);
+	}
+	else
+		sendErrorReply("No Authorization", command, tan);
+}
+
+void JsonAPI::handleLoadDB(const QJsonObject& message, const QString& command, int tan)
+{
+	if (_adminAuthorized)
+	{
+		QString error = _instanceManager->restoreBackup(message);
+		if (error.isEmpty())
+		{
+#ifdef __linux__
+			raise(SIGSEGV);
+#else
+			QCoreApplication::quit();
+#endif
+		}
+		else
+			sendErrorReply("Error occured while restoring the backup: "+error, command, tan);	
+	}
+	else
+		sendErrorReply("No Authorization", command, tan);
+}
+
+
+void JsonAPI::handleLoadSignalCalibration(const QJsonObject& message, const QString& command, int tan)
+{
+	QString subcommand = message["subcommand"].toString("");
+	QString full_command = command + "-" + subcommand;
+
+	if (subcommand == "start" && GrabberWrapper::getInstance() != nullptr)
+	{
+		if (_adminAuthorized)
+			sendSuccessDataReply(GrabberWrapper::getInstance()->startCalibration(), full_command, tan);
+		else
+			sendErrorReply("No Authorization", command, tan);
+	}
+	else if (subcommand == "stop" && GrabberWrapper::getInstance() != nullptr)
+	{
+		sendSuccessDataReply(GrabberWrapper::getInstance()->stopCalibration(), full_command, tan);
+	}
+	else if (subcommand == "get-info" && GrabberWrapper::getInstance() != nullptr)
+	{
+		sendSuccessDataReply(GrabberWrapper::getInstance()->getCalibrationInfo(), full_command, tan);
+	}
+	else
+		sendErrorReply("Unknown subcommand", command, tan);
+}
+
 void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	QString subcommand = message["subcommand"].toString("");
@@ -957,7 +1146,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const QString &
 			}
 		}
 		else
-			sendErrorReply("Saving configuration while Hyperion is disabled isn't possible", command, tan);
+			sendErrorReply("Saving configuration while HyperHDR is disabled isn't possible", command, tan);
 	}
 }
 
@@ -969,8 +1158,8 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
-	// read the hyperion json schema from the resource
-	QString schemaFile = ":/hyperion-schema";
+	// read the hyperhdr json schema from the resource
+	QString schemaFile = ":/hyperhdr-schema";
 
 	try
 	{
@@ -1160,7 +1349,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		return;
 	}
 
-	// default hyperion password is a security risk, replace it asap
+	// default hyperhdr password is a security risk, replace it asap
 	if (subc == "newPasswordRequired")
 	{
 		QJsonObject req;
@@ -1356,7 +1545,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			QString userTokenRep;
 			if (API::isUserAuthorized(password) && API::getUserToken(userTokenRep))
 			{
-				// Return the current valid Hyperion user token
+				// Return the current valid HyperHDR user token
 				QJsonObject obj;
 				obj["token"] = userTokenRep;
 				sendSuccessDataReply(QJsonDocument(obj), command + "-" + subc, tan);
@@ -1384,7 +1573,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 			sendSuccessDataReply(QJsonDocument(obj), command + "-" + subc, tan);
 		}
 		else
-			sendErrorReply("Selected Hyperion instance isn't running", command + "-" + subc, tan);
+			sendErrorReply("Selected HyperHDR instance isn't running", command + "-" + subc, tan);
 		return;
 	}
 
@@ -1392,7 +1581,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 	{
 		connect(this, &API::onStartInstanceResponse, [=] (const int &tan) { sendSuccessReply(command + "-" + subc, tan); });
 		if (!API::startInstance(inst, tan))
-			sendErrorReply("Can't start Hyperion instance index " + QString::number(inst), command + "-" + subc, tan);
+			sendErrorReply("Can't start HyperHDR instance index " + QString::number(inst), command + "-" + subc, tan);
 		return;
 	}
 

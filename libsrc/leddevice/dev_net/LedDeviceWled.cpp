@@ -1,4 +1,4 @@
-// Local-Hyperion includes
+// Local-HyperHDR includes
 #include "LedDeviceWled.h"
 #include <utils/QStringUtils.h>
 #include <ssdp/SSDPDiscover.h>
@@ -21,7 +21,6 @@ const char API_BASE_PATH[] = "/json/";
 const char API_PATH_STATE[] = "state";
 
 // List of State Information
-const char STATE_ON[] = "on";
 const char STATE_VALUE_TRUE[] = "true";
 const char STATE_VALUE_FALSE[] = "false";
 
@@ -124,7 +123,7 @@ bool LedDeviceWled::initRestAPI(const QString &hostname, int port)
 QString LedDeviceWled::getOnOffRequest(bool isOn) const
 {
 	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
-	return QString( "{\"%1\":%2}" ).arg( STATE_ON, state);
+	return QString( "{\"on\":%1,\"live\":%1}" ).arg(state);
 }
 
 bool LedDeviceWled::powerOn()

@@ -4,7 +4,7 @@
 // Qt includes
 #include <QTimer>
 
-// hyperion include
+// HyperHDR include
 #include "ProviderHID.h"
 
 ///

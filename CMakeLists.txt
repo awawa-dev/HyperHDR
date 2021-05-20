@@ -6,8 +6,8 @@ PROJECT(HyperHdr)
 
 # Parse semantic version of version file
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
-file (STRINGS "version" HYPERION_VERSION)
-SetVersionNumber(HYPERION ${HYPERION_VERSION})
+file (STRINGS "version" HYPERHDR_VERSION)
+SetVersionNumber(HYPERHDR ${HYPERHDR_VERSION})
 
 
 # Instruct CMake to run moc automatically when needed.
@@ -31,29 +31,36 @@ endif(CCACHE_FOUND)
 
 # Set build variables
 SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
+SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
-SET ( DEFAULT_WMF                         OFF )
+SET ( DEFAULT_MF                          OFF )
+SET ( DEFAULT_DX                          OFF )
 SET ( DEFAULT_AVF                         OFF )
+SET ( DEFAULT_MAC_SYSTEM                  OFF )
+SET ( DEFAULT_V4L2                        OFF )
+SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 SET ( DEFAULT_SOUNDCAPMACOS               OFF )
+SET ( DEFAULT_CEC                         OFF )
 
-IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )	
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
 	SET ( DEFAULT_V4L2          ON )
+	SET ( DEFAULT_X11           ON )
 	SET ( DEFAULT_SPIDEV        ON )
 	SET ( DEFAULT_TINKERFORGE   ON )
-	SET ( DEFAULT_USB_HID       ON )
+	SET ( DEFAULT_USB_HID       OFF )
 ELSEIF ( WIN32 )
-	SET ( DEFAULT_WMF             ON  )
+	SET ( DEFAULT_DX              ON  )
+	SET ( DEFAULT_MF              ON  )
 	SET ( DEFAULT_SOUNDCAPWINDOWS ON  )
 	SET ( DEFAULT_USB_HID         OFF )
 ELSE()
-	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_SPIDEV      OFF )
 	SET ( DEFAULT_TINKERFORGE OFF )
 	SET ( DEFAULT_USB_HID     OFF )
@@ -119,14 +126,17 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	
 	SET ( DEFAULT_USB_HID    OFF )
 	SET ( DEFAULT_AVF        ON  )
+	SET ( DEFAULT_MAC_SYSTEM ON  )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
 	SET ( DEFAULT_WS281XPWM  ON )
+	SET ( DEFAULT_CEC        ON )
 	
 	# GL dispatcher
 	find_library (GLD GLdispatch)
 	if(NOT GLD)
 		message(FATAL_ERROR "GLdispatch library not found. Install libglvnd-dev")
 	endif()
+		
 
 	message("Found: ${GLD}")
 	add_library(GLD SHARED IMPORTED)
@@ -176,7 +186,37 @@ STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
 STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
 ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
+# Add project specific cmake modules (find, etc)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+if (DEFAULT_X11)
+	find_package(XLibs)
+	if (NOT XLibs_FOUND)
+		message( WARNING "X11 libs not found. Disabling support for X11.")
+		SET ( DEFAULT_X11                          OFF )
+	endif()
+endif()
+
+# CEC library
+find_library (CEC_SUPPORT p8-platform NAMES libp8-platform.so.2 libp8-platform p8-platform )
+if(NOT CEC_SUPPORT AND DEFAULT_CEC)
+	message( WARNING "libp8-platform library not found. Install libp8-platform-dev. CEC support is disabled." )
+	SET ( DEFAULT_CEC OFF )
+elseif(DEFAULT_CEC)
+	message( STATUS "libCEC support library found: " ${CEC_SUPPORT} )
+endif()
+
+if(DEFAULT_CEC)
+	IF ((NOT EXISTS "/opt/vc/lib" OR NOT EXISTS "/opt/vc/include") AND
+		(NOT EXISTS "/usr/lib/aarch64-linux-gnu/libbcm_host.so.0" OR NOT EXISTS "/usr/include/interface/vchiq_arm/vchiq_if.h"))
+		message( WARNING "CEC Rpi mode support is disabled. Could not find Rpi developers libs: arm32 > /opt/vc/lib,/opt/vc/include, aarch64 > /usr/lib/aarch64-linux-gnu/libbcm_host.so.0,/usr/include/interface/vchiq_arm/vchiq_if.h" )
+	endif()
+endif()
+
 # set the build options
+option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
+message(STATUS "ENABLE_BOBLIGHT   = ${ENABLE_BOBLIGHT}")
+
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
 
@@ -185,6 +225,9 @@ message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
 message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
+
+option(ENABLE_X11 "Enable the X11 Linux system grabber" ${DEFAULT_X11})
+message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
@@ -195,11 +238,17 @@ message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
 
-option(ENABLE_WMF "Enable the Windows Media Foundation grabber" ${DEFAULT_WMF})
-message(STATUS "ENABLE_WMF = ${ENABLE_WMF}")
+option(ENABLE_MF "Enable Windows Media Foundation grabber" ${DEFAULT_MF})
+message(STATUS "ENABLE_MF = ${ENABLE_MF}")
 
-option(ENABLE_AVF "Enable the AV Foundation macOS grabber" ${DEFAULT_AVF})
+option(ENABLE_DX "Enable Windows DirectX 11 system grabber" ${DEFAULT_DX})
+message(STATUS "ENABLE_DX = ${ENABLE_DX}")
+
+option(ENABLE_AVF "Enable AV Foundation macOS grabber" ${DEFAULT_AVF})
 message(STATUS "ENABLE_AVF = ${ENABLE_AVF}")
+
+option(ENABLE_MAC_SYSTEM "Enable macOS system grabber" ${DEFAULT_MAC_SYSTEM})
+message(STATUS "ENABLE_MAC_SYSTEM = ${ENABLE_MAC_SYSTEM}")
 
 option(ENABLE_SOUNDCAPWINDOWS "Enable Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
 message(STATUS "ENABLE_SOUNDCAPWINDOWS = ${ENABLE_SOUNDCAPWINDOWS}")
@@ -210,14 +259,14 @@ message(STATUS "ENABLE_SOUNDCAPMACOS = ${ENABLE_SOUNDCAPMACOS}")
 option(ENABLE_SOUNDCAPLINUX "Enable Linux Sound Capture" ${DEFAULT_SOUNDCAPLINUX})
 message(STATUS "ENABLE_SOUNDCAPLINUX = ${ENABLE_SOUNDCAPLINUX}")
 
+option(ENABLE_CEC "Enable CEC" ${DEFAULT_CEC})
+message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
+
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
-
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(GitVersion)
 
@@ -236,9 +285,6 @@ file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 # Add the project include directory as additional include path
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
-
-# Prefer static linking over dynamic
-#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
 # enable C++11; MSVC doesn't have c++11 feature switch
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
@@ -266,7 +312,7 @@ if (NOT WIN32)
 endif()
 
 # Don't create new dynamic tags (RUNPATH)
-if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND NOT APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 endif()
 
@@ -334,46 +380,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		message(STATUS "Set Qt${Qt_VERSION} module path: ${SUBDIRQT}")
 		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt${Qt_VERSION}")
 	endif()
+
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT hyperhdr)
 endif()
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
-
-# Add JPEG library
-if (ENABLE_V4L2)
-	# Turbo JPEG
-	find_package(TurboJPEG)
-	if (TURBOJPEG_FOUND)
-		add_definitions(-DHAVE_TURBO_JPEG)
-		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
-		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	else()		
-		message( FATAL_ERROR "Turbo JPEG library is required (for example: libturbojpeg0-dev package)")		
-	endif (TURBOJPEG_FOUND)
-
-	if (TURBOJPEG_FOUND)
-		add_definitions(-DHAVE_JPEG_DECODER)
-	endif()
-endif()
-
-
-if (ENABLE_WMF)
-	# Turbo JPEG
-	find_package(TurboJPEG)
-	if (TURBOJPEG_FOUND)
-		add_definitions(-DHAVE_TURBO_JPEG)
-		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
-		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	else()
-		message( FATAL_ERROR  "Turbo JPEG library is required")
-	endif (TURBOJPEG_FOUND)
-
-	if (TURBOJPEG_FOUND OR JPEG_FOUND)
-		add_definitions(-DHAVE_JPEG_DECODER)
-	endif()
-
+# 7-zip as support
+if (ENABLE_MF)
 	# 7zip
 	cmake_policy(SET CMP0053 NEW)
 	set(MYENV "PROGRAMFILES(X86)")
@@ -390,12 +406,6 @@ if (ENABLE_WMF)
 	else()
 		message( FATAL_ERROR  "Please install 7-zip")
 	endif (SEVENZIP_BIN)
-
-endif()
-
-
-if(APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics" )
 endif()
 
 # Add the source/lib directories

@@ -6,8 +6,10 @@
 		"enable" :
 		{
 			"type" : "boolean",
+			"format": "checkbox",
 			"title" : "edt_conf_general_enable_title",
 			"default" : false,
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"port" :
@@ -15,6 +17,7 @@
 			"type" : "integer",
 			"required" : true,
 			"title" : "edt_conf_general_port_title",
+			"default" : 19333,
 			"minimum" : 1024,
 			"maximum" : 65535,
 			"propertyOrder" : 2
@@ -26,6 +29,7 @@
 			"minimum" : 100,
 			"maximum" : 254,
 			"default" : 128,
+			"required" : true,
 			"propertyOrder" : 3
 		}
 	},

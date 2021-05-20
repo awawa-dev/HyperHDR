@@ -1,5 +1,5 @@
 //clear priority and other tasks if people reload the page or lost connection while a wizard was active
-$(window.hyperion).one("ready", function (event) {
+$(window.hyperhdr).one("ready", function (event) {
   if (getStorage("wizardactive") === 'true') {
     requestPriorityClear();
     setStorage("wizardactive", false);
@@ -46,19 +46,20 @@ function startWizardRGB() {
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_rgb_title'));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_rgb_title') + '</h4><p>' + $.i18n('wiz_rgb_intro1') + '</p><p style="font-weight:bold;">' + $.i18n('wiz_rgb_intro2') + '</p>');
-  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<p style="font-weight:bold">' + $.i18n('wiz_rgb_expl') + '</p>');
-  $('#wizp2_body').append('<div class="form-group"><label>' + $.i18n('wiz_rgb_switchevery') + '</label><div class="input-group" style="width:100px"><select id="wiz_switchtime_select" class="form-control"></select><div class="input-group-addon">' + $.i18n('edt_append_s') + '</div></div></div>');
+  $('#wizp2_body').append('<div class="form-group"><label>' + $.i18n('wiz_rgb_switchevery') + '</label><div class="input-group" style="width:100px"><select id="wiz_switchtime_select" class="form-select"></select><div class="input-group-addon">' + $.i18n('edt_append_s') + '</div></div></div>');
   $('#wizp2_body').append('<canvas id="wiz_canv_color" width="100" height="100" style="border-radius:60px;background-color:red; display:block; margin: 10px 0;border:4px solid grey;"></canvas><label>' + $.i18n('wiz_rgb_q') + '</label>');
-  $('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qrend') + '</label></td><td class="itd"><select id="wiz_r_select" class="form-control wselect"></select></td></tr><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qgend') + '</label></td><td class="itd"><select id="wiz_g_select" class="form-control wselect"></select></td></tr></tbody></table>');
-  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-dismiss="modal"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qrend') + '</label></td><td class="itd"><select id="wiz_r_select" class="form-select wselect"></select></td></tr><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qgend') + '</label></td><td class="itd"><select id="wiz_g_select" class="form-select wselect"></select></td></tr></tbody></table>');
+  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-bs-dismiss="modal"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
-  //open modal
-  $("#wizard_modal").modal({
+  //open modal  
+  var ta5 = new bootstrap.Modal($("#wizard_modal"), {
     backdrop: "static",
-    keyboard: false,
-    show: true
+    keyboard: false
   });
+  
+  ta5.show();
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
@@ -425,16 +426,17 @@ function startWizardCC() {
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' +  kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
-  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
   //open modal
-  $("#wizard_modal").modal({
+  var ta6 = new bootstrap.Modal($("#wizard_modal"), {
     backdrop: "static",
-    keyboard: false,
-    show: true
+    keyboard: false
   });
+  
+  ta6.show();
 
   $('#wiz_cc_kodiip').off().on('change', function () {
     
@@ -452,7 +454,7 @@ function startWizardCC() {
       }
       sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
         if (cb == "error") {
-          $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
+          $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p>');
           withKodi = false;
         }
         else {
@@ -483,7 +485,7 @@ function startWizardCC() {
 
   //check profile count
   if (colorLength.length > 1) {
-    $('#multi_cali').html('<p style="font-weight:bold;">' + $.i18n('wiz_cc_morethanone') + '</p><select id="wiz_select" class="form-control" style="width:200px;margin:auto"></select>');
+    $('#multi_cali').html('<p style="font-weight:bold;">' + $.i18n('wiz_cc_morethanone') + '</p><select id="wiz_select" class="form-select" style="width:200px;margin:auto"></select>');
     for (var i = 0; i < colorLength.length; i++)
       $('#wiz_select').append(createSelOpt(i, i + 1 + ' (' + colorLength[i].id + ')'));
 
@@ -668,6 +670,7 @@ function startWizardPhilipsHue(e) {
 
   var hue_title = 'wiz_hue_title';
   var hue_intro1 = 'wiz_hue_intro1';
+  var hue_intro2 = 'wiz_hue_intro2';
   var hue_desc1 = 'wiz_hue_desc1';
   var hue_create_user = 'wiz_hue_create_user';
   if (hueType == 'philipshueentertainment') {
@@ -677,44 +680,41 @@ function startWizardPhilipsHue(e) {
     hue_create_user = 'wiz_hue_e_create_user';
   }
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(hue_title));
-  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(hue_title) + '</h4><p>' + $.i18n(hue_intro1) + '<br/><p style="color:red;font-size: 16px;"><b>PLEASE CONFIGURE IN PHILIPS HUE APP AND THEN USE WITH HYPERHDR ENTERTAIMENT API IF IT IS POSSIBLE AS IT IS MUCH FASTER</b></p>' +
-  '<br/><p style="color:blue">1 Create an Entertainment group in the Philips Hue App'+
-  '<br/>2 Check &rsquo;<i>Use Hue Entertainment API</i>&rsquo; before entering the wizard'+
-  '<br/>3 Run the wizard. You may have to reconnect to the Hue Bridge by clicking the button on the bridge when you are asked to. &rsquo;<i>Username</i>&rsquo; and &rsquo;<i>Clientkey</i>&rsquo; will be automatically discovered.'+
-  '</p><br/><p style="color:red"><b>Please make sure that you have disconnected lamps from all kind of other home-automation systems. Otherwise the instance will stop working as soon as other system updates the lamp&rsquo;s state!</p></p>');
-  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(hue_title) + '</h4><p>' + $.i18n(hue_intro1) + '</p>' + $.i18n(hue_intro2));
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
-  $('#wh_topcontainer').append('<p style="font-weight:bold">' + $.i18n(hue_desc1) + '</p><div class="form-group"><label>' + $.i18n('wiz_hue_ip') + '</label><div class="input-group" style="width:175px"><input type="text" class="input-group form-control" id="ip"><span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" class="component-on" id="wiz_hue_discovered"></span>');
+  $('#wh_topcontainer').append('<p style="font-weight:bold">' + $.i18n(hue_desc1) + '</p><div class="form-group"><label>' + $.i18n('wiz_hue_ip') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="ip"><div class="input-group-append"><span class="input-group-text" id="retry_bridge" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;color:green;" class="" id="wiz_hue_discovered"></span>');
   $('#wh_topcontainer').append();
   $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
   if (hueType == 'philipshue') {
-    $('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div>');
+    $('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div>');
   }
   if (hueType == 'philipshueentertainment') {
-    $('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div><input type="hidden" id="groupId">');
+    $('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><input type="hidden" id="groupId">');
   }
   $('#usrcont').append('<span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
   if (hueType == 'philipshueentertainment') {
     $('#wizp2_body').append('<div id="hue_grp_ids_t" style="display:none"><p style="font-weight:bold">' + $.i18n('wiz_hue_e_desc2') + '</p></div>');
-    createTable("gidsh", "gidsb", "hue_grp_ids_t");
-    $('.gidsh').append(createTableRow([$.i18n('edt_dev_spec_groupId_title'), $.i18n('wiz_hue_e_use_group')], true));
+    createTableFlex("gidsh", "gidsb", "hue_grp_ids_t");
+    $('.gidsh').append(createTableRowFlex([$.i18n('edt_dev_spec_groupId_title'), $.i18n('wiz_hue_e_use_group')], true));
     $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">' + $.i18n('wiz_hue_e_desc3') + '</p></div>');
   }
   else {
     $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">' + $.i18n('wiz_hue_desc2') + '</p></div>');
   }
-  createTable("lidsh", "lidsb", "hue_ids_t");
-  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lightid_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
+  createTableFlex("lidsh", "lidsb", "hue_ids_t");
+  $('.lidsh').append(createTableRowFlex([$.i18n('edt_dev_spec_lightid_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp3_body').html('<span>' + $.i18n('wiz_hue_press_link') + '</span> <br /><br /><center><span id="connectionTime"></span><br /><i class="fa fa-cog fa-spin" style="font-size:100px"></i></center>');
 
   //open modal
-  $("#wizard_modal").modal({
+  var phiWiz= new bootstrap.Modal($("#wizard_modal"), {
     backdrop: "static",
-    keyboard: false,
-    show: true
+    keyboard: false
   });
-
+  
+  phiWiz.show();
+  
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
     beginWizardHue();
@@ -1030,9 +1030,9 @@ function beginWizardHue() {
 
 function createHueUser() {
   var connectionRetries = 30;
-  var data = { "devicetype": "hyperion#" + Date.now() }
+  var data = { "devicetype": "hyperhdr#" + Date.now() }
   if (hueType == 'philipshueentertainment') {
-    data = { "devicetype": "hyperion#" + Date.now(), "generateclientkey": true }
+    data = { "devicetype": "hyperhdr#" + Date.now(), "generateclientkey": true }
   }
   var UserInterval = setInterval(function () {
     $.ajax({
@@ -1101,7 +1101,7 @@ function get_hue_groups() {
         var gC = 0;
         for (var groupid in r) {
           if (r[groupid].type == 'Entertainment') {
-            $('.gidsb').append(createTableRow([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
+            $('.gidsb').append(createTableRowFlex([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
             gC++;
           }
         }
@@ -1119,8 +1119,8 @@ function get_hue_groups() {
 function noAPISupport(txt) {
   showNotification('danger', $.i18n('wiz_hue_e_title'), $.i18n('wiz_hue_e_noapisupport_hint'));
   conf_editor.getEditor("root.specificOptions.useEntertainmentAPI").setValue(false);
-  $("#root_specificOptions_useEntertainmentAPI").trigger("change");
-  $('#btn_wiz_holder').append('<div class="bs-callout bs-callout-danger" style="margin-top:0px">' + $.i18n('wiz_hue_e_noapisupport_hint') + '</div>');
+  $("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
+  $('#btn_wiz_holder').append('<div class="callout callout-danger" style="margin-top:0px">' + $.i18n('wiz_hue_e_noapisupport_hint') + '</div>');
   $('#hue_grp_ids_t').toggle(false);
   var txt = (txt) ? $.i18n(txt) : $.i18n('wiz_hue_e_nogrpids');
   $('<p style="font-weight:bold;color:red;">' + txt + '<br />' + $.i18n('wiz_hue_e_noapisupport') + '</p>').insertBefore('#wizp2_body #hue_ids_t');
@@ -1205,7 +1205,7 @@ function get_hue_lights() {
             if (pos == val) options += ' selected="selected"';
             options += '>' + $.i18n(txt + val) + '</option>';
           }
-          $('.lidsb').append(createTableRow([lightid + ' (' + r[lightid].name + ')', '<select id="hue_' + lightid + '" class="hue_sel_watch form-control">'
+          $('.lidsb').append(createTableRowFlex([lightid + ' (' + r[lightid].name + ')', '<select id="hue_' + lightid + '" class="hue_sel_watch form-select">'
             + options
             + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
         }
@@ -1253,7 +1253,7 @@ function startWizardWLED(e) {
 
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(wled_title));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(wled_title) + '</h4><p>' + $.i18n(wled_intro1) + '</p>');
-  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
   /*$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
@@ -1265,12 +1265,14 @@ function startWizardWLED(e) {
   $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'),$.i18n('wiz_pos'),$.i18n('wiz_identify')], true));
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 */
-  //open modal
-  $("#wizard_modal").modal({
+  //open modal  
+  
+  var ta1= new bootstrap.Modal($("#wizard_modal"), {
     backdrop: "static",
-    keyboard: false,
-    show: true
+    keyboard: false
   });
+  
+  ta1.show();
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
@@ -1349,7 +1351,7 @@ function startWizardYeelight(e) {
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(yeelight_title) + '</h4><p>' + $.i18n(yeelight_intro1) + '</p>');
 
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'
-    + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
+    + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
@@ -1358,14 +1360,19 @@ function startWizardYeelight(e) {
 
   $('#wizp2_body').append('<div id="yee_ids_t" style="display:none"><p style="font-weight:bold" id="yee_id_headline">' + $.i18n('wiz_yeelight_desc2') + '</p></div>');
 
-  createTable("lidsh", "lidsb", "yee_ids_t");
-  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
+  createTableFlex("lidsh", "lidsb", "yee_ids_t");
+  $('.lidsh').append(createTableRowFlex(([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true)));
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
   //open modal
-  $("#wizard_modal").modal({ backdrop: "static", keyboard: false, show: true });
+  var ta2 = new bootstrap.Modal($("#wizard_modal"), {
+    backdrop: "static",
+    keyboard: false
+  });
+  
+  ta2.show();
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
@@ -1537,10 +1544,10 @@ function assign_yeelight_lights() {
         options = '<option value=disabled>' + $.i18n('wiz_yeelight_unsupported') + '</option>';
       }
 
-      $('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1) + '. ' + lightName + '<br>(' + lightHostname + ')', '<select id="yee_' + lightid + '" ' + enabled + ' class="yee_sel_watch form-control">'
+      $('.lidsb').append(createTableRowFlex(([(parseInt(lightid, 10) + 1) + '. ' + lightName + '<br>(' + lightHostname + ')', '<select id="yee_' + lightid + '" ' + enabled + ' class="yee_sel_watch form-select">'
         + options
         + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_yeelight_device("' + lightHostname + '",' + lightPort + ')>'
-        + $.i18n('wiz_identify_light', lightName) + '</button>']));
+        + $.i18n('wiz_identify_light', lightName) + '</button>'])));
     }
 
     $('.yee_sel_watch').bind("change", function () {
@@ -1598,7 +1605,7 @@ function startWizardAtmoOrb(e) {
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(atmoorb_title) + '</h4><p>' + $.i18n(atmoorb_intro1) + '</p>');
 
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'
-    + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
+    + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
@@ -1607,14 +1614,19 @@ function startWizardAtmoOrb(e) {
 
   $('#wizp2_body').append('<div id="orb_ids_t" style="display:none"><p style="font-weight:bold" id="orb_id_headline">' + $.i18n('wiz_atmoorb_desc2') + '</p></div>');
 
-  createTable("lidsh", "lidsb", "orb_ids_t");
-  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
+  createTableFlex("lidsh", "lidsb", "orb_ids_t");
+  $('.lidsh').append(createTableRowFlex(([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true)));
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
   //open modal
-  $("#wizard_modal").modal({ backdrop: "static", keyboard: false, show: true });
+  var ta3 = new bootstrap.Modal($("#wizard_modal"), {
+    backdrop: "static",
+    keyboard: false
+  });
+  
+  ta3.show();
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
@@ -1789,10 +1801,10 @@ function assign_atmoorb_lights() {
         lightAnnotation = ': ' + orbIp + '<br>(' + orbHostname + ')';
       }
 
-      $('.lidsb').append(createTableRow([orbId + lightAnnotation, '<select id="orb_' + lightid + '" ' + enabled + ' class="orb_sel_watch form-control">'
+      $('.lidsb').append(createTableRowFlex(([orbId + lightAnnotation, '<select id="orb_' + lightid + '" ' + enabled + ' class="orb_sel_watch form-select">'
         + options
         + '</select>', '<button class="btn btn-sm btn-primary" ' + enabled + ' onClick=identify_atmoorb_device(' + orbId + ')>'
-        + $.i18n('wiz_identify_light', orbId) + '</button>']));
+        + $.i18n('wiz_identify_light', orbId) + '</button>'])));
     }
 
     $('.orb_sel_watch').bind("change", function () {
@@ -1883,7 +1895,7 @@ function startWizardCololight(e) {
 
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(cololight_title));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(cololight_title) + '</h4><p>' + $.i18n(cololight_intro1) + '</p>');
-  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
@@ -1891,18 +1903,19 @@ function startWizardCololight(e) {
 
   $('#wizp2_body').append('<div id="colo_ids_t" style="display:none"><p style="font-weight:bold" id="colo_id_headline">' + $.i18n('wiz_cololight_desc2') + '</p></div>');
 
-  createTable("lidsh", "lidsb", "colo_ids_t");
-  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_identify')], true));
+  createTableFlex("lidsh", "lidsb", "colo_ids_t");
+  $('.lidsh').append(createTableRowFlex(([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_identify')], true)));
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
-  //open modal
-  $("#wizard_modal").modal({
+  //open modal  
+  var ta4 = new bootstrap.Modal($("#wizard_modal"), {
     backdrop: "static",
-    keyboard: false,
-    show: true
+    keyboard: false
   });
+  
+  ta4.show();
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
@@ -1952,9 +1965,9 @@ function beginWizardCololight() {
     var coloLightLedConfig = [];
 
     if (coloLightProperties.modelType === "Strip") {
-      coloLightLedConfig = createClassicLedLayoutSimple(d.hardwareLedCount / 2, d.hardwareLedCount / 4, d.hardwareLedCount / 4, 0, d.hardwareLedCount / 4 * 3, false);
+      coloLightLedConfig = createClassicLedLayoutSimple(d.hardwareLedCount / 2, d.hardwareLedCount / 4, d.hardwareLedCount / 4, 0, d.hardwareLedCount / 4 * 3, 0, 0, false);
     } else {
-      coloLightLedConfig = createClassicLedLayoutSimple(0, 0, 0, d.hardwareLedCount, 0, true);
+      coloLightLedConfig = createClassicLedLayoutSimple(0, 0, 0, d.hardwareLedCount, 0, 0, 0, true);
     }
 
     window.serverConfig.leds = coloLightLedConfig;
@@ -2015,10 +2028,10 @@ function assign_cololight_lights() {
 
     var enabled = 'enabled';
 
-    $('.lidsb').append(createTableRow(['<select id="colo_select_id" ' + enabled + ' class="colo_sel_watch form-control">'
+    $('.lidsb').append(createTableRowFlex((['<select id="colo_select_id" ' + enabled + ' class="colo_sel_watch form-select">'
       + options
       + '</select>', '<button id="wiz_identify_btn" class="btn btn-sm btn-primary">'
-      + $.i18n('wiz_identify') + '</button>']));
+      + $.i18n('wiz_identify') + '</button>'])));
 
     $('.colo_sel_watch').bind("change", function () {
       selectedLightId = $('#colo_select_id').val();

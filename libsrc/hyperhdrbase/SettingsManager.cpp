@@ -20,14 +20,15 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	, _sTable(new SettingsTable(instance, this))
 	, _readonlyMode(readonlyMode)
 {
-	_sTable->setReadonlyMode(_readonlyMode);
+	_sTable->setReadonlyMode(_readonlyMode);	
+
 	// get schema
 	if(schemaJson.isEmpty())
 	{
 		Q_INIT_RESOURCE(resource);
 		try
 		{
-			schemaJson = QJsonFactory::readSchema(":/hyperion-schema");
+			schemaJson = QJsonFactory::readSchema(":/hyperhdr-schema");
 		}
 		catch(const std::runtime_error& error)
 		{
@@ -36,9 +37,33 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	}
 
 	// get default config
-	QJsonObject defaultConfig;
-	if(!JsonUtils::readFile(":/hyperion_default.config", defaultConfig, _log))
-		throw std::runtime_error("Failed to read default config");
+	QJsonObject defaultConfig;	
+	for (settings::type selector = settings::type::SNDEFFECT; selector != settings::type::INVALID; selector = settings::type(((int)selector) + 1))
+	{
+		if (selector == settings::type::VIDEOGRABBER)
+		{			
+			if(!_sTable->recordExist(typeToString(selector)) && _sTable->recordExist("grabberV4L2"))
+			{
+				auto oldVideo = _sTable->getSettingsRecord("grabberV4L2").object();
+
+				oldVideo["device"] = oldVideo["available_devices"];
+
+				oldVideo["videoEncoding"] = oldVideo["v4l2Encoding"];
+				oldVideo["videoMode"] = QString("%1x%2").arg(oldVideo["width"].toInt()).arg(oldVideo["height"].toInt());
+
+				defaultConfig.insert(typeToString(selector), oldVideo);
+				_sTable->deleteSettingsRecordString("grabberV4L2");
+
+				Warning(_log, "Found old V4L2 configuration. Migrating defaults to the new structures.");				
+				continue;
+			}
+		}
+	
+		if (selector != settings::type::LEDS)
+			defaultConfig.insert(typeToString(selector), QJsonObject());
+		else
+			defaultConfig.insert(typeToString(selector), QJsonArray());
+	}	
 
 	// transform json to string lists
 	QStringList keyList = defaultConfig.keys();
@@ -70,18 +95,28 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	for(const auto & key : keyList)
 	{
 		QJsonDocument doc = _sTable->getSettingsRecord(key);
-		if(doc.isArray())
+
+		if (key == typeToString(settings::type::LEDS) && doc.isArray())
+		{			
+			QJsonArray entries = doc.array();
+
+			for (int i = 0; i < entries.count(); i++)
+			{
+				QJsonObject ledItem = entries[i].toObject();
+				if (!ledItem.contains("group")) {
+					ledItem["group"] = 0;
+					entries[i] = ledItem;
+				}
+			}
+
+			dbConfig[key] = entries;
+		}
+		else if (doc.isArray())
 			dbConfig[key] = doc.array();
 		else
 			dbConfig[key] = doc.object();
 	}
-
-	// possible data upgrade steps to prevent data loss
-	if(handleConfigUpgrade(dbConfig))
-	{
-		saveSettings(dbConfig, true);
-	}
-
+	
 	// validate full dbconfig against schema, on error we need to rewrite entire table
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
@@ -106,7 +141,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	else
 		_qconfig = dbConfig;
 
-	Debug(_log,"Settings database initialized");
+	Info(_log,"Settings database initialized");
 }
 
 QJsonDocument SettingsManager::getSetting(settings::type type) const
@@ -173,7 +208,9 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 	for(const auto & key : keyList)
 	{
 		QString data = newValueList.takeFirst();
-		if(_sTable->getSettingsRecordString(key) != data)
+		QString recordData = _sTable->getSettingsRecordString(key);
+		if ((recordData != data) &&
+			(settings::stringToType(key) != settings::type::VIDEODETECTION || recordData.length() < 8))
 		{
 			if ( ! _sTable->createSettingsRecord(key, data) )
 			{
@@ -188,107 +225,14 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 	return rc;
 }
 
-bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
+void SettingsManager::saveSetting(settings::type key, QString saveData)
 {
-	bool migrated = false;
-	
-	if (config.contains("framegrabber"))
+	if (!_sTable->createSettingsRecord(settings::typeToString(key), saveData))
 	{
-		config.remove("framegrabber");
-		auto tframe = _sTable->getSettingsRecordString("framegrabber");
-		if (!tframe.isEmpty() || !tframe.isNull())
-		{
-			if (_sTable->deleteSettingsRecordString("framegrabber"))
-				Info(_log, "Old 'framegrabber' section deleted successfully");
-			else
-				Error(_log, "Failed to delete old 'framegrabber' section");
-		}
-		migrated = true;
+		Error(_log, "Could not save the config: %s = %s", QSTRING_CSTR(settings::typeToString(key)), QSTRING_CSTR(saveData));
 	}
-
-	if (config.contains("grabberV4L2"))
+	else
 	{
-		auto v4clean = config["grabberV4L2"].toObject();
-
-		if (v4clean.contains("sizeDecimation"))
-		{
-			v4clean.remove("sizeDecimation");
-			config["grabberV4L2"] = v4clean;
-			Info(_log, "Old v4l2 'sizeDecimation' section deleted successfully");
-			migrated = true;
-		}
-		if (v4clean.contains("standard"))
-		{
-			v4clean.remove("standard");
-			config["grabberV4L2"] = v4clean;
-			Info(_log, "Old v4l2 'standard' section deleted successfully");
-			migrated = true;
-		}
-		if (v4clean.contains("cecDetection"))
-		{
-			v4clean.remove("cecDetection");
-			config["grabberV4L2"] = v4clean;
-			Info(_log, "Old v4l2 'cecDetection' section deleted successfully");
-			migrated = true;
-		}
-	}	
-
-
-	// LED LAYOUT UPGRADE
-	// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximumn: 0.3 } }
-	// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
-	// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
-	if(config.contains("leds"))
-	{
-		const QJsonArray ledarr = config["leds"].toArray();
-		const QJsonObject led = ledarr[0].toObject();
-
-		if(led.contains("hscan") || led.contains("h"))
-		{
-			const bool whscan = led.contains("hscan");
-			QJsonArray newLedarr;
-
-			for(auto entry : ledarr)
-			{
-				const QJsonObject led = entry.toObject();
-				QJsonObject hscan;
-				QJsonObject vscan;
-				QJsonValue hmin;
-				QJsonValue hmax;
-				QJsonValue vmin;
-				QJsonValue vmax;
-				QJsonObject nL;
-
-				if(whscan)
-				{
-					hscan = led["hscan"].toObject();
-					vscan = led["vscan"].toObject();
-					hmin = hscan["minimum"];
-					hmax = hscan["maximum"];
-					vmin = vscan["minimum"];
-					vmax = vscan["maximum"];
-				}
-				else
-				{
-					hscan = led["h"].toObject();
-					vscan = led["v"].toObject();
-					hmin = hscan["min"];
-					hmax = hscan["max"];
-					vmin = vscan["min"];
-					vmax = vscan["max"];
-				}
-				// append to led object
-				nL["hmin"] = hmin;
-				nL["hmax"] = hmax;
-				nL["vmin"] = vmin;
-				nL["vmax"] = vmax;
-				newLedarr.append(nL);
-			}
-			// replace
-			config["leds"] = newLedarr;
-			migrated = true;
-			Debug(_log,"LED Layout migrated");
-		}
+		emit settingsChanged(key, QJsonDocument::fromJson(saveData.toUtf8()));
 	}
-	return migrated;
 }

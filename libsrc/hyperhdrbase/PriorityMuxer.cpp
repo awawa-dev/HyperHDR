@@ -14,9 +14,12 @@
 
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
-PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
+const int PriorityMuxer::HIGHEST_EFFECT_PRIORITY = 0;
+const int PriorityMuxer::LOWEST_EFFECT_PRIORITY = 254;
+
+PriorityMuxer::PriorityMuxer(int instanceIndex, int ledCount, QObject * parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("HYPERHDR"))
+	, _log(Logger::getInstance(QString("MUXER%1").arg(instanceIndex)))
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
 	, _previousPriority(_currentPriority)
 	, _manualSelectedPriority(256)
@@ -159,7 +162,7 @@ void PriorityMuxer::registerInput(int priority, hyperhdr::Components component, 
 
 	if (newInput)
 	{
-		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperhdr::componentToIdString(component), priority);
+		Info(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperhdr::componentToIdString(component), priority);
 		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
 		if (!_sourceAutoSelectEnabled)
 			emit prioritiesChanged();
@@ -249,7 +252,7 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	// emit active change
 	if(activeChange)
 	{
-		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
+		Info(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
 		if (_currentPriority < priority)
 			emit prioritiesChanged();
 		setCurrentTime();
@@ -266,12 +269,14 @@ bool PriorityMuxer::setInputInactive(int priority)
 
 bool PriorityMuxer::clearInput(int priority)
 {
-	if (priority < PriorityMuxer::LOWEST_PRIORITY && _activeInputs.remove(priority))
+	if (priority < PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Debug(_log,"Removed source priority %d",priority);
-		// on clear success update _currentPriority
-		setCurrentTime();
-		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (_activeInputs.remove(priority))
+		{
+			Info(_log, "Removed source priority %d", priority);
+			// on clear success update _currentPriority
+			setCurrentTime();
+		}		
 		if (!_sourceAutoSelectEnabled || _currentPriority < priority)
 			emit prioritiesChanged();
 		return true;
@@ -310,14 +315,14 @@ void PriorityMuxer::setCurrentTime()
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
 		hyperhdr::Components vcomp = getComponentOfPriority(infoIt->priority);
-		if (!_startTime.isNull() && vcomp == hyperhdr::Components::COMP_V4L && infoIt->timeoutTime_ms > -100 )
+		if (!_startTime.isNull() && (vcomp == hyperhdr::Components::COMP_VIDEOGRABBER || vcomp == hyperhdr::Components::COMP_SYSTEMGRABBER) && infoIt->timeoutTime_ms > -100 )
 			_startTime = QTime();
 
 		if (infoIt->timeoutTime_ms > 0 && infoIt->timeoutTime_ms <= now)
 		{
 			int tPrio = infoIt->priority;
 			infoIt = _activeInputs.erase(infoIt);
-			Debug(_log,"Timeout clear for priority %d",tPrio);
+			Info(_log,"Timeout clear for priority %d",tPrio);
 			emit prioritiesChanged();
 		}
 		else
@@ -327,7 +332,9 @@ void PriorityMuxer::setCurrentTime()
 				newPriority = qMin(newPriority, infoIt->priority);
 
 			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255
-			if(infoIt->priority < 254 && infoIt->timeoutTime_ms > 0 && (infoIt->componentId == hyperhdr::COMP_EFFECT || infoIt->componentId == hyperhdr::COMP_COLOR  || infoIt->componentId == hyperhdr::COMP_IMAGE))
+			if(infoIt->priority < PriorityMuxer::LOWEST_EFFECT_PRIORITY &&
+				infoIt->timeoutTime_ms > 0 &&
+				(infoIt->componentId == hyperhdr::COMP_EFFECT || infoIt->componentId == hyperhdr::COMP_COLOR  || infoIt->componentId == hyperhdr::COMP_IMAGE))
 				emit signalTimeTrigger(); // as signal to prevent Threading issues
 
 			++infoIt;
@@ -375,7 +382,7 @@ void PriorityMuxer::setCurrentTime()
 		}
 		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
-		Debug(_log, "Set visible priority to %d", newPriority);
+		Info(_log, "Set visible priority to %d", newPriority);
 		emit visiblePriorityChanged(newPriority);
 		// check for visible comp change
 		if (comp != _prevVisComp)

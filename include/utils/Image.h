@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QSharedDataPointer>
-
+#include <QExplicitlySharedDataPointer>
 #include <utils/ImageData.h>
 #include <cmath>
 
@@ -21,23 +20,7 @@ public:
 	{
 	}
 
-	///
-	/// Constructor for an image with specified width and height
-	///
-	/// @param width The width of the image
-	/// @param height The height of the image
-	/// @param background The color of the image
-	///
-	/*Image(unsigned width, unsigned height, const Pixel_T background) :
-		_d_ptr(new ImageData(width, height, background))
-	{
-	}
-	Image(unsigned width, unsigned height) :
-		Image(width, height, ColorRgb())
-
-	{
-	}
-*/
+	
 	///
 	/// Copy constructor for an image
 	/// @param other The image which will be copied
@@ -49,33 +32,15 @@ public:
 
 	Image& operator=(Image rhs)
 	{
-		// Define assignment operator in terms of the copy constructor
-		// More to read: https://stackoverflow.com/questions/255612/dynamically-allocating-an-array-of-objects?answertab=active#tab-top
 		_d_ptr = rhs._d_ptr;
 		return *this;
 	}
 
-	void swap(Image& s)
+	bool checkSignal(int x, int y, int r, int g, int b, int tolerance)
 	{
-		std::swap(this->_d_ptr, s._d_ptr);
+		return _d_ptr->checkSignal(x, y, r, g, b, tolerance);
 	}
-
-	Image(Image&& src) noexcept
-	{
-		std::swap(this->_d_ptr, src._d_ptr);
-	}
-
-	Image& operator=(Image&& src) noexcept
-	{
-		src.swap(*this);
-		return *this;
-	}
-
-	void copy(unsigned char *s,unsigned int size)
-	{
-		memcpy(_d_ptr->memptr(), s, size);
-	}
-
+	
 	void fastBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t r, uint8_t g, uint8_t b)
 	{		
 		size_t X1 = std::min(std::min(x1, x2), (uint16_t)(width()-1));
@@ -175,15 +140,7 @@ public:
 			gg =  std::max(gg - g / 6, 0);
 			bb =  std::max(bb - b / 6, 0);		
 		}
-	}
-
-	///
-	/// Destructor
-	///
-	~Image()
-	{
-		//delete _d_ptr;
-	}
+	}	
 
 	///
 	/// Returns the width of the image
@@ -205,7 +162,6 @@ public:
 		return _d_ptr->height();
 	}
 
-	///
 	/// Returns a reference to a specified pixel in the image
 	///
 	/// @param x The x index
@@ -248,17 +204,7 @@ public:
 	{
 		return _d_ptr->memptr();
 	}
-
-	///
-	/// Convert image of any color order to a RGB image.
-	///
-	/// @param[out] image  The image that buffers the output
-	///
-	void toRgb(Image<ColorRgb>& image) const
-	{
-		_d_ptr->toRgb(*image._d_ptr);
-	}
-
+	
 	///
 	/// Get size of buffer
 	///
@@ -276,22 +222,6 @@ public:
 	}
 
 private:
-	
-
-	///
-	/// Translate x and y coordinate to index of the underlying vector
-	///
-	/// @param x The x index
-	/// @param y The y index
-	///
-	/// @return The index into the underlying data-vector
-	///
-	inline unsigned toIndex(unsigned x, unsigned y) const
-	{
-		return _d_ptr->toIndex(x, y);
-	}
-
-private:
-	QSharedDataPointer<ImageData>  _d_ptr;
+	QExplicitlySharedDataPointer<ImageData>  _d_ptr;
 };
 

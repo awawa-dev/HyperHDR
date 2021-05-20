@@ -6,6 +6,11 @@
 			"type": "string",
 			"title":"edt_dev_spec_spipath_title",
 			"enum" : ["/dev/spidev0.0","/dev/spidev0.1","/dev/spidev1.0","/dev/spidev1.1"],
+			"options" : {
+				"enum_titles" : ["/dev/spidev0.0","/dev/spidev0.1","/dev/spidev1.0","/dev/spidev1.1"]
+			},
+			"default" : "/dev/spidev0.0",
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"rate": {
@@ -16,6 +21,7 @@
 		},
 		"invert": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
 			"propertyOrder" : 3

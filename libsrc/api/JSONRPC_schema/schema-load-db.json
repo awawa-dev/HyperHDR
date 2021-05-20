@@ -1,0 +1,49 @@
+{
+	"type":"object",
+	"required":true,
+	"properties": {
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["load-db"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"config": {
+			"type":"object",
+			"properties": {
+				"instances": {
+					"type": "array",
+					"items": {
+						"type":"object",
+						"properties": {
+							"enabled":       { "type" : "integer" },
+							"friendly_name": { "type" : "string"  },
+							"instance":      { "type" : "integer" }
+						}
+					},
+					"required": true
+				},
+				"settings": {
+					"type": "array",
+					"items": {
+						"type":"object",
+						"properties": {						
+							"config":            { "type" : "string"  },
+							"hyperhdr_instance": { "type" : "integer" },
+							"type":              { "type" : "string"  }
+						}
+					},
+					"required": true
+				},
+				"version": {
+					"type" : "string",
+					"required" : true,
+					"enum" : ["HyperHDR_export_format_v17"]
+				}
+			}
+		}
+	},
+	"additionalProperties": false
+}

@@ -8,6 +8,8 @@
 			"type" : "string",
 			"title" : "edt_conf_webc_docroot_title",
 			"access" : "expert",
+			"default" : "",
+			"required" : true,
 			"propertyOrder" : 2
 		},
 		"port" :
@@ -17,6 +19,7 @@
 			"minimum" : 80,
 			"maximum" : 65535,
 			"default" : 8090,
+			"required" : true,
 			"propertyOrder" : 3
 		},
 		"sslPort" :

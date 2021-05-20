@@ -1,7 +1,7 @@
 #ifndef LEDEVICEUDPARTNET_H
 #define LEDEVICEUDPARTNET_H
 
-// hyperion includes
+// hyperhdr includes
 #include "ProviderUdp.h"
 
 #include <QUuid>

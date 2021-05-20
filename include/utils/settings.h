@@ -8,7 +8,7 @@
 namespace settings {
 	// all available settings sections
 	enum class type  {
-		SNDEFFECT,
+		SNDEFFECT=1,
 		BGEFFECT,
 		FGEFFECT,
 		BLACKBORDER,
@@ -17,16 +17,18 @@ namespace settings {
 		DEVICE,
 		EFFECTS,
 		NETFORWARD,
-		SYSTEMCAPTURE,
 		GENERAL,
-		V4L2,
+		VIDEOGRABBER,
+		SYSTEMGRABBER,
 		JSONSERVER,
 		LEDCONFIG,
 		LEDS,
 		LOGGER,
 		SMOOTHING,
 		WEBSERVER,
-		INSTCAPTURE,
+		VIDEOCONTROL,
+		SYSTEMCONTROL,
+		VIDEODETECTION,
 		NETWORK,
 		FLATBUFSERVER,
 		PROTOSERVER,
@@ -51,16 +53,18 @@ namespace settings {
 			case type::DEVICE:        return "device";
 			case type::EFFECTS:       return "effects";
 			case type::NETFORWARD:    return "forwarder";
-			case type::SYSTEMCAPTURE: return "framegrabber";
 			case type::GENERAL:       return "general";
-			case type::V4L2:          return "grabberV4L2";
+			case type::VIDEOGRABBER:  return "videoGrabber";
+			case type::SYSTEMGRABBER: return "systemGrabber";
 			case type::JSONSERVER:    return "jsonServer";
 			case type::LEDCONFIG:     return "ledConfig";
 			case type::LEDS:          return "leds";
 			case type::LOGGER:        return "logger";
 			case type::SMOOTHING:     return "smoothing";
 			case type::WEBSERVER:     return "webConfig";
-			case type::INSTCAPTURE:   return "instCapture";
+			case type::VIDEOCONTROL:  return "videoControl";
+			case type::SYSTEMCONTROL: return "systemControl";
+			case type::VIDEODETECTION:return "videoDetection";
 			case type::NETWORK:       return "network";
 			case type::FLATBUFSERVER: return "flatbufServer";
 			case type::PROTOSERVER:   return "protoServer";
@@ -84,16 +88,18 @@ namespace settings {
 		else if (type == "device")               return type::DEVICE;
 		else if (type == "effects")              return type::EFFECTS;
 		else if (type == "forwarder")            return type::NETFORWARD;
-		else if (type == "framegrabber")         return type::SYSTEMCAPTURE;
 		else if (type == "general")              return type::GENERAL;
-		else if (type == "grabberV4L2")          return type::V4L2;
+		else if (type == "videoGrabber")         return type::VIDEOGRABBER;
+		else if (type == "systemGrabber")        return type::SYSTEMGRABBER;
 		else if (type == "jsonServer")           return type::JSONSERVER;
 		else if (type == "ledConfig")            return type::LEDCONFIG;
 		else if (type == "leds")                 return type::LEDS;
 		else if (type == "logger")               return type::LOGGER;
 		else if (type == "smoothing")            return type::SMOOTHING;
 		else if (type == "webConfig")            return type::WEBSERVER;
-		else if (type == "instCapture")          return type::INSTCAPTURE;
+		else if (type == "videoControl")         return type::VIDEOCONTROL;
+		else if (type == "systemControl")        return type::SYSTEMCONTROL;
+		else if (type == "videoDetection")       return type::VIDEODETECTION;
 		else if (type == "network")              return type::NETWORK;
 		else if (type == "flatbufServer")        return type::FLATBUFSERVER;
 		else if (type == "protoServer")          return type::PROTOSERVER;

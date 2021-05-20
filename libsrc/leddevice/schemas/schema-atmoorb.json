@@ -10,6 +10,7 @@
 		},
 		"useOrbSmoothing": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_useOrbSmoothing_title",
 			"default": true,
 			"access" : "advanced",

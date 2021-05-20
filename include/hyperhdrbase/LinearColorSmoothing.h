@@ -7,7 +7,7 @@
 #include <QVector>
 #include <QSemaphore>
 
-// hyperion incluse
+// hyperhdr incluse
 #include <leddevice/LedDevice.h>
 #include <utils/Components.h>
 
@@ -29,9 +29,9 @@ class LinearColorSmoothing : public QObject
 public:
 	/// Constructor
 	/// @param config    The configuration document smoothing
-	/// @param hyperion  The hyperion parent instance
+	/// @param hyperhdr  The HyperHDR parent instance
 	///
-	LinearColorSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperion);
+	LinearColorSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr);
 
 	/// LED values as input for the smoothing filter
 	///
@@ -69,7 +69,7 @@ public:
 
 public slots:
 	///
-	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
@@ -133,8 +133,8 @@ private:
 	/// Semaphore
 	QSemaphore	_semaphore;
 
-	/// Hyperion instance
-	HyperHdrInstance* _hyperion;
+	/// HyperHDR instance
+	HyperHdrInstance* _hyperhdr;
 
 	/// The interval at which to update the leds (msec)
 	int64_t _updateInterval;

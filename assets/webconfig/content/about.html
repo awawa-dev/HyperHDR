@@ -1,124 +1,153 @@
-<div class="container-fluid">
-	<h3 class="page-header"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">About
-			Hyperion</span></h3>
+<div class="container" style="float:left;">
+	<h3 class="page-header"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">About HyperHDR</span></h3>
 	<div class="row">
 		<div class="col-lg-12">
-			<div id="about_cont"></div>
-
-		</div>
-		<div id="danger_act" class="col-lg-6" style="display:none;padding-top:20px">
-			<h4>You found a hidden service menu!</h4>
-			<button id="reset_cache" class="btn btn-danger">Reset Browser Cache</button>
-			<button id="hyp_restart" class="btn btn-danger">Force Hyperion Restart</button>
+			<div class="card card-default">
+				<div class="card-header"><i class="fa fa-plus fa-fw"></i><span>System report</span>					
+				</div>
+				<div class="card-body">
+					<div class="container">
+						<div class = "row border-bottom">
+							<div class="col-3 col-lg-2">
+								<p data-i18n="about_version" style=""></p>
+							</div>
+							<div class="col-9 col-lg-10">
+								<p id= "aboutVer" />
+							</div>
+						</div>
+						<div class = "row border-bottom mt-3">
+							<div class="col-3 col-lg-2">
+								<p data-i18n="about_build" style=""></p>
+							</div>
+							<div class="col-9 col-lg-10">
+								<p id= "aboutBui" />
+							</div>
+						</div>
+						<div class = "row border-bottom mt-3">
+							<div class="col-3 col-lg-2">
+								<p data-i18n="about_builddate" style=""></p>
+							</div>
+							<div class="col-9 col-lg-10">
+								<p id= "aboutBuD" />
+							</div>
+						</div>
+						<div class = "row border-bottom mt-3">							
+							<div class="col-3 col-lg-2">
+								<p data-i18n="about_ui" style="">Main UI components</p>
+							</div>
+							<div class="col-9 col-lg-10">
+								<p id= "aboutRes" />
+							</div>
+						</div>
+						<div class = "row border-bottom  mt-3">							
+							<div class="col-3 col-lg-2">
+								<p data-i18n="about_system_info" style="">System info</p>
+							</div>
+							<div class="col-9 col-lg-10">
+								<pre id= "aboutSys"></pre>
+							</div>
+						</div>
+						<div class = "row mt-3">							
+							<div class="col-3 col-lg-2">
+								<p data-i18n="about_3rd_party_licenses" style=""></p>
+							</div>
+							<div class="col-9 col-lg-10">
+								<pre id="3rdpartylicenses" style="overflow:scroll;max-height:400px"></pre>
+							</div>							
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
 
-<script type="text/javascript">
-	performTranslation();
+	<script>
+		performTranslation();
+		var si = sysInfo.hyperhdr;
+		var libs = {
+			"Bootstrap 5": "https://getbootstrap.com/",
+			"AdminLTE": "https://github.com/ColorlibHQ/AdminLTE",
+			"JQuery": "https://jquery.com/",
+			"JSON-Editor": "https://github.com/json-editor/json-editor",
+			"Vanilla Picker": "https://vanilla-picker.js.org/",
+			"Bootstrap Toggle": "https://www.bootstraptoggle.com/",
+			"jQuery.i18n": "https://github.com/wikimedia/jquery.i18n",			
+			"Download": "https://github.com/rndme/download",
+			"Gijgo": "https://gijgo.com/"
+		};
+		var libh = "";
+		var lang = [];
+		var dcount = 0;
 
-	var si = sysInfo.hyperion;
-	var libs = { "Bootstrap 3": "https://getbootstrap.com/", "JQuery": "https://jquery.com/", "Bootstrap Colorpicker": "https://itsjavi.com/bootstrap-colorpicker/", "Bootstrap Toggle": "https://www.bootstraptoggle.com/", "Bootstrap Select": "https://developer.snapappointments.com/bootstrap-select/", "JSON-Editor": "https://www.jeremydorn.com/json-editor", "jQuery.i18n": "https://github.com/wikimedia/jquery.i18n", "metisMenu": "https://mm.onokumus.com/index.html", "download.js": "https://github.com/rndme/download", "gijgo": "https://gijgo.com/" };
-	var libh = "";
-	var lang = [];
-	var dcount = 0;
+		for (var i = 0; i < availLang.length; i++) lang.push($.i18n("general_speech_" + availLang[i]));
+		lang.sort();
+		for (key in libs) libh += '<a href="' + libs[key] + '" target="_blank">' + key + "</a>, ";
+		libh = libh.substring(0, libh.length-2);
+		libh += "<br/>";
+		lang = lang.toString().replace(/,/g, ", ");
 
-	for (var i = 0; i < availLang.length; i++)
-		lang.push($.i18n('general_speech_' + availLang[i]));
-	lang.sort();
-	for (key in libs)
-		libh += '<a href="' + libs[key] + '" target="_blank">' + key + '</a>, ';
-	libh += "<br/>" + $.i18n("about_credits");
-	lang = lang.toString().replace(/,/g, ", ");
+		// Github Issue bugreport infos
+		var sys = window.sysInfo.system;
+		var shy = window.sysInfo.hyperhdr;
+		var info = "<code>HyperHDR Server: \n";
+		info += "- Build:           " + shy.build + "\n";
+		info += "- Build time:      " + shy.time + "\n";
+		info += "- Git Remote:      " + shy.gitremote + "\n";
+		info += "- Version:         " + shy.version + "\n";
+		info += "- UI Lang:         " + storedLang + " (BrowserLang: " + navigator.language + ")\n";
+		info += "- UI Access:       " + storedAccess + "\n";
 
-	// Github Issue bugreport infos
-	var sys = window.sysInfo.system;
-	var shy = window.sysInfo.hyperion;
-	var info = "<pre>HyperHDR Server: \n";
-	info += '- Build:           ' + shy.build + '\n';
-	info += '- Build time:      ' + shy.time + '\n';
-	info += '- Git Remote:      ' + shy.gitremote + '\n';
-	info += '- Version:         ' + shy.version + '\n';
-	info += '- UI Lang:         ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
-	info += '- UI Access:       ' + storedAccess + '\n';
+		info += "- Avail Capt:      ";
+		if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined && window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined) {
+			var grabbers = window.serverInfo.grabbers.active;
+			if (grabbers.indexOf("Media Foundation") > -1) info += "Windows (Microsoft Media Foundation)";
+			else if (grabbers.indexOf("macOS AVF") > -1) info += "macOS (AVF)";
+			else if (grabbers.indexOf("V4L2") > -1) info += "Linux (V4L2)";
+			else info += "Unknown";
+		} else {
+			info = "None";
+		}
+		info += "\n";
 
-  info += '- Avail Capt:      ';
-  if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined &&
-      window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined)
-  {
-	  var grabbers = window.serverInfo.grabbers.active;
-	  if (grabbers.indexOf('V4L2:Media Foundation') > -1)
-		  info += 'Windows (Microsoft Media Foundation)';
-	  else if (grabbers.indexOf('V4L2:macOS AVF') > -1)
-		  info += 'macOS (AVF)';
-	  else if (grabbers.indexOf('V4L2') > -1)
-		  info += 'Linux (V4L2)';		
-	  else
-		  info += 'Unknown';
-	}
-	else
-	{
-		info = 'None';
-	}
-  info += '\n';
+		info += "- Database:        " + (shy.readOnlyMode ? "ready-only" : "read/write") + "\n";
 
-	info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
+		info += "\n";
 
-	info += '\n';
+		info += "HyperHDR Server OS: \n";
+		info += "- Distribution:   " + sys.prettyName + "\n";
+		info += "- Architecture:   " + sys.architecture + "\n";
 
-	info += 'HyperHDR Server OS: \n';
-	info += '- Distribution:   ' + sys.prettyName + '\n';
-	info += '- Architecture:   ' + sys.architecture + '\n';
+		if (sys.cpuModelName) info += "- CPU Model:      " + sys.cpuModelName + "\n";
+		if (sys.cpuModelType) info += "- CPU Type:       " + sys.cpuModelType + "\n";
+		if (sys.cpuRevision) info += "- CPU Revision:   " + sys.cpuRevision + "\n";
+		if (sys.cpuHardware) info += "- CPU Hardware:   " + sys.cpuHardware + "\n";
 
-	if (sys.cpuModelName)
-	  info += '- CPU Model:      ' + sys.cpuModelName + '\n';
-	if (sys.cpuModelType)
-	  info += '- CPU Type:       ' + sys.cpuModelType + '\n';
-	if (sys.cpuRevision)
-	  info += '- CPU Revision:   ' + sys.cpuRevision + '\n';
-	if (sys.cpuHardware)
-	  info += '- CPU Hardware:   ' + sys.cpuHardware + '\n';	
+		info += "- Kernel:         " + sys.kernelType + " (" + sys.kernelVersion + " (WS: " + sys.wordSize + "))\n";
+		info += "- Qt Version:     " + sys.qtVersion + "\n";
+		info += "- Browser:        " + navigator.userAgent + " </code>";
 
-	info += '- Kernel:         ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
-	info += '- Qt Version:     ' + sys.qtVersion + '\n';
-	info += '- Browser:        ' + navigator.userAgent + ' </pre>';
+		$("#labelRes").html($.i18n("about_resources", $.i18n("general_webui_title")));
+		$("#aboutVer").html(currentVersion);
+		$("#aboutBui").html(si.build);
+		$("#aboutBuD").html(si.time);
+		$("#aboutRes").html(libh);
+		$("#aboutSys").html(info);
 
-	var fc = ['<span id="danger_trig">' + $.i18n("about_version") + '<span>', $.i18n("about_build"), $.i18n("about_builddate"), $.i18n("about_translations"), $.i18n("about_resources", $.i18n("general_webui_title")), "System info (Github Issue)", $.i18n("about_3rd_party_licenses")];
-	var sc = [currentVersion, si.build, si.time, '(' + availLang.length + ')<p>' + lang + '</p><p><a href="https://github.com/awawa-dev/HyperHDR" target="_blank">' + $.i18n("about_contribute") + '</a></p>', libh, info, '<pre><div id="3rdpartylicenses" style="overflow:scroll;max-height:400px"></div></pre>'];
+		var url = "https://raw.githubusercontent.com/awawa-dev/HyperHDR/master/3RD_PARTY_LICENSES";
+		fetch(url)
+			.then(function (response) {
+				if (!response.ok) {
+					$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + "</a>");
+				} else {
+					response.text().then(function (text) {
+						$("#3rdpartylicenses").html("<code>" + text + "</code>");
+					});
+				}
+			})
+			.catch(function (rejected) {
+				$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + "</a>");
+			});
 
-	createTable("", "atb", "about_cont");
-	for (var i = 0; i < fc.length; i++)
-		$('.atb').append(createTableRow([fc[i], sc[i]], "atb", false));
-
-	$('#danger_trig').off().on('click', function () {
-		dcount++;
-		if (dcount > 2)
-			$('#danger_act').toggle(true);
-	});
-
-	$('#reset_cache').off().on('click', function () {
-		localStorage.clear();
-	});
-
-	$('#hyp_restart').off().on('click', function () {
-		initRestart();
-	});
-
-	var url = 'https://raw.githubusercontent.com/awawa-dev/HyperHDR/master/3RD_PARTY_LICENSES';
-	fetch(url)
-		.then(function (response) {
-			if (!response.ok) {
-				$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
-			}
-			else {
-				response.text().then(function (text) {
-					$("#3rdpartylicenses").html('<code>' + text + '</code>');
-				});
-			}
-		})
-		.catch(function (rejected) {
-			$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
-		});
-
-	removeOverlay();
-</script>
+		removeOverlay();
+	</script>

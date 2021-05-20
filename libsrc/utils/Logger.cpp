@@ -251,7 +251,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 LoggerManager::LoggerManager()
 	: QObject()
-	, _loggerMaxMsgBufferSize(300)
+	, _loggerMaxMsgBufferSize(350)
 {
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }

@@ -31,7 +31,7 @@ WebServer::~WebServer()
 
 void WebServer::initServer()
 {
-	Debug(_log, "Initialize Webserver");
+	Info(_log, "Initialize Webserver");
 	_server = new QtHttpServer (this);
 	_server->setServerName (QStringLiteral ("HyperHDR Webserver"));
 
@@ -89,7 +89,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 {
 	if(type == settings::type::WEBSERVER)
 	{
-		Debug(_log, "Apply Webserver settings");
+		Info(_log, "Apply Webserver settings");
 		const QJsonObject& obj = config.object();
 
 		_baseUrl = obj["document_root"].toString(WEBSERVER_DEFAULT_PATH);
@@ -107,7 +107,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		else
 			_baseUrl = WEBSERVER_DEFAULT_PATH;
 
-		Debug(_log, "Set document root to: %s", _baseUrl.toUtf8().constData());
+		Info(_log, "Set document root to: %s", _baseUrl.toUtf8().constData());
 		_staticFileServing->setBaseUrl(_baseUrl);
 
 		// ssl different port
@@ -173,10 +173,10 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			}
 
 			if(!validList.isEmpty()){
-				Debug(_log,"Setup SSL certificate");
+				Info(_log,"Setup SSL certificate");
 				_server->setCertificates(validList);
 			} else {
-				Error(_log, "No valid SSL certificate has been found ('%s')", crtPath.toUtf8().constData());
+				Error(_log, "No valid SSL certificate has been found ('%s'). Did you install OpenSSL?", crtPath.toUtf8().constData());
 			}
 
 			// load and verify key
@@ -189,7 +189,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			if(key.isNull()){
 				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('%s')", keyPath.toUtf8().constData());
 			} else {
-				Debug(_log,"Setup private SSL key");
+				Info(_log,"Setup private SSL key");
 				_server->setPrivateKey(key);
 			}
 		}

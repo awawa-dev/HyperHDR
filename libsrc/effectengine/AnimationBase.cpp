@@ -3,9 +3,20 @@
 AnimationBase::AnimationBase(QString name) :
 	_name(name),
 	_sleepTime(100),
-	_isDevice(false)
+	_isDevice(false),
+	_stopMe(false)
 {
 };
+
+bool AnimationBase::isStop()
+{
+	return _stopMe;
+}
+
+void AnimationBase::setStopMe(bool stopMe)
+{
+	_stopMe = stopMe;
+}
 
 QString AnimationBase::GetName()
 {

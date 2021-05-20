@@ -1,5 +1,20 @@
 // Generated config file
 
+// cec support
+#cmakedefine ENABLE_CEC
+
+// directx grabber
+#cmakedefine ENABLE_DX
+
+// macOs system grabber
+#cmakedefine ENABLE_MAC_SYSTEM
+
+// x11 linux system grabber
+#cmakedefine ENABLE_X11
+
+// Define to enable boblight server
+#cmakedefine ENABLE_BOBLIGHT
+
 // Define to enable sound linux
 #cmakedefine ENABLE_SOUNDCAPLINUX
 
@@ -16,7 +31,7 @@
 #cmakedefine ENABLE_V4L2
 
 // Define to enable the WMF grabber
-#cmakedefine ENABLE_WMF
+#cmakedefine ENABLE_MF
 
 // Define to enable the spi-device
 #cmakedefine ENABLE_SPIDEV
@@ -33,13 +48,13 @@
 // Define to enable the usb / hid devices
 #cmakedefine ENABLE_USB_HID
 
-// the hyperion build id string
-#define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
-#define HYPERION_GIT_REMOTE "${HYPERION_GIT_REMOTE}"
+// the hyperhdr build id string
+#define HYPERHDR_BUILD_ID "${HYPERHDR_BUILD_ID}"
+#define HYPERHDR_GIT_REMOTE "${HYPERHDR_GIT_REMOTE}"
 
-#define HYPERION_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}"
-#define HYPERION_VERSION_MINOR "${HYPERION_VERSION_MINOR}"
-#define HYPERION_VERSION_PATCH "${HYPERION_VERSION_PATCH}"
-#define HYPERION_VERSION "${HYPERION_VERSION}"
+#define HYPERHDR_VERSION_MAJOR "${HYPERHDR_VERSION_MAJOR}"
+#define HYPERHDR_VERSION_MINOR "${HYPERHDR_VERSION_MINOR}"
+#define HYPERHDR_VERSION_PATCH "${HYPERHDR_VERSION_PATCH}"
+#define HYPERHDR_VERSION "${HYPERHDR_VERSION}"
 
-#define HYPERION_JSON_VERSION "1.0.0"
+#define HYPERHDR_JSON_VERSION "1.0.0"

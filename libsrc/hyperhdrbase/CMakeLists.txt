@@ -7,13 +7,13 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
 )
 
-FILE ( GLOB Hyperion_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
+FILE ( GLOB HyperHDR_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-SET(Hyperion_RESOURCES ${CURRENT_SOURCE_DIR}/resource.qrc)
+SET(HyperHDR_RESOURCES ${CURRENT_SOURCE_DIR}/resource.qrc)
 
 add_library(hyperhdr-base
-	${Hyperion_SOURCES}
-	${Hyperion_RESOURCES}
+	${HyperHDR_SOURCES}
+	${HyperHDR_RESOURCES}
 )
 
 target_link_libraries(hyperhdr-base
@@ -22,11 +22,14 @@ target_link_libraries(hyperhdr-base
 	flatbufserver
 	flatbuffers
 	leddevice
-	boblightserver
 	effectengine
 	database
 	${QT_LIBRARIES}
 )
+
+if(ENABLE_BOBLIGHT)
+	target_link_libraries(hyperhdr-base boblightserver)
+endif()
 
 if (ENABLE_AVAHI)
 	target_link_libraries(hyperhdr-base bonjour)

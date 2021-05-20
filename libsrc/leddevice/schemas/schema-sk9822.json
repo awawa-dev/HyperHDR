@@ -5,24 +5,33 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_spipath_title",
-			"enum" : ["/dev/spidev0.0","/dev/spidev0.1"],
+			"enum" : ["/dev/spidev0.0","/dev/spidev0.1","/dev/spidev1.0","/dev/spidev1.1"],
+			"options" : {
+				"enum_titles" : ["/dev/spidev0.0","/dev/spidev0.1","/dev/spidev1.0","/dev/spidev1.1"]
+			},
 			"default" : "/dev/spidev0.0",
+			"required" : true,
 			"propertyOrder" : 1
 		},
 		"rate": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 100000,			
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
 			"propertyOrder" : 2
 		},
 		"invert": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
 			"propertyOrder" : 3
 		},
 		"globalBrightnessControlMaxLevel": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_globalBrightnessControlMaxLevel_title",
 			"default": 31,
 			"minimum": 1,
@@ -31,6 +40,8 @@
 		},
 		"globalBrightnessControlThreshold": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_globalBrightnessControlThreshold_title",
 			"default": 255,
 			"minimum": 0,
@@ -39,6 +50,8 @@
 		},
 		"latchTime": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_latchtime_title",
 			"default": 0,
 			"append" : "edt_append_ms",
@@ -49,6 +62,8 @@
 		},
 		"rewriteTime": {
 			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 100,			
 			"title":"edt_dev_general_rewriteTime_title",
 			"default": 1000,
 			"append" : "edt_append_ms",

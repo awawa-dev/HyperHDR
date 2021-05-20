@@ -42,10 +42,12 @@ class MultiColorAdjustment;
 class ColorAdjustment;
 class SettingsManager;
 class BGEffectHandler;
-class CaptureCont;
+class VideoControl;
+class SystemControl;
 class BoblightServer;
 class LedDeviceWrapper;
 class Logger;
+
 
 ///
 /// The main class of HyperHDR. This gives other 'users' access to the attached LedDevice through
@@ -62,6 +64,10 @@ public:
 	/// Destructor; cleans up resources
 	///
 	~HyperHdrInstance() override;
+
+	bool isCEC();
+
+	void setSignalStateByCEC(bool enable);
 
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperhdr
@@ -87,8 +93,6 @@ public:
 	/// forward smoothing config
 	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool directMode = false);	
 
-	int getCurrentVideoModeHdr() const;
-
 	///
 	/// @brief Get the current active led device
 	/// @return The device name
@@ -98,6 +102,8 @@ public:
 	bool getReadOnlyMode() {return _readOnlyMode; };
 
 public slots:
+
+	void saveCalibration(QString saveData);
 
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
@@ -335,8 +341,6 @@ public slots:
 
 	/// sets the methode how image is maped to leds at ImageProcessor
 	void setLedMappingType(int mappingType);	
-	
-	void setVideoModeHdr(int hdr);
 
 	///
 	/// @brief Init after thread start
@@ -390,16 +394,6 @@ signals:
 	void forwardV4lProtoMessage(const QString&, const Image<ColorRgb>&);
 
 	///
-	/// @brief Is emitted from clients who request a videoMode change
-	///	
-	void videoModeHdr(int hdr);
-
-	///
-	/// @brief A new videoMode was requested (called from Daemon!)
-	///
-	void newVideoModeHdr(int hdr);
-
-	///
 	/// @brief Emits whenever a config part changed. SIGNAL PIPE helper for SettingsManager -> HyperHdrDaemon
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
@@ -449,11 +443,6 @@ private slots:
 	///	@param config The configuration
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
-
-	///
-	/// @brief Apply new videoMode from Daemon to _currVideoMode
-	///	
-	void handleNewVideoModeHdr(int hdr) { _currVideoModeHdr = hdr; }
 
 
 	void handlePriorityChangedLedDevice(const quint8& priority);
@@ -516,14 +505,15 @@ private:
 	BGEffectHandler*		_BGEffectHandler;
 
 	/// Capture control for Daemon native capture
-	CaptureCont*			_captureCont;
+	VideoControl*			_videoControl;
+
+	SystemControl*			_systemControl;
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb>	_globalLedBuffer;
 
-	int						_currVideoModeHdr = 1;
-
 	/// Boblight instance
 	BoblightServer*			_boblightServer;
+
 	bool					_readOnlyMode;	
 };

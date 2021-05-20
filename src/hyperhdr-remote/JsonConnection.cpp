@@ -11,7 +11,7 @@
 #include <QJsonDocument>
 #include <QHostInfo>
 
-// hyperion-remote includes
+// hyperhdr-remote includes
 #include "JsonConnection.h"
 
 // util includes
@@ -56,7 +56,7 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 	// create command
 	QJsonObject command;
 	command["command"] = QString("color");
-	command["origin"] = QString("hyperion-remote");
+	command["origin"] = QString("hyperhdr-remote");
 	command["priority"] = priority;
 	QJsonArray rgbValue;
 	for (const QColor & color : colors)
@@ -103,7 +103,7 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 	QJsonObject command;
 	command["command"] = QString("image");
 	command["priority"] = priority;
-	command["origin"] = QString("hyperion-remote");
+	command["origin"] = QString("hyperhdr-remote");
 	command["imagewidth"] = image.width();
 	command["imageheight"] = image.height();
 	command["imagedata"] = QString(base64Image.data());
@@ -126,14 +126,14 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	// create command
 	QJsonObject command, effect;
 	command["command"] = QString("effect");
-	command["origin"] = QString("hyperion-remote");
+	command["origin"] = QString("hyperhdr-remote");
 	command["priority"] = priority;
 	effect["name"] = effectName;
 
 	if (effectArgs.size() > 0)
 	{
 		QJsonObject effObj;
-		if(!JsonUtils::parse("hyperion-remote-args", effectArgs, effObj, _log))
+		if(!JsonUtils::parse("hyperhdr-remote-args", effectArgs, effObj, _log))
 		{
 			throw std::runtime_error("Error in effect arguments, abort");
 		}
@@ -168,7 +168,7 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 	if (effectArgs.size() > 0)
 	{
 		QJsonObject effObj;
-		if(!JsonUtils::parse("hyperion-remote-args", effectScript, effObj, _log))
+		if(!JsonUtils::parse("hyperhdr-remote-args", effectScript, effObj, _log))
 		{
 			throw std::runtime_error("Error in effect arguments, abort");
 		}
@@ -339,7 +339,7 @@ void JsonConnection::setSourceAutoSelect()
 QString JsonConnection::getConfig(std::string type)
 {
 	assert( type == "schema" || type == "config" );
-	qDebug() << "Get configuration file from Hyperion Server";
+	qDebug() << "Get configuration file from HyperHDR Server";
 
 	// create command
 	QJsonObject command;
@@ -375,7 +375,7 @@ void JsonConnection::setConfig(const QString &jsonString)
 	if (jsonString.size() > 0)
 	{
 		QJsonObject configObj;
-		if(!JsonUtils::parse("hyperion-remote-args", jsonString, configObj, _log))
+		if(!JsonUtils::parse("hyperhdr-remote-args", jsonString, configObj, _log))
 		{
 			throw std::runtime_error("Error in configset arguments, abort");
 		}

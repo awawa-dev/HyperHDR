@@ -1,7 +1,7 @@
 #ifndef LEDEVICEUDPH801_H
 #define LEDEVICEUDPH801_H
 
-// hyperion includes
+// hyperhdr includes
 #include "ProviderUdp.h"
 
 ///

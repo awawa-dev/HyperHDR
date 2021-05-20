@@ -7,7 +7,10 @@
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/jsonschema/QJsonUtils.h>
 
-QJsonSchemaChecker::QJsonSchemaChecker()
+QJsonSchemaChecker::QJsonSchemaChecker():
+	_ignoreRequired(false),
+	_error (false),	
+	_schemaError (false)
 {
 	// empty
 }
@@ -24,6 +27,16 @@ bool QJsonSchemaChecker::setSchema(const QJsonObject & schema)
 	// TODO: check the schema
 
 	return true;
+}
+
+void QJsonSchemaChecker::setMessage(const QString& message)
+{
+	_messages.append(_currentPath.join("") + ": " + message);
+}
+
+QStringList QJsonSchemaChecker::getMessages() const
+{
+	return _messages;
 }
 
 QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired)
@@ -161,16 +174,6 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 	}
 }
 
-void QJsonSchemaChecker::setMessage(const QString & message)
-{
-	_messages.append(_currentPath.join("") +": "+message);
-}
-
-QStringList QJsonSchemaChecker::getMessages() const
-{
-	return _messages;
-}
-
 void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	QString type = schema.toString();
@@ -230,6 +233,9 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 		{
 			validate(value[property], propertyValue.toObject());
 		}
+		else if (verifyDeps(property, value, schema))
+		{
+		}
 		else if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
 		{
 			_error = true;
@@ -248,6 +254,25 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 
 		_currentPath.removeLast();
 	}
+}
+
+bool QJsonSchemaChecker::verifyDeps(const QString& property, const QJsonObject& value, const QJsonObject& schema)
+{
+	if (schema[property].toObject().contains("options") && (schema[property].toObject())["options"].toObject().contains("dependencies"))
+	{
+		const QJsonObject& depends = ((schema[property].toObject())["options"].toObject())["dependencies"].toObject();
+
+		if (depends.keys().size() > 0)
+		{
+			QString firstName = depends.keys().first();
+			if (value.contains(firstName))
+			{
+				if (value[firstName] != depends[firstName])
+					return true;
+			}
+		}
+	}
+	return false;
 }
 
 void QJsonSchemaChecker::checkDependencies(const QJsonObject & value, const QJsonObject & schema)

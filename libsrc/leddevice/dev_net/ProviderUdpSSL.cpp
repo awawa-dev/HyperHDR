@@ -9,7 +9,7 @@
 	#include <sys/ioctl.h>
 #endif
 
-// Local Hyperion includes
+// Local HyperHDR includes
 #include "ProviderUdpSSL.h"
 
 const int MAX_RETRY = 5;

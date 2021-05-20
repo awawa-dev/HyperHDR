@@ -7,7 +7,7 @@
 // libusb include
 #include <libusb.h>
 
-// Hyperion includes
+// HyperHDR includes
 #include <leddevice/LedDevice.h>
 
 ///

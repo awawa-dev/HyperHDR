@@ -6,7 +6,6 @@
 class QTcpSocket;
 
 class QtHttpRequest;
-class Hyperion;
 class JsonAPI;
 
 class WebSocketClient : public QObject
@@ -27,7 +26,6 @@ public:
 private:
 	QTcpSocket* _socket;
 	Logger* _log;
-	Hyperion* _hyperion;
 	JsonAPI* _jsonAPI;
 
 	void getWsFrameHeader(WebSocketHeader* header);
