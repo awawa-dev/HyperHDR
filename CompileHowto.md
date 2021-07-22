@@ -56,7 +56,7 @@ sudo make uninstall
 
 ```
 export HYPERHDR_DIR="hyperhdr"
-git clone --recursive --depth 1 https://github.com/awawa-dev/HyperHDR.git "$HYPERHDR_DIR"
+git clone --recursive --depth 1 https://github.com/fredmtb/HyperHDR.git "$HYPERHDR_DIR"
 ```
 
 ### Preparations

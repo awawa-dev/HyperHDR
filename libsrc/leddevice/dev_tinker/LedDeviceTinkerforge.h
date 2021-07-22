@@ -10,6 +10,8 @@
 extern "C" {
 	#include <tinkerforge/ip_connection.h>
 	#include <tinkerforge/bricklet_led_strip.h>
+	#include <tinkerforge/bricklet_led_strip_v2.h>
+	
 }
 
 class LedDeviceTinkerforge : public LedDevice
