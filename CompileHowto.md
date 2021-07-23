@@ -31,7 +31,7 @@ Next:
 ### The general quick way (without big comments)
 
 ```bash
-git clone --recursive https://github.com/awawa-dev/HyperHDR.git hyperhdr
+git clone --recursive https://github.com/fredmtb/HyperHDR.git hyperhdr
 cd hyperhdr
 mkdir build
 cd build

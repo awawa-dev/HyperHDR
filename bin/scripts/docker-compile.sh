@@ -2,7 +2,7 @@
 
 DOCKER="docker"
 # Git repo url of Hyperhdr
-GIT_REPO_URL="https://github.com/awawa-dev/HyperHDR.git"
+GIT_REPO_URL="https://github.com/fredmtb/HyperHDR.git"
 # GitHub Container Registry url
 REGISTRY_URL="ghcr.io/awawa-dev"
 # cmake build type
