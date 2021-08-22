@@ -188,3 +188,38 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 
 	return retVal;
 }
+
+int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
+{
+	static const int      REAL_BUFFER = 1536;
+	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 5;
+
+	uint8_t* startData = (uint8_t*)data;
+	uint8_t* endData = (uint8_t*)data + size;
+	uint8_t buffer[BUFFER_SIZE];
+
+	if (_fid < 0)
+	{
+		return -1;
+	}
+
+	_spi.tx_buf = __u64(&buffer);
+	_spi.len = __u32(BUFFER_SIZE);
+	_spi.delay_usecs = 0;
+
+	int retVal = 0;
+
+	while (retVal >= 0 && startData < endData)
+	{
+		memset(buffer, 0, sizeof(buffer));		
+		for (int i = 0; i < REAL_BUFFER && startData < endData; i++, startData++)
+		{
+			buffer[i] = *startData;
+		}
+		buffer[REAL_BUFFER] = 0xAA;
+		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+	}
+
+	return retVal;
+}

@@ -76,6 +76,8 @@ int LedDeviceAWA_spi::write(const std::vector<ColorRgb> &ledValues)
 	
 	if (_spiType == "esp8266")
 		return writeBytesEsp8266(_ledBuffer.size(), _ledBuffer.data());
+	else if (_spiType == "esp32")
+		return writeBytesEsp32(_ledBuffer.size(), _ledBuffer.data());
 	else
 		return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

@@ -24,9 +24,9 @@
 		"spitype": {
 			"type": "string",
 			"title":"edt_conf_smooth_type_title",
-			"enum" : ["esp8266","standard"],
+			"enum" : ["esp8266","esp32","standard"],
 			"options" : {
-				"enum_titles" : ["esp8266","standard"]
+				"enum_titles" : ["esp8266","esp32","standard"]
 			},
 			"default" : "esp8266",
 			"required" : true,

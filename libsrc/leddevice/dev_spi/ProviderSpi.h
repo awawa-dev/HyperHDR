@@ -58,6 +58,9 @@ protected:
 	// esp spi is pripriotary protocol
 	int writeBytesEsp8266(unsigned size, const uint8_t* data);
 
+	// esp32 spi packet protocol
+	int writeBytesEsp32(unsigned size, const uint8_t* data);
+
 	/// The name of the output device
 	QString _deviceName;
 
