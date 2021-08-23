@@ -368,8 +368,14 @@ $(document).ready(function()
 
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
-	{		
+	{		      
 		cpcolor = getStorage('rmcpcolor');
+		
+		if (!(/^#[0-9A-F]{6}$/i.test(cpcolor)))
+		{
+			cpcolor = "#000000";			
+		}		
+			
 		rgb = hexToRgb(cpcolor);
 	}
 
@@ -390,22 +396,25 @@ $(document).ready(function()
 		editorFormat: 'rgb',
 		popup: 'bottom',
 		onChange: function(color)
-		{
-			var myHex = (color.hex.length >= 7) ? color.hex.slice(0, 7) : color.hex;
-			
-			$('#remote_color_target').val(color.rgbString);
-			document.querySelector('#remote_color_target_invoker').style.backgroundColor = color.rgbaString;
-			
-			if (!pickerInit)
-				pickerInit = true;
-			else
+		{			
+			if (color != null && color.rgba != null && !isNaN(color.rgba[0]) && !isNaN(color.rgba[1]) && !isNaN(color.rgba[2]))
 			{
-				rgb.r = color.rgba[0];
-				rgb.g = color.rgba[1];
-				rgb.b = color.rgba[2];
-				sendColor();
-				setStorage('rmcpcolor', myHex);
-				updateInputSelect();
+				var myHex = (color.hex.length >= 7) ? color.hex.slice(0, 7) : color.hex;
+				
+				$('#remote_color_target').val(color.rgbString);
+				document.querySelector('#remote_color_target_invoker').style.backgroundColor = color.rgbaString;
+				
+				if (!pickerInit)
+					pickerInit = true;
+				else
+				{														
+					rgb.r = color.rgba[0];
+					rgb.g = color.rgba[1];
+					rgb.b = color.rgba[2];
+					sendColor();
+					setStorage('rmcpcolor', myHex);
+					updateInputSelect();					
+				}
 			}
 		}
 	});
