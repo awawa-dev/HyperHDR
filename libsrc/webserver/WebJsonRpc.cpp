@@ -6,6 +6,8 @@
 
 #include <api/JsonAPI.h>
 
+#define MULTI_REQ "&request="
+
 WebJsonRpc::WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localConnection, QtHttpClientWrapper* parent)
 	: QObject(parent)
 	, _server(server)
@@ -24,10 +26,33 @@ void WebJsonRpc::handleMessage(QtHttpRequest* request, QString query)
 	// TODO better solution. If jsonAPI emits forceClose the request is deleted and the following call to this method results in segfault
 	if(!_stopHandle)
 	{
-		QByteArray header = request->getHeader("Authorization");
-		QByteArray data = (query.length() > 0) ? query.toUtf8() : request->getRawData();
-		_unlocked = true;
-		_jsonAPI->handleMessage(data,header);
+		int nextQueryIndex = query.indexOf(MULTI_REQ, Qt::CaseInsensitive);
+
+		if (nextQueryIndex < 0)
+		{
+			QByteArray header = request->getHeader("Authorization");
+			QByteArray data = (query.length() > 0) ? query.toUtf8() : request->getRawData();
+			_unlocked = true;
+			_jsonAPI->handleMessage(data, header);
+		}
+		else
+		{
+			QByteArray header = request->getHeader("Authorization");			
+			_unlocked = true;
+
+			query =  QString(MULTI_REQ).append(query);
+			do
+			{
+				query = query.right(query.length() - QString(MULTI_REQ).length());
+				nextQueryIndex = query.indexOf(MULTI_REQ, Qt::CaseInsensitive);
+
+				QString leftQuery = (nextQueryIndex >= 0) ? query.left(nextQueryIndex) : query;
+				query = query.right(query.length() - leftQuery.length());
+				
+				_jsonAPI->handleMessage(leftQuery.toUtf8(), header);
+
+			} while (nextQueryIndex >= 0 && query.length() > QString(MULTI_REQ).length());
+		}
 	}
 }
 

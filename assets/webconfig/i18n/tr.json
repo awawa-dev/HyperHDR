@@ -1124,5 +1124,6 @@
   "json_api_clear": "Önceliği temizle",
   "json_api_clear_expl": "Efektlerden ve önceden ayarlanmış renklerden önceliği temizleyin.",
   "json_api_hdr": "HDR modu",
-  "json_api_hdr_expl": "USB yakalayıcı için HDR ton eşlemesini açın/kapatın. 'Sınır modu' yalnızca MJPEG akışı için çalışır."
+  "json_api_hdr_expl": "USB yakalayıcı için HDR ton eşlemesini açın/kapatın. 'Sınır modu' yalnızca MJPEG akışı için çalışır.",
+  "json_api_components_expl_multi": "Tek bir bağlantı ile birden çok komut çalıştırabilirsiniz. Maksimum uzunluk 2048 karakterdir. Hepsi yürütülecek, ancak yalnızca bir yanıt alacaksınız (tüm çıktılar için günlükleri kontrol edin). Bağlantılarınızın '<code>request</code> içeriğini şu biçime yerleştirin (önce '?' karakterini ve sonraki '&' karakterlerini not edin):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
 }

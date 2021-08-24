@@ -64,6 +64,7 @@ function RunItSafe(sender)
 $(document).ready( function(){	
 $("textarea").attr("placeholder", $.i18n('json_api_ouput'));
 performTranslation();
+$("#json_api_components_expl_multi").html($.i18n("json_api_components_expl_multi"));
 
 // components
 var componentJson = 

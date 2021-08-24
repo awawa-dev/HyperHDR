@@ -1124,5 +1124,6 @@
   "json_api_clear": "Wyczyść priorytet",
   "json_api_clear_expl": "Wyczyść priorytet efektów i wstępnie ustawionych kolorów.",
   "json_api_hdr": "Tryb HDR",
-  "json_api_hdr_expl": "Włącz/wyłącz mapowanie tonów HDR dla grabbera USB. „Tryb graniczny” działa tylko dla strumienia MJPEG."
+  "json_api_hdr_expl": "Włącz/wyłącz mapowanie tonów HDR dla grabbera USB. „Tryb graniczny” działa tylko dla strumienia MJPEG.",
+  "json_api_components_expl_multi": "Możesz uruchomić wiele poleceń za pomocą jednego łącza. Maksymalna długość to 2048 znaków. Wszystkie zostaną wykonane, ale otrzymasz tylko jedną odpowiedź (sprawdź logi dla wszystkich danych wyjściowych). Po prostu umieść zawartość <code>żądanie</code> linków w formacie (zanotuj najpierw znak '?', a następnie znak '&'):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
 }

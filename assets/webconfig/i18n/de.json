@@ -1124,5 +1124,6 @@
   "json_api_clear": "Löschen Sie eine Priorität",
   "json_api_clear_expl": "Klare Priorität von Effekten und voreingestellten Farben.",
   "json_api_hdr": "HDR-Modus",
-  "json_api_hdr_expl": "Schalten Sie das HDR-Tone-Mapping für den USB-Grabber ein/aus. Der 'Grenzmodus' funktioniert nur für MJPEG-Streams."
+  "json_api_hdr_expl": "Schalten Sie das HDR-Tone-Mapping für den USB-Grabber ein/aus. Der 'Grenzmodus' funktioniert nur für MJPEG-Streams.",
+  "json_api_components_expl_multi": "Sie können mehrere Befehle mit nur einem Link ausführen. Die maximale Länge beträgt 2048 Zeichen. Sie werden alle ausgeführt, aber Sie erhalten nur eine Antwort (überprüfen Sie die Protokolle für alle Ausgaben). Geben Sie einfach den Inhalt der <code>Anfrage</code> Ihres Links in das folgende Format ein (beachten Sie das erste '?'-Zeichen und das nächste '&'-Zeichen):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
 }

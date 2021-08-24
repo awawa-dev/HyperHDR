@@ -1124,5 +1124,6 @@
   "json_api_clear": "Xóa ưu tiên",
   "json_api_clear_expl": "Ưu tiên rõ ràng khỏi các hiệu ứng và màu đặt trước.",
   "json_api_hdr": "Chế độ HDR",
-  "json_api_hdr_expl": "Bật / tắt ánh xạ giai điệu HDR cho bộ lấy USB. 'Chế độ viền' chỉ hoạt động cho luồng MJPEG."
+  "json_api_hdr_expl": "Bật / tắt ánh xạ giai điệu HDR cho bộ lấy USB. 'Chế độ viền' chỉ hoạt động cho luồng MJPEG.",
+  "json_api_components_expl_multi": "Bạn có thể chạy nhiều lệnh chỉ với một liên kết. Chiều dài tối đa là 2048 ký tự. Tất cả chúng sẽ được thực thi nhưng bạn sẽ chỉ nhận được một phản hồi (kiểm tra nhật ký cho tất cả đầu ra). Chỉ cần đặt nội dung '<code> request </code> liên kết của bạn vào định dạng (lưu ý đầu tiên là ký tự'? 'Char và các ký tự' & 'tiếp theo): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>"
 }

@@ -1124,5 +1124,6 @@
   "json_api_clear": "Cancella una priorità",
   "json_api_clear_expl": "Cancella priorità dagli effetti e dai colori preimpostati.",
   "json_api_hdr": "Modalità HDR",
-  "json_api_hdr_expl": "Attiva/disattiva la mappatura dei toni HDR per USB grabber. La 'Modalità bordo' funziona solo per il flusso MJPEG."
+  "json_api_hdr_expl": "Attiva/disattiva la mappatura dei toni HDR per USB grabber. La 'Modalità bordo' funziona solo per il flusso MJPEG.",
+  "json_api_components_expl_multi": "Puoi eseguire più comandi con un solo collegamento. La lunghezza massima è di 2048 caratteri. Verranno eseguiti tutti ma riceverai una sola risposta (controlla i log per tutto l'output). Inserisci semplicemente il contenuto della <code>richiesta</code> dei tuoi link nel formato (nota il primo carattere '?' e il successivo carattere '&'):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
 }
