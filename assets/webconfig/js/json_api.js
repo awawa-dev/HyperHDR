@@ -422,19 +422,22 @@ const picker = new Picker(
 	popup: 'bottom',
 	onChange: function(color)
 	{
-		var myHex = (color.hex.length >= 7) ? color.hex.slice(0, 7) : color.hex;
-		
-		$('#remote_color_target').val(color.rgbString);
-		document.querySelector('#remote_color_target_invoker').style.backgroundColor = color.rgbaString;
-		
-		if (!pickerInit)
-			pickerInit = true;
-		else
+		if (color != null && color.rgba != null && !isNaN(color.rgba[0]) && !isNaN(color.rgba[1]) && !isNaN(color.rgba[2]))
 		{
-			rgb.r = color.rgba[0];
-			rgb.g = color.rgba[1];
-			rgb.b = color.rgba[2];
-			sendJsonColor();			
+			var myHex = (color.hex.length >= 7) ? color.hex.slice(0, 7) : color.hex;
+			
+			$('#remote_color_target').val(color.rgbString);
+			document.querySelector('#remote_color_target_invoker').style.backgroundColor = color.rgbaString;
+			
+			if (!pickerInit)
+				pickerInit = true;
+			else
+			{
+				rgb.r = color.rgba[0];
+				rgb.g = color.rgba[1];
+				rgb.b = color.rgba[2];
+				sendJsonColor();			
+			}
 		}
 	}
 });
