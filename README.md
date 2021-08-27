@@ -2,7 +2,7 @@
 
 Open source ambient lighting implementation with the audio visualization effects and video performance tweaks especially for USB grabbers. Support for HDR/BT2020 using LUT tables. Single and multi-threaded video processing optimization on **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers. Direct support USB grabbers for Windows 10 (Microsoft Media Foundation), Linux (v4l2) and macOS (AVFoundation). Also software screen grabbers are available now :new:  
   
-  ![roundcorner](https://user-images.githubusercontent.com/69086569/131135264-55e4e674-3e85-4e55-a536-ad4340487467.png)
+  ![v17](https://user-images.githubusercontent.com/69086569/131157173-cae41f0e-d5c3-413c-ba6b-041e8bfc0017.png)
   
 ## Download packages & sources
 
@@ -49,13 +49,14 @@ SSH and SPI are enabled on default.
 * Support for software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), X11 (Linux) :new:
 * Built-in audio visualization effects
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
-* Support for WS821x, APA102 like LED strips and SK6812RGBW ultrafast USB serial port AWA protocol for ESP8266/ESP32 at @2000000 baud with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32). WLED fork for ESP8266 & ESP32 at @2000000 (:sparkles: also for @921600) baud and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
+* Support for WS821x, APA102 and SK6812RGBW LED strips using fastest possible cable solution for generic ESP8266/ESP32 external LED drivers: [HyperSPI](https://github.com/awawa-dev/HyperSPI) :new:
+* Support for WS821x, APA102 and SK6812RGBW LED strips ultrafast USB serial port AWA protocol for ESP8266/ESP32 at @2000000 baud with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32). WLED fork for ESP8266 & ESP32 at @2000000 (:sparkles: also for @921600) baud and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 
 ##
 **Changelog: (v17 beta)**
 - Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion NG 2.0.0.8A thanks to optimization & using of multi-threading
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
-- Support for software screen grabbers: DirectX11, Coregraphcs, X11 :new:
+- Support for software screen grabbers: DirectX11, CoreGraphics, X11 :new:
 - Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)  :new:
 - Audio visualization effects (Windows, macOS and Linux)
 - Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver :new:
@@ -106,7 +107,7 @@ We do not support driving WS281x or especially SK6812 LED strips directly from t
 
 Usage of WS281x LED strip with Rpi directly (PWM mode) requires _root_ privilages. Otherwise you may get _'Error message: mmap() failed'_ ([read more](https://github.com/awawa-dev/HyperHDR/issues/52)) :warning:
 
-It's possible to switch off/on HDR tone mapping remotely with home automation system. You can build commands for HyperHDR using out JSON API playgroung :new:
+It's possible to switch off/on HDR tone mapping remotely with home automation system. You can build commands for HyperHDR using out JSON API playground :new:
   
   
 **Before and after HyperHDR LUT correction on HDR/BT2020 video that was broken by the USB grabber.\
