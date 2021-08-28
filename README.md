@@ -44,26 +44,27 @@ SSH and SPI are enabled on default.
 * Built-in LUT table generator
 * HDR/BT2020 color, treshold & gamma correction (LUT)
 * SDR treshold & gamma correction for selected codecs (LUT)
+* Automatic signal detection with smart learning capability for USB grabbers :new:
 * Support for USB grabbers under Windows 10
-* Support for USB grabbers under macOS (x64)
+* Support for USB grabbers under macOS (x64/M1)
 * Support for software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), X11 (Linux) :new:
 * Built-in audio visualization effects
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
-* Support for WS821x, APA102 and SK6812RGBW LED strips using fastest possible cable solution for generic ESP8266/ESP32 external LED drivers: [HyperSPI](https://github.com/awawa-dev/HyperSPI) :new:
-* Support for WS821x, APA102 and SK6812RGBW LED strips ultrafast USB serial port AWA protocol for ESP8266/ESP32 at @2000000 baud with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32). WLED fork for ESP8266 & ESP32 at @2000000 (:sparkles: also for @921600) baud and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
+* Support for WS821x, APA102 (HD107, SK9822 etc) and SK6812 RGBW LED strips using fastest possible cable solution for generic ESP8266/ESP32 external LED drivers: [HyperSPI](https://github.com/awawa-dev/HyperSPI) :new:
+* Support for WS8201, WS821x, APA102 (HD107, SK9822 etc) and SK6812 RGBW LED strips ultrafast USB serial port AWA protocol for ESP8266/ESP32 at 2Mb baud with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32) :new:
+* WLED fork for ESP8266 & ESP32 at 2Mb baud (also @921600 baud :new:) and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 
 ##
 **Changelog: (v17 beta)**
 - Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion NG 2.0.0.8A thanks to optimization & using of multi-threading
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
 - Support for software screen grabbers: DirectX11, CoreGraphics, X11 :new:
+- User interface upgraded to modern standards (Bootstrap 5) :new:
 - Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)  :new:
-- Audio visualization effects (Windows, macOS and Linux)
 - Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver :new:
 - Fork of WLED with USB serial port AWA protocol at @2000000 speed (:sparkles: there are also special versions for @921600) for ESP32 & ESP8266 and almost all types of LED strips: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 - Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP8266 at @2000000 baud with data integrity check: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) :new:
 - Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP32 at @2000000 baud with data integrity check: [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32) :new:
-- User interface upgraded to modern standards (Bootstrap 5) :new:
 - Automatic signal detection with smart learning capability for USB grabbers :new:
 - Re-implemented backup import / export functions for ALL instances :new:
 - New video stream crop method in JSON API and GET multi-command support :new:
@@ -73,8 +74,9 @@ SSH and SPI are enabled on default.
 - Add timeout for the anti-flickering filter :new:
 - Panel for easy video resolution & refresh mode selection in the grabber section :new:
 - Support for QT6 :new:
-- Lower CPU usage when automatic signal detection triggers 'nosignal' :new:
+- Lower CPU usage when automatic signal detection triggers 'no-signal' :new:
 - Fixed power saving issue in macOS version :new:
+- Audio visualization effects (Windows, macOS and Linux)
 - Support for YUV, MJPEG, RGB24, I420, NV12 and XRGB encoding
 - Overall (_'Quarter of frame'_ in the USB grabber section) and per an instance (_'Sparse processing'_ in the _Processing_ tab) options to control quality/performance balance.
 - Hardware brightness, contrast, saturation, hue control for USB grabbers (Windows and Linux)
@@ -95,19 +97,19 @@ SSH and SPI are enabled on default.
 
 ### FAQ:
 
-**You don't need to use HDR source for usage of HyperHDR. You can just benefit from: significant higher performance for captured video stream from USB grabber over Hyperion NG,  capability of using multithreading to avoid bottleneck resources, support for modern USB grabbers under Windows 10/Linux/macOS, decicated fast USB LED drivers (HyperSerialEsp8266 and HyperSerialWLED) or SPI driver (HyperSPI), screen grabbers including DirectX11 with HDR tone mapping, improved image to led colors averaging new algorihtms, music capabilities and few tweaks that minimize blinking at the dark scenes.**
+**You don't need to use an HDR source to use HyperHDR. You can just benefit from: high performance & optimized video proccessing, capability of using multithreading to avoid bottleneck resources, support for modern USB grabbers under Windows 10/Linux/macOS, decicated fast USB LED drivers (HyperSerialEsp8266, HyperSerialESP32 and HyperSerialWLED) or SPI driver (HyperSPI), screen grabbers including DirectX11 with HDR tone mapping, easy to use JSON API (both POST and GET), easy to setup automatic video signal detection, music capabilities and anti-flickering filter for best movie experience.**
 
 Use linux 'top' command with per core view (press 1) or preferable 'htop'. On Rpi 2/3/4 max limit is 400% (4 cores per 100%). **The problem will occure when one of the core's usage is close to the 100% limit, not when overall usage is for example between 200-300% where each core if far from the individual limit.**
 
 Check the performance statistics that are updated every minute in System➔Log page.
 
-Use YUV(YUY2) / XRGB(RGB32) encoding format if it's possible. It provides better quality and lower CPU usage.  
+Use preferable YUV(YUY2) or XRGB(RGB32) encoding formats if it's possible. They provide better quality and lower CPU usage.  
   
-We do not support driving WS281x or especially SK6812 LED strips directly from the Raspberry Pi. If you made it and it works, fine, but most of our users weren't so lucky. You should use external ESP8266/ESP32 (preferable with CH340G or CP2104 onboard) and voltage level shifter.  
+We do not support driving WS281x or especially SK6812 LED strips directly from the Raspberry Pi. If you made it and it works, fine, but most of our users weren't so lucky. You should use external ESP8266/ESP32 (preferable with CH340G or CP2104 onboard) and the voltage level shifter. :warning:  
 
 Usage of WS281x LED strip with Rpi directly (PWM mode) requires _root_ privilages. Otherwise you may get _'Error message: mmap() failed'_ ([read more](https://github.com/awawa-dev/HyperHDR/issues/52)) :warning:
 
-It's possible to switch off/on HDR tone mapping remotely with home automation system. You can build commands for HyperHDR using out JSON API playground :new:
+It's possible to switch off/on HDR tone mapping remotely with home automation system. You can build commands for HyperHDR using our JSON API playground :new:
   
   
 **Before and after HyperHDR LUT correction on HDR/BT2020 video that was broken by the USB grabber.\
