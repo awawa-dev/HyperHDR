@@ -69,6 +69,7 @@ SSH and SPI are enabled on default.
 - Re-implemented backup import / export functions for ALL instances :new:
 - New video stream crop method in JSON API and GET multi-command support :new:
 - JSON API documentation in a form of live playground in 'Advanced' tab :new:
+- New installer for Raspberry Pi 3 & 4 64bit OS (AARCH64), faster up to 30% over 32bit OS armv7l version :new:
 - Fix for WLED new network protocol :new:
 - LED grouping *aka* PC mode *aka* gradient mode, can help with eye fatigue when used with the monitor, each LED in the group has same average color :new:
 - Add timeout for the anti-flickering filter :new:

@@ -75,7 +75,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 	if(type == "priorities-update")
 	{
 		if (unsubscribe)
-			disconnect(_prioMuxer,0 ,0 ,0);
+			disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate);
 		else
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
 	}
