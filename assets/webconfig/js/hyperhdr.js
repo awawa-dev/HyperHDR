@@ -32,8 +32,8 @@ window.defaultPasswordIsSet = null;
 tokenList = {};
 
 var lastSelectedInstanceCache = getStorage('lastSelectedInstance', false);
-window.currentHyperHdrInstance = (lastSelectedInstanceCache!=null) ? lastSelectedInstanceCache : 0;
-window.currentHyperHdrInstanceName = (lastSelectedInstanceCache!=null) ? getInstanceNameByIndex(lastSelectedInstanceCache) : '?';
+window.currentHyperHdrInstance = 0;
+window.currentHyperHdrInstanceName = getInstanceNameByIndex(window.currentHyperHdrInstance);
 
 function storageComp()
 {
@@ -78,13 +78,13 @@ function removeStorage(item, session)
 
 function getInstanceNameByIndex(index)
 {
-	var instData = window.serverInfo.instance
+	var instData = window.serverInfo.instance;
 	for(var key in instData)
 	{
 		if(instData[key].instance == index)
 			return instData[key].friendly_name;
 	}
-	return "unknown"
+	return "unknown";
 }
 
 function initRestart()
@@ -186,7 +186,7 @@ function initWebSocket()
 					var response = JSON.parse(event.data);
 					var success = response.success;
 					var cmd = response.command;
-					var tan = response.tan
+					var tan = response.tan;
 					if (success || typeof(success) == "undefined")
 					{
 						$(window.hyperhdr).trigger({type:"cmd-"+cmd, response:response});
@@ -197,20 +197,20 @@ function initWebSocket()
 					    if(tan != -1){
 					      var error = response.hasOwnProperty("error")? response.error : "unknown";
 					      $(window.hyperhdr).trigger({type:"error",reason:error});
-					      console.log("[window.websocket::onmessage] ",error)
+					      console.log("[window.websocket::onmessage] ",error);
 					    }
 					}
 				}
 				catch(exception_error)
 				{
 					$(window.hyperhdr).trigger({type:"error",reason:exception_error});
-					console.log("[window.websocket::onmessage] ",exception_error)
+					console.log("[window.websocket::onmessage] ",exception_error);
 				}
 			};
 
 			window.websocket.onerror = function (error) {
 				$(window.hyperhdr).trigger({type:"error",reason:error});
-				console.log("[window.websocket::onerror] ",error)
+				console.log("[window.websocket::onerror] ",error);
 			};
 		}
 	}
@@ -245,43 +245,60 @@ function sendToHyperhdr(command, subcommand, msg)
 // tan:        The optional tan, default 1. If the tan is -1, we skip global response error handling
 // Returns data of response or false if timeout
 async function sendAsyncToHyperhdr (command, subcommand, data, tan = 1) {
-  let obj = { command, tan }
-  if (subcommand) {Object.assign(obj, {subcommand})}
-  if (data) { Object.assign(obj, data) }
-
-  //if (process.env.DEV || sstore.getters['common/getDebugState']) console.log('SENDAS', obj)
-  return __sendAsync(obj)
+	let obj = { command, tan };
+	
+	if (subcommand) 
+	{
+		Object.assign(obj, {subcommand});
+	}
+	
+	if (data)
+	{
+		Object.assign(obj, data);
+	}
+	
+	//if (process.env.DEV || sstore.getters['common/getDebugState']) console.log('SENDAS', obj)
+	return __sendAsync(obj);
 }
 
 // Send a json message to Hyperhdr and wait for a matching response
 // A response matches, when command(+subcommand) of request and response is the same
 // Returns data of response or false if timeout
 async function __sendAsync (data) {
-  return new Promise((resolve, reject) => {
-    let cmd = data.command
-    let subc = data.subcommand
-    let tan = data.tan;
-    if (subc)
-      cmd = `${cmd}-${subc}`
+	return new Promise((resolve, reject) => {
+		let cmd = data.command;
+		let subc = data.subcommand;
+		let tan = data.tan;
+		
+		if (subc)
+		  cmd = `${cmd}-${subc}`;
 
-    let func = (e) => {
-      let rdata;
-      try {
-        rdata = JSON.parse(e.data)
-      } catch (error) {
-        console.error("[window.websocket::onmessage] ",error)
-        resolve(false)
-      }
-      if (rdata.command == cmd && rdata.tan == tan) {
-        window.websocket.removeEventListener('message', func)
-        resolve(rdata)
-      }
-    }
-    // after 7 sec we resolve false
-    setTimeout(() => { window.websocket.removeEventListener('message', func); resolve(false) }, 7000)
-    window.websocket.addEventListener('message', func)
-    window.websocket.send(JSON.stringify(data) + '\n')
-  })
+		let func = (e) => {
+			let rdata;
+		  
+			try
+			{
+				rdata = JSON.parse(e.data);
+			}
+			catch (error)
+			{
+				console.error("[window.websocket::onmessage] ",error);
+				resolve(false);
+			}
+		  
+			if (rdata.command == cmd && rdata.tan == tan)
+			{
+				window.websocket.removeEventListener('message', func);
+				resolve(rdata);
+			}
+		};
+		
+		// after 7 sec we resolve false
+		setTimeout(() => { window.websocket.removeEventListener('message', func); resolve(false); }, 7000);
+		
+		window.websocket.addEventListener('message', func);
+		window.websocket.send(JSON.stringify(data) + '\n');
+	})
 }
 
 // -----------------------------------------------------------

@@ -115,7 +115,7 @@ function updateHyperhdrInstanceListing()
 	$('#hyp_inst_listing').html("");
 	for(var key in data)
 	{
-		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? "component-on fa-circle" : "component-none icon-invisible";
+		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? "fa-arrow-circle-right my-text-success" : "";
 		var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
 		
 		var myName = data[key].friendly_name;
@@ -125,8 +125,8 @@ function updateHyperhdrInstanceListing()
 		
 		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			  
 						'<div class="d-flex" style="cursor: pointer;">'+
-							'<div class="flex ps-1 pe-1"><i class="fa ' + currInstMarker + '"></i></div>'+
-							'<div class="flex pe-2 ' + currTextMarker + '"><span>'+myName+'</span></div>'+
+							'<div class="flex ps-1 pe-1 fa-stack fa-1x"><i class="fa fa-stack-1x ' + currInstMarker + '"></i><i class="fa-stack-1x fa icon-invisible"></i></div>'+
+							'<div class="flex pe-2 ' + currTextMarker + '"><span class="h-100" style="display: inline-flex; align-items: center;">'+myName+'</span></div>'+
 						'</div>'+
 				   '</a></li>';
 

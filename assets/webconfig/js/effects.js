@@ -1,10 +1,7 @@
 $(document).ready( function() {
 	performTranslation();
 	var oldEffects = [];
-	var effects_editor = null;
-	var confFgEff = window.serverConfig.foregroundEffect.effect;
-	var confBgEff = window.serverConfig.backgroundEffect.effect;
-	var soundDevice = window.serverConfig.soundEffect.device;
+	var effects_editor = null;	
 	var foregroundEffect_editor = null;
 	var backgroundEffect_editor = null;
 	var soundEffect_editor = null;
@@ -103,14 +100,14 @@ $(document).ready( function() {
 	$('#btn_submit_foregroundEffect').off().on('click',function() {
 		var value = foregroundEffect_editor.getValue();
 		if(typeof value.foregroundEffect.effect == 'undefined')
-			value.foregroundEffect.effect = window.serverConfig.foregroundEffect.effect;
+			value.foregroundEffect.effect = window.serverConfig.foregroundEffect?.effect;
 		requestWriteConfig(value);
 	});
 
 	$('#btn_submit_backgroundEffect').off().on('click',function() {
 		var value = backgroundEffect_editor.getValue();
 		if(typeof value.backgroundEffect.effect == 'undefined')
-			value.backgroundEffect.effect = window.serverConfig.backgroundEffect.effect;
+			value.backgroundEffect.effect = window.serverConfig.backgroundEffect?.effect;
 		requestWriteConfig(value);
 	});
 
@@ -119,7 +116,7 @@ $(document).ready( function() {
 		$('#btn_submit_soundEffect').off().on('click',function() {
 			var value = soundEffect_editor.getValue();
 			if(typeof value.soundEffect.device == 'undefined')
-				value.soundEffect.device = window.serverConfig.soundEffect.device;
+				value.soundEffect.device = window.serverConfig.soundEffect?.device;
 			requestWriteConfig(value);
 		});
 	};
