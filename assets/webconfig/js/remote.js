@@ -362,7 +362,7 @@ $(document).ready(function()
 				var btn_style = 'btn-success';
 			else
 				var btn_style = 'btn-primary';
-			$('#videomodehdrbtns').append('<button type="button" id="vModeHdrBtn_' + videoModesVal[ix] + '" class="btn ' + btn_style + '" style="margin:3px;min-width:200px" onclick="requestVideoModeHdr(' + videoModesVal[ix] + ');">' + videoModes[ix] + '</button><br/>');
+			$('#videomodehdrbtns').append('<div class="row"><button type="button" id="vModeHdrBtn_' + videoModesVal[ix] + '" class="btn ' + btn_style + '" style="margin:3px;min-width:200px" onclick="requestVideoModeHdr(' + videoModesVal[ix] + ');">' + videoModes[ix] + '</button></div>');
 		}
 	}
 
