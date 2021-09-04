@@ -811,7 +811,27 @@ $(document).ready(function()
 			var yeelight_title = 'wiz_yeelight_title';
 			changeWizard(data, yeelight_title, startWizardYeelight);
 		}
-
+		else if (ledType == "adalight")
+		{					
+			if (!(window.serverInfo.serialPorts == null || window.serverInfo.serialPorts.length == 0 || $("#selectPortSerial").length > 0))
+			{
+				let sPort = $("<select id=\"selectPortSerial\" />");				
+				sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
+				
+				$("<option />", {value: "auto", text: $.i18n("remote_input_setsource_btn")}).appendTo(sPort);
+				(window.serverInfo.serialPorts).forEach(function (val) {
+					$("<option />", {value: val.port, text: val.desc}).appendTo(sPort);
+				});
+				
+				$("input[name='root[specificOptions][output]']")[0].style.width = String(58) + "%";
+				$("input[name='root[specificOptions][output]']")[0].parentElement.appendChild(sPort[0]);
+				
+				sPort.off().on('change', function () {
+					conf_editor.getEditor('root.specificOptions.output').setValue(sPort.val());
+				});				
+			}
+		}
+		
 		function changeWizard(data, hint, fn)
 		{
 			$('#btn_wiz_holder').html("")
