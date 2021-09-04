@@ -818,7 +818,7 @@ $(document).ready(function()
 				let sPort = $("<select id=\"selectPortSerial\" />");				
 				sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
 				
-				$("<option />", {value: "auto", text: $.i18n("remote_input_setsource_btn")}).appendTo(sPort);
+				$("<option />", {value: "auto", text: $.i18n("edt_dev_spec_outputPath_title")}).appendTo(sPort);
 				(window.serverInfo.serialPorts).forEach(function (val) {
 					$("<option />", {value: val.port, text: val.desc}).appendTo(sPort);
 				});
