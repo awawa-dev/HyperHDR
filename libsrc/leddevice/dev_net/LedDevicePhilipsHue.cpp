@@ -753,6 +753,15 @@ bool PhilipsHueLight::isBusy(QSemaphore *_semaphore)
 	return temp;
 }
 
+void PhilipsHueLight::setBlack()
+{
+	CiColor black;
+	black.bri = 0;
+	black.x = 0;
+	black.y = 0;
+	setColor(black);
+}
+
 bool PhilipsHueLight::isBlack(bool isBlack)
 {
 	if (!isBlack)
@@ -832,7 +841,10 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 
 	QJsonObject state;
 	state["on"] = lState["on"];
-	_originalColor = _colorBlack;
+	_originalColor = CiColor();
+	_originalColor.bri = 0;
+	_originalColor.x = 0;
+	_originalColor.y = 0;
 	QString c;
 	if (state[API_STATE_ON].toBool())
 	{
@@ -1219,6 +1231,19 @@ bool LedDevicePhilipsHue::startStream()
 
 bool LedDevicePhilipsHue::stopStream()
 {
+	// Set to black
+	if (!_lightIds.empty() && _isDeviceReady && !_stopConnection && _useHueEntertainmentAPI)
+	{
+		for (PhilipsHueLight& light : _lights)
+		{
+			light.setBlack();
+		}
+
+		writeStream();
+
+		QThread::msleep(10);
+	}	
+
 	ProviderUdpSSL::closeSSLConnection();
 
 	bool rc = false;

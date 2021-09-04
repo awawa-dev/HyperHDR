@@ -185,6 +185,7 @@ public:
 	bool isBusy(QSemaphore *_semaphore);
 	bool isBlack(bool isBlack);
 	bool isWhite(bool isWhite);
+	void setBlack();
 	void blackScreenTriggered();
 private:
 
