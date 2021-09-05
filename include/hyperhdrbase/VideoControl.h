@@ -65,4 +65,6 @@ private:
 	QString	_usbCaptName;
 	QTimer	_usbInactiveTimer;
 	bool	_isCEC;
+
+	static bool	_stream;
 };

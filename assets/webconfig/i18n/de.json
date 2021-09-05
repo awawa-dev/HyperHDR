@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Bildschirmfoto",
   "edt_conf_enum_linear_alternative": "Alternativ linear (schneller)",
   "edt_conf_smooth_antiFlickeringTimeout_title": "Anti-Flimmer-Timeout",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "Erlauben Sie, eine RGB-LED-Farbe nach einer benutzerdefinierten Zeit in Millisekunden zu ändern, auch wenn der Schritt unter dem Minimum liegt (0 = deaktiviert, andernfalls beträgt der vorgeschlagene Wert mindestens 3000, was 3 Sekunden ergibt)",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "Erlauben Sie, eine RGB-LED-Farbe nach einer benutzerdefinierten Zeit in Millisekunden zu ändern, auch wenn der Schritt unter dem Minimum liegt (0 = deaktiviert, andernfalls beträgt der vorgeschlagene Wert mindestens 500, was 0.5 Sekunden ergibt)",
   "dashboard_current_video_device": "Videogerät",
   "dashboard_current_video_mode": "Video Modus",
   "general_comp_HDR": "HDR (global)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "Klare Priorität von Effekten und voreingestellten Farben.",
   "json_api_hdr": "HDR-Modus",
   "json_api_hdr_expl": "Schalten Sie das HDR-Tone-Mapping für den USB-Grabber ein/aus. Der 'Grenzmodus' funktioniert nur für MJPEG-Streams.",
-  "json_api_components_expl_multi": "Sie können mehrere Befehle mit nur einem Link ausführen. Die maximale Länge beträgt 2048 Zeichen. Sie werden alle ausgeführt, aber Sie erhalten nur eine Antwort (überprüfen Sie die Protokolle für alle Ausgaben). Geben Sie einfach den Inhalt der <code>Anfrage</code> Ihres Links in das folgende Format ein (beachten Sie das erste '?'-Zeichen und das nächste '&'-Zeichen):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
+  "json_api_components_expl_multi": "Sie können mehrere Befehle mit nur einem Link ausführen. Die maximale Länge beträgt 2048 Zeichen. Sie werden alle ausgeführt, aber Sie erhalten nur eine Antwort (überprüfen Sie die Protokolle für alle Ausgaben). Geben Sie einfach den Inhalt der <code>Anfrage</code> Ihres Links in das folgende Format ein (beachten Sie das erste '?'-Zeichen und das nächste '&'-Zeichen):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
+  "edt_conf_stream_autoResume_title": "Automatisch fortsetzen",
+  "edt_conf_stream_autoResume_expl": "Versuchen Sie, die Videoaufnahme neu zu starten, wenn der Videostream stoppt. Seien Sie vorsichtig, da dies kein Heilmittel für Hardwareprobleme des Grabbers ist."
 }

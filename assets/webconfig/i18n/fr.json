@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Capture d'écran",
   "edt_conf_enum_linear_alternative": "Linéaire alternatif (plus rapide)",
   "edt_conf_smooth_antiFlickeringTimeout_title": "Délai d'attente anti-scintillement",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "Permet de changer une couleur de led RVB, après un temps personnalisé en millisecondes, même si le pas est en dessous du minimum (0 = désactivé, sinon la valeur proposée est d'au moins 3000 ce qui donne 3 secondes)",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "Permet de changer une couleur de led RVB, après un temps personnalisé en millisecondes, même si le pas est en dessous du minimum (0 = désactivé, sinon la valeur proposée est d'au moins 500 ce qui donne 0.5 secondes)",
   "dashboard_current_video_device": "Appareil vidéo",
   "dashboard_current_video_mode": "Mode vidéo",
   "general_comp_HDR": "HDR (mondial)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "Effacer la priorité des effets et des couleurs prédéfinies.",
   "json_api_hdr": "Mode HDR",
   "json_api_hdr_expl": "Activez/désactivez le mappage de tonalité HDR pour la capture USB. Le « mode frontière » ne fonctionne que pour le flux MJPEG.",
-  "json_api_components_expl_multi": "Vous pouvez exécuter plusieurs commandes avec un seul lien. La longueur maximale est de 2048 caractères. Ils seront tous exécutés mais vous ne recevrez qu'une seule réponse (consultez les journaux pour toutes les sorties). Mettez simplement le contenu de la <code>request</code> de vos liens dans le format (notez le premier caractère '?' et les caractères '&' suivants) :<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
+  "json_api_components_expl_multi": "Vous pouvez exécuter plusieurs commandes avec un seul lien. La longueur maximale est de 2048 caractères. Ils seront tous exécutés mais vous ne recevrez qu'une seule réponse (consultez les journaux pour toutes les sorties). Mettez simplement le contenu de la <code>request</code> de vos liens dans le format (notez le premier caractère '?' et les caractères '&' suivants) :<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
+  "edt_conf_stream_autoResume_title": "Reprise automatique",
+  "edt_conf_stream_autoResume_expl": "Essayez de redémarrer la capture vidéo si le flux vidéo s'arrête. A utiliser avec prudence car ce n'est pas un remède aux problèmes matériels de la pince."
 }

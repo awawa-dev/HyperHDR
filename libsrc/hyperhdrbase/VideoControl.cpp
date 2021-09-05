@@ -2,11 +2,15 @@
 
 #include <hyperhdrbase/HyperHdrInstance.h>
 
+#include <hyperhdrbase/GrabberWrapper.h>
+
 // utils includes
 #include <utils/GlobalSignals.h>
 
 // qt includes
 #include <QTimer>
+
+bool VideoControl::_stream = false;
 
 VideoControl::VideoControl(HyperHdrInstance* hyperhdr)
 	: QObject()
@@ -41,6 +45,7 @@ bool VideoControl::isCEC()
 
 void VideoControl::handleUsbImage(const QString& name, const Image<ColorRgb> & image)
 {
+	_stream = true;
 	if(_usbCaptName != name)
 	{
 		_hyperhdr->registerInput(_usbCaptPrio, hyperhdr::COMP_VIDEOGRABBER, "System", name);
@@ -103,6 +108,15 @@ void VideoControl::handleCompStateChangeRequest(hyperhdr::Components component, 
 void VideoControl::setUsbInactive()
 {
 	if (!_alive)
+	{
 		_hyperhdr->setInputInactive(_usbCaptPrio);
+
+		if (_stream)
+		{
+			_stream = false;
+			if (GrabberWrapper::getInstance())
+				GrabberWrapper::getInstance()->revive();
+		}
+	}
 	_alive = false;
 }

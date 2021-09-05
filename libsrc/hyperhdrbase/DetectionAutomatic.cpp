@@ -571,3 +571,8 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 
 	return true;
 }
+
+bool DetectionAutomatic::getDetectionAutoSignal()
+{
+	return _noSignal;
+}

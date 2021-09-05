@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Screenshot",
   "edt_conf_enum_linear_alternative": "Alternative linear (faster)",
   "edt_conf_smooth_antiFlickeringTimeout_title" : "Anti-flickering timeout",
-  "edt_conf_smooth_antiFlickeringTimeout_expl" : "Allow to change a RGB led color, after custom time in miliseconds, even if the step is below minimum (0 = disabled, otherwise proposed value is at least 3000 which gives 3 seconds)",
+  "edt_conf_smooth_antiFlickeringTimeout_expl" : "Allow to change a RGB led color, after custom time in miliseconds, even if the step is below minimum (0 = disabled, otherwise proposed value is at least 500 which gives 0.5 seconds)",
   "dashboard_current_video_device" : "Video device",
   "dashboard_current_video_mode" : "Video mode",
   "general_comp_HDR" : "HDR (global)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl" : "Clear priority from effects and preset colors.",
   "json_api_hdr" : "HDR mode",
   "json_api_hdr_expl" : "Turn on/off HDR tone mapping for USB grabber. 'Border mode' works only for MJPEG stream.",
-  "json_api_components_expl_multi":"You can run multiple commands with just one link. Maximum lenght is 2048 chars. They all will be executed but you will receive only one response (check out logs for all the output). Just put your links' <code>request</code> content into the format (note first '?' char and next '&' chars):<br><code>http://IP:PORT/json-rpc?request=request1&request=request2&request=request3...</code>"
+  "json_api_components_expl_multi":"You can run multiple commands with just one link. Maximum lenght is 2048 chars. They all will be executed but you will receive only one response (check out logs for all the output). Just put your links' <code>request</code> content into the format (note first '?' char and next '&' chars):<br><code>http://IP:PORT/json-rpc?request=request1&request=request2&request=request3...</code>",
+  "edt_conf_stream_autoResume_title" : "Auto resume",
+  "edt_conf_stream_autoResume_expl" : "Try restarting video capture if the video stream stops. Use with caution as it is not a cure for hardware problems of the grabber."
 } 

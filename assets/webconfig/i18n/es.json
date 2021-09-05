@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Captura de pantalla",
   "edt_conf_enum_linear_alternative": "Lineal alternativo (más rápido)",
   "edt_conf_smooth_antiFlickeringTimeout_title": "Tiempo de espera anti-parpadeo",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "Permitir cambiar un color de led RGB, después del tiempo personalizado en milisegundos, incluso si el paso está por debajo del mínimo (0 = deshabilitado, de lo contrario el valor propuesto es al menos 3000 lo que da 3 segundos)",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "Permitir cambiar un color de led RGB, después del tiempo personalizado en milisegundos, incluso si el paso está por debajo del mínimo (0 = deshabilitado, de lo contrario el valor propuesto es al menos 500 lo que da 0.5 segundos)",
   "dashboard_current_video_device": "Dispositivo de video",
   "dashboard_current_video_mode": "Modo de vídeo",
   "general_comp_HDR": "HDR (global)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "Prioridad clara de efectos y colores preestablecidos.",
   "json_api_hdr": "Modo HDR",
   "json_api_hdr_expl": "Activa / desactiva el mapeo de tonos HDR para capturador USB. El 'modo de borde' funciona solo para la transmisión MJPEG.",
-  "json_api_components_expl_multi": "Puede ejecutar varios comandos con un solo enlace. La longitud máxima es de 2048 caracteres. Todos se ejecutarán, pero solo recibirá una respuesta (consulte los registros para ver todos los resultados). Simplemente coloque el contenido de su enlace '<code> request </code> en el formato (observe primero el carácter'? 'Y el siguiente carácter' & '): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>"
+  "json_api_components_expl_multi": "Puede ejecutar varios comandos con un solo enlace. La longitud máxima es de 2048 caracteres. Todos se ejecutarán, pero solo recibirá una respuesta (consulte los registros para ver todos los resultados). Simplemente coloque el contenido de su enlace '<code> request </code> en el formato (observe primero el carácter'? 'Y el siguiente carácter' & '): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
+  "edt_conf_stream_autoResume_title": "Reanudación automática",
+  "edt_conf_stream_autoResume_expl": "Intente reiniciar la captura de video si la transmisión de video se detiene. Úselo con precaución, ya que no es una cura para los problemas de hardware del grabador."
 }

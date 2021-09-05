@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Skärmdump",
   "edt_conf_enum_linear_alternative": "Alternativ linjär (snabbare)",
   "edt_conf_smooth_antiFlickeringTimeout_title": "Anti-flimrande timeout",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "Tillåt att ändra en RGB -ledfärg efter anpassad tid i milisekunder, även om steget är under minimum (0 = inaktiverat, annars är föreslaget värde minst 3000 vilket ger 3 sekunder)",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "Tillåt att ändra en RGB -ledfärg efter anpassad tid i milisekunder, även om steget är under minimum (0 = inaktiverat, annars är föreslaget värde minst 500 vilket ger 0.5 sekunder)",
   "dashboard_current_video_device": "Videoenhet",
   "dashboard_current_video_mode": "Video läge",
   "general_comp_HDR": "HDR (globalt)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "Tydlig prioritet från effekter och förinställda färger.",
   "json_api_hdr": "HDR -läge",
   "json_api_hdr_expl": "Slå på/av HDR -tonmappning för USB -gripare. \"Gränsläge\" fungerar endast för MJPEG -ström.",
-  "json_api_components_expl_multi": "Du kan köra flera kommandon med bara en länk. Maxlängd är 2048 tecken. Alla kommer att köras men du får bara ett svar (kolla in loggar för all utmatning). Lägg bara in dina länks <code> begäran </code> innehåll i formatet (notera först '?' Char och nästa '&' tecken): <br> <code> http: // IP: PORT/json-rpc? request = request1 & request = request2 & request = request3 ... </code>"
+  "json_api_components_expl_multi": "Du kan köra flera kommandon med bara en länk. Maxlängd är 2048 tecken. Alla kommer att köras men du får bara ett svar (kolla in loggar för all utmatning). Lägg bara in dina länks <code> begäran </code> innehåll i formatet (notera först '?' Char och nästa '&' tecken): <br> <code> http: // IP: PORT/json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
+  "edt_conf_stream_autoResume_title": "Återuppta automatiskt",
+  "edt_conf_stream_autoResume_expl": "Prova att starta om videoinspelningen om videoströmmen stannar. Använd med försiktighet eftersom det inte är ett botemedel mot maskinvaruproblem hos griparen."
 }

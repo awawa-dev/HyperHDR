@@ -20,6 +20,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber* ggrabber)
 	, _grabber(ggrabber)
 	, _cecHdrStart(0)
 	, _cecHdrStop(0)
+	, _autoResume(false)
 {
 	GrabberWrapper::instance = this;
 
@@ -343,6 +344,12 @@ DetectionAutomatic::calibrationPoint GrabberWrapper::parsePoint(int width, int h
 	return p;	
 }
 
+void GrabberWrapper::revive()
+{
+	if (_grabber != nullptr && _autoResume)
+		QMetaObject::invokeMethod(_grabber, "revive", Qt::QueuedConnection);
+}
+
 void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if (type == settings::type::VIDEODETECTION && _grabber != nullptr)
@@ -396,6 +403,13 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			// extract settings
 			const QJsonObject& obj = config.object();
 
+			// auto resume
+			if (_autoResume != obj["autoResume"].toBool(false))
+			{
+				_autoResume = obj["autoResume"].toBool(false);
+				Debug(_log, "Auto resume is: %s",(_autoResume)?"enabled":"disabled");
+			}
+			
 			// crop for video
 			_grabber->setCropping(
 				obj["cropLeft"].toInt(0),

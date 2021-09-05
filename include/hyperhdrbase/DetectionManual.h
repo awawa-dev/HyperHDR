@@ -18,6 +18,8 @@ class DetectionManual
 public:
 	DetectionManual();
 
+	bool getDetectionManualSignal();
+
 	bool checkSignalDetectionManual(Image<ColorRgb>& image);
 
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);

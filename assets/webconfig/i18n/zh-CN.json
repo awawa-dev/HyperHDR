@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "截屏",
   "edt_conf_enum_linear_alternative": "替代线性（更快）",
   "edt_conf_smooth_antiFlickeringTimeout_title": "防闪烁超时",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "允许在自定义时间（以毫秒为单位）之后更改 RGB LED 颜色，即使步长低于最小值（0 = 禁用，否则建议值至少为 3000，即提供 3 秒）",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "允许在自定义时间（以毫秒为单位）之后更改 RGB LED 颜色，即使步长低于最小值（0 = 禁用，否则建议值至少为 500，即提供 0.5 秒）",
   "dashboard_current_video_device": "视频设备",
   "dashboard_current_video_mode": "视频模式",
   "general_comp_HDR": "HDR（全球）",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "清除效果和预设颜色的优先级。",
   "json_api_hdr": "HDR模式",
   "json_api_hdr_expl": "打开/关闭 USB 采集卡的 HDR 色调映射。 “边框模式”仅适用于 MJPEG 流。",
-  "json_api_components_expl_multi": "您只需一个链接即可运行多个命令。最大长度为 2048 个字符。它们都将被执行，但您只会收到一个响应（查看所有输出的日志）。只需将您的链接的 <code>request</code> 内容放入格式中（注意首先是“?”字符，然后是“&”字符）：<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
+  "json_api_components_expl_multi": "您只需一个链接即可运行多个命令。最大长度为 2048 个字符。它们都将被执行，但您只会收到一个响应（查看所有输出的日志）。只需将您的链接的 <code>request</code> 内容放入格式中（注意首先是“?”字符，然后是“&”字符）：<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
+  "edt_conf_stream_autoResume_title": "自动恢复",
+  "edt_conf_stream_autoResume_expl": "如果视频流停止，请尝试重新启动视频捕获。谨慎使用，因为它不能解决抓取器的硬件问题。"
 }

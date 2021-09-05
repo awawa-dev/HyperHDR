@@ -215,7 +215,16 @@
 				}
 			},			
 			"propertyOrder" : 53
-		},		
+		},
+		"autoResume" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_stream_autoResume_title",
+			"default" : false,
+			"required" : true,			
+			"propertyOrder" : 54
+		},
 		"autoSignalDetection" :
 		{
 			"type" : "boolean",
@@ -223,7 +232,7 @@
 			"title" : "edt_conf_stream_automatic_signalDetection_title",
 			"default" : false,
 			"required" : true,			
-			"propertyOrder" : 54
+			"propertyOrder" : 55
 		},
 		"saveResources" :
 		{
@@ -237,7 +246,7 @@
 					"autoSignalDetection": true
 				}
 			},
-			"propertyOrder" : 55
+			"propertyOrder" : 56
 		},
 		"errorTolerance" :
 		{
@@ -253,7 +262,7 @@
 					"autoSignalDetection": true
 				}
 			},			
-			"propertyOrder" : 56
+			"propertyOrder" : 57
 		},
 		"modelTolerance" :
 		{
@@ -271,7 +280,7 @@
 					"autoSignalDetection": true
 				}
 			},			
-			"propertyOrder" : 57
+			"propertyOrder" : 58
 		},
 		"sleepTime" :
 		{
@@ -288,7 +297,7 @@
 					"autoSignalDetection": true
 				}
 			},			
-			"propertyOrder" : 58
+			"propertyOrder" : 59
 		},
 		"wakeTime" :
 		{
@@ -305,7 +314,7 @@
 					"autoSignalDetection": true
 				}
 			},			
-			"propertyOrder" : 59
+			"propertyOrder" : 60
 		},
 		"signalDetection" :
 		{
@@ -319,7 +328,7 @@
 					"autoSignalDetection": false
 				}
 			},
-			"propertyOrder" : 60
+			"propertyOrder" : 61
 		},
 		"redSignalThreshold" :
 		{
@@ -336,7 +345,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 61
+			"propertyOrder" : 62
 		},
 		"greenSignalThreshold" :
 		{
@@ -353,7 +362,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 62
+			"propertyOrder" : 63
 		},
 		"blueSignalThreshold" :
 		{
@@ -370,7 +379,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 63
+			"propertyOrder" : 64
 		},
 		"noSignalCounterThreshold" :
 		{
@@ -386,7 +395,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 64
+			"propertyOrder" : 65
 		},		
 		"sDVOffsetMin" :
 		{
@@ -403,7 +412,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 65
+			"propertyOrder" : 66
 		},
 		"sDVOffsetMax" :
 		{
@@ -420,7 +429,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 66
+			"propertyOrder" : 67
 		},
 		"sDHOffsetMin" :
 		{
@@ -437,7 +446,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 67
+			"propertyOrder" : 68
 		},
 		"sDHOffsetMax" :
 		{
@@ -454,7 +463,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 68
+			"propertyOrder" : 69
 		}
 	},
 	"additionalProperties" : false

@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Schermafbeelding",
   "edt_conf_enum_linear_alternative": "Alternatief lineair (sneller)",
   "edt_conf_smooth_antiFlickeringTimeout_title": "Anti-flikkering time-out",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "Sta toe om een RGB led-kleur te veranderen, na aangepaste tijd in milliseconden, zelfs als de stap onder het minimum is (0 = uitgeschakeld, anders is de voorgestelde waarde minstens 3000 wat 3 seconden geeft)",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "Sta toe om een RGB led-kleur te veranderen, na aangepaste tijd in milliseconden, zelfs als de stap onder het minimum is (0 = uitgeschakeld, anders is de voorgestelde waarde minstens 500 wat 0.5 seconden geeft)",
   "dashboard_current_video_device": "Videoapparaat",
   "dashboard_current_video_mode": "Videomodus",
   "general_comp_HDR": "HDR (wereldwijd)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "Duidelijke prioriteit van effecten en vooraf ingestelde kleuren.",
   "json_api_hdr": "HDR-modus",
   "json_api_hdr_expl": "Schakel HDR-toontoewijzing voor USB-grabber in/uit. 'Border-modus' werkt alleen voor MJPEG-stream.",
-  "json_api_components_expl_multi": "U kunt meerdere opdrachten uitvoeren met slechts één link. Maximale lengte is 2048 tekens. Ze worden allemaal uitgevoerd, maar u ontvangt slechts één reactie (bekijk de logs voor alle uitvoer). Plaats de <code>verzoek</code>-inhoud van uw links in het formaat (let op eerste '?'-teken en volgende '&'-tekens):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
+  "json_api_components_expl_multi": "U kunt meerdere opdrachten uitvoeren met slechts één link. Maximale lengte is 2048 tekens. Ze worden allemaal uitgevoerd, maar u ontvangt slechts één reactie (bekijk de logs voor alle uitvoer). Plaats de <code>verzoek</code>-inhoud van uw links in het formaat (let op eerste '?'-teken en volgende '&'-tekens):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
+  "edt_conf_stream_autoResume_title": "Automatisch hervatten",
+  "edt_conf_stream_autoResume_expl": "Probeer de video-opname opnieuw te starten als de videostream stopt. Wees voorzichtig, want het is geen remedie voor hardwareproblemen van de grabber."
 }

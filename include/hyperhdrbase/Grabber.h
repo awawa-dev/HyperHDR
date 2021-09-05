@@ -14,6 +14,7 @@
 #include <hyperhdrbase/DetectionAutomatic.h>
 
 #include <QMultiMap>
+#include <QSemaphore>
 
 
 #if  defined(_WIN32) || defined(WIN32)
@@ -142,6 +143,8 @@ public slots:
 
 	virtual void newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount) = 0;
 
+	void revive();
+
 signals:
 	void newFrame(const Image<ColorRgb>& image);
 
@@ -231,6 +234,7 @@ protected:
 
 	bool		_signalDetectionEnabled;
 	bool		_signalAutoDetectionEnabled;
+	QSemaphore  _synchro;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

@@ -42,6 +42,7 @@ Grabber::Grabber(const QString& grabberName, int width, int height, int cropLeft
 	, _frameByteSize(-1)
 	, _signalDetectionEnabled(false)
 	, _signalAutoDetectionEnabled(false)
+	, _synchro(1)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
@@ -569,4 +570,34 @@ void Grabber::setAutoSignalDetectionEnable(bool enable)
 		_signalAutoDetectionEnabled = enable;
 		Info(_log, "Automatic signal detection is now %s", enable ? "enabled" : "disabled");
 	}
+}
+
+void Grabber::revive()
+{
+	bool checkSignal = false;
+
+	if (_signalAutoDetectionEnabled)
+	{
+		checkSignal = getDetectionAutoSignal();
+	}
+	else if (_signalDetectionEnabled)
+	{
+		checkSignal = getDetectionManualSignal();
+	}
+
+	if (checkSignal)
+	{
+		Warning(_log, "The video control requested for the grabber restart due to signal lost, but it's caused by signal detection. No restart.");
+		return;
+	}
+
+	if (_synchro.tryAcquire())
+	{
+		Warning(_log, "The video control requested for the grabber restart due to signal lost");
+		stop();
+		start();
+		_synchro.release();
+	}
+	else
+		Warning(_log, "The video control requested for the grabber restart due to signal lost, but other instance already handled it");
 }

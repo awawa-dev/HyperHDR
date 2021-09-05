@@ -84,3 +84,8 @@ void DetectionManual::setSignalDetectionOffset(double horizontalMin, double vert
 	
 	Debug(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
 }
+
+bool DetectionManual::getDetectionManualSignal()
+{
+	return !_noSignalDetected;
+}

@@ -1002,7 +1002,7 @@
   "main_ledsim_btn_screenshot": "Ekran görüntüsü",
   "edt_conf_enum_linear_alternative": "Alternatif doğrusal (daha hızlı)",
   "edt_conf_smooth_antiFlickeringTimeout_title": "Titreşimsiz zaman aşımı",
-  "edt_conf_smooth_antiFlickeringTimeout_expl": "Adım minimumun altında olsa bile (0 = devre dışı, aksi takdirde önerilen değer en az 3000'dir ve bu 3 saniye verir) özel süreden sonra RGB led rengini değiştirmeye izin ver",
+  "edt_conf_smooth_antiFlickeringTimeout_expl": "Adım minimumun altında olsa bile (0 = devre dışı, aksi takdirde önerilen değer en az 500'dir ve bu 0.5 saniye verir) özel süreden sonra RGB led rengini değiştirmeye izin ver",
   "dashboard_current_video_device": "video cihazı",
   "dashboard_current_video_mode": "Video modu",
   "general_comp_HDR": "HDR (küresel)",
@@ -1125,5 +1125,7 @@
   "json_api_clear_expl": "Efektlerden ve önceden ayarlanmış renklerden önceliği temizleyin.",
   "json_api_hdr": "HDR modu",
   "json_api_hdr_expl": "USB yakalayıcı için HDR ton eşlemesini açın/kapatın. 'Sınır modu' yalnızca MJPEG akışı için çalışır.",
-  "json_api_components_expl_multi": "Tek bir bağlantı ile birden çok komut çalıştırabilirsiniz. Maksimum uzunluk 2048 karakterdir. Hepsi yürütülecek, ancak yalnızca bir yanıt alacaksınız (tüm çıktılar için günlükleri kontrol edin). Bağlantılarınızın '<code>request</code> içeriğini şu biçime yerleştirin (önce '?' karakterini ve sonraki '&' karakterlerini not edin):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>"
+  "json_api_components_expl_multi": "Tek bir bağlantı ile birden çok komut çalıştırabilirsiniz. Maksimum uzunluk 2048 karakterdir. Hepsi yürütülecek, ancak yalnızca bir yanıt alacaksınız (tüm çıktılar için günlükleri kontrol edin). Bağlantılarınızın '<code>request</code> içeriğini şu biçime yerleştirin (önce '?' karakterini ve sonraki '&' karakterlerini not edin):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
+  "edt_conf_stream_autoResume_title": "Otomatik özgeçmiş",
+  "edt_conf_stream_autoResume_expl": "Video akışı durursa video yakalamayı yeniden başlatmayı deneyin. Kavrayıcının donanım sorunlarına çare olmadığı için dikkatli kullanın."
 }

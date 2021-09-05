@@ -66,6 +66,8 @@ public:
 	int getFpsSoftwareDecimation();
 
 	int getActualFps();
+
+	void revive();
 	
 public slots:	
 	void newFrame(const Image<ColorRgb>& image);
@@ -118,4 +120,5 @@ protected:
 
 	int			_cecHdrStart;
 	int			_cecHdrStop;
+	bool		_autoResume;
 };

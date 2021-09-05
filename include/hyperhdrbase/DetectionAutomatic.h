@@ -20,6 +20,8 @@ class DetectionAutomatic: public QObject
 public:
 	DetectionAutomatic();
 
+	bool getDetectionAutoSignal();
+
 	struct calibrationPoint
 	{
 		bool init;
