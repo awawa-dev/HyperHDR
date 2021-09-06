@@ -350,6 +350,11 @@ void GrabberWrapper::revive()
 		QMetaObject::invokeMethod(_grabber, "revive", Qt::QueuedConnection);
 }
 
+bool GrabberWrapper::getAutoResume()
+{
+	return _autoResume;
+}
+
 void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if (type == settings::type::VIDEODETECTION && _grabber != nullptr)

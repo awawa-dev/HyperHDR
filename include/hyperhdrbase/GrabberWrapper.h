@@ -68,6 +68,8 @@ public:
 	int getActualFps();
 
 	void revive();
+
+	bool getAutoResume();
 	
 public slots:	
 	void newFrame(const Image<ColorRgb>& image);
