@@ -343,7 +343,7 @@ async function SaveLut() {
 					for (var u = 0; u < 256; u++)
 						for (var v = 0; v < 256; v++)
 						{
-							var c = y - 16;
+							var c = clamp(y - 16, 0, 255);
 							var d = u - 128;
 							var e = v - 128;
 
@@ -375,7 +375,7 @@ async function SaveLut() {
 	  		    for (var u = 0; u < 256; u++)
 				  for (var v = 0; v < 256; v++)
 				  {
-				  	var c = y - 16;
+				  	var c = clamp(y - 16, 0, 255);
 					var d = u - 128;
 					var e = v - 128;
 

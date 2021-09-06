@@ -48,7 +48,7 @@ void ColorSys::hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t 
 void ColorSys::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, uint8_t &b)
 {
 	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
-	int c = y - 16;
+	int c = clamp(y - 16);
 	int d = u - 128;
 	int e = v - 128;
 
