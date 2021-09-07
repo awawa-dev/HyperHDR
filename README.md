@@ -68,7 +68,10 @@ SSH and SPI are enabled on default.
 - Automatic signal detection with smart learning capability for USB grabbers :new:
 - Re-implemented backup import / export functions for ALL instances :new:
 - New video stream crop method in JSON API and GET multi-command support :new:
+- Auto-resume option for the USB grabber :new:
 - JSON API documentation in a form of live playground in 'Advanced' tab :new:
+- List of available COM ports for the adalight driver :new:
+- Fix: in specific cases some devices could not react to the 'no video signal' event when it's triggered :new:
 - New installer for Raspberry Pi 3 & 4 64bit OS (AARCH64), faster up to 30% over 32bit OS armv7l version :new:
 - Fix for WLED new network protocol :new:
 - LED grouping *aka* PC mode *aka* gradient mode, can help with eye fatigue when used with the monitor, each LED in the group has same average color :new:
