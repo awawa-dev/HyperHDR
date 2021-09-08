@@ -612,18 +612,20 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 	input[1]=clamp(input[1],0,1);
 	input[2]=clamp(input[2],0,1);
 	
-	var first = new Array(3);
+	let first = new Array(3);
+	let second = new Array(3);
+	
 	if (bt2020)
 	{		
 		var buf_rgb = new Array(3);
 		
-		buf_rgb[0] = Math.sqrt(input[0]);
-		buf_rgb[1] = Math.sqrt(input[1]);
-		buf_rgb[2] = Math.sqrt(input[2]);	
+		buf_rgb[0] = input[0];
+		buf_rgb[1] = input[1];
+		buf_rgb[2] = input[2];	
 		
-		first[0] = clamp(buf_rgb[0] * cmat[0] + buf_rgb[1] * cmat[1] + buf_rgb[2] * cmat[2],0,1); 
-		first[1] = clamp(buf_rgb[0] * cmat[3] + buf_rgb[1] * cmat[4] + buf_rgb[2] * cmat[5],0,1);
-		first[2] = clamp(buf_rgb[0] * cmat[6] + buf_rgb[1] * cmat[7] + buf_rgb[2] * cmat[8],0,1); 							
+		first[0] = Math.sqrt(clamp(buf_rgb[0] * cmat[0] + buf_rgb[1] * cmat[1] + buf_rgb[2] * cmat[2],0,1)); 
+		first[1] = Math.sqrt(clamp(buf_rgb[0] * cmat[3] + buf_rgb[1] * cmat[4] + buf_rgb[2] * cmat[5],0,1));
+		first[2] = Math.sqrt(clamp(buf_rgb[0] * cmat[6] + buf_rgb[1] * cmat[7] + buf_rgb[2] * cmat[8],0,1));	
 	}
 	else
 	{
@@ -636,31 +638,77 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 	ite(first);
 	
 	
+	// linear fix as second method
+	{
+		let _f0 = r/255;
+		let _f1 = g/255;
+		let _f2 = b/255;
+		
+		second[0] = (_f0 * cmat[0] + _f1 * cmat[1] + _f2 * cmat[2])*255; 
+		second[1] = (_f0 * cmat[3] + _f1 * cmat[4] + _f2 * cmat[5])*255;
+		second[2] = (_f0 * cmat[6] + _f1 * cmat[7] + _f2 * cmat[8])*255; 		
+		
+		let _r = second[0];
+		let _g = second[1];
+		let _b = second[2];
+		
+		var diffB = _b-_r;
+		if (diffB > 0)
+			second[0] -= (Math.min(diffB,113) *49 / 113)*Math.min(_b,162)/162;
+			
+		var diffB2 = _b-_g;
+		if (diffB2 > 0)
+			second[1] -= (Math.min(diffB2,151) *11 / 151)*Math.min(_b,162)/162;
+
+		var diffG = _g-_r;
+		if (diffG > 0)
+			second[0] -= (Math.min(diffG,73) * 69 / 73)*Math.min(_g,142)/142;
+			
+		var diffG2 = _g-_b;
+		if (diffG2 > 0)
+			second[2] -= (Math.min(diffG2,107) * 35 / 107)*Math.min(_g,142)/142;
+		
+		var diffR = _r-_g;
+		if (diffR > 0)
+			second[1] -= (Math.min(diffR,136) * 43 / 136)*Math.min(_r,179)/179;		
+			
+		var diffR2 = _r-_b;
+		if (diffR2 > 0)
+			second[2] -= (Math.min(diffR2,177) * 2 / 177)*Math.min(_r,179)/179;
+			
+		second[0] *= 1.3 / 255.0;
+		second[1] *= 1.3 / 255.0;
+		second[2] *= 1.3 / 255.0;		
+				
+	}	
 	
+	
+
+		
 	
 		
 	
 	for (var chnl = 0; chnl < 3; chnl++) {
 		input[chnl] = gam_pq_lin(input[chnl])*gain;
 	}
-	for (var chnl = 0; chnl < 3; chnl++) {
-		input[chnl] = gam_lin_srgb(input[chnl]);
-	}
 	
 	if (bt2020)
 	{
-		input[0] = input[0] * cmat[0] + input[1] * cmat[1] + input[2] * cmat[2]; 
-		input[1] = input[0] * cmat[3] + input[1] * cmat[4] + input[2] * cmat[5];
-		input[2] = input[0] * cmat[6] + input[1] * cmat[7] + input[2] * cmat[8]; 
-	}
+		let v0 = input[0];
+		let v1 = input[1];
+		let v2 = input[2];
+		input[0] = v0 * cmat[0] + v1 * cmat[1] + v2 * cmat[2]; 
+		input[1] = v0 * cmat[3] + v1 * cmat[4] + v2 * cmat[5];
+		input[2] = v0 * cmat[6] + v1 * cmat[7] + v2 * cmat[8]; 
+	}	
 	
+	for (var chnl = 0; chnl < 3; chnl++) {
+		input[chnl] = clamp(gam_lin_srgb(input[chnl]),0,1);
+	}	
+		
 	
 	for (var i=0;i<3;i++)
-		input[i]=Math.sqrt((first[i]*first[i]*1+input[i]*input[i]*3)/4);	
-	
-
-
-	
+		input[i]=Math.sqrt(((first[i]*first[i]*1)+(second[i]*second[i]*1) + (input[i]*input[i]*4))/6);		
 	
     if (algo=="R")
 	{
