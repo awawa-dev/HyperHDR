@@ -2,6 +2,13 @@
 #include <utils/ColorSys.h>
 #include <utils/Logger.h>
 
+//#define TAKE_SCREEN_SHOT
+
+#ifdef TAKE_SCREEN_SHOT
+	#include <QImage>
+	int screenShotTaken = 10;
+#endif
+
 void ImageResampler::processImage(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 	const uint8_t* data, int width, int height, int lineLength,
@@ -63,6 +70,14 @@ void ImageResampler::processImage(
 				currentSource += 4;
 			}
 		}
+#ifdef TAKE_SCREEN_SHOT
+		if (screenShotTaken > 0 && screenShotTaken-- == 1)
+		{
+			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
+			jpgImage.save("D:/grabber.png", "png");
+		}
+	
+#endif
 		return;
 	}
 
