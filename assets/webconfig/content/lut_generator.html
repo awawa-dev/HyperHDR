@@ -676,9 +676,9 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 		if (diffR2 > 0)
 			second[2] -= (Math.min(diffR2,177) * 2 / 177)*Math.min(_r,179)/179;
 			
-		second[0] *= 1.3 / 255.0;
-		second[1] *= 1.3 / 255.0;
-		second[2] *= 1.3 / 255.0;		
+		second[0] = clamp(second[0] * 1.3, 0, 255) / 255.0;
+		second[1] = clamp(second[1] * 1.3, 0, 255) / 255.0;
+		second[2] = clamp(second[2] * 1.3, 0, 255) / 255.0;	
 				
 	}	
 	
