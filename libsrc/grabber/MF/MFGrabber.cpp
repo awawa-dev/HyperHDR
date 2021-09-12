@@ -496,7 +496,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 															QString resolution = FormatRes(w, h, sFormat);
 															QString displayResolutions = FormatRes(w, h, "");
 
-															if (properties.name.indexOf("usb#vid_534d&pid_2109", Qt::CaseInsensitive) != -1 &&
+															if (properties.name.indexOf("usb#vid_534d&pid_2109", 0, Qt::CaseInsensitive) != -1 &&
 																w == 1920 && h == 1080 && framerate == 60)
 															{
 																if (!silent)

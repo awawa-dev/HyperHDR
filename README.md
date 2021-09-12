@@ -19,25 +19,19 @@ SSH and SPI are enabled on default.
 
 ## How to compile
 
-[Building HyperHDR from sources](https://github.com/awawa-dev/HyperHDR/blob/master/CompileHowto.md) :sparkles:
-
+[Building HyperHDR from sources](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR) :new:
+  
 ## Support and contact
 
 [HyperHDR's support section](https://github.com/awawa-dev/HyperHDR/discussions) (or https://hyperhdr.blogspot.com/ )
 
 **Manuals and guides for building and configuring your own ambient lighting system with HyperHDR:**
 
-[Step 1: Addressable led strip](https://hyperhdr.blogspot.com/2020/11/blog-post.html)\
-[Step 2: Power supply](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying.html)\
-[Step 3: USB grabber](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_12.html)\
-[Step 4: Additional stuff](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_13.html)\
-[Step 5: Device for hosting HyperHDR...macOS, Windows or Raspberry Pi?](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_14.html) \
-[Step 6: Installing HyperHDR ambient lighting software](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html) \
-[Step 7: How to set up HyperHDR? Part I: basic configuration](https://hyperhdr.blogspot.com/2021/04/how-to-set-up-hyperhdr-part-i-basic.html) 
-
+[Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki) :new:  
+  
 [Build-log from my SK6812 RGBW system and one thing about calibration](https://hyperhdr.blogspot.com/2020/12/my-build-log-using-sk6812-rgbw-led.html)
-
-### Main features of HyperHDR:
+  
+## Main features of HyperHDR:
 
 * **Really low CPU** usage on SoCs like Raspberry Pi using v4l2 grabbers
 * Support for multithreading that makes Raspberry Pi capable of processing HQ video stream (Rpi 1 & Zero should also benefit from the optimization alone)
@@ -55,11 +49,13 @@ SSH and SPI are enabled on default.
 * WLED fork for ESP8266 & ESP32 at 2Mb baud (also @921600 baud :new:) and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 
 ##
-**Changelog: (v17 beta)**
+
+**Changelog (v17)** :new:
 - Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion NG 2.0.0.8A thanks to optimization & using of multi-threading
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
 - Support for software screen grabbers: DirectX11, CoreGraphics, X11 :new:
 - User interface upgraded to modern standards (Bootstrap 5) :new:
+- Improved LUT table for SDR(yuv) and HDR video streams :new:
 - Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)  :new:
 - Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver :new:
 - Fork of WLED with USB serial port AWA protocol at @2000000 speed (:sparkles: there are also special versions for @921600) for ESP32 & ESP8266 and almost all types of LED strips: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
@@ -109,7 +105,7 @@ Check the performance statistics that are updated every minute in System➔Log p
 
 Use preferable YUV(YUY2) or XRGB(RGB32) encoding formats if it's possible. They provide better quality and lower CPU usage.  
   
-We do not support driving WS281x or especially SK6812 LED strips directly from the Raspberry Pi. If you made it and it works, fine, but most of our users weren't so lucky. You should use external ESP8266/ESP32 (preferable with CH340G or CP2104 onboard) and the voltage level shifter. :warning:  
+We do not support driving WS281x and especially SK6812 LED strips directly from the Raspberry Pi although it's theoretically possible: [link](https://github.com/awawa-dev/HyperHDR/discussions/111). If you made it and it works, fine, but most of our users weren't so lucky. You should use external ESP8266/ESP32 (preferable with CH340G or CP2104 onboard) and the voltage level shifter. :warning:  
 
 Usage of WS281x LED strip with Rpi directly (PWM mode) requires _root_ privilages. Otherwise you may get _'Error message: mmap() failed'_ ([read more](https://github.com/awawa-dev/HyperHDR/issues/52)) :warning:
 
