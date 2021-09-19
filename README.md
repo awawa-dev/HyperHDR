@@ -1,6 +1,6 @@
 ## About 
 
-Open source ambient lighting implementation with the audio visualization effects and video performance tweaks especially for USB grabbers. Support for HDR/BT2020 using LUT tables. Single and multi-threaded video processing optimization on **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers. Direct support USB grabbers for Windows 10 (Microsoft Media Foundation), Linux (v4l2) and macOS (AVFoundation). Also software screen grabbers are available now :new:  
+Open source ambient lighting implementation for television sets based on the video and audio streams analysis, using performance improvements especially for USB grabbers. Single and multi-threaded video processing optimization for **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers using pre-calculated LUT tables. Direct support for USB grabbers under Windows 10 (Microsoft Media Foundation), Linux (v4l2) and macOS (AVFoundation). Also software screen grabbers are available now :new:  
   
   ![v17](https://user-images.githubusercontent.com/69086569/131157173-cae41f0e-d5c3-413c-ba6b-041e8bfc0017.png)
   

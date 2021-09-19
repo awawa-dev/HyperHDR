@@ -208,8 +208,9 @@ endif()
 
 if(DEFAULT_CEC)
 	IF ((NOT EXISTS "/opt/vc/lib" OR NOT EXISTS "/opt/vc/include") AND
+	    (NOT EXISTS "/usr/lib/arm-linux-gnueabihf/libvchostif.a" OR NOT EXISTS "/usr/include/vcinclude/vcore.h") AND
 		(NOT EXISTS "/usr/lib/aarch64-linux-gnu/libbcm_host.so.0" OR NOT EXISTS "/usr/include/interface/vchiq_arm/vchiq_if.h"))
-		message( WARNING "CEC Rpi mode support is disabled. Could not find Rpi developers libs: arm32 > /opt/vc/lib,/opt/vc/include, aarch64 > /usr/lib/aarch64-linux-gnu/libbcm_host.so.0,/usr/include/interface/vchiq_arm/vchiq_if.h" )
+		message( WARNING "CEC Rpi mode support could be disabled. Could not find Rpi developers libs: arm32 > /opt/vc/lib,/opt/vc/include,/usr/lib/arm-linux-gnueabihf,/usr/include/vcinclude, aarch64 > /usr/lib/aarch64-linux-gnu/libbcm_host.so.0,/usr/include/interface/vchiq_arm/vchiq_if.h" )
 	endif()
 endif()
 
