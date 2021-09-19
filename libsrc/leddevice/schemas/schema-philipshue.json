@@ -222,6 +222,9 @@
 			"type": "number",
 			"title":"edt_dev_spec_transistionTime_title",
 			"default" : 1,
+			"minimum" : 0,
+			"maximum" : 100000,
+			"required" : true,
 			"append" : "x100ms",
 			"options": {
 				"dependencies": {

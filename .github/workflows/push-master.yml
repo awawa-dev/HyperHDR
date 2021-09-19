@@ -3,7 +3,7 @@ name: HyperHDR CI Build
 on: [push]
 
 env:
-    USE_CACHE: "0"
+    USE_CACHE: "1"
     
 jobs:
 
@@ -20,16 +20,16 @@ jobs:
         dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
         include:
           - dockerImage: x86_64
-            dockerName: Debian Buster (x86_64)
+            dockerName: Debian Bullseye (x86_64)
             platform: linux
           - dockerImage: rpi012-armv6l
-            dockerName: Debian Buster (Raspberry Pi ZERO, 1 & 2)
+            dockerName: Debian Bullseye (Raspberry Pi ZERO, 1 & 2)
             platform: rpi
           - dockerImage: rpi34-armv7l
-            dockerName: Debian Buster (Raspberry Pi 3 & 4)
+            dockerName: Debian Bullseye (Raspberry Pi 3 & 4)
             platform: rpi
           - dockerImage: arm-aarch64
-            dockerName: Debian Buster (ARM aarch64)
+            dockerName: Debian Bullseye (ARM aarch64)
             platform: rpi            
 
     steps:
@@ -59,7 +59,7 @@ jobs:
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: buster
+          DOCKER_TAG: bullseye
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
