@@ -44,10 +44,9 @@ private:
 	///
 	int write(const std::vector<ColorRgb> & ledValues) override;
 
-	int _tpm2_max;
+	int _tpm2Max;
 	int _tpm2ByteCount;
 	int _tpm2TotalPackets;
-	int _tpm2ThisPacket;
 };
 
 #endif // LEDEVICETPM2NET_H
