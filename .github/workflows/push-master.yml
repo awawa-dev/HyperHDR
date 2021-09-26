@@ -3,7 +3,8 @@ name: HyperHDR CI Build
 on: [push]
 
 env:
-    USE_CACHE: "0"
+    USE_CACHE: "1"
+    RESET_CACHE: "1"
     
 jobs:
 
@@ -49,7 +50,7 @@ jobs:
 
        # download cache
       - name: ccache cache files
-        if: env.USE_CACHE == '1'
+        if: ( env.USE_CACHE == '1' ) && ( env.RESET_CACHE != '1' )
         uses: actions/cache@v1.1.0
         with:
            path: .ccache
@@ -105,7 +106,7 @@ jobs:
 
       # Download cache
       - name: ccache cache files
-        if: env.USE_CACHE == '1'
+        if: ( env.USE_CACHE == '1' ) && ( env.RESET_CACHE != '1' )
         uses: actions/cache@v1.1.0
         with:
             path: .ccache

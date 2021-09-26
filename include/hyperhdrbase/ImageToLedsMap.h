@@ -86,9 +86,7 @@ namespace hyperhdr
 
 		const unsigned _verticalBorder;
 		
-		int _mappingType;
-
-		quint8 _instanceIndex;
+		int _mappingType;		
 
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<int32_t>> _colorsMap;
