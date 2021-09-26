@@ -1127,5 +1127,7 @@
   "json_api_hdr_expl": "Activez/désactivez le mappage de tonalité HDR pour la capture USB. Le « mode frontière » ne fonctionne que pour le flux MJPEG.",
   "json_api_components_expl_multi": "Vous pouvez exécuter plusieurs commandes avec un seul lien. La longueur maximale est de 2048 caractères. Ils seront tous exécutés mais vous ne recevrez qu'une seule réponse (consultez les journaux pour toutes les sorties). Mettez simplement le contenu de la <code>request</code> de vos liens dans le format (notez le premier caractère '?' et les caractères '&' suivants) :<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "Reprise automatique",
-  "edt_conf_stream_autoResume_expl": "Essayez de redémarrer la capture vidéo si le flux vidéo s'arrête. A utiliser avec prudence car ce n'est pas un remède aux problèmes matériels de la pince."
+  "edt_conf_stream_autoResume_expl": "Essayez de redémarrer la capture vidéo si le flux vidéo s'arrête. A utiliser avec prudence car ce n'est pas un remède aux problèmes matériels de la pince.",
+  "json_api_video_controls": "Propriétés du flux de capture vidéo",
+  "json_api_video_controls_expl": "Définissez les propriétés matérielles de la capture vidéo si elles sont prises en charge : luminosité, contraste, saturation, teinte."
 }

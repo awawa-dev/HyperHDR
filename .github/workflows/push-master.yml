@@ -4,7 +4,7 @@ on: [push]
 
 env:
     USE_CACHE: "1"
-    RESET_CACHE: "1"
+    RESET_CACHE: "0"
     
 jobs:
 

@@ -12,8 +12,26 @@ function round(number)
 	return roundedTempNumber / factor;
 };
 
+var _lastLeds = [];
+var _lastOrigin = "";
+
+if (typeof ResizeObserver === "function")
+{
+	const resizeObserver = new ResizeObserver(entries => {		
+		if ( _lastOrigin != "" && _lastLeds.length >= 0 )
+		{
+			createLedPreview(_lastLeds, _lastOrigin);			
+		}
+	});
+
+	resizeObserver.observe(document.getElementById("leds_preview"));
+}
+
 function createLedPreview(leds, origin)
 {	
+	_lastLeds = leds;
+	_lastOrigin = origin;
+	
 	if (!ledStarter)
 		$('#collapse1').collapse('toggle');
 	

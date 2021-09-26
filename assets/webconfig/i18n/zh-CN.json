@@ -1127,5 +1127,7 @@
   "json_api_hdr_expl": "打开/关闭 USB 采集卡的 HDR 色调映射。 “边框模式”仅适用于 MJPEG 流。",
   "json_api_components_expl_multi": "您只需一个链接即可运行多个命令。最大长度为 2048 个字符。它们都将被执行，但您只会收到一个响应（查看所有输出的日志）。只需将您的链接的 <code>request</code> 内容放入格式中（注意首先是“?”字符，然后是“&”字符）：<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "自动恢复",
-  "edt_conf_stream_autoResume_expl": "如果视频流停止，请尝试重新启动视频捕获。谨慎使用，因为它不能解决抓取器的硬件问题。"
+  "edt_conf_stream_autoResume_expl": "如果视频流停止，请尝试重新启动视频捕获。谨慎使用，因为它不能解决抓取器的硬件问题。",
+  "json_api_video_controls": "视频采集器流属性",
+  "json_api_video_controls_expl": "如果支持，设置视频采集器的硬件属性：亮度、对比度、饱和度、色调。"
 }

@@ -1127,5 +1127,7 @@
   "json_api_hdr_expl": "Schalten Sie das HDR-Tone-Mapping für den USB-Grabber ein/aus. Der 'Grenzmodus' funktioniert nur für MJPEG-Streams.",
   "json_api_components_expl_multi": "Sie können mehrere Befehle mit nur einem Link ausführen. Die maximale Länge beträgt 2048 Zeichen. Sie werden alle ausgeführt, aber Sie erhalten nur eine Antwort (überprüfen Sie die Protokolle für alle Ausgaben). Geben Sie einfach den Inhalt der <code>Anfrage</code> Ihres Links in das folgende Format ein (beachten Sie das erste '?'-Zeichen und das nächste '&'-Zeichen):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "Automatisch fortsetzen",
-  "edt_conf_stream_autoResume_expl": "Versuchen Sie, die Videoaufnahme neu zu starten, wenn der Videostream stoppt. Seien Sie vorsichtig, da dies kein Heilmittel für Hardwareprobleme des Grabbers ist."
+  "edt_conf_stream_autoResume_expl": "Versuchen Sie, die Videoaufnahme neu zu starten, wenn der Videostream stoppt. Seien Sie vorsichtig, da dies kein Heilmittel für Hardwareprobleme des Grabbers ist.",
+  "json_api_video_controls": "Eigenschaften von Videograbber-Streams",
+  "json_api_video_controls_expl": "Legen Sie die Hardwareeigenschaften des Videograbbers fest, falls unterstützt: Helligkeit, Kontrast, Sättigung, Farbton."
 }

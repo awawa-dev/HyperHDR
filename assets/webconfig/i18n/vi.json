@@ -1127,5 +1127,7 @@
   "json_api_hdr_expl": "Bật / tắt ánh xạ giai điệu HDR cho bộ lấy USB. 'Chế độ viền' chỉ hoạt động cho luồng MJPEG.",
   "json_api_components_expl_multi": "Bạn có thể chạy nhiều lệnh chỉ với một liên kết. Chiều dài tối đa là 2048 ký tự. Tất cả chúng sẽ được thực thi nhưng bạn sẽ chỉ nhận được một phản hồi (kiểm tra nhật ký cho tất cả đầu ra). Chỉ cần đặt nội dung '<code> request </code> liên kết của bạn vào định dạng (lưu ý đầu tiên là ký tự'? 'Char và các ký tự' & 'tiếp theo): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Tiếp tục tự động",
-  "edt_conf_stream_autoResume_expl": "Thử khởi động lại quay video nếu luồng video dừng. Sử dụng một cách thận trọng vì nó không phải là cách chữa trị các vấn đề phần cứng của grabber."
+  "edt_conf_stream_autoResume_expl": "Thử khởi động lại quay video nếu luồng video dừng. Sử dụng một cách thận trọng vì nó không phải là cách chữa trị các vấn đề phần cứng của grabber.",
+  "json_api_video_controls": "Thuộc tính luồng lấy video",
+  "json_api_video_controls_expl": "Đặt thuộc tính phần cứng của video grabber nếu được hỗ trợ: độ sáng, độ tương phản, độ bão hòa, màu sắc."
 }

@@ -1127,5 +1127,7 @@
   "json_api_hdr_expl": "Attiva/disattiva la mappatura dei toni HDR per USB grabber. La 'Modalità bordo' funziona solo per il flusso MJPEG.",
   "json_api_components_expl_multi": "Puoi eseguire più comandi con un solo collegamento. La lunghezza massima è di 2048 caratteri. Verranno eseguiti tutti ma riceverai una sola risposta (controlla i log per tutto l'output). Inserisci semplicemente il contenuto della <code>richiesta</code> dei tuoi link nel formato (nota il primo carattere '?' e il successivo carattere '&'):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "Ripristino automatico",
-  "edt_conf_stream_autoResume_expl": "Prova a riavviare l'acquisizione video se il flusso video si interrompe. Usare con cautela in quanto non è una cura per i problemi hardware del grabber."
+  "edt_conf_stream_autoResume_expl": "Prova a riavviare l'acquisizione video se il flusso video si interrompe. Usare con cautela in quanto non è una cura per i problemi hardware del grabber.",
+  "json_api_video_controls": "Proprietà del flusso di acquisizione video",
+  "json_api_video_controls_expl": "Imposta le proprietà hardware del video grabber se supportate: luminosità, contrasto, saturazione, tonalità."
 }

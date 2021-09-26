@@ -1127,5 +1127,7 @@
   "json_api_hdr_expl": "Schakel HDR-toontoewijzing voor USB-grabber in/uit. 'Border-modus' werkt alleen voor MJPEG-stream.",
   "json_api_components_expl_multi": "U kunt meerdere opdrachten uitvoeren met slechts één link. Maximale lengte is 2048 tekens. Ze worden allemaal uitgevoerd, maar u ontvangt slechts één reactie (bekijk de logs voor alle uitvoer). Plaats de <code>verzoek</code>-inhoud van uw links in het formaat (let op eerste '?'-teken en volgende '&'-tekens):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "Automatisch hervatten",
-  "edt_conf_stream_autoResume_expl": "Probeer de video-opname opnieuw te starten als de videostream stopt. Wees voorzichtig, want het is geen remedie voor hardwareproblemen van de grabber."
+  "edt_conf_stream_autoResume_expl": "Probeer de video-opname opnieuw te starten als de videostream stopt. Wees voorzichtig, want het is geen remedie voor hardwareproblemen van de grabber.",
+  "json_api_video_controls": "Eigenschappen van videograbberstream",
+  "json_api_video_controls_expl": "Stel de hardware-eigenschappen van videograbber in indien ondersteund: helderheid, contrast, verzadiging, tint."
 }
