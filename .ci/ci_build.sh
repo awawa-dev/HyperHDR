@@ -30,6 +30,12 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		# Init ccache
 		mkdir -p .ccache
 		cd .ccache
+		
+		if [[ "$RESET_CACHE" == '1' ]]; then
+			echo "Clearing ccache"
+			rm -rf ..?* .[!.]* *
+		fi
+		
 		CCACHE_PATH=$PWD
 		cd ..
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
@@ -79,7 +85,14 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		mkdir -p .ccache
 		
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
-		cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M"
+		
+		if [[ "$RESET_CACHE" == '1' ]]; then
+			echo "Clearing ccache"
+			cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M && cd /.ccache && rm -rf ..?* .[!.]* *"
+		else
+			cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M"
+		fi
+		
 		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"
 		
 		ls -a .ccache
