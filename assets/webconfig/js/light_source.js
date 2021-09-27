@@ -14,23 +14,25 @@ function round(number)
 
 var _lastLeds = [];
 var _lastOrigin = "";
+var _resizeObserver = null;
 
-if (typeof ResizeObserver === "function")
+if (typeof ResizeObserver === "function" && _resizeObserver === null)
 {
-	const resizeObserver = new ResizeObserver(entries => {		
-		if ( _lastOrigin != "" && _lastLeds.length >= 0 )
+	_resizeObserver = new ResizeObserver(entries => {		
+		if ( _lastOrigin != "" && _lastLeds.length > 0 )
 		{
 			createLedPreview(_lastLeds, _lastOrigin);			
 		}
-	});
-
-	resizeObserver.observe(document.getElementById("leds_preview"));
+	});	
 }
 
 function createLedPreview(leds, origin)
 {	
 	_lastLeds = leds;
 	_lastOrigin = origin;
+	
+	if (typeof _resizeObserver === "object" && !(_resizeObserver === null))
+		_resizeObserver.unobserve(document.getElementById("leds_preview"));
 	
 	if (!ledStarter)
 		$('#collapse1').collapse('toggle');
@@ -118,6 +120,8 @@ function createLedPreview(leds, origin)
 	// update ace Editor content
 	aceEdt.set(finalLedArray);
 
+	if (typeof _resizeObserver === "object" && !(_resizeObserver === null))
+		_resizeObserver.observe(document.getElementById("leds_preview"));
 }
 
 function createClassicLedLayoutSimple(ledstop, ledsleft, ledsright, ledsbottom, position, groupX, groupY, reverse)
