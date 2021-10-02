@@ -329,7 +329,7 @@ endif ()
 find_package(Threads REQUIRED)
 
 # find QT libs
-find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets QUIET)
+find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets SerialPort QUIET)
 
 if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
 	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )

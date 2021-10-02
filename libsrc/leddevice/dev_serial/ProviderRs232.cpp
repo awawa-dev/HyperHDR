@@ -247,7 +247,11 @@ QString ProviderRs232::discoverFirst()
 	// take first available USB serial port - currently no probing!
 	for (auto const & port : QSerialPortInfo::availablePorts())
 	{
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 		if (!port.isNull() && !port.isBusy())
+#else
+		if (!port.isNull())
+#endif
 		{
 			Info(_log, "found serial device: %s", QSTRING_CSTR(port.portName()));
 			return port.portName();
