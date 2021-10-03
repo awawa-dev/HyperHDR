@@ -21,6 +21,8 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber* ggrabber)
 	, _cecHdrStart(0)
 	, _cecHdrStop(0)
 	, _autoResume(false)
+	, _benchmarkStatus(-1)
+	, _benchmarkMessage("")
 {
 	GrabberWrapper::instance = this;
 
@@ -88,6 +90,22 @@ bool GrabberWrapper::isCEC()
 
 void GrabberWrapper::newFrame(const Image<ColorRgb>& image)
 {
+	if (_benchmarkStatus >= 0)
+	{
+		ColorRgb pixel = image(image.width() / 2, image.height() / 2);
+		if ((_benchmarkMessage == "white" && pixel.red > 128 && pixel.green > 128 && pixel.blue > 128) ||
+			(_benchmarkMessage == "red"   && pixel.red > 128 && pixel.green < 16  && pixel.blue < 16)  ||
+			(_benchmarkMessage == "green" && pixel.red < 16  && pixel.green > 128 && pixel.blue < 16) ||
+			(_benchmarkMessage == "blue"  && pixel.red < 16  && pixel.green < 16  && pixel.blue > 128) ||
+			(_benchmarkMessage == "black" && pixel.red < 16  && pixel.green < 16  && pixel.blue < 16))
+
+		{
+			emit benchmarkUpdate(_benchmarkStatus, _benchmarkMessage);
+			_benchmarkStatus = -1;
+			_benchmarkMessage = "";
+		}
+	}
+
 	emit systemImage(_grabberName, image);
 }
 
@@ -348,6 +366,12 @@ void GrabberWrapper::revive()
 {
 	if (_grabber != nullptr && _autoResume)
 		QMetaObject::invokeMethod(_grabber, "revive", Qt::QueuedConnection);
+}
+
+void GrabberWrapper::benchmarkCapture(int status, QString message)
+{
+	_benchmarkStatus = status;
+	_benchmarkMessage = message;
 }
 
 bool GrabberWrapper::getAutoResume()

@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Reluare automată",
   "edt_conf_stream_autoResume_expl": "Încercați să reporniți captura video dacă fluxul video se oprește. Utilizați cu precauție, deoarece nu este un remediu pentru problemele hardware ale dispozitivului de prindere.",
   "json_api_video_controls": "Proprietățile fluxului de captare video",
-  "json_api_video_controls_expl": "Setați proprietățile hardware ale dispozitivului de captare video dacă sunt acceptate: luminozitate, contrast, saturație, nuanță."
+  "json_api_video_controls_expl": "Setați proprietățile hardware ale dispozitivului de captare video dacă sunt acceptate: luminozitate, contrast, saturație, nuanță.",
+  "main_menu_grabber_benchmark_token": "Reper video",
+  "grabber_benchmark_intro": "Acest instrument poate oferi informații despre întârzierea aproximativă a capturii video. Ar trebui să rulați acest test pe un dispozitiv care rulează HyperHDR pentru a elimina posibila latență a rețelei între browserul dvs. WWW și aplicația HyperHDR. Ecranul poate pâlpâi în timpul testului. <br/> <ol> <li> Plasați dreptunghiul negru în centrul ecranului </li> <li> Asigurați-vă că dispozitivul de captare a videoclipului captează dreptunghiul centrat (previzualizare video live) </li> <li> Porniți testul. Nu îl întrerupeți în timp ce funcționează și nu utilizați mouse-ul sau tastatura. </li> </ol>",
+  "benchmark_av_delay": "Latența medie măsurată:",
+  "benchmark_exp_delay": "Latență minimă perfectă (legată de FPS):"
 }

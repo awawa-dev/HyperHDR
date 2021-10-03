@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Automatické obnovení",
   "edt_conf_stream_autoResume_expl": "Pokud se stream videa zastaví, zkuste restartovat nahrávání videa. Používejte opatrně, protože není řešením problémů s hardwarem grabberu.",
   "json_api_video_controls": "Vlastnosti streamu videa grabberu",
-  "json_api_video_controls_expl": "Pokud je podporováno, nastavte hardwarové vlastnosti video grabberu: jas, kontrast, sytost, odstín."
+  "json_api_video_controls_expl": "Pokud je podporováno, nastavte hardwarové vlastnosti video grabberu: jas, kontrast, sytost, odstín.",
+  "main_menu_grabber_benchmark_token": "Video benchmark",
+  "grabber_benchmark_intro": "Tento nástroj může poskytovat informace o přibližném zpoždění při pořizování videa. Tento test byste měli spustit na zařízení se systémem HyperHDR, abyste vyloučili možnou latenci sítě mezi vaším WWW prohlížečem a aplikací HyperHDR. Během testu může obrazovka blikat. <br/> <ol> <li> Umístěte černý obdélník do středu obrazovky </li> <li> Ujistěte se, že nástroj pro zachycení videa zachycuje středový obdélník (náhled živého videa) </li> <li> Spusťte test. Nepřerušujte jej, když funguje, a nepoužívejte myš ani klávesnici. </li> </ol>",
+  "benchmark_av_delay": "Průměrná naměřená latence:",
+  "benchmark_exp_delay": "Perfektní minimální latence (související s FPS):"
 }

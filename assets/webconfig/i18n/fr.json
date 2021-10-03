@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Reprise automatique",
   "edt_conf_stream_autoResume_expl": "Essayez de redémarrer la capture vidéo si le flux vidéo s'arrête. A utiliser avec prudence car ce n'est pas un remède aux problèmes matériels de la pince.",
   "json_api_video_controls": "Propriétés du flux de capture vidéo",
-  "json_api_video_controls_expl": "Définissez les propriétés matérielles de la capture vidéo si elles sont prises en charge : luminosité, contraste, saturation, teinte."
+  "json_api_video_controls_expl": "Définissez les propriétés matérielles de la capture vidéo si elles sont prises en charge : luminosité, contraste, saturation, teinte.",
+  "main_menu_grabber_benchmark_token": "Référence vidéo",
+  "grabber_benchmark_intro": "Cet outil peut fournir des informations sur le délai approximatif de capture vidéo. Vous devez exécuter ce test sur un appareil exécutant HyperHDR pour éliminer une éventuelle latence réseau entre votre navigateur WWW et l'application HyperHDR. L'écran peut scintiller pendant le test.<br/><ol><li>Placez le rectangle noir au centre de l'écran</li><li>Assurez-vous que la capture vidéo capture le rectangle centré (aperçu vidéo en direct) </li><li>Démarrez le test. Ne l'interrompez pas pendant qu'il fonctionne et n'utilisez pas la souris ou le clavier.</li></ol>",
+  "benchmark_av_delay": "Latence moyenne mesurée :",
+  "benchmark_exp_delay": "Latence minimale parfaite (liée au FPS) :"
 }

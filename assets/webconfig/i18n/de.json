@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Automatisch fortsetzen",
   "edt_conf_stream_autoResume_expl": "Versuchen Sie, die Videoaufnahme neu zu starten, wenn der Videostream stoppt. Seien Sie vorsichtig, da dies kein Heilmittel für Hardwareprobleme des Grabbers ist.",
   "json_api_video_controls": "Eigenschaften von Videograbber-Streams",
-  "json_api_video_controls_expl": "Legen Sie die Hardwareeigenschaften des Videograbbers fest, falls unterstützt: Helligkeit, Kontrast, Sättigung, Farbton."
+  "json_api_video_controls_expl": "Legen Sie die Hardwareeigenschaften des Videograbbers fest, falls unterstützt: Helligkeit, Kontrast, Sättigung, Farbton.",
+  "main_menu_grabber_benchmark_token": "Video-Benchmark",
+  "grabber_benchmark_intro": "Dieses Tool kann Informationen zur ungefähren Verzögerung der Videoaufnahme bereitstellen. Sie sollten diesen Test auf einem Gerät ausführen, auf dem HyperHDR ausgeführt wird, um mögliche Netzwerklatenzen zwischen Ihrem WWW-Browser und der HyperHDR-Anwendung zu beseitigen. Der Bildschirm kann während des Tests flackern.<br/><ol><li>Platzieren Sie das schwarze Rechteck in der Mitte des Bildschirms</li><li>Stellen Sie sicher, dass der Videograbber das zentrierte Rechteck erfasst (Live-Videovorschau). </li><li>Starten Sie den Test. Unterbrechen Sie es nicht, während es funktioniert, und verwenden Sie weder Maus noch Tastatur.</li></ol>",
+  "benchmark_av_delay": "Durchschnittlich gemessene Latenz:",
+  "benchmark_exp_delay": "Perfekte minimale Latenz (bezogen auf FPS):"
 }

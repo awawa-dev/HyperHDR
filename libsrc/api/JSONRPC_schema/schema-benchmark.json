@@ -1,0 +1,25 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["benchmark"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["ping", "black", "white", "red", "green", "blue", "stop"]
+		},		
+		"status": {
+			"type" : "integer",
+			"required" : false	
+		}
+	},
+
+	"additionalProperties": false
+}

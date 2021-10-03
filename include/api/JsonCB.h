@@ -128,6 +128,8 @@ private slots:
 	///
 	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
 
+	void handleBenchmarkUpdate(int status, QString message);
+
 private:
 	/// pointer of HyperHDR instance
 	HyperHdrInstance* _hyperhdr;

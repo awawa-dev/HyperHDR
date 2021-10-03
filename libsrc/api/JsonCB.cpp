@@ -41,7 +41,7 @@ JsonCB::JsonCB(QObject* parent)
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update"
-	<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
+	<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update" << "benchmark-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -151,6 +151,14 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			disconnect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCB::handleTokenChange);
 		else
 			connect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCB::handleTokenChange, Qt::UniqueConnection);
+	}
+
+	if (type == "benchmark-update")
+	{
+		if (unsubscribe)
+			disconnect(GrabberWrapper::instance, &GrabberWrapper::benchmarkUpdate, this, &JsonCB::handleBenchmarkUpdate);
+		else
+			connect(GrabberWrapper::instance, &GrabberWrapper::benchmarkUpdate, this, &JsonCB::handleBenchmarkUpdate, Qt::UniqueConnection);
 	}
 
 	return true;
@@ -445,4 +453,12 @@ void JsonCB::handleTokenChange(const QVector<AuthManager::AuthDefinition> &def)
 		arr.push_back(sub);
 	}
 	doCallback("token-update", QVariant(arr));
+}
+
+void JsonCB::handleBenchmarkUpdate(int status, QString message)
+{
+	QJsonObject dat;
+	dat["status"] = status;
+	dat["message"] = message;
+	doCallback("benchmark-update", QVariant(dat));
 }

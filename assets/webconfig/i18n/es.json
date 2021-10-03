@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Reanudación automática",
   "edt_conf_stream_autoResume_expl": "Intente reiniciar la captura de video si la transmisión de video se detiene. Úselo con precaución, ya que no es una cura para los problemas de hardware del grabador.",
   "json_api_video_controls": "Propiedades de transmisión de capturador de video",
-  "json_api_video_controls_expl": "Configure las propiedades de hardware del capturador de video si es compatible: brillo, contraste, saturación, tono."
+  "json_api_video_controls_expl": "Configure las propiedades de hardware del capturador de video si es compatible: brillo, contraste, saturación, tono.",
+  "main_menu_grabber_benchmark_token": "Benchmark de video",
+  "grabber_benchmark_intro": "Esta herramienta puede proporcionar información sobre la demora aproximada en la captura de video. Debe ejecutar esta prueba en un dispositivo que ejecute HyperHDR para eliminar la posible latencia de red entre su navegador WWW y la aplicación HyperHDR. La pantalla puede parpadear durante la prueba. <br/> <ol> <li> Coloque el rectángulo negro en el centro de la pantalla </li> <li> Asegúrese de que el capturador de video esté capturando el rectángulo centrado (vista previa de video en vivo) </li> <li> Inicie la prueba. No lo interrumpa mientras está funcionando y no use el mouse o el teclado. </li> </ol>",
+  "benchmark_av_delay": "Latencia media medida:",
+  "benchmark_exp_delay": "Latencia mínima perfecta (relacionada con FPS):"
 }

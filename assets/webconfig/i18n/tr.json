@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Otomatik özgeçmiş",
   "edt_conf_stream_autoResume_expl": "Video akışı durursa video yakalamayı yeniden başlatmayı deneyin. Kavrayıcının donanım sorunlarına çare olmadığı için dikkatli kullanın.",
   "json_api_video_controls": "Video yakalayıcı akış özellikleri",
-  "json_api_video_controls_expl": "Destekleniyorsa video yakalayıcının donanım özelliklerini ayarlayın: parlaklık, kontrast, doygunluk, renk tonu."
+  "json_api_video_controls_expl": "Destekleniyorsa video yakalayıcının donanım özelliklerini ayarlayın: parlaklık, kontrast, doygunluk, renk tonu.",
+  "main_menu_grabber_benchmark_token": "Video karşılaştırması",
+  "grabber_benchmark_intro": "Bu araç, yaklaşık video yakalama gecikmesi hakkında bilgi sağlayabilir. WWW tarayıcınız ve HyperHDR uygulaması arasındaki olası ağ gecikmesini ortadan kaldırmak için bu testi HyperHDR çalıştıran bir cihazda çalıştırmalısınız. Test sırasında ekran titreyebilir.<br/><ol><li>Siyah dikdörtgeni ekranın ortasına yerleştirin</li><li>Video yakalayıcının ortalanmış dikdörtgeni yakaladığından emin olun (canlı video önizlemesi) </li><li>Testi başlatın. Çalışırken kesintiye uğratmayın ve fareyi veya klavyeyi kullanmayın.</li></ol>",
+  "benchmark_av_delay": "Ortalama ölçülen gecikme:",
+  "benchmark_exp_delay": "Mükemmel minimum gecikme (FPS ile ilgili):"
 }

@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Automatisch hervatten",
   "edt_conf_stream_autoResume_expl": "Probeer de video-opname opnieuw te starten als de videostream stopt. Wees voorzichtig, want het is geen remedie voor hardwareproblemen van de grabber.",
   "json_api_video_controls": "Eigenschappen van videograbberstream",
-  "json_api_video_controls_expl": "Stel de hardware-eigenschappen van videograbber in indien ondersteund: helderheid, contrast, verzadiging, tint."
+  "json_api_video_controls_expl": "Stel de hardware-eigenschappen van videograbber in indien ondersteund: helderheid, contrast, verzadiging, tint.",
+  "main_menu_grabber_benchmark_token": "Videobenchmark",
+  "grabber_benchmark_intro": "Deze tool kan informatie geven over de geschatte vertraging bij het vastleggen van video's. U moet deze test uitvoeren op een apparaat met HyperHDR om mogelijke netwerklatentie tussen uw WWW-browser en de HyperHDR-toepassing te elimineren. Het scherm kan flikkeren tijdens de test.<br/><ol><li>Plaats de zwarte rechthoek in het midden van het scherm</li><li>Zorg ervoor dat de videograbber de gecentreerde rechthoek vastlegt (live videovoorbeeld) </li><li>Start de test. Onderbreek het niet terwijl het werkt en gebruik geen muis of toetsenbord.</li></ol>",
+  "benchmark_av_delay": "Gemiddelde gemeten latentie:",
+  "benchmark_exp_delay": "Perfecte minimale latentie (gerelateerd aan FPS):"
 }

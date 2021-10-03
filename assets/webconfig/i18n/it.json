@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Ripristino automatico",
   "edt_conf_stream_autoResume_expl": "Prova a riavviare l'acquisizione video se il flusso video si interrompe. Usare con cautela in quanto non è una cura per i problemi hardware del grabber.",
   "json_api_video_controls": "Proprietà del flusso di acquisizione video",
-  "json_api_video_controls_expl": "Imposta le proprietà hardware del video grabber se supportate: luminosità, contrasto, saturazione, tonalità."
+  "json_api_video_controls_expl": "Imposta le proprietà hardware del video grabber se supportate: luminosità, contrasto, saturazione, tonalità.",
+  "main_menu_grabber_benchmark_token": "Benchmark video",
+  "grabber_benchmark_intro": "Questo strumento può fornire informazioni sul ritardo approssimativo di acquisizione video. Dovresti eseguire questo test su un dispositivo che esegue HyperHDR per eliminare la possibile latenza di rete tra il browser WWW e l'applicazione HyperHDR. Lo schermo potrebbe sfarfallare durante il test.<br/><ol><li>Posiziona il rettangolo nero al centro dello schermo</li><li>Assicurati che il video grabber stia catturando il rettangolo centrato (anteprima video dal vivo) </li><li>Inizia il test. Non interromperlo mentre è in funzione e non utilizzare il mouse o la tastiera.</li></ol>",
+  "benchmark_av_delay": "Latenza media misurata:",
+  "benchmark_exp_delay": "Latenza minima perfetta (relativa a FPS):"
 }

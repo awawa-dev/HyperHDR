@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Tiếp tục tự động",
   "edt_conf_stream_autoResume_expl": "Thử khởi động lại quay video nếu luồng video dừng. Sử dụng một cách thận trọng vì nó không phải là cách chữa trị các vấn đề phần cứng của grabber.",
   "json_api_video_controls": "Thuộc tính luồng lấy video",
-  "json_api_video_controls_expl": "Đặt thuộc tính phần cứng của video grabber nếu được hỗ trợ: độ sáng, độ tương phản, độ bão hòa, màu sắc."
+  "json_api_video_controls_expl": "Đặt thuộc tính phần cứng của video grabber nếu được hỗ trợ: độ sáng, độ tương phản, độ bão hòa, màu sắc.",
+  "main_menu_grabber_benchmark_token": "Điểm chuẩn video",
+  "grabber_benchmark_intro": "Công cụ này có thể cung cấp thông tin về độ trễ quay video gần đúng. Bạn nên chạy thử nghiệm này trên thiết bị chạy HyperHDR để loại bỏ độ trễ mạng có thể xảy ra giữa trình duyệt WWW của bạn và ứng dụng HyperHDR. Màn hình có thể nhấp nháy trong khi kiểm tra. <br/> <ol> <li> Đặt hình chữ nhật màu đen ở giữa màn hình </li> <li> Đảm bảo trình lấy video đang chụp hình chữ nhật ở giữa (xem trước video trực tiếp) </li> <li> Bắt đầu thử nghiệm. Không làm gián đoạn thiết bị khi đang hoạt động và không sử dụng chuột hoặc bàn phím. </li> </ol>",
+  "benchmark_av_delay": "Độ trễ đo được trung bình:",
+  "benchmark_exp_delay": "Độ trễ tối thiểu hoàn hảo (liên quan đến FPS):"
 }

@@ -1129,5 +1129,9 @@
   "edt_conf_stream_autoResume_title": "Återuppta automatiskt",
   "edt_conf_stream_autoResume_expl": "Prova att starta om videoinspelningen om videoströmmen stannar. Använd med försiktighet eftersom det inte är ett botemedel mot maskinvaruproblem hos griparen.",
   "json_api_video_controls": "Video grabber ström egenskaper",
-  "json_api_video_controls_expl": "Ställ in videograbberns hårdvarugenskaper om det stöds: ljusstyrka, kontrast, mättnad, nyans."
+  "json_api_video_controls_expl": "Ställ in videograbberns hårdvarugenskaper om det stöds: ljusstyrka, kontrast, mättnad, nyans.",
+  "main_menu_grabber_benchmark_token": "Video riktmärke",
+  "grabber_benchmark_intro": "Detta verktyg kan ge information om ungefärlig fördröjning av videoinspelning. Du bör köra detta test på en enhet som kör HyperHDR för att eliminera eventuell nätverkslatens mellan din WWW -webbläsare och HyperHDR -programmet. Skärmen kan flimra under testet. <br/> <ol> <li> Placera den svarta rektangeln i mitten av skärmen </li> <li> Se till att videobrytaren fångar den centrerade rektangeln (livevideoförhandsvisning) </li> <li> Starta testet. Avbryt inte den medan den fungerar och använd inte musen eller tangentbordet. </li> </ol>",
+  "benchmark_av_delay": "Genomsnittlig uppmätt latens:",
+  "benchmark_exp_delay": "Perfekt minimal latens (relaterad till FPS):"
 }

@@ -194,6 +194,8 @@ proceed:
 		handleHelpCommand(message, command, tan);
 	else if (command == "video-crop")
 		handleCropCommand(message, command, tan);
+	else if (command == "benchmark")
+		handleBenchmarkCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
 		sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 	// END
@@ -903,6 +905,23 @@ void JsonAPI::handleCropCommand(const QJsonObject& message, const QString& comma
 	int t = adjustment["top"].toInt(0);
 	int b = adjustment["bottom"].toInt(0);
 	GrabberWrapper::getInstance()->setCropping(l, r, t, b);
+	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& subc = message["subcommand"].toString().trimmed();
+	int status = message["status"].toInt();
+
+	if (subc == "ping")
+	{		
+		emit GrabberWrapper::getInstance()->benchmarkUpdate(status, "pong");
+	}
+	else	
+	{		
+		GrabberWrapper::getInstance()->benchmarkCapture(status, subc);
+	}
+
 	sendSuccessReply(command, tan);
 }
 

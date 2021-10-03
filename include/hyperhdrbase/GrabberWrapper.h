@@ -70,6 +70,8 @@ public:
 	void revive();
 
 	bool getAutoResume();
+
+	void benchmarkCapture(int status, QString message);
 	
 public slots:	
 	void newFrame(const Image<ColorRgb>& image);
@@ -91,7 +93,7 @@ signals:
 	void HdrChanged(int mode);
 	void StateChanged(QString device, QString videoMode);
 	void cecKeyPressed(int key);
-	
+	void benchmarkUpdate(int status, QString message);
 
 public:
 	int  getHdrToneMappingEnabled();
@@ -123,4 +125,7 @@ protected:
 	int			_cecHdrStart;
 	int			_cecHdrStop;
 	bool		_autoResume;
+
+	int			_benchmarkStatus;
+	QString		_benchmarkMessage;
 };

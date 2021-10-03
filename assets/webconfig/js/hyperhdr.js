@@ -384,7 +384,7 @@ function requestInstanceSwitch(inst)
 
 function requestServerInfo()
 {
-	sendToHyperhdr("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "effects-update", "settings-update", "instance-update", "grabberstate-update"]');
+	sendToHyperhdr("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "effects-update", "settings-update", "instance-update", "grabberstate-update", "benchmark-update"]');
 }
 
 function requestSysInfo()
@@ -581,4 +581,9 @@ async function requestGetDB()
 function requestRestoreDB(backupData)
 {	
 	sendToHyperhdr("load-db","", '"config":'+JSON.stringify(backupData));
+}
+
+function requestBenchmark(mode, status)
+{
+	sendToHyperhdr("benchmark", mode, '"status": '+status);
 }
