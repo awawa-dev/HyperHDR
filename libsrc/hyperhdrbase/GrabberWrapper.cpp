@@ -93,11 +93,11 @@ void GrabberWrapper::newFrame(const Image<ColorRgb>& image)
 	if (_benchmarkStatus >= 0)
 	{
 		ColorRgb pixel = image(image.width() / 2, image.height() / 2);
-		if ((_benchmarkMessage == "white" && pixel.red > 128 && pixel.green > 128 && pixel.blue > 128) ||
-			(_benchmarkMessage == "red"   && pixel.red > 128 && pixel.green < 16  && pixel.blue < 16)  ||
-			(_benchmarkMessage == "green" && pixel.red < 16  && pixel.green > 128 && pixel.blue < 16) ||
-			(_benchmarkMessage == "blue"  && pixel.red < 16  && pixel.green < 16  && pixel.blue > 128) ||
-			(_benchmarkMessage == "black" && pixel.red < 16  && pixel.green < 16  && pixel.blue < 16))
+		if ((_benchmarkMessage == "white" && pixel.red > 120 && pixel.green > 120 && pixel.blue > 120) ||
+			(_benchmarkMessage == "red"   && pixel.red > 120 && pixel.green < 30  && pixel.blue < 30)  ||
+			(_benchmarkMessage == "green" && pixel.red < 30  && pixel.green > 120 && pixel.blue < 30) ||
+			(_benchmarkMessage == "blue"  && pixel.red < 30  && pixel.green < 40  && pixel.blue > 120) ||
+			(_benchmarkMessage == "black" && pixel.red < 30  && pixel.green < 30  && pixel.blue < 30))
 
 		{
 			emit benchmarkUpdate(_benchmarkStatus, _benchmarkMessage);
