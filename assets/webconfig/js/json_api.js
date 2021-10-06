@@ -537,5 +537,56 @@ function BuildHdrJson()
 	var finJson = componentHdr.replace("{0}", state);
 	$("#hdrMode_json").html(finJson);
 }
+////////////////////////////////////////////////////////////////////////////////
+var videoControlsJson = 
+`{
+  "command" : "video-controls",
+  "video-controls":
+  {
+	"hardware_brightness": {0},
+	"hardware_contrast": {1},
+	"hardware_saturation": {2},
+	"hardware_hue": {3}
+  }
+}`;
+
+$('input[name="videoVControl"]').on('input',
+	function(){
+		var VControlBrightness = $("#VControlBrightness").val();
+		var VControlContrast = $("#VControlContrast").val();
+		var VControlSaturation = $("#VControlSaturation").val();
+		var VControlHue = $("#VControlHue").val();
+		
+		if  (
+		    ((!isNaN(VControlBrightness)) && !isNaN(parseFloat(VControlBrightness))) &&
+			((!isNaN(VControlContrast)) && !isNaN(parseFloat(VControlContrast))) &&
+			((!isNaN(VControlSaturation)) && !isNaN(parseFloat(VControlSaturation))) &&
+			((!isNaN(VControlHue)) && !isNaN(parseFloat(VControlHue))) )
+		{
+			BuildVControlJson();
+		}
+		else
+		{
+			$('button[name="videoVControlButtons"]').each(function(i, obj) {
+				$(this).addClass('disabled');
+			});
+			$("#video_VControl_json").html("");
+		}
+	});	
+	
+function BuildVControlJson()
+{
+	$('button[name="videoVControlButtons"]').each(function(i, obj) {
+		$(this).removeClass('disabled');
+	});
+	
+	var VControlBrightness = $("#VControlBrightness").val();
+	var VControlContrast = $("#VControlContrast").val();
+	var VControlSaturation = $("#VControlSaturation").val();
+	var VControlHue = $("#VControlHue").val();
+	var finJson = videoControlsJson.replace("{0}", VControlBrightness).replace("{1}", VControlContrast).replace("{2}", VControlSaturation).replace("{3}", VControlHue);
+	$("#video_VControl_json").html(finJson);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 });

@@ -194,6 +194,8 @@ proceed:
 		handleHelpCommand(message, command, tan);
 	else if (command == "video-crop")
 		handleCropCommand(message, command, tan);
+	else if (command == "video-controls")
+		handleVideoControlsCommand(message, command, tan);
 	else if (command == "benchmark")
 		handleBenchmarkCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
@@ -921,6 +923,27 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 	{		
 		GrabberWrapper::getInstance()->benchmarkCapture(status, subc);
 	}
+
+	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleVideoControlsCommand(const QJsonObject& message, const QString& command, int tan)
+{
+
+#if defined(__APPLE__)
+	sendErrorReply("Setting video controls is not supported under macOS", command, tan);
+	return;
+#endif
+
+	const QJsonObject& adjustment = message["video-controls"].toObject();
+	int hardware_brightness = adjustment["hardware_brightness"].toInt();
+	int hardware_contrast = adjustment["hardware_contrast"].toInt();
+	int hardware_saturation = adjustment["hardware_saturation"].toInt();
+	int hardware_hue = adjustment["hardware_hue"].toInt();
+
+	if (GrabberWrapper::getInstance() != nullptr)
+		GrabberWrapper::getInstance()->setBrightnessContrastSaturationHue(hardware_brightness, hardware_contrast,
+																		  hardware_saturation, hardware_hue);
 
 	sendSuccessReply(command, tan);
 }

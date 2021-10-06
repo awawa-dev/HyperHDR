@@ -287,6 +287,8 @@ private:
 
 	void handleCropCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleVideoControlsCommand(const QJsonObject& message, const QString& command, int tan);
+
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///

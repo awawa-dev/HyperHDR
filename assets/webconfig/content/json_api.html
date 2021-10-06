@@ -533,6 +533,71 @@
 			</div>				
 		</div>
 	</div>
+	
+	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_video_controls"></span></div>		
+		<div class="card-body" >
+			<div class="w-100" >
+				<div class="row">
+					<div class="col-12 col-lg-6">
+						<div class="row">
+							<div class="col-12 text-start">
+								<div class="callout callout-info">
+									<h4 class="bs-main-text" data-i18n="conf_helptable_expl">Explanation</h4>
+									<span data-i18n="json_api_video_controls_expl"></span>
+								</div>
+							</div>
+						</div>				
+						<div class="row">
+							<div class="col-12 col-xxl-10 mb-1">
+								<div class="input-group">
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_brightness_title"></span>									
+									<input class="form-control" name="videoVControl" type="number" id="VControlBrightness" value="">									
+								</div>								
+							</div>
+							<div class="col-12 col-xxl-10 mb-1">
+								<div class="input-group">
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_contrast_title"></span>									
+									<input class="form-control" name="videoVControl" type="number" id="VControlContrast" value="">									
+								</div>								
+							</div>
+							<div class="col-12 col-xxl-10 mb-1">
+								<div class="input-group">
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_saturation_title"></span>									
+									<input class="form-control" name="videoVControl" type="number" id="VControlSaturation" value="">									
+								</div>								
+							</div>							
+							<div class="col-12 col-xxl-10 mb-1">
+								<div class="input-group">
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_hue_title"></span>									
+									<input class="form-control" name="videoVControl" type="number" id="VControlHue" value="">									
+								</div>								
+							</div>							
+							
+						</div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<div class="form-group">							
+							<textarea class="form-control" id="video_VControl_json" rows="10" placeholder="JSON output" readonly></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="card-footer">			
+			<div class="d-flex flex-row-reverse bd-highlight mb-3">
+				<div class="ms-2">
+					<button type="button" name="videoVControlButtons" onclick='CopyLink($("#video_VControl_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
+				</div>
+				<div class="ms-2">
+					<button type="button" name="videoVControlButtons" onclick='CopyJson($("#video_VControl_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
+				</div>				
+				<div class="ms-2">
+					<button type="button" name="videoVControlButtons" onclick='RunIt($("#video_VControl_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
+				</div>
+			</div>				
+		</div>
+	</div>
 </div>
 <script>
 $.getScript("/js/json_api.js");

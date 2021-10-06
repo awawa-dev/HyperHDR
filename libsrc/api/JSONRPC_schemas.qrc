@@ -21,6 +21,7 @@
         <file alias="schema-save-db">JSONRPC_schema/schema-save-db.json</file>
         <file alias="schema-load-db">JSONRPC_schema/schema-load-db.json</file>
         <file alias="schema-video-crop">JSONRPC_schema/schema-video-crop.json</file>
+        <file alias="schema-video-controls">JSONRPC_schema/schema-video-controls.json</file>
         <file alias="schema-processing">JSONRPC_schema/schema-processing.json</file>
         <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
         <file alias="schema-videomodehdr">JSONRPC_schema/schema-videomodehdr.json</file>

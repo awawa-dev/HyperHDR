@@ -178,6 +178,35 @@ void Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, i
 {
 	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
 	{
+		if (_initialized && _deviceProperties.contains(_actualDeviceName))
+		{
+			auto dev = _deviceProperties[_actualDeviceName];
+
+			if (_brightness != brightness && brightness == 0 && dev.brightness.enabled)
+			{
+				brightness = (int)dev.brightness.defVal;
+				Debug(_log, "Reset brightness to default: %i (user value: 0)", brightness);
+			}
+
+			if (_contrast != contrast && contrast == 0 && dev.contrast.enabled)
+			{
+				contrast = (int)dev.contrast.defVal;
+				Debug(_log, "Reset contrast to default: %i (user value: 0)", contrast);
+			}
+
+			if (_saturation != saturation && saturation == 0 && dev.saturation.enabled)
+			{
+				saturation = (int)dev.saturation.defVal;
+				Debug(_log, "Reset saturation to default: %i (user value: 0)", saturation);
+			}
+
+			if (_hue != hue && hue == 0 && dev.hue.enabled)
+			{
+				hue = (int)dev.hue.defVal;
+				Debug(_log, "Reset hue to default: %i (user value: 0)", hue);
+			}
+		}		
+
 		_brightness = brightness;
 		_contrast = contrast;
 		_saturation = saturation;
