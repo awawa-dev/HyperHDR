@@ -1414,7 +1414,7 @@ bool LedDevicePhilipsHue::switchOn()
 
 				if (_useHueEntertainmentAPI)
 				{
-					if (openStream())
+					if (openStream() && powerOn())
 					{
 						_isOn = true;
 						rc = true;
@@ -1598,9 +1598,9 @@ void LedDevicePhilipsHue::writeStream()
 	writeBytes( static_cast<uint>(streamData.size()), reinterpret_cast<unsigned char *>( streamData.data() ) );
 }
 
-void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on)
+void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on, bool force)
 {
-	if (light.getOnOffState() != on)
+	if (light.getOnOffState() != on || force)
 	{
 		light.setOnOffState( on );
 		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
@@ -1708,17 +1708,12 @@ void LedDevicePhilipsHue::setLightsCount( unsigned int lightsCount )
 bool LedDevicePhilipsHue::powerOn()
 {
 	if ( _isDeviceReady)
-	{
-		// TODO: Question: Not clear, if setstream state on will turn of the lights
-		// or do they need to be turned off classically?
-		if ( !_useHueEntertainmentAPI )
+	{		
+		//Switch off Philips Hue devices physically
+		for ( PhilipsHueLight& light : _lights )
 		{
-			//Switch off Philips Hue devices physically
-			for ( PhilipsHueLight& light : _lights )
-			{
-				setOnOffState( light, true );
-			}
-		}
+			setOnOffState( light, true, true );
+		}		
 	}
 	return true;
 }
@@ -1726,17 +1721,12 @@ bool LedDevicePhilipsHue::powerOn()
 bool LedDevicePhilipsHue::powerOff()
 {
 	if ( _isDeviceReady)
-	{
-		// TODO: Question: Not clear, if setstream state off will turn of the lights
-		// or do they need to be turned off classically
-		if ( !_useHueEntertainmentAPI )
+	{		
+		//Switch off Philips Hue devices physically
+		for ( PhilipsHueLight& light : _lights )
 		{
-			//Switch off Philips Hue devices physically
-			for ( PhilipsHueLight& light : _lights )
-			{
-				setOnOffState( light, false );
-			}
-		}
+			setOnOffState( light, false, true );
+		}		
 	}
 	return true;
 }

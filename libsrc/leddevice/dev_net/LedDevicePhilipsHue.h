@@ -416,7 +416,7 @@ public:
 	///
 	unsigned int getLightsCount() const { return _lightsCount; }
 
-	void setOnOffState(PhilipsHueLight& light, bool on);
+	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false);
 	void setTransitionTime(PhilipsHueLight& light);
 	void setColor(PhilipsHueLight& light, CiColor& color);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
