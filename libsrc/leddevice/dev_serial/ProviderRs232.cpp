@@ -244,19 +244,30 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 
 QString ProviderRs232::discoverFirst()
 {
-	// take first available USB serial port - currently no probing!
-	for (auto const & port : QSerialPortInfo::availablePorts())
-	{
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-		if (!port.isNull() && !port.isBusy())
-#else
-		if (!port.isNull())
-#endif
+	for(int round = 0; round < 2; round++)
+		for (auto const & port : QSerialPortInfo::availablePorts())
 		{
-			Info(_log, "found serial device: %s", QSTRING_CSTR(port.portName()));
-			return port.portName();
+	#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+			if (!port.isNull() && !port.isBusy())
+	#else
+			if (!port.isNull())
+	#endif
+			{
+				QString infoMessage = QString("%1 (%2 => %3)").arg(port.description()).arg(port.systemLocation()).arg(port.portName());
+
+				if (round != 0 ||
+					(port.description().contains("Bluetooth", Qt::CaseInsensitive) == false &&
+					 port.systemLocation().contains("ttyAMA0", Qt::CaseInsensitive) == false))
+				{
+					Info(_log, "Serial port auto-discovery. Found serial port device: %s", QSTRING_CSTR(infoMessage));
+					return port.portName();
+				}
+				else
+				{
+					Warning(_log, "Serial port auto-discovery. Ignoring possible bluetooth device for now, try to find different available serial port: %s", QSTRING_CSTR(infoMessage));
+				}
+			}
 		}
-	}
 	return "";
 }
 
