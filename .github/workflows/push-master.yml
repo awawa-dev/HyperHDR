@@ -117,7 +117,7 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew update && brew install qt@5 xz ccache
+        run: brew update && brew install qt@6 xz ccache
 
         # Build process
       - name: Build packages

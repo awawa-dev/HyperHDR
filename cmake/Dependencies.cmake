@@ -53,6 +53,14 @@ macro(DeployApple TARGET)
 						)
 					endif()
 				endforeach()
+				
+				if (NOT Qt5Core_FOUND AND EXISTS "/usr/local/lib/libbrotlicommon.1.dylib")
+					file(INSTALL
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+						TYPE SHARED_LIBRARY
+						FOLLOW_SYMLINK_CHAIN
+						FILES "/usr/local/lib/libbrotlicommon.1.dylib")
+				endif()				
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)

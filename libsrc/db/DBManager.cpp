@@ -617,7 +617,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 		const QJsonArray instances = message.value("instances").toArray();
 		if (instances.count() > 0)
 		{			
-			for(const QJsonValue & value : instances)
+			for(auto value : instances)
 			{
 				QStringList headers, placeholder;
 				QVariantList values;
@@ -650,7 +650,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 		const QJsonArray settings = message.value("settings").toArray();
 		if (settings.count() > 0)
 		{			
-			for(const QJsonValue & value : settings)
+			for(auto value : settings)
 			{
 				QStringList headers, placeholder;
 				QVariantList values;
