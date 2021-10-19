@@ -152,7 +152,7 @@ jobs:
     runs-on: windows-latest
     env:
       VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
-      QT_VERSION: 5.15.2
+      QT_VERSION: 6.2.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -165,15 +165,13 @@ jobs:
         with:
           path: ${{ runner.workspace }}/Qt
           key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
+     
+      - name: Install QT
+        if: steps.cache-qt-windows.outputs.cache-hit != 'true'
+        run: |          
+          pip install aqtinstall
+          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2
-        with:
-          version: ${{ env.QT_VERSION }}
-          target: 'desktop'
-          arch: 'win64_msvc2019_64'
-          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
-          
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
@@ -185,8 +183,10 @@ jobs:
       - name: Build packages        
         env:
           PLATFORM: windows
+          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
         shell: bash
-        run: ./.ci/ci_build.sh
+        run: |
+          ./.ci/ci_build.sh
 
       # upload artifacts (only on tagged commit)
       - name: Upload artifacts
@@ -202,7 +202,7 @@ jobs:
         with:
           name: windows
           path: build/Hyper*.exe
-          
+  
 ################################
 ###### Publish Releases ########
 ################################
