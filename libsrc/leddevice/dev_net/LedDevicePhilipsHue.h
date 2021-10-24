@@ -251,10 +251,10 @@ public:
 	/// @param route the route of the POST request.
 	/// @param content the content of the POST request.
 	///
-	QJsonDocument post(const QString& route, const QString& content, const bool& wait = true);
+	QJsonDocument post(const QString& route, const QString& content, bool wait = true);
 
 	QJsonDocument getLightState(unsigned int lightId);
-	void setLightState(unsigned int lightId = 0, const QString &state = "", const bool& wait = true);
+	void setLightState(unsigned int lightId = 0, const QString &state = "", bool wait = true);
 
 	QMap<quint16,QJsonObject> getLightMap() const;
 
@@ -416,7 +416,7 @@ public:
 	///
 	unsigned int getLightsCount() const { return _lightsCount; }
 
-	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false);
+	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false, bool wait = true);
 	void setTransitionTime(PhilipsHueLight& light);
 	void setColor(PhilipsHueLight& light, CiColor& color);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
@@ -531,6 +531,8 @@ private slots:
 private:
 
 	bool initLeds();
+
+	bool powerOn(bool wait);
 
 	///
 	/// @brief Creates new PhilipsHueLight(s) based on user lightid with bridge feedback

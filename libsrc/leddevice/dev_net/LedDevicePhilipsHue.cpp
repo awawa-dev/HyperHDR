@@ -634,7 +634,7 @@ QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
 	return response.getBody();
 }
 
-QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QString& content, const bool& wait)
+QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QString& content, bool wait)
 {
 	_restApi->setPath(route);
 
@@ -649,7 +649,7 @@ QJsonDocument LedDevicePhilipsHueBridge::getLightState(unsigned int lightId)
 	return get( QString("%1/%2").arg( API_LIGHTS ).arg( lightId ) );
 }
 
-void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state, const bool &wait)
+void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state, bool wait)
 {
 	DebugIf( verbose, _log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state) );
 	post( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state, wait);
@@ -858,7 +858,7 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 		};
 		_originalColor = _color;
 		c = QString("{ \"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.bri * 254.0), 0, 'd', 4);
-		DebugIf(verbose, _log, "OriginalColor state on: %s", QSTRING_CSTR(c));
+		Debug(_log, "Philips original state stored: %s", QSTRING_CSTR(c));
 		_transitionTime = values[API_STATE].toObject()[API_TRANSITIONTIME].toInt();
 	}
 	//Determine the original state.
@@ -1202,72 +1202,64 @@ bool LedDevicePhilipsHue::openStream()
 bool LedDevicePhilipsHue::startStream()
 {
 	Debug(_log, "Start entertainment stream");
-
-	bool rc = false;
-	if ( setStreamGroupState( true ) )
-	{		
-		rc = true;
-	}
-	else
+	
+	int index = 3;
+	while ( !setStreamGroupState( true ) && --index > 0 )
 	{
-		if ( !this->isInError() )
-		{
-			QThread::msleep(500);
-			bool streamState = getStreamGroupState();
-
-			if ( !this->isInError() )
-			{
-				// stream is not active
-				if( !streamState )
-				{
-					rc = startStream();
-				}
-			}
-		}
+		Debug(_log, "Start entertainment stream. Retrying...");
+		QThread::msleep(500);
 	}
+
+	bool rc = (index > 0);
+
+	if (rc)
+		Debug(_log, "The stream has start");
+	else
+		Warning(_log, "The stream has NOT start. Give up.");
 
 	return rc;
 }
 
 bool LedDevicePhilipsHue::stopStream()
 {
+	bool canRestore = false;
+
 	// Set to black
 	if (!_lightIds.empty() && _isDeviceReady && !_stopConnection && _useHueEntertainmentAPI)
 	{
-		for (PhilipsHueLight& light : _lights)
+		if (!_isRestoreOrigState)
 		{
-			light.setBlack();
+			for (PhilipsHueLight& light : _lights)
+			{
+				light.setBlack();
+			}
+
+			writeStream();
+
+			QThread::msleep(10);
 		}
-
-		writeStream();
-
-		QThread::msleep(10);
+		else
+			canRestore = true;
 	}	
 
 	ProviderUdpSSL::closeSSLConnection();
 
-	bool rc = false;
-	if ( setStreamGroupState( false ) )
-	{		
-		rc = true;
-	}
-	else
+	int index = 3;
+	while (!setStreamGroupState(false) && --index > 0)
 	{
-		if ( !this->isInError() )
-		{
-			QThread::msleep(500);
-			bool streamState = getStreamGroupState();
-
-			if ( !this->isInError() )
-			{
-				// stream is still active
-				if( streamState )
-				{
-					rc = stopStream();
-				}
-			}
-		}
+		Debug(_log, "Stop entertainment stream. Retrying...");
+		QThread::msleep(500);
 	}
+
+	if (canRestore && _isRestoreOrigState)
+		restoreState();
+
+	bool rc = (index > 0);
+
+	if (rc)
+		Debug(_log, "The stream has stopped");
+	else
+		Warning(_log, "The stream has NOT stopped. Give up.");
 
 	return rc;
 }
@@ -1395,15 +1387,19 @@ bool LedDevicePhilipsHue::switchOn()
 {
 	bool rc = false;
 
-	if (!_initSemaphore.tryAcquire())
+	Info(_log, "Switching ON Philips Hue device");
+
+	if (!_initSemaphore.tryAcquire(1, 6000))
+	{
+		Debug(_log, "Could not obtain lock for switching on. Skipping");
 		return _isOn;
+	}
 
 	try
-	{
-		Debug(_log, "Switching on Philips");		
-
+	{		
 		if (_isOn)
 		{
+			Debug(_log, "Philips is already enabled. Skipping.");
 			rc = true;
 		}
 		else
@@ -1414,10 +1410,14 @@ bool LedDevicePhilipsHue::switchOn()
 
 				if (_useHueEntertainmentAPI)
 				{
-					if (openStream() && powerOn())
+					if (openStream())
 					{
-						_isOn = true;
-						rc = true;
+						QThread::msleep(100);
+						if (powerOn(false))
+						{
+							_isOn = true;
+							rc = true;
+						}
 					}
 				}
 				else if (powerOn())
@@ -1436,19 +1436,50 @@ bool LedDevicePhilipsHue::switchOn()
 
 	_initSemaphore.release();
 
+	if (rc && _isOn)
+		Info(_log, "Philips Hue device is ON");
+	else
+		Warning(_log, "Could not set Philips Hue device ON");
+
 	return rc;
 }
 
 bool LedDevicePhilipsHue::switchOff()
 {
-	Debug(_log, "Switching off the device");
+	bool result = false;
 
-	if (_useHueEntertainmentAPI && _groupStreamState)
+	Info(_log, "Switching OFF Philips Hue device");
+	
+	if (!_initSemaphore.tryAcquire(1, 2000))
 	{
-		stopStream();
+		Debug(_log, "Could not obtain lock for switching off. Skipping");
+		return _isOn;
 	}
 
-	return LedDevicePhilipsHueBridge::switchOff();
+	try
+	{
+		if (_useHueEntertainmentAPI && _groupStreamState)
+		{			
+			result = stopStream();
+			_isOn = false;
+		}
+		else
+			result = LedDevicePhilipsHueBridge::switchOff();
+	}
+	catch (...)
+	{
+		_initSemaphore.release();
+		throw;
+	}
+
+	_initSemaphore.release();
+
+	if (result && !_isOn)
+		Info(_log, "Philips Hue device is OFF");
+	else
+		Warning(_log, "Could not set Philips Hue device OFF");
+
+	return result;
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
@@ -1598,13 +1629,13 @@ void LedDevicePhilipsHue::writeStream()
 	writeBytes( static_cast<uint>(streamData.size()), reinterpret_cast<unsigned char *>( streamData.data() ) );
 }
 
-void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on, bool force)
+void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on, bool force, bool wait)
 {
 	if (light.getOnOffState() != on || force)
 	{
 		light.setOnOffState( on );
 		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
-		setLightState( light.getId(), QString("{\"%1\": %2 }").arg( API_STATE_ON, state ) );
+		setLightState( light.getId(), QString("{\"%1\": %2 }").arg( API_STATE_ON, state ), wait );
 	}
 }
 
@@ -1707,12 +1738,17 @@ void LedDevicePhilipsHue::setLightsCount( unsigned int lightsCount )
 
 bool LedDevicePhilipsHue::powerOn()
 {
+	return powerOn(true);
+}
+
+bool LedDevicePhilipsHue::powerOn(bool wait)
+{
 	if ( _isDeviceReady)
 	{		
 		//Switch off Philips Hue devices physically
 		for ( PhilipsHueLight& light : _lights )
 		{
-			setOnOffState( light, true, true );
+			setOnOffState( light, true, true, wait);
 		}		
 	}
 	return true;
