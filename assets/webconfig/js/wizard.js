@@ -1442,7 +1442,8 @@ function beginWizardYeelight() {
     window.serverConfig.device = d;
 
     //smoothing off
-    window.serverConfig.smoothing.enable = false;
+	if (!(window.serverConfig.smoothing == null))	
+		window.serverConfig.smoothing.enable = false;
 
     requestWriteConfig(window.serverConfig, true);
     resetWizard();
