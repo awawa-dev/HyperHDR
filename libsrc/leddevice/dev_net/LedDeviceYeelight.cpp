@@ -1147,16 +1147,39 @@ bool LedDeviceYeelight::startMusicModeServer()
 		}
 		else
 		{
-			QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-			// use the first non-localhost IPv4 address
-			for (int i = 0; i < ipAddressesList.size(); ++i) {
-				if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
-					 (ipAddressesList.at(i).toIPv4Address() != 0U))
+			for (const auto& _interface : QNetworkInterface::allInterfaces())
+			{
+				if ((_interface.type() != QNetworkInterface::InterfaceType::Ethernet &&
+					_interface.type() != QNetworkInterface::InterfaceType::Wifi) ||
+					_interface.humanReadableName().indexOf("virtual", 0, Qt::CaseInsensitive) >= 0 ||
+					!_interface.flags().testFlag(QNetworkInterface::InterfaceFlag::IsRunning) ||
+					!_interface.flags().testFlag(QNetworkInterface::InterfaceFlag::IsUp))
+					continue;
+
+				for (const auto& addressEntr : _interface.addressEntries())
 				{
-					_musicModeServerAddress = ipAddressesList.at(i);
-					break;
+					auto address = addressEntr.ip();
+					if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
+					{
+						_musicModeServerAddress = address;
+						break;
+					}
 				}
 			}
+
+			if (_musicModeServerAddress.isNull())
+			{
+				for (const auto& address : QNetworkInterface::allAddresses())
+				{
+					// is valid when, no loopback, IPv4
+					if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
+					{
+						_musicModeServerAddress = address;
+						break;
+					}
+				}
+			}
+
 			if ( _musicModeServerAddress.isNull() )
 			{
 				Error( _log, "Failed to resolve IP for music mode server");
