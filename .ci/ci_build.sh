@@ -104,7 +104,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "${cache_env} && export -p && ccache -p && cd / && mkdir hyperhdr && cp -r source/. /hyperhdr &&
 		cd /hyperhdr && mkdir build && cd build &&
-		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
+		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
@@ -121,7 +121,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "cd / && mkdir hyperhdr && cp -r source/. /hyperhdr &&
 		cd /hyperhdr && mkdir build && cd build &&
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
+		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&

@@ -18,18 +18,39 @@ jobs:
 
     strategy:
       matrix:
+        debian: [ buster, bullseye ]
         dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
         include:
           - dockerImage: x86_64
+            debian: buster
+            dockerName: Debian Buster (x86_64)
+            platform: linux
+          - dockerImage: rpi012-armv6l
+            debian: buster
+            dockerName: Debian Buster (Raspberry Pi ZERO, 1 & 2)
+            platform: rpi
+          - dockerImage: rpi34-armv7l
+            debian: buster
+            dockerName: Debian Buster (Raspberry Pi 3 & 4)
+            platform: rpi
+          - dockerImage: arm-aarch64
+            debian: buster
+            dockerName: Debian Buster (ARM aarch64)
+            platform: rpi        
+          - dockerImage: x86_64
+            debian: bullseye
             dockerName: Debian Bullseye (x86_64)
             platform: linux
           - dockerImage: rpi012-armv6l
+            debian: bullseye
             dockerName: Debian Bullseye (Raspberry Pi ZERO, 1 & 2)
             platform: rpi
           - dockerImage: rpi34-armv7l
+            debian: bullseye
             dockerName: Debian Bullseye (Raspberry Pi 3 & 4)
             platform: rpi
           - dockerImage: arm-aarch64
+            debian: bullseye
             dockerName: Debian Bullseye (ARM aarch64)
             platform: rpi            
 
@@ -54,13 +75,13 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
            path: .ccache
-           key: ${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.dockerImage }}-ccache-
+           key: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-
 
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: bullseye
+          DOCKER_TAG: ${{ matrix.debian }}
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
@@ -80,7 +101,7 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true)
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.dockerImage }}
+          name: Linux-${{ matrix.debian }}-${{ matrix.dockerImage }}-DEB-installer
           path: deploy/Hyper*.deb
 
 ######################
@@ -89,7 +110,7 @@ jobs:
 
   macOS:
     name: macOS
-    runs-on: macOS-10.15       
+    runs-on: macOS-10.15 
     steps:
       # Checkout
       - uses: actions/checkout@v1
@@ -140,7 +161,7 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true)
         uses: actions/upload-artifact@v2
         with:
-            name: macOS_x64
+            name: Apple_macOS_x64_DMG_installer
             path: build/Hyper*.dmg
 
 ######################
@@ -200,7 +221,7 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true)
         uses: actions/upload-artifact@v2
         with:
-          name: windows
+          name: Windows_x64_setup
           path: build/Hyper*.exe
   
 ################################
