@@ -1389,7 +1389,7 @@ bool LedDevicePhilipsHue::switchOn()
 
 	Info(_log, "Switching ON Philips Hue device");
 
-	if (!_initSemaphore.tryAcquire(1, 6000))
+	if (!_initSemaphore.tryAcquire(1, 8000))
 	{
 		Debug(_log, "Could not obtain lock for switching on. Skipping");
 		return _isOn;

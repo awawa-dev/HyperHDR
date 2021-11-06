@@ -106,6 +106,11 @@ void GrabberWrapper::newFrame(const Image<ColorRgb>& image)
 		}
 	}
 
+	if (image.setBufferCacheSize())
+	{
+		Warning(_log, "Detected the video frame size changed (%ix%i). Cache buffer was cleared.", image.width(), image.height());
+	}
+
 	emit systemImage(_grabberName, image);
 }
 

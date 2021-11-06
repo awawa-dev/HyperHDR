@@ -8,6 +8,7 @@
 #include <cassert>
 #include <type_traits>
 #include <utils/ColorRgb.h>
+#include <utils/VideoMemoryManager.h>
 
 // QT includes
 #include <QSharedData>
@@ -29,18 +30,24 @@ public:
 	ImageData(unsigned width, unsigned height):
 		_width(width),
 		_height(height),
-		_pixels((uint8_t*) malloc(static_cast<size_t>(width) * height *3 + 4))
+		_pixels(getMemory(width, height))
 	{		
 	}
 
 	ImageData(const ImageData & other) :		
 		_width(other._width),
 		_height(other._height),
-		_pixels((uint8_t*) malloc(static_cast<size_t>(other._width) * other._height *3 + 4))
+		_pixels(getMemory(other._width, other._height))
 	{
 		if (_pixels != NULL)
 			memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * other._height * 3);
 	}
+
+	bool setBufferCacheSize()
+	{
+		return videoCache.SetFrameSize(_bufferSize);
+	}
+
 
 	ImageData& operator=(ImageData rhs)
 	{
@@ -54,6 +61,7 @@ public:
 		swap(this->_width, s._width);
 		swap(this->_height, s._height);
 		swap(this->_pixels, s._pixels);
+		swap(this->_bufferSize, s._bufferSize);
 	}
 
 	ImageData(ImageData&& src) noexcept
@@ -72,11 +80,7 @@ public:
 
 	~ImageData()
 	{
-		if (_pixels!=NULL)
-		{
-			free(_pixels);
-			_pixels = NULL;
-		}
+		freeMemory();
 	}
 
 	inline unsigned width() const
@@ -106,8 +110,8 @@ public:
 
 		if ((width * height) > unsigned((_width * _height)))
 		{
-			free(_pixels);
-			_pixels = (uint8_t*) malloc(static_cast<size_t>(width) * height * 3 + 4);
+			freeMemory();
+			_pixels = (uint8_t*) getMemory(width, height);
 		}
 
 		_width = width;
@@ -143,8 +147,8 @@ public:
 		{
 			_width = 1;
 			_height = 1;
-			free(_pixels);
-			_pixels = (uint8_t*) malloc(3 + 4);
+			freeMemory();
+			_pixels = getMemory(_width, _height);
 		}
 		if (_pixels != NULL)
 			memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
@@ -165,6 +169,22 @@ private:
 		return (y * _width  + x) * 3;
 	}
 
+	uint8_t* getMemory(size_t width, size_t height)
+	{
+		_bufferSize = width * height * 3 + 16;
+		return videoCache.Request(_bufferSize);
+	}
+
+	void freeMemory()
+	{
+		if (_pixels != NULL)
+		{
+			videoCache.Release(_bufferSize, _pixels);
+			_bufferSize = 0;
+			_pixels = NULL;
+		}
+	}
+
 private:
 	/// The width of the image
 	unsigned _width;
@@ -172,4 +192,8 @@ private:
 	unsigned _height;
 	/// The pixels of the image
 	uint8_t* _pixels;
+
+	size_t   _bufferSize;
+
+	static VideoMemoryManager videoCache;
 };

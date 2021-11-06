@@ -36,6 +36,11 @@ public:
 		return *this;
 	}
 
+	bool setBufferCacheSize() const
+	{
+		return _d_ptr->setBufferCacheSize();
+	}
+
 	bool checkSignal(int x, int y, int r, int g, int b, int tolerance)
 	{
 		return _d_ptr->checkSignal(x, y, r, g, b, tolerance);

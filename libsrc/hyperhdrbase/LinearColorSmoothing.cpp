@@ -142,7 +142,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 			Info(_log, "Enabling timer. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
 		}
-		else if ((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 * _updateInterval, (int64_t)1000))
+		else if ((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 * _updateInterval, (int64_t)2000))
 		{
 			_previousTime = QDateTime::currentMSecsSinceEpoch();
 			_previousValues = ledValues;
