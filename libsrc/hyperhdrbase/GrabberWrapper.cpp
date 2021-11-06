@@ -1,6 +1,7 @@
 
 #include <hyperhdrbase/GrabberWrapper.h>
 #include <hyperhdrbase/Grabber.h>
+#include <utils/VideoMemoryManager.h>
 #include <HyperhdrConfig.h>
 
 // utils includes
@@ -519,6 +520,10 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			_grabber->setEncoding(obj["videoEncoding"].toString(pixelFormatToString(PixelFormat::NO_CHANGE)));
 
 			_grabber->setQFrameDecimation(obj["qFrame"].toBool(false));
+
+			bool frameCache = obj["videoCache"].toBool(false);
+			Debug(_log, "Frame cache is: %s", (frameCache) ? "enabled" : "disabled");
+			VideoMemoryManager::EnableCache(frameCache);
 
 			_grabber->unblockAndRestart(_configLoaded);
 		}

@@ -118,7 +118,10 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 	try
 	{
-		_semaphore.acquire();		
+		if (!_semaphore.tryAcquire(1, 100))
+		{
+			return 0;
+		}
 
 		if (_smoothingType == SmoothingType::Alternative)
 		{
@@ -136,23 +139,12 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 			LinearSetup(ledValues);
 		}		
 
-		if (!_timer.isActive() && _timer.remainingTime() < 0)
+		if (!_timer.isActive() || _timer.remainingTime() < 0)
 		{
 			_timer.start(_updateInterval);
 
 			Info(_log, "Enabling timer. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
-		}
-		else if ((QDateTime::currentMSecsSinceEpoch() - _previousTime) > qMax(10 * _updateInterval, (int64_t)2000))
-		{
-			_previousTime = QDateTime::currentMSecsSinceEpoch();
-			_previousValues = ledValues;
-			_previousTimeouts.clear();
-			_previousTimeouts.resize(_previousValues.size(), _previousTime);
-
-			_timer.start(_updateInterval);
-
-			Warning(_log, "Emergency timer restart. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
-		}
+		}		
 
 		_semaphore.release();
 	}

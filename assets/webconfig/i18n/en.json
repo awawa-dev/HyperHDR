@@ -1133,5 +1133,7 @@
   "main_menu_grabber_benchmark_token" : "Video benchmark",
   "grabber_benchmark_intro" : "This tool can provide information about approximate video capture delay. You should run this test on a device running HyperHDR to eliminate possible network latency between your WWW browser and the HyperHDR application. The screen may flickering during the test.<br/><ol><li>Place the black rectangle in the center of the screen</li><li>Make sure the video grabber is capturing the centered rectangle (live video preview)</li><li>Start the test. Do not interrupt it while it's working, and do not use the mouse or keyboard.</li></ol>",
   "benchmark_av_delay" : "Average measured latency:",
-  "benchmark_exp_delay" : "Perfect minimal latency (related to FPS):"
+  "benchmark_exp_delay" : "Perfect minimal latency (related to FPS):",
+  "edt_conf_video_cache_title" : "Frames cache",
+  "edt_conf_video_cache_expl" : "Enable frames caching. Could help for higher resolutions & framerates"
 } 

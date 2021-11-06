@@ -36,6 +36,11 @@ public:
 		return *this;
 	}
 
+	QString getCacheInfo()
+	{
+		return _d_ptr->getCacheInfo();
+	}
+
 	bool setBufferCacheSize() const
 	{
 		return _d_ptr->setBufferCacheSize();

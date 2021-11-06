@@ -163,25 +163,39 @@ public:
 		return delta <= tolerance;
 	}
 
+	QString getCacheInfo()
+	{		
+		return videoCache.GetInfo();
+	}
+
 private:
 	inline unsigned toIndex(unsigned x, unsigned y) const
 	{
 		return (y * _width  + x) * 3;
 	}
 
-	uint8_t* getMemory(size_t width, size_t height)
+	inline uint8_t* getMemory(size_t width, size_t height)
 	{
+		if (width == 1 && height == 1)
+		{
+			_bufferSize = 3;
+			return initDataPointer;
+		}
+
 		_bufferSize = width * height * 3 + 16;
 		return videoCache.Request(_bufferSize);
 	}
 
-	void freeMemory()
+	inline void freeMemory()
 	{
-		if (_pixels != NULL)
+		if (_pixels == initDataPointer)
+			return;
+
+		if (_pixels != nullptr)
 		{
 			videoCache.Release(_bufferSize, _pixels);
 			_bufferSize = 0;
-			_pixels = NULL;
+			_pixels = nullptr;
 		}
 	}
 
@@ -195,5 +209,7 @@ private:
 
 	size_t   _bufferSize;
 
+	static uint64_t           initData;
+	static uint8_t*     initDataPointer;
 	static VideoMemoryManager videoCache;
 };

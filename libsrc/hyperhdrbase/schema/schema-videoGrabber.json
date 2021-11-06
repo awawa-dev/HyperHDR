@@ -464,7 +464,16 @@
 			},
 			"required" : true,
 			"propertyOrder" : 69
-		}
+		},
+		"videoCache" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_video_cache_title",
+			"default" : false,
+			"required" : true,			
+			"propertyOrder" : 70
+		}		
 	},
 	"additionalProperties" : false
 }
