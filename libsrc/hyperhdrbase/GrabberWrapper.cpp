@@ -521,7 +521,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 			_grabber->setQFrameDecimation(obj["qFrame"].toBool(false));
 
-			bool frameCache = obj["videoCache"].toBool(false);
+			bool frameCache = obj["videoCache"].toBool(true);
 			Debug(_log, "Frame cache is: %s", (frameCache) ? "enabled" : "disabled");
 			VideoMemoryManager::EnableCache(frameCache);
 

@@ -1101,7 +1101,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							frameStat.badFrame,
 							diff/1000.0,
 							frameStat.segment,
-							QSTRING_CSTR(Image<ColorRgb>().getCacheInfo()));
+							QSTRING_CSTR(Image<ColorRgb>::getCacheInfo()));
 
 				resetCounter(currentTime);				
 			}

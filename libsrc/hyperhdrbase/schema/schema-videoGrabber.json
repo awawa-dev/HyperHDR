@@ -470,7 +470,7 @@
 			"type" : "boolean",
 			"format": "checkbox",
 			"title" : "edt_conf_video_cache_title",
-			"default" : false,
+			"default" : true,
 			"required" : true,			
 			"propertyOrder" : 70
 		}		

@@ -163,7 +163,7 @@ public:
 		return delta <= tolerance;
 	}
 
-	QString getCacheInfo()
+	static QString getCacheInfo()
 	{		
 		return videoCache.GetInfo();
 	}
@@ -188,15 +188,13 @@ private:
 
 	inline void freeMemory()
 	{
-		if (_pixels == initDataPointer)
-			return;
-
-		if (_pixels != nullptr)
+		if (_pixels != initDataPointer && _pixels != nullptr)
 		{
 			videoCache.Release(_bufferSize, _pixels);
-			_bufferSize = 0;
-			_pixels = nullptr;
 		}
+
+		_bufferSize = 0;
+		_pixels = nullptr;		
 	}
 
 private:

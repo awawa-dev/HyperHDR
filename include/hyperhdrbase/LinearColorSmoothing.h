@@ -228,5 +228,6 @@ private:
 	SmoothingType _smoothingType;
 	bool		  _infoUpdate;
 	bool		  _infoInput;
+	int           _timerWatchdog;
 	int			  debugCounter;
 };

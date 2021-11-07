@@ -6,7 +6,7 @@
 #include <QStack>
 #include <QSemaphore>
 
-#define VideoMemoryManagerBufferSize 10
+#define VideoMemoryManagerBufferSize 8
 
 class VideoMemoryManager
 {
@@ -25,6 +25,9 @@ private :
 
 	QStack<uint8_t*> _stack;
 	size_t           _currentSize;
+	int              _hits;
+	bool             _needed;
+	bool             _prevNeeded;
 	int              _bufferLimit;
 	QSemaphore       _synchro;
 

@@ -1,6 +1,7 @@
 // Qt includes
 #include <QDateTime>
 #include <QTimer>
+#include <QThread>
 
 #include <hyperhdrbase/LinearColorSmoothing.h>
 #include <hyperhdrbase/HyperHdrInstance.h>
@@ -8,6 +9,8 @@
 #include <cmath>
 #include <stdint.h>
 #include <inttypes.h>
+
+#define DEFAULT_WATCHDOG 4
 
 using namespace hyperhdr;
 
@@ -38,6 +41,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdr
 	, _smoothingType(SmoothingType::Linear)
 	, _infoUpdate(true)
 	, _infoInput(true)
+	, _timerWatchdog(DEFAULT_WATCHDOG)
 	, debugCounter(0)
 {
 	// init cfg 0 (default)
@@ -139,8 +143,15 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 			LinearSetup(ledValues);
 		}		
 
-		if (!_timer.isActive() || _timer.remainingTime() < 0)
+		if (_timer.remainingTime() < 0)
+			_timerWatchdog--;
+		else
+			_timerWatchdog = DEFAULT_WATCHDOG;
+
+		if (!_timer.isActive() || _timerWatchdog == 0)
 		{
+			_timerWatchdog = DEFAULT_WATCHDOG;
+
 			_timer.start(_updateInterval);
 
 			Info(_log, "Enabling timer. Now timer is active: %i, remaining time to run: %i", _timer.isActive(), _timer.remainingTime());
@@ -428,6 +439,7 @@ void LinearColorSmoothing::clearQueuedColors(bool semaphore)
 		Info(_log, "Clearing queued colors");
 
 		_timer.stop();
+		_timerWatchdog = DEFAULT_WATCHDOG;
 		_previousValues.clear();
 		_previousTimeouts.clear();
 		_previousTime = 0;

@@ -36,9 +36,9 @@ public:
 		return *this;
 	}
 
-	QString getCacheInfo()
+	static QString getCacheInfo()
 	{
-		return _d_ptr->getCacheInfo();
+		return ImageData::getCacheInfo();
 	}
 
 	bool setBufferCacheSize() const

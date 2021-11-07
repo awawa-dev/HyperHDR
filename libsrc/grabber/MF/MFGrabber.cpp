@@ -931,7 +931,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 					frameStat.badFrame,
 					diff / 1000.0,
 					frameStat.segment,
-					QSTRING_CSTR(Image<ColorRgb>().getCacheInfo()));
+					QSTRING_CSTR(Image<ColorRgb>::getCacheInfo()));
 
 				resetCounter(currentTime);
 			}

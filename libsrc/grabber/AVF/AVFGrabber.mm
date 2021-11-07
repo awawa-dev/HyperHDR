@@ -741,13 +741,14 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 				int total = (frameStat.badFrame + frameStat.goodFrame);
 				int av = (frameStat.goodFrame > 0) ? frameStat.averageFrame / frameStat.goodFrame : 0;
 
-				Info(_log, "Video FPS: %.2f, av. delay: %dms, good: %d, bad: %d (%.2f,%d)",
+				Info(_log, "Video FPS: %.2f, av. delay: %dms, good: %d, bad: %d (%.2f,%d), %s",
 					total / 60.0,
 					av,
 					frameStat.goodFrame,
 					frameStat.badFrame,
 					diff / 1000.0,
-					frameStat.segment);
+					frameStat.segment,
+					QSTRING_CSTR(Image<ColorRgb>::getCacheInfo()));
 
 				resetCounter(currentTime);
 			}
