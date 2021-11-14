@@ -14,9 +14,10 @@
 
 using namespace hyperhdr;
 
-const int64_t  DEFAUL_SETTLINGTIME    = 200;	// settlingtime in ms
-const double   DEFAUL_UPDATEFREQUENCY = 25;	// updatefrequncy in hz
-const int64_t  DEFAUL_UPDATEINTERVALL = static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY); // updateintervall in ms
+const int64_t  DEFAUL_SETTLINGTIME     = 200;   // settlingtime in ms
+const double   DEFAUL_UPDATEFREQUENCY  = 25;    // updatefrequncy in hz
+const double   MINIMAL_UPDATEFREQUENCY = 20;
+
 
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
@@ -24,7 +25,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, HyperHdr
 	, _log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex())))
 	, _semaphore(1)
 	, _hyperhdr(hyperhdr)
-	, _updateInterval(DEFAUL_UPDATEINTERVALL)
+	, _updateInterval(static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY))
 	, _settlingTime(DEFAUL_SETTLINGTIME)
 	, _timer(this)
 	, _continuousOutput(false)
@@ -81,7 +82,7 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 		SmoothingCfg	cfg (false,
 							 static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
-							 static_cast<int64_t>(std::max(1000.0/std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), DEFAUL_UPDATEFREQUENCY), 5.0)),
+							 static_cast<int64_t>(std::max(1000.0/std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), MINIMAL_UPDATEFREQUENCY), 5.0)),
 							 false);
 
 		auto smoothingType = obj["type"].toString("linear");
