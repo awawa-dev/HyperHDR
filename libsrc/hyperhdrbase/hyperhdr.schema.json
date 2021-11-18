@@ -59,10 +59,6 @@
 		{
 			"$ref": "schema-flatbufServer.json"
 		},
-		"protoServer" :
-		{
-			"$ref": "schema-protoServer.json"
-		},
 		"boblightServer" :
 		{
 			"$ref": "schema-boblightServer.json"

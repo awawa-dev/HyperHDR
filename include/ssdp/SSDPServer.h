@@ -85,16 +85,7 @@ public:
 	quint16 getFlatBufPort() const
 	{
 		return _fbsPort.toInt();
-	}
-	///
-	/// @brief set new protobuf server port
-	///
-	void setProtoBufPort( quint16 port ) { _pbsPort = QString::number( port ); }
-
-	///
-	/// @brief Get current protobuf server port
-	///
-	quint16 getProtoBufPort() const { return _pbsPort.toInt(); }
+	}	
 	///
 	/// @brief set new json server port
 	///

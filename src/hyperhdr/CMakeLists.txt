@@ -25,7 +25,6 @@ target_link_libraries(hyperhdr
 	effectengine
 	jsonserver
 	flatbufserver
-	protoserver
 	webserver
 	ssdp
 	database

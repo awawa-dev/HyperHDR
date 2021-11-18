@@ -39,26 +39,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	// get default config
 	QJsonObject defaultConfig;	
 	for (settings::type selector = settings::type::SNDEFFECT; selector != settings::type::INVALID; selector = settings::type(((int)selector) + 1))
-	{
-		if (selector == settings::type::VIDEOGRABBER)
-		{			
-			if(!_sTable->recordExist(typeToString(selector)) && _sTable->recordExist("grabberV4L2"))
-			{
-				auto oldVideo = _sTable->getSettingsRecord("grabberV4L2").object();
-
-				oldVideo["device"] = oldVideo["available_devices"];
-
-				oldVideo["videoEncoding"] = oldVideo["v4l2Encoding"];
-				oldVideo["videoMode"] = QString("%1x%2").arg(oldVideo["width"].toInt()).arg(oldVideo["height"].toInt());
-
-				defaultConfig.insert(typeToString(selector), oldVideo);
-				_sTable->deleteSettingsRecordString("grabberV4L2");
-
-				Warning(_log, "Found old V4L2 configuration. Migrating defaults to the new structures.");				
-				continue;
-			}
-		}
-	
+	{	
 		if (selector != settings::type::LEDS)
 			defaultConfig.insert(typeToString(selector), QJsonObject());
 		else

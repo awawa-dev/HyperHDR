@@ -18,7 +18,7 @@
 
 static const QString SSDP_IDENTIFIER("urn:hyperhdr.blogspot.com:device:basic:1");
 
-SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort,  const QString& name, QObject * parent)
+SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, quint16 sslPort,  const QString& name, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
@@ -27,7 +27,6 @@ SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 prot
 #endif
 {
 	setFlatBufPort(flatBufPort);
-	setProtoBufPort(protoBufPort);
 	setJsonServerPort(jsonServerPort);
 	setSSLServerPort(sslPort);
 	setHyperhdrName(name);
@@ -92,14 +91,6 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		if(obj["port"].toInt() != SSDPServer::getFlatBufPort())
 		{
 			SSDPServer::setFlatBufPort(obj["port"].toInt());
-		}
-	}
-
-	if(type == settings::type::PROTOSERVER)
-	{
-		if(obj["port"].toInt() != SSDPServer::getProtoBufPort())
-		{
-			SSDPServer::setProtoBufPort(obj["port"].toInt());
 		}
 	}
 
@@ -258,7 +249,6 @@ QString SSDPHandler::buildDesc() const
 			_uuid,
 			QString::number(SSDPServer::getJsonServerPort()),
 			QString::number(SSDPServer::getSSLServerPort()),
-			QString::number(SSDPServer::getProtoBufPort()),
 			QString::number(SSDPServer::getFlatBufPort())
 	);
 }
