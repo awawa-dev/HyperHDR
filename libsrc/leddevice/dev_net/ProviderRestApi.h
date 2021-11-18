@@ -62,8 +62,10 @@ private:
 ///
 ///@endcode
 ///
-class ProviderRestApi
+class ProviderRestApi : public QObject
 {
+	Q_OBJECT
+
 public:
 
 	///
@@ -87,11 +89,6 @@ public:
 	/// @param[in] API base-path
 	///
 	explicit ProviderRestApi(const QString &host, int port, const QString &basePath);
-
-	///
-	/// @brief Destructor of the REST-API wrapper
-	///
-	virtual ~ProviderRestApi();
 
 	///
 	/// @brief Get the URL as defined using scheme, host, port, API-basepath, path, query, fragment
@@ -156,7 +153,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QString &body = "", const bool wait = true);
+	httpResponse put(const QString &body = "");
 
 	///
 	/// @brief Execute PUT request
@@ -165,7 +162,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QUrl &url, const QString &body = "", const bool wait = true);
+	httpResponse put(const QUrl &url, const QString &body = "");
 
 	///
 	/// @brief Execute POST request
@@ -194,10 +191,7 @@ private:
 	void appendPath (QString &path, const QString &appendPath) const;
 
 	Logger* _log;
-
-	// QNetworkAccessManager object for sending REST-requests.
-	QNetworkAccessManager* _networkManager;
-
+	
 	QUrl _apiUrl;
 
 	QString _scheme;

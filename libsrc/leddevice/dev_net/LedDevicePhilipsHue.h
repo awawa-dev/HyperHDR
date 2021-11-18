@@ -251,10 +251,10 @@ public:
 	/// @param route the route of the POST request.
 	/// @param content the content of the POST request.
 	///
-	QJsonDocument post(const QString& route, const QString& content, bool wait = true);
+	QJsonDocument post(const QString& route, const QString& content);
 
 	QJsonDocument getLightState(unsigned int lightId);
-	void setLightState(unsigned int lightId = 0, const QString &state = "", bool wait = true);
+	void setLightState(unsigned int lightId = 0, const QString &state = "");
 
 	QMap<quint16,QJsonObject> getLightMap() const;
 
@@ -416,7 +416,7 @@ public:
 	///
 	unsigned int getLightsCount() const { return _lightsCount; }
 
-	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false, bool wait = true);
+	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false);
 	void setTransitionTime(PhilipsHueLight& light);
 	void setColor(PhilipsHueLight& light, CiColor& color);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);

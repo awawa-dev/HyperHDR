@@ -471,7 +471,10 @@
 			"format": "checkbox",
 			"title" : "edt_conf_video_cache_title",
 			"default" : true,
-			"required" : true,			
+			"required" : true,
+			"options": {
+				"hidden":true
+			},			
 			"propertyOrder" : 70
 		}		
 	},
