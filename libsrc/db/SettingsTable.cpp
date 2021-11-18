@@ -2,7 +2,6 @@
 #include <utils/settings.h>
 
 #define INSTANCE_COLUMN QString("hyperhdr_instance")
-#define OLD_INSTANCE_COLUMN QString("hyperion_inst")
 
 SettingsTable::SettingsTable(quint8 instance, QObject* parent)
 	: DBManager(parent)
@@ -10,7 +9,6 @@ SettingsTable::SettingsTable(quint8 instance, QObject* parent)
 {
 	setTable("settings");
 	// create table columns
-	migrateColumn(INSTANCE_COLUMN, OLD_INSTANCE_COLUMN);
 	createTable(QStringList()<<"type TEXT"<<"config TEXT"<< (INSTANCE_COLUMN + " INTEGER")<<"updated_at TEXT");	
 	
 };

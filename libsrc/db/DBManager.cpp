@@ -52,10 +52,6 @@ QSqlDatabase DBManager::getDB() const
 		_databasePool.setLocalData(db);
 
 		QFileInfo dbFile(_rootPath+"/db/"+_dbn+".db");
-		QFileInfo dbOldFile(_rootPath+"/db/hyperion.db");
-		
-		if (!dbFile.exists() && dbOldFile.exists())
-			dbFile = dbOldFile;
 
 		db.setDatabaseName(dbFile.absoluteFilePath());
 		if(!db.open())
@@ -454,56 +450,6 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 				break;
 		}
 	}
-}
-
-
-
-bool DBManager::migrateColumn(QString newColumn, QString oldColumn)
-{
-
-	QSqlDatabase idb = getDB();
-
-	if (!tableExists(_table))
-		return true;
-
-	QSqlRecord	 rec = idb.record(_table);
-
-	if (rec.indexOf(oldColumn) == -1 || rec.indexOf(newColumn) != -1)
-	{
-		return true;
-	}
-
-	if (_readonlyMode)
-	{
-		Error(_log, "Configuration table: '%s' needs to rename column from '%s' to '%s', but the database is readonly. Please make the configuration folder writable.", QSTRING_CSTR(_table), QSTRING_CSTR(oldColumn), QSTRING_CSTR(newColumn));
-		return false;
-	}
-
-	if (rec.indexOf(newColumn) != -1)
-	{
-		Warning(_log, "New column: %s already exists. Deleting old column: %s in table: %s", QSTRING_CSTR(newColumn), QSTRING_CSTR(oldColumn), QSTRING_CSTR(_table));
-
-		QSqlQuery query(idb);
-		QString queryTxt = QString("ALTER TABLE %1 DROP COLUMN %2").arg(_table).arg(oldColumn);
-		if (!query.exec(queryTxt))
-		{
-			Error(_log, "Failed to drop old column after migrating: '%s' in table: '%s' Error: %s for %s", QSTRING_CSTR(oldColumn), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()), QSTRING_CSTR(queryTxt));
-			return false;
-		}
-
-		return true;
-	}
-	
-	QSqlQuery query(idb);
-	QString queryTxt = QString("ALTER TABLE %1 RENAME COLUMN %2 TO %3").arg(_table).arg(oldColumn).arg(newColumn);
-	if (!query.exec(queryTxt))
-	{
-		Error(_log, "Failed to rename column after migrating: '%s' in table: '%s' Error: %s for %s", QSTRING_CSTR(oldColumn), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()), QSTRING_CSTR(queryTxt));
-		return false;
-	}
-
-	Info(_log, "Configuration table: '%s', migrated column '%s' to '%s'.", QSTRING_CSTR(_table), QSTRING_CSTR(oldColumn), QSTRING_CSTR(newColumn));
-	return true;	
 }
 
 const QJsonObject DBManager::getBackup()

@@ -110,13 +110,13 @@ void FlatBufferServer::startServer()
 			if(_serviceRegister == nullptr)
 			{
 				_serviceRegister = new BonjourServiceRegister(this);
-				_serviceRegister->registerService("_hyperiond-flatbuf._tcp", _port);
+				_serviceRegister->registerService("_hyperhdr-flatbuf._tcp", _port);
 			}
 			else if(_serviceRegister->getPort() != _port)
 			{
 				delete _serviceRegister;
 				_serviceRegister = new BonjourServiceRegister(this);
-				_serviceRegister->registerService("_hyperiond-flatbuf._tcp", _port);
+				_serviceRegister->registerService("_hyperhdr-flatbuf._tcp", _port);
 			}
 #endif
 		}

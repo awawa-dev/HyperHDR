@@ -49,7 +49,7 @@ public:
 	/// @brief Search for specified service, results will be returned by signal newService(). Calling this method again will reset all found urns and search again
 	/// @param st The service to search for
 	///
-	void searchForService(const QString &st = "urn:hyperion-project.org:device:basic:1");
+	void searchForService(const QString &st = "urn:hyperhdr.blogspot.com:device:basic:1");
 
 	///
 	/// @brief Search for specified searchTarget, the method will block until a server has been found or a timeout happened
@@ -58,7 +58,7 @@ public:
 	/// @param timeout_ms  The timeout in ms
 	/// @return The address+port of web-server or empty if timed out
 	///
-	QString getFirstService(const searchType &type = searchType::STY_WEBSERVER,const QString &st = "urn:hyperion-project.org:device:basic:1", int timeout_ms = 3000);
+	QString getFirstService(const searchType &type = searchType::STY_WEBSERVER,const QString &st = "urn:hyperhdr.blogspot.com:device:basic:1", int timeout_ms = 3000);
 
 	///
 	/// @brief Discover services via ssdp.

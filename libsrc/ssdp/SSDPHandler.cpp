@@ -16,7 +16,7 @@
 #include <QRandomGenerator>
 #endif
 
-static const QString SSDP_IDENTIFIER("urn:hyperion-project.org:device:basic:1");
+static const QString SSDP_IDENTIFIER("urn:hyperhdr.blogspot.com:device:basic:1");
 
 SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort,  const QString& name, QObject * parent)
 	: SSDPServer(parent)

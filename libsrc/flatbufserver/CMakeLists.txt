@@ -11,13 +11,13 @@ include_directories(
 FILE ( GLOB FLATBUFSERVER_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
 set(Flatbuffer_GENERATED_FBS
-	hyperion_reply_generated.h
-	hyperion_request_generated.h
+	hyperhdr_reply_generated.h
+	hyperhdr_request_generated.h
 )
 
 set(Flatbuffer_FBS
-	${CURRENT_SOURCE_DIR}/hyperion_reply.fbs
-	${CURRENT_SOURCE_DIR}/hyperion_request.fbs
+	${CURRENT_SOURCE_DIR}/hyperhdr_reply.fbs
+	${CURRENT_SOURCE_DIR}/hyperhdr_request.fbs
 )
 FOREACH(FBS_FILE ${Flatbuffer_FBS})
 	compile_flattbuffer_schema(${FBS_FILE} ${CMAKE_CURRENT_SOURCE_DIR})

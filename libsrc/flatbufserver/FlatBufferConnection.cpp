@@ -8,8 +8,8 @@
 #include <flatbufserver/FlatBufferConnection.h>
 
 // flatbuffer FBS
-#include "hyperion_reply_generated.h"
-#include "hyperion_request_generated.h"
+#include "hyperhdr_reply_generated.h"
+#include "hyperhdr_request_generated.h"
 
 FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply)
 	: _socket()
@@ -76,9 +76,9 @@ void FlatBufferConnection::readData()
 		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
 		flatbuffers::Verifier verifier(msgData, messageSize);
 
-		if (hyperionnet::VerifyReplyBuffer(verifier))
+		if (hyperhdrnet::VerifyReplyBuffer(verifier))
 		{
-			parseReply(hyperionnet::GetReply(msgData));
+			parseReply(hyperhdrnet::GetReply(msgData));
 			continue;
 		}
 		Error(_log, "Unable to parse reply");
@@ -95,8 +95,8 @@ void FlatBufferConnection::setSkipReply(bool skip)
 
 void FlatBufferConnection::setRegister(const QString& origin, int priority)
 {
-	auto registerReq = hyperionnet::CreateRegister(_builder, _builder.CreateString(QSTRING_CSTR(origin)), priority);
-	auto req = hyperionnet::CreateRequest(_builder, hyperionnet::Command_Register, registerReq.Union());
+	auto registerReq = hyperhdrnet::CreateRegister(_builder, _builder.CreateString(QSTRING_CSTR(origin)), priority);
+	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Register, registerReq.Union());
 
 	_builder.Finish(req);
 	uint32_t size = _builder.GetSize();
@@ -116,8 +116,8 @@ void FlatBufferConnection::setRegister(const QString& origin, int priority)
 
 void FlatBufferConnection::setColor(const ColorRgb & color, int priority, int duration)
 {
-	auto colorReq = hyperionnet::CreateColor(_builder, (color.red << 16) | (color.green << 8) | color.blue, duration);
-	auto req = hyperionnet::CreateRequest(_builder, hyperionnet::Command_Color, colorReq.Union());
+	auto colorReq = hyperhdrnet::CreateColor(_builder, (color.red << 16) | (color.green << 8) | color.blue, duration);
+	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Color, colorReq.Union());
 
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
@@ -127,9 +127,9 @@ void FlatBufferConnection::setColor(const ColorRgb & color, int priority, int du
 void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 {
 	auto imgData = _builder.CreateVector(reinterpret_cast<const uint8_t*>(image.memptr()), image.size());
-	auto rawImg = hyperionnet::CreateRawImage(_builder, imgData, image.width(), image.height());
-	auto imageReq = hyperionnet::CreateImage(_builder, hyperionnet::ImageType_RawImage, rawImg.Union(), -1);
-	auto req = hyperionnet::CreateRequest(_builder,hyperionnet::Command_Image,imageReq.Union());
+	auto rawImg = hyperhdrnet::CreateRawImage(_builder, imgData, image.width(), image.height());
+	auto imageReq = hyperhdrnet::CreateImage(_builder, hyperhdrnet::ImageType_RawImage, rawImg.Union(), -1);
+	auto req = hyperhdrnet::CreateRequest(_builder,hyperhdrnet::Command_Image,imageReq.Union());
 
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
@@ -138,8 +138,8 @@ void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 
 void FlatBufferConnection::clear(int priority)
 {
-	auto clearReq = hyperionnet::CreateClear(_builder, priority);
-	auto req = hyperionnet::CreateRequest(_builder,hyperionnet::Command_Clear, clearReq.Union());
+	auto clearReq = hyperhdrnet::CreateClear(_builder, priority);
+	auto req = hyperhdrnet::CreateRequest(_builder,hyperhdrnet::Command_Clear, clearReq.Union());
 
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
@@ -202,7 +202,7 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 	_socket.flush();
 }
 
-bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
+bool FlatBufferConnection::parseReply(const hyperhdrnet::Reply *reply)
 {
 	if (!reply->error())
 	{

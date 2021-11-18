@@ -1,4 +1,4 @@
-namespace hyperionnet;
+namespace hyperhdrnet;
 
 // A priority value of -1 clears all priorities
 table Register {

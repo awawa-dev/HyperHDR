@@ -28,9 +28,9 @@ static const QString UPNP_ALIVE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
                                           "NTS: ssdp:alive\r\n"
                                           "SERVER: %4\r\n"
                                           "USN: uuid:%5\r\n"
-                                          "HYPERION-FBS-PORT: %6\r\n"
-                                          "HYPERION-JSS-PORT: %7\r\n"
-                                          "HYPERION-NAME: %8\r\n"
+                                          "HYPERHDR-FBS-PORT: %6\r\n"
+                                          "HYPERHDR-JSS-PORT: %7\r\n"
+                                          "HYPERHDR-NAME: %8\r\n"
                                           "\r\n";
 
 // Implement ssdp:update as per spec 1.1, section 1.2.4
@@ -73,9 +73,9 @@ static const QString UPNP_MSEARCH_RESPONSE = "HTTP/1.1 200 OK\r\n"
                                              "SERVER: %4\r\n"
                                              "ST: %5\r\n"
                                              "USN: uuid:%6\r\n"
-                                             "HYPERION-FBS-PORT: %7\r\n"
-                                             "HYPERION-JSS-PORT: %8\r\n"
-                                             "HYPERION-NAME: %9\r\n"
+                                             "HYPERHDR-FBS-PORT: %7\r\n"
+                                             "HYPERHDR-JSS-PORT: %8\r\n"
+                                             "HYPERHDR-NAME: %9\r\n"
                                              "\r\n";
 
 SSDPServer::SSDPServer(QObject * parent)
@@ -100,7 +100,7 @@ void SSDPServer::initServer()
 	SysInfo::HyperhdrSysInfo data = SysInfo::get();
 
 	// create SERVER String
-	_serverHeader = QString("%1/%2 UPnP/1.0 Hyperion/%3")
+	_serverHeader = QString("%1/%2 UPnP/1.0 HyperHDR/%3")
 				.arg(data.prettyName, data.productVersion, HYPERHDR_VERSION);
 
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);

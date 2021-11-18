@@ -116,7 +116,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 					}
 					else if(type == searchType::STY_FLATBUFSERVER)
 					{
-						const QString fbsport = headers.value("hyperion-fbs-port");
+						const QString fbsport = headers.value("hyperhdr-fbs-port");
 						if(fbsport.isEmpty())
 						{
 							continue;
@@ -129,7 +129,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 					}
 					else if(type == searchType::STY_JSONSERVER)
 					{
-						const QString jssport = headers.value("hyperion-jss-port");
+						const QString jssport = headers.value("hyperhdr-jss-port");
 						if(jssport.isEmpty())
 						{
 							continue;

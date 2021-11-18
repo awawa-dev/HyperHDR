@@ -7,15 +7,11 @@
 #include <utils/Components.h>
 
 // flatbuffer FBS
-#include "hyperion_reply_generated.h"
-#include "hyperion_request_generated.h"
+#include "hyperhdr_reply_generated.h"
+#include "hyperhdr_request_generated.h"
 
 class QTcpSocket;
 class QTimer;
-
-namespace flatbuf {
-	class HyperionRequest;
-}
 
 ///
 /// @brief Socket (client) of FlatBufferServer
@@ -84,31 +80,31 @@ private:
 	///
 	/// @brief Handle the received message
 	///
-	void handleMessage(const hyperionnet::Request * req);
+	void handleMessage(const hyperhdrnet::Request * req);
 
 	///
 	/// Register new priority
 	///
-	void handleRegisterCommand(const hyperionnet::Register *regReq);
+	void handleRegisterCommand(const hyperhdrnet::Register *regReq);
 
 	///
 	/// @brief Hande Color message
 	///
-	void handleColorCommand(const hyperionnet::Color *colorReq);
+	void handleColorCommand(const hyperhdrnet::Color *colorReq);
 
 	///
 	/// Handle an incoming Image message
 	///
 	/// @param image the incoming image
 	///
-	void handleImageCommand(const hyperionnet::Image *image);
+	void handleImageCommand(const hyperhdrnet::Image *image);
 
 	///
 	/// @brief Handle clear command
 	///
 	/// @param clear the incoming clear request
 	///
-	void handleClearCommand(const hyperionnet::Clear *clear);
+	void handleClearCommand(const hyperhdrnet::Clear *clear);
 
 	///
 	/// Send handle not implemented

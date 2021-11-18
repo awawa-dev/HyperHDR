@@ -24,7 +24,7 @@ BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 	_timerBonjourResolver->setInterval(1000);
 	_timerBonjourResolver->start();
 
-	browseForServiceType(QLatin1String("_hyperiond-http._tcp"));
+	browseForServiceType(QLatin1String("_hyperhdr-http._tcp"));
 }
 
 bool BonjourBrowserWrapper::browseForServiceType(const QString &serviceType)

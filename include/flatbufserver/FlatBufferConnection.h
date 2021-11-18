@@ -14,7 +14,7 @@
 
 #include <flatbuffers/flatbuffers.h>
 
-namespace hyperionnet
+namespace hyperhdrnet
 {
 struct Reply;
 }
@@ -107,7 +107,7 @@ private:
 	/// @param reply The received reply
 	/// @return true if the reply indicates success
 	///
-	bool parseReply(const hyperionnet::Reply *reply);
+	bool parseReply(const hyperhdrnet::Reply *reply);
 
 private:
 	/// The TCP-Socket with the connection to the server

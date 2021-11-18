@@ -251,32 +251,6 @@ int main(int argc, char** argv)
 
 	try
 	{
-		if (!dbFile.exists())
-		{
-			QDir	  oldUserDataDirectory(QDir::homePath() + "/.hyperion");
-			QFileInfo dbOldFile(oldUserDataDirectory.absolutePath() + "/db/hyperion.db");
-
-			if (dbOldFile.exists())
-			{
-				bool migrate = false;
-				if (userDataDirectory.mkpath(dbFile.absolutePath()))
-				{
-					if (QFile::copy(dbOldFile.absoluteFilePath(), dbFile.absoluteFilePath()))
-					{						
-						Warning(log, "Migration to the new config: '%s' from '%s'", QSTRING_CSTR(dbFile.absoluteFilePath()), QSTRING_CSTR(dbOldFile.absoluteFilePath()));
-						migrate = true;
-					}
-				}
-
-				if (!migrate)
-				{					
-					Error(log, "Could not migration to the new config. Please check access/write right for HyperHdr deamon: '%s' from '%s'", QSTRING_CSTR(dbFile.absoluteFilePath()), QSTRING_CSTR(dbOldFile.absoluteFilePath()));
-					dbFile = dbOldFile;
-					userDataDirectory = oldUserDataDirectory;
-				}
-			}
-		}
-
 		if (dbFile.exists())
 		{
 			if (!dbFile.isReadable())
