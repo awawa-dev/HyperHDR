@@ -26,7 +26,7 @@ SystemControl::SystemControl(HyperHdrInstance* hyperhdr)
 
 	// inactive timer system grabber
 	connect(&_sysInactiveTimer, &QTimer::timeout, this, &SystemControl::setSysInactive);
-	_sysInactiveTimer.setInterval(2000);
+	_sysInactiveTimer.setInterval(1000);
 
 	// init
 	handleSettingsUpdate(settings::type::SYSTEMCONTROL, _hyperhdr->getSetting(settings::type::SYSTEMCONTROL));
@@ -48,8 +48,10 @@ void SystemControl::handleSysImage(const QString& name, const Image<ColorRgb> & 
 	}
 
 	_alive = true;
+
 	if (!_sysInactiveTimer.isActive() && _sysInactiveTimer.remainingTime() < 0)
 		_sysInactiveTimer.start();
+
 	_hyperhdr->setInputImage(_sysCaptPrio, image);
 }
 
@@ -71,6 +73,7 @@ void SystemControl::setSysCaptureEnable(bool enable)
 			_sysInactiveTimer.stop();
 			_sysCaptName = "";
 		}
+
 		_sysCaptEnabled = enable;
 		_hyperhdr->setNewComponentState(hyperhdr::COMP_SYSTEMGRABBER, enable);
 		emit GlobalSignals::getInstance()->requestSource(hyperhdr::COMP_SYSTEMGRABBER, int(_hyperhdr->getInstanceIndex()), enable);
@@ -105,5 +108,6 @@ void SystemControl::setSysInactive()
 {
 	if (!_alive)
 		_hyperhdr->setInputInactive(_sysCaptPrio);
+
 	_alive = false;
 }

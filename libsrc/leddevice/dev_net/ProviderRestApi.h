@@ -79,7 +79,7 @@ public:
 	/// @param[in] host
 	/// @param[in] port
 	///
-	explicit ProviderRestApi(const QString &host, int port);
+	ProviderRestApi(const QString &host, int port);
 
 	///
 	/// @brief Constructor of the REST-API wrapper
@@ -88,7 +88,9 @@ public:
 	/// @param[in] port
 	/// @param[in] API base-path
 	///
-	explicit ProviderRestApi(const QString &host, int port, const QString &basePath);
+	ProviderRestApi(const QString &host, int port, const QString &basePath);
+
+	~ProviderRestApi();
 
 	///
 	/// @brief Get the URL as defined using scheme, host, port, API-basepath, path, query, fragment
@@ -191,17 +193,19 @@ private:
 	void appendPath (QString &path, const QString &appendPath) const;
 
 	Logger* _log;
-	
-	QUrl _apiUrl;
 
-	QString _scheme;
-	QString _hostname;
-	int _port;
+	QNetworkAccessManager* _networkManager;
 
-	QString _basePath;
-	QString _path;
+	QUrl      _apiUrl;
 
-	QString _fragment;
+	QString   _scheme;
+	QString   _hostname;
+	int       _port;
+
+	QString   _basePath;
+	QString   _path;
+
+	QString   _fragment;
 	QUrlQuery _query;
 
 };

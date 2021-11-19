@@ -371,7 +371,7 @@ DetectionAutomatic::calibrationPoint GrabberWrapper::parsePoint(int width, int h
 void GrabberWrapper::revive()
 {
 	if (_grabber != nullptr && _autoResume)
-		QMetaObject::invokeMethod(_grabber, "revive", Qt::QueuedConnection);
+		QTimer::singleShot(2500, _grabber, SLOT(revive()));
 }
 
 void GrabberWrapper::benchmarkCapture(int status, QString message)

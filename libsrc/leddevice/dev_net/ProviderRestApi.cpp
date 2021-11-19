@@ -21,7 +21,8 @@ ProviderRestApi::ProviderRestApi(const QString &host, int port, const QString &b
 	  ,_scheme("http")
 	  ,_hostname(host)
 	  ,_port(port)
-{	
+{
+	_networkManager = new QNetworkAccessManager(this);
 	_apiUrl.setScheme(_scheme);
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
@@ -34,6 +35,10 @@ ProviderRestApi::ProviderRestApi(const QString &host, int port)
 ProviderRestApi::ProviderRestApi()
 	: ProviderRestApi("", -1) {}
 
+ProviderRestApi::~ProviderRestApi()
+{
+	delete _networkManager;
+}
 
 void ProviderRestApi::setBasePath(const QString &basePath)
 {
@@ -115,13 +120,12 @@ httpResponse ProviderRestApi::get(const QUrl &url)
 
 	// Perform request
 	QNetworkRequest request(url);
-	QNetworkAccessManager* _networkManager = new QNetworkAccessManager(this);
 
 	// Connect requestFinished signal to quit slot of the loop.
-	QEventLoop loop;	
-	loop.connect(_networkManager, SIGNAL(finished(QNetworkReply*)), &loop, SLOT(quit()), Qt::DirectConnection);
-
+	QEventLoop loop;
 	QNetworkReply* reply = _networkManager->get(request);
+
+	loop.connect(reply, SIGNAL(finished()), &loop, SLOT(quit()), Qt::DirectConnection);
 
 	// Go into the loop until the request is finished.
 	loop.exec();
@@ -131,10 +135,10 @@ httpResponse ProviderRestApi::get(const QUrl &url)
 	{
 		response = getResponse(reply );
 	}
+
 	// Free space.
 	reply->deleteLater();
-	_networkManager->deleteLater();
-	// Return response
+
 	return response;
 }
 
@@ -148,13 +152,12 @@ httpResponse ProviderRestApi::put(const QUrl &url, const QString &body)
 	Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR( url.toString() ), QSTRING_CSTR( body ) );
 	// Perform request
 	QNetworkRequest request(url);
-	QNetworkAccessManager* _networkManager = new QNetworkAccessManager(this);
 	
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
-	loop.connect(_networkManager, SIGNAL(finished(QNetworkReply*)), &loop, SLOT(quit()), Qt::DirectConnection);
-
 	QNetworkReply* reply = _networkManager->put(request, body.toUtf8());
+
+	loop.connect(reply, SIGNAL(finished()), &loop, SLOT(quit()), Qt::DirectConnection);
 
 	// Go into the loop until the request is finished.
 	loop.exec();
@@ -164,11 +167,10 @@ httpResponse ProviderRestApi::put(const QUrl &url, const QString &body)
 	{
 		response = getResponse(reply);
 	}
+
 	// Free space.
 	reply->deleteLater();
-	_networkManager->deleteLater();
 
-	// Return response
 	return response;
 }
 
