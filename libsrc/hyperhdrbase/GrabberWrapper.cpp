@@ -371,7 +371,7 @@ DetectionAutomatic::calibrationPoint GrabberWrapper::parsePoint(int width, int h
 void GrabberWrapper::revive()
 {
 	if (_grabber != nullptr && _autoResume)
-		QTimer::singleShot(2500, _grabber, SLOT(revive()));
+		QTimer::singleShot(3000, _grabber, SLOT(revive()));
 }
 
 void GrabberWrapper::benchmarkCapture(int status, QString message)

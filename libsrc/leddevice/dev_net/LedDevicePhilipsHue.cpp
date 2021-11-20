@@ -921,7 +921,6 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _semaphore(1)
       , _lastConfirm(0)
 	  , _lastId(-1)
-	  , _initSemaphore(1)
 	  , _groupStreamState(false)
 {
 }
@@ -1388,13 +1387,7 @@ bool LedDevicePhilipsHue::switchOn()
 	bool rc = false;
 
 	Info(_log, "Switching ON Philips Hue device");
-
-	if (!_initSemaphore.tryAcquire(1, 8000))
-	{
-		Debug(_log, "Could not obtain lock for switching on. Skipping");
-		return _isOn;
-	}
-
+	
 	try
 	{		
 		if (_isOn)
@@ -1412,12 +1405,8 @@ bool LedDevicePhilipsHue::switchOn()
 				{
 					if (openStream())
 					{
-						QThread::msleep(100);
-						if (powerOn(false))
-						{
-							_isOn = true;
-							rc = true;
-						}
+						_isOn = true;
+						rc = true;
 					}
 				}
 				else if (powerOn())
@@ -1430,12 +1419,10 @@ bool LedDevicePhilipsHue::switchOn()
 	}
 	catch(...)
 	{
-		_initSemaphore.release();
-		throw;
+		rc = false;
+		Error(_log, "Philips Hue error detected (ON)");
 	}
-
-	_initSemaphore.release();
-
+	
 	if (rc && _isOn)
 		Info(_log, "Philips Hue device is ON");
 	else
@@ -1449,13 +1436,7 @@ bool LedDevicePhilipsHue::switchOff()
 	bool result = false;
 
 	Info(_log, "Switching OFF Philips Hue device");
-	
-	if (!_initSemaphore.tryAcquire(1, 8000))
-	{
-		Debug(_log, "Could not obtain lock for switching off. Skipping");
-		return _isOn;
-	}
-
+		
 	try
 	{
 		if (_useHueEntertainmentAPI && _groupStreamState)
@@ -1468,11 +1449,9 @@ bool LedDevicePhilipsHue::switchOff()
 	}
 	catch (...)
 	{
-		_initSemaphore.release();
-		throw;
+		result = false;
+		Error(_log, "Philips Hue error detected (OFF)");
 	}
-
-	_initSemaphore.release();
 
 	if (result && !_isOn)
 		Info(_log, "Philips Hue device is OFF");

@@ -608,6 +608,5 @@ private:
 	QSemaphore	_semaphore;
 	uint64_t	_lastConfirm;
 	int			_lastId;
-	QSemaphore	_initSemaphore;
 	bool		_groupStreamState;
 };

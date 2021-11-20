@@ -26,7 +26,7 @@ SystemControl::SystemControl(HyperHdrInstance* hyperhdr)
 
 	// inactive timer system grabber
 	connect(&_sysInactiveTimer, &QTimer::timeout, this, &SystemControl::setSysInactive);
-	_sysInactiveTimer.setInterval(1000);
+	_sysInactiveTimer.setInterval(800);
 
 	// init
 	handleSettingsUpdate(settings::type::SYSTEMCONTROL, _hyperhdr->getSetting(settings::type::SYSTEMCONTROL));

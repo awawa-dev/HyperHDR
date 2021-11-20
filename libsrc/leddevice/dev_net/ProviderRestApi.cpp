@@ -125,7 +125,7 @@ httpResponse ProviderRestApi::get(const QUrl &url)
 	QEventLoop loop;
 	QNetworkReply* reply = _networkManager->get(request);
 
-	loop.connect(reply, SIGNAL(finished()), &loop, SLOT(quit()), Qt::DirectConnection);
+	loop.connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 
 	// Go into the loop until the request is finished.
 	loop.exec();
@@ -157,7 +157,7 @@ httpResponse ProviderRestApi::put(const QUrl &url, const QString &body)
 	QEventLoop loop;
 	QNetworkReply* reply = _networkManager->put(request, body.toUtf8());
 
-	loop.connect(reply, SIGNAL(finished()), &loop, SLOT(quit()), Qt::DirectConnection);
+	loop.connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 
 	// Go into the loop until the request is finished.
 	loop.exec();

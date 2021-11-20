@@ -527,12 +527,9 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 
 				int currentFPS = GrabberWrapper::getInstance()->getActualFps();
 
-				if (currentFPS >= 50)
-					GrabberWrapper::getInstance()->setFpsSoftwareDecimation(_backupDecimation + 14);
-				else if (currentFPS >= 30)
-					GrabberWrapper::getInstance()->setFpsSoftwareDecimation(_backupDecimation + 9);
-				else
-					GrabberWrapper::getInstance()->setFpsSoftwareDecimation(_backupDecimation + 4);
+				int relax = std::max(currentFPS / 3, 1);
+
+				GrabberWrapper::getInstance()->setFpsSoftwareDecimation(relax);
 			}
 
 			Info(_log, "THE SIGNAL IS LOST");

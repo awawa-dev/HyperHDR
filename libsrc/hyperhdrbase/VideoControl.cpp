@@ -31,7 +31,7 @@ VideoControl::VideoControl(HyperHdrInstance* hyperhdr)
 	// inactive timer usb grabber
 	connect(&_usbInactiveTimer, &QTimer::timeout, this, &VideoControl::setUsbInactive);
 
-	_usbInactiveTimer.setInterval(1000);
+	_usbInactiveTimer.setInterval(800);
 
 	// init
 	handleSettingsUpdate(settings::type::VIDEOCONTROL, _hyperhdr->getSetting(settings::type::VIDEOCONTROL));
