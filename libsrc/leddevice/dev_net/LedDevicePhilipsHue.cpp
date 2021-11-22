@@ -26,9 +26,6 @@ const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
 const char CONFIG_GROUPID[] = "groupId";
 
 const char CONFIG_VERBOSE[] = "verbose";
-
-const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN[] = "sslHSTimeoutMin";
-const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX[] = "sslHSTimeoutMax";
 const char CONFIG_SSL_READ_TIMEOUT[] = "sslReadTimeout";
 
 // Device Data elements
@@ -914,9 +911,8 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _onBlackTimeToPowerOff(100)
 	  , _onBlackTimeToPowerOn(100)
 	  , _candyGamma(true)
-	  , _handshake_timeout_min(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count())
-	  , _handshake_timeout_max(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count())
-	  , _ssl_read_timeout(STREAM_SSL_READ_TIMEOUT.count())
+	  , _handshake_timeout_min(300)
+	  , _handshake_timeout_max(1000)
 	  , _stopConnection(false)
 	  , _semaphore(1)
       , _lastConfirm(0)
@@ -953,14 +949,11 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 		_onBlackTimeToPowerOff  = _devConfig["onBlackTimeToPowerOff"].toInt(100);
 		_onBlackTimeToPowerOn   = _devConfig["onBlackTimeToPowerOn"].toInt(100);
 		_candyGamma				= _devConfig["candyGamma"].toBool(true);
-		_handshake_timeout_min  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count());
-		_handshake_timeout_max  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count());
-		_ssl_read_timeout       = _devConfig[CONFIG_SSL_READ_TIMEOUT].toInt(STREAM_SSL_READ_TIMEOUT.count());
+		_handshake_timeout_min  = _devConfig["handshakeTimeoutMin"].toInt(300);
+		_handshake_timeout_max  = _devConfig["handshakeTimeoutMax"].toInt(1000);
 
 		if( _blackLevel < 0.0 )    { _blackLevel = 0.0; }
 		if( _blackLevel > 1.0 )    { _blackLevel = 1.0; }
-
-		if( _handshake_timeout_min <= 0 ) { _handshake_timeout_min = 1; }
 
 		log( "Off on Black", "%d", static_cast<int>( _switchOffOnBlack ) );
 		log( "Brightness Factor", "%f", _brightnessFactor );
@@ -971,6 +964,8 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 		log( "CandyGamma", "%d", static_cast<int>(_candyGamma));
 		log( "Time to power off the lamp on black", "%d", _onBlackTimeToPowerOff);
 		log( "Time to power on the lamp on signal", "%d", _onBlackTimeToPowerOn);
+		log( "SSL Handshake min", "%d", _handshake_timeout_min);
+		log( "SSL Handshake max", "%d", _handshake_timeout_max);
 
 		if( _useHueEntertainmentAPI )
 		{
@@ -1074,9 +1069,8 @@ bool LedDevicePhilipsHue::initLeds()
 				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
 				_devConfig["retry_left"]     = STREAM_CONNECTION_RETRYS;
 				_devConfig["hs_attempts"]    = STREAM_SSL_HANDSHAKE_ATTEMPTS;
-				_devConfig["hs_timeout_min"] = _handshake_timeout_min;
-				_devConfig["hs_timeout_max"] = _handshake_timeout_max;
-				_devConfig["read_timeout"]   = _ssl_read_timeout;
+				_devConfig["hs_timeout_min"] = static_cast<int>(_handshake_timeout_min);
+				_devConfig["hs_timeout_max"] = static_cast<int>(_handshake_timeout_max);
 
 				isInitOK = ProviderUdpSSL::init( _devConfig );
 				
@@ -1177,13 +1171,13 @@ bool LedDevicePhilipsHue::openStream()
 	if( isInitOK )
 	{
 		// open UDP SSL Connection
+		QThread::msleep(10);
 		isInitOK = ProviderUdpSSL::initNetwork();
 
 		if( isInitOK )
 		{
 			Info(_log, "Philips Hue Entertaiment API successful connected! Start Streaming." );
-			_allLightsBlack = true;
-			noSignalDetection();
+			_allLightsBlack = true;			
 		}
 		else
 		{
@@ -1233,15 +1227,13 @@ bool LedDevicePhilipsHue::stopStream()
 				light.setBlack();
 			}
 
-			writeStream();
-
-			QThread::msleep(10);
+			writeStream(true);
 		}
 		else
 			canRestore = true;
 	}	
 
-	ProviderUdpSSL::closeSSLConnection();
+	ProviderUdpSSL::close();
 
 	int index = 3;
 	while (!setStreamGroupState(false) && --index > 0)
@@ -1478,56 +1470,12 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 
 	writeSingleLights( ledValues );
 
-	if( _useHueEntertainmentAPI && !noSignalDetection() && _isInitLeds )
+	if( _useHueEntertainmentAPI && _isInitLeds )
 	{
 		writeStream();
 	}
 
 	return 0;
-}
-
-void LedDevicePhilipsHue::noSignalTimeout()
-{
-	if (_isBlackScreen)
-		return;
-
-	Debug(_log, "No Signal, only black color detected - stop stream for \"%s\" [%u]", QSTRING_CSTR(_groupName), _groupId );
-	_stopConnection = true;
-	_isBlackScreen = true;
-	
-
-	bool _copyisRestoreOrigState = _isRestoreOrigState;
-	_isRestoreOrigState = false;
-	switchOff();
-	_isRestoreOrigState = _copyisRestoreOrigState;
-
-	for (PhilipsHueLight& light : _lights)
-	{
-		light.blackScreenTriggered();
-		light.setOnOffState(true);
-		this->setOnOffState(light, false);		
-	}
-}
-
-
-bool LedDevicePhilipsHue::noSignalDetection()
-{
-	if( _allLightsBlack && _switchOffOnBlack)
-	{
-		if( !_stopConnection && _isInitLeds )
-		{			
-		}
-	}
-	else
-	{		
-		if( _stopConnection )
-		{
-			_stopConnection = false;
-			Debug(_log, "Signal detected - restart stream for \"%s\" [%u]", QSTRING_CSTR(_groupName), _groupId );
-			switchOn();
-		}
-	}
-	return _stopConnection;
 }
 
 int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValues)
@@ -1602,10 +1550,10 @@ int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValue
 	return 0;
 }
 
-void LedDevicePhilipsHue::writeStream()
+void LedDevicePhilipsHue::writeStream(bool flush)
 {
 	QByteArray streamData = prepareStreamData();
-	writeBytes( static_cast<uint>(streamData.size()), reinterpret_cast<unsigned char *>( streamData.data() ) );
+	writeBytes( static_cast<uint>(streamData.size()), reinterpret_cast<unsigned char *>( streamData.data() ), flush );
 }
 
 void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on, bool force)

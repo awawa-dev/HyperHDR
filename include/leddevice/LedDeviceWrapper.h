@@ -145,9 +145,11 @@ private:
 	// parent Hyperhdr
 	HyperHdrInstance* _hyperhdr;
 	// Pointer of current led device
-	LedDevice* _ledDevice;
+	LedDevice*        _ledDevice;
 	// the enable state
-	bool _enabled;
+	bool              _enabled;
+
+	QMutex            _apiMutex;
 };
 
 #endif // LEDEVICEWRAPPER_H

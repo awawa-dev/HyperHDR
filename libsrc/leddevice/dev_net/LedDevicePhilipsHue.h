@@ -524,10 +524,6 @@ protected:
 	///
 	bool restoreState() override;
 
-private slots:
-
-	void noSignalTimeout();
-
 private:
 
 	bool initLeds();
@@ -562,12 +558,8 @@ private:
 	bool startStream();
 	bool stopStream();
 
-	void writeStream();
+	void writeStream(bool flush = false);
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
-
-	bool noSignalDetection();
-
-	void stopBlackTimeoutTimer();
 
 	QByteArray prepareStreamData() const;
 
@@ -596,9 +588,10 @@ private:
 	int			_onBlackTimeToPowerOff;
 	int			_onBlackTimeToPowerOn;	
 	bool		_candyGamma;
-	int			_handshake_timeout_min;
-	int			_handshake_timeout_max;
-	int			_ssl_read_timeout;
+
+	uint32_t    _handshake_timeout_min;
+	uint32_t    _handshake_timeout_max;
+
 
 	bool		_stopConnection;
 

@@ -163,15 +163,19 @@ bool LedDeviceWrapper::enabled() const
 
 void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool state)
 {
+	QMutexLocker locker(&_apiMutex);
+
 	if(component == hyperhdr::COMP_LEDDEVICE)
 	{
 		if ( state )
 		{
-			emit enable();
+			//emit enable();
+			QMetaObject::invokeMethod(_ledDevice, "enable", Qt::BlockingQueuedConnection);
 		}
 		else
 		{
-			emit disable();
+			//emit disable();
+			QMetaObject::invokeMethod(_ledDevice, "disable", Qt::BlockingQueuedConnection);
 		}
 
 		//Get device's state, considering situations where it is not ready

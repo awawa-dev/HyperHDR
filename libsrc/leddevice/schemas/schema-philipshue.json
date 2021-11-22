@@ -129,31 +129,14 @@
 			"maximum" : 10.0,
 			"access" : "advanced",
 			"propertyOrder" : 14
-		},		
-		"sslReadTimeout": {
-			"type": "number",
-			"format" : "stepper",						
-			"title":"edt_dev_spec_sslReadTimeout_title",
-			"default" : 0,
-			"step": 100,
-			"minimum" : 0,
-			"maximum" : 30000,
-			"access" : "expert",
-			"append" : "edt_append_ms",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
-			"propertyOrder" : 15
 		},
-		"sslHSTimeoutMin": {
+		"handshakeTimeoutMin": {
 			"type": "number",
 			"format" : "stepper",						
 			"title":"edt_dev_spec_sslHSTimeoutMin_title",
-			"default" : 400,
+			"default" : 300,
 			"step": 100,
-			"minimum" : 0,
+			"minimum" : 100,
 			"maximum" : 30000,
 			"access" : "expert",
 			"append" : "edt_append_ms",
@@ -164,13 +147,13 @@
 			},
 			"propertyOrder" : 16
 		},
-		"sslHSTimeoutMax": {
+		"handshakeTimeoutMax": {
 			"type": "number",
 			"format" : "stepper",			
 			"title":"edt_dev_spec_sslHSTimeoutMax_title",
 			"default" : 1000,
 			"step": 100,
-			"minimum" : 0,
+			"minimum" : 100,
 			"maximum" : 30000,
 			"access" : "expert",
 			"append" : "edt_append_ms",
@@ -188,36 +171,7 @@
 			"default" : false,
 			"access" : "expert",
 			"propertyOrder" : 18
-		},
-		"debugStreamer": {
-			"type": "boolean",
-			"format": "checkbox",
-			"title":"edt_dev_spec_debugStreamer_title",
-			"default" : false,
-			"access" : "expert",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
-			"propertyOrder" : 19
-		},
-		"debugLevel": {
-			"type": "string",
-			"title":"edt_dev_spec_debugLevel_title",
-			"enum" : ["0", "1", "2", "3", "4"],
-			"default" : "0",
-			"options" : {
-				"enum_titles" : ["edt_conf_enum_dl_nodebug", "edt_conf_enum_dl_error", "edt_conf_enum_dl_statechange", "edt_conf_enum_dl_informational", "edt_conf_enum_dl_verbose"],
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
-			"minimum" : 0,
-			"maximum" : 4,
-			"access" : "expert",
-			"propertyOrder" : 20
-		},
+		},		
 		"transitiontime": {
 			"type": "number",
 			"title":"edt_dev_spec_transistionTime_title",
