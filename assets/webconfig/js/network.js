@@ -6,6 +6,7 @@ $(document).ready( function() {
 	var conf_editor = null;
 	var conf_editor_net = null;
 	var conf_editor_json = null;
+	var conf_editor_proto = null;
 	var conf_editor_fbs = null;
 	var conf_editor_bobl = null;
 	var conf_editor_forw = null;
@@ -25,6 +26,13 @@ $(document).ready( function() {
 		//flatbufserver
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
 		$('#conf_cont').append(createHelpTable(window.schema.flatbufServer.properties, $.i18n("edt_conf_fbs_heading_title")));
+		
+		if (window.serverInfo.hasPROTOBUF == 1)
+		{
+			//protoserver
+			$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
+			$('#conf_cont').append(createHelpTable(window.schema.protoServer.properties, $.i18n("edt_conf_pbs_heading_title")));
+		}
 
 		//boblight
 		if (BOBLIGHT_ENABLED)
@@ -99,6 +107,22 @@ $(document).ready( function() {
 		requestWriteConfig(conf_editor_fbs.getValue());
 	});
 
+	if (window.serverInfo.hasPROTOBUF == 1)
+	{
+		//protobuffer
+		conf_editor_proto = createJsonEditor('editor_container_protoserver', {
+			protoServer        : window.schema.protoServer
+		}, true, true);
+
+		conf_editor_proto.on('change',function() {
+			conf_editor_proto.validate().length || window.readOnlyMode ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
+		});
+
+		$('#btn_submit_protoserver').off().on('click',function() {
+			requestWriteConfig(conf_editor_proto.getValue());
+		});
+	}
+
 	//boblight
 	if (BOBLIGHT_ENABLED)
 	{
@@ -138,6 +162,11 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_network_net_intro'), "editor_container_net");
 		createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
+		
+		if (window.serverInfo.hasPROTOBUF == 1)
+		{
+			createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
+		}
 		
 		if (BOBLIGHT_ENABLED)
 		{

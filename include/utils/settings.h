@@ -31,6 +31,7 @@ namespace settings {
 		VIDEODETECTION,
 		NETWORK,
 		FLATBUFSERVER,
+		PROTOSERVER,
 		INVALID
 	};
 
@@ -66,6 +67,7 @@ namespace settings {
 			case type::VIDEODETECTION:return "videoDetection";
 			case type::NETWORK:       return "network";
 			case type::FLATBUFSERVER: return "flatbufServer";
+			case type::PROTOSERVER:   return "protoServer";
 			default:            return "invalid";
 		}
 	}
@@ -100,6 +102,7 @@ namespace settings {
 		else if (type == "videoDetection")       return type::VIDEODETECTION;
 		else if (type == "network")              return type::NETWORK;
 		else if (type == "flatbufServer")        return type::FLATBUFSERVER;
+		else if (type == "protoServer")          return type::PROTOSERVER;
 		else                                     return type::INVALID;
 	}
 }

@@ -31,6 +31,7 @@ endif(CCACHE_FOUND)
 
 # Set build variables
 SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
+SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
@@ -214,6 +215,16 @@ if(DEFAULT_CEC)
 	endif()
 endif()
 
+if (DEFAULT_PROTOBUF)
+	find_package(Protobuf)
+	if (NOT Protobuf_FOUND)
+		message( WARNING "Could not find protobuf libraries (macOS: protobuf, Linux: libprotobuf-dev protobuf-compiler, Windows: need to compile yourself)" )
+		SET ( DEFAULT_PROTOBUF OFF )
+	else()
+#		cmake_policy(SET CMP0071 NEW)
+	endif()
+endif()
+
 # set the build options
 option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
 message(STATUS "ENABLE_BOBLIGHT   = ${ENABLE_BOBLIGHT}")
@@ -262,6 +273,9 @@ message(STATUS "ENABLE_SOUNDCAPLINUX = ${ENABLE_SOUNDCAPLINUX}")
 
 option(ENABLE_CEC "Enable CEC" ${DEFAULT_CEC})
 message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
+
+option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
+message(STATUS "ENABLE_PROTOBUF = ${ENABLE_PROTOBUF}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )

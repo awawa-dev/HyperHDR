@@ -43,6 +43,7 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	_latchTime_ms = 1;
 
 	bool error = false;
+
 	try
 	{
 		mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -52,7 +53,9 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	{
 		error = true;
 	}
-	Error(_log, "Failed to initialize seed");
+
+	if (error)
+		Error(_log, "Failed to initialize mbedtls seed");
 }
 
 ProviderUdpSSL::~ProviderUdpSSL()

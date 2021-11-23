@@ -558,6 +558,12 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["systemGrabbers"] = systemDevice;
 #endif
 
+#if defined(ENABLE_PROTOBUF)
+	info["hasPROTOBUF"] = 1;
+#else
+	info["hasPROTOBUF"] = 0;
+#endif
+
 #if defined(ENABLE_CEC)
 	info["hasCEC"] = 1;
 #else

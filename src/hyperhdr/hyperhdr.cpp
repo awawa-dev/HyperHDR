@@ -32,6 +32,9 @@
 // Flatbuffer Server
 #include <flatbufserver/FlatBufferServer.h>
 
+// Protobuffer Server
+#include <protoserver/ProtoServer.h>
+
 // ssdp
 #include <ssdp/SSDPHandler.h>
 
@@ -196,6 +199,17 @@ void HyperHdrDaemon::freeObjects()
 		_flatBufferServer = nullptr;
 	}
 
+#if defined(ENABLE_PROTOBUF)
+	if (_protoServer != nullptr)
+	{
+		auto protoServerThread = _protoServer->thread();
+		protoServerThread->quit();
+		protoServerThread->wait();
+		delete protoServerThread;
+		_protoServer = nullptr;
+	}
+#endif
+
 	//ssdp before webserver
 	if (_ssdp != nullptr)
 	{
@@ -263,6 +277,18 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(this, &HyperHdrDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
 
+#if defined(ENABLE_PROTOBUF)
+	// Create Proto server in thread
+	_protoServer = new ProtoServer(getSetting(settings::type::PROTOSERVER));
+	QThread* pThread = new QThread(this);
+	pThread->setObjectName("ProtoServerThread");
+	_protoServer->moveToThread(pThread);
+	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
+	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
+	connect(this, &HyperHdrDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
+	pThread->start();
+#endif
+
 	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::type::WEBSERVER), false);
 	QThread* wsThread = new QThread(this);
@@ -285,7 +311,8 @@ void HyperHdrDaemon::startNetworkServices()
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver,
-							   getSetting(settings::type::FLATBUFSERVER).object()["port"].toInt(),							   
+							   getSetting(settings::type::FLATBUFSERVER).object()["port"].toInt(),
+							   getSetting(settings::type::PROTOSERVER).object()["port"].toInt(),
 							   getSetting(settings::type::JSONSERVER).object()["port"].toInt(),
 							   getSetting(settings::type::WEBSERVER).object()["sslPort"].toInt(),
 							   getSetting(settings::type::GENERAL).object()["name"].toString());

@@ -60,6 +60,7 @@ class WebServer;
 class SettingsManager;
 class SSDPHandler;
 class FlatBufferServer;
+class ProtoServer;
 class AuthManager;
 class NetOrigin;
 #ifdef ENABLE_SOUNDCAPWINDOWS
@@ -155,7 +156,9 @@ private:
 	cecHandler*					_cecHandler;
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
-
+	#if defined(ENABLE_PROTOBUF)
+		ProtoServer*               _protoServer;
+	#endif
     #if defined(ENABLE_SOUNDCAPWINDOWS)
         SoundCapWindows*		_snd;
     #elif defined(ENABLE_SOUNDCAPLINUX)

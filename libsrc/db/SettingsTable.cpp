@@ -117,7 +117,7 @@ bool SettingsTable::isSettingGlobal(const QString& type) const
 	// list of global settings
 	QStringList list;
 	// server port services
-	list << settings::typeToString(settings::type::JSONSERVER)
+	list << settings::typeToString(settings::type::JSONSERVER) << settings::typeToString(settings::type::PROTOSERVER)
 		<< settings::typeToString(settings::type::FLATBUFSERVER) << settings::typeToString(settings::type::NETWORK)
 		<< settings::typeToString(settings::type::NETFORWARD) << settings::typeToString(settings::type::WEBSERVER)
 		<< settings::typeToString(settings::type::VIDEOGRABBER) << settings::typeToString(settings::type::SYSTEMGRABBER) 

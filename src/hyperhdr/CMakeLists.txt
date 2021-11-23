@@ -32,6 +32,10 @@ target_link_libraries(hyperhdr
 	Qt${Qt_VERSION}::Widgets
 )
 
+if (ENABLE_PROTOBUF)
+	target_link_libraries(hyperhdr protoserver)
+endif ()
+
 if (ENABLE_AVAHI)
 	target_link_libraries(hyperhdr bonjour)
 endif ()
