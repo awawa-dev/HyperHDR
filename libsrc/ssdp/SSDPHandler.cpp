@@ -9,7 +9,11 @@
 #include <QNetworkInterface>
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#include <QNetworkConfigurationManager>
+	// yes, we know it depracated and can handle it
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		#include <QNetworkConfigurationManager>
+	#pragma GCC diagnostic pop
 #endif
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
@@ -52,8 +56,12 @@ void SSDPHandler::initServer()
 	SSDPServer::initServer();
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	_NCA = new QNetworkConfigurationManager(this);
-	connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
+	// yes, we know it depracated and can handle it
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		_NCA = new QNetworkConfigurationManager(this);
+		connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
+	#pragma GCC diagnostic pop
 #endif
 
 	// listen for mSearchRequestes
@@ -146,23 +154,27 @@ void SSDPHandler::handleWebServerStateChange(bool newState)
 	}
 }
 
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))	
-	void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration &config)
-	{
-		// get localAddress from interface
-		QString localAddress = getLocalAddress();
-		if(!localAddress.isEmpty() && _localAddress != localAddress)
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+	// yes, we know it depracated and can handle it
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration &config)
 		{
-			// revoke old ip
-			sendAnnounceList(false);
+			// get localAddress from interface
+			QString localAddress = getLocalAddress();
+			if(!localAddress.isEmpty() && _localAddress != localAddress)
+			{
+				// revoke old ip
+				sendAnnounceList(false);
 
-			// update desc & notify new ip
-			_localAddress = localAddress;
-			QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
-			setDescriptionAddress(getDescAddress());
-			sendAnnounceList(true);
+				// update desc & notify new ip
+				_localAddress = localAddress;
+				QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
+				setDescriptionAddress(getDescAddress());
+				sendAnnounceList(true);
+			}
 		}
-	}
+	#pragma GCC diagnostic pop
 #endif
 
 QString SSDPHandler::getLocalAddress() const

@@ -155,24 +155,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QString &body = "");
-
-	///
-	/// @brief Execute PUT request
-	///
-	/// @param[in] URL for PUT request
-	/// @param[in] body The body of the request in JSON
-	/// @return Response The body of the response in JSON
-	///
-	httpResponse put(const QUrl &url, const QString &body = "");
-
-	///
-	/// @brief Execute POST request
-	///
-	/// @param[in] body The body of the request in JSON
-	/// @return Response The body of the response in JSON
-	///
-	httpResponse post(QString body = "");
+	httpResponse put(const QString &body = "", bool wait = true);
 
 	///
 	/// @brief Handle responses for REST requests
@@ -183,6 +166,15 @@ public:
 	httpResponse getResponse(QNetworkReply* const &reply);
 
 private:
+
+	///
+	/// @brief Execute PUT request
+	///
+	/// @param[in] URL for PUT request
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse put(const QUrl& url, const QString& body = "", bool wait = true);
 
 	///
 	/// @brief Append an API's path element to path given as param

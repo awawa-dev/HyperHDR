@@ -34,19 +34,32 @@ void RgbTransform::init(
 	double luminanceGain,
 	double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation, bool _silent)
 {
+	std::fill(std::begin(_mappingR), std::end(_mappingR), 0);
+	std::fill(std::begin(_mappingG), std::end(_mappingG), 0);
+	std::fill(std::begin(_mappingB), std::end(_mappingB), 0);
+
+	_brightness_rgb = 0;
+	_brightness_cmy = 0;
+	_brightness_w = 0;
+
+	_gammaR = 0;
+	_gammaG = 0;
+	_gammaB = 0;
+	_backlightThreshold = 0;
+	_sumBrightnessRGBLow = 0;
 	_classic_config = classic_config;
 	_saturationGain = saturationGain;
 	_luminanceGain = luminanceGain;
 	_luminanceMinimum = 0;
 	_brightness = brightness;
 	_brightnessCompensation = brightnessCompensation;
+	_backLightEnabled = true;
+	_backlightColored = true;
 
 	if (!_silent)
-		Info(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i", 
-				_classic_config, _saturationGain, _luminanceGain, clamp(backlightThreshold));
+		Info(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i",
+			_classic_config, _saturationGain, _luminanceGain, clamp(backlightThreshold));
 
-
-	_backLightEnabled = true;
 	setGamma(gammaR,gammaG,gammaB);
 	setBacklightThreshold(backlightThreshold);
 	setBacklightColored(backlightColored);

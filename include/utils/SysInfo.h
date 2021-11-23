@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include <memory>
 
 class SysInfo : public QObject
 {
@@ -31,7 +32,7 @@ private:
 	SysInfo();
 	void getCPUInfo();
 
-	static SysInfo* _instance;
+	static std::unique_ptr<SysInfo> _instance;
 
 	HyperhdrSysInfo _sysinfo;
 };

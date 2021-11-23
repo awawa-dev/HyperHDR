@@ -175,6 +175,7 @@ public:
 	bool getOnOffState() const;
 	int getTransitionTime() const;
 	CiColor getColor() const;
+	bool hasColor();
 
 	///
 	/// @return the color space of the light determined by the model id reported by the bridge.
@@ -196,6 +197,7 @@ private:
 	bool _on;
 	int _transitionTime;
 	CiColor _color;
+	bool    _hasColor;
 	/// darkes blue color in hue lamp GAMUT = black
 	CiColor _colorBlack;
 	/// The model id of the hue lamp which is used to determine the color space.
@@ -251,10 +253,10 @@ public:
 	/// @param route the route of the POST request.
 	/// @param content the content of the POST request.
 	///
-	QJsonDocument post(const QString& route, const QString& content);
+	QJsonDocument post(const QString& route, const QString& content, bool wait = true);
 
 	QJsonDocument getLightState(unsigned int lightId);
-	void setLightState(unsigned int lightId = 0, const QString &state = "");
+	void setLightState(unsigned int lightId = 0, const QString &state = "", bool wait = true);
 
 	QMap<quint16,QJsonObject> getLightMap() const;
 
@@ -275,20 +277,6 @@ protected:
 	/// @return True, if success
 	///
 	bool init(const QJsonObject &deviceConfig) override;
-
-	///
-	/// @brief Opens the Hue-Bridge device and its SSL-connection
-	///
-	/// @return Zero on success (i.e. device is ready), else negative
-	///
-	int open() override;
-
-	///
-	/// @brief Closes the Hue-Bridge device and its SSL-connection
-	///
-	/// @return Zero on success (i.e. device is closed), else negative
-	///
-	int close() override;
 
 	///
 	/// @brief Check, if Hue API response indicate error

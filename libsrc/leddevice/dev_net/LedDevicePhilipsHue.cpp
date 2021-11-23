@@ -336,44 +336,6 @@ bool LedDevicePhilipsHueBridge::initRestAPI(const QString &hostname, int port, c
 	return isInitOK;
 }
 
-int LedDevicePhilipsHueBridge::open()
-{
-	int retval = -1;
-	_isDeviceReady = false;
-
-	if( _useHueEntertainmentAPI )
-	{
-		// Open bridge for streaming
-		if ( ProviderUdpSSL::open() == 0 )
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
-	}
-	else
-	{
-		// Everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
-	}
-
-	return retval;
-}
-
-int LedDevicePhilipsHueBridge::close()
-{
-	_isDeviceReady = false;
-	int retval = 0;
-
-	if( _useHueEntertainmentAPI )
-	{
-		retval = ProviderUdpSSL::close();
-	}
-
-	return retval;
-}
-
 const int *LedDevicePhilipsHueBridge::getCiphersuites() const
 {
 	return SSL_CIPHERSUITES;
@@ -631,11 +593,11 @@ QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
 	return response.getBody();
 }
 
-QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QString& content)
+QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QString& content, bool wait)
 {
 	_restApi->setPath(route);
 
-	httpResponse response = _restApi->put(content);
+	httpResponse response = _restApi->put(content, wait);
 	checkApiError(response.getBody());
 	return response.getBody();
 }
@@ -646,10 +608,10 @@ QJsonDocument LedDevicePhilipsHueBridge::getLightState(unsigned int lightId)
 	return get( QString("%1/%2").arg( API_LIGHTS ).arg( lightId ) );
 }
 
-void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state)
+void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state, bool wait)
 {
 	DebugIf( verbose, _log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state) );
-	post( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state);
+	post( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state, wait);
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::getGroupState(unsigned int groupId)
@@ -683,6 +645,8 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject value
 	  , _ledidx(ledidx)
 	  , _on(false)
 	  , _transitionTime(0)
+	  , _color({ 0.0, 0.0, 0.0 })
+	  , _hasColor(false)
 	  , _colorBlack({0.0, 0.0, 0.0})
 	  , _modelId(values[API_MODEID].toString().trimmed().replace("\"", ""))
 	  , _lastSendColor(0)
@@ -874,6 +838,7 @@ void PhilipsHueLight::setTransitionTime(int transitionTime)
 
 void PhilipsHueLight::setColor(const CiColor& color)
 {
+	this->_hasColor = true;
 	this->_color = color;
 }
 
@@ -890,6 +855,11 @@ int PhilipsHueLight::getTransitionTime() const
 CiColor PhilipsHueLight::getColor() const
 {
 	return _color;
+}
+
+bool PhilipsHueLight::hasColor()
+{
+	return _hasColor;
 }
 
 CiColorTriangle PhilipsHueLight::getColorSpace() const
@@ -1233,7 +1203,7 @@ bool LedDevicePhilipsHue::stopStream()
 			canRestore = true;
 	}	
 
-	ProviderUdpSSL::close();
+	ProviderUdpSSL::closeNetwork();
 
 	int index = 3;
 	while (!setStreamGroupState(false) && --index > 0)
@@ -1360,6 +1330,7 @@ void LedDevicePhilipsHue::stop()
 int LedDevicePhilipsHue::open()
 {
 	int retval = 0;
+
 	_isDeviceReady = true;
 
 	return retval;
@@ -1367,9 +1338,9 @@ int LedDevicePhilipsHue::open()
 
 int LedDevicePhilipsHue::close()
 {
-	int retval = -1;
+	int retval = 0;
 
-	retval = LedDevicePhilipsHueBridge::close();
+	_isDeviceReady = false;
 
 	return retval;
 }
@@ -1577,7 +1548,7 @@ void LedDevicePhilipsHue::setTransitionTime(PhilipsHueLight& light)
 
 void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
 {
-	if ( light.getColor() != color )
+	if (!light.hasColor() || light.getColor() != color )
 	{
 		if( !_useHueEntertainmentAPI )
 		{
@@ -1614,7 +1585,7 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 	}
 
 	const int bri = qRound( qMin( 254.0, _brightnessFactor * qMax( 1.0, color.bri * 254.0 ) ) );
-	if ( light.getColor() != color )
+	if (!light.hasColor() || light.getColor() != color )
 	{
 		if ( !light.isBusy(&_semaphore) || priority)
 		{
@@ -1648,7 +1619,7 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 		_semaphore.release();
 
 		if (!stateCmd.isEmpty())
-			setLightState( light.getId(), "{" + stateCmd + "}");
+			setLightState( light.getId(), "{" + stateCmd + "}", wait);
 
 		if (!powerCmd.isEmpty() && !on)
 		{

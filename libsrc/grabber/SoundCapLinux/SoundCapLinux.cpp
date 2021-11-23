@@ -28,15 +28,20 @@ void SoundCapLinux::ListDevices()
     }
 
     device = devices;
-    while (*device != NULL) {
+    while (*device != NULL)
+	{
         char *name = snd_device_name_get_hint(*device, "NAME");
-        char *desc = snd_device_name_get_hint(*device, "DESC");
-        char *ioid = snd_device_name_get_hint(*device, "IOID");
-        _availableDevices.append(QString(name) + " | " + QString(desc) + " | " + QString(ioid));
 
-        if (name && strcmp("null", name)) free(name);
-        if (desc && strcmp("null", desc)) free(desc);
-        if (ioid && strcmp("null", ioid)) free(ioid);
+		if (name != nullptr)
+		{
+			char* desc = snd_device_name_get_hint(*device, "DESC");
+			char* ioid = snd_device_name_get_hint(*device, "IOID");
+			_availableDevices.append(QString(name) + " | " + QString(desc) + " | " + QString(ioid));
+
+			if (name != nullptr) free(name);
+			if (desc != nullptr) free(desc);
+			if (ioid != nullptr) free(ioid);
+		}
         device++;
     }
     snd_device_name_free_hint((void**)devices);

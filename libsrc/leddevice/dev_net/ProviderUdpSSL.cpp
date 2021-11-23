@@ -60,6 +60,8 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 
 ProviderUdpSSL::~ProviderUdpSSL()
 {
+	closeConnection();
+
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
 }
@@ -126,39 +128,7 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-int ProviderUdpSSL::open()
-{
-	_streamReady = false;
 
-	if ( !initNetwork() )
-	{
-		this->setInError( "UDP SSL Network error!" );
-		return -1;
-	}
-
-	return 0;
-}
-
-int ProviderUdpSSL::close()
-{
-	QMutexLocker locker(&_hueMutex);
-
-	closeConnection();
-
-
-	return 0;
-}
-
-void ProviderUdpSSL::closeConnection()
-{
-	if (_streamReady)
-	{
-		closeSSLNotify();
-		freeSSLConnection();
-	}
-
-	_streamReady = false;
-}
 
 const int *ProviderUdpSSL::getCiphersuites() const
 {
@@ -169,24 +139,52 @@ bool ProviderUdpSSL::initNetwork()
 {
 	QMutexLocker locker(&_hueMutex);
 
+	if ((!_isDeviceReady || _streamPaused) && _streamReady)
+		closeConnection();
+
 	if (!initConnection())
-		return false;
-
-	_streamReady = true;
-
-	_streamPaused = false;
-
-	_isDeviceReady = true;
+		return false;	
 
 	return true;
 }
 
+int ProviderUdpSSL::closeNetwork()
+{
+	QMutexLocker locker(&_hueMutex);
+
+	closeConnection();
+
+	return 0;
+}
+
 bool ProviderUdpSSL::initConnection()
-{	
+{
+	if (_streamReady)
+		return true;
+
 	mbedtls_net_init(&client_fd);
 	mbedtls_ssl_init(&ssl);
-	mbedtls_ssl_config_init(&conf);	
-	return setupStructure();
+	mbedtls_ssl_config_init(&conf);
+
+	if (setupStructure())
+	{
+		_streamReady = true;
+		_streamPaused = false;
+		_isDeviceReady = true;
+		return true;
+	}
+	else
+		return false;
+}
+
+void ProviderUdpSSL::closeConnection()
+{
+	if (_streamReady)
+	{
+		closeSSLNotify();
+		freeSSLConnection();
+		_streamReady = false;
+	}
 }
 
 bool ProviderUdpSSL::seedingRNG()
@@ -325,6 +323,7 @@ void ProviderUdpSSL::freeSSLConnection()
 {	
 	try
 	{
+		Warning(_log, "Release mbedtls");
 		mbedtls_ssl_session_reset(&ssl);
 		mbedtls_net_free(&client_fd);
 		mbedtls_ssl_free(&ssl);
@@ -364,7 +363,7 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 	{
 		Warning(_log, "mbedtls_ssl_read returned: %s", QSTRING_CSTR(errorMsg(ret)));
 
-		if (_retry_left > 0)
+		if (_retry_left > 0 && _streamReady)
 		{
 			_retry_left--;
 			closeConnection();

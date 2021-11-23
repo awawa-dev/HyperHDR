@@ -48,7 +48,7 @@ public:
 	///
 	/// @brief Destructor of the LED-device
 	///
-	~ProviderUdpSSL() override;
+	virtual ~ProviderUdpSSL();
 
 protected:
 
@@ -61,18 +61,11 @@ protected:
 	bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// @brief Opens the output device.
-	///
-	/// @return Zero on success (i.e. device is ready), else negative
-	///
-	int open() override;
-
-	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	int close() override;
+	int closeNetwork();
 
 	///
 	/// @brief Initialise device's network details

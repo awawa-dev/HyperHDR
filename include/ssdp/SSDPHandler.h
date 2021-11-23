@@ -91,16 +91,26 @@ private slots:
 	/// @brief Handle changes in the network configuration
 	/// @param conig New config
 	///
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))	
-	void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+	// yes, we know it depracated and can handle it
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		void handleNetworkConfigurationChanged(const QNetworkConfiguration& config);
+	#pragma GCC diagnostic pop
 #endif
 
 private:
 	WebServer* _webserver;
 	QString    _localAddress;
+
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	QNetworkConfigurationManager* _NCA;
+	// yes, we know it depracated and can handle it
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		QNetworkConfigurationManager* _NCA;
+	#pragma GCC diagnostic pop
 #endif
+
 	QString _uuid;
 	/// Targets for announcement
 	std::vector<QString> _deviceList;

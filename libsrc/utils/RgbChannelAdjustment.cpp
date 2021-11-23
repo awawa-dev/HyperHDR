@@ -1,25 +1,35 @@
 #include <utils/RgbChannelAdjustment.h>
+#include <algorithm>
 
 RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
 	: _channelName(channelName)
-	, _log(Logger::getInstance(channelName))
-	, _brightness(0)
+	, _log(Logger::getInstance(channelName))	
 {
 	resetInitialized();
 }
 
+
 RgbChannelAdjustment::RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
 	: _channelName(channelName)
 	, _log(Logger::getInstance(channelName.replace("ChannelAdjust_", "ADJUST_") + QString::number(instance)))
-	, _brightness(0)
 {
+	resetInitialized();
 	setAdjustment(adjustR, adjustG, adjustB);
 }
 
 void RgbChannelAdjustment::resetInitialized()
-{
-	//Debug(_log, "initialize mapping with %d,%d,%d", _adjust[RED], _adjust[GREEN], _adjust[BLUE]);
-	memset(_initialized, false, sizeof(_initialized));
+{	
+	_correction = 0;
+	_brightness = 0;
+
+	std::fill(std::begin(_adjust), std::end(_adjust), 0);
+	std::fill(std::begin(_initialized), std::end(_initialized), false);
+	std::fill(std::begin(_mappingAdjR), std::end(_mappingAdjR), 0);
+	std::fill(std::begin(_mappingAdjG), std::end(_mappingAdjG), 0);
+	std::fill(std::begin(_mappingAdjB), std::end(_mappingAdjB), 0);
+	std::fill(std::begin(_mappingCorection), std::end(_mappingCorection), 0);
+
+	memset(&_mapping, 0, sizeof(_mapping));
 }
 
 void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
@@ -27,7 +37,8 @@ void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8
 	_adjust[RED]   = adjustR;
 	_adjust[GREEN] = adjustG;
 	_adjust[BLUE]  = adjustB;
-	resetInitialized();
+
+	std::fill(std::begin(_initialized), std::end(_initialized), false);
 	initializeAdjustMapping(adjustR, adjustG, adjustB);	
 }
 
@@ -83,7 +94,7 @@ void RgbChannelAdjustment::apply(uint8_t input, uint8_t brightness, uint8_t & re
 	if (_brightness != brightness)
 	{
 		_brightness = brightness;
-		resetInitialized();
+		std::fill(std::begin(_initialized), std::end(_initialized), false);
 	}
 
 	if (!_initialized[input])

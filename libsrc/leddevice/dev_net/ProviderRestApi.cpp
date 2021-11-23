@@ -142,16 +142,23 @@ httpResponse ProviderRestApi::get(const QUrl &url)
 	return response;
 }
 
-httpResponse ProviderRestApi::put(const QString &body)
+httpResponse ProviderRestApi::put(const QString &body, bool wait)
 {
-	return put( getUrl(), body);
+	return put( getUrl(), body, wait);
 }
 
-httpResponse ProviderRestApi::put(const QUrl &url, const QString &body)
+httpResponse ProviderRestApi::put(const QUrl &url, const QString &body, bool wait)
 {
 	Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR( url.toString() ), QSTRING_CSTR( body ) );
 	// Perform request
 	QNetworkRequest request(url);
+
+	if (!wait)
+	{
+		httpResponse response;
+		_networkManager->put(request, body.toUtf8());
+		return response;
+	}
 	
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
