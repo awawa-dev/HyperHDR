@@ -140,6 +140,7 @@
 			"maximum" : 30000,
 			"access" : "expert",
 			"append" : "edt_append_ms",
+			"required" : true,
 			"options": {
 				"dependencies": {
 					"useEntertainmentAPI": true
@@ -157,6 +158,7 @@
 			"maximum" : 30000,
 			"access" : "expert",
 			"append" : "edt_append_ms",
+			"required" : true,
 			"options": {
 				"dependencies": {
 					"useEntertainmentAPI": true

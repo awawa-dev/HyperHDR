@@ -891,8 +891,9 @@ function getHueIPs() {
 };
 
 //return editor Value
-function eV(vn) {
-  return (vn) ? conf_editor.getEditor("root.specificOptions." + vn).getValue() : "";
+function eV(vn , defaultVal = "") {
+  var editor = (vn) ? conf_editor.getEditor("root.specificOptions." + vn) : null;
+  return (editor == null) ? defaultVal : ((defaultVal != "" && !isNaN(defaultVal) && isNaN(editor.getValue())) ? defaultVal : editor.getValue());
 }
 
 function beginWizardHue() {
@@ -978,29 +979,31 @@ function beginWizardHue() {
 
     //Start with a clean configuration
     var d = {};
+
     d.output = $('#ip').val();
     d.username = $('#user').val();
     d.type = 'philipshue';
     d.colorOrder = 'rgb';
     d.lightIds = finalLightIds;
     d.latchTime = 0;
-    d.transitiontime = parseInt(eV("transitiontime"));
-    d.restoreOriginalState = (eV("restoreOriginalState") == true);
-    d.switchOffOnBlack = (eV("switchOffOnBlack") == true);
-    d.brightnessFactor = parseFloat(eV("brightnessFactor"));
+    d.transitiontime = parseInt(eV("transitiontime", 1));
+    d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
+    d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
+	
+    d.blackLevel =  parseFloat(eV("blackLevel", 0.009));
+    d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
+    d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));			
+    d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
 
     d.clientkey = $('#clientkey').val();
     d.groupId = parseInt($('#groupId').val());
-    d.blackLightsTimeout = parseInt(eV("blackLightsTimeout"));
-    d.brightnessMin = parseFloat(eV("brightnessMin"));
-    d.brightnessMax = parseFloat(eV("brightnessMax"));
-    d.brightnessThreshold = parseFloat(eV("brightnessThreshold"));
-    d.sslReadTimeout = parseInt(eV("sslReadTimeout"));
-    d.sslHSTimeoutMin = parseInt(eV("sslHSTimeoutMin"));
-    d.sslHSTimeoutMax = parseInt(eV("sslHSTimeoutMax"));
+    d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
+    d.brightnessMin = parseFloat(eV("brightnessMin", 0));
+    d.brightnessMax = parseFloat(eV("brightnessMax", 1));
+    d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
+    d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
+    d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
     d.verbose = (eV("verbose") == true);
-    d.debugStreamer = (eV("debugStreamer") == true);
-    d.debugLevel = (eV("debugLevel"));
 
     if (hueType == 'philipshue') {
       d.useEntertainmentAPI = false;
