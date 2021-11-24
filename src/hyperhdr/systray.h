@@ -6,6 +6,9 @@
 #include <QColorDialog>
 #include <QCloseEvent>
 
+#include <memory>
+#include <vector>
+
 #include <hyperhdrbase/HyperHdrInstance.h>
 #include <hyperhdrbase/HyperHdrIManager.h>
 
@@ -53,22 +56,32 @@ private:
 	bool getCurrentAutorunState();
 #endif
 
-	QAction          *quitAction;
-	QAction          *startAction;
-	QAction          *stopAction;
-	QAction          *colorAction;
-	QAction          *settingsAction;
-	QAction          *clearAction;
-#ifdef _WIN32
-	QAction          *autorunAction;
-#endif
+	std::unique_ptr<QAction> _quitAction;
+	std::unique_ptr<QAction> _startAction;
+	std::unique_ptr<QAction> _stopAction;
+	std::unique_ptr<QAction> _colorAction;
+	std::unique_ptr<QAction> _settingsAction;
+	std::unique_ptr<QAction> _clearAction;
+	std::unique_ptr<QAction> _autorunAction;
 
-	QSystemTrayIcon  *_trayIcon;
-	QMenu            *_trayIconMenu;
-	QMenu            *_trayIconEfxMenu;
-	QColorDialog      _colorDlg;
-	HyperHdrDaemon   *_hyperhdrd;
-	HyperHdrInstance *_hyperhdr;
-	HyperHdrIManager *_instanceManager;
-	quint16           _webPort;
+	std::unique_ptr<QSystemTrayIcon> _trayIcon;
+	std::unique_ptr<QMenu>           _trayIconMenu;
+	std::unique_ptr<QMenu>           _trayIconEfxMenu;
+
+	std::unique_ptr<QPixmap> _quitIcon;
+	std::unique_ptr<QPixmap> _colorIcon;
+	std::unique_ptr<QPixmap> _settingsIcon;
+	std::unique_ptr<QPixmap> _clearIcon;
+	std::unique_ptr<QPixmap> _effectsIcon;
+	std::unique_ptr<QPixmap> _autorunIcon;
+	std::unique_ptr<QIcon>   _appIcon;
+
+	std::vector<std::shared_ptr<QAction>>  _effects;
+
+	QColorDialog*      _colorDlg;
+
+	HyperHdrDaemon*    _hyperhdrd;
+	HyperHdrInstance*  _hyperhdr;
+	HyperHdrIManager*  _instanceManager;
+	quint16            _webPort;
 };

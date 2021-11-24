@@ -22,7 +22,7 @@
 
 SysTray::SysTray(HyperHdrDaemon *hyperhdrd)
 	: QWidget()
-	, _colorDlg(this)
+	, _colorDlg(nullptr)
 	, _hyperhdrd(hyperhdrd)
 	, _hyperhdr(nullptr)
 	, _instanceManager(HyperHdrIManager::getInstance())
@@ -40,6 +40,8 @@ SysTray::SysTray(HyperHdrDaemon *hyperhdrd)
 
 SysTray::~SysTray()
 {
+	if (_trayIconMenu != nullptr)
+		_trayIconMenu->clear();
 }
 
 void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
@@ -69,55 +71,66 @@ void SysTray::createTrayIcon()
 	
 #else
 	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);	
-#endif	
+#endif
 
-	quitAction = new QAction(tr("&Quit"), this);
-	quitAction->setIcon(QPixmap(":/quit.svg"));
-	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+	_trayIconMenu = std::unique_ptr<QMenu>(new QMenu(this));
+	_trayIcon = std::unique_ptr<QSystemTrayIcon>(new QSystemTrayIcon(this));
+	_trayIcon->setContextMenu(_trayIconMenu.get());
 
-	colorAction = new QAction(tr("&Color"), this);
-	colorAction->setIcon(QPixmap(":/color.svg"));
-	connect(colorAction, SIGNAL(triggered()), this, SLOT(showColorDialog()));
+	_quitAction = std::unique_ptr<QAction>(new QAction(tr("&Quit"), this));
+	_quitIcon = std::unique_ptr<QPixmap>(new QPixmap(":/quit.svg"));
+	_quitAction->setIcon(*_quitIcon.get());
+	connect(_quitAction.get(), SIGNAL(triggered()), qApp, SLOT(quit()));
 
-	settingsAction = new QAction(tr("&Settings"), this);
-	settingsAction->setIcon(QPixmap(":/settings.svg"));
-	connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
+	_colorAction = std::unique_ptr<QAction>(new QAction(tr("&Color"), this));
+	_colorIcon = std::unique_ptr<QPixmap>(new QPixmap(":/color.svg"));
+	_colorAction->setIcon(*_colorIcon.get());
+	connect(_colorAction.get(), SIGNAL(triggered()), this, SLOT(showColorDialog()));
 
-	clearAction = new QAction(tr("&Clear"), this);
-	clearAction->setIcon(QPixmap(":/clear.svg"));
-	connect(clearAction, SIGNAL(triggered()), this, SLOT(clearEfxColor()));
+	_settingsAction = std::unique_ptr<QAction>(new QAction(tr("&Settings"), this));
+	_settingsIcon = std::unique_ptr<QPixmap>(new QPixmap(":/settings.svg"));
+	_settingsAction->setIcon(*_settingsIcon.get());
+	connect(_settingsAction.get(), SIGNAL(triggered()), this, SLOT(settings()));
 
-	const std::list<EffectDefinition> efxs = _hyperhdr->getEffects();
-	_trayIconMenu = new QMenu(this);
-	_trayIconEfxMenu = new QMenu(_trayIconMenu);
+	_clearAction = std::unique_ptr<QAction>(new QAction(tr("&Clear"), this));
+	_clearIcon = std::unique_ptr<QPixmap>(new QPixmap(":/clear.svg"));
+	_clearAction->setIcon(*_clearIcon.get());
+	connect(_clearAction.get(), SIGNAL(triggered()), this, SLOT(clearEfxColor()));
+
+	const std::list<EffectDefinition> efxs = _hyperhdr->getEffects();	
+
+	_trayIconEfxMenu = std::unique_ptr<QMenu>(new QMenu(_trayIconMenu.get()));
+	_effectsIcon = std::unique_ptr<QPixmap>(new QPixmap(":/effects.svg"));
+	_trayIconEfxMenu->setIcon(*_effectsIcon.get());
 	_trayIconEfxMenu->setTitle(tr("Effects"));
-	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
+
+	_effects.clear();
 	for (auto efx : efxs)
 	{
-		QAction *efxAction = new QAction(efx.name, this);
-		connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
-		_trayIconEfxMenu->addAction(efxAction);
+		std::shared_ptr<QAction> efxAction = std::shared_ptr<QAction>(new QAction(efx.name, this));
+		connect(efxAction.get(), SIGNAL(triggered()), this, SLOT(setEffect()));
+		_trayIconEfxMenu->addAction(efxAction.get());
+		_effects.push_back(efxAction);
 	}
 
 #ifdef _WIN32
-	autorunAction = new QAction(tr("&Disable autostart"), this);
-	autorunAction->setIcon(QPixmap(":/autorun.svg"));
-	connect(autorunAction, SIGNAL(triggered()), this, SLOT(setAutorunState()));
+	_autorunAction = std::unique_ptr<QAction>(new QAction(tr("&Disable autostart"), this));
+	_autorunIcon   = std::unique_ptr<QPixmap>(new QPixmap(":/autorun.svg"));
 
-	_trayIconMenu->addAction(autorunAction);
+	_autorunAction->setIcon(*_autorunIcon.get());
+	connect(_autorunAction.get(), SIGNAL(triggered()), this, SLOT(setAutorunState()));
+
+	_trayIconMenu->addAction(_autorunAction.get());
 	_trayIconMenu->addSeparator();
 #endif
 
-	_trayIconMenu->addAction(settingsAction);
+	_trayIconMenu->addAction(_settingsAction.get());
 	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(colorAction);
-	_trayIconMenu->addMenu(_trayIconEfxMenu);
-	_trayIconMenu->addAction(clearAction);
+	_trayIconMenu->addAction(_colorAction.get());
+	_trayIconMenu->addMenu(_trayIconEfxMenu.get());
+	_trayIconMenu->addAction(_clearAction.get());
 	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(quitAction);
-
-	_trayIcon = new QSystemTrayIcon(this);
-	_trayIcon->setContextMenu(_trayIconMenu);
+	_trayIconMenu->addAction(_quitAction.get());
 }
 
 #ifdef _WIN32
@@ -126,11 +139,11 @@ bool SysTray::getCurrentAutorunState()
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
     if (reg.value("Hyperhdr", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
 	{
-		autorunAction->setText(tr("&Disable autostart"));
+		_autorunAction->setText(tr("&Disable autostart"));
         return true;
 	}
 
-    autorunAction->setText(tr("&Enable autostart"));
+    _autorunAction->setText(tr("&Enable autostart"));
 	return false;
 }
 #endif
@@ -155,13 +168,20 @@ void SysTray::setColor(const QColor & color)
 
 void SysTray::showColorDialog()
 {
-	if(_colorDlg.isVisible())
+	if (_colorDlg == nullptr)
 	{
-		_colorDlg.hide();
+		_colorDlg = new QColorDialog(this);
+		_colorDlg->setOptions(QColorDialog::NoButtons);
+		connect(_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor&)));
+	}
+
+	if (_colorDlg->isVisible())
+	{
+		_colorDlg->hide();
 	}
 	else
 	{
-		_colorDlg.show();	
+		_colorDlg->show();	
 	}
 }
 
@@ -224,20 +244,19 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 
 				createTrayIcon();
 		
-				connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+				connect(_trayIcon.get(), SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 #if !defined(__APPLE__)			
-				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
+				connect(_quitAction.get(), &QAction::triggered, _trayIcon.get(), &QSystemTrayIcon::hide, Qt::DirectConnection);
 #endif
-				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor&)));
+				
 
-				QIcon icon(":/hyperhdr-icon-32px.png");
-				_trayIcon->setIcon(icon);
+				_appIcon = std::unique_ptr<QIcon>(new QIcon(":/hyperhdr-icon-32px.png"));
+				_trayIcon->setIcon(*_appIcon.get());
 				_trayIcon->show();
 #if !defined(__APPLE__)
-				setWindowIcon(icon);
-#endif
-				_colorDlg.setOptions(QColorDialog::NoButtons);
+				setWindowIcon(*_appIcon.get());
+#endif				
 			}
 
 			break;
