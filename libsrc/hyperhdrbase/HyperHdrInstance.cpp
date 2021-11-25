@@ -589,6 +589,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Error(_log, "No source left -> switch LED-Device off");
+		QMetaObject::invokeMethod(_deviceSmooth, "componentStateChange", Q_ARG(hyperhdr::Components, hyperhdr::COMP_LEDDEVICE), Q_ARG(bool, false));
 		emit _ledDeviceWrapper->switchOff();
 	}
 	else
@@ -596,6 +597,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 		if ( previousPriority == PriorityMuxer::LOWEST_PRIORITY )
 		{
 			Info(_log, "New source available -> switch LED-Device on");
+			QMetaObject::invokeMethod(_deviceSmooth, "componentStateChange", Q_ARG(hyperhdr::Components, hyperhdr::COMP_LEDDEVICE), Q_ARG(bool, true));
 			emit _ledDeviceWrapper->switchOn();
 		}
 	}

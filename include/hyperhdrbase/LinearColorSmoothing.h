@@ -41,7 +41,6 @@ public:
 	virtual int updateLedValues(const std::vector<ColorRgb>& ledValues);
 
 	void setEnable(bool enable);
-	void setPause(bool pause);
 	bool pause() const { return _pause; }
 	bool enabled() const { return _enabled && !_pause; }
 	
@@ -94,7 +93,7 @@ private:
 	 * @param ledColors The colors to queue
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
-	void clearQueuedColors(bool semaphore);
+	void clearQueuedColors(bool deviceEnabled = false, bool restarting = false);
 
 	/// write updated values as input for the smoothing filter
 	///
@@ -117,13 +116,9 @@ private:
 
 	void Antiflickering();
 
-	void AlternateSetup(const std::vector<ColorRgb>& ledValues);
-
-	void AlternateLinearSmoothing();	
-
 	void LinearSetup(const std::vector<ColorRgb>& ledValues);
 
-	void LinearSmoothing();
+	void LinearSmoothing(bool correction);
 
 	void DebugOutput();
 
