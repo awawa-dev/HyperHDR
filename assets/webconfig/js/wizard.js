@@ -985,7 +985,6 @@ function beginWizardHue() {
     d.type = 'philipshue';
     d.colorOrder = 'rgb';
     d.lightIds = finalLightIds;
-    d.latchTime = 0;
     d.transitiontime = parseInt(eV("transitiontime", 1));
     d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
     d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
@@ -1008,7 +1007,7 @@ function beginWizardHue() {
     if (hueType == 'philipshue') {
       d.useEntertainmentAPI = false;
       d.hardwareLedCount = finalLightIds.length;
-      d.rewriteTime = 0;
+      d.refreshTime = 0;
       d.verbose = false;
       //smoothing off
       sc.smoothing.enable = false;
@@ -1017,7 +1016,7 @@ function beginWizardHue() {
     if (hueType == 'philipshueentertainment') {
       d.useEntertainmentAPI = true;
       d.hardwareLedCount = groupLights.length;
-      d.rewriteTime = 20;
+      d.refreshTime = 20;
       //smoothing on
       sc.smoothing.enable = true;
     }
@@ -1437,7 +1436,6 @@ function beginWizardYeelight() {
     d.brightnessMax = parseInt(conf_editor.getEditor("root.specificOptions.brightnessMax").getValue());
     d.brightnessFactor = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessFactor").getValue());
 
-    d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
     d.debugLevel = parseInt(conf_editor.getEditor("root.specificOptions.debugLevel").getValue());
 
     d.lights = finalLights;
@@ -1693,7 +1691,6 @@ function beginWizardAtmoOrb() {
 
     d.output = conf_editor.getEditor("root.specificOptions.output").getValue();
     d.port = parseInt(conf_editor.getEditor("root.specificOptions.port").getValue());
-    d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
 
     window.serverConfig.device = d;
 
@@ -1960,7 +1957,6 @@ function beginWizardCololight() {
     }
 
     d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
-    d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
 
     window.serverConfig.device = d;
 

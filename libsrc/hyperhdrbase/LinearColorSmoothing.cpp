@@ -352,7 +352,7 @@ void LinearColorSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting
 	{
 		_semaphore.acquire();
 
-		Error(_log, "Clearing queued colors before: %s%s",
+		Info(_log, "Clearing queued colors before: %s%s",
 			(deviceEnabled)? "enabling":"disabling",
 			(restarting)? ". Smoothing configuration changed: restarting timer." : "");
 
