@@ -354,7 +354,7 @@ void LinearColorSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting
 
 		Error(_log, "Clearing queued colors before: %s%s",
 			(deviceEnabled)? "enabling":"disabling",
-			(restarting)? ". Smoothing configuration changed: restartring timer." : "");
+			(restarting)? ". Smoothing configuration changed: restarting timer." : "");
 
 		if (!deviceEnabled || restarting)
 		{

@@ -264,6 +264,8 @@ signals:
 	///
 	void enableStateChanged(bool newState);
 
+	void manualUpdate();
+
 protected:
 
 	///
@@ -455,8 +457,11 @@ private:
 	std::vector<ColorRgb> _lastLedValues;
 
 	QSemaphore _semaphore;
+	bool    _consumed;
+	int32_t _frames;
+	int32_t _incomingframes;
+	int32_t _skippedFrames;
 
-	int64_t _frames;
 	qint64  _framesBegin;
 };
 

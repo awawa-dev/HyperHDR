@@ -36,10 +36,15 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _lastWriteTime(QDateTime::currentDateTime())
 	  , _isRefreshEnabled (false)
 	  , _semaphore(1)
+	  , _consumed(true)
 	  , _frames(0)
+	  , _incomingframes(0)
+	  , _skippedFrames(0)
 	  , _framesBegin(QDateTime::currentMSecsSinceEpoch())
 {
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
+
+	connect(this, &LedDevice::manualUpdate, this, &LedDevice::rewriteLEDs);
 }
 
 LedDevice::~LedDevice()
@@ -50,6 +55,8 @@ LedDevice::~LedDevice()
 void LedDevice::start()
 {
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
+
+	_consumed = true;
 
 	// setup refreshTimer
 	if ( _refreshTimer == nullptr )
@@ -81,6 +88,8 @@ void LedDevice::stop()
 
 int LedDevice::open()
 {
+	_consumed = true;
+
 	_isDeviceReady = true;
 	int retval = 0;
 
@@ -110,6 +119,7 @@ void LedDevice::enable()
 {
 	if ( !_isEnabled )
 	{
+		_consumed = true;
 		_isDeviceInError = false;
 
 		if ( ! _isDeviceReady )
@@ -164,7 +174,7 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 
 void LedDevice::startRefreshTimer()
 {
-	if ( _isDeviceReady && _isEnabled )
+	if ( _isDeviceReady && _isEnabled && _refreshTimerInterval_ms > 0)
 	{
 		Debug(_log, "Starting timer with interval = %ims", _refreshTimer->interval());
 		_refreshTimer->start();
@@ -186,10 +196,18 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 
 	if (currentTime - _framesBegin >= 1000 * 60)
 	{
-		Info(_log, "LED refresh rate %.2f Hz (total frames: %i, interval: %.2fs)", _frames / 60.0, _frames, int(currentTime - _framesBegin) / 1000.0);
+
+		Info(_log, "LED refresh rate %.2f Hz (total written frames: %i, incoming: %i, skipped: %i, interval: %.2fs). %s",
+			_frames / 60.0, _frames, _incomingframes, _skippedFrames, int(currentTime - _framesBegin) / 1000.0,
+			(_refreshTimer->isActive())?"Buffer timer is active because you set rewrite time.":"Buffer timer is disabled (rewrite time = 0). Direct writes.");
+
 		_frames = 0;
+		_incomingframes = 0;
+		_skippedFrames = 0;
 		_framesBegin = currentTime;
 	}
+
+	_incomingframes++;
 
 	if (!_isEnabled || (!_isOn && !_isBlackScreen) || !_isDeviceReady || _isDeviceInError)
 	{
@@ -197,12 +215,29 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	}
 	else
 	{
+		bool skipUpdate = false;
+
 		_semaphore.acquire();
+		if (_consumed)
+		{
+			_consumed = false;
+		}
+		else
+		{
+			skipUpdate = true;
+		}
 		_lastLedValues = ledValues;
 		_semaphore.release();
 
 		if (!_refreshTimer->isActive())
-			rewriteLEDs();
+		{
+			if (!skipUpdate)
+			{
+				emit manualUpdate();
+			}
+			else
+				_skippedFrames++;
+		}
 	}
 	
 	return 0;
@@ -219,6 +254,7 @@ int LedDevice::rewriteLEDs()
 		{
 			_semaphore.acquire();
 			std::vector<ColorRgb> copy = _lastLedValues;
+			_consumed = true;
 			_semaphore.release();
 
 			if (copy.size()>0 && !(!_isEnabled || (!_isOn && !_isBlackScreen) || !_isDeviceReady || _isDeviceInError))

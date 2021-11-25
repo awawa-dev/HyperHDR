@@ -78,6 +78,8 @@ bool cecHandler::start()
 			case CEC::cec_adapter_type::ADAPTERTYPE_P8_DAUGHTERBOARD: adapterType = "P8 board"; break;
 			case CEC::cec_adapter_type::ADAPTERTYPE_P8_EXTERNAL: adapterType = "P8 external"; break;
 			case CEC::cec_adapter_type::ADAPTERTYPE_EXYNOS: adapterType = "Exynos"; break;
+			case CEC::cec_adapter_type::ADAPTERTYPE_TDA995x: adapterType = "TDA995x"; break;
+			case CEC::cec_adapter_type::ADAPTERTYPE_AOCEC: adapterType = "AOCEC"; break;
 		}
 
 		if (_cecAdapter->Open(adapter.strComName))
