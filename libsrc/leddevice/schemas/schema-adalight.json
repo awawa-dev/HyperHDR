@@ -12,13 +12,13 @@
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_awa_mode_title",
-			"default": false,
+			"default": true,
 			"propertyOrder" : 2
 		},
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
-			"default": 115200,			
+			"default": 2000000,			
 			"propertyOrder" : 3
 		},
 		"delayAfterConnect": {
@@ -41,29 +41,7 @@
 				}
 			},
 			"propertyOrder" : 5
-		},
-		"latchTime": {
-			"type": "integer",
-			"format": "stepper",			
-			"step" : 1,			
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 15,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"maximum": 1000,
-			"propertyOrder" : 6
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"format": "stepper",
-			"step" : 100,
-			"title":"edt_dev_general_rewriteTime_title",
-			"default": 1000,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"access" : "expert",
-			"propertyOrder" : 7
-		}		
+		}
 	},
 	"additionalProperties": true
 }

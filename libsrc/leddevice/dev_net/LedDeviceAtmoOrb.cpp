@@ -57,7 +57,6 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 		Debug(_log, "LedCount          : %d", this->getLedCount());
 		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "RefreshTime       : %d", _refreshTimerInterval_ms);
-		Debug(_log, "LatchTime         : %d", this->getLatchTime());
 
 		Debug(_log, "MulticastGroup    : %s", QSTRING_CSTR(_multicastGroup));
 		Debug(_log, "MulticastGroupPort: %d", _multiCastGroupPort);

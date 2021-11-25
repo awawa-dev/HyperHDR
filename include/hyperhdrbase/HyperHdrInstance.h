@@ -352,8 +352,6 @@ public slots:
 	///
 	void stop();
 
-	int getLatchTime() const;
-
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
 	/// This signal will not be emitted when a priority channel time out

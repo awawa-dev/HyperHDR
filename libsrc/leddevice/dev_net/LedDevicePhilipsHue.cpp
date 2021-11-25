@@ -262,11 +262,10 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
 
 	// Overwrite non supported/required features
-	_devConfig["latchTime"] = 0;
-	if ( deviceConfig["rewriteTime"].toInt(0) > 0 )
+	if ( deviceConfig["refreshTime"].toInt(0) > 0 )
 	{
 		InfoIf ( ( !_useHueEntertainmentAPI ), _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
-		_devConfig["rewriteTime"] = 0;
+		_devConfig["refreshTime"] = 0;
 	}
 
 	DebugIf( verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
@@ -280,7 +279,6 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 		log( "LedCount", "%d", this->getLedCount() );
 		log( "ColorOrder", "%s", QSTRING_CSTR( this->getColorOrder() ) );
 		log( "RefreshTime", "%d", _refreshTimerInterval_ms );
-		log( "LatchTime", "%d", this->getLatchTime() );
 
 		//Set hostname as per configuration and_defaultHost default port
 		QString address = deviceConfig[ CONFIG_ADDRESS ].toString();
@@ -1029,11 +1027,10 @@ bool LedDevicePhilipsHue::initLeds()
 			if( _useHueEntertainmentAPI )
 			{
 				_groupName = getGroupName( _groupId );
-				_devConfig["latchTime"]      = 0;
 				_devConfig["host"]           = _hostname;
 				_devConfig["sslport"]        = API_SSL_SERVER_PORT;
 				_devConfig["servername"]     = API_SSL_SERVER_NAME;
-				_devConfig["rewriteTime"]    = static_cast<int>( STREAM_REWRITE_TIME.count() );
+				_devConfig["refreshTime"]    = static_cast<int>( STREAM_REWRITE_TIME.count() );
 				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ].toString();
 				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ].toString();
 				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
@@ -1047,8 +1044,8 @@ bool LedDevicePhilipsHue::initLeds()
 			}
 			else
 			{
-				// adapt latchTime to count of user lightIds (bridge 10Hz max overall)
-				setLatchTime( static_cast<int>( 100 * getLightsCount() ) );
+				// adapt refreshTime to count of user lightIds (bridge 10Hz max overall)
+				setRewriteTime( static_cast<int>( 100 * getLightsCount() ) );
 				isInitOK = true;
 			}
 			_isInitLeds = true;

@@ -8,25 +8,6 @@
 			"default" : "/dev/pi-blaster",
 			"propertyOrder" : 1
 		},
-		"latchTime": {
-			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 5,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"maximum": 1000,
-			"access" : "expert",
-			"propertyOrder" : 2
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"edt_dev_general_rewriteTime_title",
-			"default": 1000,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"access" : "expert",
-			"propertyOrder" : 3
-		},		
 		"gpiomap": {
 			"type": "array",
 			"title":"edt_dev_spec_gpioMap_title",

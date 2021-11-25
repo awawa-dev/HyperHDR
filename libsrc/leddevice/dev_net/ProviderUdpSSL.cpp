@@ -40,7 +40,6 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	, _handshake_timeout_min(300)
 	, _handshake_timeout_max(1000)
 {
-	_latchTime_ms = 1;
 
 	bool error = false;
 

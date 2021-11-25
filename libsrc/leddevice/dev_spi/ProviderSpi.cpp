@@ -24,7 +24,6 @@ ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
 	, _spiType("")
 {
 	memset(&_spi, 0, sizeof(_spi));
-	_latchTime_ms = 1;
 }
 
 ProviderSpi::~ProviderSpi()
@@ -44,7 +43,7 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig)
 		_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
 		_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
 		
-		Debug(_log, "_baudRate_Hz [%d], _latchTime_ms [%d], _spiType: %s", _baudRate_Hz, _latchTime_ms, QSTRING_CSTR(_spiType));
+		Debug(_log, "_baudRate_Hz [%d], _spiType: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
 		Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
 
 		isInitOK = true;

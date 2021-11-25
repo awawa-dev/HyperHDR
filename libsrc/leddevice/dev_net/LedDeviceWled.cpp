@@ -63,7 +63,6 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
 		Debug(_log, "LedCount     : %d", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
 		//Set hostname as per configuration
 		QString address = deviceConfig[ CONFIG_ADDRESS ].toString();

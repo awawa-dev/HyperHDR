@@ -31,16 +31,6 @@
 			"default": 49692,
 			"access" : "expert",
 			"propertyOrder" : 4
-		},		
-		"latchTime": {
-			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 30,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"maximum": 1000,
-			"access" : "expert",
-			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": true

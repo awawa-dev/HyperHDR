@@ -66,16 +66,6 @@ public:
 	void setLedCount(int ledCount);
 
 	///
-	/// @brief Set a device's latch time.
-	///
-	/// Latch time is the time-frame a device requires until the next update can be processed.
-	/// During that time-frame any updates done via updateLeds are skipped.
-	///
-	/// @param[in] latchTime_ms Latch time in milliseconds
-	///
-	void setLatchTime(int latchTime_ms);
-
-	///
 	/// @brief Set a device's rewrite time.
 	///
 	/// Rewrite time is the time frame a devices requires to be refreshed, if no updated happened in the meantime.
@@ -176,13 +166,6 @@ public slots:
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
 	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
-
-	///
-	/// @brief Get the currently defined LatchTime.
-	///
-	/// @return Latch time in milliseconds
-	///
-	int getLatchTime() const { return _latchTime_ms; }
 
 	///
 	/// @brief Get the currently defined RewriteTime.
@@ -383,9 +366,6 @@ protected:
 
 	/// Refresh interval in milliseconds
 	int _refreshTimerInterval_ms;
-
-	/// Time a device requires mandatorily between two writes (in milliseconds)
-	int _latchTime_ms;
 
 	/// Number of hardware LEDs supported by device.
 	uint _ledCount;

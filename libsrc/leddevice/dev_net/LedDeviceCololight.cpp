@@ -67,7 +67,6 @@ bool LedDeviceCololight::init(const QJsonObject& deviceConfig)
 		// Initialise LedDevice configuration and execution environment
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
 		if (initLedsConfiguration())
 		{

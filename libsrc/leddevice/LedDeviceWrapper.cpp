@@ -128,13 +128,6 @@ const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 	return _ledDeviceMap;
 }
 
-int LedDeviceWrapper::getLatchTime() const
-{
-	int value = 0;	
-	QMetaObject::invokeMethod(_ledDevice, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
-	return value;
-}
-
 QString LedDeviceWrapper::getActiveDeviceType() const
 {
 	QString value = 0;

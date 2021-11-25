@@ -333,9 +333,7 @@ void Effect::run()
 		return;
 	}
 
-	int latchTime = 0;
-	QMetaObject::invokeMethod(_hyperhdr, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
-
+	int latchTime = 10;
 	int ledCount = 0;
 	QMetaObject::invokeMethod(_hyperhdr, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 

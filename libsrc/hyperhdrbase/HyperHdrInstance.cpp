@@ -317,11 +317,6 @@ void HyperHdrInstance::saveCalibration(QString saveData)
 	_settingsManager->saveSetting(settings::type::VIDEODETECTION, saveData);
 }
 
-int HyperHdrInstance::getLatchTime() const
-{
-	return _ledDeviceWrapper->getLatchTime();
-}
-
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
