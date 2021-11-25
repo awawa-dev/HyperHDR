@@ -9,6 +9,7 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QDateTime>
+#include <QSemaphore>
 
 // STL includes
 #include <vector>
@@ -452,6 +453,11 @@ private:
 
 	/// Last LED values written
 	std::vector<ColorRgb> _lastLedValues;
+
+	QSemaphore _semaphore;
+
+	int64_t _frames;
+	qint64  _framesBegin;
 };
 
 #endif // LEDEVICE_H

@@ -61,7 +61,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
 
 	// further signals
-	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
+	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::DirectConnection);
 
 	connect(this, &LedDeviceWrapper::enable, _ledDevice, &LedDevice::enable);
 	connect(this, &LedDeviceWrapper::disable, _ledDevice, &LedDevice::disable);
@@ -170,12 +170,12 @@ void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool
 		if ( state )
 		{
 			//emit enable();
-			QMetaObject::invokeMethod(_ledDevice, "enable", Qt::BlockingQueuedConnection);
+			QMetaObject::invokeMethod(_ledDevice, "enable");
 		}
 		else
 		{
 			//emit disable();
-			QMetaObject::invokeMethod(_ledDevice, "disable", Qt::BlockingQueuedConnection);
+			QMetaObject::invokeMethod(_ledDevice, "disable");
 		}
 
 		//Get device's state, considering situations where it is not ready
