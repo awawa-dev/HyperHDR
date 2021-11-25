@@ -163,7 +163,7 @@ void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
- 	_hyperhdr->setColor(1 ,rgbColor, 0);
+	QMetaObject::invokeMethod(_hyperhdr, "setColor", Qt::QueuedConnection, Q_ARG(int, 1), Q_ARG(std::vector<ColorRgb>, rgbColor), Q_ARG(int, 0));
 }
 
 void SysTray::showColorDialog()
