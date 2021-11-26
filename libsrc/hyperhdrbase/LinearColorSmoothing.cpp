@@ -243,18 +243,48 @@ void LinearColorSmoothing::LinearSetup(const std::vector<ColorRgb>& ledValues)
 	Antiflickering();
 }
 
-inline uint8_t computeColor(int64_t k, int64_t correction, int color)
+inline uint8_t LinearColorSmoothing::computeColor(int64_t k, int color)
 {
 	int delta = std::abs(color);
-	auto step = std::min((int)std::max(static_cast<int>((k * delta) >> 8), (correction) ? 2 : 1), delta);
+	auto step = std::min((int)std::max(static_cast<int>((k * delta) >> 8), 1), delta);
 
 	return step;
 }
 
+void LinearColorSmoothing::setupAdvColor(int64_t deltaTime, float& kOrg, float& kMin, float& kMid, float& kAbove, float& kMax)
+{
+	kOrg = std::max(1.0f - 1.0f * deltaTime / (_targetTime - _previousTime), 0.0001f);
+
+	kMin = std::min(std::pow(kOrg, 1.0f), 1.0f);
+	kMid = std::min(std::pow(kOrg, 0.9f), 1.0f);
+	kAbove = std::min(std::pow(kOrg, 0.75f), 1.0f);
+	kMax = std::min(std::pow(kOrg, 0.6f), 1.0f);
+}
+
+inline uint8_t LinearColorSmoothing::computeAdvColor(int limitMin, int limitAverage, int limitMax, float kMin, float kMid, float kAbove, float kMax, int color)
+{
+	int val = std::abs(color);
+	if (val < limitMin)
+		return std::ceil(kMax * val);
+	else if (val < limitAverage)
+		return std::ceil(kAbove * val);
+	else if (val < limitMax)
+		return std::ceil(kMid * val);
+	else
+		return std::ceil(kMin * val);
+}
+
 void LinearColorSmoothing::LinearSmoothing(bool correction)
 {
+	float kOrg, kMin, kMid, kAbove, kMax;
 	int64_t now = QDateTime::currentMSecsSinceEpoch();
 	int64_t deltaTime = _targetTime - now;
+	int64_t k;
+
+	int aspectLow = 16;
+	int aspectMid = 32;
+	int aspectHigh = 60;
+
 
 	if (deltaTime <= 0 || _targetTime <= _previousTime)
 	{
@@ -273,7 +303,10 @@ void LinearColorSmoothing::LinearSmoothing(bool correction)
 	{
 		_flushFrame = true;
 
-		int64_t k = std::max((1<<8) - (deltaTime << 8) / (_targetTime - _previousTime), static_cast<int64_t>(1));
+		if (correction)
+			setupAdvColor(deltaTime, kOrg, kMin, kMid, kAbove, kMax);
+		else
+			k = std::max((1<<8) - (deltaTime << 8) / (_targetTime - _previousTime), static_cast<int64_t>(1));
 
 		int redDiff = 0, greenDiff = 0, blueDiff = 0;
 
@@ -293,11 +326,14 @@ void LinearColorSmoothing::LinearSmoothing(bool correction)
 				blueDiff = target.blue - prev.blue;
 
 				if (redDiff != 0)
-					prev.red += (redDiff < 0 ? -1 : 1) * computeColor(k, correction, redDiff);
+					prev.red += (redDiff < 0 ? -1 : 1) *
+								((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, redDiff) :computeColor(k, redDiff));
 				if (greenDiff != 0)
-					prev.green += (greenDiff < 0 ? -1 : 1) * computeColor(k, correction, greenDiff);
+					prev.green += (greenDiff < 0 ? -1 : 1) *
+								((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, greenDiff) : computeColor(k, greenDiff));
 				if (blueDiff != 0)
-					prev.blue += (blueDiff < 0 ? -1 : 1) * computeColor(k, correction, blueDiff);
+					prev.blue += (blueDiff < 0 ? -1 : 1) *
+								((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, blueDiff) : computeColor(k, blueDiff));
 			}
 		}
 		_previousTime = now;

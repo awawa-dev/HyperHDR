@@ -94,6 +94,9 @@ private:
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
 	void clearQueuedColors(bool deviceEnabled = false, bool restarting = false);
+	inline uint8_t computeColor(int64_t k, int color);
+	void setupAdvColor(int64_t deltaTime, float& kOrg, float& kMin, float& kMid, float& kAbove, float& kMax);
+	inline uint8_t computeAdvColor(int limitMin, int limitAverage, int limitMax, float kMin, float kMid, float kAbove, float kMax, int color);
 
 	/// write updated values as input for the smoothing filter
 	///
