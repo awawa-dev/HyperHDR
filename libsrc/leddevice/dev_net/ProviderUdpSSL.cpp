@@ -360,14 +360,31 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 
 	if (ret <= 0)
 	{
-		Warning(_log, "mbedtls_ssl_read returned: %s", QSTRING_CSTR(errorMsg(ret)));
+		Warning(_log, "Error while writing UDP SSL stream updates. mbedtls_ssl_write returned: %s", QSTRING_CSTR(errorMsg(ret)));
 
 		if (_retry_left > 0 && _streamReady)
-		{
-			_retry_left--;
-			closeConnection();
-			initConnection();
+		{			
+			for (int i = 1; i <= _retry_left; i++)
+			{
+				Warning(_log, "Trying to re-establish UDP SSL connection to the host: %s (trial %i/%i)", QSTRING_CSTR(this->_address.toString()), i, _retry_left);
+
+				closeConnection();
+				initConnection();
+
+				if (_streamReady)
+					break;
+				else
+					QThread::msleep(1000);
+			}
+
+			if (!_streamReady)
+			{
+				Error(_log, "Give up trying to re-establish UDP SSL connection to the host: %s", QSTRING_CSTR(this->_address.toString()));
+				this->setInError("The connection to the UDP SSL host was lost and could not re-establish it");
+			}
 		}
+		else
+			this->setInError("The connection to the UDP SSL host was lost");
 	}
 }
 
