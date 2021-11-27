@@ -88,7 +88,7 @@ const char API_SSL_SEED_CUSTOM[] = "dtls_client";
 const int API_SSL_SERVER_PORT = 2100;
 const int STREAM_CONNECTION_RETRYS = 5;
 const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
-constexpr std::chrono::milliseconds STREAM_REWRITE_TIME{20};
+constexpr std::chrono::milliseconds STREAM_REFRESH_TIME{20};
 const int SSL_CIPHERSUITES[2] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0 };
 
 } //End of constants
@@ -264,7 +264,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	// Overwrite non supported/required features
 	if ( deviceConfig["refreshTime"].toInt(0) > 0 )
 	{
-		InfoIf ( ( !_useHueEntertainmentAPI ), _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
+		InfoIf ( ( !_useHueEntertainmentAPI ), _log, "Device Philips Hue does not require setting refresh rate. Refresh time is ignored." );
 		_devConfig["refreshTime"] = 0;
 	}
 
@@ -1030,7 +1030,7 @@ bool LedDevicePhilipsHue::initLeds()
 				_devConfig["host"]           = _hostname;
 				_devConfig["sslport"]        = API_SSL_SERVER_PORT;
 				_devConfig["servername"]     = API_SSL_SERVER_NAME;
-				_devConfig["refreshTime"]    = static_cast<int>( STREAM_REWRITE_TIME.count() );
+				_devConfig["refreshTime"]    = static_cast<int>( STREAM_REFRESH_TIME.count() );
 				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ].toString();
 				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ].toString();
 				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
@@ -1045,7 +1045,7 @@ bool LedDevicePhilipsHue::initLeds()
 			else
 			{
 				// adapt refreshTime to count of user lightIds (bridge 10Hz max overall)
-				setRewriteTime( static_cast<int>( 100 * getLightsCount() ) );
+				setRefreshTime( static_cast<int>( 100 * getLightsCount() ) );
 				isInitOK = true;
 			}
 			_isInitLeds = true;

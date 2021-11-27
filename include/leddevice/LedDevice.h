@@ -66,13 +66,13 @@ public:
 	void setLedCount(int ledCount);
 
 	///
-	/// @brief Set a device's rewrite time.
+	/// @brief Set a device's refresh time.
 	///
-	/// Rewrite time is the time frame a devices requires to be refreshed, if no updated happened in the meantime.
+	/// Refresh time is the time frame a devices requires to be refreshed, if no updated happened in the meantime.
 	///
-	/// @param[in] rewriteTime_ms Rewrite time in milliseconds
+	/// @param[in] refreshTime_ms refresh time in milliseconds
 	///
-	void setRewriteTime(int rewriteTime_ms);
+	void setRefreshTime(int refreshTime_ms);
 
 	///
 	/// @brief Discover devices of this type available (for configuration).
@@ -118,7 +118,7 @@ public:
 	///
 	/// @return True, if device is initialised
 	///
-	bool isInitialised() const { return _isDeviceInitialised; }
+	bool isInitialised() const;
 
 	///
 	/// @brief Check, if device is ready to be used.
@@ -127,14 +127,14 @@ public:
 	///
 	/// @return True, if device is ready
 	///
-	bool isReady() const { return _isDeviceReady; }
+	bool isReady() const;
 
 	///
 	/// @brief Check, if device is in error state.
 	///
 	/// @return True, if device is in error
 	///
-	bool isInError() const { return _isDeviceInError; }
+	bool isInError() const;
 
 	///
 	/// @brief Prints the color values to stdout.
@@ -168,37 +168,37 @@ public slots:
 	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
 
 	///
-	/// @brief Get the currently defined RewriteTime.
+	/// @brief Get the currently defined RefreshTime.
 	///
 	/// @return Rewrite time in milliseconds
 	///
-	int getRewriteTime() const { return _refreshTimerInterval_ms; }
+	int getRefreshTime() const;
 
 	///
 	/// @brief Get the number of LEDs supported by the device.
 	///
 	/// @return Number of device's LEDs, 0 = unknown number
 	///
-	int getLedCount() const { return _ledCount; }
+	int getLedCount() const;
 
 	///
 	/// @brief Get the current active LED-device type.
 	///
-	QString getActiveDeviceType() const { return _activeDeviceType; }
+	QString getActiveDeviceType() const;
 
 	///
 	/// @brief Get color order of device.
 	///
 	/// @return The color order
 	///
-	QString getColorOrder() const { return _colorOrder; }
+	QString getColorOrder() const;
 
 	///
 	/// @brief Get the LED-Device component's state.
 	///
 	/// @return True, if enabled
 	///
-	inline bool componentState() const { return _isEnabled; }
+	bool componentState() const;
 
 	///
 	/// @brief Enables the device for output.
@@ -234,10 +234,7 @@ public slots:
 	///
 	virtual bool switchOff();
 
-	bool switchOnOff(bool onState)
-	{
-		return onState == true ? switchOn() : switchOff();
-	}
+	bool switchOnOff(bool onState);
 
 signals:
 	///
@@ -437,10 +434,8 @@ private:
 	std::vector<ColorRgb> _lastLedValues;
 
 	QSemaphore _semaphore;
-	bool    _consumed;
 	int32_t _frames;
 	int32_t _incomingframes;
-	int32_t _skippedFrames;
 
 	qint64  _framesBegin;
 };

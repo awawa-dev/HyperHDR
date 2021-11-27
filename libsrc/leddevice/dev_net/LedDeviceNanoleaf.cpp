@@ -118,11 +118,11 @@ LedDeviceNanoleaf::~LedDeviceNanoleaf()
 bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 {
 	// Overwrite non supported/required features
-	setRewriteTime(0);
+	setRefreshTime(0);
 
 	if (deviceConfig["refreshTime"].toInt(0) > 0)
 	{
-		Info(_log, "Device Nanoleaf does not require rewrites. Refresh time is ignored.");
+		Info(_log, "Device Nanoleaf does not require setting refresh time. Refresh time is ignored.");
 	}
 
 	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
@@ -135,7 +135,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
 		Debug(_log, "LedCount     : %d", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
-		Debug(_log, "RefreshTime  : %d", this->getRewriteTime());
+		Debug(_log, "RefreshTime  : %d", this->getRefreshTime());
 
 		// Read panel organisation configuration
 		if (deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].isString())

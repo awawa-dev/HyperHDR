@@ -35,10 +35,8 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _lastWriteTime(QDateTime::currentDateTime())
 	  , _isRefreshEnabled (false)
 	  , _semaphore(1)
-	  , _consumed(true)
 	  , _frames(0)
 	  , _incomingframes(0)
-	  , _skippedFrames(0)
 	  , _framesBegin(QDateTime::currentMSecsSinceEpoch())
 {
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
@@ -54,8 +52,6 @@ LedDevice::~LedDevice()
 void LedDevice::start()
 {
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
-
-	_consumed = true;
 
 	// setup refreshTimer
 	if ( _refreshTimer == nullptr )
@@ -87,8 +83,6 @@ void LedDevice::stop()
 
 int LedDevice::open()
 {
-	_consumed = true;
-
 	_isDeviceReady = true;
 	int retval = 0;
 
@@ -118,7 +112,6 @@ void LedDevice::enable()
 {
 	if ( !_isEnabled )
 	{
-		_consumed = true;
 		_isDeviceInError = false;
 
 		if ( ! _isDeviceReady )
@@ -168,7 +161,7 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
 
 	setLedCount( deviceConfig["currentLedCount"].toInt(1) ); // property injected to reflect real led count
-	setRewriteTime ( deviceConfig["refreshTime"].toInt( _refreshTimerInterval_ms) );
+	setRefreshTime ( deviceConfig["refreshTime"].toInt( _refreshTimerInterval_ms) );
 
 	return true;
 }
@@ -198,13 +191,12 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	if (currentTime - _framesBegin >= 1000 * 60)
 	{
 
-		Info(_log, "LED refresh rate %.2f Hz (total written frames: %i, incoming: %i, skipped: %i, interval: %.2fs). %s",
-			_frames / 60.0, _frames, _incomingframes, _skippedFrames, int(currentTime - _framesBegin) / 1000.0,
-			(_refreshTimer->isActive())?"Buffer timer is active because you set rewrite time.":"Buffer timer is disabled (rewrite time = 0). Direct writes.");
+		Info(_log, "LED refresh rate %.2f Hz (total written frames: %i, incoming: %i, interval: %.2fs). %s",
+			_frames / 60.0, _frames, _incomingframes, int(currentTime - _framesBegin) / 1000.0,
+			(_refreshTimer->isActive())?"Buffer timer is active because you set refresh time.":"Buffer timer is disabled (refresh time = 0). Direct writes.");
 
 		_frames = 0;
 		_incomingframes = 0;
-		_skippedFrames = 0;
 		_framesBegin = currentTime;
 	}
 
@@ -216,29 +208,12 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	}
 	else
 	{
-		bool skipUpdate = false;
-
-		_semaphore.acquire();
-		if (_consumed)
-		{
-			_consumed = false;
-		}
-		else
-		{
-			skipUpdate = true;
-		}
+		_semaphore.acquire();		
 		_lastLedValues = ledValues;
 		_semaphore.release();
 
-		if (!_refreshTimer->isActive())
-		{
-			if (!skipUpdate)
-			{
-				emit manualUpdate();
-			}
-			else
-				_skippedFrames++;
-		}
+		if (!_refreshTimer->isActive())		
+			emit manualUpdate();		
 	}
 	
 	return 0;
@@ -252,7 +227,6 @@ int LedDevice::rewriteLEDs()
 	{				
 		_semaphore.acquire();
 		std::vector<ColorRgb> copy = _lastLedValues;
-		_consumed = true;
 		_semaphore.release();
 
 		if (copy.size()>0 && !(!_isEnabled || (!_isOn && !_isBlackScreen) || !_isDeviceReady || _isDeviceInError))
@@ -433,10 +407,10 @@ void LedDevice::setLedCount(int ledCount)
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
 }
 
-void LedDevice::setRewriteTime( int rewriteTime_ms )
+void LedDevice::setRefreshTime( int refreshTime_ms )
 {
-	assert(rewriteTime_ms >= 0);
-	_refreshTimerInterval_ms = rewriteTime_ms;
+	assert(refreshTime_ms >= 0);
+	_refreshTimerInterval_ms = refreshTime_ms;
 
 	if (_refreshTimerInterval_ms > 0)
 	{
@@ -496,4 +470,41 @@ QString LedDevice::toHex(const QByteArray& data, int number) const
 #else
 	return data.left(number).toHex();
 #endif
+}
+
+bool LedDevice::switchOnOff(bool onState)
+{
+	return (onState == true) ? switchOn() : switchOff();
+}
+
+bool LedDevice::isInitialised() const {
+	return _isDeviceInitialised;
+}
+
+bool LedDevice::isReady() const {
+	return _isDeviceReady;
+}
+
+bool LedDevice::isInError() const {
+	return _isDeviceInError;
+}
+
+int LedDevice::getRefreshTime() const {
+	return _refreshTimerInterval_ms;
+}
+
+int LedDevice::getLedCount() const {
+	return _ledCount;
+}
+
+QString LedDevice::getActiveDeviceType() const {
+	return _activeDeviceType;
+}
+
+QString LedDevice::getColorOrder() const {
+	return _colorOrder;
+}
+
+bool LedDevice::componentState() const {
+	return _isEnabled;
 }
