@@ -415,6 +415,10 @@ protected slots:
 	///
     virtual void setInError( const QString& errorMsg);
 
+protected:
+	void enableDevice(bool toEmit);
+	void disableDevice(bool toEmit);
+
 private:
 
 	/// @brief Start a new refresh cycle

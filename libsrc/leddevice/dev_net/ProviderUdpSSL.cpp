@@ -392,8 +392,12 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 
 			// hard reset
 			locker.unlock();
-			this->disable();			
-			this->enable();			
+
+			this->disableDevice(false);
+			this->enableDevice(false);
+
+			if (!_isOn)
+				emit enableStateChanged(false);
 		}
 	}
 }

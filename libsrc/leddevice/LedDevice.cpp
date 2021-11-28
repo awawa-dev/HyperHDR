@@ -111,6 +111,11 @@ void LedDevice::setInError(const QString& errorMsg)
 
 void LedDevice::enable()
 {
+	enableDevice(true);
+}
+
+void LedDevice::enableDevice(bool toEmit)
+{
 	if ( !_isEnabled )
 	{
 		_isDeviceInError = false;
@@ -123,7 +128,7 @@ void LedDevice::enable()
 		if ( _isDeviceReady )
 		{
 			_isEnabled = true;
-			if ( switchOn() )
+			if ( switchOn() && toEmit)
 			{
 				emit enableStateChanged(_isEnabled);
 			}
@@ -136,6 +141,11 @@ void LedDevice::enable()
 
 void LedDevice::disable()
 {
+	disableDevice(true);
+}
+
+void LedDevice::disableDevice(bool toEmit)
+{
 	if ( _isEnabled )
 	{
 		_isEnabled = false;
@@ -146,7 +156,8 @@ void LedDevice::disable()
 		switchOff();
 		close();
 
-		emit enableStateChanged(_isEnabled);
+		if (toEmit)
+			emit enableStateChanged(_isEnabled);
 	}
 }
 
