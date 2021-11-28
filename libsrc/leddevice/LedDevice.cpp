@@ -194,7 +194,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 
 		Info(_log, "LED refresh rate %.2f Hz (total written frames: %i, incoming: %i, interval: %.2fs). %s",
 			_frames / 60.0, _frames, _incomingframes, int(currentTime - _framesBegin) / 1000.0,
-			(_refreshTimer->isActive())?"Buffer timer is active because you set refresh time.":"Buffer timer is disabled (refresh time = 0). Direct writes.");
+			(_refreshTimer->isActive())?"Buffer timer is active, because the refresh timer is set by the user or by default.":"Buffer timer is disabled (refresh time = 0). Direct writes.");
 
 		_frames = 0;
 		_incomingframes = 0;

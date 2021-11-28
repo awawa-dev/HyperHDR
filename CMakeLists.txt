@@ -15,6 +15,8 @@ set(CMAKE_AUTOMOC ON)
 # auto prepare .qrc files
 set(CMAKE_AUTORCC ON)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
 if ( CCACHE_FOUND )
@@ -439,3 +441,22 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
+
+# external targets
+set_target_properties(apidoc flatbuffers flatc flatc flathash lib mbedcrypto mbedtls mbedx509 PROPERTIES FOLDER ExternalLibsTargets)
+
+if (TARGET jsimdcfg)
+	set_target_properties(jsimdcfg PROPERTIES FOLDER ExternalLibsTargets)
+endif()
+
+if (TARGET simd-objs)
+	set_target_properties(simd-objs PROPERTIES FOLDER ExternalLibsTargets)
+endif()
+
+if (TARGET simd)
+	set_target_properties(simd PROPERTIES FOLDER ExternalLibsTargets)
+endif()
+
+if (TARGET turbojpeg)
+	set_target_properties(turbojpeg  PROPERTIES FOLDER ExternalLibsTargets)
+endif()
