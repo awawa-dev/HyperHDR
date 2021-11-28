@@ -10,10 +10,13 @@
 	#include <sys/ioctl.h>
 #endif
 
+#include <QUdpSocket>
+
 // Local HyperHDR includes
 #include "ProviderUdpSSL.h"
+#include <qeventloop.h>
 
-const int MAX_RETRY = 5;
+const int MAX_RETRY = 15;
 const ushort MAX_PORT_SSL = 65535;
 
 ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
@@ -360,31 +363,38 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 
 	if (ret <= 0)
 	{
-		Warning(_log, "Error while writing UDP SSL stream updates. mbedtls_ssl_write returned: %s", QSTRING_CSTR(errorMsg(ret)));
+		Error(_log, "Error while writing UDP SSL stream updates. mbedtls_ssl_write returned: %s", QSTRING_CSTR(errorMsg(ret)));
 
-		if (_retry_left > 0 && _streamReady)
-		{			
+		if (_streamReady)
+		{						
+			closeConnection();
+
+			// look for the host
+			QUdpSocket socket;
+
 			for (int i = 1; i <= _retry_left; i++)
 			{
-				Warning(_log, "Trying to re-establish UDP SSL connection to the host: %s (trial %i/%i)", QSTRING_CSTR(this->_address.toString()), i, _retry_left);
+				Warning(_log, "Searching the host: %s (trial %i/%i)", QSTRING_CSTR(this->_address.toString()), i, _retry_left);
 
-				closeConnection();
-				initConnection();
+				socket.connectToHost(_address, _ssl_port);
 
-				if (_streamReady)
+				if (socket.waitForConnected(1000))
+				{
+					Warning(_log, "Found host: %s", QSTRING_CSTR(this->_address.toString()));
+					socket.close();
 					break;
+				}
 				else
 					QThread::msleep(1000);
 			}
 
-			if (!_streamReady)
-			{
-				Error(_log, "Give up trying to re-establish UDP SSL connection to the host: %s", QSTRING_CSTR(this->_address.toString()));
-				this->setInError("The connection to the UDP SSL host was lost and could not re-establish it");
-			}
+			Warning(_log, "Hard restart of the LED device (host: %s).", QSTRING_CSTR(this->_address.toString()));			
+
+			// hard reset
+			locker.unlock();
+			this->disable();			
+			this->enable();			
 		}
-		else
-			this->setInError("The connection to the UDP SSL host was lost");
 	}
 }
 

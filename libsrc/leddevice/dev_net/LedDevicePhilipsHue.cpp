@@ -86,7 +86,7 @@ const char SSDP_FILTER_HEADER[] = "SERVER";
 const char API_SSL_SERVER_NAME[] = "Hue";
 const char API_SSL_SEED_CUSTOM[] = "dtls_client";
 const int API_SSL_SERVER_PORT = 2100;
-const int STREAM_CONNECTION_RETRYS = 5;
+const int STREAM_CONNECTION_RETRYS = 15;
 const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
 constexpr std::chrono::milliseconds STREAM_REFRESH_TIME{20};
 const int SSL_CIPHERSUITES[2] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0 };

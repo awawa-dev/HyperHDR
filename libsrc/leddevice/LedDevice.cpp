@@ -99,6 +99,7 @@ int LedDevice::close()
 
 void LedDevice::setInError(const QString& errorMsg)
 {
+	_isOn = false;
 	_isDeviceInError = true;
 	_isDeviceReady = false;
 	_isEnabled = false;
