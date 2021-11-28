@@ -41,8 +41,8 @@ public:
 	virtual int updateLedValues(const std::vector<ColorRgb>& ledValues);
 
 	void setEnable(bool enable);
-	bool pause() const { return _pause; }
-	bool enabled() const { return _enabled && !_pause; }
+	bool pause() const;
+	bool enabled() const;
 	
 	///
 	/// @brief Update a smoothing cfg which can be used with selectConfig()
@@ -182,39 +182,11 @@ private:
 			int			  _antiFlickeringStep;
 			int64_t		  _antiFlickeringTimeout;
 
-			SmoothingCfg():
-					_pause(false),
-					_settlingTime(200),
-					_updateInterval(25),
-					_directMode(false),
-					_type(SmoothingType::Linear),
-					_antiFlickeringTreshold(0),
-					_antiFlickeringStep(0),
-					_antiFlickeringTimeout(0)
-			{
-			}
+			SmoothingCfg();
 
-			SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold=0, int antiFlickeringStep=0, int64_t antiFlickeringTimeout=0):
-					_pause(pause),
-					_settlingTime(settlingTime),
-					_updateInterval(updateInterval),
-					_directMode(directMode),
-				    _type(type),
-					_antiFlickeringTreshold(antiFlickeringTreshold),
-					_antiFlickeringStep(antiFlickeringStep),
-					_antiFlickeringTimeout(antiFlickeringTimeout)
-			{
-			}
+			SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold = 0, int antiFlickeringStep = 0, int64_t antiFlickeringTimeout = 0);
 
-			static QString EnumToString(SmoothingType type)
-			{
-				if (type == SmoothingType::Linear)
-					return QString("Linear");
-				else if (type == SmoothingType::Alternative)
-					return QString("Alternative");
-
-				return QString("Unknown");
-			}
+			static QString EnumToString(SmoothingType type);
 	};
 
 	/// smooth config list

@@ -16,7 +16,7 @@
 #include "ProviderUdpSSL.h"
 #include <qeventloop.h>
 
-const int MAX_RETRY = 15;
+const int MAX_RETRY = 20;
 const ushort MAX_PORT_SSL = 65535;
 
 ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)

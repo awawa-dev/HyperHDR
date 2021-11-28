@@ -45,7 +45,7 @@ class MFWorker : public  QThread
 				int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe);
 
 		void startOnThisThread();
-		void run();
+		void run() override;
 		
 		bool isBusy();
 		void noBusy();

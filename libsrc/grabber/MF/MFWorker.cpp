@@ -83,8 +83,7 @@ void MFWorkerManager::Stop()
 	{
 		for(unsigned i=0; i < workersCount; i++)
 			if (workers[i]!=nullptr)
-			{
-				workers[i]->quit();
+			{				
 				workers[i]->wait();				
 			}
 	}

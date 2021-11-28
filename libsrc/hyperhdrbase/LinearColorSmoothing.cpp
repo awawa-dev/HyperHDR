@@ -512,6 +512,50 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 	return false;
 }
 
+bool LinearColorSmoothing::pause() const
+{
+	return _pause;
+}
+
+bool LinearColorSmoothing::enabled() const
+{
+	return _enabled && !_pause;
+}
+
+LinearColorSmoothing::SmoothingCfg::SmoothingCfg() :
+	_pause(false),
+	_settlingTime(200),
+	_updateInterval(25),
+	_directMode(false),
+	_type(SmoothingType::Linear),
+	_antiFlickeringTreshold(0),
+	_antiFlickeringStep(0),
+	_antiFlickeringTimeout(0)
+{
+}
+
+LinearColorSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type, int antiFlickeringTreshold, int antiFlickeringStep, int64_t antiFlickeringTimeout) :
+	_pause(pause),
+	_settlingTime(settlingTime),
+	_updateInterval(updateInterval),
+	_directMode(directMode),
+	_type(type),
+	_antiFlickeringTreshold(antiFlickeringTreshold),
+	_antiFlickeringStep(antiFlickeringStep),
+	_antiFlickeringTimeout(antiFlickeringTimeout)
+{
+}
+
+QString LinearColorSmoothing::SmoothingCfg::EnumToString(SmoothingType type)
+{
+	if (type == SmoothingType::Linear)
+		return QString("Linear");
+	else if (type == SmoothingType::Alternative)
+		return QString("Alternative");
+
+	return QString("Unknown");
+}
+
 void LinearColorSmoothing::DebugOutput()
 {
 	/*debugCounter = std::min(debugCounter+1,900);
@@ -549,3 +593,5 @@ void LinearColorSmoothing::DebugOutput()
 		}
 	}*/
 }
+
+

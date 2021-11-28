@@ -46,7 +46,7 @@ class V4L2Worker : public  QThread
 				int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe);
 
 		void startOnThisThread();
-		void run();
+		void run() override;
 		
 		v4l2_buffer* GetV4L2Buffer();
 		bool isBusy();
