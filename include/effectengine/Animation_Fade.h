@@ -6,6 +6,7 @@ class Animation_Fade : public AnimationBase
 	Q_OBJECT
 
 public:
+
 	Animation_Fade(QString name);
 
 	void Init(
@@ -14,7 +15,9 @@ public:
 
 	bool Play(QPainter* painter) override;
 	bool hasLedData(QVector<ColorRgb>& buffer) override;
+
 private:
+
 	void SetPoint(Point3d point);
 	int     currentStep;
 	Point3d current;
@@ -25,6 +28,7 @@ private:
 	int     repeatCounter;
 	double  steps;
 	QVector<Point3d> colors;
+
 protected:
 
 	double  fadeInTime;
@@ -41,6 +45,5 @@ protected:
 	double  indexer2;
 	int     indexer3;
 	double  indexer4;
-	
 	int     indexer6;
 };

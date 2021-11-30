@@ -24,14 +24,8 @@ class EffectEngine : public QObject
 	Q_OBJECT
 
 public:
-	EffectEngine(HyperHdrInstance * hyperhdr);
+	EffectEngine(HyperHdrInstance* hyperhdr);
 	~EffectEngine() override;
-
-	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
-
-	std::list<ActiveEffectDefinition> getActiveEffects() const;
-
-	
 
 	///
 	/// @brief Get all init data of the running effects and stop them
@@ -43,23 +37,25 @@ public:
 	///
 	void startCachedEffects();
 
+	static void handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonObject& FGEffectConfig);
+
 signals:
 	/// Emit when the effect list has been updated
 	void effectListUpdated();
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName, int priority, int timeout = -1, const QString &origin="System");
+	int runEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName
-				, const QJsonObject &args
-				, int priority
-				, int timeout = -1
-				
-				, const QString &origin = "System"
-				, unsigned smoothCfg=0
-				, const QString &imageData = ""
+	int runEffect(const QString& effectName
+		, const QJsonObject& args
+		, int priority
+		, int timeout = -1
+
+		, const QString& origin = "System"
+		, unsigned smoothCfg = 0
+		, const QString& imageData = ""
 	);
 
 	/// Clear any effect running on the provided channel
@@ -67,6 +63,10 @@ public slots:
 
 	/// Clear all effects
 	void allChannelsCleared();
+
+	std::list<EffectDefinition> getEffects() const;
+
+	std::list<ActiveEffectDefinition> getActiveEffects() const;
 
 private slots:
 	void effectFinished();
@@ -79,25 +79,25 @@ private slots:
 private:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffectScript(
-				const QString &name
-				, const QJsonObject &args
-				, int priority
-				, int timeout = -1
-				, const QString &origin="System"
-				, unsigned smoothCfg=0
-				, const QString &imageData = ""
+		const QString& name
+		, const QJsonObject& args
+		, int priority
+		, int timeout = -1
+		, const QString& origin = "System"
+		, unsigned smoothCfg = 0
+		, const QString& imageData = ""
 	);
 
 private:
-	HyperHdrInstance * _hyperInstance;
+	HyperHdrInstance* _hyperInstance;
 
 	std::list<EffectDefinition> _availableEffects;
 
-	std::list<Effect *> _activeEffects;
+	std::list<Effect*> _activeEffects;
 
 	std::list<ActiveEffectDefinition> _cachedActiveEffects;
 
-	Logger * _log;
+	Logger* _log;
 
 	// The global effect file handler
 	EffectDBHandler* _effectDBHandler;

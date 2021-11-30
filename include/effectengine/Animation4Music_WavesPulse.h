@@ -1,7 +1,6 @@
 #pragma once
 
 #include <effectengine/AnimationBaseMusic.h>
-#include <QList>
 
 #define AMUSIC_WAVESPULSE "Music: pulse waves for LED strip (MULTI COLOR)"
 
@@ -27,6 +26,4 @@ private:
 	uint32_t _internalIndex;
 	int 	 _oldMulti;
 	QList<QColor> _buffer;
-protected:
-	
 };

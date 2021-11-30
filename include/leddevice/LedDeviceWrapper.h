@@ -8,15 +8,11 @@
 
 #include <QMutex>
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-	#include <QRecursiveMutex>
-#endif
-
 class LedDevice;
 class HyperHdrInstance;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
-typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
+typedef LedDevice* (*LedDeviceCreateFuncType) (const QJsonObject&);
+typedef std::map<QString, LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
 /// @brief Creates and destroys LedDevice instances with LedDeviceFactory and moves the device to a thread. Pipes all signal/slots and methods to LedDevice instance
@@ -51,12 +47,6 @@ public:
 	static const LedDeviceRegistry& getDeviceMap();
 
 	///
-	/// @brief Get the current latch time of the ledDevice
-	/// @ return latch time in ms
-	///
-	int getLatchTime() const;
-
-	///
 	/// @brief Get the current active ledDevice type
 	///
 	QString getActiveDeviceType() const;
@@ -65,11 +55,6 @@ public:
 	/// @brief Return the last enable state
 	///
 	bool enabled() const;
-
-	///
-	/// @brief Get the current colorOrder from device
-	///
-	QString getColorOrder() const;
 
 	///
 	/// @brief Get the number of LEDs from device
@@ -92,27 +77,7 @@ signals:
 	///
 	/// @return Zero on success else negative
 	///
-	int updateLeds(const std::vector<ColorRgb>& ledValues);
-
-	///
-	/// @brief Enables the LED-Device.
-	///
-	void enable();
-
-	///
-	/// @brief Disables the LED-Device.
-	///
-	void disable();
-
-	///
-	/// @brief Switch the LEDs on.
-	///
-	void switchOn();
-
-	///
-	/// @brief Switch the LEDs off.
-	///
-	void switchOff();
+	int updateLeds(std::vector<ColorRgb> ledValues);	
 
 	void stopLedDevice();
 
@@ -129,11 +94,7 @@ protected:
 	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))	
-	static QRecursiveMutex       _ledDeviceMapLock;
-#else
-	static QMutex                _ledDeviceMapLock;
-#endif
+	static QMutex			 _ledDeviceMapLock;
 
 private:
 	///
@@ -145,11 +106,9 @@ private:
 	// parent Hyperhdr
 	HyperHdrInstance* _hyperhdr;
 	// Pointer of current led device
-	LedDevice*        _ledDevice;
+	LedDevice*		  _ledDevice;
 	// the enable state
 	bool              _enabled;
-
-	QMutex            _apiMutex;
 };
 
 #endif // LEDEVICEWRAPPER_H

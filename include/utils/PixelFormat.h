@@ -23,16 +23,16 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	if (format.compare("yuyv") == 0)
 	{
 		return PixelFormat::YUYV;
-	}	
-	else if (format.compare("rgb24")  == 0)
+	}
+	else if (format.compare("rgb24") == 0)
 	{
 		return PixelFormat::RGB24;
 	}
-	else if (format.compare("xrgb")  == 0)
+	else if (format.compare("xrgb") == 0)
 	{
 		return PixelFormat::XRGB;
 	}
-	else if (format.compare("i420")  == 0)
+	else if (format.compare("i420") == 0)
 	{
 		return PixelFormat::I420;
 	}
@@ -40,7 +40,7 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	{
 		return PixelFormat::NV12;
 	}
-	else if (format.compare("mjpeg")  == 0)
+	else if (format.compare("mjpeg") == 0)
 	{
 		return PixelFormat::MJPEG;
 	}
@@ -50,12 +50,12 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 }
 
 inline QString pixelFormatToString(const PixelFormat& pixelFormat)
-{	
+{
 
-	if ( pixelFormat == PixelFormat::YUYV)
+	if (pixelFormat == PixelFormat::YUYV)
 	{
 		return "yuyv";
-	}	
+	}
 	else if (pixelFormat == PixelFormat::RGB24)
 	{
 		return "rgb24";

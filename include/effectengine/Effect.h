@@ -23,13 +23,14 @@ class Effect : public QThread
 public:
 	friend class EffectModule;
 
-	Effect(HyperHdrInstance *hyperhdr
-				, int priority
-				, int timeout
-				, const QString &name
-				, const QJsonObject &args = QJsonObject()
-				, const QString &imageData = ""
+	Effect(HyperHdrInstance* hyperhdr
+		, int priority
+		, int timeout
+		, const QString& name
+		, const QJsonObject& args = QJsonObject()
+		, const QString& imageData = ""
 	);
+
 	~Effect() override;
 
 	void run() override;
@@ -43,16 +44,16 @@ public:
 	QJsonObject getArgs() const;
 
 signals:
-	void setInput(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms, bool clearEffect);
-	void setInputImage(int priority, const Image<ColorRgb> &image, int timeout_ms, bool clearEffect);
+	void setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
+	void setInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);
 
-private:	
+private:
 	bool ImageShow();
 	bool LedShow();
 
-	HyperHdrInstance	*_hyperhdr;
-	const int	_priority;
-	const int	_timeout;
+	HyperHdrInstance*	_hyperhdr;
+	const int			_priority;
+	const int			_timeout;
 
 	const QString		_name;
 	const QJsonObject	_args;
@@ -60,13 +61,13 @@ private:
 	int64_t				_endTime;
 	QVector<ColorRgb>	_colors;
 
-	Logger*				_log;	
-	std::atomic<bool>	_interupt {};
+	Logger*				_log;
+	std::atomic<bool>	_interupt{};
 
-	QSize           _imageSize;
-	QImage          _image;
-	QPainter*		_painter;
-	AnimationBase*	_effect;
-	QVector<ColorRgb> _ledBuffer;
-	uint32_t        _soundHandle;
+	QSize				_imageSize;
+	QImage				_image;
+	QPainter*			_painter;
+	AnimationBase*		_effect;
+	QVector<ColorRgb>	_ledBuffer;
+	uint32_t			_soundHandle;
 };

@@ -1,25 +1,13 @@
 #pragma once
-#include <stdlib.h>
-#include <math.h>
-#include <algorithm>
 
-#include <QDateTime>
-#include <QSize>
-#include <QImage>
-#include <QPainter>
-#include <QJsonObject>
-
-#include <utils/Image.h>
-#include <effectengine/EffectDefinition.h>
-#include <utils/ColorSys.h>
 #include <effectengine/AnimationBase.h>
 
 struct MovingTarget
 {
-	QColor	 _averageColor;
-	QColor	 _fastColor;
-	QColor	 _slowColor;
-	int32_t _targetAverageR;
+	QColor	_averageColor;
+	QColor	_fastColor;
+	QColor	_slowColor;
+	int32_t	_targetAverageR;
 	int32_t _targetAverageG;
 	int32_t _targetAverageB;
 	int32_t _targetAverageCounter;
@@ -51,7 +39,7 @@ public:
 
 private:
 	MovingTarget _myTarget;
-protected:
-	
+
 };
 
+#include <hyperhdrbase/SoundCapture.h>

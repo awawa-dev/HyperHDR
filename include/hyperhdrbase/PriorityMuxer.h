@@ -67,7 +67,7 @@ public:
 	///
 	/// @param ledCount The number of LEDs
 	///
-	PriorityMuxer(int instanceIndex, int ledCount, QObject * parent);
+	PriorityMuxer(int instanceIndex, int ledCount, QObject* parent);
 
 	///
 	/// Destructor
@@ -191,7 +191,7 @@ public:
 	///
 	/// Clears all priority channels
 	///
-	void clearAll(bool forceClearAll=false);
+	void clearAll(bool forceClearAll = false);
 
 	///
 	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continuous single color pushes)

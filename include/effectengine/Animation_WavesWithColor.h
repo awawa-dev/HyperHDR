@@ -8,10 +8,12 @@ class Animation_WavesWithColor : public Animation_Waves
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	Animation_WavesWithColor(QString name=ANIM_WAVESWITHCOLOR);
+	Animation_WavesWithColor(QString name = ANIM_WAVESWITHCOLOR);
 
 	static EffectDefinition getDefinition();
 };

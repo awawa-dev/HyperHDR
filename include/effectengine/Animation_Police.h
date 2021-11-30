@@ -6,7 +6,8 @@ class Animation_Police : public AnimationBase
 {
 	Q_OBJECT
 
-public:	
+public:
+
 	Animation_Police(QString name);
 
 	void Init(
@@ -15,14 +16,13 @@ public:
 
 	bool Play(QPainter* painter) override;
 	bool hasLedData(QVector<ColorRgb>& buffer) override;
-private:
-	
 
 protected:
+
 	double  rotationTime;
 	Point3d colorOne;
 	Point3d colorTwo;
-	bool    reverse;	
+	bool    reverse;
 	int		colorsCount;
 	int		increment;
 	QVector<ColorRgb> ledData;

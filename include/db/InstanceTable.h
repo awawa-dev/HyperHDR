@@ -4,9 +4,6 @@
 #include <db/DBManager.h>
 #include <db/SettingsTable.h>
 
-// qt
-#include <QDateTime>
-
 ///
 /// @brief Hyperhdr instance manager specific database interface. prepares also the HyperHDR database for all follow up usage (Init QtSqlConnection) along with db name
 ///

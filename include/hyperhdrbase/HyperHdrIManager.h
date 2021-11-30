@@ -11,7 +11,7 @@
 class HyperHdrInstance;
 class InstanceTable;
 
-enum class InstanceState{
+enum class InstanceState {
 	H_STARTED,
 	H_ON_STOP,
 	H_STOPPED,
@@ -29,14 +29,14 @@ class HyperHdrIManager : public QObject
 public:
 	struct PendingRequests
 	{
-		QObject *caller;
+		QObject* caller;
 		int     tan;
 	};
 
 	// global instance pointer
 	static HyperHdrIManager* getInstance() { return HIMinstance; }
 	static HyperHdrIManager* HIMinstance;
-	
+
 
 public slots:
 	bool isCEC();
@@ -72,7 +72,7 @@ public slots:
 	/// @param block        If true return when thread has been started
 	/// @return Return true on success, false if not found in db
 	///
-	bool startInstance(quint8 inst, bool block = false, QObject *caller = nullptr, int tan = 0);
+	bool startInstance(quint8 inst, bool block = false, QObject* caller = nullptr, int tan = 0);
 
 	///
 	/// @brief Stop a HyperHDR instance
@@ -112,6 +112,8 @@ public slots:
 
 	void saveCalibration(QString saveData);
 
+	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
+
 signals:
 	///
 	/// @brief Emits whenever the state of a instance changes according to enum instanceState
@@ -131,7 +133,7 @@ signals:
 	/// @param  caller  The origin caller instance who requested
 	/// @param  tan     The tan that was part of the request
 	///
-    void startInstanceResponse(QObject *caller, const int &tan);
+	void startInstanceResponse(QObject* caller, const int& tan);
 
 signals:
 	///

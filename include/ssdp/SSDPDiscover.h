@@ -11,7 +11,7 @@
 class Logger;
 class QUdpSocket;
 
-enum class searchType{
+enum class searchType {
 	STY_WEBSERVER,
 	STY_FLATBUFSERVER,
 	STY_JSONSERVER
@@ -23,7 +23,7 @@ struct SSDPService {
 	QString server;
 	QString searchTarget;
 	QString uniqueServiceName;
-	QMap <QString,QString> otherHeaders;
+	QMap <QString, QString> otherHeaders;
 };
 
 // Default values
@@ -32,7 +32,7 @@ static const int	DEFAULT_SEARCH_PORT = 1900;
 static const char	DEFAULT_FILTER[] = ".*";
 static const char	DEFAULT_FILTER_HEADER[] = "ST";
 
-constexpr std::chrono::milliseconds DEFAULT_SSDP_TIMEOUT{5000}; // timeout in ms
+constexpr std::chrono::milliseconds DEFAULT_SSDP_TIMEOUT{ 5000 }; // timeout in ms
 
 ///
 /// @brief Search for SSDP sessions, used by stand-alone capture binaries
@@ -49,7 +49,7 @@ public:
 	/// @brief Search for specified service, results will be returned by signal newService(). Calling this method again will reset all found urns and search again
 	/// @param st The service to search for
 	///
-	void searchForService(const QString &st = "urn:hyperhdr.blogspot.com:device:basic:1");
+	void searchForService(const QString& st = "urn:hyperhdr.blogspot.com:device:basic:1");
 
 	///
 	/// @brief Search for specified searchTarget, the method will block until a server has been found or a timeout happened
@@ -58,7 +58,7 @@ public:
 	/// @param timeout_ms  The timeout in ms
 	/// @return The address+port of web-server or empty if timed out
 	///
-	QString getFirstService(const searchType &type = searchType::STY_WEBSERVER,const QString &st = "urn:hyperhdr.blogspot.com:device:basic:1", int timeout_ms = 3000);
+	QString getFirstService(const searchType& type = searchType::STY_WEBSERVER, const QString& st = "urn:hyperhdr.blogspot.com:device:basic:1", int timeout_ms = 3000);
 
 	///
 	/// @brief Discover services via ssdp.
@@ -87,7 +87,7 @@ public:
 	///
 	/// @return Number of service records found (meeting the search & filter criteria)
 	///
-	int discoverServices(const QString &searchTarget="ssdp:all", const QString &key="LOCATION");
+	int discoverServices(const QString& searchTarget = "ssdp:all", const QString& key = "LOCATION");
 
 	///
 	/// @brief Get services discovered during discoverServices().
@@ -122,28 +122,28 @@ public:
 	///
 	/// @param[in] IP-address used during discovery
 	///
-	void setAddress ( const QString &address) { _ssdpAddr = QHostAddress(address); }
+	void setAddress(const QString& address);
 
 	///
 	/// @brief Set the ssdp discovery port (HOST)
 	///
 	/// @param[in] port used during discovery
 	///
-	void setPort ( quint16 port) { _ssdpPort = port; }
+	void setPort(quint16 port);
 
 	///
 	/// @brief Set the ssdp discovery max wait time (MX)
 	///
 	/// @param[in] maxWaitResponseTime
 	///
-	void setMaxWaitResponseTime ( int maxWaitResponseTime) { _ssdpMaxWaitResponseTime = maxWaitResponseTime; }
+	void setMaxWaitResponseTime(int maxWaitResponseTime);
 
 	///
 	/// @brief Set the ssdp discovery search target (ST)
 	///
 	/// @param[in] searchTarget
 	///
-	void setSearchTarget ( const QString &searchTarget) { _searchTarget = searchTarget; }
+	void setSearchTarget(const QString& searchTarget);
 
 	///
 	/// @brief Set the ssdp discovery search target filter
@@ -153,19 +153,19 @@ public:
 	///
 	/// @return True, if valid regular expression
 	///
-	bool setSearchFilter ( const QString &filter=DEFAULT_FILTER, const QString &filterHeader="ST");
+	bool setSearchFilter(const QString& filter = DEFAULT_FILTER, const QString& filterHeader = "ST");
 
 	///
 	/// @brief Set the ssdp discovery search target and filter to default values
 	///
-	void clearSearchFilter () { _filter=DEFAULT_FILTER; _filterHeader="ST"; }
+	void clearSearchFilter();
 
 	///
 	/// @brief Skip duplicate records with the same key-value
 	///
 	/// @param[in] skip True: skip records with duplicate key-values, False: Allow duplicate key-values
 	///
-	void skipDuplicateKeys( bool skip ) { _skipDupKeys = skip; }
+	void skipDuplicateKeys(bool skip);
 
 signals:
 	///
@@ -173,7 +173,7 @@ signals:
 	///
 	/// @param webServer The address+port of web-server "192.168.0.10:8090"
 	///
-	void newService(const QString &webServer);
+	void newService(const QString& webServer);
 
 private slots:
 	void readPendingDatagrams();
@@ -184,7 +184,7 @@ private:
 	///
 	/// @param[in] st Search Target
 	///
-	void sendSearch(const QString &st);
+	void sendSearch(const QString& st);
 
 private:
 

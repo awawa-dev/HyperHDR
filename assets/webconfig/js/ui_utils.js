@@ -1030,69 +1030,24 @@ function getReleases(callback)
 	    success: function(releases)
 			{
 				window.gitHubVersionList = releases;
+
 				var highestRelease = {
-					tag_name: '0.0.0'
-				};
-				var highestAlphaRelease = {
-					tag_name: '0.0.0'
-				};
-				var highestBetaRelease = {
-					tag_name: '0.0.0'
-				};
-				var highestRcRelease = {
-					tag_name: '0.0.0'
+					tag_name: '0.0.0.0'
 				};
 
 				for(var i in releases) {
-
-					//drafts will be ignored
 					if(releases[i].draft)
 						continue;
 
-					if(releases[i].tag_name.includes('alpha'))
+					if(!releases[i].tag_name.includes('alpha') && !releases[i].tag_name.includes('beta'))
 					{
-						if (sem = semverLite.gt(releases[i].tag_name, highestAlphaRelease.tag_name))
-							highestAlphaRelease = releases[i];
-					}
-					else if (releases[i].tag_name.includes('beta'))
-					{
-						if (sem = semverLite.gt(releases[i].tag_name, highestBetaRelease.tag_name))
-							highestBetaRelease = releases[i];
-					}
-					else if (releases[i].tag_name.includes('rc'))
-					{
-						if (semverLite.gt(releases[i].tag_name, highestRcRelease.tag_name))
-							highestRcRelease = releases[i];
-					}
-					else
-					{
-						if (semverLite.gt(releases[i].tag_name, highestRelease.tag_name))
+						if (compareHyperHdrVersion(releases[i].tag_name, highestRelease.tag_name))
 							highestRelease = releases[i];
 					}
 				}
-				window.latestStableVersion = highestRelease;
-				window.latestBetaVersion = highestBetaRelease;
-				window.latestAlphaVersion= highestAlphaRelease;
-				window.latestRcVersion = highestRcRelease;
 
+				window.latestVersion = highestRelease;
 
-				if(window.serverConfig.general.watchedVersionBranch == "Beta" && semverLite.gt(highestBetaRelease.tag_name, highestRelease.tag_name))
-					window.latestVersion = highestBetaRelease;
-				else
-					window.latestVersion = highestRelease;
-
-				if(window.serverConfig.general.watchedVersionBranch == "Alpha" && semverLite.gt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name))
-					window.latestVersion = highestAlphaRelease;
-
-				if(window.serverConfig.general.watchedVersionBranch == "Alpha" && semverLite.lt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name))
-					window.latestVersion = highestBetaRelease;
-
-				//next two if statements are only necessary if we don't have a beta or stable release. We need one alpha release at least
-				if(window.latestVersion.tag_name == '0.0.0' && highestBetaRelease.tag_name != '0.0.0')
-					window.latestVersion = highestBetaRelease;
-
-				if(window.latestVersion.tag_name == '0.0.0' && highestAlphaRelease.tag_name != '0.0.0')
-					window.latestVersion = highestAlphaRelease;
 
 				callback(true);
 

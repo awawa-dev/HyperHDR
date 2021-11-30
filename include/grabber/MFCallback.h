@@ -29,7 +29,7 @@ private:
 private:
 	long                _referenceCounter;
 	CRITICAL_SECTION    _criticalSection;
-	MFGrabber*			_grabber;
+	MFGrabber*          _grabber;
 	HANDLE				_eventHandler;
 	BOOL                _endOfStream;
 	HRESULT             _callbackStatus;

@@ -14,7 +14,7 @@ namespace JsonUtils {
 	/// @param[in]  ignError Ignore errors during file read (no log output)
 	/// @return              true on success else false
 	///
-	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError=false);
+	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError = false);
 
 	///
 	/// @brief read a schema file and resolve $refs

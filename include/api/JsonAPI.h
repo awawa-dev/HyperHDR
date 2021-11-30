@@ -30,14 +30,14 @@ public:
 	/// @param localConnection True when the sender has origin home network
 	/// @param noListener  if true, this instance won't listen for hyperHDR push events
 	///
-	JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener = false);
+	JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject* parent, bool noListener = false);
 
 	///
 	/// Handle an incoming JSON message
 	///
 	/// @param message the incoming message as string
 	///
-	void handleMessage(const QString &message, const QString &httpAuthHeader = "");
+	void handleMessage(const QString& message, const QString& httpAuthHeader = "");
 
 	///
 	/// @brief Initialization steps
@@ -49,18 +49,18 @@ public slots:
 	/// @brief Is called whenever the current HyperHDR instance pushes new led raw values (if enabled)
 	/// @param ledColors  The current led colors
 	///
-	void streamLedcolorsUpdate(const std::vector<ColorRgb> &ledColors);
+	void streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors);
 
 	///
 	/// @brief Push images whenever hyperHDR emits (if enabled)
 	/// @param image  The current image
 	///
-	void setImage(const Image<ColorRgb> &image);
+	void setImage(const Image<ColorRgb>& image);
 
 	///
 	/// @brief Process and push new log messages from logger (if enabled)
 	///
-	void incommingLogMessage(const Logger::T_LOG_MESSAGE &);
+	void incommingLogMessage(const Logger::T_LOG_MESSAGE&);
 
 private slots:
 	///
@@ -68,7 +68,7 @@ private slots:
 	/// @param  id      The id of the request
 	/// @param  comment The comment which needs to be accepted
 	///
-	void newPendingTokenRequest(const QString &id, const QString &comment);
+	void newPendingTokenRequest(const QString& id, const QString& comment);
 
 	///
 	/// @brief Handle emits from AuthManager of accepted/denied/timeouts token request, just if QObject matches with this instance we are allowed to send response.
@@ -78,7 +78,7 @@ private slots:
 	/// @param  id      The id that was part of the request
 	/// @param  tan     The tan that was part of the request
 	///
-	void handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
+	void handleTokenResponse(bool success, const QString& token, const QString& comment, const QString& id, const int& tan);
 
 	///
 	/// @brief Handle whenever the state of a instance (HyperHDRIManager) changes according to enum instanceState
@@ -86,7 +86,7 @@ private slots:
 	/// @param instance      The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name = QString());
+	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name = QString());
 
 signals:
 	///
@@ -107,7 +107,7 @@ private:
 	QString _peerAddress;
 
 	// The JsonCB instance which handles data subscription/notifications
-	JsonCB *_jsonCB;
+	JsonCB* _jsonCB;
 
 	// streaming buffers
 	QJsonObject _streaming_leds_reply;
@@ -118,19 +118,19 @@ private:
 	bool _streaming_logging_activated;
 
 	/// timer for led color refresh
-	QTimer *_ledStreamTimer;
+	QTimer* _ledStreamTimer;
 
 	/// led stream connection handle
 	QMetaObject::Connection _ledStreamConnection;
 
 	/// the current streaming led values
 	std::vector<ColorRgb> _currentLedValues;
-	
+
 	// when the last image was send to protect buffer overflow
 	uint64_t _lastSendImage;
 
 	QSemaphore _semaphore;
-	
+
 	///
 	/// @brief Handle the switches of HyperHDR instances
 	/// @param instance the instance to switch
@@ -144,144 +144,144 @@ private:
 	///
 	/// @param message the incoming message
 	///
-	void handleColorCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleColorCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Image message
 	///
 	/// @param message the incoming message
 	///
-	void handleImageCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleImageCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Effect message
 	///
 	/// @param message the incoming message
 	///
-	void handleEffectCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleEffectCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Effect message (Write JSON Effect)
 	///
 	/// @param message the incoming message
 	///
-	void handleCreateEffectCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleCreateEffectCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Effect message (Delete JSON Effect)
 	///
 	/// @param message the incoming message
 	///
-	void handleDeleteEffectCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleDeleteEffectCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON System info message
 	///
 	/// @param message the incoming message
 	///
-	void handleSysInfoCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleSysInfoCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message
 	///
-	void handleServerInfoCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleServerInfoCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleClearCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Clearall message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearallCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleClearallCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Adjustment message
 	///
 	/// @param message the incoming message
 	///
-	void handleAdjustmentCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleAdjustmentCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON SourceSelect message
 	///
 	/// @param message the incoming message
 	///
-	void handleSourceSelectCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleSourceSelectCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON GetConfig message and check subcommand
 	///
 	/// @param message the incoming message
 	///
-	void handleConfigCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleConfigCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON GetSchema message from handleConfigCommand()
 	///
 	/// @param message the incoming message
 	///
-	void handleSchemaGetCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleSchemaGetCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON SetConfig message from handleConfigCommand()
 	///
 	/// @param message the incoming message
 	///
-	void handleConfigSetCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleConfigSetCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
 	/// Handle an incoming JSON Component State message
 	///
 	/// @param message the incoming message
 	///
-	void handleComponentStateCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleComponentStateCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON Led Colors message
 	///
 	/// @param message the incoming message
 	///
-	void handleLedColorsCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleLedColorsCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON Logging message
 	///
 	/// @param message the incoming message
 	///
-	void handleLoggingCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleLoggingCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON Processing message
 	///
 	/// @param message the incoming message
 	///
-	void handleProcessingCommand(const QJsonObject &message, const QString &command, int tan);
-	
+	void handleProcessingCommand(const QJsonObject& message, const QString& command, int tan);
+
 	/// Handle an incoming JSON VideoMode message
 	///
 	/// @param message the incoming message
 	///
-	void handleVideoModeHdrCommand(const QJsonObject &message, const QString &command, int tan);
-	
+	void handleVideoModeHdrCommand(const QJsonObject& message, const QString& command, int tan);
+
 	/// Handle an incoming JSON plugin message
 	///
 	/// @param message the incoming message
 	///
-	void handleAuthorizeCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleAuthorizeCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON instance message
 	///
 	/// @param message the incoming message
 	///
-	void handleInstanceCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleInstanceCommand(const QJsonObject& message, const QString& command, int tan);
 
 	/// Handle an incoming JSON Led Device message
 	///
 	/// @param message the incoming message
 	///
-	void handleLedDeviceCommand(const QJsonObject &message, const QString &command, int tan);
+	void handleLedDeviceCommand(const QJsonObject& message, const QString& command, int tan);
 
 	void handleHelpCommand(const QJsonObject& message, const QString& command, int tan);
 
@@ -294,7 +294,7 @@ private:
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
-	void handleNotImplemented(const QString &command, int tan);
+	void handleNotImplemented(const QString& command, int tan);
 
 	void handleSaveDB(const QJsonObject& message, const QString& command, int tan);
 
@@ -302,22 +302,24 @@ private:
 
 	void handleLoadSignalCalibration(const QJsonObject& message, const QString& command, int tan);
 
+	void handlePerformanceCounters(const QJsonObject& message, const QString& command, int tan);
+
 	///
 	/// Send a standard reply indicating success
 	///
-	void sendSuccessReply(const QString &command = "", int tan = 0);
+	void sendSuccessReply(const QString& command = "", int tan = 0);
 
 	///
 	/// Send a standard reply indicating success with data
 	///
-	void sendSuccessDataReply(const QJsonDocument &doc, const QString &command = "", int tan = 0);
+	void sendSuccessDataReply(const QJsonDocument& doc, const QString& command = "", int tan = 0);
 
 	///
 	/// Send an error message back to the client
 	///
 	/// @param error String describing the error
 	///
-	void sendErrorReply(const QString &error, const QString &command = "", int tan = 0);
+	void sendErrorReply(const QString& error, const QString& command = "", int tan = 0);
 
 	///
 	/// @brief Kill all signal/slot connections to stop possible data emitter

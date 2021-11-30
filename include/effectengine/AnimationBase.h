@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <algorithm>
+#include <cmath>
 
 #include <QDateTime>
 #include <QSize>
 #include <QImage>
 #include <QPainter>
 #include <QJsonObject>
+#include <QList>
 
 #include <utils/Image.h>
 #include <effectengine/EffectDefinition.h>
@@ -21,8 +23,8 @@ class AnimationBase : public QObject
 public:
 	AnimationBase(QString name);
 	QString GetName();
-	virtual bool Play(QPainter* painter)=0;
-	virtual void Init(QImage& hyperImage, int hyperLatchTime)=0;	
+	virtual bool Play(QPainter* painter) = 0;
+	virtual void Init(QImage& hyperImage, int hyperLatchTime) = 0;
 	virtual bool hasLedData(QVector<ColorRgb>& buffer);
 	bool		 isStop();
 	void		 SetSleepTime(int sleepTime);

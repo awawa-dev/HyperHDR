@@ -6,8 +6,8 @@
 
 struct ActiveEffectDefinition
 {
-	QString name;
-	int priority;
-	int timeout;
-	QJsonObject args;
+	QString		name;
+	int			priority;
+	int			timeout;
+	QJsonObject	args;
 };

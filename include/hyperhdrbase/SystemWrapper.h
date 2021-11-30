@@ -24,23 +24,17 @@ class SystemWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	SystemWrapper(const QString& grabberName, Grabber * ggrabber);
+	SystemWrapper(const QString& grabberName, Grabber* ggrabber);
 
 	~SystemWrapper() override;
 
 	static	SystemWrapper* instance;
-	static	SystemWrapper* getInstance(){ return instance; }	
-	void tryStart();
+	static	SystemWrapper* getInstance() { return instance; }
 
-	QStringList getVideoDevices() const;
-	QString getVideoDeviceName(const QString& devicePath) const;
-	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
+	QJsonObject getJsonInfo();
+	virtual bool isActivated(bool forced);
 
-	QString getActive() const;	
-
-	static QStringList availableGrabbers();
-
-public slots:	
+public slots:
 	void newFrame(const Image<ColorRgb>& image);
 	void readError(const char* err);
 	bool start();
@@ -48,7 +42,6 @@ public slots:
 
 private slots:
 	void handleSourceRequest(hyperhdr::Components component, int hyperHdrInd, bool listen);
-	void action(){};
 
 signals:
 	///
@@ -56,20 +49,19 @@ signals:
 	///
 	void systemImage(const QString& name, const Image<ColorRgb>& image);
 	void StateChanged(QString device, QString videoMode);
-	
-
-public:
-	int  getHdrToneMappingEnabled();
 
 public slots:
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
-	void setDeviceVideoStandard(const QString& device);	
+	void setDeviceVideoStandard(const QString& device);
 	void setHdrToneMappingEnabled(int mode);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+	virtual void stateChanged(bool state);
 
 protected:
+	virtual QString getGrabberInfo();	
+
 	QString		_grabberName;
 
 	Logger*		_log;

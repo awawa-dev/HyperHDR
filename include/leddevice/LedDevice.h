@@ -9,7 +9,6 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QDateTime>
-#include <QSemaphore>
 
 // STL includes
 #include <vector>
@@ -19,15 +18,15 @@
 // Utility includes
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
-#include <utils/RgbToRgbw.h>
 #include <utils/Logger.h>
 #include <functional>
 #include <utils/Components.h>
+#include <utils/PerformanceCounters.h>
 
 class LedDevice;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
-typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
+typedef LedDevice* (*LedDeviceCreateFuncType) (const QJsonObject&);
+typedef std::map<QString, LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
 /// @brief Interface (pure virtual base class) for LED-devices.
@@ -165,7 +164,7 @@ public slots:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
-	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
+	virtual int updateLeds(std::vector<ColorRgb> ledValues);
 
 	///
 	/// @brief Get the currently defined RefreshTime.
@@ -185,13 +184,6 @@ public slots:
 	/// @brief Get the current active LED-device type.
 	///
 	QString getActiveDeviceType() const;
-
-	///
-	/// @brief Get color order of device.
-	///
-	/// @return The color order
-	///
-	QString getColorOrder() const;
 
 	///
 	/// @brief Get the LED-Device component's state.
@@ -234,8 +226,6 @@ public slots:
 	///
 	virtual bool switchOff();
 
-	bool switchOnOff(bool onState);
-
 signals:
 	///
 	/// @brief Emits whenever the LED-Device switches between on/off.
@@ -246,6 +236,8 @@ signals:
 
 	void manualUpdate();
 
+	void newCounter(PerformanceReport pr);
+
 protected:
 
 	///
@@ -254,7 +246,7 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Opens the output device.
@@ -286,7 +278,7 @@ protected:
 	/// @param[in] numberOfWrites Write Black given number of times
 	/// @return Zero on success else negative
 	///
-	virtual int writeBlack(int numberOfBlack=1);
+	virtual int writeBlack(int numberOfBlack = 1);
 
 	///
 	/// @brief Power-/turn on the LED-device.
@@ -333,7 +325,7 @@ protected:
 	/// @param size of the array
 	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
-	QString uint8_t_to_hex_string(const uint8_t * data, const int size, int number = -1) const;
+	QString uint8_t_to_hex_string(const uint8_t* data, const int size, int number = -1) const;
 
 	///
 	/// @brief Converts a ByteArray to hex string.
@@ -350,14 +342,14 @@ protected:
 	QJsonObject _devConfig;
 
 	/// The common Logger instance for all LED-devices
-	Logger * _log;
+	Logger* _log;
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
 
 	/// Timer object which makes sure that LED data is written at a minimum rate
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
-	QTimer*	_refreshTimer;
+	QTimer* _refreshTimer;
 
 	// Device configuration parameters
 
@@ -391,14 +383,6 @@ protected:
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
 
-	/// Is the device in the switchOff process?
-	bool _isInSwitchOff;
-
-	bool _isBlackScreen;
-
-	/// Timestamp of last write
-	QDateTime _lastWriteTime;
-
 protected slots:
 
 	///
@@ -413,7 +397,7 @@ protected slots:
 	///
 	/// @param[in] errorMsg The error message to be logged
 	///
-    virtual void setInError( const QString& errorMsg);
+	virtual void setInError(const QString& errorMsg);
 
 protected:
 	void enableDevice(bool toEmit);
@@ -430,18 +414,16 @@ private:
 	/// Is last write refreshing enabled?
 	bool	_isRefreshEnabled;
 
-	/// Order of Colors supported by the device
-	/// "RGB", "BGR", "RBG", "BRG", "GBR", "GRB"
-	QString	_colorOrder;
-
 	/// Last LED values written
 	std::vector<ColorRgb> _lastLedValues;
 
-	QSemaphore _semaphore;
-	int32_t _frames;
-	int32_t _incomingframes;
-
-	qint64  _framesBegin;
+	struct
+	{
+		qint64		token = 0;
+		qint64		statBegin = 0;
+		qint64		frames = 0;
+		qint64		incomingframes = 0;
+	} _computeStats;
 };
 
 #endif // LEDEVICE_H

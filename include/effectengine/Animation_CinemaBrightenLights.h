@@ -8,10 +8,13 @@ class Animation_CinemaBrightenLights : public Animation_Fade
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	Animation_CinemaBrightenLights(QString name=ANIM_CINEMA_BRIGHTEN_LIGHTS);
+
+	Animation_CinemaBrightenLights(QString name = ANIM_CINEMA_BRIGHTEN_LIGHTS);
 
 	static EffectDefinition getDefinition();
 };

@@ -1,39 +1,33 @@
 #pragma once
 
 #include "Option.h"
-#include <QColor>
-#include <QCommandLineParser>
 
 namespace commandline
 {
 
-class ColorOption: public Option
-{
-protected:
-    QColor _color;
+	class ColorOption : public Option
+	{
+	protected:
+		QColor _color;
 
-public:
-    ColorOption(const QString &name,
-                const QString &description = QString(),
-                const QString &valueName = QString(),
-                const QString &defaultValue = QString()
-    )
-        : Option(name, description, valueName, defaultValue)
-    {}
-    ColorOption(const QStringList &names,
-                const QString &description = QString(),
-                const QString &valueName = QString(),
-                const QString &defaultValue = QString()
-    )
-        : Option(names, description, valueName, defaultValue)
-    {}
-    ColorOption(const QCommandLineOption &other)
-        : Option(other)
-    {}
+	public:
+		ColorOption(const QString& name,
+			const QString& description = QString(),
+			const QString& valueName = QString(),
+			const QString& defaultValue = QString()
+		);
 
-    bool validate(Parser & parser, QString & value) override;
-    QColor getColor(Parser &parser) const { return _color; }
-};
+		ColorOption(const QStringList& names,
+			const QString& description = QString(),
+			const QString& valueName = QString(),
+			const QString& defaultValue = QString()
+		);
+
+		ColorOption(const QCommandLineOption& other);
+
+		bool validate(Parser& parser, QString& value) override;
+		QColor getColor(Parser& parser) const;
+	};
 
 }
 

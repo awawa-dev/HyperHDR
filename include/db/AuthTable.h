@@ -1,11 +1,6 @@
 #pragma once
 
 #include <db/DBManager.h>
-#include <QCryptographicHash>
-
-// qt
-#include <QDateTime>
-#include <QUuid>
 
 ///
 /// @brief Authentication table interface
@@ -25,6 +20,8 @@ public:
 	///
 	bool createUser(const QString& user, const QString& pw);
 
+	void savePipewire(const QString& wToken);
+
 	///
 	/// @brief      Test if user record exists
 	/// @param[in]  user   The user id
@@ -39,6 +36,8 @@ public:
 	/// @return       True on success else false
 	///
 	bool isUserAuthorized(const QString& user, const QString& pw);
+
+	const QString loadPipewire();
 
 	///
 	/// @brief Test if a user token is authorized for access.
@@ -87,7 +86,7 @@ public:
 	/// @param[in]  token       The token id
 	/// @return     true on success else false
 	///
-	bool tokenExist(const QString& token);	
+	bool tokenExist(const QString& token);
 
 	///
 	/// @brief      Create a new token record with comment

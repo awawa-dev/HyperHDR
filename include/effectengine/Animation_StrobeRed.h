@@ -8,10 +8,12 @@ class Animation_StrobeRed : public Animation_Fade
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	Animation_StrobeRed(QString name=ANIM_STROBE_RED);
+	Animation_StrobeRed(QString name = ANIM_STROBE_RED);
 
 	static EffectDefinition getDefinition();
 };

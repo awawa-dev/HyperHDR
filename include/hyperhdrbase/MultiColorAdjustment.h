@@ -4,6 +4,7 @@
 #include <vector>
 #include <QStringList>
 #include <QString>
+#include <QJsonObject>
 
 
 #include <utils/ColorRgb.h>
@@ -24,7 +25,7 @@ public:
 	 *
 	 * @param adjustment The new ColorAdjustment (ownership is transferred)
 	 */
-	void addAdjustment(ColorAdjustment * adjustment);
+	void addAdjustment(ColorAdjustment* adjustment);
 
 	void setAdjustmentForLed(const QString& id, int startLed, int endLed);
 
@@ -54,6 +55,8 @@ public:
 	///
 	void applyAdjustment(std::vector<ColorRgb>& ledColors);
 
+	static MultiColorAdjustment* createLedColorsAdjustment(quint8 instance, int ledCnt, const QJsonObject& colorConfig);
+
 private:
 	/// List with transform ids
 	QStringList _adjustmentIds;
@@ -65,5 +68,5 @@ private:
 	std::vector<ColorAdjustment*> _ledAdjustments;
 
 	// logger instance
-	Logger * _log;
+	Logger* _log;
 };

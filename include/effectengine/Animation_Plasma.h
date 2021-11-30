@@ -10,17 +10,19 @@ class Animation_Plasma : public AnimationBase
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	
+
 	Animation_Plasma();
 
 	void Init(
 		QImage& hyperImage,
 		int hyperLatchTime) override;
 
-	bool Play(QPainter* painter) override;	
+	bool Play(QPainter* painter) override;
 
 	static EffectDefinition getDefinition();
 
@@ -28,8 +30,6 @@ private:
 
 	qint64  start;
 
-	int     plasma[PLASMA_WIDTH*PLASMA_HEIGHT];
-	uint8_t pal[PAL_LEN*3];
-protected:
-	
+	int     plasma[PLASMA_WIDTH * PLASMA_HEIGHT];
+	uint8_t pal[PAL_LEN * 3];
 };

@@ -6,11 +6,17 @@
 #include <QPair>
 #include <QVector>
 #include <QJsonObject>
+#include <QCryptographicHash>
+#include <QDateTime>
+#include <QUuid>
+#include <QNetworkInterface>
+#include <QJsonDocument>
+#include <QThreadStorage>
 
 class QSqlDatabase;
 class QSqlQuery;
 
-typedef QPair<QString,QVariant> CPair;
+typedef QPair<QString, QVariant> CPair;
 typedef QVector<CPair> VectorPair;
 
 ///
@@ -33,7 +39,7 @@ public:
 	/// set root path
 	void setRootPath(const QString& rootPath);
 	/// define the database to work with
-	void setDatabaseName(const QString& dbn) { _dbn = dbn; };
+	void setDatabaseName(const QString& dbn);
 	/// set a table to work with
 	void setTable(const QString& table);
 
@@ -125,12 +131,12 @@ public:
 	/// Updates will not written to the table
 	/// @param[in]  readOnly True read-only, false - read/write
 	///
-	void setReadonlyMode(bool readOnly) { _readonlyMode = readOnly; };
+	void setReadonlyMode(bool readOnly);
 
 	bool migrateColumn(QString newColumn, QString oldColumn);
 
+public slots:
 	const QJsonObject getBackup();
-
 	QString restoreBackup(const QJsonObject& backupData);
 
 protected:
@@ -146,4 +152,7 @@ private:
 
 	/// addBindValue to query given by QVariantList
 	void doAddBindValue(QSqlQuery& query, const QVariantList& variants) const;
+
+	static QString _rootPath;
+	static QThreadStorage<QSqlDatabase> _databasePool;
 };

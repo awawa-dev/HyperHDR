@@ -31,6 +31,28 @@ else()
 	message ( STATUS "CCache is not found" )
 endif(CCACHE_FOUND)
 
+# find QT libs
+find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets SerialPort QUIET)
+
+if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
+	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
+	SET( Qt_VERSION 6 )	
+ELSE()
+	if (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON")
+		message( STATUS "Search for QT version 6 is disabled: QT5 is preferred. Enable QT6 by setting DO_NOT_USE_QT_VERSION_6_LIBS to OFF." )
+	else()
+		message( STATUS "QT version 6 not found. Searching for QT version 5 instead." )
+	endif()
+	SET(QT_MIN_VERSION "5.10.0")
+	find_package(Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
+	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+	ENDIF()
+	SET( Qt_VERSION 5 )	
+ENDIF()
+
+
 # Set build variables
 SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
 SET ( DEFAULT_PROTOBUF                    ON  )
@@ -46,6 +68,7 @@ SET ( DEFAULT_AVF                         OFF )
 SET ( DEFAULT_MAC_SYSTEM                  OFF )
 SET ( DEFAULT_V4L2                        OFF )
 SET ( DEFAULT_X11                         OFF )
+SET ( DEFAULT_PIPEWIRE                    OFF )
 SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 SET ( DEFAULT_CEC                         OFF )
@@ -54,6 +77,7 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
 	SET ( DEFAULT_V4L2          ON )
 	SET ( DEFAULT_X11           ON )
+	SET ( DEFAULT_PIPEWIRE      ON )
 	SET ( DEFAULT_SPIDEV        ON )
 	SET ( DEFAULT_TINKERFORGE   ON )
 	SET ( DEFAULT_USB_HID       OFF )
@@ -200,6 +224,22 @@ if (DEFAULT_X11)
 	endif()
 endif()
 
+if (DEFAULT_PIPEWIRE)
+	find_package(Qt${Qt_VERSION} COMPONENTS DBus QUIET )
+	if (NOT Qt${Qt_VERSION}DBus_FOUND)
+		message( WARNING "QT dbus library is required for PipeWire/Portal support" )
+		SET ( DEFAULT_PIPEWIRE                    OFF )
+	else()
+	
+		pkg_check_modules(PIPEWIRE libpipewire-0.3)
+		if(NOT PIPEWIRE_FOUND OR NOT PIPEWIRE_INCLUDE_DIRS OR NOT PIPEWIRE_LIBRARIES)
+			message( WARNING "Pipewire >= 3.0 not found (did you install libpipewire-0.3-dev?). Disabling support for PipeWire software grabber.")
+			SET ( DEFAULT_PIPEWIRE                    OFF )
+		endif()
+
+	endif()
+endif()
+
 # CEC library
 find_library (CEC_SUPPORT p8-platform NAMES libp8-platform.so.2 libp8-platform p8-platform )
 if(NOT CEC_SUPPORT AND DEFAULT_CEC)
@@ -240,6 +280,9 @@ message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
 
 option(ENABLE_X11 "Enable the X11 Linux system grabber" ${DEFAULT_X11})
 message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
+
+option(ENABLE_PIPEWIRE "Enable the pipewire/portal Linux system grabber" ${DEFAULT_PIPEWIRE})
+message(STATUS "ENABLE_PIPEWIRE = ${ENABLE_PIPEWIRE}")
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
@@ -339,27 +382,6 @@ endif ()
 # find Threads libs
 find_package(Threads REQUIRED)
 
-# find QT libs
-find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets SerialPort QUIET)
-
-if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
-	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
-	SET( Qt_VERSION 6 )	
-ELSE()
-	if (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON")
-		message( STATUS "Search for QT version 6 is disabled: QT5 is preferred. Enable QT6 by setting DO_NOT_USE_QT_VERSION_6_LIBS to OFF." )
-	else()
-		message( STATUS "QT version 6 not found. Searching for QT version 5 instead." )
-	endif()
-	SET(QT_MIN_VERSION "5.10.0")
-	find_package(Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
-	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
-	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
-		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-	ENDIF()
-	SET( Qt_VERSION 5 )	
-ENDIF()
-
 # add QT5 dependency
 IF ( CMAKE_CROSSCOMPILING )
 
@@ -422,8 +444,7 @@ endif()
 
 # Add the source/lib directories
 add_subdirectory(dependencies)
-add_subdirectory(libsrc)
-add_subdirectory(src)
+add_subdirectory(sources)
 
 # Add resources directory
 add_subdirectory(resources)
@@ -443,7 +464,7 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-set_target_properties(apidoc flatbuffers flatc flatc flathash lib mbedcrypto mbedtls mbedx509 PROPERTIES FOLDER ExternalLibsTargets)
+set_target_properties(apidoc flatbuffers flatc flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 
 if (TARGET jsimdcfg)
 	set_target_properties(jsimdcfg PROPERTIES FOLDER ExternalLibsTargets)

@@ -2,6 +2,7 @@
 
 // stl includes
 #include <list>
+#include <memory>
 
 // QT includes
 #include <QString>
@@ -12,6 +13,7 @@
 #include <QJsonArray>
 #include <QMap>
 #include <QTime>
+#include <QThread>
 
 
 #include <utils/Image.h>
@@ -36,7 +38,7 @@
 // Forward class declaration
 class ImageProcessor;
 class MessageForwarder;
-class LinearColorSmoothing;
+class LinearSmoothing;
 class EffectEngine;
 class MultiColorAdjustment;
 class ColorAdjustment;
@@ -46,6 +48,7 @@ class VideoControl;
 class SystemControl;
 class BoblightServer;
 class LedDeviceWrapper;
+class ImageProcessingUnit;
 class Logger;
 
 
@@ -91,7 +94,7 @@ public:
 	int getLedMappingType() const;
 
 	/// forward smoothing config
-	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool directMode = false);	
+	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
 
 	///
 	/// @brief Get the current active led device
@@ -99,7 +102,9 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() {return _readOnlyMode; };
+	bool getReadOnlyMode() { return _readOnlyMode; };
+
+	ImageProcessor* getImageProcessor();
 
 public slots:
 
@@ -110,6 +115,8 @@ public slots:
 	/// transforms.
 	///
 	void update();
+
+	void updateResult(std::vector<ColorRgb> _ledBuffer);
 
 	///
 	/// Returns the number of attached leds
@@ -160,7 +167,7 @@ public slots:
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, const QString& origin = "System", bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -179,7 +186,7 @@ public slots:
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
-	ColorAdjustment * getAdjustment(const QString& id) const;
+	ColorAdjustment* getAdjustment(const QString& id) const;
 
 	/// Tell HyperHDR that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -192,7 +199,7 @@ public slots:
 	/// @param[in] forceClearAll Force the clear
 	/// @return              True on success else false (not found)
 	///
-	bool clear(int priority, bool forceClearAll=false);
+	bool clear(int priority, bool forceClearAll = false);
 
 	/// #############
 	// EFFECTENGINE
@@ -202,25 +209,25 @@ public slots:
 	///
 
 	EffectEngine* getEffectEngineInstance() const { return _effectEngine; }
-	
+
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, int priority, int timeout = -1, const QString & origin="System");
+	int setEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString &effectName
-				, const QJsonObject &args
-				, int priority
-				, int timeout = -1				
-				, const QString &origin="System"
-				, const QString &imageData = ""
+	int setEffect(const QString& effectName
+		, const QJsonObject& args
+		, int priority
+		, int timeout = -1
+		, const QString& origin = "System"
+		, const QString& imageData = ""
 	);
 
 	/// Get the list of available effects
@@ -233,7 +240,7 @@ public slots:
 
 	QString saveEffect(const QJsonObject& obj);
 	QString deleteEffect(const QString& effectName);
-	
+
 
 	/// #############
 	/// PRIORITYMUXER
@@ -317,7 +324,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister & getComponentRegister() { return _componentRegister; }
+	ComponentRegister& getComponentRegister() { return _componentRegister; }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -340,7 +347,7 @@ public slots:
 	int isComponentEnabled(hyperhdr::Components comp) const;
 
 	/// sets the methode how image is maped to leds at ImageProcessor
-	void setLedMappingType(int mappingType);	
+	void setLedMappingType(int mappingType);
 
 	///
 	/// @brief Init after thread start
@@ -380,7 +387,7 @@ signals:
 	/// 	   priorities with ledColors won't emit this signal
 	/// @param  image  The current image
 	///
-	void currentImage(const Image<ColorRgb> & image);
+	void currentImage(const Image<ColorRgb>& image);
 
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);
@@ -452,12 +459,14 @@ private:
 	/// @brief Constructs the HyperHdr instance, just accessible for HyperHdrIManager
 	/// @param  instance  The instance index
 	///
-	HyperHdrInstance(quint8 instance, bool readonlyMode = false);
+	HyperHdrInstance(quint8 instance, bool readonlyMode = false, QString name = "");
 
 	/// instance index
 	const quint8 _instIndex;
 
-	QTime					_bootEffect;
+	QTime								_bootEffect;
+
+	std::unique_ptr<ImageProcessingUnit> _imageProcessingUnit;
 
 	/// Settings manager of this instance
 	SettingsManager*		_settingsManager;
@@ -466,46 +475,44 @@ private:
 	ComponentRegister		_componentRegister;
 
 	/// The specifiation of the led frame construction and picture integration
-	LedString				_ledString;
+	LedString		_ledString;
 
 	/// Image Processor
-	ImageProcessor*			_imageProcessor;
-
-	std::vector<ColorOrder> _ledStringColorOrder;
+	ImageProcessor* _imageProcessor;
 
 	/// The priority muxer
-	PriorityMuxer _muxer;
+	PriorityMuxer	_muxer;
 
 	/// The adjustment from raw colors to led colors
-	MultiColorAdjustment * _raw2ledAdjustment;
+	MultiColorAdjustment*	_raw2ledAdjustment;
 
 	/// The actual LedDeviceWrapper
 	LedDeviceWrapper*		_ledDeviceWrapper;
 
 	/// The smoothing LedDevice
-	LinearColorSmoothing*	_deviceSmooth;
+	LinearSmoothing*	_smoothing;
 
 	/// Effect engine
-	EffectEngine*			_effectEngine;
+	EffectEngine*		_effectEngine;
 
 	// Message forwarder
-	MessageForwarder*		_messageForwarder;
+	MessageForwarder*	_messageForwarder;
 
 	/// Logger instance
-	Logger *				_log;
+	Logger*				_log;
 
 	/// count of hardware leds
-	int						_hwLedCount;
+	int					_hwLedCount;
 
-	QSize					_ledGridSize;
+	QSize				_ledGridSize;
 
 	/// Background effect instance, kept active to react on setting changes
-	BGEffectHandler*		_BGEffectHandler;
+	BGEffectHandler* _BGEffectHandler;
 
 	/// Capture control for Daemon native capture
-	VideoControl*			_videoControl;
+	VideoControl*	_videoControl;
 
-	SystemControl*			_systemControl;
+	SystemControl*	_systemControl;
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb>	_globalLedBuffer;
@@ -513,5 +520,13 @@ private:
 	/// Boblight instance
 	BoblightServer*			_boblightServer;
 
-	bool					_readOnlyMode;	
+	QString					_name;
+
+	bool					_readOnlyMode;
+
+	struct {
+		qint64		token = 0;
+		qint64		statBegin = 0;
+		uint32_t	total = 0;
+	} _computeStats;
 };

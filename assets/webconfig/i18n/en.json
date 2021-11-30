@@ -1134,5 +1134,15 @@
   "benchmark_av_delay" : "Average measured latency:",
   "benchmark_exp_delay" : "Perfect minimal latency (related to FPS):",
   "edt_conf_video_cache_title" : "Frames cache",
-  "edt_conf_video_cache_expl" : "Enable frames caching. Could help for higher resolutions & framerates"
+  "edt_conf_video_cache_expl" : "Enable frames caching. Could help for higher resolutions & framerates",
+  "perf_usb_grabber" : "USB grabber",
+  "perf_usb_instance" : "Instance",
+  "dashboard_performance_label_title" : "Performance",
+  "perf_please_wait" : "please wait",
+  "perf_temperature" : "Temperature",
+  "perf_undervoltage" : "Undervoltage detected",
+  "perf_no" : "No",
+  "perf_decoding_time": "time",
+  "perf_frames" : "frames",
+  "perf_invalid_frames" : "invalid frames"
 } 

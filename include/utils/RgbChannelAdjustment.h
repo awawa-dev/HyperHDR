@@ -3,6 +3,7 @@
 // STL includes
 #include <cstdint>
 #include <QString>
+#include <QJsonObject>
 #include <utils/Logger.h>
 
 /// Correction for a single color byte value
@@ -11,7 +12,7 @@ class RgbChannelAdjustment
 {
 public:
 	/// Default constructor
-	RgbChannelAdjustment(QString channelName="");
+	RgbChannelAdjustment(QString channelName = "");
 
 	/// Constructor
 	/// @param adjustR
@@ -30,7 +31,7 @@ public:
 	///
 	/// @note The values are updated in place.
 	///
-	void apply(uint8_t input, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue);
+	void apply(uint8_t input, uint8_t brightness, uint8_t& red, uint8_t& green, uint8_t& blue);
 
 	///
 	/// setAdjustment RGB
@@ -49,21 +50,24 @@ public:
 
 	/// @return The current adjustB value
 	uint8_t getAdjustmentB() const;
-	
+
 	uint8_t adjustmentR(uint8_t inputR) const;
 
 	uint8_t adjustmentG(uint8_t inputG) const;
 
 	uint8_t adjustmentB(uint8_t inputB) const;
-	
+
 	void setCorrection(uint8_t correction);
-	
+
 	uint8_t getCorrection() const;
-	
+
 	uint8_t correction(uint8_t input) const;
+
+	static RgbChannelAdjustment createRgbChannelAdjustment(quint8 instance, const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB);
+
 private:
 	/// color channels
-	enum ColorChannel { RED=0, GREEN=1, BLUE=2 };
+	enum ColorChannel { RED = 0, GREEN = 1, BLUE = 2 };
 
 	/// reset init of color mapping
 	void resetInitialized();
@@ -71,17 +75,17 @@ private:
 	/// (re)-initilize the color mapping
 	void initializeAdjustMapping(uint8_t _adjustR, uint8_t _adjustG, uint8_t _adjustB);
 	void initializeCorrectionMapping(uint8_t correction);
-	
+
 	int _mappingAdjR[256];
 	int _mappingAdjG[256];
-	int _mappingAdjB[256];	
-	
+	int _mappingAdjB[256];
+
 	/// The correction of R channel
 	int _correction;
-	
+
 	/// The mapping from input color to output color
 	int _mappingCorection[256];
-	
+
 
 	/// The adjustment of RGB channel
 	uint8_t _adjust[3];
@@ -93,7 +97,7 @@ private:
 	QString _channelName;
 
 	/// Logger instance
-	Logger * _log;
+	Logger* _log;
 
 	/// bitfield to determine white value is alreade initialized
 	bool _initialized[256];

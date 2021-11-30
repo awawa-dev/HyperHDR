@@ -6,6 +6,8 @@
 
 class SysInfo : public QObject
 {
+	Q_OBJECT
+
 public:
 	struct HyperhdrSysInfo
 	{

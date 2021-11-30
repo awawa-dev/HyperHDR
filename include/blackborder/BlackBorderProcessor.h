@@ -59,43 +59,8 @@ namespace hyperhdr
 		///
 		/// @return True if a different border was detected than the current else false
 		///
-		template <typename Pixel_T>
-		bool process(const Image<Pixel_T> & image)
-		{
-			// get the border for the single image
-			BlackBorder imageBorder;
-			imageBorder.horizontalSize = 0;
-			imageBorder.verticalSize = 0;
+		bool process(const Image<ColorRgb>& image);
 
-			if (!enabled())
-			{
-				imageBorder.unknown=true;
-				_currentBorder = imageBorder;
-				return true;
-			}
-
-			if (_detectionMode == "default") {
-				imageBorder = _detector->process(image);
-			} else if (_detectionMode == "classic") {
-				imageBorder = _detector->process_classic(image);
-			} else if (_detectionMode == "osd") {
-				imageBorder = _detector->process_osd(image);
-			} else if (_detectionMode == "letterbox") {
-				imageBorder = _detector->process_letterbox(image);
-			}
-			// add blur to the border
-			if (imageBorder.horizontalSize > 0)
-			{
-				imageBorder.horizontalSize += _blurRemoveCnt;
-			}
-			if (imageBorder.verticalSize > 0)
-			{
-				imageBorder.verticalSize += _blurRemoveCnt;
-			}
-
-			const bool borderUpdated = updateBorder(imageBorder);
-			return borderUpdated;
-		}
 	private slots:
 		///
 		/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
@@ -120,7 +85,7 @@ namespace hyperhdr
 		/// @param newDetectedBorder  The newly detected border
 		/// @return True if the current border changed else false
 		///
-		bool updateBorder(const BlackBorder & newDetectedBorder);
+		bool updateBorder(const BlackBorder& newDetectedBorder);
 
 		/// flag for black-border detector usage
 		bool _enabled;

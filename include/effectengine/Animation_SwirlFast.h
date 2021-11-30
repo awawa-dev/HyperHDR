@@ -8,10 +8,13 @@ class Animation_SwirlFast : public Animation_Swirl
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	Animation_SwirlFast(QString name=ANIM_SWIRL_FAST);
+
+	Animation_SwirlFast(QString name = ANIM_SWIRL_FAST);
 
 	static EffectDefinition getDefinition();
 };

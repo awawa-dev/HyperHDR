@@ -3,6 +3,8 @@
 // STL includes
 #include <cstdint>
 #include <iostream>
+#include <utils/ColorRgb.h>
+#include <QString>
 
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
@@ -46,35 +48,49 @@ static_assert(sizeof(ColorRgbw) == 4, "Incorrect size of ColorRgbw");
 inline std::ostream& operator<<(std::ostream& os, const ColorRgbw& color)
 {
 	os << "{"
-		<< color.red   << ","
+		<< color.red << ","
 		<< color.green << ","
-		<< color.blue  << ","
+		<< color.blue << ","
 		<< color.white <<
-	"}";
+		"}";
 
 	return os;
 }
 
 /// Compare operator to check if a color is 'equal' than another color
-inline bool operator==(const ColorRgbw & lhs, const ColorRgbw & rhs)
+inline bool operator==(const ColorRgbw& lhs, const ColorRgbw& rhs)
 {
-	return	lhs.red   == rhs.red   &&
+	return	lhs.red == rhs.red &&
 		lhs.green == rhs.green &&
-		lhs.blue  == rhs.blue  &&
+		lhs.blue == rhs.blue &&
 		lhs.white == rhs.white;
 }
 
 /// Compare operator to check if a color is 'smaller' than another color
-inline bool operator<(const ColorRgbw & lhs, const ColorRgbw & rhs)
+inline bool operator<(const ColorRgbw& lhs, const ColorRgbw& rhs)
 {
-	return	lhs.red   < rhs.red   &&
-		lhs.green < rhs.green &&
-		lhs.blue  < rhs.blue  &&
+	return	lhs.red < rhs.red&&
+		lhs.green < rhs.green&&
+		lhs.blue < rhs.blue&&
 		lhs.white < rhs.white;
 }
 
 /// Compare operator to check if a color is 'smaller' than or 'equal' to another color
-inline bool operator<=(const ColorRgbw & lhs, const ColorRgbw & rhs)
+inline bool operator<=(const ColorRgbw& lhs, const ColorRgbw& rhs)
 {
 	return lhs < rhs || lhs == rhs;
+}
+
+namespace RGBW {
+
+	enum class WhiteAlgorithm {
+		INVALID,
+		SUBTRACT_MINIMUM,
+		SUB_MIN_WARM_ADJUST,
+		SUB_MIN_COOL_ADJUST,
+		WHITE_OFF
+	};
+
+	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);
+	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw* output, WhiteAlgorithm algorithm);
 }

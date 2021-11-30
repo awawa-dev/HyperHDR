@@ -5,7 +5,7 @@ class Animation_MoodBlobs : public AnimationBase
 {
 	Q_OBJECT
 
-public:	
+public:
 	Animation_MoodBlobs(QString name);
 
 	void Init(
@@ -14,6 +14,7 @@ public:
 
 	bool Play(QPainter* painter) override;
 	bool hasLedData(QVector<ColorRgb>& buffer) override;
+
 private:
 	int    hyperledCount;
 	bool   fullColorWheelAvailable;
@@ -27,7 +28,7 @@ private:
 	double baseHSVValue;
 	int    numberOfRotates;
 	Point3dhsv baseHsv;
-		
+
 	QVector<Point3d> colorData;
 
 protected:

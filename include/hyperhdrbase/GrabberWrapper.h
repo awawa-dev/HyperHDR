@@ -27,31 +27,18 @@ static QList<int> GRABBER_VIDEO_CLIENTS;
 class GrabberWrapper : public QObject
 {
 	Q_OBJECT
+
 public:
-	GrabberWrapper(const QString& grabberName, Grabber * ggrabber);
+	GrabberWrapper(const QString& grabberName, Grabber* ggrabber);
 
 	~GrabberWrapper() override;
 
 	static	GrabberWrapper* instance;
-	static	GrabberWrapper* getInstance(){ return instance; }	
-
-	void tryStart();
-
-	QStringList getVideoDevices() const;
-
-	QString getVideoDeviceName(const QString& devicePath) const;
-
+	static	GrabberWrapper* getInstance() { return instance; }
+	
 	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 
-	QMultiMap<QString, int> getVideoDeviceInputs(const QString& devicePath) const;
-
-	QMap<Grabber::VideoControls, int> getVideoDeviceControls(const QString& devicePath);
-
-	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
-
-	QString getActive() const;	
-
-	static QStringList availableGrabbers();
+	QJsonObject getJsonInfo();
 
 	bool isCEC();
 
@@ -72,8 +59,8 @@ public:
 	bool getAutoResume();
 
 	void benchmarkCapture(int status, QString message);
-	
-public slots:	
+
+public slots:
 	void newFrame(const Image<ColorRgb>& image);
 	void readError(const char* err);
 	void cecKeyPressedHandler(int key);
@@ -83,7 +70,6 @@ public slots:
 
 private slots:
 	void handleSourceRequest(hyperhdr::Components component, int hyperHdrInd, bool listen);
-	void action(){};
 
 signals:
 	///
@@ -103,7 +89,7 @@ public slots:
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
-	void setDeviceVideoStandard(const QString& device);	
+	void setDeviceVideoStandard(const QString& device);
 	void setFpsSoftwareDecimation(int decimation);
 	void setHdrToneMappingEnabled(int mode);
 	void setEncoding(QString enc);
@@ -115,7 +101,7 @@ protected:
 	DetectionAutomatic::calibrationPoint parsePoint(int width, int height, QJsonObject element, bool& ok);
 
 	QString		_grabberName;
-	
+
 	Logger*		_log;
 
 	bool		_configLoaded;

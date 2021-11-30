@@ -31,6 +31,7 @@ class FlatBufferConnection;
 class MessageForwarder : public QObject
 {
 	Q_OBJECT
+
 public:
 	MessageForwarder(HyperHdrInstance* hyperhdr);
 	~MessageForwarder() override;
@@ -44,7 +45,7 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief Handle component state change MessageForwarder
@@ -63,30 +64,30 @@ private slots:
 	/// @brief Forward message to all json slaves
 	/// @param message The JSON message to send
 	///
-	void forwardJsonMessage(const QJsonObject &message);
+	void forwardJsonMessage(const QJsonObject& message);
 
 	///
 	/// @brief Forward image to all flatbuffer slaves
 	/// @param image The flatbuffer image to send
 	///
-	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image);
+	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb>& image);
 
 	///
 	/// @brief Forward message to a single json slave
 	/// @param message The JSON message to send
 	/// @param socket The TCP-Socket with the connection to the slave
 	///
-	void sendJsonMessage(const QJsonObject &message, QTcpSocket *socket);
+	void sendJsonMessage(const QJsonObject& message, QTcpSocket* socket);
 
 private:
 	/// Hyperhdr instance
-	HyperHdrInstance *_hyperhdr;
+	HyperHdrInstance* _hyperhdr;
 
 	/// Logger instance
-	Logger   *_log;
+	Logger* _log;
 
 	/// Muxer instance
-	PriorityMuxer *_muxer;
+	PriorityMuxer* _muxer;
 
 	// JSON connection for forwarding
 	QStringList   _jsonSlaves;

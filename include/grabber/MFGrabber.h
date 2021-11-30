@@ -47,7 +47,7 @@ public:
 
 	void receive_image(const void* frameImageBuffer, int size, QString message);
 
-	int  grabFrame(Image<ColorRgb> &);	
+	int  grabFrame(Image<ColorRgb>&);
 
 	void setHdrToneMappingEnabled(int mode) override;
 
@@ -67,7 +67,7 @@ private:
 	void enumerateMFdevices(bool silent);
 
 	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
-	
+
 	void getMFdevices();
 
 	bool init() override;
@@ -75,7 +75,7 @@ private:
 	void uninit() override;
 
 	void close_device();
-	
+
 
 	bool init_device(QString selectedDeviceName, DevicePropertiesItem props);
 
@@ -86,18 +86,18 @@ private:
 	void stop_capturing();
 
 	bool process_image(const void* frameImageBuffer, int size);
-	
+
 	QString FormatRes(int w, int h, QString format);
 
 	QString FormatFrame(int fr);
 
 	QString identify_format(const GUID format, PixelFormat& pixelformat);
-	
+
 private:
 
 	bool				_isMF;
-	MFCallback*			_sourceReaderCB;	
-	QString				_configurationPath;				
-	MFWorkerManager		_MFWorkerManager;	
-	IMFSourceReader*	_sourceReader;
+	MFCallback* _sourceReaderCB;
+	QString				_configurationPath;
+	MFWorkerManager		_MFWorkerManager;
+	IMFSourceReader* _sourceReader;
 };

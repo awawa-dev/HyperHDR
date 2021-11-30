@@ -7,7 +7,7 @@
 
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
-#include <utils/ImageResampler.h>
+#include <utils/FrameDecoder.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
@@ -27,14 +27,14 @@ public:
 	void setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax);
 
 private:
-	Logger*		_log;
+	Logger*     _log;
 	double		_x_frac_min;
 	double		_y_frac_min;
 	double		_x_frac_max;
 	double		_y_frac_max;
 
 	int         _noSignalCounterThreshold;
-	ColorRgb	_noSignalThresholdColor;	
+	ColorRgb	_noSignalThresholdColor;
 
 	bool		_noSignalDetected;
 	int			_noSignalCounter;

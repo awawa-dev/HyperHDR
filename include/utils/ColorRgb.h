@@ -46,10 +46,10 @@ static_assert(sizeof(ColorRgb) == 3, "Incorrect size of ColorRgb");
 inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
 {
 	os << "{"
-	   << static_cast<unsigned>(color.red) << ","
-	   << static_cast<unsigned>(color.green) << ","
-	   << static_cast<unsigned>(color.blue)
-	<< "}";
+		<< static_cast<unsigned>(color.red) << ","
+		<< static_cast<unsigned>(color.green) << ","
+		<< static_cast<unsigned>(color.blue)
+		<< "}";
 
 	return os;
 }
@@ -61,59 +61,59 @@ inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
 /// @param color The color to write
 /// @return The output stream (with the color written to it)
 ///
-inline QTextStream& operator<<(QTextStream &os, const ColorRgb& color)
+inline QTextStream& operator<<(QTextStream& os, const ColorRgb& color)
 {
 	os << "{"
-	   << static_cast<unsigned>(color.red) << ","
-	   << static_cast<unsigned>(color.green) << ","
-	   << static_cast<unsigned>(color.blue)
-	<< "}";
+		<< static_cast<unsigned>(color.red) << ","
+		<< static_cast<unsigned>(color.green) << ","
+		<< static_cast<unsigned>(color.blue)
+		<< "}";
 
 	return os;
 }
 
 /// Compare operator to check if a color is 'equal' to another color
-inline bool operator==(const ColorRgb & lhs, const ColorRgb & rhs)
+inline bool operator==(const ColorRgb& lhs, const ColorRgb& rhs)
 {
-	return	lhs.red   == rhs.red   &&
+	return	lhs.red == rhs.red &&
 		lhs.green == rhs.green &&
-		lhs.blue  == rhs.blue;
+		lhs.blue == rhs.blue;
 }
 
 /// Compare operator to check if a color is 'smaller' than another color
-inline bool operator<(const ColorRgb & lhs, const ColorRgb & rhs)
+inline bool operator<(const ColorRgb& lhs, const ColorRgb& rhs)
 {
-	return	lhs.red   < rhs.red   &&
-		lhs.green < rhs.green &&
-		lhs.blue  < rhs.blue;
+	return	lhs.red < rhs.red&&
+		lhs.green < rhs.green&&
+		lhs.blue < rhs.blue;
 }
 
 /// Compare operator to check if a color is 'not equal' to another color
-inline bool operator!=(const ColorRgb & lhs, const ColorRgb & rhs)
+inline bool operator!=(const ColorRgb& lhs, const ColorRgb& rhs)
 {
 	return !(lhs == rhs);
 }
 
 /// Compare operator to check if a color is 'smaller' than or 'equal' to another color
-inline bool operator<=(const ColorRgb & lhs, const ColorRgb & rhs)
+inline bool operator<=(const ColorRgb& lhs, const ColorRgb& rhs)
 {
-	return	lhs.red   <= rhs.red   &&
+	return	lhs.red <= rhs.red &&
 		lhs.green <= rhs.green &&
-		lhs.blue  <= rhs.blue;
+		lhs.blue <= rhs.blue;
 }
 
 /// Compare operator to check if a color is 'greater' to another color
-inline bool operator>(const ColorRgb & lhs, const ColorRgb & rhs)
+inline bool operator>(const ColorRgb& lhs, const ColorRgb& rhs)
 {
-	return	lhs.red   > rhs.red   &&
+	return	lhs.red > rhs.red &&
 		lhs.green > rhs.green &&
-		lhs.blue  > rhs.blue;
+		lhs.blue > rhs.blue;
 }
 
 /// Compare operator to check if a color is 'greater' than or 'equal' to another color
-inline bool operator>=(const ColorRgb & lhs, const ColorRgb & rhs)
+inline bool operator>=(const ColorRgb& lhs, const ColorRgb& rhs)
 {
-	return	lhs.red   >= rhs.red   &&
+	return	lhs.red >= rhs.red &&
 		lhs.green >= rhs.green &&
-		lhs.blue  >= rhs.blue;
+		lhs.blue >= rhs.blue;
 }

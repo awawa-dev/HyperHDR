@@ -6,10 +6,10 @@
 
 class Animation4Music_PulseRed : public AnimationBaseMusic
 {
-	Q_OBJECT	
+	Q_OBJECT
 
 public:
-	
+
 	Animation4Music_PulseRed();
 
 	void Init(
@@ -22,9 +22,8 @@ public:
 
 	bool hasOwnImage() override;
 	bool getImage(Image<ColorRgb>& image) override;
+
 private:
 	uint32_t _internalIndex;
 	int 	 _oldMulti;
-protected:
-	
 };

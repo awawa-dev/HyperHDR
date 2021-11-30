@@ -8,10 +8,12 @@ class Animation_StrobeWhite : public Animation_Fade
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	Animation_StrobeWhite(QString name=ANIM_STROBE_WHITE);
+	Animation_StrobeWhite(QString name = ANIM_STROBE_WHITE);
 
 	static EffectDefinition getDefinition();
 };

@@ -66,62 +66,60 @@ public:
 	/// @brief Overwrite description address
 	/// @param addr  new address
 	///
-	void setDescriptionAddress( const QString &addr ) { _descAddress = addr; }
+	void setDescriptionAddress(const QString& addr);
 
 	///
 	/// @brief Set uuid
 	/// @param uuid  The uuid
 	///
-	void setUuid( const QString &uuid ) { _uuid = uuid; }
+	void setUuid(const QString& uuid);
 
 	///
 	/// @brief set new flatbuffer server port
 	///
-	void setFlatBufPort( quint16 port ){_fbsPort = QString::number( port ); }
+	void setFlatBufPort(quint16 port);
 
 	///
 	/// @brief Get current flatbuffer server port
 	///
-	quint16 getFlatBufPort() const
-	{
-		return _fbsPort.toInt();
-	}
+	quint16 getFlatBufPort() const;
+
 	///
 	/// @brief set new protobuf server port
 	///
-	void setProtoBufPort( quint16 port ) { _pbsPort = QString::number( port ); }
+	void setProtoBufPort(quint16 port);
 
 	///
 	/// @brief Get current protobuf server port
 	///
-	quint16 getProtoBufPort() const { return _pbsPort.toInt(); }
+	quint16 getProtoBufPort() const;
 	///
 	/// @brief set new json server port
 	///
-	void setJsonServerPort( quint16 port ) { _jssPort = QString::number( port ); }
+	void setJsonServerPort(quint16 port);
 	///
 	/// @brief get new json server port
 	///
-	quint16 getJsonServerPort() const { return _jssPort.toInt(); }
+	quint16 getJsonServerPort() const;
 	///
 	/// @brief set new ssl server port
 	///
-	void setSSLServerPort( quint16 port ) { _sslPort = QString::number( port ); }
+	void setSSLServerPort(quint16 port);
 	///
 	/// @brief get new ssl server port
 	///
-	quint16 getSSLServerPort() const { return _sslPort.toInt(); }
+	quint16 getSSLServerPort() const;
 
 	///
 	/// @brief set new hyperhdr name
 	///
-	void setHyperhdrName( const QString &name ) { _name = name; }
+	void setHyperhdrName(const QString& name);
 
 	///
 	/// @brief get hyperhdr name
 	///
-	QString getHyperhdrName() const { return _name; }
-	
+	QString getHyperhdrName() const;
+
 signals:
 	///
 	/// @brief Emits whenever a new SSDP search "man : ssdp:discover" is received along with the service type
@@ -130,14 +128,14 @@ signals:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void msearchRequestReceived( const QString &target,
-								 const QString &mx,
-								 const QString address,
-								 quint16 port );
+	void msearchRequestReceived(const QString& target,
+		const QString& mx,
+		const QString address,
+		quint16 port);
 
 private:
-	Logger *_log;
-	QUdpSocket *_udpSocket;
+	Logger* _log;
+	QUdpSocket* _udpSocket;
 
 	QString _serverHeader, _uuid, _fbsPort, _pbsPort, _jssPort, _sslPort, _name, _descAddress;
 	bool _running;

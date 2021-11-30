@@ -3,7 +3,7 @@
 // STL includes
 #include <cstdint>
 // HDR definition
-#include "ImageResampler.h"
+#include "FrameDecoder.h"
 
 ///
 /// Color transformation to adjust the saturation and luminance of a RGB color value
@@ -22,7 +22,7 @@ public:
 	/// @param[out] luminance The luminance HSL-component
 	///
 
-	static void rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance);
+	static void rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t& hue, float& saturation, float& luminance);
 
 	///
 	///	Translates an HSL (hue, saturation, luminance) color to an RGB (red, green, blue) color
@@ -35,7 +35,7 @@ public:
 	/// @param[out] blue The blue RGB-component
 	///
 
-	static void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t & red, uint8_t & green, uint8_t & blue);
+	static void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t& red, uint8_t& green, uint8_t& blue);
 	///
 	///	Translates an RGB (red, green, blue) color to an HSV (hue, saturation, value) color
 	///
@@ -50,7 +50,7 @@ public:
 	/// are unsigned 8 bit values and scaled between 0 and 255 except for the hue which is a 16 bit
 	/// number and scaled between 0 and 360
 	///
-	static void rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, uint8_t & saturation, uint8_t & value);
+	static void rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t& hue, uint8_t& saturation, uint8_t& value);
 
 	///
 	///	Translates an HSV (hue, saturation, value) color to an RGB (red, green, blue) color
@@ -66,7 +66,7 @@ public:
 	/// are unsigned 8 bit values and scaled between 0 and 255 except for the hue which is a 16 bit
 	/// number and scaled between 0 and 360
 	///
-	static void hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue);
+	static void hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t& red, uint8_t& green, uint8_t& blue);
 
 	///
 	///	Translates a YUV (luminance, chrominance, chrominance) color to an RGB (red, green, blue) color
@@ -77,7 +77,7 @@ public:
 	/// @param[out] red The red RGB-component
 	/// @param[out] green The green RGB-component
 	/// @param[out] blue The blue RGB-component
-	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);
-	
-	static void rgb2yuv(int r, int g, int b, uint8_t &y, uint8_t &u, uint8_t &v);		
+	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t& r, uint8_t& g, uint8_t& b);
+
+	static void rgb2yuv(int r, int g, int b, uint8_t& y, uint8_t& u, uint8_t& v);
 };

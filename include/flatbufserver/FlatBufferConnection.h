@@ -16,7 +16,7 @@
 
 namespace hyperhdrnet
 {
-struct Reply;
+	struct Reply;
 }
 
 ///
@@ -33,7 +33,7 @@ public:
 	/// @param address The address of the Hyperhdr server (for example "192.168.0.32:19444)
 	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply);
+	FlatBufferConnection(const QString& origin, const QString& address, int priority, bool skipReply);
 
 	///
 	/// @brief Destructor
@@ -56,7 +56,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setColor(const ColorRgb & color, int priority, int duration = 1);
+	void setColor(const ColorRgb& color, int priority, int duration = 1);
 
 	///
 	/// @brief Clear the given priority channel
@@ -80,7 +80,7 @@ public slots:
 	/// @brief Set the leds according to the given image
 	/// @param image The image
 	///
-	void setImage(const Image<ColorRgb> &image);
+	void setImage(const Image<ColorRgb>& image);
 
 private slots:
 	///
@@ -107,7 +107,7 @@ private:
 	/// @param reply The received reply
 	/// @return true if the reply indicates success
 	///
-	bool parseReply(const hyperhdrnet::Reply *reply);
+	bool parseReply(const hyperhdrnet::Reply* reply);
 
 private:
 	/// The TCP-Socket with the connection to the server
@@ -128,7 +128,7 @@ private:
 	QTimer _timer;
 	QAbstractSocket::SocketState  _prevSocketState;
 
-	Logger * _log;
+	Logger* _log;
 	flatbuffers::FlatBufferBuilder _builder;
 
 	bool _registered;

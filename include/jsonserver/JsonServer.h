@@ -57,20 +57,20 @@ public slots:
 
 private:
 	/// The TCP server object
-	QTcpServer * _server;
+	QTcpServer* _server;
 
 	/// List with open connections
-	QSet<JsonClientConnection *> _openConnections;
+	QSet<JsonClientConnection*> _openConnections;
 
 	/// the logger instance
-	Logger * _log;
+	Logger* _log;
 
 	NetOrigin* _netOrigin;
 
 	/// port
 	uint16_t _port = 0;
 
-	BonjourServiceRegister * _serviceRegister = nullptr;
+	BonjourServiceRegister* _serviceRegister = nullptr;
 
 	void start();
 	void stop();

@@ -7,18 +7,17 @@
 #include <QAtomicInteger>
 #include <QList>
 #include <QMutex>
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-	#include <QRecursiveMutex>
-#endif
+
 // stl includes
 #include <stdio.h>
 #include <stdarg.h>
+
 #ifdef _WIN32
-#include <stdexcept>
+	#include <stdexcept>
 #endif
+#define THREAD_ID QSTRING_CSTR(QString().asprintf("%p", QThread::currentThreadId()))
 
-#include <utils/global_defines.h>
-
+#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
 #define LOG_MESSAGE(severity, logger, ...)   (logger)->Message(severity, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // standard log messages
@@ -41,12 +40,12 @@ class Logger : public QObject
 
 public:
 	enum LogLevel {
-		UNSET    = 0,
-		DEBUG    = 1,
-		INFO     = 2,
-		WARNING  = 3,
-		ERRORR   = 4,
-		OFF      = 5
+		UNSET = 0,
+		DEBUG = 1,
+		INFO = 2,
+		WARNING = 3,
+		ERRORR = 4,
+		OFF = 5
 	};
 
 	struct T_LOG_MESSAGE
@@ -65,37 +64,34 @@ public:
 		{
 			line = 0;
 			utime = 0;
-			level = LogLevel::INFO;			
+			level = LogLevel::INFO;
 		}
 	};
 
-	static Logger*  getInstance(const QString & name = "", LogLevel minLevel=Logger::INFO);
-	static void     deleteInstance(const QString & name = "");
-	static void     setLogLevel(LogLevel level, const QString & name = "");
-	static LogLevel getLogLevel(const QString & name = "");
+	static Logger*  getInstance(const QString& name = "", LogLevel minLevel = Logger::INFO);
+	static void     deleteInstance(const QString& name = "");
+	static void     setLogLevel(LogLevel level, const QString& name = "");
+	static LogLevel getLogLevel(const QString& name = "");
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
-	void     setMinLevel(LogLevel level) { _minLevel = static_cast<int>(level); }
-	LogLevel getMinLevel() const { return static_cast<LogLevel>(int(_minLevel)); }
-	QString  getName() const { return _name; }
-	QString  getAppName() const { return _appname; }
+	void     setMinLevel(LogLevel level);
+	LogLevel getMinLevel() const;
+	QString  getName() const;
+	QString  getAppName() const;
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
 
 protected:
-	Logger(const QString & name="", LogLevel minLevel = INFO);
+	Logger(const QString& name = "", LogLevel minLevel = INFO);
 	~Logger() override;
 
 private:
-	void write(const Logger::T_LOG_MESSAGE & message);
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))	
-	static QRecursiveMutex       MapLock;
-#else
-	static QMutex                MapLock;
-#endif
-	static QMap<QString,Logger*> LoggerMap;
-	static QAtomicInteger<int>   GLOBAL_MIN_LOG_LEVEL;
+	void write(const Logger::T_LOG_MESSAGE& message);
+
+	static QMutex                 _mapLock;
+	static QMap<QString, Logger*> _loggerMap;
+	static QAtomicInteger<int>    GLOBAL_MIN_LOG_LEVEL;
 
 	const QString                _name;
 	const QString                _appname;
@@ -112,7 +108,7 @@ class LoggerManager : public QObject
 
 public:
 	static LoggerManager* getInstance();
-	const QList<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() const { return &_logMessageBuffer; }
+	const QList<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() const;
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);

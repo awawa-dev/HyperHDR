@@ -4,32 +4,32 @@
 namespace hyperhdr
 {
 
-/**
- * Enumeration of components in HyperHDR.
- */
-enum Components
-{
-	COMP_INVALID,
-	COMP_ALL,
-	COMP_HDR,
-	COMP_SMOOTHING,
-	COMP_BLACKBORDER,
-	COMP_FORWARDER,
-	COMP_BOBLIGHTSERVER,
-	COMP_VIDEOGRABBER,
-	COMP_SYSTEMGRABBER,
-	COMP_COLOR,
-	COMP_IMAGE,
-	COMP_EFFECT,
-	COMP_LEDDEVICE,
-	COMP_FLATBUFSERVER,
-	COMP_PROTOSERVER
-};
-
-inline const char* componentToString(Components c)
-{
-	switch (c)
+	/**
+	 * Enumeration of components in HyperHDR.
+	 */
+	enum Components
 	{
+		COMP_INVALID,
+		COMP_ALL,
+		COMP_HDR,
+		COMP_SMOOTHING,
+		COMP_BLACKBORDER,
+		COMP_FORWARDER,
+		COMP_BOBLIGHTSERVER,
+		COMP_VIDEOGRABBER,
+		COMP_SYSTEMGRABBER,
+		COMP_COLOR,
+		COMP_IMAGE,
+		COMP_EFFECT,
+		COMP_LEDDEVICE,
+		COMP_FLATBUFSERVER,
+		COMP_PROTOSERVER
+	};
+
+	inline const char* componentToString(Components c)
+	{
+		switch (c)
+		{
 		case COMP_ALL:           return "HyperHDR";
 		case COMP_HDR:			 return "HDR (global)";
 		case COMP_SMOOTHING:     return "Smoothing";
@@ -45,13 +45,13 @@ inline const char* componentToString(Components c)
 		case COMP_FLATBUFSERVER: return "Image Receiver";
 		case COMP_PROTOSERVER:   return "Proto Server";
 		default:                 return "";
+		}
 	}
-}
 
-inline const char* componentToIdString(Components c)
-{
-	switch (c)
+	inline const char* componentToIdString(Components c)
 	{
+		switch (c)
+		{
 		case COMP_ALL:           return "ALL";
 		case COMP_HDR:			 return "HDR";
 		case COMP_SMOOTHING:     return "SMOOTHING";
@@ -67,27 +67,27 @@ inline const char* componentToIdString(Components c)
 		case COMP_FLATBUFSERVER: return "FLATBUFSERVER";
 		case COMP_PROTOSERVER:   return "PROTOSERVER";
 		default:                 return "";
+		}
 	}
-}
 
-inline Components stringToComponent(const QString& component)
-{
-	const QString cmp = component.toUpper();
-	if (cmp == "ALL")           return COMP_ALL;
-	if (cmp == "HDR")			return COMP_HDR;
-	if (cmp == "SMOOTHING")     return COMP_SMOOTHING;
-	if (cmp == "BLACKBORDER")   return COMP_BLACKBORDER;
-	if (cmp == "FORWARDER")     return COMP_FORWARDER;
-	if (cmp == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
-	if (cmp == "VIDEOGRABBER")  return COMP_VIDEOGRABBER;
-	if (cmp == "SYSTEMGRABBER") return COMP_SYSTEMGRABBER;
-	if (cmp == "COLOR")         return COMP_COLOR;
-	if (cmp == "EFFECT")        return COMP_EFFECT;
-	if (cmp == "IMAGE")         return COMP_IMAGE;
-	if (cmp == "LEDDEVICE")     return COMP_LEDDEVICE;
-	if (cmp == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
-	if (cmp == "PROTOSERVER")   return COMP_PROTOSERVER;
-	return COMP_INVALID;
-}
+	inline Components stringToComponent(const QString& component)
+	{
+		const QString cmp = component.toUpper();
+		if (cmp == "ALL")           return COMP_ALL;
+		if (cmp == "HDR")			return COMP_HDR;
+		if (cmp == "SMOOTHING")     return COMP_SMOOTHING;
+		if (cmp == "BLACKBORDER")   return COMP_BLACKBORDER;
+		if (cmp == "FORWARDER")     return COMP_FORWARDER;
+		if (cmp == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
+		if (cmp == "VIDEOGRABBER")  return COMP_VIDEOGRABBER;
+		if (cmp == "SYSTEMGRABBER") return COMP_SYSTEMGRABBER;
+		if (cmp == "COLOR")         return COMP_COLOR;
+		if (cmp == "EFFECT")        return COMP_EFFECT;
+		if (cmp == "IMAGE")         return COMP_IMAGE;
+		if (cmp == "LEDDEVICE")     return COMP_LEDDEVICE;
+		if (cmp == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
+		if (cmp == "PROTOSERVER")   return COMP_PROTOSERVER;
+		return COMP_INVALID;
+	}
 
 } // end of namespace

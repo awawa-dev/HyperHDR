@@ -56,9 +56,9 @@ private slots:
 
 private:
 	///  HyperHDR instance
-	HyperHdrInstance * _hyperhdr;
+	HyperHdrInstance* _hyperhdr;
 	/// Logger instance
-	Logger * _log;
+	Logger* _log;
 	/// current state of all components
 	std::map<hyperhdr::Components, bool> _componentStates;
 	/// on hyperHDR off we save the previous states of all components

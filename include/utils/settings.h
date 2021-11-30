@@ -7,8 +7,8 @@
 ///
 namespace settings {
 	// all available settings sections
-	enum class type  {
-		SNDEFFECT=1,
+	enum class type {
+		SNDEFFECT = 1,
 		BGEFFECT,
 		FGEFFECT,
 		BLACKBORDER,
@@ -44,31 +44,31 @@ namespace settings {
 	{
 		switch (type)
 		{
-			case type::SNDEFFECT:     return "soundEffect";
-			case type::BGEFFECT:      return "backgroundEffect";
-			case type::FGEFFECT:      return "foregroundEffect";
-			case type::BLACKBORDER:   return "blackborderdetector";
-			case type::BOBLSERVER:    return "boblightServer";
-			case type::COLOR:         return "color";
-			case type::DEVICE:        return "device";
-			case type::EFFECTS:       return "effects";
-			case type::NETFORWARD:    return "forwarder";
-			case type::GENERAL:       return "general";
-			case type::VIDEOGRABBER:  return "videoGrabber";
-			case type::SYSTEMGRABBER: return "systemGrabber";
-			case type::JSONSERVER:    return "jsonServer";
-			case type::LEDCONFIG:     return "ledConfig";
-			case type::LEDS:          return "leds";
-			case type::LOGGER:        return "logger";
-			case type::SMOOTHING:     return "smoothing";
-			case type::WEBSERVER:     return "webConfig";
-			case type::VIDEOCONTROL:  return "videoControl";
-			case type::SYSTEMCONTROL: return "systemControl";
-			case type::VIDEODETECTION:return "videoDetection";
-			case type::NETWORK:       return "network";
-			case type::FLATBUFSERVER: return "flatbufServer";
-			case type::PROTOSERVER:   return "protoServer";
-			default:            return "invalid";
+		case type::SNDEFFECT:     return "soundEffect";
+		case type::BGEFFECT:      return "backgroundEffect";
+		case type::FGEFFECT:      return "foregroundEffect";
+		case type::BLACKBORDER:   return "blackborderdetector";
+		case type::BOBLSERVER:    return "boblightServer";
+		case type::COLOR:         return "color";
+		case type::DEVICE:        return "device";
+		case type::EFFECTS:       return "effects";
+		case type::NETFORWARD:    return "forwarder";
+		case type::GENERAL:       return "general";
+		case type::VIDEOGRABBER:  return "videoGrabber";
+		case type::SYSTEMGRABBER: return "systemGrabber";
+		case type::JSONSERVER:    return "jsonServer";
+		case type::LEDCONFIG:     return "ledConfig";
+		case type::LEDS:          return "leds";
+		case type::LOGGER:        return "logger";
+		case type::SMOOTHING:     return "smoothing";
+		case type::WEBSERVER:     return "webConfig";
+		case type::VIDEOCONTROL:  return "videoControl";
+		case type::SYSTEMCONTROL: return "systemControl";
+		case type::VIDEODETECTION:return "videoDetection";
+		case type::NETWORK:       return "network";
+		case type::FLATBUFSERVER: return "flatbufServer";
+		case type::PROTOSERVER:   return "protoServer";
+		default:            return "invalid";
 		}
 	}
 
@@ -79,7 +79,7 @@ namespace settings {
 	///
 	inline type stringToType(const QString& type)
 	{
-		if      (type == "soundEffect")          return type::SNDEFFECT;
+		if (type == "soundEffect")          return type::SNDEFFECT;
 		else if (type == "backgroundEffect")     return type::BGEFFECT;
 		else if (type == "foregroundEffect")     return type::FGEFFECT;
 		else if (type == "blackborderdetector")  return type::BLACKBORDER;

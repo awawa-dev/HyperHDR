@@ -31,6 +31,30 @@ macro(DeployApple TARGET)
 		install(CODE "set(MY_DEPENDENCY_PATHS \"${TARGET_FILE}\")"       COMPONENT "HyperHDR")
 		install(CODE "set(MY_SYSTEM_LIBS_SKIP \"${SYSTEM_LIBS_SKIP}\")"  COMPONENT "HyperHDR")
 		install(CODE [[
+				#OpenSSL
+				if(EXISTS "/usr/local/opt/openssl@1.1/lib" AND IS_DIRECTORY "/usr/local/opt/openssl@1.1/lib")
+					message( STATUS "Including OpenSSL libraries")
+					file(GLOB filesSSL "/usr/local/opt/openssl@1.1/lib/*")
+					foreach(openssl_lib ${filesSSL})
+						string(FIND ${openssl_lib} "dylib" _indexSSL)
+						if (${_indexSSL} GREATER -1)
+							file(INSTALL
+								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
+								TYPE SHARED_LIBRARY
+								FILES "${openssl_lib}"
+							)
+						else()
+							file(INSTALL
+								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+								TYPE SHARED_LIBRARY
+								FILES "${openssl_lib}"
+							)
+						endif()
+					endforeach()
+				else()
+					message( WARNING "OpenSSL NOT found (https instance will not work)")
+				endif()
+				
 				file(GET_RUNTIME_DEPENDENCIES
 					EXECUTABLES ${MY_DEPENDENCY_PATHS}
 					RESOLVED_DEPENDENCIES_VAR _r_deps
@@ -168,7 +192,6 @@ macro(DeployUnix TARGET)
 			"libxcb-util0"
 			"libxcb-xfixes0"
 			"libxcb-xkb1"
-			"libxcb1"
 			"libxkbcommon-x11-0"			
 			"libssl1.1"
 			"libturbojpeg"
@@ -232,10 +255,26 @@ macro(DeployUnix TARGET)
 			SET(resolved_file ${LIBSMARTX11})		
 			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartx11: ${resolved_file}")		
+			message(STATUS "Adding smartX11: ${resolved_file}")		
 			get_filename_component(file_canonical ${resolved_file} REALPATH)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added smartx11(2): ${file_canonical}")
+			message(STATUS "Added smartX11(2): ${file_canonical}")
+		endif()
+
+		# Copy SMARTPIPEWIRE lib
+		find_library(LIBSMARTPIPEWIRE
+			NAMES "smartPipewire" "smartPipewire.so"
+			PATHS "${CMAKE_BINARY_DIR}/lib"
+			NO_DEFAULT_PATH
+		)
+		if (LIBSMARTPIPEWIRE)
+			SET(resolved_file ${LIBSMARTPIPEWIRE})
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Adding smartPipewire: ${resolved_file}")		
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added smartPipewire(2): ${file_canonical}")
 		endif()
 		
 		# Copy CEC lib

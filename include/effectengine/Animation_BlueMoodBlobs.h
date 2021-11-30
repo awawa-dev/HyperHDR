@@ -8,10 +8,13 @@ class Animation_BlueMoodBlobs : public Animation_MoodBlobs
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	Animation_BlueMoodBlobs(QString name=ANIM_BLUE_MOOD_BLOBS);
+
+	Animation_BlueMoodBlobs(QString name = ANIM_BLUE_MOOD_BLOBS);
 
 	static EffectDefinition getDefinition();
 };

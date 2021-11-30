@@ -10,10 +10,12 @@ class Animation_SystemShutdown : public AnimationBase
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	
+
 	Animation_SystemShutdown();
 
 	void Init(
@@ -24,7 +26,7 @@ public:
 
 	static EffectDefinition getDefinition();
 
-private:	
+private:
 
 	double speed;
 	Point3d alarm_color;
@@ -37,6 +39,4 @@ private:
 
 	void setLine(QPainter* painter, int y, Point3d rgb);
 	void setFill(QPainter* painter, Point3d rgb);
-protected:
-	
 };

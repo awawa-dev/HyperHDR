@@ -38,13 +38,13 @@ public:
 
 	DxGrabber(const QString& device, const QString& configurationPath);
 
-	~DxGrabber();	
+	~DxGrabber();
 
 	void setHdrToneMappingEnabled(int mode) override;
 
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 
-private slots:
+public slots:
 
 	void grabFrame();
 
@@ -54,9 +54,9 @@ public slots:
 
 	void stop() override;
 
-	void newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin) override {};
+	void newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin) override;
 
-	void newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount) override {};
+	void newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount) override;
 
 	void restart();
 
@@ -66,27 +66,25 @@ private:
 	void enumerateDevices(bool silent);
 
 	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
-	
+
 	void getDevices();
 
 	bool init() override;
 
 	void uninit() override;
-	
+
 	bool init_device(QString selectedDeviceName);
 
-	void processFrame(int8_t* source);
-		
 private:
 	QString					_configurationPath;
 	QTimer					_timer;
 	QSemaphore				_semaphore;
 	int						_warningCounter;
 
-	bool					dxRestartNow;
-	bool					d3dCache;
-	ID3D11Device*			d3dDevice;
-	ID3D11DeviceContext*	d3dContext;
-	ID3D11Texture2D*		sourceTexture;
-	IDXGIOutputDuplication* d3dDuplicate;
+	bool					_dxRestartNow;
+	bool					_d3dCache;
+	ID3D11Device*			_d3dDevice;
+	ID3D11DeviceContext*	_d3dContext;
+	ID3D11Texture2D*		_sourceTexture;
+	IDXGIOutputDuplication* _d3dDuplicate;
 };

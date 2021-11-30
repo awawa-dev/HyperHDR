@@ -6,10 +6,6 @@ window.gitHubReleaseApiUrl = "https://api.github.com/repos/awawa-dev/HyperHDR/re
 window.currentChannel = null;
 window.currentVersion = null;
 window.latestVersion = null;
-window.latestStableVersion = null;
-window.latestBetaVersion = null;
-window.latestAlphaVersion = null;
-window.latestRcVersion = null;
 window.gitHubVersionList = null;
 window.serverInfo = {};
 window.serverSchema = {};
@@ -37,16 +33,16 @@ window.currentHyperHdrInstanceName = getInstanceNameByIndex(window.currentHyperH
 
 function storageComp()
 {
-	if (typeof(Storage) !== "undefined")
+	if (typeof (Storage) !== "undefined")
 		return true;
 	return false;
 }
 
 function getStorage(item, session)
 {
-	if(storageComp())
+	if (storageComp())
 	{
-		if(session === true)
+		if (session === true)
 			return sessionStorage.getItem(item);
 		else
 			return localStorage.getItem(item);
@@ -56,9 +52,9 @@ function getStorage(item, session)
 
 function setStorage(item, value, session)
 {
-	if(storageComp())
+	if (storageComp())
 	{
-		if(session === true)
+		if (session === true)
 			sessionStorage.setItem(item, value);
 		else
 			localStorage.setItem(item, value);
@@ -67,9 +63,9 @@ function setStorage(item, value, session)
 
 function removeStorage(item, session)
 {
-	if(storageComp())
+	if (storageComp())
 	{
-		if(session === true)
+		if (session === true)
 			sessionStorage.removeItem(item);
 		else
 			localStorage.removeItem(item);
@@ -79,34 +75,26 @@ function removeStorage(item, session)
 function getInstanceNameByIndex(index)
 {
 	var instData = window.serverInfo.instance;
-	for(var key in instData)
+	for (var key in instData)
 	{
-		if(instData[key].instance == index)
+		if (instData[key].instance == index)
 			return instData[key].friendly_name;
 	}
 	return "unknown";
 }
 
-function initRestart()
-{
-	$(window.hyperhdr).off();
-	requestServerConfigReload();
-	window.watchdog = 10;
-	connectionLostDetection('restart');
-}
-
 function connectionLostDetection(type)
 {
-	if ( window.watchdog > 2 )
+	if (window.watchdog > 2)
 	{
-		var interval_id = window.setInterval(function(){clearInterval(interval_id);}, 9999); // Get a reference to the last
+		var interval_id = window.setInterval(function () { clearInterval(interval_id); }, 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
 			window.clearInterval(i);
-		if(type == 'restart')
+		if (type == 'restart')
 		{
 			$("body").html($("#container_restart").html());
 			// setTimeout delay for probably slower systems, some browser don't execute THIS action
-			setTimeout(restartAction,250);
+			setTimeout(restartAction, 250);
 		}
 		else
 		{
@@ -116,7 +104,7 @@ function connectionLostDetection(type)
 	}
 	else
 	{
-		$.get( "/cgi/cfg_jsonserver", function() {window.watchdog=0}).fail(function() {window.watchdog++;});
+		$.get("/cgi/cfg_jsonserver", function () { window.watchdog = 0 }).fail(function () { window.watchdog++; });
 	}
 }
 
@@ -131,34 +119,37 @@ function initWebSocket()
 		if (window.websocket == null)
 		{
 			window.jsonPort = '';
-			if(document.location.port == '' && document.location.protocol == "http:")
+			if (document.location.port == '' && document.location.protocol == "http:")
 				window.jsonPort = '80';
 			else if (document.location.port == '' && document.location.protocol == "https:")
 				window.jsonPort = '443';
 			else
-				window.jsonPort = document.location.port;	
-			
+				window.jsonPort = document.location.port;
+
 			try
 			{
-				window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://'+document.location.hostname+":"+window.jsonPort) : new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
+				window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://' + document.location.hostname + ":" + window.jsonPort) : new WebSocket('ws://' + document.location.hostname + ":" + window.jsonPort);
 			}
-			catch(error)
+			catch (error)
 			{
 				alert("Connection to websocket failed. Please open this page in a new page/tab in your browser or use secure port 8092 (for example https://localhost:8092).");
 			}
 
-			window.websocket.onopen = function (event) {
-				$(window.hyperhdr).trigger({type:"open"});
+			window.websocket.onopen = function (event)
+			{
+				$(window.hyperhdr).trigger({ type: "open" });
 
-				$(window.hyperhdr).on("cmd-serverinfo", function(event) {
+				$(window.hyperhdr).on("cmd-serverinfo", function (event)
+				{
 					window.watchdog = 0;
 				});
 			};
 
-			window.websocket.onclose = function (event) {
+			window.websocket.onclose = function (event)
+			{
 				// See http://tools.ietf.org/html/rfc6455#section-7.4.1
 				var reason;
-				switch(event.code)
+				switch (event.code)
 				{
 					case 1000: reason = "Normal closure, meaning that the purpose for which the connection was established has been fulfilled."; break;
 					case 1001: reason = "An endpoint is \"going away\", such as a server going down or a browser having navigated away from a page."; break;
@@ -175,42 +166,45 @@ function initWebSocket()
 					case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
 					default: reason = "Unknown reason";
 				}
-				$(window.hyperhdr).trigger({type:"close", reason:reason});
+				$(window.hyperhdr).trigger({ type: "close", reason: reason });
 				window.watchdog = 10;
 				connectionLostDetection();
 			};
 
-			window.websocket.onmessage = function (event) {
+			window.websocket.onmessage = function (event)
+			{
 				try
 				{
 					var response = JSON.parse(event.data);
 					var success = response.success;
 					var cmd = response.command;
 					var tan = response.tan;
-					if (success || typeof(success) == "undefined")
+					if (success || typeof (success) == "undefined")
 					{
-						$(window.hyperhdr).trigger({type:"cmd-"+cmd, response:response});
+						$(window.hyperhdr).trigger({ type: "cmd-" + cmd, response: response });
 					}
 					else
 					{
-					    // skip tan -1 error handling
-					    if(tan != -1){
-					      var error = response.hasOwnProperty("error")? response.error : "unknown";
-					      $(window.hyperhdr).trigger({type:"error",reason:error});
-					      console.log("[window.websocket::onmessage] ",error);
-					    }
+						// skip tan -1 error handling
+						if (tan != -1)
+						{
+							var error = response.hasOwnProperty("error") ? response.error : "unknown";
+							$(window.hyperhdr).trigger({ type: "error", reason: error });
+							console.log("[window.websocket::onmessage] ", error);
+						}
 					}
 				}
-				catch(exception_error)
+				catch (exception_error)
 				{
-					$(window.hyperhdr).trigger({type:"error",reason:exception_error});
-					console.log("[window.websocket::onmessage] ",exception_error);
+					$(window.hyperhdr).trigger({ type: "error", reason: exception_error });
+					console.log("[window.websocket::onmessage] ", exception_error);
 				}
 			};
 
-			window.websocket.onerror = function (error) {
-				$(window.hyperhdr).trigger({type:"error",reason:error});
-				console.log("[window.websocket::onerror] ",error);
+			window.websocket.onerror = function (error)
+			{
+				$(window.hyperhdr).trigger({ type: "error", reason: error });
+				console.log("[window.websocket::onerror] ", error);
 			};
 		}
 	}
@@ -225,16 +219,16 @@ function initWebSocket()
 function sendToHyperhdr(command, subcommand, msg)
 {
 	if (typeof subcommand != 'undefined' && subcommand.length > 0)
-		subcommand = ',"subcommand":"'+subcommand+'"';
+		subcommand = ',"subcommand":"' + subcommand + '"';
 	else
 		subcommand = "";
 
 	if (typeof msg != 'undefined' && msg.length > 0)
-		msg = ","+msg;
+		msg = "," + msg;
 	else
 		msg = "";
 
-	window.websocket.send('{"command":"'+command+'", "tan":'+window.wsTan+subcommand+msg+'}');
+	window.websocket.send('{"command":"' + command + '", "tan":' + window.wsTan + subcommand + msg + '}');
 }
 
 // Send a json message to Hyperhdr and wait for a matching response
@@ -244,19 +238,20 @@ function sendToHyperhdr(command, subcommand, msg)
 // data:       The json data as Object
 // tan:        The optional tan, default 1. If the tan is -1, we skip global response error handling
 // Returns data of response or false if timeout
-async function sendAsyncToHyperhdr (command, subcommand, data, tan = 1) {
+async function sendAsyncToHyperhdr(command, subcommand, data, tan = 1)
+{
 	let obj = { command, tan };
-	
+
 	if (subcommand) 
 	{
-		Object.assign(obj, {subcommand});
+		Object.assign(obj, { subcommand });
 	}
-	
+
 	if (data)
 	{
 		Object.assign(obj, data);
 	}
-	
+
 	//if (process.env.DEV || sstore.getters['common/getDebugState']) console.log('SENDAS', obj)
 	return __sendAsync(obj);
 }
@@ -264,38 +259,41 @@ async function sendAsyncToHyperhdr (command, subcommand, data, tan = 1) {
 // Send a json message to Hyperhdr and wait for a matching response
 // A response matches, when command(+subcommand) of request and response is the same
 // Returns data of response or false if timeout
-async function __sendAsync (data) {
-	return new Promise((resolve, reject) => {
+async function __sendAsync(data)
+{
+	return new Promise((resolve, reject) =>
+	{
 		let cmd = data.command;
 		let subc = data.subcommand;
 		let tan = data.tan;
-		
-		if (subc)
-		  cmd = `${cmd}-${subc}`;
 
-		let func = (e) => {
+		if (subc)
+			cmd = `${cmd}-${subc}`;
+
+		let func = (e) =>
+		{
 			let rdata;
-		  
+
 			try
 			{
 				rdata = JSON.parse(e.data);
 			}
 			catch (error)
 			{
-				console.error("[window.websocket::onmessage] ",error);
+				console.error("[window.websocket::onmessage] ", error);
 				resolve(false);
 			}
-		  
+
 			if (rdata.command == cmd && rdata.tan == tan)
 			{
 				window.websocket.removeEventListener('message', func);
 				resolve(rdata);
 			}
 		};
-		
+
 		// after 7 sec we resolve false
 		setTimeout(() => { window.websocket.removeEventListener('message', func); resolve(false); }, 7000);
-		
+
 		window.websocket.addEventListener('message', func);
 		window.websocket.send(JSON.stringify(data) + '\n');
 	})
@@ -307,84 +305,85 @@ async function __sendAsync (data) {
 // Test if admin requires authentication
 function requestRequiresAdminAuth()
 {
-	sendToHyperhdr("authorize","adminRequired");
+	sendToHyperhdr("authorize", "adminRequired");
 }
 // Test if the default password needs to be changed
 function requestRequiresDefaultPasswortChange()
 {
-	sendToHyperhdr("authorize","newPasswordRequired");
+	sendToHyperhdr("authorize", "newPasswordRequired");
 }
 // Change password
 function requestChangePassword(oldPw, newPw)
 {
-	sendToHyperhdr("authorize","newPassword",'"password": "'+oldPw+'", "newPassword":"'+newPw+'"');
+	sendToHyperhdr("authorize", "newPassword", '"password": "' + oldPw + '", "newPassword":"' + newPw + '"');
 }
 
 function requestAuthorization(password)
 {
-	sendToHyperhdr("authorize","login",'"password": "' + password + '"');
+	sendToHyperhdr("authorize", "login", '"password": "' + password + '"');
 }
 
 function requestTokenAuthorization(token)
 {
-	sendToHyperhdr("authorize","login",'"token": "' + token + '"');
+	sendToHyperhdr("authorize", "login", '"token": "' + token + '"');
 }
 
 function requestToken(comment)
 {
-	sendToHyperhdr("authorize","createToken",'"comment": "'+comment+'"');
+	sendToHyperhdr("authorize", "createToken", '"comment": "' + comment + '"');
 }
 
 function requestTokenInfo()
 {
-	sendToHyperhdr("authorize","getTokenList","");
+	sendToHyperhdr("authorize", "getTokenList", "");
 }
 
-function requestGetPendingTokenRequests (id, state) {
+function requestGetPendingTokenRequests(id, state)
+{
 	sendToHyperhdr("authorize", "getPendingTokenRequests", "");
 }
 
 function requestHandleTokenRequest(id, state)
 {
-	sendToHyperhdr("authorize","answerRequest",'"id":"'+id+'", "accept":'+state);
+	sendToHyperhdr("authorize", "answerRequest", '"id":"' + id + '", "accept":' + state);
 }
 
 function requestTokenDelete(id)
 {
-	sendToHyperhdr("authorize","deleteToken",'"id":"'+id+'"');
+	sendToHyperhdr("authorize", "deleteToken", '"id":"' + id + '"');
 }
 
 function requestInstanceRename(inst, name)
 {
-	sendToHyperhdr("instance", "saveName",'"instance": '+inst+', "name": "'+name+'"');
+	sendToHyperhdr("instance", "saveName", '"instance": ' + inst + ', "name": "' + name + '"');
 }
 
 function requestInstanceStartStop(inst, start)
 {
-	if(start)
-		sendToHyperhdr("instance","startInstance",'"instance": '+inst);
+	if (start)
+		sendToHyperhdr("instance", "startInstance", '"instance": ' + inst);
 	else
-		sendToHyperhdr("instance","stopInstance",'"instance": '+inst);
+		sendToHyperhdr("instance", "stopInstance", '"instance": ' + inst);
 }
 
 function requestInstanceDelete(inst)
 {
-	sendToHyperhdr("instance","deleteInstance",'"instance": '+inst);
+	sendToHyperhdr("instance", "deleteInstance", '"instance": ' + inst);
 }
 
 function requestInstanceCreate(name)
 {
-	sendToHyperhdr("instance","createInstance",'"name": "'+name+'"');
+	sendToHyperhdr("instance", "createInstance", '"name": "' + name + '"');
 }
 
 function requestInstanceSwitch(inst)
 {
-	sendToHyperhdr("instance","switchTo",'"instance": '+inst);
+	sendToHyperhdr("instance", "switchTo", '"instance": ' + inst);
 }
 
 function requestServerInfo()
 {
-	sendToHyperhdr("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "effects-update", "settings-update", "instance-update", "grabberstate-update", "benchmark-update"]');
+	sendToHyperhdr("serverinfo", "", '"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "effects-update", "settings-update", "instance-update", "grabberstate-update", "benchmark-update"]');
 }
 
 function requestSysInfo()
@@ -394,7 +393,7 @@ function requestSysInfo()
 
 function requestServerConfigSchema()
 {
-	sendToHyperhdr("config","getschema");
+	sendToHyperhdr("config", "getschema");
 }
 
 function requestServerConfig()
@@ -402,41 +401,36 @@ function requestServerConfig()
 	sendToHyperhdr("config", "getconfig");
 }
 
-function requestServerConfigReload()
-{
-	sendToHyperhdr("config", "reload");
-}
-
 function requestLedColorsStart()
 {
-	window.ledStreamActive=true;
+	window.ledStreamActive = true;
 	sendToHyperhdr("ledcolors", "ledstream-start");
 }
 
 function requestLedColorsStop()
 {
-	window.ledStreamActive=false;
+	window.ledStreamActive = false;
 	sendToHyperhdr("ledcolors", "ledstream-stop");
 }
 
 function requestLedImageStart()
 {
-	window.imageStreamActive=true;
+	window.imageStreamActive = true;
 	sendToHyperhdr("ledcolors", "imagestream-start");
 }
 
 function requestLedImageStop()
 {
-	window.imageStreamActive=false;
+	window.imageStreamActive = false;
 	sendToHyperhdr("ledcolors", "imagestream-stop");
 }
 
 function requestPriorityClear(prio)
 {
-	if(typeof prio !== 'number')
+	if (typeof prio !== 'number')
 		prio = window.webPrio;
 
-	sendToHyperhdr("clear", "", '"priority":'+prio+'');
+	sendToHyperhdr("clear", "", '"priority":' + prio + '');
 }
 
 function requestClearAll()
@@ -446,83 +440,92 @@ function requestClearAll()
 
 function requestPlayEffect(effectName, duration)
 {
-	sendToHyperhdr("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
+	sendToHyperhdr("effect", "", '"effect":{"name":"' + effectName + '"},"priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
-function requestSetColor(r,g,b,duration)
+function requestSetColor(r, g, b, duration)
 {
-	sendToHyperhdr("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
+	sendToHyperhdr("color", "", '"color":[' + r + ',' + g + ',' + b + '], "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
-function requestSetImage(data,duration,name)
+function requestSetImage(data, duration, name)
 {
-	sendToHyperhdr("image", "",  '"imagedata":"'+data+'", "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+', "format":"auto", "origin":"'+window.webOrigin+'", "name":"'+name+'"');
+	sendToHyperhdr("image", "", '"imagedata":"' + data + '", "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ', "format":"auto", "origin":"' + window.webOrigin + '", "name":"' + name + '"');
 }
 
 function requestSetComponentState(comp, state)
 {
 	var state_str = state ? "true" : "false";
-	sendToHyperhdr("componentstate", "", '"componentstate":{"component":"'+comp+'","state":'+state_str+'}');
+	sendToHyperhdr("componentstate", "", '"componentstate":{"component":"' + comp + '","state":' + state_str + '}');
 }
 
 function requestSetSource(prio)
 {
-	if ( prio == "auto" )
+	if (prio == "auto")
 		sendToHyperhdr("sourceselect", "", '"auto":true');
 	else
-		sendToHyperhdr("sourceselect", "", '"priority":'+prio);
+		sendToHyperhdr("sourceselect", "", '"priority":' + prio);
 }
 
 function requestWriteConfig(config, full)
 {
-	if(full === true)
+	if (full === true)
 		window.serverConfig = config;
 	else
 	{
-		jQuery.each(config, function(i, val) {
+		jQuery.each(config, function (i, val)
+		{
 			window.serverConfig[i] = val;
 		});
 	}
 
-	sendToHyperhdr("config","setconfig", '"config":'+JSON.stringify(window.serverConfig));
+	sendToHyperhdr("config", "setconfig", '"config":' + JSON.stringify(window.serverConfig));
 }
 
-function requestWriteEffect(effectName,effectPy,effectArgs,data)
+function requestWriteEffect(effectName, effectPy, effectArgs, data)
 {
 	var cutArgs = effectArgs.slice(1, -1);
-	sendToHyperhdr("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+',"imageData":"'+data+'"');
+	sendToHyperhdr("create-effect", "", '"name":"' + effectName + '", "script":"' + effectPy + '", ' + cutArgs + ',"imageData":"' + data + '"');
 }
 
-function requestTestEffect(effectName,effectPy,effectArgs,data)
+function requestTestEffect(effectName, effectPy, effectArgs, data)
 {
-	sendToHyperhdr("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+window.webPrio+', "origin":"'+window.webOrigin+'", "pythonScript":"'+effectPy+'", "imageData":"'+data+'"');
+	sendToHyperhdr("effect", "", '"effect":{"name":"' + effectName + '", "args":' + effectArgs + '}, "priority":' + window.webPrio + ', "origin":"' + window.webOrigin + '", "pythonScript":"' + effectPy + '", "imageData":"' + data + '"');
 }
 
 function requestDeleteEffect(effectName)
 {
-	sendToHyperhdr("delete-effect", "", '"name":"'+effectName+'"');
+	sendToHyperhdr("delete-effect", "", '"name":"' + effectName + '"');
 }
 
 function requestLoggingStart()
 {
-	window.loggingStreamActive=true;
+	window.loggingStreamActive = true;
 	sendToHyperhdr("logging", "start");
 }
 
 function requestLoggingStop()
 {
-	window.loggingStreamActive=false;
+	window.loggingStreamActive = false;
 	sendToHyperhdr("logging", "stop");
 }
 
 function requestMappingType(type)
 {
-	sendToHyperhdr("processing", "", '"mappingType": "'+type+'"');
+	sendToHyperhdr("processing", "", '"mappingType": "' + type + '"');
 }
 
 function requestVideoMode(newMode)
 {
-	sendToHyperhdr("videomode", "", '"videoMode": "'+newMode+'"');
+	sendToHyperhdr("videomode", "", '"videoMode": "' + newMode + '"');
+}
+
+function requestPerformanceCounter(allCounter)
+{
+	if (allCounter)
+		sendToHyperhdr("performance-counters", "all", "");
+	else
+		sendToHyperhdr("performance-counters", "resources", "");
 }
 
 function requestCalibrationStart()
@@ -542,23 +545,23 @@ async function requestCalibrationData()
 
 function requestVideoModeHdr(newMode)
 {
-	sendToHyperhdr("videomodehdr", "", '"HDR": '+newMode+'');
+	sendToHyperhdr("videomodehdr", "", '"HDR": ' + newMode + '');
 }
 
 
 function requestAdjustment(type, value, complete)
 {
-	if(complete === true)
-		sendToHyperhdr("adjustment", "", '"adjustment": '+type+'');
+	if (complete === true)
+		sendToHyperhdr("adjustment", "", '"adjustment": ' + type + '');
 	else
-		sendToHyperhdr("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+		sendToHyperhdr("adjustment", "", '"adjustment": {"' + type + '": ' + value + '}');
 }
 
 async function requestLedDeviceDiscovery(type, params)
 {
 	let data = { ledDeviceType: type, params: params };
 
-	return sendAsyncToHyperhdr("leddevice", "discover", data, Math.floor(Math.random() * 1000) );
+	return sendAsyncToHyperhdr("leddevice", "discover", data, Math.floor(Math.random() * 1000));
 }
 
 async function requestLedDeviceProperties(type, params)
@@ -570,7 +573,7 @@ async function requestLedDeviceProperties(type, params)
 
 function requestLedDeviceIdentification(type, params)
 {
-	sendToHyperhdr("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
+	sendToHyperhdr("leddevice", "identify", '"ledDeviceType": "' + type + '","params": ' + JSON.stringify(params) + '');
 }
 
 async function requestGetDB()
@@ -579,11 +582,11 @@ async function requestGetDB()
 }
 
 function requestRestoreDB(backupData)
-{	
-	sendToHyperhdr("load-db","", '"config":'+JSON.stringify(backupData));
+{
+	sendToHyperhdr("load-db", "", '"config":' + JSON.stringify(backupData));
 }
 
 function requestBenchmark(mode, status)
 {
-	sendToHyperhdr("benchmark", mode, '"status": '+status);
+	sendToHyperhdr("benchmark", mode, '"status": ' + status);
 }

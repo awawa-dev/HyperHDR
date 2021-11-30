@@ -83,28 +83,32 @@ $(document).ready(function()
 		color              : window.schema.color.properties.channelAdjustment.items
 	}, true, true);	
 	
-	for(var key in window.schema.color.properties.channelAdjustment.items.properties)
+	function BindColorCalibration()
 	{
-		const sourceKey = key;
-		const sourcePath = 'root.color.'+key;
-		const selectEditor = editor_color.getEditor(sourcePath);
-		
-		if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
-			selectEditor.container.hidden = true; 
-		else
-			editor_color.watch(sourcePath,() => {			
-				const editor = editor_color.getEditor(sourcePath);
-				
-				if (editor.format === "colorpicker")
-					requestAdjustment(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
-				else
-					requestAdjustment(sourceKey, editor.value);		
-			});				
+		for(var key in window.schema.color.properties.channelAdjustment.items.properties)
+		{
+			const sourceKey = key;
+			const sourcePath = 'root.color.'+key;
+			const selectEditor = editor_color.getEditor(sourcePath);
+			
+			if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
+				selectEditor.container.hidden = true; 
+			else
+				editor_color.watch(sourcePath,() => {			
+					const editor = editor_color.getEditor(sourcePath);
+					
+					if (editor.format === "colorpicker")
+						requestAdjustment(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
+					else
+						requestAdjustment(sourceKey, editor.value);		
+				});				
+		}
 	}
 	
 	function updateColorAdjustment()
 	{
 		editor_color.getEditor("root.color").setValue(window.serverConfig['color'].channelAdjustment[0]);
+		BindColorCalibration();
 	}	
 	
 
@@ -315,11 +319,18 @@ $(document).ready(function()
 			// In case Buttons were disabled before, status may be different to component status
 			if (component.enabled != $(`#${comp_btn_id}`).prop("checked"))
 			{
+				$(`#${comp_btn_id}`).off('change');
+				
 				// console.log ("Update status to Checked = ", component.enabled);
 				if (component.enabled)
 					$(`#${comp_btn_id}`).bootstrapToggle("on");
 				else
 					$(`#${comp_btn_id}`).bootstrapToggle("off");
+				
+				$(`#${comp_btn_id}`).change(e =>
+				{							
+					requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
+				});
 			}
 		}
 	}

@@ -6,10 +6,10 @@
 
 class Animation4Music_StereoMultiSlow : public AnimationBaseMusic
 {
-	Q_OBJECT	
+	Q_OBJECT
 
 public:
-	
+
 	Animation4Music_StereoMultiSlow();
 
 	void Init(
@@ -25,6 +25,4 @@ public:
 private:
 	uint32_t _internalIndex;
 	int		 _oldMulti;
-protected:
-	
 };

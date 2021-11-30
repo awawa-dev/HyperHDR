@@ -6,10 +6,10 @@
 
 class Animation4Music_QuatroMultiSlow : public AnimationBaseMusic
 {
-	Q_OBJECT	
+	Q_OBJECT
 
 public:
-	
+
 	Animation4Music_QuatroMultiSlow();
 
 	void Init(
@@ -22,9 +22,8 @@ public:
 
 	bool hasOwnImage() override;
 	bool getImage(Image<ColorRgb>& image) override;
+
 private:
 	uint32_t _internalIndex;
 	int 	 _oldMulti;
-protected:
-	
 };

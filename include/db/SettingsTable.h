@@ -2,10 +2,6 @@
 
 #include <db/DBManager.h>
 
-// qt
-#include <QDateTime>
-#include <QJsonDocument>
-
 ///
 /// @brief settings table db interface
 ///

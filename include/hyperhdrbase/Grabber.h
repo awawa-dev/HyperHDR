@@ -4,14 +4,16 @@
 #include <QList>
 #include <QRectF>
 #include <cstdint>
+#include <QJsonObject>
 
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
-#include <utils/ImageResampler.h>
+#include <utils/FrameDecoder.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 #include <hyperhdrbase/DetectionManual.h>
 #include <hyperhdrbase/DetectionAutomatic.h>
+#include <utils/PerformanceCounters.h>
 
 #include <QMultiMap>
 #include <QSemaphore>
@@ -36,9 +38,9 @@ class Grabber : public DetectionAutomatic, public DetectionManual
 
 public:
 	Grabber(const QString& grabberName = "", int width = 0, int height = 0,
-			int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
+		int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
 
-	~Grabber();	
+	~Grabber();
 
 	static const QString AUTO_SETTING;
 	static const int	 AUTO_FPS;
@@ -58,9 +60,7 @@ public:
 
 	int getImageHeight();
 
-	void setEnabled(bool enable);
-
-	QStringList getVideoDevices() const;
+	void setEnabled(bool enable);	
 
 	QString getVideoDeviceName(const QString& devicePath) const;
 
@@ -117,17 +117,17 @@ public:
 
 		PixelFormat				pf;
 
-		#if  defined(_WIN32) || defined(WIN32)
-			// Windows
-			GUID        guid = GUID_NULL;
-		#elif defined(__unix__) || defined(__linux__)
-			// Linux
-			__u32       v4l2PixelFormat = 0;
-		#elif defined(__APPLE__)
-			// Apple
-			CGDirectDisplayID	display = 0;
-			uint32_t			fourcc = 0;
-		#endif
+#if  defined(_WIN32) || defined(WIN32)
+		// Windows
+		GUID        guid = GUID_NULL;
+#elif defined(__unix__) || defined(__linux__)
+		// Linux
+		__u32       v4l2PixelFormat = 0;
+#elif defined(__APPLE__)
+		// Apple
+		CGDirectDisplayID	display = 0;
+		uint32_t			fourcc = 0;
+#endif
 
 		DevicePropertiesItem() :
 			x(0), y(0), fps(0), fps_a(0), fps_b(0), input(0),
@@ -145,6 +145,10 @@ public slots:
 
 	void revive();
 
+	QJsonObject getJsonInfo();
+
+	QStringList getVideoDevices() const;
+
 signals:
 	void newFrame(const Image<ColorRgb>& image);
 
@@ -154,6 +158,8 @@ protected:
 	void loadLutFile(PixelFormat color, const QList<QString>& files);
 
 	void processSystemFrameBGRA(uint8_t* source, int lineSize = 0);
+
+	void processSystemFrameRGBA(uint8_t* source, int lineSize = 0);
 
 	struct DeviceControlCapability
 	{
@@ -175,7 +181,7 @@ protected:
 	};
 
 	QMap<QString, DeviceProperties> _deviceProperties;
-	
+
 
 	/// the selected HDR mode
 	int _hdr;
@@ -199,12 +205,13 @@ protected:
 
 	// enable/disable HDR tone mapping
 	uint8_t _hdrToneMappingEnabled;
-	
+
 	/// logger instance
 	Logger* _log;
 
 	// statistics
 	struct {
+		int64_t			token = 0;
 		int64_t			frameBegin;
 		int   			averageFrame;
 		unsigned int	badFrame, goodFrame, segment;
@@ -226,7 +233,7 @@ protected:
 	int			_actualWidth, _actualHeight, _actualFPS;
 	QString		_actualDeviceName;
 
-	uint8_t*	_lutBuffer;
+	uint8_t* _lutBuffer;
 	bool		_lutBufferInit;
 
 	int			_lineLength;

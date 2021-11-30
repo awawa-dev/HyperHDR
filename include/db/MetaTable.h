@@ -2,12 +2,6 @@
 
 #include <db/DBManager.h>
 
-// qt
-#include <QDateTime>
-#include <QUuid>
-#include <QNetworkInterface>
-#include <QCryptographicHash>
-
 ///
 /// @brief meta table specific database interface
 ///

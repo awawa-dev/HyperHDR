@@ -20,12 +20,14 @@ class WebServer : public QObject
 	Q_OBJECT
 
 public:
-	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = nullptr);
+	WebServer(const QJsonDocument& config, bool useSsl, QObject* parent = nullptr);
 
-	~WebServer () override;
+	~WebServer() override;
 
 	void start();
 	void stop();
+
+	static bool			portAvailable(quint16& port, Logger* log);
 
 signals:
 	///
@@ -45,9 +47,9 @@ public slots:
 	///
 	void initServer();
 
-	void onServerStopped      ();
-	void onServerStarted      (quint16 port);
-	void onServerError        (QString msg);
+	void onServerStopped();
+	void onServerStarted(quint16 port);
+	void onServerError(QString msg);
 
 	///
 	/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
@@ -59,29 +61,29 @@ public slots:
 	///
 	/// @brief Set a new description, if empty the description is NotFound for clients
 	///
-	void setSSDPDescription(const QString & desc);
+	void setSSDPDescription(const QString& desc);
 
 	/// check if server has been inited
 	bool isInited() const { return _inited; }
 
 	quint16 getPort() const { return _port; }
 
-private:
+private:	
 	quint16              _port;
 	QJsonDocument        _config;
 	bool				 _useSsl;
 	Logger*              _log;
-	QString              _baseUrl;	
+	QString              _baseUrl;
 	StaticFileServing*   _staticFileServing;
 	QtHttpServer*        _server;
 	bool                 _inited = false;
 
-	const QString        WEBSERVER_DEFAULT_PATH	    = ":/webconfig";
+	const QString        WEBSERVER_DEFAULT_PATH = ":/webconfig";
 	const QString        WEBSERVER_DEFAULT_CRT_PATH = ":/hyperhdrcrt.pem";
 	const QString        WEBSERVER_DEFAULT_KEY_PATH = ":/hyperhdrkey.pem";
-	quint16              WEBSERVER_DEFAULT_PORT     = 8090;
+	quint16              WEBSERVER_DEFAULT_PORT = 8090;
 
-	BonjourServiceRegister * _serviceRegister = nullptr;
+	BonjourServiceRegister* _serviceRegister = nullptr;
 };
 
 #endif // WEBSERVER_H

@@ -12,6 +12,9 @@
 // x11 linux system grabber
 #cmakedefine ENABLE_X11
 
+// PipeWire system grabber
+#cmakedefine ENABLE_PIPEWIRE
+
 // Define to enable boblight server
 #cmakedefine ENABLE_BOBLIGHT
 

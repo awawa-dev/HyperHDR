@@ -15,18 +15,18 @@ class GlobalSignals : public QObject
 {
 	Q_OBJECT
 public:
-    static GlobalSignals* getInstance()
-    {
-        static GlobalSignals instance;
-        return & instance;
-    }
+	static GlobalSignals* getInstance()
+	{
+		static GlobalSignals instance;
+		return &instance;
+	}
 
 private:
-    GlobalSignals() = default;
+	GlobalSignals() = default;
 
 public:
-    GlobalSignals(GlobalSignals const&)  = delete;
-    void operator=(GlobalSignals const&) = delete;
+	GlobalSignals(GlobalSignals const&) = delete;
+	void operator=(GlobalSignals const&) = delete;
 
 signals:
 	///////////////////////////////////////
@@ -38,7 +38,7 @@ signals:
 	/// @param name   The name of the platform capture that is currently active
 	/// @param image  The prepared image
 	///
-	void setSystemImage(const QString& name, const Image<ColorRgb>&  image);
+	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
 	/// @brief PIPE video images from video grabber over HyperHDRDaemon to HyperHDR class
@@ -62,7 +62,7 @@ signals:
 	/// @param[in] priority       The priority channel (-1 to clear all possible priorities)
 	/// @param[in] forceclearAll  Force the clear
 	///
-	void clearGlobalInput(int priority, bool forceClearAll=false);
+	void clearGlobalInput(int priority, bool forceClearAll = false);
 
 	///
 	/// @brief PIPE external images over HyperHDRDaemon to HyperHDR class
@@ -81,7 +81,7 @@ signals:
 	/// @param[in] origin      The setter
 	/// @param     clearEffect Should be true when NOT called from an effect
 	///
-	void setGlobalColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
+	void setGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, const QString& origin = "External", bool clearEffects = true);
 
 	///////////////////////////////////////
 	///////////////// FROM ////////////////

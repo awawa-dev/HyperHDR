@@ -1,43 +1,35 @@
 #pragma once
 
-#include <QtCore>
-#include <QtGui>
-#include <commandline/Option.h>
+#include "Option.h"
 
 namespace commandline
 {
 
-class ValidatorOption: public Option
-{
-protected:
-    const QValidator *validator;
-    virtual void setValidator(const QValidator *validator);
+	class ValidatorOption : public Option
+	{
+	protected:
+		const QValidator* validator;
+		virtual void setValidator(const QValidator* validator);
 
-public:
-    ValidatorOption(const QString &name,
-                    const QString &description = QString(),
-                    const QString &valueName = QString(),
-                    const QString &defaultValue = QString(),
-                    const QValidator *validator = nullptr)
-        : Option(name, description, valueName, defaultValue), validator(validator)
-    {}
+	public:
+		ValidatorOption(const QString& name,
+			const QString& description = QString(),
+			const QString& valueName = QString(),
+			const QString& defaultValue = QString(),
+			const QValidator* validator = nullptr);
 
-    ValidatorOption(const QStringList &names,
-                    const QString &description = QString(),
-                    const QString &valueName = QString(),
-                    const QString &defaultValue = QString(),
-                    const QValidator *validator = nullptr)
-        : Option(names, description, valueName, defaultValue), validator(validator)
-    {}
+		ValidatorOption(const QStringList& names,
+			const QString& description = QString(),
+			const QString& valueName = QString(),
+			const QString& defaultValue = QString(),
+			const QValidator* validator = nullptr);
 
-    ValidatorOption(const QCommandLineOption &other,
-                    const QValidator *validator = nullptr)
-        : Option(other), validator(validator)
-    {}
+		ValidatorOption(const QCommandLineOption& other,
+			const QValidator* validator = nullptr);
 
-    virtual const QValidator *getValidator() const;
-    virtual bool validate(Parser & parser, QString &value) override;
-};
+		virtual const QValidator* getValidator() const;
+		virtual bool validate(Parser& parser, QString& value) override;
+	};
 
 }
 

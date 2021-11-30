@@ -33,8 +33,8 @@ public:
 	///
 	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local) const;
 
-	static NetOrigin *getInstance() { return instance; }
-	static NetOrigin *instance;
+	static NetOrigin* getInstance() { return instance; }
+	static NetOrigin* instance;
 
 private slots:
 	///

@@ -1,7 +1,6 @@
 #pragma once
 
 // qt incl
-#include <QObject>
 #include <QJsonObject>
 
 // components def
@@ -39,13 +38,13 @@ public:
 	/// @brief Get all possible commands to subscribe for
 	/// @return  The list of commands
 	///
-	QStringList getCommands() { return _availableCommands; };
+	QStringList getCommands();
 
 	///
 	/// @brief Get all subscribed commands
 	/// @return  The list of commands
 	///
-	QStringList getSubscribedCommands() { return _subscribedCommands; };
+	QStringList getSubscribedCommands();
 
 	///
 	/// @brief Reset subscriptions, disconnect all signals
@@ -129,6 +128,8 @@ private slots:
 	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
 
 	void handleBenchmarkUpdate(int status, QString message);
+
+	void handlePerformanceUpdate(const QJsonObject& data);
 
 private:
 	/// pointer of HyperHDR instance

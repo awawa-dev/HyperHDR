@@ -18,7 +18,7 @@ public:
 	/// @return The constructed LedDevice or nullptr if configuration is invalid. The ownership of
 	/// the constructed LedDevice is transferred to the caller
 	///
-	static LedDevice * construct(const QJsonObject & deviceConfig);
+	static LedDevice* construct(const QJsonObject& deviceConfig);
 };
 
 #endif // LEDEVICEFACTORY_H

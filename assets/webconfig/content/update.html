@@ -24,13 +24,15 @@
 			if (callback) {
 				var matches = 0;
 				for (var key in window.gitHubVersionList) {
-					if (
-						window.gitHubVersionList[key].name == null ||
-						window.gitHubVersionList[key].tag_name.includes("rc") ||
-						(window.serverConfig.general.watchedVersionBranch == "Stable" && (window.gitHubVersionList[key].tag_name.includes("beta") || window.gitHubVersionList[key].tag_name.includes("alpha"))) ||
-						(window.serverConfig.general.watchedVersionBranch == "Beta" && window.gitHubVersionList[key].tag_name.includes("alpha"))
-					) {
+				
+					if (window.gitHubVersionList[key].name == null)
 						continue;
+						
+					if (window.gitHubVersionList[key].tag_name.includes("beta") ||
+						window.gitHubVersionList[key].tag_name.includes("alpha"))
+					{
+						if (compareHyperHdrVersion(window.currentVersion, window.gitHubVersionList[key].tag_name))
+							continue;
 					}
 
 					var danger;

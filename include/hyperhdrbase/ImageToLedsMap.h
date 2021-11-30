@@ -47,7 +47,7 @@ namespace hyperhdr
 			const unsigned horizontalBorder,
 			const unsigned verticalBorder,
 			const quint8 instanceIndex,
-			const std::vector<Led> & leds);
+			const std::vector<Led>& leds);
 
 		///
 		/// Returns the width of the indexed image
@@ -65,14 +65,14 @@ namespace hyperhdr
 
 		unsigned horizontalBorder() const;
 		unsigned verticalBorder() const;
-				
+
 		std::vector<ColorRgb> Process(const Image<ColorRgb>& image, uint16_t* advanced);
 
-	private:		
-		std::vector<ColorRgb> getMeanLedColor(const Image<ColorRgb>& image) const;		
+	private:
+		std::vector<ColorRgb> getMeanLedColor(const Image<ColorRgb>& image) const;
 
 		std::vector<ColorRgb> getUniLedColor(const Image<ColorRgb>& image) const;
-		
+
 		std::vector<ColorRgb> getMeanAdvLedColor(const Image<ColorRgb>& image, uint16_t* lut) const;
 
 		/// The width of the indexed image
@@ -80,13 +80,11 @@ namespace hyperhdr
 		/// The height of the indexed image
 		const unsigned _height;
 
-		const bool		_sparseProcessing;
-
 		const unsigned _horizontalBorder;
 
 		const unsigned _verticalBorder;
-		
-		int _mappingType;		
+
+		int _mappingType;
 
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<int32_t>> _colorsMap;
@@ -94,11 +92,11 @@ namespace hyperhdr
 
 		int _groupMin;
 		int _groupMax;
-		
+
 		ColorRgb calcMeanColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors) const;
 
 		ColorRgb calcMeanAdvColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors, uint16_t* lut) const;
-		
+
 		ColorRgb calcMeanColor(const Image<ColorRgb>& image) const;
 	};
 

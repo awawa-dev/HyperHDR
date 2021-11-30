@@ -15,6 +15,7 @@ class SettingsTable;
 class SettingsManager : public QObject
 {
 	Q_OBJECT
+
 public:
 	///
 	/// @brief Construct a settings manager and assign a hyperhdr instance
@@ -54,7 +55,7 @@ signals:
 	///
 	void settingsChanged(settings::type type, const QJsonDocument& data);
 
-private:		
+private:
 	/// Logger instance
 	Logger* _log;
 

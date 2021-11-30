@@ -1,12 +1,12 @@
 #pragma once
 
-#include <effectengine/AnimationBase.h>
 #include <effectengine/Animation_Swirl.h>
 class Animation_Waves : public AnimationBase
 {
 	Q_OBJECT
 
-public:	
+public:
+
 	Animation_Waves(QString name);
 
 	void Init(
@@ -14,20 +14,18 @@ public:
 		int hyperLatchTime) override;
 
 	bool Play(QPainter* painter) override;
+
 private:
+
 	Point2d getPoint(const QImage& hyperImage, bool random, double x, double y);
-	int   getSTime(int hyperLatchTime, int _rt, double steps);
-		
-	void  buildGradient(QList<Animation_Swirl::SwirlGradient>& ba, bool withAlpha, QList<Animation_Swirl::SwirlColor> cc, bool closeCircle);
-	bool  imageRadialGradient(QPainter* painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray);
+	int		getSTime(int hyperLatchTime, int _rt, double steps);	
+	bool	imageRadialGradient(QPainter* painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray);
 
-	Point2d pointS1;
-
-	
+	Point2d			pointS1;
 	QList<Animation_Swirl::SwirlGradient> baS1;
-	int		       diag;
-	QList<uint8_t> positions;
-	qint64         targetTime;
+	int				diag;
+	QList<uint8_t>	positions;
+	qint64			targetTime;
 
 protected:
 
@@ -37,6 +35,6 @@ protected:
 	double center_y;
 	bool random_center;
 	int  reverse_time;
-	
+
 	QList<Animation_Swirl::SwirlColor> custom_colors;
 };

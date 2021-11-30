@@ -8,9 +8,12 @@ class Animation_DoubleSwirl : public Animation_Swirl
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
+
 	Animation_DoubleSwirl(QString name=ANIM_DOUBLE_SWIRL);
 
 	static EffectDefinition getDefinition();	

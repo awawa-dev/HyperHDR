@@ -15,8 +15,9 @@ class HyperHdrInstance;
 class SystemControl : public QObject
 {
 	Q_OBJECT
+
 public:
-	SystemControl(HyperHdrInstance* hyperhdr);	
+	SystemControl(HyperHdrInstance* hyperhdr);
 
 	quint8 getCapturePriority()
 	{
@@ -42,18 +43,18 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);	
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief forward v4l image
 	/// @param image  The image
 	///
-	void handleSysImage(const QString& name, const Image<ColorRgb> & image);
+	void handleSysImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
 	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
 	///
-	void setSysInactive();	
+	void setSysInactive();
 
 private:
 	/// HyperHdr instance

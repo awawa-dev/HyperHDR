@@ -8,9 +8,12 @@ class Animation_CinemaDimLights : public Animation_Fade
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
+
 	Animation_CinemaDimLights(QString name=ANIM_CINEMA_DIM_LIGHTS);
 
 	static EffectDefinition getDefinition();

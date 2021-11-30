@@ -104,6 +104,8 @@ Use linux 'top' command with per core view (press 1) or preferable 'htop'. On Rp
 Check the performance statistics that are updated every minute in System➔Log page.
 
 Use preferable YUV(YUY2) or XRGB(RGB32) encoding formats if it's possible. They provide better quality and lower CPU usage.  
+
+Thanks to our colleague @mjoshd there is a HyperHDR integration plugin for Home Assistant. Check the details on the website of the project [https://github.com/mjoshd/hyperhdr-ha](https://github.com/mjoshd/hyperhdr-ha) 🚀 🆕    
   
 We do not support driving WS281x and especially SK6812 LED strips directly from the Raspberry Pi although it's theoretically possible: [link](https://github.com/awawa-dev/HyperHDR/discussions/111). If you made it and it works, fine, but most of our users weren't so lucky. You should use external ESP8266/ESP32 (preferable with CH340G or CP2104 onboard) and the voltage level shifter. :warning:  
 

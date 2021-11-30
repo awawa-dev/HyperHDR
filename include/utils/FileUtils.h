@@ -25,7 +25,7 @@ namespace FileUtils {
 	/// @param[in]   ignError Ignore errors during file read (no log output)
 	/// @return               true on success else false
 	///
-	bool fileExists(const QString& path, Logger* log, bool ignError=false);
+	bool fileExists(const QString& path, Logger* log, bool ignError = false);
 
 	///
 	/// @brief read a file given by path.
@@ -35,7 +35,7 @@ namespace FileUtils {
 	/// @param[in]   ignError Ignore errors during file read (no log output)
 	/// @return               true on success else false
 	///
-	bool readFile(const QString& path, QString& data, Logger* log, bool ignError=false);
+	bool readFile(const QString& path, QString& data, Logger* log, bool ignError = false);
 
 	///
 	/// write a file given by path.
@@ -53,7 +53,7 @@ namespace FileUtils {
 	/// @param[in]   ignError Ignore errors during file delete (no log output)
 	/// @return               true on success else false
 	///
-	bool removeFile(const QString& path, Logger* log, bool ignError=false);
+	bool removeFile(const QString& path, Logger* log, bool ignError = false);
 
 	///
 	/// @brief resolve the file error and print a message

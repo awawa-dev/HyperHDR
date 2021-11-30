@@ -10,10 +10,12 @@ class Animation_KnightRider : public AnimationBase
 {
 	Q_OBJECT
 
+private:
+
 	static QJsonObject GetArgs();
 
 public:
-	
+
 	Animation_KnightRider();
 
 	void Init(
@@ -33,7 +35,5 @@ private:
 	int position;
 	int direction;
 
-	uint8_t imageData[KNIGHT_WIDTH*3];
-protected:
-	
+	uint8_t imageData[KNIGHT_WIDTH * 3];
 };

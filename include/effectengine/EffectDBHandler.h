@@ -11,12 +11,12 @@ class EffectDBHandler : public QObject
 private:
 	friend class HyperHdrDaemon;
 	EffectDBHandler(const QString& rootPath, const QJsonDocument& effectConfig, QObject* parent = nullptr);
-	static EffectDBHandler*	efhInstance;
+	static EffectDBHandler* efhInstance;
 
-public:	
-	static EffectDBHandler*	getInstance();
+public:
+	static EffectDBHandler* getInstance();
 	std::list<EffectDefinition> getEffects() const;
-	
+
 public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
@@ -24,13 +24,13 @@ signals:
 	void effectListChanged();
 
 private:
-	void updateEffects();	
+	void updateEffects();
 
 private:
 	QJsonObject		_effectConfig;
-	Logger*			_log;
+	Logger* _log;
 	const QString	_rootPath;
 
 	// available effects
-	std::list<EffectDefinition> _availableEffects;	
+	std::list<EffectDefinition> _availableEffects;
 };

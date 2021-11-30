@@ -8,7 +8,7 @@ class MFWrapper : public GrabberWrapper
 	Q_OBJECT
 
 public:
-	MFWrapper(const QString & device, const QString & configurationPath );
+	MFWrapper(const QString& device, const QString& configurationPath);
 
 private:
 	MFGrabber _grabber;

@@ -15,9 +15,10 @@ class HyperHdrInstance;
 class VideoControl : public QObject
 {
 	Q_OBJECT
+
 public:
 	VideoControl(HyperHdrInstance* hyperhdr);
-		
+
 	quint8 getCapturePriority()
 	{
 		return _usbCaptPrio;
@@ -42,22 +43,22 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);	
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief forward v4l image
 	/// @param image  The image
 	///
-	void handleUsbImage(const QString& name, const Image<ColorRgb> & image);
+	void handleUsbImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
 	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
 	///
-	void setUsbInactive();	
+	void setUsbInactive();
 
 private:
 	/// HyperHdr instance
-	HyperHdrInstance* _hyperhdr;	
+	HyperHdrInstance* _hyperhdr;
 
 	bool	_usbCaptEnabled;
 	bool	_alive;

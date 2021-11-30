@@ -10,6 +10,9 @@
 
 // QT includes
 #include <QString>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QSize>
 
 // Forward class declarations
 namespace Json { class Value; }
@@ -41,7 +44,7 @@ inline QString colorOrderToString(ColorOrder colorOrder)
 	}
 }
 
-inline ColorOrder stringToColorOrder(const QString & order)
+inline ColorOrder stringToColorOrder(const QString& order)
 {
 	if (order == "rgb")
 	{
@@ -99,9 +102,6 @@ struct Led
 	double maxY_frac;
 
 	int group;
-
-	/// the color order
-	ColorOrder colorOrder;
 };
 
 ///
@@ -109,6 +109,7 @@ struct Led
 ///
 class LedString
 {
+
 public:
 	///
 	/// Returns the led specifications
@@ -123,6 +124,13 @@ public:
 	/// @return The list with led specifications
 	///
 	const std::vector<Led>& leds() const;
+
+	/// the color order
+	ColorOrder colorOrder = ColorOrder::ORDER_RGB;
+
+	static ColorOrder createColorOrder(const QJsonObject& deviceConfig);
+	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder);
+	static QSize getLedLayoutGridSize(const QJsonArray& ledConfigArray);
 
 private:
 	/// The list with led specifications

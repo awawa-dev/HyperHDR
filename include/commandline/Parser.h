@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QtCore>
 #include "ColorOption.h"
 #include "ColorsOption.h"
 #include "DoubleOption.h"
@@ -8,192 +7,191 @@
 #include "IntOption.h"
 #include "Option.h"
 #include "RegularExpressionOption.h"
-#include "SwitchOption.h"
 #include "ValidatorOption.h"
 #include "BooleanOption.h"
 
 namespace commandline
 {
 
-class Parser : public QObject
-{
-protected:
-	QHash<QString, Option *> _options;
-	QString _errorText;
-	/* No public inheritance because we need to modify a few methods */
-	QCommandLineParser _parser;
-
-	QStringList _getNames(const char shortOption, const QString& longOption);
-	QString _getDescription(const QString& description, const QString& default_=QString());
-
-public:
-	~Parser() override;
-
-	bool parse(const QStringList &arguments);
-	void process(const QStringList &arguments);
-	void process(const QCoreApplication &app);
-	QString errorText() const;
-
-	template<class OptionT, class ... Args>
-	OptionT &add(
-		const char shortOption,
-		const QString longOption,
-		const QString description,
-		const QString default_,
-		Args ... args)
+	class Parser : public QObject
 	{
-		OptionT * option = new OptionT(
-			_getNames(shortOption, longOption),
-			_getDescription(description, default_),
-			longOption,
-			default_,
-			args...);
-		addOption(option);
-		return *option;
-	}
+	protected:
+		QHash<QString, Option*> _options;
+		QString _errorText;
+		/* No public inheritance because we need to modify a few methods */
+		QCommandLineParser _parser;
 
-	/* gcc does not support default arguments for variadic templates which
-	 * makes this method necessary */
-	template<class OptionT>
-	OptionT &add(
-		const char shortOption,
-		const QString longOption,
-		const QString description,
-		const QString default_ = QString())
-	{
-		OptionT * option = new OptionT(
-			_getNames(shortOption, longOption),
-			_getDescription(description, default_),
-			longOption,
-			default_);
-		addOption(option);
-		return *option;
-	}
+		QStringList _getNames(const char shortOption, const QString& longOption);
+		QString _getDescription(const QString& description, const QString& default_ = QString());
 
-	template<class OptionT>
-	OptionT &addHidden(
-		const char shortOption,
-		const QString longOption,
-		const QString description,
-		const QString default_ = QString())
-	{
-		OptionT * option = new OptionT(
-			_getNames(shortOption, longOption),
-			_getDescription(description, default_),
-			longOption,
-			default_);
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-		option->setFlags(QCommandLineOption::HiddenFromHelp);
-		#else
-		option->setHidden(true);
-		#endif
+	public:
+		~Parser() override;
 
-		addOption(option);
-		return *option;
-	}
+		bool parse(const QStringList& arguments);
+		void process(const QStringList& arguments);
+		void process(const QCoreApplication& app);
+		QString errorText() const;
 
-	Parser(const QString& description = QString())
-	{
-		if(description.size())
-			setApplicationDescription(description);
-	}
+		template<class OptionT, class ... Args>
+		OptionT& add(
+			const char shortOption,
+			const QString longOption,
+			const QString description,
+			const QString default_,
+			Args ... args)
+		{
+			OptionT* option = new OptionT(
+				_getNames(shortOption, longOption),
+				_getDescription(description, default_),
+				longOption,
+				default_,
+				args...);
+			addOption(option);
+			return *option;
+		}
 
-	QCommandLineOption addHelpOption()
-	{
-		return _parser.addHelpOption();
-	}
+		/* gcc does not support default arguments for variadic templates which
+		 * makes this method necessary */
+		template<class OptionT>
+		OptionT& add(
+			const char shortOption,
+			const QString longOption,
+			const QString description,
+			const QString default_ = QString())
+		{
+			OptionT* option = new OptionT(
+				_getNames(shortOption, longOption),
+				_getDescription(description, default_),
+				longOption,
+				default_);
+			addOption(option);
+			return *option;
+		}
 
-	bool addOption(Option &option);
-	bool addOption(Option *option);
-	void addPositionalArgument(const QString &name, const QString &description, const QString &syntax = QString())
-	{
-		_parser.addPositionalArgument(name, description, syntax);
-	}
+		template<class OptionT>
+		OptionT& addHidden(
+			const char shortOption,
+			const QString longOption,
+			const QString description,
+			const QString default_ = QString())
+		{
+			OptionT* option = new OptionT(
+				_getNames(shortOption, longOption),
+				_getDescription(description, default_),
+				longOption,
+				default_);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+			option->setFlags(QCommandLineOption::HiddenFromHelp);
+#else
+			option->setHidden(true);
+#endif
 
-	QCommandLineOption addVersionOption()
-	{
-		return _parser.addVersionOption();
-	}
+			addOption(option);
+			return *option;
+		}
 
-	QString applicationDescription() const
-	{
-		return _parser.applicationDescription();
-	}
+		Parser(const QString& description = QString())
+		{
+			if (description.size())
+				setApplicationDescription(description);
+		}
 
-	void clearPositionalArguments()
-	{
-		_parser.clearPositionalArguments();
-	}
+		QCommandLineOption addHelpOption()
+		{
+			return _parser.addHelpOption();
+		}
 
-	QString helpText() const
-	{
-		return _parser.helpText();
-	}
+		bool addOption(Option& option);
+		bool addOption(Option* option);
+		void addPositionalArgument(const QString& name, const QString& description, const QString& syntax = QString())
+		{
+			_parser.addPositionalArgument(name, description, syntax);
+		}
 
-	bool isSet(const QString &name) const
-	{
-		return _parser.isSet(name);
-	}
+		QCommandLineOption addVersionOption()
+		{
+			return _parser.addVersionOption();
+		}
 
-	bool isSet(const Option &option) const
-	{
-		return _parser.isSet(option);
-	}
+		QString applicationDescription() const
+		{
+			return _parser.applicationDescription();
+		}
 
-	bool isSet(const Option *option) const
-	{
-		return _parser.isSet(*option);
-	}
+		void clearPositionalArguments()
+		{
+			_parser.clearPositionalArguments();
+		}
 
-	QStringList optionNames() const
-	{
-		return _parser.optionNames();
-	}
+		QString helpText() const
+		{
+			return _parser.helpText();
+		}
 
-	QStringList positionalArguments() const
-	{
-		return _parser.positionalArguments();
-	}
+		bool isSet(const QString& name) const
+		{
+			return _parser.isSet(name);
+		}
 
-	void setApplicationDescription(const QString &description)
-	{
-		_parser.setApplicationDescription(description);
-	}
+		bool isSet(const Option& option) const
+		{
+			return _parser.isSet(option);
+		}
 
-	void setSingleDashWordOptionMode(QCommandLineParser::SingleDashWordOptionMode singleDashWordOptionMode)
-	{
-		_parser.setSingleDashWordOptionMode(singleDashWordOptionMode);
-	}
+		bool isSet(const Option* option) const
+		{
+			return _parser.isSet(*option);
+		}
 
-	[[ noreturn ]] void showHelp(int exitCode = 0)
-	{
-		_parser.showHelp(exitCode);
-	}
+		QStringList optionNames() const
+		{
+			return _parser.optionNames();
+		}
 
-	QStringList unknownOptionNames() const
-	{
-		return _parser.unknownOptionNames();
-	}
+		QStringList positionalArguments() const
+		{
+			return _parser.positionalArguments();
+		}
 
-	QString value(const QString &optionName) const
-	{
-		return _parser.value(optionName);
-	}
+		void setApplicationDescription(const QString& description)
+		{
+			_parser.setApplicationDescription(description);
+		}
 
-	QString value(const Option &option) const
-	{
-		return _parser.value(option);
-	}
+		void setSingleDashWordOptionMode(QCommandLineParser::SingleDashWordOptionMode singleDashWordOptionMode)
+		{
+			_parser.setSingleDashWordOptionMode(singleDashWordOptionMode);
+		}
 
-	QStringList values(const QString &optionName) const
-	{
-		return _parser.values(optionName);
-	}
+		[[ noreturn ]] void showHelp(int exitCode = 0)
+		{
+			_parser.showHelp(exitCode);
+		}
 
-	QStringList values(const Option &option) const
-	{
-		return _parser.values(option);
-	}
-};
+		QStringList unknownOptionNames() const
+		{
+			return _parser.unknownOptionNames();
+		}
+
+		QString value(const QString& optionName) const
+		{
+			return _parser.value(optionName);
+		}
+
+		QString value(const Option& option) const
+		{
+			return _parser.value(option);
+		}
+
+		QStringList values(const QString& optionName) const
+		{
+			return _parser.values(optionName);
+		}
+
+		QStringList values(const Option& option) const
+		{
+			return _parser.values(option);
+		}
+	};
 
 }

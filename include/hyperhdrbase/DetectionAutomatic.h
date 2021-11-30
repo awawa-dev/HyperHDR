@@ -8,19 +8,17 @@
 
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
-#include <utils/ImageResampler.h>
+#include <utils/FrameDecoder.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 #include <QJsonDocument>
 #include <QSemaphore>
 
-class DetectionAutomatic: public QObject
+class DetectionAutomatic : public QObject
 {
 	Q_OBJECT
 public:
-	DetectionAutomatic();
-
-	bool getDetectionAutoSignal();
+	DetectionAutomatic();	
 
 	struct calibrationPoint
 	{
@@ -34,23 +32,26 @@ public:
 
 	bool checkSignalDetectionAutomatic(Image<ColorRgb>& image);
 
+	bool getDetectionAutoSignal();
+
 	bool isCalibrating();
 
+	void setAutoSignalParams(bool _saveResources, int errorTolerance, int modelTolerance, int sleepTime, int wakeTime);
+
+	void setAutomaticCalibrationData(QString signature, int quality, int width, int height,
+		std::vector<DetectionAutomatic::calibrationPoint> sdrVec, std::vector<DetectionAutomatic::calibrationPoint> hdrVec);
+
+public slots:
 	QJsonDocument startCalibration();
 
 	QJsonDocument stopCalibration();
 
 	QJsonDocument getCalibrationInfo();
 
-	void setAutoSignalParams(bool _saveResources, int errorTolerance, int modelTolerance, int sleepTime, int wakeTime);
-
-	void setAutomaticCalibrationData(QString signature, int quality, int width, int height,
-		std::vector<DetectionAutomatic::calibrationPoint> sdrVec, std::vector<DetectionAutomatic::calibrationPoint> hdrVec);	
-
 private:
-	Logger*		_log;
+	Logger* _log;	
 
-	enum class calibrationPhase { WAITING_FOR_SDR, CALIBRATING_SDR, WAITING_FOR_HDR, CALIBRATING_HDR };	
+	enum class calibrationPhase { WAITING_FOR_SDR, CALIBRATING_SDR, WAITING_FOR_HDR, CALIBRATING_HDR };
 
 	struct calibration
 	{
@@ -71,7 +72,7 @@ private:
 		QString		signature;
 		int			tolerance;
 		int			model;
-		int			quality;		
+		int			quality;
 		QString		status;
 
 		calibrationPhase currentPhase;
@@ -84,8 +85,8 @@ private:
 		void buildPoints(int _width, int _height);
 		QString getSignature();
 	} calibrationData, checkData;
-	
-	void calibrateFrame(Image<ColorRgb>& image);	
+
+	void calibrateFrame(Image<ColorRgb>& image);
 	void saveResult();
 	bool checkSignal(Image<ColorRgb>& image);
 	void resetStats();
@@ -99,5 +100,4 @@ private:
 	qint64 _offSignalTime;
 	qint64 _onSignalTime;
 	int _backupDecimation;
-	QSemaphore _semaphore;
 };

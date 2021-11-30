@@ -6,10 +6,10 @@
 
 class Animation4Music_TestEq : public AnimationBaseMusic
 {
-	Q_OBJECT	
+	Q_OBJECT
 
 public:
-	
+
 	Animation4Music_TestEq();
 
 	void Init(
@@ -24,6 +24,4 @@ public:
 	bool getImage(Image<ColorRgb>& image) override;
 private:
 	uint32_t _internalIndex;
-protected:
-	
 };

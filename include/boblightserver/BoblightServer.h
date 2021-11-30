@@ -72,23 +72,23 @@ private slots:
 	/// Slot which is called when a client closes a connection
 	/// @param connection The Connection object which is being closed
 	///
-	void closedConnection(BoblightClientConnection * connection);
+	void closedConnection(BoblightClientConnection* connection);
 
 private:
 	/// HyperHdr instance
-	HyperHdrInstance * _hyperhdr;
+	HyperHdrInstance* _hyperhdr;
 
 	/// The TCP server object
-	QTcpServer * _server;
+	QTcpServer* _server;
 
 	/// List with open connections
-	QSet<BoblightClientConnection *> _openConnections;
+	QSet<BoblightClientConnection*> _openConnections;
 
 	/// hyperhdr priority
 	int _priority;
 
 	/// Logger instance
-	Logger * _log;
+	Logger* _log;
 
 	// current port
 	uint16_t  _port;
