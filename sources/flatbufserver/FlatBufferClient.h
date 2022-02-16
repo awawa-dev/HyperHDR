@@ -140,4 +140,8 @@ private:
 
 	// Flatbuffers builder
 	flatbuffers::FlatBufferBuilder _builder;
+
+	// tone mapping
+	uint8_t	_hdrToneMappingEnabled;
+	uint8_t* _lutBuffer;
 };

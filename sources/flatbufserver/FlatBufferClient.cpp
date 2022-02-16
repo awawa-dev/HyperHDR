@@ -14,6 +14,8 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject* par
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
+	, _hdrToneMappingEnabled(0)
+	, _lutBuffer(nullptr)
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);
@@ -164,6 +166,10 @@ void FlatBufferClient::handleImageCommand(const hyperhdrnet::Image* image)
 
 		Image<ColorRgb> imageDest(width, height);
 		memmove(imageDest.memptr(), imageData->data(), imageData->size());
+
+		// tone mapping
+		ImageResampler::applyLUT((uint8_t*)imageDest.memptr(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingEnabled);
+
 		emit setGlobalInputImage(_priority, imageDest, duration);
 	}
 
