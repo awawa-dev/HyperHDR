@@ -6,7 +6,10 @@
 #include <QTimer>
 #include <QRgb>
 
-FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject* parent)
+// util includes
+#include <utils/ImageResampler.h>
+
+FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, uint8_t hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)
@@ -14,8 +17,8 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject* par
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
-	, _hdrToneMappingEnabled(0)
-	, _lutBuffer(nullptr)
+	, _hdrToneMappingEnabled(hdrToneMappingEnabled)
+	, _lutBuffer(lutBuffer)
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);

@@ -3,6 +3,7 @@
 // util
 #include <utils/Logger.h>
 #include <utils/settings.h>
+#include <utils/PixelFormat.h>
 
 // qt
 #include <QVector>
@@ -15,13 +16,13 @@ class NetOrigin;
 
 ///
 /// @brief A TcpServer to receive images of different formats with Google Flatbuffer
-/// Images will be forwarded to all HyperHdr instances
+/// Images will be forwarded to all HyperHdr instanceshttp://localhost:8090
 ///
 class FlatBufferServer : public QObject
 {
 	Q_OBJECT
 public:
-	FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
+	FlatBufferServer(const QJsonDocument& config, const QString& configurationPath, QObject* parent = nullptr);
 	~FlatBufferServer() override;
 
 public slots:
@@ -56,6 +57,11 @@ private:
 	///
 	void stopServer();
 
+	///
+	/// @brief Load LUT file
+	///
+	void loadLutFile();
+
 
 private:
 	QTcpServer* _server;
@@ -67,4 +73,10 @@ private:
 	BonjourServiceRegister* _serviceRegister = nullptr;
 
 	QVector<FlatBufferClient*> _openConnections;
+
+	// tone mapping
+	uint8_t _hdrToneMappingEnabled;
+	uint8_t* _lutBuffer;
+	bool _lutBufferInit;
+	QString	_configurationPath;
 };

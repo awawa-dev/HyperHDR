@@ -5,6 +5,8 @@
 // util
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
+#include <utils/ImageResampler.h>
+#include <utils/ColorSys.h>
 
 // bonjour
 #ifdef ENABLE_AVAHI
@@ -15,13 +17,21 @@
 #include <QJsonObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QFile>
+#include <QCoreApplication>
 
-FlatBufferServer::FlatBufferServer(const QJsonDocument& config, QObject* parent)
+#define LUT_FILE_SIZE 50331648
+
+FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& configurationPath, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _timeout(5000)
 	, _config(config)
+	, _hdrToneMappingEnabled(1)
+	, _lutBuffer(nullptr)
+	, _lutBufferInit(false)
+	, _configurationPath(configurationPath)
 {
 
 }
@@ -30,6 +40,10 @@ FlatBufferServer::~FlatBufferServer()
 {
 	stopServer();
 	delete _server;
+
+	if (_lutBuffer != NULL)
+		free(_lutBuffer);
+	_lutBuffer = NULL;
 }
 
 void FlatBufferServer::initServer()
@@ -39,6 +53,8 @@ void FlatBufferServer::initServer()
 
 	// apply config
 	handleSettingsUpdate(settings::type::FLATBUFSERVER, _config);
+
+	loadLutFile();
 }
 
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -72,7 +88,7 @@ void FlatBufferServer::newConnection()
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				FlatBufferClient* client = new FlatBufferClient(socket, _timeout, this);
+				FlatBufferClient *client = new FlatBufferClient(socket, _timeout, _hdrToneMappingEnabled, _lutBuffer, this);
 				// internal
 				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
 				connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
@@ -134,5 +150,63 @@ void FlatBufferServer::stopServer()
 		}
 		_server->close();
 		Info(_log, "Stopped");
+	}
+}
+
+// copied from Grabber::loadLutFile()
+// color should always be RGB24 for flatbuffers
+void FlatBufferServer::loadLutFile()
+{
+	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
+	QString fileName2 = QString("%1%2").arg(QCoreApplication::applicationDirPath()).arg("/lut_lin_tables.3d");
+	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
+	QList<QString> files({fileName1, fileName2, fileName3});
+
+	_lutBufferInit = false;
+
+	if (_hdrToneMappingEnabled)
+	{
+		for(QString fileName3d : files)
+		{
+			QFile file(fileName3d);
+			
+			if (file.open(QIODevice::ReadOnly))
+			{
+				size_t length;
+				Debug(_log, "LUT file found: %s", QSTRING_CSTR(fileName3d));
+				
+				length = file.size();
+
+				if (length == LUT_FILE_SIZE * 3)
+				{
+					qint64 index = 0; // RGB24
+
+					file.seek(index);
+
+					if (_lutBuffer == NULL)
+						_lutBuffer = (unsigned char*)malloc(length + 4);
+
+					if (file.read((char*)_lutBuffer, LUT_FILE_SIZE) != LUT_FILE_SIZE)
+					{
+						Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
+					}
+					else
+					{
+						_lutBufferInit = true;
+						Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
+					}
+				}
+				else
+					Error(_log, "LUT file has invalid length: %i %s. Please generate new one LUT table using the generator page.", length, QSTRING_CSTR(fileName3d));
+				
+				file.close();
+
+				return;
+			}
+			else
+				Warning(_log, "LUT file is not found here: %s", QSTRING_CSTR(fileName3d));
+		}
+
+		Error(_log, "Could not find any required LUT file");
 	}
 }

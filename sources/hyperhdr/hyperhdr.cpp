@@ -277,7 +277,7 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(this, &HyperHdrDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
 
 	// Create FlatBuffer server in thread
-	_flatBufferServer = new FlatBufferServer(getSetting(settings::type::FLATBUFSERVER));
+	_flatBufferServer = new FlatBufferServer(getSetting(settings::type::FLATBUFSERVER), _rootPath);
 	QThread* fbThread = new QThread(this);
 	fbThread->setObjectName("FlatBufferServerThread");
 	_flatBufferServer->moveToThread(fbThread);
