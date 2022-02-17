@@ -74,7 +74,6 @@ void FlatBufferClient::setHdrToneMappingEnabled(bool enabled, uint8_t* lutBuffer
 {
 	_hdrToneMappingEnabled = enabled;
 	_lutBuffer = lutBuffer;
-	Debug(_log, "_hdrToneMappingEnabled = %i", _hdrToneMappingEnabled);
 }
 
 void FlatBufferClient::disconnected()

@@ -67,10 +67,6 @@ void FlatBufferServer::setHdrToneMappingEnabled(bool enabled)
 
 	// inform clients
 	emit hdrToneMappingChanged(_hdrToneMappingEnabled && _lutBufferInit, _lutBuffer);
-
-	// // make emit
-	// emit HdrChanged(mode);
-	// emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 }
 
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -90,7 +86,6 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		
 		// HDR tone mapping
 		setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool());
-		Debug(_log, "_hdrToneMappingEnabled = %i", _hdrToneMappingEnabled);
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
