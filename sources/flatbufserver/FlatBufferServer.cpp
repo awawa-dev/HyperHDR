@@ -22,6 +22,8 @@
 
 #define LUT_FILE_SIZE 50331648
 
+FlatBufferServer* FlatBufferServer::instance = nullptr;
+
 FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& configurationPath, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
@@ -33,7 +35,7 @@ FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& c
 	, _lutBufferInit(false)
 	, _configurationPath(configurationPath)
 {
-
+	FlatBufferServer::instance = this;
 }
 
 FlatBufferServer::~FlatBufferServer()
@@ -87,7 +89,7 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		}
 		
 		// HDR tone mapping
-		setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false)? 1: 0);
+		setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool());
 		Debug(_log, "_hdrToneMappingEnabled = %i", _hdrToneMappingEnabled);
 
 		// new timeout just for new connections

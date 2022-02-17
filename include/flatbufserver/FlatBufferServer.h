@@ -23,7 +23,10 @@ class FlatBufferServer : public QObject
 	Q_OBJECT
 public:
 	FlatBufferServer(const QJsonDocument& config, const QString& configurationPath, QObject* parent = nullptr);
-	~FlatBufferServer() override;	
+	~FlatBufferServer() override;
+
+	static FlatBufferServer* instance;
+	static FlatBufferServer* getInstance(){ return instance; }
 
 signals:
 	void hdrToneMappingChanged(bool enabled, uint8_t* lutBuffer);
