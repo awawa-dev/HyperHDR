@@ -9,7 +9,7 @@
 // util includes
 #include <utils/ImageResampler.h>
 
-FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, uint8_t hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent)
+FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)
@@ -68,6 +68,13 @@ void FlatBufferClient::readyRead()
 void FlatBufferClient::forceClose()
 {
 	_socket->close();
+}
+
+void FlatBufferClient::setHdrToneMappingEnabled(bool enabled, uint8_t* lutBuffer)
+{
+	_hdrToneMappingEnabled = enabled;
+	_lutBuffer = lutBuffer;
+	Debug(_log, "_hdrToneMappingEnabled = %i", _hdrToneMappingEnabled);
 }
 
 void FlatBufferClient::disconnected()

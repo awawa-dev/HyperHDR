@@ -26,7 +26,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit FlatBufferClient(QTcpSocket* socket, int timeout, uint8_t hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent = nullptr);
+	explicit FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent = nullptr);
 
 signals:
 	///
@@ -64,6 +64,11 @@ public slots:
 	/// @brief close the socket and call disconnected()
 	///
 	void forceClose();
+
+	///
+	/// @brief Change HDR tone mapping
+	///
+	void setHdrToneMappingEnabled(bool enabled, uint8_t* lutBuffer);
 
 private slots:
 	///
@@ -142,6 +147,6 @@ private:
 	flatbuffers::FlatBufferBuilder _builder;
 
 	// tone mapping
-	uint8_t	_hdrToneMappingEnabled;
+	bool _hdrToneMappingEnabled;
 	uint8_t* _lutBuffer;
 };

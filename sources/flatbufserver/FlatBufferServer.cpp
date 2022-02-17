@@ -28,7 +28,7 @@ FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& c
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _timeout(5000)
 	, _config(config)
-	, _hdrToneMappingEnabled(1)
+	, _hdrToneMappingEnabled(false)
 	, _lutBuffer(nullptr)
 	, _lutBufferInit(false)
 	, _configurationPath(configurationPath)
@@ -57,6 +57,20 @@ void FlatBufferServer::initServer()
 	loadLutFile();
 }
 
+void FlatBufferServer::setHdrToneMappingEnabled(bool enabled)
+{
+	_hdrToneMappingEnabled = enabled;
+	if (_hdrToneMappingEnabled)
+		loadLutFile();
+
+	// inform clients
+	emit hdrToneMappingChanged(_hdrToneMappingEnabled && _lutBufferInit, _lutBuffer);
+
+	// // make emit
+	// emit HdrChanged(mode);
+	// emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
+}
+
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if (type == settings::type::FLATBUFSERVER)
@@ -71,6 +85,10 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 			stopServer();
 			_port = port;
 		}
+		
+		// HDR tone mapping
+		setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false)? 1: 0);
+		Debug(_log, "_hdrToneMappingEnabled = %i", _hdrToneMappingEnabled);
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
@@ -96,6 +114,7 @@ void FlatBufferServer::newConnection()
 				connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
 				connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
 				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &FlatBufferClient::registationRequired);
+				connect(this, &FlatBufferServer::hdrToneMappingChanged, client, &FlatBufferClient::setHdrToneMappingEnabled);
 				_openConnections.append(client);
 			}
 			else
