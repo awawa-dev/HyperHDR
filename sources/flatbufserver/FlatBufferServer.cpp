@@ -169,14 +169,30 @@ void FlatBufferServer::stopServer()
 	}
 }
 
+QString FlatBufferServer::GetSharedLut()
+{
+#ifdef __APPLE__
+	QString ret = QString("%1%2").arg(QCoreApplication::applicationDirPath()).arg("/../lut");
+	QFileInfo info(ret);
+	ret = info.absoluteFilePath();
+	return ret;
+#else
+	return QCoreApplication::applicationDirPath();
+#endif
+}
+
 // copied from Grabber::loadLutFile()
 // color should always be RGB24 for flatbuffers
 void FlatBufferServer::loadLutFile()
 {
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
-	QString fileName2 = QString("%1%2").arg(QCoreApplication::applicationDirPath()).arg("/lut_lin_tables.3d");
+	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
+	QList<QString> files({fileName1, fileName2});
+
+#ifdef __linux__
 	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
-	QList<QString> files({fileName1, fileName2, fileName3});
+	files.append(fileName3);
+#endif
 
 	_lutBufferInit = false;
 

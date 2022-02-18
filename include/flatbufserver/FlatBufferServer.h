@@ -65,6 +65,12 @@ private:
 	///
 	void stopServer();
 
+
+	///
+	/// @brief Get shared LUT file folder
+	///
+	QString GetSharedLut();
+
 	///
 	/// @brief Load LUT file
 	///
