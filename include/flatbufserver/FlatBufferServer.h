@@ -3,7 +3,6 @@
 // util
 #include <utils/Logger.h>
 #include <utils/settings.h>
-#include <utils/PixelFormat.h>
 
 // qt
 #include <QVector>
@@ -16,7 +15,7 @@ class NetOrigin;
 
 ///
 /// @brief A TcpServer to receive images of different formats with Google Flatbuffer
-/// Images will be forwarded to all HyperHdr instanceshttp://localhost:8090
+/// Images will be forwarded to all HyperHdr instances
 ///
 class FlatBufferServer : public QObject
 {

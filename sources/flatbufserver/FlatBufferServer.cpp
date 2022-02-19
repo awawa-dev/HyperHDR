@@ -5,8 +5,6 @@
 // util
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
-#include <utils/ImageResampler.h>
-#include <utils/ColorSys.h>
 
 // bonjour
 #ifdef ENABLE_AVAHI
