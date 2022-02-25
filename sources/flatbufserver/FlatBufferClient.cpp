@@ -7,7 +7,7 @@
 #include <QRgb>
 
 // util includes
-#include <utils/ImageResampler.h>
+#include <utils/FrameDecoder.h>
 
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent)
 	: QObject(parent)
@@ -177,7 +177,7 @@ void FlatBufferClient::handleImageCommand(const hyperhdrnet::Image* image)
 		memmove(imageDest.memptr(), imageData->data(), imageData->size());
 
 		// tone mapping
-		ImageResampler::applyLUT((uint8_t*)imageDest.memptr(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingEnabled);
+		FrameDecoder::applyLUT((uint8_t*)imageDest.memptr(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingEnabled);
 
 		emit setGlobalInputImage(_priority, imageDest, duration);
 	}
