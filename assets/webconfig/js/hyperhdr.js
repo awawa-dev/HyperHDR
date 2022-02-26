@@ -189,8 +189,13 @@ function initWebSocket()
 						if (tan != -1)
 						{
 							var error = response.hasOwnProperty("error") ? response.error : "unknown";
-							$(window.hyperhdr).trigger({ type: "error", reason: error });
-							console.log("[window.websocket::onmessage] ", error);
+
+							if (error == "Not ready")
+								window.location.reload();
+							else							
+								$(window.hyperhdr).trigger({ type: "error", reason: error });
+
+							console.log("[window.websocket::onmessage] ", error);							
 						}
 					}
 				}

@@ -75,8 +75,6 @@ public:
 	///
 	void sendMessage(const uint8_t* buffer, uint32_t size);
 
-	bool isFree();
-
 public slots:
 	///
 	/// @brief Set the leds according to the given image
@@ -135,6 +133,7 @@ private:
 	Logger* _log;
 	flatbuffers::FlatBufferBuilder _builder;
 
-	bool _registered;
-	bool _free;
+	bool	 _registered;
+	bool	 _sent;
+	uint64_t _lastSendImage;
 };

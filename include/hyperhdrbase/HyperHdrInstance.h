@@ -102,11 +102,11 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() { return _readOnlyMode; };
-
 	ImageProcessor* getImageProcessor();
 
 public slots:
+
+	bool getReadOnlyMode() { return _readOnlyMode; };
 
 	void saveCalibration(QString saveData);
 

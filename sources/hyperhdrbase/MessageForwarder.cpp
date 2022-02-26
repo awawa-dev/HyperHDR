@@ -13,6 +13,7 @@
 // qt includes
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QThread>
 
 #include <flatbufserver/FlatBufferConnection.h>
 
@@ -24,6 +25,8 @@ MessageForwarder::MessageForwarder(HyperHdrInstance* hyperhdr)
 	, _forwarder_enabled(true)
 	, _priority(140)
 {
+	_messageForwarderHelper = new MessageForwarderHelper();
+
 	// get settings updates
 	connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &MessageForwarder::handleSettingsUpdate);
 
@@ -38,6 +41,45 @@ MessageForwarder::MessageForwarder(HyperHdrInstance* hyperhdr)
 }
 
 MessageForwarder::~MessageForwarder()
+{	
+	disconnect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, 0, 0);
+	disconnect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, 0, 0);
+	
+	delete _messageForwarderHelper;
+}
+
+MessageForwarderHelper::MessageForwarderHelper()
+{
+	_free = true;
+
+	QThread* mainThread = new QThread();
+	mainThread->setObjectName("ForwarderHelperThread");
+	this->moveToThread(mainThread);
+	mainThread->start();
+
+	connect(this, &MessageForwarderHelper::addClient, this, &MessageForwarderHelper::addClientHandler);
+	connect(this, &MessageForwarderHelper::clearClients, this, &MessageForwarderHelper::clearClientsHandler);	
+}
+
+MessageForwarderHelper::~MessageForwarderHelper()
+{
+	while (!_forwardClients.isEmpty())
+		_forwardClients.takeFirst()->deleteLater();
+
+	QThread* oldThread = this->thread();
+	disconnect(oldThread, nullptr, nullptr, nullptr);
+	oldThread->quit();
+	oldThread->wait();
+	delete oldThread;
+}
+
+void MessageForwarderHelper::addClientHandler(const QString& origin, const QString& address, int priority, bool skipReply)
+{
+	FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", address, priority, false);
+	_forwardClients << flatbuf;
+}
+
+void MessageForwarderHelper::clearClientsHandler()
 {
 	while (!_forwardClients.isEmpty())
 		delete _forwardClients.takeFirst();
@@ -50,8 +92,8 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 		// clear the current targets
 		_jsonSlaves.clear();
 		_flatSlaves.clear();
-		while (!_forwardClients.isEmpty())
-			delete _forwardClients.takeFirst();
+
+		emit _messageForwarderHelper->clearClients();
 
 		// build new one
 		const QJsonObject& obj = config.object();
@@ -95,7 +137,7 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 				connect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 			}
 			else  if (activeCompId == hyperhdr::COMP_VIDEOGRABBER)
-			{				
+			{
 				connect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 			}
 		}
@@ -228,8 +270,7 @@ void MessageForwarder::addFlatbufferSlave(const QString& slave)
 	if (_forwarder_enabled && !_flatSlaves.contains(slave))
 	{
 		_flatSlaves << slave;
-		FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
-		_forwardClients << flatbuf;
+		emit _messageForwarderHelper->addClient("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
 	}
 }
 
@@ -253,12 +294,27 @@ void MessageForwarder::forwardJsonMessage(const QJsonObject& message)
 
 void MessageForwarder::forwardFlatbufferMessage(const QString& name, const Image<ColorRgb>& image)
 {
-	if (_forwarder_enabled)
+	bool isfree = _messageForwarderHelper->isFree();
+
+	if (isfree && _forwarder_enabled)
+		QMetaObject::invokeMethod(_messageForwarderHelper, "forwardImage", Qt::QueuedConnection, Q_ARG(Image<ColorRgb>, image));
+}
+
+bool MessageForwarderHelper::isFree()
+{	
+	return _free;
+}
+
+void MessageForwarderHelper::forwardImage(const Image<ColorRgb>& image)
+{
+	_free = false;
+	
+	for (int i = 0; i < _forwardClients.size(); i++)
 	{
-		for (int i = 0; i < _forwardClients.size(); i++)
-			if (_forwardClients.at(i)->isFree())
-				emit _forwardClients.at(i)->onImage(image);
+		_forwardClients.at(i)->setImage(image);
 	}
+	
+	_free = true;
 }
 
 void MessageForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* socket)

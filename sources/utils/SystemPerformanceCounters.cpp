@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2021 awawa-dev
+*  Copyright (c) 2022 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -341,7 +341,7 @@ QString SystemPerformanceCounters::getTEMP()
 			{
 				double tempVal = temp / 1000.0f;
 				QString color = (tempVal <= 65) ? "ForestGreen" : ((tempVal <= 75) ? "orange" : "red");
-				result = QString("<font color='%1'><b>%2%</b></font>").arg(color).arg(QString::number(tempVal, 'f', 2));
+				result = QString("<font color='%1'><b>%2</b></font>").arg(color).arg(QString::number(tempVal, 'f', 2));
 			}
 			
 			fclose(fp);

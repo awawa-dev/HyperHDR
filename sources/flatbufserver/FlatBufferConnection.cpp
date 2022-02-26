@@ -3,6 +3,7 @@
 
 // Qt includes
 #include <QRgb>
+#include <QDateTime>
 
 // flatbuffer includes
 #include <flatbufserver/FlatBufferConnection.h>
@@ -18,7 +19,8 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
 	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _registered(false)
-	, _free(true)
+	, _sent(false)
+	, _lastSendImage(0)
 {
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
@@ -129,7 +131,22 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int priority, int dur
 
 void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 {
-	_free = false;
+	auto current = QDateTime::currentMSecsSinceEpoch();
+	auto outOfTime = (current - _lastSendImage);
+
+	if (_sent && outOfTime < 1000)
+		return;
+
+	if (_lastSendImage > 0)
+	{
+		if (outOfTime >= 1000)
+			Warning(_log, "Critical low network performance for Flatbuffers stream (frame sent time: %ims)", int(outOfTime));
+		else if (outOfTime > 300)
+			Warning(_log, "Poor network performance for Flatbuffers stream (frame sent time: %ims)", int(outOfTime));
+	}
+
+	_sent = true;
+	_lastSendImage = current;
 
 	auto imgData = _builder.CreateVector(reinterpret_cast<const uint8_t*>(image.memptr()), image.size());
 	auto rawImg = hyperhdrnet::CreateRawImage(_builder, imgData, image.width(), image.height());
@@ -139,14 +156,6 @@ void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
 	_builder.Clear();
-
-	_free = true;
-}
-
-
-bool FlatBufferConnection::isFree()
-{
-	return _free;
 }
 
 void FlatBufferConnection::clear(int priority)
@@ -217,6 +226,8 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 
 bool FlatBufferConnection::parseReply(const hyperhdrnet::Reply* reply)
 {
+	_sent = false;
+
 	if (!reply->error())
 	{
 		// no error set must be a success or registered or video

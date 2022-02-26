@@ -27,6 +27,7 @@
 class HyperHdrInstance;
 class QTcpSocket;
 class FlatBufferConnection;
+class MessageForwarderHelper;
 
 class MessageForwarder : public QObject
 {
@@ -93,11 +94,35 @@ private:
 	QStringList   _jsonSlaves;
 
 	/// Proto connection for forwarding
-	QStringList _flatSlaves;
-	QList<FlatBufferConnection*> _forwardClients;
+	QStringList _flatSlaves;	
 
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled = true;
 
-	const int _priority;
+	const int	_priority;
+
+	MessageForwarderHelper* _messageForwarderHelper;	
+};
+
+class MessageForwarderHelper : public QObject
+{
+	Q_OBJECT
+
+	QList<FlatBufferConnection*> _forwardClients;
+	bool _free;
+
+public:
+	MessageForwarderHelper();
+
+	~MessageForwarderHelper();
+
+signals:
+	void addClient(const QString& origin, const QString& address, int priority, bool skipReply);
+	void clearClients();
+
+public slots:
+	bool isFree();
+	void forwardImage(const Image<ColorRgb>& image);
+	void addClientHandler(const QString& origin, const QString& address, int priority, bool skipReply);
+	void clearClientsHandler();
 };
