@@ -84,6 +84,20 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 		if (!_flatSlaves.isEmpty() && obj["enable"].toBool() && _forwarder_enabled)
 		{
 			InfoIf(obj["enable"].toBool(true), _log, "Forward now to flatbuffer targets '%s'", QSTRING_CSTR(_flatSlaves.join(", ")));
+
+			hyperhdr::Components activeCompId = _hyperhdr->getPriorityInfo(_hyperhdr->getCurrentPriority()).componentId;
+
+			disconnect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, 0, 0);
+			disconnect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, 0, 0);
+
+			if (activeCompId == hyperhdr::COMP_SYSTEMGRABBER)
+			{
+				connect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+			}
+			else  if (activeCompId == hyperhdr::COMP_VIDEOGRABBER)
+			{				
+				connect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+			}
 		}
 		else if (_flatSlaves.isEmpty() || !obj["enable"].toBool() || !_forwarder_enabled)
 		{
