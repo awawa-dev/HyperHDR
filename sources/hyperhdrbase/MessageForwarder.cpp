@@ -242,7 +242,8 @@ void MessageForwarder::forwardFlatbufferMessage(const QString& name, const Image
 	if (_forwarder_enabled)
 	{
 		for (int i = 0; i < _forwardClients.size(); i++)
-			_forwardClients.at(i)->setImage(image);
+			if (_forwardClients.at(i)->isFree())
+				emit _forwardClients.at(i)->onImage(image);
 	}
 }
 

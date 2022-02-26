@@ -17,6 +17,7 @@
 #include <QTcpSocket>
 #include <QFile>
 #include <QCoreApplication>
+#include <QFileInfo>
 
 #define LUT_FILE_SIZE 50331648
 
@@ -44,6 +45,8 @@ FlatBufferServer::~FlatBufferServer()
 	if (_lutBuffer != NULL)
 		free(_lutBuffer);
 	_lutBuffer = NULL;
+
+	FlatBufferServer::instance = nullptr;
 }
 
 void FlatBufferServer::initServer()
@@ -59,12 +62,13 @@ void FlatBufferServer::initServer()
 
 void FlatBufferServer::setHdrToneMappingEnabled(bool enabled)
 {
-	_hdrToneMappingEnabled = enabled;
-	if (_hdrToneMappingEnabled)
+	bool status = _hdrToneMappingEnabled && enabled;
+
+	if (status)
 		loadLutFile();
 
 	// inform clients
-	emit hdrToneMappingChanged(_hdrToneMappingEnabled && _lutBufferInit, _lutBuffer);
+	emit hdrToneMappingChanged(status && _lutBufferInit, _lutBuffer);
 }
 
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -81,9 +85,10 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 			stopServer();
 			_port = port;
 		}
-		
+
 		// HDR tone mapping
-		setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool());
+		_hdrToneMappingEnabled = obj["hdrToneMapping"].toBool();
+		setHdrToneMappingEnabled(_hdrToneMappingEnabled);
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
@@ -101,7 +106,7 @@ void FlatBufferServer::newConnection()
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				FlatBufferClient *client = new FlatBufferClient(socket, _timeout, _hdrToneMappingEnabled, _lutBuffer, this);
+				FlatBufferClient* client = new FlatBufferClient(socket, _timeout, _hdrToneMappingEnabled, _lutBuffer, this);
 				// internal
 				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
 				connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
@@ -185,7 +190,7 @@ void FlatBufferServer::loadLutFile()
 {
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
-	QList<QString> files({fileName1, fileName2});
+	QList<QString> files({ fileName1, fileName2 });
 
 #ifdef __linux__
 	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
@@ -196,15 +201,15 @@ void FlatBufferServer::loadLutFile()
 
 	if (_hdrToneMappingEnabled)
 	{
-		for(QString fileName3d : files)
+		for (QString fileName3d : files)
 		{
 			QFile file(fileName3d);
-			
+
 			if (file.open(QIODevice::ReadOnly))
 			{
 				size_t length;
 				Debug(_log, "LUT file found: %s", QSTRING_CSTR(fileName3d));
-				
+
 				length = file.size();
 
 				if (length == LUT_FILE_SIZE * 3)
@@ -228,7 +233,7 @@ void FlatBufferServer::loadLutFile()
 				}
 				else
 					Error(_log, "LUT file has invalid length: %i %s. Please generate new one LUT table using the generator page.", length, QSTRING_CSTR(fileName3d));
-				
+
 				file.close();
 
 				return;

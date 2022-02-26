@@ -9,7 +9,7 @@
 // util includes
 #include <utils/FrameDecoder.h>
 
-FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent)
+FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)

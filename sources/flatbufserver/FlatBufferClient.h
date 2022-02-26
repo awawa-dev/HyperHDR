@@ -26,7 +26,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject *parent = nullptr);
+	explicit FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent = nullptr);
 
 signals:
 	///

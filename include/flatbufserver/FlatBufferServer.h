@@ -25,7 +25,7 @@ public:
 	~FlatBufferServer() override;
 
 	static FlatBufferServer* instance;
-	static FlatBufferServer* getInstance(){ return instance; }
+	static FlatBufferServer* getInstance() { return instance; }
 
 signals:
 	void hdrToneMappingChanged(bool enabled, uint8_t* lutBuffer);

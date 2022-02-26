@@ -25,6 +25,7 @@
 #include <HyperhdrConfig.h>
 #include <utils/SysInfo.h>
 #include <utils/ColorSys.h>
+#include <flatbufserver/FlatBufferServer.h>
 
 // bonjour wrapper
 #include <bonjour/bonjourbrowserwrapper.h>
@@ -211,7 +212,7 @@ bool API::setComponentState(const QString& comp, bool& compState, QString& reply
 		input = "VIDEOGRABBER";
 	Components component = stringToComponent(input);
 	if (component == COMP_ALL)
-	{		
+	{
 		QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "toggleStateAllInstances", Qt::QueuedConnection, Q_ARG(bool, compState));
 
 		return true;
@@ -237,7 +238,11 @@ void API::setLedMappingType(int type, hyperhdr::Components callerComp)
 
 void API::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
 {
-	QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(int, hdr));
+	if (GrabberWrapper::getInstance() != nullptr)
+		QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(int, hdr));
+
+	if (FlatBufferServer::getInstance() != nullptr)
+		QMetaObject::invokeMethod(FlatBufferServer::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(bool, hdr));
 }
 
 bool API::setEffect(const EffectCmdData& dat, hyperhdr::Components callerComp)
