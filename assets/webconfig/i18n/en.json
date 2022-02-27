@@ -1144,5 +1144,7 @@
   "perf_no" : "No",
   "perf_decoding_time": "time",
   "perf_frames" : "frames",
-  "perf_invalid_frames" : "invalid frames"
+  "perf_invalid_frames" : "invalid frames",
+  "edt_conf_fbs_tonemapping_expl": "If enabled, HyperHDR will try to correct colors of the HDR10 content that was received by flatbuffers as SDR format. Default 3D LUT file <span class='fw-bold'>'lut_lin_tables.3d'</span> is already included.<span class='fw-bold'> You can generate one and preview the effect using link in the 'Advanced menu'.</span><br/>Your typical hidden configuration folder to upload that file in is (check 'Logs' page to confirm):<br/> Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
+  "edt_conf_fbs_tonemapping_title": "HDR to SDR tone mapping"
 } 

@@ -21,8 +21,14 @@ class FlatBufferServer : public QObject
 {
 	Q_OBJECT
 public:
-	FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
+	FlatBufferServer(const QJsonDocument& config, const QString& configurationPath, QObject* parent = nullptr);
 	~FlatBufferServer() override;
+
+	static FlatBufferServer* instance;
+	static FlatBufferServer* getInstance() { return instance; }
+
+signals:
+	void hdrToneMappingChanged(bool enabled, uint8_t* lutBuffer);
 
 public slots:
 	///
@@ -33,6 +39,8 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void initServer();
+
+	void setHdrToneMappingEnabled(bool enabled);
 
 private slots:
 	///
@@ -57,6 +65,17 @@ private:
 	void stopServer();
 
 
+	///
+	/// @brief Get shared LUT file folder
+	///
+	QString GetSharedLut();
+
+	///
+	/// @brief Load LUT file
+	///
+	void loadLutFile();
+
+
 private:
 	QTcpServer* _server;
 	NetOrigin* _netOrigin;
@@ -67,4 +86,10 @@ private:
 	BonjourServiceRegister* _serviceRegister = nullptr;
 
 	QVector<FlatBufferClient*> _openConnections;
+
+	// tone mapping
+	bool _hdrToneMappingEnabled;
+	uint8_t* _lutBuffer;
+	bool _lutBufferInit;
+	QString	_configurationPath;
 };

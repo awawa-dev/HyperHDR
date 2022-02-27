@@ -32,6 +32,15 @@
 			"minimum" : 1,
 			"default" : 5,
 			"propertyOrder" : 3
+		},
+		"hdrToneMapping" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"required" : true,
+			"title" : "edt_conf_fbs_tonemapping_title",
+			"default" : false,
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties" : false

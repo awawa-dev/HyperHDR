@@ -75,6 +75,8 @@ public:
 	///
 	void sendMessage(const uint8_t* buffer, uint32_t size);
 
+	bool isFree();
+
 public slots:
 	///
 	/// @brief Set the leds according to the given image
@@ -99,6 +101,8 @@ signals:
 	/// @brief emits when a new videoMode was requested from flatbuf client
 	///
 	///void setVideoModeHdr(int hdr);
+
+	void onImage(const Image<ColorRgb>& image);
 
 private:
 
@@ -132,4 +136,5 @@ private:
 	flatbuffers::FlatBufferBuilder _builder;
 
 	bool _registered;
+	bool _free;
 };

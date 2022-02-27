@@ -18,6 +18,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
 	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _registered(false)
+	, _free(true)
 {
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
@@ -45,6 +46,8 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 
 	connect(&_timer, &QTimer::timeout, this, &FlatBufferConnection::connectToHost);
 	_timer.start();
+
+	connect(this, &FlatBufferConnection::onImage, this, &FlatBufferConnection::setImage);
 }
 
 FlatBufferConnection::~FlatBufferConnection()
@@ -126,6 +129,8 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int priority, int dur
 
 void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 {
+	_free = false;
+
 	auto imgData = _builder.CreateVector(reinterpret_cast<const uint8_t*>(image.memptr()), image.size());
 	auto rawImg = hyperhdrnet::CreateRawImage(_builder, imgData, image.width(), image.height());
 	auto imageReq = hyperhdrnet::CreateImage(_builder, hyperhdrnet::ImageType_RawImage, rawImg.Union(), -1);
@@ -134,6 +139,14 @@ void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
 	_builder.Clear();
+
+	_free = true;
+}
+
+
+bool FlatBufferConnection::isFree()
+{
+	return _free;
 }
 
 void FlatBufferConnection::clear(int priority)
