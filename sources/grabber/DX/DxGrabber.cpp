@@ -410,7 +410,6 @@ bool DxGrabber::init_device(QString selectedDeviceName)
 					Error(_log, "Cast to IDXGIOutput1 failed");
 			}
 			SafeRelease(&pOutput);
-			exitNow = true;
 		}
 		SafeRelease(&pAdapter);
 	}
