@@ -31,9 +31,6 @@ function createLedPreview(leds, origin)
 	_lastLeds = leds;
 	_lastOrigin = origin;
 	
-	if (typeof _resizeObserver === "object" && !(_resizeObserver === null))
-		_resizeObserver.unobserve(document.getElementById("leds_preview"));
-	
 	if (!ledStarter)
 		$('#collapse1').collapse('toggle');
 	
@@ -119,9 +116,6 @@ function createLedPreview(leds, origin)
 
 	// update ace Editor content
 	aceEdt.set(finalLedArray);
-
-	if (typeof _resizeObserver === "object" && !(_resizeObserver === null))
-		_resizeObserver.observe(document.getElementById("leds_preview"));
 }
 
 function createClassicLedLayoutSimple(ledstop, ledsleft, ledsright, ledsbottom, position, groupX, groupY, reverse)
@@ -962,6 +956,12 @@ $(document).ready(function()
 		{
 			$('#leds_custom_updsim').trigger('click');
 			ledsCustomCfgInitialized = true;
+			
+			if (typeof _resizeObserver === "object" && !(_resizeObserver === null))
+			{
+				_resizeObserver.unobserve(document.getElementById("leds_preview"));
+				_resizeObserver.observe(document.getElementById("leds_preview"));
+			}
 		}
 	});
 
