@@ -125,7 +125,7 @@ QString SystemPerformanceCounters::getCPU()
 
 						valCPU = usage / total;
 
-						retVal += QString(" %1").arg(QString::number(valCPU, 'f', 2));
+						retVal += QString("%1").arg(getChar(valCPU));
 
 						totUsage += usage;
 						totTotal += total;
@@ -138,7 +138,7 @@ QString SystemPerformanceCounters::getCPU()
 							((valCPU < 90) ? "<font color='orange'>%1%</font>" :
 								"<font color='red'>%1%</font>")).arg(QString::number(valCPU, 'f', 0), 2);
 
-					result = QString("%1 (<b>%2</b>)").arg(retVal.right(retVal.length() - 1)).arg(retTotal);
+					result = QString("<span style='font-family: ""Courier New"", Courier, monospace;'>%1</span> (<b>%2</b>)").arg(retVal).arg(retTotal);
 
 					size_t prevCpuInfoSize = sizeof(integer_t) * prevPerfNum;
 					vm_deallocate(mach_task_self(), (vm_address_t)prevPerfStats, prevCpuInfoSize);					

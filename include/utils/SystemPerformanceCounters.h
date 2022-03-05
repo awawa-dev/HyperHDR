@@ -16,6 +16,26 @@ class SystemPerformanceCounters
 	private:
 		bool isInitialized = false;
 		void init();
+		QString getChar(double val)
+		{
+			auto m= 8.0f;
+			if (val > 7 / m)
+				return "<font color='red'>&#9607</font>";
+			else if (val > 6 / m)
+				return "<font color='orange'>&#9607</font>";
+			else if (val > 5 / m)
+				return "<font color='orange'>&#9606</font>";
+			else if (val > 4 / m)
+				return "<font color='ForestGreen'>&#9605</font>";
+			else if (val > 3 / m)
+				return "<font color='ForestGreen'>&#9603</font>";
+			else if (val > 2 / m)
+				return "<font color='ForestGreen'>&#9603</font>";
+			else if (val > 1 / m)
+				return "<font color='ForestGreen'>&#9602</font>";
+			else
+				return "<font color='ForestGreen'>&#9601</font>";
+		}
 
 	#ifdef __linux__
 		int underVoltage = -1;

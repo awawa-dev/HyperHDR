@@ -205,7 +205,7 @@ QString SystemPerformanceCounters::getCPU()
 #endif
 
 			if (convertedStr != "_Total")
-				retVal += QString(" %1").arg(QString::number(valCPU / 100.0f, 'f', 2));
+				retVal += QString("%1").arg(getChar(valCPU / 100.0f));
 			else
 				retTotal = QString(
 					(valCPU < 50) ? "<font color='ForestGreen'>%1%</font>" :
@@ -215,7 +215,7 @@ QString SystemPerformanceCounters::getCPU()
 
 		free(buffer);
 
-		return QString("%1 (<b>%2</b>)").arg(retVal.right(retVal.length() - 1)).arg(retTotal);
+		return QString("<span style='font-family: ""Courier New"", Courier, monospace;'>%1</span> (<b>%2</b>)").arg(retVal).arg(retTotal);
 
 #else
 
@@ -248,7 +248,7 @@ QString SystemPerformanceCounters::getCPU()
 
 					if (i >= 0)
 					{
-						retVal += QString(" %1").arg(QString::number(valCPU / 100.0f, 'f', 2));
+						retVal += QString("%1").arg(getChar(valCPU / 100.0f));
 					}
 					else
 					{
@@ -259,7 +259,7 @@ QString SystemPerformanceCounters::getCPU()
 					}
 				}
 
-				return QString("%1 (<b>%2</b>)").arg(retVal.right(retVal.length() - 1)).arg(retTotal);
+				return QString("<span style='font-family: ""Courier New"", Courier, monospace;'>%1</span> (<b>%2</b>)").arg(retVal).arg(retTotal);
 			}
 		}
 

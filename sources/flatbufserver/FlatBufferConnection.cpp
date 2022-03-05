@@ -134,6 +134,9 @@ void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 	auto current = QDateTime::currentMSecsSinceEpoch();
 	auto outOfTime = (current - _lastSendImage);
 
+	if (_socket.state() != QAbstractSocket::ConnectedState)
+		return;
+
 	if (_sent && outOfTime < 1000)
 		return;
 

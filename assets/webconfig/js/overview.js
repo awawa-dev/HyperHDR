@@ -142,7 +142,7 @@ $(document).ready(function ()
 			if (curElem.type == 1)
 			{
 				let render = (curElem.token <= 0) ? waitingSpinner :
-					`<span class="card-tools"><span class="badge bg-secondary" style="font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span>` +
+					`<span class="card-tools"><span class="badge bg-secondary" style="font-size: .9em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span>` +
 					` <small>${$.i18n("perf_decoding_time")}: ${curElem.param2}ms, ${$.i18n("perf_frames")}: ${curElem.param3}, ${$.i18n("perf_invalid_frames")}: ${curElem.param4}</small>`;
 				render += ` <span class='perf_counter small text-muted'>(${curElem.refresh})</span>`;
 
@@ -180,9 +180,9 @@ $(document).ready(function ()
 
 					if (placer != null)
 					{
-						let render = (curElem.token <= 0) ? ((curElem.type == 2) ? `<span class="card-tools"><span class="badge bg-danger" style="font-weight: normal;">${curElem.name}</span></span>&nbsp;` : "") + waitingSpinner : (curElem.type == 2) ?
-							`<span class="card-tools"><span class="badge bg-danger" style="font-weight: normal;">${curElem.name}</span></span> <span class="card-tools"><span class="badge bg-secondary" style="font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param2}</small> <i class="fa fa-long-arrow-down" aria-hidden="true"></i><i class="fa fa-long-arrow-up" aria-hidden="true"></i>` :
-							`<span class="card-tools"><span class="badge bg-success" style="font-weight: normal;">${curElem.name}</span></span> <span class="card-tools"><span class="badge bg-secondary" style="font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param3} </small><i class="fa fa-long-arrow-down" aria-hidden="true"></i>  <small>${curElem.param2}</small> <i class="fa fa-long-arrow-up" aria-hidden="true"></i>`;
+						let render = (curElem.token <= 0) ? ((curElem.type == 2) ? `<span class="card-tools"><span class="badge bg-danger" style="font-size: .9em;font-weight: normal;">${curElem.name}</span></span>&nbsp;` : "") + waitingSpinner : (curElem.type == 2) ?
+							`<span class="card-tools"><span class="badge bg-danger" style="font-size: .9em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools"><span class="badge bg-secondary" style="font-size: .9em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param2}</small> <i class="fa fa-long-arrow-down" aria-hidden="true"></i><i class="fa fa-long-arrow-up" aria-hidden="true"></i>` :
+							`<span class="card-tools"><span class="badge bg-success" style="font-size: .9em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools"><span class="badge bg-secondary" style="font-size: .9em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param3} </small><i class="fa fa-long-arrow-down" aria-hidden="true"></i>  <small>${curElem.param2}</small> <i class="fa fa-long-arrow-up" aria-hidden="true"></i>`;
 						render += ` <span class='perf_counter small text-muted'>(${curElem.refresh})</span>`;
 						placer.innerHTML = render;
 					}
