@@ -143,7 +143,8 @@ $(document).ready(function ()
 			{
 				let render = (curElem.token <= 0) ? waitingSpinner :
 					`<span class="card-tools"><span class="badge bg-secondary" style="font-size: .9em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span>` +
-					` <small>${$.i18n("perf_decoding_time")}: ${curElem.param2}ms, ${$.i18n("perf_frames")}: ${curElem.param3}, ${$.i18n("perf_invalid_frames")}: ${curElem.param4}</small>`;
+					` <small>&nbsp;${curElem.param2}ms</small> <i class="fa fa-clock-o" aria-hidden="true"></i> <small>${curElem.param3}</small> <i class="fa fa-long-arrow-down" aria-hidden="true"></i><i class="fa fa-long-arrow-up" aria-hidden="true"></i>`+
+					((curElem.param4 != 0)?`, ${$.i18n("perf_invalid_frames")}: <small>${curElem.param4}</small>`:``);
 				render += ` <span class='perf_counter small text-muted'>(${curElem.refresh})</span>`;
 
 				let content = document.getElementById("perf_usb_data_holder");

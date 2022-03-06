@@ -315,9 +315,9 @@ QString SystemPerformanceCounters::getRAM()
 		FILE* pFile=fopen("/proc/meminfo", "r");
 		if (pFile != NULL)
 		{
-			if (fscanf(pFile, "MemTotal: %lu kB\n", &total) > 0 &&
-				fscanf(pFile, "MemFree: %lu kB\n", &free) > 0 &&
-				fscanf(pFile, "MemAvailable: %lu kB\n", &available) > 0)
+			if (fscanf(pFile, "MemTotal: %lu kB\n", &total) == 1 &&
+				fscanf(pFile, "MemFree: %lu kB\n", &free) == 1 &&
+				fscanf(pFile, "MemAvailable: %lu kB\n", &available) == 1)
 			{
 				physMemAv = available * 1024;
 				totalPhysMem = total * 1024;
