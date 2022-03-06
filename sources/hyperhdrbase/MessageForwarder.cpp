@@ -24,9 +24,8 @@ MessageForwarder::MessageForwarder(HyperHdrInstance* hyperhdr)
 	, _muxer(_hyperhdr->getMuxerInstance())
 	, _forwarder_enabled(true)
 	, _priority(140)
+	, _messageForwarderHelper(nullptr)
 {
-	_messageForwarderHelper = new MessageForwarderHelper();
-
 	// get settings updates
 	connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &MessageForwarder::handleSettingsUpdate);
 
@@ -44,8 +43,12 @@ MessageForwarder::~MessageForwarder()
 {	
 	disconnect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, 0, 0);
 	disconnect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, 0, 0);
-	
-	delete _messageForwarderHelper;
+
+	if (_messageForwarderHelper != nullptr)
+	{
+		delete _messageForwarderHelper;
+		_messageForwarderHelper = nullptr;
+	}
 }
 
 MessageForwarderHelper::MessageForwarderHelper()
@@ -93,10 +96,17 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 		_jsonSlaves.clear();
 		_flatSlaves.clear();
 
-		emit _messageForwarderHelper->clearClients();
-
 		// build new one
 		const QJsonObject& obj = config.object();
+
+		if (_messageForwarderHelper == nullptr)
+		{
+			if (obj["enable"].toBool())
+				_messageForwarderHelper = new MessageForwarderHelper();
+		}
+		else
+			emit _messageForwarderHelper->clearClients();
+
 		if (!obj["json"].isNull())
 		{
 			const QJsonArray& addr = obj["json"].toArray();
@@ -270,7 +280,8 @@ void MessageForwarder::addFlatbufferSlave(const QString& slave)
 	if (_forwarder_enabled && !_flatSlaves.contains(slave))
 	{
 		_flatSlaves << slave;
-		emit _messageForwarderHelper->addClient("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
+		if (_messageForwarderHelper != nullptr)
+			emit _messageForwarderHelper->addClient("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
 	}
 }
 
@@ -294,10 +305,13 @@ void MessageForwarder::forwardJsonMessage(const QJsonObject& message)
 
 void MessageForwarder::forwardFlatbufferMessage(const QString& name, const Image<ColorRgb>& image)
 {
-	bool isfree = _messageForwarderHelper->isFree();
+	if (_messageForwarderHelper != nullptr)
+	{
+		bool isfree = _messageForwarderHelper->isFree();
 
-	if (isfree && _forwarder_enabled)
-		QMetaObject::invokeMethod(_messageForwarderHelper, "forwardImage", Qt::QueuedConnection, Q_ARG(Image<ColorRgb>, image));
+		if (isfree && _forwarder_enabled)
+			QMetaObject::invokeMethod(_messageForwarderHelper, "forwardImage", Qt::QueuedConnection, Q_ARG(Image<ColorRgb>, image));
+	}
 }
 
 bool MessageForwarderHelper::isFree()
