@@ -308,8 +308,22 @@ QString SystemPerformanceCounters::getRAM()
 		long long totalPhysMem = memInfo.totalram;
 		totalPhysMem *= memInfo.mem_unit;
 
-		long long physMemAv = memInfo.freeram;
+		long long physMemAv = memInfo.freeram + memInfo.bufferram;
 		physMemAv *= memInfo.mem_unit;
+
+		unsigned long available = 0, total = 0, free = 0;
+		FILE* pFile=fopen("/proc/meminfo", "r");
+		if (pFile != NULL)
+		{
+			if (fscanf(pFile, "MemTotal: %lu kB\n", &total) > 0 &&
+				fscanf(pFile, "MemFree: %lu kB\n", &free) > 0 &&
+				fscanf(pFile, "MemAvailable: %lu kB\n", &available) > 0)
+			{
+				physMemAv = available * 1024;
+				totalPhysMem = total * 1024;
+			}
+			fclose(pFile);
+		}
 
 		totalPhysMem /= (1024 * 1024);
 		physMemAv /= (1024 * 1024);
