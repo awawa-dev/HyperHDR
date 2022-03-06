@@ -46,6 +46,7 @@ class PerformanceCounters : public QObject
 	Logger*	_log;
 	QList<PerformanceReport> _reports;
 	SystemPerformanceCounters _system;
+	qint64 _lastRead;
 
 public:
 

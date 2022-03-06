@@ -273,6 +273,9 @@ void Grabber::unblockAndRestart(bool running)
 
 		uninit();
 		start();
+
+		emit PerformanceCounters::getInstance()->newCounter(
+			PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), -1, "", -1, -1, -1, -1));
 	}
 
 	_blocked = false;

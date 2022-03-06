@@ -208,14 +208,14 @@ QString SystemPerformanceCounters::getCPU()
 				retVal += QString("%1").arg(getChar(valCPU / 100.0f));
 			else
 				retTotal = QString(
-					(valCPU < 50) ? "<font color='ForestGreen'>%1%</font>" :
-					((valCPU < 90) ? "<font color='orange'>%1%</font>" :
-						"<font color='red'>%1%</font>")).arg(QString::number(valCPU), 2);
+					(valCPU < 50) ? "<span style='color:ForestGreen'>%1%</span>" :
+					((valCPU < 90) ? "<span style='color:orange'>%1%</span>" :
+						"<span style='color:red'>%1%</span>")).arg(QString::number(valCPU), 2);
 		}
 
 		free(buffer);
 
-		return QString("<span style='font-family: ""Courier New"", Courier, monospace;'>%1</span> (<b>%2</b>)").arg(retVal).arg(retTotal);
+		return QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
 
 #else
 
@@ -242,9 +242,14 @@ QString SystemPerformanceCounters::getCPU()
 							(totalSys - lastTotalSys);
 						valCPU = total;
 						total += (totalIdle - lastTotalIdle);
-						valCPU /= total;
+						if (total != 0)
+							valCPU /= total;
+						else
+							valCPU = 0;
 						valCPU *= 100;
 					}
+
+					valCPU = std::min(std::max(valCPU, 0.0), 100.0);
 
 					if (i >= 0)
 					{
@@ -253,13 +258,13 @@ QString SystemPerformanceCounters::getCPU()
 					else
 					{
 						retTotal = QString(
-							(valCPU < 50) ? "<font color='ForestGreen'>%1%</font>" :
-							((valCPU < 90) ? "<font color='orange'>%1%</font>" :
-								"<font color='red'>%1%</font>")).arg(QString::number(valCPU, 'f', 0), 2);
+							(valCPU < 50) ? "<span style='color:ForestGreen'>%1%</span>" :
+							((valCPU < 90) ? "<span style='color:orange'>%1%</span>" :
+								"<span style='color:red'>%1%</span>")).arg(QString::number(valCPU, 'f', 0), 2);
 					}
 				}
 
-				return QString("<span style='font-family: ""Courier New"", Courier, monospace;'>%1</span> (<b>%2</b>)").arg(retVal).arg(retTotal);
+				return QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
 			}
 		}
 
@@ -293,7 +298,7 @@ QString SystemPerformanceCounters::getRAM()
 		qint64 takenMem = totalPhysMem - physMemAv;
 		qint64 aspect = (takenMem * 100) / totalPhysMem;
 		QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-		return QString("%1 / %2MB (<font color='%3'><b>%4%</b></font>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
+		return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
 
 #else
 
@@ -312,7 +317,7 @@ QString SystemPerformanceCounters::getRAM()
 		long long takenMem = totalPhysMem - physMemAv;
 		qint64 aspect = (takenMem * 100) / totalPhysMem;
 		QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-		return QString("%1 / %2MB (<font color='%3'><b>%4%</b></font>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
+		return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
 
 #endif
 	}

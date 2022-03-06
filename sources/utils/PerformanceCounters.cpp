@@ -66,6 +66,8 @@ PerformanceCounters::PerformanceCounters()
 {
 	qRegisterMetaType<PerformanceReport>();
 
+	_lastRead = 0;
+
 	try
 	{		
 		_log = Logger::getInstance("PERFORMANCE");
@@ -83,6 +85,11 @@ PerformanceCounters::PerformanceCounters()
 
 void PerformanceCounters::request(bool all)
 {
+	if (QDateTime::currentMSecsSinceEpoch() - _lastRead < 980)
+		return;
+
+	_lastRead = QDateTime::currentMSecsSinceEpoch();
+
 	QString cpu = _system.getCPU();
 	if (cpu != "")
 	{

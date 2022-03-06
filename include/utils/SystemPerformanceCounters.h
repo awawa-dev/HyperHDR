@@ -6,6 +6,8 @@
 #include <QJsonObject>
 #include <QString>
 
+#include <algorithm>
+
 #ifdef __linux__
 	#define MAXPERFCPU 16
 	#define MAXPERFBUFFER 1256
@@ -20,21 +22,21 @@ class SystemPerformanceCounters
 		{
 			auto m= 8.0f;
 			if (val > 7 / m)
-				return "<font color='red'>&#9607</font>";
+				return "<span class='specialchar' style='color:red;'>&#9607</span>";
 			else if (val > 6 / m)
-				return "<font color='orange'>&#9607</font>";
+				return "<span class='specialchar' style='color:orange;'>&#9607</span>";
 			else if (val > 5 / m)
-				return "<font color='orange'>&#9606</font>";
+				return "<span class='specialchar' style='color:orange;'>&#9606</span>";
 			else if (val > 4 / m)
-				return "<font color='ForestGreen'>&#9605</font>";
+				return "<span class='specialchar' style='color:ForestGreen;'>&#9605</span>";
 			else if (val > 3 / m)
-				return "<font color='ForestGreen'>&#9603</font>";
+				return "<span class='specialchar' style='color:ForestGreen;'>&#9603</span>";
 			else if (val > 2 / m)
-				return "<font color='ForestGreen'>&#9603</font>";
+				return "<span class='specialchar' style='color:ForestGreen;'>&#9603</span>";
 			else if (val > 1 / m)
-				return "<font color='ForestGreen'>&#9602</font>";
+				return "<span class='specialchar' style='color:ForestGreen;'>&#9602</span>";
 			else
-				return "<font color='ForestGreen'>&#9601</font>";
+				return "<span class='specialchar' style='color:ForestGreen;'>&#9601</span>";
 		}
 
 	#ifdef __linux__

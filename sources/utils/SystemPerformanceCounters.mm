@@ -123,7 +123,7 @@ QString SystemPerformanceCounters::getCPU()
 									);
 						double total = usage + (currentStats[(CPU_STATE_MAX * i) + CPU_STATE_IDLE] - prevPerfStats[(CPU_STATE_MAX * i) + CPU_STATE_IDLE]);
 
-						valCPU = usage / total;
+						valCPU = usage / std::max(total, 0.00001);
 
 						retVal += QString("%1").arg(getChar(valCPU));
 
@@ -131,14 +131,17 @@ QString SystemPerformanceCounters::getCPU()
 						totTotal += total;
 					}
 
-					valCPU = (totUsage * 100.0f)/ totTotal;
+					
+					valCPU = (totUsage * 100.0f) / std::max(totTotal, 0.00001);
+
+					valCPU = std::min(std::max(valCPU, 0.0), 100.0);
 
 					retTotal = QString(
-							(valCPU < 50) ? "<font color='ForestGreen'>%1%</font>" :
-							((valCPU < 90) ? "<font color='orange'>%1%</font>" :
-								"<font color='red'>%1%</font>")).arg(QString::number(valCPU, 'f', 0), 2);
+							(valCPU < 50) ? "<span style='color:ForestGreen'>%1%</span>" :
+							((valCPU < 90) ? "<span style='color:orange'>%1%</span>" :
+								"<span style='color:red'>%1%</span>")).arg(QString::number(valCPU, 'f', 0), 2);
 
-					result = QString("<span style='font-family: ""Courier New"", Courier, monospace;'>%1</span> (<b>%2</b>)").arg(retVal).arg(retTotal);
+					result =  QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
 
 					size_t prevCpuInfoSize = sizeof(integer_t) * prevPerfNum;
 					vm_deallocate(mach_task_self(), (vm_address_t)prevPerfStats, prevCpuInfoSize);					
@@ -185,7 +188,7 @@ QString SystemPerformanceCounters::getRAM()
 				qint64 takenMem = qint64(usedMemory) / (1024 * 1024);
 				qint64 aspect = (takenMem * 100) / totalPhysMem;
 				QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-				return QString("%1 / %2MB (<font color='%3'><b>%4%</b></font>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);				
+				return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);				
 			}
 		}
 	}

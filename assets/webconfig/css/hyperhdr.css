@@ -757,3 +757,9 @@ body:not(.dark-mode) .button_rate_mode.disabled {
 {
 	color: #999;
 }
+
+.specialchar {
+	margin-left: 2px;
+	font-size: 18px;
+	font-family: 'Courier New', Courier, 'MS PGothic', monospace;
+}
