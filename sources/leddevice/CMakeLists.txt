@@ -39,21 +39,8 @@ if ( ENABLE_OSX OR WIN32 )
 	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.cpp")
 endif()
 
-if ( ENABLE_USB_HID )
-	find_package(libusb-1.0 REQUIRED)
-	include_directories(
-		${CMAKE_SOURCE_DIR}/include/hidapi
-		${LIBUSB_1_INCLUDE_DIRS}
-	)
-	FILE ( GLOB Leddevice_USB_HID_SOURCES "${CURRENT_SOURCE_DIR}/dev_hid/*.h" "${CURRENT_SOURCE_DIR}/dev_hid/*.cpp")
-endif()
-
 if ( ENABLE_SPIDEV )
 	FILE ( GLOB Leddevice_SPI_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/*.h" "${CURRENT_SOURCE_DIR}/dev_spi/*.cpp")
-endif()
-
-if ( ENABLE_TINKERFORGE )
-	FILE ( GLOB Leddevice_TINKER_SOURCES "${CURRENT_SOURCE_DIR}/dev_tinker/*.h" "${CURRENT_SOURCE_DIR}/dev_tinker/*.cpp")
 endif()
 
 if ( ENABLE_WS281XPWM )
@@ -112,16 +99,6 @@ endif()
 
 if(ENABLE_WS281XPWM)
 	target_link_libraries(leddevice ws281x)
-endif()
-
-if (ENABLE_USB_HID)
-	if(APPLE)
-		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-mac)
-	elseif (NOT WIN32)
-		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
-	else()
-		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} ${LIBUSB_2_LIBRARY})
-	endif (APPLE)
 endif()
 
 if (NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)

@@ -2,12 +2,6 @@ if ( ENABLE_CEC )
 	add_subdirectory(external/libcec)	
 ENDIF()
 
-add_subdirectory(build/hidapi)
-
-if ( ENABLE_TINKERFORGE )
-	add_subdirectory(build/tinkerforge)
-endif()
-
 if(ENABLE_WS281XPWM)
 	add_library(ws281x
 		external/rpi_ws281x/mailbox.c external/rpi_ws281x/ws2811.c
@@ -109,8 +103,7 @@ if (NOT USE_SYSTEM_MBEDTLS_LIBS)
 	else ()
 		set(MBEDTLS_LOGGING 0)
 	endif ()
-
-
+	
 	add_subdirectory(external/mbedtls)
 
 	set (MBEDTLS_INCLUDE_DIR "${MBEDTLS_SOURCE_DIR}/include")

@@ -79,18 +79,13 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_X11           ON )
 	SET ( DEFAULT_PIPEWIRE      ON )
 	SET ( DEFAULT_SPIDEV        ON )
-	SET ( DEFAULT_TINKERFORGE   ON )
-	SET ( DEFAULT_USB_HID       OFF )
 	message( STATUS "Debian version: ${DEBIAN_NAME_TAG}" )
 ELSEIF ( WIN32 )
 	SET ( DEFAULT_DX              ON  )
 	SET ( DEFAULT_MF              ON  )
 	SET ( DEFAULT_SOUNDCAPWINDOWS ON  )
-	SET ( DEFAULT_USB_HID         OFF )
 ELSE()
 	SET ( DEFAULT_SPIDEV      OFF )
-	SET ( DEFAULT_TINKERFORGE OFF )
-	SET ( DEFAULT_USB_HID     OFF )
 ENDIF()
 
 if ( NOT DEFINED PLATFORM )
@@ -151,7 +146,6 @@ if ( "${PLATFORM}" MATCHES "osx" )
 		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 	endif()
 	
-	SET ( DEFAULT_USB_HID    OFF )
 	SET ( DEFAULT_AVF        ON  )
 	SET ( DEFAULT_MAC_SYSTEM ON  )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
@@ -272,9 +266,6 @@ message(STATUS "ENABLE_BOBLIGHT   = ${ENABLE_BOBLIGHT}")
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
 
-option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ${DEFAULT_TINKERFORGE})
-message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
-
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
 message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
 
@@ -289,9 +280,6 @@ message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
 
 option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
 message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
-
-option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
-message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
 
 option(ENABLE_MF "Enable Windows Media Foundation grabber" ${DEFAULT_MF})
 message(STATUS "ENABLE_MF = ${ENABLE_MF}")
@@ -418,8 +406,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT hyperhdr)
 endif()
 
-# Add libusb and pthreads
-find_package(libusb-1.0 REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
 # 7-zip as support
@@ -465,7 +451,7 @@ if ( ENABLE_V4L2 OR ENABLE_MF )
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/ -aoa -y
 			RESULT_VARIABLE STATUS_EXTRACT
-			OUTPUT_VARIABLE OUTPUT1			
+			OUTPUT_VARIABLE OUTPUT1
 		)
 		if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
 		    message( FATAL_ERROR "Could not extract libjpegturbo library")
