@@ -12,6 +12,3 @@
 [submodule "dependencies/external/libcec"]
 	path = dependencies/external/libcec
 	url = git://github.com/awawa-dev/libcec.git
-[submodule "dependencies/external/libjpeg-turbo"]
-	path = dependencies/external/libjpeg-turbo
-	url = git://github.com/awawa-dev/libjpeg-turbo.git

@@ -11,4 +11,5 @@ target_link_libraries(MF-grabber
 	${QT_LIBRARIES}
 )
 
-target_include_directories(MF-grabber PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/external/libjpeg-turbo)
+target_include_directories(MF-grabber PUBLIC ${TURBOJPEG_INCLUDE_DIRS})
+target_link_libraries(MF-grabber ${TURBOJPEG_LINK_LIBRARIES})

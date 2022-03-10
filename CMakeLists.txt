@@ -260,7 +260,7 @@ endif()
 if (DEFAULT_PROTOBUF)
 	find_package(Protobuf)
 	if (NOT Protobuf_FOUND)
-		message( WARNING "Could not find protobuf libraries (macOS: protobuf, Linux: libprotobuf-dev protobuf-compiler, Windows: need to compile yourself)" )
+		message( STATUS "Warning: could not find protobuf libraries (macOS: protobuf, Linux: libprotobuf-dev protobuf-compiler, Windows: need to compile yourself)" )
 		SET ( DEFAULT_PROTOBUF OFF )
 	endif()
 endif()
@@ -440,6 +440,50 @@ if (ENABLE_MF)
 	else()
 		message( FATAL_ERROR  "Please install 7-zip")
 	endif (SEVENZIP_BIN)
+endif()
+
+
+# libjpegturbo
+if ( ENABLE_V4L2 OR ENABLE_MF )
+	if(WIN32)
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
+			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
+		endif()
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip OR
+			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib)
+			message( STATUS "Downloading libjpegturbo library")
+			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
+			file(DOWNLOAD https://github.com/awawa-dev/libjpeg-turbo/releases/download/2.1.3/windows.zip
+						  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip
+						  STATUS JPEG_DOWNLOAD_STATUS
+						  EXPECTED_HASH MD5=2CF284387AC832270736893C4EE05852)
+			list(GET JPEG_DOWNLOAD_STATUS 0 JPEG_DOWNLOAD_STATUS_CODE)
+			if(JPEG_DOWNLOAD_STATUS_CODE AND NOT JPEG_DOWNLOAD_STATUS_CODE EQUAL 0)
+				message( FATAL_ERROR "Could not download libjpegturbo library")
+			endif()
+		endif()
+		execute_process(
+			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/ -aoa -y
+			RESULT_VARIABLE STATUS_EXTRACT
+			OUTPUT_VARIABLE OUTPUT1			
+		)
+		if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
+		    message( FATAL_ERROR "Could not extract libjpegturbo library")
+		else()
+		    message( STATUS "libjpegturbo library extracted")			
+		endif()
+		set (TURBOJPEG_FOUND 1)
+		
+		set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/bin")
+		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib/turbojpeg.lib")
+		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/include")
+	else()
+		pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
+	endif ()
+	
+	message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
+	message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
+	message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
 endif()
 
 # Add the source/lib directories

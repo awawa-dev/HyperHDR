@@ -45,12 +45,12 @@ endif ()
 		
 if (ENABLE_V4L2)
 	target_link_libraries(hyperhdr v4l2-grabber)
-	target_link_libraries(hyperhdr turbojpeg)
+	target_link_libraries(hyperhdr ${TURBOJPEG_LINK_LIBRARIES})
 endif ()
 
 if (ENABLE_MF)
 	target_link_libraries(hyperhdr MF-grabber)
-	target_link_libraries(hyperhdr turbojpeg)
+	target_link_libraries(hyperhdr ${TURBOJPEG_LINK_LIBRARIES})
 endif ()
 
 if (ENABLE_DX)

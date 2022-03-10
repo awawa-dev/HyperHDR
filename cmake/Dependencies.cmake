@@ -194,7 +194,6 @@ macro(DeployUnix TARGET)
 			"libxcb-xkb1"
 			"libxkbcommon-x11-0"			
 			"libssl1.1"
-			"libturbojpeg"
 		)
 
 		# Extract dependencies ignoring the system ones		
@@ -223,27 +222,6 @@ macro(DeployUnix TARGET)
 				#message(STATUS "Basic check added: ${resolved_file}")
 			endif()
 		endforeach()
-		
-		# Copy LIBTURBOJPEG lib
-		find_library(LIBTURBOJPEG
-			NAMES "libturbojpeg" "libturbojpeg.so"
-			PATHS "${LIB_JPEG_TURBO_LIB}"
-			NO_DEFAULT_PATH
-			REQUIRED
-		)
-
-		SET(resolved_file ${LIBTURBOJPEG})		
-		get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-		gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-		message(STATUS "Adding libturbojpeg: ${resolved_file}")		
-		set(resolved_file "${resolved_file}.0")
-		if(EXISTS ${resolved_file})
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-		endif()
-		get_filename_component(file_canonical ${resolved_file} REALPATH)
-		gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-		message(STATUS "Added libturbojpeg(2): ${file_canonical}")
 		
 		# Copy SMARTX11 lib
 		find_library(LIBSMARTX11
@@ -514,7 +492,7 @@ macro(DeployWindows TARGET)
 		# Copy TurboJPEG Libs
 		find_file(TurboJPEG_DLL
 			NAMES "turbojpeg.dll" "jpeg62.dll"
-			PATHS "${LIB_JPEG_TURBO_LIB}"
+			PATHS "${TURBOJPEG_LIBRARY_DIRS}"
 			NO_DEFAULT_PATH
 			REQUIRED
 		)

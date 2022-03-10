@@ -11,4 +11,5 @@ target_link_libraries(v4l2-grabber
 	${QT_LIBRARIES}
 )
 
-target_include_directories(v4l2-grabber PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/external/libjpeg-turbo)
+target_include_directories(v4l2-grabber PUBLIC ${TURBOJPEG_INCLUDE_DIRS})
+target_link_libraries(v4l2-grabber ${TURBOJPEG_LINK_LIBRARIES})

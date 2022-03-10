@@ -2,17 +2,6 @@ if ( ENABLE_CEC )
 	add_subdirectory(external/libcec)	
 ENDIF()
 
-if ( ENABLE_V4L2 OR ENABLE_MF )
-	add_subdirectory(external/libjpeg-turbo)
-	if(WIN32)
-		set (LIB_JPEG_TURBO_LIB "${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}/")
-	else()
-		set (LIB_JPEG_TURBO_LIB "${CMAKE_BINARY_DIR}/lib/")
-	endif ()
-	set (LIB_JPEG_TURBO_LIB ${LIB_JPEG_TURBO_LIB} PARENT_SCOPE)
-endif()
-
-
 add_subdirectory(build/hidapi)
 
 if ( ENABLE_TINKERFORGE )
@@ -84,18 +73,6 @@ function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 				"${SRC_FBS}"
 		DEPENDS "${FLATBUFFERS_FLATC_EXECUTABLE}" ${SRC_FBS})
 endfunction()
-
-#=============================================================================
-# DISABLE EXTERNAL WARNINGS
-#=============================================================================
-
-if ( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
-	target_compile_options(turbojpeg PRIVATE "-w")
-endif()
-if ( MSVC )
-	target_compile_options(turbojpeg PRIVATE "/W0")
-endif()
-
 
 #=============================================================================
 # MBEDTLS

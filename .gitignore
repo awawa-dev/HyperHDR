@@ -23,6 +23,9 @@ compile_commands.json
 sources/flatbufserver/hyperhdr_reply_generated.h
 sources/flatbufserver/hyperhdr_request_generated.h
 
+#lib-turbo
+dependencies/jpeg-windows
+
 # Kdevelop project files
 *.kdev*
 

@@ -2,8 +2,6 @@
 
 // STL includes
 #include <cstdint>
-// HDR definition
-#include "FrameDecoder.h"
 
 ///
 /// Color transformation to adjust the saturation and luminance of a RGB color value

@@ -10,7 +10,3 @@ target_link_libraries(AVF-grabber
 	hyperhdr-base
 	${QT_LIBRARIES}
 )
-
-if(TURBOJPEG_FOUND)
-	target_link_libraries(AVF-grabber ${TurboJPEG_LIBRARY})
-endif(TURBOJPEG_FOUND)

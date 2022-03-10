@@ -1,8 +1,4 @@
 #pragma once
-#include <stdlib.h>
-#include <math.h>
-#include <algorithm>
-#include <cmath>
 
 #include <QDateTime>
 #include <QSize>
