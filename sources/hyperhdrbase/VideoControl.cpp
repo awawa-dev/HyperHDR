@@ -147,7 +147,7 @@ void VideoControl::setUsbInactive()
 		if (_stream)
 		{
 			_stream = false;
-			if (GrabberWrapper::getInstance())
+			if (GrabberWrapper::getInstance() != nullptr)
 				GrabberWrapper::getInstance()->revive();
 		}
 	}

@@ -558,5 +558,7 @@ void HyperHdrDaemon::enableCEC(bool enabled, QString info)
 
 void HyperHdrDaemon::keyPressedCEC(int keyCode)
 {
+#if defined(ENABLE_V4L2)
 	emit GrabberWrapper::getInstance()->cecKeyPressed(keyCode);
+#endif
 }

@@ -66,7 +66,8 @@ void HyperHdrIManager::startAll()
 		startInstance(entry["instance"].toInt());
 	}
 
-	emit setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (GrabberWrapper::getInstance()->getHdrToneMappingEnabled() != 0));
+	if (GrabberWrapper::getInstance() != nullptr)
+		emit setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (GrabberWrapper::getInstance()->getHdrToneMappingEnabled() != 0));
 }
 
 void HyperHdrIManager::stopAll()

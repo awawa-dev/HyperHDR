@@ -50,8 +50,11 @@ $(document).ready(function ()
 
 	function updateGrabber()
 	{
-		$("#dash_current_video_device").html(window.serverInfo.grabberstate.device);
-		$("#dash_current_video_mode").html(window.serverInfo.grabberstate.videoMode);
+		if (window.serverInfo.grabberstate != null)
+		{
+			$("#dash_current_video_device").html(window.serverInfo.grabberstate.device);
+			$("#dash_current_video_mode").html(window.serverInfo.grabberstate.videoMode);
+		}
 	}
 
 	function insertReport(report)

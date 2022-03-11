@@ -9,7 +9,8 @@ $(document).ready( function(){
 	var wizardTimer;
 	var backupWizard;
 	
-	var VIDEO_AVAILABLE = window.serverInfo.grabbers.available.find(element => element.indexOf("Video capturing")!=-1);
+	var VIDEO_AVAILABLE = window.serverInfo.grabbers != null && window.serverInfo.grabbers.available != null &&
+							window.serverInfo.grabbers.available.find(element => element.indexOf("Video capturing")!=-1);
 	var SYSTEM_AVAILABLE = (window.serverInfo.systemGrabbers != null);
 
 	function startSignalWizard() {		
@@ -605,20 +606,21 @@ $(document).ready( function(){
 	{
 		$('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_stream_heading_title"), 'editor_container_video_device', 'btn_submit_videoGrabber'));
 		$('#conf_cont').append(createHelpTable(window.schema.videoGrabber.properties, $.i18n("edt_conf_stream_heading_title")));
+	
+		$('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_videoControl', 'btn_submit_videoControl'));
+		$('#conf_cont').append(createHelpTable(window.schema.videoControl.properties, $.i18n("edt_conf_instCapture_heading_title")));			
+
+		// Instance Capture
+		conf_editor_videoControl = createJsonEditor('editor_container_videoControl', { videoControl: window.schema.videoControl}, true, true, undefined, true);
+
+		conf_editor_videoControl.on('change',function() {
+			(conf_editor_videoControl.validate().length || window.readOnlyMode) ? $('#btn_submit_videoControl').attr('disabled', true) : $('#btn_submit_videoControl').attr('disabled', false);
+		});
+
+		$('#btn_submit_videoControl').off().on('click',function() {
+			requestWriteConfig(conf_editor_videoControl.getValue());
+		});
 	}
-	$('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_videoControl', 'btn_submit_videoControl'));
-	$('#conf_cont').append(createHelpTable(window.schema.videoControl.properties, $.i18n("edt_conf_instCapture_heading_title")));			
-
-	// Instance Capture
-	conf_editor_videoControl = createJsonEditor('editor_container_videoControl', { videoControl: window.schema.videoControl}, true, true, undefined, true);
-
-	conf_editor_videoControl.on('change',function() {
-		(conf_editor_videoControl.validate().length || window.readOnlyMode) ? $('#btn_submit_videoControl').attr('disabled', true) : $('#btn_submit_videoControl').attr('disabled', false);
-	});
-
-	$('#btn_submit_videoControl').off().on('click',function() {
-		requestWriteConfig(conf_editor_videoControl.getValue());
-	});	
 
 	if(VIDEO_AVAILABLE)
 		BuildVideoEditor();	

@@ -110,7 +110,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(_hyperhdr, &HyperHdrInstance::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
 	}
 
-	if (type == "grabberstate-update")
+	if (type == "grabberstate-update" && GrabberWrapper::instance != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(GrabberWrapper::instance, &GrabberWrapper::StateChanged, this, &JsonCB::handleGrabberStateChange);
@@ -118,7 +118,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(GrabberWrapper::instance, &GrabberWrapper::StateChanged, this, &JsonCB::handleGrabberStateChange, Qt::UniqueConnection);
 	}
 
-	if (type == "videomodehdr-update")
+	if (type == "videomodehdr-update" && GrabberWrapper::instance != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(GrabberWrapper::instance, &GrabberWrapper::HdrChanged, this, &JsonCB::handleVideoModeHdrChange);
@@ -167,7 +167,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCB::handleTokenChange, Qt::UniqueConnection);
 	}
 
-	if (type == "benchmark-update")
+	if (type == "benchmark-update" && GrabberWrapper::instance != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(GrabberWrapper::instance, &GrabberWrapper::benchmarkUpdate, this, &JsonCB::handleBenchmarkUpdate);

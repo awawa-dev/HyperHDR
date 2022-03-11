@@ -490,53 +490,25 @@ macro(DeployWindows TARGET)
 		endwhile()
 
 		# Copy TurboJPEG Libs
-		find_file(TurboJPEG_DLL
-			NAMES "turbojpeg.dll" "jpeg62.dll"
-			PATHS "${TURBOJPEG_LIBRARY_DIRS}"
-			NO_DEFAULT_PATH
-			REQUIRED
-		)
-				
-		if(NOT CMAKE_GITHUB_ACTION)
-			get_filename_component(JPEG_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
-			execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TurboJPEG_DLL} ${JPEG_RUNTIME_TARGET})
-		endif()
-
-		install(
-			FILES ${TurboJPEG_DLL}
-			DESTINATION "bin"
-			COMPONENT "HyperHDR"
-		)
-		
-		
-		# Copy usb Libs
-		if (LIBUSB_1_LIBRARIES)
-			find_file(USBLIB_DLL
-				NAMES "libusb-1.0.dll"
-				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/libusb"
+		if (ENABLE_MF)
+			find_file(TurboJPEG_DLL
+				NAMES "turbojpeg.dll" "jpeg62.dll"
+				PATHS "${TURBOJPEG_LIBRARY_DIRS}"
 				NO_DEFAULT_PATH
 				REQUIRED
 			)
+					
+			if(NOT CMAKE_GITHUB_ACTION)
+				get_filename_component(JPEG_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
+				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TurboJPEG_DLL} ${JPEG_RUNTIME_TARGET})
+			endif()
 
 			install(
-				FILES ${USBLIB_DLL}
+				FILES ${TurboJPEG_DLL}
 				DESTINATION "bin"
 				COMPONENT "HyperHDR"
 			)
-			
-			find_file(HIDLIB_DLL
-				NAMES "hidapi.dll"
-				PATHS "${CMAKE_SOURCE_DIR}/resources/dll/libusb"
-				NO_DEFAULT_PATH
-				REQUIRED
-			)
-
-			install(
-				FILES ${HIDLIB_DLL}
-				DESTINATION "bin"
-				COMPONENT "HyperHDR"				
-			)
-		endif(LIBUSB_1_LIBRARIES)
+		endif()
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
@@ -552,7 +524,7 @@ macro(DeployWindows TARGET)
 			OUTPUT_VARIABLE OUTPUT1			
 		)
 		if(STATUS AND NOT STATUS EQUAL 0)
-		    message( FATAL_ERROR "LUT tar.xz Bad exit status")
+		    message( FATAL_ERROR "LUT tar.xz Bad exit status: ${STATUS} ${OUTPUT1}")
 		else()
 		    message( STATUS "LUT tar.xz tar extracted")			
 		endif()

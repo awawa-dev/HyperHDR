@@ -409,7 +409,7 @@ endif()
 add_definitions(${QT_DEFINITIONS})
 
 # 7-zip as support
-if (ENABLE_MF)
+if (WIN32)
 	# 7zip
 	cmake_policy(SET CMP0053 NEW)
 	set(MYENV "PROGRAMFILES(X86)")

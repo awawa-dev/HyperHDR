@@ -556,7 +556,14 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 	#endif
 		info["grabbers"] = grabbers;
 
-		info["videomodehdr"] = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
+		if (GrabberWrapper::getInstance() != nullptr)
+		{
+			info["videomodehdr"] = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
+		}
+		else
+		{
+			info["videomodehdr"] = 0;
+		}
 
 		// get available components
 		QJsonArray component;
@@ -773,7 +780,10 @@ void JsonAPI::handleCropCommand(const QJsonObject& message, const QString& comma
 	int r = adjustment["right"].toInt(0);
 	int t = adjustment["top"].toInt(0);
 	int b = adjustment["bottom"].toInt(0);
-	emit GrabberWrapper::getInstance()->setCropping(l, r, t, b);
+
+	if (GrabberWrapper::getInstance() != nullptr)
+		emit GrabberWrapper::getInstance()->setCropping(l, r, t, b);
+
 	sendSuccessReply(command, tan);
 }
 
@@ -782,13 +792,16 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
 
-	if (subc == "ping")
+	if (GrabberWrapper::getInstance() != nullptr)
 	{
-		emit GrabberWrapper::getInstance()->benchmarkUpdate(status, "pong");
-	}
-	else
-	{
-		GrabberWrapper::getInstance()->benchmarkCapture(status, subc);
+		if (subc == "ping")
+		{
+			emit GrabberWrapper::getInstance()->benchmarkUpdate(status, "pong");
+		}
+		else
+		{
+			GrabberWrapper::getInstance()->benchmarkCapture(status, subc);
+		}
 	}
 
 	sendSuccessReply(command, tan);
