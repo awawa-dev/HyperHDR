@@ -251,8 +251,61 @@ if(DEFAULT_CEC)
 	endif()
 endif()
 
+# 7-zip as support
+if (WIN32)
+	# 7zip
+	cmake_policy(SET CMP0053 NEW)
+	set(MYENV "PROGRAMFILES(X86)")
+
+	find_program(SEVENZIP_BIN
+		NAMES 7z 7za
+		HINTS "${MINGWDIR}" "${MINGWLIBS}/bin" "$MYENV/7-zip" "$ENV{ProgramFiles}/7-zip" "$ENV{ProgramW6432}/7-zip"
+		PATH_SUFFIXES bin
+		DOC "7zip executable"
+	)
+
+	if (SEVENZIP_BIN)
+		message( STATUS "7-zip found: ${SEVENZIP_BIN}")
+	else()
+		message( FATAL_ERROR  "Please install 7-zip")
+	endif (SEVENZIP_BIN)
+endif()
+
+# protobuf
 if (DEFAULT_PROTOBUF)
-	find_package(Protobuf)
+	find_package(Protobuf QUIET)
+	
+	if (WIN32 AND NOT Protobuf_FOUND)
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip OR
+		   NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/bin)
+			message( STATUS "Downloading protobuf library")
+			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows)
+			file(DOWNLOAD https://github.com/awawa-dev/protobuf/releases/download/v3.20.0-rc2/windows.zip
+						  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip
+						  STATUS PROTO_DOWNLOAD_STATUS
+						  EXPECTED_HASH MD5=3dee0a09023d3c5073e8283c48387aaf)
+			list(GET PROTO_DOWNLOAD_STATUS 0 PROTO_DOWNLOAD_STATUS_CODE)
+			if(PROTO_DOWNLOAD_STATUS_CODE AND NOT PROTO_DOWNLOAD_STATUS_CODE EQUAL 0)
+				message( FATAL_ERROR "Could not download protobuf library")
+			endif()
+		endif()
+		execute_process(
+			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/ -aoa -y
+			RESULT_VARIABLE STATUS_PROTO_EXTRACT
+			OUTPUT_VARIABLE OUTPUT_PROTO
+		)
+		if(STATUS_PROTO_EXTRACT AND NOT STATUS_PROTO_EXTRACT EQUAL 0)
+			message( FATAL_ERROR "Could not extract protobuf library binaries: ${STATUS_PROTO_EXTRACT} ${OUTPUT_PROTO}")		
+		endif()		
+		
+		set (Protobuf_FOUND 1)
+		set (Protobuf_PROTOC_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/bin/protoc.exe)
+		set (PROTOBUF_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/include)
+		set (PROTOBUF_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/lib/libprotobuf$<$<CONFIG:DEBUG>:d>.lib)
+		add_executable(protobuf::protoc IMPORTED)
+		set_target_properties(protobuf::protoc PROPERTIES IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}")        
+	endif()
+		
 	if (NOT Protobuf_FOUND)
 		message( STATUS "Warning: could not find protobuf libraries (macOS: protobuf, Linux: libprotobuf-dev protobuf-compiler, Windows: need to compile yourself)" )
 		SET ( DEFAULT_PROTOBUF OFF )
@@ -408,27 +461,6 @@ endif()
 
 add_definitions(${QT_DEFINITIONS})
 
-# 7-zip as support
-if (WIN32)
-	# 7zip
-	cmake_policy(SET CMP0053 NEW)
-	set(MYENV "PROGRAMFILES(X86)")
-
-	find_program(SEVENZIP_BIN
-		NAMES 7z 7za
-		HINTS "${MINGWDIR}" "${MINGWLIBS}/bin" "$MYENV/7-zip" "$ENV{ProgramFiles}/7-zip" "$ENV{ProgramW6432}/7-zip"
-		PATH_SUFFIXES bin
-		DOC "7zip executable"
-	)
-
-	if (SEVENZIP_BIN)
-		message( STATUS "7-zip found: ${SEVENZIP_BIN}")
-	else()
-		message( FATAL_ERROR  "Please install 7-zip")
-	endif (SEVENZIP_BIN)
-endif()
-
-
 # libjpegturbo
 if ( ENABLE_V4L2 OR ENABLE_MF )
 	if(WIN32)
@@ -496,18 +528,3 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 # external targets
 set_target_properties(apidoc flatbuffers flatc flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 
-if (TARGET jsimdcfg)
-	set_target_properties(jsimdcfg PROPERTIES FOLDER ExternalLibsTargets)
-endif()
-
-if (TARGET simd-objs)
-	set_target_properties(simd-objs PROPERTIES FOLDER ExternalLibsTargets)
-endif()
-
-if (TARGET simd)
-	set_target_properties(simd PROPERTIES FOLDER ExternalLibsTargets)
-endif()
-
-if (TARGET turbojpeg)
-	set_target_properties(turbojpeg  PROPERTIES FOLDER ExternalLibsTargets)
-endif()
