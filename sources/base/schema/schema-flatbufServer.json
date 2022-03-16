@@ -41,6 +41,22 @@
 			"title" : "edt_conf_fbs_tonemapping_title",
 			"default" : false,
 			"propertyOrder" : 4
+		},
+		"hdrToneMappingMode" :
+		{
+			"type" : "integer",	
+			"title" : "edt_conf_fbs_hdrToneMappingMode_title",		
+			"append" : "edt_append_mode",
+			"enum" : [1, 2],
+			"default" : 1,
+			"required" : true,
+			"propertyOrder" : 5,
+			"options": {
+			    "enum_titles": ["Fullscreen", "Light (border only)"],
+				"dependencies": {
+					"hdrToneMapping": true
+				}
+			}
 		}
 	},
 	"additionalProperties" : false

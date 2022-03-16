@@ -29,7 +29,7 @@ FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& c
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _timeout(5000)
 	, _config(config)
-	, _hdrToneMappingEnabled(false)
+	, _hdrToneMappingMode(false)
 	, _lutBuffer(nullptr)
 	, _lutBufferInit(false)
 	, _configurationPath(configurationPath)
@@ -60,15 +60,15 @@ void FlatBufferServer::initServer()
 	loadLutFile();
 }
 
-void FlatBufferServer::setHdrToneMappingEnabled(bool enabled)
+void FlatBufferServer::setHdrToneMappingEnabled(int mode)
 {
-	bool status = _hdrToneMappingEnabled && enabled;
+	bool status = _hdrToneMappingMode && mode;
 
 	if (status)
 		loadLutFile();
 
 	// inform clients
-	emit hdrToneMappingChanged(status && _lutBufferInit, _lutBuffer);
+	emit hdrToneMappingChanged((_lutBufferInit && status)?mode :0, _lutBuffer);
 }
 
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -87,8 +87,9 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		}
 
 		// HDR tone mapping
-		_hdrToneMappingEnabled = obj["hdrToneMapping"].toBool();
-		setHdrToneMappingEnabled(_hdrToneMappingEnabled);
+		_hdrToneMappingMode = obj["hdrToneMapping"].toBool(false) ? obj["hdrToneMappingMode"].toInt(1) : 0;
+
+		setHdrToneMappingEnabled(_hdrToneMappingMode);
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
@@ -106,7 +107,7 @@ void FlatBufferServer::newConnection()
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				FlatBufferClient* client = new FlatBufferClient(socket, _timeout, _hdrToneMappingEnabled, _lutBuffer, this);
+				FlatBufferClient* client = new FlatBufferClient(socket, _timeout, _hdrToneMappingMode, _lutBuffer, this);
 				// internal
 				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
 				connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
@@ -199,7 +200,7 @@ void FlatBufferServer::loadLutFile()
 
 	_lutBufferInit = false;
 
-	if (_hdrToneMappingEnabled)
+	if (_hdrToneMappingMode)
 	{
 		for (QString fileName3d : files)
 		{

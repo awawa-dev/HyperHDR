@@ -39,8 +39,8 @@
 #include <limits.h>
 #include <stdio.h>
 
-#include <hyperhdrbase/HyperHdrInstance.h>
-#include <hyperhdrbase/HyperHdrIManager.h>
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>

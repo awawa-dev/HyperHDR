@@ -137,7 +137,7 @@
   "conf_network_forw_intro": "Forward all input to a second HyperHDR instance which could be driven with another led controller",
   "conf_network_json_intro": "The JSON-RPC-Port of all HyperHDR instances, used for remote control.",
   "conf_network_net_intro": "Network related settings which are applied to all network services.",
-  "conf_network_proto_intro": "The PROTO-Port of all HyperHDR instances, used for picture streams (HyperHDRScreenCap, Kodi Addon, Android HyperHDR Grabber, ...)",
+  "conf_network_proto_intro": "The PROTO-Port of all HyperHDR instances (deprecated)",
   "conf_network_tok_cidhead": "Description",
   "conf_network_tok_comment_title": "Token description",
   "conf_network_tok_desc": "Tokens grant other applications access to the HyperHDR API, an application can request a token where you need to accept it or you create them on your own below. These tokens are just required when \"API Authorization\" is enabled in network settings.",
@@ -1143,6 +1143,8 @@
   "perf_undervoltage" : "Undervoltage detected",
   "perf_no" : "No",
   "perf_invalid_frames" : "invalid frames",
-  "edt_conf_fbs_tonemapping_expl": "If enabled, HyperHDR will try to correct colors of the HDR10 content that was received by flatbuffers as SDR format. Default 3D LUT file <span class='fw-bold'>'lut_lin_tables.3d'</span> is already included.<span class='fw-bold'> You can generate one and preview the effect using link in the 'Advanced menu'.</span><br/>Your typical hidden configuration folder to upload that file in is (check 'Logs' page to confirm):<br/> Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
-  "edt_conf_fbs_tonemapping_title": "HDR to SDR tone mapping"
+  "edt_conf_fbs_tonemapping_expl": "If enabled, HyperHDR will apply LUT correction for the incoming stream. Make sure you have got the correct LUT table. Default 3D LUT file <span class='fw-bold'>for HDR10: 'lut_lin_tables.3d'</span> is already included.<span class='fw-bold'> You can generate one and preview the effect using link in the 'Advanced menu'.</span><br/>Your typical hidden configuration folder to upload that file in is (check 'Logs' page to confirm):<br/> Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
+  "edt_conf_fbs_tonemapping_title": "HDR to SDR tone mapping",
+  "edt_conf_fbs_hdrToneMappingMode_title": "Area for LUT mode effect",
+  "edt_conf_fbs_hdrToneMappingMode_expl": "Fullscreen or faster Border Mode"
 } 

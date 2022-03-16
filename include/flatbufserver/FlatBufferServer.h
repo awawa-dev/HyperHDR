@@ -28,7 +28,7 @@ public:
 	static FlatBufferServer* getInstance() { return instance; }
 
 signals:
-	void hdrToneMappingChanged(bool enabled, uint8_t* lutBuffer);
+	void hdrToneMappingChanged(int mode, uint8_t* lutBuffer);
 
 public slots:
 	///
@@ -40,7 +40,7 @@ public slots:
 
 	void initServer();
 
-	void setHdrToneMappingEnabled(bool enabled);
+	void setHdrToneMappingEnabled(int mode);
 
 private slots:
 	///
@@ -88,7 +88,7 @@ private:
 	QVector<FlatBufferClient*> _openConnections;
 
 	// tone mapping
-	bool _hdrToneMappingEnabled;
+	int _hdrToneMappingMode;
 	uint8_t* _lutBuffer;
 	bool _lutBufferInit;
 	QString	_configurationPath;

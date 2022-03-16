@@ -9,7 +9,7 @@
 // util includes
 #include <utils/FrameDecoder.h>
 
-FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent)
+FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, int hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)
@@ -17,7 +17,7 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, bool hdrTone
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
-	, _hdrToneMappingEnabled(hdrToneMappingEnabled)
+	, _hdrToneMappingMode(hdrToneMappingEnabled)
 	, _lutBuffer(lutBuffer)
 {
 	// timer setup
@@ -70,9 +70,9 @@ void FlatBufferClient::forceClose()
 	_socket->close();
 }
 
-void FlatBufferClient::setHdrToneMappingEnabled(bool enabled, uint8_t* lutBuffer)
+void FlatBufferClient::setHdrToneMappingEnabled(int mode, uint8_t* lutBuffer)
 {
-	_hdrToneMappingEnabled = enabled;
+	_hdrToneMappingMode = mode;
 	_lutBuffer = lutBuffer;
 }
 
@@ -177,7 +177,7 @@ void FlatBufferClient::handleImageCommand(const hyperhdrnet::Image* image)
 		memmove(imageDest.memptr(), imageData->data(), imageData->size());
 
 		// tone mapping
-		FrameDecoder::applyLUT((uint8_t*)imageDest.memptr(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingEnabled);
+		FrameDecoder::applyLUT((uint8_t*)imageDest.memptr(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingMode);
 
 		emit setGlobalInputImage(_priority, imageDest, duration);
 	}

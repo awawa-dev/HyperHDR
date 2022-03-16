@@ -242,7 +242,7 @@ void API::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
 		QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(int, hdr));
 
 	if (FlatBufferServer::getInstance() != nullptr)
-		QMetaObject::invokeMethod(FlatBufferServer::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(bool, hdr));
+		QMetaObject::invokeMethod(FlatBufferServer::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(int, hdr));
 }
 
 bool API::setEffect(const EffectCmdData& dat, hyperhdr::Components callerComp)
