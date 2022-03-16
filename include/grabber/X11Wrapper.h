@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyperhdrbase/SystemWrapper.h>
+#include <base/SystemWrapper.h>
 #include <grabber/X11Grabber.h>
 
 class X11Wrapper : public SystemWrapper

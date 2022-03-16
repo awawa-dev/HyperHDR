@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hyperhdrbase/HyperHdrInstance.h>
-#include <hyperhdrbase/HyperHdrIManager.h>
-#include <hyperhdrbase/AuthManager.h>
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrIManager.h>
+#include <base/AuthManager.h>
 
 class QTimer;
 class JsonCB;

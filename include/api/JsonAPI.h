@@ -4,8 +4,8 @@
 #include <api/API.h>
 
 #include <utils/Components.h>
-#include <hyperhdrbase/HyperHdrInstance.h>
-#include <hyperhdrbase/HyperHdrIManager.h>
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrIManager.h>
 
 // qt includes
 #include <QJsonObject>

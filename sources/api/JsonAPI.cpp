@@ -21,9 +21,9 @@
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
 
-#include <hyperhdrbase/GrabberWrapper.h>
-#include <hyperhdrbase/SystemWrapper.h>
-#include <hyperhdrbase/SoundCapture.h>
+#include <base/GrabberWrapper.h>
+#include <base/SystemWrapper.h>
+#include <base/SoundCapture.h>
 #include <utils/jsonschema/QJsonUtils.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperhdrConfig.h>
@@ -38,13 +38,13 @@
 #endif
 
 // ledmapping int <> string transform methods
-#include <hyperhdrbase/ImageProcessor.h>
+#include <base/ImageProcessor.h>
 
 // api includes
 #include <api/JsonCB.h>
 
 // auth manager
-#include <hyperhdrbase/AuthManager.h>
+#include <base/AuthManager.h>
 
 using namespace hyperhdr;
 

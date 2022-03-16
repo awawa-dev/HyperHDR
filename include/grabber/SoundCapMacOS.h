@@ -4,7 +4,7 @@
 #include <QSemaphore>
 #include <QTimer>
 
-#include <hyperhdrbase/SoundCapture.h>
+#include <base/SoundCapture.h>
 
 #define SOUNDCAPMACOS_BUF_LENP 10
 class SoundCapMacOS : public SoundCapture

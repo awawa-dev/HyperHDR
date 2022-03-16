@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyperhdrbase/SoundCapture.h>
+#include <base/SoundCapture.h>
 #include <windows.h>
 #include "mmsystem.h"
 

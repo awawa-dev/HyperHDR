@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyperhdrbase/SystemWrapper.h>
+#include <base/SystemWrapper.h>
 #include <grabber/macOsGrabber.h>
 
 class macOsWrapper : public SystemWrapper

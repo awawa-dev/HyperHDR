@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>

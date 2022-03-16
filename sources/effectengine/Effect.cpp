@@ -34,7 +34,7 @@
 // effect engin eincludes
 #include <effectengine/Effect.h>
 #include <utils/Logger.h>
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 #include <effectengine/Animation_RainbowSwirl.h>
 #include <effectengine/Animation_SwirlFast.h>
 #include <effectengine/Animation_AtomicSwirl.h>
@@ -92,7 +92,7 @@
 #include <effectengine/Animation4Music_WavesPulseFast.h>
 #include <effectengine/Animation4Music_WavesPulseSlow.h>
 
-#include <hyperhdrbase/SoundCapture.h>
+#include <base/SoundCapture.h>
 
 Effect::Effect(HyperHdrInstance* hyperhdr, int priority, int timeout, const QString& name, const QJsonObject& args, const QString& imageData)
 	: QThread()

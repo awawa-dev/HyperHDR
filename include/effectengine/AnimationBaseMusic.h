@@ -42,4 +42,4 @@ private:
 
 };
 
-#include <hyperhdrbase/SoundCapture.h>
+#include <base/SoundCapture.h>

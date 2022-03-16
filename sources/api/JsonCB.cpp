@@ -2,15 +2,15 @@
 #include <api/JsonCB.h>
 
 // hyperhdr
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 
-#include <hyperhdrbase/GrabberWrapper.h>
+#include <base/GrabberWrapper.h>
 
 // HyperHDRIManager
-#include <hyperhdrbase/HyperHdrIManager.h>
+#include <base/HyperHdrIManager.h>
 
 // components
-#include <hyperhdrbase/ComponentRegister.h>
+#include <base/ComponentRegister.h>
 
 // bonjour wrapper
 #ifdef ENABLE_AVAHI
@@ -18,7 +18,7 @@
 #endif
 
 // priorityMuxer
-#include <hyperhdrbase/PriorityMuxer.h>
+#include <base/PriorityMuxer.h>
 
 // utils
 #include <utils/ColorSys.h>
@@ -30,7 +30,7 @@
 #include <QVariant>
 
 // Image to led map helper
-#include <hyperhdrbase/ImageProcessor.h>
+#include <base/ImageProcessor.h>
 
 using namespace hyperhdr;
 

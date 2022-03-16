@@ -19,8 +19,8 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
-#include <hyperhdrbase/GrabberWrapper.h>
-#include <hyperhdrbase/SystemWrapper.h>
+#include <base/GrabberWrapper.h>
+#include <base/SystemWrapper.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperhdrConfig.h>
 #include <utils/SysInfo.h>
@@ -31,7 +31,7 @@
 #include <bonjour/bonjourbrowserwrapper.h>
 
 // ledmapping int <> string transform methods
-#include <hyperhdrbase/ImageProcessor.h>
+#include <base/ImageProcessor.h>
 
 // api includes
 #include <api/JsonCB.h>

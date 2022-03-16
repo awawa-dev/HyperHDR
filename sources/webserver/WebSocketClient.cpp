@@ -2,7 +2,7 @@
 #include "QtHttpRequest.h"
 #include "QtHttpHeader.h"
 
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 #include <api/JsonAPI.h>
 
 #include <QTcpSocket>

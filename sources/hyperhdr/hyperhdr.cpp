@@ -39,13 +39,13 @@
 #include <ssdp/SSDPHandler.h>
 
 // settings
-#include <hyperhdrbase/SettingsManager.h>
+#include <base/SettingsManager.h>
 
 // AuthManager
-#include <hyperhdrbase/AuthManager.h>
+#include <base/AuthManager.h>
 
 // InstanceManager HyperHDR
-#include <hyperhdrbase/HyperHdrIManager.h>
+#include <base/HyperHdrIManager.h>
 
 // NetOrigin checks
 #include <utils/NetOrigin.h>

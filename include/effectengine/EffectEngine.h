@@ -8,7 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyperhdrbase/GrabberWrapper.h>
+#include <base/GrabberWrapper.h>
 #include <grabber/AVFGrabber.h>
 
 class AVFWrapper : public GrabberWrapper

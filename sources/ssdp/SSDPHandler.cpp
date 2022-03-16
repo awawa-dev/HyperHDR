@@ -2,9 +2,9 @@
 
 #include <webserver/WebServer.h>
 #include "SSDPDescription.h"
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 #include <HyperhdrConfig.h>
-#include <hyperhdrbase/AuthManager.h>
+#include <base/AuthManager.h>
 
 #include <QNetworkInterface>
 

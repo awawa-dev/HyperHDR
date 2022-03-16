@@ -6,7 +6,7 @@
 #include <QDebug>
 
 // hyperhdr include
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 
 namespace FileUtils {
 

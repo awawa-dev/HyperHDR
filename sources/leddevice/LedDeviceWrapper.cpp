@@ -7,7 +7,7 @@
 #include "LedDevice_headers.h"
 
 // util
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 #include <utils/JsonUtils.h>
 
 // qt

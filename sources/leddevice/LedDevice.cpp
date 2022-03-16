@@ -8,7 +8,7 @@
 #include <QTimer>
 #include <QDateTime>
 
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 #include <utils/JsonUtils.h>
 
 //std includes

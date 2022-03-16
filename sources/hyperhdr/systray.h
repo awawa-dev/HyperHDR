@@ -9,8 +9,8 @@
 #include <memory>
 #include <vector>
 
-#include <hyperhdrbase/HyperHdrInstance.h>
-#include <hyperhdrbase/HyperHdrIManager.h>
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrIManager.h>
 
 class HyperHdrDaemon;
 

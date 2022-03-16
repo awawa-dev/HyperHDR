@@ -43,8 +43,8 @@
 #include <linux/videodev2.h>
 #include <limits.h>
 
-#include <hyperhdrbase/HyperHdrInstance.h>
-#include <hyperhdrbase/HyperHdrIManager.h>
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>

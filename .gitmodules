@@ -11,4 +11,4 @@
 	url = https://github.com/ARMmbed/mbedtls
 [submodule "dependencies/external/libcec"]
 	path = dependencies/external/libcec
-	url = git://github.com/awawa-dev/libcec.git
+	url = https://github.com/awawa-dev/libcec.git

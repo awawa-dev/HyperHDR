@@ -12,7 +12,7 @@
 // settings
 #include <utils/settings.h>
 // AuthManager
-#include <hyperhdrbase/AuthManager.h>
+#include <base/AuthManager.h>
 
 class HyperHdrInstance;
 class ComponentRegister;

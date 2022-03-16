@@ -5,7 +5,7 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 
 // qt incl
 #include <QTcpServer>

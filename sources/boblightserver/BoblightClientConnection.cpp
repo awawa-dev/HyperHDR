@@ -16,9 +16,9 @@
 #include <QDateTime>
 #include <QHostInfo>
 
-#include <hyperhdrbase/ImageProcessor.h>
+#include <base/ImageProcessor.h>
 #include <HyperhdrConfig.h>
-#include <hyperhdrbase/HyperHdrInstance.h>
+#include <base/HyperHdrInstance.h>
 #include <utils/QStringUtils.h>
 
 

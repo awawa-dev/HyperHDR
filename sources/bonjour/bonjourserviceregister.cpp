@@ -34,7 +34,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/Logger.h>
 #include <HyperhdrConfig.h>
-#include <hyperhdrbase/AuthManager.h>
+#include <base/AuthManager.h>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)

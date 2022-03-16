@@ -3,7 +3,7 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources)
 
-add_subdirectory(hyperhdrbase)
+add_subdirectory(base)
 add_subdirectory(commandline)
 add_subdirectory(blackborder)
 add_subdirectory(jsonserver)

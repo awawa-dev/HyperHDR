@@ -9,7 +9,7 @@
 #include <QSemaphore>
 #include <QTimer>
 
-#include <hyperhdrbase/SoundCapture.h>
+#include <base/SoundCapture.h>
 
 #define SOUNDCAPLINUX_BUF_LENP 10
 class SoundCapLinux : public SoundCapture

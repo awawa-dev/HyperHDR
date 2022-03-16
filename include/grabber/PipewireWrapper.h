@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hyperhdrbase/SystemWrapper.h>
+#include <base/SystemWrapper.h>
 #include <grabber/PipewireGrabber.h>
 
 class PipewireWrapper : public SystemWrapper

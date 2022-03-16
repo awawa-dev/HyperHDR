@@ -14,7 +14,7 @@
 
 // util includes
 #include <utils/PixelFormat.h>
-#include <hyperhdrbase/Grabber.h>
+#include <base/Grabber.h>
 #include <grabber/V4L2Worker.h>
 #include <utils/Components.h>
 
