@@ -189,12 +189,16 @@ QString FlatBufferServer::GetSharedLut()
 // color should always be RGB24 for flatbuffers
 void FlatBufferServer::loadLutFile()
 {
+	QString fileName01 = QString("%1%2").arg(_configurationPath).arg("/flat_lut_lin_tables.3d");
+	QString fileName02 = QString("%1%2").arg(GetSharedLut()).arg("/flat_lut_lin_tables.3d");
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
-	QList<QString> files({ fileName1, fileName2 });
+	QList<QString> files({ fileName01, fileName02, fileName1, fileName2 });
 
 #ifdef __linux__
+	QString fileName03 = QString("/usr/share/hyperhdr/lut/flat_lut_lin_tables.3d");
 	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
+	files.append(fileName03);
 	files.append(fileName3);
 #endif
 
@@ -213,7 +217,7 @@ void FlatBufferServer::loadLutFile()
 
 				length = file.size();
 
-				if (length == LUT_FILE_SIZE * 3)
+				if (length == LUT_FILE_SIZE * 3 || length == LUT_FILE_SIZE)
 				{
 					qint64 index = 0; // RGB24
 
