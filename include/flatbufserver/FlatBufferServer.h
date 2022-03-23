@@ -9,9 +9,11 @@
 
 class BonjourServiceRegister;
 class QTcpServer;
+class QLocalServer;
 class FlatBufferClient;
 class NetOrigin;
 
+#define HYPERHDR_DOMAIN_SERVER QStringLiteral("hyperhdr-domain")
 
 ///
 /// @brief A TcpServer to receive images of different formats with Google Flatbuffer
@@ -75,13 +77,17 @@ private:
 	///
 	void loadLutFile();
 
+	void setupClient(FlatBufferClient* client);
+
 
 private:
-	QTcpServer* _server;
-	NetOrigin* _netOrigin;
-	Logger* _log;
-	int _timeout;
-	quint16 _port;
+	QTcpServer*		_server;
+	QLocalServer*	_domain;
+	NetOrigin*		_netOrigin;
+	Logger*			_log;
+	int				_timeout;
+	quint16			_port;
+
 	const QJsonDocument _config;
 	BonjourServiceRegister* _serviceRegister = nullptr;
 

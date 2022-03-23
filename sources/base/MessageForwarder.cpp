@@ -254,27 +254,30 @@ void MessageForwarder::addJsonSlave(const QString& slave)
 
 void MessageForwarder::addFlatbufferSlave(const QString& slave)
 {
-	QStringList parts = slave.split(":");
-	if (parts.size() != 2)
+	if (slave != HYPERHDR_DOMAIN_SERVER)
 	{
-		Error(_log, "Unable to parse address (%s)", QSTRING_CSTR(slave));
-		return;
-	}
+		QStringList parts = slave.split(":");
+		if (parts.size() != 2)
+		{
+			Error(_log, "Unable to parse address (%s)", QSTRING_CSTR(slave));
+			return;
+		}
 
-	bool ok;
-	parts[1].toUShort(&ok);
-	if (!ok)
-	{
-		Error(_log, "Unable to parse port number (%s)", QSTRING_CSTR(parts[1]));
-		return;
-	}
+		bool ok;
+		parts[1].toUShort(&ok);
+		if (!ok)
+		{
+			Error(_log, "Unable to parse port number (%s)", QSTRING_CSTR(parts[1]));
+			return;
+		}
 
-	// verify loop with flatbufserver
-	const QJsonObject& obj = _hyperhdr->getSetting(settings::type::FLATBUFSERVER).object();
-	if (QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
-	{
-		Error(_log, "Loop between Flatbuffer Server and Forwarder! (%s)", QSTRING_CSTR(slave));
-		return;
+		// verify loop with flatbufserver
+		const QJsonObject& obj = _hyperhdr->getSetting(settings::type::FLATBUFSERVER).object();
+		if (QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
+		{
+			Error(_log, "Loop between Flatbuffer Server and Forwarder! (%s)", QSTRING_CSTR(slave));
+			return;
+		}
 	}
 
 	if (_forwarder_enabled && !_flatSlaves.contains(slave))

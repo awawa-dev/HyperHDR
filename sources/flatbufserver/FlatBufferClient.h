@@ -11,6 +11,7 @@
 #include "hyperhdr_request_generated.h"
 
 class QTcpSocket;
+class QLocalSocket;
 class QTimer;
 
 ///
@@ -26,7 +27,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit FlatBufferClient(QTcpSocket* socket, int timeout, int hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent = nullptr);
+	explicit FlatBufferClient(QTcpSocket* socket, QLocalSocket* domain, int timeout, int hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent = nullptr);
 
 signals:
 	///
@@ -134,12 +135,13 @@ private:
 	void sendErrorReply(const std::string& error);
 
 private:
-	Logger* _log;
-	QTcpSocket* _socket;
-	const QString _clientAddress;
-	QTimer* _timeoutTimer;
-	int _timeout;
-	int _priority;
+	Logger*			_log;
+	QTcpSocket*		_socket;
+	QLocalSocket*	_domain;
+	QString			_clientAddress;
+	QTimer*			_timeoutTimer;
+	int				_timeout;
+	int				_priority;
 
 	QByteArray _receiveBuffer;
 

@@ -13,34 +13,58 @@
 #include "hyperhdr_request_generated.h"
 
 FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString& address, int priority, bool skipReply)
-	: _socket()
+	: _socket((address == HYPERHDR_DOMAIN_SERVER) ? nullptr : new QTcpSocket())
+	, _domain((address == HYPERHDR_DOMAIN_SERVER) ? new QLocalSocket() : nullptr)
 	, _origin(origin)
 	, _priority(priority)
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
+	, _prevLocalState(QLocalSocket::UnconnectedState)
 	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _registered(false)
 	, _sent(false)
 	, _lastSendImage(0)
 {
-	QStringList parts = address.split(":");
-	if (parts.size() != 2)
-	{
-		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse address (%1)").arg(address).toStdString());
-	}
-	_host = parts[0];
+	if (_socket == nullptr)
+		Info(_log, "Connection using local domain socket. Ignoring port.");
+	else
+		Info(_log, "Connection using TCP socket (address != %s)", QSTRING_CSTR(HYPERHDR_DOMAIN_SERVER));
 
-	bool ok;
-	_port = parts[1].toUShort(&ok);
-	if (!ok)
+	if (_socket != nullptr)
 	{
-		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse the port (%1)").arg(parts[1]).toStdString());
+		QStringList parts = address.split(":");
+		if (parts.size() != 2)
+		{
+			throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse address (%1)").arg(address).toStdString());
+		}
+		_host = parts[0];
+
+		bool ok;
+		_port = parts[1].toUShort(&ok);
+		if (!ok)
+		{
+			throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse the port (%1)").arg(parts[1]).toStdString());
+		}
+	}
+	else
+	{
+		_host = address;
+		_port = 0;
 	}
 
 	if (!skipReply)
-		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+	{
+		if (_socket != nullptr)
+			connect(_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+		else if (_domain != nullptr)
+			connect(_domain, &QLocalSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+	}
 
 	// init connect
-	Info(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
+	if (_socket == nullptr)
+		Info(_log, "Connecting to HyperHDR local domain: %s", _host.toStdString().c_str());
+	else
+		Info(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
+
 	connectToHost();
 
 	// start the connection timer
@@ -55,12 +79,19 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 FlatBufferConnection::~FlatBufferConnection()
 {
 	_timer.stop();
-	_socket.close();
+
+	if (_socket != nullptr)
+		_socket->close();
+	if (_domain != nullptr)
+		_domain->close();
 }
 
 void FlatBufferConnection::readData()
 {
-	_receiveBuffer += _socket.readAll();
+	if (_socket != nullptr)
+		_receiveBuffer += _socket->readAll();
+	else if (_domain != nullptr)
+		_receiveBuffer += _domain->readAll();
 
 	// check if we can read a header
 	while (_receiveBuffer.size() >= 4)
@@ -92,10 +123,20 @@ void FlatBufferConnection::readData()
 
 void FlatBufferConnection::setSkipReply(bool skip)
 {
-	if (skip)
-		disconnect(&_socket, &QTcpSocket::readyRead, 0, 0);
-	else
-		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+	if (_socket != nullptr)
+	{
+		if (skip)
+			disconnect(_socket, &QTcpSocket::readyRead, 0, 0);
+		else
+			connect(_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+	}
+	if (_domain != nullptr)
+	{
+		if (skip)
+			disconnect(_domain, &QLocalSocket::readyRead, 0, 0);
+		else
+			connect(_domain, &QLocalSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+	}
 }
 
 void FlatBufferConnection::setRegister(const QString& origin, int priority)
@@ -113,9 +154,19 @@ void FlatBufferConnection::setRegister(const QString& origin, int priority)
 
 	// write message
 	int count = 0;
-	count += _socket.write(reinterpret_cast<const char*>(header), 4);
-	count += _socket.write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
-	_socket.flush();
+
+	if (_socket != nullptr)
+	{
+		count += _socket->write(reinterpret_cast<const char*>(header), 4);
+		count += _socket->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
+		_socket->flush();
+	}
+	else if (_domain != nullptr)
+	{
+		count += _domain->write(reinterpret_cast<const char*>(header), 4);
+		count += _domain->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
+		_domain->flush();
+	}
 	_builder.Clear();
 }
 
@@ -134,7 +185,10 @@ void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 	auto current = QDateTime::currentMSecsSinceEpoch();
 	auto outOfTime = (current - _lastSendImage);
 
-	if (_socket.state() != QAbstractSocket::ConnectedState)
+	if (_socket != nullptr && _socket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	if (_domain != nullptr && _domain->state() != QLocalSocket::ConnectedState)
 		return;
 
 	if (_sent && outOfTime < 1000)
@@ -179,17 +233,19 @@ void FlatBufferConnection::clearAll()
 void FlatBufferConnection::connectToHost()
 {
 	// try connection only when
-	if (_socket.state() == QAbstractSocket::UnconnectedState)
-		_socket.connectToHost(_host, _port);
+	if (_socket != nullptr && _socket->state() == QAbstractSocket::UnconnectedState)
+		_socket->connectToHost(_host, _port);
+	else if (_domain != nullptr && _domain->state() == QLocalSocket::UnconnectedState)
+		_domain->connectToServer(_host);
 }
 
 void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 {
 	// print out connection message only when state is changed
-	if (_socket.state() != _prevSocketState)
+	if (_socket != nullptr && _socket->state() != _prevSocketState)
 	{
 		_registered = false;
-		switch (_socket.state())
+		switch (_socket->state())
 		{
 		case QAbstractSocket::UnconnectedState:
 			Info(_log, "No connection to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
@@ -201,11 +257,29 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 			Debug(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
 			break;
 		}
-		_prevSocketState = _socket.state();
+		_prevSocketState = _socket->state();
 	}
+	if (_socket != nullptr && _socket->state() != QAbstractSocket::ConnectedState)
+		return;
 
-
-	if (_socket.state() != QAbstractSocket::ConnectedState)
+	if (_domain != nullptr && _domain->state() != _prevLocalState)
+	{
+		_registered = false;
+		switch (_domain->state())
+		{
+		case QLocalSocket::UnconnectedState:
+			Info(_log, "No connection to HyperHDR domain: %s", _host.toStdString().c_str());
+			break;
+		case QLocalSocket::ConnectedState:
+			Info(_log, "Connected to HyperHDR domain: %s", _host.toStdString().c_str());
+			break;
+		default:
+			Debug(_log, "Connecting to HyperHDR domain: %s", _host.toStdString().c_str());
+			break;
+		}
+		_prevLocalState = _domain->state();
+	}
+	if (_domain != nullptr && _domain->state() != QLocalSocket::ConnectedState)
 		return;
 
 	if (!_registered)
@@ -222,9 +296,18 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 
 	// write message
 	int count = 0;
-	count += _socket.write(reinterpret_cast<const char*>(header), 4);
-	count += _socket.write(reinterpret_cast<const char*>(buffer), size);
-	_socket.flush();
+	if (_socket != nullptr)
+	{
+		count += _socket->write(reinterpret_cast<const char*>(header), 4);
+		count += _socket->write(reinterpret_cast<const char*>(buffer), size);
+		_socket->flush();
+	}
+	else if (_domain != nullptr)
+	{
+		count += _domain->write(reinterpret_cast<const char*>(header), 4);
+		count += _domain->write(reinterpret_cast<const char*>(buffer), size);
+		_domain->flush();
+	}
 }
 
 bool FlatBufferConnection::parseReply(const hyperhdrnet::Reply* reply)

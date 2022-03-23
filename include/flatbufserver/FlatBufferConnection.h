@@ -5,6 +5,7 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
+#include <QLocalSocket>
 #include <QTimer>
 #include <QMap>
 
@@ -18,6 +19,8 @@ namespace hyperhdrnet
 {
 	struct Reply;
 }
+
+#define HYPERHDR_DOMAIN_SERVER QStringLiteral("hyperhdr-domain")
 
 ///
 /// Connection class to setup an connection to the hyperhdr server and execute commands.
@@ -113,22 +116,22 @@ private:
 
 private:
 	/// The TCP-Socket with the connection to the server
-	QTcpSocket _socket;
-
-	QString _origin;
-	int _priority;
+	QTcpSocket*		_socket;
+	QLocalSocket*	_domain;
+	QString			_origin;
+	int				_priority;
 
 	/// Host address
-	QString _host;
+	QString			_host;
 
 	/// Host port
-	uint16_t _port;
+	uint16_t		_port;
 
 	/// buffer for reply
-	QByteArray _receiveBuffer;
-
-	QTimer _timer;
-	QAbstractSocket::SocketState  _prevSocketState;
+	QByteArray		_receiveBuffer;
+	QTimer			_timer;
+	QAbstractSocket::SocketState	_prevSocketState;
+	QLocalSocket::LocalSocketState	_prevLocalState;
 
 	Logger* _log;
 	flatbuffers::FlatBufferBuilder _builder;
