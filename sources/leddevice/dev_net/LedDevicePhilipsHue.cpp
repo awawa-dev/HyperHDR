@@ -1199,6 +1199,8 @@ bool LedDevicePhilipsHue::stopStream()
 			}
 
 			writeStream(true);
+
+			QThread::msleep(25);
 		}
 		else
 			canRestore = true;
