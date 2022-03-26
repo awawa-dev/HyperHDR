@@ -183,9 +183,9 @@ void FlatBufferServer::startServer()
 	if (_domain != nullptr && !_domain->isListening())
 	{
 		if (!_domain->listen(HYPERHDR_DOMAIN_SERVER))
-			Error(_log, "Could not start local domain server 'hyperhdr'");
+			Error(_log, "Could not start local domain socket server '%s'", QSTRING_CSTR(QString(HYPERHDR_DOMAIN_SERVER)));
 		else
-			Info(_log, "Started local domain server: %s", QSTRING_CSTR(_domain->serverName()));
+			Info(_log, "Started local domain socket server: '%s'", QSTRING_CSTR(_domain->serverName()));
 	}
 }
 

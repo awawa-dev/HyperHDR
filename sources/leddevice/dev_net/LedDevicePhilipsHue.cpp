@@ -1167,7 +1167,7 @@ bool LedDevicePhilipsHue::startStream()
 {
 	Debug(_log, "Start entertainment stream");
 
-	int index = 3;
+	int index = 6;
 	while (!setStreamGroupState(true) && --index > 0)
 	{
 		Debug(_log, "Start entertainment stream. Retrying...");
@@ -1198,7 +1198,11 @@ bool LedDevicePhilipsHue::stopStream()
 				light.setBlack();
 			}
 
-			writeStream(true);
+			for (int i = 0; i < 2; i++)
+			{
+				writeStream(true);
+				QThread::msleep(5);
+			}
 
 			QThread::msleep(25);
 		}

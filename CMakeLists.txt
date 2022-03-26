@@ -211,7 +211,7 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if (DEFAULT_X11)
-	find_package(XLibs)
+	find_package(XLibs QUIET )
 	if (NOT XLibs_FOUND)
 		message( WARNING "X11 libs not found. Disabling support for X11.")
 		SET ( DEFAULT_X11                          OFF )
