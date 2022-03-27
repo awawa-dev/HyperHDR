@@ -5,6 +5,7 @@
 // util
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
+#include <base/HyperHdrIManager.h>
 
 // bonjour
 #ifdef ENABLE_AVAHI
@@ -98,6 +99,10 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		_hdrToneMappingMode = obj["hdrToneMapping"].toBool(false) ? obj["hdrToneMappingMode"].toInt(1) : 0;
 
 		setHdrToneMappingEnabled(_hdrToneMappingMode);
+
+#if !defined(ENABLE_MF) && !defined(ENABLE_AVF) && !defined(ENABLE_V4L2)
+		emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (_hdrToneMappingMode != 0));
+#endif
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
