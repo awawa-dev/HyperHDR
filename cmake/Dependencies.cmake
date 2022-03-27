@@ -140,7 +140,7 @@ macro(DeployApple TARGET)
 endmacro()
 
 macro(DeployUnix TARGET)
-	if(EXISTS ${TARGET_FILE})
+	if (NOT CMAKE_CROSSCOMPILING AND EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
 		#"libsystemd0"

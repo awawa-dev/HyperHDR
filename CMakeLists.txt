@@ -211,7 +211,9 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if (DEFAULT_X11)
-	find_package(XLibs QUIET )
+	if (NOT CMAKE_CROSSCOMPILING)
+		find_package(XLibs QUIET )
+	endif()	
 	if (NOT XLibs_FOUND)
 		message( WARNING "X11 libs not found. Disabling support for X11.")
 		SET ( DEFAULT_X11                          OFF )
@@ -424,7 +426,7 @@ endif ()
 find_package(Threads REQUIRED)
 
 # add QT5 dependency
-IF ( CMAKE_CROSSCOMPILING )
+IF ( CMAKE_CROSSCOMPILING AND NOT TARGET Qt${Qt_VERSION}::moc AND NOT TARGET Qt${Qt_VERSION}::rcc)
 
 	file(GLOB QT_BIN ${QT_BIN_PATH})
 
