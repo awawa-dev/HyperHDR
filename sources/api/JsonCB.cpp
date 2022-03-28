@@ -32,6 +32,8 @@
 // Image to led map helper
 #include <base/ImageProcessor.h>
 
+#include <flatbufserver/FlatBufferServer.h>
+
 using namespace hyperhdr;
 
 JsonCB::JsonCB(QObject* parent)
@@ -124,6 +126,14 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			disconnect(GrabberWrapper::instance, &GrabberWrapper::HdrChanged, this, &JsonCB::handleVideoModeHdrChange);
 		else
 			connect(GrabberWrapper::instance, &GrabberWrapper::HdrChanged, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
+	}
+
+	if (type == "videomodehdr-update" && GrabberWrapper::instance == nullptr && FlatBufferServer::instance != nullptr)
+	{
+		if (unsubscribe)
+			disconnect(FlatBufferServer::instance, &FlatBufferServer::HdrChanged, this, &JsonCB::handleVideoModeHdrChange);
+		else
+			connect(FlatBufferServer::instance, &FlatBufferServer::HdrChanged, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
 	}
 
 	if (type == "effects-update")

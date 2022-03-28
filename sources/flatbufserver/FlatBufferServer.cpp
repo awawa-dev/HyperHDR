@@ -32,7 +32,8 @@ FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& c
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _timeout(5000)
 	, _config(config)
-	, _hdrToneMappingMode(false)
+	, _hdrToneMappingMode(0)
+	, _realHdrToneMappingMode(0)
 	, _lutBuffer(nullptr)
 	, _lutBufferInit(false)
 	, _configurationPath(configurationPath)
@@ -71,13 +72,27 @@ void FlatBufferServer::initServer()
 
 void FlatBufferServer::setHdrToneMappingEnabled(int mode)
 {
-	bool status = _hdrToneMappingMode && mode;
+	bool status = (_hdrToneMappingMode != 0) && (mode != 0);
 
 	if (status)
 		loadLutFile();
 
+	_realHdrToneMappingMode = (_lutBufferInit && status) ? mode : 0;
+
 	// inform clients
-	emit hdrToneMappingChanged((_lutBufferInit && status)?mode :0, _lutBuffer);
+	emit hdrToneMappingChanged(_realHdrToneMappingMode, _lutBuffer);
+
+
+#if !defined(ENABLE_MF) && !defined(ENABLE_AVF) && !defined(ENABLE_V4L2)
+	emit HdrChanged(_realHdrToneMappingMode);
+	emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (_realHdrToneMappingMode != 0));
+#endif
+
+}
+
+int FlatBufferServer::getHdrToneMappingEnabled()
+{
+	return _realHdrToneMappingMode;
 }
 
 void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -99,10 +114,6 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		_hdrToneMappingMode = obj["hdrToneMapping"].toBool(false) ? obj["hdrToneMappingMode"].toInt(1) : 0;
 
 		setHdrToneMappingEnabled(_hdrToneMappingMode);
-
-#if !defined(ENABLE_MF) && !defined(ENABLE_AVF) && !defined(ENABLE_V4L2)
-		emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (_hdrToneMappingMode != 0));
-#endif
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);

@@ -46,6 +46,8 @@
 // auth manager
 #include <base/AuthManager.h>
 
+#include <flatbufserver/FlatBufferServer.h>
+
 using namespace hyperhdr;
 
 JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject* parent, bool noListener)
@@ -562,7 +564,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		}
 		else
 		{
-			info["videomodehdr"] = 0;
+			if (FlatBufferServer::getInstance() != nullptr)
+				info["videomodehdr"] = FlatBufferServer::getInstance()->getHdrToneMappingEnabled();
+			else
+				info["videomodehdr"] = 0;
 		}
 
 		// get available components

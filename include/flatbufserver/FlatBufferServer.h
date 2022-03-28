@@ -31,6 +31,7 @@ public:
 
 signals:
 	void hdrToneMappingChanged(int mode, uint8_t* lutBuffer);
+	void HdrChanged(int mode);
 
 public slots:
 	///
@@ -43,6 +44,8 @@ public slots:
 	void initServer();
 
 	void setHdrToneMappingEnabled(int mode);
+
+	int getHdrToneMappingEnabled();
 
 private slots:
 	///
@@ -94,8 +97,9 @@ private:
 	QVector<FlatBufferClient*> _openConnections;
 
 	// tone mapping
-	int _hdrToneMappingMode;
-	uint8_t* _lutBuffer;
-	bool _lutBufferInit;
-	QString	_configurationPath;
+	int			_hdrToneMappingMode;
+	int			_realHdrToneMappingMode;
+	uint8_t*	_lutBuffer;
+	bool		_lutBufferInit;
+	QString		_configurationPath;
 };
