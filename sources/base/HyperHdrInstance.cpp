@@ -49,6 +49,8 @@
 class BoblightServer {};
 #endif
 
+#include <utils/RawUdpServer.h>
+
 
 
 HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, QString name)
@@ -74,6 +76,7 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, QString n
 	, _systemControl(nullptr)
 	, _globalLedBuffer(_ledString.leds().size(), ColorRgb::BLACK)
 	, _boblightServer(nullptr)
+	, _rawUdpServer(nullptr)
 	, _name((name.isEmpty()) ? QString("INSTANCE%1").arg(instance):name)
 	, _readOnlyMode(readonlyMode)
 
@@ -191,6 +194,9 @@ void HyperHdrInstance::start()
 	connect(this, &HyperHdrInstance::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
 #endif
 
+	_rawUdpServer = new RawUdpServer(this, getSetting(settings::type::RAWUDPSERVER));
+	connect(this, &HyperHdrInstance::settingsChanged, _rawUdpServer, &RawUdpServer::handleSettingsUpdate);
+
 	// instance initiated, enter thread event loop
 	emit started();
 }
@@ -212,6 +218,7 @@ void HyperHdrInstance::freeObjects()
 
 	// delete components on exit
 	delete _boblightServer;
+	delete _rawUdpServer;
 	delete _videoControl;
 	delete _systemControl;
 	delete _effectEngine;

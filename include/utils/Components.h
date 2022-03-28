@@ -23,6 +23,7 @@ namespace hyperhdr
 		COMP_EFFECT,
 		COMP_LEDDEVICE,
 		COMP_FLATBUFSERVER,
+		COMP_RAWUDPSERVER,
 		COMP_PROTOSERVER
 	};
 
@@ -43,6 +44,7 @@ namespace hyperhdr
 		case COMP_IMAGE:         return "Image";
 		case COMP_LEDDEVICE:     return "LED device";
 		case COMP_FLATBUFSERVER: return "Image Receiver";
+		case COMP_RAWUDPSERVER:  return "Raw RGB UDP Server";
 		case COMP_PROTOSERVER:   return "Proto Server";
 		default:                 return "";
 		}
@@ -65,6 +67,7 @@ namespace hyperhdr
 		case COMP_IMAGE:         return "IMAGE";
 		case COMP_LEDDEVICE:     return "LEDDEVICE";
 		case COMP_FLATBUFSERVER: return "FLATBUFSERVER";
+		case COMP_RAWUDPSERVER:  return "RAWUDPSERVER";
 		case COMP_PROTOSERVER:   return "PROTOSERVER";
 		default:                 return "";
 		}
@@ -86,6 +89,7 @@ namespace hyperhdr
 		if (cmp == "IMAGE")         return COMP_IMAGE;
 		if (cmp == "LEDDEVICE")     return COMP_LEDDEVICE;
 		if (cmp == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
+		if (cmp == "RAWUDPSERVER")  return COMP_RAWUDPSERVER;
 		if (cmp == "PROTOSERVER")   return COMP_PROTOSERVER;
 		return COMP_INVALID;
 	}

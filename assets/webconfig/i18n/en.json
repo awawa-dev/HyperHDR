@@ -1143,8 +1143,10 @@
   "perf_undervoltage" : "Undervoltage detected",
   "perf_no" : "No",
   "perf_invalid_frames" : "invalid frames",
-  "edt_conf_fbs_tonemapping_expl": "If enabled, HyperHDR will apply LUT correction for the incoming stream. Make sure you have got the correct LUT table. Default 3D LUT file <span class='fw-bold'>for HDR10: 'lut_lin_tables.3d'</span> is already included.<span class='fw-bold'> You can generate one and preview the effect using link in the 'Advanced menu'.</span><br/>Your typical hidden configuration folder to upload that file in is (check 'Logs' page to confirm):<br/> Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
+  "edt_conf_fbs_tonemapping_expl": "If enabled, HyperHDR will apply LUT correction for the incoming stream. Make sure you have got the correct LUT table. Default 3D LUT file <span class='fw-bold'>for HDR10: 'lut_lin_tables.3d'</span> (filename 'flat_lut_lin_tables.3d' is also accepted) is already included.<span class='fw-bold'> You can generate one and preview the effect using link in the 'Advanced menu'.</span><br/>Your typical hidden configuration folder to upload that file in is (check 'Logs' page to confirm):<br/> Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "edt_conf_fbs_tonemapping_title": "HDR to SDR tone mapping",
   "edt_conf_fbs_hdrToneMappingMode_title": "Area for LUT mode effect",
-  "edt_conf_fbs_hdrToneMappingMode_expl": "Fullscreen or faster Border Mode"
+  "edt_conf_fbs_hdrToneMappingMode_expl": "Fullscreen or faster Border Mode",
+  "general_comp_RAWUDPSERVER" : "UDP raw receiver",
+  "edt_udp_raw_server" : "A lightweight server for remote synchronization of HyperHDR instances using UDP and raw RGB LED colors. Use the 'udpraw' light source in the sender. Important: both instances should have the same number of LEDs and same geometry for this to work."
 } 

@@ -1,0 +1,37 @@
+{
+	"type" : "object",
+	"title" : "general_comp_RAWUDPSERVER",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"port" :
+		{
+			"type" : "integer",
+			"required" : true,
+			"title" : "edt_conf_general_port_title",
+			"default" : 5568,
+			"minimum" : 1024,
+			"maximum" : 65535,
+			"propertyOrder" : 2
+		},
+		"priority" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_general_priority_title",
+			"minimum" : 100,
+			"maximum" : 254,
+			"default" : 109,
+			"required" : true,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}

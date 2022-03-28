@@ -10,6 +10,7 @@ $(document).ready( function() {
 	var conf_editor_fbs = null;
 	var conf_editor_bobl = null;
 	var conf_editor_forw = null;
+	var conf_editor_rawUdp = null;
 	
 	{
 		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_webc_heading_title"), 'editor_container', 'btn_submit_www'));
@@ -34,6 +35,9 @@ $(document).ready( function() {
 			$('#conf_cont').append(createHelpTable(window.schema.protoServer.properties, $.i18n("edt_conf_pbs_heading_title")));
 		}
 
+		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("general_comp_RAWUDPSERVER"), 'editor_container_rawUdpServer', 'btn_submit_rawUdpServer'));
+		$('#conf_cont').append(createHelpTable(window.schema.rawUdpServer.properties, $.i18n("general_comp_RAWUDPSERVER")));
+			
 		//boblight
 		if (BOBLIGHT_ENABLED)
 		{
@@ -123,6 +127,20 @@ $(document).ready( function() {
 		});
 	}
 
+	conf_editor_rawUdp = createJsonEditor('editor_container_rawUdpServer', {
+		rawUdpServer     : window.schema.rawUdpServer
+	}, true, true);
+
+	conf_editor_rawUdp.on('change',function() {
+		conf_editor_rawUdp.validate().length || window.readOnlyMode ? $('#btn_submit_rawUdpServer').attr('disabled', true) : $('#btn_submit_rawUdpServer').attr('disabled', false);
+	});
+
+	$('#btn_submit_rawUdpServer').off().on('click',function() {
+		requestWriteConfig(conf_editor_rawUdp.getValue());
+	});
+
+	document.getElementById('editor_container_rawUdpServer').parentElement.firstElementChild.classList.add('is-instance');
+		
 	//boblight
 	if (BOBLIGHT_ENABLED)
 	{
@@ -137,6 +155,8 @@ $(document).ready( function() {
 		$('#btn_submit_boblightserver').off().on('click',function() {
 			requestWriteConfig(conf_editor_bobl.getValue());
 		});
+
+		document.getElementById('editor_container_boblightserver').parentElement.firstElementChild.classList.add('is-instance');
 	}
 
 	if(storedAccess != 'default')
@@ -162,6 +182,7 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_network_net_intro'), "editor_container_net");
 		createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
+		createHint("intro", $.i18n('edt_udp_raw_server'), "editor_container_rawUdpServer");
 		
 		if (window.serverInfo.hasPROTOBUF == 1)
 		{
@@ -238,6 +259,12 @@ $(document).ready( function() {
 	})
 
 	checkApiTokenState(window.serverConfig.network.apiAuth);
+	
+	var instHeaders = document.getElementsByClassName("card-header");
+	Array.prototype.forEach.call(instHeaders, function(instHeader, index) {
+		if (instHeader.classList.contains('is-instance'))
+			putInstanceName(instHeader);
+	});
 	
 	removeOverlay();
 });

@@ -207,6 +207,9 @@ $(document).ready(function()
 				case "PROTOSERVER":
 					owner = $.i18n('general_comp_PROTOSERVER');
 					break;
+				case "RAWUDPSERVER":
+					owner = $.i18n('general_comp_RAWUDPSERVER');
+					break;					
 			}
 
 			if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")

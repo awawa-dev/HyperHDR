@@ -47,6 +47,7 @@ class BGEffectHandler;
 class VideoControl;
 class SystemControl;
 class BoblightServer;
+class RawUdpServer;
 class LedDeviceWrapper;
 class ImageProcessingUnit;
 class Logger;
@@ -519,6 +520,7 @@ private:
 
 	/// Boblight instance
 	BoblightServer*			_boblightServer;
+	RawUdpServer*			_rawUdpServer;
 
 	QString					_name;
 

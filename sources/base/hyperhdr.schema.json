@@ -59,6 +59,10 @@
 		{
 			"$ref": "schema-flatbufServer.json"
 		},
+		"rawUdpServer":
+		{
+			"$ref": "schema-rawUdpServer.json"
+		},
 		"protoServer" :
 		{
 			"$ref": "schema-protoServer.json"
