@@ -1148,5 +1148,5 @@
   "edt_conf_fbs_hdrToneMappingMode_title": "Area for LUT mode effect",
   "edt_conf_fbs_hdrToneMappingMode_expl": "Fullscreen or faster Border Mode",
   "general_comp_RAWUDPSERVER" : "UDP raw receiver",
-  "edt_udp_raw_server" : "A lightweight server for remote synchronization of HyperHDR instances using UDP and raw RGB LED colors. Use the 'udpraw' light source in the sender. Important: both instances should have the same number of LEDs and same geometry for this to work."
+  "edt_udp_raw_server" : "A lightweight server for remote synchronization of HyperHDR instances using UDP and raw RGB LED colors. Can also be controlled from another applications (similar to Boblight server) in a very simple way. For HyperHDR synchronization use the 'udpraw' light source in the sender. Important: both instances should have the same number of LEDs and same geometry for this to work."
 } 

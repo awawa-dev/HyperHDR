@@ -609,12 +609,15 @@ QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
 			QThread::msleep(1000);
 			response = _restApi->get();
 
-			if (!response.error() || (response.getNetworkReplyError() != 1 && response.getNetworkReplyError() != 2))
+			if (!response.error() || (response.getNetworkReplyError() != 99 && response.getNetworkReplyError() != 1 && response.getNetworkReplyError() != 2))
 			{
 				if (response.error())
 					Error(_log, "Give up waiting for the Hue bridge. Response error code: %d", (int)response.getNetworkReplyError());
 				else
+				{
 					Info(_log, "The Hue bridge became ready finally. Response code: %d", (int)response.getNetworkReplyError());
+					QThread::msleep(1000);
+				}
 				break;
 			}
 		}

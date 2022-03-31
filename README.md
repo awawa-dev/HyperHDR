@@ -9,7 +9,7 @@ Open source ambient lighting implementation for television sets based on the vid
 Official releases: \
 https://github.com/awawa-dev/HyperHDR/releases
 
-Installers of the latest testing version (artifacts available in the latest build): \
+Latest testing installers can be find as the artifacts of the latest build in the Github Action tab at the bottom of the page. Must be logged in. \
 https://github.com/awawa-dev/HyperHDR/actions
 
 Default LUT table is already included (in the installers) but you can generate your own or import 3dl Autodesk lut table.\
@@ -94,6 +94,10 @@ SSH and SPI are enabled on default.
 - Ready to write SD images of HyperHDR
 - Fix for SK9822 leds on SPI (aka fake APA102)
 - Windows, macOS DMG and Linux DEB & RPM installers contain default LUT table
+
+### Dedicated HDR LUT tables for USB grabbers
+
+Ezcap 320, **Ezcap 321**, **AV Access 4KVC00** (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section)
 
 ### FAQ:
 

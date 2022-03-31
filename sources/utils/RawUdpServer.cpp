@@ -40,12 +40,12 @@
 
 RawUdpServer::RawUdpServer(HyperHdrInstance* hyperhdr, const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
-	, _hyperhdr(hyperhdr)
 	, _server(new QUdpSocket(this))
 	, _log(Logger::getInstance("RAW_UDP_SERVER"))
 	, _port(0)
 	, _priority(0)
 	, _initialized(false)
+	, _hyperhdr(hyperhdr)
 	, _config(config)
 	, _inactiveTimer(new QTimer(this))
 {

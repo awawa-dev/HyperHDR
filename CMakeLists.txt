@@ -282,10 +282,10 @@ if (DEFAULT_PROTOBUF)
 		   NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/bin)
 			message( STATUS "Downloading protobuf library")
 			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows)
-			file(DOWNLOAD https://github.com/awawa-dev/protobuf/releases/download/v3.20.0-rc2/windows.zip
+			file(DOWNLOAD https://github.com/awawa-dev/protobuf/releases/download/v3.20.0/windows.zip
 						  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip
 						  STATUS PROTO_DOWNLOAD_STATUS
-						  EXPECTED_HASH MD5=3dee0a09023d3c5073e8283c48387aaf)
+						  EXPECTED_HASH MD5=953b71d32029207e663403532cfbb8f2)
 			list(GET PROTO_DOWNLOAD_STATUS 0 PROTO_DOWNLOAD_STATUS_CODE)
 			if(PROTO_DOWNLOAD_STATUS_CODE AND NOT PROTO_DOWNLOAD_STATUS_CODE EQUAL 0)
 				message( FATAL_ERROR "Could not download protobuf library")
