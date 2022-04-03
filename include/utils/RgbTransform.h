@@ -110,6 +110,8 @@ public:
 	void transform(uint8_t& red, uint8_t& green, uint8_t& blue);
 	void transformSatLum(uint8_t& red, uint8_t& green, uint8_t& blue);
 	static RgbTransform createRgbTransform(quint8 instance, const QJsonObject& colorConfig)	;
+	static void rgb2hsl_d(double r, double g, double b, double& hue, double& saturation, double& luminance);
+	static void hsl2rgb_d(double hue, double saturation, double luminance, double& r, double& g, double& b);
 private:
 	///
 	/// init

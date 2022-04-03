@@ -517,7 +517,7 @@ $(document).ready( function(){
 					addRow1($.i18n("edt_conf_stream_hard_cap"),'videoDeviceInfoImpColumn border-top pt-2');
 					addRow4(el.videoControls.BrightnessDef.replace("Brightness:", $.i18n("edt_conf_stream_control_brightness")),
 							el.videoControls.ContrastDef.replace("Contrast:", $.i18n("edt_conf_stream_control_contrast")),
-							el.videoControls.SaturationDef.replace("Saturation:", $.i18n("edt_conf_stream_control_saturation:")),
+							el.videoControls.SaturationDef.replace("Saturation:", $.i18n("edt_conf_stream_control_saturation")),
 							el.videoControls.HueDef.replace("Hue:", $.i18n("edt_conf_stream_control_hue")));
 
 					buildModes(el);

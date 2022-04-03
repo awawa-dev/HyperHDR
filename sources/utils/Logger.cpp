@@ -59,6 +59,7 @@ Logger* Logger::getInstance(const QString& name, Logger::LogLevel minLevel)
 		_loggerMap.insert(name, log); // compat version, replace it with following line if we have 100% c++11
 		//LoggerMap.emplace(name, log);  // not compat with older linux distro's e.g. wheezy
 		connect(log, &Logger::newLogMessage, LoggerManager::getInstance(), &LoggerManager::handleNewLogMessage);
+		connect(log, &Logger::newState, LoggerManager::getInstance(), &LoggerManager::handleNewState);
 	}
 
 	return log;
@@ -104,6 +105,16 @@ Logger::LogLevel Logger::getLogLevel(const QString& name)
 
 	const Logger* log = Logger::getInstance(name);
 	return log->getMinLevel();
+}
+
+void Logger::disable()
+{
+	emit newState(false);
+}
+
+void Logger::enable()
+{
+	emit newState(true);
 }
 
 Logger::Logger(const QString& name, LogLevel minLevel)
@@ -267,12 +278,16 @@ QString Logger::getAppName() const
 LoggerManager::LoggerManager()
 	: QObject()
 	, _loggerMaxMsgBufferSize(350)
+	, _enable(true)
 {
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }
 
 void LoggerManager::handleNewLogMessage(const Logger::T_LOG_MESSAGE& msg)
 {
+	if (!_enable && msg.level != Logger::LogLevel::ERRORR)
+		return;
+
 	_logMessageBuffer.push_back(msg);
 	if (_logMessageBuffer.length() > _loggerMaxMsgBufferSize)
 	{
@@ -291,5 +306,10 @@ LoggerManager* LoggerManager::getInstance()
 const QList<Logger::T_LOG_MESSAGE>* LoggerManager::getLogMessageBuffer() const
 {
 	return &_logMessageBuffer;
+}
+
+void LoggerManager::handleNewState(bool state)
+{
+	_enable = state;
 }
 

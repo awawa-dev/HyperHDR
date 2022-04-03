@@ -31,6 +31,7 @@
 #include <utils/ColorSys.h>
 #include <utils/JsonUtils.h>
 #include <utils/PerformanceCounters.h>
+#include <utils/LutCalibrator.h>
 
 // bonjour wrapper
 #ifdef ENABLE_AVAHI
@@ -189,6 +190,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleProcessingCommand(message, command, tan);
 		else if (command == "videomodehdr")
 			handleVideoModeHdrCommand(message, command, tan);
+		else if (command == "lut-calibration")
+			handleLutCalibrationCommand(message, command, tan);
 		else if (command == "instance")
 			handleInstanceCommand(message, command, tan);
 		else if (command == "leddevice")
@@ -1265,6 +1268,36 @@ void JsonAPI::handleProcessingCommand(const QJsonObject& message, const QString&
 void JsonAPI::handleVideoModeHdrCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	API::setVideoModeHdr(message["HDR"].toInt());
+	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleLutCalibrationCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	QString subcommand = message["subcommand"].toString("");
+	int checksum = message["checksum"].toInt(-1);
+	QJsonObject startColor = message["startColor"].toObject();
+	QJsonObject endColor = message["endColor"].toObject();
+	bool limitedRange = message["limitedRange"].toBool(false);
+	double saturation = message["saturation"].toDouble(1.0);
+	double luminance = message["luminance"].toDouble(1.0);
+	double gammaR = message["gammaR"].toDouble(1.0);
+	double gammaG = message["gammaG"].toDouble(1.0);
+	double gammaB = message["gammaB"].toDouble(1.0);
+	int coef = message["coef"].toInt(0);
+	ColorRgb _startColor,_endColor;
+
+	_startColor.red = startColor["r"].toInt(128);
+	_startColor.green = startColor["g"].toInt(128);
+	_startColor.blue = startColor["b"].toInt(128);
+	_endColor.red = endColor["r"].toInt(255);
+	_endColor.green = endColor["g"].toInt(255);
+	_endColor.blue = endColor["b"].toInt(255);
+
+	if (subcommand == "capture")	
+		emit LutCalibrator::getInstance()->assign(checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
+	else
+		emit LutCalibrator::getInstance()->stop();
+
 	sendSuccessReply(command, tan);
 }
 

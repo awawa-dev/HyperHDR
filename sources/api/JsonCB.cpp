@@ -25,6 +25,8 @@
 
 #include <utils/PerformanceCounters.h>
 
+#include <utils/LutCalibrator.h>
+
 // qt
 #include <QDateTime>
 #include <QVariant>
@@ -45,7 +47,7 @@ JsonCB::JsonCB(QObject* parent)
 #endif
 	, _prioMuxer(nullptr)
 {
-	_availableCommands << "components-update" << "performance-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update"
+	_availableCommands << "components-update" << "performance-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update" << "lut-calibration-update"
 		<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update" << "benchmark-update";
 }
 
@@ -76,6 +78,14 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(PerformanceCounters::getInstance(), &PerformanceCounters::performanceUpdate, this, &JsonCB::handlePerformanceUpdate, Qt::UniqueConnection);
 			emit PerformanceCounters::getInstance()->triggerBroadcast();
 		}
+	}
+
+	if (type == "lut-calibration-update")
+	{
+		if (unsubscribe)
+			disconnect(LutCalibrator::getInstance(), &LutCalibrator::lutCalibrationUpdate, this, &JsonCB::handleLutCalibrationUpdate);
+		else		
+			connect(LutCalibrator::getInstance(), &LutCalibrator::lutCalibrationUpdate, this, &JsonCB::handleLutCalibrationUpdate, Qt::UniqueConnection);
 	}
 
 	if (type == "sessions-update")
@@ -496,6 +506,12 @@ void JsonCB::handleBenchmarkUpdate(int status, QString message)
 	dat["message"] = message;
 	doCallback("benchmark-update", QVariant(dat));
 }
+
+void JsonCB::handleLutCalibrationUpdate(const QJsonObject& data)
+{	
+	doCallback("lut-calibration-update", QVariant(data));
+}
+
 
 void JsonCB::handlePerformanceUpdate(const QJsonObject& data)
 {

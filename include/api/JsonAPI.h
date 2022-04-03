@@ -265,6 +265,8 @@ private:
 	///
 	void handleVideoModeHdrCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleLutCalibrationCommand(const QJsonObject& message, const QString& command, int tan);
+
 	/// Handle an incoming JSON plugin message
 	///
 	/// @param message the incoming message

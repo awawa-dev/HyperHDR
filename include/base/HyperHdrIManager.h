@@ -36,7 +36,7 @@ public:
 	// global instance pointer
 	static HyperHdrIManager* getInstance() { return HIMinstance; }
 	static HyperHdrIManager* HIMinstance;
-
+	QString getRootPath() { return _rootPath; }
 
 public slots:
 	bool isCEC();

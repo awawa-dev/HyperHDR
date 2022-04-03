@@ -91,7 +91,7 @@ private:
 	int				_timeout;
 	quint16			_port;
 
-	const QJsonDocument _config;
+	const QJsonDocument		_config;
 	BonjourServiceRegister* _serviceRegister = nullptr;
 
 	QVector<FlatBufferClient*> _openConnections;

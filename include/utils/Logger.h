@@ -68,7 +68,7 @@ public:
 		}
 	};
 
-	static Logger*  getInstance(const QString& name = "", LogLevel minLevel = Logger::INFO);
+	static Logger* getInstance(const QString& name = "", LogLevel minLevel = Logger::INFO);
 	static void     deleteInstance(const QString& name = "");
 	static void     setLogLevel(LogLevel level, const QString& name = "");
 	static LogLevel getLogLevel(const QString& name = "");
@@ -78,9 +78,12 @@ public:
 	LogLevel getMinLevel() const;
 	QString  getName() const;
 	QString  getAppName() const;
+	void     disable();
+	void     enable();
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
+	void newState(bool state);
 
 protected:
 	Logger(const QString& name = "", LogLevel minLevel = INFO);
@@ -96,7 +99,7 @@ private:
 	const QString                _name;
 	const QString                _appname;
 	const bool                   _syslogEnabled;
-	const unsigned               _loggerId;
+	const unsigned               _loggerId;	
 
 	/* Only non-const member, hence the atomic */
 	QAtomicInteger<int> _minLevel;
@@ -112,15 +115,17 @@ public:
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
+	void handleNewState(bool state);
 
 signals:
-	void newLogMessage(const Logger::T_LOG_MESSAGE&);
+	void newLogMessage(const Logger::T_LOG_MESSAGE&);	
 
 protected:
 	LoggerManager();
 
 	QList<Logger::T_LOG_MESSAGE>   _logMessageBuffer;
 	const int                      _loggerMaxMsgBufferSize;
+	bool						   _enable;
 };
 
 Q_DECLARE_METATYPE(Logger::T_LOG_MESSAGE)

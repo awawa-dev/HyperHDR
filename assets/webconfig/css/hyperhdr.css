@@ -763,3 +763,17 @@ body:not(.dark-mode) .button_rate_mode.disabled {
 	font-size: 18px;
 	font-family: 'Courier New', Courier, 'MS PGothic', monospace;
 }
+
+.fullscreen-canvas {
+	position:fixed;
+	top:0;
+	left:0;
+	right:0;
+	bottom:0;
+	z-index:2147483647;
+	box-sizing:border-box;
+	margin:0;
+	width:100%;
+	height:100%;
+	cursor:none;
+}

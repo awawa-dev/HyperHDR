@@ -80,6 +80,12 @@ ProviderRestApi::~ProviderRestApi()
 {
 }
 
+void  ProviderRestApi::updateHost(const QString& host, int port)
+{
+	_hostname = host;
+	_port = port;
+}
+
 void ProviderRestApi::setBasePath(const QString& basePath)
 {
 	_basePath.clear();

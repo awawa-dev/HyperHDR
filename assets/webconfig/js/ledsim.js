@@ -85,7 +85,8 @@ $(document).ready(function() {
 		}
 	}
 	
-	$(window.hyperhdr).one("ready",function(){
+	function getReady()
+	{
 		leds = window.serverConfig.leds;
 
 		if(getStorage('ledsim_width') != null)
@@ -137,7 +138,10 @@ $(document).ready(function() {
 			leds = event.response.info.leds;
 			updateLedLayout();
 		});
-		
+	}
+	
+	$(window.hyperhdr).one("ready",function(){
+		getReady();		
 	});
 
 	function printLedsToCanvas(colors)
@@ -276,6 +280,9 @@ $(document).ready(function() {
 	});
 
 	$("#btn_open_ledsim").off().on("click", function(event) {
+		
+		if (dialog == null ||typeof dialog === 'undefined')
+			getReady();
 		
 		if (window.innerWidth < 740)
 		{

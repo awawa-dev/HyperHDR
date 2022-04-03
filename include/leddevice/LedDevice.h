@@ -401,12 +401,10 @@ protected slots:
 
 protected:
 	void enableDevice(bool toEmit);
-	void disableDevice(bool toEmit);
+	void disableDevice(bool toEmit);	
+	void startRefreshTimer();
 
 private:
-
-	/// @brief Start a new refresh cycle
-	void startRefreshTimer();
 
 	/// @brief Stop refresh cycle
 	void stopRefreshTimer();

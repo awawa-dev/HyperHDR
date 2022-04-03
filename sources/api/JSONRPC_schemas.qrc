@@ -16,6 +16,7 @@
         <file alias="schema-config">JSONRPC_schema/schema-config.json</file>
         <file alias="schema-componentstate">JSONRPC_schema/schema-componentstate.json</file>
         <file alias="schema-ledcolors">JSONRPC_schema/schema-ledcolors.json</file>
+        <file alias="schema-lut-calibration">JSONRPC_schema/schema-lut-calibration.json</file>
         <file alias="schema-signal-calibration">JSONRPC_schema/schema-signal-calibration.json</file>
         <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
         <file alias="schema-save-db">JSONRPC_schema/schema-save-db.json</file>

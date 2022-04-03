@@ -595,3 +595,10 @@ function requestBenchmark(mode, status)
 {
 	sendToHyperhdr("benchmark", mode, '"status": ' + status);
 }
+
+async function requestLutCalibration(mode, params, startColor, endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef)
+{
+	var sColor = JSON.stringify(startColor);
+	var eColor = JSON.stringify(endColor);
+	sendToHyperhdr("lut-calibration", mode, `"checksum":${params}, "limitedRange":${limitedRange}, "saturation":${saturation}, "luminance":${luminance}, "gammaR":${gammaR}, "gammaG":${gammaG}, "gammaB":${gammaB}, "startColor":${sColor}, "endColor":${eColor}, "coef":${coef}`);
+}

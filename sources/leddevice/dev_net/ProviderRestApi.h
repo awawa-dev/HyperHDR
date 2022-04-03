@@ -63,6 +63,8 @@ public:
 
 	~ProviderRestApi();
 
+	void  updateHost(const QString& host, int port);
+
 	///
 	/// @brief Get the URL as defined using scheme, host, port, API-basepath, path, query, fragment
 	///

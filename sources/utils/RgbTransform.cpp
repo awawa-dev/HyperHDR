@@ -327,6 +327,39 @@ void RgbTransform::rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t& h
 
 }
 
+void RgbTransform::rgb2hsl_d(double r, double g, double b, double& hue, double& saturation, double& luminance)
+{
+	double min, max, chroma;
+
+	// HSV Calculations -- formulas sourced from https://en.wikipedia.org/wiki/HSL_and_HSV
+	// Compute constants
+	min = (r < g) ? r : g;
+	min = (min < b) ? min : b;
+
+	max = (r > g) ? r : g;
+	max = (max > b) ? max : b;
+
+	chroma = max - min;
+
+	// Compute L
+	luminance = 0.5 * (max + min);
+
+	if (chroma < 0.0001 || max < 0.0001) {
+		hue = saturation = 0;
+	}
+
+	// Compute S
+	saturation = chroma / (1 - fabs((2 * luminance) - 1));
+
+	// Compute H
+	if (max == r) { hue = fmod((g - b) / chroma, 6); }
+	else if (max == g) { hue = ((b - r) / chroma) + 2; }
+	else { hue = ((r - g) / chroma) + 4; }
+
+	hue *= 60;
+	if (hue < 0) { hue += 360; }
+}
+
 void RgbTransform::hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t& red, uint8_t& green, uint8_t& blue)
 {
 	if (saturation == 0.0f) {
@@ -376,6 +409,32 @@ void RgbTransform::hsl2rgb(uint16_t hue, float saturation, float luminance, uint
 	green = (uint8_t)(out[1] * 255.0f);
 	blue = (uint8_t)(out[2] * 255.0f);
 
+}
+
+void RgbTransform::hsl2rgb_d(double hue, double saturation, double luminance, double& R, double& G, double& B)
+{
+	// HSV Calculations -- formulas sourced from https://en.wikipedia.org/wiki/HSL_and_HSV
+	if (saturation <= 0.001) {
+		R = G = B = luminance;
+	}
+	else {
+		double c = (1 - fabs((2 * luminance) - 1)) * saturation;
+		double hh = hue / 60;
+		double x = c * (1 - fabs(fmod(hh, 2) - 1));
+		double r, g, b;
+
+		if (hh <= 1) { r = c; g = x; b = 0; }
+		else if (hh <= 2) { r = x; g = c; b = 0; }
+		else if (hh <= 3) { r = 0; g = c; b = x; }
+		else if (hh <= 4) { r = 0; g = x; b = c; }
+		else if (hh <= 5) { r = x; g = 0; b = c; }
+		else { r = c; g = 0; b = x; }
+
+		double m = luminance - (0.5 * c);
+		R = (r + m);
+		G = (g + m);
+		B = (b + m);
+	}	
 }
 
 RgbTransform RgbTransform::createRgbTransform(quint8 instance, const QJsonObject& colorConfig)

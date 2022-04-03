@@ -33,7 +33,7 @@
 
 #ifdef TAKE_SCREEN_SHOT
 	#include <QImage>
-	int screenShotTaken = 10;
+	int screenShotTaken = 300;
 #endif
 
 void FrameDecoder::processImage(
@@ -102,7 +102,7 @@ void FrameDecoder::processImage(
 		if (screenShotTaken > 0 && screenShotTaken-- == 1)
 		{
 			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
-			jpgImage.save("D:/grabber.png", "png");
+			jpgImage.save("D:/grabber_yuv.png", "png");
 		}
 #endif
 
@@ -233,6 +233,13 @@ void FrameDecoder::processImage(
 				currentDest += 3;
 			}
 		}
+#ifdef TAKE_SCREEN_SHOT
+		if (screenShotTaken > 0 && screenShotTaken-- == 1)
+		{
+			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
+			jpgImage.save("D:/grabber_nv12.png", "png");
+		}
+#endif
 		return;
 	}
 }
@@ -459,6 +466,13 @@ void FrameDecoder::applyLUT(uint8_t* _source, unsigned int width, unsigned int h
 			}
 		}
 	}
+#ifdef TAKE_SCREEN_SHOT
+	if (screenShotTaken > 0 && screenShotTaken-- == 1)
+	{
+		QImage jpgImage((const uint8_t*)_source, width, height, 3 * width, QImage::Format_RGB888);
+		jpgImage.save("D:/grabber_mjpeg.png", "png");
+	}
+#endif
 }
 
 void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,

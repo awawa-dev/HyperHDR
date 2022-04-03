@@ -24,7 +24,9 @@ SSH and SPI are enabled on default.
 ## Support and contact
 
 [HyperHDR's support section](https://github.com/awawa-dev/HyperHDR/discussions) (or https://hyperhdr.blogspot.com/ )
-
+  
+Discord: https://discord.gg/gvyBnnns :new:  
+  
 **Manuals and guides for building and configuring your own ambient lighting system with HyperHDR:**
 
 [Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki) :new:  

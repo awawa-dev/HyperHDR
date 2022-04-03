@@ -13,15 +13,15 @@ enum class PerformanceReportType {VIDEO_GRABBER = 1, INSTANCE = 2, LED = 3, CPU_
 
 struct PerformanceReport
 {	
-	int		type;
-	int		id;
+	int		type = (int)PerformanceReportType::UNKNOWN;
+	int		id = -1;
 	QString name;
-	double	param1;
-	qint64	param2;
-	qint64	param3;
-	qint64	param4;
-	qint64	timeStamp;
-	qint64	token;
+	double	param1 = 0;
+	qint64	param2 = 0;
+	qint64	param3 = 0;
+	qint64	param4 = 0;
+	qint64	timeStamp = 0;
+	qint64	token = 0;
 
 	PerformanceReport(int _type, qint64 _token, QString _name, double _param1, qint64 _param2, qint64 _param3, qint64 _param4, int _id = -1);
 

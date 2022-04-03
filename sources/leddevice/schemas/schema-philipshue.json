@@ -130,6 +130,19 @@
 			"access" : "advanced",
 			"propertyOrder" : 14
 		},
+		"maxRetry":
+		{
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "edt_dev_max_retry",
+			"append" : "edt_append_ms",
+			"minimum" : 1,
+			"maximum" : 300,
+			"default" : 60,
+			"required" : true,
+			"propertyOrder" : 15
+		},
 		"handshakeTimeoutMin": {
 			"type": "number",
 			"format" : "stepper",						

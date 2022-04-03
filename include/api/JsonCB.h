@@ -129,6 +129,8 @@ private slots:
 
 	void handleBenchmarkUpdate(int status, QString message);
 
+	void handleLutCalibrationUpdate(const QJsonObject& data);
+
 	void handlePerformanceUpdate(const QJsonObject& data);
 
 private:
