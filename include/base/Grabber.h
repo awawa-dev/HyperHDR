@@ -32,6 +32,8 @@
 
 #define LUT_FILE_SIZE 50331648
 
+#define UNSUPPORTED_DECODER "UNSUPPORTED YUV DECODER"
+
 class Grabber : public DetectionAutomatic, public DetectionManual
 {
 	Q_OBJECT

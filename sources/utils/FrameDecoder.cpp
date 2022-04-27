@@ -47,14 +47,14 @@ void FrameDecoder::processImage(
 	// validate format
 	if (pixelFormat != PixelFormat::YUYV &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
-		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12)
+		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::MJPEG)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Invalid pixel format given");
 		return;
 	}
 
 	// validate format LUT
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::I420 ||
+	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
 		pixelFormat == PixelFormat::NV12) && lutBuffer == NULL)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
@@ -187,6 +187,37 @@ void FrameDecoder::processImage(
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
 			uint8_t* currentSourceU = (uint8_t*)data + deltaU + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 			uint8_t* currentSourceV = (uint8_t*)data + deltaV + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
+
+			while (currentDest < endDest)
+			{
+				*((uint16_t*)&buffer) = *((uint16_t*)currentSource);
+				currentSource += 2;
+				buffer[2] = *(currentSourceU++);
+				buffer[3] = *(currentSourceV++);
+
+				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
+				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
+				currentDest += 3;
+			}
+		}
+		return;
+	}
+
+	if (pixelFormat == PixelFormat::MJPEG)
+	{
+		int deltaU = lineLength * height;
+		int deltaV = lineLength * height * 6 / 4;
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
+			uint8_t* currentSourceU = (uint8_t*)data + deltaU + ((((uint64_t)ySource) * lineLength) + ((uint64_t)_cropLeft)) / 2;
+			uint8_t* currentSourceV = (uint8_t*)data + deltaV + ((((uint64_t)ySource) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 
 			while (currentDest < endDest)
 			{

@@ -191,12 +191,7 @@ void V4L2Worker::runMe()
 	if (_isActive)
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
-		{
-			if (_qframe)
-			{
-				_cropLeft = _cropRight = _cropTop = _cropBottom = 0;
-			}
-
+		{			
 			process_image_jpg_mt();
 		}
 		else
@@ -253,68 +248,73 @@ void V4L2Worker::process_image_jpg_mt()
 	if (_decompress == nullptr)
 		_decompress = tjInitDecompress();
 
-	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(_sharedData), _size, &_width, &_height, &_subsamp) != 0)
+	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(_sharedData), _size, &_width, &_height, &_subsamp) != 0 &&
+		tjGetErrorCode(_decompress) == TJERR_FATAL)
 	{
-		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
-		{
-			QString info = QString(tjGetErrorStr());
-			emit newFrameError(_workerIndex, info, _currentFrame);
-			return;
-		}
+		emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+		return;
+	}
+
+	if (_subsamp != TJSAMP_422 && _hdrToneMappingEnabled > 0)
+	{
+		emit newFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
+		return;
 	}
 
 	tjscalingfactor sca{ 1, 2 };
-	Image<ColorRgb> srcImage((_qframe) ? TJSCALED(_width, sca) : _width,
-		(_qframe) ? TJSCALED(_height, sca) : _height);
-	_width = srcImage.width();
-	_height = srcImage.height();
 
-	if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)srcImage.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+	_width = (_qframe) ? TJSCALED(_width, sca) : _width;
+	_height = (_qframe) ? TJSCALED(_height, sca) : _height;
+
+	Image<ColorRgb> image(_width - _cropLeft - _cropRight, _height - _cropTop - _cropBottom);
+
+	if (_hdrToneMappingEnabled > 0)
 	{
-		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
+		size_t yuvSize = tjBufSizeYUV2(_width, 2, _height, _subsamp);
+		uint8_t* jpegBuffer = (uint8_t*)malloc(yuvSize);
+
+		if (tjDecompressToYUV2(_decompress, const_cast<uint8_t*>(_sharedData), _size, jpegBuffer, _width, 2, _height, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
-			QString info = QString(tjGetErrorStr());
-			emit newFrameError(_workerIndex, info, _currentFrame);
+			free(jpegBuffer);
+
+			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 			return;
 		}
+
+		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
+			jpegBuffer, _width, _height, _width, PixelFormat::MJPEG, _lutBuffer, image);
+
+		free(jpegBuffer);
 	}
-
-
-	// got image, process it	
-	if (!(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
+	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
-		// apply LUT	
-		FrameDecoder::applyLUT((uint8_t*)srcImage.memptr(), srcImage.width(), srcImage.height(), _lutBuffer, _hdrToneMappingEnabled);
+		uint8_t* jpegBuffer = (uint8_t*)malloc(_width * _height * 3);
 
-		// exit
-		emit newFrame(_workerIndex, srcImage, _currentFrame, _frameBegin);
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)jpegBuffer, _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+			tjGetErrorCode(_decompress) == TJERR_FATAL)
+		{
+			free(jpegBuffer);
+
+			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+			return;
+		}
+
+		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
+			jpegBuffer, _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
+
+		free(jpegBuffer);
 	}
 	else
 	{
-		// calculate the output size
-		int outputWidth = (_width - _cropLeft - _cropRight);
-		int outputHeight = (_height - _cropTop - _cropBottom);
-
-		if (outputWidth <= 0 || outputHeight <= 0)
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)image.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
-			QString info = QString("Invalid cropping");
-			emit newFrameError(_workerIndex, info, _currentFrame);
+			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 			return;
 		}
-
-		Image<ColorRgb> destImage(outputWidth, outputHeight);
-
-		for (uint32_t y = 0; y < destImage.height(); y++)
-		{
-			uint8_t* source = (uint8_t*)srcImage.memptr() + (static_cast<size_t>(y) + _cropTop) * srcImage.width() * 3 + static_cast<size_t>(_cropLeft) * 3;
-			uint8_t* dest = (uint8_t*)destImage.memptr() + static_cast<size_t>(y) * destImage.width() * 3;
-			memcpy(dest, source, static_cast<size_t>(destImage.width()) * 3);
-		}
-
-		// apply LUT	
-		FrameDecoder::applyLUT((uint8_t*)destImage.memptr(), destImage.width(), destImage.height(), _lutBuffer, _hdrToneMappingEnabled);
-
-		// exit
-		emit newFrame(_workerIndex, destImage, _currentFrame, _frameBegin);
 	}
+
+
+	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
 }

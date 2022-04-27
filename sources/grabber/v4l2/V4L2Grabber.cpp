@@ -130,7 +130,7 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 		{
 			Debug(_log, "setHdrToneMappingMode replacing LUT and restarting");
 			_V4L2WorkerManager.Stop();
-			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12))
+			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
 				loadLutFile(PixelFormat::YUYV);
 			else
 				loadLutFile(PixelFormat::RGB24);
@@ -975,7 +975,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 
 		case V4L2_PIX_FMT_MJPEG:
 		{
-			loadLutFile(PixelFormat::RGB24);
+			loadLutFile(PixelFormat::YUYV);
 			_actualVideoFormat = PixelFormat::MJPEG;
 			Info(_log, "Video pixel format is set to: MJPEG");
 		}
@@ -1196,6 +1196,10 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount)
 {
 	frameStat.badFrame++;
+	if (error.indexOf(QString(UNSUPPORTED_DECODER)) == 0)
+	{
+		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: %s)", QSTRING_CSTR(error));
+	}
 	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
 
 	// get next frame
