@@ -775,7 +775,17 @@ $(document).ready(function()
 		// led controller sepecific wizards
 		$('#btn_wiz_holder').html("");
 		$('#btn_led_device_wiz').off();
-
+		
+		
+		var whiteChannelList = $("div[data-schemapath='root.specificOptions.white_channel_limit']");
+		if (whiteChannelList.length)
+		{
+			let infoRGBW = `<div class="ms-1 me-1 alert alert-yellow row" role="alert"><div class="col-12">${$.i18n('calibration_channel_info')}</div></div>`
+			var insertCalInfo = whiteChannelList.first();
+			
+			insertCalInfo.prepend(infoRGBW);
+		}
+		
 		if (ledType == "philipshue")
 		{
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").bind("change", function()

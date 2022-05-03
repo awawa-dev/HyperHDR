@@ -10,6 +10,11 @@ LedDeviceAdalight::LedDeviceAdalight(const QJsonObject& deviceConfig)
 	, _ligthBerryAPA102Mode(false)
 	, _awa_mode(false)
 {
+	_white_channel_calibration = false;
+	_white_channel_limit = 255;
+	_white_channel_red = 255;
+	_white_channel_green = 255;
+	_white_channel_blue = 255;
 }
 
 LedDevice* LedDeviceAdalight::construct(const QJsonObject& deviceConfig)
@@ -28,7 +33,16 @@ bool LedDeviceAdalight::init(const QJsonObject& deviceConfig)
 		_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
 		_awa_mode = deviceConfig["awa_mode"].toBool(false);
 
+		_white_channel_calibration  = deviceConfig["white_channel_calibration"].toBool(false);
+		_white_channel_limit  = qMin(qRound(deviceConfig["white_channel_limit"].toDouble(1) * 255.0 / 100.0), 255);
+		_white_channel_red  = qMin(deviceConfig["white_channel_red"].toInt(255), 255);
+		_white_channel_green = qMin(deviceConfig["white_channel_green"].toInt(255), 255);
+		_white_channel_blue = qMin(deviceConfig["white_channel_blue"].toInt(255), 255);
+
 		CreateHeader();
+
+		if (_white_channel_calibration && _awa_mode)
+			Debug(_log, "White channel limit: %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
 
 		isInitOK = true;
 	}
@@ -58,7 +72,8 @@ void LedDeviceAdalight::CreateHeader()
 	{
 		_ligthBerryAPA102Mode = false;
 		totalLedCount -= 1;
-		_ledBuffer.resize((uint64_t)_headerSize + _ledRGBCount + ((_awa_mode) ? 2 : 0), 0x00);
+		auto finalSize = (uint64_t)_headerSize + _ledRGBCount + ((_awa_mode) ? 7 : 0);
+		_ledBuffer.resize(finalSize, 0x00);
 
 		if (_awa_mode)
 			Debug(_log, "Adalight driver with activated high speeed & data integration check AWA protocol");
@@ -66,7 +81,7 @@ void LedDeviceAdalight::CreateHeader()
 
 	_ledBuffer[0] = 'A';
 	_ledBuffer[1] = (_awa_mode) ? 'w' : 'd';
-	_ledBuffer[2] = 'a';
+	_ledBuffer[2] = (_awa_mode && _white_channel_calibration) ? 'A' : 'a';
 	qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 	_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
@@ -93,32 +108,51 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb>& ledValues)
 			_ledBuffer[iLed * 4 + 8] = rgb.green;
 			_ledBuffer[iLed * 4 + 9] = rgb.blue;
 		}
+
+		return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 	}
 	else
 	{
-		if ((_headerSize + ledValues.size() * sizeof(ColorRgb) + ((_awa_mode) ? 2 : 0)) > _ledBuffer.size())
+		auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb) + ((_awa_mode) ? 7 : 0);
+
+		if (bufferLength > _ledBuffer.size())
 		{
 			Warning(_log, "Adalight buffer's size has changed. Skipping refresh.");
 			return 0;
 		}
 
-		memcpy(_headerSize + _ledBuffer.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+		uint8_t* writer = _ledBuffer.data() + _headerSize;
+		uint8_t* hasher = writer;
+
+		memcpy(writer, ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+		writer += ledValues.size() * sizeof(ColorRgb);
 
 		if (_awa_mode)
 		{
+			whiteChannelExtension(writer);
+
 			uint16_t fletcher1 = 0, fletcher2 = 0;
-			uint8_t* input = (uint8_t*)ledValues.data();
-			for (uint16_t iLed = 0; iLed < ledValues.size() * sizeof(ColorRgb); iLed++, input++)
+			while (hasher < writer)
 			{
-				fletcher1 = (fletcher1 + *input) % 255;
+				fletcher1 = (fletcher1 + *(hasher++)) % 255;
 				fletcher2 = (fletcher2 + fletcher1) % 255;
 			}
-			_ledBuffer[_headerSize + ledValues.size() * sizeof(ColorRgb)] = fletcher1;
-			_ledBuffer[_headerSize + ledValues.size() * sizeof(ColorRgb) + 1] = fletcher2;
+			*(writer++) = (uint8_t)fletcher1;
+			*(writer++) = (uint8_t)fletcher2;
 		}
+		bufferLength = writer - _ledBuffer.data();
+
+		return writeBytes(bufferLength, _ledBuffer.data());
 	}
+}
 
-	int rc = writeBytes(_ledBuffer.size(), _ledBuffer.data());
-
-	return rc;
+void LedDeviceAdalight::whiteChannelExtension(uint8_t*& writer)
+{
+	if (_awa_mode && _white_channel_calibration)
+	{
+		*(writer++) = _white_channel_limit;
+		*(writer++) = _white_channel_red;
+		*(writer++) = _white_channel_green;
+		*(writer++) = _white_channel_blue;
+	}
 }

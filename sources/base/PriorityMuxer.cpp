@@ -29,8 +29,6 @@ PriorityMuxer::PriorityMuxer(int instanceIndex, int ledCount, QObject* parent)
 	, _updateTimer(new QTimer(this))
 	, _timer(new QTimer(this))
 	, _blockTimer(new QTimer(this))
-	, _startTime(QTime::currentTime().addSecs(3))
-	, _startWarning(false)
 {
 	// init lowest priority info
 	_lowestPriorityInfo.priority = PriorityMuxer::LOWEST_PRIORITY;
@@ -317,8 +315,6 @@ void PriorityMuxer::setCurrentTime()
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
 		hyperhdr::Components vcomp = getComponentOfPriority(infoIt->priority);
-		if (!_startTime.isNull() && (vcomp == hyperhdr::Components::COMP_VIDEOGRABBER || vcomp == hyperhdr::Components::COMP_SYSTEMGRABBER) && infoIt->timeoutTime_ms > -100)
-			_startTime = QTime();
 
 		if (infoIt->timeoutTime_ms > 0 && infoIt->timeoutTime_ms <= now)
 		{
@@ -359,29 +355,7 @@ void PriorityMuxer::setCurrentTime()
 	// apply & emit on change (after apply!)
 	hyperhdr::Components comp = getComponentOfPriority(newPriority);
 	if (_currentPriority != newPriority || comp != _prevVisComp)
-	{
-		if (newPriority == PriorityMuxer::LOWEST_PRIORITY)
-		{
-			if (!_startTime.isNull())
-			{
-				if (!_startWarning && comp == hyperhdr::Components::COMP_COLOR)
-				{
-					_startTime = QTime::currentTime().addSecs(3);
-					_startWarning = true;
-					Info(_log, "Switching from color effect. Waiting till: %s", QSTRING_CSTR(_startTime.toString("hh:mm:ss")));
-					return;
-				}
-				else if (QTime::currentTime() < _startTime)
-				{
-					if (!_startWarning)
-					{
-						_startWarning = true;
-						Info(_log, "Source is not ready...give it more time. Waiting till: %s", QSTRING_CSTR(_startTime.toString("hh:mm:ss")));
-					}
-					return;
-				}
-			}
-		}
+	{		
 		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Info(_log, "Set visible priority to %d", newPriority);

@@ -336,7 +336,13 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, i
 	hyperhdr["gitremote"] = QString(HYPERHDR_GIT_REMOTE);
 	hyperhdr["time"] = QString(__DATE__ " " __TIME__);
 	hyperhdr["id"] = _authManager->getID();
-	hyperhdr["readOnlyMode"] = _hyperhdr->getReadOnlyMode();
+
+	bool readOnly = true;
+	if (QThread::currentThread() == _hyperhdr->thread())
+		readOnly = _hyperhdr->getReadOnlyMode();
+	else
+		QMetaObject::invokeMethod(_hyperhdr, "getReadOnlyMode", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(bool, readOnly));
+	hyperhdr["readOnlyMode"] = readOnly;
 
 	info["hyperhdr"] = hyperhdr;
 

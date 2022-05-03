@@ -21,13 +21,91 @@
 			"default": 2000000,			
 			"propertyOrder" : 3
 		},
+		"white_channel_calibration": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_rgbw_calibration_enable",
+			"required" : true,
+			"default": false,
+			"options": {
+				"dependencies": {
+					"awa_mode": true
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"white_channel_limit": {
+			"type": "number",
+			"title":"edt_rgbw_calibration_limit",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 100,
+			"step": 0.25,
+			"minimum" : 0,
+			"maximum" : 100,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 5
+		},
+		"white_channel_red": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_red",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 6
+		},
+		"white_channel_green": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_green",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 7
+		},
+		"white_channel_blue": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_blue",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 8
+		},
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 0,
 			"append" : "ms",
 			"access" : "expert",
-			"propertyOrder" : 4
+			"propertyOrder" : 9
 		},
 		"lightberry_apa102_mode": {
 			"type": "boolean",
@@ -40,7 +118,7 @@
 					"awa_mode": false
 				}
 			},
-			"propertyOrder" : 5
+			"propertyOrder" : 10
 		}
 	},
 	"additionalProperties": true

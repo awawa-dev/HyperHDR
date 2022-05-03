@@ -47,9 +47,17 @@ private:
 	///
 	int write(const std::vector<ColorRgb>& ledValues) override;
 
+	void whiteChannelExtension(uint8_t*& writer);
+
 	const short _headerSize;
 	bool        _ligthBerryAPA102Mode;
 	bool		_awa_mode;
+
+	bool _white_channel_calibration;
+	uint8_t _white_channel_limit;
+	uint8_t _white_channel_red;
+	uint8_t _white_channel_green;
+	uint8_t _white_channel_blue;
 };
 
 #endif // LEDEVICETADALIGHT_H

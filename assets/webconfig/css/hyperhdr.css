@@ -777,3 +777,15 @@ body:not(.dark-mode) .button_rate_mode.disabled {
 	height:100%;
 	cursor:none;
 }
+
+body:not(.dark-mode) .alert-yellow{
+	color:#664d03;
+	background-color:#fff3cd;
+	border-color:#ffecb5
+}
+
+.dark-mode .alert-yellow{
+	color: #212529;
+	background-color: #f39c12;
+	border-color: #e08e0b;
+}

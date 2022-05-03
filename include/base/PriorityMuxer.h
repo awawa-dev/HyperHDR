@@ -275,6 +275,4 @@ private:
 
 	QTimer* _timer;
 	QTimer* _blockTimer;
-	QTime   _startTime;
-	bool    _startWarning;
 };
