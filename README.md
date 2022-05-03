@@ -99,7 +99,7 @@ Discord: https://discord.gg/gvyBnnns :new:
 
 ### Dedicated HDR LUT tables for USB grabbers
 
-Ezcap 320, **Ezcap 321**, **AV Access 4KVC00** (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section)
+You can create your own calibrated LUT table using latest HyperHDR or use LUT dedicated for MS2109 clones, Navy U3, Ezcap 320, Ezcap 321, Ezcap 331, AV Access 4KVC00 (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section). Why is it worth using them? [USB grabbers HDR to SDR quality review](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html)
 
 ### FAQ:
 
@@ -107,17 +107,15 @@ Ezcap 320, **Ezcap 321**, **AV Access 4KVC00** (you can find them in the HyperHD
 
 Use linux 'top' command with per core view (press 1) or preferable 'htop'. On Rpi 2/3/4 max limit is 400% (4 cores per 100%). **The problem will occure when one of the core's usage is close to the 100% limit, not when overall usage is for example between 200-300% where each core if far from the individual limit.**
 
-Check the performance statistics that are updated every minute in System➔Log page.
+Check the performance statistics that are updated every minute in System➔Log page. 
 
-Use preferable YUV(YUY2) or XRGB(RGB32) encoding formats if it's possible. They provide better quality and lower CPU usage.  
-
-Thanks to our colleague @mjoshd there is a HyperHDR integration plugin for Home Assistant. Check the details on the website of the project [https://github.com/mjoshd/hyperhdr-ha](https://github.com/mjoshd/hyperhdr-ha) 🚀 🆕    
+Thanks to our colleague @mjoshd there is a HyperHDR integration plugin for Home Assistant. Check the details on the website of the project [https://github.com/mjoshd/hyperhdr-ha](https://github.com/mjoshd/hyperhdr-ha) Also you can test a HA plugin to install HyperHDR [link](https://github.com/ihrapsa/hassio-addons) (thanks @ihrapsa) 🚀 🆕    
   
 We do not support driving WS281x and especially SK6812 LED strips directly from the Raspberry Pi although it's theoretically possible: [link](https://github.com/awawa-dev/HyperHDR/discussions/111). If you made it and it works, fine, but most of our users weren't so lucky. You should use external ESP8266/ESP32 (preferable with CH340G or CP2104 onboard) and the voltage level shifter. :warning:  
 
 Usage of WS281x LED strip with Rpi directly (PWM mode) requires _root_ privilages. Otherwise you may get _'Error message: mmap() failed'_ ([read more](https://github.com/awawa-dev/HyperHDR/issues/52)) :warning:
 
-It's possible to switch off/on HDR tone mapping remotely with home automation system. You can build commands for HyperHDR using our JSON API playground :new:
+It's possible to switch off/on HDR tone mapping remotely with your home automation system. You can build commands for HyperHDR using our JSON API playground :new:
   
   
 **Before and after HyperHDR LUT correction on HDR/BT2020 video that was broken by the USB grabber.\
