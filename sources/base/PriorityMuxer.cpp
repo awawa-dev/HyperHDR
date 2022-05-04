@@ -314,8 +314,6 @@ void PriorityMuxer::setCurrentTime()
 
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
-		hyperhdr::Components vcomp = getComponentOfPriority(infoIt->priority);
-
 		if (infoIt->timeoutTime_ms > 0 && infoIt->timeoutTime_ms <= now)
 		{
 			int tPrio = infoIt->priority;

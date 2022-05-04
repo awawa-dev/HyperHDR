@@ -71,6 +71,8 @@ jobs:
         echo 'apt install -y ./hyperhdr.deb' >> start_chroot_script
         echo 'rm ./hyperhdr.deb' >> start_chroot_script
         echo 'touch /boot/ssh' >> start_chroot_script
+        echo "echo -n 'pi:' > /boot/userconf" >> start_chroot_script
+        echo "echo 'raspberry' | openssl passwd -6 -stdin >> /boot/userconf" >> start_chroot_script
         echo 'echo "HyperHDR" > /etc/hostname' >> start_chroot_script
         echo 'sed -i "s/raspberrypi/HyperHDR/" /etc/hosts' >> start_chroot_script
         echo "systemctl -q enable hyperhdr@pi.service" >> start_chroot_script

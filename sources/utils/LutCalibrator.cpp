@@ -566,12 +566,13 @@ void LutCalibrator::balanceGray(int r, int g, int b, double& _r, double& _g, dou
 
 
 	if (max - min < 30)
-		for (capColors selector = capColors::LowestGray; selector != capColors::White; selector = capColors(((int)selector) + 1))
+	{
+		for (capColors selector = capColors::LowestGray; selector != capColors::None; selector = capColors(((int)selector) + 1))
 		{
 			double whiteR = r * _colorBalance[selector].scaledRed;
 			double whiteG = g * _colorBalance[selector].scaledGreen;
 			double whiteB = b * _colorBalance[selector].scaledBlue;
-			double error = (max > 96) ? 3 : 2;
+			double error = 1;
 
 			if (qAbs(whiteR - whiteG) <= error && qAbs(whiteG - whiteB) <= error && qAbs(whiteB - whiteR) <= error)
 			{
@@ -579,6 +580,24 @@ void LutCalibrator::balanceGray(int r, int g, int b, double& _r, double& _g, dou
 				return;
 			}
 		}
+
+		for (capColors selector = capColors::LowestGray; selector != capColors::None; selector = capColors(((int)selector) + 1))
+		{
+			double whiteR = r * _colorBalance[selector].scaledRed;
+			double whiteG = g * _colorBalance[selector].scaledGreen;
+			double whiteB = b * _colorBalance[selector].scaledBlue;
+			double error = 2;
+
+			if (qAbs(whiteR - whiteG) <= error && qAbs(whiteG - whiteB) <= error && qAbs(whiteB - whiteR) <= error)
+			{
+				double average = (_r + _g + _b) / 3.0;
+				_r = (_r + average) / 2;
+				_g = (_g + average) / 2;
+				_b = (_b + average) / 2;
+				return;
+			}
+		}
+	}
 
 	if (max <= 4 && max >= 1)
 	{

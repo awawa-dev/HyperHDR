@@ -3,7 +3,7 @@ name: HyperHDR CI Build
 on: [push]
 
 env:
-    USE_CACHE: "1"
+    USE_CACHE: "0"
     RESET_CACHE: "0"
     
 jobs:
@@ -157,7 +157,7 @@ jobs:
     runs-on: windows-2022
     env:
       VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
-      QT_VERSION: 6.2.2
+      QT_VERSION: 6.2.4
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -180,9 +180,6 @@ jobs:
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
-          
-      - name: Set up nasm
-        uses: ilammy/setup-nasm@v1
           
       # Build packages
       - name: Build packages        

@@ -12,7 +12,8 @@ https://github.com/awawa-dev/HyperHDR/releases
 Latest testing installers can be find as the artifacts of the latest build in the Github Action tab at the bottom of the page. Must be logged in. \
 https://github.com/awawa-dev/HyperHDR/actions
 
-Default LUT table is already included (in the installers) but you can generate your own or import 3dl Autodesk lut table.\
+Default LUT table is already included, but for the best effect you can generate your own using new calibration tool (recommended). Or you use dedicated LUT tables for supported USB grabbers (available [here](https://github.com/awawa-dev/HyperHDR/releases)). You can also import 3dl Autodesk lut table. :new:
+  
 For Raspberry Pi you may use prepared SD card images: [manual](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html)\
 Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/ \
 SSH and SPI are enabled on default.
@@ -25,8 +26,6 @@ SSH and SPI are enabled on default.
 
 [HyperHDR's support section](https://github.com/awawa-dev/HyperHDR/discussions) (or https://hyperhdr.blogspot.com/ )
   
-Discord: https://discord.gg/gvyBnnns :new:  
-  
 **Manuals and guides for building and configuring your own ambient lighting system with HyperHDR:**
 
 [Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki) :new:  
@@ -38,46 +37,74 @@ Discord: https://discord.gg/gvyBnnns :new:
 * **Really low CPU** usage on SoCs like Raspberry Pi using v4l2 grabbers
 * Support for multithreading that makes Raspberry Pi capable of processing HQ video stream (Rpi 1 & Zero should also benefit from the optimization alone)
 * Built-in LUT table generator
+* Built-in automatic HDR LUT calibration for USB grabbers :new:
+* Built-in latency benchmark for USB grabbers :new:
 * HDR/BT2020 color, treshold & gamma correction (LUT)
 * SDR treshold & gamma correction for selected codecs (LUT)
-* Automatic signal detection with smart learning capability for USB grabbers :new:
+* Provides vital informations about your OS condition: CPU & RAM usage, CPU temperature, undervoltage detection, internal components performance including USB grabber and LED devices :new:
+* Automatic signal detection with smart learning capability for USB grabbers
 * Support for USB grabbers under Windows 10
 * Support for USB grabbers under macOS (x64/M1)
-* Support for software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), X11 (Linux) :new:
+* Software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), X11 (Linux), Wayland (Linux) :new:
+* HDR tone mapping for external flatbuffers sources :new:
 * Built-in audio visualization effects
+* Dynamic video cache buffers. Now Rpi can process even 1080p120 NV12 stream without any size decimation :new:
+* SK6812 RGBW: the white color channel calibration for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI) :new:
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
-* Support for WS821x, APA102 (HD107, SK9822 etc) and SK6812 RGBW LED strips using fastest possible cable solution for generic ESP8266/ESP32 external LED drivers: [HyperSPI](https://github.com/awawa-dev/HyperSPI) :new:
-* Support for WS8201, WS821x, APA102 (HD107, SK9822 etc) and SK6812 RGBW LED strips ultrafast USB serial port AWA protocol for ESP8266/ESP32 at 2Mb baud with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32) :new:
-* WLED fork for ESP8266 & ESP32 at 2Mb baud (also @921600 baud :new:) and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
+* Support for WS821x, APA102 (HD107, SK9822 etc) and SK6812 RGBW LED strips using fastest possible cable solution for generic ESP8266/ESP32 external LED drivers: [HyperSPI](https://github.com/awawa-dev/HyperSPI)
+* Support for WS8201, WS821x, APA102 (HD107, SK9822 etc) and SK6812 RGBW LED strips ultrafast USB serial port AWA protocol for ESP8266/ESP32 at 2Mb baud with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32)
+* WLED fork for ESP8266 & ESP32 at 2Mb baud (also 4Mb for certain chipsets :new:) and almost all popular types of LED strips is available: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 
 ##
 
-**Changelog (v17)** :new:
+**Changelog (v18 beta)** :new:
 - Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion NG 2.0.0.8A thanks to optimization & using of multi-threading
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
-- Support for software screen grabbers: DirectX11, CoreGraphics, X11 :new:
-- User interface upgraded to modern standards (Bootstrap 5) :new:
+- Support for software screen grabbers: DirectX11, CoreGraphics, X11
+- New software grabber for Linux: Wayland (pipewire/portal) which also means support for **Ubuntu 22.04 LTS** :new:
+- Wayland grabber: support for pipewire/portal version 4 protocol persistent authentication :new:
+- [New fully automatic LUT calibration for HDR/SDR/YUV](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html) :new:
+- 30% improved performance for MJPEG HDR mode :new:
+- Add white channel calibration for RGBW led strips and latest HyperSerialEsp8266/HyperSerialESP32/HyperSPI ([Adalight](https://i.postimg.cc/hv9366VD/calib1.jpg) [HyperSPI](https://i.postimg.cc/kGdTQszk/calib2.jpg)) :new:
+- New dynamic video cache buffers (improved performance, fixes [#142](https://github.com/awawa-dev/HyperHDR/issues/142)) :new:
+- Performance information panel in the overview tab :new:
+    - CPU performance and RAM usage (excluding Apple M1) :new:
+    - CPU temperature reading (Linux only, when sensor is present) :new:
+    - Under-voltage detection (Raspberry Pi OS only) :new:
+    - USB grabber performance (shows framerate and latency) :new:
+    - Instance input images to LED colors performance :new:
+    - LED device output performance :new:
+- New JSON API function to control USB grabber: brightness, contrast, saturation, hue :new:
+- USB grabber latency benchmark ([link](https://www.hyperhdr.eu/2021/10/usb-grabbers-grand-latency-test-part-i.html)) :new:
+- HDR tone mapping for flatbuffers ([PR #215](https://github.com/awawa-dev/HyperHDR/pull/215) thanks @chbartsch) :new:
+- Dynamic LED layout resize on container size changed :new:
+- Improved and refactored LED devices model and communication :new:
+- Flatbuffers: HDR tone mapping can use alternative filename: *flat_lut_lin_tables.3d* :new:
+- FlatBuffers: add support for high performance local sockets ([link](https://github.com/awawa-dev/HyperHDR/commit/1100093068196a53eff5f856f0eaaf8e43ca229f)) :new:
+- The new build scheme allows grabless configuration and the use of external toolchains :new:
+- Add popular 'UDP raw' (WLED compatible) receiver for HyperHDR ([link1](https://i.postimg.cc/RV4PqPct/udpraw.jpg) [link2](https://github.com/awawa-dev/HyperHDR/commit/5fb1be1c4bdbc84becfd964a08cb106482b6c4e5)) :new:
+- User interface upgraded to modern standards (Bootstrap 5)
 - Improved LUT table for SDR(yuv) and HDR video streams :new:
-- Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)  :new:
+- Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)
 - Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver :new:
-- Fork of WLED with USB serial port AWA protocol at @2000000 speed (:sparkles: there are also special versions for @921600) for ESP32 & ESP8266 and almost all types of LED strips: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
-- Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP8266 at @2000000 baud with data integrity check: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) :new:
-- Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP32 at @2000000 baud with data integrity check: [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32) :new:
-- Automatic signal detection with smart learning capability for USB grabbers :new:
-- Re-implemented backup import / export functions for ALL instances :new:
-- New video stream crop method in JSON API and GET multi-command support :new:
-- Auto-resume option for the USB grabber :new:
-- JSON API documentation in a form of live playground in 'Advanced' tab :new:
-- List of available COM ports for the adalight driver :new:
-- Fix: in specific cases some devices could not react to the 'no video signal' event when it's triggered :new:
-- New installer for Raspberry Pi 3 & 4 64bit OS (AARCH64), faster up to 30% over 32bit OS armv7l version :new:
-- Fix for WLED new network protocol :new:
-- LED grouping *aka* PC mode *aka* gradient mode, can help with eye fatigue when used with the monitor, each LED in the group has same average color :new:
-- Add timeout for the anti-flickering filter :new:
-- Panel for easy video resolution & refresh mode selection in the grabber section :new:
-- Support for QT6 :new:
-- Lower CPU usage when automatic signal detection triggers 'no-signal' :new:
-- Fixed power saving issue in macOS version :new:
+- Fork of WLED with USB serial port AWA protocol at @2000000 speed for ESP32 & ESP8266 and almost all types of LED strips: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
+- Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP8266 at @2000000 baud with data integrity check: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266)
+- Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP32 at @2000000 baud with data integrity check: [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32)
+- Automatic signal detection with smart learning capability for USB grabbers
+- Re-implemented backup import / export functions for ALL instances
+- New video stream crop method in JSON API and GET multi-command support
+- Auto-resume option for the USB grabber
+- JSON API documentation in a form of live playground in 'Advanced' tab
+- List of available COM ports for the adalight driver
+- Fix: in specific cases some devices could not react to the 'no video signal' event when it's triggered
+- New installer for Raspberry Pi 3 & 4 64bit OS (AARCH64), faster up to 30% over 32bit OS armv7l version
+- Fix for WLED new network protoco
+- LED grouping *aka* PC mode *aka* gradient mode, can help with eye fatigue when used with the monitor, each LED in the group has same average color
+- Add timeout for the anti-flickering filter
+- Panel for easy video resolution & refresh mode selection in the grabber section
+- Support for QT6.2 :new:
+- Lower CPU usage when automatic signal detection triggers 'no-signal'
+- Fixed power saving issue in macOS version
 - Audio visualization effects (Windows, macOS and Linux)
 - Support for YUV, MJPEG, RGB24, I420, NV12 and XRGB encoding
 - Overall (_'Quarter of frame'_ in the USB grabber section) and per an instance (_'Sparse processing'_ in the _Processing_ tab) options to control quality/performance balance.
@@ -99,7 +126,7 @@ Discord: https://discord.gg/gvyBnnns :new:
 
 ### Dedicated HDR LUT tables for USB grabbers
 
-You can create your own calibrated LUT table using latest HyperHDR or use LUT dedicated for MS2109 clones, Navy U3, Ezcap 320, Ezcap 321, Ezcap 331, AV Access 4KVC00 (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section). Why is it worth using them? [USB grabbers HDR to SDR quality review](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html)
+You can create your own calibrated LUT table using latest HyperHDR or use LUT dedicated for MS2109 clones, Navy U3, Ezcap 269, Ezcap 320, Ezcap 321, Ezcap 331, AV Access 4KVC00 (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section). Why is it worth using them? [USB grabbers HDR to SDR quality review](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html)
 
 ### FAQ:
 

@@ -360,9 +360,16 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		// collect priority information
 		QJsonArray priorities;
 		uint64_t now = QDateTime::currentMSecsSinceEpoch();
+
+		int currentPriority = -1;
+		if (QThread::currentThread() == _hyperhdr->thread())
+			currentPriority = _hyperhdr->getCurrentPriority();
+		else
+			QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriority", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, currentPriority));
+
 		QList<int> activePriorities = _hyperhdr->getActivePriorities();
 		activePriorities.removeAll(255);
-		int currentPriority = _hyperhdr->getCurrentPriority();
+		
 
 		for (int priority : activePriorities)
 		{
