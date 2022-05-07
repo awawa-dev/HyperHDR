@@ -97,7 +97,7 @@ void SystemPerformanceCounters::readVoltage()
 				buf.resize(len);
 				buf[len - 1] = 0;
 
-				if (strstr(buf.data(), "Under-voltage detected!") != NULL)
+				if (strstr(buf.data(), "Under-voltage detected!") != NULL || strstr(buf.data(), "Undervoltage detected!") != NULL)
 					underVoltage = 1;
 				else
 					underVoltage = 0;
