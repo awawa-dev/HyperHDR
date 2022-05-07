@@ -31,7 +31,7 @@
 			"title" : "edt_conf_stream_framerate_title",
 			"default" : 10,
 			"minimum" : 5,
-			"maximum" : 30,
+			"maximum" : 60,
 			"append" : "fps",			
 			"required" : true,
 			"propertyOrder" : 10

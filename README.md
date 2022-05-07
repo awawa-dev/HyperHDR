@@ -1,6 +1,6 @@
 ## About 
 
-Open source ambient lighting implementation for television sets based on the video and audio streams analysis, using performance improvements especially for USB grabbers. Single and multi-threaded video processing optimization for **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers using pre-calculated LUT tables. Direct support for USB grabbers under Windows 10 (Microsoft Media Foundation), Linux (v4l2) and macOS (AVFoundation). Also software screen grabbers are available now :new:  
+Open source ambient lighting implementation for television sets based on the video and audio streams analysis, using performance improvements especially for USB grabbers. Single and multi-threaded video processing optimization for **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others) for SDR/HDR streams captured by USB grabbers using pre-calculated LUT tables. Direct support for USB grabbers under Windows 10 (Microsoft Media Foundation), Linux (v4l2) and macOS (AVFoundation). Also software screen grabbers are available.  
   
   ![v17](https://user-images.githubusercontent.com/69086569/131157173-cae41f0e-d5c3-413c-ba6b-041e8bfc0017.png)
   
@@ -12,7 +12,7 @@ https://github.com/awawa-dev/HyperHDR/releases
 Latest testing installers can be find as the artifacts of the latest build in the Github Action tab at the bottom of the page. Must be logged in. \
 https://github.com/awawa-dev/HyperHDR/actions
 
-Default LUT table is already included, but for the best effect you can generate your own using new calibration tool (recommended). Or you use dedicated LUT tables for supported USB grabbers (available [here](https://github.com/awawa-dev/HyperHDR/releases)). You can also import 3dl Autodesk lut table. :new:
+Default LUT table is already included, but for the best effect you can generate your own using new calibration tool (recommended) :new:. Or you use dedicated LUT tables for supported USB grabbers (available [here](https://github.com/awawa-dev/HyperHDR/releases)). You can also import 3dl Autodesk lut table.
   
 For Raspberry Pi you may use prepared SD card images: [manual](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html)\
 Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/ \
@@ -20,7 +20,7 @@ SSH and SPI are enabled on default.
 
 ## How to compile
 
-[Building HyperHDR from sources](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR) :new:
+[Building HyperHDR from sources](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR)
   
 ## Support and contact
 
@@ -28,7 +28,7 @@ SSH and SPI are enabled on default.
   
 **Manuals and guides for building and configuring your own ambient lighting system with HyperHDR:**
 
-[Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki) :new:  
+[Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki)  
   
 [Build-log from my SK6812 RGBW system and one thing about calibration](https://hyperhdr.blogspot.com/2020/12/my-build-log-using-sk6812-rgbw-led.html)
   
@@ -86,7 +86,7 @@ SSH and SPI are enabled on default.
 - User interface upgraded to modern standards (Bootstrap 5)
 - Improved LUT table for SDR(yuv) and HDR video streams :new:
 - Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)
-- Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver :new:
+- Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver
 - Fork of WLED with USB serial port AWA protocol at @2000000 speed for ESP32 & ESP8266 and almost all types of LED strips: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 - Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP8266 at @2000000 baud with data integrity check: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266)
 - Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP32 at @2000000 baud with data integrity check: [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32)
@@ -142,7 +142,7 @@ We do not support driving WS281x and especially SK6812 LED strips directly from 
 
 Usage of WS281x LED strip with Rpi directly (PWM mode) requires _root_ privilages. Otherwise you may get _'Error message: mmap() failed'_ ([read more](https://github.com/awawa-dev/HyperHDR/issues/52)) :warning:
 
-It's possible to switch off/on HDR tone mapping remotely with your home automation system. You can build commands for HyperHDR using our JSON API playground :new:
+It's possible to switch off/on HDR tone mapping remotely with your home automation system. You can build commands for HyperHDR using our JSON API playground.
   
   
 **Before and after HyperHDR LUT correction on HDR/BT2020 video that was broken by the USB grabber.\
