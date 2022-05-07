@@ -666,7 +666,9 @@ $(document).ready( function(){
 			if (window.serverInfo.systemGrabbers.device.indexOf("macOS")>=0)
 				createHint("intro", $.i18n('conf_grabber_macOs_intro'), "editor_container_system_device");
 			else if (window.serverInfo.systemGrabbers.device.indexOf("X11")>=0)
-				createHint("intro", $.i18n('conf_grabber_x11_intro'), "editor_container_system_device");		
+				createHint("intro", $.i18n('conf_grabber_x11_intro'), "editor_container_system_device");
+			else if (window.serverInfo.systemGrabbers.device.indexOf("pipewire")>=0)
+				createHint("intro", $.i18n('conf_grabber_pipewire_intro'), "editor_container_system_device");			
 			$('[data-schemapath="root.systemGrabber.hdrToneMapping"]').toggle(false);
 		}
 		else
