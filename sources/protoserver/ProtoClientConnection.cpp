@@ -3,9 +3,11 @@
 #include <QHostAddress>
 #include <QTimer>
 #include <QRgb>
+#include <QThread>
 
 // project includes
 #include "ProtoClientConnection.h"
+#include <flatbufserver/FlatBufferServer.h>
 
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Grabber, Windows Screen grabber etc.)
 
@@ -177,6 +179,24 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	// create ImageRgb
 	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), imageData.c_str(), imageData.size());
+
+	if (FlatBufferServer::getInstance() != nullptr)
+	{
+		auto flat = FlatBufferServer::getInstance();
+		int hdrEnabled = 0;
+
+		if (QThread::currentThread() == flat->thread())
+			hdrEnabled = flat->getHdrToneMappingEnabled();
+		else
+			QMetaObject::invokeMethod(flat, "getHdrToneMappingEnabled", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, hdrEnabled));
+
+		if (hdrEnabled)
+		{
+			QMetaObject::invokeMethod(flat, "importFromProtoHandler", Q_ARG(int, priority), Q_ARG(int, duration), Q_ARG(const Image<ColorRgb>&, image));
+			sendSuccessReply();
+			return;
+		}
+	}
 
 	emit setGlobalInputImage(_priority, image, duration);
 

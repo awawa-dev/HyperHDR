@@ -6,6 +6,7 @@
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
 #include <base/HyperHdrIManager.h>
+#include <utils/FrameDecoder.h>
 
 // bonjour
 #ifdef ENABLE_AVAHI
@@ -304,4 +305,11 @@ void FlatBufferServer::loadLutFile()
 
 		Error(_log, "Could not find any required LUT file");
 	}
+}
+
+void FlatBufferServer::importFromProtoHandler(int priority, int duration, const Image<ColorRgb>& image)
+{
+	FrameDecoder::applyLUT((uint8_t*)image.memptr(), image.width(), image.height(), _lutBuffer, _hdrToneMappingMode);
+
+	emit GlobalSignals::getInstance()->setGlobalImage(priority, image, duration);
 }

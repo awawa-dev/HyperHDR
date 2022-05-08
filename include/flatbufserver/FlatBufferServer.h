@@ -3,6 +3,7 @@
 // util
 #include <utils/Logger.h>
 #include <utils/settings.h>
+#include <utils/Image.h>
 
 // qt
 #include <QVector>
@@ -46,6 +47,8 @@ public slots:
 	void setHdrToneMappingEnabled(int mode);
 
 	int getHdrToneMappingEnabled();
+
+	void importFromProtoHandler(int priority, int duration, const Image<ColorRgb>& image);
 
 private slots:
 	///

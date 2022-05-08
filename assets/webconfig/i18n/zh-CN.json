@@ -1143,7 +1143,6 @@
   "perf_undervoltage": "检测到欠压",
   "perf_no": "不",
   "perf_invalid_frames": "无效帧",
-  "edt_conf_fbs_tonemapping_expl": "如果启用，HyperHDR 将为传入流应用 LUT 校正。确保您有正确的 LUT 表。 HDR10 的默认 3D LUT 文件<span class='fw-bold'>：'lut_lin_tables.3d'</span>（也接受文件名'flat_lut_lin_tables.3d'）。<span class='fw-bold' > 您可以使用“高级菜单”中的链接生成一个并预览效果。</span><br/>上传该文件的典型隐藏配置文件夹是（检查“日志”页面以确认）：<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "edt_conf_fbs_tonemapping_title": "HDR 到 SDR 色调映射",
   "edt_conf_fbs_hdrToneMappingMode_title": "LUT 模式效果的区域",
   "edt_conf_fbs_hdrToneMappingMode_expl": "全屏或更快的边框模式",
@@ -1159,5 +1158,6 @@
   "edt_rgbw_calibration_green": "绿色/白色通道方面",
   "edt_rgbw_calibration_blue": "蓝/白通道方面",
   "calibration_channel_info": "您需要 HyperSerialEsp8266/HyperSerialESP32/HyperSPI <b>version 6</b> 才能工作。禁用此选项时，将使用内部固件校准设置。<br/><br/>RGBW LED 灯条中的常白 LED 可能比混合 RGB 获得的颜色组合更强。由于限制，可以平衡通道功率。<br/><br/>“中性 RGBW”白色通道与通过混合 RGB LED 获得的颜色不接近。它有点黄色，因此您可能需要降低蓝色/白色方面以使蓝色通道更强。 'Cold RGBW' 通常更平衡。<br/><br/><b>提示：</b>在远程控制选项卡中显示静态白色。然后将白色通道限制设置为 100%，将红色/绿色/蓝色方面设置为 255，以在最大范围内启用白色通道。或者，您可以将红色/绿色/蓝色方面设置为 0 以关闭白色通道并使用 RGB 模拟白色以查看差异。",
-  "conf_grabber_pipewire_intro": "为了使用“pipewire/portal”系统抓取器 HyperHDR 必须作为应用程序运行，<span style='color:red'>作为服务/守护程序启动将失败</span>"
+  "conf_grabber_pipewire_intro": "为了使用“pipewire/portal”系统抓取器 HyperHDR 必须作为应用程序运行，<span style='color:red'>作为服务/守护程序启动将失败</span>",
+  "edt_conf_fbs_tonemapping_expl": "如果启用，HyperHDR 将为传入流应用 LUT 校正。也适用于协议缓冲区服务器。确保您有正确的 LUT 表。 HDR10 的默认 3D LUT 文件<span class='fw-bold'>：'lut_lin_tables.3d'</span>（也接受文件名'flat_lut_lin_tables.3d'）。<span class='fw-bold' > 您可以使用“高级菜单”中的链接生成一个并预览效果。</span><br/>上传该文件的典型隐藏配置文件夹是（检查“日志”页面以确认）：<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr"
 }
