@@ -61,6 +61,10 @@ if (ENABLE_X11)
 	target_link_libraries(hyperhdr X11-grabber "${CMAKE_DL_LIBS}")
 endif ()
 
+if (ENABLE_FRAMEBUFFER)
+	target_link_libraries(hyperhdr framebuffer-grabber "${CMAKE_DL_LIBS}")
+endif ()
+
 if (ENABLE_PIPEWIRE)
 	target_link_libraries(hyperhdr Pipewire-grabber "${CMAKE_DL_LIBS}")
 endif ()

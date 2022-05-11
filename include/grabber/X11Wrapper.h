@@ -10,6 +10,8 @@ class X11Wrapper : public SystemWrapper
 public:
 	X11Wrapper(const QString& device, const QString& configurationPath);
 
+	bool isActivated(bool forced) override;
+
 private:
 	X11Grabber _grabber;
 };

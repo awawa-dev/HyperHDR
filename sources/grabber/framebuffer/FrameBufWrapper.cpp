@@ -1,8 +1,8 @@
-/* X11Wrapper.cpp
+/* FrameBufWrapper.cpp
 *
 *  MIT License
 *
-*  Copyright (c) 2021 awawa-dev
+*  Copyright (c) 2022 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -23,15 +23,15 @@
 *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
-*/
+ */
 
 #include <QMetaType>
-#include <grabber/X11Wrapper.h>
+#include <grabber/FrameBufWrapper.h>
 
 
-X11Wrapper::X11Wrapper(const QString &device,
+FrameBufWrapper::FrameBufWrapper(const QString &device,
 		const QString & configurationPath )
-	: SystemWrapper("X11_SYSTEM:"+device.left(14), &_grabber)
+	: SystemWrapper("FRAMEBUF_SYSTEM:"+device.left(14), &_grabber)
 	, _grabber(device, configurationPath)
 {	
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
@@ -39,8 +39,14 @@ X11Wrapper::X11Wrapper(const QString &device,
 	connect(&_grabber, &Grabber::readError, this, &SystemWrapper::readError, Qt::DirectConnection);
 }
 
-bool X11Wrapper::isActivated(bool forced)
+QString FrameBufWrapper::getGrabberInfo()
+{
+	return "framebuffer";
+}
+
+bool FrameBufWrapper::isActivated(bool forced)
 {
 	return _grabber.isActivated();
 }
+
 

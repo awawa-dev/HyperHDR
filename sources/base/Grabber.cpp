@@ -614,6 +614,82 @@ void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize)
 		emit newFrame(image);
 }
 
+void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
+{
+	int startX = _cropLeft;
+	int startY = _cropTop;
+	int realSizeX = _actualWidth - startX - _cropRight;
+	int realSizeY = _actualHeight - startY - _cropBottom;
+
+	if (realSizeX <= 16 || realSizeY <= 16)
+	{
+		realSizeX = _actualWidth;
+		realSizeY = _actualHeight;
+	}
+
+	int checkWidth = realSizeX;
+	int division = 1;
+
+	while (checkWidth > _width)
+	{
+		division++;
+		checkWidth = realSizeX / division;
+	}
+
+	int targetSizeX = realSizeX / division;
+	int targetSizeY = realSizeY / division;
+
+	Image<ColorRgb> image(targetSizeX, targetSizeY);
+
+	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, startX, startY, source, _actualWidth, _actualHeight, division, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lutBuffer, lineSize);
+
+	if (_signalDetectionEnabled)
+	{
+		if (checkSignalDetectionManual(image))
+			emit newFrame(image);
+	}
+	else
+		emit newFrame(image);
+}
+
+void Grabber::processSystemFrameBGR16(uint8_t* source, int lineSize)
+{
+	int startX = _cropLeft;
+	int startY = _cropTop;
+	int realSizeX = _actualWidth - startX - _cropRight;
+	int realSizeY = _actualHeight - startY - _cropBottom;
+
+	if (realSizeX <= 16 || realSizeY <= 16)
+	{
+		realSizeX = _actualWidth;
+		realSizeY = _actualHeight;
+	}
+
+	int checkWidth = realSizeX;
+	int division = 1;
+
+	while (checkWidth > _width)
+	{
+		division++;
+		checkWidth = realSizeX / division;
+	}
+
+	int targetSizeX = realSizeX / division;
+	int targetSizeY = realSizeY / division;
+
+	Image<ColorRgb> image(targetSizeX, targetSizeY);
+
+	FrameDecoder::processSystemImageBGR16(image, targetSizeX, targetSizeY, startX, startY, source, _actualWidth, _actualHeight, division, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lutBuffer, lineSize);
+
+	if (_signalDetectionEnabled)
+	{
+		if (checkSignalDetectionManual(image))
+			emit newFrame(image);
+	}
+	else
+		emit newFrame(image);
+}
+
 void Grabber::processSystemFrameRGBA(uint8_t* source, int lineSize)
 {
 	int startX = _cropLeft;

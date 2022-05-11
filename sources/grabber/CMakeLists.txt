@@ -6,6 +6,10 @@ if (ENABLE_X11)
 	add_subdirectory(X11)
 endif (ENABLE_X11)
 
+if (ENABLE_FRAMEBUFFER)
+	add_subdirectory(framebuffer)
+endif(ENABLE_FRAMEBUFFER)
+
 if (ENABLE_MAC_SYSTEM)
 	add_subdirectory(macOS)
 endif (ENABLE_MAC_SYSTEM)

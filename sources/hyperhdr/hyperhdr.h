@@ -35,6 +35,12 @@
 	typedef QObject X11Wrapper;
 #endif
 
+#ifdef ENABLE_FRAMEBUFFER
+#include <grabber/FrameBufWrapper.h>
+#else
+	typedef QObject FrameBufWrapper;
+#endif
+
 #ifdef ENABLE_PIPEWIRE
 #include <grabber/PipewireWrapper.h>
 #else
@@ -161,6 +167,7 @@ private:
 	macOsWrapper*			_macGrabber;
 	DxWrapper*				_dxGrabber;
 	X11Wrapper*				_x11Grabber;
+	FrameBufWrapper*		_fbGrabber;
 	PipewireWrapper*		_pipewireGrabber;
 	cecHandler*				_cecHandler;
 	SSDPHandler*			_ssdp;

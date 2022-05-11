@@ -161,6 +161,10 @@ protected:
 
 	void processSystemFrameBGRA(uint8_t* source, int lineSize = 0);
 
+	void processSystemFrameBGR(uint8_t* source, int lineSize = 0);
+
+	void processSystemFrameBGR16(uint8_t* source, int lineSize = 0);
+
 	void processSystemFrameRGBA(uint8_t* source, int lineSize = 0);
 
 	struct DeviceControlCapability

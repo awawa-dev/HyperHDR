@@ -200,6 +200,11 @@ void X11Grabber::getDevices()
 	enumerateDevices(false);
 }
 
+bool X11Grabber::isActivated()
+{
+	return !_deviceProperties.isEmpty();
+}
+
 void X11Grabber::enumerateDevices(bool silent)
 {
 	_deviceProperties.clear();

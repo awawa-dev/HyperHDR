@@ -547,6 +547,99 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 	}
 }
 
+void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
+{
+	uint32_t	ind_lutd;
+	uint8_t		buffer[8];
+	size_t		divisionX = (size_t)division * 3;
+
+	if (lineSize == 0)
+		lineSize = _actualWidth * 3;
+
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
+		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 3)));
+
+		if (_lutBuffer == nullptr)
+		{
+			sLine += 2;
+			while (dLine < dLineEnd)
+			{
+				*dLine++ = *sLine--;
+				*dLine++ = *sLine--;
+				*dLine++ = *sLine;
+				sLine += divisionX + 2;
+			}
+		}
+		else while (dLine < dLineEnd)
+		{
+			memcpy(&buffer, &sLine, 3);
+			sLine += divisionX;
+			ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
+			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
+			dLine += 3;
+		}
+	}
+}
+
+
+void FrameDecoder::processSystemImageBGR16(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
+{
+	uint32_t	ind_lutd;
+	uint8_t		buffer[8];
+	size_t		divisionX = (size_t)division * 2;
+
+	if (lineSize == 0)
+		lineSize = _actualWidth * 2;
+
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
+		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 2)));
+
+		if (_lutBuffer == nullptr)
+		{
+			sLine += 2;
+			while (dLine < dLineEnd)
+			{				
+				*((uint16_t*)&buffer) = *((uint16_t*)sLine);
+								
+				*dLine++ = (buffer[1] & 0xF8);
+				*dLine++ = (((buffer[1] & 0x7) << 3) | (buffer[0] & 0xE0) >> 5) << 2;
+				*dLine++ = (buffer[0] & 0x1f) << 3;
+
+				sLine += divisionX;
+			}
+		}
+		else while (dLine < dLineEnd)
+		{
+			*((uint16_t*)&buffer) = *((uint16_t*)sLine);
+			sLine += divisionX;
+
+			buffer[3] = (buffer[1] & 0xF8);
+			buffer[4] = (((buffer[1] & 0x7) << 3) | (buffer[0] & 0xE0) >> 5) << 2;
+			buffer[5] = (buffer[0] & 0x1f) << 3;
+
+			ind_lutd = LUT_INDEX(buffer[3], buffer[4], buffer[5]);
+			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
+			dLine += 3;
+		}
+	}
+}
+
+
+
 void FrameDecoder::processSystemImageRGBA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 											int startX, int startY,
 											uint8_t* source, int _actualWidth, int _actualHeight,

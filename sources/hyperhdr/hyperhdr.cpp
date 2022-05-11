@@ -87,6 +87,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _macGrabber(nullptr)
 	, _dxGrabber(nullptr)
 	, _x11Grabber(nullptr)
+	, _fbGrabber(nullptr)
 	, _pipewireGrabber(nullptr)
 	, _cecHandler(nullptr)
 	, _ssdp(nullptr)
@@ -259,6 +260,7 @@ void HyperHdrDaemon::freeObjects()
 	delete _avfGrabber;
 	delete _macGrabber;
 	delete _x11Grabber;
+	delete _fbGrabber;
 	delete _pipewireGrabber;
 
 	_v4l2Grabber = nullptr;
@@ -267,6 +269,7 @@ void HyperHdrDaemon::freeObjects()
 	_avfGrabber = nullptr;
 	_macGrabber = nullptr;
 	_x11Grabber = nullptr;
+	_fbGrabber = nullptr;
 	_pipewireGrabber = nullptr;
 }
 
@@ -451,7 +454,7 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 #endif
 
 #if defined(ENABLE_PIPEWIRE)
-		if (_pipewireGrabber == nullptr)
+		if (_fbGrabber == nullptr && _x11Grabber == nullptr && _pipewireGrabber == nullptr)
 		{
 			auto backupInst = SystemWrapper::instance;
 
@@ -473,7 +476,7 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				_pipewireGrabber->deleteLater();
 				_pipewireGrabber = nullptr;
 
-				Warning(_log, "The system doesn't support Pipewire/Portal");
+				Warning(_log, "The system doesn't support the Pipewire/Portal grabber");
 			}
 		}
 #elif !defined(ENABLE_DX) && !defined(ENABLE_MAC_SYSTEM)
@@ -481,15 +484,55 @@ void HyperHdrDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 #endif
 
 #if defined(ENABLE_X11)
-		if (_x11Grabber == nullptr && _pipewireGrabber == nullptr)
+		if (_fbGrabber == nullptr && _x11Grabber == nullptr && _pipewireGrabber == nullptr)
 		{
+			auto backupInst = SystemWrapper::instance;
+
 			_x11Grabber = new X11Wrapper(grabberConfig["device"].toString("auto"), _rootPath);
 
-			_x11Grabber->handleSettingsUpdate(settings::type::SYSTEMGRABBER, config);
-			connect(this, &HyperHdrDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
+			if (_x11Grabber->isActivated(false))
+			{
+				_x11Grabber->handleSettingsUpdate(settings::type::SYSTEMGRABBER, config);
+				connect(this, &HyperHdrDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
+			}
+			else
+			{
+				SystemWrapper::instance = backupInst;
+
+				_x11Grabber->deleteLater();
+				_x11Grabber = nullptr;
+
+				Warning(_log, "The system doesn't support the X11 grabber");
+			}
 		}
 #elif !defined(ENABLE_DX) && !defined(ENABLE_MAC_SYSTEM)
 		Warning(_log, "The X11 Linux system grabber can not be instantiated, because it has been left out from the build");
+#endif
+
+#if defined(ENABLE_FRAMEBUFFER)
+		if (_fbGrabber == nullptr && _x11Grabber == nullptr && _pipewireGrabber == nullptr)
+		{
+			auto backupInst = SystemWrapper::instance;
+
+			_fbGrabber = new FrameBufWrapper(grabberConfig["device"].toString("auto"), _rootPath);
+
+			if (_fbGrabber->isActivated(false))
+			{
+				_fbGrabber->handleSettingsUpdate(settings::type::SYSTEMGRABBER, config);
+				connect(this, &HyperHdrDaemon::settingsChanged, _fbGrabber, &FrameBufWrapper::handleSettingsUpdate);
+			}
+			else
+			{
+				SystemWrapper::instance = backupInst;
+
+				_fbGrabber->deleteLater();
+				_fbGrabber = nullptr;
+
+				Warning(_log, "The system doesn't support the FrameBuffer grabber");
+			}
+		}
+#elif !defined(ENABLE_DX) && !defined(ENABLE_MAC_SYSTEM)
+		Warning(_log, "The FrameBuffer Linux system grabber can not be instantiated, because it has been left out from the build");
 #endif
 	}
 }

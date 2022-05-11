@@ -6,6 +6,9 @@
 // directx grabber
 #cmakedefine ENABLE_DX
 
+// framebuffer linux system grabber
+#cmakedefine ENABLE_FRAMEBUFFER
+
 // macOs system grabber
 #cmakedefine ENABLE_MAC_SYSTEM
 

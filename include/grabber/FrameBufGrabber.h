@@ -24,21 +24,23 @@
 #include <QColor>
 
 
-class X11Grabber : public Grabber
+class FrameBufGrabber : public Grabber
 {
 	Q_OBJECT
 
 public:
 
-	X11Grabber(const QString& device, const QString& configurationPath);
+	FrameBufGrabber(const QString& device, const QString& configurationPath);
 
-	~X11Grabber();
+	~FrameBufGrabber();
 
 	void setHdrToneMappingEnabled(int mode) override;
 
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 
 	bool isActivated();
+
+	void stateChanged(bool state);
 
 private slots:
 
@@ -66,15 +68,10 @@ private:
 	bool init() override;
 
 	void uninit() override;
-	
-	bool init_device(int _display);
 		
 private:
-	QString					_configurationPath;
-	QTimer					_timer;
-	QSemaphore				_semaphore;
-
-	void*					_library;
-	int						_actualDisplay;
-	struct x11Handle*		_handle;
+	QString		_configurationPath;
+	QTimer		_timer;
+	QSemaphore	_semaphore;
+	int			_handle;
 };

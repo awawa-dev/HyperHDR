@@ -25,6 +25,16 @@ public:
 									   uint8_t* source, int _actualWidth, int _actualHeight,
 									   int division, uint8_t* _lutBuffer, int lineSize = 0);
 
+	static void processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+										int startX, int startY,
+										uint8_t* source, int _actualWidth, int _actualHeight,
+										int division, uint8_t* _lutBuffer, int lineSize = 0);
+
+	static void processSystemImageBGR16(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+										int startX, int startY,
+										uint8_t* source, int _actualWidth, int _actualHeight,
+										int division, uint8_t* _lutBuffer, int lineSize = 0);
+
 	static void processSystemImageRGBA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 									   int startX, int startY,
 									   uint8_t* source, int _actualWidth, int _actualHeight,
