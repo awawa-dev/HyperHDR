@@ -516,6 +516,7 @@ if ( ENABLE_V4L2 OR ENABLE_MF )
 		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib/turbojpeg.lib")
 		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/include")
 	else()
+		FIND_PACKAGE(PkgConfig REQUIRED)
 		pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
 	endif ()
 	

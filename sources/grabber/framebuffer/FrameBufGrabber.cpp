@@ -140,7 +140,7 @@ bool FrameBufGrabber::init()
 		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
 		if (_handle < 0)
 		{
-			Error(_log, "Could not open the framebuffer device: %s. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);			
+			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);			
 		}
 		else
 		{
@@ -150,19 +150,20 @@ bool FrameBufGrabber::init()
 			{
 				if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
 				{
-					Info(_log, "Device %s currently is using %ix%ix%i resolution.", QSTRING_CSTR(foundDevice), scr.xres, scr.yres, scr.bits_per_pixel);
+					_actualDeviceName = foundDevice;
+					Info(_log, "Device '%s' is using currently %ix%ix%i resolution.", QSTRING_CSTR(_actualDeviceName), scr.xres, scr.yres, scr.bits_per_pixel);
 					_initialized = true;
 				}
 				else
 				{
-					Error(_log, "Unsupported %ix%ix%i mode.", QSTRING_CSTR(foundDevice), scr.xres, scr.yres, scr.bits_per_pixel);
+					Error(_log, "Unsupported %ix%ix%i mode for '%s' device.", scr.xres, scr.yres, scr.bits_per_pixel, QSTRING_CSTR(foundDevice));
 					close(_handle);
 					_handle = -1;
 				}
 			}
 			else
 			{
-				Error(_log, "Could not get the framebuffer device dimension: %s. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
+				Error(_log, "Could not get the framebuffer dimension for '%s' device. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
 				close(_handle);
 				_handle = -1;
 			}			
@@ -254,12 +255,27 @@ void FrameBufGrabber::grabFrame()
 		if (_initialized)
 		{
 			/// GETFRAME
-
-							
-			//processSystemFrameBGRA(data.data);
 			struct fb_var_screeninfo scr;
+			bool isStillActive = false;
 
 			if (ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
+			{
+				isStillActive = true;
+			}
+			else
+			{
+				Warning(_log, "The handle is lost. Trying to restart the driver.");
+
+				close(_handle);
+				_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
+
+				if (_handle >= 0 && ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
+				{
+					isStillActive = true;
+				}
+			}
+
+			if (isStillActive)
 			{
 				_actualWidth = scr.xres;
 				_actualHeight = scr.yres;
