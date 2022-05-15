@@ -140,7 +140,7 @@ macro(DeployApple TARGET)
 endmacro()
 
 macro(DeployUnix TARGET)
-	if (NOT CMAKE_CROSSCOMPILING AND EXISTS ${TARGET_FILE})
+	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
 		#"libsystemd0"
@@ -196,8 +196,10 @@ macro(DeployUnix TARGET)
 			"libssl1.1"
 		)
 
-		# Extract dependencies ignoring the system ones		
-		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")		
+		# Extract dependencies ignoring the system ones
+		if (NOT CMAKE_CROSSCOMPILING)
+			get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
+		endif()
 
 		# Append symlink and non-symlink dependencies to the list
 		set(PREREQUISITE_LIBS "")
@@ -297,9 +299,16 @@ macro(DeployUnix TARGET)
 				OUTPUT_VARIABLE QT_PLUGINS_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
 			)		
+		elseif ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
+			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+			execute_process(
+				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+				OUTPUT_VARIABLE QT_PLUGINS_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
 		endif()
-		
-		
+
+		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")
 		
 		if ( CEC_SUPPORT )
 			SET(resolved_file ${CEC_SUPPORT})
@@ -307,8 +316,8 @@ macro(DeployUnix TARGET)
 			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
 			message(STATUS "Added CEC support: ${resolved_file}")
-			set(resolved_file "${resolved_file}.2")
-			if(EXISTS ${resolved_file})
+			if(EXISTS "${resolved_file}.2")
+				set(resolved_file "${resolved_file}.2")
 				message(STATUS "Added CEC support: ${resolved_file}")
 				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})				
@@ -367,7 +376,9 @@ macro(DeployUnix TARGET)
 				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
 					foreach(file ${files})
-						get_prerequisites(${file} PLUGINS 0 1 "" "")
+						if (NOT CMAKE_CROSSCOMPILING)
+							get_prerequisites(${file} PLUGINS 0 1 "" "")
+						endif()
 
 						foreach(DEPENDENCY ${PLUGINS})
 							get_filename_component(resolved ${DEPENDENCY} NAME_WE)

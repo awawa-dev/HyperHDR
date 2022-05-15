@@ -381,6 +381,8 @@ message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 message(STATUS "ENABLE_PROTOBUF = ${ENABLE_PROTOBUF}")
 
+message(STATUS "USE_STATIC_QT_PLUGINS = ${USE_STATIC_QT_PLUGINS}")
+
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
@@ -525,6 +527,25 @@ if ( ENABLE_V4L2 OR ENABLE_MF )
 	message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
 endif()
 
+# Embedded QT plugins
+if (USE_STATIC_QT_PLUGINS)
+	foreach(guiPlugin ${Qt${Qt_VERSION}Gui_PLUGINS} Qt${Qt_VERSION}::Gui)		
+		get_target_property(file ${guiPlugin} LOCATION)
+		if (NOT IS_SYMLINK ${file})
+			message("Using static QT plugin: " ${file})
+			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
+		endif()
+	endforeach()
+	foreach(sqlPlugin ${Qt${Qt_VERSION}Sql_PLUGINS} Qt${Qt_VERSION}::Sql)
+		message( STATUS "TURBOJPEG_INCLUDE_DIRS=${sqlPlugin}")
+		get_target_property(file ${sqlPlugin} LOCATION)
+		if (NOT IS_SYMLINK ${file})
+			message("Using static QT plugin: " ${file})
+			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
+		endif()
+	endforeach()	
+endif()
+
 # Add the source/lib directories
 add_subdirectory(dependencies)
 add_subdirectory(sources)
@@ -547,9 +568,9 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (USE_SYSTEM_FLATBUFFERS_LIBS OR USE_SYSTEM_MBEDTLS_LIBS)
-	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
+if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto)
+	set_target_properties(apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
 else()
-	set_target_properties(apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
+	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()
 

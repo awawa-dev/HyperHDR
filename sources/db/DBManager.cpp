@@ -33,6 +33,12 @@
 #include <QSqlError>
 #include <QJsonArray>
 #include <QSqlRecord>
+#include <HyperhdrConfig.h> // Required to determine the cmake options
+
+#ifdef USE_STATIC_QT_PLUGINS
+	#include <QtPlugin>
+	Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
+#endif
 
 #define EXPORT_FILE_FORMAT_VERSION "HyperHDR_export_format_v17"
 

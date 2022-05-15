@@ -21,7 +21,9 @@ if (USE_SYSTEM_FLATBUFFERS_LIBS)
 	find_package(Flatbuffers REQUIRED)
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared flatbuffers library")
-	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")
+	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")	
+	
+	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
 	add_subdirectory(external/flatbuffers)
 
 	if(CMAKE_CROSSCOMPILING)

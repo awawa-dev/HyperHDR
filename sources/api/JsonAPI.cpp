@@ -552,7 +552,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		}
 	#endif	
 
-	#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11)
+	#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER)
 		info["systemGrabbers"] = SystemWrapper::getInstance()->getJsonInfo();
 	#endif
 

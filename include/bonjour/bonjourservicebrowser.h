@@ -30,7 +30,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BONJOURSERVICEBROWSER_H
 
 #include <QtCore/QObject>
-#ifndef PLATFORM_AMLOGIC
+#ifndef AVAHI_COMPAT_DNS_SD
 #include <dns_sd.h>
 #else
 #include <avahi-compat-libdns_sd/dns_sd.h>

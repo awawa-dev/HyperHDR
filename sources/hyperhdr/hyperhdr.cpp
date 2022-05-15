@@ -20,6 +20,12 @@
 
 #include <HyperhdrConfig.h> // Required to determine the cmake options
 
+#ifdef USE_STATIC_QT_PLUGINS
+	#include <QtPlugin>
+	Q_IMPORT_PLUGIN(QJpegPlugin)
+	Q_IMPORT_PLUGIN(QGifPlugin)
+#endif
+
 // bonjour browser
 #ifdef ENABLE_AVAHI
 #include <bonjour/bonjourbrowserwrapper.h>

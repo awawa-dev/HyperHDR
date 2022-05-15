@@ -7,6 +7,12 @@ FILE ( GLOB Bonjour_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/
 
 add_library(bonjour ${Bonjour_SOURCES} )
 
+include(CheckIncludeFile)
+check_include_file("dns_sd.h" HAVE_AVAHI_STD)
+if (NOT HAVE_AVAHI_STD)
+	target_compile_definitions(bonjour PUBLIC AVAHI_COMPAT_DNS_SD)
+endif()
+
 target_link_libraries(bonjour
 		hyperhdr-base
 		hyperhdr-utils

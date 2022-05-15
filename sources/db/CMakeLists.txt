@@ -14,3 +14,7 @@ target_link_libraries(database
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Sql
 )
+
+if (USE_STATIC_QT_PLUGINS)
+	target_link_libraries(database ${STATIC_QT_PLUGINS_LIBS})
+endif()

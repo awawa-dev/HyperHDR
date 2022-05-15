@@ -31,6 +31,11 @@ target_link_libraries(hyperhdr
 	Qt${Qt_VERSION}::Widgets
 )
 
+if (USE_STATIC_QT_PLUGINS)
+	target_link_libraries(hyperhdr ${STATIC_QT_PLUGINS_LIBS})
+endif()
+
+
 if (ENABLE_PROTOBUF)
 	target_link_libraries(hyperhdr protoserver)
 endif ()
