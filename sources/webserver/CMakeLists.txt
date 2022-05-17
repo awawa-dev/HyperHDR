@@ -6,7 +6,8 @@ FILE ( GLOB WebConfig_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR
 FILE ( GLOB_RECURSE webFiles RELATIVE ${CMAKE_BINARY_DIR}  ${CMAKE_SOURCE_DIR}/assets/webconfig/* )
 
 FOREACH( f ${webFiles} )
-    STRING ( REPLACE "../assets/webconfig/" "" fname ${f})
+    STRING ( REPLACE "assets/webconfig/" ";" workingWebFile ${f})
+    list(GET workingWebFile -1 fname)
     SET(HYPERHDR_WEBCONFIG_RES "${HYPERHDR_WEBCONFIG_RES}\n\t\t<file alias=\"/webconfig/${fname}\">${f}</file>")
 ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/WebConfig.qrc.in ${CMAKE_BINARY_DIR}/WebConfig.qrc )
