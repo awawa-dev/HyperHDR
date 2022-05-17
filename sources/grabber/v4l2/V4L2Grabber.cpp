@@ -216,7 +216,7 @@ bool V4L2Grabber::init()
 			bool strict = false;
 			const auto& val = dev.valid[i];
 
-			if (bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && (val.fps <= bestGuessMinFPS || val.fps <= 50) && val.fps >= 10))
+			if (bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && (val.fps <= bestGuessMinFPS || val.fps <= 60) && val.fps >= 10))
 			{
 				bestGuess = i;
 				bestGuessMinFPS = val.fps;
