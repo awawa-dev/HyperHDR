@@ -39,7 +39,7 @@
 //std includes
 #include <iostream>
 
-const int TIMEOUT = (1 * 1000);
+const int TIMEOUT = (333);
 
 std::unique_ptr<networkHelper> ProviderRestApi::_networkWorker(nullptr);
 

@@ -264,9 +264,6 @@ public:
 
 	QJsonArray getGroupLights(quint16 groupId = 0) const;
 
-signals:
-	void initRetry();
-
 protected:
 
 	///
@@ -295,8 +292,6 @@ protected:
 	QString _username;
 
 	bool	_useHueEntertainmentAPI;
-	int		_maxRetry;
-	int		_currentRetry;
 
 	QJsonDocument getGroupState(unsigned int groupId);
 	QJsonDocument setGroupState(unsigned int groupId, bool state);
@@ -418,8 +413,6 @@ public slots:
 	/// Includes switching-off the device and stopping refreshes.
 	///
 	void stop() override;
-
-	void initRetryHandler();
 
 protected:
 

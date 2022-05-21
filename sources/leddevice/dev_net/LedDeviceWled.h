@@ -13,6 +13,7 @@
 ///
 class LedDeviceWled : public ProviderUdp
 {
+	Q_OBJECT
 
 public:
 	///

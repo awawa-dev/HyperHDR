@@ -63,6 +63,9 @@ bool LedDeviceWled::init(const QJsonObject& deviceConfig)
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
 		Debug(_log, "LedCount     : %d", configuredLedCount);
 
+		_maxRetry = deviceConfig["maxRetry"].toInt(60);
+		Debug(_log, "Max retry    : %d", _maxRetry);
+
 		//Set hostname as per configuration
 		QString address = deviceConfig[CONFIG_ADDRESS].toString();
 
@@ -127,17 +130,46 @@ QString LedDeviceWled::getOnOffRequest(bool isOn) const
 bool LedDeviceWled::powerOn()
 {
 	Debug(_log, "");
-	bool on = true;
-	if (_isDeviceReady)
+	bool on = false;
+	auto current = QDateTime::currentMSecsSinceEpoch();
+
+	if (!_retryMode)
 	{
 		//Power-on WLED device
 		_restApi->setPath(API_PATH_STATE);
 		httpResponse response = _restApi->put(getOnOffRequest(true));
 		if (response.error())
 		{
-			this->setInError(response.getErrorReason());
-			on = false;
+			this->setInError(response.getErrorReason());			
+
+			// power on simultaneously with Rpi causes timeout
+			if (_maxRetry > 0 && response.error() &&
+				(response.getNetworkReplyError() == 99 || response.getNetworkReplyError() == 1 || response.getNetworkReplyError() == 2 || response.getNetworkReplyError() == 5))
+			{
+				if (_currentRetry <= 0)
+					_currentRetry = _maxRetry + 1;
+
+				_currentRetry--;
+
+				if (_currentRetry > 0)
+					Warning(_log, "The WLED device is not ready... will try to reconnect (try %i/%i).", (_maxRetry - _currentRetry + 1), _maxRetry);
+				else
+					Error(_log, "The WLED device is not ready... give up.");
+
+
+				auto delta = QDateTime::currentMSecsSinceEpoch() - current;
+
+				delta = qMin(qMax(1000ll - delta, 50ll), 1000ll);
+
+				if (_currentRetry > 0)
+				{
+					_retryMode = true;
+					QTimer::singleShot(delta, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+				}
+			}
 		}
+		else
+			on = true;
 	}
 	return on;
 }
@@ -146,6 +178,10 @@ bool LedDeviceWled::powerOff()
 {
 	Debug(_log, "");
 	bool off = true;
+
+	_currentRetry = 0;
+	_retryMode = false;
+
 	if (_isDeviceReady)
 	{
 		// Write a final "Black" to have a defined outcome

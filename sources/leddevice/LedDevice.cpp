@@ -29,7 +29,10 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _isDeviceReady(false)
 	, _isOn(false)
 	, _isDeviceInError(false)
-	, _isRefreshEnabled(false)
+	, _retryMode(false)
+	, _maxRetry(60)
+	, _currentRetry(0)
+	, _isRefreshEnabled(false)	
 {
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
@@ -112,9 +115,7 @@ void LedDevice::enableDevice(bool toEmit)
 		}
 
 		if (_isDeviceReady)
-		{
-			_isEnabled = true;
-
+		{			
 			if (switchOn())
 			{
 				_isDeviceReady = true;
@@ -314,7 +315,7 @@ bool LedDevice::switchOn()
 	}
 	else
 	{
-		if (_isEnabled && _isDeviceInitialised)
+		if (_isDeviceInitialised)
 		{
 			storeState();
 

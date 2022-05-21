@@ -243,8 +243,6 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject& deviceCo
 	, _restApi(nullptr)
 	, _apiPort(API_DEFAULT_PORT)
 	, _useHueEntertainmentAPI(false)
-	, _maxRetry(60)
-	, _currentRetry(0)
 	, _api_major(0)
 	, _api_minor(0)
 	, _api_patch(0)
@@ -592,7 +590,10 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, boo
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
-{	
+{
+	if (_retryMode)
+		return QJsonDocument();
+
 	auto current = QDateTime::currentMSecsSinceEpoch();
 
 	_restApi->setPath(route);
@@ -600,24 +601,29 @@ QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
 	httpResponse response = _restApi->get();
 
 	// power on simultaneously with Rpi causes timeout
-	if (route.isEmpty() && response.error() &&
+	if (_maxRetry > 0 && route.isEmpty() && response.error() &&
 		(response.getNetworkReplyError() == 99 || response.getNetworkReplyError() == 1 || response.getNetworkReplyError() == 2 || response.getNetworkReplyError() == 5))
 	{
-		if (_currentRetry != 1)
-			Warning(_log, "The Hue bridge is not ready... will try to reconnect.");
+		if (_currentRetry <= 0)
+			_currentRetry = _maxRetry + 1;
+
+		_currentRetry--;
+
+		if (_currentRetry > 0)
+			Warning(_log, "The PhilipsHue device is not ready... will try to reconnect (try %i/%i).", (_maxRetry - _currentRetry + 1), _maxRetry);
 		else
-			Error(_log, "The Hue bridge is not ready... give up.");
+			Error(_log, "The PhilipsHue device is not ready... give up.");
 
-		if (_currentRetry == 0)
-			_currentRetry = _maxRetry;
-		
+
 		auto delta = QDateTime::currentMSecsSinceEpoch() - current;
-		if (delta < 1000)
-		{
-			QThread::msleep(1000 - delta);
-		}
 
-		emit initRetry();
+		delta = qMin(qMax(1000ll - delta, 50ll), 1000ll);
+
+		if (_currentRetry > 0)
+		{
+			_retryMode = true;
+			QTimer::singleShot(delta, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+		}		
 	}	
 
 	checkApiError(response.getBody());
@@ -905,52 +911,6 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
 }
 
-
-void LedDevicePhilipsHue::initRetryHandler()
-{
-	int backUp = _currentRetry;
-
-	if (_currentRetry <= 0 || _isDeviceInitialised)
-	{
-		_currentRetry = 0;
-		return;
-	}
-
-	if (_currentRetry == 1)
-	{
-		Debug(_log, "Give up retrying");
-	}
-	else
-	{
-		Debug(_log, "Retrying: %i/%i", _currentRetry, _maxRetry);
-
-		_isDeviceInError = false;
-
-		if (!_isDeviceInitialised && initMaps())
-		{
-			_isDeviceInitialised = true;
-			_isEnabled = true;
-		}
-		
-		if (_isDeviceInitialised)
-		{
-			init(_configBackup);
-			if (switchOn())
-			{
-				_currentRetry = 0;
-
-				startRefreshTimer();
-				emit enableStateChanged(true);
-
-				return;
-			}
-
-		}
-	}
-
-	_currentRetry = backUp - 1;
-}
-
 bool LedDevicePhilipsHue::setLights()
 {
 	bool isInitOK = true;
@@ -1089,7 +1049,7 @@ bool LedDevicePhilipsHue::initLeds()
 				_devConfig["psk"] = _devConfig[CONFIG_CLIENTKEY].toString();
 				_devConfig["psk_identity"] = _devConfig[CONFIG_USERNAME].toString();
 				_devConfig["seed_custom"] = API_SSL_SEED_CUSTOM;
-				_devConfig["retry_left"] = STREAM_CONNECTION_RETRYS;
+				_devConfig["retry_left"] = _maxRetry;
 				_devConfig["hs_attempts"] = STREAM_SSL_HANDSHAKE_ATTEMPTS;
 				_devConfig["hs_timeout_min"] = static_cast<int>(_handshake_timeout_min);
 				_devConfig["hs_timeout_max"] = static_cast<int>(_handshake_timeout_max);
@@ -1157,7 +1117,7 @@ bool LedDevicePhilipsHue::startStream()
 {
 	Debug(_log, "Start entertainment stream");
 
-	int index = 10;
+	int index = 12;
 	while (!setStreamGroupState(true) && --index > 0)
 	{
 		Debug(_log, "Start entertainment stream. Retrying...");
@@ -1422,8 +1382,17 @@ bool LedDevicePhilipsHue::switchOn()
 		}
 		else
 		{
-			if (_isEnabled && _isDeviceInitialised)
-			{				
+			if (!_isDeviceInitialised && initMaps())
+			{
+				init(_configBackup);
+				_isEnabled = true;
+				_isDeviceInitialised = true;
+			}
+				
+			if (_isDeviceInitialised)
+			{
+				_isEnabled = true;
+
 				storeState();
 
 				if (_useHueEntertainmentAPI)

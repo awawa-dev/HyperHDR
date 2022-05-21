@@ -278,7 +278,7 @@ protected:
 	/// @param[in] numberOfWrites Write Black given number of times
 	/// @return Zero on success else negative
 	///
-	virtual int writeBlack(int numberOfBlack = 1);
+	virtual int writeBlack(int numberOfBlack = 2);
 
 	///
 	/// @brief Power-/turn on the LED-device.
@@ -382,6 +382,10 @@ protected:
 
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
+
+	bool	_retryMode;
+	int		_maxRetry;
+	int		_currentRetry;
 
 protected slots:
 

@@ -78,11 +78,11 @@ void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool
 	{
 		if (state)
 		{
-			QMetaObject::invokeMethod(_ledDevice, "enable", Qt::BlockingQueuedConnection);
+			QMetaObject::invokeMethod(_ledDevice, "enable");
 		}
 		else
 		{
-			QMetaObject::invokeMethod(_ledDevice, "disable", Qt::BlockingQueuedConnection);
+			QMetaObject::invokeMethod(_ledDevice, "disable");
 		}
 
 		QMetaObject::invokeMethod(_ledDevice, "componentState", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _enabled));

@@ -615,7 +615,7 @@ QString LutCalibrator::colorToQStr(capColors index)
 	double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
 	double ceiling = qMax(_maxColor.red, qMax(_maxColor.green, _maxColor.blue)) * 1.05;
 	double scale = (ceiling - floor);
-	ColorStat calculated, normalized = _colorBalance[ind], fNormalized = _colorBalance[ind], color = _colorBalance[ind];
+	ColorStat normalized = _colorBalance[ind], fNormalized = _colorBalance[ind], color = _colorBalance[ind];
 	normalized /= scale;
 	fNormalized /= 255.0;
 	color.red = qRound(color.red);
