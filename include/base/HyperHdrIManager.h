@@ -87,6 +87,8 @@ public slots:
 	///
 	void toggleStateAllInstances(bool pause = false);
 
+	void hibernate(bool wakeUp);
+
 	///
 	/// @brief Create a new HyperHDR instance entry in db
 	/// @param name  The friendly name of the instance

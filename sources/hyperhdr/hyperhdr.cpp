@@ -95,8 +95,13 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _x11Grabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _pipewireGrabber(nullptr)
+	, _suspendHandler(nullptr)
 	, _cecHandler(nullptr)
 	, _ssdp(nullptr)
+	, _flatBufferServer(nullptr)
+#if defined(ENABLE_PROTOBUF)
+	, _protoServer(nullptr)
+#endif
 #if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 	, _snd(nullptr)
 #endif
@@ -167,6 +172,13 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	// ---- network services -----
 	startNetworkServices();
+
+#ifdef _WIN32
+	_suspendHandler = new SuspendHandler();
+
+	if (QAbstractEventDispatcher::instance() != nullptr)
+		QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler);
+#endif
 }
 
 void HyperHdrDaemon::instanceStateChanged(InstanceState state, quint8 instance, const QString& name)
@@ -260,6 +272,7 @@ void HyperHdrDaemon::freeObjects()
 	_bonjourBrowserWrapper = nullptr;
 #endif	
 
+	delete _suspendHandler;
 	delete _v4l2Grabber;
 	delete _mfGrabber;
 	delete _dxGrabber;
@@ -269,6 +282,7 @@ void HyperHdrDaemon::freeObjects()
 	delete _fbGrabber;
 	delete _pipewireGrabber;
 
+	_suspendHandler = nullptr;
 	_v4l2Grabber = nullptr;
 	_mfGrabber = nullptr;
 	_dxGrabber = nullptr;

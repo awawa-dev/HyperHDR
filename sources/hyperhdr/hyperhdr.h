@@ -87,6 +87,12 @@ class NetOrigin;
 	class SoundCapMacOS;
 #endif
 
+#ifdef _WIN32
+	#include "WinSuspend.h"
+#else
+	typedef QObject SuspendHandler;
+#endif
+
 enum class InstanceState;
 
 
@@ -169,6 +175,7 @@ private:
 	X11Wrapper*				_x11Grabber;
 	FrameBufWrapper*		_fbGrabber;
 	PipewireWrapper*		_pipewireGrabber;
+	SuspendHandler*			_suspendHandler;
 	cecHandler*				_cecHandler;
 	SSDPHandler*			_ssdp;
 	FlatBufferServer*		_flatBufferServer;

@@ -111,6 +111,20 @@ void HyperHdrIManager::toggleStateAllInstances(bool pause)
 	}
 }
 
+void HyperHdrIManager::hibernate(bool wakeUp)
+{	
+	if (!wakeUp)
+	{
+		Warning(_log, "The system is going to sleep");
+		toggleStateAllInstances(false);
+	}
+	else
+	{
+		Warning(_log, "The system is going to wake up");
+		QTimer::singleShot(1500, [this]() { toggleStateAllInstances(true);  });
+	}	
+}
+
 bool HyperHdrIManager::startInstance(quint8 inst, bool block, QObject* caller, int tan)
 {
 	if (_instanceTable->instanceExist(inst))

@@ -4,14 +4,27 @@ if (WIN32)
 	generate_win_rc_file(hyperhdr)
 endif()
 
-add_executable(hyperhdr
-	hyperhdr.h
-	systray.h
-	hyperhdr.cpp
-	systray.cpp
-	main.cpp
-	${hyperhdr_WIN_RC_PATH}
-)
+if (WIN32)
+	add_executable(hyperhdr
+		hyperhdr.h
+		systray.h
+		hyperhdr.cpp
+		systray.cpp
+		main.cpp
+		${hyperhdr_WIN_RC_PATH}
+		WinSuspend.cpp
+		WinSuspend.h)
+else()
+	add_executable(hyperhdr
+		hyperhdr.h
+		systray.h
+		hyperhdr.cpp
+		systray.cpp
+		main.cpp
+		${hyperhdr_WIN_RC_PATH}
+		)
+endif()
+
 
 # promote hyperhdr as GUI app
 if (WIN32)
