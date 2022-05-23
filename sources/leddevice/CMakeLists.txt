@@ -86,6 +86,7 @@ target_link_libraries(leddevice
 )
 
 if(NOT WIN32)
+	include(CheckCSourceCompiles)
 	# Glibc compatibilty check
 	check_c_source_compiles("
 		#include <time.h>
