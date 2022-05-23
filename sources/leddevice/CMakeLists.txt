@@ -85,6 +85,21 @@ target_link_libraries(leddevice
 	ssdp
 )
 
+if(NOT WIN32)
+	# Glibc compatibilty check
+	check_c_source_compiles("
+		#include <time.h>
+		#include <sys/time.h>
+		int main() {
+		struct timespec t;
+		return clock_gettime(CLOCK_REALTIME, &t);
+		}
+		" GLIBC_HAS_CLOCK_GETTIME)
+	IF(NOT GLIBC_HAS_CLOCK_GETTIME)
+		target_link_libraries(leddevice rt)
+	endif()
+endif()
+
 IF ( HAVE_SERIAL_LED )
 	target_link_libraries(leddevice Qt${Qt_VERSION}::SerialPort)
 endif()
