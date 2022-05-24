@@ -5,26 +5,26 @@ if (WIN32)
 endif()
 
 if (WIN32)
-	add_executable(hyperhdr
-		hyperhdr.h
-		systray.h
-		hyperhdr.cpp
-		systray.cpp
-		main.cpp
-		${hyperhdr_WIN_RC_PATH}
-		WinSuspend.cpp
-		WinSuspend.h)
-else()
-	add_executable(hyperhdr
-		hyperhdr.h
-		systray.h
-		hyperhdr.cpp
-		systray.cpp
-		main.cpp
-		${hyperhdr_WIN_RC_PATH}
-		)
+	set(hyperhdr_POWER_MNG "WinSuspend.cpp;WinSuspend.h")
+elseif (APPLE)
+elseif (Qt${Qt_VERSION}DBus_FOUND)
+	set(hyperhdr_POWER_MNG "LinuxSuspend.cpp;LinuxSuspend.h")
+	set(hyperhdr_POWER_MNG_DBUS "Qt${Qt_VERSION}::DBus")
 endif()
 
+add_executable(hyperhdr
+	hyperhdr.h
+	systray.h
+	hyperhdr.cpp
+	systray.cpp
+	main.cpp
+	${hyperhdr_WIN_RC_PATH}
+	${hyperhdr_POWER_MNG}
+)
+
+if (UNIX AND NOT APPLE AND Qt${Qt_VERSION}DBus_FOUND)
+	target_compile_definitions(hyperhdr PUBLIC HYPERHDR_HAVE_DBUS)
+endif()
 
 # promote hyperhdr as GUI app
 if (WIN32)
@@ -42,6 +42,7 @@ target_link_libraries(hyperhdr
 	database
 	resources
 	Qt${Qt_VERSION}::Widgets
+	${hyperhdr_POWER_MNG_DBUS}
 )
 
 if (USE_STATIC_QT_PLUGINS)

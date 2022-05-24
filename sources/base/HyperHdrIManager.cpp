@@ -121,7 +121,7 @@ void HyperHdrIManager::hibernate(bool wakeUp)
 	else
 	{
 		Warning(_log, "The system is going to wake up");
-		QTimer::singleShot(1500, [this]() { toggleStateAllInstances(true);  });
+		QTimer::singleShot(3000, [this]() { toggleStateAllInstances(true);  });
 	}	
 }
 

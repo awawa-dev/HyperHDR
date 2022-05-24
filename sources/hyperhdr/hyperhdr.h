@@ -87,8 +87,10 @@ class NetOrigin;
 	class SoundCapMacOS;
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	#include "WinSuspend.h"
+#elif defined(__linux__) && defined(HYPERHDR_HAVE_DBUS)
+	#include "LinuxSuspend.h"
 #else
 	typedef QObject SuspendHandler;
 #endif
@@ -174,8 +176,7 @@ private:
 	DxWrapper*				_dxGrabber;
 	X11Wrapper*				_x11Grabber;
 	FrameBufWrapper*		_fbGrabber;
-	PipewireWrapper*		_pipewireGrabber;
-	SuspendHandler*			_suspendHandler;
+	PipewireWrapper*		_pipewireGrabber;	
 	cecHandler*				_cecHandler;
 	SSDPHandler*			_ssdp;
 	FlatBufferServer*		_flatBufferServer;
@@ -183,6 +184,7 @@ private:
 #if defined(ENABLE_PROTOBUF)
 	ProtoServer* _protoServer;
 #endif
+
 #if defined(ENABLE_SOUNDCAPWINDOWS)
 	SoundCapWindows* _snd;
 #elif defined(ENABLE_SOUNDCAPLINUX)
@@ -191,17 +193,7 @@ private:
 	SoundCapMacOS* _snd;
 #endif
 
-	unsigned                   _grabber_width;
-	unsigned                   _grabber_height;
-	unsigned                   _grabber_frequency;
-	unsigned                   _grabber_cropLeft;
-	unsigned                   _grabber_cropRight;
-	unsigned                   _grabber_cropTop;
-	unsigned                   _grabber_cropBottom;
-	int                        _grabber_ge2d_mode;
-	QString                    _grabber_device;
-
-	QString                    _prevType;
+	std::unique_ptr<SuspendHandler>	_suspendHandler;
 
 	SettingsManager* _settingsManager;
 

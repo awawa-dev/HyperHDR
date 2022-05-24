@@ -33,7 +33,6 @@
 
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
-#include "hyperhdr.h"
 
 // Flatbuffer Server
 #include <flatbufserver/FlatBufferServer.h>
@@ -74,6 +73,8 @@
 
 #include <utils/PerformanceCounters.h>
 
+#include "hyperhdr.h"
+
 HyperHdrDaemon* HyperHdrDaemon::daemon = nullptr;
 
 HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params)
@@ -95,7 +96,6 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _x11Grabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _pipewireGrabber(nullptr)
-	, _suspendHandler(nullptr)
 	, _cecHandler(nullptr)
 	, _ssdp(nullptr)
 	, _flatBufferServer(nullptr)
@@ -105,6 +105,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 #if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
 	, _snd(nullptr)
 #endif
+	, _suspendHandler(nullptr)
 	, _rootPath(rootPath)
 	, _params(params)
 {
@@ -173,11 +174,11 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	// ---- network services -----
 	startNetworkServices();
 
-#ifdef _WIN32
-	_suspendHandler = new SuspendHandler();
+	_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler());
 
+#ifdef _WIN32
 	if (QAbstractEventDispatcher::instance() != nullptr)
-		QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler);
+		QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler.get());
 #endif
 }
 
@@ -272,7 +273,6 @@ void HyperHdrDaemon::freeObjects()
 	_bonjourBrowserWrapper = nullptr;
 #endif	
 
-	delete _suspendHandler;
 	delete _v4l2Grabber;
 	delete _mfGrabber;
 	delete _dxGrabber;
@@ -282,7 +282,6 @@ void HyperHdrDaemon::freeObjects()
 	delete _fbGrabber;
 	delete _pipewireGrabber;
 
-	_suspendHandler = nullptr;
 	_v4l2Grabber = nullptr;
 	_mfGrabber = nullptr;
 	_dxGrabber = nullptr;

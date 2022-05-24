@@ -1,4 +1,4 @@
-/* WinSuspend.cpp
+/* LinuxSuspend.cpp
 *
 *  MIT License
 *
@@ -25,50 +25,46 @@
 *  SOFTWARE.
  */
 
+
+#include <QDBusConnection>
 #include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <cmath>
 #include <cassert>
 #include <stdlib.h>
-#include "WinSuspend.h"
+#include "LinuxSuspend.h"
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 #include <utils/Image.h>
 #include <base/HyperHdrIManager.h>
-#include <windows.h>
+#include <iostream>
+
+const QString UPOWER_SERVICE = QStringLiteral("org.freedesktop.login1");
+const QString UPOWER_PATH = QStringLiteral("/org/freedesktop/login1");
+const QString UPOWER_INTER = QStringLiteral("org.freedesktop.login1.Manager");
 
 SuspendHandler::SuspendHandler()
 {
-	auto handle = reinterpret_cast<HWND> (_widget.winId());
-	_notifyHandle = RegisterSuspendResumeNotification(handle, DEVICE_NOTIFY_WINDOW_HANDLE);
-}
+	QDBusConnection bus = QDBusConnection::systemBus();
 
-SuspendHandler::~SuspendHandler()
-{	
-	if (_notifyHandle != NULL)
-		UnregisterSuspendResumeNotification(_notifyHandle);
-	_notifyHandle = NULL;
-}
-
-bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result)
-{
-	MSG* msg = static_cast<MSG*>(message);
-
-	if (msg->message == WM_POWERBROADCAST)
+	if (!bus.isConnected())
 	{
-		switch (msg->wParam)
-		{			
-			case PBT_APMRESUMESUSPEND:
-				QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, true));
-				return true;
-				break;
-			case PBT_APMSUSPEND:
-				QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, false));
-				return true;
-				break;
-		}
+		std::cout << "SYSTEM BUS IS NOT CONNECTED!\n";
+		return;
 	}
-	return false;
+		
+	if (!bus.connect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
+		std::cout << "COULD NOT REGISTER SLEEP HANDLER!\n";
+	else
+		std::cout << "SLEEP HANDLER REGISTERED!\n";
+}
+
+void SuspendHandler::sleeping(bool sleep)
+{	
+	if (sleep)
+		QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, false));
+	else
+		QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, true));
 }
 

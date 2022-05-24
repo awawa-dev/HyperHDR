@@ -1243,21 +1243,32 @@ bool LedDevicePhilipsHue::stopStream()
 
 bool LedDevicePhilipsHue::getStreamGroupState()
 {
-	QJsonDocument doc = getGroupState(_groupId);
+	const int limitRetry = 12;
 
-	if (!this->isInError())
+	for (int i = 0; i < limitRetry; i++)
 	{
-		QJsonObject obj = doc.object()[API_STREAM].toObject();
+		QJsonDocument doc = getGroupState(_groupId);
+	
+		if (!this->isInError())
+		{
+			QJsonObject obj = doc.object()[API_STREAM].toObject();
 
-		if (obj.isEmpty())
-		{
-			this->setInError("no Streaming Infos in Group found");
-		}
-		else
-		{
-			_streamOwner = obj.value(API_STREAM_OWNER).toString();
-			bool streamState = obj.value(API_STREAM_ACTIVE).toBool();
-			return streamState;
+			if (obj.isEmpty())
+			{
+				if (i + 1 >= limitRetry)
+				{
+					this->setInError("no Streaming Infos in Group found");
+					return false;
+				}
+				else
+					QThread::msleep(500);
+			}
+			else
+			{
+				_streamOwner = obj.value(API_STREAM_OWNER).toString();
+				bool streamState = obj.value(API_STREAM_ACTIVE).toBool();
+				return streamState;
+			}
 		}
 	}
 

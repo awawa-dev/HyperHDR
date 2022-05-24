@@ -1,6 +1,6 @@
 #pragma once
 
-/* WinSuspend.h
+/* LinuxSuspend.h
 *
 *  MIT License
 *
@@ -26,19 +26,14 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
  */
+ #include <QObject>
 
-#include <QAbstractNativeEventFilter>
-#include <QAbstractEventDispatcher>
-#include <QWidget>
-#define NOMINMAX
-#include <windows.h>
-
-class SuspendHandler : public QAbstractNativeEventFilter {
-	QWidget			_widget;
-	HPOWERNOTIFY	_notifyHandle;
+class SuspendHandler : public QObject {
+	Q_OBJECT
 
 public:
 	SuspendHandler();
-	~SuspendHandler();
-	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) Q_DECL_OVERRIDE;
+
+public slots:
+	void sleeping(bool sleep);
 };
