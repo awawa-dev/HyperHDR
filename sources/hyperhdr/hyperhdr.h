@@ -89,6 +89,8 @@ class NetOrigin;
 
 #if defined(_WIN32)
 	#include "WinSuspend.h"
+#elif defined(__APPLE__)
+	#include "MacSuspend.h"
 #elif defined(__linux__) && defined(HYPERHDR_HAVE_DBUS)
 	#include "LinuxSuspend.h"
 #else
