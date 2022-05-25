@@ -52,7 +52,7 @@ endif()
 
 
 if (ENABLE_PROTOBUF)
-	target_link_libraries(hyperhdr protoserver)
+	target_link_libraries(hyperhdr proto-nano-server)
 endif ()
 
 if (ENABLE_AVAHI)

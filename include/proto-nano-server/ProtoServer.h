@@ -8,7 +8,7 @@
 #include <QVector>
 
 class QTcpServer;
-class ProtoClientConnection;
+class ProtoNanoClientConnection;
 class NetOrigin;
 
 ///
@@ -58,12 +58,13 @@ private:
 
 
 private:
-	QTcpServer* _server;
-	NetOrigin* _netOrigin;
-	Logger* _log;
-	int _timeout;
-	quint16 _port;
+	QTcpServer*	_server;
+	NetOrigin*	_netOrigin;
+	Logger*		_log;
+	int			_timeout;
+	quint16		_port;
+
 	const QJsonDocument _config;
 
-	QVector<ProtoClientConnection*> _openConnections;
+	QVector<ProtoNanoClientConnection*> _openConnections;
 };

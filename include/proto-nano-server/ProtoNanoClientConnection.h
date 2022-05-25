@@ -1,7 +1,33 @@
+/* ProtoNanoClientConnection.h
+*
+*  MIT License
+*
+*  Copyright (c) 2021 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+*/
+
 #pragma once
 
-#undef Error
-#include "message.pb.h"
+#include <message.pb.h>
 
 // util
 #include <utils/Logger.h>
@@ -10,18 +36,14 @@
 #include <utils/Components.h>
 
 
-
 class QTcpSocket;
 class QTimer;
 
-namespace proto {
-	class HyperionRequest;
-}
 
 ///
 /// The Connection object created by a ProtoServer when a new connection is established
 ///
-class ProtoClientConnection : public QObject
+class ProtoNanoClientConnection : public QObject
 {
 	Q_OBJECT
 
@@ -32,7 +54,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
+	explicit ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
 
 signals:
 	///
@@ -83,76 +105,27 @@ private slots:
 	void disconnected();
 
 private:
-	///
-	/// Handle an incoming Proto message
-	///
-	/// @param message the incoming message as string
-	///
-	void handleMessage(const proto::HyperionRequest &message);
+	void handleImageCommand(const proto_ImageRequest& message, Image<ColorRgb>& image);
 
-	///
-	/// Handle an incoming Proto Color message
-	///
-	/// @param message the incoming message
-	///
-	void handleColorCommand(const proto::ColorRequest & message);
+	void handleClearCommand(const proto_ClearRequest& message);
 
-	///
-	/// Handle an incoming Proto Image message
-	///
-	/// @param message the incoming message
-	///
-	void handleImageCommand(const proto::ImageRequest & message);
+	void sendMessage(const proto_HyperhdrReply &message);
 
-	///
-	/// Handle an incoming Proto Clear message
-	///
-	/// @param message the incoming message
-	///
-	void handleClearCommand(const proto::ClearRequest & message);
-
-	///
-	/// Handle an incoming Proto Clearall message
-	///
-	void handleClearallCommand();
-
-	///
-	/// Handle an incoming Proto message of unknown type
-	///
-	void handleNotImplemented();
-
-	///
-	/// Send a message to the connected client
-	///
-	/// @param message The Proto message to send
-	///
-	void sendMessage(const google::protobuf::Message &message);
-
-	///
-	/// Send a standard reply indicating success
-	///
 	void sendSuccessReply();
 
-	///
-	/// Send an error message back to the client
-	///
-	/// @param error String describing the error
-	///
 	void sendErrorReply(const std::string & error);
 
+	void processData(const uint8_t* buffer, uint32_t messageSize);
+
+	static bool readImage(pb_istream_t* stream, const pb_field_t* field, void** arg);
+
 private:
-	Logger*_log;
-
-	/// The TCP-Socket that is connected tot the Proto-client
-	QTcpSocket* _socket;
-
-	/// address of client
+	Logger*		_log;
+	QTcpSocket*	_socket;	
 	const QString _clientAddress;
 
-	QTimer*_timeoutTimer;
-	int _timeout;
-	int _priority;
-
-	/// The buffer used for reading data from the socket
-	QByteArray _receiveBuffer;
+	QTimer*		_timeoutTimer;
+	int			_timeout;
+	int			_priority;
+	QByteArray	_receiveBuffer;
 };

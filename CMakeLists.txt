@@ -288,47 +288,6 @@ if (WIN32)
 	endif (SEVENZIP_BIN)
 endif()
 
-# protobuf
-if (DEFAULT_PROTOBUF)
-	find_package(Protobuf QUIET)
-	
-	if (WIN32 AND NOT Protobuf_FOUND)
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip OR
-		   NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/bin)
-			message( STATUS "Downloading protobuf library")
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows)
-			file(DOWNLOAD https://github.com/awawa-dev/protobuf/releases/download/v3.20.0/windows.zip
-						  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip
-						  STATUS PROTO_DOWNLOAD_STATUS
-						  EXPECTED_HASH MD5=9fd170a6cfa29919e40f5642b2c52e92)
-			list(GET PROTO_DOWNLOAD_STATUS 0 PROTO_DOWNLOAD_STATUS_CODE)
-			if(PROTO_DOWNLOAD_STATUS_CODE AND NOT PROTO_DOWNLOAD_STATUS_CODE EQUAL 0)
-				message( FATAL_ERROR "Could not download protobuf library")
-			endif()
-		endif()
-		execute_process(
-			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/ -aoa -y
-			RESULT_VARIABLE STATUS_PROTO_EXTRACT
-			OUTPUT_VARIABLE OUTPUT_PROTO
-		)
-		if(STATUS_PROTO_EXTRACT AND NOT STATUS_PROTO_EXTRACT EQUAL 0)
-			message( FATAL_ERROR "Could not extract protobuf library binaries: ${STATUS_PROTO_EXTRACT} ${OUTPUT_PROTO}")		
-		endif()		
-		
-		set (Protobuf_FOUND 1)
-		set (Protobuf_PROTOC_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/bin/protoc.exe)
-		set (PROTOBUF_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/include)
-		set (PROTOBUF_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/protobuf-windows/lib/libprotobuf$<$<CONFIG:DEBUG>:d>.lib)
-		add_executable(protobuf::protoc IMPORTED)
-		set_target_properties(protobuf::protoc PROPERTIES IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}")        
-	endif()
-		
-	if (NOT Protobuf_FOUND)
-		message( STATUS "Warning: could not find protobuf libraries (macOS: protobuf, Linux: libprotobuf-dev protobuf-compiler, Windows: need to compile yourself)" )
-		SET ( DEFAULT_PROTOBUF OFF )
-	endif()
-endif()
-
 # set the build options
 option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
 message(STATUS "ENABLE_BOBLIGHT   = ${ENABLE_BOBLIGHT}")

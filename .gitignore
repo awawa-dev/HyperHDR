@@ -26,9 +26,6 @@ sources/flatbufserver/hyperhdr_request_generated.h
 #lib-turbo
 dependencies/jpeg-windows
 
-#protobuf
-dependencies/protobuf-windows
-
 # Kdevelop project files
 *.kdev*
 

@@ -1,0 +1,275 @@
+/* ProtoNanoClientConnection.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2021 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+*/
+
+#include <QTcpSocket>
+#include <QHostAddress>
+#include <QTimer>
+#include <QRgb>
+#include <QThread>
+
+#include <pb_decode.h>
+#include <pb_encode.h>
+#include <ProtoNanoClientConnection.h>
+#include <flatbufserver/FlatBufferServer.h>
+
+ProtoNanoClientConnection::ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject* parent)
+	: QObject(parent)
+	, _log(Logger::getInstance("PROTOSERVER"))
+	, _socket(socket)
+	, _clientAddress(socket->peerAddress().toString())
+	, _timeoutTimer(new QTimer(this))
+	, _timeout(timeout * 1000)
+	, _priority()
+{
+	// timer setup
+	_timeoutTimer->setSingleShot(true);
+	_timeoutTimer->setInterval(_timeout);
+	connect(_timeoutTimer, &QTimer::timeout, this, &ProtoNanoClientConnection::forceClose);
+
+	// connect socket signals
+	connect(_socket, &QTcpSocket::readyRead, this, &ProtoNanoClientConnection::readyRead);
+	connect(_socket, &QTcpSocket::disconnected, this, &ProtoNanoClientConnection::disconnected);
+}
+
+void ProtoNanoClientConnection::readyRead()
+{
+	_receiveBuffer += _socket->readAll();
+
+	// check if we can read a message size
+	if (_receiveBuffer.size() <= 4)
+	{
+		return;
+	}
+
+	// read the message size
+	uint32_t messageSize =
+		((_receiveBuffer[0] << 24) & 0xFF000000) |
+		((_receiveBuffer[1] << 16) & 0x00FF0000) |
+		((_receiveBuffer[2] << 8) & 0x0000FF00) |
+		((_receiveBuffer[3]) & 0x000000FF);
+
+	// check if we can read a complete message
+	if ((uint32_t)_receiveBuffer.size() < messageSize + 4)
+	{
+		return;
+	}
+
+	processData((const uint8_t*)(_receiveBuffer.data() + 4), messageSize);
+
+	_receiveBuffer = _receiveBuffer.mid(messageSize + 4);
+}
+
+bool ProtoNanoClientConnection::readImage(pb_istream_t* stream, const pb_field_t* field, void** arg)
+{
+	int sizeRgb = (int)((stream->bytes_left) / 3);
+	Image<ColorRgb>* image = (Image<ColorRgb>*) * arg;
+
+	image->resize(sizeRgb, 1);
+
+	if (!pb_read(stream, (uint8_t*)image->memptr(), sizeRgb * 3))
+		return false;
+
+	return true;
+}
+
+void ProtoNanoClientConnection::processData(const uint8_t* buffer, uint32_t messageSize)
+{
+	pb_istream_t stream = pb_istream_from_buffer(buffer, messageSize);
+
+	proto_HyperhdrRequest mainMessage = proto_HyperhdrRequest_init_zero;
+	pb_extension_t imageExt = pb_extension_init_zero;
+	pb_extension_t clearExt = pb_extension_init_zero;
+	proto_ImageRequest imageReq = proto_ImageRequest_init_zero;
+	proto_ClearRequest clearReq = proto_ClearRequest_init_zero;
+
+	Image<ColorRgb> image;
+
+	imageReq.imagedata.funcs.decode = &ProtoNanoClientConnection::readImage;
+	imageReq.imagedata.arg = &image;
+
+	mainMessage.extensions = &imageExt;
+	imageExt.type = &proto_ImageRequest_imageRequest;
+	imageExt.dest = &imageReq;
+	imageExt.next = &clearExt;
+	clearExt.type = &proto_ClearRequest_clearRequest;
+	clearExt.dest = &clearReq;
+	clearExt.next = nullptr;
+
+	bool status = pb_decode(&stream, proto_HyperhdrRequest_fields, &mainMessage);
+
+	if (status)
+	{
+		status = false;
+
+		if (imageExt.found)
+		{
+			status = true;
+			handleImageCommand(imageReq, image);
+		}
+
+		if (clearExt.found)
+		{
+			status = true;
+			handleClearCommand(clearReq);
+		}
+
+		if (!status)
+			Warning(_log, "Unsupported request");
+	}
+	else
+		Error(_log, "Error while decoding the message");
+}
+
+void ProtoNanoClientConnection::forceClose()
+{
+	_socket->close();
+}
+
+void ProtoNanoClientConnection::disconnected()
+{
+	Debug(_log, "Socket Closed");
+	_socket->deleteLater();
+	emit clearGlobalInput(_priority);
+	emit clientDisconnected();
+}
+
+void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& message, Image<ColorRgb>& image)
+{
+	// extract parameters
+	int priority = message.priority;
+	int duration = message.has_duration ? message.duration : -1;
+	int width = message.imagewidth;
+	int height = message.imageheight;
+
+	if (priority < 100 || priority >= 200)
+	{
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the valid priority range between 100 and 199.");
+		Error(_log, "The priority %d is not in the proto-connection range between 100 and 199.", priority);
+		return;
+	}
+
+	// make sure the prio is registered before setInput()
+	if (priority != _priority)
+	{
+		emit clearGlobalInput(_priority);
+		emit registerGlobalInput(priority, hyperhdr::COMP_PROTOSERVER, "Proto@" + _clientAddress);
+		_priority = priority;
+	}
+
+	// check consistency of the size of the received data
+	if ((int)image.size() != width * height * 3)
+	{
+		sendErrorReply("Size of image data does not match with the width and height");
+		Error(_log, "Size of image data does not match with the width and height");
+		return;
+	}
+
+	// must resize
+	image.resize(width, height);
+
+	if (FlatBufferServer::getInstance() != nullptr)
+	{
+		auto flat = FlatBufferServer::getInstance();
+		int hdrEnabled = 0;
+
+		if (QThread::currentThread() == flat->thread())
+			hdrEnabled = flat->getHdrToneMappingEnabled();
+		else
+			QMetaObject::invokeMethod(flat, "getHdrToneMappingEnabled", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, hdrEnabled));
+
+		if (hdrEnabled)
+		{
+			QMetaObject::invokeMethod(flat, "importFromProtoHandler", Q_ARG(int, priority), Q_ARG(int, duration), Q_ARG(const Image<ColorRgb>&, image));
+			sendSuccessReply();
+			return;
+		}
+	}
+
+	emit setGlobalInputImage(_priority, image, duration);
+
+	// send reply
+	sendSuccessReply();
+}
+
+
+void ProtoNanoClientConnection::handleClearCommand(const proto_ClearRequest& message)
+{
+	// extract parameters
+	int priority = message.priority;
+
+	// clear priority
+	emit clearGlobalInput(priority);
+
+	// send reply
+	sendSuccessReply();
+}
+
+
+void ProtoNanoClientConnection::sendMessage(const proto_HyperhdrReply& message)
+{
+	uint8_t buffer[256];
+	uint32_t size;
+	bool status;
+
+	pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+	status = pb_encode(&stream, proto_HyperhdrReply_fields, &message);
+	size = (uint32_t)(stream.bytes_written);
+
+	if (status)
+	{
+		uint8_t sizeData[] = { uint8_t(size >> 24), uint8_t(size >> 16), uint8_t(size >> 8), uint8_t(size) };
+		_socket->write((const char*)sizeData, sizeof(sizeData));
+		_socket->write((const char*)&buffer, size);
+		_socket->flush();
+	}
+	else
+		Warning(_log, "Failed to send reply");
+}
+
+void ProtoNanoClientConnection::sendSuccessReply()
+{
+	// create reply
+	proto_HyperhdrReply reply = proto_HyperhdrReply_init_zero;
+	reply.type = _proto_HyperhdrReply_Type::proto_HyperhdrReply_Type_REPLY;
+	reply.success = true;
+	reply.has_success = true;
+
+	// send reply
+	sendMessage(reply);
+}
+
+void ProtoNanoClientConnection::sendErrorReply(const std::string& error)
+{
+	// create reply
+	proto_HyperhdrReply reply = proto_HyperhdrReply_init_zero;
+	reply.type = _proto_HyperhdrReply_Type::proto_HyperhdrReply_Type_REPLY;
+	reply.success = false;
+	reply.has_success = true;
+
+	// send reply
+	sendMessage(reply);
+}

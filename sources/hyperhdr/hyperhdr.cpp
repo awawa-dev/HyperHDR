@@ -37,8 +37,8 @@
 // Flatbuffer Server
 #include <flatbufserver/FlatBufferServer.h>
 
-// Protobuffer Server
-#include <protoserver/ProtoServer.h>
+// ProtoNanoBuffer Server
+#include <proto-nano-server/ProtoServer.h>
 
 // ssdp
 #include <ssdp/SSDPHandler.h>

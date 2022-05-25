@@ -1,5 +1,5 @@
-#include "ProtoClientConnection.h"
-#include <protoserver/ProtoServer.h>
+#include <ProtoNanoClientConnection.h>
+#include <ProtoServer.h>
 
 // util
 #include <utils/NetOrigin.h>
@@ -66,14 +66,14 @@ void ProtoServer::newConnection()
 			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
+				ProtoNanoClientConnection* client = new ProtoNanoClientConnection(socket, _timeout, this);
 				// internal
-				connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
-				connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-				connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-				connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-				connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
+				connect(client, &ProtoNanoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
+				connect(client, &ProtoNanoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+				connect(client, &ProtoNanoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+				connect(client, &ProtoNanoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+				connect(client, &ProtoNanoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoNanoClientConnection::registationRequired);
 				_openConnections.append(client);
 			}
 			else
@@ -84,7 +84,7 @@ void ProtoServer::newConnection()
 
 void ProtoServer::clientDisconnected()
 {
-	ProtoClientConnection* client = qobject_cast<ProtoClientConnection*>(sender());
+	ProtoNanoClientConnection* client = qobject_cast<ProtoNanoClientConnection*>(sender());
 	client->deleteLater();
 	_openConnections.removeAll(client);
 }
