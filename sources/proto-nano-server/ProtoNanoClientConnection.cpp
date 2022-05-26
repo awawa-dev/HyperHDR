@@ -262,6 +262,16 @@ void ProtoNanoClientConnection::sendSuccessReply()
 	sendMessage(reply);
 }
 
+bool ProtoNanoClientConnection::writeError(pb_ostream_t* stream, const pb_field_iter_t* field, void* const* arg)
+{
+	const char* str = (const char*) *arg;
+
+	if (!pb_encode_tag_for_field(stream, field))
+		return false;
+
+	return pb_encode_string(stream, (uint8_t*)str, strlen(str));
+}
+
 void ProtoNanoClientConnection::sendErrorReply(const std::string& error)
 {
 	// create reply
@@ -269,6 +279,8 @@ void ProtoNanoClientConnection::sendErrorReply(const std::string& error)
 	reply.type = _proto_HyperhdrReply_Type::proto_HyperhdrReply_Type_REPLY;
 	reply.success = false;
 	reply.has_success = true;
+	reply.error.arg = (char*) error.c_str();
+	reply.error.funcs.encode = &ProtoNanoClientConnection::writeError;
 
 	// send reply
 	sendMessage(reply);

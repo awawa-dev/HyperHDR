@@ -595,9 +595,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, boo
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
-{
-	auto current = QDateTime::currentMSecsSinceEpoch();
-
+{	
 	_restApi->setPath(route);
 
 	httpResponse response = _restApi->get();		

@@ -62,6 +62,8 @@ public slots:
 	///
 	void incommingLogMessage(const Logger::T_LOG_MESSAGE&);
 
+	void releaseLock();
+
 private slots:
 	///
 	/// @brief Handle emits from API of a new Token request.

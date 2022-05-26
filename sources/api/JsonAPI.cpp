@@ -1742,51 +1742,37 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 }
 
 void JsonAPI::setImage(const Image<ColorRgb>& image)
+{	
+	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+
+	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))	
+		return;	
+
+	_lastSendImage = _currentTime;
+
+	QImage jpgImage((const uint8_t*)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
+	QByteArray ba;
+	QBuffer buffer(&ba);
+	buffer.open(QIODevice::WriteOnly);
+
+	if (image.width() > 1920)
+	{		
+		jpgImage = jpgImage.scaled(image.width() / 2, image.height() / 2);
+	}
+
+	jpgImage.save(&buffer, "jpg");
+
+	QJsonObject result;
+	result["image"] = "data:image/jpg;base64," + QString(ba.toBase64());
+	_streaming_image_reply["result"] = result;
+	_streaming_image_reply["isImage"] = 1;
+
+	emit callbackMessage(_streaming_image_reply);
+}
+
+void JsonAPI::releaseLock()
 {
-	try
-	{
-		//		if (!_semaphore.tryAcquire())
-		//			return;
-
-				// protect buffer from overflow
-		uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
-
-		if ((_currentTime - _lastSendImage < 50) ||
-			((_currentTime - _lastSendImage < 100) && image.width() >= 1024) ||
-			((_currentTime - _lastSendImage < 250) && image.width() >= 1280) ||
-			((_currentTime - _lastSendImage < 500) && image.width() >= 1920))
-		{
-			//Debug(_log, "setImage buffer overflow protection %d", _currentTime - _lastSendImage);
-//			_semaphore.release();
-			return;
-		}
-		_lastSendImage = _currentTime;
-
-		QImage jpgImage((const uint8_t*)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
-		QByteArray ba;
-		QBuffer buffer(&ba);
-		buffer.open(QIODevice::WriteOnly);
-
-		if (image.width() > 800 || image.height() > 600)
-		{
-			int scale = (image.width() > 1920) ? 3 : 2;
-			jpgImage = jpgImage.scaled(image.width() / scale, image.height() / scale);
-		}
-
-		jpgImage.save(&buffer, "jpg");
-
-		QJsonObject result;
-		result["image"] = "data:image/jpg;base64," + QString(ba.toBase64());
-		_streaming_image_reply["result"] = result;
-
-		emit callbackMessage(_streaming_image_reply);
-
-		//		_semaphore.release();
-	}
-	catch (...)
-	{
-		//		_semaphore.release();
-	}
+	_semaphore.release();
 }
 
 void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE& msg)

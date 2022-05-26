@@ -289,6 +289,12 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 		Error(_log, "Error writing bytes to socket %d bytes from %d written", payloadWritten, payloadSize);
 		return -1;
 	}
+
+	if (obj.contains("isImage"))
+	{
+		QTimer::singleShot(0, _jsonAPI, &JsonAPI::releaseLock);
+	}
+
 	return payloadWritten;
 }
 

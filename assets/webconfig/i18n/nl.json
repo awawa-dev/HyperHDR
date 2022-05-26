@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "LED's",
-  "edt_append_ms": "Mevrouw",
+  "edt_append_ms": "ms",
   "edt_append_ns": "NS",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% hori",
@@ -337,7 +337,7 @@
   "edt_conf_general_enable_expl": "Indien aangevinkt, is het onderdeel ingeschakeld.",
   "edt_conf_general_enable_title": "Activeren",
   "edt_conf_general_port_expl": "De poort die wordt gebruikt.",
-  "edt_conf_general_port_title": "Haven",
+  "edt_conf_general_port_title": "Port",
   "edt_conf_general_priority_expl": "De prioriteit van dit onderdeel",
   "edt_conf_general_priority_title": "Prioriteitskanaal",
   "edt_conf_instC_systemEnable_expl": "Schakelt de systeemregistratie in voor deze led-hardware-instantie",
@@ -488,7 +488,7 @@
   "edt_dev_spec_maximumLedCount_title": "Maximaal aantal LED's",
   "edt_dev_spec_multicastGroup_title": "Multicast-groep",
   "edt_dev_spec_networkDeviceName_title": "Naam netwerkapparaat",
-  "edt_dev_spec_networkDevicePort_title": "Haven",
+  "edt_dev_spec_networkDevicePort_title": "Port",
   "edt_dev_spec_numberOfLeds_title": "Aantal LED's",
   "edt_dev_spec_orbIds_title": "Orb-ID('s)",
   "edt_dev_spec_order_left_right_title": "2.",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Om de 'pipewire/portal' systeemgrabber te gebruiken, moet HyperHDR worden uitgevoerd als de applicatie, <span style='color:red'>starten als een service/daemon zal mislukken</span>",
   "edt_conf_fbs_tonemapping_expl": "Indien ingeschakeld, past HyperHDR LUT-correctie toe op de inkomende stream. Werkt ook voor Protocol Buffers Server. Zorg ervoor dat u de juiste LUT-tabel hebt. Standaard 3D LUT-bestand <span class='fw-bold'>voor HDR10: 'lut_lin_tables.3d'</span> (bestandsnaam 'flat_lut_lin_tables.3d' wordt ook geaccepteerd) is al opgenomen.<span class='fw-bold' > Je kunt er een genereren en een voorbeeld van het effect bekijken via de link in het 'Geavanceerde menu'.</span><br/>Je typische verborgen configuratiemap om dat bestand in te uploaden is (kijk op de pagina 'Logboeken' om te bevestigen):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer schermgrijper",
-  "conf_network_proto_intro": "De PROTO-poort van alle HyperHDR-instanties (verouderd).<br/>Voornamelijk voor gebruik met de Android Screen Grabber-app. <span style='color:red;'>HDR naar SDR tone mapping</span> kan worden ingeschakeld in de Flatbuffers Server-configuratie en het werkt ook voor Protocol Buffers (gedeelde component)"
+  "conf_network_proto_intro": "De PROTO-poort van alle HyperHDR-instanties (verouderd).<br/>Voornamelijk voor gebruik met de Android Screen Grabber-app. <span style='color:red;'>HDR naar SDR tone mapping</span> kan worden ingeschakeld in de Flatbuffers Server-configuratie en het werkt ook voor Protocol Buffers (gedeelde component)",
+  "edt_conf_stream_dx11_flickering_title": "Flikkeren van statische afbeeldingen oplossen",
+  "edt_conf_stream_dx11_flickering_expl": "Alternatieve schermvergrendelingsmethode die het flikkeren van vastgelegde videostreams in een stilstaand beeld kan corrigeren. Bepaalde grafische kaarten worden beïnvloed."
 }

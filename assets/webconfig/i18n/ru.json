@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Гц",
   "edt_append_leds": "Светодиоды",
-  "edt_append_ms": "РС",
+  "edt_append_ms": "ms",
   "edt_append_ns": "нс",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% hori",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Чтобы использовать системный граббер pipewire/portal, HyperHDR должен быть запущен как приложение, <span style='color:red'>запуск как службы/демона не удастся</span>",
   "edt_conf_fbs_tonemapping_expl": "Если этот параметр включен, HyperHDR будет применять коррекцию LUT для входящего потока. Работает также для сервера протокольных буферов. Убедитесь, что у вас есть правильная таблица LUT. Файл 3D LUT по умолчанию <span class='fw-bold'>для HDR10: 'lut_lin_tables.3d'</span> (также допускается имя файла 'flat_lut_lin_tables.3d') уже включен.<span class='fw-bold' > Вы можете создать один и просмотреть эффект, используя ссылку в «Расширенном меню».</span><br/>Ваша типичная скрытая папка конфигурации для загрузки этого файла (проверьте страницу «Журналы», чтобы подтвердить):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Пользователи&#47;ИМЯ&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Захват экрана Linux FrameBuffer",
-  "conf_network_proto_intro": "Порт PROTO всех экземпляров HyperHDR (устарел).<br/>В основном для использования с приложением Android Screen Grabber. <span style='color:red;'>Тональное преобразование HDR в SDR</span> можно включить в конфигурации сервера Flatbuffers, и оно также работает для буферов протокола (общий компонент)"
+  "conf_network_proto_intro": "Порт PROTO всех экземпляров HyperHDR (устарел).<br/>В основном для использования с приложением Android Screen Grabber. <span style='color:red;'>Тональное преобразование HDR в SDR</span> можно включить в конфигурации сервера Flatbuffers, и оно также работает для буферов протокола (общий компонент)",
+  "edt_conf_stream_dx11_flickering_title": "Исправить мерцание статических изображений",
+  "edt_conf_stream_dx11_flickering_expl": "Альтернативный метод блокировки экрана, который может исправить мерцание захваченного видеопотока, проявляющееся в неподвижном изображении. Некоторые видеокарты затронуты."
 }

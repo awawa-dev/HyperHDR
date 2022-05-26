@@ -672,6 +672,7 @@ $(document).ready( function(){
 			else if (window.serverInfo.systemGrabbers.device.indexOf("framebuffer")>=0)
 				createHint("intro", $.i18n('conf_grabber_framebuffer_intro'), "editor_container_system_device");			
 			$('[data-schemapath="root.systemGrabber.hdrToneMapping"]').toggle(false);
+			$('[data-schemapath="root.systemGrabber.alternativeCaching"]').toggle(false);
 		}
 		else
 			createHint("intro", $.i18n('conf_grabber_dx11_intro'), "editor_container_system_device");

@@ -73,6 +73,7 @@ DxGrabber::DxGrabber(const QString& device, const QString& configurationPath)
 
 	, _dxRestartNow(false)
 	, _d3dCache(false)
+	, _alternative(false)
 	, _d3dDevice(nullptr)
 	, _d3dContext(nullptr)
 	, _sourceTexture(nullptr)
@@ -486,7 +487,14 @@ void DxGrabber::grabFrame()
 				_warningCounter--;
 			}
 
-			if (CHECK(_d3dContext->Map(_sourceTexture, 0, D3D11_MAP_READ, 0, &internalMap)))
+			if (_alternative)
+			{
+				if (_cacheImage.width() > 1)
+				{
+					emit newFrame(_cacheImage);
+				}
+			}
+			else if (CHECK(_d3dContext->Map(_sourceTexture, 0, D3D11_MAP_READ, 0, &internalMap)))
 			{
 				uint8_t* data = (unsigned char*)internalMap.pData;
 
@@ -525,4 +533,25 @@ void DxGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned crop
 	_cropRight = cropRight;
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
+}
+
+void DxGrabber::alternativeCaching(bool alternative)
+{
+	_alternative = alternative;
+
+	if (_alternative)
+	{		
+		connect(this, &Grabber::newFrame, this, &DxGrabber::cacheHandler, Qt::UniqueConnection);
+	}
+	else
+	{
+		disconnect(this, &Grabber::newFrame, this, &DxGrabber::cacheHandler);
+		_cacheImage = Image<ColorRgb>();
+	}
+}
+
+void DxGrabber::cacheHandler(const Image<ColorRgb>& image)
+{
+	if (_alternative)
+		_cacheImage = image;
 }

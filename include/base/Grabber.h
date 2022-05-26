@@ -54,6 +54,8 @@ public:
 
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 
+	virtual void alternativeCaching(bool alternative);
+
 	bool trySetWidthHeight(int width, int height);
 
 	bool trySetInput(int input);

@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "LED",
-  "edt_append_ms": "Mme",
+  "edt_append_ms": "ms",
   "edt_append_ns": "ns",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% horaire",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Pour utiliser le système d'acquisition 'pipewire/portal', HyperHDR doit être exécuté en tant qu'application, <span style='color:red'>le lancement en tant que service/démon échouera</span>",
   "edt_conf_fbs_tonemapping_expl": "S'il est activé, HyperHDR appliquera la correction LUT pour le flux entrant. Fonctionne également pour Protocol Buffers Server. Assurez-vous d'avoir la bonne table LUT. Le fichier LUT 3D par défaut <span class='fw-bold'>pour HDR10 : 'lut_lin_tables.3d'</span> (le nom de fichier 'flat_lut_lin_tables.3d' est également accepté) est déjà inclus.<span class='fw-bold' > Vous pouvez en générer un et prévisualiser l'effet en utilisant le lien dans le \"menu Avancé\".</span><br/>Votre dossier de configuration caché typique pour télécharger ce fichier est (vérifiez la page \"Journaux\" pour confirmer) :<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Utilisateurs&#47;NOM&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Capture d'écran Linux FrameBuffer",
-  "conf_network_proto_intro": "Le PROTO-Port de toutes les instances HyperHDR (obsolète).<br/>Principalement à utiliser avec l'application Android Screen Grabber. <span style='color:red;'>Le mappage de tonalité HDR vers SDR</span> peut être activé dans la configuration du serveur Flatbuffers et fonctionne également pour les tampons de protocole (composant partagé)"
+  "conf_network_proto_intro": "Le PROTO-Port de toutes les instances HyperHDR (obsolète).<br/>Principalement à utiliser avec l'application Android Screen Grabber. <span style='color:red;'>Le mappage de tonalité HDR vers SDR</span> peut être activé dans la configuration du serveur Flatbuffers et fonctionne également pour les tampons de protocole (composant partagé)",
+  "edt_conf_stream_dx11_flickering_title": "Correction du scintillement des images statiques",
+  "edt_conf_stream_dx11_flickering_expl": "Méthode de verrouillage d'écran alternative qui peut corriger le scintillement du flux vidéo capturé révélant une image fixe. Certaines cartes graphiques sont concernées."
 }

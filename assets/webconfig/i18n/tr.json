@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz.",
   "edt_append_leds": "LED'ler",
-  "edt_append_ms": "Hanım",
+  "edt_append_ms": "ms",
   "edt_append_ns": "ns",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% yatay",
@@ -337,7 +337,7 @@
   "edt_conf_general_enable_expl": "İşaretlenirse, bileşen etkinleştirilir.",
   "edt_conf_general_enable_title": "etkinleştir",
   "edt_conf_general_port_expl": "Kullanılan bağlantı noktası.",
-  "edt_conf_general_port_title": "Liman",
+  "edt_conf_general_port_title": "Port",
   "edt_conf_general_priority_expl": "Bu bileşenin önceliği",
   "edt_conf_general_priority_title": "Öncelikli kanal",
   "edt_conf_instC_systemEnable_expl": "Bu led donanım örneği için sistem yakalamayı etkinleştirir",
@@ -488,7 +488,7 @@
   "edt_dev_spec_maximumLedCount_title": "Maksimum LED sayısı",
   "edt_dev_spec_multicastGroup_title": "çok noktaya yayın grubu",
   "edt_dev_spec_networkDeviceName_title": "Ağ cihazı adı",
-  "edt_dev_spec_networkDevicePort_title": "Liman",
+  "edt_dev_spec_networkDevicePort_title": "Port",
   "edt_dev_spec_numberOfLeds_title": "LED sayısı",
   "edt_dev_spec_orbIds_title": "Küre kimlikleri",
   "edt_dev_spec_order_left_right_title": "2.",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "'pipewire/portal' sistem tutucusunu kullanmak için HyperHDR'nin uygulama olarak çalıştırılması gerekir, <span style='color:red'>hizmet/arka plan programı olarak başlatma başarısız olur</span>",
   "edt_conf_fbs_tonemapping_expl": "Etkinleştirilirse, HyperHDR, gelen akış için LUT düzeltmesi uygular. Protokol Tamponları Sunucusu için de çalışır. Doğru LUT tablosuna sahip olduğunuzdan emin olun. HDR10 için varsayılan 3D LUT dosyası <span class='fw-bold'>: 'lut_lin_tables.3d'</span> ('flat_lut_lin_tables.3d' dosya adı da kabul edilir) zaten dahil edilmiştir.<span class='fw-bold' > Bir tane oluşturabilir ve 'Gelişmiş menü'deki bağlantıyı kullanarak efekti önizleyebilirsiniz.</span><br/>Bu dosyayı yüklemek için tipik gizli yapılandırma klasörünüz (onaylamak için 'Günlükler' sayfasını kontrol edin):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Kullanıcılar&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer ekran kapmak",
-  "conf_network_proto_intro": "Tüm HyperHDR örneklerinin PROTO-Portu (kullanımdan kaldırıldı).<br/>Temel olarak Android Screen Grabber uygulamasıyla kullanım içindir. <span style='color:red;'>HDR'den SDR'ye ton eşleme</span>, Flatbuffers Server yapılandırmasında etkinleştirilebilir ve Protokol Tamponları (paylaşılan bileşen) için de çalışır"
+  "conf_network_proto_intro": "Tüm HyperHDR örneklerinin PROTO-Portu (kullanımdan kaldırıldı).<br/>Temel olarak Android Screen Grabber uygulamasıyla kullanım içindir. <span style='color:red;'>HDR'den SDR'ye ton eşleme</span>, Flatbuffers Server yapılandırmasında etkinleştirilebilir ve Protokol Tamponları (paylaşılan bileşen) için de çalışır",
+  "edt_conf_stream_dx11_flickering_title": "Statik görüntülerin titremesini düzeltin",
+  "edt_conf_stream_dx11_flickering_expl": "Hareketsiz bir görüntüde ortaya çıkan yakalanan video akışının titremesini düzeltebilen alternatif ekran kilitleme yöntemi. Bazı grafik kartları etkilenir."
 }

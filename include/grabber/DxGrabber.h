@@ -44,9 +44,13 @@ public:
 
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 
+	void alternativeCaching(bool alternative) override;
+
 public slots:
 
 	void grabFrame();
+
+	void cacheHandler(const Image<ColorRgb>& image);
 
 public slots:
 
@@ -83,8 +87,10 @@ private:
 
 	bool					_dxRestartNow;
 	bool					_d3dCache;
+	bool					_alternative;
 	ID3D11Device*			_d3dDevice;
 	ID3D11DeviceContext*	_d3dContext;
 	ID3D11Texture2D*		_sourceTexture;
 	IDXGIOutputDuplication* _d3dDuplicate;
+	Image<ColorRgb>			_cacheImage;
 };

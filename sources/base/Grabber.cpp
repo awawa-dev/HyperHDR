@@ -906,3 +906,7 @@ QJsonObject Grabber::getJsonInfo()
 
 	return grabbers;
 }
+
+void Grabber::alternativeCaching(bool alternative)
+{
+}

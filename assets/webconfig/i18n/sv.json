@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "Lysdioder",
-  "edt_append_ms": "Fröken",
+  "edt_append_ms": "ms",
   "edt_append_ns": "ns",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% hori",
@@ -337,7 +337,7 @@
   "edt_conf_general_enable_expl": "Om den är markerad är komponenten aktiverad.",
   "edt_conf_general_enable_title": "Aktivera",
   "edt_conf_general_port_expl": "Porten som används.",
-  "edt_conf_general_port_title": "Hamn",
+  "edt_conf_general_port_title": "Port",
   "edt_conf_general_priority_expl": "Prioriteten för denna komponent",
   "edt_conf_general_priority_title": "Prioriterad kanal",
   "edt_conf_instC_systemEnable_expl": "Aktiverar systeminspelning för denna ledda hårdvaruinstans",
@@ -488,7 +488,7 @@
   "edt_dev_spec_maximumLedCount_title": "Maximalt antal LED",
   "edt_dev_spec_multicastGroup_title": "Multicast -grupp",
   "edt_dev_spec_networkDeviceName_title": "Enhetsnamn för nätverk",
-  "edt_dev_spec_networkDevicePort_title": "Hamn",
+  "edt_dev_spec_networkDevicePort_title": "Port",
   "edt_dev_spec_numberOfLeds_title": "Antal lysdioder",
   "edt_dev_spec_orbIds_title": "Orb -ID (er)",
   "edt_dev_spec_order_left_right_title": "2.",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "För att kunna använda 'pipewire/portal' systemgrabbern måste HyperHDR köras som applikation, <span style='color:red'>start som en tjänst/demon misslyckas</span>",
   "edt_conf_fbs_tonemapping_expl": "Om aktiverat kommer HyperHDR att tillämpa LUT-korrigering för den inkommande strömmen. Fungerar även för Protocol Buffers Server. Se till att du har rätt LUT-tabell. Standard 3D LUT-fil <span class='fw-bold'>för HDR10: 'lut_lin_tables.3d'</span> (filnamnet 'flat_lut_lin_tables.3d' accepteras också) är redan inkluderad.<span class='fw-bold' > Du kan generera en och förhandsgranska effekten med hjälp av länken i \"Avancerad meny\".</span><br/>Din typiska dolda konfigurationsmapp att ladda upp filen i är (kontrollera sidan \"Loggar\" för att bekräfta):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer skärmgrabber",
-  "conf_network_proto_intro": "PROTO-porten för alla HyperHDR-instanser (fasad).<br/>Främst för användning med Android Screen Grabber-appen. <span style='color:red;'>HDR till SDR-tonmappning</span> kan aktiveras i Flatbuffers Server-konfiguration och det fungerar även för Protocol Buffers (delad komponent)"
+  "conf_network_proto_intro": "PROTO-porten för alla HyperHDR-instanser (fasad).<br/>Främst för användning med Android Screen Grabber-appen. <span style='color:red;'>HDR till SDR-tonmappning</span> kan aktiveras i Flatbuffers Server-konfiguration och det fungerar även för Protocol Buffers (delad komponent)",
+  "edt_conf_stream_dx11_flickering_title": "Åtgärda flimmer av statiska bilder",
+  "edt_conf_stream_dx11_flickering_expl": "Alternativ skärmlåsningsmetod som kan fixa flimmer från inspelad videoström som avslöjar en stillbild. Vissa grafikkort påverkas."
 }

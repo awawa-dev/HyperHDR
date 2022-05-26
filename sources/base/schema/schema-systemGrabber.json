@@ -45,6 +45,15 @@
 			"required" : true,
 			"propertyOrder" : 23
 		},
+		"alternativeCaching" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_stream_dx11_flickering_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 24
+		},		
 		"cropLeft" :
 		{
 			"type" : "integer",

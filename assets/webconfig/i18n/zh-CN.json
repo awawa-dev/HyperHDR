@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "赫兹",
   "edt_append_leds": "发光二极管",
-  "edt_append_ms": "多发性硬化症",
+  "edt_append_ms": "ms",
   "edt_append_ns": "纳秒",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% hor",
@@ -337,7 +337,7 @@
   "edt_conf_general_enable_expl": "如果选中，则启用该组件。",
   "edt_conf_general_enable_title": "启用",
   "edt_conf_general_port_expl": "使用的端口。",
-  "edt_conf_general_port_title": "港口",
+  "edt_conf_general_port_title": "Port",
   "edt_conf_general_priority_expl": "该组件的优先级",
   "edt_conf_general_priority_title": "优先频道",
   "edt_conf_instC_systemEnable_expl": "启用此 LED 硬件实例的系统捕获",
@@ -488,7 +488,7 @@
   "edt_dev_spec_maximumLedCount_title": "最大 LED 数量",
   "edt_dev_spec_multicastGroup_title": "组播组",
   "edt_dev_spec_networkDeviceName_title": "网络设备名称",
-  "edt_dev_spec_networkDevicePort_title": "港口",
+  "edt_dev_spec_networkDevicePort_title": "Port",
   "edt_dev_spec_numberOfLeds_title": "LED 数量",
   "edt_dev_spec_orbIds_title": "球体 ID",
   "edt_dev_spec_order_left_right_title": "2.",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "为了使用“pipewire/portal”系统抓取器 HyperHDR 必须作为应用程序运行，<span style='color:red'>作为服务/守护程序启动将失败</span>",
   "edt_conf_fbs_tonemapping_expl": "如果启用，HyperHDR 将为传入流应用 LUT 校正。也适用于协议缓冲区服务器。确保您有正确的 LUT 表。 HDR10 的默认 3D LUT 文件<span class='fw-bold'>：'lut_lin_tables.3d'</span>（也接受文件名'flat_lut_lin_tables.3d'）。<span class='fw-bold' > 您可以使用“高级菜单”中的链接生成一个并预览效果。</span><br/>上传该文件的典型隐藏配置文件夹是（检查“日志”页面以确认）：<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer 屏幕抓取器",
-  "conf_network_proto_intro": "所有 HyperHDR 实例的 PROTO-Port（已弃用）。<br/>主要用于 Android Screen Grabber 应用。 <span style='color:red;'>HDR 到 SDR 色调映射</span> 可以在 Flatbuffers 服务器配置中启用，它也适用于 Protocol Buffers（共享组件）"
+  "conf_network_proto_intro": "所有 HyperHDR 实例的 PROTO-Port（已弃用）。<br/>主要用于 Android Screen Grabber 应用。 <span style='color:red;'>HDR 到 SDR 色调映射</span> 可以在 Flatbuffers 服务器配置中启用，它也适用于 Protocol Buffers（共享组件）",
+  "edt_conf_stream_dx11_flickering_title": "修复静态图像的闪烁",
+  "edt_conf_stream_dx11_flickering_expl": "替代屏幕锁定方法，可以修复在静止图像中显示的捕获视频流的闪烁。某些显卡会受到影响。"
 }

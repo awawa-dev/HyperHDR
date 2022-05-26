@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "LED diody",
-  "edt_append_ms": "slečna",
+  "edt_append_ms": "ms",
   "edt_append_ns": "ns",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% hori",
@@ -337,7 +337,7 @@
   "edt_conf_general_enable_expl": "Pokud je zaškrtnuto, komponenta je povolena.",
   "edt_conf_general_enable_title": "aktivovat",
   "edt_conf_general_port_expl": "Port, který se používá.",
-  "edt_conf_general_port_title": "Přístav",
+  "edt_conf_general_port_title": "Port",
   "edt_conf_general_priority_expl": "Priorita této komponenty",
   "edt_conf_general_priority_title": "Prioritní kanál",
   "edt_conf_instC_systemEnable_expl": "Umožňuje zachycení systému pro tuto instanci hardwaru LED",
@@ -488,7 +488,7 @@
   "edt_dev_spec_maximumLedCount_title": "Maximální počet LED diod",
   "edt_dev_spec_multicastGroup_title": "Skupina vícesměrového vysílání",
   "edt_dev_spec_networkDeviceName_title": "Název síťového zařízení",
-  "edt_dev_spec_networkDevicePort_title": "Přístav",
+  "edt_dev_spec_networkDevicePort_title": "Port",
   "edt_dev_spec_numberOfLeds_title": "Počet LED diod",
   "edt_dev_spec_orbIds_title": "Orb ID",
   "edt_dev_spec_order_left_right_title": "2.",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Aby bylo možné použít systémový grabber 'pipewire/portal', musí být HyperHDR spuštěna jako aplikace, <span style='color:red'>spuštění jako služba/démon se nezdaří</span>",
   "edt_conf_fbs_tonemapping_expl": "Pokud je povoleno, HyperHDR použije korekci LUT pro příchozí stream. Funguje také pro server Protocol Buffers Server. Ujistěte se, že máte správnou tabulku LUT. Výchozí soubor 3D LUT <span class='fw-bold'>pro HDR10: 'lut_lin_tables.3d'</span> (je akceptován i název souboru 'flat_lut_lin_tables.3d') je již zahrnut.<span class='fw-bold' > Můžete si jej vygenerovat a efekt si prohlédnout pomocí odkazu v 'Pokročilé nabídce'.</span><br/>Vaše typická skrytá konfigurační složka, do které soubor nahrajete, je (pro potvrzení zkontrolujte stránku 'Protokoly'):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Jméno uživatelů&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Nástroj pro zachycení obrazovky Linux FrameBuffer",
-  "conf_network_proto_intro": "PROTO-Port všech instancí HyperHDR (zastaralé).<br/>Hlavně pro použití s aplikací Android Screen Grabber. <span style='color:red;'>Mapování tónů HDR na SDR</span> lze povolit v konfiguraci serveru Flatbuffers a funguje také pro vyrovnávací paměti protokolu (sdílená komponenta)"
+  "conf_network_proto_intro": "PROTO-Port všech instancí HyperHDR (zastaralé).<br/>Hlavně pro použití s aplikací Android Screen Grabber. <span style='color:red;'>Mapování tónů HDR na SDR</span> lze povolit v konfiguraci serveru Flatbuffers a funguje také pro vyrovnávací paměti protokolu (sdílená komponenta)",
+  "edt_conf_stream_dx11_flickering_title": "Opravte blikání statických obrázků",
+  "edt_conf_stream_dx11_flickering_expl": "Alternativní metoda uzamčení obrazovky, která dokáže opravit blikání zachyceného video streamu odhalujícího na statickém obrázku. Některé grafické karty jsou ovlivněny."
 }

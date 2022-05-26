@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "diody LED",
-  "edt_append_ms": "SM",
+  "edt_append_ms": "ms",
   "edt_append_ns": "ns",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% poziomo",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Aby użyć grabbera systemu „pipewire/portal”, HyperHDR musi być uruchomiony jako aplikacja, <span style='color:red'>uruchamianie jako usługa/demon nie powiedzie się</span>",
   "edt_conf_fbs_tonemapping_expl": "Jeśli ta opcja jest włączona, HyperHDR zastosuje korekcję LUT dla strumienia przychodzącego. Działa również dla serwera buforów protokołów. Upewnij się, że masz poprawną tabelę LUT. Domyślny plik 3D LUT <span class='fw-bold'>dla HDR10: 'lut_lin_tables.3d'</span> (nazwa pliku 'flat_lut_lin_tables.3d' jest również akceptowana) jest już dołączony.<span class='fw-bold' > Możesz wygenerować jeden i wyświetlić podgląd efektu za pomocą linku w „Menu Zaawansowane”.</span><br/>Twój typowy ukryty folder konfiguracyjny do przesłania tego pliku to (sprawdź stronę „Dzienniki”, aby potwierdzić):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Użytkownicy&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Zrzut ekranu dla Linux FrameBuffer",
-  "conf_network_proto_intro": "PROTO-Port wszystkich instancji HyperHDR (przestarzałe).<br/>Głównie do użytku z aplikacją Android Screen Grabber. <span style='color:red;'>Mapowanie tonów HDR na SDR</span> można włączyć w konfiguracji Flatbuffers Server i działa również dla buforów protokołów (składnik współdzielony)"
+  "conf_network_proto_intro": "PROTO-Port wszystkich instancji HyperHDR (przestarzałe).<br/>Głównie do użytku z aplikacją Android Screen Grabber. <span style='color:red;'>Mapowanie tonów HDR na SDR</span> można włączyć w konfiguracji Flatbuffers Server i działa również dla buforów protokołów (składnik współdzielony)",
+  "edt_conf_stream_dx11_flickering_title": "Napraw migotanie statycznych obrazów",
+  "edt_conf_stream_dx11_flickering_expl": "Alternatywna metoda blokowania ekranu, która może naprawić migotanie przechwyconego strumienia wideo widoczne na nieruchomym obrazie. Problem dotyczy niektórych kart graficznych."
 }

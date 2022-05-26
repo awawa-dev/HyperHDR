@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "LED",
-  "edt_append_ms": "SM",
+  "edt_append_ms": "ms",
   "edt_append_ns": "n",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% ori",
@@ -337,7 +337,7 @@
   "edt_conf_general_enable_expl": "Se selezionato, il componente è abilitato.",
   "edt_conf_general_enable_title": "Attivare",
   "edt_conf_general_port_expl": "La porta utilizzata.",
-  "edt_conf_general_port_title": "Porta",
+  "edt_conf_general_port_title": "Port",
   "edt_conf_general_priority_expl": "La priorità di questo componente",
   "edt_conf_general_priority_title": "Canale prioritario",
   "edt_conf_instC_systemEnable_expl": "Abilita l'acquisizione del sistema per questa istanza hardware guidata",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Per utilizzare il grabber di sistema 'pipewire/portal', HyperHDR deve essere eseguito come applicazione, <span style='color:red'>l'avvio come servizio/daemon fallirà</span>",
   "edt_conf_fbs_tonemapping_expl": "Se abilitato, HyperHDR applicherà la correzione LUT per il flusso in entrata. Funziona anche per Protocol Buffers Server. Assicurati di avere la tabella LUT corretta. Il file LUT 3D predefinito <span class='fw-bold'>per HDR10: 'lut_lin_tables.3d'</span> (è accettato anche il nome file 'flat_lut_lin_tables.3d') è già incluso.<span class='fw-bold' > Puoi generarne uno e visualizzare in anteprima l'effetto utilizzando il collegamento nel \"Menu avanzato\".</span><br/>La tua tipica cartella di configurazione nascosta in cui caricare il file è (controlla la pagina \"Registri\" per confermare):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Screen grabber Linux FrameBuffer",
-  "conf_network_proto_intro": "La PROTO-Port di tutte le istanze HyperHDR (obsoleta).<br/>Principalmente per l'uso con l'app Android Screen Grabber. <span style='color:red;'>Mappatura toni da HDR a SDR</span> può essere abilitata nella configurazione di Flatbuffers Server e funziona anche per Protocol Buffer (componente condiviso)"
+  "conf_network_proto_intro": "La PROTO-Port di tutte le istanze HyperHDR (obsoleta).<br/>Principalmente per l'uso con l'app Android Screen Grabber. <span style='color:red;'>Mappatura toni da HDR a SDR</span> può essere abilitata nella configurazione di Flatbuffers Server e funziona anche per Protocol Buffer (componente condiviso)",
+  "edt_conf_stream_dx11_flickering_title": "Risolto lo sfarfallio delle immagini statiche",
+  "edt_conf_stream_dx11_flickering_expl": "Metodo alternativo di blocco dello schermo in grado di correggere lo sfarfallio del flusso video acquisito che si rivela in un'immagine fissa. Alcune schede grafiche sono interessate."
 }

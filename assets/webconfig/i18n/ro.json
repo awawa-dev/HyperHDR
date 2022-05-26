@@ -184,7 +184,7 @@
   "edt_append_degree": "°",
   "edt_append_hz": "Hz",
   "edt_append_leds": "LED-uri",
-  "edt_append_ms": "Domnișoară",
+  "edt_append_ms": "ms",
   "edt_append_ns": "ns",
   "edt_append_percent": "%",
   "edt_append_percent_h": "% hori",
@@ -1160,5 +1160,7 @@
   "conf_grabber_pipewire_intro": "Pentru a utiliza dispozitivul de preluare a sistemului „pipewire/portal”, HyperHDR trebuie rulat ca aplicație, <span style='color:red'>lansarea ca serviciu/daemon va eșua</span>",
   "edt_conf_fbs_tonemapping_expl": "Dacă este activat, HyperHDR va aplica corecția LUT pentru fluxul de intrare. Funcționează și pentru Protocol Buffers Server. Asigurați-vă că aveți tabelul LUT corect. Fișierul LUT 3D implicit <span class='fw-bold'>pentru HDR10: „lut_lin_tables.3d”</span> (numele fișierului „flat_lut_lin_tables.3d” este de asemenea acceptat) este deja inclus.<span class='fw-bold' > Puteți genera unul și previzualiza efectul utilizând linkul din „meniul Avansat”.</span><br/>Dosarul de configurare ascuns obișnuit în care să încărcați acel fișier este (bifați pagina „Jurnale” pentru a confirma):<br/ > Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Utilizatori&#47;NUME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Aparat de captare a ecranului Linux FrameBuffer",
-  "conf_network_proto_intro": "Portul PROTO al tuturor instanțelor HyperHDR (învechit).<br/>Pentru a fi utilizat în principal cu aplicația Android Screen Grabber. <span style='color:red;'>Maparea tonurilor HDR la SDR</span> poate fi activată în configurația Flatbuffers Server și funcționează și pentru Protocol Buffers (componentă partajată)"
+  "conf_network_proto_intro": "Portul PROTO al tuturor instanțelor HyperHDR (învechit).<br/>Pentru a fi utilizat în principal cu aplicația Android Screen Grabber. <span style='color:red;'>Maparea tonurilor HDR la SDR</span> poate fi activată în configurația Flatbuffers Server și funcționează și pentru Protocol Buffers (componentă partajată)",
+  "edt_conf_stream_dx11_flickering_title": "Remediați pâlpâirea imaginilor statice",
+  "edt_conf_stream_dx11_flickering_expl": "Metodă alternativă de blocare a ecranului care poate remedia pâlpâirea fluxului video capturat care se dezvăluie într-o imagine statică. Anumite plăci grafice sunt afectate."
 }
