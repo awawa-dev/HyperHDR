@@ -34,7 +34,7 @@
 #include <utils/LutCalibrator.h>
 
 // bonjour wrapper
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 #include <bonjour/bonjourbrowserwrapper.h>
 #endif
 
@@ -606,7 +606,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		// add sessions
 		QJsonArray sessions;
-	#ifdef ENABLE_AVAHI
+	#ifdef ENABLE_BONJOUR
 		for (auto session : BonjourBrowserWrapper::getInstance()->getAllServices())
 		{
 			if (session.port < 0)

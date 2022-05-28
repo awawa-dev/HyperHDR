@@ -7,7 +7,6 @@
 #include <bonjour/bonjourrecord.h>
 
 class BonjourServiceBrowser;
-class BonjourServiceResolver;
 class QTimer;
 
 class BonjourBrowserWrapper : public QObject
@@ -24,10 +23,6 @@ private:
 public:
 
 	///
-	/// @brief Browse for a service
-	///
-	bool browseForServiceType(const QString &serviceType);
-	///
 	/// @brief Get all available sessions
 	///
 	QMap<QString, BonjourRecord> getAllServices() { return _hyperhdrSessions; }
@@ -42,27 +37,14 @@ signals:
 	void browserChange( const QMap<QString, BonjourRecord> &bRegisters );
 
 private:
-	/// map of service names and browsers
-	QMap<QString, BonjourServiceBrowser *> _browsedServices;
-	/// Resolver
-	BonjourServiceResolver *_bonjourResolver;
-
 	// contains all current active service sessions
-	QMap<QString, BonjourRecord> _hyperhdrSessions;
-
-	QString _bonjourCurrentServiceToResolve;
-	/// timer to resolve changes
-	QTimer *_timerBonjourResolver;
-
+	QMap<QString, BonjourRecord> _hyperhdrSessions, _wledDevices, _hueDevices;
+	
 private slots:
 	///
 	/// @brief is called whenever a BonjourServiceBrowser emits change
-	void currentBonjourRecordsChanged( const QList<BonjourRecord> &list );
-	/// @brief new record resolved
-	void bonjourRecordResolved( const QHostInfo &hostInfo, int port );
-
-	///
-	/// @brief timer slot which updates regularly entries
-	///
-	void bonjourResolve();
+	/// 
+	void foundHyperHDR(const QList<BonjourRecord>& list);
+	void foundWLED(const QList<BonjourRecord>& list);
+	void foundPhilipsHUE(const QList<BonjourRecord>& list);
 };

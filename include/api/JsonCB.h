@@ -6,7 +6,7 @@
 // components def
 #include <utils/Components.h>
 // bonjour
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 #include <bonjour/bonjourrecord.h>
 #endif
 // settings
@@ -68,7 +68,7 @@ private slots:
 	/// @brief handle component state changes
 	///
 	void handleComponentState(hyperhdr::Components comp, bool state);
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	///
 	/// @brief handle emits from bonjour wrapper
 	/// @param  bRegisters   The full register map

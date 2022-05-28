@@ -58,7 +58,6 @@ SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
 SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
-SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
@@ -73,6 +72,7 @@ SET ( DEFAULT_FRAMEBUFFER                 OFF )
 SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 SET ( DEFAULT_CEC                         OFF )
+SET ( DEFAULT_BONJOUR                     ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )	
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
@@ -202,7 +202,7 @@ elseif ( "${PLATFORM}" MATCHES "linux" )
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	
 elseif (WIN32)
-	SET ( DEFAULT_AVAHI    OFF)
+
 endif()
 
 STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
@@ -211,6 +211,19 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# validatte the discovery services
+if (DEFAULT_BONJOUR)	
+	set (MJANSSON_MDNS_VERSION "1.4.2")
+	file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/dependencies/bonjour)
+	file(DOWNLOAD "https://raw.githubusercontent.com/mjansson/mdns/${MJANSSON_MDNS_VERSION}/mdns.h"
+				"${CMAKE_SOURCE_DIR}/dependencies/bonjour/mdns.h"
+				STATUS MJANSSON_MDNS_STATUS_H)
+	list(GET MJANSSON_MDNS_STATUS_H 0 MJANSSON_MDNS_STATUS_H_CODE)
+	if (MJANSSON_MDNS_STATUS_H_CODE AND NOT MJANSSON_MDNS_STATUS_H_CODE EQUAL 0)
+		message( FATAL_ERROR "Could not download the MJANSSON_MDNS library.")
+	endif()		
+endif()
 
 if (DEFAULT_X11)
 	if (NOT CMAKE_CROSSCOMPILING)
@@ -310,8 +323,7 @@ message(STATUS "ENABLE_PIPEWIRE = ${ENABLE_PIPEWIRE}")
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
 
-option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
-message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
+option(ENABLE_BONJOUR "Enable the network discovery service" ${DEFAULT_BONJOUR} )
 
 option(ENABLE_MF "Enable Windows Media Foundation grabber" ${DEFAULT_MF})
 message(STATUS "ENABLE_MF = ${ENABLE_MF}")
@@ -531,5 +543,9 @@ if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET m
 	set_target_properties(apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
+endif()
+
+if (NOT ENABLE_BONJOUR)	
+	message( FATAL_ERROR "The network discovery service (ENABLE_BONJOUR) is an important feature of HyperHDR. If you know what you are doing, remove this safe-break.")
 endif()
 

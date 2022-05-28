@@ -1,109 +1,98 @@
-/*
-Copyright (c) 2007, Trenton Schulz
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+#include <bonjour/bonjourrecord.h>
+#include <bonjour/bonjourservicebrowser.h>
+#include <utils/Logger.h>
 
- 1. Redistributions of source code must retain the above copyright notice,
-	this list of conditions and the following disclaimer.
+#include <stdio.h>
 
- 2. Redistributions in binary form must reproduce the above copyright notice,
-	this list of conditions and the following disclaimer in the documentation
-	and/or other materials provided with the distribution.
+#include <errno.h>
+#include <signal.h>
 
- 3. The name of the author may not be used to endorse or promote products
-	derived from this software without specific prior written permission.
+#ifdef _WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#else
+#include <netdb.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#endif
 
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
-EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+int BonjourServiceHelper::_instaceCount = 0;
 
-#include "bonjour/bonjourservicebrowser.h"
-
-#include <QtCore/QSocketNotifier>
-
-BonjourServiceBrowser::BonjourServiceBrowser(QObject *parent)
-	: QObject(parent)
-	, dnssref(0)
-	, bonjourSocket(0)
+BonjourServiceBrowser::BonjourServiceBrowser(QObject* parent, QString service) :
+	QObject(parent),
+	_helper(new BonjourServiceHelper(this, service)),
+	_service(service)
 {
+	connect(this, &BonjourServiceBrowser::resolve, this, &BonjourServiceBrowser::resolveHandler);
+	connect(this, &BonjourServiceBrowser::resolveIp, this, &BonjourServiceBrowser::resolveHandlerIp);
+};
+
+
+void BonjourServiceBrowser::resolveHandler(QString serverName, int port)
+{
+	BonjourRecord br;
+
+	br.hostName = serverName;
+	br.port = port;
+	br.serviceName = _service;
+	_result.append(br);
+
+	resolveIps();
 }
+
+void BonjourServiceBrowser::resolveHandlerIp(QString serverName, QString ip)
+{
+	_ips[serverName] = ip;
+
+	resolveIps();
+}
+
+void BonjourServiceBrowser::resolveIps()
+{
+	QList<BonjourRecord> result;
+	bool changed = false;
+
+	for (BonjourRecord& r : _result)
+		if (r.address.isEmpty())
+		{
+			for (QString& k : _ips.keys())
+				if (QString::compare(r.hostName, k, Qt::CaseInsensitive) == 0)
+				{
+					r.address = _ips[k];
+					result.append(r);
+					changed = true;
+				}
+		}
+		else
+			result.append(r);
+
+	if (changed)
+		emit currentBonjourRecordsChanged(result);
+}
+
 
 BonjourServiceBrowser::~BonjourServiceBrowser()
 {
-	if (dnssref)
+	if (_helper != nullptr)
 	{
-		DNSServiceRefDeallocate(dnssref);
-		dnssref = 0;
+		_helper->quit();
+		_helper->wait();
+		delete _helper;
 	}
-}
+};
 
-void BonjourServiceBrowser::browseForServiceType(const QString &serviceType)
+void BonjourServiceBrowser::browseForServiceType()
 {
-	DNSServiceErrorType err = DNSServiceBrowse(&dnssref, 0, 0, serviceType.toUtf8().constData(), 0, bonjourBrowseReply, this);
-	if (err != kDNSServiceErr_NoError)
+	if (_helper != nullptr)
 	{
-		emit error(err);
+		_result.clear();
+		_ips.clear();
+		_helper->start();
 	}
-	else
-	{
-		int sockfd = DNSServiceRefSockFD(dnssref);
-		if (sockfd == -1)
-		{
-			emit error(kDNSServiceErr_Invalid);
-		}
-		else
-		{
-			bonjourSocket = new QSocketNotifier(sockfd, QSocketNotifier::Read, this);
-			connect(bonjourSocket, &QSocketNotifier::activated, this, &BonjourServiceBrowser::bonjourSocketReadyRead);
-		}
-	}
-}
-
-void BonjourServiceBrowser::bonjourSocketReadyRead()
-{
-	DNSServiceErrorType err = DNSServiceProcessResult(dnssref);
-	if (err != kDNSServiceErr_NoError)
-	{
-		emit error(err);
-	}
-}
-
-void BonjourServiceBrowser::bonjourBrowseReply(DNSServiceRef , DNSServiceFlags flags,
-											   quint32 , DNSServiceErrorType errorCode,
-											   const char *serviceName, const char *regType,
-											   const char *replyDomain, void *context)
-{
-	BonjourServiceBrowser *serviceBrowser = static_cast<BonjourServiceBrowser *>(context);
-	if (errorCode != kDNSServiceErr_NoError)
-	{
-		emit serviceBrowser->error(errorCode);
-	}
-	else
-	{
-		BonjourRecord bonjourRecord(serviceName, regType, replyDomain);
-		if ((flags & kDNSServiceFlagsAdd) != 0)
-		{
-			if (!serviceBrowser->bonjourRecords.contains(bonjourRecord))
-			{
-				serviceBrowser->bonjourRecords.append(bonjourRecord);
-			}
-		}
-		else
-		{
-			serviceBrowser->bonjourRecords.removeAll(bonjourRecord);
-		}
-		if (!(flags & kDNSServiceFlagsMoreComing))
-		{
-			emit serviceBrowser->currentBonjourRecordsChanged(serviceBrowser->bonjourRecords);
-		}
-	}
-}
+};

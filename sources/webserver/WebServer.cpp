@@ -8,7 +8,7 @@
 #include <QTcpServer>
 
 // bonjour
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	#include <bonjour/bonjourserviceregister.h>
 #endif
 
@@ -61,17 +61,17 @@ void WebServer::onServerStarted(quint16 port)
 
 	Info(_log, "Started on port %d name '%s'", port, _server->getServerName().toStdString().c_str());
 
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	if (_serviceRegister == nullptr)
 	{
-		_serviceRegister = new BonjourServiceRegister(this);
-		_serviceRegister->registerService("_hyperhdr-http._tcp", port);
+		_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-http._tcp", port);
+		_serviceRegister->registerService();
 	}
 	else if (_serviceRegister->getPort() != port)
 	{
 		delete _serviceRegister;
-		_serviceRegister = new BonjourServiceRegister(this);
-		_serviceRegister->registerService("_hyperhdr-http._tcp", port);
+		_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-http._tcp", port);
+		_serviceRegister->registerService();
 	}
 #endif
 

@@ -65,6 +65,7 @@
 // settings management
 #include <utils/settings.h>
 #include <utils/Components.h>
+#include <memory>
 
 class HyperHdrIManager;
 class SysTray;

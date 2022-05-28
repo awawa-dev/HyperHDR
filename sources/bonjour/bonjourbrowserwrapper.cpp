@@ -2,81 +2,71 @@
 
 //qt incl
 #include <QTimer>
+#include <QString>
+#include <QStringLiteral>
+#include <cstdio>
+#include <utils/Logger.h>
 
 // bonjour
 #include <bonjour/bonjourservicebrowser.h>
-#include <bonjour/bonjourserviceresolver.h>
 
 BonjourBrowserWrapper* BonjourBrowserWrapper::instance = nullptr;
 
+const QString DISCOVER_PHILIPS_HUE = QStringLiteral("_hue._tcp");
+const QString DISCOVER_WLED = QStringLiteral("_wled._tcp");
+const QString DISCOVER_HYPERHDR = QStringLiteral("_hyperhdr-http._tcp");
+
 BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 	: QObject(parent)
-	, _bonjourResolver(new BonjourServiceResolver(this))
-	, _timerBonjourResolver(new QTimer(this))
 {
 	// register meta
 	qRegisterMetaType<QMap<QString,BonjourRecord>>("QMap<QString,BonjourRecord>");
 
 	BonjourBrowserWrapper::instance = this;
-	connect(_bonjourResolver, &BonjourServiceResolver::bonjourRecordResolved, this, &BonjourBrowserWrapper::bonjourRecordResolved);
+		
+	BonjourServiceBrowser* hue = new BonjourServiceBrowser(this, QLatin1String("_hue._tcp"));
+	connect(hue, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundPhilipsHUE);
+	hue->browseForServiceType();
 
-	connect(_timerBonjourResolver, &QTimer::timeout, this, &BonjourBrowserWrapper::bonjourResolve);
-	_timerBonjourResolver->setInterval(1000);
-	_timerBonjourResolver->start();
+	BonjourServiceBrowser* wled = new BonjourServiceBrowser(this, QLatin1String("_wled._tcp"));
+	connect(wled, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundWLED);
+	wled->browseForServiceType();
 
-	browseForServiceType(QLatin1String("_hyperhdr-http._tcp"));
+	BonjourServiceBrowser* hyperhdr = new BonjourServiceBrowser(this, QLatin1String("_hyperhdr-http._tcp"));
+	connect(hyperhdr, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundHyperHDR);
+	hyperhdr->browseForServiceType();
+
 }
 
-bool BonjourBrowserWrapper::browseForServiceType(const QString &serviceType)
+void BonjourBrowserWrapper::foundHyperHDR(const QList<BonjourRecord> &list)
 {
-	if(!_browsedServices.contains(serviceType))
-	{
-		BonjourServiceBrowser* newBrowser = new BonjourServiceBrowser(this);
-		connect(newBrowser, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::currentBonjourRecordsChanged);
-		newBrowser->browseForServiceType(serviceType);
-		_browsedServices.insert(serviceType, newBrowser);
-		return true;
-	}
-	return false;
-}
-
-void BonjourBrowserWrapper::currentBonjourRecordsChanged(const QList<BonjourRecord> &list)
-{
+	printf("------------- Found HyperHDR --------------\n");
 	_hyperhdrSessions.clear();
 	for ( auto rec : list )
 	{
 		_hyperhdrSessions.insert(rec.serviceName, rec);
+		printf("Found HyperHDR: (%s) (%s) (%s) (%s) (%i)\n", QSTRING_CSTR(rec.address), QSTRING_CSTR(rec.serviceName), QSTRING_CSTR(rec.registeredType), QSTRING_CSTR(rec.hostName), (rec.port));
+	}	
+}
+
+void BonjourBrowserWrapper::foundWLED(const QList<BonjourRecord>& list)
+{
+	printf("--------------- Found WLED ----------------\n");
+	_wledDevices.clear();
+	for (auto rec : list)
+	{
+		_wledDevices.insert(rec.serviceName, rec);
+		printf("Found WLED: (%s) (%s) (%s) (%s) (%i)\n", QSTRING_CSTR(rec.address), QSTRING_CSTR(rec.serviceName), QSTRING_CSTR(rec.registeredType), QSTRING_CSTR(rec.hostName), (rec.port));
 	}
 }
 
-void BonjourBrowserWrapper::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
+void BonjourBrowserWrapper::foundPhilipsHUE(const QList<BonjourRecord>& list)
 {
-	if ( _hyperhdrSessions.contains(_bonjourCurrentServiceToResolve))
+	printf("------------- Found Hue --------------\n");
+	_hueDevices.clear();
+	for (auto rec : list)
 	{
-		QString host   = hostInfo.hostName();
-		QString domain = _hyperhdrSessions[_bonjourCurrentServiceToResolve].replyDomain;
-		if (host.endsWith("."+domain))
-		{
-			host.remove(host.length()-domain.length()-1,domain.length()+1);
-		}
-		_hyperhdrSessions[_bonjourCurrentServiceToResolve].hostName = host;
-		_hyperhdrSessions[_bonjourCurrentServiceToResolve].port     = port;
-		_hyperhdrSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
-
-		//emit change
-		emit browserChange(_hyperhdrSessions);
-	}
-}
-
-void BonjourBrowserWrapper::bonjourResolve()
-{
-	for(auto key : _hyperhdrSessions.keys())
-	{
-		if (_hyperhdrSessions[key].port < 0)
-		{
-			_bonjourCurrentServiceToResolve = key;
-			_bonjourResolver->resolveBonjourRecord(_hyperhdrSessions[key]);
-			break;
-		}
+		_hueDevices.insert(rec.serviceName, rec);
+		printf("Found Philips Hue: (%s) (%s) (%s) (%s) (%i)\n", QSTRING_CSTR(rec.address), QSTRING_CSTR(rec.serviceName), QSTRING_CSTR(rec.registeredType), QSTRING_CSTR(rec.hostName), (rec.port));
 	}
 }

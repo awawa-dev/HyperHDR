@@ -1,39 +1,16 @@
-
 # Define the current source locations
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/bonjour)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/bonjour)
 
-FILE ( GLOB Bonjour_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
+FILE ( GLOB Bonjour_SOURCES "${CURRENT_HEADER_DIR}/*.h"
+							"${CURRENT_SOURCE_DIR}/*.cpp"
+							"${CMAKE_SOURCE_DIR}/dependencies/bonjour/mdns.h")
+
 
 add_library(bonjour ${Bonjour_SOURCES} )
-
-include(CheckIncludeFile)
-check_include_file("dns_sd.h" HAVE_AVAHI_STD)
-if (NOT HAVE_AVAHI_STD)
-	target_compile_definitions(bonjour PUBLIC AVAHI_COMPAT_DNS_SD)
-endif()
 
 target_link_libraries(bonjour
 		hyperhdr-base
 		hyperhdr-utils
 		Qt${Qt_VERSION}::Network
 )
-
-IF (NOT APPLE)
-	set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
-
-	if (USE_SHARED_AVAHI_LIBS)
-		target_link_libraries(bonjour
-			dns_sd
-			avahi-client
-			avahi-common
-			avahi-core)
-	else()
-		target_link_libraries(bonjour
-			libdns_sd.a
-			libavahi-client.a
-			libavahi-common.a
-			libavahi-core.a)
-	endif()
-	target_link_libraries(bonjour dbus-1)
-ENDIF()

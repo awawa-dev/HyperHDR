@@ -31,6 +31,6 @@ if(ENABLE_BOBLIGHT)
 	target_link_libraries(hyperhdr-base boblightserver)
 endif()
 
-if (ENABLE_AVAHI)
+if (ENABLE_BONJOUR)
 	target_link_libraries(hyperhdr-base bonjour)
 endif ()

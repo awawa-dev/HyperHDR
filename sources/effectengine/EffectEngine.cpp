@@ -58,15 +58,6 @@ EffectEngine::EffectEngine(HyperHdrInstance* hyperhdr)
 	handleUpdatedEffectList();
 }
 
-EffectEngine::~EffectEngine()
-{
-	auto copy = _activeEffects;
-	for (Effect* effect : copy)
-	{
-		effect->deleteLater();
-	}
-}
-
 std::list<EffectDefinition> EffectEngine::getEffects() const
 {
 	return _availableEffects;
@@ -188,6 +179,48 @@ int EffectEngine::runEffectScript(const QString& name, const QJsonObject& args, 
 	return 0;
 }
 
+void EffectEngine::handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonObject& FGEffectConfig)
+{
+#define FGCONFIG_ARRAY fgColorConfig.toArray()
+
+	const int FG_PRIORITY = 0;
+	const int DURATION_INFINITY = 0;
+
+	// initial foreground effect/color
+	if (FGEffectConfig["enable"].toBool(true))
+	{
+		const QString fgTypeConfig = FGEffectConfig["type"].toString("effect");
+		const QString fgEffectConfig = FGEffectConfig["effect"].toString("Rainbow swirl fast");
+		const QJsonValue fgColorConfig = FGEffectConfig["color"];
+		int default_fg_duration_ms = 3000;
+		int fg_duration_ms = FGEffectConfig["duration_ms"].toInt(default_fg_duration_ms);
+		if (fg_duration_ms == DURATION_INFINITY)
+		{
+			fg_duration_ms = default_fg_duration_ms;
+			Warning(Logger::getInstance("HYPERHDR"), "foreground effect duration 'infinity' is forbidden, set to default value %d ms", default_fg_duration_ms);
+		}
+		if (fgTypeConfig.contains("color"))
+		{
+			std::vector<ColorRgb> fg_color = {
+				ColorRgb {
+					static_cast<uint8_t>(FGCONFIG_ARRAY.at(0).toInt(0)),
+					static_cast<uint8_t>(FGCONFIG_ARRAY.at(1).toInt(0)),
+					static_cast<uint8_t>(FGCONFIG_ARRAY.at(2).toInt(0))
+				}
+			};
+			hyperhdr->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
+			Info(Logger::getInstance("HYPERHDR"), "Initial foreground color set (%d %d %d)", fg_color.at(0).red, fg_color.at(0).green, fg_color.at(0).blue);
+		}
+		else
+		{
+			int result = hyperhdr->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
+			Info(Logger::getInstance("HYPERHDR"), "Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
+		}
+	}
+
+#undef FGCONFIG_ARRAY
+}
+
 void EffectEngine::channelCleared(int priority)
 {
 	for (Effect* effect : _activeEffects)
@@ -233,44 +266,21 @@ void EffectEngine::effectFinished()
 	effect->deleteLater();
 }
 
-void EffectEngine::handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonObject& FGEffectConfig)
+EffectEngine::~EffectEngine()
 {
-#define FGCONFIG_ARRAY fgColorConfig.toArray()
+	auto copy = _activeEffects;
 
-	const int FG_PRIORITY = 0;
-	const int DURATION_INFINITY = 0;
+	_activeEffects.clear();
 
-	// initial foreground effect/color
-	if (FGEffectConfig["enable"].toBool(true))
+	for (Effect* effect : copy)
 	{
-		const QString fgTypeConfig = FGEffectConfig["type"].toString("effect");
-		const QString fgEffectConfig = FGEffectConfig["effect"].toString("Rainbow swirl fast");
-		const QJsonValue fgColorConfig = FGEffectConfig["color"];
-		int default_fg_duration_ms = 3000;
-		int fg_duration_ms = FGEffectConfig["duration_ms"].toInt(default_fg_duration_ms);
-		if (fg_duration_ms == DURATION_INFINITY)
-		{
-			fg_duration_ms = default_fg_duration_ms;
-			Warning(Logger::getInstance("HYPERHDR"), "foreground effect duration 'infinity' is forbidden, set to default value %d ms", default_fg_duration_ms);
-		}
-		if (fgTypeConfig.contains("color"))
-		{
-			std::vector<ColorRgb> fg_color = {
-				ColorRgb {
-					static_cast<uint8_t>(FGCONFIG_ARRAY.at(0).toInt(0)),
-					static_cast<uint8_t>(FGCONFIG_ARRAY.at(1).toInt(0)),
-					static_cast<uint8_t>(FGCONFIG_ARRAY.at(2).toInt(0))
-				}
-			};
-			hyperhdr->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
-			Info(Logger::getInstance("HYPERHDR"), "Initial foreground color set (%d %d %d)", fg_color.at(0).red, fg_color.at(0).green, fg_color.at(0).blue);
-		}
-		else
-		{
-			int result = hyperhdr->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
-			Info(Logger::getInstance("HYPERHDR"), "Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
-		}
+		effect->requestInterruption();
+		effect->quit();
 	}
 
-#undef FGCONFIG_ARRAY
+	for (Effect* effect : copy)
+	{
+		effect->wait();
+		delete effect;
+	}
 }

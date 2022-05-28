@@ -27,7 +27,7 @@
 #endif
 
 // bonjour browser
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 #include <bonjour/bonjourbrowserwrapper.h>
 #endif
 
@@ -81,7 +81,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(new HyperHdrIManager(rootPath, this, readonlyMode))
 	, _authManager(new AuthManager(this, readonlyMode))
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 #endif
 	, _netOrigin(new NetOrigin(this))
@@ -268,7 +268,7 @@ void HyperHdrDaemon::freeObjects()
 	// stop HyperHDRs (non blocking)
 	_instanceManager->stopAll();
 
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	delete _bonjourBrowserWrapper;
 	_bonjourBrowserWrapper = nullptr;
 #endif	

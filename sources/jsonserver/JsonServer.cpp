@@ -7,7 +7,7 @@
 #include "JsonClientConnection.h"
 
 // bonjour include
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 #include <bonjour/bonjourserviceregister.h>
 #endif
 #include <utils/NetOrigin.h>
@@ -51,17 +51,17 @@ void JsonServer::start()
 	}
 	Info(_log, "Started on port %d", _port);
 
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	if (_serviceRegister == nullptr)
 	{
-		_serviceRegister = new BonjourServiceRegister(this);
-		_serviceRegister->registerService("_hyperhdr-json._tcp", _port);
+		_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-json._tcp", _port);
+		_serviceRegister->registerService();
 	}
 	else if (_serviceRegister->getPort() != _port)
 	{
 		delete _serviceRegister;
-		_serviceRegister = new BonjourServiceRegister(this);
-		_serviceRegister->registerService("_hyperhdr-json._tcp", _port);
+		_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-json._tcp", _port);
+		_serviceRegister->registerService();
 	}
 #endif
 }

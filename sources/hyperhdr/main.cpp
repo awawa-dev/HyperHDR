@@ -32,7 +32,6 @@
 #include "HyperhdrConfig.h"
 
 #include <utils/Logger.h>
-#include <utils/FileUtils.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
 #include <utils/DefaultSignalHandler.h>

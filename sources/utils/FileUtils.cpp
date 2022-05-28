@@ -15,33 +15,7 @@ namespace FileUtils {
 		QFileInfo fi(sourceFile);
 		return fi.fileName();
 	}
-
-	QString getDirName(const QString& sourceFile)
-	{
-		QFileInfo fi(sourceFile);
-		return fi.path();
-	}
-
-	bool removeDir(const QString& path, Logger* log)
-	{
-		if (!QDir(path).removeRecursively())
-		{
-			Error(log, "Failed to remove directory: %s", QSTRING_CSTR(path));
-			return false;
-		}
-		return true;
-	}
-
-	bool fileExists(const QString& path, Logger* log, bool ignError)
-	{
-		if (!QFile::exists(path))
-		{
-			ErrorIf((!ignError), log, "File does not exist: %s", QSTRING_CSTR(path));
-			return false;
-		}
-		return true;
-	}
-
+	
 	bool readFile(const QString& path, QString& data, Logger* log, bool ignError)
 	{
 		QFile file(path);
@@ -56,9 +30,25 @@ namespace FileUtils {
 				resolveFileError(file, log);
 			return false;
 		}
-		data = QString(file.readAll());
+
+		QByteArray result = file.readAll();
+		if (result != nullptr && result.length() > 0)
+			data = QString::fromLocal8Bit(result);
+		else
+			data = "";
+
 		file.close();
 
+		return true;
+	}
+
+	bool fileExists(const QString& path, Logger* log, bool ignError)
+	{
+		if (!QFile::exists(path))
+		{
+			ErrorIf((!ignError), log, "File does not exist: %s", QSTRING_CSTR(path));
+			return false;
+		}
 		return true;
 	}
 
@@ -79,19 +69,7 @@ namespace FileUtils {
 
 		file.close();
 		return true;
-	}
-
-	bool removeFile(const QString& path, Logger* log, bool ignError)
-	{
-		QFile file(path);
-		if (!file.remove())
-		{
-			if (!ignError)
-				resolveFileError(file, log);
-			return false;
-		}
-		return true;
-	}
+	}	
 
 	void resolveFileError(const QFile& file, Logger* log)
 	{

@@ -27,7 +27,7 @@ if (ENABLE_CEC)
 	add_subdirectory(cec)
 endif()
 
-if(ENABLE_AVAHI)
+if(ENABLE_BONJOUR)
 	add_subdirectory(bonjour)
 endif()
 

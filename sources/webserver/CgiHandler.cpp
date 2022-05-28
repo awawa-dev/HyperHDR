@@ -9,7 +9,6 @@
 
 #include "CgiHandler.h"
 #include "QtHttpHeader.h"
-#include <utils/FileUtils.h>
 
 CgiHandler::CgiHandler(QObject* parent)
 	: QObject(parent)

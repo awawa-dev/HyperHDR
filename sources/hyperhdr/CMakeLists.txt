@@ -55,7 +55,7 @@ if (ENABLE_PROTOBUF)
 	target_link_libraries(hyperhdr proto-nano-server)
 endif ()
 
-if (ENABLE_AVAHI)
+if (ENABLE_BONJOUR)
 	target_link_libraries(hyperhdr bonjour)
 endif ()
 

@@ -13,7 +13,7 @@
 #include <base/ComponentRegister.h>
 
 // bonjour wrapper
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	#include <bonjour/bonjourbrowserwrapper.h>
 #endif
 
@@ -42,7 +42,7 @@ JsonCB::JsonCB(QObject* parent)
 	: QObject(parent)
 	, _hyperhdr(nullptr)
 	, _componentRegister(nullptr)
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 	, _bonjour(BonjourBrowserWrapper::getInstance())
 #endif
 	, _prioMuxer(nullptr)
@@ -90,7 +90,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 
 	if (type == "sessions-update")
 	{
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 		if (unsubscribe)
 			disconnect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange);
 		else
@@ -257,7 +257,7 @@ void JsonCB::handleComponentState(hyperhdr::Components comp, bool state)
 
 	doCallback("components-update", QVariant(data));
 }
-#ifdef ENABLE_AVAHI
+#ifdef ENABLE_BONJOUR
 void JsonCB::handleBonjourChange(const QMap<QString, BonjourRecord>& bRegisters)
 {
 	QJsonArray data;

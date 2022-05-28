@@ -48,8 +48,8 @@
 // Define to enable the ws281x-pwm-via-dma-device using jgarff's library
 #cmakedefine ENABLE_WS281XPWM
 
-// Define to enable avahi
-#cmakedefine ENABLE_AVAHI
+// Define to enable network discovery
+#cmakedefine ENABLE_BONJOUR
 
 #cmakedefine ENABLE_PROTOBUF
 
