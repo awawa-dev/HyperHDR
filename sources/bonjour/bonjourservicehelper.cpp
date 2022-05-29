@@ -47,7 +47,6 @@ void BonjourServiceHelper::init(QString service)
 	DWORD hostname_size = (DWORD)sizeof(hostname_buffer);
 	if (GetComputerNameA(hostname_buffer, &hostname_size))
 		_hostname = QString::fromLocal8Bit(hostname_buffer);
-	printf("Hostname: %s\n", hostname_buffer);
 #else
 	char hostname_buffer[256];
 	size_t hostname_size = sizeof(hostname_buffer);
@@ -98,7 +97,7 @@ void BonjourServiceHelper::run()
 	}
 	else if (_register != nullptr)
 	{
-		QByteArray hostname = (QString("%1:%2").arg(_hostname).arg(_port)).toLocal8Bit();
+		QByteArray hostname = _hostname.toLocal8Bit();
 		QByteArray service = (_service + ".local").toLocal8Bit();
 		service_mdns(hostname.data(), service.data(), _port);
 	}

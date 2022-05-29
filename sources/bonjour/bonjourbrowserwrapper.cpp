@@ -38,6 +38,19 @@ BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 
 }
 
+const QList<BonjourRecord> BonjourBrowserWrapper::getPhilipsHUE()
+{
+	QMap<QString, BonjourRecord> copy = _hueDevices;
+	QList<BonjourRecord> result;
+
+	for (auto rec : copy.values())
+	{
+		result.push_back(rec);
+	}
+
+	return result;
+}
+
 void BonjourBrowserWrapper::foundHyperHDR(const QList<BonjourRecord> &list)
 {
 	printf("------------- Found HyperHDR --------------\n");

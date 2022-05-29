@@ -1,7 +1,12 @@
 // Local-HyperHDR includes
 #include "LedDevicePhilipsHue.h"
 #include <utils/QStringUtils.h>
-#include <ssdp/SSDPDiscover.h>
+#include <HyperhdrConfig.h>
+#ifdef ENABLE_BONJOUR
+	#include <bonjour/bonjourbrowserwrapper.h>
+#else
+	#include <ssdp/SSDPDiscover.h>
+#endif
 
 #include <QDateTime>
 #include <chrono>
@@ -1716,10 +1721,29 @@ bool LedDevicePhilipsHue::storeState()
 QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
 	QJsonArray deviceList;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
+	
+#ifdef ENABLE_BONJOUR
+	auto bonInstance = BonjourBrowserWrapper::getInstance();
+	if (bonInstance != nullptr)
+	{
+		QList<BonjourRecord> recs;
+		
+		if (QThread::currentThread() == bonInstance->thread())
+			recs = bonInstance->getPhilipsHUE();
+		else
+			QMetaObject::invokeMethod(bonInstance, "getPhilipsHUE", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QList<BonjourRecord>, recs));
 
+		for(BonjourRecord& r : recs)
+		{
+			QJsonObject newIp;
+			newIp["hostname"] = r.address;
+			newIp["port"] = (r.port == 443) ? 80: r.port;
+			deviceList.push_back(newIp);
+		}
+	}
+#else
 	// Discover Devices
 	SSDPDiscover discover;
 
@@ -1731,7 +1755,7 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 	{
 		deviceList = discover.getServicesDiscoveredJson();
 	}
-
+#endif
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 

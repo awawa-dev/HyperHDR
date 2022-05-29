@@ -806,63 +806,6 @@ function startWizardPhilipsHue(e)
 	});
 }
 
-function checkHueBridge(cb, hueUser)
-{
-	var usr = (typeof hueUser != "undefined") ? hueUser : 'config';
-	if (usr == 'config') $('#wiz_hue_discovered').html("");
-	$.ajax({
-		url: 'http://' + hueIPs[hueIPsinc].internalipaddress + '/api/' + usr,
-		type: "GET",
-		dataType: "json",
-		success: function (json)
-		{
-			if (json.config)
-			{
-				cb(true, usr);
-			} else if (json.name && json.bridgeid && json.modelid)
-			{
-				$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-				cb(true);
-			} else
-			{
-				cb(false);
-			}
-		},
-		timeout: 2500
-	}).fail(function ()
-	{
-		cb(false);
-	});
-}
-
-function checkBridgeResult(reply, usr)
-{
-	if (reply)
-	{
-		//abort checking, first reachable result is used
-		$('#wiz_hue_ipstate').html("");
-		$('#ip').val(hueIPs[hueIPsinc].internalipaddress)
-
-		//now check hue user on this bridge
-		$('#usrcont').toggle(true);
-		checkHueBridge(checkUserResult, $('#user').val() ? $('#user').val() : "newdeveloper");
-	}
-	else
-	{
-		//increment and check again
-		if (hueIPs.length - 1 > hueIPsinc)
-		{
-			hueIPsinc++;
-			checkHueBridge(checkBridgeResult);
-		}
-		else
-		{
-			$('#usrcont').toggle(false);
-			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-		}
-	}
-};
-
 function checkUserResult(reply, usr)
 {
 	if (reply)
@@ -894,6 +837,73 @@ function checkUserResult(reply, usr)
 	}
 };
 
+function checkBridgeResult(reply, usr)
+{
+	if (reply)
+	{
+		//abort checking, first reachable result is used
+		$('#wiz_hue_ipstate').html("");
+		$('#ip').val(hueIPs[hueIPsinc].internalipaddress)
+
+		//now check hue user on this bridge
+		$('#usrcont').toggle(true);
+		checkHueBridge(checkUserResult, $('#user').val() ? $('#user').val() : "newdeveloper");
+	}
+	else
+	{
+		//increment and check again
+		if (hueIPs.length - 1 > hueIPsinc)
+		{
+			hueIPsinc++;
+			checkHueBridge(checkBridgeResult);
+		}
+		else
+		{
+			$('#usrcont').toggle(false);
+			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+		}
+	}
+};
+
+function checkHueBridge(cb, hueUser)
+{
+	var usr = (typeof hueUser != "undefined") ? hueUser : 'config';
+	if (usr == 'config') $('#wiz_hue_discovered').html("");
+	$.ajax({
+		url: 'http://' + hueIPs[hueIPsinc].internalipaddress + '/api/' + usr,
+		type: "GET",
+		dataType: "json",
+		success: function (json)
+		{
+			if (json.config)
+			{
+				$('#ip').val(hueIPs[hueIPsinc].internalipaddress);
+				cb(true, usr);
+			} else if (json.name && json.bridgeid && json.modelid)
+			{
+				$('#ip').val(hueIPs[hueIPsinc].internalipaddress);
+				$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+				cb(true);
+			} else
+			{
+				cb(false);
+			}
+		},
+		timeout: 2500
+	}).fail(function ()
+	{
+		cb(false);
+	});
+}
+
+function useGroupId(id)
+{
+	$('#groupId').val(id);
+	groupLights = groupIDs[id].lights;
+	groupLightsLocations = groupIDs[id].locations;
+	get_hue_lights();
+}
+
 function identHueId(id, off, oState)
 {
 	if (off !== true)
@@ -912,14 +922,6 @@ function identHueId(id, off, oState)
 		timeout: 2000,
 		data: put_data
 	})
-}
-
-function useGroupId(id)
-{
-	$('#groupId').val(id);
-	groupLights = groupIDs[id].lights;
-	groupLightsLocations = groupIDs[id].locations;
-	get_hue_lights();
 }
 
 async function discover_hue_bridges()
@@ -960,6 +962,12 @@ async function discover_hue_bridges()
 	}
 }
 
+function identify_hue_device(hostAddress, username, id)
+{
+	let params = { host: hostAddress, user: username, lightId: id };
+	requestLedDeviceIdentification("philipshue", params);
+}
+
 async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
 {
 	let params = { host: hostAddress, user: username, filter: resourceFilter };
@@ -975,12 +983,6 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
 		// Process properties returned
 		console.log(r);
 	}
-}
-
-function identify_hue_device(hostAddress, username, id)
-{
-	let params = { host: hostAddress, user: username, lightId: id };
-	requestLedDeviceIdentification("philipshue", params);
 }
 
 function getHueIPs()

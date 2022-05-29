@@ -30,6 +30,9 @@ public:
 	static BonjourBrowserWrapper* instance;
 	static BonjourBrowserWrapper *getInstance()	{ return instance; }
 
+public slots:
+	const QList<BonjourRecord> getPhilipsHUE();
+
 signals:
 	///
 	/// @brief Emits whenever a change happend
