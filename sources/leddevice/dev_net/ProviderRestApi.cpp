@@ -206,6 +206,52 @@ httpResponse ProviderRestApi::put(const QUrl& url, const QString& body)
 	return response;
 }
 
+httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
+{
+	Debug(_log, "POST: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
+
+	// Perform request
+	QNetworkRequest request(url);
+
+	QElapsedTimer networkTimer;
+
+	bool networkTimeout = false;
+
+	QNetworkReply* networkReply;
+
+	QMetaObject::invokeMethod(_networkWorker.get(), "post", Qt::BlockingQueuedConnection,
+		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
+
+	networkTimer.start();
+
+	while (!networkReply->isFinished()) {
+		QThread::msleep(5);
+		if (networkTimer.elapsed() >= TIMEOUT) {
+			networkTimeout = true;
+			break;
+		}
+	}
+
+	if (networkTimeout)
+	{
+		networkReply->abort();
+	}
+
+	Debug(_log, "POST exit: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
+
+	httpResponse response;
+
+	if (networkReply->operation() == QNetworkAccessManager::PostOperation)
+	{
+		response = getResponse(networkReply, networkTimeout);
+	}
+
+	// Free space.
+	networkReply->deleteLater();
+
+	return response;
+}
+
 httpResponse ProviderRestApi::get()
 {
 	return get(getUrl());
@@ -374,6 +420,11 @@ QNetworkReply* networkHelper::get(QNetworkRequest request)
 QNetworkReply* networkHelper::put(QNetworkRequest request, QByteArray body)
 {
 	return _networkManager->put(request, body);
+}
+
+QNetworkReply* networkHelper::post(QNetworkRequest request, QByteArray body)
+{
+	return _networkManager->post(request, body);
 }
 
 bool httpResponse::error() const

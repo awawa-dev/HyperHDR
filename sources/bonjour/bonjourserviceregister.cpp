@@ -1,12 +1,5 @@
 #include <bonjour/bonjourserviceregister.h>
-#include <stdlib.h>
-
-#include <QtCore/QSocketNotifier>
-#include <QHostInfo>
-
-#include <utils/Logger.h>
 #include <HyperhdrConfig.h>
-#include <base/AuthManager.h>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject* parent, const QString& service, int port) :
 	QObject(parent),

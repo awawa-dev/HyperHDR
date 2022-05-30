@@ -1,0 +1,37 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["tunnel"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["put","get","post"]
+		},
+		"service": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["hue"]
+		},
+		"ip": {
+			"type" : "string",
+			"required" : true
+		},
+		"path": {
+			"type" : "string",
+			"required" : true
+		},
+		"data": {
+			"type" : "string",
+			"required" : true
+		}
+	},
+	"additionalProperties": false
+}

@@ -4,9 +4,9 @@
 #include <HyperhdrConfig.h>
 #ifdef ENABLE_BONJOUR
 	#include <bonjour/bonjourbrowserwrapper.h>
-#else
-	#include <ssdp/SSDPDiscover.h>
 #endif
+#include <ssdp/SSDPDiscover.h>
+
 
 #include <QDateTime>
 #include <chrono>
@@ -1738,24 +1738,27 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 		for(BonjourRecord& r : recs)
 		{
 			QJsonObject newIp;
-			newIp["hostname"] = r.address;
+			newIp["ip"] = r.address;
 			newIp["port"] = (r.port == 443) ? 80: r.port;
 			deviceList.push_back(newIp);
 		}
 	}
-#else
-	// Discover Devices
-	SSDPDiscover discover;
-
-	discover.skipDuplicateKeys(false);
-	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
-	QString searchTarget = SSDP_ID;
-
-	if (discover.discoverServices(searchTarget) > 0)
-	{
-		deviceList = discover.getServicesDiscoveredJson();
-	}
 #endif
+	if (deviceList.isEmpty())
+	{
+		// Discover Devices
+		SSDPDiscover discover;
+
+		discover.skipDuplicateKeys(false);
+		discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
+		QString searchTarget = SSDP_ID;
+
+		if (discover.discoverServices(searchTarget) > 0)
+		{
+			deviceList = discover.getServicesDiscoveredJson();
+		}
+	}
+
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 

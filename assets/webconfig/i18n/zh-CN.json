@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "底部：75 - 100% 从左边开始",
   "onBlackTimeToPowerOff": "触发黑电平时关闭灯的时间",
   "onBlackTimeToPowerOn": "如果信号恢复，则打开灯的时间",
-  "philips_option_changed_bri": "<p style='color:red'>请先使用飞利浦移动应用程序配置您的飞利浦 LED 灯：在设置期间为您的灯选择娱乐组（您应该获得该组的 ID），否则使用旧的 json API 进行通信性能会很惨！</p>在 https 实例上使用向导会导致进程失败。请记住，使用连接到灯的其他家庭自动化系统可能会导致各种副作用。亮度最小值和最大值移至“图像处理”选项卡：“背光阈值”和“亮度”/“亮度”",
   "edt_conf_stream_qFrame_title": "四分之一帧模式",
   "edt_conf_stream_qFrame_expl": "视频帧缩放到 (width/2, height/2) 大小。快速，减少资源使用，最好的是 NV12 和 I420 编码由于其规格而不会丢失有关颜色的信息",
   "edt_dev_spec_candyGamma_title": "“糖果”模式（双伽马校正）",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer 屏幕抓取器",
   "conf_network_proto_intro": "所有 HyperHDR 实例的 PROTO-Port（已弃用）。<br/>主要用于 Android Screen Grabber 应用。 <span style='color:red;'>HDR 到 SDR 色调映射</span> 可以在 Flatbuffers 服务器配置中启用，它也适用于 Protocol Buffers（共享组件）",
   "edt_conf_stream_dx11_flickering_title": "修复静态图像的闪烁",
-  "edt_conf_stream_dx11_flickering_expl": "替代屏幕锁定方法，可以修复在静止图像中显示的捕获视频流的闪烁。某些显卡会受到影响。"
+  "edt_conf_stream_dx11_flickering_expl": "替代屏幕锁定方法，可以修复在静止图像中显示的捕获视频流的闪烁。某些显卡会受到影响。",
+  "philips_option_changed_bri": "<p style = 'color: red'>首先使用飞利浦移动应用程序设置您的飞利浦 LED 灯：在设置过程中，为您的灯选择 ENTERTAINMENT 组（您应该获得该组的 ID）。否则，使用旧的 json API 的通信性能会很差！</p> 请记住，使用连接到灯具的其他家庭自动化系统在运行 HyperHDR 时会导致各种副作用。"
 }

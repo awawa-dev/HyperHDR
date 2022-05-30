@@ -30,6 +30,7 @@
         <file alias="schema-instance">JSONRPC_schema/schema-instance.json</file>
         <file alias="schema-leddevice">JSONRPC_schema/schema-leddevice.json</file>
         <file alias="schema-benchmark">JSONRPC_schema/schema-benchmark.json</file>
+		<file alias="schema-tunnel">JSONRPC_schema/schema-tunnel.json</file>
 		<file alias="schema-performance-counters">JSONRPC_schema/schema-performance-counters.json</file>
 		<!-- The following schemas are derecated but used to ensure backward compatibility with Classic remote control-->
         <file alias="schema-transform">JSONRPC_schema/schema-classic.json</file>

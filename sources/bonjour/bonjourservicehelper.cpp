@@ -6,17 +6,20 @@
 #include <bonjour/bonjourservicehelper.h>
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourservicebrowser.h>
+#include "../dependencies/bonjour/mdns.h"
+
 #include <utils/Logger.h>
 #include <HyperhdrConfig.h>
 
 #include <stdio.h>
-
 #include <errno.h>
 #include <signal.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <iphlpapi.h>
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
 #else
 #include <netdb.h>
 #include <ifaddrs.h>

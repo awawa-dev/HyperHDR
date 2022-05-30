@@ -42,7 +42,9 @@ signals:
 private:
 	// contains all current active service sessions
 	QMap<QString, BonjourRecord> _hyperhdrSessions, _wledDevices, _hueDevices;
-	
+	QObject*	_hueService;
+	QObject*	_wledService;
+
 private slots:
 	///
 	/// @brief is called whenever a BonjourServiceBrowser emits change

@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "In basso: 75 - 100% da sinistra",
   "onBlackTimeToPowerOff": "È ora di spegnere la lampada se viene attivato il livello del nero",
   "onBlackTimeToPowerOn": "È ora di accendere la lampada se il segnale viene ripristinato",
-  "philips_option_changed_bri": "<p style='color:red'>Configura prima le tue lampade LED Philips utilizzando l'app mobile Philips: durante la configurazione scegli il gruppo INTRATTENIMENTO per le tue lampade (dovresti ottenere l'ID di quel gruppo) altrimenti le prestazioni di comunicazione utilizzando la vecchia API json sarà miserabile!</p>L'utilizzo della procedura guidata sull'istanza https causerà il fallimento del processo. Si ricorda che l'utilizzo di altri sistemi domotici collegati alle lampade potrebbe causare diversi effetti collaterali. La luminosità minima e massima vengono spostate nella scheda \"Elaborazione immagine\": \"Soglia retroilluminazione\" e \"Luminosità\"/\"Luminanza\"",
   "edt_conf_stream_qFrame_title": "Modalità quarto di fotogramma",
   "edt_conf_stream_qFrame_expl": "Il fotogramma video viene ridimensionato alla dimensione (larghezza/2, altezza/2). Veloce, riduce l'utilizzo delle risorse e la cosa migliore è che nessuna informazione sui colori viene persa per le codifiche NV12 e I420 a causa delle loro specifiche",
   "edt_dev_spec_candyGamma_title": "Modalità 'Candy' (doppia correzione gamma)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Screen grabber Linux FrameBuffer",
   "conf_network_proto_intro": "La PROTO-Port di tutte le istanze HyperHDR (obsoleta).<br/>Principalmente per l'uso con l'app Android Screen Grabber. <span style='color:red;'>Mappatura toni da HDR a SDR</span> può essere abilitata nella configurazione di Flatbuffers Server e funziona anche per Protocol Buffer (componente condiviso)",
   "edt_conf_stream_dx11_flickering_title": "Risolto lo sfarfallio delle immagini statiche",
-  "edt_conf_stream_dx11_flickering_expl": "Metodo alternativo di blocco dello schermo in grado di correggere lo sfarfallio del flusso video acquisito che si rivela in un'immagine fissa. Alcune schede grafiche sono interessate."
+  "edt_conf_stream_dx11_flickering_expl": "Metodo alternativo di blocco dello schermo in grado di correggere lo sfarfallio del flusso video acquisito che si rivela in un'immagine fissa. Alcune schede grafiche sono interessate.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Per prima cosa, configura le tue lampade LED Philips utilizzando l'app mobile Philips: durante la configurazione, seleziona il gruppo INTRATTENIMENTO per le tue lampade (dovresti ottenere l'ID di questo gruppo). In caso contrario, le prestazioni di comunicazione utilizzando la vecchia API json saranno pessime!</p> Ricorda che l'utilizzo di altri sistemi domotici collegati alle lampade può causare vari effetti collaterali durante l'esecuzione di HyperHDR."
 }

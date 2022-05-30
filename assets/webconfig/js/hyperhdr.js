@@ -576,6 +576,36 @@ async function requestLedDeviceProperties(type, params)
 	return sendAsyncToHyperhdr("leddevice", "getProperties", data, Math.floor(Math.random() * 1000));
 }
 
+async function tunnel_hue_get(_ip, _path)
+{
+	let data = { service: "hue", ip: _ip, path: _path, data: "" };
+	let r = await sendAsyncToHyperhdr("tunnel", "get", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
+}
+
+async function tunnel_hue_post(_ip, _path, _data)
+{
+	let data = { service: "hue", ip: _ip, path: _path, data: _data };
+	let r = await sendAsyncToHyperhdr("tunnel", "post", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
+}
+
+async function tunnel_hue_put(_ip, _path, _data)
+{
+	let data = { service: "hue", ip: _ip, path: _path, data: _data };
+	let r = await sendAsyncToHyperhdr("tunnel", "put", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
+}
+
 function requestLedDeviceIdentification(type, params)
 {
 	sendToHyperhdr("leddevice", "identify", '"ledDeviceType": "' + type + '","params": ' + JSON.stringify(params) + '');

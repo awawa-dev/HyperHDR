@@ -608,34 +608,34 @@ function beginWizardCC()
 $('#btn_wizard_colorcalibration').off().on('click', startWizardCC);
 
 // Layout positions
-var lightPosTop = { hmin: 0.15, hmax: 0.85, vmin: 0, vmax: 0.2 };
-var lightPosTopLeft = { hmin: 0, hmax: 0.15, vmin: 0, vmax: 0.15 };
-var lightPosTopRight = { hmin: 0.85, hmax: 1.0, vmin: 0, vmax: 0.15 };
-var lightPosBottom = { hmin: 0.15, hmax: 0.85, vmin: 0.8, vmax: 1.0 };
-var lightPosBottomLeft = { hmin: 0, hmax: 0.15, vmin: 0.85, vmax: 1.0 };
-var lightPosBottomRight = { hmin: 0.85, hmax: 1.0, vmin: 0.85, vmax: 1.0 };
-var lightPosLeft = { hmin: 0, hmax: 0.15, vmin: 0.15, vmax: 0.85 };
-var lightPosLeftTop = { hmin: 0, hmax: 0.15, vmin: 0, vmax: 0.5 };
-var lightPosLeftMiddle = { hmin: 0, hmax: 0.15, vmin: 0.25, vmax: 0.75 };
-var lightPosLeftBottom = { hmin: 0, hmax: 0.15, vmin: 0.5, vmax: 1.0 };
-var lightPosRight = { hmin: 0.85, hmax: 1.0, vmin: 0.15, vmax: 0.85 };
-var lightPosRightTop = { hmin: 0.85, hmax: 1.0, vmin: 0, vmax: 0.5 };
-var lightPosRightMiddle = { hmin: 0.85, hmax: 1.0, vmin: 0.25, vmax: 0.75 };
-var lightPosRightBottom = { hmin: 0.85, hmax: 1.0, vmin: 0.5, vmax: 1.0 };
-var lightPosEntire = { hmin: 0.0, hmax: 1.0, vmin: 0.0, vmax: 1.0 };
+var lightPosTop = { hmin: 0.15, hmax: 0.85, vmin: 0, vmax: 0.2, group: 0 };
+var lightPosTopLeft = { hmin: 0, hmax: 0.15, vmin: 0, vmax: 0.15, group: 0 };
+var lightPosTopRight = { hmin: 0.85, hmax: 1.0, vmin: 0, vmax: 0.15, group: 0 };
+var lightPosBottom = { hmin: 0.15, hmax: 0.85, vmin: 0.8, vmax: 1.0, group: 0 };
+var lightPosBottomLeft = { hmin: 0, hmax: 0.15, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosBottomRight = { hmin: 0.85, hmax: 1.0, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosLeft = { hmin: 0, hmax: 0.15, vmin: 0.15, vmax: 0.85, group: 0 };
+var lightPosLeftTop = { hmin: 0, hmax: 0.15, vmin: 0, vmax: 0.5, group: 0 };
+var lightPosLeftMiddle = { hmin: 0, hmax: 0.15, vmin: 0.25, vmax: 0.75, group: 0 };
+var lightPosLeftBottom = { hmin: 0, hmax: 0.15, vmin: 0.5, vmax: 1.0, group: 0 };
+var lightPosRight = { hmin: 0.85, hmax: 1.0, vmin: 0.15, vmax: 0.85, group: 0 };
+var lightPosRightTop = { hmin: 0.85, hmax: 1.0, vmin: 0, vmax: 0.5, group: 0 };
+var lightPosRightMiddle = { hmin: 0.85, hmax: 1.0, vmin: 0.25, vmax: 0.75, group: 0 };
+var lightPosRightBottom = { hmin: 0.85, hmax: 1.0, vmin: 0.5, vmax: 1.0, group: 0 };
+var lightPosEntire = { hmin: 0.0, hmax: 1.0, vmin: 0.0, vmax: 1.0, group: 0 };
 
-var lightPosBottomLeft14 = { hmin: 0, hmax: 0.25, vmin: 0.85, vmax: 1.0 };
-var lightPosBottomLeft12 = { hmin: 0.25, hmax: 0.5, vmin: 0.85, vmax: 1.0 };
-var lightPosBottomLeft34 = { hmin: 0.5, hmax: 0.75, vmin: 0.85, vmax: 1.0 };
-var lightPosBottomLeft11 = { hmin: 0.75, hmax: 1, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft14 = { hmin: 0, hmax: 0.25, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosBottomLeft12 = { hmin: 0.25, hmax: 0.5, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosBottomLeft34 = { hmin: 0.5, hmax: 0.75, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosBottomLeft11 = { hmin: 0.75, hmax: 1, vmin: 0.85, vmax: 1.0, group: 0 };
 
-var lightPosBottomLeft112 = { hmin: 0, hmax: 0.5, vmin: 0.85, vmax: 1.0 };
-var lightPosBottomLeft121 = { hmin: 0.5, hmax: 1, vmin: 0.85, vmax: 1.0 };
-var lightPosBottomLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft112 = { hmin: 0, hmax: 0.5, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosBottomLeft121 = { hmin: 0.5, hmax: 1, vmin: 0.85, vmax: 1.0, group: 0 };
+var lightPosBottomLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0.85, vmax: 1.0, group: 0 };
 
-var lightPosTopLeft112 = { hmin: 0, hmax: 0.5, vmin: 0, vmax: 0.15 };
-var lightPosTopLeft121 = { hmin: 0.5, hmax: 1, vmin: 0, vmax: 0.15 };
-var lightPosTopLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0, vmax: 0.15 };
+var lightPosTopLeft112 = { hmin: 0, hmax: 0.5, vmin: 0, vmax: 0.15, group: 0 };
+var lightPosTopLeft121 = { hmin: 0.5, hmax: 1, vmin: 0, vmax: 0.15, group: 0 };
+var lightPosTopLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0, vmax: 0.15, group: 0 };
 
 function assignLightPos(id, pos, name)
 {
@@ -869,31 +869,34 @@ function checkHueBridge(cb, hueUser)
 {
 	var usr = (typeof hueUser != "undefined") ? hueUser : 'config';
 	if (usr == 'config') $('#wiz_hue_discovered').html("");
-	$.ajax({
-		url: 'http://' + hueIPs[hueIPsinc].internalipaddress + '/api/' + usr,
-		type: "GET",
-		dataType: "json",
-		success: function (json)
+
+	if (hueIPs.length == 0)
+		return;
+
+	tunnel_hue_get(hueIPs[hueIPsinc].internalipaddress, '/api/' + usr).then( (json) =>
 		{
-			if (json.config)
+			if (json != null)
 			{
-				$('#ip').val(hueIPs[hueIPsinc].internalipaddress);
-				cb(true, usr);
-			} else if (json.name && json.bridgeid && json.modelid)
-			{
-				$('#ip').val(hueIPs[hueIPsinc].internalipaddress);
-				$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-				cb(true);
-			} else
+				if (json.config)
+				{					
+					cb(true, usr);
+				}
+				else if (json.name && json.bridgeid && json.modelid)
+				{
+					conf_editor.getEditor("root.specificOptions.output").setValue(hueIPs[hueIPsinc].internalipaddress);
+					$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+					cb(true);
+				}
+				else
+				{
+					cb(false);
+				}
+			}
+			else
 			{
 				cb(false);
 			}
-		},
-		timeout: 2500
-	}).fail(function ()
-	{
-		cb(false);
-	});
+		});
 }
 
 function useGroupId(id)
@@ -916,12 +919,7 @@ function identHueId(id, off, oState)
 		var put_data = '{"on":' + oState.on + ',"bri":' + oState.bri + ',"hue":' + oState.hue + ',"sat":' + oState.sat + '}';
 	}
 
-	$.ajax({
-		url: 'http://' + $('#ip').val() + '/api/' + $('#user').val() + '/lights/' + id + '/state',
-		type: 'PUT',
-		timeout: 2000,
-		data: put_data
-	})
+	tunnel_hue_put($('#ip').val(), '/api/' + $('#user').val() + '/lights/' + id + '/state', put_data);
 }
 
 async function discover_hue_bridges()
@@ -945,7 +943,7 @@ async function discover_hue_bridges()
 			{
 				console.log("Device:", device);
 
-				var ip = device.hostname + ":" + device.port;
+				var ip = device.ip + ":" + device.port;
 				console.log("Host:", ip);
 
 				hueIPs.push({ internalipaddress: ip });
@@ -984,32 +982,6 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
 		console.log(r);
 	}
 }
-
-function getHueIPs()
-{
-	$('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
-	$.ajax({
-		url: 'https://discovery.meethue.com',
-		crossDomain: true,
-		type: 'GET',
-		timeout: 3000
-	})
-		.done(function (data, textStatus, jqXHR)
-		{
-			if (data.length == 0)
-			{
-				$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-			} else
-			{
-				hueIPs = data;
-				checkHueBridge(checkBridgeResult);
-			}
-		})
-		.fail(function (jqXHR, textStatus)
-		{
-			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-		});
-};
 
 //return editor Value
 function eV(vn, defaultVal = "")
@@ -1182,101 +1154,100 @@ function createHueUser()
 	}
 	var UserInterval = setInterval(function ()
 	{
-		$.ajax({
-			type: "POST",
-			url: 'http://' + $("#ip").val() + '/api',
-			processData: false,
-			timeout: 1000,
-			contentType: 'application/json',
-			data: JSON.stringify(data),
-			success: function (r)
+		tunnel_hue_post($("#ip").val(), '/api', JSON.stringify(data)).then( (r) =>
 			{
-				$('#wizp1').toggle(false);
-				$('#wizp2').toggle(false);
-				$('#wizp3').toggle(true);
-
-				connectionRetries--;
-				$("#connectionTime").html(connectionRetries);
-				if (connectionRetries == 0)
+				if (r != null)	
 				{
-					abortConnection(UserInterval);
+					if (Object.keys(r).length === 0)
+					{
+						r=[{error : true}];
+					}
+
+					$('#wizp1').toggle(false);
+					$('#wizp2').toggle(false);
+					$('#wizp3').toggle(true);
+
+					connectionRetries--;
+					$("#connectionTime").html(connectionRetries);
+					if (connectionRetries == 0)
+					{
+						abortConnection(UserInterval);
+					}
+					else
+					{
+						if (typeof r[0].error != 'undefined')
+						{
+							console.log(connectionRetries + ": link not pressed");
+						}
+						if (typeof r[0].success != 'undefined')
+						{
+							$('#wizp1').toggle(false);
+							$('#wizp2').toggle(true);
+							$('#wizp3').toggle(false);
+							if (r[0].success.username != 'undefined')
+							{
+								$('#user').val(r[0].success.username);
+								conf_editor.getEditor("root.specificOptions.username").setValue(r[0].success.username);
+							}
+							if (hueType == 'philipshueentertainment')
+							{
+								if (r[0].success.clientkey != 'undefined')
+								{
+									$('#clientkey').val(r[0].success.clientkey);
+									conf_editor.getEditor("root.specificOptions.clientkey").setValue(r[0].success.clientkey);
+								}
+							}
+							checkHueBridge(checkUserResult, r[0].success.username);
+							clearInterval(UserInterval);
+						}
+					}
 				}
 				else
 				{
-					if (typeof r[0].error != 'undefined')
-					{
-						console.log(connectionRetries + ": link not pressed");
-					}
-					if (typeof r[0].success != 'undefined')
-					{
 						$('#wizp1').toggle(false);
 						$('#wizp2').toggle(true);
 						$('#wizp3').toggle(false);
-						if (r[0].success.username != 'undefined')
-						{
-							$('#user').val(r[0].success.username);
-							conf_editor.getEditor("root.specificOptions.username").setValue(r[0].success.username);
-						}
-						if (hueType == 'philipshueentertainment')
-						{
-							if (r[0].success.clientkey != 'undefined')
-							{
-								$('#clientkey').val(r[0].success.clientkey);
-								conf_editor.getEditor("root.specificOptions.clientkey").setValue(r[0].success.clientkey);
-							}
-						}
-						checkHueBridge(checkUserResult, r[0].success.username);
 						clearInterval(UserInterval);
-					}
 				}
-			},
-			error: function (XMLHttpRequest, textStatus, errorThrown)
-			{
-				$('#wizp1').toggle(false);
-				$('#wizp2').toggle(true);
-				$('#wizp3').toggle(false);
-				clearInterval(UserInterval);
 			}
-		});
+		)
 	}, 1000);
 }
 
 function get_hue_groups()
 {
-	$.ajax({
-		type: "GET",
-		url: 'http://' + $("#ip").val() + '/api/' + $("#user").val() + '/groups',
-		processData: false,
-		contentType: 'application/json',
-		success: function (r)
+	tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/groups').then( (r) =>
 		{
-			if (Object.keys(r).length > 0)
+			if (r != null)
 			{
-				$('#wh_topcontainer').toggle(false);
-				$('#hue_grp_ids_t').toggle(true);
-
-				groupIDs = r;
-
-				var gC = 0;
-				for (var groupid in r)
+				if (Object.keys(r).length > 0)
 				{
-					if (r[groupid].type == 'Entertainment')
+					$('#wh_topcontainer').toggle(false);
+					$('#hue_grp_ids_t').toggle(true);
+
+					groupIDs = r;
+
+					var gC = 0;
+					for (var groupid in r)
 					{
-						$('.gidsb').append(createTableRowFlex([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
-						gC++;
+						if (r[groupid].type == 'Entertainment')
+						{
+							$('.gidsb').append(createTableRowFlex([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
+							gC++;
+						}
+					}
+					if (gC == 0)
+					{
+						noAPISupport('wiz_hue_e_noegrpids');
 					}
 				}
-				if (gC == 0)
+				else
 				{
-					noAPISupport('wiz_hue_e_noegrpids');
+					noAPISupport('wiz_hue_e_nogrpids');
 				}
 			}
-			else
-			{
-				noAPISupport('wiz_hue_e_nogrpids');
-			}
 		}
-	});
+	)
 }
 
 function noAPISupport(txt)
@@ -1295,31 +1266,23 @@ function noAPISupport(txt)
 
 function get_light_state(id)
 {
-	$.ajax({
-		type: "GET",
-		url: 'http://' + $("#ip").val() + '/api/' + $("#user").val() + '/lights/' + id,
-		processData: false,
-		contentType: 'application/json',
-		success: function (r)
+	tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/lights/' + id).then( (r) =>
 		{
-			if (Object.keys(r).length > 0)
+			if (r != null)
 			{
-				identHueId(id, false, r['state']);
+				if (Object.keys(r).length > 0)
+				{
+					identHueId(id, false, r['state']);
+				}
 			}
-		}
-	});
+		});
 }
 
 function get_hue_lights()
 {
-	$.ajax({
-		type: "GET",
-		url: 'http://' + $("#ip").val() + '/api/' + $("#user").val() + '/lights',
-		processData: false,
-		contentType: 'application/json',
-		success: function (r)
-		{
-			if (Object.keys(r).length > 0)
+	tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/lights').then( (r) =>
+		{		
+			if (r != null && Object.keys(r).length > 0)
 			{
 				if (hueType == 'philipshue')
 				{
@@ -1411,8 +1374,7 @@ function get_hue_lights()
 				var txt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_hue_noids') + '</p>';
 				$('#wizp2_body').append(txt);
 			}
-		}
-	});
+		});
 }
 
 function abortConnection(UserInterval)

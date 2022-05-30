@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Alt: Soldan %75 - %100",
   "onBlackTimeToPowerOff": "Siyah seviye tetiklenirse lambayı kapatma zamanı",
   "onBlackTimeToPowerOn": "Sinyal geri yüklenirse lambayı açma zamanı",
-  "philips_option_changed_bri": "<p style='color:red'>Lütfen önce Philips LED lambalarınızı Philips mobil uygulamasını kullanarak yapılandırın: kurulum sırasında lambalarınız için EĞLENCE grubunu seçin (bu grubun kimliğini almalısınız), aksi takdirde eski json API'sini kullanarak iletişim performansı perişan olacak!</p>Sihirbazın https örneğinde kullanılması işlemin başarısız olmasına neden olur. Lambalara bağlı diğer ev otomasyon sistemlerini kullanmanın çeşitli yan etkilere neden olabileceğini lütfen unutmayın. Minimum ve maksimum parlaklık, 'Görüntü işleme' sekmesine taşınır: 'Arka ışık eşiği' ve 'Parlaklık'/'Parlaklık'",
   "edt_conf_stream_qFrame_title": "Çeyrek kare modu",
   "edt_conf_stream_qFrame_expl": "Video karesi (genişlik/2, yükseklik/2) boyutuna ölçeklenir. Hızlıdır, kaynak kullanımını azaltır ve en iyisi, özellikleri nedeniyle NV12 ve I420 kodlamaları için renklerle ilgili hiçbir bilginin kaybolmamasıdır.",
   "edt_dev_spec_candyGamma_title": "'Şeker' modu (çift gama düzeltmesi)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer ekran kapmak",
   "conf_network_proto_intro": "Tüm HyperHDR örneklerinin PROTO-Portu (kullanımdan kaldırıldı).<br/>Temel olarak Android Screen Grabber uygulamasıyla kullanım içindir. <span style='color:red;'>HDR'den SDR'ye ton eşleme</span>, Flatbuffers Server yapılandırmasında etkinleştirilebilir ve Protokol Tamponları (paylaşılan bileşen) için de çalışır",
   "edt_conf_stream_dx11_flickering_title": "Statik görüntülerin titremesini düzeltin",
-  "edt_conf_stream_dx11_flickering_expl": "Hareketsiz bir görüntüde ortaya çıkan yakalanan video akışının titremesini düzeltebilen alternatif ekran kilitleme yöntemi. Bazı grafik kartları etkilenir."
+  "edt_conf_stream_dx11_flickering_expl": "Hareketsiz bir görüntüde ortaya çıkan yakalanan video akışının titremesini düzeltebilen alternatif ekran kilitleme yöntemi. Bazı grafik kartları etkilenir.",
+  "philips_option_changed_bri": "<p style = 'color: red'>İlk olarak Philips LED lambalarınızı Philips mobil uygulamasını kullanarak kurun: kurulum sırasında lambalarınız için EĞLENCE grubunu seçin (bu grubun kimliğini almalısınız). Aksi takdirde, eski json API'sini kullanarak iletişim performansı çok kötü olacaktır!</p> Lambalara bağlı diğer ev otomasyon sistemlerini kullanmanın HyperHDR'yi çalıştırırken çeşitli yan etkilere neden olabileceğini unutmayın."
 }

@@ -130,6 +130,10 @@ public:
 	///
 	httpResponse put(const QString& body = "");
 
+	httpResponse post(const QUrl& url, const QString& body);
+
+	httpResponse put(const QUrl& url, const QString& body);
+
 	///
 	/// @brief Handle responses for REST requests
 	///
@@ -139,15 +143,6 @@ public:
 	httpResponse getResponse(QNetworkReply* const& reply, bool timeout);
 
 private:
-
-	///
-	/// @brief Execute PUT request
-	///
-	/// @param[in] URL for PUT request
-	/// @param[in] body The body of the request in JSON
-	/// @return Response The body of the response in JSON
-	///
-	httpResponse put(const QUrl& url, const QString& body = "");
 
 	///
 	/// @brief Append an API's path element to path given as param
@@ -189,6 +184,8 @@ public slots:
 	QNetworkReply* get(QNetworkRequest request);
 
 	QNetworkReply* put(QNetworkRequest request, QByteArray body);
+
+	QNetworkReply* post(QNetworkRequest request, QByteArray body);
 };
 
 

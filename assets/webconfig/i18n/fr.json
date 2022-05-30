@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Bas : 75 - 100 % à partir de la gauche",
   "onBlackTimeToPowerOff": "Il est temps d'éteindre la lampe si le niveau de noir est déclenché",
   "onBlackTimeToPowerOn": "Temps d'allumage de la lampe si le signal est rétabli",
-  "philips_option_changed_bri": "<p style='color:red'>Veuillez d'abord configurer vos lampes LED Philips à l'aide de l'application mobile Philips : lors de la configuration, choisissez le groupe ENTERTAINMENT pour vos lampes (vous devriez obtenir l'ID de ce groupe), sinon les performances de communication à l'aide de l'ancienne API json sera misérable !</p>L'utilisation de l'assistant sur l'instance https entraînera l'échec du processus. N'oubliez pas que l'utilisation d'autres systèmes domotiques connectés aux lampes peut entraîner divers effets secondaires. La luminosité minimale et maximale sont déplacées dans l'onglet 'Traitement de l'image' : 'Seuil de rétroéclairage' et 'Luminosité'/'Luminance'",
   "edt_conf_stream_qFrame_title": "Mode quart de trame",
   "edt_conf_stream_qFrame_expl": "L'image vidéo est mise à l'échelle à la taille (largeur/2, hauteur/2). Rapide, réduit l'utilisation des ressources et le meilleur est qu'aucune information sur les couleurs n'est perdue pour les encodages NV12 et I420 en raison de leurs spécifications",
   "edt_dev_spec_candyGamma_title": "Mode 'Candy' (double correction gamma)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Capture d'écran Linux FrameBuffer",
   "conf_network_proto_intro": "Le PROTO-Port de toutes les instances HyperHDR (obsolète).<br/>Principalement à utiliser avec l'application Android Screen Grabber. <span style='color:red;'>Le mappage de tonalité HDR vers SDR</span> peut être activé dans la configuration du serveur Flatbuffers et fonctionne également pour les tampons de protocole (composant partagé)",
   "edt_conf_stream_dx11_flickering_title": "Correction du scintillement des images statiques",
-  "edt_conf_stream_dx11_flickering_expl": "Méthode de verrouillage d'écran alternative qui peut corriger le scintillement du flux vidéo capturé révélant une image fixe. Certaines cartes graphiques sont concernées."
+  "edt_conf_stream_dx11_flickering_expl": "Méthode de verrouillage d'écran alternative qui peut corriger le scintillement du flux vidéo capturé révélant une image fixe. Certaines cartes graphiques sont concernées.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Configurez d'abord vos lampes LED Philips à l'aide de l'application mobile Philips : lors de la configuration, sélectionnez le groupe ENTERTAINMENT pour vos lampes (vous devriez obtenir l'ID de ce groupe). Sinon, les performances de communication avec l'ancienne API json seront très mauvaises !</p> N'oubliez pas que l'utilisation d'autres systèmes domotiques connectés à des lampes peut entraîner divers effets secondaires lors de l'exécution d'HyperHDR."
 }

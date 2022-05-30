@@ -1,3 +1,5 @@
+// bonjour
+#include <bonjour/bonjourservicebrowser.h>
 #include <bonjour/bonjourbrowserwrapper.h>
 
 //qt incl
@@ -6,9 +8,6 @@
 #include <QStringLiteral>
 #include <cstdio>
 #include <utils/Logger.h>
-
-// bonjour
-#include <bonjour/bonjourservicebrowser.h>
 
 BonjourBrowserWrapper* BonjourBrowserWrapper::instance = nullptr;
 
@@ -36,6 +35,8 @@ BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 	connect(hyperhdr, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundHyperHDR);
 	hyperhdr->browseForServiceType();
 
+	_hueService = hue;
+	_wledService = wled;
 }
 
 const QList<BonjourRecord> BonjourBrowserWrapper::getPhilipsHUE()
@@ -46,6 +47,11 @@ const QList<BonjourRecord> BonjourBrowserWrapper::getPhilipsHUE()
 	for (auto rec : copy.values())
 	{
 		result.push_back(rec);
+	}
+
+	if (_hueService != nullptr)
+	{
+		((BonjourServiceBrowser*)_hueService)->browseForServiceType();
 	}
 
 	return result;

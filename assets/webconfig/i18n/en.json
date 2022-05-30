@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Bottom: 75 - 100% from Left",
   "onBlackTimeToPowerOff" : "Time to power off the lamp if the black level is triggered",
   "onBlackTimeToPowerOn" : "Time to power on the lamp if the signal is restored",
-  "philips_option_changed_bri": "<p style='color:red'>Please configure first your Philips LED lamps using the Philips mobile app: during the setup choose ENTERTAINMENT group for your lamps (you should get ID of that group) otherwise communication performance using the old, json API will be miserable!</p>Using the wizard on https instance will cause the process to fail. Please remember that using other home automation systems connected to the lamps could cause various side-effects. Brightness minimum & maximum are moved to the 'Image processing' tab: 'Backlight threshold' and 'Brightness'/'Luminance'",
   "edt_conf_stream_qFrame_title" : "Quarter of frame mode",
   "edt_conf_stream_qFrame_expl" : "Video frame is scaled to (width/2, height/2) size. Fast, reduces resources usage and the best is that no information about colors is lost for NV12 and I420 encodings due to their specifications",
   "edt_dev_spec_candyGamma_title" : "'Candy' mode (double gamma correction)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer screen grabber",
   "conf_network_proto_intro": "The PROTO-Port of all HyperHDR instances (deprecated).<br/>Mainly for use with the Android Screen Grabber app. <span style='color:red;'>HDR to SDR tone mapping</span> can be enabled in Flatbuffers Server configuration and it works also for Protocol Buffers (shared component)",
   "edt_conf_stream_dx11_flickering_title": "Fix flickering of static images",
-  "edt_conf_stream_dx11_flickering_expl": "Alternative screen locking method that can fix the flickering of captured video stream revealing in a still image. Certain graphics cards are affected."
+  "edt_conf_stream_dx11_flickering_expl": "Alternative screen locking method that can fix the flickering of captured video stream revealing in a still image. Certain graphics cards are affected.",
+  "philips_option_changed_bri": "<p style = 'color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR."
 } 

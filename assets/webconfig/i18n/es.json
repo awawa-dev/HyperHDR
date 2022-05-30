@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Abajo: 75-100% desde la izquierda",
   "onBlackTimeToPowerOff": "Es hora de apagar la lámpara si se activa el nivel de negro",
   "onBlackTimeToPowerOn": "Es hora de encender la lámpara si se restablece la señal",
-  "philips_option_changed_bri": "<p style = 'color: red'> Configure primero sus lámparas LED de Philips utilizando la aplicación móvil de Philips: durante la configuración, elija el grupo ENTRETENIMIENTO para sus lámparas (debe obtener el ID de ese grupo); de lo contrario, el rendimiento de la comunicación utilizando la antigua API json ¡Será miserable! </p> El uso del asistente en la instancia https hará que el proceso falle. Recuerde que el uso de otros sistemas de automatización del hogar conectados a las lámparas podría provocar varios efectos secundarios. El brillo mínimo y máximo se mueven a la pestaña 'Procesamiento de imagen': 'Umbral de luz de fondo' y 'Brillo' / 'Luminancia'",
   "edt_conf_stream_qFrame_title": "Modo de cuarto de fotograma",
   "edt_conf_stream_qFrame_expl": "El fotograma de video se escala al tamaño (ancho / 2, alto / 2). Rápido, reduce el uso de recursos y lo mejor es que no se pierde información sobre los colores para las codificaciones NV12 e I420 debido a sus especificaciones.",
   "edt_dev_spec_candyGamma_title": "Modo 'Candy' (corrección de doble gamma)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Capturador de pantalla FrameBuffer de Linux",
   "conf_network_proto_intro": "El PROTO-Port de todas las instancias de HyperHDR (obsoleto).<br/>Principalmente para usar con la aplicación Android Screen Grabber. <span style='color:red;'>El mapeo de tonos HDR a SDR</span> se puede habilitar en la configuración del servidor Flatbuffers y también funciona para Protocol Buffers (componente compartido)",
   "edt_conf_stream_dx11_flickering_title": "Corrige el parpadeo de las imágenes estáticas.",
-  "edt_conf_stream_dx11_flickering_expl": "Método alternativo de bloqueo de pantalla que puede corregir el parpadeo del flujo de video capturado que se muestra en una imagen fija. Ciertas tarjetas gráficas se ven afectadas."
+  "edt_conf_stream_dx11_flickering_expl": "Método alternativo de bloqueo de pantalla que puede corregir el parpadeo del flujo de video capturado que se muestra en una imagen fija. Ciertas tarjetas gráficas se ven afectadas.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Primero configure sus lámparas LED de Philips con la aplicación móvil de Philips: durante la configuración, seleccione el grupo ENTRETENIMIENTO para sus lámparas (debe obtener el ID de este grupo). De lo contrario, el rendimiento de la comunicación con la antigua API json será muy malo.</p> Recuerde que el uso de otros sistemas de automatización del hogar conectados a las lámparas puede causar varios efectos secundarios cuando se ejecuta HyperHDR."
 }

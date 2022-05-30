@@ -1,26 +1,5 @@
-#ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS 1
-#endif
-
 #include <bonjour/bonjourrecord.h>
 #include <bonjour/bonjourservicebrowser.h>
-#include <utils/Logger.h>
-
-#include <stdio.h>
-
-#include <errno.h>
-#include <signal.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <iphlpapi.h>
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "iphlpapi.lib")
-#else
-#include <netdb.h>
-#include <ifaddrs.h>
-#include <net/if.h>
-#endif
 
 int BonjourServiceHelper::_instaceCount = 0;
 

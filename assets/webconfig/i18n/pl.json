@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Dół: 75 - 100% od lewej",
   "onBlackTimeToPowerOff": "Czas na wyłączenie lampy, jeśli poziom czerni zostanie wyzwolony",
   "onBlackTimeToPowerOn": "Czas na włączenie lampy, jeśli sygnał zostanie przywrócony;",
-  "philips_option_changed_bri": "<p style='color:red'>Najpierw skonfiguruj swoje lampy LED Philips za pomocą aplikacji mobilnej Philips: podczas konfiguracji wybierz grupę ROZRYWKA dla swoich lamp (powinieneś uzyskać ID tej grupy) w przeciwnym razie wydajność komunikacji przy użyciu starego API json będzie nieszczęśliwy!</p>Korzystanie z kreatora na instancji https spowoduje niepowodzenie procesu. Proszę pamiętać, że korzystanie z innych systemów automatyki domowej podłączonych do lamp może powodować różne skutki uboczne. Minimalna i maksymalna jasność są przenoszone do zakładki „Przetwarzanie obrazu”: „Próg podświetlenia” i „Jasność”/„Luminancja”",
   "edt_conf_stream_qFrame_title": "Tryb kwartału klatki",
   "edt_conf_stream_qFrame_expl": "Klatka wideo jest skalowana do rozmiaru (szerokość/2, wysokość/2). Szybki, zmniejsza zużycie zasobów, a najlepsze jest to, że żadne informacje o kolorach nie są tracone dla kodowań NV12 i I420 ze względu na ich specyfikację",
   "edt_dev_spec_candyGamma_title": "Tryb „Candy” (podwójna korekcja gamma)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Zrzut ekranu dla Linux FrameBuffer",
   "conf_network_proto_intro": "PROTO-Port wszystkich instancji HyperHDR (przestarzałe).<br/>Głównie do użytku z aplikacją Android Screen Grabber. <span style='color:red;'>Mapowanie tonów HDR na SDR</span> można włączyć w konfiguracji Flatbuffers Server i działa również dla buforów protokołów (składnik współdzielony)",
   "edt_conf_stream_dx11_flickering_title": "Napraw migotanie statycznych obrazów",
-  "edt_conf_stream_dx11_flickering_expl": "Alternatywna metoda blokowania ekranu, która może naprawić migotanie przechwyconego strumienia wideo widoczne na nieruchomym obrazie. Problem dotyczy niektórych kart graficznych."
+  "edt_conf_stream_dx11_flickering_expl": "Alternatywna metoda blokowania ekranu, która może naprawić migotanie przechwyconego strumienia wideo widoczne na nieruchomym obrazie. Problem dotyczy niektórych kart graficznych.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Najpierw skonfiguruj swoje lampy LED firmy Philips za pomocą aplikacji mobilnej Philips: podczas konfiguracji wybierz grupę ROZRYWKA dla swoich lamp (powinnaś otrzymać identyfikator tej grupy). W przeciwnym razie wydajność komunikacji przy użyciu starego API json będzie bardzo zła!</p> Pamiętaj, że korzystanie z innych systemów automatyki domowej podłączonych do lamp może powodować różne skutki uboczne podczas uruchamiania HyperHDR."
 }

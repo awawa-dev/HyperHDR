@@ -20,6 +20,7 @@
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
+#include "../leddevice/dev_net/ProviderRestApi.h"
 
 #include <base/GrabberWrapper.h>
 #include <base/SystemWrapper.h>
@@ -200,6 +201,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleSaveDB(message, command, tan);
 		else if (command == "load-db")
 			handleLoadDB(message, command, tan);
+		else if (command == "tunnel")
+			handleTunnel(message, command, tan);
 		else if (command == "signal-calibration")
 			handleLoadSignalCalibration(message, command, tan);
 		else if (command == "performance-counters")
@@ -1867,4 +1870,60 @@ void JsonAPI::stopDataConnections()
 	disconnect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, 0);
 	_ledStreamTimer->stop();
 	disconnect(_ledStreamConnection);
+}
+
+void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& subcommand = message["subcommand"].toString().trimmed();
+	const QString& full_command = command + "-" + subcommand;	
+
+	if (_adminAuthorized)
+	{		
+		const QString& ip = message["ip"].toString().trimmed();
+		const QString& path = message["path"].toString().trimmed();
+		const QString& data = message["data"].toString().trimmed();
+		const QString& service = message["service"].toString().trimmed();		
+
+		if (service == "hue")
+		{
+			if (path.indexOf("/api") != 0)
+			{
+				sendErrorReply("Invalid path", full_command, tan);
+				return;
+			}
+			
+			ProviderRestApi provider;
+			QUrl url = QUrl("http://"+ip+path);
+
+			httpResponse result;
+			if (subcommand == "put")
+				result = provider.put(url, data);
+			else if (subcommand == "post")
+				result = provider.post(url, data);
+			else if (subcommand == "get")
+				result = provider.get(url);
+			else
+			{
+				sendErrorReply("Unknown command", full_command, tan);
+				return;
+			}
+
+			QJsonObject reply;
+			auto doc = result.getBody();
+			reply["success"] = true;
+			reply["command"] = full_command;
+			reply["tan"] = tan;
+			reply["isTunnelOk"] = !result.error();
+			if (doc.isArray())
+				reply["info"] = doc.array();
+			else
+				reply["info"] = doc.object();
+
+			emit callbackMessage(reply);			
+		}
+		else
+			sendErrorReply("Service not supported", full_command, tan);
+	}
+	else
+		sendErrorReply("No Authorization", full_command, tan);
 }

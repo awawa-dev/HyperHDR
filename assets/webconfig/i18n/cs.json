@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Dole: 75 - 100% zleva",
   "onBlackTimeToPowerOff": "Čas pro vypnutí lampy, pokud je spuštěna úroveň černé",
   "onBlackTimeToPowerOn": "Čas do zapnutí lampy, pokud je signál obnoven",
-  "philips_option_changed_bri": "<p style = 'color: red'> Nejprve nakonfigurujte své LED žárovky Philips pomocí mobilní aplikace Philips: během instalace vyberte pro své žárovky skupinu ZÁBAVA (měli byste získat ID této skupiny), jinak komunikační výkon pomocí starého rozhraní API JSON bude mizerné! </p> Použití průvodce na instanci https způsobí selhání procesu. Pamatujte, že používání jiných systémů domácí automatizace připojených k lampám může způsobit různé vedlejší účinky. Minimální a maximální jas se přesouvá na záložku „Zpracování obrazu“: „Prah podsvícení“ a „Jas“/„Jas“",
   "edt_conf_stream_qFrame_title": "Čtvrtina rámcového režimu",
   "edt_conf_stream_qFrame_expl": "Rámeček videa je zmenšen na velikost (šířka/2, výška/2). Rychlý, snižuje využití zdrojů a nejlepší je, že díky kódování NV12 a I420 nejsou ztraceny žádné informace o barvách",
   "edt_dev_spec_candyGamma_title": "Režim „Candy“ (korekce dvojitého gama)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Nástroj pro zachycení obrazovky Linux FrameBuffer",
   "conf_network_proto_intro": "PROTO-Port všech instancí HyperHDR (zastaralé).<br/>Hlavně pro použití s aplikací Android Screen Grabber. <span style='color:red;'>Mapování tónů HDR na SDR</span> lze povolit v konfiguraci serveru Flatbuffers a funguje také pro vyrovnávací paměti protokolu (sdílená komponenta)",
   "edt_conf_stream_dx11_flickering_title": "Opravte blikání statických obrázků",
-  "edt_conf_stream_dx11_flickering_expl": "Alternativní metoda uzamčení obrazovky, která dokáže opravit blikání zachyceného video streamu odhalujícího na statickém obrázku. Některé grafické karty jsou ovlivněny."
+  "edt_conf_stream_dx11_flickering_expl": "Alternativní metoda uzamčení obrazovky, která dokáže opravit blikání zachyceného video streamu odhalujícího na statickém obrázku. Některé grafické karty jsou ovlivněny.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Nejprve nastavte své LED lampy Philips pomocí mobilní aplikace Philips: během nastavování vyberte pro své lampy skupinu ZÁBAVA (měli byste získat ID této skupiny). V opačném případě bude komunikační výkon pomocí starého json API velmi špatný!</p> Pamatujte, že používání jiných systémů domácí automatizace připojených k lampám může způsobit různé vedlejší efekty při spuštění HyperHDR."
 }

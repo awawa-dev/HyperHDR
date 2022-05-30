@@ -295,6 +295,8 @@ private:
 
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleTunnel(const QJsonObject& message, const QString& command, int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

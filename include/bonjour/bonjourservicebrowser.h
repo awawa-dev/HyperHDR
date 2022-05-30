@@ -1,11 +1,8 @@
 #pragma once
 
-#include <QThread>
-#include <QHostInfo>
 #include <QHash>
-#include "../dependencies/bonjour/mdns.h"
 #include <bonjour/bonjourservicehelper.h>
-
+class BonjourRecord;
 
 class BonjourServiceBrowser: public QObject
 {

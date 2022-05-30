@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Onder: 75 - 100% van links",
   "onBlackTimeToPowerOff": "Tijd om de lamp uit te schakelen als het zwartniveau wordt geactiveerd",
   "onBlackTimeToPowerOn": "Tijd om de lamp aan te zetten als het signaal is hersteld",
-  "philips_option_changed_bri": "<p style='color:red'>Configureer eerst uw Philips LED-lampen met behulp van de Philips mobiele app: kies tijdens de installatie de ENTERTAINMENT-groep voor uw lampen (u zou de ID van die groep moeten krijgen) anders communicatieprestaties met behulp van de oude, json API zal ellendig zijn!</p>Het gebruik van de wizard op https-instantie zal ervoor zorgen dat het proces mislukt. Houd er rekening mee dat het gebruik van andere domoticasystemen die op de lampen zijn aangesloten, verschillende bijwerkingen kan veroorzaken. Minimale en maximale helderheid zijn verplaatst naar het tabblad 'Beeldverwerking': 'Drempelwaarde achtergrondverlichting' en 'Helderheid'/'Luminantie'",
   "edt_conf_stream_qFrame_title": "Kwart van frame-modus",
   "edt_conf_stream_qFrame_expl": "Videoframe wordt geschaald naar (breedte/2, hoogte/2) formaat. Snel, vermindert het gebruik van hulpbronnen en het beste is dat er geen informatie over kleuren verloren gaat voor NV12- en I420-coderingen vanwege hun specificaties",
   "edt_dev_spec_candyGamma_title": "'Candy'-modus (dubbele gammacorrectie)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer schermgrijper",
   "conf_network_proto_intro": "De PROTO-poort van alle HyperHDR-instanties (verouderd).<br/>Voornamelijk voor gebruik met de Android Screen Grabber-app. <span style='color:red;'>HDR naar SDR tone mapping</span> kan worden ingeschakeld in de Flatbuffers Server-configuratie en het werkt ook voor Protocol Buffers (gedeelde component)",
   "edt_conf_stream_dx11_flickering_title": "Flikkeren van statische afbeeldingen oplossen",
-  "edt_conf_stream_dx11_flickering_expl": "Alternatieve schermvergrendelingsmethode die het flikkeren van vastgelegde videostreams in een stilstaand beeld kan corrigeren. Bepaalde grafische kaarten worden beïnvloed."
+  "edt_conf_stream_dx11_flickering_expl": "Alternatieve schermvergrendelingsmethode die het flikkeren van vastgelegde videostreams in een stilstaand beeld kan corrigeren. Bepaalde grafische kaarten worden beïnvloed.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Stel eerst uw Philips LED-lampen in met de Philips mobiele app: selecteer tijdens het instellen de ENTERTAINMENT-groep voor uw lampen (u zou de ID van deze groep moeten krijgen). Anders zullen de communicatieprestaties met de oude json-API erg slecht zijn!</p> Onthoud dat het gebruik van andere domoticasystemen die op lampen zijn aangesloten, verschillende bijwerkingen kan veroorzaken bij het uitvoeren van HyperHDR."
 }

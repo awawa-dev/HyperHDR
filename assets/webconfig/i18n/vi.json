@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Dưới cùng: 75 - 100% từ Trái",
   "onBlackTimeToPowerOff": "Thời gian tắt đèn nếu mức đen được kích hoạt",
   "onBlackTimeToPowerOn": "Thời gian bật nguồn đèn nếu tín hiệu được khôi phục",
-  "philips_option_changed_bri": "<p style = 'color: red'> Trước tiên, vui lòng định cấu hình đèn LED Philips của bạn bằng ứng dụng Philips dành cho thiết bị di động: trong quá trình thiết lập, hãy chọn nhóm GIẢI TRÍ cho đèn của bạn (bạn nên lấy ID của nhóm đó) nếu không, hiệu suất giao tiếp bằng API json cũ sẽ rất khốn khổ! </p> Việc sử dụng trình hướng dẫn trên phiên bản https sẽ khiến quá trình không thành công. Hãy nhớ rằng việc sử dụng các hệ thống tự động hóa khác trong nhà được kết nối với đèn có thể gây ra nhiều tác dụng phụ khác nhau. Độ sáng tối thiểu & tối đa được chuyển sang tab 'Xử lý hình ảnh': 'Ngưỡng ánh sáng nền' và 'Độ sáng' / 'Độ chói'",
   "edt_conf_stream_qFrame_title": "Một phần tư của chế độ khung hình",
   "edt_conf_stream_qFrame_expl": "Khung video được chia tỷ lệ thành kích thước (chiều rộng / 2, chiều cao / 2). Nhanh chóng, giảm sử dụng tài nguyên và tốt nhất là không có thông tin về màu sắc bị mất cho các mã hóa NV12 và I420 do các thông số kỹ thuật của chúng",
   "edt_dev_spec_candyGamma_title": "Chế độ 'Kẹo' (hiệu chỉnh gamma kép)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Bộ đệm màn hình Linux FrameBuffer",
   "conf_network_proto_intro": "Cổng PROTO của tất cả các phiên bản HyperHDR (không được dùng nữa). <br/> Chủ yếu để sử dụng với ứng dụng Android Screen Grabber. <span style = 'color: red;'> Ánh xạ tông màu từ HDR sang SDR</span> có thể được bật trong cấu hình Máy chủ Flatbuffers và nó cũng hoạt động cho Bộ đệm giao thức (thành phần được chia sẻ)",
   "edt_conf_stream_dx11_flickering_title": "Khắc phục hiện tượng nhấp nháy hình ảnh tĩnh",
-  "edt_conf_stream_dx11_flickering_expl": "Phương pháp khóa màn hình thay thế có thể khắc phục sự cố nhấp nháy của luồng video đã chụp hiển thị trong hình ảnh tĩnh. Một số card đồ họa bị ảnh hưởng."
+  "edt_conf_stream_dx11_flickering_expl": "Phương pháp khóa màn hình thay thế có thể khắc phục sự cố nhấp nháy của luồng video đã chụp hiển thị trong hình ảnh tĩnh. Một số card đồ họa bị ảnh hưởng.",
+  "philips_option_changed_bri": "<p style = 'color: red'> Trước tiên, hãy thiết lập đèn LED Philips của bạn bằng ứng dụng Philips dành cho thiết bị di động: trong khi thiết lập, hãy chọn nhóm GIẢI TRÍ cho đèn của bạn (bạn nên lấy ID của nhóm này). Nếu không, hiệu suất giao tiếp khi sử dụng API json cũ sẽ rất kém! </p> Hãy nhớ rằng việc sử dụng các hệ thống tự động hóa gia đình khác được kết nối với đèn có thể gây ra nhiều tác dụng phụ khác nhau khi chạy HyperHDR."
 }

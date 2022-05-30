@@ -976,7 +976,6 @@
   "conf_leds_layout_cl_lightPosBottomLeft11": "Partea de jos: 75 - 100% din stânga",
   "onBlackTimeToPowerOff": "Este timpul să opriți lampa dacă nivelul de negru este declanșat",
   "onBlackTimeToPowerOn": "Timpul de pornire a lămpii dacă semnalul este restabilit",
-  "philips_option_changed_bri": "<p style = 'color: red'> Vă rugăm să vă configurați mai întâi lămpile LED Philips utilizând aplicația mobilă Philips: în timpul configurării alegeți grupul DIVERTISMENT pentru lămpile dvs. (ar trebui să obțineți ID-ul grupului respectiv), altfel performanța comunicării folosind vechea API json va fi mizerabil! </p> Utilizarea vrăjitorului pe instanța https va cauza eșecul procesului. Vă rugăm să rețineți că utilizarea altor sisteme de automatizare a locuinței conectate la lămpi ar putea provoca diverse efecte secundare. Luminozitatea minimă și maximă sunt mutate în fila „Prelucrare imagine”: „Prag de iluminare din spate” și „Luminozitate” / „Luminanță”",
   "edt_conf_stream_qFrame_title": "Sfertul modului cadru",
   "edt_conf_stream_qFrame_expl": "Cadrul video este scalat la dimensiunea (lățime / 2, înălțime / 2). Rapid, reduce utilizarea resurselor și cel mai bun este că nu se pierd informații despre culori pentru codificările NV12 și I420 datorită specificațiilor acestora",
   "edt_dev_spec_candyGamma_title": "Modul „Bomboane” (corecție dublă gamma)",
@@ -1162,5 +1161,6 @@
   "conf_grabber_framebuffer_intro": "Aparat de captare a ecranului Linux FrameBuffer",
   "conf_network_proto_intro": "Portul PROTO al tuturor instanțelor HyperHDR (învechit).<br/>Pentru a fi utilizat în principal cu aplicația Android Screen Grabber. <span style='color:red;'>Maparea tonurilor HDR la SDR</span> poate fi activată în configurația Flatbuffers Server și funcționează și pentru Protocol Buffers (componentă partajată)",
   "edt_conf_stream_dx11_flickering_title": "Remediați pâlpâirea imaginilor statice",
-  "edt_conf_stream_dx11_flickering_expl": "Metodă alternativă de blocare a ecranului care poate remedia pâlpâirea fluxului video capturat care se dezvăluie într-o imagine statică. Anumite plăci grafice sunt afectate."
+  "edt_conf_stream_dx11_flickering_expl": "Metodă alternativă de blocare a ecranului care poate remedia pâlpâirea fluxului video capturat care se dezvăluie într-o imagine statică. Anumite plăci grafice sunt afectate.",
+  "philips_option_changed_bri": "<p style = 'color: red'>Configurați mai întâi lămpile LED Philips folosind aplicația mobilă Philips: în timpul configurării, selectați grupul DIVERTISMENT pentru lămpi (ar trebui să obțineți ID-ul acestui grup). În caz contrar, performanța comunicării folosind vechiul API json va fi foarte proastă!</p> Amintiți-vă că utilizarea altor sisteme de automatizare a locuinței conectate la lămpi poate provoca diverse efecte secundare atunci când rulați HyperHDR."
 }
