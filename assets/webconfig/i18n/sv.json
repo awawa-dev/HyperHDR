@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "PROTO-porten för alla HyperHDR-instanser (fasad).<br/>Främst för användning med Android Screen Grabber-appen. <span style='color:red;'>HDR till SDR-tonmappning</span> kan aktiveras i Flatbuffers Server-konfiguration och det fungerar även för Protocol Buffers (delad komponent)",
   "edt_conf_stream_dx11_flickering_title": "Åtgärda flimmer av statiska bilder",
   "edt_conf_stream_dx11_flickering_expl": "Alternativ skärmlåsningsmetod som kan fixa flimmer från inspelad videoström som avslöjar en stillbild. Vissa grafikkort påverkas.",
-  "philips_option_changed_bri": "<p style = 'color: red'>Konfigurera först dina Philips LED-lampor med Philips mobilapp: under installationen väljer du gruppen UNDERHÅLLNING för dina lampor (du bör få ID för denna grupp). Annars kommer kommunikationsprestanda med det gamla json-API:et att bli mycket dålig!</p> Kom ihåg att användning av andra hemautomationssystem anslutna till lampor kan orsaka olika biverkningar när du kör HyperHDR."
+  "philips_option_changed_bri": "<p style = 'color: red'>Konfigurera först dina Philips LED-lampor med Philips mobilapp: under installationen väljer du gruppen UNDERHÅLLNING för dina lampor (du bör få ID för denna grupp). Annars kommer kommunikationsprestanda med det gamla json-API:et att bli mycket dålig!</p> Kom ihåg att användning av andra hemautomationssystem anslutna till lampor kan orsaka olika biverkningar när du kör HyperHDR.",
+  "select_wled_intro": "Välj WLED",
+  "select_wled_rescan": "Skanna nätverket igen"
 }

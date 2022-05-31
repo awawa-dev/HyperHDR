@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "Cổng PROTO của tất cả các phiên bản HyperHDR (không được dùng nữa). <br/> Chủ yếu để sử dụng với ứng dụng Android Screen Grabber. <span style = 'color: red;'> Ánh xạ tông màu từ HDR sang SDR</span> có thể được bật trong cấu hình Máy chủ Flatbuffers và nó cũng hoạt động cho Bộ đệm giao thức (thành phần được chia sẻ)",
   "edt_conf_stream_dx11_flickering_title": "Khắc phục hiện tượng nhấp nháy hình ảnh tĩnh",
   "edt_conf_stream_dx11_flickering_expl": "Phương pháp khóa màn hình thay thế có thể khắc phục sự cố nhấp nháy của luồng video đã chụp hiển thị trong hình ảnh tĩnh. Một số card đồ họa bị ảnh hưởng.",
-  "philips_option_changed_bri": "<p style = 'color: red'> Trước tiên, hãy thiết lập đèn LED Philips của bạn bằng ứng dụng Philips dành cho thiết bị di động: trong khi thiết lập, hãy chọn nhóm GIẢI TRÍ cho đèn của bạn (bạn nên lấy ID của nhóm này). Nếu không, hiệu suất giao tiếp khi sử dụng API json cũ sẽ rất kém! </p> Hãy nhớ rằng việc sử dụng các hệ thống tự động hóa gia đình khác được kết nối với đèn có thể gây ra nhiều tác dụng phụ khác nhau khi chạy HyperHDR."
+  "philips_option_changed_bri": "<p style = 'color: red'> Trước tiên, hãy thiết lập đèn LED Philips của bạn bằng ứng dụng Philips dành cho thiết bị di động: trong khi thiết lập, hãy chọn nhóm GIẢI TRÍ cho đèn của bạn (bạn nên lấy ID của nhóm này). Nếu không, hiệu suất giao tiếp khi sử dụng API json cũ sẽ rất kém! </p> Hãy nhớ rằng việc sử dụng các hệ thống tự động hóa gia đình khác được kết nối với đèn có thể gây ra nhiều tác dụng phụ khác nhau khi chạy HyperHDR.",
+  "select_wled_intro": "Chọn WLED",
+  "select_wled_rescan": "Quét lại mạng"
 }

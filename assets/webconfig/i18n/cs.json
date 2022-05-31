@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "PROTO-Port všech instancí HyperHDR (zastaralé).<br/>Hlavně pro použití s aplikací Android Screen Grabber. <span style='color:red;'>Mapování tónů HDR na SDR</span> lze povolit v konfiguraci serveru Flatbuffers a funguje také pro vyrovnávací paměti protokolu (sdílená komponenta)",
   "edt_conf_stream_dx11_flickering_title": "Opravte blikání statických obrázků",
   "edt_conf_stream_dx11_flickering_expl": "Alternativní metoda uzamčení obrazovky, která dokáže opravit blikání zachyceného video streamu odhalujícího na statickém obrázku. Některé grafické karty jsou ovlivněny.",
-  "philips_option_changed_bri": "<p style = 'color: red'>Nejprve nastavte své LED lampy Philips pomocí mobilní aplikace Philips: během nastavování vyberte pro své lampy skupinu ZÁBAVA (měli byste získat ID této skupiny). V opačném případě bude komunikační výkon pomocí starého json API velmi špatný!</p> Pamatujte, že používání jiných systémů domácí automatizace připojených k lampám může způsobit různé vedlejší efekty při spuštění HyperHDR."
+  "philips_option_changed_bri": "<p style = 'color: red'>Nejprve nastavte své LED lampy Philips pomocí mobilní aplikace Philips: během nastavování vyberte pro své lampy skupinu ZÁBAVA (měli byste získat ID této skupiny). V opačném případě bude komunikační výkon pomocí starého json API velmi špatný!</p> Pamatujte, že používání jiných systémů domácí automatizace připojených k lampám může způsobit různé vedlejší efekty při spuštění HyperHDR.",
+  "select_wled_intro": "Vyberte WLED",
+  "select_wled_rescan": "Znovu prohledejte síť"
 }

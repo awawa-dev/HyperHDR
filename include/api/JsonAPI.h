@@ -331,4 +331,6 @@ private:
 	/// @brief Kill all signal/slot connections to stop possible data emitter
 	///
 	void stopDataConnections();
+
+	bool isLocal(QString hostname);
 };

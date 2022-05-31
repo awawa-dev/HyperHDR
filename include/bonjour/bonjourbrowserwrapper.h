@@ -32,6 +32,7 @@ public:
 
 public slots:
 	const QList<BonjourRecord> getPhilipsHUE();
+	const QList<BonjourRecord> getWLED();
 
 signals:
 	///

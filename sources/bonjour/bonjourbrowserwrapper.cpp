@@ -57,6 +57,24 @@ const QList<BonjourRecord> BonjourBrowserWrapper::getPhilipsHUE()
 	return result;
 }
 
+const QList<BonjourRecord> BonjourBrowserWrapper::getWLED()
+{
+	QMap<QString, BonjourRecord> copy = _wledDevices;
+	QList<BonjourRecord> result;
+
+	for (auto rec : copy.values())
+	{
+		result.push_back(rec);
+	}
+
+	if (_wledService != nullptr)
+	{
+		((BonjourServiceBrowser*)_wledService)->browseForServiceType();
+	}
+
+	return result;
+}
+
 void BonjourBrowserWrapper::foundHyperHDR(const QList<BonjourRecord> &list)
 {
 	printf("------------- Found HyperHDR --------------\n");

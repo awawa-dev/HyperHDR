@@ -13,6 +13,8 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
+#include <QList>
+#include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
 #include <QSerialPortInfo>
@@ -1895,6 +1897,21 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 			ProviderRestApi provider;
 			QUrl url = QUrl("http://"+ip+path);
 
+			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
+
+			if (!url.isValid())
+			{
+				sendErrorReply("Invalid Philips Hue bridge address", full_command, tan);
+				return;
+			}
+
+			if (!isLocal(url.host()))
+			{
+				Error(_log, "Could not resolve '%s' as IP local address at your HyperHDR host device.", QSTRING_CSTR(url.host()));
+				sendErrorReply("The Philips Hue wizard supports only valid IP addresses in the LOCAL network.\nIt may be preferable to use the IP4 address instead of the host name if you are having problems with DNS resolution.", full_command, tan);
+				return;
+			}
+
 			httpResponse result;
 			if (subcommand == "put")
 				result = provider.put(url, data);
@@ -1927,3 +1944,49 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 	else
 		sendErrorReply("No Authorization", full_command, tan);
 }
+
+bool JsonAPI::isLocal(QString hostname)
+{
+	QHostAddress address(hostname);
+
+	if (QAbstractSocket::IPv4Protocol != address.protocol() &&
+		QAbstractSocket::IPv6Protocol != address.protocol())
+	{
+		auto result = QHostInfo::fromName(hostname);
+		if (result.error() == QHostInfo::HostInfoError::NoError)
+		{
+			QList<QHostAddress> list = result.addresses();
+			for(int x = 1; x >= 0; x--)
+				foreach(const QHostAddress& l , list)				
+					if (l.protocol() == (x > 0) ? QAbstractSocket::IPv4Protocol : QAbstractSocket::IPv6Protocol)
+					{
+						address = l;
+						x = 0;
+						break;
+					}				
+		}
+	}
+
+	if (QAbstractSocket::IPv4Protocol == address.protocol())
+	{
+		quint32 adr = address.toIPv4Address();
+		uint8_t a = adr >> 24;
+		uint8_t b = (adr >> 16) & 0xff;
+
+		Debug(_log, "IP4 prefix: %i.%i", a, b);
+
+		return ((a == 192 && b == 168) || (a == 10) || (a == 172 && b >= 16 && b <32));
+	}
+
+	else if (QAbstractSocket::IPv6Protocol == address.protocol())
+	{
+		auto i = address.toString();
+
+		Debug(_log, "IP6 prefix: %s", QSTRING_CSTR(i.left(4)));
+
+		return i.indexOf("fd") == 0 || i.indexOf("fe80") == 0;
+	}
+
+	return false;
+}
+

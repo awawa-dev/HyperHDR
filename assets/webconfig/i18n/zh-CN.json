@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "所有 HyperHDR 实例的 PROTO-Port（已弃用）。<br/>主要用于 Android Screen Grabber 应用。 <span style='color:red;'>HDR 到 SDR 色调映射</span> 可以在 Flatbuffers 服务器配置中启用，它也适用于 Protocol Buffers（共享组件）",
   "edt_conf_stream_dx11_flickering_title": "修复静态图像的闪烁",
   "edt_conf_stream_dx11_flickering_expl": "替代屏幕锁定方法，可以修复在静止图像中显示的捕获视频流的闪烁。某些显卡会受到影响。",
-  "philips_option_changed_bri": "<p style = 'color: red'>首先使用飞利浦移动应用程序设置您的飞利浦 LED 灯：在设置过程中，为您的灯选择 ENTERTAINMENT 组（您应该获得该组的 ID）。否则，使用旧的 json API 的通信性能会很差！</p> 请记住，使用连接到灯具的其他家庭自动化系统在运行 HyperHDR 时会导致各种副作用。"
+  "philips_option_changed_bri": "<p style = 'color: red'>首先使用飞利浦移动应用程序设置您的飞利浦 LED 灯：在设置过程中，为您的灯选择 ENTERTAINMENT 组（您应该获得该组的 ID）。否则，使用旧的 json API 的通信性能会很差！</p> 请记住，使用连接到灯具的其他家庭自动化系统在运行 HyperHDR 时会导致各种副作用。",
+  "select_wled_intro": "选择 WLED",
+  "select_wled_rescan": "重新扫描网络"
 }

@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "PROTO-Port wszystkich instancji HyperHDR (przestarzałe).<br/>Głównie do użytku z aplikacją Android Screen Grabber. <span style='color:red;'>Mapowanie tonów HDR na SDR</span> można włączyć w konfiguracji Flatbuffers Server i działa również dla buforów protokołów (składnik współdzielony)",
   "edt_conf_stream_dx11_flickering_title": "Napraw migotanie statycznych obrazów",
   "edt_conf_stream_dx11_flickering_expl": "Alternatywna metoda blokowania ekranu, która może naprawić migotanie przechwyconego strumienia wideo widoczne na nieruchomym obrazie. Problem dotyczy niektórych kart graficznych.",
-  "philips_option_changed_bri": "<p style = 'color: red'>Najpierw skonfiguruj swoje lampy LED firmy Philips za pomocą aplikacji mobilnej Philips: podczas konfiguracji wybierz grupę ROZRYWKA dla swoich lamp (powinnaś otrzymać identyfikator tej grupy). W przeciwnym razie wydajność komunikacji przy użyciu starego API json będzie bardzo zła!</p> Pamiętaj, że korzystanie z innych systemów automatyki domowej podłączonych do lamp może powodować różne skutki uboczne podczas uruchamiania HyperHDR."
+  "philips_option_changed_bri": "<p style = 'color: red'>Najpierw skonfiguruj swoje lampy LED firmy Philips za pomocą aplikacji mobilnej Philips: podczas konfiguracji wybierz grupę ROZRYWKA dla swoich lamp (powinnaś otrzymać identyfikator tej grupy). W przeciwnym razie wydajność komunikacji przy użyciu starego API json będzie bardzo zła!</p> Pamiętaj, że korzystanie z innych systemów automatyki domowej podłączonych do lamp może powodować różne skutki uboczne podczas uruchamiania HyperHDR.",
+  "select_wled_intro": "Wybierz WLED",
+  "select_wled_rescan": "Ponownie przeskanuj sieć"
 }

@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "The PROTO-Port of all HyperHDR instances (deprecated).<br/>Mainly for use with the Android Screen Grabber app. <span style='color:red;'>HDR to SDR tone mapping</span> can be enabled in Flatbuffers Server configuration and it works also for Protocol Buffers (shared component)",
   "edt_conf_stream_dx11_flickering_title": "Fix flickering of static images",
   "edt_conf_stream_dx11_flickering_expl": "Alternative screen locking method that can fix the flickering of captured video stream revealing in a still image. Certain graphics cards are affected.",
-  "philips_option_changed_bri": "<p style = 'color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR."
+  "philips_option_changed_bri": "<p style = 'color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR.",
+  "select_wled_intro" : "Select WLED",
+  "select_wled_rescan" : "Rescan network"
 } 

@@ -1,8 +1,11 @@
 // Local-HyperHDR includes
 #include "LedDeviceWled.h"
 #include <utils/QStringUtils.h>
-#include <ssdp/SSDPDiscover.h>
-
+#include <HyperhdrConfig.h>
+#include <QString>
+#ifdef ENABLE_BONJOUR
+	#include <bonjour/bonjourbrowserwrapper.h>
+#endif
 
 // Constants
 namespace {
@@ -202,20 +205,31 @@ bool LedDeviceWled::powerOff()
 QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
 	QJsonArray deviceList;
-
-	// Discover WLED Devices
-	SSDPDiscover discover;
-	discover.skipDuplicateKeys(true);
-	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
-	QString searchTarget = SSDP_ID;
-
-	if (discover.discoverServices(searchTarget) > 0)
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
+	
+#ifdef ENABLE_BONJOUR
+	auto bonInstance = BonjourBrowserWrapper::getInstance();
+	if (bonInstance != nullptr)
 	{
-		deviceList = discover.getServicesDiscoveredJson();
+		QList<BonjourRecord> recs;
+
+		if (QThread::currentThread() == bonInstance->thread())
+			recs = bonInstance->getWLED();
+		else
+			QMetaObject::invokeMethod(bonInstance, "getWLED", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QList<BonjourRecord>, recs));
+
+		for (BonjourRecord& r : recs)
+		{
+			QJsonObject newIp;
+			newIp["value"] = QString("%1:%2").arg(r.address).arg(r.port);
+			newIp["name"] = QString("%1 (%2)").arg(newIp["value"].toString()).arg(r.hostName);
+			deviceList.push_back(newIp);
+		}
 	}
+#else
+	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintenair was compiling this version of HyperHDR");
+#endif	
 
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());

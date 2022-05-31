@@ -857,6 +857,43 @@ $(document).ready(function()
 				});				
 			}
 		}
+		else if (ledType == "wled")
+		{					
+			async function wledRefresh(result)
+			{
+				let receiver = $("#selectWledInstances");
+				receiver.off();
+				receiver.empty();
+
+				$("<option />", {value: "", text: $.i18n("select_wled_intro")}).appendTo(receiver);
+
+				if (result.info != null && result.info.devices != null)
+				{					
+					(result.info.devices).forEach(function (val) {
+						$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
+					});
+				}
+
+				$("<option />", {value: -1, text: $.i18n("select_wled_rescan")}).appendTo(receiver);
+
+				receiver.on('change', function ()
+				{
+					let selVal = $("#selectWledInstances").val();
+					if (selVal == -1)
+						requestLedDeviceDiscovery('wled').then( (result) => wledRefresh(result));
+					else if (selVal != "")
+						conf_editor.getEditor('root.specificOptions.host').setValue(selVal);
+				});			
+			}
+
+			let sPort = $("<select id=\"selectWledInstances\" />");				
+			sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
+
+			requestLedDeviceDiscovery('wled').then( (result) => wledRefresh(result));
+				
+			$("input[name='root[specificOptions][host]']")[0].style.width = String(58) + "%";
+			$("input[name='root[specificOptions][host]']")[0].parentElement.appendChild(sPort[0]);			
+		}
 		
 		function changeWizard(data, hint, fn)
 		{

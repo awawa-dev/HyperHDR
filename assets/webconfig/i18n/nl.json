@@ -1162,5 +1162,7 @@
   "conf_network_proto_intro": "De PROTO-poort van alle HyperHDR-instanties (verouderd).<br/>Voornamelijk voor gebruik met de Android Screen Grabber-app. <span style='color:red;'>HDR naar SDR tone mapping</span> kan worden ingeschakeld in de Flatbuffers Server-configuratie en het werkt ook voor Protocol Buffers (gedeelde component)",
   "edt_conf_stream_dx11_flickering_title": "Flikkeren van statische afbeeldingen oplossen",
   "edt_conf_stream_dx11_flickering_expl": "Alternatieve schermvergrendelingsmethode die het flikkeren van vastgelegde videostreams in een stilstaand beeld kan corrigeren. Bepaalde grafische kaarten worden beïnvloed.",
-  "philips_option_changed_bri": "<p style = 'color: red'>Stel eerst uw Philips LED-lampen in met de Philips mobiele app: selecteer tijdens het instellen de ENTERTAINMENT-groep voor uw lampen (u zou de ID van deze groep moeten krijgen). Anders zullen de communicatieprestaties met de oude json-API erg slecht zijn!</p> Onthoud dat het gebruik van andere domoticasystemen die op lampen zijn aangesloten, verschillende bijwerkingen kan veroorzaken bij het uitvoeren van HyperHDR."
+  "philips_option_changed_bri": "<p style = 'color: red'>Stel eerst uw Philips LED-lampen in met de Philips mobiele app: selecteer tijdens het instellen de ENTERTAINMENT-groep voor uw lampen (u zou de ID van deze groep moeten krijgen). Anders zullen de communicatieprestaties met de oude json-API erg slecht zijn!</p> Onthoud dat het gebruik van andere domoticasystemen die op lampen zijn aangesloten, verschillende bijwerkingen kan veroorzaken bij het uitvoeren van HyperHDR.",
+  "select_wled_intro": "Selecteer WLED",
+  "select_wled_rescan": "Netwerk opnieuw scannen"
 }

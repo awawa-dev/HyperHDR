@@ -1743,6 +1743,8 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 			deviceList.push_back(newIp);
 		}
 	}
+#else
+	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintenair was compiling this version of HyperHDR");
 #endif
 	if (deviceList.isEmpty())
 	{
