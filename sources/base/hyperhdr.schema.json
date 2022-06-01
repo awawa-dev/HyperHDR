@@ -102,6 +102,10 @@
 		"leds":
 		{
 			"$ref": "schema-leds.json"
+		},
+		"mqtt":
+		{
+			"$ref": "schema-mqtt.json"
 		}
 	},
 	"additionalProperties" : false

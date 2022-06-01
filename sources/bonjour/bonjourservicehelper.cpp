@@ -109,8 +109,8 @@ void BonjourServiceHelper::run()
 
 mdns_string_t BonjourServiceHelper::ipv4_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in* addr, size_t addrlen)
 {
-	char host[NI_MAXHOST] = { 0 };
-	char service[NI_MAXSERV] = { 0 };
+	char host[NI_MAXHOST] = {};
+	char service[NI_MAXSERV] = {};
 	int ret = getnameinfo((const struct sockaddr*)addr, (socklen_t)addrlen, host, NI_MAXHOST,
 		service, NI_MAXSERV, NI_NUMERICSERV | NI_NUMERICHOST);
 	int len = 0;
@@ -130,8 +130,8 @@ mdns_string_t BonjourServiceHelper::ipv4_address_to_string(char* buffer, size_t 
 
 mdns_string_t BonjourServiceHelper::ipv6_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in6* addr, size_t addrlen)
 {
-	char host[NI_MAXHOST] = { 0 };
-	char service[NI_MAXSERV] = { 0 };
+	char host[NI_MAXHOST] = {};
+	char service[NI_MAXSERV] = {};
 	int ret = getnameinfo((const struct sockaddr*)addr, (socklen_t)addrlen, host, NI_MAXHOST,
 		service, NI_MAXSERV, NI_NUMERICSERV | NI_NUMERICHOST);
 	int len = 0;
@@ -402,13 +402,13 @@ int BonjourServiceHelper::send_mdns_query(mdns_query_t* query, size_t count)
 			printf("Failed to send mDNS query: %s\n", strerror(errno));
 	}
 
-	// This is a simple implementation that loops for 5 seconds or as long as we get replies
+	// This is a simple implementation that loops for 3 seconds or as long as we get replies
 	int res;
 	printf("Reading mDNS query replies\n");
 	int records = 0;
 	do {
 		struct timeval timeout;
-		timeout.tv_sec = 10;
+		timeout.tv_sec = 3;
 		timeout.tv_usec = 0;
 
 		int nfds = 0;
@@ -424,7 +424,7 @@ int BonjourServiceHelper::send_mdns_query(mdns_query_t* query, size_t count)
 		if (res > 0) {
 			for (int isock = 0; isock < num_sockets; ++isock) {
 				if (FD_ISSET(sockets[isock], &readfs)) {
-					int rec = mdns_query_recv(sockets[isock], buffer, capacity, callbackBrowser,
+					int rec = (int)mdns_query_recv(sockets[isock], buffer, capacity, callbackBrowser,
 						user_data, query_id[isock]);
 					if (rec > 0)
 						records += rec;
@@ -455,8 +455,8 @@ int BonjourServiceHelper::callbackBrowser(int sock, const struct sockaddr* from,
 	(void)sizeof(name_length);
 	(void)sizeof(user_data);
 
-	char entrybuffer[256];
-	char namebuffer[256];
+	char entrybuffer[256] = {};
+	char namebuffer[256] = {};
 
 	mdns_string_t entrystr =
 		mdns_string_extract(data, size, &name_offset, entrybuffer, sizeof(entrybuffer));
@@ -468,11 +468,11 @@ int BonjourServiceHelper::callbackBrowser(int sock, const struct sockaddr* from,
 		if (user_data != nullptr)
 		{
 			BonjourServiceBrowser* receive = (BonjourServiceBrowser*)user_data;
-			emit receive->resolve(QString::fromLocal8Bit(srv.name.str).left(srv.name.length), srv.port);
+			emit receive->resolve(QString::fromLocal8Bit(srv.name.str, srv.name.length), srv.port);
 		}
 	}
 	else if (rtype == MDNS_RECORDTYPE_A) {
-		struct sockaddr_in addr;
+		struct sockaddr_in addr = {};
 		mdns_record_parse_a(data, size, record_offset, record_length, &addr);
 		mdns_string_t addrstr =
 			ipv4_address_to_string(namebuffer, sizeof(namebuffer), &addr, sizeof(addr));
@@ -480,8 +480,8 @@ int BonjourServiceHelper::callbackBrowser(int sock, const struct sockaddr* from,
 		if (user_data != nullptr)
 		{
 			BonjourServiceBrowser* receive = (BonjourServiceBrowser*)user_data;
-			emit receive->resolveIp(QString::fromLocal8Bit(entrystr.str).left(entrystr.length),
-				QString::fromLocal8Bit(addrstr.str).left(addrstr.length));
+			emit receive->resolveIp(QString::fromLocal8Bit(entrystr.str, entrystr.length),
+				QString::fromLocal8Bit(addrstr.str, addrstr.length));
 		}
 	}
 	return 0;
@@ -565,18 +565,18 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	mdns_string_t hostname_string = { hostname, strlen(hostname) };
 
 	// Build the service instance "<hostname>.<_service-name>._tcp.local." string
-	char service_instance_buffer[256] = { 0 };
-	snprintf(service_instance_buffer, sizeof(service_instance_buffer) - 1, "%.*s.%.*s",
-		MDNS_STRING_FORMAT(hostname_string), MDNS_STRING_FORMAT(service_string));
+	char service_instance_buffer[256] = {};
+	snprintf(service_instance_buffer, sizeof(service_instance_buffer) - 1, "%.*s:%i.%.*s",
+		MDNS_STRING_FORMAT(hostname_string), service_port, MDNS_STRING_FORMAT(service_string));
 	mdns_string_t service_instance_string = { service_instance_buffer, strlen(service_instance_buffer) };
 
 	// Build the "<hostname>.local." string
-	char qualified_hostname_buffer[256] = { 0 };
+	char qualified_hostname_buffer[256] = {};
 	snprintf(qualified_hostname_buffer, sizeof(qualified_hostname_buffer) - 1, "%.*s.local.",
 		MDNS_STRING_FORMAT(hostname_string));
 	mdns_string_t hostname_qualified_string = { qualified_hostname_buffer, strlen(qualified_hostname_buffer) };
 
-	service_t service = { 0 };
+	service_t service = {};
 	service.service = service_string;
 	service.hostname = hostname_string;
 	service.service_instance = service_instance_string;
@@ -589,6 +589,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	// PTR record reverse mapping "<_service-name>._tcp.local." to
 	// "<hostname>.<_service-name>._tcp.local."
+	service.record_ptr = {};
 	service.record_ptr.name = service.service,
 	service.record_ptr.type = MDNS_RECORDTYPE_PTR;
 	service.record_ptr.data.ptr.name = service.service_instance;
@@ -597,6 +598,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	// SRV record mapping "<hostname>.<_service-name>._tcp.local." to
 	// "<hostname>.local." with port. Set weight & priority to 0.
+	service.record_srv = {};
 	service.record_srv.name = service.service_instance;
 	service.record_srv.type = MDNS_RECORDTYPE_SRV;
 	service.record_srv.data.srv.name = service.hostname_qualified;
@@ -607,12 +609,14 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	service.record_srv.ttl = 0;
 
 	// A/AAAA records mapping "<hostname>.local." to IPv4/IPv6 addresses
+	service.record_a = {};
 	service.record_a.name = service.hostname_qualified;
 	service.record_a.type = MDNS_RECORDTYPE_A;
 	service.record_a.data.a.addr = service.address_ipv4;
 	service.record_a.rclass = 0;
 	service.record_a.ttl = 0;
 
+	service.record_aaaa = {};
 	service.record_aaaa.name = service.hostname_qualified;
 	service.record_aaaa.type = MDNS_RECORDTYPE_AAAA;
 	service.record_aaaa.data.aaaa.addr = service.address_ipv6;
@@ -621,6 +625,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	// Add two test TXT records for our service instance name, will be coalesced into
 	// one record with both key-value pair strings by the library
+	service.txt_record[0] = {};
 	service.txt_record[0].name = service.service_instance;
 	service.txt_record[0].type = MDNS_RECORDTYPE_TXT;
 	service.txt_record[0].data.txt.key = {MDNS_STRING_CONST("version")};
@@ -631,7 +636,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	// Send an announcement on startup of service
 	{
 		printf("Sending announce\n");
-		mdns_record_t additional[5] = { 0 };
+		mdns_record_t additional[5] = {};
 		size_t additional_count = 0;
 		additional[additional_count++] = service.record_srv;
 		if (service.address_ipv4.sin_family == AF_INET)
@@ -677,7 +682,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	// Send a goodbye on end of service
 	{
 		printf("Sending goodbye\n");
-		mdns_record_t additional[5] = { 0 };
+		mdns_record_t additional[5] = {};
 		size_t additional_count = 0;
 		additional[additional_count++] = service.record_srv;
 		if (service.address_ipv4.sin_family == AF_INET)
@@ -743,7 +748,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 			// Answer PTR record reverse mapping "<_service-name>._tcp.local." to
 			// "<hostname>.<_service-name>._tcp.local."
-			mdns_record_t answer;
+			mdns_record_t answer = {};
 			answer.name = name;
 			answer.type = MDNS_RECORDTYPE_PTR;
 			answer.data.ptr.name = service->service;
@@ -776,7 +781,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// "<hostname>.<_service-name>._tcp.local."
 			mdns_record_t answer = service->record_ptr;
 
-			mdns_record_t additional[5] = { 0 };
+			mdns_record_t additional[5] = {};
 			size_t additional_count = 0;
 
 			// SRV record mapping "<hostname>.<_service-name>._tcp.local." to
@@ -820,7 +825,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// "<hostname>.<_service-name>._tcp.local."
 			mdns_record_t answer = service->record_srv;
 
-			mdns_record_t additional[5] = { 0 };
+			mdns_record_t additional[5] = {};
 			size_t additional_count = 0;
 
 			// A/AAAA records mapping "<hostname>.local." to IPv4/IPv6 addresses
@@ -858,7 +863,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// Answer A records mapping "<hostname>.local." to IPv4 address
 			mdns_record_t answer = service->record_a;
 
-			mdns_record_t additional[5] = { 0 };
+			mdns_record_t additional[5] = {};
 			size_t additional_count = 0;
 
 			// AAAA record mapping "<hostname>.local." to IPv6 addresses
@@ -891,7 +896,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// Answer AAAA records mapping "<hostname>.local." to IPv6 address
 			mdns_record_t answer = service->record_aaaa;
 
-			mdns_record_t additional[5] = { 0 };
+			mdns_record_t additional[5] = {};
 			size_t additional_count = 0;
 
 			// A record mapping "<hostname>.local." to IPv4 addresses

@@ -11,6 +11,7 @@ $(document).ready( function() {
 	var conf_editor_bobl = null;
 	var conf_editor_forw = null;
 	var conf_editor_rawUdp = null;
+	var conf_editor_mqtt = null;
 	
 	{
 		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_webc_heading_title"), 'editor_container', 'btn_submit_www'));
@@ -27,6 +28,9 @@ $(document).ready( function() {
 		//flatbufserver
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
 		$('#conf_cont').append(createHelpTable(window.schema.flatbufServer.properties, $.i18n("edt_conf_fbs_heading_title")));
+
+		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_mqtt_heading_title"), 'editor_container_mqtt', 'btn_submit_mqtt'));
+		$('#conf_cont').append(createHelpTable(window.schema.mqtt.properties, $.i18n("edt_conf_mqtt_heading_title")));
 		
 		if (window.serverInfo.hasPROTOBUF == 1)
 		{
@@ -111,6 +115,19 @@ $(document).ready( function() {
 		requestWriteConfig(conf_editor_fbs.getValue());
 	});
 
+	//
+	conf_editor_mqtt = createJsonEditor('editor_container_mqtt', {
+		mqtt        : window.schema.mqtt
+	}, true, true);
+
+	conf_editor_mqtt.on('change',function() {
+		conf_editor_mqtt.validate().length || window.readOnlyMode ? $('#btn_submit_mqtt').attr('disabled', true) : $('#btn_submit_mqtt').attr('disabled', false);
+	});
+
+	$('#btn_submit_mqtt').off().on('click',function() {
+		requestWriteConfig(conf_editor_mqtt.getValue());
+	});
+
 	if (window.serverInfo.hasPROTOBUF == 1)
 	{
 		//protobuffer
@@ -182,6 +199,7 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_network_net_intro'), "editor_container_net");
 		createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
+		createHint("intro", $.i18n('conf_network_mqtt_intro'), "editor_container_mqtt");
 		createHint("intro", $.i18n('edt_udp_raw_server'), "editor_container_rawUdpServer");
 		
 		if (window.serverInfo.hasPROTOBUF == 1)

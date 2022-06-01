@@ -1,5 +1,6 @@
 #include <bonjour/bonjourserviceregister.h>
 #include <HyperhdrConfig.h>
+#include <QTimer>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject* parent, const QString& service, int port) :
 	QObject(parent),
@@ -22,6 +23,5 @@ BonjourServiceRegister::~BonjourServiceRegister()
 
 void BonjourServiceRegister::registerService()
 {
-	if (_helper != nullptr)
-		_helper->start();
+	QTimer::singleShot(1500, [this]() { if (_helper != nullptr) _helper->start(); });
 }

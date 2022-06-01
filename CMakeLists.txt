@@ -58,7 +58,6 @@ SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
 SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
-SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_MF                          OFF )
@@ -73,6 +72,8 @@ SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 SET ( DEFAULT_CEC                         OFF )
 SET ( DEFAULT_BONJOUR                     ON  )
+SET ( DEFAULT_MQTT                        ON  )
+SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )	
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
@@ -352,6 +353,10 @@ message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 message(STATUS "ENABLE_PROTOBUF = ${ENABLE_PROTOBUF}")
 
+option(ENABLE_MQTT "Enable MQTT" ${DEFAULT_MQTT})
+message(STATUS "ENABLE_MQTT = ${ENABLE_MQTT}")
+
+option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
 message(STATUS "USE_STATIC_QT_PLUGINS = ${USE_STATIC_QT_PLUGINS}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -539,8 +544,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto)
-	set_target_properties(apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt)
+	set_target_properties(qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

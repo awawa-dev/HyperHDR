@@ -31,6 +31,10 @@ if(ENABLE_BONJOUR)
 	add_subdirectory(bonjour)
 endif()
 
+if(ENABLE_MQTT)
+	add_subdirectory(mqtt)
+endif()
+
 # Executables
 add_subdirectory(hyperhdr)
 if (NOT APPLE)

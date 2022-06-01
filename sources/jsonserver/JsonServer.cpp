@@ -6,10 +6,6 @@
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
-// bonjour include
-#ifdef ENABLE_BONJOUR
-#include <bonjour/bonjourserviceregister.h>
-#endif
 #include <utils/NetOrigin.h>
 
 // qt includes
@@ -49,21 +45,8 @@ void JsonServer::start()
 		Error(_log, "Could not bind to port '%d', please use an available port", _port);
 		return;
 	}
-	Info(_log, "Started on port %d", _port);
 
-#ifdef ENABLE_BONJOUR
-	if (_serviceRegister == nullptr)
-	{
-		_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-json._tcp", _port);
-		_serviceRegister->registerService();
-	}
-	else if (_serviceRegister->getPort() != _port)
-	{
-		delete _serviceRegister;
-		_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-json._tcp", _port);
-		_serviceRegister->registerService();
-	}
-#endif
+	Info(_log, "Started on port %d", _port);
 }
 
 void JsonServer::stop()

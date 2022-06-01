@@ -12,3 +12,7 @@
 [submodule "dependencies/external/libcec"]
 	path = dependencies/external/libcec
 	url = https://github.com/awawa-dev/libcec.git
+[submodule "dependencies/external/qmqtt"]
+	path = dependencies/external/qmqtt
+	url = https://github.com/emqx/qmqtt.git
+	ignore = dirty

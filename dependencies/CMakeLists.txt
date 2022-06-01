@@ -139,3 +139,14 @@ else()
 	mark_as_advanced (MBEDTLS_INCLUDE_DIR MBEDTLS_LIBRARIES MBEDTLS_SSL_LIBRARY MBEDTLS_X509_LIBRARY MBEDTLS_CRYPTO_LIBRARY)
 
 endif (USE_SYSTEM_MBEDTLS_LIBS)
+
+if ( ENABLE_MQTT )
+	# HyperHDR workaround for fixed Qt5 version
+	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt/CMakeLists.txt" FILE_CONTENTS)
+	string(REPLACE "Qt5" "Qt${Qt_VERSION}" FILE_CONTENTS "${FILE_CONTENTS}")
+	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
+
+	set(qmqtt_SHARED OFF)
+	set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt)	
+ENDIF()

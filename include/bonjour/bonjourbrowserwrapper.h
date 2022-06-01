@@ -45,6 +45,7 @@ private:
 	QMap<QString, BonjourRecord> _hyperhdrSessions, _wledDevices, _hueDevices;
 	QObject*	_hueService;
 	QObject*	_wledService;
+	QObject*	_hyperhdrService;
 
 private slots:
 	///

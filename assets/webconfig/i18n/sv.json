@@ -1164,5 +1164,17 @@
   "edt_conf_stream_dx11_flickering_expl": "Alternativ skärmlåsningsmetod som kan fixa flimmer från inspelad videoström som avslöjar en stillbild. Vissa grafikkort påverkas.",
   "philips_option_changed_bri": "<p style = 'color: red'>Konfigurera först dina Philips LED-lampor med Philips mobilapp: under installationen väljer du gruppen UNDERHÅLLNING för dina lampor (du bör få ID för denna grupp). Annars kommer kommunikationsprestanda med det gamla json-API:et att bli mycket dålig!</p> Kom ihåg att användning av andra hemautomationssystem anslutna till lampor kan orsaka olika biverkningar när du kör HyperHDR.",
   "select_wled_intro": "Välj WLED",
-  "select_wled_rescan": "Skanna nätverket igen"
+  "select_wled_rescan": "Skanna nätverket igen",
+  "edt_conf_mqtt_heading_title": "MQTT-klient",
+  "conf_network_mqtt_intro": "Registrering av HyperHDR-tjänster hos MQTT-mäklaren",
+  "edt_conf_mqtt_ip_title": "Värdnamn",
+  "edt_conf_mqtt_ip_expl": "MQTT-mäklaradress",
+  "edt_conf_mqtt_username_title": "Användarnamn",
+  "edt_conf_mqtt_username_expl": "Användarnamn vid behov",
+  "edt_conf_mqtt_password_title": "Lösenord",
+  "edt_conf_mqtt_password_expl": "Lösenord vid behov",
+  "edt_conf_mqtt_is_ssl_title": "SSL",
+  "edt_conf_mqtt_is_ssl_expl": "Använd SSL-protokoll",
+  "edt_conf_mqtt_ssl_ignore_errors_title": "Ignorera SSL-fel",
+  "edt_conf_mqtt_ssl_ignore_errors_expl": "Ignorera alla SSL-fel såsom självsignerade certifikat etc. Använd med försiktighet."
 }

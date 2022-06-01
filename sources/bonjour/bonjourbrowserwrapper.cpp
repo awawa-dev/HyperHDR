@@ -24,19 +24,21 @@ BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 	BonjourBrowserWrapper::instance = this;
 		
 	BonjourServiceBrowser* hue = new BonjourServiceBrowser(this, QLatin1String("_hue._tcp"));
-	connect(hue, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundPhilipsHUE);
-	hue->browseForServiceType();
+	connect(hue, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundPhilipsHUE);	
 
 	BonjourServiceBrowser* wled = new BonjourServiceBrowser(this, QLatin1String("_wled._tcp"));
-	connect(wled, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundWLED);
-	wled->browseForServiceType();
+	connect(wled, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundWLED);	
 
 	BonjourServiceBrowser* hyperhdr = new BonjourServiceBrowser(this, QLatin1String("_hyperhdr-http._tcp"));
-	connect(hyperhdr, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundHyperHDR);
-	hyperhdr->browseForServiceType();
+	connect(hyperhdr, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundHyperHDR);	
 
 	_hueService = hue;
 	_wledService = wled;
+	_hyperhdrService = hyperhdr;
+
+	QTimer::singleShot(1000, [this]() {if (_hyperhdrService != nullptr) ((BonjourServiceBrowser*)_hyperhdrService)->browseForServiceType(); });
+	QTimer::singleShot(1100, [this]() {if (_hueService != nullptr) ((BonjourServiceBrowser*)_hueService)->browseForServiceType(); });
+	QTimer::singleShot(1200, [this]() {if (_wledService != nullptr) ((BonjourServiceBrowser*)_wledService)->browseForServiceType(); });
 }
 
 const QList<BonjourRecord> BonjourBrowserWrapper::getPhilipsHUE()

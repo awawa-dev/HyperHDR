@@ -1164,5 +1164,17 @@
   "edt_conf_stream_dx11_flickering_expl": "Alternativní metoda uzamčení obrazovky, která dokáže opravit blikání zachyceného video streamu odhalujícího na statickém obrázku. Některé grafické karty jsou ovlivněny.",
   "philips_option_changed_bri": "<p style = 'color: red'>Nejprve nastavte své LED lampy Philips pomocí mobilní aplikace Philips: během nastavování vyberte pro své lampy skupinu ZÁBAVA (měli byste získat ID této skupiny). V opačném případě bude komunikační výkon pomocí starého json API velmi špatný!</p> Pamatujte, že používání jiných systémů domácí automatizace připojených k lampám může způsobit různé vedlejší efekty při spuštění HyperHDR.",
   "select_wled_intro": "Vyberte WLED",
-  "select_wled_rescan": "Znovu prohledejte síť"
+  "select_wled_rescan": "Znovu prohledejte síť",
+  "edt_conf_mqtt_heading_title": "Klient MQTT",
+  "conf_network_mqtt_intro": "Registrace služeb HyperHDR u brokera MQTT",
+  "edt_conf_mqtt_ip_title": "Název hostitele",
+  "edt_conf_mqtt_ip_expl": "Adresa makléře MQTT",
+  "edt_conf_mqtt_username_title": "uživatelské jméno",
+  "edt_conf_mqtt_username_expl": "V případě potřeby uživatelské jméno",
+  "edt_conf_mqtt_password_title": "Heslo",
+  "edt_conf_mqtt_password_expl": "Je-li požadováno heslo",
+  "edt_conf_mqtt_is_ssl_title": "SSL",
+  "edt_conf_mqtt_is_ssl_expl": "Použijte protokol SSL",
+  "edt_conf_mqtt_ssl_ignore_errors_title": "Ignorovat chyby SSL",
+  "edt_conf_mqtt_ssl_ignore_errors_expl": "Ignorujte všechny chyby SSL, jako jsou certifikáty s vlastním podpisem atd. Používejte opatrně."
 }

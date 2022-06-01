@@ -51,6 +51,10 @@
 // Define to enable network discovery
 #cmakedefine ENABLE_BONJOUR
 
+// Define to enable MQTT network client
+#cmakedefine ENABLE_MQTT
+
+// Define to enable protobuf
 #cmakedefine ENABLE_PROTOBUF
 
 // the hyperhdr build id string

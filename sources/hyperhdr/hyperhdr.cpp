@@ -99,6 +99,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _cecHandler(nullptr)
 	, _ssdp(nullptr)
 	, _flatBufferServer(nullptr)
+	, _mqtt(nullptr)
 #if defined(ENABLE_PROTOBUF)
 	, _protoServer(nullptr)
 #endif
@@ -273,6 +274,7 @@ void HyperHdrDaemon::freeObjects()
 	_bonjourBrowserWrapper = nullptr;
 #endif	
 
+	delete _mqtt;
 	delete _v4l2Grabber;
 	delete _mfGrabber;
 	delete _dxGrabber;
@@ -355,6 +357,13 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperHdrDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
+
+#ifdef ENABLE_MQTT
+	_mqtt = new mqtt(this);
+	connect(this, &HyperHdrDaemon::settingsChanged, _mqtt, &mqtt::handleSettingsUpdate);
+	emit _mqtt->handleSettingsUpdate(settings::type::WEBSERVER, _settingsManager->getSetting(settings::type::WEBSERVER));
+	QTimer::singleShot(1500, [this]() {emit _mqtt->handleSettingsUpdate(settings::type::MQTT, _settingsManager->getSetting(settings::type::MQTT)); });
+#endif
 }
 
 void HyperHdrDaemon::handleSettingsUpdateGlobal(settings::type settingsType, const QJsonDocument& config)

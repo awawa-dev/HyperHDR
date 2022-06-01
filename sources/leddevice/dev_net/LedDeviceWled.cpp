@@ -26,13 +26,6 @@ namespace {
 	// List of State Information
 	const char STATE_VALUE_TRUE[] = "true";
 	const char STATE_VALUE_FALSE[] = "false";
-
-	// WLED ssdp services
-	// TODO: WLED - Update ssdp discovery parameters when available
-	const char SSDP_ID[] = "ssdp:all";
-	const char SSDP_FILTER[] = "(.*)";
-	const char SSDP_FILTER_HEADER[] = "ST";
-
 } //End of constants
 
 LedDeviceWled::LedDeviceWled(const QJsonObject& deviceConfig)

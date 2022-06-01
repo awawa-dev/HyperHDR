@@ -1164,5 +1164,17 @@
   "edt_conf_stream_dx11_flickering_expl": "Phương pháp khóa màn hình thay thế có thể khắc phục sự cố nhấp nháy của luồng video đã chụp hiển thị trong hình ảnh tĩnh. Một số card đồ họa bị ảnh hưởng.",
   "philips_option_changed_bri": "<p style = 'color: red'> Trước tiên, hãy thiết lập đèn LED Philips của bạn bằng ứng dụng Philips dành cho thiết bị di động: trong khi thiết lập, hãy chọn nhóm GIẢI TRÍ cho đèn của bạn (bạn nên lấy ID của nhóm này). Nếu không, hiệu suất giao tiếp khi sử dụng API json cũ sẽ rất kém! </p> Hãy nhớ rằng việc sử dụng các hệ thống tự động hóa gia đình khác được kết nối với đèn có thể gây ra nhiều tác dụng phụ khác nhau khi chạy HyperHDR.",
   "select_wled_intro": "Chọn WLED",
-  "select_wled_rescan": "Quét lại mạng"
+  "select_wled_rescan": "Quét lại mạng",
+  "edt_conf_mqtt_heading_title": "Máy khách MQTT",
+  "conf_network_mqtt_intro": "Đăng ký dịch vụ HyperHDR với nhà môi giới MQTT",
+  "edt_conf_mqtt_ip_title": "Tên máy chủ",
+  "edt_conf_mqtt_ip_expl": "Địa chỉ nhà môi giới MQTT",
+  "edt_conf_mqtt_username_title": "tên tài khoản",
+  "edt_conf_mqtt_username_expl": "Tên người dùng nếu được yêu cầu",
+  "edt_conf_mqtt_password_title": "Mật khẩu",
+  "edt_conf_mqtt_password_expl": "Mật khẩu nếu được yêu cầu",
+  "edt_conf_mqtt_is_ssl_title": "SSL",
+  "edt_conf_mqtt_is_ssl_expl": "Sử dụng giao thức SSL",
+  "edt_conf_mqtt_ssl_ignore_errors_title": "Bỏ qua lỗi SSL",
+  "edt_conf_mqtt_ssl_ignore_errors_expl": "Bỏ qua tất cả các lỗi SSL như chứng chỉ tự ký, v.v. Sử dụng một cách thận trọng."
 }

@@ -1,0 +1,14 @@
+# Define the current source locations
+set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/mqtt)
+set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/mqtt)
+
+FILE ( GLOB mqtt_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
+
+add_library(mqtt ${mqtt_SOURCES} )
+
+target_link_libraries(mqtt
+	hyperhdr-base
+	hyperhdr-utils
+	${QT_LIBRARIES}
+	qmqtt
+)

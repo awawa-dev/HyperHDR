@@ -47,6 +47,12 @@
 	typedef QObject PipewireWrapper;
 #endif
 
+#ifdef ENABLE_MQTT
+#include <mqtt/mqtt.h>
+#else
+	typedef QObject mqtt;
+#endif
+
 
 #ifdef ENABLE_MAC_SYSTEM
 #include <grabber/macOsWrapper.h>
@@ -78,6 +84,7 @@ class FlatBufferServer;
 class ProtoServer;
 class AuthManager;
 class NetOrigin;
+
 #ifdef ENABLE_SOUNDCAPWINDOWS
 	class SoundCapWindows;
 #endif
@@ -183,6 +190,7 @@ private:
 	cecHandler*				_cecHandler;
 	SSDPHandler*			_ssdp;
 	FlatBufferServer*		_flatBufferServer;
+	mqtt*					_mqtt;
 
 #if defined(ENABLE_PROTOBUF)
 	ProtoServer* _protoServer;

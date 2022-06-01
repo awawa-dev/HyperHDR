@@ -33,6 +33,7 @@ namespace settings {
 		FLATBUFSERVER,
 		RAWUDPSERVER,
 		PROTOSERVER,
+		MQTT,
 		INVALID
 	};
 
@@ -70,7 +71,8 @@ namespace settings {
 		case type::FLATBUFSERVER: return "flatbufServer";
 		case type::RAWUDPSERVER:  return "rawUdpServer";
 		case type::PROTOSERVER:   return "protoServer";
-		default:            return "invalid";
+		case type::MQTT:          return "mqtt";
+		default:                  return "invalid";
 		}
 	}
 
@@ -81,7 +83,7 @@ namespace settings {
 	///
 	inline type stringToType(const QString& type)
 	{
-		if (type == "soundEffect")          return type::SNDEFFECT;
+		if (type == "soundEffect")               return type::SNDEFFECT;
 		else if (type == "backgroundEffect")     return type::BGEFFECT;
 		else if (type == "foregroundEffect")     return type::FGEFFECT;
 		else if (type == "blackborderdetector")  return type::BLACKBORDER;
@@ -106,6 +108,7 @@ namespace settings {
 		else if (type == "flatbufServer")        return type::FLATBUFSERVER;
 		else if (type == "rawUdpServer")         return type::RAWUDPSERVER;
 		else if (type == "protoServer")          return type::PROTOSERVER;
+		else if (type == "mqtt")                 return type::MQTT;
 		else                                     return type::INVALID;
 	}
 }

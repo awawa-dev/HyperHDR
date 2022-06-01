@@ -1,0 +1,71 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_mqtt_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"host" : {
+			"type": "string",
+			"title":"edt_conf_mqtt_ip_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 2
+		},
+		"port" :
+		{
+			"type" : "integer",
+			"required" : true,
+			"title" : "edt_conf_general_port_title",
+			"default" : 1883,
+			"minimum" : 1024,
+			"maximum" : 65535,
+			"propertyOrder" : 3
+		},
+		"username" : {
+			"type": "string",
+			"title":"edt_conf_mqtt_username_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 4
+		},
+		"password" : {
+			"type": "string",
+			"title":"edt_conf_mqtt_password_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 5
+		},
+		"is_ssl" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_mqtt_is_ssl_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 6
+		},
+		"ignore_ssl_errors" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_mqtt_ssl_ignore_errors_title",
+			"default" : true,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"is_ssl": true
+				}
+			},
+			"propertyOrder" : 7
+		}
+	},
+	"additionalProperties" : false
+}

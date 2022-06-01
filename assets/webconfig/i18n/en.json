@@ -1164,5 +1164,17 @@
   "edt_conf_stream_dx11_flickering_expl": "Alternative screen locking method that can fix the flickering of captured video stream revealing in a still image. Certain graphics cards are affected.",
   "philips_option_changed_bri": "<p style = 'color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR.",
   "select_wled_intro" : "Select WLED",
-  "select_wled_rescan" : "Rescan network"
+  "select_wled_rescan" : "Rescan network",
+  "edt_conf_mqtt_heading_title" : "MQTT client",
+  "conf_network_mqtt_intro" : "Registration of HyperHDR services with the MQTT broker",
+  "edt_conf_mqtt_ip_title" : "Hostname",
+  "edt_conf_mqtt_ip_expl" : "MQTT broker address",
+  "edt_conf_mqtt_username_title" : "Username",
+  "edt_conf_mqtt_username_expl" : "Username if required",
+  "edt_conf_mqtt_password_title" : "Password",
+  "edt_conf_mqtt_password_expl" : "Password if required",
+  "edt_conf_mqtt_is_ssl_title" : "SSL",
+  "edt_conf_mqtt_is_ssl_expl" : "Use SSL protocol",
+  "edt_conf_mqtt_ssl_ignore_errors_title" : "Ignore SSL errors",
+  "edt_conf_mqtt_ssl_ignore_errors_expl" : "Ignore all SSL errors such as self-signed certificates etc. Use with caution."
 } 
