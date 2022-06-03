@@ -548,6 +548,30 @@ macro(DeployWindows TARGET)
 			)
 		endif()
 
+		# Copy MQTT Libs
+		if (ENABLE_MQTT)
+			set (MQTT_TARGET_LIB_FOLDER ${LIBRARY_OUTPUT_PATH}/${CMAKE_BUILD_TYPE})
+			message(${MQTT_TARGET_LIB_FOLDER})
+			find_file(MQTT_DLL
+				NAMES "qmqtt.dll"
+				PATHS "${MQTT_TARGET_LIB_FOLDER}"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+			message(${MQTT_DLL})
+			if(NOT CMAKE_GITHUB_ACTION)
+				get_filename_component(MQTT_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
+				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MQTT_DLL} ${MQTT_RUNTIME_TARGET})
+			endif()
+
+			install(
+				FILES ${MQTT_DLL}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+		endif()
+
+
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
 		install(

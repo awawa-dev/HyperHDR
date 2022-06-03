@@ -325,6 +325,7 @@ option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
 
 option(ENABLE_BONJOUR "Enable the network discovery service" ${DEFAULT_BONJOUR} )
+message(STATUS "ENABLE_BONJOUR = ${ENABLE_BONJOUR}")
 
 option(ENABLE_MF "Enable Windows Media Foundation grabber" ${DEFAULT_MF})
 message(STATUS "ENABLE_MF = ${ENABLE_MF}")

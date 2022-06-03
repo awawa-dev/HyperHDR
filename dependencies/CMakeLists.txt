@@ -146,7 +146,10 @@ if ( ENABLE_MQTT )
 	string(REPLACE "Qt5" "Qt${Qt_VERSION}" FILE_CONTENTS "${FILE_CONTENTS}")
 	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
 
-	set(qmqtt_SHARED OFF)
-	set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+	if (NOT WIN32)	
+		set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+		set(qmqtt_SHARED OFF)
+	endif()
+
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt)	
 ENDIF()
