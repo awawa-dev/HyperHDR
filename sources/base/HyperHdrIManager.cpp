@@ -273,7 +273,7 @@ void HyperHdrIManager::handleStarted()
 
 	_startQueue.removeAll(instance);
 	_runningInstances.insert(instance, hyperhdr);
-	emit instanceStateChanged(InstanceState::H_STARTED, instance);
+	emit instanceStateChanged(InstanceState::H_STARTED, instance, _instanceTable->getNamebyIndex(instance));
 	emit change();
 
 	if (_pendingRequests.contains(instance))

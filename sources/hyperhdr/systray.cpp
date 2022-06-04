@@ -28,11 +28,7 @@ SysTray::SysTray(HyperHdrDaemon* hyperhdrd)
 	, _instanceManager(HyperHdrIManager::getInstance())
 	, _webPort(8090)
 {
-	Q_INIT_RESOURCE(resources);
-
-	// webserver port
-	WebServer* webserver = hyperhdrd->getWebServerInstance();
-	connect(webserver, &WebServer::portChanged, this, &SysTray::webserverPortChanged);
+	Q_INIT_RESOURCE(resources);	
 
 	// instance changes
 	connect(_instanceManager, &HyperHdrIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
@@ -212,6 +208,11 @@ void SysTray::settings()
 		::dup2(STDOUT_FILENO, STDERR_FILENO);
 	}
 #endif
+
+	if (_hyperhdrd)
+	{		
+		_webPort = _hyperhdrd->getWebPort();		
+	}
 
 	QDesktopServices::openUrl(QUrl("http://localhost:" + QString::number(_webPort) + "/", QUrl::TolerantMode));
 

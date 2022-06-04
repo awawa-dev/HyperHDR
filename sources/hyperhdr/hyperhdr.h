@@ -139,6 +139,7 @@ public slots:
 	void freeObjects();
 	void enableCEC(bool enabled, QString info);
 	void keyPressedCEC(int keyCode);
+	quint16 getWebPort();
 
 signals:
 

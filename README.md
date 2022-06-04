@@ -62,6 +62,15 @@ SSH and SPI are enabled on default.
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
 - Support for software screen grabbers: DirectX11, CoreGraphics, X11
 - New software grabber for Linux: Wayland (pipewire/portal) which also means support for **Ubuntu 22.04 LTS** :new:
+- Registering HyperHDR services with the MQTT broker :new:
+- Frame Buffer software screen grabber (Linux) :new:
+- Reworked network discovery service and added Windows support :new:
+- Improved Philips Hue wizard :new:
+- WLED Configuration Wizard can discover WLED devices on the network :new:
+- Protocol buffers HDR tone mapping :new:
+- Replaced protobuf with a lightweight nanopb library :new:
+- System event support: hibernation/sleep/wake up/resume :new:
+- Added WLED auto-resume initialization and improved existing Philips Hue auto-resume feature :new:
 - Wayland grabber: support for pipewire/portal version 4 protocol persistent authentication :new:
 - [New fully automatic LUT calibration for HDR/SDR/YUV](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html) :new:
 - 30% improved performance for MJPEG HDR mode :new:

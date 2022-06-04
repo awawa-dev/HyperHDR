@@ -366,6 +366,11 @@ void HyperHdrDaemon::startNetworkServices()
 #endif
 }
 
+quint16 HyperHdrDaemon::getWebPort()
+{
+	return (quint16)getSetting(settings::type::WEBSERVER).object()["port"].toInt(8090);
+}
+
 void HyperHdrDaemon::handleSettingsUpdateGlobal(settings::type settingsType, const QJsonDocument& config)
 {
 	if (settingsType == settings::type::SYSTEMCONTROL || settingsType == settings::type::VIDEOCONTROL || settingsType == settings::type::VIDEOGRABBER)

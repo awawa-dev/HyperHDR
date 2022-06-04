@@ -1888,7 +1888,7 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 
 		if (service == "hue")
 		{
-			if (path.indexOf("/api") != 0)
+			if (path.indexOf("/api") != 0 || ip.indexOf("/") >= 0)
 			{
 				sendErrorReply("Invalid path", full_command, tan);
 				return;

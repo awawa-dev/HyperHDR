@@ -36,11 +36,6 @@ private slots:
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
 	///
-	/// @brief is called whenever the webserver changes the port
-	///
-	void webserverPortChanged(quint16 port) { _webPort = port; };
-
-	///
 	/// @brief is called whenever a hyperhdr instance state changes
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
@@ -80,8 +75,8 @@ private:
 
 	QColorDialog* _colorDlg;
 
-	HyperHdrDaemon* _hyperhdrd;
-	HyperHdrInstance* _hyperhdr;
-	HyperHdrIManager* _instanceManager;
-	quint16            _webPort;
+	HyperHdrDaemon*		_hyperhdrd;
+	HyperHdrInstance*	_hyperhdr;
+	HyperHdrIManager*	_instanceManager;
+	quint16				_webPort;
 };

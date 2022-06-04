@@ -3,7 +3,7 @@ name: HyperHDR CI Build
 on: [push]
 
 env:
-    USE_CACHE: "1"
+    USE_CACHE: "0"
     RESET_CACHE: "0"
     
 jobs:
@@ -122,7 +122,7 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew update && brew install qt@6 xz ccache protobuf
+        run: brew update && brew install qt@6 xz ccache
 
         # Build process
       - name: Build packages
