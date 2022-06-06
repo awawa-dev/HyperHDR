@@ -215,7 +215,7 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 		for (BonjourRecord& r : recs)
 		{
 			QJsonObject newIp;
-			newIp["value"] = QString("%1:%2").arg(r.address).arg(r.port);
+			newIp["value"] = QString("%1").arg(r.address);
 			newIp["name"] = QString("%1 (%2)").arg(newIp["value"].toString()).arg(r.hostName);
 			deviceList.push_back(newIp);
 		}

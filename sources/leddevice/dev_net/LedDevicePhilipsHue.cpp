@@ -600,7 +600,10 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, boo
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
-{	
+{
+	if (_restApi == nullptr)
+		return httpResponse().getBody();
+
 	_restApi->setPath(route);
 
 	httpResponse response = _restApi->get();		

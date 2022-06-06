@@ -1,6 +1,7 @@
 #include <cassert>
 #include <stdlib.h>
 
+#include <QTimer>
 #include <QCoreApplication>
 #include <QResource>
 #include <QLocale>

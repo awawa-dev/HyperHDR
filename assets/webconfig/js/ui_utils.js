@@ -1039,7 +1039,7 @@ function getReleases(callback)
 					if(releases[i].draft)
 						continue;
 
-					if(!releases[i].tag_name.includes('alpha') && !releases[i].tag_name.includes('beta'))
+					//if(!releases[i].tag_name.includes('alpha') && !releases[i].tag_name.includes('beta'))
 					{
 						if (compareHyperHdrVersion(releases[i].tag_name, highestRelease.tag_name))
 							highestRelease = releases[i];
