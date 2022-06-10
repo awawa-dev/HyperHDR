@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <limits>
 #include <QThread>
+#include <QTimer>
 
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
