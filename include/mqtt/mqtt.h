@@ -39,5 +39,5 @@ private:
 	/// Logger instance
 	int			_jsonPort;
 	Logger*		_log;
-	QObject*	_clientInstance;	
+	QMQTT::Client*	_clientInstance;
 };
