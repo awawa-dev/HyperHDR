@@ -131,7 +131,7 @@ int ProviderUdp::open()
 	}
 	else
 	{
-		this->setInError(" Open error. UDP Socket not initialised!");
+		Warning(_log, "Open error. The UDP socket instance is not initialised yet. Ignoring.");
 	}
 	return retval;
 }
