@@ -80,6 +80,7 @@ signals:
 	void StateChanged(QString device, QString videoMode);
 	void cecKeyPressed(int key);
 	void benchmarkUpdate(int status, QString message);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 
 public:
 	int  getHdrToneMappingEnabled();
@@ -93,7 +94,7 @@ public slots:
 	void setFpsSoftwareDecimation(int decimation);
 	void setHdrToneMappingEnabled(int mode);
 	void setEncoding(QString enc);
-	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	void setBrightnessContrastSaturationHueHandler(int brightness, int contrast, int saturation, int hue);
 	void setQFrameDecimation(int setQframe);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 

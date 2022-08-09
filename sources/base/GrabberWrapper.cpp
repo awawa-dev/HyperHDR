@@ -61,7 +61,9 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber* ggrabber)
 	// listen for source requests
 	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &GrabberWrapper::handleSourceRequest);
 
-	connect(this, &GrabberWrapper::cecKeyPressed, this, &GrabberWrapper::cecKeyPressedHandler);	
+	connect(this, &GrabberWrapper::cecKeyPressed, this, &GrabberWrapper::cecKeyPressedHandler);
+
+	connect(this, &GrabberWrapper::setBrightnessContrastSaturationHue, this, &GrabberWrapper::setBrightnessContrastSaturationHueHandler);
 
 }
 
@@ -347,7 +349,7 @@ void GrabberWrapper::setEncoding(QString enc)
 		_grabber->setEncoding(enc);
 }
 
-void GrabberWrapper::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
+void GrabberWrapper::setBrightnessContrastSaturationHueHandler(int brightness, int contrast, int saturation, int hue)
 {
 	if (_grabber != nullptr)
 		_grabber->setBrightnessContrastSaturationHue(brightness, contrast, saturation, hue);
