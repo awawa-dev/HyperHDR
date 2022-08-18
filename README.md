@@ -9,14 +9,20 @@ Open source ambient lighting implementation for television sets based on the vid
 Official releases: \
 https://github.com/awawa-dev/HyperHDR/releases
 
+Installation manual: \
+https://github.com/awawa-dev/HyperHDR/wiki/Installation
+
 Latest testing installers can be find as the artifacts of the latest build in the Github Action tab at the bottom of the page. Must be logged in. \
 https://github.com/awawa-dev/HyperHDR/actions
 
-Default LUT table is already included, but for the best effect you can generate your own using new calibration tool (recommended) :new:. Or you use dedicated LUT tables for supported USB grabbers (available [here](https://github.com/awawa-dev/HyperHDR/releases)). You can also import 3dl Autodesk lut table.
+Default LUT table is already included, but for the best effect you can generate your own using new calibration tool (recommended) :new:. Or you may download dedicated LUT tables for supported USB grabbers (available [here](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html#chapter4) ) :new:. You can also import and convert custom 3dl Autodesk LUT table using HyperHDR built-in tool. 
+
+**Using proper LUT table for your USB grabber is very important both for HDR and SDR content!** :warning: 
   
-For Raspberry Pi you may use prepared SD card images: [manual](https://hyperhdr.blogspot.com/2020/11/hyperhdr-prepare-for-building-buying_17.html)\
+For Raspberry Pi you may use prepared SD card images. They are based on Raspberry Pi OS releases and are built using CustomPiOS and HyperHDR Github Action script. \
 Default hostname for SD images is HyperHDR so connect to http://hyperhdr:8090/ \
-SSH and SPI are enabled on default.
+SSH and SPI services are enabled. Default Linux user is: *pi* and password is: *raspberry*. \
+For security reasons, you may consider changing the password for *pi* user after the first boot. :warning:
 
 ## How to compile
 
@@ -24,7 +30,7 @@ SSH and SPI are enabled on default.
   
 ## Support and contact
 
-[HyperHDR's support section](https://github.com/awawa-dev/HyperHDR/discussions) (or https://hyperhdr.blogspot.com/ )
+[HyperHDR's support section](https://github.com/awawa-dev/HyperHDR/discussions)
   
 **Manuals and guides for building and configuring your own ambient lighting system with HyperHDR:**
 
@@ -45,8 +51,8 @@ SSH and SPI are enabled on default.
 * Automatic signal detection with smart learning capability for USB grabbers
 * Support for USB grabbers under Windows 10
 * Support for USB grabbers under macOS (x64/M1)
-* Software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), X11 (Linux), Wayland (Linux) :new:
-* HDR tone mapping for external flatbuffers sources :new:
+* Software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), X11 (Linux), Wayland (Linux), frame buffer (Linux) :new:
+* HDR tone mapping for external flatbuffers/protobuf sources :new:
 * Built-in audio visualization effects
 * Dynamic video cache buffers. Now Rpi can process even 1080p120 NV12 stream without any size decimation :new:
 * SK6812 RGBW: the white color channel calibration for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI) :new:
@@ -57,7 +63,7 @@ SSH and SPI are enabled on default.
 
 ##
 
-**Changelog (v18 beta)** :new:
+**Changelog v18** :new:
 - Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion NG 2.0.0.8A thanks to optimization & using of multi-threading
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
 - Support for software screen grabbers: DirectX11, CoreGraphics, X11
@@ -85,12 +91,12 @@ SSH and SPI are enabled on default.
     - LED device output performance :new:
 - New JSON API function to control USB grabber: brightness, contrast, saturation, hue :new:
 - USB grabber latency benchmark ([link](https://www.hyperhdr.eu/2021/10/usb-grabbers-grand-latency-test-part-i.html)) :new:
-- HDR tone mapping for flatbuffers ([PR #215](https://github.com/awawa-dev/HyperHDR/pull/215) thanks @chbartsch) :new:
+- HDR tone mapping for flatbuffers ([PR #215](https://github.com/awawa-dev/HyperHDR/pull/215) thanks @chbartsch) and protobuf :new:
 - Dynamic LED layout resize on container size changed :new:
 - Improved and refactored LED devices model and communication :new:
-- Flatbuffers: HDR tone mapping can use alternative filename: *flat_lut_lin_tables.3d* :new:
+- Flatbuffers/Protobuf: HDR tone mapping can use an alternative filename: *flat_lut_lin_tables.3d* :new:
 - FlatBuffers: add support for high performance local sockets ([link](https://github.com/awawa-dev/HyperHDR/commit/1100093068196a53eff5f856f0eaaf8e43ca229f)) :new:
-- The new build scheme allows grabless configuration and the use of external toolchains :new:
+- The new build scheme allows grabber-less configuration and the use of external toolchains :new:
 - Add popular 'UDP raw' (WLED compatible) receiver for HyperHDR ([link1](https://i.postimg.cc/RV4PqPct/udpraw.jpg) [link2](https://github.com/awawa-dev/HyperHDR/commit/5fb1be1c4bdbc84becfd964a08cb106482b6c4e5)) :new:
 - User interface upgraded to modern standards (Bootstrap 5)
 - Improved LUT table for SDR(yuv) and HDR video streams :new:
@@ -107,7 +113,7 @@ SSH and SPI are enabled on default.
 - List of available COM ports for the adalight driver
 - Fix: in specific cases some devices could not react to the 'no video signal' event when it's triggered
 - New installer for Raspberry Pi 3 & 4 64bit OS (AARCH64), faster up to 30% over 32bit OS armv7l version
-- Fix for WLED new network protoco
+- Fix for WLED new network protocol
 - LED grouping *aka* PC mode *aka* gradient mode, can help with eye fatigue when used with the monitor, each LED in the group has same average color
 - Add timeout for the anti-flickering filter
 - Panel for easy video resolution & refresh mode selection in the grabber section
@@ -135,7 +141,7 @@ SSH and SPI are enabled on default.
 
 ### Dedicated HDR LUT tables for USB grabbers
 
-You can create your own calibrated LUT table using latest HyperHDR or use LUT dedicated for MS2109 clones, Navy U3, Ezcap 269, Ezcap 320, Ezcap 321, Ezcap 331, AV Access 4KVC00 (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section). Why is it worth using them? [USB grabbers HDR to SDR quality review](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html)
+You can create your own calibrated LUT table using latest HyperHDR or use LUT dedicated for MS2109 clones, Navy U3, Ezcap 269, Ezcap 320, Ezcap 321, Ezcap 331, AV Access 4KVC00, Elgato HD60X (you can find them in the HyperHDR [release](https://github.com/awawa-dev/HyperHDR/releases/latest) section). Why is it worth using them? [USB grabbers HDR to SDR quality review](https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html)
 
 ### FAQ:
 
