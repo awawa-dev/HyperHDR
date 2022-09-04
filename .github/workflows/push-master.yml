@@ -3,7 +3,7 @@ name: HyperHDR CI Build
 on: [push]
 
 env:
-    USE_CACHE: "0"
+    USE_CACHE: "1"
     RESET_CACHE: "0"
     
 jobs:
