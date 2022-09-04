@@ -273,7 +273,7 @@ void MFWorker::process_image_jpg_mt()
 		return;
 	}
 	
-	if (_subsamp != TJSAMP_422 && _hdrToneMappingEnabled > 0)
+	if ((_subsamp != TJSAMP_422 && _subsamp != TJSAMP_420) && _hdrToneMappingEnabled > 0)
 	{
 		emit newFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
 		return;
@@ -301,7 +301,7 @@ void MFWorker::process_image_jpg_mt()
 			}		
 
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpegBuffer, _width, _height, _width, PixelFormat::MJPEG, _lutBuffer, image);
+			jpegBuffer, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
 
 		free(jpegBuffer);
 	}
