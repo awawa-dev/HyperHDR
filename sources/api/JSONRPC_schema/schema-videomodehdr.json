@@ -15,6 +15,10 @@
 			"minimum" : 0,
 			"maximum" : 2,
 			"required": true
+		},
+		"flatbuffers_user_lut_filename": {
+			"type" : "string",			
+			"required": false
 		}
 	},
 	"additionalProperties": false

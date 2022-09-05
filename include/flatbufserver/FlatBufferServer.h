@@ -44,6 +44,8 @@ public slots:
 
 	void initServer();
 
+	void setUserLut(QString filename);
+
 	void setHdrToneMappingEnabled(int mode);
 
 	int getHdrToneMappingEnabled();
@@ -105,4 +107,5 @@ private:
 	uint8_t*	_lutBuffer;
 	bool		_lutBufferInit;
 	QString		_configurationPath;
+	QString		_userLutFile;
 };

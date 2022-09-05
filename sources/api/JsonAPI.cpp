@@ -1288,6 +1288,11 @@ void JsonAPI::handleProcessingCommand(const QJsonObject& message, const QString&
 
 void JsonAPI::handleVideoModeHdrCommand(const QJsonObject& message, const QString& command, int tan)
 {
+	if (message.contains("flatbuffers_user_lut_filename"))
+	{
+		API::setFlatbufferUserLUT(message["flatbuffers_user_lut_filename"].toString(""));
+	}
+
 	API::setVideoModeHdr(message["HDR"].toInt());
 	sendSuccessReply(command, tan);
 }
