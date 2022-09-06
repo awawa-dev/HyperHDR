@@ -90,6 +90,10 @@ private slots:
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name = QString());
 
+	void handleLedColorsIncoming(const std::vector<ColorRgb>& ledValues);
+
+	void handleLedColorsTimer();
+
 signals:
 	///
 	/// Signal emits with the reply message provided with handleMessage()
@@ -122,8 +126,8 @@ private:
 	/// timer for led color refresh
 	QTimer* _ledStreamTimer;
 
-	/// led stream connection handle
-	QMetaObject::Connection _ledStreamConnection;
+	/// led stream refresh interval
+	qint64 _colorsStreamingInterval;
 
 	/// the current streaming led values
 	std::vector<ColorRgb> _currentLedValues;
