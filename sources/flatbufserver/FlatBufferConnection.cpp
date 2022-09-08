@@ -153,18 +153,16 @@ void FlatBufferConnection::setRegister(const QString& origin, int priority)
 		uint8_t((size) & 0xFF) };
 
 	// write message
-	int count = 0;
-
 	if (_socket != nullptr)
 	{
-		count += _socket->write(reinterpret_cast<const char*>(header), 4);
-		count += _socket->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
+		_socket->write(reinterpret_cast<const char*>(header), 4);
+		_socket->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
 		_socket->flush();
 	}
 	else if (_domain != nullptr)
 	{
-		count += _domain->write(reinterpret_cast<const char*>(header), 4);
-		count += _domain->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
+		_domain->write(reinterpret_cast<const char*>(header), 4);
+		_domain->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
 		_domain->flush();
 	}
 	_builder.Clear();
@@ -295,17 +293,16 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 		uint8_t((size) & 0xFF) };
 
 	// write message
-	int count = 0;
 	if (_socket != nullptr)
 	{
-		count += _socket->write(reinterpret_cast<const char*>(header), 4);
-		count += _socket->write(reinterpret_cast<const char*>(buffer), size);
+		_socket->write(reinterpret_cast<const char*>(header), 4);
+		_socket->write(reinterpret_cast<const char*>(buffer), size);
 		_socket->flush();
 	}
 	else if (_domain != nullptr)
 	{
-		count += _domain->write(reinterpret_cast<const char*>(header), 4);
-		count += _domain->write(reinterpret_cast<const char*>(buffer), size);
+		_domain->write(reinterpret_cast<const char*>(header), 4);
+		_domain->write(reinterpret_cast<const char*>(buffer), size);
 		_domain->flush();
 	}
 }
