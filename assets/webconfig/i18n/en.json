@@ -1120,8 +1120,7 @@
   "json_api_effect_color_expl" : "Set desired color or effect for the active instance.",
   "json_api_clear" : "Clear a priority",
   "json_api_clear_expl" : "Clear priority from effects and preset colors.",
-  "json_api_hdr" : "HDR mode",
-  "json_api_hdr_expl" : "Turn on/off HDR tone mapping for USB grabber. 'Border mode' works only for MJPEG stream.",
+  "json_api_hdr" : "HDR mode",  
   "json_api_components_expl_multi":"You can run multiple commands with just one link. Maximum lenght is 2048 chars. They all will be executed but you will receive only one response (check out logs for all the output). Just put your links' <code>request</code> content into the format (note first '?' char and next '&' chars):<br><code>http://IP:PORT/json-rpc?request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title" : "Auto resume",
   "edt_conf_stream_autoResume_expl" : "Try restarting video capture if the video stream stops. Use with caution as it is not a cure for hardware problems of the grabber.",
@@ -1176,5 +1175,7 @@
   "edt_conf_mqtt_is_ssl_title" : "SSL",
   "edt_conf_mqtt_is_ssl_expl" : "Use SSL protocol",
   "edt_conf_mqtt_ssl_ignore_errors_title" : "Ignore SSL errors",
-  "edt_conf_mqtt_ssl_ignore_errors_expl" : "Ignore all SSL errors such as self-signed certificates etc. Use with caution."
+  "edt_conf_mqtt_ssl_ignore_errors_expl" : "Ignore all SSL errors such as self-signed certificates etc. Use with caution.",
+  "json_api_flatbuffers_user_lut" : "Flatbuffers LUT filename",
+  "json_api_hdr_expl" : "Turn on/off HDR tone mapping. You can also pass the name of the user LUT file in the user HyperHDR home folder to be used for Flatbuffers tone mapping."
 } 
