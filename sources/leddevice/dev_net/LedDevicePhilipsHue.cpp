@@ -1169,9 +1169,9 @@ bool LedDevicePhilipsHue::startStream()
 	rc = setStreamGroupState(true);
 
 	if (rc)
-		Debug(_log, "The stream has start");
+		Debug(_log, "The stream has started.");
 	else
-		this->setInError("The stream has NOT start. Give up.");
+		Error(_log, "The stream has NOT started.");
 
 	return rc;
 }
@@ -1219,7 +1219,7 @@ bool LedDevicePhilipsHue::stopStream()
 	if (rc)
 		Debug(_log, "The stream has stopped");
 	else
-		this->setInError("The stream has NOT stopped. Give up.");
+		Error(_log, "The stream has NOT stopped.");
 
 	return rc;
 }
