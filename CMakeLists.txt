@@ -184,11 +184,8 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 
 	if(${IS_RASPBERRY} EQUAL -1)
 		message(STATUS "This is not Raspberry Pi. Default compiler settings.")
-	elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "(armv7l|armv8)")
-	    add_compile_options(-march=armv8-a+crc -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations)
-	    message(STATUS "RPI 3/4 (armv7l or armv8) detected for optimization")
 	else()
-		message(STATUS "Default compiler settings for Raspberry.")
+		message(STATUS "Default compiler settings for Raspberry Pi.")
 	endif()
 	
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
