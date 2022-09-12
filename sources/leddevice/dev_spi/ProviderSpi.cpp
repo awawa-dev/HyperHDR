@@ -233,7 +233,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 
 	QStringList filter;
 	filter << "spidev*";
-	QDirIterator it("/dev", filter, QDir::Files);
+	QDirIterator it("/dev", filter, QDir::System);
 	QStringList files;
 	while (it.hasNext())
 		files << it.next();
