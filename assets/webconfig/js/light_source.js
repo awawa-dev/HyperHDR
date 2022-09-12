@@ -894,6 +894,39 @@ $(document).ready(function()
 			$("input[name='root[specificOptions][host]']")[0].style.width = String(58) + "%";
 			$("input[name='root[specificOptions][host]']")[0].parentElement.appendChild(sPort[0]);			
 		}
+		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi"].includes(ledType))
+		{					
+			async function spiDevRefresh(result)
+			{
+				let receiver = $("#selectSpiOutput");
+				receiver.off();
+				receiver.empty();
+
+				$("<option />", {value: "", text: $.i18n("edt_dev_spec_spipath_title")}).appendTo(receiver);
+
+				if (result.info != null && result.info.devices != null)
+				{					
+					(result.info.devices).forEach(function (val) {
+						$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
+					});
+				}
+
+				receiver.on('change', function ()
+				{
+					let selVal = $("#selectSpiOutput").val();
+					if (selVal != "")
+						conf_editor.getEditor('root.specificOptions.output').setValue(selVal);
+				});			
+			}
+
+			let sPort = $("<select id=\"selectSpiOutput\" />");				
+			sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
+
+			requestLedDeviceDiscovery(ledType).then( (result) => spiDevRefresh(result));
+				
+			$("input[name='root[specificOptions][output]']")[0].style.width = String(58) + "%";
+			$("input[name='root[specificOptions][output]']")[0].parentElement.appendChild(sPort[0]);			
+		}
 		
 		function changeWizard(data, hint, fn)
 		{
