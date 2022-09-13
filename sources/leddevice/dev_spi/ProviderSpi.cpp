@@ -229,26 +229,21 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
-	QStringList filter;
-	filter << "spidev*";
-	QDirIterator it("/dev", filter, QDir::System);
-	QStringList files;
+	QStringList files;	
+	QDirIterator it("/dev", QStringList() << "spidev*", QDir::System);
+	
 	while (it.hasNext())
 		files << it.next();
 	files.sort();
 
-	for (const auto& s : files)
-	{
-		QJsonObject newSPI;
-		QString path = QString("%1").arg(s);
-		newSPI["value"] = path;
-		newSPI["name"] = path;
-		deviceList.push_back(newSPI);
-	}
+	for (const auto& path : files)
+		deviceList.push_back(QJsonObject{
+			{"value", path},
+			{ "name", path } });
 
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
+
 	Debug(_log, "SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;

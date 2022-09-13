@@ -559,6 +559,33 @@ $(document).ready(function()
 			$('#ip_ma_' + key).val(slConfig.matrix[key]);
 	}
 
+	async function deviceListRefresh(ledTypeTarget, discoveryResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel = 'main_menu_update_token')
+	{
+		let receiver = $("#deviceListInstances");
+		receiver.off();
+		receiver.empty();
+
+		$("<option />", {value: "", text: $.i18n(targetDiscoveryFirstLabel)}).appendTo(receiver);
+
+		if (discoveryResult.info != null && discoveryResult.info.devices != null)
+		{					
+			(discoveryResult.info.devices).forEach(function (val) {
+				$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
+			});
+		}
+		
+		$("<option />", {value: -1, text: $.i18n(targetDiscoverySecondLabel)}).appendTo(receiver);
+
+		receiver.on('change', function ()
+		{
+			let selVal = $("#deviceListInstances").val();
+			if (selVal == -1)			
+				requestLedDeviceDiscovery(ledTypeTarget).then( (newResult) => deviceListRefresh(ledTypeTarget, newResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel));
+			else if (selVal != "")
+				conf_editor.getEditor(targetDiscoveryEditor).setValue(selVal);
+		});			
+	}
+
 	function saveValues()
 	{
 		var ledConfig = {
@@ -802,14 +829,6 @@ $(document).ready(function()
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
 		}
-		/*
-		    else if(ledType == "wled") {
-		    	    var ledWizardType = (this.checked) ? "wled" : ledType;
-		    	    var data = { type: ledWizardType };
-		    	    var wled_title = 'wiz_wled_title';
-		    	    changeWizard(data, wled_title, startWizardWLED);
-			}
-		*/
 		else if (ledType == "atmoorb")
 		{
 			var ledWizardType = (this.checked) ? "atmoorb" : ledType;
@@ -836,96 +855,26 @@ $(document).ready(function()
 			};
 			var yeelight_title = 'wiz_yeelight_title';
 			changeWizard(data, yeelight_title, startWizardYeelight);
-		}
-		else if (ledType == "adalight")
+		}		
+		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi", "wled", "adalight", "atmo", "dmx", "karate", "sedu", "tpm2"].includes(ledType))
 		{					
-			if (!(window.serverInfo.serialPorts == null || window.serverInfo.serialPorts.length == 0 || $("#selectPortSerial").length > 0))
+			let selectorControl = $("<select id=\"deviceListInstances\" />");
+			let targetControl = 'output';
+
+			selectorControl.addClass("form-select bg-warning").css('width', String(40)+'%');
+
+			if (ledType == "wled")
 			{
-				let sPort = $("<select id=\"selectPortSerial\" />");				
-				sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
-				
-				$("<option />", {value: "auto", text: $.i18n("edt_dev_spec_outputPath_title")}).appendTo(sPort);
-				(window.serverInfo.serialPorts).forEach(function (val) {
-					$("<option />", {value: val.port, text: val.desc}).appendTo(sPort);
-				});
-				
-				$("input[name='root[specificOptions][output]']")[0].style.width = String(58) + "%";
-				$("input[name='root[specificOptions][output]']")[0].parentElement.appendChild(sPort[0]);
-				
-				sPort.off().on('change', function () {
-					conf_editor.getEditor('root.specificOptions.output').setValue(sPort.val());
-				});				
+				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.host','select_wled_intro','select_wled_rescan'));
+				targetControl = 'host';
 			}
-		}
-		else if (ledType == "wled")
-		{					
-			async function wledRefresh(result)
-			{
-				let receiver = $("#selectWledInstances");
-				receiver.off();
-				receiver.empty();
-
-				$("<option />", {value: "", text: $.i18n("select_wled_intro")}).appendTo(receiver);
-
-				if (result.info != null && result.info.devices != null)
-				{					
-					(result.info.devices).forEach(function (val) {
-						$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
-					});
-				}
-
-				$("<option />", {value: -1, text: $.i18n("select_wled_rescan")}).appendTo(receiver);
-
-				receiver.on('change', function ()
-				{
-					let selVal = $("#selectWledInstances").val();
-					if (selVal == -1)
-						requestLedDeviceDiscovery('wled').then( (result) => wledRefresh(result));
-					else if (selVal != "")
-						conf_editor.getEditor('root.specificOptions.host').setValue(selVal);
-				});			
-			}
-
-			let sPort = $("<select id=\"selectWledInstances\" />");				
-			sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
-
-			requestLedDeviceDiscovery('wled').then( (result) => wledRefresh(result));
+			else if (["adalight", "atmo", "dmx", "karate", "sedu", "tpm2"].includes(ledType))
+				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output','edt_dev_spec_outputPath_title'));
+			else
+				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output', 'edt_dev_spec_spipath_title'));
 				
-			$("input[name='root[specificOptions][host]']")[0].style.width = String(58) + "%";
-			$("input[name='root[specificOptions][host]']")[0].parentElement.appendChild(sPort[0]);			
-		}
-		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi"].includes(ledType))
-		{					
-			async function spiDevRefresh(result)
-			{
-				let receiver = $("#selectSpiOutput");
-				receiver.off();
-				receiver.empty();
-
-				$("<option />", {value: "", text: $.i18n("edt_dev_spec_spipath_title")}).appendTo(receiver);
-
-				if (result.info != null && result.info.devices != null)
-				{					
-					(result.info.devices).forEach(function (val) {
-						$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
-					});
-				}
-
-				receiver.on('change', function ()
-				{
-					let selVal = $("#selectSpiOutput").val();
-					if (selVal != "")
-						conf_editor.getEditor('root.specificOptions.output').setValue(selVal);
-				});			
-			}
-
-			let sPort = $("<select id=\"selectSpiOutput\" />");				
-			sPort.addClass("form-select bg-warning").css('width', String(40)+'%');
-
-			requestLedDeviceDiscovery(ledType).then( (result) => spiDevRefresh(result));
-				
-			$("input[name='root[specificOptions][output]']")[0].style.width = String(58) + "%";
-			$("input[name='root[specificOptions][output]']")[0].parentElement.appendChild(sPort[0]);			
+			$(`input[name='root[specificOptions][${targetControl}]']`)[0].style.width = String(58) + "%";
+			$(`input[name='root[specificOptions][${targetControl}]']`)[0].parentElement.appendChild(selectorControl[0]);			
 		}
 		
 		function changeWizard(data, hint, fn)
