@@ -189,10 +189,13 @@ void HyperHdrDaemon::instanceStateChanged(InstanceState state, quint8 instance, 
 	// start web server if needed
 	if (state == InstanceState::H_STARTED)
 	{
-		if (_webserver != nullptr && !_webserver->thread()->isRunning())
-			_webserver->thread()->start();
-		if (_sslWebserver != nullptr && !_sslWebserver->thread()->isRunning())
-			_sslWebserver->thread()->start();
+		if (_instanceManager->areInstancesReady())
+		{
+			if (_webserver != nullptr && !_webserver->thread()->isRunning())
+				_webserver->thread()->start();
+			if (_sslWebserver != nullptr && !_sslWebserver->thread()->isRunning())
+				_sslWebserver->thread()->start();
+		}
 	}
 
 	// cec

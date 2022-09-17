@@ -37,6 +37,7 @@ public:
 	static HyperHdrIManager* getInstance() { return HIMinstance; }
 	static HyperHdrIManager* HIMinstance;
 	QString getRootPath() { return _rootPath; }
+	bool areInstancesReady();
 
 public slots:
 	bool isCEC();
@@ -193,11 +194,12 @@ private:
 private:
 	Logger* _log;
 	InstanceTable* _instanceTable;
-	const QString _rootPath;
+	const QString	_rootPath;
 	QMap<quint8, HyperHdrInstance*> _runningInstances;
-	QList<quint8> _startQueue;
+	QList<quint8>	_startQueue;
 
-	bool _readonlyMode;
+	bool	_readonlyMode;
+	int		_fireStarter;
 
 	/// All pending requests
 	QMap<quint8, PendingRequests> _pendingRequests;
