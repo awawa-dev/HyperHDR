@@ -1372,14 +1372,11 @@ bool LedDevicePhilipsHue::switchOn()
 			{
 				init(_configBackup);
 				_currentRetry = 0;
-				_isEnabled = true;
 				_isDeviceInitialised = true;
 			}
 				
 			if (_isDeviceInitialised)
-			{
-				_isEnabled = true;				
-
+			{				
 				if (_useHueEntertainmentAPI)
 				{
 					if (openStream())
