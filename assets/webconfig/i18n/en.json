@@ -1177,5 +1177,9 @@
   "edt_conf_mqtt_ssl_ignore_errors_title" : "Ignore SSL errors",
   "edt_conf_mqtt_ssl_ignore_errors_expl" : "Ignore all SSL errors such as self-signed certificates etc. Use with caution.",
   "json_api_flatbuffers_user_lut" : "Flatbuffers LUT filename",
-  "json_api_hdr_expl" : "Turn on/off HDR tone mapping. You can also pass the name of the user LUT file in the user HyperHDR home folder to be used for Flatbuffers tone mapping."
+  "json_api_hdr_expl" : "Turn on/off HDR tone mapping. You can also pass the name of the user LUT file in the user HyperHDR home folder to be used for Flatbuffers tone mapping.",
+  "json_api_smoothing" : "Smoothing control",
+  "json_api_smoothing_expl" : "The method allows for volatile modification of smoothing parameters for all or single instances.",
+  "json_api_all_instances" : "All instances",
+  "json_api_single_instance" : "Single instance"
 } 

@@ -107,6 +107,8 @@ public:
 
 public slots:
 
+	void setSmoothing(int time);
+
 	bool getReadOnlyMode() { return _readOnlyMode; };
 
 	void saveCalibration(QString saveData);

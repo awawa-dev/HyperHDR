@@ -1121,7 +1121,6 @@
   "json_api_clear": "Ștergeți o prioritate",
   "json_api_clear_expl": "Ștergeți prioritatea de la efecte și culori prestabilite.",
   "json_api_hdr": "Mod HDR",
-  "json_api_hdr_expl": "Activați / dezactivați maparea tonurilor HDR pentru dispozitivul de captare USB. „Modul de frontieră” funcționează numai pentru fluxul MJPEG.",
   "json_api_components_expl_multi": "Puteți rula mai multe comenzi cu un singur link. Lungimea maximă este de 2048 de caractere. Toate vor fi executate, dar veți primi un singur răspuns (verificați jurnalele pentru toate ieșirile). Pur și simplu puneți conținutul „<code> request </code> al link-urilor în format (notați mai întâi„? ”Char și următoarele„ & ”chars): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Reluare automată",
   "edt_conf_stream_autoResume_expl": "Încercați să reporniți captura video dacă fluxul video se oprește. Utilizați cu precauție, deoarece nu este un remediu pentru problemele hardware ale dispozitivului de prindere.",

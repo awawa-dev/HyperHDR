@@ -39,6 +39,8 @@ public:
 	QString getRootPath() { return _rootPath; }
 
 public slots:
+	void setSmoothing(int time);
+
 	bool isCEC();
 
 	void setSignalStateByCEC(bool enable);

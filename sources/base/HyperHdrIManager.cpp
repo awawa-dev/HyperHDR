@@ -80,6 +80,14 @@ void HyperHdrIManager::stopAll()
 	}
 }
 
+void HyperHdrIManager::setSmoothing(int time)
+{
+	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;
+
+	for (const auto instance : instCopy)
+		QTimer::singleShot(0, instance, [=]() { instance->setSmoothing(time); });	
+}
+
 bool HyperHdrIManager::isCEC()
 {
 	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;

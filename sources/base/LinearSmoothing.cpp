@@ -431,6 +431,15 @@ unsigned LinearSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, doub
 	return updatedCfgID;
 }
 
+void LinearSmoothing::updateCurrentConfig(int settlingTime_ms)
+{
+	_settlingTime = settlingTime_ms;
+
+	Info(_log, "Updating current config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
+		_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime),
+		int(_updateInterval), int(1000.0 / _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
+}
+
 bool LinearSmoothing::selectConfig(unsigned cfg, bool force)
 {
 	//WATCH

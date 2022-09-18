@@ -1121,7 +1121,6 @@
   "json_api_clear": "Vymažte prioritu",
   "json_api_clear_expl": "Jasná priorita z efektů a přednastavených barev.",
   "json_api_hdr": "Režim HDR",
-  "json_api_hdr_expl": "Zapnutí/vypnutí mapování tónu HDR pro USB grabber. „Border mode“ funguje pouze pro stream MJPEG.",
   "json_api_components_expl_multi": "S jediným odkazem můžete spustit více příkazů. Maximální délka je 2048 znaků. Všechny budou spuštěny, ale obdržíte pouze jednu odpověď (podívejte se do protokolů pro veškerý výstup). Jednoduše vložte obsah odkazů <code> požadavek </code> do formátu (první poznámka „?“ A další znaky „&“): <br> <code> http: // IP: PORT/json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Automatické obnovení",
   "edt_conf_stream_autoResume_expl": "Pokud se stream videa zastaví, zkuste restartovat nahrávání videa. Používejte opatrně, protože není řešením problémů s hardwarem grabberu.",

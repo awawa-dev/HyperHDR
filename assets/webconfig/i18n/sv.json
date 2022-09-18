@@ -1121,7 +1121,6 @@
   "json_api_clear": "Rensa en prioritet",
   "json_api_clear_expl": "Tydlig prioritet från effekter och förinställda färger.",
   "json_api_hdr": "HDR -läge",
-  "json_api_hdr_expl": "Slå på/av HDR -tonmappning för USB -gripare. \"Gränsläge\" fungerar endast för MJPEG -ström.",
   "json_api_components_expl_multi": "Du kan köra flera kommandon med bara en länk. Maxlängd är 2048 tecken. Alla kommer att köras men du får bara ett svar (kolla in loggar för all utmatning). Lägg bara in dina länks <code> begäran </code> innehåll i formatet (notera först '?' Char och nästa '&' tecken): <br> <code> http: // IP: PORT/json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Återuppta automatiskt",
   "edt_conf_stream_autoResume_expl": "Prova att starta om videoinspelningen om videoströmmen stannar. Använd med försiktighet eftersom det inte är ett botemedel mot maskinvaruproblem hos griparen.",
