@@ -32,6 +32,8 @@ LedDeviceWled::LedDeviceWled(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
 	, _restApi(nullptr)
 	, _apiPort(API_DEFAULT_PORT)
+	, _maxBright(true)
+	, _restoreConfig(false)
 {
 }
 
@@ -47,20 +49,29 @@ LedDevice* LedDeviceWled::construct(const QJsonObject& deviceConfig)
 }
 
 bool LedDeviceWled::init(const QJsonObject& deviceConfig)
-{
-	Debug(_log, "");
+{	
 	bool isInitOK = false;
+
+	Debug(_log, "Initializing WLED");
+
+	_configBackup = QJsonDocument();
 
 	// Initialise LedDevice sub-class, ProviderUdp::init will be executed later, if connectivity is defined
 	if (LedDevice::init(deviceConfig))
 	{
 		// Initialise LedDevice configuration and execution environment
 		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %d", configuredLedCount);
+		Debug(_log, "DeviceType     : %s", QSTRING_CSTR(this->getActiveDeviceType()));
+		Debug(_log, "LedCount       : %d", configuredLedCount);
+
+		_maxBright = deviceConfig["brightnessMax"].toBool(true);
+		Debug(_log, "Max brightness : %s", (_maxBright) ? "true" : "false");
+
+		_restoreConfig = deviceConfig["restoreOriginalState"].toBool(false);
+		Debug(_log, "Restore WLED   : %s", (_restoreConfig) ? "true" : "false");
 
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
-		Debug(_log, "Max retry    : %d", _maxRetry);
+		Debug(_log, "Max retry      : %d", _maxRetry);
 
 		//Set hostname as per configuration
 		QString address = deviceConfig[CONFIG_ADDRESS].toString();
@@ -119,8 +130,16 @@ bool LedDeviceWled::initRestAPI(const QString& hostname, int port)
 
 QString LedDeviceWled::getOnOffRequest(bool isOn) const
 {
-	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
-	return QString("{\"on\":%1,\"live\":%1}").arg(state);
+	if (!isOn && _restoreConfig && !_configBackup.isEmpty())
+	{
+		return QString(_configBackup.toJson(QJsonDocument::Compact));
+	}
+	else
+	{
+		QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
+		QString bri = (_maxBright && isOn) ? ",\"bri\":255" : "";
+		return QString("{\"on\":%1,\"live\":%1%2}").arg(state).arg(bri);
+	}
 }
 
 bool LedDeviceWled::powerOn()
@@ -133,7 +152,24 @@ bool LedDeviceWled::powerOn()
 	{
 		//Power-on WLED device
 		_restApi->setPath(API_PATH_STATE);
-		httpResponse response = _restApi->put(getOnOffRequest(true));
+
+		bool readConfig = _restoreConfig && _configBackup.isEmpty();
+		httpResponse response = (readConfig) ? _restApi->get() : _restApi->put(getOnOffRequest(true));
+
+		if (readConfig && !response.error())
+		{
+			_configBackup = response.getBody();
+
+			if (_configBackup.isObject())
+			{
+				auto copy = _configBackup.object();
+				copy["live"] = false;
+				_configBackup.setObject(copy);
+			}
+
+			response = _restApi->put(getOnOffRequest(true));
+		}
+
 		if (response.error())
 		{
 			this->setInError(response.getErrorReason());			
@@ -271,45 +307,6 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 	return properties;
 }
 
-void LedDeviceWled::identify(const QJsonObject& /*params*/)
-{
-#if 0
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
-	QString host = params["host"].toString("");
-	if (!host.isEmpty())
-	{
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-			apiPort = addressparts[1].toInt();
-		else
-			apiPort = API_DEFAULT_PORT;
-
-		// TODO: WLED::identify - Replace with valid identification code
-
-		//		initRestAPI(apiHost, apiPort);
-
-		//		QString resource = QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE);
-		//		_restApi->setPath(resource);
-
-		//		QString stateCmd;
-		//		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON ).arg( API_STATE_VALUE_TRUE );
-		//		stateCmd += QString("\"%1\":\"%2\"").arg( "alert" ).arg( "select" );
-		//		stateCmd = "{" + stateCmd + "}";
-
-		//		// Perform request
-		//		httpResponse response = _restApi->put(stateCmd);
-		//		if ( response.error() )
-		//		{
-		//			Warning (_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		//		}
-	}
-#endif
-}
 
 int LedDeviceWled::write(const std::vector<ColorRgb>& ledValues)
 {

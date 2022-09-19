@@ -7,6 +7,20 @@
 			"title":"edt_dev_spec_targetIpHost_title",
 			"propertyOrder" : 1
 		},
+		"brightnessMax": {
+			"type": "boolean",
+			"title":"edt_dev_spec_brightnessMax_title",
+			"format": "checkbox",
+			"default" : true,
+			"propertyOrder" : 2
+		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_restoreOriginalState_title",
+			"default" : false,
+			"propertyOrder" : 3
+		},
 		"maxRetry":
 		{
 			"type" : "integer",
@@ -17,7 +31,7 @@
 			"maximum" : 300,
 			"default" : 60,
 			"required" : true,
-			"propertyOrder" : 2
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true
