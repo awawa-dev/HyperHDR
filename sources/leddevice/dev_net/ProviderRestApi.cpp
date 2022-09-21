@@ -38,17 +38,11 @@
 
 //std includes
 #include <iostream>
+#include <chrono>
 
 const int TIMEOUT = (500);
 
 std::unique_ptr<networkHelper> ProviderRestApi::_networkWorker(nullptr);
-
-// Constants
-namespace {
-
-	const QChar ONE_SLASH = '/';
-
-} //End of constants
 
 ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath)
 	:_log(Logger::getInstance("LEDDEVICE"))
@@ -104,32 +98,8 @@ void ProviderRestApi::appendPath(const QString& path)
 }
 
 void ProviderRestApi::appendPath(QString& path, const QString& appendPath) const
-{
-	if (!appendPath.isEmpty() && appendPath != ONE_SLASH)
-	{
-		if (path.isEmpty() || path == ONE_SLASH)
-		{
-			path.clear();
-			if (appendPath[0] != ONE_SLASH)
-			{
-				path.push_back(ONE_SLASH);
-			}
-		}
-		else if (path[path.size() - 1] == ONE_SLASH && appendPath[0] == ONE_SLASH)
-		{
-			path.chop(1);
-		}
-		else if (path[path.size() - 1] != ONE_SLASH && appendPath[0] != ONE_SLASH)
-		{
-			path.push_back(ONE_SLASH);
-		}
-		else
-		{
-			// Only one slash.
-		}
-
-		path.append(appendPath);
-	}
+{	
+	path = QUrl(path).resolved(appendPath).toString();	
 }
 
 void ProviderRestApi::setFragment(const QString& fragment)
@@ -155,151 +125,98 @@ QUrl ProviderRestApi::getUrl() const
 	return url;
 }
 
+httpResponse ProviderRestApi::put(const QUrl& url, const QString& body)
+{
+	return executeOperation(QNetworkAccessManager::PutOperation, url, body);
+}
+
+httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
+{
+	return executeOperation(QNetworkAccessManager::PostOperation, url, body);
+}
+
+httpResponse ProviderRestApi::get(const QUrl& url)
+{
+	return executeOperation(QNetworkAccessManager::GetOperation, url);
+}
+
 httpResponse ProviderRestApi::put(const QString& body)
 {
 	return put(getUrl(), body);
 }
 
-httpResponse ProviderRestApi::put(const QUrl& url, const QString& body)
+httpResponse ProviderRestApi::post(const QString& body)
 {
-	Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
-
-	// Perform request
-	QNetworkRequest request(url);
-
-	QElapsedTimer networkTimer;
-
-	bool networkTimeout = false;
-
-	QNetworkReply* networkReply;
-
-	QMetaObject::invokeMethod(_networkWorker.get(), "put", Qt::BlockingQueuedConnection,
-		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
-
-	networkTimer.start();	
-
-	while (!networkReply->isFinished()) {
-		QThread::msleep(5);
-		if (networkTimer.elapsed() >= TIMEOUT) {
-			networkTimeout = true;
-			break;
-		}
-	}
-
-	if (networkTimeout)
-	{
-		networkReply->abort();
-	}
-
-	Debug(_log, "PUT exit: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
-
-	httpResponse response;
-
-	if (networkReply->operation() == QNetworkAccessManager::PutOperation)
-	{
-		response = getResponse(networkReply, networkTimeout);
-	}
-
-	// Free space.
-	networkReply->deleteLater();
-
-	return response;
+	return post(getUrl(), body);
 }
 
-httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
-{
-	Debug(_log, "POST: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
-
-	// Perform request
-	QNetworkRequest request(url);
-
-	QElapsedTimer networkTimer;
-
-	bool networkTimeout = false;
-
-	QNetworkReply* networkReply;
-
-	QMetaObject::invokeMethod(_networkWorker.get(), "post", Qt::BlockingQueuedConnection,
-		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
-
-	networkTimer.start();
-
-	while (!networkReply->isFinished()) {
-		QThread::msleep(5);
-		if (networkTimer.elapsed() >= TIMEOUT) {
-			networkTimeout = true;
-			break;
-		}
-	}
-
-	if (networkTimeout)
-	{
-		networkReply->abort();
-	}
-
-	Debug(_log, "POST exit: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
-
-	httpResponse response;
-
-	if (networkReply->operation() == QNetworkAccessManager::PostOperation)
-	{
-		response = getResponse(networkReply, networkTimeout);
-	}
-
-	// Free space.
-	networkReply->deleteLater();
-
-	return response;
-}
 
 httpResponse ProviderRestApi::get()
 {
 	return get(getUrl());
 }
 
-httpResponse ProviderRestApi::get(const QUrl& url)
+httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body)
 {
-	Debug(_log, "GET: [%s]", QSTRING_CSTR(url.toString()));
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
+	QString opCode = (op == QNetworkAccessManager::PutOperation) ? "PUT" :
+						 (op == QNetworkAccessManager::PostOperation) ? "POST" :
+						 (op == QNetworkAccessManager::GetOperation) ? "GET" : "";
+
+	if(opCode.length() == 0)
+	{
+		Error(_log, "Unsupported opertion code");
+		return httpResponse();
+	}
+
+	Debug(_log, "%s begin: [%s] [%s]", QSTRING_CSTR(opCode), QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
+	
+	
 	// Perform request
 	QNetworkRequest request(url);
+	QNetworkReply* networkReply = nullptr;
 
-	QElapsedTimer networkTimer;
+	request.setOriginatingObject(this);	
 
-	bool networkTimeout = false;	
+	QMetaObject::invokeMethod(_networkWorker.get(), "executeOperation", Qt::BlockingQueuedConnection,
+		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkAccessManager::Operation, op), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
 
-	QNetworkReply* networkReply;
 
-	QMetaObject::invokeMethod(_networkWorker.get(), "get", Qt::BlockingQueuedConnection,
-		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkRequest, request));
+	bool networkTimeout = waitForResult(networkReply);
+	long long timeTotal = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-begin).count();
 
-	networkTimer.start();	
+	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
 
-	while (!networkReply->isFinished()) {
-		QThread::msleep(5);
-		if (networkTimer.elapsed() >= TIMEOUT) {
-			networkTimeout = true;
-			break;
-		}
-	}
+	httpResponse response = (networkReply->operation() == op) ? getResponse(networkReply, networkTimeout) : httpResponse();
 
-	if (networkTimeout)
-	{
-		networkReply->abort();
-	}
-
-	Debug(_log, "GET exit: [%s]", QSTRING_CSTR(url.toString()));
-
-	httpResponse response;
-	if (networkReply->operation() == QNetworkAccessManager::GetOperation)
-	{
-		response = getResponse(networkReply, networkTimeout);
-	}
-
-	// Free space.
 	networkReply->deleteLater();
 
 	return response;
+}
+
+bool ProviderRestApi::waitForResult(QNetworkReply* networkReply)
+{
+	bool networkTimeout = false;
+
+	if (!networkReply->isFinished() && networkReply->error() == QNetworkReply::NoError &&
+		!_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)) && !networkReply->isFinished())
+	{
+		networkTimeout = true;
+		networkReply->abort();
+	}
+	
+	return networkTimeout;
+}
+
+void ProviderRestApi::aquireResultLock()
+{	
+	_resultLocker.tryLock();
+}
+
+void ProviderRestApi::releaseResultLock()
+{
+	_resultLocker.unlock();
 }
 
 httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply, bool timeout)
@@ -411,20 +328,16 @@ networkHelper::~networkHelper()
 	_networkManager = nullptr;
 }
 
-
-QNetworkReply* networkHelper::get(QNetworkRequest request)
+QNetworkReply* networkHelper::executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body)
 {
-	return _networkManager->get(request);
-}
+	ProviderRestApi* parent = static_cast<ProviderRestApi*>(request.originatingObject());
+	parent->aquireResultLock();
+	
+	auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body):
+				(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body) : _networkManager->get(request);
 
-QNetworkReply* networkHelper::put(QNetworkRequest request, QByteArray body)
-{
-	return _networkManager->put(request, body);
-}
-
-QNetworkReply* networkHelper::post(QNetworkRequest request, QByteArray body)
-{
-	return _networkManager->post(request, body);
+	connect(ret, &QNetworkReply::finished, this, [=](){parent->releaseResultLock();});
+	return ret;
 }
 
 bool httpResponse::error() const
