@@ -102,7 +102,7 @@ void SystemPerformanceCounters::readVoltage()
 				else
 					underVoltage = 0;
 				
-				voltageTimeStamp = QDateTime::currentSecsSinceEpoch();
+				voltageTimeStamp = InternalClock::now() / 1000;
 			}
 		}
 	}
@@ -387,7 +387,7 @@ QString SystemPerformanceCounters::getUNDERVOLATGE()
 
 #ifdef __linux__
 		QString current = "";
-		if (voltageTimeStamp > 0 && QDateTime::currentSecsSinceEpoch() - voltageTimeStamp >= 60)
+		if (voltageTimeStamp > 0 && (InternalClock::now() / 1000) - voltageTimeStamp >= 60)
 		{
 			readVoltage();
 			current = "NOW";

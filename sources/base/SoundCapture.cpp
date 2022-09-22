@@ -117,7 +117,7 @@ void SoundCapture::handleSettingsUpdate(settings::type type, const QJsonDocument
 
 uint32_t SoundCapture::getCaptureInstance()
 {
-	uint32_t ret;
+	uint32_t ret = 0;
 
 	try
 	{

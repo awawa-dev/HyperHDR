@@ -182,7 +182,7 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 	_checksum = checksum;
 	_startColor = startColor;
 	_endColor = endColor;
-	_timeStamp = QDateTime::currentSecsSinceEpoch();
+	_timeStamp = InternalClock::now();
 
 	if (_checksum % 19 == 1)
 		Debug(_log, "Requested section: %i, %s, %s, YUV: %s, Coef: %s, Saturation: %f, Luminance: %f, Gammas: (%f, %f, %f)",
@@ -305,7 +305,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 					if ((isWhite && isBlack) || (!isWhite && !isBlack))
 					{
-						if (_warningCRC != _checksum && (QDateTime::currentSecsSinceEpoch() - _timeStamp > 1000))
+						if (_warningCRC != _checksum && (InternalClock::now() - _timeStamp > 1000))
 						{
 							_warningCRC = _checksum;
 							Warning(_log, "Invalid CRC at: %i. CurrentColor: %s, Black: %s, White: %s, StartColor: %s, EndColor: %s.", int(px - 8),
@@ -324,7 +324,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 				{
 					if (validate != _checksum)
 					{
-						if (_warningMismatch != _checksum && (QDateTime::currentSecsSinceEpoch() - _timeStamp > 1000))
+						if (_warningMismatch != _checksum && (InternalClock::now() - _timeStamp > 1000))
 						{
 							_warningMismatch = _checksum;
 							Warning(_log, "CRC does not match: %i but expected %i, StartColor: %s , EndColor: %s", validate, _checksum,

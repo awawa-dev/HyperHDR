@@ -6,7 +6,6 @@
 
 // Blacborder includes
 #include <blackborder/BlackBorderProcessor.h>
-#include <QDateTime>
 
 using namespace hyperhdr;
 
