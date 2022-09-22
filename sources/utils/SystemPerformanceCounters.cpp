@@ -25,6 +25,7 @@
 *  SOFTWARE.
 */
 #include <utils/SystemPerformanceCounters.h>
+#include <utils/InternalClock.h>
 
 #ifdef _WIN32
 
