@@ -1,4 +1,5 @@
 #include <db/MetaTable.h>
+#include <QNetworkInterface>
 
 
 MetaTable::MetaTable(QObject* parent, bool readonlyMode)

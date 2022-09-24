@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseMultiSlow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseMultiSlow::Animation4Music_PulseMultiSlow() :
 	AnimationBaseMusic(AMUSIC_PULSEMULTISLOW),

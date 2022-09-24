@@ -34,3 +34,7 @@ endif()
 if (ENABLE_BONJOUR)
 	target_link_libraries(hyperhdr-base bonjour)
 endif ()
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(hyperhdr-base REUSE_FROM precompiled_hyperhdr_headers)
+endif()

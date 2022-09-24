@@ -14,3 +14,7 @@ target_link_libraries(bonjour
 		hyperhdr-utils
 		Qt${Qt_VERSION}::Network
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(bonjour REUSE_FROM precompiled_hyperhdr_headers)
+endif()

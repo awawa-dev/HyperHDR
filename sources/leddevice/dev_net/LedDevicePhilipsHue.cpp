@@ -10,6 +10,7 @@
 
 #include <QDateTime>
 #include <chrono>
+#include <cmath>
 
 // Constants
 namespace {

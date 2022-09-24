@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseYellow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseYellow::Animation4Music_PulseYellow() :
 	AnimationBaseMusic(AMUSIC_PULSEYELLOW),
