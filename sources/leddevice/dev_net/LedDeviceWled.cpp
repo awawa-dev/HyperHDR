@@ -32,7 +32,8 @@ LedDeviceWled::LedDeviceWled(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
 	, _restApi(nullptr)
 	, _apiPort(API_DEFAULT_PORT)
-	, _maxBright(true)
+	, _overrideBrightness(true)
+	, _brightnessLevel(255)
 	, _restoreConfig(false)
 {
 }
@@ -64,8 +65,11 @@ bool LedDeviceWled::init(const QJsonObject& deviceConfig)
 		Debug(_log, "DeviceType     : %s", QSTRING_CSTR(this->getActiveDeviceType()));
 		Debug(_log, "LedCount       : %d", configuredLedCount);
 
-		_maxBright = deviceConfig["brightnessMax"].toBool(true);
-		Debug(_log, "Max brightness : %s", (_maxBright) ? "true" : "false");
+		_overrideBrightness = deviceConfig["brightnessMax"].toBool(true);
+		Debug(_log, "Override brightness : %s", (_overrideBrightness) ? "true" : "false");
+		
+		_brightnessLevel = deviceConfig["brightnessMaxLevel"].toInt(255);
+		Debug(_log, "Set brightness level: %i", _brightnessLevel);
 
 		_restoreConfig = deviceConfig["restoreOriginalState"].toBool(false);
 		Debug(_log, "Restore WLED   : %s", (_restoreConfig) ? "true" : "false");
@@ -137,7 +141,7 @@ QString LedDeviceWled::getOnOffRequest(bool isOn) const
 	else
 	{
 		QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
-		QString bri = (_maxBright && isOn) ? ",\"bri\":255" : "";
+		QString bri = (_overrideBrightness && isOn) ? QString(",\"bri\":%1").arg(_brightnessLevel) : "";
 		return QString("{\"on\":%1,\"live\":%1%2}").arg(state).arg(bri);
 	}
 }
@@ -146,7 +150,6 @@ bool LedDeviceWled::powerOn()
 {
 	Debug(_log, "");
 	bool on = false;
-	auto current = QDateTime::currentMSecsSinceEpoch();
 
 	if (!_retryMode)
 	{
@@ -188,15 +191,10 @@ bool LedDeviceWled::powerOn()
 				else
 					Error(_log, "The WLED device is not ready... give up.");
 
-
-				auto delta = QDateTime::currentMSecsSinceEpoch() - current;
-
-				delta = qMin(qMax(1000ll - delta, 50ll), 1000ll);
-
 				if (_currentRetry > 0)
 				{
 					_retryMode = true;
-					QTimer::singleShot(delta, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+					QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
 				}
 			}
 		}

@@ -1164,6 +1164,8 @@
   "philips_option_changed_bri": "<p style = 'color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR.",
   "select_wled_intro" : "Select WLED",
   "select_wled_rescan" : "Rescan network",
+  "wledBrightnessOverride" : "Override WLED brightness",
+  "wledCustomBrightnessLevel" : "Custom WLED brightness level",  
   "edt_conf_mqtt_heading_title" : "MQTT client",
   "conf_network_mqtt_intro" : "Registration of HyperHDR services with the MQTT broker",
   "edt_conf_mqtt_ip_title" : "Hostname",

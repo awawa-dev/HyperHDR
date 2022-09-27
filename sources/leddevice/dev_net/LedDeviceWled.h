@@ -116,7 +116,8 @@ private:
 
 	QString _hostname;
 	int		_apiPort;
-	bool	_maxBright;
+	bool	_overrideBrightness;
+	int		_brightnessLevel;
 	bool	_restoreConfig;
 	QJsonDocument _configBackup;
 };
