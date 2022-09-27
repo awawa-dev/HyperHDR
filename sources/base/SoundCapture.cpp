@@ -29,6 +29,7 @@
 #include <utils/settings.h>
 #include <utils/Logger.h>
 #include <cmath>
+
 uint32_t	  SoundCapture::_noSoundCounter = 0;
 bool		  SoundCapture::_noSoundWarning = false;
 bool		  SoundCapture::_soundDetectedInfo = false;

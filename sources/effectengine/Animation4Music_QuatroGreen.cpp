@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroGreen.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroGreen::Animation4Music_QuatroGreen() :
 	AnimationBaseMusic(AMUSIC_QUATROGREEN),

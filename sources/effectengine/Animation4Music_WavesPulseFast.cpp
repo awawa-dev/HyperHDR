@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_WavesPulseFast.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_WavesPulseFast::Animation4Music_WavesPulseFast() :
 	AnimationBaseMusic(AMUSIC_WAVESPULSEFAST),

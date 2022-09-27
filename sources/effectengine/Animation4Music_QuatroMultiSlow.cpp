@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroMultiSlow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroMultiSlow::Animation4Music_QuatroMultiSlow() :
 	AnimationBaseMusic(AMUSIC_QUATROMULTISLOW),
