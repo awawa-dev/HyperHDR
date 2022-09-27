@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_StereoBlue.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoBlue::Animation4Music_StereoBlue() :
 	AnimationBaseMusic(AMUSIC_STEREOBLUE),

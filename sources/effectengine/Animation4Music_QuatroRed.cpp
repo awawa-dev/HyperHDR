@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroRed.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroRed::Animation4Music_QuatroRed() :
 	AnimationBaseMusic(AMUSIC_QUATRORED),

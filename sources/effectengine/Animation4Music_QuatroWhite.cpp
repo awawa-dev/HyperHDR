@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroWhite.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroWhite::Animation4Music_QuatroWhite() :
 	AnimationBaseMusic(AMUSIC_QUATROWHITE),

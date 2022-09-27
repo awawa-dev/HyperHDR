@@ -9,7 +9,6 @@
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QUuid>
-#include <QNetworkInterface>
 #include <QJsonDocument>
 #include <QThreadStorage>
 

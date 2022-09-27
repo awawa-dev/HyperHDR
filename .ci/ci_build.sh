@@ -108,6 +108,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
+		ccache -s &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 		ls -a .ccache

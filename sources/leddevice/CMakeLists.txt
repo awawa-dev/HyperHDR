@@ -120,3 +120,7 @@ else()
 		target_include_directories(leddevice PRIVATE ${MBEDTLS_INCLUDE_DIR})
 	endif (MBEDTLS_LIBRARIES)
 endif()
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(leddevice REUSE_FROM precompiled_hyperhdr_headers)
+endif()

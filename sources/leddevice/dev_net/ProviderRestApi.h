@@ -5,7 +5,6 @@
 #include <utils/Logger.h>
 
 // Qt includes
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrlQuery>
 #include <QThread>

@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_StereoMultiSlow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoMultiSlow::Animation4Music_StereoMultiSlow() :
 	AnimationBaseMusic(AMUSIC_STEREOMULTISLOW),
