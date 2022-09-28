@@ -32,7 +32,7 @@
 #include <QNetworkReply>
 #include <QByteArray>
 #include <QThread>
-#include <QTime>
+#include <QTimer>
 #include <QCoreApplication>
 #include <QElapsedTimer>
 
@@ -203,7 +203,7 @@ bool ProviderRestApi::waitForResult(QNetworkReply* networkReply)
 		!_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)) && !networkReply->isFinished())
 	{
 		networkTimeout = true;
-		networkReply->abort();
+		QTimer::singleShot(0, networkReply, &QNetworkReply::abort);
 	}
 	
 	return networkTimeout;
