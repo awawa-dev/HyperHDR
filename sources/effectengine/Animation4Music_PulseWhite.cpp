@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseWhite.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseWhite::Animation4Music_PulseWhite() :
 	AnimationBaseMusic(AMUSIC_PULSEWHITE),

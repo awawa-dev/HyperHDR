@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseMulti.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseMulti::Animation4Music_PulseMulti() :
 	AnimationBaseMusic(AMUSIC_PULSEMULTI),

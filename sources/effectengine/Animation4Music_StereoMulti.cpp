@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_StereoMulti.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoMulti::Animation4Music_StereoMulti() :
 	AnimationBaseMusic(AMUSIC_STEREOMULTI),

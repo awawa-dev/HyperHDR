@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_StereoGreen.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoGreen::Animation4Music_StereoGreen() :
 	AnimationBaseMusic(AMUSIC_STEREOGREEN),

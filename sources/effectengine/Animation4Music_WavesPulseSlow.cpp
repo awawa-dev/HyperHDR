@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_WavesPulseSlow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_WavesPulseSlow::Animation4Music_WavesPulseSlow() :
 	AnimationBaseMusic(AMUSIC_WAVESPULSESLOW),

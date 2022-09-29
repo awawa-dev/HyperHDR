@@ -27,6 +27,7 @@
 
 
 #include <effectengine/Animation4Music_StereoRed.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoRed::Animation4Music_StereoRed() :
 	AnimationBaseMusic(AMUSIC_STEREORED),

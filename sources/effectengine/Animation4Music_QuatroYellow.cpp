@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroYellow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroYellow::Animation4Music_QuatroYellow() :
 	AnimationBaseMusic(AMUSIC_QUATROYELLOW),
