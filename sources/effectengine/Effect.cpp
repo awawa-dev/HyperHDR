@@ -26,7 +26,6 @@
 */
 
 // Qt includes
-#include <QDateTime>
 #include <QFile>
 #include <QResource>
 #include <QCoreApplication>
@@ -384,7 +383,7 @@ void Effect::run()
 
 	if (_timeout > 0)
 	{
-		_endTime = QDateTime::currentMSecsSinceEpoch() + _timeout;
+		_endTime = InternalClock::now() + _timeout;
 	}
 
 	if (_effect->isSoundEffect())
@@ -393,7 +392,7 @@ void Effect::run()
 	}
 
 	Info(_log, "Begin playing the effect with priority: %i", _priority);
-	while (!_interupt && (_timeout <= 0 || QDateTime::currentMSecsSinceEpoch() < _endTime))
+	while (!_interupt && (_timeout <= 0 || InternalClock::now() < _endTime))
 	{
 		if (_priority > 0)
 		{
@@ -403,7 +402,7 @@ void Effect::run()
 			if (currentPriority < _priority)
 			{
 				QCoreApplication::processEvents(QEventLoop::AllEvents, 15);
-				if (!_interupt && (_timeout <= 0 || QDateTime::currentMSecsSinceEpoch() < _endTime))
+				if (!_interupt && (_timeout <= 0 || InternalClock::now() < _endTime))
 					QThread::msleep(500);
 				continue;
 			}
@@ -419,7 +418,7 @@ void Effect::run()
 		}
 
 		int    micro = _effect->GetSleepTime();
-		qint64 dieTime = QDateTime::currentMSecsSinceEpoch() + micro;
+		qint64 dieTime = InternalClock::now() + micro;
 
 		if (_effect->hasOwnImage())
 		{
@@ -427,7 +426,7 @@ void Effect::run()
 			int timeout = _timeout;
 			if (timeout > 0)
 			{
-				timeout = _endTime - QDateTime::currentMSecsSinceEpoch();
+				timeout = _endTime - InternalClock::now();
 				if (timeout <= 0)
 					break;
 			}
@@ -448,10 +447,10 @@ void Effect::run()
 		if (_effect->isStop())
 			break;
 
-		while (!_interupt && QDateTime::currentMSecsSinceEpoch() < dieTime &&
-			(_timeout <= 0 || QDateTime::currentMSecsSinceEpoch() < _endTime))
+		while (!_interupt && InternalClock::now() < dieTime &&
+			(_timeout <= 0 || InternalClock::now() < _endTime))
 		{
-			micro = dieTime - QDateTime::currentMSecsSinceEpoch();
+			micro = dieTime - InternalClock::now();
 			while (micro > 200)
 				micro /= 2;
 
@@ -478,7 +477,7 @@ bool Effect::LedShow()
 	int timeout = _timeout;
 	if (timeout > 0)
 	{
-		timeout = _endTime - QDateTime::currentMSecsSinceEpoch();
+		timeout = _endTime - InternalClock::now();
 		if (timeout <= 0)
 			return false;
 	}
@@ -509,7 +508,7 @@ bool Effect::ImageShow()
 	int timeout = _timeout;
 	if (timeout > 0)
 	{
-		timeout = _endTime - QDateTime::currentMSecsSinceEpoch();
+		timeout = _endTime - InternalClock::now();
 		if (timeout <= 0)
 			return false;
 	}

@@ -13,7 +13,6 @@
 
 // Qt includes
 #include <QResource>
-#include <QDateTime>
 #include <QCryptographicHash>
 #include <QImage>
 #include <QBuffer>

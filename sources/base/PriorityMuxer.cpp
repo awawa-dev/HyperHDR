@@ -3,7 +3,6 @@
 #include <limits>
 
 // qt incl
-#include <QDateTime>
 #include <QTimer>
 #include <QDebug>
 
@@ -183,7 +182,7 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 
 	// calc final timeout
 	if (timeout_ms > 0)
-		timeout_ms = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
+		timeout_ms = InternalClock::now() + timeout_ms;
 
 	InputInfo& input = _activeInputs[priority];
 
@@ -228,7 +227,7 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 
 	// calculate final timeout
 	if (timeout_ms > 0)
-		timeout_ms = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
+		timeout_ms = InternalClock::now() + timeout_ms;
 
 	InputInfo& input = _activeInputs[priority];
 
@@ -308,7 +307,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 
 void PriorityMuxer::setCurrentTime()
 {
-	const int64_t now = QDateTime::currentMSecsSinceEpoch();
+	const int64_t now = InternalClock::now();
 	int newPriority;
 	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 

@@ -8,7 +8,6 @@
 // Qt includes
 #include <QCoreApplication>
 #include <QResource>
-#include <QDateTime>
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
@@ -62,7 +61,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject
 	_jsonCB = new JsonCB(this);
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
-	_lastSendImage = QDateTime::currentMSecsSinceEpoch();
+	_lastSendImage = InternalClock::now();
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 }
@@ -364,7 +363,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		// collect priority information
 		QJsonArray priorities;
-		uint64_t now = QDateTime::currentMSecsSinceEpoch();
+		uint64_t now = InternalClock::now();
 
 		int currentPriority = -1;
 		if (QThread::currentThread() == _hyperhdr->thread())
@@ -1753,7 +1752,7 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 
 void JsonAPI::setImage(const Image<ColorRgb>& image)
 {	
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+	uint64_t _currentTime = InternalClock::now();
 
 	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))	
 		return;	

@@ -4,9 +4,7 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
-#include <QDateTime>
 #include <QTimer>
-#include <QDateTime>
 
 #include <base/HyperHdrInstance.h>
 #include <utils/JsonUtils.h>
@@ -231,7 +229,7 @@ void LedDevice::setRefreshTime(int refreshTime_ms)
 int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 {
 	// stats
-	int64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t now = InternalClock::now();
 	int64_t diff = now - _computeStats.statBegin;
 	int64_t prevToken = _computeStats.token;
 
