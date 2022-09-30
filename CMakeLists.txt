@@ -318,7 +318,7 @@ function(colorMe value1 value2)
 	endif()
 endfunction()
 
-message( "\n${CyanColor}LED DEVICES${ColorReset}")
+message( STATUS "\n${CyanColor}LED DEVICES${ColorReset}")
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 colorMe("ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
@@ -326,7 +326,7 @@ colorMe("ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 colorMe("ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
 
-message( "\n${CyanColor}SOFTWARE GRABBERS${ColorReset}")
+message( STATUS "\n${CyanColor}SOFTWARE GRABBERS${ColorReset}")
 
 option(ENABLE_DX "Enable Windows DirectX 11 system grabber" ${DEFAULT_DX})
 colorMe("ENABLE_DX = " ${ENABLE_DX})
@@ -343,7 +343,7 @@ colorMe("ENABLE_PIPEWIRE = " ${ENABLE_PIPEWIRE})
 option(ENABLE_X11 "Enable the X11 Linux system grabber" ${DEFAULT_X11})
 colorMe("ENABLE_X11 = " ${ENABLE_X11})
 
-message( "\n${CyanColor}HARDWARE GRABBERS${ColorReset}")
+message( STATUS "\n${CyanColor}HARDWARE GRABBERS${ColorReset}")
 
 option(ENABLE_AVF "Enable AV Foundation macOS grabber" ${DEFAULT_AVF})
 colorMe("ENABLE_AVF = " ${ENABLE_AVF})
@@ -354,7 +354,7 @@ colorMe("ENABLE_MF = " ${ENABLE_MF})
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
 colorMe("ENABLE_V4L2 = " ${ENABLE_V4L2})
 
-message( "\n${CyanColor}SOUND CAPTURING${ColorReset}")
+message( STATUS "\n${CyanColor}SOUND CAPTURING${ColorReset}")
 
 option(ENABLE_SOUNDCAPLINUX "Enable Linux Sound Capture" ${DEFAULT_SOUNDCAPLINUX})
 colorMe("ENABLE_SOUNDCAPLINUX = " ${ENABLE_SOUNDCAPLINUX})
@@ -365,7 +365,7 @@ colorMe("ENABLE_SOUNDCAPMACOS = " ${ENABLE_SOUNDCAPMACOS})
 option(ENABLE_SOUNDCAPWINDOWS "Enable Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
 colorMe("ENABLE_SOUNDCAPWINDOWS = " ${ENABLE_SOUNDCAPWINDOWS})
 
-message( "\n${CyanColor}SERVICE SUPPORT${ColorReset}")
+message( STATUS "\n${CyanColor}SERVICE SUPPORT${ColorReset}")
 
 option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
 colorMe("ENABLE_BOBLIGHT = " ${ENABLE_BOBLIGHT})
@@ -382,7 +382,7 @@ colorMe("ENABLE_MQTT = " ${ENABLE_MQTT})
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 
-message( "\n${CyanColor}BUILD FEATURES${ColorReset}")
+message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
 option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
 colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
@@ -390,7 +390,7 @@ colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
 option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
 colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
 
-message( "\n")
+message( STATUS "\n")
 
 # next part
 
