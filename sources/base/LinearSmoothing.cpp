@@ -177,7 +177,7 @@ void LinearSmoothing::Antiflickering()
 					(newColor.red != 0 || newColor.green != 0 || newColor.blue != 0) &&
 					(oldColor.red != 0 || oldColor.green != 0 || oldColor.blue != 0))
 				{
-					if (_antiFlickeringTimeout <= 0 || now - timeout < _antiFlickeringTimeout)
+					if (_antiFlickeringTimeout <= 0 || (now - timeout < _antiFlickeringTimeout && now > timeout))
 						_targetValues[i] = _previousValues[i];
 					else
 						timeout = now;
