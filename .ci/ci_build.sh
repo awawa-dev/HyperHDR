@@ -39,7 +39,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		CCACHE_PATH=$PWD
 		cd ..
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
-		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M
+		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
 		echo "CCache parameters: ${cachecommand}"		
 		ls -a .ccache
 
@@ -88,9 +88,9 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		
 		if [[ "$RESET_CACHE" == '1' ]]; then
 			echo "Clearing ccache"
-			cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M && cd /.ccache && rm -rf ..?* .[!.]* *"
+			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M && cd /.ccache && rm -rf ..?* .[!.]* *"
 		else
-			cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M"
+			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M"
 		fi
 		
 		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"
