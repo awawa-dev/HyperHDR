@@ -8,6 +8,7 @@
 #include <ssdp/SSDPDiscover.h>
 
 #include <chrono>
+#include <cmath>
 
 // Constants
 namespace {

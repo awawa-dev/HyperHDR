@@ -12,3 +12,7 @@ target_link_libraries(mqtt
 	${QT_LIBRARIES}
 	qmqtt
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers( mqtt REUSE_FROM precompiled_hyperhdr_headers)
+endif()

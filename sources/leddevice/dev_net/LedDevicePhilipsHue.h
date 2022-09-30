@@ -6,9 +6,6 @@
 #include <stdarg.h>
 
 // Qt includes
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QtCore/qmath.h>
 #include <QStringList>
 
 // LedDevice includes

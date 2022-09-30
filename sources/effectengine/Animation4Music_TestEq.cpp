@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_TestEq.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_TestEq::Animation4Music_TestEq() :
 	AnimationBaseMusic(AMUSIC_TESTEQ),

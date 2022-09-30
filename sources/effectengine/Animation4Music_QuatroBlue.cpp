@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroBlue.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroBlue::Animation4Music_QuatroBlue() :
 	AnimationBaseMusic(AMUSIC_QUATROBLUE),

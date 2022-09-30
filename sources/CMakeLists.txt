@@ -1,3 +1,10 @@
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/precompiled_hyperhdr_headers.cpp "void precompiledHeadersHyperHDR(){};")
+	add_library(precompiled_hyperhdr_headers ${CMAKE_CURRENT_BINARY_DIR}/precompiled_hyperhdr_headers.cpp)
+	target_link_libraries(precompiled_hyperhdr_headers Qt${Qt_VERSION}::Gui Qt${Qt_VERSION}::Network)
+
+    target_precompile_headers(precompiled_hyperhdr_headers PRIVATE ${CMAKE_SOURCE_DIR}/include/base/AllHeaders_pch.h)
+endif()
 
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)

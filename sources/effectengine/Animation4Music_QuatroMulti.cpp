@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroMulti.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroMulti::Animation4Music_QuatroMulti() :
 	AnimationBaseMusic(AMUSIC_QUATROMULTI),

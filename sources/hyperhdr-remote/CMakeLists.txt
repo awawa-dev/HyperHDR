@@ -55,3 +55,7 @@ if(CMAKE_HOST_UNIX)
 	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME "${PROJECT_NAME}" COMPONENT "HyperHDR_remote" )
 	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME} )" COMPONENT "HyperHDR_remote" )
 endif(CMAKE_HOST_UNIX)
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(${PROJECT_NAME} REUSE_FROM precompiled_hyperhdr_headers)
+endif()
