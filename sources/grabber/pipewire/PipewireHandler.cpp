@@ -122,6 +122,7 @@ void PipewireHandler::closeSession()
 
 	if (_pwMainThreadLoop != nullptr)
 	{
+		pw_thread_loop_wait(_pwMainThreadLoop);
 		pw_thread_loop_stop(_pwMainThreadLoop);		
 	}
 
@@ -704,7 +705,7 @@ void PipewireHandler::getImage(PipewireImage* image)
 			printf("Pipewire: unexpected frame size. Got: %d, expected: %d\n", _backupFrame->buffer->datas[0].chunk->size, (_frameWidth * _frameHeight * 4));
 	}
 
-	if (_framePaused)
+	if (_framePaused && _pwStream != nullptr)
 		pw_stream_set_active(_pwStream, true);
 }
 

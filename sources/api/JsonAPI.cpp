@@ -8,7 +8,6 @@
 // Qt includes
 #include <QCoreApplication>
 #include <QResource>
-#include <QDateTime>
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
@@ -62,7 +61,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject
 	_jsonCB = new JsonCB(this);
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
-	_lastSendImage = QDateTime::currentMSecsSinceEpoch();
+	_lastSendImage = InternalClock::now();
 	_colorsStreamingInterval = 50;
 
 	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::handleLedColorsTimer, Qt::UniqueConnection);
@@ -367,7 +366,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		// collect priority information
 		QJsonArray priorities;
-		uint64_t now = QDateTime::currentMSecsSinceEpoch();
+		uint64_t now = InternalClock::now();
 
 		int currentPriority = -1;
 		if (QThread::currentThread() == _hyperhdr->thread())
@@ -1292,6 +1291,11 @@ void JsonAPI::handleProcessingCommand(const QJsonObject& message, const QString&
 
 void JsonAPI::handleVideoModeHdrCommand(const QJsonObject& message, const QString& command, int tan)
 {
+	if (message.contains("flatbuffers_user_lut_filename"))
+	{
+		API::setFlatbufferUserLUT(message["flatbuffers_user_lut_filename"].toString(""));
+	}
+
 	API::setVideoModeHdr(message["HDR"].toInt());
 	sendSuccessReply(command, tan);
 }
@@ -1752,7 +1756,7 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 
 void JsonAPI::setImage(const Image<ColorRgb>& image)
 {	
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+	uint64_t _currentTime = InternalClock::now();
 
 	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))	
 		return;	

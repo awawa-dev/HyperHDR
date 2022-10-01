@@ -99,9 +99,9 @@ void AuthManager::setAuthBlock(bool user)
 {
 	// current timestamp +10 minutes
 	if (user)
-		_userAuthAttempts.append(QDateTime::currentMSecsSinceEpoch() + 600000);
+		_userAuthAttempts.append(InternalClock::now() + 600000);
 	else
-		_tokenAuthAttempts.append(QDateTime::currentMSecsSinceEpoch() + 600000);
+		_tokenAuthAttempts.append(InternalClock::now() + 600000);
 
 	_authBlockTimer->start();
 }
@@ -164,7 +164,7 @@ void AuthManager::setNewTokenRequest(QObject* caller, const QString& comment, co
 {
 	if (!_pendingRequests.contains(id))
 	{
-		AuthDefinition newDef{ id, comment, caller, tan, uint64_t(QDateTime::currentMSecsSinceEpoch() + 180000) };
+		AuthDefinition newDef{ id, comment, caller, tan, uint64_t(InternalClock::now() + 180000) };
 		_pendingRequests[id] = newDef;
 		_timer->start();
 		emit newPendingTokenRequest(id, comment);
@@ -210,7 +210,7 @@ QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests() const
 		AuthDefinition def;
 		def.comment = entry.comment;
 		def.id = entry.id;
-		def.timeoutTime = entry.timeoutTime - QDateTime::currentMSecsSinceEpoch();
+		def.timeoutTime = entry.timeoutTime - InternalClock::now();
 		finalVec.append(def);
 	}
 	return finalVec;
@@ -249,7 +249,7 @@ void AuthManager::handleSettingsUpdate(settings::type type, const QJsonDocument&
 
 void AuthManager::checkTimeout()
 {
-	const uint64_t now = QDateTime::currentMSecsSinceEpoch();
+	const uint64_t now = InternalClock::now();
 
 	QMapIterator<QString, AuthDefinition> i(_pendingRequests);
 	while (i.hasNext())
@@ -273,7 +273,7 @@ void AuthManager::checkAuthBlockTimeout()
 	// handle user auth block	
 	QVector<uint64_t>::iterator itu = _userAuthAttempts.begin();
 	while (itu != _userAuthAttempts.end()) {
-		if (*itu < (uint64_t)QDateTime::currentMSecsSinceEpoch())
+		if (*itu < (uint64_t)InternalClock::now())
 			itu = _userAuthAttempts.erase(itu);
 		else
 			++itu;
@@ -282,7 +282,7 @@ void AuthManager::checkAuthBlockTimeout()
 	// handle token auth block	
 	QVector<uint64_t>::iterator it = _tokenAuthAttempts.begin();
 	while (it != _tokenAuthAttempts.end()) {
-		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch())
+		if (*it < (uint64_t)InternalClock::now())
 			it = _tokenAuthAttempts.erase(it);
 		else
 			++it;

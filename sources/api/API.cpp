@@ -13,7 +13,6 @@
 
 // Qt includes
 #include <QResource>
-#include <QDateTime>
 #include <QCryptographicHash>
 #include <QImage>
 #include <QBuffer>
@@ -243,6 +242,12 @@ void API::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
 
 	if (FlatBufferServer::getInstance() != nullptr)
 		QMetaObject::invokeMethod(FlatBufferServer::getInstance(), "setHdrToneMappingEnabled", Qt::QueuedConnection, Q_ARG(int, hdr));
+}
+
+void API::setFlatbufferUserLUT(QString userLUTfile)
+{
+	if (FlatBufferServer::getInstance() != nullptr)
+		QMetaObject::invokeMethod(FlatBufferServer::getInstance(), "setUserLut", Qt::QueuedConnection, Q_ARG(QString, userLUTfile));
 }
 
 bool API::setEffect(const EffectCmdData& dat, hyperhdr::Components callerComp)

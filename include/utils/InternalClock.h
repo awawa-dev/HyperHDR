@@ -1,8 +1,8 @@
-/* Animation4Music_PulseRed.cpp
+/* InternalClock.h
 *
 *  MIT License
 *
-*  Copyright (c) 2021 awawa-dev
+*  Copyright (c) 2022 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,65 +25,17 @@
 *  SOFTWARE.
  */
 
-#include <effectengine/Animation4Music_PulseRed.h>
-#include <base/SoundCapture.h>
+#pragma once
+#include <QtGlobal>
+#include <chrono>
 
-Animation4Music_PulseRed::Animation4Music_PulseRed() :
-	AnimationBaseMusic(AMUSIC_PULSERED),
-	_internalIndex(0),
-	_oldMulti(0)
+class InternalClock
 {
-
+	public:
+		static qint64 now();
+		static qint64 nowPrecise();
+		static bool isPreciseSteady();
+	private:
+		const static std::chrono::time_point<std::chrono::steady_clock> start;
+		const static std::chrono::time_point<std::chrono::high_resolution_clock> startPrecise;
 };
-
-EffectDefinition Animation4Music_PulseRed::getDefinition()
-{
-	EffectDefinition ed;
-	ed.name = AMUSIC_PULSERED;
-	ed.args = GetArgs();
-	return ed;
-}
-
-void Animation4Music_PulseRed::Init(
-	QImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
-bool Animation4Music_PulseRed::Play(QPainter* painter)
-{
-	return false;
-}
-
-bool Animation4Music_PulseRed::hasOwnImage()
-{
-	return true;
-};
-
-bool Animation4Music_PulseRed::getImage(Image<ColorRgb>& newImage)
-{
-	bool newData = false;
-	auto r = SoundCapture::getInstance()->hasResult(this, _internalIndex, NULL, NULL, &newData, &_oldMulti);
-
-	if (r == NULL || !newData)
-		return false;
-
-	int value = r->getValue(_oldMulti);
-
-	if (value < 0)
-		return false;
-
-	QColor selected(value, 0, 0);
-	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, selected.red(), selected.green(), selected.blue());
-
-	return true;
-};
-
-
-
-
-
-
-

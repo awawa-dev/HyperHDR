@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseBlue.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseBlue::Animation4Music_PulseBlue() :
 	AnimationBaseMusic(AMUSIC_PULSEBLUE),

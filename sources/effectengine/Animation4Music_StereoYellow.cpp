@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_StereoYellow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoYellow::Animation4Music_StereoYellow() :
 	AnimationBaseMusic(AMUSIC_STEREOYELLOW),

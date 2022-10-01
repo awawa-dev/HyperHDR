@@ -29,7 +29,6 @@
 #include <base/GrabberWrapper.h>
 #include <base/HyperHdrIManager.h>
 #include <cmath>
-#include <QDateTime>
 
 DetectionAutomatic::DetectionAutomatic() :
 	_log(Logger::getInstance("SIGNAL_AUTO")),
@@ -143,9 +142,9 @@ void DetectionAutomatic::calibration::reset()
 
 	backupHDR = 0;
 	decimationFPS = 0;
-	phaseStartTime = QDateTime::currentMSecsSinceEpoch() + 200;
-	phaseEndTime = QDateTime::currentMSecsSinceEpoch() + 5000 + 200;
-	endTime = QDateTime::currentMSecsSinceEpoch() + 60 * 1000;
+	phaseStartTime = InternalClock::now() + 200;
+	phaseEndTime = InternalClock::now() + 5000 + 200;
+	endTime = InternalClock::now() + 60 * 1000;
 	currentSDRframe = 0;
 	currentHDRframe = 0;
 	signature = "";
@@ -234,7 +233,7 @@ void DetectionAutomatic::calibration::buildPoints(int _width, int _height)
 
 void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 {
-	qint64 time = QDateTime::currentMSecsSinceEpoch();
+	qint64 time = InternalClock::now();
 
 	if (time > calibrationData.endTime || time > calibrationData.phaseEndTime)
 	{
@@ -317,8 +316,8 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 			if (calibrationData.currentSDRframe == 100)
 			{
 				GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
-				calibrationData.phaseStartTime = QDateTime::currentMSecsSinceEpoch() + 500;
-				calibrationData.phaseEndTime = QDateTime::currentMSecsSinceEpoch() + 3000 + 500;
+				calibrationData.phaseStartTime = InternalClock::now() + 500;
+				calibrationData.phaseEndTime = InternalClock::now() + 3000 + 500;
 				calibrationData.currentPhase = calibrationPhase::WAITING_FOR_HDR;
 				calibrationData.status = "Waiting for first HDR frame";
 				Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
@@ -521,7 +520,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 	if (hasSignal && !_noSignal)
 		return true;
 
-	qint64 time = QDateTime::currentMSecsSinceEpoch();
+	qint64 time = InternalClock::now();
 
 	if (!hasSignal && !_noSignal)
 	{

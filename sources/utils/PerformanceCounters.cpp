@@ -59,7 +59,7 @@ PerformanceReport::PerformanceReport(int _type, qint64 _token, QString _name, do
 	param3 = _param3;
 	param4 = _param4;
 	id = _id;
-	timeStamp = QDateTime::currentSecsSinceEpoch();
+	timeStamp = InternalClock::now() / 1000;
 };
 
 PerformanceCounters::PerformanceCounters()
@@ -85,10 +85,10 @@ PerformanceCounters::PerformanceCounters()
 
 void PerformanceCounters::request(bool all)
 {
-	if (QDateTime::currentMSecsSinceEpoch() - _lastRead < 980)
+	if (InternalClock::now() - _lastRead < 980)
 		return;
 
-	_lastRead = QDateTime::currentMSecsSinceEpoch();
+	_lastRead = InternalClock::now();
 
 	QString cpu = _system.getCPU();
 	if (cpu != "")
@@ -145,13 +145,13 @@ PerformanceCounters* PerformanceCounters::getInstance()
 
 qint64 PerformanceCounters::currentToken()
 {
-	return QDateTime::currentSecsSinceEpoch() / (qint64)60;
+	return (InternalClock::now() / 1000) / (qint64)60;
 }
 
 void PerformanceCounters::receive(PerformanceReport pr)
 {
 	QMutableListIterator<PerformanceReport> cleaner(this->_reports);
-	qint64 now = QDateTime::currentSecsSinceEpoch();
+	qint64 now = InternalClock::now() / 1000;
 		
 	while (cleaner.hasNext())
 	{
@@ -251,6 +251,7 @@ void PerformanceCounters::consoleReport(int type, int token)
 void PerformanceCounters::createUpdate(PerformanceReport pr)
 {
 	QJsonObject report;
+	qint64 helper = InternalClock::now() / 1000;
 
 	report["remove"] = 0;
 	report["type"] = pr.type;
@@ -262,9 +263,9 @@ void PerformanceCounters::createUpdate(PerformanceReport pr)
 	report["param4"] = pr.param4;
 	report["id"] = pr.id;
 	if (pr.token > 0)
-		report["refresh"] = 60 - (QDateTime::currentSecsSinceEpoch() % 60);
+		report["refresh"] = 60 - (helper % 60);
 	else
-		report["refresh"] = qMax(1 - (QDateTime::currentSecsSinceEpoch() / 60 - pr.timeStamp / 60), 0ll) * 60 + 60 - (QDateTime::currentSecsSinceEpoch() % 60);
+		report["refresh"] = qMax(1 - (helper / 60 - pr.timeStamp / 60), 0ll) * 60 + 60 - (helper % 60);
 
 	emit performanceUpdate(report);
 }
@@ -286,6 +287,7 @@ void PerformanceCounters::broadcast()
 	for (auto pr : this->_reports)
 	{
 		QJsonObject report;
+		qint64 helper = InternalClock::now() / 1000;
 
 		report["remove"] = 0;
 		report["type"] = pr.type;
@@ -298,9 +300,9 @@ void PerformanceCounters::broadcast()
 		report["id"] = pr.id;
 
 		if (pr.token > 0)
-			report["refresh"] = 60 - (QDateTime::currentSecsSinceEpoch() % 60);
+			report["refresh"] = 60 - (helper % 60);
 		else
-			report["refresh"] = qMax(1 - (QDateTime::currentSecsSinceEpoch() / 60 - pr.timeStamp / 60), 0ll) * 60 + 60 - (QDateTime::currentSecsSinceEpoch() % 60);
+			report["refresh"] = qMax(1 - (helper / 60 - pr.timeStamp / 60), 0ll) * 60 + 60 - (helper % 60);
 
 		arr.append(report);		
 	}

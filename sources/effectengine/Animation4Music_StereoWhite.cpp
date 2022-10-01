@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_StereoWhite.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoWhite::Animation4Music_StereoWhite() :
 	AnimationBaseMusic(AMUSIC_STEREOWHITE),

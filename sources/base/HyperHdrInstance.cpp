@@ -660,7 +660,7 @@ void HyperHdrInstance::update()
 void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 {
 	// stats
-	int64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t now = InternalClock::now();
 	int64_t diff = now - _computeStats.statBegin;
 	int64_t prevToken = _computeStats.token;
 
