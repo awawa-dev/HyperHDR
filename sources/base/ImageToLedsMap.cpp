@@ -333,7 +333,7 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb>& image, const std::
 	uint_fast32_t sumRed = 0;
 	uint_fast32_t sumGreen = 0;
 	uint_fast32_t sumBlue = 0;
-	uint8_t* imgData = (uint8_t*)image.memptr();
+	const uint8_t* imgData = image.rawMem();
 
 	for (const unsigned colorOffset : colors)
 	{
@@ -371,7 +371,7 @@ ColorRgb ImageToLedsMap::calcMeanAdvColor(const Image<ColorRgb>& image, const st
 	uint_fast64_t sumGreen2 = 0;
 	uint_fast64_t sumBlue2 = 0;
 
-	uint8_t* imgData = (uint8_t*)image.memptr();
+	const uint8_t* imgData = image.rawMem();
 
 	for (const int32_t colorOffset : colors)
 	{
@@ -416,7 +416,7 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb>& image) const
 	uint_fast32_t sumBlue = 0;
 	const size_t imageSize = image.size();
 
-	uint8_t* imgData = (uint8_t*)image.memptr();
+	const uint8_t* imgData = image.rawMem();
 
 	for (size_t idx = 0; idx < imageSize; idx += 3)
 	{

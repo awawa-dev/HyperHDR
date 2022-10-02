@@ -307,7 +307,7 @@ void V4L2Worker::process_image_jpg_mt()
 	}
 	else
 	{
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)image.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, image.rawMem(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
 			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);

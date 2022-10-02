@@ -180,7 +180,7 @@ bool API::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& reply
 
 	// copy image
 	Image<ColorRgb> image(data.width, data.height);
-	memcpy(image.memptr(), data.data.data(), data.data.size());
+	memcpy(image.rawMem(), data.data.data(), data.data.size());
 
 	QMetaObject::invokeMethod(_hyperhdr, "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperhdr::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
 	QMetaObject::invokeMethod(_hyperhdr, "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));

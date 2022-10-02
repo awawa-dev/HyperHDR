@@ -73,7 +73,7 @@ bool Animation4Music_StereoMultiFast::getImage(Image<ColorRgb>& newImage)
 	QColor selected, empty;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, empty, &selected))
 		return false;

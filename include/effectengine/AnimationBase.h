@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <QPainter>
 #include <utils/Image.h>
 #include <effectengine/EffectDefinition.h>

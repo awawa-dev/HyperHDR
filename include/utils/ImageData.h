@@ -1,12 +1,6 @@
 #pragma once
 
-// STL includes
-#include <vector>
-#include <cstdint>
-#include <cstring>
-#include <algorithm>
-#include <cassert>
-#include <type_traits>
+// Includes
 #include <utils/ColorRgb.h>
 #include <utils/VideoMemoryManager.h>
 
@@ -19,194 +13,67 @@
 #endif
 
 
-
+template <typename ColorSpace>
 class ImageData : public QSharedData
-{
-	template<class T>
-	friend class Image;
-
+{	
 public:
-	ImageData(unsigned width, unsigned height) :
-		_width(width),
-		_height(height),
-		_pixels(getMemory(width, height))
-	{
-	}
+	ImageData(unsigned width, unsigned height);
 
-	ImageData(const ImageData& other) :
-		_width(other._width),
-		_height(other._height),
-		_pixels(getMemory(other._width, other._height))
-	{
-		if (_pixels != NULL)
-			memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * other._height * 3);
-	}
+	ImageData(const ImageData<ColorSpace>& other);
 
-	bool setBufferCacheSize()
-	{
-		return videoCache.setFrameSize(_bufferSize);
-	}
+	bool setBufferCacheSize();
+	
+	~ImageData<ColorSpace>();
 
+	unsigned width() const;
 
-	ImageData& operator=(ImageData rhs)
-	{
-		rhs.swap(*this);
-		return *this;
-	}
+	unsigned height() const;
 
-	void swap(ImageData& s) noexcept
-	{
-		using std::swap;
-		swap(this->_width, s._width);
-		swap(this->_height, s._height);
-		swap(this->_pixels, s._pixels);
-		swap(this->_bufferSize, s._bufferSize);
-	}
+	const ColorSpace& operator()(unsigned x, unsigned y) const;
 
-	ImageData(ImageData&& src) noexcept
-		: _width(0)
-		, _height(0)
-		, _pixels(NULL)
-	{
-		src.swap(*this);
-	}
+	ColorSpace& operator()(unsigned x, unsigned y);
 
-	ImageData& operator=(ImageData&& src) noexcept
-	{
-		src.swap(*this);
-		return *this;
-	}
+	void resize(unsigned width, unsigned height);
 
-	~ImageData()
-	{
-		freeMemory();
-	}
+	uint8_t* rawMem();
 
-	inline unsigned width() const
-	{
-		return _width;
-	}
+	const uint8_t* rawMem() const;
 
-	inline unsigned height() const
-	{
-		return _height;
-	}
+	void toRgb(ImageData<ColorSpace>& image) const;
 
-	const ColorRgb& operator()(unsigned x, unsigned y) const
-	{
-		return *((ColorRgb*)&(_pixels[toIndex(x, y)]));
-	}
+	size_t size() const;
 
-	ColorRgb& operator()(unsigned x, unsigned y)
-	{
-		return *((ColorRgb*)&(_pixels[toIndex(x, y)]));
-	}
+	void clear();
 
-	void resize(unsigned width, unsigned height)
-	{
-		if (width == _width && height == _height)
-			return;
+	bool checkSignal(int x, int y, int r, int g, int b, int tolerance);
 
-		if ((width * height) > unsigned((_width * _height)))
-		{
-			freeMemory();
-			_pixels = (uint8_t*)getMemory(width, height);
-		}
+	void fastBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t r, uint8_t g, uint8_t b);
 
-		_width = width;
-		_height = height;
-	}
+	void gradientHBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t r, uint8_t g, uint8_t b);
 
-	ColorRgb* memptr()
-	{
-		return (ColorRgb*)_pixels;
-	}
+	void gradientVBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t r, uint8_t g, uint8_t b);
 
-	const ColorRgb* memptr() const
-	{
-		return (ColorRgb*)_pixels;
-	}
-
-	void toRgb(ImageData& image) const
-	{
-		if (image.width() != _width || image.height() != _height)
-			image.resize(_width, _height);
-
-		memcpy(image.memptr(), _pixels, static_cast<size_t>(_width) * _height * 3);
-	}
-
-	size_t size() const
-	{
-		return  static_cast<size_t>(_width) * static_cast<size_t>(_height) * 3;
-	}
-
-	void clear()
-	{
-		if (_width != 1 || _height != 1)
-		{
-			_width = 1;
-			_height = 1;
-			freeMemory();
-			_pixels = getMemory(_width, _height);
-		}
-		if (_pixels != NULL)
-			memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
-	}
-
-	bool checkSignal(int x, int y, int r, int g, int b, int tolerance)
-	{
-		int index = (y * _width + x) * 3;
-		ColorRgb* rgb = ((ColorRgb*)&(_pixels[index]));
-		int delta = std::abs(r - rgb->red) + std::abs(g - rgb->green) + std::abs(b - rgb->blue);
-
-		return delta <= tolerance;
-	}
-
-	static QString adjustCache()
-	{
-		return videoCache.adjustCache();
-	}
+	static QString adjustCache();
 
 private:
-	inline unsigned toIndex(unsigned x, unsigned y) const
-	{
-		return (y * _width + x) * 3;
-	}
+	inline unsigned toIndex(unsigned x, unsigned y) const;
 
-	inline uint8_t* getMemory(size_t width, size_t height)
-	{
-		if (width == 1 && height == 1)
-		{
-			_bufferSize = 3;
-			return initDataPointer;
-		}
+	inline uint8_t* getMemory(size_t width, size_t height);
 
-		_bufferSize = width * height * 3 + 16;
-		return videoCache.request(_bufferSize);
-	}
-
-	inline void freeMemory()
-	{
-		if (_pixels != initDataPointer && _pixels != nullptr)
-		{
-			videoCache.release(_bufferSize, _pixels);
-		}
-
-		_bufferSize = 0;
-		_pixels = nullptr;
-	}
+	inline void freeMemory();
 
 private:
 	/// The width of the image
 	unsigned _width;
 	/// The height of the image
 	unsigned _height;
+
+	uint64_t _initData;
+
 	/// The pixels of the image
 	uint8_t* _pixels;
 
 	size_t   _bufferSize;
-
-	static uint64_t           initData;
-	static uint8_t* initDataPointer;
+	
 	static VideoMemoryManager videoCache;
 };

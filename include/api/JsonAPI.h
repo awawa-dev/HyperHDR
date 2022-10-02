@@ -55,7 +55,7 @@ public slots:
 	/// @brief Push images whenever hyperHDR emits (if enabled)
 	/// @param image  The current image
 	///
-	void setImage(const Image<ColorRgb>& image);
+	void setImage();
 
 	///
 	/// @brief Process and push new log messages from logger (if enabled)

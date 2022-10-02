@@ -204,7 +204,7 @@ void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 	_sent = true;
 	_lastSendImage = current;
 
-	auto imgData = _builder.CreateVector(reinterpret_cast<const uint8_t*>(image.memptr()), image.size());
+	auto imgData = _builder.CreateVector(image.rawMem(), image.size());
 	auto rawImg = hyperhdrnet::CreateRawImage(_builder, imgData, image.width(), image.height());
 	auto imageReq = hyperhdrnet::CreateImage(_builder, hyperhdrnet::ImageType_RawImage, rawImg.Union(), -1);
 	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Image, imageReq.Union());
