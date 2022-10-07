@@ -119,7 +119,7 @@ bool PriorityMuxer::hasPriority(int priority) const
 	return (priority == PriorityMuxer::LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
-PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
+const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(int priority) const
 {
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
@@ -172,6 +172,16 @@ void PriorityMuxer::registerInput(int priority, hyperhdr::Components component, 
 	}
 }
 
+void PriorityMuxer::updateLedsValues(int priority, const std::vector<ColorRgb>& ledColors)
+{
+	if (!_activeInputs.contains(priority))
+	{
+		return;
+	}
+
+	_activeInputs[priority].ledColors = ledColors;
+}
+
 bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
 {
 	if (!_activeInputs.contains(priority))
@@ -201,7 +211,7 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	// update input
 	input.timeoutTime_ms = timeout_ms;
 	input.ledColors = ledColors;
-	input.image.clear();
+	input.image = Image<ColorRgb>();
 
 	// emit active change
 	if (activeChange)
@@ -296,7 +306,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 	{
 		for (auto key : _activeInputs.keys())
 		{
-			const InputInfo info = getInputInfo(key);
+			const InputInfo& info = getInputInfo(key);
 			if ((info.componentId == hyperhdr::COMP_COLOR || info.componentId == hyperhdr::COMP_EFFECT || info.componentId == hyperhdr::COMP_IMAGE) && key < PriorityMuxer::LOWEST_PRIORITY - 1)
 			{
 				clearInput(key);

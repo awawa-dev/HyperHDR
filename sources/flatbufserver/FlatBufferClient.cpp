@@ -198,10 +198,10 @@ void FlatBufferClient::handleImageCommand(const hyperhdrnet::Image* image)
 		}
 
 		Image<ColorRgb> imageDest(width, height);
-		memmove(imageDest.memptr(), imageData->data(), imageData->size());
+		memmove(imageDest.rawMem(), imageData->data(), imageData->size());
 
 		// tone mapping
-		FrameDecoder::applyLUT((uint8_t*)imageDest.memptr(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingMode);
+		FrameDecoder::applyLUT(imageDest.rawMem(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingMode);
 
 		emit setGlobalInputImage(_priority, imageDest, duration);
 	}

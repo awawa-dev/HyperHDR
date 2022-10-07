@@ -75,7 +75,7 @@ bool Animation4Music_QuatroWhite::getImage(Image<ColorRgb>& newImage)
 	if (value < 0)
 		return false;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	{
 		int hm = (newImage.height() / 2);

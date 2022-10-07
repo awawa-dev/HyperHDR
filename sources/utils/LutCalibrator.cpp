@@ -31,6 +31,7 @@
 #include <utils/ColorSys.h>
 #include <base/HyperHdrIManager.h>
 #include <utils/RgbTransform.h>
+#include <cmath>
 #include <cfloat>
 #include <climits>
 

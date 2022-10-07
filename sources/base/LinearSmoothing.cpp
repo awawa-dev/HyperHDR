@@ -114,7 +114,7 @@ void LinearSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocum
 	}
 }
 
-void LinearSmoothing::updateLedValues(std::vector<ColorRgb> ledValues)
+void LinearSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
 {
 	if (!_enabled)
 		return;

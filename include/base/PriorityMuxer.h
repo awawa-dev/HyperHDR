@@ -142,7 +142,7 @@ public:
 	///
 	/// @return The information for the specified priority channel
 	///
-	InputInfo getInputInfo(int priority) const;
+	const InputInfo& getInputInfo(int priority) const;
 
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
@@ -197,6 +197,8 @@ public:
 	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continuous single color pushes)
 	///
 	void queuePush() { emit timeRunner(); }
+
+	void updateLedsValues(int priority, const std::vector<ColorRgb>& ledColors);
 
 signals:
 	///

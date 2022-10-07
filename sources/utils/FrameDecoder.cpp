@@ -71,7 +71,7 @@ void FrameDecoder::processImage(
 
 	outputImage.resize(outputWidth, outputHeight);
 
-	uint8_t* destMemory = (uint8_t*)outputImage.memptr();
+	uint8_t* destMemory = outputImage.rawMem();
 	int 		destLineSize = outputImage.width() * 3;
 
 
@@ -305,7 +305,7 @@ void FrameDecoder::processQImage(
 
 	outputImage.resize(outputWidth, outputHeight);
 
-	uint8_t* destMemory = (uint8_t*)outputImage.memptr();
+	uint8_t* destMemory = outputImage.rawMem();
 	int 		destLineSize = outputImage.width() * 3;
 
 
@@ -521,9 +521,9 @@ void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSize
 	for (int j = 0; j < targetSizeY; j++)
 	{
 		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
-		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
-		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
-		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 4)));
+		uint8_t* dLine = (image.rawMem() + (size_t)j * targetSizeX * 3);
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 4)));
 
 		if (_lutBuffer == nullptr)
 		{
@@ -562,9 +562,9 @@ void FrameDecoder::processSystemImageBGR(Image<ColorRgb>& image, int targetSizeX
 	for (int j = 0; j < targetSizeY; j++)
 	{
 		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
-		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
-		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
-		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 3)));
+		uint8_t* dLine = (image.rawMem() + (size_t)j * targetSizeX * 3);
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 3)));
 
 		if (_lutBuffer == nullptr)
 		{
@@ -604,9 +604,9 @@ void FrameDecoder::processSystemImageBGR16(Image<ColorRgb>& image, int targetSiz
 	for (int j = 0; j < targetSizeY; j++)
 	{
 		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
-		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
-		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
-		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 2)));
+		uint8_t* dLine = (image.rawMem() + (size_t)j * targetSizeX * 3);
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 2)));
 
 		if (_lutBuffer == nullptr)
 		{
@@ -655,9 +655,9 @@ void FrameDecoder::processSystemImageRGBA(Image<ColorRgb>& image, int targetSize
 	for (int j = 0; j < targetSizeY; j++)
 	{
 		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
-		int8_t* dLine = ((int8_t*)image.memptr() + (size_t)j * targetSizeX * 3);
-		int8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
-		int8_t* sLine = (((int8_t*)source + (lineSource * lineSize) + ((size_t)startX * 4)));
+		uint8_t* dLine = (image.rawMem() + (size_t)j * targetSizeX * 3);
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 4)));
 
 		if (_lutBuffer == nullptr)
 		{
