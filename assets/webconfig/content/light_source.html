@@ -572,7 +572,7 @@
 						<div class="card-header" id="instTarget2">
 							<h4 class="card-title"><i class="fa fa-search fa-fw"></i><span data-i18n="conf_leds_layout_peview">LED Layout preview</span></h4>
 						</div>
-						<div class="card-body">
+						<div class="card-body" id="visualCreatorPanel">
 							<p id="previewcreator" style="font-weight: bold;"></p>
 							<p id="previewledcount" style="font-weight: bold;"></p>
 							<p id="previewledpower" style="font-weight: bold;"></p>
@@ -591,7 +591,86 @@
 		</div>
 	</div>
 </div>
-
+<div class="dropdown-menu dropdown-menu-sm" style="display: none;" id="creator-context-menu">
+	<a class="dropdown-item" href="#" id="CMD_MOVE"><i class="fa fa-arrows fa-fw"></i><span data-i18n="led_editor_context_move">Move</span></a>
+	<a class="dropdown-item" href="#" id="CMD_PROPERTIES"><i class="fa fa-edit fa-fw"></i><span data-i18n="led_editor_context_properties">Properties</span></a>
+	<a class="dropdown-item" href="#" id="CMD_ENABLE"><i class="fa fa-lightbulb-o fa-fw"></i><span id="cmd_dis_enable_text" data-i18n="led_editor_context_enable">Enable</span></a>
+	<a class="dropdown-item" href="#" id="CMD_DELETE"><i class="fa fa-remove fa-fw"></i><span data-i18n="led_editor_context_delete">Delete</span></a>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="ledPropertiesForm" tabindex="-1" aria-labelledby="ledPropertiesLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content p-0">
+			<div class="card card-default modal-body" style="margin: 0px !important; padding: 0px !important;">
+				<div class="card-header">
+					<h4 class="modal-title"><b><span id="ledPropertiesFormLabel"></span></b></h4>				
+				</div>
+				<div class="card-body">
+					<div class="container">
+						<div class="form-group row">
+							<div class="col-12 col-md-6">
+								<div class="form-group row">
+									<div class="col-form-label mb-3 col-3">
+										<label class="required" data-i18n="conf_leds_layout_cl_left"></label>
+									</div>
+									<div class="mb-3 col-9">
+										<div class="input-group">
+											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogLeft" />
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-down">-</button></div>
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-up">+</button></div>
+										</div>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-form-label mb-3 col-3">
+										<label class="required" data-i18n="conf_leds_layout_cl_right"></label>
+									</div>
+									<div class="mb-3 col-9">
+										<div class="input-group">
+											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogRight" />
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-down">-</button></div>
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-up">+</button></div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-md-6">								
+								<div class="form-group row">
+									<div class="col-form-label mb-3 col-3">
+										<label class="required" data-i18n="conf_leds_layout_cl_top"></label>
+									</div>
+									<div class="mb-3 col-9">
+										<div class="input-group">
+											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogTop" />
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-down">-</button></div>
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-up">+</button></div>
+										</div>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-form-label mb-3 col-3">
+										<label class="required" data-i18n="conf_leds_layout_cl_bottom"></label>
+									</div>
+									<div class="mb-3 col-9">
+										<div class="input-group">
+											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogBottom" />
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-down">-</button></div>
+											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-up">+</button></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card-footer">					
+					<button type="button" class="btn btn-danger float-end" data-bs-dismiss="modal"><span data-i18n="general_btn_exit">Exit</span></button>					
+					<button type="button" id="ready_to_set_single_led" class="btn btn-primary float-end me-2"><span data-i18n="general_btn_save">Save</span></button>
+				</div>				
+			</div>
+		</div>
+	</div>
+</div>
 <link href="css/jsonaceeditor.min.css" rel="stylesheet" type="text/css" />
 <script src='js/lib/jsonaceeditor.min.js'></script>
 

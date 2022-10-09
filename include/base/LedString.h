@@ -101,6 +101,8 @@ struct Led
 	///  The maximum horizontal scan line included for this leds color
 	double maxY_frac;
 
+	bool disabled;
+
 	int group;
 };
 

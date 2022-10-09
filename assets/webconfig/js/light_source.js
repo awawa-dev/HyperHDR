@@ -63,6 +63,7 @@ function createLedPreview(leds, origin)
 	var leds_html = "";
 	var hashTable = {};
 	var groups = false;
+	var disabledLed = false;
 	
 	for (var idx = 0; idx < leds.length; idx++)
 	{		
@@ -70,13 +71,18 @@ function createLedPreview(leds, origin)
 		var led_id = 'ledc_' + [idx];
 		var bgcolor = "hsla(" + (idx * 360 / leds.length) + ",100%,50%,0.75)";
 		var optGroup = "";
-		
-		if (led.group !== undefined && led.group != 0)
+
+		if (led.disabled !== undefined && led.disabled)
 		{
-			if (led.group in hashTable)
-			{
-				bgcolor = hashTable[led.group];
-			}
+			bgcolor = "hsla(0,5%,5%,0.1)";
+			disabledLed = true;
+		}
+		else if (led.group !== undefined && led.group != 0)
+		{
+			if (led.group in hashTable)			
+				bgcolor = hashTable[led.group];			
+			else
+				hashTable[led.group] = bgcolor;
 			
 			optGroup = ", group: " + led.group;
 			
@@ -88,25 +94,32 @@ function createLedPreview(leds, origin)
 			"width:" + ((led.hmax - led.hmin) * (canvas_width - 1)) + "px;" +
 			"height:" + ((led.vmax - led.vmin) * (canvas_height - 1)) + "px;";
 		leds_html += '<div id="' + led_id + '" group="'+led.group+'" class="led" style="background-color: ' + bgcolor + ';' + pos + '" title="' + idx + optGroup + '"><span id="' + led_id + '_num" class="led_prev_num">' + ((led.name) ? led.name : idx) + '</span></div>';
-		
-		hashTable[led.group] = bgcolor;
+
 	}
-	
+
+	if ($._data(document.getElementById('visualCreatorPanel'), "events") != null)
+		leds_html += '<div data-i18n="conf_leds_layout_frame" style="position: absolute; text-align: center; left: ' + (0.3 * canvas_width) + 'px; top: ' + (0.35 * canvas_height) + 'px; width: ' + (0.4 * canvas_width) + 'px;">'+$.i18n('led_editor_context_moving')+'</div>';
 	if (groups)
 		leds_html += '<div data-i18n="conf_leds_layout_frame" style="position: absolute; text-align: center; left: ' + (0.3 * canvas_width) + 'px; top: ' + (0.45 * canvas_height) + 'px; width: ' + (0.4 * canvas_width) + 'px;">'+$.i18n('conf_leds_grouping_notification')+'</div>';
+	if (disabledLed)
+		leds_html += '<div data-i18n="conf_leds_layout_frame" style="position: absolute; text-align: center; left: ' + (0.3 * canvas_width) + 'px; top: ' + (0.55 * canvas_height) + 'px; width: ' + (0.4 * canvas_width) + 'px;">'+$.i18n('conf_leds_disabled_notification')+'</div>';
 	
 	$('#leds_preview').html(leds_html);
 	
 	var colors = ["black", "grey", "#A9A9A9"];
+	var dcolors = ["A9A9A9", "C9C9C9", "#E9E9E9"];
 
 	for (var i = 0; i < 3 && i < leds.length; i++)
 	{		
 		var led = leds[i];
 		var hColor = "-webkit-linear-gradient(30deg, rgba(255,255,255,0.0) 50%, "+colors[i]+" 50%)";
+		var dColor = "-webkit-linear-gradient(90deg, rgba(255,255,255,0.0) 50%, "+colors[i]+" 50%)";
 		var zIndex = 12-i;
-		
-		if (led.group != 0)
-			$('#ledc_'+i).css({ "background-image": hColor, "z-index": zIndex });
+
+		if (led.disabled !== undefined && led.disabled)
+			$('#ledc_'+i).css({ "background-image": dColor, "z-index": zIndex });
+		else if (led.group !== undefined && led.group != 0)
+			$('#ledc_'+i).css({ "background-image": hColor, "z-index": zIndex });			
 		else
 			$('#ledc_'+i).css({ "background-color": colors[i], "z-index": zIndex });
 	}
@@ -990,6 +1003,189 @@ $(document).ready(function()
 			{
 				_resizeObserver.unobserve(document.getElementById("leds_preview"));
 				_resizeObserver.observe(document.getElementById("leds_preview"));
+			}
+		}
+	});
+
+	// context LED editor
+	let selectedObject = null;
+
+	function cancelAllContext(){
+		selectedObject = null;
+		$("#leds_preview").off("mousemove");
+		$("#leds_preview").off("click");
+		$('#visualCreatorPanel').off("mousedown");
+		finalLedArray.forEach(resLed => {
+			if ("backup_hmin" in resLed && "backup_vmin" in resLed &&
+				"backup_hmax" in resLed && "backup_vmax" in resLed)
+			{
+				resLed.hmin = resLed.backup_hmin;
+				resLed.vmin = resLed.backup_vmin;
+				resLed.hmax = resLed.backup_hmax;
+				resLed.vmax = resLed.backup_vmax;
+				delete resLed.backup_hmin;
+				delete resLed.backup_vmin;
+				delete resLed.backup_hmax;
+				delete resLed.backup_vmax;				
+			}
+		});
+		document.removeEventListener("keyup", cancelAllContext, false);	
+		document.getElementById("creator-context-menu").style.visibility = "hidden";
+		createLedPreview(finalLedArray, _lastOrigin);
+	}	
+
+	$('.st_helper').on('contextmenu', function(e) {
+		const meTop = (e.clientY + $(window).scrollTop()) + "px";
+		const meLeft = (e.clientX + $(window).scrollLeft()) + "px";		
+		const el = document.elementFromPoint(e.clientX, e.clientY);
+
+		if (el != null && el.classList.contains("led"))
+		{
+			selectedObject = el;
+
+			const idTxtS = selectedObject.id.split("_");
+			if (idTxtS.length == 2)
+			{
+				const parsedIndexS = parseInt(idTxtS[1]);
+				if (finalLedArray[parsedIndexS].disabled === true)
+					$('#cmd_dis_enable_text').html($.i18n('led_editor_context_enable'));
+				else
+					$('#cmd_dis_enable_text').html($.i18n('led_editor_context_disable'));
+			}
+
+			$("#creator-context-menu").css({
+				display: "block",
+				top: meTop,
+				left: meLeft
+			}).addClass("showContextMenu");
+
+			$('.st_helper').on("click", cancelAllContext);
+
+			document.getElementById("creator-context-menu").style.visibility = "visible";
+		}
+		return false;
+	});
+
+	$("#creator-context-menu a").on("click", function() {
+		const idTxt = selectedObject.id.split("_");
+
+		$('.st_helper').off("click");
+
+		document.getElementById("creator-context-menu").style.visibility = "hidden";
+		
+		if (idTxt.length == 2)
+		{
+			const parsedIndex = parseInt(idTxt[1]);
+
+			if (!isNaN(parsedIndex))
+			{
+				if (this.id == "CMD_ENABLE")
+				{
+					if ("disabled" in finalLedArray[parsedIndex])
+						delete finalLedArray[parsedIndex].disabled;
+					else
+						finalLedArray[parsedIndex].disabled = true;
+
+					requestWriteConfig({ "leds": finalLedArray });
+
+					createLedPreview(finalLedArray, _lastOrigin);
+
+					selectedObject = null;
+				}
+				else if (this.id == "CMD_DELETE")
+				{
+					finalLedArray[parsedIndex] = undefined;
+
+					finalLedArray = finalLedArray.filter(function(item) {
+						return item !== undefined;
+					});
+
+					requestWriteConfig({ "leds": finalLedArray });
+
+					createLedPreview(finalLedArray, _lastOrigin);
+
+					selectedObject = null;
+				}
+				else if (this.id == "CMD_PROPERTIES")
+				{
+					$('#ledPropertiesFormLabel').html($.i18n('edt_conf_color_leds_title') + ": " + parsedIndex);
+					$('#ledPropertiesDialogLeft').val(finalLedArray[parsedIndex].hmin);
+					$('#ledPropertiesDialogTop').val(finalLedArray[parsedIndex].vmin);
+					$('#ledPropertiesDialogRight').val(finalLedArray[parsedIndex].hmax);
+					$('#ledPropertiesDialogBottom').val(finalLedArray[parsedIndex].vmax);
+
+					$("#ready_to_set_single_led").off("click").on("click", function() {
+						const _hmin = Number($('#ledPropertiesDialogLeft').val());
+						const _vmin = Number($('#ledPropertiesDialogTop').val());
+						const _hmax = Number($('#ledPropertiesDialogRight').val());
+						const _vmax = Number($('#ledPropertiesDialogBottom').val());
+
+						if (_hmin < _hmax && _vmin < _vmax && _hmin >= 0 && _vmin >= 0 && _hmax <= 1 && _vmax <= 1)
+						{
+							finalLedArray[parsedIndex].hmin = _hmin;
+							finalLedArray[parsedIndex].vmin = _vmin;
+							finalLedArray[parsedIndex].hmax = _hmax;
+							finalLedArray[parsedIndex].vmax = _vmax;
+
+							requestWriteConfig({ "leds": finalLedArray });
+
+							cancelAllContext();
+
+							$('#ledPropertiesForm').modal('hide');
+						}
+					});
+
+					$('#ledPropertiesForm').modal('show');
+				}
+				else if (this.id == "CMD_MOVE")
+				{					
+					finalLedArray[parsedIndex].backup_hmin = finalLedArray[parsedIndex].hmin;
+					finalLedArray[parsedIndex].backup_vmin = finalLedArray[parsedIndex].vmin;
+					finalLedArray[parsedIndex].backup_hmax = finalLedArray[parsedIndex].hmax;
+					finalLedArray[parsedIndex].backup_vmax = finalLedArray[parsedIndex].vmax;
+
+					$("#leds_preview").off("mousemove").mousemove(function( event ) {
+						const bounds = $("#leds_preview").get(0).getBoundingClientRect();
+						let x = (event.clientX - bounds.left)/(bounds.right - bounds.left);
+						let y = (event.clientY - bounds.top)/(bounds.bottom - bounds.top);
+						const w = (finalLedArray[parsedIndex].hmax - finalLedArray[parsedIndex].hmin);
+						const h = (finalLedArray[parsedIndex].vmax - finalLedArray[parsedIndex].vmin);
+						const deltaZ = 0.004;
+
+						if (x < deltaZ) x = 0;
+						if (y < deltaZ) y = 0;
+						if (x > (1- deltaZ)) x = 1;
+						if (y > (1- deltaZ)) y = 1;
+						if (x + w > (1- deltaZ)) x = 1 - w;
+						if (y + h > (1- deltaZ)) y = 1 - h;
+
+						finalLedArray[parsedIndex].hmin = x;
+						finalLedArray[parsedIndex].vmin = y;
+						finalLedArray[parsedIndex].hmax = x + w;
+						finalLedArray[parsedIndex].vmax = y + h;
+
+						createLedPreview(finalLedArray, _lastOrigin);
+					});
+
+					$('#visualCreatorPanel').off("mousedown").mousedown(function(event) {
+						if (event.which != 1)
+						{
+							cancelAllContext();
+							return;
+						}
+
+						delete finalLedArray[parsedIndex].backup_hmin;
+						delete finalLedArray[parsedIndex].backup_vmin;
+						delete finalLedArray[parsedIndex].backup_hmax;
+						delete finalLedArray[parsedIndex].backup_vmax;
+
+						requestWriteConfig({ "leds": finalLedArray });
+
+						cancelAllContext();
+					});
+
+					document.addEventListener("keyup", cancelAllContext, false);		
+				}
 			}
 		}
 	});
