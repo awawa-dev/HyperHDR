@@ -2,7 +2,7 @@
 	"type" : "object",
 	"title" : "edt_dev_general_heading_title",
 	"required" : true,
-	"defaultProperties": ["hardwareLedCount", "colorOrder", "refreshTime"],
+	"defaultProperties": ["colorOrder", "refreshTime"],
 	"properties" :
 	{
 		"type" :
@@ -11,16 +11,6 @@
 			"default" : "file",
 			"required" : true,
 			"propertyOrder" : 0
-		},
-		"hardwareLedCount" :
-		{
-			"type" : "integer",
-			"title" : "edt_dev_general_hardwareLedCount_title",
-			"minimum" : 1,
-			"default" : 1,
-			"access" : "expert",
-			"required" : true,
-			"propertyOrder" : 1
 		},
 		"colorOrder" :
 		{
