@@ -39,3 +39,7 @@ target_link_libraries(flatbufserver
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Core
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(flatbufserver REUSE_FROM precompiled_hyperhdr_headers)
+endif()

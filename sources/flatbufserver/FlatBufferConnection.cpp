@@ -3,7 +3,6 @@
 
 // Qt includes
 #include <QRgb>
-#include <QDateTime>
 
 // flatbuffer includes
 #include <flatbufserver/FlatBufferConnection.h>
@@ -182,7 +181,7 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int priority, int dur
 
 void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 {
-	auto current = QDateTime::currentMSecsSinceEpoch();
+	auto current = InternalClock::now();
 	auto outOfTime = (current - _lastSendImage);
 
 	if (_socket != nullptr && _socket->state() != QAbstractSocket::ConnectedState)
@@ -205,7 +204,7 @@ void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
 	_sent = true;
 	_lastSendImage = current;
 
-	auto imgData = _builder.CreateVector(reinterpret_cast<const uint8_t*>(image.memptr()), image.size());
+	auto imgData = _builder.CreateVector(image.rawMem(), image.size());
 	auto rawImg = hyperhdrnet::CreateRawImage(_builder, imgData, image.width(), image.height());
 	auto imageReq = hyperhdrnet::CreateImage(_builder, hyperhdrnet::ImageType_RawImage, rawImg.Union(), -1);
 	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Image, imageReq.Union());

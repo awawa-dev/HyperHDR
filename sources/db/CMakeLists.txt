@@ -18,3 +18,7 @@ target_link_libraries(database
 if (USE_STATIC_QT_PLUGINS)
 	target_link_libraries(database ${STATIC_QT_PLUGINS_LIBS})
 endif()
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(database REUSE_FROM precompiled_hyperhdr_headers)
+endif()

@@ -29,6 +29,7 @@
 #include <utils/settings.h>
 #include <utils/Logger.h>
 #include <cmath>
+
 uint32_t	  SoundCapture::_noSoundCounter = 0;
 bool		  SoundCapture::_noSoundWarning = false;
 bool		  SoundCapture::_soundDetectedInfo = false;
@@ -117,7 +118,7 @@ void SoundCapture::handleSettingsUpdate(settings::type type, const QJsonDocument
 
 uint32_t SoundCapture::getCaptureInstance()
 {
-	uint32_t ret;
+	uint32_t ret = 0;
 
 	try
 	{

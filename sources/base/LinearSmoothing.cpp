@@ -1,5 +1,4 @@
 // Qt includes
-#include <QDateTime>
 #include <QTimer>
 #include <QThread>
 
@@ -73,6 +72,11 @@ void LinearSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocum
 {
 	if (type == settings::type::SMOOTHING)
 	{
+		if (InternalClock::isPreciseSteady())
+			Info(_log, "High resolution clock is steady (good)");
+		else
+			Warning(_log, "High resolution clock is NOT STEADY!");
+
 		QJsonObject obj = config.object();
 
 		if (enabled() != obj["enable"].toBool(true))
@@ -110,7 +114,7 @@ void LinearSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocum
 	}
 }
 
-void LinearSmoothing::updateLedValues(std::vector<ColorRgb> ledValues)
+void LinearSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
 {
 	if (!_enabled)
 		return;
@@ -150,7 +154,7 @@ void LinearSmoothing::Antiflickering()
 {
 	if (_antiFlickeringTreshold > 0 && _antiFlickeringStep > 0 && _previousValues.size() == _targetValues.size() && _previousValues.size() == _previousTimeouts.size())
 	{
-		int64_t now = QDateTime::currentMSecsSinceEpoch();
+		int64_t now = InternalClock::nowPrecise();
 
 		for (size_t i = 0; i < _previousValues.size(); ++i)
 		{
@@ -173,7 +177,7 @@ void LinearSmoothing::Antiflickering()
 					(newColor.red != 0 || newColor.green != 0 || newColor.blue != 0) &&
 					(oldColor.red != 0 || oldColor.green != 0 || oldColor.blue != 0))
 				{
-					if (_antiFlickeringTimeout <= 0 || now - timeout < _antiFlickeringTimeout)
+					if (_antiFlickeringTimeout <= 0 || (now - timeout < _antiFlickeringTimeout && now > timeout))
 						_targetValues[i] = _previousValues[i];
 					else
 						timeout = now;
@@ -189,21 +193,21 @@ void LinearSmoothing::Antiflickering()
 
 void LinearSmoothing::LinearSetup(const std::vector<ColorRgb>& ledValues)
 {
-	_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+	_targetTime = InternalClock::nowPrecise() + _settlingTime;
 	_targetValues = ledValues;
 
 	/////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
 
-	if (!_previousValues.empty() && (_previousValues.size() != _targetValues.size()))
+	if ((!_previousValues.empty() && (_previousValues.size() != _targetValues.size())) || _previousTime > _targetTime)
 	{
-		Warning(_log, "Detect size changed. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
+		Warning(_log, "Detect %s has changed. Previuos value: %d, new value: %d", (_previousTime > _targetTime) ? "TIME" : "size", _previousValues.size(), _targetValues.size());
 		_previousValues.clear();
 		_previousTimeouts.clear();
 	}
 
 	if (_previousValues.empty())
 	{
-		_previousTime = QDateTime::currentMSecsSinceEpoch();
+		_previousTime = InternalClock::nowPrecise();
 		_previousValues = ledValues;
 		_previousTimeouts.clear();
 		_previousTimeouts.resize(_previousValues.size(), _previousTime);
@@ -246,7 +250,7 @@ inline uint8_t LinearSmoothing::computeAdvColor(int limitMin, int limitAverage, 
 void LinearSmoothing::LinearSmoothingProcessing(bool correction)
 {
 	float kOrg, kMin, kMid, kAbove, kMax;
-	int64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t now = InternalClock::nowPrecise();
 	int64_t deltaTime = _targetTime - now;
 	int64_t k;
 

@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroMulti.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroMulti::Animation4Music_QuatroMulti() :
 	AnimationBaseMusic(AMUSIC_QUATROMULTI),
@@ -72,7 +73,7 @@ bool Animation4Music_QuatroMulti::getImage(Image<ColorRgb>& newImage)
 	QColor selected;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, selected))
 		return false;

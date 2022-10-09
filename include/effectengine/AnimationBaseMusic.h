@@ -42,4 +42,3 @@ private:
 
 };
 
-#include <base/SoundCapture.h>

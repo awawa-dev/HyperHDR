@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_QuatroRed.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_QuatroRed::Animation4Music_QuatroRed() :
 	AnimationBaseMusic(AMUSIC_QUATRORED),
@@ -74,7 +75,7 @@ bool Animation4Music_QuatroRed::getImage(Image<ColorRgb>& newImage)
 	if (value < 0)
 		return false;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	{
 		int hm = (newImage.height() / 2);

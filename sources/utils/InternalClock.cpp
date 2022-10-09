@@ -1,4 +1,4 @@
-/* Animation4Music_PulseMulti.cpp
+/* InternalClock.cpp
 *
 *  MIT License
 *
@@ -25,69 +25,23 @@
 *  SOFTWARE.
  */
 
-#include <effectengine/Animation4Music_PulseMulti.h>
-#include <base/SoundCapture.h>
+#include <utils/InternalClock.h>
 
-Animation4Music_PulseMulti::Animation4Music_PulseMulti() :
-	AnimationBaseMusic(AMUSIC_PULSEMULTI),
-	_internalIndex(0),
-	_oldMulti(0)
+const std::chrono::time_point<std::chrono::steady_clock> InternalClock::start = std::chrono::steady_clock::now();
+const std::chrono::time_point<std::chrono::high_resolution_clock> InternalClock::startPrecise = std::chrono::high_resolution_clock::now();
+
+qint64 InternalClock::now()
 {
-
-};
-
-EffectDefinition Animation4Music_PulseMulti::getDefinition()
-{
-	EffectDefinition ed;
-	ed.name = AMUSIC_PULSEMULTI;
-	ed.args = GetArgs();
-	return ed;
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 }
 
-void Animation4Music_PulseMulti::Init(
-	QImage& hyperImage,
-	int hyperLatchTime
-)
+
+qint64 InternalClock::nowPrecise()
 {
-	SetSleepTime(15);
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startPrecise).count();
 }
 
-bool Animation4Music_PulseMulti::Play(QPainter* painter)
+bool InternalClock::isPreciseSteady()
 {
-	return false;
+	return std::chrono::high_resolution_clock::is_steady;
 }
-
-bool Animation4Music_PulseMulti::hasOwnImage()
-{
-	return true;
-};
-
-bool Animation4Music_PulseMulti::getImage(Image<ColorRgb>& newImage)
-{
-	bool newData = false;
-	auto r = SoundCapture::getInstance()->hasResult(this, _internalIndex, &newData, NULL, NULL, &_oldMulti);
-
-	if (r == NULL || !newData)
-		return false;
-
-	QColor color;
-	uint32_t maxSingle, average;
-
-	if (!r->GetStats(average, maxSingle, color))
-		return false;
-
-	int red = color.red();
-	int green = color.green();
-	int blue = color.blue();
-
-	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, red, green, blue);
-
-	return true;
-};
-
-
-
-
-
-
-

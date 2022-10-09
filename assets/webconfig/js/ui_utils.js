@@ -72,7 +72,11 @@ function loadContent(event, forceRefresh)
 		if ((typeof lastSelectedInstance !== 'undefined') && 
 			(typeof window.serverInfo.instance[lastSelectedInstance] !== 'undefined') &&
 			 typeof(window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)
+		{
+			$("#page-content").off();
 			instanceSwitch(lastSelectedInstance);
+			return;
+		}
 		else
 			removeStorage('lastSelectedInstance', false);
 

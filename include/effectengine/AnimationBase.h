@@ -1,12 +1,7 @@
 #pragma once
 
-#include <QDateTime>
-#include <QSize>
-#include <QImage>
+#include <cmath>
 #include <QPainter>
-#include <QJsonObject>
-#include <QList>
-
 #include <utils/Image.h>
 #include <effectengine/EffectDefinition.h>
 #include <utils/ColorSys.h>

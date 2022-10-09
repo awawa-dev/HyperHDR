@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_StereoWhite.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoWhite::Animation4Music_StereoWhite() :
 	AnimationBaseMusic(AMUSIC_STEREOWHITE),
@@ -74,7 +75,7 @@ bool Animation4Music_StereoWhite::getImage(Image<ColorRgb>& newImage)
 	if (value < 0)
 		return false;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	int hm = (newImage.height() / 2);
 	int h = std::min((hm * value) / 255, 255);

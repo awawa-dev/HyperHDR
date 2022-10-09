@@ -255,7 +255,7 @@ void V4L2Worker::process_image_jpg_mt()
 		return;
 	}
 
-	if (_subsamp != TJSAMP_422 && _hdrToneMappingEnabled > 0)
+	if ((_subsamp != TJSAMP_422 && _subsamp != TJSAMP_420) && _hdrToneMappingEnabled > 0)
 	{
 		emit newFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
 		return;
@@ -283,7 +283,7 @@ void V4L2Worker::process_image_jpg_mt()
 		}
 
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpegBuffer, _width, _height, _width, PixelFormat::MJPEG, _lutBuffer, image);
+			jpegBuffer, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
 
 		free(jpegBuffer);
 	}
@@ -307,7 +307,7 @@ void V4L2Worker::process_image_jpg_mt()
 	}
 	else
 	{
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)image.memptr(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, image.rawMem(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
 			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
