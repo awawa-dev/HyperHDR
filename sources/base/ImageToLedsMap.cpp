@@ -438,9 +438,9 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb>& image) const
 	}
 
 	// Compute the average of each color channel
-	const uint8_t avgRed = uint8_t(sumRed / imageSize);
-	const uint8_t avgGreen = uint8_t(sumGreen / imageSize);
-	const uint8_t avgBlue = uint8_t(sumBlue / imageSize);
+	const uint8_t avgRed = uint8_t(sumRed / (imageSize/3));
+	const uint8_t avgGreen = uint8_t(sumGreen / (imageSize/3));
+	const uint8_t avgBlue = uint8_t(sumBlue / (imageSize/3));
 
 	// Return the computed color
 	return { avgRed, avgGreen, avgBlue };
