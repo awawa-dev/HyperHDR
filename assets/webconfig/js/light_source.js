@@ -1075,10 +1075,22 @@ $(document).ready(function()
 		createLedPreview(finalLedArray, _lastOrigin);
 	}	
 
+	let ctrlKey = false;
+	$(document).on('keyup keydown', function(e){ctrlKey = e.ctrlKey} );
+
 	$('.st_helper').on('contextmenu', function(e) {
 		const meTop = (e.clientY + $(window).scrollTop()) + "px";
 		const meLeft = (e.clientX + $(window).scrollLeft()) + "px";		
-		const el = document.elementFromPoint(e.clientX, e.clientY);
+		let el = document.elementFromPoint(e.clientX, e.clientY);
+
+		if (ctrlKey === true && el != null && el.classList.contains("led"))
+		{
+			el.classList.add("d-none");
+			const newEl = document.elementFromPoint(e.clientX, e.clientY);
+			el.classList.remove("d-none");
+			if (newEl != null  && newEl.classList.contains("led"))
+				el = newEl;
+		}
 
 		if (el != null && el.classList.contains("led"))
 		{
