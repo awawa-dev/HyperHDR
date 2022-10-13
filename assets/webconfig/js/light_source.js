@@ -46,6 +46,10 @@ function createLedPreview(leds, origin)
 	{		
 		$('#leds_preview').css("padding-top", "100%").css("position","relative");
 	}
+	else if (origin == "zoom")
+	{		
+		$('#leds_preview').css("padding-top", "44%").css("position","relative");
+	}
 	
 	ledStarter = true;
 
@@ -973,12 +977,17 @@ $(document).ready(function()
 		toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
 	});
 
+	var _backupLastOrigin;
+
 	$('#leds_prev_zoom').off().on("click", function()
 	{
 		if ($('#led_zoom_panel').hasClass("col-lg-6"))
 		{
+			_backupLastOrigin = _lastOrigin;
+			_lastOrigin = "zoom";
+			 $('#ledPropertiesForm > .modal-dialog').addClass("modal-dialog-centered");
 			$('#led_zoom_panel').removeClass("col-lg-6");
-			$('#led_zoom_panel').addClass("col-lg-9");
+			$('#led_zoom_panel').addClass("col-lg-12");
 			$('#led_zoom_panel').addClass("order-1");
 			$('#hyper-subpage').children('h3').addClass("d-none");
 			$('#leds_cfg_nav').addClass("d-none");
@@ -991,8 +1000,10 @@ $(document).ready(function()
 		}
 		else
 		{
+			_lastOrigin = _backupLastOrigin;
+			$('#ledPropertiesForm > .modal-dialog').removeClass("modal-dialog-centered");
 			$('#led_zoom_panel').addClass("col-lg-6");
-			$('#led_zoom_panel').removeClass("col-lg-9");
+			$('#led_zoom_panel').removeClass("col-lg-12");
 			$('#led_zoom_panel').removeClass("order-1");
 			$('#hyper-subpage').children('h3').removeClass("d-none");
 			$('#leds_cfg_nav').removeClass("d-none");
@@ -1144,25 +1155,59 @@ $(document).ready(function()
 					$('#ledPropertiesDialogRight').val(finalLedArray[parsedIndex].hmax);
 					$('#ledPropertiesDialogBottom').val(finalLedArray[parsedIndex].vmax);
 
+					finalLedArray[parsedIndex].backup_hmin = finalLedArray[parsedIndex].hmin;
+					finalLedArray[parsedIndex].backup_vmin = finalLedArray[parsedIndex].vmin;
+					finalLedArray[parsedIndex].backup_hmax = finalLedArray[parsedIndex].hmax;
+					finalLedArray[parsedIndex].backup_vmax = finalLedArray[parsedIndex].vmax;
+
+					$('#ledPropertiesDialogLeft, #ledPropertiesDialogTop, #ledPropertiesDialogRight, #ledPropertiesDialogBottom').off("change").on("change", function() {
+						const _hmin = Number($('#ledPropertiesDialogLeft').val());
+						const _vmin = Number($('#ledPropertiesDialogTop').val());
+						const _hmax = Number($('#ledPropertiesDialogRight').val());
+						const _vmax = Number($('#ledPropertiesDialogBottom').val());
+
+						if (!isNaN(_hmin) && !isNaN(_vmin) && !isNaN(_hmax) && !isNaN(_vmax))
+							if (_hmin < _hmax && _vmin < _vmax && _hmin >= 0 && _vmin >= 0 && _hmax <= 1 && _vmax <= 1)
+							{
+								finalLedArray[parsedIndex].hmin = _hmin;
+								finalLedArray[parsedIndex].vmin = _vmin;
+								finalLedArray[parsedIndex].hmax = _hmax;
+								finalLedArray[parsedIndex].vmax = _vmax;
+
+								createLedPreview(finalLedArray, _lastOrigin);
+							}
+					});
+
+					$("#ready_to_set_single_abort").off("click").on("click", function() {
+						cancelAllContext();
+						$('#ledPropertiesForm').modal('hide');
+					});
+
 					$("#ready_to_set_single_led").off("click").on("click", function() {
 						const _hmin = Number($('#ledPropertiesDialogLeft').val());
 						const _vmin = Number($('#ledPropertiesDialogTop').val());
 						const _hmax = Number($('#ledPropertiesDialogRight').val());
 						const _vmax = Number($('#ledPropertiesDialogBottom').val());
 
-						if (_hmin < _hmax && _vmin < _vmax && _hmin >= 0 && _vmin >= 0 && _hmax <= 1 && _vmax <= 1)
-						{
-							finalLedArray[parsedIndex].hmin = _hmin;
-							finalLedArray[parsedIndex].vmin = _vmin;
-							finalLedArray[parsedIndex].hmax = _hmax;
-							finalLedArray[parsedIndex].vmax = _vmax;
+						if (!isNaN(_hmin) && !isNaN(_vmin) && !isNaN(_hmax) && !isNaN(_vmax))
+							if (_hmin < _hmax && _vmin < _vmax && _hmin >= 0 && _vmin >= 0 && _hmax <= 1 && _vmax <= 1)
+							{
+								finalLedArray[parsedIndex].hmin = _hmin;
+								finalLedArray[parsedIndex].vmin = _vmin;
+								finalLedArray[parsedIndex].hmax = _hmax;
+								finalLedArray[parsedIndex].vmax = _vmax;
 
-							requestWriteConfig({ "leds": finalLedArray });
+								delete finalLedArray[parsedIndex].backup_hmin;
+								delete finalLedArray[parsedIndex].backup_vmin;
+								delete finalLedArray[parsedIndex].backup_hmax;
+								delete finalLedArray[parsedIndex].backup_vmax;
 
-							cancelAllContext();
+								requestWriteConfig({ "leds": finalLedArray });
 
-							$('#ledPropertiesForm').modal('hide');
-						}
+								cancelAllContext();
+
+								$('#ledPropertiesForm').modal('hide');
+							}
 					});
 
 					$('#ledPropertiesForm').modal('show');
