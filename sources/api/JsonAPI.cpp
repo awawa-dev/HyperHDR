@@ -16,7 +16,6 @@
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
-#include <QSerialPortInfo>
 
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
@@ -528,18 +527,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		ledDevices["available"] = availableLedDevices;
 		info["ledDevices"] = ledDevices;
-
-		// serial port
-		QJsonArray availableSerialPorts;
-		const auto infoSerial = QSerialPortInfo::availablePorts();
-		for (const QSerialPortInfo& info : infoSerial) {
-			QJsonObject serialPort;
-			serialPort["port"] = info.portName();
-			serialPort["desc"] = QString("%2 (%1)").arg(info.systemLocation()).arg(info.description());
-			availableSerialPorts.append(serialPort);
-		}
-		info["serialPorts"] = availableSerialPorts;
-
 
 	#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPMACOS)
 		if (SoundCapture::getInstance() != NULL)

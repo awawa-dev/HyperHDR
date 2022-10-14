@@ -125,7 +125,7 @@ void HyperHdrInstance::start()
 	}
 
 	// handle hwLedCount
-	_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+	_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(1), getLedCount());
 
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &HyperHdrInstance::update);
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &HyperHdrInstance::handlePriorityChangedLedDevice);
@@ -259,7 +259,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		_globalLedBuffer = color;
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(1), getLedCount());
 
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
@@ -273,7 +273,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(1), getLedCount());
 
 		// force ledString update, if device ByteOrder changed
 		if (_ledString.colorOrder != stringToColorOrder(dev["colorOrder"].toString("rgb")))

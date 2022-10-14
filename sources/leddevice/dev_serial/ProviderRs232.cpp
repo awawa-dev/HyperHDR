@@ -271,28 +271,21 @@ QString ProviderRs232::discoverFirst()
 QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
 	QJsonArray deviceList;
 
-	// Discover serial Devices
-	for (auto& port : QSerialPortInfo::availablePorts())
-	{
-		if (!port.isNull())
-		{
-			QJsonObject portInfo;
-			portInfo.insert("description", port.description());
-			portInfo.insert("manufacturer", port.manufacturer());
-			portInfo.insert("portName", port.portName());
-			portInfo.insert("productIdentifier", QString("0x%1").arg(port.productIdentifier(), 0, 16));
-			portInfo.insert("serialNumber", port.serialNumber());
-			portInfo.insert("systemLocation", port.systemLocation());
-			portInfo.insert("vendorIdentifier", QString("0x%1").arg(port.vendorIdentifier(), 0, 16));
+	deviceList.push_back(QJsonObject{
+			{"value", "auto"},
+			{ "name", "Auto"} });
 
-			deviceList.append(portInfo);
-		}
-	}
+	for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
+		deviceList.push_back(QJsonObject{
+			{"value", info.portName()},
+			{ "name", QString("%2 (%1)").arg(info.systemLocation()).arg(info.description()) } });
 
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
+
+	Debug(_log, "Serial devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
 	return devicesDiscovered;
 }
