@@ -25,6 +25,7 @@
 *  SOFTWARE.
  */
 
+#include <utils/InternalClock.h>
 #include <effectengine/Animation_Waves.h>
 
 Animation_Waves::Animation_Waves(QString name) :
@@ -115,7 +116,7 @@ void Animation_Waves::Init(
 	}
 
 	reverse_time *= 1000;
-	targetTime = QDateTime::currentMSecsSinceEpoch() + reverse_time;
+	targetTime = InternalClock::now() + reverse_time;
 }
 
 bool Animation_Waves::Play(QPainter* painter)
@@ -127,7 +128,7 @@ bool Animation_Waves::Play(QPainter* painter)
 
 	if (reverse_time >= 1)
 	{
-		auto now = QDateTime::currentMSecsSinceEpoch();
+		auto now = InternalClock::now();
 		if (now > targetTime)
 		{
 			reverse = !reverse;

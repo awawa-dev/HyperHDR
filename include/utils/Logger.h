@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utils/InternalClock.h>
+
 // QT includes
 #include <QObject>
 #include <QString>

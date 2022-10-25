@@ -558,7 +558,7 @@ bool V4L2Grabber::start()
 {
 	try
 	{
-		resetCounter(QDateTime::currentMSecsSinceEpoch());
+		resetCounter(InternalClock::now());
 		_V4L2WorkerManager.Start();
 
 		if (_V4L2WorkerManager.workersCount <= 1)
@@ -1113,7 +1113,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 		if (_V4L2WorkerManager.isActive())
 		{
 			// stats
-			int64_t now = QDateTime::currentMSecsSinceEpoch();
+			int64_t now = InternalClock::now();
 			int64_t diff = now - frameStat.frameBegin;
 			int64_t prevToken = frameStat.token;
 
@@ -1174,7 +1174,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							_actualVideoFormat,
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
-							processFrameIndex, now, _hdrToneMappingEnabled,
+							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
 							(_lutBufferInit) ? _lutBuffer : NULL, _qframe);
 
 						if (_V4L2WorkerManager.workersCount > 1)
@@ -1222,7 +1222,7 @@ void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, q
 void V4L2Grabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
 {
 	frameStat.goodFrame++;
-	frameStat.averageFrame += QDateTime::currentMSecsSinceEpoch() - _frameBegin;
+	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;
 
 	if (_signalAutoDetectionEnabled || isCalibrating())
 	{

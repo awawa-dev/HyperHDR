@@ -72,7 +72,7 @@ bool Animation4Music_TestEq::getImage(Image<ColorRgb>& newImage)
 	r->GetBufResult(buffScaledResult, sizeof(buffScaledResult));
 
 
-	memset(newImage.memptr(), 0, (size_t)newImage.width() * newImage.height() * 3);
+	newImage.clear();
 
 
 	int delta = newImage.width() / SOUNDCAP_RESULT_RES;

@@ -7,8 +7,6 @@
 #endif
 #include <ssdp/SSDPDiscover.h>
 
-
-#include <QDateTime>
 #include <chrono>
 #include <cmath>
 
@@ -699,7 +697,7 @@ bool PhilipsHueLight::isBusy()
 {
 	bool temp = true;
 
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+	uint64_t _currentTime = InternalClock::now();
 	if ((int64_t)(_currentTime - _lastSendColor) >= (int64_t)100)
 	{
 		_lastSendColor = _currentTime;
@@ -728,11 +726,11 @@ bool PhilipsHueLight::isBlack(bool isBlack)
 
 	if (_lastBlack == 0)
 	{
-		_lastBlack = QDateTime::currentMSecsSinceEpoch();
+		_lastBlack = InternalClock::now();
 		return false;
 	}
 
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+	uint64_t _currentTime = InternalClock::now();
 	if ((int64_t)(_currentTime - _lastBlack) >= (int64_t)_onBlackTimeToPowerOff)
 	{
 		return true;
@@ -751,11 +749,11 @@ bool PhilipsHueLight::isWhite(bool isWhite)
 
 	if (_lastWhite == 0)
 	{
-		_lastWhite = QDateTime::currentMSecsSinceEpoch();
+		_lastWhite = InternalClock::now();
 		return false;
 	}
 
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+	uint64_t _currentTime = InternalClock::now();
 	if ((int64_t)(_currentTime - _lastWhite) >= (int64_t)_onBlackTimeToPowerOn)
 	{
 		return true;
@@ -1644,7 +1642,7 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 			stateCmd = stateCmd.left(stateCmd.length() - 1);
 		}
 
-		uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+		uint64_t _currentTime = InternalClock::now();
 
 		if ((_currentTime - _lastConfirm > 1500 && ((int)light.getId()) != _lastId) ||
 			(_currentTime - _lastConfirm > 3000))

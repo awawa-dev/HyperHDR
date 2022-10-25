@@ -6,7 +6,6 @@
 
 // Blacborder includes
 #include <blackborder/BlackBorderProcessor.h>
-#include <QDateTime>
 
 using namespace hyperhdr;
 
@@ -69,13 +68,12 @@ ImageProcessor::ImageProcessor(const LedString& ledString, HyperHdrInstance* hyp
 	, _imageToLedColors(nullptr)
 	, _mappingType(0)
 	, _sparseProcessing(false)
-	, _hyperhdr(hyperhdr)
 	, _instanceIndex(hyperhdr->getInstanceIndex())
 {
 	// init
-	handleSettingsUpdate(settings::type::COLOR, _hyperhdr->getSetting(settings::type::COLOR));
+	handleSettingsUpdate(settings::type::COLOR, hyperhdr->getSetting(settings::type::COLOR));
 	// listen for changes in color - ledmapping
-	connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
+	connect(hyperhdr, &HyperHdrInstance::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
 
 	for (int i = 0; i < 256; i++)
 		advanced[i] = i * i;

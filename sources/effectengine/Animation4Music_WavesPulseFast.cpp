@@ -76,7 +76,7 @@ bool Animation4Music_WavesPulseFast::getImage(Image<ColorRgb>& newImage)
 	QColor empty, selected;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, empty, &selected))
 		return false;

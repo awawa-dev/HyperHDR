@@ -75,7 +75,7 @@ bool Animation4Music_StereoYellow::getImage(Image<ColorRgb>& newImage)
 	if (value < 0)
 		return false;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	int hm = (newImage.height() / 2);
 	int h = std::min((hm * value) / 255, 255);

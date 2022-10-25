@@ -8,7 +8,6 @@
 // Qt includes
 #include <QCoreApplication>
 #include <QResource>
-#include <QDateTime>
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
@@ -17,7 +16,6 @@
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
-#include <QSerialPortInfo>
 
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
@@ -62,7 +60,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject
 	_jsonCB = new JsonCB(this);
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
-	_lastSendImage = QDateTime::currentMSecsSinceEpoch();
+	_lastSendImage = InternalClock::now();
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 }
@@ -364,7 +362,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		// collect priority information
 		QJsonArray priorities;
-		uint64_t now = QDateTime::currentMSecsSinceEpoch();
+		uint64_t now = InternalClock::now();
 
 		int currentPriority = -1;
 		if (QThread::currentThread() == _hyperhdr->thread())
@@ -529,18 +527,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		ledDevices["available"] = availableLedDevices;
 		info["ledDevices"] = ledDevices;
-
-		// serial port
-		QJsonArray availableSerialPorts;
-		const auto infoSerial = QSerialPortInfo::availablePorts();
-		for (const QSerialPortInfo& info : infoSerial) {
-			QJsonObject serialPort;
-			serialPort["port"] = info.portName();
-			serialPort["desc"] = QString("%2 (%1)").arg(info.systemLocation()).arg(info.description());
-			availableSerialPorts.append(serialPort);
-		}
-		info["serialPorts"] = availableSerialPorts;
-
 
 	#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPMACOS)
 		if (SoundCapture::getInstance() != NULL)
@@ -1224,11 +1210,13 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 		_streaming_image_reply["command"] = command + "-imagestream-update";
 		_streaming_image_reply["tan"] = tan;
 
-		connect(_hyperhdr, &HyperHdrInstance::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+		connect(_hyperhdr, &HyperHdrInstance::onCurrentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+
+		emit _hyperhdr->onCurrentImage();		
 	}
 	else if (subcommand == "imagestream-stop")
 	{
-		disconnect(_hyperhdr, &HyperHdrInstance::currentImage, this, 0);
+		disconnect(_hyperhdr, &HyperHdrInstance::onCurrentImage, this, 0);
 	}
 	else
 	{
@@ -1751,16 +1739,28 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 	emit callbackMessage(_streaming_leds_reply);
 }
 
-void JsonAPI::setImage(const Image<ColorRgb>& image)
-{	
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+void JsonAPI::setImage()
+{
+	uint64_t _currentTime = InternalClock::now();
 
-	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))	
-		return;	
+	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))
+		return;
 
 	_lastSendImage = _currentTime;
 
-	QImage jpgImage((const uint8_t*)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
+	const PriorityMuxer* muxer = this->_hyperhdr->getMuxerInstance();
+	const int priority = muxer->getCurrentPriority();
+	const PriorityMuxer::InputInfo& priorityInfo = muxer->getInputInfo(priority);
+	const Image<ColorRgb>& image = priorityInfo.image;
+
+	if (image.width() <= 1 || image.height() <= 1)
+	{
+		if (_semaphore.available() == 0)
+			_semaphore.release();
+		return;
+	}
+
+	QImage jpgImage((const uchar*)image.rawMem(), image.width(), image.height() / 2, 6 * image.width(), QImage::Format_RGB888);
 	QByteArray ba;
 	QBuffer buffer(&ba);
 	buffer.open(QIODevice::WriteOnly);
@@ -1782,7 +1782,8 @@ void JsonAPI::setImage(const Image<ColorRgb>& image)
 
 void JsonAPI::releaseLock()
 {
-	_semaphore.release();
+	if (_semaphore.available() == 0)
+		_semaphore.release();
 }
 
 void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE& msg)
