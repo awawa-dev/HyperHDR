@@ -38,7 +38,6 @@
 
 //std includes
 #include <iostream>
-#include <chrono>
 
 const int TIMEOUT = (500);
 
@@ -158,13 +157,13 @@ httpResponse ProviderRestApi::get()
 
 httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body)
 {
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	qint64 begin = InternalClock::nowPrecise();
 
 	QString opCode = (op == QNetworkAccessManager::PutOperation) ? "PUT" :
 						 (op == QNetworkAccessManager::PostOperation) ? "POST" :
 						 (op == QNetworkAccessManager::GetOperation) ? "GET" : "";
 
-	if(opCode.length() == 0)
+	if (opCode.length() == 0)
 	{
 		Error(_log, "Unsupported opertion code");
 		return httpResponse();
@@ -184,7 +183,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 
 	bool networkTimeout = waitForResult(networkReply);
-	long long timeTotal = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-begin).count();
+	long long timeTotal = InternalClock::nowPrecise() - begin;
 
 	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
 

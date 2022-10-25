@@ -14,25 +14,7 @@
 
 class httpResponse;
 class networkHelper;
-///
-/// Wrapper class supporting REST-API calls with JSON requests and responses
-///
-/// Usage sample:
-/// @code
-///
-/// ProviderRestApi* _restApi = new ProviderRestApi(hostname, port );
-///
-/// _restApi->setBasePath( QString("/api/%1/").arg(token) );
-/// _restApi->setPath( QString("%1/%2").arg( "groups" ).arg( groupId ) );
-///
-/// httpResponse response = _restApi->get();
-/// if ( !response.error() )
-///		response.getBody();
-///
-/// delete _restApi;
-///
-///@endcode
-///
+
 class ProviderRestApi : public QObject
 {
 	Q_OBJECT
