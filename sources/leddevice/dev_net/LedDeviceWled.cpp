@@ -138,9 +138,8 @@ bool LedDeviceWled::powerOn()
 		{
 			this->setInError(response.getErrorReason());			
 
-			// power on simultaneously with Rpi causes timeout
-			if (_maxRetry > 0 && response.error() &&
-				(response.getNetworkReplyError() == 99 || response.getNetworkReplyError() == 1 || response.getNetworkReplyError() == 2 || response.getNetworkReplyError() == 5))
+			// power on simultaneously with Rpi causes timeout			
+			if (_maxRetry > 0 && response.error())
 			{
 				if (_currentRetry <= 0)
 					_currentRetry = _maxRetry + 1;

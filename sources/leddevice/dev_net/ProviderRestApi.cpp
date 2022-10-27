@@ -226,8 +226,10 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply, bool time
 	int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 	response.setHttpStatusCode(httpStatusCode);
 	
-
-	response.setNetworkReplyError(reply->error());
+	if (timeout)
+		response.setNetworkReplyError(QNetworkReply::TimeoutError);
+	else
+		response.setNetworkReplyError(reply->error());
 
 	if (reply->error() == QNetworkReply::NoError)
 	{
@@ -387,5 +389,6 @@ QNetworkReply::NetworkError httpResponse::getNetworkReplyError() const
 
 void httpResponse::setNetworkReplyError(const QNetworkReply::NetworkError networkReplyError)
 {
+	_hasError = (networkReplyError != QNetworkReply::NetworkError::NoError);
 	_networkReplyError = networkReplyError;
 }
