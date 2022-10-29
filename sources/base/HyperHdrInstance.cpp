@@ -701,7 +701,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 	else if (prevToken != (_computeStats.token = PerformanceCounters::currentToken()))
 	{
 
-		if (diff >= 59000 && diff <= 65000)
+		if (diff >= 59000)
 			emit PerformanceCounters::getInstance()->newCounter(
 				PerformanceReport(static_cast<int>(PerformanceReportType::INSTANCE), _computeStats.token, _name, _computeStats.total / qMax(diff/1000.0, 1.0), _computeStats.total, 0, 0, getInstanceIndex()));
 

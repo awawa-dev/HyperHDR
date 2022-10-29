@@ -141,6 +141,8 @@ public:
 	};
 
 public slots:
+	virtual bool isRunning();
+
 	virtual bool start() = 0;
 
 	virtual void stop() = 0;

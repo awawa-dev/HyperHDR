@@ -54,3 +54,8 @@ void PipewireWrapper::stateChanged(bool state)
 	_grabber.stateChanged(state);
 }
 
+void PipewireWrapper::processFrame(const PipewireImage& frame)
+{
+	_grabber.grabFrame(frame);
+}
+

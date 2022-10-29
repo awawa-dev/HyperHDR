@@ -8,7 +8,7 @@ add_library(smartPipewire SHARED ${SMARTPIPEWIRE_SOURCES} )
 set_target_properties(smartPipewire PROPERTIES VERSION 1)
 
 # Pipewire
-target_include_directories(smartPipewire PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PIPEWIRE_INCLUDE_DIRS} )
+target_include_directories(smartPipewire PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PIPEWIRE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${OPENGL_EGL_INCLUDE_DIRS} )
 target_link_libraries(smartPipewire PUBLIC ${PIPEWIRE_LIBRARIES} Qt${Qt_VERSION}::Core Qt${Qt_VERSION}::DBus )
 
 # Grabber

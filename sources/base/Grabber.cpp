@@ -927,3 +927,8 @@ QString Grabber::getConfigurationPath()
 {
 	return _configurationPath;
 }
+
+bool Grabber::isRunning()
+{
+	return false;
+}

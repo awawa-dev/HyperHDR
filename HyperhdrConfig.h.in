@@ -21,6 +21,9 @@
 // PipeWire system grabber
 #cmakedefine ENABLE_PIPEWIRE
 
+// PipeWire EGL extension
+#cmakedefine ENABLE_PIPEWIRE_EGL
+
 // Define to enable boblight server
 #cmakedefine ENABLE_BOBLIGHT
 

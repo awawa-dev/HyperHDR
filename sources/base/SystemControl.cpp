@@ -136,6 +136,9 @@ void SystemControl::handleCompStateChangeRequest(hyperhdr::Components component,
 
 void SystemControl::setSysInactive()
 {
+	if (SystemWrapper::getInstance() != nullptr && SystemWrapper::getInstance()->isRunning())
+		return;
+
 	if (!_alive)
 		_hyperhdr->setInputInactive(_sysCaptPrio);
 
