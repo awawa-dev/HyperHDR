@@ -61,6 +61,9 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
 	_lastSendImage = InternalClock::now();
+	_colorsStreamingInterval = 50;
+
+	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::handleLedColorsTimer, Qt::UniqueConnection);
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 }
@@ -1165,13 +1168,26 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::handleLedColorsIncoming(const std::vector<ColorRgb>& ledValues)
+{
+	_currentLedValues = ledValues;	
+
+	if (_ledStreamTimer->interval() != _colorsStreamingInterval)
+		_ledStreamTimer->start(_colorsStreamingInterval);
+}
+
+void JsonAPI::handleLedColorsTimer()
+{
+	emit streamLedcolorsUpdate(_currentLedValues);
+}
+
 void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	// create result
 	QString subcommand = message["subcommand"].toString("");
 
 	// max 20 Hz (50ms) interval for streaming (default: 10 Hz (100ms))
-	qint64 streaming_interval = qMax(message["interval"].toInt(100), 50);
+	_colorsStreamingInterval = qMax(message["interval"].toInt(100), 50);
 
 	if (subcommand == "ledstream-start")
 	{
@@ -1179,22 +1195,11 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 		_streaming_leds_reply["command"] = command + "-ledstream-update";
 		_streaming_leds_reply["tan"] = tan;
 
-		connect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, [=](const std::vector<ColorRgb>& ledValues) {
-			_currentLedValues = ledValues;
+		connect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, &JsonAPI::handleLedColorsIncoming, Qt::UniqueConnection);
 
-			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
-			// see: https://bugreports.qt.io/browse/QTBUG-52438
-			if (!_ledStreamConnection)
-				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
-				emit streamLedcolorsUpdate(_currentLedValues);
-					},
-					Qt::UniqueConnection);
+		if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != _colorsStreamingInterval)
+			_ledStreamTimer->start(_colorsStreamingInterval);
 
-			// start the timer
-			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
-				_ledStreamTimer->start(streaming_interval);
-			},
-			Qt::UniqueConnection);
 		// push once
 		QMetaObject::invokeMethod(_hyperhdr, "update");
 	}
@@ -1202,7 +1207,6 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 	{
 		disconnect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, 0);
 		_ledStreamTimer->stop();
-		disconnect(_ledStreamConnection);
 	}
 	else if (subcommand == "imagestream-start")
 	{
@@ -1877,7 +1881,6 @@ void JsonAPI::stopDataConnections()
 	// led stream colors
 	disconnect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, 0);
 	_ledStreamTimer->stop();
-	disconnect(_ledStreamConnection);
 }
 
 void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, int tan)

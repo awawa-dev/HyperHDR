@@ -3,7 +3,7 @@ name: HyperHDR CI Build
 on: [push]
 
 env:
-    USE_CACHE: "1"
+    USE_CACHE: "0"
     RESET_CACHE: "0"
     
 jobs:
@@ -94,7 +94,9 @@ jobs:
 
   macOS:
     name: macOS
-    runs-on: macOS-10.15 
+    runs-on: macos-12
+    env:     
+      QT_VERSION: "5"
     steps:
       # Checkout
       - uses: actions/checkout@v1
@@ -122,8 +124,16 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew update && brew install qt@6 xz ccache
-
+        run: brew update && brew install qt@${{ env.QT_VERSION }} xz ccache
+        
+      # Set env
+      - name: Set QT5 env
+        if: ( env.QT_VERSION == '5' )
+        shell: bash
+        run: |
+            export Qt5_DIR=`brew --prefix qt5`;
+            echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
+            
         # Build process
       - name: Build packages
         env:

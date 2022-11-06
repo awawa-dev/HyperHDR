@@ -35,6 +35,8 @@ LedString LedString::createLedString(const QJsonArray& ledConfigArray, const Col
 		led.minY_frac = qMax(0.0, qMin(1.0, ledConfig["vmin"].toDouble()));
 		led.maxY_frac = qMax(0.0, qMin(1.0, ledConfig["vmax"].toDouble()));
 		led.group = ledConfig["group"].toInt(0);
+		led.disabled = ledConfig["disabled"].toBool(false);
+
 		// Fix if the user swapped min and max
 		if (led.minX_frac > led.maxX_frac)
 		{

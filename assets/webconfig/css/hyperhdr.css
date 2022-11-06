@@ -789,3 +789,35 @@ body:not(.dark-mode) .alert-yellow{
 	background-color: #f39c12;
 	border-color: #e08e0b;
 }
+
+.crosslineDark {
+     background: 
+         linear-gradient(to top left,
+             rgba(0,0,0,0) 0%,
+             rgba(0,0,0,0) calc(50% - 1px),
+             rgba(0,0,0,1) 50%,
+             rgba(0,0,0,0) calc(50% + 1px),
+             rgba(0,0,0,0) 100%),
+         linear-gradient(to top right,
+             rgba(0,0,0,0) 0%,
+             rgba(0,0,0,0) calc(50% - 1px),
+             rgba(0,0,0,1) 50%,
+             rgba(0,0,0,0) calc(50% + 1px),
+             rgba(0,0,0,0) 100%);
+}
+
+.crosslineWhite {
+     background: 
+         linear-gradient(to top left,
+             rgba(0,0,0,0) 0%,
+             rgba(0,0,0,0) calc(50% - 1.5px),
+             rgba(255,255,255,1) 50%,
+             rgba(0,0,0,0) calc(50% + 1.5px),
+             rgba(0,0,0,0) 100%),
+         linear-gradient(to top right,
+             rgba(0,0,0,0) 0%,
+             rgba(0,0,0,0) calc(50% - 1.5px),
+             rgba(255,255,255,1) 50%,
+             rgba(0,0,0,0) calc(50% + 1.5px),
+             rgba(0,0,0,0) 100%);
+}

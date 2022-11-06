@@ -105,6 +105,11 @@
 			"default": 0,
 			"append" : "ms",
 			"access" : "expert",
+			"options": {
+				"dependencies": {
+					"awa_mode": false
+				}
+			},
 			"propertyOrder" : 9
 		},
 		"lightberry_apa102_mode": {
