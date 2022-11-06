@@ -10,28 +10,11 @@
 #include <QThread>
 #include <QJsonDocument>
 #include <memory>
+#include <QMutex>
 
 class httpResponse;
 class networkHelper;
-///
-/// Wrapper class supporting REST-API calls with JSON requests and responses
-///
-/// Usage sample:
-/// @code
-///
-/// ProviderRestApi* _restApi = new ProviderRestApi(hostname, port );
-///
-/// _restApi->setBasePath( QString("/api/%1/").arg(token) );
-/// _restApi->setPath( QString("%1/%2").arg( "groups" ).arg( groupId ) );
-///
-/// httpResponse response = _restApi->get();
-/// if ( !response.error() )
-///		response.getBody();
-///
-/// delete _restApi;
-///
-///@endcode
-///
+
 class ProviderRestApi : public QObject
 {
 	Q_OBJECT
@@ -113,25 +96,15 @@ public:
 	///
 	httpResponse get();
 
-	///
-	/// @brief Execute GET request
-	///
-	/// @param[in] url GET request for URL
-	/// @return Response The body of the response in JSON
-	///
-	httpResponse get(const QUrl& url);
-
-	///
-	/// @brief Execute PUT request
-	///
-	/// @param[in] body The body of the request in JSON
-	/// @return Response The body of the response in JSON
-	///
 	httpResponse put(const QString& body = "");
 
-	httpResponse post(const QUrl& url, const QString& body);
+	httpResponse post(const QString& body);
 
-	httpResponse put(const QUrl& url, const QString& body);
+	httpResponse get(const QUrl& url);
+
+	httpResponse put(const QUrl& url, const QString& body = "");
+
+	httpResponse post(const QUrl& url, const QString& body);
 
 	///
 	/// @brief Handle responses for REST requests
@@ -140,6 +113,9 @@ public:
 	/// @return Response The body of the response in JSON
 	///
 	httpResponse getResponse(QNetworkReply* const& reply, bool timeout);
+
+	void aquireResultLock();
+	void releaseResultLock();
 
 private:
 
@@ -150,6 +126,10 @@ private:
 	/// @param[in] path, element to be appended
 	///
 	void appendPath(QString& path, const QString& appendPath) const;
+
+	httpResponse executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body = "");
+
+	bool waitForResult(QNetworkReply* networkReply);
 
 	Logger* _log;
 
@@ -164,6 +144,8 @@ private:
 
 	QString   _fragment;
 	QUrlQuery _query;
+
+	QMutex    _resultLocker;
 
 	static    std::unique_ptr<networkHelper> _networkWorker;
 };
@@ -180,11 +162,7 @@ public:
 	~networkHelper();
 
 public slots:
-	QNetworkReply* get(QNetworkRequest request);
-
-	QNetworkReply* put(QNetworkRequest request, QByteArray body);
-
-	QNetworkReply* post(QNetworkRequest request, QByteArray body);
+	QNetworkReply* executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body);
 };
 
 
