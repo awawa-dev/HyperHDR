@@ -46,17 +46,18 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		mkdir build || exit 1
 		cd build
 		ccache -p
-		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-		make -j $(sysctl -n hw.ncpu) package || exit 3
-
+		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+		make -j $(sysctl -n hw.ncpu) || exit 3
+		sudo cpack || exit 3
 		exit 0;
 		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	else
 		echo "Not using ccache"
 		mkdir build || exit 1
 		cd build
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-		make -j $(sysctl -n hw.ncpu) package || exit 3
+		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+		make -j $(sysctl -n hw.ncpu) || exit 3
+		sudo cpack || exit 3
 		exit 0;
 		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	fi
