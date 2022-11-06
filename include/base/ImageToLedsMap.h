@@ -88,10 +88,12 @@ namespace hyperhdr
 
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<int32_t>> _colorsMap;
+		std::vector<bool> _colorsDisabled;
 		std::vector<int> _colorsGroups;
 
 		int _groupMin;
 		int _groupMax;
+		bool _haveDisabled;
 
 		ColorRgb calcMeanColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors) const;
 

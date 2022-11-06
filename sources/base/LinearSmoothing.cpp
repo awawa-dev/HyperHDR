@@ -18,27 +18,28 @@ const double   MINIMAL_UPDATEFREQUENCY = 20;
 
 
 LinearSmoothing::LinearSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
-	: QObject(hyperhdr)
-	, _log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex())))
-	, _hyperhdr(hyperhdr)
-	, _updateInterval(static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY))
-	, _settlingTime(DEFAUL_SETTLINGTIME)
-	, _timer(nullptr)
-	, _continuousOutput(false)
-	, _antiFlickeringTreshold(0)
-	, _antiFlickeringStep(0)
-	, _antiFlickeringTimeout(0)
-	, _flushFrame(false)
-	, _targetTime(0)
-	, _previousTime(0)
-	, _pause(false)
-	, _currentConfigId(0)
-	, _enabled(false)
-	, _directMode(false)
-	, _smoothingType(SmoothingType::Linear)
-	, _infoUpdate(true)
-	, _infoInput(true)
-	, debugCounter(0)
+	: QObject(hyperhdr),
+	_log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex()))),
+	_hyperhdr(hyperhdr),
+	_updateInterval(static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY)),
+	_settlingTime(DEFAUL_SETTLINGTIME),
+	_timer(nullptr),
+	_continuousOutput(false),
+	_antiFlickeringTreshold(0),
+	_antiFlickeringStep(0),
+	_antiFlickeringTimeout(0),
+	_flushFrame(false),
+	_targetTime(0),
+	_previousTime(0),
+	_pause(false),
+	_currentConfigId(0),
+	_enabled(false),
+	_directMode(false),
+	_smoothingType(SmoothingType::Linear),
+	_infoUpdate(true),
+	_infoInput(true),
+	_coolDown(0),
+	_debugCounter(0)
 {
 	// timer
 	_timer = new QTimer(this);
@@ -66,6 +67,43 @@ LinearSmoothing::~LinearSmoothing()
 inline uint8_t LinearSmoothing::clamp(int x)
 {
 	return (x < 0) ? 0 : ((x > 255) ? 255 : uint8_t(x));
+}
+
+void LinearSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
+{
+	try
+	{
+		Info(_log, "Clearing queued colors before: %s%s",
+			(deviceEnabled) ? "enabling" : "disabling",
+			(restarting) ? ". Smoothing configuration changed: restarting timer." : "");
+
+		if (!deviceEnabled || restarting)
+		{
+			_timer->stop();
+		}
+
+		_timer->setInterval(_updateInterval);
+		_previousValues.clear();
+		_previousTimeouts.clear();
+		_previousTime = 0;
+		_targetValues.clear();
+		_targetTime = 0;
+		_flushFrame = false;
+		_infoUpdate = true;
+		_infoInput = true;
+		_coolDown = 0;
+
+		if (deviceEnabled)
+		{
+			_timer->start();
+		}
+
+		Info(_log, "Smoothing queue is cleared");
+	}
+	catch (...)
+	{
+		Debug(_log, "Smoothing error detected");
+	}
 }
 
 void LinearSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -114,42 +152,6 @@ void LinearSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocum
 	}
 }
 
-void LinearSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
-{
-	if (!_enabled)
-		return;
-
-	if (_directMode)
-	{
-		if (_timer->remainingTime() >= 0)
-			clearQueuedColors();
-
-		if (_pause || ledValues.size() == 0)
-			return;
-
-		emit _hyperhdr->ledDeviceData(ledValues);
-
-		return;
-	}
-
-	try
-	{
-		if (_infoInput)
-			Info(_log, "Using %s smoothing input (%i)", ((_smoothingType == SmoothingType::Alternative) ? "alternative" : "linear"), _currentConfigId);
-
-		_infoInput = false;
-		LinearSetup(ledValues);		
-	}
-	catch (...)
-	{
-		Debug(_log, "Smoothing error detected");
-	}
-
-	return;
-}
-
-
-
 void LinearSmoothing::Antiflickering()
 {
 	if (_antiFlickeringTreshold > 0 && _antiFlickeringStep > 0 && _previousValues.size() == _targetValues.size() && _previousValues.size() == _previousTimeouts.size())
@@ -189,6 +191,42 @@ void LinearSmoothing::Antiflickering()
 				timeout = now;
 		}
 	}
+}
+
+void LinearSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
+{
+	if (!_enabled)
+		return;
+
+	_coolDown = 1;
+
+	if (_directMode)
+	{
+		if (_timer->remainingTime() >= 0)
+			clearQueuedColors();
+
+		if (_pause || ledValues.size() == 0)
+			return;
+
+		emit _hyperhdr->ledDeviceData(ledValues);
+
+		return;
+	}
+
+	try
+	{
+		if (_infoInput)
+			Info(_log, "Using %s smoothing input (%i)", ((_smoothingType == SmoothingType::Alternative) ? "alternative" : "linear"), _currentConfigId);
+
+		_infoInput = false;
+		LinearSetup(ledValues);
+	}
+	catch (...)
+	{
+		Debug(_log, "Smoothing error detected");
+	}
+
+	return;
 }
 
 void LinearSmoothing::LinearSetup(const std::vector<ColorRgb>& ledValues)
@@ -247,74 +285,6 @@ inline uint8_t LinearSmoothing::computeAdvColor(int limitMin, int limitAverage, 
 		return std::ceil(kMin * val);
 }
 
-void LinearSmoothing::LinearSmoothingProcessing(bool correction)
-{
-	float kOrg, kMin, kMid, kAbove, kMax;
-	int64_t now = InternalClock::nowPrecise();
-	int64_t deltaTime = _targetTime - now;
-	int64_t k;
-
-	int aspectLow = 16;
-	int aspectMid = 32;
-	int aspectHigh = 60;
-
-
-	if (deltaTime <= 0 || _targetTime <= _previousTime)
-	{
-		_previousValues = _targetValues;
-		_previousTimeouts.clear();
-		_previousTimeouts.resize(_previousValues.size(), now);
-
-		_previousTime = now;
-
-		if (_flushFrame)
-			queueColors(_previousValues);
-
-		_flushFrame = _continuousOutput;
-	}
-	else
-	{
-		_flushFrame = true;
-
-		if (correction)
-			setupAdvColor(deltaTime, kOrg, kMin, kMid, kAbove, kMax);
-		else
-			k = std::max((1 << 8) - (deltaTime << 8) / (_targetTime - _previousTime), static_cast<int64_t>(1));
-
-		int redDiff = 0, greenDiff = 0, blueDiff = 0;
-
-		if (_previousValues.size() != _targetValues.size())
-		{
-			Error(_log, "Detect abnormal state. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
-		}
-		else
-		{
-			for (size_t i = 0; i < _previousValues.size(); i++)
-			{
-				ColorRgb& prev = _previousValues[i];
-				ColorRgb& target = _targetValues[i];
-
-				redDiff = target.red - prev.red;
-				greenDiff = target.green - prev.green;
-				blueDiff = target.blue - prev.blue;
-
-				if (redDiff != 0)
-					prev.red += (redDiff < 0 ? -1 : 1) *
-								((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, redDiff) : computeColor(k, redDiff));
-				if (greenDiff != 0)
-					prev.green += (greenDiff < 0 ? -1 : 1) *
-								((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, greenDiff) : computeColor(k, greenDiff));
-				if (blueDiff != 0)
-					prev.blue += (blueDiff < 0 ? -1 : 1) *
-								((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, blueDiff) : computeColor(k, blueDiff));
-			}
-		}
-		_previousTime = now;
-
-		queueColors(_previousValues);
-	}
-}
-
 void LinearSmoothing::updateLeds()
 {
 	try
@@ -347,42 +317,6 @@ void LinearSmoothing::queueColors(const std::vector<ColorRgb>& ledColors)
 	if (!_pause)
 	{
 		emit _hyperhdr->ledDeviceData(ledColors);
-	}
-}
-
-void LinearSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
-{
-	try
-	{
-		Info(_log, "Clearing queued colors before: %s%s",
-			(deviceEnabled) ? "enabling" : "disabling",
-			(restarting) ? ". Smoothing configuration changed: restarting timer." : "");
-
-		if (!deviceEnabled || restarting)
-		{
-			_timer->stop();
-		}
-
-		_timer->setInterval(_updateInterval);
-		_previousValues.clear();
-		_previousTimeouts.clear();
-		_previousTime = 0;
-		_targetValues.clear();
-		_targetTime = 0;
-		_flushFrame = false;
-		_infoUpdate = true;
-		_infoInput = true;
-
-		if (deviceEnabled)
-		{
-			_timer->start();
-		}
-
-		Info(_log, "Smoothing queue is cleared");
-	}
-	catch (...)
-	{
-		Debug(_log, "Smoothing error detected");
 	}
 }
 
@@ -520,36 +454,110 @@ QString LinearSmoothing::SmoothingCfg::EnumToString(SmoothingType type)
 	return QString("Unknown");
 }
 
+void LinearSmoothing::LinearSmoothingProcessing(bool correction)
+{
+	float kOrg, kMin, kMid, kAbove, kMax;
+	int64_t now = InternalClock::nowPrecise();
+	int64_t deltaTime = _targetTime - now;
+	int64_t k;
+
+	int aspectLow = 16;
+	int aspectMid = 32;
+	int aspectHigh = 60;
+
+
+	if (deltaTime <= 0 || _targetTime <= _previousTime)
+	{
+		_previousValues = _targetValues;
+		_previousTimeouts.clear();
+		_previousTimeouts.resize(_previousValues.size(), now);
+
+		_previousTime = now;
+
+		if (_flushFrame)
+			queueColors(_previousValues);
+
+		if (!_continuousOutput && _coolDown > 0)
+		{
+			_coolDown--;
+			_flushFrame = true;
+		}
+		else
+			_flushFrame = _continuousOutput;
+	}
+	else
+	{
+		_flushFrame = true;
+
+		if (correction)
+			setupAdvColor(deltaTime, kOrg, kMin, kMid, kAbove, kMax);
+		else
+			k = std::max((1 << 8) - (deltaTime << 8) / (_targetTime - _previousTime), static_cast<int64_t>(1));
+
+		int redDiff = 0, greenDiff = 0, blueDiff = 0;
+
+		if (_previousValues.size() != _targetValues.size())
+		{
+			Error(_log, "Detect abnormal state. Previuos value: %d, new value: %d", _previousValues.size(), _targetValues.size());
+		}
+		else
+		{
+			for (size_t i = 0; i < _previousValues.size(); i++)
+			{
+				ColorRgb& prev = _previousValues[i];
+				ColorRgb& target = _targetValues[i];
+
+				redDiff = target.red - prev.red;
+				greenDiff = target.green - prev.green;
+				blueDiff = target.blue - prev.blue;
+
+				if (redDiff != 0)
+					prev.red += (redDiff < 0 ? -1 : 1) *
+					((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, redDiff) : computeColor(k, redDiff));
+				if (greenDiff != 0)
+					prev.green += (greenDiff < 0 ? -1 : 1) *
+					((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, greenDiff) : computeColor(k, greenDiff));
+				if (blueDiff != 0)
+					prev.blue += (blueDiff < 0 ? -1 : 1) *
+					((correction) ? computeAdvColor(aspectLow, aspectMid, aspectHigh, kMin, kMid, kAbove, kMax, blueDiff) : computeColor(k, blueDiff));
+			}
+		}
+		_previousTime = now;
+
+		queueColors(_previousValues);
+	}
+}
+
 void LinearSmoothing::DebugOutput()
 {
-	/*debugCounter = std::min(debugCounter+1,900);
-	if (_targetValues.size() > 0 && debugCounter < 900)
+	/*_debugCounter = std::min(_debugCounter+1,900);
+	if (_targetValues.size() > 0 && _debugCounter < 900)
 	{
-		if (debugCounter < 100 || (debugCounter > 200 && debugCounter < 300) || (debugCounter > 400 && debugCounter < 500) || (debugCounter > 600 && debugCounter < 700) || debugCounter>800)
+		if (_debugCounter < 100 || (_debugCounter > 200 && _debugCounter < 300) || (_debugCounter > 400 && _debugCounter < 500) || (_debugCounter > 600 && _debugCounter < 700) || _debugCounter>800)
 		{
 			_targetValues[0].red = 0;
 			_targetValues[0].green = 0;
 			_targetValues[0].blue = 0;
 		}
-		else if (debugCounter >= 100 && debugCounter <= 200)
+		else if (_debugCounter >= 100 && _debugCounter <= 200)
 		{
 			_targetValues[0].red = 255;
 			_targetValues[0].green = 255;
 			_targetValues[0].blue = 255;
 		}
-		else if (debugCounter >= 300 && debugCounter <= 400)
+		else if (_debugCounter >= 300 && _debugCounter <= 400)
 		{
 			_targetValues[0].red = 255;
 			_targetValues[0].green = 0;
 			_targetValues[0].blue = 0;
 		}
-		else if (debugCounter >= 500 && debugCounter <= 600)
+		else if (_debugCounter >= 500 && _debugCounter <= 600)
 		{
 			_targetValues[0].red = 0;
 			_targetValues[0].green = 255;
 			_targetValues[0].blue = 0;
 		}
-		else if (debugCounter >= 700 && debugCounter <= 800)
+		else if (_debugCounter >= 700 && _debugCounter <= 800)
 		{
 			_targetValues[0].red = 0;
 			_targetValues[0].green = 0;

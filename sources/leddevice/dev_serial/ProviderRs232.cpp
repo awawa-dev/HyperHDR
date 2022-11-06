@@ -45,7 +45,7 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 
 		_isAutoDeviceName = _deviceName.toLower() == "auto";
 		_baudRate_Hz = deviceConfig["rate"].toInt();
-		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
+		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
 
 		Debug(_log, "deviceName   : %s", QSTRING_CSTR(_deviceName));
 		Debug(_log, "AutoDevice   : %d", _isAutoDeviceName);

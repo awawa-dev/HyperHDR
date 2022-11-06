@@ -40,6 +40,10 @@
 				"required": true,
 				"default": 0
 			},
+			"disabled": {
+				"type": "boolean",
+				"default": false
+			},
 			"colorOrder": {
 				"type": "string",
 				"enum": [

@@ -37,7 +37,7 @@
 
 #define LOCAL_VID_ALIGN_SIZE       16
 
-static_assert (sizeof(ColorRgb) < LOCAL_VID_ALIGN_SIZE && sizeof(ColorRgb) <= sizeof(uint64_t));
+static_assert (sizeof(ColorRgb) < LOCAL_VID_ALIGN_SIZE && sizeof(ColorRgb) <= sizeof(uint64_t), "Unexpected image size");
 
 template <typename ColorSpace>
 VideoMemoryManager ImageData<ColorSpace>::videoCache;

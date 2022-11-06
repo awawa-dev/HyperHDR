@@ -181,11 +181,12 @@ private:
 	/// smooth config list
 	QVector<SmoothingCfg> _cfgList;
 
-	unsigned	  _currentConfigId;
-	bool		  _enabled;
-	bool		  _directMode;
-	SmoothingType _smoothingType;
-	bool		  _infoUpdate;
-	bool		  _infoInput;
-	int			  debugCounter;
+	unsigned		_currentConfigId;
+	bool			_enabled;
+	bool			_directMode;
+	SmoothingType	_smoothingType;
+	bool			_infoUpdate;
+	bool			_infoInput;
+	int				_coolDown;
+	int				_debugCounter;
 };
