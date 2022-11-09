@@ -551,6 +551,8 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 
 		return true;
 	}
+	else
+		_offSignalTime = 0;
 
 	if (hasSignal && _noSignal)
 	{
