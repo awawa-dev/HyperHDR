@@ -578,6 +578,8 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 
 		return false;
 	}
+	else
+		_onSignalTime = 0;
 
 	return true;
 }
