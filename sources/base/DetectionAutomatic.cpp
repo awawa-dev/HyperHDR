@@ -516,9 +516,15 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 	bool hasSignal = (finalQuality <= _modelTolerance);
 
 	if (!hasSignal && _noSignal)
+	{
+		_onSignalTime = 0;
 		return false;
+	}
 	if (hasSignal && !_noSignal)
+	{
+		_offSignalTime = 0;
 		return true;
+	}
 
 	qint64 time = InternalClock::now();
 
