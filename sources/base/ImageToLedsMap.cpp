@@ -20,11 +20,9 @@ ImageToLedsMap::ImageToLedsMap(
 	, _horizontalBorder(horizontalBorder)
 	, _verticalBorder(verticalBorder)
 	, _colorsMap()
-	, _colorsDisabled()
 	, _colorsGroups()
 	, _groupMin(-1)
 	, _groupMax(-1)
-	, _haveDisabled(false)
 {
 	// Sanity check of the size of the borders (and width and height)
 	Q_ASSERT(_width > 2 * _verticalBorder);
@@ -174,9 +172,7 @@ ImageToLedsMap::ImageToLedsMap(
 		}
 
 		// Add the constructed vector to the map
-		_haveDisabled |= led.disabled;
 		_colorsMap.push_back(ledColor);
-		_colorsDisabled.push_back(led.disabled);
 		_colorsGroups.push_back(led.group);
 		if (_groupMin == -1 || led.group < _groupMin)
 			_groupMin = led.group;
@@ -254,15 +250,7 @@ std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image, uint
 				}
 		}
 	}
-
-	for (size_t i = 0; _haveDisabled && i < qMin(_colorsDisabled.size(), colors.size()); i++)
-		if (_colorsDisabled[i])
-		{
-			colors[i].red = 0;
-			colors[i].green = 0;
-			colors[i].blue = 0;
-		}
-
+	
 	return colors;
 }
 
