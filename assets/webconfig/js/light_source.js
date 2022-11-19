@@ -700,6 +700,10 @@ $(document).ready(function()
 				"group": {
 					"type": "integer",
 					"minimum": 0					
+				},
+				"disabled": {
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"type": "object"
@@ -950,7 +954,9 @@ $(document).ready(function()
 	// validate textfield and update preview
 	$("#leds_custom_updsim").off().on("click", function()
 	{
-		createLedPreview(aceEdt.get(), 'text');
+		const backup = aceEdt.get();
+		createLedPreview(backup, 'text');
+		aceEdt.set(backup);
 	});
 
 	// save led config and saveValues - passing textfield

@@ -208,7 +208,7 @@ void LinearSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
 		if (_pause || ledValues.size() == 0)
 			return;
 
-		emit _hyperhdr->ledDeviceData(ledValues);
+		queueColors(ledValues);
 
 		return;
 	}

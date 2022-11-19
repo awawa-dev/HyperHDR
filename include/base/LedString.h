@@ -130,6 +130,8 @@ public:
 	/// the color order
 	ColorOrder colorOrder = ColorOrder::ORDER_RGB;
 
+	bool hasDisabled = false;
+
 	static ColorOrder createColorOrder(const QJsonObject& deviceConfig);
 	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder);
 	static QSize getLedLayoutGridSize(const QJsonArray& ledConfigArray);
