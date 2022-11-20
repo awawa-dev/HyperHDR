@@ -540,6 +540,17 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 
 				devNameFile.close();
 			}
+
+			// UTV007 workaround
+			if (properties.valid.size() == 0 && realName.indexOf("usbtv ", 0, Qt::CaseInsensitive) == 0)
+			{
+				{ DevicePropertiesItem diL; diL.x = 320; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
+				{ DevicePropertiesItem diL; diL.x = 320; diL.y = 288; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
+				{ DevicePropertiesItem diL; diL.x = 360; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
+				{ DevicePropertiesItem diL; diL.x = 720; diL.y = 480; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
+				{ DevicePropertiesItem diL; diL.x = 720; diL.y = 576; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
+			}
+
 			_deviceProperties.insert(realName, properties);
 
 			if (!silent)
