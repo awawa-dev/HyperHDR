@@ -544,6 +544,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 			// UTV007 workaround
 			if (properties.valid.size() == 0 && realName.indexOf("usbtv ", 0, Qt::CaseInsensitive) == 0)
 			{
+				Warning(_log, "To have proper colors when using UTV007 grabber, you may need to add 'sudo systemctl stop hyperhdr@pi && v4l2-ctl -s pal-B && sudo systemctl start hyperhdr@pi' to /etc/rc.local or run it manually to set the PAL standard");
 				{ DevicePropertiesItem diL; diL.x = 320; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
 				{ DevicePropertiesItem diL; diL.x = 320; diL.y = 288; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
 				{ DevicePropertiesItem diL; diL.x = 360; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
