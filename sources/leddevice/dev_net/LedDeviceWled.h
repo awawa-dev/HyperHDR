@@ -60,20 +60,6 @@ public:
 	///
 	QJsonObject getProperties(const QJsonObject& params) override;
 
-	///
-	/// @brief Send an update to the WLED device to identify it.
-	///
-	/// Following parameters are required
-	/// @code
-	/// {
-	///     "host"  : "hostname or IP [:port]",
-	/// }
-	///@endcode
-	///
-	/// @param[in] params Parameters to address device
-	///
-	void identify(const QJsonObject& params) override;
-
 protected:
 
 	///
@@ -130,6 +116,10 @@ private:
 
 	QString _hostname;
 	int		_apiPort;
+	bool	_overrideBrightness;
+	int		_brightnessLevel;
+	bool	_restoreConfig;
+	QJsonDocument _configBackup;
 };
 
 #endif // LEDDEVICEWLED_H
