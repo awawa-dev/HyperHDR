@@ -30,11 +30,13 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _retryMode(false)
 	, _maxRetry(60)
 	, _currentRetry(0)
-	, _isRefreshEnabled(false)	
+	, _isRefreshEnabled(false)
+	, _newFrame2Send(false)
+	, _newFrame2SendTime(0)
 {
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
-	connect(this, &LedDevice::manualUpdate, this, &LedDevice::rewriteLEDs);
+	connect(this, &LedDevice::manualUpdate, this, &LedDevice::rewriteLEDs, Qt::QueuedConnection);
 }
 
 LedDevice::~LedDevice()
@@ -127,6 +129,8 @@ void LedDevice::enableDevice(bool toEmit)
 		if (_isRefreshEnabled)
 			this->startRefreshTimer();
 	}
+
+	_newFrame2Send = false;
 }
 
 void LedDevice::disable()
@@ -150,6 +154,8 @@ void LedDevice::disableDevice(bool toEmit)
 		if (toEmit)
 			emit enableStateChanged(_isEnabled);
 	}
+
+	_newFrame2Send = false;
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
@@ -263,8 +269,12 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 	{
 		_lastLedValues = ledValues;
 
-		if (!_isRefreshEnabled)
+		if (!_isRefreshEnabled && (!_newFrame2Send || now - _newFrame2SendTime > 1000 || now < _newFrame2SendTime))
+		{
+			_newFrame2Send = true;
+			_newFrame2SendTime = now;
 			emit manualUpdate();
+		}
 	}
 
 	return 0;
@@ -273,6 +283,8 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 int LedDevice::rewriteLEDs()
 {
 	int retval = -1;
+
+	_newFrame2Send = false;
 
 	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
 	{

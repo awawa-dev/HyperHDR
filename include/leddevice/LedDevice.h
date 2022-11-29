@@ -416,6 +416,9 @@ private:
 	/// Is last write refreshing enabled?
 	bool	_isRefreshEnabled;
 
+	bool	_newFrame2Send;
+	int64_t _newFrame2SendTime;
+
 	/// Last LED values written
 	std::vector<ColorRgb> _lastLedValues;
 
