@@ -13,7 +13,7 @@
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean", "edt_conf_enum_unicolor_advanced", "edt_conf_enum_unicolor_weighted"]
 			},
-			"default"  : "advanced",
+			"default"  : "multicolor_mean",
 			"propertyOrder" : 1
 		},
 		"sparse_processing" :
@@ -60,7 +60,7 @@
 						"type" : "boolean",
 						"format": "checkbox",
 						"title" : "edt_conf_color_classic_config_title",
-						"default" : true,
+						"default" : false,
 						"required" : true,
 						"propertyOrder" : 3
 					},
