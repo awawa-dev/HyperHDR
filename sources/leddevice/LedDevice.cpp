@@ -244,6 +244,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 		_computeStats.token = PerformanceCounters::currentToken();
 		_computeStats.statBegin = now;
 		_computeStats.frames = 0;
+		_computeStats.droppedFrames = 0;
 		_computeStats.incomingframes = 1;
 	}
 	else if (prevToken != (_computeStats.token = PerformanceCounters::currentToken()))
@@ -251,10 +252,11 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 
 		if (diff >= 59000 && diff <= 65000)
 			emit this->newCounter(
-			PerformanceReport(static_cast<int>(PerformanceReportType::LED), _computeStats.token, this->_activeDeviceType, _computeStats.frames / qMax(diff / 1000.0, 1.0), _computeStats.frames, _computeStats.incomingframes, 0));
+			PerformanceReport(static_cast<int>(PerformanceReportType::LED), _computeStats.token, this->_activeDeviceType, _computeStats.frames / qMax(diff / 1000.0, 1.0), _computeStats.frames, _computeStats.incomingframes, _computeStats.droppedFrames));
 
 		_computeStats.statBegin = now;
 		_computeStats.frames = 0;
+		_computeStats.droppedFrames = 0;
 		_computeStats.incomingframes = 1;
 	}
 	else
@@ -275,6 +277,8 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 			_newFrame2SendTime = now;
 			emit manualUpdate();
 		}
+		else
+			_computeStats.droppedFrames++;
 	}
 
 	return 0;

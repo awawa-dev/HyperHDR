@@ -428,6 +428,7 @@ private:
 		qint64		statBegin = 0;
 		qint64		frames = 0;
 		qint64		incomingframes = 0;
+		qint64		droppedFrames = 0;
 	} _computeStats;
 };
 
