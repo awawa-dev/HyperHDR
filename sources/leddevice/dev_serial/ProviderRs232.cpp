@@ -6,8 +6,10 @@
 // qt includes
 #include <QSerialPortInfo>
 #include <QEventLoop>
+#include <QThread>
 
 #include <chrono>
+#include <utils/InternalClock.h>
 
 // Constants
 constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
@@ -22,6 +24,7 @@ ProviderRs232::ProviderRs232(const QJsonObject& deviceConfig)
 	, _isAutoDeviceName(false)
 	, _delayAfterConnect_ms(0)
 	, _frameDropCounter(0)
+	, _espHandshake(true)
 {
 }
 
@@ -46,11 +49,13 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 		_isAutoDeviceName = _deviceName.toLower() == "auto";
 		_baudRate_Hz = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
+		_espHandshake = deviceConfig["espHandshake"].toBool(false);
 
-		Debug(_log, "deviceName   : %s", QSTRING_CSTR(_deviceName));
-		Debug(_log, "AutoDevice   : %d", _isAutoDeviceName);
-		Debug(_log, "baudRate_Hz  : %d", _baudRate_Hz);
-		Debug(_log, "delayAfCon ms: %d", _delayAfterConnect_ms);
+		Debug(_log, "Device name   : %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Auto selection: %d", _isAutoDeviceName);
+		Debug(_log, "Baud rate     : %d", _baudRate_Hz);
+		Debug(_log, "ESP handshake : %s", (_espHandshake) ? "ON" : "OFF");
+		Debug(_log, "Delayed open  : %d", _delayAfterConnect_ms);
 
 		isInitOK = true;
 	}
@@ -59,6 +64,8 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 
 ProviderRs232::~ProviderRs232()
 {
+	if (_rs232Port.isOpen())
+		_rs232Port.close();
 }
 
 int ProviderRs232::open()
@@ -76,6 +83,24 @@ int ProviderRs232::open()
 	return retval;
 }
 
+void ProviderRs232::waitForExitStats()
+{
+	if (_rs232Port.isOpen())
+	{
+		if (_rs232Port.bytesAvailable() > 16)
+		{
+			auto incoming = QString(_rs232Port.readAll());
+			
+			Info(_log, "Received: %s", QSTRING_CSTR(incoming));
+		}
+		if (!_isDeviceReady)
+		{
+			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
+			_rs232Port.close();
+		}
+	}
+}
+
 int ProviderRs232::close()
 {
 	int retval = 0;
@@ -89,9 +114,20 @@ int ProviderRs232::close()
 		{
 			Debug(_log, "Flush was successful");
 		}
-		Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
-		_rs232Port.close();
-		// Everything is OK -> device is closed
+		
+
+		if (_espHandshake)
+		{
+			// read the statistics on goodbye
+			QTimer::singleShot(6000, this, &ProviderRs232::waitForExitStats);
+			connect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::waitForExitStats);
+		}
+		else
+		{
+			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
+			_rs232Port.close();
+		}
+		
 	}
 	return retval;
 }
@@ -150,10 +186,60 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 
 		if (!serialPortInfo.isNull())
 		{
-			if (!_rs232Port.open(QIODevice::ReadWrite))
+			if (!_rs232Port.isOpen() && !_rs232Port.open(QIODevice::ReadWrite))
 			{
 				this->setInError(_rs232Port.errorString());
 				return false;
+			}
+
+			if (_espHandshake)
+			{
+				disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
+
+				// reset to defaults				
+				_rs232Port.setDataTerminalReady(true);
+				_rs232Port.setRequestToSend(false);
+				QThread::msleep(50);
+
+				// reset device
+				_rs232Port.setDataTerminalReady(false);
+				_rs232Port.setRequestToSend(true);
+				QThread::msleep(100);				
+
+				// resume device
+				_rs232Port.setRequestToSend(false);
+				QThread::msleep(100);
+
+				// read the reset message, search for AWA tag
+				auto start = InternalClock::now();
+
+				while(InternalClock::now() - start < 1000)
+				{
+					_rs232Port.waitForReadyRead(100);
+					if (_rs232Port.bytesAvailable() > 16)
+					{
+						auto incoming = _rs232Port.readAll();
+						for (int i = 0; i < incoming.length(); i++)
+							if (!(incoming[i] == '\n' ||
+								(incoming[i] >= ' ' && incoming[i] <= 'Z') ||
+								(incoming[i] >= 'a' && incoming[i] <= 'z')))
+							{
+								incoming.replace(incoming[i], '*');
+							}
+						QString result = QString(incoming).remove('*').replace('\n',' ').trimmed();
+						if (result.indexOf("Awa driver",Qt::CaseInsensitive) >= 0)
+						{
+							Info(_log, "DETECTED DEVICE USING HYPERSERIALESP8266/HYPERSERIALESP32 FIRMWARE (%s) at %i msec", QSTRING_CSTR(result), int(InternalClock::now() - start));
+							start = 0;
+							break;
+						}						
+					}
+					if (InternalClock::now() <= start)
+						break;
+				}
+
+				if (start != 0)
+					Error(_log, "Could not detect HyperSerialEsp8266/HyperSerialESP32 device");
 			}
 		}
 		else
