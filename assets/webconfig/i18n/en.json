@@ -1188,5 +1188,6 @@
   "led_editor_context_moving": "Left click the mouse to accept the position",
   "conf_leds_disabled_notification" : "Some LEDs are disabled by the user!",
   "conf_leds_layout_context" : "Right click on the LED to display the context menu. With the CTRL key selects the object below.",
-  "conf_leds_layout_btn_zoom" : "Zoom"
+  "conf_leds_layout_btn_zoom" : "Zoom",
+  "edt_serial_espHandshake" : "Esp8266/ESP32 handshake"
 } 

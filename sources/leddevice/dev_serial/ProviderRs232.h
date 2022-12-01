@@ -97,6 +97,9 @@ protected slots:
 	///
 	void setInError(const QString& errorMsg) override;
 
+public slots:
+	void waitForExitStats();
+
 private:
 
 	///
@@ -114,6 +117,8 @@ private:
 
 	/// Frames dropped, as write failed
 	int _frameDropCounter;
+
+	bool _espHandshake;
 };
 
 #endif // PROVIDERRS232_H
