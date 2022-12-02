@@ -277,7 +277,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 			_newFrame2SendTime = now;
 			emit manualUpdate();
 		}
-		else
+		else if (!_isRefreshEnabled)
 			_computeStats.droppedFrames++;
 	}
 
