@@ -249,6 +249,11 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 	}
 	else if (prevToken != (_computeStats.token = PerformanceCounters::currentToken()))
 	{
+		if (_isRefreshEnabled && _refreshTimerInterval_ms > 0)
+		{
+			qint64 wanted = (1000.0/_refreshTimerInterval_ms) * 60.0 * diff / 60000.0;
+			_computeStats.droppedFrames = std::max(wanted - _computeStats.frames - 1, 0ll);
+		}
 
 		if (diff >= 59000 && diff <= 65000)
 			emit this->newCounter(
