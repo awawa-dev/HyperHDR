@@ -896,7 +896,11 @@ $(document).ready(function()
 			$(`input[name='root[specificOptions][${targetControl}]']`)[0].style.width = String(58) + "%";
 			$(`input[name='root[specificOptions][${targetControl}]']`)[0].parentElement.appendChild(selectorControl[0]);			
 		}
-		
+
+		if (ledType == "ws2812spi" || ledType == "ws281x" || ledType == "sk6812spi") {
+			createHintH('callout-warning', $.i18n('edt_rpi_ws281x_driver'), 'btn_wiz_holder');
+		}
+
 		function changeWizard(data, hint, fn)
 		{
 			$('#btn_wiz_holder').html("")
