@@ -11,6 +11,8 @@
 #include <chrono>
 #include <utils/InternalClock.h>
 
+#include "EspTools.h"
+
 // Constants
 constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
 constexpr std::chrono::milliseconds OPEN_TIMEOUT{ 5000 };		// device open timeout in ms
@@ -83,17 +85,23 @@ int ProviderRs232::open()
 	return retval;
 }
 
-void ProviderRs232::waitForExitStats()
-{
+void ProviderRs232::waitForExitStats(bool force)
+{	
 	if (_rs232Port.isOpen())
 	{
-		if (_rs232Port.bytesAvailable() > 16)
+		if (!force && _rs232Port.bytesAvailable() > 32)
 		{
-			auto incoming = QString(_rs232Port.readAll());
+			auto check = _rs232Port.peek(256);
+			if (check.lastIndexOf('\n') > 1)
+			{
+				auto incoming = QString(_rs232Port.readAll());
+				force = true;
 			
-			Info(_log, "Received: %s", QSTRING_CSTR(incoming));
+				Info(_log, "Received: '%s' (%i)", QSTRING_CSTR(incoming), incoming.length());
+			}
 		}
-		if (!_isDeviceReady)
+
+		if (!_isDeviceReady && force)
 		{
 			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
 			_rs232Port.close();
@@ -118,9 +126,10 @@ int ProviderRs232::close()
 
 		if (_espHandshake)
 		{
-			// read the statistics on goodbye
-			QTimer::singleShot(6000, this, &ProviderRs232::waitForExitStats);
-			connect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::waitForExitStats);
+			EspTools::goingSleep(_rs232Port);
+
+			QTimer::singleShot(6000, this, [this](){waitForExitStats(true); });
+			connect(&_rs232Port, &QSerialPort::readyRead, this, [this]() {waitForExitStats(false); });
 		}
 		else
 		{
@@ -196,50 +205,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 			{
 				disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
 
-				// reset to defaults				
-				_rs232Port.setDataTerminalReady(true);
-				_rs232Port.setRequestToSend(false);
-				QThread::msleep(50);
-
-				// reset device
-				_rs232Port.setDataTerminalReady(false);
-				_rs232Port.setRequestToSend(true);
-				QThread::msleep(100);				
-
-				// resume device
-				_rs232Port.setRequestToSend(false);
-				QThread::msleep(100);
-
-				// read the reset message, search for AWA tag
-				auto start = InternalClock::now();
-
-				while(InternalClock::now() - start < 1000)
-				{
-					_rs232Port.waitForReadyRead(100);
-					if (_rs232Port.bytesAvailable() > 16)
-					{
-						auto incoming = _rs232Port.readAll();
-						for (int i = 0; i < incoming.length(); i++)
-							if (!(incoming[i] == '\n' ||
-								(incoming[i] >= ' ' && incoming[i] <= 'Z') ||
-								(incoming[i] >= 'a' && incoming[i] <= 'z')))
-							{
-								incoming.replace(incoming[i], '*');
-							}
-						QString result = QString(incoming).remove('*').replace('\n',' ').trimmed();
-						if (result.indexOf("Awa driver",Qt::CaseInsensitive) >= 0)
-						{
-							Info(_log, "DETECTED DEVICE USING HYPERSERIALESP8266/HYPERSERIALESP32 FIRMWARE (%s) at %i msec", QSTRING_CSTR(result), int(InternalClock::now() - start));
-							start = 0;
-							break;
-						}						
-					}
-					if (InternalClock::now() <= start)
-						break;
-				}
-
-				if (start != 0)
-					Error(_log, "Could not detect HyperSerialEsp8266/HyperSerialESP32 device");
+				EspTools::initializeEsp(_rs232Port, serialPortInfo, _log);
 			}
 		}
 		else

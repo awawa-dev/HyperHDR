@@ -72,7 +72,7 @@ void LedDeviceAdalight::CreateHeader()
 	{
 		_ligthBerryAPA102Mode = false;
 		totalLedCount -= 1;
-		auto finalSize = (uint64_t)_headerSize + _ledRGBCount + ((_awa_mode) ? 7 : 0);
+		auto finalSize = (uint64_t)_headerSize + _ledRGBCount + ((_awa_mode) ? 8 : 0);
 		_ledBuffer.resize(finalSize, 0x00);
 
 		if (_awa_mode)
@@ -113,7 +113,7 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb>& ledValues)
 	}
 	else
 	{
-		auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb) + ((_awa_mode) ? 7 : 0);
+		auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb) + ((_awa_mode) ? 8 : 0);
 
 		if (bufferLength > _ledBuffer.size())
 		{
@@ -131,14 +131,17 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb>& ledValues)
 		{
 			whiteChannelExtension(writer);
 
-			uint16_t fletcher1 = 0, fletcher2 = 0;
+			uint16_t fletcher1 = 0, fletcher2 = 0, fletcherExt = 0;
+			uint8_t position = 0;
 			while (hasher < writer)
 			{
+				fletcherExt = (fletcherExt + (*(hasher) ^ (position++))) % 255;
 				fletcher1 = (fletcher1 + *(hasher++)) % 255;
 				fletcher2 = (fletcher2 + fletcher1) % 255;
 			}
 			*(writer++) = (uint8_t)fletcher1;
 			*(writer++) = (uint8_t)fletcher2;
+			*(writer++) = (uint8_t)((fletcherExt != 0x41) ? fletcherExt : 0xaa);
 		}
 		bufferLength = writer - _ledBuffer.data();
 
