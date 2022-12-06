@@ -223,7 +223,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	int diffColor = 0;
 	QJsonObject report;
 	QJsonArray colors;
-	ColorRgb white, black;
+	ColorRgb white{128,128,128}, black{16,16,16};
 	double scaleX = image.width() / 128.0;
 	double scaleY = image.height() / 72.0;
 

@@ -1,0 +1,115 @@
+name: HyperHDR Package Build (Github Pages Repo)
+
+on:
+  push:
+    tags:        
+      - '*'
+
+env:
+    USE_CACHE: "1"
+    RESET_CACHE: "0"
+
+jobs:
+######################################
+###### Upload to HyperHDR repo #######
+######################################
+  Linux:
+    name: Debian ${{ matrix.debian }} (${{ matrix.arch }})
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        debian: [ bullseye, bookworm ]
+        dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
+        include:        
+          - dockerImage: x86_64
+            dockerName: Debian (amd64)
+            arch: amd64
+            platform: linux
+          - dockerImage: rpi012-armv6l
+            dockerName: Debian (armhf)
+            arch: armhf
+            platform: rpi
+          - dockerImage: arm-aarch64
+            dockerName: Debian (arm64)
+            arch: arm64
+            platform: rpi   
+
+    steps:
+      # checkout
+      - uses: actions/checkout@v3
+        with:
+          submodules: true      
+
+      # generate cache id
+      - name: Prepare ccache timestamp
+        if: env.USE_CACHE == '1'
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+          string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
+          file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
+
+       # download cache
+      - name: ccache cache files
+        if: ( env.USE_CACHE == '1' )
+        uses: actions/cache@v3
+        with:
+           path: .ccache
+           key: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-
+
+      - name: Build packages
+        env:
+          DOCKER_IMAGE: ${{ matrix.dockerImage }}
+          DOCKER_TAG: ${{ matrix.debian }}
+          DOCKER_NAME: ${{ matrix.dockerName }}
+          PLATFORM: ${{ matrix.platform }}
+          USE_CCACHE: ${{ env.USE_CACHE }}
+          RESET_CACHE: ${{ env.RESET_CACHE }}
+        shell: bash
+        run: |
+          sed -i 's/HYPERHDR_REPO_BUILD/true/' ./cmake/packages.cmake
+          ./.ci/ci_build.sh
+
+      # deploy the package      
+      - name: Get destination path
+        run: |
+          echo "REPO_DIR=repo/pool/${{ matrix.debian }}" >> $GITHUB_ENV
+
+      - name: Move installers
+        run: |
+          mkdir -p ${{ env.REPO_DIR }}
+          mkdir -p repo/others
+          mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||: 
+          mv deploy/Hyper*.rpm repo/others ||: 
+
+      - name: Upload artifacts from commit        
+        uses: actions/upload-artifact@v3
+        with:
+          name: upload
+          path: repo
+
+  Upload:
+    name: Upload to Github Pages
+    runs-on: ubuntu-20.04
+    needs: [Linux]
+
+    steps:
+      # Download artifacts from previous build process
+      - uses: actions/checkout@v3
+        with:
+          submodules: false
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: repo    
+      - name: Deploy the packages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          repository-name: awawa-dev/awawa-dev.github.io
+          folder: repo/upload
+          target-folder: repo
+          clean: false
+          commit-message: Release for ${{github.ref_name}}
+          ssh-key: ${{ secrets.UPLOADER_KEY }}

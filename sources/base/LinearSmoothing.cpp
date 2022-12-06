@@ -52,7 +52,7 @@ LinearSmoothing::LinearSmoothing(const QJsonDocument& config, HyperHdrInstance* 
 
 	// add pause on cfg 1
 	SmoothingCfg cfg(true, 0, 0, false);
-	_cfgList.append(cfg);
+	_cfgList.push_back(cfg);
 
 	// listen for comp changes
 	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &LinearSmoothing::componentStateChange);
@@ -348,15 +348,15 @@ void LinearSmoothing::setEnable(bool enable)
 unsigned LinearSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	SmoothingCfg cfg(false, settlingTime_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode);
-	_cfgList.append(cfg);
+	_cfgList.push_back(cfg);
 
-	return _cfgList.count() - 1;
+	return (unsigned)(_cfgList.size() - 1);
 }
 
 unsigned LinearSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned updatedCfgID = cfgID;
-	if (cfgID < static_cast<unsigned>(_cfgList.count()))
+	if (cfgID < static_cast<unsigned>(_cfgList.size()))
 	{
 		SmoothingCfg cfg(false, settlingTime_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode);
 		_cfgList[updatedCfgID] = cfg;
@@ -377,7 +377,7 @@ bool LinearSmoothing::selectConfig(unsigned cfg, bool force)
 		return true;
 	}
 
-	if (cfg < (unsigned)_cfgList.count())
+	if (cfg < (unsigned)_cfgList.size())
 	{
 		_settlingTime = _cfgList[cfg]._settlingTime;
 		_pause = _cfgList[cfg]._pause;
