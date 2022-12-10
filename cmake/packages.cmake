@@ -1,4 +1,6 @@
 # cmake file for generating distribution packages
+#SET(HYPERHDR_REPO_RPM_BUILD ON)
+#SET(HYPERHDR_REPO_BUILD ON)
 
 # default packages to build
 IF (APPLE)
@@ -12,7 +14,7 @@ ENDIF()
 # Determine packages by found generator executables
 
 # Github Action enables it for packages
-if(HYPERHDR_REPO_BUILD)
+if(HYPERHDR_REPO_RPM_BUILD)
 	find_package(RpmBuilder)
 	IF(RPM_BUILDER_FOUND)
 		message(STATUS "CPACK: Found RPM builder")
