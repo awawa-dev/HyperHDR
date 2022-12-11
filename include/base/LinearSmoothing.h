@@ -179,7 +179,7 @@ private:
 	};
 
 	/// smooth config list
-	QVector<SmoothingCfg> _cfgList;
+	std::vector<SmoothingCfg> _cfgList;
 
 	unsigned		_currentConfigId;
 	bool			_enabled;
