@@ -6,7 +6,7 @@ on:
       - '*'
 
 env:
-    USE_CACHE: "1"
+    USE_CACHE: "0"
     RESET_CACHE: "0"
 
 jobs:
