@@ -63,12 +63,12 @@ jobs:
         echo 'set -x' >> start_chroot_script
         echo 'set -e' >> start_chroot_script
         echo 'source /common.sh' >> start_chroot_script        
-        echo 'type -p curl >/dev/null || sudo apt install curl -y' >> start_chroot_script
-        echo 'curl -fsSL https://awawa-dev.github.io/hyperhdr.public.apt.gpg.key | sudo dd of=/usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
-        echo '&& sudo chmod go+r /usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
-        echo '&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hyperhdr.public.apt.gpg.key] https://awawa-dev.github.io $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hyperhdr.list > /dev/null \' >> start_chroot_script
-        echo '&& sudo apt update \' >> start_chroot_script
-        echo '&& sudo apt install hyperhdr -y' >> start_chroot_script        
+        echo 'type -p curl >/dev/null || apt install curl -y' >> start_chroot_script
+        echo 'curl -fsSL https://awawa-dev.github.io/hyperhdr.public.apt.gpg.key | dd of=/usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
+        echo '&& chmod go+r /usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
+        echo '&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hyperhdr.public.apt.gpg.key] https://awawa-dev.github.io $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hyperhdr.list > /dev/null \' >> start_chroot_script
+        echo '&& apt update \' >> start_chroot_script
+        echo '&& apt install hyperhdr -y' >> start_chroot_script        
         echo 'touch /boot/ssh' >> start_chroot_script
         echo "echo -n 'pi:' > /boot/userconf" >> start_chroot_script
         echo "echo 'raspberry' | openssl passwd -6 -stdin >> /boot/userconf" >> start_chroot_script
