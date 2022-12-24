@@ -64,7 +64,7 @@ class EspTools
 			// reset device
 			_rs232Port.setDataTerminalReady(false);
 			_rs232Port.setRequestToSend(true);
-			QThread::msleep(100);
+			QThread::msleep(150);
 
 			// resume device
 			_rs232Port.setRequestToSend(false);
@@ -94,10 +94,7 @@ class EspTools
 					start = 0;
 					break;
 				}
-			}
-
-			if (InternalClock::now() <= start)
-				break;
+			}			
 		}
 
 		if (start != 0)
