@@ -96,7 +96,9 @@ void ProviderRestApi::appendPath(QString& path, const QString& appendPath) const
 {	
 	path = QUrl(path).resolved(appendPath).toString();	
 }
-
+void ProviderRestApi::addHeader(const QString &key, const QString &value) {
+    _headers.insert(key, value);
+}
 void ProviderRestApi::setFragment(const QString& fragment)
 {
 	_fragment = fragment;
@@ -227,6 +229,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply, bool time
     int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     response.setHttpStatusCode(httpStatusCode);
     QMap<QString, QString> headers;
+//    We sometimes need headers in the response to get the hue application id for instance
     for (const auto &item: reply->rawHeaderPairs()) {
         headers[item.first] = item.second;
     };
@@ -335,13 +338,17 @@ networkHelper::~networkHelper()
 	_networkManager = nullptr;
 }
 
-QNetworkReply* networkHelper::executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body)
-{
-	ProviderRestApi* parent = static_cast<ProviderRestApi*>(request.originatingObject());
-	parent->aquireResultLock();
-	
-	auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body):
-				(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body) : _networkManager->get(request);
+QNetworkReply *networkHelper::executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body) {
+    ProviderRestApi *parent = static_cast<ProviderRestApi *>(request.originatingObject());
+    parent->aquireResultLock();
+
+    QSslConfiguration conf = request.sslConfiguration();
+    conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+    request.setSslConfiguration(conf);
+
+    auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body) :
+               (op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body)
+                                                            : _networkManager->get(request);
 
 	connect(ret, &QNetworkReply::finished, this, [=](){parent->releaseResultLock();});
 	return ret;

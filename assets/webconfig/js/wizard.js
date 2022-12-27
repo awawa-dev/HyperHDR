@@ -937,6 +937,7 @@ function useGroupId(id)
 		}
 	}else{
 		groupLights = groupIDs[id].lights;
+		groupLightsLocations = groupIDs[id].locations;
 	}
 	get_hue_lights();
 }
@@ -998,7 +999,6 @@ function identify_hue_device(hostAddress, username, id)
 {
 	if(useV2Api){
 	// 	use the device id to identify
-		console.log(channels[id])
 		channels[id].deviceIds.forEach(value => {
 			let params = { host: hostAddress, user: username, deviceId: value+"" };
 			requestLedDeviceIdentification("philipshue", params);
