@@ -43,16 +43,12 @@ const int TIMEOUT = (500);
 
 std::unique_ptr<networkHelper> ProviderRestApi::_networkWorker(nullptr);
 
-ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath)
-	:_log(Logger::getInstance("LEDDEVICE"))
-	, _scheme("http")
-	, _hostname(host)
-	, _port(port)
-{
-	if (_networkWorker == nullptr)
-	{
-		_networkWorker = std::unique_ptr<networkHelper>(new networkHelper());		
-	}
+ProviderRestApi::ProviderRestApi(const QString &host, int port, const QString &basePath)
+        : _log(Logger::getInstance("LEDDEVICE")), _scheme(port == 443 ? "https" : "http"), _hostname(host),
+          _port(port) {
+    if (_networkWorker == nullptr) {
+        _networkWorker = std::unique_ptr<networkHelper>(new networkHelper());
+    }
 
 	qRegisterMetaType<QNetworkRequest>();
 	qRegisterMetaType<QByteArray>();
@@ -176,7 +172,12 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	QNetworkRequest request(url);
 	QNetworkReply* networkReply = nullptr;
 
-	request.setOriginatingObject(this);	
+    request.setOriginatingObject(this);
+    QMapIterator<QString, QString> i(_headers);
+    while (i.hasNext()) {
+        i.next();
+        request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
+    }
 
 	QMetaObject::invokeMethod(_networkWorker.get(), "executeOperation", Qt::BlockingQueuedConnection,
 		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkAccessManager::Operation, op), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
@@ -223,13 +224,17 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply, bool time
 {
 	httpResponse response;
 
-	int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-	response.setHttpStatusCode(httpStatusCode);
-	
-	if (timeout)
-		response.setNetworkReplyError(QNetworkReply::TimeoutError);
-	else
-		response.setNetworkReplyError(reply->error());
+    int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    response.setHttpStatusCode(httpStatusCode);
+    QMap<QString, QString> headers;
+    for (const auto &item: reply->rawHeaderPairs()) {
+        headers[item.first] = item.second;
+    };
+    response.setHeaders(headers);
+    if (timeout)
+        response.setNetworkReplyError(QNetworkReply::TimeoutError);
+    else
+        response.setNetworkReplyError(reply->error());
 
 	if (reply->error() == QNetworkReply::NoError)
 	{
@@ -367,9 +372,16 @@ QString httpResponse::getErrorReason() const
 	return _errorReason;
 }
 
-void httpResponse::setErrorReason(const QString& errorReason)
-{
-	_errorReason = errorReason;
+QMap<QString, QString> httpResponse::getHeaders() const {
+    return _headers;
+}
+
+void httpResponse::setHeaders(const QMap<QString, QString> &h) {
+    _headers = h;
+}
+
+void httpResponse::setErrorReason(const QString &errorReason) {
+    _errorReason = errorReason;
 }
 
 int httpResponse::getHttpStatusCode() const

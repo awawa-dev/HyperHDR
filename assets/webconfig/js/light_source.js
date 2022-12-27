@@ -543,6 +543,20 @@ function isEmpty(obj)
 	return true;
 }
 
+function updateHueWizard(useEntertainmentAPI,useEntertainmentAPIV2,ledType, changeWizard) {
+	var entChecked=useEntertainmentAPI;
+	var ledWizardType = (entChecked) ? "philipshueentertainment" : ledType;
+	var useApiV2 = useEntertainmentAPIV2;
+	var data = {
+		type: ledWizardType,
+		useApiV2
+	};
+	var hue_title = (entChecked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
+	changeWizard(data, hue_title, startWizardPhilipsHue);
+
+	createHintH('callout-warning', $.i18n('philips_option_changed_bri'), 'btn_wiz_holder');
+}
+
 $(document).ready(function()
 {
 	// translate
@@ -837,17 +851,17 @@ $(document).ready(function()
 		{
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").bind("change", function()
 			{
-				var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
-				var data = {
-					type: ledWizardType
-				};
-				var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
-				changeWizard(data, hue_title, startWizardPhilipsHue);
-								
-				createHintH('callout-warning', $.i18n('philips_option_changed_bri'), 'btn_wiz_holder');
-				
+				updateHueWizard(this.checked,$("input[name='root[specificOptions][useEntertainmentAPIV2]']")[0].checked,ledType, changeWizard);
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
+			$("input[name='root[specificOptions][useEntertainmentAPIV2]']").bind("change", function()
+			{
+				if(!this.checked &&$("input[name='root[specificOptions][onBlackTimeToPowerOff]']").val()==""){
+					$("input[name='root[specificOptions][onBlackTimeToPowerOff]']").val(600)
+				}
+				updateHueWizard($("input[name='root[specificOptions][useEntertainmentAPI]']")[0].checked,this.checked,ledType, changeWizard);
+			});
+			$("input[name='root[specificOptions][useEntertainmentAPIV2]']").trigger("change");
 		}
 		else if (ledType == "atmoorb")
 		{

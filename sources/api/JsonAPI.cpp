@@ -1897,14 +1897,15 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 
 		if (service == "hue")
 		{
-			if (path.indexOf("/api") != 0 || ip.indexOf("/") >= 0)
+			if ((path.indexOf("/clip/v2") != 0 && path.indexOf("/api") != 0) || ip.indexOf("/") >= 0)
 			{
 				sendErrorReply("Invalid path", full_command, tan);
 				return;
 			}
 			
 			ProviderRestApi provider;
-			QUrl url = QUrl("http://"+ip+path);
+
+			QUrl url = QUrl((path.startsWith("/clip/v2")?"https://":"http://")+ip.split(":").first()+path);
 
 			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
 
@@ -1920,8 +1921,14 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 				sendErrorReply("The Philips Hue wizard supports only valid IP addresses in the LOCAL network.\nIt may be preferable to use the IP4 address instead of the host name if you are having problems with DNS resolution.", full_command, tan);
 				return;
 			}
+            httpResponse result;
+            const QJsonObject &headerObject = message["header"].toObject();
+            if(!headerObject.isEmpty()){
+                for (const auto &item: headerObject.keys()){
+                    provider.addHeader(item,headerObject[item].toString());
+                }
+            }
 
-			httpResponse result;
 			if (subcommand == "put")
 				result = provider.put(url, data);
 			else if (subcommand == "post")
