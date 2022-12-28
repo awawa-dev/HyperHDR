@@ -33,7 +33,7 @@ namespace {
     const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
     const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
     const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
-    const char CONFIG_GROUPID[] = "groupId";
+    const char CONFIG_ENTERTAINMENT_CONFIGURATION_ID[] = "entertainmentConfigurationId";
 
     const char CONFIG_VERBOSE[] = "verbose";
 
@@ -644,7 +644,7 @@ CiColorTriangleV2 PhilipsHueChannel::getColorSpace() const {
 
 LedDevicePhilipsHueV2::LedDevicePhilipsHueV2(const QJsonObject &deviceConfig)
         : LedDevicePhilipsHueBridgeV2(deviceConfig), _switchOffOnBlack(false), _brightnessFactor(1.0),
-          _transitionTime(1), _isInitLeds(false), _lightsCount(0), _groupId(""), _blackLightsTimeout(15000),
+          _transitionTime(1), _isInitLeds(false), _lightsCount(0), _entertainmentConfigurationId(""), _blackLightsTimeout(15000),
           _blackLevel(0.0), _candyGamma(true),
           _handshake_timeout_min(600), _handshake_timeout_max(2000), _stopConnection(false), _lastConfirm(0),
           _lastId(-1), _groupStreamState(false) {
@@ -662,14 +662,14 @@ bool LedDevicePhilipsHueV2::setLights() {
 
     QJsonArray lArray;
 
-    if (_useHueEntertainmentAPI && !_groupId.isEmpty()) {
-        lArray = getGroupChannels(_groupId);
+    if (_useHueEntertainmentAPI && !_entertainmentConfigurationId.isEmpty()) {
+        lArray = getGroupChannels(_entertainmentConfigurationId);
     }
 
     if (lArray.empty()) {
         if (_useHueEntertainmentAPI) {
             _useHueEntertainmentAPI = false;
-            Error(_log, "Group-ID [%s] is not usable - Entertainment API usage was disabled!", QSTRING_CSTR(_groupId));
+            Error(_log, "Group-ID [%s] is not usable - Entertainment API usage was disabled!", QSTRING_CSTR(_entertainmentConfigurationId));
         }
     }
 
@@ -711,7 +711,7 @@ bool LedDevicePhilipsHueV2::initLeds() {
     if (!this->isInError()) {
         if (setLights()) {
             if (_useHueEntertainmentAPI) {
-                _groupName = getGroupName(_groupId);
+                _groupName = getGroupName(_entertainmentConfigurationId);
                 _devConfig["host"] = _hostname;
                 _devConfig["sslport"] = API_SSL_SERVER_PORT;
                 _devConfig["servername"] = API_SSL_SERVER_NAME;
@@ -751,7 +751,7 @@ bool LedDevicePhilipsHueV2::init(const QJsonObject &deviceConfig) {
     _brightnessFactor = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
     _transitionTime = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
     _isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
-    _groupId = _devConfig[CONFIG_GROUPID].toString("");
+    _entertainmentConfigurationId = _devConfig[CONFIG_ENTERTAINMENT_CONFIGURATION_ID].toString("");
     _blackLevel = _devConfig["blackLevel"].toDouble(0.0);
     _candyGamma = _devConfig["candyGamma"].toBool(true);
     _handshake_timeout_min = _devConfig["handshakeTimeoutMin"].toInt(300);
@@ -773,10 +773,10 @@ bool LedDevicePhilipsHueV2::init(const QJsonObject &deviceConfig) {
     log("SSL Handshake max", "%d", _handshake_timeout_max);
 
     if (_useHueEntertainmentAPI) {
-        log("Entertainment API Group-ID", "%s", QSTRING_CSTR(_groupId));
+        log("Entertainment API Group-ID", "%s", QSTRING_CSTR(_entertainmentConfigurationId));
 
-        if (_groupId.isEmpty()) {
-            Error(_log, "Disabling usage of HueEntertainmentAPI: Group-ID is invalid", "%d", QSTRING_CSTR(_groupId));
+        if (_entertainmentConfigurationId.isEmpty()) {
+            Error(_log, "Disabling usage of HueEntertainmentAPI: Group-ID is invalid", "%d", QSTRING_CSTR(_entertainmentConfigurationId));
             _useHueEntertainmentAPI = false;
         }
     }
@@ -801,7 +801,7 @@ bool LedDevicePhilipsHueV2::openStream() {
             // if same owner stop stream
             if (isStreamOwner(_streamOwner)) {
                 Debug(_log, "Group: \"%s\" [%u] is in use, try to stop stream", QSTRING_CSTR(_groupName),
-                      QSTRING_CSTR(_groupId));
+                      QSTRING_CSTR(_entertainmentConfigurationId));
 
                 if (stopStream()) {
                     Debug(_log, "Stream successful stopped");
@@ -810,12 +810,12 @@ bool LedDevicePhilipsHueV2::openStream() {
                     isInitOK = startStream();
                 } else {
                     Error(_log, "Group: \"%s\" [%s] couldn't stop by user: \"%s\" - Entertainment API not usable",
-                          QSTRING_CSTR(_groupName), QSTRING_CSTR(_groupId), QSTRING_CSTR(_streamOwner));
+                          QSTRING_CSTR(_groupName), QSTRING_CSTR(_entertainmentConfigurationId), QSTRING_CSTR(_streamOwner));
                 }
             } else {
                 Error(_log,
                       "Group: \"%s\" [%s] is in use and owned by other user: \"%s\" - Entertainment API not usable",
-                      QSTRING_CSTR(_groupName), QSTRING_CSTR(_groupId), QSTRING_CSTR(_streamOwner));
+                      QSTRING_CSTR(_groupName), QSTRING_CSTR(_entertainmentConfigurationId), QSTRING_CSTR(_streamOwner));
             }
         } else {
             isInitOK = startStream();
@@ -900,14 +900,14 @@ bool LedDevicePhilipsHueV2::stopStream() {
 }
 
 bool LedDevicePhilipsHueV2::setStreamGroupState(bool state) {
-    QJsonDocument doc = setGroupState(_groupId, state);
+    QJsonDocument doc = setGroupState(_entertainmentConfigurationId, state);
 
     _groupStreamState = (getStreamGroupState() && isStreamOwner(_streamOwner));
     return _groupStreamState == state;
 }
 
 bool LedDevicePhilipsHueV2::getStreamGroupState() {
-    QJsonObject doc = getGroupState(_groupId)["data"].toArray().first().toObject();
+    QJsonObject doc = getGroupState(_entertainmentConfigurationId)["data"].toArray().first().toObject();
 
     if (!this->isInError()) {
         QString status = doc["status"].toString();
@@ -1100,7 +1100,7 @@ int LedDevicePhilipsHueV2::writeSingleLights(const std::vector<ColorRgb> &ledVal
 }
 
 void LedDevicePhilipsHueV2::writeStream(bool flush) {
-    QString entertainmentConfigId = getGroupMap().value(_groupId)["id"].toString();
+    QString entertainmentConfigId = getGroupMap().value(_entertainmentConfigurationId)["id"].toString();
     std::vector<uint8_t> payload;
 
     payload.push_back(static_cast<uint8_t>('H'));
@@ -1370,25 +1370,6 @@ void LedDevicePhilipsHueV2::identify(const QJsonObject &params) {
 
         initRestAPI(apiHost, apiPort, username);
 
-//        Allow v1s to identify devices. this is needed because, during wizard setup, the v2 controller is what is loaded
-// until the updated config is saved
-        if (!lightId.isEmpty()) {
-            QString resource = QString("/api/%1/%2/%3/%4").arg(username).arg("lights").arg(lightId).arg(API_STATE);
-            _restApi->setPath(resource);
-
-            QString stateCmd;
-            stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
-            stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
-            stateCmd = "{" + stateCmd + "}";
-
-            // Perform request
-            httpResponse response = _restApi->put(stateCmd);
-            if (response.error()) {
-                Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType),
-                        QSTRING_CSTR(response.getErrorReason()));
-            }
-            return;
-        }
         QString resource = QString("%1/%2").arg("device").arg(deviceId);
         _restApi->setPath(resource);
 

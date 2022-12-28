@@ -37,12 +37,7 @@
 			"format": "checkbox",
 			"title":"edt_dev_spec_useEntertainmentAPIV2_title",
 			"default" : false,
-			"propertyOrder" : 5,
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			}
+			"propertyOrder" : 5
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",
@@ -95,7 +90,12 @@
 			"maximum" : 100000,
 			"default" : 300,
 			"required" : true,
-			"propertyOrder" : 9
+			"propertyOrder" : 9,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": false
+				}
+			}
 		},
 		"candyGamma": {
 			"type": "boolean",
@@ -123,22 +123,37 @@
 			},
 			"options": {
 				"dependencies": {
-					"useEntertainmentAPI": false
+					"useEntertainmentAPI": false,
+					"useEntertainmentAPIV2": false
 				}
 			},
 			"propertyOrder" : 12
 		},
 		"groupId": {
-			"type": "string",
+			"type": "number",
+			"format" : "stepper",
+			"step": 1,
 			"title":"edt_dev_spec_groupId_title",
-			"default" : "",
+			"default" : 0,
 			"options": {
 				"dependencies": {
-					"useEntertainmentAPI": true
+					"useEntertainmentAPIV2": false
 				}
 			},
 			"propertyOrder" : 13
-		},			
+		},
+		"entertainmentConfigurationId": {
+			"type": "string",
+			"title":"edt_dev_spec_entertainmentConfigurationId_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 13,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": true
+				}
+			}
+		},
 		"brightnessFactor": {
 			"type": "number",
 			"format" : "stepper",						

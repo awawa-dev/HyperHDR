@@ -544,7 +544,7 @@ function isEmpty(obj)
 }
 
 function updateHueWizard(useEntertainmentAPI,useEntertainmentAPIV2,ledType, changeWizard) {
-	var entChecked=useEntertainmentAPI;
+	var entChecked= (useEntertainmentAPI||useEntertainmentAPIV2);
 	var ledWizardType = (entChecked) ? "philipshueentertainment" : ledType;
 	var useApiV2 = useEntertainmentAPIV2;
 	var data = {

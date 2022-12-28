@@ -546,7 +546,7 @@ private:
     std::vector<PhilipsHueChannel> _channels;
 
     unsigned int _lightsCount;
-    QString _groupId;
+    QString _entertainmentConfigurationId;
 
     int _blackLightsTimeout;
     double _blackLevel;

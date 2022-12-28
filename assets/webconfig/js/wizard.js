@@ -777,7 +777,7 @@ function startWizardPhilipsHue(e)
 	}
 	if (hueType == 'philipshueentertainment')
 	{
-		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><input type="hidden" id="groupId">');
+		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><input type="hidden" id="groupId"><input type="hidden" id="entertainmentConfigurationId">');
 	}
 	$('#usrcont').append('<span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
 	if (hueType == 'philipshueentertainment')
@@ -910,8 +910,8 @@ function checkHueBridge(cb, hueUser)
 
 function useGroupId(id)
 {
-	$('#groupId').val(id);
 	if(useV2Api){
+		$('#entertainmentConfigurationId').val(id);
 		channels={};
 		for (const channel of groupIDs[id].channels) {
 			groupLights.push(channel.channel_id+"")
@@ -936,6 +936,7 @@ function useGroupId(id)
 			groupLightsLocations[channel.channel_id+""] = [channel.position.x,channel.position.y,channel.position.z];
 		}
 	}else{
+		$('#groupId').val(id);
 		groupLights = groupIDs[id].lights;
 		groupLightsLocations = groupIDs[id].locations;
 	}
@@ -1001,10 +1002,10 @@ function identify_hue_device(hostAddress, username, id)
 	// 	use the device id to identify
 		channels[id].deviceIds.forEach(value => {
 			let params = { host: hostAddress, user: username, deviceId: value+"" };
-			requestLedDeviceIdentification("philipshue", params);
+			requestLedDeviceIdentification("philipshuev2", params);
 		})
 	}else{
-		let params = { host: hostAddress, user: username, lightId: id+"" };
+		let params = { host: hostAddress, user: username, lightId: id };
 		requestLedDeviceIdentification("philipshue", params);
 	}
 }
@@ -1150,8 +1151,8 @@ function beginWizardHue()
 		d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
 
 		d.clientkey = $('#clientkey').val();
-		// for apiv2, group ids are strings
-		d.groupId = $('#groupId').val();
+		d.groupId = parseInt($('#groupId').val());
+		d.entertainmentConfigurationId = $('#entertainmentConfigurationId').val();
 		d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
 		d.brightnessMin = parseFloat(eV("brightnessMin", 0));
 		d.brightnessMax = parseFloat(eV("brightnessMax", 1));
@@ -1284,7 +1285,7 @@ function get_hue_groups()
 						groupIDs={};
 						for (const group of r.data) {
 							groupIDs[group.id] = group;
-							$('.gidsb').append(createTableRowFlex([group.name + '<br> (' + group.id + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId("' + group.id + '")>' + $.i18n('wiz_hue_e_use_groupid', group.id) + '</button>']));
+							$('.gidsb').append(createTableRowFlex([group.name + '<br> (' + group.id + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId("' + group.id + '")>' + $.i18n(useV2Api?'wiz_hue_e_use_entertainmentconfigurationid':'wiz_hue_e_use_groupid', group.id) + '</button>']));
 							gC++;
 						}
 						if (gC == 0)
