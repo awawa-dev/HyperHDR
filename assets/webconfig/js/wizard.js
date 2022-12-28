@@ -891,7 +891,7 @@ function checkHueBridge(cb, hueUser)
 				}
 				else if (json.name && json.bridgeid && json.modelid)
 				{
-					useV2Api=parseInt(json.config.swversion)>1948086000&&useV2ApiConfig
+					useV2Api=parseInt(json.swversion)>1948086000&&useV2ApiConfig
 					conf_editor.getEditor("root.specificOptions.output").setValue(hueIPs[hueIPsinc].internalipaddress);
 					$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
 					cb(true);
