@@ -13,32 +13,6 @@
 #include "ProviderRestApi.h"
 #include "ProviderUdpSSL.h"
 
-//Streaming message header and payload definition
-const uint8_t STREAM_HEADER[] =
-        {
-                'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
-                0x02, 0x00, //version 2.0
-                0x07, //sequence number 7
-                0x00, 0x00, //reserved
-                0x00, //color mode RGB
-                0x00, //reserved
-        };
-
-const uint8_t STREAM_PAYLOAD_PER_LIGHT[] =
-        {
-
-         0x06, //light ID
-                //color: 16 bpc
-                0xff, 0xff,
-                0xff, 0xff,
-                0xff, 0xff,
-                /*
-            (message.R >> 8) & 0xff, message.R & 0xff,
-            (message.G >> 8) & 0xff, message.G & 0xff,
-            (message.B >> 8) & 0xff, message.B & 0xff
-            */
-        };
-
 /**
  * A XY color point in the color space of the hue system without brightness.
  */
@@ -129,14 +103,6 @@ bool operator!=(const CiColorV2 &p1, const CiColorV2 &p2);
 class PhilipsHueChannel {
 
 public:
-    // Hue system model ids (http://www.developers.meethue.com/documentation/supported-lights).
-    // Light strips, color iris, ...
-    static const std::set<QString> GAMUT_A_MODEL_IDS;
-    // Hue bulbs, spots, ...
-    static const std::set<QString> GAMUT_B_MODEL_IDS;
-    // Hue Lightstrip plus, go ...
-    static const std::set<QString> GAMUT_C_MODEL_IDS;
-
     ///
     /// Constructs the light.
     ///
@@ -346,10 +312,6 @@ private:
     QMap<QString, QJsonObject> _lightStateMap;
     QMap<QString, QJsonObject> _groupsMap;
 
-    bool initRestAPIV1(const QString &hostname, int port, const QString &token);
-
-    QJsonDocument getV1(const QString &route);
-
     httpResponse getRaw(const QString &route);
 
     void setApplicationId();
@@ -556,19 +518,6 @@ private:
 
     bool setLights();
 
-    /// creates new PhilipsHueChannel(s) based on user lightid with bridge feedback
-    ///
-    /// @param map Map of lightid/value pairs of bridge
-    ///
-    bool updateLights(const QMap<quint16, QJsonObject> &map);
-
-    ///
-    /// @brief Set the number of LEDs supported by the device.
-    ///
-    /// @rparam[in] Number of device's LEDs
-    //
-    void setLightsCount(unsigned int lightsCount);
-
     bool openStream();
 
     bool getStreamGroupState();
@@ -582,8 +531,6 @@ private:
     void writeStream(bool flush = false);
 
     int writeSingleLights(const std::vector<ColorRgb> &ledValues);
-
-    QByteArray prepareStreamData() const;
 
     ///
     bool _switchOffOnBlack;

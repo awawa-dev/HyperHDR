@@ -109,8 +109,7 @@ bool operator!=(const CiColorV2 &p1, const CiColorV2 &p2) {
     return !(p1 == p2);
 }
 
-CiColorV2
-CiColorV2::rgbToCiColor(double red, double green, double blue, const CiColorTriangleV2 &colorSpace, bool candyGamma) {
+CiColorV2 CiColorV2::rgbToCiColor(double red, double green, double blue, const CiColorTriangleV2 &colorSpace, bool candyGamma) {
     double cx;
     double cy;
     double bri;
@@ -267,12 +266,6 @@ bool LedDevicePhilipsHueBridgeV2::init(const QJsonObject &deviceConfig) {
             _hostname = addressparts[0];
             log("Hostname/IP", "%s", QSTRING_CSTR(_hostname));
 
-//			if (addressparts.size() > 1)
-//			{
-//				_apiPort = addressparts[1].toInt();
-//				log("Port", "%u", _apiPort);
-//			}
-
             _username = deviceConfig[CONFIG_USERNAME].toString();
 
             if (initRestAPI(_hostname, _apiPort, _username)) {
@@ -303,17 +296,6 @@ bool LedDevicePhilipsHueBridgeV2::initRestAPI(const QString &hostname, int port,
 
     _restApi->setBasePath(QString(API_BASE_PATH) + "/");
     _restApi->addHeader("hue-application-key", token);
-    return true;
-}
-
-bool LedDevicePhilipsHueBridgeV2::initRestAPIV1(const QString &hostname, int port, const QString &token) {
-    if (_restApiV1 == nullptr)
-        _restApiV1 = new ProviderRestApi(hostname, port);
-    else
-        _restApiV1->updateHost(hostname, port);
-
-    _restApiV1->setBasePath(QString(API_BASE_PATH).arg(token));
-
     return true;
 }
 
@@ -471,10 +453,6 @@ void LedDevicePhilipsHueBridgeV2::setGroupMap(const QJsonDocument &doc) {
             QString(QJsonDocument(jsonGroupsInfo).toJson(QJsonDocument::Compact)).toUtf8().constData());
 }
 
-QMap<QString, QJsonObject> LedDevicePhilipsHueBridgeV2::getLightMap() const {
-    return _lightsMap;
-}
-
 QMap<QString, QJsonObject> LedDevicePhilipsHueBridgeV2::getGroupMap() const {
     return _groupsMap;
 }
@@ -560,18 +538,6 @@ httpResponse LedDevicePhilipsHueBridgeV2::getRaw(const QString &route) {
     return response;
 }
 
-QJsonDocument LedDevicePhilipsHueBridgeV2::getV1(const QString &route) {
-    if (_restApiV1 == nullptr)
-        return httpResponse().getBody();
-
-    _restApiV1->setPath(route);
-
-    httpResponse response = _restApiV1->get();
-
-    checkApiError(response.getBody());
-    return response.getBody();
-}
-
 QJsonDocument LedDevicePhilipsHueBridgeV2::post(const QString &route, const QString &content, bool supressError) {
     _restApi->setPath(route);
 
@@ -583,14 +549,6 @@ QJsonDocument LedDevicePhilipsHueBridgeV2::post(const QString &route, const QStr
 bool LedDevicePhilipsHueBridgeV2::isStreamOwner(const QString &streamOwner) const {
     return (streamOwner != "" && streamOwner == _hueApplicationId);
 }
-
-const std::set<QString> PhilipsHueChannel::GAMUT_A_MODEL_IDS =
-        {"LLC001", "LLC005", "LLC006", "LLC007", "LLC010", "LLC011", "LLC012", "LLC013", "LLC014", "LST001"};
-const std::set<QString> PhilipsHueChannel::GAMUT_B_MODEL_IDS =
-        {"LCT001", "LCT002", "LCT003", "LCT007", "LLM001"};
-const std::set<QString> PhilipsHueChannel::GAMUT_C_MODEL_IDS =
-        {"LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015",
-         "LCT016", "LCT024", "LLC020", "LST002"};
 
 PhilipsHueChannel::PhilipsHueChannel(Logger *log, unsigned int id, QJsonObject values, QStringList lightIds,
                                      unsigned int ledidx)
@@ -731,11 +689,13 @@ bool LedDevicePhilipsHueV2::setLights() {
     }
 
     unsigned int configuredLightsCount = static_cast<unsigned int>(_channels.size());
+    _lightsCount = configuredLightsCount;
 
     log("Light-IDs configured", "%d", configuredLightsCount);
 
     if (configuredLightsCount == 0) {
         this->setInError("No light-IDs configured");
+        Error(_log, "No usable lights found!");
         isInitOK = false;
     } else {
         log("Light-IDs", "%s", QSTRING_CSTR(lightIDStr));
@@ -880,37 +840,6 @@ bool LedDevicePhilipsHueV2::openStream() {
     return isInitOK;
 }
 
-bool LedDevicePhilipsHueV2::updateLights(const QMap<quint16, QJsonObject> &map) {
-    bool isInitOK = true;
-
-    // search user lightid inside map and create light if found
-    _channels.clear();
-
-//    if (!_lightIds.empty()) {
-//        unsigned int ledidx = 0;
-//        _channels.reserve(_lightIds.size());
-//        for (const auto id: _lightIds) {
-//            if (map.contains(id)) {
-//                _channels.emplace_back(_log, id, map.value(id), ledidx, _onBlackTimeToPowerOff, _onBlackTimeToPowerOn);
-//            } else {
-//                Warning(_log, "Configured light-ID %d is not available at this bridge", id);
-//            }
-//            ledidx++;
-//        }
-//    }
-
-    unsigned int lightsCount = static_cast<unsigned int>(_channels.size());
-
-    setLightsCount(lightsCount);
-
-    if (lightsCount == 0) {
-        Error(_log, "No usable lights found!");
-        isInitOK = false;
-    }
-
-    return isInitOK;
-}
-
 
 bool LedDevicePhilipsHueV2::startStream() {
     bool rc = true;
@@ -997,13 +926,6 @@ bool LedDevicePhilipsHueV2::getStreamGroupState() {
     }
 
     return false;
-}
-
-QByteArray LedDevicePhilipsHueV2::prepareStreamData() const {
-    QByteArray msg;
-
-
-    return msg;
 }
 
 int LedDevicePhilipsHueV2::close() {
@@ -1206,12 +1128,10 @@ void LedDevicePhilipsHueV2::writeStream(bool flush) {
         CiColorV2 lightXY = light.getColor();
         ColorRgb lightRGB = light.getRGBColor();
         payload.push_back(id);
-        quint64 R;
-        quint64 G;
-        quint64 B;
-        R = lightXY.x * 0xffff;
-        G = lightXY.y * 0xffff;
-        B = lightXY.bri * 0xffff;
+        quint64 R = lightXY.x * 0xffff;
+        quint64 G = lightXY.y * 0xffff;
+        quint64 B = lightXY.bri * 0xffff;
+
         payload.push_back(static_cast<uint8_t>((R >> 8) & 0xff));
         payload.push_back(static_cast<uint8_t>(R & 0xff));
         payload.push_back(static_cast<uint8_t>((G >> 8) & 0xff));
@@ -1292,10 +1212,6 @@ void LedDevicePhilipsHueV2::setState(PhilipsHueChannel &light, bool on, const Ci
             }
         }
     }
-}
-
-void LedDevicePhilipsHueV2::setLightsCount(unsigned int lightsCount) {
-    _lightsCount = lightsCount;
 }
 
 bool LedDevicePhilipsHueV2::powerOn() {
@@ -1492,10 +1408,6 @@ void LedDevicePhilipsHueV2::identify(const QJsonObject &params) {
 
 QMap<QString, QJsonObject> LedDevicePhilipsHueBridgeV2::getLightStateMap() {
     return _lightStateMap;
-}
-
-QMap<QString, QJsonObject> LedDevicePhilipsHueBridgeV2::getLightsMap() {
-    return _lightsMap;
 }
 
 QStringList LedDevicePhilipsHueBridgeV2::getLightIdsInChannel(QJsonObject channel) {
