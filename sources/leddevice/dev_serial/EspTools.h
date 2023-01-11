@@ -94,6 +94,8 @@ class EspTools
 					start = 0;
 					break;
 				}
+				else
+					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result)); 
 			}			
 		}
 
