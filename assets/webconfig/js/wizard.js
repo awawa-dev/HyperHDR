@@ -999,11 +999,15 @@ async function discover_hue_bridges()
 function identify_hue_device(hostAddress, username, id)
 {
 	if(useV2Api){
-	// 	use the device id to identify
-		channels[id].deviceIds.forEach(value => {
-			let params = { host: hostAddress, user: username, deviceId: value+"" };
-			requestLedDeviceIdentification("philipshuev2", params);
-		})
+	// 	flash the channel
+		let params = {
+			host: hostAddress,
+			clientkey: $('#clientkey').val()||conf_editor.getEditor("root.specificOptions.clientkey")?.getValue(),
+			user: username,
+			entertainmentConfigurationId: $('#entertainmentConfigurationId').val(),
+			channelId: id
+		};
+		requestLedDeviceIdentification("philipshuev2", params);
 	}else{
 		let params = { host: hostAddress, user: username, lightId: id };
 		requestLedDeviceIdentification("philipshue", params);
@@ -1433,7 +1437,7 @@ function get_hue_lights()
 					}
 					$('.lidsb').append(createTableRowFlex([lightid + ' ( '+(useV2Api?`Channel ${lightid}`: r[lightid].name )+ ' )', '<select id="hue_' + lightid + '" class="hue_sel_watch form-select">'
 					+ options
-					+ '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
+					+ '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid) + '</button>']));
 				}
 
 				if (hueType != 'philipshueentertainment')

@@ -1100,7 +1100,7 @@ int LedDevicePhilipsHueV2::writeSingleLights(const std::vector<ColorRgb> &ledVal
 }
 
 void LedDevicePhilipsHueV2::writeStream(bool flush) {
-    QString entertainmentConfigId = getGroupMap().value(_entertainmentConfigurationId)["id"].toString();
+    QString entertainmentConfigId = _entertainmentConfigurationId;
     std::vector<uint8_t> payload;
 
     payload.push_back(static_cast<uint8_t>('H'));
@@ -1358,33 +1358,44 @@ void LedDevicePhilipsHueV2::identify(const QJsonObject &params) {
     // Identify Phillips-Bridge device
     QString host = params["host"].toString("");
     if (!host.isEmpty()) {
-        QString username = params["user"].toString("");
-        QString lightId = params["lightId"].toString("");
-        QString deviceId = params["deviceId"].toString("");
+        unsigned int channelId = params["channelId"].toInt(0);
+        QString username=params["user"].toString("");
+        _entertainmentConfigurationId = params["entertainmentConfigurationId"].toString("");
+        _useHueEntertainmentAPI=true;
+        QUrl tempUrl("http://" + host);
+        QString apiHost = tempUrl.host();
+        int apiPort = tempUrl.port();
+        _devConfig["host"] = apiHost;
+        _devConfig["sslport"] = API_SSL_SERVER_PORT;
+        _devConfig["servername"] = API_SSL_SERVER_NAME;
+        _devConfig["refreshTime"] = static_cast<int>(STREAM_REFRESH_TIME.count());
+        _devConfig["psk"] = params[CONFIG_CLIENTKEY].toString();
+        _devConfig["psk_identity"] = username;
+        _devConfig["seed_custom"] = API_SSL_SEED_CUSTOM;
+        _devConfig["retry_left"] = _maxRetry;
+        _devConfig["hs_attempts"] = STREAM_SSL_HANDSHAKE_ATTEMPTS;
+        _devConfig["hs_timeout_min"] = static_cast<int>(_handshake_timeout_min);
+        _devConfig["hs_timeout_max"] = static_cast<int>(_handshake_timeout_max);
+        initRestAPI(apiHost, API_DEFAULT_PORT, username);
+        setApplicationId();
+        ProviderUdpSSL::init(_devConfig);
 
-        // Resolve hostname and port (or use default API port)
-        QStringList addressparts = QStringUtils::SPLITTER(host, ':');
-        QString apiHost = addressparts[0];
-        int apiPort;
-        apiPort = API_DEFAULT_PORT;
-
-        initRestAPI(apiHost, apiPort, username);
-
-        QString resource = QString("%1/%2").arg("device").arg(deviceId);
-        _restApi->setPath(resource);
-
-        QString stateCmd;
-//        stateCmd += QString(R"("%1":{"%1":true},)").arg(API_STATE_ON);
-        stateCmd += QString(R"("%1":{"%2":"%3"})").arg("identify", "action", "identify");
-        stateCmd = "{" + stateCmd + "}";
-
-        // Perform request
-        httpResponse response = _restApi->put(stateCmd);
-        if (response.error()) {
-            Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType),
-                    QSTRING_CSTR(response.getErrorReason()));
-        }
+        _channels.clear();
+        _channels.emplace_back(_log, channelId, QJsonObject(), QStringList(), channelId);
+        _isInitLeds= true;
+        openStream();
+        colorChannel(ColorRgb::RED, channelId);
+        colorChannel(ColorRgb::GREEN, channelId);
+        colorChannel(ColorRgb::BLUE, channelId);
+        stopStream();
     }
+}
+
+void LedDevicePhilipsHueV2::colorChannel(const ColorRgb &colorRgb, unsigned int i) {
+    std::vector<ColorRgb> ledValues;
+    ledValues.emplace_back(colorRgb);
+    write(ledValues);
+    QThread::sleep(1);
 }
 
 QMap<QString, QJsonObject> LedDevicePhilipsHueBridgeV2::getLightStateMap() {

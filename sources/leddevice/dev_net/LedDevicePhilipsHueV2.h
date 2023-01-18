@@ -237,6 +237,7 @@ public:
 
     QJsonArray getGroupChannels(QString groupId = 0) const;
 
+    void setApplicationId();
 protected:
 
     ///
@@ -313,8 +314,6 @@ private:
     QMap<QString, QJsonObject> _groupsMap;
 
     httpResponse getRaw(const QString &route);
-
-    void setApplicationId();
 };
 
 /**
@@ -565,4 +564,6 @@ private:
     int _lastId;
     bool _groupStreamState;
     QJsonObject _configBackup;
+
+    void colorChannel(const ColorRgb &colorRgb, unsigned int i);
 };
