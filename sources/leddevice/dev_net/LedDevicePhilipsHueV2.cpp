@@ -1126,7 +1126,6 @@ void LedDevicePhilipsHueV2::writeStream(bool flush) {
         auto id = static_cast<uint8_t>(light.getId() & 0x00ff);
 
         CiColorV2 lightXY = light.getColor();
-        ColorRgb lightRGB = light.getRGBColor();
         payload.push_back(id);
         quint64 R = lightXY.x * 0xffff;
         quint64 G = lightXY.y * 0xffff;
@@ -1141,7 +1140,7 @@ void LedDevicePhilipsHueV2::writeStream(bool flush) {
 
 
     }
-    writeBytes(payload.size(), reinterpret_cast<unsigned char *>(payload.data()), flush);
+    writeBytes(static_cast<unsigned int>(payload.size()), reinterpret_cast<unsigned char *>(payload.data()), flush);
 }
 
 void LedDevicePhilipsHueV2::setOnOffState(PhilipsHueChannel &light, bool on, bool force) {
@@ -1364,7 +1363,6 @@ void LedDevicePhilipsHueV2::identify(const QJsonObject &params) {
         _useHueEntertainmentAPI=true;
         QUrl tempUrl("http://" + host);
         QString apiHost = tempUrl.host();
-        int apiPort = tempUrl.port();
         _devConfig["host"] = apiHost;
         _devConfig["sslport"] = API_SSL_SERVER_PORT;
         _devConfig["servername"] = API_SSL_SERVER_NAME;

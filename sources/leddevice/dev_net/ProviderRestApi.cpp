@@ -43,12 +43,16 @@ const int TIMEOUT = (500);
 
 std::unique_ptr<networkHelper> ProviderRestApi::_networkWorker(nullptr);
 
-ProviderRestApi::ProviderRestApi(const QString &host, int port, const QString &basePath)
-        : _log(Logger::getInstance("LEDDEVICE")), _scheme(port == 443 ? "https" : "http"), _hostname(host),
-          _port(port) {
-    if (_networkWorker == nullptr) {
-        _networkWorker = std::unique_ptr<networkHelper>(new networkHelper());
-    }
+ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath)
+	:_log(Logger::getInstance("LEDDEVICE"))
+	, _scheme((port == 443) ? "https" : "http")
+	, _hostname(host)
+	, _port(port)
+{
+	if (_networkWorker == nullptr)
+	{
+		_networkWorker = std::unique_ptr<networkHelper>(new networkHelper());		
+	}
 
 	qRegisterMetaType<QNetworkRequest>();
 	qRegisterMetaType<QByteArray>();
@@ -96,9 +100,12 @@ void ProviderRestApi::appendPath(QString& path, const QString& appendPath) const
 {	
 	path = QUrl(path).resolved(appendPath).toString();	
 }
-void ProviderRestApi::addHeader(const QString &key, const QString &value) {
-    _headers.insert(key, value);
+
+void ProviderRestApi::addHeader(const QString &key, const QString &value)
+{
+	_headers.insert(key, value);
 }
+
 void ProviderRestApi::setFragment(const QString& fragment)
 {
 	_fragment = fragment;
@@ -174,12 +181,13 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	QNetworkRequest request(url);
 	QNetworkReply* networkReply = nullptr;
 
-    request.setOriginatingObject(this);
-    QMapIterator<QString, QString> i(_headers);
-    while (i.hasNext()) {
-        i.next();
-        request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
-    }
+	request.setOriginatingObject(this);
+	QMapIterator<QString, QString> i(_headers);
+	while (i.hasNext())
+	{
+		i.next();
+		request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
+	}
 
 	QMetaObject::invokeMethod(_networkWorker.get(), "executeOperation", Qt::BlockingQueuedConnection,
 		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkAccessManager::Operation, op), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
@@ -226,18 +234,21 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply, bool time
 {
 	httpResponse response;
 
-    int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    response.setHttpStatusCode(httpStatusCode);
-    QMap<QString, QString> headers;
-//    We sometimes need headers in the response to get the hue application id for instance
-    for (const auto &item: reply->rawHeaderPairs()) {
-        headers[item.first] = item.second;
-    };
-    response.setHeaders(headers);
-    if (timeout)
-        response.setNetworkReplyError(QNetworkReply::TimeoutError);
-    else
-        response.setNetworkReplyError(reply->error());
+	int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+	response.setHttpStatusCode(httpStatusCode);
+	
+	QMap<QString, QString> headers;
+	// We sometimes need headers in the response to get the hue application id for instance
+	for (const auto &item: reply->rawHeaderPairs())
+	{
+		headers[item.first] = item.second;
+	};
+	response.setHeaders(headers);
+	
+	if (timeout)
+		response.setNetworkReplyError(QNetworkReply::TimeoutError);
+	else
+		response.setNetworkReplyError(reply->error());
 
 	if (reply->error() == QNetworkReply::NoError)
 	{
@@ -338,17 +349,17 @@ networkHelper::~networkHelper()
 	_networkManager = nullptr;
 }
 
-QNetworkReply *networkHelper::executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body) {
-    ProviderRestApi *parent = static_cast<ProviderRestApi *>(request.originatingObject());
-    parent->aquireResultLock();
+QNetworkReply* networkHelper::executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body)
+{
+	ProviderRestApi* parent = static_cast<ProviderRestApi*>(request.originatingObject());
+	parent->aquireResultLock();
 
-    QSslConfiguration conf = request.sslConfiguration();
-    conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-    request.setSslConfiguration(conf);
+	QSslConfiguration conf = request.sslConfiguration();
+	conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+	request.setSslConfiguration(conf);
 
-    auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body) :
-               (op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body)
-                                                            : _networkManager->get(request);
+	auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body):
+				(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body) : _networkManager->get(request);
 
 	connect(ret, &QNetworkReply::finished, this, [=](){parent->releaseResultLock();});
 	return ret;
@@ -379,16 +390,9 @@ QString httpResponse::getErrorReason() const
 	return _errorReason;
 }
 
-QMap<QString, QString> httpResponse::getHeaders() const {
-    return _headers;
-}
-
-void httpResponse::setHeaders(const QMap<QString, QString> &h) {
-    _headers = h;
-}
-
-void httpResponse::setErrorReason(const QString &errorReason) {
-    _errorReason = errorReason;
+void httpResponse::setErrorReason(const QString& errorReason)
+{
+	_errorReason = errorReason;
 }
 
 int httpResponse::getHttpStatusCode() const
@@ -410,4 +414,14 @@ void httpResponse::setNetworkReplyError(const QNetworkReply::NetworkError networ
 {
 	_hasError = (networkReplyError != QNetworkReply::NetworkError::NoError);
 	_networkReplyError = networkReplyError;
+}
+
+QMap<QString, QString> httpResponse::getHeaders() const
+{
+	return _headers;
+}
+
+void httpResponse::setHeaders(const QMap<QString, QString> &h)
+{
+	_headers = h;
 }
