@@ -131,12 +131,13 @@
 		},
 		"groupId": {
 			"type": "number",
-			"format" : "stepper",
-			"step": 1,
+			"format" : "stepper",			
+			"step"   : 1,			
 			"title":"edt_dev_spec_groupId_title",
 			"default" : 0,
 			"options": {
 				"dependencies": {
+					"useEntertainmentAPI": true,
 					"useEntertainmentAPIV2": false
 				}
 			},
