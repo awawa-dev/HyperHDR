@@ -36,8 +36,6 @@ class EspTools
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 		_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
-		_rs232Port.flush();
-		_rs232Port.clear();
 	}
 
 	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log)
