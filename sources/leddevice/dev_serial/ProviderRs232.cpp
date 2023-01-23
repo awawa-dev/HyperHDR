@@ -104,6 +104,7 @@ void ProviderRs232::waitForExitStats(bool force)
 		if (!_isDeviceReady && force)
 		{
 			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
+			disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
 			_rs232Port.close();
 		}
 	}
@@ -126,10 +127,12 @@ int ProviderRs232::close()
 
 		if (_espHandshake)
 		{
-			EspTools::goingSleep(_rs232Port);
+			QTimer::singleShot(600, this, [this](){ waitForExitStats(true); });
+			connect(&_rs232Port, &QSerialPort::readyRead, this, [this]() { waitForExitStats(false); });
 
-			QTimer::singleShot(6000, this, [this](){waitForExitStats(true); });
-			connect(&_rs232Port, &QSerialPort::readyRead, this, [this]() {waitForExitStats(false); });
+			
+			QTimer::singleShot(200, this, [this]() { if (_rs232Port.isOpen()) EspTools::goingSleep(_rs232Port); });
+			EspTools::goingSleep(_rs232Port);
 		}
 		else
 		{
