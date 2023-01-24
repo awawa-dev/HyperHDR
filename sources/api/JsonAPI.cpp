@@ -1667,9 +1667,19 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject& message, const QString& 
 		}
 		else if (subc == "identify")
 		{
-			ledDevice = LedDeviceFactory::construct(config);
 			const QJsonObject& params = message["params"].toObject();
-			ledDevice->identify(params);
+
+			if (devType == "philipshuev2")
+			{
+				QMetaObject::invokeMethod(_hyperhdr, [=]() {
+					_hyperhdr->identifyLed(params);
+					});
+			}
+			else
+			{
+				auto ledDevice = LedDeviceFactory::construct(config);
+				ledDevice->identify(params);
+			}
 
 			sendSuccessReply(full_command, tan);
 		}
@@ -1897,7 +1907,7 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 
 		if (service == "hue")
 		{
-            QUrl tempUrl("http://"+ip);
+			QUrl tempUrl("http://"+ip);
 			if ((path.indexOf("/clip/v2") != 0 && path.indexOf("/api") != 0) || ip.indexOf("/") >= 0)
 			{
 				sendErrorReply("Invalid path", full_command, tan);
@@ -1922,13 +1932,13 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 				sendErrorReply("The Philips Hue wizard supports only valid IP addresses in the LOCAL network.\nIt may be preferable to use the IP4 address instead of the host name if you are having problems with DNS resolution.", full_command, tan);
 				return;
 			}
-            httpResponse result;
-            const QJsonObject &headerObject = message["header"].toObject();
-            if(!headerObject.isEmpty()){
-                for (const auto &item: headerObject.keys()){
-                    provider.addHeader(item,headerObject[item].toString());
-                }
-            }
+			httpResponse result;
+			const QJsonObject &headerObject = message["header"].toObject();
+			if(!headerObject.isEmpty()){
+				for (const auto &item: headerObject.keys()){
+					provider.addHeader(item,headerObject[item].toString());
+				}
+			}
 
 			if (subcommand == "put")
 				result = provider.put(url, data);

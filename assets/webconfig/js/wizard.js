@@ -998,8 +998,10 @@ async function discover_hue_bridges()
 
 function identify_hue_device(hostAddress, username, id)
 {
-	if(useV2Api){
-	// 	flash the channel
+	if(useV2Api)
+	{
+		$('#btn_wiz_save').click();
+		// 	flash the channel
 		let params = {
 			host: hostAddress,
 			clientkey: $('#clientkey').val()||conf_editor.getEditor("root.specificOptions.clientkey")?.getValue(),
@@ -1008,7 +1010,9 @@ function identify_hue_device(hostAddress, username, id)
 			channelId: id
 		};
 		requestLedDeviceIdentification("philipshuev2", params);
-	}else{
+	}
+	else
+	{
 		let params = { host: hostAddress, user: username, lightId: id };
 		requestLedDeviceIdentification("philipshue", params);
 	}

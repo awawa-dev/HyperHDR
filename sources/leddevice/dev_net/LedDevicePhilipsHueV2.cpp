@@ -1351,42 +1351,18 @@ QJsonObject LedDevicePhilipsHueV2::getProperties(const QJsonObject &params) {
 }
 
 void LedDevicePhilipsHueV2::identify(const QJsonObject &params) {
-    Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-    QJsonObject properties;
-
-    // Identify Phillips-Bridge device
-    QString host = params["host"].toString("");
-    if (!host.isEmpty()) {
-        unsigned int channelId = params["channelId"].toInt(0);
-        QString username=params["user"].toString("");
-        _entertainmentConfigurationId = params["entertainmentConfigurationId"].toString("");
-        _useHueEntertainmentAPI=true;
-        QUrl tempUrl("http://" + host);
-        QString apiHost = tempUrl.host();
-        _devConfig["host"] = apiHost;
-        _devConfig["sslport"] = API_SSL_SERVER_PORT;
-        _devConfig["servername"] = API_SSL_SERVER_NAME;
-        _devConfig["refreshTime"] = static_cast<int>(STREAM_REFRESH_TIME.count());
-        _devConfig["psk"] = params[CONFIG_CLIENTKEY].toString();
-        _devConfig["psk_identity"] = username;
-        _devConfig["seed_custom"] = API_SSL_SEED_CUSTOM;
-        _devConfig["retry_left"] = _maxRetry;
-        _devConfig["hs_attempts"] = STREAM_SSL_HANDSHAKE_ATTEMPTS;
-        _devConfig["hs_timeout_min"] = static_cast<int>(_handshake_timeout_min);
-        _devConfig["hs_timeout_max"] = static_cast<int>(_handshake_timeout_max);
-        initRestAPI(apiHost, API_DEFAULT_PORT, username);
-        setApplicationId();
-        ProviderUdpSSL::init(_devConfig);
-
-        _channels.clear();
-        _channels.emplace_back(_log, channelId, QJsonObject(), QStringList(), channelId);
-        _isInitLeds= true;
-        openStream();
-        colorChannel(ColorRgb::RED, channelId);
-        colorChannel(ColorRgb::GREEN, channelId);
-        colorChannel(ColorRgb::BLUE, channelId);
-        stopStream();
-    }
+	Debug(_log, "Device: [%s], params: [%s]", (_isOn) ? "ON" : "OFF", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	if (_isOn)
+	{
+		auto channelsBackup = _channels;
+		unsigned int channelId = params["channelId"].toInt(0);
+		_channels.clear();
+		_channels.emplace_back(_log, channelId, QJsonObject(), QStringList(), channelId);
+		colorChannel(ColorRgb::RED, channelId);
+		colorChannel(ColorRgb::GREEN, channelId);
+		colorChannel(ColorRgb::BLUE, channelId);
+		_channels = channelsBackup;
+	}
 }
 
 void LedDevicePhilipsHueV2::colorChannel(const ColorRgb &colorRgb, unsigned int i) {

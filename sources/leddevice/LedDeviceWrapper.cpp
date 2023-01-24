@@ -187,3 +187,10 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 
 	return result;
 }
+
+void LedDeviceWrapper::identifyLed(const QJsonObject& params)
+{	
+	QMetaObject::invokeMethod(_ledDevice, [=]() {
+		_ledDevice->identify(params);
+	});
+}
