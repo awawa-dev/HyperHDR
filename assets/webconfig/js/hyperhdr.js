@@ -447,10 +447,10 @@ function requestPlayEffect(effectName, duration)
 {
 	sendToHyperhdr("effect", "", '"effect":{"name":"' + effectName + '"},"priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
-function requestSetColor(r, g, b, duration,indexOfLed=-1)
+
+function requestSetColor(r, g, b, duration)
 {
-	let msg=`"color":[${r},${g},${b}],"indexofled":${indexOfLed},"priority":${window.webPrio},"duration":${validateDuration(duration)},"origin":"${window.webOrigin}"`;
-	sendToHyperhdr("color", "", msg);
+	sendToHyperhdr("color", "", '"color":[' + r + ',' + g + ',' + b + '], "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
 function requestSetImage(data, duration, name)

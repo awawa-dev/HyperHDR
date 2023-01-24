@@ -81,7 +81,7 @@ signals:
 	/// @param[in] origin      The setter
 	/// @param     clearEffect Should be true when NOT called from an effect
 	///
-	void setGlobalColor(int priority, const std::vector<ColorRgb>& ledColor,int indexOfLed = -1, int timeout_ms = -1, const QString& origin = "External", bool clearEffects = true);
+	void setGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, const QString& origin = "External", bool clearEffects = true);
 
 	///////////////////////////////////////
 	///////////////// FROM ////////////////

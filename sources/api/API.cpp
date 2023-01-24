@@ -96,7 +96,7 @@ void API::init()
 	}
 }
 
-void API::setColor(int priority, const std::vector<uint8_t>& ledColors,int indexOfLed, int timeout_ms, const QString& origin, hyperhdr::Components callerComp)
+void API::setColor(int priority, const std::vector<uint8_t>& ledColors, int timeout_ms, const QString& origin, hyperhdr::Components callerComp)
 {
 	std::vector<ColorRgb> fledColors;
 	if (ledColors.size() % 3 == 0)
@@ -105,7 +105,7 @@ void API::setColor(int priority, const std::vector<uint8_t>& ledColors,int index
 		{
 			fledColors.emplace_back(ColorRgb{ ledColors[i], ledColors[i + 1], ledColors[i + 2] });
 		}
-		QMetaObject::invokeMethod(_hyperhdr, "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors),Q_ARG(int,indexOfLed), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
+		QMetaObject::invokeMethod(_hyperhdr, "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
 	}
 }
 

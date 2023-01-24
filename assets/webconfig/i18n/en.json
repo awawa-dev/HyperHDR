@@ -1186,7 +1186,6 @@
   "led_editor_context_move": "Move",
   "led_editor_context_properties": "Properties",
   "led_editor_context_delete": "Delete",
-  "led_editor_context_identify": "Identify",
   "led_editor_context_enable": "Enable",
   "led_editor_context_disable": "Disable",
   "led_editor_context_moving": "Left click the mouse to accept the position",

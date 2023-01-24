@@ -137,7 +137,7 @@ void FlatBufferClient::handleColorCommand(const hyperhdrnet::Color* colorReq)
 	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
 
 	// set output
-	emit setGlobalInputColor(_priority, color,-1, colorReq->duration());
+	emit setGlobalInputColor(_priority, color, colorReq->duration());
 
 	// send reply
 	sendSuccessReply();

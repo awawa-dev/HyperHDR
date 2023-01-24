@@ -1169,12 +1169,6 @@ $(document).ready(function()
 
 					selectedObject = null;
 				}
-				if (this.id == "CMD_IDENTIFY")
-				{
-					identify(parsedIndex);
-
-					selectedObject = null;
-				}
 				else if (this.id == "CMD_DELETE")
 				{
 					finalLedArray[parsedIndex] = undefined;
@@ -1368,21 +1362,3 @@ $(document).ready(function()
 	$("#leddevices").trigger("change");
 	
 });
-
-function identify(index) {
-	// 					// clear current effect, should be called also on exit
-	requestPriorityClear();
-// set color
-	setTimeout(function(){
-		// rgb and duration: 0 = inf.
-		requestSetColor(255, 0, 0,1,index);
-		setTimeout(function () {
-			requestSetColor(0, 255, 0,1,index);
-		},1000);
-		setTimeout(function () {
-			requestSetColor(0, 0, 255,1,index);
-			requestSetComponentState('LEDDEVICE',true);
-		},2000);
-		// turn on led device if disabled
-	}, 100);
-}
