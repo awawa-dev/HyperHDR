@@ -1355,13 +1355,16 @@ void LedDevicePhilipsHueV2::identify(const QJsonObject &params) {
 	if (_isOn)
 	{
 		auto channelsBackup = _channels;
+		auto lightsCountBackup = _lightsCount;
 		unsigned int channelId = params["channelId"].toInt(0);
+        _lightsCount=1;
 		_channels.clear();
 		_channels.emplace_back(_log, channelId, QJsonObject(), QStringList(), channelId);
 		colorChannel(ColorRgb::RED, channelId);
 		colorChannel(ColorRgb::GREEN, channelId);
 		colorChannel(ColorRgb::BLUE, channelId);
 		_channels = channelsBackup;
+        _lightsCount=lightsCountBackup;
 	}
 }
 
