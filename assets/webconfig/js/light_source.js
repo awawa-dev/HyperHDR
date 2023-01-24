@@ -1169,6 +1169,12 @@ $(document).ready(function()
 
 					selectedObject = null;
 				}
+				else if (this.id == "CMD_IDENTIFY")
+				{
+					let params = { blinkIndex: parsedIndex };
+					requestLedDeviceIdentification("blink", params);
+					selectedObject = null;
+				}
 				else if (this.id == "CMD_DELETE")
 				{
 					finalLedArray[parsedIndex] = undefined;

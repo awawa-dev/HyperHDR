@@ -1669,7 +1669,7 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject& message, const QString& 
 		{
 			const QJsonObject& params = message["params"].toObject();
 
-			if (devType == "philipshuev2")
+			if (devType == "philipshuev2" || devType == "blink")
 			{
 				QMetaObject::invokeMethod(_hyperhdr, [=]() {
 					_hyperhdr->identifyLed(params);
