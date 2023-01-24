@@ -296,7 +296,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t* data)
 
 QString ProviderRs232::discoverFirst()
 {
-	for (int round = 0; round < 2; round++)
+	for (int round = 0; round < 4; round++)
 		for (auto const& port : QSerialPortInfo::availablePorts())
 		{
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -306,9 +306,16 @@ QString ProviderRs232::discoverFirst()
 #endif
 			{
 				QString infoMessage = QString("%1 (%2 => %3)").arg(port.description()).arg(port.systemLocation()).arg(port.portName());
-
-				if (round != 0 ||
-					(port.description().contains("Bluetooth", Qt::CaseInsensitive) == false &&
+				quint16 vendor = port.vendorIdentifier();
+				quint16 prodId = port.productIdentifier();
+				bool knownESPA = (vendor == 0x303a && (prodId == 0x80c2));
+				bool knownESPB = (vendor == 0x10c4 && (prodId == 0xea60)) ||
+								 (vendor == 0x1A86 && (prodId == 0x7523 || prodId == 0x55d4));
+				if (round == 3 ||
+					(_espHandshake && round == 0 && knownESPA) ||
+					(_espHandshake && round == 1 && knownESPB) ||
+					(!_espHandshake && round == 2 &&
+						port.description().contains("Bluetooth", Qt::CaseInsensitive) == false &&
 						port.systemLocation().contains("ttyAMA0", Qt::CaseInsensitive) == false))
 				{
 					Info(_log, "Serial port auto-discovery. Found serial port device: %s", QSTRING_CSTR(infoMessage));
