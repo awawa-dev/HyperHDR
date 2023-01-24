@@ -551,6 +551,8 @@ void LedDevice::identifyLed(const QJsonObject& params)
 	}
 	else
 	{
+		const int blinkOrg = _blinkIndex;
+
 		for (auto iter = _lastLedValues.begin(); iter != _lastLedValues.end(); ++iter)
 		{
 			*iter = ColorRgb::BLACK;
@@ -558,13 +560,7 @@ void LedDevice::identifyLed(const QJsonObject& params)
 
 		for (int i = 0; i < 6; i++)
 		{
-			const int blinkOrg = _blinkIndex;
-
-			ColorRgb color = ColorRgb::BLUE;
-			if (i % 3 == 0)
-				color = ColorRgb::RED;
-			else if (i % 3 == 1)
-				color = ColorRgb::GREEN;
+			ColorRgb color = (i % 3 == 0) ? ColorRgb::RED : (i % 3 == 1) ? ColorRgb::GREEN : ColorRgb::BLUE;
 
 			QTimer::singleShot(800 * i, this, [this, color, blinkOrg]() {
 				if (_blinkIndex == blinkOrg && _blinkIndex >= 0 && _blinkIndex < _lastLedValues.size())
@@ -574,7 +570,11 @@ void LedDevice::identifyLed(const QJsonObject& params)
 				}
 			});
 		}
-		QTimer::singleShot(4800, this, [this]() { _blinkIndex = -1; });
+
+		// disable blinking after the sequence
+		QTimer::singleShot(4800, this, [this, blinkOrg]() {
+			if (_blinkIndex == blinkOrg) _blinkIndex = -1;
+		});
 	}
 }
 

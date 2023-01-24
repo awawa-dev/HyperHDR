@@ -1000,7 +1000,6 @@ function identify_hue_device(hostAddress, username, id)
 {
 	if(useV2Api)
 	{
-		$('#btn_wiz_save').click();
 		// 	flash the channel
 		let params = {
 			host: hostAddress,
@@ -1033,6 +1032,92 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
 		// Process properties returned
 		console.log(r);
 	}
+}
+
+function SaveHueConfig()
+{
+	var hueLedConfig = [];
+	var finalLightIds = [];
+
+	//create hue led config
+	for (var key in lightIDs)
+	{
+		if (hueType == 'philipshueentertainment')
+		{
+			if (groupLights.indexOf(key) == -1) continue;
+		}
+		if ($('#hue_' + key).val() != "disabled")
+		{
+			finalLightIds.push(key);
+			var idx_content = assignLightPos(key, $('#hue_' + key).val(), lightIDs[key].name);
+			hueLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
+		}
+	}
+
+	var sc = window.serverConfig;
+	sc.leds = hueLedConfig;
+
+	//Adjust gamma, brightness and compensation
+	var c = sc.color.channelAdjustment[0];
+	c.gammaBlue = 1.0;
+	c.gammaRed = 1.0;
+	c.gammaGreen = 1.0;
+	c.brightness = 100;
+	c.brightnessCompensation = 0;
+
+	//device config
+
+	//Start with a clean configuration
+	var d = {};
+
+	d.output = $('#ip').val();
+	d.username = $('#user').val();
+	d.type = 'philipshue';
+	d.colorOrder = 'rgb';
+	d.lightIds = finalLightIds;
+	d.transitiontime = parseInt(eV("transitiontime", 1));
+	d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
+	d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
+
+	d.blackLevel = parseFloat(eV("blackLevel", 0.009));
+	d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
+	d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));
+	d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
+
+	d.clientkey = $('#clientkey').val();
+	d.groupId = parseInt($('#groupId').val());
+	d.entertainmentConfigurationId = $('#entertainmentConfigurationId').val();
+	d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
+	d.brightnessMin = parseFloat(eV("brightnessMin", 0));
+	d.brightnessMax = parseFloat(eV("brightnessMax", 1));
+	d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
+	d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
+	d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
+	d.verbose = (eV("verbose") == true);
+
+	if (hueType == 'philipshue')
+	{
+		d.useEntertainmentAPI = false;
+		d.hardwareLedCount = finalLightIds.length;
+		d.refreshTime = 0;
+		d.verbose = false;
+		//smoothing off
+		sc.smoothing.enable = false;
+	}
+
+	if (hueType == 'philipshueentertainment')
+	{
+		d.useEntertainmentAPI = true;
+		// using 'useV2Api' instead of 'useV2ApiConfig' because it includes the bridge check for api v2
+		d.useEntertainmentAPIV2 = useV2Api;
+		d.hardwareLedCount = groupLights.length;
+		d.refreshTime = 20;
+		//smoothing on
+		sc.smoothing.enable = true;
+	}
+
+	window.serverConfig.device = d;
+	requestWriteConfig(sc, true);
 }
 
 //return editor Value
@@ -1110,89 +1195,7 @@ function beginWizardHue()
 
 	$('#btn_wiz_save').off().on("click", function ()
 	{
-		var hueLedConfig = [];
-		var finalLightIds = [];
-
-		//create hue led config
-		for (var key in lightIDs)
-		{
-			if (hueType == 'philipshueentertainment')
-			{
-				if (groupLights.indexOf(key) == -1) continue;
-			}
-			if ($('#hue_' + key).val() != "disabled")
-			{
-				finalLightIds.push(key);
-				var idx_content = assignLightPos(key, $('#hue_' + key).val(), lightIDs[key].name);
-				hueLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
-			}
-		}
-
-		var sc = window.serverConfig;
-		sc.leds = hueLedConfig;
-
-		//Adjust gamma, brightness and compensation
-		var c = sc.color.channelAdjustment[0];
-		c.gammaBlue = 1.0;
-		c.gammaRed = 1.0;
-		c.gammaGreen = 1.0;
-		c.brightness = 100;
-		c.brightnessCompensation = 0;
-
-		//device config
-
-		//Start with a clean configuration
-		var d = {};
-
-		d.output = $('#ip').val();
-		d.username = $('#user').val();
-		d.type = 'philipshue';
-		d.colorOrder = 'rgb';
-		d.lightIds = finalLightIds;
-		d.transitiontime = parseInt(eV("transitiontime", 1));
-		d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
-		d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
-
-		d.blackLevel = parseFloat(eV("blackLevel", 0.009));
-		d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
-		d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));
-		d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
-
-		d.clientkey = $('#clientkey').val();
-		d.groupId = parseInt($('#groupId').val());
-		d.entertainmentConfigurationId = $('#entertainmentConfigurationId').val();
-		d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
-		d.brightnessMin = parseFloat(eV("brightnessMin", 0));
-		d.brightnessMax = parseFloat(eV("brightnessMax", 1));
-		d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
-		d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
-		d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
-		d.verbose = (eV("verbose") == true);
-
-		if (hueType == 'philipshue')
-		{
-			d.useEntertainmentAPI = false;
-			d.hardwareLedCount = finalLightIds.length;
-			d.refreshTime = 0;
-			d.verbose = false;
-			//smoothing off
-			sc.smoothing.enable = false;
-		}
-
-		if (hueType == 'philipshueentertainment')
-		{
-			d.useEntertainmentAPI = true;
-			// using 'useV2Api' instead of 'useV2ApiConfig' because it includes the bridge check for api v2
-			d.useEntertainmentAPIV2 = useV2Api;
-			d.hardwareLedCount = groupLights.length;
-			d.refreshTime = 20;
-			//smoothing on
-			sc.smoothing.enable = true;
-		}
-
-		window.serverConfig.device = d;
-
-		requestWriteConfig(sc, true);
+		SaveHueConfig();		
 		resetWizard();
 	});
 
@@ -1462,6 +1465,11 @@ function get_hue_lights()
 					});
 				}
 				$('.hue_sel_watch').trigger('change');
+
+				if (useV2Api)
+				{
+					SaveHueConfig();
+				}
 			}
 			else
 			{
