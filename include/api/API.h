@@ -76,10 +76,11 @@ protected:
 	/// @brief Set a single color
 	/// @param[in] priority The priority of the written color
 	/// @param[in] ledColor The color to write to the leds
+    /// @param[in] indexOfLed The index of the led or -1 to write to all
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	/// @param[in] origin   The setter
 	///
-	void setColor(int priority, const std::vector<uint8_t>& ledColors, int timeout_ms = -1, const QString& origin = "API", hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
+	void setColor(int priority, const std::vector<uint8_t>& ledColors,int indexOfLed=-1, int timeout_ms = -1, const QString& origin = "API", hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
 	///
 	/// @brief Set a image

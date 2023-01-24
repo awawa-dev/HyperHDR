@@ -16,6 +16,10 @@
 			"maximum" : 253,
 			"required": true
 		},
+		"indexofled": {
+			"type": "integer",
+			"required": false
+		},
 		"duration": {
 			"type": "integer",
 			"required": false

@@ -443,7 +443,7 @@ bool HyperHdrInstance::setInputInactive(quint8 priority)
 	return _muxer.setInputInactive(priority);
 }
 
-void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, const QString& origin, bool clearEffects)
+void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledColors,int indexOfLed, int timeout_ms, const QString& origin, bool clearEffects)
 {
 	if (ledColors.size() == 0)
 		return;
@@ -457,14 +457,16 @@ void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledCo
 	// create full led vector from single/multiple colors
 	std::vector<ColorRgb> newLedColors;
 	auto currentCol = ledColors.begin();
+    int itr=0;
+    for (const auto &item: _ledString.leds()){
+        if(itr==indexOfLed){
+            newLedColors.emplace_back(*currentCol);
+        } else{
+            newLedColors.emplace_back(ColorRgb::BLACK);
+        }
+        itr++;
+    }
 
-	while (newLedColors.size() < _ledString.leds().size())
-	{
-		newLedColors.emplace_back(*currentCol);
-
-		if (++currentCol == ledColors.end())
-			currentCol = ledColors.begin();
-	}
 
 	if (getPriorityInfo(priority).componentId != hyperhdr::COMP_COLOR)
 	{

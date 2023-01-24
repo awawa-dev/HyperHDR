@@ -239,6 +239,7 @@ void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& comm
 	emit forwardJsonMessage(message);
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	int indexofled = message["indexofled"].toInt(-1);
 	const QString origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 
 	const QJsonArray& jsonColor = message["color"].toArray();
@@ -249,7 +250,7 @@ void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& comm
 		colors.emplace_back(uint8_t(entry.toInt()));
 	}
 
-	API::setColor(priority, colors, duration, origin);
+	API::setColor(priority, colors,indexofled, duration, origin);
 	sendSuccessReply(command, tan);
 }
 
