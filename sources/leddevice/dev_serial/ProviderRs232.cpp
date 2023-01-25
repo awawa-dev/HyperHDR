@@ -71,6 +71,10 @@ ProviderRs232::~ProviderRs232()
 int ProviderRs232::open()
 {
 	int retval = -1;
+
+	if (_retryMode)
+		return retval;
+
 	_isDeviceReady = false;
 
 	// open device physically
@@ -79,6 +83,27 @@ int ProviderRs232::open()
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
 		retval = 0;
+
+		_currentRetry = 0;
+		_retryMode = false;
+	}
+	else if (_maxRetry > 0)
+	{
+		if (_currentRetry <= 0)
+				_currentRetry = _maxRetry + 1;
+
+		_currentRetry--;
+
+		if (_currentRetry > 0)
+			Warning(_log, "The serial device is not ready... will try to reconnect (try %i/%i).", (_maxRetry - _currentRetry + 1), _maxRetry);
+		else
+			Error(_log, "The serial device is not ready... give up.");
+
+		if (_currentRetry > 0)
+		{
+			_retryMode = true;
+			QTimer::singleShot(2000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+		}
 	}
 	return retval;
 }
@@ -294,6 +319,12 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t* data)
 			}
 		}
 	}
+
+	if (_maxRetry > 0 && rc == -1)
+	{
+		QTimer::singleShot(2000, this, [=]() { enable(); });
+	}
+
 	return rc;
 }
 
