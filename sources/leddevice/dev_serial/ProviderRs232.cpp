@@ -65,9 +65,7 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 }
 
 ProviderRs232::~ProviderRs232()
-{
-	if (_rs232Port.isOpen())
-		_rs232Port.close();
+{	
 }
 
 int ProviderRs232::open()
@@ -133,6 +131,11 @@ int ProviderRs232::close()
 			
 			QTimer::singleShot(200, this, [this]() { if (_rs232Port.isOpen()) EspTools::goingSleep(_rs232Port); });
 			EspTools::goingSleep(_rs232Port);
+
+			for (int i = 0; i < 6 && _rs232Port.isOpen(); i++)
+			{
+				_rs232Port.waitForReadyRead(100);
+			}
 		}
 		else
 		{
@@ -157,7 +160,7 @@ bool ProviderRs232::powerOff()
 
 bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 {
-	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
+	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty() || (_isAutoDeviceName && _espHandshake))
 	{
 		if (!_rs232Port.isOpen())
 		{
@@ -309,7 +312,8 @@ QString ProviderRs232::discoverFirst()
 				quint16 vendor = port.vendorIdentifier();
 				quint16 prodId = port.productIdentifier();
 				bool knownESPA = (vendor == 0x303a && (prodId == 0x80c2));
-				bool knownESPB = (vendor == 0x10c4 && (prodId == 0xea60)) ||
+				bool knownESPB = (vendor == 0x303a) ||
+								 (vendor == 0x10c4 && (prodId == 0xea60)) ||
 								 (vendor == 0x1A86 && (prodId == 0x7523 || prodId == 0x55d4));
 				if (round == 3 ||
 					(_espHandshake && round == 0 && knownESPA) ||
@@ -323,7 +327,7 @@ QString ProviderRs232::discoverFirst()
 				}
 				else
 				{
-					Warning(_log, "Serial port auto-discovery. Ignoring possible bluetooth device for now, try to find different available serial port: %s", QSTRING_CSTR(infoMessage));
+					Warning(_log, "Serial port auto-discovery. Skipping this device for now: %s, VID: 0x%x, PID: 0x%x", QSTRING_CSTR(infoMessage), vendor, prodId);
 				}
 			}
 		}
