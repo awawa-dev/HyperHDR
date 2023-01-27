@@ -52,12 +52,14 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 		_baudRate_Hz = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
 		_espHandshake = deviceConfig["espHandshake"].toBool(false);
+		_maxRetry = _devConfig["maxRetry"].toInt(60);
 
 		Debug(_log, "Device name   : %s", QSTRING_CSTR(_deviceName));
 		Debug(_log, "Auto selection: %d", _isAutoDeviceName);
 		Debug(_log, "Baud rate     : %d", _baudRate_Hz);
 		Debug(_log, "ESP handshake : %s", (_espHandshake) ? "ON" : "OFF");
 		Debug(_log, "Delayed open  : %d", _delayAfterConnect_ms);
+		Debug(_log, "Retry limit   : %d", _maxRetry);
 
 		isInitOK = true;
 	}
