@@ -138,6 +138,18 @@
 				}
 			},
 			"propertyOrder" : 11
+		},
+		"maxRetry":
+		{
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "edt_dev_max_retry",
+			"minimum" : 0,
+			"maximum" : 120,
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 12
 		}
 	},
 	"additionalProperties": true
