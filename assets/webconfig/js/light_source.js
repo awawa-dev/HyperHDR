@@ -543,20 +543,6 @@ function isEmpty(obj)
 	return true;
 }
 
-function updateHueWizard(useEntertainmentAPI,useEntertainmentAPIV2,ledType, changeWizard) {
-	var entChecked= (useEntertainmentAPI||useEntertainmentAPIV2);
-	var ledWizardType = (entChecked) ? "philipshueentertainment" : ledType;
-	var useApiV2 = useEntertainmentAPIV2;
-	var data = {
-		type: ledWizardType,
-		useApiV2
-	};
-	var hue_title = (entChecked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
-	changeWizard(data, hue_title, startWizardPhilipsHue);
-
-	createHintH('callout-warning', $.i18n('philips_option_changed_bri'), 'btn_wiz_holder');
-}
-
 $(document).ready(function()
 {
 	// translate
@@ -849,19 +835,23 @@ $(document).ready(function()
 		
 		if (ledType == "philipshue")
 		{
-			$("input[name='root[specificOptions][useEntertainmentAPI]']").bind("change", function()
+			$("input[name='root[specificOptions][useEntertainmentAPI]'], input[name='root[specificOptions][useEntertainmentAPIV2]']").bind("change",function()
 			{
-				updateHueWizard(this.checked,$("input[name='root[specificOptions][useEntertainmentAPIV2]']")[0].checked,ledType, changeWizard);
+				let useApiV1 = $("input[name='root[specificOptions][useEntertainmentAPI]']").is(':checked');
+				let useApiV2 = $("input[name='root[specificOptions][useEntertainmentAPIV2]']").is(':checked');
+
+				var ledWizardType = (useApiV1 || useApiV2) ? "philipshueentertainment" : ledType;
+				var data = {
+					type: ledWizardType,
+					useApiV2
+				};
+				var hue_title = (useApiV1 || useApiV2) ? 'wiz_hue_e_title' : 'wiz_hue_title';
+				changeWizard(data, hue_title, startWizardPhilipsHue);
+								
+				createHintH('callout-warning', $.i18n('philips_option_changed_bri'), 'btn_wiz_holder');
+
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
-			$("input[name='root[specificOptions][useEntertainmentAPIV2]']").bind("change", function()
-			{
-				if(!this.checked &&$("input[name='root[specificOptions][onBlackTimeToPowerOff]']").val()==""){
-					$("input[name='root[specificOptions][onBlackTimeToPowerOff]']").val(600)
-				}
-				updateHueWizard($("input[name='root[specificOptions][useEntertainmentAPI]']")[0].checked,this.checked,ledType, changeWizard);
-			});
-			$("input[name='root[specificOptions][useEntertainmentAPIV2]']").trigger("change");
 		}
 		else if (ledType == "atmoorb")
 		{
@@ -956,7 +946,7 @@ $(document).ready(function()
 			optArr[3].push(ledDevices[idx]);
 		else if ($.inArray(ledDevices[idx], devUSB) != -1)
 			optArr[4].push(ledDevices[idx]);
-		else if (ledDevices[idx] != 'philipshuev2')
+		else
 			optArr[5].push(ledDevices[idx]);
 	}
 

@@ -20,10 +20,6 @@ LedDevice* LedDeviceFactory::construct(const QJsonObject& deviceConfig)
 	QJsonDocument config(deviceConfig);
 
 	QString type = deviceConfig["type"].toString("UNSPECIFIED").toLower();
-    if(type=="philipshue"&&deviceConfig["useEntertainmentAPIV2"].toBool(
-            false)){
-        type="philipshuev2";
-    }
 
 	const LedDeviceRegistry& devList = LedDeviceWrapper::getDeviceMap();
 	LedDevice* device = nullptr;

@@ -1933,10 +1933,13 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 				return;
 			}
 			httpResponse result;
-			const QJsonObject &headerObject = message["header"].toObject();
-			if(!headerObject.isEmpty()){
-				for (const auto &item: headerObject.keys()){
-					provider.addHeader(item,headerObject[item].toString());
+			const QJsonObject& headerObject = message["header"].toObject();
+
+			if (!headerObject.isEmpty())
+			{
+				for (const auto& item : headerObject.keys())
+				{
+					provider.addHeader(item, headerObject[item].toString());
 				}
 			}
 

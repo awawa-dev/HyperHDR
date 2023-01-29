@@ -1008,7 +1008,7 @@
   "general_comp_HDR" : "HDR (global)",
   "language_selector" : "Language",
   "main_menu_dashboard_token" : "Overview",
-  "wiz_hue_intro2" : "<p style='color:red;'><b>PLEASE CONFIGURE THE ENTERTAINMENT GROUP IN THE PHILIPS HUE MOBILE APP FIRST</b></p>1 Create an Entertainment group in the Philips Hue App<br/>2 Check &rsquo;<i>Use Hue Entertainment API</i>&rsquo; option in HyperHDR before entering the wizard<br/>3 Also Check &rsquo;<i>Use Hue Entertainment API V2</i>&rsquo; option in HyperHDR before entering the wizard. Note that if your bridge does not support this, it will fall back to V1.<br/>4 Run the wizard. You may have to reconnect to the Hue Bridge by clicking the button on the bridge when you are asked to. &rsquo;<i>Username</i>&rsquo; and &rsquo;<i>Clientkey</i>&rsquo; will be automatically discovered.",
+  "wiz_hue_intro2" : "<p style='color:red;'><b>PLEASE CONFIGURE THE ENTERTAINMENT GROUP IN THE PHILIPS HUE MOBILE APP FIRST</b></p>1 Create an Entertainment group in the Philips Hue App<br/>2 Check &rsquo;<i>Use Hue Entertainment API</i>&rsquo; option in HyperHDR before entering the wizard<br/>3 Also Check &rsquo;<i>Use Hue Entertainment API V2</i>&rsquo; option in HyperHDR to have hue gradient light strips support before entering the wizard. Note that if your bridge does not support this, it will fall back to V1.<br/>4 Run the wizard. You may have to reconnect to the Hue Bridge by clicking the button on the bridge when you are asked to. &rsquo;<i>Username</i>&rsquo; and &rsquo;<i>Clientkey</i>&rsquo; will be automatically discovered.",
   "main_menu_streamer_token" : "Streamer",
   "remote_optgroup_classicEffects" : "Classic effects",
   "remote_optgroup_musicEffects" : "Music effects",

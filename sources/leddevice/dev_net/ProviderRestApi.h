@@ -74,7 +74,7 @@ public:
 	/// @param[in] path
 	///
 	void appendPath(const QString& appendPath);
-    void addHeader(const QString &key, const QString &value);
+	void addHeader(const QString &key, const QString &value);
 
 	///
 	/// @brief Set an API's fragment
@@ -142,7 +142,7 @@ private:
 
 	QString   _basePath;
 	QString   _path;
-    QMap<QString, QString> _headers;
+	QMap<QString, QString> _headers;
 	QString   _fragment;
 	QUrlQuery _query;
 
@@ -198,7 +198,7 @@ private:
 	QJsonDocument _responseBody;
 	bool _hasError = false;
 	QString _errorReason;
-    QMap<QString, QString> _headers;
+	QMap<QString, QString> _headers;
 	int _httpStatusCode = 0;
 	QNetworkReply::NetworkError _networkReplyError = QNetworkReply::NoError;
 };
