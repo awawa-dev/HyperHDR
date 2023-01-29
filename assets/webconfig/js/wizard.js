@@ -1034,7 +1034,7 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
 	}
 }
 
-function SaveHueConfig()
+function SaveHueConfig(saveLamps = true)
 {
 	var hueLedConfig = [];
 	var finalLightIds = [];
@@ -1055,6 +1055,12 @@ function SaveHueConfig()
 	}
 
 	var sc = window.serverConfig;
+
+	if (!saveLamps && Array.isArray(sc.leds) && sc.leds.length ==  hueLedConfig.length)
+	{
+		hueLedConfig = sc.leds;
+	}
+	
 	sc.leds = hueLedConfig;
 
 	//Adjust gamma, brightness and compensation
@@ -1468,7 +1474,7 @@ function get_hue_lights()
 
 				if (useV2Api)
 				{
-					SaveHueConfig();
+					SaveHueConfig(false);
 				}
 			}
 			else
