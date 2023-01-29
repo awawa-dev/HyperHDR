@@ -956,7 +956,7 @@ $(document).ready(function()
 			optArr[3].push(ledDevices[idx]);
 		else if ($.inArray(ledDevices[idx], devUSB) != -1)
 			optArr[4].push(ledDevices[idx]);
-		else
+		else if (ledDevices[idx] != 'philipshuev2')
 			optArr[5].push(ledDevices[idx]);
 	}
 
