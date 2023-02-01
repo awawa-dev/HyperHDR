@@ -110,6 +110,8 @@ public:
 	///
 	virtual void identify(const QJsonObject& /*params*/) {}
 
+	virtual void identifyLed(const QJsonObject& /*params*/);
+
 	///
 	/// @brief Check, if device is properly initialised
 	///
@@ -430,6 +432,8 @@ private:
 		qint64		incomingframes = 0;
 		qint64		droppedFrames = 0;
 	} _computeStats;
+
+	int _blinkIndex;
 };
 
 #endif // LEDEVICE_H

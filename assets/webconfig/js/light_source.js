@@ -835,17 +835,21 @@ $(document).ready(function()
 		
 		if (ledType == "philipshue")
 		{
-			$("input[name='root[specificOptions][useEntertainmentAPI]']").bind("change", function()
+			$("input[name='root[specificOptions][useEntertainmentAPI]'], input[name='root[specificOptions][useEntertainmentAPIV2]']").bind("change",function()
 			{
-				var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
+				let useApiV1 = $("input[name='root[specificOptions][useEntertainmentAPI]']").is(':checked');
+				let useApiV2 = $("input[name='root[specificOptions][useEntertainmentAPIV2]']").is(':checked');
+
+				var ledWizardType = (useApiV1 || useApiV2) ? "philipshueentertainment" : ledType;
 				var data = {
-					type: ledWizardType
+					type: ledWizardType,
+					useApiV2
 				};
-				var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
+				var hue_title = (useApiV1 || useApiV2) ? 'wiz_hue_e_title' : 'wiz_hue_title';
 				changeWizard(data, hue_title, startWizardPhilipsHue);
 								
 				createHintH('callout-warning', $.i18n('philips_option_changed_bri'), 'btn_wiz_holder');
-				
+
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
 		}
@@ -1153,6 +1157,12 @@ $(document).ready(function()
 
 					createLedPreview(finalLedArray, _lastOrigin);
 
+					selectedObject = null;
+				}
+				else if (this.id == "CMD_IDENTIFY")
+				{
+					let params = { blinkIndex: parsedIndex };
+					requestLedDeviceIdentification("blink", params);
 					selectedObject = null;
 				}
 				else if (this.id == "CMD_DELETE")

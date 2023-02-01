@@ -21,6 +21,7 @@
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
+#include <leddevice/LedDeviceFactory.h>
 
 #include <base/MultiColorAdjustment.h>
 #include <base/LinearSmoothing.h>
@@ -765,3 +766,8 @@ QString HyperHdrInstance::deleteEffect(const QString& effectName)
 }
 
 
+void HyperHdrInstance::identifyLed(const QJsonObject& params)
+{
+	_ledDeviceWrapper->handleComponentState(hyperhdr::Components::COMP_LEDDEVICE, true);
+	_ledDeviceWrapper->identifyLed(params);
+}

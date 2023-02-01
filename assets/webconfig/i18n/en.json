@@ -472,6 +472,7 @@
   "edt_dev_spec_gpioMap_title": "GPIO mapping",
   "edt_dev_spec_gpioNumber_title": "GPIO number",
   "edt_dev_spec_groupId_title": "Group ID",
+  "edt_dev_spec_entertainmentConfigurationId_title": "Entertainment Configuration ID",
   "edt_dev_spec_header_title": "Specific Settings",
   "edt_dev_spec_interpolation_title": "Interpolation",
   "edt_dev_spec_intervall_title": "Interval",
@@ -516,6 +517,7 @@
   "edt_dev_spec_uid_title": "UID",
   "edt_dev_spec_universe_title": "Universe",
   "edt_dev_spec_useEntertainmentAPI_title": "Use Hue Entertainment API",
+  "edt_dev_spec_useEntertainmentAPIV2_title": "Use Hue Entertainment API V2 (Adds support for hue gradient light strips)",
   "edt_dev_spec_useOrbSmoothing_title": "Use orb smoothing",
   "edt_dev_spec_useRgbwProtocol_title": "Use RGBW protocol",
   "edt_dev_spec_username_title": "Username",
@@ -886,6 +888,7 @@
   "wiz_cololight_title": "Cololight Wizard",
   "wiz_guideyou": "The $1 will guide you through the settings. Just press the button!",
   "wiz_hue_blinkblue": "Let ID $1 light up blue",
+  "wiz_hue_identify": "Identify",
   "wiz_hue_clientkey": "Clientkey:",
   "wiz_hue_create_user": "Create new User",
   "wiz_hue_desc1": "It searches automatically for a Hue-Bridge, in case it can't find one you need to provide the IP-address and push the reload button on the right. Now you need a user ID, if you don't have one create a new one.",
@@ -903,6 +906,7 @@
   "wiz_hue_e_title": "Philips Hue Entertainment Wizard",
   "wiz_hue_e_use_group": "Use group",
   "wiz_hue_e_use_groupid": "Use group ID $1",
+  "wiz_hue_e_use_entertainmentconfigurationid": "Use configuration ID $1",
   "wiz_hue_failure_connection": "Timeout: Please press the bridge button within the period of 30 seconds",
   "wiz_hue_failure_ip": "No Bridge found, please type in a valid IP-Address",
   "wiz_hue_failure_user": "User not found, create a new one with the button below or input a valid user id and press the \"reload\" symbol.",
@@ -1004,7 +1008,7 @@
   "general_comp_HDR" : "HDR (global)",
   "language_selector" : "Language",
   "main_menu_dashboard_token" : "Overview",
-  "wiz_hue_intro2" : "<p style='color:red;'><b>PLEASE CONFIGURE THE ENTERTAINMENT GROUP IN THE PHILIPS HUE MOBILE APP FIRST</b></p>1 Create an Entertainment group in the Philips Hue App<br/>2 Check &rsquo;<i>Use Hue Entertainment API</i>&rsquo; option in HyperHDR before entering the wizard<br/>3 Run the wizard. You may have to reconnect to the Hue Bridge by clicking the button on the bridge when you are asked to. &rsquo;<i>Username</i>&rsquo; and &rsquo;<i>Clientkey</i>&rsquo; will be automatically discovered.",
+  "wiz_hue_intro2" : "<p style='color:red;'><b>PLEASE CONFIGURE THE ENTERTAINMENT GROUP IN THE PHILIPS HUE MOBILE APP FIRST</b></p>1 Create an Entertainment group in the Philips Hue App<br/>2 Check &rsquo;<i>Use Hue Entertainment API</i>&rsquo; option in HyperHDR before entering the wizard<br/>3 Also Check &rsquo;<i>Use Hue Entertainment API V2</i>&rsquo; option in HyperHDR to have hue gradient light strips support before entering the wizard. Note that if your bridge does not support this, it will fall back to V1.<br/>4 Run the wizard. You may have to reconnect to the Hue Bridge by clicking the button on the bridge when you are asked to. &rsquo;<i>Username</i>&rsquo; and &rsquo;<i>Clientkey</i>&rsquo; will be automatically discovered.",
   "main_menu_streamer_token" : "Streamer",
   "remote_optgroup_classicEffects" : "Classic effects",
   "remote_optgroup_musicEffects" : "Music effects",
@@ -1190,5 +1194,6 @@
   "conf_leds_layout_btn_zoom" : "Zoom",
   "edt_serial_espHandshake" : "Esp8266/ESP32 handshake (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver" : "This driver is intended for advanced users and is <b>not recommended or supported</b> by the HyperHDR team. Please read the project FAQ section for reasons and don't ask us for help if you try to use it because it <b>revokes any support for your entire HyperHDR configuration</b>. Choose a better solution like HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) or HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>about</a>).",
-  "edt_dev_spec_awa_mode_title": "High speed serial AWA protocol with data integrity check (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)"
+  "edt_dev_spec_awa_mode_title": "High speed serial AWA protocol with data integrity check (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
+  "led_editor_context_identify": "Identify"
 } 
