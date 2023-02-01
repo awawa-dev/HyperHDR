@@ -37,7 +37,12 @@
 			"format": "checkbox",
 			"title":"edt_dev_spec_useEntertainmentAPIV2_title",
 			"default" : false,
-			"propertyOrder" : 5
+			"propertyOrder" : 5,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			}
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",
@@ -59,7 +64,12 @@
 			"step": 0.01,
 			"minimum" : 0.001,
 			"maximum" : 1.0,				
-			"propertyOrder" : 7
+			"propertyOrder" : 7,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": false
+				}
+			}
 		},
 		"onBlackTimeToPowerOff" :
 		{
