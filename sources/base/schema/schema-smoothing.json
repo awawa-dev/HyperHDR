@@ -83,11 +83,11 @@
 		{
 			"type" : "integer",
 			"format": "stepper",			
-			"step" : 250,	
+			"step" : 50,	
 			"title" : "edt_conf_smooth_antiFlickeringTimeout_title",
 			"minimum" : 0,
 			"maximum": 10000,
-			"default" : 300,
+			"default" : 250,
 			"append" : "edt_append_ms",
 			"options": {
 				"dependencies": {
