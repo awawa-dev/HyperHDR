@@ -545,7 +545,7 @@ void LedDevice::identifyLed(const QJsonObject& params)
 {
 	_blinkIndex = params["blinkIndex"].toInt(-1);
 
-	if (_blinkIndex < 0 || _blinkIndex >= _lastLedValues.size())
+	if (_blinkIndex < 0 || _blinkIndex >= (int)_lastLedValues.size())
 	{
 		_blinkIndex = -1;
 	}
@@ -563,7 +563,7 @@ void LedDevice::identifyLed(const QJsonObject& params)
 			ColorRgb color = (i % 3 == 0) ? ColorRgb::RED : (i % 3 == 1) ? ColorRgb::GREEN : ColorRgb::BLUE;
 
 			QTimer::singleShot(800 * i, this, [this, color, blinkOrg]() {
-				if (_blinkIndex == blinkOrg && _blinkIndex >= 0 && _blinkIndex < _lastLedValues.size())
+				if (_blinkIndex == blinkOrg && _blinkIndex >= 0 && _blinkIndex < (int)_lastLedValues.size())
 				{
 					_lastLedValues[_blinkIndex] = color;
 					rewriteLEDs();
