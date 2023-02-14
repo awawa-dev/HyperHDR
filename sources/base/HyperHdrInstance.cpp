@@ -21,6 +21,7 @@
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
+#include <leddevice/LedDeviceFactory.h>
 
 #include <base/MultiColorAdjustment.h>
 #include <base/LinearSmoothing.h>
@@ -444,6 +445,9 @@ bool HyperHdrInstance::setInputInactive(quint8 priority)
 
 void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, const QString& origin, bool clearEffects)
 {
+	if (ledColors.size() == 0)
+		return;
+
 	// clear effect if this call does not come from an effect
 	if (clearEffects)
 	{
@@ -451,20 +455,16 @@ void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledCo
 	}
 
 	// create full led vector from single/multiple colors
-	size_t size = _ledString.leds().size();
 	std::vector<ColorRgb> newLedColors;
-	while (true)
+	auto currentCol = ledColors.begin();
+
+	while (newLedColors.size() < _ledString.leds().size())
 	{
-		for (const auto& entry : ledColors)
-		{
-			newLedColors.emplace_back(entry);
-			if (newLedColors.size() == size)
-			{
-				goto end;
-			}
-		}
+		newLedColors.emplace_back(*currentCol);
+
+		if (++currentCol == ledColors.end())
+			currentCol = ledColors.begin();
 	}
-end:
 
 	if (getPriorityInfo(priority).componentId != hyperhdr::COMP_COLOR)
 	{
@@ -672,37 +672,55 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 
 	_globalLedBuffer = _ledBuffer;
 
-	// emit rawLedColors before transform
-	emit rawLedColors(_ledBuffer);
-
-	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-
-	for (ColorRgb& color : _ledBuffer)
+	for (int disabledProcessing = 0; disabledProcessing < 2; disabledProcessing++)
 	{
-		// correct the color byte order
-		switch (_ledString.colorOrder)
-		{
-			case ColorOrder::ORDER_RGB:
-				// leave as it is
-				break;
-			case ColorOrder::ORDER_BGR:
-				std::swap(color.red, color.blue);
-				break;
-			case ColorOrder::ORDER_RBG:
-				std::swap(color.green, color.blue);
-				break;
-			case ColorOrder::ORDER_GRB:
-				std::swap(color.red, color.green);
-				break;
-			case ColorOrder::ORDER_GBR:
-				std::swap(color.red, color.green);
-				std::swap(color.green, color.blue);
-				break;
+		if (disabledProcessing == 1)
+			_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 
-			case ColorOrder::ORDER_BRG:
-				std::swap(color.red, color.blue);
-				std::swap(color.green, color.blue);
-				break;
+		if (_ledString.hasDisabled)
+		{
+			auto ledIter = _ledString.leds().begin();
+			for (ColorRgb& color : _ledBuffer)
+				if (ledIter != _ledString.leds().end())
+				{
+					if ((*ledIter).disabled)
+						color = ColorRgb::BLACK;
+					++ledIter;
+				}
+		}
+
+		if (disabledProcessing == 0)
+			emit rawLedColors(_ledBuffer);	
+	}
+
+	if (_ledString.colorOrder != ColorOrder::ORDER_RGB)
+	{
+		for (ColorRgb& color : _ledBuffer)
+		{
+			// correct the color byte order
+			switch (_ledString.colorOrder)
+			{
+				case ColorOrder::ORDER_RGB:
+					break;
+				case ColorOrder::ORDER_BGR:
+					std::swap(color.red, color.blue);
+					break;
+				case ColorOrder::ORDER_RBG:
+					std::swap(color.green, color.blue);
+					break;
+				case ColorOrder::ORDER_GRB:
+					std::swap(color.red, color.green);
+					break;
+				case ColorOrder::ORDER_GBR:
+					std::swap(color.red, color.green);
+					std::swap(color.green, color.blue);
+					break;
+
+				case ColorOrder::ORDER_BRG:
+					std::swap(color.red, color.blue);
+					std::swap(color.green, color.blue);
+					break;
+			}
 		}
 	}
 
@@ -748,3 +766,8 @@ QString HyperHdrInstance::deleteEffect(const QString& effectName)
 }
 
 
+void HyperHdrInstance::identifyLed(const QJsonObject& params)
+{
+	_ledDeviceWrapper->handleComponentState(hyperhdr::Components::COMP_LEDDEVICE, true);
+	_ledDeviceWrapper->identifyLed(params);
+}

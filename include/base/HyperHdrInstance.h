@@ -109,6 +109,8 @@ public:
 
 public slots:
 
+	void identifyLed(const QJsonObject& params);
+
 	bool getReadOnlyMode() { return _readOnlyMode; };
 
 	void saveCalibration(QString saveData);

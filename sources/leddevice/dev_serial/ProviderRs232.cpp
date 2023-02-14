@@ -6,8 +6,12 @@
 // qt includes
 #include <QSerialPortInfo>
 #include <QEventLoop>
+#include <QThread>
 
 #include <chrono>
+#include <utils/InternalClock.h>
+
+#include "EspTools.h"
 
 // Constants
 constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
@@ -22,6 +26,7 @@ ProviderRs232::ProviderRs232(const QJsonObject& deviceConfig)
 	, _isAutoDeviceName(false)
 	, _delayAfterConnect_ms(0)
 	, _frameDropCounter(0)
+	, _espHandshake(true)
 {
 }
 
@@ -46,11 +51,15 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 		_isAutoDeviceName = _deviceName.toLower() == "auto";
 		_baudRate_Hz = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
+		_espHandshake = deviceConfig["espHandshake"].toBool(false);
+		_maxRetry = _devConfig["maxRetry"].toInt(60);
 
-		Debug(_log, "deviceName   : %s", QSTRING_CSTR(_deviceName));
-		Debug(_log, "AutoDevice   : %d", _isAutoDeviceName);
-		Debug(_log, "baudRate_Hz  : %d", _baudRate_Hz);
-		Debug(_log, "delayAfCon ms: %d", _delayAfterConnect_ms);
+		Debug(_log, "Device name   : %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Auto selection: %d", _isAutoDeviceName);
+		Debug(_log, "Baud rate     : %d", _baudRate_Hz);
+		Debug(_log, "ESP handshake : %s", (_espHandshake) ? "ON" : "OFF");
+		Debug(_log, "Delayed open  : %d", _delayAfterConnect_ms);
+		Debug(_log, "Retry limit   : %d", _maxRetry);
 
 		isInitOK = true;
 	}
@@ -58,12 +67,16 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 }
 
 ProviderRs232::~ProviderRs232()
-{
+{	
 }
 
 int ProviderRs232::open()
 {
 	int retval = -1;
+
+	if (_retryMode)
+		return retval;
+
 	_isDeviceReady = false;
 
 	// open device physically
@@ -72,8 +85,54 @@ int ProviderRs232::open()
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
 		retval = 0;
+
+		_currentRetry = 0;
+		_retryMode = false;
+	}
+	else if (_maxRetry > 0)
+	{
+		if (_currentRetry <= 0)
+				_currentRetry = _maxRetry + 1;
+
+		_currentRetry--;
+
+		if (_currentRetry > 0)
+			Warning(_log, "The serial device is not ready... will try to reconnect (try %i/%i).", (_maxRetry - _currentRetry + 1), _maxRetry);
+		else
+			Error(_log, "The serial device is not ready... give up.");
+
+		if (_currentRetry > 0)
+		{
+			_retryMode = true;
+			QTimer::singleShot(2000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+		}
 	}
 	return retval;
+}
+
+void ProviderRs232::waitForExitStats(bool force)
+{	
+	if (_rs232Port.isOpen())
+	{
+		if (!force && _rs232Port.bytesAvailable() > 32)
+		{
+			auto check = _rs232Port.peek(256);
+			if (check.lastIndexOf('\n') > 1)
+			{
+				auto incoming = QString(_rs232Port.readAll());
+				force = true;
+			
+				Info(_log, "Received: '%s' (%i)", QSTRING_CSTR(incoming), incoming.length());
+			}
+		}
+
+		if (!_isDeviceReady && force)
+		{
+			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
+			disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
+			_rs232Port.close();
+		}
+	}
 }
 
 int ProviderRs232::close()
@@ -89,9 +148,28 @@ int ProviderRs232::close()
 		{
 			Debug(_log, "Flush was successful");
 		}
-		Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
-		_rs232Port.close();
-		// Everything is OK -> device is closed
+		
+
+		if (_espHandshake)
+		{
+			QTimer::singleShot(600, this, [this](){ waitForExitStats(true); });
+			connect(&_rs232Port, &QSerialPort::readyRead, this, [this]() { waitForExitStats(false); });
+
+			
+			QTimer::singleShot(200, this, [this]() { if (_rs232Port.isOpen()) EspTools::goingSleep(_rs232Port); });
+			EspTools::goingSleep(_rs232Port);
+
+			for (int i = 0; i < 6 && _rs232Port.isOpen(); i++)
+			{
+				_rs232Port.waitForReadyRead(100);
+			}
+		}
+		else
+		{
+			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
+			_rs232Port.close();
+		}
+		
 	}
 	return retval;
 }
@@ -109,7 +187,7 @@ bool ProviderRs232::powerOff()
 
 bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 {
-	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
+	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty() || (_isAutoDeviceName && _espHandshake))
 	{
 		if (!_rs232Port.isOpen())
 		{
@@ -150,10 +228,17 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 
 		if (!serialPortInfo.isNull())
 		{
-			if (!_rs232Port.open(QIODevice::ReadWrite))
+			if (!_rs232Port.isOpen() && !_rs232Port.open(QIODevice::ReadWrite))
 			{
 				this->setInError(_rs232Port.errorString());
 				return false;
+			}
+
+			if (_espHandshake)
+			{
+				disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
+
+				EspTools::initializeEsp(_rs232Port, serialPortInfo, _log);
 			}
 		}
 		else
@@ -236,12 +321,18 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t* data)
 			}
 		}
 	}
+
+	if (_maxRetry > 0 && rc == -1)
+	{
+		QTimer::singleShot(2000, this, [=]() { enable(); });
+	}
+
 	return rc;
 }
 
 QString ProviderRs232::discoverFirst()
 {
-	for (int round = 0; round < 2; round++)
+	for (int round = 0; round < 4; round++)
 		for (auto const& port : QSerialPortInfo::availablePorts())
 		{
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -251,9 +342,17 @@ QString ProviderRs232::discoverFirst()
 #endif
 			{
 				QString infoMessage = QString("%1 (%2 => %3)").arg(port.description()).arg(port.systemLocation()).arg(port.portName());
-
-				if (round != 0 ||
-					(port.description().contains("Bluetooth", Qt::CaseInsensitive) == false &&
+				quint16 vendor = port.vendorIdentifier();
+				quint16 prodId = port.productIdentifier();
+				bool knownESPA = (vendor == 0x303a && (prodId == 0x80c2));
+				bool knownESPB = (vendor == 0x303a) ||
+								 (vendor == 0x10c4 && (prodId == 0xea60)) ||
+								 (vendor == 0x1A86 && (prodId == 0x7523 || prodId == 0x55d4));
+				if (round == 3 ||
+					(_espHandshake && round == 0 && knownESPA) ||
+					(_espHandshake && round == 1 && knownESPB) ||
+					(!_espHandshake && round == 2 &&
+						port.description().contains("Bluetooth", Qt::CaseInsensitive) == false &&
 						port.systemLocation().contains("ttyAMA0", Qt::CaseInsensitive) == false))
 				{
 					Info(_log, "Serial port auto-discovery. Found serial port device: %s", QSTRING_CSTR(infoMessage));
@@ -261,7 +360,7 @@ QString ProviderRs232::discoverFirst()
 				}
 				else
 				{
-					Warning(_log, "Serial port auto-discovery. Ignoring possible bluetooth device for now, try to find different available serial port: %s", QSTRING_CSTR(infoMessage));
+					Warning(_log, "Serial port auto-discovery. Skipping this device for now: %s, VID: 0x%x, PID: 0x%x", QSTRING_CSTR(infoMessage), vendor, prodId);
 				}
 			}
 		}

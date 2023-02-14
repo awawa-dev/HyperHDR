@@ -595,6 +595,7 @@
 <div class="dropdown-menu dropdown-menu-sm" style="display: none;" id="creator-context-menu">
 	<a class="dropdown-item" href="#" id="CMD_MOVE"><i class="fa fa-arrows fa-fw"></i><span data-i18n="led_editor_context_move">Move</span></a>
 	<a class="dropdown-item" href="#" id="CMD_PROPERTIES"><i class="fa fa-edit fa-fw"></i><span data-i18n="led_editor_context_properties">Properties</span></a>
+	<a class="dropdown-item" href="#" id="CMD_IDENTIFY"><i class="fa fa-eye-slash fa-fw"></i><span data-i18n="led_editor_context_identify">Identify</span></a>
 	<a class="dropdown-item" href="#" id="CMD_ENABLE"><i class="fa fa-lightbulb-o fa-fw"></i><span id="cmd_dis_enable_text" data-i18n="led_editor_context_enable">Enable</span></a>
 	<a class="dropdown-item" href="#" id="CMD_DELETE"><i class="fa fa-remove fa-fw"></i><span data-i18n="led_editor_context_delete">Delete</span></a>
 </div>
@@ -624,11 +625,11 @@
 								</div>
 								<div class="form-group row">
 									<div class="col-form-label mb-3 col-3">
-										<label class="required" data-i18n="conf_leds_layout_cl_right"></label>
+										<label class="required" data-i18n="conf_leds_layout_cl_top"></label>
 									</div>
 									<div class="mb-3 col-9">
 										<div class="input-group">
-											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogRight" />
+											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogTop" />
 											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-down">-</button></div>
 											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-up">+</button></div>
 										</div>
@@ -638,11 +639,11 @@
 							<div class="col-12 col-md-6">								
 								<div class="form-group row">
 									<div class="col-form-label mb-3 col-3">
-										<label class="required" data-i18n="conf_leds_layout_cl_top"></label>
+										<label class="required" data-i18n="conf_leds_layout_cl_right"></label>
 									</div>
 									<div class="mb-3 col-9">
 										<div class="input-group">
-											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogTop" />
+											<input type="number" class="form-control" data-schemaformat="stepper" min="0" max="1" step="0.001" id="ledPropertiesDialogRight" />
 											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-down">-</button></div>
 											<div class="input-group-append"><button type="button" class="btn btn-secondary stepper-up">+</button></div>
 										</div>

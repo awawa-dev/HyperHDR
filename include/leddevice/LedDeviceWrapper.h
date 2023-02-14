@@ -61,6 +61,8 @@ public:
 	///
 	unsigned int getLedCount() const;
 
+	void identifyLed(const QJsonObject& params);
+
 public slots:
 	///
 	/// @brief Handle new component state request
