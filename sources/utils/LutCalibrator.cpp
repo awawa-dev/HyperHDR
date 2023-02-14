@@ -127,7 +127,10 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 			if (_mjpegCalibration)
 			{
 				Debug(_log, "Enabling pseudo-HDR mode for calibration to bypass TurboJPEG MJPEG to RGB processing");
-				GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
+				if (GrabberWrapper::getInstance()->thread() == QThread::currentThread())
+					GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
+				else
+					QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::ConnectionType::BlockingQueuedConnection, Q_ARG(int, 1));
 			}
 		}		
 		
