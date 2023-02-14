@@ -243,7 +243,7 @@ void WebSocketClient::handleBinaryMessage(QByteArray& data)
 	Image<ColorRgb> image;
 	image.resize(width, height);
 
-	memcpy(image.memptr(), data.data() + 4, imgSize);
+	memcpy(image.rawMem(), data.data() + 4, imgSize);
 }
 
 

@@ -21,6 +21,7 @@
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
+#include <leddevice/LedDeviceFactory.h>
 
 #include <base/MultiColorAdjustment.h>
 #include <base/LinearSmoothing.h>
@@ -125,7 +126,7 @@ void HyperHdrInstance::start()
 	}
 
 	// handle hwLedCount
-	_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+	_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(1), getLedCount());
 
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &HyperHdrInstance::update);
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &HyperHdrInstance::handlePriorityChangedLedDevice);
@@ -136,11 +137,6 @@ void HyperHdrInstance::start()
 
 	// listen for settings updates of this instance (LEDS & COLOR)
 	connect(_settingsManager, &SettingsManager::settingsChanged, this, &HyperHdrInstance::handleSettingsUpdate);
-
-#if 0
-	// set color correction activity state
-	const QJsonObject color = getSetting(settings::COLOR).object();
-#endif
 
 	// procesing unit
 	_imageProcessingUnit = std::unique_ptr<ImageProcessingUnit>(new ImageProcessingUnit(this));
@@ -264,7 +260,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		_globalLedBuffer = color;
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = qMax(getSetting(settings::type::DEVICE).object()["hardwareLedCount"].toInt(1), getLedCount());
 
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
@@ -278,7 +274,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(1), getLedCount());
 
 		// force ledString update, if device ByteOrder changed
 		if (_ledString.colorOrder != stringToColorOrder(dev["colorOrder"].toString("rgb")))
@@ -384,6 +380,11 @@ void HyperHdrInstance::registerInput(int priority, hyperhdr::Components componen
 	_muxer.registerInput(priority, component, origin, owner, smooth_cfg);
 }
 
+void HyperHdrInstance::updateLedsValues(int priority, const std::vector<ColorRgb>& ledColors)
+{
+	_muxer.updateLedsValues(priority, ledColors);
+}
+
 bool HyperHdrInstance::setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect)
 {
 	if (_muxer.setInput(priority, ledColors, timeout_ms))
@@ -413,7 +414,9 @@ bool HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image,
 		return false;
 	}
 
-	if (_muxer.setInputImage(priority, image, timeout_ms))
+	bool isImage = image.width() > 1 || image.height() > 1;
+
+	if (_muxer.setInputImage(priority, (receivers(SIGNAL(onCurrentImage())) > 0 || !isImage || timeout_ms == 0) ? image : Image<ColorRgb>(), timeout_ms))
 	{
 		// clear effect if this call does not come from an effect
 		if (clearEffect)
@@ -424,7 +427,10 @@ bool HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image,
 		// if this priority is visible, update immediately
 		if (priority == _muxer.getCurrentPriority())
 		{
-			update();
+			if (isImage)			
+				emit _imageProcessingUnit->queueImageSignal(priority, image);
+			else
+				update();
 		}
 
 		return true;
@@ -439,6 +445,9 @@ bool HyperHdrInstance::setInputInactive(quint8 priority)
 
 void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, const QString& origin, bool clearEffects)
 {
+	if (ledColors.size() == 0)
+		return;
+
 	// clear effect if this call does not come from an effect
 	if (clearEffects)
 	{
@@ -446,20 +455,16 @@ void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledCo
 	}
 
 	// create full led vector from single/multiple colors
-	size_t size = _ledString.leds().size();
 	std::vector<ColorRgb> newLedColors;
-	while (true)
+	auto currentCol = ledColors.begin();
+
+	while (newLedColors.size() < _ledString.leds().size())
 	{
-		for (const auto& entry : ledColors)
-		{
-			newLedColors.emplace_back(entry);
-			if (newLedColors.size() == size)
-			{
-				goto end;
-			}
-		}
+		newLedColors.emplace_back(*currentCol);
+
+		if (++currentCol == ledColors.end())
+			currentCol = ledColors.begin();
 	}
-end:
 
 	if (getPriorityInfo(priority).componentId != hyperhdr::COMP_COLOR)
 	{
@@ -529,7 +534,7 @@ QList<int> HyperHdrInstance::getActivePriorities() const
 	return _muxer.getPriorities();
 }
 
-HyperHdrInstance::InputInfo HyperHdrInstance::getPriorityInfo(int priority) const
+const HyperHdrInstance::InputInfo& HyperHdrInstance::getPriorityInfo(int priority) const
 {
 	return _muxer.getInputInfo(priority);
 }
@@ -634,33 +639,15 @@ ImageProcessor* HyperHdrInstance::getImageProcessor()
 
 void HyperHdrInstance::update()
 {
-	/// buffer for leds (with adjustment)
-	std::vector<ColorRgb>	_ledBuffer = _globalLedBuffer;
-
-	// Obtain the current priority channel
-	int priority = _muxer.getCurrentPriority();
-	const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
-
-	// copy image & process OR copy ledColors from muxer
-	Image<ColorRgb> image = priorityInfo.image;
-
-	if (image.width() > 1 || image.height() > 1)
-	{
-		_imageProcessor->setSize(image);;
-		_imageProcessor->verifyBorder(image);
-		emit _imageProcessingUnit->queueImageSignal(image);
-	}
-	else
-	{
-		emit _imageProcessingUnit->clearQueueImageSignal();
-		emit _imageProcessingUnit->dataReadySignal(priorityInfo.ledColors);
-	}	
+	const PriorityMuxer::InputInfo& priorityInfo = _muxer.getInputInfo(_muxer.getCurrentPriority());
+	emit _imageProcessingUnit->clearQueueImageSignal();
+	emit _imageProcessingUnit->dataReadySignal(priorityInfo.ledColors);
 }
 
 void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 {
 	// stats
-	int64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t now = InternalClock::now();
 	int64_t diff = now - _computeStats.statBegin;
 	int64_t prevToken = _computeStats.token;
 
@@ -685,37 +672,55 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 
 	_globalLedBuffer = _ledBuffer;
 
-	// emit rawLedColors before transform
-	emit rawLedColors(_ledBuffer);
-
-	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-
-	for (ColorRgb& color : _ledBuffer)
+	for (int disabledProcessing = 0; disabledProcessing < 2; disabledProcessing++)
 	{
-		// correct the color byte order
-		switch (_ledString.colorOrder)
-		{
-			case ColorOrder::ORDER_RGB:
-				// leave as it is
-				break;
-			case ColorOrder::ORDER_BGR:
-				std::swap(color.red, color.blue);
-				break;
-			case ColorOrder::ORDER_RBG:
-				std::swap(color.green, color.blue);
-				break;
-			case ColorOrder::ORDER_GRB:
-				std::swap(color.red, color.green);
-				break;
-			case ColorOrder::ORDER_GBR:
-				std::swap(color.red, color.green);
-				std::swap(color.green, color.blue);
-				break;
+		if (disabledProcessing == 1)
+			_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 
-			case ColorOrder::ORDER_BRG:
-				std::swap(color.red, color.blue);
-				std::swap(color.green, color.blue);
-				break;
+		if (_ledString.hasDisabled)
+		{
+			auto ledIter = _ledString.leds().begin();
+			for (ColorRgb& color : _ledBuffer)
+				if (ledIter != _ledString.leds().end())
+				{
+					if ((*ledIter).disabled)
+						color = ColorRgb::BLACK;
+					++ledIter;
+				}
+		}
+
+		if (disabledProcessing == 0)
+			emit rawLedColors(_ledBuffer);	
+	}
+
+	if (_ledString.colorOrder != ColorOrder::ORDER_RGB)
+	{
+		for (ColorRgb& color : _ledBuffer)
+		{
+			// correct the color byte order
+			switch (_ledString.colorOrder)
+			{
+				case ColorOrder::ORDER_RGB:
+					break;
+				case ColorOrder::ORDER_BGR:
+					std::swap(color.red, color.blue);
+					break;
+				case ColorOrder::ORDER_RBG:
+					std::swap(color.green, color.blue);
+					break;
+				case ColorOrder::ORDER_GRB:
+					std::swap(color.red, color.green);
+					break;
+				case ColorOrder::ORDER_GBR:
+					std::swap(color.red, color.green);
+					std::swap(color.green, color.blue);
+					break;
+
+				case ColorOrder::ORDER_BRG:
+					std::swap(color.red, color.blue);
+					std::swap(color.green, color.blue);
+					break;
+			}
 		}
 	}
 
@@ -736,7 +741,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 		else
 		{
 			int priority = _muxer.getCurrentPriority();
-			const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
+			const PriorityMuxer::InputInfo& priorityInfo = _muxer.getInputInfo(priority);
 
 			_smoothing->selectConfig(priorityInfo.smooth_cfg, false);
 
@@ -761,3 +766,8 @@ QString HyperHdrInstance::deleteEffect(const QString& effectName)
 }
 
 
+void HyperHdrInstance::identifyLed(const QJsonObject& params)
+{
+	_ledDeviceWrapper->handleComponentState(hyperhdr::Components::COMP_LEDDEVICE, true);
+	_ledDeviceWrapper->identifyLed(params);
+}

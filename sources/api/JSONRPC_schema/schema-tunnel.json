@@ -31,6 +31,9 @@
 		"data": {
 			"type" : "string",
 			"required" : true
+		},
+		"header": {
+			"type" : "object"
 		}
 	},
 	"additionalProperties": false

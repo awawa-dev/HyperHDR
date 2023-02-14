@@ -8,7 +8,6 @@
 // Qt includes
 #include <QCoreApplication>
 #include <QResource>
-#include <QDateTime>
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
@@ -17,7 +16,6 @@
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
-#include <QSerialPortInfo>
 
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
@@ -62,7 +60,10 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject
 	_jsonCB = new JsonCB(this);
 	_streaming_logging_activated = false;
 	_ledStreamTimer = new QTimer(this);
-	_lastSendImage = QDateTime::currentMSecsSinceEpoch();
+	_lastSendImage = InternalClock::now();
+	_colorsStreamingInterval = 50;
+
+	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::handleLedColorsTimer, Qt::UniqueConnection);
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 }
@@ -364,7 +365,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		// collect priority information
 		QJsonArray priorities;
-		uint64_t now = QDateTime::currentMSecsSinceEpoch();
+		uint64_t now = InternalClock::now();
 
 		int currentPriority = -1;
 		if (QThread::currentThread() == _hyperhdr->thread())
@@ -529,18 +530,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		ledDevices["available"] = availableLedDevices;
 		info["ledDevices"] = ledDevices;
-
-		// serial port
-		QJsonArray availableSerialPorts;
-		const auto infoSerial = QSerialPortInfo::availablePorts();
-		for (const QSerialPortInfo& info : infoSerial) {
-			QJsonObject serialPort;
-			serialPort["port"] = info.portName();
-			serialPort["desc"] = QString("%2 (%1)").arg(info.systemLocation()).arg(info.description());
-			availableSerialPorts.append(serialPort);
-		}
-		info["serialPorts"] = availableSerialPorts;
-
 
 	#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPMACOS)
 		if (SoundCapture::getInstance() != NULL)
@@ -1179,13 +1168,26 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::handleLedColorsIncoming(const std::vector<ColorRgb>& ledValues)
+{
+	_currentLedValues = ledValues;	
+
+	if (_ledStreamTimer->interval() != _colorsStreamingInterval)
+		_ledStreamTimer->start(_colorsStreamingInterval);
+}
+
+void JsonAPI::handleLedColorsTimer()
+{
+	emit streamLedcolorsUpdate(_currentLedValues);
+}
+
 void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	// create result
 	QString subcommand = message["subcommand"].toString("");
 
 	// max 20 Hz (50ms) interval for streaming (default: 10 Hz (100ms))
-	qint64 streaming_interval = qMax(message["interval"].toInt(100), 50);
+	_colorsStreamingInterval = qMax(message["interval"].toInt(100), 50);
 
 	if (subcommand == "ledstream-start")
 	{
@@ -1193,22 +1195,11 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 		_streaming_leds_reply["command"] = command + "-ledstream-update";
 		_streaming_leds_reply["tan"] = tan;
 
-		connect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, [=](const std::vector<ColorRgb>& ledValues) {
-			_currentLedValues = ledValues;
+		connect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, &JsonAPI::handleLedColorsIncoming, Qt::UniqueConnection);
 
-			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
-			// see: https://bugreports.qt.io/browse/QTBUG-52438
-			if (!_ledStreamConnection)
-				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
-				emit streamLedcolorsUpdate(_currentLedValues);
-					},
-					Qt::UniqueConnection);
+		if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != _colorsStreamingInterval)
+			_ledStreamTimer->start(_colorsStreamingInterval);
 
-			// start the timer
-			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
-				_ledStreamTimer->start(streaming_interval);
-			},
-			Qt::UniqueConnection);
 		// push once
 		QMetaObject::invokeMethod(_hyperhdr, "update");
 	}
@@ -1216,7 +1207,6 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 	{
 		disconnect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, 0);
 		_ledStreamTimer->stop();
-		disconnect(_ledStreamConnection);
 	}
 	else if (subcommand == "imagestream-start")
 	{
@@ -1224,11 +1214,13 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 		_streaming_image_reply["command"] = command + "-imagestream-update";
 		_streaming_image_reply["tan"] = tan;
 
-		connect(_hyperhdr, &HyperHdrInstance::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+		connect(_hyperhdr, &HyperHdrInstance::onCurrentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+
+		emit _hyperhdr->onCurrentImage();		
 	}
 	else if (subcommand == "imagestream-stop")
 	{
-		disconnect(_hyperhdr, &HyperHdrInstance::currentImage, this, 0);
+		disconnect(_hyperhdr, &HyperHdrInstance::onCurrentImage, this, 0);
 	}
 	else
 	{
@@ -1521,7 +1513,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject& message, const QString& 
 		if (!token.isEmpty())
 		{
 			// userToken is longer
-			if (token.count() > 36)
+			if (token.length() > 36)
 			{
 				if (API::isUserTokenAuthorized(token))
 					sendSuccessReply(command + "-" + subc, tan);
@@ -1531,7 +1523,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject& message, const QString& 
 				return;
 			}
 			// usual app token is 36
-			if (token.count() == 36)
+			if (token.length() == 36)
 			{
 				if (API::isTokenAuthorized(token))
 				{
@@ -1545,7 +1537,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject& message, const QString& 
 
 		// password
 		// use password
-		if (password.count() >= 8)
+		if (password.length() >= 8)
 		{
 			QString userTokenRep;
 			if (API::isUserAuthorized(password) && API::getUserToken(userTokenRep))
@@ -1675,9 +1667,19 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject& message, const QString& 
 		}
 		else if (subc == "identify")
 		{
-			ledDevice = LedDeviceFactory::construct(config);
 			const QJsonObject& params = message["params"].toObject();
-			ledDevice->identify(params);
+
+			if (devType == "philipshuev2" || devType == "blink")
+			{
+				QMetaObject::invokeMethod(_hyperhdr, [=]() {
+					_hyperhdr->identifyLed(params);
+					});
+			}
+			else
+			{
+				auto ledDevice = LedDeviceFactory::construct(config);
+				ledDevice->identify(params);
+			}
 
 			sendSuccessReply(full_command, tan);
 		}
@@ -1751,16 +1753,28 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 	emit callbackMessage(_streaming_leds_reply);
 }
 
-void JsonAPI::setImage(const Image<ColorRgb>& image)
-{	
-	uint64_t _currentTime = QDateTime::currentMSecsSinceEpoch();
+void JsonAPI::setImage()
+{
+	uint64_t _currentTime = InternalClock::now();
 
-	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))	
-		return;	
+	if (!_semaphore.tryAcquire() && (_lastSendImage < _currentTime && (_currentTime - _lastSendImage < 2000)))
+		return;
 
 	_lastSendImage = _currentTime;
 
-	QImage jpgImage((const uint8_t*)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
+	const PriorityMuxer* muxer = this->_hyperhdr->getMuxerInstance();
+	const int priority = muxer->getCurrentPriority();
+	const PriorityMuxer::InputInfo& priorityInfo = muxer->getInputInfo(priority);
+	const Image<ColorRgb>& image = priorityInfo.image;
+
+	if (image.width() <= 1 || image.height() <= 1)
+	{
+		if (_semaphore.available() == 0)
+			_semaphore.release();
+		return;
+	}
+
+	QImage jpgImage((const uchar*)image.rawMem(), image.width(), image.height() / 2, 6 * image.width(), QImage::Format_RGB888);
 	QByteArray ba;
 	QBuffer buffer(&ba);
 	buffer.open(QIODevice::WriteOnly);
@@ -1782,7 +1796,8 @@ void JsonAPI::setImage(const Image<ColorRgb>& image)
 
 void JsonAPI::releaseLock()
 {
-	_semaphore.release();
+	if (_semaphore.available() == 0)
+		_semaphore.release();
 }
 
 void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE& msg)
@@ -1876,7 +1891,6 @@ void JsonAPI::stopDataConnections()
 	// led stream colors
 	disconnect(_hyperhdr, &HyperHdrInstance::rawLedColors, this, 0);
 	_ledStreamTimer->stop();
-	disconnect(_ledStreamConnection);
 }
 
 void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, int tan)
@@ -1893,14 +1907,16 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 
 		if (service == "hue")
 		{
-			if (path.indexOf("/api") != 0 || ip.indexOf("/") >= 0)
+			QUrl tempUrl("http://"+ip);
+			if ((path.indexOf("/clip/v2") != 0 && path.indexOf("/api") != 0) || ip.indexOf("/") >= 0)
 			{
 				sendErrorReply("Invalid path", full_command, tan);
 				return;
 			}
 			
 			ProviderRestApi provider;
-			QUrl url = QUrl("http://"+ip+path);
+
+			QUrl url = QUrl((path.startsWith("/clip/v2")?"https://":"http://")+tempUrl.host()+path);
 
 			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
 
@@ -1916,8 +1932,17 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 				sendErrorReply("The Philips Hue wizard supports only valid IP addresses in the LOCAL network.\nIt may be preferable to use the IP4 address instead of the host name if you are having problems with DNS resolution.", full_command, tan);
 				return;
 			}
-
 			httpResponse result;
+			const QJsonObject& headerObject = message["header"].toObject();
+
+			if (!headerObject.isEmpty())
+			{
+				for (const auto& item : headerObject.keys())
+				{
+					provider.addHeader(item, headerObject[item].toString());
+				}
+			}
+
 			if (subcommand == "put")
 				result = provider.put(url, data);
 			else if (subcommand == "post")

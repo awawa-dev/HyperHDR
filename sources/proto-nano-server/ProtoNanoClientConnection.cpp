@@ -90,7 +90,7 @@ bool ProtoNanoClientConnection::readImage(pb_istream_t* stream, const pb_field_t
 
 	image->resize(sizeRgb, 1);
 
-	if (!pb_read(stream, (uint8_t*)image->memptr(), sizeRgb * 3))
+	if (!pb_read(stream, image->rawMem(), sizeRgb * 3))
 		return false;
 
 	return true;

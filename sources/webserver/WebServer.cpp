@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QJsonObject>
 #include <QTcpServer>
+#include <QDateTime>
 
 // bonjour
 #ifdef ENABLE_BONJOUR

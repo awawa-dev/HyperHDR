@@ -110,6 +110,8 @@ public:
 	///
 	virtual void identify(const QJsonObject& /*params*/) {}
 
+	virtual void identifyLed(const QJsonObject& /*params*/);
+
 	///
 	/// @brief Check, if device is properly initialised
 	///
@@ -416,6 +418,9 @@ private:
 	/// Is last write refreshing enabled?
 	bool	_isRefreshEnabled;
 
+	bool	_newFrame2Send;
+	int64_t _newFrame2SendTime;
+
 	/// Last LED values written
 	std::vector<ColorRgb> _lastLedValues;
 
@@ -425,7 +430,10 @@ private:
 		qint64		statBegin = 0;
 		qint64		frames = 0;
 		qint64		incomingframes = 0;
+		qint64		droppedFrames = 0;
 	} _computeStats;
+
+	int _blinkIndex;
 };
 
 #endif // LEDEVICE_H

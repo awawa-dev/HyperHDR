@@ -3,7 +3,6 @@
 #include <limits>
 
 // qt incl
-#include <QDateTime>
 #include <QTimer>
 #include <QDebug>
 
@@ -120,7 +119,7 @@ bool PriorityMuxer::hasPriority(int priority) const
 	return (priority == PriorityMuxer::LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
-PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
+const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(int priority) const
 {
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
@@ -173,6 +172,16 @@ void PriorityMuxer::registerInput(int priority, hyperhdr::Components component, 
 	}
 }
 
+void PriorityMuxer::updateLedsValues(int priority, const std::vector<ColorRgb>& ledColors)
+{
+	if (!_activeInputs.contains(priority))
+	{
+		return;
+	}
+
+	_activeInputs[priority].ledColors = ledColors;
+}
+
 bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
 {
 	if (!_activeInputs.contains(priority))
@@ -183,7 +192,7 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 
 	// calc final timeout
 	if (timeout_ms > 0)
-		timeout_ms = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
+		timeout_ms = InternalClock::now() + timeout_ms;
 
 	InputInfo& input = _activeInputs[priority];
 
@@ -202,7 +211,7 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	// update input
 	input.timeoutTime_ms = timeout_ms;
 	input.ledColors = ledColors;
-	input.image.clear();
+	input.image = Image<ColorRgb>();
 
 	// emit active change
 	if (activeChange)
@@ -228,7 +237,7 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 
 	// calculate final timeout
 	if (timeout_ms > 0)
-		timeout_ms = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
+		timeout_ms = InternalClock::now() + timeout_ms;
 
 	InputInfo& input = _activeInputs[priority];
 
@@ -297,7 +306,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 	{
 		for (auto key : _activeInputs.keys())
 		{
-			const InputInfo info = getInputInfo(key);
+			const InputInfo& info = getInputInfo(key);
 			if ((info.componentId == hyperhdr::COMP_COLOR || info.componentId == hyperhdr::COMP_EFFECT || info.componentId == hyperhdr::COMP_IMAGE) && key < PriorityMuxer::LOWEST_PRIORITY - 1)
 			{
 				clearInput(key);
@@ -308,7 +317,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 
 void PriorityMuxer::setCurrentTime()
 {
-	const int64_t now = QDateTime::currentMSecsSinceEpoch();
+	const int64_t now = InternalClock::now();
 	int newPriority;
 	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 

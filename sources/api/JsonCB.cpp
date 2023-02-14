@@ -28,7 +28,6 @@
 #include <utils/LutCalibrator.h>
 
 // qt
-#include <QDateTime>
 #include <QVariant>
 
 // Image to led map helper
@@ -281,13 +280,13 @@ void JsonCB::handlePriorityUpdate()
 {
 	QJsonObject data;
 	QJsonArray priorities;
-	uint64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t now = InternalClock::now();
 	QList<int> activePriorities = _prioMuxer->getPriorities();
-	activePriorities.removeAll(255);
+	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _prioMuxer->getCurrentPriority();
 
 	for (int priority : activePriorities) {
-		const HyperHdrInstance::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
+		const HyperHdrInstance::InputInfo& priorityInfo = _prioMuxer->getInputInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
 		if (priorityInfo.timeoutTime_ms > 0)

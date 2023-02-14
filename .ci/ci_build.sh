@@ -39,24 +39,25 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		CCACHE_PATH=$PWD
 		cd ..
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
-		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M
+		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
 		echo "CCache parameters: ${cachecommand}"		
 		ls -a .ccache
 
 		mkdir build || exit 1
 		cd build
 		ccache -p
-		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-		make -j $(sysctl -n hw.ncpu) package || exit 3
-
+		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+		make -j $(sysctl -n hw.ncpu) || exit 3
+		sudo cpack || exit 3
 		exit 0;
 		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	else
 		echo "Not using ccache"
 		mkdir build || exit 1
 		cd build
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-		make -j $(sysctl -n hw.ncpu) package || exit 3
+		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+		make -j $(sysctl -n hw.ncpu) || exit 3
+		sudo cpack || exit 3
 		exit 0;
 		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	fi
@@ -88,9 +89,9 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		
 		if [[ "$RESET_CACHE" == '1' ]]; then
 			echo "Clearing ccache"
-			cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M && cd /.ccache && rm -rf ..?* .[!.]* *"
+			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M && cd /.ccache && rm -rf ..?* .[!.]* *"
 		else
-			cache_env="export CCACHE_DIR=/.ccache && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=6 && export CCACHE_MAXSIZE=400M"
+			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M"
 		fi
 		
 		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"

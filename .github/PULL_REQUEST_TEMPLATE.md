@@ -30,15 +30,6 @@ If yes, please describe the impact and migration path for existing setups:
 <!-- Github will close properly linked issues automatically on PR merge -->
 - [ ] When resolving a specific issue, it's referenced in the PR's body (e.g. `Fixes: #xxx[,#xxx]`, where "xxx" is the issue number)
 
-If adding a **new feature**, the PR's description includes:
-
-- [ ] A convincing reason for adding this feature
-- [ ] Related documents have been updated (docs/docs/en)
-- [ ] Related tests have been updated
-
-**PLEASE DON'T FORGET TO ADD YOUR CHANGES TO CHANGELOG.MD**
-- [ ] Yes, CHANGELOG.md is also updated
-
 To avoid wasting your time, it's best to open a **feature request issue** first and wait for approval before working on it.
 
 **Other information:**

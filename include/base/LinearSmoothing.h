@@ -41,7 +41,9 @@ public:
 
 	void setEnable(bool enable);
 	bool pause() const;
-	bool enabled() const;		
+	bool enabled() const;
+
+	void updateLedValues(const std::vector<ColorRgb>& ledValues);
 
 public slots:
 	///
@@ -68,9 +70,7 @@ public slots:
 	/// @param component   The component
 	/// @param state       The requested state
 	///
-	void componentStateChange(hyperhdr::Components component, bool state);
-
-	void updateLedValues(std::vector<ColorRgb> ledValues);
+	void componentStateChange(hyperhdr::Components component, bool state);	
 
 	///
 	/// @brief Update a smoothing cfg which can be used with selectConfig()
@@ -179,13 +179,14 @@ private:
 	};
 
 	/// smooth config list
-	QVector<SmoothingCfg> _cfgList;
+	std::vector<SmoothingCfg> _cfgList;
 
-	unsigned	  _currentConfigId;
-	bool		  _enabled;
-	bool		  _directMode;
-	SmoothingType _smoothingType;
-	bool		  _infoUpdate;
-	bool		  _infoInput;
-	int			  debugCounter;
+	unsigned		_currentConfigId;
+	bool			_enabled;
+	bool			_directMode;
+	SmoothingType	_smoothingType;
+	bool			_infoUpdate;
+	bool			_infoInput;
+	int				_coolDown;
+	int				_debugCounter;
 };
