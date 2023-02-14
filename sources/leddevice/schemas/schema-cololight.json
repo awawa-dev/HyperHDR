@@ -1,7 +1,16 @@
 {
 	"type":"object",
 	"required":true,
-    "properties": {
+	"properties": {
+		"hardwareLedCount" : {
+			"type" : "integer",
+			"title" : "edt_dev_general_hardwareLedCount_title",
+			"minimum" : 1,
+			"default" : 1,
+			"access" : "expert",
+			"required" : true,
+			"propertyOrder" : 1
+		},
 		"host" : {
 			"type": "string",
 			"title":"edt_dev_spec_targetIpHost_title",

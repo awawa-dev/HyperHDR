@@ -239,7 +239,7 @@ void PerformanceCounters::consoleReport(int type, int token)
 		else if (del.type == static_cast<int>(PerformanceReportType::LED))
 		{
 			if (del.token > 0)
-				list.append(QString("[LED%1: FPS = %2, send = %3, processed = %4]").arg(del.id).arg(del.param1, 0, 'f', 2).arg(del.param2).arg(del.param3));
+				list.append(QString("[LED%1: FPS = %2, send = %3, processed = %4, dropped = %5]").arg(del.id).arg(del.param1, 0, 'f', 2).arg(del.param2).arg(del.param3).arg(del.param4));
 		}
 	}
 

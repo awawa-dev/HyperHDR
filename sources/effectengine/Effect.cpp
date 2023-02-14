@@ -530,7 +530,7 @@ bool Effect::ImageShow()
 		}
 	}
 
-	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
+	memcpy(image.rawMem(), binaryImage.data(), binaryImage.size());
 	emit setInputImage(_priority, image, timeout, false);
 
 	return true;

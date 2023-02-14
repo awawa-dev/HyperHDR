@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <QTextStream>
+#include <QString>
 
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the

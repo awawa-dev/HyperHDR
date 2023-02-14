@@ -60,7 +60,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	connect(thread, &QThread::started, _ledDevice, &LedDevice::start, Qt::QueuedConnection);
 
 	// further signals
-	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
+	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds);
 
 	connect(this, &LedDeviceWrapper::stopLedDevice, _ledDevice, &LedDevice::stop, Qt::BlockingQueuedConnection);
 
@@ -186,4 +186,14 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 	}
 
 	return result;
+}
+
+void LedDeviceWrapper::identifyLed(const QJsonObject& params)
+{	
+	QMetaObject::invokeMethod(_ledDevice, [=]() {
+		if (params["blinkIndex"].toInt(-1) != -1)
+			_ledDevice->identifyLed(params);
+		else
+			_ledDevice->identify(params);
+	});
 }
