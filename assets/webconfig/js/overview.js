@@ -184,9 +184,14 @@ $(document).ready(function ()
 
 					if (placer != null)
 					{
+						let warningM = "";
+						if (curElem.param4 > 0)
+						 	warningM = ` <small>${curElem.param4}</small> <i class="fa fa-trash" aria-hidden="true"></i>`;
+						if (curElem.param4 > 120)
+							warningM = `<span style="color:red">${warningM}</span>`;
 						let render = (curElem.token <= 0) ? ((curElem.type == 2) ? `<span class="card-tools"><span class="badge bg-danger" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span>&nbsp;` : "") + waitingSpinner : (curElem.type == 2) ?
 							`<span class="card-tools"><span class="badge bg-danger" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param2}</small> <i class="fa fa-long-arrow-down" aria-hidden="true"></i><i class="fa fa-long-arrow-up" aria-hidden="true"></i>` :
-							`<span class="card-tools"><span class="badge bg-success" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param3} </small><i class="fa fa-long-arrow-down" aria-hidden="true"></i>  <small>${curElem.param2}</small> <i class="fa fa-long-arrow-up" aria-hidden="true"></i>`;
+							`<span class="card-tools"><span class="badge bg-success" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param3} </small><i class="fa fa-long-arrow-down" aria-hidden="true"></i>  <small>${curElem.param2}</small> <i class="fa fa-long-arrow-up" aria-hidden="true"></i>${warningM}`;
 						render += ` <span class='perf_counter small text-muted'>(${curElem.refresh})</span>`;
 						placer.innerHTML = render;
 					}

@@ -46,7 +46,7 @@ void LedDeviceAWA_spi::CreateHeader()
 {
 	unsigned int totalLedCount = _ledCount - 1;
 
-	auto finalSize = (uint64_t)_headerSize + (_ledCount * 3) + 7;
+	auto finalSize = (uint64_t)_headerSize + (_ledCount * 3) + 8;
 	_ledBuffer.resize(finalSize, 0x00);
 
 	Debug(_log, "SPI driver with data integration check AWA protocol");
@@ -72,7 +72,7 @@ int LedDeviceAWA_spi::write(const std::vector<ColorRgb>& ledValues)
 		CreateHeader();
 	}
 
-	auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb) + 7;
+	auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb) + 8;
 
 	if (bufferLength > _ledBuffer.size())
 	{
@@ -89,14 +89,17 @@ int LedDeviceAWA_spi::write(const std::vector<ColorRgb>& ledValues)
 
 	whiteChannelExtension(writer);
 
-	uint16_t fletcher1 = 0, fletcher2 = 0;
+	uint16_t fletcher1 = 0, fletcher2 = 0, fletcherExt = 0;
+	uint8_t position = 0;
 	while (hasher < writer)
 	{
+		fletcherExt = (fletcherExt + (*(hasher) ^ (position++))) % 255;
 		fletcher1 = (fletcher1 + *(hasher++)) % 255;
 		fletcher2 = (fletcher2 + fletcher1) % 255;
 	}
 	*(writer++) = (uint8_t)fletcher1;
 	*(writer++) = (uint8_t)fletcher2;
+	*(writer++) = (uint8_t)((fletcherExt != 0x41) ? fletcherExt : 0xaa);
 	bufferLength = writer -_ledBuffer.data();
 
 	if (_spiType == "esp8266")

@@ -193,7 +193,7 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 {
 	static const int      REAL_BUFFER = 1536;
-	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 5;
+	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 8;
 
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
