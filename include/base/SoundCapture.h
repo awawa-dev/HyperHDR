@@ -1,14 +1,12 @@
 #pragma once
 
-
-#include <utils/Logger.h>
-#include <utils/settings.h>
 #include <QString>
 #include <QSemaphore>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QColor>
 #include <effectengine/AnimationBaseMusic.h>
+#include <utils/settings.h>
 
 #define SOUNDCAP_N_WAVE      1024
 #define SOUNDCAP_LOG2_N_WAVE 10

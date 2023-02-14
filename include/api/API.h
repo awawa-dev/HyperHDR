@@ -125,6 +125,12 @@ protected:
 	void setVideoModeHdr(int hdr, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 
 	///
+	/// @brief Set user LUT filename for flatbuffers tone mapping
+	/// @param userLUTfile	user LUT filename
+	///
+	void setFlatbufferUserLUT(QString userLUTfile);
+
+	///
 	/// @brief Set an effect
 	/// @param dat        The effect data
 	/// @param callerComp The HYPERHDR COMPONENT that calls this function! e.g. PROT/FLATBUF

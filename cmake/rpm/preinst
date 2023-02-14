@@ -30,5 +30,5 @@ fi
 # In case we don't use a service kill all instances
 killall hyperhdr 2> /dev/null
 
+# overwrite last return code
 exit 0
-

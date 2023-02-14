@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_WavesPulse.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_WavesPulse::Animation4Music_WavesPulse() :
 	AnimationBaseMusic(AMUSIC_WAVESPULSE),
@@ -75,7 +76,7 @@ bool Animation4Music_WavesPulse::getImage(Image<ColorRgb>& newImage)
 	QColor selected;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, selected))
 		return false;

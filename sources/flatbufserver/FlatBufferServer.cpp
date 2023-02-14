@@ -35,6 +35,7 @@ FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& c
 	, _lutBuffer(nullptr)
 	, _lutBufferInit(false)
 	, _configurationPath(configurationPath)
+	, _userLutFile("")
 {
 	FlatBufferServer::instance = this;
 }
@@ -240,6 +241,13 @@ void FlatBufferServer::loadLutFile()
 	files.append(fileName3);
 #endif
 
+	if (!_userLutFile.isEmpty())
+	{
+		QString userFile = QString("%1/%2").arg(_configurationPath).arg(_userLutFile);
+		files.prepend(userFile);
+		Debug(_log, "Adding user LUT file for searching: %s", QSTRING_CSTR(userFile));
+	}
+
 	_lutBufferInit = false;
 
 	if (_hdrToneMappingMode)
@@ -291,7 +299,14 @@ void FlatBufferServer::loadLutFile()
 
 void FlatBufferServer::importFromProtoHandler(int priority, int duration, const Image<ColorRgb>& image)
 {
-	FrameDecoder::applyLUT((uint8_t*)image.memptr(), image.width(), image.height(), _lutBuffer, _hdrToneMappingMode);
+	FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lutBuffer, _hdrToneMappingMode);
 
 	emit GlobalSignals::getInstance()->setGlobalImage(priority, image, duration);
+}
+
+void FlatBufferServer::setUserLut(QString filename)
+{
+	_userLutFile = filename.replace("~", "").replace("/","").replace("..", "");
+
+	Info(_log, "Setting user LUT filename to: '%s'", QSTRING_CSTR(_userLutFile));
 }

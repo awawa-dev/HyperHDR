@@ -8,7 +8,6 @@
 #include <QtNetwork>
 #include <QTcpServer>
 #include <QColor>
-#include <QDateTime>
 
 #include <chrono>
 #include <thread>
@@ -95,7 +94,7 @@ YeelightLight::YeelightLight(Logger* log, const QString& hostname, quint16 port 
 	, _tcpSocket(nullptr)
 	, _tcpStreamSocket(nullptr)
 	, _correlationID(0)
-	, _lastWriteTime(QDateTime::currentMSecsSinceEpoch())
+	, _lastWriteTime(InternalClock::now())
 	, _lastColorRgbValue(0)
 	, _transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
 	, _transitionDuration(API_PARAM_DURATION.count())
@@ -241,7 +240,7 @@ int YeelightLight::writeCommand(const QJsonDocument& command, QJsonArray& result
 				log(3, "Success:", "Bytes written   [%ll]", bytesWritten);
 
 				// Avoid to overrun the Yeelight Command Quota
-				qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _lastWriteTime;
+				qint64 elapsedTime = InternalClock::now() - _lastWriteTime;
 
 				if (elapsedTime < _waitTimeQuota)
 				{
@@ -299,7 +298,7 @@ int YeelightLight::writeCommand(const QJsonDocument& command, QJsonArray& result
 		//In case of no error or quota exceeded, update late write time avoiding immediate next write
 		if (rc == 0 || rc == -2)
 		{
-			_lastWriteTime = QDateTime::currentMSecsSinceEpoch();
+			_lastWriteTime = InternalClock::now();
 		}
 	}
 	else

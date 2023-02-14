@@ -26,6 +26,7 @@
 */
 
 #include <grabber/SoundCapLinux.h>
+#include <utils/Logger.h>
 #include <cmath>
 #include <QString>
 #include <stdexcept>

@@ -186,6 +186,18 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 
 void HyperHdrDaemon::instanceStateChanged(InstanceState state, quint8 instance, const QString& name)
 {
+	// start web server if needed
+	if (state == InstanceState::H_STARTED)
+	{
+		if (_instanceManager->areInstancesReady())
+		{
+			if (_webserver != nullptr && !_webserver->thread()->isRunning())
+				_webserver->thread()->start();
+			if (_sslWebserver != nullptr && !_sslWebserver->thread()->isRunning())
+				_sslWebserver->thread()->start();
+		}
+	}
+
 	// cec
 	updateCEC();
 }
@@ -331,7 +343,6 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
 	connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
 	connect(this, &HyperHdrDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
-	wsThread->start();
 
 	// Create SSL Webserver in thread
 	_sslWebserver = new WebServer(getSetting(settings::type::WEBSERVER), true);
@@ -341,7 +352,6 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
 	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
 	connect(this, &HyperHdrDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
-	sslWsThread->start();
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver,

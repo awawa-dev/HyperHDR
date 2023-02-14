@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_StereoMulti.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoMulti::Animation4Music_StereoMulti() :
 	AnimationBaseMusic(AMUSIC_STEREOMULTI),
@@ -72,7 +73,7 @@ bool Animation4Music_StereoMulti::getImage(Image<ColorRgb>& newImage)
 	QColor selected;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, selected))
 		return false;

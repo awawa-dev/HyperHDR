@@ -6,9 +6,6 @@
 #include <stdarg.h>
 
 // Qt includes
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QtCore/qmath.h>
 #include <QStringList>
 
 // LedDevice includes
@@ -151,6 +148,8 @@ public:
 	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx,
 		int onBlackTimeToPowerOff,
 		int onBlackTimeToPowerOn);
+	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, QStringList lightIds,
+		unsigned int ledidx);
 	~PhilipsHueLight();
 
 	///
@@ -185,7 +184,11 @@ public:
 	bool isBlack(bool isBlack);
 	bool isWhite(bool isWhite);
 	void setBlack();
-	void blackScreenTriggered();
+	void blackScreenTriggered();	
+	ColorRgb getRGBColor() const;
+	void setRGBColor(const ColorRgb color);
+	QStringList getLightIds() const;
+
 private:
 
 	Logger* _log;
@@ -195,6 +198,7 @@ private:
 	bool _on;
 	int _transitionTime;
 	CiColor _color;
+	ColorRgb _colorRgb;
 	bool    _hasColor;
 	/// darkes blue color in hue lamp GAMUT = black
 	CiColor _colorBlack;
@@ -214,6 +218,7 @@ private:
 	bool _blackScreenTriggered;
 	uint64_t _onBlackTimeToPowerOff;
 	uint64_t _onBlackTimeToPowerOn;
+	QStringList _lightIds;
 };
 
 class LedDevicePhilipsHueBridge : public ProviderUdpSSL
@@ -264,6 +269,15 @@ public:
 
 	QJsonArray getGroupLights(quint16 groupId = 0) const;
 
+	QJsonDocument getLightStateV2(QString lightId);
+	void setLightStateV2(QString lightId = "", const QString& state = "");
+	QMap<QString, QJsonObject> getGroupMapV2() const;
+	QString getGroupNameV2(QString groupId = "0") const;
+	QJsonArray getGroupChannelsV2(QString groupId = 0) const;
+	void setApplicationIdV2();
+	bool isApiV2();
+	void setApiV2(bool version2);
+
 protected:
 
 	///
@@ -303,6 +317,14 @@ protected:
 
 	const int* getCiphersuites() const override;
 
+	QJsonDocument getGroupStateV2(QString groupId);
+	QJsonDocument setGroupStateV2(QString groupId, bool state);
+	QStringList getLightIdsInChannelV2(QJsonObject channel);
+	QMap<QString, QJsonObject>& getLightStateMapV2();
+	void setLightsMapV2(const QJsonDocument& doc);
+	void setGroupMapV2(const QJsonDocument& doc);
+	httpResponse getRaw(const QString& route);
+
 private:
 
 	QJsonDocument getAllBridgeInfos();
@@ -323,6 +345,13 @@ private:
 
 	QMap<quint16, QJsonObject> _lightsMap;
 	QMap<quint16, QJsonObject> _groupsMap;
+
+	QString _hueApplicationId;
+	QMap<QString, QJsonObject> _lightsMapV2;
+	QMap<QString, QJsonObject> _lightStateMapV2;
+	QMap<QString, QJsonObject> _groupsMapV2;
+
+	bool _apiV2;
 };
 
 /**
@@ -508,9 +537,11 @@ protected:
 	///
 	bool restoreState() override;
 
+	void colorChannel(const ColorRgb& colorRgb, unsigned int i);
+
 private:
 
-	bool initLeds();
+	bool initLeds(QString groupName);
 
 	bool powerOn(bool wait);
 
@@ -546,6 +577,7 @@ private:
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
 
 	QByteArray prepareStreamData() const;
+	std::vector<uint8_t> prepareStreamDataV2();
 
 	///
 	bool _switchOffOnBlack;
@@ -563,6 +595,7 @@ private:
 	std::vector<PhilipsHueLight> _lights;
 
 	unsigned int _lightsCount;
+	QString		_entertainmentConfigurationId;
 	quint16		_groupId;
 
 	int			_blackLightsTimeout;
@@ -584,4 +617,5 @@ private:
 	int			_lastId;
 	bool		_groupStreamState;
 	QJsonObject _configBackup;
+	std::atomic<uint8_t> _sequenceNumber;
 };

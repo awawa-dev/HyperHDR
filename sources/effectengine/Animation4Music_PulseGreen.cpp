@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseGreen.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseGreen::Animation4Music_PulseGreen() :
 	AnimationBaseMusic(AMUSIC_PULSEGREEN),

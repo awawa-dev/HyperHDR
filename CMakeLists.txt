@@ -17,6 +17,28 @@ set(CMAKE_AUTORCC ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Set build variables
+SET ( DEFAULT_PROTOBUF                    ON  )
+SET ( DEFAULT_BOBLIGHT                    OFF )
+SET ( DEFAULT_WS281XPWM                   OFF )
+SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
+SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_MF                          OFF )
+SET ( DEFAULT_DX                          OFF )
+SET ( DEFAULT_AVF                         OFF )
+SET ( DEFAULT_MAC_SYSTEM                  OFF )
+SET ( DEFAULT_V4L2                        OFF )
+SET ( DEFAULT_X11                         OFF )
+SET ( DEFAULT_PIPEWIRE                    OFF )
+SET ( DEFAULT_FRAMEBUFFER                 OFF )
+SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
+SET ( DEFAULT_SOUNDCAPMACOS               OFF )
+SET ( DEFAULT_CEC                         OFF )
+SET ( DEFAULT_BONJOUR                     ON  )
+SET ( DEFAULT_MQTT                        ON  )
+SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
+SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
+
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
 if ( CCACHE_FOUND )
@@ -51,29 +73,6 @@ ELSE()
 	ENDIF()
 	SET( Qt_VERSION 5 )	
 ENDIF()
-
-
-# Set build variables
-SET ( DO_NOT_USE_QT_VERSION_6_LIBS        OFF )
-SET ( DEFAULT_PROTOBUF                    ON  )
-SET ( DEFAULT_BOBLIGHT                    ON  )
-SET ( DEFAULT_WS281XPWM                   OFF )
-SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
-SET ( DEFAULT_MF                          OFF )
-SET ( DEFAULT_DX                          OFF )
-SET ( DEFAULT_AVF                         OFF )
-SET ( DEFAULT_MAC_SYSTEM                  OFF )
-SET ( DEFAULT_V4L2                        OFF )
-SET ( DEFAULT_X11                         OFF )
-SET ( DEFAULT_PIPEWIRE                    OFF )
-SET ( DEFAULT_FRAMEBUFFER                 OFF )
-SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
-SET ( DEFAULT_SOUNDCAPMACOS               OFF )
-SET ( DEFAULT_CEC                         OFF )
-SET ( DEFAULT_BONJOUR                     ON  )
-SET ( DEFAULT_MQTT                        ON  )
-SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )	
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
@@ -149,8 +148,9 @@ if ( "${PLATFORM}" MATCHES "osx" )
 		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 	endif()
 	
-	SET ( DEFAULT_AVF        ON  )
-	SET ( DEFAULT_MAC_SYSTEM ON  )
+	SET ( DEFAULT_AVF                 ON  )
+	SET ( DEFAULT_MAC_SYSTEM          ON  )
+	SET ( DEFAULT_PRECOMPILED_HEADERS OFF )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
 	SET ( DEFAULT_WS281XPWM  ON )
 	SET ( DEFAULT_CEC        ON )
@@ -184,11 +184,8 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 
 	if(${IS_RASPBERRY} EQUAL -1)
 		message(STATUS "This is not Raspberry Pi. Default compiler settings.")
-	elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "(armv7l|armv8)")
-	    add_compile_options(-march=armv8-a+crc -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations)
-	    message(STATUS "RPI 3/4 (armv7l or armv8) detected for optimization")
 	else()
-		message(STATUS "Default compiler settings for Raspberry.")
+		message(STATUS "Default compiler settings for Raspberry Pi.")
 	endif()
 	
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
@@ -303,62 +300,99 @@ if (WIN32)
 endif()
 
 # set the build options
-option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
-message(STATUS "ENABLE_BOBLIGHT   = ${ENABLE_BOBLIGHT}")
+ if(NOT WIN32)
+	string(ASCII 27 EscChar)
+	set(ColorReset  "${EscChar}[m")
+	set(RedColor    "${EscChar}[31m")
+	set(GreenColor  "${EscChar}[32m")
+	set(YellowColor "${EscChar}[33m")
+	set(BlueColor   "${EscChar}[34m")
+	set(CyanColor   "${EscChar}[36m")
+endif()
+
+function(colorMe value1 value2)
+	if (value2)
+		message( STATUS  "${value1}${GreenColor}${value2}${ColorReset}")
+	else()
+		message( STATUS  "${value1}${RedColor}${value2}${ColorReset}")
+	endif()
+endfunction()
+
+message( STATUS "\n${CyanColor}LED DEVICES${ColorReset}")
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
-message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
-
-option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
-message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
-
-option(ENABLE_X11 "Enable the X11 Linux system grabber" ${DEFAULT_X11})
-message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
-
-option(ENABLE_FRAMEBUFFER "Enable the framebuffer Linux system grabber" ${DEFAULT_FRAMEBUFFER})
-message(STATUS "ENABLE_FRAMEBUFFER = ${ENABLE_FRAMEBUFFER}")
-
-option(ENABLE_PIPEWIRE "Enable the pipewire/portal Linux system grabber" ${DEFAULT_PIPEWIRE})
-message(STATUS "ENABLE_PIPEWIRE = ${ENABLE_PIPEWIRE}")
+colorMe("ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
-message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
+colorMe("ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
 
-option(ENABLE_BONJOUR "Enable the network discovery service" ${DEFAULT_BONJOUR} )
-message(STATUS "ENABLE_BONJOUR = ${ENABLE_BONJOUR}")
-
-option(ENABLE_MF "Enable Windows Media Foundation grabber" ${DEFAULT_MF})
-message(STATUS "ENABLE_MF = ${ENABLE_MF}")
+message( STATUS "\n${CyanColor}SOFTWARE GRABBERS${ColorReset}")
 
 option(ENABLE_DX "Enable Windows DirectX 11 system grabber" ${DEFAULT_DX})
-message(STATUS "ENABLE_DX = ${ENABLE_DX}")
+colorMe("ENABLE_DX = " ${ENABLE_DX})
 
-option(ENABLE_AVF "Enable AV Foundation macOS grabber" ${DEFAULT_AVF})
-message(STATUS "ENABLE_AVF = ${ENABLE_AVF}")
+option(ENABLE_FRAMEBUFFER "Enable the framebuffer Linux system grabber" ${DEFAULT_FRAMEBUFFER})
+colorMe("ENABLE_FRAMEBUFFER = " ${ENABLE_FRAMEBUFFER})
 
 option(ENABLE_MAC_SYSTEM "Enable macOS system grabber" ${DEFAULT_MAC_SYSTEM})
-message(STATUS "ENABLE_MAC_SYSTEM = ${ENABLE_MAC_SYSTEM}")
+colorMe("ENABLE_MAC_SYSTEM = " ${ENABLE_MAC_SYSTEM})
 
-option(ENABLE_SOUNDCAPWINDOWS "Enable Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
-message(STATUS "ENABLE_SOUNDCAPWINDOWS = ${ENABLE_SOUNDCAPWINDOWS}")
+option(ENABLE_PIPEWIRE "Enable the pipewire/portal Linux system grabber" ${DEFAULT_PIPEWIRE})
+colorMe("ENABLE_PIPEWIRE = " ${ENABLE_PIPEWIRE})
 
-option(ENABLE_SOUNDCAPMACOS "Enable macOS Sound Capture" ${DEFAULT_SOUNDCAPMACOS})
-message(STATUS "ENABLE_SOUNDCAPMACOS = ${ENABLE_SOUNDCAPMACOS}")
+option(ENABLE_X11 "Enable the X11 Linux system grabber" ${DEFAULT_X11})
+colorMe("ENABLE_X11 = " ${ENABLE_X11})
+
+message( STATUS "\n${CyanColor}HARDWARE GRABBERS${ColorReset}")
+
+option(ENABLE_AVF "Enable AV Foundation macOS grabber" ${DEFAULT_AVF})
+colorMe("ENABLE_AVF = " ${ENABLE_AVF})
+
+option(ENABLE_MF "Enable Windows Media Foundation grabber" ${DEFAULT_MF})
+colorMe("ENABLE_MF = " ${ENABLE_MF})
+
+option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
+colorMe("ENABLE_V4L2 = " ${ENABLE_V4L2})
+
+message( STATUS "\n${CyanColor}SOUND CAPTURING${ColorReset}")
 
 option(ENABLE_SOUNDCAPLINUX "Enable Linux Sound Capture" ${DEFAULT_SOUNDCAPLINUX})
-message(STATUS "ENABLE_SOUNDCAPLINUX = ${ENABLE_SOUNDCAPLINUX}")
+colorMe("ENABLE_SOUNDCAPLINUX = " ${ENABLE_SOUNDCAPLINUX})
+
+option(ENABLE_SOUNDCAPMACOS "Enable macOS Sound Capture" ${DEFAULT_SOUNDCAPMACOS})
+colorMe("ENABLE_SOUNDCAPMACOS = " ${ENABLE_SOUNDCAPMACOS})
+
+option(ENABLE_SOUNDCAPWINDOWS "Enable Windows Sound Capture" ${DEFAULT_SOUNDCAPWINDOWS})
+colorMe("ENABLE_SOUNDCAPWINDOWS = " ${ENABLE_SOUNDCAPWINDOWS})
+
+message( STATUS "\n${CyanColor}SERVICE SUPPORT${ColorReset}")
+
+option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
+colorMe("ENABLE_BOBLIGHT = " ${ENABLE_BOBLIGHT})
+
+option(ENABLE_BONJOUR "Enable the network discovery service" ${DEFAULT_BONJOUR} )
+colorMe("ENABLE_BONJOUR = " ${ENABLE_BONJOUR})
 
 option(ENABLE_CEC "Enable CEC" ${DEFAULT_CEC})
-message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
-
-option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
-message(STATUS "ENABLE_PROTOBUF = ${ENABLE_PROTOBUF}")
+colorMe("ENABLE_CEC = " ${ENABLE_CEC})
 
 option(ENABLE_MQTT "Enable MQTT" ${DEFAULT_MQTT})
-message(STATUS "ENABLE_MQTT = ${ENABLE_MQTT}")
+colorMe("ENABLE_MQTT = " ${ENABLE_MQTT})
+
+option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
+colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
+
+message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
 option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
-message(STATUS "USE_STATIC_QT_PLUGINS = ${USE_STATIC_QT_PLUGINS}")
+colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
+
+option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
+colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
+
+message( STATUS "\n")
+
+# next part
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -456,6 +490,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	endif()
 
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT hyperhdr)
+	add_definitions(/MP)
 endif()
 
 add_definitions(${QT_DEFINITIONS})
@@ -545,8 +580,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt)
-	set_target_properties(qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt)
+	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

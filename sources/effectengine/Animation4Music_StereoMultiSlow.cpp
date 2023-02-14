@@ -26,6 +26,7 @@
 */
 
 #include <effectengine/Animation4Music_StereoMultiSlow.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoMultiSlow::Animation4Music_StereoMultiSlow() :
 	AnimationBaseMusic(AMUSIC_STEREOMULTISLOW),
@@ -72,7 +73,7 @@ bool Animation4Music_StereoMultiSlow::getImage(Image<ColorRgb>& newImage)
 	QColor selected, empty;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, empty, NULL, &selected))
 		return false;

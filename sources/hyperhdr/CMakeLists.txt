@@ -8,6 +8,7 @@ if (WIN32)
 	set(hyperhdr_POWER_MNG "WinSuspend.cpp;WinSuspend.h")
 elseif (APPLE)
 	set(hyperhdr_POWER_MNG "MacSuspend.mm;MacSuspend.h")
+	find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
 elseif (Qt${Qt_VERSION}DBus_FOUND)
 	set(hyperhdr_POWER_MNG "LinuxSuspend.cpp;LinuxSuspend.h")
 	set(hyperhdr_POWER_MNG_DBUS "Qt${Qt_VERSION}::DBus")
@@ -44,6 +45,7 @@ target_link_libraries(hyperhdr
 	resources
 	Qt${Qt_VERSION}::Widgets
 	${hyperhdr_POWER_MNG_DBUS}
+	${APPKIT_FRAMEWORK}
 )
 
 if (USE_STATIC_QT_PLUGINS)
@@ -179,3 +181,7 @@ elseif (NOT WIN32) # Unix
 elseif(WIN32) # Windows
 	DeployWindows("hyperhdr")
 endif ()
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(hyperhdr REUSE_FROM precompiled_hyperhdr_headers)
+endif()

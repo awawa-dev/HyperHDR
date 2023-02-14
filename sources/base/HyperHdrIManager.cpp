@@ -15,6 +15,7 @@ HyperHdrIManager::HyperHdrIManager(const QString& rootPath, QObject* parent, boo
 	, _instanceTable(new InstanceTable(rootPath, this, readonlyMode))
 	, _rootPath(rootPath)
 	, _readonlyMode(readonlyMode)
+	, _fireStarter(0)
 {
 	HIMinstance = this;
 	qRegisterMetaType<InstanceState>("InstanceState");
@@ -59,9 +60,21 @@ QVector<QVariantMap> HyperHdrIManager::getInstanceData() const
 	return instances;
 }
 
+bool HyperHdrIManager::areInstancesReady()
+{
+	if (_fireStarter > 0)
+		_fireStarter--;
+
+	return (_fireStarter < 1);
+}
+
 void HyperHdrIManager::startAll()
 {
-	for (const auto& entry : _instanceTable->getAllInstances(true))
+	auto instanceList = _instanceTable->getAllInstances(true);
+
+	_fireStarter = instanceList.count();
+
+	for (const auto& entry : instanceList)
 	{
 		startInstance(entry["instance"].toInt());
 	}

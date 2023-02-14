@@ -173,7 +173,6 @@ ImageToLedsMap::ImageToLedsMap(
 
 		// Add the constructed vector to the map
 		_colorsMap.push_back(ledColor);
-
 		_colorsGroups.push_back(led.group);
 		if (_groupMin == -1 || led.group < _groupMin)
 			_groupMin = led.group;
@@ -207,16 +206,17 @@ unsigned ImageToLedsMap::verticalBorder() const {
 	return _verticalBorder;
 }
 
-std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image, uint16_t* advanced) {
+std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image, uint16_t* advanced)
+{
 	std::vector<ColorRgb> colors;
 	switch (_mappingType)
 	{
-	case 3:
-	case 2: colors = getMeanAdvLedColor(image, advanced); break;
-	case 1: colors = getUniLedColor(image); break;
-	default: colors = getMeanLedColor(image);
+		case 3:
+		case 2: colors = getMeanAdvLedColor(image, advanced); break;
+		case 1: colors = getUniLedColor(image); break;
+		default: colors = getMeanLedColor(image);
 	}
-
+	
 	if (_groupMax > 0 && _mappingType != 1)
 	{
 		for (int i = std::max(_groupMin, 1); i <= _groupMax; i++)
@@ -250,7 +250,7 @@ std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image, uint
 				}
 		}
 	}
-
+	
 	return colors;
 }
 
@@ -333,7 +333,7 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb>& image, const std::
 	uint_fast32_t sumRed = 0;
 	uint_fast32_t sumGreen = 0;
 	uint_fast32_t sumBlue = 0;
-	uint8_t* imgData = (uint8_t*)image.memptr();
+	const uint8_t* imgData = image.rawMem();
 
 	for (const unsigned colorOffset : colors)
 	{
@@ -371,7 +371,7 @@ ColorRgb ImageToLedsMap::calcMeanAdvColor(const Image<ColorRgb>& image, const st
 	uint_fast64_t sumGreen2 = 0;
 	uint_fast64_t sumBlue2 = 0;
 
-	uint8_t* imgData = (uint8_t*)image.memptr();
+	const uint8_t* imgData = image.rawMem();
 
 	for (const int32_t colorOffset : colors)
 	{
@@ -416,7 +416,7 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb>& image) const
 	uint_fast32_t sumBlue = 0;
 	const size_t imageSize = image.size();
 
-	uint8_t* imgData = (uint8_t*)image.memptr();
+	const uint8_t* imgData = image.rawMem();
 
 	for (size_t idx = 0; idx < imageSize; idx += 3)
 	{
@@ -426,9 +426,9 @@ ColorRgb ImageToLedsMap::calcMeanColor(const Image<ColorRgb>& image) const
 	}
 
 	// Compute the average of each color channel
-	const uint8_t avgRed = uint8_t(sumRed / imageSize);
-	const uint8_t avgGreen = uint8_t(sumGreen / imageSize);
-	const uint8_t avgBlue = uint8_t(sumBlue / imageSize);
+	const uint8_t avgRed = uint8_t(sumRed / (imageSize/3));
+	const uint8_t avgGreen = uint8_t(sumGreen / (imageSize/3));
+	const uint8_t avgBlue = uint8_t(sumBlue / (imageSize/3));
 
 	// Return the computed color
 	return { avgRed, avgGreen, avgBlue };

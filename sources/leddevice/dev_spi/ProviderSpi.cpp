@@ -14,6 +14,8 @@
 #include "ProviderSpi.h"
 #include <utils/Logger.h>
 
+#include <QDirIterator>
+
 ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _deviceName("/dev/spidev0.0")
@@ -191,7 +193,7 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 {
 	static const int      REAL_BUFFER = 1536;
-	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 5;
+	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 8;
 
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
@@ -221,4 +223,28 @@ int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 	}
 
 	return retVal;
+}
+
+QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	QJsonArray deviceList;
+	QStringList files;	
+	QDirIterator it("/dev", QStringList() << "spidev*", QDir::System);
+	
+	while (it.hasNext())
+		files << it.next();
+	files.sort();
+
+	for (const auto& path : files)
+		deviceList.push_back(QJsonObject{
+			{"value", path},
+			{ "name", path } });
+
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
+	devicesDiscovered.insert("devices", deviceList);
+
+	Debug(_log, "SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return devicesDiscovered;
 }
