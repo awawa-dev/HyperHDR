@@ -35,3 +35,5 @@ dependencies/bonjour
 # Visual Studio 2015/2017/2019 cache/options directory
 .vs/
 CMakeSettings.json
+cmake-build-debug
+.idea

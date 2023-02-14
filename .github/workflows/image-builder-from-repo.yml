@@ -1,12 +1,10 @@
-name: Build Image
+name: Build Image from Repo
 
 on: 
   workflow_dispatch:
     inputs:
-      tags:
-        description: 'HyperHDR release tag (for example 17.0.0.0)'
       architecture:
-        description: 'ARM architecture: armv6l/armv7l/aarch64'
+        description: 'ARM architecture: armv6l/aarch64'
 
 jobs:
   build:
@@ -64,12 +62,13 @@ jobs:
         echo '#!/usr/bin/env bash'  > start_chroot_script
         echo 'set -x' >> start_chroot_script
         echo 'set -e' >> start_chroot_script
-        echo 'source /common.sh' >> start_chroot_script
-        echo 'apt-get update' >> start_chroot_script
-        echo 'cd /tmp' >> start_chroot_script
-        echo 'wget ${{env.HYPERHDR_DEB}} -O hyperhdr.deb' >> start_chroot_script
-        echo 'apt install -y ./hyperhdr.deb' >> start_chroot_script
-        echo 'rm ./hyperhdr.deb' >> start_chroot_script
+        echo 'source /common.sh' >> start_chroot_script        
+        echo 'type -p curl >/dev/null || apt install curl -y' >> start_chroot_script
+        echo 'curl -fsSL https://awawa-dev.github.io/hyperhdr.public.apt.gpg.key | dd of=/usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
+        echo '&& chmod go+r /usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
+        echo '&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hyperhdr.public.apt.gpg.key] https://awawa-dev.github.io $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hyperhdr.list > /dev/null \' >> start_chroot_script
+        echo '&& apt update \' >> start_chroot_script
+        echo '&& apt install hyperhdr -y' >> start_chroot_script        
         echo 'touch /boot/ssh' >> start_chroot_script
         echo "echo -n 'pi:' > /boot/userconf" >> start_chroot_script
         echo "echo 'raspberry' | openssl passwd -6 -stdin >> /boot/userconf" >> start_chroot_script
@@ -91,7 +90,7 @@ jobs:
       run: |
         IMAGE=SD-card-image-${{ github.event.inputs.tags }}-${{ github.event.inputs.architecture }}
         cp ${{ env.workspace_dir }}/*.img $IMAGE.img
-        echo "image=$IMAGE" >> $GITHUB_OUTPUT
+        echo "::set-output name=image::$IMAGE"
 
     # artifact upload will take care of zipping for us
     - uses: actions/upload-artifact@v1      

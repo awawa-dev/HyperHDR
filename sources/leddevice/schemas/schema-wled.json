@@ -7,6 +7,37 @@
 			"title":"edt_dev_spec_targetIpHost_title",
 			"propertyOrder" : 1
 		},
+		"brightnessMax": {
+			"type": "boolean",
+			"title":"wledBrightnessOverride",
+			"format": "checkbox",
+			"default" : true,
+			"propertyOrder" : 2
+		},		
+		"brightnessMaxLevel":
+		{
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "wledCustomBrightnessLevel",
+			"minimum" : 1,
+			"maximum" : 255,
+			"default" : 255,
+			"options": {
+				"dependencies": {
+					"brightnessMax": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 3
+		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_restoreOriginalState_title",
+			"default" : false,
+			"propertyOrder" : 4
+		},
 		"maxRetry":
 		{
 			"type" : "integer",
@@ -17,7 +48,7 @@
 			"maximum" : 300,
 			"default" : 60,
 			"required" : true,
-			"propertyOrder" : 2
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": true
