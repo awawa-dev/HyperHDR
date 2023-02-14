@@ -62,6 +62,7 @@ LutCalibrator* LutCalibrator::instance = nullptr;
 LutCalibrator::LutCalibrator()
 {
 	_log = Logger::getInstance("CALIBRATOR");
+	_mjpegCalibration = false;
 	_finish = false;
 	_limitedRange = false;
 	_saturation = 1;
@@ -106,7 +107,7 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 {
 	if (checksum == 0)
 	{
-		if (GrabberWrapper::getInstance() != nullptr)
+		if (GrabberWrapper::getInstance() != nullptr && !_mjpegCalibration)
 		{
 			if (GrabberWrapper::getInstance()->getHdrToneMappingEnabled() != 0)
 			{
@@ -118,8 +119,18 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 				lutCalibrationUpdate(report);
 				return;
 			}
-		}
 
+			auto mode = GrabberWrapper::getInstance()->getVideoCurrentMode();
+			auto vidMode = mode.contains(Grabber::currentVideoModeInfo::resolution) ? mode[Grabber::currentVideoModeInfo::resolution] : "";
+			_mjpegCalibration = (vidMode.indexOf("mjpeg", 0, Qt::CaseInsensitive) >= 0);
+
+			if (_mjpegCalibration)
+			{
+				Debug(_log, "Enabling pseudo-HDR mode for calibration to bypass TurboJPEG MJPEG to RGB processing");
+				GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
+			}
+		}		
+		
 		_finish = false;
 		_limitedRange = limitedRange;
 		_saturation = saturation;
@@ -195,6 +206,7 @@ void LutCalibrator::stopHandler()
 {
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
+	_mjpegCalibration = false;
 	_finish = false;
 	_checksum = -1;
 	_warningCRC = _warningMismatch = -1;
@@ -1296,6 +1308,13 @@ bool LutCalibrator::finalize(bool fastTrack)
 
 				}
 		file.write((const char*)_lutBuffer, LUT_FILE_SIZE);
+
+		if (_mjpegCalibration && fastTrack)
+		{
+			file.seek(LUT_FILE_SIZE);
+			file.write((const char*)_lutBuffer, LUT_FILE_SIZE);
+		}
+
 		file.flush();
 		Debug(_log, "LUT YUV table (3/3) is ready");
 

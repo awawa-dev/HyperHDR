@@ -158,6 +158,7 @@ private:
 	void	applyFilter();
 
 	Logger* _log;
+	bool	_mjpegCalibration;
 	bool	_finish;
 	bool	_limitedRange;
 	int		_checksum;
