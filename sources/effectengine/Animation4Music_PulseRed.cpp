@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_PulseRed.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_PulseRed::Animation4Music_PulseRed() :
 	AnimationBaseMusic(AMUSIC_PULSERED),

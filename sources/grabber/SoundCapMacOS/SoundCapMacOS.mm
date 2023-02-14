@@ -26,6 +26,7 @@
 */
 
 #include <grabber/SoundCapMacOS.h>
+#include <utils/Logger.h>
 #include <cmath>
 #include <QString>
 #import <Foundation/Foundation.h>

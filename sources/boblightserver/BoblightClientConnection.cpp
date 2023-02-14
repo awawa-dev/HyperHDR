@@ -13,7 +13,6 @@
 
 // Qt includes
 #include <QResource>
-#include <QDateTime>
 #include <QHostInfo>
 
 #include <base/ImageProcessor.h>

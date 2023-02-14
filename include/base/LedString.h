@@ -101,6 +101,8 @@ struct Led
 	///  The maximum horizontal scan line included for this leds color
 	double maxY_frac;
 
+	bool disabled;
+
 	int group;
 };
 
@@ -127,6 +129,8 @@ public:
 
 	/// the color order
 	ColorOrder colorOrder = ColorOrder::ORDER_RGB;
+
+	bool hasDisabled = false;
 
 	static ColorOrder createColorOrder(const QJsonObject& deviceConfig);
 	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder);

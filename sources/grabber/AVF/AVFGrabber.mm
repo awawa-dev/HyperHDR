@@ -470,7 +470,7 @@ bool AVFGrabber::start()
 {
 	try
 	{
-		resetCounter(QDateTime::currentMSecsSinceEpoch());
+		resetCounter(InternalClock::now());
 		_AVFWorkerManager.Start();
 
 		if (_AVFWorkerManager.workersCount <= 1)
@@ -758,7 +758,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 		if (_AVFWorkerManager.isActive())
 		{
 			// stats
-			int64_t now = QDateTime::currentMSecsSinceEpoch();
+			int64_t now = InternalClock::now();
 			int64_t diff = now - frameStat.frameBegin;
 			int64_t prevToken = frameStat.token;
 
@@ -816,7 +816,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 							_actualVideoFormat,
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
-							processFrameIndex, now, _hdrToneMappingEnabled,
+							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
 							(_lutBufferInit) ? _lutBuffer : NULL, _qframe);
 
 						if (_AVFWorkerManager.workersCount > 1)
@@ -854,7 +854,7 @@ void AVFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, qu
 void AVFGrabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
 {
 	frameStat.goodFrame++;
-	frameStat.averageFrame += QDateTime::currentMSecsSinceEpoch() - _frameBegin;
+	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;
 
 	if (_signalAutoDetectionEnabled || isCalibrating())
 	{

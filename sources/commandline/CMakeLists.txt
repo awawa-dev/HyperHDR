@@ -10,3 +10,7 @@ target_link_libraries(commandline
 	hyperhdr-base
 	Qt${Qt_VERSION}::Gui
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(commandline REUSE_FROM precompiled_hyperhdr_headers)
+endif()

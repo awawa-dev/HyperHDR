@@ -11,7 +11,6 @@
 #include <QTcpSocket>
 #include <QStringBuilder>
 #include <QStringList>
-#include <QDateTime>
 #include <QHostAddress>
 
 #define REQ "request="

@@ -8,7 +8,6 @@
 
 // Qt includes
 #include <QString>
-#include <QNetworkAccessManager>
 
 ///
 /// Implementation of the LedDevice interface for sending to

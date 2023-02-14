@@ -36,6 +36,8 @@ public:
 	///
 	int open() override;
 
+	QJsonObject discover(const QJsonObject& params) override;
+
 public slots:
 	///
 	/// Closes the output device.

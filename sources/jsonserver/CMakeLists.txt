@@ -13,3 +13,7 @@ target_link_libraries(jsonserver
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Gui
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(jsonserver REUSE_FROM precompiled_hyperhdr_headers)
+endif()

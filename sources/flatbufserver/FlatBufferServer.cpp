@@ -299,7 +299,7 @@ void FlatBufferServer::loadLutFile()
 
 void FlatBufferServer::importFromProtoHandler(int priority, int duration, const Image<ColorRgb>& image)
 {
-	FrameDecoder::applyLUT((uint8_t*)image.memptr(), image.width(), image.height(), _lutBuffer, _hdrToneMappingMode);
+	FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lutBuffer, _hdrToneMappingMode);
 
 	emit GlobalSignals::getInstance()->setGlobalImage(priority, image, duration);
 }

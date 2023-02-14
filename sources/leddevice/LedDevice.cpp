@@ -4,9 +4,7 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
-#include <QDateTime>
 #include <QTimer>
-#include <QDateTime>
 
 #include <base/HyperHdrInstance.h>
 #include <utils/JsonUtils.h>
@@ -32,11 +30,14 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _retryMode(false)
 	, _maxRetry(60)
 	, _currentRetry(0)
-	, _isRefreshEnabled(false)	
+	, _isRefreshEnabled(false)
+	, _newFrame2Send(false)
+	, _newFrame2SendTime(0)
+	, _blinkIndex(-1)
 {
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
-	connect(this, &LedDevice::manualUpdate, this, &LedDevice::rewriteLEDs);
+	connect(this, &LedDevice::manualUpdate, this, &LedDevice::rewriteLEDs, Qt::QueuedConnection);
 }
 
 LedDevice::~LedDevice()
@@ -129,6 +130,9 @@ void LedDevice::enableDevice(bool toEmit)
 		if (_isRefreshEnabled)
 			this->startRefreshTimer();
 	}
+
+	_newFrame2Send = false;
+	_blinkIndex = -1;
 }
 
 void LedDevice::disable()
@@ -152,6 +156,9 @@ void LedDevice::disableDevice(bool toEmit)
 		if (toEmit)
 			emit enableStateChanged(_isEnabled);
 	}
+
+	_newFrame2Send = false;
+	_blinkIndex = -1;
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
@@ -231,7 +238,7 @@ void LedDevice::setRefreshTime(int refreshTime_ms)
 int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 {
 	// stats
-	int64_t now = QDateTime::currentMSecsSinceEpoch();
+	int64_t now = InternalClock::now();
 	int64_t diff = now - _computeStats.statBegin;
 	int64_t prevToken = _computeStats.token;
 
@@ -240,17 +247,24 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 		_computeStats.token = PerformanceCounters::currentToken();
 		_computeStats.statBegin = now;
 		_computeStats.frames = 0;
+		_computeStats.droppedFrames = 0;
 		_computeStats.incomingframes = 1;
 	}
 	else if (prevToken != (_computeStats.token = PerformanceCounters::currentToken()))
 	{
+		if (_isRefreshEnabled && _refreshTimerInterval_ms > 0)
+		{
+			qint64 wanted = (1000.0/_refreshTimerInterval_ms) * 60.0 * diff / 60000.0;
+			_computeStats.droppedFrames = std::max(wanted - _computeStats.frames - 1, 0ll);
+		}
 
 		if (diff >= 59000 && diff <= 65000)
 			emit this->newCounter(
-			PerformanceReport(static_cast<int>(PerformanceReportType::LED), _computeStats.token, this->_activeDeviceType, _computeStats.frames / qMax(diff / 1000.0, 1.0), _computeStats.frames, _computeStats.incomingframes, 0));
+			PerformanceReport(static_cast<int>(PerformanceReportType::LED), _computeStats.token, this->_activeDeviceType, _computeStats.frames / qMax(diff / 1000.0, 1.0), _computeStats.frames, _computeStats.incomingframes, _computeStats.droppedFrames));
 
 		_computeStats.statBegin = now;
 		_computeStats.frames = 0;
+		_computeStats.droppedFrames = 0;
 		_computeStats.incomingframes = 1;
 	}
 	else
@@ -263,10 +277,17 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 	}
 	else
 	{
-		_lastLedValues = ledValues;
+		if (_blinkIndex < 0)
+			_lastLedValues = ledValues;
 
-		if (!_isRefreshEnabled)
+		if (!_isRefreshEnabled && (!_newFrame2Send || now - _newFrame2SendTime > 1000 || now < _newFrame2SendTime))
+		{
+			_newFrame2Send = true;
+			_newFrame2SendTime = now;
 			emit manualUpdate();
+		}
+		else if (!_isRefreshEnabled)
+			_computeStats.droppedFrames++;
 	}
 
 	return 0;
@@ -275,6 +296,8 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 int LedDevice::rewriteLEDs()
 {
 	int retval = -1;
+
+	_newFrame2Send = false;
 
 	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
 	{
@@ -516,6 +539,43 @@ QString LedDevice::getActiveDeviceType() const {
 
 bool LedDevice::componentState() const {
 	return _isEnabled;
+}
+
+void LedDevice::identifyLed(const QJsonObject& params)
+{
+	_blinkIndex = params["blinkIndex"].toInt(-1);
+
+	if (_blinkIndex < 0 || _blinkIndex >= (int)_lastLedValues.size())
+	{
+		_blinkIndex = -1;
+	}
+	else
+	{
+		const int blinkOrg = _blinkIndex;
+
+		for (auto iter = _lastLedValues.begin(); iter != _lastLedValues.end(); ++iter)
+		{
+			*iter = ColorRgb::BLACK;
+		}
+
+		for (int i = 0; i < 6; i++)
+		{
+			ColorRgb color = (i % 3 == 0) ? ColorRgb::RED : (i % 3 == 1) ? ColorRgb::GREEN : ColorRgb::BLUE;
+
+			QTimer::singleShot(800 * i, this, [this, color, blinkOrg]() {
+				if (_blinkIndex == blinkOrg && _blinkIndex >= 0 && _blinkIndex < (int)_lastLedValues.size())
+				{
+					_lastLedValues[_blinkIndex] = color;
+					rewriteLEDs();
+				}
+			});
+		}
+
+		// disable blinking after the sequence
+		QTimer::singleShot(4800, this, [this, blinkOrg]() {
+			if (_blinkIndex == blinkOrg) _blinkIndex = -1;
+		});
+	}
 }
 
 

@@ -105,9 +105,12 @@ public:
 
 	ImageProcessor* getImageProcessor();
 
+	void updateLedsValues(int priority, const std::vector<ColorRgb>& ledColors);
+
 public slots:
 
 	void setSmoothing(int time);
+	void identifyLed(const QJsonObject& params);
 
 	bool getReadOnlyMode() { return _readOnlyMode; };
 
@@ -298,7 +301,7 @@ public slots:
 	///
 	/// @return The information of the given, a not found priority will return lowest priority as fallback
 	///
-	PriorityMuxer::InputInfo getPriorityInfo(int priority) const;
+	const PriorityMuxer::InputInfo& getPriorityInfo(int priority) const;
 
 	/// #############
 	/// SETTINGSMANAGER
@@ -390,7 +393,7 @@ signals:
 	/// 	   priorities with ledColors won't emit this signal
 	/// @param  image  The current image
 	///
-	void currentImage(const Image<ColorRgb>& image);
+	void onCurrentImage();
 
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);

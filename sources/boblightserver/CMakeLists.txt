@@ -12,3 +12,8 @@ target_link_libraries(boblightserver
 	hyperhdr-utils
 	${QT_LIBRARIES}
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(boblightserver REUSE_FROM precompiled_hyperhdr_headers)
+endif()
+

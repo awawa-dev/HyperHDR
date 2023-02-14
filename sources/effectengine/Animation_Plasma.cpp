@@ -24,13 +24,13 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
  */
-
+#include <utils/InternalClock.h>
 #include <effectengine/Animation_Plasma.h>
 
 Animation_Plasma::Animation_Plasma() :
 	AnimationBase(ANIM_PLASMA)
 {
-	start = QDateTime::currentMSecsSinceEpoch();
+	start = InternalClock::now();
 
 	for (int h = 0; h < PAL_LEN; h++)
 	{

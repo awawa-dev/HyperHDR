@@ -26,6 +26,7 @@
  */
 
 #include <grabber/SoundCapWindows.h>
+#include <utils/Logger.h>
 #include <cmath>
 
 #pragma comment(lib, "winmm.lib")

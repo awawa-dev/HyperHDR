@@ -33,60 +33,67 @@
 
 // Blacborder includes
 #include <blackborder/BlackBorderProcessor.h>
-#include <QDateTime>
 
 using namespace hyperhdr;
 
 
 ImageProcessingUnit::ImageProcessingUnit(HyperHdrInstance* hyperhdr)
-	: QObject(hyperhdr)
+	: QObject(hyperhdr),
+	_priority(-1),
+	_hyperhdr(hyperhdr)
 {
-	_hyperhdr = hyperhdr;
+	
 	connect(this, &ImageProcessingUnit::processImageSignal, this, &ImageProcessingUnit::processImage, Qt::ConnectionType::QueuedConnection);
-	connect(this, &ImageProcessingUnit::clearQueueImageSignal, this, &ImageProcessingUnit::clearQueueImage, Qt::ConnectionType::QueuedConnection);
-	connect(this, &ImageProcessingUnit::queueImageSignal, this, &ImageProcessingUnit::queueImage, Qt::ConnectionType::QueuedConnection);
+	connect(this, &ImageProcessingUnit::clearQueueImageSignal, this, &ImageProcessingUnit::clearQueueImage);
+	connect(this, &ImageProcessingUnit::queueImageSignal, this, &ImageProcessingUnit::queueImage);
 }
 
 ImageProcessingUnit::~ImageProcessingUnit()
 {
-	_buffer.clear();
+	clearQueueImage();
 }
 
-void ImageProcessingUnit::queueImage(const Image<ColorRgb>& image)
+void ImageProcessingUnit::queueImage(int priority, const Image<ColorRgb>& image)
 {
-	while (_buffer.length() >= 2)
-		_buffer.dequeue();
+	if (image.width() != 1 || image.height() != 1)
+	{
+		_frameBuffer = image;
+		_priority = priority;
 
-	_buffer.enqueue(image);
-
-	emit processImageSignal();
+		emit processImageSignal();
+	}
 }
 
 void ImageProcessingUnit::clearQueueImage()
 {
-	_buffer.clear();
+	_frameBuffer = Image<ColorRgb>();
+	_priority = -1;
 }
 
 
 void ImageProcessingUnit::processImage()
 {
-	if (_buffer.length() < 1)
+	if (_priority < 0 || (_frameBuffer.width() == 1 && _frameBuffer.height() == 1))
 		return;
-
-	const Image<ColorRgb>& image = _buffer.dequeue();
-
+	
 	ImageProcessor* imageProcessor = _hyperhdr->getImageProcessor();
 
-	if (imageProcessor == nullptr)
-		return;
+	if (imageProcessor != nullptr)
+	{
+		imageProcessor->setSize(_frameBuffer);;
+		imageProcessor->verifyBorder(_frameBuffer);
 
-	std::shared_ptr<hyperhdr::ImageToLedsMap> image2leds = imageProcessor->_imageToLedColors;
+		std::shared_ptr<hyperhdr::ImageToLedsMap> image2leds = imageProcessor->_imageToLedColors;
 
-	if (image2leds == nullptr || image2leds->width() != image.width() || image2leds->height() != image.height())
-		return;
+		if (image2leds != nullptr && image2leds->width() == _frameBuffer.width() && image2leds->height() == _frameBuffer.height())
+		{
+			std::vector<ColorRgb> colors = image2leds->Process(_frameBuffer, imageProcessor->advanced);	
 
-	std::vector<ColorRgb> colors = image2leds->Process(image, imageProcessor->advanced);
+			_hyperhdr->updateLedsValues(_priority, colors);
+			emit dataReadySignal(colors);
+			emit _hyperhdr->onCurrentImage();
+		}
+	}
 
-	emit dataReadySignal(colors);
-	emit _hyperhdr->currentImage(image);
+	clearQueueImage();
 }

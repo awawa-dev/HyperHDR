@@ -31,13 +31,30 @@
 			"title":"edt_dev_spec_useEntertainmentAPI_title",
 			"default" : true,
 			"propertyOrder" : 4
-		},		
+		},
+		"useEntertainmentAPIV2": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_useEntertainmentAPIV2_title",
+			"default" : false,
+			"propertyOrder" : 5,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			}
+		},
 		"switchOffOnBlack": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_switchOffOnBlack_title",
 			"default" : false,
-			"propertyOrder" : 6
+			"propertyOrder" : 6,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": false
+				}
+			}
 		},
 		"blackLevel": {
 			"type": "number",
@@ -47,7 +64,12 @@
 			"step": 0.01,
 			"minimum" : 0.001,
 			"maximum" : 1.0,				
-			"propertyOrder" : 7
+			"propertyOrder" : 7,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": false
+				}
+			}
 		},
 		"onBlackTimeToPowerOff" :
 		{
@@ -60,7 +82,12 @@
 			"maximum" : 100000,
 			"default" : 600,
 			"required" : true,
-			"propertyOrder" : 8
+			"propertyOrder" : 8,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": false
+				}
+			}
 		},
 		"onBlackTimeToPowerOn" :
 		{
@@ -73,7 +100,12 @@
 			"maximum" : 100000,
 			"default" : 300,
 			"required" : true,
-			"propertyOrder" : 9
+			"propertyOrder" : 9,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": false
+				}
+			}
 		},
 		"candyGamma": {
 			"type": "boolean",
@@ -101,7 +133,8 @@
 			},
 			"options": {
 				"dependencies": {
-					"useEntertainmentAPI": false
+					"useEntertainmentAPI": false,
+					"useEntertainmentAPIV2": false
 				}
 			},
 			"propertyOrder" : 12
@@ -114,11 +147,24 @@
 			"default" : 0,
 			"options": {
 				"dependencies": {
-					"useEntertainmentAPI": true
+					"useEntertainmentAPI": true,
+					"useEntertainmentAPIV2": false
 				}
 			},
 			"propertyOrder" : 13
-		},			
+		},
+		"entertainmentConfigurationId": {
+			"type": "string",
+			"title":"edt_dev_spec_entertainmentConfigurationId_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 13,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPIV2": true
+				}
+			}
+		},
 		"brightnessFactor": {
 			"type": "number",
 			"format" : "stepper",						

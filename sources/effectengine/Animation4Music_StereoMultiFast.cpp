@@ -26,6 +26,7 @@
  */
 
 #include <effectengine/Animation4Music_StereoMultiFast.h>
+#include <base/SoundCapture.h>
 
 Animation4Music_StereoMultiFast::Animation4Music_StereoMultiFast() :
 	AnimationBaseMusic(AMUSIC_STEREOMULTIFAST),
@@ -72,7 +73,7 @@ bool Animation4Music_StereoMultiFast::getImage(Image<ColorRgb>& newImage)
 	QColor selected, empty;
 	uint32_t maxSingle, average;
 
-	memset(newImage.memptr(), 0, newImage.size());
+	newImage.clear();
 
 	if (!r->GetStats(average, maxSingle, empty, &selected))
 		return false;

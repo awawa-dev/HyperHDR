@@ -736,12 +736,19 @@ var lightIDs = null;
 var groupIDs = null;
 var lightLocation = [];
 var groupLights = [];
+// CHannels for v2 api
+var channels = {};
+var entertainmentResources = null;
+var deviceResources = null;
 var groupLightsLocations = [];
 var hueType = "philipshue";
+var useV2Api=false;
+var useV2ApiConfig=false;
 
 function startWizardPhilipsHue(e)
 {
 	if (typeof e.data.type != "undefined") hueType = e.data.type;
+	useV2ApiConfig=(e.data.useApiV2||false)&&(hueType == 'philipshueentertainment');
 
 	//create html
 
@@ -770,7 +777,7 @@ function startWizardPhilipsHue(e)
 	}
 	if (hueType == 'philipshueentertainment')
 	{
-		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><input type="hidden" id="groupId">');
+		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><input type="hidden" id="groupId"><input type="hidden" id="entertainmentConfigurationId">');
 	}
 	$('#usrcont').append('<span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
 	if (hueType == 'philipshueentertainment')
@@ -878,11 +885,13 @@ function checkHueBridge(cb, hueUser)
 			if (json != null)
 			{
 				if (json.config)
-				{					
+				{
+					useV2Api=parseInt(json.config.swversion)>1948086000&&useV2ApiConfig
 					cb(true, usr);
 				}
 				else if (json.name && json.bridgeid && json.modelid)
 				{
+					useV2Api=parseInt(json.swversion)>1948086000&&useV2ApiConfig
 					conf_editor.getEditor("root.specificOptions.output").setValue(hueIPs[hueIPsinc].internalipaddress);
 					$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
 					cb(true);
@@ -901,9 +910,36 @@ function checkHueBridge(cb, hueUser)
 
 function useGroupId(id)
 {
-	$('#groupId').val(id);
-	groupLights = groupIDs[id].lights;
-	groupLightsLocations = groupIDs[id].locations;
+	if(useV2Api){
+		$('#entertainmentConfigurationId').val(id);
+		channels={};
+		for (const channel of groupIDs[id].channels) {
+			groupLights.push(channel.channel_id+"")
+			// Fetch the device IDs for this channel (used for identify)
+			channels[channel.channel_id+""]=channel;
+			for (var member of channel.members) {
+				var service = member.service;
+				if (service.rtype == "entertainment") {
+					for (const entertainmentResource of entertainmentResources) {
+						if(service.rid==entertainmentResource.id){
+							if(entertainmentResource.owner?.rtype=="device"){
+								if(channels[channel.channel_id+""].deviceIds){
+									channels[channel.channel_id+""].deviceIds.push(entertainmentResource.owner?.rid)
+								}else{
+									channels[channel.channel_id+""].deviceIds=[entertainmentResource.owner?.rid]
+								}
+							}
+						}
+					}
+				}
+			}
+			groupLightsLocations[channel.channel_id+""] = [channel.position.x,channel.position.y,channel.position.z];
+		}
+	}else{
+		$('#groupId').val(id);
+		groupLights = groupIDs[id].lights;
+		groupLightsLocations = groupIDs[id].locations;
+	}
 	get_hue_lights();
 }
 
@@ -962,8 +998,23 @@ async function discover_hue_bridges()
 
 function identify_hue_device(hostAddress, username, id)
 {
-	let params = { host: hostAddress, user: username, lightId: id };
-	requestLedDeviceIdentification("philipshue", params);
+	if(useV2Api)
+	{
+		// 	flash the channel
+		let params = {
+			host: hostAddress,
+			clientkey: $('#clientkey').val()||conf_editor.getEditor("root.specificOptions.clientkey")?.getValue(),
+			user: username,
+			entertainmentConfigurationId: $('#entertainmentConfigurationId').val(),
+			channelId: id
+		};
+		requestLedDeviceIdentification("philipshuev2", params);
+	}
+	else
+	{
+		let params = { host: hostAddress, user: username, lightId: id };
+		requestLedDeviceIdentification("philipshue", params);
+	}
 }
 
 async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
@@ -981,6 +1032,98 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
 		// Process properties returned
 		console.log(r);
 	}
+}
+
+function SaveHueConfig(saveLamps = true)
+{
+	var hueLedConfig = [];
+	var finalLightIds = [];
+
+	//create hue led config
+	for (var key in lightIDs)
+	{
+		if (hueType == 'philipshueentertainment')
+		{
+			if (groupLights.indexOf(key) == -1) continue;
+		}
+		if ($('#hue_' + key).val() != "disabled")
+		{
+			finalLightIds.push(key);
+			var idx_content = assignLightPos(key, $('#hue_' + key).val(), lightIDs[key].name);
+			hueLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
+		}
+	}
+
+	var sc = window.serverConfig;
+
+	if (!saveLamps && Array.isArray(sc.leds) && sc.leds.length ==  hueLedConfig.length)
+	{
+		hueLedConfig = sc.leds;
+	}
+	
+	sc.leds = hueLedConfig;
+
+	//Adjust gamma, brightness and compensation
+	var c = sc.color.channelAdjustment[0];
+	c.gammaBlue = 1.0;
+	c.gammaRed = 1.0;
+	c.gammaGreen = 1.0;
+	c.brightness = 100;
+	c.brightnessCompensation = 0;
+
+	//device config
+
+	//Start with a clean configuration
+	var d = {};
+
+	d.output = $('#ip').val();
+	d.username = $('#user').val();
+	d.type = 'philipshue';
+	d.colorOrder = 'rgb';
+	d.lightIds = finalLightIds;
+	d.transitiontime = parseInt(eV("transitiontime", 1));
+	d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
+	d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
+
+	d.blackLevel = parseFloat(eV("blackLevel", 0.009));
+	d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
+	d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));
+	d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
+
+	d.clientkey = $('#clientkey').val();
+	d.groupId = parseInt($('#groupId').val());
+	d.entertainmentConfigurationId = $('#entertainmentConfigurationId').val();
+	d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
+	d.brightnessMin = parseFloat(eV("brightnessMin", 0));
+	d.brightnessMax = parseFloat(eV("brightnessMax", 1));
+	d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
+	d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
+	d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
+	d.verbose = (eV("verbose") == true);
+
+	if (hueType == 'philipshue')
+	{
+		d.useEntertainmentAPI = false;
+		d.hardwareLedCount = finalLightIds.length;
+		d.refreshTime = 0;
+		d.verbose = false;
+		//smoothing off
+		sc.smoothing.enable = false;
+	}
+
+	if (hueType == 'philipshueentertainment')
+	{
+		d.useEntertainmentAPI = true;
+		// using 'useV2Api' instead of 'useV2ApiConfig' because it includes the bridge check for api v2
+		d.useEntertainmentAPIV2 = useV2Api;
+		d.hardwareLedCount = groupLights.length;
+		d.refreshTime = 20;
+		//smoothing on
+		sc.smoothing.enable = true;
+	}
+
+	window.serverConfig.device = d;
+	requestWriteConfig(sc, true);
 }
 
 //return editor Value
@@ -1058,86 +1201,7 @@ function beginWizardHue()
 
 	$('#btn_wiz_save').off().on("click", function ()
 	{
-		var hueLedConfig = [];
-		var finalLightIds = [];
-
-		//create hue led config
-		for (var key in lightIDs)
-		{
-			if (hueType == 'philipshueentertainment')
-			{
-				if (groupLights.indexOf(key) == -1) continue;
-			}
-			if ($('#hue_' + key).val() != "disabled")
-			{
-				finalLightIds.push(key);
-				var idx_content = assignLightPos(key, $('#hue_' + key).val(), lightIDs[key].name);
-				hueLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
-			}
-		}
-
-		var sc = window.serverConfig;
-		sc.leds = hueLedConfig;
-
-		//Adjust gamma, brightness and compensation
-		var c = sc.color.channelAdjustment[0];
-		c.gammaBlue = 1.0;
-		c.gammaRed = 1.0;
-		c.gammaGreen = 1.0;
-		c.brightness = 100;
-		c.brightnessCompensation = 0;
-
-		//device config
-
-		//Start with a clean configuration
-		var d = {};
-
-		d.output = $('#ip').val();
-		d.username = $('#user').val();
-		d.type = 'philipshue';
-		d.colorOrder = 'rgb';
-		d.lightIds = finalLightIds;
-		d.transitiontime = parseInt(eV("transitiontime", 1));
-		d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
-		d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
-
-		d.blackLevel = parseFloat(eV("blackLevel", 0.009));
-		d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
-		d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));
-		d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
-
-		d.clientkey = $('#clientkey').val();
-		d.groupId = parseInt($('#groupId').val());
-		d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
-		d.brightnessMin = parseFloat(eV("brightnessMin", 0));
-		d.brightnessMax = parseFloat(eV("brightnessMax", 1));
-		d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
-		d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
-		d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
-		d.verbose = (eV("verbose") == true);
-
-		if (hueType == 'philipshue')
-		{
-			d.useEntertainmentAPI = false;
-			d.hardwareLedCount = finalLightIds.length;
-			d.refreshTime = 0;
-			d.verbose = false;
-			//smoothing off
-			sc.smoothing.enable = false;
-		}
-
-		if (hueType == 'philipshueentertainment')
-		{
-			d.useEntertainmentAPI = true;
-			d.hardwareLedCount = groupLights.length;
-			d.refreshTime = 20;
-			//smoothing on
-			sc.smoothing.enable = true;
-		}
-
-		window.serverConfig.device = d;
-
-		requestWriteConfig(sc, true);
+		SaveHueConfig();		
 		resetWizard();
 	});
 
@@ -1216,38 +1280,77 @@ function createHueUser()
 
 function get_hue_groups()
 {
-	tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/groups').then( (r) =>
-		{
-			if (r != null)
+	if(useV2Api){
+		// api v2 uses entertainment configurations not groups
+		tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment_configuration',{'hue-application-key':$("#user").val() }).then( (r) =>
 			{
-				if (Object.keys(r).length > 0)
+				if (r != null)
 				{
-					$('#wh_topcontainer').toggle(false);
-					$('#hue_grp_ids_t').toggle(true);
-
-					groupIDs = r;
-
-					var gC = 0;
-					for (var groupid in r)
+					// Also get all entertainment resources and devices. this will be used later to identify a channel
+					tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment',{'hue-application-key':$("#user").val() }).then(value => {
+						entertainmentResources=value?.data
+					})
+					tunnel_hue_get($("#ip").val(), '/clip/v2/resource/device',{'hue-application-key':$("#user").val() }).then(value => {
+						deviceResources=value?.data
+					})
+					if (r.data.length>0)
 					{
-						if (r[groupid].type == 'Entertainment')
-						{
-							$('.gidsb').append(createTableRowFlex([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
+						$('#wh_topcontainer').toggle(false);
+						$('#hue_grp_ids_t').toggle(true);
+
+						var gC = 0;
+						groupIDs={};
+						for (const group of r.data) {
+							groupIDs[group.id] = group;
+							$('.gidsb').append(createTableRowFlex([group.name + '<br> (' + group.id + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId("' + group.id + '")>' + $.i18n(useV2Api?'wiz_hue_e_use_entertainmentconfigurationid':'wiz_hue_e_use_groupid', group.id) + '</button>']));
 							gC++;
 						}
+						if (gC == 0)
+						{
+							noAPISupport('wiz_hue_e_noegrpids');
+						}
 					}
-					if (gC == 0)
+					else
 					{
-						noAPISupport('wiz_hue_e_noegrpids');
+						noAPISupport('wiz_hue_e_nogrpids');
 					}
-				}
-				else
-				{
-					noAPISupport('wiz_hue_e_nogrpids');
 				}
 			}
-		}
-	)
+		)
+	}else{
+		tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/groups').then( (r) =>
+			{
+				if (r != null)
+				{
+					if (Object.keys(r).length > 0)
+					{
+						$('#wh_topcontainer').toggle(false);
+						$('#hue_grp_ids_t').toggle(true);
+
+						groupIDs = r;
+
+						var gC = 0;
+						for (var groupid in r)
+						{
+							if (r[groupid].type == 'Entertainment')
+							{
+								$('.gidsb').append(createTableRowFlex([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
+								gC++;
+							}
+						}
+						if (gC == 0)
+						{
+							noAPISupport('wiz_hue_e_noegrpids');
+						}
+					}
+					else
+					{
+						noAPISupport('wiz_hue_e_nogrpids');
+					}
+				}
+			}
+		)
+	}
 }
 
 function noAPISupport(txt)
@@ -1280,8 +1383,8 @@ function get_light_state(id)
 
 function get_hue_lights()
 {
-	tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/lights').then( (r) =>
-		{		
+	(useV2Api?Promise.resolve(channels):tunnel_hue_get($("#ip").val(), '/api/' + $("#user").val() + '/lights')).then( (r) =>
+		{
 			if (r != null && Object.keys(r).length > 0)
 			{
 				if (hueType == 'philipshue')
@@ -1345,9 +1448,9 @@ function get_hue_lights()
 						if (pos == val) options += ' selected="selected"';
 						options += '>' + $.i18n(txt + val) + '</option>';
 					}
-					$('.lidsb').append(createTableRowFlex([lightid + ' (' + r[lightid].name + ')', '<select id="hue_' + lightid + '" class="hue_sel_watch form-select">'
-						+ options
-						+ '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
+					$('.lidsb').append(createTableRowFlex([lightid + ' ( '+(useV2Api?`Channel ${lightid}`: r[lightid].name )+ ' )', '<select id="hue_' + lightid + '" class="hue_sel_watch form-select">'
+					+ options
+					+ '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid) + '</button>']));
 				}
 
 				if (hueType != 'philipshueentertainment')
@@ -1368,6 +1471,11 @@ function get_hue_lights()
 					});
 				}
 				$('.hue_sel_watch').trigger('change');
+
+				if (useV2Api)
+				{
+					SaveHueConfig(false);
+				}
 			}
 			else
 			{

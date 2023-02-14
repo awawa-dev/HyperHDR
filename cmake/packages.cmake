@@ -1,4 +1,6 @@
 # cmake file for generating distribution packages
+#SET(HYPERHDR_REPO_RPM_BUILD ON)
+#SET(HYPERHDR_REPO_BUILD ON)
 
 # default packages to build
 IF (APPLE)
@@ -10,6 +12,16 @@ ELSEIF (WIN32)
 ENDIF()
 
 # Determine packages by found generator executables
+
+# Github Action enables it for packages
+if(HYPERHDR_REPO_RPM_BUILD)
+	find_package(RpmBuilder)
+	IF(RPM_BUILDER_FOUND)
+		message(STATUS "CPACK: Found RPM builder")
+		SET ( CPACK_GENERATOR "RPM")
+	ENDIF()
+ENDIF()
+
 find_package(DebBuilder)
 IF(DEB_BUILDER_FOUND)
 	message(STATUS "CPACK: Found DEB builder")
@@ -40,6 +52,25 @@ SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperhdr-icon-32px
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERHDR_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERHDR_VERSION_MINOR}")
 SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERHDR_VERSION_PATCH}")
+
+# Github Action enables it for packages
+if(HYPERHDR_REPO_BUILD)
+	string(REPLACE "." ";" HYPERHDR_VERSION_LIST ${HYPERHDR_VERSION})
+	list(LENGTH HYPERHDR_VERSION_LIST HYPERHDR_VERSION_LIST_LEN)
+	if (HYPERHDR_VERSION_LIST_LEN EQUAL 4)
+		list(GET HYPERHDR_VERSION_LIST 2 H_ELEM_2)
+		list(GET HYPERHDR_VERSION_LIST 3 H_ELEM_3)
+		string(REPLACE "alfa" "~${DEBIAN_NAME_TAG}~alfa" H_ELEM_3a "${H_ELEM_3}")
+		string(REPLACE "beta" "~${DEBIAN_NAME_TAG}~beta" H_ELEM_3b "${H_ELEM_3a}")
+		string(CONCAT CPACK_PACKAGE_VERSION_PATCH "${H_ELEM_2}" "." "${H_ELEM_3b}")
+		string(FIND "${CPACK_PACKAGE_VERSION_PATCH}" "${DEBIAN_NAME_TAG}" foundTag)
+		if (foundTag EQUAL -1)
+			string(CONCAT CPACK_PACKAGE_VERSION_PATCH "${CPACK_PACKAGE_VERSION_PATCH}" "~${DEBIAN_NAME_TAG}")
+		endif()
+		SET ( CPACK_PACKAGE_FILE_NAME "HyperHDR-${HYPERHDR_VERSION_MAJOR}.${HYPERHDR_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${CMAKE_SYSTEM_PROCESSOR}")
+		message( warning "Package name: ${CPACK_PACKAGE_FILE_NAME}" )
+	endif()	
+endif()
 
 if ( APPLE )
 	SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/LICENSE" )

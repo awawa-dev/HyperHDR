@@ -87,16 +87,6 @@ public:
 	void verifyBorder(const Image<ColorRgb>& image);
 
 	///
-	/// Processes the image to a list of led colors. This will update the size of the buffer-image
-	/// if required and call the image-to-leds mapping to determine the mean color per led.
-	///
-	/// @param[in] image  The image to translate to led values
-	///
-	/// @return The color value per led
-	///	
-	std::vector<ColorRgb> process(const Image<ColorRgb>& image);
-
-	///
 	/// Get the hscan and vscan parameters for a single led
 	///
 	/// @param[in] led Index of the led
@@ -132,9 +122,6 @@ private:
 	int _mappingType;
 
 	bool _sparseProcessing;
-
-	/// HyperHDR instance pointer
-	HyperHdrInstance* _hyperhdr;
 
 	// lut advanced operator
 	uint16_t advanced[256];

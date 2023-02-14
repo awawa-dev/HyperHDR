@@ -119,11 +119,6 @@ public:
 	~HyperHdrDaemon();
 
 	///
-	/// @brief Get webserver pointer (systray)
-	///
-	WebServer* getWebServerInstance() { return _webserver; }
-
-	///
 	/// @brief get the settings
 	///
 	QJsonDocument getSetting(settings::type type) const;
