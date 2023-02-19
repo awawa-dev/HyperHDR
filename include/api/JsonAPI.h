@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QString>
 #include <QSemaphore>
+#include <QNetworkReply>
 
 class QTimer;
 class JsonCB;
@@ -95,6 +96,8 @@ private slots:
 	void handleLedColorsIncoming(const std::vector<ColorRgb>& ledValues);
 
 	void handleLedColorsTimer();
+
+	void lutDownloaded(QNetworkReply* reply);
 
 signals:
 	///
@@ -300,6 +303,8 @@ private:
 	void handleVideoControlsCommand(const QJsonObject& message, const QString& command, int tan);
 
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
+
+	void handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan);
 
 	void handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan);
 

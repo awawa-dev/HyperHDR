@@ -220,6 +220,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleVideoControlsCommand(message, command, tan);
 		else if (command == "benchmark")
 			handleBenchmarkCommand(message, command, tan);
+		else if (command == "lut-install")
+			handleLutInstallCommand(message, command, tan);
 		else if (command == "smoothing")
 			handleSmoothingCommand(message, command, tan);
 		else if (command == "transform" || command == "correction" || command == "temperature")
@@ -837,6 +839,48 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 	}
 
 	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::lutDownloaded(QNetworkReply* reply)
+{
+	QString fileName = QString("%1%2").arg(_instanceManager->getRootPath()).arg("/lut_lin_tables.3d");
+	QString error = installLut(reply, fileName);
+
+	if (error == nullptr)
+	{
+		Info(_log, "Reloading LUT...");
+		API::setVideoModeHdr(0);
+		API::setVideoModeHdr(1);
+		Info(_log, "New LUT has been installed as: %s (from: %s)", QSTRING_CSTR(fileName), QSTRING_CSTR(reply->url().toString()));
+	}
+	else
+	{
+		Error(_log, "Error occured while installing new LUT: %s", QSTRING_CSTR(error));
+	}
+
+	reply->manager()->deleteLater();
+	reply->deleteLater();
+
+	QJsonObject report;
+	report["status"] = (error == nullptr)? 1:0;
+	report["error"] = error;
+	_jsonCB->handleLutInstallUpdate(report);
+}
+
+void JsonAPI::handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& address = QString("%1/lut_lin_tables.3d.xz").arg(message["subcommand"].toString().trimmed());
+	Debug(_log, "Request to install LUT from: %s", QSTRING_CSTR(address));
+	if (_adminAuthorized)
+	{
+		QNetworkAccessManager *mgr = new QNetworkAccessManager(this);
+		connect(mgr, SIGNAL(finished(QNetworkReply*)), this, SLOT(lutDownloaded(QNetworkReply*)));
+		QNetworkRequest request(address);
+		mgr->get(request);
+		sendSuccessReply(command, tan);
+	}
+	else
+		sendErrorReply("No Authorization", command, tan);
 }
 
 void JsonAPI::handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan)

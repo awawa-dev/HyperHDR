@@ -626,6 +626,11 @@ function requestBenchmark(mode, status)
 	sendToHyperhdr("benchmark", mode, '"status": ' + status);
 }
 
+function requestLutInstall(address)
+{
+	sendToHyperhdr("lut-install", address, "");
+}
+
 async function requestLutCalibration(mode, params, startColor, endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef)
 {
 	var sColor = JSON.stringify(startColor);

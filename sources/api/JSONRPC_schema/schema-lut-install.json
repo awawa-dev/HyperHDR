@@ -1,0 +1,19 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["lut-install"]
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}

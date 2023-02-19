@@ -1199,5 +1199,6 @@
   "edt_serial_espHandshake" : "Esp8266/ESP32/Rp2040 handshake (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver" : "This driver is intended for advanced users and is <b>not recommended or supported</b> by the HyperHDR team. Please read the project FAQ section for reasons and don't ask us for help if you try to use it because it <b>revokes any support for your entire HyperHDR configuration</b>. Choose a better solution like HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) or HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>about</a>).",
   "edt_dev_spec_awa_mode_title": "High speed serial AWA protocol with data integrity check (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
-  "led_editor_context_identify": "Identify"
+  "led_editor_context_identify": "Identify",
+  "main_menu_grabber_lut" : "Download LUT"
 } 

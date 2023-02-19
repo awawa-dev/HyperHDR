@@ -55,6 +55,9 @@
 #cmakedefine ENABLE_MQTT
 
 // Define to enable protobuf
+#cmakedefine ENABLE_XZ
+
+// Define to enable protobuf
 #cmakedefine ENABLE_PROTOBUF
 
 // the hyperhdr build id string

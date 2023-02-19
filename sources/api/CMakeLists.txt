@@ -20,6 +20,11 @@ target_link_libraries(hyperhdr-api
 	Qt${Qt_VERSION}::Network
 )
 
+if(ENABLE_XZ)
+	target_link_libraries(hyperhdr-api liblzma)
+	target_include_directories(hyperhdr-api PRIVATE "${CMAKE_SOURCE_DIR}/dependencies/external/xz/src/liblzma/api")
+endif()
+
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
     target_precompile_headers(hyperhdr-api REUSE_FROM precompiled_hyperhdr_headers)
 endif()
