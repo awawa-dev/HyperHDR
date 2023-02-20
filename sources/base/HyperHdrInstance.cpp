@@ -539,6 +539,12 @@ const HyperHdrInstance::InputInfo& HyperHdrInstance::getPriorityInfo(int priorit
 	return _muxer.getInputInfo(priority);
 }
 
+PriorityMuxer::InputInfo HyperHdrInstance::getCurrentPriorityInfo()
+{
+	PriorityMuxer::InputInfo val = _muxer.getInputInfo(getCurrentPriority());
+	return val;
+}
+
 std::list<EffectDefinition> HyperHdrInstance::getEffects() const
 {
 	std::list<EffectDefinition> result;
