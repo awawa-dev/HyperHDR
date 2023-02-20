@@ -167,6 +167,7 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 			}
 
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage, Qt::ConnectionType::UniqueConnection);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage, Qt::ConnectionType::UniqueConnection);
 		}
 		else
@@ -208,6 +209,11 @@ void LutCalibrator::stopHandler()
 }
 
 void LutCalibrator::setVideoImage(const QString& name, const Image<ColorRgb>& image)
+{
+	handleImage(image);
+}
+
+void LutCalibrator::setSystemImage(const QString& name, const Image<ColorRgb>& image)
 {
 	handleImage(image);
 }
@@ -853,6 +859,7 @@ bool LutCalibrator::correctionEnd()
 {
 
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
 
 	double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
@@ -1125,6 +1132,12 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 								calculated.green = ootf(calculated.green);
 								calculated.blue = ootf(calculated.blue);
 							}
+							else
+							{
+								calculated.red = normalized.red;
+								calculated.green = normalized.green;
+								calculated.blue = normalized.blue;
+							}
 
 							calculated.red = clampDouble(calculated.red, 0, 1.0) * 255.0;
 							calculated.green = clampDouble(calculated.green, 0, 1.0) * 255.0;
@@ -1198,6 +1211,7 @@ bool LutCalibrator::finalize(bool fastTrack)
 	if (!fastTrack)
 	{
 		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
+		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage);
 		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
 	}
 

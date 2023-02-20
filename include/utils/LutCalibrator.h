@@ -123,6 +123,7 @@ public slots:
 	void assignHandler(int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef);
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
+	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
 	void setGlobalInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect = true);
 
 private:
