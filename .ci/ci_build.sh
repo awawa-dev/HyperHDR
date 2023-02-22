@@ -78,7 +78,16 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	REGISTRY_URL="ghcr.io/awawa-dev/${DOCKER_IMAGE}"
 	
 	# take ownership of deploy dir
-	mkdir ${CI_BUILD_DIR}/deploy
+	mkdir -p ${CI_BUILD_DIR}/deploy
+
+	if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
+		echo "Arch Linux detected"
+		cp cmake/arch/* .
+		executeCommand="makepkg"
+		chmod -R a+rw ${CI_BUILD_DIR}/deploy
+		versionFile=`cat version`
+		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
+	fi
 
 	if [[ "$USE_CCACHE" == '1' ]]; then
 		echo "Using cache"
@@ -96,6 +105,16 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		
 		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"
 		
+		if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
+			sed -i "s/{CACHE}/${cachecommand}/" PKGBUILD
+			echo "Using makepkg"
+			cat PKGBUILD
+			chmod -R a+rw ${CI_BUILD_DIR}/.ccache
+		else
+			executeCommand="cd build && cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 &&"
+			executeCommand+=" make -j $(nproc) package || exit 3"
+		fi
+
 		ls -a .ccache
 		# run docker
 		docker run --rm \
@@ -103,12 +122,11 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "${cache_env} && export -p && ccache -p && cd / && mkdir hyperhdr && cp -r source/. /hyperhdr &&
-		cd /hyperhdr && mkdir build && cd build &&
-		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 &&
-		make -j $(nproc) package || exit 3 &&
+		/bin/bash -c "${cache_env} && export -p && ccache -p && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
+		cd /hyperhdr && mkdir build && ${executeCommand} &&
 		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
+		cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : &&
 		ccache -s &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
@@ -116,17 +134,25 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	else
 		echo "Not using cache"
 		
+		if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
+			sed -i "s/{CACHE}//" PKGBUILD
+			echo "Using makepkg"
+			cat PKGBUILD
+		else
+			executeCommand="cd build && cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 &&"
+			executeCommand+=" make -j $(nproc) package || exit 3"
+		fi
+
 		# run docker
 		docker run --rm \
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "cd / && mkdir hyperhdr && cp -r source/. /hyperhdr &&
-		cd /hyperhdr && mkdir build && cd build &&
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 &&
-		make -j $(nproc) package || exit 3 &&
+		/bin/bash -c "cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
+		cd /hyperhdr && mkdir build && ${executeCommand} &&
 		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
+		cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	fi
