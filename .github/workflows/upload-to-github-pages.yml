@@ -37,14 +37,17 @@ jobs:
           - dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
+            arch: amd64
             platform: linux
           - dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
+            arch: amd64
             platform: linux
           - dockerImage: x86_64
             linuxVersion: kinetic
             dockerName: Ubuntu 22.10 (x86_64)
+            arch: amd64
             platform: linux
 
     steps:
