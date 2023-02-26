@@ -79,8 +79,8 @@ jobs:
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
-          sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
+      # sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
 
       # upload artifacts (only on tagged commit)
       - name: Upload artifacts
