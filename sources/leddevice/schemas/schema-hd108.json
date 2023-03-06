@@ -1,0 +1,53 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_spipath_title",
+			"default" : "/dev/spidev0.0",
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"rate": {
+			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1000000,			
+			"title":"edt_dev_spec_baudrate_title",
+			"default": 1000000,
+			"minimum": 1000000,
+			"required" : true,
+			"propertyOrder" : 2
+		},
+		"invert": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_invert_title",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"globalBrightnessControlMaxLevel": {
+			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title":"edt_dev_spec_globalBrightnessControlMaxLevel_title",
+			"default": 31,
+			"minimum": 1,
+			"maximum": 31,
+			"required" : true,
+			"propertyOrder" : 4
+		},
+		"globalBrightnessControlThreshold": {
+			"type": "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title":"edt_dev_spec_globalBrightnessControlThreshold_title",
+			"default": 1000,
+			"minimum": 0,
+			"maximum": 1000,
+			"required" : true,
+			"propertyOrder" : 5
+		}
+	},
+	"additionalProperties": true
+}
