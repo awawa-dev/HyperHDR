@@ -56,7 +56,9 @@ bool LedDeviceHD108::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (ProviderSpi::init(deviceConfig))
 	{
-		_globalBrightnessControlThreshold = static_cast<uint32_t>(std::min(std::lround(deviceConfig["globalBrightnessControlThreshold"].toDouble(HD108_MAX_THRESHOLD)), (long)HD108_MAX_THRESHOLD) * HD108_MAX_THRESHOLD);
+		_globalBrightnessControlThreshold = static_cast<uint32_t>(std::min(
+			std::lround(deviceConfig["globalBrightnessControlThreshold"].toDouble(HD108_MAX_THRESHOLD) * HD108_MAX_THRESHOLD),
+			(long)HD108_MAX_THRESHOLD_2));
 		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(HD108_MAX_LEVEL);
 		Info(_log, "[HD108] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
 
