@@ -51,7 +51,7 @@ jobs:
         shell: cmake -P {0}
         run: |
           string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-          message("::set-output name=timestamp::${current_date}")
+          file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
        # download cache
       - name: ccache cache files
@@ -110,7 +110,7 @@ jobs:
         shell: cmake -P {0}
         run: |
             string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-            message("::set-output name=timestamp::${current_date}")
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
       # Download cache
       - name: ccache cache files
