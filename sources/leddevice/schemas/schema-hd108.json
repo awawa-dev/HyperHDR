@@ -38,13 +38,14 @@
 			"propertyOrder" : 4
 		},
 		"globalBrightnessControlThreshold": {
-			"type": "integer",
+			"type": "number",
 			"format" : "stepper",			
-			"step"   : 1,			
-			"title":"edt_dev_spec_globalBrightnessControlThreshold_title",
-			"default": 1000,
+			"title": "edt_conf_color_brightness_title",
+			"default": 100.0,
 			"minimum": 0,
-			"maximum": 1000,
+			"maximum": 100.0,
+			"step"   : 0.25,
+			"append" : "edt_append_percent",
 			"required" : true,
 			"propertyOrder" : 5
 		}

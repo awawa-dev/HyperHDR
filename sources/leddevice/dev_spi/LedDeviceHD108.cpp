@@ -29,9 +29,12 @@
 
 // Local HyperHDR includes
 #include <utils/Logger.h>
+#include <cmath>
+#include <algorithm>
 
 const int HD108_MAX_LEVEL = 0x1F;
-const uint16_t HD108_MAX_THRESHOLD = 1000u;
+const uint32_t HD108_MAX_THRESHOLD = 100u;
+const uint32_t HD108_MAX_THRESHOLD_2 = HD108_MAX_THRESHOLD * HD108_MAX_THRESHOLD;
 const uint16_t HD108_MAX_LEVEL_BIT = 0b1000000000000000;
 
 LedDeviceHD108::LedDeviceHD108(const QJsonObject& deviceConfig)
@@ -53,7 +56,7 @@ bool LedDeviceHD108::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (ProviderSpi::init(deviceConfig))
 	{
-		_globalBrightnessControlThreshold = deviceConfig["globalBrightnessControlThreshold"].toInt(255);
+		_globalBrightnessControlThreshold = static_cast<uint32_t>(std::min(std::lround(deviceConfig["globalBrightnessControlThreshold"].toDouble(HD108_MAX_THRESHOLD)), (long)HD108_MAX_THRESHOLD) * HD108_MAX_THRESHOLD);
 		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(HD108_MAX_LEVEL);
 		Info(_log, "[HD108] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
 
@@ -105,11 +108,11 @@ int LedDeviceHD108::write(const std::vector<ColorRgb>& ledValues)
 			level |= (_globalBrightnessControlMaxLevel & HD108_MAX_LEVEL) << (5 * i);
 		}
 
-		if (_globalBrightnessControlThreshold < HD108_MAX_THRESHOLD)
+		if (_globalBrightnessControlThreshold < HD108_MAX_THRESHOLD_2)
 		{
-			red = (red * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD;
-			green = (green * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD;
-			blue = (blue * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD;
+			red = (red * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD_2;
+			green = (green * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD_2;
+			blue = (blue * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD_2;
 		}
 		
 
