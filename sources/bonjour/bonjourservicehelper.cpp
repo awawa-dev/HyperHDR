@@ -28,6 +28,7 @@
 
 void BonjourServiceHelper::init(QString service)
 {
+	_log = Logger::getInstance("BONJOUR");
 	_service = service;
 	has_ipv4 = 0;
 	has_ipv6 = 0;
@@ -43,7 +44,7 @@ void BonjourServiceHelper::init(QString service)
 
 	if (_instaceCount++ == 0 && WSAStartup(versionWanted, &wsaData))
 	{
-		printf("Failed to initialize WinSock\n");
+		Debug(_log, "Failed to initialize WinSock");
 	}
 
 	char hostname_buffer[256];
@@ -184,7 +185,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 
 	if (!adapter_address || (ret != NO_ERROR)) {
 		free(adapter_address);
-		printf("Failed to get network adapter addresses\n");
+		Debug(_log, "Failed to get network adapter addresses");
 		return num_sockets;
 	}
 
@@ -226,7 +227,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 						char buffer[128];
 						mdns_string_t addr = ipv4_address_to_string(buffer, sizeof(buffer), saddr,
 							sizeof(struct sockaddr_in));
-						printf("Local IPv4 address: %.*s\n", MDNS_STRING_FORMAT(addr));
+						Debug(_log, "Local IPv4 address: %.*s", MDNS_STRING_FORMAT(addr));
 					}
 				}
 			}
@@ -264,7 +265,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 						char buffer[128];
 						mdns_string_t addr = ipv6_address_to_string(buffer, sizeof(buffer), saddr,
 							sizeof(struct sockaddr_in6));
-						printf("Local IPv6 address: %.*s\n", MDNS_STRING_FORMAT(addr));
+						Debug(_log, "Local IPv6 address: %.*s", MDNS_STRING_FORMAT(addr));
 					}
 				}
 			}
@@ -279,7 +280,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 	struct ifaddrs* ifa = 0;
 
 	if (getifaddrs(&ifaddr) < 0)
-		printf("Unable to get interface addresses\n");
+		Debug(_log, "Unable to get interface addresses");
 
 	int first_ipv4 = 1;
 	int first_ipv6 = 1;
@@ -316,7 +317,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 					char buffer[128];
 					mdns_string_t addr = ipv4_address_to_string(buffer, sizeof(buffer), saddr,
 						sizeof(struct sockaddr_in));
-					printf("Local IPv4 address: %.*s\n", MDNS_STRING_FORMAT(addr));
+					Debug(_log, "Local IPv4 address: %.*s", MDNS_STRING_FORMAT(addr));
 				}
 			}
 		}
@@ -353,7 +354,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 					char buffer[128];
 					mdns_string_t addr = ipv6_address_to_string(buffer, sizeof(buffer), saddr,
 						sizeof(struct sockaddr_in6));
-					printf("Local IPv6 address: %.*s\n", MDNS_STRING_FORMAT(addr));
+					Debug(_log, "Local IPv6 address: %.*s", MDNS_STRING_FORMAT(addr));
 				}
 			}
 		}
@@ -372,16 +373,16 @@ int BonjourServiceHelper::send_mdns_query(mdns_query_t* query, size_t count)
 	int query_id[32];
 	int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
 	if (num_sockets <= 0) {
-		printf("Failed to open any client sockets\n");
+		Error(_log, "Failed to open any client sockets");
 		return -1;
 	}
-	printf("Opened %d socket%s for mDNS query\n", num_sockets, num_sockets ? "s" : "");
+	Debug(_log, "Opened %d socket%s for mDNS query", num_sockets, num_sockets ? "s" : "");
 
 	size_t capacity = 2048;
 	void* buffer = malloc(capacity);
 	void* user_data = _browser;
 
-	printf("Sending mDNS query");
+	Debug(_log, "Sending mDNS query");
 	for (size_t iq = 0; iq < count; ++iq) {
 		const char* record_name = "PTR";
 		if (query[iq].type == MDNS_RECORDTYPE_SRV)
@@ -392,19 +393,18 @@ int BonjourServiceHelper::send_mdns_query(mdns_query_t* query, size_t count)
 			record_name = "AAAA";
 		else
 			query[iq].type = MDNS_RECORDTYPE_PTR;
-		printf(" : %s %s", query[iq].name, record_name);
+		Debug(_log, " : %s %s", query[iq].name, record_name);
 	}
-	printf("\n");
 	for (int isock = 0; isock < num_sockets; ++isock) {
 		query_id[isock] =
 			mdns_multiquery_send(sockets[isock], query, count, buffer, capacity, 0);
 		if (query_id[isock] < 0)
-			printf("Failed to send mDNS query: %s\n", strerror(errno));
+			Error(_log, "Failed to send mDNS query: %s", strerror(errno));
 	}
 
 	// This is a simple implementation that loops for 3 seconds or as long as we get replies
 	int res;
-	printf("Reading mDNS query replies\n");
+	Debug(_log, "Reading mDNS query replies");
 	int records = 0;
 	do {
 		struct timeval timeout;
@@ -434,13 +434,13 @@ int BonjourServiceHelper::send_mdns_query(mdns_query_t* query, size_t count)
 		}
 	} while (res > 0);
 
-	printf("Read %d records\n", records);
+	Debug(_log, "Read %d records", records);
 
 	free(buffer);
 
 	for (int isock = 0; isock < num_sockets; ++isock)
 		mdns_socket_close(sockets[isock]);
-	printf("Closed socket%s\n", num_sockets ? "s" : "");
+	Debug(_log, "Closed socket%s", num_sockets ? "s" : "");
 
 	return 0;
 }
@@ -537,14 +537,14 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	int sockets[32];
 	int num_sockets = open_service_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]));
 	if (num_sockets <= 0) {
-		printf("Failed to open any client sockets\n");
+		Debug(_log, "Failed to open any client sockets");
 		return -1;
 	}
-	printf("Opened %d socket%s for mDNS service\n", num_sockets, num_sockets ? "s" : "");
+	Debug(_log, "Opened %d socket%s for mDNS service", num_sockets, num_sockets ? "s" : "");
 
 	size_t service_name_length = strlen(service_name);
 	if (!service_name_length) {
-		printf("Invalid service name\n");
+		Debug(_log, "Invalid service name");
 		return -1;
 	}
 
@@ -555,8 +555,8 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	service_name_buffer[service_name_length] = 0;
 	service_name = service_name_buffer;
 
-	printf("Service mDNS: %s:%d\n", service_name, service_port);
-	printf("Hostname: %s\n", hostname);
+	Debug(_log, "Service mDNS: %s:%d", service_name, service_port);
+	Debug(_log, "Hostname: %s", hostname);
 
 	size_t capacity = 2048;
 	void* buffer = malloc(capacity);
@@ -566,13 +566,13 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	// Build the service instance "<hostname>.<_service-name>._tcp.local." string
 	char service_instance_buffer[256] = {};
-	snprintf(service_instance_buffer, sizeof(service_instance_buffer) - 1, "%.*s:%i.%.*s",
+	Debug(_log, service_instance_buffer, sizeof(service_instance_buffer) - 1, "%.*s:%i.%.*s",
 		MDNS_STRING_FORMAT(hostname_string), service_port, MDNS_STRING_FORMAT(service_string));
 	mdns_string_t service_instance_string = { service_instance_buffer, strlen(service_instance_buffer) };
 
 	// Build the "<hostname>.local." string
 	char qualified_hostname_buffer[256] = {};
-	snprintf(qualified_hostname_buffer, sizeof(qualified_hostname_buffer) - 1, "%.*s.local.",
+	Debug(_log, qualified_hostname_buffer, sizeof(qualified_hostname_buffer) - 1, "%.*s.local.",
 		MDNS_STRING_FORMAT(hostname_string));
 	mdns_string_t hostname_qualified_string = { qualified_hostname_buffer, strlen(qualified_hostname_buffer) };
 
@@ -635,7 +635,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	// Send an announcement on startup of service
 	{
-		printf("Sending announce\n");
+		Debug(_log, "Sending announce");
 		mdns_record_t additional[5] = {};
 		size_t additional_count = 0;
 		additional[additional_count++] = service.record_srv;
@@ -681,7 +681,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	// Send a goodbye on end of service
 	{
-		printf("Sending goodbye\n");
+		Debug(_log, "Sending goodbye");
 		mdns_record_t additional[5] = {};
 		size_t additional_count = 0;
 		additional[additional_count++] = service.record_srv;
@@ -701,7 +701,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 
 	for (int isock = 0; isock < num_sockets; ++isock)
 		mdns_socket_close(sockets[isock]);
-	printf("Closed socket%s\n", num_sockets ? "s" : "");
+	Debug(_log, "Closed socket%s", num_sockets ? "s" : "");
 
 	return 0;
 }

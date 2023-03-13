@@ -10,6 +10,7 @@ class BonjourServiceHelper;
 class BonjourServiceRegister;
 
 class BonjourServiceBrowser;
+class Logger;
 
 class BonjourServiceHelper : public QThread
 {
@@ -76,5 +77,7 @@ public:
 	QString _hostname;
 	bool _running;
 	int _port;
+protected:
+	Logger*	_log;
 };
 
