@@ -535,7 +535,8 @@ function BuildHdrJson()
 		
 	var state = $('input[name="hdrModeState"]:checked').val();	
 	var flatbufferUserLut = $('#flatbuffersUserLut').val();
-	var finJson = componentHdr.replace("{0}", state).replace("{1}", flatbufferUserLut);
+	var finJson = (flatbufferUserLut.length > 0) ? componentHdr.replace("{0}", state).replace("{1}", flatbufferUserLut) :
+													componentHdr.replace("{0},", state).replace('"flatbuffers_user_lut_filename":"{1}"', "");
 	
 	$("#hdrMode_json").html(finJson);
 }
@@ -591,4 +592,38 @@ function BuildVControlJson()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
+var smoothingControl = 
+`{
+	"command":"smoothing",
+	"subcommand":"{0}",
+	"time":{1}
+}`;
+ 
+$('input[name="api_smoothing_target"], #json_api_smoothing_time').change(
+	function(){
+		BuildSmoothingJson();		
+	});
+
+$('#json_api_smoothing_time').keyup(
+	function(){
+		BuildSmoothingJson();
+	});
+	
+function BuildSmoothingJson()
+{
+	if ($("input[name='api_smoothing_target']:checked").val() && !isNaN($("#json_api_smoothing_time").val()) && $("#json_api_smoothing_time").val() >= 25)
+	{
+		$('button[name="smoothingControlButtons"]').each(function(i, obj) {
+			$(this).removeClass('disabled');
+		});
+		
+		var target = $('input[name="api_smoothing_target"]:checked').val();	
+		var time = $('#json_api_smoothing_time').val();
+		var finJson = smoothingControl.replace("{0}", target).replace("{1}", time);
+	
+		$("#smoothingControl_json").html(finJson);
+	}
+}
+
 });
