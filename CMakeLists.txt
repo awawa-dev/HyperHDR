@@ -23,6 +23,7 @@ SET ( DEFAULT_BOBLIGHT                    OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
 SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_DX                          OFF )
 SET ( DEFAULT_AVF                         OFF )
@@ -383,16 +384,25 @@ colorMe("ENABLE_MQTT = " ${ENABLE_MQTT})
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 
-message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
-
 option(ENABLE_XZ "Enable XZ support" ${DEFAULT_XZ})
 colorMe("ENABLE_XZ = " ${ENABLE_XZ})
+
+message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
 option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
 colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
 
 option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
 colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
+
+option(USE_SYSTEM_MQTT_LIBS "Use system qmqtt libs" ${DEFAULT_USE_SYSTEM_MQTT_LIBS})
+colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
+
+option(USE_SYSTEM_FLATBUFFERS_LIBS "Use system flatbuffers libs" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
+colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
+
+option(USE_SYSTEM_MBEDTLS_LIBS "Use system mbedtls libs" ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS})
+colorMe("USE_SYSTEM_MBEDTLS_LIBS = " ${USE_SYSTEM_MBEDTLS_LIBS})
 
 message( STATUS "\n")
 
@@ -589,7 +599,7 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
 if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
-	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
+	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()
