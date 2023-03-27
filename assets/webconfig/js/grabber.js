@@ -747,6 +747,14 @@ $(document).ready( function(){
 				if (checkExists(window.schema.videoGrabber.properties.videoEncoding.enum, name))
 					window.schema.videoGrabber.properties.videoEncoding.options.enum_titles.push(name);
 			}
+			
+			for(var i = 0; i < currentInfo.inputs.length; i++)
+			{
+				var inputnr = parseInt((currentInfo.inputs[i].inputIndex).toString());            
+				var name = (currentInfo.inputs[i].inputName).toString();
+				if (checkExists(window.schema.videoGrabber.properties.input.enum, inputnr))
+					window.schema.videoGrabber.properties.input.options.enum_titles.push(inputnr.toString() + ": " + name);
+			}
 		}
 		
 		
