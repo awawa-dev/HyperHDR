@@ -310,6 +310,11 @@ void HyperHdrInstance::saveCalibration(QString saveData)
 	_settingsManager->saveSetting(settings::type::VIDEODETECTION, saveData);
 }
 
+void HyperHdrInstance::setSmoothing(int time)
+{
+	_smoothing->updateCurrentConfig(time);
+}
+
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned retVal = id;

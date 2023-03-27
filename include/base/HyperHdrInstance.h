@@ -109,6 +109,7 @@ public:
 
 public slots:
 
+	void setSmoothing(int time);
 	void identifyLed(const QJsonObject& params);
 
 	bool getReadOnlyMode() { return _readOnlyMode; };

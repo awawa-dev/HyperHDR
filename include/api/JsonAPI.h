@@ -299,6 +299,8 @@ private:
 
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan);
+
 	void handleTunnel(const QJsonObject& message, const QString& command, int tan);
 
 	///

@@ -96,10 +96,10 @@ $(document).ready(function() {
 		}
 
 		dialog = $("#ledsim_dialog").dialog({
-			uiLibrary: 'bootstrap',
+			uiLibrary: 'bootstrap5',
 			resizable: true,
 			modal: false,
-			minWidth: 320,
+			minWidth: 330,
 			width: ledsim_width,
 			minHeight: 320,
 			height: ledsim_height,
@@ -286,18 +286,22 @@ $(document).ready(function() {
 		
 		if (window.innerWidth < 740)
 		{
-			$("#ledsim_dialog").width(320);
+			$("#ledsim_dialog").width(330);
 			$("#ledsim_dialog").height(320);
 			
-			$("#ledsim_dialog").css('top', (window.scrollY +10)+'px');
+			$("#ledsim_dialog").css('top', '10px');
 			$("#ledsim_dialog").css('left', '20px');			
 		}
 		else
 		{
 			var t = parseInt($('#ledsim_dialog').css('top'), 10);
-			if ( !isNaN(t) && (t < window.scrollY + 10 || t > window.scrollY + 10 + window.innerHeight))
-				$("#ledsim_dialog").css('top', (window.scrollY +10)+'px');			
+			var l = parseFloat($('#ledsim_dialog').css('left'), 20);
+			if ( !isNaN(t) && (t < 10 || t + 25 > window.innerHeight))
+				$("#ledsim_dialog").css('top', '10px');
+			if ( !isNaN(l) && (l < 20 || l + 50 > window.innerWidth))
+				$("#ledsim_dialog").css('left', '20px');
 		}
+		$("#ledsim_dialog").css('position', 'fixed');
 		
 		takeCareButton();
 		
