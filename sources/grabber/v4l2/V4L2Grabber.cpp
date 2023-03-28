@@ -237,6 +237,13 @@ bool V4L2Grabber::init()
 					continue;
 			}
 
+			if (_input >= 0)
+			{
+				strict = true;
+				if (val.input != _input)
+					continue;
+			}
+
 			if (_enc != PixelFormat::NO_CHANGE)
 			{
 				strict = true;
@@ -820,8 +827,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 	// set input if needed and supported
 	struct v4l2_input v4l2Input;
 	CLEAR(v4l2Input);
-	if (props.input == -1)
-		props.input = _input;
+
 	v4l2Input.index = props.input;
 
 	if (props.input >= 0 && (xioctl(VIDIOC_ENUMINPUT, &v4l2Input) == 0))
