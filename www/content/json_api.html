@@ -602,6 +602,64 @@
 			</div>				
 		</div>
 	</div>
+
+	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_smoothing"></span></div>		
+		<div class="card-body" >
+			<div class="w-100" >
+				<div class="row">
+					<div class="col-12 col-lg-6">
+						<div class="row">
+							<div class="col-12 text-start">
+								<div class="callout callout-info">
+									<h4 class="bs-main-text" data-i18n="conf_helptable_expl">Explanation</h4>
+									<span data-i18n="json_api_smoothing_expl"></span>
+								</div>
+							</div>
+						</div>				
+						<div class="row">
+							<div class="col-8 text-start">
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="api_smoothing_target" id="api_smoothing_target_all_id" value="all">
+									<label class="form-check-label" for="api_smoothing_target_all_id" data-i18n="json_api_all_instances"></label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" name="api_smoothing_target" id="api_smoothing_target_single_id" value="single">
+									<label class="form-check-label" for="api_smoothing_target_single_id" data-i18n="json_api_single_instance"></label>
+								</div>
+							</div>
+						</div>
+						<div class="row mt-2">
+							<div class="col-8 text-start">
+								<div class="input-group">
+									<span class="input-group-text mb-1" data-i18n="edt_conf_smooth_time_ms_title"></span>									
+									<input class="form-control mb-1" type="number" id="json_api_smoothing_time" value="">									
+								</div>				
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<div class="form-group">							
+							<textarea class="form-control" id="smoothingControl_json" rows="8" placeholder="JSON output" readonly></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="card-footer">			
+			<div class="d-flex flex-row-reverse bd-highlight mb-3">
+				<div class="ms-2">
+					<button type="button" name="smoothingControlButtons" onclick='CopyLink($("#smoothingControl_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
+				</div>
+				<div class="ms-2">
+					<button type="button" name="smoothingControlButtons" onclick='CopyJson($("#smoothingControl_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
+				</div>				
+				<div class="ms-2">
+					<button type="button" name="smoothingControlButtons" onclick='RunIt($("#smoothingControl_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
+				</div>
+			</div>				
+		</div>
+	</div>
 </div>
 <script>
 $.getScript("/js/json_api.js");
