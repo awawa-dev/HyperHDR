@@ -7,7 +7,6 @@ on:
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
-    PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
 
 jobs:
 
@@ -78,14 +77,14 @@ jobs:
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags') && !env.PULL_REQUEST
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: deploy/Hyper*
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && !env.PULL_REQUEST
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Linux-${{ matrix.debian }}-${{ matrix.dockerImage }}-DEB-installer
@@ -148,14 +147,14 @@ jobs:
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags') && !env.PULL_REQUEST
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             path: build/Hyper*.dmg
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && !env.PULL_REQUEST
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             name: Apple_macOS_x64_DMG_installer
@@ -205,14 +204,14 @@ jobs:
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags') && !env.PULL_REQUEST
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: build/Hyper*
           
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && !env.PULL_REQUEST
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Windows_x64_setup
