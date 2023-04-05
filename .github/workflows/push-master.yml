@@ -1,11 +1,13 @@
 name: HyperHDR CI Build
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
-    
+
 jobs:
 
 ######################
@@ -73,16 +75,16 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: deploy/Hyper*
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Linux-${{ matrix.debian }}-${{ matrix.dockerImage }}-DEB-installer
@@ -145,14 +147,14 @@ jobs:
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             path: build/Hyper*.dmg
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             name: Apple_macOS_x64_DMG_installer
@@ -200,28 +202,56 @@ jobs:
         run: |
           ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: build/Hyper*
           
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
-  
+
+################################
+####### CodeQL support #########
+################################
+
+  analyze:
+    name: Analyze (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp', 'javascript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Run composite CodeQL job for '${{matrix.language}}' language
+        uses: ./.github/actions/codeql
+        with:
+          language: ${{matrix.language}}
+
 ################################
 ###### Publish Releases ########
 ################################
 
   publish:
     name: Publish Releases
-    if: startsWith(github.event.ref, 'refs/tags')
+    if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, windows, macOS]
     runs-on: ubuntu-20.04
     steps:
