@@ -217,7 +217,35 @@ jobs:
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
-  
+
+################################
+####### CodeQL support #########
+################################
+
+  analyze:
+    name: Analyze (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp', 'javascript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Run composite CodeQL job for '${{matrix.language}}' language
+        uses: ./.github/actions/codeql
+        with:
+          language: ${{matrix.language}}
+
 ################################
 ###### Publish Releases ########
 ################################
