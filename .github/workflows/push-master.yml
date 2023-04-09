@@ -254,6 +254,8 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, windows, macOS]
     runs-on: ubuntu-20.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -285,5 +287,3 @@ jobs:
           files: "artifacts/**"
           draft: true
           prerelease: ${{ env.preRelease }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

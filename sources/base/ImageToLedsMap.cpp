@@ -80,7 +80,7 @@ ImageToLedsMap::ImageToLedsMap(
 		const int32_t realXLedCount = qAbs(maxXLedCount - minX_idx);
 
 		bool   sparseIndexes = sparseProcessing;
-		size_t totalSize = realYLedCount* realXLedCount;
+		size_t totalSize = static_cast<size_t>(realYLedCount) * realXLedCount;
 
 		if (!sparseIndexes && totalSize > 1600)
 		{
@@ -91,7 +91,7 @@ ImageToLedsMap::ImageToLedsMap(
 		const int32_t increment = (sparseIndexes) ? 2 : 1;
 
 		std::vector<int32_t> ledColor;
-		ledColor.reserve( (sparseIndexes) ? ((realYLedCount / 2) + (realYLedCount % 2)) * ((realXLedCount / 2) + (realXLedCount % 2)) : totalSize);
+		ledColor.reserve( (sparseIndexes) ? ((static_cast<unsigned long long>(realYLedCount / 2)) + (realYLedCount % 2)) * ((realXLedCount / 2) + (realXLedCount % 2)) : totalSize);
 
 		if (ImageProcessor::mappingTypeToInt(QString("weighted")) == _mappingType)
 		{

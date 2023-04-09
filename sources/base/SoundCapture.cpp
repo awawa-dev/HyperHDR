@@ -897,12 +897,12 @@ inline int16_t   SoundCapture::FIX_MPY(int16_t  a, int16_t  b)
   RESULT (in-place FFT), with 0 <= n < 2**m; set inverse to
   0 for forward transform (FFT), or 1 for iFFT.
 */
-int32_t  SoundCapture::fix_fft(int16_t fr[], int16_t fi[], int16_t m, bool inverse)
+int32_t  SoundCapture::fix_fft(int16_t fr[], int16_t fi[], int16_t exp, bool inverse)
 {
-	int mr, nn, i, j, l, k, istep, n, scale, shift;
+	int m, mr, nn, i, j, l, k, istep, n, scale, shift;
 	short qr, qi, tr, ti, wr, wi;
 
-	n = 1 << m;
+	n = 1 << exp;
 
 	/* max FFT size = N_WAVE */
 	if (n > SOUNDCAP_N_WAVE)
