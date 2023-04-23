@@ -78,7 +78,7 @@ private:
 	QtHttpServer*        _server;
 	bool                 _inited = false;
 
-	const QString        WEBSERVER_DEFAULT_PATH = ":/webconfig";
+	const QString        WEBSERVER_DEFAULT_PATH = ":/www";
 	const QString        WEBSERVER_DEFAULT_CRT_PATH = ":/hyperhdrcrt.pem";
 	const QString        WEBSERVER_DEFAULT_KEY_PATH = ":/hyperhdrkey.pem";
 	quint16              WEBSERVER_DEFAULT_PORT = 8090;

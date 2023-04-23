@@ -127,5 +127,5 @@ private:
 	static int16_t  _lutSin[SOUNDCAP_N_WAVE - SOUNDCAP_N_WAVE / 4];
 
 	static inline int16_t  FIX_MPY(int16_t  a, int16_t  b);
-	static int32_t fix_fft(int16_t fr[], int16_t fi[], int16_t m, bool inverse);
+	static int32_t fix_fft(int16_t fr[], int16_t fi[], int16_t exp, bool inverse);
 };

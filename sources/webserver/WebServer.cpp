@@ -121,7 +121,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		_baseUrl = obj["document_root"].toString(WEBSERVER_DEFAULT_PATH);
 
 
-		if ((_baseUrl != ":/webconfig") && !_baseUrl.trimmed().isEmpty())
+		if ((_baseUrl != ":/www") && !_baseUrl.trimmed().isEmpty())
 		{
 			QFileInfo info(_baseUrl);
 			if (!info.exists() || !info.isDir())
