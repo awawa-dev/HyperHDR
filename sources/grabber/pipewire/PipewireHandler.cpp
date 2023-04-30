@@ -658,9 +658,12 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 					SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
 					SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(bufferTypes));
 	
-	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));
-
+	pw_thread_loop_lock(_pwMainThreadLoop);
+	
+	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));	
 	_infoUpdated = false;
+
+	pw_thread_loop_unlock(_pwMainThreadLoop);
 };
 
 void PipewireHandler::onProcessFrame()
