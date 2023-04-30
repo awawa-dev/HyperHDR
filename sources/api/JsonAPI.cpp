@@ -220,6 +220,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleVideoControlsCommand(message, command, tan);
 		else if (command == "benchmark")
 			handleBenchmarkCommand(message, command, tan);
+		else if (command == "smoothing")
+			handleSmoothingCommand(message, command, tan);
 		else if (command == "transform" || command == "correction" || command == "temperature")
 			sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 		// END
@@ -821,6 +823,19 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 			GrabberWrapper::getInstance()->benchmarkCapture(status, subc);
 		}
 	}
+
+	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& subc = message["subcommand"].toString().trimmed().toLower();
+	int time = message["time"].toInt();
+
+	if (subc=="all")
+		QTimer::singleShot(0, _instanceManager, [=]() { _instanceManager->setSmoothing(time); });
+	else
+		QTimer::singleShot(0, _hyperhdr, [=]() { _hyperhdr->setSmoothing(time); });
 
 	sendSuccessReply(command, tan);
 }

@@ -21,7 +21,7 @@ jobs:
         sudo apt install coreutils p7zip-full qemu-user-static
 
     - name: Checkout CustomPiOS
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: 'guysoft/CustomPiOS'
         path: CustomPiOS
@@ -91,7 +91,7 @@ jobs:
       run: |
         IMAGE=SD-card-image-${{ github.event.inputs.tags }}-${{ github.event.inputs.architecture }}
         cp ${{ env.workspace_dir }}/*.img $IMAGE.img
-        echo "::set-output name=image::$IMAGE"
+        echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
     # artifact upload will take care of zipping for us
     - uses: actions/upload-artifact@v1      
