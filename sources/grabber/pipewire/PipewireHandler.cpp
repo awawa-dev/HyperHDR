@@ -1118,8 +1118,10 @@ void PipewireHandler::initEGL()
 
 	if (displayEgl == EGL_NO_DISPLAY)
 	{
-		if (((displayEgl = eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr)) == EGL_NO_DISPLAY) &&
-			((displayEgl = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr)) == EGL_NO_DISPLAY))
+		bool x11session = qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("x11") && !qEnvironmentVariableIsSet("WAYLAND_DISPLAY");
+		printf("Session type: %s , X11 detected: %s\n", qgetenv("XDG_SESSION_TYPE").constData(), (x11session) ? "yes" : "no");
+		if (((x11session || (displayEgl = eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr)) == EGL_NO_DISPLAY)) &&
+			((!x11session || (displayEgl = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr)) == EGL_NO_DISPLAY)))
 		{
 			printf("PipewireEGL: no EGL display\n");
 			return;
