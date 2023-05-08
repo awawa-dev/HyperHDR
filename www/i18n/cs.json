@@ -1140,7 +1140,7 @@
   "conf_leds_disabled_notification": "Některé LED jsou vypnuty uživatelem!",
   "conf_leds_layout_context": "Kliknutím pravým tlačítkem na LED se zobrazí kontextová nabídka. Pomocí klávesy CTRL vyberete objekt níže.",
   "conf_leds_layout_btn_zoom": "Zvětšení",
-  "edt_serial_espHandshake": "Esp8266/ESP32 handshake (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>informace</a>)",
+  "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040 handshake (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>informace</a>)",
   "edt_rpi_ws281x_driver": "Tento ovladač je určen pro pokročilé uživatele a tým HyperHDR jej <b>nedoporučuje ani nepodporuje</b>. Přečtěte si prosím sekci FAQ k projektu a nežádejte nás o pomoc, pokud ji zkusíte použít, protože to <b>ruší jakoukoli podporu pro celou vaši konfiguraci HyperHDR</b>. Vyberte si lepší řešení, jako je HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>asi</a>) nebo HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>o</a>).",
   "json_api_components_expl_multi": "S jediným odkazem můžete spustit více příkazů. Maximální délka je 2048 znaků. Všechny budou spuštěny, ale obdržíte pouze jednu odpověď (podívejte se do protokolů pro veškerý výstup). Jednoduše vložte obsah odkazů <code> požadavek </code> do formátu (první poznámka „?“ A další znaky „&“): <br> <code> http: // IP: PORT/json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Automatické obnovení",

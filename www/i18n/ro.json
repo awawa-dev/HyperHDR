@@ -1140,7 +1140,7 @@
   "conf_leds_disabled_notification": "Unele LED-uri sunt dezactivate de utilizator!",
   "conf_leds_layout_context": "Faceți clic dreapta pe LED pentru a afișa meniul contextual. Cu tasta CTRL selectează obiectul de mai jos.",
   "conf_leds_layout_btn_zoom": "Zoom",
-  "edt_serial_espHandshake": "Strângere de mână Esp8266/ESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>informații</a>)",
+  "edt_serial_espHandshake": "Strângere de mână Esp8266/ESP32/Rp2040 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>informații</a>)",
   "edt_rpi_ws281x_driver": "Acest driver este destinat utilizatorilor avansați și <b>nu este recomandat sau acceptat</b> de echipa HyperHDR. Vă rugăm să citiți secțiunea Întrebări frecvente ale proiectului pentru motive și să nu ne cereți ajutor dacă încercați să o utilizați, deoarece <b>revoca orice suport pentru întreaga configurație HyperHDR</b>. Alegeți o soluție mai bună, cum ar fi HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) sau HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>despre</a>).",
   "json_api_components_expl_multi": "Puteți rula mai multe comenzi cu un singur link. Lungimea maximă este de 2048 de caractere. Toate vor fi executate, dar veți primi un singur răspuns (verificați jurnalele pentru toate ieșirile). Pur și simplu puneți conținutul „<code> request </code> al link-urilor în format (notați mai întâi„? ”Char și următoarele„ & ”chars): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Reluare automată",

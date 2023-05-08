@@ -1140,7 +1140,7 @@
   "conf_leds_disabled_notification": "Bazı LED'ler kullanıcı tarafından devre dışı bırakılır!",
   "conf_leds_layout_context": "Bağlam menüsünü görüntülemek için LED'e sağ tıklayın. CTRL tuşu ile alttaki nesneyi seçer.",
   "conf_leds_layout_btn_zoom": "yakınlaştır",
-  "edt_serial_espHandshake": "Esp8266/ESP32 anlaşması (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>bilgi</a>)",
+  "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040 anlaşması (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>bilgi</a>)",
   "edt_rpi_ws281x_driver": "Bu sürücü ileri düzey kullanıcılar için tasarlanmıştır ve HyperHDR ekibi tarafından <b>önerilmez veya desteklenmez</b>. Nedenleri için lütfen proje SSS bölümünü okuyun ve <b>HyperHDR yapılandırmanızın tamamı için herhangi bir desteği iptal ettiği</b> için kullanmaya çalışırsanız bizden yardım istemeyin. HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) veya HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>hakkında</a>).",
   "json_api_components_expl_multi": "Tek bir bağlantı ile birden çok komut çalıştırabilirsiniz. Maksimum uzunluk 2048 karakterdir. Hepsi yürütülecek, ancak yalnızca bir yanıt alacaksınız (tüm çıktılar için günlükleri kontrol edin). Bağlantılarınızın '<code>request</code> içeriğini şu biçime yerleştirin (önce '?' karakterini ve sonraki '&' karakterlerini not edin):<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "Otomatik özgeçmiş",
