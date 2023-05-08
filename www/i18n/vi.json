@@ -1140,7 +1140,7 @@
   "conf_leds_disabled_notification": "Một số đèn LED bị tắt bởi người dùng!",
   "conf_leds_layout_context": "Nhấp chuột phải vào đèn LED để hiển thị menu ngữ cảnh. Với phím CTRL, chọn đối tượng bên dưới.",
   "conf_leds_layout_btn_zoom": "Phóng",
-  "edt_serial_espHandshake": "Bắt tay Esp8266/ESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
+  "edt_serial_espHandshake": "Bắt tay Esp8266/ESP32/Rp2040 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver": "Trình điều khiển này dành cho người dùng nâng cao và <b>không được đề xuất hoặc hỗ trợ</b> bởi nhóm HyperHDR. Vui lòng đọc phần Câu hỏi thường gặp của dự án để biết lý do và đừng yêu cầu chúng tôi trợ giúp nếu bạn cố gắng sử dụng nó vì nó <b>thu hồi mọi hỗ trợ cho toàn bộ cấu hình HyperHDR của bạn</b>. Chọn giải pháp tốt hơn như HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) hoặc HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>about</a>).",
   "json_api_components_expl_multi": "Bạn có thể chạy nhiều lệnh chỉ với một liên kết. Chiều dài tối đa là 2048 ký tự. Tất cả chúng sẽ được thực thi nhưng bạn sẽ chỉ nhận được một phản hồi (kiểm tra nhật ký cho tất cả đầu ra). Chỉ cần đặt nội dung '<code> request </code> liên kết của bạn vào định dạng (lưu ý đầu tiên là ký tự'? 'Char và các ký tự' & 'tiếp theo): <br> <code> http: // IP: PORT / json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Tiếp tục tự động",

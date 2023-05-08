@@ -1140,7 +1140,7 @@
   "conf_leds_disabled_notification": "一些 LED 被用户禁用了！",
   "conf_leds_layout_context": "右键单击 LED 以显示上下文菜单。使用 CTRL 键选择下面的对象。",
   "conf_leds_layout_btn_zoom": "飞涨",
-  "edt_serial_espHandshake": "Esp8266/ESP32 握手（<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>信息</a>）",
+  "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040 握手（<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>信息</a>）",
   "edt_rpi_ws281x_driver": "此驱动程序适用于高级用户，HyperHDR 团队<b>不推荐或不支持</b>。请阅读项目常见问题解答部分了解原因，如果您尝试使用它，请不要向我们寻求帮助，因为它<b>撤销对您的整个 HyperHDR 配置的任何支持</b>。选择更好的解决方案，例如 HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) 或 HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>关于</a>)。",
   "json_api_components_expl_multi": "您只需一个链接即可运行多个命令。最大长度为 2048 个字符。它们都将被执行，但您只会收到一个响应（查看所有输出的日志）。只需将您的链接的 <code>request</code> 内容放入格式中（注意首先是“?”字符，然后是“&”字符）：<br><code>http://IP:PORT/json-rpc? request=request1&request=request2&request=request3...</code>",
   "edt_conf_stream_autoResume_title": "自动恢复",
