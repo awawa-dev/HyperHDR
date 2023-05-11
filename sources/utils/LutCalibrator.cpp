@@ -28,6 +28,7 @@
 #include <utils/GlobalSignals.h>
 #include <utils/Logger.h>
 #include <base/GrabberWrapper.h>
+#include <api/JsonAPI.h>
 #include <utils/ColorSys.h>
 #include <base/HyperHdrIManager.h>
 #include <utils/RgbTransform.h>
@@ -103,7 +104,7 @@ LutCalibrator* LutCalibrator::getInstance()
 	return instance;
 }
 
-void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef)
+void LutCalibrator::assignHandler(hyperhdr::Components defaultComp, int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef)
 {
 	if (checksum == 0)
 	{
@@ -180,8 +181,21 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 				_log->enable();
 			}
 
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage, Qt::ConnectionType::UniqueConnection);
+			if (defaultComp == hyperhdr::COMP_VIDEOGRABBER)
+			{
+				Debug(_log, "Using video grabber as a source");
+				connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
+			}
+			else if (defaultComp == hyperhdr::COMP_SYSTEMGRABBER)
+			{
+				Debug(_log, "Using system grabber as a source");
+				connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage, Qt::ConnectionType::UniqueConnection);
+			}
+			else
+			{
+				Debug(_log, "Using flatbuffers/protobuffers as a source");
+				connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage, Qt::ConnectionType::UniqueConnection);
+			}
 		}
 		else
 		{			
@@ -223,6 +237,11 @@ void LutCalibrator::stopHandler()
 }
 
 void LutCalibrator::setVideoImage(const QString& name, const Image<ColorRgb>& image)
+{
+	handleImage(image);
+}
+
+void LutCalibrator::setSystemImage(const QString& name, const Image<ColorRgb>& image)
 {
 	handleImage(image);
 }
@@ -868,6 +887,7 @@ bool LutCalibrator::correctionEnd()
 {
 
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
 
 	double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
@@ -1140,6 +1160,12 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 								calculated.green = ootf(calculated.green);
 								calculated.blue = ootf(calculated.blue);
 							}
+							else
+							{
+								calculated.red = normalized.red;
+								calculated.green = normalized.green;
+								calculated.blue = normalized.blue;
+							}
 
 							calculated.red = clampDouble(calculated.red, 0, 1.0) * 255.0;
 							calculated.green = clampDouble(calculated.green, 0, 1.0) * 255.0;
@@ -1213,6 +1239,7 @@ bool LutCalibrator::finalize(bool fastTrack)
 	if (!fastTrack)
 	{
 		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
+		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage);
 		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
 	}
 
