@@ -19,7 +19,7 @@
 			"title" : "edt_conf_stream_max_resolution_title",
 			"default" : 512,
 			"minimum" : 196,
-			"maximum" : 640,						
+			"maximum" : 960,						
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 7			

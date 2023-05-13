@@ -310,6 +310,11 @@ void HyperHdrInstance::saveCalibration(QString saveData)
 	_settingsManager->saveSetting(settings::type::VIDEODETECTION, saveData);
 }
 
+void HyperHdrInstance::setSmoothing(int time)
+{
+	_smoothing->updateCurrentConfig(time);
+}
+
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned retVal = id;
@@ -537,6 +542,12 @@ QList<int> HyperHdrInstance::getActivePriorities() const
 const HyperHdrInstance::InputInfo& HyperHdrInstance::getPriorityInfo(int priority) const
 {
 	return _muxer.getInputInfo(priority);
+}
+
+PriorityMuxer::InputInfo HyperHdrInstance::getCurrentPriorityInfo()
+{
+	PriorityMuxer::InputInfo val = _muxer.getInputInfo(getCurrentPriority());
+	return val;
 }
 
 std::list<EffectDefinition> HyperHdrInstance::getEffects() const

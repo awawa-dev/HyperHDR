@@ -109,6 +109,7 @@ public:
 
 public slots:
 
+	void setSmoothing(int time);
 	void identifyLed(const QJsonObject& params);
 
 	bool getReadOnlyMode() { return _readOnlyMode; };
@@ -301,6 +302,8 @@ public slots:
 	/// @return The information of the given, a not found priority will return lowest priority as fallback
 	///
 	const PriorityMuxer::InputInfo& getPriorityInfo(int priority) const;
+
+	PriorityMuxer::InputInfo getCurrentPriorityInfo();
 
 	/// #############
 	/// SETTINGSMANAGER

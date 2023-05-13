@@ -220,6 +220,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleVideoControlsCommand(message, command, tan);
 		else if (command == "benchmark")
 			handleBenchmarkCommand(message, command, tan);
+		else if (command == "smoothing")
+			handleSmoothingCommand(message, command, tan);
 		else if (command == "transform" || command == "correction" || command == "temperature")
 			sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 		// END
@@ -355,6 +357,18 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, i
 	// send the result
 	result["info"] = info;
 	emit callbackMessage(result);
+}
+
+hyperhdr::Components JsonAPI::getActiveComponent()
+{
+	PriorityMuxer::InputInfo prio;
+
+	if (QThread::currentThread() == _hyperhdr->thread())
+		prio = _hyperhdr->getCurrentPriorityInfo();
+	else
+		QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriorityInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(PriorityMuxer::InputInfo, prio));
+
+	return prio.componentId;	
 }
 
 void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString& command, int tan)
@@ -821,6 +835,19 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 			GrabberWrapper::getInstance()->benchmarkCapture(status, subc);
 		}
 	}
+
+	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& subc = message["subcommand"].toString().trimmed().toLower();
+	int time = message["time"].toInt();
+
+	if (subc=="all")
+		QTimer::singleShot(0, _instanceManager, [=]() { _instanceManager->setSmoothing(time); });
+	else
+		QTimer::singleShot(0, _hyperhdr, [=]() { _hyperhdr->setSmoothing(time); });
 
 	sendSuccessReply(command, tan);
 }
@@ -1312,7 +1339,7 @@ void JsonAPI::handleLutCalibrationCommand(const QJsonObject& message, const QStr
 	_endColor.blue = endColor["b"].toInt(255);
 
 	if (subcommand == "capture")	
-		emit LutCalibrator::getInstance()->assign(checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
+		emit LutCalibrator::getInstance()->assign(getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
 	else
 		emit LutCalibrator::getInstance()->stop();
 

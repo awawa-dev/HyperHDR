@@ -64,6 +64,8 @@ public slots:
 
 	void releaseLock();
 
+	hyperhdr::Components getActiveComponent();
+
 private slots:
 	///
 	/// @brief Handle emits from API of a new Token request.
@@ -298,6 +300,8 @@ private:
 	void handleVideoControlsCommand(const QJsonObject& message, const QString& command, int tan);
 
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
+
+	void handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan);
 
 	void handleTunnel(const QJsonObject& message, const QString& command, int tan);
 
