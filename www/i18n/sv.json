@@ -1140,7 +1140,7 @@
   "conf_leds_disabled_notification": "Vissa lysdioder är inaktiverade av användaren!",
   "conf_leds_layout_context": "Högerklicka på lysdioden för att visa snabbmenyn. Med CTRL-tangenten väljer du objektet nedan.",
   "conf_leds_layout_btn_zoom": "Zoom",
-  "edt_serial_espHandshake": "Esp8266/ESP32-handslag (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
+  "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040-handslag (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver": "Den här drivrutinen är avsedd för avancerade användare och <b>rekommenderas eller stöds inte</b> av HyperHDR-teamet. Vänligen läs avsnittet med vanliga frågor om projektet för skäl och be oss inte om hjälp om du försöker använda det eftersom det <b>återkallar allt stöd för hela din HyperHDR-konfiguration</b>. Välj en bättre lösning som HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) eller HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>om</a>).",
   "json_api_components_expl_multi": "Du kan köra flera kommandon med bara en länk. Maxlängd är 2048 tecken. Alla kommer att köras men du får bara ett svar (kolla in loggar för all utmatning). Lägg bara in dina länks <code> begäran </code> innehåll i formatet (notera först '?' Char och nästa '&' tecken): <br> <code> http: // IP: PORT/json-rpc? request = request1 & request = request2 & request = request3 ... </code>",
   "edt_conf_stream_autoResume_title": "Återuppta automatiskt",

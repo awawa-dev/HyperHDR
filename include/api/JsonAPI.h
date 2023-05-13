@@ -64,6 +64,8 @@ public slots:
 
 	void releaseLock();
 
+	hyperhdr::Components getActiveComponent();
+
 private slots:
 	///
 	/// @brief Handle emits from API of a new Token request.

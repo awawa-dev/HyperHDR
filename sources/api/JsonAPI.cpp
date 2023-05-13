@@ -359,6 +359,18 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, i
 	emit callbackMessage(result);
 }
 
+hyperhdr::Components JsonAPI::getActiveComponent()
+{
+	PriorityMuxer::InputInfo prio;
+
+	if (QThread::currentThread() == _hyperhdr->thread())
+		prio = _hyperhdr->getCurrentPriorityInfo();
+	else
+		QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriorityInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(PriorityMuxer::InputInfo, prio));
+
+	return prio.componentId;	
+}
+
 void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	try
@@ -1327,7 +1339,7 @@ void JsonAPI::handleLutCalibrationCommand(const QJsonObject& message, const QStr
 	_endColor.blue = endColor["b"].toInt(255);
 
 	if (subcommand == "capture")	
-		emit LutCalibrator::getInstance()->assign(checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
+		emit LutCalibrator::getInstance()->assign(getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
 	else
 		emit LutCalibrator::getInstance()->stop();
 

@@ -303,6 +303,8 @@ public slots:
 	///
 	const PriorityMuxer::InputInfo& getPriorityInfo(int priority) const;
 
+	PriorityMuxer::InputInfo getCurrentPriorityInfo();
+
 	/// #############
 	/// SETTINGSMANAGER
 	///
