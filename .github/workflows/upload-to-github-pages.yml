@@ -52,7 +52,7 @@ jobs:
             dockerName: Ubuntu 23.04 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Ubuntu 22.10
+            niceName: Ubuntu 23.04
 
     steps:
       # checkout
