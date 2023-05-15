@@ -48,8 +48,8 @@ jobs:
             platform: linux
             niceName: Ubuntu 22.04 LTS
           - dockerImage: x86_64
-            linuxVersion: kinetic
-            dockerName: Ubuntu 22.10 (x86_64)
+            linuxVersion: lunar
+            dockerName: Ubuntu 23.04 (x86_64)
             arch: amd64
             platform: linux
             niceName: Ubuntu 22.10
