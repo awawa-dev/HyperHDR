@@ -97,7 +97,7 @@ private slots:
 
 	void handleLedColorsTimer();
 
-	void lutDownloaded(QNetworkReply* reply);
+	void lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 
 signals:
 	///

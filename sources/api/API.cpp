@@ -577,7 +577,7 @@ void API::stopDataConnectionss()
 {
 }
 
-QString API::installLut(QNetworkReply *reply, QString fileName)
+QString API::installLut(QNetworkReply *reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
 {
 #ifdef ENABLE_XZ
 	QString error = nullptr;
@@ -634,11 +634,15 @@ QString API::installLut(QNetworkReply *reply, QString fileName)
 							file.write(QByteArray((char*)outBuf, toWrite));
 						}
 					} while (strm.avail_out == 0 && lzmaRet != LZMA_STREAM_END);
+					file.flush();
 				}
 				else
 				{
 					error = "Could not initialize LZMA decoder";
 				}
+
+				if (time != 0)
+					file.setFileTime(QDateTime::fromMSecsSinceEpoch(time), QFileDevice::FileModificationTime);
 
 				file.close();
 				if (error != nullptr)

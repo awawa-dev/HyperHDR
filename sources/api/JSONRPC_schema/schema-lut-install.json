@@ -11,6 +11,22 @@
 			"type" : "string",
 			"required" : true
 		},
+		"hardware_brightness": {
+			"type" : "integer",
+			"required" : true
+		},
+		"hardware_contrast": {
+			"type" : "integer",
+			"required" : true
+		},
+		"hardware_saturation": {
+			"type" : "integer",
+			"required" : true
+		},
+		"now": {
+			"type" : "integer",
+			"required" : true
+		},
 		"tan" : {
 			"type" : "integer"
 		}

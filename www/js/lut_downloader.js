@@ -1,5 +1,20 @@
 $(document).ready( function(){		
+	performTranslation();
 
+	$("#lut_path_id").text($.i18n("main_menu_grabber_lut_path", window.serverInfo.grabbers.lut_for_hdr_path));
+	if (window.serverInfo.grabbers.lut_for_hdr_exists === 1)
+	{
+		$("#lut_found_id").removeClass("d-none");
+		var d = new Date(0);
+		d.setUTCSeconds(window.serverInfo.grabbers.lut_for_hdr_modified_date/1000);
+		$("#lut_found_date").text($.i18n("main_menu_grabber_lut_path_found_date", d.toLocaleString()));
+		$("#lut_found_date").removeClass("d-none");
+	}
+	else
+	{
+		$("#lut_not_found_id").removeClass("d-none");
+	}
+	
 	function startDownloadWizard() {		
 		$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n("main_menu_grabber_lut"));
 		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><i class="fa fa-refresh fa-spin align-middle" style="font-size: 50px;"></i></div></div>');
@@ -24,13 +39,21 @@ $(document).ready( function(){
 			$("#wizard_modal").css("z-index", backupDownWizard);
 			downWiz.hide();
 			resetWizard(true);
+			reload();
 		});
 	}
 
 	function installLut(evt)
 	{
-		startDownloadWizard();
-		requestLutInstall(evt.currentTarget.lutBaseAddress);
+		let selectedLut = evt.currentTarget;
+		showInfoDialog('confirm', $.i18n('main_menu_grabber_lut'), $.i18n('main_menu_grabber_lut_confirm'));
+
+		$('#id_btn_confirm').off().on('click', function()
+		{
+				startDownloadWizard();
+				requestLutInstall(selectedLut.lutBaseAddress, selectedLut.lutBrightness,
+						selectedLut.lutContrast, selectedLut.lutSaturation, Date.now());
+		});
 	}
 
 	function createColumn(columnData)
@@ -49,7 +72,10 @@ $(document).ready( function(){
 			if (columnData.src != null && columnData.src.length > 0)
 			{
 				let btn = document.createElement("button");
-				btn.lutBaseAddress =columnData.src;
+				btn.lutBaseAddress = columnData.src;
+				btn.lutBrightness = columnData.brightness ?? 0;
+				btn.lutContrast = columnData.contrast ?? 0;
+				btn.lutSaturation = columnData.saturation ?? 0;
 				btn.setAttribute("class", "btn btn-warning mb-4");
 				btn.innerHTML = "Install";
 				btn.addEventListener('click', installLut, false);
