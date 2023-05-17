@@ -16,6 +16,7 @@
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
+#include <QDir>
 
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
@@ -843,7 +844,7 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 
 void JsonAPI::lutDownloaded(QNetworkReply* reply)
 {
-	QString fileName = QString("%1%2").arg(_instanceManager->getRootPath()).arg("/lut_lin_tables.3d");
+	QString fileName = QDir::cleanPath(_instanceManager->getRootPath() + QDir::separator() + "lut_lin_tables.3d");
 	QString error = installLut(reply, fileName);
 
 	if (error == nullptr)
