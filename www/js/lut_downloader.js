@@ -1,4 +1,6 @@
-$(document).ready( function(){		
+$(document).ready( function(){
+	let selectedLut = {};
+
 	performTranslation();
 
 	$("#lut_path_id").text($.i18n("main_menu_grabber_lut_path", window.serverInfo.grabbers.lut_for_hdr_path));
@@ -9,6 +11,12 @@ $(document).ready( function(){
 		d.setUTCSeconds(window.serverInfo.grabbers.lut_for_hdr_modified_date/1000);
 		$("#lut_found_date").text($.i18n("main_menu_grabber_lut_path_found_date", d.toLocaleString()));
 		$("#lut_found_date").removeClass("d-none");
+
+		if (window.serverInfo.grabbers.lutFastCRC != null)
+			$("#lut_found_CRC").text($.i18n("main_menu_grabber_lut_path_found_CRC", window.serverInfo.grabbers.lutFastCRC));
+		else
+			$("#lut_found_CRC").text($.i18n("main_menu_grabber_lut_path_found_CRC", $.i18n("main_menu_grabber_lut_path_found_NOCRC")));
+		$("#lut_found_CRC").removeClass("d-none");
 	}
 	else
 	{
@@ -45,7 +53,12 @@ $(document).ready( function(){
 
 	function installLut(evt)
 	{
-		let selectedLut = evt.currentTarget;
+		var btn = evt.currentTarget;
+		selectedLut.lutBaseAddress = btn.lutBaseAddress;
+		selectedLut.lutBrightness = btn.lutBrightness;
+		selectedLut.lutContrast = btn.lutContrast;
+		selectedLut.lutSaturation = btn.lutSaturation;
+
 		showInfoDialog('confirm', $.i18n('main_menu_grabber_lut'), $.i18n('main_menu_grabber_lut_confirm'));
 
 		$('#id_btn_confirm').off().on('click', function()
@@ -119,6 +132,8 @@ $(document).ready( function(){
 		{
 			$('#download_summary_header').css('color', 'green');
 			resElement.innerHTML = '<i class="fa fa-check-circle fa-fw"></i>' + $.i18n('infoDialog_general_success_title');
+			resElement = document.getElementById("download_summary");
+			resElement.innerHTML = $.i18n("main_menu_grabber_lut_restart", selectedLut.lutBrightness, selectedLut.lutContrast, selectedLut.lutSaturation);
 		}
 		else
 		{
