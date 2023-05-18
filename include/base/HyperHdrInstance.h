@@ -116,6 +116,8 @@ public slots:
 
 	void saveCalibration(QString saveData);
 
+	void saveGrabberParams(int hardware_brightness, int hardware_contrast, int hardware_saturation);
+
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.

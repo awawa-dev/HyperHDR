@@ -863,6 +863,7 @@ void JsonAPI::lutDownloaded(QNetworkReply* reply, int hardware_brightness, int h
 		Info(_log, "Reloading LUT...");
 		API::setVideoModeHdr(0);
 		API::setVideoModeHdr(1);
+		QTimer::singleShot(0, _hyperhdr, [=]() { _hyperhdr->saveGrabberParams(hardware_brightness, hardware_contrast, hardware_saturation); });
 		Info(_log, "New LUT has been installed as: %s (from: %s)", QSTRING_CSTR(fileName), QSTRING_CSTR(reply->url().toString()));
 	}
 	else
@@ -885,7 +886,7 @@ void JsonAPI::handleLutInstallCommand(const QJsonObject& message, const QString&
 	int hardware_brightness = message["hardware_brightness"].toInt(0);
 	int hardware_contrast = message["hardware_contrast"].toInt(0);
 	int hardware_saturation = message["hardware_saturation"].toInt(0);
-	qint64 time = message["now"].toInteger(0);
+	qint64 time = message["now"].toInt(0);
 
 	Debug(_log, "Request to install LUT from: %s (params => [%i, %i, %i])", QSTRING_CSTR(address),
 										hardware_brightness, hardware_contrast, hardware_saturation);
