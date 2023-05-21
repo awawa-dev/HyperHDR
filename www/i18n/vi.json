@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "Sử dụng giao thức SSL",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Bỏ qua lỗi SSL",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Bỏ qua tất cả các lỗi SSL như chứng chỉ tự ký, v.v. Sử dụng một cách thận trọng.",
-  "json_api_flatbuffers_user_lut": "Tên tệp LUT của bộ đệm phẳng"
+  "json_api_flatbuffers_user_lut": "Tên tệp LUT của bộ đệm phẳng",
+  "main_menu_grabber_lut" : "Tải xuống LUT",
+  "main_menu_grabber_lut_title" : "HDR LUT tùy chỉnh cho bộ lấy USB",
+  "main_menu_grabber_lut_path" : "Đường dẫn LUT tùy chỉnh là: $1",
+  "main_menu_grabber_lut_path_not_found" : "KHÔNG tìm thấy LUT tùy chỉnh",
+  "main_menu_grabber_lut_path_found" : "Đã tìm thấy LUT tùy chỉnh",
+  "main_menu_grabber_lut_path_found_date" : "Tệp đã sửa đổi: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "Tệp CRC: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "bật HDR trong các tùy chọn lấy USB và làm mới trang",
+  "main_menu_grabber_lut_restart" : "Vui lòng khởi động lại hệ thống của bạn để những thay đổi có hiệu lực đầy đủ!<br>Cấu hình bộ lấy USB với độ sáng=$1, Sự tương phản=$2, bão hòa=$3 đã được cứu.",
+  "main_menu_grabber_lut_confirm" : "Bạn có chắc chắn tải xuống và cài đặt tệp LUT mới cho trình tải xuống của mình không?"
 }

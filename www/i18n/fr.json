@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "Utiliser le protocole SSL",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Ignorer les erreurs SSL",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Ignorez toutes les erreurs SSL telles que les certificats auto-signés, etc. À utiliser avec prudence.",
-  "json_api_flatbuffers_user_lut": "Nom de fichier LUT Flatbuffers"
+  "json_api_flatbuffers_user_lut": "Nom de fichier LUT Flatbuffers",
+  "main_menu_grabber_lut" : "Télécharger LUT",
+  "main_menu_grabber_lut_title" : "LUT HDR personnalisé pour USB grabber",
+  "main_menu_grabber_lut_path" : "Le chemin LUT personnalisé est: $1",
+  "main_menu_grabber_lut_path_not_found" : "La LUT personnalisée n'est PAS trouvée",
+  "main_menu_grabber_lut_path_found" : "LUT personnalisé est trouvé",
+  "main_menu_grabber_lut_path_found_date" : "Fichier modifié: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "CRC du fichier: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "activer HDR dans les options de capture USB et actualiser la page",
+  "main_menu_grabber_lut_restart" : "Veuillez redémarrer votre système pour que les modifications prennent pleinement effet !<br>Configuration de la pince USB avec Luminosité=$1, Contraste=$2, Saturation=$3 a été sauvé.",
+  "main_menu_grabber_lut_confirm" : "Êtes-vous sûr de télécharger et d'installer le nouveau fichier LUT pour votre carte d'acquisition?"
 }

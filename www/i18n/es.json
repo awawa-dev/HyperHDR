@@ -851,7 +851,7 @@
   "support_label_wikititle": "Wiki",
   "support_label_yttext": "¿Aburrido de las fotos? ¡Mira nuestro canal de YouTube!",
   "update_button_changelog": "Registro de cambios completo",
-  "update_button_install": "Instalar en pc",
+  "update_button_install": "Instalar",
   "update_error_getting_versions": "Tuvimos problemas para determinar la última versión disponible.",
   "update_label_description": "Descripción:",
   "update_label_intro": "Descripción general de todas las versiones de HyperHDR disponibles. Además, puede actualizar o degradar su versión de HyperHDR cuando lo desee. Ordenado de más nuevo a más antiguo",
@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "Usar protocolo SSL",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Ignorar errores de SSL",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Ignore todos los errores de SSL, como certificados autofirmados, etc. Úselo con precaución.",
-  "json_api_flatbuffers_user_lut": "Flatbuffers LUT nombre de archivo"
+  "json_api_flatbuffers_user_lut": "Flatbuffers LUT nombre de archivo",
+  "main_menu_grabber_lut" : "Descargar LUT",
+  "main_menu_grabber_lut_title" : "LUT HDR personalizado para capturador USB",
+  "main_menu_grabber_lut_path" : "La ruta LUT personalizada es: $1",
+  "main_menu_grabber_lut_path_not_found" : "Se NO encuentra LUT personalizado",
+  "main_menu_grabber_lut_path_found" : "Se encuentra LUT personalizado",
+  "main_menu_grabber_lut_path_found_date" : "Archivo modificado: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "Archivo CRC: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "habilite HDR en las opciones de capturador USB y actualice la página",
+  "main_menu_grabber_lut_restart" : "¡Reinicie su sistema para que los cambios surtan efecto por completo!<br>Configuración del capturador USB con Brillo=$1, Contraste=$2, Saturación=$3 fue salvado.",
+  "main_menu_grabber_lut_confirm" : "¿Está seguro de descargar e instalar un nuevo archivo LUT para su capturador?"
 }

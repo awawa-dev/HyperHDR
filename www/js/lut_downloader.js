@@ -90,7 +90,7 @@ $(document).ready( function(){
 				btn.lutContrast = columnData.contrast ?? 0;
 				btn.lutSaturation = columnData.saturation ?? 0;
 				btn.setAttribute("class", "btn btn-warning mb-4");
-				btn.innerHTML = "Install";
+				btn.innerHTML = $.i18n('update_button_install');
 				btn.addEventListener('click', installLut, false);
 				newCol.appendChild(btn);
 			}
