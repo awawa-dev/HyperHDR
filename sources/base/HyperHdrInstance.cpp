@@ -411,6 +411,16 @@ bool HyperHdrInstance::setInput(int priority, const std::vector<ColorRgb>& ledCo
 	return false;
 }
 
+void HyperHdrInstance::saveGrabberParams(int hardware_brightness, int hardware_contrast, int hardware_saturation)
+{
+	QJsonDocument newSet = _settingsManager->getSetting(settings::type::VIDEOGRABBER);
+	QJsonObject grabber = QJsonObject(newSet.object());
+	grabber["hardware_brightness"] = hardware_brightness;
+	grabber["hardware_contrast"] = hardware_contrast;
+	grabber["hardware_saturation"] = hardware_saturation;
+	_settingsManager->saveSetting(settings::type::VIDEOGRABBER, QJsonDocument(grabber).toJson(QJsonDocument::Compact));
+}
+
 bool HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms, bool clearEffect)
 {
 	if (!_muxer.hasPriority(priority))

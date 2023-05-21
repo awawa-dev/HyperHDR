@@ -153,3 +153,8 @@ if ( ENABLE_MQTT )
 
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt)	
 ENDIF()
+
+if ( ENABLE_XZ )
+	option(BUILD_TESTING "" OFF)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/xz)	
+ENDIF()

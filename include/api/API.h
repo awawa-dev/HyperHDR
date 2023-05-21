@@ -4,6 +4,7 @@
 #include <base/HyperHdrIManager.h>
 #include <base/AuthManager.h>
 
+class QNetworkReply;
 class QTimer;
 class JsonCB;
 
@@ -71,6 +72,8 @@ protected:
 	/// This call is REQUIRED!
 	///
 	void init();
+
+	QString installLut(QNetworkReply* reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 
 	///
 	/// @brief Set a single color
