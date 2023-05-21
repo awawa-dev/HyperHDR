@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "Użyj protokołu SSL",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Ignoruj błędy SSL",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Zignoruj wszystkie błędy SSL, takie jak samopodpisane certyfikaty itp. Używaj ostrożnie.",
-  "json_api_flatbuffers_user_lut": "Flatbuffers Nazwa pliku LUT"
+  "json_api_flatbuffers_user_lut": "Flatbuffers Nazwa pliku LUT",
+  "main_menu_grabber_lut" : "Pobierz LUT",
+  "main_menu_grabber_lut_title" : "Niestandardowa tablica LUT HDR dla grabbera USB",
+  "main_menu_grabber_lut_path" : "Niestandardowa ścieżka LUT to: $1",
+  "main_menu_grabber_lut_path_not_found" : "NIE znaleziono niestandardowej LUT",
+  "main_menu_grabber_lut_path_found" : "Znaleziono niestandardową LUT",
+  "main_menu_grabber_lut_path_found_date" : "Zmodyfikowano plik: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "Plik CRC: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "włącz HDR w opcjach przechwytywania USB i odśwież stronę",
+  "main_menu_grabber_lut_restart" : "Uruchom ponownie system, aby zmiany zaczęły w pełni obowiązywać!<br>Konfiguracja grabbera USB z Jasność=$1, Kontrast=$2, Nasycenie=$3 został ocalony.",
+  "main_menu_grabber_lut_confirm" : "Czy na pewno chcesz pobrać i zainstalować nowy plik LUT dla swojego grabbera?"
 }

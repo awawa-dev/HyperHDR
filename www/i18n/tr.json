@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "SSL protokolünü kullan",
   "edt_conf_mqtt_ssl_ignore_errors_title": "SSL hatalarını yoksay",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Kendinden imzalı sertifikalar gibi tüm SSL hatalarını yok sayın. Dikkatli kullanın.",
-  "json_api_flatbuffers_user_lut": "Flatbuffers LUT dosya adı"
+  "json_api_flatbuffers_user_lut": "Flatbuffers LUT dosya adı",
+  "main_menu_grabber_lut" : "LUT'u indirin",
+  "main_menu_grabber_lut_title" : "USB yakalayıcı için özel HDR LUT",
+  "main_menu_grabber_lut_path" : "Özel LUT yolu: $1",
+  "main_menu_grabber_lut_path_not_found" : "Özel LUT bulunamadı",
+  "main_menu_grabber_lut_path_found" : "Özel LUT bulundu",
+  "main_menu_grabber_lut_path_found_date" : "Dosya değiştirildi: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "Dosya CRC'si: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "USB yakalayıcı seçeneklerinde HDR'yi etkinleştirin ve sayfayı yenileyin",
+  "main_menu_grabber_lut_restart" : "Değişikliklerin tam olarak geçerli olması için lütfen sisteminizi yeniden başlatın!<br>Ile USB yakalayıcı yapılandırması Parlaklık=$1, Zıtlık=$2, Doyma=$3 kaydedildi.",
+  "main_menu_grabber_lut_confirm" : "Yakalayıcınız için yeni LUT dosyasını indirip kuracağınızdan emin misiniz?"
 }
