@@ -158,8 +158,8 @@ $(document).ready( function(){
 	}
 		
 	function startCalibration()
-	{	
-		if (!window.screenTop && !window.screenY) 
+	{
+		if (matchMedia('(display-mode: fullscreen)').matches) 
 		{
 			canvas.classList.add("fullscreen-canvas");
 			currentColor = new ColorRgb(0,0,0);
