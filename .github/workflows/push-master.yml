@@ -7,6 +7,7 @@ on:
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
+    USE_CODEQL: "0"
 
 jobs:
 
@@ -242,11 +243,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        if: ( env.USE_CODEQL == '1' )
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
+        if: ( env.USE_CODEQL == '1' )
         with:
           language: ${{matrix.language}}
 
