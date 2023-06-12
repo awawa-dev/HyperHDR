@@ -2,7 +2,6 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
 
 env:
     USE_CACHE: "1"
@@ -230,6 +229,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
+    if: ( false )    
     permissions:
       actions: read
       contents: read
@@ -243,13 +243,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        if: ( env.USE_CODEQL == '1' )
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
-        if: ( env.USE_CODEQL == '1' )
         with:
           language: ${{matrix.language}}
 

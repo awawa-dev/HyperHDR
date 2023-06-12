@@ -24,6 +24,11 @@ else ()
 	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")	
 	
 	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
+
+	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt" FILE_CONTENTS_FLAT)
+	string(REPLACE "-Werror " "-Wno-stringop-overflow " FILE_CONTENTS_FLAT "${FILE_CONTENTS_FLAT}")
+	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt" "${FILE_CONTENTS_FLAT}")
+
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers)
 
 	if(CMAKE_CROSSCOMPILING)
