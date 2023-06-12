@@ -16,3 +16,6 @@
 	path = dependencies/external/qmqtt
 	url = https://github.com/emqx/qmqtt.git
 	ignore = dirty
+[submodule "dependencies/external/xz"]
+	path = dependencies/external/xz
+	url = https://github.com/tukaani-project/xz.git

@@ -605,6 +605,20 @@ body:not(.dark-mode) .alert-yellow{
 	border-color: #e08e0b;
 }
 
+body:not(.dark-mode) .lutdownloader{
+	background-color: #bbbbbb !important;
+	border-color: #a0a0a0 !important;
+	min-width: 360px;
+	max-width: 360px;
+}
+
+.dark-mode .lutdownloader{
+	background-color: #505050 !important;
+	border-color: #909090 !important;
+	min-width: 360px;
+	max-width: 360px;
+}
+
 .crosslineDark {
      background: 
          linear-gradient(to top left,

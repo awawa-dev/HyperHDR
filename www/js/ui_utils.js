@@ -306,6 +306,12 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
+	else if (type == "confirm")
+	{
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
+		$('#id_footer').html('<button type="button" id="id_btn_confirm" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_yes')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
 	else if (type == "delInst")
 	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');

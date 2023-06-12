@@ -201,43 +201,59 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 	}
 
 	QSqlDatabase idb = getDB();
-	QSqlQuery query(idb);
-	query.setForwardOnly(true);
-
-	QVariantList values;
-	QStringList prep;
-
-	// prepare columns valus
-	QVariantMap::const_iterator i = columns.constBegin();
-	while (i != columns.constEnd()) {
-		prep += i.key() + "=?";
-		values += i.value();
-
-		++i;
-	}
-
-	// prepare condition values
-	QStringList prepCond;
-	QVariantList prepBindVal;
-	if (!conditions.isEmpty())
-		prepCond << "WHERE";
-
-	for (const auto& pair : conditions)
+	if (idb.transaction())
 	{
-		prepCond << pair.first + "=?";
-		prepBindVal << pair.second;
-	}
 
-	query.prepare(QString("UPDATE %1 SET %2 %3").arg(_table, prep.join(", ")).arg(prepCond.join(" ")));
-	// add column values
-	doAddBindValue(query, values);
-	// add condition values
-	doAddBindValue(query, prepBindVal);
-	if (!query.exec())
+		QSqlQuery query(idb);
+		query.setForwardOnly(true);
+
+		QVariantList values;
+		QStringList prep;
+
+		// prepare columns valus
+		QVariantMap::const_iterator i = columns.constBegin();
+		while (i != columns.constEnd()) {
+			prep += i.key() + "=?";
+			values += i.value();
+
+			++i;
+		}
+
+		// prepare condition values
+		QStringList prepCond;
+		QVariantList prepBindVal;
+		if (!conditions.isEmpty())
+			prepCond << "WHERE";
+
+		for (const auto& pair : conditions)
+		{
+			prepCond << pair.first + "=?";
+			prepBindVal << pair.second;
+		}
+
+		query.prepare(QString("UPDATE %1 SET %2 %3").arg(_table, prep.join(", ")).arg(prepCond.join(" ")));
+		// add column values
+		doAddBindValue(query, values);
+		// add condition values
+		doAddBindValue(query, prepBindVal);
+		if (!query.exec())
+		{
+			Error(_log, "Failed to update record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+			idb.rollback();
+			return false;
+		}
+	}
+	else
 	{
-		Error(_log, "Failed to update record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
 		return false;
 	}
+
+	if (!idb.commit())
+	{
+		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+	}
+
 	return true;
 }
 

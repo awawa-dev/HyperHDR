@@ -16,6 +16,7 @@
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
+#include <QDir>
 
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
@@ -220,6 +221,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleVideoControlsCommand(message, command, tan);
 		else if (command == "benchmark")
 			handleBenchmarkCommand(message, command, tan);
+		else if (command == "lut-install")
+			handleLutInstallCommand(message, command, tan);
 		else if (command == "smoothing")
 			handleSmoothingCommand(message, command, tan);
 		else if (command == "transform" || command == "correction" || command == "temperature")
@@ -582,6 +585,17 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		QJsonObject grabbers;
 	#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)	
 		grabbers = GrabberWrapper::getInstance()->getJsonInfo();
+		QString lutPath = QDir::cleanPath(_instanceManager->getRootPath() + QDir::separator() + "lut_lin_tables.3d");
+		grabbers["lut_for_hdr_path"] = lutPath;
+		if (QFile(lutPath).exists())
+		{
+			grabbers["lut_for_hdr_exists"] = 1;
+			grabbers["lut_for_hdr_modified_date"] = QFileInfo(lutPath).lastModified().toMSecsSinceEpoch();
+		}
+		else
+		{
+			grabbers["lut_for_hdr_exists"] = 0;
+		}
 	#endif
 		info["grabbers"] = grabbers;
 
@@ -837,6 +851,57 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 	}
 
 	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
+{
+	QString fileName = QDir::cleanPath(_instanceManager->getRootPath() + QDir::separator() + "lut_lin_tables.3d");
+	QString error = installLut(reply, fileName, hardware_brightness, hardware_contrast, hardware_saturation, time);
+
+	if (error == nullptr)
+	{
+		Info(_log, "Reloading LUT...");
+		API::setVideoModeHdr(0);
+		API::setVideoModeHdr(1);
+		QTimer::singleShot(0, _hyperhdr, [=]() { _hyperhdr->saveGrabberParams(hardware_brightness, hardware_contrast, hardware_saturation); });
+		Info(_log, "New LUT has been installed as: %s (from: %s)", QSTRING_CSTR(fileName), QSTRING_CSTR(reply->url().toString()));
+	}
+	else
+	{
+		Error(_log, "Error occured while installing new LUT: %s", QSTRING_CSTR(error));
+	}
+
+	reply->manager()->deleteLater();
+	reply->deleteLater();
+
+	QJsonObject report;
+	report["status"] = (error == nullptr)? 1:0;
+	report["error"] = error;
+	_jsonCB->handleLutInstallUpdate(report);
+}
+
+void JsonAPI::handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& address = QString("%1/lut_lin_tables.3d.xz").arg(message["subcommand"].toString().trimmed());
+	int hardware_brightness = message["hardware_brightness"].toInt(0);
+	int hardware_contrast = message["hardware_contrast"].toInt(0);
+	int hardware_saturation = message["hardware_saturation"].toInt(0);
+	qint64 time = message["now"].toInt(0);
+
+	Debug(_log, "Request to install LUT from: %s (params => [%i, %i, %i])", QSTRING_CSTR(address),
+										hardware_brightness, hardware_contrast, hardware_saturation);
+	if (_adminAuthorized)
+	{
+		QNetworkAccessManager *mgr = new QNetworkAccessManager(this);
+		connect(mgr, &QNetworkAccessManager::finished, this, [=](QNetworkReply* reply) {
+			lutDownloaded(reply, hardware_brightness, hardware_contrast, hardware_saturation, time);
+		});
+		QNetworkRequest request(address);
+		mgr->get(request);
+		sendSuccessReply(command, tan);
+	}
+	else
+		sendErrorReply("No Authorization", command, tan);
 }
 
 void JsonAPI::handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan)

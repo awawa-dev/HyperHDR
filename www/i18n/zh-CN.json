@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "使用 SSL 协议",
   "edt_conf_mqtt_ssl_ignore_errors_title": "忽略 SSL 错误",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "忽略所有 SSL 错误，例如自签名证书等。谨慎使用。",
-  "json_api_flatbuffers_user_lut": "Flatbuffers LUT 文件名"
+  "json_api_flatbuffers_user_lut": "Flatbuffers LUT 文件名",
+  "main_menu_grabber_lut" : "下载查找表",
+  "main_menu_grabber_lut_title" : "用于 USB 采集器的自定义 HDR LUT",
+  "main_menu_grabber_lut_path" : "自定义 LUT 路径是: $1",
+  "main_menu_grabber_lut_path_not_found" : "未找到自定义 LUT",
+  "main_menu_grabber_lut_path_found" : "找到自定义 LUT",
+  "main_menu_grabber_lut_path_found_date" : "文件已修改: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "文件校验: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "在 USB 抓取器选项中启用 HDR 并刷新页面",
+  "main_menu_grabber_lut_restart" : "请重新启动系统以使更改完全生效！<br>USB 采集卡配置 亮度=$1, 对比=$2, 饱和=$3 被救了.",
+  "main_menu_grabber_lut_confirm" : "您确定要为您的采集卡下载并安装新的 LUT 文件吗？"
 }

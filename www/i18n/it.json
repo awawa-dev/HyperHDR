@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "Usa il protocollo SSL",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Ignora gli errori SSL",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Ignora tutti gli errori SSL come certificati autofirmati, ecc. Utilizzare con cautela.",
-  "json_api_flatbuffers_user_lut": "Nome file flatbuffer LUT"
+  "json_api_flatbuffers_user_lut": "Nome file flatbuffer LUT",
+  "main_menu_grabber_lut" : "Scarica LUT",
+  "main_menu_grabber_lut_title" : "LUT HDR personalizzata per USB grabber",
+  "main_menu_grabber_lut_path" : "Il percorso LUT personalizzato è: $1",
+  "main_menu_grabber_lut_path_not_found" : "LUT personalizzato NON è stato trovato",
+  "main_menu_grabber_lut_path_found" : "Viene trovata la LUT personalizzata",
+  "main_menu_grabber_lut_path_found_date" : "File modificato: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "File CRC: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "abilita l'HDR nelle opzioni del grabber USB e aggiorna la pagina",
+  "main_menu_grabber_lut_restart" : "Riavvia il sistema affinché le modifiche abbiano effetto completo!<br>Configurazione USB grabber con Luminosità=$1, Contrasto=$2, Saturazione=$3 è stato salvato.",
+  "main_menu_grabber_lut_confirm" : "Sei sicuro di scaricare e installare il nuovo file LUT per il tuo grabber?"
 }

@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "SSL-protocol gebruiken",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Negeer SSL-fouten",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Negeer alle SSL-fouten zoals zelfondertekende certificaten enz. Wees voorzichtig.",
-  "json_api_flatbuffers_user_lut": "Flatbuffers LUT-bestandsnaam"
+  "json_api_flatbuffers_user_lut": "Flatbuffers LUT-bestandsnaam",
+  "main_menu_grabber_lut" : "LUT downloaden",
+  "main_menu_grabber_lut_title" : "Aangepaste HDR LUT voor USB grabber",
+  "main_menu_grabber_lut_path" : "Aangepast LUT pad is: $1",
+  "main_menu_grabber_lut_path_not_found" : "Aangepaste LUT is NIET gevonden",
+  "main_menu_grabber_lut_path_found" : "Aangepaste LUT is gevonden",
+  "main_menu_grabber_lut_path_found_date" : "Bestand aangepast: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "Bestand CRC: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "schakel HDR in USB grabber-opties in en vernieuw de pagina",
+  "main_menu_grabber_lut_restart" : "Start uw systeem opnieuw op om de wijzigingen volledig door te voeren!<br>USB grabber configuratie met Helderheid=$1, Contrast=$2, Verzadiging=$3 werd gered.",
+  "main_menu_grabber_lut_confirm" : "Weet u zeker dat u een nieuw LUT bestand voor uw grabber downloadt en installeert?"
 }

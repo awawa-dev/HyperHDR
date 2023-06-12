@@ -1199,5 +1199,15 @@
   "edt_conf_mqtt_is_ssl_expl": "Utilizați protocolul SSL",
   "edt_conf_mqtt_ssl_ignore_errors_title": "Ignorați erorile SSL",
   "edt_conf_mqtt_ssl_ignore_errors_expl": "Ignorați toate erorile SSL, cum ar fi certificatele autosemnate etc. Utilizați cu precauție.",
-  "json_api_flatbuffers_user_lut": "Nume fișier LUT Flatbuffers"
+  "json_api_flatbuffers_user_lut": "Nume fișier LUT Flatbuffers",
+  "main_menu_grabber_lut" : "Descărcați LUT",
+  "main_menu_grabber_lut_title" : "Personalizat HDR LUT pentru USB grabber",
+  "main_menu_grabber_lut_path" : "Calea LUT personalizată este: $1",
+  "main_menu_grabber_lut_path_not_found" : "LUT personalizat NU este găsit",
+  "main_menu_grabber_lut_path_found" : "LUT personalizat este găsit",
+  "main_menu_grabber_lut_path_found_date" : "Fișierul a fost modificat: $1",
+  "main_menu_grabber_lut_path_found_CRC" : "Fișierul CRC: $1",
+  "main_menu_grabber_lut_path_found_NOCRC" : "activați HDR în opțiunile USB grabber și reîmprospătați pagina",
+  "main_menu_grabber_lut_restart" : "Vă rugăm să reporniți sistemul pentru ca modificările să intre în vigoare!<br>Configurare USB grabber cu Luminozitate=$1, Contrast=$2, Saturare=$3 a fost salvat.",
+  "main_menu_grabber_lut_confirm" : "Sunteți sigur că descărcați și instalați un nou fișier LUT pentru grabber?"
 }
