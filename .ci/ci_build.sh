@@ -122,7 +122,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "${cache_env} && export -p && ccache -p && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
+		/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
 		cd /hyperhdr && mkdir build && ${executeCommand} &&
 		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
