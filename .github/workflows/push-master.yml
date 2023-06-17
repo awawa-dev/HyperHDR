@@ -2,11 +2,11 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
 
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
+    USE_CODEQL: "0"
 
 jobs:
 
@@ -16,30 +16,33 @@ jobs:
 
   Linux:
     name: ${{ matrix.dockerName }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        debian: [ bullseye ]
+        linuxVersion: [ bullseye ]
         dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
         include:        
           - dockerImage: x86_64
-            debian: bullseye
+            linuxVersion: bullseye
             dockerName: Debian Bullseye (x86_64)
             platform: linux
           - dockerImage: rpi012-armv6l
-            debian: bullseye
+            linuxVersion: bullseye
             dockerName: Debian Bullseye (Raspberry Pi ZERO, 1 & 2)
             platform: rpi
           - dockerImage: rpi34-armv7l
-            debian: bullseye
+            linuxVersion: bullseye
             dockerName: Debian Bullseye (Raspberry Pi 3 & 4)
             platform: rpi
           - dockerImage: arm-aarch64
-            debian: bullseye
+            linuxVersion: bullseye
             dockerName: Debian Bullseye (ARM aarch64)
             platform: rpi            
-
+          - dockerImage: x86_64
+            linuxVersion: ArchLinux
+            dockerName: Arch Linux (x86_64)
+            platform: linux 
     steps:
       # checkout
       - uses: actions/checkout@v3
@@ -61,13 +64,13 @@ jobs:
         uses: actions/cache@v3
         with:
            path: .ccache
-           key: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-
+           key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: ${{ matrix.debian }}
+          DOCKER_TAG: ${{ matrix.linuxVersion }}
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
@@ -87,8 +90,10 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
-          name: Linux-${{ matrix.debian }}-${{ matrix.dockerImage }}-DEB-installer
-          path: deploy/Hyper*.deb
+          name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
+          path: |
+            deploy/Hyper*.deb
+            deploy/Hyper*.zst
 
 ######################
 ####### macOS ########
@@ -224,6 +229,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
+    if: ( false )    
     permissions:
       actions: read
       contents: read
@@ -253,7 +259,7 @@ jobs:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, windows, macOS]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:

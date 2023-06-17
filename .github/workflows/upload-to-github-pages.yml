@@ -14,12 +14,12 @@ jobs:
 ###### Upload to HyperHDR repo #######
 ######################################
   Linux:
-    name: Debian ${{ matrix.debian }} (${{ matrix.arch }})
-    runs-on: ubuntu-20.04
+    name: Debian ${{ matrix.linuxVersion }} (${{ matrix.arch }})
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        debian: [ bullseye, bookworm ]
+        linuxVersion: [ bullseye, bookworm ]
         dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
         include:        
           - dockerImage: x86_64
@@ -34,6 +34,10 @@ jobs:
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
+          - dockerImage: x86_64
+            linuxVersion: ArchLinux
+            dockerName: Arch Linux (x86_64)
+            platform: linux
 
     steps:
       # checkout
@@ -56,20 +60,20 @@ jobs:
         uses: actions/cache@v3
         with:
            path: .ccache
-           key: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-
+           key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: ${{ matrix.debian }}
+          DOCKER_TAG: ${{ matrix.linuxVersion }}
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
-          if [ "${{ matrix.arch }}" == "amd64" ] && [ "${{ matrix.debian }}" == "bullseye" ]; then
+          if [ "${{ matrix.arch }}" == "amd64" ] && [ "${{ matrix.linuxVersion }}" == "bullseye" ]; then
             sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
           fi
           sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
@@ -78,7 +82,7 @@ jobs:
       # deploy the package      
       - name: Get destination path
         run: |
-          echo "REPO_DIR=repo/pool/${{ matrix.debian }}" >> $GITHUB_ENV
+          echo "REPO_DIR=repo/pool/${{ matrix.linuxVersion }}" >> $GITHUB_ENV
 
       - name: Move installers
         run: |
@@ -86,6 +90,8 @@ jobs:
           mkdir -p repo/others
           mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||: 
           mv deploy/Hyper*.rpm repo/others ||: 
+          mv deploy/Hyper*.zst repo/others ||: 
+          rm -r repo/pool/ArchLinux ||: 
 
       - name: Upload artifacts from commit        
         uses: actions/upload-artifact@v3
@@ -95,7 +101,7 @@ jobs:
 
   Upload:
     name: Upload to Github Pages
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [Linux]
 
     steps:
