@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2021 awawa-dev
+*  Copyright (c) 2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -278,7 +278,10 @@ bool MFGrabber::init()
 			bool strict = false;
 			const auto& val = dev.valid[i];
 
-			if (bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && val.fps <= bestGuessMinFPS && val.fps >= 10))
+			if (bestGuess == -1 ||
+				(val.x <= bestGuessMinX && val.x >= 640 &&
+				 ((val.x > 800 && val.fps <= bestGuessMinFPS && val.fps >= 10) ||
+				  (val.x <= 800 && val.fps > bestGuessMinFPS))))
 			{
 				bestGuess = i;
 				bestGuessMinFPS = val.fps;

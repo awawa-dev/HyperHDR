@@ -1,11 +1,13 @@
 name: HyperHDR CI Build
 
-on: [push]
+on:
+  push:
 
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
-    
+    USE_CODEQL: "0"
+
 jobs:
 
 ######################
@@ -47,7 +49,7 @@ jobs:
             platform: linux 
     steps:
       # checkout
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -58,7 +60,7 @@ jobs:
         shell: cmake -P {0}
         run: |
           string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-          message("::set-output name=timestamp::${current_date}")
+          file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
        # download cache
       - name: ccache cache files
@@ -82,16 +84,16 @@ jobs:
           ./.ci/ci_build.sh
       # sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: deploy/Hyper*
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
@@ -110,7 +112,7 @@ jobs:
       QT_VERSION: "5"
     steps:
       # Checkout
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
             submodules: true
 
@@ -121,7 +123,7 @@ jobs:
         shell: cmake -P {0}
         run: |
             string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-            message("::set-output name=timestamp::${current_date}")
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
       # Download cache
       - name: ccache cache files
@@ -156,14 +158,14 @@ jobs:
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             path: build/Hyper*.dmg
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             name: Apple_macOS_x64_DMG_installer
@@ -181,7 +183,7 @@ jobs:
       QT_VERSION: 6.2.4
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -211,33 +213,64 @@ jobs:
         run: |
           ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: build/Hyper*
           
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
-  
+
+################################
+####### CodeQL support #########
+################################
+
+  analyze:
+    name: Analyze (CodeQL)
+    runs-on: ubuntu-latest
+    if: ( false )    
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp', 'javascript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Run composite CodeQL job for '${{matrix.language}}' language
+        uses: ./.github/actions/codeql
+        with:
+          language: ${{matrix.language}}
+
 ################################
 ###### Publish Releases ########
 ################################
 
   publish:
     name: Publish Releases
-    if: startsWith(github.event.ref, 'refs/tags')
+    if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, windows, macOS]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # generate environment variables
       - name: Generate environment variables from version and tag
@@ -253,7 +286,7 @@ jobs:
 
       # Download artifacts from previous build process
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
 
@@ -266,5 +299,3 @@ jobs:
           files: "artifacts/**"
           draft: true
           prerelease: ${{ env.preRelease }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -56,6 +56,8 @@ public:
 	///
 	void setSubscriptionsTo(HyperHdrInstance* hyperhdr);
 
+	void handleLutInstallUpdate(const QJsonObject& data);
+
 signals:
 	///
 	/// @brief Emits whenever a new json mesage callback is ready to send
