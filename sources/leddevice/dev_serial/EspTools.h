@@ -64,6 +64,17 @@ class EspTools
 			_rs232Port.setRequestToSend(true);
 			_rs232Port.setRequestToSend(false);			
 		}
+		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
+		{
+			Warning(_log, "Enabling the Rpi4 udev bug workaround. The serial device is incorrectly identified by the OS and HyperHDR skips the reset. State: %i, %i",
+				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+
+			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+
+			_rs232Port.setDataTerminalReady(true);
+			_rs232Port.setRequestToSend(true);
+			_rs232Port.setRequestToSend(false);
+		}
 		else
 		{
 			// reset to defaults
