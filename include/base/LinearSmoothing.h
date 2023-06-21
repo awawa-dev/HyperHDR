@@ -78,12 +78,13 @@ public slots:
 	///
 	/// @param   cfgID				   Smoothing configuration item to be updated
 	/// @param   settlingTime_ms       The buffer time
+	/// @param   updateDelay_ms        The update delay
 	/// @param   ledUpdateFrequency_hz The frequency of update
 	/// @param   updateDelay           The delay
 	///
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
-	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directModee);
+	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, int updateDelay_ms, double ledUpdateFrequency_hz, bool directModee);
 
 	void updateCurrentConfig(int settlingTime_ms);
 private:
@@ -102,12 +103,13 @@ private:
 	///
 	/// @brief Add a new smoothing cfg which can be used with selectConfig()
 	/// @param   settlingTime_ms       The buffer time
+	/// @param   updateDelay_ms        The update delay
 	/// @param   ledUpdateFrequency_hz The frequency of update
 	/// @param   updateDelay           The delay
 	///
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
-	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
+	unsigned addConfig(int settlingTime_ms, int updateDelay_ms = 0, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
 
 	uint8_t clamp(int x);
 
@@ -127,6 +129,9 @@ private:
 
 	/// The interval at which to update the leds (msec)
 	int64_t _updateInterval;
+
+	/// The time before which the updated led values start to be applied (msec)
+	int64_t _updateDelay;
 
 	/// The time after which the updated led values have been fully applied (msec)
 	int64_t _settlingTime;
@@ -166,6 +171,7 @@ private:
 	public:
 		bool		  _pause;
 		int64_t		  _settlingTime;
+		int64_t       _updateDelay;
 		int64_t		  _updateInterval;
 		bool		  _directMode;
 		SmoothingType _type;
@@ -175,7 +181,7 @@ private:
 
 		SmoothingCfg();
 
-		SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold = 0, int antiFlickeringStep = 0, int64_t antiFlickeringTimeout = 0);
+		SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateDelay, int64_t updateInterval, bool directMode, SmoothingType type = SmoothingType::Linear, int antiFlickeringTreshold = 0, int antiFlickeringStep = 0, int64_t antiFlickeringTimeout = 0);
 
 		static QString EnumToString(SmoothingType type);
 	};

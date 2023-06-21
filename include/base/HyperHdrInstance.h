@@ -95,7 +95,7 @@ public:
 	int getLedMappingType() const;
 
 	/// forward smoothing config
-	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
+	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, int updateDelay_ms = 0, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
 
 	///
 	/// @brief Get the current active led device

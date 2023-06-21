@@ -37,6 +37,19 @@
 			"required" : true,
 			"propertyOrder" : 3
 		},
+		"updateDelay" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"step" : 1,
+			"title" : "edt_conf_smooth_updateDelay_title",
+			"minimum" : 0,
+			"maximum": 5000,
+			"default" : 0,
+			"append" : "edt_append_ms",
+			"required" : true,
+			"propertyOrder" : 4
+		},
 		"updateFrequency" :
 		{
 			"type" : "number",
@@ -48,7 +61,7 @@
 			"default" : 50,
 			"append" : "edt_append_hz",
 			"required" : true,
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"lowLightAntiFlickeringTreshold" :
 		{
@@ -60,7 +73,7 @@
 			"maximum": 255,
 			"default" : 32,
 			"required" : true,
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},		
 		"lowLightAntiFlickeringValue" :
 		{
@@ -77,7 +90,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
 		"lowLightAntiFlickeringTimeout" :
 		{
@@ -95,7 +108,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 7
+			"propertyOrder" : 8
 		},
 		"continuousOutput" :
 		{
@@ -104,7 +117,7 @@
 			"title" : "edt_conf_smooth_continuousOutput_title",
 			"default" : false,
 			"required" : true,
-			"propertyOrder" : 10
+			"propertyOrder" : 11
 		}
 	},
 	"additionalProperties" : false
