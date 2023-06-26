@@ -1,5 +1,4 @@
 # cmake file for generating distribution packages
-#SET(HYPERHDR_REPO_RPM_BUILD ON)
 #SET(HYPERHDR_REPO_BUILD ON)
 
 # - Check glibc version
@@ -27,23 +26,27 @@ MACRO (CHECK_GLIBC_VERSION)
 ENDMACRO (CHECK_GLIBC_VERSION)
 
 # default packages to build
-IF (APPLE)
-	SET ( CPACK_GENERATOR "TGZ")
-ELSEIF (UNIX)
-	SET ( CPACK_GENERATOR "TGZ")
-ELSEIF (WIN32)
-	SET ( CPACK_GENERATOR "ZIP" "NSIS")
+if(NOT DO_NOT_BUILD_ARCHIVES)
+	IF (APPLE)
+		SET ( CPACK_GENERATOR "TGZ")
+	ELSEIF (UNIX)
+		SET ( CPACK_GENERATOR "TGZ")
+	ELSEIF (WIN32)
+		SET ( CPACK_GENERATOR "ZIP" "NSIS")
+	ENDIF()
+ELSE()
+	IF (WIN32)
+		SET ( CPACK_GENERATOR "NSIS")
+	ENDIF()
 ENDIF()
 
 # Determine packages by found generator executables
 
 # Github Action enables it for packages
-if(HYPERHDR_REPO_RPM_BUILD)
-	find_package(RpmBuilder)
-	IF(RPM_BUILDER_FOUND)
-		message(STATUS "CPACK: Found RPM builder")
-		SET ( CPACK_GENERATOR "RPM")
-	ENDIF()
+find_package(RpmBuilder)
+IF(RPM_BUILDER_FOUND)
+	message(STATUS "CPACK: Found RPM builder")
+	SET ( CPACK_GENERATOR "RPM")
 ENDIF()
 
 find_package(DebBuilder)

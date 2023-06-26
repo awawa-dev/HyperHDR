@@ -88,9 +88,6 @@ jobs:
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
-          if [ "${{ matrix.arch }}" == "amd64" ] && [ "${{ matrix.linuxVersion }}" == "bullseye" ]; then
-            sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
-          fi
           sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
 

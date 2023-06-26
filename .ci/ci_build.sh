@@ -16,10 +16,14 @@ else
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 fi
 
+if [[ "$USE_CCACHE" == '1' ]]; then
+	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
+fi
+
 # set environment variables if not exists (debug)
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
 
-echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}"
+echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}"
 
 # Build the package on osx or linux
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
@@ -38,7 +42,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		
 		CCACHE_PATH=$PWD
 		cd ..
-        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
+        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
 		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
 		echo "CCache parameters: ${cachecommand}"		
 		ls -a .ccache
@@ -67,7 +71,7 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	echo "Number of Cores $NUMBER_OF_PROCESSORS"
 	mkdir build || exit 1
 	cd build
-	cmake -G "Visual Studio 17 2022" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ../ || exit 2
+	cmake -G "Visual Studio 17 2022" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ${IS_ARCHIVE_SKIPPED} ../ || exit 2
 	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
 	exit 0;
 	exit 1 || { echo "---> Hyperhdr compilation failed! Abort"; exit 5; }
@@ -94,7 +98,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		
 		mkdir -p .ccache
 		
-        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache"
+        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
 		
 		if [[ "$RESET_CACHE" == '1' ]]; then
 			echo "Clearing ccache"

@@ -82,7 +82,6 @@ jobs:
         shell: bash
         run: |
           ./.ci/ci_build.sh
-      # sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
