@@ -18,6 +18,8 @@ fi
 
 if [[ "$USE_CCACHE" == '1' ]]; then
 	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
+else
+	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=OFF"
 fi
 
 # set environment variables if not exists (debug)
