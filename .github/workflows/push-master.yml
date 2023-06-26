@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         linuxVersion: [ bullseye ]
-        dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
+        dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
         include:        
           - dockerImage: x86_64
             linuxVersion: bullseye
@@ -33,15 +33,11 @@ jobs:
             platform: linux
           - dockerImage: rpi012-armv6l
             linuxVersion: bullseye
-            dockerName: Debian Bullseye (Raspberry Pi ZERO, 1 & 2)
-            platform: rpi
-          - dockerImage: rpi34-armv7l
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (Raspberry Pi 3 & 4)
+            dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)
             platform: rpi
           - dockerImage: arm-aarch64
             linuxVersion: bullseye
-            dockerName: Debian Bullseye (ARM aarch64)
+            dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
             platform: rpi            
           - dockerImage: x86_64
             linuxVersion: ArchLinux
