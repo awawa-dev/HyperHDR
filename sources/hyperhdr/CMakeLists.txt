@@ -53,7 +53,11 @@ if (USE_STATIC_QT_PLUGINS)
 endif()
 
 if(ENABLE_XZ)
-	target_link_libraries(hyperhdr liblzma)
+	if (LIBLZMA_FOUND)
+		target_link_libraries(hyperhdr LibLZMA::LibLZMA)
+	else()
+		target_link_libraries(hyperhdr liblzma)
+	endif()
 endif()
 
 if (ENABLE_PROTOBUF)

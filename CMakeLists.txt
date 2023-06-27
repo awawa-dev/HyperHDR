@@ -403,6 +403,10 @@ SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
 find_package(GitVersion)
 
+if(ENABLE_XZ)
+	find_package(LibLZMA)
+endif()
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/HyperhdrConfig.h.in" "${PROJECT_BINARY_DIR}/HyperhdrConfig.h")
