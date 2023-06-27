@@ -7,6 +7,7 @@ env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
     USE_CODEQL: "0"
+    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
 
 jobs:
 
@@ -21,7 +22,7 @@ jobs:
     strategy:
       matrix:
         linuxVersion: [ bullseye ]
-        dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
+        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
           - dockerImage: x86_64
             linuxVersion: bullseye
@@ -31,11 +32,11 @@ jobs:
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             platform: linux
-          - dockerImage: rpi012-armv6l
+          - dockerImage: arm-32bit-armv6l
             linuxVersion: bullseye
             dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)
             platform: rpi
-          - dockerImage: arm-aarch64
+          - dockerImage: arm-64bit-aarch64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
             platform: rpi            

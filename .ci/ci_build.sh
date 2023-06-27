@@ -16,7 +16,7 @@ else
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 fi
 
-if [[ "$USE_CCACHE" == '1' ]]; then
+if [[ "$BUILD_ARCHIVES" == '0' ]]; then
 	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
 else
 	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=OFF"

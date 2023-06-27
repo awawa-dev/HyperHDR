@@ -21,17 +21,17 @@ jobs:
       matrix:
         niceName: [ Debian ]
         linuxVersion: [ bullseye, bookworm ]
-        dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
+        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
           - dockerImage: x86_64
             dockerName: Debian (amd64)
             arch: amd64
             platform: linux
-          - dockerImage: rpi012-armv6l
+          - dockerImage: arm-32bit-armv6l
             dockerName: Debian (armhf)
             arch: armhf
             platform: rpi
-          - dockerImage: arm-aarch64
+          - dockerImage: arm-64bit-aarch64
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
