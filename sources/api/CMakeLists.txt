@@ -21,8 +21,13 @@ target_link_libraries(hyperhdr-api
 )
 
 if(ENABLE_XZ)
-	target_link_libraries(hyperhdr-api liblzma)
-	target_include_directories(hyperhdr-api PRIVATE "${CMAKE_SOURCE_DIR}/dependencies/external/xz/src/liblzma/api")
+	if (NOT LIBLZMA_FOUND)
+		target_link_libraries(hyperhdr-api liblzma)
+		target_include_directories(hyperhdr-api PRIVATE "${CMAKE_SOURCE_DIR}/dependencies/external/xz/src/liblzma/api")
+	else()
+		target_link_libraries(hyperhdr-api LibLZMA::LibLZMA)
+		target_include_directories(hyperhdr-api PRIVATE ${LIBLZMA_INCLUDE_DIR})	
+	endif()
 endif()
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

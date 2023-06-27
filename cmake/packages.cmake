@@ -1,5 +1,4 @@
 # cmake file for generating distribution packages
-#SET(HYPERHDR_REPO_RPM_BUILD ON)
 #SET(HYPERHDR_REPO_BUILD ON)
 
 # - Check glibc version
@@ -27,23 +26,27 @@ MACRO (CHECK_GLIBC_VERSION)
 ENDMACRO (CHECK_GLIBC_VERSION)
 
 # default packages to build
-IF (APPLE)
-	SET ( CPACK_GENERATOR "TGZ")
-ELSEIF (UNIX)
-	SET ( CPACK_GENERATOR "TGZ")
-ELSEIF (WIN32)
-	SET ( CPACK_GENERATOR "ZIP" "NSIS")
+if(NOT DO_NOT_BUILD_ARCHIVES)
+	IF (APPLE)
+		SET ( CPACK_GENERATOR "TGZ")
+	ELSEIF (UNIX)
+		SET ( CPACK_GENERATOR "TGZ")
+	ELSEIF (WIN32)
+		SET ( CPACK_GENERATOR "ZIP" "NSIS")
+	ENDIF()
+ELSE()
+	IF (WIN32)
+		SET ( CPACK_GENERATOR "NSIS")
+	ENDIF()
 ENDIF()
 
 # Determine packages by found generator executables
 
 # Github Action enables it for packages
-if(HYPERHDR_REPO_RPM_BUILD)
-	find_package(RpmBuilder)
-	IF(RPM_BUILDER_FOUND)
-		message(STATUS "CPACK: Found RPM builder")
-		SET ( CPACK_GENERATOR "RPM")
-	ENDIF()
+find_package(RpmBuilder)
+IF(RPM_BUILDER_FOUND)
+	message(STATUS "CPACK: Found RPM builder")
+	SET ( CPACK_GENERATOR "RPM")
 ENDIF()
 
 find_package(DebBuilder)
@@ -131,7 +134,6 @@ if ( ENABLE_CEC )
 endif()
 SET ( CPACK_DEBIAN_PACKAGE_SUGGESTS "libx11-6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
-SET ( CPACK_DEBIAN_COMPRESSION_TYPE "xz" )
 
 # .rpm for rpm
 # https://cmake.org/cmake/help/v3.5/module/CPackRPM.html
@@ -142,7 +144,11 @@ SET ( CPACK_RPM_PACKAGE_REQUIRES "xz-utils" )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
-SET ( CPACK_RPM_COMPRESSION_TYPE "xz" )
+
+if(NOT DO_NOT_BUILD_ARCHIVES)
+	SET ( CPACK_DEBIAN_COMPRESSION_TYPE "xz" )
+	SET ( CPACK_RPM_COMPRESSION_TYPE "xz" )
+endif()
 
 # OSX dmg generator
 if ( APPLE )

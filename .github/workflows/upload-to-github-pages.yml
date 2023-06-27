@@ -14,30 +14,45 @@ jobs:
 ###### Upload to HyperHDR repo #######
 ######################################
   Linux:
-    name: Debian ${{ matrix.linuxVersion }} (${{ matrix.arch }})
+    name: ${{ matrix.niceName }} ${{ matrix.linuxVersion }} (${{ matrix.arch }})
     runs-on: ubuntu-22.04
 
     strategy:
       matrix:
+        niceName: [ Debian ]
         linuxVersion: [ bullseye, bookworm ]
-        dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
+        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
           - dockerImage: x86_64
             dockerName: Debian (amd64)
             arch: amd64
             platform: linux
-          - dockerImage: rpi012-armv6l
+          - dockerImage: arm-32bit-armv6l
             dockerName: Debian (armhf)
             arch: armhf
             platform: rpi
-          - dockerImage: arm-aarch64
+          - dockerImage: arm-64bit-aarch64
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
           - dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
+            arch: amd64
             platform: linux
+            niceName: ""
+          - dockerImage: x86_64
+            linuxVersion: jammy
+            dockerName: Ubuntu 22.04 LTS (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Ubuntu 22.04 LTS
+          - dockerImage: x86_64
+            linuxVersion: lunar
+            dockerName: Ubuntu 23.04 (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Ubuntu 23.04
 
     steps:
       # checkout
@@ -73,9 +88,6 @@ jobs:
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
-          if [ "${{ matrix.arch }}" == "amd64" ] && [ "${{ matrix.linuxVersion }}" == "bullseye" ]; then
-            sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
-          fi
           sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
 

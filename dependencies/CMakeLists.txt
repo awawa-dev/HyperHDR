@@ -25,9 +25,11 @@ else ()
 	
 	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
 
-	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt" FILE_CONTENTS_FLAT)
-	string(REPLACE "-Werror " "-Wno-stringop-overflow " FILE_CONTENTS_FLAT "${FILE_CONTENTS_FLAT}")
-	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt" "${FILE_CONTENTS_FLAT}")
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
+		file(READ "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt" FILE_CONTENTS_FLAT)
+		string(REPLACE "-Werror " "-Wno-stringop-overflow " FILE_CONTENTS_FLAT "${FILE_CONTENTS_FLAT}")
+		file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/CMakeLists.txt" "${FILE_CONTENTS_FLAT}")
+	endif()
 
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers)
 
@@ -161,5 +163,8 @@ ENDIF()
 
 if ( ENABLE_XZ )
 	option(BUILD_TESTING "" OFF)
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/xz)	
+	if (NOT LIBLZMA_FOUND)
+		message( WARNING "Could not found system xz library. Using embedded xz library.")
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/xz)
+	endif()
 ENDIF()

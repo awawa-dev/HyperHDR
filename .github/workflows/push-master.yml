@@ -7,6 +7,7 @@ env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
     USE_CODEQL: "0"
+    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
 
 jobs:
 
@@ -21,23 +22,23 @@ jobs:
     strategy:
       matrix:
         linuxVersion: [ bullseye ]
-        dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
+        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
           - dockerImage: x86_64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (x86_64)
             platform: linux
-          - dockerImage: rpi012-armv6l
+          - dockerImage: x86_64
+            linuxVersion: jammy
+            dockerName: Ubuntu 22.04 LTS (x86_64)
+            platform: linux
+          - dockerImage: arm-32bit-armv6l
             linuxVersion: bullseye
-            dockerName: Debian Bullseye (Raspberry Pi ZERO, 1 & 2)
+            dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)
             platform: rpi
-          - dockerImage: rpi34-armv7l
+          - dockerImage: arm-64bit-aarch64
             linuxVersion: bullseye
-            dockerName: Debian Bullseye (Raspberry Pi 3 & 4)
-            platform: rpi
-          - dockerImage: arm-aarch64
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (ARM aarch64)
+            dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
             platform: rpi            
           - dockerImage: x86_64
             linuxVersion: ArchLinux
@@ -76,7 +77,8 @@ jobs:
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
-        run: ./.ci/ci_build.sh
+        run: |
+          ./.ci/ci_build.sh
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
@@ -203,6 +205,7 @@ jobs:
         env:
           PLATFORM: windows
           CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
+          USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
           ./.ci/ci_build.sh
