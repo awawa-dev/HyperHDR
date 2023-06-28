@@ -28,7 +28,7 @@ SysTray::SysTray(HyperHdrDaemon* hyperhdrd)
 	, _instanceManager(HyperHdrIManager::getInstance())
 	, _webPort(8090)
 {
-	Q_INIT_RESOURCE(resources);	
+	Q_INIT_RESOURCE(resources);
 
 	// instance changes
 	connect(_instanceManager, &HyperHdrIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
@@ -210,8 +210,8 @@ void SysTray::settings()
 #endif
 
 	if (_hyperhdrd)
-	{		
-		_webPort = _hyperhdrd->getWebPort();		
+	{
+		_webPort = _hyperhdrd->getWebPort();
 	}
 
 	QDesktopServices::openUrl(QUrl("http://localhost:" + QString::number(_webPort) + "/", QUrl::TolerantMode));
@@ -247,7 +247,7 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 
 			connect(_trayIcon.get(), SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 				this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
-#if !defined(__APPLE__)			
+#if !defined(__APPLE__)
 			connect(_quitAction.get(), &QAction::triggered, _trayIcon.get(), &QSystemTrayIcon::hide, Qt::DirectConnection);
 #endif
 
@@ -257,7 +257,7 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 			_trayIcon->show();
 #if !defined(__APPLE__)
 			setWindowIcon(*_appIcon.get());
-#endif				
+#endif
 		}
 
 		break;

@@ -15,7 +15,7 @@ namespace FileUtils {
 		QFileInfo fi(sourceFile);
 		return fi.fileName();
 	}
-	
+
 	bool readFile(const QString& path, QString& data, Logger* log, bool ignError)
 	{
 		QFile file(path);
@@ -69,7 +69,7 @@ namespace FileUtils {
 
 		file.close();
 		return true;
-	}	
+	}
 
 	void resolveFileError(const QFile& file, Logger* log)
 	{

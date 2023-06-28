@@ -1060,7 +1060,7 @@ function SaveHueConfig(saveLamps = true)
 	{
 		hueLedConfig = sc.leds;
 	}
-	
+
 	sc.leds = hueLedConfig;
 
 	//Adjust gamma, brightness and compensation
@@ -1201,7 +1201,7 @@ function beginWizardHue()
 
 	$('#btn_wiz_save').off().on("click", function ()
 	{
-		SaveHueConfig();		
+		SaveHueConfig();
 		resetWizard();
 	});
 
@@ -1220,7 +1220,7 @@ function createHueUser()
 	{
 		tunnel_hue_post($("#ip").val(), '/api', JSON.stringify(data)).then( (r) =>
 			{
-				if (r != null)	
+				if (r != null)
 				{
 					if (Object.keys(r).length === 0)
 					{
@@ -1532,16 +1532,16 @@ function startWizardWLED(e)
 	$('#btn_wiz_cont').off().on('click', function ()
 	{
 		/* For testing only
-	
+
 		  discover_wled();
-	
+
 		  var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
 		  if(hostAddress != "")
 		  {
 			getProperties_wled(hostAddress,"info");
 			identify_wled(hostAddress)
 		  }
-	
+
 		 For testing only */
 	});
 }

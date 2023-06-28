@@ -80,7 +80,7 @@ ImageProcessor::ImageProcessor(const LedString& ledString, HyperHdrInstance* hyp
 }
 
 ImageProcessor::~ImageProcessor()
-{	
+{
 }
 
 void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -158,7 +158,7 @@ void ImageProcessor::setLedMappingType(int mapType)
 
 	_mappingType = mapType;
 
-	Debug(_log, "Set LED mapping type to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));	
+	Debug(_log, "Set LED mapping type to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));
 
 	if (_orgmappingType != _mappingType && _imageToLedColors != nullptr)
 	{
@@ -189,7 +189,7 @@ void ImageProcessor::verifyBorder(const Image<ColorRgb>& image)
 	{
 		Debug(_log, "Reset border");
 		_borderProcessor->process(image);
-		
+
 		registerProcessingUnit(image.width(), image.height(), 0, 0);
 	}
 

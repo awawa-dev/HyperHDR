@@ -908,7 +908,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			additional[additional_count++] = service->txt_record[0];
 
 			// Send the answer, unicast or multicast depending on flag in query
-			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);			
+			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),

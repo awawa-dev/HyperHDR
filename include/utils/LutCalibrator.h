@@ -83,7 +83,7 @@ class LutCalibrator : public QObject
 			scaledRed = 0;
 			scaledGreen = 0;
 			scaledBlue = 0;
-		}		
+		}
 
 		void AddColor(ColorRgb y)
 		{

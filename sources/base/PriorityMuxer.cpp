@@ -362,7 +362,7 @@ void PriorityMuxer::setCurrentTime()
 	// apply & emit on change (after apply!)
 	hyperhdr::Components comp = getComponentOfPriority(newPriority);
 	if (_currentPriority != newPriority || comp != _prevVisComp)
-	{		
+	{
 		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Info(_log, "Set visible priority to %d", newPriority);

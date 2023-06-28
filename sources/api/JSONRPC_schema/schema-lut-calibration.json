@@ -44,7 +44,7 @@
 		"startColor": {
 			"type": "object",
 			"required": true,
-			"properties":{			
+			"properties":{
 				"r" : {"type" : "integer"},
 				"g" : {"type" : "integer"},
 				"b" : {"type" : "integer"}
@@ -53,12 +53,12 @@
 		},
 		"endColor": {
 			"type": "object",
-			"required": true,	
-			"properties":{			
+			"required": true,
+			"properties":{
 				"r" : {"type" : "integer"},
 				"g" : {"type" : "integer"},
 				"b" : {"type" : "integer"}
-			},			
+			},
 			"additionalProperties": false
 		}
 	},

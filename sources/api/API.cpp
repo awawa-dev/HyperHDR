@@ -584,8 +584,8 @@ QString API::installLut(QNetworkReply *reply, QString fileName, int hardware_bri
 
 	if (reply->error() == QNetworkReply::NetworkError::NoError)
 	{
-		QByteArray downloadedData = reply->readAll();		
-		
+		QByteArray downloadedData = reply->readAll();
+
 		QFile file(fileName);
 		if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		{

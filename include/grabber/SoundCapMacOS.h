@@ -19,7 +19,7 @@ class SoundCapMacOS : public SoundCapture
 			void Start() override;
 			void Stop() override;
 			bool getPermission();
-				
+
 			static size_t     _soundBufferIndex;
-			static int16_t    _soundBuffer[(1<<SOUNDCAPMACOS_BUF_LENP)*2];			
+			static int16_t    _soundBuffer[(1<<SOUNDCAPMACOS_BUF_LENP)*2];
 };

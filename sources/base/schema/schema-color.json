@@ -9,7 +9,7 @@
 			"type" : "string",
 			"required" : true,
 			"title" : "edt_conf_color_imageToLedMappingType_title",
-			"enum" : ["multicolor_mean", "unicolor_mean", "advanced", "weighted"],			
+			"enum" : ["multicolor_mean", "unicolor_mean", "advanced", "weighted"],
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean", "edt_conf_enum_unicolor_advanced", "edt_conf_enum_unicolor_weighted"]
 			},
@@ -263,7 +263,7 @@
 						"required" : true,
 						"minimum" : 0.1,
 						"maximum": 100.0,
-						"default" : 1.5,						
+						"default" : 1.5,
 						"propertyOrder" : 15
 					},
 					"gammaGreen" :

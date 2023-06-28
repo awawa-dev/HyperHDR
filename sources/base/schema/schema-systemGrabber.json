@@ -8,7 +8,7 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_stream_device_title",
-			"default" : "auto",			
+			"default" : "auto",
 			"required" : true,
 			"propertyOrder" : 2
 		},
@@ -19,11 +19,11 @@
 			"title" : "edt_conf_stream_max_resolution_title",
 			"default" : 512,
 			"minimum" : 196,
-			"maximum" : 960,						
+			"maximum" : 960,
 			"append" : "edt_append_pixel",
 			"required" : true,
-			"propertyOrder" : 7			
-		},		
+			"propertyOrder" : 7
+		},
 		"fps" :
 		{
 			"type" : "integer",
@@ -32,10 +32,10 @@
 			"default" : 10,
 			"minimum" : 5,
 			"maximum" : 60,
-			"append" : "fps",			
+			"append" : "fps",
 			"required" : true,
 			"propertyOrder" : 10
-		},		
+		},
 		"hdrToneMapping" :
 		{
 			"type" : "boolean",
@@ -53,7 +53,7 @@
 			"default" : false,
 			"required" : true,
 			"propertyOrder" : 24
-		},		
+		},
 		"cropLeft" :
 		{
 			"type" : "integer",
@@ -61,9 +61,9 @@
 			"title" : "edt_conf_stream_cropLeft_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
-			"required" : true,			
+			"required" : true,
 			"propertyOrder" : 50
 		},
 		"cropRight" :
@@ -73,7 +73,7 @@
 			"title" : "edt_conf_stream_cropRight_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 51
@@ -85,9 +85,9 @@
 			"title" : "edt_conf_stream_cropTop_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
-			"required" : true,	
+			"required" : true,
 			"propertyOrder" : 52
 		},
 		"cropBottom" :
@@ -97,11 +97,11 @@
 			"title" : "edt_conf_stream_cropBottom_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
-			"required" : true,		
+			"required" : true,
 			"propertyOrder" : 53
-		},				
+		},
 		"signalDetection" :
 		{
 			"type" : "boolean",
@@ -177,7 +177,7 @@
 			},
 			"required" : true,
 			"propertyOrder" : 58
-		},		
+		},
 		"sDVOffsetMin" :
 		{
 			"type" : "number",
@@ -245,7 +245,7 @@
 			},
 			"required" : true,
 			"propertyOrder" : 62
-		}		
+		}
 	},
 	"additionalProperties" : false
 }

@@ -3,21 +3,21 @@ macro(DeployApple TARGET)
 		execute_process(
 			COMMAND bash -c "cd ${CMAKE_CURRENT_BINARY_DIR} && tar -xzf ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz"
 			RESULT_VARIABLE STATUS
-			OUTPUT_VARIABLE OUTPUT1			
-		)			
+			OUTPUT_VARIABLE OUTPUT1
+		)
 		if(STATUS AND NOT STATUS EQUAL 0)
 			message( FATAL_ERROR "LUT tar.xz Bad exit status (xz-tools installed?)")
 		else()
-			message( STATUS "LUT tar.xz tar extracted")			
+			message( STATUS "LUT tar.xz tar extracted")
 		endif()
 
-		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d" DESTINATION "hyperhdr.app/Contents/lut" COMPONENT "HyperHDR")			
+		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d" DESTINATION "hyperhdr.app/Contents/lut" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 
-		if ( Qt5Core_FOUND )			
-			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
+		if ( Qt5Core_FOUND )
+			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
 		else()
 			SET (MYQT_QMAKE_EXECUTABLE "${_qt_import_prefix}/../../../bin/qmake")
 		endif()
@@ -54,14 +54,14 @@ macro(DeployApple TARGET)
 				else()
 					message( WARNING "OpenSSL NOT found (https instance will not work)")
 				endif()
-				
+
 				file(GET_RUNTIME_DEPENDENCIES
 					EXECUTABLES ${MY_DEPENDENCY_PATHS}
 					RESOLVED_DEPENDENCIES_VAR _r_deps
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
-				
-				foreach(_file ${_r_deps})										
+
+				foreach(_file ${_r_deps})
 					string(FIND ${_file} "dylib" _index)
 					if (${_index} GREATER -1)
 						file(INSTALL
@@ -77,28 +77,28 @@ macro(DeployApple TARGET)
 						)
 					endif()
 				endforeach()
-				
+
 				if (NOT Qt5Core_FOUND AND EXISTS "/usr/local/lib/libbrotlicommon.1.dylib")
 					file(INSTALL
 						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
 						TYPE SHARED_LIBRARY
 						FOLLOW_SYMLINK_CHAIN
 						FILES "/usr/local/lib/libbrotlicommon.1.dylib")
-				endif()				
-				
+				endif()
+
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
 					message(WARNING "Unresolved dependencies detected!")
 				endif()
-				
+
 				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*")
-					foreach(file ${files})							
+					foreach(file ${files})
 							file(GET_RUNTIME_DEPENDENCIES
 							EXECUTABLES ${file}
 							RESOLVED_DEPENDENCIES_VAR PLUGINS
-							UNRESOLVED_DEPENDENCIES_VAR _u_deps				
+							UNRESOLVED_DEPENDENCIES_VAR _u_deps
 							)
 
 						foreach(DEPENDENCY ${PLUGINS})
@@ -106,9 +106,9 @@ macro(DeployApple TARGET)
 									DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
 									TYPE SHARED_LIBRARY
 									FILES ${DEPENDENCY}
-								)									
+								)
 						endforeach()
-							
+
 						get_filename_component(singleQtLib ${file} NAME)
 						list(APPEND MYQT_PLUGINS "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/${singleQtLib}")
 						file(INSTALL
@@ -116,18 +116,18 @@ macro(DeployApple TARGET)
 							TYPE SHARED_LIBRARY
 							FILES ${file}
 						)
-							
+
 					endforeach()
 				endif()
 			endforeach()
-			
-			include(BundleUtilities)							
+
+			include(BundleUtilities)
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
-				
-			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
+
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
 		]] COMPONENT "HyperHDR")
-	else()		
+	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
@@ -151,14 +151,14 @@ macro(DeployUnix TARGET)
 			"libdl"
 			"libexpat"
 			"libfontconfig"
-			"libgcc_s"			
+			"libgcc_s"
 			"libgpg-error"
 			"libm"
 			"libpthread"
 			"librt"
 			"libstdc++"
 			"libudev"
-			"libutil"			
+			"libutil"
 			"libz"
 			"libxrender1"
 			"libxi6"
@@ -192,7 +192,7 @@ macro(DeployUnix TARGET)
 			"libxcb-util0"
 			"libxcb-xfixes0"
 			"libxcb-xkb1"
-			"libxkbcommon-x11-0"			
+			"libxkbcommon-x11-0"
 			"libssl1.1"
 		)
 
@@ -205,14 +205,14 @@ macro(DeployUnix TARGET)
 		set(PREREQUISITE_LIBS "")
 		foreach(DEPENDENCY ${DEPENDENCIES})
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-			
+
 			foreach(myitem ${SYSTEM_LIBS_SKIP})
 				string(FIND ${myitem} ${resolved} _index)
 				if (${_index} GREATER -1)
-					break()									
+					break()
 				endif()
 			endforeach()
-					
+
 			if (${_index} GREATER -1)
 				continue() # Skip system libraries
 			else()
@@ -224,7 +224,7 @@ macro(DeployUnix TARGET)
 				#message(STATUS "Basic check added: ${resolved_file}")
 			endif()
 		endforeach()
-		
+
 		# Copy SMARTX11 lib
 		find_library(LIBSMARTX11
 			NAMES "smartX11" "smartX11.so"
@@ -232,10 +232,10 @@ macro(DeployUnix TARGET)
 			NO_DEFAULT_PATH
 		)
 		if (LIBSMARTX11)
-			SET(resolved_file ${LIBSMARTX11})		
+			SET(resolved_file ${LIBSMARTX11})
 			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartX11: ${resolved_file}")		
+			message(STATUS "Adding smartX11: ${resolved_file}")
 			get_filename_component(file_canonical ${resolved_file} REALPATH)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			message(STATUS "Added smartX11(2): ${file_canonical}")
@@ -251,17 +251,17 @@ macro(DeployUnix TARGET)
 			SET(resolved_file ${LIBSMARTPIPEWIRE})
 			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
 			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartPipewire: ${resolved_file}")		
+			message(STATUS "Adding smartPipewire: ${resolved_file}")
 			get_filename_component(file_canonical ${resolved_file} REALPATH)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			message(STATUS "Added smartPipewire(2): ${file_canonical}")
 		endif()
-		
+
 		# Copy CEC lib
 		find_library(LIBSMARTCEC
 			NAMES "cec" "cec.so"
 			PATHS "${CMAKE_BINARY_DIR}/lib"
-			NO_DEFAULT_PATH			
+			NO_DEFAULT_PATH
 		)
 		if (LIBSMARTCEC)
 			SET(resolved_file ${LIBSMARTCEC})
@@ -278,7 +278,7 @@ macro(DeployUnix TARGET)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			message(STATUS "Added CEC(3): ${file_canonical}")
 		endif()
-		
+
 		#OpenSSL
 		find_package(OpenSSL)
 		if(OPENSSL_FOUND)
@@ -292,13 +292,13 @@ macro(DeployUnix TARGET)
 		endif()
 
 		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		if ( Qt5Core_FOUND )			
+		if ( Qt5Core_FOUND )
 			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
 			execute_process(
 				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 				OUTPUT_VARIABLE QT_PLUGINS_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)		
+			)
 		elseif ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
 			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 			execute_process(
@@ -309,7 +309,7 @@ macro(DeployUnix TARGET)
 		endif()
 
 		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")
-		
+
 		if ( CEC_SUPPORT )
 			SET(resolved_file ${CEC_SUPPORT})
 			message(STATUS "Adding CEC support: ${resolved_file}")
@@ -326,8 +326,8 @@ macro(DeployUnix TARGET)
 			get_filename_component(file_canonical ${resolved_file} REALPATH)
 			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			message(STATUS "Added CEC support: ${file_canonical}")
-		endif()		
-		
+		endif()
+
 		if ( GLD )
 			SET(resolved_file ${GLD})
 			message(STATUS "Adding GLD: ${resolved_file}")
@@ -346,7 +346,7 @@ macro(DeployUnix TARGET)
 			message(STATUS "Added GLD: ${file_canonical}")
 		endif()
 
-		
+
 		find_library(LIB_XCB
 			NAMES libxcb libxcb.so
 		)
@@ -371,11 +371,11 @@ macro(DeployUnix TARGET)
 		else()
 			message(STATUS "libXCB not found")
 		endif()
-		
+
 		find_library(LIB_GLX
-			NAMES libGLX libGLX.so		
+			NAMES libGLX libGLX.so
 		)
-				
+
 		if(LIB_GLX)
 			message(STATUS "libGLX found ${LIB_GLX}")
 			SET(resolved_file ${LIB_GLX})
@@ -409,20 +409,20 @@ macro(DeployUnix TARGET)
 
 						foreach(DEPENDENCY ${PLUGINS})
 							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-							
+
 							foreach(myitem ${SYSTEM_LIBS_SKIP})
 									#message(STATUS "Checking ${myitem}")
 									string(FIND ${myitem} ${resolved} _index)
 									if (${_index} GREATER -1)
-										#message(STATUS "${myitem} = ${resolved}")									
-										break()									
+										#message(STATUS "${myitem} = ${resolved}")
+										break()
 									endif()
 							endforeach()
-								
+
 							if (${_index} GREATER -1)
 								#message(STATUS "QT skipped: ${resolved}")
 								continue() # Skip system libraries
-							else()						
+							else()
 								#message(STATUS "QT included: ${resolved}")
 								gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
 								get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
@@ -460,8 +460,8 @@ macro(DeployUnix TARGET)
 				COMPONENT "HyperHDR"
 			)
 		endforeach()
-		
-		# install LUT		
+
+		# install LUT
 		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
@@ -535,7 +535,7 @@ macro(DeployWindows TARGET)
 				NO_DEFAULT_PATH
 				REQUIRED
 			)
-					
+
 			if(NOT CMAKE_GITHUB_ACTION)
 				get_filename_component(JPEG_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
 				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TurboJPEG_DLL} ${JPEG_RUNTIME_TARGET})
@@ -583,23 +583,23 @@ macro(DeployWindows TARGET)
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
 			RESULT_VARIABLE STATUS
-			OUTPUT_VARIABLE OUTPUT1			
+			OUTPUT_VARIABLE OUTPUT1
 		)
 		if(STATUS AND NOT STATUS EQUAL 0)
 		    message( FATAL_ERROR "LUT tar.xz Bad exit status: ${STATUS} ${OUTPUT1}")
 		else()
-		    message( STATUS "LUT tar.xz tar extracted")			
+		    message( STATUS "LUT tar.xz tar extracted")
 		endif()
 
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
 			RESULT_VARIABLE STATUS
-			OUTPUT_VARIABLE OUTPUT1			
+			OUTPUT_VARIABLE OUTPUT1
 		)
 		if(STATUS AND NOT STATUS EQUAL 0)
 		    message( FATAL_ERROR "LUT tar Bad exit status")
 		else()
-		    message( STATUS "LUT tar extracted")			
+		    message( STATUS "LUT tar extracted")
 		endif()
 
 		install(
@@ -610,7 +610,7 @@ macro(DeployWindows TARGET)
 
 
 		find_package(OpenSSL QUIET)
-		
+
 		find_file(OPENSSL_SSL
 			NAMES libssl-1_1-x64.dll libssl-1_1.dll libssl ssleay32.dll ssl.dll
 			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
@@ -622,7 +622,7 @@ macro(DeployWindows TARGET)
 			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
 			PATH_SUFFIXES bin
 		)
-		
+
 		if(OPENSSL_SSL AND OPENSSL_CRYPTO)
 			message( STATUS "OpenSSL found: ${OPENSSL_SSL} ${OPENSSL_CRYPTO}")
 			install(
@@ -635,7 +635,7 @@ macro(DeployWindows TARGET)
 		endif()
 
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
-		
+
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION bin COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION bin COMPONENT "HyperHDR")
 

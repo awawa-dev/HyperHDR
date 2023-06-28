@@ -13,7 +13,7 @@
 			"maxLength" : 20,
 			"required" : true,
 			"propertyOrder" : 1
-		},		
+		},
 		"showOptHelp" :
 		{
 			"type" : "boolean",
@@ -25,7 +25,7 @@
 		},
 		"version" :
 		{
-			"type" : "integer",			
+			"type" : "integer",
 			"default" : 1,
 			"required" : true,
 			"options" : {

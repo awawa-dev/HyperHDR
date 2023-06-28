@@ -27,7 +27,7 @@ class API : public QObject
 {
 	Q_OBJECT
 
-public:		
+public:
 	API(Logger* log, bool localConnection, QObject* parent);
 
 	struct ImageCmdData

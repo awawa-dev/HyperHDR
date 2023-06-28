@@ -434,7 +434,7 @@ void RgbTransform::hsl2rgb_d(double hue, double saturation, double luminance, do
 		R = (r + m);
 		G = (g + m);
 		B = (b + m);
-	}	
+	}
 }
 
 RgbTransform RgbTransform::createRgbTransform(quint8 instance, const QJsonObject& colorConfig)

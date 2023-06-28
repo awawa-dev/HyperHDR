@@ -70,7 +70,7 @@ QString FrameBufGrabber::GetSharedLut()
 }
 
 void FrameBufGrabber::loadLutFile(PixelFormat color)
-{		
+{
 }
 
 void FrameBufGrabber::setHdrToneMappingEnabled(int mode)
@@ -86,11 +86,11 @@ void FrameBufGrabber::uninit()
 {
 	// stop if the grabber was not stopped
 	if (_initialized)
-	{		
+	{
 		stop();
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	}
-	
+
 	_initialized = false;
 }
 
@@ -117,7 +117,7 @@ bool FrameBufGrabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
+			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
@@ -132,15 +132,15 @@ bool FrameBufGrabber::init()
 			return false;
 		}
 
-		
+
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
-		Info(_log, "*************************************************************************************************");		
+		Info(_log, "*************************************************************************************************");
 
 		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
 		if (_handle < 0)
 		{
-			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);			
+			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
 		}
 		else
 		{
@@ -166,7 +166,7 @@ bool FrameBufGrabber::init()
 				Error(_log, "Could not get the framebuffer dimension for '%s' device. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
 				close(_handle);
 				_handle = -1;
-			}			
+			}
 		}
 	}
 
@@ -204,13 +204,13 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 			if (!silent)
 				Info(_log, "Found FrameBuffer device: %s", QSTRING_CSTR(path));
 		}
-	}	
+	}
 }
 
 bool FrameBufGrabber::start()
 {
 	try
-	{		
+	{
 		if (init())
 		{
 			_timer.setInterval(1000/_fps);
@@ -240,7 +240,7 @@ void FrameBufGrabber::stop()
 			_handle = -1;
 		}
 		_initialized = false;
-		
+
 		_semaphore.release();
 		Info(_log, "Stopped");
 	}
@@ -249,7 +249,7 @@ void FrameBufGrabber::stop()
 void FrameBufGrabber::grabFrame()
 {
 	bool stopNow = false;
-	
+
 	if (_semaphore.tryAcquire())
 	{
 		if (_initialized)
@@ -303,7 +303,7 @@ void FrameBufGrabber::grabFrame()
 								processSystemFrameBGR16(memHandle, format.line_length);
 
 							munmap(memHandle, format.smem_len);
-						}						
+						}
 					}
 					else
 					{

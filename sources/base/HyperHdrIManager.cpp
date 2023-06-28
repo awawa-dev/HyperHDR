@@ -98,7 +98,7 @@ void HyperHdrIManager::setSmoothing(int time)
 	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;
 
 	for (const auto instance : instCopy)
-		QTimer::singleShot(0, instance, [=]() { instance->setSmoothing(time); });	
+		QTimer::singleShot(0, instance, [=]() { instance->setSmoothing(time); });
 }
 
 bool HyperHdrIManager::isCEC()
@@ -133,7 +133,7 @@ void HyperHdrIManager::toggleStateAllInstances(bool pause)
 }
 
 void HyperHdrIManager::hibernate(bool wakeUp)
-{	
+{
 	if (!wakeUp)
 	{
 		Warning(_log, "The system is going to sleep");
@@ -143,7 +143,7 @@ void HyperHdrIManager::hibernate(bool wakeUp)
 	{
 		Warning(_log, "The system is going to wake up");
 		QTimer::singleShot(3000, [this]() { toggleStateAllInstances(true);  });
-	}	
+	}
 }
 
 bool HyperHdrIManager::startInstance(quint8 inst, bool block, QObject* caller, int tan)

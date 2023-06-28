@@ -76,7 +76,7 @@ QString macOsGrabber::GetSharedLut()
 }
 
 void macOsGrabber::loadLutFile(PixelFormat color)
-{		
+{
 }
 
 void macOsGrabber::setHdrToneMappingEnabled(int mode)
@@ -97,7 +97,7 @@ void macOsGrabber::uninit()
 {
 	// stop if the grabber was not stopped
 	if (_initialized)
-	{		
+	{
 		stop();
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	}
@@ -130,7 +130,7 @@ bool macOsGrabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
+			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
@@ -145,13 +145,13 @@ bool macOsGrabber::init()
 			return false;
 		}
 
-		
+
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting macOS grabber. Selected: '%s' max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");
 
 		_actualDisplay = _deviceProperties[foundDevice].valid.first().display;
-		_initialized = true;		
+		_initialized = true;
 	}
 
 	return _initialized;
@@ -194,13 +194,13 @@ void macOsGrabber::enumerateDevices(bool silent)
 		properties.valid.append(dpi);
 
 		_deviceProperties.insert(id, properties);
-	}	
+	}
 }
 
 bool macOsGrabber::start()
 {
 	try
-	{		
+	{
 		if (init())
 		{
 			_timer.setInterval(1000/_fps);
@@ -229,7 +229,7 @@ void macOsGrabber::stop()
 }
 
 bool macOsGrabber::init_device(QString selectedDeviceName)
-{	
+{
 	return true;
 }
 
@@ -238,7 +238,7 @@ void macOsGrabber::grabFrame()
 	bool stopNow = false;
 
 	if (_semaphore.tryAcquire())
-	{		
+	{
 		CGImageRef display;
 		CFDataRef sysData;
 		uint8_t* rawData;
@@ -246,12 +246,12 @@ void macOsGrabber::grabFrame()
 		display = CGDisplayCreateImage(_actualDisplay);
 
 		if (display == NULL)
-		{			
+		{
 			Error(_log, "Lost connection to the display or user didn't grant access rights");
 			stopNow = true;
 		}
 		else
-		{			
+		{
 			sysData = CGDataProviderCopyData(CGImageGetDataProvider(display));;
 
 			if (sysData != NULL)

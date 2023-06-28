@@ -27,8 +27,8 @@
 		"time_ms" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 25,			
+			"format": "stepper",
+			"step" : 25,
 			"title" : "edt_conf_smooth_time_ms_title",
 			"minimum" : 25,
 			"maximum": 5000,
@@ -40,8 +40,8 @@
 		"updateFrequency" :
 		{
 			"type" : "number",
-			"format": "stepper",			
-			"step" : 5,			
+			"format": "stepper",
+			"step" : 5,
 			"title" : "edt_conf_smooth_updateFrequency_title",
 			"minimum" : 20.0,
 			"maximum" : 200.0,
@@ -53,20 +53,20 @@
 		"lowLightAntiFlickeringTreshold" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 1,			
+			"format": "stepper",
+			"step" : 1,
 			"title" : "edt_conf_smooth_antiFlickeringTreshold_title",
 			"minimum" : 0,
 			"maximum": 255,
 			"default" : 32,
 			"required" : true,
 			"propertyOrder" : 5
-		},		
+		},
 		"lowLightAntiFlickeringValue" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 1,			
+			"format": "stepper",
+			"step" : 1,
 			"title" : "edt_conf_smooth_antiFlickeringValue_title",
 			"minimum" : 1,
 			"maximum": 8,
@@ -82,8 +82,8 @@
 		"lowLightAntiFlickeringTimeout" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 50,	
+			"format": "stepper",
+			"step" : 50,
 			"title" : "edt_conf_smooth_antiFlickeringTimeout_title",
 			"minimum" : 0,
 			"maximum": 10000,

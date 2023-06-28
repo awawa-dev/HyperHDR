@@ -6,10 +6,10 @@
 
 class Animation4Music_WavesPulse : public AnimationBaseMusic
 {
-	Q_OBJECT	
+	Q_OBJECT
 
 public:
-	
+
 	Animation4Music_WavesPulse();
 
 	void Init(

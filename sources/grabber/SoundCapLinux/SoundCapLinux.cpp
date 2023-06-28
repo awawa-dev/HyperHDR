@@ -39,7 +39,7 @@ SoundCapLinux::SoundCapLinux(const QJsonDocument& effectConfig, QObject* parent)
                                         : SoundCapture(effectConfig, parent),
                                         _handle(NULL),
 										_pcmCallback(NULL)
-{		
+{
         ListDevices();
 }
 
@@ -83,7 +83,7 @@ SoundCapLinux::~SoundCapLinux()
 void SoundCapLinux::RecordCallback(snd_async_handler_t *audioHandler)
 {
 	try
-	{		
+	{
 		if (_isRunning && audioHandler != NULL)
 		{
 			snd_pcm_sframes_t periodSize = (1 << SOUNDCAPLINUX_BUF_LENP);
@@ -111,38 +111,38 @@ void SoundCapLinux::Start()
 {
 	if (_isActive && !_isRunning)
 	{
-		int				status;		
-		bool    		error = false;		
-		unsigned int 	exactRate = 22050;		
-				
+		int				status;
+		bool    		error = false;
+		unsigned int 	exactRate = 22050;
+
 		snd_pcm_uframes_t periodSize = (1 << SOUNDCAPLINUX_BUF_LENP) * 2;
 		snd_pcm_uframes_t bufferSize = periodSize * 2;
 		snd_pcm_hw_params_t *hw_params;
 
 		QStringList deviceList = _selectedDevice.split('|');
-		
+
 		if (deviceList.size() == 0)
 		{
 			Error(Logger::getInstance("HYPERHDR"), "Invalid device name: %s", QSTRING_CSTR(_selectedDevice));
 		}
-		
+
 		QString device = deviceList.at(0).trimmed();
 		Info(Logger::getInstance("HYPERHDR"), "Opening device: %s", QSTRING_CSTR(device));
-		
-		
+
+
 		if ((status = snd_pcm_open (&_handle, QSTRING_CSTR(device), SND_PCM_STREAM_CAPTURE, 0)) < 0) {
 			Error(Logger::getInstance("HYPERHDR"), "Cannot open input sound device '%s'. Error: '%s'",  QSTRING_CSTR(device), snd_strerror (status));
 			return;
 		}
-		
+
 		if ((status = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
 				Error(Logger::getInstance("HYPERHDR"), "Cannot allocate hardware parameter buffer: '%s'", snd_strerror (status));
 				snd_pcm_close(_handle);
 				return;
 		}
-		
+
 		try
-		{			
+		{
 			if ((status = snd_pcm_hw_params_any (_handle, hw_params)) < 0) {
 				Error(Logger::getInstance("HYPERHDR"), "Cannot set snd_pcm_hw_params_any: '%s'", snd_strerror (status));
 				throw 1;
@@ -167,7 +167,7 @@ void SoundCapLinux::Start()
 				Error(Logger::getInstance("HYPERHDR"), "Cannot set rate to 22050");
 				throw 5;
 			}
-			
+
 			if ((status = snd_pcm_hw_params_set_channels (_handle, hw_params, 1)) < 0) {
 				Error(Logger::getInstance("HYPERHDR"), "Cannot set snd_pcm_hw_params_set_channels: '%s'",snd_strerror (status));
 				throw 6;
@@ -178,29 +178,29 @@ void SoundCapLinux::Start()
 				Error(Logger::getInstance("HYPERHDR"), "Cannot set snd_pcm_hw_params_set_period_size_near: '%s'", snd_strerror(status) );
 				throw 7;
 			}
-			else 			
+			else 
         		Info(Logger::getInstance("HYPERHDR"), "Sound period size = %lu", (unsigned long)periodSize);
-			
+
 			if( (status = snd_pcm_hw_params_set_buffer_size_near(_handle, hw_params, &bufferSize)) < 0 )
 			{
 				Error(Logger::getInstance("HYPERHDR"), "Cannot set snd_pcm_hw_params_set_buffer_size_near: '%s'", snd_strerror(status) );
 				throw 8;
 			}
-			else 			
+			else 
         		Info(Logger::getInstance("HYPERHDR"), "Sound buffer size = %lu", (unsigned long)bufferSize);
-			
+
 
 			if ((status = snd_pcm_hw_params (_handle, hw_params)) < 0) {
 				Error(Logger::getInstance("HYPERHDR"),  "Cannot set snd_pcm_hw_params: '%s'", snd_strerror (status));
 				throw 9;
 			}
-			
+
 			if ((status = snd_pcm_prepare (_handle)) < 0) {
 				Error(Logger::getInstance("HYPERHDR"),  "Cannot prepare device for use: '%s'", snd_strerror (status));
-				throw 10;			
-			}			
+				throw 10;
+			}
 
-			if ((status = snd_async_add_pcm_handler(&_pcmCallback, _handle, RecordCallback, NULL)) < 0) {			
+			if ((status = snd_async_add_pcm_handler(&_pcmCallback, _handle, RecordCallback, NULL)) < 0) {
 				Error(Logger::getInstance("HYPERHDR"),  "Registering record callback error, probably you chose wrong or virtual audio capture device: '%s'", snd_strerror(status));
 				throw 11;
 			}
@@ -226,8 +226,8 @@ void SoundCapLinux::Start()
 			error = true;
 		}
 
-		snd_pcm_hw_params_free (hw_params);		
-		
+		snd_pcm_hw_params_free (hw_params);
+
 		if (!error)
 		{
 			_isRunning = true;
@@ -247,9 +247,9 @@ void SoundCapLinux::Stop()
 
 	Info(Logger::getInstance("HYPERHDR"),  "Disconnecting from sound driver: '%s'", QSTRING_CSTR(_selectedDevice));
 
-		
+
 	_isRunning = false;
-	
+
 	if (_pcmCallback != NULL)
 	{
 		snd_pcm_drop(_handle);
@@ -261,5 +261,5 @@ void SoundCapLinux::Stop()
 	{
 		snd_pcm_close(_handle);
 		_handle = NULL;
-	}	
+	}
 }

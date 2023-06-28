@@ -210,7 +210,7 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 
 					m_currentRequest->setPostData(postData);
 
-					// catch /jsonrpc in url, we need async callback, StaticFileServing is sync						
+					// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
 					if (getCallback || (!uri_parts.empty() && uri_parts.at(0) == RPC))
 					{
 						if (m_webJsonRpc == Q_NULLPTR)

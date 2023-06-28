@@ -371,7 +371,7 @@ hyperhdr::Components JsonAPI::getActiveComponent()
 	else
 		QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriorityInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(PriorityMuxer::InputInfo, prio));
 
-	return prio.componentId;	
+	return prio.componentId;
 }
 
 void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString& command, int tan)
@@ -392,7 +392,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 		QList<int> activePriorities = _hyperhdr->getActivePriorities();
 		activePriorities.removeAll(255);
-		
+
 
 		for (int priority : activePriorities)
 		{
@@ -561,7 +561,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 			info["sound"] = resultSound;
 		}
-	#endif	
+	#endif
 
 	#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER)
 		if (SystemWrapper::getInstance() != nullptr)
@@ -583,7 +583,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 	#endif
 
 		QJsonObject grabbers;
-	#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)	
+	#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)
 		grabbers = GrabberWrapper::getInstance()->getJsonInfo();
 		QString lutPath = QDir::cleanPath(_instanceManager->getRootPath() + QDir::separator() + "lut_lin_tables.3d");
 		grabbers["lut_for_hdr_path"] = lutPath;
@@ -1262,7 +1262,7 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 
 void JsonAPI::handleLedColorsIncoming(const std::vector<ColorRgb>& ledValues)
 {
-	_currentLedValues = ledValues;	
+	_currentLedValues = ledValues;
 
 	if (_ledStreamTimer->interval() != _colorsStreamingInterval)
 		_ledStreamTimer->start(_colorsStreamingInterval);
@@ -1308,7 +1308,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& 
 
 		connect(_hyperhdr, &HyperHdrInstance::onCurrentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
 
-		emit _hyperhdr->onCurrentImage();		
+		emit _hyperhdr->onCurrentImage();
 	}
 	else if (subcommand == "imagestream-stop")
 	{
@@ -1403,7 +1403,7 @@ void JsonAPI::handleLutCalibrationCommand(const QJsonObject& message, const QStr
 	_endColor.green = endColor["g"].toInt(255);
 	_endColor.blue = endColor["b"].toInt(255);
 
-	if (subcommand == "capture")	
+	if (subcommand == "capture")
 		emit LutCalibrator::getInstance()->assign(getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
 	else
 		emit LutCalibrator::getInstance()->stop();
@@ -1872,7 +1872,7 @@ void JsonAPI::setImage()
 	buffer.open(QIODevice::WriteOnly);
 
 	if (image.width() > 1920)
-	{		
+	{
 		jpgImage = jpgImage.scaled(image.width() / 2, image.height() / 2);
 	}
 
@@ -1988,14 +1988,14 @@ void JsonAPI::stopDataConnections()
 void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, int tan)
 {
 	const QString& subcommand = message["subcommand"].toString().trimmed();
-	const QString& full_command = command + "-" + subcommand;	
+	const QString& full_command = command + "-" + subcommand;
 
 	if (_adminAuthorized)
-	{		
+	{
 		const QString& ip = message["ip"].toString().trimmed();
 		const QString& path = message["path"].toString().trimmed();
 		const QString& data = message["data"].toString().trimmed();
-		const QString& service = message["service"].toString().trimmed();		
+		const QString& service = message["service"].toString().trimmed();
 
 		if (service == "hue")
 		{
@@ -2005,7 +2005,7 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 				sendErrorReply("Invalid path", full_command, tan);
 				return;
 			}
-			
+
 			ProviderRestApi provider;
 
 			QUrl url = QUrl((path.startsWith("/clip/v2")?"https://":"http://")+tempUrl.host()+path);
@@ -2058,7 +2058,7 @@ void JsonAPI::handleTunnel(const QJsonObject& message, const QString& command, i
 			else
 				reply["info"] = doc.object();
 
-			emit callbackMessage(reply);			
+			emit callbackMessage(reply);
 		}
 		else
 			sendErrorReply("Service not supported", full_command, tan);
@@ -2079,13 +2079,13 @@ bool JsonAPI::isLocal(QString hostname)
 		{
 			QList<QHostAddress> list = result.addresses();
 			for(int x = 1; x >= 0; x--)
-				foreach(const QHostAddress& l , list)				
+				foreach(const QHostAddress& l , list)
 					if (l.protocol() == (x > 0) ? QAbstractSocket::IPv4Protocol : QAbstractSocket::IPv6Protocol)
 					{
 						address = l;
 						x = 0;
 						break;
-					}				
+					}
 		}
 	}
 

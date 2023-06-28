@@ -540,7 +540,7 @@ void DxGrabber::alternativeCaching(bool alternative)
 	_alternative = alternative;
 
 	if (_alternative)
-	{		
+	{
 		connect(this, &Grabber::newFrame, this, &DxGrabber::cacheHandler, Qt::UniqueConnection);
 	}
 	else

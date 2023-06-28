@@ -407,7 +407,7 @@ protected slots:
 
 protected:
 	void enableDevice(bool toEmit);
-	void disableDevice(bool toEmit);	
+	void disableDevice(bool toEmit);
 	void startRefreshTimer();
 
 private:

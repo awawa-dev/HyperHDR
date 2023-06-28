@@ -58,12 +58,12 @@
 		},
 		"blackLevel": {
 			"type": "number",
-			"format" : "stepper",						
+			"format" : "stepper",
 			"title":"edt_dev_spec_brightnessThreshold_title",
 			"default" : 0.009,
 			"step": 0.01,
 			"minimum" : 0.001,
-			"maximum" : 1.0,				
+			"maximum" : 1.0,
 			"propertyOrder" : 7,
 			"options": {
 				"dependencies": {
@@ -74,8 +74,8 @@
 		"onBlackTimeToPowerOff" :
 		{
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 50,			
+			"format" : "stepper",
+			"step"   : 50,
 			"title" : "onBlackTimeToPowerOff",
 			"append" : "edt_append_ms",
 			"minimum" : 100,
@@ -92,8 +92,8 @@
 		"onBlackTimeToPowerOn" :
 		{
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 50,			
+			"format" : "stepper",
+			"step"   : 50,
 			"title" : "onBlackTimeToPowerOn",
 			"append" : "edt_append_ms",
 			"minimum" : 100,
@@ -141,8 +141,8 @@
 		},
 		"groupId": {
 			"type": "number",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title":"edt_dev_spec_groupId_title",
 			"default" : 0,
 			"options": {
@@ -167,7 +167,7 @@
 		},
 		"brightnessFactor": {
 			"type": "number",
-			"format" : "stepper",						
+			"format" : "stepper",
 			"title":"edt_dev_spec_brightnessFactor_title",
 			"default" : 1.0,
 			"step": 0.25,
@@ -179,8 +179,8 @@
 		"maxRetry":
 		{
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title" : "edt_dev_max_retry",
 			"minimum" : 0,
 			"maximum" : 300,
@@ -190,7 +190,7 @@
 		},
 		"handshakeTimeoutMin": {
 			"type": "number",
-			"format" : "stepper",						
+			"format" : "stepper",
 			"title":"edt_dev_spec_sslHSTimeoutMin_title",
 			"default" : 600,
 			"step": 100,
@@ -208,7 +208,7 @@
 		},
 		"handshakeTimeoutMax": {
 			"type": "number",
-			"format" : "stepper",			
+			"format" : "stepper",
 			"title":"edt_dev_spec_sslHSTimeoutMax_title",
 			"default" : 1000,
 			"step": 100,
@@ -223,7 +223,7 @@
 				}
 			},
 			"propertyOrder" : 17
-		},		
+		},
 		"verbose": {
 			"type": "boolean",
 			"format": "checkbox",
@@ -231,7 +231,7 @@
 			"default" : false,
 			"access" : "expert",
 			"propertyOrder" : 18
-		},		
+		},
 		"transitiontime": {
 			"type": "number",
 			"title":"edt_dev_spec_transistionTime_title",
@@ -246,16 +246,16 @@
 				}
 			},
 			"propertyOrder" : 21
-		},		
+		},
 		"blackLightsTimeout": {
-			"type": "number",			
+			"type": "number",
 			"default" : 5000,
 			"options" : {
 				"hidden":true
 			},
 			"propertyOrder" : 22
 		},
-		"brightnessThreshold": {			
+		"brightnessThreshold": {
 			"type": "number",
 			"title":"edt_dev_spec_brightnessThreshold_title",
 			"default" : 0.0001,

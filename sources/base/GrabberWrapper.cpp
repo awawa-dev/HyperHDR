@@ -80,7 +80,7 @@ QJsonDocument GrabberWrapper::startCalibration()
 	if (_grabber == nullptr)
 		return QJsonDocument();
 
-	if (QThread::currentThread() == _grabber->thread())	
+	if (QThread::currentThread() == _grabber->thread())
 		return _grabber->startCalibration();
 
 	QJsonDocument retVal;
@@ -111,7 +111,7 @@ QJsonDocument GrabberWrapper::getCalibrationInfo()
 		return QJsonDocument();
 
 	if (QThread::currentThread() == _grabber->thread())
-		return _grabber->getCalibrationInfo();	
+		return _grabber->getCalibrationInfo();
 
 	QJsonDocument retVal;
 	QMetaObject::invokeMethod(_grabber, "getCalibrationInfo", Qt::ConnectionType::BlockingQueuedConnection,
@@ -254,7 +254,7 @@ void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int hyp
 
 
 QMap<Grabber::currentVideoModeInfo, QString> GrabberWrapper::getVideoCurrentMode() const
-{	
+{
 	if (_grabber != nullptr)
 		return _grabber->getVideoCurrentMode();
 	else

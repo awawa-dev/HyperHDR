@@ -150,7 +150,7 @@ void WebSocketClient::handleWebSocketFrame()
 				}
 				break;
 
-			default:				
+			default:
 					Warning(_log, "Unexpected %d\n%s\n", _wsh.opCode, QSTRING_CSTR(QString(buf)));
 		}
 	}
@@ -254,13 +254,13 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 
 	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
 		return 0;
-	
+
 	qint64 payloadWritten = 0;
 	quint32 payloadSize = data.size();
 	const char* payload = data.data();
 
 	qint32 numFrames = payloadSize / FRAME_SIZE_IN_BYTES + ((quint64(payloadSize) % FRAME_SIZE_IN_BYTES) > 0 ? 1 : 0);
-	
+
 	for (int i = 0; i < numFrames; i++)
 	{
 		const bool isLastFrame = (i == (numFrames - 1));
@@ -268,7 +268,7 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 		quint64 position = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize - position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize - position);
 		quint8 headerType = (i) ? OPCODE::CONTINUATION : OPCODE::TEXT;
-		QByteArray buf = makeFrameHeader(headerType, frameSize, isLastFrame);		
+		QByteArray buf = makeFrameHeader(headerType, frameSize, isLastFrame);
 		sendMessage_Raw(buf);
 
 		qint64 written = sendMessage_Raw(payload + position, frameSize);

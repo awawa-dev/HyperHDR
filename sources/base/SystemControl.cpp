@@ -93,7 +93,7 @@ void SystemControl::setSysCaptureEnable(bool enable)
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage);
 		}
 		else
-		{			
+		{
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &SystemControl::handleSysImage);
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage);
 			_hyperhdr->clear(_sysCaptPrio);

@@ -60,7 +60,7 @@ public slots:
 	virtual void stateChanged(bool state);
 
 protected:
-	virtual QString getGrabberInfo();	
+	virtual QString getGrabberInfo();
 
 	QString		_grabberName;
 

@@ -68,7 +68,7 @@ public slots:
 
 	quint16 getPort() const { return _port; }
 
-private:	
+private:
 	quint16              _port;
 	QJsonDocument        _config;
 	bool				 _useSsl;

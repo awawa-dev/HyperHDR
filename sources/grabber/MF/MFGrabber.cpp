@@ -226,7 +226,7 @@ void MFGrabber::uninit()
 }
 
 bool MFGrabber::init()
-{	
+{
 	if (!_initialized && _isMF)
 	{
 		QString foundDevice = "";
@@ -442,7 +442,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 							{
 								IMFSourceReader* reader;
 
-								// get device control capabilities							
+								// get device control capabilities
 								hr = pSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
 								if (SUCCEEDED(hr))
 								{
@@ -940,7 +940,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 	else
 	{
 		if (_MFWorkerManager.isActive())
-		{			
+		{
 			// stats
 			int64_t now = InternalClock::now();
 			int64_t diff = now - frameStat.frameBegin;
@@ -959,7 +959,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 				if (diff >= 59000 && diff <= 65000)
 					emit PerformanceCounters::getInstance()->newCounter(
 					PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), frameStat.token, this->_actualDeviceName, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
-				
+
 				resetCounter(now);
 
 				QString currentCache = Image<ColorRgb>::adjustCache();
@@ -1027,9 +1027,9 @@ void MFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, qui
 	{
 		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: %s)", QSTRING_CSTR(error));
 	}
-	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));
 
-	// get next frame	
+	// get next frame
 	if (workerIndex > _MFWorkerManager.workersCount)
 		Error(_log, "Frame index = %d, index out of range", sourceCount);
 
@@ -1058,7 +1058,7 @@ void MFGrabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, 
 		emit newFrame(image);
 
 
-	// get next frame	
+	// get next frame
 	if (workerIndex > _MFWorkerManager.workersCount)
 		Error(_log, "Frame index = %d, index out of range", sourceCount);
 

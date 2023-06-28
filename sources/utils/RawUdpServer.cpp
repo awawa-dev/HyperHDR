@@ -86,7 +86,7 @@ void RawUdpServer::handleSettingsUpdate(settings::type type, const QJsonDocument
 	{
 		const QJsonObject& obj = config.object();
 
-		quint16 port = obj["port"].toInt(5568);		
+		quint16 port = obj["port"].toInt(5568);
 
 		// port check
 		if (_server != nullptr && _server->localPort() != port && _initialized)
@@ -104,11 +104,11 @@ void RawUdpServer::handleSettingsUpdate(settings::type type, const QJsonDocument
 		}
 		else
 		{
-			if (_initialized)			
+			if (_initialized)
 				_hyperhdr->setInputInactive(_priority);
 
 			_inactiveTimer->stop();
-			
+
 			stopServer();
 		}
 	}
@@ -135,7 +135,7 @@ void RawUdpServer::readPendingDatagrams()
 			c.red = datagram.data().at(i++);
 			c.green = datagram.data().at(i++);
 			c.blue = datagram.data().at(i++);
-			_ledColors.push_back(c);			
+			_ledColors.push_back(c);
 		}
 
 		_hyperhdr->setInput(_priority, _ledColors);
@@ -164,7 +164,7 @@ void RawUdpServer::startServer()
 void RawUdpServer::stopServer()
 {
 	if (_server != nullptr && _initialized)
-	{		
+	{
 		// closing
 		if (_server != nullptr)
 			_server->abort();

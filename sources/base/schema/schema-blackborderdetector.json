@@ -15,7 +15,7 @@
 		"threshold" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_conf_bb_threshold_title",
 			"minimum" : 0,
@@ -28,7 +28,7 @@
 		"unknownFrameCnt"    :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 50,
 			"title" : "edt_conf_bb_unknownFrameCnt_title",
 			"minimum" : 0,
@@ -40,7 +40,7 @@
 		"borderFrameCnt" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_conf_bb_borderFrameCnt_title",
 			"minimum" : 0,
@@ -52,7 +52,7 @@
 		"maxInconsistentCnt" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_conf_bb_maxInconsistentCnt_title",
 			"minimum" : 0,
@@ -64,7 +64,7 @@
 		"blurRemoveCnt" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_conf_bb_blurRemoveCnt_title",
 			"minimum" : 0,

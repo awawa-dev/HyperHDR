@@ -18,24 +18,24 @@ var _resizeObserver = null;
 
 if (typeof ResizeObserver === "function" && _resizeObserver === null)
 {
-	_resizeObserver = new ResizeObserver(entries => {		
+	_resizeObserver = new ResizeObserver(entries => {
 		if ( _lastOrigin != "" && _lastLeds.length > 0 )
 		{
-			createLedPreview(_lastLeds, _lastOrigin);			
+			createLedPreview(_lastLeds, _lastOrigin);
 		}
-	});	
+	});
 }
 
 function createLedPreview(leds, origin)
 {
 	_lastLeds = leds;
 	_lastOrigin = origin;
-	
+
 	if (!ledStarter)
 		$('#collapse1').collapse('toggle');
-	
+
 	if (origin == "classic")
-	{		
+	{
 		$('#leds_preview').css("padding-top", "56.25%").css("position","relative");
 	}
 	else if (origin == "text")
@@ -43,14 +43,14 @@ function createLedPreview(leds, origin)
 		$('#leds_preview').css("padding-top", "56.25%").css("position","relative");
 	}
 	else if (origin == "matrix")
-	{		
+	{
 		$('#leds_preview').css("padding-top", "100%").css("position","relative");
 	}
 	else if (origin == "zoom")
-	{		
+	{
 		$('#leds_preview').css("padding-top", "44%").css("position","relative");
 	}
-	
+
 	ledStarter = true;
 
 	$('#previewledcount').html(`${$.i18n('conf_leds_layout_preview_totalleds', leds.length)} (${$.i18n('conf_leds_layout_preview_ledpower', ((leds.length * 0.06) * 1.1).toFixed(1))})`);
@@ -64,9 +64,9 @@ function createLedPreview(leds, origin)
 	var hashTable = {};
 	var groups = false;
 	var disabledLed = false;
-	
+
 	for (var idx = 0; idx < leds.length; idx++)
-	{		
+	{
 		var led = leds[idx];
 		var led_id = 'ledc_' + [idx];
 		var bgcolor = "hsla(" + (idx * 360 / leds.length) + ",100%,50%,0.75)";
@@ -79,16 +79,16 @@ function createLedPreview(leds, origin)
 		}
 		else if (led.group !== undefined && led.group != 0)
 		{
-			if (led.group in hashTable)			
-				bgcolor = hashTable[led.group];			
+			if (led.group in hashTable)
+				bgcolor = hashTable[led.group];
 			else
 				hashTable[led.group] = bgcolor;
-			
+
 			optGroup = ", group: " + led.group;
-			
+
 			groups = true;
 		}
-		
+
 		var pos = "left:" + Math.round(led.hmin * canvas_width) + "px;" +
 			"top:" + Math.round(led.vmin * canvas_height) + "px;" +
 			"width:" + Math.min((led.hmax - led.hmin) * canvas_width + 1, (canvas_width - 1)) + "px;" +
@@ -103,13 +103,13 @@ function createLedPreview(leds, origin)
 		leds_html += '<div data-i18n="conf_leds_layout_frame" style="position: absolute; text-align: center; left: ' + (0.2 * canvas_width) + 'px; top: ' + (0.45 * canvas_height) + 'px; width: ' + (0.6 * canvas_width) + 'px;">'+$.i18n('conf_leds_grouping_notification')+'</div>';
 	if (disabledLed)
 		leds_html += '<div data-i18n="conf_leds_layout_frame" style="position: absolute; text-align: center; left: ' + (0.2 * canvas_width) + 'px; top: ' + (0.55 * canvas_height) + 'px; width: ' + (0.6 * canvas_width) + 'px;">'+$.i18n('conf_leds_disabled_notification')+'</div>';
-	
+
 	$('#leds_preview').html(leds_html);
 
 	//first LEDs
 	var colors = ["rgba(0,0,0,0.8)", "rgba(128,128,128,0.8)", "rgba(169,169,169,0.8)"];
-	for (var i = 0; i < 3 && i < leds.length; i++)		
-	{		
+	for (var i = 0; i < 3 && i < leds.length; i++)
+	{
 		var led = leds[i];
 		var angle = Math.round(90 - Math.atan((led.vmax - led.vmin) * canvas_height / (Math.max(led.hmax - led.hmin, 0.0000001) * canvas_width)) * (180 / Math.PI));
 		var hColor = `-webkit-linear-gradient(${angle}deg, rgba(255,255,255,0.0) 50%, ${colors[i]} 50%)`;
@@ -124,8 +124,8 @@ function createLedPreview(leds, origin)
 	// disabled LEDs
 	for (var i = 0; i < leds.length; i++)
 		if (leds[i].disabled === true)
-		{		
-			$('#ledc_'+i).addClass((i>=3) ? "crosslineDark" : "crosslineWhite");			
+		{
+			$('#ledc_'+i).addClass((i>=3) ? "crosslineDark" : "crosslineWhite");
 		}
 
 	if ($('#leds_prev_toggle_num').hasClass('btn-success'))
@@ -160,7 +160,7 @@ function createClassicLedLayoutSimple(ledstop, ledsleft, ledsright, ledsbottom, 
 		pttlh: 0,
 		pttlv: 0,
 		pttrh: 1,
-		pttrv: 0		
+		pttrv: 0
 	};
 
 	params.ledstop = ledstop;
@@ -260,14 +260,14 @@ function createClassicLedLayout(params)
 		var steph = (params.pttrh - params.pttlh - (2 * edgeHGap)) / params.ledstop;
 		var stepv = (params.pttrv - params.pttlv) / params.ledstop;
 		var maxGroup = 0;
-		
+
 		for (var i = 0; i < params.ledstop; i++)
 		{
 			var hmin = ovl("-", params.pttlh + (steph * Number([i])) + edgeHGap);
 			var hmax = ovl("+", params.pttlh + (steph * Number([i + 1])) + edgeHGap);
 			var vmin = params.pttlv + (stepv * Number([i]));
 			var vmax = vmin + params.ledsHDepth;
-						
+
 			if (params.groupX > 0 && (params.groupX * 2 <= params.ledstop))
 			{
 				var group = Math.floor(((i * params.groupX) / params.ledstop))+1;
@@ -277,7 +277,7 @@ function createClassicLedLayout(params)
 			else
 				createLedArray(hmin, hmax, vmin, vmax, 0);
 		}
-		
+
 		return maxGroup + groupStart;
 	}
 
@@ -286,7 +286,7 @@ function createClassicLedLayout(params)
 		var steph = (params.ptbrh - params.pttrh) / params.ledsright;
 		var stepv = (params.ptbrv - params.pttrv - (2 * params.edgeVGap)) / params.ledsright;
 		var maxGroup = 0;
-		
+
 		for (var i = 0; i < params.ledsright; i++)
 		{
 			var hmax = params.pttrh + (steph * Number([i + 1]));
@@ -299,11 +299,11 @@ function createClassicLedLayout(params)
 				var group = Math.floor(((i * params.groupY) / params.ledsright))+1;
 				maxGroup = Math.max(maxGroup, group);
 				createLedArray(hmin, hmax, vmin, vmax, group + groupStart);
-			}			
+			}
 			else
 				createLedArray(hmin, hmax, vmin, vmax, 0);
 		}
-		
+
 		return maxGroup + groupStart;
 	}
 
@@ -312,14 +312,14 @@ function createClassicLedLayout(params)
 		var steph = (params.ptbrh - params.ptblh - (2 * edgeHGap)) / params.ledsbottom;
 		var stepv = (params.ptbrv - params.ptblv) / params.ledsbottom;
 		var maxGroup = 0;
-		
+
 		for (var i = params.ledsbottom - 1; i > -1; i--)
 		{
 			var hmin = ovl("-", params.ptblh + (steph * Number([i])) + edgeHGap);
 			var hmax = ovl("+", params.ptblh + (steph * Number([i + 1])) + edgeHGap);
 			var vmax = params.ptblv + (stepv * Number([i]));
 			var vmin = vmax - params.ledsHDepth;
-			
+
 			if (params.groupX > 0 && (params.groupX * 2 <= params.ledsbottom))
 			{
 				var group = Math.floor(((i * params.groupX) / params.ledsbottom))+1;
@@ -329,7 +329,7 @@ function createClassicLedLayout(params)
 			else
 				createLedArray(hmin, hmax, vmin, vmax, 0);
 		}
-		
+
 		return maxGroup + groupStart;
 	}
 
@@ -355,7 +355,7 @@ function createClassicLedLayout(params)
 			else
 				createLedArray(hmin, hmax, vmin, vmax, 0);
 		}
-		
+
 		return maxGroup + groupStart;
 	}
 
@@ -398,7 +398,7 @@ function createClassicLedLayout(params)
 }
 
 function createClassicLeds()
-{	
+{
 	//get values
 	let params = {
 		ledstop: parseInt($("#ip_cl_top").val()),
@@ -556,7 +556,7 @@ $(document).ready(function()
 		$('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l1') + '</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l2') + '</div>');
 	}
 
-	var slConfig = window.serverConfig.ledConfig;	
+	var slConfig = window.serverConfig.ledConfig;
 
 	//restore ledConfig - Classic
 	for (var key in slConfig.classic)
@@ -585,22 +585,22 @@ $(document).ready(function()
 		$("<option />", {value: "", text: $.i18n(targetDiscoveryFirstLabel)}).appendTo(receiver);
 
 		if (discoveryResult.info != null && discoveryResult.info.devices != null)
-		{					
+		{
 			(discoveryResult.info.devices).forEach(function (val) {
 				$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
 			});
 		}
-		
+
 		$("<option />", {value: -1, text: $.i18n(targetDiscoverySecondLabel)}).appendTo(receiver);
 
 		receiver.on('change', function ()
 		{
 			let selVal = $("#deviceListInstances").val();
-			if (selVal == -1)			
+			if (selVal == -1)
 				requestLedDeviceDiscovery(ledTypeTarget).then( (newResult) => deviceListRefresh(ledTypeTarget, newResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel));
 			else if (selVal != "")
 				conf_editor.getEditor(targetDiscoveryEditor).setValue(selVal);
-		});			
+		});
 	}
 
 	function saveValues()
@@ -642,7 +642,7 @@ $(document).ready(function()
 	{
 		$('#texfield_panel').toggle(false);
 	}
-	
+
 	// bind change event to all inputs
 	$('.ledCLconstr').bind("change", function()
 	{
@@ -699,7 +699,7 @@ $(document).ready(function()
 				},
 				"group": {
 					"type": "integer",
-					"minimum": 0					
+					"minimum": 0
 				},
 				"disabled": {
 					"type": "boolean",
@@ -772,9 +772,9 @@ $(document).ready(function()
 		if (ledType == "philipshueentertainment") ledType = "philipshue";
 
 		var specificOptions = window.serverSchema.properties.alldevices[ledType];
-		
+
 		$("#editor_container").empty();
-		
+
 		conf_editor = createJsonEditor('editor_container',
 		{
 			generalOptions: generalOptions,
@@ -822,17 +822,17 @@ $(document).ready(function()
 		// led controller sepecific wizards
 		$('#btn_wiz_holder').html("");
 		$('#btn_led_device_wiz').off();
-		
-		
+
+
 		var whiteChannelList = $("div[data-schemapath='root.specificOptions.white_channel_limit']");
 		if (whiteChannelList.length)
 		{
 			let infoRGBW = `<div class="ms-1 me-1 alert alert-yellow row" role="alert"><div class="col-12">${$.i18n('calibration_channel_info')}</div></div>`
 			var insertCalInfo = whiteChannelList.first();
-			
+
 			insertCalInfo.prepend(infoRGBW);
 		}
-		
+
 		if (ledType == "philipshue")
 		{
 			$("input[name='root[specificOptions][useEntertainmentAPI]'], input[name='root[specificOptions][useEntertainmentAPIV2]']").bind("change",function()
@@ -847,7 +847,7 @@ $(document).ready(function()
 				};
 				var hue_title = (useApiV1 || useApiV2) ? 'wiz_hue_e_title' : 'wiz_hue_title';
 				changeWizard(data, hue_title, startWizardPhilipsHue);
-								
+
 				createHintH('callout-warning', $.i18n('philips_option_changed_bri'), 'btn_wiz_holder');
 
 			});
@@ -879,9 +879,9 @@ $(document).ready(function()
 			};
 			var yeelight_title = 'wiz_yeelight_title';
 			changeWizard(data, yeelight_title, startWizardYeelight);
-		}		
+		}
 		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi", "wled", "adalight", "atmo", "dmx", "karate", "sedu", "tpm2"].includes(ledType))
-		{					
+		{
 			let selectorControl = $("<select id=\"deviceListInstances\" />");
 			let targetControl = 'output';
 
@@ -896,9 +896,9 @@ $(document).ready(function()
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output','edt_dev_spec_outputPath_title'));
 			else
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output', 'edt_dev_spec_spipath_title'));
-				
+
 			$(`input[name='root[specificOptions][${targetControl}]']`)[0].style.width = String(58) + "%";
-			$(`input[name='root[specificOptions][${targetControl}]']`)[0].parentElement.appendChild(selectorControl[0]);			
+			$(`input[name='root[specificOptions][${targetControl}]']`)[0].parentElement.appendChild(selectorControl[0]);
 		}
 
 		if (ledType == "ws2812spi" || ledType == "ws281x" || ledType == "sk6812spi") {
@@ -957,7 +957,7 @@ $(document).ready(function()
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
 	$("#leddevices").val(window.serverConfig.device.type);
-	
+
 
 	// validate textfield and update preview
 	$("#leds_custom_updsim").off().on("click", function()
@@ -1053,7 +1053,7 @@ $(document).ready(function()
 		{
 			$('#leds_custom_updsim').trigger('click');
 			ledsCustomCfgInitialized = true;
-			
+
 			if (typeof _resizeObserver === "object" && !(_resizeObserver === null))
 			{
 				_resizeObserver.unobserve(document.getElementById("leds_preview"));
@@ -1081,20 +1081,20 @@ $(document).ready(function()
 				delete resLed.backup_hmin;
 				delete resLed.backup_vmin;
 				delete resLed.backup_hmax;
-				delete resLed.backup_vmax;				
+				delete resLed.backup_vmax;
 			}
 		});
-		document.removeEventListener("keyup", cancelAllContext, false);	
+		document.removeEventListener("keyup", cancelAllContext, false);
 		document.getElementById("creator-context-menu").style.visibility = "hidden";
 		createLedPreview(finalLedArray, _lastOrigin);
-	}	
+	}
 
 	let ctrlKey = false;
 	$(document).on('keyup keydown', function(e){ctrlKey = e.ctrlKey} );
 
 	$('.st_helper').on('contextmenu', function(e) {
 		const meTop = (e.clientY + $(window).scrollTop()) + "px";
-		const meLeft = (e.clientX + $(window).scrollLeft()) + "px";		
+		const meLeft = (e.clientX + $(window).scrollLeft()) + "px";
 		let el = document.elementFromPoint(e.clientX, e.clientY);
 
 		if (ctrlKey === true && el != null && el.classList.contains("led"))
@@ -1139,7 +1139,7 @@ $(document).ready(function()
 		$('.st_helper').off("click");
 
 		document.getElementById("creator-context-menu").style.visibility = "hidden";
-		
+
 		if (idTxt.length == 2)
 		{
 			const parsedIndex = parseInt(idTxt[1]);
@@ -1245,7 +1245,7 @@ $(document).ready(function()
 					$('#ledPropertiesForm').modal('show');
 				}
 				else if (this.id == "CMD_MOVE")
-				{					
+				{
 					finalLedArray[parsedIndex].backup_hmin = finalLedArray[parsedIndex].hmin;
 					finalLedArray[parsedIndex].backup_vmin = finalLedArray[parsedIndex].vmin;
 					finalLedArray[parsedIndex].backup_hmax = finalLedArray[parsedIndex].hmax;
@@ -1291,7 +1291,7 @@ $(document).ready(function()
 						cancelAllContext();
 					});
 
-					document.addEventListener("keyup", cancelAllContext, false);		
+					document.addEventListener("keyup", cancelAllContext, false);
 				}
 			}
 		}
@@ -1320,9 +1320,9 @@ $(document).ready(function()
 		result.device.type = ledDevice;
 		requestWriteConfig(result)
 	});
-	
+
 	$(".stepper-down").off().on("click", function(event)
-	{	
+	{
 		var target=this.parentElement.parentElement.firstElementChild;
 		if (typeof target !== 'undefined' && target.type === "number")
 		{
@@ -1330,9 +1330,9 @@ $(document).ready(function()
 			$(target).trigger('change');
 		};
 	});
-	
+
 	$(".stepper-up").off().on("click", function(event)
-	{		
+	{
 		var target=this.parentElement.parentElement.firstElementChild;
 		if (typeof target !== 'undefined' && target.type === "number")
 		{
@@ -1340,10 +1340,10 @@ $(document).ready(function()
 			$(target).trigger('change');
 		};
 	});
-	
+
 	removeOverlay();
-	
-	
+
+
 	if (!isSmallScreen())
 	{
 		putInstanceName(document.getElementById('instTarget1'));
@@ -1352,9 +1352,9 @@ $(document).ready(function()
 	}
 	else
 		putInstanceName(document.getElementById('instTarget3'));
-	
+
 	putInstanceName(document.getElementById('instTarget2'));
 
 	$("#leddevices").trigger("change");
-	
+
 });

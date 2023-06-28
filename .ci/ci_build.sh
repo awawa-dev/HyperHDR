@@ -36,17 +36,17 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		# Init ccache
 		mkdir -p .ccache
 		cd .ccache
-		
+
 		if [[ "$RESET_CACHE" == '1' ]]; then
 			echo "Clearing ccache"
 			rm -rf ..?* .[!.]* *
 		fi
-		
+
 		CCACHE_PATH=$PWD
 		cd ..
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
 		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
-		echo "CCache parameters: ${cachecommand}"		
+		echo "CCache parameters: ${cachecommand}"
 		ls -a .ccache
 
 		mkdir build || exit 1
@@ -69,7 +69,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	fi
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	echo "Start: windows"
-	
+
 	echo "Number of Cores $NUMBER_OF_PROCESSORS"
 	mkdir build || exit 1
 	cd build
@@ -79,10 +79,10 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	exit 1 || { echo "---> Hyperhdr compilation failed! Abort"; exit 5; }
 elif [[ "$CI_NAME" == 'linux' ]]; then
 	echo "Compile Hyperhdr with DOCKER_IMAGE = ${DOCKER_IMAGE}, DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
-	
+
 	# set GitHub Container Registry url
 	REGISTRY_URL="ghcr.io/awawa-dev/${DOCKER_IMAGE}"
-	
+
 	# take ownership of deploy dir
 	mkdir -p ${CI_BUILD_DIR}/deploy
 
@@ -97,20 +97,20 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 
 	if [[ "$USE_CCACHE" == '1' ]]; then
 		echo "Using cache"
-		
+
 		mkdir -p .ccache
-		
+
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
-		
+
 		if [[ "$RESET_CACHE" == '1' ]]; then
 			echo "Clearing ccache"
 			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M && cd /.ccache && rm -rf ..?* .[!.]* *"
 		else
 			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M"
 		fi
-		
+
 		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"
-		
+
 		if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
 			sed -i "s/{CACHE}/${cachecommand}/" PKGBUILD
 			echo "Using makepkg"
@@ -139,7 +139,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		ls -a .ccache
 	else
 		echo "Not using cache"
-		
+
 		if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
 			sed -i "s/{CACHE}//" PKGBUILD
 			echo "Using makepkg"
@@ -162,7 +162,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	fi
-	
+
 	# overwrite file owner to current user
 	sudo chown -fR $(stat -c "%U:%G" ${CI_BUILD_DIR}/deploy) ${CI_BUILD_DIR}/deploy
 fi

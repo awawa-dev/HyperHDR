@@ -909,7 +909,7 @@ QJsonObject Grabber::getJsonInfo()
 		uint32_t checkSum = 0;
 		for (int i = 0; i < 256; i += 2)
 			for (int j = 32; j <= 160; j+= 64)
-			{			
+			{
 				checkSum ^= *(reinterpret_cast<uint32_t*>(&(_lutBuffer[LUT_INDEX(j, i, (255 - i))])));
 			}
 		grabbers["lutFastCRC"] = "0x" + QString("%1").arg(checkSum, 4, 16).toUpper();

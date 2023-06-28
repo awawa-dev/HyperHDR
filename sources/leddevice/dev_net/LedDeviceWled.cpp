@@ -50,7 +50,7 @@ LedDevice* LedDeviceWled::construct(const QJsonObject& deviceConfig)
 }
 
 bool LedDeviceWled::init(const QJsonObject& deviceConfig)
-{	
+{
 	bool isInitOK = false;
 
 	Debug(_log, "Initializing WLED");
@@ -67,7 +67,7 @@ bool LedDeviceWled::init(const QJsonObject& deviceConfig)
 
 		_overrideBrightness = deviceConfig["brightnessMax"].toBool(true);
 		Debug(_log, "Override brightness : %s", (_overrideBrightness) ? "true" : "false");
-		
+
 		_brightnessLevel = deviceConfig["brightnessMaxLevel"].toInt(255);
 		Debug(_log, "Set brightness level: %i", _brightnessLevel);
 
@@ -175,9 +175,9 @@ bool LedDeviceWled::powerOn()
 
 		if (response.error())
 		{
-			this->setInError(response.getErrorReason());			
+			this->setInError(response.getErrorReason());
 
-			// power on simultaneously with Rpi causes timeout			
+			// power on simultaneously with Rpi causes timeout
 			if (_maxRetry > 0 && response.error())
 			{
 				if (_currentRetry <= 0)
@@ -233,7 +233,7 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-	
+
 #ifdef ENABLE_BONJOUR
 	auto bonInstance = BonjourBrowserWrapper::getInstance();
 	if (bonInstance != nullptr)
@@ -255,7 +255,7 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	}
 #else
 	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintenair was compiling this version of HyperHDR");
-#endif	
+#endif
 
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());

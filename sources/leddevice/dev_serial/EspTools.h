@@ -57,12 +57,12 @@ class EspTools
 		{
 			Warning(_log, "Detected ESP32-S2 lolin mini type board. HyperHDR skips the reset. State: %i, %i",
 				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
-			
+
 			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
 
 			_rs232Port.setDataTerminalReady(true);
 			_rs232Port.setRequestToSend(true);
-			_rs232Port.setRequestToSend(false);			
+			_rs232Port.setRequestToSend(false);
 		}
 		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
 		{
@@ -117,7 +117,7 @@ class EspTools
 				}
 				else
 					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result));
-			}			
+			}
 		}
 
 		if (start != 0)

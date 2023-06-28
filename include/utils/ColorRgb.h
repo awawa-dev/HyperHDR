@@ -41,7 +41,7 @@ struct ColorRgb
 		blue(_blue)
 	{
 
-	}	
+	}
 
 	ColorRgb operator-(const ColorRgb& b) const
 	{

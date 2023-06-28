@@ -14,10 +14,10 @@
 			"type" : "string",
 			"required" : true,
 			"enum" : ["ping", "black", "white", "red", "green", "blue", "stop"]
-		},		
+		},
 		"status": {
 			"type" : "integer",
-			"required" : false	
+			"required" : false
 		}
 	},
 

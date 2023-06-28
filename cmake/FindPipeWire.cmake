@@ -11,7 +11,7 @@ if(PKG_CONFIG_FOUND)
 	if (NOT PCM_SPA_INCLUDEDIR)
 		pkg_check_modules(PCM_SPA libspa-0.1)
 	endif()
-	
+
 	find_path(PIPEWIRE_INCLUDE_DIR NAMES pipewire/pipewire.h PATHS ${PCM_PIPEWIRE_INCLUDEDIR} PATH_SUFFIXES pipewire)
 
 	find_path(SPA_INCLUDE_DIR NAMES spa/support/plugin.h PATHS ${PCM_SPA_INCLUDEDIR} PATH_SUFFIXES spa)
@@ -28,7 +28,7 @@ else()
 	find_library(PIPEWIRE_LIBRARY pipewire-0.3)
 	if (NOT PIPEWIRE_LIBRARY)
 		find_library(PIPEWIRE_LIBRARY NAMES pipewire-0.2 PATHS ${PCM_PIPEWIRE_LIBDIR})
-	endif()	
+	endif()
 endif()
 
 

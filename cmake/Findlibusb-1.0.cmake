@@ -1,4 +1,4 @@
-if (NOT WIN32)	
+if (NOT WIN32)
 	if (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
 		# in cache already
 		set(LIBUSB_FOUND TRUE)
@@ -49,7 +49,7 @@ if (NOT WIN32)
 		mark_as_advanced(LIBUSB_1_INCLUDE_DIRS LIBUSB_1_LIBRARIES)
 
 	endif (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
-	
+
 elseif(ENABLE_USB_HID)
 
 	message(STATUS "Searching  libusb-1.0:...................................")
@@ -64,7 +64,7 @@ elseif(ENABLE_USB_HID)
 		find_path(LIBUSB_1_INCLUDE_DIR
 			NAMES
 				libusb.h
-			PATHS				
+			PATHS
 				"${CMAKE_SOURCE_DIR}/resources/include/libusb"
 			REQUIRED
 		)
@@ -76,7 +76,7 @@ elseif(ENABLE_USB_HID)
 				"${CMAKE_SOURCE_DIR}/resources/dll/libusb"
 			REQUIRED
 		)
-		
+
 		find_library(LIBUSB_2_LIBRARY
 			NAMES
 				hidapi
@@ -87,10 +87,10 @@ elseif(ENABLE_USB_HID)
 
 		set(LIBUSB_1_INCLUDE_DIRS ${LIBUSB_1_INCLUDE_DIR}  )
 		set(LIBUSB_1_LIBRARIES "${LIBUSB_1_LIBRARY}" )
-		
+
 		message(STATUS "Searching  libusb-1.0: include => ${LIBUSB_1_INCLUDE_DIR}")
-		message(STATUS "Searching  libusb-1.0: lib => ${LIBUSB_1_LIBRARY}")		
-		message(STATUS "Searching  libusb-hidapi: lib => ${LIBUSB_2_LIBRARY}")		
+		message(STATUS "Searching  libusb-1.0: lib => ${LIBUSB_1_LIBRARY}")
+		message(STATUS "Searching  libusb-hidapi: lib => ${LIBUSB_2_LIBRARY}")
 
 		if (LIBUSB_1_INCLUDE_DIRS AND LIBUSB_1_LIBRARIES)
 			set(LIBUSB_1_FOUND TRUE)

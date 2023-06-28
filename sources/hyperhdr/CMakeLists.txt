@@ -75,7 +75,7 @@ endif ()
 if (ENABLE_CEC)
 	target_link_libraries(hyperhdr cechandler)
 endif ()
-		
+
 if (ENABLE_V4L2)
 	target_link_libraries(hyperhdr v4l2-grabber)
 	target_link_libraries(hyperhdr ${TURBOJPEG_LINK_LIBRARIES})
@@ -135,7 +135,7 @@ endif ()
 
 
 if(APPLE)
-	install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )	
+	install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )
 elseif(NOT WIN32)
 	install ( TARGETS hyperhdr DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR" )
 	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/debian/service DESTINATION "share/hyperhdr/" COMPONENT "HyperHDR" )
@@ -173,13 +173,13 @@ if(WIN32)
 				find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
 			endif()
 		endif()
-		
+
 		if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
 			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
 			message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")
-			add_custom_command(TARGET hyperhdr POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:hyperhdr>")			
+			add_custom_command(TARGET hyperhdr POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:hyperhdr>")
 		endif()
-endif()		
+endif()
 
 if (APPLE)
 	DeployApple("hyperhdr")

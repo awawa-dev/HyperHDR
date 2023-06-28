@@ -398,7 +398,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 
 			Info(_log, "Found capture device: %s", QSTRING_CSTR(devName));
 
-			// get device capabilities			
+			// get device capabilities
 			if (getControl(fd, V4L2_CID_BRIGHTNESS, properties.brightness.minVal, properties.brightness.maxVal, properties.brightness.defVal))
 			{
 				properties.brightness.enabled = true;
@@ -860,7 +860,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
 
-	// set custom resolution for width and height	
+	// set custom resolution for width and height
 	fmt.fmt.pix.width = props.x;
 	fmt.fmt.pix.height = props.y;
 
@@ -1215,7 +1215,7 @@ void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, q
 	{
 		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: %s)", QSTRING_CSTR(error));
 	}
-	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));
 
 	// get next frame
 	if (workerIndex > _V4L2WorkerManager.workersCount)

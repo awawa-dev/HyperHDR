@@ -1,5 +1,5 @@
 if ( ENABLE_CEC )
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/libcec)	
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/libcec)
 ENDIF()
 
 if(ENABLE_WS281XPWM)
@@ -21,8 +21,8 @@ if (USE_SYSTEM_FLATBUFFERS_LIBS)
 	find_package(Flatbuffers REQUIRED)
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared flatbuffers library")
-	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")	
-	
+	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")
+
 	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
 
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
@@ -58,7 +58,7 @@ set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
 set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIRS} PARENT_SCOPE)
 include_directories(${FLATBUFFERS_INCLUDE_DIRS})
 
-if (FLATBUFFERS_INCLUDE_DIRS AND EXISTS "${FLATBUFFERS_INCLUDE_DIRS}/../package.json")		
+if (FLATBUFFERS_INCLUDE_DIRS AND EXISTS "${FLATBUFFERS_INCLUDE_DIRS}/../package.json")
 		file(STRINGS "${FLATBUFFERS_INCLUDE_DIRS}/../package.json" _FLATBUFFERS_VERSION_STRING REGEX "^[ \t\r\n]+\"version\":[ \t\r\n]+\"[0-9]+.[0-9]+.[0-9]+\",")
 		string(REGEX REPLACE "^[ \t\r\n]+\"version\":[ \t\r\n]+\"([0-9]+.[0-9]+.[0-9]+)\"," "\\1" FLATBUFFERS_PARSE_VERSION "${_FLATBUFFERS_VERSION_STRING}")
 		message(STATUS "Using flatbuffers libraries version: \"${FLATBUFFERS_PARSE_VERSION}\"")
@@ -110,7 +110,7 @@ else()
 	else ()
 		set(MBEDTLS_LOGGING 0)
 	endif ()
-	
+
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/mbedtls)
 
 	set (MBEDTLS_INCLUDE_DIR "${MBEDTLS_SOURCE_DIR}/include")
@@ -153,12 +153,12 @@ if ( ENABLE_MQTT )
 	string(REPLACE "Qt5" "Qt${Qt_VERSION}" FILE_CONTENTS "${FILE_CONTENTS}")
 	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
 
-	if (NOT WIN32)	
+	if (NOT WIN32)
 		set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 		set(qmqtt_SHARED OFF)
 	endif()
 
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt)	
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/qmqtt)
 ENDIF()
 
 if ( ENABLE_XZ )

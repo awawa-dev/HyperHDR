@@ -67,7 +67,7 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 }
 
 ProviderRs232::~ProviderRs232()
-{	
+{
 }
 
 int ProviderRs232::open()
@@ -111,7 +111,7 @@ int ProviderRs232::open()
 }
 
 void ProviderRs232::waitForExitStats(bool force)
-{	
+{
 	if (_rs232Port.isOpen())
 	{
 		if (!force && _rs232Port.bytesAvailable() > 32)
@@ -121,7 +121,7 @@ void ProviderRs232::waitForExitStats(bool force)
 			{
 				auto incoming = QString(_rs232Port.readAll());
 				force = true;
-			
+
 				Info(_log, "Received: '%s' (%i)", QSTRING_CSTR(incoming), incoming.length());
 			}
 		}
@@ -148,14 +148,14 @@ int ProviderRs232::close()
 		{
 			Debug(_log, "Flush was successful");
 		}
-		
+
 
 		if (_espHandshake)
 		{
 			QTimer::singleShot(600, this, [this](){ waitForExitStats(true); });
 			connect(&_rs232Port, &QSerialPort::readyRead, this, [this]() { waitForExitStats(false); });
 
-			
+
 			QTimer::singleShot(200, this, [this]() { if (_rs232Port.isOpen()) EspTools::goingSleep(_rs232Port); });
 			EspTools::goingSleep(_rs232Port);
 
@@ -169,7 +169,7 @@ int ProviderRs232::close()
 			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
 			_rs232Port.close();
 		}
-		
+
 	}
 	return retval;
 }

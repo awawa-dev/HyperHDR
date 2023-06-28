@@ -229,9 +229,9 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
-	QStringList files;	
+	QStringList files;
 	QDirIterator it("/dev", QStringList() << "spidev*", QDir::System);
-	
+
 	while (it.hasNext())
 		files << it.next();
 	files.sort();

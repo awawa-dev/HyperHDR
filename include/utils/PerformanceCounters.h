@@ -12,7 +12,7 @@ class Logger;
 enum class PerformanceReportType {VIDEO_GRABBER = 1, INSTANCE = 2, LED = 3, CPU_USAGE = 4, RAM_USAGE = 5, CPU_TEMPERATURE = 6, SYSTEM_UNDERVOLTAGE = 7, UNKNOWN = 8};
 
 struct PerformanceReport
-{	
+{
 	int		type = (int)PerformanceReportType::UNKNOWN;
 	int		id = -1;
 	QString name;

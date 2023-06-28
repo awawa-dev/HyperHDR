@@ -64,7 +64,7 @@ public:
 
 	int getImageHeight();
 
-	void setEnabled(bool enable);	
+	void setEnabled(bool enable);
 
 	QString getVideoDeviceName(const QString& devicePath) const;
 

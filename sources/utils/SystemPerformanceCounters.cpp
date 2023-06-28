@@ -94,7 +94,7 @@ void SystemPerformanceCounters::readVoltage()
 
 			len = klogctl(3, &buf[0], len);
 			if (len > 0)
-			{				
+			{
 				buf.resize(len);
 				buf[len - 1] = 0;
 
@@ -102,7 +102,7 @@ void SystemPerformanceCounters::readVoltage()
 					underVoltage = 1;
 				else
 					underVoltage = 0;
-				
+
 				voltageTimeStamp = InternalClock::now() / 1000;
 			}
 		}
@@ -121,15 +121,15 @@ void SystemPerformanceCounters::init()
 #ifdef _WIN32
 
 		if (PdhOpenQuery(NULL, NULL, &cpuPerfQuery) == ERROR_SUCCESS)
-		{			
+		{
 			PdhAddEnglishCounter(cpuPerfQuery, L"\\Processor(*)\\% Processor Time", NULL, &cpuPerfTotal);
-			PdhCollectQueryData(cpuPerfQuery);			
+			PdhCollectQueryData(cpuPerfQuery);
 		}
 
 #else
 
 		totalPerfCPU = readCpuLines();
-		
+
 		underVoltage = -1;
 		voltageTimeStamp = -1;
 
@@ -146,7 +146,7 @@ void SystemPerformanceCounters::init()
 		}
 
 
-#endif		
+#endif
 	}
 	catch (...)
 	{
@@ -363,7 +363,7 @@ QString SystemPerformanceCounters::getTEMP()
 				QString color = (tempVal <= 65) ? "ForestGreen" : ((tempVal <= 75) ? "orange" : "red");
 				result = QString("<font color='%1'><b>%2</b></font>").arg(color).arg(QString::number(tempVal, 'f', 2));
 			}
-			
+
 			fclose(fp);
 		}
 #endif
@@ -372,7 +372,7 @@ QString SystemPerformanceCounters::getTEMP()
 	{
 
 	}
-	
+
 	return result;
 }
 

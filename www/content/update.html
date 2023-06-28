@@ -7,7 +7,7 @@
 			</div>
 			<br />
 			<h4 id="update_currver"></h4>
-			<hr />			
+			<hr />
 		</div>
 		<div class="col-lg-12">
 			<div class="container-fluid">
@@ -24,10 +24,10 @@
 			if (callback) {
 				var matches = 0;
 				for (var key in window.gitHubVersionList) {
-				
+
 					if (window.gitHubVersionList[key].name == null)
 						continue;
-						
+
 					if (window.gitHubVersionList[key].tag_name.includes("beta") ||
 						window.gitHubVersionList[key].tag_name.includes("alpha"))
 					{
@@ -38,7 +38,7 @@
 					var danger;
 					var type;
 					var description = DOMPurify.sanitize(marked(window.gitHubVersionList[key].body));
-					
+
 					if (description.length < 80)
 						continue;
 

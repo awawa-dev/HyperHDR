@@ -84,7 +84,7 @@ PipewireHandler::PipewireHandler() :	_sessionHandle(""), _restorationToken(""), 
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_backupFrame(nullptr), _workingFrame(nullptr),
 									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false)
-{	
+{
 	_pwStreamListener = {};
 	_pwCoreListener = {};
 
@@ -95,7 +95,7 @@ PipewireHandler::PipewireHandler() :	_sessionHandle(""), _restorationToken(""), 
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
-	
+
 }
 
 QString PipewireHandler::getToken()
@@ -123,7 +123,7 @@ void PipewireHandler::closeSession()
 	if (_pwMainThreadLoop != nullptr)
 	{
 		pw_thread_loop_wait(_pwMainThreadLoop);
-		pw_thread_loop_stop(_pwMainThreadLoop);		
+		pw_thread_loop_stop(_pwMainThreadLoop);
 	}
 
 	if (_pwStream != nullptr)
@@ -199,7 +199,7 @@ void PipewireHandler::closeSession()
 	}
 
 	_pwStreamListener = {};
-	_pwCoreListener = {};	
+	_pwCoreListener = {};
 	_portalStatus = false;
 	_isError = false;
 	_errorMessage = "";
@@ -302,7 +302,7 @@ void PipewireHandler::startSession(QString restorationToken)
 	if (replySession.isError())
 	{
 		reportError(QString("Pipewire: Couldn't get reply for session create. Error: %1").arg(replySession.error().message()));
-	}	
+	}
 
 	std::cout << "Pipewire: CreateSession finished" << std::endl;
 }
@@ -388,7 +388,7 @@ void PipewireHandler::selectSourcesResponse(uint response, const QVariantMap& re
 
 	if (startReply.isError())
 		reportError(QString("Pipewire: Couldn't get reply for start request. Error: %1").arg(startReply.error().message()));
-	
+
 	std::cout << "Pipewire: Start finished" << std::endl;
 }
 
@@ -421,7 +421,7 @@ const QDBusArgument &operator >> (const QDBusArgument &arg, PipewireHandler::Pip
 			if (input.key != "position")
 				std::cout << "Pipewire: format property " << qPrintable(input.key) << " = " << qPrintable(input.item.toString()) << std::endl;
 		}
-			
+
 		arg.endMapEntry();
 	}
 	arg.endMap();
@@ -437,7 +437,7 @@ void PipewireHandler::startResponse(uint response, const QVariantMap& results)
 	std::cout << "Pipewire: Got response from portal Start" << std::endl;
 
 	if (response != 0)
-	{		
+	{
 		reportError(QString("Pipewire: Failed to start or cancel dialog: %1").arg(response));
 		_sessionHandle = "";
 		return;
@@ -464,7 +464,7 @@ void PipewireHandler::startResponse(uint response, const QVariantMap& results)
 		reportError(QStringLiteral("Pipewire: invalid streams response"));
 		return;
 	}
-	
+
 	if (streamsData.value<QDBusArgument>().currentType() != QDBusArgument::ArrayType)
 	{
 		reportError(QStringLiteral("Pipewire: streams is not an array"));
@@ -473,17 +473,17 @@ void PipewireHandler::startResponse(uint response, const QVariantMap& results)
 
 	QList<PipewireStructure> streamHandle;
 
-	streamHandle = qdbus_cast<QList<PipewireStructure>>(streamsData);	
+	streamHandle = qdbus_cast<QList<PipewireStructure>>(streamsData);
 	_streamNodeId = streamHandle.first().objectId;
 	_frameWidth = streamHandle.first().width;
 	_frameHeight = streamHandle.first().height;
 	_portalStatus = true;
-	
+
 	//------------------------------------------------------------------------------------
 	std::cout << "Connecting to Pipewire interface for stream: " << _frameWidth << " x " << _frameHeight << std::endl;
 
 	pw_init(nullptr, nullptr);
-	
+
 	if ( nullptr == (_pwMainThreadLoop = pw_thread_loop_new("pipewire-hyperhdr-loop", nullptr)))
 	{
 		reportError("Pipewire: failed to create new Pipewire thread loop");
@@ -497,7 +497,7 @@ void PipewireHandler::startResponse(uint response, const QVariantMap& results)
 		reportError("Pipewire: failed to create new Pipewire context");
 		return;
 	}
-	
+
 	if ( nullptr == (_pwContextConnection = pw_context_connect(_pwNewContext, nullptr, 0)))
 	{
 		reportError("Pipewire: could not connect to the Pipewire context");
@@ -580,7 +580,7 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 
 	printf("Pipewire: video format = %d (%s)\n", format.info.raw.format, spa_debug_type_find_name(spa_type_video_format, format.info.raw.format));
 	printf("Pipewire: video size = %dx%d (RGB order = %s)\n", _frameWidth, _frameHeight, (_frameOrderRgb) ? "true" : "false");
-	printf("Pipewire: framerate = %d/%d\n", format.info.raw.framerate.num, format.info.raw.framerate.denom);	
+	printf("Pipewire: framerate = %d/%d\n", format.info.raw.framerate.num, format.info.raw.framerate.denom);
 };
 
 void PipewireHandler::onProcessFrame()
@@ -602,7 +602,7 @@ void PipewireHandler::onProcessFrame()
 	if (_backupFrame != nullptr)
 		pw_stream_queue_buffer(_pwStream, _backupFrame);
 
-	_backupFrame = newFrame;	
+	_backupFrame = newFrame;
 };
 
 void PipewireHandler::onCoreError(uint32_t id, int seq, int res, const char *message)
@@ -616,7 +616,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 		.version = PW_VERSION_STREAM_EVENTS,
 		.state_changed = [](void* handler, enum pw_stream_state old, enum pw_stream_state state, const char* error) {
 			emit reinterpret_cast<PipewireHandler*>(handler)->onStateChangedSignal(old, state, error);
-		},		
+		},
 		.param_changed = [](void* handler, uint32_t id, const struct spa_pod* param) {
 			emit reinterpret_cast<PipewireHandler*>(handler)->onParamsChangedSignal(id, param);
 		},
@@ -629,7 +629,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 		.version = PW_VERSION_CORE_EVENTS,
 		.info = [](void *user_data, const struct pw_core_info *info) {
 			std::cout << "Pipewire: core info reported. Version = " << info->version << std::endl;
-		},		
+		},
 		.error = [](void *handler, uint32_t id, int seq, int res, const char *message) {
 			std::cout << "Pipewire: core error reported" << std::endl;
 			emit reinterpret_cast<PipewireHandler*>(handler)->onCoreErrorSignal(id, seq, res, message);
@@ -645,7 +645,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 	spa_fraction pwFramerateMax = SPA_FRACTION(60, 1);
 
 	pw_properties* reuseProps = pw_properties_new_string("pipewire.client.reuse=1");
-	
+
 	pw_core_add_listener(_pwContextConnection, &_pwCoreListener, &pwCoreEvents, this);
 
 	pw_stream* stream = pw_stream_new(_pwContextConnection, "hyperhdr-stream-receiver", reuseProps);
@@ -667,7 +667,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 													  SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRA,
 													  SPA_VIDEO_FORMAT_RGBx, SPA_VIDEO_FORMAT_RGBA),
 											   SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle( &pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax),
-											   SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction( &pwFramerateDefault, &pwFramerateMin, &pwFramerateMax)));		
+											   SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction( &pwFramerateDefault, &pwFramerateMin, &pwFramerateMax)));
 
 		pw_stream_add_listener(stream, &_pwStreamListener, &pwStreamEvents, this);
 
@@ -718,9 +718,9 @@ void PipewireHandler::releaseWorkingFrame()
 	{
 		_backupFrame = _workingFrame;
 	}
-	else	
+	else
 	{
-		pw_stream_queue_buffer(_pwStream, _workingFrame);		
+		pw_stream_queue_buffer(_pwStream, _workingFrame);
 	}
 
 	_workingFrame = nullptr;

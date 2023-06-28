@@ -86,7 +86,7 @@ body {
 
 /* drag and resizable modal http://gijgo.com/ */
 body:not(.dark-mode) .modal-header.gj-draggable{
-	background-color:#1d9ef0 !important;	
+	background-color:#1d9ef0 !important;
 }
 
 .dark-mode .modal-header.gj-draggable{
@@ -117,7 +117,7 @@ body:not(.dark-mode) #ledsim_dialog{
 }
 
 .dark-mode #ledsim_dialog{
-	border-color: #3e454d !important;	
+	border-color: #3e454d !important;
 	border-width: 1px !important;
 	border-style: solid !important;
 	border-top-left-radius: 6px !important;
@@ -206,7 +206,7 @@ body:not(.dark-mode) .card-default>.card-header{
     padding-bottom: 9px;
     margin: 40px 0 20px;
     margin-top: 15px;
-    border-bottom: 1px solid #eee;	
+    border-bottom: 1px solid #eee;
 }
 
 .page-header > span {
@@ -218,18 +218,18 @@ div.card-body{
 }
 
 .card-body td{
-	padding: 0.5rem;	
+	padding: 0.5rem;
 }
 
 .col-form-label>label{
 	padding-left:0px !important;
 	padding-right:0px !important;
 	font-weight: bold;
-	
+
 }
 
 .dark-mode div.col-form-label>label{
-	font-weight: 300 !important;	
+	font-weight: 300 !important;
 }
 
 
@@ -240,21 +240,21 @@ div.card-body{
 /* toggle component in the remote */
 .toggle-group > .toggle-off
 {
-	padding-left: 20px;	
+	padding-left: 20px;
 	background-color: red;
     border-color: purple;
 }
 
 body:not(.dark-mode) .toggle-group > .toggle-handle
-{	
+{
 	background-color: #EEE;
-	border-color: #CCC;	
+	border-color: #CCC;
 }
 
 .dark-mode .toggle-group > .toggle-handle
-{	
+{
 	background-color: #888;
-	border-color: #999;	
+	border-color: #999;
 }
 
 /* log messages */
@@ -262,8 +262,8 @@ body:not(.dark-mode) pre > #logmessages
 {
 	display: block;
 	padding: 9.5px;
-	margin: 0 0 10px;	
-	word-break: normal;	
+	margin: 0 0 10px;
+	word-break: normal;
 	color: #333;
 	background-color: #f5f5f5;
 	border: 1px solid #ccc;
@@ -274,8 +274,8 @@ body:not(.dark-mode) pre > #logmessages
 {
 	display: block;
 	padding: 9.5px;
-	margin: 0 0 10px;	
-	word-break: normal;	
+	margin: 0 0 10px;
+	word-break: normal;
 	color: #BBB;
 	background-color: #212529;
 	border: 1px solid #333;
@@ -343,7 +343,7 @@ body:not(.dark-mode) pre > #logmessages
 {
 	border-radius: .25em;
     height: 1.5rem;
-    width: 1.5rem;	
+    width: 1.5rem;
 }
 
 .card .fa, .page-header>.fa
@@ -370,11 +370,11 @@ body:not(.dark-mode) .my-text-success {
 }
 
 .nav-pills li:not(.menu-is-opening) > .nav-link:hover {
-	cursor: pointer;	
+	cursor: pointer;
 }
 
 .nav-pills li.menu-is-opening > .nav-link:hover {
-	cursor: default;		
+	cursor: default;
 }
 
 .sidebar-light:not(.dark-mode) .menu-is-opening > .nav-link {
@@ -386,7 +386,7 @@ body:not(.dark-mode) .my-text-success {
 }
 
 .dark-mode .menu-is-opening > .nav-link {
-	background: rgb(55, 61, 68);	
+	background: rgb(55, 61, 68);
 }
 
 .dark-mode .nav-pills .nav-item > .nav-link:hover {
@@ -427,7 +427,7 @@ body:not(.dark-mode) #btn_hypinstanceswitch.disabled {
 
 #hyp_inst_listing.show
 {
-	margin-left: -1rem !important;	
+	margin-left: -1rem !important;
 }
 
 body:not(.dark-mode) .btn-warning-noset

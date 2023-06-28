@@ -22,15 +22,15 @@ BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 	qRegisterMetaType<QMap<QString,BonjourRecord>>("QMap<QString,BonjourRecord>");
 
 	BonjourBrowserWrapper::instance = this;
-		
+
 	BonjourServiceBrowser* hue = new BonjourServiceBrowser(this, QLatin1String("_hue._tcp"));
-	connect(hue, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundPhilipsHUE);	
+	connect(hue, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundPhilipsHUE);
 
 	BonjourServiceBrowser* wled = new BonjourServiceBrowser(this, QLatin1String("_wled._tcp"));
-	connect(wled, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundWLED);	
+	connect(wled, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundWLED);
 
 	BonjourServiceBrowser* hyperhdr = new BonjourServiceBrowser(this, QLatin1String("_hyperhdr-http._tcp"));
-	connect(hyperhdr, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundHyperHDR);	
+	connect(hyperhdr, &BonjourServiceBrowser::currentBonjourRecordsChanged, this, &BonjourBrowserWrapper::foundHyperHDR);
 
 	_hueService = hue;
 	_wledService = wled;
@@ -85,7 +85,7 @@ void BonjourBrowserWrapper::foundHyperHDR(const QList<BonjourRecord> &list)
 	{
 		_hyperhdrSessions.insert(rec.serviceName, rec);
 		printf("Found HyperHDR: (%s) (%s) (%s) (%s) (%i)\n", QSTRING_CSTR(rec.address), QSTRING_CSTR(rec.serviceName), QSTRING_CSTR(rec.registeredType), QSTRING_CSTR(rec.hostName), (rec.port));
-	}	
+	}
 }
 
 void BonjourBrowserWrapper::foundWLED(const QList<BonjourRecord>& list)

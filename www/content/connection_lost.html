@@ -40,7 +40,7 @@
 
 		if (animation < 0)
 		{
-			animation = 0;		
+			animation = 0;
 			animation_target = Math.round(10+(Math.random()* 80));
 			animation_value = 0;
 		}
@@ -58,7 +58,7 @@
 				if (animation_value < 0)
 					animation_value = 0;
 				if (animation_value > 100)
-					animation_value = 100;				
+					animation_value = 100;
 			}
 			animation++;
 		}
@@ -71,7 +71,7 @@
 			window.clearInterval(animationTimer);
 		}
 		else if (count > 100)
-		{			
+		{
 			animation_value = 100;
 			$('#no_connection_img').css('filter', 'grayscale('+animation_value+'%) contrast('+(100-(animation_value*3/4))+'%) opacity('+(100-(animation_value)/5)+'%)');
 			window.clearInterval(animationTimer);

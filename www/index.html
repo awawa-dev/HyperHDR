@@ -20,7 +20,7 @@
 
         <!-- jQuery -->
         <script src="js/lib/jquery.min.js"></script>
-		
+
         <!--Language Support -->
         <script src="js/lib/jquery.i18n.js"></script>
         <script src="js/lib/jquery.i18n.messagestore.js"></script>
@@ -28,7 +28,7 @@
         <script src="js/lib/jquery.i18n.parser.js"></script>
         <script src="js/lib/jquery.i18n.emitter.js"></script>
         <script src="js/lib/jquery.i18n.language.js"></script>
-		
+
         <!-- md Stuff -->
         <script src="js/lib/marked.min.js"></script>
         <script type="text/javascript" src="js/lib/purify.min.js"></script>
@@ -41,7 +41,7 @@
         <script src="js/lib/bootstrap-notify.min.js"></script>
 
         <script src="js/lib/vanilla-picker.min.js"></script>
-		
+
         <script src="js/lib/jsoneditor.min.js"></script>
 
         <!-- Bootstrap Core CSS -->
@@ -76,22 +76,22 @@
 					}
 				</style>
 			</noscript>
-			
-			
-			<a href="#" data-widget="control-sidebar"><a id="main-window-button-menu" class="nav-link" data-widget="pushmenu" href="#" role="button" style = "position: fixed; top: 0; right: 0px; z-index: 200">			
+
+
+			<a href="#" data-widget="control-sidebar"><a id="main-window-button-menu" class="nav-link" data-widget="pushmenu" href="#" role="button" style = "position: fixed; top: 0; right: 0px; z-index: 200">
 				<span class="fa-stack fa-2x icon-menu-control">
 					<i class="fa fa-circle fa-stack-2x"></i>
 					<i id="showMenuIcon" class="fa fa-close fa-stack-1x fa-inverse" style="opacity: 1; transition: opacity 0.5s;"></i>
 					<i id="hideMenuIcon" class="fa fa-bars fa-stack-1x fa-inverse" style="opacity: 0; transition: opacity 0.5s;"></i>
-				</span>			
+				</span>
 			</a></a>
 
 			<div id="loading_overlay" class="overlay"></div>
-			
+
 			<!-- Main Sidebar Container -->
-			<aside id="main-window-aside" class="main-sidebar sidebar-light elevation-4">			
+			<aside id="main-window-aside" class="main-sidebar sidebar-light elevation-4">
 			  <!-- Sidebar -->
-			  <div class="sidebar">					
+			  <div class="sidebar">
 				<!-- Sidebar Menu -->
 				<nav class="mt-2">
 				  <ul class="nav nav-pills nav-sidebar nav-child-indent flex-column" data-widget="treeview" role="menu">
@@ -109,8 +109,8 @@
 										<i id="btn_darkmode_icon" class="fa fa-moon-o" aria-hidden="true"></i>
 									</a>
 								</div>
-								<div class="col bottom-menu">							
-									<div class="btn-group dropdown">								
+								<div class="col bottom-menu">
+									<div class="btn-group dropdown">
 										<i id="btn_hypinstanceswitch" class="fa fa-exchange fa-fw" data-bs-toggle="dropdown" aria-expanded="false"></i>
 										<ul id="hyp_inst_listing" class="dropdown-menu me-2">
 											<li></li>
@@ -137,38 +137,38 @@
 					<li class="nav-item">
 						<a href="#general" class="nav-link system-link"><i class="nav-icon fa fa-wrench fa-fw"></i><p data-i18n="main_menu_general_conf_token">General</p></a>
 					</li>
-					<li class="nav-item">					
+					<li class="nav-item">
 						<a href="#light_source" class="nav-link system-link"><i class="nav-icon fa fa-lightbulb-o fa-fw"></i><p data-i18n="main_menu_leds_conf_token">LED Hardware</p></a>
 					</li>
-					<li class="nav-item">											
+					<li class="nav-item">
 						<a href="#grabber" class="nav-link system-link"><i class="nav-icon fa fa-camera fa-fw"></i><p data-i18n="main_menu_grabber_conf_token">Capturing Hardware</p></a>
 					</li>
-					<li class="nav-item">											
+					<li class="nav-item">
 						<a href="#effects" class="nav-link system-link"><i class="nav-icon fa fa-magic fa-fw"></i><p data-i18n="main_menu_effect_conf_token">Effects</p></a>
 					</li>
-					<li class="nav-item">																	
+					<li class="nav-item">
 						<a href="#processing" class="nav-link system-link"><i class="nav-icon fa fa-photo fa-fw"></i><p data-i18n="main_menu_colors_conf_token">Image Processing</p></a>
-					</li>					
-					<li class="nav-item">																	
+					</li>
+					<li class="nav-item">
 						<a href="#remote" class="nav-link system-link"><i class="nav-icon fa fa-wifi fa-fw"></i><p data-i18n="main_menu_remotecontrol_token">Remote Control</p></a>
 					</li>
-					<li class="nav-item">																	
+					<li class="nav-item">
 						<a href="#logs" class="nav-link system-link"><i class="nav-icon fa fa-commenting-o fa-fw"></i><p data-i18n="main_menu_logging_token">Log</p></a>
-					</li>					
-					
+					</li>
+
 					<li class="nav-item">
 						<a href="#" class="nav-link">
 							<i class="nav-icon fa fa-graduation-cap fa-fw"></i><p data-i18n="main_menu_advanced_token">Advanced</p><i class="right fa fa-chevron-left"></i>
 						</a>
 						<ul class="nav nav-treeview">
-							<li class="nav-item">																	
+							<li class="nav-item">
 								<a href="#" class="nav-link">
 									<i class="nav-icon fa fa-globe fa-fw"></i><p data-i18n="language_selector">Language</p><i class="right fa fa-chevron-left"></i>
 								</a>
 								<ul id="language_container_menu" class="nav nav-treeview"></ul>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#" class="nav-link">
 									<i class="nav-icon fa fa-book fa-fw"></i><p data-i18n="misc_selector">Misc</p><i class="right fa fa-chevron-left"></i>
 								</a>
@@ -188,54 +188,54 @@
 								</ul>
 							</li>
 
-							<li class="nav-item">																	
+							<li class="nav-item">
 								<a href="#lut_downloader" class="nav-link system-link"><i class="nav-icon fa fa-download fa-fw"></i><p data-i18n="main_menu_grabber_lut">Download LUT</p></a>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#network" class="nav-link system-link"><i class="nav-icon fa fa-sitemap fa-fw"></i><p data-i18n="main_menu_network_conf_token">Network</p></a>
 							</li>
-							
+
 							<li id="btn_streamer" class="nav-item">
 								<canvas style="display: none;" id="streamcanvas"></canvas>
 								<video style="display: none;" id="streamvideo" autoplay></video>
 								<a class="nav-link"><i id="btn_streamer_icon" class="nav-icon fa fa-video-camera fa-fw" aria-hidden="true"></i><p data-i18n="main_menu_screencapture_token">Streamer</p></a>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#lut_generator" class="nav-link system-link"><i class="nav-icon fa fa-adjust fa-fw"></i><p data-i18n="main_menu_LUT_generator_token">LUT table</p></a>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#grabber_calibration" class="nav-link system-link"><i class="nav-icon fa fa-map fa-fw"></i><p data-i18n="main_menu_grabber_calibration_token">LUT calibration</p></a>
 							</li>
-														
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#json_api" class="nav-link system-link"><i class="nav-icon fa fa-podcast fa-fw"></i><p data-i18n="main_menu_json_api_token">JSON API</p></a>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#grabber_benchmark" class="nav-link system-link"><i class="nav-icon fa fa-tachometer fa-fw"></i><p data-i18n="main_menu_grabber_benchmark_token">Benchmark</p></a>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#update" class="nav-link system-link"><i class="nav-icon fa fa-refresh fa-fw"></i><p data-i18n="main_menu_update_token">Update</p></a>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#about" class="nav-link system-link"><i class="nav-icon fa fa-info-circle fa-fw"></i><p data-i18n="main_menu_about_token">About</p></a>
-							</li>												
+							</li>
 						</ul>
 					</li>
 				  </ul>
 				</nav>
 				<!-- /.sidebar-menu -->
 			  </div>
-			
+
 			  <!-- /.sidebar -->
-				
+
 			</aside>
-			
+
 			<div id="main-window-wrappper" class="content-wrapper">
 
 				<!-- Page Content -->

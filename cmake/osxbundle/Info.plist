@@ -18,6 +18,6 @@
 		<string>HyperHDR needs your permission to access the video capture devices.</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>HyperHDR needs your permission to access the sound capture devices.
-NEXT PLEASE RESTART HYPERHDR!</string>		
+NEXT PLEASE RESTART HYPERHDR!</string>
 	</dict>
 </plist>

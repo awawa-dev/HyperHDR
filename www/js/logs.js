@@ -15,11 +15,11 @@ $(document).ready(function() {
 
 	$('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
 	$('#conf_cont').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
-	
+
 	if(window.showOptHelp)
-	{		
+	{
 		createHintH("callout-info", $.i18n('conf_logging_label_intro'), "log_head");
-	}	
+	}
 
 	conf_editor = createJsonEditor('editor_container', {
 		logger : window.schema.logger
@@ -32,30 +32,30 @@ $(document).ready(function() {
 	$('#btn_submit').off().on('click',function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
-	
+
 	if (!window.loggingHandlerInstalled)
 	{
 		window.loggingHandlerInstalled = true;
-		
+
 		$(window.hyperhdr).unbind("cmd-logging-update");
 		$("#logmessages").empty();
 
 		$(window.hyperhdr).on("cmd-logging-update",function(event){
-			
+
 			if (!window.location.href.includes("logs")&&
 				 window.location.href.includes("#"))
 			{
 				window.loggingHandlerInstalled = false;
-		
+
 				$(window.hyperhdr).unbind("cmd-logging-update");
 				$("#logmessages").empty();
-				
+
 				requestLoggingStop();
 			}
 			else
 			{
 				messages = (event.response.result.messages);
-				
+
 				if(!createdCont)
 				{
 					$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
@@ -65,8 +65,8 @@ $(document).ready(function() {
 						toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
 					});
 				}
-				
-				
+
+
 
 				for(var idx = 0; idx < messages.length; idx++)
 				{
@@ -80,16 +80,16 @@ $(document).ready(function() {
 					var utime = messages[idx].utime;
 
 					var debug = "";
-					
-					
+
+
 					if(level_string == "DEBUG") {
 						debug = "("+file_name+":"+line+") ";
 					}
-					
+
 
 					var date = new Date(parseInt(utime));
 
-					LogLine($("#logmessages"), date, app_name, logger_name, level_string, debug,msg);					
+					LogLine($("#logmessages"), date, app_name, logger_name, level_string, debug,msg);
 				}
 
 				if($("#btn_autoscroll").hasClass('btn-success'))
@@ -116,7 +116,7 @@ function LogLine(logger,date,app_name,logger_name,level_string,debug,msg)
 		style = " class='db_warning'";
 	else if (level_string=="ERROR")
 		style = " class='db_error'";
-	
+
 	if (logger.text().length > 0)
 		logger.append("\n<code"+style+">"+date.toISOString()+" ["+(app_name+" "+logger_name).trim()+"] "+debug+msg+"</code>");
 	else

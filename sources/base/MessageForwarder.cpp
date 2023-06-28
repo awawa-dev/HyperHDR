@@ -40,7 +40,7 @@ MessageForwarder::MessageForwarder(HyperHdrInstance* hyperhdr)
 }
 
 MessageForwarder::~MessageForwarder()
-{	
+{
 	disconnect(_hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage, 0, 0);
 	disconnect(_hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage, 0, 0);
 
@@ -61,7 +61,7 @@ MessageForwarderHelper::MessageForwarderHelper()
 	mainThread->start();
 
 	connect(this, &MessageForwarderHelper::addClient, this, &MessageForwarderHelper::addClientHandler);
-	connect(this, &MessageForwarderHelper::clearClients, this, &MessageForwarderHelper::clearClientsHandler);	
+	connect(this, &MessageForwarderHelper::clearClients, this, &MessageForwarderHelper::clearClientsHandler);
 }
 
 MessageForwarderHelper::~MessageForwarderHelper()
@@ -318,19 +318,19 @@ void MessageForwarder::forwardFlatbufferMessage(const QString& name, const Image
 }
 
 bool MessageForwarderHelper::isFree()
-{	
+{
 	return _free;
 }
 
 void MessageForwarderHelper::forwardImage(const Image<ColorRgb>& image)
 {
 	_free = false;
-	
+
 	for (int i = 0; i < _forwardClients.size(); i++)
 	{
 		_forwardClients.at(i)->setImage(image);
 	}
-	
+
 	_free = true;
 }
 

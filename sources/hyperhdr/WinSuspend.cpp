@@ -45,7 +45,7 @@ SuspendHandler::SuspendHandler()
 }
 
 SuspendHandler::~SuspendHandler()
-{	
+{
 	if (_notifyHandle != NULL)
 		UnregisterSuspendResumeNotification(_notifyHandle);
 	_notifyHandle = NULL;
@@ -58,7 +58,7 @@ bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* messag
 	if (msg->message == WM_POWERBROADCAST)
 	{
 		switch (msg->wParam)
-		{			
+		{
 			case PBT_APMRESUMESUSPEND:
 				QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, true));
 				return true;

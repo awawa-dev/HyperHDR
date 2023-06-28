@@ -44,7 +44,7 @@
 #include <base/GrabberWrapper.h>
 
 // Boblight
-#if defined(ENABLE_BOBLIGHT)	
+#if defined(ENABLE_BOBLIGHT)
 #include <boblightserver/BoblightServer.h>
 #else
 class BoblightServer {};
@@ -281,7 +281,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		{
 			Info(_log, "New RGB order is: %s", QSTRING_CSTR(dev["colorOrder"].toString("rgb")));
 			_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(dev));
-			_imageProcessor->setLedString(_ledString);			
+			_imageProcessor->setLedString(_ledString);
 		}
 
 		// do always reinit until the led devices can handle dynamic changes
@@ -324,7 +324,7 @@ unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_m
 	else
 		QMetaObject::invokeMethod(_smoothing, "updateConfig",Qt::ConnectionType::BlockingQueuedConnection,
 			Q_RETURN_ARG(unsigned, retVal), Q_ARG(unsigned, id), Q_ARG(int, settlingTime_ms), Q_ARG(double, ledUpdateFrequency_hz), Q_ARG(bool, directMode));
-	
+
 	return retVal;
 }
 
@@ -442,7 +442,7 @@ bool HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image,
 		// if this priority is visible, update immediately
 		if (priority == _muxer.getCurrentPriority())
 		{
-			if (isImage)			
+			if (isImage)
 				emit _imageProcessingUnit->queueImageSignal(priority, image);
 			else
 				update();
@@ -638,7 +638,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 		Error(_log, "No source left -> switch LED-Device off");
 
 		emit compStateChangeRequest(hyperhdr::COMP_LEDDEVICE, false);
-		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());		
+		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());
 	}
 	else
 	{
@@ -684,7 +684,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 		if (diff >= 59000 && diff <= 65000)
 			emit PerformanceCounters::getInstance()->newCounter(
 				 PerformanceReport(static_cast<int>(PerformanceReportType::INSTANCE), _computeStats.token, _name, _computeStats.total / qMax(diff/1000.0, 1.0), _computeStats.total, 0, 0, getInstanceIndex()));
-		
+
 		_computeStats.statBegin = now;
 		_computeStats.total = 1;
 	}
@@ -711,7 +711,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 		}
 
 		if (disabledProcessing == 0)
-			emit rawLedColors(_ledBuffer);	
+			emit rawLedColors(_ledBuffer);
 	}
 
 	if (_ledString.colorOrder != ColorOrder::ORDER_RGB)

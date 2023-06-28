@@ -178,7 +178,7 @@ public:
 	/// @param mappingType led mapping type
 	void setLedMapping(QString mappingType);
 
-	// sets video mode 3D/2D	
+	// sets video mode 3D/2D
 	void setVideoModeHdr(int hdr);
 
 	// set the specified authorization token

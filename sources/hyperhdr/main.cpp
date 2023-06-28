@@ -269,7 +269,7 @@ int main(int argc, char** argv)
 		params.append("pipewire");
 	}
 #endif
-	
+
 	int rc = 1;
 	bool readonlyMode = false;
 

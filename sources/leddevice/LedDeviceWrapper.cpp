@@ -189,7 +189,7 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 }
 
 void LedDeviceWrapper::identifyLed(const QJsonObject& params)
-{	
+{
 	QMetaObject::invokeMethod(_ledDevice, [=]() {
 		if (params["blinkIndex"].toInt(-1) != -1)
 			_ledDevice->identifyLed(params);

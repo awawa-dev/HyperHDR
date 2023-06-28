@@ -96,7 +96,7 @@ if(HYPERHDR_REPO_BUILD)
 		endif()
 		SET ( CPACK_PACKAGE_FILE_NAME "HyperHDR-${HYPERHDR_VERSION_MAJOR}.${HYPERHDR_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${CMAKE_SYSTEM_PROCESSOR}")
 		message( warning "Package name: ${CPACK_PACKAGE_FILE_NAME}" )
-	endif()	
+	endif()
 endif()
 
 if ( APPLE )
@@ -130,7 +130,7 @@ if ( UNIX AND NOT APPLE )
 	endif()
 endif()
 if ( ENABLE_CEC )
-	string(CONCAT CPACK_DEBIAN_PACKAGE_RECOMMENDS "${CPACK_DEBIAN_PACKAGE_RECOMMENDS}" ", libp8-platform-dev" )	
+	string(CONCAT CPACK_DEBIAN_PACKAGE_RECOMMENDS "${CPACK_DEBIAN_PACKAGE_RECOMMENDS}" ", libp8-platform-dev" )
 endif()
 SET ( CPACK_DEBIAN_PACKAGE_SUGGESTS "libx11-6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
@@ -154,10 +154,10 @@ endif()
 if ( APPLE )
 	SET ( CPACK_GENERATOR "DragNDrop")
 	SET ( CPACK_DMG_FORMAT "UDBZ" )
-	
+
 	unset(CPACK_PACKAGE_ICON)
 	set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns")
-	
+
 	set_target_properties(hyperhdr PROPERTIES
 	  MACOSX_BUNDLE TRUE
 	  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist

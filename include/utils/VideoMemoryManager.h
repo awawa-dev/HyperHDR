@@ -15,7 +15,7 @@ public:
 	VideoMemoryManager(int bufferSize = VideoMemoryManagerBufferSize);
 	~VideoMemoryManager();
 
-	bool	setFrameSize(size_t size);	
+	bool	setFrameSize(size_t size);
 	void    release(size_t size, uint8_t* buffer);
 	QString	adjustCache();
 	uint8_t*	request(size_t size);

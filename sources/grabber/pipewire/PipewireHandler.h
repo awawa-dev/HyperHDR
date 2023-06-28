@@ -20,7 +20,7 @@ public:
 	void startSession(QString restorationToken);
 	void closeSession();
 	bool hasError();
-	
+
 	int		getVersion();
 	QString getToken();
 	QString getError();
@@ -35,7 +35,7 @@ public:
 		uint		objectId;
 		uint		width, height;
 		QVariantMap properties;
-	};	
+	};
 
 public Q_SLOTS:
 
@@ -47,14 +47,14 @@ public Q_SLOTS:
 	void onStateChanged(enum pw_stream_state old, enum pw_stream_state state, const char* error);
 	void onProcessFrame();
 	void onCoreError(uint32_t id, int seq, int res, const char *message);
-	
+
 signals:
 	void onParamsChangedSignal(uint32_t id, const struct spa_pod* param);
 	void onStateChangedSignal(enum pw_stream_state old, enum pw_stream_state state, const char* error);
 	void onProcessFrameSignal();
 	void onCoreErrorSignal(uint32_t id, int seq, int res, const char *message);
 
-private:	
+private:
 	void reportError(const QString& input);
 
 	pw_stream*	createCapturingStream();

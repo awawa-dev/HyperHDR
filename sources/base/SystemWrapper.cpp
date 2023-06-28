@@ -164,8 +164,8 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 
 #ifdef ENABLE_DX
 			// HDR tone mapping
-			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);			
-			_grabber->alternativeCaching(obj["alternativeCaching"].toBool(false));			
+			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);
+			_grabber->alternativeCaching(obj["alternativeCaching"].toBool(false));
 #endif
 
 			// signal

@@ -100,7 +100,7 @@
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : false,
 			"propertyOrder" : 9
-		},		
+		},
 		"lights": {
 			"type": "array",
 			"title":"edt_dev_spec_lights_title",
@@ -129,9 +129,9 @@
 						"default":55443,
 						"title" : "edt_dev_spec_networkDevicePort_title",
 						"required" : false,
-						"access" : "expert",						
+						"access" : "expert",
 						"propertyOrder" : 2
-					},					
+					},
 					"name" :
 					{
 						"type" : "string",
@@ -150,10 +150,10 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"maximum": 10000,
-			"step": 100,			
+			"step": 100,
 			"access" : "expert",
 			"propertyOrder" : 11
-		},		
+		},
 		"debugLevel": {
 			"type": "integer",
 			"title":"edt_dev_spec_debugLevel_title",

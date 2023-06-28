@@ -13,7 +13,7 @@ public:
 
 protected:
 	QString getGrabberInfo() override;
-	
+
 
 private:
 	FrameBufGrabber _grabber;

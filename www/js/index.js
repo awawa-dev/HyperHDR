@@ -9,12 +9,12 @@ $(document).ready(function () {
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 			handleDarkMode();
 		}
-	
+
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
 			setStorage("darkMode", "off", false);
 		}
 	}
-	
+
 	if(getStorage("darkMode", false) == "on")
 	{
 		handleDarkMode();
@@ -26,9 +26,9 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).on("cmd-serverinfo", function (event) {
 		window.serverInfo = event.response.info;
-		
+
 		window.readOnlyMode = window.sysInfo.hyperhdr.readOnlyMode;
-	
+
 		// comps
 		window.comps = event.response.info.components;
 
@@ -48,12 +48,12 @@ $(document).ready(function () {
 		// determine button visibility
 		var running = window.serverInfo.instance.filter(entry => entry.running);
 		if (running.length > 1)
-		{			
+		{
 			$('#btn_hypinstanceswitch').removeClass('disabled');
 		}
 		else
 			$('#btn_hypinstanceswitch').addClass('disabled');
-			
+
 		// update listing at button
 		updateHyperhdrInstanceListing()
 		if (!instNameInit) {
@@ -65,7 +65,7 @@ $(document).ready(function () {
 	}); // end cmd-serverinfo
 
 	//End language selection
-	
+
 	$(window.hyperhdr).on("cmd-sessions-update", function (event) {
 		window.serverInfo.sessions = event.response.data;
 		updateSessions();
@@ -131,25 +131,25 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).on("cmd-authorize-login", function (event) {
 		// show menu
-		var tar = document.getElementById("main-window-wrappper");	
+		var tar = document.getElementById("main-window-wrappper");
 		if (tar != null)
 		{
 			tar.classList.remove("content-wrapper-nonactive");
 			tar.classList.add("content-wrapper");
 		};
-		
+
 		var aside = document.getElementById("main-window-aside");
 		if (aside != null)
 		{
 			aside.classList.remove("d-none");
 		}
-		
+
 		var abutton = document.getElementById("main-window-button-menu");
 		if (abutton != null)
 		{
 			abutton.classList.remove("d-none");
 		}
-	
+
 		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
 		{
 			setTimeout(function(){
@@ -157,7 +157,7 @@ $(document).ready(function () {
 					' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>';
 				showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a class="ps-2 callout-link" style="cursor:pointer;" onClick="changePassword()">' +
 					$.i18n('InfoDialog_changePassword_title') + '</a><br/><br/>' + supprPwWarnCheckbox);
-			}, 500);			
+			}, 500);
 		}
 		else
 		{
@@ -171,7 +171,7 @@ $(document).ready(function () {
 		}
 
 		requestServerConfigSchema();
-		
+
 		resizeMainWindow();
 	});
 
@@ -196,18 +196,18 @@ $(document).ready(function () {
 		}
 		else {
 			// hide menu
-			var tar = document.getElementById("main-window-wrappper");	
-			
+			var tar = document.getElementById("main-window-wrappper");
+
 			if (tar != null)
 			{
 				tar.classList.add("content-wrapper-nonactive");
 				tar.classList.remove("content-wrapper");
 			};
-			
+
 			var aside = document.getElementById("main-window-aside");
 			if (aside != null)
 				aside.classList.add("d-none");
-			
+
 			var abutton = document.getElementById("main-window-button-menu");
 			if (abutton != null)
 				abutton.classList.add("d-none");
@@ -259,12 +259,12 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).on("cmd-videomodehdr-update", function (event) {
 		window.serverInfo.videomodehdr = event.response.data.videomodehdr
-	});	
+	});
 
 	$(window.hyperhdr).on("cmd-grabberstate-update", function (event) {
 		window.serverInfo.grabberstate = event.response.data;
 		$(window.hyperhdr).trigger("grabberstate-update", event.response.data);
-	});	
+	});
 
 	$(window.hyperhdr).on("cmd-components-update", function (event) {
 		let obj = event.response.data
@@ -316,7 +316,7 @@ $(document).ready(function () {
 		// determine button visibility
 		var running = serverInfo.instance.filter(entry => entry.running);
 		if (running.length > 1)
-		{			
+		{
 			$('#btn_hypinstanceswitch').removeClass('disabled');
 		}
 		else
@@ -341,14 +341,14 @@ $(document).ready(function () {
 		loadContent(e);
 		window.scrollTo(0, 0);
 		if (isSmallScreen())
-			$('[data-widget="pushmenu"]').PushMenu('collapse');		
+			$('[data-widget="pushmenu"]').PushMenu('collapse');
 	});
-		
+
 	$(document).on('collapsed.lte.pushmenu', function(){
 		document.getElementById('showMenuIcon').style.opacity = 0;
 		document.getElementById('hideMenuIcon').style.opacity = 1;
 	});
-	
+
 	$(document).on('shown.lte.pushmenu', function(){
 		document.getElementById('showMenuIcon').style.opacity = 1;
 		document.getElementById('hideMenuIcon').style.opacity = 0;
@@ -374,8 +374,8 @@ $("#btn_darkmode").off().on("click",function(e){
 	else {
 		handleLightMode();
 		setStorage("darkMode", "off", false);
-		setStorage("darkModeOverwrite", true, true);		
-	}	
+		setStorage("darkModeOverwrite", true, true);
+	}
 });
 
 $(window).on('resize', function() {
@@ -383,8 +383,8 @@ $(window).on('resize', function() {
 });
 
 function resizeMainWindow()
-{	
-	//document.title = ($('#hyper-subpage').width());	
+{
+	//document.title = ($('#hyper-subpage').width());
     if(parseInt($("#main-window-aside").css('margin-left')) < -50)
 	{
 		$('#page-content').addClass('main-no-margin');

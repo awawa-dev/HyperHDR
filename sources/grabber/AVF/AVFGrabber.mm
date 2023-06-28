@@ -62,7 +62,7 @@
 {
 @public
 	AVFGrabber*			_avfGrabber;
-	dispatch_queue_t	_sequencer;	
+	dispatch_queue_t	_sequencer;
 	AVCaptureSession*	_nativeSession;
 }
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
@@ -775,7 +775,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 				if (diff >= 59000 && diff <= 65000)
 					emit PerformanceCounters::getInstance()->newCounter(
 					PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), frameStat.token, this->_actualDeviceName, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
-				
+
 				resetCounter(now);
 
 				QString currentCache = Image<ColorRgb>::adjustCache();
@@ -839,9 +839,9 @@ void AVFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, qu
 {
 
 	frameStat.badFrame++;
-	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));
 
-	// get next frame	
+	// get next frame
 	if (workerIndex > _AVFWorkerManager.workersCount)
 		Error(_log, "Frame index = %d, index out of range", sourceCount);
 
@@ -869,7 +869,7 @@ void AVFGrabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image,
 	else
 		emit newFrame(image);
 
-	// get next frame	
+	// get next frame
 	if (workerIndex > _AVFWorkerManager.workersCount)
 		Error(_log, "Frame index = %d, index out of range", sourceCount);
 

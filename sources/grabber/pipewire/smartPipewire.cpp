@@ -59,7 +59,7 @@ void initPipewireDisplay(const char* restorationToken)
 }
 
 void releaseFramePipewire()
-{	
+{
 	_pipewireHandler->releaseWorkingFrame();
 }
 
@@ -68,8 +68,8 @@ const char* getPipewireToken()
 	static QByteArray tokenData;
 	QString token;
 
-	if (_pipewireHandler != nullptr)	
-		token = _pipewireHandler->getToken();	
+	if (_pipewireHandler != nullptr)
+		token = _pipewireHandler->getToken();
 
 	tokenData = token.toLatin1();
 
@@ -88,7 +88,7 @@ const char* getPipewireError()
 }
 
 void uniniPipewireDisplay()
-{	
+{
 	if (_pipewireHandler != nullptr)
 	{
 		_pipewireHandler->closeSession();

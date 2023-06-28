@@ -58,17 +58,17 @@ private:
 	void enumerateDevices(bool silent);
 
 	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
-	
+
 	void getDevices();
 
 	bool init() override;
 
 	void uninit() override;
-	
+
 	bool init_device(QString selectedDeviceName);
 
 	void processFrame(int8_t* source);
-		
+
 private:
 	QString					_configurationPath;
 	QTimer					_timer;

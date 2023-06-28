@@ -44,8 +44,8 @@
 		},
 		"hdrToneMappingMode" :
 		{
-			"type" : "integer",	
-			"title" : "edt_conf_fbs_hdrToneMappingMode_title",		
+			"type" : "integer",
+			"title" : "edt_conf_fbs_hdrToneMappingMode_title",
 			"append" : "edt_append_mode",
 			"enum" : [1, 2],
 			"default" : 1,

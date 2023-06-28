@@ -153,7 +153,7 @@ void FlatBufferServer::newConnection()
 	while (_domain != nullptr && _domain->hasPendingConnections())
 	{
 		if (QLocalSocket* socket = _domain->nextPendingConnection())
-		{			
+		{
 			Debug(_log, "New local domain connection");
 			FlatBufferClient* client = new FlatBufferClient(nullptr, socket, _timeout, _hdrToneMappingMode, _lutBuffer, this);
 			// internal

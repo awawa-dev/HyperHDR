@@ -184,7 +184,7 @@ public:
 	bool isBlack(bool isBlack);
 	bool isWhite(bool isWhite);
 	void setBlack();
-	void blackScreenTriggered();	
+	void blackScreenTriggered();
 	ColorRgb getRGBColor() const;
 	void setRGBColor(const ColorRgb color);
 	QStringList getLightIds() const;

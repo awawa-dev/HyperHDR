@@ -191,7 +191,7 @@ void V4L2Worker::runMe()
 	if (_isActive)
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
-		{			
+		{
 			process_image_jpg_mt();
 		}
 		else

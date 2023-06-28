@@ -8,7 +8,7 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_stream_device_title",
-			"default" : "auto",			
+			"default" : "auto",
 			"required" : true,
 			"propertyOrder" : 2
 		},
@@ -16,10 +16,10 @@
 		{
 			"type" : "integer",
 			"title" : "edt_conf_stream_input_title",
-			"default" : -1,			
+			"default" : -1,
 			"required" : true,
 			"propertyOrder" : 4
-		},	
+		},
 		"videoMode" :
 		{
 			"type" : "string",
@@ -27,35 +27,35 @@
 			"default" : "auto",
 			"append" : "edt_append_pixel",
 			"required" : true,
-			"propertyOrder" : 7			
-		},		
+			"propertyOrder" : 7
+		},
 		"fps" :
 		{
 			"type" : "integer",
 			"title" : "edt_conf_stream_framerate_title",
 			"default" : 0,
 			"minimum" : 0,
-			"append" : "fps",			
+			"append" : "fps",
 			"required" : true,
 			"propertyOrder" : 10
 		},
 		"videoEncoding" :
 		{
 			"type" : "string",
-			"title" : "edt_conf_stream_streamEncoding_title",			
-			"default" : "auto",			
-			"required" : true,			
+			"title" : "edt_conf_stream_streamEncoding_title",
+			"default" : "auto",
+			"required" : true,
 			"propertyOrder" : 12
-		},		
+		},
 		"qFrame" :
 		{
 			"type" : "boolean",
 			"format": "checkbox",
 			"title" : "edt_conf_stream_qFrame_title",
 			"default" : false,
-			"required" : true,			
+			"required" : true,
 			"propertyOrder" : 22
-		},		
+		},
 		"hdrToneMapping" :
 		{
 			"type" : "boolean",
@@ -67,8 +67,8 @@
 		},
 		"hdrToneMappingMode" :
 		{
-			"type" : "integer",	
-			"title" : "edt_conf_stream_hdrToneMappingMode_title",		
+			"type" : "integer",
+			"title" : "edt_conf_stream_hdrToneMappingMode_title",
 			"append" : "edt_append_mode",
 			"enum" : [1, 2],
 			"default" : 1,
@@ -100,7 +100,7 @@
 			"default" : 0,
 			"required" : true,
 			"propertyOrder" : 26
-		},		
+		},
 		"fpsSoftwareDecimation" :
 		{
 			"type" : "integer",
@@ -155,7 +155,7 @@
 			"title" : "edt_conf_stream_cropLeft_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"options": {
@@ -172,14 +172,14 @@
 			"title" : "edt_conf_stream_cropRight_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"options": {
 				"dependencies": {
 					"qFrame": false
 				}
-			},			
+			},
 			"propertyOrder" : 51
 		},
 		"cropTop" :
@@ -189,14 +189,14 @@
 			"title" : "edt_conf_stream_cropTop_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"options": {
 				"dependencies": {
 					"qFrame": false
 				}
-			},			
+			},
 			"propertyOrder" : 52
 		},
 		"cropBottom" :
@@ -206,14 +206,14 @@
 			"title" : "edt_conf_stream_cropBottom_title",
 			"minimum" : 0,
 			"default" : 0,
-			"step" : 2,			
+			"step" : 2,
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"options": {
 				"dependencies": {
 					"qFrame": false
 				}
-			},			
+			},
 			"propertyOrder" : 53
 		},
 		"autoResume" :
@@ -222,7 +222,7 @@
 			"format": "checkbox",
 			"title" : "edt_conf_stream_autoResume_title",
 			"default" : false,
-			"required" : true,			
+			"required" : true,
 			"propertyOrder" : 54
 		},
 		"autoSignalDetection" :
@@ -231,14 +231,14 @@
 			"format": "checkbox",
 			"title" : "edt_conf_stream_automatic_signalDetection_title",
 			"default" : false,
-			"required" : true,			
+			"required" : true,
 			"propertyOrder" : 55
 		},
 		"saveResources" :
 		{
 			"type" : "boolean",
 			"format": "checkbox",
-			"title" : "edt_conf_stream_saveResources_title",			
+			"title" : "edt_conf_stream_saveResources_title",
 			"default" : false,
 			"required" : true,
 			"options": {
@@ -255,13 +255,13 @@
 			"title" : "edt_conf_stream_error_tolerance_title",
 			"minimum" : 1,
 			"default" : 9,
-			"step" : 1,						
+			"step" : 1,
 			"required" : true,
 			"options": {
 				"dependencies": {
 					"autoSignalDetection": true
 				}
-			},			
+			},
 			"propertyOrder" : 57
 		},
 		"modelTolerance" :
@@ -279,7 +279,7 @@
 				"dependencies": {
 					"autoSignalDetection": true
 				}
-			},			
+			},
 			"propertyOrder" : 58
 		},
 		"sleepTime" :
@@ -289,14 +289,14 @@
 			"title" : "edt_conf_stream_sleep_time_title",
 			"minimum" : 1000,
 			"default" : 5000,
-			"step" : 500,			
+			"step" : 500,
 			"append" : "edt_append_ms",
 			"required" : true,
 			"options": {
 				"dependencies": {
 					"autoSignalDetection": true
 				}
-			},			
+			},
 			"propertyOrder" : 59
 		},
 		"wakeTime" :
@@ -306,14 +306,14 @@
 			"title" : "edt_conf_stream_wake_time_title",
 			"minimum" : 0,
 			"default" : 1000,
-			"step" : 500,			
+			"step" : 500,
 			"append" : "edt_append_ms",
 			"required" : true,
 			"options": {
 				"dependencies": {
 					"autoSignalDetection": true
 				}
-			},			
+			},
 			"propertyOrder" : 60
 		},
 		"signalDetection" :
@@ -396,7 +396,7 @@
 			},
 			"required" : true,
 			"propertyOrder" : 65
-		},		
+		},
 		"sDVOffsetMin" :
 		{
 			"type" : "number",
@@ -474,9 +474,9 @@
 			"required" : true,
 			"options": {
 				"hidden":true
-			},			
+			},
 			"propertyOrder" : 70
-		}		
+		}
 	},
 	"additionalProperties" : false
 }

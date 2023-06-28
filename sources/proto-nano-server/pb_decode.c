@@ -96,10 +96,10 @@ bool checkreturn pb_read(pb_istream_t *stream, pb_byte_t *buf, size_t count)
 		{
 			if (!pb_read(stream, tmp, 16))
 				return false;
-			
+
 			count -= 16;
 		}
-		
+
 		return pb_read(stream, tmp, count);
 	}
 #endif

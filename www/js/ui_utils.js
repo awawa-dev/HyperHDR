@@ -100,13 +100,13 @@ function loadContent(event, forceRefresh)
 				removeStorage('lastSelectedInstance', false);
 				tag = 'overview';
 				setStorage('lasthashtag', tag, true);
-				
+
 				$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 					if(status == "error")
-					{					
+					{
 						$("#page-content").html('<h3>'+tag+'<br/>'+$.i18n('info_404')+'</h3>');
 						removeOverlay();
-					}					
+					}
 				});
 			}
 		});
@@ -121,13 +121,13 @@ function updateHyperhdrInstanceListing()
 	{
 		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? "fa-arrow-circle-right my-text-success" : "";
 		var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
-		
+
 		var myName = data[key].friendly_name;
-		
+
 		if (myName.length>20)
 			myName = myName.slice(0,17) + '...';
-		
-		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			
+
+		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+
 						'<div class="d-flex" style="cursor: pointer;">'+
 							'<div class="flex ps-1 pe-1 fa-stack fa-1x"><i class="fa fa-stack-1x ' + currInstMarker + '"></i><i class="fa-stack-1x fa icon-invisible"></i></div>'+
 							'<div class="flex pe-2 ' + currTextMarker + '"><span class="h-100" style="display: inline-flex; align-items: center;">'+myName+'</span></div>'+
@@ -149,14 +149,14 @@ function updateHyperhdrInstanceListing()
 function switchLang(newLang)
 {
 	if (newLang !== storedLang)
-	{		
+	{
 		setStorage("langcode", newLang);
 		reload();
 	}
 }
 
 function initLanguageSelection()
-{		
+{
 	var langLocale = storedLang;
 
 	// If no language has been set, resolve browser locale
@@ -177,42 +177,42 @@ function initLanguageSelection()
 	else
 	{
 		// If language is not supported by hyperhdr, try fallback language
-		langLocale = $.i18n().options.fallbackLocale.substring(0,2);	
+		langLocale = $.i18n().options.fallbackLocale.substring(0,2);
 		langIdx = availLang.indexOf(langLocale);
 		if ( langIdx > -1 )
 		{
 			langText = availLangText[langIdx];
 		}
 	}
-	
+
 	var newTree = $("#language_container_menu");
 	newTree.empty();
 	for (var i = 0; i < availLang.length; i++)
-	{		
+	{
 		var newLang = $('<li>');
-		
-		var newLink = $('<a>');		
+
+		var newLink = $('<a>');
 		newLink.addClass("nav-link");
-		
+
 		const sendId = availLang[i];
 		newLink.on("click", function(){
 			switchLang(sendId);
 		});
-		
+
 		var ilink = $('<i>');
-		ilink.attr('id', "language_selector_at"+i);		
+		ilink.attr('id', "language_selector_at"+i);
 		if (i == langIdx)
 			ilink.addClass("fa fa-check fa-fw");
 		else
 			ilink.addClass("fa icon-invisible fa-fw");
-		
+
 		var item = $('<p>');
 		item.html(availLangText[i]);
-		
+
 		$(newLink).append(ilink);
 		$(newLink).append(item);
 		$(newLang).append(newLink);
-		$(newTree).append(newLang);		
+		$(newTree).append(newLang);
 	}
 }
 
@@ -363,14 +363,14 @@ function showInfoDialog(type,header,message)
 	if(type == "select" || type == "iswitch")
 		$('#id_body').append('<select id="id_select" class="form-select" style="margin-top:10px;width:auto;"></select>');
 
-	
+
 	const myTarget = (type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog");
-	
+
 	const modal = new bootstrap.Modal($(myTarget), {
 		backdrop : "static",
 		keyboard: false
 	});
-	
+
 	modal.show();
 
 	$(document).on('click', myTarget, function (event) {
@@ -382,7 +382,7 @@ function showInfoDialog(type,header,message)
 }
 
 function createHintH(type, text, container)
-{	
+{
 	$('#'+container).prepend('<div class="callout '+type+'"><h4 style="font-size:16px">'+text+'</h4></div><hr/>');
 }
 
@@ -489,41 +489,41 @@ function putInstanceName(targetplace)
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 	var instName = (lastSelectedInstance!=null) ? getInstanceNameByIndex(lastSelectedInstance) : getInstanceNameByIndex(0);
 	var maxLen = 22;
-	
+
 	if (isSmallScreen())
 		maxLen = 19;
-	
+
 	if (instName.length > maxLen+1+3)
 		instName= instName.slice(0,maxLen)+'...';
-	
+
 	var con = document.createElement('div');
 	con.classList.add("card-tools");
 	var span = document.createElement('span');
 	span.classList.add("badge", "bg-danger");
 	span.style.fontWeight = "normal";
-	
+
 	span.innerHTML = instName;
 	con.appendChild(span);
-	
+
 	targetplace.appendChild(con);
 }
 
 function createJsonEditor(container, schema, setconfig, usePanel, arrayre = undefined, showInstance = false)
 {
 	var targetPlace = document.getElementById(container);
-	
+
 	if (targetPlace.parentElement != null && targetPlace.parentElement.parentElement !=null &&
 		!targetPlace.parentElement.parentElement.classList.contains('editor_column'))
 	{
 		targetPlace.parentElement.parentElement.classList.add('editor_column');
 	}
-	
+
 	$('#'+container).off();
 	$('#'+container).html("");
 
 	if (typeof arrayre === 'undefined')
 		arrayre = true;
-	
+
 	var editor = new JSONEditor(targetPlace,
 	{
 		theme: 'bootstrap5hyperhdr',
@@ -551,7 +551,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre = unde
 		$('#'+container+' h4').first().remove();
 		$('#'+container+' .well').first().removeClass('well well-sm');
 	}
-	
+
 	if (showInstance && targetPlace != null && targetPlace.parentElement != null && targetPlace.parentElement.firstElementChild.classList.contains('card-header'))
 	{
 		putInstanceName(targetPlace.parentElement.firstElementChild);
@@ -570,7 +570,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre = unde
 
 function buildWL(link,linkt,cl)
 {
-	
+
 	return '';
 }
 
@@ -695,8 +695,8 @@ function createDivTable(hid, bid, cont)
 	table.style.marginBottom = "0px";
 	thead.className = hid + " container";
 	tbody.className = bid + " container";
-		
-	table.appendChild(thead);	
+
+	table.appendChild(thead);
 	table.appendChild(tbody);
 
 	$('#'+cont).append(table);
@@ -711,13 +711,13 @@ function createDivTable(hid, bid, cont)
 function createTableRow(list, head, align)
 {
 	var row = document.createElement('div');
-	
+
 	row.className = 'row mb-2';
 
 	for(var i = 0; i < list.length; i++)
 	{
 		var el = document.createElement('div');
-		
+
 		if (list.length == 2)
 		{
 			if (i==0)
@@ -727,10 +727,10 @@ function createTableRow(list, head, align)
 		}
 		else
 			el.className = 'col';
-		
+
 		if(head === true)
 			el.style.fontWeight = "bold";
-		
+
 		if(align)
 			el.style.verticalAlign = "middle";
 
@@ -741,18 +741,18 @@ function createTableRow(list, head, align)
 }
 
 function createTableFlex(hid, bid, cont, bless, tclass)
-{	
+{
 	var table = document.createElement('div');
 	var thead = document.createElement('div');
 	var tbody = document.createElement('div');
 
 	table.className = "container";
-	
+
 	if(bless === true)
 		table.className += " borderless";
 	else
 		thead.style.borderBottom = "thin solid lightgray";
-	
+
 	if(typeof tclass !== "undefined")
 		table.className += " "+tclass;
 	table.style.marginBottom = "0px";
@@ -769,13 +769,13 @@ function createTableFlex(hid, bid, cont, bless, tclass)
 function createTableRowFlex(list, head, align)
 {
 	var row = document.createElement('div');
-	
+
 	row.className = 'd-flex flex-row mb-2';
 
 	for(var i = 0; i < list.length; i++)
 	{
 		var el = document.createElement('div');
-		
+
 		if (list.length == 2)
 		{
 			if (i==0)
@@ -785,10 +785,10 @@ function createTableRowFlex(list, head, align)
 		}
 		else
 			el.className = 'w-100 d-flex p-2';
-		
+
 		if(head === true)
 			el.style.fontWeight = "bold";
-		
+
 		if(align)
 			el.style.verticalAlign = "middle";
 
@@ -832,7 +832,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 				{
 					var searching = target.parentElement.firstElementChild;
 					var index = 0;
-					
+
 					while (searching != null && searching != clientObj)
 					{
 						if (searching.classList.contains('editor_column') ||
@@ -840,7 +840,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 							index++;
 						searching = searching.nextElementSibling;
 					}
-					
+
 					if ((index % 2) && searching == clientObj)
 					{
 						var breaker = document.createElement('div');
@@ -856,21 +856,21 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 				target.classList.add("d-none");
 				helpBtn.classList.remove("btn-warning-set");
 				helpBtn.classList.add("btn-warning-noset");
-				
+
 				if (clientObj.previousElementSibling != null &&
 					clientObj.previousElementSibling.classList.contains("breaker"))
 				{
 					(clientObj.previousElementSibling).remove();
 					clientObj.scrollIntoView({behavior: "smooth"});
 				}
-			}			
+			}
 		}
 	);
-	var common = document.createElement("div");	
+	var common = document.createElement("div");
 	common.appendChild(helpBtn);
-	common.appendChild(saveBtn);	
-	
-	return createPanel(phead, "", common, "card-default", bodyid);	
+	common.appendChild(saveBtn);
+
+	return createPanel(phead, "", common, "card-default", bodyid);
 }
 
 function sortProperties(list)
@@ -890,7 +890,7 @@ function sortProperties(list)
 function createHelpTable(list, phead){
 	var table = document.createElement('div');
 	table.className = "container";
-	
+
 	list = sortProperties(list);
 
 	phead = '<i class="fa fa-fw fa-info-circle"></i>'+phead+' '+$.i18n("conf_helptable_expl");
@@ -927,7 +927,7 @@ function createHelpTable(list, phead){
 			}
 		}
 	}
-	
+
 	var finalHelp =  createPanel(phead, table);
 	finalHelp.classList.add('d-none');
 	finalHelp.classList.add('help-column');
@@ -1068,7 +1068,7 @@ function getReleases(callback)
 function handleDarkMode()
 {
 	$('body').addClass('dark-mode');
-	$('aside').addClass('dark-mode');	
+	$('aside').addClass('dark-mode');
 
 	setStorage("darkMode", "on", false);
 	$('#btn_darkmode_icon').removeClass('fa-moon-o');
@@ -1078,7 +1078,7 @@ function handleDarkMode()
 function handleLightMode()
 {
 	$('body').removeClass('dark-mode');
-	$('aside').removeClass('dark-mode');	
+	$('aside').removeClass('dark-mode');
 
 	setStorage("darkMode", "on", false);
 	$('#btn_darkmode_icon').addClass('fa-moon-o');

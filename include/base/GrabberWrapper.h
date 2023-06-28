@@ -35,7 +35,7 @@ public:
 
 	static	GrabberWrapper* instance;
 	static	GrabberWrapper* getInstance() { return instance; }
-	
+
 	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 
 	QJsonObject getJsonInfo();

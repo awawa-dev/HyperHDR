@@ -16,7 +16,7 @@ if (perfTimer == undefined || perfTimer == null)
 			}
 		}
 		else
-		{			
+		{
 			clearInterval(perfTimer);
 			perfTimer = null;
 		}
@@ -33,7 +33,7 @@ if (sysPerfTimer == undefined || sysPerfTimer == null)
 			requestPerformanceCounter(false);
 		}
 		else
-		{			
+		{
 			clearInterval(sysPerfTimer);
 			sysPerfTimer = null;
 		}
@@ -154,7 +154,7 @@ $(document).ready(function ()
 
 				if (content!=null)
 					content.innerHTML = render;
-				
+
 				let grabberContainer = document.getElementById("perf_grabber_data");
 				if (grabberContainer != null)
 				{
@@ -234,7 +234,7 @@ $(document).ready(function ()
 				}
 			}
 			else if (curElem.type == 6)
-			{				
+			{
 				let holderTEMP = document.getElementById("perf_temperature");
 				if (holderTEMP != null)
 				{

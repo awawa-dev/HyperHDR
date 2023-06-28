@@ -16,7 +16,7 @@ public slots:
 
 protected:
 	QString getGrabberInfo() override;
-	
+
 
 private:
 	PipewireGrabber _grabber;

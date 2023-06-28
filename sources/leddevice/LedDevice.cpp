@@ -116,7 +116,7 @@ void LedDevice::enableDevice(bool toEmit)
 		}
 
 		if (_isDeviceReady)
-		{			
+		{
 			if (switchOn())
 			{
 				_isDeviceReady = true;
@@ -209,7 +209,7 @@ void LedDevice::stopRefreshTimer()
 
 		_refreshTimer->stop();
 		delete _refreshTimer;
-		_refreshTimer = nullptr;		
+		_refreshTimer = nullptr;
 	}
 }
 
@@ -306,7 +306,7 @@ int LedDevice::rewriteLEDs()
 
 		_computeStats.frames++;
 	}
-	
+
 	return retval;
 }
 
@@ -319,7 +319,7 @@ int LedDevice::writeBlack(int numberOfBlack)
 	_lastLedValues = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK);
 
 	for (int i = 0; i < numberOfBlack; i++)
-	{		
+	{
 		rc = write(_lastLedValues);
 	}
 
@@ -367,7 +367,7 @@ bool LedDevice::switchOff()
 		if (_isDeviceInitialised)
 		{
 			// Disable device to ensure no standard Led updates are written/processed
-			_isOn = false;			
+			_isOn = false;
 
 			rc = true;
 

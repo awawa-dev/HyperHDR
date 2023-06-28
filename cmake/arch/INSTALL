@@ -84,7 +84,7 @@ post_install() {
 	rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.tar.xz
 
 	if grep -m1 systemd /proc/1/comm > /dev/null
-	then	
+	then
 		# systemd
 		if [ -z "${DISPLAY}" ]; then
 			echo "---> Init deamon: systemd (service is enabled by default for console systems)"
@@ -96,7 +96,7 @@ post_install() {
 			ENABLE_XSYS=1
 		fi
 
-		install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service	
+		install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service
 
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			systemctl enable hyperhdr"@${FOUND_USR}".service
@@ -105,7 +105,7 @@ post_install() {
 		fi
 
 	elif [ -e /usr/bin/initctl ]
-	then	
+	then
 		# upstart
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			echo "---> Init deamon: upstart (service is enabled by default)"
@@ -116,7 +116,7 @@ post_install() {
 			echo "---> Init deamon: upstart (service is NOT enabled by default)"
 		fi
 
-	else	
+	else
 		# sysV
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			echo "---> Init deamon: sysV (enabled by default)"
@@ -209,7 +209,7 @@ pre_remove() {
 		echo "---> Disable service and remove entry"
 		systemctl -q disable hyperhdr"@${FOUND_USR}"
 
-		rm -v /etc/systemd/system/hyperhdr@.service 2>/dev/null	
+		rm -v /etc/systemd/system/hyperhdr@.service 2>/dev/null
 
 	elif [ -e /usr/bin/initctl ]
 	then

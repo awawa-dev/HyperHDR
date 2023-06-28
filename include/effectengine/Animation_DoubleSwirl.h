@@ -16,5 +16,5 @@ public:
 
 	Animation_DoubleSwirl(QString name=ANIM_DOUBLE_SWIRL);
 
-	static EffectDefinition getDefinition();	
+	static EffectDefinition getDefinition();
 };

@@ -192,10 +192,10 @@ function initWebSocket()
 
 							if (error == "Not ready")
 								window.location.reload();
-							else							
+							else
 								$(window.hyperhdr).trigger({ type: "error", reason: error });
 
-							console.log("[window.websocket::onmessage] ", error);							
+							console.log("[window.websocket::onmessage] ", error);
 						}
 					}
 				}

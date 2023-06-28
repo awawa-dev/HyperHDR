@@ -83,7 +83,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 	{
 		if (unsubscribe)
 			disconnect(LutCalibrator::getInstance(), &LutCalibrator::lutCalibrationUpdate, this, &JsonCB::handleLutCalibrationUpdate);
-		else		
+		else
 			connect(LutCalibrator::getInstance(), &LutCalibrator::lutCalibrationUpdate, this, &JsonCB::handleLutCalibrationUpdate, Qt::UniqueConnection);
 	}
 
@@ -507,14 +507,14 @@ void JsonCB::handleBenchmarkUpdate(int status, QString message)
 }
 
 void JsonCB::handleLutCalibrationUpdate(const QJsonObject& data)
-{	
+{
 	doCallback("lut-calibration-update", QVariant(data));
 }
 
 
 void JsonCB::handlePerformanceUpdate(const QJsonObject& data)
 {
-	doCallback("performance-update", QVariant(data));	
+	doCallback("performance-update", QVariant(data));
 }
 
 void JsonCB::handleLutInstallUpdate(const QJsonObject& data)

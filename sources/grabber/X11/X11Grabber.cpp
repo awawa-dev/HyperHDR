@@ -85,19 +85,19 @@ X11Grabber::X11Grabber(const QString& device, const QString& configurationPath)
 
 	if  (_library && (_enumerateX11Displays == nullptr || _releaseX11Displays == nullptr || _releaseFrame == nullptr ||
 		_initX11Display == nullptr || _uninitX11Display == nullptr || _getFrame == nullptr))
-	{		
+	{
 		Error(_log, "Could not load X11 proxy library definition. Did you install libx11? Error: %s", dlerror());
 
 		dlclose(_library);
 		_library = nullptr;
 	}
-	
+
 	// Refresh devices
 	if (_library)
 	{
 		Info(_log, "Loaded X11 proxy library for screen capturing");
 		getDevices();
-	}	
+	}
 }
 
 QString X11Grabber::GetSharedLut()
@@ -106,7 +106,7 @@ QString X11Grabber::GetSharedLut()
 }
 
 void X11Grabber::loadLutFile(PixelFormat color)
-{		
+{
 }
 
 void X11Grabber::setHdrToneMappingEnabled(int mode)
@@ -135,11 +135,11 @@ void X11Grabber::uninit()
 {
 	// stop if the grabber was not stopped
 	if (_initialized)
-	{		
+	{
 		stop();
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	}
-	
+
 
 	_initialized = false;
 }
@@ -167,7 +167,7 @@ bool X11Grabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
+			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
@@ -182,13 +182,13 @@ bool X11Grabber::init()
 			return false;
 		}
 
-		
+
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting X11 grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
-		Info(_log, "*************************************************************************************************");		
+		Info(_log, "*************************************************************************************************");
 
 		if (init_device(_deviceProperties[foundDevice].valid.first().input))
-			_initialized = true;		
+			_initialized = true;
 	}
 
 	return _initialized;
@@ -230,13 +230,13 @@ void X11Grabber::enumerateDevices(bool silent)
 
 			_releaseX11Displays(list);
 		}
-	}	
+	}
 }
 
 bool X11Grabber::start()
 {
 	try
-	{		
+	{
 		if (init())
 		{
 			_timer.setInterval(1000/_fps);
@@ -275,7 +275,7 @@ bool X11Grabber::init_device(int _display)
 	_actualDisplay = _display;
 	_handle = _initX11Display(_display);
 
-	if (_handle == nullptr)	
+	if (_handle == nullptr)
 		Error(_log, "Could not initialized x11 grabber");
 
 	return (_handle != nullptr);
@@ -284,7 +284,7 @@ bool X11Grabber::init_device(int _display)
 void X11Grabber::grabFrame()
 {
 	bool stopNow = false;
-	
+
 	if (_semaphore.tryAcquire())
 	{
 		if (_initialized && _handle != nullptr)

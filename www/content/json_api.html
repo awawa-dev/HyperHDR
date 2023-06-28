@@ -7,7 +7,7 @@
 		</div>
 	</div>
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_components"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_components"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -19,7 +19,7 @@
 									<span data-i18n="json_api_components_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-8 text-start">
 							<div class="form-check">
@@ -57,7 +57,7 @@
 								<div class="form-check">
 									<input class="form-check-input" type="radio" name="compState" id="comp_LEDDEVICE" value="LEDDEVICE">
 									<label class="form-check-label" for="comp_LEDDEVICE" data-i18n="general_comp_LEDDEVICE"></label>
-								</div>						
+								</div>
 							</div>
 							<div class="col-4 text-start">
 								<div class="form-check">
@@ -68,34 +68,34 @@
 									<input class="form-check-input" type="radio" id="compState_off" name="compState_onoff" value="false">
 									<label class="form-check-label" for="compState_off" data-i18n="general_btn_off"></label>
 								</div>
-							</div>							
+							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="compState_json" rows="14" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="compStateButtons" onclick='CopyLink($("#compState_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="compStateButtons" onclick='CopyJson($("#compState_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="compStateButtons" onclick='RunIt($("#compState_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_switch_instance"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_switch_instance"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -107,41 +107,41 @@
 									<span data-i18n="json_api_switch_instance_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-8 text-start">
 								<div class="input-group">
-									<span class="input-group-text mb-1" data-i18n="json_api_instance_index"></span>									
-									<input class="form-control mb-1" type="number" id="instanceIndex" value="">									
-								</div>								
-							</div>						
+									<span class="input-group-text mb-1" data-i18n="json_api_instance_index"></span>
+									<input class="form-control mb-1" type="number" id="instanceIndex" value="">
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="switch_json" rows="10" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="switchButtons" onclick='CopyLink($("#switch_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="switchButtons" onclick='CopyJson($("#switch_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="switchButtons" onclick='RunIt($("#switch_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_instance_start_stop"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_instance_start_stop"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -153,13 +153,13 @@
 									<span data-i18n="json_api_instance_start_stop_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-8 text-start">
 								<div class="input-group">
-									<span class="input-group-text" data-i18n="json_api_instance_index"></span>									
-									<input class="form-control" type="number" id="instanceStartStopIndex" value="">									
-								</div>				
+									<span class="input-group-text" data-i18n="json_api_instance_index"></span>
+									<input class="form-control" type="number" id="instanceStartStopIndex" value="">
+								</div>
 							</div>
 							<div class="col-4 text-start">
 								<div class="form-check">
@@ -170,34 +170,34 @@
 									<input class="form-check-input" type="radio" id="compInstance_stop" name="compInstanceStartStop" value="stopInstance">
 									<label class="form-check-label" for="compInstance_stop" data-i18n="general_btn_stop"></label>
 								</div>
-							</div>							
+							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="compInstanceStart_json" rows="14" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="instanceStartButtons" onclick='CopyLink($("#compInstanceStart_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="instanceStartButtons" onclick='CopyJson($("#compInstanceStart_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="instanceStartButtons" onclick='RunIt($("#compInstanceStart_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_server_info"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_server_info"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -209,33 +209,33 @@
 									<span data-i18n="json_api_server_info_expl"></span>
 								</div>
 							</div>
-						</div>										
+						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="server_json" rows="6" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" onclick='CopyLink($("#server_json"))' class="btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" onclick='CopyJson($("#server_json"))' class="btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" onclick='RunIt($("#server_json"))' class="btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_video_crop"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_video_crop"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -247,60 +247,60 @@
 									<span data-i18n="json_api_video_crop_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropLeft_title"></span>									
-									<input class="form-control" name="videoCrop" type="number" id="cropLeft" value="">									
-								</div>								
+									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropLeft_title"></span>
+									<input class="form-control" name="videoCrop" type="number" id="cropLeft" value="">
+								</div>
 							</div>
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropRight_title"></span>									
-									<input class="form-control" name="videoCrop" type="number" id="cropRight" value="">									
-								</div>								
+									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropRight_title"></span>
+									<input class="form-control" name="videoCrop" type="number" id="cropRight" value="">
+								</div>
 							</div>
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropTop_title"></span>									
-									<input class="form-control" name="videoCrop" type="number" id="cropTop" value="">									
-								</div>								
-							</div>							
+									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropTop_title"></span>
+									<input class="form-control" name="videoCrop" type="number" id="cropTop" value="">
+								</div>
+							</div>
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropBottom_title"></span>									
-									<input class="form-control" name="videoCrop" type="number" id="cropBottom" value="">									
-								</div>								
-							</div>							
-							
+									<span class="input-group-text col-4" data-i18n="edt_conf_stream_cropBottom_title"></span>
+									<input class="form-control" name="videoCrop" type="number" id="cropBottom" value="">
+								</div>
+							</div>
+
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="video_crop_json" rows="10" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="videoCropButtons" onclick='CopyLink($("#video_crop_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="videoCropButtons" onclick='CopyJson($("#video_crop_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="videoCropButtons" onclick='RunIt($("#video_crop_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_clear"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_clear"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -312,41 +312,41 @@
 									<span data-i18n="json_api_clear_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-8 text-start">
 								<div class="input-group">
-									<span class="input-group-text mb-1" data-i18n="remote_input_priority"></span>									
-									<input class="form-control mb-1" type="number" id="clearPriority" value="">									
-								</div>				
+									<span class="input-group-text mb-1" data-i18n="remote_input_priority"></span>
+									<input class="form-control mb-1" type="number" id="clearPriority" value="">
+								</div>
 							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="clearPriority_json" rows="14" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="clearPriorityButtons" onclick='CopyLink($("#clearPriority_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="clearPriorityButtons" onclick='CopyJson($("#clearPriority_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="clearPriorityButtons" onclick='RunIt($("#clearPriority_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_hdr"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_hdr"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -358,7 +358,7 @@
 									<span data-i18n="json_api_hdr_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-8 text-start">
 								<div class="form-check">
@@ -374,37 +374,37 @@
 						<div class="row mt-1">
 							<div class="col-8 text-start">
 								<div class="input-group">
-									<span class="input-group-text mb-1" data-i18n="json_api_flatbuffers_user_lut"></span>									
-									<input class="form-control mb-1" type="text" id="flatbuffersUserLut">									
-								</div>				
+									<span class="input-group-text mb-1" data-i18n="json_api_flatbuffers_user_lut"></span>
+									<input class="form-control mb-1" type="text" id="flatbuffersUserLut">
+								</div>
 							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="hdrMode_json" rows="8" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="hdrModeButtons" onclick='CopyLink($("#hdrMode_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="hdrModeButtons" onclick='CopyJson($("#hdrMode_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="hdrModeButtons" onclick='RunIt($("#hdrMode_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_adjustment"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_adjustment"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -416,39 +416,39 @@
 									<span data-i18n="json_api_adjustment_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-12">
 								<div id="adjustmentEditor"></div>
-							</div>							
+							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="adjustment_json" rows="15" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="adjustmentButtons" onclick='CopyLink($("#adjustment_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="adjustmentButtons" onclick='CopyJson($("#adjustment_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="adjustmentButtons" onclick='RunIt($("#adjustment_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
-	
+
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_effect_color"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_effect_color"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -465,13 +465,13 @@
 							<div class="col-3 col-form-label mb-3">
 								<label for="remote_color_target" data-i18n="remote_color_label_color"></label>
 							</div>
-							<div class="col-9">							
-								<div class="input-group">																		
+							<div class="col-9">
+								<div class="input-group">
 									<i id="remote_color"></i>
 									<input id="remote_color_target" type="text" class="form-control" value="" />
 									<div class="input-group-append">
-										<span id="remote_color_target_invoker" class="input-group-text"> </span>									
-									</div>									
+										<span id="remote_color_target_invoker" class="input-group-text"> </span>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -481,10 +481,10 @@
 							</div>
 							<div class="col-9">
 								<div class="input-group">
-									<select id="effect_select" class="form-select"></select>									
+									<select id="effect_select" class="form-select"></select>
 								</div>
 							</div>
-						</div>						
+						</div>
 						<div class="row">
 							<div class="col-3 col-form-label mb-3">
 								<label for="remote_duration" data-i18n="remote_input_duration"></label>
@@ -504,42 +504,42 @@
 								</div>
 							</div>
 						</div>
-						<div class="row">							
+						<div class="row">
 							<div class="col-3 col-form-label mb-3">
 								<label for="effectPriority" data-i18n="remote_input_priority"></label>
 							</div>
 							<div class="col-9">
-								<div class="input-group">								
-									<input class="form-control" type="number" id="effectPriority" value="64" >									
+								<div class="input-group">
+									<input class="form-control" type="number" id="effectPriority" value="64" >
 								</div>
 							</div>
-						</div>						
+						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="effect_json" rows="11" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="effectsButtons" onclick='CopyLinkSafe($("#effect_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="effectsButtons" onclick='CopyJson($("#effect_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="effectsButtons" onclick='RunItSafe($("#effect_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
-	
+
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_video_controls"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_video_controls"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -551,60 +551,60 @@
 									<span data-i18n="json_api_video_controls_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_brightness_title"></span>									
-									<input class="form-control" name="videoVControl" type="number" id="VControlBrightness" value="">									
-								</div>								
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_brightness_title"></span>
+									<input class="form-control" name="videoVControl" type="number" id="VControlBrightness" value="">
+								</div>
 							</div>
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_contrast_title"></span>									
-									<input class="form-control" name="videoVControl" type="number" id="VControlContrast" value="">									
-								</div>								
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_contrast_title"></span>
+									<input class="form-control" name="videoVControl" type="number" id="VControlContrast" value="">
+								</div>
 							</div>
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_saturation_title"></span>									
-									<input class="form-control" name="videoVControl" type="number" id="VControlSaturation" value="">									
-								</div>								
-							</div>							
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_saturation_title"></span>
+									<input class="form-control" name="videoVControl" type="number" id="VControlSaturation" value="">
+								</div>
+							</div>
 							<div class="col-12 col-xxl-10 mb-1">
 								<div class="input-group">
-									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_hue_title"></span>									
-									<input class="form-control" name="videoVControl" type="number" id="VControlHue" value="">									
-								</div>								
-							</div>							
-							
+									<span class="input-group-text col-8" data-i18n="edt_conf_stream_hardware_hue_title"></span>
+									<input class="form-control" name="videoVControl" type="number" id="VControlHue" value="">
+								</div>
+							</div>
+
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="video_VControl_json" rows="10" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="videoVControlButtons" onclick='CopyLink($("#video_VControl_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="videoVControlButtons" onclick='CopyJson($("#video_VControl_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="videoVControlButtons" onclick='RunIt($("#video_VControl_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
 
 	<div class="card card-default col-12 col-xl-11 col-xxl-10 text-start">
-		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_smoothing"></span></div>		
+		<div class="card-header"><i class="fa fa-podcast fa-fw"></i><span data-i18n="json_api_smoothing"></span></div>
 		<div class="card-body" >
 			<div class="w-100" >
 				<div class="row">
@@ -616,7 +616,7 @@
 									<span data-i18n="json_api_smoothing_expl"></span>
 								</div>
 							</div>
-						</div>				
+						</div>
 						<div class="row">
 							<div class="col-8 text-start">
 								<div class="form-check">
@@ -632,32 +632,32 @@
 						<div class="row mt-2">
 							<div class="col-8 text-start">
 								<div class="input-group">
-									<span class="input-group-text mb-1" data-i18n="edt_conf_smooth_time_ms_title"></span>									
-									<input class="form-control mb-1" type="number" id="json_api_smoothing_time" value="">									
-								</div>				
+									<span class="input-group-text mb-1" data-i18n="edt_conf_smooth_time_ms_title"></span>
+									<input class="form-control mb-1" type="number" id="json_api_smoothing_time" value="">
+								</div>
 							</div>
 						</div>
 					</div>
 					<div class="col-12 col-lg-6">
-						<div class="form-group">							
+						<div class="form-group">
 							<textarea class="form-control" id="smoothingControl_json" rows="8" placeholder="JSON output" readonly></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="card-footer">			
+		<div class="card-footer">
 			<div class="d-flex flex-row-reverse bd-highlight mb-3">
 				<div class="ms-2">
 					<button type="button" name="smoothingControlButtons" onclick='CopyLink($("#smoothingControl_json"))' class="disabled btn btn-primary"><span data-i18n="json_api_copy_link">Copy link</span></button>
 				</div>
 				<div class="ms-2">
 					<button type="button" name="smoothingControlButtons" onclick='CopyJson($("#smoothingControl_json"))' class="disabled btn btn-secondary"><span data-i18n="json_api_copy_json">Copy json</span></button>
-				</div>				
+				</div>
 				<div class="ms-2">
 					<button type="button" name="smoothingControlButtons" onclick='RunIt($("#smoothingControl_json"))' class="disabled btn btn-danger"><span data-i18n="json_api_run_it">Run it</span></button>
 				</div>
-			</div>				
+			</div>
 		</div>
 	</div>
 </div>

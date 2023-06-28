@@ -158,40 +158,40 @@ function compareHyperHdrVersion(compareA, compareB)
 		console.log(`Invalid length: A:${compareA.length} B:${compareB.length}`);
 		return true;
 	}
-	
+
 	if (isNaN(compareA[0]))
 		compareA = compareA.substring(1);
 	if (isNaN(compareB[0]))
 		compareB = compareB.substring(1);
-		
+
 	if ((compareA.indexOf('alpha') >= 0) &&
 		(compareB.indexOf('alpha') < 0))
 		{
 			return false;
 		}
-		
+
 	if ((compareB.indexOf('alpha') >= 0) &&
 		(compareA.indexOf('alpha') < 0))
 		{
 			return true;
-		}		
-		
-		
+		}
+
+
 	var valueA = compareA.split('.');
 	var valueB = compareB.split('.');
-	
+
 	if (valueA.length < 4 || valueB.length < 4)
 	{
 		console.log(`Invalid length: A:${valueA.length} B:${valueB.length}`);
 		return true;
 	}
-	
+
 	var finalA = "";
 	for (var i = 0; i < valueA[3].length; i++)
 		if (!isNaN(valueA[3][i]))
 			finalA = finalA.concat(valueA[3][i]);
 	valueA[3] = finalA;
-	
+
 	var finalB = "";
 	for (var i = 0; i < valueB[3].length; i++)
 		if (!isNaN(valueB[3][i]))
@@ -211,7 +211,7 @@ function compareHyperHdrVersion(compareA, compareB)
 		if (Number(valueA[0]) >= Number(valueB[0]))
 			return true;
 	}
-	
+
 	for (var i = 0; i < 4; i++)
 	{
 		if (Number(valueA[i]) > Number(valueB[i]))
@@ -223,6 +223,6 @@ function compareHyperHdrVersion(compareA, compareB)
 			return false;
 		}
 	}
-	
+
 	return false;
 }

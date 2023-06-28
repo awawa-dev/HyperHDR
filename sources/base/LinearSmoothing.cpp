@@ -43,7 +43,7 @@ LinearSmoothing::LinearSmoothing(const QJsonDocument& config, HyperHdrInstance* 
 {
 	// timer
 	_timer = new QTimer(this);
-	_timer->setTimerType(Qt::PreciseTimer);	
+	_timer->setTimerType(Qt::PreciseTimer);
 
 	// init cfg 0 (default)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
@@ -234,7 +234,7 @@ void LinearSmoothing::LinearSetup(const std::vector<ColorRgb>& ledValues)
 	_targetTime = InternalClock::nowPrecise() + _settlingTime;
 	_targetValues = ledValues;
 
-	/////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
+	/////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	if ((!_previousValues.empty() && (_previousValues.size() != _targetValues.size())) || _previousTime > _targetTime)
 	{

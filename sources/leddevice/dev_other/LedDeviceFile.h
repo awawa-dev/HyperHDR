@@ -65,12 +65,12 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;	
+	int write(const std::vector<ColorRgb>& ledValues) override;
 
 private:
 
 	QDateTime _lastWriteTime;
-	
+
 	QFile* _file;
 
 	QString _fileName;

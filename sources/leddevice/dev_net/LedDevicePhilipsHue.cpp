@@ -1968,7 +1968,7 @@ int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValue
 void LedDevicePhilipsHue::writeStream(bool flush)
 {
 	if (isApiV2())
-	{		
+	{
 		std::vector<uint8_t> payload = prepareStreamDataV2();
 		writeBytes(static_cast<unsigned int>(payload.size()), reinterpret_cast<unsigned char*>(payload.data()), flush);
 		return;
@@ -2055,7 +2055,7 @@ void LedDevicePhilipsHue::setTransitionTime(PhilipsHueLight& light)
 }
 
 void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
-{	
+{
 	if (!light.hasColor() || light.getColor() != color)
 	{
 		if (!_useHueEntertainmentAPI)

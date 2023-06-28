@@ -53,7 +53,7 @@ SuspendHandler::SuspendHandler()
 		std::cout << "SYSTEM BUS IS NOT CONNECTED!\n";
 		return;
 	}
-		
+
 	if (!bus.connect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
 		std::cout << "COULD NOT REGISTER SLEEP HANDLER!\n";
 	else
@@ -61,7 +61,7 @@ SuspendHandler::SuspendHandler()
 }
 
 void SuspendHandler::sleeping(bool sleep)
-{	
+{
 	if (sleep)
 		QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, false));
 	else

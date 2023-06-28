@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
 		ColorOption&      argWAdjust            = parser.add<ColorOption>  ('W', "whiteAdjustment"        , "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
 		ColorOption&      argbAdjust            = parser.add<ColorOption>  ('b', "blackAdjustment"        , "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
 		DoubleOption&     argLumAdjust          = parser.add<DoubleOption>  ('X', "luminanceGain"          , "Luminance gain (1=default)");
-		DoubleOption&     argSatAdjust          = parser.add<DoubleOption>  ('Z', "saturationGain"         , "Saturation gain (1=default)");		
-		ColorOption&      argTempAdjust          = parser.add<ColorOption>  ('T', "temperatureAdjustment"  , "Set the adjustment of color's temperature (requires in hex format as RRGGBB)");		
+		DoubleOption&     argSatAdjust          = parser.add<DoubleOption>  ('Z', "saturationGain"         , "Saturation gain (1=default)");
+		ColorOption&      argTempAdjust          = parser.add<ColorOption>  ('T', "temperatureAdjustment"  , "Set the adjustment of color's temperature (requires in hex format as RRGGBB)");
 		Option&           argMapping            = parser.add<Option>       ('m', "ledMapping"             , "Set the method for image to led mapping valid values: multicolor_mean, unicolor_mean");
 		IntOption&        argHdr                = parser.add<IntOption>    ('H', "hdr"                    , "0 = HDR off; 1 =  HDR on");
 		IntOption&        argSource             = parser.add<IntOption>    (0x0, "sourceSelect"           , "Set current active priority channel and deactivate auto source switching");

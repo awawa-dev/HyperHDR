@@ -42,7 +42,7 @@ ImageProcessingUnit::ImageProcessingUnit(HyperHdrInstance* hyperhdr)
 	_priority(-1),
 	_hyperhdr(hyperhdr)
 {
-	
+
 	connect(this, &ImageProcessingUnit::processImageSignal, this, &ImageProcessingUnit::processImage, Qt::ConnectionType::QueuedConnection);
 	connect(this, &ImageProcessingUnit::clearQueueImageSignal, this, &ImageProcessingUnit::clearQueueImage);
 	connect(this, &ImageProcessingUnit::queueImageSignal, this, &ImageProcessingUnit::queueImage);
@@ -75,7 +75,7 @@ void ImageProcessingUnit::processImage()
 {
 	if (_priority < 0 || (_frameBuffer.width() == 1 && _frameBuffer.height() == 1))
 		return;
-	
+
 	ImageProcessor* imageProcessor = _hyperhdr->getImageProcessor();
 
 	if (imageProcessor != nullptr)
@@ -87,7 +87,7 @@ void ImageProcessingUnit::processImage()
 
 		if (image2leds != nullptr && image2leds->width() == _frameBuffer.width() && image2leds->height() == _frameBuffer.height())
 		{
-			std::vector<ColorRgb> colors = image2leds->Process(_frameBuffer, imageProcessor->advanced);	
+			std::vector<ColorRgb> colors = image2leds->Process(_frameBuffer, imageProcessor->advanced);
 
 			_hyperhdr->updateLedsValues(_priority, colors);
 			emit dataReadySignal(colors);

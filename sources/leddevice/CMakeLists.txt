@@ -23,14 +23,14 @@ include_directories(
 FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_HEADER_DIR}/*.h"
 	"${CURRENT_SOURCE_DIR}/*.h"
-	"${CURRENT_SOURCE_DIR}/*.cpp"		
+	"${CURRENT_SOURCE_DIR}/*.cpp"
 	"${CURRENT_SOURCE_DIR}/dev_net/*.h"
 	"${CURRENT_SOURCE_DIR}/dev_net/*.cpp"
 	"${CURRENT_SOURCE_DIR}/dev_other/*.h"
 	"${CURRENT_SOURCE_DIR}/dev_other/*.cpp"
 )
 
-IF ( HAVE_SERIAL_LED )	
+IF ( HAVE_SERIAL_LED )
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_SOURCE_DIR}/dev_serial/*.h" "${CURRENT_SOURCE_DIR}/dev_serial/*.cpp")
 endif()
 
@@ -114,7 +114,7 @@ if (EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
 else()
 	message(WARNING "MBEDTLS version 3 or above not detected")
 	if (MBEDTLS_LIBRARIES)
-		message(WARNING "Including system MBEDTLS version")	
+		message(WARNING "Including system MBEDTLS version")
 		include_directories(${MBEDTLS_INCLUDE_DIR})
 		target_link_libraries(leddevice ${MBEDTLS_LIBRARIES})
 		target_include_directories(leddevice PRIVATE ${MBEDTLS_INCLUDE_DIR})

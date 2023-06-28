@@ -25,10 +25,10 @@ class SoundCapLinux : public SoundCapture
 			void    Stop() override;
 
 			snd_pcm_t*				_handle;
-			snd_async_handler_t*	_pcmCallback;	
+			snd_async_handler_t*	_pcmCallback;
 
 	private:
 			static void RecordCallback(snd_async_handler_t* audioHandler);
 
-			static int16_t    _soundBuffer[(1<<SOUNDCAPLINUX_BUF_LENP)*2];			
+			static int16_t    _soundBuffer[(1<<SOUNDCAPLINUX_BUF_LENP)*2];
 };

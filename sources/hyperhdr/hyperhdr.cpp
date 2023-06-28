@@ -143,7 +143,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 #elif defined(ENABLE_SOUNDCAPMACOS)
 	_snd = new SoundCapMacOS(getSetting(settings::type::SNDEFFECT), this);
 	connect(this, &HyperHdrDaemon::settingsChanged, _snd, &SoundCapMacOS::handleSettingsUpdate);
-#endif		
+#endif
 	// init EffectFileHandler
 	EffectDBHandler* efh = new EffectDBHandler(rootPath, getSetting(settings::type::EFFECTS), this);
 	connect(this, &HyperHdrDaemon::settingsChanged, efh, &EffectDBHandler::handleSettingsUpdate);
@@ -285,7 +285,7 @@ void HyperHdrDaemon::freeObjects()
 #ifdef ENABLE_BONJOUR
 	delete _bonjourBrowserWrapper;
 	_bonjourBrowserWrapper = nullptr;
-#endif	
+#endif
 
 	delete _mqtt;
 	delete _v4l2Grabber;
@@ -618,7 +618,7 @@ void HyperHdrDaemon::loadCEC()
 
 void HyperHdrDaemon::unloadCEC()
 {
-#if defined(ENABLE_CEC)	
+#if defined(ENABLE_CEC)
 	if (_cecHandler != nullptr)
 	{
 		disconnect(_cecHandler, &cecHandler::stateChange, this, &HyperHdrDaemon::enableCEC);

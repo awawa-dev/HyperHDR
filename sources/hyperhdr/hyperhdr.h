@@ -182,7 +182,7 @@ private:
 	DxWrapper*				_dxGrabber;
 	X11Wrapper*				_x11Grabber;
 	FrameBufWrapper*		_fbGrabber;
-	PipewireWrapper*		_pipewireGrabber;	
+	PipewireWrapper*		_pipewireGrabber;
 	cecHandler*				_cecHandler;
 	SSDPHandler*			_ssdp;
 	FlatBufferServer*		_flatBufferServer;

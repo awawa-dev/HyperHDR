@@ -82,7 +82,7 @@ SystemPerformanceCounters::~SystemPerformanceCounters()
 		return;
 
 	if (prevPerfStats)
-	{				
+	{
 		size_t prevCpuInfoSize = sizeof(integer_t) * prevPerfNum;
 		vm_deallocate(mach_task_self(), (vm_address_t)prevPerfStats, prevCpuInfoSize);
 		prevPerfStats = NULL;
@@ -106,7 +106,7 @@ QString SystemPerformanceCounters::getCPU()
 			natural_t numberOfCPU = 0U;
 			mach_msg_type_number_t currentPerfNum;
 			processor_info_array_t currentStats;
-			
+
 			if (host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numberOfCPU, &currentStats, &currentPerfNum) == KERN_SUCCESS)
 			{
 				if (prevPerfStats)
@@ -131,7 +131,7 @@ QString SystemPerformanceCounters::getCPU()
 						totTotal += total;
 					}
 
-					
+
 					valCPU = (totUsage * 100.0f) / std::max(totTotal, 0.00001);
 
 					valCPU = std::min(std::max(valCPU, 0.0), 100.0);
@@ -144,7 +144,7 @@ QString SystemPerformanceCounters::getCPU()
 					result =  QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
 
 					size_t prevCpuInfoSize = sizeof(integer_t) * prevPerfNum;
-					vm_deallocate(mach_task_self(), (vm_address_t)prevPerfStats, prevCpuInfoSize);					
+					vm_deallocate(mach_task_self(), (vm_address_t)prevPerfStats, prevCpuInfoSize);
 				}
 
 				prevPerfStats = currentStats;
@@ -188,7 +188,7 @@ QString SystemPerformanceCounters::getRAM()
 				qint64 takenMem = qint64(usedMemory) / (1024 * 1024);
 				qint64 aspect = (takenMem * 100) / totalPhysMem;
 				QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-				return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);				
+				return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
 			}
 		}
 	}

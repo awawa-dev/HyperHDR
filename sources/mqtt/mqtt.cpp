@@ -34,11 +34,11 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 				QSTRING_CSTR(host), port, (is_ssl) ? "SSL": "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
 
 	QHostAddress adr(host);
-	
-	
+
+
 	if (is_ssl)
 	{
-		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();	
+		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
 		_clientInstance = new QMQTT::Client(host, port, sslConfig);
 	 }
 	else
@@ -54,7 +54,7 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 
 	if (!password.isEmpty())
 		_clientInstance->setPassword(password.toLocal8Bit());
-		
+
 	if (is_ssl && ignore_ssl_errors)
 	{
 		QObject::connect(_clientInstance, &QMQTT::Client::sslErrors, [&](const QList<QSslError>& errors) {
@@ -65,12 +65,12 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 	QObject::connect(_clientInstance, &QMQTT::Client::connected, this, &mqtt::connected);
 	QObject::connect(_clientInstance, &QMQTT::Client::received, this, &mqtt::received);
 	_clientInstance->connectToHost();
-}	
+}
 
 void mqtt::stop()
 {
 	if (_clientInstance != nullptr)
-	{		
+	{
 		delete _clientInstance;
 		_clientInstance = nullptr;
 	}
@@ -183,6 +183,6 @@ void mqtt::received(const QMQTT::Message& message)
 			manager->deleteLater();
 		});
 
-		manager->post(QNetworkRequest(QUrl(address)), message.payload());		
+		manager->post(QNetworkRequest(QUrl(address)), message.payload());
 	}
 }

@@ -41,7 +41,7 @@ int16_t    SoundCapMacOS::_soundBuffer[(1<<SOUNDCAPMACOS_BUF_LENP)*2];
 {
 @public
 	SoundCapMacOS*		_avfGrabber;
-	dispatch_queue_t	_sequencer;	
+	dispatch_queue_t	_sequencer;
 	AVCaptureSession*	_nativeSession;
 }
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
@@ -76,13 +76,13 @@ AudioStreamDelegate* _avfSoundDelegate = nullptr;
 
 SoundCapMacOS::SoundCapMacOS(const QJsonDocument& effectConfig, QObject* parent)
                             : SoundCapture(effectConfig, parent)
-{		
+{
 	ListDevices();
 }
 
 
 void SoundCapMacOS::ListDevices()
-{	
+{
 	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession
 			discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
 			mediaType:AVMediaTypeAudio
@@ -91,7 +91,7 @@ void SoundCapMacOS::ListDevices()
 	if (session!=nullptr)
 	{
 		for (AVCaptureDevice* device in session.devices)
-		{	
+		{
 			_availableDevices.append(QString(device.localizedName.UTF8String) + " (" + QString(device.uniqueID.UTF8String) + ")");
 		}
 	}
@@ -99,13 +99,13 @@ void SoundCapMacOS::ListDevices()
 
 bool SoundCapMacOS::getPermission()
 {
-	
+
 	if ([AVCaptureDevice respondsToSelector:@selector(authorizationStatusForMediaType:)])
 	{
         if ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio] == AVAuthorizationStatusAuthorized)
 		{
             Info(Logger::getInstance("HYPERHDR"), "HyperHDR has the sound capture's permission");
-			return true;	
+			return true;
         }
         else
 		{
@@ -113,7 +113,7 @@ bool SoundCapMacOS::getPermission()
                 if (grantedPerm)
                     Info(Logger::getInstance("HYPERHDR"), "Got the sound capture permission. Please restart the application.");
                 else
-					Error(Logger::getInstance("HYPERHDR"), "HyperHDR has NOT been granted the sound capture's permission");                				
+					Error(Logger::getInstance("HYPERHDR"), "HyperHDR has NOT been granted the sound capture's permission");                
             } ];
         }
     }
@@ -133,7 +133,7 @@ SoundCapMacOS::~SoundCapMacOS()
 void SoundCapMacOS::RecordCallback(uint32_t frameBytes, uint8_t* rawAudioData)
 {
 	try
-	{		
+	{
 		if (_isRunning)
 		{
 			size_t     destSize = (1 << SOUNDCAPMACOS_BUF_LENP)*sizeof(int16_t);
@@ -144,7 +144,7 @@ void SoundCapMacOS::RecordCallback(uint32_t frameBytes, uint8_t* rawAudioData)
 			{
 				*destStart = *rawAudioData;
 			}
-			
+
 			if (_soundBufferIndex == destSize && AnaliseSpectrum(_soundBuffer, SOUNDCAPMACOS_BUF_LENP))
 			{
 				_resultIndex++;
@@ -166,19 +166,19 @@ void SoundCapMacOS::RecordCallback(uint32_t frameBytes, uint8_t* rawAudioData)
 void SoundCapMacOS::Start()
 {
 	if (!getPermission())
-		return;	
-	
+		return;
+
 	if (_isActive && !_isRunning)
 	{
 		bool    		notFound = true;
 
 		_soundBufferIndex = 0;
-	
+
 		for (AVCaptureDevice* device in [AVCaptureDeviceDiscoverySession
 										discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
 										mediaType:AVMediaTypeAudio
 										position:AVCaptureDevicePositionUnspecified].devices)
-		{	
+		{
 			QString current = QString(device.localizedName.UTF8String) + " (" + QString(device.uniqueID.UTF8String) + ")";
 			if (current == _selectedDevice && notFound)
 			{
@@ -190,7 +190,7 @@ void SoundCapMacOS::Start()
 					Error(Logger::getInstance("HYPERHDR"),  "Audio listener creation failed");
 				}
 				else
-				{							
+				{
 					_avfSoundDelegate->_nativeSession = [AVCaptureSession new];
 
 					NSError* apiError = nil;
@@ -216,7 +216,7 @@ void SoundCapMacOS::Start()
 						AudioChannelLayout channelLayout;
 						bzero( &channelLayout, sizeof(channelLayout));
 						channelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
-						
+
 						output.audioSettings = [NSDictionary dictionaryWithObjectsAndKeys:
 												[ NSNumber numberWithInt: kAudioFormatLinearPCM ], AVFormatIDKey,
 												[ NSNumber numberWithInt: 1 ], AVNumberOfChannelsKey,
@@ -226,8 +226,8 @@ void SoundCapMacOS::Start()
 												[ NSNumber numberWithInt: 16], AVLinearPCMBitDepthKey,
 												[ NSNumber numberWithBool: NO], AVLinearPCMIsBigEndianKey,
 												[ NSData dataWithBytes: &channelLayout length: sizeof(channelLayout) ], AVChannelLayoutKey,
-												nil];																					
-		
+												nil];
+
 						_avfSoundDelegate->_avfGrabber = this;
 						_avfSoundDelegate->_sequencer = dispatch_queue_create("AudioDataOutputQueue", DISPATCH_QUEUE_SERIAL);
 						[output setSampleBufferDelegate:_avfSoundDelegate queue:_avfSoundDelegate->_sequencer];
@@ -239,14 +239,14 @@ void SoundCapMacOS::Start()
 								Info(Logger::getInstance("HYPERHDR"),  "AVF audio grabber starts capturing");
 							else
 								Error(Logger::getInstance("HYPERHDR"),  "AVF audio grabber isn't capturing");
-						}			
-		
+						}
+
 						[device unlockForConfiguration];
 
 						Info(Logger::getInstance("HYPERHDR"),  "AVF audio grabber initialized successfully");
-						_isRunning = true;						
+						_isRunning = true;
 					}
-				}				
+				}
 			}
 		}
 
@@ -260,13 +260,13 @@ void SoundCapMacOS::Start()
 
 void SoundCapMacOS::Stop()
 {
-	
+
 	if (!_isRunning)
 		return;
 
 	Info(Logger::getInstance("HYPERHDR"),  "Disconnecting from sound driver: '%s'", QSTRING_CSTR(_selectedDevice));
 
-		
+
 	_isRunning = false;
 
 	if (_avfSoundDelegate!=nullptr && _avfSoundDelegate->_nativeSession  != nullptr)
@@ -274,7 +274,7 @@ void SoundCapMacOS::Stop()
 		[_avfSoundDelegate->_nativeSession stopRunning];
 		[_avfSoundDelegate->_nativeSession release];
 		_avfSoundDelegate->_nativeSession = nullptr;
-		_avfSoundDelegate->_sequencer = nullptr;				
+		_avfSoundDelegate->_sequencer = nullptr;
 	}
 	_avfSoundDelegate = nullptr;
 	Info(Logger::getInstance("HYPERHDR"),  "AVF sound grabber uninit");
