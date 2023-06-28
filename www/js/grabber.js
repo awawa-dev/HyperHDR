@@ -173,7 +173,7 @@ $(document).ready( function(){
 			}
 			if (grabbers.indexOf('Media Foundation') > -1)
 			{
-				conf_video_section_editor.getEditor('root.videoGrabber.input').disable();         
+				conf_video_section_editor.getEditor('root.videoGrabber.input').disable();
 			}
 		}
 	}
@@ -270,7 +270,7 @@ $(document).ready( function(){
 		
 		function cleanButtons()
 		{
-			if (document.getElementsByClassName("button_rate_mode_selected").length == 0 && 
+			if (document.getElementsByClassName("button_rate_mode_selected").length == 0 &&
 				document.getElementsByClassName("button_vid_mode_selected").length == 0)
 				{
 					var butr = document.getElementsByClassName("button_rate_mode");
@@ -290,7 +290,7 @@ $(document).ready( function(){
 		{
 			var trg = document.getElementById('ready_to_set');
 			
-			if (document.getElementsByClassName("button_rate_mode_selected").length == 1 && 
+			if (document.getElementsByClassName("button_rate_mode_selected").length == 1 &&
 				document.getElementsByClassName("button_vid_mode_selected").length == 1)
 				trg.classList.remove("disabled");
 			else
@@ -419,11 +419,11 @@ $(document).ready( function(){
 			modeButton.append(content);
 			
 			if (tag == 'button_vid_mode')
-				modeButton.click(function(e){    
+				modeButton.click(function(e){
 					videoClick(e);
 				});
 			else
-				modeButton.click(function(e){    
+				modeButton.click(function(e){
 					rateClick(e);
 				});			
 			
@@ -488,7 +488,7 @@ $(document).ready( function(){
 
 			buttonIcon.attr('aria-hidden','true')
 					  .addClass('fa fa-info fa-fw');
-					  
+					
 			button.attr('id','video_info_button')
 				  .attr('data-bs-toggle','modal')
 				  .attr('data-bs-target','#videoDeviceInfoPanel')
@@ -497,7 +497,7 @@ $(document).ready( function(){
 				  .addClass('btn btn-warning')
 				  .append(buttonIcon)
 				  .append('Info');
-				  
+				
 			document.getElementById('root[videoGrabber][device]').style.width = String(77 - correction) + "%";
 			document.getElementById('root[videoGrabber][device]').parentElement.appendChild(button[0]);
 							
@@ -544,13 +544,13 @@ $(document).ready( function(){
 
 				buttonIcon.attr('aria-hidden','true')
 					  .addClass('fa fa-play-circle  fa-fw');
-					  
-				button.attr('id','video_calibration_button')				 
+					
+				button.attr('id','video_calibration_button')				
 				  .attr('style', "position:absolute; right:0px; top:0px; border-top-left-radius: 4px; border-bottom-left-radius: 4px;")
 				  .addClass('btn btn-success')
 				  .append(buttonIcon)
 				  .append($.i18n("edt_conf_stream_calibrate_button"));
-				  
+				
 				placeHolder[0].parentElement.appendChild(button[0]);
 				
 				button.off().on('click', function () {
@@ -602,7 +602,7 @@ $(document).ready( function(){
 
 	
 	 		
-	if(VIDEO_AVAILABLE) 
+	if(VIDEO_AVAILABLE)
 	{
 		$('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_stream_heading_title"), 'editor_container_video_device', 'btn_submit_videoGrabber'));
 		$('#conf_cont').append(createHelpTable(window.schema.videoGrabber.properties, $.i18n("edt_conf_stream_heading_title")));
@@ -625,7 +625,7 @@ $(document).ready( function(){
 	if(VIDEO_AVAILABLE)
 		BuildVideoEditor();	
 		
-	if(SYSTEM_AVAILABLE) 
+	if(SYSTEM_AVAILABLE)
 	{
 		window.schema.systemGrabber.properties.device.enum = ["auto"];
 		window.schema.systemGrabber.properties.device.options = {};
@@ -655,7 +655,7 @@ $(document).ready( function(){
 			requestWriteConfig(conf_editor_systemControl.getValue());
 		});
 		
-		$('#btn_submit_systemGrabber').off().on('click',function() 
+		$('#btn_submit_systemGrabber').off().on('click',function()
 		{
 			var systemSaveOptions = conf_system_section_editor.getValue();
 			requestWriteConfig(systemSaveOptions);
@@ -766,19 +766,19 @@ $(document).ready( function(){
 			SelectedDeviceChanged();
 		});
 
-		$('#btn_submit_videoGrabber').off().on('click',function() 
+		$('#btn_submit_videoGrabber').off().on('click',function()
 		{
 			var videoSaveOptions = conf_video_section_editor.getValue();
 			requestWriteConfig(videoSaveOptions);
 		});
 		
 		//create introduction
-		if(window.showOptHelp) 
-		{    
+		if(window.showOptHelp)
+		{
 			createHint("intro", $.i18n('conf_grabber_video_intro'), "editor_container_video_device");
 		};
 
-	};  
+	};
 
 	removeOverlay();
 });

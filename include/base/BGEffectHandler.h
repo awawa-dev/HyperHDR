@@ -6,7 +6,7 @@
 
 ///
 /// @brief Handle the background Effect settings, reacts on runtime to settings changes
-/// 
+///
 class BGEffectHandler : public QObject
 {
 	Q_OBJECT

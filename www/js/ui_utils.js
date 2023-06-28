@@ -69,7 +69,7 @@ function loadContent(event, forceRefresh)
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 
 	if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperHdrInstance))
-		if ((typeof lastSelectedInstance !== 'undefined') && 
+		if ((typeof lastSelectedInstance !== 'undefined') &&
 			(typeof window.serverInfo.instance[lastSelectedInstance] !== 'undefined') &&
 			 typeof(window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)
 		{
@@ -127,7 +127,7 @@ function updateHyperhdrInstanceListing()
 		if (myName.length>20)
 			myName = myName.slice(0,17) + '...';
 		
-		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			  
+		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			
 						'<div class="d-flex" style="cursor: pointer;">'+
 							'<div class="flex ps-1 pe-1 fa-stack fa-1x"><i class="fa fa-stack-1x ' + currInstMarker + '"></i><i class="fa-stack-1x fa icon-invisible"></i></div>'+
 							'<div class="flex pe-2 ' + currTextMarker + '"><span class="h-100" style="display: inline-flex; align-items: center;">'+myName+'</span></div>'+
@@ -207,7 +207,7 @@ function initLanguageSelection()
 			ilink.addClass("fa icon-invisible fa-fw");
 		
 		var item = $('<p>');
-		item.html(availLangText[i]); 
+		item.html(availLangText[i]);
 		
 		$(newLink).append(ilink);
 		$(newLink).append(item);
@@ -783,7 +783,7 @@ function createTableRowFlex(list, head, align)
 			else
 				el.className = 'w-100 d-flex p-2 justify-content-center';
 		}
-		else 
+		else
 			el.className = 'w-100 d-flex p-2';
 		
 		if(head === true)
@@ -818,7 +818,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 	helpBtn.className = "btn btn-warning btn-warning-noset";
 	helpBtn.style.cssFloat = "left";
 	helpBtn.innerHTML = '<i class="fa fa-fw fa-question-circle-o"></i>'+$.i18n('panel_help_button');
-	helpBtn.addEventListener("click", function() 
+	helpBtn.addEventListener("click", function()
 		{
 			var clientObj = helpBtn.parentElement.parentElement.parentElement.parentElement;
 			var target = clientObj.nextElementSibling;
@@ -847,7 +847,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 						breaker.classList.add("w-100");
 						breaker.classList.add("breaker");
 						clientObj.parentNode.insertBefore(breaker, clientObj);
-						clientObj.scrollIntoView({behavior: "smooth"}); 
+						clientObj.scrollIntoView({behavior: "smooth"});
 					}
 				}
 			}
@@ -857,7 +857,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 				helpBtn.classList.remove("btn-warning-set");
 				helpBtn.classList.add("btn-warning-noset");
 				
-				if (clientObj.previousElementSibling != null && 
+				if (clientObj.previousElementSibling != null &&
 					clientObj.previousElementSibling.classList.contains("breaker"))
 				{
 					(clientObj.previousElementSibling).remove();
@@ -865,7 +865,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 				}
 			}			
 		}
-	); 
+	);
 	var common = document.createElement("div");	
 	common.appendChild(helpBtn);
 	common.appendChild(saveBtn);	

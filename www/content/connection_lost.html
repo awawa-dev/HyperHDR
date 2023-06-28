@@ -35,7 +35,7 @@
 	var animation = -1;
 	var animation_value = 0;
 	var animation_target = 0;
-  
+
 	function animate() {
 
 		if (animation < 0)
@@ -55,14 +55,14 @@
 			else
 			{
 				animation_value = animation_target + Math.round(Math.random()* 20) - 10;
-				if (animation_value < 0) 
+				if (animation_value < 0)
 					animation_value = 0;
-				if (animation_value > 100) 
+				if (animation_value > 100)
 					animation_value = 100;				
 			}
 			animation++;
 		}
-		else 
+		else
 			animation = -1;
 
 		if (!connectionLost)

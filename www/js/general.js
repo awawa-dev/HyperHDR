@@ -193,7 +193,7 @@ $(document).ready(function()
 	});
 
 	//export
-	$('#btn_export_conf').off().on('click', async () => 
+	$('#btn_export_conf').off().on('click', async () =>
 	{
 		var d = new Date();
 		var month = d.getMonth() + 1;

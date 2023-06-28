@@ -55,7 +55,7 @@ int16_t    SoundCapMacOS::_soundBuffer[(1<<SOUNDCAPMACOS_BUF_LENP)*2];
     {
 		return;
     }
-	if (!CMSampleBufferDataIsReady(sampleBuffer)) {        
+	if (!CMSampleBufferDataIsReady(sampleBuffer)) {
         return;
     }
     if (_avfGrabber != nullptr)
@@ -66,7 +66,7 @@ int16_t    SoundCapMacOS::_soundBuffer[(1<<SOUNDCAPMACOS_BUF_LENP)*2];
 		if (CMBlockBufferGetDataPointer(blockBuffer, 0, NULL, &frameBytes, &rawSoundData) == kCMBlockBufferNoErr)
 		{
 			_avfGrabber->RecordCallback(frameBytes, (uint8_t*) rawSoundData);
-		}    
+		}
     }
 }
 
@@ -83,14 +83,14 @@ SoundCapMacOS::SoundCapMacOS(const QJsonDocument& effectConfig, QObject* parent)
 
 void SoundCapMacOS::ListDevices()
 {	
-	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession 
+	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession
 			discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
 			mediaType:AVMediaTypeAudio
 			position:AVCaptureDevicePositionUnspecified];
 
 	if (session!=nullptr)
 	{
-		for (AVCaptureDevice* device in session.devices) 
+		for (AVCaptureDevice* device in session.devices)
 		{	
 			_availableDevices.append(QString(device.localizedName.UTF8String) + " (" + QString(device.uniqueID.UTF8String) + ")");
 		}
@@ -101,26 +101,26 @@ bool SoundCapMacOS::getPermission()
 {
 	
 	if ([AVCaptureDevice respondsToSelector:@selector(authorizationStatusForMediaType:)])
-	{       
+	{
         if ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio] == AVAuthorizationStatusAuthorized)
 		{
             Info(Logger::getInstance("HYPERHDR"), "HyperHDR has the sound capture's permission");
 			return true;	
         }
         else
-		{            
+		{
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL grantedPerm) {
-                if (grantedPerm) 
+                if (grantedPerm)
                     Info(Logger::getInstance("HYPERHDR"), "Got the sound capture permission. Please restart the application.");
                 else
 					Error(Logger::getInstance("HYPERHDR"), "HyperHDR has NOT been granted the sound capture's permission");                				
-            } ];            
+            } ];
         }
     }
 	else
 		Error(Logger::getInstance("HYPERHDR"), "Selector for authorizationStatusForMediaType failed");
 
-	Error(Logger::getInstance("HYPERHDR"), "HyperHDR have NOT got the sound capture's permission.");     
+	Error(Logger::getInstance("HYPERHDR"), "HyperHDR have NOT got the sound capture's permission.");
 	return false;
 }
 
@@ -174,10 +174,10 @@ void SoundCapMacOS::Start()
 
 		_soundBufferIndex = 0;
 	
-		for (AVCaptureDevice* device in [AVCaptureDeviceDiscoverySession 
+		for (AVCaptureDevice* device in [AVCaptureDeviceDiscoverySession
 										discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
 										mediaType:AVMediaTypeAudio
-										position:AVCaptureDevicePositionUnspecified].devices) 
+										position:AVCaptureDevicePositionUnspecified].devices)
 		{	
 			QString current = QString(device.localizedName.UTF8String) + " (" + QString(device.uniqueID.UTF8String) + ")";
 			if (current == _selectedDevice && notFound)
@@ -196,9 +196,9 @@ void SoundCapMacOS::Start()
 					NSError* apiError = nil;
 					AVCaptureDeviceInput* input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&apiError];
 
-					if (!input) 
+					if (!input)
 					{
-						Error(Logger::getInstance("HYPERHDR"),  "Could not open capturing sound device: %s", apiError.localizedDescription.UTF8String);        
+						Error(Logger::getInstance("HYPERHDR"),  "Could not open capturing sound device: %s", apiError.localizedDescription.UTF8String);
 					}
 					else
 					{

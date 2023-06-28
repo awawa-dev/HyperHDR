@@ -50,7 +50,7 @@ private:
 private slots:
 	///
 	/// @brief is called whenever a BonjourServiceBrowser emits change
-	/// 
+	///
 	void foundHyperHDR(const QList<BonjourRecord>& list);
 	void foundWLED(const QList<BonjourRecord>& list);
 	void foundPhilipsHUE(const QList<BonjourRecord>& list);

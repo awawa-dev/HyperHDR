@@ -116,7 +116,7 @@ class EspTools
 					break;
 				}
 				else
-					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result)); 
+					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result));
 			}			
 		}
 

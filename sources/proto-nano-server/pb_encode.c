@@ -54,10 +54,10 @@ static bool checkreturn buf_write(pb_ostream_t *stream, const pb_byte_t *buf, si
     size_t i;
     pb_byte_t *dest = (pb_byte_t*)stream->state;
     stream->state = dest + count;
-    
+
     for (i = 0; i < count; i++)
         dest[i] = buf[i];
-    
+
     return true;
 }
 
@@ -91,12 +91,12 @@ bool checkreturn pb_write(pb_ostream_t *stream, const pb_byte_t *buf, size_t cou
 #ifdef PB_BUFFER_ONLY
         if (!buf_write(stream, buf, count))
             PB_RETURN_ERROR(stream, "io error");
-#else        
+#else
         if (!stream->callback(stream, buf, count))
             PB_RETURN_ERROR(stream, "io error");
 #endif
     }
-    
+
     stream->bytes_written += count;
     return true;
 }
@@ -137,14 +137,14 @@ static bool checkreturn encode_array(pb_ostream_t *stream, pb_field_iter_t *fiel
 
     if (PB_ATYPE(field->type) != PB_ATYPE_POINTER && count > field->array_size)
         PB_RETURN_ERROR(stream, "array max size exceeded");
-    
+
 #ifndef PB_ENCODE_ARRAYS_UNPACKED
     /* We always pack arrays if the datatype allows it. */
     if (PB_LTYPE(field->type) <= PB_LTYPE_LAST_PACKABLE)
     {
         if (!pb_encode_tag(stream, PB_WT_STRING, field->tag))
             return false;
-        
+
         /* Determine the total size of packed array. */
         if (PB_LTYPE(field->type) == PB_LTYPE_FIXED32)
         {
@@ -155,7 +155,7 @@ static bool checkreturn encode_array(pb_ostream_t *stream, pb_field_iter_t *fiel
             size = 8 * (size_t)count;
         }
         else
-        { 
+        {
             pb_ostream_t sizestream = PB_OSTREAM_SIZING;
             void *pData_orig = field->pData;
             for (i = 0; i < count; i++)
@@ -167,13 +167,13 @@ static bool checkreturn encode_array(pb_ostream_t *stream, pb_field_iter_t *fiel
             field->pData = pData_orig;
             size = sizestream.bytes_written;
         }
-        
+
         if (!pb_encode_varint(stream, (pb_uint64_t)size))
             return false;
-        
+
         if (stream->callback == NULL)
             return pb_write(stream, NULL, size); /* Just sizing.. */
-        
+
         /* Write the data */
         for (i = 0; i < count; i++)
         {
@@ -232,7 +232,7 @@ static bool checkreturn encode_array(pb_ostream_t *stream, pb_field_iter_t *fiel
             field->pData = (char*)field->pData + field->data_size;
         }
     }
-    
+
     return true;
 }
 
@@ -495,10 +495,10 @@ static bool checkreturn encode_extension_field(pb_ostream_t *stream, const pb_fi
 
         if (!status)
             return false;
-        
+
         extension = extension->next;
     }
-    
+
     return true;
 }
 
@@ -511,7 +511,7 @@ bool checkreturn pb_encode(pb_ostream_t *stream, const pb_msgdesc_t *fields, con
     pb_field_iter_t iter;
     if (!pb_field_iter_begin_const(&iter, fields, src_struct))
         return true; /* Empty message type */
-    
+
     do {
         if (PB_LTYPE(iter.type) == PB_LTYPE_EXTENSION)
         {
@@ -526,7 +526,7 @@ bool checkreturn pb_encode(pb_ostream_t *stream, const pb_msgdesc_t *fields, con
                 return false;
         }
     } while (pb_field_iter_next(&iter));
-    
+
     return true;
 }
 
@@ -554,10 +554,10 @@ bool checkreturn pb_encode_ex(pb_ostream_t *stream, const pb_msgdesc_t *fields, 
 bool pb_get_encoded_size(size_t *size, const pb_msgdesc_t *fields, const void *src_struct)
 {
     pb_ostream_t stream = PB_OSTREAM_SIZING;
-    
+
     if (!pb_encode(&stream, fields, src_struct))
         return false;
-    
+
     *size = stream.bytes_written;
     return true;
 }
@@ -626,7 +626,7 @@ bool checkreturn pb_encode_svarint(pb_ostream_t *stream, pb_int64_t value)
         zigzagged = ~((pb_uint64_t)value << 1);
     else
         zigzagged = (pb_uint64_t)value << 1;
-    
+
     return pb_encode_varint(stream, zigzagged);
 }
 
@@ -675,15 +675,15 @@ bool pb_encode_tag_for_field ( pb_ostream_t* stream, const pb_field_iter_t* fiel
         case PB_LTYPE_SVARINT:
             wiretype = PB_WT_VARINT;
             break;
-        
+
         case PB_LTYPE_FIXED32:
             wiretype = PB_WT_32BIT;
             break;
-        
+
         case PB_LTYPE_FIXED64:
             wiretype = PB_WT_64BIT;
             break;
-        
+
         case PB_LTYPE_BYTES:
         case PB_LTYPE_STRING:
         case PB_LTYPE_SUBMESSAGE:
@@ -691,11 +691,11 @@ bool pb_encode_tag_for_field ( pb_ostream_t* stream, const pb_field_iter_t* fiel
         case PB_LTYPE_FIXED_LENGTH_BYTES:
             wiretype = PB_WT_STRING;
             break;
-        
+
         default:
             PB_RETURN_ERROR(stream, "invalid field type");
     }
-    
+
     return pb_encode_tag(stream, wiretype, field->tag);
 }
 
@@ -703,7 +703,7 @@ bool checkreturn pb_encode_string(pb_ostream_t *stream, const pb_byte_t *buffer,
 {
     if (!pb_encode_varint(stream, (pb_uint64_t)size))
         return false;
-    
+
     return pb_write(stream, buffer, size);
 }
 
@@ -713,7 +713,7 @@ bool checkreturn pb_encode_submessage(pb_ostream_t *stream, const pb_msgdesc_t *
     pb_ostream_t substream = PB_OSTREAM_SIZING;
     size_t size;
     bool status;
-    
+
     if (!pb_encode(&substream, fields, src_struct))
     {
 #ifndef PB_NO_ERRMSG
@@ -721,18 +721,18 @@ bool checkreturn pb_encode_submessage(pb_ostream_t *stream, const pb_msgdesc_t *
 #endif
         return false;
     }
-    
+
     size = substream.bytes_written;
-    
+
     if (!pb_encode_varint(stream, (pb_uint64_t)size))
         return false;
-    
+
     if (stream->callback == NULL)
         return pb_write(stream, NULL, size); /* Just sizing */
-    
+
     if (stream->bytes_written + size > stream->max_size)
         PB_RETURN_ERROR(stream, "stream full");
-        
+
     /* Use a substream to verify that a callback doesn't write more than
      * what it did the first time. */
     substream.callback = stream->callback;
@@ -742,18 +742,18 @@ bool checkreturn pb_encode_submessage(pb_ostream_t *stream, const pb_msgdesc_t *
 #ifndef PB_NO_ERRMSG
     substream.errmsg = NULL;
 #endif
-    
+
     status = pb_encode(&substream, fields, src_struct);
-    
+
     stream->bytes_written += substream.bytes_written;
     stream->state = substream.state;
 #ifndef PB_NO_ERRMSG
     stream->errmsg = substream.errmsg;
 #endif
-    
+
     if (substream.bytes_written != size)
         PB_RETURN_ERROR(stream, "submsg size changed");
-    
+
     return status;
 }
 
@@ -844,19 +844,19 @@ static bool checkreturn pb_enc_bytes(pb_ostream_t *stream, const pb_field_iter_t
     const pb_bytes_array_t *bytes = NULL;
 
     bytes = (const pb_bytes_array_t*)field->pData;
-    
+
     if (bytes == NULL)
     {
         /* Treat null pointer as an empty bytes field */
         return pb_encode_string(stream, NULL, 0);
     }
-    
+
     if (PB_ATYPE(field->type) == PB_ATYPE_STATIC &&
         bytes->size > field->data_size - offsetof(pb_bytes_array_t, bytes))
     {
         PB_RETURN_ERROR(stream, "bytes size exceeded");
     }
-    
+
     return pb_encode_string(stream, bytes->bytes, (size_t)bytes->size);
 }
 
@@ -865,7 +865,7 @@ static bool checkreturn pb_enc_string(pb_ostream_t *stream, const pb_field_iter_
     size_t size = 0;
     size_t max_size = (size_t)field->data_size;
     const char *str = (const char*)field->pData;
-    
+
     if (PB_ATYPE(field->type) == PB_ATYPE_POINTER)
     {
         max_size = (size_t)-1;
@@ -928,7 +928,7 @@ static bool checkreturn pb_enc_submessage(pb_ostream_t *stream, const pb_field_i
                 return false;
         }
     }
-    
+
     return pb_encode_submessage(stream, field->submsg_desc, field->pData);
 }
 

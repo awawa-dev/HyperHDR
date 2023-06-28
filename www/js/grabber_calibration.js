@@ -1,5 +1,5 @@
 $(document).ready( function(){
-	class ColorRgb {	  
+	class ColorRgb {	
 	  constructor(_R,_G,_B)
 	  {
 		  this.r = _R;
@@ -47,7 +47,7 @@ $(document).ready( function(){
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
-	canvas.addEventListener('click', function() { 
+	canvas.addEventListener('click', function() {
 			if (!running)
 			{
 				if (canvas.classList.contains("fullscreen-canvas"))
@@ -159,7 +159,7 @@ $(document).ready( function(){
 		
 	function startCalibration()
 	{
-		if (matchMedia('(display-mode: fullscreen)').matches) 
+		if (matchMedia('(display-mode: fullscreen)').matches)
 		{
 			canvas.classList.add("fullscreen-canvas");
 			currentColor = new ColorRgb(0,0,0);
@@ -179,7 +179,7 @@ $(document).ready( function(){
 			drawImage();		
 			setTimeout(() => {
 				requestLutCalibration("capture", checksum, startColor, currentColor, limited, saturation, luminance, gammaR, gammaG, gammaB, coef);
-			}, 1000); 
+			}, 1000);
 		}
 		else
 			alert('Please run fullscreen mode (F11)');

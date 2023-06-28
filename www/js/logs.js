@@ -42,7 +42,7 @@ $(document).ready(function() {
 
 		$(window.hyperhdr).on("cmd-logging-update",function(event){
 			
-			if (!window.location.href.includes("logs")&& 
+			if (!window.location.href.includes("logs")&&
 				 window.location.href.includes("#"))
 			{
 				window.loggingHandlerInstalled = false;

@@ -1,6 +1,6 @@
 name: Build Image
 
-on: 
+on:
   workflow_dispatch:
     inputs:
       tags:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       HYPERHDR_DEB: 'https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/HyperHDR-${{ github.event.inputs.tags }}-Linux-${{ github.event.inputs.architecture }}.deb'
-      
+
     steps:
     - name: Install Dependencies
       run: |
@@ -30,7 +30,7 @@ jobs:
       run: |
         cd CustomPiOS
         sudo bash -x src/make_custom_pi_os HyperHDR
-        sudo chown -R runner HyperHDR        
+        sudo chown -R runner HyperHDR
 
     - name: Download Raspbian Image (32-bits)
       if: github.event.inputs.architecture != 'aarch64'
@@ -50,7 +50,7 @@ jobs:
         echo "workspace_variant=raspios_lite_arm64" >> $GITHUB_ENV
 
     - name: Update HyperHDR modules
-      run: | 
+      run: |
         cd CustomPiOS/HyperHDR/src
         echo 'export DIST_NAME=HyperHDR' > config
         echo 'export DIST_VERSION=${{ github.event.inputs.tags }}' >> config
@@ -59,7 +59,7 @@ jobs:
         echo 'export RPI_IMAGER_DESCRIPTION="A Raspberry Pi distribution for ambient lighting. Ships HyperHDR out-of-the-box."' >> config
         echo 'export RPI_IMAGER_ICON="https://github.com/awawa-dev/HyperHDR/blob/master/resources/icons/hyperhdr-icon-32px.png"' >> config
         echo 'export BASE_IMAGE_ENLARGEROOT=2000' >> config
-        echo 'export BASE_IMAGE_RESIZEROOT=200' >> config      
+        echo 'export BASE_IMAGE_RESIZEROOT=200' >> config
         cd modules/hyperhdr
         echo '#!/usr/bin/env bash'  > start_chroot_script
         echo 'set -x' >> start_chroot_script
@@ -94,7 +94,7 @@ jobs:
         echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
     # artifact upload will take care of zipping for us
-    - uses: actions/upload-artifact@v1      
+    - uses: actions/upload-artifact@v1
       with:
         name: ${{ steps.copy.outputs.image }}
         path: ${{ steps.copy.outputs.image }}.img

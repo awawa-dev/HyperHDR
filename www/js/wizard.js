@@ -61,7 +61,7 @@ function startWizardRGB()
 	$('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qrend') + '</label></td><td class="itd"><select id="wiz_r_select" class="form-select wselect"></select></td></tr><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qgend') + '</label></td><td class="itd"><select id="wiz_g_select" class="form-select wselect"></select></td></tr></tbody></table>');
 	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-bs-dismiss="modal"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
-	//open modal  
+	//open modal
 	var ta5 = new bootstrap.Modal($("#wizard_modal"), {
 		backdrop: "static",
 		keyboard: false
@@ -1510,16 +1510,16 @@ function startWizardWLED(e)
 	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
 	/*$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
-  
+
 	$('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
-  
+
 	$('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">'+$.i18n('wiz_wled_desc2')+'</p></div>');
-  
+
 	createTable("lidsh", "lidsb", "hue_ids_t");
 	$('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'),$.i18n('wiz_pos'),$.i18n('wiz_identify')], true));
 	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
   */
-	//open modal  
+	//open modal
 
 	var ta1 = new bootstrap.Modal($("#wizard_modal"), {
 		backdrop: "static",
@@ -2231,7 +2231,7 @@ function startWizardCololight(e)
 		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
 		+ $.i18n('general_btn_cancel') + '</button>');
 
-	//open modal  
+	//open modal
 	var ta4 = new bootstrap.Modal($("#wizard_modal"), {
 		backdrop: "static",
 		keyboard: false

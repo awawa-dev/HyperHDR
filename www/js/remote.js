@@ -92,7 +92,7 @@ $(document).ready(function()
 			const selectEditor = editor_color.getEditor(sourcePath);
 			
 			if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
-				selectEditor.container.hidden = true; 
+				selectEditor.container.hidden = true;
 			else
 				editor_color.watch(sourcePath,() => {			
 					const editor = editor_color.getEditor(sourcePath);
@@ -382,7 +382,7 @@ $(document).ready(function()
 
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
-	{		      
+	{		
 		cpcolor = getStorage('rmcpcolor');
 		
 		if (!(/^#[0-9A-F]{6}$/i.test(cpcolor)))

@@ -219,7 +219,7 @@ void SoundCapLinux::Start()
 				_pcmCallback = NULL;
 				throw 13;
 			}
- 
+
 		}
 		catch(...)
 		{

@@ -2,7 +2,7 @@ name: HyperHDR Package Build (Github Pages Repo)
 
 on:
   push:
-    tags:        
+    tags:
       - '*'
 
 env:
@@ -22,7 +22,7 @@ jobs:
         niceName: [ Debian ]
         linuxVersion: [ bullseye, bookworm ]
         dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
-        include:        
+        include:
           - dockerImage: x86_64
             dockerName: Debian (amd64)
             arch: amd64
@@ -34,7 +34,7 @@ jobs:
           - dockerImage: arm-64bit-aarch64
             dockerName: Debian (arm64)
             arch: arm64
-            platform: rpi   
+            platform: rpi
           - dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
@@ -58,7 +58,7 @@ jobs:
       # checkout
       - uses: actions/checkout@v3
         with:
-          submodules: true      
+          submodules: true
 
       # generate cache id
       - name: Prepare ccache timestamp
@@ -91,7 +91,7 @@ jobs:
           sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
 
-      # deploy the package      
+      # deploy the package
       - name: Get destination path
         run: |
           echo "REPO_DIR=repo/pool/${{ matrix.linuxVersion }}" >> $GITHUB_ENV
@@ -100,12 +100,12 @@ jobs:
         run: |
           mkdir -p ${{ env.REPO_DIR }}
           mkdir -p repo/others
-          mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||: 
-          mv deploy/Hyper*.rpm repo/others ||: 
-          mv deploy/Hyper*.zst repo/others ||: 
-          rm -r repo/pool/ArchLinux ||: 
+          mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||:
+          mv deploy/Hyper*.rpm repo/others ||:
+          mv deploy/Hyper*.zst repo/others ||:
+          rm -r repo/pool/ArchLinux ||:
 
-      - name: Upload artifacts from commit        
+      - name: Upload artifacts from commit
         uses: actions/upload-artifact@v3
         with:
           name: upload
@@ -124,7 +124,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          path: repo    
+          path: repo
       - name: Deploy the packages
         uses: JamesIves/github-pages-deploy-action@v4
         with:

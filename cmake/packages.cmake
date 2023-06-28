@@ -4,7 +4,7 @@
 # - Check glibc version
 # CHECK_GLIBC_VERSION()
 # Source: https://gist.github.com/likema/f5c04dad837d2f5068ae7a8860c180e7#file-glibc-cmake
-# 
+#
 # Once done this will define
 #
 #   GLIBC_VERSION - glibc version

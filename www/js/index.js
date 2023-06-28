@@ -153,7 +153,7 @@ $(document).ready(function () {
 		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
 		{
 			setTimeout(function(){
-				var supprPwWarnCheckbox = '<div class="text-right">'+$.i18n('dashboard_message_do_not_show_again') + 
+				var supprPwWarnCheckbox = '<div class="text-right">'+$.i18n('dashboard_message_do_not_show_again') +
 					' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>';
 				showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a class="ps-2 callout-link" style="cursor:pointer;" onClick="changePassword()">' +
 					$.i18n('InfoDialog_changePassword_title') + '</a><br/><br/>' + supprPwWarnCheckbox);
@@ -344,7 +344,7 @@ $(document).ready(function () {
 			$('[data-widget="pushmenu"]').PushMenu('collapse');		
 	});
 		
-	$(document).on('collapsed.lte.pushmenu', function(){ 
+	$(document).on('collapsed.lte.pushmenu', function(){
 		document.getElementById('showMenuIcon').style.opacity = 0;
 		document.getElementById('hideMenuIcon').style.opacity = 1;
 	});
@@ -357,9 +357,9 @@ $(document).ready(function () {
 
 function suppressDefaultPwWarning(){
 
-  if (document.getElementById('chk_suppressDefaultPw').checked) 
+  if (document.getElementById('chk_suppressDefaultPw').checked)
 	setStorage("suppressDefaultPwWarning", "true");
-  else 
+  else
 	setStorage("suppressDefaultPwWarning", "false");
 }
 
@@ -385,7 +385,7 @@ $(window).on('resize', function() {
 function resizeMainWindow()
 {	
 	//document.title = ($('#hyper-subpage').width());	
-    if(parseInt($("#main-window-aside").css('margin-left')) < -50) 
+    if(parseInt($("#main-window-aside").css('margin-left')) < -50)
 	{
 		$('#page-content').addClass('main-no-margin');
 		$('#page-content').addClass('small-me');

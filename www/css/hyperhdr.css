@@ -66,11 +66,11 @@ body {
     width: 11rem !important;
 }
 
-.layout_default.picker_wrapper {  
+.layout_default.picker_wrapper {
     width: 36em !important;
 }
 
-.layout_default.picker_wrapper {  
+.layout_default.picker_wrapper {
     z-index: 100;
 }
 
@@ -79,7 +79,7 @@ body {
         width: 11rem !important;
     }
 
-    .layout_default.picker_wrapper {  
+    .layout_default.picker_wrapper {
         width: 30em !important;
     }
 }
@@ -332,7 +332,7 @@ body:not(.dark-mode) pre > #logmessages
     margin-bottom: 1px !important;
 }
 
-#collapse3 > .card-body > .container 
+#collapse3 > .card-body > .container
 {
 	padding-left: 0px;
 	padding-right: 0px;
@@ -620,7 +620,7 @@ body:not(.dark-mode) .lutdownloader{
 }
 
 .crosslineDark {
-     background: 
+     background:
          linear-gradient(to top left,
              rgba(0,0,0,0) 0%,
              rgba(0,0,0,0) calc(50% - 1px),
@@ -636,7 +636,7 @@ body:not(.dark-mode) .lutdownloader{
 }
 
 .crosslineWhite {
-     background: 
+     background:
          linear-gradient(to top left,
              rgba(0,0,0,0) 0%,
              rgba(0,0,0,0) calc(50% - 1.5px),

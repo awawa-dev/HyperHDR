@@ -8,7 +8,7 @@
 
 
 <script>
-var lut = null; 
+var lut = null;
 
 var c1=0.8359375;
 var c2=18.8515625;
@@ -106,7 +106,7 @@ function CorrectionSDR(channel, input)
 
   var parsers = {
     "3dl": {
-      parseHeader: function(lines) {        
+      parseHeader: function(lines) {
 		while (lines[0] !== 'undefined')
 		{
 			if (lines[0].indexOf("#")==-1)
@@ -116,7 +116,7 @@ function CorrectionSDR(channel, input)
 		
         var header = lines.shift().split(" ").map(parseInt);
         var cubeSize = header.length;
-        return {        
+        return {
           cubeSize: cubeSize,
 		  max : 0
         };
@@ -177,7 +177,7 @@ function CorrectionSDR(channel, input)
 				lut[index + lutIndexC(2)]=res[2];							
 			}
 		}
-	}   
+	}
 	rendertest();
   }
 
@@ -196,8 +196,8 @@ function CorrectionSDR(channel, input)
 	  if (lutEntry.g>header.max)
 		  header.max = lutEntry.g;
 	  if (lutEntry.b>header.max)
-		  header.max = lutEntry.b;	  
-      cubeArray[indexes[0]][indexes[1]][indexes[2]] = lutEntry;	  
+		  header.max = lutEntry.b;	
+      cubeArray[indexes[0]][indexes[1]][indexes[2]] = lutEntry;	
     }
 
     return {
@@ -246,8 +246,8 @@ function gam_pq_lin(v) {
 }
 
 function gam_lin_srgb(v) {
-	if (v > 0.0031308) 
-		return ((1.055 * Math.pow(v, (1.0 / 2.4))) - 0.055) 
+	if (v > 0.0031308)
+		return ((1.055 * Math.pow(v, (1.0 / 2.4))) - 0.055)
 	else
 		return v * 12.92;
 }
@@ -306,7 +306,7 @@ function handleImage(e){
 		img.src = event.target.result;
 		document.getElementById('backup').src = img.src;
 	}
-	reader.readAsDataURL(e.target.files[0]);     
+	reader.readAsDataURL(e.target.files[0]);
 }
 
 var makeLutSemaphore=0;
@@ -329,9 +329,9 @@ async function SaveLut() {
 	
 	var HDRyuv = new Uint8Array(256*256*256*3);
 	for (var Y = 0; Y < 256; Y++)
-	{	 
+	{	
 		(function() {
-			var y = Y;	  
+			var y = Y;	
 			setTimeout(function() {
 					for (var u = 0; u < 256; u++)
 						for (var v = 0; v < 256; v++)
@@ -350,17 +350,17 @@ async function SaveLut() {
 							HDRyuv[index + lutIndexC(1)]=lut[indexRgb + lutIndexC(1)];
 							HDRyuv[index + lutIndexC(2)]=lut[indexRgb + lutIndexC(2)];
 						}
-					  
+					
 					setProgress((y*50)/255);
 					saveFinished++;
 			}, 0);
 		})();
-	} 
+	}
 	
 	var yuv = new Uint8Array(256*256*256*3);
 	for (var Y = 0; Y < 256; Y++)
 	{
-	 
+	
 	  (function() {
 	  		var y = Y;	
 	  		
@@ -386,8 +386,8 @@ async function SaveLut() {
 		            saveFinished++;
 		        }, 0);
 	  })();
-	  
-	} 
+	
+	}
 	
 	while (saveFinished<256*2)
 		await new Promise(r => setTimeout(r, 750));
@@ -412,7 +412,7 @@ async function checkLut(force)
 	var _minG_SDR = document.getElementById('minG_SDR').value;
 	var _minB_SDR = document.getElementById('minB_SDR').value;
 
-	var change = 
+	var change =
 		(_gainR != gainR ||
 		 _gainG != gainG ||
 		 _gainB != gainB ||
@@ -548,19 +548,19 @@ function RefreshProgress(i)
 }
 
 function gam_lin_srgb_ite(v) {	
-	if (v > 0.018) 
-		return ((1.099 * Math.pow(v, (1.0 / 2.2))) - 0.099) 
+	if (v > 0.018)
+		return ((1.099 * Math.pow(v, (1.0 / 2.2))) - 0.099)
 	else
 		return v * 4.5;
 }
-  
-  
+
+
 function ite(input)
 {    				
 	var dr = clamp(input[0],0,1);
 	var dg = clamp(input[1],0,1);
 	var db = clamp(input[2],0,1);
-	   
+	
 	var y  = 0.299    * dr + 0.587    * dg + 0.114    * db;
 	var Cb = ((- 0.168736 * dr - 0.331264 * dg + 0.5      * db));
 	var Cr = ((+ 0.5      * dr - 0.418688 * dg - 0.081312 * db));		
@@ -598,7 +598,7 @@ function ite(input)
 	input[1] = clamp(B * Lmax,0,255)/255;
 	input[2] = clamp(C * Lmax,0,255)/255;	
 }
- 
+
 function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 {	
 	var cmat = [1.6605, -0.5876, -0.0728,-0.1246,  1.1329, -0.0083,-0.0182, -0.1006,  1.1187];
@@ -622,7 +622,7 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 		buf_rgb[1] = input[1];
 		buf_rgb[2] = input[2];	
 		
-		first[0] = Math.sqrt(clamp(buf_rgb[0] * cmat[0] + buf_rgb[1] * cmat[1] + buf_rgb[2] * cmat[2],0,1)); 
+		first[0] = Math.sqrt(clamp(buf_rgb[0] * cmat[0] + buf_rgb[1] * cmat[1] + buf_rgb[2] * cmat[2],0,1));
 		first[1] = Math.sqrt(clamp(buf_rgb[0] * cmat[3] + buf_rgb[1] * cmat[4] + buf_rgb[2] * cmat[5],0,1));
 		first[2] = Math.sqrt(clamp(buf_rgb[0] * cmat[6] + buf_rgb[1] * cmat[7] + buf_rgb[2] * cmat[8],0,1));	
 	}
@@ -644,9 +644,9 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 		let v0 = input[0];
 		let v1 = input[1];
 		let v2 = input[2];
-		input[0] = clamp(v0 * cmat[0] + v1 * cmat[1] + v2 * cmat[2], 0, 1); 
+		input[0] = clamp(v0 * cmat[0] + v1 * cmat[1] + v2 * cmat[2], 0, 1);
 		input[1] = clamp(v0 * cmat[3] + v1 * cmat[4] + v2 * cmat[5], 0, 1);
-		input[2] = clamp(v0 * cmat[6] + v1 * cmat[7] + v2 * cmat[8], 0, 1); 
+		input[2] = clamp(v0 * cmat[6] + v1 * cmat[7] + v2 * cmat[8], 0, 1);
 	}	
 	
 	for (var chnl = 0; chnl < 3; chnl++) {
@@ -690,7 +690,7 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 	}
 	else if (algo=="H")
 	{
-		for (var chnl = 0; chnl < 3; chnl++) 
+		for (var chnl = 0; chnl < 3; chnl++)
 			input[chnl] = hable(input[chnl])/hable(peak);;			
 	}
 	
@@ -797,7 +797,7 @@ $("#backup").click(function() {
 						</div>					
 					</td>
 				</tr>	
-				<tr height="64px">   
+				<tr height="64px">
 					<td style="text-align:right;vertical-align:middle;">BT.2020 to BT.709 (HDR):</td>
 					<td style="text-align:left" colspan="2">
 						<div class="input-group">
@@ -805,7 +805,7 @@ $("#backup").click(function() {
 						</div>
 					<td>
 				</tr>		
-				<tr height="64px">   
+				<tr height="64px">
 					<td style="text-align:right;vertical-align:middle;"><span data-i18n="lut_generator_gain">Enter gain (HDR, default 60)</span>:</td>
 					<td style="text-align:left" colspan="2">
 						<input class="form-control form-control-inline" type="number" id="gain" min="0" max="10000" value=60 />
@@ -921,7 +921,7 @@ $("#backup").click(function() {
 		<td style="width:49%;text-align:left;padding-left: 1px;"><img id="backup" style="vertical-align: top;width:100%;" width="800" height="600"/></td>
 		<td style="width:1%;"></td>	
 		<td style="width:1%;"></td>
-		<td style="width:49%;text-align:right;padding-right: 1px;"><canvas id="myCanvas" style="vertical-align: top;" width="800" height="600"></canvas>			 
+		<td style="width:49%;text-align:right;padding-right: 1px;"><canvas id="myCanvas" style="vertical-align: top;" width="800" height="600"></canvas>			
 		</td>
 	</tr>
 	<tr height="24px">
@@ -937,7 +937,7 @@ $("#backup").click(function() {
 		<td style="width:49%;text-align:left;padding-left: 1px;"><canvas id="sdrCanvas" style="vertical-align: top;" width="800" height="600"/></td>
 		<td style="width:1%;"></td>
 		<td style="width:1%;"></td>
-		<td style="width:49%;text-align:right;padding-right: 1px;">&nbsp;			 
+		<td style="width:49%;text-align:right;padding-right: 1px;">&nbsp;			
 		</td>
 	</tr>
 	<tr height="24px">

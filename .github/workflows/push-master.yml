@@ -23,7 +23,7 @@ jobs:
       matrix:
         linuxVersion: [ bullseye ]
         dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
-        include:        
+        include:
           - dockerImage: x86_64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (x86_64)
@@ -39,11 +39,11 @@ jobs:
           - dockerImage: arm-64bit-aarch64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
-            platform: rpi            
+            platform: rpi
           - dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
-            platform: linux 
+            platform: linux
     steps:
       # checkout
       - uses: actions/checkout@v3
@@ -104,7 +104,7 @@ jobs:
   macOS:
     name: macOS
     runs-on: macos-12
-    env:     
+    env:
       QT_VERSION: "5"
     steps:
       # Checkout
@@ -134,7 +134,7 @@ jobs:
       - name: Install deps
         shell: bash
         run: brew install qt@${{ env.QT_VERSION }} xz ccache
-        
+
       # Set env
       - name: Set QT5 env
         if: ( env.QT_VERSION == '5' )
@@ -142,7 +142,7 @@ jobs:
         run: |
             export Qt5_DIR=`brew --prefix qt5`;
             echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
-            
+
         # Build process
       - name: Build packages
         env:
@@ -189,19 +189,19 @@ jobs:
         with:
           path: ${{ runner.workspace }}/Qt
           key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
-     
+
       - name: Install QT
         if: steps.cache-qt-windows.outputs.cache-hit != 'true'
-        run: |          
+        run: |
           pip install aqtinstall
           aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
 
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
-          
+
       # Build packages
-      - name: Build packages        
+      - name: Build packages
         env:
           PLATFORM: windows
           CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
@@ -216,7 +216,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: build/Hyper*
-          
+
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
@@ -232,7 +232,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( false )    
+    if: ( false )
     permissions:
       actions: read
       contents: read

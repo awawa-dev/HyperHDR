@@ -4,7 +4,7 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/leddevice)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/leddevice)
 
 IF ( Qt5SerialPort_FOUND OR Qt6SerialPort_FOUND )
-	SET( HAVE_SERIAL_LED ON) 
+	SET( HAVE_SERIAL_LED ON)
 	MESSAGE (STATUS "Found Qt SerialPort library")
 	include_directories( dev_serial )
 else()

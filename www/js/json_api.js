@@ -50,7 +50,7 @@ function RunIt(sender)
 	var text = sender.html().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
 		
-	window.open(urlenc); 
+	window.open(urlenc);
 }
 function RunItSafe(sender)
 {
@@ -58,7 +58,7 @@ function RunItSafe(sender)
 	var text = sender.html().replace(/[\r\n]/g,'').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
 		
-	window.open(urlenc); 
+	window.open(urlenc);
 }
 
 $(document).ready( function(){	
@@ -67,7 +67,7 @@ performTranslation();
 $("#json_api_components_expl_multi").html($.i18n("json_api_components_expl_multi"));
 
 // components
-var componentJson = 
+var componentJson =
 `{
 	"command":"componentstate",
 	"componentstate":
@@ -76,7 +76,7 @@ var componentJson =
 		"state": {1}
 	}
 }`;
- 
+
 $('input[name="compState"]').change(
 	function(){
 		if ($("input[name='compState_onoff']:checked").val())
@@ -104,7 +104,7 @@ function BuildComponentJson()
 	$("#compState_json").html(finJson);
 }
 ////////////////////////////////////////////////////////////////////////////////
-var switchJson = 
+var switchJson =
 `{
   "command" : "instance",
   "subcommand" : "switchTo",
@@ -139,7 +139,7 @@ function BuildSwitchJson()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-var serverJson = 
+var serverJson =
 `{
     "command":"serverinfo"
 }`
@@ -147,7 +147,7 @@ var serverJson =
 $("#server_json").html(serverJson);
 
 ////////////////////////////////////////////////////////////////////////////////
-var cropJson = 
+var cropJson =
 `{
   "command" : "video-crop",
   "crop":
@@ -198,7 +198,7 @@ function BuildCropJson()
 }
 
 /////////////////////////////////////////////////////////////////////////
-var startStopJson = 
+var startStopJson =
 `{
   "command" : "instance",
   "subcommand" : "{0}",
@@ -220,7 +220,7 @@ function checkStartStop(){
 		$("#compInstanceStart_json").html("");
 	}
 };
- 
+
 $('#instanceStartStopIndex').on('input',
 	function(){
 		checkStartStop();
@@ -244,10 +244,10 @@ function BuildStartStoptJson()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-var adjustmentJson = 
+var adjustmentJson =
 `{
   "command" : "adjustment",
-  "adjustment" : 
+  "adjustment" :
   {
      {2}"{0}" : {1}
   }
@@ -284,7 +284,7 @@ for(var key in window.schema.color.properties.channelAdjustment.items.properties
 	const selectEditor = editor_color.getEditor(sourcePath);
 	
 	if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
-		selectEditor.container.hidden = true; 
+		selectEditor.container.hidden = true;
 	else
 		editor_color.watch(sourcePath,() => {			
 			const editor = editor_color.getEditor(sourcePath);
@@ -296,7 +296,7 @@ for(var key in window.schema.color.properties.channelAdjustment.items.properties
 		});				
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var effectJson = 
+var effectJson =
 `{
   "command":"effect",
   "effect":{
@@ -478,7 +478,7 @@ $('#effectPriority').off().on('input', function() {
 });
 
 ////////////////////////////////////////////////////////////////////////////////
-var clearJson = 
+var clearJson =
 `{
   "command" : "clear",
   "priority" : {0}
@@ -512,13 +512,13 @@ function BuildClearJson()
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-var componentHdr = 
+var componentHdr =
 `{
 	"command":"videomodehdr",
 	"HDR":{0},
 	"flatbuffers_user_lut_filename":"{1}"
 }`;
- 
+
 $('input[name="hdrModeState"], #flatbuffersUserLut').change(
 	function(){
 		if ($("input[name='hdrModeState']:checked").val())
@@ -541,7 +541,7 @@ function BuildHdrJson()
 	$("#hdrMode_json").html(finJson);
 }
 ////////////////////////////////////////////////////////////////////////////////
-var videoControlsJson = 
+var videoControlsJson =
 `{
   "command" : "video-controls",
   "video-controls":
@@ -593,13 +593,13 @@ function BuildVControlJson()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-var smoothingControl = 
+var smoothingControl =
 `{
 	"command":"smoothing",
 	"subcommand":"{0}",
 	"time":{1}
 }`;
- 
+
 $('input[name="api_smoothing_target"], #json_api_smoothing_time').change(
 	function(){
 		BuildSmoothingJson();		

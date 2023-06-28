@@ -247,7 +247,7 @@ async function sendAsyncToHyperhdr(command, subcommand, data, tan = 1)
 {
 	let obj = { command, tan };
 
-	if (subcommand) 
+	if (subcommand)
 	{
 		Object.assign(obj, { subcommand });
 	}

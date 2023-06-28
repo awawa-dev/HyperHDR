@@ -184,6 +184,6 @@ private:
 	static ColorRgb primeColors[];
 
 	// Color coefs YUV to RGB: http://avisynth.nl/index.php/Color_conversions
-	// FCC, Rec.709, Rec.601 coefficients 
+	// FCC, Rec.709, Rec.601 coefficients
 	ColorStat _coefs[3] = { ColorStat(0.3, 0.59, 0.11), ColorStat(0.2126, 0.7152, 0.0722), ColorStat(0.299, 0.587, 0.114)};
 };

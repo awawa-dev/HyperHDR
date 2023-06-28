@@ -60,7 +60,7 @@ macro(DeployApple TARGET)
 					RESOLVED_DEPENDENCIES_VAR _r_deps
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
-				  
+				
 				foreach(_file ${_r_deps})										
 					string(FIND ${_file} "dylib" _index)
 					if (${_index} GREATER -1)
@@ -85,12 +85,12 @@ macro(DeployApple TARGET)
 						FOLLOW_SYMLINK_CHAIN
 						FILES "/usr/local/lib/libbrotlicommon.1.dylib")
 				endif()				
-				  
+				
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
 					message(WARNING "Unresolved dependencies detected!")
 				endif()
-				  
+				
 				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*")
@@ -592,7 +592,7 @@ macro(DeployWindows TARGET)
 		endif()
 
 		execute_process(
-			COMMAND ${SEVENZIP_BIN} e ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y 
+			COMMAND ${SEVENZIP_BIN} e ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
 			RESULT_VARIABLE STATUS
 			OUTPUT_VARIABLE OUTPUT1			
 		)

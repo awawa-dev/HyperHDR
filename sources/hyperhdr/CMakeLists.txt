@@ -110,7 +110,7 @@ if (ENABLE_MAC_SYSTEM)
 endif()
 
 if (ENABLE_AVF)
-	target_link_libraries(hyperhdr 
+	target_link_libraries(hyperhdr
 		AVF-grabber
 		"-framework CoreGraphics"
 		"-framework AVFoundation"
