@@ -43,7 +43,11 @@ jobs:
           - dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
-            platform: linux 
+            platform: linux
+          - dockerImage: x86_64
+            linuxVersion: Fedora_38
+            dockerName: Fedora 38 (x86_64)
+            platform: linux
     steps:
       # checkout
       - uses: actions/checkout@v3
@@ -96,6 +100,7 @@ jobs:
           path: |
             deploy/Hyper*.deb
             deploy/Hyper*.zst
+            deploy/Hyper*.rpm
 
 ######################
 ####### macOS ########
