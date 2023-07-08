@@ -34,7 +34,7 @@ Default LUT table is already included, but for the best effect you can generate 
 
 [Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki)  
   
-[How to build SK6812 RGBW based system - updated 2023](https://www.hyperhdr.eu/2023/02/ultimate-guide-on-how-to-build-led.html)
+[How to build SK6812 RGBW based ambient lighting system - updated 2023](https://www.hyperhdr.eu/2023/02/ultimate-guide-on-how-to-build-led.html)
   
 ## Main features of HyperHDR:
 
