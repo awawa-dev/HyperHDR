@@ -54,11 +54,20 @@
 // Define to enable MQTT network client
 #cmakedefine ENABLE_MQTT
 
+// Define to enable system qmqtt
+#cmakedefine USE_SYSTEM_MQTT_LIBS
+
 // Define to enable protobuf
 #cmakedefine ENABLE_XZ
 
 // Define to enable protobuf
 #cmakedefine ENABLE_PROTOBUF
+
+// Define to enable system flatbuffers
+#cmakedefine USE_SYSTEM_FLATBUFFERS_LIBS
+
+// Define to enable system mbedtls
+#cmakedefine USE_SYSTEM_MBEDTLS_LIBS
 
 // the hyperhdr build id string
 #define HYPERHDR_BUILD_ID "${HYPERHDR_BUILD_ID}"

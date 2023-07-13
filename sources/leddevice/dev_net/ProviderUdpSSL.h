@@ -9,7 +9,12 @@
 #include <QThread>
 
 //----------- mbedtls
-#include <mbedtls/build_info.h>
+#if !defined(MBEDTLS_OLD_CONFIG_FILE)
+	#include <mbedtls/build_info.h>
+#else
+	#include MBEDTLS_OLD_CONFIG_FILE
+#endif
+
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include <mbedtls/platform.h>

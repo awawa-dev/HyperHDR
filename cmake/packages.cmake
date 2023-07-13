@@ -1,27 +1,16 @@
 # cmake file for generating distribution packages
 #SET(HYPERHDR_REPO_BUILD ON)
 
-# - Check glibc version
-# CHECK_GLIBC_VERSION()
-# Source: https://gist.github.com/likema/f5c04dad837d2f5068ae7a8860c180e7#file-glibc-cmake
-# 
-# Once done this will define
-#
-#   GLIBC_VERSION - glibc version
-#
 MACRO (CHECK_GLIBC_VERSION)
     EXECUTE_PROCESS (
-        COMMAND ${CMAKE_C_COMPILER} -print-file-name=libc.so.6
+        COMMAND ldd --version
 	OUTPUT_VARIABLE GLIBC
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    GET_FILENAME_COMPONENT (GLIBC ${GLIBC} REALPATH)
-    GET_FILENAME_COMPONENT (GLIBC_VERSION ${GLIBC} NAME)
-    STRING (REPLACE "libc-" "" GLIBC_VERSION ${GLIBC_VERSION})
-    STRING (REPLACE ".so" "" GLIBC_VERSION ${GLIBC_VERSION})
-    if (NOT GLIBC_VERSION MATCHES "^[0-9.]+$")
-		MESSAGE (WARNING "Unknown glibc version: ${GLIBC_VERSION}")
-		UNSET (GLIBC_VERSION)
+	if ("${GLIBC}" MATCHES "^.+ ([0-9]+\\.[0-9]+)\n.+")
+		set (GLIBC_VERSION ${CMAKE_MATCH_1})
+	else()
+		message (WARNING "Unknown glibc version: ${GLIBC_VERSION}")
 	endif()
 ENDMACRO (CHECK_GLIBC_VERSION)
 
