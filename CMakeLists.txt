@@ -159,7 +159,7 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 	
 	# GL dispatcher
 	find_library (GLD GLdispatch)
-	if(NOT GLD)
+	if(NOT GLD AND NOT CMAKE_CROSSCOMPILING)
 		message(FATAL_ERROR "GLdispatch library not found. Install libglvnd-dev")
 	endif()
 		
@@ -211,19 +211,6 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-# validatte the discovery services
-if (DEFAULT_BONJOUR)	
-	set (MJANSSON_MDNS_VERSION "1.4.2")
-	file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/dependencies/bonjour)
-	file(DOWNLOAD "https://raw.githubusercontent.com/mjansson/mdns/${MJANSSON_MDNS_VERSION}/mdns.h"
-				"${CMAKE_SOURCE_DIR}/dependencies/bonjour/mdns.h"
-				STATUS MJANSSON_MDNS_STATUS_H)
-	list(GET MJANSSON_MDNS_STATUS_H 0 MJANSSON_MDNS_STATUS_H_CODE)
-	if (MJANSSON_MDNS_STATUS_H_CODE AND NOT MJANSSON_MDNS_STATUS_H_CODE EQUAL 0)
-		message( FATAL_ERROR "Could not download the MJANSSON_MDNS library.")
-	endif()		
-endif()
 
 if (DEFAULT_X11)
 	if (NOT CMAKE_CROSSCOMPILING)
