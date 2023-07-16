@@ -19,3 +19,6 @@
 [submodule "dependencies/external/xz"]
 	path = dependencies/external/xz
 	url = https://github.com/tukaani-project/xz.git
+[submodule "dependencies/external/mdns"]
+	path = dependencies/external/mdns
+	url = https://github.com/mjansson/mdns.git
