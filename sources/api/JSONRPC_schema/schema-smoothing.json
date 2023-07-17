@@ -1,0 +1,28 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":
+	{
+		"command":
+		{
+			"type" : "string",
+			"required" : true,
+			"enum" : ["smoothing"]
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["all", "single"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"time": {
+			"type" : "integer",
+			"minimum" : 25,
+			"maximum" : 5000,
+			"required": true
+		}
+	},
+	"additionalProperties": false
+}

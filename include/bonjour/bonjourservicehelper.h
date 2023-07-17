@@ -3,7 +3,7 @@
 #include <QThread>
 #include <QHostInfo>
 #include <QHash>
-#include "../dependencies/bonjour/mdns.h"
+#include <mdns.h>
 
 class BonjourServiceHelper;
 
