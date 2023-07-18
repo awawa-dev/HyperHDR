@@ -38,7 +38,7 @@ class EspTools
 		_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
 	}
 
-	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log)
+	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log, bool &_restoreDTR)
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 
@@ -77,6 +77,8 @@ class EspTools
 		}
 		else
 		{
+			_restoreDTR = _rs232Port.isDataTerminalReady();
+
 			// reset to defaults
 			_rs232Port.setDataTerminalReady(true);
 			_rs232Port.setRequestToSend(false);

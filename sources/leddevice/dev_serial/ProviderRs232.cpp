@@ -27,6 +27,7 @@ ProviderRs232::ProviderRs232(const QJsonObject& deviceConfig)
 	, _delayAfterConnect_ms(0)
 	, _frameDropCounter(0)
 	, _espHandshake(true)
+	, _restoreDTR(false)
 {
 }
 
@@ -128,8 +129,12 @@ void ProviderRs232::waitForExitStats(bool force)
 
 		if (!_isDeviceReady && force)
 		{
-			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Close UART: %s%s", QSTRING_CSTR(_deviceName), (_restoreDTR) ? " (restore DTR)": "");
 			disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
+
+			if (_restoreDTR)
+				_rs232Port.setDataTerminalReady(true);
+
 			_rs232Port.close();
 		}
 	}
@@ -238,7 +243,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 			{
 				disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
 
-				EspTools::initializeEsp(_rs232Port, serialPortInfo, _log);
+				EspTools::initializeEsp(_rs232Port, serialPortInfo, _log, _restoreDTR);
 			}
 		}
 		else

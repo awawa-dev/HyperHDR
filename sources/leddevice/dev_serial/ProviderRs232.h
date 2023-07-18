@@ -119,6 +119,8 @@ private:
 	int _frameDropCounter;
 
 	bool _espHandshake;
+
+	bool _restoreDTR;
 };
 
 #endif // PROVIDERRS232_H
