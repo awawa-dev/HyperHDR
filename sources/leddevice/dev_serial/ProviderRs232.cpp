@@ -133,7 +133,10 @@ void ProviderRs232::waitForExitStats(bool force)
 			disconnect(&_rs232Port, &QSerialPort::readyRead, nullptr, nullptr);
 
 			if (_restoreDTR)
+			{
 				_rs232Port.setDataTerminalReady(true);
+				_restoreDTR = false;
+			}
 
 			_rs232Port.close();
 		}
