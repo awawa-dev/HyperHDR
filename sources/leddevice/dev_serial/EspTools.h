@@ -79,7 +79,9 @@ class EspTools
 		}
 		else
 		{
+#ifdef _WIN32
 			_restoreDTR = true;
+#endif
 
 			// reset to defaults
 			_rs232Port.setDataTerminalReady(true);
