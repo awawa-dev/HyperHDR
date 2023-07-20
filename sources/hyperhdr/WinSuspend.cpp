@@ -51,7 +51,11 @@ SuspendHandler::~SuspendHandler()
 	_notifyHandle = NULL;
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, long* result)
+#else
 bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result)
+#endif
 {
 	MSG* msg = static_cast<MSG*>(message);
 

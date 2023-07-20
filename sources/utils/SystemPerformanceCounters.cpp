@@ -121,8 +121,12 @@ void SystemPerformanceCounters::init()
 #ifdef _WIN32
 
 		if (PdhOpenQuery(NULL, NULL, &cpuPerfQuery) == ERROR_SUCCESS)
-		{			
+		{
+#ifdef UNICODE
 			PdhAddEnglishCounter(cpuPerfQuery, L"\\Processor(*)\\% Processor Time", NULL, &cpuPerfTotal);
+#else
+			PdhAddEnglishCounter(cpuPerfQuery, "\\Processor(*)\\% Processor Time", NULL, &cpuPerfTotal);
+#endif
 			PdhCollectQueryData(cpuPerfQuery);			
 		}
 
@@ -202,7 +206,7 @@ QString SystemPerformanceCounters::getCPU()
 #ifdef UNICODE
 			QString convertedStr = QString::fromWCharArray(buffer[i].szName);
 #else
-			QString convertedStr = QString::fromLocal8Bit(data[i].szName);
+			QString convertedStr = QString::fromLocal8Bit(buffer[i].szName);
 #endif
 
 			if (convertedStr != "_Total")
