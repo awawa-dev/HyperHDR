@@ -35,6 +35,7 @@
 #include <utils/Logger.h>
 #include <base/HyperHdrInstance.h>
 #include <effectengine/Animation_RainbowSwirl.h>
+#include <effectengine/Animation_RainbowWaves.h>
 #include <effectengine/Animation_SwirlFast.h>
 #include <effectengine/Animation_AtomicSwirl.h>
 #include <effectengine/Animation_Candle.h>
@@ -125,6 +126,10 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int priority, int timeout, const QStr
 	else if (name == ANIM_SWIRL_FAST)
 	{
 		_effect = new Animation_SwirlFast();
+	}
+	else if (name == ANIM_RAINBOW_WAVES)
+	{
+		_effect = new Animation_RainbowWaves();
 	}
 	else if (name == ANIM_ATOMIC_SWIRL)
 	{

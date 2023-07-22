@@ -45,6 +45,7 @@
 #include <effectengine/Animation_PoliceLightsSingle.h>
 #include <effectengine/Animation_RedMoodBlobs.h>
 #include <effectengine/Animation_RainbowSwirl.h>
+#include <effectengine/Animation_RainbowWaves.h>
 #include <effectengine/Animation_SeaWaves.h>
 #include <effectengine/Animation_Sparks.h>
 #include <effectengine/Animation_StrobeRed.h>
@@ -215,6 +216,8 @@ void EffectDBHandler::updateEffects()
 	_availableEffects.push_back(Animation_RainbowSwirl::getDefinition());
 
 	_availableEffects.push_back(Animation_SwirlFast::getDefinition());
+
+	_availableEffects.push_back(Animation_RainbowWaves::getDefinition());
 
 	_availableEffects.push_back(Animation_RedMoodBlobs::getDefinition());
 
