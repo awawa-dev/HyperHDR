@@ -22,6 +22,7 @@
 #include <QMultiMap>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QNetworkReply>
 #include <QPair>
 #include <QPainter>
 #include <QRectF>

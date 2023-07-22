@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2021 awawa-dev
+*  Copyright (c) 2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *

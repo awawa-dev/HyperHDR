@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2021 awawa-dev
+*  Copyright (c) 2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -289,7 +289,7 @@ void V4L2Worker::process_image_jpg_mt()
 	}
 	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
-		uint8_t* jpegBuffer = (uint8_t*)malloc(_width * _height * 3);
+		uint8_t* jpegBuffer = (uint8_t*)malloc(static_cast<size_t>(_width) * _height * 3);
 
 		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)jpegBuffer, _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)

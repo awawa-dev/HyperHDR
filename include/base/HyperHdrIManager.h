@@ -40,6 +40,8 @@ public:
 	bool areInstancesReady();
 
 public slots:
+	void setSmoothing(int time);
+
 	bool isCEC();
 
 	void setSignalStateByCEC(bool enable);

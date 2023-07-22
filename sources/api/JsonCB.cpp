@@ -516,3 +516,8 @@ void JsonCB::handlePerformanceUpdate(const QJsonObject& data)
 {
 	doCallback("performance-update", QVariant(data));	
 }
+
+void JsonCB::handleLutInstallUpdate(const QJsonObject& data)
+{
+	doCallback("lut-install-update", QVariant(data));
+}

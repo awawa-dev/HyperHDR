@@ -84,6 +84,8 @@ public slots:
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
 	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directModee);
+
+	void updateCurrentConfig(int settlingTime_ms);
 private:
 
 	/**

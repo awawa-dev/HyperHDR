@@ -352,12 +352,12 @@ QString JsonConnection::getConfig(std::string type)
 	// parse reply message
 	if (parseReply(reply))
 	{
-		if (!reply.contains("result") || !reply["result"].isObject())
+		if (!reply.contains("info") || !reply["info"].isObject())
 		{
-			throw std::runtime_error("No configuration file available in result");
+			throw std::runtime_error("No configuration file available in the 'info' field");
 		}
 
-		QJsonDocument doc(reply["result"].toObject());
+		QJsonDocument doc(reply["info"].toObject());
 		QString result(doc.toJson(QJsonDocument::Indented));
 		return result;
 	}

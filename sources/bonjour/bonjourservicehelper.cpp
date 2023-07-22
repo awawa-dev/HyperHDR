@@ -6,7 +6,7 @@
 #include <bonjour/bonjourservicehelper.h>
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourservicebrowser.h>
-#include "../dependencies/bonjour/mdns.h"
+#include <mdns.h>
 
 #include <utils/Logger.h>
 #include <HyperhdrConfig.h>
