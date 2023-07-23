@@ -367,6 +367,11 @@ void HyperHdrInstance::setNewComponentState(hyperhdr::Components component, bool
 			emit PerformanceCounters::getInstance()->newCounter(PerformanceReport(static_cast<int>(PerformanceReportType::LED), -1, "", -1, -1, -1, -1, getInstanceIndex()));
 		else
 			emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::LED), getInstanceIndex());
+
+		if (GrabberWrapper::getInstance() != nullptr)
+		{
+			emit GrabberWrapper::getInstance()->instancePauseChanged(_instIndex, state);
+		}
 	}
 }
 

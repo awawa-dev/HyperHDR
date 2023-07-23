@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "File CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "enable HDR in USB grabber options and refresh the page",
   "main_menu_grabber_lut_restart" : "Please restart your system for the changes to take effect fully!<br>USB grabber config with Brightness=$1, Contrast=$2, Saturation=$3 was saved.",
-  "main_menu_grabber_lut_confirm" : "Are you sure to download and install new LUT file for your grabber?"
+  "main_menu_grabber_lut_confirm" : "Are you sure to download and install new LUT file for your grabber?",
+  "edt_conf_stream_ledoff_expl": "Turn off the USB gripper completely after 10 seconds when all LED devices are off. Resume again when the LED device is enabled.",
+  "edt_conf_stream_ledoff_title": "Pause when LEDs are off"
 } 
