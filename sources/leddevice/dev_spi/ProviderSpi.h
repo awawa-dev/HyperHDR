@@ -63,6 +63,9 @@ protected:
 	// esp32 spi packet protocol
 	int writeBytesEsp32(unsigned size, const uint8_t* data);
 
+	// rp2040 spi packet protocol
+	int writeBytesRp2040(unsigned size, const uint8_t* data);
+
 	/// The name of the output device
 	QString _deviceName;
 
