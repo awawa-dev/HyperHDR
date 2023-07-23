@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "Fișierul CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "activați HDR în opțiunile USB grabber și reîmprospătați pagina",
   "main_menu_grabber_lut_restart" : "Vă rugăm să reporniți sistemul pentru ca modificările să intre în vigoare!<br>Configurare USB grabber cu Luminozitate=$1, Contrast=$2, Saturare=$3 a fost salvat.",
-  "main_menu_grabber_lut_confirm" : "Sunteți sigur că descărcați și instalați un nou fișier LUT pentru grabber?"
+  "main_menu_grabber_lut_confirm" : "Sunteți sigur că descărcați și instalați un nou fișier LUT pentru grabber?",
+  "edt_conf_stream_ledoff_expl": "Opriți complet prinderea USB după 10 secunde când toate dispozitivele LED sunt oprite. Reluați din nou când dispozitivul LED este activat.",
+  "edt_conf_stream_ledoff_title": "Întrerupeți când LED-urile sunt stinse"
 }

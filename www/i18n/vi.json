@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "Tệp CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "bật HDR trong các tùy chọn lấy USB và làm mới trang",
   "main_menu_grabber_lut_restart" : "Vui lòng khởi động lại hệ thống của bạn để những thay đổi có hiệu lực đầy đủ!<br>Cấu hình bộ lấy USB với độ sáng=$1, Sự tương phản=$2, bão hòa=$3 đã được cứu.",
-  "main_menu_grabber_lut_confirm" : "Bạn có chắc chắn tải xuống và cài đặt tệp LUT mới cho trình tải xuống của mình không?"
+  "main_menu_grabber_lut_confirm" : "Bạn có chắc chắn tải xuống và cài đặt tệp LUT mới cho trình tải xuống của mình không?",
+  "edt_conf_stream_ledoff_expl": "Tắt hoàn toàn bộ kẹp USB sau 10 giây khi tất cả các thiết bị đèn LED đều tắt. Tiếp tục lại khi thiết bị LED được bật.",
+  "edt_conf_stream_ledoff_title": "Tạm dừng khi đèn LED tắt"
 }

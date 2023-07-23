@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "Datei CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "aktivieren Sie HDR in den USB grabber optionen und aktualisieren sie die seite",
   "main_menu_grabber_lut_restart" : "Bitte starten sie Ihr system neu, damit die änderungen vollständig wirksam werden!<br>USB grabber konfiguration mit Helligkeit=$1, Kontrast=$2, Sättigung=$3 wurde gerettet.",
-  "main_menu_grabber_lut_confirm" : "Sind sie sicher, dass sie die neue LUT datei für Ihren grabber herunterladen und installieren?"
-}
+  "main_menu_grabber_lut_confirm" : "Sind sie sicher, dass sie die neue LUT datei für Ihren grabber herunterladen und installieren?",
+  "edt_conf_stream_ledoff_expl": "Schalten Sie den USB-greifer nach 10 sekunden vollständig aus, wenn alle LED-geräte ausgeschaltet sind. Fahren Sie erneut fort, wenn das LED-gerät aktiviert ist.",
+  "edt_conf_stream_ledoff_title": "Pause, wenn die LEDs aus sind"
+} 

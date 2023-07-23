@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "Soubor CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "povolte HDR v možnostech USB grabber a obnovte stránku",
   "main_menu_grabber_lut_restart" : "Restartujte systém, aby se změny plně projevily!<br>Konfigurace USB grabberu s Jas=$1, Kontrast=$2, Nasycení=$3 byl zachráněn.",
-  "main_menu_grabber_lut_confirm" : "Jste si jisti, že stáhnete a nainstalujete nový soubor LUT pro váš grabber?"
+  "main_menu_grabber_lut_confirm" : "Jste si jisti, že stáhnete a nainstalujete nový soubor LUT pro váš grabber?",
+  "edt_conf_stream_ledoff_expl": "Když jsou všechna LED zařízení vypnutá, po 10 sekundách USB gripper úplně vypněte. Pokračujte znovu, když je zařízení LED povoleno.",
+  "edt_conf_stream_ledoff_title": "Pauza, když LED nesvítí"
 }

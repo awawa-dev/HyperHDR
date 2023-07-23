@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "Archivo CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "habilite HDR en las opciones de capturador USB y actualice la página",
   "main_menu_grabber_lut_restart" : "¡Reinicie su sistema para que los cambios surtan efecto por completo!<br>Configuración del capturador USB con Brillo=$1, Contraste=$2, Saturación=$3 fue salvado.",
-  "main_menu_grabber_lut_confirm" : "¿Está seguro de descargar e instalar un nuevo archivo LUT para su capturador?"
+  "main_menu_grabber_lut_confirm" : "¿Está seguro de descargar e instalar un nuevo archivo LUT para su capturador?",
+  "edt_conf_stream_ledoff_expl": "Apague la pinza USB por completo después de 10 segundos cuando todos los dispositivos LED estén apagados. Reanudar de nuevo cuando el dispositivo LED esté habilitado.",
+  "edt_conf_stream_ledoff_title": "Pausa cuando los LED están apagados"
 }

@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "Fil CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "aktivera HDR i USB grabber alternativ och uppdatera sidan",
   "main_menu_grabber_lut_restart" : "Vänligen starta om ditt system för att ändringarna ska träda i kraft helt!<br>USB grabber konfiguration med Ljusstyrka=$1, Kontrast=$2, Mättnad=$3 var sparad.",
-  "main_menu_grabber_lut_confirm" : "Är du säker på att ladda ner och installera ny LUT fil för din grabber?"
+  "main_menu_grabber_lut_confirm" : "Är du säker på att ladda ner och installera ny LUT fil för din grabber?",
+  "edt_conf_stream_ledoff_expl": "Stäng av USB-griparen helt efter 10 sekunder när alla LED-enheter är avstängda. Återuppta igen när LED-enheten är aktiverad.",
+  "edt_conf_stream_ledoff_title": "Pausa när lysdioderna är släckta"
 }

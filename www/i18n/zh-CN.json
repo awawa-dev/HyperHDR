@@ -1209,5 +1209,7 @@
   "main_menu_grabber_lut_path_found_CRC" : "文件校验: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "在 USB 抓取器选项中启用 HDR 并刷新页面",
   "main_menu_grabber_lut_restart" : "请重新启动系统以使更改完全生效！<br>USB 采集卡配置 亮度=$1, 对比=$2, 饱和=$3 被救了.",
-  "main_menu_grabber_lut_confirm" : "您确定要为您的采集卡下载并安装新的 LUT 文件吗？"
+  "main_menu_grabber_lut_confirm" : "您确定要为您的采集卡下载并安装新的 LUT 文件吗？",
+  "edt_conf_stream_ledoff_expl": "当所有 LED 设备都关闭时，10 秒后完全关闭 USB 夹具。当 LED 设备启用时再次恢复.",
+  "edt_conf_stream_ledoff_title": "LED 熄灭时暂停"
 }
