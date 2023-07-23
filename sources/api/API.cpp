@@ -349,6 +349,18 @@ void API::stopInstance(quint8 index)
 	QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
 }
 
+QJsonObject API::getAverageColor(quint8 index)
+{
+	QJsonObject res;
+
+	if (_instanceManager->thread() != this->thread())
+		QMetaObject::invokeMethod(_instanceManager, "getAverageColor", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, res), Q_ARG(quint8, index));
+	else
+		res = _instanceManager->getAverageColor(index);
+
+	return res;
+}
+
 void API::requestActiveRegister(QObject* callerInstance)
 {
 	// TODO FIXME

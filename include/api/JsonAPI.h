@@ -308,6 +308,8 @@ private:
 
 	void handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleCurrentStateCommand(const QJsonObject& message, const QString& command, int tan);
+
 	void handleTunnel(const QJsonObject& message, const QString& command, int tan);
 
 	///

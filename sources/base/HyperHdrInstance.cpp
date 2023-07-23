@@ -315,6 +315,32 @@ void HyperHdrInstance::setSmoothing(int time)
 	_smoothing->updateCurrentConfig(time);
 }
 
+QJsonObject HyperHdrInstance::getAverageColor()
+{
+	QJsonObject ret;
+
+	auto copy = _globalLedBuffer;
+	long red = 0, green = 0, blue = 0, count = 0;
+	
+	for (const ColorRgb& c : copy)
+	{
+		red += c.red;
+		green += c.green;
+		blue += c.blue;
+
+		count++;
+	}
+
+	if (count > 0)
+	{
+		ret["red"] = static_cast<int>(red / count);
+		ret["green"] = static_cast<int>(green / count);
+		ret["blue"] = static_cast<int>(blue / count);
+	}
+
+	return ret;
+}
+
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned retVal = id;

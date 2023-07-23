@@ -212,6 +212,8 @@ protected:
 	///
 	void stopInstance(quint8 index);
 
+	QJsonObject getAverageColor(quint8 index);
+
 	//////////////////////////////////
 	/// AUTH / ADMINISTRATION METHODS
 	//////////////////////////////////

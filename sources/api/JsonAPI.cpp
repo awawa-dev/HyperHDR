@@ -225,6 +225,8 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleLutInstallCommand(message, command, tan);
 		else if (command == "smoothing")
 			handleSmoothingCommand(message, command, tan);
+		else if (command == "current-state")
+			handleCurrentStateCommand(message, command, tan);
 		else if (command == "transform" || command == "correction" || command == "temperature")
 			sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 		// END
@@ -902,6 +904,20 @@ void JsonAPI::handleLutInstallCommand(const QJsonObject& message, const QString&
 	}
 	else
 		sendErrorReply("No Authorization", command, tan);
+}
+
+void JsonAPI::handleCurrentStateCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& subc = message["subcommand"].toString().trimmed();
+	int instance = message["instance"].toInt(0);
+
+	if (subc == "average-color")
+	{
+		QJsonObject avColor = API::getAverageColor(instance);
+		sendSuccessDataReply(QJsonDocument(avColor), command + "-" + subc, tan);
+	}
+	else
+		handleNotImplemented(command, tan);
 }
 
 void JsonAPI::handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan)
