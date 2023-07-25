@@ -337,26 +337,22 @@ QVector<QVariantMap> API::getAllInstanceData()
 bool API::startInstance(quint8 index, int tan)
 {
 	bool res;
-	(_instanceManager->thread() != this->thread())
-		? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
-		: res = _instanceManager->startInstance(index, false, this, tan);
+
+	SAFE_CALL_4_RET(_instanceManager, startInstance, bool, res, quint8, index, bool, false, QObject*, this, int, tan);
 
 	return res;
 }
 
 void API::stopInstance(quint8 index)
 {
-	QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+	SAFE_CALL_1(_instanceManager, stopInstance, quint8, index);
 }
 
 QJsonObject API::getAverageColor(quint8 index)
 {
 	QJsonObject res;
 
-	if (_instanceManager->thread() != this->thread())
-		QMetaObject::invokeMethod(_instanceManager, "getAverageColor", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, res), Q_ARG(quint8, index));
-	else
-		res = _instanceManager->getAverageColor(index);
+	SAFE_CALL_1_RET(_instanceManager, getAverageColor, QJsonObject, res, quint8, index);
 
 	return res;
 }

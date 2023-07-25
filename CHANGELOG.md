@@ -1,6 +1,7 @@
 - Use optional system libs for compiling #541 (v20 beta 🆕)  
 - Update mbedtls to 3.4.0 #589 (v20 beta 🆕)  
-- Add Ubuntu support to HyperHDR and Github Pages APT repository #522 (v20 beta 🆕)  
+- Add Ubuntu support to HyperHDR and Github Pages APT repository #522 (v20 beta 🆕)
+- New JsonAPI method to calculate average color of selected instance #611 (v20 beta 🆕)
 - Workaround for critical Rpi udev bug affecting serial ports #583 (v20 beta 🆕)  
 - Add Arch Linux support #520 (v20 beta 🆕)  
 - Fix chrome/edge fullscreen detection #519 (v20 beta 🆕)  

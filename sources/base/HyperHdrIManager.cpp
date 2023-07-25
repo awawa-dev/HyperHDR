@@ -106,10 +106,7 @@ QJsonObject HyperHdrIManager::getAverageColor(quint8 index)
 	HyperHdrInstance* instance = HyperHdrIManager::getHyperHdrInstance(index);
 	QJsonObject res;
 
-	if (instance->thread() != this->thread())
-		QMetaObject::invokeMethod(instance, "getAverageColor", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, res));
-	else
-		res = instance->getAverageColor();
+	SAFE_CALL_0_RET(instance, getAverageColor, QJsonObject, res);
 
 	return res;
 }

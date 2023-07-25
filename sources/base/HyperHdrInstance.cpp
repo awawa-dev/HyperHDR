@@ -331,6 +331,11 @@ QJsonObject HyperHdrInstance::getAverageColor()
 		count++;
 	}
 
+	if (!_ledDeviceWrapper->enabled())
+	{
+		red = green = blue = 0;
+	}
+
 	if (count > 0)
 	{
 		ret["red"] = static_cast<int>(red / count);
