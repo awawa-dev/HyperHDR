@@ -12,6 +12,7 @@
 using namespace hyperhdr;
 
 const int64_t  DEFAUL_SETTLINGTIME     = 200;   // settlingtime in ms
+const int64_t  DEFAUL_UPDATEDELAY      = 0;     // updatedelay in ms
 const double   DEFAUL_UPDATEFREQUENCY  = 25;    // updatefrequncy in hz
 const double   MINIMAL_UPDATEFREQUENCY = 20;
 
@@ -22,6 +23,7 @@ LinearSmoothing::LinearSmoothing(const QJsonDocument& config, HyperHdrInstance* 
 	_log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex()))),
 	_hyperhdr(hyperhdr),
 	_updateInterval(static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY)),
+	_updateDelay(DEFAUL_UPDATEDELAY),
 	_settlingTime(DEFAUL_SETTLINGTIME),
 	_timer(nullptr),
 	_continuousOutput(false),
@@ -46,12 +48,12 @@ LinearSmoothing::LinearSmoothing(const QJsonDocument& config, HyperHdrInstance* 
 	_timer->setTimerType(Qt::PreciseTimer);	
 
 	// init cfg 0 (default)
-	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
+	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEDELAY, DEFAUL_UPDATEFREQUENCY);
 	handleSettingsUpdate(settings::type::SMOOTHING, config);
 	selectConfig(0, true);
 
 	// add pause on cfg 1
-	SmoothingCfg cfg(true, 0, 0, false);
+	SmoothingCfg cfg(true, 0, 0, 0, false);
 	_cfgList.push_back(cfg);
 
 	// listen for comp changes
@@ -126,6 +128,7 @@ void LinearSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocum
 
 		SmoothingCfg	cfg(false,
 			static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
+			static_cast<int64_t>(obj["updateDelay"].toInt(DEFAUL_UPDATEDELAY)),
 			static_cast<int64_t>(std::max(1000.0 / std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), MINIMAL_UPDATEFREQUENCY), 5.0)),
 			false);
 
@@ -316,7 +319,11 @@ void LinearSmoothing::queueColors(const std::vector<ColorRgb>& ledColors)
 {
 	if (!_pause)
 	{
-		emit _hyperhdr->ledDeviceData(ledColors);
+		if (_updateDelay > 0) {
+			QTimer::singleShot(_updateDelay, [&]() { emit _hyperhdr->ledDeviceData(ledColors); });
+		} else {
+			emit _hyperhdr->ledDeviceData(ledColors);
+		}
 	}
 }
 
@@ -345,20 +352,20 @@ void LinearSmoothing::setEnable(bool enable)
 	_hyperhdr->setNewComponentState(hyperhdr::COMP_SMOOTHING, enable);
 }
 
-unsigned LinearSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned LinearSmoothing::addConfig(int settlingTime_ms, int updateDelay_ms, double ledUpdateFrequency_hz, bool directMode)
 {
-	SmoothingCfg cfg(false, settlingTime_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode);
+	SmoothingCfg cfg(false, settlingTime_ms, updateDelay_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode);
 	_cfgList.push_back(cfg);
 
 	return (unsigned)(_cfgList.size() - 1);
 }
 
-unsigned LinearSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned LinearSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, int updateDelay_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned updatedCfgID = cfgID;
 	if (cfgID < static_cast<unsigned>(_cfgList.size()))
 	{
-		SmoothingCfg cfg(false, settlingTime_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode);
+		SmoothingCfg cfg(false, settlingTime_ms, updateDelay_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode);
 		_cfgList[updatedCfgID] = cfg;
 	}
 	else
@@ -373,8 +380,8 @@ void LinearSmoothing::updateCurrentConfig(int settlingTime_ms)
 {
 	_settlingTime = settlingTime_ms;
 
-	Info(_log, "Updating current config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
-		_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime),
+	Info(_log, "Updating current config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, updateDelay: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
+		_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime), int(_updateDelay), 
 		int(_updateInterval), int(1000.0 / _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
 }
 
@@ -389,6 +396,7 @@ bool LinearSmoothing::selectConfig(unsigned cfg, bool force)
 	if (cfg < (unsigned)_cfgList.size())
 	{
 		_settlingTime = _cfgList[cfg]._settlingTime;
+		_updateDelay = _cfgList[cfg]._updateDelay;
 		_pause = _cfgList[cfg]._pause;
 		_directMode = _cfgList[cfg]._directMode;
 		_antiFlickeringTreshold = _cfgList[cfg]._antiFlickeringTreshold;
@@ -407,8 +415,8 @@ bool LinearSmoothing::selectConfig(unsigned cfg, bool force)
 
 		_currentConfigId = cfg;
 
-		Info(_log, "Selecting config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
-			_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime),
+		Info(_log, "Selecting config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, updateDelay: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
+			_currentConfigId, QSTRING_CSTR(SmoothingCfg::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime), int(_updateDelay),
 			int(_updateInterval), int(1000.0 / _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
 
 		return true;
@@ -432,6 +440,7 @@ bool LinearSmoothing::enabled() const
 LinearSmoothing::SmoothingCfg::SmoothingCfg() :
 	_pause(false),
 	_settlingTime(200),
+	_updateDelay(0),
 	_updateInterval(25),
 	_directMode(false),
 	_type(SmoothingType::Linear),
@@ -441,9 +450,10 @@ LinearSmoothing::SmoothingCfg::SmoothingCfg() :
 {
 }
 
-LinearSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateInterval, bool directMode, SmoothingType type, int antiFlickeringTreshold, int antiFlickeringStep, int64_t antiFlickeringTimeout) :
+LinearSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTime, int64_t updateDelay, int64_t updateInterval, bool directMode, SmoothingType type, int antiFlickeringTreshold, int antiFlickeringStep, int64_t antiFlickeringTimeout) :
 	_pause(pause),
 	_settlingTime(settlingTime),
+	_updateDelay(updateDelay),
 	_updateInterval(updateInterval),
 	_directMode(directMode),
 	_type(type),

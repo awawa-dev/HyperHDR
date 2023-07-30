@@ -315,15 +315,15 @@ void HyperHdrInstance::setSmoothing(int time)
 	_smoothing->updateCurrentConfig(time);
 }
 
-unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, int updateDelay_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned retVal = id;
 
 	if (QThread::currentThread() == _smoothing->thread())
-		return _smoothing->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
+		return _smoothing->updateConfig(id, settlingTime_ms, updateDelay_ms, ledUpdateFrequency_hz, directMode);
 	else
 		QMetaObject::invokeMethod(_smoothing, "updateConfig",Qt::ConnectionType::BlockingQueuedConnection,
-			Q_RETURN_ARG(unsigned, retVal), Q_ARG(unsigned, id), Q_ARG(int, settlingTime_ms), Q_ARG(double, ledUpdateFrequency_hz), Q_ARG(bool, directMode));
+			Q_RETURN_ARG(unsigned, retVal), Q_ARG(unsigned, id), Q_ARG(int, settlingTime_ms), Q_ARG(int, updateDelay_ms), Q_ARG(double, ledUpdateFrequency_hz), Q_ARG(bool, directMode));
 	
 	return retVal;
 }
