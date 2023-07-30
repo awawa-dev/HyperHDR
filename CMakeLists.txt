@@ -242,6 +242,7 @@ if (DEFAULT_PIPEWIRE)
 		message( WARNING "QT dbus library is required for PipeWire/Portal support" )
 		SET ( DEFAULT_PIPEWIRE                    OFF )
 	else()
+	
 		pkg_check_modules(PIPEWIRE libpipewire-0.3)
 		if(NOT PIPEWIRE_FOUND OR NOT PIPEWIRE_INCLUDE_DIRS OR NOT PIPEWIRE_LIBRARIES)
 			message( WARNING "Pipewire >= 3.0 not found (did you install libpipewire-0.3-dev?). Disabling support for PipeWire software grabber.")

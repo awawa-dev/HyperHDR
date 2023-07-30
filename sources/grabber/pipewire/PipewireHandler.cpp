@@ -102,7 +102,9 @@ PipewireHandler::PipewireHandler() :
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
-	
+
+	_image.isError = true;
+	_image.data = nullptr;
 }
 
 QString PipewireHandler::getToken()
@@ -243,6 +245,12 @@ void PipewireHandler::closeSession()
 	for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
 		supVal.hasDma = false;
 
+	if (_image.data != nullptr)	
+	{
+		free(_image.data);
+		_image.data = nullptr;
+	}
+	
 	if (_version > 0)
 	{
 		std::cout << "Pipewire: driver is closed now" << std::endl;
@@ -668,36 +676,42 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 
 void PipewireHandler::onProcessFrame()
 {
-	if (_hasFrame)
+	if (_image.data == nullptr)
 	{
-		struct pw_buffer* newFrame;
-		if ((newFrame = pw_stream_dequeue_buffer(_pwStream)) != nullptr)
-			pw_stream_queue_buffer(_pwStream, newFrame);	
+		captureFrame();
+		_hasFrame = (_image.data != nullptr);
 	}
-
-	_hasFrame = true;
 };
 
 void PipewireHandler::grabFrame()
+{
+	if (_image.data != nullptr)	
+	{
+		_callback(_image);
+
+		free(_image.data);
+		_image.data = nullptr;
+	}
+}
+
+void PipewireHandler::captureFrame()
 {	
 	struct pw_buffer* newFrame = nullptr;
 	struct pw_buffer* dequeueFrame = nullptr;
 	uint8_t* mappedMemory = nullptr;
-	uint8_t* frameBuffer = nullptr;
-	PipewireImage image;
+	uint8_t* frameBuffer = nullptr;	
 
 	if (_pwStream == nullptr)
 		return;
 
 	_hasFrame = false;
 
-	image.width = _frameWidth;
-	image.height = _frameHeight;
-	image.isOrderRgb = _frameOrderRgb;
-	image.version = getVersion();
-	image.isError = hasError();
-	image.stride = 0;
-	image.data = nullptr;
+	_image.width = _frameWidth;
+	_image.height = _frameHeight;
+	_image.isOrderRgb = _frameOrderRgb;
+	_image.version = getVersion();
+	_image.isError = hasError();
+	_image.stride = 0;
 
 	while ((dequeueFrame = pw_stream_dequeue_buffer(_pwStream)) != nullptr)
 	{
@@ -816,7 +830,7 @@ void PipewireHandler::grabFrame()
 										if (!_infoUpdated)
 											printf("PipewireEGL: succesfully rendered the DMA texture\n");
 
-										image.data = frameBuffer;
+										_image.data = frameBuffer;
 									}
 
 									break;
@@ -837,7 +851,7 @@ void PipewireHandler::grabFrame()
 		}
 		else
 		{
-			image.stride = newFrame->buffer->datas->chunk->stride;
+			_image.stride = newFrame->buffer->datas->chunk->stride;
 
 			if (newFrame->buffer->datas->type == SPA_DATA_MemFd)
 			{
@@ -852,25 +866,21 @@ void PipewireHandler::grabFrame()
 				}
 				else
 				{
-					image.data = mappedMemory;
+					_image.data = (uint8_t*) malloc(_image.stride * _frameHeight);
+					memcpy(_image.data, mappedMemory, _image.stride * _frameHeight);
 				}
 			}
 			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
 			{				
-				image.data = static_cast<uint8_t*>(newFrame->buffer->datas[0].data);				
+				_image.data = (uint8_t*) malloc(_image.stride * _frameHeight);
+				memcpy(_image.data, static_cast<uint8_t*>(newFrame->buffer->datas[0].data), _image.stride * _frameHeight);
 			}
 		}
 	}
 
-	// forward the frame
-	_callback(image);
-
 	// clean up
 	if (mappedMemory != nullptr)
 		munmap(mappedMemory, newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset);
-
-	if (frameBuffer != nullptr)
-		free(frameBuffer);
 
 	if (newFrame != nullptr)
 		pw_stream_queue_buffer(_pwStream, newFrame);

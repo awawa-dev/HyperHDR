@@ -112,6 +112,7 @@ private:
 	pw_stream*	createCapturingStream();
 	QString		getSessionToken();
 	QString		getRequestToken();
+	void		captureFrame();
 
 	pipewire_callback_func _callback;
 	QString _sessionHandle;
@@ -149,6 +150,7 @@ private:
 	int64_t _frameDrmFormat;
 	int64_t _frameDrmModifier;
 	QTimer  _timer;
+	PipewireImage _image;
 
 #ifdef ENABLE_PIPEWIRE_EGL
 	eglGetProcAddressFun eglGetProcAddress = nullptr;
