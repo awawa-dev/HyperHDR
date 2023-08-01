@@ -367,6 +367,8 @@ protected:
 	///
 	bool isUserAuthorized(const QString& password);
 
+	bool isUserBlocked();
+
 	///
 	/// @brief Test if Hyperhdr has the default PW
 	/// @return The result

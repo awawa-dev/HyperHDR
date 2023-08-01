@@ -666,7 +666,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 	Info(_log, "New priority[%d], previous [%d]", priority, previousPriority);
 	if (priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Error(_log, "No source left -> switch LED-Device off");
+		Warning(_log, "No source left -> switch LED-Device off");
 
 		emit compStateChangeRequest(hyperhdr::COMP_LEDDEVICE, false);
 		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());		

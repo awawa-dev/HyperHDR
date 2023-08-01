@@ -565,6 +565,13 @@ bool API::isUserAuthorized(const QString& password)
 	return res;
 }
 
+bool API::isUserBlocked()
+{
+	bool res;
+	SAFE_CALL_0_RET(_authManager, isUserAuthBlocked, bool, res);
+	return res;
+}
+
 bool API::hasHyperhdrDefaultPw()
 {
 	bool res;

@@ -1,5 +1,13 @@
 var instNameInit = false
 
+function systemLink(e)
+{
+	loadContent(e);
+	window.scrollTo(0, 0);
+	if (isSmallScreen())
+		$('[data-widget="pushmenu"]').PushMenu('collapse');		
+}
+
 $(document).ready(function () {
 
 	var darkModeOverwrite = getStorage("darkModeOverwrite", true);
@@ -25,6 +33,9 @@ $(document).ready(function () {
 	initWebSocket();
 
 	$(window.hyperhdr).on("cmd-serverinfo", function (event) {
+		if (event.response.info == null)
+			return;
+
 		window.serverInfo = event.response.info;
 		
 		window.readOnlyMode = window.sysInfo.hyperhdr.readOnlyMode;
@@ -59,6 +70,45 @@ $(document).ready(function () {
 		if (!instNameInit) {
 			window.currentHyperHdrInstanceName = getInstanceNameByIndex(0);
 			instNameInit = true;
+		}
+
+		if (window.suppressMissingLutWarningPerSession !== true &&
+			window.serverInfo.hasOwnProperty('grabbers') && window.serverInfo.grabbers.hasOwnProperty('active') &&
+			window.serverInfo.grabbers.active.length > 0 &&
+			!(window.serverInfo.grabbers.lut_for_hdr_exists === 1) &&
+			getStorage("suppressMissingLutWarning") !== "true" )
+		{
+			window.suppressMissingLutWarningPerSession = true;
+			setTimeout(function(){
+				var suppressMissingLutWarningCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
+					': <input id="chk_suppressMissingLutWarning" class="form-check-input" type="checkbox" onChange="suppressMissingLutWarning()"> </div>';
+				showNotification('warning', $.i18n('warning_lut_not_found_1'), $.i18n('warning_lut_not_found_t'),
+					'<a href="#lut_downloader" class="ms-1 callout-link" style="cursor:pointer;" onClick="systemLink(event);">' +
+					$.i18n('warning_lut_not_found_3') + '</a><br/><br/>' + $.i18n('warning_lut_not_found_2') + 
+					'<a href="#grabber_calibration" class="ms-1 me-2 callout-link" style="cursor:pointer;" onClick="systemLink(event);">' +
+					$.i18n('main_menu_grabber_calibration_token') + '</a>' +
+					$.i18n('dashboard_newsbox_readmore') + ":" +
+					'<a href="https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html" class="ms-1 callout-link" style="cursor:pointer;">' +
+					$.i18n('dashboard_newsbox_visitblog') + '</a>' +					
+					suppressMissingLutWarningCheckbox);
+			}, 500);			
+		}
+
+		if (window.suppressErrorDetectedWarningPerSession !== true &&
+			window.serverInfo.lastError.length > 0 &&
+			getStorage("suppressErrorDetectedWarning") !== "true" )
+		{
+			window.suppressErrorDetectedWarningPerSession = true;
+			setTimeout(function(){
+				var suppressErrorDetectedWarningCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
+					': <input id="chk_suppressErrorDetectedWarning" class="form-check-input" type="checkbox" onChange="suppressErrorDetectedWarningCheckbox()"> </div>';
+				showNotification('warning', $.i18n('warning_errors_detected_1'), $.i18n('warning_errors_detected_t'),
+					`<div class="text-danger">${window.serverInfo.lastError}</div>`+
+					$.i18n('warning_errors_detected_2') +
+					'<a href="#logs" class="ms-1 callout-link" style="cursor:pointer;" onClick="systemLink(event);">' +
+					$.i18n('main_menu_logging_token') + '</a>' +		
+					suppressErrorDetectedWarningCheckbox);
+			}, 700);			
 		}
 
 		updateSessions();
@@ -96,7 +146,6 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).one("cmd-authorize-getTokenList", function (event) {
 		tokenList = event.response.info;
-		requestServerInfo();
 	});
 
 	$(window.hyperhdr).on("cmd-sysinfo", function (event) {
@@ -110,8 +159,8 @@ $(document).ready(function () {
 	$(window.hyperhdr).one("cmd-config-getschema", function (event) {
 		window.serverSchema = event.response.info;
 		requestServerConfig();
-    requestTokenInfo();
-    requestGetPendingTokenRequests();
+		requestTokenInfo();
+		requestGetPendingTokenRequests();
 
 		window.schema = window.serverSchema.properties;
 	});
@@ -124,8 +173,11 @@ $(document).ready(function () {
 	});
 
 	$(window.hyperhdr).on("cmd-config-setconfig", function (event) {
-		if (event.response.success === true) {
-			showNotification('success', $.i18n('dashboard_alert_message_confsave_success'), $.i18n('dashboard_alert_message_confsave_success_t'))
+		if (event.response.success === true)
+		{
+			let myToastEl = document.getElementById('toast_settings_saved_ok');
+			let myToast = bootstrap.Toast.getOrCreateInstance(myToastEl);
+			myToast.show();
 		}
 	});
 
@@ -153,10 +205,10 @@ $(document).ready(function () {
 		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
 		{
 			setTimeout(function(){
-				var supprPwWarnCheckbox = '<div class="text-right">'+$.i18n('dashboard_message_do_not_show_again') + 
-					' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>';
-				showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a class="ps-2 callout-link" style="cursor:pointer;" onClick="changePassword()">' +
-					$.i18n('InfoDialog_changePassword_title') + '</a><br/><br/>' + supprPwWarnCheckbox);
+				var supprPwWarnCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
+					': <input id="chk_suppressDefaultPw" type="checkbox" class="form-check-input" onChange="suppressDefaultPwWarning()"> </div>';
+				showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a class="ms-1 callout-link" style="cursor:pointer;" onClick="changePassword()">' +
+					$.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox);
 			}, 500);			
 		}
 		else
@@ -337,12 +389,7 @@ $(document).ready(function () {
 		window.serverInfo.effects = event.response.data.effects
 	});
 
-	$(".nav-link.system-link").bind('click', function (e) {
-		loadContent(e);
-		window.scrollTo(0, 0);
-		if (isSmallScreen())
-			$('[data-widget="pushmenu"]').PushMenu('collapse');		
-	});
+	$(".nav-link.system-link").bind('click', systemLink);
 		
 	$(document).on('collapsed.lte.pushmenu', function(){ 
 		document.getElementById('showMenuIcon').style.opacity = 0;
@@ -355,12 +402,28 @@ $(document).ready(function () {
 	});
 });
 
-function suppressDefaultPwWarning(){
+function suppressDefaultPwWarning()
+{
+	if (document.getElementById('chk_suppressDefaultPw').checked) 
+		setStorage("suppressDefaultPwWarning", "true");
+	else 
+		setStorage("suppressDefaultPwWarning", "false");
+}
 
-  if (document.getElementById('chk_suppressDefaultPw').checked) 
-	setStorage("suppressDefaultPwWarning", "true");
-  else 
-	setStorage("suppressDefaultPwWarning", "false");
+function suppressErrorDetectedWarningCheckbox()
+{
+	if (document.getElementById('chk_suppressErrorDetectedWarning').checked) 
+		setStorage("suppressErrorDetectedWarning", "true");
+	else 
+		setStorage("suppressErrorDetectedWarning", "false");
+}
+
+function suppressMissingLutWarning()
+{
+	if (document.getElementById('chk_suppressMissingLutWarning').checked) 
+		setStorage("suppressMissingLutWarning", "true");
+	else 
+		setStorage("suppressMissingLutWarning", "false");
 }
 
 //Dark Mode
