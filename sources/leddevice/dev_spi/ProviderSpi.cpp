@@ -192,9 +192,8 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 
 int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
 {
-	// try to use constant buffer size similar to esp32
 	static const int      REAL_BUFFER = 1536;
-	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 8;
+	static const uint32_t BUFFER_SIZE = REAL_BUFFER ;
 
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
@@ -218,7 +217,6 @@ int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
 		{
 			buffer[i] = *startData;
 		}
-		buffer[REAL_BUFFER] = 0xAA;
 		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
 	}
