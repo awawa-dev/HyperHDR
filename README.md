@@ -53,6 +53,7 @@ Default LUT table is already included, but for the best effect you can generate 
 * HDR tone mapping for external flatbuffers/protobuf sources
 * Built-in LUT table generator and LUT import tool
 * Built-in audio visualization effects using spectrum analysis
+* Entertainment API v2: per-channel support for Philips Gradient Strip and others
 * Dynamic video cache buffers. Now Rpi can process even 1080p120 NV12 stream without any size decimation
 * SK6812 RGBW: the white color channel calibration for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI)
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.

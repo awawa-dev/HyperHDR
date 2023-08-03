@@ -315,6 +315,37 @@ void HyperHdrInstance::setSmoothing(int time)
 	_smoothing->updateCurrentConfig(time);
 }
 
+QJsonObject HyperHdrInstance::getAverageColor()
+{
+	QJsonObject ret;
+
+	auto copy = _globalLedBuffer;
+	long red = 0, green = 0, blue = 0, count = 0;
+	
+	for (const ColorRgb& c : copy)
+	{
+		red += c.red;
+		green += c.green;
+		blue += c.blue;
+
+		count++;
+	}
+
+	if (!_ledDeviceWrapper->enabled())
+	{
+		red = green = blue = 0;
+	}
+
+	if (count > 0)
+	{
+		ret["red"] = static_cast<int>(red / count);
+		ret["green"] = static_cast<int>(green / count);
+		ret["blue"] = static_cast<int>(blue / count);
+	}
+
+	return ret;
+}
+
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned retVal = id;
@@ -640,7 +671,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 	Info(_log, "New priority[%d], previous [%d]", priority, previousPriority);
 	if (priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Error(_log, "No source left -> switch LED-Device off");
+		Warning(_log, "No source left -> switch LED-Device off");
 
 		emit compStateChangeRequest(hyperhdr::COMP_LEDDEVICE, false);
 		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());		

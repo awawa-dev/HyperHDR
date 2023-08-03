@@ -48,6 +48,9 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 		Debug(_log, "_baudRate_Hz [%d], _spiType: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
 		Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
 
+		if (_refreshTimerInterval_ms > 0)
+			Error(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
+
 		isInitOK = true;
 	}
 	return isInitOK;

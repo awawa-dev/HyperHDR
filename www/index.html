@@ -37,9 +37,6 @@
         <script src="js/hyperhdr.js"></script>
         <script src="js/ui_utils.js"></script>        
 
-        <!-- BS Notfiy -->
-        <script src="js/lib/bootstrap-notify.min.js"></script>
-        
         <script src="js/lib/vanilla-picker.min.js"></script>
 		
         <script src="js/lib/jsoneditor.min.js"></script>
@@ -237,7 +234,20 @@
 			</aside>
 			
 			<div id="main-window-wrappper" class="content-wrapper">
-                      
+				<div id="notification-target" style="display: inline-block; z-index:10000;  position: absolute; top: 0;"></div>
+				<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 11">
+					<div id="toast_settings_saved_ok" class="toast border border-success" data-bs-delay="1500" role="alert" aria-live="assertive" aria-atomic="true">
+						<div class="toast-header bg-success">
+							<strong class="me-auto h6 mt-1"><i class="fa fa-fw fa-save"></i><span class="ms-1" data-i18n="dashboard_alert_message_confsave_success_t"></span></strong>							
+							<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+						</div>
+						<div class="toast-body mt-1 row">
+							<div class="col-2 h4 text-success hyperhdr-vcenter"><i class="fa fa-fw fa-check"></i></div>
+							<div class="col-10 h6" data-i18n="dashboard_alert_message_confsave_success"></div>
+						</div>
+					</div>
+				</div>
+					
 				<!-- Page Content -->
 				<div id="page-wrapper" style="padding: 10px; overflow:auto;">
 					<div id="hyperhdr_global_setting_notify" style="display: none; padding: 0 10px; margin: 0;">

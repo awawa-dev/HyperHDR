@@ -170,9 +170,31 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 			uint8_t ogreen = color.green;
 			uint8_t oblue = color.blue;
 			uint8_t B_RGB = 0, B_CMY = 0, B_W = 0;
+			
 
 			adjustment->_rgbTransform.transform(ored, ogreen, oblue);
 			adjustment->_rgbTransform.getBrightnessComponents(B_RGB, B_CMY, B_W);
+
+			if (!adjustment->_rgbBlackAdjustment.isEnabled() &&
+				!adjustment->_rgbRedAdjustment.isEnabled() &&
+				!adjustment->_rgbGreenAdjustment.isEnabled() &&
+				!adjustment->_rgbBlueAdjustment.isEnabled() &&
+				!adjustment->_rgbCyanAdjustment.isEnabled() &&
+				!adjustment->_rgbMagentaAdjustment.isEnabled() &&
+				!adjustment->_rgbYellowAdjustment.isEnabled() &&
+				!adjustment->_rgbWhiteAdjustment.isEnabled())
+			{
+				color.red = ored;
+				color.green = ogreen;
+				color.blue = oblue;
+				if (B_RGB != 255)
+				{
+					color.red = ((uint32_t)color.red * B_RGB)/255;
+					color.green = ((uint32_t)color.green * B_RGB) / 255;
+					color.blue = ((uint32_t)color.blue * B_RGB) / 255;
+				}
+				continue;
+			}
 
 			uint32_t nrng = (uint32_t)(255 - ored) * (255 - ogreen);
 			uint32_t rng = (uint32_t)(ored) * (255 - ogreen);

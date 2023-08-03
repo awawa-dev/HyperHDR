@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utils/InternalClock.h>
+#include <utils/Macros.h>
 
 // QT includes
 #include <QObject>
@@ -74,6 +75,7 @@ public:
 	static void     deleteInstance(const QString& name = "");
 	static void     setLogLevel(LogLevel level, const QString& name = "");
 	static LogLevel getLogLevel(const QString& name = "");
+	static QString getLastError();
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level);
@@ -97,6 +99,7 @@ private:
 	static QMutex                 _mapLock;
 	static QMap<QString, Logger*> _loggerMap;
 	static QAtomicInteger<int>    GLOBAL_MIN_LOG_LEVEL;
+	static QString                _lastError;
 
 	const QString                _name;
 	const QString                _appname;

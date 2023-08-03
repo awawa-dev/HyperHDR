@@ -219,11 +219,13 @@ function initLanguageSelection()
 
 function instanceSwitch(inst)
 {
-	requestInstanceSwitch(inst)
+	if (window.serverInfo == null || window.serverInfo.currentInstance != inst)
+		requestInstanceSwitch(inst);
+
 	window.currentHyperHdrInstance = inst;
 	window.currentHyperHdrInstanceName = getInstanceNameByIndex(inst);
 	setStorage('lastSelectedInstance', inst, false)
-	updateHyperhdrInstanceListing()
+	updateHyperhdrInstanceListing();
 }
 
 function loadContentTo(containerId, fileName)
@@ -627,34 +629,31 @@ function showNotification(type, message, title="", addhtml="")
 			break;
 		}
 	}
+	let alertId = 'alert_' + Date.now();
+	let progressId = 'progress_' + alertId;
+	let code = `<div id="${alertId}" class="alert alert-dismissible fade show mt-2 pe-1 pb-1 parentAlert" role="alert">
+		<div class="notIcon">
+			<i class="fa fa-exclamation-circle hidden-xs"></i>
+		</div><div class="alertProgress alertProgressAnim" style="height:0%;z-index:1;"></div><div class="alertProgress bg-secondary h-100" style="z-index:0;"></div>
+		<h5><b>${title}</b></h5><hr/>${message}${addhtml}	
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>					
+	</div>`;
 
-	$.notify({
-		// options
-		title: title,
-		message: message
-	},{
-		// settings
-		type: type,
-		animate: {
-			enter: 'animated fadeInDown',
-			exit: 'animated fadeOutUp'
-		},
-		placement:{
-			align:'center'
-		},
-		mouse_over : 'pause',
-		template: '<div data-notify="container" class="bg-w col-md-6 callout callout-{0}" role="alert">' +
-		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
-		'<span data-notify="icon"></span> ' +
-		'<h4 data-notify="title">{1}</h4><br/> ' +
-		'<span data-notify="message">{2}</span>' +
-		addhtml+
-		'<div class="progress" data-notify="progressbar">' +
-			'<div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>' +
-		'</div>' +
-		'<a href="{3}" target="{4}" data-notify="url"></a>' +
-		'</div>'
-	});
+	let targetPlace = document.getElementById("notification-target");
+	targetPlace.innerHTML += code;
+	
+	setTimeout(function(i) {
+		let target = document.getElementById(i);
+		if (target!=null)
+		{
+			target.classList.add("remove-alert");		
+			setTimeout(function(j) {
+				let k = document.getElementById(j);
+				if (k != null)
+					k.remove();
+			}, 500, i);
+		}
+	}, 5000, alertId);
 }
 
 

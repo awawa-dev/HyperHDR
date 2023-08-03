@@ -67,6 +67,8 @@ $(document).ready(function() {
 				}
 				
 				
+				var utcDate = new Date();
+				var offsetDate = utcDate.getTimezoneOffset();
 
 				for(var idx = 0; idx < messages.length; idx++)
 				{
@@ -87,7 +89,7 @@ $(document).ready(function() {
 					}
 					
 
-					var date = new Date(parseInt(utime));
+					var date = new Date(parseInt(utime) - offsetDate * 60000);
 
 					LogLine($("#logmessages"), date, app_name, logger_name, level_string, debug,msg);					
 				}
