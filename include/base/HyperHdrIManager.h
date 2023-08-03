@@ -84,6 +84,8 @@ public slots:
 	///
 	bool stopInstance(quint8 inst);
 
+	QJsonObject getAverageColor(quint8 index);
+
 	///
 	/// @brief Toggle the state of all HyperHDR instances
 	/// @param pause If true all instances toggle to pause, else to resume

@@ -109,7 +109,10 @@ public:
 
 public slots:
 
+	QJsonObject getAverageColor();
+
 	void setSmoothing(int time);
+
 	void identifyLed(const QJsonObject& params);
 
 	bool getReadOnlyMode() { return _readOnlyMode; };

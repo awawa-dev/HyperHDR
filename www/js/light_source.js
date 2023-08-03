@@ -19,7 +19,7 @@ var _resizeObserver = null;
 if (typeof ResizeObserver === "function" && _resizeObserver === null)
 {
 	_resizeObserver = new ResizeObserver(entries => {		
-		if ( _lastOrigin != "" && _lastLeds.length > 0 )
+		if ( _lastOrigin != "" && _lastLeds.length > 0 && $('#previewledcount').length)
 		{
 			createLedPreview(_lastLeds, _lastOrigin);			
 		}
