@@ -132,6 +132,18 @@ $(document).ready(function() {
 				updateLedLayout();
 			}
 		});
+
+		if (navigator.maxTouchPoints > 0)
+		{
+			var btnn = $("#ledsim_dialog").find("button.btn-close");
+			if (btnn.length == 1 && !$(btnn[0]).parent().is($("#ledsim_dialog")))
+			{
+				$(btnn[0]).css('position','absolute');
+				$(btnn[0]).css('right','10px');
+				$(btnn[0]).css('top','20px');
+				$("#ledsim_dialog").append( $(btnn[0]) );
+			}
+		}
 		
 		// apply new serverinfos
 		$(window.hyperhdr).on("cmd-config-getconfig",function(event){

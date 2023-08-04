@@ -1,3 +1,4 @@
+- Pause the USB grabber when all LEDs are off #608 (v20 beta 🆕) 
 - Add support for HD108 led strip, 16/48bits colors #527 (v20 beta 🆕)  
 - Use optional system libs for compiling #541 (v20 beta 🆕)  
 - Update mbedtls to 3.4.0 #589 (v20 beta 🆕)  
