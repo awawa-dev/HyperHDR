@@ -1209,5 +1209,17 @@
   "main_menu_grabber_lut_path_found_CRC" : "File CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "abilita l'HDR nelle opzioni del grabber USB e aggiorna la pagina",
   "main_menu_grabber_lut_restart" : "Riavvia il sistema affinché le modifiche abbiano effetto completo!<br>Configurazione USB grabber con Luminosità=$1, Contrasto=$2, Saturazione=$3 è stato salvato.",
-  "main_menu_grabber_lut_confirm" : "Sei sicuro di scaricare e installare il nuovo file LUT per il tuo grabber?"
+  "main_menu_grabber_lut_confirm" : "Sei sicuro di scaricare e installare il nuovo file LUT per il tuo grabber?",
+  "edt_conf_stream_ledoff_expl": "Spegnere completamente la pinza USB dopo 10 secondi quando tutti i dispositivi LED sono spenti. Riprendere di nuovo quando il dispositivo LED è abilitato.",
+  "edt_conf_stream_ledoff_title": "Pausa quando i LED sono spenti",
+  "json_api_instanceCurrentState_header" : "Ottieni lo stato corrente dell'istanza",
+  "json_api_instanceCurrentState_expl" : "Ottieni lo stato corrente e aggiornato dell'istanza, ad esempio il colore medio dei LED.",
+  "general_btn_average_color" : "Colore medio",
+  "warning_lut_not_found_t" : "Configurazione completa del grabber USB",
+  "warning_lut_not_found_1" : "Non abbiamo rilevato una LUT dedicata per il tuo video grabber USB. Senza di esso, l'elaborazione del segnale video acquisito (sia SDR che HDR) potrebbe essere notevolmente degradata, poiché dobbiamo utilizzare impostazioni sicure/comuni per tutti i dispositivi.<br/>Vuoi scaricarlo ora?",
+  "warning_lut_not_found_2" : "Se il tuo USB grabber non è elencato o vuoi calibrare il tuo sistema, puoi farlo qui:",
+  "warning_lut_not_found_3" : "Scarica e installa LUT con un clic",
+  "warning_errors_detected_t" : "Alcuni errori trovati nel registro",
+  "warning_errors_detected_1" : "L'ultimo:",
+  "warning_errors_detected_2" : "Alcuni errori sono transitori (ad es. con il LED di riconnessione automatica abilitato) e possono essere ignorati, altri possono indicare gravi errori di configurazione o funzionamento del sistema.<br/>Controlla i log e cerca gli errori (in rosso):"
 }

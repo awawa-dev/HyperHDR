@@ -1209,5 +1209,17 @@
   "main_menu_grabber_lut_path_found_CRC" : "CRC du fichier: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "activer HDR dans les options de capture USB et actualiser la page",
   "main_menu_grabber_lut_restart" : "Veuillez redémarrer votre système pour que les modifications prennent pleinement effet !<br>Configuration de la pince USB avec Luminosité=$1, Contraste=$2, Saturation=$3 a été sauvé.",
-  "main_menu_grabber_lut_confirm" : "Êtes-vous sûr de télécharger et d'installer le nouveau fichier LUT pour votre carte d'acquisition?"
+  "main_menu_grabber_lut_confirm" : "Êtes-vous sûr de télécharger et d'installer le nouveau fichier LUT pour votre carte d'acquisition?",
+  "edt_conf_stream_ledoff_expl": "Éteignez complètement la pince USB après 10 secondes lorsque tous les dispositifs LED sont éteints. Reprendre à nouveau lorsque le dispositif LED est activé.",
+  "edt_conf_stream_ledoff_title": "Pause lorsque les LED sont éteintes",
+  "json_api_instanceCurrentState_header" : "Obtenir l'état actuel de l'instance",
+  "json_api_instanceCurrentState_expl" : "Obtenez l'état actuel et mis à jour de l'instance, comme la couleur moyenne des voyants.",
+  "general_btn_average_color" : "Couleur moyenne",
+  "warning_lut_not_found_t" : "Configuration complète de la pince USB",
+  "warning_lut_not_found_1" : "Nous n'avons pas détecté de LUT dédiée pour votre carte d'acquisition vidéo USB. Sans cela, le traitement du signal vidéo capturé (à la fois SDR et HDR) peut être considérablement dégradé, car nous devons utiliser des paramètres sûrs/communs pour tous les appareils.<br/>Voulez-vous le télécharger maintenant?",
+  "warning_lut_not_found_2" : "Si votre carte d'acquisition USB n'est pas répertoriée ou si vous souhaitez calibrer votre propre système, vous pouvez le faire ici:",
+  "warning_lut_not_found_3" : "Téléchargez et installez LUT en un clic",
+  "warning_errors_detected_t" : "Quelques erreurs trouvées dans le journal",
+  "warning_errors_detected_1" : "Le dernier:",
+  "warning_errors_detected_2" : "Certaines erreurs sont transitoires (par exemple, lorsque le voyant de reconnexion automatique est activé) et peuvent être ignorées, d'autres peuvent indiquer de graves erreurs de configuration ou de fonctionnement du système.<br/>Vérifiez les journaux et recherchez les erreurs (en rouge):"
 }

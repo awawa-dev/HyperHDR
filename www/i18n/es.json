@@ -1209,5 +1209,17 @@
   "main_menu_grabber_lut_path_found_CRC" : "Archivo CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "habilite HDR en las opciones de capturador USB y actualice la página",
   "main_menu_grabber_lut_restart" : "¡Reinicie su sistema para que los cambios surtan efecto por completo!<br>Configuración del capturador USB con Brillo=$1, Contraste=$2, Saturación=$3 fue salvado.",
-  "main_menu_grabber_lut_confirm" : "¿Está seguro de descargar e instalar un nuevo archivo LUT para su capturador?"
+  "main_menu_grabber_lut_confirm" : "¿Está seguro de descargar e instalar un nuevo archivo LUT para su capturador?",
+  "edt_conf_stream_ledoff_expl": "Apague la pinza USB por completo después de 10 segundos cuando todos los dispositivos LED estén apagados. Reanudar de nuevo cuando el dispositivo LED esté habilitado.",
+  "edt_conf_stream_ledoff_title": "Pausa cuando los LED están apagados",
+  "json_api_instanceCurrentState_header" : "Obtener el estado actual de la instancia",
+  "json_api_instanceCurrentState_expl" : "Obtenga el estado actual y actualizado de la instancia, como el color promedio de los LED.",
+  "general_btn_average_color" : "Color promedio",
+  "warning_lut_not_found_t" : "Configuración completa del grabador USB",
+  "warning_lut_not_found_1" : "No hemos detectado una LUT dedicada para su capturador de video USB. Sin él, el procesamiento de la señal de video capturada (tanto SDR como HDR) puede degradarse significativamente, ya que debemos usar configuraciones que sean seguras/comunes para todos los dispositivos.<br/>¿Quieres descargarlo ahora?",
+  "warning_lut_not_found_2" : "Si su grabador USB no está en la lista o desea calibrar su propio sistema, puede hacerlo aquí:",
+  "warning_lut_not_found_3" : "Descarga e instala LUT con un solo clic",
+  "warning_errors_detected_t" : "Algunos errores encontrados en el registro",
+  "warning_errors_detected_1" : "El último:",
+  "warning_errors_detected_2" : "Algunos errores son transitorios (p. ej., con el LED de reconexión automática habilitado) y se pueden ignorar, otros pueden indicar errores graves de configuración o funcionamiento del sistema.<br/>Revise los registros y busque errores (en rojo):"
 }

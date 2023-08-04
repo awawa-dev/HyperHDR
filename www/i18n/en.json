@@ -1213,7 +1213,7 @@
   "edt_conf_stream_ledoff_expl": "Turn off the USB gripper completely after 10 seconds when all LED devices are off. Resume again when the LED device is enabled.",
   "edt_conf_stream_ledoff_title": "Pause when LEDs are off",
   "json_api_instanceCurrentState_header" : "Get instance current state",
-  "json_api_instanceCurrentState_expl" : "Get the current, updated state of the instance, such as the average color of the LEDs",
+  "json_api_instanceCurrentState_expl" : "Get the current, updated state of the instance, such as the average color of the LEDs.",
   "general_btn_average_color" : "Average color",
   "warning_lut_not_found_t" : "Complete USB grabber setup",
   "warning_lut_not_found_1" : "We have not detected a dedicated LUT for your USB video grabber. Without it, the processing of the captured video signal (both SDR and HDR) may be significantly degraded, as we must use settings that are safe/common for all devices.<br/>Do you want to download it now?",

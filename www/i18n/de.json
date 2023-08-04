@@ -1209,5 +1209,17 @@
   "main_menu_grabber_lut_path_found_CRC" : "Datei CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "aktivieren Sie HDR in den USB grabber optionen und aktualisieren sie die seite",
   "main_menu_grabber_lut_restart" : "Bitte starten sie Ihr system neu, damit die änderungen vollständig wirksam werden!<br>USB grabber konfiguration mit Helligkeit=$1, Kontrast=$2, Sättigung=$3 wurde gerettet.",
-  "main_menu_grabber_lut_confirm" : "Sind sie sicher, dass sie die neue LUT datei für Ihren grabber herunterladen und installieren?"
-}
+  "main_menu_grabber_lut_confirm" : "Sind sie sicher, dass sie die neue LUT datei für Ihren grabber herunterladen und installieren?",
+  "edt_conf_stream_ledoff_expl": "Schalten Sie den USB-greifer nach 10 sekunden vollständig aus, wenn alle LED-geräte ausgeschaltet sind. Fahren Sie erneut fort, wenn das LED-gerät aktiviert ist.",
+  "edt_conf_stream_ledoff_title": "Pause, wenn die LEDs aus sind",
+  "json_api_instanceCurrentState_header" : "Aktuellen Status der Instanz abrufen",
+  "json_api_instanceCurrentState_expl" : "Rufen Sie den aktuellen, aktualisierten Status der Instanz ab, z. B. die durchschnittliche Farbe der LEDs.",
+  "general_btn_average_color" : "Durchschnittliche Farbe",
+  "warning_lut_not_found_t" : "Komplettes USB-Grabber-Setup",
+  "warning_lut_not_found_1" : "Wir haben keine dedizierte LUT für Ihren USB-Videograbber erkannt. Ohne sie kann die Verarbeitung des erfassten Videosignals (sowohl SDR als auch HDR) erheblich beeinträchtigt werden, da wir Einstellungen verwenden müssen, die für alle Geräte sicher/gemeinsam sind.<br/>Möchten Sie es jetzt herunterladen?",
+  "warning_lut_not_found_2" : "Wenn Ihr USB-Grabber nicht aufgeführt ist oder Sie Ihr eigenes System kalibrieren möchten, können Sie dies hier tun:",
+  "warning_lut_not_found_3" : "Laden Sie LUT mit einem Klick herunter und installieren Sie es",
+  "warning_errors_detected_t" : "Im Protokoll wurden einige Fehler gefunden",
+  "warning_errors_detected_1" : "Der Letzte:",
+  "warning_errors_detected_2" : "Einige Fehler sind vorübergehender Natur (z. B. wenn die LED für die automatische Wiederverbindung aktiviert ist) und können ignoriert werden, andere können auf schwerwiegende Systemkonfigurations- oder Betriebsfehler hinweisen.<br/>Überprüfen Sie die Protokolle und suchen Sie nach Fehlern (in Rot):"
+} 

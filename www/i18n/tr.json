@@ -1209,5 +1209,17 @@
   "main_menu_grabber_lut_path_found_CRC" : "Dosya CRC'si: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "USB yakalayıcı seçeneklerinde HDR'yi etkinleştirin ve sayfayı yenileyin",
   "main_menu_grabber_lut_restart" : "Değişikliklerin tam olarak geçerli olması için lütfen sisteminizi yeniden başlatın!<br>Ile USB yakalayıcı yapılandırması Parlaklık=$1, Zıtlık=$2, Doyma=$3 kaydedildi.",
-  "main_menu_grabber_lut_confirm" : "Yakalayıcınız için yeni LUT dosyasını indirip kuracağınızdan emin misiniz?"
+  "main_menu_grabber_lut_confirm" : "Yakalayıcınız için yeni LUT dosyasını indirip kuracağınızdan emin misiniz?",
+  "edt_conf_stream_ledoff_expl": "Tüm LED cihazları kapandıktan 10 saniye sonra USB tutucuyu tamamen kapatın. LED cihazı etkinleştirildiğinde tekrar devam ettirin.",
+  "edt_conf_stream_ledoff_title": "LED'ler kapalıyken duraklat",
+  "json_api_instanceCurrentState_header" : "Örnek geçerli durumunu al",
+  "json_api_instanceCurrentState_expl" : "LED'lerin ortalama rengi gibi, örneğin mevcut, güncellenmiş durumunu alın.",
+  "general_btn_average_color" : "Ortalama renk",
+  "warning_lut_not_found_t" : "Komple USB kavrayıcı kurulumu",
+  "warning_lut_not_found_1" : "USB video yakalayıcınız için ayrılmış bir LUT tespit etmedik. Bu olmadan, tüm cihazlar için güvenli/ortak ayarları kullanmamız gerektiğinden, yakalanan video sinyalinin (hem SDR hem de HDR) işlenmesi önemli ölçüde bozulabilir.<br/>Onu şimdi indirmek istiyor musunuz?",
+  "warning_lut_not_found_2" : "USB yakalayıcınız listede yoksa veya kendi sisteminizi kalibre etmek istiyorsanız, bunu buradan yapabilirsiniz:",
+  "warning_lut_not_found_3" : "LUT'u tek tıkla indirin ve kurun",
+  "warning_errors_detected_t" : "Günlükte bulunan bazı hatalar",
+  "warning_errors_detected_1" : "Sonuncu:",
+  "warning_errors_detected_2" : "Bazı hatalar geçicidir (ör. otomatik yeniden bağlanma LED'i etkinken) ve göz ardı edilebilir, diğerleri ise ciddi sistem yapılandırması veya işlem hatalarını gösterebilir.<br/>Günlükleri kontrol edin ve hataları arayın (kırmızı renkte):"
 }

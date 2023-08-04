@@ -1209,5 +1209,17 @@
   "main_menu_grabber_lut_path_found_CRC" : "Tệp CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "bật HDR trong các tùy chọn lấy USB và làm mới trang",
   "main_menu_grabber_lut_restart" : "Vui lòng khởi động lại hệ thống của bạn để những thay đổi có hiệu lực đầy đủ!<br>Cấu hình bộ lấy USB với độ sáng=$1, Sự tương phản=$2, bão hòa=$3 đã được cứu.",
-  "main_menu_grabber_lut_confirm" : "Bạn có chắc chắn tải xuống và cài đặt tệp LUT mới cho trình tải xuống của mình không?"
+  "main_menu_grabber_lut_confirm" : "Bạn có chắc chắn tải xuống và cài đặt tệp LUT mới cho trình tải xuống của mình không?",
+  "edt_conf_stream_ledoff_expl": "Tắt hoàn toàn bộ kẹp USB sau 10 giây khi tất cả các thiết bị đèn LED đều tắt. Tiếp tục lại khi thiết bị LED được bật.",
+  "edt_conf_stream_ledoff_title": "Tạm dừng khi đèn LED tắt",
+  "json_api_instanceCurrentState_header" : "Nhận trạng thái hiện tại của ví dụ",
+  "json_api_instanceCurrentState_expl" : "Nhận trạng thái cập nhật, hiện tại của phiên bản, chẳng hạn như màu trung bình của đèn LED.",
+  "general_btn_average_color" : "Màu trung bình",
+  "warning_lut_not_found_t" : "Hoàn thành thiết lập bộ lấy USB",
+  "warning_lut_not_found_1" : "Chúng tôi chưa phát hiện thấy LUT dành riêng cho trình lấy video USB của bạn. Nếu không có nó, quá trình xử lý tín hiệu video đã ghi (cả SDR và ​​HDR) có thể bị suy giảm đáng kể vì chúng tôi phải sử dụng các cài đặt an toàn/chung cho tất cả các thiết bị.<br/>Bạn có muốn tải xuống ngay bây giờ không?",
+  "warning_lut_not_found_2" : "Nếu bộ lấy USB của bạn không được liệt kê hoặc bạn muốn hiệu chỉnh hệ thống của riêng mình, bạn có thể thực hiện tại đây:",
+  "warning_lut_not_found_3" : "Tải xuống và cài đặt LUT bằng một cú nhấp chuột",
+  "warning_errors_detected_t" : "Một số lỗi được tìm thấy trong nhật ký",
+  "warning_errors_detected_1" : "Cái cuối cùng:",
+  "warning_errors_detected_2" : "Một số lỗi chỉ xảy ra tạm thời (ví dụ: khi bật đèn LED tự động kết nối lại) và có thể bỏ qua, những lỗi khác có thể biểu thị lỗi vận hành hoặc cấu hình hệ thống nghiêm trọng.<br/>Kiểm tra nhật ký và tìm lỗi (màu đỏ):"
 }
