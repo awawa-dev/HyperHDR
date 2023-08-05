@@ -101,6 +101,16 @@ void HyperHdrIManager::setSmoothing(int time)
 		QTimer::singleShot(0, instance, [=]() { instance->setSmoothing(time); });	
 }
 
+QJsonObject HyperHdrIManager::getAverageColor(quint8 index)
+{
+	HyperHdrInstance* instance = HyperHdrIManager::getHyperHdrInstance(index);
+	QJsonObject res;
+
+	SAFE_CALL_0_RET(instance, getAverageColor, QJsonObject, res);
+
+	return res;
+}
+
 bool HyperHdrIManager::isCEC()
 {
 	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;

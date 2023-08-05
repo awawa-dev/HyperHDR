@@ -1,0 +1,26 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["current-state"]
+		},
+		"subcommand" : {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["average-color"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"instance": {
+			"type": "integer",
+			"minimum" : 0,
+			"maximum" : 255,
+			"required": true
+		}		
+	},
+	"additionalProperties": false
+}

@@ -58,6 +58,9 @@ bool LedDeviceWS281x::init(const QJsonObject& deviceConfig)
 
 				Debug(_log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type);
 
+				if (_refreshTimerInterval_ms > 0)
+					Error(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
+
 				isInitOK = true;
 			}
 		}

@@ -49,6 +49,8 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber* ggrabber)
 	, _cecHdrStart(0)
 	, _cecHdrStop(0)
 	, _autoResume(false)
+	, _isPaused(false)
+	, _pausingModeEnabled(false)
 	, _benchmarkStatus(-1)
 	, _benchmarkMessage("")
 {
@@ -65,6 +67,64 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber* ggrabber)
 
 	connect(this, &GrabberWrapper::setBrightnessContrastSaturationHue, this, &GrabberWrapper::setBrightnessContrastSaturationHueHandler);
 
+	connect(this, &GrabberWrapper::instancePauseChanged, this, &GrabberWrapper::instancePauseChangedHandler);
+}
+
+void GrabberWrapper::instancePauseChangedHandler(int instance, bool isEnabled)
+{
+	static int signature = 0;
+	int trigger = 0;
+
+	if (!_pausingModeEnabled)
+		return;
+
+	if (!isEnabled)
+	{
+		if (!_paused_clients.contains(instance))
+		{
+			_paused_clients.append(instance);
+			trigger = 10000;
+		}
+	}
+	else if (isEnabled)
+	{
+		if (_paused_clients.contains(instance))
+		{
+			_paused_clients.removeOne(instance);
+			trigger = 1000;
+		}
+	}
+
+	if (trigger > 0)
+	{
+		int newSignature = ++signature;
+		QTimer::singleShot(trigger, Qt::TimerType::PreciseTimer, this, [this, newSignature]() {
+			if (signature == newSignature)
+			{
+				if (_paused_clients.length() == _running_clients.length() && _paused_clients.length() > 0)
+				{
+					if (!_isPaused)
+					{
+						Warning(_log, "LEDs are off and you have enabled the pausing feature for the USB grabber. Pausing the video grabber now.");
+						auto _running_clients_copy = _running_clients;
+						_running_clients.clear();
+						handleSourceRequest(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);
+						_running_clients = _running_clients_copy;
+						_isPaused = true;						
+					}
+				}
+				else if (_paused_clients.length() < _running_clients.length() && _running_clients.length() > 0)
+				{
+					if (_isPaused)
+					{
+						Warning(_log, "LEDs are on. Resuming the video grabber now.");
+						handleSourceRequest(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);
+						_isPaused = false;
+					}
+				}
+			}
+		});
+	}
 }
 
 void GrabberWrapper::setCecStartStop(int cecHdrStart, int cecHdrStop)
@@ -208,16 +268,25 @@ QJsonObject GrabberWrapper::getJsonInfo()
 	return grabbers;
 }
 
-void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int hyperhdrInd, bool listen)
+void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int instanceIndex, bool listen)
 {
 	if (component == hyperhdr::Components::COMP_VIDEOGRABBER)
 	{
-		if (listen && !GRABBER_VIDEO_CLIENTS.contains(hyperhdrInd))
-			GRABBER_VIDEO_CLIENTS.append(hyperhdrInd);
-		else if (!listen)
-			GRABBER_VIDEO_CLIENTS.removeOne(hyperhdrInd);
+		if (instanceIndex >= 0)
+		{
+			if (listen && !_running_clients.contains(instanceIndex))
+			{
+				_running_clients.append(instanceIndex);
+				_paused_clients.removeOne(instanceIndex);
+			}
+			else if (!listen)
+			{
+				_running_clients.removeOne(instanceIndex);
+				_paused_clients.removeOne(instanceIndex);
+			}
+		}
 
-		if (GRABBER_VIDEO_CLIENTS.empty())
+		if (_running_clients.empty())
 		{
 			stop();
 
@@ -463,6 +532,12 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			{
 				_autoResume = obj["autoResume"].toBool(false);
 				Debug(_log, "Auto resume is: %s", (_autoResume) ? "enabled" : "disabled");
+			}
+
+			if (_pausingModeEnabled != obj["led_off_pause"].toBool(false))
+			{
+				_pausingModeEnabled = obj["led_off_pause"].toBool(false);
+				Debug(_log, "Pausing mode is: %s", (_pausingModeEnabled) ? "enabled" : "disabled");
 			}
 
 			// crop for video

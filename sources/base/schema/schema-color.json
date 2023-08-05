@@ -216,7 +216,12 @@
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
 						"default" : true,
-						"propertyOrder" : 12
+						"propertyOrder" : 12,
+						"options": {
+							"dependencies": {
+								"backlightThreshold": true
+							}
+						}
 					},
 					"brightness" :
 					{

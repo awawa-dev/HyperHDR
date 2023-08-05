@@ -19,7 +19,7 @@ var _resizeObserver = null;
 if (typeof ResizeObserver === "function" && _resizeObserver === null)
 {
 	_resizeObserver = new ResizeObserver(entries => {		
-		if ( _lastOrigin != "" && _lastLeds.length > 0 )
+		if ( _lastOrigin != "" && _lastLeds.length > 0 && $('#previewledcount').length)
 		{
 			createLedPreview(_lastLeds, _lastOrigin);			
 		}
@@ -880,7 +880,7 @@ $(document).ready(function()
 			var yeelight_title = 'wiz_yeelight_title';
 			changeWizard(data, yeelight_title, startWizardYeelight);
 		}		
-		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi", "wled", "adalight", "atmo", "dmx", "karate", "sedu", "tpm2"].includes(ledType))
+		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi", "wled", "adalight", "atmo", "dmx", "karate", "sedu", "tpm2", "hd108"].includes(ledType))
 		{					
 			let selectorControl = $("<select id=\"deviceListInstances\" />");
 			let targetControl = 'output';
@@ -918,7 +918,7 @@ $(document).ready(function()
 
 	// create led device selection
 	var ledDevices = window.serverInfo.ledDevices.available;
-	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi','awa_spi'];
+	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi', 'awa_spi', 'hd108'];
 	var devRPiPWM = ['ws281x'];
 	var devRPiGPIO = ['piblaster'];
 
