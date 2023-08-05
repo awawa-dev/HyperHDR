@@ -6,15 +6,24 @@ on:
       tags:
         description: 'HyperHDR release tag (for example 17.0.0.0)'
       architecture:
-        description: 'ARM architecture: armv6l/armv7l/aarch64'
+        description: 'ARM architecture: armv6l/aarch64'
+      debian:
+        default: ""
+        description: 'optional Debian version'
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       HYPERHDR_DEB: 'https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/HyperHDR-${{ github.event.inputs.tags }}-Linux-${{ github.event.inputs.architecture }}.deb'
       
     steps:
+
+    - name: Overrride Debian download link
+      if: github.event.inputs.debian != ''
+      run: |
+        echo "HYPERHDR_DEB='https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/hyperhdr_{{ github.event.inputs.tags }}~${{ github.event.inputs.debian }}_${{ github.event.inputs.architecture }}.deb'" >> $GITHUB_ENV
+
     - name: Install Dependencies
       run: |
         sudo apt update

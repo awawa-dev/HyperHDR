@@ -92,9 +92,9 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
+          USE_STANDARD_INSTALLER_NAME: 'ON'
         shell: bash
         run: |
-          sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
 
       # deploy the package      
