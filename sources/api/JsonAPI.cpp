@@ -16,6 +16,7 @@
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QMultiMap>
+#include <QDir>
 
 #include <leddevice/LedDeviceWrapper.h>
 #include <leddevice/LedDevice.h>
@@ -220,8 +221,12 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 			handleVideoControlsCommand(message, command, tan);
 		else if (command == "benchmark")
 			handleBenchmarkCommand(message, command, tan);
+		else if (command == "lut-install")
+			handleLutInstallCommand(message, command, tan);
 		else if (command == "smoothing")
 			handleSmoothingCommand(message, command, tan);
+		else if (command == "current-state")
+			handleCurrentStateCommand(message, command, tan);
 		else if (command == "transform" || command == "correction" || command == "temperature")
 			sendErrorReply("The command " + command + "is deprecated, please use the HyperHDR Web Interface to configure", command, tan);
 		// END
@@ -359,375 +364,419 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, i
 	emit callbackMessage(result);
 }
 
+hyperhdr::Components JsonAPI::getActiveComponent()
+{
+	PriorityMuxer::InputInfo prio;
+
+	if (QThread::currentThread() == _hyperhdr->thread())
+		prio = _hyperhdr->getCurrentPriorityInfo();
+	else
+		QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriorityInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(PriorityMuxer::InputInfo, prio));
+
+	return prio.componentId;	
+}
+
 void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	try
 	{
-		QJsonObject info;
 
-		// collect priority information
-		QJsonArray priorities;
-		uint64_t now = InternalClock::now();
-
-		int currentPriority = -1;
-		if (QThread::currentThread() == _hyperhdr->thread())
-			currentPriority = _hyperhdr->getCurrentPriority();
-		else
-			QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriority", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, currentPriority));
-
-		QList<int> activePriorities = _hyperhdr->getActivePriorities();
-		activePriorities.removeAll(255);
-		
-
-		for (int priority : activePriorities)
+		bool subscribeOnly = false;
+		if (message.contains("subscribe"))
 		{
-			const HyperHdrInstance::InputInfo& priorityInfo = _hyperhdr->getPriorityInfo(priority);
-			QJsonObject item;
-			item["priority"] = priority;
-			if (priorityInfo.timeoutTime_ms > 0)
-				item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+			QJsonArray subsArr = message["subscribe"].toArray();
+			for (const QJsonValueRef entry : subsArr)
+			{
+				if (entry == "performance-update" || entry == "lut-calibration-update")
+					subscribeOnly = true;
+			}
+		}
 
-			// owner has optional informations to the component
-			if (!priorityInfo.owner.isEmpty())
-				item["owner"] = priorityInfo.owner;
+		if (!subscribeOnly)
+		{
+			QJsonObject info;
 
-			item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
-			item["origin"] = priorityInfo.origin;
-			item["active"] = (priorityInfo.timeoutTime_ms >= -1);
-			item["visible"] = (priority == currentPriority);
+			// collect priority information
+			QJsonArray priorities;
+			uint64_t now = InternalClock::now();
 
+			int currentPriority = -1;
+			if (QThread::currentThread() == _hyperhdr->thread())
+				currentPriority = _hyperhdr->getCurrentPriority();
+			else
+				QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriority", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, currentPriority));
+
+			QList<int> activePriorities = _hyperhdr->getActivePriorities();
+			activePriorities.removeAll(255);
+
+
+			for (int priority : activePriorities)
+			{
+				const HyperHdrInstance::InputInfo& priorityInfo = _hyperhdr->getPriorityInfo(priority);
+				QJsonObject item;
+				item["priority"] = priority;
+				if (priorityInfo.timeoutTime_ms > 0)
+					item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+
+				// owner has optional informations to the component
+				if (!priorityInfo.owner.isEmpty())
+					item["owner"] = priorityInfo.owner;
+
+				item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
+				item["origin"] = priorityInfo.origin;
+				item["active"] = (priorityInfo.timeoutTime_ms >= -1);
+				item["visible"] = (priority == currentPriority);
+
+				if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
+				{
+					QJsonObject LEDcolor;
+
+					// add RGB Value to Array
+					QJsonArray RGBValue;
+					RGBValue.append(priorityInfo.ledColors.begin()->red);
+					RGBValue.append(priorityInfo.ledColors.begin()->green);
+					RGBValue.append(priorityInfo.ledColors.begin()->blue);
+					LEDcolor.insert("RGB", RGBValue);
+
+					uint16_t Hue;
+					float Saturation, Luminace;
+
+					// add HSL Value to Array
+					QJsonArray HSLValue;
+					ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+						priorityInfo.ledColors.begin()->green,
+						priorityInfo.ledColors.begin()->blue,
+						Hue, Saturation, Luminace);
+
+					HSLValue.append(Hue);
+					HSLValue.append(Saturation);
+					HSLValue.append(Luminace);
+					LEDcolor.insert("HSL", HSLValue);
+
+					item["value"] = LEDcolor;
+				}
+
+
+				(priority == currentPriority)
+					? priorities.prepend(item)
+					: priorities.append(item);
+			}
+
+			info["priorities"] = priorities;
+			info["priorities_autoselect"] = _hyperhdr->sourceAutoSelectEnabled();
+
+			// collect adjustment information
+			QJsonArray adjustmentArray;
+			for (const QString& adjustmentId : _hyperhdr->getAdjustmentIds())
+			{
+				const ColorAdjustment* colorAdjustment = _hyperhdr->getAdjustment(adjustmentId);
+				if (colorAdjustment == nullptr)
+				{
+					Error(_log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
+					continue;
+				}
+
+				QJsonObject adjustment;
+				adjustment["id"] = adjustmentId;
+
+				QJsonArray whiteAdjust;
+				whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentR());
+				whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentG());
+				whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentB());
+				adjustment.insert("white", whiteAdjust);
+
+				QJsonArray redAdjust;
+				redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
+				redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
+				redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentB());
+				adjustment.insert("red", redAdjust);
+
+				QJsonArray greenAdjust;
+				greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentR());
+				greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentG());
+				greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentB());
+				adjustment.insert("green", greenAdjust);
+
+				QJsonArray blueAdjust;
+				blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentR());
+				blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentG());
+				blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
+				adjustment.insert("blue", blueAdjust);
+
+				QJsonArray cyanAdjust;
+				cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentR());
+				cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentG());
+				cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentB());
+				adjustment.insert("cyan", cyanAdjust);
+
+				QJsonArray magentaAdjust;
+				magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentR());
+				magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentG());
+				magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentB());
+				adjustment.insert("magenta", magentaAdjust);
+
+				QJsonArray yellowAdjust;
+				yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentR());
+				yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentG());
+				yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentB());
+				adjustment.insert("yellow", yellowAdjust);
+
+				adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
+				adjustment["backlightColored"] = colorAdjustment->_rgbTransform.getBacklightColored();
+				adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
+				adjustment["brightnessCompensation"] = colorAdjustment->_rgbTransform.getBrightnessCompensation();
+				adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
+				adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
+				adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
+				adjustment["temperatureRed"] = colorAdjustment->_rgbRedAdjustment.getCorrection();
+				adjustment["temperatureGreen"] = colorAdjustment->_rgbGreenAdjustment.getCorrection();
+				adjustment["temperatureBlue"] = colorAdjustment->_rgbBlueAdjustment.getCorrection();
+				adjustment["saturationGain"] = colorAdjustment->_rgbTransform.getSaturationGain();
+				adjustment["luminanceGain"] = colorAdjustment->_rgbTransform.getLuminanceGain();
+				adjustment["classic_config"] = colorAdjustment->_rgbTransform.getClassicConfig();
+
+				adjustmentArray.append(adjustment);
+			}
+
+			info["adjustment"] = adjustmentArray;
+
+			// collect effect info
+			QJsonArray effects;
+			const std::list<EffectDefinition>& effectsDefinitions = _hyperhdr->getEffects();
+			for (const EffectDefinition& effectDefinition : effectsDefinitions)
+			{
+				QJsonObject effect;
+				effect["name"] = effectDefinition.name;
+				effect["args"] = effectDefinition.args;
+				effects.append(effect);
+			}
+
+			info["effects"] = effects;
+
+			// get available led devices
+			QJsonObject ledDevices;
+			QJsonArray availableLedDevices;
+			for (auto dev : LedDeviceWrapper::getDeviceMap())
+			{
+				availableLedDevices.append(dev.first);
+			}
+
+			ledDevices["available"] = availableLedDevices;
+			info["ledDevices"] = ledDevices;
+
+#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPMACOS)
+			if (SoundCapture::getInstance() != NULL)
+			{
+				QJsonObject resultSound;
+				auto soundInstance = SoundCapture::getInstance();
+
+				if (QThread::currentThread() == soundInstance->thread())
+					resultSound = soundInstance->getJsonInfo();
+				else
+					QMetaObject::invokeMethod(soundInstance, "getJsonInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, resultSound));
+
+				info["sound"] = resultSound;
+			}
+#endif	
+
+#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER)
+			if (SystemWrapper::getInstance() != nullptr)
+			{
+				info["systemGrabbers"] = SystemWrapper::getInstance()->getJsonInfo();
+			}
+#endif
+
+#if defined(ENABLE_PROTOBUF)
+			info["hasPROTOBUF"] = 1;
+#else
+			info["hasPROTOBUF"] = 0;
+#endif
+
+#if defined(ENABLE_CEC)
+			info["hasCEC"] = 1;
+#else
+			info["hasCEC"] = 0;
+#endif
+
+			QJsonObject grabbers;
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)	
+			grabbers = GrabberWrapper::getInstance()->getJsonInfo();
+			QString lutPath = QDir::cleanPath(_instanceManager->getRootPath() + QDir::separator() + "lut_lin_tables.3d");
+			grabbers["lut_for_hdr_path"] = lutPath;
+			if (QFile(lutPath).exists())
+			{
+				grabbers["lut_for_hdr_exists"] = 1;
+				grabbers["lut_for_hdr_modified_date"] = QFileInfo(lutPath).lastModified().toMSecsSinceEpoch();
+			}
+			else
+			{
+				grabbers["lut_for_hdr_exists"] = 0;
+			}
+#endif
+			info["grabbers"] = grabbers;
+
+			if (GrabberWrapper::getInstance() != nullptr)
+			{
+				info["videomodehdr"] = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
+			}
+			else
+			{
+				if (FlatBufferServer::getInstance() != nullptr)
+					info["videomodehdr"] = FlatBufferServer::getInstance()->getHdrToneMappingEnabled();
+				else
+					info["videomodehdr"] = 0;
+			}
+
+			// get available components
+			QJsonArray component;
+			std::map<hyperhdr::Components, bool> components = _hyperhdr->getComponentRegister().getRegister();
+			for (auto comp : components)
+			{
+				QJsonObject item;
+				item["name"] = QString::fromStdString(hyperhdr::componentToIdString(comp.first));
+				item["enabled"] = comp.second;
+
+				component.append(item);
+			}
+
+			info["components"] = component;
+			info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperhdr->getLedMappingType());
+
+			info["lastError"] = Logger::getLastError();
+
+			// add sessions
+			QJsonArray sessions;
+#ifdef ENABLE_BONJOUR
+			for (auto session : BonjourBrowserWrapper::getInstance()->getAllServices())
+			{
+				if (session.port < 0)
+					continue;
+				QJsonObject item;
+				item["name"] = session.serviceName;
+				item["type"] = session.registeredType;
+				item["domain"] = session.replyDomain;
+				item["host"] = session.hostName;
+				item["address"] = session.address;
+				item["port"] = session.port;
+				sessions.append(item);
+			}
+			info["sessions"] = sessions;
+#endif
+			// add instance info
+			QJsonArray instanceInfo;
+			for (const auto& entry : API::getAllInstanceData())
+			{
+				QJsonObject obj;
+				obj.insert("friendly_name", entry["friendly_name"].toString());
+				obj.insert("instance", entry["instance"].toInt());
+				//obj.insert("last_use", entry["last_use"].toString());
+				obj.insert("running", entry["running"].toBool());
+				instanceInfo.append(obj);
+			}
+			info["instance"] = instanceInfo;
+			if (_hyperhdr != nullptr)
+				info["currentInstance"] = _hyperhdr->getInstanceIndex();
+
+			// add leds configs
+			info["leds"] = _hyperhdr->getSetting(settings::type::LEDS).array();
+
+			// HOST NAME
+			info["hostname"] = QHostInfo::localHostName();
+
+			// TRANSFORM INFORMATION (DEFAULT VALUES)
+			QJsonArray transformArray;
+			for (const QString& transformId : _hyperhdr->getAdjustmentIds())
+			{
+				QJsonObject transform;
+				QJsonArray blacklevel, whitelevel, gamma, threshold;
+
+				transform["id"] = transformId;
+				transform["saturationGain"] = 1.0;
+				transform["valueGain"] = 1.0;
+				transform["saturationLGain"] = 1.0;
+				transform["luminanceGain"] = 1.0;
+				transform["luminanceMinimum"] = 0.0;
+
+				for (int i = 0; i < 3; i++)
+				{
+					blacklevel.append(0.0);
+					whitelevel.append(1.0);
+					gamma.append(2.50);
+					threshold.append(0.0);
+				}
+
+				transform.insert("blacklevel", blacklevel);
+				transform.insert("whitelevel", whitelevel);
+				transform.insert("gamma", gamma);
+				transform.insert("threshold", threshold);
+
+				transformArray.append(transform);
+			}
+			info["transform"] = transformArray;
+
+			// ACTIVE EFFECT INFO
+			QJsonArray activeEffects;
+			for (const ActiveEffectDefinition& activeEffectDefinition : _hyperhdr->getActiveEffects())
+			{
+				if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY - 1)
+				{
+					QJsonObject activeEffect;
+					activeEffect["name"] = activeEffectDefinition.name;
+					activeEffect["priority"] = activeEffectDefinition.priority;
+					activeEffect["timeout"] = activeEffectDefinition.timeout;
+					activeEffect["args"] = activeEffectDefinition.args;
+					activeEffects.append(activeEffect);
+				}
+			}
+			info["activeEffects"] = activeEffects;
+
+			// ACTIVE STATIC LED COLOR
+			QJsonArray activeLedColors;
+			const HyperHdrInstance::InputInfo& priorityInfo = _hyperhdr->getPriorityInfo(_hyperhdr->getCurrentPriority());
 			if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
 			{
 				QJsonObject LEDcolor;
+				// check if LED Color not Black (0,0,0)
+				if ((priorityInfo.ledColors.begin()->red +
+					priorityInfo.ledColors.begin()->green +
+					priorityInfo.ledColors.begin()->blue !=
+					0))
+				{
+					QJsonObject LEDcolor;
 
-				// add RGB Value to Array
-				QJsonArray RGBValue;
-				RGBValue.append(priorityInfo.ledColors.begin()->red);
-				RGBValue.append(priorityInfo.ledColors.begin()->green);
-				RGBValue.append(priorityInfo.ledColors.begin()->blue);
-				LEDcolor.insert("RGB", RGBValue);
+					// add RGB Value to Array
+					QJsonArray RGBValue;
+					RGBValue.append(priorityInfo.ledColors.begin()->red);
+					RGBValue.append(priorityInfo.ledColors.begin()->green);
+					RGBValue.append(priorityInfo.ledColors.begin()->blue);
+					LEDcolor.insert("RGB Value", RGBValue);
 
-				uint16_t Hue;
-				float Saturation, Luminace;
+					uint16_t Hue;
+					float Saturation, Luminace;
 
-				// add HSL Value to Array
-				QJsonArray HSLValue;
-				ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-					priorityInfo.ledColors.begin()->green,
-					priorityInfo.ledColors.begin()->blue,
-					Hue, Saturation, Luminace);
+					// add HSL Value to Array
+					QJsonArray HSLValue;
+					ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+						priorityInfo.ledColors.begin()->green,
+						priorityInfo.ledColors.begin()->blue,
+						Hue, Saturation, Luminace);
 
-				HSLValue.append(Hue);
-				HSLValue.append(Saturation);
-				HSLValue.append(Luminace);
-				LEDcolor.insert("HSL", HSLValue);
+					HSLValue.append(Hue);
+					HSLValue.append(Saturation);
+					HSLValue.append(Luminace);
+					LEDcolor.insert("HSL Value", HSLValue);
 
-				item["value"] = LEDcolor;
+					activeLedColors.append(LEDcolor);
+				}
 			}
+			info["activeLedColor"] = activeLedColors;
 
+			// END
 
-			(priority == currentPriority)
-				? priorities.prepend(item)
-				: priorities.append(item);
-		}
-
-		info["priorities"] = priorities;
-		info["priorities_autoselect"] = _hyperhdr->sourceAutoSelectEnabled();
-
-		// collect adjustment information
-		QJsonArray adjustmentArray;
-		for (const QString& adjustmentId : _hyperhdr->getAdjustmentIds())
-		{
-			const ColorAdjustment* colorAdjustment = _hyperhdr->getAdjustment(adjustmentId);
-			if (colorAdjustment == nullptr)
-			{
-				Error(_log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
-				continue;
-			}
-
-			QJsonObject adjustment;
-			adjustment["id"] = adjustmentId;
-
-			QJsonArray whiteAdjust;
-			whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentR());
-			whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentG());
-			whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentB());
-			adjustment.insert("white", whiteAdjust);
-
-			QJsonArray redAdjust;
-			redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
-			redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
-			redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentB());
-			adjustment.insert("red", redAdjust);
-
-			QJsonArray greenAdjust;
-			greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentR());
-			greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentG());
-			greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentB());
-			adjustment.insert("green", greenAdjust);
-
-			QJsonArray blueAdjust;
-			blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentR());
-			blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentG());
-			blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
-			adjustment.insert("blue", blueAdjust);
-
-			QJsonArray cyanAdjust;
-			cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentR());
-			cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentG());
-			cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentB());
-			adjustment.insert("cyan", cyanAdjust);
-
-			QJsonArray magentaAdjust;
-			magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentR());
-			magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentG());
-			magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentB());
-			adjustment.insert("magenta", magentaAdjust);
-
-			QJsonArray yellowAdjust;
-			yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentR());
-			yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentG());
-			yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentB());
-			adjustment.insert("yellow", yellowAdjust);
-
-			adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
-			adjustment["backlightColored"] = colorAdjustment->_rgbTransform.getBacklightColored();
-			adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
-			adjustment["brightnessCompensation"] = colorAdjustment->_rgbTransform.getBrightnessCompensation();
-			adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
-			adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
-			adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
-			adjustment["temperatureRed"] = colorAdjustment->_rgbRedAdjustment.getCorrection();
-			adjustment["temperatureGreen"] = colorAdjustment->_rgbGreenAdjustment.getCorrection();
-			adjustment["temperatureBlue"] = colorAdjustment->_rgbBlueAdjustment.getCorrection();
-			adjustment["saturationGain"] = colorAdjustment->_rgbTransform.getSaturationGain();
-			adjustment["luminanceGain"] = colorAdjustment->_rgbTransform.getLuminanceGain();
-			adjustment["classic_config"] = colorAdjustment->_rgbTransform.getClassicConfig();
-
-			adjustmentArray.append(adjustment);
-		}
-
-		info["adjustment"] = adjustmentArray;
-
-		// collect effect info
-		QJsonArray effects;
-		const std::list<EffectDefinition>& effectsDefinitions = _hyperhdr->getEffects();
-		for (const EffectDefinition& effectDefinition : effectsDefinitions)
-		{
-			QJsonObject effect;
-			effect["name"] = effectDefinition.name;
-			effect["args"] = effectDefinition.args;
-			effects.append(effect);
-		}
-
-		info["effects"] = effects;
-
-		// get available led devices
-		QJsonObject ledDevices;
-		QJsonArray availableLedDevices;
-		for (auto dev : LedDeviceWrapper::getDeviceMap())
-		{
-			availableLedDevices.append(dev.first);
-		}
-
-		ledDevices["available"] = availableLedDevices;
-		info["ledDevices"] = ledDevices;
-
-	#if defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPMACOS)
-		if (SoundCapture::getInstance() != NULL)
-		{
-			QJsonObject resultSound;
-			auto soundInstance = SoundCapture::getInstance();
-
-			if (QThread::currentThread() == soundInstance->thread())
-				resultSound = soundInstance->getJsonInfo();
-			else
-				QMetaObject::invokeMethod(soundInstance, "getJsonInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, resultSound));
-
-			info["sound"] = resultSound;
-		}
-	#endif	
-
-	#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER)
-		if (SystemWrapper::getInstance() != nullptr)
-		{
-			info["systemGrabbers"] = SystemWrapper::getInstance()->getJsonInfo();
-		}
-	#endif
-
-	#if defined(ENABLE_PROTOBUF)
-		info["hasPROTOBUF"] = 1;
-	#else
-		info["hasPROTOBUF"] = 0;
-	#endif
-
-	#if defined(ENABLE_CEC)
-		info["hasCEC"] = 1;
-	#else
-		info["hasCEC"] = 0;
-	#endif
-
-		QJsonObject grabbers;
-	#if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)	
-		grabbers = GrabberWrapper::getInstance()->getJsonInfo();
-	#endif
-		info["grabbers"] = grabbers;
-
-		if (GrabberWrapper::getInstance() != nullptr)
-		{
-			info["videomodehdr"] = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
+			sendSuccessDataReply(QJsonDocument(info), command, tan);
 		}
 		else
-		{
-			if (FlatBufferServer::getInstance() != nullptr)
-				info["videomodehdr"] = FlatBufferServer::getInstance()->getHdrToneMappingEnabled();
-			else
-				info["videomodehdr"] = 0;
-		}
-
-		// get available components
-		QJsonArray component;
-		std::map<hyperhdr::Components, bool> components = _hyperhdr->getComponentRegister().getRegister();
-		for (auto comp : components)
-		{
-			QJsonObject item;
-			item["name"] = QString::fromStdString(hyperhdr::componentToIdString(comp.first));
-			item["enabled"] = comp.second;
-
-			component.append(item);
-		}
-
-		info["components"] = component;
-		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperhdr->getLedMappingType());
-
-		// add sessions
-		QJsonArray sessions;
-	#ifdef ENABLE_BONJOUR
-		for (auto session : BonjourBrowserWrapper::getInstance()->getAllServices())
-		{
-			if (session.port < 0)
-				continue;
-			QJsonObject item;
-			item["name"] = session.serviceName;
-			item["type"] = session.registeredType;
-			item["domain"] = session.replyDomain;
-			item["host"] = session.hostName;
-			item["address"] = session.address;
-			item["port"] = session.port;
-			sessions.append(item);
-		}
-		info["sessions"] = sessions;
-	#endif
-		// add instance info
-		QJsonArray instanceInfo;
-		for (const auto& entry : API::getAllInstanceData())
-		{
-			QJsonObject obj;
-			obj.insert("friendly_name", entry["friendly_name"].toString());
-			obj.insert("instance", entry["instance"].toInt());
-			//obj.insert("last_use", entry["last_use"].toString());
-			obj.insert("running", entry["running"].toBool());
-			instanceInfo.append(obj);
-		}
-		info["instance"] = instanceInfo;
-
-		// add leds configs
-		info["leds"] = _hyperhdr->getSetting(settings::type::LEDS).array();
-
-		// HOST NAME
-		info["hostname"] = QHostInfo::localHostName();
-
-		// TRANSFORM INFORMATION (DEFAULT VALUES)
-		QJsonArray transformArray;
-		for (const QString& transformId : _hyperhdr->getAdjustmentIds())
-		{
-			QJsonObject transform;
-			QJsonArray blacklevel, whitelevel, gamma, threshold;
-
-			transform["id"] = transformId;
-			transform["saturationGain"] = 1.0;
-			transform["valueGain"] = 1.0;
-			transform["saturationLGain"] = 1.0;
-			transform["luminanceGain"] = 1.0;
-			transform["luminanceMinimum"] = 0.0;
-
-			for (int i = 0; i < 3; i++)
-			{
-				blacklevel.append(0.0);
-				whitelevel.append(1.0);
-				gamma.append(2.50);
-				threshold.append(0.0);
-			}
-
-			transform.insert("blacklevel", blacklevel);
-			transform.insert("whitelevel", whitelevel);
-			transform.insert("gamma", gamma);
-			transform.insert("threshold", threshold);
-
-			transformArray.append(transform);
-		}
-		info["transform"] = transformArray;
-
-		// ACTIVE EFFECT INFO
-		QJsonArray activeEffects;
-		for (const ActiveEffectDefinition& activeEffectDefinition : _hyperhdr->getActiveEffects())
-		{
-			if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY - 1)
-			{
-				QJsonObject activeEffect;
-				activeEffect["name"] = activeEffectDefinition.name;
-				activeEffect["priority"] = activeEffectDefinition.priority;
-				activeEffect["timeout"] = activeEffectDefinition.timeout;
-				activeEffect["args"] = activeEffectDefinition.args;
-				activeEffects.append(activeEffect);
-			}
-		}
-		info["activeEffects"] = activeEffects;
-
-		// ACTIVE STATIC LED COLOR
-		QJsonArray activeLedColors;
-		const HyperHdrInstance::InputInfo& priorityInfo = _hyperhdr->getPriorityInfo(_hyperhdr->getCurrentPriority());
-		if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
-		{
-			QJsonObject LEDcolor;
-			// check if LED Color not Black (0,0,0)
-			if ((priorityInfo.ledColors.begin()->red +
-				priorityInfo.ledColors.begin()->green +
-				priorityInfo.ledColors.begin()->blue !=
-				0))
-			{
-				QJsonObject LEDcolor;
-
-				// add RGB Value to Array
-				QJsonArray RGBValue;
-				RGBValue.append(priorityInfo.ledColors.begin()->red);
-				RGBValue.append(priorityInfo.ledColors.begin()->green);
-				RGBValue.append(priorityInfo.ledColors.begin()->blue);
-				LEDcolor.insert("RGB Value", RGBValue);
-
-				uint16_t Hue;
-				float Saturation, Luminace;
-
-				// add HSL Value to Array
-				QJsonArray HSLValue;
-				ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-					priorityInfo.ledColors.begin()->green,
-					priorityInfo.ledColors.begin()->blue,
-					Hue, Saturation, Luminace);
-
-				HSLValue.append(Hue);
-				HSLValue.append(Saturation);
-				HSLValue.append(Luminace);
-				LEDcolor.insert("HSL Value", HSLValue);
-
-				activeLedColors.append(LEDcolor);
-			}
-		}
-		info["activeLedColor"] = activeLedColors;
-
-		// END
-
-		sendSuccessDataReply(QJsonDocument(info), command, tan);
+			sendSuccessReply(command, tan);
 
 		// AFTER we send the info, the client might want to subscribe to future updates
 		if (message.contains("subscribe"))
@@ -825,6 +874,71 @@ void JsonAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& 
 	}
 
 	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
+{
+	QString fileName = QDir::cleanPath(_instanceManager->getRootPath() + QDir::separator() + "lut_lin_tables.3d");
+	QString error = installLut(reply, fileName, hardware_brightness, hardware_contrast, hardware_saturation, time);
+
+	if (error == nullptr)
+	{
+		Info(_log, "Reloading LUT...");
+		API::setVideoModeHdr(0);
+		API::setVideoModeHdr(1);
+		QTimer::singleShot(0, _hyperhdr, [=]() { _hyperhdr->saveGrabberParams(hardware_brightness, hardware_contrast, hardware_saturation); });
+		Info(_log, "New LUT has been installed as: %s (from: %s)", QSTRING_CSTR(fileName), QSTRING_CSTR(reply->url().toString()));
+	}
+	else
+	{
+		Error(_log, "Error occured while installing new LUT: %s", QSTRING_CSTR(error));
+	}
+
+	reply->manager()->deleteLater();
+	reply->deleteLater();
+
+	QJsonObject report;
+	report["status"] = (error == nullptr)? 1:0;
+	report["error"] = error;
+	_jsonCB->handleLutInstallUpdate(report);
+}
+
+void JsonAPI::handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& address = QString("%1/lut_lin_tables.3d.xz").arg(message["subcommand"].toString().trimmed());
+	int hardware_brightness = message["hardware_brightness"].toInt(0);
+	int hardware_contrast = message["hardware_contrast"].toInt(0);
+	int hardware_saturation = message["hardware_saturation"].toInt(0);
+	qint64 time = message["now"].toInt(0);
+
+	Debug(_log, "Request to install LUT from: %s (params => [%i, %i, %i])", QSTRING_CSTR(address),
+										hardware_brightness, hardware_contrast, hardware_saturation);
+	if (_adminAuthorized)
+	{
+		QNetworkAccessManager *mgr = new QNetworkAccessManager(this);
+		connect(mgr, &QNetworkAccessManager::finished, this, [=](QNetworkReply* reply) {
+			lutDownloaded(reply, hardware_brightness, hardware_contrast, hardware_saturation, time);
+		});
+		QNetworkRequest request(address);
+		mgr->get(request);
+		sendSuccessReply(command, tan);
+	}
+	else
+		sendErrorReply("No Authorization", command, tan);
+}
+
+void JsonAPI::handleCurrentStateCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	const QString& subc = message["subcommand"].toString().trimmed();
+	int instance = message["instance"].toInt(0);
+
+	if (subc == "average-color")
+	{
+		QJsonObject avColor = API::getAverageColor(instance);
+		sendSuccessDataReply(QJsonDocument(avColor), command + "-" + subc, tan);
+	}
+	else
+		handleNotImplemented(command, tan);
 }
 
 void JsonAPI::handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan)
@@ -1327,7 +1441,7 @@ void JsonAPI::handleLutCalibrationCommand(const QJsonObject& message, const QStr
 	_endColor.blue = endColor["b"].toInt(255);
 
 	if (subcommand == "capture")	
-		emit LutCalibrator::getInstance()->assign(checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
+		emit LutCalibrator::getInstance()->assign(getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
 	else
 		emit LutCalibrator::getInstance()->stop();
 
@@ -1562,6 +1676,8 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject& message, const QString& 
 				obj["token"] = userTokenRep;
 				sendSuccessDataReply(QJsonDocument(obj), command + "-" + subc, tan);
 			}
+			else if (API::isUserBlocked())
+				sendErrorReply("Too many login attempts detected. Please restart HyperHDR.", command + "-" + subc, tan);
 			else
 				sendErrorReply("No Authorization", command + "-" + subc, tan);
 		}

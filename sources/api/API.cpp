@@ -18,6 +18,8 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
+#include <QNetworkReply>
+#include <QFile>
 #include <base/GrabberWrapper.h>
 #include <base/SystemWrapper.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -34,6 +36,11 @@
 
 // api includes
 #include <api/JsonCB.h>
+
+#ifdef ENABLE_XZ
+	// decoder
+	#include <lzma.h>
+#endif
 
 using namespace hyperhdr;
 
@@ -330,16 +337,24 @@ QVector<QVariantMap> API::getAllInstanceData()
 bool API::startInstance(quint8 index, int tan)
 {
 	bool res;
-	(_instanceManager->thread() != this->thread())
-		? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
-		: res = _instanceManager->startInstance(index, false, this, tan);
+
+	SAFE_CALL_4_RET(_instanceManager, startInstance, bool, res, quint8, index, bool, false, QObject*, this, int, tan);
 
 	return res;
 }
 
 void API::stopInstance(quint8 index)
 {
-	QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+	SAFE_CALL_1(_instanceManager, stopInstance, quint8, index);
+}
+
+QJsonObject API::getAverageColor(quint8 index)
+{
+	QJsonObject res;
+
+	SAFE_CALL_1_RET(_instanceManager, getAverageColor, QJsonObject, res, quint8, index);
+
+	return res;
 }
 
 void API::requestActiveRegister(QObject* callerInstance)
@@ -550,6 +565,13 @@ bool API::isUserAuthorized(const QString& password)
 	return res;
 }
 
+bool API::isUserBlocked()
+{
+	bool res;
+	SAFE_CALL_0_RET(_authManager, isUserAuthBlocked, bool, res);
+	return res;
+}
+
 bool API::hasHyperhdrDefaultPw()
 {
 	bool res;
@@ -568,4 +590,91 @@ void API::logout()
 
 void API::stopDataConnectionss()
 {
+}
+
+QString API::installLut(QNetworkReply *reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
+{
+#ifdef ENABLE_XZ
+	QString error = nullptr;
+
+	if (reply->error() == QNetworkReply::NetworkError::NoError)
+	{
+		QByteArray downloadedData = reply->readAll();		
+		
+		QFile file(fileName);
+		if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+		{
+			size_t outSize = 67174456;
+			uint8_t* outBuf = reinterpret_cast<uint8_t*>(malloc(outSize));
+
+			if (outBuf == nullptr)
+			{
+				error = "Could not allocate buffer";
+			}
+			else
+			{
+				const uint32_t flags = LZMA_TELL_UNSUPPORTED_CHECK | LZMA_CONCATENATED;
+				lzma_stream strm = LZMA_STREAM_INIT;
+				strm.next_in = reinterpret_cast<uint8_t*>(downloadedData.data());
+				strm.avail_in = downloadedData.size();
+				lzma_ret lzmaRet = lzma_stream_decoder(&strm, outSize, flags);
+				if (lzmaRet == LZMA_OK)
+				{
+					do {
+						strm.next_out = outBuf;
+						strm.avail_out = outSize;
+						lzmaRet = lzma_code(&strm, LZMA_FINISH);
+						if (lzmaRet == LZMA_MEMLIMIT_ERROR)
+						{
+							outSize = lzma_memusage(&strm);
+							free(outBuf);
+							outBuf = reinterpret_cast<uint8_t*>(malloc(outSize));
+							if (outBuf == nullptr)
+							{
+								error = QString("Could not increase buffer size");
+								break;
+							}
+							lzma_memlimit_set(&strm, outSize);
+							strm.avail_out = 0;
+						}
+						else if (lzmaRet != LZMA_OK && lzmaRet != LZMA_STREAM_END)
+						{
+							// error
+							error = QString("LZMA decoder return error: %1").arg(lzmaRet);
+							break;
+						}
+						else
+						{
+							size_t toWrite = outSize - strm.avail_out;
+							file.write(QByteArray((char*)outBuf, toWrite));
+						}
+					} while (strm.avail_out == 0 && lzmaRet != LZMA_STREAM_END);
+					file.flush();
+				}
+				else
+				{
+					error = "Could not initialize LZMA decoder";
+				}
+
+				if (time != 0)
+					file.setFileTime(QDateTime::fromMSecsSinceEpoch(time), QFileDevice::FileModificationTime);
+
+				file.close();
+				if (error != nullptr)
+					file.remove();
+
+				lzma_end(&strm);
+				free(outBuf);
+			}
+		}
+		else
+			error = QString("Could not open %1 for writing").arg(fileName);
+	}
+	else
+		error = "Could not download LUT file";
+
+	return error;
+#else
+	return "XZ support was disabled in the build configuration";
+#endif
 }

@@ -23,6 +23,7 @@ SET ( DEFAULT_BOBLIGHT                    OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
 SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_DX                          OFF )
 SET ( DEFAULT_AVF                         OFF )
@@ -38,6 +39,7 @@ SET ( DEFAULT_BONJOUR                     ON  )
 SET ( DEFAULT_MQTT                        ON  )
 SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
+SET ( DEFAULT_XZ                          ON  )
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
@@ -157,7 +159,7 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 	
 	# GL dispatcher
 	find_library (GLD GLdispatch)
-	if(NOT GLD)
+	if(NOT GLD AND NOT CMAKE_CROSSCOMPILING)
 		message(FATAL_ERROR "GLdispatch library not found. Install libglvnd-dev")
 	endif()
 		
@@ -209,19 +211,6 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-# validatte the discovery services
-if (DEFAULT_BONJOUR)	
-	set (MJANSSON_MDNS_VERSION "1.4.2")
-	file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/dependencies/bonjour)
-	file(DOWNLOAD "https://raw.githubusercontent.com/mjansson/mdns/${MJANSSON_MDNS_VERSION}/mdns.h"
-				"${CMAKE_SOURCE_DIR}/dependencies/bonjour/mdns.h"
-				STATUS MJANSSON_MDNS_STATUS_H)
-	list(GET MJANSSON_MDNS_STATUS_H 0 MJANSSON_MDNS_STATUS_H_CODE)
-	if (MJANSSON_MDNS_STATUS_H_CODE AND NOT MJANSSON_MDNS_STATUS_H_CODE EQUAL 0)
-		message( FATAL_ERROR "Could not download the MJANSSON_MDNS library.")
-	endif()		
-endif()
 
 if (DEFAULT_X11)
 	if (NOT CMAKE_CROSSCOMPILING)
@@ -382,6 +371,9 @@ colorMe("ENABLE_MQTT = " ${ENABLE_MQTT})
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 
+option(ENABLE_XZ "Enable XZ support" ${DEFAULT_XZ})
+colorMe("ENABLE_XZ = " ${ENABLE_XZ})
+
 message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
 option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
@@ -389,6 +381,15 @@ colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
 
 option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
 colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
+
+option(USE_SYSTEM_MQTT_LIBS "Use system qmqtt libs" ${DEFAULT_USE_SYSTEM_MQTT_LIBS})
+colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
+
+option(USE_SYSTEM_FLATBUFFERS_LIBS "Use system flatbuffers libs" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
+colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
+
+option(USE_SYSTEM_MBEDTLS_LIBS "Use system mbedtls libs" ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS})
+colorMe("USE_SYSTEM_MBEDTLS_LIBS = " ${USE_SYSTEM_MBEDTLS_LIBS})
 
 message( STATUS "\n")
 
@@ -398,6 +399,10 @@ SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
 find_package(GitVersion)
+
+if(ENABLE_XZ)
+	find_package(LibLZMA)
+endif()
 
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -449,7 +454,7 @@ endif()
 if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+	list(APPEND CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
@@ -580,8 +585,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt)
-	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
+	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

@@ -61,6 +61,9 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 		Debug(_log, "Delayed open  : %d", _delayAfterConnect_ms);
 		Debug(_log, "Retry limit   : %d", _maxRetry);
 
+		if (_refreshTimerInterval_ms > 0)
+			Error(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
+
 		isInitOK = true;
 	}
 	return isInitOK;
@@ -344,10 +347,11 @@ QString ProviderRs232::discoverFirst()
 				QString infoMessage = QString("%1 (%2 => %3)").arg(port.description()).arg(port.systemLocation()).arg(port.portName());
 				quint16 vendor = port.vendorIdentifier();
 				quint16 prodId = port.productIdentifier();
-				bool knownESPA = (vendor == 0x303a && (prodId == 0x80c2));
+				bool knownESPA = ((vendor == 0x303a) && (prodId == 0x80c2)) ||
+								 ((vendor == 0x2e8a) && (prodId == 0xa));
 				bool knownESPB = (vendor == 0x303a) ||
-								 (vendor == 0x10c4 && (prodId == 0xea60)) ||
-								 (vendor == 0x1A86 && (prodId == 0x7523 || prodId == 0x55d4));
+								 ((vendor == 0x10c4) && (prodId == 0xea60)) ||
+								 ((vendor == 0x1A86) && (prodId == 0x7523 || prodId == 0x55d4));
 				if (round == 3 ||
 					(_espHandshake && round == 0 && knownESPA) ||
 					(_espHandshake && round == 1 && knownESPB) ||

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2022 awawa-dev
+*  Copyright (c) 2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -28,6 +28,7 @@
 #include <utils/GlobalSignals.h>
 #include <utils/Logger.h>
 #include <base/GrabberWrapper.h>
+#include <api/JsonAPI.h>
 #include <utils/ColorSys.h>
 #include <base/HyperHdrIManager.h>
 #include <utils/RgbTransform.h>
@@ -62,6 +63,7 @@ LutCalibrator* LutCalibrator::instance = nullptr;
 LutCalibrator::LutCalibrator()
 {
 	_log = Logger::getInstance("CALIBRATOR");
+	_mjpegCalibration = false;
 	_finish = false;
 	_limitedRange = false;
 	_saturation = 1;
@@ -102,11 +104,11 @@ LutCalibrator* LutCalibrator::getInstance()
 	return instance;
 }
 
-void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef)
+void LutCalibrator::assignHandler(hyperhdr::Components defaultComp, int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef)
 {
 	if (checksum == 0)
 	{
-		if (GrabberWrapper::getInstance() != nullptr)
+		if (GrabberWrapper::getInstance() != nullptr && !_mjpegCalibration)
 		{
 			if (GrabberWrapper::getInstance()->getHdrToneMappingEnabled() != 0)
 			{
@@ -118,8 +120,21 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 				lutCalibrationUpdate(report);
 				return;
 			}
-		}
 
+			auto mode = GrabberWrapper::getInstance()->getVideoCurrentMode();
+			auto vidMode = mode.contains(Grabber::currentVideoModeInfo::resolution) ? mode[Grabber::currentVideoModeInfo::resolution] : "";
+			_mjpegCalibration = (vidMode.indexOf("mjpeg", 0, Qt::CaseInsensitive) >= 0);
+
+			if (_mjpegCalibration)
+			{
+				Debug(_log, "Enabling pseudo-HDR mode for calibration to bypass TurboJPEG MJPEG to RGB processing");
+				if (GrabberWrapper::getInstance()->thread() == QThread::currentThread())
+					GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
+				else
+					QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::ConnectionType::BlockingQueuedConnection, Q_ARG(int, 1));
+			}
+		}		
+		
 		_finish = false;
 		_limitedRange = limitedRange;
 		_saturation = saturation;
@@ -166,8 +181,21 @@ void LutCalibrator::assignHandler(int checksum, ColorRgb startColor, ColorRgb en
 				_log->enable();
 			}
 
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage, Qt::ConnectionType::UniqueConnection);
+			if (defaultComp == hyperhdr::COMP_VIDEOGRABBER)
+			{
+				Debug(_log, "Using video grabber as a source");
+				connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
+			}
+			else if (defaultComp == hyperhdr::COMP_SYSTEMGRABBER)
+			{
+				Debug(_log, "Using system grabber as a source");
+				connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage, Qt::ConnectionType::UniqueConnection);
+			}
+			else
+			{
+				Debug(_log, "Using flatbuffers/protobuffers as a source");
+				connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage, Qt::ConnectionType::UniqueConnection);
+			}
 		}
 		else
 		{			
@@ -195,6 +223,7 @@ void LutCalibrator::stopHandler()
 {
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
+	_mjpegCalibration = false;
 	_finish = false;
 	_checksum = -1;
 	_warningCRC = _warningMismatch = -1;
@@ -208,6 +237,11 @@ void LutCalibrator::stopHandler()
 }
 
 void LutCalibrator::setVideoImage(const QString& name, const Image<ColorRgb>& image)
+{
+	handleImage(image);
+}
+
+void LutCalibrator::setSystemImage(const QString& name, const Image<ColorRgb>& image)
 {
 	handleImage(image);
 }
@@ -853,6 +887,7 @@ bool LutCalibrator::correctionEnd()
 {
 
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
 
 	double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
@@ -1125,6 +1160,12 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 								calculated.green = ootf(calculated.green);
 								calculated.blue = ootf(calculated.blue);
 							}
+							else
+							{
+								calculated.red = normalized.red;
+								calculated.green = normalized.green;
+								calculated.blue = normalized.blue;
+							}
 
 							calculated.red = clampDouble(calculated.red, 0, 1.0) * 255.0;
 							calculated.green = clampDouble(calculated.green, 0, 1.0) * 255.0;
@@ -1198,6 +1239,7 @@ bool LutCalibrator::finalize(bool fastTrack)
 	if (!fastTrack)
 	{
 		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &LutCalibrator::setVideoImage);
+		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &LutCalibrator::setSystemImage);
 		disconnect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &LutCalibrator::setGlobalInputImage);
 	}
 
@@ -1296,6 +1338,13 @@ bool LutCalibrator::finalize(bool fastTrack)
 
 				}
 		file.write((const char*)_lutBuffer, LUT_FILE_SIZE);
+
+		if (_mjpegCalibration && fastTrack)
+		{
+			file.seek(LUT_FILE_SIZE);
+			file.write((const char*)_lutBuffer, LUT_FILE_SIZE);
+		}
+
 		file.flush();
 		Debug(_log, "LUT YUV table (3/3) is ready");
 

@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QString>
 #include <QSemaphore>
+#include <QNetworkReply>
 
 class QTimer;
 class JsonCB;
@@ -64,6 +65,8 @@ public slots:
 
 	void releaseLock();
 
+	hyperhdr::Components getActiveComponent();
+
 private slots:
 	///
 	/// @brief Handle emits from API of a new Token request.
@@ -93,6 +96,8 @@ private slots:
 	void handleLedColorsIncoming(const std::vector<ColorRgb>& ledValues);
 
 	void handleLedColorsTimer();
+
+	void lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 
 signals:
 	///
@@ -299,7 +304,11 @@ private:
 
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
 
+	void handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan);
+
 	void handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan);
+
+	void handleCurrentStateCommand(const QJsonObject& message, const QString& command, int tan);
 
 	void handleTunnel(const QJsonObject& message, const QString& command, int tan);
 

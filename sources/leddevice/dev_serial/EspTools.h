@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2022 awawa-dev
+*  Copyright (c) 2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -40,17 +40,40 @@ class EspTools
 
 	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log)
 	{
-		if (serialPortInfo.productIdentifier() == 0x80c2 && serialPortInfo.vendorIdentifier() == 0x303a)
+		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
+		if (serialPortInfo.productIdentifier() == 0xa && serialPortInfo.vendorIdentifier() == 0x2e8a)
+		{
+			Warning(_log, "Detected Rp2040 type board. HyperHDR skips the reset. State: %i, %i",
+				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+
+			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+
+			_rs232Port.setDataTerminalReady(true);
+			_rs232Port.setRequestToSend(true);
+			_rs232Port.setRequestToSend(false);
+		}
+		else if (serialPortInfo.productIdentifier() == 0x80c2 && serialPortInfo.vendorIdentifier() == 0x303a)
 		{
 			Warning(_log, "Detected ESP32-S2 lolin mini type board. HyperHDR skips the reset. State: %i, %i",
 				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
-
-			uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+			
 			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
 
 			_rs232Port.setDataTerminalReady(true);
 			_rs232Port.setRequestToSend(true);
 			_rs232Port.setRequestToSend(false);			
+		}
+		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
+		{
+			Warning(_log, "Enabling the Rpi4 udev bug workaround. The serial device is incorrectly identified by the OS and HyperHDR skips the reset. State: %i, %i",
+				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+
+			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+
+			_rs232Port.setDataTerminalReady(true);
+			_rs232Port.setRequestToSend(true);
+			_rs232Port.setRequestToSend(false);
 		}
 		else
 		{

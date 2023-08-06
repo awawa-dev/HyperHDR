@@ -1,11 +1,14 @@
 name: HyperHDR CI Build
 
-on: [push]
+on:
+  push:
 
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
-    
+    USE_CODEQL: "0"
+    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
+
 jobs:
 
 ######################
@@ -14,33 +17,52 @@ jobs:
 
   Linux:
     name: ${{ matrix.dockerName }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        debian: [ bullseye ]
-        dockerImage: [ x86_64, rpi012-armv6l, rpi34-armv7l, arm-aarch64 ]
+        linuxVersion: [ bullseye ]
+        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
           - dockerImage: x86_64
-            debian: bullseye
+            linuxVersion: bullseye
             dockerName: Debian Bullseye (x86_64)
             platform: linux
-          - dockerImage: rpi012-armv6l
-            debian: bullseye
-            dockerName: Debian Bullseye (Raspberry Pi ZERO, 1 & 2)
+          - dockerImage: x86_64
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (x86_64)
+            platform: linux
+          - dockerImage: x86_64
+            linuxVersion: jammy
+            dockerName: Ubuntu 22.04 LTS (x86_64)
+            platform: linux
+          - dockerImage: arm-32bit-armv6l
+            linuxVersion: bullseye
+            dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)
             platform: rpi
-          - dockerImage: rpi34-armv7l
-            debian: bullseye
-            dockerName: Debian Bullseye (Raspberry Pi 3 & 4)
+          - dockerImage: arm-64bit-aarch64
+            linuxVersion: bullseye
+            dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
             platform: rpi
-          - dockerImage: arm-aarch64
-            debian: bullseye
-            dockerName: Debian Bullseye (ARM aarch64)
-            platform: rpi            
-
+          - dockerImage: arm-32bit-armv6l
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (ARM 32-bit Raspberry Pi OS)
+            platform: rpi
+          - dockerImage: arm-64bit-aarch64
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (ARM 64-bit Raspberry Pi OS)
+            platform: rpi              
+          - dockerImage: x86_64
+            linuxVersion: ArchLinux
+            dockerName: Arch Linux (x86_64)
+            platform: linux
+          - dockerImage: x86_64
+            linuxVersion: Fedora_38
+            dockerName: Fedora 38 (x86_64)
+            platform: linux
     steps:
       # checkout
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -59,34 +81,38 @@ jobs:
         uses: actions/cache@v3
         with:
            path: .ccache
-           key: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-
+           key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: ${{ matrix.debian }}
+          DOCKER_TAG: ${{ matrix.linuxVersion }}
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
-        run: ./.ci/ci_build.sh
+        run: |
+          ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: deploy/Hyper*
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
-          name: Linux-${{ matrix.debian }}-${{ matrix.dockerImage }}-DEB-installer
-          path: deploy/Hyper*.deb
+          name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
+          path: |
+            deploy/Hyper*.deb
+            deploy/Hyper*.zst
+            deploy/Hyper*.rpm
 
 ######################
 ####### macOS ########
@@ -99,7 +125,7 @@ jobs:
       QT_VERSION: "5"
     steps:
       # Checkout
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
             submodules: true
 
@@ -145,14 +171,14 @@ jobs:
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             path: build/Hyper*.dmg
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             name: Apple_macOS_x64_DMG_installer
@@ -170,7 +196,7 @@ jobs:
       QT_VERSION: 6.2.4
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -196,37 +222,69 @@ jobs:
         env:
           PLATFORM: windows
           CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
+          USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
           ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           path: build/Hyper*
           
       # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true)
+        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
-  
+
+################################
+####### CodeQL support #########
+################################
+
+  analyze:
+    name: Analyze (CodeQL)
+    runs-on: ubuntu-latest
+    if: ( false )    
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp', 'javascript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Run composite CodeQL job for '${{matrix.language}}' language
+        uses: ./.github/actions/codeql
+        with:
+          language: ${{matrix.language}}
+
 ################################
 ###### Publish Releases ########
 ################################
 
   publish:
     name: Publish Releases
-    if: startsWith(github.event.ref, 'refs/tags')
+    if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, windows, macOS]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # generate environment variables
       - name: Generate environment variables from version and tag
@@ -255,5 +313,3 @@ jobs:
           files: "artifacts/**"
           draft: true
           prerelease: ${{ env.preRelease }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

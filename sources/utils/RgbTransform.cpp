@@ -57,8 +57,8 @@ void RgbTransform::init(
 	_backlightColored = true;
 
 	if (!_silent)
-		Info(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i",
-			_classic_config, _saturationGain, _luminanceGain, clamp(backlightThreshold));
+		Info(_log, "RGB transform classic_config: %i, saturationGain: %f, luminanceGain: %f, backlightThreshold: %i, backlightColored: %s",
+			_classic_config, _saturationGain, _luminanceGain, clamp(backlightThreshold), (backlightColored) ? "yes" : "no");
 
 	setGamma(gammaR, gammaG, gammaB);
 	setBacklightThreshold(backlightThreshold);

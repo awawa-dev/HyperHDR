@@ -9,13 +9,12 @@
 #include <QThread>
 
 //----------- mbedtls
-#if defined(HYPERHDR_MBEDTLS_VER3)
-#include <mbedtls/build_info.h>
-#elif !defined(MBEDTLS_CONFIG_FILE)
-#include <mbedtls/config.h>
+#if !defined(MBEDTLS_OLD_CONFIG_FILE)
+	#include <mbedtls/build_info.h>
 #else
-#include MBEDTLS_CONFIG_FILE
+	#include MBEDTLS_OLD_CONFIG_FILE
 #endif
+
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include <mbedtls/platform.h>

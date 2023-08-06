@@ -315,6 +315,37 @@ void HyperHdrInstance::setSmoothing(int time)
 	_smoothing->updateCurrentConfig(time);
 }
 
+QJsonObject HyperHdrInstance::getAverageColor()
+{
+	QJsonObject ret;
+
+	auto copy = _globalLedBuffer;
+	long red = 0, green = 0, blue = 0, count = 0;
+	
+	for (const ColorRgb& c : copy)
+	{
+		red += c.red;
+		green += c.green;
+		blue += c.blue;
+
+		count++;
+	}
+
+	if (!_ledDeviceWrapper->enabled())
+	{
+		red = green = blue = 0;
+	}
+
+	if (count > 0)
+	{
+		ret["red"] = static_cast<int>(red / count);
+		ret["green"] = static_cast<int>(green / count);
+		ret["blue"] = static_cast<int>(blue / count);
+	}
+
+	return ret;
+}
+
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
 	unsigned retVal = id;
@@ -367,6 +398,11 @@ void HyperHdrInstance::setNewComponentState(hyperhdr::Components component, bool
 			emit PerformanceCounters::getInstance()->newCounter(PerformanceReport(static_cast<int>(PerformanceReportType::LED), -1, "", -1, -1, -1, -1, getInstanceIndex()));
 		else
 			emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::LED), getInstanceIndex());
+
+		if (GrabberWrapper::getInstance() != nullptr)
+		{
+			emit GrabberWrapper::getInstance()->instancePauseChanged(_instIndex, state);
+		}
 	}
 }
 
@@ -409,6 +445,16 @@ bool HyperHdrInstance::setInput(int priority, const std::vector<ColorRgb>& ledCo
 		return true;
 	}
 	return false;
+}
+
+void HyperHdrInstance::saveGrabberParams(int hardware_brightness, int hardware_contrast, int hardware_saturation)
+{
+	QJsonDocument newSet = _settingsManager->getSetting(settings::type::VIDEOGRABBER);
+	QJsonObject grabber = QJsonObject(newSet.object());
+	grabber["hardware_brightness"] = hardware_brightness;
+	grabber["hardware_contrast"] = hardware_contrast;
+	grabber["hardware_saturation"] = hardware_saturation;
+	_settingsManager->saveSetting(settings::type::VIDEOGRABBER, QJsonDocument(grabber).toJson(QJsonDocument::Compact));
 }
 
 bool HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms, bool clearEffect)
@@ -544,6 +590,12 @@ const HyperHdrInstance::InputInfo& HyperHdrInstance::getPriorityInfo(int priorit
 	return _muxer.getInputInfo(priority);
 }
 
+PriorityMuxer::InputInfo HyperHdrInstance::getCurrentPriorityInfo()
+{
+	PriorityMuxer::InputInfo val = _muxer.getInputInfo(getCurrentPriority());
+	return val;
+}
+
 std::list<EffectDefinition> HyperHdrInstance::getEffects() const
 {
 	std::list<EffectDefinition> result;
@@ -619,7 +671,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 	Info(_log, "New priority[%d], previous [%d]", priority, previousPriority);
 	if (priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Error(_log, "No source left -> switch LED-Device off");
+		Warning(_log, "No source left -> switch LED-Device off");
 
 		emit compStateChangeRequest(hyperhdr::COMP_LEDDEVICE, false);
 		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());		

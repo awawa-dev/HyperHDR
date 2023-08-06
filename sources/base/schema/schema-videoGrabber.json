@@ -476,6 +476,15 @@
 				"hidden":true
 			},			
 			"propertyOrder" : 70
+		},
+		"led_off_pause" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_stream_ledoff_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 72
 		}		
 	},
 	"additionalProperties" : false

@@ -7,15 +7,17 @@ RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
 	, _log(Logger::getInstance(channelName))
 {
 	resetInitialized();
+	_enabled = true;
 }
 
 
-RgbChannelAdjustment::RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
+RgbChannelAdjustment::RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName, bool enabled)
 	: _channelName(channelName)
 	, _log(Logger::getInstance(channelName.replace("ChannelAdjust_", "ADJUST_") + QString::number(instance)))
 {
 	resetInitialized();
 	setAdjustment(adjustR, adjustG, adjustB);
+	_enabled = enabled;
 }
 
 void RgbChannelAdjustment::resetInitialized()
@@ -89,6 +91,10 @@ uint8_t RgbChannelAdjustment::adjustmentB(uint8_t inputB) const
 	return _mappingAdjB[inputB];
 }
 
+bool RgbChannelAdjustment::isEnabled()
+{
+	return _enabled;
+}
 
 void RgbChannelAdjustment::apply(uint8_t input, uint8_t brightness, uint8_t& red, uint8_t& green, uint8_t& blue)
 {
@@ -164,13 +170,16 @@ void RgbChannelAdjustment::initializeCorrectionMapping(uint8_t correction)
 RgbChannelAdjustment RgbChannelAdjustment::createRgbChannelAdjustment(quint8 instance, const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 {
 	const QJsonArray& channelConfig = colorConfig[channelName].toArray();
-
+	auto rr = static_cast<uint8_t>(channelConfig[0].toInt(defaultR));
+	auto gg = static_cast<uint8_t>(channelConfig[1].toInt(defaultG));
+	auto bb = static_cast<uint8_t>(channelConfig[2].toInt(defaultB));
 	return RgbChannelAdjustment(
 		instance,
-		static_cast<uint8_t>(channelConfig[0].toInt(defaultR)),
-		static_cast<uint8_t>(channelConfig[1].toInt(defaultG)),
-		static_cast<uint8_t>(channelConfig[2].toInt(defaultB)),
-		"ChannelAdjust_" + channelName.toUpper()
+		rr,
+		gg,
+		bb,
+		"ChannelAdjust_" + channelName.toUpper(),
+		(rr != defaultR) || (gg != defaultG) || (bb != defaultB)
 	);
 }
 

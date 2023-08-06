@@ -4,6 +4,7 @@
 #include <base/HyperHdrIManager.h>
 #include <base/AuthManager.h>
 
+class QNetworkReply;
 class QTimer;
 class JsonCB;
 
@@ -71,6 +72,8 @@ protected:
 	/// This call is REQUIRED!
 	///
 	void init();
+
+	QString installLut(QNetworkReply* reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 
 	///
 	/// @brief Set a single color
@@ -208,6 +211,8 @@ protected:
 	/// @param index  The instance index
 	///
 	void stopInstance(quint8 index);
+
+	QJsonObject getAverageColor(quint8 index);
 
 	//////////////////////////////////
 	/// AUTH / ADMINISTRATION METHODS
@@ -361,6 +366,8 @@ protected:
 	/// @return True if authorized
 	///
 	bool isUserAuthorized(const QString& password);
+
+	bool isUserBlocked();
 
 	///
 	/// @brief Test if Hyperhdr has the default PW

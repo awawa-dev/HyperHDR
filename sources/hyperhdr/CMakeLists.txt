@@ -52,6 +52,13 @@ if (USE_STATIC_QT_PLUGINS)
 	target_link_libraries(hyperhdr ${STATIC_QT_PLUGINS_LIBS})
 endif()
 
+if(ENABLE_XZ)
+	if (LIBLZMA_FOUND)
+		target_link_libraries(hyperhdr LibLZMA::LibLZMA)
+	else()
+		target_link_libraries(hyperhdr liblzma)
+	endif()
+endif()
 
 if (ENABLE_PROTOBUF)
 	target_link_libraries(hyperhdr proto-nano-server)

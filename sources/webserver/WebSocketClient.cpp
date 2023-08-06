@@ -292,7 +292,7 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 
 	if (obj.contains("isImage"))
 	{
-		QTimer::singleShot(0, _jsonAPI, &JsonAPI::releaseLock);
+		SAFE_CALL_0(_jsonAPI, releaseLock);
 	}
 
 	return payloadWritten;

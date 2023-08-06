@@ -14,26 +14,51 @@ jobs:
 ###### Upload to HyperHDR repo #######
 ######################################
   Linux:
-    name: Debian ${{ matrix.debian }} (${{ matrix.arch }})
-    runs-on: ubuntu-20.04
+    name: ${{ matrix.niceName }} ${{ matrix.linuxVersion }} (${{ matrix.arch }})
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        debian: [ bullseye, bookworm ]
-        dockerImage: [ x86_64, rpi012-armv6l, arm-aarch64 ]
+        niceName: [ Debian ]
+        linuxVersion: [ bullseye, bookworm ]
+        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
           - dockerImage: x86_64
             dockerName: Debian (amd64)
             arch: amd64
             platform: linux
-          - dockerImage: rpi012-armv6l
+          - dockerImage: arm-32bit-armv6l
             dockerName: Debian (armhf)
             arch: armhf
             platform: rpi
-          - dockerImage: arm-aarch64
+          - dockerImage: arm-64bit-aarch64
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
+          - dockerImage: x86_64
+            linuxVersion: ArchLinux
+            dockerName: Arch Linux (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: ""
+          - dockerImage: x86_64
+            linuxVersion: jammy
+            dockerName: Ubuntu 22.04 LTS (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Ubuntu 22.04 LTS
+          - dockerImage: x86_64
+            linuxVersion: lunar
+            dockerName: Ubuntu 23.04 (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Ubuntu 23.04
+          - dockerImage: x86_64
+            linuxVersion: Fedora_38
+            dockerName: Fedora 38 (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Fedora 38
 
     steps:
       # checkout
@@ -56,29 +81,26 @@ jobs:
         uses: actions/cache@v3
         with:
            path: .ccache
-           key: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.debian }}-${{ matrix.dockerImage }}-ccache-
+           key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: ${{ matrix.debian }}
+          DOCKER_TAG: ${{ matrix.linuxVersion }}
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
-          if [ "${{ matrix.arch }}" == "amd64" ] && [ "${{ matrix.debian }}" == "bullseye" ]; then
-            sed -i 's/#SET(HYPERHDR_REPO_RPM_BUILD ON)/SET(HYPERHDR_REPO_RPM_BUILD ON)/' ./cmake/packages.cmake
-          fi
           sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
 
       # deploy the package      
       - name: Get destination path
         run: |
-          echo "REPO_DIR=repo/pool/${{ matrix.debian }}" >> $GITHUB_ENV
+          echo "REPO_DIR=repo/pool/${{ matrix.linuxVersion }}" >> $GITHUB_ENV
 
       - name: Move installers
         run: |
@@ -86,6 +108,8 @@ jobs:
           mkdir -p repo/others
           mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||: 
           mv deploy/Hyper*.rpm repo/others ||: 
+          mv deploy/Hyper*.zst repo/others ||: 
+          rm -r repo/pool/ArchLinux ||: 
 
       - name: Upload artifacts from commit        
         uses: actions/upload-artifact@v3
@@ -95,7 +119,7 @@ jobs:
 
   Upload:
     name: Upload to Github Pages
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [Linux]
 
     steps:
