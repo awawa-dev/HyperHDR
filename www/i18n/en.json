@@ -1221,5 +1221,7 @@
   "warning_lut_not_found_3" : "Download & install LUT with one click",
   "warning_errors_detected_t" : "Some errors found in the log",
   "warning_errors_detected_1" : "The last one:",
-  "warning_errors_detected_2" : "Some errors are transient (e.g. with the auto-reconnect LED enabled) and can be ignored, others may indicate serious system configuration or operation errors.<br/>Check the logs and look for errors (in red):"
+  "warning_errors_detected_2" : "Some errors are transient (e.g. with the auto-reconnect LED enabled) and can be ignored, others may indicate serious system configuration or operation errors.<br/>Check the logs and look for errors (in red):",
+  "modal_old_password" : "Old password",
+  "modal_new_password" : "New password"
 } 

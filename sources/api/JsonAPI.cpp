@@ -398,69 +398,66 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 			// collect priority information
 			QJsonArray priorities;
-			uint64_t now = InternalClock::now();
+			uint64_t now = InternalClock::now();			
+			QVector<PriorityMuxer::InputInfo> copyOfInputInfo;
 
-			int currentPriority = -1;
-			if (QThread::currentThread() == _hyperhdr->thread())
-				currentPriority = _hyperhdr->getCurrentPriority();
-			else
-				QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriority", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, currentPriority));
+			int currentPriority = _hyperhdr->getCurrentPriority();
+			auto _prioMuxer = _hyperhdr->getMuxerInstance();
+			
+			if (_prioMuxer != nullptr)
+				SAFE_CALL_1_RET(_prioMuxer, getInputInfoCopy, QVector<PriorityMuxer::InputInfo>, copyOfInputInfo, bool, true);
 
-			QList<int> activePriorities = _hyperhdr->getActivePriorities();
-			activePriorities.removeAll(255);
+			for (PriorityMuxer::InputInfo priorityInfo : copyOfInputInfo)
+				if (priorityInfo.priority != PriorityMuxer::LOWEST_PRIORITY)
+				{				
+					QJsonObject item;
+					item["priority"] = priorityInfo.priority;
+					if (priorityInfo.timeoutTime_ms > 0)
+						item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+
+					// owner has optional informations to the component
+					if (!priorityInfo.owner.isEmpty())
+						item["owner"] = priorityInfo.owner;
+
+					item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
+					item["origin"] = priorityInfo.origin;
+					item["active"] = (priorityInfo.timeoutTime_ms >= -1);
+					item["visible"] = (priorityInfo.priority == currentPriority);
+
+					if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
+					{
+						QJsonObject LEDcolor;
+
+						// add RGB Value to Array
+						QJsonArray RGBValue;
+						RGBValue.append(priorityInfo.ledColors.begin()->red);
+						RGBValue.append(priorityInfo.ledColors.begin()->green);
+						RGBValue.append(priorityInfo.ledColors.begin()->blue);
+						LEDcolor.insert("RGB", RGBValue);
+
+						uint16_t Hue;
+						float Saturation, Luminace;
+
+						// add HSL Value to Array
+						QJsonArray HSLValue;
+						ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+							priorityInfo.ledColors.begin()->green,
+							priorityInfo.ledColors.begin()->blue,
+							Hue, Saturation, Luminace);
+
+						HSLValue.append(Hue);
+						HSLValue.append(Saturation);
+						HSLValue.append(Luminace);
+						LEDcolor.insert("HSL", HSLValue);
+
+						item["value"] = LEDcolor;
+					}
 
 
-			for (int priority : activePriorities)
-			{
-				const HyperHdrInstance::InputInfo& priorityInfo = _hyperhdr->getPriorityInfo(priority);
-				QJsonObject item;
-				item["priority"] = priority;
-				if (priorityInfo.timeoutTime_ms > 0)
-					item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
-
-				// owner has optional informations to the component
-				if (!priorityInfo.owner.isEmpty())
-					item["owner"] = priorityInfo.owner;
-
-				item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
-				item["origin"] = priorityInfo.origin;
-				item["active"] = (priorityInfo.timeoutTime_ms >= -1);
-				item["visible"] = (priority == currentPriority);
-
-				if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
-				{
-					QJsonObject LEDcolor;
-
-					// add RGB Value to Array
-					QJsonArray RGBValue;
-					RGBValue.append(priorityInfo.ledColors.begin()->red);
-					RGBValue.append(priorityInfo.ledColors.begin()->green);
-					RGBValue.append(priorityInfo.ledColors.begin()->blue);
-					LEDcolor.insert("RGB", RGBValue);
-
-					uint16_t Hue;
-					float Saturation, Luminace;
-
-					// add HSL Value to Array
-					QJsonArray HSLValue;
-					ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-						priorityInfo.ledColors.begin()->green,
-						priorityInfo.ledColors.begin()->blue,
-						Hue, Saturation, Luminace);
-
-					HSLValue.append(Hue);
-					HSLValue.append(Saturation);
-					HSLValue.append(Luminace);
-					LEDcolor.insert("HSL", HSLValue);
-
-					item["value"] = LEDcolor;
+					(priorityInfo.priority == currentPriority)
+						? priorities.prepend(item)
+						: priorities.append(item);
 				}
-
-
-				(priority == currentPriority)
-					? priorities.prepend(item)
-					: priorities.append(item);
-			}
 
 			info["priorities"] = priorities;
 			info["priorities_autoselect"] = _hyperhdr->sourceAutoSelectEnabled();

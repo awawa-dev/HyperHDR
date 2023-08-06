@@ -134,6 +134,17 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(int priority) const
 	return elemIt.value();
 }
 
+QVector<PriorityMuxer::InputInfo> PriorityMuxer::getInputInfoCopy(bool leds)
+{	
+	QVector<PriorityMuxer::InputInfo> copyVector;
+	for (const PriorityMuxer::InputInfo& e : _activeInputs.values())
+	{
+		PriorityMuxer::InputInfo copy = e.shallowCopy(leds);
+		copyVector.append(copy);
+	}
+	return copyVector;
+}
+
 hyperhdr::Components PriorityMuxer::getComponentOfPriority(int priority) const
 {
 	return _activeInputs[priority].componentId;

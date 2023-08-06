@@ -322,18 +322,17 @@ function showInfoDialog(type,header,message)
 	}
 	else if (type == "renInst")
 	{
-		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
-		$('#id_body_rename').append('<h4>'+header+'</h4>');
-		$('#id_body_rename').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
+		$('#id_title_rename').html('<div><h4><i class="fa fa-pencil fa-fw"></i>'+$.i18n('general_btn_rename')+'</h4>');
+		$('#id_body_rename').html('<div class="mb-3"><label class="form-label required">'+ header +'</label><input  id="renInst_name" type="text" class="form-control"></div>');
 		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
 		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+
 	}
 	else if (type == "changePassword")
 	{
-		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
-		$('#id_body_rename').append('<h4>'+header+'</h4>');
-		$('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
-		$('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
+		$('#id_title_rename').html('<div><h4><i class="fa fa-key fa-fw"></i>'+header+'</h4>');
+		$('#id_body_rename').html('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_old_password')+'</label><input  id="oldPw" type="text" class="form-control"></div>');
+		$('#id_body_rename').append('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_new_password')+'</label><input  id="newPw" type="text" class="form-control"></div>');
 		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
 		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
@@ -356,7 +355,7 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
 	}
 
-	if(type != "renInst")
+	if(type != "renInst" && type != "changePassword")
 	{
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 		$('#id_body').append(message);

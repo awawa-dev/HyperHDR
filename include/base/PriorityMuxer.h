@@ -53,6 +53,22 @@ public:
 		unsigned smooth_cfg;
 		/// specific owner description
 		QString owner;
+
+		InputInfo shallowCopy(bool leds) const
+		{
+			InputInfo clone;
+
+			clone.priority = priority;
+			clone.timeoutTime_ms = timeoutTime_ms;
+			if (leds)
+				clone.ledColors = ledColors;
+			clone.componentId = componentId;
+			clone.origin = origin;
+			clone.smooth_cfg = smooth_cfg;
+			clone.owner = owner;
+
+			return clone;
+		}
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
@@ -240,6 +256,9 @@ private slots:
 	/// required.
 	///
 	void setCurrentTime();
+
+public slots:
+	QVector<PriorityMuxer::InputInfo> getInputInfoCopy(bool leds);
 
 private:
 	///

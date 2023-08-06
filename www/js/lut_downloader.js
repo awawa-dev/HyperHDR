@@ -113,6 +113,12 @@ $(document).ready( function(){
 
 					for(let i = 0; i < data.length; i++)
 					{
+						if (data[i].name=="MS2109" && window.serverInfo.grabbers.hasOwnProperty("active"))
+						{
+							var grabbers = window.serverInfo.grabbers.active;
+							if (grabbers.indexOf('macOS AVF') > -1)
+								continue;
+						}
 						newRow.appendChild(createColumn(data[i]));
 					}
 					mainElement.appendChild(newRow);

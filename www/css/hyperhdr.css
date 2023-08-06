@@ -223,21 +223,11 @@ body:not(.dark-mode) .alert.parentAlert {
 }
 
 .layout_default.picker_wrapper {  
-    width: 36em !important;
+    width: 29em !important;
 }
 
 .layout_default.picker_wrapper {  
     z-index: 100;
-}
-
-@media only screen and (max-width: 600px) {
-    .layout_default .picker_editor {
-        width: 11rem !important;
-    }
-
-    .layout_default.picker_wrapper {  
-        width: 30em !important;
-    }
 }
 
 /* drag and resizable modal http://gijgo.com/ */
@@ -338,6 +328,18 @@ input[type=number] {
 
 #page-content:not(.small-me) .card-header {
 	font-size:18px;
+}
+
+body:not(.dark-mode) .modal-hyperhdr-header {
+	background-color:#1d9ef0 !important;
+	border-color:#199AEA !important;
+	color:#FFFFFF !important;
+}
+
+.dark-mode .modal-hyperhdr-header {
+	background-color:#0c78bd !important;
+	border-color:#1074b1 !important;
+	color:#FFFFFF !important;
 }
 
 .card-default{
