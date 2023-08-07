@@ -510,37 +510,40 @@ add_definitions(${QT_DEFINITIONS})
 # libjpegturbo
 if ( ENABLE_V4L2 OR ENABLE_MF )
 	if(WIN32)
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
+			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
 		endif()
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip OR
-			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib)
-			message( STATUS "Downloading libjpegturbo library")
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
-			file(DOWNLOAD https://github.com/awawa-dev/libjpeg-turbo/releases/download/2.1.3/windows.zip
-						  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip
-						  STATUS JPEG_DOWNLOAD_STATUS
-						  EXPECTED_HASH MD5=2CF284387AC832270736893C4EE05852)
-			list(GET JPEG_DOWNLOAD_STATUS 0 JPEG_DOWNLOAD_STATUS_CODE)
-			if(JPEG_DOWNLOAD_STATUS_CODE AND NOT JPEG_DOWNLOAD_STATUS_CODE EQUAL 0)
-				message( FATAL_ERROR "Could not download libjpegturbo library")
+
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip OR
+			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows)
+			message( STATUS "Downloading libraries for HyperHDR (Windows)")		
+			file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.08.07/libs4windows.zip
+						${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip
+						STATUS WIN_LIBS_DOWNLOAD_STATUS
+						EXPECTED_HASH SHA256=2a0fc14eaad35d8cc36b262c8dcb501d1fac3a72d7bedcca51b71b60395c6c3f)
+			list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
+			if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
+				file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip )
+				message( FATAL_ERROR "Could not download libraries needed by HyperHDR (Windows)")
 			endif()
 		endif()
+
 		execute_process(
-			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/ -aoa -y
+			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/ -aoa -y
 			RESULT_VARIABLE STATUS_EXTRACT
 			OUTPUT_VARIABLE OUTPUT1
 		)
+
 		if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
-		    message( FATAL_ERROR "Could not extract libjpegturbo library")
+			message( FATAL_ERROR "Could not extract libraries for HyperHDR (Windows)")
 		else()
-		    message( STATUS "libjpegturbo library extracted")			
+			message( STATUS "Package of libraries for HyperHDR extracted (Windows)")
 		endif()
+
 		set (TURBOJPEG_FOUND 1)
-		
-		set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/bin")
-		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib/turbojpeg.lib")
-		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/include")
+		set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/bin")
+		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
+		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/include")
 	else()
 		FIND_PACKAGE(PkgConfig REQUIRED)
 		pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)

@@ -175,7 +175,11 @@ $(document).ready(function () {
 	$(window.hyperhdr).on("cmd-config-setconfig", function (event) {
 		if (event.response.success === true)
 		{
-			let myToastEl = document.getElementById('toast_settings_saved_ok');
+			let textelemHeader = document.getElementById('toast_message_header_id');
+			textelemHeader.innerText  = $.i18n("dashboard_alert_message_confsave_success_t");
+			let textelemBody = document.getElementById('toast_message_body_id');
+			textelemBody.innerText  = $.i18n("dashboard_alert_message_confsave_success");
+			let myToastEl = document.getElementById('toast_success_message');			
 			let myToast = bootstrap.Toast.getOrCreateInstance(myToastEl);
 			myToast.show();
 		}
@@ -229,7 +233,11 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).on("cmd-authorize-newPassword", function (event) {
 		if (event.response.success === true) {
-			showInfoDialog("success", $.i18n('InfoDialog_changePassword_success'));
+			let textelemHeader = document.getElementById('toast_message_header_id');
+			textelemHeader.innerText  = $.i18n("infoDialog_general_success_title");
+			let textelemBody = document.getElementById('toast_message_body_id');
+			textelemBody.innerText  = $.i18n("InfoDialog_changePassword_success");
+			setTimeout(function(){bootstrap.Toast.getOrCreateInstance(document.getElementById('toast_success_message')).show();}, 500);
 			// not necessarily true, but better than nothing
 			window.defaultPasswordIsSet = false;
 		}

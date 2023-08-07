@@ -15,6 +15,13 @@ body {
     margin: 0 auto;
 }
 
+.dark-mode #modal_dialog_rename .modal-dialog .modal-content {
+	border-width: 3px;
+	border-style: solid;
+	border-radius: 10px;
+	border-color:#1074b1 !important;
+}
+
 .hyperhdr-vcenter {
 	display: flex;
 	justify-content: center;
@@ -98,6 +105,7 @@ body {
 	background: #f0d080;
 	color: #101010;
 }
+
 .dark-mode .alert .notIcon {
 	background: #f39c12;
 }
@@ -124,7 +132,7 @@ body:not(.dark-mode) .alert .notIcon {
 
 body:not(.dark-mode) .alert.parentAlert {
 	border-color: #ffc107;
-	background: #fff3cd;;
+	background: #fff3cd;
 }
 
 @media (max-width: 767px){
