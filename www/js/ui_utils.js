@@ -262,28 +262,82 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
+function toaster(type, header, message, delay)
+{
+	let textelemHeader = document.getElementById('toast_message_header_id');
+	textelemHeader.innerText  = header;
+	let textelemBody = document.getElementById('toast_message_body_id');
+	textelemBody.innerText  = message;
+	let myToastEl = document.getElementById('toast_success_message');			
+	let myToast = bootstrap.Toast.getOrCreateInstance(myToastEl);
+	if (delay <= 0)
+		myToast.show();
+	else
+		setTimeout(function(){bootstrap.Toast.getOrCreateInstance(document.getElementById('toast_success_message')).show();}, delay);
+}
+
 function showInfoDialog(type,header,message)
 {
-	if (type=="success")
+	let headerControl = $('#new_modal_dialog_header');
+	let masterControl = $('#new_modal_dialog');
+
+	headerControl.removeClass("modal-hyperhdr-header-danger");
+	headerControl.removeClass("modal-hyperhdr-header-warning");
+	headerControl.removeClass("modal-hyperhdr-header-success");
+	masterControl.removeClass("modal-lg");
+	masterControl.removeClass("modal-hyperhdr-danger-warning-success");	
+
+	if (type=="error" || type=="warning" || type=="success" || type == "confirm")
 	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
-		if(header == "")
-			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_success_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-success" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
-	}
-	else if (type=="warning")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		if(header == "")
-			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-warning" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
-	}
-	else if (type=="error")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
-		if(header == "")
-			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-danger" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		let selectedButton = "";
+		let selectedIcon = "";
+		let selectedButtonText = "";
+
+		if (type=="error")
+		{
+			if (header == "") header = $.i18n('infoDialog_general_error_title');
+			headerControl.addClass("modal-hyperhdr-header-danger");
+			selectedButton = 'btn-danger';
+			selectedIcon = 'fa-warning modal-icon-error';
+			selectedButtonText = $.i18n('general_btn_continue');
+		}
+		else if (type=="warning" || type == "confirm")
+		{
+			if (header == "") header = $.i18n('infoDialog_general_warning_title');
+			headerControl.addClass("modal-hyperhdr-header-warning");
+			selectedButton = 'btn-warning';
+			selectedIcon = 'fa-warning modal-icon-warning';
+			selectedButtonText = $.i18n('general_btn_continue');
+		}
+		else if (type=="success")
+		{
+			if (header == "") header = $.i18n('infoDialog_general_success_title');
+			headerControl.addClass("modal-hyperhdr-header-success");
+			selectedButton = 'btn-success';
+			selectedIcon = 'fa-check modal-icon-check';
+			selectedButtonText = $.i18n('general_btn_ok');
+		}
+
+
+		if (message.length > 120)
+			masterControl.addClass("modal-lg");
+		masterControl.addClass("modal-hyperhdr-danger-warning-success");	
+
+		$('#new_modal_dialog_title').html('<h4 class="text-center">'+ header +'</h4>');
+		$('#new_modal_dialog_body').html('<div style="align-items: center; display: flex;">'+
+											'<div style="position: relative; left: 0px; ">'+
+												`<i class="fa ${selectedIcon}"></i>`+
+											'</div>'+
+											'<h5 class="ps-3">'+ message +'</h5>'+											
+										 '</div>');
+
+		if (type == "confirm")
+		{
+			$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_confirm" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_yes')+'</button>');
+			$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		}
+		else
+			$('#new_modal_dialog_footer').html(`<button type="button" class="btn ${selectedButton}" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog"><i class="fa fa-hand-paper-o fa-fw"></i>`+selectedButtonText+'</button>');
 	}
 	else if (type == "select")
 	{
@@ -308,33 +362,27 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "confirm")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_confirm" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_yes')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
 	else if (type == "delInst")
 	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#new_modal_dialog_title').html('<h4><i class="fa fa-remove fa-fw"></i>'+ header +'</h4>');
+		$('#new_modal_dialog_body').html('<div class="mb-3">'+ message +'</div>');
+		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_yes')+'</button>');
+		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "renInst")
 	{
-		$('#id_title_rename').html('<div><h4><i class="fa fa-pencil fa-fw"></i>'+$.i18n('general_btn_rename')+'</h4>');
-		$('#id_body_rename').html('<div class="mb-3"><label class="form-label required">'+ header +'</label><input  id="renInst_name" type="text" class="form-control"></div>');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-
+		$('#new_modal_dialog_title').html('<h4><i class="fa fa-pencil fa-fw"></i>'+$.i18n('general_btn_rename')+'</h4>');
+		$('#new_modal_dialog_body').html('<div class="mb-3"><label class="form-label required">'+ header +'</label><input  id="renInst_name" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "changePassword")
 	{
-		$('#id_title_rename').html('<div><h4><i class="fa fa-key fa-fw"></i>'+header+'</h4>');
-		$('#id_body_rename').html('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_old_password')+'</label><input  id="oldPw" type="text" class="form-control"></div>');
-		$('#id_body_rename').append('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_new_password')+'</label><input  id="newPw" type="text" class="form-control"></div>');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#new_modal_dialog_title').html('<h4><i class="fa fa-key fa-fw"></i>'+header+'</h4>');
+		$('#new_modal_dialog_body').html('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_old_password')+'</label><input  id="oldPw" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_body').append('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_new_password')+'</label><input  id="newPw" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
 	{
@@ -355,7 +403,7 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
 	}
 
-	if(type != "renInst" && type != "changePassword")
+	if(type != "confirm" && type != "renInst" && type != "changePassword" && type != "delInst" && type != "error" && type != "error" && type != "warning" && type != "success")
 	{
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 		$('#id_body').append(message);
@@ -365,7 +413,8 @@ function showInfoDialog(type,header,message)
 		$('#id_body').append('<select id="id_select" class="form-select" style="margin-top:10px;width:auto;"></select>');
 
 	
-	const myTarget = (type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog");
+	const myTarget = ((type == "renInst" || type == "changePassword" || type == "delInst" ||
+						type=="error" || type=="warning" || type=="success" || type == "confirm") ? "#new_modal_dialog" : "#modal_dialog");
 	
 	const modal = new bootstrap.Modal($(myTarget), {
 		backdrop : "static",

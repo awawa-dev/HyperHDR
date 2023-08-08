@@ -19,7 +19,7 @@ function changePassword(){
 
 		requestChangePassword(oldPw, newPw);
 
-		$('#modal_dialog_rename').modal('toggle');
+		$('#new_modal_dialog').modal('toggle');
 	});
 
 
