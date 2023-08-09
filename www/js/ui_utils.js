@@ -356,23 +356,17 @@ function showInfoDialog(type,header,message)
 		$('#id_body').html('<img src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
 	}
-	else if (type == "import")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
-	else if (type == "delInst")
+	else if (type == "deleteInstance")
 	{
 		$('#new_modal_dialog_title').html('<h4><i class="fa fa-remove fa-fw"></i>'+ header +'</h4>');
 		$('#new_modal_dialog_body').html('<div class="mb-3">'+ message +'</div>');
 		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_yes')+'</button>');
 		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "renInst")
+	else if (type == "renameInstance")
 	{
 		$('#new_modal_dialog_title').html('<h4><i class="fa fa-pencil fa-fw"></i>'+$.i18n('general_btn_rename')+'</h4>');
-		$('#new_modal_dialog_body').html('<div class="mb-3"><label class="form-label required">'+ header +'</label><input  id="renInst_name" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_body').html('<div class="mb-3"><label class="form-label required">'+ header +'</label><input  id="renameInstance_name" type="text" class="form-control"></div>');
 		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
 		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
@@ -403,7 +397,8 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
 	}
 
-	if(type != "confirm" && type != "renInst" && type != "changePassword" && type != "delInst" && type != "error" && type != "error" && type != "warning" && type != "success")
+	if (type != "confirm" && type != "renameInstance" && type != "changePassword" && type != "deleteInstance" &&
+		type != "error" && type != "warning" && type != "success")
 	{
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 		$('#id_body').append(message);
@@ -413,7 +408,7 @@ function showInfoDialog(type,header,message)
 		$('#id_body').append('<select id="id_select" class="form-select" style="margin-top:10px;width:auto;"></select>');
 
 	
-	const myTarget = ((type == "renInst" || type == "changePassword" || type == "delInst" ||
+	const myTarget = ((type == "renameInstance" || type == "changePassword" || type == "deleteInstance" ||
 						type=="error" || type=="warning" || type=="success" || type == "confirm") ? "#new_modal_dialog" : "#modal_dialog");
 	
 	const modal = new bootstrap.Modal($(myTarget), {

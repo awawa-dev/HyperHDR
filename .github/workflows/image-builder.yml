@@ -7,8 +7,11 @@ on:
         description: 'HyperHDR release tag (for example 17.0.0.0)'
       architecture:
         description: 'ARM architecture: armv6l/aarch64'
+      tagCustomPiOS:
+        default: ''
+        description: 'Optional tag of CustomPiOS'
       debian:
-        default: ""
+        default: ''
         description: 'optional Debian version'
 
 jobs:
@@ -22,7 +25,12 @@ jobs:
     - name: Overrride Debian download link
       if: github.event.inputs.debian != ''
       run: |
-        echo "HYPERHDR_DEB='https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/hyperhdr_{{ github.event.inputs.tags }}~${{ github.event.inputs.debian }}_${{ github.event.inputs.architecture }}.deb'" >> $GITHUB_ENV
+        tag_name="${{ github.event.inputs.tags }}"
+        first_version="${tag_name%beta*}"
+        second_version="${tag_name#*beta}"
+        [ ${first_version} != ${second_version} ] && second_version="~beta${second_version}"
+        [ ${first_version} == ${second_version} ] && second_version=""
+        echo "HYPERHDR_DEB='https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/HyperHDR_${first_version}~${{ github.event.inputs.debian }}${second_version}_${{ github.event.inputs.architecture }}.deb'" >> $GITHUB_ENV
 
     - name: Install Dependencies
       run: |
@@ -34,6 +42,12 @@ jobs:
       with:
         repository: 'guysoft/CustomPiOS'
         path: CustomPiOS
+
+    - name: Select CustomPiOS version
+      if: github.event.inputs.tagCustomPiOS != ''
+      run: |
+        cd CustomPiOS
+        git reset --hard ${{ github.event.inputs.tagCustomPiOS }}
 
     - name: Prepare HyperHDR module
       run: |

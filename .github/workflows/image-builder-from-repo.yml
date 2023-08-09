@@ -5,6 +5,9 @@ on:
     inputs:
       architecture:
         description: 'ARM architecture: armv6l/aarch64'
+      tagCustomPiOS:
+        default: ''
+        description: 'Optional tag of CustomPiOS'
 
 jobs:
   build:
@@ -23,6 +26,12 @@ jobs:
       with:
         repository: 'guysoft/CustomPiOS'
         path: CustomPiOS
+
+    - name: Select CustomPiOS version
+      if: github.event.inputs.tagCustomPiOS != ''
+      run: |
+        cd CustomPiOS
+        git reset --hard ${{ github.event.inputs.tagCustomPiOS }}
 
     - name: Prepare HyperHDR module
       run: |

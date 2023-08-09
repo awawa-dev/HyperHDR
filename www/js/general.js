@@ -37,14 +37,14 @@ $(document).ready(function()
 		});
 
 		var inst = e.currentTarget.id.split("_")[1];
-		showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
+		showInfoDialog('renameInstance', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
 
 		$("#id_btn_ok").off().on('click', function()
 		{
-			requestInstanceRename(inst, $('#renInst_name').val())
+			requestInstanceRename(inst, $('#renameInstance_name').val())
 		});
 
-		$('#renInst_name').off().on('input', function(e)
+		$('#renameInstance_name').off().on('input', function(e)
 		{
 			(e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').attr('disabled', false): $('#id_btn_ok').attr('disabled', true);
 		});
@@ -60,7 +60,7 @@ $(document).ready(function()
 	function handleInstanceDelete(e)
 	{
 		var inst = e.currentTarget.id.split("_")[1];
-		showInfoDialog('delInst', $.i18n('conf_general_inst_delreq_h'), $.i18n('conf_general_inst_delreq_t', getInstanceNameByIndex(inst)));
+		showInfoDialog('deleteInstance', $.i18n('conf_general_inst_delreq_h'), $.i18n('conf_general_inst_delreq_t', getInstanceNameByIndex(inst)));
 		$("#id_btn_yes").off().on('click', function()
 		{
 			requestInstanceDelete(inst)
@@ -175,9 +175,9 @@ $(document).ready(function()
 
 	$('#btn_import_conf').off().on('click', function()
 	{
-		showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
+		showInfoDialog('confirm', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
 
-		$('#id_btn_import').off().on('click', function()
+		$('#id_btn_confirm').off().on('click', function()
 		{
 			removeStorage('lastSelectedInstance', false);
 			requestRestoreDB(importedConf);

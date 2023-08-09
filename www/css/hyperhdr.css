@@ -233,7 +233,7 @@ body:not(.dark-mode) .alert.parentAlert {
 	background-color:#198754;
 }
 .modal-icon-warning{
-	background-color:#d07a12;
+	background-color:#f39c12;
 }
 .modal-icon-error{
 	background-color:#d1322e;
@@ -379,8 +379,8 @@ body:not(.dark-mode) .modal-hyperhdr-header {
 }
 
 .modal-header.modal-hyperhdr-header.modal-hyperhdr-header-warning {
-	background-color:#d07a12 !important;
-	border-color:#d07a12 !important;
+	background-color:#f39c12 !important;
+	border-color:#f39c12 !important;
 }
 
 .card-default{

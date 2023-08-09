@@ -753,7 +753,7 @@
   "infoDialog_general_success_title": "Success",
   "infoDialog_general_warning_title": "Warning",
   "infoDialog_import_comperror_text": "Sad! Your browser doesn't support a import. Please try again with another browser.",
-  "infoDialog_import_confirm_text": "Are you sure to import \"$1\"? <p style='color: red;'>This process can't be reverted! HyperHDR will quit after succesful import and you must start it manually again if HyperHDR is not configured aa Linux service.</p>",
+  "infoDialog_import_confirm_text": "Are you sure to import \"$1\"? <p class='mt-2' style='color: red;'>This process cannot be undone! HyperHDR will close after a successful import and you have to restart it manually if HyperHDR is not configured as a Linux service.</p>",
   "infoDialog_import_confirm_title": "Confirm import",
   "infoDialog_import_hyperror_text": "The selected configuration file \"$1\" can't be imported. It's not compatible with HyperHDR v17 and higher!",
   "infoDialog_import_jsonerror_text": "The selected configuration file \"$1\" is no .json file or it's corrupted. Error message: ($2)",
