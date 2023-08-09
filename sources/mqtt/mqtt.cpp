@@ -8,8 +8,9 @@
 #include <QUrl>
 #include <QHostInfo>
 
-QString HYPERHDRAPI = QStringLiteral("HyperHDR/JsonAPI");
-QString HYPERHDRAPI_RESPONSE = QStringLiteral("HyperHDR/JsonAPI/response");
+// default param %1 is 'HyperHDR', do not edit templates here
+const static QString TEMPLATE_HYPERHDRAPI = QStringLiteral("%1/JsonAPI");
+const static QString TEMPLATE_HYPERHDRAPI_RESPONSE = QStringLiteral("%1/JsonAPI/response");
 
 mqtt::mqtt(QObject* _parent)
 	: QObject(_parent)
@@ -24,14 +25,18 @@ mqtt::~mqtt()
 	stop();
 }
 
-void mqtt::start(QString host, int port, QString username, QString password, bool is_ssl, bool ignore_ssl_errors)
+void mqtt::start(QString host, int port, QString username, QString password, bool is_ssl, bool ignore_ssl_errors, QString customTopic)
 {
 
 	if (_clientInstance != nullptr)
 		return;
 
-	Debug(_log, "Starting the MQTT connection. Address: %s:%i. Protocol: %s. Authentication: %s, Ignore errors: %s",
-				QSTRING_CSTR(host), port, (is_ssl) ? "SSL": "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
+	HYPERHDRAPI = QString(TEMPLATE_HYPERHDRAPI).arg(customTopic);
+	HYPERHDRAPI_RESPONSE = QString(TEMPLATE_HYPERHDRAPI_RESPONSE).arg(customTopic);
+
+	Debug(_log, "Starting the MQTT connection. Address: %s:%i. Protocol: %s. Authentication: %s, Ignore errors: %s, MQTT topic: %s, MQTT response: %s",
+				QSTRING_CSTR(host), port, (is_ssl) ? "SSL": "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO",
+				QSTRING_CSTR(HYPERHDRAPI), QSTRING_CSTR(HYPERHDRAPI_RESPONSE));
 
 	QHostAddress adr(host);
 	QHostInfo info = QHostInfo::fromName(host);
@@ -144,11 +149,13 @@ void mqtt::handleSettingsUpdate(settings::type type, const QJsonDocument& config
 		QString password = obj["password"].toString();
 		bool is_ssl = obj["is_ssl"].toBool();
 		bool ignore_ssl_errors = obj["ignore_ssl_errors"].toBool();
-
+		QString customTopic = obj["custom_topic"].toString().trimmed();
+		if (customTopic.isEmpty())
+			customTopic = "HyperHDR";
 
 		stop();
 		if (enabled)
-			start(host, port, username, password, is_ssl, ignore_ssl_errors);
+			start(host, port, username, password, is_ssl, ignore_ssl_errors, customTopic);
 	}
 	else if (type == settings::type::WEBSERVER)
 	{

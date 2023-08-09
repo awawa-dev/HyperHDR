@@ -20,7 +20,7 @@ public:
 	~mqtt();
 
 public slots:
-	void start(QString host, int port, QString username, QString password, bool is_ssl, bool ignore_ssl_errors);
+	void start(QString host, int port, QString username, QString password, bool is_ssl, bool ignore_ssl_errors, QString customTopic);
 
 	void stop();
 
@@ -36,8 +36,11 @@ signals:
 
 private:
 
-	/// Logger instance
-	int			_jsonPort;
-	Logger*		_log;
+	// HyperHDR MQTT topic & reponse path
+	QString			HYPERHDRAPI;
+	QString			HYPERHDRAPI_RESPONSE;
+
+	int				_jsonPort;
+	Logger*			_log;
 	QMQTT::Client*	_clientInstance;
 };

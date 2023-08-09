@@ -65,6 +65,14 @@
 				}
 			},
 			"propertyOrder" : 7
+		},
+		"custom_topic" :
+		{
+			"type": "string",
+			"title":"edt_conf_mqtt_custom_topic_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 8
 		}
 	},
 	"additionalProperties" : false
