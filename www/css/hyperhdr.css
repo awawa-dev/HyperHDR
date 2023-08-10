@@ -143,6 +143,15 @@ body:not(.dark-mode) .alert.parentAlert {
 }
 
 @media (max-width: 767px){
+
+	#remote_color>.picker_wrapper.popup.popup_bottom .picker_arrow {
+		left: 100px !important;
+	}
+
+	#remote_color>.picker_wrapper.popup.popup_bottom {
+		left: -100px !important;
+	}
+
 	.parentAlert {
 		padding-left: 21px;
 	}
