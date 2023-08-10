@@ -753,7 +753,7 @@
   "infoDialog_general_success_title": "Succes",
   "infoDialog_general_warning_title": "Avertizare",
   "infoDialog_import_comperror_text": "Trist! Browserul dvs. nu acceptă importul. Vă rugăm să încercați din nou cu un alt browser.",
-  "infoDialog_import_confirm_text": "Sunteți sigur că importați „$1”? <p style='color: red;'>Acest proces nu poate fi revenit! HyperHDR va ieși după importarea cu succes și trebuie să îl porniți din nou manual dacă HyperHDR nu este configurat ca serviciu Linux. </p>",
+  "infoDialog_import_confirm_text": "Sunteți sigur că importați \"$1\"? <p class='mt-2' style='color: red;'>Acest proces nu poate fi anulat! HyperHDR se va închide după un import reușit și trebuie să îl reporniți manual dacă HyperHDR nu este configurat ca serviciu Linux.</p>",
   "infoDialog_import_confirm_title": "Confirmați importul",
   "infoDialog_import_hyperror_text": "Fișierul de configurare selectat „$1” nu poate fi importat. Nu este compatibil cu HyperHDR v17 și versiuni ulterioare!",
   "infoDialog_import_jsonerror_text": "Fișierul de configurare selectat „$1” nu este un fișier .json sau este corupt. Mesaj de eroare: ($2)",
@@ -1223,5 +1223,7 @@
   "warning_errors_detected_1" : "Ultimul:",
   "warning_errors_detected_2" : "Unele erori sunt trecătoare (de exemplu, cu LED-ul de reconectare automată activat) și pot fi ignorate, altele pot indica erori grave de configurare a sistemului sau de funcționare.<br/>Verificați jurnalele și căutați erori (în roșu):",
   "modal_old_password" : "Parola veche",
-  "modal_new_password" : "Parolă nouă"
+  "modal_new_password" : "Parolă nouă",
+  "edt_conf_mqtt_custom_topic_title" : "Subiect MQTT personalizat",
+  "edt_conf_mqtt_custom_topic_expl" : "Subiect MQTT personalizat (implicit este: HyperHDR)."
 }

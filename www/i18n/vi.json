@@ -753,7 +753,7 @@
   "infoDialog_general_success_title": "Sự thành công",
   "infoDialog_general_warning_title": "Cảnh báo",
   "infoDialog_import_comperror_text": "Buồn! Trình duyệt của bạn không hỗ trợ nhập. Vui lòng thử lại với trình duyệt khác.",
-  "infoDialog_import_confirm_text": "Bạn có chắc chắn nhập \"$1\" không? <p style='color: red;'>Không thể hoàn nguyên quá trình này! HyperHDR sẽ thoát sau khi nhập thành công và bạn phải khởi động lại theo cách thủ công nếu HyperHDR không được định cấu hình trên một dịch vụ Linux. </p>",
+  "infoDialog_import_confirm_text": "Bạn có chắc chắn nhập \"$1\"? <p class='mt-2' style='color: red;'>Không thể hoàn tác quá trình này! HyperHDR sẽ đóng sau khi nhập thành công và bạn phải khởi động lại theo cách thủ công nếu HyperHDR không được định cấu hình dưới dạng dịch vụ Linux.</p>",
   "infoDialog_import_confirm_title": "Xác nhận nhập khẩu",
   "infoDialog_import_hyperror_text": "Không thể nhập tệp cấu hình đã chọn \"$1\". Nó không tương thích với HyperHDR v17 trở lên!",
   "infoDialog_import_jsonerror_text": "Tệp cấu hình đã chọn \"$1\" không phải là tệp .json hoặc nó bị hỏng. Thông báo lỗi: ($2)",
@@ -1223,5 +1223,7 @@
   "warning_errors_detected_1" : "Cái cuối cùng:",
   "warning_errors_detected_2" : "Một số lỗi chỉ xảy ra tạm thời (ví dụ: khi bật đèn LED tự động kết nối lại) và có thể bỏ qua, những lỗi khác có thể biểu thị lỗi vận hành hoặc cấu hình hệ thống nghiêm trọng.<br/>Kiểm tra nhật ký và tìm lỗi (màu đỏ):",
   "modal_old_password" : "Mật khẩu cũ",
-  "modal_new_password" : "Mật khẩu mới"
+  "modal_new_password" : "Mật khẩu mới",
+  "edt_conf_mqtt_custom_topic_title" : "Chủ đề MQTT tùy chỉnh",
+  "edt_conf_mqtt_custom_topic_expl" : "Chủ đề MQTT tùy chỉnh (mặc định là: HyperHDR)."
 }

@@ -753,7 +753,7 @@
   "infoDialog_general_success_title": "Framgång",
   "infoDialog_general_warning_title": "Varning",
   "infoDialog_import_comperror_text": "Ledsen! Din webbläsare stöder inte import. Försök igen med en annan webbläsare.",
-  "infoDialog_import_confirm_text": "Är du säker på att importera \"$1\"? <p style='color: red;'>Denna process kan inte återställas! HyperHDR slutar efter framgångsrik import och du måste starta det manuellt igen om HyperHDR inte är konfigurerat som en Linux -tjänst. </p>",
+  "infoDialog_import_confirm_text": "Är du säker på att importera \"$1\"? <p class='mt-2' style='color: red;'>Denna process kan inte ångras! HyperHDR stängs efter en lyckad import och du måste starta om den manuellt om HyperHDR inte är konfigurerad som en Linux-tjänst.</p>",
   "infoDialog_import_confirm_title": "Bekräfta import",
   "infoDialog_import_hyperror_text": "Den valda konfigurationsfilen \"$1\" kan inte importeras. Det är inte kompatibelt med HyperHDR v17 och högre!",
   "infoDialog_import_jsonerror_text": "Den valda konfigurationsfilen \"$1\" är ingen .json -fil eller så är den skadad. Felmeddelande: ($2)",
@@ -1223,5 +1223,7 @@
   "warning_errors_detected_1" : "Den sista:",
   "warning_errors_detected_2" : "Vissa fel är övergående (t.ex. med auto-reconnect LED aktiverad) och kan ignoreras, andra kan indikera allvarliga systemkonfigurations- eller driftfel.<br/>Kontrollera loggarna och leta efter fel (i rött):",
   "modal_old_password" : "Gammalt lösenord",
-  "modal_new_password" : "Nytt lösenord"
+  "modal_new_password" : "Nytt lösenord",
+  "edt_conf_mqtt_custom_topic_title" : "Anpassat MQTT-ämne",
+  "edt_conf_mqtt_custom_topic_expl" : "Anpassat MQTT-ämne (standard är: HyperHDR)."
 }

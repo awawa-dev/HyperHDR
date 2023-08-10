@@ -753,7 +753,7 @@
   "infoDialog_general_success_title": "Úspěch",
   "infoDialog_general_warning_title": "Varování",
   "infoDialog_import_comperror_text": "Smutný! Váš prohlížeč import nepodporuje. Zkuste to prosím znovu v jiném prohlížeči.",
-  "infoDialog_import_confirm_text": "Opravdu chcete importovat \"$1\"? <p style='color: red;'>Tento proces nelze vrátit zpět! HyperHDR se ukončí po úspěšném importu a pokud není HyperHDR nakonfigurován jako služba Linux, musíte jej spustit znovu ručně. </p>",
+  "infoDialog_import_confirm_text": "Opravdu chcete importovat \"$1\"? <p class='mt-2' style='color: red;'>Tento proces nelze vrátit zpět! HyperHDR se po úspěšném importu zavře a pokud HyperHDR není nakonfigurováno jako služba Linuxu, musíte jej restartovat ručně.</p>",
   "infoDialog_import_confirm_title": "Potvrďte import",
   "infoDialog_import_hyperror_text": "Vybraný konfigurační soubor \"$1\" nelze importovat. Není kompatibilní s HyperHDR v17 a vyšší!",
   "infoDialog_import_jsonerror_text": "Vybraný konfigurační soubor \"$1\" není žádný soubor .json nebo je poškozený. Chybová zpráva: ($2)",
@@ -1223,5 +1223,7 @@
   "warning_errors_detected_1" : "Poslední:",
   "warning_errors_detected_2" : "Některé chyby jsou přechodné (např. se zapnutou LED diodou automatického opětovného připojení) a lze je ignorovat, jiné mohou naznačovat vážné chyby konfigurace systému nebo provozu.<br/>Zkontrolujte protokoly a vyhledejte chyby (červeně):",
   "modal_old_password" : "Staré heslo",
-  "modal_new_password" : "Nové heslo"
+  "modal_new_password" : "Nové heslo",
+  "edt_conf_mqtt_custom_topic_title" : "Vlastní téma MQTT",
+  "edt_conf_mqtt_custom_topic_expl" : "Vlastní téma MQTT (výchozí je: HyperHDR)."
 }

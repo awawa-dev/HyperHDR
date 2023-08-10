@@ -753,7 +753,7 @@
   "infoDialog_general_success_title": "Éxito",
   "infoDialog_general_warning_title": "Advertencia",
   "infoDialog_import_comperror_text": "¡Triste! Su navegador no admite una importación. Vuelva a intentarlo con otro navegador.",
-  "infoDialog_import_confirm_text": "¿Estás seguro de importar \"$1\"? <p style='color: red;'>¡Este proceso no se puede revertir! HyperHDR se cerrará después de una importación exitosa y debe iniciarlo manualmente nuevamente si HyperHDR no está configurado como un servicio de Linux. </p>",
+  "infoDialog_import_confirm_text": "¿Estás seguro de importar \"$1\"? <p class='mt-2' style='color: red;'>¡Este proceso no se puede deshacer! HyperHDR se cerrará después de una importación exitosa y deberá reiniciarlo manualmente si HyperHDR no está configurado como un servicio de Linux.</p>",
   "infoDialog_import_confirm_title": "Confirmar importación",
   "infoDialog_import_hyperror_text": "El archivo de configuración seleccionado \"$1\" no se puede importar. ¡No es compatible con HyperHDR v17 y superior!",
   "infoDialog_import_jsonerror_text": "El archivo de configuración seleccionado \"$1\" no es un archivo .json o está dañado. Mensaje de error: ($2)",
@@ -1223,5 +1223,7 @@
   "warning_errors_detected_1" : "El último:",
   "warning_errors_detected_2" : "Algunos errores son transitorios (p. ej., con el LED de reconexión automática habilitado) y se pueden ignorar, otros pueden indicar errores graves de configuración o funcionamiento del sistema.<br/>Revise los registros y busque errores (en rojo):",
   "modal_old_password" : "Contraseña anterior",
-  "modal_new_password" : "Nueva contraseña"
+  "modal_new_password" : "Nueva contraseña",
+  "edt_conf_mqtt_custom_topic_title" : "Tema MQTT personalizado",
+  "edt_conf_mqtt_custom_topic_expl" : "Tema MQTT personalizado (el valor predeterminado es: HyperHDR)."
 }
