@@ -611,7 +611,7 @@ body:not(.dark-mode) .my-text-success {
 	padding: .5rem 1rem;
 }
 
-.dark-mode #hyp_inst_listing{
+.dark-mode #hyperhdr_instances_list{
 	background: #212529;
 	color: white;
 }
@@ -633,9 +633,24 @@ body:not(.dark-mode) #btn_hypinstanceswitch.disabled {
     padding-top: calc(0.25*1em);
 }
 
-#hyp_inst_listing.show
+#hyperhdr_instances_list.show
 {
-	margin-left: -1rem !important;	
+	margin-left: -3rem !important;	
+}
+
+.dark-mode #hyperhdr_instances_list>.dropdown-divider
+{
+	border-color:#606060;
+}
+
+.dark-mode #hyperhdr_instances_list
+{
+	border-color:#606060;
+}
+
+body:not(.dark-mode) #hyperhdr_instances_list
+{
+	background-color:#f9f9f9;
 }
 
 body:not(.dark-mode) .btn-warning-noset

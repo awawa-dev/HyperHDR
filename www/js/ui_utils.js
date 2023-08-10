@@ -1,5 +1,10 @@
 var prevTag;
 
+// SVG inline
+const BOOTSTRAP_SVG_CIRCLE_FILL_WHITE_INSIDE = '<circle cx="8" cy="8" r="7" fill="white"/>';
+const BOOTSTRAP_SVG_CHECK_CIRCLE_FILL = '<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>';
+const BOOTSTRAP_SVG_CHECK_CIRCLE_FILL_WHITE_INSIDE = BOOTSTRAP_SVG_CIRCLE_FILL_WHITE_INSIDE + BOOTSTRAP_SVG_CHECK_CIRCLE_FILL;
+
 function removeOverlay()
 {
 	$("#loading_overlay").removeClass("overlay");
@@ -116,10 +121,11 @@ function loadContent(event, forceRefresh)
 function updateHyperhdrInstanceListing()
 {
 	var data = window.serverInfo.instance.filter(entry => entry.running);
-	$('#hyp_inst_listing').html("");
+	$('#hyperhdr_instances_list').html("");
 	for(var key in data)
 	{
-		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? "fa-arrow-circle-right my-text-success" : "";
+		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? BOOTSTRAP_SVG_CHECK_CIRCLE_FILL_WHITE_INSIDE : '';
+		var currInstMarkerBackground = (data[key].instance == window.currentHyperHdrInstance) ? 'text-success' : 'instance-unselected-marker';
 		var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
 		
 		var myName = data[key].friendly_name;
@@ -127,21 +133,26 @@ function updateHyperhdrInstanceListing()
 		if (myName.length>20)
 			myName = myName.slice(0,17) + '...';
 		
-		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			  
-						'<div class="d-flex" style="cursor: pointer;">'+
-							'<div class="flex ps-1 pe-1 fa-stack fa-1x"><i class="fa fa-stack-1x ' + currInstMarker + '"></i><i class="fa-stack-1x fa icon-invisible"></i></div>'+
-							'<div class="flex pe-2 ' + currTextMarker + '"><span class="h-100" style="display: inline-flex; align-items: center;">'+myName+'</span></div>'+
+		var html = `<li id="hyperhdrinstance_${data[key].instance}"><a>`+
+						'<div class="d-flex" style="cursor: pointer;">'+							
+							`<div class="flex ps-2 pe-1 ${currInstMarkerBackground}">`+
+								'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">'+
+									currInstMarker+
+								'</svg>'+
+							'</div>'+
+							`<div class="flex pe-2 ${currTextMarker}">`+
+								`<span class="h-100" style="display: inline-flex; align-items: center;">${myName}</span>`+
+							'</div>'+
 						'</div>'+
 				   '</a></li>';
 
 		if(data.length-1 > key)
 			html += '<li class="dropdown-divider"></li>'
 
-		$('#hyp_inst_listing').append(html);
+		$('#hyperhdr_instances_list').append(html);
 
 		$('#hyperhdrinstance_'+data[key].instance).off().on("click",function(e){
-			var inst = e.currentTarget.id.split("_")[1]
-			instanceSwitch(inst)
+			instanceSwitch(e.currentTarget.id.split("_")[1]);
 		});
 	}
 }
