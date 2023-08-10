@@ -1223,6 +1223,5 @@
   "warning_errors_detected_1" : "The last one:",
   "warning_errors_detected_2" : "Some errors are transient (e.g. with the auto-reconnect LED enabled) and can be ignored, others may indicate serious system configuration or operation errors.<br/>Check the logs and look for errors (in red):",
   "edt_conf_mqtt_custom_topic_title" : "Custom MQTT topic",
-  "edt_conf_mqtt_custom_topic_title" : "Custom MQTT topic",
   "edt_conf_mqtt_custom_topic_expl" : "Custom MQTT topic (default is: HyperHDR)"
 } 
