@@ -73,11 +73,10 @@ const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 
 
 V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath)
-	: Grabber("V4L2:" + device.left(14))
+	: Grabber(configurationPath, "V4L2:" + device.left(14))
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _streamNotifier(nullptr)
-	, _configurationPath(configurationPath)
 
 {
 	// Refresh devices

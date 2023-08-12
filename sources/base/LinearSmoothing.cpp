@@ -11,9 +11,9 @@
 
 using namespace hyperhdr;
 
-const int64_t  DEFAUL_SETTLINGTIME     = 200;   // settlingtime in ms
-const double   DEFAUL_UPDATEFREQUENCY  = 25;    // updatefrequncy in hz
-const double   MINIMAL_UPDATEFREQUENCY = 20;
+const int64_t  DEFAUL_SETTLINGTIME		= 200;   // settlingtime in ms
+const double   DEFAUL_UPDATEFREQUENCY	= 25;    // updatefrequncy in hz
+const double   MINIMAL_UPDATEFREQUENCY	= 20;
 
 
 
@@ -43,7 +43,7 @@ LinearSmoothing::LinearSmoothing(const QJsonDocument& config, HyperHdrInstance* 
 {
 	// timer
 	_timer = new QTimer(this);
-	_timer->setTimerType(Qt::PreciseTimer);	
+	_timer->setTimerType(Qt::PreciseTimer);
 
 	// init cfg 0 (default)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);

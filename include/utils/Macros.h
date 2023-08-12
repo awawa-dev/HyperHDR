@@ -74,7 +74,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 		result = target->method(p1value, p2value, p3value, p4value); \
 }
 
-#define SAFE_CALL_0(target, method, ...) \
+#define QUEUE_CALL_0(target, method, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
 	if (true) \
@@ -83,7 +83,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 		target->method(); \
 }
 
-#define SAFE_CALL_1(target, method, p1type, p1value, ...) \
+#define QUEUE_CALL_1(target, method, p1type, p1value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
 	if (true) \
@@ -92,7 +92,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 		target->method(p1value); \
 }
 
-#define SAFE_CALL_2(target, method, p1type, p1value, p2type, p2value, ...) \
+#define QUEUE_CALL_2(target, method, p1type, p1value, p2type, p2value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
 	if (true) \
@@ -101,7 +101,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 		target->method(p1value, p2value); \
 }
 
-#define SAFE_CALL_3(target, method, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
+#define QUEUE_CALL_3(target, method, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
 	if (true) \
@@ -110,7 +110,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 		target->method(p1value, p2value, p3value); \
 }
 
-#define SAFE_CALL_4(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
+#define QUEUE_CALL_4(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
 	if (true) \
@@ -119,5 +119,92 @@ inline void SAFE_CALL_TEST_FUN() {};
 		target->method(p1value, p2value, p3value, p4value); \
 }
 
+#define BLOCK_CALL_0(target, method, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != this->thread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection); \
+	else \
+		target->method(); \
+}
 
+#define BLOCK_CALL_1(target, method, p1type, p1value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != this->thread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value)); \
+	else \
+		target->method(p1value); \
+}
 
+#define BLOCK_CALL_2(target, method, p1type, p1value, p2type, p2value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != this->thread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value)); \
+	else \
+		target->method(p1value, p2value); \
+}
+
+#define BLOCK_CALL_3(target, method, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != this->thread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value)); \
+	else \
+		target->method(p1value, p2value, p3value); \
+}
+
+#define BLOCK_CALL_4(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != this->thread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value), Q_ARG(p4type, p4value)); \
+	else \
+		target->method(p1value, p2value, p3value, p4value); \
+}
+
+#define AUTO_CALL_0(target, method, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != QThread::currentThread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection); \
+	else \
+		target->method(); \
+}
+
+#define AUTO_CALL_1(target, method, p1type, p1value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != QThread::currentThread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value)); \
+	else \
+		target->method(p1value); \
+}
+
+#define AUTO_CALL_2(target, method, p1type, p1value, p2type, p2value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != QThread::currentThread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value)); \
+	else \
+		target->method(p1value, p2value); \
+}
+
+#define AUTO_CALL_3(target, method, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != QThread::currentThread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value)); \
+	else \
+		target->method(p1value, p2value, p3value); \
+}
+
+#define AUTO_CALL_4(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != QThread::currentThread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value), Q_ARG(p4type, p4value)); \
+	else \
+		target->method(p1value, p2value, p3value, p4value); \
+}

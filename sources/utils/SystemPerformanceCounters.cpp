@@ -24,6 +24,7 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
 */
+#include <QtGlobal>
 #include <utils/SystemPerformanceCounters.h>
 #include <utils/InternalClock.h>
 
@@ -94,7 +95,7 @@ void SystemPerformanceCounters::readVoltage()
 
 			len = klogctl(3, &buf[0], len);
 			if (len > 0)
-			{				
+			{
 				buf.resize(len);
 				buf[len - 1] = 0;
 
@@ -102,7 +103,7 @@ void SystemPerformanceCounters::readVoltage()
 					underVoltage = 1;
 				else
 					underVoltage = 0;
-				
+
 				voltageTimeStamp = InternalClock::now() / 1000;
 			}
 		}
@@ -127,13 +128,13 @@ void SystemPerformanceCounters::init()
 #else
 			PdhAddEnglishCounter(cpuPerfQuery, "\\Processor(*)\\% Processor Time", NULL, &cpuPerfTotal);
 #endif
-			PdhCollectQueryData(cpuPerfQuery);			
+			PdhCollectQueryData(cpuPerfQuery);
 		}
 
 #else
 
 		totalPerfCPU = readCpuLines();
-		
+
 		underVoltage = -1;
 		voltageTimeStamp = -1;
 
@@ -213,14 +214,14 @@ QString SystemPerformanceCounters::getCPU()
 				retVal += QString("%1").arg(getChar(valCPU / 100.0f));
 			else
 				retTotal = QString(
-					(valCPU < 50) ? "<span style='color:ForestGreen'>%1%</span>" :
-					((valCPU < 90) ? "<span style='color:orange'>%1%</span>" :
-						"<span style='color:red'>%1%</span>")).arg(QString::number(valCPU), 2);
+					(valCPU < 50) ? "<span class='cpu_low_usage'>%1%</span>" :
+					((valCPU < 90) ? "<span class='cpu_medium_usage'>%1%</span>" :
+						"<span class='cpu_high_usage'>%1%</span>")).arg(QString::number(valCPU), 2);
 		}
 
 		free(buffer);
 
-		return QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
+		return QString("%1 (%2)").arg(retVal).arg(retTotal);
 
 #else
 
@@ -263,13 +264,13 @@ QString SystemPerformanceCounters::getCPU()
 					else
 					{
 						retTotal = QString(
-							(valCPU < 50) ? "<span style='color:ForestGreen'>%1%</span>" :
-							((valCPU < 90) ? "<span style='color:orange'>%1%</span>" :
-								"<span style='color:red'>%1%</span>")).arg(QString::number(valCPU, 'f', 0), 2);
+							(valCPU < 50) ? "<span class='cpu_low_usage'>%1%</span>" :
+							((valCPU < 90) ? "<span class='cpu_medium_usage'>%1%</span>" :
+								"<span class='cpu_high_usage'>%1%</span>")).arg(QString::number(valCPU, 'f', 0), 2);
 					}
 				}
 
-				return QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
+				return QString("%1 (%2)").arg(retVal).arg(retTotal);
 			}
 		}
 
@@ -302,8 +303,8 @@ QString SystemPerformanceCounters::getRAM()
 		qint64 physMemAv = qint64(memInfo.ullAvailPhys) / (1024 * 1024);
 		qint64 takenMem = totalPhysMem - physMemAv;
 		qint64 aspect = (takenMem * 100) / totalPhysMem;
-		QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-		return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
+		QString color = (aspect < 50) ? "cpu_low_usage" : ((aspect < 90) ? "cpu_medium_usage" : "cpu_high_usage");
+		return QString("%1 / %2MB (<span class='%3'>%4%</span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
 
 #else
 
@@ -317,7 +318,7 @@ QString SystemPerformanceCounters::getRAM()
 		physMemAv *= memInfo.mem_unit;
 
 		unsigned long available = 0, total = 0, free = 0;
-		FILE* pFile=fopen("/proc/meminfo", "r");
+		FILE* pFile = fopen("/proc/meminfo", "r");
 		if (pFile != NULL)
 		{
 			if (fscanf(pFile, "MemTotal: %lu kB\n", &total) == 1 &&
@@ -335,8 +336,8 @@ QString SystemPerformanceCounters::getRAM()
 
 		long long takenMem = totalPhysMem - physMemAv;
 		qint64 aspect = (takenMem * 100) / totalPhysMem;
-		QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-		return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
+		QString color = (aspect < 50) ? "cpu_low_usage" : ((aspect < 90) ? "cpu_medium_usage" : "cpu_high_usage");
+		return QString("%1 / %2MB (<span class='%3'>%4%</span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
 
 #endif
 	}
@@ -364,10 +365,10 @@ QString SystemPerformanceCounters::getTEMP()
 			if (fscanf(fp, "%lli", &temp) >= 1)
 			{
 				double tempVal = temp / 1000.0f;
-				QString color = (tempVal <= 65) ? "ForestGreen" : ((tempVal <= 75) ? "orange" : "red");
-				result = QString("<font color='%1'><b>%2</b></font>").arg(color).arg(QString::number(tempVal, 'f', 2));
+				QString color = (tempVal <= 65) ? "stats-report-ok" : ((tempVal <= 75) ? "stats-report-warning" : "stats-report-error");
+				result = QString("<span class='%1 fw-bold'>%2</span>").arg(color).arg(QString::number(tempVal, 'f', 2));
 			}
-			
+
 			fclose(fp);
 		}
 #endif
@@ -376,7 +377,7 @@ QString SystemPerformanceCounters::getTEMP()
 	{
 
 	}
-	
+
 	return result;
 }
 

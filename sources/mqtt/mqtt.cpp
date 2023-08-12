@@ -34,13 +34,13 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 				QSTRING_CSTR(host), port, (is_ssl) ? "SSL": "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
 
 	QHostAddress adr(host);
-	
-	
+
+
 	if (is_ssl)
 	{
-		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();	
+		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
 		_clientInstance = new QMQTT::Client(host, port, sslConfig);
-	 }
+	}
 	else
 		_clientInstance = new QMQTT::Client(adr, port);
 
@@ -54,7 +54,7 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 
 	if (!password.isEmpty())
 		_clientInstance->setPassword(password.toLocal8Bit());
-		
+
 	if (is_ssl && ignore_ssl_errors)
 	{
 		QObject::connect(_clientInstance, &QMQTT::Client::sslErrors, [&](const QList<QSslError>& errors) {
@@ -65,12 +65,12 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 	QObject::connect(_clientInstance, &QMQTT::Client::connected, this, &mqtt::connected);
 	QObject::connect(_clientInstance, &QMQTT::Client::received, this, &mqtt::received);
 	_clientInstance->connectToHost();
-}	
+}
 
 void mqtt::stop()
 {
 	if (_clientInstance != nullptr)
-	{		
+	{
 		delete _clientInstance;
 		_clientInstance = nullptr;
 	}
@@ -78,7 +78,7 @@ void mqtt::stop()
 
 void mqtt::connected()
 {
-	Debug(_log,"Connected");
+	Debug(_log, "Connected");
 
 	if (_clientInstance != nullptr)
 	{
@@ -90,9 +90,9 @@ void mqtt::connected()
 void mqtt::error(const QMQTT::ClientError error)
 {
 	QString message;
-	switch(error)
+	switch (error)
 	{
-		case(QMQTT::ClientError::UnknownError): message="UnknownError";break;
+		case(QMQTT::ClientError::UnknownError): message = "UnknownError"; break;
 		case(QMQTT::ClientError::SocketConnectionRefusedError): message = "SocketConnectionRefusedError"; break;
 		case(QMQTT::ClientError::SocketRemoteHostClosedError): message = "SocketRemoteHostClosedError"; break;
 		case(QMQTT::ClientError::SocketHostNotFoundError): message = "SocketHostNotFoundError"; break;
@@ -133,7 +133,7 @@ void mqtt::handleSettingsUpdate(settings::type type, const QJsonDocument& config
 		QJsonObject obj = config.object();
 
 
-		bool enabled= obj["enable"].toBool();
+		bool enabled = obj["enable"].toBool();
 		QString host = obj["host"].toString();
 		int port = obj["port"].toInt();
 		QString username = obj["username"].toString();
@@ -183,6 +183,6 @@ void mqtt::received(const QMQTT::Message& message)
 			manager->deleteLater();
 		});
 
-		manager->post(QNetworkRequest(QUrl(address)), message.payload());		
+		manager->post(QNetworkRequest(QUrl(address)), message.payload());
 	}
 }

@@ -57,22 +57,6 @@ public:
 	void setEffect(const QString& effectName, const QString& effectArgs, int priority, int duration);
 
 	///
-	/// Create a effect configuration file (.json)
-	///
-	/// @param effectName The name of the effect
-	/// @param effectScript The name of the Python effect file
-	/// @param effectArgs The arguments of the effect
-	///
-	void createEffect(const QString& effectName, const QString& effectScript, const QString& effectArgs);
-
-	///
-	/// Delete a effect configuration file (.json)
-	///
-	/// @param effectName The name of the effect
-	///
-	void deleteEffect(const QString& effectName);
-
-	///
 	/// Retrieve entire serverinfo as String
 	///
 	/// @return String with the server info

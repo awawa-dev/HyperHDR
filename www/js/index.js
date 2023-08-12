@@ -55,18 +55,10 @@ $(document).ready(function () {
 					$("#hyperhdr_disabled_notify").fadeIn("fast");
 			}
 		});
-
-		// determine button visibility
-		var running = window.serverInfo.instance.filter(entry => entry.running);
-		if (running.length > 1)
-		{			
-			$('#btn_hypinstanceswitch').removeClass('disabled');
-		}
-		else
-			$('#btn_hypinstanceswitch').addClass('disabled');
 			
 		// update listing at button
-		updateHyperhdrInstanceListing()
+		updateHyperhdrInstanceListing();
+
 		if (!instNameInit) {
 			window.currentHyperHdrInstanceName = getInstanceNameByIndex(0);
 			instNameInit = true;
@@ -110,15 +102,18 @@ $(document).ready(function () {
 					suppressErrorDetectedWarningCheckbox);
 			}, 700);			
 		}
-
-		updateSessions();
 	}); // end cmd-serverinfo
 
 	//End language selection
 	
 	$(window.hyperhdr).on("cmd-sessions-update", function (event) {
-		window.serverInfo.sessions = event.response.data;
-		updateSessions();
+		let incoming = event.response.data;		
+		let newArray = window.serverInfo.sessions.filter(old => old.name != incoming.service).concat(incoming.items);		
+		window.serverInfo.sessions = newArray.sort((a, b) => a.name > b. name);
+
+		// actions
+		updateHyperhdrInstanceListing();
+		$(window.hyperhdr).trigger("cmd-sessions-received");
 	});
 
 	$(window.hyperhdr).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
@@ -203,6 +198,7 @@ $(document).ready(function () {
 	
 		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
 		{
+			$("#btn_lock_ui").addClass('disabled');
 			setTimeout(function(){
 				var supprPwWarnCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
 					': <input id="chk_suppressDefaultPw" type="checkbox" class="form-check-input" onChange="suppressDefaultPwWarning()"> </div>';
@@ -231,6 +227,8 @@ $(document).ready(function () {
 			toaster('success', $.i18n("infoDialog_general_success_title"), $.i18n("InfoDialog_changePassword_success"), 500);			
 			// not necessarily true, but better than nothing
 			window.defaultPasswordIsSet = false;
+			$("#btn_lock_ui").css('color','inherit');
+			$("#btn_lock_ui").removeClass('disabled');
 		}
 	});
 
@@ -364,17 +362,8 @@ $(document).ready(function () {
 			setTimeout(loadContent, 300, undefined, true)
 		}
 
-		// determine button visibility
-		var running = serverInfo.instance.filter(entry => entry.running);
-		if (running.length > 1)
-		{			
-			$('#btn_hypinstanceswitch').removeClass('disabled');
-		}
-		else
-			$('#btn_hypinstanceswitch').addClass('disabled');
-
 		// update listing for button
-		updateHyperhdrInstanceListing()
+		updateHyperhdrInstanceListing();
 	});
 
 	$(window.hyperhdr).on("cmd-instance-switchTo", function (event) {
@@ -382,10 +371,6 @@ $(document).ready(function () {
 		setTimeout(requestServerInfo, 200)
 		setTimeout(requestTokenInfo, 400)
 		setTimeout(loadContent, 400, undefined, true)
-	});
-
-	$(window.hyperhdr).on("cmd-effects-update", function (event) {
-		window.serverInfo.effects = event.response.data.effects
 	});
 
 	$(".nav-link.system-link").bind('click', systemLink);

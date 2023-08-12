@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "行动",
   "conf_general_inst_delreq_h": "删除 LED 硬件实例",
   "conf_general_inst_delreq_t": "您确定要删除实例“$1”吗？所有设置也将被删除。",
-  "conf_general_inst_desc": "同时使用不同的 LED 硬件。每个实例彼此独立运行，允许不同的 LED 布局和校准设置。运行实例可在左侧的 <i class='fa fa-exchange fa-fw'></i> 图标处找到",
+  "conf_general_inst_desc": "同时使用不同的 LED 硬件。每个实例彼此独立运行，允许不同的 LED 布局和校准设置。运行实例可在左侧的 <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> 图标处找到",
   "conf_general_inst_name_title": "新实例名称",
   "conf_general_inst_namehead": "实例名称",
   "conf_general_inst_renreq_t": "在下面的字段中为您的实例输入一个新名称。",

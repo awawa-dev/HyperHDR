@@ -29,7 +29,7 @@
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image() :
-		Image(1, 1)
+	Image(1, 1)
 {
 }
 
@@ -40,9 +40,9 @@ Image<ColorSpace>::Image(unsigned width, unsigned height) :
 }
 
 template <typename ColorSpace>
-Image<ColorSpace>::Image(const Image<ColorSpace>& other):
+Image<ColorSpace>::Image(const Image<ColorSpace>& other) :
 	_d_ptr(other._d_ptr)
-{	
+{
 }
 
 template <typename ColorSpace>

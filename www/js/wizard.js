@@ -52,14 +52,14 @@ function changeColor()
 function startWizardRGB()
 {
 	//create html
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_rgb_title'));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('wiz_rgb_title'));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_rgb_title') + '</h4><p>' + $.i18n('wiz_rgb_intro1') + '</p><p style="font-weight:bold;">' + $.i18n('wiz_rgb_intro2') + '</p>');
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 	$('#wizp2_body').html('<p style="font-weight:bold">' + $.i18n('wiz_rgb_expl') + '</p>');
 	$('#wizp2_body').append('<div class="form-group"><label>' + $.i18n('wiz_rgb_switchevery') + '</label><div class="input-group" style="width:100px"><select id="wiz_switchtime_select" class="form-select"></select><div class="input-group-addon">' + $.i18n('edt_append_s') + '</div></div></div>');
 	$('#wizp2_body').append('<canvas id="wiz_canv_color" width="100" height="100" style="border-radius:60px;background-color:red; display:block; margin: 10px 0;border:4px solid grey;"></canvas><label>' + $.i18n('wiz_rgb_q') + '</label>');
 	$('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qrend') + '</label></td><td class="itd"><select id="wiz_r_select" class="form-select wselect"></select></td></tr><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qgend') + '</label></td><td class="itd"><select id="wiz_g_select" class="form-select wselect"></select></td></tr></tbody></table>');
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-bs-dismiss="modal"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-bs-dismiss="modal"><svg data-src="svg/button_success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 
 	//open modal  
 	var ta5 = new bootstrap.Modal($("#wizard_modal"), {
@@ -426,9 +426,9 @@ function performAction()
 			for (var i = 0; i < availVideos.length; i++)
 			{
 				var txt = availVideos[i].replace(/_/g, " ");
-				h += '<div><button id="' + availVideos[i] + '" class="btn btn-sm btn-primary videobtn"><i class="fa fa-fw fa-play"></i> ' + txt + '</button></div>';
+				h += '<div><button id="' + availVideos[i] + '" class="btn btn-sm btn-primary videobtn"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg> ' + txt + '</button></div>';
 			}
-			h += '<div><button id="stop" class="btn btn-sm btn-danger videobtn" style="margin-bottom:15px"><i class="fa fa-fw fa-stop"></i> ' + $.i18n('wiz_cc_btn_stop') + '</button></div>';
+			h += '<div><button id="stop" class="btn btn-sm btn-danger videobtn" style="margin-bottom:15px"><svg data-src="svg/button_stop.svg" fill="currentColor" class="svg4hyperhdr"></svg> ' + $.i18n('wiz_cc_btn_stop') + '</button></div>';
 		}
 		else
 			h += '<p>' + $.i18n('wiz_cc_testintrowok') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/vid/" target="_blank">' + $.i18n('wiz_cc_link') + '</a></p>';
@@ -479,11 +479,11 @@ function startWizardCC()
 		kodiPort = undefined;
 	}
 	//create html
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('wiz_cc_title'));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 	$('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><svg data-src="svg/button_back.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<svg data-src="svg/button_next.svg" fill="currentColor" class="svg4hyperhdr"></svg></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 
 	//open modal
 	var ta6 = new bootstrap.Modal($("#wizard_modal"), {
@@ -764,22 +764,22 @@ function startWizardPhilipsHue(e)
 		hue_desc1 = 'wiz_hue_e_desc1';
 		hue_create_user = 'wiz_hue_e_create_user';
 	}
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(hue_title));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n(hue_title));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(hue_title) + '</h4><p>' + $.i18n(hue_intro1) + '</p>' + $.i18n(hue_intro2));
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
-	$('#wh_topcontainer').append('<p style="font-weight:bold">' + $.i18n(hue_desc1) + '</p><div class="form-group"><label>' + $.i18n('wiz_hue_ip') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="ip"><div class="input-group-append"><span class="input-group-text" id="retry_bridge" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;color:green;" class="" id="wiz_hue_discovered"></span>');
+	$('#wh_topcontainer').append('<p style="font-weight:bold">' + $.i18n(hue_desc1) + '</p><div class="form-group"><label>' + $.i18n('wiz_hue_ip') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="ip"><div class="input-group-append"><span class="input-group-text" id="retry_bridge" style="height: 100%;display: inline-block;cursor:pointer"><svg data-src="svg/button_reload.svg" fill="currentColor" class="svg4hyperhdr"></svg></span></div></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;color:green;" class="" id="wiz_hue_discovered"></span>');
 	$('#wh_topcontainer').append();
 	$('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
 	if (hueType == 'philipshue')
 	{
-		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div>');
+		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="cursor:pointer"><svg data-src="svg/button_reload.svg" fill="currentColor" class="svg4hyperhdr" style="width:1.4em;"></svg></span></div></div>');
 	}
 	if (hueType == 'philipshueentertainment')
 	{
-		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><input type="hidden" id="groupId"><input type="hidden" id="entertainmentConfigurationId">');
+		$('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="form-group input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><div class="input-group-append"><span class="input-group-text" id="retry_usr" style="height: 100%;display: inline-block;cursor:pointer"><svg data-src="svg/button_reload.svg" fill="currentColor" class="svg4hyperhdr" style="width:1.4em;"></svg></span></div></div><input type="hidden" id="groupId"><input type="hidden" id="entertainmentConfigurationId">');
 	}
-	$('#usrcont').append('<span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
+	$('#usrcont').append('<span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <svg data-src="svg/button_add.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n(hue_create_user) + '</button>');
 	if (hueType == 'philipshueentertainment')
 	{
 		$('#wizp2_body').append('<div id="hue_grp_ids_t" style="display:none"><p style="font-weight:bold">' + $.i18n('wiz_hue_e_desc2') + '</p></div>');
@@ -793,8 +793,8 @@ function startWizardPhilipsHue(e)
 	}
 	createTableFlex("lidsh", "lidsb", "hue_ids_t");
 	$('.lidsh').append(createTableRowFlex([$.i18n('edt_dev_spec_lightid_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
-	$('#wizp3_body').html('<span>' + $.i18n('wiz_hue_press_link') + '</span> <br /><br /><center><span id="connectionTime"></span><br /><i class="fa fa-cog fa-spin" style="font-size:100px"></i></center>');
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp3_body').html('<span>' + $.i18n('wiz_hue_press_link') + '</span> <br /><br /><center><span id="connectionTime"></span><br /><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mt-3"></svg></center>');
 
 	//open modal
 	var phiWiz = new bootstrap.Modal($("#wizard_modal"), {
@@ -1505,9 +1505,9 @@ function startWizardWLED(e)
 	var wled_title = 'wiz_wled_title';
 	var wled_intro1 = 'wiz_wled_intro1';
 
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(wled_title));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n(wled_title));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(wled_title) + '</h4><p>' + $.i18n(wled_intro1) + '</p>');
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 
 	/*$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
   
@@ -1517,7 +1517,7 @@ function startWizardWLED(e)
   
 	createTable("lidsh", "lidsb", "hue_ids_t");
 	$('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'),$.i18n('wiz_pos'),$.i18n('wiz_identify')], true));
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_cancel')+'</button>');
   */
 	//open modal  
 
@@ -1610,11 +1610,11 @@ function startWizardYeelight(e)
 	var yeelight_title = 'wiz_yeelight_title';
 	var yeelight_intro1 = 'wiz_yeelight_intro1';
 
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(yeelight_title));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n(yeelight_title));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(yeelight_title) + '</h4><p>' + $.i18n(yeelight_intro1) + '</p>');
 
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'
-		+ $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
+		+ $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
 		+ $.i18n('general_btn_cancel') + '</button>');
 
 	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
@@ -1625,8 +1625,8 @@ function startWizardYeelight(e)
 
 	createTableFlex("lidsh", "lidsb", "yee_ids_t");
 	$('.lidsh').append(createTableRowFlex(([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true)));
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
-		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
+		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
 		+ $.i18n('general_btn_cancel') + '</button>');
 
 	//open modal
@@ -1890,11 +1890,11 @@ function startWizardAtmoOrb(e)
 	var atmoorb_title = 'wiz_atmoorb_title';
 	var atmoorb_intro1 = 'wiz_atmoorb_intro1';
 
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(atmoorb_title));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n(atmoorb_title));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(atmoorb_title) + '</h4><p>' + $.i18n(atmoorb_intro1) + '</p>');
 
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'
-		+ $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
+		+ $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
 		+ $.i18n('general_btn_cancel') + '</button>');
 
 	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
@@ -1905,8 +1905,8 @@ function startWizardAtmoOrb(e)
 
 	createTableFlex("lidsh", "lidsb", "orb_ids_t");
 	$('.lidsh').append(createTableRowFlex(([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true)));
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
-		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
+		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
 		+ $.i18n('general_btn_cancel') + '</button>');
 
 	//open modal
@@ -2215,9 +2215,9 @@ function startWizardCololight(e)
 	var cololight_title = 'wiz_cololight_title';
 	var cololight_intro1 = 'wiz_cololight_intro1';
 
-	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(cololight_title));
+	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n(cololight_title));
 	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(cololight_title) + '</h4><p>' + $.i18n(cololight_intro1) + '</p>');
-	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 
 	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
@@ -2227,8 +2227,8 @@ function startWizardCololight(e)
 
 	createTableFlex("lidsh", "lidsb", "colo_ids_t");
 	$('.lidsh').append(createTableRowFlex(([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_identify')], true)));
-	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
-		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
+		+ $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
 		+ $.i18n('general_btn_cancel') + '</button>');
 
 	//open modal  

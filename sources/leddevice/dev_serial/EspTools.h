@@ -30,7 +30,7 @@
 
 class EspTools
 {
-	public:
+public:
 
 	static void goingSleep(QSerialPort& _rs232Port)
 	{
@@ -57,12 +57,12 @@ class EspTools
 		{
 			Warning(_log, "Detected ESP32-S2 lolin mini type board. HyperHDR skips the reset. State: %i, %i",
 				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
-			
+
 			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
 
 			_rs232Port.setDataTerminalReady(true);
 			_rs232Port.setRequestToSend(true);
-			_rs232Port.setRequestToSend(false);			
+			_rs232Port.setRequestToSend(false);
 		}
 		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
 		{
@@ -111,17 +111,17 @@ class EspTools
 				QString result = QString(incoming).remove('*').replace('\n', ' ').trimmed();
 				if (result.indexOf("Awa driver", Qt::CaseInsensitive) >= 0)
 				{
-					Info(_log, "DETECTED DEVICE USING HYPERSERIALESP8266/HYPERSERIALESP32 FIRMWARE (%s) at %i msec", QSTRING_CSTR(result), int(InternalClock::now() - start));
+					Info(_log, "DETECTED DEVICE USING HyperSerialEsp8266/HyperSerialESP32/HyperSerialPico FIRMWARE (%s) at %i msec", QSTRING_CSTR(result), int(InternalClock::now() - start));
 					start = 0;
 					break;
 				}
 				else
-					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result)); 
-			}			
+					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result));
+			}
 		}
 
 		if (start != 0)
-			Error(_log, "Could not detect HyperSerialEsp8266/HyperSerialESP32 device");
+			Error(_log, "Could not detect HyperSerialEsp8266/HyperSerialESP32/HyperSerialPico device");
 	}
 };
 

@@ -39,7 +39,7 @@ class Grabber : public DetectionAutomatic, public DetectionManual
 	Q_OBJECT
 
 public:
-	Grabber(const QString& grabberName = "", int width = 0, int height = 0,
+	Grabber(const QString& configurationPath, const QString& grabberName = "", int width = 0, int height = 0,
 		int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
 
 	~Grabber();
@@ -64,7 +64,7 @@ public:
 
 	int getImageHeight();
 
-	void setEnabled(bool enable);	
+	void setEnabled(bool enable);
 
 	QString getVideoDeviceName(const QString& devicePath) const;
 
@@ -114,6 +114,8 @@ public:
 	void setAutoSignalDetectionEnable(bool enable);
 
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
+
+	QString	getConfigurationPath();
 
 	struct DevicePropertiesItem
 	{
@@ -194,6 +196,8 @@ protected:
 	/// the selected HDR mode
 	int _hdr;
 
+	QString	_configurationPath;
+
 	/// With of the captured snapshot [pixels]
 	int _width;
 
@@ -241,7 +245,7 @@ protected:
 	int			_actualWidth, _actualHeight, _actualFPS;
 	QString		_actualDeviceName;
 
-	uint8_t* _lutBuffer;
+	uint8_t*	_lutBuffer;
 	bool		_lutBufferInit;
 
 	int			_lineLength;

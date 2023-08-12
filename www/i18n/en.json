@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Action",
   "conf_general_inst_delreq_h": "Delete LED Hardware instance",
   "conf_general_inst_delreq_t": "Are you sure that you want to delete instance \"$1\"? All settings will be deleted too.",
-  "conf_general_inst_desc": "Use different LED hardware at the same time. Each instance runs independent of each other which allows different LED layouts and calibration settings. Running instances are available at the <i class='fa fa-exchange fa-fw'></i> icon on the left",
+  "conf_general_inst_desc": "Use different LED hardware at the same time. Each instance runs independent of each other which allows different LED layouts and calibration settings. Running instances are available at the <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> icon on the left",
   "conf_general_inst_name_title": "New Instance name",
   "conf_general_inst_namehead": "Instance name",
   "conf_general_inst_renreq_t": "Enter a new name for your instance in the field below.",
@@ -783,7 +783,7 @@
   "main_menu_configuration_token": "Configuration",
   "main_menu_effect_conf_token": "Effects",
   "main_menu_effectsconfigurator_token": "Effects Configurator",
-  "main_menu_general_conf_token": "General",
+  "main_menu_general_conf_token": "General settings",
   "main_menu_grabber_conf_token": "Video capturing",
   "main_menu_input_selection_token": "Input Selection",
   "main_menu_leds_conf_token": "LED Hardware",
@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "High speed serial AWA protocol with data integrity check (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "led_editor_context_identify": "Identify",
   "main_menu_grabber_lut" : "Download LUT",
-  "main_menu_grabber_lut_title" : "Custom HDR LUT for USB grabber",
+  "main_menu_grabber_lut_title" : "Custom LUT for USB grabber",
   "main_menu_grabber_lut_path" : "Custom LUT path is: $1",
   "main_menu_grabber_lut_path_not_found" : "Custom LUT is NOT found",
   "main_menu_grabber_lut_path_found" : "Custom LUT is found",
@@ -1223,5 +1223,10 @@
   "warning_errors_detected_1" : "The last one:",
   "warning_errors_detected_2" : "Some errors are transient (e.g. with the auto-reconnect LED enabled) and can be ignored, others may indicate serious system configuration or operation errors.<br/>Check the logs and look for errors (in red):",
   "modal_old_password" : "Old password",
-  "modal_new_password" : "New password"
+  "modal_new_password" : "New password",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Live video is paused",
+  "preview_no_signal" : "No signal",
+  "device_discovery" : "Device discovery",
+  "device_address" : "Address"
 } 

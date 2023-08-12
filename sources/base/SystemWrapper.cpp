@@ -29,11 +29,10 @@
 #include <base/Grabber.h>
 #include <HyperhdrConfig.h>
 
-// utils includes
 #include <utils/GlobalSignals.h>
 #include <utils/QStringUtils.h>
 #include <base/HyperHdrIManager.h>
-// qt
+
 #include <QTimer>
 #include <QThread>
 
@@ -164,8 +163,8 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 
 #ifdef ENABLE_DX
 			// HDR tone mapping
-			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);			
-			_grabber->alternativeCaching(obj["alternativeCaching"].toBool(false));			
+			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);
+			_grabber->alternativeCaching(obj["alternativeCaching"].toBool(false));
 #endif
 
 			// signal
@@ -221,12 +220,7 @@ QJsonObject SystemWrapper::getJsonInfo()
 
 	systemDevice["device"] = getGrabberInfo();
 
-	QStringList list;
-
-	if (QThread::currentThread() == _grabber->thread())
-		list = _grabber->getVideoDevices();
-	else
-		QMetaObject::invokeMethod(_grabber, "getVideoDevices", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QStringList, list));
+	QStringList list = _grabber->getVideoDevices();
 
 	for (const auto& devicePath : list)
 	{

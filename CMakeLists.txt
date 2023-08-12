@@ -595,8 +595,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
-	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET flathash AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
+	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

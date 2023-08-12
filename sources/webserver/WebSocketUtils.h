@@ -36,7 +36,7 @@ namespace OPCODE
 	inline bool invalid(value v)
 	{
 		return (v > 0xF || v < 0);
-	}	
+	}
 }
 
 namespace CLOSECODE

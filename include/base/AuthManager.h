@@ -69,7 +69,7 @@ public:
 	/// @brief Check if user auth is temporary blocked due to failed attempts
 	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	
+
 
 	///
 	/// @brief Check if token auth is temporary blocked due to failed attempts

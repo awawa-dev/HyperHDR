@@ -244,15 +244,15 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 		_registered = false;
 		switch (_socket->state())
 		{
-		case QAbstractSocket::UnconnectedState:
-			Info(_log, "No connection to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
-			break;
-		case QAbstractSocket::ConnectedState:
-			Info(_log, "Connected to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
-			break;
-		default:
-			Debug(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
-			break;
+			case QAbstractSocket::UnconnectedState:
+				Info(_log, "No connection to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
+				break;
+			case QAbstractSocket::ConnectedState:
+				Info(_log, "Connected to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
+				break;
+			default:
+				Debug(_log, "Connecting to HyperHDR: %s:%d", _host.toStdString().c_str(), _port);
+				break;
 		}
 		_prevSocketState = _socket->state();
 	}
@@ -264,15 +264,15 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 		_registered = false;
 		switch (_domain->state())
 		{
-		case QLocalSocket::UnconnectedState:
-			Info(_log, "No connection to HyperHDR domain: %s", _host.toStdString().c_str());
-			break;
-		case QLocalSocket::ConnectedState:
-			Info(_log, "Connected to HyperHDR domain: %s", _host.toStdString().c_str());
-			break;
-		default:
-			Debug(_log, "Connecting to HyperHDR domain: %s", _host.toStdString().c_str());
-			break;
+			case QLocalSocket::UnconnectedState:
+				Info(_log, "No connection to HyperHDR domain: %s", _host.toStdString().c_str());
+				break;
+			case QLocalSocket::ConnectedState:
+				Info(_log, "Connected to HyperHDR domain: %s", _host.toStdString().c_str());
+				break;
+			default:
+				Debug(_log, "Connecting to HyperHDR domain: %s", _host.toStdString().c_str());
+				break;
 		}
 		_prevLocalState = _domain->state();
 	}

@@ -16,19 +16,20 @@
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
 #include <webserver/WebServer.h>
+#include <utils/Logger.h>
 
 #include "hyperhdr.h"
 #include "systray.h"
 
 SysTray::SysTray(HyperHdrDaemon* hyperhdrd)
-	: QWidget()
-	, _colorDlg(nullptr)
-	, _hyperhdrd(hyperhdrd)
-	, _hyperhdr(nullptr)
-	, _instanceManager(HyperHdrIManager::getInstance())
-	, _webPort(8090)
+	: QWidget(),
+	_colorDlg(nullptr),
+	_hyperhdrd(hyperhdrd),
+	_hyperhdr(nullptr),
+	_instanceManager(HyperHdrIManager::getInstance()),
+	_webPort(8090)
 {
-	Q_INIT_RESOURCE(resources);	
+	Q_INIT_RESOURCE(resources);
 
 	// instance changes
 	connect(_instanceManager, &HyperHdrIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
@@ -45,18 +46,18 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 	switch (reason)
 	{
 #ifdef _WIN32
-	case QSystemTrayIcon::Context:
-		getCurrentAutorunState();
-		break;
+		case QSystemTrayIcon::Context:
+			getCurrentAutorunState();
+			break;
 #endif
-	case QSystemTrayIcon::Trigger:
-		break;
-	case QSystemTrayIcon::DoubleClick:
-		settings();
-		break;
-	case QSystemTrayIcon::MiddleClick:
-		break;
-	default:;
+		case QSystemTrayIcon::Trigger:
+			break;
+		case QSystemTrayIcon::DoubleClick:
+			settings();
+			break;
+		case QSystemTrayIcon::MiddleClick:
+			break;
+		default:;
 	}
 }
 
@@ -93,7 +94,9 @@ void SysTray::createTrayIcon()
 	_clearAction->setIcon(*_clearIcon.get());
 	connect(_clearAction.get(), SIGNAL(triggered()), this, SLOT(clearEfxColor()));
 
-	const std::list<EffectDefinition> efxs = _hyperhdr->getEffects();
+	std::list<EffectDefinition> efxs;
+
+	SAFE_CALL_0_RET(_hyperhdr, getEffects, std::list<EffectDefinition>, efxs);
 
 	_trayIconEfxMenu = std::unique_ptr<QMenu>(new QMenu(_trayIconMenu.get()));
 	_effectsIcon = std::unique_ptr<QPixmap>(new QPixmap(":/effects.svg"));
@@ -101,7 +104,7 @@ void SysTray::createTrayIcon()
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 
 	_effects.clear();
-	for (auto efx : efxs)
+	for (const EffectDefinition& efx : efxs)
 	{
 		std::shared_ptr<QAction> efxAction = std::shared_ptr<QAction>(new QAction(efx.name, this));
 		connect(efxAction.get(), SIGNAL(triggered()), this, SLOT(setEffect()));
@@ -159,7 +162,7 @@ void SysTray::setColor(const QColor& color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
-	QMetaObject::invokeMethod(_hyperhdr, "setColor", Qt::QueuedConnection, Q_ARG(int, 1), Q_ARG(std::vector<ColorRgb>, rgbColor), Q_ARG(int, 0));
+	QUEUE_CALL_3(_hyperhdr, setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
 }
 
 void SysTray::showColorDialog()
@@ -210,8 +213,8 @@ void SysTray::settings()
 #endif
 
 	if (_hyperhdrd)
-	{		
-		_webPort = _hyperhdrd->getWebPort();		
+	{
+		_webPort = _hyperhdrd->getWebPort();
 	}
 
 	QDesktopServices::openUrl(QUrl("http://localhost:" + QString::number(_webPort) + "/", QUrl::TolerantMode));
@@ -238,30 +241,30 @@ void SysTray::clearEfxColor()
 void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
 {
 	switch (state) {
-	case InstanceState::H_STARTED:
-		if (instance == 0)
-		{
-			_hyperhdr = _instanceManager->getHyperHdrInstance(0);
+		case InstanceState::H_STARTED:
+			if (instance == 0)
+			{
+				_hyperhdr = _instanceManager->getHyperHdrInstance(0);
 
-			createTrayIcon();
+				createTrayIcon();
 
-			connect(_trayIcon.get(), SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-				this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+				connect(_trayIcon.get(), SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 #if !defined(__APPLE__)			
-			connect(_quitAction.get(), &QAction::triggered, _trayIcon.get(), &QSystemTrayIcon::hide, Qt::DirectConnection);
+				connect(_quitAction.get(), &QAction::triggered, _trayIcon.get(), &QSystemTrayIcon::hide, Qt::DirectConnection);
 #endif
 
 
-			_appIcon = std::unique_ptr<QIcon>(new QIcon(":/hyperhdr-icon-32px.png"));
-			_trayIcon->setIcon(*_appIcon.get());
-			_trayIcon->show();
+				_appIcon = std::unique_ptr<QIcon>(new QIcon(":/hyperhdr-icon-32px.png"));
+				_trayIcon->setIcon(*_appIcon.get());
+				_trayIcon->show();
 #if !defined(__APPLE__)
-			setWindowIcon(*_appIcon.get());
+				setWindowIcon(*_appIcon.get());
 #endif				
-		}
+			}
 
-		break;
-	default:
-		break;
+			break;
+		default:
+			break;
 	}
 }

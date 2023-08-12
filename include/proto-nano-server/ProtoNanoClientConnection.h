@@ -54,7 +54,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
+	explicit ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject* parent);
 
 signals:
 	///
@@ -65,7 +65,7 @@ signals:
 	///
 	/// @brief Forward clear command to HyperHDRDaemon
 	///
-	void clearGlobalInput(int priority, bool forceClearAll=false);
+	void clearGlobalInput(int priority, bool forceClearAll = false);
 
 	///
 	/// @brief forward prepared image to HyperHDRDaemon
@@ -75,7 +75,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, const QString& origin = "ProtoBuffer", bool clearEffects = true);
 
 	///
 	/// @brief Emits whenever the client disconnected
@@ -109,11 +109,11 @@ private:
 
 	void handleClearCommand(const proto_ClearRequest& message);
 
-	void sendMessage(const proto_HyperhdrReply &message);
+	void sendMessage(const proto_HyperhdrReply& message);
 
 	void sendSuccessReply();
 
-	void sendErrorReply(const std::string & error);
+	void sendErrorReply(const std::string& error);
 
 	void processData(const uint8_t* buffer, uint32_t messageSize);
 

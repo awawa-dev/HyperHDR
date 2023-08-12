@@ -1,53 +1,51 @@
-// proj incl
+#include <HyperhdrConfig.h>
+
 #include <api/JsonCB.h>
-
-// hyperhdr
 #include <base/HyperHdrInstance.h>
-
 #include <base/GrabberWrapper.h>
-
-// HyperHDRIManager
 #include <base/HyperHdrIManager.h>
-
-// components
 #include <base/ComponentRegister.h>
-
-// bonjour wrapper
-#ifdef ENABLE_BONJOUR
-	#include <bonjour/bonjourbrowserwrapper.h>
-#endif
-
-// priorityMuxer
 #include <base/PriorityMuxer.h>
-
-// utils
-#include <utils/ColorSys.h>
-
-#include <utils/PerformanceCounters.h>
-
-#include <utils/LutCalibrator.h>
-
-// qt
-#include <QVariant>
-
-// Image to led map helper
 #include <base/ImageProcessor.h>
-
+#include <utils/ColorSys.h>
+#include <utils/PerformanceCounters.h>
+#include <utils/LutCalibrator.h>
 #include <flatbufserver/FlatBufferServer.h>
+
+#include <QVariant>
 
 using namespace hyperhdr;
 
 JsonCB::JsonCB(QObject* parent)
 	: QObject(parent)
 	, _hyperhdr(nullptr)
-	, _componentRegister(nullptr)
-#ifdef ENABLE_BONJOUR
-	, _bonjour(BonjourBrowserWrapper::getInstance())
-#endif
-	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "performance-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update" << "lut-calibration-update"
-		<< "adjustment-update" << "videomodehdr-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update" << "benchmark-update";
+		<< "adjustment-update" << "videomodehdr-update" << "settings-update" << "leds-update" << "instance-update" << "token-update" << "benchmark-update";
+}
+
+void JsonCB::setSubscriptionsTo(HyperHdrInstance* hyperhdr)
+{
+	// get current subs
+	QStringList currSubs(getSubscribedCommands());
+
+	if (hyperhdr == nullptr)
+	{
+		_hyperhdr = nullptr;
+		return;
+	}
+
+	// stop subs
+	resetSubscriptions();
+
+	// update pointer
+	_hyperhdr = hyperhdr;
+
+	// re-apply subs
+	for (const auto& entry : currSubs)
+	{
+		subscribeFor(entry);
+	}
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -60,8 +58,9 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 	else
 		_subscribedCommands << type;
 
-	if (type == "components-update")
+	if (type == "components-update" && _hyperhdr != nullptr)
 	{
+		ComponentRegister* _componentRegister = &_hyperhdr->getComponentRegister();
 		if (unsubscribe)
 			disconnect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState);
 		else
@@ -83,7 +82,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 	{
 		if (unsubscribe)
 			disconnect(LutCalibrator::getInstance(), &LutCalibrator::lutCalibrationUpdate, this, &JsonCB::handleLutCalibrationUpdate);
-		else		
+		else
 			connect(LutCalibrator::getInstance(), &LutCalibrator::lutCalibrationUpdate, this, &JsonCB::handleLutCalibrationUpdate, Qt::UniqueConnection);
 	}
 
@@ -91,21 +90,22 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 	{
 #ifdef ENABLE_BONJOUR
 		if (unsubscribe)
-			disconnect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange);
+			disconnect(DiscoveryWrapper::getInstance(), &DiscoveryWrapper::foundService, this, &JsonCB::handleNetworkDiscoveryChange);
 		else
-			connect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange, Qt::UniqueConnection);
+			connect(DiscoveryWrapper::getInstance(), &DiscoveryWrapper::foundService, this, &JsonCB::handleNetworkDiscoveryChange, Qt::UniqueConnection);
 #endif
 	}
 
-	if (type == "priorities-update")
+	if (type == "priorities-update" && _hyperhdr != nullptr)
 	{
+		PriorityMuxer* _prioMuxer = _hyperhdr->getMuxerInstance();
 		if (unsubscribe)
 			disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate);
 		else
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
 	}
 
-	if (type == "imageToLedMapping-update")
+	if (type == "imageToLedMapping-update" && _hyperhdr != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(_hyperhdr, &HyperHdrInstance::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange);
@@ -113,7 +113,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(_hyperhdr, &HyperHdrInstance::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange, Qt::UniqueConnection);
 	}
 
-	if (type == "adjustment-update")
+	if (type == "adjustment-update" && _hyperhdr != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(_hyperhdr, &HyperHdrInstance::adjustmentChanged, this, &JsonCB::handleAdjustmentChange);
@@ -145,15 +145,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(FlatBufferServer::instance, &FlatBufferServer::HdrChanged, this, &JsonCB::handleVideoModeHdrChange, Qt::UniqueConnection);
 	}
 
-	if (type == "effects-update")
-	{
-		if (unsubscribe)
-			disconnect(_hyperhdr, &HyperHdrInstance::effectListUpdated, this, &JsonCB::handleEffectListChange);
-		else
-			connect(_hyperhdr, &HyperHdrInstance::effectListUpdated, this, &JsonCB::handleEffectListChange, Qt::UniqueConnection);
-	}
-
-	if (type == "settings-update")
+	if (type == "settings-update" && _hyperhdr != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleSettingsChange);
@@ -161,7 +153,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
 	}
 
-	if (type == "leds-update")
+	if (type == "leds-update" && _hyperhdr != nullptr)
 	{
 		if (unsubscribe)
 			disconnect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &JsonCB::handleLedsConfigChange);
@@ -215,26 +207,6 @@ void JsonCB::resetSubscriptions()
 	}
 }
 
-void JsonCB::setSubscriptionsTo(HyperHdrInstance* hyperhdr)
-{
-	// get current subs
-	QStringList currSubs(getSubscribedCommands());
-
-	// stop subs
-	resetSubscriptions();
-
-	// update pointer
-	_hyperhdr = hyperhdr;
-	_componentRegister = &_hyperhdr->getComponentRegister();
-	_prioMuxer = _hyperhdr->getMuxerInstance();
-
-	// re-apply subs
-	for (const auto& entry : currSubs)
-	{
-		subscribeFor(entry);
-	}
-}
-
 void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 {
 	QJsonObject obj;
@@ -256,92 +228,40 @@ void JsonCB::handleComponentState(hyperhdr::Components comp, bool state)
 
 	doCallback("components-update", QVariant(data));
 }
+
 #ifdef ENABLE_BONJOUR
-void JsonCB::handleBonjourChange(const QMap<QString, BonjourRecord>& bRegisters)
-{
-	QJsonArray data;
-	for (auto&& session : bRegisters)
+	void JsonCB::handleNetworkDiscoveryChange(DiscoveryRecord::Service type, QList<DiscoveryRecord> records)
 	{
-		if (session.port < 0) continue;
-		QJsonObject item;
-		item["name"] = session.serviceName;
-		item["type"] = session.registeredType;
-		item["domain"] = session.replyDomain;
-		item["host"] = session.hostName;
-		item["address"] = session.address;
-		item["port"] = session.port;
-		data.append(item);
-	}
+		QJsonObject retValue;
+		QJsonArray data;
 
-	doCallback("sessions-update", QVariant(data));
-}
-#endif
-void JsonCB::handlePriorityUpdate()
-{
-	QJsonObject data;
-	QJsonArray priorities;
-
-	if (_prioMuxer == nullptr || _hyperhdr == nullptr)
-		return;
-
-
-	int64_t now = InternalClock::now();
-	int currentPriority = _prioMuxer->getCurrentPriority();
-	QVector<PriorityMuxer::InputInfo> copyOfInputInfo;
-	SAFE_CALL_1_RET(_prioMuxer, getInputInfoCopy, QVector<PriorityMuxer::InputInfo>, copyOfInputInfo, bool, true);
-
-	for (PriorityMuxer::InputInfo priorityInfo : copyOfInputInfo)
-		if (priorityInfo.priority != PriorityMuxer::LOWEST_PRIORITY)
+		for (const auto& session : records)
 		{
 			QJsonObject item;
-			item["priority"] = priorityInfo.priority;
-			if (priorityInfo.timeoutTime_ms > 0)
-				item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
-
-			// owner has optional informations to the component
-			if (!priorityInfo.owner.isEmpty())
-				item["owner"] = priorityInfo.owner;
-
-			item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
-			item["origin"] = priorityInfo.origin;
-			item["active"] = (priorityInfo.timeoutTime_ms >= -1);
-			item["visible"] = (priorityInfo.priority == currentPriority);
-
-			if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
-			{
-				QJsonObject LEDcolor;
-
-				// add RGB Value to Array
-				QJsonArray RGBValue;
-				RGBValue.append(priorityInfo.ledColors.begin()->red);
-				RGBValue.append(priorityInfo.ledColors.begin()->green);
-				RGBValue.append(priorityInfo.ledColors.begin()->blue);
-				LEDcolor.insert("RGB", RGBValue);
-
-				uint16_t Hue;
-				float Saturation, Luminace;
-
-				// add HSL Value to Array
-				QJsonArray HSLValue;
-				ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-					priorityInfo.ledColors.begin()->green,
-					priorityInfo.ledColors.begin()->blue,
-					Hue, Saturation, Luminace);
-
-				HSLValue.append(Hue);
-				HSLValue.append(Saturation);
-				HSLValue.append(Luminace);
-				LEDcolor.insert("HSL", HSLValue);
-
-				item["value"] = LEDcolor;
-			}
-			priorities.append(item);
+			item["name"] = session.getName();
+			item["host"] = session.hostName;
+			item["address"] = session.address;
+			item["port"] = session.port;
+			data.append(item);
 		}
 
-	data["priorities"] = priorities;
-	data["priorities_autoselect"] = _hyperhdr->sourceAutoSelectEnabled();
+		retValue["service"] = DiscoveryRecord::getName(type);
+		retValue["items"] = data;
+		doCallback("sessions-update", QVariant(retValue));
+	}
+#endif
 
-	doCallback("priorities-update", QVariant(data));
+void JsonCB::handlePriorityUpdate()
+{
+	QJsonObject info;
+	QJsonArray priorities;
+
+	if (_hyperhdr == nullptr)
+		return;
+
+	SAFE_CALL_1_RET(_hyperhdr, getJsonInfo, QJsonObject, info, bool, false);
+
+	doCallback("priorities-update", QVariant(info));
 }
 
 void JsonCB::handleImageToLedsMappingChange(int mappingType)
@@ -354,6 +274,9 @@ void JsonCB::handleImageToLedsMappingChange(int mappingType)
 
 void JsonCB::handleAdjustmentChange()
 {
+	if (_hyperhdr == nullptr)
+		return;
+
 	QJsonArray adjustmentArray;
 	for (const QString& adjustmentId : _hyperhdr->getAdjustmentIds())
 	{
@@ -437,22 +360,6 @@ void JsonCB::handleGrabberStateChange(QString device, QString videoMode)
 	doCallback("grabberstate-update", QVariant(data));
 }
 
-void JsonCB::handleEffectListChange()
-{
-	QJsonArray effectList;
-	QJsonObject effects;
-	const std::list<EffectDefinition>& effectsDefinitions = _hyperhdr->getEffects();
-	for (const EffectDefinition& effectDefinition : effectsDefinitions)
-	{
-		QJsonObject effect;
-		effect["name"] = effectDefinition.name;
-		effect["args"] = effectDefinition.args;
-		effectList.append(effect);
-	};
-	effects["effects"] = effectList;
-	doCallback("effects-update", QVariant(effects));
-}
-
 void JsonCB::handleSettingsChange(settings::type type, const QJsonDocument& data)
 {
 	QJsonObject dat;
@@ -513,14 +420,14 @@ void JsonCB::handleBenchmarkUpdate(int status, QString message)
 }
 
 void JsonCB::handleLutCalibrationUpdate(const QJsonObject& data)
-{	
+{
 	doCallback("lut-calibration-update", QVariant(data));
 }
 
 
 void JsonCB::handlePerformanceUpdate(const QJsonObject& data)
 {
-	doCallback("performance-update", QVariant(data));	
+	doCallback("performance-update", QVariant(data));
 }
 
 void JsonCB::handleLutInstallUpdate(const QJsonObject& data)

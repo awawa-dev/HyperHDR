@@ -11,13 +11,19 @@
 class HyperHdrInstance;
 class InstanceTable;
 
-enum class InstanceState {
-	H_STARTED,
-	H_ON_STOP,
-	H_STOPPED,
-	H_CREATED,
-	H_DELETED
+namespace hyperhdr
+{
+	enum class InstanceState {
+		H_STARTED,
+		H_ON_STOP,
+		H_STOPPED,
+		H_CREATED,
+		H_PRE_DELETE,
+		H_DELETED
+	};
 };
+
+using namespace hyperhdr;
 
 ///
 /// @brief HyperHDRInstanceManager manages the instances of the the HyperHDR class

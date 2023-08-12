@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Akcja",
   "conf_general_inst_delreq_h": "Usuń instancję sprzętu LED",
   "conf_general_inst_delreq_t": "Czy na pewno chcesz usunąć instancję „$1”? Wszystkie ustawienia również zostaną usunięte.",
-  "conf_general_inst_desc": "Używaj jednocześnie różnych urządzeń LED. Każda instancja działa niezależnie od siebie, co pozwala na różne układy diod LED i ustawienia kalibracji. Uruchomione instancje są dostępne po ikonie <i class='fa fa-exchange fa-fw'></i> po lewej stronie",
+  "conf_general_inst_desc": "Używaj jednocześnie różnych urządzeń LED. Każda instancja działa niezależnie od siebie, co pozwala na różne układy diod LED i ustawienia kalibracji. Uruchomione instancje są dostępne po ikonie <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> po lewej stronie",
   "conf_general_inst_name_title": "Nazwa nowej instancji",
   "conf_general_inst_namehead": "Nazwa instancji",
   "conf_general_inst_renreq_t": "Wprowadź nową nazwę swojej instancji w polu poniżej.",
@@ -1153,7 +1153,7 @@
   "benchmark_exp_delay": "Idealne minimalne opóźnienie (związane z FPS):",
   "edt_conf_video_cache_title": "Pamięć podręczna ramek",
   "edt_conf_video_cache_expl": "Włącz buforowanie ramek. Może pomóc w uzyskaniu wyższych rozdzielczości i liczby klatek na sekundę",
-  "perf_usb_grabber": "chwytak USB",
+  "perf_usb_grabber": "Grabber USB",
   "perf_usb_instance": "Instancja",
   "dashboard_performance_label_title": "Statystyki",
   "perf_please_wait": "proszę czekać",
@@ -1208,6 +1208,6 @@
   "main_menu_grabber_lut_path_found_date" : "Zmodyfikowano plik: $1",
   "main_menu_grabber_lut_path_found_CRC" : "Plik CRC: $1",
   "main_menu_grabber_lut_path_found_NOCRC" : "włącz HDR w opcjach przechwytywania USB i odśwież stronę",
-  "main_menu_grabber_lut_restart" : "Uruchom ponownie system, aby zmiany zaczęły w pełni obowiązywać!<br>Konfiguracja grabbera USB z Jasność=$1, Kontrast=$2, Nasycenie=$3 został ocalony.",
+  "main_menu_grabber_lut_restart" : "Uruchom ponownie system, aby zmiany zaczęły w pełni obowiązywać!<br>Konfiguracja grabbera USB z Jasnością=$1, Kontrastem=$2, Nasyceniem=$3 została zapisana.",
   "main_menu_grabber_lut_confirm" : "Czy na pewno chcesz pobrać i zainstalować nowy plik LUT dla swojego grabbera?"
 }
