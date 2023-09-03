@@ -34,6 +34,10 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 				QSTRING_CSTR(host), port, (is_ssl) ? "SSL": "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
 
 	QHostAddress adr(host);
+	QHostInfo info = QHostInfo::fromName(host);
+	if (!info.addresses().isEmpty()) {
+    	adr = info.addresses().first();
+	}
 	
 	
 	if (is_ssl)

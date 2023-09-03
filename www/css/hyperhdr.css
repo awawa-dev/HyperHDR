@@ -1,4 +1,8 @@
-/**General**/
+/*!
+  * hyperhdr.css
+  * Copyright 2023 awawa-dev
+  * Licensed under MIT (https://github.com/awawa-dev/HyperHDR/blob/master/LICENSE)
+  */
 @font-face {
     font-family: "Roboto";
     src: url("../fonts/Roboto-Regular.woff") format('woff'),
@@ -9,6 +13,158 @@ body {
     font-family: Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 15px;
     margin: 0 auto;
+}
+
+.hyperhdr-vcenter {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+@media (min-width: 768px){
+	.alert.parentAlert {
+		padding-left: 74px;
+	}
+
+	.alert .notIcon {
+		text-align: center;
+		width: 60px;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;	  
+		padding-top: 15px;
+		border-radius: 6px 0 0 6px;
+		border-color: none;
+	}
+
+	.alert .alertProgress {
+		width: 4px;
+		position: absolute;
+		bottom: 0;
+		left: 60px;	  
+		border-color: none;
+	}
+
+	.alert .notIcon i {
+		font-size: 20px;
+		color: #fff;
+		left: 21px;
+		margin-top: -10px;
+		position: absolute;
+		top: 50%;
+	}
+
+	#notification-target{
+		width: 75% !important;
+		left: 12% !important;
+	}
+}
+
+@-webkit-keyframes fadeAlertOut {
+  0% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0)
+  }
+  to {
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%)
+  }
+}
+
+@keyframes fadeAlertOut {
+  0% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0)
+  }
+  to {
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%)
+  }
+}
+
+@keyframes alertProgressAnim {
+  100% {
+    height: 100%;
+  }
+}
+
+.remove-alert {
+	animation: fadeAlertOut 0.5s ease-in-out forwards;
+}
+
+.dark-mode .alert.parentAlert {
+	border-color: #f39c12;
+	background: #f0d080;
+	color: #101010;
+}
+.dark-mode .alert .notIcon {
+	background: #f39c12;
+}
+
+.dark-mode .alert .text-end.text-muted {
+	color: #5a5a5a !important;
+}
+
+.dark-mode .alert .alertProgressAnim {
+	background: #60a0dd;
+	animation: alertProgressAnim 5s linear forwards;
+	border-radius: 3px 3px 0px 0px ;
+}
+
+body:not(.dark-mode) .alert .alertProgressAnim {
+	background: #2daef0;
+	animation: alertProgressAnim 5s linear forwards;
+	border-radius: 3px 3px 0px 0px ;
+}
+
+body:not(.dark-mode) .alert .notIcon {
+	background: #ffc107;
+}
+
+body:not(.dark-mode) .alert.parentAlert {
+	border-color: #ffc107;
+	background: #fff3cd;;
+}
+
+@media (max-width: 767px){
+	.parentAlert {
+		padding-left: 21px;
+	}
+
+	.alert .notIcon {
+		text-align: center;
+		width: 12px;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;	  
+		padding-top: 15px;
+		border-radius: 6px 0 0 6px;
+		border-color: none;
+		animation: alertProgress 5s linear forwards;
+	}
+
+	.hidden-xs {
+	  display: none !important;
+	}
+
+	#notification-target{
+		width: 96% !important;
+		left: 2% !important;
+	}
+
+	.alert .alertProgress {
+		width: 4px;
+		position: absolute;
+		bottom: 0;
+		left: 12px;	  
+		border-color: none;		
+	}
+}
+
+.dark-mode .toast-header.bg-success {
+	background-color: #198754 !important;
 }
 
 /*wizard button*/
@@ -592,6 +748,29 @@ body:not(.dark-mode) .button_rate_mode.disabled {
 	height:100%;
 	cursor:none;
 }
+
+body:not(.dark-mode) input.picker_editor_hyperhdr_R { background-color: #ffb0b0 !important;}
+body:not(.dark-mode) input.picker_editor_hyperhdr_G { background-color: #b0ffb0 !important;}
+body:not(.dark-mode) input.picker_editor_hyperhdr_B { background-color: #a0b0ff !important;}
+
+body:not(.dark-mode) .picker_wrapper.popup, body:not(.dark-mode) .picker_wrapper.popup .picker_arrow::before, body:not(.dark-mode) .picker_wrapper.popup .picker_arrow::after {
+	background-color: #f0f2f5;
+}
+body:not(.dark-mode) .picker_wrapper {
+	background-color: #f0f2f5;
+}
+
+.dark-mode input.picker_editor_hyperhdr_R { color: #ffa0a0 !important;}
+.dark-mode input.picker_editor_hyperhdr_G { color: #a0ffa0 !important;}
+.dark-mode input.picker_editor_hyperhdr_B { color: #a0b0ff !important;}
+
+.dark-mode .picker_wrapper.popup, .dark-mode .picker_wrapper.popup .picker_arrow::before, .dark-mode .picker_wrapper.popup .picker_arrow::after {
+	background-color:#363C42;
+}
+.dark-mode .picker_wrapper {
+	background-color:#363C42;
+}
+
 
 body:not(.dark-mode) .alert-yellow{
 	color:#664d03;

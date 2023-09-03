@@ -251,8 +251,18 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 		if (_syslogEnabled && level >= Logger::WARNING)
 			syslog(LogLevelSysLog[level], "%s", msg);
 #endif
+		if (level == Logger::ERRORR)
+			_lastError = QString("%1 [%2] %3").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).arg(_name).arg(QString(msg));
+
 		RepeatMessage.setLocalData(logMsg);
 	}
+}
+
+QString Logger::_lastError;
+
+QString Logger::getLastError()
+{
+	return _lastError;
 }
 
 void Logger::setMinLevel(Logger::LogLevel level)

@@ -212,6 +212,8 @@ protected:
 	///
 	void stopInstance(quint8 index);
 
+	QJsonObject getAverageColor(quint8 index);
+
 	//////////////////////////////////
 	/// AUTH / ADMINISTRATION METHODS
 	//////////////////////////////////
@@ -364,6 +366,8 @@ protected:
 	/// @return True if authorized
 	///
 	bool isUserAuthorized(const QString& password);
+
+	bool isUserBlocked();
 
 	///
 	/// @brief Test if Hyperhdr has the default PW

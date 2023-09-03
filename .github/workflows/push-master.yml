@@ -29,6 +29,10 @@ jobs:
             dockerName: Debian Bullseye (x86_64)
             platform: linux
           - dockerImage: x86_64
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (x86_64)
+            platform: linux
+          - dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             platform: linux
@@ -39,11 +43,23 @@ jobs:
           - dockerImage: arm-64bit-aarch64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
-            platform: rpi            
+            platform: rpi
+          - dockerImage: arm-32bit-armv6l
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (ARM 32-bit Raspberry Pi OS)
+            platform: rpi
+          - dockerImage: arm-64bit-aarch64
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (ARM 64-bit Raspberry Pi OS)
+            platform: rpi              
           - dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
-            platform: linux 
+            platform: linux
+          - dockerImage: x86_64
+            linuxVersion: Fedora_38
+            dockerName: Fedora 38 (x86_64)
+            platform: linux
     steps:
       # checkout
       - uses: actions/checkout@v3
@@ -96,6 +112,7 @@ jobs:
           path: |
             deploy/Hyper*.deb
             deploy/Hyper*.zst
+            deploy/Hyper*.rpm
 
 ######################
 ####### macOS ########

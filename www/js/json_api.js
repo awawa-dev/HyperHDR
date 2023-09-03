@@ -626,4 +626,50 @@ function BuildSmoothingJson()
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////
+var currentStateJson = 
+`{
+  "command" : "current-state",
+  "subcommand" : "{0}",
+  "instance" : {1}
+}`;
+
+
+function checkCurrentState(){
+	var num = $("#instanceCurrentStateIndex").val();
+	if ((!isNaN(num)) && !isNaN(parseFloat(num)) && $("input[name='instanceCurrentStateCommand']:checked").val())
+	{
+		BuildCurrentStatetJson();
+	}
+	else
+	{
+		$('button[name="instanceCurrentStateButtons"]').each(function(i, obj) {
+			$(this).addClass('disabled');
+		});
+		$("#instanceCurrentState_json").html("");
+	}
+};
+ 
+$('#instanceCurrentStateIndex').on('input',
+	function(){
+		checkCurrentState();
+	});
+	
+$('input[name="instanceCurrentStateCommand"]').change(
+	function(){
+		checkCurrentState();
+	});	
+	
+function BuildCurrentStatetJson()
+{
+	$('button[name="instanceCurrentStateButtons"]').each(function(i, obj) {
+		$(this).removeClass('disabled');
+	});
+	
+	var component = $("#instanceCurrentStateIndex").val();
+	var state = $('input[name="instanceCurrentStateCommand"]:checked').val();
+	var finJson = currentStateJson.replace("{1}", component).replace("{0}", state);
+	$("#instanceCurrentState_json").html(finJson);
+}
+
 });
