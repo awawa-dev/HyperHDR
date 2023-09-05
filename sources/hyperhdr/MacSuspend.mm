@@ -39,6 +39,7 @@
 #include <utils/Image.h>
 #include <base/HyperHdrIManager.h>
 #include <iostream>
+#include <QThread>
 #import <Cocoa/Cocoa.h>
 
 
