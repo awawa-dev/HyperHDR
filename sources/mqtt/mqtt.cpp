@@ -36,6 +36,12 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 	QHostAddress adr(host);
 
 
+	QHostInfo info = QHostInfo::fromName(host);
+	if (!info.addresses().isEmpty()) {
+    	adr = info.addresses().first();
+	}
+	
+	
 	if (is_ssl)
 	{
 		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
