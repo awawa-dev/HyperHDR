@@ -18,7 +18,7 @@ class DetectionAutomatic : public QObject
 {
 	Q_OBJECT
 public:
-	DetectionAutomatic();	
+	DetectionAutomatic();
 
 	struct calibrationPoint
 	{
@@ -49,7 +49,7 @@ public slots:
 	QJsonDocument getCalibrationInfo();
 
 private:
-	Logger* _log;	
+	Logger* _log;
 
 	enum class calibrationPhase { WAITING_FOR_SDR, CALIBRATING_SDR, WAITING_FOR_HDR, CALIBRATING_HDR };
 

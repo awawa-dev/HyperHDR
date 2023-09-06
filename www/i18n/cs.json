@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Akce",
   "conf_general_inst_delreq_h": "Odstranit LED hardwarovou instanci",
   "conf_general_inst_delreq_t": "Opravdu chcete odstranit instanci „$1“? Všechna nastavení budou také odstraněna.",
-  "conf_general_inst_desc": "Používejte současně jiný hardware LED. Každá instance běží nezávisle na sobě, což umožňuje různá rozložení LED a nastavení kalibrace. Spuštěné instance jsou k dispozici na ikoně <i class = 'fa fa-exchange fa-fw'> </i> vlevo",
+  "conf_general_inst_desc": "Používejte současně jiný hardware LED. Každá instance běží nezávisle na sobě, což umožňuje různá rozložení LED a nastavení kalibrace. Spuštěné instance jsou k dispozici na ikoně <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> vlevo",
   "conf_general_inst_name_title": "Název nové instance",
   "conf_general_inst_namehead": "Název instance",
   "conf_general_inst_renreq_t": "Do níže uvedeného pole zadejte nový název vaší instance.",

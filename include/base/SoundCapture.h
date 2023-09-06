@@ -94,7 +94,7 @@ protected:
 
 public:
 	static SoundCapture* getInstance();
-	
+
 	SoundCaptureResult* hasResult(uint32_t& lastIndex);
 	SoundCaptureResult* hasResult(AnimationBaseMusic* effect, uint32_t& lastIndex, bool* newAverage, bool* newSlow, bool* newFast, int* isMulti);
 	void				ForcedClose();

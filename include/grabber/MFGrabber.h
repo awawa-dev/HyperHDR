@@ -95,9 +95,8 @@ private:
 
 private:
 
-	bool				_isMF;
-	MFCallback* _sourceReaderCB;
-	QString				_configurationPath;
-	MFWorkerManager		_MFWorkerManager;
+	bool			_isMF;
+	MFCallback*		_sourceReaderCB;
+	MFWorkerManager	_MFWorkerManager;
 	IMFSourceReader* _sourceReader;
 };

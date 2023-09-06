@@ -4,7 +4,7 @@
 #include <HyperhdrConfig.h>
 #include <QString>
 #ifdef ENABLE_BONJOUR
-	#include <bonjour/bonjourbrowserwrapper.h>
+	#include <bonjour/DiscoveryWrapper.h>
 #endif
 
 // Constants
@@ -190,10 +190,10 @@ bool LedDeviceWled::powerOn()
 				else
 					Error(_log, "The WLED device is not ready... give up.");
 
-				if (_currentRetry > 0)
+				if (_currentRetry > 0 && !_signalTerminate)
 				{
 					_retryMode = true;
-					QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+					QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0 && !_signalTerminate) enableDevice(true);  });
 				}
 			}
 		}
@@ -235,17 +235,14 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	
 #ifdef ENABLE_BONJOUR
-	auto bonInstance = BonjourBrowserWrapper::getInstance();
+	auto bonInstance = DiscoveryWrapper::getInstance();
 	if (bonInstance != nullptr)
 	{
-		QList<BonjourRecord> recs;
+		QList<DiscoveryRecord> recs;
 
-		if (QThread::currentThread() == bonInstance->thread())
-			recs = bonInstance->getWLED();
-		else
-			QMetaObject::invokeMethod(bonInstance, "getWLED", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QList<BonjourRecord>, recs));
+		SAFE_CALL_0_RET(bonInstance, getWLED, QList<DiscoveryRecord>, recs);
 
-		for (BonjourRecord& r : recs)
+		for (DiscoveryRecord& r : recs)
 		{
 			QJsonObject newIp;
 			newIp["value"] = QString("%1").arg(r.address);

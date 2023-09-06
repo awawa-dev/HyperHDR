@@ -27,7 +27,7 @@ class API : public QObject
 {
 	Q_OBJECT
 
-public:		
+public:
 	API(Logger* log, bool localConnection, QObject* parent);
 
 	struct ImageCmdData
@@ -242,20 +242,6 @@ protected:
 	QString setInstanceName(quint8 index, const QString& name);
 
 	///
-	/// @brief Delete an effect. Requires ADMIN ACCESS
-	/// @param name The effect name
-	/// @return  True on success else false
-	///
-	QString deleteEffect(const QString& name);
-
-	///
-	/// @brief Delete an effect. Requires ADMIN ACCESS
-	/// @param name The effect name
-	/// @return  True on success else false
-	///
-	QString saveEffect(const QJsonObject& data);
-
-	///
 	/// @brief Save settings object. Requires ADMIN ACCESS
 	/// @param data  The data object
 	///
@@ -379,6 +365,8 @@ protected:
 	/// @brief Logout revokes all authorizations
 	///
 	void logout();
+
+	quint8 getCurrentInstanceIndex();
 
 	/// Reflect auth status of this client
 	bool _authorized;

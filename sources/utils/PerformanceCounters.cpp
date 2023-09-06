@@ -31,6 +31,11 @@
 #include <QJsonArray>
 #include <QMutableListIterator>
 #include <QTextStream>
+#include <HyperhdrConfig.h>
+
+#ifdef ENABLE_BONJOUR
+	#include <bonjour/DiscoveryWrapper.h>
+#endif
 
 std::unique_ptr<PerformanceCounters> PerformanceCounters::_instance = nullptr;
 
@@ -67,9 +72,10 @@ PerformanceCounters::PerformanceCounters()
 	qRegisterMetaType<PerformanceReport>();
 
 	_lastRead = 0;
+	_lastNetworkScan = 0;
 
 	try
-	{		
+	{
 		_log = Logger::getInstance("PERFORMANCE");
 	}
 	catch (...)
@@ -89,6 +95,14 @@ void PerformanceCounters::request(bool all)
 		return;
 
 	_lastRead = InternalClock::now();
+
+#ifdef ENABLE_BONJOUR
+	if (InternalClock::now() - _lastNetworkScan > 10*1000)
+	{
+		_lastNetworkScan = InternalClock::now();
+		QUEUE_CALL_0((DiscoveryWrapper::getInstance()), requestServicesScan);
+	}
+#endif
 
 	QString cpu = _system.getCPU();
 	if (cpu != "")
@@ -122,8 +136,8 @@ void PerformanceCounters::request(bool all)
 	{
 		PerformanceReport pr;
 		pr.type = static_cast<int>(PerformanceReportType::SYSTEM_UNDERVOLTAGE);
-		
-		if (under.indexOf("NOW") >= 0 )
+
+		if (under.indexOf("NOW") >= 0)
 		{
 			under = under.replace("NOW", "");
 			if (under == "1")
@@ -152,40 +166,40 @@ void PerformanceCounters::receive(PerformanceReport pr)
 {
 	QMutableListIterator<PerformanceReport> cleaner(this->_reports);
 	qint64 now = InternalClock::now() / 1000;
-		
+
 	while (cleaner.hasNext())
 	{
 		PerformanceReport del = cleaner.next();
 		if ((del.type == pr.type &&
-			del.id == pr.id) || (now - del.timeStamp) >= ((del.token>0) ? 65: 125))
+			del.id == pr.id) || (now - del.timeStamp) >= ((del.token>0) ? 65 : 125))
 		{
 			if (del.type != pr.type || del.id != pr.id)
 				deleteUpdate(del.type, del.id);
 
-			cleaner.remove();			
+			cleaner.remove();
 		}
 	}
 
 	bool _inserted = false;
 
-	for (auto ins = this->_reports.begin(); ins != this->_reports.end(); ins++)		
+	for (auto ins = this->_reports.begin(); ins != this->_reports.end(); ins++)
 		if ((*ins).id > pr.id || ((*ins).id == pr.id && (*ins).type >= pr.type))
 		{
 			this->_reports.insert(ins, pr);
 			_inserted = true;
 			break;
-		}		
+		}
 
 	if (!_inserted)
 		this->_reports.append(pr);
-			
+
 	consoleReport(pr.type, pr.token);
 
 	createUpdate(pr);
 }
 
 void PerformanceCounters::remove(int type, int id)
-{	
+{
 	QMutableListIterator<PerformanceReport> i(this->_reports);
 	int token = -1;
 
@@ -243,7 +257,7 @@ void PerformanceCounters::consoleReport(int type, int token)
 		}
 	}
 
-	if (list.count() > 0)	
+	if (list.count() > 0)
 		Info(_log, "%s", QSTRING_CSTR(list.join(", ")));
 
 }
@@ -304,7 +318,7 @@ void PerformanceCounters::broadcast()
 		else
 			report["refresh"] = qMax(1 - (helper / 60 - pr.timeStamp / 60), 0ll) * 60 + 60 - (helper % 60);
 
-		arr.append(report);		
+		arr.append(report);
 	}
 
 	QJsonObject report;

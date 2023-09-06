@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Hoạt động",
   "conf_general_inst_delreq_h": "Xóa phiên bản Phần cứng LED",
   "conf_general_inst_delreq_t": "Bạn có chắc chắn muốn xóa phiên bản \"$1\" không? Tất cả các cài đặt cũng sẽ bị xóa.",
-  "conf_general_inst_desc": "Sử dụng các phần cứng LED khác nhau cùng một lúc. Mỗi phiên bản chạy độc lập với nhau cho phép bố trí đèn LED và cài đặt hiệu chuẩn khác nhau. Các phiên bản đang chạy có sẵn tại biểu tượng <i class = 'fa fa-exchange fa-fw'> </i> ở bên trái",
+  "conf_general_inst_desc": "Sử dụng các phần cứng LED khác nhau cùng một lúc. Mỗi phiên bản chạy độc lập với nhau cho phép bố trí đèn LED và cài đặt hiệu chuẩn khác nhau. Các phiên bản đang chạy có sẵn tại biểu tượng <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> ở bên trái",
   "conf_general_inst_name_title": "Tên phiên bản mới",
   "conf_general_inst_namehead": "Tên phiên bản",
   "conf_general_inst_renreq_t": "Nhập tên mới cho phiên bản của bạn vào trường bên dưới.",

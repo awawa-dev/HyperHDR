@@ -143,7 +143,7 @@ size_t ImageData<ColorSpace>::size() const
 
 template <>
 void ImageData<ColorRgb>::clear()
-{	
+{
 	if (_pixels != NULL)
 		memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
 }

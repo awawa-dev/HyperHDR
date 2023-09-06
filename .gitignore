@@ -25,6 +25,7 @@ sources/flatbufserver/hyperhdr_request_generated.h
 
 # lib-turbo
 dependencies/jpeg-windows
+dependencies/windows
 
 # Network discovery library
 dependencies/bonjour

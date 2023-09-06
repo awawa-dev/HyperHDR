@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "action",
   "conf_general_inst_delreq_h": "Supprimer l'instance de matériel LED",
   "conf_general_inst_delreq_t": "Êtes-vous sûr de vouloir supprimer l'instance \"$1\" ? Tous les paramètres seront également supprimés.",
-  "conf_general_inst_desc": "Utilisez différents matériels LED en même temps. Chaque instance s'exécute indépendamment les unes des autres, ce qui permet différentes dispositions de LED et paramètres d'étalonnage. Les instances en cours d'exécution sont disponibles sur l'icône <i class='fa fa-exchange fa-fw'></i> sur la gauche",
+  "conf_general_inst_desc": "Utilisez différents matériels LED en même temps. Chaque instance s'exécute indépendamment les unes des autres, ce qui permet différentes dispositions de LED et paramètres d'étalonnage. Les instances en cours d'exécution sont disponibles sur l'icône <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> sur la gauche",
   "conf_general_inst_name_title": "Nom de la nouvelle instance",
   "conf_general_inst_namehead": "Nom de l'instance",
   "conf_general_inst_renreq_t": "Saisissez un nouveau nom pour votre instance dans le champ ci-dessous.",

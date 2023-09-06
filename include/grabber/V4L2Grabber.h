@@ -110,7 +110,6 @@ private:
 
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
-	QSocketNotifier* _streamNotifier;
-	QString				_configurationPath;
+	QSocketNotifier*	_streamNotifier;	
 	V4L2WorkerManager   _V4L2WorkerManager;
 };

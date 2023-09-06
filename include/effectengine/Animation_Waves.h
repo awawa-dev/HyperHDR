@@ -18,7 +18,7 @@ public:
 private:
 
 	Point2d getPoint(const QImage& hyperImage, bool random, double x, double y);
-	int		getSTime(int hyperLatchTime, int _rt, double steps);	
+	int		getSTime(int hyperLatchTime, int _rt, double steps);
 	bool	imageRadialGradient(QPainter* painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray);
 
 	Point2d			pointS1;

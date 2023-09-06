@@ -30,14 +30,14 @@
 #include <utils/VideoMemoryManager.h>
 #include <HyperhdrConfig.h>
 
-// utils includes
 #include <utils/GlobalSignals.h>
 #include <utils/QStringUtils.h>
 #include <base/HyperHdrIManager.h>
 
-// qt
 #include <QTimer>
 #include <QThread>
+#include <QDir>
+#include <QFileInfo>
 
 GrabberWrapper* GrabberWrapper::instance = nullptr;
 
@@ -110,7 +110,7 @@ void GrabberWrapper::instancePauseChangedHandler(int instance, bool isEnabled)
 						_running_clients.clear();
 						handleSourceRequest(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);
 						_running_clients = _running_clients_copy;
-						_isPaused = true;						
+						_isPaused = true;
 					}
 				}
 				else if (_paused_clients.length() < _running_clients.length() && _running_clients.length() > 0)
@@ -140,14 +140,7 @@ QJsonDocument GrabberWrapper::startCalibration()
 	if (_grabber == nullptr)
 		return QJsonDocument();
 
-	if (QThread::currentThread() == _grabber->thread())	
-		return _grabber->startCalibration();
-
-	QJsonDocument retVal;
-	QMetaObject::invokeMethod(_grabber, "startCalibration", Qt::ConnectionType::BlockingQueuedConnection,
-		Q_RETURN_ARG(QJsonDocument, retVal));
-
-	return retVal;
+	return _grabber->startCalibration();
 }
 
 QJsonDocument GrabberWrapper::stopCalibration()
@@ -155,14 +148,7 @@ QJsonDocument GrabberWrapper::stopCalibration()
 	if (_grabber == nullptr)
 		return QJsonDocument();
 
-	if (QThread::currentThread() == _grabber->thread())
-		return _grabber->stopCalibration();
-
-	QJsonDocument retVal;
-	QMetaObject::invokeMethod(_grabber, "stopCalibration", Qt::ConnectionType::BlockingQueuedConnection,
-		Q_RETURN_ARG(QJsonDocument, retVal));
-
-	return retVal;
+	return _grabber->stopCalibration();
 }
 
 QJsonDocument GrabberWrapper::getCalibrationInfo()
@@ -170,14 +156,7 @@ QJsonDocument GrabberWrapper::getCalibrationInfo()
 	if (_grabber == nullptr)
 		return QJsonDocument();
 
-	if (QThread::currentThread() == _grabber->thread())
-		return _grabber->getCalibrationInfo();	
-
-	QJsonDocument retVal;
-	QMetaObject::invokeMethod(_grabber, "getCalibrationInfo", Qt::ConnectionType::BlockingQueuedConnection,
-		Q_RETURN_ARG(QJsonDocument, retVal));
-
-	return retVal;
+	return _grabber->getCalibrationInfo();
 }
 
 void GrabberWrapper::cecKeyPressedHandler(int key)
@@ -244,10 +223,7 @@ QJsonObject GrabberWrapper::getJsonInfo()
 	QJsonArray availableGrabbers;
 	QJsonObject grabbers;
 
-	if (QThread::currentThread() == _grabber->thread())
-		grabbers = _grabber->getJsonInfo();
-	else
-		QMetaObject::invokeMethod(_grabber, "getJsonInfo", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, grabbers));
+	grabbers = _grabber->getJsonInfo();
 
 	grabbers["active"] = _grabberName;
 
@@ -264,6 +240,20 @@ QJsonObject GrabberWrapper::getJsonInfo()
 #endif
 
 	grabbers["available"] = availableGrabbers;
+
+	// verify LUT
+
+	QString lutPath = QDir::cleanPath(_grabber->getConfigurationPath() + QDir::separator() + "lut_lin_tables.3d");
+	grabbers["lut_for_hdr_path"] = lutPath;
+	if (QFile(lutPath).exists())
+	{
+		grabbers["lut_for_hdr_exists"] = 1;
+		grabbers["lut_for_hdr_modified_date"] = QFileInfo(lutPath).lastModified().toMSecsSinceEpoch();
+	}
+	else
+	{
+		grabbers["lut_for_hdr_exists"] = 0;
+	}
 
 	return grabbers;
 }
@@ -323,7 +313,7 @@ void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int ins
 
 
 QMap<Grabber::currentVideoModeInfo, QString> GrabberWrapper::getVideoCurrentMode() const
-{	
+{
 	if (_grabber != nullptr)
 		return _grabber->getVideoCurrentMode();
 	else

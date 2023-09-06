@@ -15,14 +15,14 @@
 
 template <typename ColorSpace>
 class ImageData : public QSharedData
-{	
+{
 public:
 	ImageData(unsigned width, unsigned height);
 
 	ImageData(const ImageData<ColorSpace>& other);
 
 	bool setBufferCacheSize();
-	
+
 	~ImageData<ColorSpace>();
 
 	unsigned width() const;
@@ -74,6 +74,6 @@ private:
 	uint8_t* _pixels;
 
 	size_t   _bufferSize;
-	
+
 	static VideoMemoryManager videoCache;
 };

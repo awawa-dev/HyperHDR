@@ -23,12 +23,13 @@ class Effect : public QThread
 public:
 	friend class EffectModule;
 
-	Effect(HyperHdrInstance* hyperhdr
-		, int priority
-		, int timeout
-		, const QString& name
-		, const QJsonObject& args = QJsonObject()
-		, const QString& imageData = ""
+	Effect(HyperHdrInstance* hyperhdr,
+			int visiblePriority,
+			int priority,
+			int timeout,
+			const QString& name,
+			const QJsonObject& args = QJsonObject(),
+			const QString& imageData = ""
 	);
 
 	~Effect() override;
@@ -38,10 +39,14 @@ public:
 	int  getPriority() const;
 	void requestInterruption();
 	bool isInterruptionRequested();
+	void visiblePriorityChanged(quint8 priority);
+	void setLedCount(int newCount);
 
 	QString getName()     const;
 	int getTimeout()      const;
 	QJsonObject getArgs() const;
+
+	
 
 signals:
 	void setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
@@ -52,6 +57,7 @@ private:
 	bool LedShow();
 
 	HyperHdrInstance*	_hyperhdr;
+	std::atomic<int>	_visiblePriority;
 	const int			_priority;
 	const int			_timeout;
 
@@ -70,4 +76,5 @@ private:
 	AnimationBase*		_effect;
 	QVector<ColorRgb>	_ledBuffer;
 	uint32_t			_soundHandle;
+	std::atomic<int>	_ledCount;
 };

@@ -98,6 +98,21 @@ function connectionLostDetection(type)
 		}
 		else
 		{
+			var targetImg = document.getElementById("no_connection_img");
+			var sourceImg = document.getElementById("left_top_hyperhdr_logo");
+			if (targetImg != null && sourceImg != null &&
+				sourceImg.naturalWidth > 0 && sourceImg.naturalHeight > 0)
+			{
+				var canvas = document.createElement("canvas");
+				canvas.width = sourceImg.naturalWidth;
+				canvas.height = sourceImg.naturalHeight;
+				targetImg.width = sourceImg.naturalWidth;
+				targetImg.height = sourceImg.naturalHeight;
+				var ctx = canvas.getContext("2d");
+				ctx.drawImage(sourceImg, 0, 0);
+				targetImg.src = canvas.toDataURL("image/png");
+			}
+
 			$("body").html($("#container_connection_lost").html());
 			connectionLostAction();
 		}
@@ -388,7 +403,7 @@ function requestInstanceSwitch(inst)
 
 function requestServerInfo()
 {
-	sendToHyperhdr("serverinfo", "", '"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "effects-update", "settings-update", "instance-update", "grabberstate-update", "benchmark-update"]');
+	sendToHyperhdr("serverinfo", "", '"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "videomodehdr-update", "settings-update", "instance-update", "grabberstate-update", "benchmark-update"]');
 }
 
 function requestSysInfo()
@@ -487,20 +502,9 @@ function requestWriteConfig(config, full)
 	sendToHyperhdr("config", "setconfig", '"config":' + JSON.stringify(window.serverConfig));
 }
 
-function requestWriteEffect(effectName, effectPy, effectArgs, data)
-{
-	var cutArgs = effectArgs.slice(1, -1);
-	sendToHyperhdr("create-effect", "", '"name":"' + effectName + '", "script":"' + effectPy + '", ' + cutArgs + ',"imageData":"' + data + '"');
-}
-
 function requestTestEffect(effectName, effectPy, effectArgs, data)
 {
 	sendToHyperhdr("effect", "", '"effect":{"name":"' + effectName + '", "args":' + effectArgs + '}, "priority":' + window.webPrio + ', "origin":"' + window.webOrigin + '", "pythonScript":"' + effectPy + '", "imageData":"' + data + '"');
-}
-
-function requestDeleteEffect(effectName)
-{
-	sendToHyperhdr("delete-effect", "", '"name":"' + effectName + '"');
 }
 
 function requestLoggingStart()

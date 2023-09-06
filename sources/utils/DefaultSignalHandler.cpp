@@ -151,8 +151,7 @@ namespace DefaultSignalHandler
 			/* If the signal_handler is hit before the event loop is started,
 			 * following call will do nothing. So we queue the call. */
 
-			 // QCoreApplication::quit();
-			QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
+			QUEUE_CALL_0(qApp, quit);
 
 			// Reset signal handler to default (in case this handler is not capable of stopping)
 			install_default_handler(signum);

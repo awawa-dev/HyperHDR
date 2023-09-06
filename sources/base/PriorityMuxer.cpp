@@ -62,6 +62,49 @@ void PriorityMuxer::setEnable(bool enable)
 	enable ? _updateTimer->start() : _updateTimer->stop();
 }
 
+bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
+{
+	if (!_activeInputs.contains(priority))
+	{
+		Error(_log, "setInputImage() used without registerInput() for priority '%d', probably the priority reached timeout", priority);
+		return false;
+	}
+
+	// calculate final timeout
+	if (timeout_ms > 0)
+		timeout_ms = InternalClock::now() + timeout_ms;
+
+	InputInfo& input = _activeInputs[priority];
+
+	// detect active <-> inactive changes
+	bool activeChange = false, active = true;
+	if (input.timeoutTime_ms == -100 && timeout_ms != -100)
+	{
+		activeChange = true;
+	}
+	else if (timeout_ms == -100 && input.timeoutTime_ms != -100)
+	{
+		active = false;
+		activeChange = true;
+	}
+
+	// update input
+	input.timeoutTime_ms = timeout_ms;
+	input.image = image;
+	input.ledColors.clear();
+
+	// emit active change
+	if (activeChange)
+	{
+		Info(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
+		if (_currentPriority < priority)
+			emit prioritiesChanged();
+		setCurrentTime();
+	}
+
+	return true;
+}
+
 bool PriorityMuxer::setSourceAutoSelectEnabled(bool enable, bool update)
 {
 	if (_sourceAutoSelectEnabled != enable)
@@ -134,42 +177,14 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(int priority) const
 	return elemIt.value();
 }
 
+const QMap<int, PriorityMuxer::InputInfo>& PriorityMuxer::getInputInfoTable() const
+{
+	return _activeInputs;
+}
+
 hyperhdr::Components PriorityMuxer::getComponentOfPriority(int priority) const
 {
 	return _activeInputs[priority].componentId;
-}
-
-void PriorityMuxer::registerInput(int priority, hyperhdr::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
-{
-	// detect new registers
-	bool newInput = false;
-	bool reusedInput = false;
-	if (!_activeInputs.contains(priority))
-		newInput = true;
-	else if (_prevVisComp == component || _activeInputs[priority].componentId == component)
-		reusedInput = true;
-
-	InputInfo& input = _activeInputs[priority];
-	input.priority = priority;
-	input.timeoutTime_ms = newInput ? -100 : input.timeoutTime_ms;
-	input.componentId = component;
-	input.origin = origin;
-	input.smooth_cfg = smooth_cfg;
-	input.owner = owner;
-
-	if (newInput)
-	{
-		Info(_log, "Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperhdr::componentToIdString(component), priority);
-		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
-		if (!_sourceAutoSelectEnabled)
-			emit prioritiesChanged();
-		return;
-	}
-
-	if (reusedInput)
-	{
-		emit timeRunner();
-	}
 }
 
 void PriorityMuxer::updateLedsValues(int priority, const std::vector<ColorRgb>& ledColors)
@@ -227,47 +242,37 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	return true;
 }
 
-bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
+void PriorityMuxer::registerInput(int priority, hyperhdr::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
+	// detect new registers
+	bool newInput = false;
+	bool reusedInput = false;
 	if (!_activeInputs.contains(priority))
-	{
-		Error(_log, "setInputImage() used without registerInput() for priority '%d', probably the priority reached timeout", priority);
-		return false;
-	}
-
-	// calculate final timeout
-	if (timeout_ms > 0)
-		timeout_ms = InternalClock::now() + timeout_ms;
+		newInput = true;
+	else if (_prevVisComp == component || _activeInputs[priority].componentId == component)
+		reusedInput = true;
 
 	InputInfo& input = _activeInputs[priority];
+	input.priority = priority;
+	input.timeoutTime_ms = newInput ? -100 : input.timeoutTime_ms;
+	input.componentId = component;
+	input.origin = origin;
+	input.smooth_cfg = smooth_cfg;
+	input.owner = owner;
 
-	// detect active <-> inactive changes
-	bool activeChange = false, active = true;
-	if (input.timeoutTime_ms == -100 && timeout_ms != -100)
+	if (newInput)
 	{
-		activeChange = true;
-	}
-	else if (timeout_ms == -100 && input.timeoutTime_ms != -100)
-	{
-		active = false;
-		activeChange = true;
-	}
-
-	// update input
-	input.timeoutTime_ms = timeout_ms;
-	input.image = image;
-	input.ledColors.clear();
-
-	// emit active change
-	if (activeChange)
-	{
-		Info(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		if (_currentPriority < priority)
+		Info(_log, "Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperhdr::componentToIdString(component), priority);
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (!_sourceAutoSelectEnabled)
 			emit prioritiesChanged();
-		setCurrentTime();
+		return;
 	}
 
-	return true;
+	if (reusedInput && component!= hyperhdr::Components::COMP_FLATBUFSERVER)
+	{
+		emit timeRunner();
+	}
 }
 
 bool PriorityMuxer::setInputInactive(int priority)
@@ -362,7 +367,7 @@ void PriorityMuxer::setCurrentTime()
 	// apply & emit on change (after apply!)
 	hyperhdr::Components comp = getComponentOfPriority(newPriority);
 	if (_currentPriority != newPriority || comp != _prevVisComp)
-	{		
+	{
 		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Info(_log, "Set visible priority to %d", newPriority);

@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Eylem",
   "conf_general_inst_delreq_h": "LED Donanım örneğini sil",
   "conf_general_inst_delreq_t": "\"$1\" örneğini silmek istediğinizden emin misiniz? Tüm ayarlar da silinecek.",
-  "conf_general_inst_desc": "Aynı anda farklı LED donanımları kullanın. Her örnek, farklı LED düzenleri ve kalibrasyon ayarlarına izin veren birbirinden bağımsız çalışır. Çalışan örnekler soldaki <i class='fa fa-exchange fa-fw'></i> simgesinde mevcuttur",
+  "conf_general_inst_desc": "Aynı anda farklı LED donanımları kullanın. Her örnek, farklı LED düzenleri ve kalibrasyon ayarlarına izin veren birbirinden bağımsız çalışır. Çalışan örnekler soldaki <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> simgesinde mevcuttur",
   "conf_general_inst_name_title": "Yeni Örnek adı",
   "conf_general_inst_namehead": "Örnek isim",
   "conf_general_inst_renreq_t": "Aşağıdaki alana örneğiniz için yeni bir ad girin.",

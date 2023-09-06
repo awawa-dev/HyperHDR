@@ -32,20 +32,12 @@ public:
 
 	static	GrabberWrapper* instance;
 	static	GrabberWrapper* getInstance() { return instance; }
-	
-	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 
-	QJsonObject getJsonInfo();
+	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 
 	bool isCEC();
 
 	void setCecStartStop(int cecHdrStart, int cecHdrStop);
-
-	QJsonDocument startCalibration();
-
-	QJsonDocument stopCalibration();
-
-	QJsonDocument getCalibrationInfo();
 
 	int getFpsSoftwareDecimation();
 
@@ -64,6 +56,12 @@ public slots:
 
 	bool start();
 	void stop();
+
+	QJsonObject getJsonInfo();
+
+	QJsonDocument startCalibration();
+	QJsonDocument stopCalibration();
+	QJsonDocument getCalibrationInfo();
 
 private slots:
 	void handleSourceRequest(hyperhdr::Components component, int instanceIndex, bool listen);

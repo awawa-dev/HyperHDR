@@ -84,6 +84,11 @@ jobs:
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
            restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
+      - name: Check testing version
+        if: matrix.linuxVersion == 'bookworm'
+        run: |
+          echo "USE_STANDARD_INSTALLER_NAME=ON" >> $GITHUB_ENV
+
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}

@@ -172,20 +172,6 @@ private:
 	void handleEffectCommand(const QJsonObject& message, const QString& command, int tan);
 
 	///
-	/// Handle an incoming JSON Effect message (Write JSON Effect)
-	///
-	/// @param message the incoming message
-	///
-	void handleCreateEffectCommand(const QJsonObject& message, const QString& command, int tan);
-
-	///
-	/// Handle an incoming JSON Effect message (Delete JSON Effect)
-	///
-	/// @param message the incoming message
-	///
-	void handleDeleteEffectCommand(const QJsonObject& message, const QString& command, int tan);
-
-	///
 	/// Handle an incoming JSON System info message
 	///
 	/// @param message the incoming message

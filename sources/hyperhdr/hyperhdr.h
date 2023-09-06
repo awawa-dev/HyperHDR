@@ -76,7 +76,7 @@
 class HyperHdrIManager;
 class SysTray;
 class JsonServer;
-class BonjourBrowserWrapper;
+class DiscoveryWrapper;
 class WebServer;
 class SettingsManager;
 class SSDPHandler;
@@ -105,8 +105,7 @@ class NetOrigin;
 	typedef QObject SuspendHandler;
 #endif
 
-enum class InstanceState;
-
+namespace hyperhdr { enum class InstanceState; }
 
 class HyperHdrDaemon : public QObject
 {
@@ -160,7 +159,7 @@ private slots:
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 public slots:
-	void instanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());
+	void instanceStateChanged(hyperhdr::InstanceState state, quint8 instance, const QString& name = QString());
 	void handleSettingsUpdateGlobal(settings::type type, const QJsonDocument& config);
 private:
 	void loadCEC();
@@ -170,7 +169,7 @@ private:
 	Logger*					_log;
 	HyperHdrIManager*		_instanceManager;
 	AuthManager*			_authManager;
-	BonjourBrowserWrapper*	_bonjourBrowserWrapper;
+	DiscoveryWrapper*		_bonjourBrowserWrapper;
 	NetOrigin*				_netOrigin;
 	WebServer*				_webserver;
 	WebServer*				_sslWebserver;
@@ -182,7 +181,7 @@ private:
 	DxWrapper*				_dxGrabber;
 	X11Wrapper*				_x11Grabber;
 	FrameBufWrapper*		_fbGrabber;
-	PipewireWrapper*		_pipewireGrabber;	
+	PipewireWrapper*		_pipewireGrabber;
 	cecHandler*				_cecHandler;
 	SSDPHandler*			_ssdp;
 	FlatBufferServer*		_flatBufferServer;

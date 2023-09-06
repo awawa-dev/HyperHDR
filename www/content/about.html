@@ -1,9 +1,9 @@
 <div class="container" style="float:left;">
-	<h3 class="page-header"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">About HyperHDR</span></h3>
+	<h3 class="page-header"><svg data-src="svg/about.svg" width="28" height="28" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_menu_about_token">About HyperHDR</span></h3>
 	<div class="row">
 		<div class="col-lg-12">
 			<div class="card card-default">
-				<div class="card-header"><i class="fa fa-plus fa-fw"></i><span>System report</span>					
+				<div class="card-header"><svg data-src="svg/about_system_report.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>System report</span>					
 				</div>
 				<div class="card-body">
 					<div class="container">
@@ -96,7 +96,6 @@
 		info += "- Git Remote:      " + shy.gitremote + "\n";
 		info += "- Version:         " + shy.version + "\n";
 		info += "- UI Lang:         " + storedLang + " (BrowserLang: " + navigator.language + ")\n";
-		info += "- UI Access:       " + storedAccess + "\n";
 
 		info += "- Avail Capt:      ";
 		if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined && window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined) {

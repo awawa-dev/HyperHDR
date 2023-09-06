@@ -56,7 +56,7 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, QJsonDocument config);
 
 	///
 	/// @brief Set a new description, if empty the description is NotFound for clients
@@ -68,7 +68,7 @@ public slots:
 
 	quint16 getPort() const { return _port; }
 
-private:	
+private:
 	quint16              _port;
 	QJsonDocument        _config;
 	bool				 _useSsl;

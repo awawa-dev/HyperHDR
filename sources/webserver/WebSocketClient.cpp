@@ -292,7 +292,7 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 
 	if (obj.contains("isImage"))
 	{
-		SAFE_CALL_0(_jsonAPI, releaseLock);
+		QUEUE_CALL_0(_jsonAPI, releaseLock);
 	}
 
 	return payloadWritten;

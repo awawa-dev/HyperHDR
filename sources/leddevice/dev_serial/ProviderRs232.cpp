@@ -1,3 +1,8 @@
+#include <HyperhdrConfig.h>
+
+#ifdef ENABLE_BONJOUR
+	#include <bonjour/DiscoveryWrapper.h>	
+#endif
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -70,7 +75,7 @@ bool ProviderRs232::init(const QJsonObject& deviceConfig)
 }
 
 ProviderRs232::~ProviderRs232()
-{	
+{
 }
 
 int ProviderRs232::open()
@@ -95,7 +100,7 @@ int ProviderRs232::open()
 	else if (_maxRetry > 0)
 	{
 		if (_currentRetry <= 0)
-				_currentRetry = _maxRetry + 1;
+			_currentRetry = _maxRetry + 1;
 
 		_currentRetry--;
 
@@ -104,17 +109,17 @@ int ProviderRs232::open()
 		else
 			Error(_log, "The serial device is not ready... give up.");
 
-		if (_currentRetry > 0)
+		if (_currentRetry > 0 && !_signalTerminate)
 		{
 			_retryMode = true;
-			QTimer::singleShot(2000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+			QTimer::singleShot(2000, [this]() { _retryMode = false; if (_currentRetry > 0 && !_signalTerminate) enableDevice(true);  });
 		}
 	}
 	return retval;
 }
 
 void ProviderRs232::waitForExitStats(bool force)
-{	
+{
 	if (_rs232Port.isOpen())
 	{
 		if (!force && _rs232Port.bytesAvailable() > 32)
@@ -124,7 +129,7 @@ void ProviderRs232::waitForExitStats(bool force)
 			{
 				auto incoming = QString(_rs232Port.readAll());
 				force = true;
-			
+
 				Info(_log, "Received: '%s' (%i)", QSTRING_CSTR(incoming), incoming.length());
 			}
 		}
@@ -151,14 +156,14 @@ int ProviderRs232::close()
 		{
 			Debug(_log, "Flush was successful");
 		}
-		
+
 
 		if (_espHandshake)
 		{
-			QTimer::singleShot(600, this, [this](){ waitForExitStats(true); });
+			QTimer::singleShot(600, this, [this]() { waitForExitStats(true); });
 			connect(&_rs232Port, &QSerialPort::readyRead, this, [this]() { waitForExitStats(false); });
 
-			
+
 			QTimer::singleShot(200, this, [this]() { if (_rs232Port.isOpen()) EspTools::goingSleep(_rs232Port); });
 			EspTools::goingSleep(_rs232Port);
 
@@ -172,7 +177,7 @@ int ProviderRs232::close()
 			Debug(_log, "Close UART: %s", QSTRING_CSTR(_deviceName));
 			_rs232Port.close();
 		}
-		
+
 	}
 	return retval;
 }
@@ -325,9 +330,9 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t* data)
 		}
 	}
 
-	if (_maxRetry > 0 && rc == -1)
+	if (_maxRetry > 0 && rc == -1 && !_signalTerminate)
 	{
-		QTimer::singleShot(2000, this, [=]() { enable(); });
+		QTimer::singleShot(2000, this, [=]() { if (!_signalTerminate) enable(); });
 	}
 
 	return rc;
@@ -381,14 +386,49 @@ QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
 			{ "name", "Auto"} });
 
 	for (const QSerialPortInfo& info : QSerialPortInfo::availablePorts())
+	{
 		deviceList.push_back(QJsonObject{
-			{"value", info.portName()},
-			{ "name", QString("%2 (%1)").arg(info.systemLocation()).arg(info.description()) } });
+			{ "value", info.portName() },
+			{ "name", QString("%2 (%1)").arg(info.systemLocation()).arg(info.description()) }
+		});
+
+#ifdef ENABLE_BONJOUR
+		quint16 vendor = info.vendorIdentifier();
+		quint16 prodId = info.productIdentifier();
+		DiscoveryRecord newRecord;
+
+		if ((vendor == 0x303a) && (prodId == 0x80c2))
+		{
+			newRecord.type = DiscoveryRecord::Service::ESP32_S2;
+		}
+		else if ((vendor == 0x2e8a) && (prodId == 0xa))
+		{
+			newRecord.type = DiscoveryRecord::Service::Pico;
+		}
+		else if ((vendor == 0x303a) ||
+			((vendor == 0x10c4) && (prodId == 0xea60)) ||
+			((vendor == 0x1A86) && (prodId == 0x7523 || prodId == 0x55d4)))
+		{
+			newRecord.type = DiscoveryRecord::Service::ESP;
+		}
+
+		if (newRecord.type != DiscoveryRecord::Service::Unknown)
+		{			
+			newRecord.hostName = info.description();
+			newRecord.address = info.portName();
+			newRecord.isExists = true;
+			emit DiscoveryWrapper::getInstance()->discoveryEvent(newRecord);
+		}
+#endif
+	}
+
 
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
 
+#ifndef ENABLE_BONJOUR
 	Debug(_log, "Serial devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+#endif
 
 	return devicesDiscovered;
 }
