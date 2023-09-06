@@ -32,6 +32,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <unistd.h>
+#include <cstring>
 
 int16_t    SoundCapLinux::_soundBuffer[(1<<SOUNDCAPLINUX_BUF_LENP)*2];
 
@@ -40,7 +41,7 @@ SoundCapLinux::SoundCapLinux(const QJsonDocument& effectConfig, QObject* parent)
                                         _handle(NULL),
 										_pcmCallback(NULL)
 {		
-        ListDevices();
+	ListDevices();
 }
 
 
@@ -64,7 +65,9 @@ void SoundCapLinux::ListDevices()
 		{
 			char* desc = snd_device_name_get_hint(*device, "DESC");
 			char* ioid = snd_device_name_get_hint(*device, "IOID");
-			_availableDevices.append(QString(name) + " | " + QString(desc) + " | " + QString(ioid));
+
+			if (ioid == NULL || std::strcmp(ioid, "Output") != 0)
+				_availableDevices.append(QString(name) + " | " + QString(desc) + " | " + QString(ioid));
 
 			if (name != nullptr) free(name);
 			if (desc != nullptr) free(desc);
@@ -77,7 +80,8 @@ void SoundCapLinux::ListDevices()
 
 SoundCapLinux::~SoundCapLinux()
 {
-        Stop();
+	Stop();
+	snd_config_update_free_global();
 }
 
 void SoundCapLinux::RecordCallback(snd_async_handler_t *audioHandler)
