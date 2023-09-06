@@ -486,20 +486,20 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 		auto t = variant.userType();
 		switch (t)
 		{
-		case QMetaType::UInt:
-		case QMetaType::Int:
-		case QMetaType::Bool:
-			query.addBindValue(variant.toInt());
-			break;
-		case QMetaType::Double:
-			query.addBindValue(variant.toFloat());
-			break;
-		case QMetaType::QByteArray:
-			query.addBindValue(variant.toByteArray());
-			break;
-		default:
-			query.addBindValue(variant.toString());
-			break;
+			case QMetaType::UInt:
+			case QMetaType::Int:
+			case QMetaType::Bool:
+				query.addBindValue(variant.toInt());
+				break;
+			case QMetaType::Double:
+				query.addBindValue(variant.toFloat());
+				break;
+			case QMetaType::QByteArray:
+				query.addBindValue(variant.toByteArray());
+				break;
+			default:
+				query.addBindValue(variant.toString());
+				break;
 		}
 	}
 }

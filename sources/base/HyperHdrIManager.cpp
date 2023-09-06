@@ -98,7 +98,7 @@ void HyperHdrIManager::setSmoothing(int time)
 	QMap<quint8, HyperHdrInstance*> instCopy = _runningInstances;
 
 	for (const auto instance : instCopy)
-		QTimer::singleShot(0, instance, [=]() { instance->setSmoothing(time); });	
+		QTimer::singleShot(0, instance, [=]() { instance->setSmoothing(time); });
 }
 
 QJsonObject HyperHdrIManager::getAverageColor(quint8 index)
@@ -143,7 +143,7 @@ void HyperHdrIManager::toggleStateAllInstances(bool pause)
 }
 
 void HyperHdrIManager::hibernate(bool wakeUp)
-{	
+{
 	if (!wakeUp)
 	{
 		Warning(_log, "The system is going to sleep");
@@ -153,7 +153,7 @@ void HyperHdrIManager::hibernate(bool wakeUp)
 	{
 		Warning(_log, "The system is going to wake up");
 		QTimer::singleShot(3000, [this]() { toggleStateAllInstances(true);  });
-	}	
+	}
 }
 
 bool HyperHdrIManager::startInstance(quint8 inst, bool block, QObject* caller, int tan)
@@ -317,16 +317,7 @@ void HyperHdrIManager::handleStarted()
 
 const QJsonObject HyperHdrIManager::getBackup()
 {
-	QJsonObject backup;
-
-	if (_instanceTable != nullptr)
-	{
-		if (QThread::currentThread() == _instanceTable->thread())
-			backup = _instanceTable->getBackup();
-		else
-			QMetaObject::invokeMethod(_instanceTable, "getBackup", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QJsonObject, backup));
-	}
-	return backup;
+	return _instanceTable->getBackup();
 }
 
 
@@ -336,19 +327,18 @@ QString HyperHdrIManager::restoreBackup(const QJsonObject& message)
 
 	if (_instanceTable != nullptr)
 	{
-		if (QThread::currentThread() == _instanceTable->thread())
-			error = _instanceTable->restoreBackup(message);
-		else
-			QMetaObject::invokeMethod(_instanceTable, "restoreBackup", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QString, error), Q_ARG(QJsonObject, message));
+		error = _instanceTable->restoreBackup(message);
 	}
+
 	return error;
 }
 
 void HyperHdrIManager::saveCalibration(QString saveData)
 {
 	HyperHdrInstance* instance = HyperHdrIManager::getHyperHdrInstance(0);
-	if (instance != nullptr)
-		QMetaObject::invokeMethod(instance, "saveCalibration", Q_ARG(QString, saveData));
+
+	if (instance != nullptr)		
+		QUEUE_CALL_1(instance, saveCalibration, QString, saveData)
 	else
 		Error(_log, "Hyperhdr instance is not running...can't save the calibration data");
 }

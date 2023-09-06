@@ -104,7 +104,7 @@ private:
 	const QString                _name;
 	const QString                _appname;
 	const bool                   _syslogEnabled;
-	const unsigned               _loggerId;	
+	const unsigned               _loggerId;
 
 	/* Only non-const member, hence the atomic */
 	QAtomicInteger<int> _minLevel;
@@ -123,7 +123,7 @@ public slots:
 	void handleNewState(bool state);
 
 signals:
-	void newLogMessage(const Logger::T_LOG_MESSAGE&);	
+	void newLogMessage(const Logger::T_LOG_MESSAGE&);
 
 protected:
 	LoggerManager();

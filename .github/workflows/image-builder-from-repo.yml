@@ -5,10 +5,13 @@ on:
     inputs:
       architecture:
         description: 'ARM architecture: armv6l/aarch64'
+      tagCustomPiOS:
+        default: ''
+        description: 'Optional tag of CustomPiOS'
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       HYPERHDR_DEB: 'https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/HyperHDR-${{ github.event.inputs.tags }}-Linux-${{ github.event.inputs.architecture }}.deb'
       
@@ -23,6 +26,12 @@ jobs:
       with:
         repository: 'guysoft/CustomPiOS'
         path: CustomPiOS
+
+    - name: Select CustomPiOS version
+      if: github.event.inputs.tagCustomPiOS != ''
+      run: |
+        cd CustomPiOS
+        git reset --hard ${{ github.event.inputs.tagCustomPiOS }}
 
     - name: Prepare HyperHDR module
       run: |

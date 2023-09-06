@@ -144,6 +144,8 @@ public:
 	///
 	const InputInfo& getInputInfo(int priority) const;
 
+	const QMap<int, InputInfo>& getInputInfoTable() const;
+
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
 	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout

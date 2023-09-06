@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Acțiune",
   "conf_general_inst_delreq_h": "Ștergeți instanța Hardware LED",
   "conf_general_inst_delreq_t": "Sigur doriți să ștergeți instanța „$1”? Toate setările vor fi șterse și ele.",
-  "conf_general_inst_desc": "Utilizați hardware cu LED-uri diferite în același timp. Fiecare instanță rulează independent una de cealaltă, ceea ce permite configurarea diferitelor LED-uri și setările de calibrare. Instanțele care rulează sunt disponibile la pictograma <i class='fa fa-exchange fa-fw'></i> din stânga",
+  "conf_general_inst_desc": "Utilizați hardware cu LED-uri diferite în același timp. Fiecare instanță rulează independent una de cealaltă, ceea ce permite configurarea diferitelor LED-uri și setările de calibrare. Instanțele care rulează sunt disponibile la pictograma <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> din stânga",
   "conf_general_inst_name_title": "Nume instanță nouă",
   "conf_general_inst_namehead": "Numele instanței",
   "conf_general_inst_renreq_t": "Introduceți un nume nou pentru instanța dvs. în câmpul de mai jos.",

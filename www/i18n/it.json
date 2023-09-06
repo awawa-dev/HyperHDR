@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Azione",
   "conf_general_inst_delreq_h": "Elimina istanza hardware LED",
   "conf_general_inst_delreq_t": "Sei sicuro di voler eliminare l'istanza \"$1\"? Anche tutte le impostazioni verranno eliminate.",
-  "conf_general_inst_desc": "Usa hardware LED diverso contemporaneamente. Ogni istanza viene eseguita indipendentemente l'una dall'altra, il che consente diversi layout dei LED e impostazioni di calibrazione. Le istanze in esecuzione sono disponibili sull'icona <i class='fa fa-exchange fa-fw'></i> a sinistra",
+  "conf_general_inst_desc": "Usa hardware LED diverso contemporaneamente. Ogni istanza viene eseguita indipendentemente l'una dall'altra, il che consente diversi layout dei LED e impostazioni di calibrazione. Le istanze in esecuzione sono disponibili sull'icona <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> a sinistra",
   "conf_general_inst_name_title": "Nome nuova istanza",
   "conf_general_inst_namehead": "Nome istanza",
   "conf_general_inst_renreq_t": "Inserisci un nuovo nome per la tua istanza nel campo sottostante.",

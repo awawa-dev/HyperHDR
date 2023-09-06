@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Akcja",
   "conf_general_inst_delreq_h": "Usuń instancję sprzętu LED",
   "conf_general_inst_delreq_t": "Czy na pewno chcesz usunąć instancję „$1”? Wszystkie ustawienia również zostaną usunięte.",
-  "conf_general_inst_desc": "Używaj jednocześnie różnych urządzeń LED. Każda instancja działa niezależnie od siebie, co pozwala na różne układy diod LED i ustawienia kalibracji. Uruchomione instancje są dostępne po ikonie <i class='fa fa-exchange fa-fw'></i> po lewej stronie",
+  "conf_general_inst_desc": "Używaj jednocześnie różnych urządzeń LED. Każda instancja działa niezależnie od siebie, co pozwala na różne układy diod LED i ustawienia kalibracji. Uruchomione instancje są dostępne po ikonie <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> po lewej stronie",
   "conf_general_inst_name_title": "Nazwa nowej instancji",
   "conf_general_inst_namehead": "Nazwa instancji",
   "conf_general_inst_renreq_t": "Wprowadź nową nazwę swojej instancji w polu poniżej.",

@@ -191,19 +191,14 @@ void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& mes
 	// must resize
 	image.resize(width, height);
 
-	if (FlatBufferServer::getInstance() != nullptr)
+	auto flat = FlatBufferServer::getInstance();
+	if (flat != nullptr)
 	{
-		auto flat = FlatBufferServer::getInstance();
-		int hdrEnabled = 0;
-
-		if (QThread::currentThread() == flat->thread())
-			hdrEnabled = flat->getHdrToneMappingEnabled();
-		else
-			QMetaObject::invokeMethod(flat, "getHdrToneMappingEnabled", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(int, hdrEnabled));
+		int hdrEnabled = flat->getHdrToneMappingEnabled();
 
 		if (hdrEnabled)
 		{
-			QMetaObject::invokeMethod(flat, "importFromProtoHandler", Q_ARG(int, priority), Q_ARG(int, duration), Q_ARG(const Image<ColorRgb>&, image));
+			AUTO_CALL_3(flat, importFromProtoHandler, int, priority, int, duration, const Image<ColorRgb>&, image);
 			sendSuccessReply();
 			return;
 		}

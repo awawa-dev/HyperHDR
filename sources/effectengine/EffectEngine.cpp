@@ -58,6 +58,80 @@ EffectEngine::EffectEngine(HyperHdrInstance* hyperhdr)
 	handleUpdatedEffectList();
 }
 
+EffectEngine::~EffectEngine()
+{
+	auto copy = _activeEffects;
+
+	_activeEffects.clear();
+
+	for (Effect* effect : copy)
+	{
+		effect->requestInterruption();
+		effect->quit();
+	}
+
+	for (Effect* effect : copy)
+	{
+		effect->wait();
+		delete effect;
+	}
+
+	Debug(_log, "EffectEngine is released");
+}
+
+int EffectEngine::runEffectScript(const QString& name, const QJsonObject& args, int priority, int timeout, const QString& origin, unsigned smoothCfg, const QString& imageData)
+{
+	// clear current effect on the channel
+	channelCleared(priority);
+
+	// create the effect
+	Effect* effect = new Effect(_hyperInstance, _hyperInstance->getCurrentPriority(), priority, timeout, name, args, imageData);
+	connect(effect, &Effect::setInput, this, &EffectEngine::gotLedsHandler, Qt::QueuedConnection);
+	connect(effect, &Effect::setInputImage, _hyperInstance, &HyperHdrInstance::setInputImage, Qt::QueuedConnection);
+	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
+	connect(_hyperInstance, &HyperHdrInstance::finished, effect, &Effect::requestInterruption, Qt::DirectConnection);
+	_activeEffects.push_back(effect);
+
+	// start the effect
+	Debug(_log, "Start the effect: name [%s], smoothCfg [%u]", QSTRING_CSTR(name), smoothCfg);
+	_hyperInstance->registerInput(priority, hyperhdr::COMP_EFFECT, origin, name, smoothCfg);
+
+	effect->start();
+
+	return 0;
+}
+
+void EffectEngine::effectFinished()
+{
+	Effect* effect = qobject_cast<Effect*>(sender());
+	if (!effect->isInterruptionRequested())
+	{
+		// effect stopped by itself. Clear the channel
+		_hyperInstance->clear(effect->getPriority());
+	}
+
+	Info(_log, "Effect '%s' has finished.", QSTRING_CSTR(effect->getName()));
+	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
+	{
+		if (*effectIt == effect)
+		{
+			_activeEffects.erase(effectIt);
+			break;
+		}
+	}
+
+	// cleanup the effect
+	effect->deleteLater();
+}
+
+void EffectEngine::visiblePriorityChanged(quint8 priority)
+{
+	for (Effect* effect : _activeEffects)
+	{
+		effect->visiblePriorityChanged(priority);
+	}
+}
+
 std::list<EffectDefinition> EffectEngine::getEffects() const
 {
 	return _availableEffects;
@@ -80,7 +154,16 @@ std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 	return availableActiveEffects;
 }
 
-
+void EffectEngine::gotLedsHandler(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect)
+{
+	int ledNum = _hyperInstance->getLedCount();
+	if (ledNum == static_cast<int>(ledColors.size()))
+		emit _hyperInstance->setInput(priority, ledColors, timeout_ms, false);
+	else for (Effect* effect : _activeEffects)
+	{
+		effect->setLedCount(ledNum);
+	}
+}
 
 void EffectEngine::cacheRunningEffects()
 {
@@ -134,7 +217,6 @@ void EffectEngine::handleUpdatedEffectList()
 		}
 		_availableEffects.push_back(def);
 	}
-	emit effectListUpdated();
 }
 
 int EffectEngine::runEffect(const QString& effectName, int priority, int timeout, const QString& origin)
@@ -157,32 +239,8 @@ int EffectEngine::runEffect(const QString& effectName, const QJsonObject& args, 
 	return runEffectScript(effectName, args, priority, timeout, origin, smoothCfg, imageData);
 }
 
-int EffectEngine::runEffectScript(const QString& name, const QJsonObject& args, int priority, int timeout, const QString& origin, unsigned smoothCfg, const QString& imageData)
-{
-	// clear current effect on the channel
-	channelCleared(priority);
-
-	// create the effect
-	Effect* effect = new Effect(_hyperInstance, priority, timeout, name, args, imageData);
-	connect(effect, &Effect::setInput, _hyperInstance, &HyperHdrInstance::setInput, Qt::QueuedConnection);
-	connect(effect, &Effect::setInputImage, _hyperInstance, &HyperHdrInstance::setInputImage, Qt::QueuedConnection);
-	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
-	connect(_hyperInstance, &HyperHdrInstance::finished, effect, &Effect::requestInterruption, Qt::DirectConnection);
-	_activeEffects.push_back(effect);
-
-	// start the effect
-	Debug(_log, "Start the effect: name [%s], smoothCfg [%u]", QSTRING_CSTR(name), smoothCfg);
-	_hyperInstance->registerInput(priority, hyperhdr::COMP_EFFECT, origin, name, smoothCfg);
-
-	effect->start();
-
-	return 0;
-}
-
 void EffectEngine::handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonObject& FGEffectConfig)
 {
-#define FGCONFIG_ARRAY fgColorConfig.toArray()
-
 	const int FG_PRIORITY = 0;
 	const int DURATION_INFINITY = 0;
 
@@ -201,6 +259,7 @@ void EffectEngine::handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonOb
 		}
 		if (fgTypeConfig.contains("color"))
 		{
+			auto FGCONFIG_ARRAY = fgColorConfig.toArray();
 			std::vector<ColorRgb> fg_color = {
 				ColorRgb {
 					static_cast<uint8_t>(FGCONFIG_ARRAY.at(0).toInt(0)),
@@ -217,8 +276,6 @@ void EffectEngine::handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonOb
 			Info(Logger::getInstance("HYPERHDR"), "Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 		}
 	}
-
-#undef FGCONFIG_ARRAY
 }
 
 void EffectEngine::channelCleared(int priority)
@@ -240,47 +297,5 @@ void EffectEngine::allChannelsCleared()
 		{
 			effect->requestInterruption();
 		}
-	}
-}
-
-void EffectEngine::effectFinished()
-{
-	Effect* effect = qobject_cast<Effect*>(sender());
-	if (!effect->isInterruptionRequested())
-	{
-		// effect stopped by itself. Clear the channel
-		_hyperInstance->clear(effect->getPriority());
-	}
-
-	Info(_log, "Effect '%s' has finished.", QSTRING_CSTR(effect->getName()));
-	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
-	{
-		if (*effectIt == effect)
-		{
-			_activeEffects.erase(effectIt);
-			break;
-		}
-	}
-
-	// cleanup the effect
-	effect->deleteLater();
-}
-
-EffectEngine::~EffectEngine()
-{
-	auto copy = _activeEffects;
-
-	_activeEffects.clear();
-
-	for (Effect* effect : copy)
-	{
-		effect->requestInterruption();
-		effect->quit();
-	}
-
-	for (Effect* effect : copy)
-	{
-		effect->wait();
-		delete effect;
 	}
 }

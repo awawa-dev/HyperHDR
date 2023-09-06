@@ -94,20 +94,21 @@ private:
 	QStringList   _jsonSlaves;
 
 	/// Proto connection for forwarding
-	QStringList _flatSlaves;	
+	QStringList _flatSlaves;
 
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled = true;
 
 	const int	_priority;
 
-	MessageForwarderHelper* _messageForwarderHelper;	
+	MessageForwarderHelper* _messageForwarderHelper;
 };
 
 class MessageForwarderHelper : public QObject
 {
 	Q_OBJECT
 
+private:
 	QList<FlatBufferConnection*> _forwardClients;
 	bool _free;
 

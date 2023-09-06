@@ -35,13 +35,13 @@ struct ColorRgb
 
 	ColorRgb() = default;
 
-	ColorRgb(uint8_t _red, uint8_t _green,uint8_t _blue):
+	ColorRgb(uint8_t _red, uint8_t _green, uint8_t _blue) :
 		red(_red),
 		green(_green),
 		blue(_blue)
 	{
 
-	}	
+	}
 
 	ColorRgb operator-(const ColorRgb& b) const
 	{

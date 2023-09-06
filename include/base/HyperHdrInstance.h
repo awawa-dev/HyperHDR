@@ -109,6 +109,8 @@ public:
 
 public slots:
 
+	QJsonObject getJsonInfo(bool full);
+
 	QJsonObject getAverageColor();
 
 	void setSmoothing(int time);
@@ -126,6 +128,8 @@ public slots:
 	/// transforms.
 	///
 	void update();
+
+	void requestForColors();
 
 	void updateResult(std::vector<ColorRgb> _ledBuffer);
 
@@ -248,9 +252,6 @@ public slots:
 	/// Get the list of active effects
 	/// @return The list of active effects
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
-
-	QString saveEffect(const QJsonObject& obj);
-	QString deleteEffect(const QString& effectName);
 
 
 	/// #############
@@ -422,11 +423,6 @@ signals:
 	/// @brief Emits whenever the adjustments have been updated
 	///
 	void adjustmentChanged();
-
-	///
-	/// @brief Signal pipe from EffectEngine to external, emits when effect list has been updated
-	///
-	void effectListUpdated();
 
 	///
 	/// @brief Emits whenever new data should be pushed to the LedDeviceWrapper which forwards it to the threaded LedDevice

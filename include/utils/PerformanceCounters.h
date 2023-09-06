@@ -9,10 +9,10 @@
 
 class Logger;
 
-enum class PerformanceReportType {VIDEO_GRABBER = 1, INSTANCE = 2, LED = 3, CPU_USAGE = 4, RAM_USAGE = 5, CPU_TEMPERATURE = 6, SYSTEM_UNDERVOLTAGE = 7, UNKNOWN = 8};
+enum class PerformanceReportType { VIDEO_GRABBER = 1, INSTANCE = 2, LED = 3, CPU_USAGE = 4, RAM_USAGE = 5, CPU_TEMPERATURE = 6, SYSTEM_UNDERVOLTAGE = 7, UNKNOWN = 8 };
 
 struct PerformanceReport
-{	
+{
 	int		type = (int)PerformanceReportType::UNKNOWN;
 	int		id = -1;
 	QString name;
@@ -25,7 +25,7 @@ struct PerformanceReport
 
 	PerformanceReport(int _type, qint64 _token, QString _name, double _param1, qint64 _param2, qint64 _param3, qint64 _param4, int _id = -1);
 
-	PerformanceReport(const PerformanceReport& ) = default;
+	PerformanceReport(const PerformanceReport&) = default;
 
 	PerformanceReport() = default;
 };
@@ -36,6 +36,7 @@ class PerformanceCounters : public QObject
 {
 	Q_OBJECT
 
+private:
 	void consoleReport(int type, int token);
 	void createUpdate(PerformanceReport pr);
 	void deleteUpdate(int type, int id);
@@ -43,10 +44,11 @@ class PerformanceCounters : public QObject
 
 	static std::unique_ptr<PerformanceCounters> _instance;
 
-	Logger*	_log;
+	Logger* _log;
 	QList<PerformanceReport> _reports;
 	SystemPerformanceCounters _system;
 	qint64 _lastRead;
+	qint64 _lastNetworkScan;
 
 public:
 

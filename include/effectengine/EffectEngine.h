@@ -39,10 +39,6 @@ public:
 
 	static void handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonObject& FGEffectConfig);
 
-signals:
-	/// Emit when the effect list has been updated
-	void effectListUpdated();
-
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");
@@ -67,6 +63,10 @@ public slots:
 	std::list<EffectDefinition> getEffects() const;
 
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
+
+	void visiblePriorityChanged(quint8 priority);
+
+	void gotLedsHandler(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
 
 private slots:
 	void effectFinished();

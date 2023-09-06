@@ -86,7 +86,7 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
 	}
 	else
-		Error(_log, "Could not load Pipewire proxy library. Error: %s", dlerror());
+		Warning(_log, "Could not load Pipewire proxy library. Error: %s", dlerror());
 
 	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr))
 	{

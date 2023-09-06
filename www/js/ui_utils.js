@@ -19,27 +19,6 @@ function debugMessage(msg)
 	}
 }
 
-function updateSessions()
-{
-	var sess = window.serverInfo.sessions;
-	if (sess && sess.length)
-	{
-		window.wSess = [];
-		for(var i = 0; i<sess.length; i++)
-		{
-			if(sess[i].type == "_hyperhdr-http._tcp.")
-			{
-				window.wSess.push(sess[i]);
-			}
-		}
-
-		if (window.wSess.length > 1)
-			$('#btn_instanceswitch').toggle(true);
-		else
-			$('#btn_instanceswitch').toggle(false);
-	}
-}
-
 function validateDuration(d)
 {
 	if(typeof d === "undefined" || d < 0)
@@ -115,34 +94,99 @@ function loadContent(event, forceRefresh)
 
 function updateHyperhdrInstanceListing()
 {
-	var data = window.serverInfo.instance.filter(entry => entry.running);
-	$('#hyp_inst_listing').html("");
-	for(var key in data)
+	let hasItems = false;
+	let data = window.serverInfo.instance.filter(entry => entry.running);
+	$('#hyperhdr_instances_list').html("");
+
+	if (data.length > 1)
 	{
-		var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? "fa-arrow-circle-right my-text-success" : "";
-		var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
+		hasItems = true;
+		for(var key in data)
+		{
+			var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? 'data-src="svg/instances_top_menu_indicator.svg"' : '';
+			var currInstMarkerBackground = (data[key].instance == window.currentHyperHdrInstance) ? 'text-success' : 'instance-unselected-marker';
+			var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
 		
-		var myName = data[key].friendly_name;
+			var myName = data[key].friendly_name;
 		
-		if (myName.length>20)
-			myName = myName.slice(0,17) + '...';
+			if (myName.length>20)
+				myName = myName.slice(0,17) + '...';
 		
-		var html = '<li id="hyperhdrinstance_'+data[key].instance+'"><a>'+			  
-						'<div class="d-flex" style="cursor: pointer;">'+
-							'<div class="flex ps-1 pe-1 fa-stack fa-1x"><i class="fa fa-stack-1x ' + currInstMarker + '"></i><i class="fa-stack-1x fa icon-invisible"></i></div>'+
-							'<div class="flex pe-2 ' + currTextMarker + '"><span class="h-100" style="display: inline-flex; align-items: center;">'+myName+'</span></div>'+
+			var html = `<li id="hyperhdrinstance_${data[key].instance}"><a>`+
+							'<div class="d-flex" style="cursor: pointer;">'+							
+								`<div class="flex ps-2 pe-1 ${currInstMarkerBackground}">`+
+									`<svg xmlns="http://www.w3.org/2000/svg" ${currInstMarker} width="16" height="16" fill="currentColor" style="position: relative;top: -2px;"></svg>`+
+								'</div>'+
+								`<div class="flex pe-2 ${currTextMarker}">`+
+									`<span class="h-100" style="display: inline-flex; align-items: center;">${myName}</span>`+
+								'</div>'+
+							'</div>'+
+					   '</a></li>';
+
+			if(data.length-1 > key)
+				html += '<li class="dropdown-divider"></li>';
+
+			$('#hyperhdr_instances_list').append(html);
+
+			$('#hyperhdrinstance_'+data[key].instance).off().on("click",function(e){
+				instanceSwitch(e.currentTarget.id.split("_")[1]);
+			});
+		}
+	}
+
+	let hyperHDRs = window.serverInfo.sessions;
+	if (hyperHDRs != null && hyperHDRs.length > 0)
+	{
+		for(var i = 0; i< hyperHDRs.length; i++)
+			if(hyperHDRs[i].name == "HyperHDR")
+			{				
+				if (i == 0)
+				{
+					if (hasItems)
+						$('#hyperhdr_instances_list').append('<li class="dropdown-divider bg-info" style="border-top-width:2px;"></li>');
+				}
+				else if (hasItems)
+					$('#hyperhdr_instances_list').append('<li class="dropdown-divider bg-info"></li>');
+				
+
+				var hostName = hyperHDRs[i].host;
+
+				if (hostName.length > 0)
+				{
+					hostName = hostName.replace('"',"'");
+				}
+
+				var html = `<li id="remote_hyperhdrinstance_${i}" class="text-info" data-toggle="tooltip" data-placement="right" title="${hostName}"><a>`+
+						'<div class="d-flex" style="cursor: pointer;">'+							
+							`<div class="flex ps-2 pe-1">`+
+								`<svg xmlns="http://www.w3.org/2000/svg" data-src="svg/button_link.svg" width="16" height="16" fill="currentColor" style="position: relative;top: -2px;"></svg>`+
+							'</div>'+
+							`<div class="flex pe-2">`+
+								`<span class="h-100" style="display: inline-flex; align-items: center;">${hyperHDRs[i].address}:${hyperHDRs[i].port}</span>`+
+							'</div>'+
 						'</div>'+
-				   '</a></li>';
+					'</a></li>';
+				$('#hyperhdr_instances_list').append(html);
 
-		if(data.length-1 > key)
-			html += '<li class="dropdown-divider"></li>'
+				const destAddress = `http://${hyperHDRs[i].address}:${hyperHDRs[i].port}`;
+				$(`#remote_hyperhdrinstance_${i}`).off().on("click",function(e){
+					$("#loading_overlay").addClass("overlay");
+					window.location.href = destAddress;
+				});
 
-		$('#hyp_inst_listing').append(html);
+				hasItems = true;
+			}		
+	}
 
-		$('#hyperhdrinstance_'+data[key].instance).off().on("click",function(e){
-			var inst = e.currentTarget.id.split("_")[1]
-			instanceSwitch(inst)
-		});
+	
+	if (hasItems)
+	{			
+		$('#btn_hypinstanceswitch').removeClass('disabled');		
+	}
+	else
+	{
+		$('#btn_hypinstanceswitch').addClass('disabled');
+		$('#hyperhdr_instances_list').removeClass('show');
 	}
 }
 
@@ -199,13 +243,7 @@ function initLanguageSelection()
 			switchLang(sendId);
 		});
 		
-		var ilink = $('<i>');
-		ilink.attr('id', "language_selector_at"+i);		
-		if (i == langIdx)
-			ilink.addClass("fa fa-check fa-fw");
-		else
-			ilink.addClass("fa icon-invisible fa-fw");
-		
+		var ilink = `<svg ${(i == langIdx) ? 'data-src="svg/main_menu_lang_selected.svg"' : ''} fill="currentColor" class="svg4hyperhdr"></svg>`;		
 		var item = $('<p>');
 		item.html(availLangText[i]); 
 		
@@ -252,90 +290,116 @@ function setClassByBool(obj,enable,class1,class2)
 {
 	if (enable)
 	{
-		$(obj).removeClass(class1);
-		$(obj).addClass(class2);
-	}
-	else
-	{
 		$(obj).removeClass(class2);
 		$(obj).addClass(class1);
 	}
+	else
+	{
+		$(obj).removeClass(class1);
+		$(obj).addClass(class2);
+	}
+}
+
+function toaster(type, header, message, delay)
+{
+	let textelemHeader = document.getElementById('toast_message_header_id');
+	textelemHeader.innerText  = header;
+	let textelemBody = document.getElementById('toast_message_body_id');
+	textelemBody.innerText  = message;
+	let myToastEl = document.getElementById('toast_success_message');			
+	let myToast = bootstrap.Toast.getOrCreateInstance(myToastEl);
+	if (delay <= 0)
+		myToast.show();
+	else
+		setTimeout(function(){bootstrap.Toast.getOrCreateInstance(document.getElementById('toast_success_message')).show();}, delay);
 }
 
 function showInfoDialog(type,header,message)
 {
-	if (type=="success")
+	let headerControl = $('#new_modal_dialog_header');
+	let masterControl = $('#new_modal_dialog');
+
+	headerControl.removeClass();
+	headerControl.addClass("modal-header modal-hyperhdr-header");
+	masterControl.removeClass();
+	masterControl.addClass("modal fade");	
+
+	if (type=="error" || type=="warning" || type=="success" || type == "confirm")
 	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
-		if(header == "")
-			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_success_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-success" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		let selectedButton = "";
+		let selectedIcon = "";
+		let selectedButtonText = "";
+
+		if (type=="error")
+		{
+			if (header == "") header = $.i18n('infoDialog_general_error_title');
+			headerControl.addClass("modal-hyperhdr-header-danger");
+			selectedButton = 'btn-danger';
+			selectedIcon = 'modal-icon-error';
+			selectedSvg = "message_error.svg";
+			selectedButtonText = $.i18n('general_btn_continue');
+		}
+		else if (type=="warning" || type == "confirm")
+		{
+			if (header == "") header = $.i18n('infoDialog_general_warning_title');
+			headerControl.addClass("modal-hyperhdr-header-warning");
+			selectedButton = 'btn-warning';
+			selectedIcon = 'modal-icon-warning';
+			selectedSvg = "message_warning.svg";
+			selectedButtonText = $.i18n('general_btn_continue');
+		}
+		else if (type=="success")
+		{
+			if (header == "") header = $.i18n('infoDialog_general_success_title');
+			headerControl.addClass("modal-hyperhdr-header-success");
+			selectedButton = 'btn-success';
+			selectedIcon = 'modal-icon-check';
+			selectedSvg = "message_success.svg";
+			selectedButtonText = $.i18n('general_btn_ok');
+		}
+
+
+		if (message.length > 120)
+			masterControl.addClass("modal-lg");
+		masterControl.addClass("modal-hyperhdr-danger-warning-success");	
+
+		$('#new_modal_dialog_title').html('<h4 class="text-center">'+ header +'</h4>');
+		$('#new_modal_dialog_body').html('<div style="align-items: center; display: flex;">'+
+											`<div style="position: relative; left: 0px; ">`+
+												`<svg data-src="svg/${selectedSvg}" fill="currentColor" class="svg4hyperhdr ${selectedIcon}" style="position:static;"></svg>`+
+											'</div>'+
+											'<h5 class="ps-3">'+ message +'</h5>'+											
+										 '</div>');
+
+		if (type == "confirm")
+		{
+			$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_confirm" class="btn btn-warning" data-bs-dismiss="modal"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_yes')+'</button>');
+			$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_cancel.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_cancel')+'</button>');
+		}
+		else
+			$('#new_modal_dialog_footer').html(`<button type="button" class="btn ${selectedButton}" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog"><svg data-src="svg/button_continue.svg" fill="currentColor" class="svg4hyperhdr"></svg>`+selectedButtonText+'</button>');
 	}
-	else if (type=="warning")
+	else if (type == "deleteInstance")
 	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		if(header == "")
-			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-warning" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#new_modal_dialog_title').html('<h4><svg data-src="svg/button_delete.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+ header +'</h4>');
+		$('#new_modal_dialog_body').html('<div class="mb-3">'+ message +'</div>');
+		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_yes')+'</button>');
+		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_cancel.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type=="error")
+	else if (type == "renameInstance")
 	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
-		if(header == "")
-			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
-		$('#id_footer').html('<button type="button" class="btn btn-danger" data-bs-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
-	}
-	else if (type == "select")
-	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
-	else if (type == "iswitch")
-	{
-		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-bs-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>'+$.i18n('general_btn_iswitch')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
-	else if (type == "uilock")
-	{
-		$('#id_body').html('<img src="img/hyperhdr/hyperhdrlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
-	}
-	else if (type == "import")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
-	else if (type == "confirm")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_confirm" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_yes')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
-	else if (type == "delInst")
-	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');
-		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-bs-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-	}
-	else if (type == "renInst")
-	{
-		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
-		$('#id_body_rename').append('<h4>'+header+'</h4>');
-		$('#id_body_rename').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#new_modal_dialog_title').html('<h4><svg data-src="svg/button_edit.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_rename')+'</h4>');
+		$('#new_modal_dialog_body').html('<div class="mb-3"><label class="form-label required">'+ header +'</label><input  id="renameInstance_name" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog" disabled><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_ok')+'</button>');
+		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_cancel.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "changePassword")
 	{
-		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
-		$('#id_body_rename').append('<h4>'+header+'</h4>');
-		$('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
-		$('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#new_modal_dialog_title').html('<h4><svg data-src="svg/change_password.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+header+'</h4>');
+		$('#new_modal_dialog_body').html('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_old_password')+'</label><input  id="oldPw" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_body').append('<div class="mb-3"><label class="form-label required">'+$.i18n('modal_new_password')+'</label><input  id="newPw" type="text" class="form-control"></div>');
+		$('#new_modal_dialog_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-bs-dismiss="modal" data-bs-target="#new_modal_dialog" disabled><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_ok')+'</button>');
+		$('#new_modal_dialog_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_cancel.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
 	{
@@ -356,17 +420,15 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
 	}
 
-	if(type != "renInst")
+	if (type != "confirm" && type != "renameInstance" && type != "changePassword" && type != "deleteInstance" &&
+		type != "error" && type != "warning" && type != "success")
 	{
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 		$('#id_body').append(message);
 	}
-
-	if(type == "select" || type == "iswitch")
-		$('#id_body').append('<select id="id_select" class="form-select" style="margin-top:10px;width:auto;"></select>');
-
 	
-	const myTarget = (type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog");
+	const myTarget = ((type == "renameInstance" || type == "changePassword" || type == "deleteInstance" ||
+						type=="error" || type=="warning" || type=="success" || type == "confirm") ? "#new_modal_dialog" : "#modal_dialog");
 	
 	const modal = new bootstrap.Modal($(myTarget), {
 		backdrop : "static",
@@ -397,20 +459,10 @@ function createHint(type, text, container, buttonid, buttontxt)
 		fe = '';
 		tclass = "intro-hint";
 	}
-	else if(type == "info")
-	{
-		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
-		tclass = "info-hint";
-	}
 	else if(type == "wizard")
 	{
-		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-magic"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		fe = '<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>';
 		tclass = "wizard-hint";
-	}
-	else if(type == "warning")
-	{
-		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
-		tclass = "warning-hint";
 	}
 
 	if(buttonid)
@@ -419,14 +471,9 @@ function createHint(type, text, container, buttonid, buttontxt)
 		buttonid = "";
 
 	if(type == "intro")
-		$('#'+container).prepend('<div class="callout callout-primary" style="margin-top:0px"><h4 class="bs-main-text">'+$.i18n("conf_helptable_expl")+'</h4>'+text+'</div>');
+		$('#'+container).prepend('<div class="callout callout-primary" style="margin-top:0px"><h4 class="bs-main-text">'+ fe + $.i18n("conf_helptable_expl")+'</h4>'+text+'</div>');
 	else if(type == "wizard")
-		$('#'+container).prepend('<div class="callout callout-wizard" style="margin-top:0px"><h4 class="bs-main-text">'+$.i18n("wiz_wizavail")+'</h4>'+$.i18n('wiz_guideyou',text)+buttonid+'</div>');
-	else
-	{
-		createTable('','htb',container, true, tclass);
-		$('#'+container+' .htb').append(createTableRow([fe ,text],false,true));
-	}
+		$('#'+container).prepend('<div class="callout callout-wizard" style="margin-top:0px"><h4 class="bs-main-text">'+ fe + $.i18n("wiz_wizavail")+'</h4>'+$.i18n('wiz_guideyou',text)+buttonid+'</div>');
 }
 
 function createEffHint(title, text)
@@ -529,7 +576,6 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre = unde
 	var editor = new JSONEditor(targetPlace,
 	{
 		theme: 'bootstrap5hyperhdr',
-		iconlib: 'fontawesome4',
 		disable_collapse: 'true',
 		disable_edit_json: true,
 		disable_properties: true,
@@ -537,7 +583,6 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre = unde
 		no_additional_properties: true,
 		disable_array_delete_all_rows: true,
 		disable_array_delete_last_row: true,
-		access: storedAccess,
 		schema: {
 			title:'',
 			properties: schema
@@ -632,8 +677,8 @@ function showNotification(type, message, title="", addhtml="")
 	let alertId = 'alert_' + Date.now();
 	let progressId = 'progress_' + alertId;
 	let code = `<div id="${alertId}" class="alert alert-dismissible fade show mt-2 pe-1 pb-1 parentAlert" role="alert">
-		<div class="notIcon">
-			<i class="fa fa-exclamation-circle hidden-xs"></i>
+		<div class="notIcon hyperhdr-vcenter">
+			<svg data-src="svg/notification_warning.svg" style="width:2em;padding-bottom: 15px;" fill="currentColor" class="svg4hyperhdr hidden-xs me-0"></svg>
 		</div><div class="alertProgress alertProgressAnim" style="height:0%;z-index:1;"></div><div class="alertProgress bg-secondary h-100" style="z-index:0;"></div>
 		<h5><b>${title}</b></h5><hr/>${message}${addhtml}	
 		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>					
@@ -807,16 +852,17 @@ function createRow(id)
 
 function createOptPanel(phicon, phead, bodyid, footerid)
 {
-	phead = '<i class="fa '+phicon+' fa-fw"></i>'+phead;
+	phead = phicon+phead;
+
 	var saveBtn = document.createElement('button');
 	saveBtn.className = "btn btn-primary";
 	saveBtn.setAttribute("id", footerid);
-	saveBtn.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
+	saveBtn.innerHTML = '<svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('general_button_savesettings');
 
 	const helpBtn = document.createElement('button');
 	helpBtn.className = "btn btn-warning btn-warning-noset";
 	helpBtn.style.cssFloat = "left";
-	helpBtn.innerHTML = '<i class="fa fa-fw fa-question-circle-o"></i>'+$.i18n('panel_help_button');
+	helpBtn.innerHTML = '<svg data-src="svg/button_help.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('panel_help_button');
 	helpBtn.addEventListener("click", function() 
 		{
 			var clientObj = helpBtn.parentElement.parentElement.parentElement.parentElement;
@@ -892,7 +938,7 @@ function createHelpTable(list, phead){
 	
 	list = sortProperties(list);
 
-	phead = '<i class="fa fa-fw fa-info-circle"></i>'+phead+' '+$.i18n("conf_helptable_expl");
+	phead = '<svg data-src="svg/help_table_icon.svg" fill="#FFE810" class="svg4hyperhdr"></svg>' +phead + ' '+$.i18n("conf_helptable_expl");
 
 	table.className = 'table table-hover borderless';
 
@@ -905,8 +951,6 @@ function createHelpTable(list, phead){
 			// break one iteration (in the loop), if the schema has the entry hidden=true
 			if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
 				continue;
-			if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
-				continue;
 			var text = list[key].title.replace('title', 'expl');
 			table.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
@@ -917,8 +961,6 @@ function createHelpTable(list, phead){
 				{
 					// break one iteration (in the loop), if the schema has the entry hidden=true
 					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
-						continue;
-					if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
 						continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
 					table.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
@@ -1070,8 +1112,8 @@ function handleDarkMode()
 	$('aside').addClass('dark-mode');	
 
 	setStorage("darkMode", "on", false);
-	$('#btn_darkmode_icon').removeClass('fa-moon-o');
-	$('#btn_darkmode_icon').addClass('fa-sun-o');
+	$('#btn_darkmode_moon_icon').addClass('d-none');
+	$('#btn_darkmode_sun_icon').removeClass('d-none');
 }
 
 function handleLightMode()
@@ -1080,6 +1122,6 @@ function handleLightMode()
 	$('aside').removeClass('dark-mode');	
 
 	setStorage("darkMode", "on", false);
-	$('#btn_darkmode_icon').addClass('fa-moon-o');
-	$('#btn_darkmode_icon').removeClass('fa-sun-o');
+	$('#btn_darkmode_moon_icon').removeClass('d-none');
+	$('#btn_darkmode_sun_icon').addClass('d-none');
 }

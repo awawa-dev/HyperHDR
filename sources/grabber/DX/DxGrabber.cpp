@@ -342,10 +342,10 @@ bool DxGrabber::init_device(QString selectedDeviceName)
 						{
 							switch (driverType)
 							{
-							case D3D_DRIVER_TYPE_HARDWARE: Info(_log, "Selected D3D_DRIVER_TYPE_HARDWARE"); break;
-							case D3D_DRIVER_TYPE_WARP: Info(_log, "Selected D3D_DRIVER_TYPE_WARP"); break;
-							case D3D_DRIVER_TYPE_REFERENCE: Info(_log, "Selected D3D_DRIVER_TYPE_REFERENCE"); break;
-							case D3D_DRIVER_TYPE_UNKNOWN: Info(_log, "Selected D3D_DRIVER_TYPE_UNKNOWN"); break;
+								case D3D_DRIVER_TYPE_HARDWARE: Info(_log, "Selected D3D_DRIVER_TYPE_HARDWARE"); break;
+								case D3D_DRIVER_TYPE_WARP: Info(_log, "Selected D3D_DRIVER_TYPE_WARP"); break;
+								case D3D_DRIVER_TYPE_REFERENCE: Info(_log, "Selected D3D_DRIVER_TYPE_REFERENCE"); break;
+								case D3D_DRIVER_TYPE_UNKNOWN: Info(_log, "Selected D3D_DRIVER_TYPE_UNKNOWN"); break;
 							}
 							break;
 						}
@@ -540,7 +540,7 @@ void DxGrabber::alternativeCaching(bool alternative)
 	_alternative = alternative;
 
 	if (_alternative)
-	{		
+	{
 		connect(this, &Grabber::newFrame, this, &DxGrabber::cacheHandler, Qt::UniqueConnection);
 	}
 	else

@@ -1,8 +1,6 @@
-var storedAccess;
 var storedLang;
 var availLang = ['cs','de','en','es','fr','it','nl','pl','ro','sv','vi','ru','tr','zh-CN'];
 var availLangText = ['Čeština', 'Deutsch', 'English', 'Español', 'Français', 'Italiano', 'Nederlands', 'Polski', 'Română', 'Svenska', 'Tiếng Việt', 'Русский', 'Türkçe', '汉语'];
-var availAccess = ['default','advanced','expert'];
 //$.i18n.debug = true;
 
 //Change Password
@@ -19,7 +17,7 @@ function changePassword(){
 
 		requestChangePassword(oldPw, newPw);
 
-		$('#modal_dialog_rename').modal('toggle');
+		$('#new_modal_dialog').modal('toggle');
 	});
 
 
@@ -68,48 +66,11 @@ $(document).ready( function() {
 	{
 		showInfoDialog('warning', "Can't store settings", "Your browser doesn't support localStorage. You can't save a specific language setting (fallback to 'auto detection') and access level (fallback to 'default'). Some wizards may be hidden. You could still use the webinterface without further issues");
 		initTrans('auto');
-		storedLang = 'auto';
-		storedAccess = "default";
+		storedLang = 'auto';		
 		$('#btn_setlang').attr("disabled", true);
-		$('#btn_setaccess').attr("disabled", true);
 	}
 
 	initLanguageSelection();
-
-	//access
-	storedAccess = getStorage("accesslevel");
-	if (storedAccess == null)
-	{
-		setStorage("accesslevel", "default");
-		storedAccess = "default";
-	}
-
-	$('#btn_setaccess').off().on('click',function() {
-		var newAccess;
-		showInfoDialog('select', $.i18n('InfoDialog_access_title'), $.i18n('InfoDialog_access_text'));
-
-		for (var lcx = 0; lcx<availAccess.length; lcx++)
-		{
-			$('#id_select').append(createSelOpt(availAccess[lcx], $.i18n('general_access_'+availAccess[lcx])));
-		}
-
-		$('#id_select').val(storedAccess);
-
-		$('#id_select').off().on('change',function() {
-			newAccess = $('#id_select').val();
-			if (newAccess == storedAccess)
-				$('#id_btn_saveset').attr('disabled', true);
-			else
-				$('#id_btn_saveset').attr('disabled', false);
-		});
-
-		$('#id_btn_saveset').off().on('click',function() {
-			setStorage("accesslevel", newAccess);
-			reload();
-		});
-
-		$('#id_select').trigger('change');
-	});
 
 	// change pw btn
 	$('#btn_changePassword').off().on('click',function() {
@@ -120,35 +81,7 @@ $(document).ready( function() {
 	$('#btn_lock_ui').off().on('click',function() {
 		removeStorage('loginToken', true);
 		location.replace('/');
-	});
-
-	//hide menu elements
-	if (storedAccess != 'expert')
-		$('#load_webconfig').toggle(false);
-
-
-	// instance switcher
-	$('#btn_instanceswitch').off().on('click',function() {
-		var lsys = window.sysInfo.system.hostName+':'+window.serverConfig.webConfig.port;
-		showInfoDialog('iswitch', $.i18n('InfoDialog_iswitch_title'), $.i18n('InfoDialog_iswitch_text'));
-
-		for (var i = 0; i<window.wSess.length; i++)
-		{
-			if(lsys != window.wSess[i].host+':'+window.wSess[i].port)
-			{
-				var hyperhdrAddress = window.wSess[i].address;
-				if(hyperhdrAddress.indexOf(':') > -1 && hyperhdrAddress.length == 36) hyperhdrAddress = '['+hyperhdrAddress+']';
-				hyperhdrAddress = 'http://'+hyperhdrAddress+':'+window.wSess[i].port;
-				$('#id_select').append(createSelOpt(hyperhdrAddress, window.wSess[i].name));
-			}
-		}
-
-		$('#id_btn_saveset').off().on('click',function() {
-			$("#loading_overlay").addClass("overlay");
-			window.location.href = $('#id_select').val();
-		});
-
-	});
+	});	
 });
 
 function compareHyperHdrVersion(compareA, compareB)

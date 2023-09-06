@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Aktion",
   "conf_general_inst_delreq_h": "LED-Hardware-Instanz löschen",
   "conf_general_inst_delreq_t": "Möchten Sie die Instanz \"$1\" wirklich löschen? Alle Einstellungen werden ebenfalls gelöscht.",
-  "conf_general_inst_desc": "Verwenden Sie unterschiedliche LED-Hardware gleichzeitig. Jede Instanz läuft unabhängig voneinander, was unterschiedliche LED-Layouts und Kalibrierungseinstellungen ermöglicht. Laufende Instanzen sind über das Symbol <i class='fa fa-exchange fa-fw'></i> auf der linken Seite verfügbar",
+  "conf_general_inst_desc": "Verwenden Sie unterschiedliche LED-Hardware gleichzeitig. Jede Instanz läuft unabhängig voneinander, was unterschiedliche LED-Layouts und Kalibrierungseinstellungen ermöglicht. Laufende Instanzen sind über das Symbol <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> auf der linken Seite verfügbar",
   "conf_general_inst_name_title": "Neuer Instanzname",
   "conf_general_inst_namehead": "Instanzname",
   "conf_general_inst_renreq_t": "Geben Sie in das Feld unten einen neuen Namen für Ihre Instanz ein.",

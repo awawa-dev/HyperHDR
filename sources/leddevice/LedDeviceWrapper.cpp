@@ -78,14 +78,14 @@ void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool
 	{
 		if (state)
 		{
-			QMetaObject::invokeMethod(_ledDevice, "enable");
+			QUEUE_CALL_0(_ledDevice, enable);
 		}
 		else
 		{
-			QMetaObject::invokeMethod(_ledDevice, "disable");
+			QUEUE_CALL_0(_ledDevice, disable);
 		}
 
-		QMetaObject::invokeMethod(_ledDevice, "componentState", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _enabled));
+		SAFE_CALL_0_RET(_ledDevice, componentState, bool, _enabled);
 	}
 }
 
@@ -117,23 +117,28 @@ void LedDeviceWrapper::stopDeviceThread()
 	_ledDevice = nullptr;
 }
 
-QString LedDeviceWrapper::getActiveDeviceType() const
-{
-	QString value = 0;
-	QMetaObject::invokeMethod(_ledDevice, "getActiveDeviceType", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
-	return value;
-}
-
 unsigned int LedDeviceWrapper::getLedCount() const
 {
 	int value = 0;
-	QMetaObject::invokeMethod(_ledDevice, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
+	SAFE_CALL_0_RET(_ledDevice, getLedCount, int, value);
+	return value;
+}
+
+QString LedDeviceWrapper::getActiveDeviceType() const
+{
+	QString value = 0;
+	SAFE_CALL_0_RET(_ledDevice, getActiveDeviceType, QString, value);
 	return value;
 }
 
 bool LedDeviceWrapper::enabled() const
 {
 	return _enabled;
+}
+
+void LedDeviceWrapper::identifyLed(const QJsonObject& params)
+{
+	QUEUE_CALL_1(_ledDevice, blinking, QJsonObject, params);
 }
 
 int LedDeviceWrapper::addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr)
@@ -144,7 +149,6 @@ int LedDeviceWrapper::addToDeviceMap(QString name, LedDeviceCreateFuncType funcP
 
 	return 0;
 }
-
 
 const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 {
@@ -186,14 +190,4 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 	}
 
 	return result;
-}
-
-void LedDeviceWrapper::identifyLed(const QJsonObject& params)
-{	
-	QMetaObject::invokeMethod(_ledDevice, [=]() {
-		if (params["blinkIndex"].toInt(-1) != -1)
-			_ledDevice->identifyLed(params);
-		else
-			_ledDevice->identify(params);
-	});
 }

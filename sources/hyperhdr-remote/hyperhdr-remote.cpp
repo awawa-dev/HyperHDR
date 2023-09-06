@@ -95,10 +95,7 @@ int main(int argc, char* argv[])
 		ColorsOption&     argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all LEDs to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageOption&      argImage              = parser.add<ImageOption>  ('i', "image"                  , "Set the LEDs to the colors according to the given image file");
 		Option&           argEffect             = parser.add<Option>       ('e', "effect"                 , "Enable the effect with the given name");
-		Option&           argEffectFile         = parser.add<Option>       (0x0, "effectFile"             , "Arguments to use in combination with --createEffect");
 		Option&           argEffectArgs         = parser.add<Option>       (0x0, "effectArgs"             , "Arguments to use in combination with the specified effect. Should be a JSON object string.", "");
-		Option&           argCreateEffect       = parser.add<Option>       (0x0, "createEffect"           , "Write a new JSON Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
-		Option&           argDeleteEffect       = parser.add<Option>       (0x0, "deleteEffect"           , "Delete a custom created JSON Effect configuration file.");
 		BooleanOption&    argServerInfo         = parser.add<BooleanOption>('l', "list"                   , "List server info and active effects with priority and duration");
 		BooleanOption&    argSysInfo            = parser.add<BooleanOption>('s', "sysinfo"                , "show system info");
 		BooleanOption&    argClear              = parser.add<BooleanOption>('x', "clear"                  , "Clear data for the priority channel provided by the -p option");
@@ -149,7 +146,7 @@ int main(int argc, char* argv[])
 			|| parser.isSet(argBacklightThreshold) || parser.isSet(argBacklightColored) || parser.isSet(argLumAdjust) || parser.isSet(argSatAdjust) || parser.isSet(argTempAdjust);
 
 		// check that exactly one command was given
-		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect),
+		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect),
 			parser.isSet(argServerInfo), parser.isSet(argSysInfo),parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
 			parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
 			parser.isSet(argMapping), parser.isSet(argHdr) });
@@ -159,8 +156,6 @@ int main(int argc, char* argv[])
 			showHelp(argColor);
 			showHelp(argImage);
 			showHelp(argEffect);
-			showHelp(argCreateEffect);
-			showHelp(argDeleteEffect);
 			showHelp(argServerInfo);
 			showHelp(argSysInfo);
 			showHelp(argClear);
@@ -233,14 +228,6 @@ int main(int argc, char* argv[])
 		else if (parser.isSet(argEffect))
 		{
 			connection.setEffect(argEffect.value(parser), argEffectArgs.value(parser), argPriority.getInt(parser), argDuration.getInt(parser));
-		}
-		else if (parser.isSet(argCreateEffect))
-		{
-			connection.createEffect(argCreateEffect.value(parser), argEffectFile.value(parser), argEffectArgs.value(parser));
-		}
-		else if (parser.isSet(argDeleteEffect))
-		{
-			connection.deleteEffect(argDeleteEffect.value(parser));
 		}
 		else if (parser.isSet(argServerInfo))
 		{

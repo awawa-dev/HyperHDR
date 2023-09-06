@@ -39,6 +39,7 @@
 #include <utils/Image.h>
 #include <base/HyperHdrIManager.h>
 #include <iostream>
+#include <QThread>
 #import <Cocoa/Cocoa.h>
 
 
@@ -70,13 +71,13 @@
 
 - (void)goingSleep: (NSNotification*)note
 {
-	QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, false));
+	AUTO_CALL_1(HyperHdrIManager::getInstance(), hibernate, bool, false)
 }
 
 
 - (void)goingWake: (NSNotification*)note
 {
-	QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, true));
+	AUTO_CALL_1(HyperHdrIManager::getInstance(), hibernate, bool, true)
 }
 
 @end

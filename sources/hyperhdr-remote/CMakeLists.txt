@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0.0)
 project(hyperhdr-remote)
 
 # The following I do not understand completely...

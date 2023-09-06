@@ -14,6 +14,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <atomic>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -144,6 +145,8 @@ public:
 	///
 	static void printLedValues(const std::vector<ColorRgb>& ledValues);
 
+	static void signalTerminateTriggered();
+
 public slots:
 
 	///
@@ -227,6 +230,8 @@ public slots:
 	/// @return True, if success
 	///
 	virtual bool switchOff();
+
+	void blinking(QJsonObject params);
 
 signals:
 	///
@@ -388,6 +393,8 @@ protected:
 	bool	_retryMode;
 	int		_maxRetry;
 	int		_currentRetry;
+
+	static std::atomic<bool> _signalTerminate;
 
 protected slots:
 

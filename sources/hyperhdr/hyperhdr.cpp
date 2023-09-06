@@ -18,6 +18,7 @@
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 #include <utils/Image.h>
+#include <leddevice/LedDevice.h>
 
 #include <HyperhdrConfig.h> // Required to determine the cmake options
 
@@ -29,7 +30,7 @@
 
 // bonjour browser
 #ifdef ENABLE_BONJOUR
-#include <bonjour/bonjourbrowserwrapper.h>
+#include <bonjour/DiscoveryWrapper.h>
 #endif
 
 #include <jsonserver/JsonServer.h>
@@ -83,7 +84,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _instanceManager(new HyperHdrIManager(rootPath, this, readonlyMode))
 	, _authManager(new AuthManager(this, readonlyMode))
 #ifdef ENABLE_BONJOUR
-	, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
+	, _bonjourBrowserWrapper(new DiscoveryWrapper())
 #endif
 	, _netOrigin(new NetOrigin(this))
 	, _webserver(nullptr)
@@ -218,6 +219,8 @@ QJsonDocument HyperHdrDaemon::getSetting(settings::type type) const
 void HyperHdrDaemon::freeObjects()
 {
 	Debug(_log, "Cleaning up HyperHdr before quit.");
+
+	LedDevice::signalTerminateTriggered();
 
 	// unload cec
 	unloadCEC();
