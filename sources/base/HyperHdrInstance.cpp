@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QThread>
+#include <QPair>
 
 #include <HyperhdrConfig.h>
 
@@ -51,6 +52,7 @@ class BoblightServer {};
 #endif
 
 #include <utils/RawUdpServer.h>
+#include <utils/ColorSys.h>
 
 
 
@@ -78,7 +80,7 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, QString n
 	, _globalLedBuffer(_ledString.leds().size(), ColorRgb::BLACK)
 	, _boblightServer(nullptr)
 	, _rawUdpServer(nullptr)
-	, _name((name.isEmpty()) ? QString("INSTANCE%1").arg(instance):name)
+	, _name((name.isEmpty()) ? QString("INSTANCE%1").arg(instance) : name)
 	, _readOnlyMode(readonlyMode)
 
 {
@@ -163,9 +165,7 @@ void HyperHdrInstance::start()
 
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = new EffectEngine(this);
-	connect(_effectEngine, &EffectEngine::effectListUpdated, this, &HyperHdrInstance::effectListUpdated);
-
-
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, _effectEngine, &EffectEngine::visiblePriorityChanged);
 
 	// handle background effect
 	_BGEffectHandler = new BGEffectHandler(this);
@@ -281,7 +281,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		{
 			Info(_log, "New RGB order is: %s", QSTRING_CSTR(dev["colorOrder"].toString("rgb")));
 			_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(dev));
-			_imageProcessor->setLedString(_ledString);			
+			_imageProcessor->setLedString(_ledString);
 		}
 
 		// do always reinit until the led devices can handle dynamic changes
@@ -315,17 +315,40 @@ void HyperHdrInstance::setSmoothing(int time)
 	_smoothing->updateCurrentConfig(time);
 }
 
+QJsonObject HyperHdrInstance::getAverageColor()
+{
+	QJsonObject ret;
+
+	auto copy = _globalLedBuffer;
+	long red = 0, green = 0, blue = 0, count = 0;
+
+	for (const ColorRgb& c : copy)
+	{
+		red += c.red;
+		green += c.green;
+		blue += c.blue;
+
+		count++;
+	}
+
+	if (!_ledDeviceWrapper->enabled())
+	{
+		red = green = blue = 0;
+	}
+
+	if (count > 0)
+	{
+		ret["red"] = static_cast<int>(red / count);
+		ret["green"] = static_cast<int>(green / count);
+		ret["blue"] = static_cast<int>(blue / count);
+	}
+
+	return ret;
+}
+
 unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
 {
-	unsigned retVal = id;
-
-	if (QThread::currentThread() == _smoothing->thread())
-		return _smoothing->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
-	else
-		QMetaObject::invokeMethod(_smoothing, "updateConfig",Qt::ConnectionType::BlockingQueuedConnection,
-			Q_RETURN_ARG(unsigned, retVal), Q_ARG(unsigned, id), Q_ARG(int, settlingTime_ms), Q_ARG(double, ledUpdateFrequency_hz), Q_ARG(bool, directMode));
-	
-	return retVal;
+	return _smoothing->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
 }
 
 int HyperHdrInstance::getLedCount() const
@@ -367,6 +390,11 @@ void HyperHdrInstance::setNewComponentState(hyperhdr::Components component, bool
 			emit PerformanceCounters::getInstance()->newCounter(PerformanceReport(static_cast<int>(PerformanceReportType::LED), -1, "", -1, -1, -1, -1, getInstanceIndex()));
 		else
 			emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::LED), getInstanceIndex());
+
+		if (GrabberWrapper::getInstance() != nullptr)
+		{
+			emit GrabberWrapper::getInstance()->instancePauseChanged(_instIndex, state);
+		}
 	}
 }
 
@@ -442,7 +470,7 @@ bool HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image,
 		// if this priority is visible, update immediately
 		if (priority == _muxer.getCurrentPriority())
 		{
-			if (isImage)			
+			if (isImage)
 				emit _imageProcessingUnit->queueImageSignal(priority, image);
 			else
 				update();
@@ -562,26 +590,12 @@ PriorityMuxer::InputInfo HyperHdrInstance::getCurrentPriorityInfo()
 
 std::list<EffectDefinition> HyperHdrInstance::getEffects() const
 {
-	std::list<EffectDefinition> result;
-
-	if (QThread::currentThread() == _effectEngine->thread())
-		result = _effectEngine->getEffects();
-	else
-		QMetaObject::invokeMethod(_effectEngine, "getEffects", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(std::list<EffectDefinition>, result));
-
-	return result;
+	return _effectEngine->getEffects();
 }
 
 std::list<ActiveEffectDefinition> HyperHdrInstance::getActiveEffects() const
 {
-	std::list<ActiveEffectDefinition> result;
-
-	if (QThread::currentThread() == _effectEngine->thread())
-		result = _effectEngine->getActiveEffects();
-	else
-		QMetaObject::invokeMethod(_effectEngine, "getActiveEffects", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(std::list<ActiveEffectDefinition>, result));
-
-	return result;
+	return _effectEngine->getActiveEffects();
 }
 
 QJsonObject HyperHdrInstance::getQJsonConfig() const
@@ -635,10 +649,10 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 	Info(_log, "New priority[%d], previous [%d]", priority, previousPriority);
 	if (priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Error(_log, "No source left -> switch LED-Device off");
+		Warning(_log, "No source left -> switch LED-Device off");
 
 		emit compStateChangeRequest(hyperhdr::COMP_LEDDEVICE, false);
-		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());		
+		emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::INSTANCE), getInstanceIndex());
 	}
 	else
 	{
@@ -665,6 +679,12 @@ void HyperHdrInstance::update()
 	emit _imageProcessingUnit->dataReadySignal(priorityInfo.ledColors);
 }
 
+void HyperHdrInstance::requestForColors()
+{
+	const PriorityMuxer::InputInfo& priorityInfo = _muxer.getInputInfo(_muxer.getCurrentPriority());
+	emit _imageProcessingUnit->dataReadySignal(priorityInfo.ledColors);
+}
+
 void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 {
 	// stats
@@ -683,8 +703,8 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 
 		if (diff >= 59000 && diff <= 65000)
 			emit PerformanceCounters::getInstance()->newCounter(
-				 PerformanceReport(static_cast<int>(PerformanceReportType::INSTANCE), _computeStats.token, _name, _computeStats.total / qMax(diff/1000.0, 1.0), _computeStats.total, 0, 0, getInstanceIndex()));
-		
+				PerformanceReport(static_cast<int>(PerformanceReportType::INSTANCE), _computeStats.token, _name, _computeStats.total / qMax(diff/1000.0, 1.0), _computeStats.total, 0, 0, getInstanceIndex()));
+
 		_computeStats.statBegin = now;
 		_computeStats.total = 1;
 	}
@@ -711,7 +731,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 		}
 
 		if (disabledProcessing == 0)
-			emit rawLedColors(_ledBuffer);	
+			emit rawLedColors(_ledBuffer);
 	}
 
 	if (_ledString.colorOrder != ColorOrder::ORDER_RGB)
@@ -775,20 +795,244 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 	}
 }
 
-
-QString HyperHdrInstance::saveEffect(const QJsonObject& obj)
-{
-	return "";
-}
-
-QString HyperHdrInstance::deleteEffect(const QString& effectName)
-{
-	return "";
-}
-
-
 void HyperHdrInstance::identifyLed(const QJsonObject& params)
 {
 	_ledDeviceWrapper->handleComponentState(hyperhdr::Components::COMP_LEDDEVICE, true);
 	_ledDeviceWrapper->identifyLed(params);
+}
+
+
+QJsonObject HyperHdrInstance::getJsonInfo(bool full)
+{
+	QJsonObject info;
+
+	uint64_t now = InternalClock::now();
+	int currentPriority = getCurrentPriority();
+	auto priorityMuxer = getMuxerInstance();
+	auto allPriorities = priorityMuxer->getInputInfoTable();
+
+	////////////////////////////////////
+	// collect priorities information //
+	////////////////////////////////////
+
+	QJsonArray priorities;
+	for (const PriorityMuxer::InputInfo& priorityInfo : allPriorities)
+		if (priorityInfo.priority != PriorityMuxer::LOWEST_PRIORITY)
+		{
+			QJsonObject item;
+			item["priority"] = priorityInfo.priority;
+			if (priorityInfo.timeoutTime_ms > 0)
+				item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+
+			// owner has optional informations to the component
+			if (!priorityInfo.owner.isEmpty())
+				item["owner"] = priorityInfo.owner;
+
+			item["componentId"] = QString(hyperhdr::componentToIdString(priorityInfo.componentId));
+			item["origin"] = priorityInfo.origin;
+			item["active"] = (priorityInfo.timeoutTime_ms >= -1);
+			item["visible"] = (priorityInfo.priority == currentPriority);
+
+			if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
+			{
+				QJsonObject LEDcolor;
+
+				// add RGB Value to Array
+				QJsonArray RGBValue;
+				RGBValue.append(priorityInfo.ledColors.begin()->red);
+				RGBValue.append(priorityInfo.ledColors.begin()->green);
+				RGBValue.append(priorityInfo.ledColors.begin()->blue);
+				LEDcolor.insert("RGB", RGBValue);
+
+				uint16_t Hue;
+				float Saturation, Luminace;
+
+				// add HSL Value to Array
+				QJsonArray HSLValue;
+				ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+					priorityInfo.ledColors.begin()->green,
+					priorityInfo.ledColors.begin()->blue,
+					Hue, Saturation, Luminace);
+
+				HSLValue.append(Hue);
+				HSLValue.append(Saturation);
+				HSLValue.append(Luminace);
+				LEDcolor.insert("HSL", HSLValue);
+
+				item["value"] = LEDcolor;
+			}
+
+
+			(priorityInfo.priority == currentPriority)
+				? priorities.prepend(item)
+				: priorities.append(item);
+		}
+
+	info["priorities"] = priorities;
+	info["priorities_autoselect"] = sourceAutoSelectEnabled();
+
+	if (!full)
+		return info;
+
+	////////////////////////////////////
+	// collect adjustment information //
+	////////////////////////////////////
+
+	QJsonArray adjustmentArray;
+	for (const QString& adjustmentId : getAdjustmentIds())
+	{
+		const ColorAdjustment* colorAdjustment = getAdjustment(adjustmentId);
+		if (colorAdjustment == nullptr)
+		{
+			Error(_log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
+			continue;
+		}
+
+		QJsonObject adjustment;
+		adjustment["id"] = adjustmentId;
+
+		QList<QPair<QString, const RgbChannelAdjustment*>> calibColors;
+		calibColors.append(qMakePair(QString("white"),	&(colorAdjustment->_rgbWhiteAdjustment)));
+		calibColors.append(qMakePair(QString("red"),	&(colorAdjustment->_rgbRedAdjustment)));
+		calibColors.append(qMakePair(QString("green"),	&(colorAdjustment->_rgbGreenAdjustment)));
+		calibColors.append(qMakePair(QString("blue"),	&(colorAdjustment->_rgbBlueAdjustment)));
+		calibColors.append(qMakePair(QString("cyan"),	&(colorAdjustment->_rgbCyanAdjustment)));
+		calibColors.append(qMakePair(QString("magenta"),&(colorAdjustment->_rgbMagentaAdjustment)));
+		calibColors.append(qMakePair(QString("yellow"),	&(colorAdjustment->_rgbYellowAdjustment)));
+
+		for (const QPair<QString, const RgbChannelAdjustment*>& myElemCalib : calibColors)
+		{
+			QJsonArray adj;
+			adj.append(myElemCalib.second->getAdjustmentR());
+			adj.append(myElemCalib.second->getAdjustmentG());
+			adj.append(myElemCalib.second->getAdjustmentB());
+			adjustment.insert(myElemCalib.first, adj);
+		}
+
+		adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
+		adjustment["backlightColored"] = colorAdjustment->_rgbTransform.getBacklightColored();
+		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
+		adjustment["brightnessCompensation"] = colorAdjustment->_rgbTransform.getBrightnessCompensation();
+		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
+		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
+		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
+		adjustment["temperatureRed"] = colorAdjustment->_rgbRedAdjustment.getCorrection();
+		adjustment["temperatureGreen"] = colorAdjustment->_rgbGreenAdjustment.getCorrection();
+		adjustment["temperatureBlue"] = colorAdjustment->_rgbBlueAdjustment.getCorrection();
+		adjustment["saturationGain"] = colorAdjustment->_rgbTransform.getSaturationGain();
+		adjustment["luminanceGain"] = colorAdjustment->_rgbTransform.getLuminanceGain();
+		adjustment["classic_config"] = colorAdjustment->_rgbTransform.getClassicConfig();
+
+		adjustmentArray.append(adjustment);
+	}
+	info["adjustment"] = adjustmentArray;
+
+	////////////////////////////////////
+	//   collect effect information   //
+	////////////////////////////////////
+
+	QJsonArray effects;
+	std::list<EffectDefinition> effectsDefinitions = getEffects();
+
+	for (const EffectDefinition& effectDefinition : effectsDefinitions)
+	{
+		QJsonObject effect;
+		effect["name"] = effectDefinition.name;
+		effect["args"] = effectDefinition.args;
+		effects.append(effect);
+	}
+	info["effects"] = effects;
+
+	////////////////////////////////////
+	//    collect running effects     //
+	////////////////////////////////////
+
+	QJsonArray activeEffects;
+	std::list<ActiveEffectDefinition> activeEffectDefinitionList = getActiveEffects();
+
+	for (const ActiveEffectDefinition& activeEffectDefinition : activeEffectDefinitionList)
+	{
+		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY - 1)
+		{
+			QJsonObject activeEffect;
+			activeEffect["name"] = activeEffectDefinition.name;
+			activeEffect["priority"] = activeEffectDefinition.priority;
+			activeEffect["timeout"] = activeEffectDefinition.timeout;
+			activeEffect["args"] = activeEffectDefinition.args;
+			activeEffects.append(activeEffect);
+		}
+	}
+	info["activeEffects"] = activeEffects;
+
+	////////////////////////////////////
+	//       collect led colors       //
+	////////////////////////////////////
+
+	QJsonArray activeLedColors;
+	const HyperHdrInstance::InputInfo& priorityInfo = getPriorityInfo(currentPriority);
+	if (priorityInfo.componentId == hyperhdr::COMP_COLOR && !priorityInfo.ledColors.empty())
+	{
+		QJsonObject LEDcolor;
+		// check if LED Color not Black (0,0,0)
+		if ((priorityInfo.ledColors.begin()->red +
+			priorityInfo.ledColors.begin()->green +
+			priorityInfo.ledColors.begin()->blue !=
+			0))
+		{
+			QJsonObject LEDcolor;
+
+			// add RGB Value to Array
+			QJsonArray RGBValue;
+			RGBValue.append(priorityInfo.ledColors.begin()->red);
+			RGBValue.append(priorityInfo.ledColors.begin()->green);
+			RGBValue.append(priorityInfo.ledColors.begin()->blue);
+			LEDcolor.insert("RGB Value", RGBValue);
+
+			uint16_t Hue;
+			float Saturation, Luminace;
+
+			// add HSL Value to Array
+			QJsonArray HSLValue;
+			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+				priorityInfo.ledColors.begin()->green,
+				priorityInfo.ledColors.begin()->blue,
+				Hue, Saturation, Luminace);
+
+			HSLValue.append(Hue);
+			HSLValue.append(Saturation);
+			HSLValue.append(Luminace);
+			LEDcolor.insert("HSL Value", HSLValue);
+
+			activeLedColors.append(LEDcolor);
+		}
+	}
+	info["activeLedColor"] = activeLedColors;
+
+	///////////////////////////////////////
+	//    collect vailable components    //
+	///////////////////////////////////////
+
+	QJsonArray component;
+	std::map<hyperhdr::Components, bool> components = getComponentRegister().getRegister();
+	for (auto comp : components)
+	{
+		QJsonObject item;
+		item["name"] = QString::fromStdString(hyperhdr::componentToIdString(comp.first));
+		item["enabled"] = comp.second;
+
+		component.append(item);
+	}
+	info["components"] = component;
+
+	////////////////
+	//    MISC    //
+	////////////////
+
+	// add leds configs
+	info["leds"] = getSetting(settings::type::LEDS).array();
+
+	// mapping type
+	info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(getLedMappingType());
+
+	return info;
 }

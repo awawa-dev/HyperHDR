@@ -130,7 +130,7 @@ $(document).ready(function ()
 
 	function renderReport()
 	{
-		const waitingSpinner = '<i class="fa fa-spinner fa-spin ms-1"></i> ' + $.i18n("perf_please_wait");
+		const waitingSpinner = '<svg data-src="svg/spinner_small.svg" fill="currentColor" class="svg4hyperhdr ms-1"></svg>' + $.i18n("perf_please_wait");
 		const fpsTag = '<span class="card-tools"><span class="badge bg-secondary" style="font-weight: normal;">fps</span></span>';
 
 		for (var i = 0; i < performance.length; i++)
@@ -145,8 +145,8 @@ $(document).ready(function ()
 			if (curElem.type == 1)
 			{
 				let render = (curElem.token <= 0) ? waitingSpinner :
-					`<span class="card-tools"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span>` +
-					` <small>&nbsp;${curElem.param2}ms</small> <i class="fa fa-clock-o" aria-hidden="true"></i> <small>${curElem.param3}</small> <i class="fa fa-long-arrow-down" aria-hidden="true"></i><i class="fa fa-long-arrow-up" aria-hidden="true"></i>`+
+					`<span class="card-tools"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(1)} fps</span></span>` +
+					` <small>&nbsp;${curElem.param2}ms</small><svg data-src="svg/performance_clock.svg" fill="currentColor" class="svg4hyperhdr ms-1 me-2"></svg><small>${curElem.param3}</small><svg data-src="svg/performance_two_ways.svg" fill="currentColor" class="svg4hyperhdr ms-0 me-0"></svg>`+
 					((curElem.param4 != 0)?`, ${$.i18n("perf_invalid_frames")}: <small>${curElem.param4}</small>`:``);
 				render += ` <span class='perf_counter small text-muted'>(${curElem.refresh})</span>`;
 
@@ -186,12 +186,12 @@ $(document).ready(function ()
 					{
 						let warningM = "";
 						if (curElem.param4 > 0)
-						 	warningM = ` <small>${curElem.param4}</small> <i class="fa fa-trash" aria-hidden="true"></i>`;
+						 	warningM = ` <small>${curElem.param4}</small><svg data-src="svg/trash.svg" fill="currentColor" class="svg4hyperhdr"></svg>`;
 						if (curElem.param4 > 120)
 							warningM = `<span style="color:red">${warningM}</span>`;
 						let render = (curElem.token <= 0) ? ((curElem.type == 2) ? `<span class="card-tools"><span class="badge bg-danger" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span>&nbsp;` : "") + waitingSpinner : (curElem.type == 2) ?
-							`<span class="card-tools"><span class="badge bg-danger" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param2}</small> <i class="fa fa-long-arrow-down" aria-hidden="true"></i><i class="fa fa-long-arrow-up" aria-hidden="true"></i>` :
-							`<span class="card-tools"><span class="badge bg-success" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(2)} fps</span></span> <small>${curElem.param3} </small><i class="fa fa-long-arrow-down" aria-hidden="true"></i>  <small>${curElem.param2}</small> <i class="fa fa-long-arrow-up" aria-hidden="true"></i>${warningM}`;
+							`<span class="card-tools"><span class="badge bg-danger" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(1)} fps</span></span> <small>${curElem.param2}</small><svg data-src="svg/performance_two_ways.svg" fill="currentColor" class="svg4hyperhdr ms-0 me-0"></svg>` :
+							`<span class="card-tools"><span class="badge bg-success" style="font-size: 1em;font-weight: normal;">${curElem.name}</span></span> <span class="card-tools me-1"><span class="badge bg-secondary" style="font-size: 1em;font-weight: normal;">${curElem.param1.toFixed(1)} fps</span></span> <small>${curElem.param3}</small><svg data-src="svg/performance_in.svg" style="width:8px;top:0px;" fill="currentColor" class="svg4hyperhdr ms-0 me-0"></svg> <small>${curElem.param2}</small><svg data-src="svg/performance_out.svg" style="width:8px;top:-2.5px;" fill="currentColor" class="svg4hyperhdr ms-0 me-0"></svg>${warningM}`;
 						render += ` <span class='perf_counter small text-muted'>(${curElem.refresh})</span>`;
 						placer.innerHTML = render;
 					}
@@ -256,7 +256,7 @@ $(document).ready(function ()
 				let holderVOLTAGE = document.getElementById("perf_undervoltage");
 				if (holderVOLTAGE != null)
 				{
-					holderVOLTAGE.innerHTML = (curElem.name != "1") ? "<font color='ForestGreen'><b>" + $.i18n('perf_no') + "</b></font>" : "<font color='red'><b>" + $.i18n('general_btn_yes') + "</b>&nbsp;<i class='fa fa-exclamation-triangle' aria-hidden='true'></i></font>";
+					holderVOLTAGE.innerHTML = (curElem.name != "1") ? "<span class='stats-report-ok fw-bold'>" + $.i18n('perf_no') + "</span>" : "<span class='stats-report-error fw-bold'>" + $.i18n('general_btn_yes') + "</span>" + '<svg data-src="svg/performance_undervoltage.svg" class="svg4hyperhdr ms-1"></svg>';
 				}
 				holderVOLTAGE = document.getElementById("perf_cell_undervoltage");
 				if (holderVOLTAGE != null)
@@ -275,11 +275,14 @@ $(document).ready(function ()
 	function updateComponents()
 	{
 		var components = window.comps;
-		var components_html = "";
+		var components_html = '<div class="row border-bottom hyperhdr-vcenter text-primary" style="height:3em;">'+
+								'<div class="col-9 col-md-8 fw-bold ps-3" data-i18n="dashboard_componentbox_label_comp">Component</div>'+
+								'<div class="col-3 col-md-4 fw-bold text-center" data-i18n="dashboard_componentbox_label_status">Status</div>'+
+							  '</div>';
 		for (var idx = 0; idx < components.length; idx++)
 		{
 			if (components[idx].name != "ALL" && components[idx].name != "GRABBER")
-				components_html += '<tr><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="padding-left: 1.5em;"><i class="fa fa-circle component-' + (components[idx].enabled ? "on" : "off") + '"></i></td></tr>';
+				components_html += `<div class="row border-bottom hyperhdr-vcenter" style="height:3em;"><div class="col-9 col-md-8 ps-4 ${(components[idx].enabled ? "" : "text-muted")}">${$.i18n('general_comp_' + components[idx].name)}</div><div class="col-3 col-md-4 text-center"><svg data-src="svg/overview_component_${(components[idx].enabled ? "on" : "off")}.svg" fill="currentColor" class="svg4hyperhdr top-0 ps-1"></svg></div></div>`;
 		}
 		$("#tab_components").html(components_html);
 
@@ -299,6 +302,39 @@ $(document).ready(function ()
 		$('#dash_statush').html(hyperhdr_enabled ? '<span style="color:green">' + $.i18n('general_btn_on') + '</span>' : '<span style="color:red">' + $.i18n('general_btn_off') + '</span>');
 		$('#btn_hsc').html(hyperhdr_enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">' + $.i18n('dashboard_infobox_label_disableh', instancename) + '</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">' + $.i18n('dashboard_infobox_label_enableh', instancename) + '</button>');
 	}
+
+	function updateNetworkServices()
+	{
+		let networkSessions = window.serverInfo.sessions;
+		if (networkSessions == null || networkSessions.length == 0)
+		{
+			$('#device_discovery_panel').addClass('d-none');
+			return;
+		}
+
+		var networkSessions_html =
+					'<div class="row border-bottom text-primary hyperhdr-vcenter" style="min-height:3em;">'+
+						'<div class="col-4 col-md-3 fw-bold ps-1 ps-md-4 pe-2 pe-md-1" data-i18n="edt_conf_stream_device_title">Device</div>'+
+						'<div class="col-4 col-md-4 fw-bold ps-0 pe-1 pe-md-2" data-i18n="device_address">Address</div>'+
+						'<div class="col-4 col-md-5 fw-bold ps-0 pe-0 pe-md-1" data-i18n="edt_dev_spec_lights_name">Name</div>'+
+					'</div>';
+
+		for(var i = 0; i< networkSessions.length; i++)
+		{
+			let portName = (networkSessions[i].port >= 0) ? `:${networkSessions[i].port}` : "";
+
+			networkSessions_html += `<div class="row border-bottom hyperhdr-vcenter" style="min-height:3em;">`+
+										`<div class="col-4 col-md-3 ps-1 ps-md-4 pe-2 pe-md-1">${networkSessions[i].name}</div>`+
+										`<div class="col-4 col-md-4 ps-0 pe-1 pe-md-2">${networkSessions[i].address}${portName}</div>`+
+										`<div class="col-4 col-md-5 ps-0 pe-0 pe-md-1">${networkSessions[i].host}</div>`+
+									`</div>`;
+		}
+		$("#device_discovery_container").html(networkSessions_html);
+
+		$('#device_discovery_panel').removeClass('d-none');
+	}
+
+
 
 	// add more info
 	$('#dash_leddevice').html(window.serverConfig.device.type);
@@ -346,9 +382,11 @@ $(document).ready(function ()
 
 	//interval update
 	updateComponents();
+	updateNetworkServices();
 	updateGrabber();
 
 	$(window.hyperhdr).on("components-updated", updateComponents);
+	$(window.hyperhdr).off("cmd-sessions-received").on("cmd-sessions-received", updateNetworkServices);
 	$(window.hyperhdr).on("grabberstate-update", updateGrabber);
 
 	sendToHyperhdr("serverinfo", "", '"subscribe":["performance-update"]');

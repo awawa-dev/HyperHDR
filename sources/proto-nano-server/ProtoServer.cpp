@@ -37,14 +37,14 @@ void ProtoServer::initServer()
 
 void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::type::PROTOSERVER)
+	if (type == settings::type::PROTOSERVER)
 	{
 		const QJsonObject& obj = config.object();
 
 		quint16 port = obj["port"].toInt(19445);
 
 		// port check
-		if(_server->serverPort() != port)
+		if (_server->serverPort() != port)
 		{
 			stopServer();
 			_port = port;
@@ -59,11 +59,11 @@ void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument&
 
 void ProtoServer::newConnection()
 {
-	while(_server->hasPendingConnections())
+	while (_server->hasPendingConnections())
 	{
-		if(QTcpSocket * socket = _server->nextPendingConnection())
+		if (QTcpSocket* socket = _server->nextPendingConnection())
 		{
-			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
+			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
 				ProtoNanoClientConnection* client = new ProtoNanoClientConnection(socket, _timeout, this);
@@ -91,25 +91,25 @@ void ProtoServer::clientDisconnected()
 
 void ProtoServer::startServer()
 {
-	if(!_server->isListening())
+	if (!_server->isListening())
 	{
-		if(!_server->listen(QHostAddress::Any, _port))
+		if (!_server->listen(QHostAddress::Any, _port))
 		{
-		Error(_log,"Failed to bind port %d", _port);
+			Error(_log, "Failed to bind port %d", _port);
 		}
 		else
 		{
-		Info(_log,"Started on port %d", _port);
+			Info(_log, "Started on port %d", _port);
 		}
 	}
 }
 
 void ProtoServer::stopServer()
 {
-	if(_server->isListening())
+	if (_server->isListening())
 	{
 		// close client connections
-		for(const auto& client : _openConnections)
+		for (const auto& client : _openConnections)
 		{
 			client->forceClose();
 		}

@@ -18,7 +18,7 @@ public:
 	/// @param adjustR
 	/// @param adjustG
 	/// @param adjustB
-	RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName);
+	RgbChannelAdjustment(quint8 instance, uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName, bool enabled);
 
 	///
 	/// Transform the given array value
@@ -63,6 +63,8 @@ public:
 
 	uint8_t correction(uint8_t input) const;
 
+	bool isEnabled();
+
 	static RgbChannelAdjustment createRgbChannelAdjustment(quint8 instance, const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB);
 
 private:
@@ -104,4 +106,6 @@ private:
 
 	/// current brightness value
 	uint8_t _brightness;
+
+	bool _enabled;
 };

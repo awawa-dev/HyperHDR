@@ -73,7 +73,7 @@ private:
 
 	std::vector<std::shared_ptr<QAction>>  _effects;
 
-	QColorDialog* _colorDlg;
+	QColorDialog*		_colorDlg;
 
 	HyperHdrDaemon*		_hyperhdrd;
 	HyperHdrInstance*	_hyperhdr;

@@ -43,7 +43,7 @@
 #include <QDateTime>
 #include <QThread>
 
-ColorRgb LutCalibrator::primeColors[]={
+ColorRgb LutCalibrator::primeColors[] = {
 				ColorRgb(255, 0, 0), ColorRgb(0, 255, 0), ColorRgb(0, 0, 255), ColorRgb(255, 255, 0),
 				ColorRgb(255, 0, 255), ColorRgb(0, 255, 255),ColorRgb(255, 128, 0), ColorRgb(255, 0, 128), ColorRgb(0, 128, 255),
 				ColorRgb(128, 64, 0), ColorRgb(128, 0, 64),
@@ -51,7 +51,7 @@ ColorRgb LutCalibrator::primeColors[]={
 				ColorRgb(16, 16, 16), ColorRgb(32, 32, 32), ColorRgb(48, 48, 48), ColorRgb(64, 64, 64), ColorRgb(96, 96, 96), ColorRgb(120, 120, 120), ColorRgb(144, 144, 144), ColorRgb(172, 172, 172), ColorRgb(196, 196, 196), ColorRgb(220, 220, 220),
 				ColorRgb(255, 255, 255),
 				ColorRgb(0, 0, 0)
-				};
+};
 
 
 #define LUT_FILE_SIZE 50331648
@@ -82,7 +82,7 @@ LutCalibrator::LutCalibrator()
 	for (capColors selector = capColors::Red; selector != capColors::None; selector = capColors(((int)selector) + 1))
 		_colorBalance[(int)selector].reset();
 	_maxColor = ColorRgb(0, 0, 0);
-	_timeStamp = 0;	
+	_timeStamp = 0;
 
 	connect(this, &LutCalibrator::assign, this, &LutCalibrator::assignHandler, Qt::ConnectionType::UniqueConnection);
 	connect(this, &LutCalibrator::stop, this, &LutCalibrator::stopHandler, Qt::ConnectionType::UniqueConnection);
@@ -128,13 +128,10 @@ void LutCalibrator::assignHandler(hyperhdr::Components defaultComp, int checksum
 			if (_mjpegCalibration)
 			{
 				Debug(_log, "Enabling pseudo-HDR mode for calibration to bypass TurboJPEG MJPEG to RGB processing");
-				if (GrabberWrapper::getInstance()->thread() == QThread::currentThread())
-					GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
-				else
-					QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "setHdrToneMappingEnabled", Qt::ConnectionType::BlockingQueuedConnection, Q_ARG(int, 1));
+				BLOCK_CALL_1((GrabberWrapper::getInstance()), setHdrToneMappingEnabled, int, 1);
 			}
-		}		
-		
+		}
+
 		_finish = false;
 		_limitedRange = limitedRange;
 		_saturation = saturation;
@@ -160,19 +157,14 @@ void LutCalibrator::assignHandler(hyperhdr::Components defaultComp, int checksum
 			finalize(true);
 			memset(_lutBuffer, 0, LUT_FILE_SIZE * 2);
 
-			if (GrabberWrapper::getInstance() != nullptr)
+			auto wrapperInstance = GrabberWrapper::getInstance();
+			if (wrapperInstance != nullptr)
 			{
 				_log->disable();
-				if (QThread::currentThread() == GrabberWrapper::getInstance()->thread())
-				{
-					GrabberWrapper::getInstance()->stop();
-					GrabberWrapper::getInstance()->start();
-				}
-				else
-				{
-					QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "stop", Qt::ConnectionType::BlockingQueuedConnection);
-					QMetaObject::invokeMethod(GrabberWrapper::getInstance(), "start", Qt::ConnectionType::BlockingQueuedConnection);
-				}
+
+				BLOCK_CALL_0(wrapperInstance, stop);
+				BLOCK_CALL_0(wrapperInstance, start);
+
 				for (int i = 0; i < 8; i++)
 				{
 					QThread::msleep(200);
@@ -198,14 +190,14 @@ void LutCalibrator::assignHandler(hyperhdr::Components defaultComp, int checksum
 			}
 		}
 		else
-		{			
+		{
 			QJsonObject report;
 			stopHandler();
 			Error(_log, "Could not allocated memory (~100MB) for internal temporary buffer. Stopped.");
 			report["status"] = 1;
 			report["error"] = "Could not allocated memory (~100MB) for internal temporary buffer. Stopped.";
 			lutCalibrationUpdate(report);
-			return;			
+			return;
 		}
 	}
 	_checksum = checksum;
@@ -257,12 +249,12 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	int diffColor = 0;
 	QJsonObject report;
 	QJsonArray colors;
-	ColorRgb white{128,128,128}, black{16,16,16};
+	ColorRgb white{ 128,128,128 }, black{ 16,16,16 };
 	double scaleX = image.width() / 128.0;
 	double scaleY = image.height() / 72.0;
 
 	if (_checksum < 0)
-		return;	
+		return;
 
 	if (image.width() < 3 * 128 || image.height() < 3 * 72)
 	{
@@ -282,11 +274,11 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 		report["error"] = "Invalid resolution width/height ratio. Expected aspect: 1920/1080 (or the same 1280/720 etc). Stopped.";
 		lutCalibrationUpdate(report);
 		return;
-	}	
+	}
 
 	for (int py = 0; py < 72;)
 	{
-		for (int px = (py < 71 && py > 0) ? _checksum % 2: 0; px < 128; px++)
+		for (int px = (py < 71 && py > 0) ? _checksum % 2 : 0; px < 128; px++)
 		{
 			ColorRgb	color;
 			int sX = (qRound(px * scaleX) + qRound((px + 1) * scaleX)) / 2;
@@ -299,16 +291,16 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 					ColorRgb cur = image(sX + i, sY + j);
 					cR += cur.red;
 					cG += cur.green;
-					cB += cur.blue;					
+					cB += cur.blue;
 				}
 
 			color = ColorRgb((uint8_t)qMin(qRound(cR / 9.0), 255), (uint8_t)qMin(qRound(cG / 9.0), 255), (uint8_t)qMin(qRound(cB / 9.0), 255));
-			
+
 
 			if (py < 71 && py > 0)
 			{
 				if (!_finish)
-				{					
+				{
 					storeColor(_startColor, color);
 					_finish |= increaseColor(_startColor);
 				}
@@ -318,7 +310,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 			else
 			{
 				if (px == 0)
-				{					
+				{
 					white = color;
 					validate = 0;
 					diffColor = qMax(white.red, qMax(white.green, white.blue));
@@ -395,7 +387,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 	if (_checksum % 19 == 1)
 	{
-		Info(_log, "The video frame has been analyzed. Progress: %i/21 section", _checksum);		
+		Info(_log, "The video frame has been analyzed. Progress: %i/21 section", _checksum);
 	}
 
 	_checksum = -1;
@@ -434,7 +426,7 @@ void LutCalibrator::storeColor(const ColorRgb& inputColor, const ColorRgb& color
 }
 
 bool LutCalibrator::increaseColor(ColorRgb& color)
-{	
+{
 	if (color == primeColors[capColors::None])
 		color = primeColors[0];
 	else
@@ -446,7 +438,7 @@ bool LutCalibrator::increaseColor(ColorRgb& color)
 				break;
 			}
 	}
-	return (_checksum > 20) ? true : false;	
+	return (_checksum > 20) ? true : false;
 }
 
 
@@ -524,7 +516,7 @@ double LutCalibrator::inverse_gamma(double x) noexcept
 
 
 void LutCalibrator::fromBT2020toXYZ(double r, double g, double b, double& x, double& y, double& z)
-{	
+{
 	x = 0.636958 * r + 0.144617 * g + 0.168881 * b;
 	y = 0.262700 * r + 0.677998 * g + 0.059302 * b;
 	z = 0.000000 * r + 0.028073 * g + 1.060985 * b;
@@ -539,14 +531,14 @@ void LutCalibrator::fromXYZtoBT709(double x, double y, double z, double& r, doub
 
 void LutCalibrator::fromBT2020toBT709(double x, double y, double z, double& r, double& g, double& b)
 {
-	r =  1.6605 * x - 0.5876 * y - 0.0728 * z;
+	r = 1.6605 * x - 0.5876 * y - 0.0728 * z;
 	g = -0.1246 * x + 1.1329 * y - 0.0083 * z;
 	b = -0.0182 * x - 0.1006 * y + 1.1187 * z;
 }
 
 void LutCalibrator::toneMapping(double xHdr, double yHdr, double zHdr, double& xSdr, double& ySdr, double& zSdr)
 {
-	double mian = xHdr + yHdr + zHdr;	
+	double mian = xHdr + yHdr + zHdr;
 
 	if (mian < 0.000001)
 	{
@@ -594,8 +586,8 @@ void LutCalibrator::balanceGray(int r, int g, int b, double& _r, double& _g, dou
 
 	int _R = qRound(_r * 255);
 	int _G = qRound(_g * 255);
-	int _B = qRound(_b * 255);	
-	
+	int _B = qRound(_b * 255);
+
 	int max = qMax(_R, qMax(_G, _B));
 	int min = qMin(_R, qMin(_G, _B));
 
@@ -667,7 +659,7 @@ double LutCalibrator::getError(ColorRgb first, ColorStat second)
 
 	if ((first.red == 255 || first.red == 128) && first.green == 0 && first.blue == 0)
 	{
-		if (second.red <= 1 )
+		if (second.red <= 1)
 			return std::pow(255, 2) * 3;
 
 		errorR = 0;
@@ -698,7 +690,7 @@ double LutCalibrator::getError(ColorRgb first, ColorStat second)
 		errorG = 100.0 * second.green / second.blue;
 		errorB = 0;
 
-		if (first.blue == 255)		
+		if (first.blue == 255)
 			errorB += (255 - second.blue);
 	}
 	else if (first.red == 255 && first.green == 255 && first.blue == 0)
@@ -733,7 +725,7 @@ double LutCalibrator::getError(ColorRgb first, ColorStat second)
 		if (second.red <= 1)
 			return std::pow(255, 2) * 3;
 
-		errorR =  2 * 100.0 * qAbs(1 - 2 * second.blue / second.red);
+		errorR = 2 * 100.0 * qAbs(1 - 2 * second.blue / second.red);
 		errorG = 0;
 		errorB = 0;
 	}
@@ -774,13 +766,13 @@ double LutCalibrator::getError(ColorRgb first, ColorStat second)
 		errorB = 2 * 100.0 * qAbs(1 - 2 * second.blue / second.red);
 	}
 	else if (first.red == first.green && first.green == first.blue)
-	{		
+	{
 		double max = qMax(second.red, qMax(second.green, second.blue)) - qMin(second.red, qMin(second.green, second.blue));
 
 		errorR = max;
 		errorG = max;
 		errorB = max;
-		
+
 		if (first.red == primeColors[capColors::White].red)
 		{
 			errorR += qMin(qMax(255 - second.red, 0.0), 10.0);
@@ -898,8 +890,8 @@ bool LutCalibrator::correctionEnd()
 	int whiteIndex = capColors::White;
 
 
-	for (int j = 0; j < (int) (sizeof(_colorBalance) / sizeof(ColorStat)); j++)
-		_colorBalance[j].calculateFinalColor();;	
+	for (int j = 0; j < (int)(sizeof(_colorBalance) / sizeof(ColorStat)); j++)
+		_colorBalance[j].calculateFinalColor();;
 
 	// YUV check
 	if (floor >= 2 && !_limitedRange)
@@ -926,7 +918,7 @@ bool LutCalibrator::correctionEnd()
 		// choose best
 		if (_currentCoef == lastCoef)
 		{
-			for(int i = 0, best = INT_MAX; i < (int) (sizeof(_coefsResult) / sizeof(double)); i++)
+			for (int i = 0, best = INT_MAX; i < (int)(sizeof(_coefsResult) / sizeof(double)); i++)
 			{
 				Debug(_log, "Mean error for %s is: %f", REC(i), _coefsResult[i]);
 				if (_coefsResult[i] < best)
@@ -950,12 +942,12 @@ bool LutCalibrator::correctionEnd()
 			lutCalibrationUpdate(report);
 
 			return false;
-		}		
+		}
 	}
 	else
 		_coefsResult[_currentCoef] = fineTune(range, scale, whiteIndex, strategy);
-	
-	
+
+
 
 	// display precalibrated colors
 	displayPreCalibrationInfo();
@@ -1050,7 +1042,7 @@ void LutCalibrator::applyFilter()
 	for (int r = 0; r < 256; r++)
 		for (int g = 0; g < 256; g++)
 			for (int b = 0; b < 256; b++)
-			{				
+			{
 				uint32_t avR = 0, avG = 0, avB = 0, avCount = 0;
 				uint32_t index = LUT_INDEX(r, g, b);
 
@@ -1061,9 +1053,9 @@ void LutCalibrator::applyFilter()
 							int X = r + x;
 							int Y = g + y;
 							int Z = b + z;
-							
+
 							if (X >= 0 && X <= 255 && Y >= 0 && Y <= 255 && Z >= 0 && Z <= 255)
-							{								
+							{
 								uint32_t ind = LUT_INDEX(X, Y, Z);
 								uint32_t scale = (x == 0 && y == 0 && z == 0) ? 13 : 1;
 
@@ -1076,14 +1068,14 @@ void LutCalibrator::applyFilter()
 									avR = avG = avB = avCount = 0;
 									x = y = z = SHRT_MAX;
 								}
-								
+
 								avR += R * scale;
 								avG += G * scale;
 								avB += B * scale;
 								avCount += scale;
 							}
 						}
-				
+
 				_secondBuffer[index] = clampToInt(((avR / (double)avCount)), 0, 255);
 				_secondBuffer[index + 1] = clampToInt(((avG / (double)avCount)), 0, 255);
 				_secondBuffer[index + 2] = clampToInt(((avB / (double)avCount)), 0, 255);
@@ -1098,7 +1090,7 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 	//double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
 	double ceiling = qMin(_maxColor.red, qMin(_maxColor.green, _maxColor.blue));
 	capColors primaries[] = { capColors::HighestGray, capColors::LowestGray, capColors::Red, capColors::Green, capColors::Blue, capColors::LowRed, capColors::LowGreen, capColors::LowBlue, capColors::Yellow, capColors::Magenta, capColors::Cyan, capColors::Pink, capColors::Orange, capColors::Azure, capColors::Brown, capColors::Purple,
-						capColors::Gray1, capColors::Gray2, capColors::Gray3, capColors::Gray4, capColors::Gray5,  capColors::Gray6, capColors::Gray7, capColors::Gray8, capColors::White};
+						capColors::Gray1, capColors::Gray2, capColors::Gray3, capColors::Gray4, capColors::Gray5,  capColors::Gray6, capColors::Gray7, capColors::Gray8, capColors::White };
 
 	double maxError = (double)LLONG_MAX;
 
@@ -1145,7 +1137,7 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 								normalized.red = eotf(range, normalized.red);
 								normalized.green = eotf(range, normalized.green);
 								normalized.blue = eotf(range, normalized.blue);
-							}						
+							}
 
 							// bt2020
 							if (strategy == 0 || strategy == 1)
@@ -1172,9 +1164,9 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 							calculated.blue = clampDouble(calculated.blue, 0, 1.0) * 255.0;
 
 							if ((ind != capColors::HighestGray ||
-								 ((calculated.red <= 250.0 && calculated.green <= 250.0 && calculated.blue <= 250.0) && (calculated.red >= 200.0 && calculated.green >= 200.0 && calculated.blue >= 200.0)))  &&
+									((calculated.red <= 250.0 && calculated.green <= 250.0 && calculated.blue <= 250.0) && (calculated.red >= 200.0 && calculated.green >= 200.0 && calculated.blue >= 200.0)))  &&
 								(ind != capColors::LowestGray ||
-								 ((calculated.red >= 4 && calculated.green >= 4 && calculated.blue >= 4) && (calculated.red <= 28 && calculated.green <= 28 && calculated.blue <= 28))))
+									((calculated.red >= 4 && calculated.green >= 4 && calculated.blue >= 4) && (calculated.red <= 28 && calculated.green <= 28 && calculated.blue <= 28))))
 							{
 								if (ind == capColors::LowRed)
 									lR = calculated.red;
@@ -1208,14 +1200,14 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 							optimalScale = scale;
 							optimalWhite = whiteIndex;
 							optimalColor = "";
-							for(auto c : colors)
+							for (auto c : colors)
 								optimalColor += QString("%1 ,").arg(c);
 							optimalColor += QString(" range: %1, strategy: %2, scale: %3, white: %4, error: %5").arg(optimalRange).arg(optimalStrategy).arg(optimalScale).arg(optimalWhite).arg(currentError);
 						}
 					}
 
 		if (whiteIndex == capColors::White && maxError == LLONG_MAX && !restart)
-		{			
+		{
 			restart = true;
 			whiteIndex = capColors::LowestGray;
 			rangeStart = 0.1;
@@ -1262,7 +1254,7 @@ bool LutCalibrator::finalize(bool fastTrack)
 		Debug(_log, "YUV table range: %s", (_limitedRange) ? "LIMITED" : "FULL");
 
 		if (floor <= ceil)
-		{			
+		{
 			Debug(_log, "Min RGB floor: %f, max RGB ceiling: %f", floor, ceil);
 			Debug(_log, "Delta RGB range => %f", delta);
 			Debug(_log, "Min RGB range => %s", QSTRING_CSTR(_minColor.toQString()));

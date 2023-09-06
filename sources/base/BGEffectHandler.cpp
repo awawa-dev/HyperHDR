@@ -30,36 +30,41 @@ void BGEffectHandler::handleSettingsUpdate(settings::type type, const QJsonDocum
 	{
 		const QJsonObject& BGEffectConfig = config.object();
 
-		#define BGCONFIG_ARRAY bgColorConfig.toArray()
+		
 
-			// clear background priority
-			_hyperhdr->clear(254);
-			// initial background effect/color
-			if (BGEffectConfig["enable"].toBool(true))
+		// clear background priority
+		_hyperhdr->clear(254);
+		// initial background effect/color
+		if (BGEffectConfig["enable"].toBool(true))
+		{
+			const QString bgTypeConfig = BGEffectConfig["type"].toString("effect");
+			const QString bgEffectConfig = BGEffectConfig["effect"].toString("Warm mood blobs");
+			const QJsonValue bgColorConfig = BGEffectConfig["color"];			
+
+			if (bgTypeConfig.contains("color"))
 			{
-				const QString bgTypeConfig = BGEffectConfig["type"].toString("effect");
-				const QString bgEffectConfig = BGEffectConfig["effect"].toString("Warm mood blobs");
-				const QJsonValue bgColorConfig = BGEffectConfig["color"];
-				if (bgTypeConfig.contains("color"))
-				{
-					std::vector<ColorRgb> bg_color = {
-						ColorRgb {
-							static_cast<uint8_t>(BGCONFIG_ARRAY.at(0).toInt(0)),
-							static_cast<uint8_t>(BGCONFIG_ARRAY.at(1).toInt(0)),
-							static_cast<uint8_t>(BGCONFIG_ARRAY.at(2).toInt(0))
-						}
-					};
-					_hyperhdr->setColor(254, bg_color);
-					Info(Logger::getInstance("HYPERHDR"), "Initial background color set (%d %d %d)", bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
-				}
-				else
-				{
-					int result = _hyperhdr->setEffect(bgEffectConfig, 254);
-					Info(Logger::getInstance("HYPERHDR"), "Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
-				}
-			}
+				QJsonArray BGCONFIG_ARRAY = bgColorConfig.toArray();
 
-		#undef BGCONFIG_ARRAY
+				if (BGCONFIG_ARRAY.size() < 3)
+					return;
+
+				std::vector<ColorRgb> bg_color = {
+					ColorRgb {
+						static_cast<uint8_t>(BGCONFIG_ARRAY.at(0).toInt(0)),
+						static_cast<uint8_t>(BGCONFIG_ARRAY.at(1).toInt(0)),
+						static_cast<uint8_t>(BGCONFIG_ARRAY.at(2).toInt(0))
+					}
+				};
+
+				_hyperhdr->setColor(254, bg_color);
+				Info(Logger::getInstance("HYPERHDR"), "Initial background color set (%d %d %d)", bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
+			}
+			else
+			{
+				int result = _hyperhdr->setEffect(bgEffectConfig, 254);
+				Info(Logger::getInstance("HYPERHDR"), "Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
+			}
+		}
 	}
 }
 

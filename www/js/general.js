@@ -7,7 +7,7 @@ $(document).ready(function()
 	var conf_editor = null;
 
 	
-	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+	$('#conf_cont').append(createOptPanel('<svg data-src="svg/general_settings.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
 	$('#conf_cont').append(createHelpTable(window.schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
 	
 
@@ -37,14 +37,14 @@ $(document).ready(function()
 		});
 
 		var inst = e.currentTarget.id.split("_")[1];
-		showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
+		showInfoDialog('renameInstance', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
 
 		$("#id_btn_ok").off().on('click', function()
 		{
-			requestInstanceRename(inst, $('#renInst_name').val())
+			requestInstanceRename(inst, $('#renameInstance_name').val())
 		});
 
-		$('#renInst_name').off().on('input', function(e)
+		$('#renameInstance_name').off().on('input', function(e)
 		{
 			(e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').attr('disabled', false): $('#id_btn_ok').attr('disabled', true);
 		});
@@ -60,7 +60,7 @@ $(document).ready(function()
 	function handleInstanceDelete(e)
 	{
 		var inst = e.currentTarget.id.split("_")[1];
-		showInfoDialog('delInst', $.i18n('conf_general_inst_delreq_h'), $.i18n('conf_general_inst_delreq_t', getInstanceNameByIndex(inst)));
+		showInfoDialog('deleteInstance', $.i18n('conf_general_inst_delreq_h'), $.i18n('conf_general_inst_delreq_t', getInstanceNameByIndex(inst)));
 		$("#id_btn_yes").off().on('click', function()
 		{
 			requestInstanceDelete(inst)
@@ -76,16 +76,16 @@ $(document).ready(function()
 		for (var key in inst)
 		{
 			var startBtnColor = inst[key].running ? "success" : "danger";
-			var startBtnIcon = inst[key].running ? "stop" : "play";
+			var startBtnIcon = inst[key].running ? "button_stop.svg" : "button_play.svg";
 			var startBtnText = inst[key].running ? $.i18n('general_btn_stop')+' ' : $.i18n('general_btn_start');
-			var renameBtn = '<button id="instren_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-primary btn-sm"><i class="fa fa-fw fa-pencil"></i>' + $.i18n('general_btn_rename') + '</button>';
+			var renameBtn = '<button id="instren_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-primary btn-sm"><svg data-src="svg/button_edit.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_rename') + '</button>';
 			var startBtn = ""
 			var delBtn = "";
 			
 			if (inst[key].instance > 0)
 			{
-				delBtn = '<button id="instdel_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-warning btn-sm"><i class="fa fa-fw fa-remove"></i>' + $.i18n('general_btn_delete') + '</button>';
-				startBtn = '<button id="inst_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-sm btn-' + startBtnColor + '"><i class="fa fa-fw fa-' + startBtnIcon + '"></i>' + startBtnText + '</button>';
+				delBtn = '<button id="instdel_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-warning btn-sm"><svg data-src="svg/button_delete.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_delete') + '</button>';
+				startBtn = '<button id="inst_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-sm btn-' + startBtnColor + `"><svg data-src="svg/${startBtnIcon}" fill="currentColor" class="svg4hyperhdr"></svg>` + startBtnText + '</button>';
 			}
 			var newRow = $('<div>', {class: "row"});
 			var colHeader = $('<div>', {class: "col-4 border-top fw-bold d-flex align-items-center"}).append(inst[key].friendly_name);
@@ -175,9 +175,9 @@ $(document).ready(function()
 
 	$('#btn_import_conf').off().on('click', function()
 	{
-		showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
+		showInfoDialog('confirm', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
 
-		$('#id_btn_import').off().on('click', function()
+		$('#id_btn_confirm').off().on('click', function()
 		{
 			removeStorage('lastSelectedInstance', false);
 			requestRestoreDB(importedConf);

@@ -37,12 +37,10 @@
         <script src="js/hyperhdr.js"></script>
         <script src="js/ui_utils.js"></script>        
 
-        <!-- BS Notfiy -->
-        <script src="js/lib/bootstrap-notify.min.js"></script>
-        
         <script src="js/lib/vanilla-picker.min.js"></script>
 		
         <script src="js/lib/jsoneditor.min.js"></script>
+        <script type="text/javascript" src="js/lib/svg-loader.min.js" async></script>
 
         <!-- Bootstrap Core CSS -->
         <link href="css/bootstrap.min.css" rel="stylesheet" />        
@@ -56,11 +54,34 @@
         <!-- Custom CSS -->
         <link href="css/hyperhdr.css" rel="stylesheet" />
 
-        <!-- Custom Fonts -->
-        <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+        <!-- Custom Dialog -->
         <link href="css/dialog.min.css" rel="stylesheet" type="text/css" />
 
     </head>
+
+	<style>
+
+		svg.svg4hyperhdr {
+			max-height:1em;
+		}
+
+		button.btn>svg.svg4hyperhdr {
+			max-height:1.2em;
+		}
+
+		.card-header svg.svg4hyperhdr {
+			max-height:24px;
+		}
+
+		svg.svg4hyperhdr.leftmenu{
+			max-height:20px;
+		}
+
+		svg[data-id] {
+			max-height:none !important;
+		}
+
+	</style>
 
     <body class="sidebar-mini layout-fixed layout-navbar-not-fixed">
 		<div class="wrapper">
@@ -78,13 +99,12 @@
 			</noscript>
 			
 			
-			<a href="#" data-widget="control-sidebar"><a id="main-window-button-menu" class="nav-link" data-widget="pushmenu" href="#" role="button" style = "position: fixed; top: 0; right: 0px; z-index: 200">			
-				<span class="fa-stack fa-2x icon-menu-control">
-					<i class="fa fa-circle fa-stack-2x"></i>
-					<i id="showMenuIcon" class="fa fa-close fa-stack-1x fa-inverse" style="opacity: 1; transition: opacity 0.5s;"></i>
-					<i id="hideMenuIcon" class="fa fa-bars fa-stack-1x fa-inverse" style="opacity: 0; transition: opacity 0.5s;"></i>
-				</span>			
-			</a></a>
+			<a href="#" id="main-window-button-menu" class="nav-link" data-widget="pushmenu" role="button" style = "position: fixed; top: 0; right: 0px; z-index: 200">			
+				<div class="icon-menu-control pt-3 pe-3">					
+					<svg id="showMenuIcon" data-src="svg/left_menu_hide.svg" fill="currentColor" style="width:64px; height:64px; position:absolute; left:-64px; opacity: 1; transition: opacity 0.5s;"></svg>
+					<svg id="hideMenuIcon" data-src="svg/left_menu_show.svg" fill="currentColor" style="width:64px; height:64px; position:absolute; left:-64px; opacity: 0; transition: opacity 0.5s;"></svg>
+				</div>			
+			</a>
   
 			<div id="loading_overlay" class="overlay"></div>
 			
@@ -96,134 +116,127 @@
 				<nav class="mt-2">
 				  <ul class="nav nav-pills nav-sidebar nav-child-indent flex-column" data-widget="treeview" role="menu">
 					<li class="nav-item">
-						<p><a href="http://www.hyperhdr.eu/" class="nav-link brand-link logo-switch">
-						<img src="/img/hyperhdr/hyperhdrwhitelogo.png" alt="HyperHDR" class="brand-image-xs logo-xl" style="margin-left:-10px;width: 100%; float: none; max-height: none; height: auto; position: static;">
+						<p><a href="http://www.hyperhdr.eu/" class="nav-link brand-link logo-switch rounded-0">
+						<img id="left_top_hyperhdr_logo" src="/img/hyperhdr/hyperhdrwhitelogo.png" alt="HyperHDR" class="brand-image-xs logo-xl" style="margin-left:-10px;width: 100%; float: none; max-height: none; height: auto; position: static;">
 						<img src="/img/hyperhdr/small_menu.png" alt="HyperHDR" class="brand-image-xl logo-xs" style="left:8px;">
 						</a></p>
 					</li>
 					<li>
 						<div class="container w-100" style="text-align: center;">
 							<div class="row">
-								<div class="col bottom-menu">
+								<div class="col bottom-menu ps-0 pe-0">
 									<a id="btn_darkmode">
-										<i id="btn_darkmode_icon" class="fa fa-moon-o" aria-hidden="true"></i>
+										<svg id="btn_darkmode_sun_icon" aria-hidden="true" data-src="svg/sun.svg" fill="currentColor" class="d-none svg4hyperhdr leftmenu top-left-menu"></svg>
+										<svg id="btn_darkmode_moon_icon" aria-hidden="true" data-src="svg/moon.svg" fill="currentColor" class="svg4hyperhdr leftmenu top-left-menu"></svg>
 									</a>
 								</div>
-								<div class="col bottom-menu">							
-									<div class="btn-group dropdown">								
-										<i id="btn_hypinstanceswitch" class="fa fa-exchange fa-fw" data-bs-toggle="dropdown" aria-expanded="false"></i>
-										<ul id="hyp_inst_listing" class="dropdown-menu me-2">
+								<div class="col bottom-menu ps-0 pe-0">							
+									<div class="btn-group dropdown">
+										<svg id="btn_hypinstanceswitch" data-bs-toggle="dropdown" aria-expanded="false" data-src="svg/instances.svg" fill="currentColor" class="svg4hyperhdr leftmenu top-left-menu disabled"></svg>
+										<ul id="hyperhdr_instances_list" class="dropdown-menu me-2">
 											<li></li>
 										</ul>
 									</div>
 								</div>
-								<div class="col bottom-menu">
+								<div class="col bottom-menu ps-0 pe-0">
 									<a id="btn_open_ledsim">
-										<i id="btn_darkmode_icon" class="fa fa-television fa-fw" aria-hidden="true"></i>
+										<svg aria-hidden="true" data-src="svg/television.svg" fill="currentColor" class="svg4hyperhdr leftmenu top-left-menu"></svg>
 									</a>
 								</div>
-								<div class="col bottom-menu">
+								<div class="col bottom-menu ps-0 pe-0">
 									<a id="btn_lock_ui">
-										<i class="fa fa-lock fa-fw" aria-hidden="true"></i>
+										<svg aria-hidden="true" data-src="svg/logout.svg" fill="currentColor" class="svg4hyperhdr leftmenu top-left-menu"></svg>
 									</a>
 								</div>
 							</div>
 						</div>
 					</li>
-					<li><hr class="dropdown-divider"></li>
+					<li><hr class="dropdown-divider mt-2 mb-3"></li>
 					<li class="nav-item">
-						<a href="#overview" class="nav-link system-link"><i class="nav-icon fa fa-heartbeat fa-fw"></i><p data-i18n="main_menu_dashboard_token">Overview</p></a>
+						<a href="#overview" class="nav-link system-link"><svg data-src="svg/overview_heartbeat.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_dashboard_token">Overview</p></a>
 					</li>
 					<li class="nav-item">
-						<a href="#general" class="nav-link system-link"><i class="nav-icon fa fa-wrench fa-fw"></i><p data-i18n="main_menu_general_conf_token">General</p></a>
+						<a href="#general" class="nav-link system-link"><svg data-src="svg/general.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_general_conf_token">General</p></a>
 					</li>
 					<li class="nav-item">					
-						<a href="#light_source" class="nav-link system-link"><i class="nav-icon fa fa-lightbulb-o fa-fw"></i><p data-i18n="main_menu_leds_conf_token">LED Hardware</p></a>
+						<a href="#light_source" class="nav-link system-link"><svg data-src="svg/light_source.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_leds_conf_token">LED Hardware</p></a>
+					</li>
+					<li class="nav-item">
+						<a href="#grabber" class="nav-link system-link"><svg data-src="svg/capturing.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_conf_token">Capturing Hardware</p></a>
 					</li>
 					<li class="nav-item">											
-						<a href="#grabber" class="nav-link system-link"><i class="nav-icon fa fa-camera fa-fw"></i><p data-i18n="main_menu_grabber_conf_token">Capturing Hardware</p></a>
-					</li>
-					<li class="nav-item">											
-						<a href="#effects" class="nav-link system-link"><i class="nav-icon fa fa-magic fa-fw"></i><p data-i18n="main_menu_effect_conf_token">Effects</p></a>
+						<a href="#effects" class="nav-link system-link"><svg data-src="svg/effects.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_effect_conf_token">Effects</p></a>
 					</li>
 					<li class="nav-item">																	
-						<a href="#processing" class="nav-link system-link"><i class="nav-icon fa fa-photo fa-fw"></i><p data-i18n="main_menu_colors_conf_token">Image Processing</p></a>
+						<a href="#processing" class="nav-link system-link"><svg data-src="svg/image_processing.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_colors_conf_token">Image Processing</p></a>
 					</li>					
 					<li class="nav-item">																	
-						<a href="#remote" class="nav-link system-link"><i class="nav-icon fa fa-wifi fa-fw"></i><p data-i18n="main_menu_remotecontrol_token">Remote Control</p></a>
+						<a href="#remote" class="nav-link system-link"><svg data-src="svg/remote_control.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_remotecontrol_token">Remote Control</p></a>
 					</li>
 					<li class="nav-item">																	
-						<a href="#logs" class="nav-link system-link"><i class="nav-icon fa fa-commenting-o fa-fw"></i><p data-i18n="main_menu_logging_token">Log</p></a>
+						<a href="#logs" class="nav-link system-link"><svg data-src="svg/logs.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_logging_token">Log</p></a>
 					</li>					
 					
 					<li class="nav-item">
 						<a href="#" class="nav-link">
-							<i class="nav-icon fa fa-graduation-cap fa-fw"></i><p data-i18n="main_menu_advanced_token">Advanced</p><i class="right fa fa-chevron-left"></i>
+							<svg data-src="svg/advanced.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_advanced_token">Advanced</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 						</a>
 						<ul class="nav nav-treeview">
 							<li class="nav-item">																	
 								<a href="#" class="nav-link">
-									<i class="nav-icon fa fa-globe fa-fw"></i><p data-i18n="language_selector">Language</p><i class="right fa fa-chevron-left"></i>
+									<svg data-src="svg/translate.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="language_selector">Language</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 								</a>
 								<ul id="language_container_menu" class="nav nav-treeview"></ul>
 							</li>
 							
 							<li class="nav-item">																	
 								<a href="#" class="nav-link">
-									<i class="nav-icon fa fa-book fa-fw"></i><p data-i18n="misc_selector">Misc</p><i class="right fa fa-chevron-left"></i>
+									<svg data-src="svg/misc.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="misc_selector">Misc</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 								</a>
 								<ul class="nav nav-treeview">
 									<li id="btn_wizard_byteorder">
-										<a class="nav-link"><i class="nav-icon fa fa-cog fa-fw"></i><span data-i18n="wiz_rgb_title"></span></a>
+										<a class="nav-link"><svg data-src="svg/rgb_order.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><span data-i18n="wiz_rgb_title"></span></a>
 									</li>
-									<li id="btn_wizard_colorcalibration">
-										<a class="nav-link"><i class="nav-icon fa fa-cog fa-fw"></i><span data-i18n="wiz_cc_title"></span></a>
+									<li class="nav-item">																	
+										<a href="#grabber_benchmark" class="nav-link system-link"><svg data-src="svg/video_benchmark.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_benchmark_token">Benchmark</p></a>
 									</li>
-									<li id="btn_setaccess">
-										<a class="nav-link"><i class="nav-icon fa fa-arrows-v fa-fw"></i><span data-i18n="InfoDialog_access_title"></span></a>
+									<li id="btn_streamer" class="nav-item">
+										<canvas style="display: none;" id="streamcanvas"></canvas>
+										<video style="display: none;" id="streamvideo" autoplay></video>
+										<a class="nav-link"><svg data-src="svg/stream_screen.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_screencapture_token">Streamer</p></a>
 									</li>
 									<li id="btn_changePassword">
-										<a class="nav-link"><i class="nav-icon fa fa-key fa-fw"></i><span data-i18n="InfoDialog_changePassword_title"></span></a>
+										<a class="nav-link"><svg data-src="svg/change_password.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><span data-i18n="InfoDialog_changePassword_title"></span></a>
 									</li>
 								</ul>
 							</li>
-
 							<li class="nav-item">																	
-								<a href="#lut_downloader" class="nav-link system-link"><i class="nav-icon fa fa-download fa-fw"></i><p data-i18n="main_menu_grabber_lut">Download LUT</p></a>
+								<a href="#" class="nav-link">
+									<svg data-src="svg/lut.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="LUT_selector">LUT</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
+								</a>
+								<ul class="nav nav-treeview">
+									<li class="nav-item">																	
+										<a href="#lut_downloader" class="nav-link system-link"><svg data-src="svg/lut_download.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_lut">Download LUT</p></a>
+									</li>
+									<li class="nav-item">																	
+										<a href="#grabber_calibration" class="nav-link system-link"><svg data-src="svg/lut_calibration.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_calibration_token">LUT calibration</p></a>
+									</li>
+									<li class="nav-item">																	
+										<a href="#lut_generator" class="nav-link system-link"><svg data-src="svg/lut_table.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_LUT_generator_token">LUT table</p></a>
+									</li>
+								</ul>
 							</li>
-							
 							<li class="nav-item">																	
-								<a href="#network" class="nav-link system-link"><i class="nav-icon fa fa-sitemap fa-fw"></i><p data-i18n="main_menu_network_conf_token">Network</p></a>
+								<a href="#network" class="nav-link system-link"><svg data-src="svg/network_services.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_network_conf_token">Network</p></a>
 							</li>
-							
-							<li id="btn_streamer" class="nav-item">
-								<canvas style="display: none;" id="streamcanvas"></canvas>
-								<video style="display: none;" id="streamvideo" autoplay></video>
-								<a class="nav-link"><i id="btn_streamer_icon" class="nav-icon fa fa-video-camera fa-fw" aria-hidden="true"></i><p data-i18n="main_menu_screencapture_token">Streamer</p></a>
-							</li>
-							
 							<li class="nav-item">																	
-								<a href="#lut_generator" class="nav-link system-link"><i class="nav-icon fa fa-adjust fa-fw"></i><p data-i18n="main_menu_LUT_generator_token">LUT table</p></a>
-							</li>
-							
+								<a href="#json_api" class="nav-link system-link"><svg data-src="svg/json_api.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_json_api_token">JSON API</p></a>
+							</li>							
 							<li class="nav-item">																	
-								<a href="#grabber_calibration" class="nav-link system-link"><i class="nav-icon fa fa-map fa-fw"></i><p data-i18n="main_menu_grabber_calibration_token">LUT calibration</p></a>
-							</li>
-														
+								<a href="#update" class="nav-link system-link"><svg data-src="svg/update.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_update_token">Update</p></a>
+							</li>							
 							<li class="nav-item">																	
-								<a href="#json_api" class="nav-link system-link"><i class="nav-icon fa fa-podcast fa-fw"></i><p data-i18n="main_menu_json_api_token">JSON API</p></a>
-							</li>
-							
-							<li class="nav-item">																	
-								<a href="#grabber_benchmark" class="nav-link system-link"><i class="nav-icon fa fa-tachometer fa-fw"></i><p data-i18n="main_menu_grabber_benchmark_token">Benchmark</p></a>
-							</li>
-							
-							<li class="nav-item">																	
-								<a href="#update" class="nav-link system-link"><i class="nav-icon fa fa-refresh fa-fw"></i><p data-i18n="main_menu_update_token">Update</p></a>
-							</li>
-							
-							<li class="nav-item">																	
-								<a href="#about" class="nav-link system-link"><i class="nav-icon fa fa-info-circle fa-fw"></i><p data-i18n="main_menu_about_token">About</p></a>
+								<a href="#about" class="nav-link system-link"><svg data-src="svg/about.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_about_token">About</p></a>
 							</li>												
 						</ul>
 					</li>
@@ -237,7 +250,20 @@
 			</aside>
 			
 			<div id="main-window-wrappper" class="content-wrapper">
-                      
+				<div id="notification-target" style="display: inline-block; z-index:10000;  position: absolute; top: 0;"></div>
+				<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index:9999;">
+					<div id="toast_success_message" class="toast border border-success" data-bs-delay="1500" role="alert" aria-live="assertive" aria-atomic="true">
+						<div class="toast-header bg-success">
+							<strong class="me-auto h6 mt-2 ms-1 hyperhdr-vcenter" style="line-height:1.5em;"><svg data-src="svg/button_save.svg" style="width:1.5em;" fill="currentColor" class="svg4hyperhdr top-0"></svg><span id="toast_message_header_id"></span></strong>							
+							<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+						</div>
+						<div class="toast-body mt-1 row">
+							<div class="col-2 h4 text-success hyperhdr-vcenter p-0"><svg data-src="svg/button_check.svg" style="width:1.5em;" fill="currentColor" class="svg4hyperhdr m-auto"></svg></div>
+							<div class="col-10 h6 ps-0" id="toast_message_body_id"></div>
+						</div>
+					</div>
+				</div>
+					
 				<!-- Page Content -->
 				<div id="page-wrapper" style="padding: 10px; overflow:auto;">
 					<div id="hyperhdr_global_setting_notify" style="display: none; padding: 0 10px; margin: 0;">
@@ -273,15 +299,21 @@
 					</div>
 				</div>
 
-				<!-- renameDialog -->
-				<div id="modal_dialog_rename" class="modal fade" style="z-index: 9999;">
+				<!-- new modal dialog -->
+				<div id="new_modal_dialog" class="modal fade" style="z-index: 9999;">
 					<div class="modal-dialog">
-						<center>
-							<div class="modal-content">
-								<div id="id_body_rename" class="modal-body"></div>
-								<div id="id_footer_rename" class="modal-footer" style="text-align: center;"></div>
+						<div class="modal-content">
+							<div class="modal-header modal-hyperhdr-header" id="new_modal_dialog_header">
+								<h5 class="modal-title" id="new_modal_dialog_title"></h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 							</div>
-						</center>
+							<div class="modal-body">
+								<form id="new_modal_dialog_body">
+								</form>
+							</div>
+							<div id="new_modal_dialog_footer" class="modal-footer" style="text-align: center;">
+							</div>
+						</div>
 					</div>
 				</div>
 
@@ -320,15 +352,15 @@
 				</div>
 
 				<!-- ledsimDialog -->
-				<div id="ledsim_dialog" style="display: none; z-index: 9998;">
+				<div id="live_preview_dialog" style="display: none; z-index: 9998;">
 					<div data-role="body" style="padding: 0px;">
 						<div id="leds_canvas"></div>
 					</div>
 					<div data-role="footer" style="text-align: center;">
-						<button type="button" class="btn btn-success btn-sm" id="leds_toggle"><i class="fa fa-fw fa-lightbulb-o"></i><span id="vid_btn_1" data-i18n="main_ledsim_btn_toggleleds">leds</span></button>
-						<button type="button" class="btn btn-danger btn-sm" id="leds_toggle_num"><i class="fa fa-fw fa-info"></i><span id="vid_btn_2" data-i18n="main_ledsim_btn_togglelednumber">led numbers</span></button>
-						<button type="button" class="btn btn-danger btn-sm" id="leds_toggle_live_video"><i class="fa fa-fw fa-television"></i><span id="vid_btn_3" data-i18n="main_ledsim_btn_togglelivevideo">live video</span></button>
-						<button type="button" class="btn btn-info btn-sm" id="leds_screenshot"><i class="fa fa-fw fa-download"></i><span id="vid_btn_4" data-i18n="main_ledsim_btn_screenshot">screenshot</span></button>
+						<button type="button" class="btn btn-success btn-sm" id="leds_toggle"><svg data-src="svg/button_bulb.svg" style="width:14px;" fill="currentColor" class="svg4hyperhdr"></svg><span id="vid_btn_1">Show LEDs</span></button>
+						<button type="button" class="btn btn-danger btn-sm" id="leds_toggle_num"><svg data-src="svg/light_source_show_numbers.svg" style="width:14px;" fill="currentColor" class="svg4hyperhdr"></svg><span id="vid_btn_2">LEDs number</span></button>
+						<button type="button" class="btn btn-danger btn-sm" id="leds_toggle_live_video"><svg data-src="svg/button_play.svg" style="width:14px;" fill="currentColor" class="svg4hyperhdr"></svg><span id="vid_btn_3">Live video</span></button>
+						<button type="button" class="btn btn-info btn-sm" id="leds_screenshot"><svg data-src="svg/button_download.svg" style="width:14px;" fill="currentColor" class="svg4hyperhdr"></svg><span id="vid_btn_4">Screenshot</span></button>
 					</div>
 				</div>
 			</div>
@@ -351,7 +383,7 @@
         <script src="js/lib/core.min.js"></script>
         <script src="js/lib/draggable.min.js"></script>
         <script src="js/lib/dialog.min.js"></script>
-        <script src="js/ledsim.js"></script>
+        <script src="js/live_preview.js"></script>
 
         <!--Client-side download-->
         <script src="js/lib/download.min.js"></script>

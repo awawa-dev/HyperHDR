@@ -94,8 +94,6 @@ private:
 private:
 	bool				_isAVF;
 	AVFWorkerManager	_AVFWorkerManager;
-
-	QString		_configurationPath;
 	bool		_permission;
 };
 

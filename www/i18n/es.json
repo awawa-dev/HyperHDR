@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Acción",
   "conf_general_inst_delreq_h": "Eliminar instancia de hardware LED",
   "conf_general_inst_delreq_t": "¿Está seguro de que desea eliminar la instancia \"$1\"? También se eliminarán todas las configuraciones.",
-  "conf_general_inst_desc": "Utilice hardware LED diferente al mismo tiempo. Cada instancia se ejecuta de forma independiente entre sí, lo que permite diferentes diseños de LED y configuraciones de calibración. Las instancias en ejecución están disponibles en el ícono <i class = 'fa fa-exchange fa-fw'> </i> a la izquierda",
+  "conf_general_inst_desc": "Utilice hardware LED diferente al mismo tiempo. Cada instancia se ejecuta de forma independiente entre sí, lo que permite diferentes diseños de LED y configuraciones de calibración. Las instancias en ejecución están disponibles en el ícono <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> a la izquierda",
   "conf_general_inst_name_title": "Nuevo nombre de instancia",
   "conf_general_inst_namehead": "Nombre de instancia",
   "conf_general_inst_renreq_t": "Ingrese un nuevo nombre para su instancia en el campo a continuación.",

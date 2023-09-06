@@ -2,10 +2,9 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
-#include <bonjour/bonjourrecord.h>
+#include <bonjour/DiscoveryRecord.h>
 #include <bonjour/bonjourservicehelper.h>
 #include <bonjour/bonjourserviceregister.h>
-#include <bonjour/bonjourservicebrowser.h>
 #include <mdns.h>
 
 #include <utils/Logger.h>
@@ -14,6 +13,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <signal.h>
+#include <vector>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -26,12 +26,20 @@
 #include <net/if.h>
 #endif
 
-void BonjourServiceHelper::init(QString service)
+int BonjourServiceHelper::_instanceCount = 0;
+
+BonjourServiceHelper::BonjourServiceHelper(BonjourServiceRegister* parent, QString service, int port) :
+	QThread(parent)
 {
-	_log = Logger::getInstance("BONJOUR");
+	_port = port;
+	_register = parent;
 	_service = service;
 	has_ipv4 = 0;
 	has_ipv6 = 0;
+	_scanService = (1 << DiscoveryRecord::Service::HyperHDR) |
+		(1 << DiscoveryRecord::Service::WLED) |
+		(1 << DiscoveryRecord::Service::PhilipsHue);
+
 	_running = true;
 
 	memset(&service_address_ipv4, 0, sizeof(service_address_ipv4));
@@ -42,9 +50,9 @@ void BonjourServiceHelper::init(QString service)
 	WSADATA wsaData;
 
 
-	if (_instaceCount++ == 0 && WSAStartup(versionWanted, &wsaData))
+	if (_instanceCount++ == 0 && WSAStartup(versionWanted, &wsaData))
 	{
-		Debug(_log, "Failed to initialize WinSock");
+		printf("Failed to initialize WinSock\n");
 	}
 
 	char hostname_buffer[256];
@@ -59,102 +67,55 @@ void BonjourServiceHelper::init(QString service)
 #endif
 }
 
-BonjourServiceHelper::BonjourServiceHelper(BonjourServiceBrowser* parent, QString service) :
-	QThread(parent)
-{
-	_port = 0;
-	_register = nullptr;
-	_browser = parent;
-	init(service);
-}
-
-BonjourServiceHelper::BonjourServiceHelper(BonjourServiceRegister* parent, QString service, int port) :
-	QThread(parent)
-{
-	_port = port;
-	_register = parent;
-	_browser = nullptr;
-	init(service);
-}
-
 BonjourServiceHelper::~BonjourServiceHelper()
 {
 #ifdef _WIN32
-	if (--_instaceCount == 0)
+	if (--_instanceCount == 0)
 		WSACleanup();
 #endif
 }
 
 void BonjourServiceHelper::run()
 {
-	if (_browser != nullptr)
+	if (_register != nullptr)
 	{
-		mdns_query_t serviceQuery[1];
-		QByteArray name = (_service + ".local").toLocal8Bit();
-
-		serviceQuery[0].name = name.data();
-		serviceQuery[0].type = MDNS_RECORDTYPE_PTR;
-
-		serviceQuery[0].length = strlen(serviceQuery[0].name);
-
-		send_mdns_query(serviceQuery, 1);
-	}
-	else if (_register != nullptr)
-	{
-		QByteArray hostname = _hostname.toLocal8Bit();
-		QByteArray service = (_service + ".local").toLocal8Bit();
-		service_mdns(hostname.data(), service.data(), _port);
+		service_mdns(_hostname, (_service + ".local."), _port);
 	}
 }
 
 
-mdns_string_t BonjourServiceHelper::ipv4_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in* addr, size_t addrlen)
+QString BonjourServiceHelper::ip_address_to_string(const struct sockaddr_in* addr, size_t addrlen)
 {
+	QString result;
 	char host[NI_MAXHOST] = {};
 	char service[NI_MAXSERV] = {};
 	int ret = getnameinfo((const struct sockaddr*)addr, (socklen_t)addrlen, host, NI_MAXHOST,
 		service, NI_MAXSERV, NI_NUMERICSERV | NI_NUMERICHOST);
-	int len = 0;
 	if (ret == 0) {
 		if (addr->sin_port != 0)
-			len = snprintf(buffer, capacity, "%s:%s", host, service);
+			result = QString("%1:%2").arg(QString::fromLocal8Bit(host)).arg(QString::fromLocal8Bit(service));
 		else
-			len = snprintf(buffer, capacity, "%s", host);
+			result = QString("%1").arg(QString::fromLocal8Bit(host));
 	}
-	if (len >= (int)capacity)
-		len = (int)capacity - 1;
-	mdns_string_t str;
-	str.str = buffer;
-	str.length = len;
-	return str;
+
+	return result;
 }
 
-mdns_string_t BonjourServiceHelper::ipv6_address_to_string(char* buffer, size_t capacity, const struct sockaddr_in6* addr, size_t addrlen)
+QString BonjourServiceHelper::ip_address_to_string(const struct sockaddr_in6* addr, size_t addrlen)
 {
+	QString result;
 	char host[NI_MAXHOST] = {};
 	char service[NI_MAXSERV] = {};
 	int ret = getnameinfo((const struct sockaddr*)addr, (socklen_t)addrlen, host, NI_MAXHOST,
 		service, NI_MAXSERV, NI_NUMERICSERV | NI_NUMERICHOST);
-	int len = 0;
 	if (ret == 0) {
 		if (addr->sin6_port != 0)
-			len = snprintf(buffer, capacity, "[%s]:%s", host, service);
+			result = QString("[%1]:%2").arg(QString::fromLocal8Bit(host)).arg(QString::fromLocal8Bit(service));
 		else
-			len = snprintf(buffer, capacity, "%s", host);
+			result = QString("%1").arg(QString::fromLocal8Bit(host));
 	}
-	if (len >= (int)capacity)
-		len = (int)capacity - 1;
-	mdns_string_t str;
-	str.str = buffer;
-	str.length = len;
-	return str;
-}
 
-mdns_string_t BonjourServiceHelper::ip_address_to_string(char* buffer, size_t capacity, const struct sockaddr* addr, size_t addrlen)
-{
-	if (addr->sa_family == AF_INET6)
-		return ipv6_address_to_string(buffer, capacity, (const struct sockaddr_in6*)addr, addrlen);
-	return ipv4_address_to_string(buffer, capacity, (const struct sockaddr_in*)addr, addrlen);
+	return result;
 }
 
 int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int port)
@@ -185,7 +146,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 
 	if (!adapter_address || (ret != NO_ERROR)) {
 		free(adapter_address);
-		Debug(_log, "Failed to get network adapter addresses");
+		printf("Failed to get network adapter addresses\n");
 		return num_sockets;
 	}
 
@@ -224,10 +185,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 						}
 					}
 					if (log_addr) {
-						char buffer[128];
-						mdns_string_t addr = ipv4_address_to_string(buffer, sizeof(buffer), saddr,
-							sizeof(struct sockaddr_in));
-						Debug(_log, "Local IPv4 address: %.*s", MDNS_STRING_FORMAT(addr));
+						QString log = ip_address_to_string(saddr, sizeof(struct sockaddr_in));
 					}
 				}
 			}
@@ -262,10 +220,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 						}
 					}
 					if (log_addr) {
-						char buffer[128];
-						mdns_string_t addr = ipv6_address_to_string(buffer, sizeof(buffer), saddr,
-							sizeof(struct sockaddr_in6));
-						Debug(_log, "Local IPv6 address: %.*s", MDNS_STRING_FORMAT(addr));
+						QString log = ip_address_to_string(saddr, sizeof(struct sockaddr_in6));
 					}
 				}
 			}
@@ -280,7 +235,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 	struct ifaddrs* ifa = 0;
 
 	if (getifaddrs(&ifaddr) < 0)
-		Debug(_log, "Unable to get interface addresses");
+		printf("Unable to get interface addresses\n");
 
 	int first_ipv4 = 1;
 	int first_ipv6 = 1;
@@ -314,10 +269,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 					}
 				}
 				if (log_addr) {
-					char buffer[128];
-					mdns_string_t addr = ipv4_address_to_string(buffer, sizeof(buffer), saddr,
-						sizeof(struct sockaddr_in));
-					Debug(_log, "Local IPv4 address: %.*s", MDNS_STRING_FORMAT(addr));
+					QString addr = ip_address_to_string(saddr, sizeof(struct sockaddr_in));
 				}
 			}
 		}
@@ -351,10 +303,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 					}
 				}
 				if (log_addr) {
-					char buffer[128];
-					mdns_string_t addr = ipv6_address_to_string(buffer, sizeof(buffer), saddr,
-						sizeof(struct sockaddr_in6));
-					Debug(_log, "Local IPv6 address: %.*s", MDNS_STRING_FORMAT(addr));
+					QString addr = ip_address_to_string(saddr, sizeof(struct sockaddr_in6));
 				}
 			}
 		}
@@ -367,125 +316,8 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 	return num_sockets;
 }
 
-int BonjourServiceHelper::send_mdns_query(mdns_query_t* query, size_t count)
-{
-	int sockets[32];
-	int query_id[32];
-	int num_sockets = open_client_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]), 0);
-	if (num_sockets <= 0) {
-		Error(_log, "Failed to open any client sockets");
-		return -1;
-	}
-	Debug(_log, "Opened %d socket%s for mDNS query", num_sockets, num_sockets ? "s" : "");
 
-	size_t capacity = 2048;
-	void* buffer = malloc(capacity);
-	void* user_data = _browser;
 
-	Debug(_log, "Sending mDNS query");
-	for (size_t iq = 0; iq < count; ++iq) {
-		const char* record_name = "PTR";
-		if (query[iq].type == MDNS_RECORDTYPE_SRV)
-			record_name = "SRV";
-		else if (query[iq].type == MDNS_RECORDTYPE_A)
-			record_name = "A";
-		else if (query[iq].type == MDNS_RECORDTYPE_AAAA)
-			record_name = "AAAA";
-		else
-			query[iq].type = MDNS_RECORDTYPE_PTR;
-		Debug(_log, " : %s %s", query[iq].name, record_name);
-	}
-	for (int isock = 0; isock < num_sockets; ++isock) {
-		query_id[isock] =
-			mdns_multiquery_send(sockets[isock], query, count, buffer, capacity, 0);
-		if (query_id[isock] < 0)
-			Error(_log, "Failed to send mDNS query: %s", strerror(errno));
-	}
-
-	// This is a simple implementation that loops for 3 seconds or as long as we get replies
-	int res;
-	Debug(_log, "Reading mDNS query replies");
-	int records = 0;
-	do {
-		struct timeval timeout;
-		timeout.tv_sec = 3;
-		timeout.tv_usec = 0;
-
-		int nfds = 0;
-		fd_set readfs;
-		FD_ZERO(&readfs);
-		for (int isock = 0; isock < num_sockets; ++isock) {
-			if (sockets[isock] >= nfds)
-				nfds = sockets[isock] + 1;
-			FD_SET(sockets[isock], &readfs);
-		}
-
-		res = select(nfds, &readfs, 0, 0, &timeout);
-		if (res > 0) {
-			for (int isock = 0; isock < num_sockets; ++isock) {
-				if (FD_ISSET(sockets[isock], &readfs)) {
-					int rec = (int)mdns_query_recv(sockets[isock], buffer, capacity, callbackBrowser,
-						user_data, query_id[isock]);
-					if (rec > 0)
-						records += rec;
-				}
-				FD_SET(sockets[isock], &readfs);
-			}
-		}
-	} while (res > 0);
-
-	Debug(_log, "Read %d records", records);
-
-	free(buffer);
-
-	for (int isock = 0; isock < num_sockets; ++isock)
-		mdns_socket_close(sockets[isock]);
-	Debug(_log, "Closed socket%s", num_sockets ? "s" : "");
-
-	return 0;
-}
-
-int BonjourServiceHelper::callbackBrowser(int sock, const struct sockaddr* from, size_t addrlen, mdns_entry_type_t entry,
-	uint16_t query_id, uint16_t rtype, uint16_t rclass, uint32_t ttl, const void* data,
-	size_t size, size_t name_offset, size_t name_length, size_t record_offset,
-	size_t record_length, void* user_data)
-{
-	(void)sizeof(sock);
-	(void)sizeof(query_id);
-	(void)sizeof(name_length);
-	(void)sizeof(user_data);
-
-	char entrybuffer[256] = {};
-	char namebuffer[256] = {};
-
-	mdns_string_t entrystr =
-		mdns_string_extract(data, size, &name_offset, entrybuffer, sizeof(entrybuffer));
-
-	if (rtype == MDNS_RECORDTYPE_SRV) {
-		mdns_record_srv_t srv = mdns_record_parse_srv(data, size, record_offset, record_length,
-			namebuffer, sizeof(namebuffer));
-
-		if (user_data != nullptr)
-		{
-			BonjourServiceBrowser* receive = (BonjourServiceBrowser*)user_data;
-			emit receive->resolve(QString::fromLocal8Bit(srv.name.str, srv.name.length), srv.port);
-		}
-	}
-	else if (rtype == MDNS_RECORDTYPE_A) {
-		struct sockaddr_in addr = {};
-		mdns_record_parse_a(data, size, record_offset, record_length, &addr);
-		mdns_string_t addrstr =
-			ipv4_address_to_string(namebuffer, sizeof(namebuffer), &addr, sizeof(addr));
-
-		if (user_data != nullptr)
-		{
-			BonjourServiceBrowser* receive = (BonjourServiceBrowser*)user_data;
-			emit receive->resolveIp(QString::fromLocal8Bit(entrystr.str, entrystr.length),
-				QString::fromLocal8Bit(addrstr.str, addrstr.length));
-		}
-	}
-	return 0;
-}
 
 int BonjourServiceHelper::open_service_sockets(int* sockets, int max_sockets)
 {
@@ -532,51 +364,34 @@ int BonjourServiceHelper::open_service_sockets(int* sockets, int max_sockets)
 	return num_sockets;
 }
 
-int BonjourServiceHelper::service_mdns(const char* hostname, const char* service_name, int service_port)
+int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, int service_port)
 {
 	int sockets[32];
 	int num_sockets = open_service_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]));
 	if (num_sockets <= 0) {
-		Debug(_log, "Failed to open any client sockets");
-		return -1;
-	}
-	Debug(_log, "Opened %d socket%s for mDNS service", num_sockets, num_sockets ? "s" : "");
-
-	size_t service_name_length = strlen(service_name);
-	if (!service_name_length) {
-		Debug(_log, "Invalid service name");
+		printf("Failed to open any client sockets\n");
 		return -1;
 	}
 
-	char* service_name_buffer = (char*)malloc(service_name_length + 2);
-	memcpy(service_name_buffer, service_name, service_name_length);
-	if (service_name_buffer[service_name_length - 1] != '.')
-		service_name_buffer[service_name_length++] = '.';
-	service_name_buffer[service_name_length] = 0;
-	service_name = service_name_buffer;
+	QByteArray mainBuffer(2048, 0);
+	QByteArray serviceNameBuf = serviceName.toLocal8Bit();
+	QByteArray hostnameBuf = hostname.toLocal8Bit();
 
-	Debug(_log, "Service mDNS: %s:%d", service_name, service_port);
-	Debug(_log, "Hostname: %s", hostname);
+	mdns_string_t service_string = { serviceNameBuf.data(), strlen(serviceNameBuf.data()) };
+	mdns_string_t hostname_string = { hostnameBuf.data(), strlen(hostnameBuf.data()) };
 
-	size_t capacity = 2048;
-	void* buffer = malloc(capacity);
-
-	mdns_string_t service_string = { service_name, strlen(service_name) };
-	mdns_string_t hostname_string = { hostname, strlen(hostname) };
-
-	// Build the service instance "<hostname>.<_service-name>._tcp.local." string
-	char service_instance_buffer[256] = {};
-	Debug(_log, service_instance_buffer, sizeof(service_instance_buffer) - 1, "%.*s:%i.%.*s",
-		MDNS_STRING_FORMAT(hostname_string), service_port, MDNS_STRING_FORMAT(service_string));
-	mdns_string_t service_instance_string = { service_instance_buffer, strlen(service_instance_buffer) };
+	// Build the service instance "<hostname>.<_service-name>._tcp.local." string	
+	QByteArray serviceInstanceBuf = QString::asprintf("%.*s:%i.%.*s", MDNS_STRING_FORMAT(hostname_string), service_port, MDNS_STRING_FORMAT(service_string)).toLocal8Bit();
+	mdns_string_t service_instance_string = { serviceInstanceBuf.data(), strlen(serviceInstanceBuf.data()) };
 
 	// Build the "<hostname>.local." string
-	char qualified_hostname_buffer[256] = {};
-	Debug(_log, qualified_hostname_buffer, sizeof(qualified_hostname_buffer) - 1, "%.*s.local.",
-		MDNS_STRING_FORMAT(hostname_string));
-	mdns_string_t hostname_qualified_string = { qualified_hostname_buffer, strlen(qualified_hostname_buffer) };
+	QByteArray qualifiedHostnameBuf = QString::asprintf("%.*s.local.", MDNS_STRING_FORMAT(hostname_string)).toLocal8Bit();
+	mdns_string_t hostname_qualified_string = { qualifiedHostnameBuf.data(), strlen(qualifiedHostnameBuf.data()) };
 
 	service_t service = {};
+
+	service.parent = this;
+
 	service.service = service_string;
 	service.hostname = hostname_string;
 	service.service_instance = service_instance_string;
@@ -590,7 +405,7 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	// PTR record reverse mapping "<_service-name>._tcp.local." to
 	// "<hostname>.<_service-name>._tcp.local."
 	service.record_ptr = {};
-	service.record_ptr.name = service.service,
+	service.record_ptr.name = service.service;
 	service.record_ptr.type = MDNS_RECORDTYPE_PTR;
 	service.record_ptr.data.ptr.name = service.service_instance;
 	service.record_ptr.rclass = 0;
@@ -628,80 +443,88 @@ int BonjourServiceHelper::service_mdns(const char* hostname, const char* service
 	service.txt_record[0] = {};
 	service.txt_record[0].name = service.service_instance;
 	service.txt_record[0].type = MDNS_RECORDTYPE_TXT;
-	service.txt_record[0].data.txt.key = {MDNS_STRING_CONST("version")};
-	service.txt_record[0].data.txt.value = {MDNS_STRING_CONST(HYPERHDR_VERSION)};
+	service.txt_record[0].data.txt.key = { MDNS_STRING_CONST("version") };
+	service.txt_record[0].data.txt.value = { MDNS_STRING_CONST(HYPERHDR_VERSION) };
 	service.txt_record[0].rclass = 0;
 	service.txt_record[0].ttl = 0;
 
 	// Send an announcement on startup of service
-	{
-		Debug(_log, "Sending announce");
-		mdns_record_t additional[5] = {};
-		size_t additional_count = 0;
-		additional[additional_count++] = service.record_srv;
-		if (service.address_ipv4.sin_family == AF_INET)
-			additional[additional_count++] = service.record_a;
-		if (service.address_ipv6.sin6_family == AF_INET6)
-			additional[additional_count++] = service.record_aaaa;
-		additional[additional_count++] = service.txt_record[0];
+	std::vector<mdns_record_t> serviceMessage;
 
-		for (int isock = 0; isock < num_sockets; ++isock)
-			mdns_announce_multicast(sockets[isock], buffer, capacity, service.record_ptr, 0, 0,
-				additional, additional_count);
-	}
+	serviceMessage.push_back(service.record_srv);
+	if (service.address_ipv4.sin_family == AF_INET)
+		serviceMessage.push_back(service.record_a);
+	if (service.address_ipv6.sin6_family == AF_INET6)
+		serviceMessage.push_back(service.record_aaaa);
+	serviceMessage.push_back(service.txt_record[0]);
+
+	for (int i = 0; i < num_sockets; i++)
+		mdns_announce_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, 0, 0,
+			serviceMessage.data(), serviceMessage.size());
+
 
 	// This is a crude implementation that checks for incoming queries
 	while (_running) {
 		int nfds = 0;
 		fd_set readfs;
+
 		FD_ZERO(&readfs);
-		for (int isock = 0; isock < num_sockets; ++isock) {
-			if (sockets[isock] >= nfds)
-				nfds = sockets[isock] + 1;
-			FD_SET(sockets[isock], &readfs);
+		for (int i = 0; i < num_sockets; i++)
+		{
+			if (sockets[i] >= nfds)
+				nfds = sockets[i] + 1;
+			FD_SET(sockets[i], &readfs);
 		}
 
 		struct timeval timeout;
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 100000;
 
-		if (select(nfds, &readfs, 0, 0, &timeout) >= 0) {
-			for (int isock = 0; isock < num_sockets; ++isock) {
-				if (FD_ISSET(sockets[isock], &readfs)) {
-					mdns_socket_listen(sockets[isock], buffer, capacity, serviceCallback,
-						&service);
+		if (select(nfds, &readfs, 0, 0, &timeout) >= 0)
+		{
+			for (int i = 0; i < num_sockets; i++)
+			{
+				if (FD_ISSET(sockets[i], &readfs))
+				{
+					mdns_socket_listen(sockets[i], mainBuffer.data(), mainBuffer.length(), serviceCallback, &service);
 				}
-				FD_SET(sockets[isock], &readfs);
+				FD_SET(sockets[i], &readfs);
 			}
 		}
-		else {
+		else
 			break;
+
+		if (_scanService != 0)
+		{
+			for (auto scanner :{ DiscoveryRecord::Service::HyperHDR,
+							DiscoveryRecord::Service::WLED,
+							DiscoveryRecord::Service::PhilipsHue })
+			{
+				if (_scanService & (1 << scanner))
+				{
+					_scanService &= ~(1 << scanner);
+
+					QByteArray name = (DiscoveryRecord::getmDnsHeader(scanner) + ".local").toLocal8Bit();
+					mdns_query_t serviceQuery{ MDNS_RECORDTYPE_PTR, name.data(), strlen(name.data()) };
+
+					for (int i = 0; i < num_sockets; i++)
+						mdns_multiquery_send(sockets[i], &serviceQuery, 1, mainBuffer.data(), mainBuffer.length(), 0);
+				}
+			}
+			_scanService = 0;
 		}
 	}
 
-	// Send a goodbye on end of service
-	{
-		Debug(_log, "Sending goodbye");
-		mdns_record_t additional[5] = {};
-		size_t additional_count = 0;
-		additional[additional_count++] = service.record_srv;
-		if (service.address_ipv4.sin_family == AF_INET)
-			additional[additional_count++] = service.record_a;
-		if (service.address_ipv6.sin6_family == AF_INET6)
-			additional[additional_count++] = service.record_aaaa;
-		additional[additional_count++] = service.txt_record[0];
+	// Send goodbye
+	printf("Sending goodbye\n");
 
-		for (int isock = 0; isock < num_sockets; ++isock)
-			mdns_goodbye_multicast(sockets[isock], buffer, capacity, service.record_ptr, 0, 0,
-				additional, additional_count);
-	}
+	for (int i = 0; i < num_sockets; i++)
+		mdns_goodbye_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, 0, 0,
+			serviceMessage.data(), serviceMessage.size());
 
-	free(buffer);
-	free(service_name_buffer);
-
-	for (int isock = 0; isock < num_sockets; ++isock)
-		mdns_socket_close(sockets[isock]);
-	Debug(_log, "Closed socket%s", num_sockets ? "s" : "");
+	// free resources
+	for (int i = 0; i < num_sockets; i++)
+		mdns_socket_close(sockets[i]);
 
 	return 0;
 }
@@ -712,16 +535,45 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 	size_t record_length, void* user_data)
 {
 	(void)sizeof(ttl);
-	if (entry != MDNS_ENTRYTYPE_QUESTION)
+
+	if (entry != MDNS_ENTRYTYPE_QUESTION && rtype != MDNS_RECORDTYPE_SRV && rtype != MDNS_RECORDTYPE_A)
 		return 0;
+
+
 	char namebuffer[256];
 	char sendbuffer[1024];
-
-	const char dns_sd[] = "_services._dns-sd._udp.local.";
 	const service_t* service = (const service_t*)user_data;
-
 	size_t offset = name_offset;
 	mdns_string_t name = mdns_string_extract(data, size, &offset, namebuffer, sizeof(namebuffer));
+
+	if (entry != MDNS_ENTRYTYPE_QUESTION)
+	{
+		if (rtype == MDNS_RECORDTYPE_SRV) {
+			mdns_record_srv_t srv = mdns_record_parse_srv(data, size, record_offset, record_length,
+				sendbuffer, sizeof(sendbuffer));
+
+			if (user_data != nullptr)
+			{
+				BonjourServiceRegister* receive = service->parent->_register;
+				emit receive->messageFromFriend(ttl > 0, QString::fromLocal8Bit(name.str, name.length), QString::fromLocal8Bit(srv.name.str, srv.name.length), srv.port);
+			}
+		}
+		else if (rtype == MDNS_RECORDTYPE_A) {
+			struct sockaddr_in addr = {};
+			mdns_record_parse_a(data, size, record_offset, record_length, &addr);
+			QString addrstr = ip_address_to_string(&addr, sizeof(addr));
+
+			if (user_data != nullptr)
+			{
+				BonjourServiceRegister* receive = service->parent->_register;
+				emit receive->resolveIp(QString::fromLocal8Bit(name.str, name.length), addrstr);
+			}
+		}
+		return 0;
+	}
+
+
+	const char dns_sd[] = "_services._dns-sd._udp.local.";
 
 	const char* record_name = 0;
 	if (rtype == MDNS_RECORDTYPE_PTR)
@@ -781,22 +633,21 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// "<hostname>.<_service-name>._tcp.local."
 			mdns_record_t answer = service->record_ptr;
 
-			mdns_record_t additional[5] = {};
-			size_t additional_count = 0;
+			std::vector<mdns_record_t> additional;
 
 			// SRV record mapping "<hostname>.<_service-name>._tcp.local." to
 			// "<hostname>.local." with port. Set weight & priority to 0.
-			additional[additional_count++] = service->record_srv;
+			additional.push_back(service->record_srv);
 
 			// A/AAAA records mapping "<hostname>.local." to IPv4/IPv6 addresses
 			if (service->address_ipv4.sin_family == AF_INET)
-				additional[additional_count++] = service->record_a;
+				additional.push_back(service->record_a);
 			if (service->address_ipv6.sin6_family == AF_INET6)
-				additional[additional_count++] = service->record_aaaa;
+				additional.push_back(service->record_aaaa);
 
 			// Add two test TXT records for our service instance name, will be coalesced into
 			// one record with both key-value pair strings by the library
-			additional[additional_count++] = service->txt_record[0];
+			additional.push_back(service->txt_record[0]);
 
 			// Send the answer, unicast or multicast depending on flag in query
 			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);
@@ -804,11 +655,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
 					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 			else {
 				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 		}
 	}
@@ -825,18 +676,17 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// "<hostname>.<_service-name>._tcp.local."
 			mdns_record_t answer = service->record_srv;
 
-			mdns_record_t additional[5] = {};
-			size_t additional_count = 0;
+			std::vector<mdns_record_t> additional;
 
 			// A/AAAA records mapping "<hostname>.local." to IPv4/IPv6 addresses
 			if (service->address_ipv4.sin_family == AF_INET)
-				additional[additional_count++] = service->record_a;
+				additional.push_back(service->record_a);
 			if (service->address_ipv6.sin6_family == AF_INET6)
-				additional[additional_count++] = service->record_aaaa;
+				additional.push_back(service->record_aaaa);
 
 			// Add two test TXT records for our service instance name, will be coalesced into
 			// one record with both key-value pair strings by the library
-			additional[additional_count++] = service->txt_record[0];
+			additional.push_back(service->txt_record[0]);
 
 			// Send the answer, unicast or multicast depending on flag in query
 			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);
@@ -844,11 +694,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
 					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 			else {
 				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 		}
 	}
@@ -863,16 +713,15 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// Answer A records mapping "<hostname>.local." to IPv4 address
 			mdns_record_t answer = service->record_a;
 
-			mdns_record_t additional[5] = {};
-			size_t additional_count = 0;
+			std::vector<mdns_record_t> additional;
 
 			// AAAA record mapping "<hostname>.local." to IPv6 addresses
 			if (service->address_ipv6.sin6_family == AF_INET6)
-				additional[additional_count++] = service->record_aaaa;
+				additional.push_back(service->record_aaaa);
 
 			// Add two test TXT records for our service instance name, will be coalesced into
 			// one record with both key-value pair strings by the library
-			additional[additional_count++] = service->txt_record[0];
+			additional.push_back(service->txt_record[0]);
 
 			// Send the answer, unicast or multicast depending on flag in query
 			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);
@@ -880,11 +729,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
 					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 			else {
 				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 		}
 		else if (((rtype == MDNS_RECORDTYPE_AAAA) || (rtype == MDNS_RECORDTYPE_ANY)) &&
@@ -896,28 +745,27 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 			// Answer AAAA records mapping "<hostname>.local." to IPv6 address
 			mdns_record_t answer = service->record_aaaa;
 
-			mdns_record_t additional[5] = {};
-			size_t additional_count = 0;
+			std::vector<mdns_record_t> additional;
 
 			// A record mapping "<hostname>.local." to IPv4 addresses
 			if (service->address_ipv4.sin_family == AF_INET)
-				additional[additional_count++] = service->record_a;
+				additional.push_back(service->record_a);
 
 			// Add two test TXT records for our service instance name, will be coalesced into
 			// one record with both key-value pair strings by the library
-			additional[additional_count++] = service->txt_record[0];
+			additional.push_back(service->txt_record[0]);
 
 			// Send the answer, unicast or multicast depending on flag in query
-			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);			
+			uint16_t unicast = (rclass & MDNS_UNICAST_RESPONSE);
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
 					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 			else {
 				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
-					additional, additional_count);
+					additional.data(), additional.size());
 			}
 		}
 	}

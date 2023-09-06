@@ -26,15 +26,10 @@
  */
 
 #include <base/VideoControl.h>
-
 #include <base/HyperHdrInstance.h>
-
 #include <base/GrabberWrapper.h>
-
-// utils includes
 #include <utils/GlobalSignals.h>
 
-// qt includes
 #include <QTimer>
 
 bool VideoControl::_stream = false;

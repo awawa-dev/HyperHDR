@@ -33,9 +33,9 @@ bool LedDeviceAdalight::init(const QJsonObject& deviceConfig)
 		_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
 		_awa_mode = deviceConfig["awa_mode"].toBool(false);
 
-		_white_channel_calibration  = deviceConfig["white_channel_calibration"].toBool(false);
-		_white_channel_limit  = qMin(qRound(deviceConfig["white_channel_limit"].toDouble(1) * 255.0 / 100.0), 255);
-		_white_channel_red  = qMin(deviceConfig["white_channel_red"].toInt(255), 255);
+		_white_channel_calibration = deviceConfig["white_channel_calibration"].toBool(false);
+		_white_channel_limit = qMin(qRound(deviceConfig["white_channel_limit"].toDouble(1) * 255.0 / 100.0), 255);
+		_white_channel_red = qMin(deviceConfig["white_channel_red"].toInt(255), 255);
 		_white_channel_green = qMin(deviceConfig["white_channel_green"].toInt(255), 255);
 		_white_channel_blue = qMin(deviceConfig["white_channel_blue"].toInt(255), 255);
 

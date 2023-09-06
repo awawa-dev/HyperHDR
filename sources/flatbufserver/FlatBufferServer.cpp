@@ -153,7 +153,7 @@ void FlatBufferServer::newConnection()
 	while (_domain != nullptr && _domain->hasPendingConnections())
 	{
 		if (QLocalSocket* socket = _domain->nextPendingConnection())
-		{			
+		{
 			Debug(_log, "New local domain connection");
 			FlatBufferClient* client = new FlatBufferClient(nullptr, socket, _timeout, _hdrToneMappingMode, _lutBuffer, this);
 			// internal
@@ -306,7 +306,7 @@ void FlatBufferServer::importFromProtoHandler(int priority, int duration, const 
 
 void FlatBufferServer::setUserLut(QString filename)
 {
-	_userLutFile = filename.replace("~", "").replace("/","").replace("..", "");
+	_userLutFile = filename.replace("~", "").replace("/", "").replace("..", "");
 
 	Info(_log, "Setting user LUT filename to: '%s'", QSTRING_CSTR(_userLutFile));
 }

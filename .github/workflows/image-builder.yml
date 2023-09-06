@@ -6,15 +6,32 @@ on:
       tags:
         description: 'HyperHDR release tag (for example 17.0.0.0)'
       architecture:
-        description: 'ARM architecture: armv6l/armv7l/aarch64'
+        description: 'ARM architecture: armv6l/aarch64'
+      tagCustomPiOS:
+        default: ''
+        description: 'Optional tag of CustomPiOS'
+      debian:
+        default: ''
+        description: 'optional Debian version'
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       HYPERHDR_DEB: 'https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/HyperHDR-${{ github.event.inputs.tags }}-Linux-${{ github.event.inputs.architecture }}.deb'
       
     steps:
+
+    - name: Overrride Debian download link
+      if: github.event.inputs.debian != ''
+      run: |
+        tag_name="${{ github.event.inputs.tags }}"
+        first_version="${tag_name%beta*}"
+        second_version="${tag_name#*beta}"
+        [ ${first_version} != ${second_version} ] && second_version="~beta${second_version}"
+        [ ${first_version} == ${second_version} ] && second_version=""
+        echo "HYPERHDR_DEB='https://github.com/awawa-dev/HyperHDR/releases/download/v${{ github.event.inputs.tags }}/HyperHDR_${first_version}~${{ github.event.inputs.debian }}${second_version}_${{ github.event.inputs.architecture }}.deb'" >> $GITHUB_ENV
+
     - name: Install Dependencies
       run: |
         sudo apt update
@@ -25,6 +42,12 @@ jobs:
       with:
         repository: 'guysoft/CustomPiOS'
         path: CustomPiOS
+
+    - name: Select CustomPiOS version
+      if: github.event.inputs.tagCustomPiOS != ''
+      run: |
+        cd CustomPiOS
+        git reset --hard ${{ github.event.inputs.tagCustomPiOS }}
 
     - name: Prepare HyperHDR module
       run: |
@@ -65,6 +88,10 @@ jobs:
         echo 'set -x' >> start_chroot_script
         echo 'set -e' >> start_chroot_script
         echo 'source /common.sh' >> start_chroot_script
+        echo 'type -p curl >/dev/null || apt install curl -y' >> start_chroot_script
+        echo 'curl -fsSL https://awawa-dev.github.io/hyperhdr.public.apt.gpg.key | dd of=/usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
+        echo '&& chmod go+r /usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
+        echo '&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hyperhdr.public.apt.gpg.key] https://awawa-dev.github.io $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hyperhdr.list > /dev/null \' >> start_chroot_script
         echo 'apt-get update' >> start_chroot_script
         echo 'cd /tmp' >> start_chroot_script
         echo 'wget ${{env.HYPERHDR_DEB}} -O hyperhdr.deb' >> start_chroot_script
@@ -94,7 +121,7 @@ jobs:
         echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
     # artifact upload will take care of zipping for us
-    - uses: actions/upload-artifact@v1      
+    - uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.copy.outputs.image }}
         path: ${{ steps.copy.outputs.image }}.img

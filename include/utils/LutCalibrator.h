@@ -42,10 +42,10 @@ class Logger;
 
 class LutCalibrator : public QObject
 {
-	static LutCalibrator* instance;
-
 	Q_OBJECT
 
+private:
+	static LutCalibrator* instance;
 	struct ColorStat
 	{
 		double	red = 0, green = 0, blue = 0, count = 0, scaledRed = 1, scaledGreen = 1, scaledBlue = 1;

@@ -2,19 +2,20 @@
 #define BONJOURSERVICEREGISTER_H
 
 #include <QtCore/QObject>
+#include <QHash>
 
-#include <bonjour/bonjourrecord.h>
+#include <bonjour/DiscoveryRecord.h>
 #include <bonjour/bonjourservicehelper.h>
 
 class BonjourServiceRegister : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    BonjourServiceRegister(QObject *parent, const QString& service, int port);
-    ~BonjourServiceRegister() override;
+	BonjourServiceRegister(QObject* parent, DiscoveryRecord::Service type, int port);
+	~BonjourServiceRegister() override;
 
-    void registerService();
+	void registerService();
 
 public slots:
 	int getPort()
@@ -22,10 +23,22 @@ public slots:
 		return _serviceRecord.port;
 	};
 
+	void requestToScanHandler(DiscoveryRecord::Service type);
+	void messageFromFriendHandler(bool isExists, QString mdnsString, QString serverName, int port);
+	void resolveIpHandler(QString serverName, QString ip);
+
+signals:
+	void messageFromFriend(bool isWelcome, QString mdnsString, QString serverName, int port);
+	void resolveIp(QString serverName, QString ip);
+
 private:
+	void resolveIps();
+
 	BonjourServiceHelper* _helper;
-	BonjourRecord		_serviceRecord;
+	DiscoveryRecord		_serviceRecord;
 	bool				_isActive;
+	QHash<QString, QString> _ips;
+	DiscoveryRecord		_result;
 };
 
 #endif // BONJOURSERVICEREGISTER_H

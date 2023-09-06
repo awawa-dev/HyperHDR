@@ -13,6 +13,8 @@
 #include <sstream>
 #include <iomanip>
 
+std::atomic<bool> LedDevice::_signalTerminate(false);
+
 LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	: QObject(parent)
 	, _devConfig(deviceConfig)
@@ -45,31 +47,6 @@ LedDevice::~LedDevice()
 	stopRefreshTimer();
 }
 
-void LedDevice::start()
-{
-	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
-
-	close();
-
-	_isDeviceInitialised = false;
-	// General initialisation and configuration of LedDevice
-	if (init(_devConfig))
-	{
-		// Everything is OK -> enable device
-		_isDeviceInitialised = true;
-		this->enable();
-	}
-}
-
-void LedDevice::stop()
-{
-	Debug(_log, "Stop device");
-
-	this->disable();
-	this->stopRefreshTimer();
-	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
-}
-
 int LedDevice::open()
 {
 	_isDeviceReady = true;
@@ -86,22 +63,40 @@ int LedDevice::close()
 	return retval;
 }
 
-void LedDevice::setInError(const QString& errorMsg)
+void LedDevice::start()
 {
-	_isOn = false;
-	_isDeviceInError = true;
-	_isDeviceReady = false;
-	_isEnabled = false;
-	this->stopRefreshTimer();
+	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
 
-	Error(_log, "Device disabled, device '%s' signals error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(errorMsg));
-	emit enableStateChanged(_isEnabled);
+	close();
+
+	_isDeviceInitialised = false;
+	// General initialisation and configuration of LedDevice
+	if (init(_devConfig))
+	{
+		// Everything is OK -> enable device
+		_isDeviceInitialised = true;
+		this->enable();
+	}
 }
 
 void LedDevice::enable()
 {
-	Debug(_log, "Enable device");
-	enableDevice(true);
+	if (!_signalTerminate)
+	{
+		if (!_isDeviceInitialised && init(_devConfig))
+		{
+			Debug(_log, "First enable the device");
+			_isDeviceInitialised = true;
+		}
+
+		if (_isDeviceInitialised)
+		{
+			Debug(_log, "Enable the device");
+			enableDevice(true);
+		}
+		else
+			Error(_log, "Could not initialize the device before enabling");
+	}
 }
 
 void LedDevice::enableDevice(bool toEmit)
@@ -116,7 +111,7 @@ void LedDevice::enableDevice(bool toEmit)
 		}
 
 		if (_isDeviceReady)
-		{			
+		{
 			if (switchOn())
 			{
 				_isDeviceReady = true;
@@ -135,9 +130,18 @@ void LedDevice::enableDevice(bool toEmit)
 	_blinkIndex = -1;
 }
 
+void LedDevice::stop()
+{
+	Debug(_log, "Stop device");
+
+	this->disable();
+	this->stopRefreshTimer();
+	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
+}
+
 void LedDevice::disable()
 {
-	Debug(_log, "Disable device");
+	Debug(_log, "Disable the device");
 	disableDevice(true);
 }
 
@@ -159,6 +163,18 @@ void LedDevice::disableDevice(bool toEmit)
 
 	_newFrame2Send = false;
 	_blinkIndex = -1;
+}
+
+void LedDevice::setInError(const QString& errorMsg)
+{
+	_isOn = false;
+	_isDeviceInError = true;
+	_isDeviceReady = false;
+	_isEnabled = false;
+	this->stopRefreshTimer();
+
+	Error(_log, "Device '%s' is disabled due to an error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(errorMsg));
+	emit enableStateChanged(_isEnabled);
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
@@ -209,7 +225,7 @@ void LedDevice::stopRefreshTimer()
 
 		_refreshTimer->stop();
 		delete _refreshTimer;
-		_refreshTimer = nullptr;		
+		_refreshTimer = nullptr;
 	}
 }
 
@@ -260,7 +276,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 
 		if (diff >= 59000 && diff <= 65000)
 			emit this->newCounter(
-			PerformanceReport(static_cast<int>(PerformanceReportType::LED), _computeStats.token, this->_activeDeviceType, _computeStats.frames / qMax(diff / 1000.0, 1.0), _computeStats.frames, _computeStats.incomingframes, _computeStats.droppedFrames));
+				PerformanceReport(static_cast<int>(PerformanceReportType::LED), _computeStats.token, this->_activeDeviceType, _computeStats.frames / qMax(diff / 1000.0, 1.0), _computeStats.frames, _computeStats.incomingframes, _computeStats.droppedFrames));
 
 		_computeStats.statBegin = now;
 		_computeStats.frames = 0;
@@ -299,14 +315,14 @@ int LedDevice::rewriteLEDs()
 
 	_newFrame2Send = false;
 
-	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
+	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError && !_signalTerminate)
 	{
-		if (_lastLedValues.size() > 0 )
+		if (_lastLedValues.size() > 0)
 			retval = write(_lastLedValues);
 
 		_computeStats.frames++;
 	}
-	
+
 	return retval;
 }
 
@@ -319,7 +335,7 @@ int LedDevice::writeBlack(int numberOfBlack)
 	_lastLedValues = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK);
 
 	for (int i = 0; i < numberOfBlack; i++)
-	{		
+	{
 		rc = write(_lastLedValues);
 	}
 
@@ -367,7 +383,7 @@ bool LedDevice::switchOff()
 		if (_isDeviceInitialised)
 		{
 			// Disable device to ensure no standard Led updates are written/processed
-			_isOn = false;			
+			_isOn = false;
 
 			rc = true;
 
@@ -419,6 +435,78 @@ void LedDevice::setLedCount(int ledCount)
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
 }
 
+QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
+
+	QJsonArray deviceList;
+	devicesDiscovered.insert("devices", deviceList);
+
+	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	return devicesDiscovered;
+}
+
+QString LedDevice::discoverFirst()
+{
+	QString deviceDiscovered;
+
+	Debug(_log, "deviceDiscovered: [%s]", QSTRING_CSTR(deviceDiscovered));
+
+	return deviceDiscovered;
+}
+
+void LedDevice::identifyLed(const QJsonObject& params)
+{
+	_blinkIndex = params["blinkIndex"].toInt(-1);
+
+	if (_blinkIndex < 0 || _blinkIndex >= (int)_lastLedValues.size())
+	{
+		_blinkIndex = -1;
+	}
+	else
+	{
+		const int blinkOrg = _blinkIndex;
+
+		for (auto iter = _lastLedValues.begin(); iter != _lastLedValues.end(); ++iter)
+		{
+			*iter = ColorRgb::BLACK;
+		}
+
+		for (int i = 0; i < 6; i++)
+		{
+			ColorRgb color = (i % 3 == 0) ? ColorRgb::RED : (i % 3 == 1) ? ColorRgb::GREEN : ColorRgb::BLUE;
+
+			QTimer::singleShot(800 * i, this, [this, color, blinkOrg]() {
+				if (_blinkIndex == blinkOrg && _blinkIndex >= 0 && _blinkIndex < (int)_lastLedValues.size())
+				{
+					_lastLedValues[_blinkIndex] = color;
+					rewriteLEDs();
+				}
+			});
+		}
+
+		// disable blinking after the sequence
+		QTimer::singleShot(4800, this, [this, blinkOrg]() {
+			if (_blinkIndex == blinkOrg) _blinkIndex = -1;
+		});
+	}
+}
+
+void LedDevice::signalTerminateTriggered()
+{
+	_signalTerminate = true;
+}
+
+void LedDevice::blinking(QJsonObject params)
+{
+	if (params["blinkIndex"].toInt(-1) != -1)
+		identifyLed(params);
+	else
+		identify(params);
+}
+
 QJsonObject LedDevice::getProperties(const QJsonObject& params)
 {
 	QJsonObject properties;
@@ -457,28 +545,6 @@ bool LedDevice::restoreState()
 		// update original power on/off state, if supported
 	}
 	return rc;
-}
-
-QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
-{
-	QJsonObject devicesDiscovered;
-
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
-	QJsonArray deviceList;
-	devicesDiscovered.insert("devices", deviceList);
-
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	return devicesDiscovered;
-}
-
-QString LedDevice::discoverFirst()
-{
-	QString deviceDiscovered;
-
-	Debug(_log, "deviceDiscovered: [%s]", QSTRING_CSTR(deviceDiscovered));
-
-	return deviceDiscovered;
 }
 
 void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
@@ -540,42 +606,3 @@ QString LedDevice::getActiveDeviceType() const {
 bool LedDevice::componentState() const {
 	return _isEnabled;
 }
-
-void LedDevice::identifyLed(const QJsonObject& params)
-{
-	_blinkIndex = params["blinkIndex"].toInt(-1);
-
-	if (_blinkIndex < 0 || _blinkIndex >= (int)_lastLedValues.size())
-	{
-		_blinkIndex = -1;
-	}
-	else
-	{
-		const int blinkOrg = _blinkIndex;
-
-		for (auto iter = _lastLedValues.begin(); iter != _lastLedValues.end(); ++iter)
-		{
-			*iter = ColorRgb::BLACK;
-		}
-
-		for (int i = 0; i < 6; i++)
-		{
-			ColorRgb color = (i % 3 == 0) ? ColorRgb::RED : (i % 3 == 1) ? ColorRgb::GREEN : ColorRgb::BLUE;
-
-			QTimer::singleShot(800 * i, this, [this, color, blinkOrg]() {
-				if (_blinkIndex == blinkOrg && _blinkIndex >= 0 && _blinkIndex < (int)_lastLedValues.size())
-				{
-					_lastLedValues[_blinkIndex] = color;
-					rewriteLEDs();
-				}
-			});
-		}
-
-		// disable blinking after the sequence
-		QTimer::singleShot(4800, this, [this, blinkOrg]() {
-			if (_blinkIndex == blinkOrg) _blinkIndex = -1;
-		});
-	}
-}
-
-

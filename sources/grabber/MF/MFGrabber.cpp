@@ -129,8 +129,7 @@ MFGrabber::VideoFormat fmt_array[] =
 };
 
 MFGrabber::MFGrabber(const QString& device, const QString& configurationPath)
-	: Grabber("MEDIA_FOUNDATION:" + device.left(14))
-	, _configurationPath(configurationPath)
+	: Grabber(configurationPath, "MEDIA_FOUNDATION:" + device.left(14))
 	, _sourceReader(NULL)
 {
 	// init MF

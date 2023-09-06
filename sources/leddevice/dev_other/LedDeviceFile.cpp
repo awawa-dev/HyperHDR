@@ -44,6 +44,8 @@ bool LedDeviceFile::init(const QJsonObject& deviceConfig)
 		_file = new QFile(_fileName, this);
 	}
 
+	Debug(_log, "Output filename: %s", QSTRING_CSTR(_fileName));
+
 	return initOK;
 }
 
@@ -51,6 +53,8 @@ int LedDeviceFile::open()
 {
 	int retval = -1;
 	_isDeviceReady = false;
+
+	Debug(_log, "Open filename: %s", QSTRING_CSTR(_fileName));
 
 	if (!_file->isOpen())
 	{

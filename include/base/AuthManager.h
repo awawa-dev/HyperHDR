@@ -69,7 +69,7 @@ public:
 	/// @brief Check if user auth is temporary blocked due to failed attempts
 	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	bool isUserAuthBlocked() const;
+
 
 	///
 	/// @brief Check if token auth is temporary blocked due to failed attempts
@@ -91,6 +91,8 @@ public slots:
 	/// @return        True if authorized else false
 	///
 	bool isUserAuthorized(const QString& user, const QString& pw);
+
+	bool isUserAuthBlocked() const;
 
 	///
 	/// @brief Check if token is authorized

@@ -91,7 +91,7 @@ ImageToLedsMap::ImageToLedsMap(
 		const int32_t increment = (sparseIndexes) ? 2 : 1;
 
 		std::vector<int32_t> ledColor;
-		ledColor.reserve( (sparseIndexes) ? ((static_cast<unsigned long long>(realYLedCount / 2)) + (realYLedCount % 2)) * ((realXLedCount / 2) + (realXLedCount % 2)) : totalSize);
+		ledColor.reserve((sparseIndexes) ? ((static_cast<unsigned long long>(realYLedCount / 2)) + (realYLedCount % 2)) * ((realXLedCount / 2) + (realXLedCount % 2)) : totalSize);
 
 		if (ImageProcessor::mappingTypeToInt(QString("weighted")) == _mappingType)
 		{
@@ -178,8 +178,8 @@ ImageToLedsMap::ImageToLedsMap(
 			_groupMin = led.group;
 		if (_groupMax == -1 || led.group > _groupMax)
 			_groupMax = led.group;
-		
-		totalCount += ledColor.size();		
+
+		totalCount += ledColor.size();
 		totalCapasity += ledColor.capacity();
 	}
 	Info(_log, "Total index number is: %d (memory: %d). User sparse processing is: %s, image size: %d x %d, area number: %d",
@@ -216,7 +216,7 @@ std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image, uint
 		case 1: colors = getUniLedColor(image); break;
 		default: colors = getMeanLedColor(image);
 	}
-	
+
 	if (_groupMax > 0 && _mappingType != 1)
 	{
 		for (int i = std::max(_groupMin, 1); i <= _groupMax; i++)
@@ -250,7 +250,7 @@ std::vector<ColorRgb> ImageToLedsMap::Process(const Image<ColorRgb>& image, uint
 				}
 		}
 	}
-	
+
 	return colors;
 }
 

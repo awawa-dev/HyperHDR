@@ -35,7 +35,7 @@
   "conf_general_inst_actionhead": "Actie",
   "conf_general_inst_delreq_h": "LED-hardware-instantie verwijderen",
   "conf_general_inst_delreq_t": "Weet u zeker dat u instantie \"$1\" wilt verwijderen? Alle instellingen worden ook verwijderd.",
-  "conf_general_inst_desc": "Gebruik verschillende LED-hardware tegelijkertijd. Elke instantie werkt onafhankelijk van elkaar, wat verschillende LED-lay-outs en kalibratie-instellingen mogelijk maakt. Lopende instanties zijn beschikbaar via het pictogram <i class='fa fa-exchange fa-fw'></i> aan de linkerkant",
+  "conf_general_inst_desc": "Gebruik verschillende LED-hardware tegelijkertijd. Elke instantie werkt onafhankelijk van elkaar, wat verschillende LED-lay-outs en kalibratie-instellingen mogelijk maakt. Lopende instanties zijn beschikbaar via het pictogram <svg data-src='svg/instances.svg' fill='currentColor' class='svg4hyperhdr ms-2'></svg> aan de linkerkant",
   "conf_general_inst_name_title": "Naam nieuwe instantie",
   "conf_general_inst_namehead": "Instantienaam",
   "conf_general_inst_renreq_t": "Voer in het onderstaande veld een nieuwe naam in voor uw instantie.",

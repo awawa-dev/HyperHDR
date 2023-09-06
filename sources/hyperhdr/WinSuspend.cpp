@@ -51,7 +51,11 @@ SuspendHandler::~SuspendHandler()
 	_notifyHandle = NULL;
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, long* result)
+#else
 bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result)
+#endif
 {
 	MSG* msg = static_cast<MSG*>(message);
 
@@ -60,11 +64,11 @@ bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* messag
 		switch (msg->wParam)
 		{			
 			case PBT_APMRESUMESUSPEND:
-				QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, true));
+				AUTO_CALL_1(HyperHdrIManager::getInstance(), hibernate, bool, true)
 				return true;
 				break;
 			case PBT_APMSUSPEND:
-				QMetaObject::invokeMethod(HyperHdrIManager::getInstance(), "hibernate", Q_ARG(bool, false));
+				AUTO_CALL_1(HyperHdrIManager::getInstance(), hibernate, bool, false)
 				return true;
 				break;
 		}

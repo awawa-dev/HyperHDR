@@ -3,7 +3,7 @@
 #include <utils/QStringUtils.h>
 #include <HyperhdrConfig.h>
 #ifdef ENABLE_BONJOUR
-	#include <bonjour/bonjourbrowserwrapper.h>
+	#include <bonjour/DiscoveryWrapper.h>
 #endif
 #include <ssdp/SSDPDiscover.h>
 
@@ -327,10 +327,10 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject& deviceConfig)
 				else
 				{
 					_currentRetry = _maxRetry;
-					if (!_retryMode)
+					if (!_retryMode && !_signalTerminate)
 					{
 						_retryMode = true;
-						QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+						QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0 && !_signalTerminate) enableDevice(true);  });
 					}
 				}
 			}
@@ -1543,7 +1543,7 @@ bool LedDevicePhilipsHue::stopStream()
 	ProviderUdpSSL::closeNetwork();
 
 	int index = 3;
-	while (!setStreamGroupState(false) && --index > 0)
+	while (!setStreamGroupState(false) && --index > 0 && !_signalTerminate)
 	{
 		Debug(_log, "Stop entertainment stream. Retrying...");
 		QThread::msleep(500);
@@ -1781,10 +1781,10 @@ bool LedDevicePhilipsHue::switchOn()
 					Error(_log, "The PhilipsHue device is not ready... give up.");
 
 
-				if (_currentRetry > 0)
+				if (_currentRetry > 0 && !_signalTerminate)
 				{
 					_retryMode = true;
-					QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0) enableDevice(true);  });
+					QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0 && !_signalTerminate) enableDevice(true);  });
 				}
 			}
 			else
@@ -1968,7 +1968,7 @@ int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValue
 void LedDevicePhilipsHue::writeStream(bool flush)
 {
 	if (isApiV2())
-	{		
+	{
 		std::vector<uint8_t> payload = prepareStreamDataV2();
 		writeBytes(static_cast<unsigned int>(payload.size()), reinterpret_cast<unsigned char*>(payload.data()), flush);
 		return;
@@ -2055,7 +2055,7 @@ void LedDevicePhilipsHue::setTransitionTime(PhilipsHueLight& light)
 }
 
 void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
-{	
+{
 	if (!light.hasColor() || light.getColor() != color)
 	{
 		if (!_useHueEntertainmentAPI)
@@ -2213,17 +2213,14 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
 #ifdef ENABLE_BONJOUR
-	auto bonInstance = BonjourBrowserWrapper::getInstance();
+	auto bonInstance = DiscoveryWrapper::getInstance();
 	if (bonInstance != nullptr)
 	{
-		QList<BonjourRecord> recs;
+		QList<DiscoveryRecord> recs;
 
-		if (QThread::currentThread() == bonInstance->thread())
-			recs = bonInstance->getPhilipsHUE();
-		else
-			QMetaObject::invokeMethod(bonInstance, "getPhilipsHUE", Qt::ConnectionType::BlockingQueuedConnection, Q_RETURN_ARG(QList<BonjourRecord>, recs));
+		SAFE_CALL_0_RET(bonInstance, getPhilipsHUE, QList<DiscoveryRecord>, recs);
 
-		for (BonjourRecord& r : recs)
+		for (DiscoveryRecord& r : recs)
 		{
 			QJsonObject newIp;
 			newIp["ip"] = r.address;
@@ -2232,7 +2229,7 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 		}
 	}
 #else
-	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintenair was compiling this version of HyperHDR");
+	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintainer was compiling this version of HyperHDR");
 #endif
 	if (deviceList.isEmpty())
 	{

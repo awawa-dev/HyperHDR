@@ -18,9 +18,6 @@
 class GlobalSignals;
 class QTimer;
 
-/// List of HyperHDR instances that requested screen capt
-static QList<int> GRABBER_VIDEO_CLIENTS;
-
 ///
 /// This class will be inherted by FramebufferWrapper and others which contains the real capture interface
 ///
@@ -35,20 +32,12 @@ public:
 
 	static	GrabberWrapper* instance;
 	static	GrabberWrapper* getInstance() { return instance; }
-	
-	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 
-	QJsonObject getJsonInfo();
+	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 
 	bool isCEC();
 
 	void setCecStartStop(int cecHdrStart, int cecHdrStop);
-
-	QJsonDocument startCalibration();
-
-	QJsonDocument stopCalibration();
-
-	QJsonDocument getCalibrationInfo();
 
 	int getFpsSoftwareDecimation();
 
@@ -68,8 +57,14 @@ public slots:
 	bool start();
 	void stop();
 
+	QJsonObject getJsonInfo();
+
+	QJsonDocument startCalibration();
+	QJsonDocument stopCalibration();
+	QJsonDocument getCalibrationInfo();
+
 private slots:
-	void handleSourceRequest(hyperhdr::Components component, int hyperHdrInd, bool listen);
+	void handleSourceRequest(hyperhdr::Components component, int instanceIndex, bool listen);
 
 signals:
 	///
@@ -81,6 +76,7 @@ signals:
 	void cecKeyPressed(int key);
 	void benchmarkUpdate(int status, QString message);
 	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	void instancePauseChanged(int instance, bool isEnabled);
 
 public:
 	int  getHdrToneMappingEnabled();
@@ -97,6 +93,7 @@ public slots:
 	void setBrightnessContrastSaturationHueHandler(int brightness, int contrast, int saturation, int hue);
 	void setQFrameDecimation(int setQframe);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+	void instancePauseChangedHandler(int instance, bool isEnabled);
 
 protected:
 	DetectionAutomatic::calibrationPoint parsePoint(int width, int height, QJsonObject element, bool& ok);
@@ -112,7 +109,11 @@ protected:
 	int			_cecHdrStart;
 	int			_cecHdrStop;
 	bool		_autoResume;
+	bool		_isPaused;
+	bool		_pausingModeEnabled;
 
 	int			_benchmarkStatus;
 	QString		_benchmarkMessage;
+	QList<int>	_running_clients;
+	QList<int>	_paused_clients;
 };

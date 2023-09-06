@@ -77,7 +77,7 @@ void SSDPHandler::initServer()
 
 	// startup if localAddress is found
 	bool isInited = false;
-	QMetaObject::invokeMethod(_webserver, "isInited", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isInited));
+	SAFE_CALL_0_RET(_webserver, isInited, bool, isInited);
 
 	if (!_localAddress.isEmpty() && isInited)
 	{
@@ -89,6 +89,26 @@ void SSDPHandler::stopServer()
 {
 	sendAnnounceList(false);
 	SSDPServer::stop();
+}
+
+
+void SSDPHandler::handleWebServerStateChange(bool newState)
+{
+	if (newState)
+	{
+		// refresh info
+		QString param = buildDesc();
+		BLOCK_CALL_1(_webserver, setSSDPDescription, QString, param);
+		setDescriptionAddress(getDescAddress());
+		if (start())
+			sendAnnounceList(true);
+	}
+	else
+	{		
+		BLOCK_CALL_1(_webserver, setSSDPDescription, QString, "");
+		sendAnnounceList(false);
+		stop();
+	}
 }
 
 void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -136,24 +156,6 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 	}
 }
 
-void SSDPHandler::handleWebServerStateChange(bool newState)
-{
-	if (newState)
-	{
-		// refresh info
-		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
-		setDescriptionAddress(getDescAddress());
-		if (start())
-			sendAnnounceList(true);
-	}
-	else
-	{
-		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, ""));
-		sendAnnounceList(false);
-		stop();
-	}
-}
-
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	// yes, we know it depracated and can handle it
 	#pragma GCC diagnostic push
@@ -169,7 +171,8 @@ void SSDPHandler::handleWebServerStateChange(bool newState)
 
 			// update desc & notify new ip
 			_localAddress = localAddress;
-			QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
+			QString param = buildDesc();
+			BLOCK_CALL_1(_webserver, setSSDPDescription, QString, param);
 			setDescriptionAddress(getDescAddress());
 			sendAnnounceList(true);
 		}
@@ -248,7 +251,7 @@ QString SSDPHandler::getDescAddress() const
 QString SSDPHandler::getBaseAddress() const
 {
 	quint16 port = 0;
-	QMetaObject::invokeMethod(_webserver, "getPort", Qt::BlockingQueuedConnection, Q_RETURN_ARG(quint16, port));
+	SAFE_CALL_0_RET(_webserver, getPort, quint16, port);
 	return QString("http://%1:%2/").arg(_localAddress).arg(port);
 }
 

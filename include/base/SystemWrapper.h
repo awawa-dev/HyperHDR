@@ -31,10 +31,11 @@ public:
 	static	SystemWrapper* instance;
 	static	SystemWrapper* getInstance() { return instance; }
 
-	QJsonObject getJsonInfo();
 	virtual bool isActivated(bool forced);
 
 public slots:
+	QJsonObject getJsonInfo();
+
 	void newFrame(const Image<ColorRgb>& image);
 	void readError(const char* err);
 	bool start();
@@ -60,7 +61,7 @@ public slots:
 	virtual void stateChanged(bool state);
 
 protected:
-	virtual QString getGrabberInfo();	
+	virtual QString getGrabberInfo();
 
 	QString		_grabberName;
 

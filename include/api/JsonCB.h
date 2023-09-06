@@ -2,17 +2,16 @@
 
 // qt incl
 #include <QJsonObject>
+#include <QList>
 
-// components def
 #include <utils/Components.h>
-// bonjour
-#ifdef ENABLE_BONJOUR
-#include <bonjour/bonjourrecord.h>
-#endif
-// settings
 #include <utils/settings.h>
-// AuthManager
 #include <base/AuthManager.h>
+
+#ifdef ENABLE_BONJOUR
+	#include <bonjour/DiscoveryWrapper.h>
+#endif
+
 
 class HyperHdrInstance;
 class ComponentRegister;
@@ -70,13 +69,11 @@ private slots:
 	/// @brief handle component state changes
 	///
 	void handleComponentState(hyperhdr::Components comp, bool state);
+
 #ifdef ENABLE_BONJOUR
-	///
-	/// @brief handle emits from bonjour wrapper
-	/// @param  bRegisters   The full register map
-	///
-	void handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters);
+	void handleNetworkDiscoveryChange(DiscoveryRecord::Service type, QList<DiscoveryRecord> records);
 #endif
+
 	///
 	/// @brief handle emits from PriorityMuxer
 	///
@@ -101,11 +98,6 @@ private slots:
 	void handleGrabberStateChange(QString device, QString videoMode);
 
 	///
-	/// @brief Handle effect list change
-	///
-	void handleEffectListChange();
-
-	///
 	/// @brief Handle a config part change. This does NOT include (global) changes from other hyperhdr instances
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
@@ -127,7 +119,7 @@ private slots:
 	///
 	/// @brief Handle AuthManager token changes
 	///
-	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
+	void handleTokenChange(const QVector<AuthManager::AuthDefinition>& def);
 
 	void handleBenchmarkUpdate(int status, QString message);
 
@@ -138,14 +130,6 @@ private slots:
 private:
 	/// pointer of HyperHDR instance
 	HyperHdrInstance* _hyperhdr;
-	/// pointer of comp register
-	ComponentRegister* _componentRegister;
-#ifdef ENABLE_AVAHI
-	/// Bonjour instance
-	BonjourBrowserWrapper* _bonjour;
-#endif
-	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
 	/// contains all available commands
 	QStringList _availableCommands;
 	/// contains active subscriptions

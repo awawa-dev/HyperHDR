@@ -311,6 +311,9 @@ bool ProviderUdpSSL::startSSLHandshake()
 
 	for (unsigned int attempt = 1; attempt <= _handshake_attempts; ++attempt)
 	{
+		if (_signalTerminate)
+			return false;
+
 		do
 		{
 			ret = mbedtls_ssl_handshake(&ssl);
@@ -325,7 +328,8 @@ bool ProviderUdpSSL::startSSLHandshake()
 			Warning(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake attempt %1/%2 FAILED. Reason: %3").arg(attempt).arg(_handshake_attempts).arg(errorMsg(ret))));
 		}
 
-		QThread::msleep(200);
+		if (!_signalTerminate)
+			QThread::msleep(200);
 	}
 
 	if (ret != 0)
@@ -396,6 +400,9 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 
 			for (int i = 1; i <= _retry_left; i++)
 			{
+				if (_signalTerminate)
+					return;
+
 				Warning(_log, "Searching the host: %s (trial %i/%i)", QSTRING_CSTR(this->_address.toString()), i, _retry_left);
 
 				socket.connectToHost(_address, _ssl_port);
@@ -406,7 +413,7 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 					socket.close();
 					break;
 				}
-				else
+				else if (!_signalTerminate)
 					QThread::msleep(1000);
 			}
 

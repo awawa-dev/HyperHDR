@@ -120,7 +120,7 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 	{
 		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
 		std::cout << "GUI application";
-}
+	}
 #endif
 
 	if (isGuiApp)
@@ -150,9 +150,6 @@ int main(int argc, char** argv)
 {
 	QStringList params;
 
-#ifndef _WIN32
-	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-#endif
 	// initialize main logger and set global log level
 	Logger* log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::INFO);
@@ -269,7 +266,7 @@ int main(int argc, char** argv)
 		params.append("pipewire");
 	}
 #endif
-	
+
 	int rc = 1;
 	bool readonlyMode = false;
 

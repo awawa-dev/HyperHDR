@@ -20,24 +20,12 @@ class SystemPerformanceCounters
 		void init();
 		QString getChar(double val)
 		{
-			auto m= 8.0f;
-			if (val > 7 / m)
-				return "<span class='specialchar' style='color:red;'>&#9607</span>";
-			else if (val > 6 / m)
-				return "<span class='specialchar' style='color:orange;'>&#9607</span>";
-			else if (val > 5 / m)
-				return "<span class='specialchar' style='color:orange;'>&#9606</span>";
-			else if (val > 4 / m)
-				return "<span class='specialchar' style='color:ForestGreen;'>&#9605</span>";
-			else if (val > 3 / m)
-				return "<span class='specialchar' style='color:ForestGreen;'>&#9603</span>";
-			else if (val > 2 / m)
-				return "<span class='specialchar' style='color:ForestGreen;'>&#9603</span>";
-			else if (val > 1 / m)
-				return "<span class='specialchar' style='color:ForestGreen;'>&#9602</span>";
-			else
-				return "<span class='specialchar' style='color:ForestGreen;'>&#9601</span>";
-		}
+			auto scale = qMax(qMin(qRound(val * 20), 20), 1);
+
+			QString color = (val <= 0.5) ? "cpu_low_usage" : ((val <= 0.8) ? "cpu_medium_usage" : "cpu_high_usage"); //"ForestGreen" : ((val <= 0.8) ? "orange" : "red");
+			QString box = QString("<rect x='0' y='%1' width='12' height='%2' />").arg(20 - scale).arg(scale);
+			return QString("<svg width='12' height='20' viewBox='0 0 10 20' class='specialchar %1'>%2</svg>").arg(color).arg(box);
+		};
 
 	#ifdef __linux__
 		int underVoltage = -1;
