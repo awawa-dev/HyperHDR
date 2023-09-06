@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Veri bütünlüğü kontrolüne sahip yüksek hızlı seri AWA protokolü (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>bilgi</a>)",
   "led_editor_context_identify": "Tanımlamak",
   "main_menu_grabber_lut" : "LUT'u indirin",
-  "main_menu_grabber_lut_title" : "USB yakalayıcı için özel HDR LUT",
+  "main_menu_grabber_lut_title" : "USB yakalayıcı için özel LUT",
   "main_menu_grabber_lut_path" : "Özel LUT yolu: $1",
   "main_menu_grabber_lut_path_not_found" : "Özel LUT bulunamadı",
   "main_menu_grabber_lut_path_found" : "Özel LUT bulundu",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Bazı hatalar geçicidir (ör. otomatik yeniden bağlanma LED'i etkinken) ve göz ardı edilebilir, diğerleri ise ciddi sistem yapılandırması veya işlem hatalarını gösterebilir.<br/>Günlükleri kontrol edin ve hataları arayın (kırmızı renkte):",
   "modal_old_password" : "Eski Şifre",
   "modal_new_password" : "Yeni Şifre",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Canlı video duraklatıldı",
+  "preview_no_signal" : "Sinyal yok",
+  "device_discovery" : "Cihaz keşfi",
+  "device_address" : "Adres",
   "edt_conf_mqtt_custom_topic_title" : "Özel MQTT konusu",
   "edt_conf_mqtt_custom_topic_expl" : "Özel MQTT konusu (varsayılan: HyperHDR)."
 }

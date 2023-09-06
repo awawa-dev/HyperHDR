@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Höghastighetsseriellt AWA-protokoll med dataintegritetskontroll (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "led_editor_context_identify": "Identifiera",
   "main_menu_grabber_lut" : "Ladda ner LUT",
-  "main_menu_grabber_lut_title" : "Anpassad HDR LUT för USB grabber",
+  "main_menu_grabber_lut_title" : "Anpassad LUT för USB grabber",
   "main_menu_grabber_lut_path" : "Anpassad LUT-sökväg är: $1",
   "main_menu_grabber_lut_path_not_found" : "Anpassad LUT hittades INTE",
   "main_menu_grabber_lut_path_found" : "Anpassad LUT hittades",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Vissa fel är övergående (t.ex. med auto-reconnect LED aktiverad) och kan ignoreras, andra kan indikera allvarliga systemkonfigurations- eller driftfel.<br/>Kontrollera loggarna och leta efter fel (i rött):",
   "modal_old_password" : "Gammalt lösenord",
   "modal_new_password" : "Nytt lösenord",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Livevideon är pausad",
+  "preview_no_signal" : "Ingen signal",
+  "device_discovery" : "Enhetsupptäckt",
+  "device_address" : "Adress",
   "edt_conf_mqtt_custom_topic_title" : "Anpassat MQTT-ämne",
   "edt_conf_mqtt_custom_topic_expl" : "Anpassat MQTT-ämne (standard är: HyperHDR)."
 }

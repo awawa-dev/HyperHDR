@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Snel serieel AWA-protocol met gegevensintegriteitscontrole (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "led_editor_context_identify": "Identificeren",
   "main_menu_grabber_lut" : "LUT downloaden",
-  "main_menu_grabber_lut_title" : "Aangepaste HDR LUT voor USB grabber",
+  "main_menu_grabber_lut_title" : "Aangepaste LUT voor USB grabber",
   "main_menu_grabber_lut_path" : "Aangepast LUT pad is: $1",
   "main_menu_grabber_lut_path_not_found" : "Aangepaste LUT is NIET gevonden",
   "main_menu_grabber_lut_path_found" : "Aangepaste LUT is gevonden",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Sommige fouten zijn van voorbijgaande aard (bijv. wanneer de led voor automatisch opnieuw verbinden is ingeschakeld) en kunnen worden genegeerd, andere kunnen wijzen op ernstige systeemconfiguratie- of bedieningsfouten.<br/>Controleer de logboeken en zoek naar fouten (in rood):",
   "modal_old_password" : "Oud wachtwoord",
   "modal_new_password" : "Nieuw paswoord",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Live video is gepauzeerd",
+  "preview_no_signal" : "Geen signaal",
+  "device_discovery" : "Apparaatdetectie",
+  "device_address" : "Adres",
   "edt_conf_mqtt_custom_topic_title" : "Aangepast MQTT-onderwerp",
   "edt_conf_mqtt_custom_topic_expl" : "Aangepast MQTT-onderwerp (standaard is: HyperHDR)."
 }

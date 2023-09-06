@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Protocol serial AWA de mare viteză cu verificarea integrității datelor (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>informații</a>)",
   "led_editor_context_identify": "Identifica",
   "main_menu_grabber_lut" : "Descărcați LUT",
-  "main_menu_grabber_lut_title" : "Personalizat HDR LUT pentru USB grabber",
+  "main_menu_grabber_lut_title" : "Personalizat LUT pentru USB grabber",
   "main_menu_grabber_lut_path" : "Calea LUT personalizată este: $1",
   "main_menu_grabber_lut_path_not_found" : "LUT personalizat NU este găsit",
   "main_menu_grabber_lut_path_found" : "LUT personalizat este găsit",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Unele erori sunt trecătoare (de exemplu, cu LED-ul de reconectare automată activat) și pot fi ignorate, altele pot indica erori grave de configurare a sistemului sau de funcționare.<br/>Verificați jurnalele și căutați erori (în roșu):",
   "modal_old_password" : "Parola veche",
   "modal_new_password" : "Parolă nouă",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Videoclipul live este întrerupt",
+  "preview_no_signal" : "Nici un semnal",
+  "device_discovery" : "Descoperirea dispozitivului",
+  "device_address" : "Abordare",
   "edt_conf_mqtt_custom_topic_title" : "Subiect MQTT personalizat",
   "edt_conf_mqtt_custom_topic_expl" : "Subiect MQTT personalizat (implicit este: HyperHDR)."
 }

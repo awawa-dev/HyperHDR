@@ -1224,11 +1224,11 @@
   "warning_errors_detected_2" : "Some errors are transient (e.g. with the auto-reconnect LED enabled) and can be ignored, others may indicate serious system configuration or operation errors.<br/>Check the logs and look for errors (in red):",
   "modal_old_password" : "Old password",
   "modal_new_password" : "New password",
-  "edt_conf_mqtt_custom_topic_title" : "Custom MQTT topic",
-  "edt_conf_mqtt_custom_topic_expl" : "Custom MQTT topic (default is: HyperHDR).",
   "LUT_selector" : "LUT",
   "preview_live_video_is_paused" : "Live video is paused",
   "preview_no_signal" : "No signal",
   "device_discovery" : "Device discovery",
-  "device_address" : "Address"
+  "device_address" : "Address",
+  "edt_conf_mqtt_custom_topic_title" : "Custom MQTT topic",
+  "edt_conf_mqtt_custom_topic_expl" : "Custom MQTT topic (default is: HyperHDR)."
 } 

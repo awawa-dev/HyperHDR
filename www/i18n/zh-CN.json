@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "具有数据完整性检查功能的高速串行 AWA 协议（<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>）",
   "led_editor_context_identify": "确认",
   "main_menu_grabber_lut" : "下载查找表",
-  "main_menu_grabber_lut_title" : "用于 USB 采集器的自定义 HDR LUT",
+  "main_menu_grabber_lut_title" : "用于 USB 采集器的自定义 LUT",
   "main_menu_grabber_lut_path" : "自定义 LUT 路径是: $1",
   "main_menu_grabber_lut_path_not_found" : "未找到自定义 LUT",
   "main_menu_grabber_lut_path_found" : "找到自定义 LUT",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "有些错误是暂时的（例如，启用自动重新连接 LED 时），可以忽略，其他错误可能表示严重的系统配置或操作错误。<br/>检查日志并查找错误（红色）：",
   "modal_old_password" : "旧密码",
   "modal_new_password" : "新密码",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "直播视频已暂停",
+  "preview_no_signal" : "没信号",
+  "device_discovery" : "设备发现",
+  "device_address" : "地址",
   "edt_conf_mqtt_custom_topic_title" : "自定义 MQTT 主题",
   "edt_conf_mqtt_custom_topic_expl" : "自定义 MQTT 主题（默认为：HyperHDR）。"
 }

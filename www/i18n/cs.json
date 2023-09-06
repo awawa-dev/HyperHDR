@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Vysokorychlostní sériový protokol AWA s kontrolou integrity dat (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>informace</a>)",
   "led_editor_context_identify": "Identifikovat",
   "main_menu_grabber_lut" : "Stáhněte si LUT",
-  "main_menu_grabber_lut_title" : "Vlastní HDR LUT pro USB grabber",
+  "main_menu_grabber_lut_title" : "Vlastní LUT pro USB grabber",
   "main_menu_grabber_lut_path" : "Vlastní cesta LUT: $1",
   "main_menu_grabber_lut_path_not_found" : "Vlastní LUT NENÍ nalezen",
   "main_menu_grabber_lut_path_found" : "Vlastní LUT je nalezen",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Některé chyby jsou přechodné (např. se zapnutou LED diodou automatického opětovného připojení) a lze je ignorovat, jiné mohou naznačovat vážné chyby konfigurace systému nebo provozu.<br/>Zkontrolujte protokoly a vyhledejte chyby (červeně):",
   "modal_old_password" : "Staré heslo",
   "modal_new_password" : "Nové heslo",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Živé video je pozastaveno",
+  "preview_no_signal" : "Bez signálu",
+  "device_discovery" : "Zjištění zařízení",
+  "device_address" : "Adresa",
   "edt_conf_mqtt_custom_topic_title" : "Vlastní téma MQTT",
   "edt_conf_mqtt_custom_topic_expl" : "Vlastní téma MQTT (výchozí je: HyperHDR)."
 }

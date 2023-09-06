@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Protocollo AWA seriale ad alta velocità con controllo dell'integrità dei dati (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "led_editor_context_identify": "Identificare",
   "main_menu_grabber_lut" : "Scarica LUT",
-  "main_menu_grabber_lut_title" : "LUT HDR personalizzata per USB grabber",
+  "main_menu_grabber_lut_title" : "LUT personalizzata per USB grabber",
   "main_menu_grabber_lut_path" : "Il percorso LUT personalizzato è: $1",
   "main_menu_grabber_lut_path_not_found" : "LUT personalizzato NON è stato trovato",
   "main_menu_grabber_lut_path_found" : "Viene trovata la LUT personalizzata",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Alcuni errori sono transitori (ad es. con il LED di riconnessione automatica abilitato) e possono essere ignorati, altri possono indicare gravi errori di configurazione o funzionamento del sistema.<br/>Controlla i log e cerca gli errori (in rosso):",
   "modal_old_password" : "Vecchia password",
   "modal_new_password" : "Nuova password",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Il video live è in pausa",
+  "preview_no_signal" : "Nessun segnale",
+  "device_discovery" : "Rilevamento del dispositivo",
+  "device_address" : "Indirizzo",
   "edt_conf_mqtt_custom_topic_title" : "Argomento MQTT personalizzato",
   "edt_conf_mqtt_custom_topic_expl" : "Argomento MQTT personalizzato (l'impostazione predefinita è: HyperHDR)."
 }

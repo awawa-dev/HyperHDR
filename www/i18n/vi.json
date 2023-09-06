@@ -1201,7 +1201,7 @@
   "edt_dev_spec_awa_mode_title": "Giao thức AWA nối tiếp tốc độ cao với tính năng kiểm tra tính toàn vẹn của dữ liệu (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "led_editor_context_identify": "Nhận dạng",
   "main_menu_grabber_lut" : "Tải xuống LUT",
-  "main_menu_grabber_lut_title" : "HDR LUT tùy chỉnh cho bộ lấy USB",
+  "main_menu_grabber_lut_title" : "LUT tùy chỉnh cho bộ lấy USB",
   "main_menu_grabber_lut_path" : "Đường dẫn LUT tùy chỉnh là: $1",
   "main_menu_grabber_lut_path_not_found" : "KHÔNG tìm thấy LUT tùy chỉnh",
   "main_menu_grabber_lut_path_found" : "Đã tìm thấy LUT tùy chỉnh",
@@ -1224,6 +1224,11 @@
   "warning_errors_detected_2" : "Một số lỗi chỉ xảy ra tạm thời (ví dụ: khi bật đèn LED tự động kết nối lại) và có thể bỏ qua, những lỗi khác có thể biểu thị lỗi vận hành hoặc cấu hình hệ thống nghiêm trọng.<br/>Kiểm tra nhật ký và tìm lỗi (màu đỏ):",
   "modal_old_password" : "Mật khẩu cũ",
   "modal_new_password" : "Mật khẩu mới",
+  "LUT_selector" : "LUT",
+  "preview_live_video_is_paused" : "Video trực tiếp bị tạm dừng",
+  "preview_no_signal" : "Không có tín hiệu",
+  "device_discovery" : "Khám phá thiết bị",
+  "device_address" : "Địa chỉ",
   "edt_conf_mqtt_custom_topic_title" : "Chủ đề MQTT tùy chỉnh",
   "edt_conf_mqtt_custom_topic_expl" : "Chủ đề MQTT tùy chỉnh (mặc định là: HyperHDR)."
 }
