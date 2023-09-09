@@ -319,6 +319,8 @@ void API::setLedMappingType(int type, hyperhdr::Components callerComp)
 
 void API::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
 {
+	if (SystemWrapper::getInstance() != nullptr)
+		QUEUE_CALL_1(SystemWrapper::getInstance(), setHdrToneMappingEnabled, int, hdr);
 	if (GrabberWrapper::getInstance() != nullptr)
 		QUEUE_CALL_1(GrabberWrapper::getInstance(), setHdrToneMappingEnabled, int, hdr);
 	if (FlatBufferServer::getInstance() != nullptr)
