@@ -63,21 +63,12 @@ https://github.com/awawa-dev/HyperHDR/actions
 
 ## Press mentions
 
-<table>
-<tr>
-<td>
-  
-![make](https://github.com/awawa-dev/HyperHDR/assets/69086569/b8f269f5-4287-4b21-bb27-24194b1143ce) ![magpi](https://github.com/awawa-dev/HyperHDR/assets/69086569/651ae7e3-ab3f-49b5-af6a-39e52e34ab10)
-</td>
-<td valign="top"> 
-<a href="https://makezine.com/projects/bright-lights-big-tv-diy-ambient-lights/">Make: Magazine #84 2023</a><br>
-<a href="https://magpi.raspberrypi.com/issues/117">MagPi #117 2022</a><br>
-<a href="https://web.archive.org/web/20230824230034/https://www.smartprix.com/bytes/what-is-bias-lighting-philips-hue-ambient-light-vs-govee-dreamview-tv-backlight-vs-diy-ambient-light-with-hyperhdr/">Comparison of several modern ambient lighting systems 2023</a><br>
-<a href="https://www.raspberrypi.com/tutorials/raspberry-pi-tv-ambient-lighting">www.raspberrypi.com/tutorials/raspberry-pi-tv-ambient-lighting</a><br>
-<a href="https://www.youtube.com/watch?v=4jkwFsMkKwU">Building a 4K Capable HDMI TV Backlight 2021 (Youtube)</a>
-</td> 
-</tr>
-</table>
+<img align="left" width="286" height="200" src="https://i.postimg.cc/zvr9rWR4/magazine.jpg"/>
+<a href="https://makezine.com/projects/bright-lights-big-tv-diy-ambient-lights/">Make: Magazine #84 (2023)</a><br>
+<a href="https://magpi.raspberrypi.com/issues/117">MagPi #117 (2022)</a><br>
+<a href="https://web.archive.org/web/20230824230034/https://www.smartprix.com/bytes/what-is-bias-lighting-philips-hue-ambient-light-vs-govee-dreamview-tv-backlight-vs-diy-ambient-light-with-hyperhdr/">Comparison of several modern ambient lighting systems (2023)</a><br>
+<a href="https://www.raspberrypi.com/tutorials/raspberry-pi-tv-ambient-lighting">The tutorial on raspberrypi.com</a><br>
+<a href="https://www.youtube.com/watch?v=4jkwFsMkKwU">Building a 4K Capable HDMI TV Backlight (2021)</a><br><br><br><br><br>
 
 ## License
   

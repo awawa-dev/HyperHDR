@@ -38,6 +38,7 @@ BonjourServiceRegister::BonjourServiceRegister(QObject* parent, DiscoveryRecord:
 	_serviceRecord.port = port;
 	_serviceRecord.type = type;
 
+	connect(_helper, &QThread::finished, this, &BonjourServiceRegister::onThreadExits);
 	connect(this, &BonjourServiceRegister::messageFromFriend, this, &BonjourServiceRegister::messageFromFriendHandler);
 	connect(this, &BonjourServiceRegister::resolveIp, this, &BonjourServiceRegister::resolveIpHandler);
 	connect(DiscoveryWrapper::getInstance(), &DiscoveryWrapper::requestToScan, this, &BonjourServiceRegister::requestToScanHandler);
@@ -47,11 +48,19 @@ BonjourServiceRegister::~BonjourServiceRegister()
 {
 	if (_helper != nullptr)
 	{
+		disconnect(_helper, &QThread::finished, this, &BonjourServiceRegister::onThreadExits);
 		_helper->prepareToExit();
 		_helper->quit();
 		_helper->wait();
 		delete _helper;
+		_helper = nullptr;
 	}
+}
+
+void BonjourServiceRegister::onThreadExits()
+{
+	if (_helper != nullptr)
+		QTimer::singleShot(10000, this, [=]() { if (_helper != nullptr) _helper->start(); });
 }
 
 void BonjourServiceRegister::registerService()

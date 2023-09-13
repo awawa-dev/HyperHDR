@@ -366,12 +366,17 @@ int BonjourServiceHelper::open_service_sockets(int* sockets, int max_sockets)
 
 int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, int service_port)
 {
+	Logger* _log = Logger::getInstance("SERVICE_mDNS");
 	int sockets[32];
 	int num_sockets = open_service_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]));
-	if (num_sockets <= 0) {
-		printf("Failed to open any client sockets\n");
+
+	if (num_sockets <= 0)
+	{
+		Error(_log, "Failed to open any client sockets");
 		return -1;
 	}
+
+	Info(_log, "Starting the network discovery thread");
 
 	QByteArray mainBuffer(2048, 0);
 	QByteArray serviceNameBuf = serviceName.toLocal8Bit();
@@ -492,7 +497,10 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 			}
 		}
 		else
+		{
+			Error(_log, "Error while monitoring network socket descriptors");
 			break;
+		}
 
 		if (_scanService != 0)
 		{
@@ -516,7 +524,7 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 	}
 
 	// Send goodbye
-	printf("Sending goodbye\n");
+	Info(_log, "Sending goodbye");
 
 	for (int i = 0; i < num_sockets; i++)
 		mdns_goodbye_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, 0, 0,
@@ -525,6 +533,8 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 	// free resources
 	for (int i = 0; i < num_sockets; i++)
 		mdns_socket_close(sockets[i]);
+
+	Info(_log, "The thread exits now");
 
 	return 0;
 }

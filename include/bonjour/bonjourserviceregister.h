@@ -26,6 +26,7 @@ public slots:
 	void requestToScanHandler(DiscoveryRecord::Service type);
 	void messageFromFriendHandler(bool isExists, QString mdnsString, QString serverName, int port);
 	void resolveIpHandler(QString serverName, QString ip);
+	void onThreadExits();
 
 signals:
 	void messageFromFriend(bool isWelcome, QString mdnsString, QString serverName, int port);
@@ -36,7 +37,6 @@ private:
 
 	BonjourServiceHelper* _helper;
 	DiscoveryRecord		_serviceRecord;
-	bool				_isActive;
 	QHash<QString, QString> _ips;
 	DiscoveryRecord		_result;
 };

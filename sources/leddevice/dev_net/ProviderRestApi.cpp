@@ -211,6 +211,10 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 		request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
 	}
 
+	QSslConfiguration conf = request.sslConfiguration();
+	conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+	request.setSslConfiguration(conf);
+
 	SAFE_CALL_3_RET(_networkWorker.get(), executeOperation,
 		QNetworkReply*, networkReply, QNetworkAccessManager::Operation, op, QNetworkRequest, request, QByteArray, body.toUtf8());
 
@@ -361,10 +365,6 @@ QNetworkReply* networkHelper::executeOperation(QNetworkAccessManager::Operation 
 {
 	ProviderRestApi* parent = static_cast<ProviderRestApi*>(request.originatingObject());
 	parent->aquireResultLock();
-
-	QSslConfiguration conf = request.sslConfiguration();
-	conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-	request.setSslConfiguration(conf);
 
 	auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body):
 				(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body) : _networkManager->get(request);
