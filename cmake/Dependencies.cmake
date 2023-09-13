@@ -84,7 +84,15 @@ macro(DeployApple TARGET)
 						TYPE SHARED_LIBRARY
 						FOLLOW_SYMLINK_CHAIN
 						FILES "/usr/local/lib/libbrotlicommon.1.dylib")
-				endif()				
+				endif()
+
+				if (EXISTS "/usr/local/lib/libsharpyuv.0.dylib")
+					file(INSTALL
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+						TYPE SHARED_LIBRARY
+						FOLLOW_SYMLINK_CHAIN
+						FILES "/usr/local/lib/libsharpyuv.0.dylib")
+				endif()					
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
