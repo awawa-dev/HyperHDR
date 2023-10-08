@@ -6,7 +6,9 @@
 
 #ifndef _WIN32
 	#include <syslog.h>
+	#include <unistd.h>
 #elif _WIN32
+	#include <io.h>
 	#include <windows.h>
 	#include <Shlwapi.h>
 	#pragma comment(lib, "Shlwapi.lib")
@@ -20,8 +22,9 @@
 #include <time.h>
 
 
-
-QMutex                 Logger::_mapLock;
+QMutex  Logger::_mapLock;
+QString Logger::_lastError;
+bool    Logger::_hasConsole;
 QMap<QString, Logger*> Logger::_loggerMap;
 QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL{ static_cast<int>(Logger::UNSET) };
 
@@ -31,6 +34,8 @@ namespace
 
 	#ifndef _WIN32
 		const int    LogLevelSysLog[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+	#else
+		HANDLE consoleHandle = nullptr;
 	#endif
 
 	const size_t MAX_IDENTIFICATION_LENGTH = 22;
@@ -56,10 +61,28 @@ Logger* Logger::getInstance(const QString& name, Logger::LogLevel minLevel)
 	if (log == nullptr)
 	{
 		log = new Logger(name, minLevel);
-		_loggerMap.insert(name, log); // compat version, replace it with following line if we have 100% c++11
-		//LoggerMap.emplace(name, log);  // not compat with older linux distro's e.g. wheezy
+		_loggerMap.insert(name, log);
 		connect(log, &Logger::newLogMessage, LoggerManager::getInstance(), &LoggerManager::handleNewLogMessage);
 		connect(log, &Logger::newState, LoggerManager::getInstance(), &LoggerManager::handleNewState);
+
+		if (_loggerMap.size() == 1)
+		{
+			// detect if we can output colorized logs
+			#ifdef _WIN32
+				consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+				_hasConsole = (consoleHandle != nullptr);
+			#else
+				_hasConsole = isatty(fileno(stdin));
+			#endif
+
+			T_LOG_MESSAGE t;
+			t.utime = QDateTime::currentDateTime().toMSecsSinceEpoch();
+			t.loggerName = name;
+			t.level = LogLevel::INFO;
+			t.levelString = LogLevelStrings[t.level];
+			t.message = (_hasConsole) ? "TTY is attached to the log output" : "TTY is not attached to the log output";
+			LoggerManager::getInstance()->handleNewLogMessage(t);
+		}
 	}
 
 	return log;
@@ -154,28 +177,69 @@ Logger::~Logger()
 
 void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
-	QString location;
-	if (message.level == Logger::DEBUG)
+	if (_hasConsole)
 	{
-		location = QString("%1:%2:%3() | ")
-			.arg(message.fileName)
-			.arg(message.line)
-			.arg(message.function);
+		static QMutex localMutex;
+		QString location, prefix, sufix;
+		
+		if (message.level == Logger::DEBUG)
+		{
+			location = QString("%1:%2:%3() | ")
+				.arg(message.fileName)
+				.arg(message.line)
+				.arg(message.function);
+		}
+
+		QString name = (message.appName + " " + message.loggerName).trimmed();
+		name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
+
+		const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
+
+		localMutex.lock();
+
+		#ifndef _WIN32				
+			prefix = "\033[0m";
+			sufix = "\033[36;1m";
+		#else
+			SetConsoleTextAttribute(consoleHandle, 7);
+		#endif
+
+		std::cout << QString("%1%2 %3 : ")
+			.arg(prefix)
+			.arg(timestamp.toString("hh:mm:ss.zzz"))
+			.arg(name)
+			.toStdString();
+
+		#ifndef _WIN32
+			switch (message.level)
+			{
+				case(Logger::INFO): prefix = "\033[32;1m"; break;
+				case(Logger::WARNING): prefix = "\033[33;1m"; break;
+				case(Logger::ERRORR): prefix = "\033[31;1m"; break;
+				default: break;
+			}
+		#else
+			switch (message.level)
+			{
+				case(Logger::INFO):SetConsoleTextAttribute(consoleHandle, 10); break;
+				case(Logger::WARNING):SetConsoleTextAttribute(consoleHandle, 14); break;
+				case(Logger::ERRORR):SetConsoleTextAttribute(consoleHandle, 12); break;
+				default: break;
+			}
+		#endif
+		std::cout << QString("%1<%2> %3%4%5")
+			.arg(prefix)
+			.arg(LogLevelStrings[message.level])
+			.arg(location)
+			.arg(message.message)
+			.arg(sufix)
+			.toStdString()
+			<< std::endl;
+		#ifdef _WIN32		
+			SetConsoleTextAttribute(consoleHandle, 11);
+		#endif
+		localMutex.unlock();
 	}
-
-	QString name = (message.appName + " " + message.loggerName).trimmed();
-	name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
-
-	const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
-
-	std::cout << QString("%1 %2 : <%3> %4%5")
-		.arg(timestamp.toString("yyyy-MM-ddThh:mm:ss.zzz"))
-		.arg(name)
-		.arg(LogLevelStrings[message.level])
-		.arg(location)
-		.arg(message.message)
-		.toStdString()
-		<< std::endl;
 
 	newLogMessage(message);
 }
@@ -257,8 +321,6 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 		RepeatMessage.setLocalData(logMsg);
 	}
 }
-
-QString Logger::_lastError;
 
 QString Logger::getLastError()
 {

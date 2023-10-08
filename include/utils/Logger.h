@@ -100,7 +100,7 @@ private:
 	static QMap<QString, Logger*> _loggerMap;
 	static QAtomicInteger<int>    GLOBAL_MIN_LOG_LEVEL;
 	static QString                _lastError;
-
+	static bool                   _hasConsole;
 	const QString                _name;
 	const QString                _appname;
 	const bool                   _syslogEnabled;

@@ -17,6 +17,7 @@
 #endif
 
 #include <exception>
+#include <iostream>
 
 #include <QCoreApplication>
 #include <QApplication>
@@ -150,10 +151,6 @@ int main(int argc, char** argv)
 {
 	QStringList params;
 
-	// initialize main logger and set global log level
-	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::INFO);
-
 	// check if we are running already an instance
 	// TODO Allow one session per user
 #ifdef _WIN32
@@ -216,8 +213,8 @@ int main(int argc, char** argv)
 	{
 		if (getProcessIdsByProcessName(processName).size() > 1)
 		{
-			Error(log, "The HyperHdr Daemon is already running, abort start");
-			return 0;
+			std::cerr << "The HyperHDR Daemon is already running, abort start";
+			return 1;
 		}
 	}
 	else
@@ -234,6 +231,10 @@ int main(int argc, char** argv)
 		CreateConsole();
 	}
 #endif
+
+	// initialize main logger and set global log level
+	Logger* log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::INFO);
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
