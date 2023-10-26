@@ -59,7 +59,6 @@ public slots:
 	void setHdrToneMappingEnabled(int mode);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 	virtual void stateChanged(bool state);
-	bool isRunning();
 
 protected:
 	virtual QString getGrabberInfo();

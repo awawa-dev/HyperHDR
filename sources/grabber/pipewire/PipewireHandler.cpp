@@ -81,17 +81,14 @@ const QString PORTAL_RESPONSE	 = QStringLiteral("Response");
 const QString REQUEST_TEMPLATE = QStringLiteral("/org/freedesktop/portal/desktop/request/%1/%2");
 
 PipewireHandler::PipewireHandler() :
-									_callback(nullptr), _sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
+									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
 									_isError(false), _version(0), _streamNodeId(0),
 									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false), _requestedFPS(10), _hasFrame(false),
 									_infoUpdated(false), _initEGL(false), _libEglHandle(NULL), _libGlHandle(NULL),
-									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID)
+									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image()
 {
-	_timer.setTimerType(Qt::PreciseTimer);
-	connect(&_timer, &QTimer::timeout, this, &PipewireHandler::grabFrame);
-
 	_pwStreamListener = {};
 	_pwCoreListener = {};
 
@@ -102,9 +99,6 @@ PipewireHandler::PipewireHandler() :
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
-
-	_image.isError = true;
-	_image.data = nullptr;
 }
 
 QString PipewireHandler::getToken()
@@ -140,8 +134,6 @@ PipewireHandler::~PipewireHandler()
 
 void PipewireHandler::closeSession()
 {
-	_timer.stop();
-
 	if (_pwMainThreadLoop != nullptr)
 	{
 		pw_thread_loop_wait(_pwMainThreadLoop);
@@ -218,7 +210,6 @@ void PipewireHandler::closeSession()
 	_frameHeight = 0;
 	_frameOrderRgb = false;
 	_framePaused = false;
-	_callback = nullptr;
 	_requestedFPS = 10;
 	_hasFrame = false;
 	_infoUpdated = false;
@@ -245,16 +236,21 @@ void PipewireHandler::closeSession()
 	for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
 		supVal.hasDma = false;
 
-	if (_image.data != nullptr)	
-	{
-		free(_image.data);
-		_image.data = nullptr;
-	}
+	releaseWorkingFrame();
 	
 	if (_version > 0)
 	{
 		std::cout << "Pipewire: driver is closed now" << std::endl;
 		_version = 0;
+	}
+}
+
+void PipewireHandler::releaseWorkingFrame()
+{
+	if (_image.data != nullptr)	
+	{
+		free(_image.data);
+		_image.data = nullptr;
 	}
 }
 
@@ -300,17 +296,11 @@ int PipewireHandler::readVersion()
 	return version;
 }
 
-void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS, pipewire_callback_func callback)
+void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS)
 {
 	std::cout << "Pipewire: initialization invoked. Cleaning up first..." << std::endl;
 
 	closeSession();
-
-	if (callback == nullptr)
-	{
-		reportError("Pipewire: missing callback.");
-		return;
-	}
 
 	if (requestedFPS < 1 || requestedFPS > 60)
 	{
@@ -329,7 +319,6 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	}
 
 	_requestedFPS = requestedFPS;
-	_callback = callback;
 
 	_sender = QString("%1").arg(QDBusConnection::sessionBus().baseService()).replace('.','_');
 	if (_sender.length() > 0 && _sender[0] == ':')
@@ -572,9 +561,6 @@ void PipewireHandler::startResponse(uint response, const QVariantMap& results)
 		return;
 	}
 
-	_timer.setInterval(1000 / _requestedFPS);
-	_timer.start();
-
 	pw_thread_loop_unlock(_pwMainThreadLoop);
 }
 
@@ -683,15 +669,9 @@ void PipewireHandler::onProcessFrame()
 	}
 };
 
-void PipewireHandler::grabFrame()
+void PipewireHandler::getImage(PipewireImage& retVal)
 {
-	if (_image.data != nullptr)	
-	{
-		_callback(_image);
-
-		free(_image.data);
-		_image.data = nullptr;
-	}
+	retVal = _image;
 }
 
 void PipewireHandler::captureFrame()

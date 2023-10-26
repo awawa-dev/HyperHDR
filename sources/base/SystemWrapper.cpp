@@ -231,13 +231,3 @@ QJsonObject SystemWrapper::getJsonInfo()
 
 	return systemDevice;
 }
-
-bool SystemWrapper::isRunning()
-{
-	if (_grabber != NULL)
-	{
-		return _grabber->isRunning();
-	}
-
-	return false;
-}

@@ -71,7 +71,7 @@ public:
 
 	PipewireHandler();
 	~PipewireHandler();
-	void startSession(QString restorationToken, uint32_t requestedFPS, pipewire_callback_func callback);
+	void startSession(QString restorationToken, uint32_t requestedFPS);
 	void closeSession();
 	bool hasError();
 	
@@ -89,7 +89,8 @@ public:
 	};	
 
 public Q_SLOTS:
-	void grabFrame();
+	void releaseWorkingFrame();
+	void getImage(PipewireImage& retVal);
 	void createSessionResponse(uint response, const QVariantMap& results);
 	void selectSourcesResponse(uint response, const QVariantMap& results);
 	void startResponse(uint response, const QVariantMap& results);
@@ -114,7 +115,6 @@ private:
 	QString		getRequestToken();
 	void		captureFrame();
 
-	pipewire_callback_func _callback;
 	QString _sessionHandle;
 	QString _restorationToken;
 	QString _errorMessage;
@@ -149,7 +149,6 @@ private:
 	void*	_libGlHandle;
 	int64_t _frameDrmFormat;
 	int64_t _frameDrmModifier;
-	QTimer  _timer;
 	PipewireImage _image;
 
 #ifdef ENABLE_PIPEWIRE_EGL

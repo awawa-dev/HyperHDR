@@ -51,11 +51,16 @@
 std::unique_ptr<PipewireHandler> _pipewireHandler(nullptr);
 
 
-void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS, pipewire_callback_func callback)
+void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS)
 {
 	QString qRestorationToken = QString("%1").arg(restorationToken);
 	_pipewireHandler = std::unique_ptr<PipewireHandler>(new PipewireHandler());
-	_pipewireHandler->startSession(qRestorationToken, requestedFPS, callback);
+	_pipewireHandler->startSession(qRestorationToken, requestedFPS);
+}
+
+void releaseFramePipewire()
+{	
+	_pipewireHandler->releaseWorkingFrame();
 }
 
 const char* getPipewireToken()
@@ -82,7 +87,7 @@ const char* getPipewireError()
 	return nullptr;
 }
 
-void uniniPipewireDisplay()
+void uninitPipewireDisplay()
 {	
 	if (_pipewireHandler != nullptr)
 	{
@@ -125,3 +130,16 @@ bool hasPipewire()
 	}
 	return false;
 }
+
+PipewireImage getFramePipewire()
+{
+	PipewireImage retVal;
+
+	if (_pipewireHandler != nullptr)
+	{
+		_pipewireHandler->getImage(retVal);
+	}
+
+	return retVal;
+}
+

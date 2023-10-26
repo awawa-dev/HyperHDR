@@ -13,7 +13,6 @@ public:
 
 public slots:
 	void stateChanged(bool state) override;
-	void processFrame(const PipewireImage& frame);
 
 protected:
 	QString getGrabberInfo() override;

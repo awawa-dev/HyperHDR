@@ -47,27 +47,31 @@
 #include <QCoreApplication>
 
 #include <grabber/PipewireGrabber.h>
-#include <base/SystemWrapper.h>
-#include <grabber/PipewireWrapper.h>
+#include <grabber/smartPipewire.h>
 #include <utils/ColorSys.h>
 #include <dlfcn.h>
 
 bool (*_hasPipewire)() = nullptr;
 const char* (*_getPipewireError)() = nullptr;
-void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS, pipewire_callback_func callback) = nullptr;
+void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS) = nullptr;
 void (*_uninitPipewireDisplay)() = nullptr;
+PipewireImage (*_getFramePipewire)() = nullptr;
+void (*_releaseFramePipewire)() = nullptr;
 const char* (*_getPipewireToken)() = nullptr;
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
 	: Grabber("PIPEWIRE_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
+	, _semaphore(1)
 	, _library(nullptr)
 	, _actualDisplay(0)
 	, _isActive(false)
 	, _storedToken(false)
 	, _versionCheck(false)
-	, _hasFrame(false)
 {
+	_timer.setTimerType(Qt::PreciseTimer);
+	connect(&_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
+
 	// Load library
 	_library = dlopen("libsmartPipewire.so", RTLD_NOW);
 
@@ -76,13 +80,15 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_getPipewireToken = (const char* (*)()) dlsym(_library, "getPipewireToken");
 		_getPipewireError = (const char* (*)()) dlsym(_library, "getPipewireError");
 		_hasPipewire = (bool (*)()) dlsym(_library, "hasPipewire");
-		_initPipewireDisplay = (void (*)(const char*, uint32_t, pipewire_callback_func)) dlsym(_library, "initPipewireDisplay");
-		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uniniPipewireDisplay");
+		_initPipewireDisplay = (void (*)(const char*, uint32_t)) dlsym(_library, "initPipewireDisplay");
+		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uninitPipewireDisplay");
+		_getFramePipewire = (PipewireImage (*)()) dlsym(_library, "getFramePipewire");
+		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
 	}
 	else
 		Warning(_log, "Could not load Pipewire proxy library. Error: %s", dlerror());
 
-	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr ))
+	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr))
 	{
 		Error(_log, "Could not load Pipewire proxy library definition. Error: %s", dlerror());
 
@@ -147,6 +153,7 @@ void PipewireGrabber::uninit()
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	}
 	
+
 	_initialized = false;
 }
 
@@ -154,7 +161,6 @@ bool PipewireGrabber::init()
 {
 	Debug(_log, "init");
 
-	_hasFrame = false;
 
 	if (!_initialized)
 	{
@@ -230,6 +236,8 @@ bool PipewireGrabber::start()
 	{		
 		if (init())
 		{
+			_timer.setInterval(1000/_fps);
+			_timer.start();
 			Info(_log, "Started");
 			return true;
 		}
@@ -246,11 +254,14 @@ void PipewireGrabber::stop()
 {
 	if (_initialized)
 	{
+		_semaphore.acquire();
+		_timer.stop();
+
 		_uninitPipewireDisplay();
 		_isActive = false;
 		_initialized = false;
-		_hasFrame = false;
 		
+		_semaphore.release();
 		Info(_log, "Stopped");
 	}
 }
@@ -268,7 +279,7 @@ bool PipewireGrabber::init_device(int _display)
 		token = "";
 	else
 		Info(_log, "Loading restoration token: %s", QSTRING_CSTR(maskToken(token)));
-	_initPipewireDisplay(token.toLatin1().constData(), _fps, (pipewire_callback_func) &PipewireGrabber::callbackFunction);
+	_initPipewireDisplay(token.toLatin1().constData(), _fps);
 
 	_isActive = true;
 
@@ -302,60 +313,67 @@ void PipewireGrabber::stateChanged(bool state)
 	}
 }
 
-void PipewireGrabber::grabFrame(const PipewireImage& data)
+void PipewireGrabber::grabFrame()
 {
 	bool stopNow = false;
 	
-	if (_initialized && _isActive)
+	if (_semaphore.tryAcquire())
 	{
-		if (!_versionCheck)
+		if (_initialized && _isActive)
 		{
-			if (data.version >= 4)
-				Info(_log, "Portal protocol version: %i", data.version);
-			else
-				Warning(_log, "Legacy portal protocol version: %i. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
+			PipewireImage data = _getFramePipewire();
 
-			_versionCheck = true;
-		}
-
-
-		if (!_storedToken && !data.isError)
-		{
-			QString token = QString("%1").arg(_getPipewireToken());
-
-			if (!token.isEmpty())
+			if (!_versionCheck)
 			{
-				AuthManager* instance = AuthManager::getInstance();
+				if (data.version >= 4)
+					Info(_log, "Portal protocol version: %i", data.version);
+				else
+					Warning(_log, "Legacy portal protocol version: %i. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
 
-				Info(_log, "Saving restoration token: %s", QSTRING_CSTR(maskToken(token)));
-
-				instance->savePipewire(token);
-
-				_storedToken = true;
+				_versionCheck = true;
 			}
-		}			
 
 
-		if (data.data == nullptr)
-		{
-			if (data.isError)
+			if (!_storedToken && !data.isError)
 			{
-				QString err = QString("%1").arg(_getPipewireError());
-				Error(_log, "Could not capture pipewire frame: %s", QSTRING_CSTR(err));
-				stopNow = true;
+				QString token = QString("%1").arg(_getPipewireToken());
+
+				if (!token.isEmpty())
+				{
+					AuthManager* instance = AuthManager::getInstance();
+
+					Info(_log, "Saving restoration token: %s", QSTRING_CSTR(maskToken(token)));
+
+					instance->savePipewire(token);
+
+					_storedToken = true;
+				}
+			}			
+
+
+			if (data.data == nullptr)
+			{
+				if (data.isError)
+				{
+					QString err = QString("%1").arg(_getPipewireError());
+					Error(_log, "Could not capture pipewire frame: %s", QSTRING_CSTR(err));
+					stopNow = true;
+				}
+			}
+			else
+			{
+				_actualWidth = data.width;
+				_actualHeight = data.height;
+
+				if (data.isOrderRgb)
+					processSystemFrameRGBA(data.data);
+				else
+					processSystemFrameBGRA(data.data);
+
+				_releaseFramePipewire();
 			}
 		}
-		else
-		{
-			_hasFrame = true;
-			_actualWidth = data.width;
-			_actualHeight = data.height;
-
-			if (data.isOrderRgb)
-				processSystemFrameRGBA(data.data, data.stride);
-			else
-				processSystemFrameBGRA(data.data, data.stride);
-		}
+		_semaphore.release();
 	}
 
 	if (stopNow)
@@ -371,25 +389,4 @@ void PipewireGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 	_cropRight = cropRight;
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
-}
-
-void PipewireGrabber::callbackFunction(const PipewireImage& frame)
-{
-	if (SystemWrapper::getInstance() == nullptr)
-		return;
-
-	PipewireWrapper* wrapper = dynamic_cast<PipewireWrapper*>(SystemWrapper::getInstance());
-
-	if (wrapper != NULL)
-	{
-		if (QThread::currentThread() == wrapper->thread())
-			wrapper->processFrame(frame);
-		else
-			QMetaObject::invokeMethod(wrapper, "processFrame", Qt::ConnectionType::BlockingQueuedConnection, Q_ARG(const PipewireImage&, frame));
-	}
-}
-
-bool PipewireGrabber::isRunning()
-{
-	return _initialized && _hasFrame;
 }

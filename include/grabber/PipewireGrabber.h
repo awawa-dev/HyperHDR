@@ -18,7 +18,6 @@
 #include <utils/PixelFormat.h>
 #include <base/Grabber.h>
 #include <utils/Components.h>
-#include <grabber/smartPipewire.h>
 
 // general JPEG decoder includes
 #include <QImage>
@@ -43,11 +42,11 @@ public:
 
 	void stateChanged(bool state);
 
-	static void callbackFunction(const PipewireImage& frame);
+private slots:
+
+	void grabFrame();
 
 public slots:
-
-	void grabFrame(const PipewireImage& data);
 
 	bool start() override;
 
@@ -56,8 +55,6 @@ public slots:
 	void newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin) override {};
 
 	void newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount) override {};
-
-	bool isRunning() override;
 
 private:
 	QString GetSharedLut();
@@ -78,11 +75,12 @@ private:
 		
 private:
 	QString					_configurationPath;
+	QTimer					_timer;
+	QSemaphore				_semaphore;
 
 	void*					_library;
 	int						_actualDisplay;
 	bool					_isActive;
 	bool					_storedToken;
 	bool					_versionCheck;
-	bool					_hasFrame;
 };
