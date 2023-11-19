@@ -155,7 +155,7 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew remove azure-cli && brew update && brew install qt@${{ env.QT_VERSION }} xz ccache zstd webp jpeg-turbo
+        run: brew install qt@${{ env.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
         
       # Set env
       - name: Set QT5 env
