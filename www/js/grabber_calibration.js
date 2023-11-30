@@ -126,6 +126,7 @@ $(document).ready( function(){
 		
 		if (json.status != 0)
 		{
+			document.body.style.overflow = 'visible';
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
 			alert("Error occured. Please consult the HyperHDR log.\n\n" + json.error);
@@ -134,6 +135,7 @@ $(document).ready( function(){
 		
 		if (json.validate != checksum)
 		{
+			document.body.style.overflow = 'visible';
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
 			alert("Unexpected CRC: "+json.validate+", waiting for: "+checksum);			
@@ -144,7 +146,8 @@ $(document).ready( function(){
 		{			
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
-			alert(`Finished!\n\nFinal section: ${checksum}.\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);					
+			alert(`Finished!\n\nFinal section: ${checksum}.\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
+			document.body.style.overflow = 'visible';
 			resetImage();
 		}
 		else
@@ -161,6 +164,7 @@ $(document).ready( function(){
 	{
 		if (matchMedia('(display-mode: fullscreen)').matches) 
 		{
+			document.body.style.overflow = 'hidden';
 			canvas.classList.add("fullscreen-canvas");
 			currentColor = new ColorRgb(0,0,0);
 			startColor = new ColorRgb(0,0,0);

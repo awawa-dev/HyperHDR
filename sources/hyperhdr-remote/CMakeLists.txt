@@ -41,7 +41,9 @@ target_link_libraries(${PROJECT_NAME}
 	ssdp
 	Qt${Qt_VERSION}::Gui
 	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Network)
+	Qt${Qt_VERSION}::Network
+	${TURBOJPEG_LINK_LIBRARIES}
+)
 
 if(NOT WIN32)
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR_remote" )

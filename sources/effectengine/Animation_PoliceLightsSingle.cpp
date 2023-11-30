@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -39,14 +39,8 @@ Animation_PoliceLightsSingle::Animation_PoliceLightsSingle(QString name) :
 
 EffectDefinition Animation_PoliceLightsSingle::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_PoliceLightsSingle>);
 	ed.name = ANIM_POLICELIGHTSSINGLE;
-	ed.args = GetArgs();
 	return ed;
 }
 
-QJsonObject Animation_PoliceLightsSingle::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
-}

@@ -11,9 +11,10 @@
 #include "hyperhdr_reply_generated.h"
 #include "hyperhdr_request_generated.h"
 
-FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString& address, int priority, bool skipReply)
-	: _socket((address == HYPERHDR_DOMAIN_SERVER) ? nullptr : new QTcpSocket())
-	, _domain((address == HYPERHDR_DOMAIN_SERVER) ? new QLocalSocket() : nullptr)
+FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origin, const QString& address, int priority, bool skipReply)
+	: QObject(parent)
+	, _socket((address == HYPERHDR_DOMAIN_SERVER) ? nullptr : new QTcpSocket(this))
+	, _domain((address == HYPERHDR_DOMAIN_SERVER) ? new QLocalSocket(this) : nullptr)
 	, _origin(origin)
 	, _priority(priority)
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
@@ -72,7 +73,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 	connect(&_timer, &QTimer::timeout, this, &FlatBufferConnection::connectToHost);
 	_timer.start();
 
-	connect(this, &FlatBufferConnection::onImage, this, &FlatBufferConnection::setImage);
+	connect(this, &FlatBufferConnection::SignalImageToSend, this, &FlatBufferConnection::sendImage);
 }
 
 FlatBufferConnection::~FlatBufferConnection()
@@ -177,7 +178,7 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int priority, int dur
 	_builder.Clear();
 }
 
-void FlatBufferConnection::setImage(const Image<ColorRgb>& image)
+void FlatBufferConnection::sendImage(const Image<ColorRgb>& image)
 {
 	auto current = InternalClock::now();
 	auto outOfTime = (current - _lastSendImage);

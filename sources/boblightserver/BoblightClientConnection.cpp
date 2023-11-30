@@ -24,6 +24,32 @@
 // project includes
 #include "BoblightClientConnection.h"
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	#include <QStringView>
+#else
+	#include <QStringRef>
+#endif
+
+
+namespace QStringUtils {
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+		inline QList<QStringView> REFSPLITTER(const QString& string, QChar sep)
+		{
+			return QStringView{ string }.split(sep, Qt::SplitBehaviorFlags::SkipEmptyParts);
+		}
+	#elif (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		inline QVector<QStringRef> REFSPLITTER(const QString& string, QChar sep)
+		{
+			return string.splitRef(sep, Qt::SkipEmptyParts);
+		}
+	#else
+		inline QVector<QStringRef> REFSPLITTER(const QString& string, QChar sep)
+		{
+			return string.splitRef(sep, QString::SkipEmptyParts);
+		}
+#endif
+}
+
 BoblightClientConnection::BoblightClientConnection(HyperHdrInstance* hyperhdr, QTcpSocket* socket, int priority)
 	: QObject()
 	, _locale(QLocale::C)
@@ -198,7 +224,7 @@ void BoblightClientConnection::handleMessage(const QString& message)
 				const int prio = static_cast<int>(parseUInt(messageParts[2], &rc));
 				if (rc && prio != _priority)
 				{
-					if (_priority != 0 && _hyperhdr->getPriorityInfo(_priority).componentId == hyperhdr::COMP_BOBLIGHTSERVER)
+					if (_priority != 0 && _hyperhdr->getComponentForPriority(_priority) == hyperhdr::COMP_BOBLIGHTSERVER)
 						_hyperhdr->clear(_priority);
 
 					if (prio < 128 || prio >= 254)

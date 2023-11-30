@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,19 +25,37 @@
 *  SOFTWARE.
 */
 
-#include <utils/PerformanceCounters.h>
-#include <utils/Logger.h>
-#include <QFile>
-#include <QJsonArray>
-#include <QMutableListIterator>
-#include <QTextStream>
+#ifndef PCH_ENABLED
+	#include <QFile>
+	#include <QJsonArray>
+	#include <QMutableListIterator>
+	#include <QTextStream>
+
+	#include <utils/Logger.h>
+#endif
+
 #include <HyperhdrConfig.h>
+#include <utils/PerformanceCounters.h>
+#include <utils/GlobalSignals.h>
+#include <utils/SystemPerformanceCounters.h>
 
 #ifdef ENABLE_BONJOUR
 	#include <bonjour/DiscoveryWrapper.h>
 #endif
 
-std::unique_ptr<PerformanceCounters> PerformanceCounters::_instance = nullptr;
+using namespace hyperhdr;
+
+PerformanceReport::PerformanceReport():
+	type((int)hyperhdr::PerformanceReportType::UNKNOWN),
+	id(-1),
+	param1(0),
+	param2(0),
+	param3(0),
+	param4(0),
+	timeStamp(0),
+	token(0)
+{
+}
 
 PerformanceReport::PerformanceReport(int _type, qint64 _token, QString _name, double _param1, qint64 _param2, qint64 _param3, qint64 _param4, int _id)
 {
@@ -70,6 +88,9 @@ PerformanceReport::PerformanceReport(int _type, qint64 _token, QString _name, do
 PerformanceCounters::PerformanceCounters()
 {
 	qRegisterMetaType<PerformanceReport>();
+	qRegisterMetaType<hyperhdr::PerformanceReportType>("hyperhdr::PerformanceReportType");
+
+	_system = std::unique_ptr<SystemPerformanceCounters>(new SystemPerformanceCounters());
 
 	_lastRead = 0;
 	_lastNetworkScan = 0;
@@ -83,13 +104,16 @@ PerformanceCounters::PerformanceCounters()
 		Debug(_log, "Failed to initialized");
 	}
 
-	connect(this, &PerformanceCounters::newCounter, this, &PerformanceCounters::receive);
-	connect(this, &PerformanceCounters::removeCounter, this, &PerformanceCounters::remove);
-	connect(this, &PerformanceCounters::triggerBroadcast, this, &PerformanceCounters::broadcast);
-	connect(this, &PerformanceCounters::performanceInfoRequest, this, &PerformanceCounters::request);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalPerformanceNewReport, this, &PerformanceCounters::signalPerformanceNewReportHandler);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalPerformanceStateChanged, this, &PerformanceCounters::signalPerformanceStateChangedHandler);
 }
 
-void PerformanceCounters::request(bool all)
+PerformanceCounters::~PerformanceCounters()
+{
+	Debug(_log, "PerformanceCounters has been removed");
+}
+
+void PerformanceCounters::performanceInfoRequest(bool all)
 {
 	if (InternalClock::now() - _lastRead < 980)
 		return;
@@ -100,11 +124,11 @@ void PerformanceCounters::request(bool all)
 	if (InternalClock::now() - _lastNetworkScan > 10*1000)
 	{
 		_lastNetworkScan = InternalClock::now();
-		QUEUE_CALL_0((DiscoveryWrapper::getInstance()), requestServicesScan);
+		emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::REFRESH_ALL);
 	}
 #endif
 
-	QString cpu = _system.getCPU();
+	QString cpu = _system->getCPU();
 	if (cpu != "")
 	{
 		PerformanceReport pr;
@@ -113,7 +137,7 @@ void PerformanceCounters::request(bool all)
 		createUpdate(pr);
 	}
 
-	QString ram = _system.getRAM();
+	QString ram = _system->getRAM();
 	if (ram != "")
 	{
 		PerformanceReport pr;
@@ -122,7 +146,7 @@ void PerformanceCounters::request(bool all)
 		createUpdate(pr);
 	}
 
-	QString temp = _system.getTEMP();
+	QString temp = _system->getTEMP();
 	if (temp != "")
 	{
 		PerformanceReport pr;
@@ -131,7 +155,7 @@ void PerformanceCounters::request(bool all)
 		createUpdate(pr);
 	}
 
-	QString under = _system.getUNDERVOLATGE();
+	QString under = _system->getUNDERVOLATGE();
 	if (under != "")
 	{
 		PerformanceReport pr;
@@ -149,20 +173,12 @@ void PerformanceCounters::request(bool all)
 	}
 }
 
-PerformanceCounters* PerformanceCounters::getInstance()
-{
-	if (PerformanceCounters::_instance == nullptr)
-		PerformanceCounters::_instance = std::unique_ptr<PerformanceCounters>(new PerformanceCounters());
-
-	return PerformanceCounters::_instance.get();
-}
-
 qint64 PerformanceCounters::currentToken()
 {
 	return (InternalClock::now() / 1000) / (qint64)60;
 }
 
-void PerformanceCounters::receive(PerformanceReport pr)
+void PerformanceCounters::signalPerformanceNewReportHandler(PerformanceReport pr)
 {
 	QMutableListIterator<PerformanceReport> cleaner(this->_reports);
 	qint64 now = InternalClock::now() / 1000;
@@ -182,7 +198,7 @@ void PerformanceCounters::receive(PerformanceReport pr)
 
 	bool _inserted = false;
 
-	for (auto ins = this->_reports.begin(); ins != this->_reports.end(); ins++)
+	for (auto ins = this->_reports.begin(); ins != this->_reports.end(); ++ins)
 		if ((*ins).id > pr.id || ((*ins).id == pr.id && (*ins).type >= pr.type))
 		{
 			this->_reports.insert(ins, pr);
@@ -198,24 +214,31 @@ void PerformanceCounters::receive(PerformanceReport pr)
 	createUpdate(pr);
 }
 
-void PerformanceCounters::remove(int type, int id)
+void PerformanceCounters::signalPerformanceStateChangedHandler(bool state, PerformanceReportType reportType, int id, QString name)
 {
-	QMutableListIterator<PerformanceReport> i(this->_reports);
-	int token = -1;
+	int type = static_cast<int>(reportType);
 
-	while (i.hasNext())
+	if (!state)
 	{
-		PerformanceReport del = i.next();
-		if (del.type == type &&
-			del.id == id)
-		{
-			token = del.token;
-			i.remove();
-		}
-	}
-	consoleReport(type, token);
+		QMutableListIterator<PerformanceReport> i(this->_reports);
+		int token = -1;
 
-	deleteUpdate(type, id);
+		while (i.hasNext())
+		{
+			PerformanceReport del = i.next();
+			if (del.type == type &&
+				del.id == id)
+			{
+				token = del.token;
+				i.remove();
+			}
+		}
+		consoleReport(type, token);
+
+		deleteUpdate(type, id);
+	}
+	else
+		signalPerformanceNewReportHandler(PerformanceReport(type, -1, name, -1, -1, -1, -1, id));
 }
 
 void PerformanceCounters::consoleReport(int type, int token)
@@ -243,7 +266,7 @@ void PerformanceCounters::consoleReport(int type, int token)
 		if (del.type == static_cast<int>(PerformanceReportType::VIDEO_GRABBER))
 		{
 			if (del.token > 0)
-				list.append(QString("[USB capturing: FPS = %1, decoding = %2ms, frames = %3, invalid = %4]").arg(del.param1, 0, 'f', 2).arg(del.param2).arg(del.param3).arg(del.param4));
+				list.append(QString("[USB: FPS = %1, decoding = %2ms, frames = %3, invalid = %4, mode = %5]").arg(del.param1, 0, 'f', 2).arg(del.param2).arg(del.param3).arg(del.param4).arg((del.name.indexOf("(direct)") ? "direct" : "signal-detection" )));
 		}
 		else if (del.type == static_cast<int>(PerformanceReportType::INSTANCE))
 		{
@@ -281,7 +304,7 @@ void PerformanceCounters::createUpdate(PerformanceReport pr)
 	else
 		report["refresh"] = qMax(1 - (helper / 60 - pr.timeStamp / 60), 0ll) * 60 + 60 - (helper % 60);
 
-	emit performanceUpdate(report);
+	emit SignalPerformanceStatisticsUpdated(report);
 }
 
 void PerformanceCounters::deleteUpdate(int type, int id)
@@ -292,10 +315,10 @@ void PerformanceCounters::deleteUpdate(int type, int id)
 	report["type"] = type;
 	report["id"] = id;
 
-	emit performanceUpdate(report);
+	emit SignalPerformanceStatisticsUpdated(report);
 }
 
-void PerformanceCounters::broadcast()
+void PerformanceCounters::triggerBroadcast()
 {
 	QJsonArray arr;
 	for (auto pr : this->_reports)
@@ -325,5 +348,5 @@ void PerformanceCounters::broadcast()
 
 	report["broadcast"] = arr;
 
-	emit performanceUpdate(report);
+	emit SignalPerformanceStatisticsUpdated(report);
 }

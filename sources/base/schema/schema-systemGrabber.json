@@ -19,7 +19,7 @@
 			"title" : "edt_conf_stream_max_resolution_title",
 			"default" : 512,
 			"minimum" : 196,
-			"maximum" : 960,						
+			"maximum" : 1280,
 			"append" : "edt_append_pixel",
 			"required" : true,
 			"propertyOrder" : 7			
@@ -31,7 +31,7 @@
 			"title" : "edt_conf_stream_framerate_title",
 			"default" : 10,
 			"minimum" : 5,
-			"maximum" : 60,
+			"maximum" : 120,
 			"append" : "fps",			
 			"required" : true,
 			"propertyOrder" : 10
@@ -45,15 +45,32 @@
 			"required" : true,
 			"propertyOrder" : 23
 		},
-		"alternativeCaching" :
+		"hardware" :
 		{
 			"type" : "boolean",
 			"format": "checkbox",
-			"title" : "edt_conf_stream_dx11_flickering_title",
-			"default" : false,
+			"title" : "edt_conf_hardware_title",
+			"default" : true,
 			"required" : true,
 			"propertyOrder" : 24
-		},		
+		},
+		"monitor_nits" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_monitor_nits_title",
+			"default" : 200,
+			"minimum" : 0,
+			"maximum" : 10000,
+			"append" : "edt_append_nits",
+			"required" : true,
+			"options": {			    
+				"dependencies": {
+					"hardware": true
+				}
+			},
+			"propertyOrder" : 25
+		},
 		"cropLeft" :
 		{
 			"type" : "integer",

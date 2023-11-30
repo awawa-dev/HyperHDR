@@ -1,3 +1,8 @@
+#include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
 
 #include "QtHttpRequest.h"
 #include "QtHttpHeader.h"
@@ -48,14 +53,9 @@ QString QtHttpRequest::getCommand(void) const
 	return m_command;
 };
 
-QByteArray QtHttpRequest::getRawData(void) const
+QByteArray QtHttpRequest::getRawData(void) const &
 {
 	return m_data;
-};
-
-QList<QByteArray> QtHttpRequest::getHeadersList(void) const
-{
-	return m_headersHash.keys();
 };
 
 QtHttpClientWrapper* QtHttpRequest::getClient(void) const
@@ -73,10 +73,22 @@ QtHttpRequest::ClientInfo QtHttpRequest::getClientInfo(void) const
 	return m_clientInfo;
 };
 
-QByteArray QtHttpRequest::getHeader(const QByteArray& header) const
+QByteArray QtHttpRequest::getHeader(const QByteArray& header) const &
 {
 	return m_headersHash.value(header, QByteArray());
 };
+
+int QtHttpRequest::getHeader(const QByteArray& header, int defValue)
+{
+	const QByteArray& temp = m_headersHash.value(header, QByteArray());
+	bool ok = false;
+	int resValue = temp.toInt(&ok);
+
+	if (ok)	
+		return resValue;
+	else
+		return defValue;
+}
 
 
 void QtHttpRequest::setUrl(const QUrl& url)

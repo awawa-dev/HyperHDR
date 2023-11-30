@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits>
-#include <QtCore>
 #include "ValidatorOption.h"
 
 namespace commandline

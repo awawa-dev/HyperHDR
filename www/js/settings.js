@@ -79,6 +79,7 @@ $(document).ready( function() {
 
 	//Lock Ui
 	$('#btn_lock_ui').off().on('click',function() {
+		requestLogout();
 		removeStorage('loginToken', true);
 		location.replace('/');
 	});	

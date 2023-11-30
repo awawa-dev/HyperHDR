@@ -1,10 +1,12 @@
 #pragma once
 
-// Qt includes
-#include <QColor>
-#include <QImage>
+#ifndef PCH_ENABLED
+	#include <QColor>
+	#include <QImage>
+	#include <QJsonObject>
+#endif
+
 #include <QTcpSocket>
-#include <QJsonObject>
 
 //forward class decl
 class Logger;

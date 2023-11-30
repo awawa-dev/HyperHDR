@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -41,15 +41,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-
-#include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
-
 #include <QDirIterator>
 #include <QFileInfo>
 
-#include <grabber/MFWorker.h>
-
+#include <base/HyperHdrInstance.h>
+#include <grabber/MF/MFWorker.h>
+#include <utils/GlobalSignals.h>
 
 
 std::atomic<bool> MFWorker::_isActive(false);
@@ -127,11 +124,8 @@ bool MFWorkerManager::isActive()
 MFWorker::MFWorker() :
 	_decompress(nullptr),
 	_isBusy(false),
-	_semaphore(1),
 	_workerIndex(0),
 	_pixelFormat(PixelFormat::NO_CHANGE),
-	_localData(nullptr),
-	_localDataSize(0),
 	_size(0),
 	_width(0),
 	_height(0),
@@ -153,21 +147,14 @@ MFWorker::MFWorker() :
 MFWorker::~MFWorker()
 {
 	if (_decompress != nullptr)
-		tjDestroy(_decompress);
-
-	if (_localData != NULL)
-	{
-		free(_localData);
-		_localData = NULL;
-		_localDataSize = 0;
-	}
+		tjDestroy(_decompress);	
 }
 
 void MFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName)
 {
 	_workerIndex = __workerIndex;
 	_lineLength = __lineLength;
@@ -184,21 +171,12 @@ void MFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	_lutBuffer = __lutBuffer;
 	_qframe = __qframe;
+	_directAccess = __directAccess;
+	_deviceName = __deviceName;
 
-	if (__size > _localDataSize)
-	{
-		if (_localData != NULL)
-		{
-			free(_localData);
-			_localData = NULL;
-			_localDataSize = 0;
-		}
-		_localData = (uint8_t*)malloc((size_t)__size + 1);
-		_localDataSize = __size;
-	}
-
-	if (_localData != NULL)
-		memcpy(_localData, __sharedData, __size);
+	_localBuffer.resize((size_t)__size + 1);
+	
+	memcpy(_localBuffer.data(), __sharedData, __size);
 }
 
 void MFWorker::run()
@@ -220,10 +198,16 @@ void MFWorker::runMe()
 			{
 				Image<ColorRgb> image(_width >> 1, _height >> 1);
 				FrameDecoder::processQImage(
-					_localData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+					_localBuffer.data(), _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
-				emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
-
+				image.setBufferCacheSize();
+				if (!_directAccess)
+					emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				else
+				{
+					emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+					emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+				}
 			}
 			else
 			{
@@ -233,9 +217,16 @@ void MFWorker::runMe()
 
 				FrameDecoder::processImage(
 					_cropLeft, _cropRight, _cropTop, _cropBottom,
-					_localData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+					_localBuffer.data(), _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
-				emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				image.setBufferCacheSize();
+				if (!_directAccess)
+					emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				else
+				{
+					emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+					emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+				}
 			}
 		}
 	}
@@ -266,16 +257,16 @@ void MFWorker::process_image_jpg_mt()
 	if (_decompress == nullptr)
 		_decompress = tjInitDecompress();
 
-	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(_localData), _size, &_width, &_height, &_subsamp) != 0 &&
+	if (tjDecompressHeader2(_decompress, _localBuffer.data(), _size, &_width, &_height, &_subsamp) != 0 &&
 		tjGetErrorCode(_decompress) == TJERR_FATAL)
 	{
-		emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+        emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 		return;
 	}
 	
 	if ((_subsamp != TJSAMP_422 && _subsamp != TJSAMP_420) && _hdrToneMappingEnabled > 0)
 	{
-		emit newFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
+		emit SignalNewFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
 		return;
 	}
 
@@ -289,50 +280,48 @@ void MFWorker::process_image_jpg_mt()
 	if (_hdrToneMappingEnabled > 0)
 	{
 		size_t yuvSize = tjBufSizeYUV2(_width, 2, _height, _subsamp);
-		uint8_t* jpegBuffer = (uint8_t*)malloc(yuvSize);
+		MemoryBuffer<uint8_t> jpgBuffer(yuvSize);
 
-		if (tjDecompressToYUV2(_decompress, const_cast<uint8_t*>(_localData), _size, jpegBuffer, _width, 2, _height, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompressToYUV2(_decompress, _localBuffer.data(), _size, jpgBuffer.data(), _width, 2, _height, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 			{
-				free(jpegBuffer);
-
-				emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+				emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 				return;
 			}		
 
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpegBuffer, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
-
-		free(jpegBuffer);
+			jpgBuffer.data(), _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
 	}
 	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
-		uint8_t* jpegBuffer = (uint8_t*)malloc(_width * _height * 3);
+		MemoryBuffer<uint8_t> jpgBuffer(_width * _height * 3);
 
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_localData), _size, (uint8_t*)jpegBuffer, _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompress2(_decompress, _localBuffer.data(), _size, jpgBuffer.data(), _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 			{
-				free(jpegBuffer);
-
-				emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+				emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 				return;
 			}					
 		
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpegBuffer, _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
-
-		free(jpegBuffer);
+			jpgBuffer.data(), _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
 	}
 	else
 	{
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_localData), _size, image.rawMem(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompress2(_decompress, _localBuffer.data(), _size, image.rawMem(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 			{
-				emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+				emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 				return;
 			}		
 	}
 	
-
-	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+	image.setBufferCacheSize();
+	if (!_directAccess)
+		emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+	else
+	{
+		emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+        emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+	}
 }

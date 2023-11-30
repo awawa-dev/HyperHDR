@@ -1,11 +1,13 @@
 #pragma once
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonArray>
-#include <QStringList>
-#include <QPair>
+#ifndef PCH_ENABLED
+	#include <QJsonDocument>
+	#include <QJsonObject>
+	#include <QJsonValue>
+	#include <QJsonArray>
+	#include <QStringList>
+	#include <QPair>
+#endif
 
 /// JsonSchemaChecker is a very basic implementation of json schema.
 /// The json schema definition draft can be found at

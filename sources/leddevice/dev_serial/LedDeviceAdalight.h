@@ -1,50 +1,18 @@
-#ifndef LEDEVICETADALIGHT_H
-#define LEDEVICETADALIGHT_H
+#pragma once
 
-// HyperHDR includes
-#include "ProviderRs232.h"
+#include "ProviderSerial.h"
 
-///
-/// Implementation of the LedDevice interface for writing to an Adalight LED-device.
-///
-class LedDeviceAdalight : public ProviderRs232
+class LedDeviceAdalight : public ProviderSerial
 {
 	Q_OBJECT
 
 public:
-
-	///
-	/// @brief Constructs an Adalight LED-device
-	///
-	/// @param deviceConfig Device's configuration as JSON-Object
-	///
 	explicit LedDeviceAdalight(const QJsonObject& deviceConfig);
-
-	///
-	/// @brief Constructs the LED-device
-	///
-	/// @param[in] deviceConfig Device's configuration as JSON-Object
-	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
-
-	///
-	/// @brief Initialise the device's configuration
-	///
-	/// @param[in] deviceConfig the JSON device configuration
-	/// @return True, if success
-	///
 	bool init(const QJsonObject& deviceConfig) override;
-
 	void CreateHeader();
-
-	///
-	/// @brief Writes the RGB-Color values to the LEDs.
-	///
-	/// @param[in] ledValues The RGB-color per LED
-	/// @return Zero on success, else negative
-	///
 	int write(const std::vector<ColorRgb>& ledValues) override;
 
 	void whiteChannelExtension(uint8_t*& writer);
@@ -59,5 +27,3 @@ private:
 	uint8_t _white_channel_green;
 	uint8_t _white_channel_blue;
 };
-
-#endif // LEDEVICETADALIGHT_H

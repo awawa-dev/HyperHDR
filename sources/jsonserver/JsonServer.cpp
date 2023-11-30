@@ -7,6 +7,7 @@
 #include "JsonClientConnection.h"
 
 #include <utils/NetOrigin.h>
+#include <api/HyperAPI.h>
 
 // qt includes
 #include <QTcpServer>
@@ -14,14 +15,15 @@
 #include <QJsonDocument>
 #include <QByteArray>
 
-JsonServer::JsonServer(const QJsonDocument& config)
+JsonServer::JsonServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config)
 	: QObject()
 	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _log(Logger::getInstance("JSONSERVER"))
-	, _netOrigin(NetOrigin::getInstance())
+	, _netOrigin(netOrigin)
+	, _port(0)
 {
-	Debug(_log, "Created instance");
+	Debug(_log, "Created new instance");
 
 	// Set trigger for incoming connections
 	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
@@ -32,6 +34,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 
 JsonServer::~JsonServer()
 {
+	Debug(_log, "The instance is deleted");
 	qDeleteAll(_openConnections);
 }
 
@@ -90,7 +93,7 @@ void JsonServer::newConnection()
 				_openConnections.insert(connection);
 
 				// register slot for cleaning up after the connection closed
-				connect(connection, &JsonClientConnection::connectionClosed, this, &JsonServer::closedConnection);
+				connect(connection, &JsonClientConnection::SignalClientConnectionClosed, this, &JsonServer::signalClientConnectionClosedHandler);
 			}
 			else
 				socket->close();
@@ -98,12 +101,12 @@ void JsonServer::newConnection()
 	}
 }
 
-void JsonServer::closedConnection()
+void JsonServer::signalClientConnectionClosedHandler(JsonClientConnection* client)
 {
-	JsonClientConnection* connection = qobject_cast<JsonClientConnection*>(sender());
-	Debug(_log, "Connection closed");
-	_openConnections.remove(connection);
-
-	// schedule to delete the connection object
-	connection->deleteLater();
+	if (client != nullptr)
+	{
+		Debug(_log, "Connection closed");
+		_openConnections.remove(client);
+		client->deleteLater();
+	}
 }

@@ -2,7 +2,7 @@
 #include "LedDeviceAtmo.h"
 
 LedDeviceAtmo::LedDeviceAtmo(const QJsonObject& deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderSerial(deviceConfig)
 {
 }
 
@@ -16,7 +16,7 @@ bool LedDeviceAtmo::init(const QJsonObject& deviceConfig)
 	bool isInitOK = false;
 
 	// Initialise sub-class
-	if (ProviderRs232::init(deviceConfig))
+	if (ProviderSerial::init(deviceConfig))
 	{
 		if (_ledCount != 5)
 		{

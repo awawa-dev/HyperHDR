@@ -102,6 +102,15 @@ $(document).ready(function () {
 					suppressErrorDetectedWarningCheckbox);
 			}, 700);			
 		}
+
+		let VIDEO_CAPTURE_AVAILABLE = (window.serverInfo.grabbers != null && window.serverInfo.grabbers.available != null &&
+							window.serverInfo.grabbers.available.find(element => element.indexOf("Video capturing")!=-1))
+							|| (window.serverInfo.systemGrabbers != null);
+		if (!VIDEO_CAPTURE_AVAILABLE)
+		{
+			let menuItemGrab = document.getElementById("grabber_capturing_menu_item");
+			menuItemGrab.classList.add("d-none");
+		}
 	}); // end cmd-serverinfo
 
 	//End language selection
@@ -298,16 +307,24 @@ $(document).ready(function () {
 		loadContent();
 	});
 
+	$(window.hyperhdr).on("cmd-priorities-update", function(event)
+	{
+		window.serverInfo.priorities = event.response.data.priorities;
+		window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect;
+		$(window.hyperhdr).trigger("priorities-update", event.response.data);
+	});
+
 	$(window.hyperhdr).on("cmd-adjustment-update", function (event) {
-		window.serverInfo.adjustment = event.response.data
+		window.serverInfo.adjustment = event.response.data;
+		$(window.hyperhdr).trigger("adjustment-update", event.response.data);
 	});
 
 	$(window.hyperhdr).on("cmd-videomode-update", function (event) {
-		window.serverInfo.videomode = event.response.data.videomode
+		window.serverInfo.videomode = event.response.data.videomode;
 	});
 
 	$(window.hyperhdr).on("cmd-videomodehdr-update", function (event) {
-		window.serverInfo.videomodehdr = event.response.data.videomodehdr
+		window.serverInfo.videomodehdr = event.response.data.videomodehdr;
 	});	
 
 	$(window.hyperhdr).on("cmd-grabberstate-update", function (event) {

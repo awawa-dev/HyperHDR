@@ -1,9 +1,20 @@
 #pragma once
 
-/// Constants and utility functions related to WebSocket opcodes
-/**
- * WebSocket Opcodes are 4 bits. See RFC6455 section 5.2.
- */
+namespace CLOSECODE
+{
+	enum value
+	{
+		NORMAL = 1000,
+		AWAY = 1001,
+		TERM = 1002,
+		INV_TYPE = 1003,
+		INV_DATA = 1007,
+		VIOLATION = 1008,
+		BIG_MSG = 1009,
+		UNEXPECTED = 1011
+	};
+}
+
 namespace OPCODE
 {
 	enum value
@@ -26,30 +37,8 @@ namespace OPCODE
 		CONTROL_RSVF = 0xF
 	};
 
-	/// Check if an opcode is invalid
-	/**
-	 * Invalid opcodes are negative or require greater than 4 bits to store.
-	 *
-	 * @param v The opcode to test.
-	 * @return Whether or not the opcode is invalid.
-	 */
 	inline bool invalid(value v)
 	{
 		return (v > 0xF || v < 0);
 	}
-}
-
-namespace CLOSECODE
-{
-	enum value
-	{
-		NORMAL = 1000,
-		AWAY = 1001,
-		TERM = 1002,
-		INV_TYPE = 1003,
-		INV_DATA = 1007,
-		VIOLATION = 1008,
-		BIG_MSG = 1009,
-		UNEXPECTED = 1011
-	};
 }

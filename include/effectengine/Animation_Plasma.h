@@ -8,12 +8,6 @@
 #define PAL_LEN       360
 class Animation_Plasma : public AnimationBase
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 
 	Animation_Plasma();

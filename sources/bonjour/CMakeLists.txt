@@ -7,7 +7,7 @@ FILE ( GLOB Bonjour_SOURCES "${CURRENT_HEADER_DIR}/*.h"
 
 add_library(bonjour ${Bonjour_SOURCES} )
 
-target_include_directories(bonjour PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/external/mdns)
+target_include_directories(bonjour PUBLIC ${CMAKE_SOURCE_DIR}/external/mdns)
 
 target_link_libraries(bonjour
 		hyperhdr-base

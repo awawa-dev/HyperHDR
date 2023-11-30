@@ -25,7 +25,6 @@ ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
 	, _spiDataInvert(false)
 	, _spiType("")
 {
-	memset(&_spi, 0, sizeof(_spi));
 }
 
 ProviderSpi::~ProviderSpi()
@@ -45,10 +44,15 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 		_spiMode = deviceConfig["spimode"].toInt(_spiMode);
 		_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
 
-		Debug(_log, "_baudRate_Hz [%d], _spiType: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
-		Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
+		if (_spiType == "rp2040" && _baudRate_Hz > 20833333)
+		{
+			_baudRate_Hz = 20833333;
+		}
 
-		if (_refreshTimerInterval_ms > 0)
+		Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
+		Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
+
+		if (_defaultInterval > 0)
 			Error(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
 
 		isInitOK = true;
@@ -91,7 +95,17 @@ int ProviderSpi::open()
 				}
 				else
 				{
-					// Everything OK -> enable device
+					uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
+					if (_spiType == "rp2040")
+					{
+						writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+					}
+					else if (_spiType == "esp32")
+					{
+						writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
+					}
+
 					_isDeviceReady = true;
 					retval = 0;
 				}
@@ -113,9 +127,17 @@ int ProviderSpi::open()
 
 int ProviderSpi::close()
 {
-	// LedDevice specific closing activities
+	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 	int retval = 0;
+
 	_isDeviceReady = false;
+
+	Debug(_log, "Closing SPI interface");
+
+	if (_spiType == "rp2040")
+	{
+		writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+	}
 
 	// Test, if device requires closing
 	if (_fid > -1)
@@ -132,7 +154,10 @@ int ProviderSpi::close()
 
 int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
 {
-	uint8_t* newdata = nullptr;
+	MemoryBuffer<uint8_t> buffer;
+	spi_ioc_transfer _spi;
+
+	memset(&_spi, 0, sizeof(_spi));
 
 	if (_fid < 0)
 	{
@@ -144,18 +169,15 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
 
 	if (_spiDataInvert)
 	{
-		newdata = (uint8_t*)malloc(size);
+		buffer.resize(size);
 		for (unsigned i = 0; i < size; i++) {
-			newdata[i] = data[i] ^ 0xff;
+			buffer.data()[i] = data[i] ^ 0xff;
 		}
-		_spi.tx_buf = __u64(newdata);
+		_spi.tx_buf = __u64(buffer.data());
 	}
 
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
-
-	if (newdata != nullptr)
-		free(newdata);
 
 	return retVal;
 }
@@ -165,6 +187,9 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
 	uint8_t buffer[34];
+	spi_ioc_transfer _spi;
+
+	memset(&_spi, 0, sizeof(_spi));
 
 	if (_fid < 0)
 	{
@@ -195,12 +220,15 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 
 int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 {
-	static const int      REAL_BUFFER = 1536;
-	static const uint32_t BUFFER_SIZE = REAL_BUFFER + 8;
+	const int      REAL_BUFFER = 1536;
+	const uint32_t BUFFER_SIZE = REAL_BUFFER + 8;
 
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
 	uint8_t buffer[BUFFER_SIZE];
+	spi_ioc_transfer _spi;
+
+	memset(&_spi, 0, sizeof(_spi));
 
 	if (_fid < 0)
 	{
@@ -215,12 +243,53 @@ int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 
 	while (retVal >= 0 && startData < endData)
 	{
+		if (startData != data)
+			usleep(1000);
+
+		int sent = std::min(REAL_BUFFER, static_cast<int>(endData - startData));
 		memset(buffer, 0, sizeof(buffer));
-		for (int i = 0; i < REAL_BUFFER && startData < endData; i++, startData++)
-		{
-			buffer[i] = *startData;
-		}
+		memcpy(buffer, startData, sent);
+		startData += sent;
 		buffer[REAL_BUFFER] = 0xAA;
+		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+	}
+
+	return retVal;
+}
+
+int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
+{
+	static const int      REAL_BUFFER = 1536;
+	static const uint32_t BUFFER_SIZE = REAL_BUFFER;
+
+	uint8_t* startData = (uint8_t*)data;
+	uint8_t* endData = (uint8_t*)data + size;
+	uint8_t buffer[BUFFER_SIZE];
+	spi_ioc_transfer _spi;
+
+	memset(&_spi, 0, sizeof(_spi));
+
+	if (_fid < 0)
+	{
+		return -1;
+	}
+
+	_spi.tx_buf = __u64(&buffer);
+	_spi.len = __u32(BUFFER_SIZE);
+	_spi.delay_usecs = 0;
+
+	int retVal = 0;
+
+	while (retVal >= 0 && startData < endData)
+	{
+		if (startData != data)
+			usleep(1000);
+
+		int sent = std::min(REAL_BUFFER, static_cast<int>(endData - startData));
+		memset(buffer, 0, sizeof(buffer));
+		memcpy(buffer, startData, sent);
+		startData += sent;
 		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
 	}
@@ -232,9 +301,9 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
-	QStringList files;	
+	QStringList files;
 	QDirIterator it("/dev", QStringList() << "spidev*", QDir::System);
-	
+
 	while (it.hasNext())
 		files << it.next();
 	files.sort();

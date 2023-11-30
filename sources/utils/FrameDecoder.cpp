@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,9 +25,14 @@
 *  SOFTWARE.
 */
 
+#ifndef PCH_ENABLED
+	#include <utils/Logger.h>
+#endif
+
 #include <utils/FrameDecoder.h>
 #include <utils/ColorSys.h>
-#include <utils/Logger.h>
+
+#include <turbojpeg.h>
 
 //#define TAKE_SCREEN_SHOT
 
@@ -679,4 +684,69 @@ void FrameDecoder::processSystemImageRGBA(Image<ColorRgb>& image, int targetSize
 		}
 	}
 }
+
+void FrameDecoder::processSystemImagePQ10(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
+	int startX, int startY,
+	uint8_t* source, int _actualWidth, int _actualHeight,
+	int division, uint8_t* _lutBuffer, int lineSize)
+{
+	uint32_t	ind_lutd;
+	size_t		divisionX = (size_t)division * 4;
+
+	if (lineSize == 0)
+		lineSize = _actualWidth * 4;
+
+	for (int j = 0; j < targetSizeY; j++)
+	{
+		size_t lineSource = std::min(startY + j * division, _actualHeight - 1);
+		uint8_t* dLine = (image.rawMem() + (size_t)j * targetSizeX * 3);
+		uint8_t* dLineEnd = dLine + (size_t)targetSizeX * 3;
+		uint8_t* sLine = ((source + (lineSource * lineSize) + ((size_t)startX * 4)));
+
+		if (_lutBuffer == nullptr)
+		{
+			while (dLine < dLineEnd)
+			{
+				uint32_t inS = *((uint32_t*)sLine);
+				*(dLine++) = (inS >> 2) & 0xFF;
+				*(dLine++) = (inS >> 12) & 0xFF;
+				*(dLine++) = (inS >> 22) & 0xFF;				
+				sLine += divisionX;
+			}
+		}
+		else while (dLine < dLineEnd)
+		{
+			uint32_t inS = *((uint32_t*)sLine);			
+			ind_lutd = LUT_INDEX(((inS >> 2) & 0xFF), ((inS >> 12) & 0xFF), ((inS >> 22) & 0xFF));
+			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
+			sLine += divisionX;
+			dLine += 3;
+		}
+	}
+}
+
+void FrameDecoder::encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown)
+{
+	const int aspect = (scaleDown) ? 2 : 1;
+	const int width = inputImage.width();
+	const int height = inputImage.height() / aspect;
+	int pitch = width * sizeof(ColorRgb) * aspect;
+	int subSample = (scaleDown) ? TJSAMP_422 : TJSAMP_444;
+	int quality = 75;
+
+	unsigned long compressedImageSize = 0;
+	unsigned char* compressedImage = NULL;
+
+	tjhandle _jpegCompressor = tjInitCompress();
+
+	tjCompress2(_jpegCompressor, inputImage.rawMem(), width, pitch, height, TJPF_RGB,
+				&compressedImage, &compressedImageSize, subSample, quality, TJFLAG_FASTDCT);
+
+	buffer.resize(compressedImageSize);
+	memcpy(buffer.data(), compressedImage, compressedImageSize);
+
+	tjDestroy(_jpegCompressor);
+	tjFree(compressedImage);
+}
+
 

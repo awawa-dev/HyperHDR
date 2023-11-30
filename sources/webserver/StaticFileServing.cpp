@@ -1,6 +1,10 @@
-#include <utils/QStringUtils.h>
-#include "StaticFileServing.h"
-
+#include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
+#include <QUrlQuery>
+#include <QMimeDatabase>
 #include <QStringBuilder>
 #include <QUrlQuery>
 #include <QList>
@@ -9,70 +13,78 @@
 #include <QFileInfo>
 #include <QResource>
 #include <exception>
+#include <QHash>
+
+
+#include <utils/Logger.h>
+
+#include <utils/QStringUtils.h>
+#include "QtHttpRequest.h"
+#include "QtHttpReply.h"
+#include "QtHttpHeader.h"
+#include "CgiHandler.h"
+
+#include "StaticFileServing.h"
 
 StaticFileServing::StaticFileServing(QObject* parent)
 	: QObject(parent)
 	, _baseUrl()
-	, _cgi(this)
+	, _cgi(new CgiHandler(this))
 	, _log(Logger::getInstance("WEBSERVER"))
 {
 	Q_INIT_RESOURCE(WebConfig);
 
-	_mimeDb = new QMimeDatabase;
+	_mimeDb["js"] = "application/javascript";
+	_mimeDb["html"] = "text/html";
+	_mimeDb["json"] = "application/json";
+	_mimeDb["css"] = "text/css";
+	_mimeDb["png"] = "image/png";
+	_mimeDb["woff"] = "font/woff";
+	_mimeDb["svg"] = "image/svg+xml";
+	_mimeDb["jpg"] = "image/jpeg";
+	_mimeDb["jpeg"] = "image/jpeg";
 }
 
 StaticFileServing::~StaticFileServing()
 {
-	delete _mimeDb;
+	delete _cgi;
 }
 
 void StaticFileServing::setBaseUrl(const QString& url)
 {
 	_baseUrl = url;
-	_cgi.setBaseUrl(url);
+	_cgi->setBaseUrl(url);
 }
 
-void StaticFileServing::setSSDPDescription(const QString& desc)
+void StaticFileServing::setSsdpXmlDesc(const QString& desc)
 {
 	if (desc.isEmpty())
-		_ssdpDescription.clear();
+	{
+		Warning(_log, "SSDP description is empty");
+		_ssdpXmlDesc.clear();
+	}
 	else
-		_ssdpDescription = desc.toLocal8Bit();
+	{
+		Debug(_log, "SSDP description is set up");
+		_ssdpXmlDesc = desc;
+	}
 }
 
 void StaticFileServing::printErrorToReply(QtHttpReply* reply, QtHttpReply::StatusCode code, QString errorMessage)
 {
 	reply->setStatusCode(code);
-	reply->addHeader("Content-Type", QByteArrayLiteral("text/html"));
-	QFile errorPageHeader(_baseUrl % "/errorpages/header.html");
-	QFile errorPageFooter(_baseUrl % "/errorpages/footer.html");
-	QFile errorPage(_baseUrl % "/errorpages/" % QString::number((int)code) % ".html");
+	reply->addHeader("Content-Type", QByteArrayLiteral("text/html"));	
+	reply->appendRawData(QString(QString::number(code) + " - " + errorMessage).toLocal8Bit());	
+}
 
-	if (errorPageHeader.open(QFile::ReadOnly))
-	{
-		QByteArray data = errorPageHeader.readAll();
-		reply->appendRawData(data);
-		errorPageHeader.close();
-	}
+QString StaticFileServing::getMimeName(QString filename)
+{
+	QString extension = QFileInfo(filename).suffix();
 
-	if (errorPage.open(QFile::ReadOnly))
-	{
-		QByteArray data = errorPage.readAll();
-		data = data.replace("{MESSAGE}", errorMessage.toLocal8Bit());
-		reply->appendRawData(data);
-		errorPage.close();
-	}
-	else
-	{
-		reply->appendRawData(QString(QString::number(code) + " - " + errorMessage).toLocal8Bit());
-	}
-
-	if (errorPageFooter.open(QFile::ReadOnly))
-	{
-		QByteArray data = errorPageFooter.readAll();
-		reply->appendRawData(data);
-		errorPageFooter.close();
-	}
+	if (extension.isEmpty() || !_mimeDb.contains(extension))
+		return QMimeDatabase().mimeTypeForFile(filename).name();
+		
+	return _mimeDb[extension];
 }
 
 void StaticFileServing::onRequestNeedsReply(QtHttpRequest* request, QtHttpReply* reply)
@@ -90,7 +102,7 @@ void StaticFileServing::onRequestNeedsReply(QtHttpRequest* request, QtHttpReply*
 				uri_parts.removeAt(0);
 				try
 				{
-					_cgi.exec(uri_parts, request, reply);
+					_cgi->exec(uri_parts, request, reply);
 				}
 				catch (std::exception& e)
 				{
@@ -99,10 +111,10 @@ void StaticFileServing::onRequestNeedsReply(QtHttpRequest* request, QtHttpReply*
 				}
 				return;
 			}
-			else if (uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
+			else if (uri_parts.at(0) == "description.xml" && !_ssdpXmlDesc.isEmpty())
 			{
 				reply->addHeader("Content-Type", "text/xml");
-				reply->appendRawData(_ssdpDescription);
+				reply->appendRawData(_ssdpXmlDesc.toLocal8Bit());
 				return;
 			}
 		}
@@ -125,10 +137,10 @@ void StaticFileServing::onRequestNeedsReply(QtHttpRequest* request, QtHttpReply*
 		QFile file(_baseUrl % "/" % path);
 		if (file.exists())
 		{
-			QMimeType mime = _mimeDb->mimeTypeForFile(file.fileName());
+			QString mimeName = getMimeName(file.fileName());
 			if (file.open(QFile::ReadOnly)) {
 				QByteArray data = file.readAll();
-				reply->addHeader("Content-Type", mime.name().toLocal8Bit());
+				reply->addHeader("Content-Type", mimeName.toLocal8Bit());
 				reply->addHeader(QtHttpHeader::AccessControlAllow, "*");
 				reply->appendRawData(data);
 				file.close();

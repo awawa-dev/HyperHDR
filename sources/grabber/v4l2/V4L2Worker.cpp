@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -48,14 +48,12 @@
 #include <linux/videodev2.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 
-#include <grabber/V4L2Worker.h>
-
-
+#include <grabber/v4l2/V4L2Worker.h>
+#include <utils/GlobalSignals.h>
 
 std::atomic<bool>	V4L2Worker::_isActive(false);
 
@@ -63,6 +61,8 @@ V4L2WorkerManager::V4L2WorkerManager() :
 	workers(nullptr)
 {
 	workersCount = std::max(QThread::idealThreadCount(), 1);
+	workersCount = (workersCount > 3) ? workersCount - 1 : workersCount;
+	workersCount = std::min(workersCount, 4u);
 }
 
 V4L2WorkerManager::~V4L2WorkerManager()
@@ -123,7 +123,6 @@ bool V4L2WorkerManager::isActive()
 V4L2Worker::V4L2Worker() :
 	_decompress(nullptr),
 	_isBusy(false),
-	_semaphore(1),
 	_workerIndex(0),
 	_pixelFormat(PixelFormat::NO_CHANGE),
 	_sharedData(nullptr),
@@ -155,7 +154,7 @@ void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Pixel
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName)
 {
 	_workerIndex = __workerIndex;
 	memcpy(&_v4l2Buf, __v4l2Buf, sizeof(v4l2_buffer));
@@ -174,6 +173,8 @@ void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Pixel
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	_lutBuffer = __lutBuffer;
 	_qframe = __qframe;
+	_directAccess = __directAccess;
+	_deviceName = __deviceName;
 }
 
 v4l2_buffer* V4L2Worker::GetV4L2Buffer()
@@ -202,7 +203,14 @@ void V4L2Worker::runMe()
 				FrameDecoder::processQImage(
 					_sharedData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
-				emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				image.setBufferCacheSize();
+				if (!_directAccess)
+					emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				else
+				{
+					emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+					emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+				}
 
 			}
 			else
@@ -216,7 +224,14 @@ void V4L2Worker::runMe()
 					_cropLeft, _cropRight, _cropTop, _cropBottom,
 					_sharedData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
-				emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				image.setBufferCacheSize();
+				if (!_directAccess)
+					emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+				else
+				{
+					emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+					emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+				}
 			}
 		}
 	}
@@ -251,13 +266,13 @@ void V4L2Worker::process_image_jpg_mt()
 	if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(_sharedData), _size, &_width, &_height, &_subsamp) != 0 &&
 		tjGetErrorCode(_decompress) == TJERR_FATAL)
 	{
-		emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+		emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 		return;
 	}
 
 	if ((_subsamp != TJSAMP_422 && _subsamp != TJSAMP_420) && _hdrToneMappingEnabled > 0)
 	{
-		emit newFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
+		emit SignalNewFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
 		return;
 	}
 
@@ -271,50 +286,48 @@ void V4L2Worker::process_image_jpg_mt()
 	if (_hdrToneMappingEnabled > 0)
 	{
 		size_t yuvSize = tjBufSizeYUV2(_width, 2, _height, _subsamp);
-		uint8_t* jpegBuffer = (uint8_t*)malloc(yuvSize);
+		MemoryBuffer<uint8_t> jpgBuffer(yuvSize);
 
-		if (tjDecompressToYUV2(_decompress, const_cast<uint8_t*>(_sharedData), _size, jpegBuffer, _width, 2, _height, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompressToYUV2(_decompress, const_cast<uint8_t*>(_sharedData), _size, jpgBuffer.data(), _width, 2, _height, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
-			free(jpegBuffer);
-
-			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+			emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 			return;
 		}
 
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpegBuffer, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
-
-		free(jpegBuffer);
+			jpgBuffer.data(), _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
 	}
 	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
-		uint8_t* jpegBuffer = (uint8_t*)malloc(static_cast<size_t>(_width) * _height * 3);
+		MemoryBuffer<uint8_t> jpgBuffer(static_cast<size_t>(_width) * _height * 3);
 
-		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, (uint8_t*)jpegBuffer, _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, jpgBuffer.data(), _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
-			free(jpegBuffer);
-
-			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+			emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 			return;
 		}
 
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpegBuffer, _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
-
-		free(jpegBuffer);
+			jpgBuffer.data(), _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
 	}
 	else
 	{
 		if (tjDecompress2(_decompress, const_cast<uint8_t*>(_sharedData), _size, image.rawMem(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
 		{
-			emit newFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
+			emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 			return;
 		}
 	}
 
-
-	emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+	image.setBufferCacheSize();
+	if (!_directAccess)
+		emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+	else
+	{
+		emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+		emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+	}
 }

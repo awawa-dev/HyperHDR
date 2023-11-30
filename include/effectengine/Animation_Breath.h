@@ -6,12 +6,6 @@
 
 class Animation_Breath : public Animation_Fade
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 
 	Animation_Breath(QString name = ANIM_BREATH);

@@ -1,10 +1,14 @@
 #pragma once
 
+#ifndef PCH_ENABLED
+	#include <QThread>
+#endif
+
 /* Macros.h
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -32,7 +36,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 #define SAFE_CALL_0_RET(target, method, returnType, result, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_RETURN_ARG(returnType, result)); \
 	else \
 		result = target->method(); \
@@ -41,7 +45,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 #define SAFE_CALL_1_RET(target, method, returnType, result, p1type, p1value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_RETURN_ARG(returnType, result), Q_ARG(p1type, p1value)); \
 	else \
 		result = target->method(p1value); \
@@ -50,7 +54,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 #define SAFE_CALL_2_RET(target, method, returnType, result, p1type, p1value, p2type, p2value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_RETURN_ARG(returnType, result), Q_ARG(p1type, p1value), Q_ARG(p2type, p2value)); \
 	else \
 		result = target->method(p1value, p2value); \
@@ -59,7 +63,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 #define SAFE_CALL_3_RET(target, method, returnType, result, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_RETURN_ARG(returnType, result), Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value)); \
 	else \
 		result = target->method(p1value, p2value, p3value); \
@@ -68,7 +72,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 #define SAFE_CALL_4_RET(target, method, returnType, result, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_RETURN_ARG(returnType, result), Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value), Q_ARG(p4type, p4value)); \
 	else \
 		result = target->method(p1value, p2value, p3value, p4value); \
@@ -89,7 +93,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 	if (true) \
 		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value)); \
 	else \
-		target->method(p1value); \
+		target->method((p1type) p1value); \
 }
 
 #define QUEUE_CALL_2(target, method, p1type, p1value, p2type, p2value, ...) \
@@ -98,7 +102,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 	if (true) \
 		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value)); \
 	else \
-		target->method(p1value, p2value); \
+		target->method((p1type) p1value, (p2type) p2value); \
 }
 
 #define QUEUE_CALL_3(target, method, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
@@ -107,7 +111,7 @@ inline void SAFE_CALL_TEST_FUN() {};
 	if (true) \
 		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value)); \
 	else \
-		target->method(p1value, p2value, p3value); \
+		target->method((p1type) p1value, (p2type) p2value, (p3type) p3value); \
 }
 
 #define QUEUE_CALL_4(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
@@ -116,13 +120,13 @@ inline void SAFE_CALL_TEST_FUN() {};
 	if (true) \
 		QMetaObject::invokeMethod(target, #method, Qt::QueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value), Q_ARG(p4type, p4value)); \
 	else \
-		target->method(p1value, p2value, p3value, p4value); \
+		target->method((p1type) p1value, (p2type) p2value, (p3type) p3value, (p4type) p4value); \
 }
 
 #define BLOCK_CALL_0(target, method, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection); \
 	else \
 		target->method(); \
@@ -131,37 +135,46 @@ inline void SAFE_CALL_TEST_FUN() {};
 #define BLOCK_CALL_1(target, method, p1type, p1value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value)); \
 	else \
-		target->method(p1value); \
+		target->method((p1type) p1value); \
 }
 
 #define BLOCK_CALL_2(target, method, p1type, p1value, p2type, p2value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value)); \
 	else \
-		target->method(p1value, p2value); \
+		target->method((p1type) p1value, (p2type) p2value); \
 }
 
 #define BLOCK_CALL_3(target, method, p1type, p1value, p2type, p2value, p3type, p3value, ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value)); \
 	else \
-		target->method(p1value, p2value, p3value); \
+		target->method((p1type) p1value, (p2type) p2value, (p3type) p3value); \
 }
 
 #define BLOCK_CALL_4(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value , ...) \
 { \
 	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
-	if (target->thread() != this->thread()) \
+	if (target->thread() != QThread::currentThread()) \
 		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value), Q_ARG(p4type, p4value)); \
 	else \
-		target->method(p1value, p2value, p3value, p4value); \
+		target->method((p1type) p1value, (p2type) p2value, (p3type) p3value, (p4type) p4value); \
+}
+
+#define BLOCK_CALL_5(target, method, p1type, p1value, p2type, p2value, p3type, p3value, p4type, p4value, p5type, p5value, ...) \
+{ \
+	SAFE_CALL_TEST_FUN(__VA_ARGS__); \
+	if (target->thread() != QThread::currentThread()) \
+		QMetaObject::invokeMethod(target, #method, Qt::BlockingQueuedConnection, Q_ARG(p1type, p1value), Q_ARG(p2type, p2value), Q_ARG(p3type, p3value), Q_ARG(p4type, p4value), Q_ARG(p5type, p5value)); \
+	else \
+		target->method((p1type) p1value, (p2type) p2value, (p3type) p3value, (p4type) p4value, (p5type) p5value); \
 }
 
 #define AUTO_CALL_0(target, method, ...) \
@@ -208,3 +221,11 @@ inline void SAFE_CALL_TEST_FUN() {};
 	else \
 		target->method(p1value, p2value, p3value, p4value); \
 }
+
+#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
+
+namespace hyperhdr {
+	void THREAD_REMOVER(QString message, QThread* parentThread, QObject* client);
+	void THREAD_MULTI_REMOVER(QString message, QThread* parentThread, std::vector<QObject*> clients);
+	void SMARTPOINTER_MESSAGE(QString message);
+};

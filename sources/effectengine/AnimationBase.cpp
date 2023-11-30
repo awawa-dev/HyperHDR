@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -30,7 +30,6 @@
 AnimationBase::AnimationBase(QString name) :
 	_name(name),
 	_sleepTime(100),
-	_isDevice(false),
 	_stopMe(false)
 {
 };

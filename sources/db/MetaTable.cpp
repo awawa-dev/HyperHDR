@@ -1,9 +1,10 @@
-#include <db/MetaTable.h>
+#include <QCryptographicHash>
 #include <QNetworkInterface>
 
+#include <db/MetaTable.h>
 
-MetaTable::MetaTable(QObject* parent, bool readonlyMode)
-	: DBManager(parent)
+MetaTable::MetaTable(bool readonlyMode)
+	: DBManager()
 {
 	setReadonlyMode(readonlyMode);
 

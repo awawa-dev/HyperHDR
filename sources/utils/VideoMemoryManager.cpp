@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,12 +25,11 @@
 *  SOFTWARE.
 */
 
-#include <utils/VideoMemoryManager.h>
+#ifndef PCH_ENABLED
+	#include <utils/VideoMemoryManager.h>
+#endif
 
 #define BUFFER_LOWER_LIMIT 1
-
-bool VideoMemoryManager::_enabled(false);
-bool VideoMemoryManager::_dirty(false);
 
 VideoMemoryManager::VideoMemoryManager(int bufferSize) :
 	_currentSize(0),
@@ -52,13 +51,11 @@ VideoMemoryManager::~VideoMemoryManager()
 
 bool VideoMemoryManager::setFrameSize(size_t size)
 {
-	if (_currentSize != size || (!_enabled && _dirty))
+	if (_currentSize != size)
 	{
 		QMutexLocker lockme(&_locker);
 
 		releaseBuffer();
-
-		_dirty = false;
 
 		_hits = 0;
 
@@ -78,98 +75,81 @@ bool VideoMemoryManager::setFrameSize(size_t size)
 	return false;
 }
 
-uint8_t* VideoMemoryManager::request(size_t size)
+std::unique_ptr<MemoryBuffer<uint8_t>> VideoMemoryManager::request(size_t size)
 {
-	uint8_t* retVal;
-
-	if (size != _currentSize || !_enabled)
+	if (size != _currentSize)
 	{
-		return static_cast<uint8_t*>(malloc(size));
+		return std::unique_ptr<MemoryBuffer<uint8_t>>(new MemoryBuffer<uint8_t>(size));
 	}
 
 	QMutexLocker lockme(&_locker);
 
-	if (_stack.isEmpty())
+	if (_stack.size() == 0)
 	{
-		retVal = static_cast<uint8_t*>(malloc(size));
+		return std::unique_ptr<MemoryBuffer<uint8_t>>(new MemoryBuffer<uint8_t>(size));
 	}
 	else
 	{
 		_hits++;
 
-		retVal = _stack.pop();
+		std::unique_ptr<MemoryBuffer<uint8_t>> retVal = std::move(_stack.back());
+		_stack.pop_back();
 
-		if (_stack.length() <= BUFFER_LOWER_LIMIT)
+		if (_stack.size() <= BUFFER_LOWER_LIMIT)
 			_needed = true;
-	}
 
-	return retVal;
+		return retVal;
+	}
 }
 
-void VideoMemoryManager::release(size_t size, uint8_t* buffer)
+void VideoMemoryManager::release(std::unique_ptr<MemoryBuffer<uint8_t>>& frame)
 {
-	if (size != _currentSize || !_enabled)
+	if (frame->size() != _currentSize)
 	{
-		free(buffer);
 		return;
 	}
 
 	QMutexLocker lockme(&_locker);
 
-	if (_stack.length() >= _bufferLimit)
+	if (_stack.size() >= _bufferLimit)
 	{
-		free(buffer);
 		return;
 	}
 
-	_stack.push(buffer);
+	_stack.push_back(std::move(frame));
 }
 
 void VideoMemoryManager::releaseBuffer()
 {
-	while (!_stack.isEmpty())
-	{
-		auto pointer = _stack.pop();
-		free(pointer);
-	}
-}
-
-void VideoMemoryManager::enableCache(bool frameCache)
-{
-	if (_enabled == frameCache)
-		return;
-
-	_enabled = frameCache;
-
-	_dirty = true;
+	_stack.clear();
 }
 
 QString VideoMemoryManager::adjustCache()
 {
-	int curSize = -1, hits = -1;
+	size_t curSize = 0;
+	int hits = 0;
 	bool needed = false, cleanup = false;
 	bool info = false;
 
 	QMutexLocker lockme(&_locker);
 
-	if (_prevNeeded != _needed || _prevSize != _stack.length())
+	if (_prevNeeded != _needed || _prevSize != _stack.size())
 		info = true;
 
 	// clean up buffer if neccesery
-	if (!_needed && !_prevNeeded && _stack.length() > 0)
+	if (!_needed && !_prevNeeded && _stack.size() > 0)
 	{
-		auto pointer = _stack.pop();
-		free(pointer);
+		_stack.pop_back();
 		cleanup = true;
 		_prevNeeded = true;
 	}
 	else
 		_prevNeeded = _needed;
 
-	_prevSize = _stack.length();
+	_prevSize = _stack.size();
 
 	// get stats
-	curSize = _stack.length();
+	curSize = _stack.size();
 
 	hits = _hits;
 	needed = _needed;
@@ -179,8 +159,8 @@ QString VideoMemoryManager::adjustCache()
 	_needed = false;
 
 	if (info || cleanup)
-		return QString("Video cache: %1, size: %2, hits: %3, needed: %4, cleanup: %5, limit: %6").
-						arg((_enabled) ? "enabled" : "disabled").arg(curSize).arg(hits).arg(needed).arg(cleanup).arg(_bufferLimit);
+		return QString("Video cache: size: %1, hits: %2, needed: %3, cleanup: %4, limit: %5").
+						arg(curSize).arg(hits).arg(needed).arg(cleanup).arg(_bufferLimit);
 	else
 		return "";
 }

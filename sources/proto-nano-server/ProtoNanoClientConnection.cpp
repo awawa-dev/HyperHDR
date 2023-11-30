@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -43,7 +43,7 @@ ProtoNanoClientConnection::ProtoNanoClientConnection(QTcpSocket* socket, int tim
 	, _clientAddress(socket->peerAddress().toString())
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
-	, _priority()
+	, _priority(145)
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);
@@ -153,8 +153,8 @@ void ProtoNanoClientConnection::disconnected()
 {
 	Debug(_log, "Socket Closed");
 	_socket->deleteLater();
-	emit clearGlobalInput(_priority);
-	emit clientDisconnected();
+	emit SignalClearGlobalInput(_priority, false);
+	emit SignalClientConnectionClosed(this);
 }
 
 void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& message, Image<ColorRgb>& image)
@@ -165,18 +165,18 @@ void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& mes
 	int width = message.imagewidth;
 	int height = message.imageheight;
 
-	if (priority < 100 || priority >= 200)
+	if (priority < 50 || priority > 250)
 	{
-		sendErrorReply("The priority " + std::to_string(priority) + " is not in the valid priority range between 100 and 199.");
-		Error(_log, "The priority %d is not in the proto-connection range between 100 and 199.", priority);
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the valid priority range between 50 and 250.");
+		Error(_log, "The priority %d is not in the proto-connection range between 50 and 250.", priority);
 		return;
 	}
 
 	// make sure the prio is registered before setInput()
 	if (priority != _priority)
 	{
-		emit clearGlobalInput(_priority);
-		emit registerGlobalInput(priority, hyperhdr::COMP_PROTOSERVER, "Proto@" + _clientAddress);
+		emit SignalClearGlobalInput(_priority, false);
+		_clientDescription = "Proto@" + _clientAddress;
 		_priority = priority;
 	}
 
@@ -189,22 +189,9 @@ void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& mes
 	}
 
 	// must resize
-	image.resize(width, height);
+	image.resize(width, height);	
 
-	auto flat = FlatBufferServer::getInstance();
-	if (flat != nullptr)
-	{
-		int hdrEnabled = flat->getHdrToneMappingEnabled();
-
-		if (hdrEnabled)
-		{
-			AUTO_CALL_3(flat, importFromProtoHandler, int, priority, int, duration, const Image<ColorRgb>&, image);
-			sendSuccessReply();
-			return;
-		}
-	}
-
-	emit setGlobalInputImage(_priority, image, duration);
+	emit SignalImportFromProto(_priority, duration, image, _clientDescription);
 
 	// send reply
 	sendSuccessReply();
@@ -217,7 +204,7 @@ void ProtoNanoClientConnection::handleClearCommand(const proto_ClearRequest& mes
 	int priority = message.priority;
 
 	// clear priority
-	emit clearGlobalInput(priority);
+	emit SignalClearGlobalInput(priority, false);
 
 	// send reply
 	sendSuccessReply();

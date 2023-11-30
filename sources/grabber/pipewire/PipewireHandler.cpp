@@ -2,7 +2,7 @@
 * 
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -60,8 +60,8 @@
 #include <iostream>
 #include <dlfcn.h>
 
-#include <grabber/smartPipewire.h>
-#include "PipewireHandler.h"
+#include <grabber/pipewire/smartPipewire.h>
+#include <grabber/pipewire/PipewireHandler.h>
 
 // Pipewire screen grabber using Portal access interface
 
@@ -199,7 +199,7 @@ void PipewireHandler::closeSession()
 
 		_sessionHandle = "";
 	}
-
+	
 	_pwStreamListener = {};
 	_pwCoreListener = {};	
 	_portalStatus = false;
@@ -237,7 +237,9 @@ void PipewireHandler::closeSession()
 		supVal.hasDma = false;
 
 	releaseWorkingFrame();
-	
+
+	createMemory(0);
+
 	if (_version > 0)
 	{
 		std::cout << "Pipewire: driver is closed now" << std::endl;
@@ -247,11 +249,6 @@ void PipewireHandler::closeSession()
 
 void PipewireHandler::releaseWorkingFrame()
 {
-	if (_image.data != nullptr)	
-	{
-		free(_image.data);
-		_image.data = nullptr;
-	}
 }
 
 QString PipewireHandler::getSessionToken()
@@ -311,6 +308,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	_restorationToken = QString("%1").arg(restorationToken);
 
 	_version = PipewireHandler::readVersion();
+	_image.version = _version;
 
 	if (_version < 0)
 	{
@@ -662,11 +660,8 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 
 void PipewireHandler::onProcessFrame()
 {
-	if (_image.data == nullptr)
-	{
-		captureFrame();
-		_hasFrame = (_image.data != nullptr);
-	}
+	captureFrame();
+	_hasFrame = (_image.data != nullptr);
 };
 
 void PipewireHandler::getImage(PipewireImage& retVal)
@@ -793,7 +788,7 @@ void PipewireHandler::captureFrame()
 						}
 						else
 						{
-							frameBuffer = (uint8_t*) malloc(static_cast<size_t>(newFrame->buffer->datas[0].chunk->stride) * _frameHeight);
+							frameBuffer = createMemory(newFrame->buffer->datas[0].chunk->stride * _frameHeight);
 
 							for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
 								if (_frameDrmFormat == supVal.drmFormat)
@@ -846,13 +841,13 @@ void PipewireHandler::captureFrame()
 				}
 				else
 				{
-					_image.data = (uint8_t*) malloc(_image.stride * _frameHeight);
+					_image.data = createMemory(_image.stride * _frameHeight);
 					memcpy(_image.data, mappedMemory, _image.stride * _frameHeight);
 				}
 			}
 			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
 			{				
-				_image.data = (uint8_t*) malloc(_image.stride * _frameHeight);
+				_image.data = createMemory(_image.stride * _frameHeight);
 				memcpy(_image.data, static_cast<uint8_t*>(newFrame->buffer->datas[0].data), _image.stride * _frameHeight);
 			}
 		}
@@ -868,6 +863,14 @@ void PipewireHandler::captureFrame()
 	// goodbye
 	_infoUpdated = true;
 };
+
+uint8_t* PipewireHandler::createMemory(int size)
+{
+	_image.data = nullptr;
+	_memoryCache.resize(size);
+
+	return _memoryCache.data();
+}
 
 void PipewireHandler::onCoreError(uint32_t id, int seq, int res, const char *message)
 {
@@ -1110,8 +1113,11 @@ void PipewireHandler::initEGL()
 	{
 		bool x11session = qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("x11") && !qEnvironmentVariableIsSet("WAYLAND_DISPLAY");
 		printf("Session type: %s , X11 detected: %s\n", qgetenv("XDG_SESSION_TYPE").constData(), (x11session) ? "yes" : "no");
-		if (((x11session || (displayEgl = eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr)) == EGL_NO_DISPLAY)) &&
-			((!x11session || (displayEgl = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr)) == EGL_NO_DISPLAY)))
+
+		displayEgl = (x11session) ? eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr) :
+									eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr);
+
+		if (displayEgl == EGL_NO_DISPLAY)
 		{
 			printf("PipewireEGL: no EGL display\n");
 			return;

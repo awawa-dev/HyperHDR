@@ -1,8 +1,20 @@
-#include <utils/Logger.h>
-#include <utils/FileUtils.h>
+#ifndef PCH_ENABLED
+	#include <QDateTime>
+	#include <QFileInfo>
+	#include <QMutexLocker>
+	#include <QJsonObject>
+	
+	#include <iostream>
+	#include <algorithm>
+	#include <time.h>
 
-#include <iostream>
-#include <algorithm>
+	#include <utils/Logger.h>
+#endif
+
+#include <QThreadStorage>
+#include <memory>
+
+#include <utils/FileUtils.h>
 
 #ifndef _WIN32
 	#include <syslog.h>
@@ -13,14 +25,6 @@
 	#include <Shlwapi.h>
 	#pragma comment(lib, "Shlwapi.lib")
 #endif
-
-#include <QDateTime>
-#include <QFileInfo>
-#include <QMutexLocker>
-#include <QThreadStorage>
-
-#include <time.h>
-
 
 QMutex  Logger::_mapLock;
 QString Logger::_lastError;
@@ -46,11 +50,6 @@ namespace
 	const int MaxRepeatCountSize = 200;
 	QThreadStorage<int> RepeatCount;
 	QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
-
-	QString getApplicationName()
-	{
-		return "";
-	}
 }
 
 Logger* Logger::getInstance(const QString& name, Logger::LogLevel minLevel)
@@ -62,8 +61,6 @@ Logger* Logger::getInstance(const QString& name, Logger::LogLevel minLevel)
 	{
 		log = new Logger(name, minLevel);
 		_loggerMap.insert(name, log);
-		connect(log, &Logger::newLogMessage, LoggerManager::getInstance(), &LoggerManager::handleNewLogMessage);
-		connect(log, &Logger::newState, LoggerManager::getInstance(), &LoggerManager::handleNewState);
 
 		if (_loggerMap.size() == 1)
 		{
@@ -143,19 +140,23 @@ void Logger::enable()
 Logger::Logger(const QString& name, LogLevel minLevel)
 	: QObject()
 	, _name(name)
-	, _appname(getApplicationName())
 	, _syslogEnabled(false)
 	, _loggerId(LoggerId++)
+	, _instanceEnabled(true)
 	, _minLevel(static_cast<int>(minLevel))
 {
 	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
+
+	_logsManager = LoggerManager::getInstance();
+	connect(this, &Logger::newLogMessage, _logsManager.get(), &LoggerManager::handleNewLogMessage);
+	connect(this, &Logger::newState, _logsManager.get(), &LoggerManager::handleNewState);
 
 	if (LoggerCount.fetchAndAddOrdered(1) == 1)
 	{
 #ifndef _WIN32
 		if (_syslogEnabled)
 		{
-			openlog(_appname.toLocal8Bit(), LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+			openlog("HyperHDR", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 		}
 #endif
 	}
@@ -177,9 +178,10 @@ Logger::~Logger()
 
 void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
+	static QMutex localWriteMutex;
+
 	if (_hasConsole)
 	{
-		static QMutex localMutex;
 		QString location, prefix, sufix;
 		
 		if (message.level == Logger::DEBUG)
@@ -190,12 +192,12 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 				.arg(message.function);
 		}
 
-		QString name = (message.appName + " " + message.loggerName).trimmed();
+		QString name = message.loggerName;
 		name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
 		const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
 
-		localMutex.lock();
+		localWriteMutex.lock();
 
 		#ifndef _WIN32				
 			prefix = "\033[0m";
@@ -209,19 +211,20 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 			.arg(timestamp.toString("hh:mm:ss.zzz"))
 			.arg(name)
 			.toStdString();
+		bool isDaemon = (message.level == Logger::INFO && message.loggerName == "DAEMON" && message.message.indexOf("[") > 0);
 
 		#ifndef _WIN32
 			switch (message.level)
 			{
-				case(Logger::INFO): prefix = "\033[32;1m"; break;
-				case(Logger::WARNING): prefix = "\033[33;1m"; break;
+				case(Logger::INFO): prefix = (isDaemon) ? "\033[33;1m" : "\033[32;1m"; break;
+				case(Logger::WARNING): prefix = "\033[93;1m"; break;
 				case(Logger::ERRORR): prefix = "\033[31;1m"; break;
 				default: break;
 			}
 		#else
 			switch (message.level)
 			{
-				case(Logger::INFO):SetConsoleTextAttribute(consoleHandle, 10); break;
+				case(Logger::INFO):SetConsoleTextAttribute(consoleHandle, (isDaemon)? 6 : 10); break;
 				case(Logger::WARNING):SetConsoleTextAttribute(consoleHandle, 14); break;
 				case(Logger::ERRORR):SetConsoleTextAttribute(consoleHandle, 12); break;
 				default: break;
@@ -238,14 +241,23 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 		#ifdef _WIN32		
 			SetConsoleTextAttribute(consoleHandle, 11);
 		#endif
-		localMutex.unlock();
+		
+		localWriteMutex.unlock();
 	}
 
 	newLogMessage(message);
 }
 
+void Logger::setInstanceEnable(bool enabled)
+{
+	_instanceEnabled = enabled;
+}
+
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
 {
+	if (!_instanceEnabled)
+		return;
+
 	Logger::LogLevel globalLevel = static_cast<Logger::LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
 	bool writeAnyway = false;
 	bool repeatMessage = false;
@@ -300,7 +312,6 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 		Logger::T_LOG_MESSAGE logMsg;
 
-		logMsg.appName = _appname;
 		logMsg.loggerName = _name;
 		logMsg.function = QString(func);
 		logMsg.line = line;
@@ -342,42 +353,80 @@ QString Logger::getName() const
 	return _name;
 }
 
-QString Logger::getAppName() const
-{
-	return _appname;
-}
-
 LoggerManager::LoggerManager()
 	: QObject()
-	, _loggerMaxMsgBufferSize(350)
+	, _loggerMaxMsgBufferSize(500)
 	, _enable(true)
 {
-	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
+	_logs.reserve(_loggerMaxMsgBufferSize);
 }
 
-void LoggerManager::handleNewLogMessage(const Logger::T_LOG_MESSAGE& msg)
+LoggerManager::~LoggerManager()
 {
-	if (!_enable && msg.level != Logger::LogLevel::ERRORR)
+	std::cout << "Clean-up logs..." << std::endl;
+
+	while(_logs.length() > 0)
+	{
+		delete (_logs.takeFirst());
+	}
+	
+	std::cout << "Goodbye!" << std::endl;
+}
+
+QJsonArray LoggerManager::getLogMessageBuffer()
+{
+	QJsonArray messageArray;
+	for (auto item : _logs)
+	{
+		QJsonObject message;
+		message["loggerName"] = item->loggerName;
+		message["function"] = item->function;
+		message["line"] = QString::number(item->line);
+		message["fileName"] = item->fileName;
+		message["message"] = item->message;
+		message["levelString"] = item->levelString;
+		message["utime"] = QString::number(item->utime);
+
+		messageArray.append(message);
+	}
+	return messageArray;
+}
+
+void LoggerManager::handleNewLogMessage(const Logger::T_LOG_MESSAGE& _msg)
+{
+	if (!_enable && _msg.level != Logger::LogLevel::ERRORR)
 		return;
 
-	_logMessageBuffer.push_back(msg);
-	if (_logMessageBuffer.length() > _loggerMaxMsgBufferSize)
+	Logger::T_LOG_MESSAGE* msg = new Logger::T_LOG_MESSAGE(_msg);
+
+	_logs.push_back(msg);
+	if (_logs.length() > _loggerMaxMsgBufferSize)
 	{
-		_logMessageBuffer.pop_front();
+		delete (_logs.takeFirst());
 	}
 
-	emit newLogMessage(msg);
+	emit newLogMessage(_msg);
 }
 
-LoggerManager* LoggerManager::getInstance()
+std::shared_ptr<LoggerManager> LoggerManager::getInstance()
 {
-	static LoggerManager instance;
-	return &instance;
-}
+	static QMutex locker;
+	static std::weak_ptr<LoggerManager> persist;
+	QMutexLocker lockThis(&locker);
 
-const QList<Logger::T_LOG_MESSAGE>* LoggerManager::getLogMessageBuffer() const
-{
-	return &_logMessageBuffer;
+	auto result = persist.lock();
+	if (!result)
+	{
+		result = std::shared_ptr<LoggerManager>(
+			new LoggerManager(),
+			[](LoggerManager* oldManager) {				
+				hyperhdr::SMARTPOINTER_MESSAGE("LoggerManager");
+				delete oldManager;
+			}
+		);
+		persist = result;
+	}
+	return result;
 }
 
 void LoggerManager::handleNewState(bool state)

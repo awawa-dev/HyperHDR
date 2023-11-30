@@ -4,7 +4,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -27,64 +27,15 @@
 *  SOFTWARE.
  */
 
-#include <QMetaType>
-#include <QString>
+#ifndef PCH_ENABLED
+	#include <QMetaType>
+	#include <QString>
+#endif
 
 class DiscoveryRecord
 {
 public:
-	enum Service { Unknown = 0, HyperHDR, WLED, PhilipsHue, Pico, ESP32_S2, ESP, SerialPort };
-
-	static const QString getmDnsHeader(Service service)
-	{
-		switch (service)
-		{
-			case(Service::PhilipsHue): return QLatin1String("_hue._tcp"); break;
-			case(Service::WLED): return QLatin1String("_wled._tcp"); break;
-			case(Service::HyperHDR): return QLatin1String("_hyperhdr-http._tcp"); break;
-			default: return "SERVICE_UNKNOWN";
-		}
-	}
-
-	const QString getName() const
-	{
-		return getName(type);
-	}
-
-	static const QString getName(Service _type)
-	{
-		switch (_type)
-		{
-			case(Service::PhilipsHue): return "PhilipsHue"; break;
-			case(Service::WLED): return "WLED"; break;
-			case(Service::HyperHDR): return "HyperHDR"; break;
-			case(Service::Pico): return "Pico/RP2040"; break;
-			case(Service::ESP32_S2): return "ESP32-S2"; break;
-			case(Service::ESP): return "ESP board"; break;
-			default: return "SERVICE_UNKNOWN";
-		}
-	}
-
-	void resetTTL()
-	{
-		ttl = 7;
-	}
-
-	bool expired()
-	{
-		ttl >>= 1;
-		if (type == Service::WLED)
-			return ttl == 0;
-		else if (type == Service::Pico || type == Service::ESP32_S2 || type == Service::ESP)
-			return ttl <= 2;
-		else
-			return ttl <= 1;
-	}
-
-	DiscoveryRecord() : type(Service::Unknown), port(-1), isExists(false)
-	{
-		resetTTL();
-	}
+	enum Service { Unknown = 0, HyperHDR, WLED, PhilipsHue, Pico, ESP32_S2, ESP, SerialPort, REFRESH_ALL };
 
 	Service type;
 	QString hostName;
@@ -92,21 +43,19 @@ public:
 	int     port;
 	bool	isExists;
 	unsigned int ttl;
+
+	DiscoveryRecord();
+
+	static const QString getmDnsHeader(Service service);
+	static const QString getName(Service _type);
+
+	const QString getName() const;	
+	void resetTTL();
+	bool expired();
 	
 
-	bool operator==(const DiscoveryRecord& other) const
-	{
-		return type == other.type
-			&& address == other.address
-			&& port == other.port;
-	}
-
-	bool operator!=(const DiscoveryRecord& other) const
-	{
-		return type != other.type
-			|| address != other.address
-			|| port != other.port;
-	}
+	bool operator==(const DiscoveryRecord& other) const;
+	bool operator!=(const DiscoveryRecord& other) const;
 };
 
 Q_DECLARE_METATYPE(DiscoveryRecord)

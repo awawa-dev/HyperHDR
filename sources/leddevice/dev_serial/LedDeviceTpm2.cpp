@@ -2,7 +2,7 @@
 
 
 LedDeviceTpm2::LedDeviceTpm2(const QJsonObject& deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderSerial(deviceConfig)
 {
 }
 
@@ -16,7 +16,7 @@ bool LedDeviceTpm2::init(const QJsonObject& deviceConfig)
 	bool isInitOK = false;
 
 	// Initialise sub-class
-	if (ProviderRs232::init(deviceConfig))
+	if (ProviderSerial::init(deviceConfig))
 	{
 
 		_ledBuffer.resize(5 + _ledRGBCount);

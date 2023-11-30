@@ -1,14 +1,12 @@
-#include <db/AuthTable.h>
-#include <api/API.h>
+#include <QCryptographicHash>
 
-AuthTable::AuthTable(const QString& rootPath, QObject* parent, bool readonlyMode)
-	: DBManager(parent)
+#include <db/AuthTable.h>
+using namespace hyperhdr;
+
+AuthTable::AuthTable(bool readonlyMode)
+	: DBManager()
 {
 	setReadonlyMode(readonlyMode);
-	if (!rootPath.isEmpty()) {
-		setRootPath(rootPath);
-		setDatabaseName("hyperhdr");
-	}
 	// init Auth table
 	setTable("auth");
 	// create table columns

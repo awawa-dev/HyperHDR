@@ -1,13 +1,11 @@
 #pragma once
 
 #include <ssdp/SSDPServer.h>
-#include <memory>
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	#include <QNetworkConfiguration>
 #endif
 
-// utils
 #include <utils/settings.h>
 
 class WebServer;
@@ -23,7 +21,7 @@ class SSDPHandler : public SSDPServer
 {
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString& name, QObject* parent = nullptr);
+	SSDPHandler(QString uuid, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, quint16 webPort, const QString& name, QObject* parent = nullptr);
 	~SSDPHandler() override;
 
 	///
@@ -88,31 +86,13 @@ private slots:
 	///
 	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, quint16 port);
 
-	///
-	/// @brief Handle changes in the network configuration
-	/// @param conig New config
-	///
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	// yes, we know it depracated and can handle it
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	void handleNetworkConfigurationChanged(const QNetworkConfiguration& config);
-#pragma GCC diagnostic pop
-#endif
+signals:
+	void newSsdpXmlDesc(QString newSsdpDesc);
 
 private:
-	WebServer* _webserver;
-	QString    _localAddress;
-
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	// yes, we know it depracated and can handle it
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	std::unique_ptr<QNetworkConfigurationManager> _NCA;
-#pragma GCC diagnostic pop
-#endif
-
-	QString _uuid;
-	/// Targets for announcement
+	Logger*		_log;
+	QString		_localAddress;
+	QString		_uuid;
+	int			_retry;
 	std::vector<QString> _deviceList;
 };

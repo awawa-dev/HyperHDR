@@ -3,8 +3,6 @@
 #include <effectengine/AnimationBase.h>
 class Animation_Fade : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 
 	Animation_Fade(QString name);

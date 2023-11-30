@@ -3,8 +3,6 @@
 #include <effectengine/Animation_Swirl.h>
 class Animation_Waves : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 
 	Animation_Waves(QString name);

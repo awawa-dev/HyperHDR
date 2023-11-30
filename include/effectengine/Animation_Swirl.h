@@ -4,8 +4,6 @@
 
 class Animation_Swirl : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 
 	struct SwirlGradient

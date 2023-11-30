@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -39,16 +39,16 @@
 #include <limits.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
-#include <base/AuthManager.h>
+#include <base/AccessManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <grabber/PipewireGrabber.h>
-#include <grabber/smartPipewire.h>
+#include <grabber/pipewire/PipewireGrabber.h>
+#include <grabber/pipewire/smartPipewire.h>
 #include <utils/ColorSys.h>
+#include <utils/GlobalSignals.h>
 #include <dlfcn.h>
 
 bool (*_hasPipewire)() = nullptr;
@@ -60,14 +60,14 @@ void (*_releaseFramePipewire)() = nullptr;
 const char* (*_getPipewireToken)() = nullptr;
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
-	: Grabber("PIPEWIRE_SYSTEM:" + device.left(14))
+	: Grabber(configurationPath, "PIPEWIRE_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
-	, _semaphore(1)
 	, _library(nullptr)
 	, _actualDisplay(0)
 	, _isActive(false)
 	, _storedToken(false)
 	, _versionCheck(false)
+	, _accessManager(nullptr)
 {
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
@@ -161,6 +161,12 @@ bool PipewireGrabber::init()
 {
 	Debug(_log, "init");
 
+	emit GlobalSignals::getInstance()->SignalGetAccessManager(_accessManager);
+	if (_accessManager == nullptr)
+	{
+		Error(_log, "Access manager is already removed");
+		return false;
+	}
 
 	if (!_initialized)
 	{
@@ -254,14 +260,12 @@ void PipewireGrabber::stop()
 {
 	if (_initialized)
 	{
-		_semaphore.acquire();
 		_timer.stop();
 
 		_uninitPipewireDisplay();
 		_isActive = false;
 		_initialized = false;
 		
-		_semaphore.release();
 		Info(_log, "Stopped");
 	}
 }
@@ -272,9 +276,7 @@ bool PipewireGrabber::init_device(int _display)
 	_storedToken = false;
 	_versionCheck = false;
 
-
-	AuthManager* instance = AuthManager::getInstance();
-	QString token = instance->loadPipewire();
+	QString token = (_accessManager != nullptr) ? _accessManager->loadPipewire() : nullptr;
 	if (token.isNull())
 		token = "";
 	else
@@ -303,79 +305,72 @@ QString PipewireGrabber::maskToken(const QString& token) const
 
 void PipewireGrabber::stateChanged(bool state)
 {
-	if (!state)
+	if (!state && _accessManager != nullptr)
 	{
-		AuthManager* instance = AuthManager::getInstance();
-
 		Info(_log, "Removing restoration token");
 
-		instance->savePipewire("");
+		_accessManager->savePipewire("");
 	}
 }
 
 void PipewireGrabber::grabFrame()
 {
 	bool stopNow = false;
+		
 	
-	if (_semaphore.tryAcquire())
+	if (_initialized && _isActive)
 	{
-		if (_initialized && _isActive)
+		PipewireImage data = _getFramePipewire();
+
+		if (!_versionCheck)
 		{
-			PipewireImage data = _getFramePipewire();
-
-			if (!_versionCheck)
-			{
-				if (data.version >= 4)
-					Info(_log, "Portal protocol version: %i", data.version);
-				else
-					Warning(_log, "Legacy portal protocol version: %i. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
-
-				_versionCheck = true;
-			}
-
-
-			if (!_storedToken && !data.isError)
-			{
-				QString token = QString("%1").arg(_getPipewireToken());
-
-				if (!token.isEmpty())
-				{
-					AuthManager* instance = AuthManager::getInstance();
-
-					Info(_log, "Saving restoration token: %s", QSTRING_CSTR(maskToken(token)));
-
-					instance->savePipewire(token);
-
-					_storedToken = true;
-				}
-			}			
-
-
-			if (data.data == nullptr)
-			{
-				if (data.isError)
-				{
-					QString err = QString("%1").arg(_getPipewireError());
-					Error(_log, "Could not capture pipewire frame: %s", QSTRING_CSTR(err));
-					stopNow = true;
-				}
-			}
+			if (data.version >= 4)
+				Info(_log, "Portal protocol version: %i", data.version);
 			else
+				Warning(_log, "Legacy portal protocol version: %i. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
+
+			_versionCheck = true;
+		}
+
+
+		if (!_storedToken && !data.isError)
+		{
+			QString token = QString("%1").arg(_getPipewireToken());
+
+			if (!token.isEmpty() && _accessManager != nullptr)
 			{
-				_actualWidth = data.width;
-				_actualHeight = data.height;
+				Info(_log, "Saving restoration token: %s", QSTRING_CSTR(maskToken(token)));
 
-				if (data.isOrderRgb)
-					processSystemFrameRGBA(data.data);
-				else
-					processSystemFrameBGRA(data.data);
+				_accessManager->savePipewire(token);
 
-				_releaseFramePipewire();
+				_storedToken = true;
+			}
+		}			
+
+
+		if (data.data == nullptr)
+		{
+			if (data.isError)
+			{
+				QString err = QString("%1").arg(_getPipewireError());
+				Error(_log, "Could not capture pipewire frame: %s", QSTRING_CSTR(err));
+				stopNow = true;
 			}
 		}
-		_semaphore.release();
-	}
+		else
+		{
+			_actualWidth = data.width;
+			_actualHeight = data.height;
 
+			if (data.isOrderRgb)
+				processSystemFrameRGBA(data.data);
+			else
+				processSystemFrameBGRA(data.data);
+
+			_releaseFramePipewire();
+		}
+	}
+	
 	if (stopNow)
 	{
 		uninit();

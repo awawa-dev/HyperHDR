@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -36,16 +36,7 @@ Animation_Candle::Animation_Candle(QString name) :
 
 EffectDefinition Animation_Candle::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_Candle>, 500, 20);
 	ed.name = ANIM_CANDLE;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_Candle::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = true;
-	doc["smoothing-time_ms"] = 500;
-	doc["smoothing-updateFrequency"] = 20.0;
-	return doc;
 }

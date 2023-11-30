@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "---HyperHdr ambient light preinst ---"
+echo "Preparing to install HyperHDR..."
 
 # search for users in system, returns first entry
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
@@ -10,18 +10,18 @@ if pgrep hyperhdr > /dev/null 2>&1
 then
 	if grep -m1 systemd /proc/1/comm > /dev/null
 	then
-		echo "--> stop init deamon: systemd"
+		echo "Stopping HyperHDR daemon: systemd"
 		# systemd
 		systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
 
 	elif [ -e /sbin/initctl ]
 	then
-		echo "--> stop init deamon: upstart"
+		echo "Stopping HyperHDR daemon: upstart"
 		# upstart
 		initctl stop hyperhdr
 
 	else
-		echo "--> stop init deamon: sysV"
+		echo "Stopping HyperHDR daemon: sysV"
 		# sysV
 		service hyperhdr stop 2>/dev/null
 	fi

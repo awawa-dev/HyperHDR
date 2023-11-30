@@ -1,41 +1,36 @@
 #pragma once
 
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <QMap>
+	#include <QAtomicInteger>
+	#include <QList>
+	#include <QMutex>
+	#include <QJsonArray>
+
+	#include <stdio.h>
+	#include <stdarg.h>
+#endif
+
 #include <utils/InternalClock.h>
 #include <utils/Macros.h>
 
-// QT includes
-#include <QObject>
-#include <QString>
-#include <QMap>
-#include <QAtomicInteger>
-#include <QList>
-#include <QMutex>
-
-// stl includes
-#include <stdio.h>
-#include <stdarg.h>
-
-#ifdef _WIN32
-	#include <stdexcept>
-#endif
 #define THREAD_ID QSTRING_CSTR(QString().asprintf("%p", QThread::currentThreadId()))
 
-#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
 #define LOG_MESSAGE(severity, logger, ...)   (logger)->Message(severity, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-// standard log messages
 #define Debug(logger, ...)   LOG_MESSAGE(Logger::DEBUG  , logger, __VA_ARGS__)
 #define Info(logger, ...)    LOG_MESSAGE(Logger::INFO   , logger, __VA_ARGS__)
 #define Warning(logger, ...) LOG_MESSAGE(Logger::WARNING, logger, __VA_ARGS__)
 #define Error(logger, ...)   LOG_MESSAGE(Logger::ERRORR , logger, __VA_ARGS__)
 
-// conditional log messages
 #define DebugIf(condition, logger, ...)   if (condition) Debug(logger,   __VA_ARGS__)
 #define InfoIf(condition, logger, ...)    if (condition) Info(logger,    __VA_ARGS__)
 #define WarningIf(condition, logger, ...) if (condition) Warning(logger, __VA_ARGS__)
 #define ErrorIf(condition, logger, ...)   if (condition) Error(logger,   __VA_ARGS__)
 
-// ================================================================
+class LoggerManager;
 
 class Logger : public QObject
 {
@@ -53,7 +48,6 @@ public:
 
 	struct T_LOG_MESSAGE
 	{
-		QString      appName;
 		QString      loggerName;
 		QString      function;
 		unsigned int line;
@@ -69,6 +63,8 @@ public:
 			utime = 0;
 			level = LogLevel::INFO;
 		}
+
+		T_LOG_MESSAGE(const T_LOG_MESSAGE&) = default;
 	};
 
 	static Logger* getInstance(const QString& name = "", LogLevel minLevel = Logger::INFO);
@@ -81,9 +77,9 @@ public:
 	void     setMinLevel(LogLevel level);
 	LogLevel getMinLevel() const;
 	QString  getName() const;
-	QString  getAppName() const;
 	void     disable();
 	void     enable();
+	void	 setInstanceEnable(bool enabled);
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
@@ -102,11 +98,12 @@ private:
 	static QString                _lastError;
 	static bool                   _hasConsole;
 	const QString                _name;
-	const QString                _appname;
 	const bool                   _syslogEnabled;
 	const unsigned               _loggerId;
+	bool						 _instanceEnabled;
 
-	/* Only non-const member, hence the atomic */
+	std::shared_ptr<LoggerManager> _logsManager;
+
 	QAtomicInteger<int> _minLevel;
 };
 
@@ -115,22 +112,24 @@ class LoggerManager : public QObject
 	Q_OBJECT
 
 public:
-	static LoggerManager* getInstance();
-	const QList<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() const;
+	LoggerManager();
+	~LoggerManager();
+
+	static std::shared_ptr<LoggerManager> getInstance();
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
 	void handleNewState(bool state);
+	QJsonArray getLogMessageBuffer();
 
 signals:
 	void newLogMessage(const Logger::T_LOG_MESSAGE&);
 
 protected:
-	LoggerManager();
 
-	QList<Logger::T_LOG_MESSAGE>   _logMessageBuffer;
-	const int                      _loggerMaxMsgBufferSize;
-	bool						   _enable;
+	QList<Logger::T_LOG_MESSAGE*>	_logs;
+	const int						_loggerMaxMsgBufferSize;
+	bool							_enable;
 };
 
 Q_DECLARE_METATYPE(Logger::T_LOG_MESSAGE)

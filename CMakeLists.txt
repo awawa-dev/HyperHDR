@@ -41,6 +41,7 @@ SET ( DEFAULT_MQTT                        ON  )
 SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
 SET ( DEFAULT_XZ                          ON  )
+SET ( DEFAULT_POWER_MANAGEMENT            ON  )
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
@@ -179,16 +180,23 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 		message(STATUS "Arm model info: ${ARM_MODEL}")
 	
 		string(FIND "${ARM_MODEL}" "raspberry" IS_RASPBERRY)
-		message(STATUS "Check if Raspberry Pi (0-yes): ${IS_RASPBERRY}")
+		if(${IS_RASPBERRY} EQUAL -1)
+			set (IS_RASPBERRY_PI OFF)
+		else()
+			set (IS_RASPBERRY_PI ON)
+		endif()
+		message(STATUS "Check if Raspberry Pi: ${IS_RASPBERRY_PI}")
 	else()
 		message(WARNING "Model info not exists. Assuming that it is Raspberry Pi")
-		SET (IS_RASPBERRY  0)
+		SET (IS_RASPBERRY_PI  ON)
 	endif()
 
-	if(${IS_RASPBERRY} EQUAL -1)
-		message(STATUS "This is not Raspberry Pi. Default compiler settings.")
+	if (IS_RASPBERRY_PI)
+		message(STATUS "Platform variant: Raspberry Pi")
+		SET ( DEFAULT_POWER_MANAGEMENT            ON )
+		SET ( DEFAULT_PIPEWIRE                    ON )
 	else()
-		message(STATUS "Default compiler settings for Raspberry Pi.")
+		message(STATUS "Platform variant: generic ARM")
 	endif()
 	
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
@@ -236,13 +244,19 @@ if (DEFAULT_FRAMEBUFFER)
 	endif()
 endif()
 
-if (DEFAULT_PIPEWIRE)
-	find_package(Qt${Qt_VERSION} COMPONENTS DBus QUIET )
+find_package(Qt${Qt_VERSION} COMPONENTS DBus QUIET )
+
+if (UNIX AND NOT APPLE AND NOT Qt${Qt_VERSION}DBus_FOUND AND DEFAULT_POWER_MANAGEMENT)
+	message( WARNING "QT dbus library is required for Power Management support" )
+	SET ( DEFAULT_POWER_MANAGEMENT            OFF )
+endif()
+
+if (DEFAULT_PIPEWIRE OR ENABLE_PIPEWIRE)
 	if (NOT Qt${Qt_VERSION}DBus_FOUND)
 		message( WARNING "QT dbus library is required for PipeWire/Portal support" )
 		SET ( DEFAULT_PIPEWIRE                    OFF )
 	else()
-	
+		FIND_PACKAGE(PkgConfig REQUIRED)
 		pkg_check_modules(PIPEWIRE libpipewire-0.3)
 		if(NOT PIPEWIRE_FOUND OR NOT PIPEWIRE_INCLUDE_DIRS OR NOT PIPEWIRE_LIBRARIES)
 			message( WARNING "Pipewire >= 3.0 not found (did you install libpipewire-0.3-dev?). Disabling support for PipeWire software grabber.")
@@ -271,10 +285,11 @@ elseif(DEFAULT_CEC)
 endif()
 
 if(DEFAULT_CEC)
-	IF ((NOT EXISTS "/opt/vc/lib" OR NOT EXISTS "/opt/vc/include") AND
-	    (NOT EXISTS "/usr/lib/arm-linux-gnueabihf/libvchostif.a" OR NOT EXISTS "/usr/include/vcinclude/vcore.h") AND
-		(NOT EXISTS "/usr/lib/aarch64-linux-gnu/libbcm_host.so.0" OR NOT EXISTS "/usr/include/interface/vchiq_arm/vchiq_if.h"))
-		message( WARNING "CEC Rpi mode support could be disabled. Could not find Rpi developers libs: arm32 > /opt/vc/lib,/opt/vc/include,/usr/lib/arm-linux-gnueabihf,/usr/include/vcinclude, aarch64 > /usr/lib/aarch64-linux-gnu/libbcm_host.so.0,/usr/include/interface/vchiq_arm/vchiq_if.h" )
+	FIND_PACKAGE(PkgConfig REQUIRED)
+	pkg_check_modules (CEC libcec>=6.0.0)
+	if(NOT CEC_FOUND)
+		message( WARNING "Could not find: libcec>=6. Disabling CEC support." )
+		SET ( DEFAULT_CEC OFF )
 	endif()
 endif()
 
@@ -383,6 +398,9 @@ colorMe("ENABLE_CEC = " ${ENABLE_CEC})
 option(ENABLE_MQTT "Enable MQTT" ${DEFAULT_MQTT})
 colorMe("ENABLE_MQTT = " ${ENABLE_MQTT})
 
+option(ENABLE_POWER_MANAGEMENT "Enable Power Management support" ${DEFAULT_POWER_MANAGEMENT})
+colorMe("ENABLE_POWER_MANAGEMENT = " ${ENABLE_POWER_MANAGEMENT})
+
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 
@@ -439,7 +457,6 @@ file(MAKE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
 file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 
 # Add the project include directory as additional include path
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # enable C++11; MSVC doesn't have c++11 feature switch
@@ -460,6 +477,13 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	else()
 			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 	endif()
+else()
+	include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("/std:c++20" COMPILER_SUPPORTS_CXX20)
+    if (COMPILER_SUPPORTS_CXX20)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
+		message(STATUS "Enabling MSVC support for c++20")
+    endif()
 endif()
 
 # Use GNU gold linker if available
@@ -523,51 +547,49 @@ endif()
 add_definitions(${QT_DEFINITIONS})
 
 # libjpegturbo
-if ( ENABLE_V4L2 OR ENABLE_MF )
-	if(WIN32)
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
+if(WIN32)
+	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows)
+		file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/windows)
+	endif()
+
+	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip OR
+		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows)
+		message( STATUS "Downloading libraries for HyperHDR (Windows)")		
+		file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.08.07/libs4windows.zip
+					${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip
+					STATUS WIN_LIBS_DOWNLOAD_STATUS
+					EXPECTED_HASH SHA256=2a0fc14eaad35d8cc36b262c8dcb501d1fac3a72d7bedcca51b71b60395c6c3f)
+		list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
+		if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
+			file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip )
+			message( FATAL_ERROR "Could not download libraries needed by HyperHDR (Windows)")
 		endif()
+	endif()
 
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip OR
-			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows)
-			message( STATUS "Downloading libraries for HyperHDR (Windows)")		
-			file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.08.07/libs4windows.zip
-						${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip
-						STATUS WIN_LIBS_DOWNLOAD_STATUS
-						EXPECTED_HASH SHA256=2a0fc14eaad35d8cc36b262c8dcb501d1fac3a72d7bedcca51b71b60395c6c3f)
-			list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
-			if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
-				file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip )
-				message( FATAL_ERROR "Could not download libraries needed by HyperHDR (Windows)")
-			endif()
-		endif()
+	execute_process(
+		COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/external/windows/ -aoa -y
+		RESULT_VARIABLE STATUS_EXTRACT
+		OUTPUT_VARIABLE OUTPUT1
+	)
 
-		execute_process(
-			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/ -aoa -y
-			RESULT_VARIABLE STATUS_EXTRACT
-			OUTPUT_VARIABLE OUTPUT1
-		)
-
-		if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
-			message( FATAL_ERROR "Could not extract libraries for HyperHDR (Windows)")
-		else()
-			message( STATUS "Package of libraries for HyperHDR extracted (Windows)")
-		endif()
-
-		set (TURBOJPEG_FOUND 1)
-		set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/bin")
-		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
-		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/include")
+	if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
+		message( FATAL_ERROR "Could not extract libraries for HyperHDR (Windows)")
 	else()
-		FIND_PACKAGE(PkgConfig REQUIRED)
-		pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
-	endif ()
+		message( STATUS "Package of libraries for HyperHDR extracted (Windows)")
+	endif()
+
+	set (TURBOJPEG_FOUND 1)
+	set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/bin")
+	set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
+	set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/include")
+else()
+	FIND_PACKAGE(PkgConfig REQUIRED)
+	pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
+endif ()
 	
-	message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
-	message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
-	message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
-endif()
+message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
+message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
+message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
 
 # Embedded QT plugins
 if (USE_STATIC_QT_PLUGINS)
@@ -589,7 +611,7 @@ if (USE_STATIC_QT_PLUGINS)
 endif()
 
 # Add the source/lib directories
-add_subdirectory(dependencies)
+add_subdirectory(external)
 add_subdirectory(sources)
 
 # Add resources directory
@@ -610,8 +632,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET flathash AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
-	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
+	set_target_properties(qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

@@ -1,4 +1,3 @@
-
 #include "QtHttpHeader.h"
 
 #include <QByteArray>

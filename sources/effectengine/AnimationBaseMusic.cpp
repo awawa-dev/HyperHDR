@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -26,18 +26,25 @@
 */
 
 #include <effectengine/AnimationBaseMusic.h>
+#include <base/SoundCapture.h>
+#include <utils/GlobalSignals.h>
 
 AnimationBaseMusic::AnimationBaseMusic(QString name) :
 	AnimationBase(name)
 {
 	_myTarget.Clear();
+
+	emit GlobalSignals::getInstance()->SignalGetSoundCapture(_soundCapture);
+	if (_soundCapture != nullptr)
+		SAFE_CALL_0_RET(_soundCapture.get(), open, uint32_t, _soundHandle)
+	else
+		setStopMe(true);	
 };
 
-QJsonObject AnimationBaseMusic::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = true;
-	doc["smoothing-direct-mode"] = true;
-	return doc;
+AnimationBaseMusic::~AnimationBaseMusic()
+{
+	if (_soundHandle != 0 && _soundCapture != nullptr)
+		QUEUE_CALL_1(_soundCapture.get(), close, uint32_t, _soundHandle);
 }
 
 bool AnimationBaseMusic::isSoundEffect()

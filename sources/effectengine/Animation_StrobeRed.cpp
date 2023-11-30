@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -42,14 +42,7 @@ Animation_StrobeRed::Animation_StrobeRed(QString name) :
 
 EffectDefinition Animation_StrobeRed::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_StrobeRed>);
 	ed.name = ANIM_STROBE_RED;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_StrobeRed::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

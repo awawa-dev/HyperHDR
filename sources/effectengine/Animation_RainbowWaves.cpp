@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -70,16 +70,9 @@ bool Animation_RainbowWaves::hasLedData(QVector<ColorRgb>& buffer)
 
 EffectDefinition Animation_RainbowWaves::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_RainbowWaves>);
 	ed.name = ANIM_RAINBOW_WAVES;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_RainbowWaves::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }
 
 

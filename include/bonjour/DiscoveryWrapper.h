@@ -4,7 +4,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -27,9 +27,10 @@
 *  SOFTWARE.
  */
 
-#include <QObject>
-#include <QList>
-#include <QHostInfo>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+#endif
 
 #include <bonjour/DiscoveryRecord.h>
 #include <utils/Logger.h>
@@ -38,36 +39,29 @@
 class DiscoveryWrapper : public QObject
 {
 	Q_OBJECT
+
 private:
-	friend class HyperHdrDaemon;
-
 	Logger*		_log;
-	LedDevice*	_serialDevice;
-
-	DiscoveryWrapper(QObject* parent = nullptr);
+	std::unique_ptr<LedDevice>	_serialDevice;
 
 public:
+	DiscoveryWrapper(QObject* parent = nullptr);
 	~DiscoveryWrapper();
-
-	static DiscoveryWrapper* instance;
-	static DiscoveryWrapper* getInstance() { return instance; }
 
 public slots:
 	QList<DiscoveryRecord> getPhilipsHUE();
 	QList<DiscoveryRecord> getWLED();
 	QList<DiscoveryRecord> getHyperHDRServices();
-	QList<DiscoveryRecord> getAllServices();
-	void requestServicesScan();
+	QList<DiscoveryRecord> getAllServices();	
 
-	void discoveryEventHandler(DiscoveryRecord message);
-	void requestToScanHandler(DiscoveryRecord::Service type);
+	void signalDiscoveryEventHandler(DiscoveryRecord message);
+	void signalDiscoveryRequestToScanHandler(DiscoveryRecord::Service type);
 
 signals:
-	void foundService(DiscoveryRecord::Service type, QList<DiscoveryRecord> records);
-	void discoveryEvent(DiscoveryRecord message);
-	void requestToScan(DiscoveryRecord::Service type);
+	void SignalDiscoveryFoundService(DiscoveryRecord::Service type, QList<DiscoveryRecord> records);	
 
 private:
+	void requestServicesScan();
 	void gotMessage(QList<DiscoveryRecord>& target, DiscoveryRecord message);
 	void cleanUp(QList<DiscoveryRecord>& target);
 

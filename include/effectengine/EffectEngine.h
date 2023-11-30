@@ -1,21 +1,19 @@
 #pragma once
 
-// Qt includes
-#include <QObject>
-#include <QString>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonDocument>
-#include <QJsonArray>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <QJsonObject>
+	#include <QJsonValue>
+	#include <QJsonDocument>
+	#include <QJsonArray>
+#endif
 
 #include <base/HyperHdrInstance.h>
-
-// Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
 #include <utils/Logger.h>
 
-// pre-declaration
 class Effect;
 class EffectDBHandler;
 
@@ -27,78 +25,27 @@ public:
 	EffectEngine(HyperHdrInstance* hyperhdr);
 	~EffectEngine() override;
 
-	///
-	/// @brief Get all init data of the running effects and stop them
-	///
-	void cacheRunningEffects();
-
-	///
-	/// @brief Start all cached effects, origin and smooth cfg is default
-	///
-	void startCachedEffects();
-
-	static void handleInitialEffect(HyperHdrInstance* hyperhdr, const QJsonObject& FGEffectConfig);
-
 public slots:
-	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");
-
-	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString& effectName
-		, const QJsonObject& args
-		, int priority
-		, int timeout = -1
-
-		, const QString& origin = "System"
-		, unsigned smoothCfg = 0
-		, const QString& imageData = ""
-	);
-
-	/// Clear any effect running on the provided channel
 	void channelCleared(int priority);
-
-	/// Clear all effects
 	void allChannelsCleared();
-
 	std::list<EffectDefinition> getEffects() const;
-
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
-
 	void visiblePriorityChanged(quint8 priority);
-
-	void gotLedsHandler(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
+	void handlerSetLeds(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
 
 private slots:
-	void effectFinished();
+	void handlerEffectFinished(int priority, QString name, bool forced);
 
-	///
-	/// @brief is called whenever the EffectFileHandler emits updated effect list
-	///
-	void handleUpdatedEffectList();
 
 private:
-	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(
-		const QString& name
-		, const QJsonObject& args
-		, int priority
-		, int timeout = -1
-		, const QString& origin = "System"
-		, unsigned smoothCfg = 0
-		, const QString& imageData = ""
-	);
+	int runEffectScript(const QString& name, int priority, int timeout, const QString& origin);
+	void createSmoothingConfigs();
 
-private:
 	HyperHdrInstance* _hyperInstance;
-
 	std::list<EffectDefinition> _availableEffects;
-
-	std::list<Effect*> _activeEffects;
-
-	std::list<ActiveEffectDefinition> _cachedActiveEffects;
+	std::list<std::unique_ptr<Effect, void(*)(Effect*)>> _activeEffects;
 
 	Logger* _log;
-
-	// The global effect file handler
 	EffectDBHandler* _effectDBHandler;
 };

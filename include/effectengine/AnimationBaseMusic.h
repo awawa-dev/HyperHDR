@@ -1,44 +1,26 @@
 #pragma once
 
 #include <effectengine/AnimationBase.h>
+#include <base/SoundCaptureResult.h>
 
-struct MovingTarget
-{
-	QColor	_averageColor;
-	QColor	_fastColor;
-	QColor	_slowColor;
-	int32_t	_targetAverageR;
-	int32_t _targetAverageG;
-	int32_t _targetAverageB;
-	int32_t _targetAverageCounter;
-	int32_t _targetSlowR;
-	int32_t _targetSlowG;
-	int32_t _targetSlowB;
-	int32_t _targetSlowCounter;
-	int32_t _targetFastR;
-	int32_t _targetFastG;
-	int32_t _targetFastB;
-	int32_t _targetFastCounter;
-
-	void Clear();
-	void CopyFrom(MovingTarget* source);
-};
+class SoundCapture;
 
 class AnimationBaseMusic : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 	AnimationBaseMusic(QString name);
-	static QJsonObject GetArgs();
+	~AnimationBaseMusic();
 
 	bool isSoundEffect() override;
 
 	void store(MovingTarget* source);
 	void restore(MovingTarget* target);
 
+protected:
+	std::shared_ptr<SoundCapture> _soundCapture;
+
 private:
 	MovingTarget _myTarget;
-
+	uint32_t	_soundHandle;
 };
 

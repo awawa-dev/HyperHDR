@@ -1,23 +1,75 @@
-// STL includes
-#include <cstring>
-#include <iostream>
+#ifndef PCH_ENABLED
+	#include <cstring>
+	#include <iostream>
+#endif
 
 #include <base/LedString.h>
 
-std::vector<Led>& LedString::leds()
+std::vector<LedString::Led>& LedString::leds()
 {
 	return mLeds;
 }
 
-const std::vector<Led>& LedString::leds() const
+const std::vector<LedString::Led>& LedString::leds() const
 {
 	return mLeds;
 }
 
-
-ColorOrder LedString::createColorOrder(const QJsonObject& deviceConfig)
+QString LedString::colorOrderToString(LedString::ColorOrder colorOrder)
 {
-	return stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
+	switch (colorOrder)
+	{
+	case ColorOrder::ORDER_RGB:
+		return "rgb";
+	case ColorOrder::ORDER_RBG:
+		return "rbg";
+	case ColorOrder::ORDER_GRB:
+		return "grb";
+	case ColorOrder::ORDER_BRG:
+		return "brg";
+	case ColorOrder::ORDER_GBR:
+		return "gbr";
+	case ColorOrder::ORDER_BGR:
+		return "bgr";
+	default:
+		return "not-a-colororder";
+	}
+}
+
+LedString::ColorOrder LedString::stringToColorOrder(const QString& order)
+{
+	if (order == "rgb")
+	{
+		return ColorOrder::ORDER_RGB;
+	}
+	else if (order == "bgr")
+	{
+		return ColorOrder::ORDER_BGR;
+	}
+	else if (order == "rbg")
+	{
+		return ColorOrder::ORDER_RBG;
+	}
+	else if (order == "brg")
+	{
+		return ColorOrder::ORDER_BRG;
+	}
+	else if (order == "gbr")
+	{
+		return ColorOrder::ORDER_GBR;
+	}
+	else if (order == "grb")
+	{
+		return ColorOrder::ORDER_GRB;
+	}
+
+	std::cout << "Unknown color order defined (" << order.toStdString() << "). Using RGB." << std::endl;
+	return ColorOrder::ORDER_RGB;
+}
+
+LedString::ColorOrder LedString::createColorOrder(const QJsonObject& deviceConfig)
+{
+	return LedString::stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
 }
 
 LedString LedString::createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder)
@@ -29,7 +81,7 @@ LedString LedString::createLedString(const QJsonArray& ledConfigArray, const Col
 	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
 		const QJsonObject& ledConfig = ledConfigArray[i].toObject();
-		Led led;
+		Led led{};
 
 		led.minX_frac = qMax(0.0, qMin(1.0, ledConfig["hmin"].toDouble()));
 		led.maxX_frac = qMax(0.0, qMin(1.0, ledConfig["hmax"].toDouble()));
@@ -95,9 +147,9 @@ QSize LedString::getLedLayoutGridSize(const QJsonArray& ledConfigArray)
 
 	// Correct the grid in case it is malformed in width vs height
 	// Expected is at least 50% of width <-> height
-	if ((gridSize.width() / gridSize.height()) > 2)
+	if (gridSize.width() > 2 * gridSize.height())
 		gridSize.setHeight(qMax(1, gridSize.width() / 2));
-	else if ((gridSize.width() / gridSize.height()) < 0.5)
+	else if (gridSize.width() < 0.5 * gridSize.height())
 		gridSize.setWidth(qMax(1, gridSize.height() / 2));
 
 	// Limit to 80px for performance reasons

@@ -2,7 +2,7 @@
 #include "LedDeviceKarate.h"
 
 LedDeviceKarate::LedDeviceKarate(const QJsonObject& deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderSerial(deviceConfig)
 {
 }
 
@@ -16,7 +16,7 @@ bool LedDeviceKarate::init(const QJsonObject& deviceConfig)
 	bool isInitOK = false;
 
 	// Initialise sub-class
-	if (ProviderRs232::init(deviceConfig))
+	if (ProviderSerial::init(deviceConfig))
 	{
 		if (_ledCount != 8 && _ledCount != 16)
 		{

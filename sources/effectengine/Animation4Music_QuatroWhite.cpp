@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -38,9 +38,8 @@ Animation4Music_QuatroWhite::Animation4Music_QuatroWhite() :
 
 EffectDefinition Animation4Music_QuatroWhite::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(true, EffectFactory<Animation4Music_QuatroWhite>);
 	ed.name = AMUSIC_QUATROWHITE;
-	ed.args = GetArgs();
 	return ed;
 }
 
@@ -65,9 +64,9 @@ bool Animation4Music_QuatroWhite::hasOwnImage()
 bool Animation4Music_QuatroWhite::getImage(Image<ColorRgb>& newImage)
 {
 	bool newData = false;
-	auto r = SoundCapture::getInstance()->hasResult(this, _internalIndex, NULL, NULL, &newData, &_oldMulti);
+	auto r = _soundCapture->hasResult(this, _internalIndex, NULL, NULL, &newData, &_oldMulti);
 
-	if (r == NULL || !newData)
+	if (r == nullptr || !newData)
 		return false;
 
 	int value = r->getValue(_oldMulti);

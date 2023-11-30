@@ -4,7 +4,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -27,18 +27,22 @@
 *  SOFTWARE.
 */
 
-#include <QObject>
-#include <QList>
-#include <QDateTime>
-#include <QJsonObject>
-#include <QString>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+	#include <QDateTime>
+	#include <QJsonObject>
+	#include <QString>
 
-#include <algorithm>
+	#include <algorithm>
 
-#include <utils/Image.h>
-#include <utils/Components.h>
+	#include <utils/MemoryBuffer.h>
+	#include <utils/Image.h>
+	#include <utils/Components.h>
+#endif
 
 class Logger;
+class GrabberWrapper;
 
 class LutCalibrator : public QObject
 {
@@ -113,19 +117,16 @@ private:
 public:
 	LutCalibrator();
 	~LutCalibrator();
-	static	LutCalibrator* getInstance();
 
 signals:
-	void assign(hyperhdr::Components defaultComp, int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef);
-	void stop();
-	void lutCalibrationUpdate(const QJsonObject& data);
+	void SignalLutCalibrationUpdated(const QJsonObject& data);
 
 public slots:
-	void assignHandler(hyperhdr::Components defaultComp, int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef);
+	void incomingCommand(QString rootpath, GrabberWrapper* grabberWrapper, hyperhdr::Components defaultComp, int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef);
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
-	void setGlobalInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect = true);
+	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin);
 
 private:
 	void handleImage(const Image<ColorRgb>& image);
@@ -133,7 +134,6 @@ private:
 	void storeColor(const ColorRgb& inputColor, const ColorRgb& color);
 	bool finalize(bool fastTrack = false);
 	bool correctionEnd();
-	bool findNext(int r, int g, int b, int range);
 
 	inline int clampInt(int val, int min, int max) { return qMin(qMax(val, min), max);}
 	inline double clampDouble(double val, double min, double max) { return qMin(qMax(val, min), max); }
@@ -155,7 +155,6 @@ private:
 	void	displayPreCalibrationInfo();
 	void	displayPostCalibrationInfo();
 	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
-	double	calcMax(ColorStat input, bool doBT2020, ColorStat whiteBalance, double floor, double scale, double range);
 	double	getError(ColorRgb first, ColorStat second);
 	void	applyFilter();
 
@@ -179,7 +178,8 @@ private:
 	ColorRgb _minColor;
 	ColorRgb _maxColor;
 	ColorStat _colorBalance[26];
-	uint8_t* _lutBuffer;
+	MemoryBuffer<uint8_t> _lut;
+	QString _rootPath;
 
 	static ColorRgb primeColors[];
 

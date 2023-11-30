@@ -1,13 +1,16 @@
 #pragma once
 
-#include <utils/Logger.h>
+#ifndef PCH_ENABLED
+	#include <QJsonObject>
 
-#include <QJsonObject>
+	#include <utils/Logger.h>
+#endif
 
 class QtHttpServer;
 class QtHttpRequest;
 class QtHttpClientWrapper;
-class JsonAPI;
+class HyperAPI;
+class HyperHdrManager;
 
 class WebJsonRpc : public QObject {
 	Q_OBJECT
@@ -20,8 +23,8 @@ public:
 private:
 	QtHttpServer* _server;
 	QtHttpClientWrapper* _wrapper;
-	Logger* _log;
-	JsonAPI* _jsonAPI;
+	Logger*		_log;
+	HyperAPI*	_hyperAPI;
 
 	bool _stopHandle = false;
 	bool _unlocked = false;

@@ -1,8 +1,41 @@
 $(document).ready( function() {
+
 	performTranslation();
+
 	var editor_color = null;
 	var editor_smoothing = null;
 	var editor_blackborder = null;
+
+	function watchForRate()
+	{
+		var newFps = editor_smoothing.getEditor('root.smoothing.updateFrequency').getValue();
+		if (!isNaN(newFps) && newFps > 0 && Math.round(1000.0/newFps) * newFps != 1000)
+		{
+			newFps = Math.round(1000.0/newFps);
+			newFps = 1000.0/newFps;
+			$('#realFps').text(newFps.toFixed(2));
+		}
+		else
+			$('#realFps').text("");
+	};
+
+	$(window.hyperhdr).off("cmd-hasLedClock-update").on("cmd-hasLedClock-update", function(event)
+	{
+		if (event.response.success)
+		{
+			var interval = event.response.info.hasLedClock;
+			if ( !isNaN(interval) && interval > 0)
+			{
+				var label = $("div[data-schemapath='root.smoothing.updateFrequency'] label.required");
+				if (label != null)
+					label.append( `<br/><span class="text-danger"><small>${$.i18n("controlled_by_led_driver")}</small></span>` );
+				editor_smoothing.getEditor('root.smoothing.updateFrequency').setValue(1000/interval);
+				editor_smoothing.getEditor('root.smoothing.updateFrequency').disable();
+			}
+		}		
+	});
+
+	requestHasLedClock();
 		
 	{
 		//color		
@@ -45,6 +78,17 @@ $(document).ready( function() {
 		requestWriteConfig(editor_smoothing.getValue());
 	});
 
+	var appendFps = $("div[data-schemapath='root.smoothing.updateFrequency'] div.input-group-text");
+	if (appendFps != null)
+	{
+		appendFps.html(`<span id='realFps'></span>${appendFps.text()}`);
+	};
+
+	editor_smoothing.watch('root.smoothing.updateFrequency',() => {
+		watchForRate();
+	});
+	watchForRate();
+
 	//blackborder
 	editor_blackborder = createJsonEditor('editor_container_blackborder', {
 		blackborderdetector: window.schema.blackborderdetector
@@ -57,9 +101,6 @@ $(document).ready( function() {
 	$('#btn_submit_blackborder').off().on('click',function() {
 		requestWriteConfig(editor_blackborder.getValue());
 	});
-	
-	//wiki links
-	//$('#editor_container_blackborder').append(buildWL("user/moretopics/bbmode","edt_conf_bb_mode_title",true));
 	
 	//create introduction
 	if(window.showOptHelp)

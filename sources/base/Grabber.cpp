@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,20 +25,24 @@
 *  SOFTWARE.
  */
 
+#ifndef PCH_ENABLED
+	#include <QFile>
+	#include <QJsonArray>
+#endif
+
 #include <base/Grabber.h>
 #include <utils/ColorSys.h>
-#include <QFile>
-#include <QJsonArray>
+#include <utils/GlobalSignals.h>
 
 const QString Grabber::AUTO_SETTING = QString("auto");
 const int	  Grabber::AUTO_INPUT = -1;
 const int	  Grabber::AUTO_FPS = 0;
 
 
-Grabber::Grabber(const QString& configurationPath, const QString& grabberName, int width, int height, int cropLeft, int cropRight, int cropTop, int cropBottom)
+Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	: _configurationPath(configurationPath)
-	, _width(width)
-	, _height(height)
+	, _width(0)
+	, _height(0)
 	, _fps(Grabber::AUTO_FPS)
 	, _input(Grabber::AUTO_INPUT)
 	, _cropLeft(0)
@@ -60,27 +64,26 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName, i
 	, _restartNeeded(false)
 	, _initialized(false)
 	, _fpsSoftwareDecimation(1)
+	, _hardware(false)
 	, _actualVideoFormat(PixelFormat::NO_CHANGE)
 	, _actualWidth(0)
 	, _actualHeight(0)
 	, _actualFPS(0)
 	, _actualDeviceName("")
-	, _lutBuffer(NULL)
+	, _targetMonitorNits(200)
 	, _lutBufferInit(false)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
 	, _signalDetectionEnabled(false)
 	, _signalAutoDetectionEnabled(false)
 	, _synchro(1)
+	, _benchmarkStatus(-1)
+	, _benchmarkMessage("")
 {
-	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
 Grabber::~Grabber()
 {
-	if (_lutBuffer != NULL)
-		free(_lutBuffer);
-	_lutBuffer = NULL;
 }
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2)
@@ -97,6 +100,11 @@ void Grabber::setEnabled(bool enable)
 {
 	Info(_log, "Capture interface is now %s", enable ? "enabled" : "disabled");
 	_enabled = enable;
+}
+
+void Grabber::setMonitorNits(int nits)
+{
+	_targetMonitorNits = nits;
 }
 
 void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -119,6 +127,11 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	{
 		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
+}
+
+void Grabber::enableHardwareAcceleration(bool hardware)
+{
+	_hardware = hardware;
 }
 
 bool Grabber::trySetInput(int input)
@@ -275,8 +288,7 @@ void Grabber::unblockAndRestart(bool running)
 		uninit();
 		start();
 
-		emit PerformanceCounters::getInstance()->newCounter(
-			PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), -1, "", -1, -1, -1, -1));
+		emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(true, hyperhdr::PerformanceReportType::VIDEO_GRABBER, -1);
 	}
 
 	_blocked = false;
@@ -391,6 +403,7 @@ void Grabber::resetCounter(int64_t from)
 	frameStat.badFrame = 0;
 	frameStat.goodFrame = 0;
 	frameStat.segment = 0;
+	frameStat.directAccess = false;
 }
 
 int Grabber::getHdrToneMappingEnabled()
@@ -412,10 +425,9 @@ void Grabber::loadLutFile(PixelFormat color, const QList<QString>& files)
 
 	if (color == PixelFormat::NO_CHANGE)
 	{
-		if (_lutBuffer == NULL)
-			_lutBuffer = (uint8_t*)malloc(LUT_FILE_SIZE + 4);
+		_lut.resize(LUT_FILE_SIZE + 4);
 
-		if (_lutBuffer != NULL)
+		if (_lut.data() != nullptr)
 		{
 			for (int y = 0; y < 256; y++)
 				for (int u = 0; u < 256; u++)
@@ -423,9 +435,9 @@ void Grabber::loadLutFile(PixelFormat color, const QList<QString>& files)
 					{
 						uint32_t ind_lutd = LUT_INDEX(y, u, v);
 						ColorSys::yuv2rgb(y, u, v,
-							_lutBuffer[ind_lutd],
-							_lutBuffer[ind_lutd + 1],
-							_lutBuffer[ind_lutd + 2]);
+							_lut.data()[ind_lutd],
+							_lut.data()[ind_lutd + 1],
+							_lut.data()[ind_lutd + 2]);
 					}
 			_lutBufferInit = true;
 		}
@@ -466,10 +478,9 @@ void Grabber::loadLutFile(PixelFormat color, const QList<QString>& files)
 
 					file.seek(index);
 
-					if (_lutBuffer == NULL)
-						_lutBuffer = (unsigned char*)malloc(length + 4);
+					_lut.resize(length + 4);
 
-					if (file.read((char*)_lutBuffer, LUT_FILE_SIZE) != LUT_FILE_SIZE)
+					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
 					{
 						Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
 					}
@@ -576,8 +587,7 @@ QMap<Grabber::currentVideoModeInfo, QString> Grabber::getVideoCurrentMode() cons
 	return retVal;
 }
 
-
-void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize)
+int Grabber::getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY)
 {
 	int startX = _cropLeft;
 	int startY = _cropTop;
@@ -591,142 +601,103 @@ void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize)
 	}
 
 	int checkWidth = realSizeX;
-	int division = 1;
+	int divide = 1;
 
 	while (checkWidth > _width)
 	{
-		division++;
-		checkWidth = realSizeX / division;
+		divide++;
+		checkWidth = realSizeX / divide;
 	}
 
-	int targetSizeX = realSizeX / division;
-	int targetSizeY = realSizeY / division;
+	targetSizeX = realSizeX / divide;
+	targetSizeY = realSizeY / divide;
 
+	return divide;
+}
+
+void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize, bool useLut)
+{
+	int targetSizeX, targetSizeY;
+	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, startX, startY, source, _actualWidth, _actualHeight, division, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lutBuffer, lineSize);
+	FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
 		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
+			emit SignalNewCapturedFrame(image);
 	}
 	else
-		emit newFrame(image);
+		emit SignalNewCapturedFrame(image);
 }
 
 void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 {
-	int startX = _cropLeft;
-	int startY = _cropTop;
-	int realSizeX = _actualWidth - startX - _cropRight;
-	int realSizeY = _actualHeight - startY - _cropBottom;
-
-	if (realSizeX <= 16 || realSizeY <= 16)
-	{
-		realSizeX = _actualWidth;
-		realSizeY = _actualHeight;
-	}
-
-	int checkWidth = realSizeX;
-	int division = 1;
-
-	while (checkWidth > _width)
-	{
-		division++;
-		checkWidth = realSizeX / division;
-	}
-
-	int targetSizeX = realSizeX / division;
-	int targetSizeY = realSizeY / division;
-
+	int targetSizeX, targetSizeY;
+	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, startX, startY, source, _actualWidth, _actualHeight, division, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lutBuffer, lineSize);
+	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
 		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
+			emit SignalNewCapturedFrame(image);
 	}
 	else
-		emit newFrame(image);
+		emit SignalNewCapturedFrame(image);
 }
 
 void Grabber::processSystemFrameBGR16(uint8_t* source, int lineSize)
 {
-	int startX = _cropLeft;
-	int startY = _cropTop;
-	int realSizeX = _actualWidth - startX - _cropRight;
-	int realSizeY = _actualHeight - startY - _cropBottom;
-
-	if (realSizeX <= 16 || realSizeY <= 16)
-	{
-		realSizeX = _actualWidth;
-		realSizeY = _actualHeight;
-	}
-
-	int checkWidth = realSizeX;
-	int division = 1;
-
-	while (checkWidth > _width)
-	{
-		division++;
-		checkWidth = realSizeX / division;
-	}
-
-	int targetSizeX = realSizeX / division;
-	int targetSizeY = realSizeY / division;
-
+	int targetSizeX, targetSizeY;
+	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageBGR16(image, targetSizeX, targetSizeY, startX, startY, source, _actualWidth, _actualHeight, division, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lutBuffer, lineSize);
+	FrameDecoder::processSystemImageBGR16(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
 		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
+			emit SignalNewCapturedFrame(image);
 	}
 	else
-		emit newFrame(image);
+		emit SignalNewCapturedFrame(image);
 }
 
 void Grabber::processSystemFrameRGBA(uint8_t* source, int lineSize)
 {
-	int startX = _cropLeft;
-	int startY = _cropTop;
-	int realSizeX = _actualWidth - startX - _cropRight;
-	int realSizeY = _actualHeight - startY - _cropBottom;
-
-	if (realSizeX <= 16 || realSizeY <= 16)
-	{
-		realSizeX = _actualWidth;
-		realSizeY = _actualHeight;
-	}
-
-	int checkWidth = realSizeX;
-	int division = 1;
-
-	while (checkWidth > _width)
-	{
-		division++;
-		checkWidth = realSizeX / division;
-	}
-
-	int targetSizeX = realSizeX / division;
-	int targetSizeY = realSizeY / division;
-
+	int targetSizeX, targetSizeY;
+	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageRGBA(image, targetSizeX, targetSizeY, startX, startY, source, _actualWidth, _actualHeight, division, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lutBuffer, lineSize);
+	FrameDecoder::processSystemImageRGBA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
 		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
+			emit SignalNewCapturedFrame(image);
 	}
 	else
-		emit newFrame(image);
+		emit SignalNewCapturedFrame(image);
+}
+
+void Grabber::processSystemFramePQ10(uint8_t* source, int lineSize)
+{
+	int targetSizeX, targetSizeY;
+	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
+	Image<ColorRgb> image(targetSizeX, targetSizeY);
+
+	FrameDecoder::processSystemImagePQ10(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+
+	if (_signalDetectionEnabled)
+	{
+		if (checkSignalDetectionManual(image))
+			emit SignalNewCapturedFrame(image);
+	}
+	else
+		emit SignalNewCapturedFrame(image);
 }
 
 void Grabber::setSignalDetectionEnable(bool enable)
@@ -790,7 +761,7 @@ QJsonObject Grabber::getJsonInfo()
 
 		QJsonArray availableInputs;
 		QMultiMap<QString, int> inputs = getVideoDeviceInputs(devicePath);
-		for (auto input = inputs.begin(); input != inputs.end(); input++)
+		for (auto input = inputs.begin(); input != inputs.end(); ++input)
 		{
 			QJsonObject availableInput;
 			availableInput["inputName"] = input.key();
@@ -905,13 +876,13 @@ QJsonObject Grabber::getJsonInfo()
 
 	grabbers["current"] = current;
 
-	if (_lutBuffer != NULL)
+	if (_lut.data() != nullptr)
 	{
 		uint32_t checkSum = 0;
 		for (int i = 0; i < 256; i += 2)
 			for (int j = 32; j <= 160; j += 64)
 			{
-				checkSum ^= *(reinterpret_cast<uint32_t*>(&(_lutBuffer[LUT_INDEX(j, i, (255 - i))])));
+				checkSum ^= *(reinterpret_cast<uint32_t*>(&(_lut.data()[LUT_INDEX(j, i, (255 - i))])));
 			}
 		grabbers["lutFastCRC"] = "0x" + QString("%1").arg(checkSum, 4, 16).toUpper();
 	}
@@ -919,11 +890,63 @@ QJsonObject Grabber::getJsonInfo()
 	return grabbers;
 }
 
-void Grabber::alternativeCaching(bool alternative)
-{
-}
-
 QString Grabber::getConfigurationPath()
 {
 	return _configurationPath;
+}
+
+QString Grabber::getSignature()
+{
+	auto info = getVideoCurrentMode();
+	return QString("%1 %2").
+		arg(info[Grabber::currentVideoModeInfo::resolution]).
+		arg(info[Grabber::currentVideoModeInfo::device]);
+}
+
+void Grabber::handleNewFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
+{
+	frameStat.goodFrame++;
+	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;
+
+	if (image.width() > 1 && image.height() > 1)
+	{
+		if (_signalAutoDetectionEnabled || isCalibrating())
+		{
+			if (checkSignalDetectionAutomatic(image))
+				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+		}
+		else if (_signalDetectionEnabled)
+		{
+			if (checkSignalDetectionManual(image))
+				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+		}
+		if (_benchmarkStatus >= 0)
+		{
+			ColorRgb pixel = image(image.width() / 2, image.height() / 2);
+			if ((_benchmarkMessage == "white" && pixel.red > 120 && pixel.green > 120 && pixel.blue > 120) ||
+				(_benchmarkMessage == "red" && pixel.red > 120 && pixel.green < 30 && pixel.blue < 30) ||
+				(_benchmarkMessage == "green" && pixel.red < 30 && pixel.green > 120 && pixel.blue < 30) ||
+				(_benchmarkMessage == "blue" && pixel.red < 30 && pixel.green < 40 && pixel.blue > 120) ||
+				(_benchmarkMessage == "black" && pixel.red < 30 && pixel.green < 30 && pixel.blue < 30))
+
+			{
+				emit SignalBenchmarkUpdate(_benchmarkStatus, _benchmarkMessage);
+				_benchmarkStatus = -1;
+				_benchmarkMessage = "";
+			}
+		}
+	}
+	else
+		frameStat.directAccess = true;
+}
+
+void Grabber::benchmarkCapture(int status, QString message)
+{
+	_benchmarkStatus = status;
+	_benchmarkMessage = message;
+}
+
+bool Grabber::isInitialized()
+{
+	return _initialized;
 }

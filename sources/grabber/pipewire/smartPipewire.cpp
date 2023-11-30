@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,7 +25,7 @@
 *  SOFTWARE.
  */
 
-#include <grabber/smartPipewire.h>
+#include <grabber/pipewire/smartPipewire.h>
 #include <QFlags>
 #include <QString>
 #include <QThread>
@@ -46,21 +46,20 @@
 #include <iostream>
 #include <memory>
 
-#include "PipewireHandler.h"
+#include <grabber/pipewire/PipewireHandler.h>
 
-std::unique_ptr<PipewireHandler> _pipewireHandler(nullptr);
+PipewireHandler pipewireHandler;
 
 
 void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS)
 {
 	QString qRestorationToken = QString("%1").arg(restorationToken);
-	_pipewireHandler = std::unique_ptr<PipewireHandler>(new PipewireHandler());
-	_pipewireHandler->startSession(qRestorationToken, requestedFPS);
+	pipewireHandler.startSession(qRestorationToken, requestedFPS);
 }
 
 void releaseFramePipewire()
 {	
-	_pipewireHandler->releaseWorkingFrame();
+	pipewireHandler.releaseWorkingFrame();
 }
 
 const char* getPipewireToken()
@@ -68,8 +67,7 @@ const char* getPipewireToken()
 	static QByteArray tokenData;
 	QString token;
 
-	if (_pipewireHandler != nullptr)	
-		token = _pipewireHandler->getToken();	
+	token = pipewireHandler.getToken();
 
 	tokenData = token.toLatin1();
 
@@ -78,22 +76,13 @@ const char* getPipewireToken()
 
 const char* getPipewireError()
 {
-	if (_pipewireHandler != nullptr)
-	{
-		QString err = _pipewireHandler->getError();
-		return err.toLatin1().constData();
-	}
-
-	return nullptr;
+	QString err = pipewireHandler.getError();
+	return err.toLatin1().constData();
 }
 
 void uninitPipewireDisplay()
 {	
-	if (_pipewireHandler != nullptr)
-	{
-		_pipewireHandler->closeSession();
-		_pipewireHandler = nullptr;
-	}
+	pipewireHandler.closeSession();
 }
 
 bool hasPipewire()
@@ -135,10 +124,7 @@ PipewireImage getFramePipewire()
 {
 	PipewireImage retVal;
 
-	if (_pipewireHandler != nullptr)
-	{
-		_pipewireHandler->getImage(retVal);
-	}
+	pipewireHandler.getImage(retVal);
 
 	return retVal;
 }

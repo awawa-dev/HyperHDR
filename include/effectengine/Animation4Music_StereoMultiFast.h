@@ -6,8 +6,6 @@
 
 class Animation4Music_StereoMultiFast : public AnimationBaseMusic
 {
-	Q_OBJECT
-
 public:
 
 	Animation4Music_StereoMultiFast();

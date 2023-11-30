@@ -29,15 +29,3 @@ endif (ENABLE_V4L2)
 if (ENABLE_MF)
 	add_subdirectory(MF)
 endif (ENABLE_MF)
-
-if (ENABLE_SOUNDCAPLINUX)
-	add_subdirectory(SoundCapLinux)
-endif (ENABLE_SOUNDCAPLINUX)
-
-if (ENABLE_SOUNDCAPWINDOWS)
-	add_subdirectory(SoundCapWindows)
-endif (ENABLE_SOUNDCAPWINDOWS)
-
-if (ENABLE_SOUNDCAPMACOS)
-	add_subdirectory(SoundCapMacOS)
-endif (ENABLE_SOUNDCAPMACOS)

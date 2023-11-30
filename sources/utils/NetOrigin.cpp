@@ -1,8 +1,10 @@
+#ifndef PCH_ENABLED
+	#include <QJsonObject>
+	#include <QHostAddress>
+	#include <QJsonDocument>
+#endif
+
 #include <utils/NetOrigin.h>
-
-#include <QJsonObject>
-
-NetOrigin* NetOrigin::instance = nullptr;
 
 NetOrigin::NetOrigin(QObject* parent, Logger* log)
 	: QObject(parent)
@@ -10,11 +12,12 @@ NetOrigin::NetOrigin(QObject* parent, Logger* log)
 	, _internetAccessAllowed(false)
 	, _ipWhitelist()
 {
-	NetOrigin::instance = this;
 }
 
-bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& local) const
+bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& local)
 {
+	QMutexLocker locker(&_mutex);
+
 	if (_internetAccessAllowed)
 		return true;
 
@@ -29,7 +32,7 @@ bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& l
 	return true;
 }
 
-bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& local) const
+bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& local)
 {
 	if (address.protocol() == QAbstractSocket::IPv4Protocol)
 	{
@@ -48,10 +51,12 @@ bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& 
 	return true;
 }
 
-void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
+void NetOrigin::settingsChangedHandler(settings::type type, const QJsonDocument& config)
 {
 	if (type == settings::type::NETWORK)
 	{
+		QMutexLocker locker(&_mutex);
+
 		const QJsonObject& obj = config.object();
 		_internetAccessAllowed = obj["internetAccessAPI"].toBool(false);
 

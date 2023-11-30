@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -39,13 +39,12 @@
 #include <limits.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <grabber/macOsGrabber.h>
+#include <grabber/macOS/macOsGrabber.h>
 #include <utils/ColorSys.h>
 
 #import <Foundation/Foundation.h>
@@ -54,7 +53,7 @@
 id activity;
 
 macOsGrabber::macOsGrabber(const QString& device, const QString& configurationPath)
-	: Grabber("MACOS_SYSTEM:" + device.left(14))
+	: Grabber(configurationPath, "MACOS_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _semaphore(1)
 	, _actualDisplay(0)

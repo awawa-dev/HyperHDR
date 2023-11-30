@@ -1,13 +1,14 @@
-#ifndef QTHTTPREQUEST_H
-#define QTHTTPREQUEST_H
+#pragma once
 
-#include <QObject>
-#include <QString>
-#include <QByteArray>
-#include <QHash>
-#include <QUrl>
-#include <QHostAddress>
-#include <QMap>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <QByteArray>
+	#include <QHash>
+	#include <QUrl>
+	#include <QHostAddress>
+	#include <QMap>
+#endif
 
 class QtHttpServer;
 class QtHttpClientWrapper;
@@ -30,13 +31,13 @@ public:
 	int                   getRawDataSize(void) const;
 	QUrl                  getUrl(void) const;
 	QString               getCommand(void) const;
-	QByteArray            getRawData(void) const;
-	QList<QByteArray>     getHeadersList(void) const;
+	QByteArray            getRawData(void) const &;
 	QtHttpClientWrapper*  getClient(void) const;
 	QtHttpPostData        getPostData(void) const;
 	ClientInfo            getClientInfo(void) const;
 
-	QByteArray            getHeader(const QByteArray& header) const;
+	QByteArray            getHeader(const QByteArray& header) const &;
+	int                   getHeader(const QByteArray& header, int defValue);
 
 public slots:
 	void setUrl(const QUrl& url);
@@ -57,5 +58,3 @@ private:
 	ClientInfo						m_clientInfo;
 	QtHttpPostData					m_postData;
 };
-
-#endif // QTHTTPREQUEST_H

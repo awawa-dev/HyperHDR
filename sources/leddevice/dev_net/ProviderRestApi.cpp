@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -27,6 +27,7 @@
 
 // Local-HyperHDR includes
 #include "ProviderRestApi.h"
+#include <leddevice/LedDevice.h>
 
 // Qt includes
 #include <QNetworkReply>
@@ -41,26 +42,22 @@
 
 const int TIMEOUT = (500);
 
-std::unique_ptr<networkHelper> ProviderRestApi::_networkWorker(nullptr);
-
 ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath)
 	:_log(Logger::getInstance("LEDDEVICE"))
 	, _scheme((port == 443) ? "https" : "http")
 	, _hostname(host)
 	, _port(port)
 {
-	if (_networkWorker == nullptr)
-	{
-		_networkWorker = std::unique_ptr<networkHelper>(new networkHelper());		
-	}
-
 	qRegisterMetaType<QNetworkRequest>();
+	qRegisterMetaType<QUrl>();
 	qRegisterMetaType<QByteArray>();
 
 	_apiUrl.setScheme(_scheme);
 	_apiUrl.setHost(host);
 	_apiUrl.setPort(port);
 	_basePath = basePath;
+
+	_workerThread = NetworkHelper::threadFactory();
 }
 
 ProviderRestApi::ProviderRestApi(const QString& host, int port)
@@ -71,6 +68,7 @@ ProviderRestApi::ProviderRestApi()
 
 ProviderRestApi::~ProviderRestApi()
 {
+
 }
 
 void  ProviderRestApi::updateHost(const QString& host, int port)
@@ -81,24 +79,19 @@ void  ProviderRestApi::updateHost(const QString& host, int port)
 
 void ProviderRestApi::setBasePath(const QString& basePath)
 {
-	_basePath.clear();
-	appendPath(_basePath, basePath);
+	_basePath = basePath;
 }
 
 void ProviderRestApi::setPath(const QString& path)
 {
-	_path.clear();
-	appendPath(_path, path);
-}
-
-void ProviderRestApi::appendPath(const QString& path)
-{
-	appendPath(_path, path);
+	_path = path;
 }
 
 void ProviderRestApi::appendPath(QString& path, const QString& appendPath) const
-{	
-	path = QUrl(path).resolved(appendPath).toString();	
+{
+	auto list = path.split('/', Qt::SkipEmptyParts);
+	list.append(appendPath.split('/', Qt::SkipEmptyParts));
+	path = (list.size()) ? "/" + list.join('/') : "";
 }
 
 void ProviderRestApi::addHeader(const QString &key, const QString &value)
@@ -160,32 +153,14 @@ httpResponse ProviderRestApi::get()
 	return get(getUrl());
 }
 
-bool ProviderRestApi::waitForResult(QNetworkReply* networkReply)
-{
-	bool networkTimeout = false;
-
-	if (!networkReply->isFinished() && networkReply->error() == QNetworkReply::NoError)
-	{
-		if (!_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)))
-		{
-			if (!networkReply->isFinished())
-			{
-				networkTimeout = true;
-				disconnect(networkReply, &QNetworkReply::finished, nullptr, nullptr);
-				QTimer::singleShot(0, networkReply, &QNetworkReply::abort);
-			}
-		}
-		else
-			_resultLocker.unlock();
-	}
-	
-	return networkTimeout;
+const QMap<QString, QString>& ProviderRestApi::getHeaders() {
+	return _headers;
 }
 
 httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body)
 {
+	httpResponse response;
 	qint64 begin = InternalClock::nowPrecise();
-
 	QString opCode = (op == QNetworkAccessManager::PutOperation) ? "PUT" :
 						 (op == QNetworkAccessManager::PostOperation) ? "POST" :
 						 (op == QNetworkAccessManager::GetOperation) ? "GET" : "";
@@ -193,48 +168,43 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	if (opCode.length() == 0)
 	{
 		Error(_log, "Unsupported opertion code");
-		return httpResponse();
+		return response;
 	}
 
 	Debug(_log, "%s begin: [%s] [%s]", QSTRING_CSTR(opCode), QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
 
-
 	// Perform request
-	QNetworkRequest request(url);
-	QNetworkReply* networkReply = nullptr;
+	NetworkHelper* networkHelper(new NetworkHelper());
 
-	request.setOriginatingObject(this);
-	QMapIterator<QString, QString> i(_headers);
-	while (i.hasNext())
+	networkHelper->moveToThread(_workerThread.get());
+
+	_resultLocker.lock();
+
+	BLOCK_CALL_5(networkHelper, executeOperation, ProviderRestApi*, this, QNetworkAccessManager::Operation, op, QUrl, url, QString, body, httpResponse*, &response);
+
+	if (_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)))
 	{
-		i.next();
-		request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
+		_resultLocker.unlock();
+	}
+	else
+	{
+		QUEUE_CALL_0(networkHelper, abortOperation);
+		_resultLocker.lock();
+		_resultLocker.unlock();
 	}
 
-	QSslConfiguration conf = request.sslConfiguration();
-	conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-	request.setSslConfiguration(conf);
+	qint64 timeTotal = InternalClock::nowPrecise() - begin;
 
-	SAFE_CALL_3_RET(_networkWorker.get(), executeOperation,
-		QNetworkReply*, networkReply, QNetworkAccessManager::Operation, op, QNetworkRequest, request, QByteArray, body.toUtf8());
+	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));	
 
+	if (response.error())
+		Error(_log, "Reply error. Reason: %s", QSTRING_CSTR(response.getErrorReason()));
+	else
+		Debug(_log, "Reply OK [%d]", response.getHttpStatusCode());
 
-	bool networkTimeout = waitForResult(networkReply);
-	long long timeTotal = InternalClock::nowPrecise() - begin;
-
-	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
-
-	httpResponse response = (networkReply->operation() == op) ? getResponse(networkReply, networkTimeout) : httpResponse();
-
-	networkReply->deleteLater();
+	networkHelper->deleteLater();
 
 	return response;
-}
-
-
-void ProviderRestApi::aquireResultLock()
-{	
-	_resultLocker.tryLock();
 }
 
 void ProviderRestApi::releaseResultLock()
@@ -242,135 +212,149 @@ void ProviderRestApi::releaseResultLock()
 	_resultLocker.unlock();
 }
 
-httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply, bool timeout)
+std::shared_ptr<QThread> NetworkHelper::threadFactory()
 {
-	httpResponse response;
+	static QMutex locker;
+	static std::weak_ptr<QThread> persist;
+	QMutexLocker lockThis(&locker);
 
-	int httpStatusCode = (timeout) ? 408 : reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-	response.setHttpStatusCode(httpStatusCode);
-	
-	QMap<QString, QString> headers;
-	// We sometimes need headers in the response to get the hue application id for instance
-	for (const auto &item: reply->rawHeaderPairs())
+	auto result = persist.lock();
+	if (!result)
 	{
-		headers[item.first] = item.second;
-	};
-	response.setHeaders(headers);
-	
-	if (timeout)
-		response.setNetworkReplyError(QNetworkReply::TimeoutError);
-	else
-		response.setNetworkReplyError(reply->error());
-
-	if (reply->error() == QNetworkReply::NoError)
-	{
-		if (httpStatusCode != 204) {
-			QByteArray replyData = reply->readAll();
-
-			if (!replyData.isEmpty())
-			{
-				QJsonParseError error;
-				QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData, &error);
-
-				if (error.error != QJsonParseError::NoError)
-				{
-					//Received not valid JSON response
-					//std::cout << "Response: [" << replyData.toStdString() << "]" << std::endl;
-					response.setError(true);
-					response.setErrorReason(error.errorString());
-				}
-				else
-				{
-					//std::cout << "Response: [" << QString (jsonDoc.toJson(QJsonDocument::Compact)).toStdString() << "]" << std::endl;
-					response.setBody(jsonDoc);
-				}
-			}
-			else
-			{	// Create valid body which is empty
-				response.setBody(QJsonDocument());
-			}
-		}
-	}
-	else
-	{
-		QString errorReason;
-		if (httpStatusCode > 0) {
-			QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
-			QString advise;
-			switch (httpStatusCode) {
-			case 400:
-				advise = "Check Request Body";
-				break;
-			case 401:
-				advise = "Check Authentication Token (API Key)";
-				break;
-			case 404:
-				advise = "Check Resource given";
-				break;
-			case 408:
-				advise = "Check if target IP is valid and your network status";
-				httpReason = "Timeout";
-				break;
-			default:
-				break;
-			}
-			errorReason = QString("[%3 %4] - %5").arg(QString::number(httpStatusCode), httpReason, advise);
-		}
-		else {
-			errorReason = reply->errorString();
-		}
-
-		response.setError(true);
-		response.setErrorReason(errorReason);
-
-		// Create valid body which is empty
-		response.setBody(QJsonDocument());
+		result = std::shared_ptr<QThread>(new QThread(), [](QThread* thread) {
+			hyperhdr::THREAD_REMOVER(QString("NetworkHelperThread"), thread, nullptr);
+		});
+		result->start();
+		persist = result;
 	}
 
-	if (response.error())
-		Error(_log, "Reply.httpStatusCode %s", QSTRING_CSTR(response.getErrorReason()));
-	else
-		Debug(_log, "Reply.httpStatusCode [%d]", httpStatusCode);
-
-	return response;
+	return result;
 }
 
-networkHelper::networkHelper()
+void NetworkHelper::abortOperation()
 {
-	QThread* parent = new QThread();
-	parent->setObjectName("RestApiThread");
+	if (_networkReply != nullptr)
+	{
+		_timeout = true;		
+		_networkReply->abort();
+	}
+}
+
+NetworkHelper::NetworkHelper() :
+	_networkManager(nullptr),
+	_networkReply(nullptr),
+	_timeout(false)
+{
+}
+
+NetworkHelper::~NetworkHelper()
+{
+	delete _networkReply;
+	delete _networkManager;
+}
+
+void NetworkHelper::executeOperation(ProviderRestApi* parent, QNetworkAccessManager::Operation op, QUrl url, QString body, httpResponse* response)
+{
+	QNetworkRequest request(url);
+
+	QMapIterator<QString, QString> i = parent->getHeaders();
+	while (i.hasNext())
+	{
+		i.next();
+		request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
+	}
 
 	_networkManager = new QNetworkAccessManager();
-	_networkManager->moveToThread(parent);
-	this->moveToThread(parent);
 
-	parent->start();
+	connect(_networkManager, &QNetworkAccessManager::sslErrors, this, [](QNetworkReply* reply, const QList<QSslError>& errors) {
+		reply->ignoreSslErrors(errors);
+	});
+
+	_networkReply = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body.toUtf8()) :
+		(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body.toUtf8()) : _networkManager->get(request);
+
+	connect(_networkReply, &QNetworkReply::finished, this, [=]() {getResponse(response);  parent->releaseResultLock(); }, Qt::DirectConnection);
 }
 
-networkHelper::~networkHelper()
-{	
-	// get current thread
-	QThread* oldThread = _networkManager->thread();
-	disconnect(oldThread, nullptr, nullptr, nullptr);
-	oldThread->quit();
-	oldThread->wait();
-	delete oldThread;
-
-	disconnect(_networkManager, nullptr, nullptr, nullptr);
-	delete _networkManager;
-	_networkManager = nullptr;
-}
-
-QNetworkReply* networkHelper::executeOperation(QNetworkAccessManager::Operation op, QNetworkRequest request, QByteArray body)
+void NetworkHelper::getResponse(httpResponse* response)
 {
-	ProviderRestApi* parent = static_cast<ProviderRestApi*>(request.originatingObject());
-	parent->aquireResultLock();
+	if (_networkReply != nullptr)
+	{
+		int httpStatusCode = (_timeout) ? 408 : _networkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+		response->setHttpStatusCode(httpStatusCode);
 
-	auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body):
-				(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body) : _networkManager->get(request);
+		QMap<QString, QString> headers;
+		for (const auto& item: _networkReply->rawHeaderPairs())
+		{
+			headers[item.first] = item.second;
+		}
+		response->setHeaders(headers);
 
-	connect(ret, &QNetworkReply::finished, this, [=](){parent->releaseResultLock();});
-	return ret;
+		if (_timeout)
+			response->setNetworkReplyError(QNetworkReply::TimeoutError);
+		else
+			response->setNetworkReplyError(_networkReply->error());
+
+		if (_networkReply->error() == QNetworkReply::NoError)
+		{
+			if (httpStatusCode != 204) {
+				QByteArray replyData = _networkReply->readAll();
+
+				if (!replyData.isEmpty())
+				{
+					QJsonParseError error;
+					QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData, &error);
+
+					if (error.error != QJsonParseError::NoError)
+					{
+						response->setError(true);
+						response->setErrorReason(error.errorString());
+					}
+					else
+					{
+						response->setBody(jsonDoc);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (httpStatusCode > 0)
+			{
+				QString httpReason = _networkReply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+				QString advise;
+				switch (httpStatusCode) {
+					case 400:
+						advise = "Check Request Body";
+						break;
+					case 401:
+						advise = "Check Authentication Token (API Key)";
+						break;
+					case 404:
+						advise = "Check Resource given";
+						break;
+					case 408:
+						advise = "Check the status of your network and whether the destination IP address is correct";
+						httpReason = "Timeout";
+						break;
+					default:
+						break;
+				}
+				response->setErrorReason(QString("[%3 %4] - %5").arg(QString::number(httpStatusCode), httpReason, advise));
+			}
+			else
+			{
+				response->setErrorReason(_networkReply->errorString());
+			}
+			response->setError(true);
+		}
+
+		// clean up
+		_networkReply->deleteLater();
+		_networkReply = nullptr;
+		_networkManager->deleteLater();
+		_networkManager = nullptr;
+	}
 }
 
 bool httpResponse::error() const

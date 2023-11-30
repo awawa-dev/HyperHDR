@@ -961,7 +961,7 @@
   "edt_append_mode": "mode",
   "remote_maptype_label_advanced": "Advanced squared",
   "remote_maptype_label_weighted": "Advanced weighted squared",
-  "remote_videoModeHdr_intro": "Turn on/off HDR tone mapping for USB grabber. 'Border mode' works only for MJPEG stream. $1",
+  "remote_videoModeHdr_intro": "Turn on/off HDR tone mapping for USB grabber. $1",
   "remote_videoModeHdr_label": "HDR tone mapping",
   "edt_conf_stream_hardware_brightness_title": "Hardware brightness control",
   "edt_conf_stream_hardware_brightness_expl": "Set hardware brightness if device supports it, check logs (0=disabled).",
@@ -1162,7 +1162,6 @@
   "edt_conf_fbs_tonemapping_expl": "If enabled, HyperHDR will apply LUT correction for the incoming stream. Works also for Protocol Buffers Server. Make sure you have got the correct LUT table. Default 3D LUT file <span class='fw-bold'>for HDR10: 'lut_lin_tables.3d'</span> (filename 'flat_lut_lin_tables.3d' is also accepted) is already included. <span class='fw-bold'>You can generate one and preview the effect using link in the 'Advanced menu'.</span><br/>Your typical hidden configuration folder to upload that file in is (check 'Logs' page to confirm):<br/>Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
   "conf_grabber_framebuffer_intro": "Linux FrameBuffer screen grabber",
   "conf_network_proto_intro": "The PROTO-Port of all HyperHDR instances (deprecated).<br/>Mainly for use with the Android Screen Grabber app. <span style='color:red;'>HDR to SDR tone mapping</span> can be enabled in Flatbuffers Server configuration and it works also for Protocol Buffers (shared component).",
-  "edt_conf_stream_dx11_flickering_title": "Fix flickering of static images",
   "edt_conf_stream_dx11_flickering_expl": "Alternative screen locking method that can fix the flickering of captured video stream revealing in a still image. Certain graphics cards are affected.",
   "philips_option_changed_bri": "<p style='color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR.",
   "select_wled_intro" : "Select WLED",
@@ -1230,5 +1229,13 @@
   "device_discovery" : "Device discovery",
   "device_address" : "Address",
   "edt_conf_mqtt_custom_topic_title" : "Custom MQTT topic",
-  "edt_conf_mqtt_custom_topic_expl" : "Custom MQTT topic (default is: HyperHDR)."
+  "edt_conf_mqtt_custom_topic_expl" : "Custom MQTT topic (default is: HyperHDR).",
+  "copy_to_clipboard" : "Copy to clipboard",
+  "controlled_by_led_driver" : "controlled by LED driver",
+  "controlled_by_smoothing_or_led_driver" : "controlled by Smoothing or driver",
+  "edt_conf_hardware_title" : "Enable hardware acceleration",
+  "edt_conf_hardware_expl" : "Enable hardware acceleration, for example: pixel and vertex shaders on Windows",
+  "edt_conf_monitor_nits_title" : "HDR brightness correction",
+  "edt_conf_monitor_nits_expl" : "SDR target brightness used for HDR to SDR conversion. If 0, it disables hardware color conversion while maintaining accelerated scaling.",
+  "edt_append_nits" : "nits"
 } 

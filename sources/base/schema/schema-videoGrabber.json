@@ -465,18 +465,6 @@
 			"required" : true,
 			"propertyOrder" : 69
 		},
-		"videoCache" :
-		{
-			"type" : "boolean",
-			"format": "checkbox",
-			"title" : "edt_conf_video_cache_title",
-			"default" : true,
-			"required" : true,
-			"options": {
-				"hidden":true
-			},			
-			"propertyOrder" : 70
-		},
 		"led_off_pause" :
 		{
 			"type" : "boolean",

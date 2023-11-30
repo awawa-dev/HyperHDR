@@ -1,5 +1,5 @@
 # Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
+SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber/X11)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/X11)
 
 FILE ( GLOB SMARTX11_SOURCES "${CURRENT_HEADER_DIR}/smartX11*.h" "${CURRENT_SOURCE_DIR}/smartX11.cpp" )
@@ -17,6 +17,10 @@ target_link_libraries(X11-grabber
 	hyperhdr-base
 	${QT_LIBRARIES}
 )
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(X11-grabber REUSE_FROM precompiled_hyperhdr_headers)
+endif()
 
 
 

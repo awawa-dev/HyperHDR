@@ -1,22 +1,23 @@
-#ifndef QTHTTPSERVER_H
-#define QTHTTPSERVER_H
+#pragma once
 
-#include <QObject>
-#include <QString>
-#include <QHash>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QSslCertificate>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <QHash>
+	#include <QHostAddress>
+#endif
+
 #include <QSslKey>
+#include <QTcpServer>
+#include <QSslCertificate>
 #include <QSslSocket>
-#include <QHostAddress>
 
 class QTcpSocket;
-class QTcpServer;
 class QtHttpRequest;
 class QtHttpReply;
 class QtHttpClientWrapper;
 class NetOrigin;
+class HyperHdrManager;
 
 class QtHttpServerWrapper : public QTcpServer
 {
@@ -40,7 +41,7 @@ class QtHttpServer : public QObject
 	Q_OBJECT
 
 public:
-	explicit QtHttpServer(QObject* parent = Q_NULLPTR);
+	explicit QtHttpServer(std::shared_ptr<NetOrigin> netOrigin, QObject* parent = Q_NULLPTR);
 
 	static const QString& HTTP_VERSION;
 
@@ -83,9 +84,7 @@ private:
 	QSslKey										m_sslKey;
 	QList<QSslCertificate>						m_sslCerts;
 	QString										m_serverName;
-	NetOrigin*									m_netOrigin;
+	std::shared_ptr<NetOrigin>					m_netOrigin;
 	QtHttpServerWrapper*						m_sockServer;
 	QHash<QTcpSocket*, QtHttpClientWrapper*>	m_socksClientsHash;
 };
-
-#endif // QTHTTPSERVER_H

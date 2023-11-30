@@ -65,6 +65,26 @@
 				}
 			},
 			"propertyOrder" : 7
+		},
+		"custom_topic" :
+		{
+			"type": "string",
+			"title":"edt_conf_mqtt_custom_topic_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 8
+		},
+		"maxRetry":
+		{
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "edt_dev_max_retry",
+			"minimum" : 0,
+			"maximum" : 120,
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 9
 		}
 	},
 	"additionalProperties" : false

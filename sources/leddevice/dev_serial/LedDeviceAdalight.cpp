@@ -5,7 +5,7 @@
 #include <cassert>
 
 LedDeviceAdalight::LedDeviceAdalight(const QJsonObject& deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderSerial(deviceConfig)
 	, _headerSize(6)
 	, _ligthBerryAPA102Mode(false)
 	, _awa_mode(false)
@@ -27,7 +27,7 @@ bool LedDeviceAdalight::init(const QJsonObject& deviceConfig)
 	bool isInitOK = false;
 
 	// Initialise sub-class
-	if (ProviderRs232::init(deviceConfig))
+	if (ProviderSerial::init(deviceConfig))
 	{
 
 		_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);

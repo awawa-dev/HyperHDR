@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -39,14 +39,7 @@ Animation_GreenMoodBlobs::Animation_GreenMoodBlobs(QString name) :
 
 EffectDefinition Animation_GreenMoodBlobs::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_GreenMoodBlobs>);
 	ed.name = ANIM_GREEN_MOOD_BLOBS;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_GreenMoodBlobs::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

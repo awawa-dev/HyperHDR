@@ -1,5 +1,5 @@
 pre_install() {
-
+	echo "Preparing to install HyperHDR..."
 
 	# search for users in system, returns first entry
 	FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
@@ -9,18 +9,18 @@ pre_install() {
 	then
 		if grep -m1 systemd /proc/1/comm > /dev/null
 		then
-			echo "--> stop init deamon: systemd"
+			echo "Stopping HyperHDR daemon: systemd"
 			# systemd
 			systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
 
 		elif [ -e /usr/bin/initctl ]
 		then
-			echo "--> stop init deamon: upstart"
+			echo "Stopping HyperHDR daemon: upstart"
 			# upstart
 			initctl stop hyperhdr
 
 		else
-			echo "--> stop init deamon: sysV"
+			echo "Stopping HyperHDR daemon: sysV"
 			# sysV
 			service hyperhdr stop 2>/dev/null
 		fi
@@ -46,7 +46,7 @@ post_install() {
 			cp "$src" "${dest}"
 			return 1
 		else
-			echo "--> Service file already exists, skip creation"
+			echo "Service file already exists, skip creation"
 			return 0
 		fi
 	}
@@ -69,11 +69,11 @@ post_install() {
 	# determine if we should use a service
 	ENABLE_XSYS=0
 	ENABLE_SERVICE=0
-	STARTUP_MSG="echo ---> You can start HyperHDR from your menu now"
+	STARTUP_MSG="Service is NOT enabled by default for GUI or non-systemd OS"
 
 	if [ $CPU_RPI -eq 1 ]; then
 		ENABLE_SERVICE=1
-		STARTUP_MSG="echo ---> HyperHDR has been installed as service, it will start on each system startup"
+		STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
 	fi
 
 	start_msg=""
@@ -87,11 +87,10 @@ post_install() {
 	then	
 		# systemd
 		if [ -z "${DISPLAY}" ]; then
-			echo "---> Init deamon: systemd (service is enabled by default for console systems)"
+			echo "HyperHDR is installed as a service and starts automatically"
 			ENABLE_SERVICE=1
 		else
-			STARTUP_MSG="echo ---> Service is NOT enabled by default for GUI systems. You can run HyperHDR as an application or service with: 'systemctl enable (and next: start) hyperhdr@${FOUND_USR}.service'"
-			echo "---> Init deamon: GUI detected (service is NOT enabled by default, you can run HyperHDR as an application or service with 'systemctl enable (and next: start) hyperhdr@${FOUND_USR}.service')"
+			echo "Init daemon: GUI detected (service is NOT enabled by default, you can run HyperHDR as an application or service with 'systemctl enable (and next: start) hyperhdr@${FOUND_USR}.service')"
 			ENABLE_SERVICE=0
 			ENABLE_XSYS=1
 		fi
@@ -100,7 +99,7 @@ post_install() {
 
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			systemctl enable hyperhdr"@${FOUND_USR}".service
-			start_msg="--> systemctl start hyperhdr for user ${FOUND_USR}"
+			start_msg="systemctl start hyperhdr for user ${FOUND_USR}"
 			systemctl start hyperhdr"@${FOUND_USR}"
 		fi
 
@@ -108,23 +107,23 @@ post_install() {
 	then	
 		# upstart
 		if [ $ENABLE_SERVICE -eq 1 ]; then
-			echo "---> Init deamon: upstart (service is enabled by default)"
+			echo "Init daemon: upstart (service is enabled by default)"
 			install_file /usr/share/hyperhdr/service/hyperhdr.initctl /etc/init/hyperhdr.conf && initctl reload-configuration
-			start_msg="--> initctl start hyperhdr"
+			start_msg="initctl start hyperhdr"
 			initctl start hyperhdr
 		else
-			echo "---> Init deamon: upstart (service is NOT enabled by default)"
+			echo "Init daemon: upstart (service is NOT enabled by default)"
 		fi
 
 	else	
 		# sysV
 		if [ $ENABLE_SERVICE -eq 1 ]; then
-			echo "---> Init deamon: sysV (enabled by default)"
+			echo "Init daemon: sysV (enabled by default)"
 			install_file /usr/share/hyperhdr/service/hyperhdr.init /etc/init.d/hyperhdr && chmod +x /etc/init.d/hyperhdr && update-rc.d hyperhdr defaults 98 02
-			start_msg="---> service hyperhdr start"
+			start_msg="service hyperhdr start"
 			service hyperhdr start
 		else
-			echo "---> Init deamon: sysV (service is NOT enabled by default)"
+			echo "Init daemon: sysV (service is NOT enabled by default)"
 		fi
 	fi
 
@@ -139,7 +138,7 @@ post_install() {
 	ln -fs $BINSP/hyperhdr-remote $BINTP/hyperhdr-remote
 
 	# install desktop icons
-	echo "---> Install HyperHdr desktop icons"
+	echo "Install HyperHDR desktop icons"
 	mkdir /usr/share/pixmaps/hyperhdr 2>/dev/null
 	cp /usr/share/hyperhdr/desktop/*.png /usr/share/pixmaps/hyperhdr 2>/dev/null
 	desktop-file-install /usr/share/hyperhdr/desktop/hyperhdr.desktop 2>/dev/null
@@ -154,30 +153,39 @@ post_install() {
 			BOOT_DIR=$(sed -ne "s#/dev/mmcblk0p1 \([^ ]*\) vfat rw,.*#\1#p" /etc/mtab)
 		fi
 		if [ -z "$BOOT_DIR" -o ! -f "$BOOT_DIR/config.txt" ]; then
-			echo '---> Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
+			echo 'Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
 			SPIOK=1 # Not sure if OK, but don't ask to reboot
 		else
 			SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
 			if [ $SPIOK -ne 1 ]; then
-				echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
+				echo 'Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
 				sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
-				REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to $BOOT_DIR/config.txt"
+				REBOOTMESSAGE="Restart Raspberry Pi, SPI has been enabled in $BOOT_DIR/config.txt"
 			fi
 		fi
 	fi
 
 	echo ${start_msg}
 
-	echo "-----------------------------------------------------------------------------"
-	echo "---> HyperHDR has been installed/updated!"
-	echo "---> Please check log above to verify if the service was automaticly enabled"
-	$STARTUP_MSG
-	echo "---> For configuration, visit with your browser: ${NET_IP}:8090"
-	echo "---> or if already used by another service try: ${NET_IP}:8091"
-	$REBOOTMESSAGE
-	echo "-----------------------------------------------------------------------------"
-	echo "Webpage: https://github.com/awawa-dev/HyperHDR"
-	echo "-----------------------------------------------------------------------------"
+echo " +-----------------------------------------------------------------------+"
+echo " |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
+echo " +-----------------------------------------------------------------------+"
+printf " |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |\n" "$NET_IP" "8090"
+printf " |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |\n" "$NET_IP" "8091"
+printf " |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |\n" "$FOUND_USR"
+printf " |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |\n" "$FOUND_USR"
+echo   " |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
+echo   " +-----------------------------------------------------------------------+"
+case "$STARTUP_MSG" in 
+  *"HyperHDR is installed as a service"*)
+	printf " |  \033[32;1m%-67s\033[0m  |\n" "$STARTUP_MSG";;
+  *) printf " |  \033[31;1m%-67s\033[0m  |\n" "$STARTUP_MSG"
+esac
+[ -z "$REBOOTMESSAGE" ] || printf " |  \033[31;1m%-67s\033[0m  |\n" "$REBOOTMESSAGE"
+echo " +-----------------------------------------------------------------------+"
+echo " |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
+echo " |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
+echo " +-----------------------------------------------------------------------+"
 
 	update-desktop-database -q
 }
@@ -191,7 +199,7 @@ post_upgrade() {
 }
 
 pre_remove() {
-
+	echo "Preparing to uninstall HyperHDR"
 
 	# search for users in system, returns first entry
 	FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
@@ -202,29 +210,29 @@ pre_remove() {
 
 	if grep -m1 systemd /proc/1/comm > /dev/null
 	then
-		echo "---> stop init deamon: systemd"
+		echo "Stopping HyperHDR daemon: systemd"
 		# systemd
 		$HYPERHDR_RUNNING && systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
 		# disable user specific symlink
-		echo "---> Disable service and remove entry"
+		echo "Disabling service and removing entry"
 		systemctl -q disable hyperhdr"@${FOUND_USR}"
 
 		rm -v /etc/systemd/system/hyperhdr@.service 2>/dev/null	
 
 	elif [ -e /usr/bin/initctl ]
 	then
-		echo "---> stop init deamon: upstart"
+		echo "Stopping HyperHDR daemon: upstart"
 		# upstart
 		$HYPERHDR_RUNNING && initctl stop hyperhdr
-		echo "---> Remove upstart service"
+		echo "Remove upstart service"
 		rm -v /etc/init/hyperhdr* 2>/dev/null
 		initctl reload-configuration
 
 	else
-		echo "---> stop init deamon: sysV"
+		echo "Stopping HyperHDR daemon: sysV"
 		# sysV
 		$HYPERHDR_RUNNING && service hyperhdr stop 2>/dev/null
-		echo "---> Remove sysV service"
+		echo "Remove sysV service"
 		update-rc.d -f hyperhdr remove
 		rm /etc/init.d/hyperhdr* 2>/dev/null
 	fi
@@ -234,12 +242,12 @@ pre_remove() {
 
 	# delete desktop icons; desktop-file-edit is a workaround to hide the entry and delete it afterwards manual.
 	# TODO Better way for deletion and keep the desktop in sync without logout/login or desktop dependend cmds?
-	echo "---> Delete HyperHdr desktop icons"
+	echo "Deleting HyperHDR desktop icons"
 	desktop-file-edit --set-key=NoDisplay --set-value=true /usr/share/applications/hyperhdr.desktop 2>/dev/null
 	rm -v /usr/share/applications/hyperhdr* 2>/dev/null
 	rm -rv /usr/share/pixmaps/hyperhdr 2>/dev/null
 
-	echo "Removing LUT table..."
+	echo "Removing LUT table"
 	rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.3d
 	exit 0
 }

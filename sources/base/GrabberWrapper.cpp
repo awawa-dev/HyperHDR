@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,52 +25,43 @@
 *  SOFTWARE.
  */
 
+#ifndef PCH_ENABLED
+	#include <QTimer>
+	#include <QThread>
+	#include <QDir>
+	#include <QFileInfo>
+#endif
+
+#include <HyperhdrConfig.h>
 #include <base/GrabberWrapper.h>
 #include <base/Grabber.h>
 #include <utils/VideoMemoryManager.h>
-#include <HyperhdrConfig.h>
-
 #include <utils/GlobalSignals.h>
 #include <utils/QStringUtils.h>
-#include <base/HyperHdrIManager.h>
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrManager.h>
 
-#include <QTimer>
-#include <QThread>
-#include <QDir>
-#include <QFileInfo>
-
-GrabberWrapper* GrabberWrapper::instance = nullptr;
-
-GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber* ggrabber)
+GrabberWrapper::GrabberWrapper(const QString& grabberName)
 	: _grabberName(grabberName)
 	, _log(Logger::getInstance(grabberName))
 	, _configLoaded(false)
-	, _grabber(ggrabber)
+	, _grabber(nullptr)
 	, _cecHdrStart(0)
 	, _cecHdrStop(0)
 	, _autoResume(false)
 	, _isPaused(false)
 	, _pausingModeEnabled(false)
-	, _benchmarkStatus(-1)
-	, _benchmarkMessage("")
 {
-	GrabberWrapper::instance = this;
+	Debug(_log, "Starting the grabber wrapper");
 
-	// connect the image forwarding
-
-	connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setVideoImage);
-
-	// listen for source requests
-	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &GrabberWrapper::handleSourceRequest);
-
-	connect(this, &GrabberWrapper::cecKeyPressed, this, &GrabberWrapper::cecKeyPressedHandler);
-
-	connect(this, &GrabberWrapper::setBrightnessContrastSaturationHue, this, &GrabberWrapper::setBrightnessContrastSaturationHueHandler);
-
-	connect(this, &GrabberWrapper::instancePauseChanged, this, &GrabberWrapper::instancePauseChangedHandler);
+	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
+	connect(this, &GrabberWrapper::SignalNewVideoImage, GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &GrabberWrapper::signalRequestSourceHandler);
+	connect(this, &GrabberWrapper::SignalCecKeyPressed, this, &GrabberWrapper::signalCecKeyPressedHandler);
+	connect(this, &GrabberWrapper::SignalInstancePauseChanged, this, &GrabberWrapper::signalInstancePauseChangedHandler);
 }
 
-void GrabberWrapper::instancePauseChangedHandler(int instance, bool isEnabled)
+void GrabberWrapper::signalInstancePauseChangedHandler(int instance, bool isEnabled)
 {
 	static int signature = 0;
 	int trigger = 0;
@@ -108,7 +99,7 @@ void GrabberWrapper::instancePauseChangedHandler(int instance, bool isEnabled)
 						Warning(_log, "LEDs are off and you have enabled the pausing feature for the USB grabber. Pausing the video grabber now.");
 						auto _running_clients_copy = _running_clients;
 						_running_clients.clear();
-						handleSourceRequest(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);
+						signalRequestSourceHandler(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);
 						_running_clients = _running_clients_copy;
 						_isPaused = true;
 					}
@@ -118,7 +109,7 @@ void GrabberWrapper::instancePauseChangedHandler(int instance, bool isEnabled)
 					if (_isPaused)
 					{
 						Warning(_log, "LEDs are on. Resuming the video grabber now.");
-						handleSourceRequest(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);
+						signalRequestSourceHandler(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);
 						_isPaused = false;
 					}
 				}
@@ -130,9 +121,11 @@ void GrabberWrapper::instancePauseChangedHandler(int instance, bool isEnabled)
 void GrabberWrapper::setCecStartStop(int cecHdrStart, int cecHdrStop)
 {
 	_cecHdrStart = cecHdrStart;
-	_cecHdrStop = cecHdrStop;
+	_cecHdrStop = cecHdrStop;	
 
 	Debug(_log, "CEC keycode. Start: %i, stop: %i", _cecHdrStart, _cecHdrStop);
+
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_CEC, -1, isCEC());
 }
 
 QJsonDocument GrabberWrapper::startCalibration()
@@ -159,7 +152,7 @@ QJsonDocument GrabberWrapper::getCalibrationInfo()
 	return _grabber->getCalibrationInfo();
 }
 
-void GrabberWrapper::cecKeyPressedHandler(int key)
+void GrabberWrapper::signalCecKeyPressedHandler(int key)
 {
 	if (_grabber != nullptr)
 	{
@@ -179,33 +172,7 @@ bool GrabberWrapper::isCEC()
 	return (_cecHdrStart > 0) || (_cecHdrStop > 0);
 }
 
-void GrabberWrapper::newFrame(const Image<ColorRgb>& image)
-{
-	if (_benchmarkStatus >= 0)
-	{
-		ColorRgb pixel = image(image.width() / 2, image.height() / 2);
-		if ((_benchmarkMessage == "white" && pixel.red > 120 && pixel.green > 120 && pixel.blue > 120) ||
-			(_benchmarkMessage == "red" && pixel.red > 120 && pixel.green < 30 && pixel.blue < 30) ||
-			(_benchmarkMessage == "green" && pixel.red < 30 && pixel.green > 120 && pixel.blue < 30) ||
-			(_benchmarkMessage == "blue" && pixel.red < 30 && pixel.green < 40 && pixel.blue > 120) ||
-			(_benchmarkMessage == "black" && pixel.red < 30 && pixel.green < 30 && pixel.blue < 30))
-
-		{
-			emit benchmarkUpdate(_benchmarkStatus, _benchmarkMessage);
-			_benchmarkStatus = -1;
-			_benchmarkMessage = "";
-		}
-	}
-
-	if (image.setBufferCacheSize())
-	{
-		Warning(_log, "Detected the video frame size changed (%ix%i). Cache buffer was cleared.", image.width(), image.height());
-	}
-
-	emit systemImage(_grabberName, image);
-}
-
-void GrabberWrapper::readError(const char* err)
+void GrabberWrapper::capturingExceptionHandler(const char* err)
 {
 	Error(_log, "Grabber signals error (%s)", err);
 }
@@ -213,6 +180,7 @@ void GrabberWrapper::readError(const char* err)
 GrabberWrapper::~GrabberWrapper()
 {
 	Debug(_log, "Closing grabber: %s", QSTRING_CSTR(_grabberName));
+	_grabber = nullptr;
 }
 
 QJsonObject GrabberWrapper::getJsonInfo()
@@ -258,9 +226,16 @@ QJsonObject GrabberWrapper::getJsonInfo()
 	return grabbers;
 }
 
-void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int instanceIndex, bool listen)
+void GrabberWrapper::signalRequestSourceHandler(hyperhdr::Components component, int instanceIndex, bool listen)
 {
-	if (component == hyperhdr::Components::COMP_VIDEOGRABBER)
+	if (component == hyperhdr::Components::COMP_HDR)
+	{
+		if (instanceIndex >= 0)
+			emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, _grabber->getHdrToneMappingEnabled());
+		else
+			setHdrToneMappingEnabled(listen);
+	}
+	else if (component == hyperhdr::Components::COMP_VIDEOGRABBER)
 	{
 		if (instanceIndex >= 0)
 		{
@@ -282,9 +257,9 @@ void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int ins
 
 			//update state
 			QString currentDevice = "", currentVideoMode = "";
-			emit StateChanged(currentDevice, currentVideoMode);
+			emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
 
-			emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), -1);
+			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(false, PerformanceReportType::VIDEO_GRABBER, -1);
 		}
 		else
 		{
@@ -300,13 +275,9 @@ void GrabberWrapper::handleSourceRequest(hyperhdr::Components component, int ins
 			if (currentInfo.contains(Grabber::currentVideoModeInfo::resolution))
 				currentVideoMode = currentInfo[Grabber::currentVideoModeInfo::resolution];
 
-			emit StateChanged(currentDevice, currentVideoMode);
+			emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
 
-			if (result)
-				emit PerformanceCounters::getInstance()->newCounter(
-					PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), -1, "", -1, -1, -1, -1));
-			else
-				emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), -1);
+			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(result, PerformanceReportType::VIDEO_GRABBER, -1);
 		}
 	}
 }
@@ -323,16 +294,21 @@ QMap<Grabber::currentVideoModeInfo, QString> GrabberWrapper::getVideoCurrentMode
 bool GrabberWrapper::start()
 {
 	if (_grabber != nullptr)
-		return _grabber->start();
+	{
+		if (_grabber->isInitialized())
+			return true;
+		else
+			return _grabber->start();
+	}
 	else
 		return false;
 }
 
 void GrabberWrapper::stop()
 {
-	emit PerformanceCounters::getInstance()->removeCounter(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), -1);
+	emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(false, PerformanceReportType::VIDEO_GRABBER, -1);
 
-	if (_grabber != nullptr)
+	if (_grabber != nullptr && _grabber->isInitialized())
 		_grabber->stop();
 }
 
@@ -370,11 +346,7 @@ void GrabberWrapper::setHdrToneMappingEnabled(int mode)
 {
 	if (_grabber != NULL)
 	{
-		_grabber->setHdrToneMappingEnabled(mode);
-
-		// make emit
-		emit HdrChanged(mode);
-		emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
+		_grabber->setHdrToneMappingEnabled(mode);		
 	}
 }
 
@@ -384,16 +356,6 @@ int GrabberWrapper::getHdrToneMappingEnabled()
 		return _grabber->getHdrToneMappingEnabled();
 	else
 		return 0;
-}
-
-int GrabberWrapper::getFpsSoftwareDecimation()
-{
-	return _grabber->getFpsSoftwareDecimation();
-}
-
-int GrabberWrapper::getActualFps()
-{
-	return _grabber->getActualFps();
 }
 
 void GrabberWrapper::setFpsSoftwareDecimation(int decimation)
@@ -408,7 +370,7 @@ void GrabberWrapper::setEncoding(QString enc)
 		_grabber->setEncoding(enc);
 }
 
-void GrabberWrapper::setBrightnessContrastSaturationHueHandler(int brightness, int contrast, int saturation, int hue)
+void GrabberWrapper::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
 	if (_grabber != nullptr)
 		_grabber->setBrightnessContrastSaturationHue(brightness, contrast, saturation, hue);
@@ -450,13 +412,15 @@ DetectionAutomatic::calibrationPoint GrabberWrapper::parsePoint(int width, int h
 void GrabberWrapper::revive()
 {
 	if (_grabber != nullptr && _autoResume)
-		QTimer::singleShot(3000, _grabber, SLOT(revive()));
+		QTimer::singleShot(3000, _grabber.get(), &Grabber::revive);
 }
 
 void GrabberWrapper::benchmarkCapture(int status, QString message)
 {
-	_benchmarkStatus = status;
-	_benchmarkMessage = message;
+	if (_grabber != nullptr)
+	{
+		_grabber->benchmarkCapture(status, message);
+	}
 }
 
 bool GrabberWrapper::getAutoResume()
@@ -606,10 +570,6 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 			_grabber->setQFrameDecimation(obj["qFrame"].toBool(false));
 
-			bool frameCache = obj["videoCache"].toBool(true);
-			Debug(_log, "Frame cache is: %s", (frameCache) ? "enabled" : "disabled");
-			VideoMemoryManager::enableCache(frameCache);
-
 			_grabber->unblockAndRestart(_configLoaded);
 		}
 		catch (...)
@@ -628,7 +588,14 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		if (currentInfo.contains(Grabber::currentVideoModeInfo::resolution))
 			currentVideoMode = currentInfo[Grabber::currentVideoModeInfo::resolution];
 
-		emit StateChanged(currentDevice, currentVideoMode);
+		emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
 	}
+}
+
+QString GrabberWrapper::getVideoCurrentModeResolution()
+{
+	QMap<Grabber::currentVideoModeInfo, QString> mode = _grabber->getVideoCurrentMode();
+	QString vidMode = mode.contains(Grabber::currentVideoModeInfo::resolution) ? mode[Grabber::currentVideoModeInfo::resolution] : "";
+	return vidMode;
 }
 

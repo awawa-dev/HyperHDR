@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -42,14 +42,7 @@ Animation_Breath::Animation_Breath(QString name) :
 
 EffectDefinition Animation_Breath::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_Breath>);
 	ed.name = ANIM_BREATH;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_Breath::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

@@ -1,29 +1,29 @@
 #pragma once
 
+#ifndef PCH_ENABLED
+	#include <QFile>
+	#include <QJsonDocument>
+	#include <QRegularExpression>
+	#include <QString>
+	#include <QStringList>
+	#include <QJsonObject>
+	#include <QJsonValue>
+	#include <QJsonArray>
+
+	#include <iostream>
+	#include <stdexcept>
+#endif
+
 #include <utils/jsonschema/QJsonSchemaChecker.h>
-
-#include <iostream>
-#include <stdexcept>
-
-#include <QFile>
-#include <QJsonDocument>
-#include <QRegularExpression>
-#include <QString>
-#include <QStringList>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonArray>
 
 class QJsonUtils
 {
 public:
 	static int load(const QString& schema, const QString& config, QJsonObject& json)
 	{
-		// Load the schema and the config trees
 		QJsonObject schemaTree = readSchema(schema);
 		QJsonObject configTree = readConfig(config);
 
-		// create the validator
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schemaTree);
 
@@ -200,24 +200,25 @@ public:
 		return createValue(schema, ignoreRequired);
 	}
 
-	static QString getDefaultValue(const QJsonValue& value)
+	static QString outputNode(const QJsonValue& value)
 	{
-		QString ret;
 		switch (value.type())
 		{
 		case QJsonValue::Array:
 		{
+			QString ret = "[";
 			for (const QJsonValueRef v : value.toArray())
 			{
-				ret = getDefaultValue(v);
-				if (!ret.isEmpty())
-					break;
+				ret += ((ret.length() > 1) ? ", ": "") + outputNode(v);
 			}
+			return ret + "]";
 			break;
 		}
 		case QJsonValue::Object:
-			ret = getDefaultValue(value.toObject().find("default").value());
+		{
+			return QJsonDocument(value.toObject()).toJson(QJsonDocument::Compact);
 			break;
+		}
 		case QJsonValue::Bool:
 			return value.toBool() ? "True" : "False";
 		case QJsonValue::Double:
@@ -228,7 +229,7 @@ public:
 		case QJsonValue::Undefined:
 			break;
 		}
-		return ret;
+		return "???";
 	}
 
 private:
@@ -270,38 +271,38 @@ private:
 			for (QJsonObject::const_iterator i = obj.begin(); i != obj.end(); ++i)
 			{
 				QString attribute = i.key();
-				const QJsonValue& attributeValue = *i;
+				const QJsonObject& attributeValue = i.value().toObject();
 				QJsonValue subValue = obj[attribute];
 
-				if (attributeValue.toObject().find("type") != attributeValue.toObject().end())
+				if (attributeValue.find("type") != attributeValue.end())
 				{
-					if (attributeValue.toObject().find("type").value().toString() == "object" && (attributeValue.toObject().find("required").value().toBool() || ignoreRequired))
+					if (attributeValue.find("type").value().toString() == "object" && (attributeValue.find("required").value().toBool() || ignoreRequired))
 					{
 						if (obj.contains("properties"))
 							result[attribute] = createValue(obj["properties"], ignoreRequired);
 						else
 							result[attribute] = createValue(subValue, ignoreRequired);
 					}
-					else if (attributeValue.toObject().find("type").value().toString() == "array" && (attributeValue.toObject().find("required").value().toBool() || ignoreRequired))
+					else if (attributeValue.find("type").value().toString() == "array" && (attributeValue.find("required").value().toBool() || ignoreRequired))
 					{
 						QJsonArray array;
 
-						if (attributeValue.toObject().find("default") != attributeValue.toObject().end())
-							result[attribute] = attributeValue.toObject().find("default").value();
+						if (attributeValue.find("default") != attributeValue.end())
+							result[attribute] = attributeValue.find("default").value();
 						else
 						{
 							QJsonValue retEmpty;
-							retEmpty = createValue(attributeValue.toObject()["items"], ignoreRequired);
+							retEmpty = createValue(attributeValue["items"], ignoreRequired);
 
 							if (!retEmpty.toObject().isEmpty())
 								array.append(retEmpty);
 							result[attribute] = array;
 						}
 					}
-					else if (attributeValue.toObject().find("required").value().toBool() || ignoreRequired)
+					else if ((attributeValue.find("required") != attributeValue.end() && attributeValue.find("required").value().toBool()) || ignoreRequired)
 					{
-						if (attributeValue.toObject().find("default") != attributeValue.toObject().end())
-							result[attribute] = attributeValue.toObject().find("default").value();
+						if (attributeValue.find("default") != attributeValue.end())
+							result[attribute] = attributeValue.find("default").value();
 						else
 							result[attribute] = QJsonValue::Null;
 					}

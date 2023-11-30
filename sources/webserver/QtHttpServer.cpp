@@ -1,12 +1,16 @@
+#include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
+#include <QUrlQuery>
+
+#include <utils/NetOrigin.h>
 
 #include "QtHttpServer.h"
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
 #include "QtHttpClientWrapper.h"
-
-#include <QUrlQuery>
-
-#include <utils/NetOrigin.h>
 
 const QString& QtHttpServer::HTTP_VERSION = QStringLiteral("HTTP/1.1");
 
@@ -33,11 +37,11 @@ void QtHttpServerWrapper::incomingConnection(qintptr handle)
 	sock->setSocketDescriptor(handle) ? addPendingConnection(sock) : delete sock;
 }
 
-QtHttpServer::QtHttpServer(QObject* parent)
+QtHttpServer::QtHttpServer(std::shared_ptr<NetOrigin> netOrigin, QObject* parent)
 	: QObject(parent)
 	, m_useSsl(false)
 	, m_serverName(QStringLiteral("The Qt5 HTTP Server"))
-	, m_netOrigin(NetOrigin::getInstance())
+	, m_netOrigin(netOrigin)
 {
 	m_sockServer = new QtHttpServerWrapper(this);
 	connect(m_sockServer, &QtHttpServerWrapper::newConnection, this, &QtHttpServer::onClientConnected);
@@ -69,12 +73,6 @@ void QtHttpServer::stop(void)
 	}
 }
 
-void QtHttpServer::setUseSecure(const bool ssl)
-{
-	m_useSsl = ssl;
-	m_sockServer->setUseSecure(m_useSsl);
-}
-
 void QtHttpServer::onClientConnected(void)
 {
 	while (m_sockServer->hasPendingConnections())
@@ -100,7 +98,8 @@ void QtHttpServer::onClientConnected(void)
 					}
 				}
 
-				QtHttpClientWrapper* wrapper = new QtHttpClientWrapper(sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
+				QtHttpClientWrapper* wrapper = new QtHttpClientWrapper(
+					sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
 				m_socksClientsHash.insert(sock, wrapper);
 				emit clientConnected(wrapper->getGuid());
 			}
@@ -123,6 +122,12 @@ void QtHttpServer::onClientDisconnected(void)
 			m_socksClientsHash.remove(sockClient);
 		}
 	}
+}
+
+void QtHttpServer::setUseSecure(const bool ssl)
+{
+	m_useSsl = ssl;
+	m_sockServer->setUseSecure(m_useSsl);
 }
 
 const QString& QtHttpServer::getServerName(void) const
