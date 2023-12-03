@@ -38,7 +38,7 @@ public:
 		_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
 	}
 
-	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log)
+	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log, bool _forceSerialDetection)
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 
@@ -67,6 +67,17 @@ public:
 		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
 		{
 			Warning(_log, "Enabling the Rpi4 udev bug workaround. The serial device is incorrectly identified by the OS and HyperHDR skips the reset. State: %i, %i",
+				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+
+			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+
+			_rs232Port.setDataTerminalReady(true);
+			_rs232Port.setRequestToSend(true);
+			_rs232Port.setRequestToSend(false);
+		}
+		else if (!serialPortInfo.hasProductIdentifier() && !serialPortInfo.hasVendorIdentifier() && _forceSerialDetection)
+		{
+			Warning(_log, "Force ESP/Pico detection override enabled. HyperHDR skips the reset. State: %i, %i",
 				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
 
 			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));

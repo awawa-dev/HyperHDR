@@ -119,6 +119,8 @@ private:
 	int _frameDropCounter;
 
 	bool _espHandshake;
+
+	bool _forceSerialDetection;
 };
 
 #endif // PROVIDERRS232_H
