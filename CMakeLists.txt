@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.5.0)
 
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
@@ -31,6 +31,7 @@ SET ( DEFAULT_MAC_SYSTEM                  OFF )
 SET ( DEFAULT_V4L2                        OFF )
 SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_PIPEWIRE                    OFF )
+SET ( DEFAULT_PIPEWIRE_EGL                OFF )
 SET ( DEFAULT_FRAMEBUFFER                 OFF )
 SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 SET ( DEFAULT_SOUNDCAPMACOS               OFF )
@@ -246,8 +247,17 @@ if (DEFAULT_PIPEWIRE)
 		if(NOT PIPEWIRE_FOUND OR NOT PIPEWIRE_INCLUDE_DIRS OR NOT PIPEWIRE_LIBRARIES)
 			message( WARNING "Pipewire >= 3.0 not found (did you install libpipewire-0.3-dev?). Disabling support for PipeWire software grabber.")
 			SET ( DEFAULT_PIPEWIRE                    OFF )
+		else()
+			if(POLICY CMP0072)
+			  cmake_policy(SET CMP0072 NEW)
+			endif()
+			find_package(OpenGL)
+			if (NOT OpenGL_OpenGL_FOUND OR NOT OpenGL_EGL_FOUND)
+				message( WARNING "OpenGL/EGL not found. Disabling DMA buffers for Pipewire.")
+			else()
+				SET ( DEFAULT_PIPEWIRE_EGL                ON )
+			endif()
 		endif()
-
 	endif()
 endif()
 
@@ -329,6 +339,11 @@ colorMe("ENABLE_MAC_SYSTEM = " ${ENABLE_MAC_SYSTEM})
 option(ENABLE_PIPEWIRE "Enable the pipewire/portal Linux system grabber" ${DEFAULT_PIPEWIRE})
 colorMe("ENABLE_PIPEWIRE = " ${ENABLE_PIPEWIRE})
 
+option(ENABLE_PIPEWIRE_EGL "Enable the pipewire EGL extension" ${DEFAULT_PIPEWIRE_EGL})
+if (DEFAULT_PIPEWIRE)
+	colorMe("ENABLE_PIPEWIRE_EGL = " ${ENABLE_PIPEWIRE_EGL})
+endif()
+
 option(ENABLE_X11 "Enable the X11 Linux system grabber" ${DEFAULT_X11})
 colorMe("ENABLE_X11 = " ${ENABLE_X11})
 
@@ -390,6 +405,13 @@ colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
 
 option(USE_SYSTEM_MBEDTLS_LIBS "Use system mbedtls libs" ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS})
 colorMe("USE_SYSTEM_MBEDTLS_LIBS = " ${USE_SYSTEM_MBEDTLS_LIBS})
+
+if(UNIX AND NOT APPLE)
+	option(USE_STANDARD_INSTALLER_NAME "Use the standardized Linux installer name" OFF)
+	colorMe("USE_STANDARD_INSTALLER_NAME = " ${USE_STANDARD_INSTALLER_NAME})
+else()
+	SET ( USE_STANDARD_INSTALLER_NAME      OFF )
+endif()
 
 message( STATUS "\n")
 
@@ -454,7 +476,7 @@ endif()
 if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+	list(APPEND CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
@@ -503,37 +525,40 @@ add_definitions(${QT_DEFINITIONS})
 # libjpegturbo
 if ( ENABLE_V4L2 OR ENABLE_MF )
 	if(WIN32)
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
+			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
 		endif()
-		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip OR
-			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib)
-			message( STATUS "Downloading libjpegturbo library")
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows)
-			file(DOWNLOAD https://github.com/awawa-dev/libjpeg-turbo/releases/download/2.1.3/windows.zip
-						  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip
-						  STATUS JPEG_DOWNLOAD_STATUS
-						  EXPECTED_HASH MD5=2CF284387AC832270736893C4EE05852)
-			list(GET JPEG_DOWNLOAD_STATUS 0 JPEG_DOWNLOAD_STATUS_CODE)
-			if(JPEG_DOWNLOAD_STATUS_CODE AND NOT JPEG_DOWNLOAD_STATUS_CODE EQUAL 0)
-				message( FATAL_ERROR "Could not download libjpegturbo library")
+
+		if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip OR
+			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows)
+			message( STATUS "Downloading libraries for HyperHDR (Windows)")		
+			file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.08.07/libs4windows.zip
+						${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip
+						STATUS WIN_LIBS_DOWNLOAD_STATUS
+						EXPECTED_HASH SHA256=2a0fc14eaad35d8cc36b262c8dcb501d1fac3a72d7bedcca51b71b60395c6c3f)
+			list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
+			if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
+				file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip )
+				message( FATAL_ERROR "Could not download libraries needed by HyperHDR (Windows)")
 			endif()
 		endif()
+
 		execute_process(
-			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/ -aoa -y
+			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/ -aoa -y
 			RESULT_VARIABLE STATUS_EXTRACT
 			OUTPUT_VARIABLE OUTPUT1
 		)
+
 		if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
-		    message( FATAL_ERROR "Could not extract libjpegturbo library")
+			message( FATAL_ERROR "Could not extract libraries for HyperHDR (Windows)")
 		else()
-		    message( STATUS "libjpegturbo library extracted")			
+			message( STATUS "Package of libraries for HyperHDR extracted (Windows)")
 		endif()
+
 		set (TURBOJPEG_FOUND 1)
-		
-		set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/bin")
-		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/lib/turbojpeg.lib")
-		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg-windows/include")
+		set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/bin")
+		set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
+		set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/include")
 	else()
 		FIND_PACKAGE(PkgConfig REQUIRED)
 		pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
@@ -585,8 +610,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
-	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET precompiled_hyperhdr_headers AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET flathash AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
+	set_target_properties(precompiled_hyperhdr_headers qmqtt apidoc flatbuffers flatc flathash lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

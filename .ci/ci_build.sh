@@ -25,6 +25,8 @@ fi
 # set environment variables if not exists (debug)
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
 
+[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME="OFF"
+
 echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}"
 
 # Build the package on osx or linux
@@ -117,7 +119,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 			cat PKGBUILD
 			chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 		else
-			executeCommand="cd build && ( cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 )"
+			executeCommand="cd build && ( cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"
 			executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 		fi
 
@@ -129,10 +131,10 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
-		cd /hyperhdr && mkdir build && ${executeCommand} &&
-		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
-		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
-		cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : &&
+		cd /hyperhdr && mkdir build && (${executeCommand}) &&
+		(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
+		(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
+		(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&
 		ccache -s &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
@@ -145,7 +147,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 			echo "Using makepkg"
 			cat PKGBUILD
 		else
-			executeCommand="cd build && ( cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 )"
+			executeCommand="cd build && ( cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"
 			executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 		fi
 
@@ -155,10 +157,10 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
-		cd /hyperhdr && mkdir build && ${executeCommand} &&
-		cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : &&
-		cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : &&
-		cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : &&
+		cd /hyperhdr && mkdir build && (${executeCommand}) &&
+		(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
+		(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
+		(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&
 		exit 0;
 		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	fi

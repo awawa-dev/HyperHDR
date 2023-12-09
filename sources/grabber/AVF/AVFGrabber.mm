@@ -109,8 +109,7 @@ AVFGrabber::format_t fmt_array[] =
 };
 
 AVFGrabber::AVFGrabber(const QString& device, const QString& configurationPath)
-	: Grabber("macOS AVF:" + device.left(14))
-	, _configurationPath(configurationPath)
+	: Grabber(configurationPath, "macOS AVF:" + device.left(14))
 	, _permission(false)
 {
 	// init AVF

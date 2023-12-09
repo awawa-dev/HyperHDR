@@ -36,7 +36,7 @@ void WebServer::initServer()
 {
 	Info(_log, "Initialize Webserver");
 	_server = new QtHttpServer(this);
-	_server->setServerName(QStringLiteral("HyperHDR Webserver"));
+	_server->setServerName(QString("HyperHDR WebServer %1").arg((!_useSsl) ? "(HTTP)" : "(HTTPS)"));
 
 	if (_useSsl)
 	{
@@ -60,20 +60,20 @@ void WebServer::onServerStarted(quint16 port)
 {
 	_inited = true;
 
-	Info(_log, "Started on port %d name '%s'", port, _server->getServerName().toStdString().c_str());
+	Info(_log, "Started: '%s' on port: %d", QSTRING_CSTR(_server->getServerName()), port);
 
 #ifdef ENABLE_BONJOUR
 	if (!_useSsl)
 	{
 		if (_serviceRegister == nullptr)
 		{
-			_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-http._tcp", port);
+			_serviceRegister = new BonjourServiceRegister(this, DiscoveryRecord::Service::HyperHDR, port);
 			_serviceRegister->registerService();
 		}
 		else if (_serviceRegister->getPort() != port)
 		{
 			delete _serviceRegister;
-			_serviceRegister = new BonjourServiceRegister(this, "_hyperhdr-http._tcp", port);
+			_serviceRegister = new BonjourServiceRegister(this, DiscoveryRecord::Service::HyperHDR, port);
 			_serviceRegister->registerService();
 		}
 	}
@@ -82,41 +82,12 @@ void WebServer::onServerStarted(quint16 port)
 	emit stateChange(true);
 }
 
-void WebServer::onServerStopped()
-{
-	Info(_log, "Stopped %s", _server->getServerName().toStdString().c_str());
-	emit stateChange(false);
-}
-
-void WebServer::onServerError(QString msg)
-{
-	Error(_log, "%s", msg.toStdString().c_str());
-}
-
-bool WebServer::portAvailable(quint16& port, Logger* log)
-{
-	const quint16 prevPort = port;
-	QTcpServer server;
-	while (!server.listen(QHostAddress::Any, port))
-	{
-		Warning(log, "Port '%d' is already in use, will increment", port);
-		port++;
-	}
-	server.close();
-	if (port != prevPort)
-	{
-		Warning(log, "The requested Port '%d' was already in use, will use Port '%d' instead", prevPort, port);
-		return false;
-	}
-	return true;
-}
-
-void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
+void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 {
 	if (type == settings::type::WEBSERVER)
 	{
 		Info(_log, "Apply Webserver settings");
-		const QJsonObject& obj = config.object();
+		QJsonObject obj = config.object();
 
 		_baseUrl = obj["document_root"].toString(WEBSERVER_DEFAULT_PATH);
 
@@ -126,14 +97,14 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			QFileInfo info(_baseUrl);
 			if (!info.exists() || !info.isDir())
 			{
-				Error(_log, "document_root '%s' is invalid", _baseUrl.toUtf8().constData());
+				Error(_log, "Document_root '%s' is invalid", QSTRING_CSTR(_baseUrl));
 				_baseUrl = WEBSERVER_DEFAULT_PATH;
 			}
 		}
 		else
 			_baseUrl = WEBSERVER_DEFAULT_PATH;
 
-		Info(_log, "Set document root to: %s", _baseUrl.toUtf8().constData());
+		Info(_log, "Set document root to: %s", QSTRING_CSTR(_baseUrl));
 		_staticFileServing->setBaseUrl(_baseUrl);
 
 		// ssl different port
@@ -163,7 +134,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 				QFileInfo kinfo(keyPath);
 				if (!kinfo.exists())
 				{
-					Error(_log, "No SSL key found at '%s' falling back to internal", keyPath.toUtf8().constData());
+					Error(_log, "No SSL key found at '%s' falling back to internal", QSTRING_CSTR(keyPath));
 					keyPath = WEBSERVER_DEFAULT_KEY_PATH;
 				}
 			}
@@ -176,7 +147,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 				QFileInfo cinfo(crtPath);
 				if (!cinfo.exists())
 				{
-					Error(_log, "No SSL certificate found at '%s' falling back to internal", crtPath.toUtf8().constData());
+					Error(_log, "No SSL certificate found at '%s' falling back to internal", QSTRING_CSTR(crtPath));
 					crtPath = WEBSERVER_DEFAULT_CRT_PATH;
 				}
 			}
@@ -191,19 +162,21 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			cfile.close();
 
 			// Filter for valid certs
-			for (const auto& entry : cList) {
+			for (const auto& entry : cList)
+			{
 				if (!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
 					validList.append(entry);
 				else
-					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('%s')", crtPath.toUtf8().constData());
+					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('%s')", QSTRING_CSTR(crtPath));
 			}
 
-			if (!validList.isEmpty()) {
+			if (!validList.isEmpty())
+			{
 				Info(_log, "Setup SSL certificate");
 				_server->setCertificates(validList);
 			}
 			else {
-				Error(_log, "No valid SSL certificate has been found ('%s'). Did you install OpenSSL?", crtPath.toUtf8().constData());
+				Error(_log, "No valid SSL certificate has been found ('%s'). Did you install OpenSSL?", QSTRING_CSTR(crtPath));
 			}
 
 			// load and verify key
@@ -213,10 +186,12 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			QSslKey key(&kfile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, obj["keyPassPhrase"].toString().toUtf8());
 			kfile.close();
 
-			if (key.isNull()) {
-				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('%s')", keyPath.toUtf8().constData());
+			if (key.isNull())
+			{
+				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('%s')", QSTRING_CSTR(keyPath));
 			}
-			else {
+			else
+			{
 				Info(_log, "Setup private SSL key");
 				_server->setPrivateKey(key);
 			}
@@ -240,4 +215,33 @@ void WebServer::stop()
 void WebServer::setSSDPDescription(const QString& desc)
 {
 	_staticFileServing->setSSDPDescription(desc);
+}
+
+void WebServer::onServerError(QString msg)
+{
+	Error(_log, "%s", QSTRING_CSTR(msg));
+}
+
+void WebServer::onServerStopped()
+{
+	Info(_log, "Stopped: %s", QSTRING_CSTR(_server->getServerName()));
+	emit stateChange(false);
+}
+
+bool WebServer::portAvailable(quint16& port, Logger* log)
+{
+	const quint16 prevPort = port;
+	QTcpServer server;
+	while (!server.listen(QHostAddress::Any, port))
+	{
+		Warning(log, "Port '%d' is already in use, will increment", port);
+		port++;
+	}
+	server.close();
+	if (port != prevPort)
+	{
+		Warning(log, "The requested Port '%d' was already in use, will use Port '%d' instead", prevPort, port);
+		return false;
+	}
+	return true;
 }

@@ -24,11 +24,11 @@ $(document).ready( function(){
 	}
 	
 	function startDownloadWizard() {		
-		$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n("main_menu_grabber_lut"));
-		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><i class="fa fa-refresh fa-spin align-middle" style="font-size: 50px;"></i></div></div>');
+		$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n("main_menu_grabber_lut"));
+		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-2"></svg><br/></div></div>');
 		$('#wizp2_body').html('<h4 id="download_summary_header" style="font-weight:bold;text-transform:uppercase;"></h4><p id="download_summary"></p>');
 		$('#wizp1_footer').html('');
-		$('#wizp2_footer').html('<button type="button" class="btn btn-success" name="btn_wiz_closeme_download"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_ok') + '</button>');
+		$('#wizp2_footer').html('<button type="button" class="btn btn-success" name="btn_wiz_closeme_download"><svg data-src="svg/button_success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_ok') + '</button>');
 		//open modal
 		var downWiz= new bootstrap.Modal($("#wizard_modal"), {
 			backdrop: "static",
@@ -86,9 +86,15 @@ $(document).ready( function(){
 			{
 				let btn = document.createElement("button");
 				btn.lutBaseAddress = columnData.src;
-				btn.lutBrightness = columnData.brightness ?? 0;
-				btn.lutContrast = columnData.contrast ?? 0;
-				btn.lutSaturation = columnData.saturation ?? 0;
+				btn.lutBrightness = 0;
+				btn.lutContrast = 0;
+				btn.lutSaturation = 0;
+				if (columnData.brightness != null)
+					btn.lutBrightness = columnData.brightness;
+				if (columnData.contrast != null)
+					btn.lutContrast = columnData.contrast;
+				if (columnData.saturation != null)
+					btn.lutSaturation = columnData.saturation;
 				btn.setAttribute("class", "btn btn-warning mb-4");
 				btn.innerHTML = $.i18n('update_button_install');
 				btn.addEventListener('click', installLut, false);
@@ -113,6 +119,12 @@ $(document).ready( function(){
 
 					for(let i = 0; i < data.length; i++)
 					{
+						if (data[i].name=="MS2109" && window.serverInfo.grabbers.hasOwnProperty("active"))
+						{
+							var grabbers = window.serverInfo.grabbers.active;
+							if (grabbers.indexOf('macOS AVF') > -1)
+								continue;
+						}
 						newRow.appendChild(createColumn(data[i]));
 					}
 					mainElement.appendChild(newRow);
@@ -131,14 +143,14 @@ $(document).ready( function(){
 		if (event.response.data.status == 1)
 		{
 			$('#download_summary_header').css('color', 'green');
-			resElement.innerHTML = '<i class="fa fa-check-circle fa-fw"></i>' + $.i18n('infoDialog_general_success_title');
+			resElement.innerHTML = '<svg data-src="svg/success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('infoDialog_general_success_title');
 			resElement = document.getElementById("download_summary");
 			resElement.innerHTML = $.i18n("main_menu_grabber_lut_restart", selectedLut.lutBrightness, selectedLut.lutContrast, selectedLut.lutSaturation);
 		}
 		else
 		{
 			$('#download_summary_header').css('color', 'red');
-			resElement.innerHTML = '<i class="fa fa-exclamation-circle fa-fw"></i>' + $.i18n('infoDialog_general_error_title');
+			resElement.innerHTML = '<svg data-src="svg/error.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('infoDialog_general_error_title');
 			resElement = document.getElementById("download_summary");
 			resElement.innerHTML = event.response.data.error;	
 		}

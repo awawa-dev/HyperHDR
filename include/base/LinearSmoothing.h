@@ -70,7 +70,7 @@ public slots:
 	/// @param component   The component
 	/// @param state       The requested state
 	///
-	void componentStateChange(hyperhdr::Components component, bool state);	
+	void componentStateChange(hyperhdr::Components component, bool state);
 
 	///
 	/// @brief Update a smoothing cfg which can be used with selectConfig()

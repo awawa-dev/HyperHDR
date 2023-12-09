@@ -48,11 +48,17 @@ jobs:
             platform: linux
             niceName: Ubuntu 22.04 LTS
           - dockerImage: x86_64
-            linuxVersion: lunar
-            dockerName: Ubuntu 23.04 (x86_64)
+            linuxVersion: mantic
+            dockerName: Ubuntu 23.10 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Ubuntu 23.04
+            niceName: Ubuntu 23.10
+          - dockerImage: x86_64
+            linuxVersion: Fedora_39
+            dockerName: Fedora 39 (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Fedora 39
 
     steps:
       # checkout
@@ -86,9 +92,9 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
+          USE_STANDARD_INSTALLER_NAME: 'ON'
         shell: bash
         run: |
-          sed -i 's/#SET(HYPERHDR_REPO_BUILD ON)/SET(HYPERHDR_REPO_BUILD ON)/' ./cmake/packages.cmake
           ./.ci/ci_build.sh
 
       # deploy the package      

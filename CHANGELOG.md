@@ -1,6 +1,17 @@
+- New interface: removed ancient Font Awesome 4 (so 2017...) Migrate to SVG: Bootstrap Icons and Google Material Icons/Symbols #605 (v20 beta 🆕)
+- New device discovery service #605 (v20 beta 🆕)
+- Stability improvements & bug fixing #605 (v20 beta 🆕)
+- Fix QT5.15 issue when building on Windows #605 (v20 beta 🆕)
+- Add new effect: Rainbow Waves #607 (v20 beta 🆕)
+- MQTT: hostname address resolver. Thanks @lougovsk #586 (v20 beta 🆕)
+- V4L: allow setting of V4L device input, fixes #537. Thanks @Thinner77 #540 (v20 beta 🆕)  
+- Update flatbuffers to v23.5.26 #596 (v20 beta 🆕)  
+- Pause the USB grabber when all LEDs are off to reduce load #608 (v20 beta 🆕) 
+- Add support for HD108 led strip, 16/48bits colors #527 (v20 beta 🆕)  
 - Use optional system libs for compiling #541 (v20 beta 🆕)  
 - Update mbedtls to 3.4.0 #589 (v20 beta 🆕)  
-- Add Ubuntu support to HyperHDR and Github Pages APT repository #522 (v20 beta 🆕)  
+- Add Ubuntu support to HyperHDR and Github Pages APT repository #522 (v20 beta 🆕)
+- New JsonAPI method to calculate average color of selected instance #611 (v20 beta 🆕)
 - Workaround for critical Rpi udev bug affecting serial ports #583 (v20 beta 🆕)  
 - Add Arch Linux support #520 (v20 beta 🆕)  
 - Fix chrome/edge fullscreen detection #519 (v20 beta 🆕)  
@@ -68,8 +79,8 @@
 - Support for CEC (turn ON/OFF grabbers, remote keys to command HDR tone mapping)
 - Support for my new [HyperSPI](https://github.com/awawa-dev/HyperSPI) project for Rpi. Fastest possible cable solution for almost every generic ESP8266/ESP32 LED driver
 - Fork of WLED with USB serial port AWA protocol at @2000000 speed for ESP32 & ESP8266 and almost all types of LED strips: [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
-- Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP8266 at @2000000 baud with data integrity check: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266)
-- Support for WS821x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP32 at @2000000 baud with data integrity check: [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32)
+- Support for WS281x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP8266 at @2000000 baud with data integrity check: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266)
+- Support for WS281x RGB, SK6812 RGBW, APA102 like LED strips using USB serial port AWA protocol for ESP32 at @2000000 baud with data integrity check: [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32)
 - Automatic signal detection with smart learning capability for USB grabbers
 - Re-implemented backup import / export functions for ALL instances
 - New video stream crop method in JSON API and GET multi-command support

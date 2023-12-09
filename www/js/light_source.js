@@ -19,7 +19,7 @@ var _resizeObserver = null;
 if (typeof ResizeObserver === "function" && _resizeObserver === null)
 {
 	_resizeObserver = new ResizeObserver(entries => {		
-		if ( _lastOrigin != "" && _lastLeds.length > 0 )
+		if ( _lastOrigin != "" && _lastLeds.length > 0 && $('#previewledcount').length)
 		{
 			createLedPreview(_lastLeds, _lastOrigin);			
 		}
@@ -637,11 +637,6 @@ $(document).ready(function()
 		});
 	}
 
-	// check access level and adjust ui
-	if (storedAccess == "default")
-	{
-		$('#texfield_panel').toggle(false);
-	}
 	
 	// bind change event to all inputs
 	$('.ledCLconstr').bind("change", function()
@@ -997,6 +992,9 @@ $(document).ready(function()
 	{
 		if ($('#led_zoom_panel').hasClass("col-lg-6"))
 		{
+			$('#cmd_zoom_in_icon').addClass('d-none');
+			$('#cmd_zoom_out_icon').removeClass('d-none');
+
 			_backupLastOrigin = _lastOrigin;
 			_lastOrigin = "zoom";
 			 $('#ledPropertiesForm > .modal-dialog').addClass("modal-dialog-centered");
@@ -1014,6 +1012,9 @@ $(document).ready(function()
 		}
 		else
 		{
+			$('#cmd_zoom_in_icon').removeClass('d-none');
+			$('#cmd_zoom_out_icon').addClass('d-none');
+
 			_lastOrigin = _backupLastOrigin;
 			$('#ledPropertiesForm > .modal-dialog').removeClass("modal-dialog-centered");
 			$('#led_zoom_panel').addClass("col-lg-6");
@@ -1115,9 +1116,17 @@ $(document).ready(function()
 			{
 				const parsedIndexS = parseInt(idTxtS[1]);
 				if (finalLedArray[parsedIndexS].disabled === true)
+				{
+					$('#cmd_led_enable_icon').removeClass('d-none');
+					$('#cmd_led_disable_icon').addClass('d-none');
 					$('#cmd_dis_enable_text').html($.i18n('led_editor_context_enable'));
+				}
 				else
+				{
+					$('#cmd_led_enable_icon').addClass('d-none');
+					$('#cmd_led_disable_icon').removeClass('d-none');
 					$('#cmd_dis_enable_text').html($.i18n('led_editor_context_disable'));
+				}
 			}
 
 			$("#creator-context-menu").css({

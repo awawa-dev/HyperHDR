@@ -155,50 +155,6 @@ void JsonConnection::setEffect(const QString& effectName, const QString& effectA
 	parseReply(reply);
 }
 
-void JsonConnection::createEffect(const QString& effectName, const QString& effectScript, const QString& effectArgs)
-{
-	qDebug() << "Create effect " << effectName;
-
-	// create command
-	QJsonObject effect;
-	effect["command"] = QString("create-effect");
-	effect["name"] = effectName;
-	effect["script"] = effectScript;
-
-	if (effectArgs.size() > 0)
-	{
-		QJsonObject effObj;
-		if (!JsonUtils::parse("hyperhdr-remote-args", effectScript, effObj, _log))
-		{
-			throw std::runtime_error("Error in effect arguments, abort");
-		}
-
-		effect["args"] = effObj;
-	}
-
-	// send command message
-	QJsonObject reply = sendMessage(effect);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::deleteEffect(const QString& effectName)
-{
-	qDebug() << "Delete effect configuration" << effectName;
-
-	// create command
-	QJsonObject effect;
-	effect["command"] = QString("delete-effect");
-	effect["name"] = effectName;
-
-	// send command message
-	QJsonObject reply = sendMessage(effect);
-
-	// parse reply message
-	parseReply(reply);
-}
-
 QString JsonConnection::getServerInfoString()
 {
 	QJsonDocument doc(getServerInfo());

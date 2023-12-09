@@ -612,9 +612,9 @@ void FrameDecoder::processSystemImageBGR16(Image<ColorRgb>& image, int targetSiz
 		{
 			sLine += 2;
 			while (dLine < dLineEnd)
-			{				
+			{
 				*((uint16_t*)&buffer) = *((uint16_t*)sLine);
-								
+
 				*dLine++ = (buffer[1] & 0xF8);
 				*dLine++ = (((buffer[1] & 0x7) << 3) | (buffer[0] & 0xE0) >> 5) << 2;
 				*dLine++ = (buffer[0] & 0x1f) << 3;

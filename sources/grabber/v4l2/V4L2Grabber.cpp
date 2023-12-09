@@ -73,11 +73,10 @@ const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 
 
 V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath)
-	: Grabber("V4L2:" + device.left(14))
+	: Grabber(configurationPath, "V4L2:" + device.left(14))
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _streamNotifier(nullptr)
-	, _configurationPath(configurationPath)
 
 {
 	// Refresh devices
@@ -275,9 +274,9 @@ bool V4L2Grabber::init()
 			try
 			{
 				Info(_log, "*************************************************************************************************");
-				Info(_log, "Starting V4L2 grabber. Selected: %s [%s] %d x %d @ %d fps %s", QSTRING_CSTR(foundDevice), QSTRING_CSTR(dev.name),
+				Info(_log, "Starting V4L2 grabber. Selected: %s [%s] %d x %d @ %d fps %s input %d", QSTRING_CSTR(foundDevice), QSTRING_CSTR(dev.name),
 					dev.valid[foundIndex].x, dev.valid[foundIndex].y, dev.valid[foundIndex].fps,
-					QSTRING_CSTR(pixelFormatToString(dev.valid[foundIndex].pf)));
+					QSTRING_CSTR(pixelFormatToString(dev.valid[foundIndex].pf)), _input);
 				Info(_log, "*************************************************************************************************");
 
 				if (init_device(foundDevice, dev.valid[foundIndex]))
@@ -548,11 +547,14 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 			if (properties.valid.size() == 0 && realName.indexOf("usbtv ", 0, Qt::CaseInsensitive) == 0)
 			{
 				Warning(_log, "To have proper colors when using UTV007 grabber, you may need to add 'sudo systemctl stop hyperhdr@pi && v4l2-ctl -s pal-B && sudo systemctl start hyperhdr@pi' to /etc/rc.local or run it manually to set the PAL standard");
-				{ DevicePropertiesItem diL; diL.x = 320; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
-				{ DevicePropertiesItem diL; diL.x = 320; diL.y = 288; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
-				{ DevicePropertiesItem diL; diL.x = 360; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
-				{ DevicePropertiesItem diL; diL.x = 720; diL.y = 480; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
-				{ DevicePropertiesItem diL; diL.x = 720; diL.y = 576; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = 0; properties.valid.append(diL); }
+				for (int input = 0; input < properties.inputs.size(); input++)
+				{
+					{ DevicePropertiesItem diL; diL.x = 320; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = input; properties.valid.append(diL); }
+					{ DevicePropertiesItem diL; diL.x = 320; diL.y = 288; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = input; properties.valid.append(diL); }
+					{ DevicePropertiesItem diL; diL.x = 360; diL.y = 240; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = input; properties.valid.append(diL); }
+					{ DevicePropertiesItem diL; diL.x = 720; diL.y = 480; diL.fps = 30; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = input; properties.valid.append(diL); }
+					{ DevicePropertiesItem diL; diL.x = 720; diL.y = 576; diL.fps = 25; diL.pf = identifyFormat(V4L2_PIX_FMT_YUYV); diL.v4l2PixelFormat = V4L2_PIX_FMT_YUYV; diL.input = input; properties.valid.append(diL); }
+				}
 			}
 
 			_deviceProperties.insert(realName, properties);
@@ -562,7 +564,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				for (int i = 0; i < properties.valid.count(); i++)
 				{
 					const auto& di = properties.valid[i];
-					Info(_log, "%s [%s] %d x %d @ %d fps %s", QSTRING_CSTR(realName), QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)));
+					Info(_log, "%s [%s] %d x %d @ %d fps %s input %d", QSTRING_CSTR(realName), QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)), di.input);
 				}
 			}
 		}

@@ -17,6 +17,7 @@
 #endif
 
 #include <exception>
+#include <iostream>
 
 #include <QCoreApplication>
 #include <QApplication>
@@ -120,7 +121,7 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 	{
 		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
 		std::cout << "GUI application";
-}
+	}
 #endif
 
 	if (isGuiApp)
@@ -149,13 +150,6 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 int main(int argc, char** argv)
 {
 	QStringList params;
-
-#ifndef _WIN32
-	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-#endif
-	// initialize main logger and set global log level
-	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::INFO);
 
 	// check if we are running already an instance
 	// TODO Allow one session per user
@@ -219,8 +213,8 @@ int main(int argc, char** argv)
 	{
 		if (getProcessIdsByProcessName(processName).size() > 1)
 		{
-			Error(log, "The HyperHdr Daemon is already running, abort start");
-			return 0;
+			std::cerr << "The HyperHDR Daemon is already running, abort start";
+			return 1;
 		}
 	}
 	else
@@ -237,6 +231,10 @@ int main(int argc, char** argv)
 		CreateConsole();
 	}
 #endif
+
+	// initialize main logger and set global log level
+	Logger* log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::INFO);
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
@@ -269,7 +267,7 @@ int main(int argc, char** argv)
 		params.append("pipewire");
 	}
 #endif
-	
+
 	int rc = 1;
 	bool readonlyMode = false;
 

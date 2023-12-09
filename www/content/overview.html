@@ -1,13 +1,13 @@
 <div id="hyper-subpage" class="container-fluid" style="float:left;">
 	<div class="row">
 		<div class="col-lg-12">
-			<h3 class="page-header"><i class="fa fa-heartbeat fa-fw"></i><span data-i18n="main_menu_dashboard_token">Dashboard</span></h3>
+			<h3 class="page-header"><svg data-src="svg/overview_heartbeat.svg" width="28" height="28" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_menu_dashboard_token">Dashboard</span></h3>
 			<div id="dash_intro">
 				<div class="row">
 					<div class="col-12 col-lg-7 col-xl-8 col-xxl-7">
 						<div class="card card-default">
 							<div class="card-header">
-								<i class="fa fa-info-circle fa-fw"></i>
+								<svg data-src="svg/overview_heartbeat.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>
 								<span data-i18n="dashboard_infobox_label_title">Information</span>
 							</div>
 							<div class="card-body">
@@ -49,12 +49,12 @@
 								<p style="font-weight:bold" data-i18n="dashboard_infobox_label_smartacc">Smart Access<p>
 									<span id="btn_hsc"></span>
 									<hr>
-									<span id="versioninforesult"></span>
+									<div id="versioninforesult"></div>
 							</div>
 						</div>
-						<div class="card card-default" id="performance_counters_card">
+						<div class="card card-default performance_stats" id="performance_counters_card">
 							<div class="card-header">
-								<i class="fa fa-info-circle fa-fw"></i>
+								<svg data-src="svg/overview_performance.svg" fill="currentColor" class="svg4hyperhdr"></svg>
 								<span data-i18n="dashboard_performance_label_title">Performance</span>
 							</div>
 							<div class="card-body">
@@ -64,7 +64,7 @@
 											<div class="row w-100 d-none" id="perf_cell_hardware">
 												<div class="col-12 col-md-6 pt-1 pb-1 d-none" id="perf_cell_cpu_usage">
 													<div class="row w-100 border-bottom text-primary">
-														<b>CPU</b>
+														<div class="col-12"><svg data-src="svg/performance_cpu.svg" fill="currentColor" class="svg4hyperhdr"></svg><b>CPU</b></div>
 													</div>
 													<div class="row w-100">
 														<div class="col-12" id="perf_cpu_usage">
@@ -73,7 +73,7 @@
 												</div>
 												<div class="col-12 col-md-6 pt-1 pb-1 d-none" id="perf_cell_ram_usage">
 													<div class="row w-100 border-bottom text-primary">
-														<b>RAM</b>
+														<div class="col-12"><svg data-src="svg/performance_ram.svg" fill="currentColor" class="svg4hyperhdr"></svg><b>RAM</b></div>
 													</div>
 													<div class="row w-100">
 														<div class="col-12" id="perf_ram_usage">
@@ -84,7 +84,7 @@
 											<div class="row w-100 d-none" id="perf_cell_linux">
 												<div class="col-12 col-md-6 pt-1 pb-1 d-none" id="perf_cell_temperature">
 													<div class="row w-100 border-bottom text-primary fw-bold">
-														<span data-i18n="perf_temperature">Temperature</span>
+														<div class="col-12"><svg data-src="svg/performance_temperature.svg" fill="currentColor" class="svg4hyperhdr" style="margin-right:0.2em;"></svg><span data-i18n="perf_temperature">Temperature</span></div>
 													</div>
 													<div class="row w-100">
 														<div class="col-12" id="perf_temperature">
@@ -93,7 +93,7 @@
 												</div>
 												<div class="col-12 col-md-6 pt-1 pb-1 d-none" id="perf_cell_undervoltage">
 													<div class="row w-100 border-bottom text-primary fw-bold">
-														<span data-i18n="perf_undervoltage">Undervoltage</span>
+														<div class="col-12"><svg data-src="svg/voltage.svg" fill="currentColor" class="svg4hyperhdr" style="margin-right:0.2em;"></svg><span data-i18n="perf_undervoltage">Undervoltage</span></div>
 													</div>
 													<div class="row w-100">
 														<div class="col-12" id="perf_undervoltage">
@@ -103,7 +103,7 @@
 											</div>
 											<div class="d-none mt-2" id="perf_grabber_data">
 												<div class="row border-bottom fw-bold text-primary col-12">
-													<span data-i18n="perf_usb_grabber"></span>
+													<div class="col-12"><svg data-src="svg/usb.svg" fill="currentColor" class="svg4hyperhdr" style="margin-right:0.2em;"></svg><span data-i18n="perf_usb_grabber"></span></div>
 												</div>
 												<div class="col-12 pt-2 pb-1">
 													<span id="perf_usb_data_holder"></span>
@@ -140,37 +140,43 @@
 					<div class="col-12 col-lg-5 col-xl-4 col-xxl-5" style="min-width: 280px">
 						<div class="card card-default">
 							<div class="card-header" id="compent_status_header">
-								<i class="fa fa-eye fa-fw"></i>
+								<svg data-src="svg/components.svg" fill="currentColor" class="svg4hyperhdr"></svg>
 								<span data-i18n="dashboard_componentbox_label_title">Components status</span>
 							</div>
 							<div class="card-body">
-								<table class="table">
-									<thead>
-										<tr>
-											<th data-i18n="dashboard_componentbox_label_comp">Component</th>
-											<th data-i18n="dashboard_componentbox_label_status">Status</th>
-										</tr>
-									</thead>
-									<tbody id="tab_components">
-									</tbody>
-								</table>
+								<div class="container" id="tab_components">
+								</div>
+							</div>
+						</div>
+						<div class="card card-default d-none" id="device_discovery_panel">
+							<div class="card-header">
+								<svg data-src="svg/device_discovery.svg" fill="currentColor" class="svg4hyperhdr"></svg>
+								<span data-i18n="device_discovery">Device discovery</span>
+							</div>
+							<div class="card-body">
+								<div class="container" id="device_discovery_container">
+								</div>
 							</div>
 						</div>
 						<div class="card card-default">
 							<div class="card-header">
-								<i class="fa fa-newspaper-o fa-fw"></i>
+								<svg data-src="svg/overview_hyperhdr_sites.svg" fill="currentColor" class="svg4hyperhdr"></svg>
 								<span data-i18n="dashboard_newsbox_label_title">Visit HyperHDR sites</span>
 								<div class="card-tools">
-									<img src="img\hyperhdr\rainbow.png"></img>
+									<img src="img/hyperhdr/rainbow.png"></img>
 								</div>
 							</div>
 							<div class="card-body">
-								<div class="container" style="padding-left: 0px;padding-right: 0px;">
+								<div class="container ps-0 pe-0">
 									<div class="row">
 										<div class="col">
 											<a href="http://www.hyperhdr.eu/" target="_blank" class="unlink">
 												<div class="w-100 support-container" style="margin-top: 0px;">
-													<i class="fa fa-globe bg-color-wf"></i>
+													<div class="d-flex justify-content-center align-items-center">
+														<div class="bg-color-wf">
+															<svg data-src="svg/overview_globe.svg" fill="currentColor" class="svg4hyperhdr me-0 position-static" style="width:54px;"></svg>
+														</div>
+													</div>
 													<h4 data-i18n="support_label_webpagetitle">Webpage</h4>
 													<p data-i18n="support_label_webpagetext">HyperHDR's blog</p>
 												</div>
@@ -179,7 +185,11 @@
 										<div class="col">
 											<a href="https://github.com/awawa-dev/HyperHDR" target="_blank" class="unlink">
 												<div class="w-100 support-container" style="margin-top: 0px;">
-													<i class="fa fa-github bg-color-wf"></i>
+													<div class="d-flex justify-content-center align-items-center">
+														<div class="bg-color-wf">
+															<svg data-src="svg/overview_github.svg" fill="currentColor" class="svg4hyperhdr me-0 position-static" style="width:54px;"></svg>
+														</div>
+													</div>
 													<h4>Github</h4>
 													<p data-i18n="support_label_ghtext">HyperHDR's Github repository</p>
 												</div>

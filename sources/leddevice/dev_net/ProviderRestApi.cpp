@@ -160,6 +160,28 @@ httpResponse ProviderRestApi::get()
 	return get(getUrl());
 }
 
+bool ProviderRestApi::waitForResult(QNetworkReply* networkReply)
+{
+	bool networkTimeout = false;
+
+	if (!networkReply->isFinished() && networkReply->error() == QNetworkReply::NoError)
+	{
+		if (!_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)))
+		{
+			if (!networkReply->isFinished())
+			{
+				networkTimeout = true;
+				disconnect(networkReply, &QNetworkReply::finished, nullptr, nullptr);
+				QTimer::singleShot(0, networkReply, &QNetworkReply::abort);
+			}
+		}
+		else
+			_resultLocker.unlock();
+	}
+	
+	return networkTimeout;
+}
+
 httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body)
 {
 	qint64 begin = InternalClock::nowPrecise();
@@ -175,8 +197,8 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	}
 
 	Debug(_log, "%s begin: [%s] [%s]", QSTRING_CSTR(opCode), QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
-	
-	
+
+
 	// Perform request
 	QNetworkRequest request(url);
 	QNetworkReply* networkReply = nullptr;
@@ -189,8 +211,12 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 		request.setRawHeader(i.key().toUtf8(), i.value().toUtf8());
 	}
 
-	QMetaObject::invokeMethod(_networkWorker.get(), "executeOperation", Qt::BlockingQueuedConnection,
-		Q_RETURN_ARG(QNetworkReply*, networkReply), Q_ARG(QNetworkAccessManager::Operation, op), Q_ARG(QNetworkRequest, request), Q_ARG(QByteArray, body.toUtf8()));
+	QSslConfiguration conf = request.sslConfiguration();
+	conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+	request.setSslConfiguration(conf);
+
+	SAFE_CALL_3_RET(_networkWorker.get(), executeOperation,
+		QNetworkReply*, networkReply, QNetworkAccessManager::Operation, op, QNetworkRequest, request, QByteArray, body.toUtf8());
 
 
 	bool networkTimeout = waitForResult(networkReply);
@@ -205,20 +231,6 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	return response;
 }
 
-bool ProviderRestApi::waitForResult(QNetworkReply* networkReply)
-{
-	bool networkTimeout = false;
-
-	if (!networkReply->isFinished() && networkReply->error() == QNetworkReply::NoError &&
-		!_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)) && !networkReply->isFinished())
-	{
-		networkTimeout = true;
-		disconnect(networkReply, &QNetworkReply::finished, nullptr, nullptr);
-		QTimer::singleShot(0, networkReply, &QNetworkReply::abort);
-	}
-	
-	return networkTimeout;
-}
 
 void ProviderRestApi::aquireResultLock()
 {	
@@ -353,10 +365,6 @@ QNetworkReply* networkHelper::executeOperation(QNetworkAccessManager::Operation 
 {
 	ProviderRestApi* parent = static_cast<ProviderRestApi*>(request.originatingObject());
 	parent->aquireResultLock();
-
-	QSslConfiguration conf = request.sslConfiguration();
-	conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-	request.setSslConfiguration(conf);
 
 	auto ret = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body):
 				(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body) : _networkManager->get(request);

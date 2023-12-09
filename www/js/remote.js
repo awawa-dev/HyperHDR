@@ -107,7 +107,9 @@ $(document).ready(function()
 	
 	function updateColorAdjustment()
 	{
-		editor_color.getEditor("root.color").setValue(window.serverConfig['color'].channelAdjustment[0]);
+		if (window.serverConfig['color'].hasOwnProperty('channelAdjustment') && window.serverConfig['color'].channelAdjustment.length > 0)
+			editor_color.getEditor("root.color").setValue(window.serverConfig['color'].channelAdjustment[0]);
+
 		BindColorCalibration();
 	}	
 	
@@ -115,7 +117,7 @@ $(document).ready(function()
 	function sendEffect()
 	{
 		var efx = $("#effect_select").val();
-		if (efx != "__none__")
+		if (efx != "__none__" && efx != null)
 		{
 			requestPriorityClear();
 			$(window.hyperhdr).one("cmd-clear", function(event)
@@ -155,7 +157,7 @@ $(document).ready(function()
 			var value = "0,0,0";
 			var btn_type = "default";
 			var btn_text = $.i18n('remote_input_setsource_btn');
-			var btn_state = "enabled";
+			var btn_state = "";
 
 			if (compId == "GRABBER")
 				continue;
@@ -218,15 +220,15 @@ $(document).ready(function()
 			var btn = '<button id="srcBtn' + i + '" type="button" ' + btn_state + ' class="btn btn-' + btn_type + ' btn_input_selection mb-2" onclick="requestSetSource(' + priority + ');">' + btn_text + '</button>';
 
 			if ((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
-				btn += '<button type="button" class="btn btn-danger ms-1 mb-2" onclick="requestPriorityClear(' + priority + ');"><i class="fa fa-close fa-fw"></i></button>';
+				btn += '<button type="button" class="btn btn-danger ms-1 mb-2" onclick="requestPriorityClear(' + priority + ');"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr me-0"></svg></button>';
 
 			if (btn_type != 'default')
 				$('.sstbody').append(createRemoteTableRow([origin, owner, priority, btn], false, true));
 		}
 		var btn_auto_color = (window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger");
-		var btn_auto_state = (window.serverInfo.priorities_autoselect ? "disabled" : "enabled");
+		var btn_auto_state = (window.serverInfo.priorities_autoselect ? "disabled" : "");
 		var btn_auto_text = (window.serverInfo.priorities_autoselect ? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
-		var btn_call_state = (clearAll ? "enabled" : "disabled");
+		var btn_call_state = (clearAll ? "" : "disabled");
 		$('#auto_btn').html('<button id="srcBtn' + i + '" type="button" ' + btn_auto_state + ' class="mb-1 btn ' + btn_auto_color + '" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">' + $.i18n('remote_input_label_autoselect') + ' (' + btn_auto_text + ')</button>');
 		$('#auto_btn').append('<button type="button" ' + btn_call_state + ' class="mb-1 btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">' + $.i18n('remote_input_clearall') + '</button>');		
 	}
@@ -267,11 +269,11 @@ $(document).ready(function()
 
 			if ($("#" + comp_btn_id).length === 0)
 			{
-				var d = '<span style="display:block;margin:3px">' +
+				var d = '<div class="d-block m-2">' +
 					'<input id="' + comp_btn_id + '"' + enable_style + ' type="checkbox"' +
 					'data-toggle="toggle" data-onstyle="success" data-on="' + $.i18n('general_btn_on') + '" data-off="' + $.i18n('general_btn_off') + '">' +
 					'&nbsp;&nbsp;&nbsp;<label>' + $.i18n('general_comp_' + comp.name) + '</label>' +
-					'</span>';
+					'</div>';
 
 				$('#componentsbutton').append(d);
 				$(`#${comp_btn_id}`).bootstrapToggle();
@@ -343,7 +345,7 @@ $(document).ready(function()
 		var newEffects = window.serverInfo.effects;
 		if (newEffects.length != oldEffects.length)
 		{
-			$('#effect_select').html('<option value="__none__"></option>');
+			$('#effect_select').html('<option hidden disabled selected value="__none__">&nbsp;</option>');
 			var soundEffects = [];
 			var classicEffects = [];
 
@@ -548,12 +550,6 @@ $(document).ready(function()
 	{
 		window.serverInfo.videomodehdr = event.response.data.videomodehdr;
 		updateVideoModeHdr();
-	});
-
-	$(window.hyperhdr).on("cmd-effects-update", function(event)
-	{
-		window.serverInfo.effects = event.response.data.effects;
-		updateEffectlist();
 	});
 
 	removeOverlay();

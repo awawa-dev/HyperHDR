@@ -31,11 +31,11 @@
 
 class InternalClock
 {
-	public:
-		static qint64 now();
-		static qint64 nowPrecise();
-		static bool isPreciseSteady();
-	private:
-		const static std::chrono::time_point<std::chrono::steady_clock> start;
-		const static std::chrono::time_point<std::chrono::high_resolution_clock> startPrecise;
+public:
+	static qint64 now();
+	static qint64 nowPrecise();
+	static bool isPreciseSteady();
+private:
+	const static std::chrono::time_point<std::chrono::steady_clock> start;
+	const static std::chrono::time_point<std::chrono::high_resolution_clock> startPrecise;
 };

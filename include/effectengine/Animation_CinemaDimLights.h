@@ -14,7 +14,7 @@ private:
 
 public:
 
-	Animation_CinemaDimLights(QString name=ANIM_CINEMA_DIM_LIGHTS);
+	Animation_CinemaDimLights(QString name = ANIM_CINEMA_DIM_LIGHTS);
 
 	static EffectDefinition getDefinition();
 };

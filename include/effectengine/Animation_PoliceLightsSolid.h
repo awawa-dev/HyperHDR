@@ -14,7 +14,7 @@ private:
 
 public:
 
-	Animation_PoliceLightsSolid(QString name=ANIM_POLICELIGHTSSOLID);
+	Animation_PoliceLightsSolid(QString name = ANIM_POLICELIGHTSSOLID);
 
 	static EffectDefinition getDefinition();
 };

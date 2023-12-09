@@ -29,7 +29,6 @@
 #include <base/SystemWrapper.h>
 #include <base/HyperHdrInstance.h>
 
-// utils includes
 #include <utils/GlobalSignals.h>
 
 // qt includes
@@ -93,7 +92,7 @@ void SystemControl::setSysCaptureEnable(bool enable)
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage);
 		}
 		else
-		{			
+		{
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &SystemControl::handleSysImage);
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage);
 			_hyperhdr->clear(_sysCaptPrio);

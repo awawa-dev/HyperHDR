@@ -53,7 +53,7 @@
 
 bool (*_hasPipewire)() = nullptr;
 const char* (*_getPipewireError)() = nullptr;
-void (*_initPipewireDisplay)(const char* restorationToken) = nullptr;
+void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS) = nullptr;
 void (*_uninitPipewireDisplay)() = nullptr;
 PipewireImage (*_getFramePipewire)() = nullptr;
 void (*_releaseFramePipewire)() = nullptr;
@@ -80,13 +80,13 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_getPipewireToken = (const char* (*)()) dlsym(_library, "getPipewireToken");
 		_getPipewireError = (const char* (*)()) dlsym(_library, "getPipewireError");
 		_hasPipewire = (bool (*)()) dlsym(_library, "hasPipewire");
-		_initPipewireDisplay = (void (*)(const char*)) dlsym(_library, "initPipewireDisplay");
-		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uniniPipewireDisplay");
+		_initPipewireDisplay = (void (*)(const char*, uint32_t)) dlsym(_library, "initPipewireDisplay");
+		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uninitPipewireDisplay");
 		_getFramePipewire = (PipewireImage (*)()) dlsym(_library, "getFramePipewire");
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
 	}
 	else
-		Error(_log, "Could not load Pipewire proxy library. Error: %s", dlerror());
+		Warning(_log, "Could not load Pipewire proxy library. Error: %s", dlerror());
 
 	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr))
 	{
@@ -279,7 +279,7 @@ bool PipewireGrabber::init_device(int _display)
 		token = "";
 	else
 		Info(_log, "Loading restoration token: %s", QSTRING_CSTR(maskToken(token)));
-	_initPipewireDisplay(token.toLatin1().constData());
+	_initPipewireDisplay(token.toLatin1().constData(), _fps);
 
 	_isActive = true;
 

@@ -35,6 +35,7 @@
 #include <utils/Logger.h>
 #include <base/HyperHdrInstance.h>
 #include <effectengine/Animation_RainbowSwirl.h>
+#include <effectengine/Animation_RainbowWaves.h>
 #include <effectengine/Animation_SwirlFast.h>
 #include <effectengine/Animation_AtomicSwirl.h>
 #include <effectengine/Animation_Candle.h>
@@ -93,9 +94,10 @@
 
 #include <base/SoundCapture.h>
 
-Effect::Effect(HyperHdrInstance* hyperhdr, int priority, int timeout, const QString& name, const QJsonObject& args, const QString& imageData)
+Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, int timeout, const QString& name, const QJsonObject& args, const QString& imageData)
 	: QThread()
 	, _hyperhdr(hyperhdr)
+	, _visiblePriority(visiblePriority)
 	, _priority(priority)
 	, _timeout(timeout)
 	, _name(name)
@@ -109,7 +111,8 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int priority, int timeout, const QStr
 	, _effect(NULL)
 	, _soundHandle(0)
 {
-	_colors.resize(_hyperhdr->getLedCount());
+	_ledCount = _hyperhdr->getLedCount();
+	_colors.resize(_ledCount);
 	_colors.fill(ColorRgb::BLACK);
 
 	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(hyperhdr->getInstanceIndex()).arg((name.length() > 9) ? name.left(6) + "..." : name));
@@ -125,6 +128,10 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int priority, int timeout, const QStr
 	else if (name == ANIM_SWIRL_FAST)
 	{
 		_effect = new Animation_SwirlFast();
+	}
+	else if (name == ANIM_RAINBOW_WAVES)
+	{
+		_effect = new Animation_RainbowWaves();
 	}
 	else if (name == ANIM_ATOMIC_SWIRL)
 	{
@@ -339,14 +346,7 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int priority, int timeout, const QStr
 
 Effect::~Effect()
 {
-	Info(_log, "Deleting effect named: '%s'", QSTRING_CSTR(_name));
-
-	requestInterruption();
-
-	while (!isFinished())
-	{
-		QCoreApplication::processEvents(QEventLoop::AllEvents, 15);
-	}
+	Info(_log, "Deleting effect named: '%s'", QSTRING_CSTR(_name));	
 
 	if (_effect != nullptr)
 	{
@@ -372,10 +372,8 @@ void Effect::run()
 	}
 
 	int latchTime = 10;
-	int ledCount = 0;
-	QMetaObject::invokeMethod(_hyperhdr, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 
-	_ledBuffer.resize(ledCount);
+	_ledBuffer.resize(_ledCount);
 
 	_effect->Init(_image, latchTime);
 
@@ -388,7 +386,10 @@ void Effect::run()
 
 	if (_effect->isSoundEffect())
 	{
-		QMetaObject::invokeMethod(SoundCapture::getInstance(), "getCaptureInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(uint32_t, _soundHandle));
+		if (!_interupt)
+			SAFE_CALL_0_RET(SoundCapture::getInstance(), getCaptureInstance, uint32_t, _soundHandle)
+		else
+			return;
 	}
 
 	Info(_log, "Begin playing the effect with priority: %i", _priority);
@@ -396,12 +397,8 @@ void Effect::run()
 	{
 		if (_priority > 0)
 		{
-			int currentPriority = 0;
-			QMetaObject::invokeMethod(_hyperhdr, "getCurrentPriority", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, currentPriority));
-
-			if (currentPriority < _priority)
-			{
-				QCoreApplication::processEvents(QEventLoop::AllEvents, 15);
+			if (_visiblePriority < _priority)
+			{				
 				if (!_interupt && (_timeout <= 0 || InternalClock::now() < _endTime))
 					QThread::msleep(500);
 				continue;
@@ -464,7 +461,7 @@ void Effect::run()
 	if (_soundHandle != 0)
 	{
 		Info(_log, "Releasing sound handle %i for effect named: '%s'", _soundHandle, QSTRING_CSTR(_name));
-		QMetaObject::invokeMethod(SoundCapture::getInstance(), "releaseCaptureInstance", Qt::QueuedConnection, Q_ARG(uint32_t, _soundHandle));
+		QUEUE_CALL_1(SoundCapture::getInstance(), releaseCaptureInstance, uint32_t, _soundHandle);
 		_soundHandle = 0;
 	}
 }
@@ -482,11 +479,7 @@ bool Effect::LedShow()
 			return false;
 	}
 
-	int ledCount = 0;
-	QMetaObject::invokeMethod(_hyperhdr, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
-
-
-	if (ledCount == _ledBuffer.length())
+	if (_ledCount == _ledBuffer.length())
 	{
 		QVector<ColorRgb> _cQV = _ledBuffer;
 		emit setInput(_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), timeout, false);
@@ -494,7 +487,7 @@ bool Effect::LedShow()
 	else
 	{
 		Warning(_log, "Mismatch led number detected for the effect");
-		return false;
+		_ledBuffer.resize(_ledCount);
 	}
 
 	return true;
@@ -536,6 +529,15 @@ bool Effect::ImageShow()
 	return true;
 }
 
+void Effect::visiblePriorityChanged(quint8 priority)
+{
+	_visiblePriority = priority;
+}
+
+void Effect::setLedCount(int newCount)
+{
+	_ledCount = newCount;
+}
 
 int  Effect::getPriority() const {
 	return _priority;

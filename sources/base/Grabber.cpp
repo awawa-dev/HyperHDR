@@ -35,8 +35,9 @@ const int	  Grabber::AUTO_INPUT = -1;
 const int	  Grabber::AUTO_FPS = 0;
 
 
-Grabber::Grabber(const QString& grabberName, int width, int height, int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: _width(width)
+Grabber::Grabber(const QString& configurationPath, const QString& grabberName, int width, int height, int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: _configurationPath(configurationPath)
+	, _width(width)
 	, _height(height)
 	, _fps(Grabber::AUTO_FPS)
 	, _input(Grabber::AUTO_INPUT)
@@ -908,8 +909,8 @@ QJsonObject Grabber::getJsonInfo()
 	{
 		uint32_t checkSum = 0;
 		for (int i = 0; i < 256; i += 2)
-			for (int j = 32; j <= 160; j+= 64)
-			{			
+			for (int j = 32; j <= 160; j += 64)
+			{
 				checkSum ^= *(reinterpret_cast<uint32_t*>(&(_lutBuffer[LUT_INDEX(j, i, (255 - i))])));
 			}
 		grabbers["lutFastCRC"] = "0x" + QString("%1").arg(checkSum, 4, 16).toUpper();
@@ -920,4 +921,9 @@ QJsonObject Grabber::getJsonInfo()
 
 void Grabber::alternativeCaching(bool alternative)
 {
+}
+
+QString Grabber::getConfigurationPath()
+{
+	return _configurationPath;
 }

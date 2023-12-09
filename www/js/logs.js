@@ -13,7 +13,7 @@ $(document).ready(function() {
 
 	requestLoggingStart();
 
-	$('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
+	$('#conf_cont').append(createOptPanel('<svg data-src="svg/logs_panel.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
 	$('#conf_cont').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
 	
 	if(window.showOptHelp)
@@ -58,15 +58,27 @@ $(document).ready(function() {
 				
 				if(!createdCont)
 				{
-					$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
+					$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll">'+
+											'<svg data-src="svg/button_autorefresh.svg" data-unique-ids="disabled" fill="currentColor" class="svg4hyperhdr"></svg>'+
+										$.i18n('conf_logging_btn_autoscroll')+'</button>');
 					createdCont = true;
 
 					$('#btn_autoscroll').off().on('click',function() {
 						toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
+						if($("#btn_autoscroll").hasClass('btn-success'))
+						{
+							document.getElementById('logs_autorefresh').beginElement();
+						}
+						else
+						{
+							document.getElementById('logs_autorefresh').endElement();
+						}
 					});
 				}
 				
 				
+				var utcDate = new Date();
+				var offsetDate = utcDate.getTimezoneOffset();
 
 				for(var idx = 0; idx < messages.length; idx++)
 				{
@@ -87,7 +99,7 @@ $(document).ready(function() {
 					}
 					
 
-					var date = new Date(parseInt(utime));
+					var date = new Date(parseInt(utime) - offsetDate * 60000);
 
 					LogLine($("#logmessages"), date, app_name, logger_name, level_string, debug,msg);					
 				}
