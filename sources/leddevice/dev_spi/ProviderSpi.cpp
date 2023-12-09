@@ -55,9 +55,22 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 
 int ProviderSpi::open()
 {
+	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+	uint8_t accBuffer[] = { 0x6a, 0x77, 0x57, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
 	int retval = -1;
 	QString errortext;
 	_isDeviceReady = false;
+
+    if (_spiType == "rp2040")
+    {
+        writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+        writeBytesRp2040(sizeof(accBuffer), accBuffer);
+    }
+    else if (_spiType == "esp32")
+    {
+        writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
+    }	
 
 	const int bitsPerWord = 8;
 
@@ -88,6 +101,17 @@ int ProviderSpi::open()
 				}
 				else
 				{
+					uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
+					if (_spiType == "rp2040")
+					{
+						writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+					}
+					else if (_spiType == "esp32")
+					{
+						writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
+					}
+										
 					// Everything OK -> enable device
 					_isDeviceReady = true;
 					retval = 0;
@@ -206,7 +230,7 @@ int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
 
 	_spi.tx_buf = __u64(&buffer);
 	_spi.len = __u32(BUFFER_SIZE);
-	_spi.delay_usecs = 0;
+	_spi.delay_usecs = 1000;
 
 	int retVal = 0;
 
