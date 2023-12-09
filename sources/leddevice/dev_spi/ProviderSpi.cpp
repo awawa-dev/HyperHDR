@@ -58,22 +58,9 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 
 int ProviderSpi::open()
 {
-	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-	uint8_t accBuffer[] = { 0x6a, 0x77, 0x57, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-
 	int retval = -1;
 	QString errortext;
 	_isDeviceReady = false;
-
-    if (_spiType == "rp2040")
-    {
-        writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
-        writeBytesRp2040(sizeof(accBuffer), accBuffer);
-    }
-    else if (_spiType == "esp32")
-    {
-        writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
-    }	
 
 	const int bitsPerWord = 8;
 
@@ -114,7 +101,7 @@ int ProviderSpi::open()
 					{
 						writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
 					}
-										
+
 					// Everything OK -> enable device
 					_isDeviceReady = true;
 					retval = 0;
@@ -137,9 +124,22 @@ int ProviderSpi::open()
 
 int ProviderSpi::close()
 {
+	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+	uint8_t accBuffer[] = { 0x6a, 0x77, 0x57, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
 	// LedDevice specific closing activities
 	int retval = 0;
 	_isDeviceReady = false;
+
+    if (_spiType == "rp2040")
+    {
+        writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+        writeBytesRp2040(sizeof(accBuffer), accBuffer);
+    }
+    else if (_spiType == "esp32")
+    {
+        writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
+    }		
 
 	// Test, if device requires closing
 	if (_fid > -1)
