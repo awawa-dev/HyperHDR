@@ -44,7 +44,12 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 		_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
 		_spiMode = deviceConfig["spimode"].toInt(_spiMode);
 		_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
-
+		
+		if (_spiType == "rp2040" && _baudRate_Hz > 20833333)
+		{
+			_baudRate_Hz = 20833333;
+		}
+		
 		Debug(_log, "_baudRate_Hz [%d], _spiType: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
 		Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
 
