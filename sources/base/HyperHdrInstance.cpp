@@ -1016,3 +1016,8 @@ int HyperHdrInstance::hasLedClock()
 {
 	return _ledDeviceWrapper->hasLedClock();
 }
+
+bool HyperHdrInstance::getScanParameters(size_t led, double& hscanBegin, double& hscanEnd, double& vscanBegin, double& vscanEnd) const
+{
+	return _imageProcessor->getScanParameters(led, hscanBegin, hscanEnd, vscanBegin, vscanEnd);
+}

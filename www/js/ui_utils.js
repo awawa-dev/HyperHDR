@@ -90,7 +90,7 @@ function loadContent(event, forceRefresh)
 					if(status == "error")
 					{
 						var resultContent = document.getElementById('page-content');
-						resultContent.innerHTML = `<h3>${tag}</h3><br/>${$.i18n('info_404')}`;
+						resultContent.innerHTML = `<h3>${encodeURIComponent(tag)}</h3><br/>${$.i18n('info_404')}`;
 						removeOverlay();
 					}					
 				});
