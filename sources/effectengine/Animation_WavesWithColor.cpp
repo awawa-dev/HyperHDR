@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -35,14 +35,7 @@ Animation_WavesWithColor::Animation_WavesWithColor(QString name) :
 
 EffectDefinition Animation_WavesWithColor::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_WavesWithColor>);
 	ed.name = ANIM_WAVESWITHCOLOR;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_WavesWithColor::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

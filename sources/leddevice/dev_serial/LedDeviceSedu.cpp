@@ -7,7 +7,7 @@ struct FrameSpec
 };
 
 LedDeviceSedu::LedDeviceSedu(const QJsonObject& deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderSerial(deviceConfig)
 {
 }
 
@@ -21,7 +21,7 @@ bool LedDeviceSedu::init(const QJsonObject& deviceConfig)
 	bool isInitOK = false;
 
 	// Initialise sub-class
-	if (ProviderRs232::init(deviceConfig))
+	if (ProviderSerial::init(deviceConfig))
 	{
 		std::vector<FrameSpec> frameSpecs{ {0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
 

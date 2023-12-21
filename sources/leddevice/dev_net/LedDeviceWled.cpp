@@ -7,31 +7,11 @@
 	#include <bonjour/DiscoveryWrapper.h>
 #endif
 
-// Constants
-namespace {
-
-	// Configuration settings
-	const char CONFIG_ADDRESS[] = "host";
-
-	// UDP elements
-	const quint16 STREAM_DEFAULT_PORT = 19446;
-
-	// WLED JSON-API elements
-	const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
-
-	const char API_BASE_PATH[] = "/json/";
-	//const char API_PATH_INFO[] = "info";
-	const char API_PATH_STATE[] = "state";
-
-	// List of State Information
-	const char STATE_VALUE_TRUE[] = "true";
-	const char STATE_VALUE_FALSE[] = "false";
-} //End of constants
-
 LedDeviceWled::LedDeviceWled(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
 	, _restApi(nullptr)
-	, _apiPort(API_DEFAULT_PORT)
+	, _apiPort(80)
+	, _warlsStreamPort(21324)
 	, _overrideBrightness(true)
 	, _brightnessLevel(255)
 	, _restoreConfig(false)
@@ -78,7 +58,7 @@ bool LedDeviceWled::init(const QJsonObject& deviceConfig)
 		Debug(_log, "Max retry      : %d", _maxRetry);
 
 		//Set hostname as per configuration
-		QString address = deviceConfig[CONFIG_ADDRESS].toString();
+		QString address = deviceConfig["host"].toString();
 
 		//If host not configured the init fails
 		if (address.isEmpty())
@@ -94,16 +74,12 @@ bool LedDeviceWled::init(const QJsonObject& deviceConfig)
 			{
 				_apiPort = addressparts[1].toInt();
 			}
-			else
-			{
-				_apiPort = API_DEFAULT_PORT;
-			}
 
 			if (initRestAPI(_hostname, _apiPort))
 			{
 				// Update configuration with hostname without port
 				_devConfig["host"] = _hostname;
-				_devConfig["port"] = STREAM_DEFAULT_PORT;
+				_devConfig["port"] = _warlsStreamPort;
 
 				isInitOK = ProviderUdp::init(_devConfig);
 				Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR(_hostname));
@@ -123,7 +99,7 @@ bool LedDeviceWled::initRestAPI(const QString& hostname, int port)
 	if (_restApi == nullptr)
 	{
 		_restApi = new ProviderRestApi(hostname, port);
-		_restApi->setBasePath(API_BASE_PATH);
+		_restApi->setBasePath("/json");
 
 		isInitOK = true;
 	}
@@ -140,7 +116,7 @@ QString LedDeviceWled::getOnOffRequest(bool isOn) const
 	}
 	else
 	{
-		QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
+		QString state = isOn ? "true" : "false";
 		QString bri = (_overrideBrightness && isOn) ? QString(",\"bri\":%1").arg(_brightnessLevel) : "";
 		return QString("{\"on\":%1,\"live\":%1%2}").arg(state).arg(bri);
 	}
@@ -149,58 +125,74 @@ QString LedDeviceWled::getOnOffRequest(bool isOn) const
 bool LedDeviceWled::powerOn()
 {
 	Debug(_log, "");
-	bool on = false;
 
-	if (!_retryMode)
+	_restApi->setPath("");
+	httpResponse response = _restApi->get();
+
+	auto wledConfig = response.getBody();
+	if (wledConfig.isEmpty())
 	{
-		//Power-on WLED device
-		_restApi->setPath(API_PATH_STATE);
+		response.setError(true);
+		response.setErrorReason("Empty WLED config");
+	}
 
-		bool readConfig = _restoreConfig && _configBackup.isEmpty();
-		httpResponse response = (readConfig) ? _restApi->get() : _restApi->put(getOnOffRequest(true));
-
-		if (readConfig && !response.error())
+	if (!response.error())
+	{
+		if (wledConfig.isObject())
 		{
-			_configBackup = response.getBody();
+			QJsonObject mainConfig = wledConfig.object();
+			QJsonObject infoConfig = mainConfig["info"].toObject();
+			QJsonObject ledsConfig = infoConfig["leds"].toObject();
+			QJsonObject stateConfig = mainConfig["state"].toObject();
+			QJsonObject wifiConfig = infoConfig["wifi"].toObject();
 
-			if (_configBackup.isObject())
+			if (_restoreConfig)
 			{
-				auto copy = _configBackup.object();
-				copy["live"] = false;
-				_configBackup.setObject(copy);
+				stateConfig["live"] = false;
+				_configBackup.setObject(stateConfig);
 			}
 
-			response = _restApi->put(getOnOffRequest(true));
-		}
+			uint ledsNumber = ledsConfig["count"].toInt(0);
+			int powerLimiter = ledsConfig["maxpwr"].toInt(0);
+			int quality = wifiConfig["signal"].toInt(0);
 
-		if (response.error())
-		{
-			this->setInError(response.getErrorReason());			
+			_warlsStreamPort = infoConfig["udpport"].toInt(_warlsStreamPort);
 
-			// power on simultaneously with Rpi causes timeout			
-			if (_maxRetry > 0 && response.error())
-			{
-				if (_currentRetry <= 0)
-					_currentRetry = _maxRetry + 1;
+			QString infoMessage = QString("WLED info => wifi quality: %1, wifi channel: %2, leds: %3, arch: %4, ver: %5, uptime: %6s, port: %7, power limit: %8mA")
+				.arg(QString::number(quality) + ((quality < 80) ?  + "% (LOW)" : "%") ).arg(wifiConfig["channel"].toInt()).arg(ledsNumber)
+				.arg(infoConfig["arch"].toString()).arg(infoConfig["ver"].toString())
+				.arg(infoConfig["uptime"].toInt()).arg(_warlsStreamPort).arg(powerLimiter);
 
-				_currentRetry--;
+			if (quality < 80 || powerLimiter > 0 || _ledCount != ledsNumber)
+				Warning(_log, "%s", QSTRING_CSTR(infoMessage));
+			else
+				Info(_log, "%s", QSTRING_CSTR(infoMessage));
+			
+			if (powerLimiter > 0)
+				Error(_log, "Serious warning: the power limiter in WLED is set which may lead to unexpected side effects. Use the right cabling & power supply with the appropriate power, not this half-measure.");
 
-				if (_currentRetry > 0)
-					Warning(_log, "The WLED device is not ready... will try to reconnect (try %i/%i).", (_maxRetry - _currentRetry + 1), _maxRetry);
-				else
-					Error(_log, "The WLED device is not ready... give up.");
+			if (_ledCount != ledsNumber)
+				Warning(_log, "The number of LEDs defined in HyperHDR (%i) is different from that defined in WLED (%i)", _ledCount, ledsNumber);
+			
+			_customInfo = QString("  %1%").arg(quality);
 
-				if (_currentRetry > 0 && !_signalTerminate)
-				{
-					_retryMode = true;
-					QTimer::singleShot(1000, [this]() { _retryMode = false; if (_currentRetry > 0 && !_signalTerminate) enableDevice(true);  });
-				}
-			}
+			ProviderUdp::setPort(_warlsStreamPort);
 		}
 		else
-			on = true;
+			Warning(_log, "Could not read WLED config");
+
+		_restApi->setPath("/state");
+		response = _restApi->put(getOnOffRequest(true));
 	}
-	return on;
+
+	if (response.error())
+	{
+		this->setInError(response.error() ? response.getErrorReason() : "Empty WLED config");
+		setupRetry(1500);
+		return false;
+	}
+
+	return true;
 }
 
 bool LedDeviceWled::powerOff()
@@ -208,8 +200,7 @@ bool LedDeviceWled::powerOff()
 	Debug(_log, "");
 	bool off = true;
 
-	_currentRetry = 0;
-	_retryMode = false;
+	_customInfo = "";
 
 	if (_isDeviceReady)
 	{
@@ -217,7 +208,7 @@ bool LedDeviceWled::powerOff()
 		writeBlack();
 
 		//Power-off the WLED device physically
-		_restApi->setPath(API_PATH_STATE);
+		_restApi->setPath("/state");
 		httpResponse response = _restApi->put(getOnOffRequest(false));
 		if (response.error())
 		{
@@ -235,12 +226,12 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	
 #ifdef ENABLE_BONJOUR
-	auto bonInstance = DiscoveryWrapper::getInstance();
+	std::shared_ptr<DiscoveryWrapper> bonInstance = _discoveryWrapper.lock();
 	if (bonInstance != nullptr)
 	{
 		QList<DiscoveryRecord> recs;
 
-		SAFE_CALL_0_RET(bonInstance, getWLED, QList<DiscoveryRecord>, recs);
+		SAFE_CALL_0_RET(bonInstance.get(), getWLED, QList<DiscoveryRecord>, recs);
 
 		for (DiscoveryRecord& r : recs)
 		{
@@ -260,54 +251,43 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	return devicesDiscovered;
 }
 
-QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
-{
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
-
-	// Get Nanoleaf device properties
-	QString host = params["host"].toString("");
-	if (!host.isEmpty())
-	{
-		QString filter = params["filter"].toString("");
-
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort);
-		_restApi->setPath(filter);
-
-		httpResponse response = _restApi->get();
-		if (response.error())
-		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
-
-		properties.insert("properties", response.getBody().object());
-
-		Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	}
-	return properties;
-}
-
-
 int LedDeviceWled::write(const std::vector<ColorRgb>& ledValues)
 {
-	const uint8_t* dataPtr = reinterpret_cast<const uint8_t*>(ledValues.data());
-
 	if (ledValues.size() != _ledCount)
+	{
 		setLedCount(static_cast<int>(ledValues.size()));
+		return 0;
+	}
+	else if (ledValues.size() <= 490)
+	{
+		int wledSize = _ledRGBCount + 2;
+		std::vector<uint8_t> wledData(wledSize, 0);
+		wledData[0] = 2;
+		wledData[1] = 255;
+		memcpy(wledData.data() + 2, ledValues.data(), _ledRGBCount);
 
-	return writeBytes(_ledRGBCount, dataPtr);
+		return writeBytes(wledSize, wledData.data());
+	}
+	else
+	{
+		long long offset = 0;
+		const uint8_t* start = reinterpret_cast<const uint8_t*>(ledValues.data());
+		const uint8_t* end = reinterpret_cast<const uint8_t*>(ledValues.data()) + _ledRGBCount;
+
+		while (start < end)
+		{
+			auto realSize = std::min(static_cast<long int>(end - start), static_cast<long int>(489 * sizeof(ColorRgb)));
+			std::vector<uint8_t> wledData(realSize + 4, 0);
+			wledData[0] = 4;
+			wledData[1] = 255;
+			wledData[2] = ((offset >> 8) & 0xff);
+			wledData[3] = (offset & 0xff);
+			memcpy(wledData.data() + 4, start, realSize);
+			start += realSize;
+			offset += realSize / sizeof(ColorRgb);
+			writeBytes(static_cast<int>(wledData.size()), wledData.data());
+		}
+
+		return _ledRGBCount;
+	}
 }

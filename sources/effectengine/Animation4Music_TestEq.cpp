@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -30,16 +30,16 @@
 
 Animation4Music_TestEq::Animation4Music_TestEq() :
 	AnimationBaseMusic(AMUSIC_TESTEQ),
-	_internalIndex(0)
+	_internalIndex(0),
+	_oldMulti(0)
 {
 
 };
 
 EffectDefinition Animation4Music_TestEq::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(true, EffectFactory<Animation4Music_TestEq>);
 	ed.name = AMUSIC_TESTEQ;
-	ed.args = GetArgs();
 	return ed;
 }
 
@@ -64,9 +64,9 @@ bool Animation4Music_TestEq::hasOwnImage()
 bool Animation4Music_TestEq::getImage(Image<ColorRgb>& newImage)
 {
 	uint8_t  buffScaledResult[SOUNDCAP_RESULT_RES];
-	auto r = SoundCapture::getInstance()->hasResult(_internalIndex);
+	auto r = _soundCapture->hasResult(this, _internalIndex, nullptr, nullptr, nullptr, &_oldMulti);
 
-	if (r == NULL)
+	if (r == nullptr)
 		return false;
 
 	r->GetBufResult(buffScaledResult, sizeof(buffScaledResult));

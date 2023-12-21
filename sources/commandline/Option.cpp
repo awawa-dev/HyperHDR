@@ -40,7 +40,7 @@ QString Option::getError() const
 	return this->_error;
 }
 
-const char* Option::getCString(Parser& parser) const
+const char* Option::getCString(Parser& parser) const &
 {
 	return value(parser).toLocal8Bit().constData();
 }

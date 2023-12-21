@@ -1,12 +1,13 @@
-#ifndef SSDPDISCOVER_H
-#define SSDPDISCOVER_H
+#pragma once
 
-#include <QHostAddress>
-#include <QMultiMap>
-#include <QUrl>
-#include <QRegularExpression>
+#ifndef PCH_ENABLED
+	#include <QHostAddress>
+	#include <QMultiMap>
+	#include <QUrl>
+	#include <QRegularExpression>
 
-#include <chrono>
+	#include <chrono>
+#endif
 
 class Logger;
 class QUdpSocket;
@@ -207,4 +208,3 @@ private:
 	bool _skipDupKeys;
 };
 
-#endif // SSDPDISCOVER_H

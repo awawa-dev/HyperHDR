@@ -6,12 +6,6 @@
 
 class Animation_NotifyBlue : public Animation_Fade
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 
 	Animation_NotifyBlue(QString name = ANIM_NOTIFY_BLUE);

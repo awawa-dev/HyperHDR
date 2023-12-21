@@ -1,12 +1,16 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QDateTime>
-#include <QJsonObject>
-#include <QString>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+	#include <QDateTime>
+	#include <QJsonObject>
+	#include <QString>
+	#include <QJsonArray>
+	#include <QJsonDocument>
+	#include <algorithm>
+#endif
 
-#include <algorithm>
 
 #ifdef __linux__
 	#define MAXPERFCPU 16
@@ -17,15 +21,7 @@ class SystemPerformanceCounters
 {
 	private:
 		bool isInitialized = false;
-		void init();
-		QString getChar(double val)
-		{
-			auto scale = qMax(qMin(qRound(val * 20), 20), 1);
-
-			QString color = (val <= 0.5) ? "cpu_low_usage" : ((val <= 0.8) ? "cpu_medium_usage" : "cpu_high_usage"); //"ForestGreen" : ((val <= 0.8) ? "orange" : "red");
-			QString box = QString("<rect x='0' y='%1' width='12' height='%2' />").arg(20 - scale).arg(scale);
-			return QString("<svg width='12' height='20' viewBox='0 0 10 20' class='specialchar %1'>%2</svg>").arg(color).arg(box);
-		};
+		void init();		
 
 	#ifdef __linux__
 		int underVoltage = -1;

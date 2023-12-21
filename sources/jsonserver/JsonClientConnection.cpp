@@ -1,6 +1,6 @@
 // project includes
 #include "JsonClientConnection.h"
-#include <api/JsonAPI.h>
+#include <api/HyperAPI.h>
 
 // qt inc
 #include <QTcpSocket>
@@ -15,12 +15,12 @@ JsonClientConnection::JsonClientConnection(QTcpSocket* socket, bool localConnect
 	connect(_socket, &QTcpSocket::disconnected, this, &JsonClientConnection::disconnected);
 	connect(_socket, &QTcpSocket::readyRead, this, &JsonClientConnection::readRequest);
 	// create a new instance of JsonAPI
-	_jsonAPI = new JsonAPI(socket->peerAddress().toString(), _log, localConnection, this);
+	_hyperAPI = new HyperAPI(socket->peerAddress().toString(), _log, localConnection, this);
 	// get the callback messages from JsonAPI and send it to the client
-	connect(_jsonAPI, &JsonAPI::callbackMessage, this, &JsonClientConnection::sendMessage);
-	connect(_jsonAPI, &JsonAPI::forceClose, this, [&]() { _socket->close(); });
+	connect(_hyperAPI, &HyperAPI::SignalCallbackJsonMessage, this, &JsonClientConnection::sendMessage);
+	connect(_hyperAPI, &HyperAPI::SignalPerformClientDisconnection, this, [&]() { _socket->close(); });
 
-	_jsonAPI->initialize();
+	_hyperAPI->initialize();
 }
 
 void JsonClientConnection::readRequest()
@@ -37,7 +37,7 @@ void JsonClientConnection::readRequest()
 		_receiveBuffer = _receiveBuffer.mid(bytes);
 
 		// handle message
-		_jsonAPI->handleMessage(message);
+		_hyperAPI->handleMessage(message);
 
 		// try too look up '\n' again
 		bytes = _receiveBuffer.indexOf('\n') + 1;
@@ -49,11 +49,13 @@ qint64 JsonClientConnection::sendMessage(QJsonObject message)
 	QJsonDocument writer(message);
 	QByteArray data = writer.toJson(QJsonDocument::Compact) + "\n";
 
-	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState)) return 0;
-	return _socket->write(data.data(), data.size());
+	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
+		return 0;
+	else
+		return _socket->write(data.data(), data.size());
 }
 
 void JsonClientConnection::disconnected()
 {
-	emit connectionClosed();
+	emit SignalClientConnectionClosed(this);
 }

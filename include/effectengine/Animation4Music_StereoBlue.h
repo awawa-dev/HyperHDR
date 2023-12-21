@@ -6,8 +6,6 @@
 
 class Animation4Music_StereoBlue : public AnimationBaseMusic
 {
-	Q_OBJECT
-
 public:
 
 	Animation4Music_StereoBlue();

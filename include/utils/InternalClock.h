@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -26,8 +26,11 @@
  */
 
 #pragma once
-#include <QtGlobal>
-#include <chrono>
+
+#ifndef PCH_ENABLED
+	#include <QtGlobal>
+	#include <chrono>
+#endif
 
 class InternalClock
 {

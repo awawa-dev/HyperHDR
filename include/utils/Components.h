@@ -1,12 +1,11 @@
 #pragma once
-#include <QString>
+
+#ifndef PCH_ENABLED
+	#include <QString>
+#endif
 
 namespace hyperhdr
 {
-
-	/**
-	 * Enumeration of components in HyperHDR.
-	 */
 	enum Components
 	{
 		COMP_INVALID,
@@ -24,7 +23,8 @@ namespace hyperhdr
 		COMP_LEDDEVICE,
 		COMP_FLATBUFSERVER,
 		COMP_RAWUDPSERVER,
-		COMP_PROTOSERVER
+		COMP_CEC,
+		COMP_PROTOSERVER,
 	};
 
 	inline const char* componentToString(Components c)
@@ -45,6 +45,7 @@ namespace hyperhdr
 		case COMP_LEDDEVICE:     return "LED device";
 		case COMP_FLATBUFSERVER: return "Image Receiver";
 		case COMP_RAWUDPSERVER:  return "Raw RGB UDP Server";
+		case COMP_CEC:           return "CEC";
 		case COMP_PROTOSERVER:   return "Proto Server";
 		default:                 return "";
 		}
@@ -68,6 +69,7 @@ namespace hyperhdr
 		case COMP_LEDDEVICE:     return "LEDDEVICE";
 		case COMP_FLATBUFSERVER: return "FLATBUFSERVER";
 		case COMP_RAWUDPSERVER:  return "RAWUDPSERVER";
+		case COMP_CEC:           return "CEC";
 		case COMP_PROTOSERVER:   return "PROTOSERVER";
 		default:                 return "";
 		}
@@ -90,8 +92,8 @@ namespace hyperhdr
 		if (cmp == "LEDDEVICE")     return COMP_LEDDEVICE;
 		if (cmp == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
 		if (cmp == "RAWUDPSERVER")  return COMP_RAWUDPSERVER;
+		if (cmp == "CEC")           return COMP_CEC;
 		if (cmp == "PROTOSERVER")   return COMP_PROTOSERVER;
 		return COMP_INVALID;
 	}
-
-} // end of namespace
+}

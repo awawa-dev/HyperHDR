@@ -1,14 +1,15 @@
-#ifndef CGIHANDLER_H
-#define CGIHANDLER_H
+#pragma once
 
-#include <QObject>
-#include <QString>
-#include <QStringList>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <QStringList>
+#endif
 
-#include <utils/Logger.h>
+class QtHttpReply;
+class QtHttpRequest;
+class Logger;
 
-#include "QtHttpReply.h"
-#include "QtHttpRequest.h"
 
 class CgiHandler : public QObject
 {
@@ -21,7 +22,6 @@ public:
 	void exec(const QStringList& args, QtHttpRequest* request, QtHttpReply* reply);
 
 private:
-	// CGI commands
 	void cmd_cfg_jsonserver();
 
 	QtHttpReply*		_reply;
@@ -30,5 +30,3 @@ private:
 	QString             _baseUrl;
 	Logger*				_log;
 };
-
-#endif // CGIHANDLER_H

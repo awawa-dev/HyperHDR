@@ -1,16 +1,24 @@
-#include "WebSocketClient.h"
-#include "QtHttpRequest.h"
-#include "QtHttpHeader.h"
-
-#include <base/HyperHdrInstance.h>
-#include <api/JsonAPI.h>
-
 #include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
 #include <QtEndian>
 #include <QCryptographicHash>
 #include <QJsonObject>
 
-WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent)
+#include <base/HyperHdrInstance.h>
+#include <api/HyperAPI.h>
+#include <utils/FrameDecoder.h>
+
+#include "WebSocketClient.h"
+#include "QtHttpRequest.h"
+#include "QtHttpHeader.h"
+#include "WebSocketUtils.h"
+
+
+WebSocketClient::WebSocketClient(	
+	QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent)
 	: QObject(parent)
 	, _socket(sock)
 	, _log(Logger::getInstance("WEBSOCKET"))
@@ -23,9 +31,10 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool 
 	const QString client = request->getClientInfo().clientAddress.toString();
 
 	// Json processor
-	_jsonAPI = new JsonAPI(client, _log, localConnection, this);
-	connect(_jsonAPI, &JsonAPI::callbackMessage, this, &WebSocketClient::sendMessage);
-	connect(_jsonAPI, &JsonAPI::forceClose, this, [this]() { this->sendClose(CLOSECODE::NORMAL); });
+	_hyperAPI = new HyperAPI(client, _log, localConnection, this);
+	connect(_hyperAPI, &HyperAPI::SignalCallbackJsonMessage, this, &WebSocketClient::sendMessage);
+	connect(_hyperAPI, &HyperAPI::SignalCallbackBinaryImageMessage, this, &WebSocketClient::signalCallbackBinaryImageMessageHandler);
+	connect(_hyperAPI, &HyperAPI::SignalPerformClientDisconnection, this, [this]() { this->sendClose(CLOSECODE::NORMAL); });
 
 	Debug(_log, "New connection from %s", QSTRING_CSTR(client));
 
@@ -42,7 +51,25 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool 
 	_socket->flush();
 
 	// Init JsonAPI
-	_jsonAPI->initialize();
+	_hyperAPI->initialize();
+}
+
+void WebSocketClient::handleBinaryMessage(QByteArray& data)
+{
+	unsigned imgSize = data.size() - 4;
+	unsigned width = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
+	unsigned height = imgSize / width;
+
+	if (imgSize % width > 0)
+	{
+		Error(_log, "data size is not multiple of width");
+		return;
+	}
+
+	Image<ColorRgb> image;
+	image.resize(width, height);
+
+	memcpy(image.rawMem(), data.data() + 4, imgSize);
 }
 
 void WebSocketClient::handleWebSocketFrame()
@@ -117,7 +144,7 @@ void WebSocketClient::handleWebSocketFrame()
 						if (_wsh.opCode == OPCODE::TEXT)
 						{
 
-							_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
+							_hyperAPI->handleMessage(QString(_wsReceiveBuffer));
 						}
 						else
 						{
@@ -154,6 +181,83 @@ void WebSocketClient::handleWebSocketFrame()
 					Warning(_log, "Unexpected %d\n%s\n", _wsh.opCode, QSTRING_CSTR(QString(buf)));
 		}
 	}
+}
+
+void WebSocketClient::sendClose(int status, QString reason)
+{
+	Debug(_log, "send close: %d %s", status, QSTRING_CSTR(reason));
+	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
+	_receiveBuffer.clear();
+	QByteArray sendBuffer;
+
+	sendBuffer.append(136 + (status - 1000));
+	int length = reason.size();
+	if (length >= 126)
+	{
+		sendBuffer.append((length > 0xffff) ? 127 : 126);
+		int num_bytes = (length > 0xffff) ? 8 : 2;
+
+		for (int c = num_bytes - 1; c != -1; c--)
+		{
+			sendBuffer.append(quint8((static_cast<unsigned long long>(length) >> (8 * c)) % 256));
+		}
+	}
+	else
+	{
+		sendBuffer.append(quint8(length));
+	}
+
+	sendBuffer.append(reason.toUtf8());
+
+	_socket->write(sendBuffer);
+	_socket->flush();
+	_socket->close();
+}
+
+qint64 WebSocketClient::sendMessage(const QJsonObject& obj)
+{
+	QJsonDocument writer(obj);
+	QByteArray data = writer.toJson(QJsonDocument::Compact) + "\n";
+
+	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
+		return 0;
+
+	qint64 payloadWritten = 0;
+	quint32 payloadSize = data.size();
+	const char* payload = data.data();
+
+	qint32 numFrames = payloadSize / FRAME_SIZE_IN_BYTES + ((quint64(payloadSize) % FRAME_SIZE_IN_BYTES) > 0 ? 1 : 0);
+
+	for (int i = 0; i < numFrames; i++)
+	{
+		const bool isLastFrame = (i == (numFrames - 1));
+
+		quint64 position = i * FRAME_SIZE_IN_BYTES;
+		quint32 frameSize = (payloadSize - position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize - position);
+		quint8 headerType = (i) ? OPCODE::CONTINUATION : OPCODE::TEXT;
+		QByteArray buf = makeFrameHeader(headerType, frameSize, isLastFrame);
+		sendMessage_Raw(buf);
+
+		qint64 written = sendMessage_Raw(payload + position, frameSize);
+		if (written > 0)
+		{
+			payloadWritten += written;
+		}
+		else
+		{
+			_socket->flush();
+			Error(_log, "Error writing bytes to socket: %s", QSTRING_CSTR(_socket->errorString()));
+			break;
+		}
+	}
+
+	if (payloadSize != payloadWritten)
+	{
+		Error(_log, "Error writing bytes to socket %d bytes from %d written", payloadWritten, payloadSize);
+		return -1;
+	}
+
+	return payloadWritten;
 }
 
 void WebSocketClient::getWsFrameHeader(WebSocketHeader* header)
@@ -196,79 +300,28 @@ void WebSocketClient::getWsFrameHeader(WebSocketHeader* header)
 	}
 }
 
-void WebSocketClient::sendClose(int status, QString reason)
+qint64 WebSocketClient::signalCallbackBinaryImageMessageHandler(Image<ColorRgb> image)
 {
-	Debug(_log, "send close: %d %s", status, QSTRING_CSTR(reason));
-	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
-	_receiveBuffer.clear();
-	QByteArray sendBuffer;
-
-	sendBuffer.append(136 + (status - 1000));
-	int length = reason.size();
-	if (length >= 126)
-	{
-		sendBuffer.append((length > 0xffff) ? 127 : 126);
-		int num_bytes = (length > 0xffff) ? 8 : 2;
-
-		for (int c = num_bytes - 1; c != -1; c--)
-		{
-			sendBuffer.append(quint8((static_cast<unsigned long long>(length) >> (8 * c)) % 256));
-		}
-	}
-	else
-	{
-		sendBuffer.append(quint8(length));
-	}
-
-	sendBuffer.append(reason.toUtf8());
-
-	_socket->write(sendBuffer);
-	_socket->flush();
-	_socket->close();
-}
-
-
-void WebSocketClient::handleBinaryMessage(QByteArray& data)
-{
-	unsigned imgSize = data.size() - 4;
-	unsigned width = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
-	unsigned height = imgSize / width;
-
-	if (imgSize % width > 0)
-	{
-		Error(_log, "data size is not multiple of width");
-		return;
-	}
-
-	Image<ColorRgb> image;
-	image.resize(width, height);
-
-	memcpy(image.rawMem(), data.data() + 4, imgSize);
-}
-
-
-qint64 WebSocketClient::sendMessage(QJsonObject obj)
-{
-	QJsonDocument writer(obj);
-	QByteArray data = writer.toJson(QJsonDocument::Compact) + "\n";
-
 	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
 		return 0;
+
+	MemoryBuffer<uint8_t> mb;
+	FrameDecoder::encodeJpeg(mb, image, (image.width() > 800));
 	
 	qint64 payloadWritten = 0;
-	quint32 payloadSize = data.size();
-	const char* payload = data.data();
+	quint32 payloadSize = static_cast<quint32>(mb.size());
+	char* payload = reinterpret_cast<char*>(mb.data());
 
 	qint32 numFrames = payloadSize / FRAME_SIZE_IN_BYTES + ((quint64(payloadSize) % FRAME_SIZE_IN_BYTES) > 0 ? 1 : 0);
-	
+
 	for (int i = 0; i < numFrames; i++)
 	{
 		const bool isLastFrame = (i == (numFrames - 1));
 
 		quint64 position = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize - position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize - position);
-		quint8 headerType = (i) ? OPCODE::CONTINUATION : OPCODE::TEXT;
-		QByteArray buf = makeFrameHeader(headerType, frameSize, isLastFrame);		
+		quint8 headerType = (i) ? OPCODE::CONTINUATION : OPCODE::BINARY;
+		QByteArray buf = makeFrameHeader(headerType, frameSize, isLastFrame);
 		sendMessage_Raw(buf);
 
 		qint64 written = sendMessage_Raw(payload + position, frameSize);
@@ -285,14 +338,9 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 	}
 
 	if (payloadSize != payloadWritten)
-	{
+	{		
 		Error(_log, "Error writing bytes to socket %d bytes from %d written", payloadWritten, payloadSize);
 		return -1;
-	}
-
-	if (obj.contains("isImage"))
-	{
-		QUEUE_CALL_0(_jsonAPI, releaseLock);
 	}
 
 	return payloadWritten;

@@ -31,7 +31,7 @@ bool LedDeviceAWA_spi::init(const QJsonObject& deviceConfig)
 		_white_channel_green = qMin(deviceConfig["white_channel_green"].toInt(255), 255);
 		_white_channel_blue = qMin(deviceConfig["white_channel_blue"].toInt(255), 255);
 
-		CreateHeader();
+		createHeader();
 
 		if (_white_channel_calibration)
 			Debug(_log, "White channel limit: %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
@@ -42,7 +42,7 @@ bool LedDeviceAWA_spi::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-void LedDeviceAWA_spi::CreateHeader()
+void LedDeviceAWA_spi::createHeader()
 {
 	unsigned int totalLedCount = _ledCount - 1;
 
@@ -69,7 +69,7 @@ int LedDeviceAWA_spi::write(const std::vector<ColorRgb>& ledValues)
 
 		_ledCount = ledValues.size();
 
-		CreateHeader();
+		createHeader();
 	}
 
 	auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb) + 8;
@@ -106,6 +106,8 @@ int LedDeviceAWA_spi::write(const std::vector<ColorRgb>& ledValues)
 		return writeBytesEsp8266(bufferLength, _ledBuffer.data());
 	else if (_spiType == "esp32")
 		return writeBytesEsp32(bufferLength, _ledBuffer.data());
+	else if (_spiType == "rp2040")
+		return writeBytesRp2040(bufferLength, _ledBuffer.data());
 	else
 		return writeBytes(bufferLength, _ledBuffer.data());
 }

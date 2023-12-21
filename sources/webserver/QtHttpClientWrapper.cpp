@@ -1,3 +1,16 @@
+#include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
+
+#include <QCryptographicHash>
+#include <QTcpSocket>
+#include <QStringBuilder>
+#include <QStringList>
+#include <QHostAddress>
+
+
 #include <utils/QStringUtils.h>
 #include "QtHttpClientWrapper.h"
 #include "QtHttpRequest.h"
@@ -7,18 +20,13 @@
 #include "WebSocketClient.h"
 #include "WebJsonRpc.h"
 
-#include <QCryptographicHash>
-#include <QTcpSocket>
-#include <QStringBuilder>
-#include <QStringList>
-#include <QHostAddress>
-
 #define REQ "request="
 #define RPC "json-rpc"
 
 const QByteArray& QtHttpClientWrapper::CRLF = QByteArrayLiteral("\r\n");
 
-QtHttpClientWrapper::QtHttpClientWrapper(QTcpSocket* sock, const bool& localConnection, QtHttpServer* parent)
+QtHttpClientWrapper::QtHttpClientWrapper(
+	QTcpSocket* sock, const bool& localConnection, QtHttpServer* parent)
 	: QObject(parent)
 	, m_guid("")
 	, m_parsingStatus(AwaitingRequest)
@@ -45,6 +53,29 @@ QString QtHttpClientWrapper::getGuid(void)
 	}
 
 	return m_guid;
+}
+
+
+void QtHttpClientWrapper::onReplySendDataRequested(void)
+{
+	QtHttpReply* reply = qobject_cast<QtHttpReply*> (sender());
+	if (reply != Q_NULLPTR && m_sockClient != nullptr && m_sockClient->state() == QAbstractSocket::ConnectedState)
+	{
+		// content raw data
+		QByteArray data = reply->getRawData();
+
+		if (reply->useChunked())
+		{
+			data.prepend(QByteArray::number(data.size(), 16) % CRLF);
+			data.append(CRLF);
+			reply->resetRawData();
+		}
+		if (m_sockClient->state() == QAbstractSocket::ConnectedState)
+		{
+			m_sockClient->write(data);
+			m_sockClient->flush();
+		}
+	}
 }
 
 void QtHttpClientWrapper::onClientDataReceived(void)
@@ -120,7 +151,7 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 				}
 				else // end of headers
 				{
-					if (m_currentRequest->getHeader(QtHttpHeader::ContentLength).toInt() > 0)
+					if (m_currentRequest->getHeader(QtHttpHeader::ContentLength, 0) > 0)
 					{
 						m_parsingStatus = AwaitingContent;
 					}
@@ -136,7 +167,7 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 			{
 				m_currentRequest->appendRawData(line);
 
-				if (m_currentRequest->getRawDataSize() == m_currentRequest->getHeader(QtHttpHeader::ContentLength).toInt())
+				if (m_currentRequest->getRawDataSize() == m_currentRequest->getHeader(QtHttpHeader::ContentLength, 0))
 				{
 					m_parsingStatus = RequestParsed;
 				}
@@ -251,6 +282,23 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 	}
 }
 
+
+void QtHttpClientWrapper::closeConnection()
+{
+	// probably filter for request to follow http spec
+	if (m_currentRequest != Q_NULLPTR)
+	{
+		QtHttpReply reply(m_serverHandle);
+		reply.setStatusCode(QtHttpReply::StatusCode::Forbidden);
+
+		connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+		connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+
+		m_parsingStatus = sendReplyToClient(&reply);
+	}
+	m_sockClient->close();
+}
+
 void QtHttpClientWrapper::onReplySendHeadersRequested(void)
 {
 	QtHttpReply* reply = qobject_cast<QtHttpReply*> (sender());
@@ -289,27 +337,6 @@ void QtHttpClientWrapper::onReplySendHeadersRequested(void)
 
 		// empty line
 		data.append(CRLF);
-		m_sockClient->write(data);
-		m_sockClient->flush();
-	}
-}
-
-void QtHttpClientWrapper::onReplySendDataRequested(void)
-{
-	QtHttpReply* reply = qobject_cast<QtHttpReply*> (sender());
-	if (reply != Q_NULLPTR)
-	{
-		// content raw data
-		QByteArray data = reply->getRawData();
-
-		if (reply->useChunked())
-		{
-			data.prepend(QByteArray::number(data.size(), 16) % CRLF);
-			data.append(CRLF);
-			reply->resetRawData();
-		}
-
-		// write to socket
 		m_sockClient->write(data);
 		m_sockClient->flush();
 	}
@@ -358,18 +385,3 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient(QtHttp
 	return AwaitingRequest;
 }
 
-void QtHttpClientWrapper::closeConnection()
-{
-	// probably filter for request to follow http spec
-	if (m_currentRequest != Q_NULLPTR)
-	{
-		QtHttpReply reply(m_serverHandle);
-		reply.setStatusCode(QtHttpReply::StatusCode::Forbidden);
-
-		connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
-		connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
-
-		m_parsingStatus = sendReplyToClient(&reply);
-	}
-	m_sockClient->close();
-}

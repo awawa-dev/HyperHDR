@@ -1,41 +1,63 @@
-#include "webserver/WebServer.h"
-#include "HyperhdrConfig.h"
-#include "StaticFileServing.h"
-#include "QtHttpServer.h"
-
+#include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
 #include <QFileInfo>
 #include <QJsonObject>
 #include <QTcpServer>
 #include <QDateTime>
 
+#include "QtHttpRequest.h"
+#include "webserver/WebServer.h"
+#include "HyperhdrConfig.h"
+#include "StaticFileServing.h"
+#include "QtHttpServer.h"
+
 // bonjour
 #ifdef ENABLE_BONJOUR
-	#include <bonjour/bonjourserviceregister.h>
+	#include <bonjour/BonjourServiceRegister.h>
 #endif
 
 // netUtil
 #include <utils/NetOrigin.h>
 
-WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject* parent)
+WebServer::WebServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, bool useSsl, QObject* parent)
 	: QObject(parent)
 	, _port(0)
 	, _config(config)
 	, _useSsl(useSsl)
 	, _log(Logger::getInstance("WEBSERVER"))
-	, _server()
+	, _staticFileServing(nullptr)
+	, _server(nullptr)
+	, _netOrigin(netOrigin)
 {
 
 }
 
 WebServer::~WebServer()
 {
+	Debug(_log, "Prepare to shutdown");
 	stop();
+	Debug(_log, "Webserver instance is closed");
+}
+
+void WebServer::start()
+{
+	if (_server != nullptr)
+		_server->start(_port);
+}
+
+void WebServer::stop()
+{
+	if (_server != nullptr)
+		_server->stop();
 }
 
 void WebServer::initServer()
 {
 	Info(_log, "Initialize Webserver");
-	_server = new QtHttpServer(this);
+	_server = new QtHttpServer(_netOrigin, this);
 	_server->setServerName(QString("HyperHDR WebServer %1").arg((!_useSsl) ? "(HTTP)" : "(HTTPS)"));
 
 	if (_useSsl)
@@ -58,8 +80,6 @@ void WebServer::initServer()
 
 void WebServer::onServerStarted(quint16 port)
 {
-	_inited = true;
-
 	Info(_log, "Started: '%s' on port: %d", QSTRING_CSTR(_server->getServerName()), port);
 
 #ifdef ENABLE_BONJOUR
@@ -202,32 +222,6 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 	}
 }
 
-void WebServer::start()
-{
-	_server->start(_port);
-}
-
-void WebServer::stop()
-{
-	_server->stop();
-}
-
-void WebServer::setSSDPDescription(const QString& desc)
-{
-	_staticFileServing->setSSDPDescription(desc);
-}
-
-void WebServer::onServerError(QString msg)
-{
-	Error(_log, "%s", QSTRING_CSTR(msg));
-}
-
-void WebServer::onServerStopped()
-{
-	Info(_log, "Stopped: %s", QSTRING_CSTR(_server->getServerName()));
-	emit stateChange(false);
-}
-
 bool WebServer::portAvailable(quint16& port, Logger* log)
 {
 	const quint16 prevPort = port;
@@ -245,3 +239,20 @@ bool WebServer::portAvailable(quint16& port, Logger* log)
 	}
 	return true;
 }
+
+void WebServer::setSsdpXmlDesc(const QString& desc)
+{
+	_staticFileServing->setSsdpXmlDesc(desc);
+}
+
+void WebServer::onServerError(QString msg)
+{
+	Error(_log, "%s", QSTRING_CSTR(msg));
+}
+
+void WebServer::onServerStopped()
+{
+	Info(_log, "Stopped: %s", QSTRING_CSTR(_server->getServerName()));
+	emit stateChange(false);
+}
+

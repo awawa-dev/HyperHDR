@@ -1,4 +1,3 @@
-// Local includes
 #include <utils/ColorRgbw.h>
 
 const ColorRgbw ColorRgbw::BLACK  = {   0,   0,   0,   0 };

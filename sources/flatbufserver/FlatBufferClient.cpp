@@ -10,7 +10,7 @@
 // util includes
 #include <utils/FrameDecoder.h>
 
-FlatBufferClient::FlatBufferClient(QTcpSocket* socket, QLocalSocket* domain, int timeout, int hdrToneMappingEnabled, uint8_t* lutBuffer, QObject* parent)
+FlatBufferClient::FlatBufferClient(QTcpSocket* socket, QLocalSocket* domain, int timeout, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)
@@ -18,9 +18,7 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, QLocalSocket* domain, int
 	, _clientAddress("@LocalSocket")
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
-	, _priority()
-	, _hdrToneMappingMode(hdrToneMappingEnabled)
-	, _lutBuffer(lutBuffer)
+	, _priority(140)
 {
 	if (_socket != nullptr)
 		_clientAddress = "@" + _socket->peerAddress().toString();
@@ -89,12 +87,6 @@ void FlatBufferClient::forceClose()
 		_domain->close();
 }
 
-void FlatBufferClient::setHdrToneMappingEnabled(int mode, uint8_t* lutBuffer)
-{
-	_hdrToneMappingMode = mode;
-	_lutBuffer = lutBuffer;
-}
-
 void FlatBufferClient::disconnected()
 {
 	Debug(_log, "Socket Closed");
@@ -104,10 +96,10 @@ void FlatBufferClient::disconnected()
 	if (_domain != nullptr)
 		_domain->deleteLater();
 
-	if (_priority != 0 && _priority >= 100 && _priority < 200)
-		emit clearGlobalInput(_priority);
+	if (_priority >= 50 && _priority <= 250)
+		emit SignalClearGlobalInput(_priority, false);
 
-	emit clientDisconnected();
+	emit SignalClientDisconnected(this);
 }
 
 void FlatBufferClient::handleMessage(const hyperhdrnet::Request* req)
@@ -137,39 +129,25 @@ void FlatBufferClient::handleColorCommand(const hyperhdrnet::Color* colorReq)
 	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
 
 	// set output
-	emit setGlobalInputColor(_priority, color, colorReq->duration());
+	emit SignalSetGlobalColor(_priority, color, colorReq->duration(), hyperhdr::Components::COMP_FLATBUFSERVER, _clientDescription);
 
 	// send reply
 	sendSuccessReply();
 }
 
-void FlatBufferClient::registationRequired(int priority)
-{
-	if (_priority == priority)
-	{
-		auto reply = hyperhdrnet::CreateReplyDirect(_builder, nullptr, -1, -1);
-		_builder.Finish(reply);
-
-		// send reply
-		sendMessage();
-
-		_builder.Clear();
-	}
-}
-
 void FlatBufferClient::handleRegisterCommand(const hyperhdrnet::Register* regReq)
 {
-	if (regReq->priority() < 100 || regReq->priority() >= 200)
+	if (regReq->priority() < 50 || regReq->priority() > 250)
 	{
-		Error(_log, "Register request from client %s contains invalid priority %d. Valid priority for Flatbuffer connections is between 100 and 199.", QSTRING_CSTR(_clientAddress), regReq->priority());
-		sendErrorReply("The priority " + std::to_string(regReq->priority()) + " is not in the priority range between 100 and 199.");
+		Error(_log, "Register request from client %s contains invalid priority %d. Valid priority for Flatbuffer connections is between 50 and 250.", QSTRING_CSTR(_clientAddress), regReq->priority());
+		sendErrorReply("The priority " + std::to_string(regReq->priority()) + " is not in the priority range between 50 and 250.");
 		return;
 	}
 
 	_priority = regReq->priority();
-	emit registerGlobalInput(_priority, hyperhdr::COMP_FLATBUFSERVER, regReq->origin()->c_str() + _clientAddress);
+	_clientDescription = regReq->origin()->c_str() + _clientAddress;
 
-	auto reply = hyperhdrnet::CreateReplyDirect(_builder, nullptr, -1, (_priority ? _priority : -1));
+	auto reply = hyperhdrnet::CreateReplyDirect(_builder, nullptr, -1, _priority);
 	_builder.Finish(reply);
 
 	// send reply
@@ -200,10 +178,7 @@ void FlatBufferClient::handleImageCommand(const hyperhdrnet::Image* image)
 		Image<ColorRgb> imageDest(width, height);
 		memmove(imageDest.rawMem(), imageData->data(), imageData->size());
 
-		// tone mapping
-		FrameDecoder::applyLUT(imageDest.rawMem(), imageDest.width(), imageDest.height(), _lutBuffer, _hdrToneMappingMode);
-
-		emit setGlobalInputImage(_priority, imageDest, duration);
+		emit SignalImageReceived(_priority, imageDest, duration, hyperhdr::Components::COMP_FLATBUFSERVER, _clientDescription);
 	}
 
 	// send reply
@@ -214,14 +189,9 @@ void FlatBufferClient::handleImageCommand(const hyperhdrnet::Image* image)
 void FlatBufferClient::handleClearCommand(const hyperhdrnet::Clear* clear)
 {
 	// extract parameters
-	const int priority = clear->priority();
+	const int priority = clear->priority();	
 
-	// Check if we are clearing ourselves.
-	if (priority == _priority) {
-		_priority = -1;
-	}
-
-	emit clearGlobalInput(priority);
+	emit SignalClearGlobalInput(priority, false);
 
 	sendSuccessReply();
 }

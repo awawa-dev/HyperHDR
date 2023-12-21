@@ -794,7 +794,20 @@ $(document).ready(function()
 				values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
 			};
 			conf_editor.getEditor("root.specificOptions").setValue(values_specific);
-		};
+		}
+		else
+			conf_editor.getEditor('root.generalOptions.refreshTime').setValue(0);
+
+		if (window.serverConfig.smoothing != null && window.serverConfig.smoothing.enable)
+		{
+			var label = $("div[data-schemapath='root.generalOptions.refreshTime'] label.required");
+			if (label != null)
+				label.append( `<br/><span class="text-danger"><small>${$.i18n("controlled_by_smoothing_or_led_driver")}</small></span>` );
+			conf_editor.getEditor('root.generalOptions.refreshTime').disable();
+			var fps = window.serverConfig.smoothing.updateFrequency;
+			if (!isNaN(fps))
+				conf_editor.getEditor('root.generalOptions.refreshTime').setValue(Math.round(1000.0/fps));
+		}
 
 		// change save button state based on validation result
 		var firstValid = conf_editor.validate();

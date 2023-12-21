@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,7 +25,9 @@
 *  SOFTWARE.
  */
 
-#include <utils/InternalClock.h>
+#ifndef PCH_ENABLED
+	#include <utils/InternalClock.h>
+#endif
 
 const std::chrono::time_point<std::chrono::steady_clock> InternalClock::start = std::chrono::steady_clock::now();
 const std::chrono::time_point<std::chrono::high_resolution_clock> InternalClock::startPrecise = std::chrono::high_resolution_clock::now();

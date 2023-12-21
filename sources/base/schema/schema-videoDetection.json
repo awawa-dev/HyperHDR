@@ -32,12 +32,9 @@
 		"calibration_sdr" :
 		{
 			"type" : "array",
-			"required" : true,
-			"default"  : [],
 			"items" :
 			{
 				"type" : "object",
-				"required" : true,
 				"properties":
 				{
 					"x" :
@@ -71,12 +68,9 @@
 		"calibration_hdr" :
 		{
 			"type" : "array",
-			"required" : true,
-			"default"  : [],
 			"items" :
 			{
 				"type" : "object",
-				"required" : true,
 				"properties":
 				{
 					"x" :

@@ -1,80 +1,82 @@
 #pragma once
 
-// Qt includes
-#include <QThread>
-#include <QJsonObject>
-#include <QSize>
-#include <QImage>
-#include <QPainter>
+#ifndef PCH_ENABLED
+	#include <QThread>
+	#include <QJsonObject>
+	#include <QSize>
+	#include <QImage>
+	#include <QPainter>
+	#include <QTimer>
+
+	#include <atomic>	
+#endif
 
 #include <utils/Components.h>
 #include <utils/Image.h>
-
-#include <atomic>
 #include <effectengine/AnimationBase.h>
+
 
 class HyperHdrInstance;
 class Logger;
 
-class Effect : public QThread
+class Effect : public QObject
 {
 	Q_OBJECT
 
-public:
-	friend class EffectModule;
+public slots:
+	void start();
+	void run();
+	void stop();
 
+	void visiblePriorityChanged(quint8 priority);
+
+public:
 	Effect(HyperHdrInstance* hyperhdr,
 			int visiblePriority,
 			int priority,
 			int timeout,
-			const QString& name,
-			const QJsonObject& args = QJsonObject(),
-			const QString& imageData = ""
+			const EffectDefinition& effect
 	);
 
 	~Effect() override;
 
-	void run() override;
+	QString	getDescription() const;
 
 	int  getPriority() const;
 	void requestInterruption();
-	bool isInterruptionRequested();
-	void visiblePriorityChanged(quint8 priority);
 	void setLedCount(int newCount);
 
 	QString getName()     const;
 	int getTimeout()      const;
-	QJsonObject getArgs() const;
 
-	
+	static std::list<EffectDefinition> getAvailableEffects();	
 
 signals:
-	void setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
-	void setInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);
+	void SignalSetLeds(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
+	void SignalSetImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);
+	void SignalEffectFinished(int priority, QString name, bool forced);
 
 private:
-	bool ImageShow();
-	bool LedShow();
+	void imageShow(int left);
+	void ledShow(int left);
 
-	HyperHdrInstance*	_hyperhdr;
-	std::atomic<int>	_visiblePriority;
+	int					_visiblePriority;
 	const int			_priority;
 	const int			_timeout;
-
+	const int			_instanceIndex;
 	const QString		_name;
-	const QJsonObject	_args;
-	const QString		_imageData;
+	AnimationBase*		_effect;
+
 	int64_t				_endTime;
 	QVector<ColorRgb>	_colors;
 
 	Logger*				_log;
-	std::atomic<bool>	_interupt{};
+	std::atomic<bool>	_interrupt;
 
-	QSize				_imageSize;
 	QImage				_image;
-	QPainter*			_painter;
-	AnimationBase*		_effect;
-	QVector<ColorRgb>	_ledBuffer;
-	uint32_t			_soundHandle;
+	QPainter			_painter;
+	
+	QTimer				_timer;
+	QVector<ColorRgb>	_ledBuffer;	
 	std::atomic<int>	_ledCount;
 };

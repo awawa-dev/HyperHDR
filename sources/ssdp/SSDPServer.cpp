@@ -1,10 +1,6 @@
 #include <ssdp/SSDPServer.h>
 #include <utils/QStringUtils.h>
 
-// utils
-#include <utils/SysInfo.h>
-
-
 // HyperHDR
 #include <HyperhdrConfig.h>
 
@@ -89,25 +85,27 @@ SSDPServer::SSDPServer(QObject* parent)
 
 SSDPServer::~SSDPServer()
 {
+	Debug(_log, "Prepare to shutdown");
 	stop();
+	Debug(_log, "SSDP server is closed");
 }
 
 void SSDPServer::initServer()
 {
-	_udpSocket = new QUdpSocket(this);
+	Debug(_log, "Initialize the SSDP server");
 
-	// get system info
-	SysInfo::HyperhdrSysInfo data = SysInfo::get();
+	_udpSocket = new QUdpSocket(this);
 
 	// create SERVER String
 	_serverHeader = QString("%1/%2 UPnP/1.0 HyperHDR/%3")
-		.arg(data.prettyName, data.productVersion, HYPERHDR_VERSION);
+		.arg(QSysInfo::prettyProductName(), QSysInfo::productVersion(), HYPERHDR_VERSION);
 
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }
 
 bool SSDPServer::start()
 {
+	Info(_log, "Starting the SSDP server");
 	if (!_running && _udpSocket->bind(QHostAddress::AnyIPv4, SSDP_PORT, QAbstractSocket::ShareAddress))
 	{
 		_udpSocket->joinMulticastGroup(SSDP_ADDR);
@@ -119,6 +117,7 @@ bool SSDPServer::start()
 
 void SSDPServer::stop()
 {
+	Info(_log, "Stopping the SSDP server");
 	if (_running)
 	{
 		_udpSocket->close();
@@ -275,6 +274,16 @@ void SSDPServer::setSSLServerPort(quint16 port)
 quint16 SSDPServer::getSSLServerPort() const
 {
 	return _sslPort.toInt();
+}
+
+void SSDPServer::setWebServerPort(quint16 port)
+{
+	_webPort = QString::number(port);
+}
+
+quint16 SSDPServer::getWebServerPort() const
+{
+	return _webPort.toInt();
 }
 
 

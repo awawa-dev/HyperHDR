@@ -6,7 +6,7 @@ FILE ( GLOB CECHANDLER_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR
 
 add_library(cechandler ${CECHANDLER_SOURCES})
 
-target_include_directories(cechandler PUBLIC "${CMAKE_SOURCE_DIR}/dependencies/external/libcec/include")
+target_include_directories(cechandler PUBLIC ${CEC_INCLUDE_DIRS})
 target_link_libraries(cechandler
 	${CEC_LIBRARIES}
 	Qt${Qt_VERSION}::Network

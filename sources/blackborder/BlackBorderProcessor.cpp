@@ -9,14 +9,13 @@ using namespace hyperhdr;
 
 BlackBorderProcessor::BlackBorderProcessor(HyperHdrInstance* hyperhdr, QObject* parent)
 	: QObject(parent)
-	, _hyperhdr(hyperhdr)
 	, _enabled(false)
 	, _unknownSwitchCnt(600)
 	, _borderSwitchCnt(50)
 	, _maxInconsistentCnt(10)
 	, _blurRemoveCnt(1)
 	, _detectionMode("default")
-	, _detector(nullptr)
+	, _borderDetector(nullptr)
 	, _currentBorder({ true, -1, -1 })
 	, _previousDetectedBorder({ true, -1, -1 })
 	, _consistentCnt(0)
@@ -25,19 +24,17 @@ BlackBorderProcessor::BlackBorderProcessor(HyperHdrInstance* hyperhdr, QObject* 
 	, _hardDisabled(false)
 	, _userEnabled(false)
 {
-	// init
-	handleSettingsUpdate(settings::type::BLACKBORDER, _hyperhdr->getSetting(settings::type::BLACKBORDER));
+	connect(this, &BlackBorderProcessor::setNewComponentState, hyperhdr, &HyperHdrInstance::setNewComponentState);
 
-	// listen for settings updates
-	connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &BlackBorderProcessor::handleSettingsUpdate);
+	handleSettingsUpdate(settings::type::BLACKBORDER, hyperhdr->getSetting(settings::type::BLACKBORDER));
 
-	// listen for component state changes
-	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &BlackBorderProcessor::handleCompStateChangeRequest);
+	connect(hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, this, &BlackBorderProcessor::handleSettingsUpdate);
+	connect(hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &BlackBorderProcessor::handleCompStateChangeRequest);
 }
 
 BlackBorderProcessor::~BlackBorderProcessor()
 {
-	delete _detector;
+	_borderDetector = nullptr;
 }
 
 void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -56,9 +53,7 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 		{
 			_oldThreshold = newThreshold;
 
-			delete _detector;
-
-			_detector = new BlackBorderDetector(newThreshold);
+			_borderDetector = std::unique_ptr<BlackBorderDetector>(new BlackBorderDetector(newThreshold));
 		}
 
 		Info(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
@@ -84,7 +79,7 @@ void BlackBorderProcessor::handleCompStateChangeRequest(hyperhdr::Components com
 			_enabled = enable;
 		}
 
-		_hyperhdr->setNewComponentState(hyperhdr::COMP_BLACKBORDER, enable);
+		emit setNewComponentState(hyperhdr::COMP_BLACKBORDER, enable);
 	}
 }
 
@@ -198,17 +193,20 @@ bool BlackBorderProcessor::process(const Image<ColorRgb>& image)
 		return true;
 	}
 
+	if (_borderDetector == nullptr)
+		return false;
+
 	if (_detectionMode == "default") {
-		imageBorder = _detector->process(image);
+		imageBorder = _borderDetector->process(image);
 	}
 	else if (_detectionMode == "classic") {
-		imageBorder = _detector->process_classic(image);
+		imageBorder = _borderDetector->process_classic(image);
 	}
 	else if (_detectionMode == "osd") {
-		imageBorder = _detector->process_osd(image);
+		imageBorder = _borderDetector->process_osd(image);
 	}
 	else if (_detectionMode == "letterbox") {
-		imageBorder = _detector->process_letterbox(image);
+		imageBorder = _borderDetector->process_letterbox(image);
 	}
 	// add blur to the border
 	if (imageBorder.horizontalSize > 0)

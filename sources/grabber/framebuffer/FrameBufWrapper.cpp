@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -26,7 +26,7 @@
  */
 
 #include <QMetaType>
-#include <grabber/FrameBufWrapper.h>
+#include <grabber/framebuffer/FrameBufWrapper.h>
 
 
 FrameBufWrapper::FrameBufWrapper(const QString &device,
@@ -35,8 +35,8 @@ FrameBufWrapper::FrameBufWrapper(const QString &device,
 	, _grabber(device, configurationPath)
 {	
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
-	connect(&_grabber, &Grabber::newFrame, this, &SystemWrapper::newFrame, Qt::DirectConnection);
-	connect(&_grabber, &Grabber::readError, this, &SystemWrapper::readError, Qt::DirectConnection);
+    connect(&_grabber, &Grabber::SignalNewCapturedFrame, this, &SystemWrapper::newCapturedFrameHandler, Qt::DirectConnection);
+    connect(&_grabber, &Grabber::SignalCapturingException, this, &SystemWrapper::capturingExceptionHandler, Qt::DirectConnection);
 }
 
 QString FrameBufWrapper::getGrabberInfo()

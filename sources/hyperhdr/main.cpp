@@ -1,36 +1,41 @@
-#include <cassert>
+#ifndef PCH_ENABLED
+	#include <QCoreApplication>
+	#include <QApplication>
+	#include <QLocale>
+	#include <QFile>
+	#include <QString>
+	#include <QResource>
+	#include <QDir>
+	#include <QStringList>
+	#include <QSystemTrayIcon>
+	#include <QStringList>
+
+	#include <exception>
+	#include <iostream>
+	#include <cassert>
+	#include <stdlib.h>
+	#include <stdio.h>
+#endif
+
+#include <QApplication>
 #include <csignal>
-#include <stdlib.h>
-#include <stdio.h>
 
 #if !defined(__APPLE__) && !defined(_WIN32)
-/* prctl is Linux only */
-#include <sys/prctl.h>
+	#include <sys/prctl.h>
 #endif
 
-// getpid()
+
 #ifdef _WIN32
-#include <windows.h>
-#include <process.h>
+	#ifndef NOMINMAX
+		#define NOMINMAX
+	#endif
+	#include <windows.h>
+	#include <process.h>
 #else
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
-#include <exception>
-#include <iostream>
-
-#include <QCoreApplication>
-#include <QApplication>
-#include <QLocale>
-#include <QFile>
-#include <QString>
-#include <QResource>
-#include <QDir>
-#include <QStringList>
-#include <QSystemTrayIcon>
-#include <QStringList>
-
-#include "HyperhdrConfig.h"
+#include <HyperhdrConfig.h>
 
 #include <utils/Logger.h>
 #include <commandline/Parser.h>
@@ -39,8 +44,7 @@
 #include <db/AuthTable.h>
 
 #include "detectProcess.h"
-
-#include "hyperhdr.h"
+#include "HyperHdrDaemon.h"
 #include "systray.h"
 
 using namespace commandline;
@@ -64,36 +68,7 @@ void CreateConsole()
 
 #define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
 
-#ifndef _WIN32
-void signal_handler(int signum)
-{
-	// HyperHDR Managment instance
-	HyperHdrIManager* _hyperhdr = HyperHdrIManager::getInstance();
-
-	if (signum == SIGCHLD)
-	{
-		// only quit when a registered child process is gone
-		// currently this feature is not active ...
-		return;
-	}
-	else if (signum == SIGUSR1)
-	{
-		if (_hyperhdr != nullptr)
-		{
-			_hyperhdr->toggleStateAllInstances(false);
-		}
-		return;
-	}
-	else if (signum == SIGUSR2)
-	{
-		if (_hyperhdr != nullptr)
-		{
-			_hyperhdr->toggleStateAllInstances(true);
-		}
-		return;
-	}
-}
-#endif
+HyperHdrDaemon* hyperhdrd = nullptr;
 
 QCoreApplication* createApplication(int& argc, char* argv[])
 {
@@ -119,8 +94,9 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 #else
 	if (!forceNoGui)
 	{
-		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
-		std::cout << "GUI application";
+		isGuiApp = (getenv("DISPLAY") != NULL &&
+			((getenv("XDG_SESSION_TYPE") != NULL && strcmp(getenv("XDG_SESSION_TYPE"), "tty") != 0) || getenv("WAYLAND_DISPLAY") != NULL));
+		std::cout << ((isGuiApp) ? "GUI" : "Console") << " application: " << std::endl;
 	}
 #endif
 
@@ -166,11 +142,6 @@ int main(int argc, char** argv)
 
 	DefaultSignalHandler::install();
 
-#ifndef _WIN32
-	signal(SIGCHLD, signal_handler);
-	signal(SIGUSR1, signal_handler);
-	signal(SIGUSR2, signal_handler);
-#endif
 	// force the locale
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
@@ -306,6 +277,8 @@ int main(int argc, char** argv)
 			}
 		}
 
+		DBManager::initializeDatabaseFilename(dbFile);
+
 		// reset Password without spawning daemon
 		if (parser.isSet(resetPassword))
 		{
@@ -316,15 +289,13 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				AuthTable* table = new AuthTable(userDataDirectory.absolutePath());
+				std::unique_ptr<AuthTable> table = std::unique_ptr<AuthTable>(new AuthTable(false));
 				if (table->resetHyperhdrUser()) {
 					Info(log, "Password reset successful");
-					delete table;
 					exit(0);
 				}
 				else {
 					Error(log, "Failed to reset password!");
-					delete table;
 					exit(1);
 				}
 			}
@@ -370,11 +341,10 @@ int main(int argc, char** argv)
 		{
 			Warning(log, "The user data path '%s' is not writeable. HyperHdr starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
 		}
-
-		HyperHdrDaemon* hyperhdrd = nullptr;
+		
 		try
 		{
-			hyperhdrd = new HyperHdrDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode, params);
+			hyperhdrd = new HyperHdrDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode, params, isGuiApp);
 		}
 		catch (std::exception& e)
 		{
@@ -387,8 +357,8 @@ int main(int argc, char** argv)
 		{
 			Info(log, "start systray");
 			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray tray(hyperhdrd);
-			tray.hide();
+			SysTray* tray = new SysTray(hyperhdrd, hyperhdrd->getWebPort());
+			QObject::connect(qApp, &QGuiApplication::aboutToQuit, tray, &SysTray::deleteLater);
 			rc = (qobject_cast<QApplication*>(app.data()))->exec();
 		}
 		else
@@ -397,6 +367,7 @@ int main(int argc, char** argv)
 		}
 		Info(log, "Application closed with code %d", rc);
 		delete hyperhdrd;
+		hyperhdrd = nullptr;
 	}
 	catch (std::exception& e)
 	{

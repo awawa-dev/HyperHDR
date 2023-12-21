@@ -140,7 +140,7 @@ $(document).ready( function(){
 	{
 		let resElement = document.getElementById("download_summary_header");
 
-		if (event.response.data.status == 1)
+		if (event.response.info.status == 1)
 		{
 			$('#download_summary_header').css('color', 'green');
 			resElement.innerHTML = '<svg data-src="svg/success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('infoDialog_general_success_title');
@@ -152,7 +152,7 @@ $(document).ready( function(){
 			$('#download_summary_header').css('color', 'red');
 			resElement.innerHTML = '<svg data-src="svg/error.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('infoDialog_general_error_title');
 			resElement = document.getElementById("download_summary");
-			resElement.innerHTML = event.response.data.error;	
+			resElement.innerHTML = event.response.info.error;	
 		}
 		
 

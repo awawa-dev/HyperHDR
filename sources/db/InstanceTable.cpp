@@ -1,13 +1,10 @@
 #include <db/InstanceTable.h>
 
-InstanceTable::InstanceTable(const QString& rootPath, QObject* parent, bool readonlyMode)
-	: DBManager(parent)
+InstanceTable::InstanceTable(bool readonlyMode)
+	: DBManager()
 {
 
 	setReadonlyMode(readonlyMode);
-
-	setRootPath(rootPath);
-	setDatabaseName("hyperhdr");
 
 	// Init instance table
 	setTable("instances");

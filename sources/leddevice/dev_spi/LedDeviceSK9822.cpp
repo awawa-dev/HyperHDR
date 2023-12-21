@@ -3,12 +3,14 @@
 // Local HyperHDR includes
 #include <utils/Logger.h>
 
+namespace
+{
+	/// The value that determines the higher bits of the SK9822 global brightness control field
+	const int SK9822_GBC_UPPER_BITS = 0xE0;
 
-/// The value that determines the higher bits of the SK9822 global brightness control field
-const int SK9822_GBC_UPPER_BITS = 0xE0;
-
-/// The maximal current level supported by the SK9822 global brightness control field, 31
-const int SK9822_GBC_MAX_LEVEL = 0x1F;
+	/// The maximal current level supported by the SK9822 global brightness control field, 31
+	const int SK9822_GBC_MAX_LEVEL = 0x1F;
+}
 
 LedDeviceSK9822::LedDeviceSK9822(const QJsonObject& deviceConfig)
 	: ProviderSpi(deviceConfig)

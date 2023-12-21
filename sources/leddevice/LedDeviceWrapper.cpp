@@ -9,6 +9,7 @@
 // util
 #include <base/HyperHdrInstance.h>
 #include <utils/JsonUtils.h>
+#include <utils/Macros.h>
 
 // qt
 #include <QMutexLocker>
@@ -21,10 +22,10 @@ LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap{};
 QMutex LedDeviceWrapper::_ledDeviceMapLock;
 
 
-LedDeviceWrapper::LedDeviceWrapper(HyperHdrInstance* hyperhdr)
-	: QObject(hyperhdr)
-	, _hyperhdr(hyperhdr)
-	, _ledDevice(nullptr)
+LedDeviceWrapper::LedDeviceWrapper(HyperHdrInstance* ownerInstance)
+	: QObject(ownerInstance)
+	, _ownerInstance(ownerInstance)
+	, _ledDevice(nullptr, nullptr)
 	, _enabled(false)
 {
 	// prepare the device constructor map
@@ -35,38 +36,37 @@ LedDeviceWrapper::LedDeviceWrapper(HyperHdrInstance* hyperhdr)
 
 #undef REGISTER
 
-	_hyperhdr->setNewComponentState(hyperhdr::COMP_LEDDEVICE, false);
+	_ownerInstance->setNewComponentState(hyperhdr::COMP_LEDDEVICE, false);
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
 {
-	stopDeviceThread();
+	_ledDevice.reset();
 }
 
-void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
+void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval)
 {
-	if (_ledDevice != nullptr)
-	{
-		stopDeviceThread();
-	}
+	_ledDevice.reset();
 
-	// create thread and device
-	QThread* thread = new QThread(this);
+	config["smoothingRefreshTime"] = smoothingInterval;
+
+	QThread* thread = new QThread();
 	thread->setObjectName("LedDeviceThread");
-	_ledDevice = LedDeviceFactory::construct(config);
+
+	_ledDevice = std::unique_ptr<LedDevice, void(*)(LedDevice*)>(
+		LedDeviceFactory::construct(config),
+		[](LedDevice* oldLed) {
+			hyperhdr::THREAD_REMOVER(QString("LedDevice"), oldLed->thread(), oldLed);
+		}
+	);
+	_ledDevice->setInstanceIndex(_ownerInstance->getInstanceIndex());
 	_ledDevice->moveToThread(thread);
 
 	// setup thread management
-	connect(thread, &QThread::started, _ledDevice, &LedDevice::start, Qt::QueuedConnection);
-
-	// further signals
-	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds);
-
-	connect(this, &LedDeviceWrapper::stopLedDevice, _ledDevice, &LedDevice::stop, Qt::BlockingQueuedConnection);
-
-	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
-
-	connect(_ledDevice, &LedDevice::newCounter, this, [=](PerformanceReport pr) {pr.id = this->_hyperhdr->getInstanceIndex(); emit PerformanceCounters::getInstance()->newCounter(pr); });
+	connect(thread, &QThread::started, _ledDevice.get(), &LedDevice::start);
+	connect(thread, &QThread::finished, _ledDevice.get(), &LedDevice::stop);
+	connect(_ownerInstance, &HyperHdrInstance::SignalSmoothingRestarted, _ledDevice.get(), &LedDevice::smoothingRestarted, Qt::QueuedConnection);
+	connect(_ledDevice.get(), &LedDevice::SignalEnableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
 
 	// start the thread
 	thread->start();
@@ -74,60 +74,61 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 
 void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool state)
 {
+	if (_ledDevice == nullptr)
+		return;
+
 	if (component == hyperhdr::COMP_LEDDEVICE)
 	{
 		if (state)
 		{
-			QUEUE_CALL_0(_ledDevice, enable);
+			QUEUE_CALL_0(_ledDevice.get(), enable);
 		}
 		else
 		{
-			QUEUE_CALL_0(_ledDevice, disable);
+			QUEUE_CALL_0(_ledDevice.get(), disable);
 		}
-
-		SAFE_CALL_0_RET(_ledDevice, componentState, bool, _enabled);
 	}
 }
 
 void LedDeviceWrapper::handleInternalEnableState(bool newState)
 {
-	_hyperhdr->setNewComponentState(hyperhdr::COMP_LEDDEVICE, newState);
+	if (_ledDevice == nullptr)
+		return;
+
+	if (newState)
+	{
+		connect(_ledDevice.get(), &LedDevice::SignalSmoothingClockTick, _ownerInstance, &HyperHdrInstance::SignalSmoothingClockTick, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
+		connect(_ownerInstance, &HyperHdrInstance::SignalUpdateLeds, _ledDevice.get(), &LedDevice::updateLeds, Qt::UniqueConnection);
+	}
+	else
+	{
+		disconnect(_ledDevice.get(), &LedDevice::SignalSmoothingClockTick, _ownerInstance, &HyperHdrInstance::SignalSmoothingClockTick);
+		disconnect(_ownerInstance, &HyperHdrInstance::SignalUpdateLeds, _ledDevice.get(), &LedDevice::updateLeds);
+	}
+
+	_ownerInstance->setNewComponentState(hyperhdr::COMP_LEDDEVICE, newState);
 	_enabled = newState;
 
 	if (_enabled)
 	{
-		_hyperhdr->update();
+		_ownerInstance->update();
 	}
 }
 
-void LedDeviceWrapper::stopDeviceThread()
-{
-	// turns the LEDs off & stop refresh timers
-	emit stopLedDevice();
-
-	// get current thread
-	QThread* oldThread = _ledDevice->thread();
-	disconnect(oldThread, nullptr, nullptr, nullptr);
-	oldThread->quit();
-	oldThread->wait();
-	delete oldThread;
-
-	disconnect(_ledDevice, nullptr, nullptr, nullptr);
-	delete _ledDevice;
-	_ledDevice = nullptr;
-}
 
 unsigned int LedDeviceWrapper::getLedCount() const
 {
 	int value = 0;
-	SAFE_CALL_0_RET(_ledDevice, getLedCount, int, value);
+	if (_ledDevice != nullptr)
+		SAFE_CALL_0_RET(_ledDevice.get(), getLedCount, int, value);
 	return value;
 }
 
 QString LedDeviceWrapper::getActiveDeviceType() const
 {
 	QString value = 0;
-	SAFE_CALL_0_RET(_ledDevice, getActiveDeviceType, QString, value);
+	if (_ledDevice != nullptr)
+		SAFE_CALL_0_RET(_ledDevice.get(), getActiveDeviceType, QString, value);
 	return value;
 }
 
@@ -138,7 +139,18 @@ bool LedDeviceWrapper::enabled() const
 
 void LedDeviceWrapper::identifyLed(const QJsonObject& params)
 {
-	QUEUE_CALL_1(_ledDevice, blinking, QJsonObject, params);
+	if (_ledDevice != nullptr)
+		QUEUE_CALL_1(_ledDevice.get(), blinking, QJsonObject, params);
+}
+
+int LedDeviceWrapper::hasLedClock()
+{
+	int hasLedClock = 0;
+
+	if (_ledDevice != nullptr)
+		SAFE_CALL_0_RET(_ledDevice.get(), hasLedClock, int, hasLedClock);
+
+	return hasLedClock;
 }
 
 int LedDeviceWrapper::addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr)

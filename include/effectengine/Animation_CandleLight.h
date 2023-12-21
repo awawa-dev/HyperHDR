@@ -4,8 +4,6 @@
 
 class Animation_CandleLight : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 
 	Animation_CandleLight(QString name);

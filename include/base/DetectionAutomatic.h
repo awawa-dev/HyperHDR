@@ -1,18 +1,21 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QRectF>
-#include <cstdint>
-#include <vector>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+	#include <QRectF>
+	#include <QJsonDocument>
+	#include <QSemaphore>
+	#include <cstdint>
+	#include <vector>
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+	#include <utils/Image.h>
+	#include <utils/ColorRgb.h>
+	#include <utils/Logger.h>
+	#include <utils/Components.h>
+#endif
+
 #include <utils/FrameDecoder.h>
-#include <utils/Logger.h>
-#include <utils/Components.h>
-#include <QJsonDocument>
-#include <QSemaphore>
 
 class DetectionAutomatic : public QObject
 {
@@ -40,6 +43,16 @@ public:
 
 	void setAutomaticCalibrationData(QString signature, int quality, int width, int height,
 		std::vector<DetectionAutomatic::calibrationPoint> sdrVec, std::vector<DetectionAutomatic::calibrationPoint> hdrVec);
+
+	virtual int  getHdrToneMappingEnabled() = 0;
+	virtual void setHdrToneMappingEnabled(int mode) = 0;
+	virtual int  getFpsSoftwareDecimation() = 0;
+	virtual void setFpsSoftwareDecimation(int decimation) = 0;
+	virtual int  getActualFps() = 0;
+	virtual QString getSignature() = 0;
+
+signals:
+	void SignalSaveCalibration(QString saveData);
 
 public slots:
 	QJsonDocument startCalibration();
@@ -82,8 +95,7 @@ private:
 
 		calibration();
 		void reset();
-		void buildPoints(int _width, int _height);
-		QString getSignature();
+		void buildPoints(QString _signature, int _width, int _height);		
 	} calibrationData, checkData;
 
 	void calibrateFrame(Image<ColorRgb>& image);

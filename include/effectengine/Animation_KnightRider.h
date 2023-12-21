@@ -8,12 +8,6 @@
 
 class Animation_KnightRider : public AnimationBase
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 
 	Animation_KnightRider();

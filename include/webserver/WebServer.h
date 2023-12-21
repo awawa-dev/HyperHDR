@@ -1,70 +1,44 @@
-#ifndef WEBSERVER_H
-#define WEBSERVER_H
+#pragma once
 
-#include <QObject>
-#include <QString>
-#include <QJsonDocument>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <QJsonDocument>
 
-// hyperhdr / utils
-#include <utils/Logger.h>
-
-// settings
-#include <utils/settings.h>
+	#include <utils/Logger.h>
+	#include <utils/settings.h>
+#endif
 
 class BonjourServiceRegister;
 class StaticFileServing;
 class QtHttpServer;
+class HyperHdrManager;
+class NetOrigin;
 
 class WebServer : public QObject
 {
 	Q_OBJECT
 
 public:
-	WebServer(const QJsonDocument& config, bool useSsl, QObject* parent = nullptr);
-
+	WebServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, bool useSsl, QObject* parent = nullptr);
 	~WebServer() override;
 
 	void start();
 	void stop();
 
-	static bool			portAvailable(quint16& port, Logger* log);
+	static bool	portAvailable(quint16& port, Logger* log);
 
 signals:
-	///
-	/// @emits whenever server is started or stopped (to sync with SSDPHandler)
-	/// @param newState   True when started, false when stopped
-	///
 	void stateChange(bool newState);
-
-	///
-	/// @brief Emits whenever the port changes (doesn't compare prev <> now)
-	///
 	void portChanged(quint16 port);
 
 public slots:
-	///
-	/// @brief Init server after thread start
-	///
 	void initServer();
-
 	void onServerStopped();
 	void onServerStarted(quint16 port);
 	void onServerError(QString msg);
-
-	///
-	/// @brief Handle settings update from HyperHDR Settingsmanager emit or this constructor
-	/// @param type   settingyType from enum
-	/// @param config configuration object
-	///
 	void handleSettingsUpdate(settings::type type, QJsonDocument config);
-
-	///
-	/// @brief Set a new description, if empty the description is NotFound for clients
-	///
-	void setSSDPDescription(const QString& desc);
-
-	/// check if server has been inited
-	bool isInited() const { return _inited; }
+	void setSsdpXmlDesc(const QString& desc);
 
 	quint16 getPort() const { return _port; }
 
@@ -76,7 +50,7 @@ private:
 	QString              _baseUrl;
 	StaticFileServing*   _staticFileServing;
 	QtHttpServer*        _server;
-	bool                 _inited = false;
+	std::shared_ptr<NetOrigin> _netOrigin;
 
 	const QString        WEBSERVER_DEFAULT_PATH = ":/www";
 	const QString        WEBSERVER_DEFAULT_CRT_PATH = ":/hyperhdrcrt.pem";
@@ -85,5 +59,3 @@ private:
 
 	BonjourServiceRegister* _serviceRegister = nullptr;
 };
-
-#endif // WEBSERVER_H

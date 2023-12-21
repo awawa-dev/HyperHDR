@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -72,16 +72,7 @@ bool Animation_Sparks::hasLedData(QVector<ColorRgb>& buffer)
 
 EffectDefinition Animation_Sparks::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_Sparks>);
 	ed.name = ANIM_SPARKS;
-	ed.args = GetArgs();
 	return ed;
 }
-
-QJsonObject Animation_Sparks::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
-}
-
-

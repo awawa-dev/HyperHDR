@@ -1,20 +1,19 @@
-// stl includes
-#include <clocale>
-#include <initializer_list>
-#include <limits>
-#include <iostream>
-#include <stdlib.h>
+#ifndef PCH_ENABLED
+	#include <QJsonArray>
 
-// Qt includes
+	#include <clocale>
+	#include <limits>
+	#include <iostream>
+	#include <stdlib.h>
+#endif
+
 #include <QCoreApplication>
 #include <QLocale>
 
-// hyperhdr-remote include
+#include <initializer_list>
+
 #include "JsonConnection.h"
-
-// ssdp discover
 #include <ssdp/SSDPDiscover.h>
-
 #include "HyperhdrConfig.h"
 #include <commandline/Parser.h>
 #include <utils/DefaultSignalHandler.h>

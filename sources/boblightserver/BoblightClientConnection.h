@@ -119,9 +119,6 @@ private:
 	/// The TCP-Socket that is connected tot the boblight-client
 	QTcpSocket* _socket;
 
-	/// The processor for translating images to led-values
-	ImageProcessor* _imageProcessor;
-
 	/// Link to HyperHDR for writing led-values to a priority channel
 	HyperHdrInstance* _hyperhdr;
 

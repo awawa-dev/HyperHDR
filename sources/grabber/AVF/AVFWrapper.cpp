@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -26,16 +26,18 @@
 */
 
 #include <QMetaType>
-#include <grabber/AVFWrapper.h>
+#include <grabber/AVF/AVFWrapper.h>
+#include <base/HyperHdrManager.h>
 
 
 AVFWrapper::AVFWrapper(const QString& device,
 	const QString& configurationPath)
-	: GrabberWrapper("macOS AVF:" + device.left(14), &_grabber)
-	, _grabber(device, configurationPath)
+	: GrabberWrapper("macOS AVF:" + device.left(14))
 {
-	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
-	connect(&_grabber, &Grabber::newFrame, this, &GrabberWrapper::newFrame, Qt::DirectConnection);
-	connect(&_grabber, &Grabber::readError, this, &GrabberWrapper::readError, Qt::DirectConnection);
+	_grabber = std::unique_ptr<Grabber>(new AVFGrabber(device, configurationPath));
+	connect(_grabber.get(), &Grabber::SignalBenchmarkUpdate, this, &GrabberWrapper::SignalBenchmarkUpdate);
+    connect(_grabber.get(), &Grabber::SignalCapturingException, this, &GrabberWrapper::capturingExceptionHandler);
+	connect(_grabber.get(), &Grabber::SignalSetNewComponentStateToAllInstances, this, &GrabberWrapper::SignalSetNewComponentStateToAllInstances);
+	connect(_grabber.get(), &Grabber::SignalSaveCalibration, this, &GrabberWrapper::SignalSaveCalibration);
 }
 

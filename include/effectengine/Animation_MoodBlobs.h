@@ -3,8 +3,6 @@
 #include <effectengine/AnimationBase.h>
 class Animation_MoodBlobs : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 	Animation_MoodBlobs(QString name);
 

@@ -1,12 +1,12 @@
 #pragma once
-#include <QString>
-#include <QJsonDocument>
 
-///
-/// @brief Provide util methods to work with SettingsManager class
-///
+#ifndef PCH_ENABLED
+	#include <QString>
+	#include <QJsonDocument>
+#endif
+
 namespace settings {
-	// all available settings sections
+
 	enum class type {
 		SNDEFFECT = 1,
 		BGEFFECT,
@@ -37,11 +37,6 @@ namespace settings {
 		INVALID
 	};
 
-	///
-	/// @brief Convert settings::type to string representation
-	/// @param  type  The settings::type from enum
-	/// @return       The settings type as string
-	///
 	inline QString typeToString(type type)
 	{
 		switch (type)
@@ -76,11 +71,6 @@ namespace settings {
 		}
 	}
 
-	///
-	/// @brief Convert string to settings::type representation
-	/// @param  type  The string to convert
-	/// @return       The settings type from enum
-	///
 	inline type stringToType(const QString& type)
 	{
 		if (type == "soundEffect")               return type::SNDEFFECT;

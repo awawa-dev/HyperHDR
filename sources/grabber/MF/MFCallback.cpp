@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,17 +25,20 @@
 *  SOFTWARE.
  */
 
-#pragma once
 #include <windows.h>
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
 #include <shlwapi.h>
 #include <mferror.h>
-#include <strmif.h>
+#pragma push_macro("Info")
+	#undef Info
+	#include <strmif.h>
+#pragma pop_macro("Info")
 
-#include <grabber/MFGrabber.h>
-#include <grabber/MFCallback.h>
+
+#include <grabber/MF/MFGrabber.h>
+#include <grabber/MF/MFCallback.h>
 
 MFCallback::MFCallback(MFGrabber* grabber) :
 	_referenceCounter(1), _grabber(grabber), _endOfStream(FALSE), _callbackStatus(S_OK)

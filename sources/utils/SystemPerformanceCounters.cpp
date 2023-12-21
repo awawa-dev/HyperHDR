@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -24,32 +24,33 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
 */
-#include <QtGlobal>
+
+#ifndef PCH_ENABLED
+	#include <QTextStream>
+	#include <QFile>
+
+	#include <iostream>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <vector>
+
+	#include <utils/InternalClock.h>
+#endif
+
 #include <utils/SystemPerformanceCounters.h>
-#include <utils/InternalClock.h>
 
 #ifdef _WIN32
+	#include <windows.h>
+	#include <pdh.h>
+	#include <pdhmsg.h>
+	#pragma comment(lib, "pdh.lib")
 
-#include <windows.h>
-#include <pdh.h>
-#include <pdhmsg.h>
-#pragma comment(lib, "pdh.lib")
-
-PDH_HQUERY cpuPerfQuery = nullptr;
-PDH_HCOUNTER cpuPerfTotal = nullptr;
-
+	PDH_HQUERY cpuPerfQuery = nullptr;
+	PDH_HCOUNTER cpuPerfTotal = nullptr;
 #else
-
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/sysinfo.h>
-#include <sys/klog.h>
-#include <QTextStream>
-#include <QFile>
-#include <vector>
-
+	#include <sys/types.h>
+	#include <sys/sysinfo.h>
+	#include <sys/klog.h>
 #endif
 
 #ifdef __linux__
@@ -176,6 +177,9 @@ QString SystemPerformanceCounters::getCPU()
 {
 	try
 	{
+		QJsonObject jResult;
+		QJsonArray jCores;
+
 		if (!isInitialized)
 		{
 			init();
@@ -191,37 +195,33 @@ QString SystemPerformanceCounters::getCPU()
 		if (PdhGetFormattedCounterArray(cpuPerfTotal, PDH_FMT_LONG, &size, &count, nullptr) != PDH_MORE_DATA)
 			return "";
 
-		PDH_FMT_COUNTERVALUE_ITEM* buffer = (PDH_FMT_COUNTERVALUE_ITEM*)malloc(size);
-		if (PdhGetFormattedCounterArray(cpuPerfTotal, PDH_FMT_LONG, &size, &count, buffer) != ERROR_SUCCESS)
+		QByteArray myByteArray(size, 0);
+		PDH_FMT_COUNTERVALUE_ITEM* bufferData = (PDH_FMT_COUNTERVALUE_ITEM*)myByteArray.data();
+
+		if (PdhGetFormattedCounterArray(cpuPerfTotal, PDH_FMT_LONG, &size, &count, bufferData) != ERROR_SUCCESS)
 		{
-			free(buffer);
 			return "";
 		}
 
-		QString retVal, retTotal;
-
 		for (DWORD i = 0; i < count; i++)
 		{
-			auto valCPU = buffer[i].FmtValue.longValue;
+			auto valCPU = bufferData[i].FmtValue.longValue;
 
 #ifdef UNICODE
-			QString convertedStr = QString::fromWCharArray(buffer[i].szName);
+			QString convertedStr = QString::fromWCharArray(bufferData[i].szName);
 #else
 			QString convertedStr = QString::fromLocal8Bit(buffer[i].szName);
 #endif
 
 			if (convertedStr != "_Total")
-				retVal += QString("%1").arg(getChar(valCPU / 100.0f));
+			{
+				jCores.append(valCPU / 100.0f);
+			}
 			else
-				retTotal = QString(
-					(valCPU < 50) ? "<span class='cpu_low_usage'>%1%</span>" :
-					((valCPU < 90) ? "<span class='cpu_medium_usage'>%1%</span>" :
-						"<span class='cpu_high_usage'>%1%</span>")).arg(QString::number(valCPU), 2);
+			{
+				jResult["total"] = (double)valCPU;
+			}
 		}
-
-		free(buffer);
-
-		return QString("%1 (%2)").arg(retVal).arg(retTotal);
 
 #else
 
@@ -231,8 +231,6 @@ QString SystemPerformanceCounters::getCPU()
 
 			if (readCpuLines() == totalPerfCPU)
 			{
-				QString retVal, retTotal;
-
 				for (int i = -1; i < totalPerfCPU; i++)
 				{
 					int j = (i + 1) * 4;
@@ -259,22 +257,20 @@ QString SystemPerformanceCounters::getCPU()
 
 					if (i >= 0)
 					{
-						retVal += QString("%1").arg(getChar(valCPU / 100.0f));
+						jCores.append(valCPU / 100.0f);
 					}
 					else
 					{
-						retTotal = QString(
-							(valCPU < 50) ? "<span class='cpu_low_usage'>%1%</span>" :
-							((valCPU < 90) ? "<span class='cpu_medium_usage'>%1%</span>" :
-								"<span class='cpu_high_usage'>%1%</span>")).arg(QString::number(valCPU, 'f', 0), 2);
+						jResult["total"] = valCPU;
 					}
 				}
-
-				return QString("%1 (%2)").arg(retVal).arg(retTotal);
 			}
 		}
 
 #endif
+
+		jResult["cores"] = jCores;
+		return QJsonDocument(jResult).toJson(QJsonDocument::Compact);
 	}
 	catch (...)
 	{
@@ -287,6 +283,8 @@ QString SystemPerformanceCounters::getRAM()
 {
 	try
 	{
+		QJsonObject jResult;
+
 		if (!isInitialized)
 		{
 			init();
@@ -303,8 +301,6 @@ QString SystemPerformanceCounters::getRAM()
 		qint64 physMemAv = qint64(memInfo.ullAvailPhys) / (1024 * 1024);
 		qint64 takenMem = totalPhysMem - physMemAv;
 		qint64 aspect = (takenMem * 100) / totalPhysMem;
-		QString color = (aspect < 50) ? "cpu_low_usage" : ((aspect < 90) ? "cpu_medium_usage" : "cpu_high_usage");
-		return QString("%1 / %2MB (<span class='%3'>%4%</span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
 
 #else
 
@@ -335,11 +331,13 @@ QString SystemPerformanceCounters::getRAM()
 		physMemAv /= (1024 * 1024);
 
 		long long takenMem = totalPhysMem - physMemAv;
-		qint64 aspect = (takenMem * 100) / totalPhysMem;
-		QString color = (aspect < 50) ? "cpu_low_usage" : ((aspect < 90) ? "cpu_medium_usage" : "cpu_high_usage");
-		return QString("%1 / %2MB (<span class='%3'>%4%</span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);
-
+		qint64 aspect = (takenMem * 100) / totalPhysMem;		
 #endif
+		jResult["totalPhysMem"] = (qint64) totalPhysMem;
+		jResult["takenMem"] = (qint64)takenMem;
+		jResult["aspect"] = (qint64) aspect;
+
+		return QJsonDocument(jResult).toJson(QJsonDocument::Compact);
 	}
 	catch (...)
 	{

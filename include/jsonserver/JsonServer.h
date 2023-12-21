@@ -1,7 +1,8 @@
 #pragma once
 
-// Qt includes
-#include <QSet>
+#ifndef PCH_ENABLED
+	#include <QSet>
+#endif
 
 #include <utils/Components.h>
 #include <utils/Logger.h>
@@ -12,65 +13,33 @@ class QTcpSocket;
 class JsonClientConnection;
 class BonjourServiceRegister;
 class NetOrigin;
+class HyperHdrManager;
 
-///
-/// This class creates a TCP server which accepts connections wich can then send
-/// in JSON encoded commands. This interface to HyperHdr is used by hyperhdr-remote
-/// to control the leds
-///
 class JsonServer : public QObject
 {
 	Q_OBJECT
 
 public:
-	///
-	/// JsonServer constructor
-	/// @param The configuration
-	///
-	JsonServer(const QJsonDocument& config);
+	JsonServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config);
 	~JsonServer() override;
 
-	///
-	/// @return the port number on which this TCP listens for incoming connections
-	///
 	uint16_t getPort() const;
 
-
 private slots:
-	///
-	/// Slot which is called when a client tries to create a new connection
-	///
 	void newConnection();
-
-	///
-	/// Slot which is called when a client closes a connection
-	///
-	void closedConnection();
+	void signalClientConnectionClosedHandler(JsonClientConnection* client);
 
 public slots:
-	///
-	/// @brief Handle settings update from Hyperhdr Settingsmanager emit or this constructor
-	/// @param type   settings type from enum
-	/// @param config configuration object
-	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
-	/// The TCP server object
 	QTcpServer* _server;
-
-	/// List with open connections
 	QSet<JsonClientConnection*> _openConnections;
-
-	/// the logger instance
 	Logger* _log;
 
-	NetOrigin* _netOrigin;
+	std::shared_ptr<NetOrigin> _netOrigin;
 
-	/// port
-	uint16_t _port = 0;
-
-	BonjourServiceRegister* _serviceRegister = nullptr;
+	uint16_t _port;
 
 	void start();
 	void stop();

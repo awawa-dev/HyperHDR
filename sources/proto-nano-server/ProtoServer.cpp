@@ -10,11 +10,13 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
-ProtoServer::ProtoServer(const QJsonDocument& config, QObject* parent)
+ProtoServer::ProtoServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
+	, _netOrigin(netOrigin)
 	, _log(Logger::getInstance("PROTOSERVER"))
 	, _timeout(5000)
+	, _port(19445)
 	, _config(config)
 {
 
@@ -23,15 +25,12 @@ ProtoServer::ProtoServer(const QJsonDocument& config, QObject* parent)
 ProtoServer::~ProtoServer()
 {
 	stopServer();
-	delete _server;
+	Debug(_log, "ProtoServer instance is closed");
 }
 
 void ProtoServer::initServer()
-{
-	_netOrigin = NetOrigin::getInstance();
+{	
 	connect(_server, &QTcpServer::newConnection, this, &ProtoServer::newConnection);
-
-	// apply config
 	handleSettingsUpdate(settings::type::PROTOSERVER, _config);
 }
 
@@ -68,12 +67,10 @@ void ProtoServer::newConnection()
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
 				ProtoNanoClientConnection* client = new ProtoNanoClientConnection(socket, _timeout, this);
 				// internal
-				connect(client, &ProtoNanoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
-				connect(client, &ProtoNanoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-				connect(client, &ProtoNanoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-				connect(client, &ProtoNanoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-				connect(client, &ProtoNanoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoNanoClientConnection::registationRequired);
+				connect(client, &ProtoNanoClientConnection::SignalClientConnectionClosed, this, &ProtoServer::signalClientConnectionClosedHandler);
+				connect(client, &ProtoNanoClientConnection::SignalClearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::SignalClearGlobalInput);
+				connect(client, &ProtoNanoClientConnection::SignalImportFromProto, this, &ProtoServer::SignalImportFromProto);
+				connect(client, &ProtoNanoClientConnection::SignalSetGlobalColor, GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalColor);
 				_openConnections.append(client);
 			}
 			else
@@ -82,11 +79,13 @@ void ProtoServer::newConnection()
 	}
 }
 
-void ProtoServer::clientDisconnected()
+void ProtoServer::signalClientConnectionClosedHandler(ProtoNanoClientConnection* client)
 {
-	ProtoNanoClientConnection* client = qobject_cast<ProtoNanoClientConnection*>(sender());
-	client->deleteLater();
-	_openConnections.removeAll(client);
+	if (client != nullptr)
+	{
+		client->deleteLater();
+		_openConnections.removeAll(client);
+	}
 }
 
 void ProtoServer::startServer()
@@ -108,9 +107,10 @@ void ProtoServer::stopServer()
 {
 	if (_server->isListening())
 	{
-		// close client connections
-		for (const auto& client : _openConnections)
+		QVectorIterator<ProtoNanoClientConnection*> i(_openConnections);
+		while (i.hasNext())
 		{
+			const auto& client = i.next();
 			client->forceClose();
 		}
 		_server->close();

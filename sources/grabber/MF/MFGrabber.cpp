@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -24,14 +24,18 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
  */
-
 #include <windows.h>
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
 #include <shlwapi.h>
 #include <mferror.h>
-#include <strmif.h>
+#include <Guiddef.h>
+#pragma push_macro("Info")
+	#undef Info
+	#include <strmif.h>
+#pragma pop_macro("Info")
+
 
 #include <iostream>
 #include <sstream>
@@ -47,17 +51,17 @@
 #include <limits.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <grabber/MFGrabber.h>
 #include <utils/ColorSys.h>
-#include <grabber/MFCallback.h>
+#include <grabber/MF/MFGrabber.h>
+#include <grabber/MF/MFCallback.h>
+#include <utils/GlobalSignals.h>
 
-
+#include <turbojpeg.h>
 
 
 #pragma comment (lib, "ole32.lib")
@@ -73,7 +77,14 @@
 // some stuff for HDR tone mapping
 #define LUT_FILE_SIZE 50331648
 
-MFGrabber::VideoFormat fmt_array[] =
+typedef struct
+{
+	const GUID		format_id;
+	const QString	format_name;
+	PixelFormat		pixel;
+} VideoFormat;
+
+const static VideoFormat fmt_array[] =
 {
 	{ MFVideoFormat_RGB32,	"RGB32",  PixelFormat::XRGB },
 	{ MFVideoFormat_ARGB32,	"ARGB32", PixelFormat::NO_CHANGE },
@@ -167,10 +178,10 @@ void MFGrabber::loadLutFile(PixelFormat color)
 
 void MFGrabber::setHdrToneMappingEnabled(int mode)
 {
-	if (_hdrToneMappingEnabled != mode || _lutBuffer == NULL)
+	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
 	{
 		_hdrToneMappingEnabled = mode;
-		if (_lutBuffer != NULL || !mode)
+		if (_lut.data() != nullptr || !mode)
 			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
@@ -185,6 +196,7 @@ void MFGrabber::setHdrToneMappingEnabled(int mode)
 				loadLutFile(PixelFormat::RGB24);
 			_MFWorkerManager.Start();
 		}
+		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
 		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
@@ -954,10 +966,10 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 			{
 				int total = (frameStat.badFrame + frameStat.goodFrame);
 				int av = (frameStat.goodFrame > 0) ? frameStat.averageFrame / frameStat.goodFrame : 0;
-
+				QString access = (frameStat.directAccess) ? " (direct)" : "";
 				if (diff >= 59000 && diff <= 65000)
-					emit PerformanceCounters::getInstance()->newCounter(
-					PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), frameStat.token, this->_actualDeviceName, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
+					emit GlobalSignals::getInstance()->SignalPerformanceNewReport(
+						PerformanceReport(hyperhdr::PerformanceReportType::VIDEO_GRABBER, frameStat.token, this->_actualDeviceName + access, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
 				
 				resetCounter(now);
 
@@ -975,8 +987,8 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 				for (unsigned int i = 0; i < _MFWorkerManager.workersCount && _MFWorkerManager.workers != nullptr; i++)
 				{
 					MFWorker* _workerThread = _MFWorkerManager.workers[i];
-					connect(_workerThread, SIGNAL(newFrameError(unsigned int, QString, quint64)), this, SLOT(newWorkerFrameError(unsigned int, QString, quint64)));
-					connect(_workerThread, SIGNAL(newFrame(unsigned int, Image<ColorRgb>, quint64, qint64)), this, SLOT(newWorkerFrame(unsigned int, Image<ColorRgb>, quint64, qint64)));
+					connect(_workerThread, &MFWorker::SignalNewFrameError, this, &MFGrabber::newWorkerFrameErrorHandler);
+					connect(_workerThread, &MFWorker::SignalNewFrame, this, &MFGrabber::newWorkerFrameHandler);
 				}
 			}
 
@@ -994,13 +1006,14 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 							loadLutFile();
 						}
 
+						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() || (_benchmarkStatus >= 0));
 						_workerThread->setup(
 							i,
 							_actualVideoFormat,
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
-							(_lutBufferInit) ? _lutBuffer : NULL, _qframe);
+							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName);
 
 						if (_MFWorkerManager.workersCount > 1)
 							_MFWorkerManager.workers[i]->start();
@@ -1018,7 +1031,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 	return frameSend;
 }
 
-void MFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount)
+void MFGrabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount)
 {
 
 	frameStat.badFrame++;
@@ -1038,24 +1051,9 @@ void MFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, qui
 }
 
 
-void MFGrabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
+void MFGrabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
 {
-	frameStat.goodFrame++;
-	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;
-
-	if (_signalAutoDetectionEnabled || isCalibrating())
-	{
-		if (checkSignalDetectionAutomatic(image))
-			emit newFrame(image);
-	}
-	else if (_signalDetectionEnabled)
-	{
-		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
-	}
-	else
-		emit newFrame(image);
-
+	handleNewFrame(workerIndex, image, sourceCount, _frameBegin);
 
 	// get next frame	
 	if (workerIndex > _MFWorkerManager.workersCount)

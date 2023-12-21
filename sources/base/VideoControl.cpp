@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,12 +25,15 @@
 *  SOFTWARE.
  */
 
+#ifndef PCH_ENABLED
+	#include <QTimer>
+#endif
+
 #include <base/VideoControl.h>
 #include <base/HyperHdrInstance.h>
 #include <base/GrabberWrapper.h>
+#include <base/GrabberHelper.h>
 #include <utils/GlobalSignals.h>
-
-#include <QTimer>
 
 bool VideoControl::_stream = false;
 
@@ -45,20 +48,27 @@ VideoControl::VideoControl(HyperHdrInstance* hyperhdr)
 	, _isCEC(false)
 {
 	// settings changes
-	connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &VideoControl::handleSettingsUpdate);
+	connect(_hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, this, &VideoControl::handleSettingsUpdate);
 
 	// comp changes
-	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &VideoControl::handleCompStateChangeRequest);
+	connect(_hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &VideoControl::handleCompStateChangeRequest);
 
 	// inactive timer usb grabber
-	connect(&_usbInactiveTimer, &QTimer::timeout, this, &VideoControl::setUsbInactive);
+	connect(_usbInactiveTimer, &QTimer::timeout, this, &VideoControl::setUsbInactive);
 
-	_usbInactiveTimer.setInterval(800);
+	_usbInactiveTimer->setInterval(800);
 
 	// init
-	handleSettingsUpdate(settings::type::VIDEOCONTROL, _hyperhdr->getSetting(settings::type::VIDEOCONTROL));
+	QJsonDocument settings = _hyperhdr->getSetting(settings::type::VIDEOCONTROL);
+	QUEUE_CALL_2(this, handleSettingsUpdate, settings::type, settings::type::VIDEOCONTROL, QJsonDocument, settings);
+}
 
-	connect(this, &VideoControl::setUsbCaptureEnableSignal, this, &VideoControl::setUsbCaptureEnable);
+VideoControl::~VideoControl()
+{
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_VIDEOGRABBER, int(_hyperhdr->getInstanceIndex()), false);
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_CEC, int(_hyperhdr->getInstanceIndex()), false);
+
+	std::cout << "VideoControl exists now" << std::endl;
 }
 
 bool VideoControl::isCEC()
@@ -66,8 +76,35 @@ bool VideoControl::isCEC()
 	return _isCEC;
 }
 
-void VideoControl::handleUsbImage(const QString& name, const Image<ColorRgb>& image)
+quint8 VideoControl::getCapturePriority()
 {
+	return _usbCaptPrio;
+}
+
+void VideoControl::handleIncomingUsbImage(const QString& name, const Image<ColorRgb>& image)
+{
+	QMutexLocker locker(&incoming.mutex);
+	incoming.frame = image;
+	incoming.name = name;
+	QUEUE_CALL_0(this, handleUsbImage);
+}
+
+void VideoControl::handleUsbImage()
+{
+	Image<ColorRgb> image;
+	QString name;
+	
+	incoming.mutex.lock();
+	{
+		name = incoming.name;
+		image = incoming.frame;
+		incoming.frame = Image<ColorRgb>();
+	}
+	incoming.mutex.unlock();
+
+	if (image.width() <= 1 || image.height() <=1)
+		return;
+
 	_stream = true;
 
 	if (_usbCaptName != name)
@@ -78,8 +115,8 @@ void VideoControl::handleUsbImage(const QString& name, const Image<ColorRgb>& im
 
 	_alive = true;
 
-	if (!_usbInactiveTimer.isActive() && _usbInactiveTimer.remainingTime() < 0)
-		_usbInactiveTimer.start();
+	if (!_usbInactiveTimer->isActive() && _usbInactiveTimer->remainingTime() < 0)
+		_usbInactiveTimer->start();
 
 	_hyperhdr->setInputImage(_usbCaptPrio, image);
 }
@@ -91,21 +128,19 @@ void VideoControl::setUsbCaptureEnable(bool enable)
 		if (enable)
 		{
 			_hyperhdr->registerInput(_usbCaptPrio, hyperhdr::COMP_VIDEOGRABBER);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &VideoControl::handleUsbImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, _hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &VideoControl::handleIncomingUsbImage, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
 		}
 		else
 		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, this, &VideoControl::handleUsbImage);
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setVideoImage, _hyperhdr, &HyperHdrInstance::forwardV4lProtoMessage);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &VideoControl::handleIncomingUsbImage);
 			_hyperhdr->clear(_usbCaptPrio);
-			_usbInactiveTimer.stop();
+			_usbInactiveTimer->stop();
 			_usbCaptName = "";
 		}
 
 		_usbCaptEnabled = enable;
 		_hyperhdr->setNewComponentState(hyperhdr::COMP_VIDEOGRABBER, enable);
-		emit GlobalSignals::getInstance()->requestSource(hyperhdr::COMP_VIDEOGRABBER, int(_hyperhdr->getInstanceIndex()), enable);
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_VIDEOGRABBER, int(_hyperhdr->getInstanceIndex()), enable);
 	}
 }
 
@@ -122,6 +157,7 @@ void VideoControl::handleSettingsUpdate(settings::type type, const QJsonDocument
 
 		setUsbCaptureEnable(obj["videoInstanceEnable"].toBool(true));
 		_isCEC = obj["cecControl"].toBool(false);
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_CEC, int(_hyperhdr->getInstanceIndex()), _isCEC);
 	}
 }
 
@@ -142,8 +178,10 @@ void VideoControl::setUsbInactive()
 		if (_stream)
 		{
 			_stream = false;
-			if (GrabberWrapper::getInstance() != nullptr)
-				GrabberWrapper::getInstance()->revive();
+			std::shared_ptr<GrabberHelper> grabberHelper;			
+			emit GlobalSignals::getInstance()->SignalGetVideoGrabber(grabberHelper);
+			if (grabberHelper != nullptr && grabberHelper->grabberWrapper() != nullptr)
+				QUEUE_CALL_0(grabberHelper->grabberWrapper(), revive);
 		}
 	}
 

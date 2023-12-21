@@ -26,7 +26,14 @@
 			"title":"edt_dev_spec_chanperfixture_title",
 			"default": 3,
 			"propertyOrder" : 4
-		}
+		},
+		"disableSplitting": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_prevent_pixel_data_splitting_across_universes",
+			"default" : false,
+			"propertyOrder" : 5	
+		}		
 	},
 	"additionalProperties": true
 }

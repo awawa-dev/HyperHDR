@@ -1,29 +1,22 @@
 #pragma once
 
-// Includes
+#ifndef PCH_ENABLED
+	#include <memory>
+	#include <utils/MemoryBuffer.h>
+#endif
+
 #include <utils/ColorRgb.h>
 #include <utils/VideoMemoryManager.h>
 
-// QT includes
-#include <QSharedData>
-
-#if defined(_MSC_VER)
-	#include <BaseTsd.h>
-	typedef SSIZE_T ssize_t;
-#endif
-
-
 template <typename ColorSpace>
-class ImageData : public QSharedData
+class ImageData
 {
 public:
 	ImageData(unsigned width, unsigned height);
 
-	ImageData(const ImageData<ColorSpace>& other);
-
 	bool setBufferCacheSize();
 
-	~ImageData<ColorSpace>();
+	~ImageData();
 
 	unsigned width() const;
 
@@ -58,22 +51,17 @@ public:
 private:
 	inline unsigned toIndex(unsigned x, unsigned y) const;
 
-	inline uint8_t* getMemory(size_t width, size_t height);
+	inline void getMemory(size_t width, size_t height);
 
 	inline void freeMemory();
 
 private:
-	/// The width of the image
 	unsigned _width;
-	/// The height of the image
 	unsigned _height;
 
-	uint64_t _initData;
+	std::unique_ptr<MemoryBuffer<uint8_t>> _memoryBuffer;
 
-	/// The pixels of the image
 	uint8_t* _pixels;
-
-	size_t   _bufferSize;
 
 	static VideoMemoryManager videoCache;
 };

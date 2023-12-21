@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -43,14 +43,7 @@ Animation_ColdMoodBlobs::Animation_ColdMoodBlobs(QString name) :
 
 EffectDefinition Animation_ColdMoodBlobs::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_ColdMoodBlobs>);
 	ed.name = ANIM_COLD_MOOD_BLOBS;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_ColdMoodBlobs::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

@@ -480,7 +480,7 @@ function startWizardCC()
 	}
 	//create html
 	$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('wiz_cc_title'));
-	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
+	$('#wizp1_body').html(`<h4 style="font-weight:bold;text-transform:uppercase;">${$.i18n('wiz_cc_title')}</h4><p>${$.i18n('wiz_cc_intro1')}</p><label>${$.i18n('wiz_cc_kwebs')}</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="${kodiAddress}" value="${kodiAddress}" /><span id="kodi_status"></span><span id="multi_cali"></span>`);
 	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 	$('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
 	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><svg data-src="svg/button_back.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<svg data-src="svg/button_next.svg" fill="currentColor" class="svg4hyperhdr"></svg></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
@@ -496,7 +496,7 @@ function startWizardCC()
 	$('#wiz_cc_kodiip').off().on('change', function ()
 	{
 
-		kodiAddress = $(this).val().trim();
+		kodiAddress = encodeURI($(this).val().trim());
 		$('#wizp1_body').find("kodiAddress").val(kodiAddress);
 
 		$('#kodi_status').html('');
@@ -1448,9 +1448,12 @@ function get_hue_lights()
 						if (pos == val) options += ' selected="selected"';
 						options += '>' + $.i18n(txt + val) + '</option>';
 					}
-					$('.lidsb').append(createTableRowFlex([lightid + ' ( '+(useV2Api?`Channel ${lightid}`: r[lightid].name )+ ' )', '<select id="hue_' + lightid + '" class="hue_sel_watch form-select">'
-					+ options
-					+ '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid) + '</button>']));
+					let descLightVal = (useV2Api) ? `Channel ${lightid}` : r[lightid].name;
+					let selectLightControl = `<select id="hue_${lightid}" class="hue_sel_watch form-select">${options}</select>`;
+					let ipVal = encodeURI($("#ip").val());
+					let userVal = encodeURI($("#user").val());					
+					let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_hue_device("${ipVal}","${userVal}",${lightid})>***${$.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid)}</button>`;					
+					$('.lidsb').append(createTableRowFlex([`${lightid} (${descLightVal})`, selectLightControl, buttonLightLink]));
 				}
 
 				if (hueType != 'philipshueentertainment')

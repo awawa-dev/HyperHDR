@@ -1,36 +1,43 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QDateTime>
-#include <QJsonObject>
-#include <memory>
-#include <utils/SystemPerformanceCounters.h>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+	#include <QDateTime>
+	#include <QJsonObject>
+
+	#include <memory>
+#endif
 
 class Logger;
 
-enum class PerformanceReportType { VIDEO_GRABBER = 1, INSTANCE = 2, LED = 3, CPU_USAGE = 4, RAM_USAGE = 5, CPU_TEMPERATURE = 6, SYSTEM_UNDERVOLTAGE = 7, UNKNOWN = 8 };
+namespace hyperhdr
+{
+	enum PerformanceReportType { VIDEO_GRABBER = 1, INSTANCE = 2, LED = 3, CPU_USAGE = 4, RAM_USAGE = 5, CPU_TEMPERATURE = 6, SYSTEM_UNDERVOLTAGE = 7, UNKNOWN = 8 };
+}
 
 struct PerformanceReport
 {
-	int		type = (int)PerformanceReportType::UNKNOWN;
-	int		id = -1;
+	int		type;
+	int		id;
 	QString name;
-	double	param1 = 0;
-	qint64	param2 = 0;
-	qint64	param3 = 0;
-	qint64	param4 = 0;
-	qint64	timeStamp = 0;
-	qint64	token = 0;
+	double	param1;
+	qint64	param2;
+	qint64	param3;
+	qint64	param4;
+	qint64	timeStamp;
+	qint64	token;
+
+	PerformanceReport();
 
 	PerformanceReport(int _type, qint64 _token, QString _name, double _param1, qint64 _param2, qint64 _param3, qint64 _param4, int _id = -1);
 
 	PerformanceReport(const PerformanceReport&) = default;
-
-	PerformanceReport() = default;
 };
 
 Q_DECLARE_METATYPE(PerformanceReport);
+
+class SystemPerformanceCounters;
 
 class PerformanceCounters : public QObject
 {
@@ -40,35 +47,31 @@ private:
 	void consoleReport(int type, int token);
 	void createUpdate(PerformanceReport pr);
 	void deleteUpdate(int type, int id);
-	void broadcast();
-
-	static std::unique_ptr<PerformanceCounters> _instance;
 
 	Logger* _log;
 	QList<PerformanceReport> _reports;
-	SystemPerformanceCounters _system;
+	std::unique_ptr<SystemPerformanceCounters> _system;
 	qint64 _lastRead;
 	qint64 _lastNetworkScan;
 
 public:
 
 	PerformanceCounters();
+	~PerformanceCounters();
 
-	static PerformanceCounters* getInstance();
 	static qint64 currentToken();
 
 private slots:
 
-	void receive(PerformanceReport pr);
-	void remove(int type, int id);
-	void request(bool all);
+	void signalPerformanceNewReportHandler(PerformanceReport pr);
+	void signalPerformanceStateChangedHandler(bool state, hyperhdr::PerformanceReportType type, int id, QString name = "");
+	
 
-signals:
-
-	void newCounter(PerformanceReport pr);
-	void removeCounter(int type, int id);
-	void performanceUpdate(QJsonObject report);
+public slots:
 	void triggerBroadcast();
 	void performanceInfoRequest(bool all);
+
+signals:
+	void SignalPerformanceStatisticsUpdated(QJsonObject report);
 };
 

@@ -1,20 +1,17 @@
-// stl includes
-#include <stdexcept>
-#include <cassert>
-#include <sstream>
-#include <iostream>
+#ifndef PCH_ENABLED
+	#include <QRgb>
+	#include <QJsonObject>
+	#include <QJsonArray>
+	#include <QJsonDocument>
+	#include <QHostInfo>
 
-// Qt includes
-#include <QRgb>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QHostInfo>
+	#include <stdexcept>
+	#include <cassert>
+	#include <sstream>
+	#include <iostream>
+#endif
 
-// hyperhdr-remote includes
 #include "JsonConnection.h"
-
-// util includes
 #include <utils/JsonUtils.h>
 
 JsonConnection::JsonConnection(const QString& address, bool printJson)

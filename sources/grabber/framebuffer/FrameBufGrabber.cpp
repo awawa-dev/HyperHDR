@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -42,18 +42,17 @@
 #include <linux/fb.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
-#include <base/AuthManager.h>
+#include <base/AccessManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <grabber/FrameBufGrabber.h>
+#include <grabber/framebuffer/FrameBufGrabber.h>
 #include <utils/ColorSys.h>
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
-	: Grabber("FRAMEBUFFER_SYSTEM:" + device.left(14))
+	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _semaphore(1)
 	, _handle(-1)

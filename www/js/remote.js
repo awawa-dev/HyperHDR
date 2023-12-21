@@ -61,6 +61,7 @@ $(document).ready(function()
 	};
 	var lastImgData = "";
 	var lastFileName = "";
+	var colorAdjustmentEnabled = true;
 
 	//create html
 	createDivRemoteTable('ssthead', 'sstbody', 'sstcont');
@@ -94,20 +95,25 @@ $(document).ready(function()
 			if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
 				selectEditor.container.hidden = true; 
 			else
-				editor_color.watch(sourcePath,() => {			
-					const editor = editor_color.getEditor(sourcePath);
+				editor_color.watch(sourcePath,() => {
+					if (colorAdjustmentEnabled)
+					{
+						const editor = editor_color.getEditor(sourcePath);
 					
-					if (editor.format === "colorpicker")
-						requestAdjustment(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
-					else
-						requestAdjustment(sourceKey, editor.value);		
+						if (editor.format === "colorpicker")
+							requestAdjustment(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
+						else
+							requestAdjustment(sourceKey, editor.value);
+					}
 				});				
 		}
 	}
 	
 	function updateColorAdjustment()
-	{
-		if (window.serverConfig['color'].hasOwnProperty('channelAdjustment') && window.serverConfig['color'].channelAdjustment.length > 0)
+	{	
+		if (Array.isArray(window.serverInfo.adjustment) && window.serverInfo.adjustment.length > 0)
+			editor_color.getEditor("root.color").setValue(window.serverInfo.adjustment[0]);
+		else if (window.serverConfig['color'].hasOwnProperty('channelAdjustment') && window.serverConfig['color'].channelAdjustment.length > 0)
 			editor_color.getEditor("root.color").setValue(window.serverConfig['color'].channelAdjustment[0]);
 
 		BindColorCalibration();
@@ -249,94 +255,43 @@ $(document).ready(function()
 
 	function initComponents()
 	{
-		var components = window.comps;
-		var hyperhdrEnabled = true;
-		components.forEach(function(obj)
-		{
-			if (obj.name == "ALL")
-			{
-				hyperhdrEnabled = obj.enabled;
-			}
-		});
+		var components = window.comps;		
 
 		for (const comp of components)
 		{
 			if (comp.name === "ALL")
 				continue;					
 
-			const enable_style = (comp.enabled ? "checked" : "");
 			const comp_btn_id = "comp_btn_" + comp.name;
 
 			if ($("#" + comp_btn_id).length === 0)
 			{
-				var d = '<div class="d-block m-2">' +
-					'<input id="' + comp_btn_id + '"' + enable_style + ' type="checkbox"' +
-					'data-toggle="toggle" data-onstyle="success" data-on="' + $.i18n('general_btn_on') + '" data-off="' + $.i18n('general_btn_off') + '">' +
-					'&nbsp;&nbsp;&nbsp;<label>' + $.i18n('general_comp_' + comp.name) + '</label>' +
+				var d = '<div class="m-2 mb-3 d-flex align-items-center justify-content-start">' +
+					`<input id="${comp_btn_id}" type="checkbox" class="mobileToggle"/><label for="${comp_btn_id}"></label>` +
+					`<label class="ms-3">${$.i18n('general_comp_' + comp.name)}</label>` +
 					'</div>';
 
 				$('#componentsbutton').append(d);
-				$(`#${comp_btn_id}`).bootstrapToggle();
-				$(`#${comp_btn_id}`).bootstrapToggle((hyperhdrEnabled ? "enable" : "disable"));
-				$(`#${comp_btn_id}`).change(e =>
-				{					
-					requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
-				});
+				updateComponent(comp);
 			}
 		}
 	}
 
 	function updateComponent(component)
 	{
-		if (component.name == "ALL")
-		{
-			var components = window.comps;
-			var hyperhdrEnabled = component.enabled;
-			for (const comp of components)
-			{
-
-				if (comp.name === "ALL")
-					continue;
-
-				const comp_btn_id = "comp_btn_" + comp.name;
-
-				if (!hyperhdrEnabled)
-				{
-					$(`#${comp_btn_id}`).bootstrapToggle('off');
-					$(`#${comp_btn_id}`).bootstrapToggle("disable");
-				}
-				else
-				{
-					$(`#${comp_btn_id}`).bootstrapToggle("enable");
-					if (comp.enabled !== $(`#${comp_btn_id}`).prop("checked"))
-					{
-						$(`#${comp_btn_id}`).bootstrapToggle().prop('checked', comp.enabled).change();
-					}
-				}
-			}
-		}
-		else
-		{
-			const comp_btn_id = "comp_btn_" + component.name;
-
-			//console.log ("updateComponent: ", component.name, "Current Checked: ", $(`#${comp_btn_id}`).prop("checked"), "New Checked: ", component.enabled,  );
-
-			// In case Buttons were disabled before, status may be different to component status
-			if (component.enabled != $(`#${comp_btn_id}`).prop("checked"))
-			{
-				$(`#${comp_btn_id}`).off('change');
+		let compButton = $(`#comp_btn_${component.name}`);
+		if (compButton.length)
+		{		
+			compButton.off('change');
 				
-				// console.log ("Update status to Checked = ", component.enabled);
-				if (component.enabled)
-					$(`#${comp_btn_id}`).bootstrapToggle("on");
-				else
-					$(`#${comp_btn_id}`).bootstrapToggle("off");
+			compButton.prop('checked', component.enabled);
+			compButton.prop('disabled', false);
 				
-				$(`#${comp_btn_id}`).change(e =>
-				{							
-					requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
-				});
-			}
+			compButton.change(e =>
+			{
+				e.currentTarget.setAttribute('disabled', 'disabled');
+				requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
+			});
 		}
 	}
 
@@ -367,14 +322,14 @@ $(document).ready(function()
 
 	function updateVideoModeHdr()
 	{
-		var videoModes = [$.i18n("general_btn_off").toUpperCase(), $.i18n("general_btn_on").toUpperCase(), $.i18n("general_mode_border").toUpperCase()];
-		var videoModesVal = [0, 1, 2];
+		var videoModes = [$.i18n("general_btn_off").toUpperCase(), $.i18n("general_btn_on").toUpperCase()];
+		var videoModesVal = [0, 1];
 		var currVideoMode = window.serverInfo.videomodehdr;
 
 		$('#videomodehdrbtns').html("");
 		for (var ix = 0; ix < videoModes.length; ix++)
 		{
-			if (currVideoMode == videoModesVal[ix])
+			if (((currVideoMode) ? 1 : 0 ) == videoModesVal[ix])
 				var btn_style = 'btn-success';
 			else
 				var btn_style = 'btn-primary';
@@ -533,11 +488,20 @@ $(document).ready(function()
 		updateComponent(comp);
 	});
 
-	$(window.hyperhdr).on("cmd-priorities-update", function(event)
+	$(window.hyperhdr).on("priorities-update", function(event)
 	{
-		window.serverInfo.priorities = event.response.data.priorities;
-		window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect;
 		updateInputSelect();
+	});
+
+	$(window.hyperhdr).on("adjustment-update", function (event, colorData) {
+		colorAdjustmentEnabled = false;
+		for(var key in colorData)
+		{
+			const selectEditor = editor_color.getEditor('root.color.'+key);
+			if (selectEditor != null && selectEditor.getValue() != colorData[key])
+				selectEditor.setValue(colorData[key]);
+		}
+		colorAdjustmentEnabled = true;
 	});
 	
 	$(window.hyperhdr).on("cmd-imageToLedMapping-update", function(event)

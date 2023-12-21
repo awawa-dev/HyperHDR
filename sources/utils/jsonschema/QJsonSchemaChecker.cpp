@@ -1,9 +1,9 @@
-// stdlib includes
-#include <iterator>
-#include <algorithm>
-#include <math.h>
+#ifndef PCH_ENABLED
+	#include <iterator>
+	#include <algorithm>
+	#include <math.h>
+#endif
 
-// Utils-Jsonschema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/jsonschema/QJsonUtils.h>
 
@@ -223,27 +223,28 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
 		QString property = i.key();
-
-		const QJsonValue& propertyValue = *i;
+		const QJsonValue& propertyValue = i.value();
+		const QJsonObject& propertyValueObj = propertyValue.toObject();
 
 		_currentPath.append("." + property);
-		QJsonObject::const_iterator required = propertyValue.toObject().find("required");
+		QJsonObject::const_iterator required = propertyValueObj.find("required");
 
 		if (value.contains(property))
 		{
-			validate(value[property], propertyValue.toObject());
+			validate(value[property], propertyValueObj);
 		}
 		else if (verifyDeps(property, value, schema))
 		{
 		}
-		else if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
+		else if (required != propertyValueObj.end() && required.value().toBool() && !_ignoreRequired)
 		{
 			_error = true;
 
 			if (_correct == "create")
 			{
-				QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
-				setMessage("Create property: " + property + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
+				QJsonValue newProperty = QJsonUtils::create(propertyValue, _ignoreRequired);
+				QJsonUtils::modify(_autoCorrected, _currentPath, newProperty, property);				
+				setMessage("Create property: " + property + " with value: " + QJsonUtils::outputNode(newProperty));
 			}
 
 			if (_correct == "")
@@ -484,7 +485,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue& value, const QJsonObject& 
 	QJsonArray jArray = value.toArray();
 
 	if (_correct == "remove")
-		if (jArray.isEmpty() && !schema.contains("allowEmptyArray"))
+		if (jArray.isEmpty() && !schema.contains("allowEmptyArray") && schema.contains("required"))
 		{
 			QJsonUtils::modify(_autoCorrected, _currentPath);
 			setMessage("Remove empty array");

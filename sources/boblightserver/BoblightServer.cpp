@@ -27,7 +27,7 @@ BoblightServer::BoblightServer(HyperHdrInstance* hyperhdr, const QJsonDocument& 
 	Info(_log, "Instance created");
 
 	// listen for component change
-	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &BoblightServer::compStateChangeRequest);
+	connect(_hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &BoblightServer::compStateChangeRequest);
 	// listen new connection signal from server
 	connect(_server, &QTcpServer::newConnection, this, &BoblightServer::newConnection);
 

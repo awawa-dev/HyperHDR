@@ -1,8 +1,9 @@
-#ifndef QTHTTPCLIENTWRAPPER_H
-#define QTHTTPCLIENTWRAPPER_H
+#pragma once
 
-#include <QObject>
-#include <QString>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+#endif
 
 class QTcpSocket;
 
@@ -11,6 +12,7 @@ class QtHttpReply;
 class QtHttpServer;
 class WebSocketClient;
 class WebJsonRpc;
+class HyperHdrManager;
 
 class QtHttpClientWrapper : public QObject {
 	Q_OBJECT
@@ -31,12 +33,8 @@ public:
 	};
 
 	QString getGuid(void);
-	/// @brief Wrapper for sendReplyToClient(), handles m_parsingStatus and signal connect
-	void sendToClientWithReply(QtHttpReply* reply);
 
-	///
-	/// @brief close a connection with FORBIDDEN header (used from JsonAPI over HTTP)
-	///
+	void sendToClientWithReply(QtHttpReply* reply);
 	void closeConnection();
 
 private slots:
@@ -59,5 +57,3 @@ private:
 	WebSocketClient*	m_websocketClient;
 	WebJsonRpc*			m_webJsonRpc;
 };
-
-#endif // QTHTTPCLIENTWRAPPER_H

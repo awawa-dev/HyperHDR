@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2023 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -33,6 +33,13 @@
 #include <QSqlError>
 #include <QJsonArray>
 #include <QSqlRecord>
+#include <QDateTime>
+#include <QSqlDatabase>
+#include <QFile>
+#include <QFileInfo>
+#include <QTextStream>
+#include <QIODevice>
+
 #include <HyperhdrConfig.h> // Required to determine the cmake options
 
 #ifdef USE_STATIC_QT_PLUGINS
@@ -40,14 +47,11 @@
 	Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
 #endif
 
-#define EXPORT_FILE_FORMAT_VERSION "HyperHDR_export_format_v17"
-
-QString DBManager::_rootPath;
+QFileInfo DBManager::_databaseName;
 QThreadStorage<QSqlDatabase> DBManager::_databasePool;
 
-DBManager::DBManager(QObject* parent)
-	: QObject(parent)
-	, _log(Logger::getInstance("DB"))
+DBManager::DBManager()
+	: _log(Logger::getInstance("DB"))
 	, _readonlyMode(false)
 {
 }
@@ -61,17 +65,10 @@ void DBManager::setReadonlyMode(bool readOnly)
 	_readonlyMode = readOnly;
 };
 
-void DBManager::setRootPath(const QString& rootPath)
+void DBManager::initializeDatabaseFilename(QFileInfo databaseName)
 {
-	_rootPath = rootPath;
-	// create directory
-	QDir().mkpath(_rootPath + "/db");
+	_databaseName = databaseName;
 }
-
-void DBManager::setDatabaseName(const QString& dbn)
-{
-	_dbn = dbn;
-};
 
 void DBManager::setTable(const QString& table)
 {
@@ -86,17 +83,15 @@ QSqlDatabase DBManager::getDB() const
 	{
 		auto db = QSqlDatabase::addDatabase("QSQLITE", QUuid::createUuid().toString());
 		_databasePool.setLocalData(db);
-
-		QFileInfo dbFile(_rootPath + "/db/" + _dbn + ".db");
-
-		db.setDatabaseName(dbFile.absoluteFilePath());
+		
+		db.setDatabaseName(_databaseName.absoluteFilePath());
 		if (!db.open())
 		{
 			Error(_log, QSTRING_CSTR(db.lastError().text()));
 			throw std::runtime_error("Failed to open database connection!");
 		}
 		else
-			Info(_log, "Database opened: %s", QSTRING_CSTR(dbFile.absoluteFilePath()));
+			Info(_log, "Database opened: %s", QSTRING_CSTR(_databaseName.absoluteFilePath()));
 
 		return db;
 	}
@@ -580,7 +575,7 @@ const QJsonObject DBManager::getBackup()
 			allSettings.append(entry);
 	}
 
-	backup["version"] = EXPORT_FILE_FORMAT_VERSION;
+	backup["version"] = CURRENT_HYPERHDR_DB_EXPORT_VERSION;
 	backup["instances"] = allInstances;
 	backup["settings"] = allSettings;
 
@@ -592,7 +587,14 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 {
 	QSqlDatabase idb = getDB();
 	const QJsonObject& message = backupData.value("config").toObject();
-	bool rm = _readonlyMode;
+	bool rm = _readonlyMode;	
+
+	Info(_log, "Creating DB backup first.");
+	QString resultFile = createLocalBackup();
+	if (!resultFile.isEmpty())
+		Info(_log, "The backup is saved as: %s", QSTRING_CSTR(resultFile));
+	else
+		Warning(_log, "Could not create a backup");
 
 	_readonlyMode = true;
 
@@ -693,4 +695,26 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 	}
 
 	return "";
+}
+
+
+QString DBManager::createLocalBackup()
+{
+	QJsonObject backupFirst = getBackup();
+	QString backupName = getDB().databaseName();
+	if (!backupName.isEmpty() && QFile::exists(backupName))
+	{
+		backupName = QDir(QFileInfo(backupName).absoluteDir()).filePath(QString("backup_%1.json").arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz")));
+		QFile backFile(backupName);
+		if (backFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+		{
+			QTextStream out(&backFile);
+			out.setGenerateByteOrderMark(true);
+			out << QJsonDocument(backupFirst).toJson(QJsonDocument::Compact);
+			out.flush();
+			backFile.close();
+			return backupName;
+		}
+	}
+	return QString();
 }

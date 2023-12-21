@@ -4,47 +4,65 @@
 #include "SSDPDescription.h"
 #include <base/HyperHdrInstance.h>
 #include <HyperhdrConfig.h>
-#include <base/AuthManager.h>
-
+#include <base/AccessManager.h>
 #include <QNetworkInterface>
-
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	// yes, we know it depracated and can handle it
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	#include <QNetworkConfigurationManager>
-	#pragma GCC diagnostic pop
-#endif
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 	#include <QRandomGenerator>
 #endif
 
+#define DEFAULT_RETRY 10
+
 static const QString SSDP_IDENTIFIER("urn:hyperhdr.eu:device:basic:1");
 
-SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString& name, QObject* parent)
+SSDPHandler::SSDPHandler(QString uuid, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, quint16 webPort, const QString& name, QObject* parent)
 	: SSDPServer(parent)
-	, _webserver(webserver)
+	, _log(Logger::getInstance("SSDP"))
 	, _localAddress()
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	, _NCA(nullptr)
-#endif
+	, _uuid(uuid)
+	, _retry(DEFAULT_RETRY)
 {
 	setFlatBufPort(flatBufPort);
 	setProtoBufPort(protoBufPort);
 	setJsonServerPort(jsonServerPort);
 	setSSLServerPort(sslPort);
+	setWebServerPort(webPort);
 	setHyperhdrName(name);
+	Debug(_log, "SSDPHandler is initialized");
 }
 
 SSDPHandler::~SSDPHandler()
 {
 	stopServer();
+	Debug(_log, "SSDPHandler is closed");
 }
 
 void SSDPHandler::initServer()
 {
-	_uuid = AuthManager::getInstance()->getID();
+	Debug(_log, "SSDPHandler is initializing");
+
+	if (_localAddress.isEmpty())
+	{
+		_localAddress = getLocalAddress();
+	}
+
+	if (_localAddress.isEmpty())
+	{
+		if (_retry > 0)
+		{
+			Warning(_log, "Could not obtain the local address. Retry later (%i/%i)", (DEFAULT_RETRY - _retry + 1), DEFAULT_RETRY);
+			QTimer::singleShot(30000, this, [this]() {
+				if (!_running && _localAddress.isEmpty() && _retry > 0)
+					initServer();				
+			});			
+			_retry--;
+		}
+		else
+			Warning(_log, "Could not obtain the local address.");
+	}
+	else
+		_retry = 0;
+
 	SSDPServer::setUuid(_uuid);
 
 	// announce targets
@@ -55,34 +73,10 @@ void SSDPHandler::initServer()
 	// prep server
 	SSDPServer::initServer();
 
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	// yes, we know it depracated and can handle it
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		_NCA = std::unique_ptr<QNetworkConfigurationManager>(new QNetworkConfigurationManager(this));
-		connect(_NCA.get(), &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
-	#pragma GCC diagnostic pop
-#endif
-
 	// listen for mSearchRequestes
 	connect(this, &SSDPServer::msearchRequestReceived, this, &SSDPHandler::handleMSearchRequest);
 
-
-
-	// get localAddress from interface
-	if (!getLocalAddress().isEmpty())
-	{
-		_localAddress = getLocalAddress();
-	}
-
-	// startup if localAddress is found
-	bool isInited = false;
-	SAFE_CALL_0_RET(_webserver, isInited, bool, isInited);
-
-	if (!_localAddress.isEmpty() && isInited)
-	{
-		handleWebServerStateChange(true);
-	}
+	handleWebServerStateChange(true);	
 }
 
 void SSDPHandler::stopServer()
@@ -94,18 +88,26 @@ void SSDPHandler::stopServer()
 
 void SSDPHandler::handleWebServerStateChange(bool newState)
 {
+	if (_localAddress.isEmpty())
+	{
+		Debug(_log, "The local address is empty");
+		return;
+	}
+
 	if (newState)
 	{
 		// refresh info
 		QString param = buildDesc();
-		BLOCK_CALL_1(_webserver, setSSDPDescription, QString, param);
+		emit newSsdpXmlDesc(param);
 		setDescriptionAddress(getDescAddress());
 		if (start())
 			sendAnnounceList(true);
+		else
+			Warning(_log, "Could not start the SSDP server");
 	}
 	else
-	{		
-		BLOCK_CALL_1(_webserver, setSSDPDescription, QString, "");
+	{				
+		emit newSsdpXmlDesc("");
 		sendAnnounceList(false);
 		stop();
 	}
@@ -145,6 +147,11 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		{
 			SSDPServer::setSSLServerPort(obj["sslPort"].toInt());
 		}
+
+		if (obj["port"].toInt() != SSDPServer::getWebServerPort())
+		{
+			SSDPServer::setWebServerPort(obj["port"].toInt());
+		}
 	}
 
 	if (type == settings::type::GENERAL)
@@ -155,30 +162,6 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		}
 	}
 }
-
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	// yes, we know it depracated and can handle it
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration& config)
-	{
-		// get localAddress from interface
-		QString localAddress = getLocalAddress();
-		if (!localAddress.isEmpty() && _localAddress != localAddress)
-		{
-			// revoke old ip
-			sendAnnounceList(false);
-
-			// update desc & notify new ip
-			_localAddress = localAddress;
-			QString param = buildDesc();
-			BLOCK_CALL_1(_webserver, setSSDPDescription, QString, param);
-			setDescriptionAddress(getDescAddress());
-			sendAnnounceList(true);
-		}
-	}
-	#pragma GCC diagnostic pop
-#endif
 
 QString SSDPHandler::getLocalAddress() const
 {
@@ -196,7 +179,9 @@ QString SSDPHandler::getLocalAddress() const
 			auto address = addressEntr.ip();
 			if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
 			{
-				return address.toString();
+				QString retVal = address.toString();
+				Debug(_log, "The local address is: %s", QSTRING_CSTR(retVal));
+				return retVal;
 			}
 		}
 	}
@@ -207,7 +192,9 @@ QString SSDPHandler::getLocalAddress() const
 		// is valid when, no loopback, IPv4
 		if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
 		{
-			return address.toString();
+			QString retVal = address.toString();
+			Debug(_log, "The local address is: %s", QSTRING_CSTR(retVal));
+			return retVal;
 		}
 	}
 	return QString();
@@ -215,7 +202,7 @@ QString SSDPHandler::getLocalAddress() const
 
 void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx, const QString address, quint16 port)
 {
-	const auto respond = [=]() {
+	const auto respond = [this, target, address, port]() {
 		// when searched for all devices / root devices / basic device
 		if (target == "ssdp:all")
 			sendMSearchResponse(SSDP_IDENTIFIER, address, port);
@@ -250,9 +237,7 @@ QString SSDPHandler::getDescAddress() const
 
 QString SSDPHandler::getBaseAddress() const
 {
-	quint16 port = 0;
-	SAFE_CALL_0_RET(_webserver, getPort, quint16, port);
-	return QString("http://%1:%2/").arg(_localAddress).arg(port);
+	return QString("http://%1:%2/").arg(_localAddress).arg(SSDPServer::getWebServerPort());
 }
 
 QString SSDPHandler::buildDesc() const
