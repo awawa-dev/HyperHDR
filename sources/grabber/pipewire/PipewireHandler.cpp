@@ -842,13 +842,13 @@ void PipewireHandler::captureFrame()
 				else
 				{
 					_image.data = createMemory(_image.stride * _frameHeight);
-					memcpy(_image.data, mappedMemory, _image.stride * _frameHeight);
+					memcpy(_image.data, mappedMemory, static_cast<size_t>(_image.stride) * _frameHeight);
 				}
 			}
 			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
 			{				
 				_image.data = createMemory(_image.stride * _frameHeight);
-				memcpy(_image.data, static_cast<uint8_t*>(newFrame->buffer->datas[0].data), _image.stride * _frameHeight);
+				memcpy(_image.data, static_cast<uint8_t*>(newFrame->buffer->datas[0].data), static_cast<size_t>(_image.stride) * _frameHeight);
 			}
 		}
 	}

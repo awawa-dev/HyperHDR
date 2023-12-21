@@ -88,8 +88,9 @@ function loadContent(event, forceRefresh)
 				
 				$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 					if(status == "error")
-					{					
-						$("#page-content").html(`<h3>${tag}<br/>${$.i18n('info_404')}</h3>`);
+					{
+						var resultContent = document.getElementById('page-content');
+						resultContent.innerHTML = `<h3>${tag}</h3><br/>${$.i18n('info_404')}`;
 						removeOverlay();
 					}					
 				});
@@ -159,7 +160,7 @@ function updateHyperhdrInstanceListing()
 
 				if (hostName.length > 0)
 				{
-					hostName = hostName.replace('"',"'");
+					hostName = hostName.replace(/"/g, "'");
 				}
 
 				var html = `<li id="remote_hyperhdrinstance_${i}" class="text-info" data-toggle="tooltip" data-placement="right" title="${hostName}"><a>`+

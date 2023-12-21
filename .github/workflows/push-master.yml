@@ -36,6 +36,10 @@ jobs:
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             platform: linux
+          - dockerImage: x86_64
+            linuxVersion: mantic
+            dockerName: Ubuntu 23.10 (x86_64)
+            platform: linux
           - dockerImage: arm-32bit-armv6l
             linuxVersion: bullseye
             dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)

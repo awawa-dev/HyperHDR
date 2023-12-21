@@ -81,7 +81,9 @@ $(document).ready( function() {
 	var appendFps = $("div[data-schemapath='root.smoothing.updateFrequency'] div.input-group-text");
 	if (appendFps != null)
 	{
-		appendFps.html(`<span id='realFps'></span>${appendFps.text()}`);
+		let realRefreshRate = document.createElement("span");
+		realRefreshRate.setAttribute("id", "realFps");		
+		appendFps.get(0).prepend(realRefreshRate);
 	};
 
 	editor_smoothing.watch('root.smoothing.updateFrequency',() => {
