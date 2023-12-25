@@ -88,8 +88,8 @@ jobs:
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
            restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
-      - name: Check testing version
-        if: matrix.linuxVersion == 'bookworm'
+      - name: Check default version
+        if: matrix.linuxVersion != 'bullseye'
         run: |
           echo "USE_STANDARD_INSTALLER_NAME=ON" >> $GITHUB_ENV
 

@@ -174,11 +174,8 @@ void LutCalibrator::incomingCommand(QString rootpath, GrabberWrapper* grabberWra
 				BLOCK_CALL_0(grabberWrapper, stop);
 				BLOCK_CALL_0(grabberWrapper, start);
 
-				for (int i = 0; i < 8; i++)
-				{
-					QThread::msleep(200);
-					QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-				}
+				QThread::msleep(2000);
+
 				_log->enable();
 			}
 

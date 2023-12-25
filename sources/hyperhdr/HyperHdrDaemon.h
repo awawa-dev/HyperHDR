@@ -82,7 +82,7 @@
 #elif defined(ENABLE_SOUNDCAPMACOS)
 	#include <sound-capture/macos/SoundCaptureMacOS.h>
 #else
-	class SoundGrabber : public QObject { public: void ForcedClose() {} };
+	class SoundCapture : public QObject {};
 #endif
 
 #include <utils/Logger.h>

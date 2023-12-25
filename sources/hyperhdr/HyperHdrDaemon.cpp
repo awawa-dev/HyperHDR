@@ -314,10 +314,10 @@ void HyperHdrDaemon::startNetworkServices()
 	flatProtoThreadClients.push_back(_flatBufferServer);
 	if (_videoGrabber == nullptr)
 	{
-		Warning(_log, "The USB grabber was disabled during build. FlatbufferServer now controlls the HDR state.");
-		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, _flatBufferServer, &FlatBufferServer::signalRequestSourceHandler);
+		Warning(_log, "The USB grabber was disabled during build. FlatbufferServer now controlls the HDR state.");		
 		connect(_flatBufferServer, &FlatBufferServer::SignalSetNewComponentStateToAllInstances, _instanceManager.get(), &HyperHdrManager::SignalSetNewComponentStateToAllInstances);
 	}
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, _flatBufferServer, &FlatBufferServer::signalRequestSourceHandler);
 	connect(_flatProtoThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
 	connect(_flatProtoThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
