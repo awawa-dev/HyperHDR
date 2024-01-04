@@ -120,7 +120,7 @@ HyperHdrInstance::~HyperHdrInstance()
 	Info(_log, "[ 7/9] Releasing HyperHDR%i->LED driver wrapper...", _instIndex);
 	_ledDeviceWrapper = nullptr;
 	Info(_log, "[ 8/9] Releasing HyperHDR%i->ComponentController...", _instIndex);
-    _componentController = nullptr;
+	_componentController = nullptr;
 	Info(_log, "[ 9/9] Releasing HyperHDR%i->Muxer...", _instIndex);
 	_muxer = nullptr;
 
@@ -142,11 +142,11 @@ void HyperHdrInstance::start()
 	Info(_log, "Starting the instance");	
 
 	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this, _readOnlyMode));
-    _componentController = std::unique_ptr<ComponentController>(new ComponentController(this));
+	_componentController = std::unique_ptr<ComponentController>(new ComponentController(this));
 	connect(_componentController.get(), &ComponentController::SignalComponentStateChanged, this, &HyperHdrInstance::SignalComponentStateChanged);
 	_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(getSetting(settings::type::DEVICE).object()));
-	_imageProcessor = std::unique_ptr<ImageToLedManager>(new ImageToLedManager(_ledString, this));
 	_muxer = std::unique_ptr<Muxer>(new Muxer(_instIndex, static_cast<int>(_ledString.leds().size()), this));
+	_imageProcessor = std::unique_ptr<ImageToLedManager>(new ImageToLedManager(_ledString, this));	
 	connect(_muxer.get(), &Muxer::SignalPrioritiesChanged, this, &HyperHdrInstance::SignalPrioritiesChanged);
 	connect(_muxer.get(), &Muxer::SignalVisiblePriorityChanged, this, &HyperHdrInstance::SignalVisiblePriorityChanged);
 	connect(_muxer.get(), &Muxer::SignalVisibleComponentChanged, this, &HyperHdrInstance::SignalVisibleComponentChanged);
@@ -441,7 +441,7 @@ void HyperHdrInstance::setNewComponentState(hyperhdr::Components component, bool
 	if (_componentController == nullptr || _muxer == nullptr)
 		return;
 
-    _componentController->setNewComponentState(component, state);
+	_componentController->setNewComponentState(component, state);
 
 	if (hyperhdr::Components::COMP_LEDDEVICE == component && state)
 	{
