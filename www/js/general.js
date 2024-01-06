@@ -174,7 +174,8 @@ $(document).ready(function()
 				else
 				{
 					content = JSON.parse(content);
-					if (typeof content.instances === 'undefined' || typeof content.settings === 'undefined' || content.version !== "HyperHDR_export_format_v17")
+					if (typeof content.instances === 'undefined' || typeof content.settings === 'undefined' ||
+						content.version == null || content.version.indexOf("HyperHDR_export_format_v") != 0)
 					{
 						showInfoDialog('error', "", $.i18n('infoDialog_import_hyperror_text', f.name));
 						dis_imp_btn(true);

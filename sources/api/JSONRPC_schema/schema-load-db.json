@@ -40,7 +40,7 @@
 				"version": {
 					"type" : "string",
 					"required" : true,
-					"enum" : ["HyperHDR_export_format_v17"]
+					"enum" : ["HyperHDR_export_format_v17", "HyperHDR_export_format_v20"]
 				}
 			}
 		}
