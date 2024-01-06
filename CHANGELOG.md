@@ -13,7 +13,7 @@
 - Upgrade Fedora 38 to 39, Ubuntu 23.04 to 23.10 #667 (v20 beta 🆕)
 - Colorized logs #640 (v20 beta 🆕)
 - Fix macOS build #638 #671 #672 (v20 beta 🆕)
-- Update language file's. Thanks @AstaRom #505 #538 #571 #617 #692 (v20 beta 🆕)
+- Update language file's. Thanks @AstaRom #505 #538 #571 #617 #710 (v20 beta 🆕)
 - Make bonjour use logging utilities. Thanks @nurikk #529 (v20 beta 🆕)
 - New interface: removed ancient Font Awesome 4 (so 2017...) Migrate to SVG: Bootstrap Icons and Google Material Icons/Symbols #605 (v20 beta 🆕)
 - New device discovery service #605 (v20 beta 🆕)
