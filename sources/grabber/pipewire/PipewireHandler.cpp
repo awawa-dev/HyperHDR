@@ -644,7 +644,9 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	updatedParams[0] = (spa_pod*)(spa_pod*)spa_pod_builder_add_object(&updateBufferBuilder,
 					SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
 					SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 16),
+#if !PW_CHECK_VERSION(1, 0, 0)
 					SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
+#endif
 					SPA_PARAM_BUFFERS_size, SPA_POD_Int(size),
 					SPA_PARAM_BUFFERS_stride, SPA_POD_CHOICE_RANGE_Int(stride, stride, INT32_MAX),
 					SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
