@@ -44,7 +44,7 @@ jobs:
       run: |
         mkdir -p CustomPiOS/HyperHDR/src/image
         cd CustomPiOS/HyperHDR/src/image
-        wget -c --trust-server-names 'https://downloads.raspberrypi.org/raspios_lite_armhf_latest'
+        wget -c --trust-server-names 'https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2023-05-03/2023-05-03-raspios-bullseye-armhf-lite.img.xz'
         echo "workspace_dir=CustomPiOS/HyperHDR/src/workspace" >> $GITHUB_ENV
 
     - name: Download Raspbian Image (64-bits)
@@ -52,7 +52,7 @@ jobs:
       run: |
         mkdir -p CustomPiOS/HyperHDR/src/image-raspios_lite_arm64
         cd CustomPiOS/HyperHDR/src/image-raspios_lite_arm64
-        wget -c --trust-server-names 'https://downloads.raspberrypi.org/raspios_lite_arm64_latest'
+        wget -c --trust-server-names 'https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz'
         echo "workspace_dir=CustomPiOS/HyperHDR/src/workspace-raspios_lite_arm64" >> $GITHUB_ENV
         echo "workspace_variant=raspios_lite_arm64" >> $GITHUB_ENV
 
@@ -77,6 +77,7 @@ jobs:
         echo '&& chmod go+r /usr/share/keyrings/hyperhdr.public.apt.gpg.key \' >> start_chroot_script
         echo '&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hyperhdr.public.apt.gpg.key] https://awawa-dev.github.io $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hyperhdr.list > /dev/null \' >> start_chroot_script
         echo '&& apt update \' >> start_chroot_script
+        echo '&& apt install --only-upgrade udev -y \' >> start_chroot_script        
         echo '&& apt install hyperhdr -y' >> start_chroot_script        
         echo 'touch /boot/ssh' >> start_chroot_script
         echo "echo -n 'pi:' > /boot/userconf" >> start_chroot_script
