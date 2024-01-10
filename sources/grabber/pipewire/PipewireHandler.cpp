@@ -632,26 +632,46 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 		? (1 << SPA_DATA_DmaBuf) | (1 << SPA_DATA_MemFd) | (1 << SPA_DATA_MemPtr)
 		: (1 << SPA_DATA_MemFd) | (1 << SPA_DATA_MemPtr);
 
-	if (bufferTypes & (1 << SPA_DATA_DmaBuf))
+	const bool hasDma = (bufferTypes & (1 << SPA_DATA_DmaBuf));
+
+	// display capabilities
+	if (hasDma)
+	{
 		printf("Pipewire: DMA buffer available. Format: %s. Modifier: %s.\n",
 				fourCCtoString(_frameDrmFormat).toLocal8Bit().constData(),
 				fourCCtoString(_frameDrmModifier).toLocal8Bit().constData());
+	}
 	if (bufferTypes & (1 << SPA_DATA_MemFd))
+	{
 		printf("Pipewire: MemFD buffer available\n");
+	}
 	if (bufferTypes & (1 << SPA_DATA_MemPtr))
+	{
 		printf("Pipewire: MemPTR buffer available\n");
+	}
 
-	updatedParams[0] = (spa_pod*)(spa_pod*)spa_pod_builder_add_object(&updateBufferBuilder,
-					SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
-					SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 16),
-#if !PW_CHECK_VERSION(1, 0, 0)
-					SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
-#endif
-					SPA_PARAM_BUFFERS_size, SPA_POD_Int(size),
-					SPA_PARAM_BUFFERS_stride, SPA_POD_CHOICE_RANGE_Int(stride, stride, INT32_MAX),
-					SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
-					SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(bufferTypes));
-	
+	if (hasDma)
+	{
+		updatedParams[0] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&updateBufferBuilder,
+								SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
+								SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 16),
+								SPA_PARAM_BUFFERS_size, SPA_POD_Int(size),
+								SPA_PARAM_BUFFERS_stride, SPA_POD_CHOICE_RANGE_Int(stride, stride, INT32_MAX),
+								SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
+								SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(bufferTypes)));
+	}
+	else
+	{
+		updatedParams[0] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&updateBufferBuilder,
+								SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
+								SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 16),
+								SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
+								SPA_PARAM_BUFFERS_size, SPA_POD_Int(size),
+								SPA_PARAM_BUFFERS_stride, SPA_POD_CHOICE_RANGE_Int(stride, stride, INT32_MAX),
+								SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
+								SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(bufferTypes)));
+	}
+
 	pw_thread_loop_lock(_pwMainThreadLoop);
 	
 	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));	
@@ -1270,12 +1290,12 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 	if (stream != nullptr)
 	{
-		const int spaBufferSize = 2048;
 		const spa_pod*	streamParams[(sizeof(_supportedDmaFormatsList) / sizeof(supportedDmaFormat)) + 1];
 		int streamParamsIndex = 0;
+		
+		MemoryBuffer<uint8_t> spaBufferMem(2048);
 
-		uint8_t* spaBuffer = static_cast<uint8_t*>(calloc(spaBufferSize, 1));
-		auto spaBuilder = SPA_POD_BUILDER_INIT(spaBuffer, spaBufferSize);
+		auto spaBuilder = SPA_POD_BUILDER_INIT(spaBufferMem.data(), static_cast<uint32_t>(spaBufferMem.size()));
 
 		#ifdef ENABLE_PIPEWIRE_EGL
 
@@ -1335,8 +1355,6 @@ pw_stream* PipewireHandler::createCapturingStream()
 		}
 		else
 			printf("Pipewire: the stream is connected\n");
-
-		free(spaBuffer);
 	}
 
 	return stream;
