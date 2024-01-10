@@ -219,14 +219,15 @@ void PipewireHandler::closeSession()
 #ifdef ENABLE_PIPEWIRE_EGL
 	if (contextEgl != EGL_NO_CONTEXT)
 	{
-		eglDestroyContext(displayEgl, contextEgl);
+		auto res = eglDestroyContext(displayEgl, contextEgl);
+		std::cout << "PipewireEGL: destroying EGL context => " << res << std::endl;
 		contextEgl = EGL_NO_CONTEXT;
 	}
 
 	if (displayEgl != EGL_NO_DISPLAY)
 	{
-		printf("PipewireEGL: terminate the display\n");
-		eglTerminate(displayEgl);
+		auto res = eglTerminate(displayEgl);
+		std::cout << "PipewireEGL: terminate the display => " << res << std::endl;		
 		displayEgl = EGL_NO_DISPLAY;
 	}
 
@@ -590,7 +591,7 @@ void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state,
 
 void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 {
-	struct spa_video_info format;
+	struct spa_video_info format {};
 
 	std::cout << "Pipewire: got new video format selected" << std::endl;
 
