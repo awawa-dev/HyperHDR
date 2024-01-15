@@ -33,7 +33,7 @@ ProviderSerial::ProviderSerial(const QJsonObject& deviceConfig)
 	, _delayAfterConnect_ms(0)
 	, _frameDropCounter(0)
 	, _espHandshake(true)
-	, _forceSerialDetection(true)
+	, _forceSerialDetection(false)
 {
 }
 

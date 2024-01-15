@@ -74,16 +74,16 @@ public:
 			_serialPort->setRequestToSend(true);
 			_serialPort->setRequestToSend(false);
 		}
-		else if (!serialPortInfo.hasProductIdentifier() && !serialPortInfo.hasVendorIdentifier() && _forceSerialDetection)
+		else if (_forceSerialDetection)
 		{
 			Warning(_log, "Force ESP/Pico detection override enabled. HyperHDR skips the reset. State: %i, %i",
-				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
-			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
 
-			_rs232Port.setDataTerminalReady(true);
-			_rs232Port.setRequestToSend(true);
-			_rs232Port.setRequestToSend(false);
+			_serialPort->setDataTerminalReady(true);
+			_serialPort->setRequestToSend(true);
+			_serialPort->setRequestToSend(false);
 		}
 		else
 		{
