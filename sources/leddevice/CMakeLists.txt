@@ -44,7 +44,7 @@ if ( ENABLE_SPIDEV )
 endif()
 
 if ( ENABLE_WS281XPWM )
-	include_directories(../../dependencies/external/rpi_ws281x)
+	include_directories(../../external/rpi_ws281x)
 	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.h" "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.cpp")
 endif()
 

@@ -1,10 +1,9 @@
 #pragma once
 
-#include <QString>
+#ifndef PCH_ENABLED
+	#include <QString>
+#endif
 
-/**
- * Enumeration of the possible pixel formats the grabber can be set to
- */
 enum class PixelFormat {
 	YUYV,
 	RGB24,
@@ -17,7 +16,6 @@ enum class PixelFormat {
 
 inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 {
-	// convert to lower case
 	QString format = pixelFormat.toLower();
 
 	if (format.compare("yuyv") == 0)
@@ -45,7 +43,6 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 		return PixelFormat::MJPEG;
 	}
 
-	// return the default NO_CHANGE
 	return PixelFormat::NO_CHANGE;
 }
 
@@ -77,6 +74,5 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 		return "mjpeg";
 	}
 
-	// return the default NO_CHANGE
 	return "NO_CHANGE";
 }

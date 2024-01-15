@@ -2,6 +2,7 @@
 
 #include <utils/DefaultSignalHandler.h>
 #include <utils/Logger.h>
+#include <base/HyperHdrInstance.h>
 
 #include <ctype.h>
 #include <cxxabi.h>
@@ -150,6 +151,8 @@ namespace DefaultSignalHandler
 		default:
 			/* If the signal_handler is hit before the event loop is started,
 			 * following call will do nothing. So we queue the call. */
+
+			HyperHdrInstance::signalTerminateTriggered();
 
 			QUEUE_CALL_0(qApp, quit);
 

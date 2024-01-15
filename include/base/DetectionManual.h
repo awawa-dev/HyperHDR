@@ -1,15 +1,18 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QRectF>
-#include <cstdint>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+	#include <QRectF>
+	#include <cstdint>
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+	#include <utils/ColorRgb.h>
+	#include <utils/Image.h>
+	#include <utils/Logger.h>
+	#include <utils/Components.h>
+#endif
+
 #include <utils/FrameDecoder.h>
-#include <utils/Logger.h>
-#include <utils/Components.h>
 
 class Grabber;
 

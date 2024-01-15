@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,15 +25,17 @@
 *  SOFTWARE.
 */
 
-#include <cmath>
-#include <vector>
-#include <cstdint>
-#include <cstring>
-#include <algorithm>
-#include <cassert>
-#include <type_traits>
+#ifndef PCH_ENABLED
+	#include <cmath>
+	#include <vector>
+	#include <cstdint>
+	#include <cstring>
+	#include <algorithm>
+	#include <cassert>
+	#include <type_traits>
 
-#include <utils/ImageData.h>
+	#include <utils/ImageData.h>
+#endif
 
 #define LOCAL_VID_ALIGN_SIZE       16
 
@@ -46,30 +48,23 @@ template <typename ColorSpace>
 ImageData<ColorSpace>::ImageData(unsigned width, unsigned height) :
 	_width(width),
 	_height(height),
-	_initData(0),
-	_pixels(getMemory(width, height))
+	_memoryBuffer(nullptr),
+	_pixels(nullptr)
 {
-}
-
-template <typename ColorSpace>
-ImageData<ColorSpace>::ImageData(const ImageData<ColorSpace>& other) :
-	QSharedData(other),
-	_width(other._width),
-	_height(other._height),
-	_initData(other._initData),
-	_pixels(other._pixels),
-	_bufferSize(other._bufferSize)
-{
+	getMemory(width, height);
 }
 
 template <typename ColorSpace>
 bool ImageData<ColorSpace>::setBufferCacheSize()
 {
-	return videoCache.setFrameSize(_bufferSize);
+	if (_memoryBuffer != nullptr)
+		return videoCache.setFrameSize(_memoryBuffer->size());
+	else
+		return false;
 }
 
 template <typename ColorSpace>
-ImageData<ColorSpace>::~ImageData<ColorSpace>()
+ImageData<ColorSpace>::~ImageData()
 {
 	freeMemory();
 }
@@ -107,7 +102,7 @@ void ImageData<ColorSpace>::resize(unsigned width, unsigned height)
 	if ((width * height) > unsigned((_width * _height)))
 	{
 		freeMemory();
-		_pixels = getMemory(width, height);
+		getMemory(width, height);
 	}
 
 	_width = width;
@@ -144,7 +139,7 @@ size_t ImageData<ColorSpace>::size() const
 template <>
 void ImageData<ColorRgb>::clear()
 {
-	if (_pixels != NULL)
+	if (_pixels != nullptr)
 		memset(_pixels, 0, static_cast<size_t>(_width) * _height * 3);
 }
 
@@ -171,27 +166,17 @@ inline unsigned ImageData<ColorSpace>::toIndex(unsigned x, unsigned y) const
 }
 
 template <typename ColorSpace>
-inline uint8_t* ImageData<ColorSpace>::getMemory(size_t width, size_t height)
+inline void ImageData<ColorSpace>::getMemory(size_t width, size_t height)
 {
-	if (width == 1 && height == 1)
-	{
-		_bufferSize = sizeof(ColorSpace);
-		return reinterpret_cast<uint8_t*>(&_initData);
-	}
-
-	_bufferSize = width * height * sizeof(ColorSpace) + LOCAL_VID_ALIGN_SIZE;
-	return videoCache.request(_bufferSize);
+	size_t neededSize = width * height * sizeof(ColorSpace) + LOCAL_VID_ALIGN_SIZE;
+	_memoryBuffer = videoCache.request(neededSize);
+	_pixels = _memoryBuffer->data();
 }
 
 template <typename ColorSpace>
 inline void ImageData<ColorSpace>::freeMemory()
 {
-	if (_bufferSize != sizeof(ColorSpace) && _pixels != nullptr)
-	{
-		videoCache.release(_bufferSize, _pixels);
-	}
-
-	_bufferSize = 0;
+	videoCache.release(_memoryBuffer);
 	_pixels = nullptr;
 }
 

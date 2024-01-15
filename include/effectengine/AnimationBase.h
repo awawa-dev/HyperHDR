@@ -1,18 +1,27 @@
 #pragma once
 
-#include <cmath>
+#ifndef PCH_ENABLED
+	#include <cmath>
+	#include <QPainter>
+#endif
+
 #include <QPainter>
+
 #include <utils/Image.h>
 #include <effectengine/EffectDefinition.h>
 #include <utils/ColorSys.h>
 
-
-class AnimationBase : public QObject
+template <typename T>
+AnimationBase* EffectFactory()
 {
-	Q_OBJECT
+	return new T();
+}
 
+class AnimationBase
+{
 public:
 	AnimationBase(QString name);
+	virtual ~AnimationBase() = default;
 	QString GetName();
 	virtual bool Play(QPainter* painter) = 0;
 	virtual void Init(QImage& hyperImage, int hyperLatchTime) = 0;
@@ -27,7 +36,6 @@ public:
 private:
 	QString _name;
 	int     _sleepTime;
-	bool	_isDevice;
 	bool    _stopMe;
 protected:
 	void setStopMe(bool stopMe);

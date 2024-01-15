@@ -1,11 +1,10 @@
+#ifndef PCH_ENABLED
+	#include <QDir>
+	#include <QFileInfo>
+	#include <QDebug>
+#endif
+
 #include <utils/FileUtils.h>
-
-// qt incl
-#include <QDir>
-#include <QFileInfo>
-#include <QDebug>
-
-// hyperhdr include
 #include <base/HyperHdrInstance.h>
 
 namespace FileUtils {
@@ -31,11 +30,9 @@ namespace FileUtils {
 			return false;
 		}
 
-		QByteArray result = file.readAll();
-		if (result != nullptr && result.length() > 0)
-			data = QString::fromLocal8Bit(result);
-		else
-			data = "";
+		QTextStream in(&file);
+		
+		data = in.readAll();
 
 		file.close();
 

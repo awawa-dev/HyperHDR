@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -40,8 +40,6 @@
 // Local HyperHDR includes
 #include "ProviderUdp.h"
 
-const ushort MAX_PORT = 65535;
-
 ProviderUdp::ProviderUdp(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _udpSocket(nullptr)
@@ -50,10 +48,7 @@ ProviderUdp::ProviderUdp(const QJsonObject& deviceConfig)
 {
 }
 
-ProviderUdp::~ProviderUdp()
-{
-	delete _udpSocket;
-}
+ProviderUdp::~ProviderUdp() = default;
 
 bool ProviderUdp::init(const QJsonObject& deviceConfig)
 {
@@ -87,7 +82,7 @@ bool ProviderUdp::init(const QJsonObject& deviceConfig)
 		if (!_isDeviceInError)
 		{
 			int config_port = deviceConfig["port"].toInt(_port);
-			if (config_port <= 0 || config_port > MAX_PORT)
+			if (config_port <= 0 || config_port > 0xffff)
 			{
 				QString errortext = QString("Invalid target port [%1]!").arg(config_port);
 				this->setInError(errortext);
@@ -98,7 +93,7 @@ bool ProviderUdp::init(const QJsonObject& deviceConfig)
 				_port = static_cast<quint16>(config_port);
 				Debug(_log, "UDP socket will write to %s:%u", QSTRING_CSTR(_address.toString()), _port);
 
-				_udpSocket = new QUdpSocket(this);
+				_udpSocket = std::unique_ptr<QUdpSocket>(new QUdpSocket());
 
 				isInitOK = true;
 			}
@@ -178,4 +173,13 @@ int ProviderUdp::writeBytes(const QByteArray& bytes)
 		rc = -1;
 	}
 	return  rc;
+}
+
+void ProviderUdp::setPort(int port)
+{
+	if (port > 0 && port <= 0xffff && _port != port)
+	{
+		_port = port;
+		Debug(_log, "Updated port to: %i", _port);
+	}
 }

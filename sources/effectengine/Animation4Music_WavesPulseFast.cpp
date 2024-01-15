@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -41,9 +41,8 @@ Animation4Music_WavesPulseFast::Animation4Music_WavesPulseFast() :
 
 EffectDefinition Animation4Music_WavesPulseFast::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(true, EffectFactory<Animation4Music_WavesPulseFast>);
 	ed.name = AMUSIC_WAVESPULSEFAST;
-	ed.args = GetArgs();
 	return ed;
 }
 
@@ -68,9 +67,9 @@ bool Animation4Music_WavesPulseFast::hasOwnImage()
 bool Animation4Music_WavesPulseFast::getImage(Image<ColorRgb>& newImage)
 {
 	bool newData = false;
-	auto r = SoundCapture::getInstance()->hasResult(this, _internalIndex, NULL, NULL, &newData, &_oldMulti);
+	auto r = _soundCapture->hasResult(this, _internalIndex, NULL, NULL, &newData, &_oldMulti);
 
-	if (r == NULL || !newData)
+	if (r == nullptr || !newData)
 		return false;
 
 	QColor empty, selected;

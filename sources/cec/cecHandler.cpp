@@ -1,4 +1,5 @@
 #include <cec/cecHandler.h>
+#include <cec.h>
 #include <cecloader.h>
 
 #include <algorithm>
@@ -7,11 +8,21 @@
 #include <stdio.h>
 
 #ifndef LIBCEC_OSD_NAME_SIZE
-#define LIBCEC_OSD_NAME_SIZE sizeof(CEC::libcec_configuration::strDeviceName)
+	#define LIBCEC_OSD_NAME_SIZE sizeof(CEC::libcec_configuration::strDeviceName)
 #endif
 
+void handleCecLogMessage(void* context, const CEC::cec_log_message* message);
+void handleCecCommandMessage(void* context, const CEC::cec_command* command);
+void handleCecKeyPress(void* context, const CEC::cec_keypress* key);
+
+namespace
+{
+	CEC::ICECCallbacks			_cecCallbacks;
+	CEC::libcec_configuration	_cecConfig;
+	CEC::ICECAdapter*			_cecAdapter = nullptr;
+}
+
 cecHandler::cecHandler() :
-	_cecAdapter(nullptr),
 	_log(Logger::getInstance("CEC"))
 {	
 	Info(_log, "CEC object created");
@@ -117,7 +128,7 @@ void cecHandler::stop()
 	}
 }
 
-void cecHandler::handleCecLogMessage(void * context, const CEC::cec_log_message* message)
+void handleCecLogMessage(void * context, const CEC::cec_log_message* message)
 {	
 	cecHandler* handler = static_cast<cecHandler*>(context);
 
@@ -137,35 +148,35 @@ void cecHandler::handleCecLogMessage(void * context, const CEC::cec_log_message*
 	}	
 }
 
-void cecHandler::handleCecKeyPress(void* context, const CEC::cec_keypress* key)
+void handleCecKeyPress(void* context, const CEC::cec_keypress* key)
 {
 	cecHandler* handler = static_cast<cecHandler*>(context);
 
 	if (handler == nullptr)
 		return;
 
-	Debug(handler->_log, "Key pressed: %s, (key code = %i)", handler->_cecAdapter->ToString(key->keycode), (int)key->keycode);
+	Debug(handler->_log, "Key pressed: %s, (key code = %i)", _cecAdapter->ToString(key->keycode), (int)key->keycode);
 
 	emit handler->keyPressed((int)key->keycode);
 }
 
 
-void cecHandler::handleCecCommandMessage(void * context, const CEC::cec_command* command)
+void handleCecCommandMessage(void * context, const CEC::cec_command* command)
 {
 	
 	cecHandler* handler = static_cast<cecHandler*>(context);
 
-	if (handler == nullptr || handler->_cecAdapter == nullptr ||
+	if (handler == nullptr || _cecAdapter == nullptr ||
 		(command->opcode != CEC::CEC_OPCODE_SET_STREAM_PATH && command->opcode != CEC::CEC_OPCODE_STANDBY))
 		return;	
 
 	if (command->opcode == CEC::CEC_OPCODE_SET_STREAM_PATH)
 	{
-		emit handler->stateChange(true, QString(handler->_cecAdapter->ToString(command->initiator)));
+		emit handler->stateChange(true, QString(_cecAdapter->ToString(command->initiator)));
 	}
 	else
 	{
-		emit handler->stateChange(false, QString(handler->_cecAdapter->ToString(command->initiator)));
+		emit handler->stateChange(false, QString(_cecAdapter->ToString(command->initiator)));
 	}
 	
 }

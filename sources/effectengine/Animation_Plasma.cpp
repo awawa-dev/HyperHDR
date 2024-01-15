@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -49,9 +49,8 @@ Animation_Plasma::Animation_Plasma() :
 
 EffectDefinition Animation_Plasma::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_Plasma>);
 	ed.name = ANIM_PLASMA;
-	ed.args = GetArgs();
 	return ed;
 }
 
@@ -110,12 +109,6 @@ bool Animation_Plasma::Play(QPainter* painter)
 			painter->drawPoint(x, y);
 		}
 	return ret;
-}
-
-QJsonObject Animation_Plasma::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }
 
 

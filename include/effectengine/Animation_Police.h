@@ -4,8 +4,6 @@
 
 class Animation_Police : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 
 	Animation_Police(QString name);

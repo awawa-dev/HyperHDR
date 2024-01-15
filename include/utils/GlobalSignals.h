@@ -1,16 +1,49 @@
+/* GlobalSignals.h
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2024 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+*/
+
 #pragma once
 
-// util
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
-#include <utils/Components.h>
+#ifndef PCH_ENABLED
+	#include <QObject>
 
-// qt
-#include <QObject>
+	#include <utils/ColorRgb.h>
+	#include <utils/Image.h>
+	#include <utils/Components.h>
+#endif
 
-///
-/// Singleton instance for simple signal sharing across threads, should be never used with Qt:DirectConnection!
-///
+#include <utils/PerformanceCounters.h>
+#include <bonjour/DiscoveryRecord.h>
+
+class HyperHdrManager;
+class AccessManager;
+class SoundCapture;
+class GrabberHelper;
+class DiscoveryWrapper;
+
 class GlobalSignals : public QObject
 {
 	Q_OBJECT
@@ -29,76 +62,37 @@ public:
 	void operator=(GlobalSignals const&) = delete;
 
 signals:
-	///////////////////////////////////////
-	////////////////// TO /////////////////
-	///////////////////////////////////////
+	void SignalGetInstanceManager(std::shared_ptr<HyperHdrManager>& instanceManager);
 
-	///
-	/// @brief PIPE SystemCapture images from GrabberWrapper to HyperHDR class
-	/// @param name   The name of the platform capture that is currently active
-	/// @param image  The prepared image
-	///
-	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
+	void SignalGetAccessManager(std::shared_ptr<AccessManager>& accessManager);
 
-	///
-	/// @brief PIPE video images from video grabber over HyperHDRDaemon to HyperHDR class
-	/// @param name   The name of the grabber capture (path) that is currently active
-	/// @param image  The prepared image
-	///
-	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
+	void SignalGetSoundCapture(std::shared_ptr<SoundCapture>& soundCapture);
 
-	///
-	/// @brief PIPE the register command for a new global input over HyperHDRDaemon to HyperHDR class
-	/// @param[in] priority    The priority of the channel
-	/// @param[in] component   The component of the channel
-	/// @param[in] origin      Who set the channel (CustomString@IP)
-	/// @param[in] owner       Specific owner string, might be empty
-	/// @param[in] smooth_cfg  The smooth id to use
-	///
-	void registerGlobalInput(int priority, hyperhdr::Components component, const QString& origin = "External", const QString& owner = "", unsigned smooth_cfg = 0);
+	void SignalGetSystemGrabber(std::shared_ptr<GrabberHelper>& systemGrabber);
 
-	///
-	/// @brief PIPE the clear command for the global priority channel over HyperHDRDaemon to HyperHDR class
-	/// @param[in] priority       The priority channel (-1 to clear all possible priorities)
-	/// @param[in] forceclearAll  Force the clear
-	///
-	void clearGlobalInput(int priority, bool forceClearAll = false);
+	void SignalGetVideoGrabber(std::shared_ptr<GrabberHelper>& videoGrabber);
 
-	///
-	/// @brief PIPE external images over HyperHDRDaemon to HyperHDR class
-	/// @param[in] priority    The priority of the channel
-	/// @param     image       The prepared image
-	/// @param[in] timeout_ms  The timeout in milliseconds
-	/// @param     clearEffect Should be true when NOT called from an effect
-	///
-	void setGlobalImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect = true);
+	void SignalGetPerformanceCounters(std::shared_ptr<PerformanceCounters>& performanceCounters);
 
-	///
-	/// @brief PIPE external color message over HyperHDRDaemon to HyperHDR class
-	/// @param[in] priority    The priority of the channel
-	/// @param     image       The prepared color
-	/// @param[in] timeout_ms  The timeout in milliseconds
-	/// @param[in] origin      The setter
-	/// @param     clearEffect Should be true when NOT called from an effect
-	///
-	void setGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, const QString& origin = "External", bool clearEffects = true);
+	void SignalGetDiscoveryWrapper(std::shared_ptr<DiscoveryWrapper>& discoveryWrapper);
 
-	///////////////////////////////////////
-	///////////////// FROM ////////////////
-	///////////////////////////////////////
+	void SignalNewSystemImage(const QString& name, const Image<ColorRgb>& image);
 
-	///
-	/// @brief PIPE a registration request from the HyperHDR class to the priority channel
-	/// @param[in] priority    The priority channel
-	///
-	void globalRegRequired(int priority);
+	void SignalNewVideoImage(const QString& name, const Image<ColorRgb>& image);
 
-	///
-	/// @brief Tell v4l2/screen capture the listener state
-	/// @param component  The component to handle
-	/// @param hyperhdrInd The HyperHDR instance index as identifier
-	/// @param listen  True when listening, else false
-	///
-	void requestSource(hyperhdr::Components component, int hyperHdrInd, bool listen);
+	void SignalClearGlobalInput(int priority, bool forceClearAll);
 
+	void SignalSetGlobalImage(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+
+	void SignalSetGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+
+	void SignalRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen);
+
+	void SignalPerformanceNewReport(PerformanceReport pr);
+
+	void SignalPerformanceStateChanged(bool enabled, hyperhdr::PerformanceReportType type, int id, QString name = "");
+
+	void SignalDiscoveryRequestToScan(DiscoveryRecord::Service type);
+
+	void SignalDiscoveryEvent(DiscoveryRecord message);	
 };

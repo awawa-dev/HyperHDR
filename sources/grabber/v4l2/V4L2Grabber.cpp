@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,6 +25,10 @@
 *  SOFTWARE.
 */
 
+#include <QDirIterator>
+#include <QFileInfo>
+#include <QSocketNotifier>
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -44,12 +48,9 @@
 #include <limits.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
+#include <utils/GlobalSignals.h>
 
-#include <QDirIterator>
-#include <QFileInfo>
-
-#include <grabber/V4L2Grabber.h>
+#include <grabber/v4l2/V4L2Grabber.h>
 #include <utils/ColorSys.h>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
@@ -61,7 +62,7 @@
 // some stuff for HDR tone mapping
 #define LUT_FILE_SIZE 50331648
 
-const V4L2Grabber::HyperHdrFormat supportedFormats[] =
+static const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 {
 	{ V4L2_PIX_FMT_YUYV,   PixelFormat::YUYV },
 	{ V4L2_PIX_FMT_XRGB32, PixelFormat::XRGB },
@@ -117,10 +118,10 @@ void V4L2Grabber::loadLutFile(PixelFormat color)
 
 void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 {
-	if (_hdrToneMappingEnabled != mode || _lutBuffer == NULL)
+	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
 	{
 		_hdrToneMappingEnabled = mode;
-		if (_lutBuffer != NULL || !mode)
+		if (_lut.data() != nullptr || !mode)
 			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
@@ -135,6 +136,7 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 				loadLutFile(PixelFormat::RGB24);
 			_V4L2WorkerManager.Start();
 		}
+		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
 		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
@@ -171,7 +173,7 @@ bool V4L2Grabber::init()
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
 
-			for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); it++)
+			for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 				if (it.value().name == _deviceName)
 				{
 					foundDevice = it.key();
@@ -189,7 +191,7 @@ bool V4L2Grabber::init()
 		if (autoDiscovery)
 		{
 			Debug(_log, "Forcing auto discovery device");
-			for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); it++)
+			for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 				if (it.value().valid.count() > 0)
 				{
 					foundDevice = it.key();
@@ -1104,7 +1106,7 @@ int V4L2Grabber::read_frame()
 	}
 	catch (std::exception& e)
 	{
-		emit readError(e.what());
+		emit SignalCapturingException(e.what());
 		rc = false;
 	}
 
@@ -1143,10 +1145,10 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 			{
 				int total = (frameStat.badFrame + frameStat.goodFrame);
 				int av = (frameStat.goodFrame > 0) ? frameStat.averageFrame / frameStat.goodFrame : 0;
-
+				QString access = (frameStat.directAccess) ? " (direct)" : "";
 				if (diff >= 59000 && diff <= 65000)
-					emit PerformanceCounters::getInstance()->newCounter(
-					PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), frameStat.token, this->_actualDeviceName, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
+					emit GlobalSignals::getInstance()->SignalPerformanceNewReport(
+					PerformanceReport(hyperhdr::PerformanceReportType::VIDEO_GRABBER, frameStat.token, this->_actualDeviceName + access, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
 
 				resetCounter(now);
 
@@ -1164,8 +1166,8 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 				for (unsigned int i = 0; i < _V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers != nullptr; i++)
 				{
 					V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];
-					connect(_workerThread, SIGNAL(newFrameError(unsigned int, QString, quint64)), this, SLOT(newWorkerFrameError(unsigned int, QString, quint64)));
-					connect(_workerThread, SIGNAL(newFrame(unsigned int, Image<ColorRgb>, quint64, qint64)), this, SLOT(newWorkerFrame(unsigned int, Image<ColorRgb>, quint64, qint64)));
+					connect(_workerThread, &V4L2Worker::SignalNewFrameError, this, &V4L2Grabber::newWorkerFrameErrorHandler);
+					connect(_workerThread, &V4L2Worker::SignalNewFrame, this, &V4L2Grabber::newWorkerFrameHandler);
 				}
 			}
 
@@ -1185,6 +1187,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							loadLutFile();
 						}
 
+						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() || (_benchmarkStatus >= 0));
 						_workerThread->setup(
 							i,
 							buf,
@@ -1192,7 +1195,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
-							(_lutBufferInit) ? _lutBuffer : NULL, _qframe);
+							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName);
 
 						if (_V4L2WorkerManager.workersCount > 1)
 							_V4L2WorkerManager.workers[i]->start();
@@ -1210,7 +1213,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 	return frameSend;
 }
 
-void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount)
+void V4L2Grabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount)
 {
 	frameStat.badFrame++;
 	if (error.indexOf(QString(UNSUPPORTED_DECODER)) == 0)
@@ -1236,23 +1239,9 @@ void V4L2Grabber::newWorkerFrameError(unsigned int workerIndex, QString error, q
 }
 
 
-void V4L2Grabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
+void V4L2Grabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
 {
-	frameStat.goodFrame++;
-	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;
-
-	if (_signalAutoDetectionEnabled || isCalibrating())
-	{
-		if (checkSignalDetectionAutomatic(image))
-			emit newFrame(image);
-	}
-	else if (_signalDetectionEnabled)
-	{
-		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
-	}
-	else
-		emit newFrame(image);
+	handleNewFrame(workerIndex, image, sourceCount, _frameBegin);
 
 	// get next frame
 	if (workerIndex > _V4L2WorkerManager.workersCount)

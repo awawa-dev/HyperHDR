@@ -4,9 +4,9 @@ on:
   push:
 
 env:
-    USE_CACHE: "1"
+    USE_CACHE: "0"
     RESET_CACHE: "0"
-    USE_CODEQL: "0"
+    USE_CODEQL: "1"
     BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
 
 jobs:
@@ -35,6 +35,10 @@ jobs:
           - dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
+            platform: linux
+          - dockerImage: x86_64
+            linuxVersion: mantic
+            dockerName: Ubuntu 23.10 (x86_64)
             platform: linux
           - dockerImage: arm-32bit-armv6l
             linuxVersion: bullseye
@@ -84,8 +88,8 @@ jobs:
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
            restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
-      - name: Check testing version
-        if: matrix.linuxVersion == 'bookworm'
+      - name: Check default version
+        if: matrix.linuxVersion != 'bullseye'
         run: |
           echo "USE_STANDARD_INSTALLER_NAME=ON" >> $GITHUB_ENV
 
@@ -198,7 +202,7 @@ jobs:
     runs-on: windows-2022
     env:
       VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
-      QT_VERSION: 6.2.4
+      QT_VERSION: 6.5.3
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -254,7 +258,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( false )    
+    if: ( true )
     permissions:
       actions: read
       contents: read

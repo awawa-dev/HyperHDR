@@ -1,8 +1,10 @@
+#pragma once
+
 /* EspTools.h
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,55 +27,52 @@
 *  SOFTWARE.
  */
 
-#ifndef ESPTOOLS_H
-#define ESPTOOLS_H
-
 class EspTools
 {
 public:
 
-	static void goingSleep(QSerialPort& _rs232Port)
+	static void goingSleep(QSerialPort* _serialPort)
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-		_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+		_serialPort->write((char*)comBuffer, sizeof(comBuffer));
 	}
 
-	static void initializeEsp(QSerialPort& _rs232Port, QSerialPortInfo& serialPortInfo, Logger*& _log, bool _forceSerialDetection)
+	static void initializeEsp(QSerialPort* _serialPort, QSerialPortInfo& serialPortInfo, Logger*& _log, bool _forceSerialDetection)
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 
 		if (serialPortInfo.productIdentifier() == 0xa && serialPortInfo.vendorIdentifier() == 0x2e8a)
 		{
 			Warning(_log, "Detected Rp2040 type board. HyperHDR skips the reset. State: %i, %i",
-				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
-			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
 
-			_rs232Port.setDataTerminalReady(true);
-			_rs232Port.setRequestToSend(true);
-			_rs232Port.setRequestToSend(false);
+			_serialPort->setDataTerminalReady(true);
+			_serialPort->setRequestToSend(true);
+			_serialPort->setRequestToSend(false);
 		}
 		else if (serialPortInfo.productIdentifier() == 0x80c2 && serialPortInfo.vendorIdentifier() == 0x303a)
 		{
 			Warning(_log, "Detected ESP32-S2 lolin mini type board. HyperHDR skips the reset. State: %i, %i",
-				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
-			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
 
-			_rs232Port.setDataTerminalReady(true);
-			_rs232Port.setRequestToSend(true);
-			_rs232Port.setRequestToSend(false);
+			_serialPort->setDataTerminalReady(true);
+			_serialPort->setRequestToSend(true);
+			_serialPort->setRequestToSend(false);
 		}
 		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
 		{
 			Warning(_log, "Enabling the Rpi4 udev bug workaround. The serial device is incorrectly identified by the OS and HyperHDR skips the reset. State: %i, %i",
-				_rs232Port.isDataTerminalReady(), _rs232Port.isRequestToSend());
+				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
-			_rs232Port.write((char*)comBuffer, sizeof(comBuffer));
+			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
 
-			_rs232Port.setDataTerminalReady(true);
-			_rs232Port.setRequestToSend(true);
-			_rs232Port.setRequestToSend(false);
+			_serialPort->setDataTerminalReady(true);
+			_serialPort->setRequestToSend(true);
+			_serialPort->setRequestToSend(false);
 		}
 		else if (!serialPortInfo.hasProductIdentifier() && !serialPortInfo.hasVendorIdentifier() && _forceSerialDetection)
 		{
@@ -89,17 +88,17 @@ public:
 		else
 		{
 			// reset to defaults
-			_rs232Port.setDataTerminalReady(true);
-			_rs232Port.setRequestToSend(false);
+			_serialPort->setDataTerminalReady(true);
+			_serialPort->setRequestToSend(false);
 			QThread::msleep(50);
 
 			// reset device
-			_rs232Port.setDataTerminalReady(false);
-			_rs232Port.setRequestToSend(true);
+			_serialPort->setDataTerminalReady(false);
+			_serialPort->setRequestToSend(true);
 			QThread::msleep(150);
 
 			// resume device
-			_rs232Port.setRequestToSend(false);
+			_serialPort->setRequestToSend(false);
 			QThread::msleep(100);
 		}
 
@@ -108,10 +107,10 @@ public:
 
 		while (InternalClock::now() - start < 1000)
 		{
-			_rs232Port.waitForReadyRead(100);
-			if (_rs232Port.bytesAvailable() > 16)
+			_serialPort->waitForReadyRead(100);
+			if (_serialPort->bytesAvailable() > 16)
 			{
-				auto incoming = _rs232Port.readAll();
+				auto incoming = _serialPort->readAll();
 				for (int i = 0; i < incoming.length(); i++)
 					if (!(incoming[i] == '\n' ||
 						(incoming[i] >= ' ' && incoming[i] <= 'Z') ||
@@ -136,4 +135,3 @@ public:
 	}
 };
 
-#endif

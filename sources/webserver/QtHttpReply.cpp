@@ -1,9 +1,14 @@
+#include <QTcpSocket>
+#include <QSslCertificate>
+#include <QSslKey>
+#include <QSslSocket>
+#include <QTcpServer>
+#include <QDateTime>
 
 #include "QtHttpReply.h"
 #include "QtHttpHeader.h"
 #include "QtHttpServer.h"
 
-#include <QDateTime>
 
 QtHttpReply::QtHttpReply(QtHttpServer* parent)
 	: QObject(parent)
@@ -17,6 +22,16 @@ QtHttpReply::QtHttpReply(QtHttpServer* parent)
 	addHeader(QtHttpHeader::Server, m_serverHandle->getServerName().toUtf8());
 }
 
+void QtHttpReply::addHeader(const QByteArray& header, const QByteArray& value)
+{
+	QByteArray key = header.trimmed();
+
+	if (!key.isEmpty())
+	{
+		m_headersHash.insert(key, value);
+	}
+}
+
 const QByteArray QtHttpReply::getStatusTextForCode(QtHttpReply::StatusCode statusCode)
 {
 	switch (statusCode)
@@ -28,17 +43,6 @@ const QByteArray QtHttpReply::getStatusTextForCode(QtHttpReply::StatusCode statu
 	default:         return QByteArrayLiteral("");
 	}
 }
-
-void QtHttpReply::addHeader(const QByteArray& header, const QByteArray& value)
-{
-	QByteArray key = header.trimmed();
-
-	if (!key.isEmpty())
-	{
-		m_headersHash.insert(key, value);
-	}
-}
-
 
 int QtHttpReply::getRawDataSize(void) const
 {

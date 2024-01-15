@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -42,14 +42,8 @@ Animation_NotifyBlue::Animation_NotifyBlue(QString name) :
 
 EffectDefinition Animation_NotifyBlue::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_NotifyBlue>);
 	ed.name = ANIM_NOTIFY_BLUE;
-	ed.args = GetArgs();
 	return ed;
 }
 
-QJsonObject Animation_NotifyBlue::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
-}

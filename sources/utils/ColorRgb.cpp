@@ -1,5 +1,6 @@
-// Local includes
-#include <utils/ColorRgb.h>
+#ifndef PCH_ENABLED
+	#include <utils/ColorRgb.h>
+#endif
 
 const ColorRgb ColorRgb::BLACK  = {   0,   0,   0 };
 const ColorRgb ColorRgb::RED    = { 255,   0,   0 };

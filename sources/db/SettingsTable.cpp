@@ -3,14 +3,13 @@
 
 #define INSTANCE_COLUMN QString("hyperhdr_instance")
 
-SettingsTable::SettingsTable(quint8 instance, QObject* parent)
-	: DBManager(parent)
-	, _hyperhdr_inst(instance)
+SettingsTable::SettingsTable(quint8 instance)
+	: DBManager()
+	, _instance(instance)
 {
 	setTable("settings");
 	// create table columns
 	createTable(QStringList() << "type TEXT" << "config TEXT" << (INSTANCE_COLUMN + " INTEGER") << "updated_at TEXT");
-
 };
 
 ///
@@ -29,7 +28,7 @@ bool SettingsTable::createSettingsRecord(const QString& type, const QString& con
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
 	if (!isSettingGlobal(type))
-		cond.append(CPair("AND " + INSTANCE_COLUMN, _hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN, _instance));
 	return createRecord(cond, map);
 }
 
@@ -45,7 +44,7 @@ bool SettingsTable::recordExist(const QString& type) const
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
 	if (!isSettingGlobal(type))
-		cond.append(CPair("AND " + INSTANCE_COLUMN, _hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN, _instance));
 	return recordExists(cond);
 }
 
@@ -61,7 +60,7 @@ QJsonDocument SettingsTable::getSettingsRecord(const QString& type) const
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
 	if (!isSettingGlobal(type))
-		cond.append(CPair("AND " + INSTANCE_COLUMN, _hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN, _instance));
 	getRecord(cond, results, QStringList("config"));
 	return QJsonDocument::fromJson(results["config"].toByteArray());
 }
@@ -78,7 +77,7 @@ QString SettingsTable::getSettingsRecordString(const QString& type) const
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
 	if (!isSettingGlobal(type))
-		cond.append(CPair("AND " + INSTANCE_COLUMN, _hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN, _instance));
 	getRecord(cond, results, QStringList("config"));
 	return results["config"].toString();
 }
@@ -90,7 +89,7 @@ bool SettingsTable::deleteSettingsRecordString(const QString& type) const
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
 	if (!isSettingGlobal(type))
-		cond.append(CPair("AND " + INSTANCE_COLUMN, _hyperhdr_inst));
+		cond.append(CPair("AND " + INSTANCE_COLUMN, _instance));
 	return deleteRecord(cond);
 }
 
@@ -108,7 +107,7 @@ bool SettingsTable::purge(const QString& type) const
 void SettingsTable::deleteInstance() const
 {
 	VectorPair cond;
-	cond.append(CPair(INSTANCE_COLUMN, _hyperhdr_inst));
+	cond.append(CPair(INSTANCE_COLUMN, _instance));
 	deleteRecord(cond);
 }
 

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -42,9 +42,8 @@ Animation_SystemShutdown::Animation_SystemShutdown() :
 
 EffectDefinition Animation_SystemShutdown::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_SystemShutdown>);
 	ed.name = ANIM_SYSTEM_SHUTDOWN;
-	ed.args = GetArgs();
 	return ed;
 }
 
@@ -114,12 +113,6 @@ bool Animation_SystemShutdown::Play(QPainter* painter)
 		setStopMe(true);
 
 	return ret;
-}
-
-QJsonObject Animation_SystemShutdown::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }
 
 

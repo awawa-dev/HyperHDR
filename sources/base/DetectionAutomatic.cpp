@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,10 +25,13 @@
 *  SOFTWARE.
  */
 
+#ifndef PCH_ENABLED
+	#include <cmath>
+#endif
+
 #include <base/Grabber.h>
 #include <base/GrabberWrapper.h>
-#include <base/HyperHdrIManager.h>
-#include <cmath>
+#include <base/HyperHdrManager.h>
 
 DetectionAutomatic::DetectionAutomatic() :
 	_log(Logger::getInstance("SIGNAL_AUTO")),
@@ -50,15 +53,15 @@ QJsonDocument DetectionAutomatic::startCalibration()
 	{
 		calibrationData.reset();
 
-		calibrationData.backupHDR = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
+		calibrationData.backupHDR = getHdrToneMappingEnabled();
 
 		if (_backupDecimation > 0)
 			calibrationData.decimationFPS = _backupDecimation;
 		else
-			calibrationData.decimationFPS = std::max(GrabberWrapper::getInstance()->getFpsSoftwareDecimation(), 1);
+			calibrationData.decimationFPS = std::max(getFpsSoftwareDecimation(), 1);
 
-		GrabberWrapper::getInstance()->setHdrToneMappingEnabled(0);
-		GrabberWrapper::getInstance()->setFpsSoftwareDecimation(1);
+		setHdrToneMappingEnabled(0);
+		setFpsSoftwareDecimation(1);
 		calibrationData.tolerance = _errorTolerance;
 		calibrationData.model = _modelTolerance;
 		calibrationData.isRunning = true;
@@ -79,8 +82,8 @@ QJsonDocument DetectionAutomatic::stopCalibration()
 	{
 		calibrationData.isRunning = false;
 		calibrationData.status = "Calibration was interrupted";
-		GrabberWrapper::getInstance()->setHdrToneMappingEnabled(calibrationData.backupHDR);
-		GrabberWrapper::getInstance()->setFpsSoftwareDecimation(calibrationData.decimationFPS);
+		setHdrToneMappingEnabled(calibrationData.backupHDR);
+		setFpsSoftwareDecimation(calibrationData.decimationFPS);
 		Warning(_log, "%s", QSTRING_CSTR(calibrationData.status));
 	}
 
@@ -183,17 +186,9 @@ DetectionAutomatic::calibrationPoint::calibrationPoint()
 	b = 0;
 }
 
-QString DetectionAutomatic::calibration::getSignature()
+void DetectionAutomatic::calibration::buildPoints(QString _signature, int _width, int _height)
 {
-	auto info = GrabberWrapper::getInstance()->getVideoCurrentMode();
-	return QString("%1 %2").
-		arg(info[Grabber::currentVideoModeInfo::resolution]).
-		arg(info[Grabber::currentVideoModeInfo::device]);
-}
-
-void DetectionAutomatic::calibration::buildPoints(int _width, int _height)
-{
-	signature = getSignature();
+	signature = _signature;
 	width = _width;
 	height = _height;
 	sdrPoint.clear();
@@ -239,8 +234,8 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 	{
 		calibrationData.status = "Timeout out waiting for frames";
 		calibrationData.isRunning = false;
-		GrabberWrapper::getInstance()->setHdrToneMappingEnabled(calibrationData.backupHDR);
-		GrabberWrapper::getInstance()->setFpsSoftwareDecimation(calibrationData.decimationFPS);
+		setHdrToneMappingEnabled(calibrationData.backupHDR);
+		setFpsSoftwareDecimation(calibrationData.decimationFPS);
 		Error(_log, "The calibration is finished. %s", QSTRING_CSTR(calibrationData.status));
 		return;
 	}
@@ -257,23 +252,21 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 	{
 		calibrationData.status = "Stream width or height has changed during calibration";
 		calibrationData.isRunning = false;
-		GrabberWrapper::getInstance()->setHdrToneMappingEnabled(calibrationData.backupHDR);
-		GrabberWrapper::getInstance()->setFpsSoftwareDecimation(calibrationData.decimationFPS);
+		setHdrToneMappingEnabled(calibrationData.backupHDR);
+		setFpsSoftwareDecimation(calibrationData.decimationFPS);
 		Error(_log, "The calibration is finished. %s", QSTRING_CSTR(calibrationData.status));
 		return;
 	}
 
-	if (calibrationData.currentPhase == calibrationPhase::WAITING_FOR_SDR &&
-		GrabberWrapper::getInstance()->getHdrToneMappingEnabled() == 0)
+	if (calibrationData.currentPhase == calibrationPhase::WAITING_FOR_SDR && getHdrToneMappingEnabled() == 0)
 	{
-		calibrationData.buildPoints(image.width(), image.height());
+		calibrationData.buildPoints(getSignature(), image.width(), image.height());
 		calibrationData.phaseEndTime = calibrationData.endTime;
 		calibrationData.currentPhase = calibrationPhase::CALIBRATING_SDR;
 		calibrationData.status = "Capturing SDR frames";
 		Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
 	}
-	else if (calibrationData.currentPhase == calibrationPhase::WAITING_FOR_HDR &&
-		GrabberWrapper::getInstance()->getHdrToneMappingEnabled() == 1)
+	else if (calibrationData.currentPhase == calibrationPhase::WAITING_FOR_HDR && getHdrToneMappingEnabled() == 1)
 	{
 		calibrationData.phaseEndTime = calibrationData.endTime;
 		calibrationData.currentPhase = calibrationPhase::CALIBRATING_HDR;
@@ -315,7 +308,7 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 			calibrationData.status = QString("Processing SDR frames: %1 / 100").arg(calibrationData.currentSDRframe);
 			if (calibrationData.currentSDRframe == 100)
 			{
-				GrabberWrapper::getInstance()->setHdrToneMappingEnabled(1);
+				setHdrToneMappingEnabled(1);
 				calibrationData.phaseStartTime = InternalClock::now() + 500;
 				calibrationData.phaseEndTime = InternalClock::now() + 3000 + 500;
 				calibrationData.currentPhase = calibrationPhase::WAITING_FOR_HDR;
@@ -360,8 +353,8 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 					arg(calibrationData.sdrStat).arg(calibrationData.hdrStat).arg(calibrationData.sdrPoint.size()).arg(calibrationData.hdrPoint.size()).arg(res);
 				Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
 
-				GrabberWrapper::getInstance()->setHdrToneMappingEnabled(calibrationData.backupHDR);
-				GrabberWrapper::getInstance()->setFpsSoftwareDecimation(calibrationData.decimationFPS);
+				setHdrToneMappingEnabled(calibrationData.backupHDR);
+				setFpsSoftwareDecimation(calibrationData.decimationFPS);
 
 				saveResult();
 
@@ -429,7 +422,7 @@ void DetectionAutomatic::saveResult()
 		obj["calibration_hdr"] = hdr;
 
 		QString saveData = QString(QJsonDocument(obj).toJson(QJsonDocument::Compact));
-		HyperHdrIManager::getInstance()->saveCalibration(saveData);
+		emit SignalSaveCalibration(saveData);
 	}
 }
 
@@ -455,7 +448,7 @@ void DetectionAutomatic::resetStats()
 
 bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 {
-	int hdrMode = GrabberWrapper::getInstance()->getHdrToneMappingEnabled();
+	int hdrMode = getHdrToneMappingEnabled();
 
 	if (checkData.width <= 0 || checkData.height <= 0 || checkData.quality <= 0 || checkData.sdrPoint.size() == 0 || checkData.hdrPoint.size() == 0)
 	{
@@ -493,12 +486,12 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 		return true;
 	}
 
-	if (checkData.signature != checkData.getSignature())
+	if (checkData.signature != getSignature())
 	{
 		QString oldStatus = checkData.status;
 		checkData.status = "Calibration data signature is different from the current stream signature. Just a warning. Please run the calibration procedure in the panel grabber tab.";
 		if (oldStatus != checkData.status)
-			Warning(_log, "%s (have: '%s' <> current: '%s')", QSTRING_CSTR(checkData.status), QSTRING_CSTR(checkData.signature), QSTRING_CSTR(checkData.getSignature()));
+			Warning(_log, "%s (have: '%s' <> current: '%s')", QSTRING_CSTR(checkData.status), QSTRING_CSTR(checkData.signature), QSTRING_CSTR(getSignature()));
 	}
 
 	std::vector<DetectionAutomatic::calibrationPoint>& data = (hdrMode == 0) ? checkData.sdrPoint : checkData.hdrPoint;
@@ -540,13 +533,13 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 		{
 			if (_saveResources)
 			{
-				_backupDecimation = GrabberWrapper::getInstance()->getFpsSoftwareDecimation();
+				_backupDecimation = getFpsSoftwareDecimation();
 
-				int currentFPS = GrabberWrapper::getInstance()->getActualFps();
+				int currentFPS = getActualFps();
 
 				int relax = std::max(currentFPS / 3, 1);
 
-				GrabberWrapper::getInstance()->setFpsSoftwareDecimation(relax);
+				setFpsSoftwareDecimation(relax);
 			}
 
 			Info(_log, "THE SIGNAL IS LOST");
@@ -572,7 +565,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 		{
 			if (_backupDecimation > 0)
 			{
-				GrabberWrapper::getInstance()->setFpsSoftwareDecimation(_backupDecimation);
+				setFpsSoftwareDecimation(_backupDecimation);
 				_backupDecimation = 0;
 			}
 

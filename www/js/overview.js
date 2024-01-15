@@ -202,8 +202,28 @@ $(document).ready(function ()
 				let holderCPU = document.getElementById("perf_cpu_usage");
 				if (holderCPU != null)
 				{
-					holderCPU.innerHTML = curElem.name;
+					const objStat = JSON.parse(curElem.name);
+
+					if (objStat.cores == null || objStat.total == null)
+						continue;
+
+					let resCore = "";
+					let valCPU = objStat.total;
+					let valCPUString = (Math.round(valCPU) > 99) ? "100" : (" " + Math.round(valCPU)).slice(-2);
+
+					objStat.cores.forEach((val) => {
+						let scale = Math.max(Math.min(Math.round(val * 20), 20), 1);
+						let color = (val <= 0.5) ? "cpu_low_usage" : ((val <= 0.8) ? "cpu_medium_usage" : "cpu_high_usage");
+						let box = `<rect x='0' y='${(20 - scale)}' width='12' height='${scale}' />`;
+						resCore += `<svg width='12' height='20' viewBox='0 0 10 20' class='specialchar ${color}'>${box}</svg>`;
+					});
+
+					let retTotalCpu = (valCPU < 50) ? `<span class='cpu_low_usage'>${valCPUString}</span>` :
+									  ((valCPU < 90) ? `<span class='cpu_medium_usage'>${valCPUString}</span>` :
+										`<span class='cpu_high_usage'>${valCPUString}</span>`);
+					holderCPU.innerHTML = `${resCore} (${retTotalCpu}%)`;
 				}
+
 				holderCPU = document.getElementById("perf_cell_cpu_usage");
 				if (holderCPU != null)
 				{
@@ -220,7 +240,15 @@ $(document).ready(function ()
 				let holderRAM = document.getElementById("perf_ram_usage");
 				if (holderRAM != null)
 				{
-					holderRAM.innerHTML = curElem.name;
+					const objStat = JSON.parse(curElem.name);
+
+					if (objStat.aspect == null || objStat.takenMem == null || objStat.totalPhysMem == null)
+						continue;
+
+					let aspectVal = (objStat.aspect > 99) ? "100" : (" " + objStat.aspect).slice(-2);
+					let color = (objStat.aspect < 50) ? "cpu_low_usage" : ((objStat.aspect < 90) ? "cpu_medium_usage" : "cpu_high_usage");
+
+					holderRAM.innerHTML = `${objStat.takenMem} / ${objStat.totalPhysMem}MB (<span class='${color}'>${aspectVal}%</span>)`;
 				}
 				holderRAM = document.getElementById("perf_cell_ram_usage");
 				if (holderRAM != null)

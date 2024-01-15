@@ -19,7 +19,6 @@ window.wsTan = 1;
 window.ledStreamActive = false;
 window.imageStreamActive = false;
 window.loggingStreamActive = false;
-window.loggingHandlerInstalled = false;
 window.watchdog = 0;
 window.debugMessagesActive = true;
 window.wSess = [];
@@ -190,6 +189,12 @@ function initWebSocket()
 			{
 				try
 				{
+
+					if (event.data instanceof Blob) {
+						var blob = new Blob([event.data], { type: "image/jpeg" });
+						$(window.hyperhdr).trigger({ type: "cmd-image-stream-frame", response: blob });
+						return;
+					}
 					var response = JSON.parse(event.data);
 					var success = response.success;
 					var cmd = response.command;
@@ -341,6 +346,11 @@ function requestChangePassword(oldPw, newPw)
 function requestAuthorization(password)
 {
 	sendToHyperhdr("authorize", "login", '"password": "' + password + '"');
+}
+
+function requestLogout()
+{
+	sendToHyperhdr("authorize", "logout", '');
 }
 
 function requestTokenAuthorization(token)
@@ -643,4 +653,9 @@ async function requestLutCalibration(mode, params, startColor, endColor, limited
 	var sColor = JSON.stringify(startColor);
 	var eColor = JSON.stringify(endColor);
 	sendToHyperhdr("lut-calibration", mode, `"checksum":${params}, "limitedRange":${limitedRange}, "saturation":${saturation}, "luminance":${luminance}, "gammaR":${gammaR}, "gammaG":${gammaG}, "gammaB":${gammaB}, "startColor":${sColor}, "endColor":${eColor}, "coef":${coef}`);
+}
+
+async function requestHasLedClock()
+{
+	sendToHyperhdr("leddevice", "hasLedClock", `"ledDeviceType": "", "params": {}`, Math.floor(Math.random() * 1000));
 }

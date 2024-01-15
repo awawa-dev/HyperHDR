@@ -23,13 +23,13 @@ function CopyToClipboard(par)
 
 function CopyJson(sender)
 {	
-	CopyToClipboard(sender.html());
+	CopyToClipboard(sender.text());
 }
 
 function CopyLink(sender)
 {	
 	var rpc = GetAddress();
-	var text = sender.html().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
+	var text = sender.text().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
 	
 	CopyToClipboard(urlenc);
@@ -38,7 +38,7 @@ function CopyLink(sender)
 function CopyLinkSafe(sender)
 {	
 	var rpc = GetAddress();
-	var text = sender.html().replace(/[\r\n]/g,'').replace(/\t/g, '');
+	var text = sender.text().replace(/[\r\n]/g,'').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
 	
 	CopyToClipboard(urlenc);
@@ -47,7 +47,7 @@ function CopyLinkSafe(sender)
 function RunIt(sender)
 {
 	var rpc = GetAddress();
-	var text = sender.html().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
+	var text = sender.text().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
 		
 	window.open(urlenc); 
@@ -55,7 +55,7 @@ function RunIt(sender)
 function RunItSafe(sender)
 {
 	var rpc = GetAddress();
-	var text = sender.html().replace(/[\r\n]/g,'').replace(/\t/g, '');
+	var text = sender.text().replace(/[\r\n]/g,'').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
 		
 	window.open(urlenc); 
@@ -101,7 +101,7 @@ function BuildComponentJson()
 	var component = $('input[name="compState"]:checked').val();
 	var state = $('input[name="compState_onoff"]:checked').val();
 	var finJson = componentJson.replace("{0}", component).replace("{1}", state);
-	$("#compState_json").html(finJson);
+	$("#compState_json").text(finJson);
 }
 ////////////////////////////////////////////////////////////////////////////////
 var switchJson = 
@@ -135,7 +135,7 @@ function BuildSwitchJson()
 	
 	var component = $('#instanceIndex').val();
 	var finJson = switchJson.replace("{0}", component);
-	$("#switch_json").html(finJson);
+	$("#switch_json").text(finJson);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ var serverJson =
     "command":"serverinfo"
 }`
 
-$("#server_json").html(serverJson);
+$("#server_json").text(serverJson);
 
 ////////////////////////////////////////////////////////////////////////////////
 var cropJson = 
@@ -194,7 +194,7 @@ function BuildCropJson()
 	var cropTop = $("#cropTop").val();
 	var cropBottom = $("#cropBottom").val();
 	var finJson = cropJson.replace("{0}", cropLeft).replace("{1}", cropRight).replace("{2}", cropTop).replace("{3}", cropBottom);
-	$("#video_crop_json").html(finJson);
+	$("#video_crop_json").text(finJson);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -240,7 +240,7 @@ function BuildStartStoptJson()
 	var component = $("#instanceStartStopIndex").val();
 	var state = $('input[name="compInstanceStartStop"]:checked').val();
 	var finJson = startStopJson.replace("{1}", component).replace("{0}", state);
-	$("#compInstanceStart_json").html(finJson);
+	$("#compInstanceStart_json").text(finJson);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,7 +270,7 @@ function requestAdjustmentJson(type, value)
 		line = line.replace('{0}',  editor.value);
 		
 	adj = adj.replace("{0}", type).replace("{1}", value).replace("{2}", line);
-	$("#adjustment_json").html(adj);
+	$("#adjustment_json").text(adj);
 	
 	$('button[name="adjustmentButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
@@ -337,7 +337,7 @@ function sendJsonColor()
 	var colorA = "[" + rgb.r + "," + rgb.g + "," + rgb.b +"]";
 	var sc = colorJson.replace("{0}", colorA).replace("{1}",validateDuration(duration)).replace("{2}", effectPriority);
 	
-	$("#effect_json").html(sc);
+	$("#effect_json").text(sc);
 	
 	$('button[name="effectsButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
@@ -352,7 +352,7 @@ function sendJsonEffect()
 	{
 		var sc = effectJson.replace("{0}", efx).replace("{1}",validateDuration(duration)).replace("{2}", effectPriority);
 		
-		$("#effect_json").html(sc);
+		$("#effect_json").text(sc);
 		
 		$('button[name="effectsButtons"]').each(function(i, obj) {
 			$(this).removeClass('disabled');
@@ -508,7 +508,7 @@ function BuildClearJson()
 	
 	var component = $('#clearPriority').val();
 	var finJson = clearJson.replace("{0}", component);
-	$("#clearPriority_json").html(finJson);
+	$("#clearPriority_json").text(finJson);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -538,7 +538,7 @@ function BuildHdrJson()
 	var finJson = (flatbufferUserLut.length > 0) ? componentHdr.replace("{0}", state).replace("{1}", flatbufferUserLut) :
 													componentHdr.replace("{0},", state).replace('"flatbuffers_user_lut_filename":"{1}"', "");
 	
-	$("#hdrMode_json").html(finJson);
+	$("#hdrMode_json").text(finJson);
 }
 ////////////////////////////////////////////////////////////////////////////////
 var videoControlsJson = 
@@ -588,7 +588,7 @@ function BuildVControlJson()
 	var VControlSaturation = $("#VControlSaturation").val();
 	var VControlHue = $("#VControlHue").val();
 	var finJson = videoControlsJson.replace("{0}", VControlBrightness).replace("{1}", VControlContrast).replace("{2}", VControlSaturation).replace("{3}", VControlHue);
-	$("#video_VControl_json").html(finJson);
+	$("#video_VControl_json").text(finJson);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -622,7 +622,7 @@ function BuildSmoothingJson()
 		var time = $('#json_api_smoothing_time').val();
 		var finJson = smoothingControl.replace("{0}", target).replace("{1}", time);
 	
-		$("#smoothingControl_json").html(finJson);
+		$("#smoothingControl_json").text(finJson);
 	}
 }
 
@@ -669,7 +669,7 @@ function BuildCurrentStatetJson()
 	var component = $("#instanceCurrentStateIndex").val();
 	var state = $('input[name="instanceCurrentStateCommand"]:checked').val();
 	var finJson = currentStateJson.replace("{1}", component).replace("{0}", state);
-	$("#instanceCurrentState_json").html(finJson);
+	$("#instanceCurrentState_json").text(finJson);
 }
 
 });

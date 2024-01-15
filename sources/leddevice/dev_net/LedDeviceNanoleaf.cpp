@@ -106,8 +106,6 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject& deviceConfig)
 
 LedDeviceNanoleaf::~LedDeviceNanoleaf()
 {
-	delete _restApi;
-	_restApi = nullptr;
 }
 
 LedDevice* LedDeviceNanoleaf::construct(const QJsonObject& deviceConfig)
@@ -341,7 +339,7 @@ bool LedDeviceNanoleaf::initRestAPI(const QString& hostname, int port, const QSt
 
 	if (_restApi == nullptr)
 	{
-		_restApi = new ProviderRestApi(hostname, port);
+		_restApi = std::unique_ptr<ProviderRestApi>(new ProviderRestApi(hostname, port));
 
 		//Base-path is api-path + authentication token
 		_restApi->setBasePath(QString(API_BASE_PATH).arg(token));

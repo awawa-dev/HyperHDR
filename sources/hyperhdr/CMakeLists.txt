@@ -4,20 +4,21 @@ if (WIN32)
 	generate_win_rc_file(hyperhdr)
 endif()
 
-if (WIN32)
-	set(hyperhdr_POWER_MNG "WinSuspend.cpp;WinSuspend.h")
+if (NOT ENABLE_POWER_MANAGEMENT)	
+elseif (WIN32)
+	set(hyperhdr_POWER_MNG "SuspendHandlerWindows.cpp;SuspendHandlerWindows.h")
 elseif (APPLE)
-	set(hyperhdr_POWER_MNG "MacSuspend.mm;MacSuspend.h")
+	set(hyperhdr_POWER_MNG "SuspendHandlerMacOS.mm;SuspendHandlerMacOS.h")
 	find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
 elseif (Qt${Qt_VERSION}DBus_FOUND)
-	set(hyperhdr_POWER_MNG "LinuxSuspend.cpp;LinuxSuspend.h")
+	set(hyperhdr_POWER_MNG "SuspendHandlerLinux.cpp;SuspendHandlerLinux.h")
 	set(hyperhdr_POWER_MNG_DBUS "Qt${Qt_VERSION}::DBus")
 endif()
 
 add_executable(hyperhdr
-	hyperhdr.h
+	HyperHdrDaemon.h
 	systray.h
-	hyperhdr.cpp
+	HyperHdrDaemon.cpp
 	systray.cpp
 	main.cpp
 	${hyperhdr_WIN_RC_PATH}
@@ -46,6 +47,7 @@ target_link_libraries(hyperhdr
 	Qt${Qt_VERSION}::Widgets
 	${hyperhdr_POWER_MNG_DBUS}
 	${APPKIT_FRAMEWORK}
+	${TURBOJPEG_LINK_LIBRARIES}
 )
 
 if (USE_STATIC_QT_PLUGINS)
@@ -78,12 +80,10 @@ endif ()
 		
 if (ENABLE_V4L2)
 	target_link_libraries(hyperhdr v4l2-grabber)
-	target_link_libraries(hyperhdr ${TURBOJPEG_LINK_LIBRARIES})
 endif ()
 
 if (ENABLE_MF)
 	target_link_libraries(hyperhdr MF-grabber)
-	target_link_libraries(hyperhdr ${TURBOJPEG_LINK_LIBRARIES})
 endif ()
 
 if (ENABLE_DX)
@@ -122,15 +122,15 @@ if (ENABLE_AVF)
 endif ()
 
 if (ENABLE_SOUNDCAPWINDOWS)
-	target_link_libraries(hyperhdr SoundCapWindows)
+	target_link_libraries(hyperhdr sound-capture-windows)
 endif ()
 
 if (ENABLE_SOUNDCAPLINUX)
-	target_link_libraries(hyperhdr SoundCapLinux)
+	target_link_libraries(hyperhdr sound-capture-linux)
 endif ()
 
 if (ENABLE_SOUNDCAPMACOS)
-	target_link_libraries(hyperhdr SoundCapMacOS)
+	target_link_libraries(hyperhdr sound-capture-macos)
 endif ()
 
 

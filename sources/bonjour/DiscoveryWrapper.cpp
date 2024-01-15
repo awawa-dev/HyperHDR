@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -37,8 +37,7 @@
 #include <QMutableListIterator>
 #include <cstdio>
 #include <utils/Logger.h>
-
-DiscoveryWrapper* DiscoveryWrapper::instance = nullptr;
+#include <utils/GlobalSignals.h>
 
 DiscoveryWrapper::DiscoveryWrapper(QObject* parent)
 	: QObject(parent)
@@ -50,16 +49,12 @@ DiscoveryWrapper::DiscoveryWrapper(QObject* parent)
 	qRegisterMetaType<QList<DiscoveryRecord>>("QList<DiscoveryRecord>");
 	qRegisterMetaType<DiscoveryRecord::Service>("DiscoveryRecord::Service");
 
-	DiscoveryWrapper::instance = this;
-
-	connect(this, &DiscoveryWrapper::discoveryEvent, this, &DiscoveryWrapper::discoveryEventHandler);
-	connect(this, &DiscoveryWrapper::requestToScan, this, &DiscoveryWrapper::requestToScanHandler);	
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalDiscoveryEvent, this, &DiscoveryWrapper::signalDiscoveryEventHandler);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalDiscoveryRequestToScan, this, &DiscoveryWrapper::signalDiscoveryRequestToScanHandler);
 }
 
 DiscoveryWrapper::~DiscoveryWrapper()
 {
-	if (_serialDevice != nullptr)
-		delete _serialDevice;
 	_serialDevice = nullptr;
 }
 
@@ -82,14 +77,14 @@ void DiscoveryWrapper::cleanUp(QList<DiscoveryRecord>& target)
 	}
 
 	if (action != DiscoveryRecord::Service::Unknown)
-		emit foundService(action, target);
+		emit SignalDiscoveryFoundService(action, target);
 }
 
 QList<DiscoveryRecord> DiscoveryWrapper::getPhilipsHUE()
 {
 	cleanUp(_hueDevices);
 
-	emit requestToScan(DiscoveryRecord::Service::PhilipsHue);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::PhilipsHue);
 
 	return _hueDevices;
 }
@@ -98,7 +93,7 @@ QList<DiscoveryRecord> DiscoveryWrapper::getWLED()
 {
 	cleanUp(_wledDevices);
 
-	emit requestToScan(DiscoveryRecord::Service::WLED);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::WLED);
 
 	return _wledDevices;
 }
@@ -116,16 +111,16 @@ QList<DiscoveryRecord> DiscoveryWrapper::getAllServices()
 void DiscoveryWrapper::requestServicesScan()
 {
 	cleanUp(_wledDevices);
-	emit requestToScan(DiscoveryRecord::Service::WLED);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::WLED);
 	cleanUp(_hueDevices);
-	emit requestToScan(DiscoveryRecord::Service::PhilipsHue);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::PhilipsHue);
 	cleanUp(_hyperhdrSessions);
-	emit requestToScan(DiscoveryRecord::Service::HyperHDR);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HyperHDR);
 
 	cleanUp(_esp32s2Devices);
 	cleanUp(_espDevices);
 	cleanUp(_picoDevices);
-	emit requestToScan(DiscoveryRecord::Service::SerialPort);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::SerialPort);
 }
 
 void DiscoveryWrapper::gotMessage(QList<DiscoveryRecord>& target, DiscoveryRecord message)
@@ -162,15 +157,15 @@ void DiscoveryWrapper::gotMessage(QList<DiscoveryRecord>& target, DiscoveryRecor
 
 	if (target.length() != newSessions.length())
 	{
-		QString log = QString("%1 %2 at %3:%4 (%5)").arg((message.isExists) ? "Found" : "Deregistered").arg(message.getName()).arg(message.address).arg(message.port).arg(message.hostName);
+		QString log = QString("%1 %2 at %3:%4 (%5)").arg((message.isExists) ? "Found" : "Deregistering").arg(message.getName()).arg(message.address).arg(message.port).arg(message.hostName);
 
 		Info(_log, "%s", QSTRING_CSTR(log));
 		target = newSessions;
-		emit foundService(message.type, target);
+		emit SignalDiscoveryFoundService(message.type, target);
 	}
 }
 
-void DiscoveryWrapper::discoveryEventHandler(DiscoveryRecord message)
+void DiscoveryWrapper::signalDiscoveryEventHandler(DiscoveryRecord message)
 {
 	if (message.type == DiscoveryRecord::Service::HyperHDR)
 		gotMessage(_hyperhdrSessions, message);
@@ -186,7 +181,7 @@ void DiscoveryWrapper::discoveryEventHandler(DiscoveryRecord message)
 		gotMessage(_espDevices, message);
 }
 
-void DiscoveryWrapper::requestToScanHandler(DiscoveryRecord::Service type)
+void DiscoveryWrapper::signalDiscoveryRequestToScanHandler(DiscoveryRecord::Service type)
 {
 	if (type == DiscoveryRecord::Service::SerialPort)
 	{
@@ -195,9 +190,13 @@ void DiscoveryWrapper::requestToScanHandler(DiscoveryRecord::Service type)
 			QJsonObject deviceConfig;
 			deviceConfig["type"] = "adalight";
 
-			_serialDevice = LedDeviceFactory::construct(deviceConfig);
+			_serialDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(deviceConfig));
 		}
 		QJsonObject params;
 		QJsonObject devicesDiscovered = _serialDevice->discover(params);		
+	}
+	else if (type == DiscoveryRecord::Service::REFRESH_ALL)
+	{
+		requestServicesScan();
 	}
 }

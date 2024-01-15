@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,10 +25,10 @@
 *  SOFTWARE.
 */
 
-// Qt includes
-#include <QFile>
-#include <QResource>
-#include <QCoreApplication>
+#ifndef PCH_ENABLED
+	#include <QFile>
+	#include <QResource>
+#endif
 
 // effect engin eincludes
 #include <effectengine/Effect.h>
@@ -92,446 +92,161 @@
 #include <effectengine/Animation4Music_WavesPulseFast.h>
 #include <effectengine/Animation4Music_WavesPulseSlow.h>
 
-#include <base/SoundCapture.h>
+#include <utils/GlobalSignals.h>
 
-Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, int timeout, const QString& name, const QJsonObject& args, const QString& imageData)
-	: QThread()
-	, _hyperhdr(hyperhdr)
+Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, int timeout, const EffectDefinition& effect)
+	: QObject()
 	, _visiblePriority(visiblePriority)
 	, _priority(priority)
 	, _timeout(timeout)
-	, _name(name)
-	, _args(args)
-	, _imageData(imageData)
+	, _instanceIndex(hyperhdr->getInstanceIndex())
+	, _name(effect.name)
+	, _effect(effect.factory())
 	, _endTime(-1)
-	, _colors()
-	, _imageSize(hyperhdr->getLedGridSize())
-	, _image(_imageSize, QImage::Format_ARGB32_Premultiplied)
-	, _painter(NULL)
-	, _effect(NULL)
-	, _soundHandle(0)
+	, _interrupt(false)
+	, _image(hyperhdr->getLedGridSize(), QImage::Format_ARGB32_Premultiplied)	
+	, _timer(this)
+	, _ledCount(hyperhdr->getLedCount())
 {
-	_ledCount = _hyperhdr->getLedCount();
+	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(_instanceIndex).arg((_name.length() > 9) ? _name.left(6) + "..." : _name));
+
 	_colors.resize(_ledCount);
 	_colors.fill(ColorRgb::BLACK);
-
-	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(hyperhdr->getInstanceIndex()).arg((name.length() > 9) ? name.left(6) + "..." : name));
-
-	// init effect image for image based effects, size is based on led layout
 	_image.fill(Qt::black);
 
-
-	if (name == ANIM_RAINBOW_SWIRL)
-	{
-		_effect = new Animation_RainbowSwirl();
-	}
-	else if (name == ANIM_SWIRL_FAST)
-	{
-		_effect = new Animation_SwirlFast();
-	}
-	else if (name == ANIM_RAINBOW_WAVES)
-	{
-		_effect = new Animation_RainbowWaves();
-	}
-	else if (name == ANIM_ATOMIC_SWIRL)
-	{
-		_effect = new Animation_AtomicSwirl();
-	}
-	else if (name == ANIM_DOUBLE_SWIRL)
-	{
-		_effect = new Animation_DoubleSwirl();
-	}
-	else if (name == ANIM_KNIGHT_RIDER)
-	{
-		_effect = new Animation_KnightRider();
-	}
-	else if (name == ANIM_PLASMA)
-	{
-		_effect = new Animation_Plasma();
-	}
-	else if (name == ANIM_POLICELIGHTSSINGLE)
-	{
-		_effect = new Animation_PoliceLightsSingle();
-	}
-	else if (name == ANIM_POLICELIGHTSSOLID)
-	{
-		_effect = new Animation_PoliceLightsSolid();
-	}
-	else if (name == ANIM_WAVESWITHCOLOR)
-	{
-		_effect = new Animation_WavesWithColor();
-	}
-	else if (name == ANIM_SEAWAVES)
-	{
-		_effect = new Animation_SeaWaves();
-	}
-	else if (name == ANIM_RED_MOOD_BLOBS)
-	{
-		_effect = new Animation_RedMoodBlobs();
-	}
-	else if (name == ANIM_COLD_MOOD_BLOBS)
-	{
-		_effect = new Animation_ColdMoodBlobs();
-	}
-	else if (name == ANIM_BLUE_MOOD_BLOBS)
-	{
-		_effect = new Animation_BlueMoodBlobs();
-	}
-	else if (name == ANIM_FULLCOLOR_MOOD_BLOBS)
-	{
-		_effect = new Animation_FullColorMoodBlobs();
-	}
-	else if (name == ANIM_GREEN_MOOD_BLOBS)
-	{
-		_effect = new Animation_GreenMoodBlobs();
-	}
-	else if (name == ANIM_WARM_MOOD_BLOBS)
-	{
-		_effect = new Animation_WarmMoodBlobs();
-	}
-	else if (name == ANIM_BREATH)
-	{
-		_effect = new Animation_Breath();
-	}
-	else if (name == ANIM_CINEMA_BRIGHTEN_LIGHTS)
-	{
-		_effect = new Animation_CinemaBrightenLights();
-	}
-	else if (name == ANIM_CINEMA_DIM_LIGHTS)
-	{
-		_effect = new Animation_CinemaDimLights();
-	}
-	else if (name == ANIM_NOTIFY_BLUE)
-	{
-		_effect = new Animation_NotifyBlue();
-	}
-	else if (name == ANIM_STROBE_RED)
-	{
-		_effect = new Animation_StrobeRed();
-	}
-	else if (name == ANIM_SPARKS)
-	{
-		_effect = new Animation_Sparks();
-	}
-	else if (name == ANIM_STROBE_WHITE)
-	{
-		_effect = new Animation_StrobeWhite();
-	}
-	else if (name == ANIM_SYSTEM_SHUTDOWN)
-	{
-		_effect = new Animation_SystemShutdown();
-	}
-	else if (name == ANIM_CANDLE)
-	{
-		_effect = new Animation_Candle();
-	}
-	else if (name == AMUSIC_TESTEQ)
-	{
-		_effect = new Animation4Music_TestEq();
-	}
-	else if (name == AMUSIC_PULSEWHITE)
-	{
-		_effect = new Animation4Music_PulseWhite();
-	}
-	else if (name == AMUSIC_PULSEYELLOW)
-	{
-		_effect = new Animation4Music_PulseYellow();
-	}
-	else if (name == AMUSIC_PULSERED)
-	{
-		_effect = new Animation4Music_PulseRed();
-	}
-	else if (name == AMUSIC_PULSEGREEN)
-	{
-		_effect = new Animation4Music_PulseGreen();
-	}
-	else if (name == AMUSIC_PULSEBLUE)
-	{
-		_effect = new Animation4Music_PulseBlue();
-	}
-	else if (name == AMUSIC_PULSEMULTI)
-	{
-		_effect = new Animation4Music_PulseMulti();
-	}
-	else if (name == AMUSIC_PULSEMULTIFAST)
-	{
-		_effect = new Animation4Music_PulseMultiFast();
-	}
-	else if (name == AMUSIC_PULSEMULTISLOW)
-	{
-		_effect = new Animation4Music_PulseMultiSlow();
-	}
-
-
-	else if (name == AMUSIC_STEREOWHITE)
-	{
-		_effect = new Animation4Music_StereoWhite();
-	}
-	else if (name == AMUSIC_STEREOYELLOW)
-	{
-		_effect = new Animation4Music_StereoYellow();
-	}
-	else if (name == AMUSIC_STEREORED)
-	{
-		_effect = new Animation4Music_StereoRed();
-	}
-	else if (name == AMUSIC_STEREOGREEN)
-	{
-		_effect = new Animation4Music_StereoGreen();
-	}
-	else if (name == AMUSIC_STEREOBLUE)
-	{
-		_effect = new Animation4Music_StereoBlue();
-	}
-	else if (name == AMUSIC_STEREOMULTI)
-	{
-		_effect = new Animation4Music_StereoMulti();
-	}
-	else if (name == AMUSIC_STEREOMULTIFAST)
-	{
-		_effect = new Animation4Music_StereoMultiFast();
-	}
-	else if (name == AMUSIC_STEREOMULTISLOW)
-	{
-		_effect = new Animation4Music_StereoMultiSlow();
-	}
-
-
-	else if (name == AMUSIC_QUATROWHITE)
-	{
-		_effect = new Animation4Music_QuatroWhite();
-	}
-	else if (name == AMUSIC_QUATROYELLOW)
-	{
-		_effect = new Animation4Music_QuatroYellow();
-	}
-	else if (name == AMUSIC_QUATRORED)
-	{
-		_effect = new Animation4Music_QuatroRed();
-	}
-	else if (name == AMUSIC_QUATROGREEN)
-	{
-		_effect = new Animation4Music_QuatroGreen();
-	}
-	else if (name == AMUSIC_QUATROBLUE)
-	{
-		_effect = new Animation4Music_QuatroBlue();
-	}
-	else if (name == AMUSIC_QUATROMULTI)
-	{
-		_effect = new Animation4Music_QuatroMulti();
-	}
-	else if (name == AMUSIC_QUATROMULTIFAST)
-	{
-		_effect = new Animation4Music_QuatroMultiFast();
-	}
-	else if (name == AMUSIC_QUATROMULTISLOW)
-	{
-		_effect = new Animation4Music_QuatroMultiSlow();
-	}
-
-	else if (name == AMUSIC_WAVESPULSE)
-	{
-		_effect = new Animation4Music_WavesPulse();
-	}
-	else if (name == AMUSIC_WAVESPULSEFAST)
-	{
-		_effect = new Animation4Music_WavesPulseFast();
-	}
-	else if (name == AMUSIC_WAVESPULSESLOW)
-	{
-		_effect = new Animation4Music_WavesPulseSlow();
-	}
+	_timer.setTimerType(Qt::PreciseTimer);
+	connect(&_timer, &QTimer::timeout, this, &Effect::run);
 }
 
 Effect::~Effect()
-{
-	Info(_log, "Deleting effect named: '%s'", QSTRING_CSTR(_name));	
-
-	if (_effect != nullptr)
-	{
-		delete _effect;
-		_effect = nullptr;
-	}
-
-	if (_painter != nullptr)
-	{
-		delete _painter;
-		_painter = nullptr;
-	}
+{	
+	delete _effect;
 
 	Info(_log, "Effect named: '%s' is deleted", QSTRING_CSTR(_name));
 }
 
+void Effect::start()
+{
+	_ledBuffer.resize(_ledCount);
+
+	_effect->Init(_image, 10);
+
+	if (_timeout > 0)
+		_endTime = InternalClock::now() + _timeout;
+	else
+		_endTime = -1;	
+
+	_timer.setInterval(_effect->GetSleepTime());
+
+	Info(_log, "Begin playing the effect with priority: %i", _priority);
+
+	run();
+	_timer.start();	
+}
+
 void Effect::run()
 {
-	if (_effect == NULL)
+	int left = (_timeout >= 0) ? std::max(static_cast<int>(_endTime - InternalClock::now()), 0) : -1;
+
+	if (_interrupt || (left == 0 && _timeout > 0) || _effect->isStop())
 	{
-		Error(_log, "Unable to find effect by this name. Please review configuration. Effect name: '%s'", QSTRING_CSTR(_name));
+		stop();
 		return;
 	}
 
-	int latchTime = 10;
+	if (_visiblePriority < _priority)
+		return;
 
-	_ledBuffer.resize(_ledCount);
+	bool   hasLedData = false;
 
-	_effect->Init(_image, latchTime);
-
-	_painter = new QPainter(&_image);
-
-	if (_timeout > 0)
+	if (!_effect->hasOwnImage())
 	{
-		_endTime = InternalClock::now() + _timeout;
+		_painter.begin(&_image);
+		_effect->Play(&_painter);
+		_painter.end();
+
+		hasLedData = _effect->hasLedData(_ledBuffer);
 	}
 
-	if (_effect->isSoundEffect())
+	if (_effect->hasOwnImage())
 	{
-		if (!_interupt)
-			SAFE_CALL_0_RET(SoundCapture::getInstance(), getCaptureInstance, uint32_t, _soundHandle)
-		else
-			return;
+		Image<ColorRgb> image(80, 45);
+			
+		if (_effect->getImage(image))
+			emit SignalSetImage(_priority, image, left, false);
+	}
+	else if (hasLedData)
+	{
+		ledShow(left);
+	}
+	else
+	{
+		imageShow(left);
 	}
 
-	Info(_log, "Begin playing the effect with priority: %i", _priority);
-	while (!_interupt && (_timeout <= 0 || InternalClock::now() < _endTime))
+	int sleepTime = std::min(_effect->GetSleepTime(), 100);
+	if (sleepTime != _timer.interval())
 	{
-		if (_priority > 0)
-		{
-			if (_visiblePriority < _priority)
-			{				
-				if (!_interupt && (_timeout <= 0 || InternalClock::now() < _endTime))
-					QThread::msleep(500);
-				continue;
-			}
-		}
-
-		bool   hasLedData = false;
-
-		if (!_effect->hasOwnImage())
-		{
-			_effect->Play(_painter);
-
-			hasLedData = _effect->hasLedData(_ledBuffer);
-		}
-
-		int    micro = _effect->GetSleepTime();
-		qint64 dieTime = InternalClock::now() + micro;
-
-		if (_effect->hasOwnImage())
-		{
-			Image<ColorRgb> image(80, 45);
-			int timeout = _timeout;
-			if (timeout > 0)
-			{
-				timeout = _endTime - InternalClock::now();
-				if (timeout <= 0)
-					break;
-			}
-
-			if (_effect->getImage(image))
-				emit setInputImage(_priority, image, timeout, false);
-		}
-		else if (hasLedData)
-		{
-			if (!LedShow())
-				break;
-		}
-		else
-		{
-			ImageShow();
-		}
-
-		if (_effect->isStop())
-			break;
-
-		while (!_interupt && InternalClock::now() < dieTime &&
-			(_timeout <= 0 || InternalClock::now() < _endTime))
-		{
-			micro = dieTime - InternalClock::now();
-			while (micro > 200)
-				micro /= 2;
-
-			if (micro > 0)
-				QThread::msleep(micro);
-		}
-	}
-
-	Info(_log, "The effect quits with priority: %i", _priority);
-
-	if (_soundHandle != 0)
-	{
-		Info(_log, "Releasing sound handle %i for effect named: '%s'", _soundHandle, QSTRING_CSTR(_name));
-		QUEUE_CALL_1(SoundCapture::getInstance(), releaseCaptureInstance, uint32_t, _soundHandle);
-		_soundHandle = 0;
+		_timer.setInterval(sleepTime);
 	}
 }
 
-bool Effect::LedShow()
+void Effect::stop()
 {
-	if (_interupt)
-		return false;
+	Info(_log, "The effect quits with priority: %i", _priority);
 
-	int timeout = _timeout;
-	if (timeout > 0)
-	{
-		timeout = _endTime - InternalClock::now();
-		if (timeout <= 0)
-			return false;
-	}
+	_timer.stop();
 
+	emit SignalEffectFinished(_priority, _name, _interrupt);
+}
+
+void Effect::ledShow(int left)
+{
 	if (_ledCount == _ledBuffer.length())
 	{
 		QVector<ColorRgb> _cQV = _ledBuffer;
-		emit setInput(_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), timeout, false);
+		emit SignalSetLeds(_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), left, false);
 	}
 	else
 	{
 		Warning(_log, "Mismatch led number detected for the effect");
 		_ledBuffer.resize(_ledCount);
 	}
-
-	return true;
 }
 
-bool Effect::ImageShow()
+void Effect::imageShow(int left)
 {
-	if (_interupt)
-		return false;
-
-	int timeout = _timeout;
-	if (timeout > 0)
-	{
-		timeout = _endTime - InternalClock::now();
-		if (timeout <= 0)
-			return false;
-	}
-
 	int width = _image.width();
 	int height = _image.height();
 
 	Image<ColorRgb> image(width, height);
-	QByteArray binaryImage;
+	uint8_t* rawColors = image.rawMem();
 
-	for (int i = 0; i < height; ++i)
+	for (int i = 0; i < height; i++)
 	{
 		const QRgb* scanline = reinterpret_cast<const QRgb*>(_image.scanLine(i));
-		for (int j = 0; j < width; ++j)
+		for (int j = 0; j < width; j++)
 		{
-			binaryImage.append((char)qRed(scanline[j]));
-			binaryImage.append((char)qGreen(scanline[j]));
-			binaryImage.append((char)qBlue(scanline[j]));
+			*(rawColors++) = qRed(scanline[j]);
+			*(rawColors++) = qGreen(scanline[j]);
+			*(rawColors++) = qBlue(scanline[j]);
 		}
 	}
 
-	memcpy(image.rawMem(), binaryImage.data(), binaryImage.size());
-	emit setInputImage(_priority, image, timeout, false);
-
-	return true;
+	emit SignalSetImage(_priority, image, left, false);
 }
 
 void Effect::visiblePriorityChanged(quint8 priority)
 {
 	_visiblePriority = priority;
+
+	if (_timeout <= 0)
+	{
+		if (_visiblePriority < _priority)
+			_timer.stop();
+		else if (!_timer.isActive())
+			_timer.start();
+	}
 }
 
 void Effect::setLedCount(int newCount)
@@ -539,16 +254,12 @@ void Effect::setLedCount(int newCount)
 	_ledCount = newCount;
 }
 
-int  Effect::getPriority() const {
+int Effect::getPriority() const {
 	return _priority;
 }
 
 void Effect::requestInterruption() {
-	_interupt = true;
-}
-
-bool Effect::isInterruptionRequested() {
-	return _interupt;
+	_interrupt = true;
 }
 
 QString Effect::getName()     const {
@@ -559,6 +270,131 @@ int Effect::getTimeout()      const {
 	return _timeout;
 }
 
-QJsonObject Effect::getArgs() const {
-	return _args;
+QString Effect::getDescription() const
+{
+	return QString("effect%1/%2 => \"%3\"").		
+		arg(_instanceIndex).
+		arg(_priority).
+		arg(_name);
+}
+
+
+std::list<EffectDefinition> Effect::getAvailableEffects()
+{
+	std::list<EffectDefinition> _availableEffects;
+
+	_availableEffects.push_back(Animation4Music_WavesPulse::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_WavesPulseFast::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_WavesPulseSlow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseMulti::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseMultiFast::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseMultiSlow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseYellow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseWhite::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseRed::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseGreen::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_PulseBlue::getDefinition());
+
+
+	_availableEffects.push_back(Animation4Music_StereoMulti::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoMultiFast::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoMultiSlow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoYellow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoWhite::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoRed::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoGreen::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_StereoBlue::getDefinition());
+
+
+	_availableEffects.push_back(Animation4Music_QuatroMulti::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroMultiFast::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroMultiSlow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroYellow::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroWhite::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroRed::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroGreen::getDefinition());
+
+	_availableEffects.push_back(Animation4Music_QuatroBlue::getDefinition());
+
+
+
+
+	_availableEffects.push_back(Animation4Music_TestEq::getDefinition());
+
+	_availableEffects.push_back(Animation_AtomicSwirl::getDefinition());
+
+	_availableEffects.push_back(Animation_BlueMoodBlobs::getDefinition());
+
+	_availableEffects.push_back(Animation_Breath::getDefinition());
+
+	_availableEffects.push_back(Animation_Candle::getDefinition());
+
+	_availableEffects.push_back(Animation_CinemaBrightenLights::getDefinition());
+
+	_availableEffects.push_back(Animation_CinemaDimLights::getDefinition());
+
+	_availableEffects.push_back(Animation_ColdMoodBlobs::getDefinition());
+
+	_availableEffects.push_back(Animation_DoubleSwirl::getDefinition());
+
+	_availableEffects.push_back(Animation_FullColorMoodBlobs::getDefinition());
+
+	_availableEffects.push_back(Animation_GreenMoodBlobs::getDefinition());
+
+	_availableEffects.push_back(Animation_KnightRider::getDefinition());
+
+	_availableEffects.push_back(Animation_NotifyBlue::getDefinition());
+
+	_availableEffects.push_back(Animation_Plasma::getDefinition());
+
+	_availableEffects.push_back(Animation_PoliceLightsSingle::getDefinition());
+
+	_availableEffects.push_back(Animation_PoliceLightsSolid::getDefinition());
+
+	_availableEffects.push_back(Animation_RainbowSwirl::getDefinition());
+
+	_availableEffects.push_back(Animation_SwirlFast::getDefinition());
+
+	_availableEffects.push_back(Animation_RainbowWaves::getDefinition());
+
+	_availableEffects.push_back(Animation_RedMoodBlobs::getDefinition());
+
+	_availableEffects.push_back(Animation_SeaWaves::getDefinition());
+
+	_availableEffects.push_back(Animation_Sparks::getDefinition());
+
+	_availableEffects.push_back(Animation_StrobeRed::getDefinition());
+
+	_availableEffects.push_back(Animation_StrobeWhite::getDefinition());
+
+	_availableEffects.push_back(Animation_SystemShutdown::getDefinition());
+
+	_availableEffects.push_back(Animation_WarmMoodBlobs::getDefinition());
+
+	_availableEffects.push_back(Animation_WavesWithColor::getDefinition());
+
+	return _availableEffects;
 }

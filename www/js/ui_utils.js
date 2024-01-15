@@ -36,7 +36,7 @@ function getHashtag()
 		var tag = document.URL;
 		tag = tag.substr(tag.indexOf("#") + 1);
 		if(tag == "" || typeof tag === "undefined" || tag.startsWith("http"))
-			tag = "dashboard"
+			tag = "overview";
 		return tag;
 	}
 }
@@ -70,6 +70,12 @@ function loadContent(event, forceRefresh)
 
 	if(forceRefresh || prevTag != tag)
 	{
+		if (window.loggingStreamActive)
+		{
+			requestLoggingStop();
+		}
+
+		tag = encodeURIComponent(tag);
 		prevTag = tag;
 		$("#page-content").off();
 		$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
@@ -82,8 +88,9 @@ function loadContent(event, forceRefresh)
 				
 				$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 					if(status == "error")
-					{					
-						$("#page-content").html('<h3>'+tag+'<br/>'+$.i18n('info_404')+'</h3>');
+					{
+						var resultContent = document.getElementById('page-content');
+						resultContent.innerHTML = `<h3>${encodeURIComponent(tag)}</h3><br/>${$.i18n('info_404')}`;
 						removeOverlay();
 					}					
 				});
@@ -153,7 +160,7 @@ function updateHyperhdrInstanceListing()
 
 				if (hostName.length > 0)
 				{
-					hostName = hostName.replace('"',"'");
+					hostName = hostName.replace(/"/g, "'");
 				}
 
 				var html = `<li id="remote_hyperhdrinstance_${i}" class="text-info" data-toggle="tooltip" data-placement="right" title="${hostName}"><a>`+

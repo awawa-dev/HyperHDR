@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -39,14 +39,13 @@
 #include <limits.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <grabber/X11Grabber.h>
-#include <grabber/smartX11.h>
+#include <grabber/X11/X11Grabber.h>
+#include <grabber/X11/smartX11.h>
 #include <utils/ColorSys.h>
 #include <dlfcn.h>
 
@@ -58,7 +57,7 @@ unsigned char* (*_getFrame)(x11Handle * retVal) = nullptr;
 void (*_releaseFrame)(x11Handle* retVal) = nullptr;
 
 X11Grabber::X11Grabber(const QString& device, const QString& configurationPath)
-	: Grabber("X11_SYSTEM:" + device.left(14))
+	: Grabber(configurationPath, "X11_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _semaphore(1)
 	, _library(nullptr)

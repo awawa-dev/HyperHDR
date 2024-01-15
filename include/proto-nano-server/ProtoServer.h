@@ -1,70 +1,47 @@
 #pragma once
 
-// util
+#ifndef PCH_ENABLED
+	#include <QVector>
+#endif
+
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
-// qt
-#include <QVector>
 
 class QTcpServer;
 class ProtoNanoClientConnection;
 class NetOrigin;
 
-///
-/// @brief This class creates a TCP server which accepts connections wich can then send
-/// in Protocol Buffer encoded commands. This interface to Hyperhdr is used by various
-/// third-party applications
-///
 class ProtoServer : public QObject
 {
 	Q_OBJECT
 
 public:
-	ProtoServer(const QJsonDocument& config, QObject* parent = nullptr);
+	ProtoServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, QObject* parent = nullptr);
 	~ProtoServer() override;
 
 public slots:
-	///
-	/// @brief Handle settings update
-	/// @param type   The type from enum
-	/// @param config The configuration
-	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
-
 	void initServer();
 
 private slots:
-	///
-	/// @brief Is called whenever a new socket wants to connect
-	///
 	void newConnection();
-
-	///
-	/// @brief is called whenever a client disconnected
-	///
-	void clientDisconnected();
+	void signalClientConnectionClosedHandler(ProtoNanoClientConnection* client);
 
 private:
-	///
-	/// @brief Start the server with current _port
-	///
 	void startServer();
-
-	///
-	/// @brief Stop server
-	///
 	void stopServer();
 
+signals:
+	void SignalImportFromProto(int priority, int duration, const Image<ColorRgb>& image, QString clientDescription);
 
 private:
 	QTcpServer*	_server;
-	NetOrigin*	_netOrigin;
+	std::shared_ptr<NetOrigin> _netOrigin;
 	Logger*		_log;
 	int			_timeout;
 	quint16		_port;
 
 	const QJsonDocument _config;
-
 	QVector<ProtoNanoClientConnection*> _openConnections;
 };

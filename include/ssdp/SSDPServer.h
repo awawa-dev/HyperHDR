@@ -17,7 +17,7 @@ public:
 	/// @brief Construct the server, listen on default ssdp address/port with multicast
 	/// @param parent  The parent object
 	///
-	SSDPServer(QObject* parent = nullptr);
+	SSDPServer(QObject* parent);
 	~SSDPServer() override;
 
 	///
@@ -110,6 +110,9 @@ public:
 	///
 	quint16 getSSLServerPort() const;
 
+	void setWebServerPort(quint16 port);
+	quint16 getWebServerPort() const;
+
 	///
 	/// @brief set new hyperhdr name
 	///
@@ -137,7 +140,7 @@ private:
 	Logger* _log;
 	QUdpSocket* _udpSocket;
 
-	QString _serverHeader, _uuid, _fbsPort, _pbsPort, _jssPort, _sslPort, _name, _descAddress;
+	QString _serverHeader, _uuid, _fbsPort, _pbsPort, _jssPort, _sslPort, _webPort, _name, _descAddress;
 	bool _running;
 
 private slots:

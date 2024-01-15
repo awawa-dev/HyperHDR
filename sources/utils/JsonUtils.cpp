@@ -1,13 +1,11 @@
-//project include
+#ifndef PCH_ENABLED
+	#include <QRegularExpression>
+	#include <QJsonObject>
+	#include <QJsonParseError>
+#endif
+
 #include <utils/JsonUtils.h>
-
-// util includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
-
-//qt includes
-#include <QRegularExpression>
-#include <QJsonObject>
-#include <QJsonParseError>
 
 namespace JsonUtils {
 

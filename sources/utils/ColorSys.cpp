@@ -1,6 +1,8 @@
-#include <utils/ColorSys.h>
+#ifndef PCH_ENABLED
+	#include <QColor>
+#endif
 
-#include <QColor>
+#include <utils/ColorSys.h>
 
 inline uint8_t clamp(int x)
 {

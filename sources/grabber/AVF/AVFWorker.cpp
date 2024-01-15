@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -43,13 +43,12 @@
 #include <sys/types.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 
-#include "grabber/AVFWorker.h"
-
+#include <grabber/AVF/AVFWorker.h>
+#include <utils/GlobalSignals.h>
 
 
 std::atomic<bool> AVFWorker::_isActive(false);
@@ -129,8 +128,6 @@ AVFWorker::AVFWorker() :
 	_semaphore(1),
 	_workerIndex(0),
 	_pixelFormat(PixelFormat::NO_CHANGE),
-	_localData(nullptr),
-	_localDataSize(0),
 	_size(0),
 	_width(0),
 	_height(0),
@@ -150,20 +147,14 @@ AVFWorker::AVFWorker() :
 }
 
 AVFWorker::~AVFWorker()
-{
-	if (_localData != NULL)
-	{
-		free(_localData);
-		_localData = NULL;
-		_localDataSize = 0;
-	}
+{	
 }
 
 void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName)
 {
 	_workerIndex = __workerIndex;
 	_lineLength = __lineLength;
@@ -180,21 +171,12 @@ void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	_lutBuffer = __lutBuffer;
 	_qframe = __qframe;
+	_directAccess = __directAccess;
+	_deviceName = __deviceName;
 
-	if (__size > _localDataSize)
-	{
-		if (_localData != NULL)
-		{
-			free(_localData);
-			_localData = NULL;
-			_localDataSize = 0;
-		}
-		_localData = (uint8_t*)malloc((size_t)__size + 1);
-		_localDataSize = __size;
-	}
+	_localBuffer.resize((size_t)__size + 1);
 
-	if (_localData != NULL)
-		memcpy(_localData, __sharedData, __size);
+	memcpy(_localBuffer.data(), __sharedData, __size);
 }
 
 
@@ -211,9 +193,16 @@ void AVFWorker::runMe()
 		{
 			Image<ColorRgb> image(_width >> 1, _height >> 1);
 			FrameDecoder::processQImage(
-				_localData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+				_localBuffer.data(), _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
-			emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+			image.setBufferCacheSize();
+			if (!_directAccess)
+				emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+			else
+			{
+				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+				emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+			}
 
 		}
 		else
@@ -224,9 +213,16 @@ void AVFWorker::runMe()
 
 			FrameDecoder::processImage(
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
-				_localData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+				_localBuffer.data(), _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
-			emit newFrame(_workerIndex, image, _currentFrame, _frameBegin);
+			image.setBufferCacheSize();
+			if (!_directAccess)
+				emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);
+			else
+			{
+				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+				emit SignalNewFrame(_workerIndex, Image<ColorRgb>(), _currentFrame, _frameBegin);
+			}
 		}
 	}
 }

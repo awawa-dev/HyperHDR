@@ -1,8 +1,10 @@
+#pragma once
+
 /* LedDeviceHD108.h
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,20 +27,13 @@
 *  SOFTWARE.
  */
 
-#ifndef LEDEVICEHD108_H
-#define LEDEVICEHD108_H
-
 // HyperHDR includes
 #include "ProviderSpi.h"
 
-///
-/// Implementation of the LedDevice interface for writing to LedDeviceHD108 led device via SPI.
-///
 class LedDeviceHD108 : public ProviderSpi
 {
 public:
 	explicit LedDeviceHD108(const QJsonObject& deviceConfig);
-
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
@@ -46,8 +41,5 @@ private:
 	uint16_t _globalBrightnessControlMaxLevel;
 
 	bool init(const QJsonObject& deviceConfig) override;
-
 	int write(const std::vector<ColorRgb>& ledValues) override;
 };
-
-#endif // LEDEVICEHD108_H

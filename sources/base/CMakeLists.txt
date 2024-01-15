@@ -1,4 +1,3 @@
-
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/base)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/base)

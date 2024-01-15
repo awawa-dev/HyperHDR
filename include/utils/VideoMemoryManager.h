@@ -1,11 +1,17 @@
 #pragma once
-#include <cstdint>
-#include <stdlib.h>
 
-#include <QString>
-#include <QStack>
-#include <QMutex>
-#include <QMutexLocker>
+#ifndef PCH_ENABLED
+	#include <QString>
+	#include <QStack>
+	#include <QMutex>
+	#include <QMutexLocker>
+
+	#include <list>
+	#include <cstdint>
+	#include <stdlib.h>
+
+	#include <utils/MemoryBuffer.h>
+#endif
 
 #define VideoMemoryManagerBufferSize 8
 
@@ -16,23 +22,19 @@ public:
 	~VideoMemoryManager();
 
 	bool	setFrameSize(size_t size);
-	void    release(size_t size, uint8_t* buffer);
+	void    release(std::unique_ptr<MemoryBuffer<uint8_t>>& frame);
 	QString	adjustCache();
-	uint8_t* request(size_t size);
-
-	static void enableCache(bool frameCache);
+	std::unique_ptr<MemoryBuffer<uint8_t>> request(size_t size);
 
 private:
 	void releaseBuffer();
 
-	QStack<uint8_t*> _stack;
+	std::list<std::unique_ptr<MemoryBuffer<uint8_t>>> _stack;
 	size_t           _currentSize;
-	int              _prevSize;
+	size_t           _prevSize;
 	int              _hits;
 	bool             _needed;
 	bool             _prevNeeded;
-	int              _bufferLimit;
+	size_t           _bufferLimit;
 	QMutex           _locker;
-
-	static bool      _enabled, _dirty;
 };

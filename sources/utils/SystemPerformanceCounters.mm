@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -91,7 +91,8 @@ SystemPerformanceCounters::~SystemPerformanceCounters()
 
 QString SystemPerformanceCounters::getCPU()
 {
-	QString result = "";
+	QJsonObject jResult;
+	QJsonArray jCores;
 
 	try
 	{
@@ -125,7 +126,7 @@ QString SystemPerformanceCounters::getCPU()
 
 						valCPU = usage / std::max(total, 0.00001);
 
-						retVal += QString("%1").arg(getChar(valCPU));
+						jCores.append(valCPU / 100.0f);
 
 						totUsage += usage;
 						totTotal += total;
@@ -136,12 +137,9 @@ QString SystemPerformanceCounters::getCPU()
 
 					valCPU = std::min(std::max(valCPU, 0.0), 100.0);
 
-					retTotal = QString(
-							(valCPU < 50) ? "<span style='color:ForestGreen'>%1%</span>" :
-							((valCPU < 90) ? "<span style='color:orange'>%1%</span>" :
-								"<span style='color:red'>%1%</span>")).arg(QString::number(valCPU, 'f', 0), 2);
+					jResult["total"] = valCPU;
 
-					result =  QString("%1 (<b>%2</b>)").arg(retVal).arg(retTotal);
+					jResult["cores"] = jCores;
 
 					size_t prevCpuInfoSize = sizeof(integer_t) * prevPerfNum;
 					vm_deallocate(mach_task_self(), (vm_address_t)prevPerfStats, prevCpuInfoSize);					
@@ -157,7 +155,7 @@ QString SystemPerformanceCounters::getCPU()
 	{
 
 	}
-	return result;
+	return QJsonDocument(jResult).toJson(QJsonDocument::Compact);
 }
 
 QString SystemPerformanceCounters::getRAM()
@@ -184,11 +182,15 @@ QString SystemPerformanceCounters::getRAM()
 										 (int64_t)vmStats.inactive_count +
 										 (int64_t)vmStats.wire_count) *  (int64_t)pageSize;
 
+				QJsonObject jResult;
+
 				qint64 totalPhysMem = qint64(physicalMemory) / (1024 * 1024);
+				jResult["totalPhysMem"] = totalPhysMem;
 				qint64 takenMem = qint64(usedMemory) / (1024 * 1024);
-				qint64 aspect = (takenMem * 100) / totalPhysMem;
-				QString color = (aspect < 50) ? "ForestGreen" : ((aspect < 90) ? "orange" : "red");
-				return QString("%1 / %2MB (<span style='color:%3'><b>%4%</b></span>)").arg(takenMem).arg(totalPhysMem).arg(color).arg(aspect, 2);				
+				jResult["takenMem"] = takenMem;
+				jResult["aspect"] = (qint64) (takenMem * 100) / totalPhysMem;
+
+				return QJsonDocument(jResult).toJson(QJsonDocument::Compact);
 			}
 		}
 	}

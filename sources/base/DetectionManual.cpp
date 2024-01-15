@@ -1,4 +1,3 @@
-
 #include <base/Grabber.h>
 
 DetectionManual::DetectionManual() :

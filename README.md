@@ -13,8 +13,10 @@ Open source ambient lighting implementation for television and music sets based 
 * High portability on various ARM embedded platforms
 * Video post-processing filter to eliminate LED flickering
 * Modern interface using Bootstrap 5 and SVG icons
-* Support for USB grabbers under Linux, Windows 10, macOS (x64/M1)
 * Provides vital informations about your OS condition: CPU & RAM usage, CPU temperature, undervoltage detection, internal components performance including USB grabber and LED devices
+* Support for USB grabbers under Linux, Windows 10, macOS (x64/M1)
+* Pipewire/Portal hardware-accelerated screen capturer for Linux/Wayland
+* DirectX screen grabber with pixel and vertex shader processing acceleration for Windows 10/11
 * Dynamic video cache buffers. Now Rpi can process even 1080p120 NV12 stream without any size decimation
 * Built-in audio visualization effects using **spectrum analysis**
 * MQTT support for IoT

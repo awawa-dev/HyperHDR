@@ -5,7 +5,7 @@
   */
 @font-face {
     font-family: "Roboto";
-    src: url("../fonts/Roboto-Regular.woff") format('woff'),
+    src: url("../fonts/Roboto-Regular.woff2") format('woff'),
 		 url("../fonts/Roboto-Regular.ttf") format('ttf');
 }
 
@@ -200,6 +200,10 @@ body:not(.dark-mode) #perf_cpu_usage>span[class^="cpu_"], body:not(.dark-mode) #
 		width: 75% !important;
 		left: 12% !important;
 	}
+
+	#logmessages {
+		height: 34pc;
+	}
 }
 
 @-webkit-keyframes fadeAlertOut {
@@ -311,6 +315,14 @@ body:not(.dark-mode) .alert.parentAlert {
 		bottom: 0;
 		left: 12px;	  
 		border-color: none;		
+	}
+
+	#logmessages {
+		height: 30pc;
+	}
+
+	#log_head {
+		display: none;
 	}
 }
 
@@ -985,4 +997,140 @@ body:not(.dark-mode) .lutdownloader{
              rgba(255,255,255,1) 50%,
              rgba(0,0,0,0) calc(50% + 1.5px),
              rgba(0,0,0,0) 100%);
+}
+
+.beforeAnimation {
+  -moz-transition: .2s cubic-bezier(.24, 0, .5, 1);
+  -o-transition: .2s cubic-bezier(.24, 0, .5, 1);
+  -webkit-transition: .2s cubic-bezier(.24, 0, .5, 1);
+  transition: .2s cubic-bezier(.24, 0, .5, 1);
+}
+
+.afterAnimation {
+  box-shadow: 0 0 0 1px hsla(0, 0%, 0%, 0.1), 0 4px 0px 0 hsla(0, 0%, 0%, .04), 0 4px 9px hsla(0, 0%, 0%, .13), 0 3px 3px hsla(0, 0%, 0%, .05);
+  -moz-transition: .35s cubic-bezier(.54, 1.60, .5, 1);
+  -o-transition: .35s cubic-bezier(.54, 1.60, .5, 1);
+  -webkit-transition: .35s cubic-bezier(.54, 1.60, .5, 1);
+  transition: .35s cubic-bezier(.54, 1.60, .5, 1);
+}
+
+.inactiveToggleMixin {
+	 content: "";
+	 position: absolute;
+	 display: block;
+}
+ .beforeToggleAnimation {
+	 -moz-transition: .2s cubic-bezier(.24,0,.5,1);
+	 -o-transition: .2s cubic-bezier(.24,0,.5,1);
+	 -webkit-transition: .2s cubic-bezier(.24,0,.5,1);
+	 transition: .2s cubic-bezier(.24,0,.5,1);
+}
+ .afterToggleAnimation {
+	 box-shadow: 0 0 0 1px rgba(0,0,0,0.1), 0 4px 0px 0 rgba(0,0,0,0.04), 0 4px 9px rgba(0,0,0,0.13), 0 3px 3px rgba(0,0,0,0.05);
+	 -moz-transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 -o-transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 -webkit-transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 transition: .35s cubic-bezier(.54,1.60,.5,1);
+}
+ input.mobileToggle {
+	 opacity: 0;
+	 position: absolute;
+}
+ input.mobileToggle + label {
+	 position: relative;
+	 display: inline-block;
+	 user-select: none;
+	 -moz-transition: .4s ease;
+	 -o-transition: .4s ease;
+	 -webkit-transition: .4s ease;
+	 transition: .4s ease;
+	 -webkit-tap-highlight-color: transparent;
+	 height: 30px;
+	 width: 52px;	 
+	 border-radius: 60px;
+}
+ input.mobileToggle + label:before {
+	 content: "";
+	 position: absolute;
+	 display: block;
+	 -moz-transition: .2s cubic-bezier(.24,0,.5,1);
+	 -o-transition: .2s cubic-bezier(.24,0,.5,1);
+	 -webkit-transition: .2s cubic-bezier(.24,0,.5,1);
+	 transition: .2s cubic-bezier(.24,0,.5,1);
+	 height: 30px;
+	 width: 52px;
+	 top: 0;
+	 left: 0;
+	 border-radius: 30px;
+}
+ input.mobileToggle + label:after {
+	 content: "";
+	 position: absolute;
+	 display: block;
+	 box-shadow: 0 0 0 1px rgba(0,0,0,0.1), 0 4px 0px 0 rgba(0,0,0,0.04), 0 4px 9px rgba(0,0,0,0.13), 0 3px 3px rgba(0,0,0,0.05);
+	 -moz-transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 -o-transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 -webkit-transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 transition: .35s cubic-bezier(.54,1.60,.5,1);
+	 background: whitesmoke;
+	 height: 28px;
+	 width: 28px;
+	 top: 1px;
+	 left: 0px;
+	 border-radius: 60px;
+}
+ input.mobileToggle:checked + label:before {
+	 -moz-transition: width .2s cubic-bezier(0,0,0,.1);
+	 -o-transition: width .2s cubic-bezier(0,0,0,.1);
+	 -webkit-transition: width .2s cubic-bezier(0,0,0,.1);
+	 transition: width .2s cubic-bezier(0,0,0,.1);
+}
+
+ input.mobileToggle:checked + label:after {
+	 left: 24px;
+}
+
+body:not(.dark-mode) input.mobileToggle:checked + label:before
+{	
+	background: #198754;	
+}
+
+.dark-mode input.mobileToggle:checked + label:before
+{	
+	background: #00bc8c;	
+}
+
+body:not(.dark-mode) input.mobileToggle + label:before
+{	
+	background: #dc3545;	
+}
+
+.dark-mode input.mobileToggle + label:before
+{	
+	background: #e74c3c;
+}
+
+body:not(.dark-mode) input.mobileToggle:not(:checked) + label
+{	
+	border-color: #ec4555;
+}
+
+.dark-mode input.mobileToggle:not(:checked) + label
+{	
+	border-color: #f75c4c;
+}
+
+body:not(.dark-mode) input.mobileToggle:checked + label
+{	
+	border-color: #299764;
+}
+
+.dark-mode input.mobileToggle:checked + label
+{	
+	border-color: #10cc9c;
+}
+
+input.mobileToggle:disabled + label:before
+{	
+	background: #a0a0a0 !important;	
 }

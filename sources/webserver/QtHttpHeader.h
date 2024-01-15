@@ -1,5 +1,4 @@
-#ifndef QTHTTPHEADER_H
-#define QTHTTPHEADER_H
+#pragma once
 
 class QByteArray;
 
@@ -40,5 +39,3 @@ public:
 	static const QByteArray& SecWebSocketProtocol;
 	static const QByteArray& SecWebSocketVersion;
 };
-
-#endif // QTHTTPHEADER_H

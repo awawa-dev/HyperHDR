@@ -1,12 +1,14 @@
 #pragma once
 
-#include <utils/Logger.h>
-#include "WebSocketUtils.h"
+#ifndef PCH_ENABLED
+	#include <utils/Logger.h>
+	#include <utils/ColorRgb.h>
+	#include <utils/Image.h>
+#endif
 
 class QTcpSocket;
-
 class QtHttpRequest;
-class JsonAPI;
+class HyperAPI;
 
 class WebSocketClient : public QObject
 {
@@ -25,9 +27,9 @@ public:
 	};
 
 private:
-	QTcpSocket* _socket;
-	Logger*     _log;
-	JsonAPI*    _jsonAPI;
+	QTcpSocket*	_socket;
+	Logger*		_log;
+	HyperAPI*	_hyperAPI;
 
 	void getWsFrameHeader(WebSocketHeader* header);
 	void sendClose(int status, QString reason = "");
@@ -36,22 +38,17 @@ private:
 	qint64 sendMessage_Raw(QByteArray& data);
 	QByteArray makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);
 
-	/// The buffer used for reading data from the socket
-	QByteArray _receiveBuffer;
 
-	/// buffer for websockets multi frame receive
+	QByteArray _receiveBuffer;
 	QByteArray _wsReceiveBuffer;
 	quint8 _maskKey[4];
 
 	bool _onContinuation = false;
-
-	// true when data is missing for parsing
 	bool _notEnoughData = false;
 
-	// websocket header store
-	WebSocketHeader _wsh;
+	WebSocketHeader _wsh{};
 
-	// masks for fields in the basic header
+
 	static uint8_t const BHB0_OPCODE = 0x0F;
 	static uint8_t const BHB0_RSV3 = 0x10;
 	static uint8_t const BHB0_RSV2 = 0x20;
@@ -68,5 +65,6 @@ private:
 
 private slots:
 	void handleWebSocketFrame();
-	qint64 sendMessage(QJsonObject obj);
+	qint64 sendMessage(const QJsonObject& obj);
+	qint64 signalCallbackBinaryImageMessageHandler(Image<ColorRgb> image);
 };

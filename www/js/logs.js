@@ -1,123 +1,102 @@
-var conf_editor = null;
+
 var createdCont = false;
 
 performTranslation();
 
-if (window.loggingStreamActive)
+function CopyToClipboard(par)
 {
-	requestLoggingStop();
+	var textarea = document.createElement("textarea");
+	textarea.textContent = par;
+	textarea.style.position = "fixed";
+	document.body.appendChild(textarea);
+	textarea.select();
+	try {
+		document.execCommand("copy");
+	}
+	catch (ex) {
+		console.warn("Copy to clipboard failed.", ex);		
+	}
+	finally {
+		document.body.removeChild(textarea);
+	}
 }
 
 $(document).ready(function() {
 	var messages;
-
-	requestLoggingStart();
-
-	$('#conf_cont').append(createOptPanel('<svg data-src="svg/logs_panel.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
-	$('#conf_cont').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
 	
 	if(window.showOptHelp)
 	{		
 		createHintH("callout-info", $.i18n('conf_logging_label_intro'), "log_head");
 	}	
 
-	conf_editor = createJsonEditor('editor_container', {
-		logger : window.schema.logger
-	}, true, true);
-
-	conf_editor.on('change',function() {
-		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+	$('#btn_autoscroll').off().on('click',function() {
+		toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
+		if($("#btn_autoscroll").hasClass('btn-success'))
+		{
+			document.getElementById('logs_autorefresh').beginElement();
+		}
+		else
+		{
+			document.getElementById('logs_autorefresh').endElement();
+		}
 	});
 
-	$('#btn_submit').off().on('click',function() {
-		requestWriteConfig(conf_editor.getValue());
-	});
+	$('#btn_copylogs').off().on('click',function() {
+		let copyText = $("#logmessages").text();
+		CopyToClipboard(copyText);
+	});	
 	
-	if (!window.loggingHandlerInstalled)
-	{
-		window.loggingHandlerInstalled = true;
-		
-		$(window.hyperhdr).unbind("cmd-logging-update");
-		$("#logmessages").empty();
+	$(window.hyperhdr).unbind("cmd-logging-update");
+	$("#logmessages").empty();
+	requestLoggingStart();
 
-		$(window.hyperhdr).on("cmd-logging-update",function(event){
-			
-			if (!window.location.href.includes("logs")&& 
-				 window.location.href.includes("#"))
+	$(window.hyperhdr).on("cmd-logging-update",
+		function(event)
+		{
+			messages = (event.response.result.messages);				
+				
+			var utcDate = new Date();
+			var offsetDate = utcDate.getTimezoneOffset();
+
+			$("#has_logs").removeClass("d-none");
+			$("#has_no_logs").addClass("d-none");
+
+			for(var idx = 0; idx < messages.length; idx++)
 			{
-				window.loggingHandlerInstalled = false;
-		
-				$(window.hyperhdr).unbind("cmd-logging-update");
-				$("#logmessages").empty();
-				
-				requestLoggingStop();
+				var logger_name = messages[idx].loggerName;
+				var function_ = messages[idx].function;
+				var line = messages[idx].line;
+				var file_name = messages[idx].fileName;
+				var msg = messages[idx].message;
+				var level_string = messages[idx].levelString;
+				var utime = messages[idx].utime;
+
+				var debug = "";					
+					
+				if(level_string == "DEBUG")
+				{
+					debug = "("+file_name+":"+line+") ";
+				}					
+
+				var date = new Date(parseInt(utime) - offsetDate * 60000);
+
+				LogLine($("#logmessages"), date, logger_name, level_string, debug, msg);					
 			}
-			else
+
+			if($("#btn_autoscroll").hasClass('btn-success'))
 			{
-				messages = (event.response.result.messages);
-				
-				if(!createdCont)
-				{
-					$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll">'+
-											'<svg data-src="svg/button_autorefresh.svg" data-unique-ids="disabled" fill="currentColor" class="svg4hyperhdr"></svg>'+
-										$.i18n('conf_logging_btn_autoscroll')+'</button>');
-					createdCont = true;
-
-					$('#btn_autoscroll').off().on('click',function() {
-						toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
-						if($("#btn_autoscroll").hasClass('btn-success'))
-						{
-							document.getElementById('logs_autorefresh').beginElement();
-						}
-						else
-						{
-							document.getElementById('logs_autorefresh').endElement();
-						}
-					});
-				}
-				
-				
-				var utcDate = new Date();
-				var offsetDate = utcDate.getTimezoneOffset();
-
-				for(var idx = 0; idx < messages.length; idx++)
-				{
-					var app_name = messages[idx].appName;
-					var logger_name = messages[idx].loggerName;
-					var function_ = messages[idx].function;
-					var line = messages[idx].line;
-					var file_name = messages[idx].fileName;
-					var msg = messages[idx].message;
-					var level_string = messages[idx].levelString;
-					var utime = messages[idx].utime;
-
-					var debug = "";
-					
-					
-					if(level_string == "DEBUG") {
-						debug = "("+file_name+":"+line+") ";
-					}
-					
-
-					var date = new Date(parseInt(utime) - offsetDate * 60000);
-
-					LogLine($("#logmessages"), date, app_name, logger_name, level_string, debug,msg);					
-				}
-
-				if($("#btn_autoscroll").hasClass('btn-success'))
-				{
-					$('#logmessages').stop().animate({
-						scrollTop: $('#logmessages')[0].scrollHeight
-					}, 800);
-				}
+				$('#logmessages').stop().animate({
+					scrollTop: $('#logmessages')[0].scrollHeight
+				}, 800);
 			}
-		});
-	}
+		}
+	);
+
 
 	removeOverlay();
 });
 
-function LogLine(logger,date,app_name,logger_name,level_string,debug,msg)
+function LogLine(logger,date,logger_name,level_string,debug,msg)
 {
 	var style="";
 	if (level_string=="INFO")
@@ -130,7 +109,7 @@ function LogLine(logger,date,app_name,logger_name,level_string,debug,msg)
 		style = " class='db_error'";
 	
 	if (logger.text().length > 0)
-		logger.append("\n<code"+style+">"+date.toISOString()+" ["+(app_name+" "+logger_name).trim()+"] "+debug+msg+"</code>");
+		logger.append("\n<code"+style+">"+date.toISOString()+" ["+(logger_name).trim()+"] "+debug+msg+"</code>");
 	else
-		logger.append("<code"+style+">"+date.toISOString()+" ["+(app_name+" "+logger_name).trim()+"] "+debug+msg+"</code>");
+		logger.append("<code"+style+">"+date.toISOString()+" ["+(logger_name).trim()+"] "+debug+msg+"</code>");
 }

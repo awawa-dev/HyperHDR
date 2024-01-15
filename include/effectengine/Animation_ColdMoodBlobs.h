@@ -6,12 +6,6 @@
 
 class Animation_ColdMoodBlobs : public Animation_MoodBlobs
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 
 	Animation_ColdMoodBlobs(QString name = ANIM_COLD_MOOD_BLOBS);

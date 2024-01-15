@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -46,9 +46,8 @@ Animation_KnightRider::Animation_KnightRider() :
 
 EffectDefinition Animation_KnightRider::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_KnightRider>);
 	ed.name = ANIM_KNIGHT_RIDER;
-	ed.args = GetArgs();
 	return ed;
 }
 
@@ -119,11 +118,6 @@ bool Animation_KnightRider::Play(QPainter* painter)
 	return ret;
 }
 
-QJsonObject Animation_KnightRider::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
-}
 
 
 

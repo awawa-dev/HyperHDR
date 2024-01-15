@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -55,14 +55,7 @@ Animation_AtomicSwirl::Animation_AtomicSwirl(QString name) :
 
 EffectDefinition Animation_AtomicSwirl::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_AtomicSwirl>);
 	ed.name = ANIM_ATOMIC_SWIRL;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_AtomicSwirl::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

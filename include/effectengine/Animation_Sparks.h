@@ -6,12 +6,6 @@
 
 class Animation_Sparks : public AnimationBase
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 	Animation_Sparks();
 

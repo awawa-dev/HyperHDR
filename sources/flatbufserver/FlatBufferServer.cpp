@@ -5,7 +5,7 @@
 // util
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
-#include <base/HyperHdrIManager.h>
+#include <base/HyperHdrManager.h>
 #include <utils/FrameDecoder.h>
 
 // qt
@@ -19,49 +19,40 @@
 
 #define LUT_FILE_SIZE 50331648
 
-FlatBufferServer* FlatBufferServer::instance = nullptr;
-
-FlatBufferServer::FlatBufferServer(const QJsonDocument& config, const QString& configurationPath, QObject* parent)
+FlatBufferServer::FlatBufferServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, const QString& configurationPath, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
 	, _domain(new QLocalServer(this))
-	, _netOrigin(nullptr)
+	, _netOrigin(netOrigin)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _timeout(5000)
 	, _port(19400)
 	, _config(config)
 	, _hdrToneMappingMode(0)
 	, _realHdrToneMappingMode(0)
-	, _lutBuffer(nullptr)
 	, _lutBufferInit(false)
 	, _configurationPath(configurationPath)
 	, _userLutFile("")
-{
-	FlatBufferServer::instance = this;
+{	
 }
 
 FlatBufferServer::~FlatBufferServer()
 {
+	Debug(_log, "Prepare to shutdown");
+
 	stopServer();
 
-	delete _server;
-	delete _domain;
-
-	if (_lutBuffer != NULL)
-		free(_lutBuffer);
-	_lutBuffer = NULL;
-
-	FlatBufferServer::instance = nullptr;
+	Debug(_log, "FlatBufferServer instance is closed");
 }
 
 void FlatBufferServer::initServer()
 {
-	_netOrigin = NetOrigin::getInstance();
-
 	if (_server != nullptr)
-		connect(_server, &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
+		connect(_server, &QTcpServer::newConnection, this, &FlatBufferServer::handlerNewConnection);
 	if (_domain != nullptr)
-		connect(_domain, &QLocalServer::newConnection, this, &FlatBufferServer::newConnection);
+		connect(_domain, &QLocalServer::newConnection, this, &FlatBufferServer::handlerNewConnection);
+
+	connect(this, &FlatBufferServer::SignalImportFromProto, this, &FlatBufferServer::handlerImportFromProto);
 
 	// apply config
 	handleSettingsUpdate(settings::type::FLATBUFSERVER, _config);
@@ -69,24 +60,21 @@ void FlatBufferServer::initServer()
 	loadLutFile();
 }
 
-void FlatBufferServer::setHdrToneMappingEnabled(int mode)
+void FlatBufferServer::signalRequestSourceHandler(hyperhdr::Components component, int instanceIndex, bool listen)
 {
-	bool status = (_hdrToneMappingMode != 0) && (mode != 0);
+	if (component == hyperhdr::Components::COMP_HDR)
+	{
+		if (instanceIndex < 0)
+		{
+			bool status = (_hdrToneMappingMode != 0) && listen;
 
-	if (status)
-		loadLutFile();
+			if (status)
+				loadLutFile();
 
-	_realHdrToneMappingMode = (_lutBufferInit && status) ? mode : 0;
-
-	// inform clients
-	emit hdrToneMappingChanged(_realHdrToneMappingMode, _lutBuffer);
-
-
-#if !defined(ENABLE_MF) && !defined(ENABLE_AVF) && !defined(ENABLE_V4L2)
-	emit HdrChanged(_realHdrToneMappingMode);
-	emit HyperHdrIManager::getInstance()->setNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (_realHdrToneMappingMode != 0));
-#endif
-
+			_realHdrToneMappingMode = (_lutBufferInit && status) ? listen : 0;
+		}
+		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (_realHdrToneMappingMode != 0));
+	}
 }
 
 int FlatBufferServer::getHdrToneMappingEnabled()
@@ -100,6 +88,15 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 	{
 		const QJsonObject& obj = config.object();
 
+		if (obj.keys().contains(BASEAPI_FLATBUFFER_USER_LUT_FILE))
+		{
+			QString filename = obj[BASEAPI_FLATBUFFER_USER_LUT_FILE].toString();
+			_userLutFile = filename.replace("~", "").replace("/", "").replace("\\", "").replace("..", "");
+			Info(_log, "Setting user LUT filename to: '%s'", QSTRING_CSTR(_userLutFile));
+			return;
+		}
+
+
 		quint16 port = obj["port"].toInt(19400);
 
 		// port check
@@ -112,7 +109,7 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		// HDR tone mapping
 		_hdrToneMappingMode = obj["hdrToneMapping"].toBool(false) ? obj["hdrToneMappingMode"].toInt(1) : 0;
 
-		setHdrToneMappingEnabled(_hdrToneMappingMode);
+		signalRequestSourceHandler(hyperhdr::Components::COMP_HDR, -1, _hdrToneMappingMode);
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
@@ -123,17 +120,14 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 void FlatBufferServer::setupClient(FlatBufferClient* client)
 {
-	connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
-	connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-	connect(client, &FlatBufferClient::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-	connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-	connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-	connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &FlatBufferClient::registationRequired);
-	connect(this, &FlatBufferServer::hdrToneMappingChanged, client, &FlatBufferClient::setHdrToneMappingEnabled);
+	connect(client, &FlatBufferClient::SignalClientDisconnected, this, &FlatBufferServer::handlerClientDisconnected);
+	connect(client, &FlatBufferClient::SignalClearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::SignalClearGlobalInput);
+	connect(client, &FlatBufferClient::SignalImageReceived, this, &FlatBufferServer::handlerImageReceived);
+	connect(client, &FlatBufferClient::SignalSetGlobalColor, GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalColor);
 	_openConnections.append(client);
 }
 
-void FlatBufferServer::newConnection()
+void FlatBufferServer::handlerNewConnection()
 {
 	while (_server != nullptr && _server->hasPendingConnections())
 	{
@@ -142,7 +136,7 @@ void FlatBufferServer::newConnection()
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				FlatBufferClient* client = new FlatBufferClient(socket, nullptr, _timeout, _hdrToneMappingMode, _lutBuffer, this);
+				FlatBufferClient* client = new FlatBufferClient(socket, nullptr, _timeout, this);
 				// internal
 				setupClient(client);
 			}
@@ -155,18 +149,20 @@ void FlatBufferServer::newConnection()
 		if (QLocalSocket* socket = _domain->nextPendingConnection())
 		{
 			Debug(_log, "New local domain connection");
-			FlatBufferClient* client = new FlatBufferClient(nullptr, socket, _timeout, _hdrToneMappingMode, _lutBuffer, this);
+			FlatBufferClient* client = new FlatBufferClient(nullptr, socket, _timeout, this);
 			// internal
 			setupClient(client);
 		}
 	}
 }
 
-void FlatBufferServer::clientDisconnected()
+void FlatBufferServer::handlerClientDisconnected(FlatBufferClient* client)
 {
-	FlatBufferClient* client = qobject_cast<FlatBufferClient*>(sender());
-	client->deleteLater();
-	_openConnections.removeAll(client);
+	if (client != nullptr)
+	{
+		client->deleteLater();
+		_openConnections.removeAll(client);
+	}
 }
 
 void FlatBufferServer::startServer()
@@ -195,9 +191,10 @@ void FlatBufferServer::stopServer()
 {
 	if ((_server != nullptr &&_server->isListening()) || (_domain != nullptr && _domain->isListening()))
 	{
-		// close client connections
-		for (const auto& client : _openConnections)
+		QVectorIterator<FlatBufferClient*> i(_openConnections);
+		while (i.hasNext())
 		{
+			const auto& client = i.next();
 			client->forceClose();
 		}
 
@@ -269,10 +266,9 @@ void FlatBufferServer::loadLutFile()
 
 					file.seek(index);
 
-					if (_lutBuffer == NULL)
-						_lutBuffer = (unsigned char*)malloc(length + 4);
+					_lut.resize(length + 4);
 
-					if (file.read((char*)_lutBuffer, LUT_FILE_SIZE) != LUT_FILE_SIZE)
+					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
 					{
 						Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
 					}
@@ -297,16 +293,19 @@ void FlatBufferServer::loadLutFile()
 	}
 }
 
-void FlatBufferServer::importFromProtoHandler(int priority, int duration, const Image<ColorRgb>& image)
+void FlatBufferServer::handlerImportFromProto(int priority, int duration, const Image<ColorRgb>& image, QString clientDescription)
 {
-	FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lutBuffer, _hdrToneMappingMode);
+	if (getHdrToneMappingEnabled())
+		FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
 
-	emit GlobalSignals::getInstance()->setGlobalImage(priority, image, duration);
+	emit GlobalSignals::getInstance()->SignalSetGlobalImage(priority, image, duration, hyperhdr::Components::COMP_PROTOSERVER, clientDescription);
 }
 
-void FlatBufferServer::setUserLut(QString filename)
+void FlatBufferServer::handlerImageReceived(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription)
 {
-	_userLutFile = filename.replace("~", "").replace("/", "").replace("..", "");
-
-	Info(_log, "Setting user LUT filename to: '%s'", QSTRING_CSTR(_userLutFile));
+	if (getHdrToneMappingEnabled())
+		FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
+	
+	emit GlobalSignals::getInstance()->SignalSetGlobalImage(priority, image, timeout_ms, origin, clientDescription);
 }
+

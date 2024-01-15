@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,8 +25,15 @@
 *  SOFTWARE.
 */
 
-#include <effectengine/EffectDBHandler.h>
+#ifndef PCH_ENABLED
+	#include <QJsonArray>
+	#include <QFileInfo>
+	#include <QDir>
+	#include <QMap>
+	#include <QByteArray>
+#endif
 
+#include <effectengine/EffectDBHandler.h>
 
 #include <effectengine/Animation_AtomicSwirl.h>
 #include <effectengine/Animation_BlueMoodBlobs.h>
@@ -84,43 +91,11 @@
 #include <effectengine/Animation4Music_WavesPulseFast.h>
 #include <effectengine/Animation4Music_WavesPulseSlow.h>
 
-// util
 #include <utils/JsonUtils.h>
 
-// qt
-#include <QJsonArray>
-#include <QFileInfo>
-#include <QDir>
-#include <QMap>
-#include <QByteArray>
-
-EffectDBHandler* EffectDBHandler::efhInstance = NULL;
-
-EffectDBHandler::EffectDBHandler(const QString& rootPath, const QJsonDocument& effectConfig, QObject* parent)
-	: QObject(parent)
-	, _effectConfig()
-	, _log(Logger::getInstance("EFFECTDB"))
-	, _rootPath(rootPath)
+std::list<EffectDefinition> EffectDBHandler::getEffects()
 {
-	EffectDBHandler::efhInstance = this;
-
-	// init
-	handleSettingsUpdate(settings::type::EFFECTS, effectConfig);
-}
-
-void EffectDBHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
-{
-	if (type == settings::type::EFFECTS)
-	{
-		_effectConfig = config.object();
-		updateEffects();
-	}
-}
-
-
-void EffectDBHandler::updateEffects()
-{
-	_availableEffects.clear();
+	std::list<EffectDefinition> _availableEffects;
 
 	_availableEffects.push_back(Animation4Music_WavesPulse::getDefinition());
 
@@ -235,17 +210,5 @@ void EffectDBHandler::updateEffects()
 
 	_availableEffects.push_back(Animation_WavesWithColor::getDefinition());
 
-	ErrorIf(_availableEffects.size() == 0, _log, "No effects found... something gone wrong");
-
-	emit effectListChanged();
-}
-
-EffectDBHandler* EffectDBHandler::getInstance()
-{
-	return efhInstance;
-}
-
-std::list<EffectDefinition> EffectDBHandler::getEffects() const
-{
 	return _availableEffects;
 }

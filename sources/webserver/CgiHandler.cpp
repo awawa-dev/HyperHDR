@@ -6,9 +6,13 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QProcess>
+#include <QTcpServer>
+#include <QSslKey>
 
+#include <utils/Logger.h>
 #include "CgiHandler.h"
 #include "QtHttpHeader.h"
+#include "QtHttpReply.h"
 
 CgiHandler::CgiHandler(QObject* parent)
 	: QObject(parent)

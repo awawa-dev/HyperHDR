@@ -6,12 +6,6 @@
 
 class Animation_RainbowSwirl : public Animation_Swirl
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 	Animation_RainbowSwirl(QString name = ANIM_RAINBOW_SWIRL);
 

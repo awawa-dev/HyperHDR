@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -42,14 +42,7 @@ Animation_CinemaDimLights::Animation_CinemaDimLights(QString name) :
 
 EffectDefinition Animation_CinemaDimLights::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_CinemaDimLights>);
 	ed.name = ANIM_CINEMA_DIM_LIGHTS;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_CinemaDimLights::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

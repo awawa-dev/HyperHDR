@@ -6,12 +6,6 @@
 
 class Animation_PoliceLightsSingle : public Animation_Police
 {
-	Q_OBJECT
-
-private:
-
-	static QJsonObject GetArgs();
-
 public:
 
 	Animation_PoliceLightsSingle(QString name = ANIM_POLICELIGHTSSINGLE);

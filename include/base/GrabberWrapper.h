@@ -1,61 +1,46 @@
 #pragma once
 
-#include <QObject>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QString>
-#include <QStringList>
-#include <QMultiMap>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QJsonObject>
+	#include <QJsonArray>
+	#include <QString>
+	#include <QStringList>
+	#include <QMultiMap>
 
-#include <utils/Logger.h>
-#include <utils/Components.h>
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
-#include <utils/settings.h>
+	#include <utils/ColorRgb.h>
+	#include <utils/Image.h>
+	#include <utils/Logger.h>
+	#include <utils/settings.h>
+	#include <utils/Components.h>
+#endif
+
 #include <base/Grabber.h>
 #include <base/DetectionAutomatic.h>
 
 class GlobalSignals;
 class QTimer;
 
-///
-/// This class will be inherted by FramebufferWrapper and others which contains the real capture interface
-///
 class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 
 public:
-	GrabberWrapper(const QString& grabberName, Grabber* ggrabber);
+	GrabberWrapper(const QString& grabberName);
 
 	~GrabberWrapper() override;
 
-	static	GrabberWrapper* instance;
-	static	GrabberWrapper* getInstance() { return instance; }
-
-	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
-
-	bool isCEC();
-
-	void setCecStartStop(int cecHdrStart, int cecHdrStop);
-
-	int getFpsSoftwareDecimation();
-
-	int getActualFps();
-
-	void revive();
-
+	bool isCEC();	
 	bool getAutoResume();
 
-	void benchmarkCapture(int status, QString message);
-
 public slots:
-	void newFrame(const Image<ColorRgb>& image);
-	void readError(const char* err);
-	void cecKeyPressedHandler(int key);
+	void capturingExceptionHandler(const char* err);	
 
 	bool start();
 	void stop();
+	void revive();
+
+	void benchmarkCapture(int status, QString message);
 
 	QJsonObject getJsonInfo();
 
@@ -64,38 +49,41 @@ public slots:
 	QJsonDocument getCalibrationInfo();
 
 private slots:
-	void handleSourceRequest(hyperhdr::Components component, int instanceIndex, bool listen);
+	void signalRequestSourceHandler(hyperhdr::Components component, int instanceIndex, bool listen);
 
 signals:
 	///
 	/// @brief Emit the final processed image
 	///
-	void systemImage(const QString& name, const Image<ColorRgb>& image);
-	void HdrChanged(int mode);
-	void StateChanged(QString device, QString videoMode);
-	void cecKeyPressed(int key);
-	void benchmarkUpdate(int status, QString message);
-	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
-	void instancePauseChanged(int instance, bool isEnabled);
-
-public:
-	int  getHdrToneMappingEnabled();
+	void SignalNewVideoImage(const QString& name, const Image<ColorRgb>& image);
+	void SignalVideoStreamChanged(QString device, QString videoMode);
+	void SignalCecKeyPressed(int key);
+	void SignalBenchmarkUpdate(int status, QString message);
+	void SignalInstancePauseChanged(int instance, bool isEnabled);
+	void SignalSetNewComponentStateToAllInstances(hyperhdr::Components component, bool enable);
+	void SignalSaveCalibration(QString saveData);
 
 public slots:
+	void signalCecKeyPressedHandler(int key);
+	int  getHdrToneMappingEnabled();
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setDeviceVideoStandard(const QString& device);
-	void setFpsSoftwareDecimation(int decimation);
-	void setHdrToneMappingEnabled(int mode);
+	void setFpsSoftwareDecimation(int decimation);	
 	void setEncoding(QString enc);
-	void setBrightnessContrastSaturationHueHandler(int brightness, int contrast, int saturation, int hue);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 	void setQFrameDecimation(int setQframe);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
-	void instancePauseChangedHandler(int instance, bool isEnabled);
+	void signalInstancePauseChangedHandler(int instance, bool isEnabled);
+	QString getVideoCurrentModeResolution();
 
 protected:
+	void setHdrToneMappingEnabled(int mode);
+	void setCecStartStop(int cecHdrStart, int cecHdrStop);
+
+	QMap<Grabber::currentVideoModeInfo, QString> getVideoCurrentMode() const;
 	DetectionAutomatic::calibrationPoint parsePoint(int width, int height, QJsonObject element, bool& ok);
 
 	QString		_grabberName;
@@ -104,7 +92,7 @@ protected:
 
 	bool		_configLoaded;
 
-	Grabber*	_grabber;
+	std::unique_ptr<Grabber> _grabber;
 
 	int			_cecHdrStart;
 	int			_cecHdrStop;
@@ -112,8 +100,6 @@ protected:
 	bool		_isPaused;
 	bool		_pausingModeEnabled;
 
-	int			_benchmarkStatus;
-	QString		_benchmarkMessage;
 	QList<int>	_running_clients;
 	QList<int>	_paused_clients;
 };

@@ -353,8 +353,8 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 		}
 
 		QJsonObject objOther;
-		QMap <QString, QString>::const_iterator o;
-		for (o = i.value().otherHeaders.begin(); o != i.value().otherHeaders.end(); ++o)
+		const QMap<QString,QString>& otherHeaders = i.value().otherHeaders;
+		for (QMap<QString, QString>::const_iterator o = otherHeaders.begin(); o != otherHeaders.end(); ++o)
 		{
 			objOther.insert(o.key().toLower(), o.value());
 		}

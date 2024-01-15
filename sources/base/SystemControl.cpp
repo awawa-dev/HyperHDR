@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,17 +25,17 @@
 *  SOFTWARE.
  */
 
+#ifndef PCH_ENABLED
+	#include <QTimer>
+#endif
+
 #include <base/SystemControl.h>
 #include <base/SystemWrapper.h>
 #include <base/HyperHdrInstance.h>
-
 #include <utils/GlobalSignals.h>
 
-// qt includes
-#include <QTimer>
-
 SystemControl::SystemControl(HyperHdrInstance* hyperhdr)
-	: QObject()
+	: QObject(hyperhdr)
 	, _hyperhdr(hyperhdr)
 	, _sysCaptEnabled(false)
 	, _alive(false)
@@ -45,19 +45,30 @@ SystemControl::SystemControl(HyperHdrInstance* hyperhdr)
 	, _isCEC(false)
 {
 	// settings changes
-	connect(_hyperhdr, &HyperHdrInstance::settingsChanged, this, &SystemControl::handleSettingsUpdate);
+	connect(_hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, this, &SystemControl::handleSettingsUpdate);
 
 	// comp changes
-	connect(_hyperhdr, &HyperHdrInstance::compStateChangeRequest, this, &SystemControl::handleCompStateChangeRequest);
+	connect(_hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &SystemControl::handleCompStateChangeRequest);
 
 	// inactive timer system grabber
-	connect(&_sysInactiveTimer, &QTimer::timeout, this, &SystemControl::setSysInactive);
-	_sysInactiveTimer.setInterval(800);
+	connect(_sysInactiveTimer, &QTimer::timeout, this, &SystemControl::setSysInactive);
+	_sysInactiveTimer->setInterval(800);
 
 	// init
-	handleSettingsUpdate(settings::type::SYSTEMCONTROL, _hyperhdr->getSetting(settings::type::SYSTEMCONTROL));
+	QJsonDocument settings = _hyperhdr->getSetting(settings::type::SYSTEMCONTROL);
+	QUEUE_CALL_2(this, handleSettingsUpdate, settings::type, settings::type::SYSTEMCONTROL, QJsonDocument, settings);
+}
 
-	connect(this, &SystemControl::setSysCaptureEnableSignal, this, &SystemControl::setSysCaptureEnable);
+SystemControl::~SystemControl()
+{
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_SYSTEMGRABBER, int(_hyperhdr->getInstanceIndex()), false);
+
+	std::cout << "SystemControl exists now" << std::endl;
+}
+
+quint8 SystemControl::getCapturePriority()
+{
+	return _sysCaptPrio;
 }
 
 bool SystemControl::isCEC()
@@ -75,8 +86,8 @@ void SystemControl::handleSysImage(const QString& name, const Image<ColorRgb>& i
 
 	_alive = true;
 
-	if (!_sysInactiveTimer.isActive() && _sysInactiveTimer.remainingTime() < 0)
-		_sysInactiveTimer.start();
+	if (!_sysInactiveTimer->isActive() && _sysInactiveTimer->remainingTime() < 0)
+		_sysInactiveTimer->start();
 
 	_hyperhdr->setInputImage(_sysCaptPrio, image);
 }
@@ -88,21 +99,19 @@ void SystemControl::setSysCaptureEnable(bool enable)
 		if (enable)
 		{
 			_hyperhdr->registerInput(_sysCaptPrio, hyperhdr::COMP_SYSTEMGRABBER);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &SystemControl::handleSysImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &SystemControl::handleSysImage, Qt::UniqueConnection);
 		}
 		else
 		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &SystemControl::handleSysImage);
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperhdr, &HyperHdrInstance::forwardSystemProtoMessage);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &SystemControl::handleSysImage);
 			_hyperhdr->clear(_sysCaptPrio);
-			_sysInactiveTimer.stop();
+			_sysInactiveTimer->stop();
 			_sysCaptName = "";
 		}
 
 		_sysCaptEnabled = enable;
 		_hyperhdr->setNewComponentState(hyperhdr::COMP_SYSTEMGRABBER, enable);
-		emit GlobalSignals::getInstance()->requestSource(hyperhdr::COMP_SYSTEMGRABBER, int(_hyperhdr->getInstanceIndex()), enable);
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_SYSTEMGRABBER, int(_hyperhdr->getInstanceIndex()), enable);
 	}
 }
 
@@ -117,12 +126,9 @@ void SystemControl::handleSettingsUpdate(settings::type type, const QJsonDocumen
 			_sysCaptPrio = obj["systemInstancePriority"].toInt(245);
 		}
 
-		bool enabledCurrent = obj["systemInstanceEnable"].toBool(false);
-		setSysCaptureEnable(enabledCurrent);
+		setSysCaptureEnable(obj["systemInstanceEnable"].toBool(false));
 		_isCEC = obj["cecControl"].toBool(false);
-
-		if (!enabledCurrent && SystemWrapper::getInstance() != nullptr)
-			SystemWrapper::getInstance()->stateChanged(false);
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_CEC, -int(_hyperhdr->getInstanceIndex()) - 2, _isCEC);
 	}
 }
 

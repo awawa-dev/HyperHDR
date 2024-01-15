@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -43,14 +43,7 @@ Animation_SwirlFast::Animation_SwirlFast(QString name) :
 
 EffectDefinition Animation_SwirlFast::getDefinition()
 {
-	EffectDefinition ed;
+	EffectDefinition ed(EffectFactory<Animation_SwirlFast>);
 	ed.name = ANIM_SWIRL_FAST;
-	ed.args = GetArgs();
 	return ed;
-}
-
-QJsonObject Animation_SwirlFast::GetArgs() {
-	QJsonObject doc;
-	doc["smoothing-custom-settings"] = false;
-	return doc;
 }

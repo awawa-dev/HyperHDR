@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,18 +25,17 @@
 *  SOFTWARE.
  */
 
+#ifndef PCH_ENABLED
+	#include <QTimer>
+	#include <QThread>
+#endif
+
+#include <HyperhdrConfig.h>
 #include <base/SystemWrapper.h>
 #include <base/Grabber.h>
-#include <HyperhdrConfig.h>
-
 #include <utils/GlobalSignals.h>
 #include <utils/QStringUtils.h>
-#include <base/HyperHdrIManager.h>
-
-#include <QTimer>
-#include <QThread>
-
-SystemWrapper* SystemWrapper::instance = nullptr;
+#include <base/HyperHdrManager.h>
 
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
 	: _grabberName(grabberName)
@@ -44,19 +43,17 @@ SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
 	, _configLoaded(false)
 	, _grabber(ggrabber)
 {
-	SystemWrapper::instance = this;
-
 	// connect the image forwarding
 
-	connect(this, &SystemWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setSystemImage);
+	connect(this, &SystemWrapper::SignalSystemImage, GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage);
 
 	// listen for source requests
-	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &SystemWrapper::handleSourceRequest);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &SystemWrapper::signalRequestSourceHandler);
 }
 
-void SystemWrapper::newFrame(const Image<ColorRgb>& image)
+void SystemWrapper::newCapturedFrameHandler(const Image<ColorRgb>& image)
 {
-	emit systemImage(_grabberName, image);
+	emit SignalSystemImage(_grabberName, image);
 }
 
 void SystemWrapper::stateChanged(bool state)
@@ -64,7 +61,7 @@ void SystemWrapper::stateChanged(bool state)
 
 }
 
-void SystemWrapper::readError(const char* err)
+void SystemWrapper::capturingExceptionHandler(const char* err)
 {
 	Error(_log, "Grabber signals error (%s)", err);
 }
@@ -74,7 +71,7 @@ SystemWrapper::~SystemWrapper()
 	Debug(_log, "Closing grabber: %s", QSTRING_CSTR(_grabberName));
 }
 
-void SystemWrapper::handleSourceRequest(hyperhdr::Components component, int hyperhdrInd, bool listen)
+void SystemWrapper::signalRequestSourceHandler(hyperhdr::Components component, int hyperhdrInd, bool listen)
 {
 	if (component == hyperhdr::Components::COMP_SYSTEMGRABBER)
 	{
@@ -164,11 +161,14 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 #ifdef ENABLE_DX
 			// HDR tone mapping
 			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? 1 : 0);
-			_grabber->alternativeCaching(obj["alternativeCaching"].toBool(false));
 #endif
 
 			// signal
 			_grabber->setSignalDetectionEnable(obj["signalDetection"].toBool(false));
+
+			_grabber->enableHardwareAcceleration(obj["hardware"].toBool(false));
+
+			_grabber->setMonitorNits(obj["monitor_nits"].toInt(200));
 
 			_grabber->setSignalDetectionOffset(
 				obj["sDHOffsetMin"].toDouble(0.25),

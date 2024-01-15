@@ -5,6 +5,24 @@ $(document).ready(function()
 	var importedConf;
 	var confName;
 	var conf_editor = null;
+	var conf_editor_logs = null;
+
+	$('#conf_cont_logs').append(createOptPanel('<svg data-src="svg/logs_panel.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_log_heading_title"), 'logs_editor_container', 'btn_submit_logs'));
+	$('#conf_cont_logs').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
+	$("#conf_cont_logs").children().first().removeClass();
+	$("#conf_cont_logs").children().first().addClass("editor_column");
+
+	conf_editor_logs = createJsonEditor('logs_editor_container', {
+		logger : window.schema.logger
+	}, true, true);
+
+	conf_editor_logs.on('change',function() {
+		conf_editor_logs.validate().length || window.readOnlyMode ? $('#btn_submit_logs').attr('disabled', true) : $('#btn_submit_logs').attr('disabled', false);
+	});
+
+	$('#btn_submit_logs').off().on('click',function() {
+		requestWriteConfig(conf_editor_logs.getValue());
+	});
 
 	
 	$('#conf_cont').append(createOptPanel('<svg data-src="svg/general_settings.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
@@ -156,7 +174,8 @@ $(document).ready(function()
 				else
 				{
 					content = JSON.parse(content);
-					if (typeof content.instances === 'undefined' || typeof content.settings === 'undefined' || content.version !== "HyperHDR_export_format_v17")
+					if (typeof content.instances === 'undefined' || typeof content.settings === 'undefined' ||
+						content.version == null || content.version.indexOf("HyperHDR_export_format_v") != 0)
 					{
 						showInfoDialog('error', "", $.i18n('infoDialog_import_hyperror_text', f.name));
 						dis_imp_btn(true);

@@ -1,44 +1,85 @@
-
-#include <list>
-#ifndef _WIN32
-#include <unistd.h>
+#ifndef PCH_ENABLED
+	#include <QColor>
+	#include <QSettings>
+	#include <list>
 #endif
 
-// QT includes
+#ifndef _WIN32
+	#include <unistd.h>
+#endif
+
+
 #include <QPixmap>
 #include <QWindow>
-#include <QGuiApplication>
-#include <QWidget>
-#include <QColor>
+#include <QApplication>
 #include <QDesktopServices>
+#include <QMenu>
+#include <QWidget>
+#include <QColorDialog>
+#include <QCloseEvent>
 #include <QSettings>
+
+#include <HyperhdrConfig.h>
 
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
 #include <webserver/WebServer.h>
 #include <utils/Logger.h>
 
-#include "hyperhdr.h"
+#include "HyperHdrDaemon.h"
 #include "systray.h"
 
-SysTray::SysTray(HyperHdrDaemon* hyperhdrd)
-	: QWidget(),
+SysTray::SysTray(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort)
+	: QObject(),
+	_quitAction(nullptr),
+	_startAction(nullptr),
+	_stopAction(nullptr),
+	_colorAction(nullptr),
+	_settingsAction(nullptr),
+	_clearAction(nullptr),
+	_autorunAction(nullptr),
+	_trayIcon(nullptr),
+	_trayIconMenu(nullptr),
+	_trayIconEfxMenu(nullptr),
 	_colorDlg(nullptr),
-	_hyperhdrd(hyperhdrd),
-	_hyperhdr(nullptr),
-	_instanceManager(HyperHdrIManager::getInstance()),
-	_webPort(8090)
+	_hyperhdrHandle(),
+	_webPort(webPort)
 {
 	Q_INIT_RESOURCE(resources);
 
-	// instance changes
-	connect(_instanceManager, &HyperHdrIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
+	std::shared_ptr<HyperHdrManager> instanceManager;
+	hyperhdrDaemon->getInstanceManager(instanceManager);
+	_instanceManager = instanceManager;
+	connect(instanceManager.get(), &HyperHdrManager::SignalInstanceStateChanged, this, &SysTray::signalInstanceStateChangedHandler);
+	connect(instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, this, &SysTray::signalSettingsChangedHandler);
 }
 
 SysTray::~SysTray()
 {
+	printf("Releasing SysTray\n");
+
+	if (_trayIconEfxMenu != nullptr)
+	{
+		for (QAction*& effect : _trayIconEfxMenu->actions())
+			delete effect;
+		_trayIconEfxMenu->clear();
+	}
+
 	if (_trayIconMenu != nullptr)
 		_trayIconMenu->clear();
+
+	delete _quitAction;
+	delete _startAction;
+	delete _stopAction;
+	delete _colorAction;
+	delete _settingsAction;
+	delete _clearAction;
+	delete _autorunAction;
+
+	delete _trayIcon;
+	delete _trayIconEfxMenu;
+	delete _trayIconMenu;
+	delete _colorDlg;
 }
 
 void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
@@ -70,66 +111,60 @@ void SysTray::createTrayIcon()
 	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-	_trayIconMenu = std::unique_ptr<QMenu>(new QMenu(this));
-	_trayIcon = std::unique_ptr<QSystemTrayIcon>(new QSystemTrayIcon(this));
-	_trayIcon->setContextMenu(_trayIconMenu.get());
+	_trayIconMenu = new QMenu();
+	_trayIcon = new QSystemTrayIcon();
+	_trayIcon->setContextMenu(_trayIconMenu);
 
-	_quitAction = std::unique_ptr<QAction>(new QAction(tr("&Quit"), this));
-	_quitIcon = std::unique_ptr<QPixmap>(new QPixmap(":/quit.svg"));
-	_quitAction->setIcon(*_quitIcon.get());
-	connect(_quitAction.get(), SIGNAL(triggered()), qApp, SLOT(quit()));
+	_quitAction = new QAction(tr("&Quit"));
+	_quitAction->setIcon(QPixmap(":/quit.svg"));
+	connect(_quitAction, &QAction::triggered, QApplication::instance(), &QApplication::quit);
 
-	_colorAction = std::unique_ptr<QAction>(new QAction(tr("&Color"), this));
-	_colorIcon = std::unique_ptr<QPixmap>(new QPixmap(":/color.svg"));
-	_colorAction->setIcon(*_colorIcon.get());
-	connect(_colorAction.get(), SIGNAL(triggered()), this, SLOT(showColorDialog()));
+	_colorAction = new QAction(tr("&Color"));
+	_colorAction->setIcon(QPixmap(":/color.svg"));
+	connect(_colorAction, &QAction::triggered, this, &SysTray::showColorDialog);
 
-	_settingsAction = std::unique_ptr<QAction>(new QAction(tr("&Settings"), this));
-	_settingsIcon = std::unique_ptr<QPixmap>(new QPixmap(":/settings.svg"));
-	_settingsAction->setIcon(*_settingsIcon.get());
-	connect(_settingsAction.get(), SIGNAL(triggered()), this, SLOT(settings()));
+	_settingsAction = new QAction(tr("&Settings"));
+	_settingsAction->setIcon(QPixmap(":/settings.svg"));
+	connect(_settingsAction, &QAction::triggered, this, &SysTray::settings);
 
-	_clearAction = std::unique_ptr<QAction>(new QAction(tr("&Clear"), this));
-	_clearIcon = std::unique_ptr<QPixmap>(new QPixmap(":/clear.svg"));
-	_clearAction->setIcon(*_clearIcon.get());
-	connect(_clearAction.get(), SIGNAL(triggered()), this, SLOT(clearEfxColor()));
+	_clearAction = new QAction(tr("&Clear"));
+	_clearAction->setIcon(QPixmap(":/clear.svg"));
+	connect(_clearAction, &QAction::triggered, this, &SysTray::clearEfxColor);
 
 	std::list<EffectDefinition> efxs;
 
-	SAFE_CALL_0_RET(_hyperhdr, getEffects, std::list<EffectDefinition>, efxs);
+	auto _hyperhdr = _hyperhdrHandle.lock();
+	if (_hyperhdr)
+		SAFE_CALL_0_RET(_hyperhdr.get(), getEffects, std::list<EffectDefinition>, efxs);
 
-	_trayIconEfxMenu = std::unique_ptr<QMenu>(new QMenu(_trayIconMenu.get()));
-	_effectsIcon = std::unique_ptr<QPixmap>(new QPixmap(":/effects.svg"));
-	_trayIconEfxMenu->setIcon(*_effectsIcon.get());
+	_trayIconEfxMenu = new QMenu();
+	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 
-	_effects.clear();
 	for (const EffectDefinition& efx : efxs)
 	{
-		std::shared_ptr<QAction> efxAction = std::shared_ptr<QAction>(new QAction(efx.name, this));
-		connect(efxAction.get(), SIGNAL(triggered()), this, SLOT(setEffect()));
-		_trayIconEfxMenu->addAction(efxAction.get());
-		_effects.push_back(efxAction);
+		QString effectName = efx.name;
+		QAction* efxAction = new QAction(effectName);
+		connect(efxAction, &QAction::triggered, this, &SysTray::setEffect);
+		_trayIconEfxMenu->addAction(efxAction);
 	}
 
 #ifdef _WIN32
-	_autorunAction = std::unique_ptr<QAction>(new QAction(tr("&Disable autostart"), this));
-	_autorunIcon = std::unique_ptr<QPixmap>(new QPixmap(":/autorun.svg"));
+	_autorunAction = new QAction(tr("&Disable autostart"));
+	_autorunAction->setIcon(QPixmap(":/autorun.svg"));
+	connect(_autorunAction, &QAction::triggered, this, &SysTray::setAutorunState);
 
-	_autorunAction->setIcon(*_autorunIcon.get());
-	connect(_autorunAction.get(), SIGNAL(triggered()), this, SLOT(setAutorunState()));
-
-	_trayIconMenu->addAction(_autorunAction.get());
+	_trayIconMenu->addAction(_autorunAction);
 	_trayIconMenu->addSeparator();
 #endif
 
-	_trayIconMenu->addAction(_settingsAction.get());
+	_trayIconMenu->addAction(_settingsAction);
 	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(_colorAction.get());
-	_trayIconMenu->addMenu(_trayIconEfxMenu.get());
-	_trayIconMenu->addAction(_clearAction.get());
+	_trayIconMenu->addAction(_colorAction);
+	_trayIconMenu->addMenu(_trayIconEfxMenu);
+	_trayIconMenu->addAction(_clearAction);
 	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(_quitAction.get());
+	_trayIconMenu->addAction(_quitAction);
 }
 
 #ifdef _WIN32
@@ -162,14 +197,16 @@ void SysTray::setColor(const QColor& color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
-	QUEUE_CALL_3(_hyperhdr, setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
+	auto _hyperhdr = _hyperhdrHandle.lock();
+	if (_hyperhdr)
+		QUEUE_CALL_3(_hyperhdr.get(), setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
 }
 
 void SysTray::showColorDialog()
 {
 	if (_colorDlg == nullptr)
 	{
-		_colorDlg = new QColorDialog(this);
+		_colorDlg = new QColorDialog();
 		_colorDlg->setOptions(QColorDialog::NoButtons);
 		connect(_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor&)));
 	}
@@ -182,11 +219,6 @@ void SysTray::showColorDialog()
 	{
 		_colorDlg->show();
 	}
-}
-
-void SysTray::closeEvent(QCloseEvent* event)
-{
-	event->ignore();
 }
 
 void SysTray::settings()
@@ -212,11 +244,6 @@ void SysTray::settings()
 	}
 #endif
 
-	if (_hyperhdrd)
-	{
-		_webPort = _hyperhdrd->getWebPort();
-	}
-
 	QDesktopServices::openUrl(QUrl("http://localhost:" + QString::number(_webPort) + "/", QUrl::TolerantMode));
 
 #ifndef _WIN32
@@ -230,41 +257,52 @@ void SysTray::settings()
 void SysTray::setEffect()
 {
 	QString efxName = qobject_cast<QAction*>(sender())->text();
-	_hyperhdr->setEffect(efxName, 1);
+	auto _hyperhdr = _hyperhdrHandle.lock();
+	if (_hyperhdr)
+		QUEUE_CALL_2(_hyperhdr.get(), setEffect, QString, efxName, int, 1);
 }
 
 void SysTray::clearEfxColor()
 {
-	_hyperhdr->clear(1);
+	auto _hyperhdr = _hyperhdrHandle.lock();
+	if (_hyperhdr)
+		QUEUE_CALL_1(_hyperhdr.get(), clear, int, 1);
 }
 
-void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
+void SysTray::signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name)
 {
 	switch (state) {
-		case InstanceState::H_STARTED:
+		case InstanceState::START:
 			if (instance == 0)
 			{
-				_hyperhdr = _instanceManager->getHyperHdrInstance(0);
+				std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
+
+				if (instanceManager == nullptr)
+					return;
+
+				std::shared_ptr<HyperHdrInstance> retVal;
+				SAFE_CALL_1_RET(instanceManager.get(), getHyperHdrInstance, std::shared_ptr<HyperHdrInstance>, retVal, quint8, 0);
+
+				_hyperhdrHandle = retVal;
 
 				createTrayIcon();
 
-				connect(_trayIcon.get(), SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
-#if !defined(__APPLE__)			
-				connect(_quitAction.get(), &QAction::triggered, _trayIcon.get(), &QSystemTrayIcon::hide, Qt::DirectConnection);
-#endif
+				connect(_trayIcon, &QSystemTrayIcon::activated, this, &SysTray::iconActivated);				
 
-
-				_appIcon = std::unique_ptr<QIcon>(new QIcon(":/hyperhdr-icon-32px.png"));
-				_trayIcon->setIcon(*_appIcon.get());
-				_trayIcon->show();
-#if !defined(__APPLE__)
-				setWindowIcon(*_appIcon.get());
-#endif				
+				_trayIcon->setIcon(QIcon(":/hyperhdr-icon-32px.png"));
+				_trayIcon->show();		
 			}
 
 			break;
 		default:
 			break;
+	}
+}
+
+void SysTray::signalSettingsChangedHandler(settings::type type, const QJsonDocument& data)
+{
+	if (type == settings::type::WEBSERVER)
+	{
+		_webPort = data.object()["port"].toInt();
 	}
 }

@@ -17,13 +17,13 @@ bool LedDeviceAPA102::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (ProviderSpi::init(deviceConfig))
 	{
-		CreateHeader();
+		createHeader();
 		isInitOK = true;
 	}
 	return isInitOK;
 }
 
-void LedDeviceAPA102::CreateHeader()
+void LedDeviceAPA102::createHeader()
 {
 	const unsigned int startFrameSize = 4;
 	const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), 4);
@@ -46,7 +46,7 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb>& ledValues)
 		Warning(_log, "APA102 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = ledValues.size();
 
-		CreateHeader();
+		createHeader();
 	}
 
 	for (signed iLed = 0; iLed < static_cast<int>(_ledCount); ++iLed) {

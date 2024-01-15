@@ -6,8 +6,6 @@
 
 class Animation_RainbowWaves : public AnimationBase
 {
-	Q_OBJECT
-
 public:
 
 	Animation_RainbowWaves(QString name = ANIM_RAINBOW_WAVES);
@@ -24,9 +22,4 @@ public:
 protected:
 
 	int		hue;
-
-
-private:
-
-	static QJsonObject GetArgs();
 };

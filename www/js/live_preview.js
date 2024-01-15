@@ -349,7 +349,7 @@ $(document).ready(function() {
 	};
 
 
-	$(window.hyperhdr).on("cmd-ledcolors-imagestream-update",function(event){
+	$(window.hyperhdr).on("cmd-image-stream-frame",function(event){
 		if (!modalOpened)
 		{
 			requestLedImageStop();
@@ -358,14 +358,15 @@ $(document).ready(function() {
 		{
 			lastFeedFrame = Date.now();
 
-			var imageData = (event.response.result.image);			
+			var imageData = (event.response);			
 			var image = new Image();
 
 			image.onload = function() {
 			    imageCanvasNodeCtx.drawImage(image, 0, 0, canvas_width, canvas_height);
-			};
+			};			
 
-			image.src = imageData;
+			var urlCreator = window.URL || window.webkitURL;
+			image.src = urlCreator.createObjectURL(imageData);
 		}
 	});
 

@@ -1,10 +1,11 @@
-#ifndef QTHTTPREPLY_H
-#define QTHTTPREPLY_H
+#pragma once
 
-#include <QObject>
-#include <QByteArray>
-#include <QHash>
-#include <QList>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QByteArray>
+	#include <QHash>
+	#include <QList>
+#endif
 
 class QtHttpServer;
 
@@ -58,5 +59,3 @@ private:
 	QtHttpServer*					m_serverHandle;
 	QHash<QByteArray, QByteArray>	m_headersHash;
 };
-
-#endif // QTHTTPREPLY_H

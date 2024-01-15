@@ -91,7 +91,7 @@ runs:
     uses: advanced-security/filter-sarif@v1
     with:    
       patterns: |
-        -dependencies/**
+        -external/**
       input: sarif-results/${{ inputs.language }}.sarif
       output: sarif-results/${{ inputs.language }}.sarif
 

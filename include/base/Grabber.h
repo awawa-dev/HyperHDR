@@ -1,23 +1,26 @@
 #pragma once
 
-#include <QObject>
-#include <QList>
-#include <QRectF>
-#include <cstdint>
-#include <QJsonObject>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QList>
+	#include <QRectF>
+	#include <cstdint>
+	#include <QJsonObject>
+	#include <QMultiMap>
+	#include <QSemaphore>
+	#include <atomic>
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+	#include <utils/ColorRgb.h>
+	#include <utils/Image.h>
+	#include <utils/Logger.h>
+	#include <utils/Components.h>
+	#include <utils/MemoryBuffer.h>
+#endif
+
 #include <utils/FrameDecoder.h>
-#include <utils/Logger.h>
-#include <utils/Components.h>
 #include <base/DetectionManual.h>
 #include <base/DetectionAutomatic.h>
 #include <utils/PerformanceCounters.h>
-
-#include <QMultiMap>
-#include <QSemaphore>
-
 
 #if  defined(_WIN32) || defined(WIN32)
 	// Windows
@@ -39,10 +42,9 @@ class Grabber : public DetectionAutomatic, public DetectionManual
 	Q_OBJECT
 
 public:
-	Grabber(const QString& configurationPath, const QString& grabberName = "", int width = 0, int height = 0,
-		int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0);
+	Grabber(const QString& configurationPath, const QString& grabberName);
 
-	~Grabber();
+	virtual ~Grabber();
 
 	static const QString AUTO_SETTING;
 	static const int	 AUTO_FPS;
@@ -50,11 +52,9 @@ public:
 
 	struct DevicePropertiesItem;
 
-	virtual void setHdrToneMappingEnabled(int mode) = 0;
+	virtual void setHdrToneMappingEnabled(int mode) override = 0;
 
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
-
-	virtual void alternativeCaching(bool alternative);
 
 	bool trySetWidthHeight(int width, int height);
 
@@ -63,6 +63,8 @@ public:
 	int getImageWidth();
 
 	int getImageHeight();
+
+	bool isInitialized();
 
 	void setEnabled(bool enable);
 
@@ -81,11 +83,17 @@ public:
 
 	virtual void uninit() = 0;
 
-	void setFpsSoftwareDecimation(int decimation);
+	void enableHardwareAcceleration(bool hardware);
 
-	int  getFpsSoftwareDecimation();
+	void setMonitorNits(int nits);
 
-	int  getActualFps();
+	void setFpsSoftwareDecimation(int decimation) override;
+
+	int  getFpsSoftwareDecimation() override;
+
+	QString getSignature() override;
+
+	int  getActualFps() override;
 
 	void setEncoding(QString enc);
 
@@ -107,11 +115,13 @@ public:
 
 	void resetCounter(int64_t from);
 
-	int  getHdrToneMappingEnabled();
+	int  getHdrToneMappingEnabled() override;
 
 	void setSignalDetectionEnable(bool enable);
 
 	void setAutoSignalDetectionEnable(bool enable);
+
+	void benchmarkCapture(int status, QString message);
 
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
 
@@ -145,9 +155,9 @@ public slots:
 
 	virtual void stop() = 0;
 
-	virtual void newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin) = 0;
+	virtual void newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin) = 0;
 
-	virtual void newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount) = 0;
+	virtual void newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount) = 0;
 
 	void revive();
 
@@ -156,20 +166,30 @@ public slots:
 	QStringList getVideoDevices() const;
 
 signals:
-	void newFrame(const Image<ColorRgb>& image);
+	void SignalNewCapturedFrame(const Image<ColorRgb>& image);
 
-	void readError(const char* err);
+	void SignalCapturingException(const char* err);
+
+	void SignalSetNewComponentStateToAllInstances(hyperhdr::Components component, bool enable);
+
+	void SignalBenchmarkUpdate(int status, QString message);
 
 protected:
 	void loadLutFile(PixelFormat color, const QList<QString>& files);
 
-	void processSystemFrameBGRA(uint8_t* source, int lineSize = 0);
+	int getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY);
+
+	void processSystemFrameBGRA(uint8_t* source, int lineSize = 0, bool useLut = true);
 
 	void processSystemFrameBGR(uint8_t* source, int lineSize = 0);
 
 	void processSystemFrameBGR16(uint8_t* source, int lineSize = 0);
 
 	void processSystemFrameRGBA(uint8_t* source, int lineSize = 0);
+
+	void processSystemFramePQ10(uint8_t* source, int lineSize = 0);
+
+	void handleNewFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin);
 
 	struct DeviceControlCapability
 	{
@@ -227,9 +247,10 @@ protected:
 		int64_t			frameBegin;
 		int   			averageFrame;
 		unsigned int	badFrame, goodFrame, segment;
+		bool			directAccess;
 	} frameStat;
 
-	volatile uint64_t   _currentFrame;
+	std::atomic<unsigned long>	 _currentFrame;
 
 	QString		_deviceName;
 
@@ -240,12 +261,13 @@ protected:
 	bool		_restartNeeded;
 	bool		_initialized;
 	int			_fpsSoftwareDecimation;
+	bool		_hardware;
 
 	PixelFormat _actualVideoFormat;
 	int			_actualWidth, _actualHeight, _actualFPS;
 	QString		_actualDeviceName;
-
-	uint8_t*	_lutBuffer;
+	uint		_targetMonitorNits;
+	MemoryBuffer<uint8_t>	_lut;
 	bool		_lutBufferInit;
 
 	int			_lineLength;
@@ -254,6 +276,9 @@ protected:
 	bool		_signalDetectionEnabled;
 	bool		_signalAutoDetectionEnabled;
 	QSemaphore  _synchro;
+
+	int			_benchmarkStatus;
+	QString		_benchmarkMessage;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

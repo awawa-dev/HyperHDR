@@ -1,12 +1,11 @@
 #include "LedDeviceFile.h"
 
-// Qt includes
-#include <Qt>
 #include <QTextStream>
+#include <QFile>
 
 LedDeviceFile::LedDeviceFile(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
-	, _lastWriteTime(QDateTime::currentDateTime())
+	, _lastWriteTimeNano(std::chrono::high_resolution_clock::now())
 	, _file(nullptr)
 {
 	_printTimeStamp = false;
@@ -26,14 +25,14 @@ bool LedDeviceFile::init(const QJsonObject& deviceConfig)
 {
 	bool initOK = LedDevice::init(deviceConfig);
 
-	_lastWriteTime = QDateTime::currentDateTime();
+	_lastWriteTimeNano = std::chrono::high_resolution_clock::now();
 
 	_fileName = deviceConfig["output"].toString("/dev/null");
 
 #if _WIN32
-	if (_fileName == "/dev/null")
+	if (_fileName == "/dev/null" || _fileName.trimmed().length() == 0)
 	{
-		_fileName = "NULL";
+		_fileName = "\\\\.\\NUL";
 	}
 #endif
 
@@ -100,11 +99,14 @@ int LedDeviceFile::write(const std::vector<ColorRgb>& ledValues)
 	if (_printTimeStamp)
 	{
 		QDateTime now = QDateTime::currentDateTime();
-		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(now);
+		auto nowNano = std::chrono::high_resolution_clock::now();
 
-		out << now.toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg(elapsedTimeMs, 4);
+		auto nano = std::chrono::duration_cast<std::chrono::nanoseconds>(nowNano-_lastWriteTimeNano).count();
+		double nanoDouble = (nano/1000000.0);
 
-		_lastWriteTime = now;
+		out << now.toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg(nanoDouble, 0, 'f', 1);
+
+		_lastWriteTimeNano = std::chrono::high_resolution_clock::now();
 	}
 
 	out << " [";

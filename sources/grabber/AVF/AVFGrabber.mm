@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2023 awawa-dev
+*  Copyright (c) 2020-2024 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -40,13 +40,13 @@
 #include <stdio.h>
 
 #include <base/HyperHdrInstance.h>
-#include <base/HyperHdrIManager.h>
+#include <utils/GlobalSignals.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <grabber/AVFGrabber.h>
+#include <grabber/AVF/AVFGrabber.h>
 #include <utils/ColorSys.h>
 
 // Apple frameworks
@@ -118,7 +118,7 @@ AVFGrabber::AVFGrabber(const QString& device, const QString& configurationPath)
 	if (!getPermission())
 	{
 		Warning(_log, "HyperHDR has NOT been granted the camera's permission. Will check it later again.");
-		QTimer::singleShot(3000, this, SLOT(getPermission()));
+		QTimer::singleShot(3000, this, &AVFGrabber::getPermission);
 	}
 
 	_isAVF = true;
@@ -153,7 +153,7 @@ bool AVFGrabber::getPermission()
 				if (_isAVF)
 				{
 					if (!_permission)
-						QTimer::singleShot(5000, this, SLOT(getPermission()));
+						QTimer::singleShot(5000, this, &AVFGrabber::getPermission);
 					else
 					{
 						Info(_log, "Got the video permission. Now trying to start HyperHDR's video grabber.");
@@ -188,10 +188,10 @@ void AVFGrabber::loadLutFile(PixelFormat color)
 
 void AVFGrabber::setHdrToneMappingEnabled(int mode)
 {
-	if (_hdrToneMappingEnabled != mode || _lutBuffer == NULL)
+	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
 	{
 		_hdrToneMappingEnabled = mode;
-		if (_lutBuffer != NULL || !mode)
+		if (_lut.data() != nullptr || !mode)
 			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
@@ -206,6 +206,7 @@ void AVFGrabber::setHdrToneMappingEnabled(int mode)
 				loadLutFile(PixelFormat::RGB24);
 			_AVFWorkerManager.Start();
 		}
+		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
 		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
@@ -770,10 +771,10 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 			{
 				int total = (frameStat.badFrame + frameStat.goodFrame);
 				int av = (frameStat.goodFrame > 0) ? frameStat.averageFrame / frameStat.goodFrame : 0;
-
+				QString access = (frameStat.directAccess) ? " (direct)" : "";
 				if (diff >= 59000 && diff <= 65000)
-					emit PerformanceCounters::getInstance()->newCounter(
-					PerformanceReport(static_cast<int>(PerformanceReportType::VIDEO_GRABBER), frameStat.token, this->_actualDeviceName, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
+					emit GlobalSignals::getInstance()->SignalPerformanceNewReport(
+					PerformanceReport(hyperhdr::PerformanceReportType::VIDEO_GRABBER, frameStat.token, this->_actualDeviceName + access, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
 				
 				resetCounter(now);
 
@@ -791,8 +792,8 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 				for (unsigned int i = 0; i < _AVFWorkerManager.workersCount && _AVFWorkerManager.workers != nullptr; i++)
 				{
 					AVFWorker* _workerThread = _AVFWorkerManager.workers[i];
-					connect(_workerThread, SIGNAL(newFrameError(unsigned int, QString, quint64)), this, SLOT(newWorkerFrameError(unsigned int, QString, quint64)));
-					connect(_workerThread, SIGNAL(newFrame(unsigned int, Image<ColorRgb>, quint64, qint64)), this, SLOT(newWorkerFrame(unsigned int, Image<ColorRgb>, quint64, qint64)));
+					connect(_workerThread, &AVFWorker::SignalNewFrameError, this, &AVFGrabber::newWorkerFrameErrorHandler);
+					connect(_workerThread, &AVFWorker::SignalNewFrame, this, &AVFGrabber::newWorkerFrameHandler);
 				}
 			}
 
@@ -810,13 +811,14 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 							loadLutFile();
 						}
 
+						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() || (_benchmarkStatus >= 0));
 						_workerThread->setup(
 							i,
 							_actualVideoFormat,
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
-							(_lutBufferInit) ? _lutBuffer : NULL, _qframe);
+							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName);
 
 						if (_AVFWorkerManager.workersCount > 1)
 							_AVFWorkerManager.workers[i]->start();
@@ -834,7 +836,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 	return frameSend;
 }
 
-void AVFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, quint64 sourceCount)
+void AVFGrabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount)
 {
 
 	frameStat.badFrame++;
@@ -850,23 +852,9 @@ void AVFGrabber::newWorkerFrameError(unsigned int workerIndex, QString error, qu
 }
 
 
-void AVFGrabber::newWorkerFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
+void AVFGrabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
 {
-	frameStat.goodFrame++;
-	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;
-
-	if (_signalAutoDetectionEnabled || isCalibrating())
-	{
-		if (checkSignalDetectionAutomatic(image))
-			emit newFrame(image);
-	}
-	else if (_signalDetectionEnabled)
-	{
-		if (checkSignalDetectionManual(image))
-			emit newFrame(image);
-	}
-	else
-		emit newFrame(image);
+	handleNewFrame(workerIndex, image, sourceCount, _frameBegin);
 
 	// get next frame	
 	if (workerIndex > _AVFWorkerManager.workersCount)
