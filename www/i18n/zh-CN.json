@@ -1197,6 +1197,7 @@
   "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040 握手（<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>信息</a>）",
   "edt_rpi_ws281x_driver": "此驱动程序适用于高级用户，HyperHDR 团队<b>不推荐或不支持</b>。请阅读项目常见问题解答部分了解原因，如果您尝试使用它，请不要向我们寻求帮助，因为它<b>撤销对您的整个 HyperHDR 配置的任何支持</b>。选择更好的解决方案，例如 HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) 或 HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>关于</a>)。",
   "edt_dev_spec_awa_mode_title": "具有数据完整性检查功能的高速串行 AWA 协议（<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>）",
+  "edt_dev_spec_forceSerialDetection": "强制 HyperSerial 检测（忽略主板 ProductId/VendorId）",
   "led_editor_context_identify": "确认",
   "main_menu_grabber_lut" : "下载查找表",
   "main_menu_grabber_lut_title" : "用于 USB 采集器的自定义 LUT",

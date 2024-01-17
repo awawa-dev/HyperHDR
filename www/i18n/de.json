@@ -1198,6 +1198,7 @@
   "edt_rpi_ws281x_driver": "Dieser Treiber ist für fortgeschrittene Benutzer gedacht und wird vom HyperHDR-Team <b>nicht empfohlen oder unterstützt</b>. Bitte lesen Sie den FAQ-Abschnitt des Projekts für Gründe und fragen Sie uns nicht um Hilfe, wenn Sie versuchen, es zu verwenden, da es <b>jede Unterstützung für Ihre gesamte HyperHDR-Konfiguration entzieht</b>. Wählen Sie eine bessere Lösung wie HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) oder HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>about</a>).",
   "edt_dev_spec_awa_mode_title": "Serielles AWA-Hochgeschwindigkeitsprotokoll mit Datenintegritätsprüfung (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "led_editor_context_identify": "Identifizieren",
+  "edt_dev_spec_forceSerialDetection": "HyperSerial erkennung erzwingen (Board-Produkt-ID/VendorId ignorieren)",
   "main_menu_grabber_lut" : "Laden Sie LUT herunter",
   "main_menu_grabber_lut_title" : "Benutzerdefinierte LUT für USB grabber",
   "main_menu_grabber_lut_path" : "Der benutzerdefinierte LUT pfad ist: $1",
