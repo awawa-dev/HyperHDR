@@ -37,8 +37,11 @@
 #include <utils/Image.h>
 #include <base/HyperHdrManager.h>
 #include <windows.h>
+#include <wtsapi32.h>
 
-SuspendHandler::SuspendHandler()
+#pragma comment (lib, "WtsApi32.Lib")
+
+SuspendHandler::SuspendHandler(bool sessionLocker)
 {
 	auto handle = reinterpret_cast<HWND> (_widget.winId());
 	_notifyHandle = RegisterSuspendResumeNotification(handle, DEVICE_NOTIFY_WINDOW_HANDLE);
@@ -46,7 +49,19 @@ SuspendHandler::SuspendHandler()
 	if (_notifyHandle == NULL)
 		std::cout << "COULD NOT REGISTER SLEEP HANDLER!" << std::endl;
 	else
-		std::cout << "SLEEP HANDLER REGISTERED!" << std::endl;
+		std::cout << "Sleep handler registered!" << std::endl;
+
+	_sessionLocker = sessionLocker;
+	if (_sessionLocker)
+	{
+		if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
+			std::cout << "Session handler registered!" << std::endl;
+		else
+		{
+			std::cout << "COULD NOT REGISTER SESSION HANDLER!" << std::endl;
+			_sessionLocker = false;
+		}
+	}
 }
 
 SuspendHandler::~SuspendHandler()
@@ -54,9 +69,15 @@ SuspendHandler::~SuspendHandler()
 	if (_notifyHandle != NULL)
 	{
 		UnregisterSuspendResumeNotification(_notifyHandle);
-		std::cout << "SLEEP HANDLER DEREGISTERED!" << std::endl;
+		std::cout << "Sleep handler deregistered!" << std::endl;
 	}
 	_notifyHandle = NULL;
+
+	if (_sessionLocker)
+	{
+		auto handle = reinterpret_cast<HWND> (_widget.winId());
+		WTSUnRegisterSessionNotification(handle);
+	}
 }
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -81,6 +102,34 @@ bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* messag
 				break;
 		}
 	}
+
+	if (_sessionLocker)
+	{
+		if (msg->message == WM_WTSSESSION_CHANGE)
+		{
+			switch (msg->wParam)
+			{
+			case WTS_SESSION_UNLOCK:
+				emit SignalHibernate(true);
+				return true;
+				break;
+
+			case WTS_SESSION_LOCK:
+
+				if (GetSystemMetrics(SM_REMOTESESSION) != 0)
+				{
+					std::cout << "Detected RDP session. Skipping disable on lock." << std::endl;
+				}
+				else
+				{
+					emit SignalHibernate(false);
+					return true;
+				}
+				break;
+			}
+		}
+	}
+
 	return false;
 }
 

@@ -177,7 +177,11 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 
 	// power management
 	#if defined(HAVE_POWER_MANAGEMENT)
-		_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler());
+		auto genSet = getSetting(settings::type::GENERAL);
+		const QJsonObject& genConfig = genSet.object();
+		bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
+
+		_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
 		connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
 
 		#ifdef _WIN32

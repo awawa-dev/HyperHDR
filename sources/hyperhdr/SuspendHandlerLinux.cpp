@@ -46,7 +46,7 @@ namespace {
 	const QString UPOWER_INTER = QStringLiteral("org.freedesktop.login1.Manager");
 }
 
-SuspendHandler::SuspendHandler()
+SuspendHandler::SuspendHandler(bool sessionLocker)
 {
 	QDBusConnection bus = QDBusConnection::systemBus();
 
