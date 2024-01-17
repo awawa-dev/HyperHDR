@@ -1197,6 +1197,7 @@
   "edt_serial_espHandshake": "Bắt tay Esp8266/ESP32/Rp2040 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver": "Trình điều khiển này dành cho người dùng nâng cao và <b>không được đề xuất hoặc hỗ trợ</b> bởi nhóm HyperHDR. Vui lòng đọc phần Câu hỏi thường gặp của dự án để biết lý do và đừng yêu cầu chúng tôi trợ giúp nếu bạn cố gắng sử dụng nó vì nó <b>thu hồi mọi hỗ trợ cho toàn bộ cấu hình HyperHDR của bạn</b>. Chọn giải pháp tốt hơn như HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) hoặc HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>about</a>).",
   "edt_dev_spec_awa_mode_title": "Giao thức AWA nối tiếp tốc độ cao với tính năng kiểm tra tính toàn vẹn của dữ liệu (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
+  "edt_dev_spec_forceSerialDetection": "Buộc phát hiện HyperSerial (bỏ qua bảng ProductId/VendorId)",
   "led_editor_context_identify": "Nhận dạng",
   "main_menu_grabber_lut" : "Tải xuống LUT",
   "main_menu_grabber_lut_title" : "LUT tùy chỉnh cho bộ lấy USB",
