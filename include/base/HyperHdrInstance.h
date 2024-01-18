@@ -51,7 +51,7 @@ class HyperHdrInstance : public QObject
 	Q_OBJECT
 
 public:
-	HyperHdrInstance(quint8 instance, bool readonlyMode, QString name);
+	HyperHdrInstance(quint8 instance, bool readonlyMode, bool disableOnstartup, QString name);
 	~HyperHdrInstance();
 	
 	quint8 getInstanceIndex() const { return _instIndex; }
@@ -158,6 +158,7 @@ private:
 	QString					_name;
 
 	bool					_readOnlyMode;
+	bool					_disableOnStartup;
 
 	static std::atomic<bool>	_signalTerminate;
 	static std::atomic<int>		_totalRunningCount;

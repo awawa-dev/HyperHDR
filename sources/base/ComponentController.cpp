@@ -8,8 +8,9 @@
 
 using namespace hyperhdr;
 
-ComponentController::ComponentController(HyperHdrInstance* hyperhdr)
-	: _log(Logger::getInstance(QString("COMPONENTCTRL%1").arg(hyperhdr->getInstanceIndex())))
+ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup):
+	_log(Logger::getInstance(QString("COMPONENTCTRL%1").arg(hyperhdr->getInstanceIndex()))),
+	_disableOnStartup(disableOnStartup)
 {
 	// init all comps to false
 	QVector<hyperhdr::Components> vect;
@@ -27,7 +28,7 @@ ComponentController::ComponentController(HyperHdrInstance* hyperhdr)
 
 	connect(this, &ComponentController::SignalRequestComponent, hyperhdr, &HyperHdrInstance::SignalRequestComponent);
 	connect(hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &ComponentController::handleCompStateChangeRequest);
-	Debug(_log, "ComponentController is initialized");
+	Debug(_log, "ComponentController is initialized. Components are %s", (_disableOnStartup) ? "DISABLED" : "ENABLED");
 }
 
 ComponentController::~ComponentController()
@@ -41,11 +42,17 @@ void ComponentController::handleCompStateChangeRequest(hyperhdr::Components comp
 	{
 		if (!activated && _prevComponentStates.empty())
 		{
+			bool disableLeds = _disableOnStartup && !isComponentEnabled(COMP_ALL) && _prevComponentStates.empty();
+
 			Debug(_log, "Disabling HyperHDR instance: saving current component states first");
 			for (const auto& comp : _componentStates)
 				if (comp.first != COMP_ALL)
 				{
-					_prevComponentStates.emplace(comp.first, comp.second);
+					if (disableLeds && comp.first == COMP_LEDDEVICE)
+						_prevComponentStates.emplace(comp.first, true);
+					else
+						_prevComponentStates.emplace(comp.first, comp.second);
+
 					if (comp.second)
 					{
 						emit SignalRequestComponent(comp.first, false);

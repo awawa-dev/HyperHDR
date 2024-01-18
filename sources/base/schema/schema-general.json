@@ -41,6 +41,15 @@
 			"default" : false,
 			"required" : true,
 			"propertyOrder" : 5
+		},
+		"disableLedsStartup" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_gen_disableLedsStartup_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 6
 		}
 
 	},

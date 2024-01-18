@@ -44,7 +44,7 @@ LedDeviceWrapper::~LedDeviceWrapper()
 	_ledDevice.reset();
 }
 
-void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval)
+void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval, bool disableOnStartup)
 {
 	_ledDevice.reset();
 
@@ -63,7 +63,8 @@ void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval
 	_ledDevice->moveToThread(thread);
 
 	// setup thread management
-	connect(thread, &QThread::started, _ledDevice.get(), &LedDevice::start);
+	if (!disableOnStartup)
+		connect(thread, &QThread::started, _ledDevice.get(), &LedDevice::start);
 	connect(thread, &QThread::finished, _ledDevice.get(), &LedDevice::stop);
 	connect(_ownerInstance, &HyperHdrInstance::SignalSmoothingRestarted, _ledDevice.get(), &LedDevice::smoothingRestarted, Qt::QueuedConnection);
 	connect(_ledDevice.get(), &LedDevice::SignalEnableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
