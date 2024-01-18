@@ -88,6 +88,11 @@ void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool
 			QUEUE_CALL_0(_ledDevice.get(), disable);
 		}
 	}
+
+	if (component == hyperhdr::COMP_ALL)
+	{
+		QUEUE_CALL_1(_ledDevice.get(), pauseRetryTimer, bool, (!state));
+	}
 }
 
 void LedDeviceWrapper::handleInternalEnableState(bool newState)

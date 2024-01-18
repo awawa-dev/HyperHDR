@@ -70,6 +70,7 @@ public slots:
 	void blinking(QJsonObject params);
 	void smoothingRestarted(int newSmoothingInterval);
 	int hasLedClock();
+	void pauseRetryTimer(bool mode);
 
 signals:
 	void SignalEnableStateChanged(bool newState);
@@ -155,4 +156,5 @@ private:
 	int _blinkIndex;
 	qint64 _blinkTime;
 	int _instanceIndex;
+	int _pauseRetryTimer;
 };

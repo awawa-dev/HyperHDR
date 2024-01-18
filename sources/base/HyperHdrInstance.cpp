@@ -684,9 +684,15 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 		if (previousPriority == Muxer::LOWEST_PRIORITY)
 		{
 			Info(_log, "New source available -> switch LED-Device on");
-
-			emit SignalRequestComponent(hyperhdr::COMP_LEDDEVICE, true);
-			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(true, hyperhdr::PerformanceReportType::INSTANCE, getInstanceIndex(), _name);
+			if (!isComponentEnabled(hyperhdr::Components::COMP_ALL))
+			{
+				Warning(_log, "Components are disabled: ignoring switching LED-Device on");
+			}
+			else
+			{
+				emit SignalRequestComponent(hyperhdr::COMP_LEDDEVICE, true);
+				emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(true, hyperhdr::PerformanceReportType::INSTANCE, getInstanceIndex(), _name);
+			}
 		}
 	}
 }

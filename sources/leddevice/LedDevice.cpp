@@ -40,6 +40,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _blinkIndex(-1)
 	, _blinkTime(0)
 	, _instanceIndex(-1)
+	, _pauseRetryTimer(-1)
 {
 	std::shared_ptr<DiscoveryWrapper> discoveryWrapper = nullptr;
 	emit GlobalSignals::getInstance()->SignalGetDiscoveryWrapper(discoveryWrapper);
@@ -203,10 +204,36 @@ void LedDevice::start()
 	}
 }
 
+void LedDevice::pauseRetryTimer(bool mode)
+{
+	if (mode)
+	{
+		if (_pauseRetryTimer < 0)
+		{
+			_pauseRetryTimer = (_retryTimer != nullptr && _retryTimer->isActive()) ? _retryTimer->interval() : 0;
+			Debug(_log, "Saving retryTimer (interval: %i)", _pauseRetryTimer);
+			stopRetryTimer();
+		}
+	}
+	else
+	{
+		if (_pauseRetryTimer >= 0)
+		{
+			Debug(_log, "Restoring retryTimer (interval: %i)", _pauseRetryTimer);
+			if (_pauseRetryTimer > 0 && !_isOn)
+			{
+				setupRetry(_pauseRetryTimer);
+			}
+			_pauseRetryTimer = -1;
+		}
+	}
+}
+
 void LedDevice::enable()
 {
 	if (!_signalTerminate)
 	{
+		_pauseRetryTimer = -1;
 		stopRetryTimer();
 
 		if (!_isDeviceInitialised && init(_devConfig))
