@@ -1197,6 +1197,7 @@
   "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040 anlaşması (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>bilgi</a>)",
   "edt_rpi_ws281x_driver": "Bu sürücü ileri düzey kullanıcılar için tasarlanmıştır ve HyperHDR ekibi tarafından <b>önerilmez veya desteklenmez</b>. Nedenleri için lütfen proje SSS bölümünü okuyun ve <b>HyperHDR yapılandırmanızın tamamı için herhangi bir desteği iptal ettiği</b> için kullanmaya çalışırsanız bizden yardım istemeyin. HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) veya HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>hakkında</a>).",
   "edt_dev_spec_awa_mode_title": "Veri bütünlüğü kontrolüne sahip yüksek hızlı seri AWA protokolü (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>bilgi</a>)",
+  "edt_dev_spec_forceSerialDetection": "HyperSerial algılamayı zorla (kart ProductId/VendorId'yi dikkate almayın)",
   "led_editor_context_identify": "Tanımlamak",
   "main_menu_grabber_lut" : "LUT'u indirin",
   "main_menu_grabber_lut_title" : "USB yakalayıcı için özel LUT",

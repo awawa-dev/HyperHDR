@@ -1197,6 +1197,7 @@
   "edt_serial_espHandshake": "Protocolo de enlace Esp8266/ESP32/Rp2040 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver": "Este controlador está diseñado para usuarios avanzados y <b>no se recomienda ni se admite</b> por parte del equipo de HyperHDR. Lea la sección de preguntas frecuentes del proyecto para conocer los motivos y no nos pida ayuda si intenta usarlo porque <b>revoca cualquier soporte para toda su configuración de HyperHDR</b>. Elija una mejor solución como HyperSerialEsp8266/HyperSerialESP32 (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>about</a>) o HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>acerca de</a>).",
   "edt_dev_spec_awa_mode_title": "Protocolo AWA serial de alta velocidad con verificación de integridad de datos (<a href='https://github.com/awawa-dev/HyperHDR/wiki/HyperSerial' style='color:red'>info</a>)",
+  "edt_dev_spec_forceSerialDetection": "Forzar la detección de HyperSerial (ignorar el ProductId/VendorId de la placa)",
   "led_editor_context_identify": "Identificar",
   "main_menu_grabber_lut" : "Descargar LUT",
   "main_menu_grabber_lut_title" : "LUT personalizado para capturador USB",

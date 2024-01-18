@@ -35,6 +35,21 @@
 			},
 			"propertyOrder" : 4
 		},
+		"forceSerialDetection" :
+		{
+
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_dev_spec_forceSerialDetection",		
+			"default" : false,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"awa_mode": true
+				}
+			},
+			"propertyOrder" : 5
+		},
 		"white_channel_calibration": {
 			"type": "boolean",
 			"format": "checkbox",
@@ -46,7 +61,7 @@
 					"awa_mode": true
 				}
 			},
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},
 		"white_channel_limit": {
 			"type": "number",
@@ -63,7 +78,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
 		"white_channel_red": {
 			"type": "integer",
@@ -79,7 +94,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 7
+			"propertyOrder" : 8
 		},
 		"white_channel_green": {
 			"type": "integer",
@@ -95,7 +110,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 8
+			"propertyOrder" : 9
 		},
 		"white_channel_blue": {
 			"type": "integer",
@@ -111,7 +126,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 9
+			"propertyOrder" : 10
 		},
 		"delayAfterConnect": {
 			"type": "integer",
@@ -124,7 +139,7 @@
 					"awa_mode": false
 				}
 			},
-			"propertyOrder" : 10
+			"propertyOrder" : 11
 		},
 		"lightberry_apa102_mode": {
 			"type": "boolean",
@@ -137,7 +152,7 @@
 					"awa_mode": false
 				}
 			},
-			"propertyOrder" : 11
+			"propertyOrder" : 12
 		},
 		"maxRetry":
 		{
@@ -149,7 +164,7 @@
 			"maximum" : 120,
 			"default" : 0,
 			"required" : true,
-			"propertyOrder" : 12
+			"propertyOrder" : 13
 		}
 	},
 	"additionalProperties": true
