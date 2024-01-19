@@ -15,7 +15,7 @@ class ComponentController : public QObject
 	Q_OBJECT
 
 public:
-    ComponentController(HyperHdrInstance* hyperhdr);
+    ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup);
     virtual ~ComponentController();
 
 	int isComponentEnabled(hyperhdr::Components comp) const;
@@ -35,4 +35,5 @@ private:
 	Logger* _log;
 	std::map<hyperhdr::Components, bool> _componentStates;
 	std::map<hyperhdr::Components, bool> _prevComponentStates;
+	bool _disableOnStartup;
 };

@@ -46,15 +46,17 @@ namespace {
 	const QString UPOWER_INTER = QStringLiteral("org.freedesktop.login1.Manager");
 }
 
-SuspendHandler::SuspendHandler()
+SuspendHandler::SuspendHandler(bool sessionLocker)
 {
-	if (!QDBusConnection::sessionBus().isConnected())
+	QDBusConnection bus = QDBusConnection::systemBus();
+
+	if (!bus.isConnected())
 	{
 		std::cout << "SYSTEM BUS IS NOT CONNECTED!" << std::endl;
 		return;
 	}
-		
-	if (!QDBusConnection::sessionBus().connect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
+
+	if (!bus.connect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
 		std::cout << "COULD NOT REGISTER SLEEP HANDLER!" << std::endl;
 	else
 		std::cout << "SLEEP HANDLER REGISTERED!" << std::endl;
@@ -62,9 +64,11 @@ SuspendHandler::SuspendHandler()
 
 SuspendHandler::~SuspendHandler()
 {
-	if (QDBusConnection::sessionBus().isConnected())
+	QDBusConnection bus = QDBusConnection::systemBus();
+
+	if (bus.isConnected())
 	{
-		if (!QDBusConnection::sessionBus().disconnect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
+		if (!bus.disconnect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
 			std::cout << "COULD NOT DEREGISTER SLEEP HANDLER!" << std::endl;
 		else
 			std::cout << "SLEEP HANDLER DEREGISTERED!" << std::endl;
@@ -74,8 +78,14 @@ SuspendHandler::~SuspendHandler()
 void SuspendHandler::sleeping(bool sleep)
 {	
 	if (sleep)
+	{
+		std::cout << "OS event: going sleep" << std::endl;
 		emit SignalHibernate(false);
+	}
 	else
+	{
+		std::cout << "OS event: wake up" << std::endl;
 		emit SignalHibernate(true);
+	}
 }
 

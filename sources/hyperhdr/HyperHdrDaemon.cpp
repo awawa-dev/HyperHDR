@@ -82,6 +82,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	, _rootPath(rootPath)
 	, _params(params)
 	, _isGuiApp(isGuiApp)
+	, _disableOnStart(false)
 {
 
 	// Register metas for thread queued connection
@@ -166,7 +167,9 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	// spawn all Hyperhdr instances (non blocking)
 	settingsChangedHandler(settings::type::VIDEOGRABBER, getSetting(settings::type::VIDEOGRABBER));
 	settingsChangedHandler(settings::type::SYSTEMGRABBER, getSetting(settings::type::SYSTEMGRABBER));
-	_instanceManager->startAll();
+	QJsonObject genConfig = getSetting(settings::type::GENERAL).object();	
+	_disableOnStart = genConfig["disableLedsStartup"].toBool(false);
+	_instanceManager->startAll(_disableOnStart);
 
 	//Cleaning up Hyperhdr before quit
 	connect(parent, &QCoreApplication::aboutToQuit, this, &HyperHdrDaemon::freeObjects);
@@ -177,7 +180,9 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 
 	// power management
 	#if defined(HAVE_POWER_MANAGEMENT)
-		_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler());
+		bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
+
+		_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
 		connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
 
 		#ifdef _WIN32
@@ -223,6 +228,12 @@ void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 ins
 			{
 				_networkThread->start();
 			}
+
+			if (_disableOnStart)
+			{
+				Warning(_log, "The user has disabled LEDs auto-start in the configuration (interface: 'General' tab)");
+				_instanceManager->toggleStateAllInstances(false);				
+			}			
 		}
 	}
 }

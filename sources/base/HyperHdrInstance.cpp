@@ -67,7 +67,7 @@
 std::atomic<bool> HyperHdrInstance::_signalTerminate(false);
 std::atomic<int>  HyperHdrInstance::_totalRunningCount(0);
 
-HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, QString name)
+HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, bool disableOnStartup, QString name)
 	: QObject()
 	, _instIndex(instance)
 	, _bootEffect(QTime::currentTime().addSecs(5))
@@ -90,6 +90,7 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, QString n
 	, _currentLedColors()
 	, _name((name.isEmpty()) ? QString("INSTANCE%1").arg(instance) : name)
 	, _readOnlyMode(readonlyMode)
+	, _disableOnStartup(disableOnStartup)
 {
 	_totalRunningCount++;
 }
@@ -142,7 +143,7 @@ void HyperHdrInstance::start()
 	Info(_log, "Starting the instance");	
 
 	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this, _readOnlyMode));
-	_componentController = std::unique_ptr<ComponentController>(new ComponentController(this));
+	_componentController = std::unique_ptr<ComponentController>(new ComponentController(this, _disableOnStartup));
 	connect(_componentController.get(), &ComponentController::SignalComponentStateChanged, this, &HyperHdrInstance::SignalComponentStateChanged);
 	_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(getSetting(settings::type::DEVICE).object()));
 	_muxer = std::unique_ptr<Muxer>(new Muxer(_instIndex, static_cast<int>(_ledString.leds().size()), this));
@@ -184,7 +185,7 @@ void HyperHdrInstance::start()
 
 	_ledDeviceWrapper = std::unique_ptr<LedDeviceWrapper>(new LedDeviceWrapper(this));
 	connect(this, &HyperHdrInstance::SignalRequestComponent, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
-	_ledDeviceWrapper->createLedDevice(ledDevice, _smoothing->GetSuggestedInterval());
+	_ledDeviceWrapper->createLedDevice(ledDevice, _smoothing->GetSuggestedInterval(), _disableOnStartup);
 
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = std::unique_ptr<EffectEngine>(new EffectEngine(this));
@@ -221,6 +222,12 @@ void HyperHdrInstance::start()
 
 	// instance initiated, enter thread event loop
 	emit SignalInstanceJustStarted();
+
+	if (_disableOnStartup)
+	{
+		_componentController->setNewComponentState(hyperhdr::COMP_ALL, false);
+		Warning(_log, "The user has disabled LEDs auto-start in the configuration (interface: 'General' tab)");
+	}
 
 	// exit
 	Info(_log, "The instance is running");
@@ -295,9 +302,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = _hwLedCount; // Inject led count info
-		_ledDeviceWrapper->createLedDevice(dev, _smoothing->GetSuggestedInterval());
-
-		// TODO: Check, if framegrabber frequency is lower than latchtime..., if yes, stop
+		_ledDeviceWrapper->createLedDevice(dev, _smoothing->GetSuggestedInterval(), false);		
 	}
 	else if (type == settings::type::BGEFFECT || type == settings::type::FGEFFECT)
 	{
@@ -684,9 +689,15 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 		if (previousPriority == Muxer::LOWEST_PRIORITY)
 		{
 			Info(_log, "New source available -> switch LED-Device on");
-
-			emit SignalRequestComponent(hyperhdr::COMP_LEDDEVICE, true);
-			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(true, hyperhdr::PerformanceReportType::INSTANCE, getInstanceIndex(), _name);
+			if (!isComponentEnabled(hyperhdr::Components::COMP_ALL))
+			{
+				Warning(_log, "Components are disabled: ignoring switching LED-Device on");
+			}
+			else
+			{
+				emit SignalRequestComponent(hyperhdr::COMP_LEDDEVICE, true);
+				emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(true, hyperhdr::PerformanceReportType::INSTANCE, getInstanceIndex(), _name);
+			}
 		}
 	}
 }

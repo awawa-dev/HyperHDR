@@ -102,7 +102,7 @@ bool HyperHdrManager::areInstancesReady()
 	return (--_fireStarter == 0);
 }
 
-void HyperHdrManager::startAll()
+void HyperHdrManager::startAll(bool disableOnStartup)
 {
 	auto instanceList = _instanceTable->getAllInstances(true);
 
@@ -110,7 +110,7 @@ void HyperHdrManager::startAll()
 
 	for (const auto& entry : instanceList)
 	{
-		startInstance(entry["instance"].toInt());
+		startInstance(entry["instance"].toInt(), nullptr, 0, disableOnStartup);
 	}
 }
 
@@ -179,7 +179,7 @@ void HyperHdrManager::hibernate(bool wakeUp)
 	}
 }
 
-bool HyperHdrManager::startInstance(quint8 inst, QObject* caller, int tan)
+bool HyperHdrManager::startInstance(quint8 inst, QObject* caller, int tan, bool disableOnStartup)
 {
 	if (_instanceTable->instanceExist(inst))
 	{
@@ -191,6 +191,7 @@ bool HyperHdrManager::startInstance(quint8 inst, QObject* caller, int tan)
 			auto hyperhdr = std::shared_ptr<HyperHdrInstance>(
 				new HyperHdrInstance(inst,
 					_readonlyMode,
+					disableOnStartup,
 					_instanceTable->getNamebyIndex(inst)),
 				[](HyperHdrInstance* oldInstance) {
 					THREAD_REMOVER(QString("HyperHDR instance at index = %1").arg(oldInstance->getInstanceIndex()),

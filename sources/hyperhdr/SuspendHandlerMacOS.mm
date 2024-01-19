@@ -89,7 +89,7 @@ namespace {
 
 @end
 
-SuspendHandler::SuspendHandler()
+SuspendHandler::SuspendHandler(bool sessionLocker)
 {
 	_macSuspendHandlerInstance = [MacSuspendHandler new];
 	_suspendHandler = this;

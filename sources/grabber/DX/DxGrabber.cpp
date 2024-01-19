@@ -313,6 +313,8 @@ void DxGrabber::stop()
 		_timer->stop();
 		Info(_log, "Stopped");
 	}
+
+	_retryTimer->stop();
 }
 
 bool DxGrabber::initDirectX(QString selectedDeviceName)
