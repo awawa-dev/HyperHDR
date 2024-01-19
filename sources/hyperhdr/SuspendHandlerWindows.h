@@ -40,12 +40,13 @@ class SuspendHandler : public QObject, public QAbstractNativeEventFilter {
 
 	QWidget			_widget;
 	HPOWERNOTIFY	_notifyHandle;
+	bool			_sessionLocker;
 
 signals:
 	void SignalHibernate(bool wakeUp);
 
 public:
-	SuspendHandler();
+	SuspendHandler(bool sessionLocker = false);
 	~SuspendHandler();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, long* result) Q_DECL_OVERRIDE;

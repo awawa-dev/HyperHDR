@@ -37,7 +37,7 @@ signals:
 	void SignalHibernate(bool wakeUp);
 
 public:
-	SuspendHandler();
+	SuspendHandler(bool sessionLocker = false);
 	~SuspendHandler();
 
 public slots:

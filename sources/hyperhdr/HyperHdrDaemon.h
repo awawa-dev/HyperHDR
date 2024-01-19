@@ -170,5 +170,6 @@ private:
 	bool				_readonlyMode;
 	QStringList			_params;
 	bool				_isGuiApp;
+	bool				_disableOnStart;
 };
 

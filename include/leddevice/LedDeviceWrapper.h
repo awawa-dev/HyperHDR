@@ -22,7 +22,7 @@ public:
 	explicit LedDeviceWrapper(HyperHdrInstance* ownerInstance);
 	virtual ~LedDeviceWrapper();
 
-	void createLedDevice(QJsonObject config, int smoothingInterval);
+	void createLedDevice(QJsonObject config, int smoothingInterval, bool disableOnStartup);
 	static QJsonObject getLedDeviceSchemas();
 	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
 	static const LedDeviceRegistry& getDeviceMap();

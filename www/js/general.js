@@ -235,5 +235,15 @@ $(document).ready(function()
 		createHint("intro", $.i18n('conf_general_inst_desc'), "inst_desc_cont");
 	}
 
+	if (window.serverInfo.grabbers != null && window.serverInfo.grabbers != undefined &&
+		window.serverInfo.grabbers.active != null && window.serverInfo.grabbers.active != undefined)
+	{
+		var grabbers = window.serverInfo.grabbers.active;
+		if (grabbers.indexOf('Media Foundation') < 0)
+		{
+			conf_editor.getEditor('root.general.disableOnLocked').disable();
+		}
+	}
+
 	removeOverlay();
 });
