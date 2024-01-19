@@ -1,3 +1,5 @@
+- New features: disable LEDs/components on startup #737 (v20 beta2 🆕)
+- New features: stop processing when user has locked the system #737 (v20 beta2 🆕)
 - Force HyperSerial detection #732 Thanks @alex-013 (v20 beta2 🆕)
 - Fix Linux DBus sleep/wakeup handler (v20 beta2 🆕)
 - Fix pipewire grabber for non-contiguous DMA memory & EGL #711 Thanks @Mic92 (v20 beta2 🆕)
