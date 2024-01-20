@@ -31,6 +31,7 @@ QString Logger::_lastError;
 bool    Logger::_hasConsole;
 QMap<QString, Logger*> Logger::_loggerMap;
 QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL{ static_cast<int>(Logger::UNSET) };
+QAtomicInteger<bool>   Logger::_forceVerbose = false;
 
 namespace
 {
@@ -180,7 +181,7 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
 	static QMutex localWriteMutex;
 
-	if (_hasConsole)
+	if (_hasConsole || _forceVerbose)
 	{
 		QString location, prefix, sufix;
 		
@@ -336,6 +337,11 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 QString Logger::getLastError()
 {
 	return _lastError;
+}
+
+void Logger::forceVerbose()
+{
+	_forceVerbose = true;
 }
 
 void Logger::setMinLevel(Logger::LogLevel level)
