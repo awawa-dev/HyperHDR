@@ -45,20 +45,26 @@ void ComponentController::handleCompStateChangeRequest(hyperhdr::Components comp
 			bool disableLeds = _disableOnStartup && !isComponentEnabled(COMP_ALL) && _prevComponentStates.empty();
 
 			Debug(_log, "Disabling HyperHDR instance: saving current component states first");
-			for (const auto& comp : _componentStates)
-				if (comp.first != COMP_ALL)
-				{
-					if (disableLeds && comp.first == COMP_LEDDEVICE)
-						_prevComponentStates.emplace(comp.first, true);
-					else
-						_prevComponentStates.emplace(comp.first, comp.second);
+			_componentStates[COMP_ALL] = false;
 
-					if (comp.second)
+			for (int i = 0; i < 2; i++)
+				for (const auto& comp : _componentStates)
+					if (comp.first != COMP_ALL &&
+						((i == 0 && comp.first == COMP_LEDDEVICE) || (i == 1 && comp.first != COMP_LEDDEVICE)))
 					{
-						emit SignalRequestComponent(comp.first, false);
+						if (disableLeds && comp.first == COMP_LEDDEVICE)
+							_prevComponentStates.emplace(comp.first, true);
+						else
+							_prevComponentStates.emplace(comp.first, comp.second);
+
+						if (comp.second)
+						{
+							emit SignalRequestComponent(comp.first, false);
+						}
 					}
-				}
-			setNewComponentState(COMP_ALL, false);
+
+			Debug(_log, "Disabling HyperHDR instance: preparations completed");
+			emit SignalComponentStateChanged(COMP_ALL, false);
 		}
 		else
 		{

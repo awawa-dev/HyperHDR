@@ -1,6 +1,6 @@
 ## About 
 
-Open source ambient lighting implementation for television and music sets based on the video and audio streams analysis. Focused on stability while ensuring performance and quality, especially for USB grabbers. Single and multi-threaded video processing optimization for **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others).
+Open source ambient lighting implementation for television and music sets based on the video and audio streams analysis. Focused on stability while ensuring performance and quality. Single and multi-threaded video processing optimization for **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others).
   
 ![v20](https://github.com/awawa-dev/HyperHDR/assets/69086569/9bc7999d-1515-4a96-ba5e-8a732cf7d8a4)
 
@@ -17,6 +17,7 @@ Open source ambient lighting implementation for television and music sets based 
 * Support for USB grabbers under Linux, Windows 10, macOS (x64/M1)
 * Pipewire/Portal hardware-accelerated screen capturer for Linux/Wayland
 * DirectX screen grabber with pixel and vertex shader processing acceleration for Windows 10/11
+* DirectX screen grabber supports native Windows HDR modes like DXGI_FORMAT_R16G16B16A16_FLOAT
 * Dynamic video cache buffers. Now Rpi can process even 1080p120 NV12 stream without any size decimation
 * Built-in audio visualization effects using **spectrum analysis**
 * MQTT support for IoT
@@ -24,7 +25,6 @@ Open source ambient lighting implementation for television and music sets based 
 * Automatic LUT calibration detects grabber model specific properties for the best quality of HDR/SDR
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
 * Built-in latency benchmark for USB grabbers
-* Software screen grabbers: DirectX11 (Windows), CoreGraphics (macOS), Pipewire/Wayland/x11 (Linux), frame buffer (Linux)
 * easy LED strip geometry editing process, automatic or manual with mouse and context menu per single LED
 * Automatic signal detection with smart learning capability for USB grabbers
 * SK6812 RGBW: advanced calibration of the white color channel for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI), [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico)
@@ -33,7 +33,9 @@ Open source ambient lighting implementation for television and music sets based 
 * Support for 48bits HD108 LED strip
 * Support WS281x, APA102, HD107, SK9822 and SK6812 RGBW LED strips using the fastest possible cable solution for generic ESP8266/ESP32/rp2040 external LED drivers: [HyperSPI](https://github.com/awawa-dev/HyperSPI). Alternatively, there is a simple solution using a high-speed connection via a standard USB serial port for ESP8266/ESP32/Pico with data integrity check and white channel calibration: [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266) and [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32) and for Raspberry Pi Pico [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico). You can also use our WLED fork for ESP8266 and ESP32 using 2Mb baud speed (or higher): [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED)
 
-Our advanced video processing can improve the source for the LEDs, making the ambient lighting even more enjoyable and colorful.
+Our advanced video processing can improve the source for the LEDs, making the ambient lighting even more enjoyable and colorful.  
+You can use it for SDR video streams as well as for HDR and Dolby Vision (LLDV if your hardware supports it). Or instead of using a USB grabber, let your computer screen be the video source with software capture.  
+
 ![example](https://github.com/awawa-dev/HyperHDR/assets/69086569/4077c05d-4c02-47eb-8d64-a334064403b3)
 
 ## Download packages & sources
