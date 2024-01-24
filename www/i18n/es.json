@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Habilite la aceleración de hardware, por ejemplo: sombreadores de píxeles y vértices en Windows.",
   "edt_conf_monitor_nits_title" : "Corrección de brillo HDR",
   "edt_conf_monitor_nits_expl" : "Brillo objetivo SDR utilizado para la conversión HDR a SDR. Si es 0, deshabilita la conversión de color del hardware mientras mantiene el escalado acelerado.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Deshabilitar cuando está bloqueado",
+  "edt_conf_gen_disableOnLocked_expl" : "Desactivar el procesamiento cuando el usuario haya bloqueado el sistema.",
+  "edt_conf_gen_disableLedsStartup_title" : "Apague los LED al inicio",
+  "edt_conf_gen_disableLedsStartup_expl" : "Deshabilite los LED y todos los componentes al inicio, debe volver a habilitarlos manualmente en la página principal o mediante la API JSON (componente COMP_ALL)."
 }

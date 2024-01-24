@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Povolte hardwarovou akceleraci, například: shadery pixelů a vrcholů ve Windows.",
   "edt_conf_monitor_nits_title" : "Korekce jasu HDR",
   "edt_conf_monitor_nits_expl" : "SDR cílový jas použitý pro převod HDR na SDR. Pokud 0, zakáže konverzi barev hardwaru při zachování zrychleného škálování.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Zakázat při uzamčení",
+  "edt_conf_gen_disableOnLocked_expl" : "Vypněte zpracování, když uživatel uzamkne systém.",
+  "edt_conf_gen_disableLedsStartup_title" : "Vypněte LED při startu",
+  "edt_conf_gen_disableLedsStartup_expl" : "Při spuštění deaktivujte LED a všechny komponenty, musíte je znovu povolit ručně na hlavní stránce nebo přes JSON API (komponenta COMP_ALL)."
 }

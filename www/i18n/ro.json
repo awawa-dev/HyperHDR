@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Activați accelerarea hardware, de exemplu: pixeli și umbritori vertex pe Windows.",
   "edt_conf_monitor_nits_title" : "Corecția luminozității HDR",
   "edt_conf_monitor_nits_expl" : "Luminozitatea țintă SDR utilizată pentru conversia HDR în SDR. Dacă este 0, dezactivează conversia hardware a culorilor, menținând în același timp scalarea accelerată.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Dezactivați când este blocat",
+  "edt_conf_gen_disableOnLocked_expl" : "Opriți procesarea când utilizatorul a blocat sistemul.",
+  "edt_conf_gen_disableLedsStartup_title" : "Opriți LED-urile la pornire",
+  "edt_conf_gen_disableLedsStartup_expl" : "Dezactivați LED-urile și toate componentele la pornire, trebuie să le reactivați manual pe pagina principală sau prin API-ul JSON (componenta COMP_ALL)."
 }

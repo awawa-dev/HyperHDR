@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Cho phép tăng tốc phần cứng, ví dụ: trình đổ bóng pixel và đỉnh trên Windows.",
   "edt_conf_monitor_nits_title" : "Chỉnh sửa độ sáng HDR",
   "edt_conf_monitor_nits_expl" : "Độ sáng mục tiêu SDR được sử dụng để chuyển đổi HDR sang SDR. Nếu bằng 0, nó sẽ vô hiệu hóa chuyển đổi màu phần cứng trong khi vẫn duy trì tỷ lệ tăng tốc.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Tắt khi bị khóa",
+  "edt_conf_gen_disableOnLocked_expl" : "Tắt xử lý khi người dùng đã khóa hệ thống.",
+  "edt_conf_gen_disableLedsStartup_title" : "Tắt đèn LED khi khởi động",
+  "edt_conf_gen_disableLedsStartup_expl" : "Tắt đèn LED và tất cả các thành phần khi khởi động, bạn phải bật lại chúng theo cách thủ công trên trang chính hoặc thông qua API JSON (thành phần COMP_ALL)."
 }

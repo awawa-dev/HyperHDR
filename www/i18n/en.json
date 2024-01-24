@@ -1239,7 +1239,7 @@
   "edt_conf_monitor_nits_expl" : "SDR target brightness used for HDR to SDR conversion. If 0, it disables hardware color conversion while maintaining accelerated scaling.",
   "edt_append_nits" : "nits",
   "edt_conf_gen_disableOnLocked_title" : "Disable when locked",
-  "edt_conf_gen_disableOnLocked_expl" : "Turn off processing when the user has locked the system",
+  "edt_conf_gen_disableOnLocked_expl" : "Turn off processing when the user has locked the system.",
   "edt_conf_gen_disableLedsStartup_title" : "Turn off LEDs at startup",
-  "edt_conf_gen_disableLedsStartup_expl" : "Disable LEDs and all components on startup, you must re-enable them manually on the main page or via the JSON API (COMP_ALL component)"
+  "edt_conf_gen_disableLedsStartup_expl" : "Disable LEDs and all components on startup, you must re-enable them manually on the main page or via the JSON API (COMP_ALL component)."
 }

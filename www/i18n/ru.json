@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Включить аппаратное ускорение, например: пиксельные и вершинные шейдеры в Windows.",
   "edt_conf_monitor_nits_title" : "Коррекция яркости HDR",
   "edt_conf_monitor_nits_expl" : "Целевая яркость SDR, используемая для преобразования HDR в SDR. Если значение равно 0, это отключает аппаратное преобразование цвета при сохранении ускоренного масштабирования.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Отключить при блокировке",
+  "edt_conf_gen_disableOnLocked_expl" : "Отключить обработку когда пользователь заблокировал систему.",
+  "edt_conf_gen_disableLedsStartup_title" : "Выключить светодиоды при запуске",
+  "edt_conf_gen_disableLedsStartup_expl" : "Отключить светодиоды и все компоненты при запуске, необходимо включить их вручную на главной странице или через JSON API (компонент COMP_ALL)."
 }
