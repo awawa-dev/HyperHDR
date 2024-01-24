@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Donanım hızlandırmayı etkinleştirin, örneğin: Windows'ta piksel ve köşe gölgelendiricileri.",
   "edt_conf_monitor_nits_title" : "HDR parlaklık düzeltmesi",
   "edt_conf_monitor_nits_expl" : "HDR'den SDR'ye dönüştürme için kullanılan SDR hedef parlaklığı. 0 ise, hızlandırılmış ölçeklendirmeyi korurken donanım renk dönüşümünü devre dışı bırakır.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Kilitlendiğinde devre dışı bırak",
+  "edt_conf_gen_disableOnLocked_expl" : "Kullanıcı sistemi kilitlediğinde işlemeyi kapatın.",
+  "edt_conf_gen_disableLedsStartup_title" : "Başlangıçta LED'leri kapatın",
+  "edt_conf_gen_disableLedsStartup_expl" : "LED'leri ve tüm bileşenleri başlangıçta devre dışı bırakın; bunları ana sayfada veya JSON API (COMP_ALL bileşeni) aracılığıyla manuel olarak yeniden etkinleştirmeniz gerekir."
 }

@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Activez l'accélération matérielle, par exemple: pixel et vertex shaders sous Windows.",
   "edt_conf_monitor_nits_title" : "Correction de la luminosité HDR",
   "edt_conf_monitor_nits_expl" : "Luminosité cible SDR utilisée pour la conversion HDR en SDR. Si 0, il désactive la conversion matérielle des couleurs tout en maintenant une mise à l'échelle accélérée.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Désactiver lorsqu'il est verrouillé",
+  "edt_conf_gen_disableOnLocked_expl" : "Désactiver le traitement lorsque l'utilisateur a verrouillé le système.",
+  "edt_conf_gen_disableLedsStartup_title" : "Éteignez les LED au démarrage",
+  "edt_conf_gen_disableLedsStartup_expl" : "Désactivez les LED et tous les composants au démarrage, vous devez les réactiver manuellement sur la page principale ou via l'API JSON (composant COMP_ALL)."
 }

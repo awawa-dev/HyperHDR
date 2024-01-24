@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Schakel hardwareversnelling in, bijvoorbeeld: pixel- en vertex-shaders op Windows.",
   "edt_conf_monitor_nits_title" : "HDR-helderheidscorrectie",
   "edt_conf_monitor_nits_expl" : "SDR-doelhelderheid gebruikt voor conversie van HDR naar SDR. Indien 0, wordt de hardwarekleurconversie uitgeschakeld terwijl de versnelde schaling behouden blijft.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Uitschakelen wanneer vergrendeld",
+  "edt_conf_gen_disableOnLocked_expl" : "Schakel de verwerking uit wanneer de gebruiker het systeem heeft vergrendeld.",
+  "edt_conf_gen_disableLedsStartup_title" : "Schakel de LED's uit bij het opstarten",
+  "edt_conf_gen_disableLedsStartup_expl" : "Schakel LED's en alle componenten uit bij het opstarten, u moet ze handmatig opnieuw inschakelen op de hoofdpagina of via de JSON API (COMP_ALL component)."
 }

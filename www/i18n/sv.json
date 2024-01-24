@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Aktivera hårdvaruacceleration, till exempel: pixel och vertex shaders på Windows.",
   "edt_conf_monitor_nits_title" : "Korrigering av HDR-ljusstyrka",
   "edt_conf_monitor_nits_expl" : "SDR-målljusstyrka som används för konvertering av HDR till SDR. Om 0, inaktiverar det hårdvarufärgkonvertering samtidigt som accelererad skalning bibehålls.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Inaktivera när den är låst",
+  "edt_conf_gen_disableOnLocked_expl" : "Stäng av bearbetning när användaren har låst systemet.",
+  "edt_conf_gen_disableLedsStartup_title" : "Stäng av lysdioderna vid start",
+  "edt_conf_gen_disableLedsStartup_expl" : "Inaktivera lysdioder och alla komponenter vid start, du måste återaktivera dem manuellt på huvudsidan eller via JSON API (COMP_ALL-komponent)."
 }

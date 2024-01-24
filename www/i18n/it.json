@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "Abilita l'accelerazione hardware, ad esempio: pixel e vertex shader su Windows.",
   "edt_conf_monitor_nits_title" : "Correzione luminosità HDR",
   "edt_conf_monitor_nits_expl" : "Luminosità target SDR utilizzata per la conversione da HDR a SDR. Se 0, disabilita la conversione del colore hardware mantenendo il ridimensionamento accelerato.",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "Disabilita quando bloccato",
+  "edt_conf_gen_disableOnLocked_expl" : "Disattiva l'elaborazione quando l'utente ha bloccato il sistema.",
+  "edt_conf_gen_disableLedsStartup_title" : "Spegnere i LED all'avvio",
+  "edt_conf_gen_disableLedsStartup_expl" : "Disabilita i LED e tutti i componenti all'avvio, devi riabilitarli manualmente nella pagina principale o tramite l'API JSON (componente COMP_ALL)."
 }

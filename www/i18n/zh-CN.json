@@ -1237,5 +1237,9 @@
   "edt_conf_hardware_expl" : "启用硬件加速，例如：Windows 上的像素和顶点着色器。",
   "edt_conf_monitor_nits_title" : "HDR亮度校正",
   "edt_conf_monitor_nits_expl" : "用于 HDR 到 SDR 转换的 SDR 目标亮度。如果为 0，则禁用硬件颜色转换，同时保持加速缩放。",
-  "edt_append_nits" : "nits"
+  "edt_append_nits" : "nits",
+  "edt_conf_gen_disableOnLocked_title" : "锁定时禁用",
+  "edt_conf_gen_disableOnLocked_expl" : "当用户锁定系统时关闭处理。",
+  "edt_conf_gen_disableLedsStartup_title" : "启动时关闭 LED",
+  "edt_conf_gen_disableLedsStartup_expl" : "启动时禁用 LED 和所有组件，您必须在主页上手动或通过 JSON API（COMP_ALL 组件）重新启用它们。"
 }
