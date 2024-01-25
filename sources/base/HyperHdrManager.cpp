@@ -34,6 +34,7 @@
 #include <db/InstanceTable.h>
 #include <base/GrabberWrapper.h>
 #include <base/AccessManager.h>
+#include <base/Muxer.h>
 #include <utils/GlobalSignals.h>
 
 QString HyperHdrManager::getRootPath()
@@ -165,8 +166,41 @@ void HyperHdrManager::toggleStateAllInstances(bool pause)
 	}
 }
 
-void HyperHdrManager::hibernate(bool wakeUp)
+void HyperHdrManager::toggleGrabbersAllInstances(bool pause)
 {
+	for (const auto& instance : _runningInstances)
+	{
+		QUEUE_CALL_1(instance.get(), turnGrabbers, bool, pause);
+	}
+}
+
+void HyperHdrManager::hibernate(bool wakeUp, hyperhdr::SystemComponent source)
+{
+	if (source == hyperhdr::SystemComponent::LOCKER || source == hyperhdr::SystemComponent::MONITOR)
+	{
+		Debug(_log, "OS event: %s", (source == hyperhdr::SystemComponent::LOCKER) ? ((wakeUp) ? "OS unlocked" : "OS locked") : ((wakeUp) ? "Monitor On" : "Monitor Off"));
+		bool _hasEffect = false;
+		for (const auto& instance : _runningInstances)
+		{
+			SAFE_CALL_1_RET(instance.get(), hasPriority, bool, _hasEffect, int, Muxer::LOWEST_EFFECT_PRIORITY);
+			if (_hasEffect)
+			{
+				break;
+			}
+		}
+
+		if (!wakeUp && _hasEffect)
+		{
+			Warning(_log, "The user has set a background effect, and therefore we will not turn off the LEDs when locking the operating system");
+		}
+
+		if (_hasEffect)
+		{
+			toggleGrabbersAllInstances(wakeUp);
+			return;
+		}
+	}
+
 	if (!wakeUp)
 	{
 		Warning(_log, "The system is going to sleep");

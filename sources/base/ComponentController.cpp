@@ -106,3 +106,26 @@ void ComponentController::setNewComponentState(hyperhdr::Components comp, bool a
 		emit SignalComponentStateChanged(comp, activated);
 	}
 }
+
+void ComponentController::turnGrabbers(bool activated)
+{
+	if (_prevGrabbers.empty() && !activated)
+	{
+		_prevGrabbers.emplace(COMP_SYSTEMGRABBER, isComponentEnabled(COMP_SYSTEMGRABBER));
+		_prevGrabbers.emplace(COMP_VIDEOGRABBER, isComponentEnabled(COMP_VIDEOGRABBER));
+		for (const auto& comp : _prevGrabbers)
+			if (comp.second)
+			{
+				emit SignalRequestComponent(comp.first, false);
+			}
+	}
+	else if (!_prevGrabbers.empty() && activated)
+	{		
+		for (const auto& comp : _prevGrabbers)				
+			if (comp.second)
+			{
+				emit SignalRequestComponent(comp.first, true);
+			}
+		_prevGrabbers.clear();
+	}
+}

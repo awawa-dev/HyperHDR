@@ -66,6 +66,7 @@ public:
 public slots:
 	bool clear(int priority, bool forceClearAll = false);
 	QJsonObject getAverageColor();
+	bool hasPriority(int priority);
 	hyperhdr::Components getComponentForPriority(int priority);
 	hyperhdr::Components getCurrentPriorityActiveComponent();
 	int getCurrentPriority() const;
@@ -96,6 +97,7 @@ public slots:
 	bool setVisiblePriority(int priority);
 	bool sourceAutoSelectEnabled() const;
 	void start();
+	void turnGrabbers(bool active);
 	void update();
 	void updateAdjustments(const QJsonObject& config);
 	void updateResult(std::vector<ColorRgb> _ledBuffer);

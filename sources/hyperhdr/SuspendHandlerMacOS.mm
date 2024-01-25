@@ -77,14 +77,14 @@ namespace {
 - (void)goingSleep: (NSNotification*)note
 {
 	if (_suspendHandler != nullptr)
-		emit _suspendHandler->SignalHibernate(false);
+		emit _suspendHandler->SignalHibernate(false, hyperhdr::SystemComponent::SUSPEND);
 }
 
 
 - (void)goingWake: (NSNotification*)note
 {
 	if (_suspendHandler != nullptr)
-		emit _suspendHandler->SignalHibernate(true);
+		emit _suspendHandler->SignalHibernate(true, hyperhdr::SystemComponent::SUSPEND);
 }
 
 @end

@@ -26,7 +26,8 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
  */
- #include <QObject>
+#include <QObject>
+#include <utils/Components.h>
 
 #define HAVE_POWER_MANAGEMENT
 
@@ -34,7 +35,7 @@ class SuspendHandler : public QObject {
 	Q_OBJECT
 
 signals:
-	void SignalHibernate(bool wakeUp);
+	void SignalHibernate(bool wakeUp, hyperhdr::SystemComponent source);
 
 public:
 	SuspendHandler(bool sessionLocker = false);

@@ -85,7 +85,7 @@ BlackBorder BlackBorderDetector::process(const Image<ColorRgb>& image) const
 	}
 
 	// Construct result
-	BlackBorder detectedBorder;
+	BlackBorder detectedBorder{};
 
 	detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
@@ -143,7 +143,7 @@ BlackBorder BlackBorderDetector::process_classic(const Image<ColorRgb>& image) c
 	}
 
 	// Construct result
-	BlackBorder detectedBorder;
+	BlackBorder detectedBorder{};
 
 	detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
@@ -202,7 +202,7 @@ BlackBorder BlackBorderDetector::process_osd(const Image<ColorRgb>& image) const
 	}
 
 	// Construct result
-	BlackBorder detectedBorder;
+	BlackBorder detectedBorder{};
 	detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 	detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -244,7 +244,7 @@ BlackBorder BlackBorderDetector::process_letterbox(const Image<ColorRgb>& image)
 	}
 
 	// Construct result
-	BlackBorder detectedBorder;
+	BlackBorder detectedBorder{};
 
 	detectedBorder.unknown = firstNonBlackYPixelIndex == -1;
 	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
