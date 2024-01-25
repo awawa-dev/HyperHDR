@@ -216,6 +216,7 @@ int main(int argc, char** argv)
 
 	if (parser.isSet(verboseOption))
 	{
+		Logger::forceVerbose();
 		Logger::setLogLevel(Logger::INFO);
 		logLevelCheck++;
 	}

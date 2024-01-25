@@ -70,6 +70,7 @@ public:
 	static Logger* getInstance(const QString& name = "", LogLevel minLevel = Logger::INFO);
 	static void     deleteInstance(const QString& name = "");
 	static void     setLogLevel(LogLevel level, const QString& name = "");
+	static void     forceVerbose();
 	static LogLevel getLogLevel(const QString& name = "");
 	static QString getLastError();
 
@@ -95,6 +96,7 @@ private:
 	static QMutex                 _mapLock;
 	static QMap<QString, Logger*> _loggerMap;
 	static QAtomicInteger<int>    GLOBAL_MIN_LOG_LEVEL;
+	static QAtomicInteger<bool>   _forceVerbose;
 	static QString                _lastError;
 	static bool                   _hasConsole;
 	const QString                _name;

@@ -1,3 +1,11 @@
+- Fix verbose command line option #737 (v20 beta2 🆕)
+- New features: disable LEDs/components on startup #737 (v20 beta2 🆕)
+- New features: stop processing when user has locked the system #737 (v20 beta2 🆕)
+- Force HyperSerial detection #732 Thanks @alex-013 (v20 beta2 🆕)
+- Fix Linux DBus sleep/wakeup handler (v20 beta2 🆕)
+- Fix pipewire grabber for non-contiguous DMA memory & EGL #711 Thanks @Mic92 (v20 beta2 🆕)
+- Update build scripts and include Ubuntu 24.04 LTS (v20 beta2 🆕)
+- Fixes for v20beta1 #705 (v20 beta2 🆕)
 - Refactoring. Migration to C++ smart pointers (v20 beta 🆕)
 - Pixel and vertex shaders hardware acceleration for DX11 Windows grabber (v20 beta 🆕)
 - Unified LED driver smoothing and clocking for better linear transition (v20 beta 🆕)
@@ -13,7 +21,7 @@
 - Upgrade Fedora 38 to 39, Ubuntu 23.04 to 23.10 #667 (v20 beta 🆕)
 - Colorized logs #640 (v20 beta 🆕)
 - Fix macOS build #638 #671 #672 (v20 beta 🆕)
-- Update language file's. Thanks @AstaRom #617 (v20 beta 🆕)
+- Update language file's. Thanks @AstaRom #505 #538 #571 #617 #710 #716 #723 (v20 beta 🆕)
 - Make bonjour use logging utilities. Thanks @nurikk #529 (v20 beta 🆕)
 - New interface: removed ancient Font Awesome 4 (so 2017...) Migrate to SVG: Bootstrap Icons and Google Material Icons/Symbols #605 (v20 beta 🆕)
 - New device discovery service #605 (v20 beta 🆕)
@@ -44,7 +52,6 @@
 - Update Github actions/download@v3 #372 (v20 beta 🆕)  
 - Remove depraciated ::set-output from Github Action #390 (v20 beta 🆕)  
 - Upgrade Bootstrap to 5.2.3 / improved 'video live preview' on smartphones #336 (v20 beta 🆕)  
-- Update language file's. Thanks @AstaRom #505 (v20 beta 🆕)  
 - LED designer context menu to disable, identify or customize LED position and size etc   
 - Added Philips Hue Entertainment API 2. Support for Hue gradients (thanks  @gibahjoe)  
 - Save/restore WLED state and set max brightness at startup  

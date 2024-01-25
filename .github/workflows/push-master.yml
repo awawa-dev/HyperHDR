@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-    USE_CACHE: "1"
+    USE_CACHE: "0"
     RESET_CACHE: "0"
     USE_CODEQL: "1"
     BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}

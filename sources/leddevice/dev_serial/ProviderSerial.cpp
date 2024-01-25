@@ -33,6 +33,7 @@ ProviderSerial::ProviderSerial(const QJsonObject& deviceConfig)
 	, _delayAfterConnect_ms(0)
 	, _frameDropCounter(0)
 	, _espHandshake(true)
+	, _forceSerialDetection(false)
 {
 }
 
@@ -61,11 +62,13 @@ bool ProviderSerial::init(const QJsonObject& deviceConfig)
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
 		_espHandshake = deviceConfig["espHandshake"].toBool(false);
 		_maxRetry = _devConfig["maxRetry"].toInt(60);
+		_forceSerialDetection = deviceConfig["forceSerialDetection"].toBool(false);
 
 		Debug(_log, "Device name   : %s", QSTRING_CSTR(_deviceName));
 		Debug(_log, "Auto selection: %d", _isAutoDeviceName);
 		Debug(_log, "Baud rate     : %d", _baudRate_Hz);
 		Debug(_log, "ESP handshake : %s", (_espHandshake) ? "ON" : "OFF");
+		Debug(_log, "Force ESP/Pico Detection : %s", (_forceSerialDetection) ? "ON" : "OFF");
 		Debug(_log, "Delayed open  : %d", _delayAfterConnect_ms);
 		Debug(_log, "Retry limit   : %d", _maxRetry);
 
@@ -228,7 +231,7 @@ bool ProviderSerial::tryOpen(int delayAfterConnect_ms)
 			{
 				disconnect(_serialPort, &QSerialPort::readyRead, nullptr, nullptr);
 
-				EspTools::initializeEsp(_serialPort, serialPortInfo, _log);
+				EspTools::initializeEsp(_serialPort, serialPortInfo, _log, _forceSerialDetection);
 			}
 		}
 		else

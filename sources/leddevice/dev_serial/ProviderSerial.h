@@ -38,4 +38,5 @@ private:
 	int _delayAfterConnect_ms;
 	int _frameDropCounter;
 	bool _espHandshake;
+	bool _forceSerialDetection;
 };
