@@ -201,13 +201,13 @@ bool YeelightLight::close()
 	return rc;
 }
 
-int YeelightLight::writeCommand(const QJsonDocument& command)
+int YeelightLight::writeCommand( const QJsonDocument &command, bool ignoreErrors )
 {
 	QJsonArray result;
-	return writeCommand(command, result);
+	return writeCommand(command, result, ignoreErrors );
 }
 
-int YeelightLight::writeCommand(const QJsonDocument& command, QJsonArray& result)
+int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &result, bool ignoreErrors )
 {
 	log(3,
 		"writeCommand()",
@@ -277,8 +277,16 @@ int YeelightLight::writeCommand(const QJsonDocument& command, QJsonArray& result
 							QString errorReason = QString("(%1) %2").arg(yeeResponse.getErrorCode()).arg(yeeResponse.getErrorReason());
 							if (yeeResponse.getErrorCode() != -1)
 							{
-								this->setInError(errorReason);
-								rc = -1;
+								if (!ignoreErrors)
+								{
+								this->setInError ( errorReason );
+								rc =-1;
+								}
+							else
+								{
+									log ( 1, "writeCommand():", "Ignore Error: %s", QSTRING_CSTR(errorReason) );
+									rc = 0;
+								}
 							}
 							else
 							{
