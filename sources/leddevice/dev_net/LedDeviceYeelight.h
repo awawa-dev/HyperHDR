@@ -92,8 +92,8 @@ public:
 	bool open();
 	bool close();
 	bool identify();
-	int writeCommand(const QJsonDocument& command);
-	int writeCommand(const QJsonDocument& command, QJsonArray& result);
+	int writeCommand( const QJsonDocument &command, bool ignoreErrors = false );
+	int writeCommand( const QJsonDocument &command, QJsonArray &result, bool ignoreErrors = false );
 	bool streamCommand(const QJsonDocument& command);
 	void setStreamSocket(QTcpSocket* socket);
 	bool setPower(bool on);
