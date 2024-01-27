@@ -1781,7 +1781,7 @@ async function discover_yeelight_lights()
 
 function assign_yeelight_lights()
 {
-	var models = ['color', 'color1', 'color2', 'colorc', 'color4', 'stripe', 'strip1'];
+	var models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'color6', 'YLDP13AYL', 'colorc', "YLDP004-A", 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL', 'strip4', 'YLDD05YL', 'strip6', 'YLDD05YL'];
 
 	// If records are left for configuration
 	if (Object.keys(lights).length > 0)
