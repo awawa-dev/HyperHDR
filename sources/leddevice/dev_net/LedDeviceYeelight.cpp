@@ -1076,6 +1076,9 @@ bool LedDeviceYeelight::init(const QJsonObject& deviceConfig)
 		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(false);
 		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
 
+		_maxRetry = deviceConfig["maxRetry"].toInt(60);
+		Debug(_log, "Max retry         : %d", _maxRetry);
+
 		_waitTimeQuota = _devConfig[CONFIG_QUOTA_WAIT_TIME].toInt(0);
 		Debug(_log, "Wait time (quota) : %d", _waitTimeQuota);
 
@@ -1265,6 +1268,12 @@ int LedDeviceYeelight::open()
 	}
 
 	DebugIf(verbose, _log, "retval [%d], enabled [%d], _isDeviceReady [%d]", retval, _isEnabled, _isDeviceReady);
+
+	if (!_isDeviceReady)
+	{
+		setupRetry(3000);
+	}
+
 	return retval;
 }
 
@@ -1528,6 +1537,11 @@ int LedDeviceYeelight::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	//DebugIf(verbose, _log, "rc [%d]", rc );
+
+	if (_isDeviceInError)
+	{
+		setupRetry(3000);
+	}
 
 	return rc;
 }

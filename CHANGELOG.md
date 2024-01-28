@@ -1,3 +1,4 @@
+- Yeelight: Wizard now supports more models, workaround for music-mode reset, auto-resume support #750 Thanks @ratawhisk (v20 beta2 🆕)
 - Fix verbose command line option #737 (v20 beta2 🆕)
 - New features: disable LEDs/components on startup #737 (v20 beta2 🆕)
 - New features: stop processing when user has locked the system #737 (v20 beta2 🆕)

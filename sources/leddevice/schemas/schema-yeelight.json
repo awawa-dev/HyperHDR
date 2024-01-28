@@ -100,11 +100,22 @@
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : false,
 			"propertyOrder" : 9
-		},		
+		},
+		"maxRetry": {
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "edt_dev_max_retry",
+			"minimum" : 0,
+			"maximum" : 300,
+			"default" : 60,
+			"required" : true,
+			"propertyOrder" : 10
+		},
 		"lights": {
 			"type": "array",
 			"title":"edt_dev_spec_lights_title",
-			"propertyOrder" : 9,
+			"propertyOrder" : 11,
 			"minimum" : 1,
 			"uniqueItems" : true,
 			"items" : {
@@ -140,8 +151,7 @@
 						"propertyOrder" : 3
 					}
 				}
-			},
-			"propertyOrder" : 10
+			}
 		},
 		"quotaWait": {
 			"type": "integer",
@@ -152,7 +162,7 @@
 			"maximum": 10000,
 			"step": 100,			
 			"access" : "expert",
-			"propertyOrder" : 11
+			"propertyOrder" : 12
 		},		
 		"debugLevel": {
 			"type": "integer",
