@@ -1,6 +1,6 @@
 ## About 
 
-Open source ambient lighting implementation for television and music sets based on the video and audio streams analysis. Focused on stability while ensuring performance and quality. Single and multi-threaded video processing optimization for **Windows**, **macOS** and **Linux x64 & ARM** (Raspberry Pi and others).
+Open source ambient lighting implementation for television and music sets based on the video and audio streams analysis. Focused on stability while ensuring performance and quality. Single and multi-threaded video processing optimization for **Windows**, **macOS** (x64/arm64: M1, M2) and **Linux x64 & ARM** (Raspberry Pi and others).
   
 ![v20](https://github.com/awawa-dev/HyperHDR/assets/69086569/9bc7999d-1515-4a96-ba5e-8a732cf7d8a4)
 
@@ -14,7 +14,7 @@ Open source ambient lighting implementation for television and music sets based 
 * Video post-processing filter to eliminate LED flickering
 * Modern interface using Bootstrap 5 and SVG icons
 * Provides vital informations about your OS condition: CPU & RAM usage, CPU temperature, undervoltage detection, internal components performance including USB grabber and LED devices
-* Support for USB grabbers under Linux, Windows 10, macOS (x64/M1)
+* Support for USB grabbers under Linux, Windows 10, macOS
 * Pipewire/Portal hardware-accelerated screen capturer for Linux/Wayland
 * DirectX screen grabber with pixel and vertex shader processing acceleration for Windows 10/11
 * DirectX screen grabber supports native Windows HDR modes like DXGI_FORMAT_R16G16B16A16_FLOAT

@@ -1,4 +1,5 @@
 - Fix verbose command line option #737 (v20 beta2 🆕)
+- Add native build for Apple M1 / M2 (arm64) architecture #973 (v20 beta2 🆕)
 - New features: disable LEDs/components on startup #737 (v20 beta2 🆕)
 - New features: stop processing when user has locked the system #737 (v20 beta2 🆕)
 - Force HyperSerial detection #732 Thanks @alex-013 (v20 beta2 🆕)
