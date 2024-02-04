@@ -158,8 +158,8 @@ jobs:
         uses: actions/cache@v3
         with:
             path: .ccache
-            key: macOS-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-            restore-keys: macOS-ccache-
+            key: macOS_arm64-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+            restore-keys: macOS_arm64-ccache-
 
       # Install deps
       - name: Install deps

@@ -30,37 +30,42 @@ macro(DeployApple TARGET)
 		install(CODE "set(MYQT_PLUGINS_DIR \"${MYQT_PLUGINS_DIR}\")"     COMPONENT "HyperHDR")
 		install(CODE "set(MY_DEPENDENCY_PATHS \"${TARGET_FILE}\")"       COMPONENT "HyperHDR")
 		install(CODE "set(MY_SYSTEM_LIBS_SKIP \"${SYSTEM_LIBS_SKIP}\")"  COMPONENT "HyperHDR")
-		install(CODE "set(Scope_Qt_VERSION ${Qt_VERSION})"               COMPONENT "HyperHDR")
+		install(CODE "set(SCOPE_Qt_VERSION ${Qt_VERSION})"               COMPONENT "HyperHDR")
+		install(CODE "set(SCOPE_CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})" COMPONENT "HyperHDR")
 		install(CODE [[
-				#OpenSSL
-				if(Scope_Qt_VERSION EQUAL 5 AND EXISTS "/usr/local/opt/openssl@1.1/lib" AND IS_DIRECTORY "/usr/local/opt/openssl@1.1/lib")
-					message("Including OpenSSL@1.1 libraries")
-					file(GLOB filesSSL "/usr/local/opt/openssl@1.1/lib/*")
-					foreach(openssl_lib ${filesSSL})
-						string(FIND ${openssl_lib} "dylib" _indexSSL)
-						if (${_indexSSL} GREATER -1)
-							file(INSTALL
-								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
-								TYPE SHARED_LIBRARY
-								FILES "${openssl_lib}"
-							)
-						else()
-							file(INSTALL
-								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-								TYPE SHARED_LIBRARY
-								FILES "${openssl_lib}"
-							)
-						endif()
-					endforeach()
-				elseif(NOT (Scope_Qt_VERSION EQUAL 5) AND EXISTS "/opt/homebrew/opt/openssl/lib" AND IS_DIRECTORY "/opt/homebrew/opt/openssl/lib")
-					if (EXISTS "/opt/homebrew/opt/openssl/lib/libssl.3.dylib")
-						message("Including OpenSSL@3 libraries")
-					elseif (EXISTS "/opt/homebrew/opt/openssl/lib/libssl.dylib")
-						message("Including OpenSSL@1.1 libraries")
+				execute_process(
+					COMMAND brew --prefix openssl@3
+					RESULT_VARIABLE BREW_OPENSSL3
+					OUTPUT_VARIABLE BREW_OPENSSL3_PATH
+					OUTPUT_STRIP_TRAILING_WHITESPACE
+				)
+				if (BREW_OPENSSL3 EQUAL 0 AND EXISTS "${BREW_OPENSSL3_PATH}/lib")
+					set(BREW_OPENSSL3_LIB "${BREW_OPENSSL3_PATH}/lib")
+					message("Found OpenSSL@3 at ${BREW_OPENSSL3_LIB}")
+					file(GLOB filesSSL3 "${BREW_OPENSSL3_LIB}/*")
+					if (NOT (SCOPE_Qt_VERSION EQUAL 5))
+						list (APPEND filesSSL ${filesSSL3})
 					else()
-						message(WARNING "Including unknown version of OpenSSL libraries")
+						message("Skipping OpenSSL@3 for Qt5")
 					endif()
-					file(GLOB filesSSL "/opt/homebrew/opt/openssl/lib/*")
+				endif()
+
+				execute_process(
+					COMMAND brew --prefix openssl@1.1
+					RESULT_VARIABLE BREW_OPENSSL1
+					OUTPUT_VARIABLE BREW_OPENSSL1_PATH
+					OUTPUT_STRIP_TRAILING_WHITESPACE
+				)
+				if (BREW_OPENSSL1 EQUAL 0 AND EXISTS "${BREW_OPENSSL1_PATH}/lib")
+					set(BREW_OPENSSL1_LIB "${BREW_OPENSSL1_PATH}/lib")
+					message("Found OpenSSL@1.1 at ${BREW_OPENSSL1_LIB}")
+					file(GLOB filesSSL1 "${BREW_OPENSSL1_LIB}/*")
+					list (APPEND filesSSL ${filesSSL1})
+				endif()
+
+				#OpenSSL
+				if(filesSSL)
+					list( REMOVE_DUPLICATES filesSSL)
 					foreach(openssl_lib ${filesSSL})
 						string(FIND ${openssl_lib} "dylib" _indexSSL)
 						if (${_indexSSL} GREATER -1)
@@ -157,33 +162,35 @@ macro(DeployApple TARGET)
 			
 			include(BundleUtilities)							
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
-
-			EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE OS_ARCHITECTURE )
-			message( "Detected architecture: '${OS_ARCHITECTURE}'")
-			if(OS_ARCHITECTURE STREQUAL "arm64")
-				file(GLOB libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/*.dylib")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr")
-				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
-					file(GLOB libPlugins "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/*.dylib")
-					list (APPEND libSignFramework ${libPlugins})
-				endforeach()
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtCore.framework/Versions/A/QtCore")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtDBus.framework/Versions/A/QtDBus")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtGui.framework/Versions/A/QtGui")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtSql.framework/Versions/A/QtSql")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtNetwork.framework/Versions/A/QtNetwork")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtPdf.framework/Versions/A/QtPdf")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtSvg.framework/Versions/A/QtSvg")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtSerialPort.framework/Versions/A/QtSerialPort")
-				list (APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/QtWidgets.framework/Versions/A/QtWidgets")
-				foreach(_fileToSign ${libSignFramework})
-					message("Fixing: ${_fileToSign}")
-					execute_process(COMMAND bash -c "codesign --force -s - ${_fileToSign}")
-				endforeach()
-			endif()
 				
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
+
+			message( "Detected architecture: '${SCOPE_CMAKE_SYSTEM_PROCESSOR}'")
+			if(SCOPE_CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+				cmake_policy(PUSH)
+					cmake_policy(SET CMP0009 NEW)
+					message( "Re-signing bundle's components...")
+					file(GLOB_RECURSE libSignFramework LIST_DIRECTORIES false "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/*")
+					file(GLOB_RECURSE libSignPlugins LIST_DIRECTORIES false "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/*")
+					list(APPEND libSignFramework ${libSignPlugins})
+					list(APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr")
+					foreach(_fileToSign ${libSignFramework})
+						string(FIND ${_fileToSign} ".framework/Resources" isResources)
+						if (${isResources} EQUAL -1)
+							execute_process(COMMAND bash -c "codesign --force -s - ${_fileToSign}" RESULT_VARIABLE CODESIGN_VERIFY)
+							if(NOT CODESIGN_VERIFY EQUAL 0)
+								message(WARNING "Failed to repair the component signature: signing failed for ${_fileToSign}")
+							endif()
+						endif()			
+					endforeach()
+					message( "Perform final verification...")
+					execute_process(COMMAND bash -c "codesign --verify --deep -vvvv ${CMAKE_INSTALL_PREFIX}/hyperhdr.app" RESULT_VARIABLE CODESIGN_VERIFY)
+					if(NOT CODESIGN_VERIFY EQUAL 0)
+						message(WARNING "Failed to repair the bundle signature: verification failed")
+					endif()
+				cmake_policy(POP)
+			endif()
 		]] COMPONENT "HyperHDR")
 	else()		
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
