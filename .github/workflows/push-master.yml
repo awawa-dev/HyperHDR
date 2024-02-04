@@ -2,6 +2,8 @@ name: HyperHDR CI Build
 
 on:
   push:
+    branches:
+      - disabled  
 #  pull_request:
 
 env:

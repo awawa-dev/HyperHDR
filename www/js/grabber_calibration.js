@@ -146,7 +146,7 @@ $(document).ready( function(){
 		{			
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
-			alert(`Finished!\n\nFinal section: ${checksum}.\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
+			//alert(`Finished!\n\nFinal section: ${checksum}.\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
 			document.body.style.overflow = 'visible';
 			resetImage();
 		}
@@ -266,5 +266,6 @@ $(document).ready( function(){
 				}
 		}		
 		finish = (checksum > 20) ? true : false;
-	}	
+	}
+	startCalibration();
 });

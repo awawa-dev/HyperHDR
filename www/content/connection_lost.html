@@ -69,9 +69,9 @@
 			$('#no_connection_img').css('filter', '');
 			window.clearInterval(animationTimer);
 		}
-		else if (count > 100)
+		else if (count > 10000)
 		{			
-			animation_value = 100;
+			animation_value = 10000;
 			$('#no_connection_img').css('filter', 'grayscale('+animation_value+'%) contrast('+(100-(animation_value*3/4))+'%) opacity('+(100-(animation_value)/5)+'%)');
 			window.clearInterval(animationTimer);
 		}
@@ -80,7 +80,7 @@
 	};
 
 	function tryReconnect() {
-		if (count > 100) {
+		if (count > 10000) {
 			window.clearInterval(connectionTimer);
 			$(".reconstop").toggle();
 			$('#no_connection_spinner').addClass('d-none');
