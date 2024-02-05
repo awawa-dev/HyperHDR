@@ -1,3 +1,4 @@
+- Yeelight: Wizard now supports more models, workaround for music-mode reset, auto-resume support #750 Thanks @ratawhisk (v20 beta2 🆕)
 - Fix verbose command line option #737 (v20 beta2 🆕)
 - Add native build for Apple M1 / M2 (arm64) architecture #973 (v20 beta2 🆕)
 - New features: disable LEDs/components on startup #737 (v20 beta2 🆕)

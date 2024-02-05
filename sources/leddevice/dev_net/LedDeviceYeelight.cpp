@@ -684,6 +684,7 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 		static_cast<int>(_isOn), static_cast<int>(_isInMusicMode));
 
 	// Disable music mode to get power-off command executed
+	setMusicMode(false);
 	if (!on && _isInMusicMode)
 	{
 		if (_tcpStreamSocket != nullptr)
@@ -709,7 +710,7 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 	}
 	log(2,
 		"setPower() rc",
-		"%d, isON[%d], isInMusicMode[)%d]",
+		"%d, isON[%d], isInMusicMode[%d]",
 		static_cast<int>(rc), static_cast<int>(_isOn), static_cast<int>(_isInMusicMode));
 
 	return rc;
@@ -928,12 +929,24 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress& hostAddress, int p
 	if (on)
 	{
 		paramlist << hostAddress.toString() << port;
+	
+		// Music Mode is only on, if write did not fail nor quota was exceeded
+		if ( writeCommand( getCommand( API_METHOD_MUSIC_MODE, paramlist ) ) > -1 )
+		{
+			_isInMusicMode = on;
+			rc = true;
+		}
 	}
-
-	// Music Mode is only on, if write did not fail nor quota was exceeded
-	if (writeCommand(getCommand(API_METHOD_MUSIC_MODE, paramlist)) > -1)
+	else
 	{
-		_isInMusicMode = on;
+		auto wasInError = _isInError;
+		writeCommand( getCommand( API_METHOD_MUSIC_MODE, paramlist ));
+		if (_isInError && !wasInError)
+		{
+			Warning(_log, "Ignoring Yeelight error when turning off music mode");
+			_isInError = false;
+		}
+		_isInMusicMode = false;
 		rc = true;
 	}
 
@@ -1062,6 +1075,9 @@ bool LedDeviceYeelight::init(const QJsonObject& deviceConfig)
 
 		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(false);
 		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
+
+		_maxRetry = deviceConfig["maxRetry"].toInt(60);
+		Debug(_log, "Max retry         : %d", _maxRetry);
 
 		_waitTimeQuota = _devConfig[CONFIG_QUOTA_WAIT_TIME].toInt(0);
 		Debug(_log, "Wait time (quota) : %d", _waitTimeQuota);
@@ -1252,6 +1268,12 @@ int LedDeviceYeelight::open()
 	}
 
 	DebugIf(verbose, _log, "retval [%d], enabled [%d], _isDeviceReady [%d]", retval, _isEnabled, _isDeviceReady);
+
+	if (!_isDeviceReady)
+	{
+		setupRetry(3000);
+	}
+
 	return retval;
 }
 
@@ -1515,6 +1537,11 @@ int LedDeviceYeelight::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	//DebugIf(verbose, _log, "rc [%d]", rc );
+
+	if (_isDeviceInError)
+	{
+		setupRetry(3000);
+	}
 
 	return rc;
 }

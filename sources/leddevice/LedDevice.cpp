@@ -166,7 +166,7 @@ int LedDevice::close()
 
 void LedDevice::setupRetry(int interval)
 {
-	if (_retryTimer == nullptr)
+	if (_retryTimer == nullptr && _maxRetry > 0)
 	{
 		_currentRetry = _maxRetry;
 		_retryTimer = std::unique_ptr<QTimer>(new QTimer());
