@@ -142,7 +142,7 @@ jobs:
           - JOB_RUNNER: macos-14
             JOB_NAME: macOS 14 (arm64/M1/M2)
             QT_VERSION: 6
-            NICE_NAME: arm64_M1
+            NICE_NAME: arm64_M1_M2
           - JOB_RUNNER: macos-13
             JOB_NAME: macOS 13 (x64)
             QT_VERSION: 5
@@ -206,7 +206,7 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-            name: Apple_macOS_@${{ matrix.NICE_NAME }}_DMG_installer
+            name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
             path: build/Hyper*.dmg
 
 ######################
@@ -257,7 +257,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: release-artifact-${{ matrix.runs-on }}
+          name: release-artifact-windows
           path: build/Hyper*
           
       # Upload artifacts from commit

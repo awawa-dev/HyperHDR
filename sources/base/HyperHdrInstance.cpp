@@ -617,6 +617,11 @@ int HyperHdrInstance::getCurrentPriority() const
 	return _muxer->getCurrentPriority();
 }
 
+bool HyperHdrInstance::hasPriority(int priority)
+{
+	return _muxer->hasPriority(priority);
+}
+
 hyperhdr::Components HyperHdrInstance::getComponentForPriority(int priority)
 {
 	return _muxer->getInputInfo(priority).componentId;
@@ -1031,4 +1036,10 @@ int HyperHdrInstance::hasLedClock()
 bool HyperHdrInstance::getScanParameters(size_t led, double& hscanBegin, double& hscanEnd, double& vscanBegin, double& vscanEnd) const
 {
 	return _imageProcessor->getScanParameters(led, hscanBegin, hscanEnd, vscanBegin, vscanEnd);
+}
+
+
+void HyperHdrInstance::turnGrabbers(bool active)
+{
+	_componentController->turnGrabbers(active);
 }

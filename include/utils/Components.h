@@ -96,4 +96,6 @@ namespace hyperhdr
 		if (cmp == "PROTOSERVER")   return COMP_PROTOSERVER;
 		return COMP_INVALID;
 	}
+
+	enum SystemComponent { SUSPEND, LOCKER, MONITOR };
 }

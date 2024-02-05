@@ -62,7 +62,9 @@ public slots:
 
 	void toggleStateAllInstances(bool pause = false);
 
-	void hibernate(bool wakeUp);
+	void toggleGrabbersAllInstances(bool pause = false);
+
+	void hibernate(bool wakeUp, hyperhdr::SystemComponent source);
 
 	bool createInstance(const QString& name, bool start = false);
 

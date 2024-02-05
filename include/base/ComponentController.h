@@ -27,6 +27,7 @@ signals:
 
 public slots:
 	void setNewComponentState(hyperhdr::Components comp, bool activated);
+	void turnGrabbers(bool activated);
 
 private slots:
 	void handleCompStateChangeRequest(hyperhdr::Components comps, bool activated);
@@ -35,5 +36,6 @@ private:
 	Logger* _log;
 	std::map<hyperhdr::Components, bool> _componentStates;
 	std::map<hyperhdr::Components, bool> _prevComponentStates;
+	std::map<hyperhdr::Components, bool> _prevGrabbers;
 	bool _disableOnStartup;
 };

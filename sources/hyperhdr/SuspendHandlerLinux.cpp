@@ -80,12 +80,12 @@ void SuspendHandler::sleeping(bool sleep)
 	if (sleep)
 	{
 		std::cout << "OS event: going sleep" << std::endl;
-		emit SignalHibernate(false);
+		emit SignalHibernate(false, hyperhdr::SystemComponent::SUSPEND);
 	}
 	else
 	{
 		std::cout << "OS event: wake up" << std::endl;
-		emit SignalHibernate(true);
+		emit SignalHibernate(true, hyperhdr::SystemComponent::SUSPEND);
 	}
 }
 
