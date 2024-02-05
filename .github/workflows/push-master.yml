@@ -71,7 +71,7 @@ jobs:
             platform: linux
     steps:
       # checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -113,14 +113,15 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}
           path: deploy/Hyper*
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
           path: |
@@ -129,88 +130,26 @@ jobs:
             deploy/Hyper*.rpm
 
 ######################
-### macOS (arm64) ####
-######################
-
-  macOS_arm64:
-    name: macOS (arm64)
-    runs-on: macos-14
-    env:     
-      QT_VERSION: "6"
-    steps:
-      # Checkout
-      - uses: actions/checkout@v3
-        with:
-            submodules: true
-
-      # Generate cache id
-      - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
-        run: |
-            string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
-
-      # Download cache
-      - name: ccache cache files
-        if: ( env.USE_CACHE == '1' )
-        uses: actions/cache@v3
-        with:
-            path: .ccache
-            key: macOS_arm64-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-            restore-keys: macOS_arm64-ccache-
-
-      # Install deps
-      - name: Install deps
-        shell: bash
-        run: brew install qt@${{ env.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
-        
-      # Set env
-      - name: Set QT5 env
-        if: ( env.QT_VERSION == '5' )
-        shell: bash
-        run: |
-            export Qt5_DIR=`brew --prefix qt5`;
-            echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
-            
-        # Build process
-      - name: Build packages
-        env:
-            PLATFORM: osx
-            USE_CCACHE: ${{ env.USE_CACHE }}
-            RESET_CACHE: ${{ env.RESET_CACHE }}
-        shell: bash
-        run: ./.ci/ci_build.sh
-
-      # Upload artifacts (only on tagged commit)
-      - name: Upload artifacts
-        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
-        with:
-            path: build/Hyper*.dmg
-
-      # Upload artifacts from commit
-      - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
-        with:
-            name: Apple_macOS_arm64_DMG_installer
-            path: build/Hyper*.dmg
-
-
-######################
-##### macOS (x86) ####
+######## macOS #######
 ######################
 
   macOS:
-    name: macOS
-    runs-on: macos-13
-    env:     
-      QT_VERSION: "5"
+    name: ${{ matrix.JOB_NAME }}
+    runs-on: ${{ matrix.JOB_RUNNER }}
+    strategy:
+      matrix:
+        include:        
+          - JOB_RUNNER: macos-14
+            JOB_NAME: macOS 14 (arm64/M1/M2)
+            QT_VERSION: 6
+            NICE_NAME: arm64_M1
+          - JOB_RUNNER: macos-13
+            JOB_NAME: macOS 13 (x64)
+            QT_VERSION: 5
+            NICE_NAME: x64
     steps:
       # Checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
             submodules: true
 
@@ -229,17 +168,17 @@ jobs:
         uses: actions/cache@v3
         with:
             path: .ccache
-            key: macOS-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-            restore-keys: macOS-ccache-
+            key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+            restore-keys: macOS-ccache-${{ matrix.NICE_NAME }}
 
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install qt@${{ env.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
+        run: brew install qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
         
       # Set env
       - name: Set QT5 env
-        if: ( env.QT_VERSION == '5' )
+        if: ( matrix.QT_VERSION == 5 )
         shell: bash
         run: |
             export Qt5_DIR=`brew --prefix qt5`;
@@ -257,16 +196,17 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+            name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
 
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-            name: Apple_macOS_x64_DMG_installer
+            name: Apple_macOS_@${{ matrix.NICE_NAME }}_DMG_installer
             path: build/Hyper*.dmg
 
 ######################
@@ -281,7 +221,7 @@ jobs:
       QT_VERSION: 6.5.3
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -315,14 +255,15 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: release-artifact-${{ matrix.runs-on }}
           path: build/Hyper*
           
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
@@ -347,7 +288,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -363,13 +304,13 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-    needs: [Linux, windows, macOS, macOS_arm64]
+    needs: [Linux, windows, macOS]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # generate environment variables
       - name: Generate environment variables from version and tag
@@ -385,9 +326,11 @@ jobs:
 
       # Download artifacts from previous build process
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: release-artifact-*
+          merge-multiple: true          
 
       # create draft release and upload artifacts
       - name: Create draft release
