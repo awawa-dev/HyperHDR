@@ -101,9 +101,10 @@ void LedCalibration::setAdjustmentForLed(int index, std::shared_ptr<ColorCalibra
 	Debug(_log, "Calibration config '%i' for LED segment: [%d, %d]", index, startLed, endLed);
 
 	for (size_t iLed = startLed; iLed <= endLed; ++iLed)
-	{
-		_perLedConfig[iLed] = adjustment;
-	}
+		if (iLed < 0 || iLed >= _perLedConfig.size())
+			Error(_log, "Cannot apply calibration config because LED index '%i' does not exist", iLed);
+		else	
+			_perLedConfig[iLed] = adjustment;
 }
 
 bool LedCalibration::verifyAdjustments() const
