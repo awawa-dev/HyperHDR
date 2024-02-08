@@ -30,14 +30,14 @@
 #include <utils/GlobalSignals.h>
 
 AnimationBaseMusic::AnimationBaseMusic(QString name) :
-	AnimationBase(name)
+	AnimationBase(name),
+	_soundCapture(nullptr),
+	_soundHandle(0)
 {
 	_myTarget.Clear();
 
 	emit GlobalSignals::getInstance()->SignalGetSoundCapture(_soundCapture);
-	if (_soundCapture != nullptr)
-		SAFE_CALL_0_RET(_soundCapture.get(), open, uint32_t, _soundHandle)
-	else
+	if (_soundCapture == nullptr)
 		setStopMe(true);	
 };
 
@@ -49,6 +49,11 @@ AnimationBaseMusic::~AnimationBaseMusic()
 
 bool AnimationBaseMusic::isSoundEffect()
 {
+	if (_soundHandle == 0 && _soundCapture != nullptr)
+	{
+		SAFE_CALL_0_RET(_soundCapture.get(), open, uint32_t, _soundHandle)
+	}
+
 	return true;
 };
 
