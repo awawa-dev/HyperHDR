@@ -138,7 +138,7 @@ void Effect::start()
 
 	_timer.setInterval(_effect->GetSleepTime());
 
-	Info(_log, "Begin playing the effect with priority: %i", _priority);
+	Info(_log, "Begin playing the %s with priority: %i", (_effect->isSoundEffect()) ? "music effect" : "effect", _priority);
 
 	run();
 	_timer.start();	
