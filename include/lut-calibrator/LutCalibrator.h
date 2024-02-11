@@ -43,6 +43,15 @@
 
 class Logger;
 class GrabberWrapper;
+enum TEST_COLOR_ID;
+struct Result;
+struct MappingPrime;
+
+
+namespace linalg {
+	template<class T, int M, int N> struct mat;
+	template<class T, int M> struct vec;
+}
 
 class LutCalibrator : public QObject
 {
@@ -50,6 +59,7 @@ class LutCalibrator : public QObject
 
 private:
 	static LutCalibrator* instance;
+public:
 	struct ColorStat
 	{
 		double	red = 0, green = 0, blue = 0, count = 0, scaledRed = 1, scaledGreen = 1, scaledBlue = 1;
@@ -76,7 +86,7 @@ private:
 				scaledGreen = scale / green;
 				scaledBlue = scale / blue;
 			}
-		}
+		}		
 
 		void reset()
 		{
@@ -116,20 +126,34 @@ private:
 
 public:
 	LutCalibrator();
-	~LutCalibrator();
 
 signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
 
 public slots:
-	void incomingCommand(QString rootpath, GrabberWrapper* grabberWrapper, hyperhdr::Components defaultComp, int checksum, ColorRgb startColor, ColorRgb endColor, bool limitedRange, double saturation, double luminance, double gammaR, double gammaG, double gammaB, int coef);
+	void incomingCommand(QString rootpath, GrabberWrapper* grabberWrapper, hyperhdr::Components defaultComp, int checksum, double saturation, double luminance, double gammaR, double gammaG, double gammaB);
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
 	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin);
 
 private:
+	QString generateShortReport(std::function<QString(const Result&)> selector);
+	void sendReport(QString report);
+	bool set1to1LUT();
+	void requestNextTestBoard(int nextStep);
+	void error(QString message);
+	void applyShadow(linalg::vec<double, 3>& color, int shadow);
+	bool getSourceColor(int index, linalg::vec<double,3>& color, TEST_COLOR_ID& prime, int& shadow);
+	linalg::vec<double,3> getColor(const Image<ColorRgb>& image, double blackLevelError, int logicX, int y, double scaleX, double scaleY);
+	uint16_t getCrc(const Image<ColorRgb>& image, double blackLevelError, double whiteLevelError, int y, double scaleX, double scaleY);
 	void handleImage(const Image<ColorRgb>& image);
+	std::list<MappingPrime> toneMapping();
+	void tryHDR10();
+	void setupWhitePointCorrection();
+	void calibrate();
+	void printFullReport();
+
 	bool increaseColor(ColorRgb& color);
 	void storeColor(const ColorRgb& inputColor, const ColorRgb& color);
 	bool finalize(bool fastTrack = false);
@@ -157,6 +181,7 @@ private:
 	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
 	double	getError(ColorRgb first, ColorStat second);
 	void	applyFilter();
+	void	whitePointCorrection(double& nits, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);
 
 	Logger* _log;
 	bool	_mjpegCalibration;
@@ -164,7 +189,7 @@ private:
 	bool	_limitedRange;
 	int		_checksum;
 	int		_currentCoef;
-	double	_coefsResult[3];
+	double	_coefsResult[4];
 	int		_warningCRC;
 	int		_warningMismatch;
 	double	_saturation;
@@ -185,5 +210,5 @@ private:
 
 	// Color coefs YUV to RGB: http://avisynth.nl/index.php/Color_conversions
 	// FCC, Rec.709, Rec.601 coefficients 
-	ColorStat _coefs[3] = { ColorStat(0.3, 0.59, 0.11), ColorStat(0.2126, 0.7152, 0.0722), ColorStat(0.299, 0.587, 0.114)};
+	ColorStat _coefs[4] = { ColorStat(0.3, 0.59, 0.11), ColorStat(0.2126, 0.7152, 0.0722), ColorStat(0.299, 0.587, 0.114), ColorStat(0.2627, 0.678, 0.0593)};
 };

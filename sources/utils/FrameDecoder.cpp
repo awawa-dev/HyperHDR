@@ -101,7 +101,7 @@ void FrameDecoder::processImage(
 #ifdef TAKE_SCREEN_SHOT
 		if (screenShotTaken > 0 && screenShotTaken-- == 1)
 		{
-			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
+			QImage jpgImage((const uint8_t*)outputImage.rawMem(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
 			jpgImage.save("D:/grabber_yuv.png", "png");
 		}
 #endif
@@ -267,7 +267,7 @@ void FrameDecoder::processImage(
 #ifdef TAKE_SCREEN_SHOT
 		if (screenShotTaken > 0 && screenShotTaken-- == 1)
 		{
-			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
+			QImage jpgImage((const uint8_t*)outputImage.rawMem(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
 			jpgImage.save("D:/grabber_nv12.png", "png");
 		}
 #endif

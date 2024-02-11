@@ -1,4 +1,16 @@
 $(document).ready( function(){
+	if (window.matchMedia("(color-gamut: srgb)").matches) {
+	  console.log(`Screen supports approximately the sRGB gamut or more.`);
+	}
+
+	if (window.matchMedia("(color-gamut: p3)").matches) {
+	  console.log(`Screen supports approximately the gamut specified by the DCI P3 Color Space or more.`);
+	}
+
+	if (window.matchMedia("(color-gamut: rec2020)").matches) {
+	  console.log(`Screen supports approximately the gamut specified by the ITU-R Recommendation BT.2020 Color Space or more.`);
+	}
+
 	class ColorRgb {	  
 	  constructor(_R,_G,_B)
 	  {
@@ -6,44 +18,43 @@ $(document).ready( function(){
 		  this.g = _G;
 		  this.b = _B;
 	  }
-	  set(_R,_G,_B)
+	  clone(_p)
 	  {
-		  this.r = _R;
-		  this.g = _G;
-		  this.b = _B;
+		  this.r = _p.r;
+		  this.g = _p.g;
+		  this.b = _p.b;
 	  }
-	  equal(x)
+	  divide(_m, _n)
 	  {
-		  if (this.r == x.r && this.g == x.g && this.b == x.b)
-			  return true;
-		  else
-			  return false;
+		  this.r -= Math.round(_m * (this.r + (Math.trunc(this.r) % 2)) / _n) - ((_m == 0) ? 0 : (Math.trunc(this.r % 2)));
+		  this.g -= Math.round(_m * (this.g + (Math.trunc(this.g) % 2)) / _n) - ((_m == 0) ? 0 : (Math.trunc(this.g % 2)));
+		  this.b -= Math.round(_m * (this.b + (Math.trunc(this.b) % 2)) / _n) - ((_m == 0) ? 0 : (Math.trunc(this.b % 2)));
 	  }
 	}
-	
-	let primeColors = [
-				new ColorRgb(255, 0, 0), new ColorRgb(0, 255, 0), new ColorRgb(0, 0, 255), new ColorRgb(255, 255, 0),
-				new ColorRgb(255, 0, 255), new ColorRgb(0, 255, 255), new ColorRgb(255, 128, 0), new ColorRgb(255, 0, 128), new ColorRgb(0, 128, 255),
-				new ColorRgb(128, 64, 0), new ColorRgb(128, 0, 64),
-				new ColorRgb(128, 0, 0), new ColorRgb(0, 128, 0), new ColorRgb(0, 0, 128),
-				new ColorRgb(16, 16, 16), new ColorRgb(32, 32, 32), new ColorRgb(48, 48, 48), new ColorRgb(64, 64, 64), new ColorRgb(96, 96, 96), new ColorRgb(120, 120, 120), new ColorRgb(144, 144, 144), new ColorRgb(172, 172, 172), new ColorRgb(196, 196, 196), new ColorRgb(220, 220, 220),
-				new ColorRgb(255, 255, 255),
-				new ColorRgb(0, 0, 0)
-				];
 
-	let currentColor = new ColorRgb(0,0,0);
-	let startColor = new ColorRgb(0,0,0);
+	let primeColors = [
+		new ColorRgb(255, 255, 255),
+		new ColorRgb(255, 0,   0  ),
+		new ColorRgb(0,   255, 0  ),
+		new ColorRgb(0,   0,   255),
+		new ColorRgb(255, 255, 0  ),
+		new ColorRgb(0,   255, 255),
+		new ColorRgb(255,   0, 255),
+		new ColorRgb(255, 128, 0  ),
+		new ColorRgb(0,   255, 128),
+		new ColorRgb(255,   0, 128),
+		new ColorRgb(128, 255, 0  ),
+		new ColorRgb(0,   128, 255),
+		new ColorRgb(128,   0, 255) ];
+
 	let checksum = 0;
-	let maxLimit = 255;
 	let finish = false;
 	let running = false;
-	let limited = false;
 	let saturation = 1;
 	let luminance = 1;
 	let gammaR = 1;
 	let gammaG = 1;
 	let gammaB = 1;
-	let coef = 0;
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
@@ -58,11 +69,8 @@ $(document).ready( function(){
 		}, false);
 
 	performTranslation();
-	$("#grabber_calibration_intro").html($.i18n("grabber_calibration_expl"));
-		
-	
 
-	$("#startCalibration").off('click').on('click', function() { limited = false; coef = 0; startCalibration(); });
+	$("#grabber_calibration_intro").html($.i18n("grabber_calibration_expl"));
 	
 	sendToHyperhdr("serverinfo", "", '"subscribe":["lut-calibration-update"]');
 	
@@ -70,6 +78,8 @@ $(document).ready( function(){
 	{
 		handleMessage(event);
 	});
+
+	$("#startCalibration").off('click').on('click', function() { startCalibration(); });
 	
 	resetImage();
 	
@@ -108,22 +118,7 @@ $(document).ready( function(){
 		
 		if (!running)
 			return;
-		
-		if (json.limited == 1 && !limited)
-		{
-			limited = true;
-			startCalibration();
-			return;
-		}
-		
-		if (typeof json.coef != 'undefined' && json.coef != null && !isNaN(json.coef))
-		{
-			console.log(json.coef);
-			coef = json.coef;
-			startCalibration();
-			return;
-		}
-		
+				
 		if (json.status != 0)
 		{
 			document.body.style.overflow = 'visible';
@@ -133,30 +128,21 @@ $(document).ready( function(){
 			return;
 		}
 		
-		if (json.validate != checksum)
+		if (json.validate < 0)
 		{
-			document.body.style.overflow = 'visible';
+			finish = true;
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
-			alert("Unexpected CRC: "+json.validate+", waiting for: "+checksum);			
-			return;
-		}
-		
-		if (finish)
-		{			
-			canvas.classList.remove("fullscreen-canvas");
-			running = false;
-			//alert(`Finished!\n\nFinal section: ${checksum}.\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
 			document.body.style.overflow = 'visible';
 			resetImage();
 		}
 		else
 		{
-			checksum++;
+			checksum = json.validate;
 			drawImage();
 			setTimeout(() => {			
-				requestLutCalibration("capture", checksum, startColor, currentColor, limited, saturation, luminance, gammaR, gammaG, gammaB, coef);
-				}, 15);
+				requestLutCalibration("capture", checksum, saturation, luminance, gammaR, gammaG, gammaB);
+				}, 500);
 		}
 	}
 		
@@ -166,8 +152,6 @@ $(document).ready( function(){
 		{
 			document.body.style.overflow = 'hidden';
 			canvas.classList.add("fullscreen-canvas");
-			currentColor = new ColorRgb(0,0,0);
-			startColor = new ColorRgb(0,0,0);
 			checksum = 0;
 			finish = false;
 			running = true;
@@ -182,90 +166,82 @@ $(document).ready( function(){
 			
 			drawImage();		
 			setTimeout(() => {
-				requestLutCalibration("capture", checksum, startColor, currentColor, limited, saturation, luminance, gammaR, gammaG, gammaB, coef);
-			}, 1000); 
+				requestLutCalibration("capture", checksum, saturation, luminance, gammaR, gammaG, gammaB);
+			}, 100); 
 		}
 		else
 			alert('Please run fullscreen mode (F11)');
 	};
 
-	function drawImage()
-	{		
-		startColor = Object.assign({}, currentColor);
-		
-		let scaleX = canvas.width / 128;
-		let scaleY = canvas.height / 72;
-		
-		for(let py = 0; py < 72; py++)
-			for(let px = (py < 71 && py > 0) ? checksum % 2: 0; px < 128; px++)
-			{
-				let sx = px * scaleX;
-				let ex = (px + 1) * scaleX;
-				let sy = py * scaleY;
-				let ey = (py + 1) * scaleY;
-				
-				if (py < 71 && py > 0)
-				{
-					ctx.fillStyle = `rgb(${currentColor.r}, ${currentColor.g}, ${currentColor.b})`;
-					ctx.fillRect(sx, sy, ex - sx, ey - sy);
+	const SCREEN_BLOCKS_X = 64;
+	const SCREEN_BLOCKS_Y = 36;
+	const LOGIC_BLOCKS_X_SIZE = 4;
+	const LOGIC_BLOCKS_X =  Math.floor((SCREEN_BLOCKS_X - 1) / LOGIC_BLOCKS_X_SIZE);
+	const COLOR_DIVIDES = 32;
 
-					increaseColor(currentColor);
+	function draw(x, y, scaleX, scaleY)
+	{
+		let sX = Math.round((x * LOGIC_BLOCKS_X_SIZE + (y % 2) * 2 + 1)* scaleX);
+		let sY = Math.round(y * scaleY);
+
+		ctx.fillRect(sX, sY, scaleX, scaleY);
+	}
+
+	function getColor(index)
+	{
+		let color = new ColorRgb(0,0,0);
+		let searching = 0;
+
+		for(let i = 0; i < primeColors.length; i++)
+			for(let j = 0; j < COLOR_DIVIDES; j++)
+			{
+				if (searching == index)
+				{
+					color.clone(primeColors[i]);
+					color.divide(j, COLOR_DIVIDES);
+					console.log(`[${color.r}, ${color.g}, ${color.b}]`)
+
+					return color;
 				}
 				else
-				{
-					if (px == 0)
-						ctx.fillStyle = `rgb(255,255,255)`;
-					else if (px == 1)
-						ctx.fillStyle = `rgb(0,0,0)`;
-					else if (px == 2)
-						ctx.fillStyle = `rgb(255,0,0)`;
-					else if (px == 3)
-						ctx.fillStyle = `rgb(255,255,0)`;
-					else if (px == 4)
-						ctx.fillStyle = `rgb(255,0,255)`;
-					else if (px == 5)
-						ctx.fillStyle = `rgb(0,255,0)`;
-					else if (px == 6)
-						ctx.fillStyle = `rgb(0,255,255)`;
-					else if (px == 7)
-						ctx.fillStyle = `rgb(0,0,255)`;
-					else if (px >= 8 && px < 24)
-					{
-						let sh = 1 << (15 - (px - 8));
-						
-						if (checksum & sh)
-							ctx.fillStyle = `rgb(255,255,255)`;
-						else
-							ctx.fillStyle = `rgb(0,0,0)`;
-					}
-					else if (px >= 24 && px < 60)
-						ctx.fillStyle = `rgb(255,255,255)`;
-					else if (px >= 60 && px < 96)
-						ctx.fillStyle = `rgb(0,0,0)`;
-					else if (px >= 96)
-						ctx.fillStyle = `rgb(128,128,128)`;
-					
-					ctx.fillRect(sx, sy, ex - sx, ey - sy);
-				}
+					searching++;
 			}
+
+		finish = true;
+		return color;
 	}
+
+	function drawImage()
+	{
+		let scaleX = canvas.width / SCREEN_BLOCKS_X;
+		let scaleY = canvas.height / SCREEN_BLOCKS_Y;
+		let actual = 0;
+		for(let py = 1; py < SCREEN_BLOCKS_Y - 1; py++)
+			for(let px = 0; px < LOGIC_BLOCKS_X; px++)
+			{				
+				let currentColor = getColor(actual++);
+				ctx.fillStyle = `rgb(${currentColor.r}, ${currentColor.g}, ${currentColor.b})`;
+				draw(px, py, scaleX, scaleY);
+			}
+
+		ctx.fillStyle = `rgb(0, 0, 0)`;
+		draw(0, 0, scaleX, scaleY); draw(0, SCREEN_BLOCKS_Y - 1, scaleX, scaleY);
+		ctx.fillStyle = `rgb(255, 255, 255)`;
+		draw(1, 0, scaleX, scaleY); draw(1, SCREEN_BLOCKS_Y - 1, scaleX, scaleY);
+		
+		for(let py = 0; py < SCREEN_BLOCKS_Y; py += SCREEN_BLOCKS_Y - 1)
+			for(let px = 2; px < 8 + 2; px++)
+			{
+				let sh = 1 << (7 - (px - 2));
+						
+				if (checksum & sh)
+					ctx.fillStyle = `rgb(255,255,255)`;
+				else
+					ctx.fillStyle = `rgb(0,0,0)`;
+
+				draw(px, py, scaleX, scaleY);
+			}
+	}	
 	
-	function increaseColor(color)
-	{				
-		debugger;
-		if (color.equal(primeColors[primeColors.length -1]))
-			color.set(primeColors[0].r, primeColors[0].g, primeColors[0].b);
-		else
-		{
-			for (let i = 0; i < primeColors.length; i++ )
-				if (color.equal(primeColors[i]))
-				{
-					i++;
-					color.set(primeColors[i].r, primeColors[i].g, primeColors[i].b);
-					break;
-				}
-		}		
-		finish = (checksum > 20) ? true : false;
-	}
 	startCalibration();
 });
