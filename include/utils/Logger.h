@@ -20,6 +20,7 @@
 
 #define LOG_MESSAGE(severity, logger, ...)   (logger)->Message(severity, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
+#define REPORT_TOKEN        "<Report>"
 #define Debug(logger, ...)   LOG_MESSAGE(Logger::DEBUG  , logger, __VA_ARGS__)
 #define Info(logger, ...)    LOG_MESSAGE(Logger::INFO   , logger, __VA_ARGS__)
 #define Warning(logger, ...) LOG_MESSAGE(Logger::WARNING, logger, __VA_ARGS__)

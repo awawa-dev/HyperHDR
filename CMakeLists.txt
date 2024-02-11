@@ -691,8 +691,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3)
-	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall liblzma sqlite3 PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers)
+	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall liblzma sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

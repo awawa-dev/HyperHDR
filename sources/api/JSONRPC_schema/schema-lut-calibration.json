@@ -19,13 +19,6 @@
 			"type" : "integer",
 			"required" : true
 		},
-		"coef": {
-			"type" : "integer",
-			"required" : true
-		},
-		"limitedRange": {
-			"type" : "boolean"
-		},
 		"saturation": {
 			"type" : "number"
 		},
@@ -40,26 +33,6 @@
 		},
 		"gammaB": {
 			"type" : "number"
-		},
-		"startColor": {
-			"type": "object",
-			"required": true,
-			"properties":{			
-				"r" : {"type" : "integer"},
-				"g" : {"type" : "integer"},
-				"b" : {"type" : "integer"}
-			},
-			"additionalProperties": false
-		},
-		"endColor": {
-			"type": "object",
-			"required": true,	
-			"properties":{			
-				"r" : {"type" : "integer"},
-				"g" : {"type" : "integer"},
-				"b" : {"type" : "integer"}
-			},			
-			"additionalProperties": false
 		}
 	},
 	"additionalProperties": false

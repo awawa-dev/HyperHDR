@@ -853,3 +853,13 @@ bool Grabber::isInitialized()
 {
 	return _initialized;
 }
+
+void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
+{
+	if (lut != nullptr && _lut.size() >= lut->size())
+	{
+		memcpy(_lut.data(), lut->data(), lut->size());
+	}
+	else
+		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+}

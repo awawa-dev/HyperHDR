@@ -163,6 +163,8 @@ public slots:
 
 	QStringList getVideoDevices() const;
 
+	void signalSetLutHandler(MemoryBuffer<uint8_t>* lut);
+
 signals:
 	void SignalNewCapturedFrame(const Image<ColorRgb>& image);
 

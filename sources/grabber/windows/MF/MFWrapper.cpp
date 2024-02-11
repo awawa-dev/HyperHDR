@@ -28,6 +28,7 @@
 #include <QMetaType>
 #include <grabber/windows/MF/MFWrapper.h>
 #include <base/HyperHdrManager.h>
+#include <utils/GlobalSignals.h>
 
 
 MFWrapper::MFWrapper(const QString& device,
@@ -39,5 +40,6 @@ MFWrapper::MFWrapper(const QString& device,
 	connect(_grabber.get(), &Grabber::SignalCapturingException, this, &GrabberWrapper::capturingExceptionHandler);
 	connect(_grabber.get(), &Grabber::SignalSetNewComponentStateToAllInstances, this, &GrabberWrapper::SignalSetNewComponentStateToAllInstances);
 	connect(_grabber.get(), &Grabber::SignalSaveCalibration, this, &GrabberWrapper::SignalSaveCalibration);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, _grabber.get(), &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
 }
 

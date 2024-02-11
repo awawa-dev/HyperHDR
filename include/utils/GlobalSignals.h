@@ -94,5 +94,7 @@ signals:
 
 	void SignalDiscoveryRequestToScan(DiscoveryRecord::Service type);
 
-	void SignalDiscoveryEvent(DiscoveryRecord message);	
+	void SignalDiscoveryEvent(DiscoveryRecord message);
+
+	void SignalSetLut(MemoryBuffer<uint8_t>* lut);
 };
