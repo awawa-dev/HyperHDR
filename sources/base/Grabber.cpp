@@ -478,7 +478,7 @@ void Grabber::loadLutFile(PixelFormat color, const QList<QString>& files)
 
 					file.seek(index);
 
-					_lut.resize(length + 4);
+					_lut.resize(LUT_FILE_SIZE + 64);
 
 					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
 					{
