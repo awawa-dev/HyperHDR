@@ -1,3 +1,5 @@
+- Fedora uses xz as the package name, not xz-utils #771 Thanks @hsmalley (v20 beta2 🆕)
+- Fix LUT loading bug to reduce memory usage by 96MB #766 (v20 beta2 🆕)
 - Fix background music effect #761 (v20 beta2 🆕)
 - Fix typo #762 Thanks @laurens94 (v20 beta2 🆕)
 - Yeelight: Wizard now supports more models, workaround for music-mode reset, auto-resume support #750 Thanks @ratawhisk (v20 beta2 🆕)
