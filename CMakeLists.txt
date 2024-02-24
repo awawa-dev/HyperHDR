@@ -606,6 +606,9 @@ if ( NOT WIN32 AND ENABLE_FTDIDEV )
 	pkg_check_modules(LIB_FTDI REQUIRED libftdi1)
 	pkg_check_modules(LIB_USB REQUIRED libusb-1.0)
 endif()
+
+FIND_PACKAGE(PkgConfig REQUIRED)
+pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
 	
 message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
 message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
