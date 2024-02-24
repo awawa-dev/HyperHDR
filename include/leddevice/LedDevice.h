@@ -123,7 +123,6 @@ protected:
 
 	int		_maxRetry;
 	int		_currentRetry;
-    bool    _retryMode;
 	QString _customInfo;
 	std::unique_ptr<QTimer> _retryTimer;
 
