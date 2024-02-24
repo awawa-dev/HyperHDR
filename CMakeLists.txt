@@ -550,21 +550,19 @@ endif()
 
 add_definitions(${QT_DEFINITIONS})
 
-# libjpegturbo and ftdi libraries
-
 if( WIN32 AND (ENABLE_MF OR ENABLE_FTDIDEV))
 	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
 		file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
 	endif()
 
 	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip OR
-		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows OR
-		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libftdi1_x64-windows)
+			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows OR
+			NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libftdi1_x64-windows)
 		message( STATUS "Downloading libjpegturbo and ftdi libraries")
 		file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.04.10/libs4windows.zip
-					  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip
-					  STATUS WIN_LIBS_DOWNLOAD_STATUS
-					  EXPECTED_HASH MD5=46d91068c9a97d79f74e899dbbeb027b)
+				${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip
+				STATUS WIN_LIBS_DOWNLOAD_STATUS
+				EXPECTED_HASH MD5=46d91068c9a97d79f74e899dbbeb027b)
 		list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
 		if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
 			file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip )
@@ -573,9 +571,9 @@ if( WIN32 AND (ENABLE_MF OR ENABLE_FTDIDEV))
 	endif()
 
 	execute_process(
-		COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/ -aoa -y
-		RESULT_VARIABLE STATUS_EXTRACT
-		OUTPUT_VARIABLE OUTPUT1
+			COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/ -aoa -y
+			RESULT_VARIABLE STATUS_EXTRACT
+			OUTPUT_VARIABLE OUTPUT1
 	)
 
 	if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
@@ -602,36 +600,10 @@ if( WIN32 AND (ENABLE_MF OR ENABLE_FTDIDEV))
 	set (LIB_CONFUSE_LIBRARY_FOUND 1)
 	set (LIB_CONFUSE_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libconfuse_x64-windows/bin")
 endif()
-
-if ( NOT WIN32 AND ENABLE_FTDIDEV )
-	FIND_PACKAGE(PkgConfig REQUIRED)
-	pkg_check_modules(LIB_FTDI REQUIRED libftdi1)
-	pkg_check_modules(LIB_USB REQUIRED libusb-1.0)
-endif()
-
-if ( ENABLE_V4L2 )
-	FIND_PACKAGE(PkgConfig REQUIRED)
-	pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
-endif()
-
-if( ENABLE_FTDIDEV )
-	if ( LIB_CONFUSE_LIBRARY_FOUND )
-		message( STATUS "LIB_CONFUSE_LIBRARY_DIRS=${LIB_CONFUSE_LIBRARY_DIRS}" )
-	endif()
 	
-message( STATUS "LIB_USB_LIBRARY_DIRS=${LIB_USB_LIBRARY_DIRS}" )
-	message( STATUS "LIB_USB_LINK_LIBRARIES=${LIB_USB_LINK_LIBRARIES}" )
-	message( STATUS "LIB_USB_INCLUDE_DIRS=${LIB_USB_INCLUDE_DIRS}" )
-
-	message( STATUS "LIB_FTDI_LIBRARY_DIRS=${LIB_FTDI_LIBRARY_DIRS}" )
-	message( STATUS "LIB_FTDI_LINK_LIBRARIES=${LIB_FTDI_LINK_LIBRARIES}" )
-	message( STATUS "LIB_FTDI_INCLUDE_DIRS=${LIB_FTDI_INCLUDE_DIRS}" )
-endif()
-
-if( ENABLE_MF OR ENABLE_V4L2 )
-	message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}" )
-	message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}" )
-	message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}" )
+message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
+message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
+message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
 
 # Embedded QT plugins
 if (USE_STATIC_QT_PLUGINS)
@@ -684,3 +656,22 @@ if (NOT ENABLE_BONJOUR)
 	message( FATAL_ERROR "The network discovery service (ENABLE_BONJOUR) is an important feature of HyperHDR. If you know what you are doing, remove this safe-break.")
 endif()
 
+if ( NOT WIN32 AND ENABLE_FTDIDEV )
+	FIND_PACKAGE(PkgConfig REQUIRED)
+	pkg_check_modules(LIB_FTDI REQUIRED libftdi1)
+	pkg_check_modules(LIB_USB REQUIRED libusb-1.0)
+endif()
+
+if( ENABLE_FTDIDEV )
+	if ( LIB_CONFUSE_LIBRARY_FOUND )
+		message( STATUS "LIB_CONFUSE_LIBRARY_DIRS=${LIB_CONFUSE_LIBRARY_DIRS}" )
+	endif()
+
+	message( STATUS "LIB_USB_LIBRARY_DIRS=${LIB_USB_LIBRARY_DIRS}" )
+	message( STATUS "LIB_USB_LINK_LIBRARIES=${LIB_USB_LINK_LIBRARIES}" )
+	message( STATUS "LIB_USB_INCLUDE_DIRS=${LIB_USB_INCLUDE_DIRS}" )
+
+	message( STATUS "LIB_FTDI_LIBRARY_DIRS=${LIB_FTDI_LIBRARY_DIRS}" )
+	message( STATUS "LIB_FTDI_LINK_LIBRARIES=${LIB_FTDI_LINK_LIBRARIES}" )
+	message( STATUS "LIB_FTDI_INCLUDE_DIRS=${LIB_FTDI_INCLUDE_DIRS}" )
+endif()
