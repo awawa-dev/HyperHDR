@@ -197,7 +197,7 @@ void HyperHdrManager::hibernate(bool wakeUp, hyperhdr::SystemComponent source)
 		if (_hasEffect)
 		{
 			if (wakeUp)
-				QTimer::singleShot(3000, [this, wakeUp]() { toggleGrabbersAllInstances(wakeUp);  });
+				QTimer::singleShot(3000, this, [this, wakeUp]() { toggleGrabbersAllInstances(wakeUp);  });
 			else
 				toggleGrabbersAllInstances(wakeUp);
 			
@@ -213,7 +213,7 @@ void HyperHdrManager::hibernate(bool wakeUp, hyperhdr::SystemComponent source)
 	else
 	{
 		Warning(_log, "The system is going to wake up");
-		QTimer::singleShot(3000, [this]() { toggleStateAllInstances(true);  });
+		QTimer::singleShot(3000, this, [this]() { toggleStateAllInstances(true);  });
 	}
 }
 
