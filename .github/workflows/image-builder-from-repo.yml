@@ -19,7 +19,7 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt update
-        sudo apt install coreutils p7zip-full qemu-user-static
+        sudo apt install coreutils p7zip-full qemu-user-static xz-utils
 
     - name: Checkout CustomPiOS
       uses: actions/checkout@v4
@@ -100,10 +100,11 @@ jobs:
       run: |
         IMAGE=SD-card-image-${{ github.event.inputs.tags }}-${{ github.event.inputs.architecture }}
         cp ${{ env.workspace_dir }}/*.img $IMAGE.img
+        xz -v9 $IMAGE.img
         echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
     # artifact upload will take care of zipping for us
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.copy.outputs.image }}
-        path: ${{ steps.copy.outputs.image }}.img
+        path: ${{ steps.copy.outputs.image }}.img.xz

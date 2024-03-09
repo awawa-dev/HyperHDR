@@ -138,13 +138,15 @@ jobs:
         with:
           path: repo
           pattern: release-artifact-*
-          merge-multiple: true          
+          merge-multiple: true    
+      - name: Display structure of artifacts
+        run: ls -R repo
       - name: Deploy the packages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           repository-name: awawa-dev/awawa-dev.github.io
           branch: upload
-          folder: repo/upload
+          folder: repo
           target-folder: repo
           clean: false
           commit-message: Release for ${{github.ref_name}}

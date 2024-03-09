@@ -266,7 +266,7 @@ void FlatBufferServer::loadLutFile()
 
 					file.seek(index);
 
-					_lut.resize(length + 4);
+					_lut.resize(LUT_FILE_SIZE + 64);
 
 					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
 					{
