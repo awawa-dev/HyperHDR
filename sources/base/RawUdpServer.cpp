@@ -57,7 +57,7 @@ RawUdpServer::~RawUdpServer()
 {
 	stopServer();
 
-	std::cout << "RawUdpServer exists now" << std::endl;
+	std::cout << "RawUdpServer exits now" << std::endl;
 }
 
 void RawUdpServer::initServer()

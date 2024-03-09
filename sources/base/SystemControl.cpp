@@ -63,7 +63,7 @@ SystemControl::~SystemControl()
 {
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_SYSTEMGRABBER, int(_hyperhdr->getInstanceIndex()), false);
 
-	std::cout << "SystemControl exists now" << std::endl;
+	std::cout << "SystemControl exits now" << std::endl;
 }
 
 quint8 SystemControl::getCapturePriority()
@@ -78,10 +78,13 @@ bool SystemControl::isCEC()
 
 void SystemControl::handleSysImage(const QString& name, const Image<ColorRgb>& image)
 {
+	if (!_sysCaptEnabled)
+		return;
+
 	if (_sysCaptName != name)
 	{
-		_hyperhdr->registerInput(_sysCaptPrio, hyperhdr::COMP_SYSTEMGRABBER, "System", name);
 		_sysCaptName = name;
+		_hyperhdr->registerInput(_sysCaptPrio, hyperhdr::COMP_SYSTEMGRABBER, "System", _sysCaptName);
 	}
 
 	_alive = true;
@@ -98,7 +101,7 @@ void SystemControl::setSysCaptureEnable(bool enable)
 	{
 		if (enable)
 		{
-			_hyperhdr->registerInput(_sysCaptPrio, hyperhdr::COMP_SYSTEMGRABBER);
+			_hyperhdr->registerInput(_sysCaptPrio, hyperhdr::COMP_SYSTEMGRABBER, "System", _sysCaptName);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &SystemControl::handleSysImage, Qt::UniqueConnection);
 		}
 		else
@@ -106,7 +109,6 @@ void SystemControl::setSysCaptureEnable(bool enable)
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &SystemControl::handleSysImage);
 			_hyperhdr->clear(_sysCaptPrio);
 			_sysInactiveTimer->stop();
-			_sysCaptName = "";
 		}
 
 		_sysCaptEnabled = enable;
