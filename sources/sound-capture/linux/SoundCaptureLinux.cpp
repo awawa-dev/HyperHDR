@@ -273,7 +273,7 @@ void SoundCaptureLinux::start()
 
 		_thread = new AlsaWorkerThread(_logger, device, this);
 		_thread->setObjectName("SoundCapturing");
-		connect(_thread, &AlsaWorkerThread::finished, this, [=]() {stop(); });		
+		connect(_thread, &AlsaWorkerThread::finished, this, [this]() {stop(); });		
 		_thread->start();		
 	}
 }

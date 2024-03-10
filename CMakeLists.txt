@@ -459,31 +459,43 @@ file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 # Add the project include directory as additional include path
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# enable C++11; MSVC doesn't have c++11 feature switch
+# enable C++20 support
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+	CHECK_CXX_COMPILER_FLAG("-std=c++20" COMPILER_SUPPORTS_CXX20)
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 	if (CMAKE_COMPILER_IS_GNUCXX)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
 	endif()
-	if(COMPILER_SUPPORTS_CXX11)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	elseif(COMPILER_SUPPORTS_CXX0X)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	if(COMPILER_SUPPORTS_CXX20)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 	else()
-			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+		message(FATAL_ERROR "No support for C++20 detected")
 	endif()
 else()
 	include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("/std:c++20" COMPILER_SUPPORTS_CXX20)
-    if (COMPILER_SUPPORTS_CXX20)
+	CHECK_CXX_COMPILER_FLAG("/std:c++20" COMPILER_SUPPORTS_CXX20)
+	if (COMPILER_SUPPORTS_CXX20)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
-		message(STATUS "Enabling MSVC support for c++20")
+	else()
+		message(FATAL_ERROR "No support for C++20 detected")
     endif()
+endif()
+
+set(TestingCpp20 "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/TestingCpp20.cpp")
+file(WRITE "${TestingCpp20}" "#include <vector>
+	constexpr int test(int vec) {return vec; }
+	constinit int glob = test(2);
+	int main(int argc, char** argv) { return glob; }")
+try_compile(TestingCpp20Result "${CMAKE_BINARY_DIR}" "${TestingCpp20}" OUTPUT_VARIABLE TestingCpp20Output)
+file(REMOVE "${TestingCpp20}")
+
+if (TestingCpp20Result)
+	message(STATUS "C++20 works OK")
+else()
+	message(FATAL_ERROR "No support for C++20 detected: ${TestingCpp20Output}")
 endif()
 
 # Use GNU gold linker if available
