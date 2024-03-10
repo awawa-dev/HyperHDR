@@ -33,4 +33,8 @@ private:
 
 	void setLine(QPainter* painter, int y, Point3d rgb);
 	void setFill(QPainter* painter, Point3d rgb);
+
+private:
+	static bool isRegistered;
+
 };

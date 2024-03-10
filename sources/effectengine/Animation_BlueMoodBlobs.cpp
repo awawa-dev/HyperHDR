@@ -43,3 +43,5 @@ EffectDefinition Animation_BlueMoodBlobs::getDefinition()
 	ed.name = ANIM_BLUE_MOOD_BLOBS;
 	return ed;
 }
+
+bool Animation_BlueMoodBlobs::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_BlueMoodBlobs::getDefinition());

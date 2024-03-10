@@ -66,3 +66,5 @@ EffectDefinition Animation_DoubleSwirl::getDefinition()
 	return ed;
 }
 
+bool Animation_DoubleSwirl::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_DoubleSwirl::getDefinition());
+

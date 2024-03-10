@@ -47,3 +47,5 @@ EffectDefinition Animation_FullColorMoodBlobs::getDefinition()
 	ed.name = ANIM_FULLCOLOR_MOOD_BLOBS;
 	return ed;
 }
+
+bool Animation_FullColorMoodBlobs::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_FullColorMoodBlobs::getDefinition());

@@ -154,9 +154,4 @@ bool Animation4Music_WavesPulseFast::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_WavesPulseFast::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_WavesPulseFast::getDefinition());

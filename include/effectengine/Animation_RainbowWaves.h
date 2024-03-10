@@ -22,4 +22,8 @@ public:
 protected:
 
 	int		hue;
+
+private:
+	static bool isRegistered;
+
 };

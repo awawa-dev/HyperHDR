@@ -97,9 +97,4 @@ bool Animation4Music_StereoMultiSlow::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_StereoMultiSlow::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_StereoMultiSlow::getDefinition());

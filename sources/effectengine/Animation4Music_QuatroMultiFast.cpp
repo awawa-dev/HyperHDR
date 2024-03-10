@@ -113,9 +113,4 @@ bool Animation4Music_QuatroMultiFast::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_QuatroMultiFast::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_QuatroMultiFast::getDefinition());

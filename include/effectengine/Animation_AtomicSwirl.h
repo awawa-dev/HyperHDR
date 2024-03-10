@@ -11,4 +11,8 @@ public:
 	Animation_AtomicSwirl(QString name = ANIM_ATOMIC_SWIRL);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

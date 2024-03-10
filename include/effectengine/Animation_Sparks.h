@@ -23,4 +23,8 @@ protected:
 	Point3d    color;
 
 	QVector<ColorRgb> ledData;
+
+private:
+	static bool isRegistered;
+
 };

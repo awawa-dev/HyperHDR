@@ -11,4 +11,8 @@ public:
 	Animation_Breath(QString name = ANIM_BREATH);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

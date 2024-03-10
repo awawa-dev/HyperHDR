@@ -11,4 +11,8 @@ public:
 	Animation_DoubleSwirl(QString name = ANIM_DOUBLE_SWIRL);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

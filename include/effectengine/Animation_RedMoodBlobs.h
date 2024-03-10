@@ -10,4 +10,7 @@ public:
 	Animation_RedMoodBlobs(QString name = ANIM_RED_MOOD_BLOBS);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
 };

@@ -26,4 +26,8 @@ private:
 
 	int     plasma[PLASMA_WIDTH * PLASMA_HEIGHT];
 	uint8_t pal[PAL_LEN * 3];
+
+private:
+	static bool isRegistered;
+
 };

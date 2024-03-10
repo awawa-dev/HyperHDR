@@ -30,4 +30,8 @@ private:
 	int direction;
 
 	uint8_t imageData[KNIGHT_WIDTH * 3];
+
+private:
+	static bool isRegistered;
+
 };

@@ -10,4 +10,8 @@ public:
 	Animation_FullColorMoodBlobs(QString name = ANIM_FULLCOLOR_MOOD_BLOBS);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

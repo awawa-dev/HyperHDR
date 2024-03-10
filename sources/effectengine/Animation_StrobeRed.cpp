@@ -46,3 +46,5 @@ EffectDefinition Animation_StrobeRed::getDefinition()
 	ed.name = ANIM_STROBE_RED;
 	return ed;
 }
+
+bool Animation_StrobeRed::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_StrobeRed::getDefinition());

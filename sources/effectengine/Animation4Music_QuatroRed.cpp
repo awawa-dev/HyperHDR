@@ -112,9 +112,4 @@ bool Animation4Music_QuatroRed::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_QuatroRed::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_QuatroRed::getDefinition());

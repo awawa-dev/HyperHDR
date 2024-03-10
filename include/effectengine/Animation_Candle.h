@@ -10,4 +10,8 @@ public:
 	Animation_Candle(QString name = ANIM_CANDLE);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

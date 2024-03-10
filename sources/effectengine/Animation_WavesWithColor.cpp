@@ -39,3 +39,5 @@ EffectDefinition Animation_WavesWithColor::getDefinition()
 	ed.name = ANIM_WAVESWITHCOLOR;
 	return ed;
 }
+
+bool Animation_WavesWithColor::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_WavesWithColor::getDefinition());

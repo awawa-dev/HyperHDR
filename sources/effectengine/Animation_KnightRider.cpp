@@ -118,8 +118,4 @@ bool Animation_KnightRider::Play(QPainter* painter)
 	return ret;
 }
 
-
-
-
-
-
+bool Animation_KnightRider::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_KnightRider::getDefinition());

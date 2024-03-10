@@ -11,4 +11,8 @@ public:
 	Animation_SeaWaves(QString name = ANIM_SEAWAVES);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

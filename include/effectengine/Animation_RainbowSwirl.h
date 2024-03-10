@@ -10,4 +10,8 @@ public:
 	Animation_RainbowSwirl(QString name = ANIM_RAINBOW_SWIRL);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

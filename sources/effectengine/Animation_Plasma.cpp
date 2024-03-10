@@ -112,6 +112,4 @@ bool Animation_Plasma::Play(QPainter* painter)
 }
 
 
-
-
-
+bool Animation_Plasma::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_Plasma::getDefinition());

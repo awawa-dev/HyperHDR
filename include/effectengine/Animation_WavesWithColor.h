@@ -10,4 +10,8 @@ public:
 	Animation_WavesWithColor(QString name = ANIM_WAVESWITHCOLOR);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

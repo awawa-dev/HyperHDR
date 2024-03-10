@@ -80,9 +80,4 @@ bool Animation4Music_PulseYellow::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_PulseYellow::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_PulseYellow::getDefinition());

@@ -116,6 +116,4 @@ bool Animation_SystemShutdown::Play(QPainter* painter)
 }
 
 
-
-
-
+bool Animation_SystemShutdown::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_SystemShutdown::getDefinition());

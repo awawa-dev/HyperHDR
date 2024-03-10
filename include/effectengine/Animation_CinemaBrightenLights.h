@@ -11,4 +11,8 @@ public:
 	Animation_CinemaBrightenLights(QString name = ANIM_CINEMA_BRIGHTEN_LIGHTS);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

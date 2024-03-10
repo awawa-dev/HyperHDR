@@ -24,4 +24,8 @@ public:
 private:
 	uint32_t _internalIndex;
 	int		 _oldMulti;
+
+private:
+	static bool isRegistered;
+
 };

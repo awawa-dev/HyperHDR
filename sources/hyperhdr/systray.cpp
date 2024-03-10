@@ -23,6 +23,7 @@
 
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/EffectFactory.h>
 #include <webserver/WebServer.h>
 #include <utils/Logger.h>
 
@@ -131,11 +132,7 @@ void SysTray::createTrayIcon()
 	_clearAction->setIcon(QPixmap(":/clear.svg"));
 	connect(_clearAction, &QAction::triggered, this, &SysTray::clearEfxColor);
 
-	std::list<EffectDefinition> efxs;
-
-	auto _hyperhdr = _hyperhdrHandle.lock();
-	if (_hyperhdr)
-		SAFE_CALL_0_RET(_hyperhdr.get(), getEffects, std::list<EffectDefinition>, efxs);
+	std::list<EffectDefinition> efxs = GET_ALL_EFFECTS();	
 
 	_trayIconEfxMenu = new QMenu();
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));

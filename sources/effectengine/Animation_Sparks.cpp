@@ -76,3 +76,5 @@ EffectDefinition Animation_Sparks::getDefinition()
 	ed.name = ANIM_SPARKS;
 	return ed;
 }
+
+bool Animation_Sparks::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_Sparks::getDefinition());

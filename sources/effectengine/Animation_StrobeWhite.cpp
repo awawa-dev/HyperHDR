@@ -46,3 +46,5 @@ EffectDefinition Animation_StrobeWhite::getDefinition()
 	ed.name = ANIM_STROBE_WHITE;
 	return ed;
 }
+
+bool Animation_StrobeWhite::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_StrobeWhite::getDefinition());

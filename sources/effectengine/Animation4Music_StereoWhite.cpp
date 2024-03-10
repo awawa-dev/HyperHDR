@@ -94,9 +94,4 @@ bool Animation4Music_StereoWhite::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_StereoWhite::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_StereoWhite::getDefinition());

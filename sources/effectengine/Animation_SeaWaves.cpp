@@ -59,3 +59,5 @@ EffectDefinition Animation_SeaWaves::getDefinition()
 	ed.name = ANIM_SEAWAVES;
 	return ed;
 }
+
+bool Animation_SeaWaves::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_SeaWaves::getDefinition());

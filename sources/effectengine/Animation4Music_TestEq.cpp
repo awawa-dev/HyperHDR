@@ -88,9 +88,4 @@ bool Animation4Music_TestEq::getImage(Image<ColorRgb>& newImage)
 	return true;
 };
 
-
-
-
-
-
-
+bool Animation4Music_TestEq::isRegistered = hyperhdr::REGISTER_EFFECT(Animation4Music_TestEq::getDefinition());

@@ -11,4 +11,8 @@ public:
 	Animation_SwirlFast(QString name = ANIM_SWIRL_FAST);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

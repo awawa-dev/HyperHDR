@@ -47,3 +47,5 @@ EffectDefinition Animation_NotifyBlue::getDefinition()
 	return ed;
 }
 
+bool Animation_NotifyBlue::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_NotifyBlue::getDefinition());
+

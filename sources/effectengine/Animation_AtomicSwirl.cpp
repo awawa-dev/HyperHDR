@@ -59,3 +59,5 @@ EffectDefinition Animation_AtomicSwirl::getDefinition()
 	ed.name = ANIM_ATOMIC_SWIRL;
 	return ed;
 }
+
+bool Animation_AtomicSwirl::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_AtomicSwirl::getDefinition());

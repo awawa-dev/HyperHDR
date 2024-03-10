@@ -25,4 +25,8 @@ private:
 	uint32_t _internalIndex;
 	int 	 _oldMulti;
 	QList<QColor> _buffer;
+
+private:
+	static bool isRegistered;
+
 };

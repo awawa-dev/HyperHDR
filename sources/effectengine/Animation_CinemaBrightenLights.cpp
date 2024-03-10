@@ -46,3 +46,5 @@ EffectDefinition Animation_CinemaBrightenLights::getDefinition()
 	ed.name = ANIM_CINEMA_BRIGHTEN_LIGHTS;
 	return ed;
 }
+
+bool Animation_CinemaBrightenLights::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_CinemaBrightenLights::getDefinition());

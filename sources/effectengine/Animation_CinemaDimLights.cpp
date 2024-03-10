@@ -46,3 +46,5 @@ EffectDefinition Animation_CinemaDimLights::getDefinition()
 	ed.name = ANIM_CINEMA_DIM_LIGHTS;
 	return ed;
 }
+
+bool Animation_CinemaDimLights::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_CinemaDimLights::getDefinition());

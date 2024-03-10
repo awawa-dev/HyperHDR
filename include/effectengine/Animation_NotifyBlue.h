@@ -11,4 +11,8 @@ public:
 	Animation_NotifyBlue(QString name = ANIM_NOTIFY_BLUE);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

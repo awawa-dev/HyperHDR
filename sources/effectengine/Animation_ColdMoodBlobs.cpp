@@ -47,3 +47,5 @@ EffectDefinition Animation_ColdMoodBlobs::getDefinition()
 	ed.name = ANIM_COLD_MOOD_BLOBS;
 	return ed;
 }
+
+bool Animation_ColdMoodBlobs::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_ColdMoodBlobs::getDefinition());

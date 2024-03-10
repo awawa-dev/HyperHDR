@@ -11,4 +11,8 @@ public:
 	Animation_PoliceLightsSingle(QString name = ANIM_POLICELIGHTSSINGLE);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

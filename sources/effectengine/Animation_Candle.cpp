@@ -40,3 +40,5 @@ EffectDefinition Animation_Candle::getDefinition()
 	ed.name = ANIM_CANDLE;
 	return ed;
 }
+
+bool Animation_Candle::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_Candle::getDefinition());

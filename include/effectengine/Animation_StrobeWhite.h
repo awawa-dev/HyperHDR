@@ -10,4 +10,8 @@ public:
 	Animation_StrobeWhite(QString name = ANIM_STROBE_WHITE);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

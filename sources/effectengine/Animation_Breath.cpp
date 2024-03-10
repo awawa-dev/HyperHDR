@@ -46,3 +46,5 @@ EffectDefinition Animation_Breath::getDefinition()
 	ed.name = ANIM_BREATH;
 	return ed;
 }
+
+bool Animation_Breath::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_Breath::getDefinition());

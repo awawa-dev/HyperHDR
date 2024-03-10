@@ -11,4 +11,8 @@ public:
 	Animation_BlueMoodBlobs(QString name = ANIM_BLUE_MOOD_BLOBS);
 
 	static EffectDefinition getDefinition();
+
+private:
+	static bool isRegistered;
+
 };

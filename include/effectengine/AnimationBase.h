@@ -9,6 +9,7 @@
 
 #include <utils/Image.h>
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/EffectFactory.h>
 #include <utils/ColorSys.h>
 
 template <typename T>

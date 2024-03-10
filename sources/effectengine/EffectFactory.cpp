@@ -1,4 +1,4 @@
-/* Animation_PoliceLightsSingle.cpp
+/* EfectFactory.cpp
 *
 *  MIT License
 *
@@ -25,24 +25,31 @@
 *  SOFTWARE.
  */
 
-#include <effectengine/Animation_PoliceLightsSingle.h>
+#ifndef PCH_ENABLED
+	#include <mutex>
+#endif
 
-Animation_PoliceLightsSingle::Animation_PoliceLightsSingle(QString name) :
-	Animation_Police(name)
-{
-	rotationTime = 1.5;
-	colorOne = { 255, 0, 0 };
-	colorTwo = { 0, 0, 255 };
-	colorsCount = 10;
-	reverse = false;
-}
+#include <effectengine/EffectFactory.h>
 
-EffectDefinition Animation_PoliceLightsSingle::getDefinition()
-{
-	EffectDefinition ed(EffectFactory<Animation_PoliceLightsSingle>);
-	ed.name = ANIM_POLICELIGHTSSINGLE;
-	return ed;
-}
+namespace hyperhdr {
 
-bool Animation_PoliceLightsSingle::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_PoliceLightsSingle::getDefinition());
+	const std::list<EffectDefinition>& GET_ALL_EFFECTS(const EffectDefinition* ed)
+	{
+		static std::list<EffectDefinition> list;
 
+		if (ed != nullptr)
+		{
+			static std::mutex effectLocker;
+			const std::lock_guard<std::mutex> lock(effectLocker);
+			list.push_back(*ed);
+		}
+
+		return list;
+	}
+
+	bool REGISTER_EFFECT(const EffectDefinition& ed)
+	{
+		GET_ALL_EFFECTS(&ed);
+		return true;
+	};
+};

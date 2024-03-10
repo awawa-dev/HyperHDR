@@ -47,3 +47,5 @@ EffectDefinition Animation_SwirlFast::getDefinition()
 	ed.name = ANIM_SWIRL_FAST;
 	return ed;
 }
+
+bool Animation_SwirlFast::isRegistered = hyperhdr::REGISTER_EFFECT(Animation_SwirlFast::getDefinition());
