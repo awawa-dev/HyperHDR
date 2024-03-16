@@ -352,8 +352,8 @@ void PipewireGrabber::grabFrame()
 		{
 			if (data.isError)
 			{
-				QString err = QString("%1").arg(_getPipewireError());
-				Error(_log, "Could not capture pipewire frame: %s", QSTRING_CSTR(err));
+				//QString err = QString("%1").arg(_getPipewireError());
+				Error(_log, "Could not capture pipewire frame. The grabber is reporting an error");
 				stopNow = true;
 			}
 		}

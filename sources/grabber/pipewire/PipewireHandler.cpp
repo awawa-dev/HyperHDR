@@ -250,6 +250,11 @@ void PipewireHandler::closeSession()
 
 void PipewireHandler::releaseWorkingFrame()
 {
+	if (_isError)
+	{
+		_image.data = nullptr;
+		_image.isError = _isError;
+	}
 }
 
 QString PipewireHandler::getSessionToken()
@@ -699,7 +704,7 @@ void PipewireHandler::captureFrame()
 	uint8_t* mappedMemory = nullptr;
 	uint8_t* frameBuffer = nullptr;	
 
-	if (_pwStream == nullptr)
+	if (_pwStream == nullptr || _framePaused)
 		return;
 
 	_hasFrame = false;
@@ -714,7 +719,12 @@ void PipewireHandler::captureFrame()
 	while ((dequeueFrame = pw_stream_dequeue_buffer(_pwStream)) != nullptr)
 	{
 		if (newFrame != nullptr)
+		{
+			if (pw_stream_get_state(_pwStream, NULL) != PW_STREAM_STATE_STREAMING)
+				return;
+
 			pw_stream_queue_buffer(_pwStream, newFrame);
+		}
 		newFrame = dequeueFrame;
 	}
 
@@ -881,7 +891,12 @@ void PipewireHandler::captureFrame()
 		munmap(mappedMemory, newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset);
 
 	if (newFrame != nullptr)
+	{
+		if (pw_stream_get_state(_pwStream, NULL) != PW_STREAM_STATE_STREAMING)
+			return;
+
 		pw_stream_queue_buffer(_pwStream, newFrame);
+	}
 
 	// goodbye
 	_infoUpdated = true;
