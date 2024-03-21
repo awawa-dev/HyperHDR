@@ -689,6 +689,12 @@ void PipewireHandler::onProcessFrame()
 
 void PipewireHandler::getImage(PipewireImage& retVal)
 {
+	if (_framePaused)
+	{
+		_image.isError = hasError();
+		_image.data = nullptr;
+	}
+
 	retVal = _image;
 }
 
@@ -699,7 +705,7 @@ void PipewireHandler::captureFrame()
 	uint8_t* mappedMemory = nullptr;
 	uint8_t* frameBuffer = nullptr;	
 
-	if (_pwStream == nullptr)
+	if (_pwStream == nullptr || _framePaused)
 		return;
 
 	_hasFrame = false;
@@ -713,7 +719,7 @@ void PipewireHandler::captureFrame()
 
 	while ((dequeueFrame = pw_stream_dequeue_buffer(_pwStream)) != nullptr)
 	{
-		if (newFrame != nullptr)
+		if (newFrame != nullptr && pw_stream_get_state(_pwStream, NULL) == PW_STREAM_STATE_STREAMING)
 			pw_stream_queue_buffer(_pwStream, newFrame);
 		newFrame = dequeueFrame;
 	}
@@ -880,7 +886,7 @@ void PipewireHandler::captureFrame()
 	if (mappedMemory != nullptr)
 		munmap(mappedMemory, newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset);
 
-	if (newFrame != nullptr)
+	if (newFrame != nullptr && pw_stream_get_state(_pwStream, NULL) == PW_STREAM_STATE_STREAMING)
 		pw_stream_queue_buffer(_pwStream, newFrame);
 
 	// goodbye
