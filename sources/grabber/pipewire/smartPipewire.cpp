@@ -76,8 +76,10 @@ const char* getPipewireToken()
 
 const char* getPipewireError()
 {
+	static QByteArray errorData;
 	QString err = pipewireHandler.getError();
-	return err.toLatin1().constData();
+	errorData = err.toLatin1();
+	return errorData.constData();
 }
 
 void uninitPipewireDisplay()
