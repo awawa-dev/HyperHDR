@@ -25,13 +25,8 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: 'guysoft/CustomPiOS'
+        ref: '${{ github.event.inputs.tagCustomPiOS }}'
         path: CustomPiOS
-
-    - name: Select CustomPiOS version
-      if: github.event.inputs.tagCustomPiOS != ''
-      run: |
-        cd CustomPiOS
-        git reset --hard ${{ github.event.inputs.tagCustomPiOS }}
 
     - name: Prepare HyperHDR module
       run: |
