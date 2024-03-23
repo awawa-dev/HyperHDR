@@ -56,7 +56,7 @@ void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval
 	_ledDevice = std::unique_ptr<LedDevice, void(*)(LedDevice*)>(
 		LedDeviceFactory::construct(config),
 		[](LedDevice* oldLed) {
-			oldLed->stop();
+			QUEUE_CALL_0(oldLed, stop);
 			hyperhdr::THREAD_REMOVER(QString("LedDevice"), oldLed->thread(), oldLed);
 		}
 	);
