@@ -102,6 +102,10 @@ if (ENABLE_PIPEWIRE)
 	target_link_libraries(hyperhdr Pipewire-grabber "${CMAKE_DL_LIBS}")
 endif ()
 
+if (ENABLE_FTDIDEV)
+	target_link_libraries(hyperhdr ${LIB_FTDI_LINK_LIBRARIES} ${LIB_USB_LINK_LIBRARIES})
+endif ()
+
 if (ENABLE_MAC_SYSTEM)
 	target_link_libraries(hyperhdr
 		MACOS-grabber

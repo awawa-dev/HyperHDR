@@ -28,7 +28,7 @@ runs:
         git \
         libasound2-dev \
         libegl-dev \
-        libftdi-dev \
+        libftdi1-dev \
         libgl-dev \
         libglvnd-dev \
         libpipewire-0.3-dev \
