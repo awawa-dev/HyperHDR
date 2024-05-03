@@ -35,12 +35,12 @@ jobs:
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
-          - dockerImage: x86_64
-            linuxVersion: ArchLinux
-            dockerName: Arch Linux (x86_64)
-            arch: amd64
-            platform: linux
-            niceName: ""
+          #- dockerImage: x86_64
+          #  linuxVersion: ArchLinux
+          #  dockerName: Arch Linux (x86_64)
+          #  arch: amd64
+          #  platform: linux
+          #  niceName: ""
           - dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
@@ -60,11 +60,11 @@ jobs:
             platform: linux
             niceName: Ubuntu 24.04 LTS           
           - dockerImage: x86_64
-            linuxVersion: Fedora_39
-            dockerName: Fedora 39 (x86_64)
+            linuxVersion: Fedora_40
+            dockerName: Fedora 40 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Fedora 39
+            niceName: Fedora 40
 
     steps:
       # checkout

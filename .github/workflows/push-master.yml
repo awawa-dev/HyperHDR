@@ -62,13 +62,13 @@ jobs:
             dockerName: Debian Bookworm (ARM 64-bit Raspberry Pi OS)
             platform: rpi              
           - dockerImage: x86_64
-            linuxVersion: ArchLinux
-            dockerName: Arch Linux (x86_64)
+            linuxVersion: Fedora_40
+            dockerName: Fedora 40 (x86_64)
             platform: linux
-          - dockerImage: x86_64
-            linuxVersion: Fedora_39
-            dockerName: Fedora 39 (x86_64)
-            platform: linux
+          #- dockerImage: x86_64
+          #  linuxVersion: ArchLinux
+          #  dockerName: Arch Linux (x86_64)
+          #  platform: linux
     steps:
       # checkout
       - uses: actions/checkout@v4
