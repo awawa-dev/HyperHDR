@@ -61,10 +61,10 @@ jobs:
             linuxVersion: Fedora_40
             dockerName: Fedora 40 (x86_64)
             platform: linux
-          #- dockerImage: x86_64
-          #  linuxVersion: ArchLinux
-          #  dockerName: Arch Linux (x86_64)
-          #  platform: linux
+          - dockerImage: x86_64
+            linuxVersion: ArchLinux
+            dockerName: Arch Linux (x86_64)
+            platform: linux
     steps:
       # checkout
       - uses: actions/checkout@v4

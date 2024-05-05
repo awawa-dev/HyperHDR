@@ -13,6 +13,7 @@ optdepends=('shared-mime-info' 'gtk3')
 # md5sums=('SKIP')
 
 build() {
+    export LDFLAGS=${LDFLAGS/-Wl,-z,pack-relative-relocs/}
     cmake -B build -S .. \
         -DCMAKE_BUILD_TYPE='None' \
         -DCMAKE_INSTALL_PREFIX='/usr' \
