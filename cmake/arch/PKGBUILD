@@ -13,6 +13,7 @@ optdepends=('libx11' 'shared-mime-info')
 # md5sums=('SKIP')
 
 build() {
+    export LDFLAGS=${LDFLAGS/-Wl,-z,pack-relative-relocs/}
     cmake -B build -S .. \
         -DCMAKE_BUILD_TYPE='None' \
         -DCMAKE_INSTALL_PREFIX='/usr' \
