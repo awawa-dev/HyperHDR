@@ -1028,7 +1028,7 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 	sendSuccessReply(command, tan);
 
 	if (subcommand == "capture")
-		_lutCalibrator->incomingCommand(_instanceManager->getRootPath(), _videoGrabber->grabberWrapper(), getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
+		_lutCalibrator->incomingCommand(_instanceManager->getRootPath(), (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr, getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
 	else
 		_lutCalibrator->stopHandler();	
 }
