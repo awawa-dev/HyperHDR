@@ -125,7 +125,7 @@ class HyperHdrDaemon : public QObject
 
 
 public:
-	HyperHdrDaemon(const QString& rootPath, QApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
+	HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
 	~HyperHdrDaemon();
 
 	QJsonDocument getSetting(settings::type type) const;	

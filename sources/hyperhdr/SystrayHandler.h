@@ -1,6 +1,4 @@
-#pragma once
-
-/* SuspendHandlerWindows.h
+/* SystrayHandler.h
 *
 *  MIT License
 *
@@ -25,32 +23,53 @@
 *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
- */
+*/
 
-#include <QAbstractNativeEventFilter>
-#include <QAbstractEventDispatcher>
-#define NOMINMAX
-#include <windows.h>
+#pragma once
 
-#include <utils/Components.h>
+#ifndef PCH_ENABLED		
+	#include <memory>
+	#include <vector>
+#endif
 
-#define HAVE_POWER_MANAGEMENT
+#include <base/HyperHdrInstance.h>
+#include <base/HyperHdrManager.h>
+#include <systray/Systray.h>
+class HyperHdrDaemon;
 
-class SuspendHandler : public QObject, public QAbstractNativeEventFilter {
+
+class SystrayHandler : public QObject
+{
 	Q_OBJECT
 
-	HPOWERNOTIFY	_notifyHandle, _notifyMonitorHandle;
-	bool			_sessionLocker;
-
-signals:
-	void SignalHibernate(bool wakeUp, hyperhdr::SystemComponent source);
-
 public:
-	SuspendHandler(bool sessionLocker = false);
-	~SuspendHandler();
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, long* result) Q_DECL_OVERRIDE;
-#else
-	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) Q_DECL_OVERRIDE;
-#endif
+	SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort);
+	~SystrayHandler();
+	bool isInitialized();
+
+public slots:
+	void setColor(const QColor& color);
+	void settings();
+	void setEffect(QString effect);
+	void clearEfxColor();	
+	void loop();
+	void close();
+	void setAutorunState();
+
+private slots:
+	void signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name);
+	void signalSettingsChangedHandler(settings::type type, const QJsonDocument& data);
+	void createSystray();
+
+private:
+
+	#ifdef _WIN32
+		bool getCurrentAutorunState();
+	#endif
+	std::unique_ptr<SystrayMenu>	_menu;
+	std::unique_ptr<Systray>		_systray;
+	std::weak_ptr<HyperHdrManager>	_instanceManager;
+	std::weak_ptr<HyperHdrInstance>	_hyperhdrHandle;
+	quint16							_webPort;
 };
+

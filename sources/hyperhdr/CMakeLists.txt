@@ -17,9 +17,9 @@ endif()
 
 add_executable(hyperhdr
 	HyperHdrDaemon.h
-	systray.h
+	SystrayHandler.h
 	HyperHdrDaemon.cpp
-	systray.cpp
+	SystrayHandler.cpp
 	main.cpp
 	${hyperhdr_WIN_RC_PATH}
 	${hyperhdr_POWER_MNG}
@@ -44,7 +44,7 @@ target_link_libraries(hyperhdr
 	ssdp
 	database
 	resources
-	Qt${Qt_VERSION}::Widgets
+	systray
 	${hyperhdr_POWER_MNG_DBUS}
 	${APPKIT_FRAMEWORK}
 	${TURBOJPEG_LINK_LIBRARIES}

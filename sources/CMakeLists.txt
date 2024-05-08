@@ -22,6 +22,7 @@ add_subdirectory(jsonserver)
 add_subdirectory(leddevice)
 add_subdirectory(sound-capture)
 add_subdirectory(ssdp)
+add_subdirectory(systray)
 add_subdirectory(utils)
 add_subdirectory(webserver)
 

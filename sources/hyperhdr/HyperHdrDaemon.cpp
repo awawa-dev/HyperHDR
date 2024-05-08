@@ -17,8 +17,7 @@
 	#include <stdlib.h>
 #endif
 
-#include <QApplication>
-
+#include <QCoreApplication>
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 #include <utils/Image.h>
@@ -63,7 +62,7 @@
 
 #include "HyperHdrDaemon.h"
 
-HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params, bool isGuiApp)
+HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params, bool isGuiApp)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(nullptr)
@@ -178,19 +177,6 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	connect(_instanceManager.get(), &HyperHdrManager::SignalInstanceStateChanged, this, &HyperHdrDaemon::instanceStateChangedHandler);
 	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, this, &HyperHdrDaemon::settingsChangedHandler);
 
-	// power management
-	#if defined(HAVE_POWER_MANAGEMENT)
-		bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
-
-		_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
-		connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
-
-		#ifdef _WIN32
-			if (QAbstractEventDispatcher::instance() != nullptr)
-				QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler.get());
-		#endif
-	#endif
-
 	// ---- network services -----
 	startNetworkServices();
 }
@@ -204,6 +190,23 @@ void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 ins
 	{
 		if (_instanceManager->areInstancesReady())
 		{
+			// power management
+			#if defined(HAVE_POWER_MANAGEMENT)
+				if (_suspendHandler == nullptr)
+				{
+					QJsonObject genConfig = getSetting(settings::type::GENERAL).object();
+					bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
+
+					_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
+					connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
+
+					#ifdef _WIN32
+						if (QAbstractEventDispatcher::instance() != nullptr)
+							QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler.get());
+					#endif
+				}
+			#endif
+
 			if (_systemGrabber != nullptr)
 			{				
 				_systemGrabber->linker.acquire(1);
