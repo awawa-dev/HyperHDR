@@ -168,7 +168,7 @@ void SystrayHandler::createSystray()
 	for (const std::string& color : colors)
 	{
 		QString svgTemplate = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"32\" height=\"32\" version=\"1.1\" viewBox=\"0 0 32 32\">"
-			"<rect width=\"22\" height=\"22\" x=\"1\" y=\"1\" fill=\"%1\" stroke-width=\"2\" stroke=\"gray\" />"
+			"<rect width=\"26\" height=\"26\" x=\"3\" y=\"3\" fill=\"%1\" stroke-width=\"2\" stroke=\"gray\" />"
 			"</svg>";
 		QString svg = QString(svgTemplate).arg(QString::fromStdString(color));
 		

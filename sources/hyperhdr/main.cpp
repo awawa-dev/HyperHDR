@@ -352,7 +352,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			rc = app->exec();			
+			rc = app->exec();
 		}
 		
 		Info(log, "The application closed with code %d", rc);
