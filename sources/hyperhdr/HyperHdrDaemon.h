@@ -8,6 +8,8 @@
 	#include <QStringList>
 #endif
 
+#include <QCoreApplication>
+
 #ifdef ENABLE_V4L2
 	#include <grabber/v4l2/V4L2Wrapper.h>
 #else

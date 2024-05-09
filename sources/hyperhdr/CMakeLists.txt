@@ -37,6 +37,7 @@ endif()
 target_link_libraries(hyperhdr
 	commandline
 	hyperhdr-base
+	hyperimage
 	effectengine
 	jsonserver
 	flatbufserver

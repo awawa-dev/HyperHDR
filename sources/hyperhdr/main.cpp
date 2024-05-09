@@ -6,7 +6,6 @@
 	#include <QResource>
 	#include <QDir>
 	#include <QStringList>
-	#include <QSystemTrayIcon>
 	#include <QStringList>
 
 	#include <exception>

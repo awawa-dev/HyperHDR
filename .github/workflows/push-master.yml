@@ -2,7 +2,7 @@ name: HyperHDR CI Build
 
 on:
   push:
-#  pull_request:
+  pull_request:
 
 env:
     USE_CACHE: "1"
@@ -19,7 +19,6 @@ jobs:
   Linux:
     name: ${{ matrix.dockerName }}
     runs-on: ubuntu-22.04
-    if: false
 
     strategy:
       matrix:
@@ -137,8 +136,6 @@ jobs:
   macOS:
     name: ${{ matrix.JOB_NAME }}
     runs-on: ${{ matrix.JOB_RUNNER }}
-    if: false
-
     strategy:
       matrix:
         include:        
@@ -278,7 +275,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( false )
+    if: ( true )
     permissions:
       actions: read
       contents: read
@@ -306,9 +303,8 @@ jobs:
 
   publish:
     name: Publish Releases
-    if: false
-    #if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-    needs: [windows]
+    if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
+    needs: [Linux, windows, macOS]
     runs-on: ubuntu-22.04
     permissions:
       contents: write

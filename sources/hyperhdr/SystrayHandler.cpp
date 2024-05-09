@@ -37,10 +37,7 @@
 
 #include <QBuffer>
 #include <QFile>
-#include <QIcon>
-#include <QPixmap>
 #include <QCoreApplication>
-#include <QDesktopServices>
 #include <QCloseEvent>
 #include <QSettings>
 
@@ -51,6 +48,7 @@
 #include <webserver/WebServer.h>
 #include <utils/Logger.h>
 #include <systray/Systray.h>
+#include <hyperimage/HyperImage.h>
 
 #include "HyperHdrDaemon.h"
 #include "SystrayHandler.h"
@@ -106,7 +104,7 @@ void SystrayHandler::close()
 
 static void loadPng(std::unique_ptr<SystrayMenu>& menu, QString filename)
 {
-	QFile stream = QFile(filename);
+	QFile stream(filename);
 	stream.open(QIODevice::ReadOnly);
 	QByteArray ar = stream.readAll();
 	stream.close();
@@ -116,13 +114,11 @@ static void loadPng(std::unique_ptr<SystrayMenu>& menu, QString filename)
 
 static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename)
 {
-	QImage source= (filename.indexOf(":/") == 0) ? QImage(filename) : QImage::fromData(filename.toUtf8(), "svg");	
-	QImage image = source.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
 	QByteArray ar;
 	QBuffer buffer(&ar);
 	buffer.open(QIODevice::WriteOnly);
-	image.save(&buffer, "PNG"); // writes image into ba in PNG format
+	HyperImage::svg2png(filename, 18, 18, buffer);
+
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());
 }
@@ -179,7 +175,7 @@ void SystrayHandler::createSystray()
 		colorItem->callback = [](SystrayMenu* m) {
 			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
 			QString colorName = QString::fromStdString(m->label);
-			QColor color = QColor::fromString(colorName);
+			QColor color = HyperImage::QColorfromString(colorName);
 			if (sh != nullptr)
 				QUEUE_CALL_1(sh, setColor, QColor, color);
 		};
