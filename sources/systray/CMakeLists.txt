@@ -4,18 +4,25 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/systray)
 
 FILE ( GLOB SYSTRAY_SOURCES "${CURRENT_HEADER_DIR}/*.h" )
 
-if(WIN32)
-	list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayWindows.cpp)	
-else()
-	if(APPLE)
-		list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayMacOS.mm)
+if(ENABLE_SYSTRAY)
+	if(WIN32)
+		list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayWindows.cpp)
 	else()
-		list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayLinux.cpp)
+		if(APPLE)
+			list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayMacOS.mm)
+		else()
+			list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayLinux.cpp)
+		endif()
 	endif()
+else()
+	list(APPEND SYSTRAY_SOURCES ${CURRENT_SOURCE_DIR}/SystrayDummy.cpp)
 endif()
 
 add_library(systray ${SYSTRAY_SOURCES} )
 
-
-
-
+if(ENABLE_SYSTRAY AND UNIX)
+	if(NOT APPLE)
+		target_include_directories(systray PRIVATE ${AppIndicator_INCLUDE_DIRS} )
+		target_link_libraries(systray PRIVATE ${AppIndicator_LIBRARIES} )
+	endif()
+endif()

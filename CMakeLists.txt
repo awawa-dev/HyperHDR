@@ -42,6 +42,7 @@ SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
 SET ( DEFAULT_XZ                          ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
+SET ( DEFAULT_SYSTRAY                     ON  )
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
@@ -156,8 +157,9 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	SET ( DEFAULT_MAC_SYSTEM          ON  )
 	SET ( DEFAULT_PRECOMPILED_HEADERS OFF )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
-	SET ( DEFAULT_WS281XPWM  ON )
-	SET ( DEFAULT_CEC        ON )
+	SET ( DEFAULT_WS281XPWM  ON  )
+	SET ( DEFAULT_CEC        ON  )
+	SET ( DEFAULT_SYSTRAY    OFF )
 	
 	# GL dispatcher
 	find_library (GLD GLdispatch)
@@ -228,6 +230,17 @@ if (DEFAULT_X11)
 	if (NOT XLibs_FOUND)
 		message( WARNING "X11 libs not found. Disabling support for X11.")
 		SET ( DEFAULT_X11                          OFF )
+	endif()
+endif()
+
+if (DEFAULT_SYSTRAY)
+	if(UNIX AND NOT APPLE)
+		find_package(PkgConfig REQUIRED)
+		pkg_check_modules(AppIndicator ayatana-appindicator3-0.1)
+		if (NOT AppIndicator_FOUND OR NOT AppIndicator_INCLUDE_DIRS OR NOT AppIndicator_LIBRARIES)
+			message( WARNING "AppIndicator dev package (eg. libayatana-appindicator3-dev) not found. Disabling support for the systray.")
+			SET ( DEFAULT_SYSTRAY                          OFF )
+		endif()
 	endif()
 endif()
 
@@ -403,6 +416,9 @@ colorMe("ENABLE_POWER_MANAGEMENT = " ${ENABLE_POWER_MANAGEMENT})
 
 option(ENABLE_PROTOBUF "Enable PROTOBUF" ${DEFAULT_PROTOBUF})
 colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
+
+option(ENABLE_SYSTRAY "Enable SYSTRAY" ${DEFAULT_SYSTRAY})
+colorMe("ENABLE_SYSTRAY = " ${ENABLE_SYSTRAY})
 
 option(ENABLE_XZ "Enable XZ support" ${DEFAULT_XZ})
 colorMe("ENABLE_XZ = " ${ENABLE_XZ})

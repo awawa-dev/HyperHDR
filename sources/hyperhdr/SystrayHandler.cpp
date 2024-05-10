@@ -40,6 +40,8 @@
 #include <QCoreApplication>
 #include <QCloseEvent>
 #include <QSettings>
+#include <QFileInfo>
+#include <QDir>
 
 #include <HyperhdrConfig.h>
 
@@ -53,12 +55,13 @@
 #include "HyperHdrDaemon.h"
 #include "SystrayHandler.h"
 
-SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort)
+SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, QString rootFolder)
 	: QObject(),
 	_menu(nullptr),
 	_systray(nullptr),
 	_hyperhdrHandle(),
-	_webPort(webPort)
+	_webPort(webPort),
+	_rootFolder(rootFolder)
 {
 	Q_INIT_RESOURCE(resources);
 
@@ -102,18 +105,68 @@ void SystrayHandler::close()
 	}
 }
 
-static void loadPng(std::unique_ptr<SystrayMenu>& menu, QString filename)
+static void loadPng(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder)
 {
+#ifdef __linux__
+	QString fullPath = rootFolder + "/icons/" + QFileInfo(filename).fileName();
+	QFileInfo iconFile(fullPath);
+	QDir dir(iconFile.absolutePath());
+	if (!dir.exists())
+		dir.mkpath(".");
+
+	if (!iconFile.exists())
+	{
+		QFile stream(filename);
+		stream.open(QIODevice::ReadOnly);
+		QByteArray ar = stream.readAll();
+		stream.close();
+
+		QFile newIcon(fullPath);
+		newIcon.open(QIODevice::WriteOnly);
+		newIcon.write(ar);
+		newIcon.close();
+	}
+
+	menu->label = fullPath.toStdString();
+#else
 	QFile stream(filename);
 	stream.open(QIODevice::ReadOnly);
 	QByteArray ar = stream.readAll();
 	stream.close();
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());
+#endif
 }
 
-static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename)
+static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder , QString destFilename = "")
 {
+#ifdef __linux__
+	if (destFilename.isEmpty())
+	{
+		destFilename = filename;
+		if (destFilename.indexOf(":/") == 0)
+			destFilename = destFilename.right(destFilename.size() - 2);
+		destFilename.replace(".svg", ".png");
+	}
+
+	QString fullPath = rootFolder + "/icons/" + destFilename;
+	QFileInfo iconFile(fullPath);
+
+	if (!iconFile.exists())
+	{
+		QByteArray ar;
+		QBuffer buffer(&ar);
+		buffer.open(QIODevice::WriteOnly);
+		HyperImage::svg2png(filename, 16, 16, buffer);
+
+		QFile newIcon(fullPath);
+		newIcon.open(QIODevice::WriteOnly);
+		newIcon.write(ar);
+		newIcon.close();
+	}
+
+	menu->tooltip = fullPath.toStdString();
+#else
 	QByteArray ar;
 	QBuffer buffer(&ar);
 	buffer.open(QIODevice::WriteOnly);
@@ -121,6 +174,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename)
 
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());
+#endif
 }
 
 void SystrayHandler::createSystray()
@@ -131,11 +185,11 @@ void SystrayHandler::createSystray()
 	std::unique_ptr<SystrayMenu> mainMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 
 	// main icon
-	loadPng(mainMenu, ":/hyperhdr-icon-32px.png");
+	loadPng(mainMenu, ":/hyperhdr-icon-32px.png", _rootFolder);
 
 	// settings menu
 	std::unique_ptr<SystrayMenu> settingsMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-	loadSvg(settingsMenu, ":/settings.svg");
+	loadSvg(settingsMenu, ":/settings.svg", _rootFolder);
 	settingsMenu->label = "&Settings";
 	settingsMenu->context = this;
 	settingsMenu->callback = [](SystrayMenu* m) {
@@ -150,7 +204,7 @@ void SystrayHandler::createSystray()
 
 	// color menu
 	std::unique_ptr<SystrayMenu> colorMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-	loadSvg(colorMenu, ":/color.svg");
+	loadSvg(colorMenu, ":/color.svg", _rootFolder);
 	colorMenu->label = "&Color";
 	colorMenu->context = this;
 	colorMenu->callback = [](SystrayMenu* m) {
@@ -169,8 +223,8 @@ void SystrayHandler::createSystray()
 		QString svg = QString(svgTemplate).arg(QString::fromStdString(color));
 		
 		std::unique_ptr<SystrayMenu> colorItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-		loadSvg(colorItem, svg);
-		colorItem->label = color;
+		loadSvg(colorItem, svg, _rootFolder, QString("%1.png").arg(QString::fromStdString(color)));
+		colorItem->label = color;		
 		colorItem->context = this;
 		colorItem->callback = [](SystrayMenu* m) {
 			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
@@ -191,7 +245,7 @@ void SystrayHandler::createSystray()
 		SAFE_CALL_0_RET(_hyperhdr.get(), getEffects, std::list<EffectDefinition>, efxs);
 
 	std::unique_ptr<SystrayMenu> effectsMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-	loadSvg(effectsMenu, ":/effects.svg");
+	loadSvg(effectsMenu, ":/effects.svg", _rootFolder);
 	effectsMenu->label = "&Effects";
 
 
@@ -227,7 +281,7 @@ void SystrayHandler::createSystray()
 
 	// clear menu
 	std::unique_ptr<SystrayMenu> clearMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-	loadSvg(clearMenu, ":/clear.svg");
+	loadSvg(clearMenu, ":/clear.svg", _rootFolder);
 	clearMenu->label = "&Clear";
 	clearMenu->context = this;
 	clearMenu->callback = [](SystrayMenu* m) {
@@ -242,7 +296,7 @@ void SystrayHandler::createSystray()
 
 	// quit menu
 	std::unique_ptr<SystrayMenu> quitMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-	loadSvg(quitMenu, ":/quit.svg");
+	loadSvg(quitMenu, ":/quit.svg", _rootFolder);
 	quitMenu->label = "&Quit";
 	quitMenu->context = this;
 	quitMenu->callback = [](SystrayMenu* m) {
@@ -260,7 +314,7 @@ void SystrayHandler::createSystray()
 	separator3->label = "-";
 
 	std::unique_ptr<SystrayMenu> autostartMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
-	loadSvg(autostartMenu, ":/autorun.svg");
+	loadSvg(autostartMenu, ":/autorun.svg", _rootFolder);
 	autostartMenu->label = (getCurrentAutorunState()) ? "Enable autostart" : "Disable autostart";
 	autostartMenu->context = this;
 	autostartMenu->callback = [](SystrayMenu* m) {

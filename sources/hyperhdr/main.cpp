@@ -335,7 +335,7 @@ int main(int argc, char** argv)
 		}
 
 		// run the application
-		SystrayHandler* systray = (isGuiApp) ? new SystrayHandler(hyperhdrd, hyperhdrd->getWebPort()) : nullptr;
+		SystrayHandler* systray = (isGuiApp) ? new SystrayHandler(hyperhdrd, hyperhdrd->getWebPort(), userDataDirectory.absolutePath()) : nullptr;
 
 		if (systray != nullptr && systray->isInitialized())
 		{			

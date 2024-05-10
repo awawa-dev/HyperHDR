@@ -25,21 +25,128 @@
 *  SOFTWARE.
 */
 
-#include <systray/Systray.h>
+#include <string.h>
+#include <stddef.h>
+#include <algorithm>
+#include <iostream>
 
-bool Systray::initialize(SystrayMenu *tray)
+#include <systray/Systray.h>
+#include <libayatana-appindicator/app-indicator.h>
+
+#define TRAY_APPINDICATOR_ID "hyper-tray-id"
+
+namespace
 {
+	AppIndicator* indicator = nullptr;
+}
+
+static void _tray_menu_cb(GtkMenuItem* item, gpointer data)
+{
+	SystrayMenu* menu = reinterpret_cast<SystrayMenu*>(data);
+	if (menu != nullptr && menu->callback != nullptr)
+	{
+		menu->callback(menu);
+	}
+}
+
+static GtkMenuShell* _tray_menu(SystrayMenu *m)
+{
+	GtkMenuShell* menu = reinterpret_cast<GtkMenuShell*>(gtk_menu_new());
+
+	for (; m != nullptr && !m->label.empty(); m = m->next.get())
+	{
+		GtkWidget* item = nullptr;
+		std::string label = m->label;
+
+		label.erase(std::remove(label.begin(), label.end(), '&'), label.end());
+
+		if (m->label == "-")
+		{
+			item = gtk_separator_menu_item_new();
+		}
+		else
+		{
+			if (m->submenu != nullptr)
+			{
+				item = gtk_menu_item_new_with_label(const_cast<char*>(label.c_str()));
+				gtk_menu_item_set_submenu(GTK_MENU_ITEM(item),
+					GTK_WIDGET(_tray_menu(m->submenu.get())));
+			}
+			else if (m->isChecked)
+			{
+				item = gtk_check_menu_item_new_with_label(const_cast<char*>(label.c_str()));
+				gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), m->isChecked);
+			}
+			else if (!m->tooltip.empty())
+			{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+				item = gtk_image_menu_item_new_with_mnemonic(const_cast<char*>(label.c_str()));
+				GtkWidget* icon = gtk_image_new_from_file(const_cast<char*>(m->tooltip.c_str()));
+				gtk_image_menu_item_set_always_show_image(GTK_IMAGE_MENU_ITEM(item), TRUE);
+				gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), icon);
+G_GNUC_END_IGNORE_DEPRECATIONS
+			}
+			else
+			{
+				item = gtk_menu_item_new_with_label(const_cast<char*>(label.c_str()));
+			}
+
+			gtk_widget_set_sensitive(item, !m->isDisabled);
+			if (m->callback != nullptr)
+			{
+				g_signal_connect(item, "activate", G_CALLBACK(_tray_menu_cb), m);
+			}
+		}
+
+		if (item != nullptr)
+		{
+			gtk_widget_show(item);
+			gtk_menu_shell_append(menu, item);
+		}
+	}
+	return menu;
+}
+
+bool Systray::initialize(SystrayMenu* tray)
+{
+	if (gtk_init_check(0, NULL) == FALSE)
+	{
+		return false;
+	}
+	
+	indicator = app_indicator_new(TRAY_APPINDICATOR_ID, "", APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
+	if (indicator == nullptr)
+	{
+		return false;
+	}
+
+	app_indicator_set_status(indicator, APP_INDICATOR_STATUS_ACTIVE);
+
+	if (tray != nullptr)
+		update(tray);
+
 	return true;
 }
 
 int Systray::loop()
 {
+	int limit = 10;
+
+	while (gtk_events_pending() && limit-- > 0)
+	{
+		if (gtk_main_iteration_do(false))
+		{
+			return -1;
+		}
+	}
 	return 0;
 }
 
-
-void Systray::update(SystrayMenu *tray)
+void Systray::update(SystrayMenu* tray)
 {
+	app_indicator_set_icon(indicator, const_cast<char*>(tray->label.c_str()));
+	// GTK is all about reference counting, so previous menu should be destroyed
+	app_indicator_set_menu(indicator, GTK_MENU(_tray_menu(tray->submenu.get())));
 }
 
 void Systray::close()
@@ -49,3 +156,4 @@ void Systray::close()
 Systray::~Systray()
 {
 }
+

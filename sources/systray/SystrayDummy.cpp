@@ -1,4 +1,4 @@
-/* SystrayHandler.h
+/* SystrayDummy.cpp
 *
 *  MIT License
 *
@@ -25,52 +25,27 @@
 *  SOFTWARE.
 */
 
-#pragma once
-
-#ifndef PCH_ENABLED		
-	#include <memory>
-	#include <vector>
-#endif
-
-#include <base/HyperHdrInstance.h>
-#include <base/HyperHdrManager.h>
 #include <systray/Systray.h>
-class HyperHdrDaemon;
 
-
-class SystrayHandler : public QObject
+bool Systray::initialize(SystrayMenu *tray)
 {
-	Q_OBJECT
+	return false;
+}
 
-public:
-	SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, QString rootFolder);
-	~SystrayHandler();
-	bool isInitialized();
+int Systray::loop()
+{
+	return 0;
+}
 
-public slots:
-	void setColor(const QColor& color);
-	void settings();
-	void setEffect(QString effect);
-	void clearEfxColor();	
-	void loop();
-	void close();
-	void setAutorunState();
 
-private slots:
-	void signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name);
-	void signalSettingsChangedHandler(settings::type type, const QJsonDocument& data);
-	void createSystray();
+void Systray::update(SystrayMenu *tray)
+{
+}
 
-private:
+void Systray::close()
+{
+}
 
-	#ifdef _WIN32
-		bool getCurrentAutorunState();
-	#endif
-	std::unique_ptr<SystrayMenu>	_menu;
-	std::unique_ptr<Systray>		_systray;
-	std::weak_ptr<HyperHdrManager>	_instanceManager;
-	std::weak_ptr<HyperHdrInstance>	_hyperhdrHandle;
-	quint16							_webPort;
-	QString							_rootFolder;
-};
-
+Systray::~Systray()
+{
+}
