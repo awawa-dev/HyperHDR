@@ -67,7 +67,7 @@ private:
 		bool getCurrentAutorunState();
 	#endif
 	std::unique_ptr<SystrayMenu>	_menu;
-	std::unique_ptr<Systray>		_systray;
+	bool							_haveSystray;
 	std::weak_ptr<HyperHdrManager>	_instanceManager;
 	std::weak_ptr<HyperHdrInstance>	_hyperhdrHandle;
 	quint16							_webPort;

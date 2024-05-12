@@ -7,7 +7,7 @@ license=('MIT')
 arch=('x86_64')
 install=INSTALL
 depends=('xz')
-optdepends=('libx11' 'shared-mime-info')
+optdepends=('shared-mime-info' 'gtk3')
 # not needed fot Github Action
 # source=("git+https://github.com/awawa-dev/HyperHDR.git")
 # md5sums=('SKIP')

@@ -27,25 +27,17 @@
 
 #include <systray/Systray.h>
 
-bool Systray::initialize(SystrayMenu *tray)
+#ifdef __linux__
+extern "C"
 {
-	return false;
-}
+#endif
+	bool SystrayInitialize(SystrayMenu* tray){return false;}
 
-int Systray::loop()
-{
-	return 0;
-}
+	int SystrayLoop() { return 0; }
 
+	void SystrayUpdate(SystrayMenu* tray){}
 
-void Systray::update(SystrayMenu *tray)
-{
+	void SystrayClose(){}
+#ifdef __linux__
 }
-
-void Systray::close()
-{
-}
-
-Systray::~Systray()
-{
-}
+#endif

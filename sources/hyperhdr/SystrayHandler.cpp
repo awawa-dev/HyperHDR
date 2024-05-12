@@ -55,10 +55,22 @@
 #include "HyperHdrDaemon.h"
 #include "SystrayHandler.h"
 
+#ifdef __linux__
+#include <dlfcn.h>
+namespace
+{
+	void* _library = nullptr;
+	SystrayInitializeFun SystrayInitialize = nullptr;
+	SystrayLoopFun SystrayLoop = nullptr;
+	SystrayUpdateFun SystrayUpdate = nullptr;
+	SystrayCloseFun SystrayClose = nullptr;
+}
+#endif
+
 SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, QString rootFolder)
 	: QObject(),
 	_menu(nullptr),
-	_systray(nullptr),
+	_haveSystray(false),
 	_hyperhdrHandle(),
 	_webPort(webPort),
 	_rootFolder(rootFolder)
@@ -71,37 +83,65 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 	connect(instanceManager.get(), &HyperHdrManager::SignalInstanceStateChanged, this, &SystrayHandler::signalInstanceStateChangedHandler);
 	connect(instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, this, &SystrayHandler::signalSettingsChangedHandler);
 
-	_systray = std::unique_ptr<Systray>(new Systray());
-	if (!_systray->initialize(nullptr))
+#ifdef __linux__
+	// Load library
+	_library = dlopen("libSystrayWidget.so", RTLD_NOW);
+
+	if (_library)
 	{
-		_systray = nullptr;
+		SystrayInitialize = (SystrayInitializeFun)dlsym(_library, "SystrayInitialize");
+		SystrayLoop = (SystrayLoopFun)dlsym(_library, "SystrayLoop");
+		SystrayUpdate = (SystrayUpdateFun)dlsym(_library, "SystrayUpdate");
+		SystrayClose = (SystrayCloseFun)dlsym(_library, "SystrayClose");
+
+		if (SystrayInitialize == nullptr || SystrayLoop == nullptr || SystrayUpdate == nullptr || SystrayClose == nullptr)
+		{
+			printf("Could not resolve libSystrayWidget.so functions\n");
+			dlclose(_library);
+			_library = nullptr;
+		}
 	}
+	else
+		printf("Could not load libSystrayWidget.so library\n");
+
+	if (_library != nullptr)
+		_haveSystray = SystrayInitialize(nullptr);
+#else
+	_haveSystray = SystrayInitialize(nullptr);
+#endif	
 }
 
 SystrayHandler::~SystrayHandler()
 {
 	printf("Releasing SysTray\n");
-	if (_systray != nullptr)
-		_systray->close();	
+	if (_haveSystray)
+		SystrayClose();
+
+#ifdef __linux__
+	if (_library != nullptr)
+	{
+		dlclose(_library);
+		_library = nullptr;
+	}
+#endif
 }
 
 bool SystrayHandler::isInitialized()
 {
-	return _systray != nullptr;
+	return _haveSystray;
 }
 
 void SystrayHandler::loop()
 {
-	if (_systray != nullptr)
-		_systray->loop();
+	if (_haveSystray)
+		SystrayLoop();
 }
 
 void SystrayHandler::close()
 {
-	if (_systray != nullptr)
+	if (_haveSystray)
 	{
-		_systray->close();
-		_systray = nullptr;
+		SystrayClose();
 	}
 }
 
@@ -179,7 +219,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 
 void SystrayHandler::createSystray()
 {
-	if (_systray == nullptr)
+	if (!_haveSystray)
 		return;
 
 	std::unique_ptr<SystrayMenu> mainMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
@@ -342,7 +382,7 @@ void SystrayHandler::createSystray()
 	std::swap(settingsMenu->next, separator1);	
 	std::swap(mainMenu->submenu, settingsMenu);
 
-	_systray->update(mainMenu.get());
+	SystrayUpdate(mainMenu.get());
 	std::swap(_menu, mainMenu);
 }
 

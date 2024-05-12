@@ -351,6 +351,12 @@ int main(int argc, char** argv)
 		}
 		else
 		{
+			#if defined(ENABLE_SYSTRAY)
+				if (isGuiApp)
+				{
+					Error(log, "Could not inilized the systray. Make sure that the libgtk-3-0/gtk3 package is installed.");
+				}
+			#endif
 			rc = app->exec();
 		}
 		

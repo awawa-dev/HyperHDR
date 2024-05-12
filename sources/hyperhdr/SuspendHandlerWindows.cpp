@@ -52,7 +52,7 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 	_notifyMonitorHandle(NULL),
 	_sessionLocker(sessionLocker)
 {
-	handle = Systray::getWindow();
+	handle = SystrayGetWindow();
 	_notifyHandle = RegisterSuspendResumeNotification(handle, DEVICE_NOTIFY_WINDOW_HANDLE);
 
 	if (_notifyHandle == NULL)

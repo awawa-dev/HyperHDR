@@ -53,22 +53,20 @@ struct SystrayMenu
 	std::unique_ptr<SystrayMenu> next = nullptr;
 };
 
-class Systray
-{
-public:	
-	bool initialize(SystrayMenu* tray);
-
-	int loop();
-
-	void update(SystrayMenu* tray);
-
-	void close();
-
-	~Systray();
-
-#ifdef _WIN32
-	static HWND getWindow();
+#ifdef __linux__
+	typedef bool (*SystrayInitializeFun)(SystrayMenu* tray);
+	typedef int (*SystrayLoopFun)(void);
+	typedef void (*SystrayUpdateFun)(SystrayMenu* tray);
+	typedef void (*SystrayCloseFun)(void);
+#else
+	bool SystrayInitialize(SystrayMenu* tray);
+	int SystrayLoop();
+	void SystrayUpdate(SystrayMenu* tray);
+	void SystrayClose();
 #endif
 
-};
+#ifdef _WIN32
+	HWND SystrayGetWindow();
+#endif
+
 

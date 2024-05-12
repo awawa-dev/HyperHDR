@@ -27,25 +27,10 @@
 
 #include <systray/Systray.h>
 
-bool Systray::initialize(SystrayMenu *tray)
-{
-	return true;
-}
+bool SystrayInitialize(SystrayMenu* tray){return false;}
 
-int Systray::loop()
-{
-	return 0;
-}
+int SystrayLoop() { return 0; }
 
+void SystrayUpdate(SystrayMenu* tray){}
 
-void Systray::update(SystrayMenu *tray)
-{
-}
-
-void Systray::close()
-{
-}
-
-Systray::~Systray()
-{
-}
+void SystrayClose(){}

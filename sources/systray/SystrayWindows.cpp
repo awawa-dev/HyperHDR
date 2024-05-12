@@ -48,7 +48,7 @@ namespace
 	ULONG_PTR gdiToken = 0;
 }
 
-HWND Systray::getWindow()
+HWND SystrayGetWindow()
 {
 	return window;
 }
@@ -176,7 +176,7 @@ static HMENU _tray_menu(SystrayMenu *m, UINT *id)
 	return hmenu;
 }
 
-bool Systray::initialize(SystrayMenu *tray)
+bool SystrayInitialize(SystrayMenu *tray)
 {
 	if (!gdiToken)
 	{
@@ -220,12 +220,12 @@ bool Systray::initialize(SystrayMenu *tray)
 	Shell_NotifyIcon(NIM_ADD, &systrayIcon);
 
 	if (tray != nullptr)
-		update(tray);
+		SystrayUpdate(tray);
 
 	return true;
 }
 
-int Systray::loop()
+int SystrayLoop()
 {
 	MSG msg;
 	int limit = 10;
@@ -263,7 +263,7 @@ static void cleanup()
 	bitmaps.clear();
 }
 
-void Systray::update(SystrayMenu *tray)
+void SystrayUpdate(SystrayMenu *tray)
 {
 	HICON icon = CreateIconFromResourceEx(tray->icon.data(), static_cast<DWORD>(tray->icon.size()), 1, 0x30000, 32, 32, LR_DEFAULTCOLOR);
 	systrayIcon.hIcon = icon;
@@ -288,7 +288,7 @@ void Systray::update(SystrayMenu *tray)
 	SendMessage(window, WM_INITMENUPOPUP, (WPARAM)menu, 0);	
 }
 
-void Systray::close()
+void SystrayClose()
 {
 	if (systrayIcon.hIcon != nullptr)
 	{
@@ -303,15 +303,10 @@ void Systray::close()
 		PostQuitMessage(0);
 		UnregisterClass(WC_TRAY_CLASS_NAME, GetModuleHandle(NULL));
 	}
-}
 
-Systray::~Systray()
-{
 	if (gdiToken)
 	{
 		Gdiplus::GdiplusShutdown(gdiToken);
 		gdiToken = 0;
 	}
-
-	cleanup();
 }

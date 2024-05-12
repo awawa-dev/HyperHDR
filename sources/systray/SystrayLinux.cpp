@@ -107,53 +107,51 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 	return menu;
 }
 
-bool Systray::initialize(SystrayMenu* tray)
+extern "C"
 {
-	if (gtk_init_check(0, NULL) == FALSE)
+	void SystrayUpdate(SystrayMenu* tray)
 	{
-		return false;
-	}
-	
-	indicator = app_indicator_new(TRAY_APPINDICATOR_ID, "", APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
-	if (indicator == nullptr)
-	{
-		return false;
+		app_indicator_set_icon(indicator, const_cast<char*>(tray->label.c_str()));
+		app_indicator_set_menu(indicator, GTK_MENU(_tray_menu(tray->submenu.get())));
 	}
 
-	app_indicator_set_status(indicator, APP_INDICATOR_STATUS_ACTIVE);
-
-	if (tray != nullptr)
-		update(tray);
-
-	return true;
-}
-
-int Systray::loop()
-{
-	int limit = 10;
-
-	while (gtk_events_pending() && limit-- > 0)
+	bool SystrayInitialize(SystrayMenu* tray)
 	{
-		if (gtk_main_iteration_do(false))
+		if (gtk_init_check(0, NULL) == FALSE)
 		{
-			return -1;
+			return false;
 		}
+
+		indicator = app_indicator_new(TRAY_APPINDICATOR_ID, "", APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
+		if (indicator == nullptr)
+		{
+			return false;
+		}
+
+		app_indicator_set_status(indicator, APP_INDICATOR_STATUS_ACTIVE);
+
+		if (tray != nullptr)
+			SystrayUpdate(tray);
+
+		return true;
 	}
-	return 0;
-}
 
-void Systray::update(SystrayMenu* tray)
-{
-	app_indicator_set_icon(indicator, const_cast<char*>(tray->label.c_str()));
-	// GTK is all about reference counting, so previous menu should be destroyed
-	app_indicator_set_menu(indicator, GTK_MENU(_tray_menu(tray->submenu.get())));
-}
+	int SystrayLoop()
+	{
+		int limit = 10;
 
-void Systray::close()
-{
-}
+		while (gtk_events_pending() && limit-- > 0)
+		{
+			if (gtk_main_iteration_do(false))
+			{
+				return -1;
+			}
+		}
+		return 0;
+	}
 
-Systray::~Systray()
-{
+	void SystrayClose()
+	{
+	}
 }
 
