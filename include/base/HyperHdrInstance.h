@@ -102,14 +102,7 @@ public slots:
 	void updateAdjustments(const QJsonObject& config);
 	void updateResult(std::vector<ColorRgb> _ledBuffer);
 	
-	int setEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");
-	int setEffect(const QString& effectName
-		, const QJsonObject& args
-		, int priority
-		, int timeout = -1
-		, const QString& origin = "System"
-		, const QString& imageData = ""
-	);
+	int setEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");	
 
 signals:
 	void SignalComponentStateChanged(hyperhdr::Components comp, bool state);

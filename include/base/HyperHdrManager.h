@@ -2,11 +2,15 @@
 
 #ifndef PCH_ENABLED
 	#include <QMap>
+	#include <QStringList>
 
+	#include <utils/ColorRgb.h>
 	#include <utils/Logger.h>
 	#include <utils/settings.h>
 	#include <utils/Components.h>
 #endif
+
+#include <effectengine/EffectDefinition.h>
 
 class HyperHdrInstance;
 class InstanceTable;
@@ -75,6 +79,13 @@ public slots:
 	void saveCalibration(QString saveData);
 
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
+
+	std::vector<QString> getInstances();
+
+	void setInstanceColor(int instance, int priority,ColorRgb ledColors, int timeout_ms);
+	void setInstanceEffect(int instance, QString effectName, int priority);
+	void clearInstancePriority(int instance, int priority);
+	std::list<EffectDefinition> getEffects();
 
 signals:
 	void SignalInstanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());

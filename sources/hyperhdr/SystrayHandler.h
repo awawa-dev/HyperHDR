@@ -48,13 +48,14 @@ public:
 	bool isInitialized();
 
 public slots:
-	void setColor(const QColor& color);
+	void setColor(ColorRgb color);
 	void settings();
 	void setEffect(QString effect);
 	void clearEfxColor();	
 	void loop();
 	void close();
 	void setAutorunState();
+	void selectInstance();
 
 private slots:
 	void signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name);
@@ -69,8 +70,8 @@ private:
 	std::unique_ptr<SystrayMenu>	_menu;
 	bool							_haveSystray;
 	std::weak_ptr<HyperHdrManager>	_instanceManager;
-	std::weak_ptr<HyperHdrInstance>	_hyperhdrHandle;
 	quint16							_webPort;
 	QString							_rootFolder;
+	int								_selectedInstance;
 };
 

@@ -85,6 +85,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 {
 
 	// Register metas for thread queued connection
+	qRegisterMetaType<ColorRgb>("ColorRgb");
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperhdr::Components>("hyperhdr::Components");
 	qRegisterMetaType<settings::type>("settings::type");

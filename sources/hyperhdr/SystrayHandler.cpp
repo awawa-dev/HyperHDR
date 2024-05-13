@@ -42,6 +42,7 @@
 #include <QSettings>
 #include <QFileInfo>
 #include <QDir>
+#include <QStringList>
 
 #include <HyperhdrConfig.h>
 
@@ -56,6 +57,7 @@
 #include "SystrayHandler.h"
 
 #ifdef __linux__
+#include <stdlib.h>
 #include <dlfcn.h>
 namespace
 {
@@ -71,9 +73,9 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 	: QObject(),
 	_menu(nullptr),
 	_haveSystray(false),
-	_hyperhdrHandle(),
 	_webPort(webPort),
-	_rootFolder(rootFolder)
+	_rootFolder(rootFolder),
+	_selectedInstance(-1)
 {
 	Q_INIT_RESOURCE(resources);
 
@@ -242,16 +244,65 @@ void SystrayHandler::createSystray()
 	std::unique_ptr<SystrayMenu> separator1 = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 	separator1->label = "-";
 
+	// instances
+	std::unique_ptr<SystrayMenu> instances = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	instances->label = "Instances";
+	loadSvg(instances, ":/instance.svg", _rootFolder);
+
+	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
+	if (instanceManager != nullptr)
+	{
+		std::vector<QString> instancesList;
+		SAFE_CALL_0_RET(instanceManager.get(), getInstances, std::vector<QString>, instancesList);
+		for (int i = instancesList.size() - 2; i >= 0; i -= 2)
+		{
+			bool ok = false;
+			int key = instancesList[i].toInt(&ok);
+			if (ok)
+			{
+				std::unique_ptr<SystrayMenu> instanceItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+				instanceItem->label = instancesList[i + 1].toStdString();
+				instanceItem->checkGroup = key;
+				instanceItem->isChecked = (key == _selectedInstance);
+				instanceItem->context = this;
+				instanceItem->callback = [](SystrayMenu* m) {
+					SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
+					sh->_selectedInstance = m->checkGroup;
+					if (sh != nullptr)
+						QUEUE_CALL_0(sh, selectInstance);
+				};
+
+				std::swap(instances->submenu, instanceItem->next);
+				std::swap(instances->submenu, instanceItem);
+			}
+		}
+
+		std::unique_ptr<SystrayMenu> separatorInstance = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+		separatorInstance->label = "-";
+
+		std::swap(instances->submenu, separatorInstance->next);
+		std::swap(instances->submenu, separatorInstance);
+
+		std::unique_ptr<SystrayMenu> instancesAll = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+		instancesAll->label = "All";
+		instancesAll->isChecked = (_selectedInstance == -1);
+		instancesAll->context = this;
+		instancesAll->callback = [](SystrayMenu* m) {
+			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
+			sh->_selectedInstance = -1;
+			if (sh != nullptr)
+				QUEUE_CALL_0(sh, selectInstance);
+		};
+
+		std::swap(instances->submenu, instancesAll->next);
+		std::swap(instances->submenu, instancesAll);
+	}
+	
 	// color menu
 	std::unique_ptr<SystrayMenu> colorMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 	loadSvg(colorMenu, ":/color.svg", _rootFolder);
 	colorMenu->label = "&Color";
 	colorMenu->context = this;
-	colorMenu->callback = [](SystrayMenu* m) {
-		SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
-		if (sh != nullptr)
-			QUEUE_CALL_0(sh, settings);
-	};
 
 	std::list<std::string> colors{ "white", "red", "green", "blue", "yellow", "magenta", "cyan" };
 	colors.reverse();
@@ -269,9 +320,9 @@ void SystrayHandler::createSystray()
 		colorItem->callback = [](SystrayMenu* m) {
 			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
 			QString colorName = QString::fromStdString(m->label);
-			QColor color = HyperImage::QColorfromString(colorName);
+			ColorRgb color = HyperImage::ColorRgbfromString(colorName);
 			if (sh != nullptr)
-				QUEUE_CALL_1(sh, setColor, QColor, color);
+				QUEUE_CALL_1(sh, setColor, ColorRgb, color);
 		};
 
 		std::swap(colorMenu->submenu, colorItem->next);
@@ -280,9 +331,8 @@ void SystrayHandler::createSystray()
 
 	// effects
 	std::list<EffectDefinition> efxs, efxsSorted;
-	auto _hyperhdr = _hyperhdrHandle.lock();
-	if (_hyperhdr)
-		SAFE_CALL_0_RET(_hyperhdr.get(), getEffects, std::list<EffectDefinition>, efxs);
+	if (instanceManager != nullptr)
+		efxs = instanceManager->getEffects();
 
 	std::unique_ptr<SystrayMenu> effectsMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 	loadSvg(effectsMenu, ":/effects.svg", _rootFolder);
@@ -372,11 +422,13 @@ void SystrayHandler::createSystray()
 	std::swap(colorMenu->next, effectsMenu);
 
 #ifdef _WIN32
-	std::swap(separator3->next, colorMenu);
+	std::swap(instances->next, colorMenu);
+	std::swap(separator3->next, instances);
 	std::swap(autostartMenu->next, separator3);
 	std::swap(separator1->next, autostartMenu);
 #else
-	std::swap(separator1->next, colorMenu);
+	std::swap(instances->next, colorMenu);
+	std::swap(separator1->next, instances);
 #endif
 
 	std::swap(settingsMenu->next, separator1);	
@@ -406,14 +458,16 @@ void SystrayHandler::setAutorunState()
 	#endif
 }
 
-
-void SystrayHandler::setColor(const QColor& color)
+void SystrayHandler::selectInstance()
 {
-	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
+	createSystray();
+}
 
-	auto _hyperhdr = _hyperhdrHandle.lock();
-	if (_hyperhdr)
-		QUEUE_CALL_3(_hyperhdr.get(), setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
+void SystrayHandler::setColor(ColorRgb color)
+{
+	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
+	if (instanceManager)
+		instanceManager->setInstanceColor(_selectedInstance, 1, color, 0);
 }
 
 
@@ -447,6 +501,14 @@ void SystrayHandler::settings()
 	ShellExecute(0, 0, array, 0, 0, SW_SHOW);
 #endif
 
+#ifdef __linux__
+	QString command = QString("xdg-open %1").arg(link);
+	if (system(QSTRING_CSTR(command)) == -1)
+	{
+		printf("xdg-open <http_link> failed. xdg-utils package is required.\n");
+	}
+#endif
+
 #ifndef _WIN32
 	// restoring stdout
 	::dup2(saved_stdout, STDOUT_FILENO);
@@ -457,41 +519,24 @@ void SystrayHandler::settings()
 
 void SystrayHandler::setEffect(QString effect)
 {
-	auto _hyperhdr = _hyperhdrHandle.lock();
-	if (_hyperhdr)
-		QUEUE_CALL_2(_hyperhdr.get(), setEffect, QString, effect, int, 1);
+	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
+	if (instanceManager)
+		instanceManager->setInstanceEffect(_selectedInstance, effect, 1);
 }
 
 void SystrayHandler::clearEfxColor()
 {
-	auto _hyperhdr = _hyperhdrHandle.lock();
-	if (_hyperhdr)
-		QUEUE_CALL_1(_hyperhdr.get(), clear, int, 1);
+	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
+	if (instanceManager)
+		instanceManager->clearInstancePriority(_selectedInstance, 1);
 }
 
 void SystrayHandler::signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name)
 {
-	switch (state) {
-		case InstanceState::START:
-			if (instance == 0)
-			{
-				std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
+	if (instance == _selectedInstance && state == InstanceState::STOP)
+		_selectedInstance = -1;
 
-				if (instanceManager == nullptr)
-					return;
-
-				std::shared_ptr<HyperHdrInstance> retVal;
-				SAFE_CALL_1_RET(instanceManager.get(), getHyperHdrInstance, std::shared_ptr<HyperHdrInstance>, retVal, quint8, 0);
-
-				_hyperhdrHandle = retVal;
-
-				createSystray();		
-			}
-
-			break;
-		default:
-			break;
-	}
+	createSystray();
 }
 
 void SystrayHandler::signalSettingsChangedHandler(settings::type type, const QJsonDocument& data)

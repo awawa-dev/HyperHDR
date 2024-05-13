@@ -39,20 +39,20 @@
 #include <utility>	
 #include <list>
 
-QColor HyperImage::QColorfromString(QString colorName)
+ColorRgb HyperImage::ColorRgbfromString(QString colorName)
 {
-	std::list<std::pair<QString, QColor>> colors = {
-		{ "white", QColor(255,255,255)},
-		{ "red", QColor(255,0,0)},
-		{ "green",QColor(0,255,0)},
-		{ "blue", QColor(0,0,255)},
-		{ "yellow", QColor(255,255,0)},
-		{ "magenta", QColor(255,0,255)},
-		{ "cyan", QColor(0,255,255)}
+	std::list<std::pair<QString, ColorRgb>> colors = {
+		{ "white", ColorRgb(255,255,255)},
+		{ "red", ColorRgb(255,0,0)},
+		{ "green",ColorRgb(0,255,0)},
+		{ "blue", ColorRgb(0,0,255)},
+		{ "yellow", ColorRgb(255,255,0)},
+		{ "magenta", ColorRgb(255,0,255)},
+		{ "cyan", ColorRgb(0,255,255)}
 	};
 
-	std::list<std::pair<QString, QColor>>::iterator findIter = std::find_if(colors.begin(), colors.end(),
-		[&colorName](const std::pair<QString, QColor>& a)
+	std::list<std::pair<QString, ColorRgb>>::iterator findIter = std::find_if(colors.begin(), colors.end(),
+		[&colorName](const std::pair<QString, ColorRgb>& a)
 		{
 			if (a.first == colorName)
 				return true;
@@ -64,7 +64,7 @@ QColor HyperImage::QColorfromString(QString colorName)
 	if (findIter != colors.end())
 		return (*findIter).second;
 
-	return QColor(255, 255, 255);
+	return ColorRgb(255, 255, 255);
 }
 
 void HyperImage::svg2png(QString filename, int width, int height, QBuffer& buffer)

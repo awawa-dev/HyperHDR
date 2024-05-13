@@ -6,7 +6,7 @@
 #endif
 
 #include <QBuffer>
-#include <QColor>
+#include <utils/ColorRgb.h>
 
 class HyperImage : public QObject
 {
@@ -14,5 +14,5 @@ class HyperImage : public QObject
 
 public:
 	static void svg2png(QString filename, int width, int height, QBuffer& buffer);
-	static QColor QColorfromString(QString colorName);
+	static ColorRgb ColorRgbfromString(QString colorName);
 };
