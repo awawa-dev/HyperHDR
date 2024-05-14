@@ -330,7 +330,7 @@ int main(int argc, char** argv)
 		}
 		catch (std::exception& e)
 		{
-			Error(log, "HyperHdr Daemon aborted: %s", e.what());
+			Error(log, "Main HyperHDR service aborted: %s", e.what());
 			throw;
 		}
 
@@ -340,10 +340,12 @@ int main(int argc, char** argv)
 		if (systray != nullptr && systray->isInitialized())
 		{			
 			QTimer* timer = new QTimer(systray);
-			timer->setInterval(300);
 			QObject::connect(timer, &QTimer::timeout, systray, [&systray]() {
-					systray->loop();
-			});
+				systray->loop();
+				});
+
+			timer->setInterval(200);			
+			timer->start();
 
 			rc = app->exec();
 

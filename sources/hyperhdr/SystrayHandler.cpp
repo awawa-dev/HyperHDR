@@ -35,6 +35,10 @@
 	#include <unistd.h>
 #endif
 
+#ifdef __APPLE__
+	#include <ApplicationServices/ApplicationServices.h>
+#endif
+
 #include <QBuffer>
 #include <QFile>
 #include <QCoreApplication>
@@ -147,41 +151,22 @@ void SystrayHandler::close()
 	}
 }
 
-static void loadPng(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder)
-{
-#ifdef __linux__
-	QString fullPath = rootFolder + "/icons/" + QFileInfo(filename).fileName();
-	QFileInfo iconFile(fullPath);
-	QDir dir(iconFile.absolutePath());
-	if (!dir.exists())
-		dir.mkpath(".");
-
-	if (!iconFile.exists())
-	{
-		QFile stream(filename);
-		stream.open(QIODevice::ReadOnly);
-		QByteArray ar = stream.readAll();
-		stream.close();
-
-		QFile newIcon(fullPath);
-		newIcon.open(QIODevice::WriteOnly);
-		newIcon.write(ar);
-		newIcon.close();
-	}
-
-	menu->label = fullPath.toStdString();
-#else
-	QFile stream(filename);
-	stream.open(QIODevice::ReadOnly);
-	QByteArray ar = stream.readAll();
-	stream.close();
-	menu->icon.resize(ar.size());
-	memcpy(menu->icon.data(), ar.data(), ar.size());
-#endif
-}
-
 static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder , QString destFilename = "")
 {
+
+#ifdef __linux__
+			int iconDim = 16;
+	#else
+		#ifdef __APPLE__
+			int iconDim = 18;
+		#else
+			int iconDim = 18;
+
+			if (filename == ":/hyperhdr-tray-icon.svg")
+				iconDim = 36;
+	#endif
+#endif
+
 #ifdef __linux__
 	if (destFilename.isEmpty())
 	{
@@ -199,7 +184,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 		QByteArray ar;
 		QBuffer buffer(&ar);
 		buffer.open(QIODevice::WriteOnly);
-		HyperImage::svg2png(filename, 16, 16, buffer);
+		HyperImage::svg2png(filename, iconDim, iconDim, buffer);
 
 		QFile newIcon(fullPath);
 		newIcon.open(QIODevice::WriteOnly);
@@ -212,7 +197,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 	QByteArray ar;
 	QBuffer buffer(&ar);
 	buffer.open(QIODevice::WriteOnly);
-	HyperImage::svg2png(filename, 18, 18, buffer);
+	HyperImage::svg2png(filename, iconDim, iconDim, buffer);
 
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());
@@ -226,8 +211,7 @@ void SystrayHandler::createSystray()
 
 	std::unique_ptr<SystrayMenu> mainMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 
-	// main icon
-	loadPng(mainMenu, ":/hyperhdr-icon-32px.png", _rootFolder);
+	loadSvg(mainMenu, ":/hyperhdr-tray-icon.svg", _rootFolder);
 
 	// settings menu
 	std::unique_ptr<SystrayMenu> settingsMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
@@ -467,7 +451,7 @@ void SystrayHandler::setColor(ColorRgb color)
 {
 	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
 	if (instanceManager)
-		instanceManager->setInstanceColor(_selectedInstance, 1, color, 0);
+		QUEUE_CALL_4(instanceManager.get(), setInstanceColor, int, _selectedInstance, int, 1, ColorRgb, color, int, 0);
 }
 
 
@@ -508,6 +492,19 @@ void SystrayHandler::settings()
 		printf("xdg-open <http_link> failed. xdg-utils package is required.\n");
 	}
 #endif
+	
+#ifdef __APPLE__
+	std::string slink = link.toStdString();
+	CFURLRef url = CFURLCreateWithBytes(
+		NULL,                       
+		(UInt8*)slink.c_str(),
+		slink.length(),
+		kCFStringEncodingASCII,
+		NULL
+	);
+	LSOpenCFURLRef(url, 0);
+	CFRelease(url);
+#endif
 
 #ifndef _WIN32
 	// restoring stdout
@@ -521,14 +518,14 @@ void SystrayHandler::setEffect(QString effect)
 {
 	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
 	if (instanceManager)
-		instanceManager->setInstanceEffect(_selectedInstance, effect, 1);
+		QUEUE_CALL_3(instanceManager.get(), setInstanceEffect, int, _selectedInstance, QString, effect, int, 1);
 }
 
 void SystrayHandler::clearEfxColor()
 {
 	std::shared_ptr<HyperHdrManager> instanceManager = _instanceManager.lock();
 	if (instanceManager)
-		instanceManager->clearInstancePriority(_selectedInstance, 1);
+		QUEUE_CALL_2(instanceManager.get(), clearInstancePriority, int, _selectedInstance, int, 1);
 }
 
 void SystrayHandler::signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name)
