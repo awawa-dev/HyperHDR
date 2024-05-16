@@ -1,13 +1,11 @@
 #ifndef PCH_ENABLED
 	#include <QCoreApplication>
-	#include <QApplication>
 	#include <QLocale>
 	#include <QFile>
 	#include <QString>
 	#include <QResource>
 	#include <QDir>
 	#include <QStringList>
-	#include <QSystemTrayIcon>
 	#include <QStringList>
 
 	#include <exception>
@@ -17,7 +15,6 @@
 	#include <stdio.h>
 #endif
 
-#include <QApplication>
 #include <csignal>
 
 #if !defined(__APPLE__) && !defined(_WIN32)
@@ -37,6 +34,7 @@
 
 #include <HyperhdrConfig.h>
 
+#include "SystrayHandler.h"
 #include <utils/Logger.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
@@ -45,7 +43,6 @@
 
 #include "detectProcess.h"
 #include "HyperHdrDaemon.h"
-#include "systray.h"
 
 using namespace commandline;
 
@@ -70,9 +67,8 @@ void CreateConsole()
 
 HyperHdrDaemon* hyperhdrd = nullptr;
 
-QCoreApplication* createApplication(int& argc, char* argv[])
+QCoreApplication* createApplication(bool& isGuiApp, int& argc, char* argv[])
 {
-	bool isGuiApp = false;
 	bool forceNoGui = false;
 	// command line
 	for (int i = 1; i < argc; ++i)
@@ -100,25 +96,11 @@ QCoreApplication* createApplication(int& argc, char* argv[])
 	}
 #endif
 
-	if (isGuiApp)
-	{
-		QApplication* app = new QApplication(argc, argv);
-		// add optional library path
-		app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
-		app->setApplicationDisplayName("HyperHdr");
-#if defined(__APPLE__)
-		app->setWindowIcon(QIcon(":/hyperhdr-icon-64px.png"));
-#else
-		app->setWindowIcon(QIcon(":/hyperhdr-icon-32px.png"));
-#endif
-		return app;
-	}
-
 	QCoreApplication* app = new QCoreApplication(argc, argv);
 	app->setApplicationName("HyperHdr");
 	app->setApplicationVersion(HYPERHDR_VERSION);
 	// add optional library path
-	app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
+	app->addLibraryPath(QCoreApplication::applicationDirPath() + "/../lib");
 
 	return app;
 }
@@ -136,9 +118,8 @@ int main(int argc, char** argv)
 #endif
 
 	// Initialising QCoreApplication
-	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
-
-	bool isGuiApp = (qobject_cast<QApplication*>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
+	bool isGuiApp = false;
+	QScopedPointer<QCoreApplication> app(createApplication(isGuiApp, argc, argv));	
 
 	DefaultSignalHandler::install();
 
@@ -349,30 +330,49 @@ int main(int argc, char** argv)
 		}
 		catch (std::exception& e)
 		{
-			Error(log, "HyperHdr Daemon aborted: %s", e.what());
+			Error(log, "Main HyperHDR service aborted: %s", e.what());
 			throw;
 		}
 
 		// run the application
-		if (isGuiApp)
-		{
-			Info(log, "start systray");
-			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray* tray = new SysTray(hyperhdrd, hyperhdrd->getWebPort());
-			QObject::connect(qApp, &QGuiApplication::aboutToQuit, tray, &SysTray::deleteLater);
-			rc = (qobject_cast<QApplication*>(app.data()))->exec();
+		SystrayHandler* systray = (isGuiApp) ? new SystrayHandler(hyperhdrd, hyperhdrd->getWebPort(), userDataDirectory.absolutePath()) : nullptr;
+
+		if (systray != nullptr && systray->isInitialized())
+		{			
+			QTimer* timer = new QTimer(systray);
+			QObject::connect(timer, &QTimer::timeout, systray, [&systray]() {
+				systray->loop();
+				});
+
+			timer->setInterval(200);			
+			timer->start();
+
+			rc = app->exec();
+
+			systray->close();
 		}
 		else
 		{
+			#if defined(ENABLE_SYSTRAY)
+				if (isGuiApp)
+				{
+					Error(log, "Could not inilized the systray. Make sure that the libgtk-3-0/gtk3 package is installed.");
+				}
+			#endif
 			rc = app->exec();
 		}
-		Info(log, "Application closed with code %d", rc);
+		
+		Info(log, "The application closed with code %d", rc);
+
+		delete systray;
+		systray = nullptr;
+
 		delete hyperhdrd;
 		hyperhdrd = nullptr;
 	}
 	catch (std::exception& e)
 	{
-		Error(log, "HyperHdr aborted: %s", e.what());
+		Error(log, "HyperHDR aborted: %s", e.what());
 	}
 
 	// delete components

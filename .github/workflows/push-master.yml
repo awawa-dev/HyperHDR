@@ -181,7 +181,7 @@ jobs:
         if: ( matrix.QT_VERSION == 5 )
         shell: bash
         run: |
-            export Qt5_DIR=`brew --prefix qt5`;
+            export Qt5_DIR=`brew --prefix qt@5`;
             echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
             
         # Build process

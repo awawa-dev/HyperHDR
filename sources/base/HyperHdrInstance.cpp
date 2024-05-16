@@ -650,15 +650,6 @@ int HyperHdrInstance::setEffect(const QString& effectName, int priority, int tim
 		return 0;
 }
 
-int HyperHdrInstance::setEffect(const QString& effectName, const QJsonObject& args, int priority, int timeout, const QString& origin, const QString& imageData)
-{
-	if (_effectEngine != nullptr)
-		return _effectEngine->runEffect(effectName, priority, timeout, origin);
-	else
-		return 0;
-
-}
-
 void HyperHdrInstance::setLedMappingType(int mappingType)
 {
 	if (mappingType != _imageProcessor->getLedMappingType())

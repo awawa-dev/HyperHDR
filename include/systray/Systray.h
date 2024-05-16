@@ -1,6 +1,4 @@
-#pragma once
-
-/* SuspendHandlerWindows.h
+/* Systray.h
 *
 *  MIT License
 *
@@ -25,32 +23,50 @@
 *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
- */
+*/
 
-#include <QAbstractNativeEventFilter>
-#include <QAbstractEventDispatcher>
-#define NOMINMAX
-#include <windows.h>
+#pragma once
 
-#include <utils/Components.h>
+#include <stdint.h>
+#include <utils/MemoryBuffer.h>
+#include <string>
+#include <memory>
+#include <functional>
 
-#define HAVE_POWER_MANAGEMENT
+class SystrayHandler;
 
-class SuspendHandler : public QObject, public QAbstractNativeEventFilter {
-	Q_OBJECT
 
-	HPOWERNOTIFY	_notifyHandle, _notifyMonitorHandle;
-	bool			_sessionLocker;
+struct SystrayMenu
+{
+	MemoryBuffer<uint8_t> icon;
+	std::string label;
+	std::string tooltip;
 
-signals:
-	void SignalHibernate(bool wakeUp, hyperhdr::SystemComponent source);
+	bool isDisabled = false;
+	bool isChecked = false;
+	int checkGroup = false;
 
-public:
-	SuspendHandler(bool sessionLocker = false);
-	~SuspendHandler();
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, long* result) Q_DECL_OVERRIDE;
-#else
-	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) Q_DECL_OVERRIDE;
-#endif
+	std::function<void(SystrayMenu*)> callback = nullptr;
+	SystrayHandler* context = nullptr;
+
+	std::unique_ptr<SystrayMenu> submenu = nullptr;
+	std::unique_ptr<SystrayMenu> next = nullptr;
 };
+
+#ifdef __linux__
+	typedef bool (*SystrayInitializeFun)(SystrayMenu* tray);
+	typedef int (*SystrayLoopFun)(void);
+	typedef void (*SystrayUpdateFun)(SystrayMenu* tray);
+	typedef void (*SystrayCloseFun)(void);
+#else
+	bool SystrayInitialize(SystrayMenu* tray);
+	int SystrayLoop();
+	void SystrayUpdate(SystrayMenu* tray);
+	void SystrayClose();
+#endif
+
+#ifdef _WIN32
+	HWND SystrayGetWindow();
+#endif
+
+
