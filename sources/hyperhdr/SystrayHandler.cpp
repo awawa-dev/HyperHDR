@@ -160,7 +160,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 		#ifdef __APPLE__
 			int iconDim = 18;
 		#else
-			int iconDim = 18;
+			int iconDim = 22;
 
 			if (filename == ":/hyperhdr-tray-icon.svg")
 				iconDim = 36;

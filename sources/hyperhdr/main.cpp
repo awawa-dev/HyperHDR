@@ -323,7 +323,11 @@ int main(int argc, char** argv)
 		{
 			Warning(log, "The user data path '%s' is not writeable. HyperHdr starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
 		}
-		
+
+		#ifdef _WIN32
+			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		#endif	
+
 		try
 		{
 			hyperhdrd = new HyperHdrDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode, params, isGuiApp);
@@ -338,14 +342,16 @@ int main(int argc, char** argv)
 		SystrayHandler* systray = (isGuiApp) ? new SystrayHandler(hyperhdrd, hyperhdrd->getWebPort(), userDataDirectory.absolutePath()) : nullptr;
 
 		if (systray != nullptr && systray->isInitialized())
-		{			
-			QTimer* timer = new QTimer(systray);
-			QObject::connect(timer, &QTimer::timeout, systray, [&systray]() {
-				systray->loop();
-				});
+		{
+			#ifdef __APPLE__
+				QTimer* timer = new QTimer(systray);
+				QObject::connect(timer, &QTimer::timeout, systray, [&systray]() {
+					systray->loop();
+					});
 
-			timer->setInterval(200);			
-			timer->start();
+				timer->setInterval(200);			
+				timer->start();
+			#endif
 
 			rc = app->exec();
 
