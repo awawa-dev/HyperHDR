@@ -60,7 +60,7 @@ double  mapto(double x, double  in_min, double  in_max, double out_min, double o
 }
 
 void Animation_Plasma::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
@@ -95,7 +95,7 @@ void Animation_Plasma::Init(
 
 
 
-bool Animation_Plasma::Play(QPainter* painter)
+bool Animation_Plasma::Play(HyperImage& painter)
 {
 	bool ret = true;
 

@@ -81,7 +81,7 @@ int Animation_Waves::getSTime(int hyperLatchTime, int _rt, double steps = 360)
 
 
 void Animation_Waves::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
@@ -119,7 +119,7 @@ void Animation_Waves::Init(
 	targetTime = InternalClock::now() + reverse_time;
 }
 
-bool Animation_Waves::Play(QPainter* painter)
+bool Animation_Waves::Play(HyperImage& painter)
 {
 	bool ret = true;
 
@@ -162,7 +162,7 @@ bool Animation_Waves::Play(QPainter* painter)
 }
 
 
-bool Animation_Waves::imageRadialGradient(QPainter* painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray)
+bool Animation_Waves::imageRadialGradient(HyperImage& painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray)
 {
 	int startX = 0;
 	int startY = 0;

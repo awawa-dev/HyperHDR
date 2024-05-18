@@ -70,7 +70,7 @@ Animation_Swirl::Animation_Swirl(QString name) :
 	custom_colors2.append({ 0, 255, 255, 0 });
 };
 
-Point2d Animation_Swirl::getPoint(const QImage& hyperImage, bool random, double x, double y) {
+Point2d Animation_Swirl::getPoint(const HyperImage& hyperImage, bool random, double x, double y) {
 	Point2d p;
 
 	if (random)
@@ -137,7 +137,7 @@ void Animation_Swirl::buildGradient(QList<Animation_Swirl::SwirlGradient>& ba, b
 }
 
 void Animation_Swirl::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
@@ -198,7 +198,7 @@ void Animation_Swirl::Init(
 	}
 }
 
-bool Animation_Swirl::Play(QPainter* painter)
+bool Animation_Swirl::Play(HyperImage& painter)
 {
 	bool ret;
 	angle += increment;
@@ -220,7 +220,7 @@ bool Animation_Swirl::Play(QPainter* painter)
 }
 
 
-bool Animation_Swirl::imageConicalGradient(QPainter* painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray)
+bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray)
 {
 	int startX = 0;
 	int startY = 0;

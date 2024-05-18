@@ -37,14 +37,14 @@ Animation_RainbowWaves::Animation_RainbowWaves(QString name) :
 
 
 void Animation_RainbowWaves::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 
 }
 
-bool Animation_RainbowWaves::Play(QPainter* painter)
+bool Animation_RainbowWaves::Play(HyperImage& painter)
 {
 	return true;
 }

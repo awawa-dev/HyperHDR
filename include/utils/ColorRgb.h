@@ -31,17 +31,17 @@ struct ColorRgb
 
 	}
 
-	uint8_t Red()
+	int Red()
 	{
 		return red;
 	}
 
-	uint8_t Green()
+	int Green()
 	{
 		return green;
 	}
 
-	uint8_t Blue()
+	int Blue()
 	{
 		return blue;
 	}

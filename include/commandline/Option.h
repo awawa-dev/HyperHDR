@@ -8,7 +8,6 @@
 	#include <cmath>
 #endif
 
-#include <QValidator>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 

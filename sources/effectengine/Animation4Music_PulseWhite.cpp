@@ -74,8 +74,8 @@ bool Animation4Music_PulseWhite::getImage(Image<ColorRgb>& newImage)
 	if (value < 0)
 		return false;
 
-	QColor selected(value, value, value);
-	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, selected.red(), selected.green(), selected.blue());
+	ColorRgb selected(value, value, value);
+	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, selected.Red(), selected.Green(), selected.Blue());
 
 	return true;
 };

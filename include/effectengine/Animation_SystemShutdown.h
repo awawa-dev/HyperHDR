@@ -13,10 +13,10 @@ public:
 	Animation_SystemShutdown();
 
 	void Init(
-		QImage& hyperImage,
+		HyperImage& hyperImage,
 		int hyperLatchTime) override;
 
-	bool Play(QPainter* painter) override;
+	bool Play(HyperImage& painter) override;
 
 	static EffectDefinition getDefinition();
 
@@ -31,6 +31,6 @@ private:
 	int initial_blink_index;
 	int yIndex;
 
-	void setLine(QPainter* painter, int y, Point3d rgb);
-	void setFill(QPainter* painter, Point3d rgb);
+	void setLine(HyperImage& painter, int y, Point3d rgb);
+	void setFill(HyperImage& painter, Point3d rgb);
 };

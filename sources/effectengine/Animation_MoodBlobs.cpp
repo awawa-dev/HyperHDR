@@ -65,14 +65,14 @@ Animation_MoodBlobs::Animation_MoodBlobs(QString name) :
 
 
 void Animation_MoodBlobs::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 
 }
 
-bool Animation_MoodBlobs::Play(QPainter* painter)
+bool Animation_MoodBlobs::Play(HyperImage& painter)
 {
 	return true;
 }

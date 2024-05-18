@@ -69,15 +69,15 @@ bool Animation4Music_PulseMultiSlow::getImage(Image<ColorRgb>& newImage)
 	if (r == nullptr || !newData)
 		return false;
 
-	QColor color, empty;
+	ColorRgb color, empty;
 	uint32_t maxSingle, average;
 
 	if (!r->GetStats(average, maxSingle, empty, NULL, &color))
 		return false;
 
-	int red = color.red();
-	int green = color.green();
-	int blue = color.blue();
+	int red = color.Red();
+	int green = color.Green();
+	int blue = color.Blue();
 
 	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, red, green, blue);
 

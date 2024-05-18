@@ -48,7 +48,7 @@ EffectDefinition Animation_SystemShutdown::getDefinition()
 }
 
 void Animation_SystemShutdown::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
@@ -58,18 +58,18 @@ void Animation_SystemShutdown::Init(
 	SetSleepTime(int(round(speed * 1000.0)));
 }
 
-void Animation_SystemShutdown::setLine(QPainter* painter, int y, Point3d rgb)
+void Animation_SystemShutdown::setLine(HyperImage& painter, int y, Point3d rgb)
 {
 	painter->setPen(QColor().fromRgb(rgb.x, rgb.y, rgb.z));
 	painter->drawLine(0, y, SYSTEMSHUTDOWN_WIDTH, y);
 }
 
-void Animation_SystemShutdown::setFill(QPainter* painter, Point3d rgb)
+void Animation_SystemShutdown::setFill(HyperImage& painter, Point3d rgb)
 {
 	painter->fillRect(0, 0, SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT, QColor().fromRgb(rgb.x, rgb.y, rgb.z));
 }
 
-bool Animation_SystemShutdown::Play(QPainter* painter)
+bool Animation_SystemShutdown::Play(HyperImage& painter)
 {
 	bool ret = true;
 

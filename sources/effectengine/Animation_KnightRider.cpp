@@ -52,7 +52,7 @@ EffectDefinition Animation_KnightRider::getDefinition()
 }
 
 void Animation_KnightRider::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime)
 {
 	hyperImage = hyperImage.scaled(KNIGHT_WIDTH, KNIGHT_HEIGHT);
@@ -79,7 +79,7 @@ void Animation_KnightRider::Init(
 	direction = 1;
 }
 
-bool Animation_KnightRider::Play(QPainter* painter)
+bool Animation_KnightRider::Play(HyperImage& painter)
 {
 	bool ret = true;
 

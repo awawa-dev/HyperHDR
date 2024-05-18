@@ -40,7 +40,7 @@ Animation_CandleLight::Animation_CandleLight(QString name) :
 };
 
 void Animation_CandleLight::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
@@ -48,7 +48,7 @@ void Animation_CandleLight::Init(
 	SetSleepTime((int)(0.20 * 1000.0));
 }
 
-bool Animation_CandleLight::Play(QPainter* painter)
+bool Animation_CandleLight::Play(HyperImage& painter)
 {
 	return true;
 }

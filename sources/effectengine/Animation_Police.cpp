@@ -42,14 +42,14 @@ Animation_Police::Animation_Police(QString name) :
 
 
 void Animation_Police::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 
 }
 
-bool Animation_Police::Play(QPainter* painter)
+bool Animation_Police::Play(HyperImage& painter)
 {
 	return true;
 }
