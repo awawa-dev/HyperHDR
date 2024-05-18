@@ -46,19 +46,19 @@ struct ColorRgb
 		return blue;
 	}
 
-	uint8_t setRed()
+	void setRed(uint8_t r)
 	{
-		return red;
+		red = r;
 	}
 
-	uint8_t setGreen()
+	void setGreen(uint8_t g)
 	{
-		return green;
+		green = g;
 	}
 
-	uint8_t setBlue()
+	void setBlue(uint8_t b)
 	{
-		return blue;
+		blue = b;
 	}
 
 	ColorRgb operator-(const ColorRgb& b) const
