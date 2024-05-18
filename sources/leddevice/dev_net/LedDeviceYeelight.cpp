@@ -8,7 +8,6 @@
 #include <QtNetwork>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QColor>
 
 #include <chrono>
 #include <thread>

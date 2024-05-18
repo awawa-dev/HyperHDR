@@ -3,6 +3,7 @@ name: HyperHDR CI Build
 on:
   push:
   pull_request:
+    disabled
 
 env:
     USE_CACHE: "1"

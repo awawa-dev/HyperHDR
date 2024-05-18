@@ -31,6 +31,36 @@ struct ColorRgb
 
 	}
 
+	uint8_t Red()
+	{
+		return red;
+	}
+
+	uint8_t Green()
+	{
+		return green;
+	}
+
+	uint8_t Blue()
+	{
+		return blue;
+	}
+
+	uint8_t setRed()
+	{
+		return red;
+	}
+
+	uint8_t setGreen()
+	{
+		return green;
+	}
+
+	uint8_t setBlue()
+	{
+		return blue;
+	}
+
 	ColorRgb operator-(const ColorRgb& b) const
 	{
 		ColorRgb a(*this);

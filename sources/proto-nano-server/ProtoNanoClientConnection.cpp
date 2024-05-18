@@ -28,7 +28,6 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QTimer>
-#include <QRgb>
 #include <QThread>
 
 #include <pb_decode.h>

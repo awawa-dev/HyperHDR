@@ -163,7 +163,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 			int iconDim = 22;
 
 			if (filename == ":/hyperhdr-tray-icon.svg")
-				iconDim = 36;
+				iconDim = 32;
 	#endif
 #endif
 
