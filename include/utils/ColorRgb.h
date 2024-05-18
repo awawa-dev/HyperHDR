@@ -46,6 +46,13 @@ struct ColorRgb
 		return blue;
 	}
 
+	void getRGB(int& r, int& g, int& b)
+	{
+		r = red;
+		g = green;
+		b = blue;
+	}
+
 	void setRed(uint8_t r)
 	{
 		red = r;
