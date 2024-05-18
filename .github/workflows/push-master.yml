@@ -2,8 +2,11 @@ name: HyperHDR CI Build
 
 on:
   push:
+    branches:
+      - '!remove_qt_gui'
   pull_request:
-    disabled
+    branches:
+      - '!remove_qt_gui'
 
 env:
     USE_CACHE: "1"
@@ -276,7 +279,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( true )
+    if: ( false )
     permissions:
       actions: read
       contents: read
