@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_QuatroWhite::getDefinition()
 }
 
 void Animation4Music_QuatroWhite::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_QuatroWhite::Play(QPainter* painter)
+bool Animation4Music_QuatroWhite::Play(HyperImage& painter)
 {
 	return false;
 }

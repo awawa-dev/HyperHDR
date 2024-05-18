@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_StereoGreen::getDefinition()
 }
 
 void Animation4Music_StereoGreen::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_StereoGreen::Play(QPainter* painter)
+bool Animation4Music_StereoGreen::Play(HyperImage& painter)
 {
 	return false;
 }

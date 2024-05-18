@@ -10,6 +10,7 @@ add_library(effectengine
 
 target_link_libraries(effectengine
 	hyperhdr-base
+	hyperimage
 	Qt${Qt_VERSION}::Core
 )
 

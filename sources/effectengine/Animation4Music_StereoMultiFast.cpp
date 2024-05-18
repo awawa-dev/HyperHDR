@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_StereoMultiFast::getDefinition()
 }
 
 void Animation4Music_StereoMultiFast::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_StereoMultiFast::Play(QPainter* painter)
+bool Animation4Music_StereoMultiFast::Play(HyperImage& painter)
 {
 	return false;
 }

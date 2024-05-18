@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_TestEq::getDefinition()
 }
 
 void Animation4Music_TestEq::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(5);
 }
 
-bool Animation4Music_TestEq::Play(QPainter* painter)
+bool Animation4Music_TestEq::Play(HyperImage& painter)
 {
 	return false;
 }

@@ -45,14 +45,14 @@ EffectDefinition Animation4Music_StereoRed::getDefinition()
 }
 
 void Animation4Music_StereoRed::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_StereoRed::Play(QPainter* painter)
+bool Animation4Music_StereoRed::Play(HyperImage& painter)
 {
 	return false;
 }

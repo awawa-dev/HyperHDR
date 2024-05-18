@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_QuatroMultiSlow::getDefinition()
 }
 
 void Animation4Music_QuatroMultiSlow::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_QuatroMultiSlow::Play(QPainter* painter)
+bool Animation4Music_QuatroMultiSlow::Play(HyperImage& painter)
 {
 	return false;
 }

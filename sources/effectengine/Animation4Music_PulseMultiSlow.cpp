@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_PulseMultiSlow::getDefinition()
 }
 
 void Animation4Music_PulseMultiSlow::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_PulseMultiSlow::Play(QPainter* painter)
+bool Animation4Music_PulseMultiSlow::Play(HyperImage& painter)
 {
 	return false;
 }

@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_PulseYellow::getDefinition()
 }
 
 void Animation4Music_PulseYellow::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_PulseYellow::Play(QPainter* painter)
+bool Animation4Music_PulseYellow::Play(HyperImage& painter)
 {
 	return false;
 }

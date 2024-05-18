@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_PulseWhite::getDefinition()
 }
 
 void Animation4Music_PulseWhite::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_PulseWhite::Play(QPainter* painter)
+bool Animation4Music_PulseWhite::Play(HyperImage& painter)
 {
 	return false;
 }
