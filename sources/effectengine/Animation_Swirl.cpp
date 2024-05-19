@@ -143,7 +143,7 @@ void Animation_Swirl::Init(
 {
 	QList<Animation_Swirl::SwirlColor> _custColors, _custColors2;
 
-	hyperImage = hyperImage.scaled(80, 45);
+	hyperImage.resize(80, 45);
 
 	auto _rotationTime = rotation_time;
 	auto _reverse = reverse;
@@ -224,8 +224,8 @@ bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int centerX, int
 {
 	int startX = 0;
 	int startY = 0;
-	int width = painter->device()->width();
-	int height = painter->device()->height();
+	int width = painter.width();
+	int height = painter.height();
 
 	angle = qMax(qMin(angle, 360), 0);
 

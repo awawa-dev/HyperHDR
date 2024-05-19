@@ -131,7 +131,7 @@ private:
 	QTcpSocket* _tcpStreamSocket;
 	int _correlationID;
 	qint64	_lastWriteTime;
-	QColor _color;
+	ColorRgb _color;
 	int _lastColorRgbValue;
 
 	API_EFFECT _transitionEffect;

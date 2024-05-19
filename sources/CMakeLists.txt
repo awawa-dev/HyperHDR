@@ -49,7 +49,7 @@ endif()
 
 # Executables
 add_subdirectory(hyperhdr)
-if (NOT APPLE)
+if (NOT APPLE AND DISABLED_REMOTE)
 	add_subdirectory(hyperhdr-remote)
 endif()
 

@@ -797,7 +797,7 @@ bool YeelightLight::setColorHSV(const ColorRgb& colorRGB)
 {
 	bool rc = true;
 
-	QColor color(colorRGB.red, colorRGB.green, colorRGB.blue);
+	ColorRgb color(colorRGB.red, colorRGB.green, colorRGB.blue);
 
 	if (color != _color)
 	{

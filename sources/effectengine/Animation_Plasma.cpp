@@ -65,7 +65,7 @@ void Animation_Plasma::Init(
 )
 {
 
-	hyperImage = hyperImage.scaled(PLASMA_WIDTH, PLASMA_HEIGHT);
+	hyperImage.resize(PLASMA_WIDTH, PLASMA_HEIGHT);
 
 	SetSleepTime(int(round(0.1 * 1000.0)));
 
@@ -105,8 +105,8 @@ bool Animation_Plasma::Play(HyperImage& painter)
 			int delta = y * PLASMA_WIDTH;
 			int palIndex = int((plasma[delta + x] + mod) % PAL_LEN) * 3;
 
-			painter->setPen(qRgb(pal[palIndex], pal[palIndex + 1], pal[palIndex + 2]));
-			painter->drawPoint(x, y);
+			painter.setPen(ColorRgb(pal[palIndex], pal[palIndex + 1], pal[palIndex + 2]));
+			painter.drawPoint(x, y);
 		}
 	return ret;
 }

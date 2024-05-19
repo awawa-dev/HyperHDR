@@ -56,7 +56,7 @@ Animation_Waves::Animation_Waves(QString name) :
 	reverse = false;
 };
 
-Point2d Animation_Waves::getPoint(const QImage& hyperImage, bool random, double x, double y) {
+Point2d Animation_Waves::getPoint(const HyperImage& hyperImage, bool random, double x, double y) {
 	Point2d p;
 
 	if (random)
@@ -86,7 +86,7 @@ void Animation_Waves::Init(
 )
 {
 
-	hyperImage = hyperImage.scaled(80, 45);
+	hyperImage.resize(80, 45);
 
 	pointS1 = getPoint(hyperImage, random_center, center_x, center_y);
 
@@ -166,8 +166,8 @@ bool Animation_Waves::imageRadialGradient(HyperImage& painter, int centerX, int 
 {
 	int startX = 0;
 	int startY = 0;
-	int width = painter->device()->width();
-	int height = painter->device()->height();
+	int width = painter.width();
+	int height = painter.height();
 
 	angle = qMax(qMin(angle, 360), 0);
 

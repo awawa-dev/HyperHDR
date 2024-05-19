@@ -53,20 +53,20 @@ void Animation_SystemShutdown::Init(
 )
 {
 
-	hyperImage = hyperImage.scaled(SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT);
+	hyperImage.resize(SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT);
 
 	SetSleepTime(int(round(speed * 1000.0)));
 }
 
 void Animation_SystemShutdown::setLine(HyperImage& painter, int y, Point3d rgb)
 {
-	painter->setPen(QColor().fromRgb(rgb.x, rgb.y, rgb.z));
-	painter->drawLine(0, y, SYSTEMSHUTDOWN_WIDTH, y);
+	painter.setPen(ColorRgb(rgb.x, rgb.y, rgb.z));
+	painter.drawLine(0, y, SYSTEMSHUTDOWN_WIDTH, y);
 }
 
 void Animation_SystemShutdown::setFill(HyperImage& painter, Point3d rgb)
 {
-	painter->fillRect(0, 0, SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT, QColor().fromRgb(rgb.x, rgb.y, rgb.z));
+	painter.fillRect(0, 0, SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT, ColorRgb(rgb.x, rgb.y, rgb.z));
 }
 
 bool Animation_SystemShutdown::Play(HyperImage& painter)

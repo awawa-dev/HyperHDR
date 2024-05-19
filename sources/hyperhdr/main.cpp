@@ -37,7 +37,6 @@
 #include "SystrayHandler.h"
 #include <utils/Logger.h>
 #include <commandline/Parser.h>
-#include <commandline/IntOption.h>
 #include <utils/DefaultSignalHandler.h>
 #include <db/AuthTable.h>
 

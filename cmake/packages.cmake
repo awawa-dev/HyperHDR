@@ -231,7 +231,7 @@ cpack_add_component(HyperHDR
 	REQUIRED
 )
 
-if (NOT APPLE)
+if (NOT APPLE AND DISABLED_REMOTE)
 	cpack_add_component(HyperHDR_remote
 		DISPLAY_NAME "HyperHdr Remote"
 		DESCRIPTION "HyperHdr remote cli tool"
