@@ -320,7 +320,7 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 	float pi = std::atan(1) * 4;
 
 	if (reset)
-		memset(dest, 0, h * plutovg_surface_get_stride(_surface));
+		memset(dest, 0, static_cast<size_t>(h) * plutovg_surface_get_stride(_surface));
 
 	if (points.size() < 5 || points.size() % 5)
 		return;
