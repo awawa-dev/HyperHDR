@@ -29,6 +29,8 @@
 	#include <QThread>
 #endif
 
+#include <QStringList>
+
 #include <base/HyperHdrManager.h>
 #include <base/HyperHdrInstance.h>
 #include <db/InstanceTable.h>
@@ -82,6 +84,62 @@ std::shared_ptr<HyperHdrInstance> HyperHdrManager::getHyperHdrInstance(quint8 in
 
 	Warning(_log, "The requested instance index '%d' with name '%s' isn't running, return main instance", instance, QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 	return _runningInstances.value(0);
+}
+
+std::vector<QString> HyperHdrManager::getInstances()
+{
+	std::vector<QString> ret;
+	
+	for (const quint8& key : _runningInstances.keys())
+	{
+		ret.push_back(QString::number(key));
+		ret.push_back(_instanceTable->getNamebyIndex(key));
+	}
+
+	return ret;
+}
+
+void HyperHdrManager::setInstanceColor(int instance, int priority, ColorRgb ledColors, int timeout_ms)
+{
+	std::vector<ColorRgb> rgbColor{ ledColors };
+
+	for (const auto& selInstance : _runningInstances)
+		if (instance == -1 || selInstance->getInstanceIndex() == instance)
+		{
+			QUEUE_CALL_3(selInstance.get(), setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
+		}
+}
+
+void  HyperHdrManager::setInstanceEffect(int instance, QString effectName, int priority)
+{
+	for (const auto& selInstance : _runningInstances)
+		if (instance == -1 || selInstance->getInstanceIndex() == instance)
+		{
+			QUEUE_CALL_2(selInstance.get(), setEffect, QString, effectName, int, 1);
+		}
+}
+
+void HyperHdrManager::clearInstancePriority(int instance, int priority)
+{
+	for (const auto& selInstance : _runningInstances)
+		if (instance == -1 || selInstance->getInstanceIndex() == instance)
+		{
+			QUEUE_CALL_1(selInstance.get(), clear, int, 1);
+		}
+}
+
+std::list<EffectDefinition> HyperHdrManager::getEffects()
+{
+	std::list<EffectDefinition> efxs;
+
+	if (IsInstanceRunning(0))
+	{
+		auto inst = getHyperHdrInstance(0);
+
+		SAFE_CALL_0_RET(inst.get(), getEffects, std::list<EffectDefinition>, efxs);
+	}
+	
+	return efxs;
 }
 
 QVector<QVariantMap> HyperHdrManager::getInstanceData() const

@@ -9,11 +9,13 @@
 	#include <QJsonArray>
 	#include <QJsonDocument>
 	#include <QJsonObject>
+	#include <QMap>
 	#include <QMutex>
-	#include <QNetworkReply>
+	#include <QNetworkReply>	
 	#include <QSemaphore>
 	#include <QSet>
 	#include <QStack>
+	#include <QStringList>
 	#include <QThread>
 	#include <QTimer>
 	#include <QVector>

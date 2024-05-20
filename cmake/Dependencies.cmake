@@ -130,7 +130,7 @@ macro(DeployApple TARGET)
 					message(WARNING "Unresolved dependencies detected!")
 				endif()
 				  
-				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				foreach(PLUGIN "sqldrivers")
 				if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*")
 					foreach(file ${files})							
@@ -206,9 +206,161 @@ endmacro()
 
 macro(DeployUnix TARGET)
 	if (EXISTS ${TARGET_FILE})
-		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
-		#"libsystemd0"
+
+		# Install LUT		
+		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
+
+		# Our and custom libs
+		set(PREREQUISITE_LIBS "")
+
+		# Copy SystrayWidget
+		find_library(LIBSYSTRAYWIDGET
+			NAMES "SystrayWidget" "SystrayWidget.so"
+			PATHS "${CMAKE_BINARY_DIR}/lib"
+			NO_DEFAULT_PATH
+		)
+		if (LIBSYSTRAYWIDGET)
+			SET(resolved_file ${LIBSYSTRAYWIDGET})		
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Adding SystrayWidget: ${resolved_file}")		
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added SystrayWidget(2): ${file_canonical}")
+		endif()
+		
+		# Copy SMARTX11 lib
+		find_library(LIBSMARTX11
+			NAMES "smartX11" "smartX11.so"
+			PATHS "${CMAKE_BINARY_DIR}/lib"
+			NO_DEFAULT_PATH
+		)
+		if (LIBSMARTX11)
+			SET(resolved_file ${LIBSMARTX11})		
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Adding smartX11: ${resolved_file}")		
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added smartX11(2): ${file_canonical}")
+		endif()
+
+		# Copy SMARTPIPEWIRE lib
+		find_library(LIBSMARTPIPEWIRE
+			NAMES "smartPipewire" "smartPipewire.so"
+			PATHS "${CMAKE_BINARY_DIR}/lib"
+			NO_DEFAULT_PATH
+		)
+		if (LIBSMARTPIPEWIRE)
+			SET(resolved_file ${LIBSMARTPIPEWIRE})
+			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+			message(STATUS "Adding smartPipewire: ${resolved_file}")		
+			get_filename_component(file_canonical ${resolved_file} REALPATH)
+			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			message(STATUS "Added smartPipewire(2): ${file_canonical}")
+		endif()		
+		
+		#OpenSSL
+		find_package(OpenSSL)
+		if(OPENSSL_FOUND)
+			foreach(openssl_lib ${OPENSSL_LIBRARIES})
+				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
+				get_filename_component(file_canonical ${openssl_lib} REALPATH)
+				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+			endforeach()
+		else()
+			message( WARNING "OpenSSL NOT found (https instance will not work)")
+		endif()
+
+		if (ENABLE_SYSTRAY)
+			file(GLOB files "${AppIndicator_LIBRARY_DIRS}/*ayatana*")
+			foreach(file ${files})
+				SET(resolved_file ${file})
+				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+				message(STATUS "Adding libAppIndicator component: ${resolved_file}")		
+				get_filename_component(file_canonical ${resolved_file} REALPATH)
+				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+				message(STATUS "Added libAppIndicator component: ${file_canonical}")							
+			endforeach()
+		endif()
+
+		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
+		if ( Qt5Core_FOUND )			
+			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+			execute_process(
+				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+				OUTPUT_VARIABLE QT_PLUGINS_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)		
+		elseif ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
+			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+			execute_process(
+				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+				OUTPUT_VARIABLE QT_PLUGINS_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		endif()
+
+		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")
+		
+		# Copy CEC lib
+		if (CEC_FOUND)
+			find_library(XRANDR_LIBRARY NAMES Xrandr libXrandr libXrandr.so.2)
+
+			if (XRANDR_LIBRARY)
+				SET(resolved_file ${XRANDR_LIBRARY})
+				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+				message(STATUS "Adding xrandr: ${resolved_file}")		
+				get_filename_component(file_canonical ${resolved_file} REALPATH)
+				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+				message(STATUS "Added xrandr(2): ${file_canonical}")
+			endif()
+
+			foreach(resolved_file_in ${CEC_LIBRARIES})
+				message(STATUS "Adding CEC: ${resolved_file_in}")
+				unset(LIBCEC CACHE)
+				find_library(LIBCEC NAMES ${resolved_file_in})
+				if (LIBCEC)
+					SET(resolved_file ${LIBCEC})
+					get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+					gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+					message(STATUS "Adding CEC(1): ${resolved_file}")
+					get_filename_component(file_canonical ${resolved_file} REALPATH)
+					gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+					message(STATUS "Added CEC(2): ${file_canonical}")
+					foreach(indexer RANGE 9)
+						set(resolved_fileLink "${resolved_file}.${indexer}")
+						if(EXISTS ${resolved_fileLink})
+							get_filename_component(resolved_fileLink ${resolved_fileLink} ABSOLUTE)
+							gp_append_unique(PREREQUISITE_LIBS ${resolved_fileLink})
+							message(STATUS "Adding CEC(3): ${resolved_fileLink}")
+						endif()
+					endforeach()
+				endif()
+			endforeach()
+		endif()
+				
+		# Create a qt.conf file in 'share/hyperhdr/bin' to override hard-coded search paths in Qt plugins
+		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+		install(
+			FILES "${CMAKE_BINARY_DIR}/qt.conf"
+			DESTINATION "share/hyperhdr/bin"
+			COMPONENT "HyperHDR"
+		)
+
+		# install CODE 	
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")"					COMPONENT "HyperHDR")
+		install(CODE "set(PREREQUISITE_LIBS \"${PREREQUISITE_LIBS}\")"		COMPONENT "HyperHDR")
+		install(CODE "set(QT_PLUGINS_DIR \"${QT_PLUGINS_DIR}\")"			COMPONENT "HyperHDR")
+
+		install(CODE [[
+
 		set(SYSTEM_LIBS_SKIP
 			"libc"
 			"libglib-2"
@@ -259,15 +411,45 @@ macro(DeployUnix TARGET)
 			"libxcb-xkb1"
 			"libxkbcommon-x11-0"			
 			"libssl1.1"
+			"ld-linux-x86-64"
 		)
 
+		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
+		include(GetPrerequisites)		
 		# Extract dependencies ignoring the system ones
 		if (NOT CMAKE_CROSSCOMPILING)
-			get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
+			# get HyperHDR deps
+			file(GET_RUNTIME_DEPENDENCIES
+				RESOLVED_DEPENDENCIES_VAR DEPENDENCIES
+				EXECUTABLES ${TARGET_FILE}
+			)		
+
+			# Copy Qt plugins to 'share/hyperhdr/lib'
+			foreach(PLUGIN "sqldrivers")
+				#message(WARNING "Collecting Dependencies for QT plugin folder: ${PLUGIN}")
+				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
+					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
+					foreach(file ${files})
+						file(GET_RUNTIME_DEPENDENCIES
+							RESOLVED_DEPENDENCIES_VAR QT_DEPENDENCIES
+							EXECUTABLES ${file}
+						)
+						#message(WARNING "${file} => ${DEPENDENCIES} <= ${QT_DEPENDENCIES}")
+						list(APPEND DEPENDENCIES ${QT_DEPENDENCIES})
+
+						file(INSTALL
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/${PLUGIN}"
+							TYPE SHARED_LIBRARY
+							FILES ${file}
+						)
+							
+					endforeach()
+				endif()
+			endforeach()
 		endif()
 
-		# Append symlink and non-symlink dependencies to the list
-		set(PREREQUISITE_LIBS "")
+
+		# Append symlink and non-symlink dependencies to the list		
 		foreach(DEPENDENCY ${DEPENDENCIES})
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
 			
@@ -288,247 +470,19 @@ macro(DeployUnix TARGET)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 				#message(STATUS "Basic check added: ${resolved_file}")
 			endif()
-		endforeach()
-		
-		# Copy SMARTX11 lib
-		find_library(LIBSMARTX11
-			NAMES "smartX11" "smartX11.so"
-			PATHS "${CMAKE_BINARY_DIR}/lib"
-			NO_DEFAULT_PATH
-		)
-		if (LIBSMARTX11)
-			SET(resolved_file ${LIBSMARTX11})		
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartX11: ${resolved_file}")		
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added smartX11(2): ${file_canonical}")
-		endif()
-
-		# Copy SMARTPIPEWIRE lib
-		find_library(LIBSMARTPIPEWIRE
-			NAMES "smartPipewire" "smartPipewire.so"
-			PATHS "${CMAKE_BINARY_DIR}/lib"
-			NO_DEFAULT_PATH
-		)
-		if (LIBSMARTPIPEWIRE)
-			SET(resolved_file ${LIBSMARTPIPEWIRE})
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartPipewire: ${resolved_file}")		
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added smartPipewire(2): ${file_canonical}")
-		endif()		
-		
-		#OpenSSL
-		find_package(OpenSSL)
-		if(OPENSSL_FOUND)
-			foreach(openssl_lib ${OPENSSL_LIBRARIES})
-				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
-				get_filename_component(file_canonical ${openssl_lib} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			endforeach()
-		else()
-			message( WARNING "OpenSSL NOT found (https instance will not work)")
-		endif()
-
-		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		if ( Qt5Core_FOUND )			
-			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-			execute_process(
-				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
-				OUTPUT_VARIABLE QT_PLUGINS_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)		
-		elseif ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
-			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
-			execute_process(
-				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
-				OUTPUT_VARIABLE QT_PLUGINS_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-		endif()
-
-		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")
-		
-		# Copy CEC lib
-		if (CEC_FOUND)
-
-			find_library(XRANDR_LIBRARY NAMES Xrandr libXrandr libXrandr.so.2)
-
-			if (XRANDR_LIBRARY)
-				SET(resolved_file ${XRANDR_LIBRARY})
-				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-				message(STATUS "Adding xrandr: ${resolved_file}")		
-				get_filename_component(file_canonical ${resolved_file} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				message(STATUS "Added xrandr(2): ${file_canonical}")
-			endif()
-
-			foreach(resolved_file_in ${CEC_LIBRARIES})
-				message(STATUS "Adding CEC: ${resolved_file_in}")
-				unset(LIBCEC CACHE)
-				find_library(LIBCEC NAMES ${resolved_file_in})
-				if (LIBCEC)
-					SET(resolved_file ${LIBCEC})
-					get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-					gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-					message(STATUS "Adding CEC(1): ${resolved_file}")
-					get_filename_component(file_canonical ${resolved_file} REALPATH)
-					gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-					message(STATUS "Added CEC(2): ${file_canonical}")
-					foreach(indexer RANGE 9)
-						set(resolved_fileLink "${resolved_file}.${indexer}")
-						if(EXISTS ${resolved_fileLink})
-							get_filename_component(resolved_fileLink ${resolved_fileLink} ABSOLUTE)
-							gp_append_unique(PREREQUISITE_LIBS ${resolved_fileLink})
-							message(STATUS "Adding CEC(3): ${resolved_fileLink}")
-						endif()
-					endforeach()
-				endif()
-			endforeach()
-		endif()
-		
-		if ( GLD )
-			SET(resolved_file ${GLD})
-			message(STATUS "Adding GLD: ${resolved_file}")
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Added GLD: ${resolved_file}")
-			set(resolved_file0 "${resolved_file}.0")
-			if(EXISTS ${resolved_file0})
-				message(STATUS "Adding GLD0: ${resolved_file0}")
-				get_filename_component(resolved_file0 ${resolved_file0} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file0})
-				message(STATUS "Added GLD0: ${resolved_file0}")
-			endif()
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added GLD: ${file_canonical}")
-		endif()
-
-		
-		find_library(LIB_XCB
-			NAMES libxcb libxcb.so
-		)
-
-		if(LIB_XCB)
-			message(STATUS "libXCB found ${LIB_XCB}")
-			SET(resolved_file ${LIB_XCB})
-			message(STATUS "Adding libXCB: ${resolved_file}")
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Added libXCB: ${resolved_file}")
-			set(resolved_file1 "${resolved_file}.1")
-			if(EXISTS ${resolved_file1})
-				message(STATUS "Adding libXCB1: ${resolved_file1}")
-				get_filename_component(resolved_file1 ${resolved_file1} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file1})
-				message(STATUS "Added libXCB1: ${resolved_file1}")
-			endif()
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added: ${file_canonical}")
-		else()
-			message(STATUS "libXCB not found")
-		endif()
-		
-		find_library(LIB_GLX
-			NAMES libGLX libGLX.so		
-		)
-				
-		if(LIB_GLX)
-			message(STATUS "libGLX found ${LIB_GLX}")
-			SET(resolved_file ${LIB_GLX})
-			message(STATUS "Adding LIB_GLX: ${resolved_file}")
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Added LIB_GLX: ${resolved_file}")
-			set(resolved_file0 "${resolved_file}.0")
-			if(EXISTS ${resolved_file0})
-				message(STATUS "Adding LIB_GLX0: ${resolved_file0}")
-				get_filename_component(resolved_file0 ${resolved_file0} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file0})
-				message(STATUS "Added LIB_GLX0: ${resolved_file0}")
-			endif()
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added: ${file_canonical}")
-		else()
-			message(STATUS "libGLX not found")
-		endif()
-
-		# Copy Qt plugins to 'share/hyperhdr/lib'
-		if(QT_PLUGINS_DIR)
-			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
-				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
-					foreach(file ${files})
-						if (NOT CMAKE_CROSSCOMPILING)
-							get_prerequisites(${file} PLUGINS 0 1 "" "")
-						endif()
-
-						foreach(DEPENDENCY ${PLUGINS})
-							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-							
-							foreach(myitem ${SYSTEM_LIBS_SKIP})
-									#message(STATUS "Checking ${myitem}")
-									string(FIND ${myitem} ${resolved} _index)
-									if (${_index} GREATER -1)
-										#message(STATUS "${myitem} = ${resolved}")									
-										break()									
-									endif()
-							endforeach()
-								
-							if (${_index} GREATER -1)
-								#message(STATUS "QT skipped: ${resolved}")
-								continue() # Skip system libraries
-							else()						
-								#message(STATUS "QT included: ${resolved}")
-								gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
-								get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-								gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-								get_filename_component(file_canonical ${resolved_file} REALPATH)
-								gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-								#message(STATUS "QT added: ${resolved_file}")
-							endif()
-						endforeach()
-
-						install(
-							FILES ${file}
-							DESTINATION "share/hyperhdr/lib/${PLUGIN}"
-							COMPONENT "HyperHDR"
-						)
-					endforeach()
-				endif()
-			endforeach()
-		endif(QT_PLUGINS_DIR)
-
-		# Create a qt.conf file in 'share/hyperhdr/bin' to override hard-coded search paths in Qt plugins
-		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
-		install(
-			FILES "${CMAKE_BINARY_DIR}/qt.conf"
-			DESTINATION "share/hyperhdr/bin"
-			COMPONENT "HyperHDR"
-		)
+		endforeach()		
 
 		# Copy dependencies to 'share/hyperhdr/lib'
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
 			message("Installing: " ${PREREQUISITE_LIB})
-			install(
+			file(
+				INSTALL
 				FILES ${PREREQUISITE_LIB}
-				DESTINATION "share/hyperhdr/lib"
-				COMPONENT "HyperHDR"
+				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib"
+				TYPE SHARED_LIBRARY
 			)
-		endforeach()
-		
-		# install LUT		
-		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")
-		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
-		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
+		endforeach()		
+	]] COMPONENT "HyperHDR")
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(

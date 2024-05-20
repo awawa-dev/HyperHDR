@@ -8,6 +8,8 @@
 	#include <QStringList>
 #endif
 
+#include <QCoreApplication>
+
 #ifdef ENABLE_V4L2
 	#include <grabber/v4l2/V4L2Wrapper.h>
 #else
@@ -125,7 +127,7 @@ class HyperHdrDaemon : public QObject
 
 
 public:
-	HyperHdrDaemon(const QString& rootPath, QApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
+	HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
 	~HyperHdrDaemon();
 
 	QJsonDocument getSetting(settings::type type) const;	

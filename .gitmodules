@@ -19,3 +19,6 @@
 [submodule "external/mdns"]
 	path = external/mdns
 	url = https://github.com/mjansson/mdns.git
+[submodule "external/lunasvg"]
+	path = external/lunasvg
+	url = https://github.com/sammycage/lunasvg.git

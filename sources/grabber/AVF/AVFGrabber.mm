@@ -153,7 +153,7 @@ bool AVFGrabber::getPermission()
 				if (_isAVF)
 				{
 					if (!_permission)
-						QTimer::singleShot(5000, this, &AVFGrabber::getPermission);
+						QMetaObject::invokeMethod(this, [this]{ QTimer::singleShot(5000, this, &AVFGrabber::getPermission); });
 					else
 					{
 						Info(_log, "Got the video permission. Now trying to start HyperHDR's video grabber.");

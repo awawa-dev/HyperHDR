@@ -17,9 +17,9 @@ endif()
 
 add_executable(hyperhdr
 	HyperHdrDaemon.h
-	systray.h
+	SystrayHandler.h
 	HyperHdrDaemon.cpp
-	systray.cpp
+	SystrayHandler.cpp
 	main.cpp
 	${hyperhdr_WIN_RC_PATH}
 	${hyperhdr_POWER_MNG}
@@ -37,6 +37,7 @@ endif()
 target_link_libraries(hyperhdr
 	commandline
 	hyperhdr-base
+	hyperimage
 	effectengine
 	jsonserver
 	flatbufserver
@@ -44,11 +45,18 @@ target_link_libraries(hyperhdr
 	ssdp
 	database
 	resources
-	Qt${Qt_VERSION}::Widgets
 	${hyperhdr_POWER_MNG_DBUS}
 	${APPKIT_FRAMEWORK}
 	${TURBOJPEG_LINK_LIBRARIES}
 )
+
+if (WIN32 OR APPLE)
+	target_link_libraries(hyperhdr SystrayWidget)
+else()
+	install(TARGETS SystrayWidget
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 
 if (USE_STATIC_QT_PLUGINS)
 	target_link_libraries(hyperhdr ${STATIC_QT_PLUGINS_LIBS})
