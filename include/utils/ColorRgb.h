@@ -10,9 +10,9 @@
 
 struct ColorRgb
 {
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
+	uint8_t red = 0;
+	uint8_t green = 0;
+	uint8_t blue = 0;
 
 	static const ColorRgb BLACK;
 	static const ColorRgb RED;
@@ -29,6 +29,21 @@ struct ColorRgb
 		blue(_blue)
 	{
 
+	}
+
+	void getHsv(int& hue, int& sat, int& bri)
+	{
+		uint16_t h;
+		uint8_t s,v;
+		rgb2hsv(red, green, blue, h, s, v);
+		hue = h;
+		sat = s;
+		bri = v;
+	}
+
+	void fromHsv(int hue, int sat, int bri)
+	{
+		hsv2rgb(hue, sat, bri, red, green, blue);
 	}
 
 	int Red()
@@ -86,6 +101,19 @@ struct ColorRgb
 	{
 		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
 	}
+
+	inline static uint8_t clamp(int x)
+	{
+		return (x < 0) ? 0 : ((x > 255) ? 255 : uint8_t(x));
+	}
+
+	static void rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t& _hue, uint8_t& _saturation, uint8_t& _value);
+	static void hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t& red, uint8_t& green, uint8_t& blue);
+	static void rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t& hue, float& saturation, float& luminance);
+	static void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t& red, uint8_t& green, uint8_t& blue);
+
+	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t& r, uint8_t& g, uint8_t& b);
+	static void rgb2yuv(int r, int g, int b, uint8_t& y, uint8_t& u, uint8_t& v);
 };
 
 static_assert(sizeof(ColorRgb) == 3, "Incorrect size of ColorRgb");

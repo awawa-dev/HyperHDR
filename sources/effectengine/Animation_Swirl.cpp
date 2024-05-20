@@ -116,22 +116,23 @@ void Animation_Swirl::buildGradient(QList<Animation_Swirl::SwirlGradient>& ba, b
 			if (withAlpha && c.items[3] == 0)
 				alpha = 0;
 
+			ba.append(Animation_Swirl::SwirlGradient({ uint8_t(pos), c.items[0], c.items[1], c.items[2], alpha }));
+
 			pos += posfac;
 
 			if (pos > 255)
 				pos = 255;
 
-			ba.append(Animation_Swirl::SwirlGradient({ uint8_t(pos), c.items[0], c.items[1], c.items[2], alpha }));
 		}
 
 		if (closeCircle)
 		{
 			uint8_t alpha = 255;
-			auto lC = cc[cc.length() - 1];
+			auto lC = cc[0];
 
 			if (withAlpha && lC.items[3] == 0)
 				alpha = 0;
-			ba.append(Animation_Swirl::SwirlGradient({ 0, lC.items[0], lC.items[1], lC.items[2], alpha }));
+			ba.append(Animation_Swirl::SwirlGradient({ 255, lC.items[0], lC.items[1], lC.items[2], alpha }));
 		}
 	}
 }
@@ -180,15 +181,21 @@ void Animation_Swirl::Init(
 		buildGradient(baS1, false, _custColors);
 	else
 	{
-		baS1.append({ 0, 255, 0, 0, 255 });
-		baS1.append({ 25, 255, 230, 0, 255 });
-		baS1.append({ 63, 255, 255, 0, 255 });
-		baS1.append({ 100, 0, 255, 0, 255 });
-		baS1.append({ 127, 0, 255, 200, 255 });
-		baS1.append({ 159, 0, 255, 255, 255 });
-		baS1.append({ 191, 0, 0, 255, 255 });
-		baS1.append({ 224, 255, 0, 255, 255 });
-		baS1.append({ 255, 255, 0, 127, 255 });
+		double x = 255.0 / 12;
+		baS1.append({ 0,   255, 0, 0, 255 });
+		baS1.append({ (uint8_t)(x*0.8),  255, 128, 0, 255 });
+		baS1.append({ (uint8_t)(x*2.1),  255, 255, 0, 255 });
+		baS1.append({ (uint8_t)(x*3.4),  128, 255, 0, 255 });
+		baS1.append({ (uint8_t)(x*4.1),  0,   250, 0, 255 });
+		baS1.append({ (uint8_t)(x*4.8), 0,   255, 128, 255 });
+		baS1.append({ (uint8_t)(x*6), 0,   255, 255, 255 });
+		baS1.append({ (uint8_t)(x*7.1), 0,   148, 255, 255 });
+		baS1.append({ (uint8_t)(x*8.0), 0,     0, 255, 255 });
+		baS1.append({ (uint8_t)(x*8.9), 128,   0, 255, 255 });
+		baS1.append({ (uint8_t)(x*10), 255,   0, 255, 255 });
+		baS1.append({ (uint8_t)(x*11), 255,   0, 128, 255 });
+		baS1.append({ 255, 255,   0,   0, 255 });
+		
 	}
 
 	if (_enableSecond && _custColors2.length() > 1)
@@ -213,39 +220,27 @@ bool Animation_Swirl::Play(HyperImage& painter)
 	if (angle2 < 0)
 		angle2 = 360;
 
-	ret = imageConicalGradient(painter, pointS1.x, pointS1.y, angle, baS1);
+	ret = imageConicalGradient(painter, pointS1.x, pointS1.y, angle, baS1, true);
 	if (S2)
-		ret |= imageConicalGradient(painter, pointS2.x, pointS2.y, angle2, baS2);
+		ret |= imageConicalGradient(painter, pointS2.x, pointS2.y, angle2, baS2, false);
 	return ret;
 }
 
 
-bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray)
+bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray, bool reset)
 {
-	int startX = 0;
-	int startY = 0;
-	int width = painter.width();
-	int height = painter.height();
-
 	angle = qMax(qMin(angle, 360), 0);
 
-
-	QRect myQRect(startX, startY, width, height);
-	QConicalGradient gradient(QPoint(centerX, centerY), angle);
-
+	std::vector<uint8_t> arr;
 	foreach(Animation_Swirl::SwirlGradient item, bytearray)
-	{
-		gradient.setColorAt(
-			((uint8_t)item.items[0]) / 255.0,
-			QColor(
-				(uint8_t)(item.items[1]),
-				(uint8_t)(item.items[2]),
-				(uint8_t)(item.items[3]),
-				(uint8_t)(item.items[4])
-			));
+	{		
+		arr.push_back(item.items[0]);
+		arr.push_back(item.items[1]);
+		arr.push_back(item.items[2]);
+		arr.push_back(item.items[3]);
+		arr.push_back(item.items[4]);
 	}
-
-	painter->fillRect(myQRect, gradient);
+	painter.conicalFill(angle, arr, reset);
 
 	return true;
 

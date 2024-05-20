@@ -1,7 +1,6 @@
 #ifndef PCH_ENABLED
 	#include <QResource>
 	#include <QCryptographicHash>
-	#include <QImage>
 	#include <QBuffer>
 	#include <QByteArray>
 	#include <QTimer>
@@ -26,7 +25,6 @@
 #include <base/Muxer.h>
 #include <db/AuthTable.h>
 #include <flatbufserver/FlatBufferServer.h>
-#include <utils/ColorSys.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/GlobalSignals.h>
 #include <base/GrabberHelper.h>
@@ -218,68 +216,23 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 	// truncate name length
 	data.imgName.truncate(16);
 
-	if (data.format == "auto")
-	{
-		QImage img = QImage::fromData(data.data);
-		if (img.isNull())
-		{
-			replyMsg = "Failed to parse picture, the file might be corrupted";
-			return false;
-		}
-
-		// check for requested scale
-		if (data.scale > 24)
-		{
-			if (img.height() > data.scale)
-			{
-				img = img.scaledToHeight(data.scale);
-			}
-			if (img.width() > data.scale)
-			{
-				img = img.scaledToWidth(data.scale);
-			}
-		}
-
-		// check if we need to force a scale
-		if (img.width() > 2000 || img.height() > 2000)
-		{
-			data.scale = 2000;
-			if (img.height() > data.scale)
-			{
-				img = img.scaledToHeight(data.scale);
-			}
-			if (img.width() > data.scale)
-			{
-				img = img.scaledToWidth(data.scale);
-			}
-		}
-
-		data.width = img.width();
-		data.height = img.height();
-
-		// extract image
-		img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-		data.data.clear();
-		data.data.reserve(img.width() * img.height() * 3);
-		for (int i = 0; i < img.height(); ++i)
-		{
-			const QRgb* scanline = reinterpret_cast<const QRgb*>(img.scanLine(i));
-			for (int j = 0; j < img.width(); ++j)
-			{
-				data.data.append((char)qRed(scanline[j]));
-				data.data.append((char)qGreen(scanline[j]));
-				data.data.append((char)qBlue(scanline[j]));
-			}
-		}
-	}
-	else
-	{
-		// check consistency of the size of the received data
-		if (data.data.size() != data.width * data.height * 3)
+	if (data.format == "rgb")
+	{		
+		if (data.data.size() != static_cast<long long>(data.width) * data.height * 3 || data.data.size() == 0)
 		{
 			replyMsg = "Size of image data does not match with the width and height";
 			return false;
 		}
+		else if (data.data.size() >= 6ll*1024*1024)
+		{
+			replyMsg = "Image too large (max. 6MB)";
+			return false;
+		}
+	}
+	else
+	{
+		replyMsg = "Unsupported image type";
+		return false;
 	}
 
 	// copy image

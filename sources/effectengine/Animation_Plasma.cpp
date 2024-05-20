@@ -71,12 +71,11 @@ void Animation_Plasma::Init(
 
 	for (int h = 0; h < PAL_LEN; h++)
 	{
-		uint8_t red, green, blue;
-		red = green = blue = 0;
-		ColorSys::hsv2rgb(h, 255, 255, red, green, blue);
-		pal[h * 3] = red;
-		pal[h * 3 + 1] = green;
-		pal[h * 3 + 2] = blue;
+		ColorRgb c;
+		c.fromHsv(h, 255, 255);
+		pal[h * 3] = c.red;
+		pal[h * 3 + 1] = c.green;
+		pal[h * 3 + 2] = c.blue;
 	}
 
 

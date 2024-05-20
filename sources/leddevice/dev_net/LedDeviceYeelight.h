@@ -2,8 +2,6 @@
 
 #ifndef PCH_ENABLED	
 	#include <QHostAddress>
-	#include <QColor>
-
 	#include <chrono>
 #endif
 

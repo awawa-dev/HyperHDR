@@ -44,7 +44,7 @@ void Animation_CandleLight::Init(
 	int hyperLatchTime
 )
 {
-	ColorSys::rgb2hsv(color.x, color.y, color.z, hsv.x, hsv.y, hsv.z);
+	ColorRgb::rgb2hsv(color.x, color.y, color.z, hsv.x, hsv.y, hsv.z);
 	SetSleepTime((int)(0.20 * 1000.0));
 }
 
@@ -67,7 +67,7 @@ Point3d Animation_CandleLight::CandleRgb()
 
 	int val = std::min(RAND * 17, 255);
 
-	ColorSys::hsv2rgb(hue, hsv.y, val, frgb.x, frgb.y, frgb.z);
+	ColorRgb::hsv2rgb(hue, hsv.y, val, frgb.x, frgb.y, frgb.z);
 
 	return frgb;
 }

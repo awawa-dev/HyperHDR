@@ -37,7 +37,7 @@ Animation_SystemShutdown::Animation_SystemShutdown() :
 	initial_blink = true,
 		set_post_color = true;
 	initial_blink_index = 0;
-	yIndex = SYSTEMSHUTDOWN_HEIGHT;
+	yIndex = SYSTEMSHUTDOWN_HEIGHT + 1;
 };
 
 EffectDefinition Animation_SystemShutdown::getDefinition()

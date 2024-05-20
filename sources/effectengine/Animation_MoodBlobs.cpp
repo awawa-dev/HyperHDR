@@ -101,7 +101,7 @@ bool Animation_MoodBlobs::hasLedData(QVector<ColorRgb>& buffer)
 		blobs = std::max(1, blobs);
 		baseColorChangeRate = std::max(0.0, baseColorChangeRate);
 
-		ColorSys::rgb2hsv(color.x, color.y, color.z, baseHsv.x, baseHsv.y, baseHsv.z);
+		ColorRgb::rgb2hsv(color.x, color.y, color.z, baseHsv.x, baseHsv.y, baseHsv.z);
 
 		double baseHsvx = baseHsv.x / double(360);
 		if (colorRandom)
@@ -116,7 +116,7 @@ bool Animation_MoodBlobs::hasLedData(QVector<ColorRgb>& buffer)
 			int hue = (int(360.0 * fmod((baseHsvx + hueChange * std::sin(2 * M_PI * i / hyperledCount)), 1.0)));
 			while (hue < 0)
 				hue += 360;
-			ColorSys::hsv2rgb(hue, baseHsv.y, baseHsv.z, rgb.x, rgb.y, rgb.z);
+			ColorRgb::hsv2rgb(hue, baseHsv.y, baseHsv.z, rgb.x, rgb.y, rgb.z);
 			colorData.append(rgb);
 		}
 
@@ -169,7 +169,7 @@ bool Animation_MoodBlobs::hasLedData(QVector<ColorRgb>& buffer)
 					int hue = (int(360.0 * fmod((baseHSVValue + hueChange * std::sin(2 * M_PI * i / hyperledCount)), 1.0)));
 					while (hue < 0)
 						hue += 360;
-					ColorSys::hsv2rgb(hue, baseHsv.y, baseHsv.z, rgb.x, rgb.y, rgb.z);
+					ColorRgb::hsv2rgb(hue, baseHsv.y, baseHsv.z, rgb.x, rgb.y, rgb.z);
 					colorData.append(rgb);
 				}
 

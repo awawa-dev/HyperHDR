@@ -47,7 +47,6 @@
 #include <QCoreApplication>
 
 #include <grabber/AVF/AVFGrabber.h>
-#include <utils/ColorSys.h>
 
 // Apple frameworks
 #include <Accelerate/Accelerate.h>

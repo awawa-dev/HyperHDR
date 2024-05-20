@@ -45,7 +45,6 @@
 #include <utils/GlobalSignals.h>
 #include <base/GrabberWrapper.h>
 #include <api/HyperAPI.h>
-#include <utils/ColorSys.h>
 #include <base/HyperHdrManager.h>
 #include <utils/ColorSpaceCalibration.h>
 

@@ -49,7 +49,6 @@
 #include <QCoreApplication>
 
 #include <grabber/framebuffer/FrameBufGrabber.h>
-#include <utils/ColorSys.h>
 
 FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))

@@ -1,6 +1,5 @@
 #ifndef PCH_ENABLED	
 	#include <QResource>
-	#include <QImage>
 	#include <QBuffer>
 	#include <QByteArray>
 	#include <QTimer>
@@ -33,7 +32,6 @@
 #include <flatbufserver/FlatBufferServer.h>
 #include <utils/jsonschema/QJsonUtils.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/ColorSys.h>
 #include <utils/JsonUtils.h>
 #include <utils/PerformanceCounters.h>
 

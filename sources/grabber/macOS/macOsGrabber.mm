@@ -45,7 +45,6 @@
 #include <QCoreApplication>
 
 #include <grabber/macOS/macOsGrabber.h>
-#include <utils/ColorSys.h>
 
 #import <Foundation/Foundation.h>
 #import <Foundation/NSProcessInfo.h>

@@ -8,7 +8,6 @@
 
 #include <utils/Image.h>
 #include <effectengine/EffectDefinition.h>
-#include <utils/ColorSys.h>
 
 template <typename T>
 AnimationBase* EffectFactory()

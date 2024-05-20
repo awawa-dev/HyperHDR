@@ -30,7 +30,6 @@
 #endif
 
 #include <utils/FrameDecoder.h>
-#include <utils/ColorSys.h>
 
 #include <turbojpeg.h>
 

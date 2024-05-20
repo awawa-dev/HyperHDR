@@ -2,11 +2,7 @@ name: HyperHDR CI Build
 
 on:
   push:
-    branches:
-      - '!remove_qt_gui'
   pull_request:
-    branches:
-      - '!remove_qt_gui'
 
 env:
     USE_CACHE: "1"
@@ -178,7 +174,7 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
+        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
         
       # Set env
       - name: Set QT5 env
@@ -279,7 +275,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( false )
+    if: ( true )
     permissions:
       actions: read
       contents: read

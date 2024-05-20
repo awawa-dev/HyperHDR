@@ -54,7 +54,7 @@ bool Animation_RainbowWaves::hasLedData(QVector<ColorRgb>& buffer)
 	if (buffer.length() > 0)
 	{
 		ColorRgb newColor{ 0,0,0 };
-		ColorSys::hsv2rgb(hue, 255, 255, newColor.red, newColor.green, newColor.blue);
+		ColorRgb::hsv2rgb(hue, 255, 255, newColor.red, newColor.green, newColor.blue);
 
 		if (++hue > 359)
 			hue = 0;

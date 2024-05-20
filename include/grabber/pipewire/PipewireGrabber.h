@@ -19,9 +19,6 @@
 #include <base/Grabber.h>
 #include <utils/Components.h>
 
-// general JPEG decoder includes
-#include <QImage>
-#include <QColor>
 
 class AccessManager;
 

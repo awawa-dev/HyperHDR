@@ -40,7 +40,7 @@
 		},
 		"format": {
 			"type": "string",
-			"enum" : ["auto"]
+			"enum" : ["rgb"]
 		},
 		"scale": {
 			"type": "integer",

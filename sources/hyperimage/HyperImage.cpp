@@ -29,6 +29,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <limits>
+#include <cmath>
+
 #include <lunasvg.h>
 #include <plutovg.h>
 #include <stb_image_write.h>
@@ -38,6 +41,8 @@
 #include <hyperimage/HyperImage.h>
 #include <utility>	
 #include <list>
+
+
 
 ColorRgb HyperImage::ColorRgbfromString(QString colorName)
 {
@@ -97,5 +102,326 @@ void HyperImage::svg2png(QString filename, int width, int height, QBuffer& buffe
 
 	buffer.write(reinterpret_cast<const char*>(png), len);
 	
-	STBIW_FREE(png);	
+	STBIW_FREE(png);
+}
+
+
+
+HyperImage::HyperImage() : HyperImage(QSize(1,1))
+{
+}
+
+HyperImage::HyperImage(QSize size)
+	: _pen(ColorRgb::BLACK)
+{
+	_surface = plutovg_surface_create(size.width(), size.height());
+	_pluto = plutovg_create(_surface);
+}
+
+HyperImage::~HyperImage()
+{
+	plutovg_surface_destroy(_surface);
+	plutovg_destroy(_pluto);
+}
+
+int HyperImage::width() const
+{	
+	return plutovg_surface_get_width(_surface);
+}
+
+int HyperImage::height() const
+{
+	return plutovg_surface_get_height(_surface);
+}
+
+Image<ColorRgb> HyperImage::renderImage() const
+{
+	Image<ColorRgb> ret(this->width(), this->height());
+	auto dest = ret.rawMem();
+	auto data = plutovg_surface_get_data(_surface);
+
+	for (int y = 0; y < this->height(); y++)
+	{
+		auto source = data;
+		for (int x = 0; x < this->width(); x++)
+		{
+			dest[0] = source[2];
+			dest[1] = source[1];
+			dest[2] = source[0];
+			dest += 3;
+			source += 4;
+		}
+		data += plutovg_surface_get_stride(_surface);
+	}
+	return ret;
+}
+
+void HyperImage::resize(int sizeX, int sizeY)
+{
+	plutovg_surface_destroy(_surface);
+	plutovg_destroy(_pluto);
+	_surface = plutovg_surface_create(sizeX, sizeY);
+	_pluto = plutovg_create(_surface);
+}
+
+void HyperImage::setPen(const ColorRgb& color)
+{
+	plutovg_set_rgb(_pluto, color.red / 255.0, color.green / 255.0, color.blue / 255.0);
+	_pen = color;
+}
+
+void HyperImage::drawLine(int ax, int ay, int bx, int by)
+{
+	plutovg_save(_pluto);
+	plutovg_set_line_width(_pluto, 1);
+	plutovg_move_to(_pluto, bx, by);
+	plutovg_line_to(_pluto, ax, ay);
+	plutovg_stroke(_pluto);
+	plutovg_restore(_pluto);
+}
+
+void HyperImage::drawPoint(int x, int y)
+{
+	if (x < width() && y < height())
+	{
+		auto data = plutovg_surface_get_data(_surface);
+		int index = 4 * x + y * plutovg_surface_get_stride(_surface);
+		data[index] = _pen.blue;
+		data[index + 1] = _pen.green;
+		data[index + 2] = _pen.red;
+		data[index + 3] = 1.0;
+	}
+}
+
+void HyperImage::fill(const ColorRgb& color)
+{
+	plutovg_save(_pluto);
+	plutovg_set_rgb(_pluto, color.red / 255.0, color.green / 255.0, color.blue / 255.0);
+	plutovg_set_line_width(_pluto, 1);
+	plutovg_rect(_pluto, 0, 0, width(), height());
+	plutovg_fill(_pluto);
+	plutovg_restore(_pluto);
+}
+
+void HyperImage::fillRect(int ax, int ay, int bx, int by, const ColorRgb& color)
+{
+	plutovg_save(_pluto);
+	plutovg_set_rgb(_pluto, color.red / 255.0, color.green / 255.0, color.blue / 255.0);
+	plutovg_set_line_width(_pluto, 1);
+	plutovg_rect(_pluto, 0, 0, width(), height());
+	plutovg_fill(_pluto);
+	plutovg_restore(_pluto);
+}
+
+void HyperImage::radialFill(int center_x, int center_y, double diag, const std::vector<uint8_t>& points)
+{
+	auto dest = plutovg_surface_get_data(_surface);
+	auto h = this->height();
+	auto w = this->width();
+
+	if (points.size() < 5 || points.size() % 5)
+		return;
+
+	for (int y = 0; y < h; y++)
+	{
+		auto data = dest;
+		for (int x = 0; x < w; x++)
+		{
+			ColorRgb c;
+			float dx = (center_x - x);
+			float dy = (center_y - y);
+			float len = dx * dx + dy * dy;
+			int currentAngle = 0;
+
+			if (len > 0.0)
+			{
+				currentAngle = ColorRgb::clamp(std::round(std::sqrt(len) * 255.0 / diag ));
+			}
+
+
+			int lastAngle = 0, lastAlfa = 0;
+			ColorRgb lastColor;
+
+			for (size_t index = 0; index < points.size(); index += 5)
+			{
+				int nextAngle = points[index];
+				ColorRgb nextColor = ColorRgb(points[index + 1], points[index + 2], points[index + 3]);
+				int nextAlfa = points[index + 4];
+
+				if (index > 0)
+				{
+					if (lastAngle <= currentAngle && currentAngle <= nextAngle)
+					{
+						float distance = nextAngle - lastAngle;
+						float aspect2 = (currentAngle - lastAngle) / distance;
+						float aspect1 = 1.0 - aspect2;
+
+						if (nextAlfa > 0 && lastAlfa > 0)
+						{
+							c.red = ColorRgb::clamp(lastColor.red * aspect1 + nextColor.red * aspect2);
+							c.green = ColorRgb::clamp(lastColor.green * aspect1 + nextColor.green * aspect2);
+							c.blue = ColorRgb::clamp(lastColor.blue * aspect1 + nextColor.blue * aspect2);
+							if (nextAlfa != lastAlfa)
+								lastAlfa = ColorRgb::clamp(std::round(nextAlfa * aspect2 + lastAlfa * aspect1));
+						}
+						else if (nextAlfa > 0)
+						{
+							c.red = ColorRgb::clamp(nextColor.red * aspect2 * nextAlfa / 255.0);
+							c.green = ColorRgb::clamp(nextColor.green * aspect2 * nextAlfa / 255.0);
+							c.blue = ColorRgb::clamp(nextColor.blue * aspect2 * nextAlfa / 255.0);
+							lastAlfa = ColorRgb::clamp(std::round(nextAlfa * aspect2));
+						}
+						else if (lastAlfa > 0)
+						{
+							c.red = ColorRgb::clamp(lastColor.red * aspect1 * lastAlfa / 255.0);
+							c.green = ColorRgb::clamp(lastColor.green * aspect1 * lastAlfa / 255.0);
+							c.blue = ColorRgb::clamp(lastColor.blue * aspect1 * lastAlfa / 255.0);
+							lastAlfa = ColorRgb::clamp(std::round(lastAlfa * aspect1));
+						}
+
+
+						break;
+					}
+				}
+
+
+				lastAngle = nextAngle;
+				lastColor = nextColor;
+				lastAlfa = nextAlfa;
+			}
+
+			if (lastAlfa == 255)
+			{
+				data[2] = c.red;
+				data[1] = c.green;
+				data[0] = c.blue;
+				data[3] = 255;
+			}
+			else
+			{
+				float asp1 = lastAlfa / 255.0;
+				float asp2 = 1 - asp1;
+				data[2] = ColorRgb::clamp(c.red * asp1 + data[2] * asp2);
+				data[1] = ColorRgb::clamp(c.green * asp1 + data[1] * asp2);
+				data[0] = ColorRgb::clamp(c.blue * asp1 + data[0] * asp2);
+			}
+
+			data += 4;
+		}
+		dest += plutovg_surface_get_stride(_surface);
+	}
+}
+
+void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, bool reset)
+{
+	auto dest = plutovg_surface_get_data(_surface);
+	auto h = this->height();
+	auto w = this->width();
+	float pi = std::atan(1) * 4;
+
+	if (reset)
+		memset(dest, 0, h * plutovg_surface_get_stride(_surface));
+
+	if (points.size() < 5 || points.size() % 5)
+		return;
+
+	for (int y = 0; y < h; y++)
+	{
+		auto data = dest;
+		for (int x = 0; x < w; x++)
+		{
+			ColorRgb c;			
+
+			float dx = (x - w/2);
+			float dy = (h/2 - y);
+			float len = dx * dx + dy * dy;
+			float deltaAngle = angle;
+
+			if (len > 0.0)
+			{				
+				double newAngle = atan2(1.0, 0.0) - atan2(dy, dx);
+				newAngle = newAngle * 360.0 / (2 * pi);
+				deltaAngle += newAngle;
+			}
+
+
+			while (deltaAngle > 360.0)
+				deltaAngle -= 360.0;
+			while (deltaAngle < 0.0)
+				deltaAngle += 360.0;
+
+			int currentAngle = ColorRgb::clamp(std::round(deltaAngle * 255 / 360.0));
+
+
+			int lastAngle = 0, lastAlfa = 0;
+			ColorRgb lastColor;
+
+			for (size_t index = 0; index < points.size(); index += 5)
+			{
+				int nextAngle = points[index];
+				ColorRgb nextColor = ColorRgb(points[index + 1], points[index + 2], points[index + 3]);
+				int nextAlfa = points[index + 4];
+
+				if (index > 0)
+				{
+					if (lastAngle <= currentAngle && currentAngle <= nextAngle)
+					{
+						float distance = nextAngle - lastAngle;
+						float aspect2 = (currentAngle - lastAngle) / distance;
+						float aspect1 = 1.0 - aspect2;
+
+						if (nextAlfa > 0 && lastAlfa > 0)
+						{
+							c.red = ColorRgb::clamp(lastColor.red * aspect1 + nextColor.red * aspect2);
+							c.green = ColorRgb::clamp(lastColor.green * aspect1 + nextColor.green * aspect2);
+							c.blue = ColorRgb::clamp(lastColor.blue * aspect1 + nextColor.blue * aspect2);
+							if (nextAlfa != lastAlfa)
+								lastAlfa = ColorRgb::clamp(std::round(nextAlfa * aspect2 + lastAlfa * aspect1));
+						}
+						else if (nextAlfa > 0)
+						{
+							c.red = ColorRgb::clamp(nextColor.red * aspect2 * nextAlfa / 255.0);
+							c.green = ColorRgb::clamp(nextColor.green * aspect2 * nextAlfa / 255.0);
+							c.blue = ColorRgb::clamp(nextColor.blue * aspect2 * nextAlfa / 255.0);
+							lastAlfa = ColorRgb::clamp(std::round(nextAlfa * aspect2));
+						}
+						else if (lastAlfa > 0)
+						{
+							c.red = ColorRgb::clamp(lastColor.red * aspect1 * lastAlfa / 255.0);
+							c.green = ColorRgb::clamp(lastColor.green * aspect1 * lastAlfa / 255.0);
+							c.blue = ColorRgb::clamp(lastColor.blue * aspect1 * lastAlfa / 255.0);
+							lastAlfa = ColorRgb::clamp(std::round(lastAlfa * aspect1));
+						}
+
+
+						break;
+					}
+				}
+				
+
+				lastAngle = nextAngle;
+				lastColor = nextColor;
+				lastAlfa = nextAlfa;
+			}
+
+			if (lastAlfa == 255)
+			{
+				data[2] = c.red;
+				data[1] = c.green;
+				data[0] = c.blue;
+				data[3] = 255;
+			}
+			else 
+			{
+				float asp1 = lastAlfa / 255.0;
+				float asp2 = 1 - asp1;
+				data[2] = ColorRgb::clamp(c.red * asp1 + data[2] * asp2);
+				data[1] = ColorRgb::clamp(c.green * asp1 + data[1] * asp2);
+				data[0] = ColorRgb::clamp(c.blue * asp1 + data[0] * asp2);
+			}
+
+			data += 4;
+		}
+		dest += plutovg_surface_get_stride(_surface);
+	}
 }

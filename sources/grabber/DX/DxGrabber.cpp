@@ -46,7 +46,6 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <utils/ColorSys.h>
 #include <grabber/DX/DxGrabber.h>
 #include <grabber/DX/VertexShaderHyperHDR.h>
 #include <grabber/DX/PixelShaderHyperHDR.h>

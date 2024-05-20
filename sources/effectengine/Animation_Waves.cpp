@@ -147,6 +147,34 @@ bool Animation_Waves::Play(HyperImage& painter)
 		it += 1;
 	}
 
+	std::sort(gradientBa.begin(), gradientBa.end(),
+		[](const Animation_Swirl::SwirlGradient& a, const Animation_Swirl::SwirlGradient& b) -> bool {
+			return a.items[0] < b.items[0];
+	});
+
+	if (gradientBa.size() > 1)
+	{
+		int l = gradientBa.size() - 1;
+		if (gradientBa[0].items[0] != 0 || gradientBa[l].items[0] != 255)
+		{
+			
+			float asp2 = gradientBa[0].items[0] / ((float)gradientBa[1].items[0] - (float)gradientBa[0].items[0]);
+			float asp1 = 1.0 - asp2;
+
+			Animation_Swirl::SwirlGradient elem{ 0,
+				ColorRgb::clamp(gradientBa[0].items[1] * asp1 + gradientBa[l].items[1] * asp2),
+				ColorRgb::clamp(gradientBa[0].items[2] * asp1 + gradientBa[l].items[2] * asp2),
+				ColorRgb::clamp(gradientBa[0].items[3] * asp1 + gradientBa[l].items[3] * asp2) };
+			gradientBa.insert(0, elem);
+			Animation_Swirl::SwirlGradient elem2{ 255,
+				ColorRgb::clamp(gradientBa[l].items[1] * asp2 + gradientBa[l].items[1] * asp1),
+				ColorRgb::clamp(gradientBa[0].items[2] * asp2 + gradientBa[l].items[2] * asp1),
+				ColorRgb::clamp(gradientBa[0].items[3] * asp2 + gradientBa[l].items[3] * asp1) };
+			gradientBa.append(elem2);
+
+		}
+	}
+
 	imageRadialGradient(painter, pointS1.x, pointS1.y, diag, gradientBa);
 
 	for (int i = 0; i < positions.length(); i++)
@@ -164,29 +192,19 @@ bool Animation_Waves::Play(HyperImage& painter)
 
 bool Animation_Waves::imageRadialGradient(HyperImage& painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray)
 {
-	int startX = 0;
-	int startY = 0;
-	int width = painter.width();
-	int height = painter.height();
 
 	angle = qMax(qMin(angle, 360), 0);
 
-
-	QRect myQRect(startX, startY, width, height);
-	QRadialGradient gradient(QPoint(centerX, centerY), qMax(angle, 0));
-
+	std::vector<uint8_t> arr;
 	foreach(Animation_Swirl::SwirlGradient item, bytearray)
 	{
-		gradient.setColorAt(
-			((uint8_t)item.items[0]) / 255.0,
-			QColor(
-				(uint8_t)(item.items[1]),
-				(uint8_t)(item.items[2]),
-				(uint8_t)(item.items[3])
-			));
+		arr.push_back(item.items[0]);
+		arr.push_back(item.items[1]);
+		arr.push_back(item.items[2]);
+		arr.push_back(item.items[3]);
+		arr.push_back(255);
 	}
-	gradient.setSpread(static_cast<QGradient::Spread>(0));
-	painter->fillRect(myQRect, gradient);
+	painter.radialFill(centerX, centerY, angle, arr);
 
 	return true;
 

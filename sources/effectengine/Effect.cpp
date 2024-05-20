@@ -111,8 +111,7 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, in
 	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(_instanceIndex).arg((_name.length() > 9) ? _name.left(6) + "..." : _name));
 
 	_colors.resize(_ledCount);
-	_colors.fill(ColorRgb::BLACK);
-	_image.fill(ColorRgb::BLACK);
+	_colors.fill(ColorRgb::BLACK);	
 
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &Effect::run);

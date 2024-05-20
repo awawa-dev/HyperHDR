@@ -56,7 +56,6 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 
-#include <utils/ColorSys.h>
 #include <grabber/MF/MFGrabber.h>
 #include <grabber/MF/MFCallback.h>
 #include <utils/GlobalSignals.h>

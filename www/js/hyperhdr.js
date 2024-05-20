@@ -478,9 +478,49 @@ function requestSetColor(r, g, b, duration)
 	sendToHyperhdr("color", "", '"color":[' + r + ',' + g + ',' + b + '], "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
+
+
 function requestSetImage(data, duration, name)
 {
-	sendToHyperhdr("image", "", '"imagedata":"' + data + '", "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ', "format":"auto", "origin":"' + window.webOrigin + '", "name":"' + name + '"');
+	async function bufferToBase64(buffer) {
+		const base64url = await new Promise(r => {
+			const reader = new FileReader()
+			reader.onload = () => r(reader.result)
+			reader.readAsDataURL(new Blob([buffer]))
+		});
+		return base64url.slice(base64url.indexOf(',') + 1);
+	}
+
+	const imgLoader = new Image();
+	imgLoader.onload = function () {
+		const tempCanvas = document.createElement('canvas');
+		tempCanvas.height = imgLoader.naturalHeight;
+		tempCanvas.width = imgLoader.naturalWidth;
+		const ctx = tempCanvas.getContext('2d');
+		ctx.drawImage(imgLoader, 0, 0);
+		const SX = Math.round(tempCanvas.width), SY =  Math.round(tempCanvas.height);
+
+		const imageData = ctx.getImageData(0, 0, SX, SY);
+		const data = imageData.data;
+		var array = new Uint8Array(SX * SY * 3);
+		for (let i = 0, j = 0; i < data.length; i += 4, j += 3)
+		{
+			array[j] = data[i]; 
+			array[j + 1] = data[i + 1];
+			array[j + 2] = data[i + 2];
+		}
+		
+		bufferToBase64(array).then(encoded => {
+		
+			sendToHyperhdr("image", "",  `"priority": ${window.webPrio},`+
+				`"duration": ${validateDuration(duration)} ,"imagedata":"${encoded}", "format":"rgb", `+
+				`"imagewidth": ${SX}, "imageheight": ${SY},`+
+				`"origin": "${window.webOrigin}", "name": "${name}"`);
+			
+		
+		});
+	}
+	imgLoader.src = data;
 }
 
 function requestSetComponentState(comp, state)

@@ -5,7 +5,6 @@
 	#include <QMutex>
 	#include <QJsonObject>
 	#include <QJsonArray>
-	#include <QColor>
 
 	#include <utils/Logger.h>
 	#include <utils/settings.h>

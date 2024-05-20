@@ -103,7 +103,7 @@ bool Animation_KnightRider::Play(HyperImage& painter)
 			imageData[3 * j + 2] = uint8_t(clamp(int(fadeFactor * imageData[3 * j + 2]), 0, 255));
 
 			painter.setPen(ColorRgb(imageData[3 * j], imageData[3 * j + 1], imageData[3 * j + 2]));
-			painter.drawLine(j, 0, j, KNIGHT_HEIGHT - 1);
+			painter.drawLine(j, 0, j, KNIGHT_HEIGHT);
 
 		}
 
@@ -113,7 +113,7 @@ bool Animation_KnightRider::Play(HyperImage& painter)
 
 		//QImage img(imageData, KNIGHT_WIDTH, KNIGHT_HEIGHT, KNIGHT_WIDTH, QImage::Format_RGB888);
 		painter.setPen(ColorRgb(color.x, color.y, color.z));
-		painter.drawLine(position, 0, position, KNIGHT_HEIGHT - 1);
+		painter.drawLine(position, 0, position, KNIGHT_HEIGHT);
 	}
 	return ret;
 }

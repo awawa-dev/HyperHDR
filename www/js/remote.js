@@ -440,10 +440,7 @@ $(document).ready(function()
 		readImg(this, function(src, fileName)
 		{
 			lastFileName = fileName;
-			if (src.includes(","))
-				lastImgData = src.split(",")[1];
-			else
-				lastImgData = src;
+			lastImgData = src;
 
 			requestSetImage(lastImgData, duration, lastFileName);
 		});
