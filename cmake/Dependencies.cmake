@@ -216,54 +216,12 @@ macro(DeployUnix TARGET)
 		# Our and custom libs
 		set(PREREQUISITE_LIBS "")
 
-		# Copy SystrayWidget
-		find_library(LIBSYSTRAYWIDGET
-			NAMES "SystrayWidget" "SystrayWidget.so"
-			PATHS "${CMAKE_BINARY_DIR}/lib"
-			NO_DEFAULT_PATH
-		)
-		if (LIBSYSTRAYWIDGET)
-			SET(resolved_file ${LIBSYSTRAYWIDGET})		
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding SystrayWidget: ${resolved_file}")		
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added SystrayWidget(2): ${file_canonical}")
-		endif()
-		
 		# Copy SMARTX11 lib
-		find_library(LIBSMARTX11
-			NAMES "smartX11" "smartX11.so"
-			PATHS "${CMAKE_BINARY_DIR}/lib"
-			NO_DEFAULT_PATH
-		)
-		if (LIBSMARTX11)
-			SET(resolved_file ${LIBSMARTX11})		
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartX11: ${resolved_file}")		
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added smartX11(2): ${file_canonical}")
-		endif()
+		install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartX11> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 
 		# Copy SMARTPIPEWIRE lib
-		find_library(LIBSMARTPIPEWIRE
-			NAMES "smartPipewire" "smartPipewire.so"
-			PATHS "${CMAKE_BINARY_DIR}/lib"
-			NO_DEFAULT_PATH
-		)
-		if (LIBSMARTPIPEWIRE)
-			SET(resolved_file ${LIBSMARTPIPEWIRE})
-			get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-			gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-			message(STATUS "Adding smartPipewire: ${resolved_file}")		
-			get_filename_component(file_canonical ${resolved_file} REALPATH)
-			gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			message(STATUS "Added smartPipewire(2): ${file_canonical}")
-		endif()		
-		
+		install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartPipewire> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+
 		#OpenSSL
 		find_package(OpenSSL)
 		if(OPENSSL_FOUND)
@@ -274,19 +232,6 @@ macro(DeployUnix TARGET)
 			endforeach()
 		else()
 			message( WARNING "OpenSSL NOT found (https instance will not work)")
-		endif()
-
-		if (ENABLE_SYSTRAY)
-			file(GLOB files "${AppIndicator_LIBRARY_DIRS}/*ayatana*")
-			foreach(file ${files})
-				SET(resolved_file ${file})
-				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-				message(STATUS "Adding libAppIndicator component: ${resolved_file}")		
-				get_filename_component(file_canonical ${resolved_file} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				message(STATUS "Added libAppIndicator component: ${file_canonical}")							
-			endforeach()
 		endif()
 
 		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
@@ -382,7 +327,6 @@ macro(DeployUnix TARGET)
 			"libxext6"
 			"libx11-xcb1"
 			"libsm"
-			"libqt5gui5"
 			"libice6"
 			"libdrm2"
 			"libxkbcommon0"
@@ -392,11 +336,11 @@ macro(DeployUnix TARGET)
 			"libgudev-1.0-0"
 			"libffi6"
 			"libevdev2"
-			"libqt5dbus5"
 			"libuuid1"
 			"libselinux1"
 			"libmount1"
 			"libblkid1"
+			"libwayland"
 			"libxcb-icccm4"
 			"libxcb-image0"
 			"libxcb-keysyms1"
@@ -409,8 +353,7 @@ macro(DeployUnix TARGET)
 			"libxcb-util0"
 			"libxcb-xfixes0"
 			"libxcb-xkb1"
-			"libxkbcommon-x11-0"			
-			"libssl1.1"
+			"libxkbcommon-x11-0"
 			"ld-linux-x86-64"
 		)
 
@@ -422,7 +365,20 @@ macro(DeployUnix TARGET)
 			file(GET_RUNTIME_DEPENDENCIES
 				RESOLVED_DEPENDENCIES_VAR DEPENDENCIES
 				EXECUTABLES ${TARGET_FILE}
-			)		
+			)
+
+			# get Systray deps (always present even if it's a dummy implementation)
+			file(INSTALL FILES $<TARGET_FILE:SystrayWidget> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY)
+			file(GET_RUNTIME_DEPENDENCIES
+				RESOLVED_DEPENDENCIES_VAR SYS_DEPENDENCIES
+				EXECUTABLES $<TARGET_FILE:SystrayWidget>)
+			foreach(systraLib ${SYS_DEPENDENCIES})
+				string(FIND ${systraLib} "libayatana" _sysindex)
+				if (${_sysindex} GREATER -1)
+					list(APPEND DEPENDENCIES ${systraLib})
+				endif()
+			endforeach()
+			
 
 			# Copy Qt plugins to 'share/hyperhdr/lib'
 			foreach(PLUGIN "sqldrivers")
@@ -454,7 +410,7 @@ macro(DeployUnix TARGET)
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
 			
 			foreach(myitem ${SYSTEM_LIBS_SKIP})
-				string(FIND ${myitem} ${resolved} _index)
+				string(FIND ${resolved} ${myitem} _index)
 				if (${_index} GREATER -1)
 					break()									
 				endif()
@@ -546,49 +502,10 @@ macro(DeployWindows TARGET)
 		endwhile()
 
 		# Copy TurboJPEG Libs
-		if (ENABLE_MF)
-			find_file(TurboJPEG_DLL
-				NAMES "turbojpeg.dll" "jpeg62.dll"
-				PATHS "${TURBOJPEG_LIBRARY_DIRS}"
-				NO_DEFAULT_PATH
-				REQUIRED
-			)
-					
-			if(NOT CMAKE_GITHUB_ACTION)
-				get_filename_component(JPEG_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
-				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TurboJPEG_DLL} ${JPEG_RUNTIME_TARGET})
-			endif()
+		install(FILES ${TurboJPEG_INSTALL_LIB} DESTINATION "bin" COMPONENT "HyperHDR" )
 
-			install(
-				FILES ${TurboJPEG_DLL}
-				DESTINATION "bin"
-				COMPONENT "HyperHDR"
-			)
-		endif()
-
-		# Copy MQTT Libs
-		if (ENABLE_MQTT)
-			set (MQTT_TARGET_LIB_FOLDER ${LIBRARY_OUTPUT_PATH}/${CMAKE_BUILD_TYPE})
-			message(${MQTT_TARGET_LIB_FOLDER})
-			find_file(MQTT_DLL
-				NAMES "qmqtt.dll"
-				PATHS "${MQTT_TARGET_LIB_FOLDER}"
-				NO_DEFAULT_PATH
-				REQUIRED
-			)
-			message(${MQTT_DLL})
-			if(NOT CMAKE_GITHUB_ACTION)
-				get_filename_component(MQTT_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
-				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MQTT_DLL} ${MQTT_RUNTIME_TARGET})
-			endif()
-
-			install(
-				FILES ${MQTT_DLL}
-				DESTINATION "bin"
-				COMPONENT "HyperHDR"
-			)
-		endif()
-
+		# Copy MQTT
+		install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
@@ -625,32 +542,6 @@ macro(DeployWindows TARGET)
 			DESTINATION "bin"
 			COMPONENT "HyperHDR"
 		)
-
-
-		find_package(OpenSSL QUIET)
-		
-		find_file(OPENSSL_SSL
-			NAMES libssl-1_1-x64.dll libssl-1_1.dll libssl ssleay32.dll ssl.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
-			PATH_SUFFIXES bin
-		)
-
-		find_file(OPENSSL_CRYPTO
-			NAMES libcrypto-1_1-x64.dll libcrypto-1_1.dll libcrypto libeay32.dll crypto.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
-			PATH_SUFFIXES bin
-		)
-		
-		if(OPENSSL_SSL AND OPENSSL_CRYPTO)
-			message( STATUS "OpenSSL found: ${OPENSSL_SSL} ${OPENSSL_CRYPTO}")
-			install(
-				FILES ${OPENSSL_SSL} ${OPENSSL_CRYPTO}
-				DESTINATION "bin"
-				COMPONENT "HyperHDR"
-			)
-		else()
-			message( WARNING "OpenSSL NOT found (HyperHDR's https instance will not work)")
-		endif()
 
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
 		

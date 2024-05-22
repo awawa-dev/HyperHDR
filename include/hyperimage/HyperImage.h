@@ -41,6 +41,7 @@ public:
 
 	static void svg2png(QString filename, int width, int height, QBuffer& buffer);
 	static ColorRgb ColorRgbfromString(QString colorName);
+	static void encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown);
 
 private:
 	plutovg*			_pluto;

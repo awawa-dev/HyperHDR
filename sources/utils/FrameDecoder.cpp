@@ -31,8 +31,6 @@
 
 #include <utils/FrameDecoder.h>
 
-#include <turbojpeg.h>
-
 //#define TAKE_SCREEN_SHOT
 
 #ifdef TAKE_SCREEN_SHOT
@@ -722,30 +720,6 @@ void FrameDecoder::processSystemImagePQ10(Image<ColorRgb>& image, int targetSize
 			dLine += 3;
 		}
 	}
-}
-
-void FrameDecoder::encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown)
-{
-	const int aspect = (scaleDown) ? 2 : 1;
-	const int width = inputImage.width();
-	const int height = inputImage.height() / aspect;
-	int pitch = width * sizeof(ColorRgb) * aspect;
-	int subSample = (scaleDown) ? TJSAMP_422 : TJSAMP_444;
-	int quality = 75;
-
-	unsigned long compressedImageSize = 0;
-	unsigned char* compressedImage = NULL;
-
-	tjhandle _jpegCompressor = tjInitCompress();
-
-	tjCompress2(_jpegCompressor, inputImage.rawMem(), width, pitch, height, TJPF_RGB,
-				&compressedImage, &compressedImageSize, subSample, quality, TJFLAG_FASTDCT);
-
-	buffer.resize(compressedImageSize);
-	memcpy(buffer.data(), compressedImage, compressedImageSize);
-
-	tjDestroy(_jpegCompressor);
-	tjFree(compressedImage);
 }
 
 

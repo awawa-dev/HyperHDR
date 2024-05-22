@@ -16,6 +16,7 @@
 #endif
 
 #include <QHostInfo>
+#include <QSslSocket>
 
 #include <HyperhdrConfig.h>
 #include <api/BaseAPI.h>
@@ -734,4 +735,5 @@ void BaseAPI::putSystemInfo(QJsonObject& system)
 	system["hostName"] = _sysInfo.hostName;
 	system["domainName"] = _sysInfo.domainName;
 	system["qtVersion"] = QT_VERSION_STR;
+	system["openssl"] = (QSslSocket::supportsSsl()) ? QSslSocket::sslLibraryVersionString() : "unsupported";
 }

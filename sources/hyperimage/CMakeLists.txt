@@ -17,4 +17,5 @@ target_link_libraries(hyperimage
 	hyperhdr-base
 	${QT_LIBRARIES}
 	lunasvg
+	TurboJPEG::TurboJPEG
 )

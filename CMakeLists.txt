@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.16.0)
+if (WIN32)
+	cmake_minimum_required(VERSION 3.24.0)
+else()
+	cmake_minimum_required(VERSION 3.16.0)
+endif()
 
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
@@ -567,60 +571,37 @@ endif()
 add_definitions(${QT_DEFINITIONS})
 
 # libjpegturbo
-if(WIN32)
-	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows)
-		file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/windows)
-	endif()
+find_package(TurboJPEG REQUIRED)
 
-	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip OR
-		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows)
-		message( STATUS "Downloading libraries for HyperHDR (Windows)")		
-		file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.08.07/libs4windows.zip
-					${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip
-					STATUS WIN_LIBS_DOWNLOAD_STATUS
-					EXPECTED_HASH SHA256=2a0fc14eaad35d8cc36b262c8dcb501d1fac3a72d7bedcca51b71b60395c6c3f)
-		list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
-		if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
-			file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip )
-			message( FATAL_ERROR "Could not download libraries needed by HyperHDR (Windows)")
-		endif()
-	endif()
-
-	execute_process(
-		COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/external/windows/ -aoa -y
-		RESULT_VARIABLE STATUS_EXTRACT
-		OUTPUT_VARIABLE OUTPUT1
-	)
-
-	if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
-		message( FATAL_ERROR "Could not extract libraries for HyperHDR (Windows)")
-	else()
-		message( STATUS "Package of libraries for HyperHDR extracted (Windows)")
-	endif()
-
-	set (TURBOJPEG_FOUND 1)
-	set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/bin")
-	set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
-	set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/include")
-else()
-	FIND_PACKAGE(PkgConfig REQUIRED)
-	pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
-endif ()
-	
-message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
-message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
-message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
+message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TurboJPEG_LIBRARY}")
+message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TurboJPEG_INCLUDE_DIRS}")
 
 # Embedded QT plugins
 if (USE_STATIC_QT_PLUGINS)
 	foreach(sqlPlugin ${Qt${Qt_VERSION}Sql_PLUGINS} Qt${Qt_VERSION}::Sql)
-		message( STATUS "TURBOJPEG_INCLUDE_DIRS=${sqlPlugin}")
+		message( STATUS "PLUGIN=${sqlPlugin}")
 		get_target_property(file ${sqlPlugin} LOCATION)
 		if (NOT IS_SYMLINK ${file})
 			message("Using static QT plugin: " ${file})
 			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
 		endif()
 	endforeach()	
+endif()
+
+if (WIN32)
+	if(NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
+			${${PROJECT_NAME}_BINARY_DIR}/Bin
+			CACHE PATH
+			"Single Directory for all Libraries")
+	endif()
+
+	if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
+			${${PROJECT_NAME}_BINARY_DIR}/Bin
+			CACHE PATH
+			"Single Directory for all Executables")
+	endif()
 endif()
 
 # Add the source/lib directories

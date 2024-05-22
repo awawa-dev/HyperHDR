@@ -32,6 +32,7 @@
 #include <limits>
 #include <cmath>
 
+#include <turbojpeg.h>
 #include <lunasvg.h>
 #include <plutovg.h>
 #include <stb_image_write.h>
@@ -424,4 +425,28 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 		}
 		dest += plutovg_surface_get_stride(_surface);
 	}
+}
+
+void HyperImage::encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown)
+{
+	const int aspect = (scaleDown) ? 2 : 1;
+	const int width = inputImage.width();
+	const int height = inputImage.height() / aspect;
+	int pitch = width * sizeof(ColorRgb) * aspect;
+	int subSample = (scaleDown) ? TJSAMP_422 : TJSAMP_444;
+	int quality = 75;
+
+	unsigned long compressedImageSize = 0;
+	unsigned char* compressedImage = NULL;
+
+	tjhandle _jpegCompressor = tjInitCompress();
+
+	tjCompress2(_jpegCompressor, inputImage.rawMem(), width, pitch, height, TJPF_RGB,
+		&compressedImage, &compressedImageSize, subSample, quality, TJFLAG_FASTDCT);
+
+	buffer.resize(compressedImageSize);
+	memcpy(buffer.data(), compressedImage, compressedImageSize);
+
+	tjDestroy(_jpegCompressor);
+	tjFree(compressedImage);
 }

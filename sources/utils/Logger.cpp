@@ -165,6 +165,12 @@ Logger::Logger(const QString& name, LogLevel minLevel)
 
 Logger::~Logger()
 {
+	if (_hasConsole || _forceVerbose)
+	{
+#ifndef _WIN32				
+		std::cout << "\033[0m";
+#endif
+	}
 
 	if (LoggerCount.fetchAndSubOrdered(1) == 0)
 	{

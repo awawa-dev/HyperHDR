@@ -14,7 +14,6 @@
 class FrameDecoder
 {
 public:
-	static void encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown);
 	static void processImage(
 		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 		const uint8_t* data, int width, int height, int lineLength,

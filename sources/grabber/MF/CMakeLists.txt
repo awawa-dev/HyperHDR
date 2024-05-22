@@ -8,11 +8,9 @@ add_library(MF-grabber ${WMF_SOURCES} )
 
 target_link_libraries(MF-grabber
 	hyperhdr-base
+	TurboJPEG::TurboJPEG
 	${QT_LIBRARIES}
 )
-
-target_include_directories(MF-grabber PUBLIC ${TURBOJPEG_INCLUDE_DIRS})
-target_link_libraries(MF-grabber ${TURBOJPEG_LINK_LIBRARIES})
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
     target_precompile_headers(MF-grabber REUSE_FROM precompiled_hyperhdr_headers)
