@@ -62,6 +62,25 @@
 
 #include <grabber/pipewire/smartPipewire.h>
 #include <grabber/pipewire/PipewireHandler.h>
+#include <grabber/pipewire/ScreenCastProxy.h>
+
+using namespace sdbus;
+using namespace org::freedesktop::portal;
+
+class ScreenCastProxy final : public sdbus::ProxyInterfaces<org::freedesktop::portal::ScreenCast_proxy>
+{
+public:
+    ScreenCastProxy(sdbus::IConnection& connection, sdbus::ServiceName destination, sdbus::ObjectPath path)
+    : ProxyInterfaces(connection, std::move(destination), std::move(path))
+    {
+        registerProxy();
+    }
+
+    ~ScreenCastProxy()
+    {
+        unregisterProxy();
+    }
+};
 
 // Pipewire screen grabber using Portal access interface
 
@@ -82,7 +101,7 @@ const QString REQUEST_TEMPLATE = QStringLiteral("/org/freedesktop/portal/desktop
 
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
-									_isError(false), _version(0), _streamNodeId(0),
+									_isError(false), _version(-1), _streamNodeId(0),
 									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false), _requestedFPS(10), _hasFrame(false),
@@ -94,6 +113,19 @@ PipewireHandler::PipewireHandler() :
 
 	qRegisterMetaType<uint32_t>();
 	qRegisterMetaType<pw_stream_state>();
+
+    try
+    {
+		_dbusConnection = sdbus::createSessionBusConnection();
+		_screenCastProxy = std::make_unique<ScreenCastProxy>(*_dbusConnection, ServiceName{ "org.freedesktop.portal.Desktop" }, ObjectPath{ "/org/freedesktop/portal/desktop" });
+
+		_version = _screenCastProxy->version();
+    }
+    catch(std::exception& e)
+    {
+		std::cout << "Pipewire: could not read Portal ScreenCast version" << std::endl;
+		_version = -1;
+	}
 
 	connect(this, &PipewireHandler::onParamsChangedSignal,	this, &PipewireHandler::onParamsChanged);
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
@@ -241,11 +273,7 @@ void PipewireHandler::closeSession()
 
 	createMemory(0);
 
-	if (_version > 0)
-	{
-		std::cout << "Pipewire: driver is closed now" << std::endl;
-		_version = 0;
-	}
+	std::cout << "Pipewire: driver is closed now" << std::endl;
 }
 
 void PipewireHandler::releaseWorkingFrame()
@@ -283,12 +311,17 @@ int PipewireHandler::readVersion()
 {
 	int version = -1;
 
-	QDBusInterface  iface(DESKTOP_SERVICE, DESKTOP_PATH, DESKTOP_SCREENCAST);
-
-	if (iface.property("version").isValid())
+	try
 	{
-		version = iface.property("version").toInt();
-		std::cout << "PipewireHandler: ScreenCast protocol version: " << qPrintable(QString("%1").arg(version)) << std::endl;
+		auto bus = sdbus::createSessionBusConnection();
+		auto proxy = std::make_unique<ScreenCastProxy>(*bus, ServiceName{ "org.freedesktop.portal.Desktop" }, ObjectPath{ "/org/freedesktop/portal/desktop" });
+
+		version = proxy->version();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << "Pipewire: could not read Portal ScreenCast version" << std::endl;
+		version = -1;
 	}
 
 	return version;
@@ -308,7 +341,6 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 	_restorationToken = QString("%1").arg(restorationToken);
 
-	_version = PipewireHandler::readVersion();
 	_image.version = _version;
 
 	if (_version < 0)

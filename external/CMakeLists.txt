@@ -184,6 +184,10 @@ if ( ENABLE_MQTT )
 	endif()
 endif()
 
+#=============================================================================
+# XZ
+#=============================================================================
+
 if ( ENABLE_XZ )
 	option(BUILD_TESTING "" OFF)
 	if (NOT LIBLZMA_FOUND)
@@ -200,3 +204,13 @@ if ( ENABLE_XZ )
 		endif()		
 	endif()
 ENDIF()
+
+#=============================================================================
+# sdbus-cpp
+#=============================================================================
+
+if (UNIX AND NOT APPLE AND (ENABLE_POWER_MANAGEMENT OR ENABLE_PIPEWIRE))
+	set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "No doc")
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sdbus-cpp)
+	set_target_properties(sdbus-c++-objlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
