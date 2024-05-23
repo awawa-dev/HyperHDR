@@ -26,7 +26,6 @@ public:
 		int scale;
 		QString format;
 		QString imgName;
-		QByteArray data;
 	};
 
 	struct EffectCmdData
@@ -74,7 +73,7 @@ protected:
 	bool setEffect(const EffectCmdData& dat, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	void setFlatbufferUserLUT(QString userLUTfile);
 	bool setHyperhdrInstance(quint8 inst);
-	bool setImage(ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
+	bool setImage(const QString& imagedata, ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	void setLedMappingType(int type, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	void setSourceAutoSelect(bool state, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	void setVideoModeHdr(int hdr, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);

@@ -29,6 +29,7 @@
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/GlobalSignals.h>
 #include <base/GrabberHelper.h>
+#include <hyperimage/HyperImage.h>
 
 #ifdef ENABLE_XZ
 	#include <lzma.h>
@@ -212,21 +213,46 @@ void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int 
 	}
 }
 
-bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp)
+bool BaseAPI::setImage(const QString& imagedata, ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp)
 {
+	Image<ColorRgb> image;
 	// truncate name length
 	data.imgName.truncate(16);
 
 	if (data.format == "rgb")
-	{		
-		if (data.data.size() != static_cast<long long>(data.width) * data.height * 3 || data.data.size() == 0)
+	{
+		auto imageMemory = QByteArray::fromBase64(QByteArray(imagedata.toUtf8()));
+		if (imageMemory.size() != static_cast<long long>(data.width) * data.height * 3 || imagedata.size() == 0)
 		{
 			replyMsg = "Size of image data does not match with the width and height";
 			return false;
 		}
-		else if (data.data.size() >= 6ll*1024*1024)
+		else if (imagedata.size() >= 6ll*1024*1024)
 		{
 			replyMsg = "Image too large (max. 6MB)";
+			return false;
+		}
+		image.resize(data.width, data.height);
+		memcpy(image.rawMem(), imageMemory.data(), imageMemory.size());
+	}
+	else if (data.format == "auto")
+	{
+		if (imagedata.size() >= 6ll * 1024 * 1024)
+		{
+			replyMsg = "Image too large (max. 6MB)";
+			return false;
+		}
+
+		auto split = imagedata.split(',');
+		if (split.size() == 2)
+		{
+			auto imageMemory = QByteArray::fromBase64(QByteArray(split[1].toUtf8()));
+			image = HyperImage::load2image(imageMemory);
+		}
+
+		if (image.width() == 1)
+		{
+			replyMsg = "Unsupported image";
 			return false;
 		}
 	}
@@ -235,11 +261,6 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 		replyMsg = "Unsupported image type";
 		return false;
 	}
-
-	// copy image
-	Image<ColorRgb> image(data.width, data.height);
-	memcpy(image.rawMem(), data.data.data(), data.data.size());
-
 
 	QUEUE_CALL_4(_hyperhdr.get(), registerInput, int, data.priority, hyperhdr::Components, comp, QString, data.origin, QString, data.imgName);
 	QUEUE_CALL_3(_hyperhdr.get(), setInputImage, int, data.priority, Image<ColorRgb>, image, int64_t, data.duration);

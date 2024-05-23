@@ -61,7 +61,7 @@ void Animation_SystemShutdown::Init(
 void Animation_SystemShutdown::setLine(HyperImage& painter, int y, Point3d rgb)
 {
 	painter.setPen(ColorRgb(rgb.x, rgb.y, rgb.z));
-	painter.drawLine(0, y, SYSTEMSHUTDOWN_WIDTH, y);
+	painter.drawHorizontalLine(0, SYSTEMSHUTDOWN_WIDTH - 1, y);
 }
 
 void Animation_SystemShutdown::setFill(HyperImage& painter, Point3d rgb)

@@ -25,7 +25,6 @@
 *  SOFTWARE.
 */
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -34,8 +33,10 @@
 
 #include <turbojpeg.h>
 #include <lunasvg.h>
-#include <plutovg.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #include <QFile>
 #include <QByteArray>
@@ -106,6 +107,24 @@ void HyperImage::svg2png(QString filename, int width, int height, QBuffer& buffe
 	STBIW_FREE(png);
 }
 
+Image<ColorRgb> HyperImage::load2image(QByteArray& buffer)
+{
+	Image<ColorRgb> ret;
+	int w, h, comp;
+	
+	unsigned char* image = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buffer.data()), buffer.size(), &w, &h, &comp, STBI_rgb);
+
+	if (image != nullptr)
+	{
+		ret.resize(w, h);
+		memcpy(ret.rawMem(), image, 3ll * w * h );
+	}
+
+	STBIW_FREE(image);
+
+	return ret;
+}
+
 
 
 HyperImage::HyperImage() : HyperImage(QSize(1,1))
@@ -115,108 +134,71 @@ HyperImage::HyperImage() : HyperImage(QSize(1,1))
 HyperImage::HyperImage(QSize size)
 	: _pen(ColorRgb::BLACK)
 {
-	_surface = plutovg_surface_create(size.width(), size.height());
-	_pluto = plutovg_create(_surface);
+	_surface = Image<ColorRgb>(size.width(), size.height());
 }
 
 HyperImage::~HyperImage()
 {
-	plutovg_surface_destroy(_surface);
-	plutovg_destroy(_pluto);
 }
 
 int HyperImage::width() const
 {	
-	return plutovg_surface_get_width(_surface);
+	return _surface.width();
 }
 
 int HyperImage::height() const
 {
-	return plutovg_surface_get_height(_surface);
+	return _surface.height();
 }
 
 Image<ColorRgb> HyperImage::renderImage() const
 {
 	Image<ColorRgb> ret(this->width(), this->height());
-	auto dest = ret.rawMem();
-	auto data = plutovg_surface_get_data(_surface);
-
-	for (int y = 0; y < this->height(); y++)
-	{
-		auto source = data;
-		for (int x = 0; x < this->width(); x++)
-		{
-			dest[0] = source[2];
-			dest[1] = source[1];
-			dest[2] = source[0];
-			dest += 3;
-			source += 4;
-		}
-		data += plutovg_surface_get_stride(_surface);
-	}
+	memcpy(ret.rawMem(), _surface.rawMem(), 3ll * width() * height() );
 	return ret;
 }
 
 void HyperImage::resize(int sizeX, int sizeY)
 {
-	plutovg_surface_destroy(_surface);
-	plutovg_destroy(_pluto);
-	_surface = plutovg_surface_create(sizeX, sizeY);
-	_pluto = plutovg_create(_surface);
+	_surface.resize(sizeX, sizeY);
 }
 
 void HyperImage::setPen(const ColorRgb& color)
 {
-	plutovg_set_rgb(_pluto, color.red / 255.0, color.green / 255.0, color.blue / 255.0);
 	_pen = color;
 }
 
-void HyperImage::drawLine(int ax, int ay, int bx, int by)
+void HyperImage::drawVerticalLine(int ax, int ay, int by)
 {
-	plutovg_save(_pluto);
-	plutovg_set_line_width(_pluto, 1);
-	plutovg_move_to(_pluto, bx, by);
-	plutovg_line_to(_pluto, ax, ay);
-	plutovg_stroke(_pluto);
-	plutovg_restore(_pluto);
+	_surface.fastBox(ax, ay, ax, by, _pen.red, _pen.green, _pen.blue);
+}
+
+void HyperImage::drawHorizontalLine(int ax, int bx, int by)
+{
+	_surface.fastBox(ax, by, bx, by, _pen.red, _pen.green, _pen.blue);
 }
 
 void HyperImage::drawPoint(int x, int y)
-{
+{	
 	if (x < width() && y < height())
 	{
-		auto data = plutovg_surface_get_data(_surface);
-		int index = 4 * x + y * plutovg_surface_get_stride(_surface);
-		data[index] = _pen.blue;
-		data[index + 1] = _pen.green;
-		data[index + 2] = _pen.red;
-		data[index + 3] = 1.0;
+		_surface(x, y) = _pen;
 	}
 }
 
 void HyperImage::fill(const ColorRgb& color)
 {
-	plutovg_save(_pluto);
-	plutovg_set_rgb(_pluto, color.red / 255.0, color.green / 255.0, color.blue / 255.0);
-	plutovg_set_line_width(_pluto, 1);
-	plutovg_rect(_pluto, 0, 0, width(), height());
-	plutovg_fill(_pluto);
-	plutovg_restore(_pluto);
+	_surface.fastBox(0, 0, width() - 1, height() - 1, color.red, color.green, color.blue);
 }
 
 void HyperImage::fillRect(int ax, int ay, int bx, int by, const ColorRgb& color)
 {
-	plutovg_save(_pluto);
-	plutovg_set_rgb(_pluto, color.red / 255.0, color.green / 255.0, color.blue / 255.0);
-	plutovg_set_line_width(_pluto, 1);
-	plutovg_rect(_pluto, 0, 0, width(), height());
-	plutovg_fill(_pluto);
-	plutovg_restore(_pluto);
+	_surface.fastBox(ax, ay, bx, by, color.red, color.green, color.blue);
 }
 
 void HyperImage::radialFill(int center_x, int center_y, double diag, const std::vector<uint8_t>& points)
 {
-	auto dest = plutovg_surface_get_data(_surface);
+	auto data = _surface.rawMem();
 	auto h = this->height();
 	auto w = this->width();
 
@@ -225,7 +207,6 @@ void HyperImage::radialFill(int center_x, int center_y, double diag, const std::
 
 	for (int y = 0; y < h; y++)
 	{
-		auto data = dest;
 		for (int x = 0; x < w; x++)
 		{
 			ColorRgb c;
@@ -293,42 +274,39 @@ void HyperImage::radialFill(int center_x, int center_y, double diag, const std::
 
 			if (lastAlfa == 255)
 			{
-				data[2] = c.red;
+				data[0] = c.red;
 				data[1] = c.green;
-				data[0] = c.blue;
-				data[3] = 255;
+				data[2] = c.blue;
 			}
 			else
 			{
 				float asp1 = lastAlfa / 255.0;
 				float asp2 = 1 - asp1;
-				data[2] = ColorRgb::clamp(c.red * asp1 + data[2] * asp2);
+				data[0] = ColorRgb::clamp(c.red * asp1 + data[0] * asp2);
 				data[1] = ColorRgb::clamp(c.green * asp1 + data[1] * asp2);
-				data[0] = ColorRgb::clamp(c.blue * asp1 + data[0] * asp2);
+				data[2] = ColorRgb::clamp(c.blue * asp1 + data[2] * asp2);
 			}
 
-			data += 4;
+			data += 3;
 		}
-		dest += plutovg_surface_get_stride(_surface);
 	}
 }
 
 void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, bool reset)
 {
-	auto dest = plutovg_surface_get_data(_surface);
+	auto data = _surface.rawMem();
 	auto h = this->height();
 	auto w = this->width();
 	float pi = std::atan(1) * 4;
 
 	if (reset)
-		memset(dest, 0, static_cast<size_t>(h) * plutovg_surface_get_stride(_surface));
+		memset(data, 0, 3ll * w * h);
 
 	if (points.size() < 5 || points.size() % 5)
 		return;
 
 	for (int y = 0; y < h; y++)
 	{
-		auto data = dest;
 		for (int x = 0; x < w; x++)
 		{
 			ColorRgb c;			
@@ -407,23 +385,21 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 
 			if (lastAlfa == 255)
 			{
-				data[2] = c.red;
+				data[0] = c.red;
 				data[1] = c.green;
-				data[0] = c.blue;
-				data[3] = 255;
+				data[2] = c.blue;
 			}
 			else 
 			{
 				float asp1 = lastAlfa / 255.0;
 				float asp2 = 1 - asp1;
-				data[2] = ColorRgb::clamp(c.red * asp1 + data[2] * asp2);
+				data[0] = ColorRgb::clamp(c.red * asp1 + data[0] * asp2);
 				data[1] = ColorRgb::clamp(c.green * asp1 + data[1] * asp2);
-				data[0] = ColorRgb::clamp(c.blue * asp1 + data[0] * asp2);
+				data[2] = ColorRgb::clamp(c.blue * asp1 + data[2] * asp2);
 			}
 
-			data += 4;
+			data += 3;
 		}
-		dest += plutovg_surface_get_stride(_surface);
 	}
 }
 

@@ -10,7 +10,6 @@ add_library(hyperimage ${HYPERIMAGE_SOURCES} )
 
 target_include_directories(hyperimage PRIVATE ${CMAKE_SOURCE_DIR}/include/hyperimage/stb)
 target_include_directories(hyperimage PRIVATE ${CMAKE_SOURCE_DIR}/external/lunasvg/3rdparty/stb)
-target_include_directories(hyperimage PRIVATE ${CMAKE_SOURCE_DIR}/external/lunasvg/3rdparty/plutovg)
 
 
 target_link_libraries(hyperimage
