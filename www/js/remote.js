@@ -451,7 +451,7 @@ $(document).ready(function()
 				const ctx = tempCanvas.getContext('2d');
 				ctx.drawImage(imgLoader, 0, 0);				
 
-				lastImgData = tempCanvas.toDataURL('image/png');
+				lastImgData = tempCanvas.toDataURL('image/png').split(",")[1];
 				lastImgWidth = tempCanvas.width;
 				lastImgHeight = tempCanvas.height
 				requestSetImage(lastImgData, lastImgWidth, lastImgHeight, duration, lastFileName);

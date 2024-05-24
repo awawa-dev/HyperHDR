@@ -86,7 +86,7 @@ $(document).ready( function() {
 		canvasElem.height = streamImageHeight;
 		context.drawImage(videoElem, 0, 0, streamImageWidth, streamImageHeight);
 
-		var data = canvasElem.toDataURL('image/png');
+		var data = canvasElem.toDataURL('image/png').split(",")[1];
 		requestSetImage(data, canvasElem.width, canvasElem.height, 2, "Streaming");
 	}
 

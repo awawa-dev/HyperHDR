@@ -213,21 +213,22 @@ void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int 
 	}
 }
 
-bool BaseAPI::setImage(const QString& imagedata, ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp)
+bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp)
 {
 	Image<ColorRgb> image;
 	// truncate name length
 	data.imgName.truncate(16);
 
+	auto imageMemory = QByteArray::fromBase64(QByteArray(data.imagedata.toUtf8()));
+
 	if (data.format == "rgb")
-	{
-		auto imageMemory = QByteArray::fromBase64(QByteArray(imagedata.toUtf8()));
-		if (imageMemory.size() != static_cast<long long>(data.width) * data.height * 3 || imagedata.size() == 0)
+	{		
+		if (imageMemory.size() != static_cast<long long>(data.width) * data.height * 3 || imageMemory.size() == 0)
 		{
 			replyMsg = "Size of image data does not match with the width and height";
 			return false;
 		}
-		else if (imagedata.size() >= 6ll*1024*1024)
+		else if (imageMemory.size() >= 6ll*1024*1024)
 		{
 			replyMsg = "Image too large (max. 6MB)";
 			return false;
@@ -236,19 +237,9 @@ bool BaseAPI::setImage(const QString& imagedata, ImageCmdData& data, hyperhdr::C
 		memcpy(image.rawMem(), imageMemory.data(), imageMemory.size());
 	}
 	else if (data.format == "auto")
-	{
-		if (imagedata.size() >= 6ll * 1024 * 1024)
-		{
-			replyMsg = "Image too large (max. 6MB)";
-			return false;
-		}
-
-		auto split = imagedata.split(',');
-		if (split.size() == 2)
-		{
-			auto imageMemory = QByteArray::fromBase64(QByteArray(split[1].toUtf8()));
-			image = HyperImage::load2image(imageMemory);
-		}
+	{		
+		image = HyperImage::load2image(imageMemory);
+		
 
 		if (image.width() == 1)
 		{

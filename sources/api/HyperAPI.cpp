@@ -264,9 +264,10 @@ void HyperAPI::handleImageCommand(const QJsonObject& message, const QString& com
 	idata.scale = message["scale"].toInt(-1);
 	idata.format = message["format"].toString();
 	idata.imgName = message["name"].toString("");
+	idata.imagedata = message["imagedata"].toString();
 	QString replyMsg;
 
-	if (!BaseAPI::setImage(message["imagedata"].toString(), idata, COMP_IMAGE, replyMsg))
+	if (!BaseAPI::setImage(idata, COMP_IMAGE, replyMsg))
 	{
 		sendErrorReply(replyMsg, command, tan);
 		return;
