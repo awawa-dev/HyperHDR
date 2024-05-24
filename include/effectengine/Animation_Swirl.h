@@ -19,18 +19,18 @@ public:
 	Animation_Swirl(QString name);
 
 	void Init(
-		QImage& hyperImage,
+		HyperImage& hyperImage,
 		int hyperLatchTime) override;
 
-	bool Play(QPainter* painter) override;
+	bool Play(HyperImage& painter) override;
 
 private:
 
-	Point2d getPoint(const QImage& hyperImage, bool random, double x, double y);
+	Point2d getPoint(const HyperImage& hyperImage, bool random, double x, double y);
 	int   getSTime(int hyperLatchTime, int _rt, double steps);
 
 	void  buildGradient(QList<Animation_Swirl::SwirlGradient>& ba, bool withAlpha, QList<Animation_Swirl::SwirlColor> cc, bool closeCircle);
-	bool  imageConicalGradient(QPainter* painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray);
+	bool  imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const QList<Animation_Swirl::SwirlGradient>& bytearray, bool reset);
 
 	Point2d pointS1;
 	Point2d pointS2;

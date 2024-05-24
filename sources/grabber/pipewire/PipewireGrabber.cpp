@@ -47,7 +47,6 @@
 
 #include <grabber/pipewire/PipewireGrabber.h>
 #include <grabber/pipewire/smartPipewire.h>
-#include <utils/ColorSys.h>
 #include <utils/GlobalSignals.h>
 #include <dlfcn.h>
 

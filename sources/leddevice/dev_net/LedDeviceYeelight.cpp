@@ -8,7 +8,6 @@
 #include <QtNetwork>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QColor>
 
 #include <chrono>
 #include <thread>
@@ -798,7 +797,7 @@ bool YeelightLight::setColorHSV(const ColorRgb& colorRGB)
 {
 	bool rc = true;
 
-	QColor color(colorRGB.red, colorRGB.green, colorRGB.blue);
+	ColorRgb color(colorRGB.red, colorRGB.green, colorRGB.blue);
 
 	if (color != _color)
 	{
@@ -807,7 +806,7 @@ bool YeelightLight::setColorHSV(const ColorRgb& colorRGB)
 		int bri;
 		int duration = _transitionDuration;
 
-		color.getHsv(&hue, &sat, &bri);
+		color.getHsv(hue, sat, bri);
 
 		//Align to Yeelight number ranges (hue: 0-359, sat: 0-100, bri: 0-100)
 		if (hue == -1)

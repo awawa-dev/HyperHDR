@@ -37,7 +37,7 @@ Animation_SystemShutdown::Animation_SystemShutdown() :
 	initial_blink = true,
 		set_post_color = true;
 	initial_blink_index = 0;
-	yIndex = SYSTEMSHUTDOWN_HEIGHT;
+	yIndex = SYSTEMSHUTDOWN_HEIGHT + 1;
 };
 
 EffectDefinition Animation_SystemShutdown::getDefinition()
@@ -48,28 +48,28 @@ EffectDefinition Animation_SystemShutdown::getDefinition()
 }
 
 void Animation_SystemShutdown::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 
-	hyperImage = hyperImage.scaled(SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT);
+	hyperImage.resize(SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT);
 
 	SetSleepTime(int(round(speed * 1000.0)));
 }
 
-void Animation_SystemShutdown::setLine(QPainter* painter, int y, Point3d rgb)
+void Animation_SystemShutdown::setLine(HyperImage& painter, int y, Point3d rgb)
 {
-	painter->setPen(QColor().fromRgb(rgb.x, rgb.y, rgb.z));
-	painter->drawLine(0, y, SYSTEMSHUTDOWN_WIDTH, y);
+	painter.setPen(ColorRgb(rgb.x, rgb.y, rgb.z));
+	painter.drawHorizontalLine(0, SYSTEMSHUTDOWN_WIDTH - 1, y);
 }
 
-void Animation_SystemShutdown::setFill(QPainter* painter, Point3d rgb)
+void Animation_SystemShutdown::setFill(HyperImage& painter, Point3d rgb)
 {
-	painter->fillRect(0, 0, SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT, QColor().fromRgb(rgb.x, rgb.y, rgb.z));
+	painter.fillRect(0, 0, SYSTEMSHUTDOWN_WIDTH, SYSTEMSHUTDOWN_HEIGHT, ColorRgb(rgb.x, rgb.y, rgb.z));
 }
 
-bool Animation_SystemShutdown::Play(QPainter* painter)
+bool Animation_SystemShutdown::Play(HyperImage& painter)
 {
 	bool ret = true;
 

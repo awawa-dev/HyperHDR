@@ -2,13 +2,15 @@
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/commandline)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/commandline)
 
-FILE ( GLOB Parser_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
+FILE ( GLOB Parser_SOURCES "${CURRENT_HEADER_DIR}/BooleanOption.h" "${CURRENT_SOURCE_DIR}/BooleanOption.cpp"
+			   "${CURRENT_HEADER_DIR}/Option.h" "${CURRENT_SOURCE_DIR}/Option.cpp"
+			   "${CURRENT_HEADER_DIR}/Parser.h" "${CURRENT_SOURCE_DIR}/Parser.cpp"
+)
 
 add_library(commandline ${Parser_SOURCES} )
 
 target_link_libraries(commandline
 	hyperhdr-base
-	Qt${Qt_VERSION}::Gui
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

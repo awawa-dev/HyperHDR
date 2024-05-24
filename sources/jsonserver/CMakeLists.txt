@@ -11,7 +11,6 @@ target_link_libraries(jsonserver
 	hyperhdr-api
 	hyperhdr-base
 	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Gui
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

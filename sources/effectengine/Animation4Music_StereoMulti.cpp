@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_StereoMulti::getDefinition()
 }
 
 void Animation4Music_StereoMulti::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_StereoMulti::Play(QPainter* painter)
+bool Animation4Music_StereoMulti::Play(HyperImage& painter)
 {
 	return false;
 }
@@ -69,7 +69,7 @@ bool Animation4Music_StereoMulti::getImage(Image<ColorRgb>& newImage)
 	if (r == nullptr || !newData)
 		return false;
 
-	QColor selected;
+	ColorRgb selected;
 	uint32_t maxSingle, average;
 
 	newImage.clear();
@@ -90,8 +90,8 @@ bool Animation4Music_StereoMulti::getImage(Image<ColorRgb>& newImage)
 	{
 		int width = newImage.width() * 0.04;
 
-		newImage.gradientVBox(0, h1, width, h2, selected.red(), selected.green(), selected.blue());
-		newImage.gradientVBox(newImage.width() - 1 - width, h1, newImage.width() - 1, h2, selected.red(), selected.green(), selected.blue());
+		newImage.gradientVBox(0, h1, width, h2, selected.Red(), selected.Green(), selected.Blue());
+		newImage.gradientVBox(newImage.width() - 1 - width, h1, newImage.width() - 1, h2, selected.Red(), selected.Green(), selected.Blue());
 	}
 
 	return true;

@@ -6,6 +6,8 @@
 
 	#include <cstdint>
 
+
+	#include <utils/ColorRgb.h>
 	#include <utils/Logger.h>
 #endif
 
@@ -54,9 +56,6 @@ private:
 	void initializeMapping();
 
 	void updateBrightnessComponents();
-
-	static void rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t& hue, float& saturation, float& luminance);
-	static void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t& red, uint8_t& green, uint8_t& blue);
 
 	bool      _backLightEnabled, _backlightColored;
 	int		  _backlightThreshold;

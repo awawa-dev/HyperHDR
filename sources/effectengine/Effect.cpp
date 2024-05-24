@@ -104,15 +104,14 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, in
 	, _effect(effect.factory())
 	, _endTime(-1)
 	, _interrupt(false)
-	, _image(hyperhdr->getLedGridSize(), QImage::Format_ARGB32_Premultiplied)	
+	, _image(hyperhdr->getLedGridSize())	
 	, _timer(this)
 	, _ledCount(hyperhdr->getLedCount())
 {
 	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(_instanceIndex).arg((_name.length() > 9) ? _name.left(6) + "..." : _name));
 
 	_colors.resize(_ledCount);
-	_colors.fill(ColorRgb::BLACK);
-	_image.fill(Qt::black);
+	_colors.fill(ColorRgb::BLACK);	
 
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &Effect::run);
@@ -161,9 +160,7 @@ void Effect::run()
 
 	if (!_effect->hasOwnImage())
 	{
-		_painter.begin(&_image);
-		_effect->Play(&_painter);
-		_painter.end();
+		_effect->Play(_image);
 
 		hasLedData = _effect->hasLedData(_ledBuffer);
 	}
@@ -216,22 +213,7 @@ void Effect::ledShow(int left)
 
 void Effect::imageShow(int left)
 {
-	int width = _image.width();
-	int height = _image.height();
-
-	Image<ColorRgb> image(width, height);
-	uint8_t* rawColors = image.rawMem();
-
-	for (int i = 0; i < height; i++)
-	{
-		const QRgb* scanline = reinterpret_cast<const QRgb*>(_image.scanLine(i));
-		for (int j = 0; j < width; j++)
-		{
-			*(rawColors++) = qRed(scanline[j]);
-			*(rawColors++) = qGreen(scanline[j]);
-			*(rawColors++) = qBlue(scanline[j]);
-		}
-	}
+	Image<ColorRgb> image = _image.renderImage();
 
 	emit SignalSetImage(_priority, image, left, false);
 }

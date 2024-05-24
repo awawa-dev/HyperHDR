@@ -8,11 +8,9 @@ add_library(v4l2-grabber ${V4L2_SOURCES} )
 
 target_link_libraries(v4l2-grabber
 	hyperhdr-base
+	TurboJPEG::TurboJPEG
 	${QT_LIBRARIES}
 )
-
-target_include_directories(v4l2-grabber PUBLIC ${TURBOJPEG_INCLUDE_DIRS})
-target_link_libraries(v4l2-grabber ${TURBOJPEG_LINK_LIBRARIES})
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
     target_precompile_headers(v4l2-grabber REUSE_FROM precompiled_hyperhdr_headers)

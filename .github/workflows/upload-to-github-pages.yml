@@ -48,12 +48,6 @@ jobs:
             platform: linux
             niceName: Ubuntu 22.04 LTS
           - dockerImage: x86_64
-            linuxVersion: mantic
-            dockerName: Ubuntu 23.10 (x86_64)
-            arch: amd64
-            platform: linux
-            niceName: Ubuntu 23.10
-          - dockerImage: x86_64
             linuxVersion: noble
             dockerName: Ubuntu 24.04 LTS (x86_64)
             arch: amd64

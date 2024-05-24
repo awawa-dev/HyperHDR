@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_StereoGreen::getDefinition()
 }
 
 void Animation4Music_StereoGreen::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_StereoGreen::Play(QPainter* painter)
+bool Animation4Music_StereoGreen::Play(HyperImage& painter)
 {
 	return false;
 }
@@ -85,10 +85,10 @@ bool Animation4Music_StereoGreen::getImage(Image<ColorRgb>& newImage)
 	{
 		int width = newImage.width() * 0.04;
 
-		QColor selected(0, 255, 0);
+		ColorRgb selected(0, 255, 0);
 
-		newImage.gradientVBox(0, h1, width, h2, selected.red(), selected.green(), selected.blue());
-		newImage.gradientVBox(newImage.width() - 1 - width, h1, newImage.width() - 1, h2, selected.red(), selected.green(), selected.blue());
+		newImage.gradientVBox(0, h1, width, h2, selected.Red(), selected.Green(), selected.Blue());
+		newImage.gradientVBox(newImage.width() - 1 - width, h1, newImage.width() - 1, h2, selected.Red(), selected.Green(), selected.Blue());
 	}
 
 	return true;

@@ -51,7 +51,6 @@
 #include <utils/GlobalSignals.h>
 
 #include <grabber/v4l2/V4L2Grabber.h>
-#include <utils/ColorSys.h>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 

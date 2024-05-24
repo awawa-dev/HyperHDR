@@ -1,7 +1,7 @@
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
 	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/precompiled_hyperhdr_headers.cpp "void precompiledHeadersHyperHDR(){};")
 	add_library(precompiled_hyperhdr_headers ${CMAKE_CURRENT_BINARY_DIR}/precompiled_hyperhdr_headers.cpp)
-	target_link_libraries(precompiled_hyperhdr_headers Qt${Qt_VERSION}::Gui Qt${Qt_VERSION}::Network)
+	target_link_libraries(precompiled_hyperhdr_headers Qt${Qt_VERSION}::Network)
 
     target_precompile_headers(precompiled_hyperhdr_headers PRIVATE ${CMAKE_SOURCE_DIR}/include/precompiled_hyperhdr_headers/AllHeaders_pch.h ${CMAKE_SOURCE_DIR}/include/precompiled_hyperhdr_headers/AllHdrHeaders_pch.h )
 endif()
@@ -49,7 +49,7 @@ endif()
 
 # Executables
 add_subdirectory(hyperhdr)
-if (NOT APPLE)
+if (NOT APPLE AND DISABLED_REMOTE)
 	add_subdirectory(hyperhdr-remote)
 endif()
 

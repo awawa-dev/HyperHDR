@@ -3,13 +3,12 @@
 #ifndef PCH_ENABLED
 	#include <QThread>
 	#include <QJsonObject>
-	#include <QSize>
-	#include <QImage>
-	#include <QPainter>
 	#include <QTimer>
 
 	#include <atomic>	
 #endif
+
+#include <hyperimage/HyperImage.h>
 
 #include <utils/Components.h>
 #include <utils/Image.h>
@@ -73,8 +72,7 @@ private:
 	Logger*				_log;
 	std::atomic<bool>	_interrupt;
 
-	QImage				_image;
-	QPainter			_painter;
+	HyperImage			_image;
 	
 	QTimer				_timer;
 	QVector<ColorRgb>	_ledBuffer;	

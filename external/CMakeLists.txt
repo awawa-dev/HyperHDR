@@ -10,7 +10,11 @@ endif()
 # LUNASVG
 #=============================================================================
 
+
+set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
+set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
+set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
 
 #=============================================================================
 # FLATBUFFER

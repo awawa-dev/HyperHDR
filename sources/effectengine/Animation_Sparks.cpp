@@ -35,14 +35,14 @@ Animation_Sparks::Animation_Sparks() :
 };
 
 void Animation_Sparks::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime((int)(sleep_time * 1000.0));
 }
 
-bool Animation_Sparks::Play(QPainter* painter)
+bool Animation_Sparks::Play(HyperImage& painter)
 {
 	return true;
 }

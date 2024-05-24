@@ -17,8 +17,6 @@
 #include <base/Grabber.h>
 #include <grabber/AVF/AVFWorker.h>
 #include <utils/Components.h>
-#include <QImage>
-#include <QColor>
 
 
 

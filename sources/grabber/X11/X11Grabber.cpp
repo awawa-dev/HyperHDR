@@ -46,7 +46,6 @@
 
 #include <grabber/X11/X11Grabber.h>
 #include <grabber/X11/smartX11.h>
-#include <utils/ColorSys.h>
 #include <dlfcn.h>
 
 struct x11Displays* (*_enumerateX11Displays)() = nullptr;

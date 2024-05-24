@@ -47,7 +47,6 @@ target_link_libraries(hyperhdr
 	resources
 	${hyperhdr_POWER_MNG_DBUS}
 	${APPKIT_FRAMEWORK}
-	${TURBOJPEG_LINK_LIBRARIES}
 )
 
 if (WIN32 OR APPLE)

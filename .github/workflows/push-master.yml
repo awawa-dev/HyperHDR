@@ -38,10 +38,6 @@ jobs:
             dockerName: Ubuntu 22.04 LTS (x86_64)
             platform: linux
           - dockerImage: x86_64
-            linuxVersion: mantic
-            dockerName: Ubuntu 23.10 (x86_64)
-            platform: linux
-          - dockerImage: x86_64
             linuxVersion: noble
             dockerName: Ubuntu 24.04 LTS (x86_64)
             platform: linux            
@@ -174,7 +170,7 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
+        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
         
       # Set env
       - name: Set QT5 env
@@ -237,6 +233,12 @@ jobs:
         run: |          
           pip install aqtinstall
           aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
+
+      - name: Install TurboJPEG
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
+          Start-Process -Wait turbojpeg.exe -ArgumentList "/S"
 
       - name: Set up x64 build architecture environment
         shell: cmd

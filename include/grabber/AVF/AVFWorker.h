@@ -19,9 +19,6 @@
 #include <utils/Components.h>
 
 
-// TurboJPEG decoder
-#include <QImage>
-#include <QColor>
 
 
 /// AVF worker for AVF devices
