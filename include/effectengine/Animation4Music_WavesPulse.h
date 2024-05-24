@@ -11,10 +11,10 @@ public:
 	Animation4Music_WavesPulse();
 
 	void Init(
-		QImage& hyperImage,
+		HyperImage& hyperImage,
 		int hyperLatchTime) override;
 
-	bool Play(QPainter* painter) override;
+	bool Play(HyperImage& painter) override;
 
 	static EffectDefinition getDefinition();
 
@@ -23,5 +23,5 @@ public:
 private:
 	uint32_t _internalIndex;
 	int 	 _oldMulti;
-	QList<QColor> _buffer;
+	QList<ColorRgb> _buffer;
 };

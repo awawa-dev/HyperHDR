@@ -1,14 +1,9 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-	#include <QColor>
-	#include <QImage>
-	#include <QRegularExpression>
-
 	#include <cmath>
 #endif
 
-#include <QValidator>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 

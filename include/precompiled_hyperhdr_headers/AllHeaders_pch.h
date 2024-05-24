@@ -5,7 +5,6 @@
 	#include <QDir>
 	#include <QHash>
 	#include <QHostAddress>
-	#include <QImage>
 	#include <QJsonArray>
 	#include <QJsonDocument>
 	#include <QJsonObject>
@@ -14,6 +13,7 @@
 	#include <QNetworkReply>	
 	#include <QSemaphore>
 	#include <QSet>
+	#include <QSize>
 	#include <QStack>
 	#include <QStringList>
 	#include <QThread>

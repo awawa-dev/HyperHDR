@@ -11,7 +11,6 @@
 #include <base/Muxer.h>
 #include <base/ImageToLedManager.h>
 #include <flatbufserver/FlatBufferServer.h>
-#include <utils/ColorSys.h>
 #include <utils/PerformanceCounters.h>
 
 using namespace hyperhdr;

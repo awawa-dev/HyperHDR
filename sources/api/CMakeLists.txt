@@ -16,7 +16,6 @@ target_link_libraries(hyperhdr-api
 	hyperhdr-base
 	hyperhdr-utils
 	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Gui
 	Qt${Qt_VERSION}::Network
 )
 

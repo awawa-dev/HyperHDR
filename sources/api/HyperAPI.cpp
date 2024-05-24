@@ -1,6 +1,5 @@
 #ifndef PCH_ENABLED	
 	#include <QResource>
-	#include <QImage>
 	#include <QBuffer>
 	#include <QByteArray>
 	#include <QTimer>
@@ -33,7 +32,6 @@
 #include <flatbufserver/FlatBufferServer.h>
 #include <utils/jsonschema/QJsonUtils.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/ColorSys.h>
 #include <utils/JsonUtils.h>
 #include <utils/PerformanceCounters.h>
 
@@ -266,7 +264,7 @@ void HyperAPI::handleImageCommand(const QJsonObject& message, const QString& com
 	idata.scale = message["scale"].toInt(-1);
 	idata.format = message["format"].toString();
 	idata.imgName = message["name"].toString("");
-	idata.data = QByteArray::fromBase64(QByteArray(message["imagedata"].toString().toUtf8()));
+	idata.imagedata = message["imagedata"].toString();
 	QString replyMsg;
 
 	if (!BaseAPI::setImage(idata, COMP_IMAGE, replyMsg))

@@ -51,7 +51,6 @@
 #include <base/SystemControl.h>
 #include <base/GrabberWrapper.h>
 #include <base/RawUdpServer.h>
-#include <utils/ColorSys.h>
 #include <base/ComponentController.h>
 #include <base/Muxer.h>
 #include <base/SoundCapture.h>
@@ -871,7 +870,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 
 				// add HSL Value to Array
 				QJsonArray HSLValue;
-				ColorSys::rgb2hsl(priorityInfo.staticColor.red,
+				ColorRgb::rgb2hsl(priorityInfo.staticColor.red,
 					priorityInfo.staticColor.green,
 					priorityInfo.staticColor.blue,
 					Hue, Saturation, Luminace);
@@ -968,7 +967,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 
 			// add HSL Value to Array
 			QJsonArray HSLValue;
-			ColorSys::rgb2hsl(priorityInfo.staticColor.red,
+			ColorRgb::rgb2hsl(priorityInfo.staticColor.red,
 				priorityInfo.staticColor.green,
 				priorityInfo.staticColor.blue,
 				Hue, Saturation, Luminace);

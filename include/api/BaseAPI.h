@@ -26,7 +26,7 @@ public:
 		int scale;
 		QString format;
 		QString imgName;
-		QByteArray data;
+		QString imagedata;
 	};
 
 	struct EffectCmdData

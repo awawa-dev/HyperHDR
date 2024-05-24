@@ -8,10 +8,10 @@ public:
 	Animation_Fade(QString name);
 
 	void Init(
-		QImage& hyperImage,
+		HyperImage& hyperImage,
 		int hyperLatchTime) override;
 
-	bool Play(QPainter* painter) override;
+	bool Play(HyperImage& painter) override;
 	bool hasLedData(QVector<ColorRgb>& buffer) override;
 
 private:

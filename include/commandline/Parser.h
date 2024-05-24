@@ -1,13 +1,6 @@
 #pragma once
 
-#include "ColorOption.h"
-#include "ColorsOption.h"
-#include "DoubleOption.h"
-#include "ImageOption.h"
-#include "IntOption.h"
 #include "Option.h"
-#include "RegularExpressionOption.h"
-#include "ValidatorOption.h"
 #include "BooleanOption.h"
 
 namespace commandline

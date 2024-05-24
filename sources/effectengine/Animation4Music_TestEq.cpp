@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_TestEq::getDefinition()
 }
 
 void Animation4Music_TestEq::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(5);
 }
 
-bool Animation4Music_TestEq::Play(QPainter* painter)
+bool Animation4Music_TestEq::Play(HyperImage& painter)
 {
 	return false;
 }
@@ -78,12 +78,12 @@ bool Animation4Music_TestEq::getImage(Image<ColorRgb>& newImage)
 	int delta = newImage.width() / SOUNDCAP_RESULT_RES;
 	for (int i = 0; i < SOUNDCAP_RESULT_RES; i++)
 	{
-		QColor color = r->getRangeColor(i);
+		ColorRgb color = r->getRangeColor(i);
 		uint16_t destX1 = (newImage.width() * i) / SOUNDCAP_RESULT_RES;
 		uint16_t destX2 = destX1 + delta;
 		uint16_t destY1 = newImage.height() - 1;
 		uint16_t destY2 = destY1 * (255 - buffScaledResult[i]) / 255;
-		newImage.fastBox(destX1, destY1, destX2, destY2, color.red(), color.green(), color.blue());
+		newImage.fastBox(destX1, destY1, destX2, destY2, color.Red(), color.Green(), color.Blue());
 	}
 	return true;
 };

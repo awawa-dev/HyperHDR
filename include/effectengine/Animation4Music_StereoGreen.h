@@ -11,10 +11,10 @@ public:
 	Animation4Music_StereoGreen();
 
 	void Init(
-		QImage& hyperImage,
+		HyperImage& hyperImage,
 		int hyperLatchTime) override;
 
-	bool Play(QPainter* painter) override;
+	bool Play(HyperImage& painter) override;
 
 	static EffectDefinition getDefinition();
 

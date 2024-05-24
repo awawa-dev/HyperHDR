@@ -5,7 +5,6 @@
 #include <QLocalSocket>
 #include <QHostAddress>
 #include <QTimer>
-#include <QRgb>
 
 // util includes
 #include <utils/FrameDecoder.h>
@@ -126,7 +125,7 @@ void FlatBufferClient::handleColorCommand(const hyperhdrnet::Color* colorReq)
 {
 	// extract parameters
 	const int32_t rgbData = colorReq->data();
-	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
+	std::vector<ColorRgb> color{ ColorRgb{ uint8_t((rgbData >> 16) & 0xff), uint8_t((rgbData >> 8) & 0xff), uint8_t(rgbData & 0xff) } };
 
 	// set output
 	emit SignalSetGlobalColor(_priority, color, colorReq->duration(), hyperhdr::Components::COMP_FLATBUFSERVER, _clientDescription);

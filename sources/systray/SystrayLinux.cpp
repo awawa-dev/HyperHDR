@@ -111,7 +111,7 @@ extern "C"
 {
 	void SystrayUpdate(SystrayMenu* tray)
 	{
-		app_indicator_set_icon(indicator, const_cast<char*>(tray->label.c_str()));
+		app_indicator_set_icon(indicator, const_cast<char*>(tray->tooltip.c_str()));
 		app_indicator_set_menu(indicator, GTK_MENU(_tray_menu(tray->submenu.get())));
 	}
 

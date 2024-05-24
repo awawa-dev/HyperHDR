@@ -2,8 +2,6 @@
 
 // Qt includes
 #include <QString>
-#include <QColor>
-#include <QImage>
 #include <QTcpSocket>
 #include <QLocalSocket>
 #include <QTimer>

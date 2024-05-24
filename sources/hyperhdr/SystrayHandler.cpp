@@ -26,13 +26,14 @@
 */
 
 #ifndef PCH_ENABLED
-	#include <QColor>
 	#include <QSettings>
 	#include <list>
 #endif
 
 #ifndef _WIN32
 	#include <unistd.h>
+#else
+	#include <windows.h>
 #endif
 
 #ifdef __APPLE__
@@ -42,7 +43,6 @@
 #include <QBuffer>
 #include <QFile>
 #include <QCoreApplication>
-#include <QCloseEvent>
 #include <QSettings>
 #include <QFileInfo>
 #include <QDir>
@@ -163,7 +163,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 			int iconDim = 22;
 
 			if (filename == ":/hyperhdr-tray-icon.svg")
-				iconDim = 36;
+				iconDim = 32;
 	#endif
 #endif
 

@@ -1,9 +1,6 @@
 // stl includes
 #include <stdexcept>
 
-// Qt includes
-#include <QRgb>
-
 // flatbuffer includes
 #include <flatbufserver/FlatBufferConnection.h>
 

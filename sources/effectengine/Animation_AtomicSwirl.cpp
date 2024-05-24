@@ -39,15 +39,16 @@ Animation_AtomicSwirl::Animation_AtomicSwirl(QString name) :
 	center_y = 0.5;
 	reverse = false;
 
-	custom_colors.append({ 0,0,0 });
-	custom_colors.append({ 0,0,0 });
-	custom_colors.append({ 255,255,0 });
-	custom_colors.append({ 0,0,0 });
+	
 	custom_colors.append({ 0,0,0 });
 	custom_colors.append({ 255,255,0 });
 	custom_colors.append({ 0,0,0 });
 	custom_colors.append({ 0,0,0 });
 	custom_colors.append({ 255,255,0 });
+	custom_colors.append({ 0,0,0 });
+	custom_colors.append({ 0,0,0 });
+	custom_colors.append({ 255,255,0 });
+	custom_colors.append({ 0,0,0 });
 
 	random_center = false;
 	enable_second = false;

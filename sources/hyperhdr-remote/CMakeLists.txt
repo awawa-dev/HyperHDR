@@ -39,7 +39,6 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperhdr-utils
 	ssdp
-	Qt${Qt_VERSION}::Gui
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
 	${TURBOJPEG_LINK_LIBRARIES}

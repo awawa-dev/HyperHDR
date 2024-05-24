@@ -44,14 +44,14 @@ EffectDefinition Animation4Music_PulseRed::getDefinition()
 }
 
 void Animation4Music_PulseRed::Init(
-	QImage& hyperImage,
+	HyperImage& hyperImage,
 	int hyperLatchTime
 )
 {
 	SetSleepTime(15);
 }
 
-bool Animation4Music_PulseRed::Play(QPainter* painter)
+bool Animation4Music_PulseRed::Play(HyperImage& painter)
 {
 	return false;
 }
@@ -74,8 +74,8 @@ bool Animation4Music_PulseRed::getImage(Image<ColorRgb>& newImage)
 	if (value < 0)
 		return false;
 
-	QColor selected(value, 0, 0);
-	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, selected.red(), selected.green(), selected.blue());
+	ColorRgb selected(value, 0, 0);
+	newImage.fastBox(0, 0, newImage.width() - 1, newImage.height() - 1, selected.Red(), selected.Green(), selected.Blue());
 
 	return true;
 };
