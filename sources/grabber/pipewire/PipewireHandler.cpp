@@ -174,6 +174,22 @@ void PipewireHandler::closeSession()
 		_pwMainThreadLoop = nullptr;
 	}
 
+	if (!_sessionHandle.isEmpty() && _dbusConnection != nullptr)
+	{
+		try
+		{
+			sdbus::ServiceName destination{DESKTOP_SERVICE.toStdString()};
+			sdbus::ObjectPath objectPath{_sessionHandle.toStdString()};
+			auto sessionProxy = sdbus::createProxy(*_dbusConnection, std::move(destination), std::move(objectPath));
+			auto call = sessionProxy->createMethodCall(sdbus::InterfaceName{PORTAL_SESSION.toStdString()}, sdbus::MethodName {"Close"});
+			auto reply = sessionProxy->callMethod(call);
+		}
+		catch (std::exception& e)
+		{
+			std::cout << "Pipewire: could not close session: " << e.what() << std::endl;
+		}
+	}
+
 	_startReplyPath = "";
 	_sourceReplyPath = "";
 	_replySessionPath = "";
