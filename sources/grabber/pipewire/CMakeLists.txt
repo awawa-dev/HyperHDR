@@ -8,7 +8,7 @@ add_library(smartPipewire SHARED ${SMARTPIPEWIRE_SOURCES} )
 
 # Pipewire
 target_include_directories(smartPipewire PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PIPEWIRE_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${OPENGL_EGL_INCLUDE_DIRS} )
-target_link_libraries(smartPipewire PUBLIC ${PIPEWIRE_LIBRARIES} Qt${Qt_VERSION}::Core Qt${Qt_VERSION}::DBus sdbus-c++)
+target_link_libraries(smartPipewire PUBLIC ${PIPEWIRE_LIBRARIES} Qt${Qt_VERSION}::Core sdbus-c++)
 set_property(TARGET smartPipewire PROPERTY CXX_STANDARD 17)
 
 # Grabber

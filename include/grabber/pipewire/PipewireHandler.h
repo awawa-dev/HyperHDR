@@ -67,6 +67,7 @@ typedef void (*glTexParameteriFun)(GLenum target, GLenum pname, GLint param);
 
 namespace sdbus{
 	class IConnection;
+	class IProxy;
 }
 class ScreenCastProxy;
 
@@ -98,9 +99,9 @@ public:
 public Q_SLOTS:
 	void releaseWorkingFrame();
 	void getImage(PipewireImage& retVal);
-	void createSessionResponse(uint response, const QVariantMap& results);
-	void selectSourcesResponse(uint response, const QVariantMap& results);
-	void startResponse(uint response, const QVariantMap& results);
+	void createSessionResponse(uint response, QString session);
+	void selectSourcesResponse(uint response);
+	void startResponse(uint response, QString restoreHandle, uint32_t nodeId, int nodeStreamWidth, int nodeStreamHeight);
 
 	void onParamsChanged(uint32_t id, const struct spa_pod* param);
 	void onStateChanged(enum pw_stream_state old, enum pw_stream_state state, const char* error);
@@ -163,6 +164,9 @@ private:
 
 	std::unique_ptr<sdbus::IConnection> _dbusConnection;
 	std::unique_ptr<ScreenCastProxy> _screenCastProxy;
+	std::unique_ptr<sdbus::IProxy> _createSessionProxy;
+	std::unique_ptr<sdbus::IProxy> _selectSourceProxy;
+	std::unique_ptr<sdbus::IProxy> _startProxy;
 
 #ifdef ENABLE_PIPEWIRE_EGL
 	eglGetProcAddressFun eglGetProcAddress = nullptr;
