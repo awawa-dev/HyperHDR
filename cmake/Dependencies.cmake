@@ -378,10 +378,10 @@ macro(DeployUnix TARGET)
 			)
 
 			# get Systray deps (always present even if it's a dummy implementation)
-			file(INSTALL FILES $<TARGET_FILE:SystrayWidget> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY)
+			file(INSTALL FILES $<TARGET_FILE:systray-widget> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY)
 			file(GET_RUNTIME_DEPENDENCIES
 				RESOLVED_DEPENDENCIES_VAR SYS_DEPENDENCIES
-				EXECUTABLES $<TARGET_FILE:SystrayWidget>)
+				EXECUTABLES $<TARGET_FILE:systray-widget>)
 			foreach(systraLib ${SYS_DEPENDENCIES})
 				string(FIND ${systraLib} "libayatana" _sysindex)
 				if (${_sysindex} GREATER -1)

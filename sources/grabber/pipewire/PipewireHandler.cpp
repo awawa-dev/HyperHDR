@@ -220,6 +220,9 @@ void PipewireHandler::closeSession()
 #ifdef ENABLE_PIPEWIRE_EGL
 	if (contextEgl != EGL_NO_CONTEXT)
 	{
+		auto rel = eglMakeCurrent(displayEgl, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		std::cout << "PipewireEGL: releasing EGL context => " << rel << std::endl;
+
 		auto res = eglDestroyContext(displayEgl, contextEgl);
 		std::cout << "PipewireEGL: destroying EGL context => " << res << std::endl;
 		contextEgl = EGL_NO_CONTEXT;
@@ -294,13 +297,6 @@ int PipewireHandler::readVersion()
 	}
 
 	return version;
-}
-
-
-void onConcatenated(sdbus::Signal signal)
-{
-    int a=1;
-    a++;
 }
 
 void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS)
@@ -421,7 +417,7 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 	{
 		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
-				QUEUE_CALL_1(this, selectSourcesResponse, uint, resultCode);
+			QUEUE_CALL_1(this, selectSourcesResponse, uint, resultCode);
 		};
 
 		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
