@@ -39,6 +39,8 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QIODevice>
+#include <iostream>
+#include <sqlite3.h>
 
 #include <HyperhdrConfig.h> // Required to determine the cmake options
 
@@ -54,6 +56,7 @@ DBManager::DBManager()
 	: _log(Logger::getInstance("DB"))
 	, _readonlyMode(false)
 {
+	std::cout << "SQLite version: " << sqlite3_libversion() << std::endl;
 }
 
 DBManager::~DBManager()
