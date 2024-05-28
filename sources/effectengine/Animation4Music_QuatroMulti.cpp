@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_QuatroMulti::getDefinition()
 	return ed;
 }
 
-void Animation4Music_QuatroMulti::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_QuatroMulti::Play(HyperImage& painter)
 {
 	return false;

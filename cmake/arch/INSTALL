@@ -61,7 +61,7 @@ post_install() {
 	BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
 
 	#get current system ip
-	NET_IP=`hostname -I | cut -d " " -f1`
+	NET_IP=`hostname -s | cut -d " " -f1`
 
 	# search for users in system, returns first entry
 	FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
@@ -95,7 +95,7 @@ post_install() {
 			ENABLE_XSYS=1
 		fi
 
-		install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service	
+		install_file /usr/share/hyperhdr/service/hyperhdr.systemd /usr/lib/systemd/system/hyperhdr@.service	
 
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			systemctl enable hyperhdr"@${FOUND_USR}".service
@@ -167,25 +167,25 @@ post_install() {
 
 	echo ${start_msg}
 
-echo " +-----------------------------------------------------------------------+"
-echo " |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
-echo " +-----------------------------------------------------------------------+"
-printf " |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |\n" "$NET_IP" "8090"
-printf " |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |\n" "$NET_IP" "8091"
-printf " |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |\n" "$FOUND_USR"
-printf " |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |\n" "$FOUND_USR"
-echo   " |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
-echo   " +-----------------------------------------------------------------------+"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |" "$NET_IP" "8090"
+printf "\n |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |" "$NET_IP" "8091"
+printf "\n |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |" "$FOUND_USR"
+printf "\n |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |" "$FOUND_USR"
+printf "\n |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
+printf "\n +-----------------------------------------------------------------------+"
 case "$STARTUP_MSG" in 
   *"HyperHDR is installed as a service"*)
-	printf " |  \033[32;1m%-67s\033[0m  |\n" "$STARTUP_MSG";;
-  *) printf " |  \033[31;1m%-67s\033[0m  |\n" "$STARTUP_MSG"
+	printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
+  *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
 esac
-[ -z "$REBOOTMESSAGE" ] || printf " |  \033[31;1m%-67s\033[0m  |\n" "$REBOOTMESSAGE"
-echo " +-----------------------------------------------------------------------+"
-echo " |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
-echo " |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
-echo " +-----------------------------------------------------------------------+"
+[ -z "$REBOOTMESSAGE" ] || printf "\n |  \033[31;1m%-67s\033[0m  |" "$REBOOTMESSAGE"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
+printf "\n |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
+printf "\n +-----------------------------------------------------------------------+\n"
 
 	update-desktop-database -q
 }
@@ -217,7 +217,7 @@ pre_remove() {
 		echo "Disabling service and removing entry"
 		systemctl -q disable hyperhdr"@${FOUND_USR}"
 
-		rm -v /etc/systemd/system/hyperhdr@.service 2>/dev/null	
+		rm -v /usr/lib/systemd/system/hyperhdr@.service 2>/dev/null	
 
 	elif [ -e /usr/bin/initctl ]
 	then

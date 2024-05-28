@@ -16,6 +16,10 @@ public:
 	void store(MovingTarget* source);
 	void restore(MovingTarget* target);
 
+	void Init(
+		HyperImage& hyperImage,
+		int hyperLatchTime) override;
+
 protected:
 	std::shared_ptr<SoundCapture> _soundCapture;
 

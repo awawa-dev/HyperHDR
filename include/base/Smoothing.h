@@ -1,16 +1,19 @@
 #pragma once
 
 #ifndef PCH_ENABLED
+	#include <QJsonDocument>
+	#include <QMutex>
 	#include <QVector>
 	#include <vector>
 
+	#include <utils/ColorRgb.h>
 	#include <utils/settings.h>
 	#include <utils/Components.h>
 #endif
 
-#include <leddevice/LedDevice.h>
+#define SMOOTHING_USER_CONFIG			0
+#define SMOOTHING_EFFECT_CONFIGS_START	1
 
-class QTimer;
 class Logger;
 class HyperHdrInstance;
 
@@ -26,7 +29,7 @@ public:
 	bool isEnabled() const;
 
 	void UpdateLedValues(const std::vector<ColorRgb>& ledValues);
-	unsigned UpdateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directModee);
+	unsigned AddEffectConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
 	void UpdateCurrentConfig(int settlingTime_ms);
 	bool SelectConfig(unsigned cfg, bool force);
 	int GetSuggestedInterval();
@@ -86,13 +89,12 @@ private:
 		bool		  pause;
 		int64_t		  settlingTime;
 		int64_t		  updateInterval;
-		bool          directMode;
 		SmoothingType type;
 		int			  antiFlickeringTreshold;
 		int			  antiFlickeringStep;
 		int64_t		  antiFlickeringTimeout;
 
-        SmoothingConfig(bool __pause, int64_t __settlingTime, int64_t __updateInterval, bool __directMode,
+        SmoothingConfig(bool __pause, int64_t __settlingTime, int64_t __updateInterval,
             SmoothingType __type = SmoothingType::Linear, int __antiFlickeringTreshold = 0, int __antiFlickeringStep = 0,
             int64_t __antiFlickeringTimeout = 0);
 
@@ -105,7 +107,6 @@ private:
 	std::atomic_bool _enabled;
 	std::atomic_bool _hasData;
 	bool			_connected;
-	bool			_directMode;
 	SmoothingType	_smoothingType;
 	bool			_infoUpdate;
 	bool			_infoInput;

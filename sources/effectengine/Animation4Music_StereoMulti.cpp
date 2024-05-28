@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_StereoMulti::getDefinition()
 	return ed;
 }
 
-void Animation4Music_StereoMulti::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_StereoMulti::Play(HyperImage& painter)
 {
 	return false;

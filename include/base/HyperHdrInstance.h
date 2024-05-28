@@ -57,7 +57,7 @@ public:
 	quint8 getInstanceIndex() const { return _instIndex; }
 	QSize getLedGridSize() const { return _ledGridSize; }
 	bool getScanParameters(size_t led, double& hscanBegin, double& hscanEnd, double& vscanBegin, double& vscanEnd) const;
-	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
+	unsigned addEffectConfig(unsigned id, int settlingTime_ms = 200, double ledUpdateFrequency_hz = 25.0, bool pause = false);
 
 	static void signalTerminateTriggered();
 	static bool isTerminated();

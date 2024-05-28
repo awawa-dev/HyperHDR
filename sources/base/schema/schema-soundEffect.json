@@ -20,6 +20,15 @@
 			"default" : "default",
 			"required" : true,
 			"propertyOrder" : 2
+		},
+		"enable_smoothing" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_sound_device_smoothing_title",
+			"default" : true,
+			"required" : true,
+			"propertyOrder" : 3
 		}
 	},
 	"additionalProperties" : false

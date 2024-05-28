@@ -10,10 +10,6 @@ public:
 
 	Animation4Music_StereoMulti();
 
-	void Init(
-		HyperImage& hyperImage,
-		int hyperLatchTime) override;
-
 	bool Play(HyperImage& painter) override;
 
 	static EffectDefinition getDefinition();

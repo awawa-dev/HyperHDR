@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_PulseMultiFast::getDefinition()
 	return ed;
 }
 
-void Animation4Music_PulseMultiFast::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_PulseMultiFast::Play(HyperImage& painter)
 {
 	return false;
