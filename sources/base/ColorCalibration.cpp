@@ -104,7 +104,8 @@ void ColorCalibration::calibrate(ColorRgb& color)
 		if (!_blackCalibration->isEnabled() && !_redCalibration->isEnabled() &&
 			!_greenCalibration->isEnabled() && !_blueCalibration->isEnabled() &&
 			!_cyanCalibration->isEnabled() && !_magentaCalibration->isEnabled() &&
-			!_yellowCalibration->isEnabled() && !_whiteCalibration->isEnabled())
+			!_yellowCalibration->isEnabled() && !_whiteCalibration->isEnabled() &&
+			!_colorspaceCalibration->isBrightnessCorrectionEnabled())
 		{
 			if (B_RGB != 255)
 			{
