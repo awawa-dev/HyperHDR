@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_PulseGreen::getDefinition()
 	return ed;
 }
 
-void Animation4Music_PulseGreen::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_PulseGreen::Play(HyperImage& painter)
 {
 	return false;

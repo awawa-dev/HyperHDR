@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_QuatroYellow::getDefinition()
 	return ed;
 }
 
-void Animation4Music_QuatroYellow::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_QuatroYellow::Play(HyperImage& painter)
 {
 	return false;

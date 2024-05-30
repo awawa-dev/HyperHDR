@@ -54,6 +54,7 @@ namespace
 
 SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* parent) :
 	_isActive(false),
+	_enable_smoothing(true),
 	_selectedDevice(""),
 	_isRunning(false),
 	_maxInstance(0)
@@ -111,6 +112,8 @@ void SoundCapture::settingsChangedHandler(settings::type type, const QJsonDocume
 
 		if (sndEffectConfig["enable"].toBool(true))
 		{
+			_enable_smoothing = sndEffectConfig["enable_smoothing"].toBool(true);
+
 			const QString  dev = sndEffectConfig["device"].toString("");
 			if (dev.trimmed().length() > 0)
 			{
@@ -287,7 +290,7 @@ SoundCaptureResult* SoundCapture::hasResult(AnimationBaseMusic* effect, uint32_t
 
 	effect->restore(&resultFFT.mtWorking);
 
-	if (*isMulti <= 0)
+	if (*isMulti <= 0 || !_enable_smoothing)
 	{
 		return nullptr;
 	}

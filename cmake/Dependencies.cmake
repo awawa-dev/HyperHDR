@@ -387,6 +387,10 @@ macro(DeployUnix TARGET)
 				if (${_sysindex} GREATER -1)
 					list(APPEND DEPENDENCIES ${systraLib})
 				endif()
+				string(FIND ${systraLib} "libdbusmenu" _sysDBusindex)
+				if (${_sysDBusindex} GREATER -1)
+					list(APPEND DEPENDENCIES ${systraLib})
+				endif()
 			endforeach()
 			
 

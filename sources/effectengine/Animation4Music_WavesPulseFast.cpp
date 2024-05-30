@@ -46,14 +46,6 @@ EffectDefinition Animation4Music_WavesPulseFast::getDefinition()
 	return ed;
 }
 
-void Animation4Music_WavesPulseFast::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_WavesPulseFast::Play(HyperImage& painter)
 {
 	return false;

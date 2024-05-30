@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_StereoMultiFast::getDefinition()
 	return ed;
 }
 
-void Animation4Music_StereoMultiFast::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_StereoMultiFast::Play(HyperImage& painter)
 {
 	return false;
