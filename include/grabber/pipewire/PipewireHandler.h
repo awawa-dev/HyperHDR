@@ -14,6 +14,7 @@
 #include <grabber/pipewire/smartPipewire.h>
 #include <linux/types.h>
 #include <HyperhdrConfig.h>
+#include <memory>
 
 #if !PW_CHECK_VERSION(0, 3, 29)
 #define SPA_POD_PROP_FLAG_MANDATORY (1u << 3)
@@ -64,6 +65,12 @@ typedef void (*glTexParameteriFun)(GLenum target, GLenum pname, GLint param);
 #define DRM_FORMAT_ABGR8888	fourcc_code('A', 'B', '2', '4')
 #endif
 
+namespace sdbus{
+	class IConnection;
+	class IProxy;
+}
+class ScreenCastProxy;
+
 class PipewireHandler : public QObject
 {
 	Q_OBJECT
@@ -92,9 +99,9 @@ public:
 public Q_SLOTS:
 	void releaseWorkingFrame();
 	void getImage(PipewireImage& retVal);
-	void createSessionResponse(uint response, const QVariantMap& results);
-	void selectSourcesResponse(uint response, const QVariantMap& results);
-	void startResponse(uint response, const QVariantMap& results);
+	void createSessionResponse(uint response, QString session);
+	void selectSourcesResponse(uint response);
+	void startResponse(uint response, QString restoreHandle, uint32_t nodeId, int nodeStreamWidth, int nodeStreamHeight);
 
 	void onParamsChanged(uint32_t id, const struct spa_pod* param);
 	void onStateChanged(enum pw_stream_state old, enum pw_stream_state state, const char* error);
@@ -154,6 +161,12 @@ private:
 	PipewireImage _image;
 
 	MemoryBuffer<uint8_t> _memoryCache;
+
+	std::unique_ptr<sdbus::IConnection> _dbusConnection;
+	std::unique_ptr<ScreenCastProxy> _screenCastProxy;
+	std::unique_ptr<sdbus::IProxy> _createSessionProxy;
+	std::unique_ptr<sdbus::IProxy> _selectSourceProxy;
+	std::unique_ptr<sdbus::IProxy> _startProxy;
 
 #ifdef ENABLE_PIPEWIRE_EGL
 	eglGetProcAddressFun eglGetProcAddress = nullptr;

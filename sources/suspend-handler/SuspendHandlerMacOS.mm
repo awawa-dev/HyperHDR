@@ -1,4 +1,4 @@
-/* SuspendHandlerLinux.cpp
+/* SuspendHandlerMacOS.cpp
 *
 *  MIT License
 *
@@ -26,66 +26,78 @@
  */
 
 
-#include <QDBusConnection>
+
 #include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <cmath>
 #include <cassert>
 #include <stdlib.h>
-#include "SuspendHandlerLinux.h"
+#include <suspend-handler/SuspendHandlerMacOS.h>
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 #include <utils/Image.h>
 #include <base/HyperHdrManager.h>
 #include <iostream>
+#include <QThread>
+#import <Cocoa/Cocoa.h>
+
+@interface MacSuspendHandler : NSObject {
+}
+
+-(id)init;
+-(void)goingSleep: (NSNotification*)note;
+-(void)goingWake: (NSNotification*)note;
+@end
+
 
 namespace {
-	const QString UPOWER_SERVICE = QStringLiteral("org.freedesktop.login1");
-	const QString UPOWER_PATH = QStringLiteral("/org/freedesktop/login1");
-	const QString UPOWER_INTER = QStringLiteral("org.freedesktop.login1.Manager");
+	MacSuspendHandler* _macSuspendHandlerInstance = nil;
+	SuspendHandler* _suspendHandler = nullptr;
 }
+
+
+@implementation MacSuspendHandler
+
+- (id)init
+{
+	self = [super init];
+
+	[[[NSWorkspace sharedWorkspace]notificationCenter] addObserver:self
+		selector : @selector(goingSleep:)
+		name: NSWorkspaceWillSleepNotification object : NULL];
+
+	[[[NSWorkspace sharedWorkspace]notificationCenter] addObserver:self
+		selector : @selector(goingWake:)
+		name: NSWorkspaceDidWakeNotification object : NULL];
+
+	return self;
+}
+
+- (void)goingSleep: (NSNotification*)note
+{
+	if (_suspendHandler != nullptr)
+		emit _suspendHandler->SignalHibernate(false, hyperhdr::SystemComponent::SUSPEND);
+}
+
+
+- (void)goingWake: (NSNotification*)note
+{
+	if (_suspendHandler != nullptr)
+		emit _suspendHandler->SignalHibernate(true, hyperhdr::SystemComponent::SUSPEND);
+}
+
+@end
 
 SuspendHandler::SuspendHandler(bool sessionLocker)
 {
-	QDBusConnection bus = QDBusConnection::systemBus();
-
-	if (!bus.isConnected())
-	{
-		std::cout << "SYSTEM BUS IS NOT CONNECTED!" << std::endl;
-		return;
-	}
-
-	if (!bus.connect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
-		std::cout << "COULD NOT REGISTER SLEEP HANDLER!" << std::endl;
-	else
-		std::cout << "SLEEP HANDLER REGISTERED!" << std::endl;
+	_macSuspendHandlerInstance = [MacSuspendHandler new];
+	_suspendHandler = this;
 }
 
 SuspendHandler::~SuspendHandler()
 {
-	QDBusConnection bus = QDBusConnection::systemBus();
-
-	if (bus.isConnected())
-	{
-		if (!bus.disconnect(UPOWER_SERVICE, UPOWER_PATH, UPOWER_INTER, "PrepareForSleep", this, SLOT(sleeping(bool))))
-			std::cout << "COULD NOT DEREGISTER SLEEP HANDLER!" << std::endl;
-		else
-			std::cout << "SLEEP HANDLER DEREGISTERED!" << std::endl;
-	}
-}
-
-void SuspendHandler::sleeping(bool sleep)
-{	
-	if (sleep)
-	{
-		std::cout << "OS event: going sleep" << std::endl;
-		emit SignalHibernate(false, hyperhdr::SystemComponent::SUSPEND);
-	}
-	else
-	{
-		std::cout << "OS event: wake up" << std::endl;
-		emit SignalHibernate(true, hyperhdr::SystemComponent::SUSPEND);
-	}
+	_macSuspendHandlerInstance = nil;
+	_suspendHandler = nullptr;
 }
 

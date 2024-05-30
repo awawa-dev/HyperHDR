@@ -61,6 +61,7 @@
 #include "SystrayHandler.h"
 
 #ifdef __linux__
+#define SYSTRAY_WIDGET_LIB "libsystray-widget.so"
 #include <stdlib.h>
 #include <dlfcn.h>
 namespace
@@ -91,7 +92,7 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 
 #ifdef __linux__
 	// Load library
-	_library = dlopen("libSystrayWidget.so", RTLD_NOW);
+	_library = dlopen(SYSTRAY_WIDGET_LIB, RTLD_NOW);
 
 	if (_library)
 	{

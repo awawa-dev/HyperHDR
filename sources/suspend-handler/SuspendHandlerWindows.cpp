@@ -31,7 +31,7 @@
 #include <cmath>
 #include <cassert>
 #include <stdlib.h>
-#include "SuspendHandlerWindows.h"
+#include <suspend-handler/SuspendHandlerWindows.h>
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 #include <utils/Image.h>
