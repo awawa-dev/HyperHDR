@@ -62,7 +62,7 @@ else()
 endif(CCACHE_FOUND)
 
 # find QT libs
-find_package(Qt6 COMPONENTS Core Network Sql Widgets SerialPort QUIET)
+find_package(Qt6 COMPONENTS Core Network SerialPort QUIET)
 
 if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
 	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
@@ -74,7 +74,7 @@ ELSE()
 		message( STATUS "QT version 6 not found. Searching for QT version 5 instead." )
 	endif()
 	SET(QT_MIN_VERSION "5.10.0")
-	find_package(Qt5 COMPONENTS Core Network SerialPort Sql REQUIRED)
+	find_package(Qt5 COMPONENTS Core Network SerialPort REQUIRED)
 	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )

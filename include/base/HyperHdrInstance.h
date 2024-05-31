@@ -51,7 +51,7 @@ class HyperHdrInstance : public QObject
 	Q_OBJECT
 
 public:
-	HyperHdrInstance(quint8 instance, bool readonlyMode, bool disableOnstartup, QString name);
+	HyperHdrInstance(quint8 instance, bool disableOnstartup, QString name);
 	~HyperHdrInstance();
 	
 	quint8 getInstanceIndex() const { return _instIndex; }
@@ -72,7 +72,7 @@ public slots:
 	int getCurrentPriority() const;
 	std::list<EffectDefinition> getEffects() const;
 	int getLedCount() const;
-	bool getReadOnlyMode() const { return _readOnlyMode; };
+	bool getReadOnlyMode() const;
 	QJsonDocument getSetting(settings::type type) const;
 	int hasLedClock();
 	void identifyLed(const QJsonObject& params);
@@ -152,7 +152,6 @@ private:
 	std::vector<ColorRgb>	_currentLedColors;
 	QString					_name;
 
-	bool					_readOnlyMode;
 	bool					_disableOnStartup;
 
 	static std::atomic<bool>	_signalTerminate;

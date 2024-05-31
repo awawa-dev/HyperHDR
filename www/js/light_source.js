@@ -733,10 +733,6 @@ $(document).ready(function()
 				$('#leds_custom_save').attr("disabled", true);
 			}
 
-			if (window.readOnlyMode)
-			{
-				$('#leds_custom_save').attr('disabled', true);
-			}
 		}
 	}, window.serverConfig.leds);
 
@@ -811,7 +807,7 @@ $(document).ready(function()
 
 		// change save button state based on validation result
 		var firstValid = conf_editor.validate();
-		if ((firstValid.length > 1 || (firstValid.length == 1 && firstValid[0].path != "root.generalOptions.type")) || window.readOnlyMode)
+		if ((firstValid.length > 1 || (firstValid.length == 1 && firstValid[0].path != "root.generalOptions.type")) )
 		{
 			$('#btn_submit_controller').attr('disabled', true);
 		}
@@ -822,9 +818,9 @@ $(document).ready(function()
 
 		conf_editor.on('change', function()
 		{
-			window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-			window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-			window.readOnlyMode ? $('#leds_custom_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+			$('#btn_submit').attr('disabled', false);
+			$('#btn_submit').attr('disabled', false);
+			$('#btn_submit').attr('disabled', false);
 		});
 
 		// led controller sepecific wizards

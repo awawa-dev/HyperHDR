@@ -12,7 +12,6 @@ target_link_libraries(database
 	hyperhdr-base
 	hyperhdr-utils
 	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Sql
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

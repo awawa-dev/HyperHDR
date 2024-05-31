@@ -28,44 +28,37 @@
 #include <db/DBManager.h>
 #include <utils/settings.h>
 
-#include <QSqlQuery>
 #include <QDir>
-#include <QSqlError>
 #include <QJsonArray>
-#include <QSqlRecord>
 #include <QDateTime>
-#include <QSqlDatabase>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
 #include <QIODevice>
 #include <iostream>
-#include <sqlite3.h>
+#include <db/SQLite.h>
 
 #include <HyperhdrConfig.h> // Required to determine the cmake options
 
 QFileInfo DBManager::_databaseName;
-QThreadStorage<QSqlDatabase> DBManager::_databasePool;
+QThreadStorage<SqlDatabase*> DBManager::_databasePool;
+bool DBManager::_readOnlyMode = false;
 
 DBManager::DBManager()
 	: _log(Logger::getInstance("DB"))
 	, _readonlyMode(false)
 {
-	std::cout << "SQLite version: " << sqlite3_libversion() << std::endl;
+	
 }
 
 DBManager::~DBManager()
 {
 }
 
-void DBManager::setReadonlyMode(bool readOnly)
-{
-	_readonlyMode = readOnly;
-};
-
-void DBManager::initializeDatabaseFilename(QFileInfo databaseName)
+void DBManager::initializeDatabaseFilename(QFileInfo databaseName, bool readOnlyMode)
 {
 	_databaseName = databaseName;
+	_readOnlyMode = readOnlyMode;
 }
 
 void DBManager::setTable(const QString& table)
@@ -73,19 +66,18 @@ void DBManager::setTable(const QString& table)
 	_table = table;
 }
 
-QSqlDatabase DBManager::getDB() const
+SqlDatabase* DBManager::getDB() const
 {
 	if (_databasePool.hasLocalData())
 		return _databasePool.localData();
 	else
 	{
-		auto db = QSqlDatabase::addDatabase("QSQLITE", QUuid::createUuid().toString());
+		auto db = new SqlDatabase(_databaseName.absoluteFilePath(), _readOnlyMode);
 		_databasePool.setLocalData(db);
 		
-		db.setDatabaseName(_databaseName.absoluteFilePath());
-		if (!db.open())
+		if (!db->open())
 		{
-			Error(_log, QSTRING_CSTR(db.lastError().text()));
+			Error(_log, QSTRING_CSTR(db->error()));
 			throw std::runtime_error("Failed to open database connection!");
 		}
 		else
@@ -114,9 +106,8 @@ bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& co
 		return true;
 	}
 
-	QSqlDatabase idb = getDB();
-	QSqlQuery query(idb);
-	query.setForwardOnly(true);
+	SqlDatabase* idb = getDB();
+	SqlQuery query(idb);
 
 	QVariantList cValues;
 	QStringList prep;
@@ -143,7 +134,7 @@ bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& co
 	doAddBindValue(query, cValues);
 	if (!query.exec())
 	{
-		Error(_log, "Failed to create record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prep.join(", ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Failed to create record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prep.join(", ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 		return false;
 	}
 	return true;
@@ -154,9 +145,8 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 	if (conditions.isEmpty())
 		return false;
 
-	QSqlDatabase idb = getDB();
-	QSqlQuery query(idb);
-	query.setForwardOnly(true);
+	SqlDatabase* idb = getDB();
+	SqlQuery query(idb);
 
 	QStringList prepCond;
 	QVariantList bindVal;
@@ -171,7 +161,7 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 	doAddBindValue(query, bindVal);
 	if (!query.exec())
 	{
-		Error(_log, "Failed recordExists(): '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Failed recordExists(): '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 		return false;
 	}
 
@@ -193,12 +183,11 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 		return false;
 	}
 
-	QSqlDatabase idb = getDB();
-	if (idb.transaction())
+	SqlDatabase* idb = getDB();
+	if (idb->transaction())
 	{
 
-		QSqlQuery query(idb);
-		query.setForwardOnly(true);
+		SqlQuery query(idb);
 
 		QVariantList values;
 		QStringList prep;
@@ -231,20 +220,20 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 		doAddBindValue(query, prepBindVal);
 		if (!query.exec())
 		{
-			Error(_log, "Failed to update record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
-			idb.rollback();
+			Error(_log, "Failed to update record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+			idb->rollback();
 			return false;
 		}
 	}
 	else
 	{
-		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
 		return false;
 	}
 
-	if (!idb.commit())
+	if (!idb->commit())
 	{
-		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
 	}
 
 	return true;
@@ -252,9 +241,8 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 
 bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns, const QStringList& tOrder) const
 {
-	QSqlDatabase idb = getDB();
-	QSqlQuery query(idb);
-	query.setForwardOnly(true);
+	SqlDatabase* idb = getDB();
+	SqlQuery query(idb);
 
 	QString sColumns("*");
 	if (!tColumns.isEmpty())
@@ -282,14 +270,14 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 
 	if (!query.exec())
 	{
-		Error(_log, "Failed to get record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Failed to get record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 		return false;
 	}
 
 	// go to first row
 	query.next();
 
-	QSqlRecord rec = query.record();
+	SqlRecord rec = query.record();
 	for (int i = 0; i < rec.count(); i++)
 	{
 		results[rec.fieldName(i)] = rec.value(i);
@@ -300,9 +288,8 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 
 bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tColumns, const QStringList& tOrder) const
 {
-	QSqlDatabase idb = getDB();
-	QSqlQuery query(idb);
-	query.setForwardOnly(true);
+	SqlDatabase* idb = getDB();
+	SqlQuery query(idb);
 
 	QString sColumns("*");
 	if (!tColumns.isEmpty())
@@ -319,7 +306,7 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 
 	if (!query.exec())
 	{
-		Error(_log, "Failed to get records: '%s' in table: '%s' Error: %s", QSTRING_CSTR(sColumns), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Failed to get records: '%s' in table: '%s' Error: %s", QSTRING_CSTR(sColumns), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 		return false;
 	}
 
@@ -327,7 +314,7 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	while (query.next())
 	{
 		QVariantMap entry;
-		QSqlRecord rec = query.record();
+		SqlRecord rec = query.record();
 		for (int i = 0; i < rec.count(); i++)
 		{
 			entry[rec.fieldName(i)] = rec.value(i);
@@ -354,8 +341,8 @@ bool DBManager::deleteRecord(const VectorPair& conditions) const
 
 	if (recordExists(conditions))
 	{
-		QSqlDatabase idb = getDB();
-		QSqlQuery query(idb);
+		SqlDatabase* idb = getDB();
+		SqlQuery query(idb);
 
 		// prep conditions
 		QStringList prepCond("WHERE");
@@ -371,7 +358,7 @@ bool DBManager::deleteRecord(const VectorPair& conditions) const
 		doAddBindValue(query, bindValues);
 		if (!query.exec())
 		{
-			Error(_log, "Failed to delete record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+			Error(_log, "Failed to delete record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 			return false;
 		}
 		return true;
@@ -392,9 +379,9 @@ bool DBManager::createTable(QStringList& columns) const
 		return false;
 	}
 
-	QSqlDatabase idb = getDB();
+	SqlDatabase* idb = getDB();
 	// create table if required
-	QSqlQuery query(idb);
+	SqlQuery query(idb);
 	if (!tableExists(_table))
 	{
 		// empty tables aren't supported by sqlite, add one column
@@ -402,17 +389,16 @@ bool DBManager::createTable(QStringList& columns) const
 		// default CURRENT_TIMESTAMP is not supported by ALTER TABLE
 		if (!query.exec(QString("CREATE TABLE %1 ( %2 )").arg(_table, tcolumn)))
 		{
-			Error(_log, "Failed to create table: '%s' Error: %s", QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+			Error(_log, "Failed to create table: '%s' Error: %s", QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 			return false;
 		}
 	}
 	// create columns if required
-	QSqlRecord rec = idb.record(_table);
 	int err = 0;
 	for (const auto& column : columns)
 	{
-		QStringList id = column.split(' ');
-		if (rec.indexOf(id.at(0)) == -1)
+		QString columnName = column.split(' ').at(0);
+		if (!idb->doesColumnExist(_table, columnName))
 		{
 			if (!createColumn(column))
 			{
@@ -433,11 +419,11 @@ bool DBManager::createColumn(const QString& column) const
 		return false;
 	}
 
-	QSqlDatabase idb = getDB();
-	QSqlQuery query(idb);
+	SqlDatabase* idb = getDB();
+	SqlQuery query(idb);
 	if (!query.exec(QString("ALTER TABLE %1 ADD COLUMN %2").arg(_table, column)))
 	{
-		Error(_log, "Failed to create column: '%s' in table: '%s' Error: %s", QSTRING_CSTR(column), QSTRING_CSTR(_table), QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Failed to create column: '%s' in table: '%s' Error: %s", QSTRING_CSTR(column), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
 		return false;
 	}
 	return true;
@@ -445,11 +431,8 @@ bool DBManager::createColumn(const QString& column) const
 
 bool DBManager::tableExists(const QString& table) const
 {
-	QSqlDatabase idb = getDB();
-	QStringList tables = idb.tables();
-	if (tables.contains(table))
-		return true;
-	return false;
+	SqlDatabase* idb = getDB();
+	return idb->doesTableExist(table);
 }
 
 bool DBManager::deleteTable(const QString& table) const
@@ -461,18 +444,24 @@ bool DBManager::deleteTable(const QString& table) const
 
 	if (tableExists(table))
 	{
-		QSqlDatabase idb = getDB();
-		QSqlQuery query(idb);
+		SqlDatabase* idb = getDB();
+		SqlQuery query(idb);
 		if (!query.exec(QString("DROP TABLE %1").arg(table)))
 		{
-			Error(_log, "Failed to delete table: '%s' Error: %s", QSTRING_CSTR(table), QSTRING_CSTR(idb.lastError().text()));
+			Error(_log, "Failed to delete table: '%s' Error: %s", QSTRING_CSTR(table), QSTRING_CSTR(idb->error()));
 			return false;
 		}
 	}
 	return true;
 }
 
-void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) const
+bool DBManager::isReadOnlyMode()
+{
+	return _readOnlyMode;
+}
+
+
+void DBManager::doAddBindValue(SqlQuery& query, const QVariantList& variants) const
 {
 	for (const auto& variant : variants)
 	{
@@ -482,16 +471,16 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 			case QMetaType::UInt:
 			case QMetaType::Int:
 			case QMetaType::Bool:
-				query.addBindValue(variant.toInt());
+				query.addInt(variant.toInt());
 				break;
 			case QMetaType::Double:
-				query.addBindValue(variant.toFloat());
+				query.addDouble(variant.toDouble());
 				break;
 			case QMetaType::QByteArray:
-				query.addBindValue(variant.toByteArray());
+				query.addBlob(variant.toByteArray());
 				break;
 			default:
-				query.addBindValue(variant.toString());
+				query.addString(variant.toString());
 				break;
 		}
 	}
@@ -500,7 +489,7 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 const QJsonObject DBManager::getBackup()
 {
 	QJsonObject backup;
-	QSqlDatabase idb = getDB();
+	SqlDatabase* idb = getDB();
 	QStringList instanceKeys({ "enabled", "friendly_name", "instance" });
 	QStringList settingsKeys({ "config", "hyperhdr_instance", "type" });
 
@@ -508,8 +497,7 @@ const QJsonObject DBManager::getBackup()
 
 	_readonlyMode = true;
 
-	QSqlQuery queryInst(idb);
-	queryInst.setForwardOnly(true);
+	SqlQuery queryInst(idb);
 
 	queryInst.prepare(QString("SELECT * FROM instances"));
 	if (!queryInst.exec())
@@ -519,8 +507,7 @@ const QJsonObject DBManager::getBackup()
 		return backup;
 	}
 
-	QSqlQuery querySet(idb);
-	querySet.setForwardOnly(true);
+	SqlQuery querySet(idb);
 
 	querySet.prepare(QString("SELECT * FROM settings"));
 	if (!querySet.exec())
@@ -535,7 +522,7 @@ const QJsonObject DBManager::getBackup()
 	while (queryInst.next())
 	{
 		QJsonObject entry;
-		QSqlRecord rec = queryInst.record();
+		SqlRecord rec = queryInst.record();
 		for (int i = 0; i < rec.count(); i++)
 			if (instanceKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
 			{
@@ -549,7 +536,7 @@ const QJsonObject DBManager::getBackup()
 	while (querySet.next())
 	{
 		QJsonObject entry;
-		QSqlRecord rec = querySet.record();
+		SqlRecord rec = querySet.record();
 		bool valid = false;
 
 		for (int i = 0; i < rec.count(); i++)
@@ -583,7 +570,7 @@ const QJsonObject DBManager::getBackup()
 
 QString DBManager::restoreBackup(const QJsonObject& backupData)
 {
-	QSqlDatabase idb = getDB();
+	SqlDatabase* idb = getDB();
 	const QJsonObject& message = backupData.value("config").toObject();
 	bool rm = _readonlyMode;	
 
@@ -596,18 +583,18 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 
 	_readonlyMode = true;
 
-	if (idb.transaction())
+	if (idb->transaction())
 	{
-		QSqlQuery queryDelInstances(idb);
+		SqlQuery queryDelInstances(idb);
 		queryDelInstances.prepare(QString("DELETE FROM instances"));
 
-		QSqlQuery queryDelSettings(idb);
+		SqlQuery queryDelSettings(idb);
 		queryDelSettings.prepare(QString("DELETE FROM settings"));
 
 		if (!queryDelSettings.exec() || !queryDelInstances.exec())
 		{
 			Error(_log, "Failed to clear tables before import");
-			idb.rollback();
+			idb->rollback();
 			_readonlyMode = rm;
 			return "Failed to clear tables before import";
 		}
@@ -631,16 +618,16 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 						values.append(obj.value(key).toInt());
 				}
 
-				QSqlQuery queryInstInsert(idb);
+				SqlQuery queryInstInsert(idb);
 				queryInstInsert.prepare(QString("INSERT INTO %1 ( %2 ) VALUES ( %3 )").arg("instances").arg(headers.join(", ")).arg(placeholder.join(", ")));
 				doAddBindValue(queryInstInsert, values);
 
 				if (!queryInstInsert.exec())
 				{
-					Error(_log, "Failed to create record in table 'instances'. Error: %s", QSTRING_CSTR(idb.lastError().text()));
-					idb.rollback();
+					Error(_log, "Failed to create record in table 'instances'. Error: %s", QSTRING_CSTR(idb->error()));
+					idb->rollback();
 					_readonlyMode = rm;
-					return "Failed to create record in table 'instances': " + idb.lastError().text();
+					return "Failed to create record in table 'instances': " + idb->error();
 				}
 			}
 		}
@@ -664,32 +651,32 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 						values.append(obj.value(key).toInt());
 				}
 
-				QSqlQuery querySetInsert(idb);
+				SqlQuery querySetInsert(idb);
 				querySetInsert.prepare(QString("INSERT INTO %1 ( %2 ) VALUES ( %3 )").arg("settings").arg(headers.join(", ")).arg(placeholder.join(", ")));
 				doAddBindValue(querySetInsert, values);
 
 				if (!querySetInsert.exec())
 				{
-					Error(_log, "Failed to create record in table 'settings'. Error: %s", QSTRING_CSTR(idb.lastError().text()));
-					idb.rollback();
+					Error(_log, "Failed to create record in table 'settings'. Error: %s", QSTRING_CSTR(idb->error()));
+					idb->rollback();
 					_readonlyMode = rm;
-					return "Failed to create record in table 'settings': " + idb.lastError().text();
+					return "Failed to create record in table 'settings': " + idb->error();
 				}
 			}
 		}
 	}
 	else
 	{
-		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
 		_readonlyMode = rm;
-		return  "Could not create a DB transaction. Error: " + idb.lastError().text();
+		return  "Could not create a DB transaction. Error: " + idb->error();
 	}
 
-	if (!idb.commit())
+	if (!idb->commit())
 	{
-		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
 		_readonlyMode = rm;
-		return  "Could not commit the DB transaction. Error: " + idb.lastError().text();
+		return  "Could not commit the DB transaction. Error: " + idb->error();
 	}
 
 	return "";
@@ -699,7 +686,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 QString DBManager::createLocalBackup()
 {
 	QJsonObject backupFirst = getBackup();
-	QString backupName = getDB().databaseName();
+	QString backupName = getDB()->databaseName();
 	if (!backupName.isEmpty() && QFile::exists(backupName))
 	{
 		backupName = QDir(QFileInfo(backupName).absoluteDir()).filePath(QString("backup_%1.json").arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz")));

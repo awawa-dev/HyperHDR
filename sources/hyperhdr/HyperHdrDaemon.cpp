@@ -87,10 +87,10 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// First load default configuration for other objects
-	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this, readonlyMode));
+	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this));
 
 	// Instance manager
-	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath, readonlyMode),
+	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath),
 		[](HyperHdrManager* instanceManager) {
 			SMARTPOINTER_MESSAGE("HyperHdrManager");
 			delete instanceManager;
@@ -98,7 +98,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetInstanceManager, this, &HyperHdrDaemon::getInstanceManager, Qt::DirectConnection);
 
 	// Access Manager
-	_accessManager = std::shared_ptr<AccessManager>(new AccessManager(this, readonlyMode),
+	_accessManager = std::shared_ptr<AccessManager>(new AccessManager(this),
 		[](AccessManager* accessManager) {
 			SMARTPOINTER_MESSAGE("AccessManager");
 			delete accessManager;

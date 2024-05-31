@@ -17,7 +17,7 @@ class AccessManager : public QObject
 	Q_OBJECT
 private:
 	friend class HyperHdrDaemon;
-	AccessManager(QObject* parent, bool readonlyMode);
+	AccessManager(QObject* parent);
 
 public:
 	~AccessManager();
