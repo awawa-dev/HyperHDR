@@ -117,7 +117,6 @@ macro(DeployApple TARGET)
 				if("${_u_length}" GREATER 0)
 					message(WARNING "Unresolved dependencies detected!")
 				endif()				
-			endforeach()
 			
 			include(BundleUtilities)							
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
