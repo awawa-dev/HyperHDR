@@ -119,7 +119,7 @@ macro(DeployApple TARGET)
 				endif()				
 			
 			include(BundleUtilities)							
-			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 				
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
