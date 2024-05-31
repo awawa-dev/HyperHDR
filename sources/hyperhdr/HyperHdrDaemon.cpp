@@ -28,12 +28,6 @@
 #include <base/GrabberHelper.h>
 #include <base/NetworkForwarder.h>
 
-#ifdef USE_STATIC_QT_PLUGINS
-	#include <QtPlugin>
-	Q_IMPORT_PLUGIN(QJpegPlugin)
-	Q_IMPORT_PLUGIN(QGifPlugin)
-#endif
-
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
 

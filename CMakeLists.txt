@@ -42,7 +42,6 @@ SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 SET ( DEFAULT_CEC                         OFF )
 SET ( DEFAULT_BONJOUR                     ON  )
 SET ( DEFAULT_MQTT                        ON  )
-SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
 SET ( DEFAULT_XZ                          ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
@@ -432,9 +431,6 @@ colorMe("ENABLE_XZ = " ${ENABLE_XZ})
 
 message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
-option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
-colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
-
 option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
 colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
 
@@ -579,18 +575,6 @@ find_package(TurboJPEG REQUIRED)
 
 message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TurboJPEG_LIBRARY}")
 message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TurboJPEG_INCLUDE_DIRS}")
-
-# Embedded QT plugins
-if (USE_STATIC_QT_PLUGINS)
-	foreach(sqlPlugin ${Qt${Qt_VERSION}Sql_PLUGINS} Qt${Qt_VERSION}::Sql)
-		message( STATUS "PLUGIN=${sqlPlugin}")
-		get_target_property(file ${sqlPlugin} LOCATION)
-		if (NOT IS_SYMLINK ${file})
-			message("Using static QT plugin: " ${file})
-			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
-		endif()
-	endforeach()	
-endif()
 
 if (WIN32)
 	if(NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)

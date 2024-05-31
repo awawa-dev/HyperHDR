@@ -44,11 +44,6 @@
 
 #include <HyperhdrConfig.h> // Required to determine the cmake options
 
-#ifdef USE_STATIC_QT_PLUGINS
-	#include <QtPlugin>
-	Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
-#endif
-
 QFileInfo DBManager::_databaseName;
 QThreadStorage<QSqlDatabase> DBManager::_databasePool;
 
