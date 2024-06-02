@@ -60,6 +60,8 @@ QString SqlDatabase::databaseName()
 
 bool SqlDatabase::open()
 {
+	bool result = false;
+
 	if (_readOnly)
 	{
 		static QMutex locker;
@@ -68,7 +70,7 @@ bool SqlDatabase::open()
 		const QString sharedDB = "file:hyperhdr?mode=memory&cache=shared";
 		const QByteArray& textSharedDB = sharedDB.toUtf8().constData();
 
-		auto result = sqlite3_open(textSharedDB, &_handle) == SQLITE_OK;
+		result = sqlite3_open(textSharedDB, &_handle) == SQLITE_OK;
 
 		if (QFileInfo(_databaseName).exists() && isEmpty())
 		{
@@ -82,15 +84,20 @@ bool SqlDatabase::open()
 				sqlite3_close(handleSrc);
 			}
 		}
-
-		return result;
 	}
 	else
 	{
 		const QByteArray& text = _databaseName.toUtf8().constData();
-		auto result = sqlite3_open(text, &_handle) == SQLITE_OK;
-		return result;
+		result = sqlite3_open(text, &_handle) == SQLITE_OK;
+
 	}
+
+	if (result)
+	{
+		sqlite3_busy_timeout(_handle, 1000);
+	}
+
+	return result;
 };
 
 QString SqlDatabase::error()
