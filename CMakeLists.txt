@@ -26,7 +26,6 @@ SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_BOBLIGHT                    OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
 SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_DX                          OFF )
@@ -450,9 +449,6 @@ colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
 option(USE_SYSTEM_FLATBUFFERS_LIBS "Use system flatbuffers libs" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
 colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
 
-option(USE_SYSTEM_MBEDTLS_LIBS "Use system mbedtls libs" ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS})
-colorMe("USE_SYSTEM_MBEDTLS_LIBS = " ${USE_SYSTEM_MBEDTLS_LIBS})
-
 if(UNIX AND NOT APPLE)
 	option(USE_STANDARD_INSTALLER_NAME "Use the standardized Linux installer name" OFF)
 	colorMe("USE_STANDARD_INSTALLER_NAME = " ${USE_STANDARD_INSTALLER_NAME})
@@ -636,8 +632,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3)
-	set_target_properties(qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma sqlite3 PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3)
+	set_target_properties(qmqtt apidoc flatbuffers flatc lib resources uninstall liblzma sqlite3 PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

@@ -292,8 +292,8 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 	if (_dtls != nullptr && _socket != nullptr && (_streamReady || _dtls->isConnectionEncrypted()))
 	{
 		_streamReady = true;
-		QByteArray dgram(size, Qt::Uninitialized);
-		memcpy(dgram.data(), data, size);
+		
+		QByteArray dgram = QByteArray::fromRawData(reinterpret_cast<const char*>(data), size);
 		if (_dtls->writeDatagramEncrypted(_socket, dgram) < 0)
 		{
 			errorHandling(_dtls->dtlsErrorString());
