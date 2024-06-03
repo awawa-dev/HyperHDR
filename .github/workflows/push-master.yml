@@ -141,7 +141,7 @@ jobs:
             NICE_NAME: arm64_M1_M2
           - JOB_RUNNER: macos-13
             JOB_NAME: macOS 13 (x64)
-            QT_VERSION: 5
+            QT_VERSION: 6
             NICE_NAME: x64
     steps:
       # Checkout

@@ -42,6 +42,7 @@ SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 SET ( DEFAULT_CEC                         OFF )
 SET ( DEFAULT_BONJOUR                     ON  )
 SET ( DEFAULT_MQTT                        ON  )
+SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
 SET ( DEFAULT_XZ                          ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
@@ -274,6 +275,12 @@ if (UNIX AND NOT APPLE AND (DEFAULT_POWER_MANAGEMENT OR DEFAULT_PIPEWIRE))
 	endif()
 endif()
 
+# Find OpenSSL
+find_package(OpenSSL)
+if (NOT OPENSSL_FOUND)
+	message( WARNING "OpenSSL could not be found. HyperHDR HTTPS instance and Philips Hue support will be disabled." )
+endif()
+
 # Pipewire support
 if (DEFAULT_PIPEWIRE)
 	FIND_PACKAGE(PkgConfig REQUIRED)
@@ -426,6 +433,9 @@ colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 option(ENABLE_SYSTRAY "Enable SYSTRAY" ${DEFAULT_SYSTRAY})
 colorMe("ENABLE_SYSTRAY = " ${ENABLE_SYSTRAY})
 
+option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
+colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
+
 option(ENABLE_XZ "Enable XZ support" ${DEFAULT_XZ})
 colorMe("ENABLE_XZ = " ${ENABLE_XZ})
 
@@ -575,6 +585,18 @@ find_package(TurboJPEG REQUIRED)
 
 message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TurboJPEG_LIBRARY}")
 message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TurboJPEG_INCLUDE_DIRS}")
+
+# Embedded QT plugins
+if (USE_STATIC_QT_PLUGINS)
+	foreach(networkPlugin ${Qt${Qt_VERSION}Network_PLUGINS} Qt${Qt_VERSION}::Network)
+		message( STATUS "PLUGIN=${networkPlugin}")
+		get_target_property(file ${networkPlugin} LOCATION)
+		if (NOT IS_SYMLINK ${file})
+			message("Using static QT plugin: " ${file})
+			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
+		endif()
+	endforeach()	
+endif()
 
 if (WIN32)
 	if(NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
