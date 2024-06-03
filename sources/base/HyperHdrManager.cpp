@@ -44,11 +44,10 @@ QString HyperHdrManager::getRootPath()
 	return _rootPath;
 }
 
-HyperHdrManager::HyperHdrManager(const QString& rootPath, bool readonlyMode)
+HyperHdrManager::HyperHdrManager(const QString& rootPath)
 	: _log(Logger::getInstance("HYPER_MANAGER"))
-	, _instanceTable(new InstanceTable(readonlyMode))
+	, _instanceTable(new InstanceTable())
 	, _rootPath(rootPath)
-	, _readonlyMode(readonlyMode)
 	, _fireStarter(0)
 {
 	qRegisterMetaType<InstanceState>("InstanceState");
@@ -286,7 +285,6 @@ bool HyperHdrManager::startInstance(quint8 inst, QObject* caller, int tan, bool 
 
 			auto hyperhdr = std::shared_ptr<HyperHdrInstance>(
 				new HyperHdrInstance(inst,
-					_readonlyMode,
 					disableOnStartup,
 					_instanceTable->getNamebyIndex(inst)),
 				[](HyperHdrInstance* oldInstance) {

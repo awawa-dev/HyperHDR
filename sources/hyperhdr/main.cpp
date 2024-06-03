@@ -258,7 +258,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		DBManager::initializeDatabaseFilename(dbFile);
+		DBManager::initializeDatabaseFilename(dbFile, readonlyMode);
 
 		// reset Password without spawning daemon
 		if (parser.isSet(resetPassword))
@@ -270,7 +270,7 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				std::unique_ptr<AuthTable> table = std::unique_ptr<AuthTable>(new AuthTable(false));
+				std::unique_ptr<AuthTable> table = std::unique_ptr<AuthTable>(new AuthTable());
 				if (table->resetHyperhdrUser()) {
 					Info(log, "Password reset successful");
 					exit(0);

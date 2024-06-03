@@ -1,3 +1,30 @@
+#=============================================================================
+# SQLite
+#=============================================================================
+
+add_library(sqlite3 "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+target_include_directories(sqlite3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite")
+target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+
+
+set_target_properties(sqlite3 PROPERTIES
+    OUTPUT_NAME   sqlite3
+    PUBLIC_HEADER sqlite3.h
+)
+
+target_compile_definitions(sqlite3 PUBLIC
+	SQLITE_THREADSAFE=1
+	SQLITE_DEFAULT_MEMSTATUS=0
+	SQLITE_DEFAULT_SYNCHRONOUS=3	
+	SQLITE_OMIT_AUTHORIZATION
+	SQLITE_OMIT_DEPRECATED
+)
+
+#=============================================================================
+# RPi ws281x
+#=============================================================================
+
+
 if(ENABLE_WS281XPWM)
 	add_library(ws281x
 		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/mailbox.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/ws2811.c
