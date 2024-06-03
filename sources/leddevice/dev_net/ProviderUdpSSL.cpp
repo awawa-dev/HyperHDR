@@ -52,9 +52,6 @@
 	Q_IMPORT_PLUGIN(QTlsBackendOpenSSLPlugin)
 #endif
 
-const int MAX_RETRY = 20;
-const ushort MAX_PORT_SSL = 65535;
-
 ProviderUdpSSL::ProviderUdpSSL(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _transport_type("DTLS")
@@ -127,7 +124,7 @@ bool ProviderUdpSSL::init(const QJsonObject& deviceConfig)
 
 		int config_port = deviceConfig["sslport"].toInt(_port);
 
-		if (config_port <= 0 || config_port > MAX_PORT_SSL)
+		if (config_port <= 0 || config_port > 65535)
 		{
 			QString errortext = QString("Invalid target port [%1]!").arg(config_port);
 			this->setInError(errortext);
@@ -189,7 +186,8 @@ bool ProviderUdpSSL::initNetwork()
 	});
 
 	connect(_socket, &QUdpSocket::errorOccurred, this, [&](QAbstractSocket::SocketError socketError) {
-		errorHandling(QString("Socket error nr: %1").arg(QString::number(socketError)));
+		QString message = QString("Socket error nr: %1").arg(QString::number(socketError));
+		QUEUE_CALL_1(this, errorHandling, QString, message);
 	});
 
 	connect(_socket, &QUdpSocket::readyRead, this, [&](){
@@ -206,7 +204,11 @@ bool ProviderUdpSSL::initNetwork()
 		dgram.resize(bytesRead);
 
 		if (!_dtls->doHandshake(_socket, dgram))
-			errorHandling("Failed to continue the handshake");
+		{
+			QString message = "Failed to continue the handshake";
+			QUEUE_CALL_1(this, errorHandling, QString, message);
+			return;
+		}
 
 		if (_dtls->isConnectionEncrypted())
 		{
@@ -274,12 +276,14 @@ void ProviderUdpSSL::handshakeTimeout()
 
 		if (!_dtls->handleTimeout(_socket))
 		{
-			errorHandling("Failed to resume the handshake after timeout");
+			QString message = "Failed to resume the handshake after timeout";
+			QUEUE_CALL_1(this, errorHandling, QString, message);
 		}
 	}
 	else
 	{
-		errorHandling("Another timeout. Give up");
+		QString message = "Another timeout. Give up";
+		QUEUE_CALL_1(this, errorHandling, QString, message);
 	}
 }
 

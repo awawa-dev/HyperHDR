@@ -27,14 +27,14 @@ public:
 protected:
 	bool init(const QJsonObject& deviceConfig) override;
 	int closeNetwork();
-	bool initNetwork();
-	void errorHandling(QString message);
+	bool initNetwork();	
 	void writeBytes(unsigned int size, const uint8_t* data, bool flush = false);
 	virtual std::list<QString> getCiphersuites();
 
 public slots:
 	void pskRequired(QSslPreSharedKeyAuthenticator* authenticator);
 	void handshakeTimeout();
+	void errorHandling(QString message);
 
 private:
 	QString      _transport_type;
