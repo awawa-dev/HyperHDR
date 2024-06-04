@@ -583,10 +583,16 @@ message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TurboJPEG_LIBRARY}")
 message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TurboJPEG_INCLUDE_DIRS}")
 
 # Embedded QT plugins
-if (USE_STATIC_QT_PLUGINS)
-	foreach(networkPlugin ${Qt${Qt_VERSION}Network_PLUGINS} Qt${Qt_VERSION}::Network)
-		message( STATUS "PLUGIN=${networkPlugin}")
-		get_target_property(file ${networkPlugin} LOCATION)
+if (USE_STATIC_QT_PLUGINS AND TARGET Qt6::qmake)
+	get_target_property(QT6_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+	execute_process(
+		COMMAND ${QT6_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+		OUTPUT_VARIABLE QT6_PLUGINS_DIR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	file(GLOB resultPlugins "${QT6_PLUGINS_DIR}/tls/*openssl*")
+	foreach(file ${resultPlugins})
 		if (NOT IS_SYMLINK ${file})
 			message("Using static QT plugin: " ${file})
 			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})

@@ -132,7 +132,7 @@ macro(DeployApple TARGET)
 
 				foreach(PLUGIN "tls")
 					if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
-						file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*")
+						file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*openssl*")
 						foreach(file ${files})							
 								file(GET_RUNTIME_DEPENDENCIES
 								EXECUTABLES ${file}
@@ -396,7 +396,7 @@ macro(DeployUnix TARGET)
 		foreach(PLUGIN "tls")
 			#message(WARNING "Collecting Dependencies for QT plugin folder: ${PLUGIN}")
 			if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-				file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
+				file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*openssl*")
 				foreach(file ${files})
 					file(GET_RUNTIME_DEPENDENCIES
 						RESOLVED_DEPENDENCIES_VAR QT_DEPENDENCIES

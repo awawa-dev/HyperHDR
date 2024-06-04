@@ -101,6 +101,10 @@ if(ENABLE_WS281XPWM)
 	target_link_libraries(leddevice ws281x)
 endif()
 
+if (USE_STATIC_QT_PLUGINS)
+	target_link_libraries(leddevice ${STATIC_QT_PLUGINS_LIBS})
+endif()
+
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
     target_precompile_headers(leddevice REUSE_FROM precompiled_hyperhdr_headers)
 endif()
