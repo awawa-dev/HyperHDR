@@ -33,7 +33,7 @@
 #include <pb_decode.h>
 #include <pb_encode.h>
 #include <ProtoNanoClientConnection.h>
-#include <flatbufserver/FlatBufferServer.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
 
 ProtoNanoClientConnection::ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject* parent)
 	: QObject(parent)

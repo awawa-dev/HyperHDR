@@ -29,7 +29,7 @@
 #include <base/SoundCapture.h>
 #include <base/ImageToLedManager.h>
 #include <base/AccessManager.h>
-#include <flatbufserver/FlatBufferServer.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
 #include <utils/jsonschema/QJsonUtils.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/JsonUtils.h>

@@ -13,18 +13,18 @@
 class BonjourServiceRegister;
 class QTcpServer;
 class QLocalServer;
-class FlatBufferClient;
+class FlatBuffersServerConnection;
 class NetOrigin;
 
 #define HYPERHDR_DOMAIN_SERVER QStringLiteral("hyperhdr-domain")
 #define BASEAPI_FLATBUFFER_USER_LUT_FILE QStringLiteral("BASEAPI_user_lut_file")
 
-class FlatBufferServer : public QObject
+class FlatBuffersServer : public QObject
 {
 	Q_OBJECT
 public:
-	FlatBufferServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, const QString& configurationPath, QObject* parent = nullptr);
-	~FlatBufferServer() override;
+	FlatBuffersServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, const QString& configurationPath, QObject* parent = nullptr);
+	~FlatBuffersServer() override;
 
 signals:
 	void SignalSetNewComponentStateToAllInstances(hyperhdr::Components component, bool enable);
@@ -40,14 +40,14 @@ public slots:
 
 private slots:
 	void handlerNewConnection();
-	void handlerClientDisconnected(FlatBufferClient* client);
+	void handlerClientDisconnected(FlatBuffersServerConnection* client);
 
 private:
 	void startServer();
 	void stopServer();
 	QString GetSharedLut();
 	void loadLutFile();
-	void setupClient(FlatBufferClient* client);
+	void setupClient(FlatBuffersServerConnection* client);
 
 	QTcpServer*		_server;
 	QLocalServer*	_domain;
@@ -58,7 +58,7 @@ private:
 
 	const QJsonDocument		_config;
 	BonjourServiceRegister* _serviceRegister = nullptr;
-	QVector<FlatBufferClient*> _openConnections;
+	QVector<FlatBuffersServerConnection*> _openConnections;
 
 	int			_hdrToneMappingMode;
 	int			_realHdrToneMappingMode;	

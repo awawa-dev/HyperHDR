@@ -24,7 +24,8 @@ target_link_libraries(hyperhdr
 	hyperimage
 	effectengine
 	jsonserver
-	flatbufserver
+	flatbuffers_server
+	flatbuffers_client
 	webserver
 	ssdp
 	database

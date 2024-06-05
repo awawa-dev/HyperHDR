@@ -2,10 +2,6 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/base)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/base)
 
-include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}/../../sources/flatbufserver
-)
-
 FILE ( GLOB HyperHDR_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
 SET(HyperHDR_RESOURCES ${CURRENT_SOURCE_DIR}/resource.qrc)
@@ -18,7 +14,8 @@ add_library(hyperhdr-base
 target_link_libraries(hyperhdr-base
 	blackborder
 	hyperhdr-utils
-	flatbufserver
+	flatbuffers_server
+	flatbuffers_client
 	flatbuffers
 	leddevice
 	effectengine
