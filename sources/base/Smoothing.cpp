@@ -413,7 +413,7 @@ unsigned Smoothing::AddEffectConfig(unsigned cfgID, int settlingTime_ms, double 
 	}
 	else
 	{
-		for (int currentCfgID = SMOOTHING_EFFECT_CONFIGS_START; currentCfgID < _configurations.size(); currentCfgID++)
+		for (unsigned int currentCfgID = SMOOTHING_EFFECT_CONFIGS_START; currentCfgID < _configurations.size(); currentCfgID++)
 		{
 			auto& element = _configurations[currentCfgID];
 			if ((element->settlingTime == settlingTime_ms &&

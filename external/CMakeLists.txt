@@ -134,48 +134,6 @@ function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 endfunction()
 
 #=============================================================================
-# MBEDTLS
-#=============================================================================
-
-if (USE_SYSTEM_MBEDTLS_LIBS)
-	message(STATUS "${YellowColor}Try using the mbedtls system libraries instead of the embedded submodule. Absolutely no guarantee.${ColorReset}")
-	find_package(mbedtls)
-
-	if (NOT MBEDTLS_FOUND)
-		message(STATUS "${RedColor}Could NOT find system mbedtls, fallback to build embedded mbedtl version${ColorReset}")
-		#Fallback: build mbedtls static libray inside project
-		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF PARENT_SCOPE)
-		set(USE_SYSTEM_MBEDTLS_LIBS OFF)
-	else()
-		message(STATUS "Found system MBEDTLS version: ${MBEDTLS_VERSION}")
-	endif()
-endif()
-
-if (NOT USE_SYSTEM_MBEDTLS_LIBS)
-	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared mbedtls libraries")
-	set(ENABLE_TESTING OFF CACHE BOOL "Disable mbedTLS tests")
-	set(ENABLE_PROGRAMS OFF CACHE BOOL "Disable mbedTLS programs")
-	set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "Disable mbedTLS crash on warnings")
-	set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "Disable mbedTLS shared libraries")
-	set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "Enable mbedTLS static libraries")
-
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/mbedtls)	
-
-	set(MBEDTLS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/mbedtls/include")
-	set(MBEDTLS_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIR} PARENT_SCOPE)
-
-	if (MBEDTLS_INCLUDE_DIR AND EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
-		file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h" _MBEDTLS_VERSION_STRING REGEX "^#define MBEDTLS_VERSION_STRING[ \t\r\n]+\"[0-9]+.[0-9]+.[0-9]+\"")
-		string(REGEX REPLACE "^#define MBEDTLS_VERSION_STRING[ \t\r\n]+\"([0-9]+.[0-9]+.[0-9]+)\"" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-		message(STATUS "Using static mbedtls libraries version: \"${MBEDTLS_VERSION}\"")
-	elseif (MBEDTLS_INCLUDE_DIR AND EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
-		file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
-		string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-		message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
-	endif ()
-endif ()
-
-#=============================================================================
 # MQTT
 #=============================================================================
 
