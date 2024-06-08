@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Kilitlendiğinde devre dışı bırak",
   "edt_conf_gen_disableOnLocked_expl" : "Kullanıcı sistemi kilitlediğinde işlemeyi kapatın.",
   "edt_conf_gen_disableLedsStartup_title" : "Başlangıçta LED'leri kapatın",
-  "edt_conf_gen_disableLedsStartup_expl" : "LED'leri ve tüm bileşenleri başlangıçta devre dışı bırakın; bunları ana sayfada veya JSON API (COMP_ALL bileşeni) aracılığıyla manuel olarak yeniden etkinleştirmeniz gerekir."
+  "edt_conf_gen_disableLedsStartup_expl" : "LED'leri ve tüm bileşenleri başlangıçta devre dışı bırakın; bunları ana sayfada veya JSON API (COMP_ALL bileşeni) aracılığıyla manuel olarak yeniden etkinleştirmeniz gerekir.",
+  "edt_conf_sound_device_smoothing_title" : "Düzgünleştirmeyi etkinleştir",
+  "edt_conf_sound_device_smoothing_expl" : "Ses efektleri için özel yumuşatmayı etkinleştirin. Çıkış frekansı 60 Hz olan bir LED cihazı gerektirir. Yumuşatma devre dışı bırakıldığında çıkış frekansı 20 Hz'dir."
 }
