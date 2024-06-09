@@ -2,10 +2,16 @@
 # SQLite
 #=============================================================================
 
-add_library(sqlite3 "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+add_library(sqlite3 SHARED "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
 target_include_directories(sqlite3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite")
 target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
+install(
+    TARGETS   sqlite3
+    RUNTIME   DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
 
 set_target_properties(sqlite3 PROPERTIES
     OUTPUT_NAME   sqlite3
@@ -13,12 +19,26 @@ set_target_properties(sqlite3 PROPERTIES
 )
 
 target_compile_definitions(sqlite3 PUBLIC
-	SQLITE_THREADSAFE=1
+	SQLITE_THREADSAFE=2
 	SQLITE_DEFAULT_MEMSTATUS=0
 	SQLITE_DEFAULT_SYNCHRONOUS=3	
 	SQLITE_OMIT_AUTHORIZATION
 	SQLITE_OMIT_DEPRECATED
 )
+
+if(WIN32)
+   target_compile_definitions(sqlite3
+      INTERFACE
+         "SQLITE_API=__declspec(dllimport)"
+      PRIVATE
+         "SQLITE_API=__declspec(dllexport)"
+   )
+else()
+   target_compile_definitions(sqlite3
+      INTERFACE
+         "SQLITE_API=__attribute__((visibility(\"default\")))"
+   )
+endif()
 
 #=============================================================================
 # RPi ws281x
