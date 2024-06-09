@@ -52,7 +52,8 @@ FlatBuffersClient::FlatBuffersClient(QObject* parent, const QString& origin, con
 {
 	if (!initParserLibrary() || _builder == nullptr)
 	{
-		throw std::runtime_error("Could not initialize Flatbuffers parser");
+		_error = "Could not initialize Flatbuffers parser";
+		return;
 	}
 
 	if (_socket == nullptr)
@@ -65,7 +66,8 @@ FlatBuffersClient::FlatBuffersClient(QObject* parent, const QString& origin, con
 		QStringList parts = address.split(":");
 		if (parts.size() != 2)
 		{
-			throw std::runtime_error(QString("FlatBuffersClient: Unable to parse address (%1)").arg(address).toStdString());
+			_error = QString("FlatBuffersClient: Unable to parse address (%1)").arg(address);
+			return;
 		}
 		_host = parts[0];
 
@@ -73,7 +75,8 @@ FlatBuffersClient::FlatBuffersClient(QObject* parent, const QString& origin, con
 		_port = parts[1].toUShort(&ok);
 		if (!ok)
 		{
-			throw std::runtime_error(QString("FlatBuffersClient: Unable to parse the port (%1)").arg(parts[1]).toStdString());
+			_error = QString("FlatBuffersClient: Unable to parse the port (%1)").arg(parts[1]);
+			return;
 		}
 	}
 	else
@@ -112,6 +115,11 @@ FlatBuffersClient::FlatBuffersClient(QObject* parent, const QString& origin, con
 
 	connect(this, &FlatBuffersClient::SignalImageToSend, this, &FlatBuffersClient::sendImage);
 	connect(this, &FlatBuffersClient::SignalSetColor, this, &FlatBuffersClient::setColorHandler);
+}
+
+QString FlatBuffersClient::getErrorString()
+{
+	return _error;
 }
 
 void FlatBuffersClient::setColorHandler(ColorRgb color, int duration)

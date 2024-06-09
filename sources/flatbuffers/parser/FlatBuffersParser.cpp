@@ -183,7 +183,8 @@ int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8
 				*imageHeight = img->height();
 
 				retType = FLATBUFFERS_PACKAGE_TYPE::IMAGE;
-				sendSuccessReply(_builder);
+				auto reply = hyperhdrnet::CreateReplyDirect(*_builder, nullptr, -1, *priority);
+				_builder->Finish(reply);
 			}
 			else
 				sendErrorReply(_builder, NO_IMAGE_DATA);

@@ -55,7 +55,8 @@ FlatBuffersServerConnection::FlatBuffersServerConnection(QTcpSocket* socket, QLo
 {
 	if (!initParserLibrary() || _builder == nullptr)
 	{
-		throw std::runtime_error("Could not initialize Flatbuffers parser");
+		_error = "Could not initialize Flatbuffers parser";
+		return;
 	}
 
 	if (_socket != nullptr)
@@ -84,12 +85,13 @@ FlatBuffersServerConnection::FlatBuffersServerConnection(QTcpSocket* socket, QLo
 
 FlatBuffersServerConnection::~FlatBuffersServerConnection()
 {
-	if (_socket != nullptr)
-		_socket->deleteLater();
-	if (_domain != nullptr)
-		_domain->deleteLater();
 	if (_builder != nullptr)
 		releaseFlatbuffersBuilder(_builder);
+}
+
+QString FlatBuffersServerConnection::getErrorString()
+{
+	return _error;
 }
 
 bool FlatBuffersServerConnection::initParserLibrary()
@@ -144,7 +146,7 @@ void FlatBuffersServerConnection::readyRead()
 		if (_incomingSize == _incomingIndex)
 		{
 			uint8_t red = 0, green = 0, blue = 0;
-			int priority = 0, duration = 0, imageWidth = 0, imageHeight = 0;
+			int priority = _priority, duration = 0, imageWidth = 0, imageHeight = 0;
 			std::string clientDescription;
 			uint8_t* imageData = nullptr;
 			uint8_t* buffer = nullptr;
@@ -235,9 +237,17 @@ void FlatBuffersServerConnection::readyRead()
 void FlatBuffersServerConnection::forceClose()
 {
 	if (_socket != nullptr)
+	{
 		_socket->close();
+		_socket->deleteLater();
+		_socket = nullptr;
+	}
 	if (_domain != nullptr)
+	{
 		_domain->close();
+		_domain->deleteLater();
+		_domain = nullptr;
+	}
 }
 
 void FlatBuffersServerConnection::disconnected()

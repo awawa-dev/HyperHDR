@@ -28,6 +28,7 @@ public:
 	void clear(int priority);
 	void clearAll();
 	void sendMessage(const uint8_t* buffer, uint32_t size);
+	QString getErrorString();
 
 public slots:
 	void sendImage(const Image<ColorRgb>& image);
@@ -57,9 +58,10 @@ private:
 	QLocalSocket::LocalSocketState	_prevLocalState;
 
 	Logger* _log;
-	void* _builder;
+	QString	_error;
+	void*	_builder;
 
-	bool	 _registered;
-	bool	 _sent;
+	bool	_registered;
+	bool	_sent;
 	uint64_t _lastSendImage;
 };

@@ -45,6 +45,7 @@ class FlatBuffersServerConnection : public QObject
 public:
 	explicit FlatBuffersServerConnection(QTcpSocket* socket, QLocalSocket* domain, int timeout, QObject* parent = nullptr);
 	~FlatBuffersServerConnection();
+	QString getErrorString();
 
 signals:
 	void SignalClearGlobalInput(int priority, bool forceClearAll);
@@ -74,6 +75,7 @@ private:
 	QString			_clientDescription;
 	int				_mode;
 
+	QString			_error;
 	void*			_builder;
 	uint32_t		_incomingSize;
 	uint32_t		_incomingIndex;

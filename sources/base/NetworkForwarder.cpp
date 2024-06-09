@@ -230,16 +230,18 @@ void NetworkForwarder::addFlatbufferSlave(const QString& slave, const QJsonObjec
 
 	if (_forwarderEnabled && !_flatSlaves.contains(slave))
 	{
-		_flatSlaves << slave;
+		FlatBuffersClient* flatbuf = new FlatBuffersClient(this, "Forwarder", slave, _priority, false);
+		QString anyError = flatbuf->getErrorString();
 
-		try
+		if (anyError.isEmpty())
 		{
-			FlatBuffersClient* flatbuf = new FlatBuffersClient(this, "Forwarder", slave, _priority, false);
+			_flatSlaves << slave;
 			_forwardClients << flatbuf;
 		}
-		catch (std::exception& ex)
+		else
 		{
-			Error(_log, "Could not initialize client: %s", ex.what());
+			Error(_log, "Could not initialize client: %s", QSTRING_CSTR(anyError));
+			flatbuf->deleteLater();
 		}
 	}
 }

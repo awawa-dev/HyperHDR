@@ -136,15 +136,17 @@ void FlatBuffersServer::handlerNewConnection()
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				try
+				FlatBuffersServerConnection* client = new FlatBuffersServerConnection(socket, nullptr, _timeout, this);
+				QString anyError = client->getErrorString();
+				if (anyError.isEmpty())
 				{
-					FlatBuffersServerConnection* client = new FlatBuffersServerConnection(socket, nullptr, _timeout, this);
 					// internal
 					setupClient(client);
 				}
-				catch (std::exception& ex)
+				else
 				{
-					Error(_log, "Could not initialize server client: %s", ex.what());
+					Error(_log, "Could not initialize server client: %s", QSTRING_CSTR(anyError));
+					client->deleteLater();
 				}
 			}
 			else
@@ -156,15 +158,17 @@ void FlatBuffersServer::handlerNewConnection()
 		if (QLocalSocket* socket = _domain->nextPendingConnection())
 		{
 			Debug(_log, "New local domain connection");
-			try
-			{
-				FlatBuffersServerConnection* client = new FlatBuffersServerConnection(nullptr, socket, _timeout, this);
+			FlatBuffersServerConnection* client = new FlatBuffersServerConnection(nullptr, socket, _timeout, this);
+			QString anyError = client->getErrorString();
+			if (anyError.isEmpty())
+			{				
 				// internal
 				setupClient(client);
 			}
-			catch (std::exception& ex)
+			else
 			{
-				Error(_log, "Could not initialize server client: %s", ex.what());
+				Error(_log, "Could not initialize server client: %s", QSTRING_CSTR(anyError));
+				client->deleteLater();
 			}
 		}
 	}
