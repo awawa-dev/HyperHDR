@@ -101,13 +101,8 @@ if(ENABLE_WS281XPWM)
 	target_link_libraries(leddevice ws281x)
 endif()
 
-target_link_libraries(leddevice mbedcrypto)
-target_link_libraries(leddevice mbedx509)
-target_link_libraries(leddevice mbedtls)
-
-if (NOT EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
-	message(STATUS "${YellowColor}Found mbedtls but the manifest is missing: ${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h (not 3.x compatible?). Let's assume it's version 2.x...${ColorReset}")
-	target_compile_definitions(leddevice PRIVATE MBEDTLS_OLD_CONFIG_FILE=<mbedtls/version.h>)
+if (USE_STATIC_QT_PLUGINS)
+	target_link_libraries(leddevice ${STATIC_QT_PLUGINS_LIBS})
 endif()
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

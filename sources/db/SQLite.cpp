@@ -131,7 +131,7 @@ bool SqlDatabase::doesColumnExist(QString table, QString column)
 	bool hasRow = false;
 	QString query = QString("SELECT * FROM pragma_table_info('%1') WHERE name='%2';").arg(table).arg(column);
 	const QByteArray& text = query.toUtf8().constData();
-	auto result = sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
+	sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
 		*(reinterpret_cast<bool*>(_hasRow)) = true;
 		return 0;
 		}, &hasRow, NULL);
@@ -143,7 +143,7 @@ bool SqlDatabase::doesTableExist(QString table)
 	bool hasRow = false;
 	QString query = QString("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '%1';").arg(table);
 	const QByteArray& text = query.toUtf8().constData();
-	auto result = sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
+	sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
 		*(reinterpret_cast<bool*>(_hasRow)) = true;
 		return 0;
 		}, &hasRow, NULL);
@@ -155,7 +155,7 @@ bool SqlDatabase::isEmpty()
 	bool hasRow = false;
 	QString query = QString("SELECT name FROM sqlite_master WHERE type = 'table';");
 	const QByteArray& text = query.toUtf8().constData();
-	auto result = sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
+	sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
 		*(reinterpret_cast<bool*>(_hasRow)) = true;
 		return 0;
 		}, &hasRow, NULL);

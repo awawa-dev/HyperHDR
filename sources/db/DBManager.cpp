@@ -278,7 +278,7 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	query.next();
 
 	SqlRecord rec = query.record();
-	for (int i = 0; i < rec.count(); i++)
+	for (unsigned int i = 0; i < rec.count(); i++)
 	{
 		results[rec.fieldName(i)] = rec.value(i);
 	}
@@ -315,7 +315,7 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	{
 		QVariantMap entry;
 		SqlRecord rec = query.record();
-		for (int i = 0; i < rec.count(); i++)
+		for (unsigned int i = 0; i < rec.count(); i++)
 		{
 			entry[rec.fieldName(i)] = rec.value(i);
 		}
@@ -523,7 +523,7 @@ const QJsonObject DBManager::getBackup()
 	{
 		QJsonObject entry;
 		SqlRecord rec = queryInst.record();
-		for (int i = 0; i < rec.count(); i++)
+		for (unsigned int i = 0; i < rec.count(); i++)
 			if (instanceKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
 			{
 				entry[rec.fieldName(i)] = QJsonValue::fromVariant(rec.value(i));
@@ -539,7 +539,7 @@ const QJsonObject DBManager::getBackup()
 		SqlRecord rec = querySet.record();
 		bool valid = false;
 
-		for (int i = 0; i < rec.count(); i++)
+		for (unsigned int i = 0; i < rec.count(); i++)
 			if (settingsKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
 			{
 				QVariant column = rec.value(i);

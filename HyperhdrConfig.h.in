@@ -1,5 +1,8 @@
 // Generated config file
 
+// support for static QT plugins
+#cmakedefine USE_STATIC_QT_PLUGINS
+
 // cec support
 #cmakedefine ENABLE_CEC
 
