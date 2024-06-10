@@ -2,13 +2,30 @@
 # SQLite
 #=============================================================================
 
-add_library(sqlite3 SHARED "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+if (NOT USE_SHARED_LIBS)
+	add_library(sqlite3 "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+else()
+	add_library(sqlite3 SHARED "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+	if(WIN32)
+	   target_compile_definitions(sqlite3
+		  INTERFACE
+			 "SQLITE_API=__declspec(dllimport)"
+		  PRIVATE
+			 "SQLITE_API=__declspec(dllexport)"
+	   )
+	else()
+	   target_compile_definitions(sqlite3
+		  INTERFACE
+			 "SQLITE_API=__attribute__((visibility(\"default\")))"
+	   )
+	endif()
+endif()
+
 target_include_directories(sqlite3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite")
 target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 install(
     TARGETS   sqlite3
-    RUNTIME   DESTINATION "${CMAKE_INSTALL_BINDIR}"
     LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )
@@ -25,20 +42,6 @@ target_compile_definitions(sqlite3 PUBLIC
 	SQLITE_OMIT_AUTHORIZATION
 	SQLITE_OMIT_DEPRECATED
 )
-
-if(WIN32)
-   target_compile_definitions(sqlite3
-      INTERFACE
-         "SQLITE_API=__declspec(dllimport)"
-      PRIVATE
-         "SQLITE_API=__declspec(dllexport)"
-   )
-else()
-   target_compile_definitions(sqlite3
-      INTERFACE
-         "SQLITE_API=__attribute__((visibility(\"default\")))"
-   )
-endif()
 
 #=============================================================================
 # RPi ws281x
@@ -83,6 +86,8 @@ if (USE_SYSTEM_FLATBUFFERS_LIBS AND NOT CMAKE_CROSSCOMPILING)
 endif()
 
 if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
+	cmake_policy(PUSH)
+
 	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
 	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")	
 
@@ -125,9 +130,11 @@ if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
 
 	IF (NOT CMAKE_CROSSCOMPILING)
 		set(FLATBUFFERS_FLATC_EXECUTABLE "$<TARGET_FILE:flatc>")
-	endif()
+	else()
+		message( STATUS "Using host flatc compiler: ${FLATBUFFERS_FLATC_EXECUTABLE}")
+	endif()	
 
-	message( STATUS "Using host flatc compiler: ${FLATBUFFERS_FLATC_EXECUTABLE}")
+	cmake_policy(POP)
 endif()
 
 set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
@@ -180,12 +187,16 @@ if ( ENABLE_MQTT )
 		string(REPLACE "find_package" "#find_package" FILE_CONTENTS "${FILE_CONTENTS}")		
 		file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
 
-		if (NOT WIN32)	
+		cmake_policy(PUSH)
+
+		if (NOT USE_SHARED_LIBS)
 			set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 			set(qmqtt_SHARED OFF)
 		endif()
 
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qmqtt)
+
+		cmake_policy(POP)
 	endif()
 endif()
 

@@ -16,6 +16,17 @@ macro(DeployApple TARGET)
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 
+		# Copy QMQTT
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+			install(CODE [[ file(INSTALL FILES $<TARGET_SONAME_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy SQLITE3
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
 		if ( Qt5Core_FOUND )			
 			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
 		else()
@@ -27,6 +38,7 @@ macro(DeployApple TARGET)
 			OUTPUT_VARIABLE MYQT_PLUGINS_DIR
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
+
 		install(CODE "set(MYQT_PLUGINS_DIR \"${MYQT_PLUGINS_DIR}\")"     COMPONENT "HyperHDR")
 		install(CODE "set(MY_DEPENDENCY_PATHS \"${TARGET_FILE}\")"       COMPONENT "HyperHDR")
 		install(CODE "set(MY_SYSTEM_LIBS_SKIP \"${SYSTEM_LIBS_SKIP}\")"  COMPONENT "HyperHDR")
@@ -107,23 +119,7 @@ macro(DeployApple TARGET)
 							FILES "${_file}"
 						)
 					endif()
-				endforeach()
-				
-				if (NOT Qt5Core_FOUND AND EXISTS "/usr/local/lib/libbrotlicommon.1.dylib")
-					file(INSTALL
-						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-						TYPE SHARED_LIBRARY
-						FOLLOW_SYMLINK_CHAIN
-						FILES "/usr/local/lib/libbrotlicommon.1.dylib")
-				endif()
-
-				if (EXISTS "/usr/local/lib/libsharpyuv.0.dylib")
-					file(INSTALL
-						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-						TYPE SHARED_LIBRARY
-						FOLLOW_SYMLINK_CHAIN
-						FILES "/usr/local/lib/libsharpyuv.0.dylib")
-				endif()					
+				endforeach()				
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
@@ -160,9 +156,6 @@ macro(DeployApple TARGET)
 					endif()
 				endforeach()
 
-			# Copy SQLITE3
-			file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY)
-			
 			include(BundleUtilities)							
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 				
@@ -517,11 +510,15 @@ macro(DeployWindows TARGET)
 		# Copy TurboJPEG Libs
 		install(FILES ${TurboJPEG_INSTALL_LIB} DESTINATION "bin" COMPONENT "HyperHDR" )
 
-		# Copy MQTT
-		install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		# Copy QMQTT
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
 
 		# Copy SQLITE3
-		install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")

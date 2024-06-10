@@ -46,6 +46,7 @@ SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
 SET ( DEFAULT_XZ                          ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
 SET ( DEFAULT_SYSTRAY                     ON  )
+SET ( DEFAULT_SHARED_LIBS                 ON  )
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
@@ -338,6 +339,10 @@ if (WIN32)
 	endif (SEVENZIP_BIN)
 endif()
 
+if (CMAKE_CROSSCOMPILING)
+	SET ( DEFAULT_SHARED_LIBS                 OFF )
+endif()
+
 # set the build options
  if(NOT WIN32)
 	string(ASCII 27 EscChar)
@@ -432,13 +437,13 @@ colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 option(ENABLE_SYSTRAY "Enable SYSTRAY" ${DEFAULT_SYSTRAY})
 colorMe("ENABLE_SYSTRAY = " ${ENABLE_SYSTRAY})
 
-option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
-colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
-
 option(ENABLE_XZ "Enable XZ support" ${DEFAULT_XZ})
 colorMe("ENABLE_XZ = " ${ENABLE_XZ})
 
 message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
+
+option(USE_SHARED_LIBS "Prefer shared libraries over static ones" ${DEFAULT_SHARED_LIBS})
+colorMe("USE_SHARED_LIBS = " ${USE_SHARED_LIBS})
 
 option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
 colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
@@ -448,6 +453,9 @@ colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
 
 option(USE_SYSTEM_FLATBUFFERS_LIBS "Use system flatbuffers libs" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
 colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
+
+option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
+colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
 
 if(UNIX AND NOT APPLE)
 	option(USE_STANDARD_INSTALLER_NAME "Use the standardized Linux installer name" OFF)
