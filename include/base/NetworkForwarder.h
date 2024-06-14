@@ -23,7 +23,7 @@
 // Forward declaration
 class HyperHdrInstance;
 class QTcpSocket;
-class FlatBufferConnection;
+class FlatBuffersClient;
 
 class NetworkForwarder : public QObject
 {
@@ -41,6 +41,7 @@ signals:
 
 public slots:
 	void startedHandler();
+	void signalColorIsSetHandler(ColorRgb color, int duration);
 	void signalForwardImageHandler();
 	void handlerInstanceImageUpdated(const Image<ColorRgb>& ret);
 
@@ -60,7 +61,7 @@ private:
 
 	const int	_priority;
 
-	QList<FlatBufferConnection*> _forwardClients;
+	QList<FlatBuffersClient*> _forwardClients;
 	std::atomic<bool> _hasImage;
 	Image<ColorRgb>	_image;
 };

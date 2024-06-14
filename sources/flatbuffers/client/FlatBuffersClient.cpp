@@ -1,14 +1,42 @@
+/* FlatBuffersClient.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2024 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+*/
+
 // stl includes
 #include <stdexcept>
 
 // flatbuffer includes
-#include <flatbufserver/FlatBufferConnection.h>
+#include <flatbuffers/client/FlatBuffersClient.h>
 
 // flatbuffer FBS
-#include "hyperhdr_reply_generated.h"
-#include "hyperhdr_request_generated.h"
+#include <flatbuffers/parser/FlatBuffersParser.h>
 
-FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origin, const QString& address, int priority, bool skipReply)
+using namespace FlatBuffersParser;
+
+FlatBuffersClient::FlatBuffersClient(QObject* parent, const QString& origin, const QString& address, int priority, bool skipReply)
 	: QObject(parent)
 	, _socket((address == HYPERHDR_DOMAIN_SERVER) ? nullptr : new QTcpSocket(this))
 	, _domain((address == HYPERHDR_DOMAIN_SERVER) ? new QLocalSocket(this) : nullptr)
@@ -17,10 +45,17 @@ FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origi
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
 	, _prevLocalState(QLocalSocket::UnconnectedState)
 	, _log(Logger::getInstance("FLATBUFCONN"))
+	, _builder(nullptr)
 	, _registered(false)
 	, _sent(false)
 	, _lastSendImage(0)
 {
+	if (!initParserLibrary() || _builder == nullptr)
+	{
+		_error = "Could not initialize Flatbuffers parser";
+		return;
+	}
+
 	if (_socket == nullptr)
 		Info(_log, "Connection using local domain socket. Ignoring port.");
 	else
@@ -31,7 +66,8 @@ FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origi
 		QStringList parts = address.split(":");
 		if (parts.size() != 2)
 		{
-			throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse address (%1)").arg(address).toStdString());
+			_error = QString("FlatBuffersClient: Unable to parse address (%1)").arg(address);
+			return;
 		}
 		_host = parts[0];
 
@@ -39,7 +75,8 @@ FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origi
 		_port = parts[1].toUShort(&ok);
 		if (!ok)
 		{
-			throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse the port (%1)").arg(parts[1]).toStdString());
+			_error = QString("FlatBuffersClient: Unable to parse the port (%1)").arg(parts[1]);
+			return;
 		}
 	}
 	else
@@ -51,9 +88,15 @@ FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origi
 	if (!skipReply)
 	{
 		if (_socket != nullptr)
-			connect(_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+		{
+			connect(_socket, &QTcpSocket::readyRead, this, &FlatBuffersClient::readData, Qt::UniqueConnection);
+			connect(_socket, &QTcpSocket::connected, this, [&]() { setRegister(_origin, _priority); });
+		}
 		else if (_domain != nullptr)
-			connect(_domain, &QLocalSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+		{
+			connect(_domain, &QLocalSocket::readyRead, this, &FlatBuffersClient::readData, Qt::UniqueConnection);
+			connect(_domain, &QLocalSocket::connected, this, [&]() { setRegister(_origin, _priority); });
+		}
 	}
 
 	// init connect
@@ -67,13 +110,30 @@ FlatBufferConnection::FlatBufferConnection(QObject* parent, const QString& origi
 	// start the connection timer
 	_timer.setInterval(5000);
 
-	connect(&_timer, &QTimer::timeout, this, &FlatBufferConnection::connectToHost);
+	connect(&_timer, &QTimer::timeout, this, &FlatBuffersClient::connectToHost);
 	_timer.start();
 
-	connect(this, &FlatBufferConnection::SignalImageToSend, this, &FlatBufferConnection::sendImage);
+	connect(this, &FlatBuffersClient::SignalImageToSend, this, &FlatBuffersClient::sendImage);
+	connect(this, &FlatBuffersClient::SignalSetColor, this, &FlatBuffersClient::setColorHandler);
 }
 
-FlatBufferConnection::~FlatBufferConnection()
+QString FlatBuffersClient::getErrorString()
+{
+	return _error;
+}
+
+void FlatBuffersClient::setColorHandler(ColorRgb color, int duration)
+{
+	setColor(color, _priority, duration);
+}
+
+bool FlatBuffersClient::initParserLibrary()
+{
+	_builder = createFlatbuffersBuilder();
+	return (_builder != nullptr);
+}
+
+FlatBuffersClient::~FlatBuffersClient()
 {
 	_timer.stop();
 
@@ -81,9 +141,12 @@ FlatBufferConnection::~FlatBufferConnection()
 		_socket->close();
 	if (_domain != nullptr)
 		_domain->close();
+
+	if (_builder != nullptr)
+		releaseFlatbuffersBuilder(_builder);
 }
 
-void FlatBufferConnection::readData()
+void FlatBuffersClient::readData()
 {
 	if (_socket != nullptr)
 		_receiveBuffer += _socket->readAll();
@@ -106,76 +169,69 @@ void FlatBufferConnection::readData()
 		const QByteArray msg = _receiveBuffer.mid(4, messageSize);
 		_receiveBuffer.remove(0, messageSize + 4);
 
-		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
-		flatbuffers::Verifier verifier(msgData, messageSize);
-
-		if (hyperhdrnet::VerifyReplyBuffer(verifier))
-		{
-			parseReply(hyperhdrnet::GetReply(msgData));
-			continue;
-		}
-		Error(_log, "Unable to parse reply");
+		if (!verifyFlatbuffersReplyBuffer(reinterpret_cast<const uint8_t*>(msg.data()), messageSize, &_sent, &_registered, &_priority))
+			Error(_log, "Unable to parse reply");
 	}
 }
 
-void FlatBufferConnection::setSkipReply(bool skip)
+void FlatBuffersClient::setSkipReply(bool skip)
 {
 	if (_socket != nullptr)
 	{
 		if (skip)
 			disconnect(_socket, &QTcpSocket::readyRead, 0, 0);
 		else
-			connect(_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+			connect(_socket, &QTcpSocket::readyRead, this, &FlatBuffersClient::readData, Qt::UniqueConnection);
 	}
 	if (_domain != nullptr)
 	{
 		if (skip)
 			disconnect(_domain, &QLocalSocket::readyRead, 0, 0);
 		else
-			connect(_domain, &QLocalSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
+			connect(_domain, &QLocalSocket::readyRead, this, &FlatBuffersClient::readData, Qt::UniqueConnection);
 	}
 }
 
-void FlatBufferConnection::setRegister(const QString& origin, int priority)
+void FlatBuffersClient::setRegister(const QString& origin, int priority)
 {
-	auto registerReq = hyperhdrnet::CreateRegister(_builder, _builder.CreateString(QSTRING_CSTR(origin)), priority);
-	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Register, registerReq.Union());
+	uint8_t* outputbuffer = nullptr;
+	size_t outputbufferSize = 0;
 
-	_builder.Finish(req);
-	uint32_t size = _builder.GetSize();
+	encodeRegisterPriorityIntoFlatbuffers(_builder, priority, QSTRING_CSTR(origin), &outputbuffer, &outputbufferSize);
+
+
 	const uint8_t header[] = {
-		uint8_t((size >> 24) & 0xFF),
-		uint8_t((size >> 16) & 0xFF),
-		uint8_t((size >> 8) & 0xFF),
-		uint8_t((size) & 0xFF) };
+		uint8_t((outputbufferSize >> 24) & 0xFF),
+		uint8_t((outputbufferSize >> 16) & 0xFF),
+		uint8_t((outputbufferSize >> 8) & 0xFF),
+		uint8_t((outputbufferSize) & 0xFF) };
 
 	// write message
 	if (_socket != nullptr)
 	{
 		_socket->write(reinterpret_cast<const char*>(header), 4);
-		_socket->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
+		_socket->write(reinterpret_cast<const char*>(outputbuffer), outputbufferSize);
 		_socket->flush();
 	}
 	else if (_domain != nullptr)
 	{
 		_domain->write(reinterpret_cast<const char*>(header), 4);
-		_domain->write(reinterpret_cast<const char*>(_builder.GetBufferPointer()), size);
+		_domain->write(reinterpret_cast<const char*>(outputbuffer), outputbufferSize);
 		_domain->flush();
 	}
-	_builder.Clear();
+	clearFlatbuffersBuilder(_builder);
 }
 
-void FlatBufferConnection::setColor(const ColorRgb& color, int priority, int duration)
+void FlatBuffersClient::setColor(const ColorRgb& color, int priority, int duration)
 {
-	auto colorReq = hyperhdrnet::CreateColor(_builder, (color.red << 16) | (color.green << 8) | color.blue, duration);
-	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Color, colorReq.Union());
-
-	_builder.Finish(req);
-	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
-	_builder.Clear();
+	uint8_t* outputbuffer = nullptr;
+	size_t outputbufferSize = 0;
+	encodeColorIntoFlatbuffers(_builder, color.red, color.green, color.blue, priority, duration, &outputbuffer, &outputbufferSize);
+	sendMessage(outputbuffer, outputbufferSize);
+	clearFlatbuffersBuilder(_builder);
 }
 
-void FlatBufferConnection::sendImage(const Image<ColorRgb>& image)
+void FlatBuffersClient::sendImage(const Image<ColorRgb>& image)
 {
 	auto current = InternalClock::now();
 	auto outOfTime = (current - _lastSendImage);
@@ -200,32 +256,30 @@ void FlatBufferConnection::sendImage(const Image<ColorRgb>& image)
 	_sent = true;
 	_lastSendImage = current;
 
-	auto imgData = _builder.CreateVector(image.rawMem(), image.size());
-	auto rawImg = hyperhdrnet::CreateRawImage(_builder, imgData, image.width(), image.height());
-	auto imageReq = hyperhdrnet::CreateImage(_builder, hyperhdrnet::ImageType_RawImage, rawImg.Union(), -1);
-	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Image, imageReq.Union());
-
-	_builder.Finish(req);
-	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
-	_builder.Clear();
+	// encode and send
+	uint8_t* outputbuffer = nullptr;
+	size_t outputbufferSize = 0;
+	encodeImageIntoFlatbuffers(_builder, image.rawMem(), image.size(), image.width(), image.height(), &outputbuffer, &outputbufferSize);
+	sendMessage(outputbuffer, outputbufferSize);
+	clearFlatbuffersBuilder(_builder);
 }
 
-void FlatBufferConnection::clear(int priority)
+void FlatBuffersClient::clear(int priority)
 {
-	auto clearReq = hyperhdrnet::CreateClear(_builder, priority);
-	auto req = hyperhdrnet::CreateRequest(_builder, hyperhdrnet::Command_Clear, clearReq.Union());
-
-	_builder.Finish(req);
-	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
-	_builder.Clear();
+	// encode and send
+	uint8_t* outputbuffer = nullptr;
+	size_t outputbufferSize = 0;
+	encodeClearPriorityIntoFlatbuffers(_builder, priority, &outputbuffer, &outputbufferSize);
+	sendMessage(outputbuffer, outputbufferSize);
+	clearFlatbuffersBuilder(_builder);
 }
 
-void FlatBufferConnection::clearAll()
+void FlatBuffersClient::clearAll()
 {
 	clear(-1);
 }
 
-void FlatBufferConnection::connectToHost()
+void FlatBuffersClient::connectToHost()
 {
 	// try connection only when
 	if (_socket != nullptr && _socket->state() == QAbstractSocket::UnconnectedState)
@@ -234,7 +288,7 @@ void FlatBufferConnection::connectToHost()
 		_domain->connectToServer(_host);
 }
 
-void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
+void FlatBuffersClient::sendMessage(const uint8_t* buffer, uint32_t size)
 {
 	// print out connection message only when state is changed
 	if (_socket != nullptr && _socket->state() != _prevSocketState)
@@ -304,32 +358,3 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 	}
 }
 
-bool FlatBufferConnection::parseReply(const hyperhdrnet::Reply* reply)
-{
-	_sent = false;
-
-	if (!reply->error())
-	{
-		// no error set must be a success or registered or video
-		//const auto videoMode =
-		reply->video();
-		const auto registered = reply->registered();
-		/*if (videoMode != -1) {
-			// We got a video reply.
-			emit setVideoMode(static_cast<VideoMode>(videoMode));
-			return true;
-		}*/
-
-		// We got a registered reply.
-		if (registered == -1 || registered != _priority)
-			_registered = false;
-		else
-			_registered = true;
-
-		return true;
-	}
-	else
-		throw std::runtime_error(reply->error()->str());
-
-	return false;
-}

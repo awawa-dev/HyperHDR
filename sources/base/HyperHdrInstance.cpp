@@ -576,7 +576,10 @@ void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledCo
 	{
 		clear(priority);
 	}
-
+	if (getCurrentPriority() == priority)
+	{
+		emit SignalColorIsSet(ledColors[0], timeout_ms);
+	}
 	// register color
 	_muxer->registerInput(priority, hyperhdr::COMP_COLOR, origin, ledColors[0]);
 	_muxer->setInput(priority, timeout_ms);

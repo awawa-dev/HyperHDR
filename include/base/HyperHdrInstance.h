@@ -121,6 +121,7 @@ signals:
 	void SignalSmoothingRestarted(int suggestedInterval);
 	void SignalRawColorsChanged(const std::vector<ColorRgb>& ledValues);
 	void SignalInstanceJustStarted();
+	void SignalColorIsSet(ColorRgb color, int duration);
 
 private slots:
 	void handleVisibleComponentChanged(hyperhdr::Components comp);

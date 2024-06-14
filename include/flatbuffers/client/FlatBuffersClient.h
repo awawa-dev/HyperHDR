@@ -11,23 +11,16 @@
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
 
-#include <flatbuffers/flatbuffers.h>
-
-namespace hyperhdrnet
-{
-	struct Reply;
-}
-
 #define HYPERHDR_DOMAIN_SERVER QStringLiteral("hyperhdr-domain")
 
-class FlatBufferConnection : public QObject
+class FlatBuffersClient : public QObject
 {
 
 	Q_OBJECT
 
 public:
-	FlatBufferConnection(QObject* parent, const QString& origin, const QString& address, int priority, bool skipReply);
-	~FlatBufferConnection() override;
+	FlatBuffersClient(QObject* parent, const QString& origin, const QString& address, int priority, bool skipReply);
+	~FlatBuffersClient() override;
 
 	void setSkipReply(bool skip);
 	void setRegister(const QString& origin, int priority);
@@ -35,9 +28,11 @@ public:
 	void clear(int priority);
 	void clearAll();
 	void sendMessage(const uint8_t* buffer, uint32_t size);
+	QString getErrorString();
 
 public slots:
 	void sendImage(const Image<ColorRgb>& image);
+	void setColorHandler(ColorRgb color, int duration);
 
 private slots:
 	void connectToHost();
@@ -45,9 +40,10 @@ private slots:
 
 signals:
 	void SignalImageToSend(const Image<ColorRgb>& image);
+	void SignalSetColor(ColorRgb color, int duration);
 
 private:
-	bool parseReply(const hyperhdrnet::Reply* reply);
+	bool initParserLibrary();
 
 	QTcpSocket*		_socket;
 	QLocalSocket*	_domain;
@@ -62,9 +58,10 @@ private:
 	QLocalSocket::LocalSocketState	_prevLocalState;
 
 	Logger* _log;
-	flatbuffers::FlatBufferBuilder _builder;
+	QString	_error;
+	void*	_builder;
 
-	bool	 _registered;
-	bool	 _sent;
+	bool	_registered;
+	bool	_sent;
 	uint64_t _lastSendImage;
 };

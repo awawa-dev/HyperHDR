@@ -37,7 +37,7 @@
 
 #include <base/NetworkForwarder.h>
 #include <base/HyperHdrInstance.h>
-#include <flatbufserver/FlatBufferConnection.h>
+#include <flatbuffers/client/FlatBuffersClient.h>
 #include <utils/GlobalSignals.h>
 #include <base/HyperHdrManager.h>
 #include <base/Muxer.h>
@@ -75,6 +75,8 @@ void NetworkForwarder::startedHandler()
 	connect(this, &NetworkForwarder::SignalForwardImage, this, &NetworkForwarder::signalForwardImageHandler, Qt::QueuedConnection);
 	connect(hyperhdr.get(), &HyperHdrInstance::SignalInstanceSettingsChanged, this, &NetworkForwarder::handleSettingsUpdate);
 	connect(hyperhdr.get(), &HyperHdrInstance::SignalRequestComponent, this, &NetworkForwarder::handleCompStateChangeRequest);
+	connect(hyperhdr.get(), &HyperHdrInstance::SignalColorIsSet, this, &NetworkForwarder::signalColorIsSetHandler);
+	
 
 	handleCompStateChangeRequest(hyperhdr::COMP_FORWARDER, true);
 }
@@ -228,10 +230,19 @@ void NetworkForwarder::addFlatbufferSlave(const QString& slave, const QJsonObjec
 
 	if (_forwarderEnabled && !_flatSlaves.contains(slave))
 	{
-		_flatSlaves << slave;
+		FlatBuffersClient* flatbuf = new FlatBuffersClient(this, "Forwarder", slave, _priority, false);
+		QString anyError = flatbuf->getErrorString();
 
-		FlatBufferConnection* flatbuf = new FlatBufferConnection(this, "Forwarder", slave, _priority, false);
-		_forwardClients << flatbuf;
+		if (anyError.isEmpty())
+		{
+			_flatSlaves << slave;
+			_forwardClients << flatbuf;
+		}
+		else
+		{
+			Error(_log, "Could not initialize client: %s", QSTRING_CSTR(anyError));
+			flatbuf->deleteLater();
+		}
 	}
 }
 
@@ -250,6 +261,14 @@ void NetworkForwarder::forwardJsonMessage(const QJsonObject& message)
 				client.close();
 			}
 		}
+	}
+}
+
+void NetworkForwarder::signalColorIsSetHandler(ColorRgb color, int duration)
+{
+	for (int i = 0; i < _forwardClients.size(); i++)
+	{
+		emit _forwardClients.at(i)->SignalSetColor(color, duration);
 	}
 }
 

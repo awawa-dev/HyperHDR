@@ -25,7 +25,7 @@
 #include <base/SystemWrapper.h>
 #include <base/Muxer.h>
 #include <db/AuthTable.h>
-#include <flatbufserver/FlatBufferServer.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/GlobalSignals.h>
 #include <base/GrabberHelper.h>
