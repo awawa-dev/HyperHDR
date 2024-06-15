@@ -28,17 +28,11 @@
 #include <base/GrabberHelper.h>
 #include <base/NetworkForwarder.h>
 
-#ifdef USE_STATIC_QT_PLUGINS
-	#include <QtPlugin>
-	Q_IMPORT_PLUGIN(QJpegPlugin)
-	Q_IMPORT_PLUGIN(QGifPlugin)
-#endif
-
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
 
 // Flatbuffer Server
-#include <flatbufserver/FlatBufferServer.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
 
 // ProtoNanoBuffer Server
 #include <proto-nano-server/ProtoServer.h>
@@ -93,10 +87,10 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// First load default configuration for other objects
-	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this, readonlyMode));
+	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this));
 
 	// Instance manager
-	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath, readonlyMode),
+	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath),
 		[](HyperHdrManager* instanceManager) {
 			SMARTPOINTER_MESSAGE("HyperHdrManager");
 			delete instanceManager;
@@ -104,7 +98,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetInstanceManager, this, &HyperHdrDaemon::getInstanceManager, Qt::DirectConnection);
 
 	// Access Manager
-	_accessManager = std::shared_ptr<AccessManager>(new AccessManager(this, readonlyMode),
+	_accessManager = std::shared_ptr<AccessManager>(new AccessManager(this),
 		[](AccessManager* accessManager) {
 			SMARTPOINTER_MESSAGE("AccessManager");
 			delete accessManager;
@@ -324,18 +318,18 @@ void HyperHdrDaemon::startNetworkServices()
 
 	_flatProtoThread->setObjectName("FlatProtoThread");
 
-	FlatBufferServer* _flatBufferServer = new FlatBufferServer(_netOrigin, getSetting(settings::type::FLATBUFSERVER), _rootPath);
+	FlatBuffersServer* _flatBufferServer = new FlatBuffersServer(_netOrigin, getSetting(settings::type::FLATBUFSERVER), _rootPath);
 	_flatBufferServer->moveToThread(_flatProtoThread);
 	flatProtoThreadClients.push_back(_flatBufferServer);
 	if (_videoGrabber == nullptr)
 	{
 		Warning(_log, "The USB grabber was disabled during build. FlatbufferServer now controlls the HDR state.");		
-		connect(_flatBufferServer, &FlatBufferServer::SignalSetNewComponentStateToAllInstances, _instanceManager.get(), &HyperHdrManager::SignalSetNewComponentStateToAllInstances);
+		connect(_flatBufferServer, &FlatBuffersServer::SignalSetNewComponentStateToAllInstances, _instanceManager.get(), &HyperHdrManager::SignalSetNewComponentStateToAllInstances);
 	}
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, _flatBufferServer, &FlatBufferServer::signalRequestSourceHandler);
-	connect(_flatProtoThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
-	connect(_flatProtoThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
-	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, _flatBufferServer, &FlatBuffersServer::signalRequestSourceHandler);
+	connect(_flatProtoThread, &QThread::started, _flatBufferServer, &FlatBuffersServer::initServer);
+	connect(_flatProtoThread, &QThread::finished, _flatBufferServer, &FlatBuffersServer::deleteLater);
+	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _flatBufferServer, &FlatBuffersServer::handleSettingsUpdate);
 
 	NetworkForwarder* _networkForwarder = new NetworkForwarder();
 	_networkForwarder->moveToThread(_flatProtoThread);
@@ -349,7 +343,7 @@ void HyperHdrDaemon::startNetworkServices()
 	flatProtoThreadClients.push_back(_protoServer);
 	connect(_flatProtoThread, &QThread::started, _protoServer, &ProtoServer::initServer);
 	connect(_flatProtoThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
-	connect(_protoServer, &ProtoServer::SignalImportFromProto, _flatBufferServer, &FlatBufferServer::SignalImportFromProto);
+	connect(_protoServer, &ProtoServer::SignalImportFromProto, _flatBufferServer, &FlatBuffersServer::SignalImportFromProto);
 	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 #endif
 

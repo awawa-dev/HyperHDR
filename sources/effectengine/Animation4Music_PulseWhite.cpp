@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_PulseWhite::getDefinition()
 	return ed;
 }
 
-void Animation4Music_PulseWhite::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_PulseWhite::Play(HyperImage& painter)
 {
 	return false;

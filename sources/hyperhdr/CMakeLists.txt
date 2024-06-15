@@ -4,17 +4,6 @@ if (WIN32)
 	generate_win_rc_file(hyperhdr)
 endif()
 
-if (NOT ENABLE_POWER_MANAGEMENT)	
-elseif (WIN32)
-	set(hyperhdr_POWER_MNG "SuspendHandlerWindows.cpp;SuspendHandlerWindows.h")
-elseif (APPLE)
-	set(hyperhdr_POWER_MNG "SuspendHandlerMacOS.mm;SuspendHandlerMacOS.h")
-	find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
-elseif (Qt${Qt_VERSION}DBus_FOUND)
-	set(hyperhdr_POWER_MNG "SuspendHandlerLinux.cpp;SuspendHandlerLinux.h")
-	set(hyperhdr_POWER_MNG_DBUS "Qt${Qt_VERSION}::DBus")
-endif()
-
 add_executable(hyperhdr
 	HyperHdrDaemon.h
 	SystrayHandler.h
@@ -22,12 +11,7 @@ add_executable(hyperhdr
 	SystrayHandler.cpp
 	main.cpp
 	${hyperhdr_WIN_RC_PATH}
-	${hyperhdr_POWER_MNG}
 )
-
-if (UNIX AND NOT APPLE AND Qt${Qt_VERSION}DBus_FOUND)
-	target_compile_definitions(hyperhdr PUBLIC HYPERHDR_HAVE_DBUS)
-endif()
 
 # promote hyperhdr as GUI app
 if (WIN32)
@@ -40,25 +24,22 @@ target_link_libraries(hyperhdr
 	hyperimage
 	effectengine
 	jsonserver
-	flatbufserver
+	flatbuffers_server
+	flatbuffers_client
 	webserver
 	ssdp
 	database
 	resources
-	${hyperhdr_POWER_MNG_DBUS}
+	suspend-handler
 	${APPKIT_FRAMEWORK}
 )
 
 if (WIN32 OR APPLE)
-	target_link_libraries(hyperhdr SystrayWidget)
+	target_link_libraries(hyperhdr systray-widget)
 else()
-	install(TARGETS SystrayWidget
+	install(TARGETS systray-widget
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-endif()
-
-if (USE_STATIC_QT_PLUGINS)
-	target_link_libraries(hyperhdr ${STATIC_QT_PLUGINS_LIBS})
 endif()
 
 if(ENABLE_XZ)
@@ -67,6 +48,10 @@ if(ENABLE_XZ)
 	else()
 		target_link_libraries(hyperhdr liblzma)
 	endif()
+endif()
+
+if (USE_STATIC_QT_PLUGINS)
+	target_link_libraries(hyperhdr ${STATIC_QT_PLUGINS_LIBS})
 endif()
 
 if (ENABLE_PROTOBUF)

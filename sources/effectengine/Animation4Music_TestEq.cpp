@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_TestEq::getDefinition()
 	return ed;
 }
 
-void Animation4Music_TestEq::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(5);
-}
-
 bool Animation4Music_TestEq::Play(HyperImage& painter)
 {
 	return false;

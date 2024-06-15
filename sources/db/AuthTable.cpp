@@ -3,10 +3,9 @@
 #include <db/AuthTable.h>
 using namespace hyperhdr;
 
-AuthTable::AuthTable(bool readonlyMode)
+AuthTable::AuthTable()
 	: DBManager()
 {
-	setReadonlyMode(readonlyMode);
 	// init Auth table
 	setTable("auth");
 	// create table columns

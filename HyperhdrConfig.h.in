@@ -77,6 +77,8 @@
 
 #cmakedefine ENABLE_POWER_MANAGEMENT
 
+#cmakedefine HYPERHDR_HAVE_DBUS
+
 // the hyperhdr build id string
 #define HYPERHDR_BUILD_ID "${HYPERHDR_BUILD_ID}"
 #define HYPERHDR_GIT_REMOTE "${HYPERHDR_GIT_REMOTE}"

@@ -101,7 +101,6 @@ BINSP=/usr/share/hyperhdr/bin
 BINTP=/usr/bin
 chmod +x -R $BINSP
 ln -fs $BINSP/hyperhdr $BINTP/hyperhdr
-ln -fs $BINSP/hyperhdr-remote $BINTP/hyperhdr-remote
 
 # install desktop icons
 echo "Install HyperHDR desktop icons"
@@ -133,24 +132,24 @@ fi
 
 echo ${start_msg}
 
-echo "\n +-----------------------------------------------------------------------+"
-echo " |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
-echo " +-----------------------------------------------------------------------+"
-printf " |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |\n" "$NET_IP" "8090"
-printf " |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |\n" "$NET_IP" "8091"
-printf " |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |\n" "$FOUND_USR"
-printf " |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |\n" "$FOUND_USR"
-echo   " |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
-echo   " +-----------------------------------------------------------------------+"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |" "$NET_IP" "8090"
+printf "\n |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |" "$NET_IP" "8091"
+printf "\n |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |" "$FOUND_USR"
+printf "\n |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |" "$FOUND_USR"
+printf "\n |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
+printf "\n +-----------------------------------------------------------------------+"
 case "$STARTUP_MSG" in 
   *"HyperHDR is installed as a service"*)
-	printf " |  \033[32;1m%-67s\033[0m  |\n" "$STARTUP_MSG";;
-  *) printf " |  \033[31;1m%-67s\033[0m  |\n" "$STARTUP_MSG"
+	printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
+  *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
 esac
-[ -z "$REBOOTMESSAGE" ] || printf " |  \033[31;1m%-67s\033[0m  |\n" "$REBOOTMESSAGE"
-echo " +-----------------------------------------------------------------------+"
-echo " |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
-echo " |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
-echo " +-----------------------------------------------------------------------+\n"
+[ -z "$REBOOTMESSAGE" ] || printf "\n |  \033[31;1m%-67s\033[0m  |" "$REBOOTMESSAGE"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
+printf "\n |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
+printf "\n +-----------------------------------------------------------------------+\n"
 
 exit 0

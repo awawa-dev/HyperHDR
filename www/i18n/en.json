@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Disable when locked",
   "edt_conf_gen_disableOnLocked_expl" : "Turn off processing when the user has locked the system.",
   "edt_conf_gen_disableLedsStartup_title" : "Turn off LEDs at startup",
-  "edt_conf_gen_disableLedsStartup_expl" : "Disable LEDs and all components on startup, you must re-enable them manually on the main page or via the JSON API (COMP_ALL component)."
+  "edt_conf_gen_disableLedsStartup_expl" : "Disable LEDs and all components on startup, you must re-enable them manually on the main page or via the JSON API (COMP_ALL component).",
+  "edt_conf_sound_device_smoothing_title" : "Enable smoothing",
+  "edt_conf_sound_device_smoothing_expl" : "Enable special smoothing for sound effects. Requires an LED device with an output frequency of 60 Hz. When smoothing is disabled, the output frequency is 20 Hz."
 }

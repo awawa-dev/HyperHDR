@@ -261,7 +261,7 @@ $(document).ready(function()
 
 		for (const comp of components)
 		{
-			if (comp.name === "ALL")
+			if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.serverInfo.currentInstance != 0))
 				continue;					
 
 			const comp_btn_id = "comp_btn_" + comp.name;

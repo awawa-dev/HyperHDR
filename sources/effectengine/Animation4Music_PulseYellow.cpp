@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_PulseYellow::getDefinition()
 	return ed;
 }
 
-void Animation4Music_PulseYellow::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_PulseYellow::Play(HyperImage& painter)
 {
 	return false;

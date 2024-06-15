@@ -35,6 +35,7 @@
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/JsonUtils.h>
 #include <utils/Components.h>
+#include <base/Smoothing.h>
 
 #include <effectengine/EffectEngine.h>
 #include <effectengine/Effect.h>
@@ -164,17 +165,17 @@ void EffectEngine::handlerSetLeds(int priority, const std::vector<ColorRgb>& led
 
 void EffectEngine::createSmoothingConfigs()
 {
-	unsigned id = 2;
-	unsigned dynamicId = 3;
+	unsigned defaultEffectConfig = SMOOTHING_EFFECT_CONFIGS_START;
+	unsigned dynamicId = defaultEffectConfig + 1;
 
-	_hyperInstance->updateSmoothingConfig(id);
+	_hyperInstance->addEffectConfig(defaultEffectConfig);
 
 	for (EffectDefinition& def : _availableEffects)
 	{
 		// add smoothing configs to HyperHdr
 		if (def.smoothingCustomSettings)
 		{
-			def.smoothingConfig = _hyperInstance->updateSmoothingConfig(
+			def.smoothingConfig = _hyperInstance->addEffectConfig(
 				dynamicId++,
 				def.smoothingTime,
 				def.smoothingFrequency,
@@ -182,7 +183,7 @@ void EffectEngine::createSmoothingConfigs()
 		}
 		else
 		{
-			def.smoothingConfig = _hyperInstance->updateSmoothingConfig(id);
+			def.smoothingConfig = _hyperInstance->addEffectConfig(defaultEffectConfig);
 		}
 	}
 }

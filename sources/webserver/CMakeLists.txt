@@ -25,6 +25,10 @@ target_link_libraries(webserver
 	Qt${Qt_VERSION}::Network
 )
 
+if (USE_STATIC_QT_PLUGINS)
+	target_link_libraries(webserver ${STATIC_QT_PLUGINS_LIBS})
+endif()
+
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
     target_precompile_headers(webserver REUSE_FROM precompiled_hyperhdr_headers)
 endif()

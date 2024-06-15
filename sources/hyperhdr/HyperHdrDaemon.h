@@ -110,13 +110,13 @@ class GrabberHelper;
 class QApplication;
 
 #if defined(_WIN32) && defined(ENABLE_POWER_MANAGEMENT)
-	#include "SuspendHandlerWindows.h"
+	#include <suspend-handler/SuspendHandlerWindows.h>
 #elif defined(__APPLE__) && defined(ENABLE_POWER_MANAGEMENT)
-	#include "SuspendHandlerMacOS.h"
-#elif defined(__linux__) && defined(HYPERHDR_HAVE_DBUS) && defined(ENABLE_POWER_MANAGEMENT)
-	#include "SuspendHandlerLinux.h"
+	#include <suspend-handler/SuspendHandlerMacOS.h>
+#elif defined(__linux__) && defined(ENABLE_POWER_MANAGEMENT)
+	#include <suspend-handler/SuspendHandlerLinux.h>
 #else
-	typedef QObject SuspendHandler;
+	#include <suspend-handler/SuspendHandlerDummy.h>	
 #endif
 
 namespace hyperhdr { enum class InstanceState; }

@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_QuatroMultiFast::getDefinition()
 	return ed;
 }
 
-void Animation4Music_QuatroMultiFast::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_QuatroMultiFast::Play(HyperImage& painter)
 {
 	return false;

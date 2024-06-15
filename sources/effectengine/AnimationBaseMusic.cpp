@@ -65,6 +65,11 @@ void AnimationBaseMusic::restore(MovingTarget* target) {
 	target->CopyFrom(&_myTarget);
 };
 
+void AnimationBaseMusic::Init(HyperImage& hyperImage, int hyperLatchTime)
+{
+	SetSleepTime(17);
+};
+
 void MovingTarget::Clear()
 {
 	_averageColor = ColorRgb(0, 0, 0);

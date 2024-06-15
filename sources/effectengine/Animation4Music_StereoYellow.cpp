@@ -43,14 +43,6 @@ EffectDefinition Animation4Music_StereoYellow::getDefinition()
 	return ed;
 }
 
-void Animation4Music_StereoYellow::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
-)
-{
-	SetSleepTime(15);
-}
-
 bool Animation4Music_StereoYellow::Play(HyperImage& painter)
 {
 	return false;

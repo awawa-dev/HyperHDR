@@ -66,7 +66,7 @@
 std::atomic<bool> HyperHdrInstance::_signalTerminate(false);
 std::atomic<int>  HyperHdrInstance::_totalRunningCount(0);
 
-HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, bool disableOnStartup, QString name)
+HyperHdrInstance::HyperHdrInstance(quint8 instance, bool disableOnStartup, QString name)
 	: QObject()
 	, _instIndex(instance)
 	, _bootEffect(QTime::currentTime().addSecs(5))
@@ -88,7 +88,6 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, bool disa
 	, _ledGridSize()
 	, _currentLedColors()
 	, _name((name.isEmpty()) ? QString("INSTANCE%1").arg(instance) : name)
-	, _readOnlyMode(readonlyMode)
 	, _disableOnStartup(disableOnStartup)
 {
 	_totalRunningCount++;
@@ -141,7 +140,7 @@ void HyperHdrInstance::start()
 
 	Info(_log, "Starting the instance");	
 
-	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this, _readOnlyMode));
+	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this));
 	_componentController = std::unique_ptr<ComponentController>(new ComponentController(this, _disableOnStartup));
 	connect(_componentController.get(), &ComponentController::SignalComponentStateChanged, this, &HyperHdrInstance::SignalComponentStateChanged);
 	_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(getSetting(settings::type::DEVICE).object()));
@@ -415,14 +414,19 @@ QJsonObject HyperHdrInstance::getAverageColor()
 	return ret;
 }
 
-unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned HyperHdrInstance::addEffectConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
 {
-	return _smoothing->UpdateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
+	return _smoothing->AddEffectConfig(id, settlingTime_ms, ledUpdateFrequency_hz, pause);
 }
 
 int HyperHdrInstance::getLedCount() const
 {
 	return static_cast<int>(_ledString.leds().size());
+}
+
+bool HyperHdrInstance::getReadOnlyMode() const
+{
+	return _instanceConfig->isReadOnlyMode();
 }
 
 void HyperHdrInstance::setSourceAutoSelect(bool state)
@@ -572,7 +576,10 @@ void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledCo
 	{
 		clear(priority);
 	}
-
+	if (getCurrentPriority() == priority)
+	{
+		emit SignalColorIsSet(ledColors[0], timeout_ms);
+	}
 	// register color
 	_muxer->registerInput(priority, hyperhdr::COMP_COLOR, origin, ledColors[0]);
 	_muxer->setInput(priority, timeout_ms);

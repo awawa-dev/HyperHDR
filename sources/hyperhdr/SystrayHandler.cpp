@@ -61,6 +61,7 @@
 #include "SystrayHandler.h"
 
 #ifdef __linux__
+#define SYSTRAY_WIDGET_LIB "libsystray-widget.so"
 #include <stdlib.h>
 #include <dlfcn.h>
 namespace
@@ -91,7 +92,7 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 
 #ifdef __linux__
 	// Load library
-	_library = dlopen("libSystrayWidget.so", RTLD_NOW);
+	_library = dlopen(SYSTRAY_WIDGET_LIB, RTLD_NOW);
 
 	if (_library)
 	{
@@ -151,7 +152,7 @@ void SystrayHandler::close()
 	}
 }
 
-static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder , QString destFilename = "")
+static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder, QString destFilename = "")
 {
 
 #ifdef __linux__
@@ -181,6 +182,8 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 
 	if (!iconFile.exists())
 	{
+		QDir().mkpath(iconFile.absolutePath());
+
 		QByteArray ar;
 		QBuffer buffer(&ar);
 		buffer.open(QIODevice::WriteOnly);
@@ -299,7 +302,7 @@ void SystrayHandler::createSystray()
 		
 		std::unique_ptr<SystrayMenu> colorItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 		loadSvg(colorItem, svg, _rootFolder, QString("%1.png").arg(QString::fromStdString(color)));
-		colorItem->label = color;		
+		colorItem->label = color;
 		colorItem->context = this;
 		colorItem->callback = [](SystrayMenu* m) {
 			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);

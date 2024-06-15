@@ -16,6 +16,17 @@ macro(DeployApple TARGET)
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 
+		# Copy QMQTT
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+			install(CODE [[ file(INSTALL FILES $<TARGET_SONAME_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy SQLITE3
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
 		if ( Qt5Core_FOUND )			
 			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
 		else()
@@ -27,6 +38,7 @@ macro(DeployApple TARGET)
 			OUTPUT_VARIABLE MYQT_PLUGINS_DIR
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
+
 		install(CODE "set(MYQT_PLUGINS_DIR \"${MYQT_PLUGINS_DIR}\")"     COMPONENT "HyperHDR")
 		install(CODE "set(MY_DEPENDENCY_PATHS \"${TARGET_FILE}\")"       COMPONENT "HyperHDR")
 		install(CODE "set(MY_SYSTEM_LIBS_SKIP \"${SYSTEM_LIBS_SKIP}\")"  COMPONENT "HyperHDR")
@@ -107,59 +119,43 @@ macro(DeployApple TARGET)
 							FILES "${_file}"
 						)
 					endif()
-				endforeach()
-				
-				if (NOT Qt5Core_FOUND AND EXISTS "/usr/local/lib/libbrotlicommon.1.dylib")
-					file(INSTALL
-						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-						TYPE SHARED_LIBRARY
-						FOLLOW_SYMLINK_CHAIN
-						FILES "/usr/local/lib/libbrotlicommon.1.dylib")
-				endif()
-
-				if (EXISTS "/usr/local/lib/libsharpyuv.0.dylib")
-					file(INSTALL
-						DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-						TYPE SHARED_LIBRARY
-						FOLLOW_SYMLINK_CHAIN
-						FILES "/usr/local/lib/libsharpyuv.0.dylib")
-				endif()					
+				endforeach()				
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
 					message(WARNING "Unresolved dependencies detected!")
 				endif()
-				  
-				foreach(PLUGIN "sqldrivers")
-				if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
-					file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*")
-					foreach(file ${files})							
-							file(GET_RUNTIME_DEPENDENCIES
-							EXECUTABLES ${file}
-							RESOLVED_DEPENDENCIES_VAR PLUGINS
-							UNRESOLVED_DEPENDENCIES_VAR _u_deps				
+
+				foreach(PLUGIN "tls")
+					if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
+						file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*openssl*")
+						foreach(file ${files})							
+								file(GET_RUNTIME_DEPENDENCIES
+								EXECUTABLES ${file}
+								RESOLVED_DEPENDENCIES_VAR PLUGINS
+								UNRESOLVED_DEPENDENCIES_VAR _u_deps				
+								)
+
+							foreach(DEPENDENCY ${PLUGINS})
+									file(INSTALL
+										DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+										TYPE SHARED_LIBRARY
+										FILES ${DEPENDENCY}
+									)									
+							endforeach()
+
+							get_filename_component(singleQtLib ${file} NAME)
+							list(APPEND MYQT_PLUGINS "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/${singleQtLib}")
+							file(INSTALL
+								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}"
+								TYPE SHARED_LIBRARY
+								FILES ${file}
 							)
 
-						foreach(DEPENDENCY ${PLUGINS})
-								file(INSTALL
-									DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-									TYPE SHARED_LIBRARY
-									FILES ${DEPENDENCY}
-								)									
 						endforeach()
-							
-						get_filename_component(singleQtLib ${file} NAME)
-						list(APPEND MYQT_PLUGINS "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/${singleQtLib}")
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}"
-							TYPE SHARED_LIBRARY
-							FILES ${file}
-						)
-							
-					endforeach()
-				endif()
-			endforeach()
-			
+					endif()
+				endforeach()
+
 			include(BundleUtilities)							
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 				
@@ -172,8 +168,6 @@ macro(DeployApple TARGET)
 					cmake_policy(SET CMP0009 NEW)
 					message( "Re-signing bundle's components...")
 					file(GLOB_RECURSE libSignFramework LIST_DIRECTORIES false "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/*")
-					file(GLOB_RECURSE libSignPlugins LIST_DIRECTORIES false "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/*")
-					list(APPEND libSignFramework ${libSignPlugins})
 					list(APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr")
 					foreach(_fileToSign ${libSignFramework})
 						string(FIND ${_fileToSign} ".framework/Resources" isResources)
@@ -261,8 +255,8 @@ macro(DeployUnix TARGET)
 			)
 		endif()
 
-		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")
-		
+		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")		
+
 		# Copy CEC lib
 		if (CEC_FOUND)
 			find_library(XRANDR_LIBRARY NAMES Xrandr libXrandr libXrandr.so.2)
@@ -378,42 +372,44 @@ macro(DeployUnix TARGET)
 			)
 
 			# get Systray deps (always present even if it's a dummy implementation)
-			file(INSTALL FILES $<TARGET_FILE:SystrayWidget> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY)
+			file(INSTALL FILES $<TARGET_FILE:systray-widget> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY)
 			file(GET_RUNTIME_DEPENDENCIES
 				RESOLVED_DEPENDENCIES_VAR SYS_DEPENDENCIES
-				EXECUTABLES $<TARGET_FILE:SystrayWidget>)
-			foreach(systraLib ${SYS_DEPENDENCIES})
-				string(FIND ${systraLib} "libayatana" _sysindex)
+				EXECUTABLES $<TARGET_FILE:systray-widget>)
+			foreach(systrayLib ${SYS_DEPENDENCIES})
+				string(FIND ${systrayLib} "libayatana" _sysindex)
 				if (${_sysindex} GREATER -1)
-					list(APPEND DEPENDENCIES ${systraLib})
+					list(APPEND DEPENDENCIES ${systrayLib})
 				endif()
-			endforeach()
-			
-
-			# Copy Qt plugins to 'share/hyperhdr/lib'
-			foreach(PLUGIN "sqldrivers")
-				#message(WARNING "Collecting Dependencies for QT plugin folder: ${PLUGIN}")
-				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
-					foreach(file ${files})
-						file(GET_RUNTIME_DEPENDENCIES
-							RESOLVED_DEPENDENCIES_VAR QT_DEPENDENCIES
-							EXECUTABLES ${file}
-						)
-						#message(WARNING "${file} => ${DEPENDENCIES} <= ${QT_DEPENDENCIES}")
-						list(APPEND DEPENDENCIES ${QT_DEPENDENCIES})
-
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/${PLUGIN}"
-							TYPE SHARED_LIBRARY
-							FILES ${file}
-						)
-							
-					endforeach()
+				string(FIND ${systrayLib} "libdbusmenu" _sysDBusindex)
+				if (${_sysDBusindex} GREATER -1)
+					list(APPEND DEPENDENCIES ${systrayLib})
 				endif()
-			endforeach()
+			endforeach()						
 		endif()
 
+		# Copy Qt plugins to 'share/hyperhdr/lib'
+		foreach(PLUGIN "tls")
+			#message(WARNING "Collecting Dependencies for QT plugin folder: ${PLUGIN}")
+			if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
+				file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*openssl*")
+				foreach(file ${files})
+					file(GET_RUNTIME_DEPENDENCIES
+						RESOLVED_DEPENDENCIES_VAR QT_DEPENDENCIES
+						EXECUTABLES ${file}
+					)
+					#message(WARNING "${file} => ${DEPENDENCIES} <= ${QT_DEPENDENCIES}")
+					list(APPEND DEPENDENCIES ${QT_DEPENDENCIES})
+
+					file(INSTALL
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/${PLUGIN}"
+						TYPE SHARED_LIBRARY
+						FILES ${file}
+					)
+						
+				endforeach()
+			endif()
+		endforeach()
 
 		# Append symlink and non-symlink dependencies to the list		
 		foreach(DEPENDENCY ${DEPENDENCIES})
@@ -514,8 +510,15 @@ macro(DeployWindows TARGET)
 		# Copy TurboJPEG Libs
 		install(FILES ${TurboJPEG_INSTALL_LIB} DESTINATION "bin" COMPONENT "HyperHDR" )
 
-		# Copy MQTT
-		install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		# Copy QMQTT
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy SQLITE3
+		if (USE_SHARED_LIBS)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
@@ -524,7 +527,7 @@ macro(DeployWindows TARGET)
 			DESTINATION "bin"
 			COMPONENT "HyperHDR"
 		)
-
+		
 		execute_process(
 			COMMAND ${SEVENZIP_BIN} e ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
 			RESULT_VARIABLE STATUS
@@ -557,6 +560,31 @@ macro(DeployWindows TARGET)
 		
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION bin COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION bin COMPONENT "HyperHDR")
+
+		find_package(OpenSSL QUIET)
+
+		find_file(OPENSSL_SSL
+			NAMES libssl-3-x64.dll libssl-1_1-x64.dll libssl-1_1.dll libssl ssleay32.dll ssl.dll
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			PATH_SUFFIXES bin
+		)
+
+		find_file(OPENSSL_CRYPTO
+			NAMES libcrypto-3-x64.dll libcrypto-1_1-x64.dll libcrypto-1_1.dll libcrypto libeay32.dll crypto.dll
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			PATH_SUFFIXES bin
+		)
+
+		if(OPENSSL_SSL AND OPENSSL_CRYPTO)
+			message( STATUS "OpenSSL found: ${OPENSSL_SSL} ${OPENSSL_CRYPTO}")
+			install(
+				FILES ${OPENSSL_SSL} ${OPENSSL_CRYPTO}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+		else()
+			message( WARNING "OpenSSL NOT found. HyperHDR's https instance and Philips Hue devices will not work.")
+		endif()
 
 	else()
 		# Run CMake after target was built
