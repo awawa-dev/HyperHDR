@@ -230,14 +230,3 @@ cpack_add_component(HyperHDR
 	GROUP Runtime
 	REQUIRED
 )
-
-if (NOT APPLE AND DISABLED_REMOTE)
-	cpack_add_component(HyperHDR_remote
-		DISPLAY_NAME "HyperHdr Remote"
-		DESCRIPTION "HyperHdr remote cli tool"
-		INSTALL_TYPES Full
-		GROUP Runtime
-		DEPENDS HyperHDR
-	)
-endif()
-

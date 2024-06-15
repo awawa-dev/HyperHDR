@@ -101,7 +101,6 @@ BINSP=/usr/share/hyperhdr/bin
 BINTP=/usr/bin
 chmod +x -R $BINSP
 ln -fs $BINSP/hyperhdr $BINTP/hyperhdr
-ln -fs $BINSP/hyperhdr-remote $BINTP/hyperhdr-remote
 
 # install desktop icons
 echo "Install HyperHDR desktop icons"
