@@ -1,5 +1,7 @@
 macro(DeployApple TARGET)
 	if(EXISTS ${TARGET_FILE})
+		install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )
+
 		execute_process(
 			COMMAND bash -c "cd ${CMAKE_CURRENT_BINARY_DIR} && tar -xzf ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz"
 			RESULT_VARIABLE STATUS
@@ -12,18 +14,18 @@ macro(DeployApple TARGET)
 		endif()
 
 		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d" DESTINATION "hyperhdr.app/Contents/lut" COMPONENT "HyperHDR")			
-		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
+		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 
 		# Copy QMQTT
-		if (USE_SHARED_LIBS)
+		if (USE_SHARED_LIBS AND TARGET qmqtt)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 			install(CODE [[ file(INSTALL FILES $<TARGET_SONAME_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
 		# Copy SQLITE3
-		if (USE_SHARED_LIBS)
+		if (USE_SHARED_LIBS AND TARGET sqlite3)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
@@ -207,6 +209,14 @@ macro(DeployUnix TARGET)
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
 
+		# HyperHDR bin & res
+		install ( TARGETS hyperhdr DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR" )
+		install ( DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/linux/service DESTINATION "share/hyperhdr/" COMPONENT "HyperHDR" )
+		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr-icon-32px.png DESTINATION "share/hyperhdr/icons" COMPONENT "HyperHDR" )
+		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr_128.png DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
+		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr.desktop DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
+
+
 		# Our and custom libs
 		set(PREREQUISITE_LIBS "")
 
@@ -302,6 +312,11 @@ macro(DeployUnix TARGET)
 			DESTINATION "share/hyperhdr/bin"
 			COMPONENT "HyperHDR"
 		)
+
+		# symlink
+		install( CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperhdr/bin/hyperhdr\" \"${CMAKE_BINARY_DIR}/symlink_hyperhdr\" )" COMPONENT "HyperHDR" )
+		install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperhdr DESTINATION "bin" RENAME hyperhdr COMPONENT "HyperHDR" )
+		install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperhdr )" COMPONENT "HyperHDR" )
 
 		# install CODE 	
 		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")"					COMPONENT "HyperHDR")
@@ -459,7 +474,28 @@ endmacro()
 
 macro(DeployWindows TARGET)
 	if(EXISTS ${TARGET_FILE})
-		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
+
+		install ( TARGETS hyperhdr DESTINATION "bin" COMPONENT "HyperHDR" )
+		include( InstallRequiredSystemLibraries )
+
+		message("Collecting Dependencies for target file: ${TARGET_FILE}")
+
+		if (Qt_VERSION EQUAL 5)
+			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+			get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+			find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+		else()
+			get_filename_component(My_Qt6Core_EXECUTABLE_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS} ABSOLUTE)
+			find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${My_Qt6Core_EXECUTABLE_DIR}" NO_DEFAULT_PATH)
+			if (NOT WINDEPLOYQT_EXECUTABLE)
+				find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
+			endif()
+		endif()
+		
+		if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
+			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+			message("Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")
+		endif()
 
 		# Collect the runtime libraries
 		get_filename_component(COMPILER_PATH "${CMAKE_CXX_COMPILER}" DIRECTORY)
@@ -511,12 +547,12 @@ macro(DeployWindows TARGET)
 		install(FILES ${TurboJPEG_INSTALL_LIB} DESTINATION "bin" COMPONENT "HyperHDR" )
 
 		# Copy QMQTT
-		if (USE_SHARED_LIBS)
+		if (USE_SHARED_LIBS AND TARGET qmqtt)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
 		# Copy SQLITE3
-		if (USE_SHARED_LIBS)
+		if (USE_SHARED_LIBS AND TARGET sqlite3)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
@@ -586,8 +622,7 @@ macro(DeployWindows TARGET)
 			message( WARNING "OpenSSL NOT found. HyperHDR's https instance and Philips Hue devices will not work.")
 		endif()
 
-	else()
-		# Run CMake after target was built
+	else()		
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
 			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"

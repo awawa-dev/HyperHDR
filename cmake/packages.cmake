@@ -60,7 +60,7 @@ SET ( CPACK_PACKAGE_CONTACT "see_me_at@hyperhdr.eu")
 SET ( CPACK_PACKAGE_VENDOR "HyperHDR")
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperhdr;HyperHDR" )
 SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "HyperHDR" )
-SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperhdr-icon-32px.png")
+SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr-icon-32px.png")
 
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERHDR_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERHDR_VERSION_MINOR}")
@@ -85,9 +85,9 @@ if(USE_STANDARD_INSTALLER_NAME AND UNIX AND NOT APPLE)
 endif()
 
 if ( APPLE )
-	SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/LICENSE" )
-	SET ( CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/background.png" )
-	SET ( CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/autorun.scpt" )
+	SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osx/LICENSE" )
+	SET ( CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osx/background.png" )
+	SET ( CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osx/autorun.scpt" )
 ELSE()
 	SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
 ENDIF()
@@ -104,7 +104,7 @@ ENDIF()
 # Specific CPack Package Generators
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
-SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
+SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/debian/prerm" )
 SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0" )
 SET ( CPACK_DEBIAN_PACKAGE_RECOMMENDS "shared-mime-info" )
 if ( UNIX AND NOT APPLE )
@@ -131,9 +131,9 @@ SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
 SET ( CPACK_RPM_PACKAGE_REQUIRES "xz" )
-SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
-SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
-SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
+SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/rpm/preinst" )
+SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/rpm/postinst" )
+SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/rpm/prerm" )
 if ( ENABLE_SYSTRAY )
 	SET( CPACK_RPM_PACKAGE_SUGGESTS "gtk3")
 endif()
@@ -149,11 +149,11 @@ if ( APPLE )
 	SET ( CPACK_DMG_FORMAT "UDBZ" )
 	
 	unset(CPACK_PACKAGE_ICON)
-	set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Hyperhdr.icns")
+	set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns")
 	
 	set_target_properties(hyperhdr PROPERTIES
 	  MACOSX_BUNDLE TRUE
-	  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist
+	  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osx/Info.plist
 	  XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "YES"
 	  XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "-"
 	  MACOSX_BUNDLE_COPYRIGHT "awawa-dev"
@@ -164,15 +164,15 @@ endif()
 
 # Windows NSIS
 # Use custom script based on cpack nsis template
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/nsis/template ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/windows/template ${CMAKE_MODULE_PATH})
 # Some path transformations
 if(WIN32)
 	file(TO_NATIVE_PATH ${CPACK_PACKAGE_ICON} CPACK_PACKAGE_ICON)
 	STRING(REGEX REPLACE "\\\\" "\\\\\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON})
 endif()
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico" NSIS_HYP_ICO)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperhdr-logo.bmp" NSIS_HYP_LOGO_HORI)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperhdr-logo-vert.bmp" NSIS_HYP_LOGO_VERT)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/windows/installer.ico" NSIS_HYP_ICO)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/windows/hyperhdr-logo.bmp" NSIS_HYP_LOGO_HORI)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/windows/hyperhdr-logo-vert.bmp" NSIS_HYP_LOGO_VERT)
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_ICO "${NSIS_HYP_ICO}")
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_LOGO_VERT "${NSIS_HYP_LOGO_VERT}")
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_LOGO_HORI "${NSIS_HYP_LOGO_HORI}")
@@ -190,7 +190,7 @@ SET ( CPACK_NSIS_URL_INFO_ABOUT "https://github.com/awawa-dev/HyperHDR")
 SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperhdr.exe")
 SET ( CPACK_NSIS_BRANDING_TEXT "HyperHDR-${HYPERHDR_VERSION}")
 # custom nsis plugin directory
-SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/windows/plugins")
 # additional hyperhdr startmenu link, won't be created if the user disables startmenu links
 SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\HyperHDR (Console).lnk' '$INSTDIR\\\\bin\\\\hyperhdr.exe' '-d -c'")
 SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\HyperHDR (Console).lnk'")
@@ -203,11 +203,7 @@ SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\HyperHD
 # and https://cmake.org/cmake/help/latest/module/CPackComponent.html
 SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 # Components base
-if (NOT APPLE)
-	SET ( CPACK_COMPONENTS_ALL "HyperHDR" "HyperHDR_remote" )
-else()
-	SET ( CPACK_COMPONENTS_ALL "HyperHDR" )
-endif()
+SET ( CPACK_COMPONENTS_ALL "HyperHDR" )
 
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
 SET ( CPACK_DEB_COMPONENT_INSTALL ON )
@@ -220,8 +216,8 @@ INCLUDE ( CPack )
 
 cpack_add_install_type(Full DISPLAY_NAME "Full")
 cpack_add_install_type(Min DISPLAY_NAME "Minimal")
-cpack_add_component_group(Runtime EXPANDED DESCRIPTION "HyperHdr runtime and HyperHdr_remote commandline tool")
-cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
+cpack_add_component_group(Runtime EXPANDED DESCRIPTION "HyperHdr runtime")
+
 # Components base
 cpack_add_component(HyperHDR
 	DISPLAY_NAME "HyperHDR"
@@ -230,3 +226,4 @@ cpack_add_component(HyperHDR
 	GROUP Runtime
 	REQUIRED
 )
+

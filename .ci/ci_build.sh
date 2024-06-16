@@ -90,7 +90,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 
 	if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
 		echo "Arch Linux detected"
-		cp cmake/arch/* .
+		cp cmake/linux/arch/* .
 		executeCommand="makepkg"
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
 		versionFile=`cat version`

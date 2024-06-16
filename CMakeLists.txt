@@ -8,8 +8,12 @@ message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(HyperHdr)
 
-# Parse semantic version of version file
-include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
+
+set(OUR_CMAKE_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_modules)
+set(CMAKE_MODULE_PATH ${OUR_CMAKE_MODULES} ${CMAKE_MODULE_PATH})
+
+# print version
+include (version)
 file (STRINGS "version" HYPERHDR_VERSION)
 SetVersionNumber(HYPERHDR ${HYPERHDR_VERSION})
 
@@ -223,9 +227,6 @@ endif()
 STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
 STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
 ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
-
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if (DEFAULT_X11)
 	if (NOT CMAKE_CROSSCOMPILING)
@@ -526,7 +527,7 @@ endif()
 
 # Use GNU gold linker if available
 if (NOT WIN32)
-	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+	include (LDGold)
 endif()
 
 # Don't create new dynamic tags (RUNPATH)
@@ -639,7 +640,7 @@ LIST( APPEND GENERATED_QRC
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
 
 # uninstall target
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
+configure_file( "${OUR_CMAKE_MODULES}/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 # enable make package - no code after this line !
