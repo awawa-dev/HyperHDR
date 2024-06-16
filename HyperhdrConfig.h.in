@@ -1,5 +1,8 @@
 // Generated config file
 
+// enable shared lib loading
+#cmakedefine USE_SHARED_LIBS
+
 // support for static QT plugins
 #cmakedefine USE_STATIC_QT_PLUGINS
 
