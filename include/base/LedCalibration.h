@@ -32,11 +32,10 @@
 	#include <QString>
 	#include <QJsonObject>
 
-	#include <vector>
-
-	#include <utils/ColorRgb.h>
+	#include <vector>	
 #endif
 
+#include <utils/ColorRgb.h>
 #include <base/ColorCalibration.h>
 
 class LedCalibration

@@ -29,11 +29,11 @@
 
 #ifndef PCH_ENABLED
 	#include <QObject>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Components.h>
 #endif
+
+#include <utils/ColorRgb.h>
+#include <utils/Image.h>
+#include <utils/Components.h>
 
 #include <utils/PerformanceCounters.h>
 #include <bonjour/DiscoveryRecord.h>

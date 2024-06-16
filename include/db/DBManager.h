@@ -8,9 +8,8 @@
 	#include <QVector>
 	#include <QJsonObject>
 	#include <QJsonDocument>
+	#include <QThreadStorage>
 #endif
-
-#include <QThreadStorage>
 
 #include <utils/Logger.h>
 

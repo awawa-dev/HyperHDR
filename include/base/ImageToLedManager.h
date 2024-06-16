@@ -5,11 +5,10 @@
 
 	#include <memory>
 	#include <vector>
-
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
 #endif
 
+#include <utils/Image.h>
+#include <utils/Logger.h>
 #include <base/LedString.h>
 #include <base/ImageColorAveraging.h>
 #include <blackborder/BlackBorderProcessor.h>

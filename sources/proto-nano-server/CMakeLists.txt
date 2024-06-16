@@ -26,3 +26,7 @@ target_link_libraries(proto-nano-server
 	hyperhdr-utils
 	Qt${Qt_VERSION}::Core
 )
+
+#if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    #target_precompile_headers(proto-nano-server REUSE_FROM precompiled_hyperhdr_headers)
+#endif()

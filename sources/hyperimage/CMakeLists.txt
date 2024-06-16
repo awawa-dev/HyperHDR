@@ -18,3 +18,8 @@ target_link_libraries(hyperimage
 	lunasvg
 	TurboJPEG::TurboJPEG
 )
+
+
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+    target_precompile_headers(hyperimage REUSE_FROM precompiled_hyperhdr_headers)
+endif()

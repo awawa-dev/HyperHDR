@@ -4,10 +4,10 @@
 	#include <QString>
 
 	#include <cstdint>
-	#include <iostream>
-
-	#include <utils/ColorRgb.h>
+	#include <iostream>	
 #endif
+
+#include <utils/ColorRgb.h>
 
 struct ColorRgbw
 {

@@ -25,9 +25,8 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED
-	#include <utils/Image.h>
-#endif
+
+#include <utils/Image.h>
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image() :

@@ -1,18 +1,17 @@
 #pragma once
 
 #ifndef PCH_ENABLED
+	#include <QMutex>
 	#include <QUrlQuery>
 	#include <QThread>
 	#include <QJsonDocument>
 	#include <QNetworkReply>
 
-	#include <memory>
-	#include <QMutex>
-
-	#include <utils/Logger.h>
+	#include <memory>	
 #endif
 
-#include <QUrlQuery>
+#include <utils/Logger.h>
+
 
 class httpResponse;
 class NetworkHelper;

@@ -14,13 +14,12 @@
 	#include <list>
 	#include <memory>
 	#include <atomic>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
+#include <utils/ColorRgb.h>
+#include <utils/Image.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
 #include <base/LedString.h>
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>

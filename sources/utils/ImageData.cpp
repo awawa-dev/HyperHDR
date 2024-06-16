@@ -33,9 +33,9 @@
 	#include <algorithm>
 	#include <cassert>
 	#include <type_traits>
-
-	#include <utils/ImageData.h>
 #endif
+
+#include <utils/ImageData.h>
 
 #define LOCAL_VID_ALIGN_SIZE       16
 

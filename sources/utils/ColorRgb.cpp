@@ -1,7 +1,4 @@
-#ifndef PCH_ENABLED
-	#include <utils/ColorRgb.h>
-#endif
-
+#include <utils/ColorRgb.h>
 #include <limits>
 
 const ColorRgb ColorRgb::BLACK  = {   0,   0,   0 };

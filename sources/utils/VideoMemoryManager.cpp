@@ -25,9 +25,8 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED
-	#include <utils/VideoMemoryManager.h>
-#endif
+
+#include <utils/VideoMemoryManager.h>
 
 #define BUFFER_LOWER_LIMIT 1
 

@@ -4,10 +4,10 @@
 	#include <QObject>
 	#include <QString>
 	#include <QJsonDocument>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class BonjourServiceRegister;
 class StaticFileServing;

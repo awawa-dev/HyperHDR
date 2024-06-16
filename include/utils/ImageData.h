@@ -1,9 +1,7 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <memory>
-	#include <utils/MemoryBuffer.h>
-#endif
+#include <memory>
+#include <utils/MemoryBuffer.h>
 
 #include <utils/ColorRgb.h>
 #include <utils/VideoMemoryManager.h>

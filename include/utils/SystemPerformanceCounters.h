@@ -8,6 +8,7 @@
 	#include <QString>
 	#include <QJsonArray>
 	#include <QJsonDocument>
+
 	#include <algorithm>
 #endif
 

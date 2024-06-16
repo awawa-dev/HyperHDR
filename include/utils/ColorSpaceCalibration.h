@@ -5,11 +5,10 @@
 	#include <QJsonObject>
 
 	#include <cstdint>
-
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Logger.h>
 #endif
+
+#include <utils/ColorRgb.h>
+#include <utils/Logger.h>
 
 class ColorSpaceCalibration
 {

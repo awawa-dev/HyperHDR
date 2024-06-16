@@ -12,13 +12,13 @@
 	#include <map>
 	#include <cstdint>
 	#include <limits>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
+
+#include <utils/ColorRgb.h>
+#include <utils/Image.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
 
 // Forward declaration
 class HyperHdrInstance;

@@ -32,11 +32,10 @@
 	#include <iostream>
 	#include <stdlib.h>
 	#include <stdio.h>
-	#include <vector>
-
-	#include <utils/InternalClock.h>
+	#include <vector>	
 #endif
 
+#include <utils/InternalClock.h>
 #include <utils/SystemPerformanceCounters.h>
 
 #ifdef _WIN32
@@ -293,12 +292,12 @@ QString SystemPerformanceCounters::getRAM()
 
 #ifdef _WIN32
 
-		MEMORYSTATUSEX memInfo;
+		MEMORYSTATUSEX memInfo{};
 		memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 		if (GlobalMemoryStatusEx(&memInfo) == 0)
 			return "";
-		qint64 totalPhysMem = qint64(memInfo.ullTotalPhys) / (1024 * 1024);
-		qint64 physMemAv = qint64(memInfo.ullAvailPhys) / (1024 * 1024);
+		qint64 totalPhysMem = qint64(memInfo.ullTotalPhys) / (1024ll * 1024);
+		qint64 physMemAv = qint64(memInfo.ullAvailPhys) / (1024ll * 1024);
 		qint64 takenMem = totalPhysMem - physMemAv;
 		qint64 aspect = (takenMem * 100) / totalPhysMem;
 

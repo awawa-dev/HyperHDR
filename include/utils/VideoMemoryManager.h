@@ -9,9 +9,9 @@
 	#include <list>
 	#include <cstdint>
 	#include <stdlib.h>
-
-	#include <utils/MemoryBuffer.h>
 #endif
+
+#include <utils/MemoryBuffer.h>
 
 #define VideoMemoryManagerBufferSize 8
 

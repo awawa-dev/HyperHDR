@@ -9,14 +9,13 @@
 	#include <QMultiMap>
 	#include <QSemaphore>
 	#include <atomic>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
-	#include <utils/MemoryBuffer.h>
 #endif
 
+#include <utils/ColorRgb.h>
+#include <utils/Image.h>
+#include <utils/Logger.h>
+#include <utils/Components.h>
+#include <utils/MemoryBuffer.h>
 #include <utils/FrameDecoder.h>
 #include <base/DetectionManual.h>
 #include <base/DetectionAutomatic.h>

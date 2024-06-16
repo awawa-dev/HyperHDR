@@ -3,10 +3,10 @@
 #ifndef PCH_ENABLED
 	#include <QHostAddress>
 	#include <QJsonArray>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class NetOrigin : public QObject
 {

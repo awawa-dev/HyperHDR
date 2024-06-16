@@ -1,8 +1,6 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <utils/ColorRgb.h>
-#endif
+#include <utils/ColorRgb.h>
 
 #define SOUNDCAP_N_WAVE      1024
 #define SOUNDCAP_LOG2_N_WAVE 10

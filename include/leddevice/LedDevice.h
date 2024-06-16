@@ -14,13 +14,12 @@
 	#include <algorithm>
 	#include <functional>
 	#include <atomic>
-
-	#include <utils/MemoryBuffer.h>
-	#include <utils/ColorRgb.h>
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
 #endif
 
+#include <utils/MemoryBuffer.h>
+#include <utils/ColorRgb.h>
+#include <utils/Logger.h>
+#include <utils/Components.h>
 #include <utils/ColorRgbw.h>
 #include <utils/PerformanceCounters.h>
 

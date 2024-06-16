@@ -35,11 +35,11 @@
 	#include <QString>
 
 	#include <algorithm>
-
-	#include <utils/MemoryBuffer.h>
-	#include <utils/Image.h>
-	#include <utils/Components.h>
 #endif
+
+#include <utils/MemoryBuffer.h>
+#include <utils/Image.h>
+#include <utils/Components.h>
 
 class Logger;
 class GrabberWrapper;

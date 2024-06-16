@@ -1,11 +1,12 @@
 #pragma once
 
-// Qt includes
-#include <QString>
-#include <QTcpSocket>
-#include <QLocalSocket>
-#include <QTimer>
-#include <QMap>
+#ifndef PCH_ENABLED
+	#include <QString>
+	#include <QTcpSocket>
+	#include <QLocalSocket>
+	#include <QTimer>
+	#include <QMap>
+#endif
 
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>

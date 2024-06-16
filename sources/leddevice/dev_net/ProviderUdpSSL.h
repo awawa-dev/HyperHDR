@@ -1,18 +1,19 @@
 #pragma once
 
 #ifndef PCH_ENABLED
+	#include <QJsonObject>
 	#include <QThread>
 	#include <QHostAddress>
+	#include <QUdpSocket>
 
+	#include <list>
 	#include <string.h>
 	#include <cstring>
 	#include <chrono>
 #endif
 
 #include <QDtls>
-#include <QJsonObject>
-#include <QUdpSocket>
-#include <list>
+
 #include <leddevice/LedDevice.h>
 #include <utils/Logger.h>
 

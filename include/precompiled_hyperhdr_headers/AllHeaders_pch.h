@@ -2,28 +2,48 @@
 	#define PCH_ENABLED
 
 	#include <QByteArray>
+	#include <QDateTime>
 	#include <QDir>
+	#include <QFileInfo>
 	#include <QHash>
 	#include <QHostAddress>
 	#include <QJsonArray>
 	#include <QJsonDocument>
 	#include <QJsonObject>
+	#include <QJsonValue>
+	#include <QList>
+	#include <QLocalSocket>
 	#include <QMap>
+	#include <QMetaType>
+	#include <QMultiMap>
 	#include <QMutex>
-	#include <QNetworkReply>	
-	#include <QSemaphore>
+	#include <QMutexLocker>
+	#include <QNetworkReply>
+	#include <QPair>	
+	#include <QRectF>
+	#include <QRegularExpression>
+	#include <QSemaphore>	
 	#include <QSet>
 	#include <QSize>
+	#include <QSocketNotifier>
 	#include <QStack>
+	#include <QString>
 	#include <QStringList>
+	#include <QTcpSocket>
 	#include <QThread>
+	#include <QThreadStorage>
 	#include <QTimer>
+	#include <QUdpSocket>
+	#include <QUrl>
+	#include <QUrlQuery>
+	#include <QVariant>
 	#include <QVector>
 	
 	#include <algorithm>
 	#include <atomic>
 	#include <cassert>
 	#include <cfloat>
+	#include <chrono>
 	#include <cmath>
 	#include <cstdio>
 	#include <cstdarg>
@@ -32,6 +52,7 @@
 	#include <cstring>
 	#include <ctime>
 	#include <iostream>
+	#include <functional>
 	#include <limits>
 	#include <list>
 	#include <map>
