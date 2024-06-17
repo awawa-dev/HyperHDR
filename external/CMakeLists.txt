@@ -44,6 +44,28 @@ target_compile_definitions(sqlite3 PUBLIC
 )
 
 #=============================================================================
+# Protobuf-nanopb
+#=============================================================================
+
+set(PROTOBUF-NANOPB-SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
+
+add_library(protobuf-nanopb STATIC ${PROTOBUF-NANOPB-SOURCES})
+set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
+install(TARGETS protobuf-nanopb EXPORT nanopb-targets
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+target_include_directories(protobuf-nanopb INTERFACE
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+
+#=============================================================================
 # RPi ws281x
 #=============================================================================
 

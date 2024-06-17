@@ -212,9 +212,9 @@ macro(DeployUnix TARGET)
 		# HyperHDR bin & res
 		install ( TARGETS hyperhdr DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR" )
 		install ( DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/linux/service DESTINATION "share/hyperhdr/" COMPONENT "HyperHDR" )
-		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr-icon-32px.png DESTINATION "share/hyperhdr/icons" COMPONENT "HyperHDR" )
-		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr_128.png DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
-		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/resources/hyperhdr.desktop DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
+		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/linux/resources/hyperhdr-icon-32px.png DESTINATION "share/hyperhdr/icons" COMPONENT "HyperHDR" )
+		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/linux/resources/hyperhdr_128.png DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
+		install ( FILES ${CMAKE_SOURCE_DIR}/cmake/linux/resources/hyperhdr.desktop DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
 
 
 		# Our and custom libs
