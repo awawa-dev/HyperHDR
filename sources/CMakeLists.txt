@@ -27,6 +27,11 @@ add_subdirectory(systray)
 add_subdirectory(utils)
 add_subdirectory(webserver)
 
+if(ENABLE_XZ)
+	add_subdirectory(utils-xz)
+endif()
+
+
 if (ENABLE_PROTOBUF)
 	add_subdirectory(proto-nano-server)
 endif()

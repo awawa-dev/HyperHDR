@@ -29,6 +29,11 @@ macro(DeployApple TARGET)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
+		# Copy utils-xz
+		if (USE_SHARED_LIBS AND TARGET utils-xz)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-xz> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
 		if ( Qt5Core_FOUND )			
 			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
 		else()
@@ -554,6 +559,11 @@ macro(DeployWindows TARGET)
 		# Copy SQLITE3
 		if (USE_SHARED_LIBS AND TARGET sqlite3)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy utils-xz
+		if (USE_SHARED_LIBS AND TARGET utils-xz)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-xz> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
