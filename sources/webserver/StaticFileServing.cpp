@@ -18,7 +18,6 @@
 
 #include <utils/Logger.h>
 
-#include <utils/QStringUtils.h>
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
 #include "QtHttpHeader.h"
@@ -93,7 +92,7 @@ void StaticFileServing::onRequestNeedsReply(QtHttpRequest* request, QtHttpReply*
 	if (command == QStringLiteral("GET"))
 	{
 		QString path = request->getUrl().path();
-		QStringList uri_parts = QStringUtils::SPLITTER(path, '/');
+		QStringList uri_parts = path.split('/', Qt::SkipEmptyParts);
 		// special uri handling for server commands
 		if (!uri_parts.empty())
 		{

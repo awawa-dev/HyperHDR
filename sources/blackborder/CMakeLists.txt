@@ -5,11 +5,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/blackborder)
 
 FILE ( GLOB Blackborder_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(blackborder	${Blackborder_SOURCES} )
+add_library(blackborder	OBJECT ${Blackborder_SOURCES} )
 
 target_link_libraries(blackborder
- 	hyperhdr-utils
-	hyperhdr-base
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

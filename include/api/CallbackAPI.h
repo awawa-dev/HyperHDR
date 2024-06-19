@@ -9,7 +9,7 @@
 #include <utils/Components.h>
 #include <api/BaseAPI.h>
 #include <base/AccessManager.h>
-#include <utils/LutCalibrator.h>
+#include <lut-calibrator/LutCalibrator.h>
 
 #ifdef ENABLE_BONJOUR
 	#include <bonjour/DiscoveryWrapper.h>

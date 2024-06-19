@@ -27,9 +27,6 @@
 // PipeWire EGL extension
 #cmakedefine ENABLE_PIPEWIRE_EGL
 
-// Define to enable boblight server
-#cmakedefine ENABLE_BOBLIGHT
-
 // Define to enable sound linux
 #cmakedefine ENABLE_SOUNDCAPLINUX
 

@@ -15,11 +15,10 @@ set_source_files_properties(${CURRENT_SOURCE_DIR}/message.pb.c PROPERTIES SKIP_P
 
 target_include_directories(proto-nano-server PUBLIC ${CURRENT_HEADER_DIR})
 
-target_link_libraries(proto-nano-server PRIVATE
-	protobuf-nanopb
-	hyperhdr-base
-	hyperhdr-utils
+target_link_libraries(proto-nano-server
 	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
+	protobuf-nanopb
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

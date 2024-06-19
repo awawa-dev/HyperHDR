@@ -21,7 +21,7 @@ else()
 	list(APPEND SUSPEND_HANDLER_SOURCES ${CURRENT_SOURCE_DIR}/SuspendHandlerDummy.cpp)
 endif()
 
-add_library(suspend-handler ${SUSPEND_HANDLER_SOURCES} )
+add_library(suspend-handler OBJECT ${SUSPEND_HANDLER_SOURCES} )
 target_link_libraries(suspend-handler PUBLIC ${PIPEWIRE_LIBRARIES} ${APPKIT_FRAMEWORK} Qt${Qt_VERSION}::Core Qt${Qt_VERSION}::Network)
 
 if(ENABLE_POWER_MANAGEMENT AND UNIX)

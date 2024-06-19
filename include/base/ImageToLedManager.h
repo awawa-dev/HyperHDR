@@ -7,7 +7,7 @@
 	#include <vector>
 #endif
 
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <utils/Logger.h>
 #include <base/LedString.h>
 #include <base/ImageColorAveraging.h>

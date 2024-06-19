@@ -91,8 +91,6 @@
 #include <effectengine/Animation4Music_WavesPulseFast.h>
 #include <effectengine/Animation4Music_WavesPulseSlow.h>
 
-#include <utils/JsonUtils.h>
-
 std::list<EffectDefinition> EffectDBHandler::getEffects()
 {
 	std::list<EffectDefinition> _availableEffects;

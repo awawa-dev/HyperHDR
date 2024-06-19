@@ -14,7 +14,6 @@ namespace hyperhdr
 		COMP_SMOOTHING,
 		COMP_BLACKBORDER,
 		COMP_FORWARDER,
-		COMP_BOBLIGHTSERVER,
 		COMP_VIDEOGRABBER,
 		COMP_SYSTEMGRABBER,
 		COMP_COLOR,
@@ -36,7 +35,6 @@ namespace hyperhdr
 		case COMP_SMOOTHING:     return "Smoothing";
 		case COMP_BLACKBORDER:   return "Blackborder detector";
 		case COMP_FORWARDER:     return "Json/Proto forwarder";
-		case COMP_BOBLIGHTSERVER:return "Boblight server";
 		case COMP_VIDEOGRABBER:  return "Video capture device";
 		case COMP_SYSTEMGRABBER: return "System capture device";
 		case COMP_COLOR:         return "Solid color";
@@ -60,7 +58,6 @@ namespace hyperhdr
 		case COMP_SMOOTHING:     return "SMOOTHING";
 		case COMP_BLACKBORDER:   return "BLACKBORDER";
 		case COMP_FORWARDER:     return "FORWARDER";
-		case COMP_BOBLIGHTSERVER:return "BOBLIGHTSERVER";
 		case COMP_VIDEOGRABBER:  return "VIDEOGRABBER";
 		case COMP_SYSTEMGRABBER: return "SYSTEMGRABBER";
 		case COMP_COLOR:         return "COLOR";
@@ -83,7 +80,6 @@ namespace hyperhdr
 		if (cmp == "SMOOTHING")     return COMP_SMOOTHING;
 		if (cmp == "BLACKBORDER")   return COMP_BLACKBORDER;
 		if (cmp == "FORWARDER")     return COMP_FORWARDER;
-		if (cmp == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
 		if (cmp == "VIDEOGRABBER")  return COMP_VIDEOGRABBER;
 		if (cmp == "SYSTEMGRABBER") return COMP_SYSTEMGRABBER;
 		if (cmp == "COLOR")         return COMP_COLOR;

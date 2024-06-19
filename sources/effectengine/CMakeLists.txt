@@ -4,14 +4,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/effectengine)
 
 FILE ( GLOB EffectEngineSOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(effectengine
-	${EffectEngineSOURCES}
-)
+add_library(effectengine OBJECT ${EffectEngineSOURCES})
 
 target_link_libraries(effectengine
-	hyperhdr-base
-	hyperimage
 	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

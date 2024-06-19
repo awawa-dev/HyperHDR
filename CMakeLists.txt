@@ -27,7 +27,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set build variables
 SET ( DEFAULT_PROTOBUF                    ON  )
-SET ( DEFAULT_BOBLIGHT                    OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
@@ -53,12 +52,30 @@ SET ( DEFAULT_SYSTRAY                     ON  )
 SET ( DEFAULT_SHARED_LIBS                 ON  )
 
 # Configure CCache if available
-find_program(CCACHE_FOUND ccache)
+find_program(CCACHE_FOUND ccache HINTS "${CMAKE_CURRENT_SOURCE_DIR}/build")
 if ( CCACHE_FOUND )
 	if (DEFINED ENV{CCACHE_DIR})
-		message ( STATUS "Found CCache and its env settings: $ENV{CCACHE_DIR}. Will try to use it." )
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+		set( CCACHE_ENABLED               ON )
+		message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings ($ENV{CCACHE_DIR}). Will try to use it." )
+		if (WIN32)
+			file(COPY_FILE
+				${CCACHE_FOUND} ${CMAKE_BINARY_DIR}/cl.exe
+				ONLY_IF_DIFFERENT
+			)
+
+			message(STATUS "Setting MSVC debug information format to 'Embedded'")
+			set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
+			set(CMAKE_VS_GLOBALS
+				"CLToolExe=cl.exe"
+				"CLToolPath=${CMAKE_BINARY_DIR}"
+				"TrackFileAccess=false"
+				"UseMultiToolTask=true"
+				"DebugInformationFormat=OldStyle"
+			)
+		else()
+			set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_FOUND}")
+		endif()
 	else()
 		message ( WARNING "Found CCache but env settings: CCACHE_DIR is not set. Skipping." )
 	endif()
@@ -163,7 +180,6 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	
 	SET ( DEFAULT_AVF                 ON  )
 	SET ( DEFAULT_MAC_SYSTEM          ON  )
-	SET ( DEFAULT_PRECOMPILED_HEADERS OFF )
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
 	SET ( DEFAULT_WS281XPWM  ON  )
 	SET ( DEFAULT_CEC        ON  )
@@ -417,9 +433,6 @@ colorMe("ENABLE_SOUNDCAPWINDOWS = " ${ENABLE_SOUNDCAPWINDOWS})
 
 message( STATUS "\n${CyanColor}SERVICE SUPPORT${ColorReset}")
 
-option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
-colorMe("ENABLE_BOBLIGHT = " ${ENABLE_BOBLIGHT})
-
 option(ENABLE_BONJOUR "Enable the network discovery service" ${DEFAULT_BONJOUR} )
 colorMe("ENABLE_BONJOUR = " ${ENABLE_BONJOUR})
 
@@ -647,8 +660,8 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3)
-	set_target_properties(qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall liblzma sqlite3 PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3)
+	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall liblzma sqlite3 PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

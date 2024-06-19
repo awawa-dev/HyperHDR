@@ -32,8 +32,6 @@
 #include <HyperhdrConfig.h>
 
 #include <base/Muxer.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/JsonUtils.h>
 #include <utils/Components.h>
 #include <base/Smoothing.h>
 

@@ -10,7 +10,6 @@
 
 #include <leddevice/LedDevice.h>
 #include <base/HyperHdrInstance.h>
-#include <utils/JsonUtils.h>
 #include <utils/GlobalSignals.h>
 
 std::atomic<bool> LedDevice::_signalTerminate(false);

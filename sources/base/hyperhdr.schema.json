@@ -67,10 +67,6 @@
 		{
 			"$ref": "schema-protoServer.json"
 		},
-		"boblightServer" :
-		{
-			"$ref": "schema-boblightServer.json"
-		},
 		"webConfig" :
 		{
 			"$ref": "schema-webConfig.json"

@@ -1,6 +1,5 @@
 // Local-HyperHDR includes
 #include "LedDeviceNanoleaf.h"
-#include <utils/QStringUtils.h>
 #include <ssdp/SSDPDiscover.h>
 
 // Qt includes
@@ -426,7 +425,7 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 		QString authToken = params["token"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
+		QStringList addressparts = host.split(':', Qt::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -464,7 +463,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::SPLITTER(host, ':');
+		QStringList addressparts = host.split(':', Qt::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 

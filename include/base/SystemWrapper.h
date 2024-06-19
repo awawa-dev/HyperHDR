@@ -9,8 +9,8 @@
 	#include <QMultiMap>
 #endif
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <utils/Components.h>

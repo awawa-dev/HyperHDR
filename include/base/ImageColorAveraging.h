@@ -7,7 +7,7 @@
 	#include <algorithm>
 #endif
 
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <utils/Logger.h>
 #include <base/LedString.h>
 

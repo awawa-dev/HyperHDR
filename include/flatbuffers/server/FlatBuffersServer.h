@@ -7,7 +7,7 @@
 #include <utils/MemoryBuffer.h>
 #include <utils/Logger.h>
 #include <utils/settings.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <utils/Components.h>
 
 class BonjourServiceRegister;

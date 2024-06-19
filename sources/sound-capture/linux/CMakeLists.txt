@@ -4,15 +4,15 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/sound-capture/linux)
 
 FILE ( GLOB SOUNDCAPLINUX_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(sound-capture-linux ${SOUNDCAPLINUX_SOURCES} )
+add_library(sound-capture-linux OBJECT ${SOUNDCAPLINUX_SOURCES} )
 
 find_package(ALSA REQUIRED)
 
 include_directories(${ALSA_INCLUDE_DIRS})
 
 target_link_libraries(sound-capture-linux
-    hyperhdr-base
-    ${QT_LIBRARIES}
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
     ${ALSA_LIBRARIES}
 )
 

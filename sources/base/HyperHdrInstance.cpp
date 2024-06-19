@@ -57,12 +57,6 @@
 #include <base/SystemWrapper.h>
 #include <base/GrabberHelper.h>
 
-#if defined(ENABLE_BOBLIGHT)	
-	#include <boblightserver/BoblightServer.h>
-#else
-	class BoblightServer {};
-#endif
-
 std::atomic<bool> HyperHdrInstance::_signalTerminate(false);
 std::atomic<int>  HyperHdrInstance::_totalRunningCount(0);
 
@@ -81,7 +75,6 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool disableOnStartup, QStri
 	, _effectEngine(nullptr)
 	, _videoControl(nullptr)
 	, _systemControl(nullptr)
-	, _boblightServer(nullptr)
 	, _rawUdpServer(nullptr)
 	, _log(nullptr)
 	, _hwLedCount()
@@ -103,7 +96,6 @@ HyperHdrInstance::~HyperHdrInstance()
 	if (_muxer != nullptr)
 		clear(-1, true);
 
-	_boblightServer = nullptr;
 	Info(_log, "[ 1/9] Releasing HyperHDR%i->UdpServer...", _instIndex);
 	_rawUdpServer = nullptr;
 	Info(_log, "[ 2/9] Releasing HyperHDR%i->VideoControl...", _instIndex);
@@ -201,12 +193,6 @@ void HyperHdrInstance::start()
 
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
-
-#ifdef ENABLE_BOBLIGHT
-	// boblight, can't live in global scope as it depends on layout
-	_boblightServer = std::unique_ptr<BoblightServer>(new BoblightServer(this, getSetting(settings::type::BOBLSERVER)));
-	connect(this, &HyperHdrInstance::SignalInstanceSettingsChanged, _boblightServer.get(), &BoblightServer::handleSettingsUpdate);
-#endif
 
 	_rawUdpServer = std::unique_ptr<RawUdpServer>(new RawUdpServer(this, getSetting(settings::type::RAWUDPSERVER)));
 	connect(this, &HyperHdrInstance::SignalInstanceSettingsChanged, _rawUdpServer.get(), &RawUdpServer::handleSettingsUpdate);

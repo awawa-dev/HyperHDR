@@ -2,6 +2,7 @@
 	#define PCH_ENABLED
 
 	#include <QByteArray>
+	#include <QBuffer>
 	#include <QDateTime>
 	#include <QDir>
 	#include <QFileInfo>
@@ -57,6 +58,7 @@
 	#include <list>
 	#include <map>
 	#include <memory>
+	#include <mutex>
 	#include <set>
 	#include <sstream>
 	#include <stdexcept>

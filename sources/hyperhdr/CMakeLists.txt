@@ -19,18 +19,26 @@ if (WIN32)
 endif()
 
 target_link_libraries(hyperhdr
+	blackborder
 	commandline
-	hyperhdr-base
-	hyperimage
-	effectengine
-	jsonserver
-	flatbuffers_server
-	flatbuffers_client
-	webserver
-	ssdp
 	database
+	effectengine	
+	flatbuffers_client
+	flatbuffers_parser
+	flatbuffers_server
+	hyperhdr-base
+	hyperhdr-utils
+	hyperimage
+	image
+	jsonserver
+	json-utils
+	lut-calibrator
+	performance-counters
 	resources
+	ssdp
 	suspend-handler
+	utils-image
+	webserver
 	${APPKIT_FRAMEWORK}
 )
 

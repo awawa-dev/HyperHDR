@@ -4,11 +4,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/DX)
 
 FILE ( GLOB DX_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(DX-grabber ${DX_SOURCES} )
+add_library(DX-grabber OBJECT ${DX_SOURCES} )
 
 target_link_libraries(DX-grabber
-	hyperhdr-base
-	${QT_LIBRARIES}
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

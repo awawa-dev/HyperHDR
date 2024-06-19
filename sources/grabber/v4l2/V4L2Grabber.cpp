@@ -1151,7 +1151,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 
 				resetCounter(now);
 
-				QString currentCache = Image<ColorRgb>::adjustCache();
+				QString currentCache = QString::fromStdString(Image<ColorRgb>::adjustCache());
 
 				if (!currentCache.isEmpty())
 					Info(_log, "%s", QSTRING_CSTR(currentCache));

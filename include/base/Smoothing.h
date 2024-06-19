@@ -8,7 +8,7 @@
 	#include <vector>
 #endif
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 

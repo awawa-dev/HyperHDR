@@ -1,6 +1,5 @@
 // Local-HyperHDR includes
 #include "LedDeviceWled.h"
-#include <utils/QStringUtils.h>
 #include <HyperhdrConfig.h>
 #include <QString>
 #ifdef ENABLE_BONJOUR
@@ -68,7 +67,7 @@ bool LedDeviceWled::init(const QJsonObject& deviceConfig)
 		}
 		else
 		{
-			QStringList addressparts = QStringUtils::SPLITTER(address, ':');
+			QStringList addressparts = address.split(':', Qt::SkipEmptyParts);
 			_hostname = addressparts[0];
 			if (addressparts.size() > 1)
 			{

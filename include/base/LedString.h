@@ -10,7 +10,7 @@
 	#include <vector>
 #endif
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 
 namespace Json { class Value; }
 

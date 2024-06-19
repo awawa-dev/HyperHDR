@@ -6,7 +6,7 @@
 
 #include <hyperimage/HyperImage.h>
 
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <effectengine/EffectDefinition.h>
 
 template <typename T>

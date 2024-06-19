@@ -5,7 +5,7 @@
 	#include <QStringList>
 #endif
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <utils/Components.h>

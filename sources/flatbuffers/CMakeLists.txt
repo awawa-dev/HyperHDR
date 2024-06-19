@@ -28,7 +28,7 @@ FILE ( GLOB FLATBUF_PARSER_SOURCES "${CURRENT_HEADER_DIR}/parser/*.h" "${CURRENT
 
 include_directories("${CURRENT_HEADER_DIR}/parser")
 
-add_library(flatbuffers_parser
+add_library(flatbuffers_parser OBJECT
 	${FLATBUF_PARSER_SOURCES}
 	${Flatbuffer_GENERATED_FBS}
 )
@@ -43,12 +43,11 @@ FILE ( GLOB FLATBUF_SERVER_SOURCES "${CURRENT_HEADER_DIR}/server/*.h" "${CURRENT
 
 include_directories("${CURRENT_HEADER_DIR}/server")
 
-add_library(flatbuffers_server
+add_library(flatbuffers_server OBJECT
 	${FLATBUF_SERVER_SOURCES}
 )
 
 target_link_libraries(flatbuffers_server
-	hyperhdr-utils
 	flatbuffers_parser
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Core
@@ -64,12 +63,11 @@ FILE ( GLOB FLATBUF_CLIENT_SOURCES "${CURRENT_HEADER_DIR}/client/*.h"  "${CURREN
 
 include_directories("${CURRENT_HEADER_DIR}/client")
 
-add_library(flatbuffers_client
+add_library(flatbuffers_client OBJECT
 	${FLATBUF_CLIENT_SOURCES}
 )
 
 target_link_libraries(flatbuffers_client
-	hyperhdr-utils
 	flatbuffers_parser
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Core

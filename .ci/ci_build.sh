@@ -47,7 +47,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		CCACHE_PATH=$PWD
 		cd ..
         cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
-		export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
+		export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
 		echo "CCache parameters: ${cachecommand}"		
 		ls -a .ccache
 
@@ -70,15 +70,33 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	fi
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
-	echo "Start: windows"
-	
-	echo "Number of Cores $NUMBER_OF_PROCESSORS"
-	mkdir build || exit 1
+	echo "Start: windows"	
+	echo "Number of cores: $NUMBER_OF_PROCESSORS"
+
+	if [[ "$USE_CCACHE" == '1' ]]; then
+		echo "Using ccache"
+		
+		mkdir -p .ccache
+		
+		if [[ "$RESET_CACHE" == '1' ]]; then
+			echo "Clearing ccache"
+			pushd .
+			cd .ccache && rm -rf ..?* .[!.]* *
+			popd
+		fi
+		export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=$PWD/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M
+	fi
+
+	mkdir -p build || exit 1
 	cd build
 	cmake -G "Visual Studio 17 2022" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ${IS_ARCHIVE_SKIPPED} ../ || exit 2
 	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
+
+	if [[ "$USE_CCACHE" == '1' ]]; then
+		./ccache.exe -s
+	fi
 	exit 0;
-	exit 1 || { echo "---> Hyperhdr compilation failed! Abort"; exit 5; }
+
 elif [[ "$CI_NAME" == 'linux' ]]; then
 	echo "Compile Hyperhdr with DOCKER_IMAGE = ${DOCKER_IMAGE}, DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
 	
@@ -98,7 +116,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	fi
 
 	if [[ "$USE_CCACHE" == '1' ]]; then
-		echo "Using cache"
+		echo "Using ccache"
 		
 		mkdir -p .ccache
 		

@@ -7,7 +7,7 @@
 	#include <cstdint>
 #endif
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <utils/Logger.h>
 
 class ColorSpaceCalibration

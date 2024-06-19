@@ -17,11 +17,11 @@
 #endif
 
 #include <utils/MemoryBuffer.h>
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
-#include <utils/ColorRgbw.h>
-#include <utils/PerformanceCounters.h>
+#include <leddevice/ColorRgbw.h>
+#include <performance-counters/PerformanceCounters.h>
 
 class LedDevice;
 class DiscoveryWrapper;

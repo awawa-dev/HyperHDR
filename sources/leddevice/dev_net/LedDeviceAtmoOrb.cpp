@@ -1,6 +1,5 @@
 // Local-HyperHDR includes
 #include "LedDeviceAtmoOrb.h"
-#include <utils/QStringUtils.h>
 // qt includes
 #include <QUdpSocket>
 #include <QNetworkInterface>
@@ -51,7 +50,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject& deviceConfig)
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
 		_useOrbSmoothing = deviceConfig["useOrbSmoothing"].toBool(false);
 		_skipSmoothingDiff = deviceConfig["skipSmoothingDiff"].toInt(0);
-		QStringList orbIds = QStringUtils::SPLITTER(deviceConfig["orbIds"].toString().simplified().remove(" "), ',');
+		QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(',', Qt::SkipEmptyParts);
 
 		Debug(_log, "DeviceType        : %s", QSTRING_CSTR(this->getActiveDeviceType()));
 		Debug(_log, "LedCount          : %d", this->getLedCount());

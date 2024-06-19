@@ -6,7 +6,7 @@
 
 // util
 #include <utils/Logger.h>
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <utils/Components.h>
 
 class LedDevice;

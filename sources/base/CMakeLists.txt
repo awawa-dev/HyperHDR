@@ -23,10 +23,6 @@ target_link_libraries(hyperhdr-base
 	${QT_LIBRARIES}
 )
 
-if(ENABLE_BOBLIGHT)
-	target_link_libraries(hyperhdr-base boblightserver)
-endif()
-
 if (ENABLE_BONJOUR)
 	target_link_libraries(hyperhdr-base bonjour)
 endif ()

@@ -972,7 +972,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 				
 				resetCounter(now);
 
-				QString currentCache = Image<ColorRgb>::adjustCache();
+				QString currentCache = QString::fromStdString(Image<ColorRgb>::adjustCache());
 
 				if (!currentCache.isEmpty())
 					Info(_log, "%s", QSTRING_CSTR(currentCache));

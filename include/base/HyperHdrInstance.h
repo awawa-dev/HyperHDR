@@ -16,8 +16,8 @@
 	#include <atomic>
 #endif
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <base/LedString.h>
@@ -36,7 +36,6 @@ class ColorAdjustment;
 class InstanceConfig;
 class VideoControl;
 class SystemControl;
-class BoblightServer;
 class RawUdpServer;
 class LedDeviceWrapper;
 class Logger;
@@ -142,7 +141,6 @@ private:
 	std::unique_ptr<EffectEngine> _effectEngine;
 	std::unique_ptr<VideoControl> _videoControl;
 	std::unique_ptr<SystemControl> _systemControl;
-	std::unique_ptr<BoblightServer> _boblightServer;
 	std::unique_ptr<RawUdpServer> _rawUdpServer;
 
 	Logger*				_log;

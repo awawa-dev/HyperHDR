@@ -104,7 +104,7 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, in
 	, _effect(effect.factory())
 	, _endTime(-1)
 	, _interrupt(false)
-	, _image(hyperhdr->getLedGridSize())	
+	, _image(hyperhdr->getLedGridSize().width(), hyperhdr->getLedGridSize().height())
 	, _timer(this)
 	, _ledCount(hyperhdr->getLedCount())
 {

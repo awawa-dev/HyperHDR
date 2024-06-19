@@ -10,7 +10,7 @@
 	#include <iostream>
 	#include <iterator>
 
-	#include <utils/ColorRgb.h>
+	#include <image/ColorRgb.h>
 	#include <utils/Logger.h>
 	#include <utils/Components.h>
 #endif
@@ -26,10 +26,10 @@
 #include <base/Muxer.h>
 #include <db/AuthTable.h>
 #include <flatbuffers/server/FlatBuffersServer.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/GlobalSignals.h>
 #include <base/GrabberHelper.h>
-#include <hyperimage/HyperImage.h>
+#include <utils-image/utils-image.h>
 
 #ifdef ENABLE_XZ
 	#include <utils-xz/utils-xz.h>
@@ -238,7 +238,7 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 	}
 	else if (data.format == "auto")
 	{		
-		image = HyperImage::load2image(imageMemory);
+		image = utils_image::load2image(reinterpret_cast<uint8_t*>(imageMemory.data()), imageMemory.size());
 		
 
 		if (image.width() == 1)

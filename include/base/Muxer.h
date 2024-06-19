@@ -11,8 +11,8 @@
 	#include <cstdint>
 #endif
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/Components.h>
 
 #define SMOOTHING_DEFAULT_CONFIG 0

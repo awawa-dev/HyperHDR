@@ -11,7 +11,7 @@
 #include <hyperimage/HyperImage.h>
 
 #include <utils/Components.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <effectengine/AnimationBase.h>
 
 

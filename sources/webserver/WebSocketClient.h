@@ -1,8 +1,8 @@
 #pragma once
 
 #include <utils/Logger.h>
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 
 class QTcpSocket;
 class QtHttpRequest;

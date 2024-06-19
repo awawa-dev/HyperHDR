@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 
 #define SOUNDCAP_N_WAVE      1024
 #define SOUNDCAP_LOG2_N_WAVE 10

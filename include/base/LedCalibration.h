@@ -35,7 +35,7 @@
 	#include <vector>	
 #endif
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <base/ColorCalibration.h>
 
 class LedCalibration

@@ -34,6 +34,11 @@ macro(DeployApple TARGET)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-xz> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
+		# Copy utils-image
+		if (USE_SHARED_LIBS AND TARGET utils-image)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-image> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
 		if ( Qt5Core_FOUND )			
 			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
 		else()
@@ -344,7 +349,6 @@ macro(DeployUnix TARGET)
 			"librt"
 			"libstdc++"
 			"libudev"
-			"libutil"			
 			"libz"
 			"libxrender1"
 			"libxi6"
@@ -564,6 +568,11 @@ macro(DeployWindows TARGET)
 		# Copy utils-xz
 		if (USE_SHARED_LIBS AND TARGET utils-xz)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-xz> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy utils-image
+		if (USE_SHARED_LIBS AND TARGET utils-image)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-image> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins

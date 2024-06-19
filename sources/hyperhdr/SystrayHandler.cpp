@@ -50,12 +50,12 @@
 
 #include <HyperhdrConfig.h>
 
-#include <utils/ColorRgb.h>
+#include <image/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
 #include <webserver/WebServer.h>
 #include <utils/Logger.h>
 #include <systray/Systray.h>
-#include <hyperimage/HyperImage.h>
+#include <utils-image/utils-image.h>
 
 #include "HyperHdrDaemon.h"
 #include "SystrayHandler.h"
@@ -152,6 +152,21 @@ void SystrayHandler::close()
 	}
 }
 
+static QString preloadSvg(const QString& filename)
+{
+	if (filename.indexOf(":/") == 0)
+	{
+		QFile stream(filename);
+		if (!stream.open(QIODevice::ReadOnly))
+			return filename;
+		QByteArray ar = stream.readAll();
+		stream.close();
+
+		return QString(ar);
+	}
+	return filename;
+}
+
 static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder, QString destFilename = "")
 {
 
@@ -184,23 +199,19 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 	{
 		QDir().mkpath(iconFile.absolutePath());
 
-		QByteArray ar;
-		QBuffer buffer(&ar);
-		buffer.open(QIODevice::WriteOnly);
-		HyperImage::svg2png(filename, iconDim, iconDim, buffer);
+		std::vector<uint8_t> ar;
+		utils_image::svg2png(preloadSvg(filename).toStdString(), iconDim, iconDim, ar);
 
 		QFile newIcon(fullPath);
 		newIcon.open(QIODevice::WriteOnly);
-		newIcon.write(ar);
+		newIcon.write(reinterpret_cast<char*>(ar.data()), ar.size());
 		newIcon.close();
 	}
 
 	menu->tooltip = fullPath.toStdString();
 #else
-	QByteArray ar;
-	QBuffer buffer(&ar);
-	buffer.open(QIODevice::WriteOnly);
-	HyperImage::svg2png(filename, iconDim, iconDim, buffer);
+	std::vector<uint8_t> ar;
+	utils_image::svg2png(preloadSvg(filename).toStdString(), iconDim, iconDim, ar);
 
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());
@@ -307,7 +318,7 @@ void SystrayHandler::createSystray()
 		colorItem->callback = [](SystrayMenu* m) {
 			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
 			QString colorName = QString::fromStdString(m->label);
-			ColorRgb color = HyperImage::ColorRgbfromString(colorName);
+			ColorRgb color = utils_image::colorRgbfromString(colorName.toStdString());
 			if (sh != nullptr)
 				QUEUE_CALL_1(sh, setColor, ColorRgb, color);
 		};

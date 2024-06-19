@@ -31,11 +31,11 @@
 	#include <QObject>
 #endif
 
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/Components.h>
 
-#include <utils/PerformanceCounters.h>
+#include <performance-counters/PerformanceCounters.h>
 #include <bonjour/DiscoveryRecord.h>
 
 class HyperHdrManager;

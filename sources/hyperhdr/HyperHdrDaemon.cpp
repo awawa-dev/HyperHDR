@@ -19,8 +19,7 @@
 
 #include <QCoreApplication>
 #include <utils/Components.h>
-#include <utils/JsonUtils.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <utils/GlobalSignals.h>
 #include <leddevice/LedDevice.h>
 #include <base/HyperHdrInstance.h>
@@ -52,7 +51,7 @@
 // NetOrigin checks
 #include <utils/NetOrigin.h>
 
-#include <utils/PerformanceCounters.h>
+#include <performance-counters/PerformanceCounters.h>
 
 #include "HyperHdrDaemon.h"
 

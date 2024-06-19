@@ -90,6 +90,17 @@ int LedDeviceFile::close()
 	return retval;
 }
 
+static inline QTextStream& operator<<(QTextStream& os, const ColorRgb& color)
+{
+	os << "{"
+		<< static_cast<unsigned>(color.red) << ","
+		<< static_cast<unsigned>(color.green) << ","
+		<< static_cast<unsigned>(color.blue)
+		<< "}";
+
+	return os;
+}
+
 int LedDeviceFile::write(const std::vector<ColorRgb>& ledValues)
 {
 	QTextStream out(_file);
