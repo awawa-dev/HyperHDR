@@ -162,7 +162,7 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 		if (colorObject.contains("channelAdjustment"))
 		{
 			QJsonArray adjUpdate = colorObject["channelAdjustment"].toArray(), newArray;
-			for (auto iter = adjUpdate.begin(); iter != adjUpdate.end(); ++iter)			
+			for (auto iter = adjUpdate.begin(); iter != adjUpdate.end(); ++iter)
 			{
 				QJsonObject newObject = (iter)->toObject();
 				int threshold = newObject["backlightThreshold"].toInt(0);
@@ -187,6 +187,17 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 			_sTable->deleteSettingsRecordString("boblightServer");
 		}
 		version = 3;
+	}
+
+	if (version < 4)
+	{
+		auto deviceObject = dbConfig["device"].toObject();
+		if (deviceObject["type"] == "awa_spi")
+		{
+			deviceObject["type"] = "hyperspi";
+			dbConfig["device"] = deviceObject;
+		}
+		version = 4;
 	}
 
 	generalObject["version"] = version;

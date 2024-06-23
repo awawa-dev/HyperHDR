@@ -56,7 +56,7 @@ set(PROTOBUF-NANOPB-SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
 		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
 
-add_library(protobuf-nanopb STATIC ${PROTOBUF-NANOPB-SOURCES})
+add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
 set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
 install(TARGETS protobuf-nanopb EXPORT nanopb-targets
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -69,13 +69,13 @@ target_include_directories(protobuf-nanopb INTERFACE
 # RPi ws281x
 #=============================================================================
 
-
 if(ENABLE_WS281XPWM)
-	add_library(ws281x
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/mailbox.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/ws2811.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/pwm.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/dma.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/pcm.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/rpihw.c)
+	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" FILE_CONTENTS)
+	string(REPLACE "if(BUILD_SHARED)" "if(USE_SHARED_LIBS)" FILE_CONTENTS "${FILE_CONTENTS}")
+	string(REPLACE "configure_file(version.h.in version.h)" [=[configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)]=] FILE_CONTENTS "${FILE_CONTENTS}")
+	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" "${FILE_CONTENTS}")
+
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x)			
 endif()
 
 #=============================================================================
@@ -104,7 +104,12 @@ if (USE_SYSTEM_FLATBUFFERS_LIBS AND NOT CMAKE_CROSSCOMPILING)
 		set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF PARENT_SCOPE)
 		set(USE_SYSTEM_FLATBUFFERS_LIBS OFF)
 	else()
-		message(STATUS "Found system FLATBUFFERS libs.")
+		message(STATUS "Found system FLATBUFFERS libs (${FLATBUFFERS_INCLUDE_DIRS}).")
+		if (NOT (TARGET flatbuffers))
+			message(STATUS "Creating interface for the FLATBUFFERS lib")
+			add_library(flatbuffers INTERFACE)
+			target_include_directories(flatbuffers INTERFACE ${FLATBUFFERS_INCLUDE_DIRS})
+		endif ()
 	endif()
 endif()
 
@@ -251,7 +256,7 @@ endif()
 # STB
 #=============================================================================
 
-add_library(stb ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h ${CMAKE_CURRENT_SOURCE_DIR}/lunasvg/3rdparty/stb/stb_image_write.h )
+add_library(stb OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h ${CMAKE_CURRENT_SOURCE_DIR}/lunasvg/3rdparty/stb/stb_image_write.h )
 
 install(
 	TARGETS   stb

@@ -20,10 +20,10 @@
 #include <image/Image.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
-#include <base/LedString.h>
-#include <effectengine/EffectDefinition.h>
-#include <effectengine/ActiveEffectDefinition.h>
-#include <leddevice/LedDevice.h>
+#include <led-strip/LedString.h>
+#include <effects/EffectDefinition.h>
+#include <effects/ActiveEffectDefinition.h>
+#include <led-drivers/LedDevice.h>
 
 class Muxer;
 class ComponentController;

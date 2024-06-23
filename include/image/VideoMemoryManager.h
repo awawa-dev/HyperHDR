@@ -10,7 +10,7 @@
 	#include <memory>
 #endif
 
-#include <utils/MemoryBuffer.h>
+#include <image/MemoryBuffer.h>
 
 #define VideoMemoryManagerBufferSize 8
 
@@ -24,6 +24,8 @@ public:
 	void    release(std::unique_ptr<MemoryBuffer<uint8_t>>& frame);
 	std::string	adjustCache();
 	std::unique_ptr<MemoryBuffer<uint8_t>> request(size_t size);
+
+	static VideoMemoryManager videoCache;
 
 private:
 	void releaseBuffer();

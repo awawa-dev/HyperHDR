@@ -32,7 +32,7 @@
 #include <image/Image.h>
 #include <image/ColorRgb.h>
 #include <utils/Components.h>
-#include <utils/MemoryBuffer.h>
+#include <image/MemoryBuffer.h>
 
 class QTcpSocket;
 class QLocalSocket;

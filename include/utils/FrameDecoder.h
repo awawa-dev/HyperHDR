@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/MemoryBuffer.h>
+#include <image/MemoryBuffer.h>
 #include <image/ColorRgb.h>
 #include <image/Image.h>
 #include <utils/PixelFormat.h>

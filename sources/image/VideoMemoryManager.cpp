@@ -28,6 +28,8 @@
 
 #include <image/VideoMemoryManager.h>
 
+VideoMemoryManager VideoMemoryManager::videoCache;
+
 #define BUFFER_LOWER_LIMIT 1
 
 VideoMemoryManager::VideoMemoryManager(int bufferSize) :

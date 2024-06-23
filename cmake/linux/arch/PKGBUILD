@@ -7,7 +7,7 @@ license=('MIT')
 arch=('x86_64')
 install=INSTALL
 depends=('xz')
-optdepends=('shared-mime-info' 'gtk3')
+optdepends=('gtk3')
 # not needed fot Github Action
 # source=("git+https://github.com/awawa-dev/HyperHDR.git")
 # md5sums=('SKIP')
@@ -17,7 +17,7 @@ build() {
     cmake -B build -S .. \
         -DCMAKE_BUILD_TYPE='None' \
         -DCMAKE_INSTALL_PREFIX='/usr' \
-        -Wno-dev {CACHE}
+        -Wno-dev {BUILD_OPTION}
     cmake --build build
 }
 

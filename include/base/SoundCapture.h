@@ -21,7 +21,7 @@ protected:
 	Logger*			_logger;
 
 	SoundCapture(const QJsonDocument& effectConfig, QObject* parent = nullptr);
-	~SoundCapture();
+	virtual ~SoundCapture();
 	
 	QList<QString>	_availableDevices;
 	bool			_isActive;

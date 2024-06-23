@@ -36,13 +36,11 @@
 #endif
 
 #include <image/ImageData.h>
+#include <image/VideoMemoryManager.h>
 
 #define LOCAL_VID_ALIGN_SIZE       16
 
 static_assert (sizeof(ColorRgb) < LOCAL_VID_ALIGN_SIZE && sizeof(ColorRgb) <= sizeof(uint64_t), "Unexpected image size");
-
-template <typename ColorSpace>
-VideoMemoryManager ImageData<ColorSpace>::videoCache;
 
 template <typename ColorSpace>
 ImageData<ColorSpace>::ImageData(unsigned width, unsigned height) :
@@ -58,7 +56,7 @@ template <typename ColorSpace>
 bool ImageData<ColorSpace>::setBufferCacheSize()
 {
 	if (_memoryBuffer != nullptr)
-		return videoCache.setFrameSize(_memoryBuffer->size());
+		return VideoMemoryManager::videoCache.setFrameSize(_memoryBuffer->size());
 	else
 		return false;
 }
@@ -156,7 +154,7 @@ bool ImageData<ColorRgb>::checkSignal(int x, int y, int r, int g, int b, int tol
 template <typename ColorSpace>
 std::string ImageData<ColorSpace>::adjustCache()
 {
-	return videoCache.adjustCache();
+	return VideoMemoryManager::videoCache.adjustCache();
 }
 
 template <typename ColorSpace>
@@ -169,14 +167,14 @@ template <typename ColorSpace>
 inline void ImageData<ColorSpace>::getMemory(size_t width, size_t height)
 {
 	size_t neededSize = width * height * sizeof(ColorSpace) + LOCAL_VID_ALIGN_SIZE;
-	_memoryBuffer = videoCache.request(neededSize);
+	_memoryBuffer = VideoMemoryManager::videoCache.request(neededSize);
 	_pixels = _memoryBuffer->data();
 }
 
 template <typename ColorSpace>
 inline void ImageData<ColorSpace>::freeMemory()
 {
-	videoCache.release(_memoryBuffer);
+	VideoMemoryManager::videoCache.release(_memoryBuffer);
 	_pixels = nullptr;
 }
 

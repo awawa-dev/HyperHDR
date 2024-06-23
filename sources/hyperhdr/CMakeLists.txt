@@ -22,18 +22,22 @@ target_link_libraries(hyperhdr
 	blackborder
 	commandline
 	database
-	effectengine	
-	flatbuffers_client
-	flatbuffers_parser
-	flatbuffers_server
+	effects
+	flatbuffers-client
+	flatbuffers-parser
+	flatbuffers-server
+	hyperhdr-api
 	hyperhdr-base
 	hyperhdr-utils
 	hyperimage
 	image
 	jsonserver
 	json-utils
+	led-drivers
+	led-strip
 	lut-calibrator
 	performance-counters
+	protobuf-nanopb
 	resources
 	ssdp
 	suspend-handler
@@ -52,9 +56,9 @@ endif()
 
 if(ENABLE_XZ)
 	if (LIBLZMA_FOUND)
-		target_link_libraries(hyperhdr LibLZMA::LibLZMA)
+		target_link_libraries(hyperhdr LibLZMA::LibLZMA utils-xz)
 	else()
-		target_link_libraries(hyperhdr liblzma)
+		target_link_libraries(hyperhdr liblzma utils-xz)
 	endif()
 endif()
 
@@ -83,11 +87,11 @@ if (ENABLE_V4L2)
 endif ()
 
 if (ENABLE_MF)
-	target_link_libraries(hyperhdr MF-grabber)
+	target_link_libraries(hyperhdr grabber-MF)
 endif ()
 
 if (ENABLE_DX)
-	target_link_libraries(hyperhdr DX-grabber)
+	target_link_libraries(hyperhdr grabber-DX)
 endif ()
 
 if (ENABLE_X11)

@@ -13,5 +13,5 @@ target_link_libraries(blackborder
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
-    target_precompile_headers(blackborder REUSE_FROM precompiled_hyperhdr_headers)
+	target_precompile_headers(blackborder REUSE_FROM precompiled_hyperhdr_headers)
 endif()

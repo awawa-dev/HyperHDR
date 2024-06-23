@@ -2,12 +2,12 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
+#  pull_request:
 
 env:
     USE_CACHE: "1"
     RESET_CACHE: "0"
-    USE_CODEQL: "1"
+    USE_CODEQL: "0"
     BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
 
 jobs:
@@ -163,14 +163,14 @@ jobs:
         if: ( env.USE_CACHE == '1' )
         uses: actions/cache@v4
         with:
-            path: .ccache
+            path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
             restore-keys: macOS-ccache-${{ matrix.NICE_NAME }}
 
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
+        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
         
       # Set env
       - name: Set QT5 env
@@ -248,7 +248,7 @@ jobs:
         if: ( env.USE_CACHE == '1' )
         uses: actions/cache@v4
         with:
-            path: .ccache
+            path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
             restore-keys: ${{ runner.os }}-ccache
 
@@ -305,7 +305,6 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( true )
     permissions:
       actions: read
       contents: read
@@ -319,11 +318,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        if: ( env.USE_CODEQL == '1' )
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
+        if: ( env.USE_CODEQL == '1' )
         with:
           language: ${{matrix.language}}
 

@@ -48,7 +48,7 @@ DBManager::DBManager()
 	: _log(Logger::getInstance("DB"))
 	, _readonlyMode(false)
 {
-	
+
 }
 
 DBManager::~DBManager()
@@ -74,7 +74,7 @@ SqlDatabase* DBManager::getDB() const
 	{
 		auto db = new SqlDatabase(_databaseName.absoluteFilePath(), _readOnlyMode);
 		_databasePool.setLocalData(db);
-		
+
 		if (!db->open())
 		{
 			Error(_log, QSTRING_CSTR(db->error()));
@@ -572,7 +572,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 {
 	SqlDatabase* idb = getDB();
 	const QJsonObject& message = backupData.value("config").toObject();
-	bool rm = _readonlyMode;	
+	bool rm = _readonlyMode;
 
 	Info(_log, "Creating DB backup first.");
 	QString resultFile = createLocalBackup();

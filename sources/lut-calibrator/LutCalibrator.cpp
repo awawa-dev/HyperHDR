@@ -48,7 +48,7 @@
 #include <base/GrabberWrapper.h>
 #include <api/HyperAPI.h>
 #include <base/HyperHdrManager.h>
-#include <utils/ColorSpaceCalibration.h>
+#include <led-strip/ColorSpaceCalibration.h>
 
 ColorRgb LutCalibrator::primeColors[] = {
 				ColorRgb(255, 0, 0), ColorRgb(0, 255, 0), ColorRgb(0, 0, 255), ColorRgb(255, 255, 0),

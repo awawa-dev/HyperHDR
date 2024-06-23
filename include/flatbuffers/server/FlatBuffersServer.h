@@ -4,7 +4,7 @@
 	#include <QVector>
 #endif
 
-#include <utils/MemoryBuffer.h>
+#include <image/MemoryBuffer.h>
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <image/Image.h>

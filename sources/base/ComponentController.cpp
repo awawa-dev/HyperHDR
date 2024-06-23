@@ -8,7 +8,7 @@
 
 using namespace hyperhdr;
 
-ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup):
+ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup) :
 	_log(Logger::getInstance(QString("COMPONENTCTRL%1").arg(hyperhdr->getInstanceIndex()))),
 	_disableOnStartup(disableOnStartup)
 {
@@ -29,7 +29,7 @@ ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disabl
 
 ComponentController::~ComponentController()
 {
-    Debug(_log, "ComponentController is released");
+	Debug(_log, "ComponentController is released");
 }
 
 void ComponentController::handleCompStateChangeRequest(hyperhdr::Components comps, bool activated)
@@ -116,8 +116,8 @@ void ComponentController::turnGrabbers(bool activated)
 			}
 	}
 	else if (!_prevGrabbers.empty() && activated)
-	{		
-		for (const auto& comp : _prevGrabbers)				
+	{
+		for (const auto& comp : _prevGrabbers)
 			if (comp.second)
 			{
 				emit SignalRequestComponent(comp.first, true);

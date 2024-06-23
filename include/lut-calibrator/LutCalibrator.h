@@ -37,7 +37,7 @@
 	#include <algorithm>
 #endif
 
-#include <utils/MemoryBuffer.h>
+#include <image/MemoryBuffer.h>
 #include <image/Image.h>
 #include <utils/Components.h>
 

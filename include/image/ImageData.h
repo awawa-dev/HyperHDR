@@ -1,10 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <utils/MemoryBuffer.h>
+#ifndef PCH_ENABLED
+	#include <memory>
+#endif
 
+#include <image/MemoryBuffer.h>
 #include <image/ColorRgb.h>
-#include <image/VideoMemoryManager.h>
 
 template <typename ColorSpace>
 class ImageData
@@ -60,6 +61,4 @@ private:
 	std::unique_ptr<MemoryBuffer<uint8_t>> _memoryBuffer;
 
 	uint8_t* _pixels;
-
-	static VideoMemoryManager videoCache;
 };

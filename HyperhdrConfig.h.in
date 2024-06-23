@@ -1,5 +1,8 @@
 // Generated config file
 
+// enable emmbeded web resources
+#cmakedefine USE_EMBEDDED_WEB_RESOURCES
+
 // enable shared lib loading
 #cmakedefine USE_SHARED_LIBS
 

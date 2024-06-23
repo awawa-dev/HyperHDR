@@ -35,7 +35,7 @@
 
 #include <base/SoundCaptureResult.h>
 #include <base/SoundCapture.h>
-#include <effectengine/AnimationBaseMusic.h>
+#include <effects/AnimationBaseMusic.h>
 
 namespace
 {
@@ -59,7 +59,7 @@ SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* parent) :
 	_isRunning(false),
 	_maxInstance(0)
 {
-	_logger = Logger::getInstance("SOUND_GRABBER");	
+	_logger = Logger::getInstance("SOUND_GRABBER");
 	settingsChangedHandler(settings::type::SNDEFFECT, effectConfig);
 	qRegisterMetaType<uint32_t>("uint32_t");
 }
@@ -261,7 +261,7 @@ bool SoundCapture::analyzeSpectrum(int16_t soundBuffer[], int sizeP)
 		Info(_logger, "Audio Stream: audio data successfully captured and sound detected.");
 	}
 
-	resultFFT.Smooth();	
+	resultFFT.Smooth();
 
 	return true;
 }
@@ -274,7 +274,7 @@ SoundCaptureResult* SoundCapture::hasResult(AnimationBaseMusic* effect, uint32_t
 	{
 		lastIndex = resultFFT.getResultIndex();
 
-		effect->store(&resultFFT.mtInternal);		
+		effect->store(&resultFFT.mtInternal);
 
 		*isMulti = 2;
 

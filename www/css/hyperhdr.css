@@ -5,8 +5,8 @@
   */
 @font-face {
     font-family: "Roboto";
-    src: url("../fonts/Roboto-Regular.woff2") format('woff'),
-		 url("../fonts/Roboto-Regular.ttf") format('ttf');
+    src: url("../fonts/Roboto-Regular.woff2") format('woff2'),
+	 url("../fonts/Roboto-Regular.ttf") format('ttf');
 }
 
 body {

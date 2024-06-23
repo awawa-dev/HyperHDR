@@ -5,6 +5,7 @@
 	#include <QBuffer>
 	#include <QDateTime>
 	#include <QDir>
+	#include <QFile>
 	#include <QFileInfo>
 	#include <QHash>
 	#include <QHostAddress>

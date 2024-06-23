@@ -2,7 +2,7 @@
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/proto-nano-server)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/proto-nano-server)
 
-add_library(proto-nano-server
+add_library(proto-nano-server OBJECT
 	${CURRENT_SOURCE_DIR}/ProtoNanoClientConnection.cpp
 	${CURRENT_HEADER_DIR}/ProtoNanoClientConnection.h
 	${CURRENT_SOURCE_DIR}/message.pb.c

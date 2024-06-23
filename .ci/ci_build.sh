@@ -27,74 +27,62 @@ fi
 
 [ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME="OFF"
 
-echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}"
+echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
+
+# clear ccache if neccesery
+if [[ "$RESET_CACHE" == '1' ]]; then
+	echo "Clearing ccache"
+	rm -rf .ccache || true
+	rm -rf build/.ccache || true
+fi
 
 # Build the package on osx or linux
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	echo "Start: osx or darwin"
+
 	if [[ "$USE_CCACHE" == '1' ]]; then
 		echo "Using ccache"
-
-		# Init ccache
-		mkdir -p .ccache
-		cd .ccache
-		
-		if [[ "$RESET_CACHE" == '1' ]]; then
-			echo "Clearing ccache"
-			rm -rf ..?* .[!.]* *
-		fi
-		
-		CCACHE_PATH=$PWD
-		cd ..
-        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
-		export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=${CCACHE_PATH} && export CCACHE_COMPRESS=true && export CCACHE_COMPRESSLEVEL=1 && export CCACHE_MAXSIZE=400M
-		echo "CCache parameters: ${cachecommand}"		
-		ls -a .ccache
-
-		mkdir build || exit 1
-		cd build
-		ccache -p
-		cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-		make -j $(sysctl -n hw.ncpu) || exit 3
-		sudo cpack || exit 3
-		exit 0;
-		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+		BUILD_OPTION=""
 	else
 		echo "Not using ccache"
-		mkdir build || exit 1
-		cd build
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-		make -j $(sysctl -n hw.ncpu) || exit 3
-		sudo cpack || exit 3
-		exit 0;
-		exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+		BUILD_OPTION="-DDISABLE_CCACHE_USAGE=ON"
 	fi
+
+	echo "Build option: ${BUILD_OPTION}"
+
+	mkdir -p build/.ccache
+	ls -a build/.ccache
+	cd build
+	ccache -z -d ./.ccache || true
+	cmake -DPLATFORM=${PLATFORM} ${BUILD_OPTION} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+	make -j $(sysctl -n hw.ncpu) || exit 3
+	sudo cpack || exit 3
+	ccache -sv -d ./.ccache || true
+	exit 0;
+	exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	echo "Start: windows"	
 	echo "Number of cores: $NUMBER_OF_PROCESSORS"
 
 	if [[ "$USE_CCACHE" == '1' ]]; then
 		echo "Using ccache"
-		
-		mkdir -p .ccache
-		
-		if [[ "$RESET_CACHE" == '1' ]]; then
-			echo "Clearing ccache"
-			pushd .
-			cd .ccache && rm -rf ..?* .[!.]* *
-			popd
-		fi
-		export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=$PWD/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M
+		BUILD_OPTION="${IS_ARCHIVE_SKIPPED}"
+	else
+		echo "Not using ccache"
+		BUILD_OPTION="-DDISABLE_CCACHE_USAGE=ON ${IS_ARCHIVE_SKIPPED}"
 	fi
 
-	mkdir -p build || exit 1
+	echo "Build option: ${BUILD_OPTION}"
+
+	mkdir -p build/.ccache
+
 	cd build
-	cmake -G "Visual Studio 17 2022" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ${IS_ARCHIVE_SKIPPED} ../ || exit 2
+	cmake -G "Visual Studio 17 2022" ${BUILD_OPTION} -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ../ || exit 2
+	./ccache.exe -zp || true
 	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
+	./ccache.exe -sv || true
 
-	if [[ "$USE_CCACHE" == '1' ]]; then
-		./ccache.exe -s
-	fi
 	exit 0;
 
 elif [[ "$CI_NAME" == 'linux' ]]; then
@@ -105,6 +93,20 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	
 	# take ownership of deploy dir
 	mkdir -p ${CI_BUILD_DIR}/deploy
+	mkdir -p .ccache
+
+	if [[ "$USE_CCACHE" == '1' ]]; then
+		echo "Using ccache"
+		BUILD_OPTION="${IS_ARCHIVE_SKIPPED}"
+		cache_env="export CCACHE_DIR=/.ccache && ccache -z"
+		ls -a .ccache
+	else
+		echo "Not using ccache"		
+		BUILD_OPTION="-DDISABLE_CCACHE_USAGE=ON ${IS_ARCHIVE_SKIPPED}"
+		cache_env="true"
+	fi
+	
+	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"
 
 	if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
 		echo "Arch Linux detected"
@@ -113,75 +115,27 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
 		versionFile=`cat version`
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
-	fi
-
-	if [[ "$USE_CCACHE" == '1' ]]; then
-		echo "Using ccache"
-		
-		mkdir -p .ccache
-		
-        cachecommand="-DCMAKE_C_COMPILER_LAUNCHER=ccache ${IS_ARCHIVE_SKIPPED}"
-		
-		if [[ "$RESET_CACHE" == '1' ]]; then
-			echo "Clearing ccache"
-			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M && cd /.ccache && rm -rf ..?* .[!.]* *"
-		else
-			cache_env="export CCACHE_SLOPPINESS=pch_defines,time_macros && export CCACHE_DIR=/.ccache && export CCACHE_NOCOMPRESS=true && export CCACHE_MAXSIZE=600M"
-		fi
-		
-		echo "CCache parameters: ${cachecommand}, env: ${cache_env}"
-		
-		if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
-			sed -i "s/{CACHE}/${cachecommand}/" PKGBUILD
-			echo "Using makepkg"
-			cat PKGBUILD
-			chmod -R a+rw ${CI_BUILD_DIR}/.ccache
-		else
-			executeCommand="cd build && ( cmake ${cachecommand} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"
-			executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
-		fi
-
-		ls -a .ccache
-		# run docker
-		docker run --rm \
-		-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
-		-v "${CI_BUILD_DIR}/deploy:/deploy" \
-		-v "${CI_BUILD_DIR}:/source:ro" \
-		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
-		cd /hyperhdr && mkdir build && (${executeCommand}) &&
-		(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
-		(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
-		(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&
-		ccache -s &&
-		exit 0;
-		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
-		ls -a .ccache
+		sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
+		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else
-		echo "Not using cache"
-		
-		if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
-			sed -i "s/{CACHE}//" PKGBUILD
-			echo "Using makepkg"
-			cat PKGBUILD
-		else
-			executeCommand="cd build && ( cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"
-			executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
-		fi
-
-		# run docker
-		docker run --rm \
-		-v "${CI_BUILD_DIR}/deploy:/deploy" \
-		-v "${CI_BUILD_DIR}:/source:ro" \
-		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
-		cd /hyperhdr && mkdir build && (${executeCommand}) &&
-		(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
-		(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
-		(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&
-		exit 0;
-		exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
+		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"
+		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
+
+	# run docker
+	docker run --rm \
+	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
+	-v "${CI_BUILD_DIR}/deploy:/deploy" \
+	-v "${CI_BUILD_DIR}:/source:ro" \
+	$REGISTRY_URL:$DOCKER_TAG \
+	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
+	cd /hyperhdr && mkdir build && (${executeCommand}) &&
+	(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
+	(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
+	(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&
+	(ccache -sv || true) &&
+	exit 0;
+	exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 	
 	# overwrite file owner to current user
 	sudo chown -fR $(stat -c "%U:%G" ${CI_BUILD_DIR}/deploy) ${CI_BUILD_DIR}/deploy

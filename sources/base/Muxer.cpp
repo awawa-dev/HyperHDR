@@ -61,6 +61,36 @@ Muxer::~Muxer()
 	delete _blockTimer;
 }
 
+QList<int> Muxer::getPriorities() const
+{
+	return _activeInputs.keys();
+}
+
+const Muxer::InputInfo& Muxer::getInputInfo(int priority) const
+{
+	auto elemIt = _activeInputs.find(priority);
+	if (elemIt == _activeInputs.end())
+	{
+		elemIt = _activeInputs.find(Muxer::LOWEST_PRIORITY);
+		if (elemIt == _activeInputs.end())
+		{
+			// fallback
+			return _lowestPriorityInfo;
+		}
+	}
+	return elemIt.value();
+}
+
+const QMap<int, Muxer::InputInfo>& Muxer::getInputInfoTable() const
+{
+	return _activeInputs;
+}
+
+hyperhdr::Components Muxer::getComponentOfPriority(int priority) const
+{
+	return _activeInputs[priority].componentId;
+}
+
 void Muxer::setEnable(bool enable)
 {
 	enable ? _updateTimer->start() : _updateTimer->stop();
@@ -142,39 +172,9 @@ bool Muxer::setPriority(int priority)
 	return false;
 }
 
-QList<int> Muxer::getPriorities() const
-{
-	return _activeInputs.keys();
-}
-
 bool Muxer::hasPriority(int priority) const
 {
 	return (priority == Muxer::LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
-}
-
-const Muxer::InputInfo& Muxer::getInputInfo(int priority) const
-{
-	auto elemIt = _activeInputs.find(priority);
-	if (elemIt == _activeInputs.end())
-	{
-		elemIt = _activeInputs.find(Muxer::LOWEST_PRIORITY);
-		if (elemIt == _activeInputs.end())
-		{
-			// fallback
-			return _lowestPriorityInfo;
-		}
-	}
-	return elemIt.value();
-}
-
-const QMap<int, Muxer::InputInfo>& Muxer::getInputInfoTable() const
-{
-	return _activeInputs;
-}
-
-hyperhdr::Components Muxer::getComponentOfPriority(int priority) const
-{
-	return _activeInputs[priority].componentId;
 }
 
 void Muxer::registerInput(int priority, hyperhdr::Components component, const QString& origin, const ColorRgb& staticColor, unsigned smooth_cfg, const QString& owner)
@@ -205,7 +205,7 @@ void Muxer::registerInput(int priority, hyperhdr::Components component, const QS
 		return;
 	}
 
-	if (reusedInput && component!= hyperhdr::Components::COMP_FLATBUFSERVER)
+	if (reusedInput && component != hyperhdr::Components::COMP_FLATBUFSERVER)
 	{
 		emit SignalTimeRunner_Internal();
 	}

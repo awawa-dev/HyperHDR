@@ -16,6 +16,7 @@ namespace hyperhdr
 	class BlackBorderProcessor : public QObject
 	{
 		Q_OBJECT
+
 	public:
 		BlackBorderProcessor(HyperHdrInstance* hyperhdr, QObject* parent);
 		~BlackBorderProcessor() override;

@@ -51,7 +51,7 @@
 #include <HyperhdrConfig.h>
 
 #include <image/ColorRgb.h>
-#include <effectengine/EffectDefinition.h>
+#include <effects/EffectDefinition.h>
 #include <webserver/WebServer.h>
 #include <utils/Logger.h>
 #include <systray/Systray.h>
@@ -343,16 +343,16 @@ void SystrayHandler::createSystray()
 
 	std::copy_if(efxs.begin(), efxs.end(),
 		std::back_inserter(efxsSorted),
-		[](const EffectDefinition& a) { return a.name.contains("Music:"); });
+		[](const EffectDefinition& a) { return a.name.find("Music:") != std::string::npos; });
 
 	std::copy_if(efxs.begin(), efxs.end(),
 		std::back_inserter(efxsSorted),
-		[](const EffectDefinition& a) { return !a.name.contains("Music:"); });
+		[](const EffectDefinition& a) { return !(a.name.find("Music:") != std::string::npos); });
 
 
 	for (const EffectDefinition& efx : efxsSorted)
 	{
-		QString effectName = efx.name;
+		QString effectName = QString::fromStdString(efx.name);
 		std::unique_ptr<SystrayMenu> effectItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 		effectItem->label = effectName.toStdString();
 		effectItem->context = this;
@@ -403,7 +403,7 @@ void SystrayHandler::createSystray()
 
 	std::unique_ptr<SystrayMenu> autostartMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 	loadSvg(autostartMenu, ":/autorun.svg", _rootFolder);
-	autostartMenu->label = (getCurrentAutorunState()) ? "Enable autostart" : "Disable autostart";
+	autostartMenu->label = (getCurrentAutorunState()) ? "Disable autostart" : "Enable autostart";
 	autostartMenu->context = this;
 	autostartMenu->callback = [](SystrayMenu* m) {
 		SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);

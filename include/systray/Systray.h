@@ -32,7 +32,7 @@
 #include <memory>
 #include <functional>
 
-#include <utils/MemoryBuffer.h>
+#include <image/MemoryBuffer.h>
 
 class SystrayHandler;
 

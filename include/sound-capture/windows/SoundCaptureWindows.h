@@ -32,6 +32,7 @@ public:
 	void start() override;
 	void stop() override;
 private:
+	void stopDevice();
 	void listDevices();
 	WindowsSoundThread* _thread;
 };

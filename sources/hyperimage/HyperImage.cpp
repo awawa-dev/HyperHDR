@@ -30,6 +30,7 @@
 #include <string>
 #include <limits>
 #include <cmath>
+#include <cstring>
 
 #include <hyperimage/HyperImage.h>
 #include <utility>	

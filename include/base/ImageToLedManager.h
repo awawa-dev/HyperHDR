@@ -9,7 +9,7 @@
 
 #include <image/Image.h>
 #include <utils/Logger.h>
-#include <base/LedString.h>
+#include <led-strip/LedString.h>
 #include <base/ImageColorAveraging.h>
 #include <blackborder/BlackBorderProcessor.h>
 

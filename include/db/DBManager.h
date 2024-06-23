@@ -24,7 +24,7 @@ typedef QVector<CPair> VectorPair;
 class DBManager
 {
 
-public:	
+public:
 	virtual ~DBManager();
 
 	static void initializeDatabaseFilename(QFileInfo databaseName, bool readOnlyMode);
@@ -53,7 +53,7 @@ protected:
 	DBManager();
 	Logger* _log;
 
-private:	
+private:
 	QString _table;
 
 	bool _readonlyMode;

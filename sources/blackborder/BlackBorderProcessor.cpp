@@ -37,31 +37,6 @@ BlackBorderProcessor::~BlackBorderProcessor()
 	_borderDetector = nullptr;
 }
 
-void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
-{
-	if (type == settings::type::BLACKBORDER)
-	{
-		const QJsonObject& obj = config.object();
-		_unknownSwitchCnt = obj["unknownFrameCnt"].toInt(600);
-		_borderSwitchCnt = obj["borderFrameCnt"].toInt(50);
-		_maxInconsistentCnt = obj["maxInconsistentCnt"].toInt(10);
-		_blurRemoveCnt = obj["blurRemoveCnt"].toInt(1);
-		_detectionMode = obj["mode"].toString("default");
-		const double newThreshold = obj["threshold"].toDouble(5.0) / 100.0;
-
-		if (_oldThreshold != newThreshold)
-		{
-			_oldThreshold = newThreshold;
-
-			_borderDetector = std::unique_ptr<BlackBorderDetector>(new BlackBorderDetector(newThreshold));
-		}
-
-		Info(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
-
-		// eval the comp state
-		handleCompStateChangeRequest(hyperhdr::COMP_BLACKBORDER, obj["enable"].toBool(true));
-	}
-}
 
 void BlackBorderProcessor::handleCompStateChangeRequest(hyperhdr::Components component, bool enable)
 {
@@ -221,4 +196,30 @@ bool BlackBorderProcessor::process(const Image<ColorRgb>& image)
 	const bool borderUpdated = updateBorder(imageBorder);
 
 	return borderUpdated;
+}
+
+void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
+{
+	if (type == settings::type::BLACKBORDER)
+	{
+		const QJsonObject& obj = config.object();
+		_unknownSwitchCnt = obj["unknownFrameCnt"].toInt(600);
+		_borderSwitchCnt = obj["borderFrameCnt"].toInt(50);
+		_maxInconsistentCnt = obj["maxInconsistentCnt"].toInt(10);
+		_blurRemoveCnt = obj["blurRemoveCnt"].toInt(1);
+		_detectionMode = obj["mode"].toString("default");
+		const double newThreshold = obj["threshold"].toDouble(5.0) / 100.0;
+
+		if (_oldThreshold != newThreshold)
+		{
+			_oldThreshold = newThreshold;
+
+			_borderDetector = std::unique_ptr<BlackBorderDetector>(new BlackBorderDetector(newThreshold));
+		}
+
+		Info(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
+
+		// eval the comp state
+		handleCompStateChangeRequest(hyperhdr::COMP_BLACKBORDER, obj["enable"].toBool(true));
+	}
 }

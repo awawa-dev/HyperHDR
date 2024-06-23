@@ -28,12 +28,12 @@ FILE ( GLOB FLATBUF_PARSER_SOURCES "${CURRENT_HEADER_DIR}/parser/*.h" "${CURRENT
 
 include_directories("${CURRENT_HEADER_DIR}/parser")
 
-add_library(flatbuffers_parser OBJECT
+add_library(flatbuffers-parser OBJECT
 	${FLATBUF_PARSER_SOURCES}
 	${Flatbuffer_GENERATED_FBS}
 )
 
-target_link_libraries(flatbuffers_parser PRIVATE
+target_link_libraries(flatbuffers-parser PRIVATE
 	flatbuffers
 )
 
@@ -43,18 +43,18 @@ FILE ( GLOB FLATBUF_SERVER_SOURCES "${CURRENT_HEADER_DIR}/server/*.h" "${CURRENT
 
 include_directories("${CURRENT_HEADER_DIR}/server")
 
-add_library(flatbuffers_server OBJECT
+add_library(flatbuffers-server OBJECT
 	${FLATBUF_SERVER_SOURCES}
 )
 
-target_link_libraries(flatbuffers_server
-	flatbuffers_parser
+target_link_libraries(flatbuffers-server
+	flatbuffers-parser
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Core
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
-    target_precompile_headers(flatbuffers_server REUSE_FROM precompiled_hyperhdr_headers)
+	target_precompile_headers(flatbuffers-server REUSE_FROM precompiled_hyperhdr_headers)
 endif()
 
 ############################################# CLIENT #######################################################
@@ -63,16 +63,16 @@ FILE ( GLOB FLATBUF_CLIENT_SOURCES "${CURRENT_HEADER_DIR}/client/*.h"  "${CURREN
 
 include_directories("${CURRENT_HEADER_DIR}/client")
 
-add_library(flatbuffers_client OBJECT
+add_library(flatbuffers-client OBJECT
 	${FLATBUF_CLIENT_SOURCES}
 )
 
-target_link_libraries(flatbuffers_client
-	flatbuffers_parser
+target_link_libraries(flatbuffers-client
+	flatbuffers-parser
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Core
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
-    target_precompile_headers(flatbuffers_client REUSE_FROM precompiled_hyperhdr_headers)
+	target_precompile_headers(flatbuffers-client REUSE_FROM precompiled_hyperhdr_headers)
 endif()

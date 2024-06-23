@@ -9,7 +9,7 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
-#include <effectengine/EffectDefinition.h>
+#include <effects/EffectDefinition.h>
 
 class HyperHdrInstance;
 class InstanceTable;
