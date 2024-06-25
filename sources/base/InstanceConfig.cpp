@@ -3,11 +3,11 @@
 #endif
 
 #include <base/InstanceConfig.h>
-#include <utils/JsonUtils.h>
+#include <json-utils/JsonUtils.h>
 #include <db/SettingsTable.h>
-#include <utils/jsonschema/QJsonUtils.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/JsonUtils.h>
+#include <json-utils/jsonschema/QJsonUtils.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
+#include <json-utils/JsonUtils.h>
 
 QJsonObject	InstanceConfig::_schemaJson;
 QMutex		InstanceConfig::_lockerSettingsManager;
@@ -178,6 +178,15 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 			version = 2;
 			Info(_log, "DB has been upgraded to version: %i", version);
 		}
+	}
+
+	if (version < 3)
+	{
+		if (_sTable->recordExist("boblightServer"))
+		{
+			_sTable->deleteSettingsRecordString("boblightServer");
+		}
+		version = 3;
 	}
 
 	generalObject["version"] = version;

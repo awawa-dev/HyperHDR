@@ -10,15 +10,11 @@ else()
 	LIST ( REMOVE_ITEM Utils_SOURCES "${CURRENT_SOURCE_DIR}/SystemPerformanceCounters.cpp" )
 endif()
 
-add_library(hyperhdr-utils
-	${Utils_SOURCES}
-)
+add_library(hyperhdr-utils OBJECT ${Utils_SOURCES})
 
 target_link_libraries(hyperhdr-utils
-	hyperhdr-base
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	TurboJPEG::TurboJPEG
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

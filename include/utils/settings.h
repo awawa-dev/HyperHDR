@@ -12,7 +12,6 @@ namespace settings {
 		BGEFFECT,
 		FGEFFECT,
 		BLACKBORDER,
-		BOBLSERVER,
 		COLOR,
 		DEVICE,
 		EFFECTS,
@@ -45,7 +44,6 @@ namespace settings {
 		case type::BGEFFECT:      return "backgroundEffect";
 		case type::FGEFFECT:      return "foregroundEffect";
 		case type::BLACKBORDER:   return "blackborderdetector";
-		case type::BOBLSERVER:    return "boblightServer";
 		case type::COLOR:         return "color";
 		case type::DEVICE:        return "device";
 		case type::EFFECTS:       return "effects";
@@ -77,7 +75,6 @@ namespace settings {
 		else if (type == "backgroundEffect")     return type::BGEFFECT;
 		else if (type == "foregroundEffect")     return type::FGEFFECT;
 		else if (type == "blackborderdetector")  return type::BLACKBORDER;
-		else if (type == "boblightServer")       return type::BOBLSERVER;
 		else if (type == "color")                return type::COLOR;
 		else if (type == "device")               return type::DEVICE;
 		else if (type == "effects")              return type::EFFECTS;

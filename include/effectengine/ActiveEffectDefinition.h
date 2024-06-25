@@ -1,8 +1,9 @@
 #pragma once
 
-// QT include
-#include <QString>
-#include <QJsonObject>
+#ifndef PCH_ENABLED
+	#include <QString>
+	#include <QJsonObject>
+#endif
 
 struct ActiveEffectDefinition
 {

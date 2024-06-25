@@ -30,10 +30,10 @@
 #include <base/ImageToLedManager.h>
 #include <base/AccessManager.h>
 #include <flatbuffers/server/FlatBuffersServer.h>
-#include <utils/jsonschema/QJsonUtils.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/JsonUtils.h>
-#include <utils/PerformanceCounters.h>
+#include <json-utils/jsonschema/QJsonUtils.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
+#include <json-utils/JsonUtils.h>
+#include <performance-counters/PerformanceCounters.h>
 
 // bonjour wrapper
 #ifdef ENABLE_BONJOUR

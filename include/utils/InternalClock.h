@@ -28,15 +28,14 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-	#include <QtGlobal>
 	#include <chrono>
 #endif
 
 class InternalClock
 {
 public:
-	static qint64 now();
-	static qint64 nowPrecise();
+	static long long int now();
+	static long long int nowPrecise();
 	static bool isPreciseSteady();
 private:
 	const static std::chrono::time_point<std::chrono::steady_clock> start;

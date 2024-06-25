@@ -2,9 +2,9 @@
 
 #ifndef PCH_ENABLED
 	#include <QJsonObject>
-
-	#include <utils/Logger.h>
 #endif
+
+#include <utils/Logger.h>
 
 class QtHttpServer;
 class QtHttpRequest;

@@ -1,23 +1,18 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-	#include <QObject>
-	#include <QString>
-	#include <QSize>
+	#include <vector>
+	#include <cstdint>
 #endif
 
-#include <QBuffer>
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 
-class HyperImage : public QObject
+class HyperImage
 {
-	Q_OBJECT
-
 public:
 	HyperImage();
-	HyperImage(QSize size);
-	~HyperImage();
+	HyperImage(int width, int height);
 
 	HyperImage(const HyperImage& t) = delete;
 	HyperImage& operator=(const HyperImage& x) = delete;
@@ -36,11 +31,6 @@ public:
 	void fillRect(int ax, int ay, int bx, int by, const ColorRgb& color);
 	void conicalFill(double angle, const std::vector<uint8_t>& points, bool reset = false);
 	void radialFill(int center_x, int center_y, double diag, const std::vector<uint8_t>& points);
-
-	static Image<ColorRgb> load2image(QByteArray& buffer);
-	static void svg2png(QString filename, int width, int height, QBuffer& buffer);
-	static ColorRgb ColorRgbfromString(QString colorName);
-	static void encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown);
 
 private:
 	Image<ColorRgb>	_surface;

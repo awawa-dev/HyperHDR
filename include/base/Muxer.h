@@ -9,11 +9,11 @@
 
 	#include <vector>
 	#include <cstdint>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Components.h>
 #endif
+
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Components.h>
 
 #define SMOOTHING_DEFAULT_CONFIG 0
 

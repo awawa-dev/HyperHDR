@@ -5,10 +5,10 @@
 	#include <QMutexLocker>
 
 	#include <atomic>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class SettingsTable;
 

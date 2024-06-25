@@ -7,10 +7,11 @@ FILE ( GLOB Parser_SOURCES "${CURRENT_HEADER_DIR}/BooleanOption.h" "${CURRENT_SO
 			   "${CURRENT_HEADER_DIR}/Parser.h" "${CURRENT_SOURCE_DIR}/Parser.cpp"
 )
 
-add_library(commandline ${Parser_SOURCES} )
+add_library(commandline OBJECT ${Parser_SOURCES} )
 
 target_link_libraries(commandline
-	hyperhdr-base
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

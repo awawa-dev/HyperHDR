@@ -16,10 +16,6 @@ ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disabl
 	QVector<hyperhdr::Components> vect;
 	vect << COMP_ALL << COMP_HDR << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER;
 
-#if defined(ENABLE_BOBLIGHT)
-	vect << COMP_BOBLIGHTSERVER;
-#endif
-
 	vect << COMP_VIDEOGRABBER << COMP_SYSTEMGRABBER << COMP_LEDDEVICE;
 	for (auto e : vect)
 	{

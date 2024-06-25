@@ -208,9 +208,6 @@ $(document).ready(function()
 				case "VIDEOGRABBER":
 					owner = $.i18n('general_comp_VIDEOGRABBER') + ': <span class="small text-secondary">' + owner + '<span/>';
 					break;
-				case "BOBLIGHTSERVER":
-					owner = $.i18n('general_comp_BOBLIGHTSERVER');
-					break;
 				case "FLATBUFSERVER":
 					owner = $.i18n('general_comp_FLATBUFSERVER');
 					break;

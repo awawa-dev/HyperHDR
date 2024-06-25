@@ -4,11 +4,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/sound-capture/windows)
 
 FILE ( GLOB SOUNDCAPWINDOWS_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(sound-capture-windows ${SOUNDCAPWINDOWS_SOURCES} )
+add_library(sound-capture-windows OBJECT ${SOUNDCAPWINDOWS_SOURCES} )
 
 target_link_libraries(sound-capture-windows
-	hyperhdr-base
-	${QT_LIBRARIES}
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

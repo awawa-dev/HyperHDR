@@ -81,7 +81,7 @@ jobs:
           file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
        # download cache
-      - name: ccache cache files
+      - name: Download ccache files
         if: ( env.USE_CACHE == '1' )
         uses: actions/cache@v4
         with:
@@ -159,7 +159,7 @@ jobs:
             file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
       # Download cache
-      - name: ccache cache files
+      - name: Download ccache files
         if: ( env.USE_CACHE == '1' )
         uses: actions/cache@v4
         with:
@@ -234,11 +234,39 @@ jobs:
           pip install aqtinstall
           aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
 
+      # Generate cache id
+      - name: Prepare ccache timestamp
+        if: env.USE_CACHE == '1'
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+            string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
+
+      # Download cache
+      - name: Download ccache files
+        if: ( env.USE_CACHE == '1' )
+        uses: actions/cache@v4
+        with:
+            path: .ccache
+            key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+            restore-keys: ${{ runner.os }}-ccache
+
       - name: Install TurboJPEG
         shell: powershell
         run: |
           Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
           Start-Process -Wait turbojpeg.exe -ArgumentList "/S"
+
+      - name: Download CCache
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.10/ccache-4.10-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
+
+      - name: Install CCache
+        shell: cmd
+        run: |
+          7z e ccache.zip -o.\build *.exe -r
 
       - name: Set up x64 build architecture environment
         shell: cmd

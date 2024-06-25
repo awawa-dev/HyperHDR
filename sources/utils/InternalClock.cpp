@@ -25,20 +25,19 @@
 *  SOFTWARE.
  */
 
-#ifndef PCH_ENABLED
-	#include <utils/InternalClock.h>
-#endif
+
+#include <utils/InternalClock.h>
 
 const std::chrono::time_point<std::chrono::steady_clock> InternalClock::start = std::chrono::steady_clock::now();
 const std::chrono::time_point<std::chrono::high_resolution_clock> InternalClock::startPrecise = std::chrono::high_resolution_clock::now();
 
-qint64 InternalClock::now()
+long long int InternalClock::now()
 {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 }
 
 
-qint64 InternalClock::nowPrecise()
+long long int InternalClock::nowPrecise()
 {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startPrecise).count();
 }

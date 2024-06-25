@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-#include <atomic>
+	#include <atomic>
 #endif
 
 #include <base/SoundCapture.h>

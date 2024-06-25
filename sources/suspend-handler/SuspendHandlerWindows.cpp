@@ -33,8 +33,7 @@
 #include <stdlib.h>
 #include <suspend-handler/SuspendHandlerWindows.h>
 #include <utils/Components.h>
-#include <utils/JsonUtils.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <base/HyperHdrManager.h>
 #include <windows.h>
 #include <wtsapi32.h>

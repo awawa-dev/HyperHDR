@@ -1,12 +1,12 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-	#include <map>
 	#include <QObject>
-
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
+	#include <map>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/Components.h>
 
 class HyperHdrInstance;
 

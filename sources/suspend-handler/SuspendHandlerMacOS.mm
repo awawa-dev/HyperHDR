@@ -35,8 +35,7 @@
 #include <stdlib.h>
 #include <suspend-handler/SuspendHandlerMacOS.h>
 #include <utils/Components.h>
-#include <utils/JsonUtils.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <base/HyperHdrManager.h>
 #include <iostream>
 #include <QThread>

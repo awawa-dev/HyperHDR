@@ -27,8 +27,7 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED
-	#include <utils/MemoryBuffer.h>
+#ifndef PCH_ENABLED	
 	#include <cstdlib>
 #endif
 

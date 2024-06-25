@@ -7,18 +7,18 @@
 #include <d3d11.h>
 #include <d3d11_1.h>
 
-// stl includes
-#include <vector>
-#include <map>
-#include <chrono>
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QSocketNotifier>
+	#include <QRectF>
+	#include <QMap>
+	#include <QMultiMap>
+	#include <QTimer>
 
-// Qt includes
-#include <QObject>
-#include <QSocketNotifier>
-#include <QRectF>
-#include <QMap>
-#include <QMultiMap>
-#include <QTimer>
+	#include <vector>
+	#include <map>
+	#include <chrono>
+#endif
 
 // util includes
 #include <utils/PixelFormat.h>

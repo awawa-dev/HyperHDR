@@ -36,8 +36,7 @@
 #include <sdbus-c++/sdbus-c++.h>
 #include <suspend-handler/SuspendHandlerLinux.h>
 #include <utils/Components.h>
-#include <utils/JsonUtils.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <base/HyperHdrManager.h>
 #include <iostream>
 

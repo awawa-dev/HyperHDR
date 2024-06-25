@@ -29,10 +29,10 @@
 
 #ifndef PCH_ENABLED
 	#include <QVector>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class QUdpSocket;
 class NetOrigin;

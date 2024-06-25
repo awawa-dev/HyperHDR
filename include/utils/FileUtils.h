@@ -3,10 +3,10 @@
 #ifndef PCH_ENABLED
 	#include <QFile>
 	#include <QString>
-	#include <QByteArray>
-
-	#include <utils/Logger.h>
+	#include <QByteArray>	
 #endif
+
+#include <utils/Logger.h>
 
 namespace FileUtils {
 

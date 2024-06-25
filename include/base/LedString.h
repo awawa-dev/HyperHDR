@@ -8,9 +8,9 @@
 
 	#include <ctime>
 	#include <vector>
-
-	#include <utils/ColorRgb.h>
 #endif
+
+#include <image/ColorRgb.h>
 
 namespace Json { class Value; }
 

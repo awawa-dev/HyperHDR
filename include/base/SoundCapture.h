@@ -5,11 +5,10 @@
 	#include <QMutex>
 	#include <QJsonObject>
 	#include <QJsonArray>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
 
+#include <utils/Logger.h>
+#include <utils/settings.h>
 #include <base/SoundCaptureResult.h>
 
 class AnimationBaseMusic;

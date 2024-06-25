@@ -28,10 +28,11 @@
 #pragma once
 
 #include <stdint.h>
-#include <utils/MemoryBuffer.h>
 #include <string>
 #include <memory>
 #include <functional>
+
+#include <utils/MemoryBuffer.h>
 
 class SystrayHandler;
 

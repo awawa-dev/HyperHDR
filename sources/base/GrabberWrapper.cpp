@@ -35,9 +35,8 @@
 #include <HyperhdrConfig.h>
 #include <base/GrabberWrapper.h>
 #include <base/Grabber.h>
-#include <utils/VideoMemoryManager.h>
+#include <image/VideoMemoryManager.h>
 #include <utils/GlobalSignals.h>
-#include <utils/QStringUtils.h>
 #include <base/HyperHdrInstance.h>
 #include <base/HyperHdrManager.h>
 
@@ -508,7 +507,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 			// device resolution
 			QString videoMode = obj["videoMode"].toString("0x0").toLower();
-			QStringList res = QStringUtils::SPLITTER(videoMode, 'x');
+			QStringList res = videoMode.split('x', Qt::SkipEmptyParts);
 			bool okX = false, okY = false;
 			int x = 0, y = 0;
 

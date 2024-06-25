@@ -1,5 +1,4 @@
 #include "LedDeviceYeelight.h"
-#include <utils/QStringUtils.h>
 #include <ssdp/SSDPDiscover.h>
 
 // Qt includes
@@ -1121,7 +1120,7 @@ bool LedDeviceYeelight::init(const QJsonObject& deviceConfig)
 				QString address = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				QStringList addressparts = QStringUtils::SPLITTER(address, ':');
+				QStringList addressparts = address.split(':', Qt::SkipEmptyParts);
 				QString apiHost = addressparts[0];
 				int apiPort = port;
 

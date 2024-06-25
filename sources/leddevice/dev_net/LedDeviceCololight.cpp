@@ -4,7 +4,6 @@
 #include <QtEndian>
 #include <QEventLoop>
 #include <QByteArray>
-#include <utils/QStringUtils.h>
 
 #include <chrono>
 
@@ -598,7 +597,7 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 
 				QMap<QString, QString> headers;
 				// parse request
-				QStringList entries = QStringUtils::SPLITTER(data, '\n');
+				QStringList entries = data.split('\n', Qt::SkipEmptyParts);
 				for (auto entry : entries)
 				{
 					// split into key=value, be aware that value field may contain also a "="

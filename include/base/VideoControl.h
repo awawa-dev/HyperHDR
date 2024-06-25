@@ -2,12 +2,12 @@
 
 #ifndef PCH_ENABLED
 	#include <QTimer>
-
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
+
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
 
 class HyperHdrInstance;
 

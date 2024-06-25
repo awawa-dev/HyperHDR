@@ -4,13 +4,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/ssdp)
 
 FILE ( GLOB SSDP_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(ssdp
-	${SSDP_SOURCES}
-)
+add_library(ssdp OBJECT ${SSDP_SOURCES})
 
 target_link_libraries(ssdp
+	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	webserver
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

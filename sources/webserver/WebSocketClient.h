@@ -1,10 +1,8 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <utils/Logger.h>
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-#endif
+#include <utils/Logger.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 
 class QTcpSocket;
 class QtHttpRequest;

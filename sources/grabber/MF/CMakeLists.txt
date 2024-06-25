@@ -2,14 +2,14 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber/MF)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/MF)
 
-FILE ( GLOB WMF_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
+FILE ( GLOB MF_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(MF-grabber ${WMF_SOURCES} )
+add_library(MF-grabber OBJECT ${MF_SOURCES} )
 
 target_link_libraries(MF-grabber
-	hyperhdr-base
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
 	TurboJPEG::TurboJPEG
-	${QT_LIBRARIES}
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

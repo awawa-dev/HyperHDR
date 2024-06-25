@@ -3,11 +3,10 @@
 #ifndef PCH_ENABLED
 	#include <QJsonObject>
 	#include <QString>
-	#include <QTimer>
-
-	#include <utils/Components.h>
+	#include <QTimer>	
 #endif
 
+#include <utils/Components.h>
 #include <api/CallbackAPI.h>
 #include <base/HyperHdrInstance.h>
 #include <base/HyperHdrManager.h>

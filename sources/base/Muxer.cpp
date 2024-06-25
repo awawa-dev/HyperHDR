@@ -4,10 +4,9 @@
 
 	#include <algorithm>
 	#include <limits>
-
-	#include <utils/Logger.h>
 #endif
 
+#include <utils/Logger.h>
 #include <base/Muxer.h>
 
 #define	TIMEOUT_INACTIVE -100

@@ -21,7 +21,7 @@
 				"component":
 				{
 					"type" : "string",
-					"enum" : ["ALL", "HDR", "SMOOTHING", "BLACKBORDER", "FORWARDER", "BOBLIGHTSERVER", "VIDEOGRABBER", "SYSTEMGRABBER", "LEDDEVICE", 
+					"enum" : ["ALL", "HDR", "SMOOTHING", "BLACKBORDER", "FORWARDER", "VIDEOGRABBER", "SYSTEMGRABBER", "LEDDEVICE", 
 								"GRABBER", "V4L"],
 					"required": true
 				},
