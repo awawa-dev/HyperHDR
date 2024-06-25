@@ -276,6 +276,11 @@ void ColorSpaceCalibration::updateBrightnessComponents()
 	}
 }
 
+bool ColorSpaceCalibration::isBrightnessCorrectionEnabled() const
+{
+	return _brightnessCompensation != 100 || _brightness != 100;
+}
+
 void ColorSpaceCalibration::getBrightnessComponents(uint8_t& rgb, uint8_t& cmy, uint8_t& w) const
 {
 	rgb = _brightness_rgb;

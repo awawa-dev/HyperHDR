@@ -38,6 +38,7 @@ public:
 	uint8_t getBrightnessCompensation() const;
 	void setBrightnessCompensation(int brightnessCompensation);
 	void getBrightnessComponents(uint8_t& rgb, uint8_t& cmy, uint8_t& w) const;
+	bool isBrightnessCorrectionEnabled() const;
 	void applyGamma(uint8_t& red, uint8_t& green, uint8_t& blue) const;
 	void applyBacklight(uint8_t& red, uint8_t& green, uint8_t& blue) const;
 	void applySaturationLuminance(uint8_t& red, uint8_t& green, uint8_t& blue) const;
