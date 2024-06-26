@@ -54,7 +54,6 @@ id activity;
 macOsGrabber::macOsGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "MACOS_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
-	, _semaphore(1)
 	, _actualDisplay(0)
 {
 	_timer.setTimerType(Qt::PreciseTimer);
@@ -219,9 +218,7 @@ void macOsGrabber::stop()
 {
 	if (_initialized)
 	{
-		_semaphore.acquire();
 		_timer.stop();
-		_semaphore.release();
 		Info(_log, "Stopped");
 	}
 }
@@ -234,9 +231,7 @@ bool macOsGrabber::init_device(QString selectedDeviceName)
 void macOsGrabber::grabFrame()
 {
 	bool stopNow = false;
-
-	if (_semaphore.tryAcquire())
-	{		
+		
 		CGImageRef display;
 		CFDataRef sysData;
 		uint8_t* rawData;
@@ -267,12 +262,10 @@ void macOsGrabber::grabFrame()
 			CGImageRelease(display);
 		}
 
-		_semaphore.release();
-	}
-
 	if (stopNow)
 	{
 		uninit();
+		QTimer::singleShot(3000, this, &macOsGrabber::start);
 	}
 }
 
