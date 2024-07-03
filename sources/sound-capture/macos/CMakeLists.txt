@@ -11,6 +11,6 @@ target_link_libraries(sound-capture-macos
 	Qt${Qt_VERSION}::Network
 )
 
-if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers AND (NOT APPLE OR NOT USE_CCACHE_CACHING))
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers AND (NOT APPLE))
 	target_precompile_headers(sound-capture-macos REUSE_FROM precompiled_hyperhdr_headers)
 endif()

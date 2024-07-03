@@ -5,9 +5,9 @@ on:
 #  pull_request:
 
 env:
-    USE_CACHE: "1"
-    RESET_CACHE: "0"
-    USE_CODEQL: "0"
+    USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
+    RESET_CACHE: ${{ vars.RESET_CACHE && vars.RESET_CACHE || false }}
+    USE_CODEQL: ${{ vars.USE_CODEQL && vars.USE_CODEQL || false }}
     BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
 
       # generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -82,7 +82,7 @@ jobs:
 
        # download cache
       - name: Download ccache files
-        if: ( env.USE_CACHE == '1' )
+        if: env.USE_CACHE == 'true'
         uses: actions/cache@v4
         with:
            path: .ccache
@@ -151,7 +151,7 @@ jobs:
 
       # Generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -160,7 +160,7 @@ jobs:
 
       # Download cache
       - name: Download ccache files
-        if: ( env.USE_CACHE == '1' )
+        if: env.USE_CACHE == 'true'
         uses: actions/cache@v4
         with:
             path: build/.ccache
@@ -236,7 +236,7 @@ jobs:
 
       # Generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -245,7 +245,7 @@ jobs:
 
       # Download cache
       - name: Download ccache files
-        if: ( env.USE_CACHE == '1' )
+        if: env.USE_CACHE == 'true'
         uses: actions/cache@v4
         with:
             path: build/.ccache
@@ -305,6 +305,8 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
+    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+
     permissions:
       actions: read
       contents: read
@@ -318,13 +320,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        if: ( env.USE_CODEQL == '1' )
+        if: env.USE_CODEQL == 'true'
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
-        if: ( env.USE_CODEQL == '1' )
+        if: env.USE_CODEQL == 'true'
         with:
           language: ${{matrix.language}}
 

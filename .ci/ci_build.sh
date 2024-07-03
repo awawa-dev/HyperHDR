@@ -16,10 +16,12 @@ else
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 fi
 
-if [[ "$BUILD_ARCHIVES" == '0' ]]; then
-	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
+if [ ${BUILD_ARCHIVES} = true ]; then
+	echo "Build the package archive"
+	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=OFF"	
 else
-	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=OFF"
+	echo "Do not build the package archive"
+	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
 fi
 
 # set environment variables if not exists (debug)
@@ -30,7 +32,7 @@ fi
 echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
 
 # clear ccache if neccesery
-if [[ "$RESET_CACHE" == '1' ]]; then
+if [ ${RESET_CACHE} = true ]; then
 	echo "Clearing ccache"
 	rm -rf .ccache || true
 	rm -rf build/.ccache || true
@@ -40,12 +42,17 @@ fi
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	echo "Start: osx or darwin"
 
-	if [[ "$USE_CCACHE" == '1' ]]; then
-		echo "Using ccache"
-		BUILD_OPTION=""
+	if [ ${USE_CCACHE} = true ]; then
+		echo "Using ccache"		
+		if [[ $(uname -m) == 'arm64' ]]; then
+			BUILD_OPTION=""
+		else
+			BUILD_OPTION="-DUSE_PRECOMPILED_HEADERS=OFF"
+			export CCACHE_COMPILERCHECK=content
+		fi
 	else
 		echo "Not using ccache"
-		BUILD_OPTION="-DDISABLE_CCACHE_USAGE=ON"
+		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF"
 	fi
 
 	echo "Build option: ${BUILD_OPTION}"
@@ -65,12 +72,12 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	echo "Start: windows"	
 	echo "Number of cores: $NUMBER_OF_PROCESSORS"
 
-	if [[ "$USE_CCACHE" == '1' ]]; then
+	if [ ${USE_CCACHE} = true ]; then
 		echo "Using ccache"
 		BUILD_OPTION="${IS_ARCHIVE_SKIPPED}"
 	else
 		echo "Not using ccache"
-		BUILD_OPTION="-DDISABLE_CCACHE_USAGE=ON ${IS_ARCHIVE_SKIPPED}"
+		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${IS_ARCHIVE_SKIPPED}"
 	fi
 
 	echo "Build option: ${BUILD_OPTION}"
@@ -95,14 +102,14 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	mkdir -p ${CI_BUILD_DIR}/deploy
 	mkdir -p .ccache
 
-	if [[ "$USE_CCACHE" == '1' ]]; then
+	if [ ${USE_CCACHE} = true ]; then
 		echo "Using ccache"
 		BUILD_OPTION="${IS_ARCHIVE_SKIPPED}"
 		cache_env="export CCACHE_DIR=/.ccache && ccache -z"
 		ls -a .ccache
 	else
 		echo "Not using ccache"		
-		BUILD_OPTION="-DDISABLE_CCACHE_USAGE=ON ${IS_ARCHIVE_SKIPPED}"
+		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${IS_ARCHIVE_SKIPPED}"
 		cache_env="true"
 	fi
 	
@@ -115,7 +122,11 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
 		versionFile=`cat version`
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
-		sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
+		if [ ${USE_CCACHE} = true ]; then
+			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION} -DUSE_PRECOMPILED_HEADERS=OFF/" PKGBUILD
+		else
+			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
+		fi
 		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else
 		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"

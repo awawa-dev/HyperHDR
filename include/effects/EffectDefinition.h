@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-	#include <cstring>
+	#include <string>
 	#include <functional>
 #endif
 

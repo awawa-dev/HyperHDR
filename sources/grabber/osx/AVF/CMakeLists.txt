@@ -15,6 +15,6 @@ if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
 	target_precompile_headers(AVF-grabber REUSE_FROM precompiled_hyperhdr_headers)
 endif()
 
-if(APPLE AND USE_CCACHE_CACHING)
+if(APPLE)
 	set_source_files_properties(${CURRENT_SOURCE_DIR}/AVFGrabber.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif()

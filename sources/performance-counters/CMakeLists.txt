@@ -21,6 +21,6 @@ if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
 	target_precompile_headers(performance-counters REUSE_FROM precompiled_hyperhdr_headers)
 endif()
 
-if(APPLE AND USE_CCACHE_CACHING)
+if(APPLE)
 	set_source_files_properties(${CURRENT_SOURCE_DIR}/SystemPerformanceCounters.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 endif()
