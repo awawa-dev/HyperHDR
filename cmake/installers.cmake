@@ -586,32 +586,10 @@ macro(DeployWindows TARGET)
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
 			DESTINATION "bin"
 			COMPONENT "HyperHDR"
-		)
-		
-		execute_process(
-			COMMAND ${SEVENZIP_BIN} e ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y
-			RESULT_VARIABLE STATUS
-			OUTPUT_VARIABLE OUTPUT1			
-		)
-		if(STATUS AND NOT STATUS EQUAL 0)
-		    message( FATAL_ERROR "LUT tar.xz Bad exit status: ${STATUS} ${OUTPUT1}")
-		else()
-		    message( STATUS "LUT tar.xz tar extracted")			
-		endif()
-
-		execute_process(
-			COMMAND ${SEVENZIP_BIN} e ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.tar -o${CMAKE_CURRENT_BINARY_DIR} -aoa -y 
-			RESULT_VARIABLE STATUS
-			OUTPUT_VARIABLE OUTPUT1			
-		)
-		if(STATUS AND NOT STATUS EQUAL 0)
-		    message( FATAL_ERROR "LUT tar Bad exit status")
-		else()
-		    message( STATUS "LUT tar extracted")			
-		endif()
+		)		
 
 		install(
-			FILES ${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d
+			FILES ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz
 			DESTINATION "bin"
 			COMPONENT "HyperHDR"
 		)
@@ -659,7 +637,7 @@ macro(DeployWindows TARGET)
 			endif()
 		endif()
 		
-		if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
+		if (WINDEPLOYQT_EXECUTABLE AND (NOT CMAKE_GITHUB_ACTION))
 			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
 			message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")
 			add_custom_command(TARGET ${TARGET} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:${TARGET}>")

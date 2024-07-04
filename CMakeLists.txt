@@ -61,7 +61,7 @@ if (USE_CCACHE_CACHING)
 		if (DEFINED ENV{CCACHE_DIR})
 			set (CCACHE_DIR_CACHE_LOCATION $ENV{CCACHE_DIR})
 			message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )			
-		elseif (WIN32 AND NOT CMAKE_GITHUB_ACTION)
+		elseif (WIN32 AND (NOT CMAKE_GITHUB_ACTION))
 			set (CCACHE_DIR_CACHE_LOCATION "$ENV{AppData}/.ccache")
 			message ( STATUS "Found CCache (${CCACHE_FOUND}) and set ccache dir: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )
 		else()
@@ -81,6 +81,7 @@ if (USE_CCACHE_CACHING)
 		else()
 			set(HYPERHDR_CCACHE_PARAMS
 				CCACHE_MAXSIZE=600M
+				CCACHE_NOCOMPRESS=true
 				CCACHE_DIR=${CCACHE_DIR_CACHE_LOCATION}
 				CCACHE_SLOPPINESS=pch_defines,time_macros
 				CCACHE_INODECACHE=true

@@ -6,14 +6,17 @@ if [ "$SYSTEM_COLLECTIONID" != "" ]; then
 	echo "Azure detected"
 	CI_NAME="$(echo "$AGENT_OS" | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$BUILD_SOURCESDIRECTORY"
+	CI_TYPE="azure"
 elif [ "$HOME" != "" ]; then
 	# GitHub Actions
 	echo "Github Actions detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$GITHUB_WORKSPACE"
+	CI_TYPE="github_action"
 else
 	# for executing in non ci environment
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+	CI_TYPE="other"
 fi
 
 if [ ${BUILD_ARCHIVES} = true ]; then
@@ -80,12 +83,20 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${IS_ARCHIVE_SKIPPED}"
 	fi
 
+	if [[ $CI_TYPE == "github_action" ]]; then
+		export CCACHE_COMPILERCHECK=content
+		export CCACHE_NOCOMPRESS=true
+		BUILD_OPTION="${BUILD_OPTION} -DCMAKE_GITHUB_ACTION=ON"
+	else
+		BUILD_OPTION="${BUILD_OPTION} -DCMAKE_GITHUB_ACTION=OFF"
+	fi
+
 	echo "Build option: ${BUILD_OPTION}"
 
 	mkdir -p build/.ccache
 
 	cd build
-	cmake -G "Visual Studio 17 2022" ${BUILD_OPTION} -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_GITHUB_ACTION=1 ../ || exit 2
+	cmake -G "Visual Studio 17 2022" ${BUILD_OPTION} -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2
 	./ccache.exe -zp || true
 	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
 	./ccache.exe -sv || true
