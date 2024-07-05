@@ -35,9 +35,7 @@
 #include <HyperhdrConfig.h>
 #include <base/GrabberWrapper.h>
 #include <base/Grabber.h>
-#include <utils/VideoMemoryManager.h>
 #include <utils/GlobalSignals.h>
-#include <utils/QStringUtils.h>
 #include <base/HyperHdrInstance.h>
 #include <base/HyperHdrManager.h>
 
@@ -59,6 +57,62 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName)
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &GrabberWrapper::signalRequestSourceHandler);
 	connect(this, &GrabberWrapper::SignalCecKeyPressed, this, &GrabberWrapper::signalCecKeyPressedHandler);
 	connect(this, &GrabberWrapper::SignalInstancePauseChanged, this, &GrabberWrapper::signalInstancePauseChangedHandler);
+}
+
+void GrabberWrapper::signalRequestSourceHandler(hyperhdr::Components component, int instanceIndex, bool listen)
+{
+	if (component == hyperhdr::Components::COMP_HDR)
+	{
+		if (instanceIndex >= 0)
+			emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, _grabber->getHdrToneMappingEnabled());
+		else
+			setHdrToneMappingEnabled(listen);
+	}
+	else if (component == hyperhdr::Components::COMP_VIDEOGRABBER)
+	{
+		if (instanceIndex >= 0)
+		{
+			if (listen && !_running_clients.contains(instanceIndex))
+			{
+				_running_clients.append(instanceIndex);
+				_paused_clients.removeOne(instanceIndex);
+			}
+			else if (!listen)
+			{
+				_running_clients.removeOne(instanceIndex);
+				_paused_clients.removeOne(instanceIndex);
+			}
+		}
+
+		if (_running_clients.empty())
+		{
+			stop();
+
+			//update state
+			QString currentDevice = "", currentVideoMode = "";
+			emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
+
+			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(false, PerformanceReportType::VIDEO_GRABBER, -1);
+		}
+		else
+		{
+			bool result = start();
+
+			// update state
+			QString currentDevice = "", currentVideoMode = "";
+			auto currentInfo = getVideoCurrentMode();
+
+			if (currentInfo.contains(Grabber::currentVideoModeInfo::device))
+				currentDevice = currentInfo[Grabber::currentVideoModeInfo::device];
+
+			if (currentInfo.contains(Grabber::currentVideoModeInfo::resolution))
+				currentVideoMode = currentInfo[Grabber::currentVideoModeInfo::resolution];
+
+			emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
+
+			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(result, PerformanceReportType::VIDEO_GRABBER, -1);
+		}
+	}
 }
 
 void GrabberWrapper::signalInstancePauseChangedHandler(int instance, bool isEnabled)
@@ -121,7 +175,7 @@ void GrabberWrapper::signalInstancePauseChangedHandler(int instance, bool isEnab
 void GrabberWrapper::setCecStartStop(int cecHdrStart, int cecHdrStop)
 {
 	_cecHdrStart = cecHdrStart;
-	_cecHdrStop = cecHdrStop;	
+	_cecHdrStop = cecHdrStop;
 
 	Debug(_log, "CEC keycode. Start: %i, stop: %i", _cecHdrStart, _cecHdrStop);
 
@@ -226,63 +280,6 @@ QJsonObject GrabberWrapper::getJsonInfo()
 	return grabbers;
 }
 
-void GrabberWrapper::signalRequestSourceHandler(hyperhdr::Components component, int instanceIndex, bool listen)
-{
-	if (component == hyperhdr::Components::COMP_HDR)
-	{
-		if (instanceIndex >= 0)
-			emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, _grabber->getHdrToneMappingEnabled());
-		else
-			setHdrToneMappingEnabled(listen);
-	}
-	else if (component == hyperhdr::Components::COMP_VIDEOGRABBER)
-	{
-		if (instanceIndex >= 0)
-		{
-			if (listen && !_running_clients.contains(instanceIndex))
-			{
-				_running_clients.append(instanceIndex);
-				_paused_clients.removeOne(instanceIndex);
-			}
-			else if (!listen)
-			{
-				_running_clients.removeOne(instanceIndex);
-				_paused_clients.removeOne(instanceIndex);
-			}
-		}
-
-		if (_running_clients.empty())
-		{
-			stop();
-
-			//update state
-			QString currentDevice = "", currentVideoMode = "";
-			emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
-
-			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(false, PerformanceReportType::VIDEO_GRABBER, -1);
-		}
-		else
-		{
-			bool result = start();
-
-			// update state
-			QString currentDevice = "", currentVideoMode = "";
-			auto currentInfo = getVideoCurrentMode();
-
-			if (currentInfo.contains(Grabber::currentVideoModeInfo::device))
-				currentDevice = currentInfo[Grabber::currentVideoModeInfo::device];
-
-			if (currentInfo.contains(Grabber::currentVideoModeInfo::resolution))
-				currentVideoMode = currentInfo[Grabber::currentVideoModeInfo::resolution];
-
-			emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
-
-			emit GlobalSignals::getInstance()->SignalPerformanceStateChanged(result, PerformanceReportType::VIDEO_GRABBER, -1);
-		}
-	}
-}
-
-
 QMap<Grabber::currentVideoModeInfo, QString> GrabberWrapper::getVideoCurrentMode() const
 {
 	if (_grabber != nullptr)
@@ -346,7 +343,7 @@ void GrabberWrapper::setHdrToneMappingEnabled(int mode)
 {
 	if (_grabber != NULL)
 	{
-		_grabber->setHdrToneMappingEnabled(mode);		
+		_grabber->setHdrToneMappingEnabled(mode);
 	}
 }
 
@@ -508,7 +505,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 			// device resolution
 			QString videoMode = obj["videoMode"].toString("0x0").toLower();
-			QStringList res = QStringUtils::SPLITTER(videoMode, 'x');
+			QStringList res = videoMode.split('x', Qt::SkipEmptyParts);
 			bool okX = false, okY = false;
 			int x = 0, y = 0;
 

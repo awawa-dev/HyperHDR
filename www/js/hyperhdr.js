@@ -118,7 +118,7 @@ function connectionLostDetection(type)
 	}
 	else
 	{
-		$.get("/cgi/cfg_jsonserver", function () { window.watchdog = 0 }).fail(function () { window.watchdog++; });
+		$.get("/hyperhdr_heart_beat", function () { window.watchdog = 0 }).fail(function () { window.watchdog++; });
 	}
 }
 

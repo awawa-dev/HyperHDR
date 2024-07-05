@@ -29,13 +29,13 @@
 
 #ifndef PCH_ENABLED
 	#include <QObject>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Components.h>
 #endif
 
-#include <utils/PerformanceCounters.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Components.h>
+
+#include <performance-counters/PerformanceCounters.h>
 #include <bonjour/DiscoveryRecord.h>
 
 class HyperHdrManager;

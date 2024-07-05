@@ -19,10 +19,9 @@
 
 #include <HyperhdrConfig.h>
 #include <api/HyperAPI.h>
-#include <leddevice/LedDeviceWrapper.h>
-#include <leddevice/LedDevice.h>
-#include <leddevice/LedDeviceFactory.h>
-#include "../leddevice/dev_net/ProviderRestApi.h"
+#include <led-drivers/LedDeviceWrapper.h>
+#include <led-drivers/LedDeviceManufactory.h>
+#include <led-drivers/net/ProviderRestApi.h>
 
 #include <base/GrabberWrapper.h>
 #include <base/SystemWrapper.h>
@@ -30,10 +29,10 @@
 #include <base/ImageToLedManager.h>
 #include <base/AccessManager.h>
 #include <flatbuffers/server/FlatBuffersServer.h>
-#include <utils/jsonschema/QJsonUtils.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/JsonUtils.h>
-#include <utils/PerformanceCounters.h>
+#include <json-utils/jsonschema/QJsonUtils.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
+#include <json-utils/JsonUtils.h>
+#include <performance-counters/PerformanceCounters.h>
 
 // bonjour wrapper
 #ifdef ENABLE_BONJOUR
@@ -335,9 +334,12 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 
 			QJsonObject ledDevices;
 			QJsonArray availableLedDevices;
-			for (auto dev : LedDeviceWrapper::getDeviceMap())
+			for (auto dev : hyperhdr::leds::GET_ALL_LED_DEVICE(nullptr))
 			{
-				availableLedDevices.append(dev.first);
+				QJsonObject driver;
+				driver["name"] = dev.name;
+				driver["group"] = dev.group;
+				availableLedDevices.append(driver);
 			}
 
 			ledDevices["available"] = availableLedDevices;
@@ -1124,7 +1126,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 
 		if (subc == "discover")
 		{
-			ledDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(config));
+			ledDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(config));
 			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
@@ -1134,7 +1136,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 		}
 		else if (subc == "getProperties")
 		{
-			ledDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(config));
+			ledDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(config));
 			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject deviceProperties = ledDevice->getProperties(params);
 
@@ -1152,7 +1154,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 			}
 			else
 			{
-				ledDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(config));
+				ledDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(config));
 				ledDevice->identify(params);
 			}
 

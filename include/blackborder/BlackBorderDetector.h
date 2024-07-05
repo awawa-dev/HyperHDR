@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/Image.h>
+#include <image/Image.h>
 
 namespace hyperhdr
 {

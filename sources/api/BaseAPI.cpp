@@ -10,7 +10,7 @@
 	#include <iostream>
 	#include <iterator>
 
-	#include <utils/ColorRgb.h>
+	#include <image/ColorRgb.h>
 	#include <utils/Logger.h>
 	#include <utils/Components.h>
 #endif
@@ -26,13 +26,13 @@
 #include <base/Muxer.h>
 #include <db/AuthTable.h>
 #include <flatbuffers/server/FlatBuffersServer.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/GlobalSignals.h>
 #include <base/GrabberHelper.h>
-#include <hyperimage/HyperImage.h>
+#include <utils-image/utils-image.h>
 
 #ifdef ENABLE_XZ
-	#include <lzma.h>
+	#include <utils-xz/utils-xz.h>
 #endif
 
 #ifdef _WIN32
@@ -238,7 +238,7 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 	}
 	else if (data.format == "auto")
 	{		
-		image = HyperImage::load2image(imageMemory);
+		image = utils_image::load2image(reinterpret_cast<uint8_t*>(imageMemory.data()), imageMemory.size());
 		
 
 		if (image.width() == 1)
@@ -417,72 +417,7 @@ QString BaseAPI::installLut(QNetworkReply* reply, QString fileName, int hardware
 	{
 		QByteArray downloadedData = reply->readAll();
 
-		QFile file(fileName);
-		if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-		{
-			size_t outSize = 67174456;
-			MemoryBuffer<uint8_t> outBuffer(outSize);
-
-			if (outBuffer.data() == nullptr)
-			{
-				error = "Could not allocate buffer";
-			}
-			else
-			{
-				const uint32_t flags = LZMA_TELL_UNSUPPORTED_CHECK | LZMA_CONCATENATED;
-				lzma_stream strm = LZMA_STREAM_INIT;
-				strm.next_in = reinterpret_cast<uint8_t*>(downloadedData.data());
-				strm.avail_in = downloadedData.size();
-				lzma_ret lzmaRet = lzma_stream_decoder(&strm, outSize, flags);
-				if (lzmaRet == LZMA_OK)
-				{
-					do {
-						strm.next_out = outBuffer.data();
-						strm.avail_out = outSize;
-						lzmaRet = lzma_code(&strm, LZMA_FINISH);
-						if (lzmaRet == LZMA_MEMLIMIT_ERROR)
-						{
-							outSize = lzma_memusage(&strm);
-							outBuffer.resize(outSize);
-							if (outBuffer.data() == nullptr)
-							{
-								error = QString("Could not increase buffer size");
-								break;
-							}
-							lzma_memlimit_set(&strm, outSize);
-							strm.avail_out = 0;
-						}
-						else if (lzmaRet != LZMA_OK && lzmaRet != LZMA_STREAM_END)
-						{
-							// error
-							error = QString("LZMA decoder return error: %1").arg(lzmaRet);
-							break;
-						}
-						else
-						{
-							qint64 toWrite = static_cast<qint64>(outSize - strm.avail_out);
-							file.write(reinterpret_cast<char*>(outBuffer.data()), toWrite);
-						}
-					} while (strm.avail_out == 0 && lzmaRet != LZMA_STREAM_END);
-					file.flush();
-				}
-				else
-				{
-					error = "Could not initialize LZMA decoder";
-				}
-
-				if (time != 0)
-					file.setFileTime(QDateTime::fromMSecsSinceEpoch(time), QFileDevice::FileModificationTime);
-
-				file.close();
-				if (error != nullptr)
-					file.remove();
-
-				lzma_end(&strm);
-			}
-		}
-		else
-			error = QString("Could not open %1 for writing").arg(fileName);
+		error = DecompressXZ(downloadedData.size(), reinterpret_cast<uint8_t*>(downloadedData.data()), QSTRING_CSTR(fileName));
 	}
 	else
 		error = "Could not download LUT file";

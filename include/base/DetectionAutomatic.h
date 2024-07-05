@@ -8,12 +8,12 @@
 	#include <QSemaphore>
 	#include <cstdint>
 	#include <vector>
-
-	#include <utils/Image.h>
-	#include <utils/ColorRgb.h>
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
 #endif
+
+#include <image/Image.h>
+#include <image/ColorRgb.h>
+#include <utils/Logger.h>
+#include <utils/Components.h>
 
 #include <utils/FrameDecoder.h>
 

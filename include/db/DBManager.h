@@ -8,9 +8,8 @@
 	#include <QVector>
 	#include <QJsonObject>
 	#include <QJsonDocument>
+	#include <QThreadStorage>
 #endif
-
-#include <QThreadStorage>
 
 #include <utils/Logger.h>
 
@@ -25,7 +24,7 @@ typedef QVector<CPair> VectorPair;
 class DBManager
 {
 
-public:	
+public:
 	virtual ~DBManager();
 
 	static void initializeDatabaseFilename(QFileInfo databaseName, bool readOnlyMode);
@@ -54,7 +53,7 @@ protected:
 	DBManager();
 	Logger* _log;
 
-private:	
+private:
 	QString _table;
 
 	bool _readonlyMode;

@@ -44,16 +44,38 @@ target_compile_definitions(sqlite3 PUBLIC
 )
 
 #=============================================================================
+# Protobuf-nanopb
+#=============================================================================
+
+set(PROTOBUF-NANOPB-SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
+
+add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
+set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
+install(TARGETS protobuf-nanopb EXPORT nanopb-targets
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+target_include_directories(protobuf-nanopb INTERFACE
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+
+#=============================================================================
 # RPi ws281x
 #=============================================================================
 
-
 if(ENABLE_WS281XPWM)
-	add_library(ws281x
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/mailbox.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/ws2811.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/pwm.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/dma.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/pcm.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/rpihw.c)
+	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" FILE_CONTENTS)
+	string(REPLACE "if(BUILD_SHARED)" "if(USE_SHARED_LIBS)" FILE_CONTENTS "${FILE_CONTENTS}")
+	string(REPLACE "configure_file(version.h.in version.h)" [=[configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)]=] FILE_CONTENTS "${FILE_CONTENTS}")
+	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" "${FILE_CONTENTS}")
+
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x)			
 endif()
 
 #=============================================================================
@@ -64,6 +86,7 @@ endif()
 set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
 set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
+set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
 
 #=============================================================================
@@ -81,7 +104,12 @@ if (USE_SYSTEM_FLATBUFFERS_LIBS AND NOT CMAKE_CROSSCOMPILING)
 		set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF PARENT_SCOPE)
 		set(USE_SYSTEM_FLATBUFFERS_LIBS OFF)
 	else()
-		message(STATUS "Found system FLATBUFFERS libs.")
+		message(STATUS "Found system FLATBUFFERS libs (${FLATBUFFERS_INCLUDE_DIRS}).")
+		if (NOT (TARGET flatbuffers))
+			message(STATUS "Creating interface for the FLATBUFFERS lib")
+			add_library(flatbuffers INTERFACE)
+			target_include_directories(flatbuffers INTERFACE ${FLATBUFFERS_INCLUDE_DIRS})
+		endif ()
 	endif()
 endif()
 
@@ -205,19 +233,12 @@ endif()
 #=============================================================================
 
 if ( ENABLE_XZ )
-	option(BUILD_TESTING "" OFF)
 	if (NOT LIBLZMA_FOUND)
 		message( STATUS "System library xz could not be found. Using embedded xz library.")
-		if(MSVC)			
-			set(BACKUP_OF_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})			
-			string(REGEX REPLACE "(\/W[011123456789])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-			message( STATUS "Disable warnings for xz library: ${CMAKE_CXX_FLAGS}")
-		endif()
+		option(BUILD_TESTING "" OFF)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/xz)
-		if(MSVC)
-			set(CMAKE_CXX_FLAGS ${BACKUP_OF_CMAKE_CXX_FLAGS})
-			message( STATUS "Restoring compiling flags after xz: ${CMAKE_CXX_FLAGS}")			
-		endif()		
+		set_target_properties(liblzma PROPERTIES INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/xz/src/liblzma/api>)		
+		add_library(LibLZMA::LibLZMA ALIAS liblzma)
 	endif()
 ENDIF()
 
@@ -230,3 +251,22 @@ if (UNIX AND NOT APPLE AND (ENABLE_POWER_MANAGEMENT OR ENABLE_PIPEWIRE))
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sdbus-cpp)
 	set_target_properties(sdbus-c++-objlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
+
+#=============================================================================
+# STB
+#=============================================================================
+
+add_library(stb OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h ${CMAKE_CURRENT_SOURCE_DIR}/lunasvg/3rdparty/stb/stb_image_write.h )
+
+install(
+	TARGETS   stb
+	LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
+
+target_include_directories(stb PUBLIC ${CMAKE_SOURCE_DIR}/external/lunasvg/3rdparty/stb ${CMAKE_SOURCE_DIR}/external/stb)
+
+target_compile_definitions(stb PUBLIC
+	STB_IMAGE_WRITE_IMPLEMENTATION
+	STB_IMAGE_IMPLEMENTATION
+)

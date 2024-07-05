@@ -1,27 +1,15 @@
 #pragma once
 
-#include <HyperhdrConfig.h>
-
 #ifndef PCH_ENABLED
 	#include <QObject>
-	#include <QJsonObject>
-	#include <QJsonArray>
 	#include <QString>
-	#include <QStringList>
-	#include <QMultiMap>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
+	#include <list>
 #endif
 
-#include <cec/cecHandler.h>
+#include <utils/Components.h>
 
-class GlobalSignals;
-
-static QList<int> CEC_CLIENTS;
+class Logger;
+class cecHandler;
 
 class WrapperCEC : public QObject
 {
@@ -41,6 +29,7 @@ signals:
 private:
 	void enable(bool enabled);
 
-	cecHandler* _cecHandler;
-	Logger*		_log;
+	std::list<int>	_cecClients;
+	cecHandler*		_cecHandler;
+	Logger*			_log;
 };

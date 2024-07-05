@@ -2,13 +2,13 @@
 
 #ifndef PCH_ENABLED
 	#include <QVector>
-
-	#include <utils/MemoryBuffer.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Image.h>
-	#include <utils/Components.h>
 #endif
+
+#include <image/MemoryBuffer.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <image/Image.h>
+#include <utils/Components.h>
 
 class BonjourServiceRegister;
 class QTcpServer;

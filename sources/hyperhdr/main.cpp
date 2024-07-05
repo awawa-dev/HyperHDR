@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
 	// Initialising QCoreApplication
 	bool isGuiApp = false;
-	QScopedPointer<QCoreApplication> app(createApplication(isGuiApp, argc, argv));	
+	QScopedPointer<QCoreApplication> app(createApplication(isGuiApp, argc, argv));
 
 	DefaultSignalHandler::install();
 
@@ -366,7 +366,7 @@ int main(int argc, char** argv)
 			#endif
 			rc = app->exec();
 		}
-		
+
 		Info(log, "The application closed with code %d", rc);
 
 		delete systray;

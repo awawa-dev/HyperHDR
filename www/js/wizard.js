@@ -1886,7 +1886,7 @@ function identify_yeelight_device(hostname, port)
 // Wizard AtmoOrb
 //****************************
 var lights = null;
-function startWizardAtmoOrb(e)
+function startWizardAtmoorb(e)
 {
 	//create html
 

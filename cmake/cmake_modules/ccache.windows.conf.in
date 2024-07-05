@@ -1,0 +1,4 @@
+cache_dir = @CCACHE_DIR_CACHE_LOCATION@
+sloppiness = pch_defines,time_macros
+inode_cache = true
+depend_mode = true

@@ -3,14 +3,13 @@
 #ifndef PCH_ENABLED
 	#include <QMap>
 	#include <QStringList>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
-#include <effectengine/EffectDefinition.h>
+#include <image/ColorRgb.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
+#include <effects/EffectDefinition.h>
 
 class HyperHdrInstance;
 class InstanceTable;

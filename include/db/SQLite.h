@@ -42,7 +42,7 @@ class SqlDatabase
 	QString _databaseName;
 	sqlite3* _handle;
 
-public:		
+public:
 	SqlDatabase(QString databaseName, bool _readOnly);
 	~SqlDatabase();
 

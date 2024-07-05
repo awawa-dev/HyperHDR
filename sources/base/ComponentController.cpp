@@ -8,17 +8,13 @@
 
 using namespace hyperhdr;
 
-ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup):
+ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup) :
 	_log(Logger::getInstance(QString("COMPONENTCTRL%1").arg(hyperhdr->getInstanceIndex()))),
 	_disableOnStartup(disableOnStartup)
 {
 	// init all comps to false
 	QVector<hyperhdr::Components> vect;
 	vect << COMP_ALL << COMP_HDR << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER;
-
-#if defined(ENABLE_BOBLIGHT)
-	vect << COMP_BOBLIGHTSERVER;
-#endif
 
 	vect << COMP_VIDEOGRABBER << COMP_SYSTEMGRABBER << COMP_LEDDEVICE;
 	for (auto e : vect)
@@ -33,7 +29,7 @@ ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disabl
 
 ComponentController::~ComponentController()
 {
-    Debug(_log, "ComponentController is released");
+	Debug(_log, "ComponentController is released");
 }
 
 void ComponentController::handleCompStateChangeRequest(hyperhdr::Components comps, bool activated)
@@ -120,8 +116,8 @@ void ComponentController::turnGrabbers(bool activated)
 			}
 	}
 	else if (!_prevGrabbers.empty() && activated)
-	{		
-		for (const auto& comp : _prevGrabbers)				
+	{
+		for (const auto& comp : _prevGrabbers)
 			if (comp.second)
 			{
 				emit SignalRequestComponent(comp.first, true);
