@@ -123,7 +123,7 @@ function beginWizardRGB()
 			}
 
 			$('#btn_wiz_save').toggle(true);
-			window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
+			$('#btn_wiz_save').attr('disabled', false);
 
 			$('#btn_wiz_checkok').toggle(false);
 		}
@@ -448,7 +448,7 @@ function performAction()
 
 		$('#btn_wiz_next').attr("disabled", true);
 		$('#btn_wiz_save').toggle(true);
-		window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
+		$('#btn_wiz_save').attr('disabled', false);
 	}
 	else
 	{
@@ -1469,7 +1469,7 @@ function get_hue_lights()
 							}
 						}
 
-						(cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+						(cC == 0) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
 
 					});
 				}
@@ -1845,7 +1845,7 @@ function assign_yeelight_lights()
 				}
 			}
 
-			if (cC === 0 || window.readOnlyMode)
+			if (cC === 0)
 				$('#btn_wiz_save').attr("disabled", true);
 			else
 				$('#btn_wiz_save').attr("disabled", false);
@@ -1886,7 +1886,7 @@ function identify_yeelight_device(hostname, port)
 // Wizard AtmoOrb
 //****************************
 var lights = null;
-function startWizardAtmoOrb(e)
+function startWizardAtmoorb(e)
 {
 	//create html
 
@@ -2129,7 +2129,7 @@ function assign_atmoorb_lights()
 					cC++;
 				}
 			}
-			if (cC === 0 || window.readOnlyMode)
+			if (cC === 0)
 				$('#btn_wiz_save').attr("disabled", true);
 			else
 				$('#btn_wiz_save').attr("disabled", false);

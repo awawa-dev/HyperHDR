@@ -1,5 +1,11 @@
 // Generated config file
 
+// enable emmbeded web resources
+#cmakedefine USE_EMBEDDED_WEB_RESOURCES
+
+// enable shared lib loading
+#cmakedefine USE_SHARED_LIBS
+
 // support for static QT plugins
 #cmakedefine USE_STATIC_QT_PLUGINS
 
@@ -23,9 +29,6 @@
 
 // PipeWire EGL extension
 #cmakedefine ENABLE_PIPEWIRE_EGL
-
-// Define to enable boblight server
-#cmakedefine ENABLE_BOBLIGHT
 
 // Define to enable sound linux
 #cmakedefine ENABLE_SOUNDCAPLINUX
@@ -76,6 +79,8 @@
 #cmakedefine USE_SYSTEM_MBEDTLS_LIBS
 
 #cmakedefine ENABLE_POWER_MANAGEMENT
+
+#cmakedefine HYPERHDR_HAVE_DBUS
 
 // the hyperhdr build id string
 #define HYPERHDR_BUILD_ID "${HYPERHDR_BUILD_ID}"

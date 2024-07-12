@@ -190,7 +190,7 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 	if (_hasConsole || _forceVerbose)
 	{
 		QString location, prefix, sufix;
-		
+
 		if (message.level == Logger::DEBUG)
 		{
 			location = QString("%1:%2:%3() | ")
@@ -377,11 +377,11 @@ LoggerManager::~LoggerManager()
 {
 	std::cout << "Clean-up logs..." << std::endl;
 
-	while(_logs.length() > 0)
+	while (_logs.length() > 0)
 	{
 		delete (_logs.takeFirst());
 	}
-	
+
 	std::cout << "Goodbye!" << std::endl;
 }
 
@@ -431,7 +431,7 @@ std::shared_ptr<LoggerManager> LoggerManager::getInstance()
 	{
 		result = std::shared_ptr<LoggerManager>(
 			new LoggerManager(),
-			[](LoggerManager* oldManager) {				
+			[](LoggerManager* oldManager) {
 				hyperhdr::SMARTPOINTER_MESSAGE("LoggerManager");
 				delete oldManager;
 			}

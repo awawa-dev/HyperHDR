@@ -50,17 +50,18 @@
 
 #include <HyperhdrConfig.h>
 
-#include <utils/ColorRgb.h>
-#include <effectengine/EffectDefinition.h>
+#include <image/ColorRgb.h>
+#include <effects/EffectDefinition.h>
 #include <webserver/WebServer.h>
 #include <utils/Logger.h>
 #include <systray/Systray.h>
-#include <hyperimage/HyperImage.h>
+#include <utils-image/utils-image.h>
 
 #include "HyperHdrDaemon.h"
 #include "SystrayHandler.h"
 
 #ifdef __linux__
+#define SYSTRAY_WIDGET_LIB "libsystray-widget.so"
 #include <stdlib.h>
 #include <dlfcn.h>
 namespace
@@ -91,7 +92,7 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 
 #ifdef __linux__
 	// Load library
-	_library = dlopen("libSystrayWidget.so", RTLD_NOW);
+	_library = dlopen(SYSTRAY_WIDGET_LIB, RTLD_NOW);
 
 	if (_library)
 	{
@@ -151,7 +152,22 @@ void SystrayHandler::close()
 	}
 }
 
-static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder , QString destFilename = "")
+static QString preloadSvg(const QString& filename)
+{
+	if (filename.indexOf(":/") == 0)
+	{
+		QFile stream(filename);
+		if (!stream.open(QIODevice::ReadOnly))
+			return filename;
+		QByteArray ar = stream.readAll();
+		stream.close();
+
+		return QString(ar);
+	}
+	return filename;
+}
+
+static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder, QString destFilename = "")
 {
 
 #ifdef __linux__
@@ -181,23 +197,21 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 
 	if (!iconFile.exists())
 	{
-		QByteArray ar;
-		QBuffer buffer(&ar);
-		buffer.open(QIODevice::WriteOnly);
-		HyperImage::svg2png(filename, iconDim, iconDim, buffer);
+		QDir().mkpath(iconFile.absolutePath());
+
+		std::vector<uint8_t> ar;
+		utils_image::svg2png(preloadSvg(filename).toStdString(), iconDim, iconDim, ar);
 
 		QFile newIcon(fullPath);
 		newIcon.open(QIODevice::WriteOnly);
-		newIcon.write(ar);
+		newIcon.write(reinterpret_cast<char*>(ar.data()), ar.size());
 		newIcon.close();
 	}
 
 	menu->tooltip = fullPath.toStdString();
 #else
-	QByteArray ar;
-	QBuffer buffer(&ar);
-	buffer.open(QIODevice::WriteOnly);
-	HyperImage::svg2png(filename, iconDim, iconDim, buffer);
+	std::vector<uint8_t> ar;
+	utils_image::svg2png(preloadSvg(filename).toStdString(), iconDim, iconDim, ar);
 
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());
@@ -299,12 +313,12 @@ void SystrayHandler::createSystray()
 		
 		std::unique_ptr<SystrayMenu> colorItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 		loadSvg(colorItem, svg, _rootFolder, QString("%1.png").arg(QString::fromStdString(color)));
-		colorItem->label = color;		
+		colorItem->label = color;
 		colorItem->context = this;
 		colorItem->callback = [](SystrayMenu* m) {
 			SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);
 			QString colorName = QString::fromStdString(m->label);
-			ColorRgb color = HyperImage::ColorRgbfromString(colorName);
+			ColorRgb color = utils_image::colorRgbfromString(colorName.toStdString());
 			if (sh != nullptr)
 				QUEUE_CALL_1(sh, setColor, ColorRgb, color);
 		};
@@ -329,16 +343,16 @@ void SystrayHandler::createSystray()
 
 	std::copy_if(efxs.begin(), efxs.end(),
 		std::back_inserter(efxsSorted),
-		[](const EffectDefinition& a) { return a.name.contains("Music:"); });
+		[](const EffectDefinition& a) { return a.name.find("Music:") != std::string::npos; });
 
 	std::copy_if(efxs.begin(), efxs.end(),
 		std::back_inserter(efxsSorted),
-		[](const EffectDefinition& a) { return !a.name.contains("Music:"); });
+		[](const EffectDefinition& a) { return !(a.name.find("Music:") != std::string::npos); });
 
 
 	for (const EffectDefinition& efx : efxsSorted)
 	{
-		QString effectName = efx.name;
+		QString effectName = QString::fromStdString(efx.name);
 		std::unique_ptr<SystrayMenu> effectItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 		effectItem->label = effectName.toStdString();
 		effectItem->context = this;
@@ -389,7 +403,7 @@ void SystrayHandler::createSystray()
 
 	std::unique_ptr<SystrayMenu> autostartMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
 	loadSvg(autostartMenu, ":/autorun.svg", _rootFolder);
-	autostartMenu->label = (getCurrentAutorunState()) ? "Enable autostart" : "Disable autostart";
+	autostartMenu->label = (getCurrentAutorunState()) ? "Disable autostart" : "Enable autostart";
 	autostartMenu->context = this;
 	autostartMenu->callback = [](SystrayMenu* m) {
 		SystrayHandler* sh = qobject_cast<SystrayHandler*>(m->context);

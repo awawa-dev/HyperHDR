@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-#include <atomic>
+	#include <atomic>
 #endif
 
 #include <base/SoundCapture.h>
@@ -32,6 +32,7 @@ public:
 	void start() override;
 	void stop() override;
 private:
+	void stopDevice();
 	void listDevices();
 	WindowsSoundThread* _thread;
 };

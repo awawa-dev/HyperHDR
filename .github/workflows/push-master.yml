@@ -2,12 +2,12 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
+#  pull_request:
 
 env:
-    USE_CACHE: "1"
-    RESET_CACHE: "0"
-    USE_CODEQL: "1"
+    USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
+    RESET_CACHE: ${{ vars.RESET_CACHE && vars.RESET_CACHE || false }}
+    USE_CODEQL: ${{ vars.USE_CODEQL && vars.USE_CODEQL || false }}
     BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
 
 jobs:
@@ -61,10 +61,10 @@ jobs:
             linuxVersion: Fedora_40
             dockerName: Fedora 40 (x86_64)
             platform: linux
-          #- dockerImage: x86_64
-          #  linuxVersion: ArchLinux
-          #  dockerName: Arch Linux (x86_64)
-          #  platform: linux
+          - dockerImage: x86_64
+            linuxVersion: ArchLinux
+            dockerName: Arch Linux (x86_64)
+            platform: linux
     steps:
       # checkout
       - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
 
       # generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -81,8 +81,8 @@ jobs:
           file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
        # download cache
-      - name: ccache cache files
-        if: ( env.USE_CACHE == '1' )
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
         uses: actions/cache@v4
         with:
            path: .ccache
@@ -141,7 +141,7 @@ jobs:
             NICE_NAME: arm64_M1_M2
           - JOB_RUNNER: macos-13
             JOB_NAME: macOS 13 (x64)
-            QT_VERSION: 5
+            QT_VERSION: 6
             NICE_NAME: x64
     steps:
       # Checkout
@@ -151,7 +151,7 @@ jobs:
 
       # Generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -159,18 +159,18 @@ jobs:
             file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
       # Download cache
-      - name: ccache cache files
-        if: ( env.USE_CACHE == '1' )
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
         uses: actions/cache@v4
         with:
-            path: .ccache
+            path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
             restore-keys: macOS-ccache-${{ matrix.NICE_NAME }}
 
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
+        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
         
       # Set env
       - name: Set QT5 env
@@ -234,11 +234,39 @@ jobs:
           pip install aqtinstall
           aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
 
+      # Generate cache id
+      - name: Prepare ccache timestamp
+        if: env.USE_CACHE == 'true'
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+            string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
+
+      # Download cache
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
+        uses: actions/cache@v4
+        with:
+            path: build/.ccache
+            key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+            restore-keys: ${{ runner.os }}-ccache
+
       - name: Install TurboJPEG
         shell: powershell
         run: |
           Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
           Start-Process -Wait turbojpeg.exe -ArgumentList "/S"
+
+      - name: Download CCache
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.10/ccache-4.10-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
+
+      - name: Install CCache
+        shell: cmd
+        run: |
+          7z e ccache.zip -o.\build *.exe -r
 
       - name: Set up x64 build architecture environment
         shell: cmd
@@ -277,7 +305,8 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ( true )
+    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+
     permissions:
       actions: read
       contents: read
@@ -291,11 +320,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        if: env.USE_CODEQL == 'true'
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
+        if: env.USE_CODEQL == 'true'
         with:
           language: ${{matrix.language}}
 

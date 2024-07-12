@@ -3,10 +3,10 @@
 #ifndef PCH_ENABLED
 	#include <QMap>
 	#include <QVector>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class AuthTable;
 class MetaTable;
@@ -17,7 +17,7 @@ class AccessManager : public QObject
 	Q_OBJECT
 private:
 	friend class HyperHdrDaemon;
-	AccessManager(QObject* parent, bool readonlyMode);
+	AccessManager(QObject* parent);
 
 public:
 	~AccessManager();

@@ -35,7 +35,6 @@ namespace commandline
 		QString name() const;
 		QString getError() const;
 		QString value(Parser& parser) const;
-		const char* getCString(Parser& parser) const &;
 
 		virtual ~Option();
 

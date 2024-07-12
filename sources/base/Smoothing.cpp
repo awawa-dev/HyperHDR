@@ -34,6 +34,7 @@
 	#include <inttypes.h>
 #endif
 
+#include <limits>
 #include <QMutexLocker>
 
 #include <base/Smoothing.h>
@@ -66,19 +67,15 @@ Smoothing::Smoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
 	_enabled(false),
 	_hasData(false),
 	_connected(false),
-	_directMode(false),
 	_smoothingType(SmoothingType::Linear),
 	_infoUpdate(true),
 	_infoInput(true),
 	_coolDown(0)
 {
-	// init cfg 0 (default)
+	// init cfg 0 (SMOOTHING_USER_CONFIG)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
 	handleSettingsUpdate(settings::type::SMOOTHING, config);
-	SelectConfig(0, true);
-
-	// add pause on cfg 1
-    _configurations.push_back(std::unique_ptr<SmoothingConfig>(new SmoothingConfig(true, 0, 0, false)));
+	SelectConfig(SMOOTHING_USER_CONFIG, true);
 
 	// listen for comp changes
 	connect(_hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &Smoothing::componentStateChange);
@@ -99,7 +96,7 @@ void Smoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 			(deviceEnabled) ? "enabling" : "disabling",
 			(restarting) ? ". Smoothing configuration changed: restarting timer." : "");
 
-		if ((!deviceEnabled || restarting) && _connected)
+		if ((!deviceEnabled || restarting || _pause) && _connected)
 		{
 			_connected = false;
 			disconnect(this, &Smoothing::SignalMasterClockTick, this, &Smoothing::updateLeds);
@@ -117,7 +114,7 @@ void Smoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 		_infoInput = true;
 		_coolDown = 0;
 
-		if (deviceEnabled && !_connected)
+		if (deviceEnabled && !_pause && !_connected)
 		{
 			_connected = true;
 			connect(this, &Smoothing::SignalMasterClockTick, this, &Smoothing::updateLeds, Qt::DirectConnection);
@@ -151,13 +148,12 @@ void Smoothing::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 
 		_continuousOutput = obj["continuousOutput"].toBool(true);
 
-        _configurations[0] = std::unique_ptr<SmoothingConfig>(new SmoothingConfig(
+        _configurations[SMOOTHING_USER_CONFIG] = std::unique_ptr<SmoothingConfig>(new SmoothingConfig(
             false,
 			static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
-			static_cast<int64_t>(std::round(std::max(1000.0 / std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), MINIMAL_UPDATEFREQUENCY), 5.0))),
-			false));
+			static_cast<int64_t>(std::round(std::max(1000.0 / std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), MINIMAL_UPDATEFREQUENCY), 5.0)))));
 
-        SmoothingConfig* cfg = _configurations[0].get();
+        auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
 
 		if (obj["type"].toString("linear") == "alternative")
 			cfg->type = SmoothingType::Alternative;
@@ -168,15 +164,15 @@ void Smoothing::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		cfg->antiFlickeringStep = obj["lowLightAntiFlickeringValue"].toInt(0);
 		cfg->antiFlickeringTimeout = obj["lowLightAntiFlickeringTimeout"].toInt(0);
 
-		Info(_log, "Creating config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
-			_currentConfigId, QSTRING_CSTR(SmoothingConfig::EnumToString(cfg->type)), (cfg->directMode) ? "true" : "false", (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval), cfg->antiFlickeringTreshold, cfg->antiFlickeringStep, int(cfg->antiFlickeringTimeout));
+		Info(_log, "Creating config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
+			_currentConfigId, QSTRING_CSTR(SmoothingConfig::EnumToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval), cfg->antiFlickeringTreshold, cfg->antiFlickeringStep, int(cfg->antiFlickeringTimeout));
 
-		// if current id is 0, we need to apply the settings (forced)
-		if (_currentConfigId == 0)
+		// if current id is SMOOTHING_USER_CONFIG, we need to apply the settings (forced)
+		if (_currentConfigId == SMOOTHING_USER_CONFIG)
 		{
 			if (_currentColors.size() > 0 && isEnabled())
 				QUEUE_CALL_0(_hyperhdr, update);
-			SelectConfig(0, true);			
+			SelectConfig(SMOOTHING_USER_CONFIG, true);
 		}
 	}
 }
@@ -230,12 +226,12 @@ void Smoothing::UpdateLedValues(const std::vector<ColorRgb>& ledValues)
 
 	_coolDown = 1;
 
-	if (_directMode)
+	if (_pause)
 	{		
 		if (_connected)
 			clearQueuedColors();
 
-		if (_pause || ledValues.size() == 0)
+		if (ledValues.size() == 0)
 			return;
 
 		queueColors(ledValues);
@@ -370,10 +366,7 @@ void Smoothing::updateLeds()
 
 void Smoothing::queueColors(const std::vector<ColorRgb>& ledColors)
 {
-	if (!_pause)
-	{
-		emit _hyperhdr->SignalUpdateLeds(ledColors);
-	}
+	emit _hyperhdr->SignalUpdateLeds(ledColors);
 }
 
 void Smoothing::componentStateChange(hyperhdr::Components component, bool state)
@@ -401,36 +394,36 @@ void Smoothing::SetEnable(bool enable)
 	_hyperhdr->setNewComponentState(hyperhdr::COMP_SMOOTHING, enable);
 }
 
-unsigned Smoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned Smoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
 {
 	_configurations.push_back(std::unique_ptr<SmoothingConfig>(
-        new SmoothingConfig(false, settlingTime_ms, int64_t(1000.0 / ledUpdateFrequency_hz), directMode)));
+        new SmoothingConfig(pause, settlingTime_ms, int64_t(1000.0 / ledUpdateFrequency_hz))));
 
 	return static_cast<unsigned>(_configurations.size() - 1);
 }
 
-unsigned Smoothing::UpdateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned Smoothing::AddEffectConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
 {
-	int64_t interval = static_cast<int64_t>(1000.0 / ledUpdateFrequency_hz);
+	int64_t interval =  (ledUpdateFrequency_hz > std::numeric_limits<double>::epsilon()) ? static_cast<int64_t>(1000.0 / ledUpdateFrequency_hz) : 10;
 	
 	if (cfgID < static_cast<unsigned>(_configurations.size()))
 	{
-        _configurations[cfgID] = std::unique_ptr<SmoothingConfig>(new SmoothingConfig(false, settlingTime_ms, interval, directMode));
+        _configurations[cfgID] = std::unique_ptr<SmoothingConfig>(new SmoothingConfig(pause, settlingTime_ms, interval));
 		return cfgID;
 	}
 	else
 	{
-		unsigned currentCfgID = 0;
-		for (auto&& element : _configurations)
+		for (unsigned int currentCfgID = SMOOTHING_EFFECT_CONFIGS_START; currentCfgID < _configurations.size(); currentCfgID++)
 		{
-			if (element->settlingTime == settlingTime_ms &&
-				element->updateInterval == interval &&
-				element->directMode == directMode)
+			auto& element = _configurations[currentCfgID];
+			if ((element->settlingTime == settlingTime_ms &&
+				element->updateInterval == interval) ||
+				(pause && element->pause == pause))
+			{
 				return currentCfgID;
-
-			currentCfgID++;
+			}
 		}
-		return addConfig(settlingTime_ms, ledUpdateFrequency_hz, directMode);
+		return addConfig(settlingTime_ms, ledUpdateFrequency_hz, pause);
 	}
 }
 
@@ -438,14 +431,14 @@ void Smoothing::UpdateCurrentConfig(int settlingTime_ms)
 {
 	_settlingTime = settlingTime_ms;
 
-	Info(_log, "Updating current config (%d) => type: %s, dirMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
-		_currentConfigId, QSTRING_CSTR(SmoothingConfig::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime),
+	Info(_log, "Updating current config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
+		_currentConfigId, QSTRING_CSTR(SmoothingConfig::EnumToString(_smoothingType)), (_pause) ? "true" : "false", int(_settlingTime),
 		int(_updateInterval), int(1000.0 / _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
 }
 
 int Smoothing::GetSuggestedInterval()
 {
-	if (_enabled && !_directMode)
+	if (_enabled && !_pause)
 	{
 		return static_cast<int>(_updateInterval);
 	}
@@ -465,7 +458,6 @@ bool Smoothing::SelectConfig(unsigned cfg, bool force)
 	{
 		_settlingTime = _configurations[cfg]->settlingTime;
 		_pause = _configurations[cfg]->pause;
-		_directMode = _configurations[cfg]->directMode;
 		_antiFlickeringTreshold = _configurations[cfg]->antiFlickeringTreshold;
 		_antiFlickeringStep = _configurations[cfg]->antiFlickeringStep;
 		_antiFlickeringTimeout = _configurations[cfg]->antiFlickeringTimeout;
@@ -482,15 +474,15 @@ bool Smoothing::SelectConfig(unsigned cfg, bool force)
 
 		_currentConfigId = cfg;
 
-		Info(_log, "Selecting config (%d) => type: %s, directMode: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
-			_currentConfigId, QSTRING_CSTR(SmoothingConfig::EnumToString(_smoothingType)), (_directMode) ? "true" : "false", (_pause) ? "true" : "false", int(_settlingTime),
+		Info(_log, "Selecting config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz), antiFlickTres: %i, antiFlickStep: %i, antiFlickTime: %i",
+			_currentConfigId, QSTRING_CSTR(SmoothingConfig::EnumToString(_smoothingType)), (_pause) ? "true" : "false", int(_settlingTime),
 			int(_updateInterval), int(1000.0 / _updateInterval), _antiFlickeringTreshold, _antiFlickeringStep, int(_antiFlickeringTimeout));
 
 		return true;
 	}
 
 	// reset to default
-	_currentConfigId = 0;
+	_currentConfigId = SMOOTHING_USER_CONFIG;
 	return false;
 }
 
@@ -505,12 +497,11 @@ bool Smoothing::isEnabled() const
 }
 
 Smoothing::SmoothingConfig::SmoothingConfig(bool __pause, int64_t __settlingTime, int64_t __updateInterval,
-            bool __directMode, SmoothingType __type, int __antiFlickeringTreshold, int __antiFlickeringStep,
+            SmoothingType __type, int __antiFlickeringTreshold, int __antiFlickeringStep,
             int64_t __antiFlickeringTimeout) :
 	pause(__pause),
 	settlingTime(__settlingTime),
 	updateInterval(__updateInterval),
-	directMode(__directMode),
 	type(__type),
 	antiFlickeringTreshold(__antiFlickeringTreshold),
 	antiFlickeringStep(__antiFlickeringStep),

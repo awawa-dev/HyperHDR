@@ -10,8 +10,8 @@
 #include <base/ComponentController.h>
 #include <base/Muxer.h>
 #include <base/ImageToLedManager.h>
-#include <flatbufserver/FlatBufferServer.h>
-#include <utils/PerformanceCounters.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
+#include <performance-counters/PerformanceCounters.h>
 
 using namespace hyperhdr;
 

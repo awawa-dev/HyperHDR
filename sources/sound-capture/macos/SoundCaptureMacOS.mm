@@ -129,10 +129,8 @@ bool SoundCaptureMacOS::getPermission()
 
 SoundCaptureMacOS::~SoundCaptureMacOS()
 {
-	stop();
+	stopDevice();
 }
-
-
 
 void SoundCaptureMacOS::start()
 {
@@ -231,24 +229,7 @@ void SoundCaptureMacOS::start()
 
 void SoundCaptureMacOS::stop()
 {
-	
-	if (!_isRunning)
-		return;
-
-	Info(_logger,  "Disconnecting from sound driver: '%s'", QSTRING_CSTR(_selectedDevice));
-
-		
-	_isRunning = false;
-
-	if (_avfSoundDelegate!=nullptr && _avfSoundDelegate->_nativeSession  != nullptr)
-	{
-		[_avfSoundDelegate->_nativeSession stopRunning];
-		[_avfSoundDelegate->_nativeSession release];
-		_avfSoundDelegate->_nativeSession = nullptr;
-		_avfSoundDelegate->_sequencer = nullptr;				
-	}
-	_avfSoundDelegate = nullptr;
-	Info(_logger,  "AVF sound grabber uninit");
+	stopDevice();
 }
 
 void SoundCaptureMacOS::recordCallback(uint32_t frameBytes, uint8_t* rawAudioData)
@@ -274,3 +255,24 @@ void SoundCaptureMacOS::recordCallback(uint32_t frameBytes, uint8_t* rawAudioDat
 			analyzeSpectrum(_soundBuffer, SOUNDCAPMACOS_BUF_LENP);
 	}
 }
+
+void SoundCaptureMacOS::stopDevice()
+{
+	if (!_isRunning)
+		return;
+
+	Info(_logger,  "Disconnecting from sound driver: '%s'", QSTRING_CSTR(_selectedDevice));
+
+		
+	_isRunning = false;
+
+	if (_avfSoundDelegate!=nullptr && _avfSoundDelegate->_nativeSession  != nullptr)
+	{
+		[_avfSoundDelegate->_nativeSession stopRunning];
+		[_avfSoundDelegate->_nativeSession release];
+		_avfSoundDelegate->_nativeSession = nullptr;
+		_avfSoundDelegate->_sequencer = nullptr;				
+	}
+	_avfSoundDelegate = nullptr;
+	Info(_logger,  "AVF sound grabber uninit");
+};

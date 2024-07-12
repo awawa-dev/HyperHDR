@@ -5,12 +5,11 @@
 	#include <sstream>
 	#include <math.h>
 	#include <algorithm>
-
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
 #endif
 
-#include <base/LedString.h>
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <led-strip/LedString.h>
 
 namespace hyperhdr
 {

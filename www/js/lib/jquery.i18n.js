@@ -250,6 +250,11 @@
 		if ( typeof window.navigator !== 'undefined' ) {
 			nav = window.navigator;
 			String.locale = nav.language || nav.userLanguage || '';
+
+			if (String.locale != 'zh-CN' && String.locale.length > 2)
+			{
+				String.locale = String.locale.substring(0,2);
+			}
 		} else {
 			String.locale = '';
 		}

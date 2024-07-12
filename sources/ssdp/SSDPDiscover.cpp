@@ -1,5 +1,4 @@
 #include <ssdp/SSDPDiscover.h>
-#include <utils/QStringUtils.h>
 #include <utils/Logger.h>
 
 
@@ -79,7 +78,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 				QString address;
 				// parse request
 
-				QStringList entries = QStringUtils::SPLITTER(data, '\n');
+				QStringList entries = data.split('\n', Qt::SkipEmptyParts);
 				for (auto entry : entries)
 				{
 					// http header parse skip
@@ -162,7 +161,7 @@ void SSDPDiscover::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString, QString> headers;
 		// parse request
-		QStringList entries = QStringUtils::SPLITTER(data, '\n');
+		QStringList entries = data.split('\n', Qt::SkipEmptyParts);
 		for (auto entry : entries)
 		{
 			// http header parse skip
@@ -230,7 +229,7 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 				QMap<QString, QString> headers;
 				// parse request
-				QStringList entries = QStringUtils::SPLITTER(data, '\n');
+				QStringList entries = data.split('\n', Qt::SkipEmptyParts);
 				for (auto entry : entries)
 				{
 					// http header parse skip

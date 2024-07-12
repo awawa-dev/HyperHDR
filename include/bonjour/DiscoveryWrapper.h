@@ -34,7 +34,7 @@
 
 #include <bonjour/DiscoveryRecord.h>
 #include <utils/Logger.h>
-#include <leddevice/LedDevice.h>
+#include <led-drivers/LedDevice.h>
 
 class DiscoveryWrapper : public QObject
 {

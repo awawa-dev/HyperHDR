@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <CLToolPath>@CMAKE_BINARY_DIR@</CLToolPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <UseMultiToolTask>true</UseMultiToolTask>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <ForcedIncludeFiles />
+      <ObjectFileName>$(IntDir)%(FileName).obj</ObjectFileName>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>

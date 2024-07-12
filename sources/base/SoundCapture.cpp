@@ -35,7 +35,7 @@
 
 #include <base/SoundCaptureResult.h>
 #include <base/SoundCapture.h>
-#include <effectengine/AnimationBaseMusic.h>
+#include <effects/AnimationBaseMusic.h>
 
 namespace
 {
@@ -54,11 +54,12 @@ namespace
 
 SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* parent) :
 	_isActive(false),
+	_enable_smoothing(true),
 	_selectedDevice(""),
 	_isRunning(false),
 	_maxInstance(0)
 {
-	_logger = Logger::getInstance("SOUND_GRABBER");	
+	_logger = Logger::getInstance("SOUND_GRABBER");
 	settingsChangedHandler(settings::type::SNDEFFECT, effectConfig);
 	qRegisterMetaType<uint32_t>("uint32_t");
 }
@@ -111,6 +112,8 @@ void SoundCapture::settingsChangedHandler(settings::type type, const QJsonDocume
 
 		if (sndEffectConfig["enable"].toBool(true))
 		{
+			_enable_smoothing = sndEffectConfig["enable_smoothing"].toBool(true);
+
 			const QString  dev = sndEffectConfig["device"].toString("");
 			if (dev.trimmed().length() > 0)
 			{
@@ -258,7 +261,7 @@ bool SoundCapture::analyzeSpectrum(int16_t soundBuffer[], int sizeP)
 		Info(_logger, "Audio Stream: audio data successfully captured and sound detected.");
 	}
 
-	resultFFT.Smooth();	
+	resultFFT.Smooth();
 
 	return true;
 }
@@ -271,7 +274,7 @@ SoundCaptureResult* SoundCapture::hasResult(AnimationBaseMusic* effect, uint32_t
 	{
 		lastIndex = resultFFT.getResultIndex();
 
-		effect->store(&resultFFT.mtInternal);		
+		effect->store(&resultFFT.mtInternal);
 
 		*isMulti = 2;
 
@@ -287,7 +290,7 @@ SoundCaptureResult* SoundCapture::hasResult(AnimationBaseMusic* effect, uint32_t
 
 	effect->restore(&resultFFT.mtWorking);
 
-	if (*isMulti <= 0)
+	if (*isMulti <= 0 || !_enable_smoothing)
 	{
 		return nullptr;
 	}

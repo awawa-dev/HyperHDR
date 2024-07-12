@@ -34,7 +34,6 @@
 #include <base/SystemWrapper.h>
 #include <base/Grabber.h>
 #include <utils/GlobalSignals.h>
-#include <utils/QStringUtils.h>
 #include <base/HyperHdrManager.h>
 
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)

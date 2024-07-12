@@ -25,10 +25,8 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED
-	#include <utils/Logger.h>
-#endif
 
+#include <utils/Logger.h>
 #include <utils/FrameDecoder.h>
 
 //#define TAKE_SCREEN_SHOT

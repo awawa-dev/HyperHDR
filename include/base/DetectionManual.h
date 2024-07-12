@@ -4,13 +4,14 @@
 	#include <QObject>
 	#include <QList>
 	#include <QRectF>
-	#include <cstdint>
 
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
+	#include <cstdint>
 #endif
+
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <utils/Components.h>
 
 #include <utils/FrameDecoder.h>
 
