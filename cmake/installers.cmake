@@ -396,6 +396,7 @@ macro(DeployUnix TARGET)
 			"libxcb-xkb1"
 			"libxkbcommon-x11-0"
 			"ld-linux-x86-64"
+			"libasound"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
