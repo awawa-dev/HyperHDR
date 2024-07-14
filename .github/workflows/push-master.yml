@@ -8,7 +8,7 @@ env:
     USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
     RESET_CACHE: ${{ vars.RESET_CACHE && vars.RESET_CACHE || false }}
     USE_CODEQL: ${{ vars.USE_CODEQL && vars.USE_CODEQL || false }}
-    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
+    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && true || false }}
 
 jobs:
 
