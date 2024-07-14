@@ -13,7 +13,6 @@ include_directories(${ALSA_INCLUDE_DIRS})
 target_link_libraries(sound-capture-linux
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	${ALSA_LIBRARIES}
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
