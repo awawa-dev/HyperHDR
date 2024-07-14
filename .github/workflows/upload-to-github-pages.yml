@@ -95,7 +95,7 @@ jobs:
           USE_STANDARD_INSTALLER_NAME: 'ON'
         shell: bash
         run: |
-          ./.ci/ci_build.sh
+          ./build.sh
 
       # deploy the package      
       - name: Get destination path
