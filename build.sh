@@ -63,7 +63,7 @@ fi
 
 # set environment variables if not exists
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
-[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME=true
+[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME=false
 [ -z "${USE_CCACHE}" ] && USE_CCACHE=true
 [ -z "${RESET_CACHE}" ] && RESET_CACHE=false
 [ -z "${BUILD_ARCHIVES}" ] && BUILD_ARCHIVES=true
