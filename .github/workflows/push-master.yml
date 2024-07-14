@@ -92,7 +92,7 @@ jobs:
       - name: Check default version
         if: matrix.linuxVersion != 'bullseye'
         run: |
-          echo "USE_STANDARD_INSTALLER_NAME=ON" >> $GITHUB_ENV
+          echo "USE_STANDARD_INSTALLER_NAME=true" >> $GITHUB_ENV
 
       - name: Build packages
         env:

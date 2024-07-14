@@ -28,10 +28,10 @@ print_manual()
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - one of Release|Debug option. Default is: Release"
-	printf "\n${CyanColor}BUILD_ARCHIVES${ColorReset} - if defined, cpack will compile ZIP package"
-	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - if defined, use standard Linux package naming"
-	printf "\n${CyanColor}USE_CCACHE${ColorReset} - if defined, use ccache if available"
-	printf "\n${CyanColor}RESET_CACHE${ColorReset} - if defined, reset ccache storage"
+	printf "\n${CyanColor}BUILD_ARCHIVES${ColorReset} - false | true, cpack will compile ZIP package"
+	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - false | true, use standard Linux package naming"
+	printf "\n${CyanColor}USE_CCACHE${ColorReset} - false | true, use ccache if available"
+	printf "\n${CyanColor}RESET_CACHE${ColorReset} - false | true, reset ccache storage"
 	printf "\n\n"
 	exit 0
 }
@@ -63,20 +63,39 @@ fi
 
 # set environment variables if not exists
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
-[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME="ON"
+[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME=true
 [ -z "${USE_CCACHE}" ] && USE_CCACHE=true
 [ -z "${RESET_CACHE}" ] && RESET_CACHE=false
 [ -z "${BUILD_ARCHIVES}" ] && BUILD_ARCHIVES=true
 
+
+printf "\nPLATFORM = %s" ${PLATFORM}
+printf "\nDOCKER_TAG = %s" ${DOCKER_TAG}
+printf "\nDOCKER_IMAGE = %s" ${DOCKER_IMAGE}
+printf "\nBUILD_TYPE = %s" ${BUILD_TYPE}
+printf "\nBUILD_ARCHIVES = %s" ${BUILD_ARCHIVES}
+printf "\nUSE_STANDARD_INSTALLER_NAME = %s" ${USE_STANDARD_INSTALLER_NAME}
+printf "\nUSE_CCACHE = %s" ${USE_CCACHE}
+printf "\nRESET_CACHE = %s" ${RESET_CACHE}
+printf "\n"
+
 if [ ${BUILD_ARCHIVES} = true ]; then
 	echo "Build the package archive"
-	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=OFF"	
+	ARCHIVE_OPTION=" -DBUILD_ARCHIVES=ON"	
 else
 	echo "Do not build the package archive"
-	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
+	ARCHIVE_OPTION=" -DBUILD_ARCHIVES=OFF"
 fi
 
-echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
+if [ ${USE_STANDARD_INSTALLER_NAME} = true ]; then
+	echo "Use standard naming"
+	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=ON"	
+else
+	echo "Do not use standard naming"
+	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=OFF"
+fi
+
+echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, archive options: ${ARCHIVE_OPTION}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
 
 # clear ccache if neccesery
 if [ ${RESET_CACHE} = true ]; then
@@ -121,10 +140,10 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 
 	if [ ${USE_CCACHE} = true ]; then
 		echo "Using ccache"
-		BUILD_OPTION="${IS_ARCHIVE_SKIPPED}"
+		BUILD_OPTION="${ARCHIVE_OPTION}"
 	else
 		echo "Not using ccache"
-		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${IS_ARCHIVE_SKIPPED}"
+		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${ARCHIVE_OPTION}"
 	fi
 
 	if [[ $CI_TYPE == "github_action" ]]; then
@@ -159,12 +178,12 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 
 	if [ ${USE_CCACHE} = true ]; then
 		echo "Using ccache"
-		BUILD_OPTION="${IS_ARCHIVE_SKIPPED}"
+		BUILD_OPTION="${ARCHIVE_OPTION}"
 		cache_env="export CCACHE_DIR=/.ccache && ccache -z"
 		ls -a .ccache
 	else
 		echo "Not using ccache"		
-		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${IS_ARCHIVE_SKIPPED}"
+		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${ARCHIVE_OPTION}"
 		cache_env="true"
 	fi
 	
@@ -194,7 +213,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	-v "${CI_BUILD_DIR}/deploy:/deploy" \
 	-v "${CI_BUILD_DIR}:/source:ro" \
 	$REGISTRY_URL:$DOCKER_TAG \
-	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r /source/. /hyperhdr &&
+	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -rf /source/. /hyperhdr &&
 	cd /hyperhdr && mkdir build && (${executeCommand}) &&
 	(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
 	(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
