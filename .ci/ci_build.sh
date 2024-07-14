@@ -1,5 +1,45 @@
 #!/bin/bash
 
+print_manual()
+{
+	EscChar="\033"
+	ColorReset="${EscChar}[m"
+	RedColor="${EscChar}[31;1m"
+	GreenColor="${EscChar}[32;1m"
+	YellowColor="${EscChar}[33;1m"
+	YellowColor2="${EscChar}[33m"
+	BlueColor="${EscChar}[34;1m"
+	CyanColor="${EscChar}[36;1m"
+
+	printf "\n${GreenColor}Required environmental options:${ColorReset}"
+	printf "\n${YellowColor}PLATFORM${ColorReset} - one of supported target: osx|windows|linux|rpi"
+	printf "\n${YellowColor}DOCKER_TAG${ColorReset} | ${YellowColor}DOCKER_IMAGE${ColorReset} - both are required only for linux/rpi platforms:"
+
+	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}arm-32bit-armv6l${ColorReset}"
+	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}arm-64bit-aarch64${ColorReset}"
+	printf "\n   Debian => ${YellowColor2}bookworm${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n   Debian => ${YellowColor2}bookworm${ColorReset} | ${YellowColor2}arm-32bit-armv6l${ColorReset}"
+	printf "\n   Debian => ${YellowColor2}bookworm${ColorReset} | ${YellowColor2}arm-64bit-aarch64${ColorReset}"
+	printf "\n   Ubuntu => ${YellowColor2}jammy${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n   Ubuntu => ${YellowColor2}noble${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n   Fedora => ${YellowColor2}Fedora_40${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n   ArchLinux => ${YellowColor2}ArchLinux${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+
+	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
+	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - one of Release|Debug option. Default is: Release"
+	printf "\n${CyanColor}BUILD_ARCHIVES${ColorReset} - if defined, cpack will compile ZIP package"
+	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - if defined, use standard Linux package naming"
+	printf "\n${CyanColor}USE_CCACHE${ColorReset} - if defined, use ccache if available"
+	printf "\n${CyanColor}RESET_CACHE${ColorReset} - if defined, reset ccache storage"
+	printf "\n\n"
+	exit 0
+}
+
+if [[ "$PLATFORM" == "" || ( ("$PLATFORM" == "linux" || "$PLATFORM" == "rpi") && ( "$DOCKER_IMAGE" = "" || "$DOCKER_TAG" = "" ) ) ]]; then
+	print_manual
+fi
+
 # detect CI
 if [ "$SYSTEM_COLLECTIONID" != "" ]; then
 	# Azure Pipelines
@@ -7,7 +47,7 @@ if [ "$SYSTEM_COLLECTIONID" != "" ]; then
 	CI_NAME="$(echo "$AGENT_OS" | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$BUILD_SOURCESDIRECTORY"
 	CI_TYPE="azure"
-elif [ "$HOME" != "" ]; then
+elif [ "$GITHUB_ACTIONS" != "" ]; then
 	# GitHub Actions
 	echo "Github Actions detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -15,9 +55,18 @@ elif [ "$HOME" != "" ]; then
 	CI_TYPE="github_action"
 else
 	# for executing in non ci environment
+	echo "Local system build detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	CI_TYPE="other"
+	CI_BUILD_DIR="$PWD"
 fi
+
+# set environment variables if not exists
+[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
+[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME="ON"
+[ -z "${USE_CCACHE}" ] && USE_CCACHE=true
+[ -z "${RESET_CACHE}" ] && RESET_CACHE=false
+[ -z "${BUILD_ARCHIVES}" ] && BUILD_ARCHIVES=true
 
 if [ ${BUILD_ARCHIVES} = true ]; then
 	echo "Build the package archive"
@@ -26,11 +75,6 @@ else
 	echo "Do not build the package archive"
 	IS_ARCHIVE_SKIPPED=" -DDO_NOT_BUILD_ARCHIVES=ON"
 fi
-
-# set environment variables if not exists (debug)
-[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Release"
-
-[ -z "${USE_STANDARD_INSTALLER_NAME}" ] && USE_STANDARD_INSTALLER_NAME="OFF"
 
 echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, is archive enabled: ${IS_ARCHIVE_SKIPPED}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
 
@@ -150,7 +194,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	-v "${CI_BUILD_DIR}/deploy:/deploy" \
 	-v "${CI_BUILD_DIR}:/source:ro" \
 	$REGISTRY_URL:$DOCKER_TAG \
-	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r source/. /hyperhdr &&
+	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -r /source/. /hyperhdr &&
 	cd /hyperhdr && mkdir build && (${executeCommand}) &&
 	(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
 	(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
