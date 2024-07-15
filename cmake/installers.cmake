@@ -474,10 +474,23 @@ macro(DeployUnix TARGET)
 
 		# Copy dependencies to 'share/hyperhdr/lib'
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
-			message("Installing: " ${PREREQUISITE_LIB})
+			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})
+			string(FIND ${PREREQUISITE_LIB} "libproxy" libproxyindex)
+			string(FIND ${PREREQUISITE_LIB} "libpxbackend" libpxbackendindex)
+			if((NOT IS_SYMLINK ${PREREQUISITE_LIB}) AND (${libproxyindex} GREATER -1 OR ${libpxbackendindex} GREATER -1))				
+				get_filename_component(pathingFilename ${PREREQUISITE_LIB} NAME)
+				set(FILE_TO_INSTALL "${CMAKE_BINARY_DIR}/${pathingFilename}")
+				message("Patching RPATH: ${FILE_TO_INSTALL}")
+				file(COPY_FILE ${PREREQUISITE_LIB} ${FILE_TO_INSTALL} )				
+				execute_process (
+					COMMAND bash -c "chrpath -d ${FILE_TO_INSTALL}"
+					OUTPUT_VARIABLE outputResult
+				)
+			endif()
+			message("Installing: " ${FILE_TO_INSTALL})
 			file(
 				INSTALL
-				FILES ${PREREQUISITE_LIB}
+				FILES ${FILE_TO_INSTALL}
 				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib"
 				TYPE SHARED_LIBRARY
 			)

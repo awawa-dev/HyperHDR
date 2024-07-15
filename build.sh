@@ -12,8 +12,8 @@ print_manual()
 	CyanColor="${EscChar}[36;1m"
 
 	printf "\n${GreenColor}Required environmental options:${ColorReset}"
-	printf "\n${YellowColor}PLATFORM${ColorReset} - one of supported target: osx|windows|linux|rpi"
-	printf "\n${YellowColor}DOCKER_TAG${ColorReset} | ${YellowColor}DOCKER_IMAGE${ColorReset} - both are required only for linux/rpi platforms:"
+	printf "\n${YellowColor}PLATFORM${ColorReset} - one of the supported targets: osx|windows|linux|rpi"
+	printf "\n${YellowColor}DOCKER_TAG${ColorReset} | ${YellowColor}DOCKER_IMAGE${ColorReset} - both are required only for linux|rpi platforms:"
 
 	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
 	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}arm-32bit-armv6l${ColorReset}"
@@ -27,11 +27,13 @@ print_manual()
 	printf "\n   ArchLinux => ${YellowColor2}ArchLinux${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
-	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - one of Release|Debug option. Default is: Release"
-	printf "\n${CyanColor}BUILD_ARCHIVES${ColorReset} - false | true, cpack will compile ZIP package"
-	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - false | true, use standard Linux package naming"
-	printf "\n${CyanColor}USE_CCACHE${ColorReset} - false | true, use ccache if available"
-	printf "\n${CyanColor}RESET_CACHE${ColorReset} - false | true, reset ccache storage"
+	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
+	printf "\n${CyanColor}BUILD_ARCHIVES${ColorReset} - false|true, cpack will build ZIP package"
+	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - false|true, use standard Linux package naming"
+	printf "\n${CyanColor}USE_CCACHE${ColorReset} - false|true, use ccache if available"
+	printf "\n${CyanColor}RESET_CACHE${ColorReset} - false|true, reset ccache storage"
+	printf "\n\n${GreenColor}Example of usage:${ColorReset}\n${YellowColor}PLATFORM=linux DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh${ColorReset}"
+	printf "\nInstallers from Docker builds will be ready in the ${RedColor}deploy${ColorReset} folder"
 	printf "\n\n"
 	exit 0
 }
