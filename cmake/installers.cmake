@@ -249,6 +249,17 @@ macro(DeployUnix TARGET)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartPipewire> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
+		# Copy UTILS-IMAGE lib
+		if (TARGET utils-image)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-image> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy UTILS-XZ lib
+		if (TARGET utils-image)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-xz> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+
 		#OpenSSL
 		find_package(OpenSSL)
 		if(OPENSSL_FOUND)
@@ -413,6 +424,7 @@ macro(DeployUnix TARGET)
 			"libselinux"
 			"libevent-2"
 			"libldap"
+			"libutils"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
