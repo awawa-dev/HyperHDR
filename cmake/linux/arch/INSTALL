@@ -61,7 +61,12 @@ post_install() {
 	BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
 
 	#get current system ip
-	NET_IP=`hostname -s | cut -d " " -f1`
+	if command -v hostname &> /dev/null
+	then
+		NET_IP=`hostname -s | cut -d " " -f1`
+	else
+		NET_IP=`/sbin/ip route get 1 | awk '{print $(NF-2);exit}'`
+	fi	
 
 	# search for users in system, returns first entry
 	FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
@@ -166,27 +171,31 @@ post_install() {
 
 	echo ${start_msg}
 
-printf "\n +-----------------------------------------------------------------------+"
-printf "\n |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
-printf "\n +-----------------------------------------------------------------------+"
-printf "\n |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |" "$NET_IP" "8090"
-printf "\n |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |" "$NET_IP" "8091"
-printf "\n |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |" "$FOUND_USR"
-printf "\n |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |" "$FOUND_USR"
-printf "\n |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
-printf "\n +-----------------------------------------------------------------------+"
-case "$STARTUP_MSG" in 
-  *"HyperHDR is installed as a service"*)
-	printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
-  *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
-esac
-[ -z "$REBOOTMESSAGE" ] || printf "\n |  \033[31;1m%-67s\033[0m  |" "$REBOOTMESSAGE"
-printf "\n +-----------------------------------------------------------------------+"
-printf "\n |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
-printf "\n |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
-printf "\n +-----------------------------------------------------------------------+\n"
+	printf "\n +-----------------------------------------------------------------------+"
+	printf "\n |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
+	printf "\n +-----------------------------------------------------------------------+"
+	printf "\n |  For configuration, visit with your browser: \033[37;1m%13s:%s\033[0m       |" "$NET_IP" "8090"
+	printf "\n |  If already used by another service try: \033[37;1m%13s:%s\033[0m           |" "$NET_IP" "8091"
+	printf "\n |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\033[0m        |" "$FOUND_USR"
+	printf "\n |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |" "$FOUND_USR"
+	printf "\n |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
+	printf "\n +-----------------------------------------------------------------------+"
+	case "$STARTUP_MSG" in 
+	  *"HyperHDR is installed as a service"*)
+		printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
+	  *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
+	esac
+	[ -z "$REBOOTMESSAGE" ] || printf "\n |  \033[31;1m%-67s\033[0m  |" "$REBOOTMESSAGE"
+	printf "\n +-----------------------------------------------------------------------+"
+	printf "\n |  Webpage: \033[36;1mhttps://hyperhdr.eu\033[0m                                         |"
+	printf "\n |  GitHub: \033[36;1mhttps://github.com/awawa-dev/HyperHDR\033[0m                        |"
+	printf "\n +-----------------------------------------------------------------------+\n"
 
-	update-desktop-database -q
+	if command -v update-desktop-database &> /dev/null
+	then
+		update-desktop-database -q
+	fi
+	
 }
 
 pre_upgrade() {
@@ -253,5 +262,9 @@ pre_remove() {
 
 post_remove() {
 	xdg-icon-resource forceupdate --theme hicolor &> /dev/null
-	update-desktop-database -q
+
+	if command -v update-desktop-database &> /dev/null
+	then
+		update-desktop-database -q
+	fi
 }
