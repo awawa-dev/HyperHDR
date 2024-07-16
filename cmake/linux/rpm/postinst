@@ -129,6 +129,12 @@ if [ $CPU_RPI -eq 1 ]; then
 	fi
 fi
 
+if command -v firewall-cmd &> /dev/null
+then
+	echo "Firewall: opening port 8090"
+	firewall-cmd --add-port=8090
+fi
+
 echo ${start_msg}
 
 printf "\n +-----------------------------------------------------------------------+"
