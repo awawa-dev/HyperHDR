@@ -400,6 +400,16 @@ macro(DeployUnix TARGET)
 			"libblkid"
 			"libbrotlicommon"
 			"libbrotlidec"
+			"libffi."
+			"libgio-2.0."
+			"libgmodule-2.0."
+			"libgobject-2.0."
+			"libidn2."
+			"libnghttp"
+			"libsystemd"
+			"libpsl."
+			"libunistring."
+			"libssh"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
