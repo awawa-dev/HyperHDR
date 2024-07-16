@@ -481,7 +481,7 @@ macro(DeployUnix TARGET)
 				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
 				get_filename_component(file_canonical ${resolved_file} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				#message(STATUS "Basic check added: ${resolved_file}")
+				message("Basic check added: ${resolved_file} (${resolved})")
 			endif()
 		endforeach()		
 
