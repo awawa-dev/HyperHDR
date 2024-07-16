@@ -36,7 +36,7 @@ ENABLE_XSYS=0
 ENABLE_SERVICE=0
 STARTUP_MSG="Service is NOT enabled by default for GUI or non-systemd OS"
 
-if [ $CPU_RPI -eq 1 ]; then
+if [ $CPU_RPI -eq 1 ] || [ -z "${DISPLAY}" ]; then
 	ENABLE_SERVICE=1
 	STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
 fi
