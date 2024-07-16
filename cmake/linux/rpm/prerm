@@ -48,6 +48,12 @@ desktop-file-edit --set-key=NoDisplay --set-value=true /usr/share/applications/h
 rm -v /usr/share/applications/hyperhdr* 2>/dev/null
 rm -rv /usr/share/pixmaps/hyperhdr 2>/dev/null
 
+if command -v firewall-cmd &> /dev/null
+then
+	echo "Firewall: closing port 8090"
+	firewall-cmd --remove-port=8090/tcp
+fi
+
 echo "Removing LUT table"
 rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.3d
 exit 0

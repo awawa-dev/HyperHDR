@@ -72,7 +72,7 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 	connect(&_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
 
 	// Load library
-	_library = dlopen("libsmartPipewire.so", RTLD_NOW);
+	_library = dlopen("libsmart-pipewire.so", RTLD_NOW);
 
 	if (_library)
 	{

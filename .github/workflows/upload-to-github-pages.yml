@@ -92,10 +92,10 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
-          USE_STANDARD_INSTALLER_NAME: 'ON'
+          USE_STANDARD_INSTALLER_NAME: true
         shell: bash
         run: |
-          ./.ci/ci_build.sh
+          ./build.sh
 
       # deploy the package      
       - name: Get destination path

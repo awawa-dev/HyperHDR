@@ -239,15 +239,26 @@ macro(DeployUnix TARGET)
 			install(FILES ${webserver-resources-path} DESTINATION "share/hyperhdr/lib" COMPONENT "HyperHDR" )
 		endif()
 
-		# Copy SMARTX11 lib
-		if (TARGET smartX11)
-			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartX11> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		# Copy SMART-X11 lib
+		if (TARGET smart-x11)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smart-x11> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
-		# Copy SMARTPIPEWIRE lib
-		if (TARGET smartPipewire)
-			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartPipewire> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		# Copy SMART-PIPEWIRE lib
+		if (TARGET smart-pipewire)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smart-pipewire> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
+
+		# Copy UTILS-IMAGE lib
+		if (TARGET utils-image)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-image> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
+		# Copy UTILS-XZ lib
+		if (TARGET utils-image)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-xz> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		endif()
+
 
 		#OpenSSL
 		find_package(OpenSSL)
@@ -329,7 +340,7 @@ macro(DeployUnix TARGET)
 		endif()
 				
 		# Create a qt.conf file in 'share/hyperhdr/bin' to override hard-coded search paths in Qt plugins
-		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
 			DESTINATION "share/hyperhdr/bin"
@@ -400,6 +411,20 @@ macro(DeployUnix TARGET)
 			"libblkid"
 			"libbrotlicommon"
 			"libbrotlidec"
+			"libffi"
+			"libgio-2"
+			"libgmodule-2"
+			"libgobject-2"
+			"libidn2"
+			"libnghttp"
+			"libsystemd"
+			"libpsl"
+			"libunistring"
+			"libssh"
+			"libselinux"
+			"libevent-2"
+			"libldap"
+			"libutils"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
@@ -429,7 +454,7 @@ macro(DeployUnix TARGET)
 			endforeach()						
 		endif()
 
-		# Copy Qt plugins to 'share/hyperhdr/lib'
+		# Copy Qt plugins to 'share/hyperhdr/lib/plugins'
 		foreach(PLUGIN "tls")
 			#message(WARNING "Collecting Dependencies for QT plugin folder: ${PLUGIN}")
 			if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
@@ -443,7 +468,7 @@ macro(DeployUnix TARGET)
 					list(APPEND DEPENDENCIES ${QT_DEPENDENCIES})
 
 					file(INSTALL
-						DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/${PLUGIN}"
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/plugins/${PLUGIN}"
 						TYPE SHARED_LIBRARY
 						FILES ${file}
 					)
@@ -471,17 +496,30 @@ macro(DeployUnix TARGET)
 				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
 				get_filename_component(file_canonical ${resolved_file} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				#message(STATUS "Basic check added: ${resolved_file}")
+				#message("Basic check added: ${resolved_file} (${resolved})")
 			endif()
 		endforeach()		
 
-		# Copy dependencies to 'share/hyperhdr/lib'
+		# Copy dependencies to 'share/hyperhdr/lib/external'
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
-			message("Installing: " ${PREREQUISITE_LIB})
+			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})
+			string(FIND ${PREREQUISITE_LIB} "libproxy" libproxyindex)
+			string(FIND ${PREREQUISITE_LIB} "libpxbackend" libpxbackendindex)
+			if((NOT IS_SYMLINK ${PREREQUISITE_LIB}) AND (${libproxyindex} GREATER -1 OR ${libpxbackendindex} GREATER -1))				
+				get_filename_component(pathingFilename ${PREREQUISITE_LIB} NAME)
+				set(FILE_TO_INSTALL "${CMAKE_BINARY_DIR}/${pathingFilename}")
+				message("Patching RPATH: ${FILE_TO_INSTALL}")
+				file(COPY_FILE ${PREREQUISITE_LIB} ${FILE_TO_INSTALL} )				
+				execute_process (
+					COMMAND bash -c "chrpath -d ${FILE_TO_INSTALL}"
+					OUTPUT_VARIABLE outputResult
+				)
+			endif()
+			message("Installing: " ${FILE_TO_INSTALL})
 			file(
 				INSTALL
-				FILES ${PREREQUISITE_LIB}
-				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib"
+				FILES ${FILE_TO_INSTALL}
+				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/external"
 				TYPE SHARED_LIBRARY
 			)
 		endforeach()		
