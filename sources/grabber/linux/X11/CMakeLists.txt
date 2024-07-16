@@ -4,9 +4,9 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/linux/X11)
 
 FILE ( GLOB SMARTX11_SOURCES "${CURRENT_HEADER_DIR}/smartX11*.h" "${CURRENT_SOURCE_DIR}/smartX11.cpp" )
 
-add_library(smartX11 SHARED ${SMARTX11_SOURCES} )
-target_include_directories(smartX11 PUBLIC ${XLibs_INCLUDE_DIRS})
-target_link_libraries(smartX11 ${XLibs_LIBRARIES} )
+add_library(smart-x11 SHARED ${SMARTX11_SOURCES} )
+target_include_directories(smart-x11 PUBLIC ${XLibs_INCLUDE_DIRS})
+target_link_libraries(smart-x11 ${XLibs_LIBRARIES} )
 
 FILE ( GLOB X11_SOURCES "${CURRENT_HEADER_DIR}/smartX11*.h" "${CURRENT_HEADER_DIR}/X11*.h" "${CURRENT_SOURCE_DIR}/X11*.cpp" )
 

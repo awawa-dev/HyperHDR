@@ -239,14 +239,14 @@ macro(DeployUnix TARGET)
 			install(FILES ${webserver-resources-path} DESTINATION "share/hyperhdr/lib" COMPONENT "HyperHDR" )
 		endif()
 
-		# Copy SMARTX11 lib
-		if (TARGET smartX11)
-			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartX11> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		# Copy SMART-X11 lib
+		if (TARGET smart-x11)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smart-x11> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
-		# Copy SMARTPIPEWIRE lib
-		if (TARGET smartPipewire)
-			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smartPipewire> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
+		# Copy SMART-PIPEWIRE lib
+		if (TARGET smart-pipewire)
+			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:smart-pipewire> DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
 		# Copy UTILS-IMAGE lib

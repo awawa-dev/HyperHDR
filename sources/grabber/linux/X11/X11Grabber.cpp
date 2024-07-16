@@ -67,7 +67,7 @@ X11Grabber::X11Grabber(const QString& device, const QString& configurationPath)
 	connect(&_timer, &QTimer::timeout, this, &X11Grabber::grabFrame);
 
 	// Load library
-	_library = dlopen("libsmartX11.so", RTLD_NOW);
+	_library = dlopen("libsmart-x11.so", RTLD_NOW);
 
 	if (_library)
 	{
