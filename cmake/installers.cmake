@@ -411,6 +411,8 @@ macro(DeployUnix TARGET)
 			"libunistring"
 			"libssh"
 			"libselinux"
+			"libevent-2"
+			"libldap"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
