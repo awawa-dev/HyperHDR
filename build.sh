@@ -197,7 +197,11 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand="makepkg"
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
 		versionFile=`cat version`
+		versionGlibc=`ldd --version | head -1`
+		versionGlibc=`echo "${versionGlibc}" | sed 's/[^0-9]*\([.0-9]*\)[^0-9]*/\1/'`
+		echo "GLIBC version: ${versionGlibc}"
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
+		sed -i "s/{GLIBC_VERSION}/${versionGlibc}/" PKGBUILD
 		if [ ${USE_CCACHE} = true ]; then
 			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION} -DUSE_PRECOMPILED_HEADERS=OFF/" PKGBUILD
 		else

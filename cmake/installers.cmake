@@ -410,6 +410,9 @@ macro(DeployUnix TARGET)
 			"libpsl"
 			"libunistring"
 			"libssh"
+			"libicudata"
+			"libicui18n"
+			"libicuuc"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
