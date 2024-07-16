@@ -329,7 +329,7 @@ macro(DeployUnix TARGET)
 		endif()
 				
 		# Create a qt.conf file in 'share/hyperhdr/bin' to override hard-coded search paths in Qt plugins
-		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
 			DESTINATION "share/hyperhdr/bin"
@@ -442,7 +442,7 @@ macro(DeployUnix TARGET)
 			endforeach()						
 		endif()
 
-		# Copy Qt plugins to 'share/hyperhdr/lib'
+		# Copy Qt plugins to 'share/hyperhdr/lib/plugins'
 		foreach(PLUGIN "tls")
 			#message(WARNING "Collecting Dependencies for QT plugin folder: ${PLUGIN}")
 			if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
@@ -456,7 +456,7 @@ macro(DeployUnix TARGET)
 					list(APPEND DEPENDENCIES ${QT_DEPENDENCIES})
 
 					file(INSTALL
-						DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/${PLUGIN}"
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/plugins/${PLUGIN}"
 						TYPE SHARED_LIBRARY
 						FILES ${file}
 					)
@@ -488,7 +488,7 @@ macro(DeployUnix TARGET)
 			endif()
 		endforeach()		
 
-		# Copy dependencies to 'share/hyperhdr/lib'
+		# Copy dependencies to 'share/hyperhdr/lib/external'
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
 			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})
 			string(FIND ${PREREQUISITE_LIB} "libproxy" libproxyindex)
@@ -507,7 +507,7 @@ macro(DeployUnix TARGET)
 			file(
 				INSTALL
 				FILES ${FILE_TO_INSTALL}
-				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib"
+				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/external"
 				TYPE SHARED_LIBRARY
 			)
 		endforeach()		
