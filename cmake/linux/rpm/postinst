@@ -132,7 +132,7 @@ fi
 if command -v firewall-cmd &> /dev/null
 then
 	echo "Firewall: opening port 8090"
-	firewall-cmd --add-port=8090
+	firewall-cmd --add-port=8090/tcp
 fi
 
 echo ${start_msg}

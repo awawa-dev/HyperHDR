@@ -51,7 +51,7 @@ rm -rv /usr/share/pixmaps/hyperhdr 2>/dev/null
 if command -v firewall-cmd &> /dev/null
 then
 	echo "Firewall: closing port 8090"
-	firewall-cmd --remove-port=8090
+	firewall-cmd --remove-port=8090/tcp
 fi
 
 echo "Removing LUT table"
