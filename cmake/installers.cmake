@@ -401,15 +401,16 @@ macro(DeployUnix TARGET)
 			"libbrotlicommon"
 			"libbrotlidec"
 			"libffi"
-			"libgio-2.0"
-			"libgmodule-2.0"
-			"libgobject-2.0"
+			"libgio-2"
+			"libgmodule-2"
+			"libgobject-2"
 			"libidn2"
 			"libnghttp"
 			"libsystemd"
 			"libpsl"
 			"libunistring"
 			"libssh"
+			"libselinux"
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
@@ -481,7 +482,7 @@ macro(DeployUnix TARGET)
 				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
 				get_filename_component(file_canonical ${resolved_file} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				message("Basic check added: ${resolved_file} (${resolved})")
+				#message("Basic check added: ${resolved_file} (${resolved})")
 			endif()
 		endforeach()		
 
