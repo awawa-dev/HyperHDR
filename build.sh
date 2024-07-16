@@ -194,14 +194,12 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
 		echo "Arch Linux detected"
 		cp cmake/linux/arch/* .
-		executeCommand="makepkg"
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
 		versionFile=`cat version`
-		versionGlibc=`ldd --version | head -1`
-		versionGlibc=`echo "${versionGlibc}" | sed 's/[^0-9]*\([.0-9]*\)[^0-9]*/\1/'`
-		echo "GLIBC version: ${versionGlibc}"
+		executeCommand="echo \"GLIBC version: $(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)[^0-9]*/\1/')\""
+		executeCommand=${executeCommand}" && sed -i \"s/{GLIBC_VERSION}/$(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)[^0-9]*/\1/')/\" PKGBUILD && makepkg"
+		echo ${executeCommand}
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
-		sed -i "s/{GLIBC_VERSION}/${versionGlibc}/" PKGBUILD
 		if [ ${USE_CCACHE} = true ]; then
 			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION} -DUSE_PRECOMPILED_HEADERS=OFF/" PKGBUILD
 		else
