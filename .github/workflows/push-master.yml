@@ -89,6 +89,12 @@ jobs:
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
            restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: ${{ github.event.ref }}
+          key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
+
       - name: Check default version
         if: matrix.linuxVersion != 'bullseye'
         run: |
@@ -166,6 +172,12 @@ jobs:
             path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
             restore-keys: macOS-ccache-${{ matrix.NICE_NAME }}
+
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: ${{ github.event.ref }}
+          key: macOS-ccache-${{ matrix.NICE_NAME }}
 
       # Install deps
       - name: Install deps
@@ -251,6 +263,12 @@ jobs:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
             restore-keys: ${{ runner.os }}-ccache
+
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: ${{ github.event.ref }}
+          key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
 
       - name: Install TurboJPEG
         shell: powershell

@@ -86,7 +86,7 @@ make -j 2
 # Run it from the build directory
 bin/hyperhdr -d
 
-# BUILD INSTALLERS (recommended method to install HyperHDR)
+# BUILD INSTALLERS (recommended method to install HyperHDR, doesnt work for ArchLinux: use build.sh script )
 cpack
 # or compile and build the package using one command
 cmake --build . --target package --config Release
@@ -167,7 +167,7 @@ PLATFORM=rpi DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh
 Installers from Docker builds will be ready in the deploy folder
 ```
 
-The `build.sh` script can also be used to natively build installers as an alternative to the method described in the previous point. Of course, then you must have all the necessary packages installed.
+The `build.sh` script can also be used to natively build macOS/Windows installers as an alternative to the method described in the previous point. Of course, then you must have all the necessary packages installed.
 
 ----
 

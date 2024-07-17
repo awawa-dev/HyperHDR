@@ -1,0 +1,16 @@
+name: Cache clear action on PR close
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: 'refs/pull/${{ github.event.pull_request.number }}/merge'
