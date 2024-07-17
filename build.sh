@@ -32,7 +32,7 @@ print_manual()
 	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - false|true, use standard Linux package naming"
 	printf "\n${CyanColor}USE_CCACHE${ColorReset} - false|true, use ccache if available"
 	printf "\n${CyanColor}RESET_CACHE${ColorReset} - false|true, reset ccache storage"
-	printf "\n\n${GreenColor}Example of usage:${ColorReset}\n${YellowColor}PLATFORM=linux DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh${ColorReset}"
+	printf "\n\n${GreenColor}Example of usage:${ColorReset}\n${YellowColor}PLATFORM=rpi DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh${ColorReset}"
 	printf "\nInstallers from Docker builds will be ready in the ${RedColor}deploy${ColorReset} folder"
 	printf "\n\n"
 	exit 0
