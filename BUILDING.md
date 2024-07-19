@@ -39,7 +39,7 @@ Use -D prefix when configuring the build.
 
 * BUILD FEATURES
   * USE_SHARED_LIBS = ON | OFF, if disabled, build the application as monolithic
-  * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, if disabled, embed web content into the application
+  * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, if enable, embed web content into the application
   * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
   * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
   * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
