@@ -3,7 +3,7 @@
 ### 2. [Build a HyperHDR installer for any supported Linux system on any system using Docker](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#build-a-hyperhdr-installer-for-any-supported-linux-system-on-any-system-using-docker)
 ### 3. [Github Action (online - easiest)](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#github-action-online---easiest)
 
-## Available CMake HyperHDR configuration option:
+## Available CMake HyperHDR configuration options:
 Use -D prefix when configuring the build.
 
 * LED DEVICES  
