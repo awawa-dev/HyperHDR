@@ -256,7 +256,7 @@ endif()
 # STB
 #=============================================================================
 
-add_library(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image_write.h )
+add_library(stb INTERFACE )
 target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
 target_compile_definitions(stb INTERFACE
 	STB_IMAGE_WRITE_IMPLEMENTATION
