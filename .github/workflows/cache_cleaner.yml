@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: yumemi-inc/clean-cache-action@v1
         with:
-          ref: 'refs/pull/${{ github.event.pull_request.number }}/merge'
+          ref: 'refs/heads/${{ github.head_ref }}'
   clean_PR_artifacts:
     runs-on: ubuntu-latest
     steps:
