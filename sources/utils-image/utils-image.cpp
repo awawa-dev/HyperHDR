@@ -34,7 +34,10 @@
 
 #include <turbojpeg.h>
 #include <lunasvg.h>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include <stb_image_write.h>
+#pragma clang diagnostic pop
 #include <stb_image.h>
 #include <utils-image/utils-image.h>
 
