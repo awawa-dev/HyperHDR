@@ -6,7 +6,7 @@ on:
       - closed
 
 jobs:
-  clean:
+  clean_PR_ccache:
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -14,3 +14,10 @@ jobs:
       - uses: yumemi-inc/clean-cache-action@v1
         with:
           ref: 'refs/pull/${{ github.event.pull_request.number }}/merge'
+  clean_PR_artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: stefanluptak/delete-old-pr-artifacts@v1
+        with:
+          workflow_filename: push-master.yml
+          debug: true
