@@ -1,4 +1,4 @@
-name: Cache clear action on PR close
+name: Cache clearing action after closing PR
 
 on:
   pull_request:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   clean_PR_ccache:
+    name: Delete old CCache files
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -15,6 +16,7 @@ jobs:
         with:
           ref: 'refs/heads/${{ github.head_ref }}'
   clean_PR_artifacts:
+    name: Delete old Artifacts
     runs-on: ubuntu-latest
     steps:
       - uses: stefanluptak/delete-old-pr-artifacts@v1
