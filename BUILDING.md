@@ -108,8 +108,8 @@ We assume a 64bit Windows 10. Install the following;
 
 Hint: after you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
 
-### macOs
-First install brew manager.  
+### macOS
+First install [brew](https://brew.sh/) manager.  
 Next: `brew install qt@6 cmake xz pkg-config`
 
 ## Compiling and installing HyperHDR
