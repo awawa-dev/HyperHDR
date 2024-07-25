@@ -1,4 +1,5 @@
 name: Cache clearing action after closing PR
+run-name: Cache clearing
 
 on:
   pull_request:

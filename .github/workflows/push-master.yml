@@ -268,7 +268,7 @@ jobs:
         uses: yumemi-inc/clean-cache-action@v1
         with:
           ref: ${{ github.event.ref }}
-          key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          key: ${{ runner.os }}-ccache
 
       - name: Install TurboJPEG
         shell: powershell
