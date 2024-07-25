@@ -207,7 +207,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		fi
 		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else
-		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} -DUSE_STANDARD_INSTALLER_NAME=${USE_STANDARD_INSTALLER_NAME} ../ || exit 2 )"
+		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 )"
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
 

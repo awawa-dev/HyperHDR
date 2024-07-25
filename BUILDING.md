@@ -3,6 +3,50 @@
 ### 2. [Build a HyperHDR installer for any supported Linux system on any system using Docker](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#build-a-hyperhdr-installer-for-any-supported-linux-system-on-any-system-using-docker)
 ### 3. [Github Action (online - easiest)](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#github-action-online---easiest)
 
+## Available CMake HyperHDR configuration options:
+Use -D prefix when configuring the build.
+
+* LED DEVICES  
+  * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
+  * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library on supported systems
+  
+* SOFTWARE GRABBERS
+  * ENABLE_DX = ON | OFF, enables the DirectX11 software grabber (Windows)
+  * ENABLE_FRAMEBUFFER = ON | OFF, enables the Framebuffer software grabber (Linux)
+  * ENABLE_MAC_SYSTEM = ON | OFF, enables the macOS software grabber (macOS)
+  * ENABLE_PIPEWIRE = ON | OFF, enables the Pipewire software grabber (Linux)
+  * ENABLE_PIPEWIRE_EGL = ON | OFF, enables EGL for the Pipewire grabber (Linux)
+  * ENABLE_X11 = ON | OFF, enables the X11 software grabber (Linux)
+
+* HARDWARE GRABBERS
+  * ENABLE_AVF = ON | OFF, enables the AVF USB grabber support (macOS)
+  * ENABLE_MF = ON | OFF, enables the MediaFoundation USB grabber support (Windows)
+  * ENABLE_V4L2 = ON | OFF, enables the V4L2 USB grabber support (Linux)
+
+* SOUND CAPTURING
+  * ENABLE_SOUNDCAPLINUX = ON | OFF, enables the ALSA sound grabber (Linux)
+  * ENABLE_SOUNDCAPMACOS = ON | OFF, enables the sound grabber (macOS)
+  * ENABLE_SOUNDCAPWINDOWS = ON | OFF, enables the sound grabber (Windows)
+
+* SERVICE SUPPORT
+  * ENABLE_BONJOUR = ON | OFF, enables mDNS (do not disable unless required)
+  * ENABLE_CEC = ON | OFF, enables the HDMI-CEC support (Linux)
+  * ENABLE_MQTT = ON | OFF, enables the MQTT support
+  * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
+  * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server
+  * ENABLE_SYSTRAY = ON | OFF, enables the systray-widget
+  * ENABLE_XZ = ON | OFF, enables XZ support for LUT downloading
+
+* BUILD FEATURES
+  * USE_SHARED_LIBS = ON | OFF, if disabled, build the application as monolithic
+  * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, if enable, embed web content into the application
+  * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
+  * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
+  * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
+  * USE_SYSTEM_FLATBUFFERS_LIBS = ON | OFF, prefer system Flatbuffers libs
+  * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the application
+  * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming
+
 ----
 
 # Native build
@@ -64,8 +108,8 @@ We assume a 64bit Windows 10. Install the following;
 
 Hint: after you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
 
-### macOs
-First install brew manager.  
+### macOS
+First install [brew](https://brew.sh/) manager.  
 Next: `brew install qt@6 cmake xz pkg-config`
 
 ## Compiling and installing HyperHDR
@@ -86,7 +130,7 @@ make -j 2
 # Run it from the build directory
 bin/hyperhdr -d
 
-# BUILD INSTALLERS (recommended method to install HyperHDR)
+# BUILD INSTALLERS (recommended method to install HyperHDR, doesnt work for ArchLinux: use build.sh script )
 cpack
 # or compile and build the package using one command
 cmake --build . --target package --config Release
@@ -167,7 +211,7 @@ PLATFORM=rpi DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh
 Installers from Docker builds will be ready in the deploy folder
 ```
 
-The `build.sh` script can also be used to natively build installers as an alternative to the method described in the previous point. Of course, then you must have all the necessary packages installed.
+The `build.sh` script can also be used to natively build macOS/Windows installers as an alternative to the method described in the previous point. Of course, then you must have all the necessary packages installed.
 
 ----
 

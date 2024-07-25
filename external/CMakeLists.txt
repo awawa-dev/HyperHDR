@@ -256,17 +256,9 @@ endif()
 # STB
 #=============================================================================
 
-add_library(stb OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h ${CMAKE_CURRENT_SOURCE_DIR}/lunasvg/3rdparty/stb/stb_image_write.h )
-
-install(
-	TARGETS   stb
-	LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-	ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-)
-
-target_include_directories(stb PUBLIC ${CMAKE_SOURCE_DIR}/external/lunasvg/3rdparty/stb ${CMAKE_SOURCE_DIR}/external/stb)
-
-target_compile_definitions(stb PUBLIC
+add_library(stb INTERFACE )
+target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+target_compile_definitions(stb INTERFACE
 	STB_IMAGE_WRITE_IMPLEMENTATION
 	STB_IMAGE_IMPLEMENTATION
 )
