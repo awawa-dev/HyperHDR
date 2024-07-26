@@ -302,40 +302,32 @@ macro(DeployUnix TARGET)
 		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")		
 
 		# Copy CEC lib
-		if (CEC_FOUND)
+		if (ENABLE_CEC)
+			# xrandr
 			find_library(XRANDR_LIBRARY NAMES Xrandr libXrandr libXrandr.so.2)
-
 			if (XRANDR_LIBRARY)
-				SET(resolved_file ${XRANDR_LIBRARY})
-				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-				message(STATUS "Adding xrandr: ${resolved_file}")		
-				get_filename_component(file_canonical ${resolved_file} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-				message(STATUS "Added xrandr(2): ${file_canonical}")
+				get_filename_component(resolvedXrandr ${XRANDR_LIBRARY} ABSOLUTE)
+				list (APPEND cecFiles ${resolvedXrandr})
 			endif()
 
+			# cec core
 			foreach(resolved_file_in ${CEC_LIBRARIES})
 				message(STATUS "Adding CEC: ${resolved_file_in}")
 				unset(LIBCEC CACHE)
 				find_library(LIBCEC NAMES ${resolved_file_in})
 				if (LIBCEC)
-					SET(resolved_file ${LIBCEC})
-					get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-					gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-					message(STATUS "Adding CEC(1): ${resolved_file}")
-					get_filename_component(file_canonical ${resolved_file} REALPATH)
-					gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-					message(STATUS "Added CEC(2): ${file_canonical}")
-					foreach(indexer RANGE 9)
-						set(resolved_fileLink "${resolved_file}.${indexer}")
-						if(EXISTS ${resolved_fileLink})
-							get_filename_component(resolved_fileLink ${resolved_fileLink} ABSOLUTE)
-							gp_append_unique(PREREQUISITE_LIBS ${resolved_fileLink})
-							message(STATUS "Adding CEC(3): ${resolved_fileLink}")
-						endif()
-					endforeach()
+					get_filename_component(resolvedCec ${LIBCEC} ABSOLUTE)
+					list (APPEND cecFiles ${resolvedCec})
 				endif()
+			endforeach()			
+
+			# install cec
+			foreach(cecFile ${cecFiles})
+				FILE(GLOB foundCec "${cecFile}*")
+				foreach(installCec ${foundCec})
+					message(STATUS "Adding CEC: ${installCec}")
+					gp_append_unique(PREREQUISITE_LIBS ${installCec})
+				endforeach()				
 			endforeach()
 		endif()
 				
@@ -406,7 +398,7 @@ macro(DeployUnix TARGET)
 			"libxcb-xfixes0"
 			"libxcb-xkb1"
 			"libxkbcommon-x11-0"
-			"ld-linux-x86-64"
+			"ld-"
 			"libasound"
 			"libblkid"
 			"libbrotlicommon"
@@ -483,12 +475,12 @@ macro(DeployUnix TARGET)
 			
 			foreach(myitem ${SYSTEM_LIBS_SKIP})
 				string(FIND ${resolved} ${myitem} _index)
-				if (${_index} GREATER -1)
+				if (${_index} EQUAL 0)
 					break()									
 				endif()
 			endforeach()
 					
-			if (${_index} GREATER -1)
+			if (${_index} EQUAL 0)
 				continue() # Skip system libraries
 			else()
 				gp_resolve_item("${TARGET_FILE}" "${DEPENDENCY}" "" "" resolved_file)
