@@ -319,7 +319,7 @@ macro(DeployUnix TARGET)
 					get_filename_component(resolvedCec ${LIBCEC} ABSOLUTE)
 					list (APPEND cecFiles ${resolvedCec})
 				endif()
-			endif()			
+			endforeach()			
 
 			# install cec
 			foreach(cecFile ${cecFiles})
