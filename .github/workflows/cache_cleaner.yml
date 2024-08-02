@@ -13,7 +13,7 @@ jobs:
     permissions:
       actions: write
     steps:
-      - uses: yumemi-inc/clean-cache-action@v1
+      - uses: yumemi-inc/clean-cache-action@v1.0.5
         with:
           ref: 'refs/heads/${{ github.head_ref }}'
   clean_PR_artifacts:
