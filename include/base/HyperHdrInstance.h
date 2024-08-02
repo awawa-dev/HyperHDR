@@ -14,17 +14,16 @@
 	#include <list>
 	#include <memory>
 	#include <atomic>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
-#include <base/LedString.h>
-#include <effectengine/EffectDefinition.h>
-#include <effectengine/ActiveEffectDefinition.h>
-#include <leddevice/LedDevice.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
+#include <led-strip/LedString.h>
+#include <effects/EffectDefinition.h>
+#include <effects/ActiveEffectDefinition.h>
+#include <led-drivers/LedDevice.h>
 
 class Muxer;
 class ComponentController;
@@ -37,7 +36,6 @@ class ColorAdjustment;
 class InstanceConfig;
 class VideoControl;
 class SystemControl;
-class BoblightServer;
 class RawUdpServer;
 class LedDeviceWrapper;
 class Logger;
@@ -51,7 +49,7 @@ class HyperHdrInstance : public QObject
 	Q_OBJECT
 
 public:
-	HyperHdrInstance(quint8 instance, bool readonlyMode, bool disableOnstartup, QString name);
+	HyperHdrInstance(quint8 instance, bool disableOnstartup, QString name);
 	~HyperHdrInstance();
 	
 	quint8 getInstanceIndex() const { return _instIndex; }
@@ -72,7 +70,7 @@ public slots:
 	int getCurrentPriority() const;
 	std::list<EffectDefinition> getEffects() const;
 	int getLedCount() const;
-	bool getReadOnlyMode() const { return _readOnlyMode; };
+	bool getReadOnlyMode() const;
 	QJsonDocument getSetting(settings::type type) const;
 	int hasLedClock();
 	void identifyLed(const QJsonObject& params);
@@ -121,6 +119,7 @@ signals:
 	void SignalSmoothingRestarted(int suggestedInterval);
 	void SignalRawColorsChanged(const std::vector<ColorRgb>& ledValues);
 	void SignalInstanceJustStarted();
+	void SignalColorIsSet(ColorRgb color, int duration);
 
 private slots:
 	void handleVisibleComponentChanged(hyperhdr::Components comp);
@@ -142,7 +141,6 @@ private:
 	std::unique_ptr<EffectEngine> _effectEngine;
 	std::unique_ptr<VideoControl> _videoControl;
 	std::unique_ptr<SystemControl> _systemControl;
-	std::unique_ptr<BoblightServer> _boblightServer;
 	std::unique_ptr<RawUdpServer> _rawUdpServer;
 
 	Logger*				_log;
@@ -152,7 +150,6 @@ private:
 	std::vector<ColorRgb>	_currentLedColors;
 	QString					_name;
 
-	bool					_readOnlyMode;
 	bool					_disableOnStartup;
 
 	static std::atomic<bool>	_signalTerminate;

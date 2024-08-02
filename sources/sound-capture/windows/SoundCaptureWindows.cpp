@@ -155,7 +155,7 @@ void SoundCaptureWindows::listDevices()
 
 SoundCaptureWindows::~SoundCaptureWindows()
 {
-	stop();	
+	stopDevice();
 }
 
 void SoundCaptureWindows::start()
@@ -184,6 +184,11 @@ void SoundCaptureWindows::start()
 
 void SoundCaptureWindows::stop()
 {
+	stopDevice();
+}
+
+void SoundCaptureWindows::stopDevice()
+{
 	if (!_isRunning)
 		return;
 
@@ -202,4 +207,4 @@ void SoundCaptureWindows::stop()
 	}
 
 	Info(_logger, "Hardware sound driver is closed");
-}
+};

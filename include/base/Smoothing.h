@@ -4,12 +4,13 @@
 	#include <QJsonDocument>
 	#include <QMutex>
 	#include <QVector>
-	#include <vector>
 
-	#include <utils/ColorRgb.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
+	#include <vector>
 #endif
+
+#include <image/ColorRgb.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
 
 #define SMOOTHING_USER_CONFIG			0
 #define SMOOTHING_EFFECT_CONFIGS_START	1

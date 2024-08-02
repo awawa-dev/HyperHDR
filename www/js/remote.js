@@ -208,9 +208,6 @@ $(document).ready(function()
 				case "VIDEOGRABBER":
 					owner = $.i18n('general_comp_VIDEOGRABBER') + ': <span class="small text-secondary">' + owner + '<span/>';
 					break;
-				case "BOBLIGHTSERVER":
-					owner = $.i18n('general_comp_BOBLIGHTSERVER');
-					break;
 				case "FLATBUFSERVER":
 					owner = $.i18n('general_comp_FLATBUFSERVER');
 					break;
@@ -261,7 +258,7 @@ $(document).ready(function()
 
 		for (const comp of components)
 		{
-			if (comp.name === "ALL")
+			if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.serverInfo.currentInstance != 0))
 				continue;					
 
 			const comp_btn_id = "comp_btn_" + comp.name;

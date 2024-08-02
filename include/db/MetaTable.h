@@ -6,7 +6,7 @@ class MetaTable : public DBManager
 {
 
 public:
-	MetaTable(bool readonlyMode = false);
+	MetaTable();
 
 	QString getUUID() const;
 };

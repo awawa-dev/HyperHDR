@@ -1,8 +1,7 @@
-#ifndef PCH_ENABLED
-	#include <utils/Logger.h>
-#endif
-
+#include <utils/Logger.h>
 #include <cec/WrapperCEC.h>
+#include <cec/cecHandler.h>
+#include <algorithm>
 
 
 WrapperCEC::WrapperCEC():
@@ -20,12 +19,16 @@ void WrapperCEC::sourceRequestHandler(hyperhdr::Components component, int hyperh
 {
 	if (component == hyperhdr::Components::COMP_CEC)
 	{
-		if (listen && !CEC_CLIENTS.contains(hyperhdrInd))
-			CEC_CLIENTS.append(hyperhdrInd);
-		else if (!listen)
-			CEC_CLIENTS.removeOne(hyperhdrInd);
+		bool found = (std::find(_cecClients.begin(), _cecClients.end(), hyperhdrInd) != _cecClients.end());
 
-		if (CEC_CLIENTS.empty())
+		if (listen && !found)
+			_cecClients.push_back(hyperhdrInd);
+		else if (!listen && found)
+			_cecClients.remove(hyperhdrInd);
+		else
+			return;
+
+		if (_cecClients.empty())
 			enable(false);
 		else
 			enable(true);
@@ -40,7 +43,6 @@ void WrapperCEC::enable(bool enabled)
 		{
 			Info(_log, "Opening libCEC library.");
 
-#if defined(ENABLE_CEC)
 			_cecHandler = new cecHandler();
 			connect(_cecHandler, &cecHandler::stateChange, this, &WrapperCEC::SignalStateChange);
 			connect(_cecHandler, &cecHandler::keyPressed, this, &WrapperCEC::SignalKeyPressed);
@@ -51,7 +53,6 @@ void WrapperCEC::enable(bool enabled)
 				Error(_log, "Could not open libCEC library");
 				enable(false);
 			}
-#endif
 		}
 	}
 	else
@@ -60,7 +61,6 @@ void WrapperCEC::enable(bool enabled)
 		{
 			Info(_log, "Disconnecting from libCEC library");
 
-#if defined(ENABLE_CEC)
 			disconnect(_cecHandler, &cecHandler::stateChange, this, &WrapperCEC::SignalStateChange);
 			disconnect(_cecHandler, &cecHandler::keyPressed, this, &WrapperCEC::SignalKeyPressed);
 			
@@ -68,7 +68,6 @@ void WrapperCEC::enable(bool enabled)
 			Info(_log, "Cleaning up libCEC");
 			delete _cecHandler;
 			_cecHandler = nullptr;
-#endif
 		}
 	}
 }

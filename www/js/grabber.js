@@ -604,7 +604,7 @@ $(document).ready( function(){
 		conf_editor_videoControl = createJsonEditor('editor_container_videoControl', { videoControl: window.schema.videoControl}, true, true, undefined, true);
 
 		conf_editor_videoControl.on('change',function() {
-			(conf_editor_videoControl.validate().length || window.readOnlyMode) ? $('#btn_submit_videoControl').attr('disabled', true) : $('#btn_submit_videoControl').attr('disabled', false);
+			(conf_editor_videoControl.validate().length ) ? $('#btn_submit_videoControl').attr('disabled', true) : $('#btn_submit_videoControl').attr('disabled', false);
 		});
 
 		$('#btn_submit_videoControl').off().on('click',function() {
@@ -638,7 +638,7 @@ $(document).ready( function(){
 		conf_editor_systemControl = createJsonEditor('editor_container_systemControl', { systemControl: window.schema.systemControl}, true, true, undefined, true);
 
 		conf_editor_systemControl.on('change',function() {
-			(conf_editor_systemControl.validate().length || window.readOnlyMode) ? $('#btn_submit_systemControl').attr('disabled', true) : $('#btn_submit_systemControl').attr('disabled', false);
+			(conf_editor_systemControl.validate().length ) ? $('#btn_submit_systemControl').attr('disabled', true) : $('#btn_submit_systemControl').attr('disabled', false);
 		});
 
 		$('#btn_submit_systemControl').off().on('click',function() {
@@ -754,7 +754,7 @@ $(document).ready( function(){
 		BuildCalibrationButton(window.serverConfig.videoGrabber.autoSignalDetection);
 		
 		conf_video_section_editor.on('change',function() {
-			if (conf_video_section_editor.validate().length || window.readOnlyMode)
+			if (conf_video_section_editor.validate().length )
 				$('#btn_submit_videoGrabber').attr('disabled', true);
 			else
 				$('#btn_submit_videoGrabber').attr('disabled', false);

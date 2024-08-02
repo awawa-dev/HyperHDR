@@ -27,8 +27,7 @@
 
 
 #include <bonjour/DiscoveryWrapper.h>
-#include <leddevice/LedDevice.h>
-#include <leddevice/LedDeviceFactory.h>
+#include <led-drivers/LedDeviceManufactory.h>
 
 #include <QTimer>
 #include <QString>
@@ -190,7 +189,7 @@ void DiscoveryWrapper::signalDiscoveryRequestToScanHandler(DiscoveryRecord::Serv
 			QJsonObject deviceConfig;
 			deviceConfig["type"] = "adalight";
 
-			_serialDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(deviceConfig));
+			_serialDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(deviceConfig));
 		}
 		QJsonObject params;
 		QJsonObject devicesDiscovered = _serialDevice->discover(params);		

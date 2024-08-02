@@ -30,115 +30,21 @@
 #include <string>
 #include <limits>
 #include <cmath>
+#include <cstring>
 
-#include <turbojpeg.h>
-#include <lunasvg.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#include <QFile>
-#include <QByteArray>
 #include <hyperimage/HyperImage.h>
 #include <utility>	
 #include <list>
 
 
-
-ColorRgb HyperImage::ColorRgbfromString(QString colorName)
-{
-	std::list<std::pair<QString, ColorRgb>> colors = {
-		{ "white", ColorRgb(255,255,255)},
-		{ "red", ColorRgb(255,0,0)},
-		{ "green",ColorRgb(0,255,0)},
-		{ "blue", ColorRgb(0,0,255)},
-		{ "yellow", ColorRgb(255,255,0)},
-		{ "magenta", ColorRgb(255,0,255)},
-		{ "cyan", ColorRgb(0,255,255)}
-	};
-
-	std::list<std::pair<QString, ColorRgb>>::iterator findIter = std::find_if(colors.begin(), colors.end(),
-		[&colorName](const std::pair<QString, ColorRgb>& a)
-		{
-			if (a.first == colorName)
-				return true;
-			else
-				return false;
-		}
-	);
-
-	if (findIter != colors.end())
-		return (*findIter).second;
-
-	return ColorRgb(255, 255, 255);
-}
-
-void HyperImage::svg2png(QString filename, int width, int height, QBuffer& buffer)
-{
-	if (filename.indexOf(":/") == 0)
-	{
-		QFile stream(filename);
-		if (!stream.open(QIODevice::ReadOnly))
-			return;
-		QByteArray ar = stream.readAll();
-		stream.close();
-
-		filename = QString(ar);
-	}
-
-	const std::uint32_t bgColor = 0x00000000;
-
-	std::string svgFile = filename.toStdString();
-	auto document = lunasvg::Document::loadFromData(svgFile);
-
-	auto bitmap = document->renderToBitmap(width, height, bgColor);
-	if (!bitmap.valid())
-		return;
-	bitmap.convertToRGBA();
-
-	int len;
-	unsigned char* png = stbi_write_png_to_mem(bitmap.data(), 0, bitmap.width(), bitmap.height(), 4, &len);
-	if (png == NULL)
-		return;
-
-	buffer.write(reinterpret_cast<const char*>(png), len);
-	
-	STBIW_FREE(png);
-}
-
-Image<ColorRgb> HyperImage::load2image(QByteArray& buffer)
-{
-	Image<ColorRgb> ret;
-	int w, h, comp;
-	
-	unsigned char* image = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buffer.data()), buffer.size(), &w, &h, &comp, STBI_rgb);
-
-	if (image != nullptr)
-	{
-		ret.resize(w, h);
-		memcpy(ret.rawMem(), image, 3ll * w * h );
-	}
-
-	STBIW_FREE(image);
-
-	return ret;
-}
-
-
-
-HyperImage::HyperImage() : HyperImage(QSize(1,1))
+HyperImage::HyperImage() : HyperImage(1,1)
 {
 }
 
-HyperImage::HyperImage(QSize size)
+HyperImage::HyperImage(int width, int height)
 	: _pen(ColorRgb::BLACK)
 {
-	_surface = Image<ColorRgb>(size.width(), size.height());
-}
-
-HyperImage::~HyperImage()
-{
+	_surface = Image<ColorRgb>(width, height);
 }
 
 int HyperImage::width() const
@@ -401,28 +307,4 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 			data += 3;
 		}
 	}
-}
-
-void HyperImage::encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown)
-{
-	const int aspect = (scaleDown) ? 2 : 1;
-	const int width = inputImage.width();
-	const int height = inputImage.height() / aspect;
-	int pitch = width * sizeof(ColorRgb) * aspect;
-	int subSample = (scaleDown) ? TJSAMP_422 : TJSAMP_444;
-	int quality = 75;
-
-	unsigned long compressedImageSize = 0;
-	unsigned char* compressedImage = NULL;
-
-	tjhandle _jpegCompressor = tjInitCompress();
-
-	tjCompress2(_jpegCompressor, inputImage.rawMem(), width, pitch, height, TJPF_RGB,
-		&compressedImage, &compressedImageSize, subSample, quality, TJFLAG_FASTDCT);
-
-	buffer.resize(compressedImageSize);
-	memcpy(buffer.data(), compressedImage, compressedImageSize);
-
-	tjDestroy(_jpegCompressor);
-	tjFree(compressedImage);
 }

@@ -3,14 +3,13 @@
 #ifndef PCH_ENABLED
 	#include <QMap>
 	#include <QStringList>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
-#include <effectengine/EffectDefinition.h>
+#include <image/ColorRgb.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
+#include <effects/EffectDefinition.h>
 
 class HyperHdrInstance;
 class InstanceTable;
@@ -108,7 +107,7 @@ private slots:
 private:
 	friend class HyperHdrDaemon;
 
-	HyperHdrManager(const QString& rootPath, bool readonlyMode);
+	HyperHdrManager(const QString& rootPath);
 
 	void startAll(bool disableOnStartup);
 
@@ -124,7 +123,6 @@ private:
 	QMap<quint8, std::shared_ptr<HyperHdrInstance>> _runningInstances;
 	QMap<quint8, std::shared_ptr<HyperHdrInstance>>	_startingInstances;
 
-	bool	_readonlyMode;
 	int		_fireStarter;
 
 	QMap<quint8, PendingRequests> _pendingRequests;

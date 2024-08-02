@@ -7,14 +7,13 @@
 	#include <QString>
 	#include <QStringList>
 	#include <QMultiMap>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
 #include <base/Grabber.h>
 #include <base/DetectionAutomatic.h>
 

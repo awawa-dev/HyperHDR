@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <utils/MemoryBuffer.h>
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-#endif
-
+#include <image/MemoryBuffer.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/PixelFormat.h>
 
 // some stuff for HDR tone mapping

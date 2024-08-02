@@ -91,7 +91,7 @@ ImageToLedManager::ImageToLedManager(const LedString& ledString, HyperHdrInstanc
 	, _borderProcessor(new BlackBorderProcessor(hyperhdr, this))
 	, _colorAveraging(nullptr)
 	, _mappingType(0)
-	, _sparseProcessing(false)	
+	, _sparseProcessing(false)
 {
 	// init
 	handleSettingsUpdate(settings::type::COLOR, hyperhdr->getSetting(settings::type::COLOR));
@@ -122,7 +122,7 @@ void ImageToLedManager::handleSettingsUpdate(settings::type type, const QJsonDoc
 void ImageToLedManager::setSize(unsigned width, unsigned height)
 {
 	// Check if the existing buffer-image is already the correct dimensions
-	if (_colorAveraging !=nullptr && _colorAveraging->width() == width && _colorAveraging->height() == height)
+	if (_colorAveraging != nullptr && _colorAveraging->width() == width && _colorAveraging->height() == height)
 	{
 		return;
 	}

@@ -9,18 +9,17 @@
 	#include <QMultiMap>
 	#include <QSemaphore>
 	#include <atomic>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
-	#include <utils/MemoryBuffer.h>
 #endif
 
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <utils/Components.h>
+#include <image/MemoryBuffer.h>
 #include <utils/FrameDecoder.h>
 #include <base/DetectionManual.h>
 #include <base/DetectionAutomatic.h>
-#include <utils/PerformanceCounters.h>
+#include <performance-counters/PerformanceCounters.h>
 
 #if  defined(_WIN32) || defined(WIN32)
 	// Windows

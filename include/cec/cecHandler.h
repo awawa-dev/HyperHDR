@@ -1,8 +1,12 @@
 #pragma once
-#include <QObject>
-#include <QString>
-#include <iostream>
-#include <utils/Logger.h>
+
+#ifndef PCH_ENABLED
+	#include <QObject>
+	#include <QString>
+	#include <iostream>
+#endif
+
+class Logger;
 
 class cecHandler : public QObject
 {
