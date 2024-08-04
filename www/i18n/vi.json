@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Tắt khi bị khóa",
   "edt_conf_gen_disableOnLocked_expl" : "Tắt xử lý khi người dùng đã khóa hệ thống.",
   "edt_conf_gen_disableLedsStartup_title" : "Tắt đèn LED khi khởi động",
-  "edt_conf_gen_disableLedsStartup_expl" : "Tắt đèn LED và tất cả các thành phần khi khởi động, bạn phải bật lại chúng theo cách thủ công trên trang chính hoặc thông qua API JSON (thành phần COMP_ALL)."
+  "edt_conf_gen_disableLedsStartup_expl" : "Tắt đèn LED và tất cả các thành phần khi khởi động, bạn phải bật lại chúng theo cách thủ công trên trang chính hoặc thông qua API JSON (thành phần COMP_ALL).",
+  "edt_conf_sound_device_smoothing_title" : "Kích hoạt tính năng làm mịn",
+  "edt_conf_sound_device_smoothing_expl" : "Cho phép làm mịn đặc biệt cho hiệu ứng âm thanh. Yêu cầu thiết bị LED có tần số đầu ra 60 Hz. Khi tắt chức năng làm mịn, tần số đầu ra là 20 Hz."
 }
