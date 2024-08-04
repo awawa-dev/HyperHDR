@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "锁定时禁用",
   "edt_conf_gen_disableOnLocked_expl" : "当用户锁定系统时关闭处理。",
   "edt_conf_gen_disableLedsStartup_title" : "启动时关闭 LED",
-  "edt_conf_gen_disableLedsStartup_expl" : "启动时禁用 LED 和所有组件，您必须在主页上手动或通过 JSON API（COMP_ALL 组件）重新启用它们。"
+  "edt_conf_gen_disableLedsStartup_expl" : "启动时禁用 LED 和所有组件，您必须在主页上手动或通过 JSON API（COMP_ALL 组件）重新启用它们。",
+  "edt_conf_sound_device_smoothing_title" : "启用平滑",
+  "edt_conf_sound_device_smoothing_expl" : "启用声音效果的特殊平滑。需要输出频率为 60 Hz 的 LED 设备。当平滑禁用时，输出频率为 20 Hz。"
 }
