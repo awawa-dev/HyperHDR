@@ -182,7 +182,7 @@ void AVFGrabber::loadLutFile(PixelFormat color)
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 
-	Grabber::loadLutFile(color, QList<QString>{fileName1, fileName2});
+	Grabber::loadLutFile(_log, color, QList<QString>{fileName1, fileName2});
 }
 
 void AVFGrabber::setHdrToneMappingEnabled(int mode)
