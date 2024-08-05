@@ -52,6 +52,8 @@ SET ( DEFAULT_POWER_MANAGEMENT            ON  )
 SET ( DEFAULT_SYSTRAY                     ON  )
 SET ( DEFAULT_SHARED_LIBS                 ON  )
 SET ( DEFAULT_EMBEDDED_WEB_RESOURCES      OFF )
+set ( CMAKE_POSITION_INDEPENDENT_CODE     ON  )
+
 
 # Configure CCache if available
 option(USE_CCACHE_CACHING "Enable CCache caching" ON )
