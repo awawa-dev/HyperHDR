@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Disabilita quando bloccato",
   "edt_conf_gen_disableOnLocked_expl" : "Disattiva l'elaborazione quando l'utente ha bloccato il sistema.",
   "edt_conf_gen_disableLedsStartup_title" : "Spegnere i LED all'avvio",
-  "edt_conf_gen_disableLedsStartup_expl" : "Disabilita i LED e tutti i componenti all'avvio, devi riabilitarli manualmente nella pagina principale o tramite l'API JSON (componente COMP_ALL)."
+  "edt_conf_gen_disableLedsStartup_expl" : "Disabilita i LED e tutti i componenti all'avvio, devi riabilitarli manualmente nella pagina principale o tramite l'API JSON (componente COMP_ALL).",
+  "edt_conf_sound_device_smoothing_title" : "Abilita livellamento",
+  "edt_conf_sound_device_smoothing_expl" : "Abilita uno speciale livellamento per gli effetti sonori. Richiede un dispositivo LED con frequenza di uscita di 60 Hz. Quando il livellamento è disabilitato, la frequenza di uscita è 20 Hz."
 }
