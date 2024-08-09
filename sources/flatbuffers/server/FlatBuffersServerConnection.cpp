@@ -145,17 +145,17 @@ void FlatBuffersServerConnection::readyRead()
 		// check if we can read a header
 		if (_incomingSize == _incomingIndex)
 		{
-			uint8_t red = 0, green = 0, blue = 0;
-			int priority = _priority, duration = 0, imageWidth = 0, imageHeight = 0;
+			int priority = _priority, duration = 0;
 			std::string clientDescription;
-			uint8_t* imageData = nullptr;
 			uint8_t* buffer = nullptr;
-			size_t imageSize = 0, bufferSize = 0;
+			size_t bufferSize = 0;
+			FlatbuffersTransientImage flatImage{};
+			FlatbuffersColor flatColor{};
 
 			auto result = decodeIncomingFlatbuffersFrame(_builder, _incommingBuffer.data(), _incomingSize,
-				&red, &green, &blue,
 				&priority, &clientDescription, &duration,
-				&imageData, &imageWidth, &imageHeight, &imageSize,
+				flatImage,
+				flatColor,
 				&buffer, &bufferSize);
 
 			if (result == FLATBUFFERS_PACKAGE_TYPE::COLOR)
@@ -172,7 +172,7 @@ void FlatBuffersServerConnection::readyRead()
 
 
 				_mode = result;
-				std::vector<ColorRgb> color{ ColorRgb(red, green, blue) };
+				std::vector<ColorRgb> color{ ColorRgb(flatColor.red, flatColor.green, flatColor.blue) };
 				if (_clientDescription.isEmpty())
 					_clientDescription = QString("Forwarder%1").arg(_clientAddress);
 				emit SignalSetGlobalColor(_priority, color, duration, hyperhdr::Components::COMP_FLATBUFSERVER, QString(_clientDescription));
@@ -189,17 +189,7 @@ void FlatBuffersServerConnection::readyRead()
 
 				_mode = result;
 
-				if ((int)imageSize != imageWidth * imageHeight * 3)
-				{
-					Error(_log, "Size of image data does not match with the width and height");
-				}
-				else
-				{
-					Image<ColorRgb> imageDest(imageWidth, imageHeight);
-					memmove(imageDest.rawMem(), imageData, imageSize);
-
-					emit SignalImageReceived(_priority, imageDest, duration, hyperhdr::Components::COMP_FLATBUFSERVER, _clientDescription);
-				}
+				emit SignalDirectImageReceivedInTempBuffer(_priority, &flatImage, duration, hyperhdr::Components::COMP_FLATBUFSERVER, _clientDescription);
 			}
 			if (result == FLATBUFFERS_PACKAGE_TYPE::PRIORITY)
 			{

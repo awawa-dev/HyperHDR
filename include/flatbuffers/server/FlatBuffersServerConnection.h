@@ -37,6 +37,10 @@
 class QTcpSocket;
 class QLocalSocket;
 class QTimer;
+namespace FlatBuffersParser
+{
+	struct FlatbuffersTransientImage;
+};
 
 class FlatBuffersServerConnection : public QObject
 {
@@ -49,7 +53,7 @@ public:
 
 signals:
 	void SignalClearGlobalInput(int priority, bool forceClearAll);
-	void SignalImageReceived(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+	void SignalDirectImageReceivedInTempBuffer(int priority, FlatBuffersParser::FlatbuffersTransientImage* image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 	void SignalSetGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 	void SignalClientDisconnected(FlatBuffersServerConnection* client);
 

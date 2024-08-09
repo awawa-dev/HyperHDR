@@ -217,7 +217,7 @@ void MFWorker::runMe()
 
 				FrameDecoder::processImage(
 					_cropLeft, _cropRight, _cropTop, _cropBottom,
-					_localBuffer.data(), _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+					_localBuffer.data(), nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
 				image.setBufferCacheSize();
 				if (!_directAccess)
@@ -290,7 +290,7 @@ void MFWorker::process_image_jpg_mt()
 			}		
 
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpgBuffer.data(), _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
+			jpgBuffer.data(), nullptr, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image);
 	}
 	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
@@ -304,7 +304,7 @@ void MFWorker::process_image_jpg_mt()
 			}					
 		
 		FrameDecoder::processImage(_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpgBuffer.data(), _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
+			jpgBuffer.data(), nullptr, _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image);
 	}
 	else
 	{

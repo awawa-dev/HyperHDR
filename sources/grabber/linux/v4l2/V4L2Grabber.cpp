@@ -112,7 +112,7 @@ void V4L2Grabber::loadLutFile(PixelFormat color)
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
 
-	Grabber::loadLutFile(color, QList<QString>{fileName1, fileName2, fileName3});
+	Grabber::loadLutFile(_log, color, QList<QString>{fileName1, fileName2, fileName3});
 }
 
 void V4L2Grabber::setHdrToneMappingEnabled(int mode)

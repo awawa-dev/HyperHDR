@@ -49,7 +49,6 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _cropTop(0)
 	, _cropBottom(0)
 	, _enabled(true)
-	, _hdrToneMappingEnabled(0)
 	, _log(Logger::getInstance(grabberName.toUpper()))
 	, _currentFrame(0)
 	, _deviceName()
@@ -70,7 +69,6 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _actualFPS(0)
 	, _actualDeviceName("")
 	, _targetMonitorNits(200)
-	, _lutBufferInit(false)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
 	, _signalDetectionEnabled(false)
@@ -408,100 +406,6 @@ void Grabber::resetCounter(int64_t from)
 int Grabber::getHdrToneMappingEnabled()
 {
 	return _hdrToneMappingEnabled;
-}
-
-void Grabber::loadLutFile(PixelFormat color, const QList<QString>& files)
-{
-	bool is_yuv = (color == PixelFormat::YUYV);
-
-	_lutBufferInit = false;
-
-	if (color != PixelFormat::NO_CHANGE && color != PixelFormat::RGB24 && color != PixelFormat::YUYV)
-	{
-		Error(_log, "Unsupported mode for loading LUT table: %s", QSTRING_CSTR(pixelFormatToString(color)));
-		return;
-	}
-
-	if (color == PixelFormat::NO_CHANGE)
-	{
-		_lut.resize(LUT_FILE_SIZE + 4);
-
-		if (_lut.data() != nullptr)
-		{
-			for (int y = 0; y < 256; y++)
-				for (int u = 0; u < 256; u++)
-					for (int v = 0; v < 256; v++)
-					{
-						uint32_t ind_lutd = LUT_INDEX(y, u, v);
-						ColorRgb::yuv2rgb(y, u, v,
-							_lut.data()[ind_lutd],
-							_lut.data()[ind_lutd + 1],
-							_lut.data()[ind_lutd + 2]);
-					}
-			_lutBufferInit = true;
-		}
-
-		Error(_log, "You have forgotten to put lut_lin_tables.3d file in the HyperHDR configuration folder. Internal LUT table for YUV conversion has been created instead.");
-		return;
-	}
-
-	if (_hdrToneMappingEnabled || is_yuv)
-	{
-		for (QString fileName3d : files)
-		{
-			QFile file(fileName3d);
-
-			if (file.open(QIODevice::ReadOnly))
-			{
-				size_t length;
-				Debug(_log, "LUT file found: %s", QSTRING_CSTR(fileName3d));
-
-				length = file.size();
-
-				if (length == LUT_FILE_SIZE * 3)
-				{
-					qint64 index = 0;
-
-					if (is_yuv && _hdrToneMappingEnabled)
-					{
-						Debug(_log, "Index 1 for HDR YUV");
-						index = LUT_FILE_SIZE;
-					}
-					else if (is_yuv)
-					{
-						Debug(_log, "Index 2 for YUV");
-						index = LUT_FILE_SIZE * 2;
-					}
-					else
-						Debug(_log, "Index 0 for HDR RGB");
-
-					file.seek(index);
-
-					_lut.resize(LUT_FILE_SIZE + 64);
-
-					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
-					{
-						Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
-					}
-					else
-					{
-						_lutBufferInit = true;
-						Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
-					}
-				}
-				else
-					Error(_log, "LUT file has invalid length: %i %s. Please generate new one LUT table using the generator page.", length, QSTRING_CSTR(fileName3d));
-
-				file.close();
-
-				return;
-			}
-			else
-				Warning(_log, "LUT file is not found here: %s", QSTRING_CSTR(fileName3d));
-		}
-
-		Error(_log, "Could not find any required LUT file");
-	}
 }
 
 QMap<Grabber::VideoControls, int> Grabber::getVideoDeviceControls(const QString& devicePath)
