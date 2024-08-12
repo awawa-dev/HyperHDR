@@ -140,4 +140,9 @@ namespace utils_image
 		tjDestroy(_jpegCompressor);
 		tjFree(compressedImage);
 	}
+
+	bool _IMAGE_SHARED_API savePng(const std::string& filename, const Image<ColorRgb>& image)
+	{
+		return stbi_write_png(filename.c_str(), image.width(), image.height(), 3, image.rawMem(), 0);
+	}
 };

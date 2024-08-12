@@ -50,6 +50,7 @@
 #include <led-strip/ColorSpaceCalibration.h>
 #include <lut-calibrator/ColorSpace.h>
 #include <linalg.h>
+#include <utils-image/utils-image.h>
 
 
 using namespace linalg;
@@ -77,6 +78,118 @@ ColorRgb LutCalibrator::primeColors[] = {
 #define REC(x) (x == 2) ? "REC.601" : (x == 1) ? "REC.709" : "FCC"
 LutCalibrator* LutCalibrator::instance = nullptr;
 
+
+namespace
+{
+	const int SCREEN_BLOCKS_X = 60;
+	const int SCREEN_BLOCKS_Y = 30;
+	const int SCREEN_COLOR_STEP = 16;
+}
+
+static int indexToColorAndPos(int index, ColorRgb& color, int2& position)
+{	
+	int currentIndex = 0;
+	int boardIndex = 0;
+
+	position = int2(0, 1);
+
+	for (int R = 0; R <= 256; R += SCREEN_COLOR_STEP)
+		for (int G = 0; G <= 256; G += SCREEN_COLOR_STEP)
+			for (int B = 0; B <= 256; B += SCREEN_COLOR_STEP, currentIndex++)
+				if (index == currentIndex)
+				{
+					color.red = std::min(R, 255);
+					color.green = std::min(G, 255);
+					color.blue = std::min(B, 255);
+					return boardIndex;
+				}
+				else
+				{
+					position.x++;
+					if (position.x >= SCREEN_BLOCKS_X)
+					{
+						position.x = 0;
+						position.y++;
+					}
+					if (position.y >= SCREEN_BLOCKS_Y - 1)
+					{
+						position.y = 1;
+						boardIndex++;
+					}
+				}
+	return -1;
+}
+
+static void createTestBoards()
+{
+	int maxIndex = std::pow(((256 / SCREEN_COLOR_STEP) + 1), 3);
+	int boardIndex = 0;
+	Image<ColorRgb> image(1920, 1080);
+	const int dX = image.width() / SCREEN_BLOCKS_X;
+	const int dY = image.height() / SCREEN_BLOCKS_Y;
+
+	auto saveImage = [](Image<ColorRgb> &image, int dX, int dY, int boardIndex)
+	{		
+		for (int line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
+		{
+			int currentX = 0;
+
+			// white
+			int sx = currentX * dX, sy = line * dY;
+			int ex = (++currentX) * dX - 1, ey = (line + 1) * dY - 1;
+			image.fastBox(sx, sy, ex, ey, 255, 255, 255);
+
+			// black
+			sx = currentX * dX;
+			ex = (++currentX) * dX - 1;
+			image.fastBox(sx, sy, ex, ey, 0, 0, 0);
+
+			// crc
+			for (int x = 15; x >= 0; x--)
+			{
+				int crc = (((boardIndex%2) ? 0x55 : 0xaa) << 8) | boardIndex;
+				sx = currentX * dX;
+				ex = (++currentX) * dX - 1;
+
+				uint8_t color = (crc & (1 << x)) ? 255 : 0;
+				image.fastBox(sx, sy, ex, ey, color, color, color);
+			}
+		}
+		utils_image::savePng(QString("D:/table_%1.png").arg(QString::number(boardIndex)).toStdString(), image);
+	};
+
+
+	image.clear();
+
+	if (256 % SCREEN_COLOR_STEP > 0 || image.width() % SCREEN_BLOCKS_X || image.height() % SCREEN_BLOCKS_Y)
+		return;
+
+	for(int index = 0; index < maxIndex; index++)
+	{
+		ColorRgb color;
+		int2 position;
+		int currentBoard = indexToColorAndPos(index, color, position);
+
+		if (currentBoard < 0)
+			return;
+
+		if (boardIndex != currentBoard)
+		{
+			saveImage(image, dX, dY, boardIndex);
+			image.clear();
+			boardIndex = currentBoard;
+		}
+
+		int sx = position.x * dX;
+		int sy = position.y * dY;
+		int ex = (position.x + 1) * dX - 1;
+		int ey = (position.y + 1) * dY - 1;
+
+		image.fastBox(sx, sy, ex, ey, color.red, color.green, color.blue);
+
+	}
+	saveImage(image, dX, dY, boardIndex);
+}
 
 LutCalibrator::LutCalibrator()
 {
@@ -140,8 +253,6 @@ enum TEST_COLOR_ID {
 };
 
 namespace {
-	const int SCREEN_BLOCKS_X = 64;
-	const int SCREEN_BLOCKS_Y = 36;
 	const int LOGIC_BLOCKS_X_SIZE = 4;
 	const int LOGIC_BLOCKS_X = std::floor((SCREEN_BLOCKS_X - 1) / LOGIC_BLOCKS_X_SIZE);
 	const int COLOR_DIVIDES = 32;	
