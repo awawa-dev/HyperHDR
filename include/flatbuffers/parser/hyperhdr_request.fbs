@@ -15,10 +15,10 @@ table RawImage {
 table NV12Image {
   data_y:[ubyte];
   data_uv:[ubyte];
-  width:int = -1;
-  height:int = -1;
-  stride_y:int = -1;
-  stride_uv:int = -1;
+  width:int;
+  height:int;
+  stride_y:int = 0;
+  stride_uv:int = 0;
 }
 
 union ImageType {RawImage, NV12Image}
