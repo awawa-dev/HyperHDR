@@ -284,8 +284,6 @@ void FlatBuffersServer::handlerImportFromProto(int priority, int duration, const
 
 void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::FlatbuffersTransientImage* flatImage, int timeout_ms, hyperhdr::Components origin, QString clientDescription)
 {
-	static unsigned int logger = 0;
-
 	if (QThread::currentThread() != this->thread())
 	{
 		Error(_log, "Sanity check. FlatBuffersServer::handlerImageReceived uses the wrong thread affiliation.");
@@ -298,15 +296,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 		{
 			_currentLutPixelFormat = PixelFormat::RGB24;
 			loadLutFile();
-			logger = 0;
 		}
-
-		if (logger++ < 10)
-		{
-			Debug(_log, "RGB flatbuffers frame (%i)", logger);
-		}
-
-
 
 		if (flatImage->size != flatImage->width * flatImage->height * 3)
 		{
@@ -334,14 +324,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 				flatImage->firstPlane.size, flatImage->firstPlane.stride,
 				flatImage->secondPlane.size, flatImage->secondPlane.stride,
 				flatImage->size, flatImage->width, flatImage->height);
-			logger = 0;
 		}
-
-		if (logger++ < 10)
-		{
-			Debug(_log, "NV12 flatbuffers frame (%i)", logger);
-		}
-
 
 		if (!_lutBufferInit)
 		{
