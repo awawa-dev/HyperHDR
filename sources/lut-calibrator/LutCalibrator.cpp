@@ -81,9 +81,10 @@ LutCalibrator* LutCalibrator::instance = nullptr;
 
 namespace
 {
-	const int SCREEN_BLOCKS_X = 60;
-	const int SCREEN_BLOCKS_Y = 30;
+	const int SCREEN_BLOCKS_X = 40;
+	const int SCREEN_BLOCKS_Y = 24;
 	const int SCREEN_COLOR_STEP = 16;
+	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP);
 }
 
 static int indexToColorAndPos(int index, ColorRgb& color, int2& position)
@@ -91,11 +92,11 @@ static int indexToColorAndPos(int index, ColorRgb& color, int2& position)
 	int currentIndex = 0;
 	int boardIndex = 0;
 
-	position = int2(0, 1);
+	position = int2((boardIndex + 1) % 2, 1);
 
-	for (int R = 0; R <= 256; R += SCREEN_COLOR_STEP)
-		for (int G = 0; G <= 256; G += SCREEN_COLOR_STEP)
-			for (int B = 0; B <= 256; B += SCREEN_COLOR_STEP, currentIndex++)
+	for (int R = 0; R <= 256; R += ((R == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP))
+		for (int G = 0; G <= 256; G += ((G == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP))
+			for (int B = 0; B <= 256; B += ((B == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP), currentIndex++)
 				if (index == currentIndex)
 				{
 					color.red = std::min(R, 255);
@@ -105,24 +106,31 @@ static int indexToColorAndPos(int index, ColorRgb& color, int2& position)
 				}
 				else
 				{
-					position.x++;
+					position.x += 2;
 					if (position.x >= SCREEN_BLOCKS_X)
-					{
-						position.x = 0;
-						position.y++;
+					{						
+						position.x = (++(position.y) + boardIndex) % 2;
 					}
 					if (position.y >= SCREEN_BLOCKS_Y - 1)
 					{
-						position.y = 1;
 						boardIndex++;
+						position = int2((boardIndex + 1) % 2, 1);
 					}
 				}
 	return -1;
 }
+// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p10:fast=0:dither=none -c:v libx265 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv444_high_quality.mp4
+// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p10 -c:v libx265 -vtag hvc1 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv444_high_quality.mp4
+
+// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p12:fast=0:dither=none -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv420_low_quality.mp4
+// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p12 -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
+
 
 static void createTestBoards()
 {
-	int maxIndex = std::pow(((256 / SCREEN_COLOR_STEP) + 1), 3);
+	const int marginX = 3;
+	const int marginY = 2;
+	int maxIndex = std::pow(SCREEN_COLOR_DIMENSION, 3);
 	int boardIndex = 0;
 	Image<ColorRgb> image(1920, 1080);
 	const int dX = image.width() / SCREEN_BLOCKS_X;
@@ -132,27 +140,25 @@ static void createTestBoards()
 	{		
 		for (int line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
 		{
-			int currentX = 0;
+			int currentX = (line + boardIndex)% 2;
 
 			// white
 			int sx = currentX * dX, sy = line * dY;
 			int ex = (++currentX) * dX - 1, ey = (line + 1) * dY - 1;
-			image.fastBox(sx, sy, ex, ey, 255, 255, 255);
+			image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, 255, 255, 255);
 
 			// black
 			sx = currentX * dX;
 			ex = (++currentX) * dX - 1;
-			image.fastBox(sx, sy, ex, ey, 0, 0, 0);
+			image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, 0, 0, 0);
 
 			// crc
-			for (int x = 15; x >= 0; x--)
+			for (int x = 0; x < boardIndex + 4; x++)
 			{
-				int crc = (((boardIndex%2) ? 0x55 : 0xaa) << 8) | boardIndex;
-				sx = currentX * dX;
-				ex = (++currentX) * dX - 1;
+				sx = (currentX++) * dX;
+				ex = (currentX++) * dX - 1;
 
-				uint8_t color = (crc & (1 << x)) ? 255 : 0;
-				image.fastBox(sx, sy, ex, ey, color, color, color);
+				image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, 255, 255, 255);
 			}
 		}
 		utils_image::savePng(QString("D:/table_%1.png").arg(QString::number(boardIndex)).toStdString(), image);
@@ -180,12 +186,12 @@ static void createTestBoards()
 			boardIndex = currentBoard;
 		}
 
-		int sx = position.x * dX;
-		int sy = position.y * dY;
-		int ex = (position.x + 1) * dX - 1;
-		int ey = (position.y + 1) * dY - 1;
+		const int sx = position.x * dX;
+		const int sy = position.y * dY;
+		const int ex = (position.x + 1) * dX - 1;
+		const int ey = (position.y + 1) * dY - 1;
 
-		image.fastBox(sx, sy, ex, ey, color.red, color.green, color.blue);
+		image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, color.red, color.green, color.blue);
 
 	}
 	saveImage(image, dX, dY, boardIndex);
