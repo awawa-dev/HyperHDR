@@ -13,7 +13,7 @@ class FrameDecoder
 public:
 	static void processImage(
 		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-		const uint8_t* data, int width, int height, int lineLength,
+		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
 		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
 
 	static void processQImage(

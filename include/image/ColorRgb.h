@@ -91,7 +91,7 @@ struct ColorRgb
 	operator std::string()
 	{
 		std::stringstream ss;
-		ss << "(" << red << ", " << green << ", " << blue << ")";
+		ss << "(" << std::to_string(red) << ", " << std::to_string(green) << ", " << std::to_string(blue) << ")";
 		return ss.str();
 	}
 

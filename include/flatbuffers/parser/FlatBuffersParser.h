@@ -32,6 +32,30 @@
 namespace FlatBuffersParser
 {
 	enum FLATBUFFERS_PACKAGE_TYPE { COLOR = 1, IMAGE, CLEAR, PRIORITY, ERROR };
+	enum FLATBUFFERS_IMAGE_FORMAT { RGB = 1, NV12 };
+
+	struct FlatbuffersColor
+	{
+		uint8_t red;
+		uint8_t green;
+		uint8_t blue;
+	};
+
+	struct FlatbuffersTransientImage
+	{
+		FLATBUFFERS_IMAGE_FORMAT format;
+
+		struct
+		{
+			uint8_t* data;
+			int	size;
+			int	stride;
+		} firstPlane, secondPlane;
+		
+		int width;
+		int height;
+		int size;
+	};
 
 
 	void* createFlatbuffersBuilder();
@@ -43,8 +67,8 @@ namespace FlatBuffersParser
 	void encodeColorIntoFlatbuffers(void* builder, int red, int green, int blue, int priority, int duration, uint8_t** buffer, size_t* bufferSize);
 	bool verifyFlatbuffersReplyBuffer(const uint8_t* messageData, size_t messageSize, bool* _sent, bool* _registered, int* _priority);
 	int decodeIncomingFlatbuffersFrame(void* builder, const uint8_t* messageData, size_t messageSize,
-		uint8_t* red, uint8_t* green, uint8_t* blue,
 		int* priority, std::string* clientDescription, int* duration,
-		uint8_t** imageData, int* imageWidth, int* imageHeight, size_t* imageSize,
+		FlatbuffersTransientImage& image,
+		FlatbuffersColor& color,
 		uint8_t** buffer, size_t* bufferSize);
 }

@@ -39,7 +39,7 @@
 	#include <utils/Logger.h>
 #endif
 
-#define STRING_CSTR(x) ((std::string)x).c_str()
+#define STRING_CSTR(x) (x.operator std::string()).c_str()
 
 #include <QCoreApplication>
 
@@ -178,6 +178,16 @@ void LutCalibrator::incomingCommand(QString rootpath, GrabberWrapper* grabberWra
 				QThread::msleep(2000);
 
 				_log->enable();
+			}
+			else
+			{
+				Debug(_log, "Reloading LUT 1/2");
+				emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
+				QThread::msleep(2000);
+				Debug(_log, "Reloading LUT 2/2");
+				emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
+				QThread::msleep(2000);
+				Debug(_log, "Finished reloading LUT");
 			}
 
 			if (defaultComp == hyperhdr::COMP_VIDEOGRABBER)

@@ -9,6 +9,7 @@
 #include <utils/settings.h>
 #include <image/Image.h>
 #include <utils/Components.h>
+#include <utils/LutLoader.h>
 
 class BonjourServiceRegister;
 class QTcpServer;
@@ -16,10 +17,15 @@ class QLocalServer;
 class FlatBuffersServerConnection;
 class NetOrigin;
 
+namespace FlatBuffersParser
+{
+	struct FlatbuffersTransientImage;
+};
+
 #define HYPERHDR_DOMAIN_SERVER QStringLiteral("hyperhdr-domain")
 #define BASEAPI_FLATBUFFER_USER_LUT_FILE QStringLiteral("BASEAPI_user_lut_file")
 
-class FlatBuffersServer : public QObject
+class FlatBuffersServer : public QObject, protected LutLoader
 {
 	Q_OBJECT
 public:
@@ -35,7 +41,7 @@ public slots:
 	void initServer();
 	int getHdrToneMappingEnabled();
 	void handlerImportFromProto(int priority, int duration, const Image<ColorRgb>& image, QString clientDescription);
-	void handlerImageReceived(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+	void handlerImageReceived(int priority, FlatBuffersParser::FlatbuffersTransientImage* flatImage, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 	void signalRequestSourceHandler(hyperhdr::Components component, int instanceIndex, bool listen);
 
 private slots:
@@ -60,11 +66,8 @@ private:
 	BonjourServiceRegister* _serviceRegister = nullptr;
 	QVector<FlatBuffersServerConnection*> _openConnections;
 
-	int			_hdrToneMappingMode;
-	int			_realHdrToneMappingMode;	
-	bool		_lutBufferInit;
 	QString		_configurationPath;
 	QString		_userLutFile;
-
-	MemoryBuffer<uint8_t> _lut;
+	PixelFormat	_currentLutPixelFormat;
+	int			_flatbufferToneMappingMode;
 };

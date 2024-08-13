@@ -138,10 +138,10 @@ static void sendErrorReply(flatbuffers::FlatBufferBuilder* _builder, const char*
 	_builder->Finish(reply);
 }
 
-int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8_t* messageData, size_t messageSize,
-									uint8_t* red, uint8_t* green, uint8_t* blue,
+int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8_t* messageData, size_t messageSize,									
 									int* priority, std::string* clientDescription, int* duration,
-									uint8_t** imageData, int* imageWidth, int* imageHeight, size_t* imageSize,
+									FlatbuffersTransientImage& image,
+									FlatbuffersColor& color,
 									uint8_t** buffer, size_t* bufferSize)
 {
 	int retType = FLATBUFFERS_PACKAGE_TYPE::ERROR;
@@ -158,9 +158,9 @@ int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8
 			auto colorReq = static_cast<const hyperhdrnet::Color*>(reqPtr);
 			const int32_t rgbData = colorReq->data();
 
-			*red = uint8_t((rgbData >> 16) & 0xff);
-			*green = uint8_t((rgbData >> 8) & 0xff);
-			*blue = uint8_t(rgbData & 0xff);
+			color.red = uint8_t((rgbData >> 16) & 0xff);
+			color.green = uint8_t((rgbData >> 8) & 0xff);
+			color.blue = uint8_t(rgbData & 0xff);
 			*duration = colorReq->duration();
 
 			retType = FLATBUFFERS_PACKAGE_TYPE::COLOR;
@@ -177,10 +177,33 @@ int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8
 				const auto* img = static_cast<const hyperhdrnet::RawImage*>(rawFlatImage);
 				const auto& imgD = img->data();
 
-				*imageData = const_cast<uint8_t*>(imgD->data());
-				*imageSize = imgD->size();
-				*imageWidth = img->width();
-				*imageHeight = img->height();
+				image.format = FLATBUFFERS_IMAGE_FORMAT::RGB;
+				image.firstPlane.data = const_cast<uint8_t*>(imgD->data());
+				image.firstPlane.size = static_cast<int>(imgD->size());
+				image.size = imgD->size();
+				image.width = img->width();
+				image.height = img->height();
+
+				retType = FLATBUFFERS_PACKAGE_TYPE::IMAGE;
+				auto reply = hyperhdrnet::CreateReplyDirect(*_builder, nullptr, -1, *priority);
+				_builder->Finish(reply);
+			}
+			else if ((rawFlatImage = flatImage->data_as_NV12Image()) != nullptr)
+			{
+				const auto* img = static_cast<const hyperhdrnet::NV12Image*>(rawFlatImage);
+				const auto& imgD = img->data_y();
+				const auto& imgUvD = img->data_uv();
+
+				image.format = FLATBUFFERS_IMAGE_FORMAT::NV12;
+				image.firstPlane.data = const_cast<uint8_t*>(imgD->data());
+				image.firstPlane.size = static_cast<int>(imgD->size());
+				image.firstPlane.stride = img->stride_y();
+				image.secondPlane.data = const_cast<uint8_t*>(imgUvD->data());
+				image.secondPlane.size = static_cast<int>(imgUvD->size());
+				image.secondPlane.stride = img->stride_uv();
+				image.size = imgD->size() + imgUvD->size();
+				image.width = img->width();
+				image.height = img->height();
 
 				retType = FLATBUFFERS_PACKAGE_TYPE::IMAGE;
 				auto reply = hyperhdrnet::CreateReplyDirect(*_builder, nullptr, -1, *priority);

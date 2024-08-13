@@ -17,6 +17,7 @@
 #include <utils/Components.h>
 #include <image/MemoryBuffer.h>
 #include <utils/FrameDecoder.h>
+#include <utils/LutLoader.h>
 #include <base/DetectionManual.h>
 #include <base/DetectionAutomatic.h>
 #include <performance-counters/PerformanceCounters.h>
@@ -32,11 +33,9 @@
 	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
-#define LUT_FILE_SIZE 50331648
-
 #define UNSUPPORTED_DECODER "UNSUPPORTED YUV DECODER"
 
-class Grabber : public DetectionAutomatic, public DetectionManual
+class Grabber : public DetectionAutomatic, public DetectionManual, protected LutLoader
 {
 	Q_OBJECT
 
@@ -174,7 +173,6 @@ signals:
 	void SignalBenchmarkUpdate(int status, QString message);
 
 protected:
-	void loadLutFile(PixelFormat color, const QList<QString>& files);
 
 	int getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY);
 
@@ -234,9 +232,6 @@ protected:
 
 	bool _enabled;
 
-	// enable/disable HDR tone mapping
-	uint8_t _hdrToneMappingEnabled;
-
 	/// logger instance
 	Logger* _log;
 
@@ -266,8 +261,6 @@ protected:
 	int			_actualWidth, _actualHeight, _actualFPS;
 	QString		_actualDeviceName;
 	uint		_targetMonitorNits;
-	MemoryBuffer<uint8_t>	_lut;
-	bool		_lutBufferInit;
 
 	int			_lineLength;
 	int			_frameByteSize;
