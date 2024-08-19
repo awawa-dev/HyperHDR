@@ -125,40 +125,42 @@ static int indexToColorAndPos(int index, ColorRgb& color, int2& position)
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p12:fast=0:dither=none -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv420_low_quality.mp4
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p12 -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
 
+LutCalibrator::ColorStat readBlock(const Image<ColorRgb>& image, int2 position)
+{
+	const int2 delta (image.width() / SCREEN_BLOCKS_X, image.height() / SCREEN_BLOCKS_Y);
+	LutCalibrator::ColorStat color;
+
+	const int2 start = position * delta;
+	const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
+	const int2 middle = (start + end) / 2;
+	return color;
+}
+
+static void detectBoard(const Image<ColorRgb>& image)
+{
+	const int dX = image.width() / SCREEN_BLOCKS_X;
+	const int dY = image.height() / SCREEN_BLOCKS_Y;
+}
 
 static void createTestBoards()
 {
-	const int marginX = 3;
-	const int marginY = 2;
+	constexpr int2 margin(3, 2);
 	int maxIndex = std::pow(SCREEN_COLOR_DIMENSION, 3);
 	int boardIndex = 0;
 	Image<ColorRgb> image(1920, 1080);
-	const int dX = image.width() / SCREEN_BLOCKS_X;
-	const int dY = image.height() / SCREEN_BLOCKS_Y;
+	const int2 delta(image.width() / SCREEN_BLOCKS_X, image.height() / SCREEN_BLOCKS_Y);
 
-	auto saveImage = [](Image<ColorRgb> &image, int dX, int dY, int boardIndex)
+	auto saveImage = [](Image<ColorRgb> &image, const int2& delta, int boardIndex)
 	{		
 		for (int line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
 		{
-			int currentX = (line + boardIndex)% 2;
+			int2 position = int2((line + boardIndex) % 2, line);
 
-			// white
-			int sx = currentX * dX, sy = line * dY;
-			int ex = (++currentX) * dX - 1, ey = (line + 1) * dY - 1;
-			image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, 255, 255, 255);
-
-			// black
-			sx = currentX * dX;
-			ex = (++currentX) * dX - 1;
-			image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, 0, 0, 0);
-
-			// crc
-			for (int x = 0; x < boardIndex + 4; x++)
+			for (int x = 0; x < boardIndex + 5; x++, position.x += 2)
 			{
-				sx = (currentX++) * dX;
-				ex = (currentX++) * dX - 1;
-
-				image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, 255, 255, 255);
+				const int2 start = position * delta;
+				const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
+				image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, 255, 255, 255);
 			}
 		}
 		utils_image::savePng(QString("D:/table_%1.png").arg(QString::number(boardIndex)).toStdString(), image);
@@ -181,20 +183,17 @@ static void createTestBoards()
 
 		if (boardIndex != currentBoard)
 		{
-			saveImage(image, dX, dY, boardIndex);
+			saveImage(image, delta, boardIndex);
 			image.clear();
 			boardIndex = currentBoard;
 		}
 
-		const int sx = position.x * dX;
-		const int sy = position.y * dY;
-		const int ex = (position.x + 1) * dX - 1;
-		const int ey = (position.y + 1) * dY - 1;
+		const int2 start = position * delta;
+		const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
 
-		image.fastBox(sx + marginX, sy + marginY, ex - marginX, ey - marginY, color.red, color.green, color.blue);
-
+		image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.red, color.green, color.blue);
 	}
-	saveImage(image, dX, dY, boardIndex);
+	saveImage(image, delta, boardIndex);
 }
 
 LutCalibrator::LutCalibrator()
