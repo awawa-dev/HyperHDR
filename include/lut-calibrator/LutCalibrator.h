@@ -41,12 +41,12 @@
 #include <image/Image.h>
 #include <utils/Components.h>
 
+
 class Logger;
 class GrabberWrapper;
 enum TEST_COLOR_ID;
 struct Result;
 struct MappingPrime;
-
 
 namespace linalg {
 	template<class T, int M, int N> struct mat;
@@ -60,66 +60,6 @@ class LutCalibrator : public QObject
 private:
 	static LutCalibrator* instance;
 public:
-	struct ColorStat
-	{
-		double	red = 0, green = 0, blue = 0, count = 0, scaledRed = 1, scaledGreen = 1, scaledBlue = 1;
-
-		ColorStat() = default;
-
-		ColorStat(double r, double g, double b)
-		{
-			red = r;
-			green = g;
-			blue = b;
-		}
-
-		void calculateFinalColor()
-		{
-			red = red / count;
-			green = green / count;
-			blue = blue / count;
-
-			if (red > 1 && green > 1  && blue > 1)
-			{
-				double scale = qMax(red, qMax(green, blue));
-				scaledRed = scale / red;
-				scaledGreen = scale / green;
-				scaledBlue = scale / blue;
-			}
-		}		
-
-		void reset()
-		{
-			red = 0;
-			green = 0;
-			blue = 0;
-			count = 0;
-			scaledRed = 0;
-			scaledGreen = 0;
-			scaledBlue = 0;
-		}		
-
-		void AddColor(ColorRgb y)
-		{
-			red += y.red;
-			green += y.green;
-			blue += y.blue;
-			count++;
-		}
-
-		ColorStat& operator/=(const double x)
-		{
-			this->red /= x;
-			this->green /= x;
-			this->blue /= x;
-			return *this;
-		}
-
-		QString toQString()
-		{
-			return QString("(%1, %2, %3)").arg(red).arg(green).arg(blue);
-		}
-	};
 
 	enum capColors { Red = 0, Green = 1, Blue = 2, Yellow = 3, Magenta = 4, Cyan = 5, Orange = 6, Pink = 7, Azure = 8, Brown = 9, Purple = 10, LowRed = 11, LowGreen = 12, LowBlue = 13, LowestGray = 14,
 					 Gray1 = 15, Gray2 = 16, Gray3 = 17, Gray4 = 18, Gray5 = 19, Gray6 = 20, Gray7 = 21, Gray8 = 22, HighestGray = 23, White = 24, None = 25 };
@@ -179,7 +119,7 @@ private:
 	void	displayPreCalibrationInfo();
 	void	displayPostCalibrationInfo();
 	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
-	double	getError(ColorRgb first, ColorStat second);
+	//double	getError(ColorRgb first, ColorStat second);
 	void	applyFilter();
 	void	whitePointCorrection(double& nits, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);
 
@@ -202,13 +142,10 @@ private:
 	ColorRgb _endColor;
 	ColorRgb _minColor;
 	ColorRgb _maxColor;
-	ColorStat _colorBalance[26];
+	//ColorStat _colorBalance[26];
 	MemoryBuffer<uint8_t> _lut;
 	QString _rootPath;
 
 	static ColorRgb primeColors[];
 
-	// Color coefs YUV to RGB: http://avisynth.nl/index.php/Color_conversions
-	// FCC, Rec.709, Rec.601 coefficients 
-	ColorStat _coefs[4] = { ColorStat(0.3, 0.59, 0.11), ColorStat(0.2126, 0.7152, 0.0722), ColorStat(0.299, 0.587, 0.114), ColorStat(0.2627, 0.678, 0.0593)};
 };

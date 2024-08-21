@@ -49,18 +49,19 @@
 #include <base/HyperHdrManager.h>
 #include <led-strip/ColorSpaceCalibration.h>
 #include <lut-calibrator/ColorSpace.h>
-#include <linalg.h>
+#include <lut-calibrator/YuvConverter.h>
+#include <lut-calibrator/BoardUtils.h>
 #include <utils-image/utils-image.h>
+#include <linalg.h>
 
 
 using namespace linalg;
 using namespace aliases;
 using namespace ColorSpaceMath;
+using namespace BoardUtils;
 
-double3 tovec(LutCalibrator::ColorStat a)
-{
-	return double3(a.red, a.green, a.blue);
-}
+
+
 
 ColorRgb LutCalibrator::primeColors[] = {
 				ColorRgb(255, 0, 0), ColorRgb(0, 255, 0), ColorRgb(0, 0, 255), ColorRgb(255, 255, 0),
@@ -79,122 +80,6 @@ ColorRgb LutCalibrator::primeColors[] = {
 LutCalibrator* LutCalibrator::instance = nullptr;
 
 
-namespace
-{
-	const int SCREEN_BLOCKS_X = 40;
-	const int SCREEN_BLOCKS_Y = 24;
-	const int SCREEN_COLOR_STEP = 16;
-	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP);
-}
-
-static int indexToColorAndPos(int index, ColorRgb& color, int2& position)
-{	
-	int currentIndex = 0;
-	int boardIndex = 0;
-
-	position = int2((boardIndex + 1) % 2, 1);
-
-	for (int R = 0; R <= 256; R += ((R == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP))
-		for (int G = 0; G <= 256; G += ((G == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP))
-			for (int B = 0; B <= 256; B += ((B == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP), currentIndex++)
-				if (index == currentIndex)
-				{
-					color.red = std::min(R, 255);
-					color.green = std::min(G, 255);
-					color.blue = std::min(B, 255);
-					return boardIndex;
-				}
-				else
-				{
-					position.x += 2;
-					if (position.x >= SCREEN_BLOCKS_X)
-					{						
-						position.x = (++(position.y) + boardIndex) % 2;
-					}
-					if (position.y >= SCREEN_BLOCKS_Y - 1)
-					{
-						boardIndex++;
-						position = int2((boardIndex + 1) % 2, 1);
-					}
-				}
-	return -1;
-}
-// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p10:fast=0:dither=none -c:v libx265 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv444_high_quality.mp4
-// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p10 -c:v libx265 -vtag hvc1 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv444_high_quality.mp4
-
-// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p12:fast=0:dither=none -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv420_low_quality.mp4
-// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p12 -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
-
-LutCalibrator::ColorStat readBlock(const Image<ColorRgb>& image, int2 position)
-{
-	const int2 delta (image.width() / SCREEN_BLOCKS_X, image.height() / SCREEN_BLOCKS_Y);
-	LutCalibrator::ColorStat color;
-
-	const int2 start = position * delta;
-	const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
-	const int2 middle = (start + end) / 2;
-	return color;
-}
-
-static void detectBoard(const Image<ColorRgb>& image)
-{
-	const int dX = image.width() / SCREEN_BLOCKS_X;
-	const int dY = image.height() / SCREEN_BLOCKS_Y;
-}
-
-static void createTestBoards()
-{
-	constexpr int2 margin(3, 2);
-	int maxIndex = std::pow(SCREEN_COLOR_DIMENSION, 3);
-	int boardIndex = 0;
-	Image<ColorRgb> image(1920, 1080);
-	const int2 delta(image.width() / SCREEN_BLOCKS_X, image.height() / SCREEN_BLOCKS_Y);
-
-	auto saveImage = [](Image<ColorRgb> &image, const int2& delta, int boardIndex)
-	{		
-		for (int line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
-		{
-			int2 position = int2((line + boardIndex) % 2, line);
-
-			for (int x = 0; x < boardIndex + 5; x++, position.x += 2)
-			{
-				const int2 start = position * delta;
-				const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
-				image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, 255, 255, 255);
-			}
-		}
-		utils_image::savePng(QString("D:/table_%1.png").arg(QString::number(boardIndex)).toStdString(), image);
-	};
-
-
-	image.clear();
-
-	if (256 % SCREEN_COLOR_STEP > 0 || image.width() % SCREEN_BLOCKS_X || image.height() % SCREEN_BLOCKS_Y)
-		return;
-
-	for(int index = 0; index < maxIndex; index++)
-	{
-		ColorRgb color;
-		int2 position;
-		int currentBoard = indexToColorAndPos(index, color, position);
-
-		if (currentBoard < 0)
-			return;
-
-		if (boardIndex != currentBoard)
-		{
-			saveImage(image, delta, boardIndex);
-			image.clear();
-			boardIndex = currentBoard;
-		}
-
-		const int2 start = position * delta;
-		const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
-
-		image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.red, color.green, color.blue);
-	}
-	saveImage(image, delta, boardIndex);
-}
 
 LutCalibrator::LutCalibrator()
 {
@@ -214,8 +99,8 @@ LutCalibrator::LutCalibrator()
 	_startColor = ColorRgb(0, 0, 0);
 	_endColor = ColorRgb(0, 0, 0);
 	_minColor = ColorRgb(255, 255, 255);
-	for (capColors selector = capColors::Red; selector != capColors::None; selector = capColors(((int)selector) + 1))
-		_colorBalance[(int)selector].reset();
+//	for (capColors selector = capColors::Red; selector != capColors::None; selector = capColors(((int)selector) + 1))
+//		_colorBalance[(int)selector].reset();
 	_maxColor = ColorRgb(0, 0, 0);
 	_timeStamp = 0;	
 }
@@ -283,7 +168,7 @@ namespace {
 		NOT_ACTIVE = 0, STEP_1_RAW_YUV, STEP_2_CALIBRATE
 	};
 
-	YuvConverter yuvConverter;
+
 }
 
 void LutCalibrator::applyShadow(linalg::vec<double,3>& color, int shadow)
@@ -672,6 +557,8 @@ class Colorspace
 
 void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 {
+	YuvConverter yuvConverter;
+
 	//////////////////////////////////////////////////////////////////////////
 	/////////////////////////  Verify source  ////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -947,11 +834,13 @@ std::list<MappingPrime> LutCalibrator::toneMapping()
 
 void LutCalibrator::tryHDR10()
 {
+	YuvConverter converter;
+
 	// data always incomes as yuv
 	for (auto& ref : calibration.results)
 		for (auto& result : ref.second)
 		{
-			result.inputRGB = yuvConverter.toRgb(YuvConverter::COLOR_RANGE::LIMITED, YuvConverter::YUV_COEFS::BT709, result.inputYUV / 255.0);
+			result.inputRGB = converter.toRgb(YuvConverter::COLOR_RANGE::LIMITED, YuvConverter::YUV_COEFS::BT709, result.inputYUV / 255.0);
 		}
 
 	// detect nits
@@ -1070,7 +959,7 @@ void LutCalibrator::setupWhitePointCorrection()
 {	
 	
 
-	for (const auto& coeff : yuvConverter.knownCoeffs)
+	//for (const auto& coeff : YuvConverter::knownCoeffs)
 	{
 		/*
 		QString selected;
@@ -1100,8 +989,9 @@ void LutCalibrator::setupWhitePointCorrection()
 
 void LutCalibrator::calibrate()
 {
+	YuvConverter converter;
 	#ifndef NDEBUG
-		sendReport(yuvConverter.toString());
+		sendReport(converter.toString());
 	#endif
 
 	sendReport("Captured colors:\r\n" +
@@ -1127,7 +1017,7 @@ void LutCalibrator::storeColor(const ColorRgb& inputColor, const ColorRgb& color
 	for (capColors selector = capColors::Red; selector != capColors::None; selector = capColors(((int)selector) + 1))
 		if (inputColor == primeColors[(int)selector])
 		{
-			_colorBalance[(int)selector].AddColor(color);
+			//_colorBalance[(int)selector].AddColor(color);
 			break;
 		}
 
@@ -1297,6 +1187,8 @@ void LutCalibrator::colorCorrection(double& r, double& g, double& b)
 
 void LutCalibrator::balanceGray(int r, int g, int b, double& _r, double& _g, double& _b)
 {
+	throw new std::exception();
+	/*
 	if ((_r == 0 && _g == 0 && _b == 0) ||
 		(_r == 1 && _g == 1 && _b == 1))
 		return;
@@ -1349,11 +1241,14 @@ void LutCalibrator::balanceGray(int r, int g, int b, double& _r, double& _g, dou
 		_g = qMax(_g, 1.0 / 255.0);
 		_b = qMax(_b, 1.0 / 255.0);
 	}
+	*/
 }
 
 
 QString LutCalibrator::colorToQStr(capColors index)
 {
+	throw new std::exception();
+	/*
 	int ind = (int)index;
 
 	double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
@@ -1365,13 +1260,16 @@ QString LutCalibrator::colorToQStr(capColors index)
 	color.red = qRound(color.red);
 	color.green = qRound(color.green);
 	color.blue = qRound(color.blue);
+	
 	QString retVal = QString("%1 => %2").arg(QString::fromStdString(primeColors[ind])).arg(color.toQString());
 
 	return retVal;
+	*/
 }
 
-double LutCalibrator::getError(ColorRgb first, ColorStat second)
+/*double LutCalibrator::getError(ColorRgb first, ColorStat second)
 {
+	
 	double errorR = 0, errorG = 0, errorB = 0;
 
 	if ((first.red == 255 || first.red == 128) && first.green == 0 && first.blue == 0)
@@ -1499,7 +1397,9 @@ double LutCalibrator::getError(ColorRgb first, ColorStat second)
 	}
 
 	return std::pow(errorR, 2) + std::pow(errorG, 2) + std::pow(errorB, 2);
+
 }
+*/
 
 
 
@@ -1515,9 +1415,9 @@ QString LutCalibrator::colorToQStr(ColorRgb color)
 QString LutCalibrator::calColorToQStr(capColors index)
 {
 	ColorRgb color = primeColors[(int)index], finalColor;
-	ColorStat real = _colorBalance[(int)index];
+	//ColorStat real = _colorBalance[(int)index];
 
-	uint32_t indexRgb = LUT_INDEX(qRound(real.red), qRound(real.green), qRound(real.blue));
+	uint32_t indexRgb = 0;// LUT_INDEX(qRound(real.x()), qRound(real.y()), qRound(real.z()));
 
 	finalColor.red = _lut.data()[indexRgb];
 	finalColor.green = _lut.data()[indexRgb + 1];
@@ -1607,8 +1507,8 @@ bool LutCalibrator::correctionEnd()
 	int whiteIndex = capColors::White;
 
 
-	for (int j = 0; j < (int)(sizeof(_colorBalance) / sizeof(ColorStat)); j++)
-		_colorBalance[j].calculateFinalColor();;
+//	for (int j = 0; j < (int)(sizeof(_colorBalance) / sizeof(ColorStat)); j++)
+//		_colorBalance[j].calculateFinalColor();;
 
 	// YUV check
 	if (floor >= 2 && !_limitedRange)
@@ -1670,10 +1570,11 @@ bool LutCalibrator::correctionEnd()
 	displayPreCalibrationInfo();
 
 	// display stats
-	ColorStat whiteBalance = _colorBalance[whiteIndex];
+
+
+	//ColorStat whiteBalance = _colorBalance[whiteIndex];
 
 	Debug(_log, "Optimal PQ multi => %f, strategy => %i, white index => %i", range, strategy, whiteIndex);
-	Debug(_log, "White correction: (%f, %f, %f)", whiteBalance.scaledRed, whiteBalance.scaledGreen, whiteBalance.scaledBlue);
 	Debug(_log, "Min RGB floor: %f, max RGB ceiling: %f, scale: %f", floor, ceiling, scale);
 	Debug(_log, "Min RGB range => %s", STRING_CSTR(_minColor));
 	Debug(_log, "Max RGB range => %s", STRING_CSTR(_maxColor));
@@ -1709,9 +1610,11 @@ bool LutCalibrator::correctionEnd()
 				}
 				else
 				{
+					/*
 					Ri = clampDouble((r * whiteBalance.scaledRed - floor) / scale, 0, 1.0);
 					Gi = clampDouble((g * whiteBalance.scaledGreen - floor) / scale, 0, 1.0);
 					Bi = clampDouble((b * whiteBalance.scaledBlue - floor) / scale, 0, 1.0);
+					*/
 				}
 
 				// ootf
@@ -1836,12 +1739,16 @@ void LutCalibrator::applyFilter()
 
 void LutCalibrator::whitePointCorrection(double& nits, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected)
 {
+	// white???
 	double max = std::min(_maxColor.red, std::min( _maxColor.green , _maxColor.blue));
 	nits = 10000.0 * eotf(1.0, max / 255.0);
 
-	std::vector<vec<double, 3>> actualPrimaries{
+	
+	std::vector<vec<double, 3>> actualPrimaries;
+
+		/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		tovec(_colorBalance[capColors::Red]), tovec(_colorBalance[capColors::Green]), tovec(_colorBalance[capColors::Blue]), tovec(_colorBalance[capColors::White])
-	};
+	*/
 
 	for (auto& c : actualPrimaries)
 	{
@@ -1894,6 +1801,11 @@ void LutCalibrator::whitePointCorrection(double& nits, linalg::mat<double, 3, 3>
 
 double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy)
 {
+	throw new std::exception();
+
+
+	/*
+
 	QString optimalColor;
 	//double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
 	double ceiling = qMin(_maxColor.red, qMin(_maxColor.green, _maxColor.blue));
@@ -2056,6 +1968,8 @@ double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& 
 	Debug(_log, "Best result => %s", QSTRING_CSTR(optimalColor));
 
 	return maxError + 1;
+
+	*/
 }
 
 bool LutCalibrator::finalize(bool fastTrack)
@@ -2082,7 +1996,7 @@ bool LutCalibrator::finalize(bool fastTrack)
 		double floor = qMax(_minColor.red, qMax(_minColor.green, _minColor.blue));
 		double ceil = qMin(_maxColor.red, qMin(_maxColor.green, _maxColor.blue));
 		double delta = ceil - floor;
-		double Kr = _coefs[_currentCoef].red, Kg = _coefs[_currentCoef].green, Kb = _coefs[_currentCoef].blue;
+		double Kr, Kg, Kb;// _coefs[_currentCoef].x, Kg = _coefs[_currentCoef].y, Kb = _coefs[_currentCoef].z;
 
 		// RGB HDR and INTRO
 		Debug(_log, "----------------- Preparing and saving LUT table --------------------");
