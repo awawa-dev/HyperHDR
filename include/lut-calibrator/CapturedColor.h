@@ -57,7 +57,6 @@ struct CapturedColor
 
 
 	bool calculateFinalColor();
-	void reset();
 	void addColor(ColorRgb i);
 	QString toString();
 };

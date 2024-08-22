@@ -44,35 +44,24 @@ namespace BoardUtils
 
 	int indexToColorAndPos(int index, ColorRgb& color, int2& position)
 	{
-		int currentIndex = 0;
-		int boardIndex = 0;
+		const int crcLines = 2;
+		const int totalBoard = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - crcLines);
+		int currentIndex = index % totalBoard;
+		int boardIndex = index / totalBoard;
 
-		position = int2((boardIndex + 1) % 2, 1);
+		position = int2(0, 1);		
+		position.y += currentIndex / (SCREEN_BLOCKS_X / 2);
+		position.x += (currentIndex % (SCREEN_BLOCKS_X / 2)) * 2 + ((position.y  + boardIndex  )% 2);
 
-		for (int R = 0; R <= 256; R += ((R == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP))
-			for (int G = 0; G <= 256; G += ((G == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP))
-				for (int B = 0; B <= 256; B += ((B == 0) ? 2 * SCREEN_COLOR_STEP : SCREEN_COLOR_STEP), currentIndex++)
-					if (index == currentIndex)
-					{
-						color.red = std::min(R, 255);
-						color.green = std::min(G, 255);
-						color.blue = std::min(B, 255);
-						return boardIndex;
-					}
-					else
-					{
-						position.x += 2;
-						if (position.x >= SCREEN_BLOCKS_X)
-						{
-							position.x = (++(position.y) + boardIndex) % 2;
-						}
-						if (position.y >= SCREEN_BLOCKS_Y - 1)
-						{
-							boardIndex++;
-							position = int2((boardIndex + 1) % 2, 1);
-						}
-					}
-		return -1;
+		int B = (index % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
+		int G = ((index / (SCREEN_COLOR_DIMENSION)) % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
+		int R = (index / (SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)) * SCREEN_COLOR_STEP;
+
+		color.red = std::min(R, 255);
+		color.green = std::min(G, 255);
+		color.blue = std::min(B, 255);
+
+		return boardIndex;
 	}
 
 	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position)

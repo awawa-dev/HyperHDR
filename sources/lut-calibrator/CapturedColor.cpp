@@ -41,13 +41,6 @@ bool CapturedColor::calculateFinalColor()
 	return true;
 }
 
-void CapturedColor::reset()
-{
-	color = min = max = double3(0.0, 0.0, 0.0);
-	colorInt = vec<uint8_t, 3>(0, 0, 0);
-	count = 0;
-}
-
 void CapturedColor::addColor(ColorRgb i)
 {
 	color += (i.red, i.green, i.blue);
