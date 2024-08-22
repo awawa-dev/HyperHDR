@@ -150,7 +150,7 @@ namespace BoardUtils
 		return boardIndex;
 	}
 
-	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex)
+	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors)
 	{
 		int line = 0;
 		CapturedColor white, black;
@@ -179,6 +179,31 @@ namespace BoardUtils
 		{
 			Error(_log, "Too much noice or too low resolution");
 			return false;
+		}
+
+		int max1 = (boardIndex + 1) * SCREEN_SAMPLES_PER_BOARD;
+		int max2 = std::pow(SCREEN_COLOR_DIMENSION, 3);
+		for (int currentIndex = boardIndex * SCREEN_SAMPLES_PER_BOARD; currentIndex < max1 && currentIndex < max2; currentIndex++)
+		{
+			ColorRgb color;
+			int2 position;
+			indexToColorAndPos(currentIndex, color, position);
+
+			int B = (currentIndex % SCREEN_COLOR_DIMENSION);
+			int G = ((currentIndex / (SCREEN_COLOR_DIMENSION)) % SCREEN_COLOR_DIMENSION);
+			int R = (currentIndex / (SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION));
+
+			try
+			{
+				auto capturedColor = readBlock(yuvImage, position);
+				capturedColor.setSourceRGB(color);
+				allColors.all[R][G][B] = capturedColor;
+			}
+			catch (std::exception& ex)
+			{
+				Error(_log, "Could not read position [%i, %i]. Too much noice or too low resolution", position.x, position.y);
+				return false;
+			}
 		}
 
 		return true;
@@ -256,9 +281,10 @@ namespace BoardUtils
 
 	bool verifyTestBoards(Logger* _log, const char* pattern)
 	{
-		int maxIndex = std::pow(SCREEN_COLOR_DIMENSION, 3);
-		int maxBoards = (maxIndex / SCREEN_SAMPLES_PER_BOARD) + ((maxIndex / SCREEN_SAMPLES_PER_BOARD) ? 1 : 0);
-		for (int i = 0; i < maxBoards; i++)
+		int boardIndex = -1;
+		CapturedColors captured;
+
+		for (int i = 0; i <= SCREEN_LAST_BOARD_INDEX; i++)
 		{
 			QString file = QString(pattern).arg(QString::number(i));
 			Image<ColorRgb> image;
@@ -277,8 +303,7 @@ namespace BoardUtils
 				return false;
 			}
 
-			int boardIndex = -1;
-			if (!parseBoard(_log, image, boardIndex))
+			if (!parseBoard(_log, image, boardIndex, captured))
 			{
 				Error(_log, "LUT test board: %i. Could not parse: %s", i, QSTRING_CSTR(file));
 				return false;
@@ -289,9 +314,62 @@ namespace BoardUtils
 				Error(_log, "LUT test board: %i. Could not parse: %s. Incorrect board index: %i", i, QSTRING_CSTR(file), boardIndex);
 				return false;
 			}
+			captured.setCaptured(boardIndex);
 		}
 
-		Info(_log, "All 0-%i LUT test boards were tested successfully!", maxBoards);
+		if (!captured.areAllCaptured())
+		{
+			Error(_log, "Not all test boards were loaded");
+			return false;
+		}
+
+		// verify colors
+		YuvConverter converter;
+		int maxError = 0;
+		for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
+			for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
+				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
+				{
+					const auto& sample = captured.all[r][g][b];
+					int3 sourceRgb = int3(sample.getSourceRGB().red, sample.getSourceRGB().green, sample.getSourceRGB().blue);
+					auto result = converter.toRgb(YuvConverter::COLOR_RANGE::FULL, YuvConverter::YUV_COEFS::BT709, sample.yuv()) * 255.0;
+					int3 outputRgb(ColorRgb::round(result.x), ColorRgb::round(result.y), ColorRgb::round(result.z));
+					int distance = linalg::distance(sourceRgb, outputRgb);
+					if (distance > maxError)
+					{
+						maxError = distance;
+						Warning(_log, "Current max error = %i for color (%i, %i, %i) received (%i, %i, %i)", maxError,
+							sourceRgb.x, sourceRgb.y, sourceRgb.z,
+							outputRgb.x, outputRgb.y, outputRgb.z);
+					}
+				}
+		if (maxError > 1)
+		{
+			Error(_log, "Failed to verify colors. The error is too high (%i > 1)", maxError);
+			return false;
+		}
+
+		// all is OK
+		Info(_log, "All [0 - %i] LUT test boards were tested successfully!", SCREEN_LAST_BOARD_INDEX);
 		return true;
 	}
+
+	bool CapturedColors::isCaptured(int index) const
+	{
+		return  ((flag & (1 << index)));
+	}
+
+	bool CapturedColors::areAllCaptured() const
+	{
+		for (int i = 0; i <= BoardUtils::SCREEN_LAST_BOARD_INDEX; i++)
+			if (!isCaptured(i))
+				return false;
+		return true;
+	}
+
+	void CapturedColors::setCaptured(int index)
+	{
+		flag |= (1 << index);
+	}
 }
+

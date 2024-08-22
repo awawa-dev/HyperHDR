@@ -31,6 +31,7 @@
 	#include <QString>
 	#include <cmath>
 	#include <cstring>
+	#include <vector>
 #endif
 
 #include <linalg.h>
@@ -41,6 +42,7 @@
 
 struct CapturedColor
 {
+	ColorRgb sourceRGB;
 	double3	color, min, max;
 	vec<uint8_t, 3> colorInt;
 	int count = 0;
@@ -50,6 +52,7 @@ struct CapturedColor
 	const double& y() const { return color.x; }
 	const double& u() const { return color.y; }
 	const double& v() const { return color.z; }
+	const double3& yuv() const { return color; }
 
 	const uint8_t& Y() const { return colorInt.x; }
 	const uint8_t& U() const { return colorInt.y; }
@@ -58,5 +61,8 @@ struct CapturedColor
 
 	bool calculateFinalColor();
 	void addColor(ColorRgb i);
+	void setSourceRGB(ColorRgb _color);
+	ColorRgb getSourceRGB() const;
+
 	QString toString();
 };

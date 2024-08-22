@@ -31,12 +31,12 @@
 bool CapturedColor::calculateFinalColor()
 {
 	const double maxNoice = 10;
-
 	if (count == 0 || (linalg::maxelem(max - min) > maxNoice))
 		return false;
 
-	color /= count;
-	colorInt = vec<uint8_t, 3>(std::round(color.x), std::round(color.y), std::round(color.z));
+	auto tempColor = color / count;
+	colorInt = vec<uint8_t, 3>(std::round(tempColor.x), std::round(tempColor.y), std::round(tempColor.z));
+	color /= (count * 255.0);
 
 	return true;
 }
@@ -66,4 +66,14 @@ void CapturedColor::addColor(ColorRgb i)
 QString CapturedColor::toString()
 {
 	return QString("(%1, %2, %3)").arg(color.x).arg(color.y).arg(color.z);
+}
+
+void  CapturedColor::setSourceRGB(ColorRgb _color)
+{
+	sourceRGB = _color;
+}
+
+ColorRgb CapturedColor::getSourceRGB() const
+{
+	return sourceRGB;
 }

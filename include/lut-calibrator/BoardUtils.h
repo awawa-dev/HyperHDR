@@ -42,6 +42,7 @@
 
 namespace BoardUtils
 {
+	class CapturedColors;
 	const int SCREEN_BLOCKS_X = 48;
 	const int SCREEN_BLOCKS_Y = 30;
 	const int SCREEN_COLOR_STEP = 16;
@@ -50,13 +51,31 @@ namespace BoardUtils
 	const int SCREEN_CRC_LINES = 2;
 	const int SCREEN_CRC_COUNT = 5;
 	const int SCREEN_SAMPLES_PER_BOARD = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
+	const int SCREEN_LAST_BOARD_INDEX = std::pow(SCREEN_COLOR_DIMENSION, 3) / SCREEN_SAMPLES_PER_BOARD;
 
 	int indexToColorAndPos(int index, ColorRgb& color, int2& position);
 	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position);
 	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
 	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
-	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex);
+	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors);
 	Image<ColorRgb> loadTestBoardAsYuv(const std::string& filename);
 	void createTestBoards(const char* pattern = "D:/table_%1.png");
 	bool verifyTestBoards(Logger* _log, const char* pattern = "D:/table_%1.png");
+
+	class CapturedColors
+	{
+	private:
+		int flag = 0;
+
+	public:
+		CapturedColors() = default;
+
+		std::vector<std::vector<std::vector<CapturedColor>>> all = std::vector(BoardUtils::SCREEN_COLOR_DIMENSION,
+			std::vector<std::vector<CapturedColor>>(BoardUtils::SCREEN_COLOR_DIMENSION,
+				std::vector <CapturedColor>(BoardUtils::SCREEN_COLOR_DIMENSION)));;
+
+		bool isCaptured(int index) const;
+		bool areAllCaptured() const;
+		void setCaptured(int index);
+	};
 };
