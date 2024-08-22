@@ -75,10 +75,10 @@ namespace BoardUtils
 		return -1;
 	}
 
-	ColorStat readBlock(const Image<ColorRgb>& yuvImage, int2 position)
+	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position)
 	{
 		const int2 delta(yuvImage.width() / SCREEN_BLOCKS_X, yuvImage.height() / SCREEN_BLOCKS_Y);
-		ColorStat color;
+		CapturedColor color;
 
 		const int2 start = position * delta;
 		const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
@@ -95,7 +95,7 @@ namespace BoardUtils
 		return color;
 	}
 
-	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, ColorStat& white, ColorStat& black, int& line)
+	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line)
 	{
 		auto top = readBlock(yuvImage, int2(0, 0));
 		auto bottom = readBlock(yuvImage, int2(0, SCREEN_BLOCKS_Y - 1));
@@ -113,7 +113,7 @@ namespace BoardUtils
 		}
 	}
 
-	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, ColorStat& black)
+	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black)
 	{
 		try
 		{
@@ -138,7 +138,7 @@ namespace BoardUtils
 	bool parseBoard(const Image<ColorRgb>& yuvImage)
 	{
 		int line;
-		ColorStat white, black;
+		CapturedColor white, black;
 
 		try
 		{
@@ -228,60 +228,4 @@ namespace BoardUtils
 		}
 		saveImage(image, delta, boardIndex, pattern);
 	}
-
-
-	ColorStat::ColorStat(double r, double g, double b)
-	{
-		color = double3(r, g, b);
-		colorInt = vec<uint8_t, 3>(std::round(color.x), std::round(color.y), std::round(color.z));
-		count = 0;
-	}
-
-	bool ColorStat::calculateFinalColor()
-	{
-		const double maxNoice = 10;
-
-		if (count == 0 || (linalg::maxelem(max - min) > maxNoice))
-			return false;
-
-		color /= count;
-		colorInt = vec<uint8_t, 3>(std::round(color.x), std::round(color.y), std::round(color.z));
-
-		return true;
-	}
-
-	void ColorStat::reset()
-	{
-		color = min = max = double3(0.0, 0.0, 0.0);
-		colorInt = vec<uint8_t, 3>(0, 0, 0);
-		count = 0;
-	}
-
-	void ColorStat::addColor(ColorRgb i)
-	{
-		color += (i.red, i.green, i.blue);
-
-		if (count == 0 || color.x > i.red)
-			min.x = i.red;
-		if (count == 0 || color.y > i.green)
-			min.y = i.green;
-		if (count == 0 || color.z > i.blue)
-			min.z = i.blue;
-
-		if (count == 0 || color.x < i.red)
-			max.x = i.red;
-		if (count == 0 || color.y < i.green)
-			max.y = i.green;
-		if (count == 0 || color.z < i.blue)
-			max.z = i.blue;
-
-		count++;
-	}
-
-
-	QString ColorStat::toQString()
-	{
-		return QString("(%1, %2, %3)").arg(color.x).arg(color.y).arg(color.z);
-	}
-
 }

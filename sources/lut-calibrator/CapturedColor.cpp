@@ -1,6 +1,4 @@
-#pragma once
-
-/* BoardUtils.h
+/* CapturedColor.cpp
 *
 *  MIT License
 *
@@ -27,30 +25,52 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED
-	#include <QString>
-	#include <cmath>
-	#include <cstring>
-#endif
 
-#include <linalg.h>
-#include <lut-calibrator/ColorSpace.h>
-#include <image/ColorRgb.h>
-#include <image/Image.h>
 #include <lut-calibrator/CapturedColor.h>
 
-namespace BoardUtils
+bool CapturedColor::calculateFinalColor()
 {
-	const int SCREEN_BLOCKS_X = 40;
-	const int SCREEN_BLOCKS_Y = 24;
-	const int SCREEN_COLOR_STEP = 16;
-	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP);
+	const double maxNoice = 10;
 
-	int indexToColorAndPos(int index, ColorRgb& color, int2& position);
-	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position);
-	void getWhiteBlacColorkLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
-	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
-	bool parseBoard(const Image<ColorRgb>& yuvImage);
-	Image<ColorRgb> loadTestBoardAsYuv(const std::string& filename);
-	void createTestBoards(const char* pattern = "D:/table_%1.png");
-};
+	if (count == 0 || (linalg::maxelem(max - min) > maxNoice))
+		return false;
+
+	color /= count;
+	colorInt = vec<uint8_t, 3>(std::round(color.x), std::round(color.y), std::round(color.z));
+
+	return true;
+}
+
+void CapturedColor::reset()
+{
+	color = min = max = double3(0.0, 0.0, 0.0);
+	colorInt = vec<uint8_t, 3>(0, 0, 0);
+	count = 0;
+}
+
+void CapturedColor::addColor(ColorRgb i)
+{
+	color += (i.red, i.green, i.blue);
+
+	if (count == 0 || color.x > i.red)
+		min.x = i.red;
+	if (count == 0 || color.y > i.green)
+		min.y = i.green;
+	if (count == 0 || color.z > i.blue)
+		min.z = i.blue;
+
+	if (count == 0 || color.x < i.red)
+		max.x = i.red;
+	if (count == 0 || color.y < i.green)
+		max.y = i.green;
+	if (count == 0 || color.z < i.blue)
+		max.z = i.blue;
+
+	count++;
+}
+
+
+QString CapturedColor::toString()
+{
+	return QString("(%1, %2, %3)").arg(color.x).arg(color.y).arg(color.z);
+}

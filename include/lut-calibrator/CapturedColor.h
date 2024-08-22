@@ -1,6 +1,6 @@
 #pragma once
 
-/* BoardUtils.h
+/* CapturedColor.h
 *
 *  MIT License
 *
@@ -37,20 +37,27 @@
 #include <lut-calibrator/ColorSpace.h>
 #include <image/ColorRgb.h>
 #include <image/Image.h>
-#include <lut-calibrator/CapturedColor.h>
 
-namespace BoardUtils
+
+struct CapturedColor
 {
-	const int SCREEN_BLOCKS_X = 40;
-	const int SCREEN_BLOCKS_Y = 24;
-	const int SCREEN_COLOR_STEP = 16;
-	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP);
+	double3	color, min, max;
+	vec<uint8_t, 3> colorInt;
+	int count = 0;
 
-	int indexToColorAndPos(int index, ColorRgb& color, int2& position);
-	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position);
-	void getWhiteBlacColorkLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
-	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
-	bool parseBoard(const Image<ColorRgb>& yuvImage);
-	Image<ColorRgb> loadTestBoardAsYuv(const std::string& filename);
-	void createTestBoards(const char* pattern = "D:/table_%1.png");
+	CapturedColor() = default;
+
+	const double& y() const { return color.x; }
+	const double& u() const { return color.y; }
+	const double& v() const { return color.z; }
+
+	const uint8_t& Y() const { return colorInt.x; }
+	const uint8_t& U() const { return colorInt.y; }
+	const uint8_t& V() const { return colorInt.z; }
+
+
+	bool calculateFinalColor();
+	void reset();
+	void addColor(ColorRgb i);
+	QString toString();
 };
