@@ -126,9 +126,33 @@ namespace BoardUtils
 		return true;
 	}
 
-	bool parseBoard(const Image<ColorRgb>& yuvImage)
+	int readCrc(const Image<ColorRgb>& yuvImage, int line, CapturedColor& white)
 	{
-		int line;
+		int boardIndex = 0;
+		int x = 0;
+
+		for (int i = 0; i < SCREEN_CRC_COUNT; i++, x += 2)
+		{
+			auto test = readBlock(yuvImage, int2(x, line));
+			if (test.Y() < white.Y())
+				throw new std::exception("Invalid CRC header");
+		}
+
+		while (true && x < SCREEN_BLOCKS_X)
+		{
+			auto test = readBlock(yuvImage, int2(x, line));
+			if (test.Y() < white.Y())
+				break;
+			boardIndex++;
+			x += 2;
+		}
+
+		return boardIndex;
+	}
+
+	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex)
+	{
+		int line = 0;
 		CapturedColor white, black;
 
 		try
@@ -137,13 +161,23 @@ namespace BoardUtils
 		}
 		catch (std::exception& ex)
 		{
-			// too much noice or too low resolution
+			Error(_log, "Too much noice or too low resolution");
 			return false;
 		}
 
 		if (!verifyBlackColorPattern(yuvImage, (line == 0), black))
 		{
-			// black pattern failed, too much noice or too low resolution
+			Error(_log, "The black color pattern failed, too much noice or too low resolution");
+			return false;
+		}
+
+		try
+		{
+			boardIndex = readCrc(yuvImage, line, white);
+		}
+		catch (std::exception& ex)
+		{
+			Error(_log, "Too much noice or too low resolution");
 			return false;
 		}
 
@@ -180,7 +214,7 @@ namespace BoardUtils
 				{
 					int2 position = int2((line + boardIndex) % 2, line);
 
-					for (int x = 0; x < boardIndex + 5; x++, position.x += 2)
+					for (int x = 0; x < boardIndex + SCREEN_CRC_COUNT; x++, position.x += 2)
 					{
 						const int2 start = position * delta;
 						const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
@@ -243,9 +277,16 @@ namespace BoardUtils
 				return false;
 			}
 
-			if (!parseBoard(image))
+			int boardIndex = -1;
+			if (!parseBoard(_log, image, boardIndex))
 			{
 				Error(_log, "LUT test board: %i. Could not parse: %s", i, QSTRING_CSTR(file));
+				return false;
+			}
+
+			if (boardIndex != i)
+			{
+				Error(_log, "LUT test board: %i. Could not parse: %s. Incorrect board index: %i", i, QSTRING_CSTR(file), boardIndex);
 				return false;
 			}
 		}

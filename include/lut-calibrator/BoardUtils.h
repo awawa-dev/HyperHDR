@@ -48,13 +48,14 @@ namespace BoardUtils
 	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP) + 1;
 
 	const int SCREEN_CRC_LINES = 2;
+	const int SCREEN_CRC_COUNT = 5;
 	const int SCREEN_SAMPLES_PER_BOARD = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
 
 	int indexToColorAndPos(int index, ColorRgb& color, int2& position);
 	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position);
 	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
 	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
-	bool parseBoard(const Image<ColorRgb>& yuvImage);
+	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex);
 	Image<ColorRgb> loadTestBoardAsYuv(const std::string& filename);
 	void createTestBoards(const char* pattern = "D:/table_%1.png");
 	bool verifyTestBoards(Logger* _log, const char* pattern = "D:/table_%1.png");
