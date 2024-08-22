@@ -43,7 +43,7 @@ bool CapturedColor::calculateFinalColor()
 
 void CapturedColor::addColor(ColorRgb i)
 {
-	color += (i.red, i.green, i.blue);
+	color += double3(i.red, i.green, i.blue);
 
 	if (count == 0 || color.x > i.red)
 		min.x = i.red;

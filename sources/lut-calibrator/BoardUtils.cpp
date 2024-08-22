@@ -29,6 +29,7 @@
 #include <lut-calibrator/YuvConverter.h>
 #include <utils-image/utils-image.h>
 
+
 // YUV444
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p10:fast=0:dither=none -c:v libx265 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv444_high_quality.mp4
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p10 -c:v libx265 -vtag hvc1 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv444_high_quality.mp4
@@ -44,10 +45,8 @@ namespace BoardUtils
 
 	int indexToColorAndPos(int index, ColorRgb& color, int2& position)
 	{
-		const int crcLines = 2;
-		const int totalBoard = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - crcLines);
-		int currentIndex = index % totalBoard;
-		int boardIndex = index / totalBoard;
+		int currentIndex = index % SCREEN_SAMPLES_PER_BOARD;
+		int boardIndex = index / SCREEN_SAMPLES_PER_BOARD;
 
 		position = int2(0, 1);		
 		position.y += currentIndex / (SCREEN_BLOCKS_X / 2);
@@ -72,6 +71,9 @@ namespace BoardUtils
 		const int2 start = position * delta;
 		const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
 		const int2 middle = (start + end) / 2;
+
+		if (middle.x + 1 >= yuvImage.width() || middle.y + 1 >= yuvImage.height())
+			throw new std::exception("Incorrect image size");
 
 		for (int x = -1; x <= 1; x++)
 			for (int y = -1; y <= 1; y++)
@@ -108,7 +110,7 @@ namespace BoardUtils
 		{
 			for (int x = 0; x < SCREEN_BLOCKS_X; x++)
 				for (int y = 0; y < SCREEN_BLOCKS_Y; y++)
-					if ((x + isFirstWhite + y) % 2)
+					if ((x + isFirstWhite + y) % 2 == 0)
 					{
 						auto test = readBlock(yuvImage, int2(x, y));
 						if (test.Y() > black.Y())
@@ -152,14 +154,14 @@ namespace BoardUtils
 	{
 		YuvConverter yuvConverter;
 		auto image = utils_image::load2image(filename);
-		for (int x = 0; x < image.width(); x++)
-			for (int y = 0; y < image.height(); y++)
+		for (int y = 0; y < image.height(); y++)
+			for (int x = 0; x < image.width(); x++)			
 			{
-				const ColorRgb& inputRgb = image(x, y);
+				ColorRgb& inputRgb = image(x, y);
 				const double3 scaledRgb = double3(inputRgb.red, inputRgb.green, inputRgb.blue) / 255.0;
 				const double3 outputYuv = yuvConverter.toYuvBT709(YuvConverter::COLOR_RANGE::FULL, scaledRgb) * 255.0;
 				const ColorRgb outputRgb = ColorRgb(ColorRgb::round(outputYuv.x), ColorRgb::round(outputYuv.y), ColorRgb::round(outputYuv.z));
-				image(x, y) = outputRgb;
+				inputRgb = outputRgb;
 			}
 		return image;
 	}
@@ -216,5 +218,39 @@ namespace BoardUtils
 			image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.red, color.green, color.blue);
 		}
 		saveImage(image, delta, boardIndex, pattern);
+	}
+
+	bool verifyTestBoards(Logger* _log, const char* pattern)
+	{
+		int maxIndex = std::pow(SCREEN_COLOR_DIMENSION, 3);
+		int maxBoards = (maxIndex / SCREEN_SAMPLES_PER_BOARD) + ((maxIndex / SCREEN_SAMPLES_PER_BOARD) ? 1 : 0);
+		for (int i = 0; i < maxBoards; i++)
+		{
+			QString file = QString(pattern).arg(QString::number(i));
+			Image<ColorRgb> image;
+
+			if (!QFile::exists(file))
+			{
+				Error(_log, "LUT test board: %i. File %s does not exists", i, QSTRING_CSTR(file));
+				return false;
+			}
+
+			image = loadTestBoardAsYuv(file.toStdString());
+
+			if (image.width() == 1 || image.height() == 1)
+			{
+				Error(_log, "LUT test board: %i. Could load PNG: %s", i, QSTRING_CSTR(file));
+				return false;
+			}
+
+			if (!parseBoard(image))
+			{
+				Error(_log, "LUT test board: %i. Could not parse: %s", i, QSTRING_CSTR(file));
+				return false;
+			}
+		}
+
+		Info(_log, "All 0-%i LUT test boards were tested successfully!", maxBoards);
+		return true;
 	}
 }
