@@ -58,7 +58,7 @@ struct CapturedColor
 	const uint8_t& U() const { return colorInt.y; }
 	const uint8_t& V() const { return colorInt.z; }
 
-
+	void trim01(double3& input);
 	bool calculateFinalColor();
 	void addColor(ColorRgb i);
 	void setSourceRGB(ColorRgb _color);

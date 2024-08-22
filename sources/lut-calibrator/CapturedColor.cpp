@@ -28,6 +28,17 @@
 
 #include <lut-calibrator/CapturedColor.h>
 
+void CapturedColor::trim01(double3& input)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (input[i] > 1.0)
+			input[i] = 1.0;
+		else if (input[i] < 0.0)
+			input[i] = 0.0;
+	}
+}
+
 bool CapturedColor::calculateFinalColor()
 {
 	const double maxNoice = 10;
@@ -37,6 +48,7 @@ bool CapturedColor::calculateFinalColor()
 	auto tempColor = color / count;
 	colorInt = vec<uint8_t, 3>(std::round(tempColor.x), std::round(tempColor.y), std::round(tempColor.z));
 	color /= (count * 255.0);
+	trim01(color);
 
 	return true;
 }

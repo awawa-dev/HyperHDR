@@ -325,7 +325,7 @@ namespace BoardUtils
 
 		// verify colors
 		YuvConverter converter;
-		int maxError = 0;
+		int maxError = 0, totalErrors = 0;
 		for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 			for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
 				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
@@ -337,10 +337,15 @@ namespace BoardUtils
 					int distance = linalg::distance(sourceRgb, outputRgb);
 					if (distance > maxError)
 					{
+						totalErrors++;
 						maxError = distance;
 						Warning(_log, "Current max error = %i for color (%i, %i, %i) received (%i, %i, %i)", maxError,
 							sourceRgb.x, sourceRgb.y, sourceRgb.z,
 							outputRgb.x, outputRgb.y, outputRgb.z);
+					}
+					else if (distance == maxError)
+					{
+						totalErrors++;
 					}
 				}
 		if (maxError > 1)
@@ -350,7 +355,7 @@ namespace BoardUtils
 		}
 
 		// all is OK
-		Info(_log, "All [0 - %i] LUT test boards were tested successfully!", SCREEN_LAST_BOARD_INDEX);
+		Info(_log, "All [0 - %i] LUT test boards were tested successfully. Total small errors = %i", SCREEN_LAST_BOARD_INDEX, maxError);
 		return true;
 	}
 
