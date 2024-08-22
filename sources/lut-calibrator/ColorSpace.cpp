@@ -198,6 +198,17 @@ namespace ColorSpaceMath
 		return double3(v.x, v.y, v.z);
 	}
 
+	void trim01(double3& input)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			if (input[i] > 1.0)
+				input[i] = 1.0;
+			else if (input[i] < 0.0)
+				input[i] = 0.0;
+		}
+	}
+
 	QString vecToString(const double2& v)
 	{
 		return QString("[%1 %2]").arg(v[0], 7, 'f', 3).arg(v[1], 7, 'f', 3);

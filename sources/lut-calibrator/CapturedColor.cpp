@@ -27,28 +27,17 @@
 
 
 #include <lut-calibrator/CapturedColor.h>
-
-void CapturedColor::trim01(double3& input)
-{
-	for (int i = 0; i < 3; i++)
-	{
-		if (input[i] > 1.0)
-			input[i] = 1.0;
-		else if (input[i] < 0.0)
-			input[i] = 0.0;
-	}
-}
+#include <lut-calibrator/BoardUtils.h>
 
 bool CapturedColor::calculateFinalColor()
 {
-	const double maxNoice = 10;
-	if (count == 0 || (linalg::maxelem(max - min) > maxNoice))
+	if (count == 0 || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
 		return false;
 
 	auto tempColor = color / count;
 	colorInt = vec<uint8_t, 3>(std::round(tempColor.x), std::round(tempColor.y), std::round(tempColor.z));
 	color /= (count * 255.0);
-	trim01(color);
+	ColorSpaceMath::trim01(color);
 
 	return true;
 }

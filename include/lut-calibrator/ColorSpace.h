@@ -104,6 +104,8 @@ namespace ColorSpaceMath
 
 	double3 to_double3(const byte3& v);
 
+	void trim01(double3& input);
+
 	QString vecToString(const double2& v);
 
 	QString vecToString(const double3& v);

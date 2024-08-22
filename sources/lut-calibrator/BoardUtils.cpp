@@ -113,7 +113,7 @@ namespace BoardUtils
 					if ((x + isFirstWhite + y) % 2 == 0)
 					{
 						auto test = readBlock(yuvImage, int2(x, y));
-						if (test.Y() > black.Y())
+						if (test.Y() > black.Y() + SCREEN_MAX_CRC_BRIGHTNESS_ERROR)
 							return false;
 					}
 		}
@@ -134,14 +134,14 @@ namespace BoardUtils
 		for (int i = 0; i < SCREEN_CRC_COUNT; i++, x += 2)
 		{
 			auto test = readBlock(yuvImage, int2(x, line));
-			if (test.Y() < white.Y())
+			if (test.Y() + SCREEN_MAX_CRC_BRIGHTNESS_ERROR < white.Y())
 				throw new std::exception("Invalid CRC header");
 		}
 
 		while (true && x < SCREEN_BLOCKS_X)
 		{
 			auto test = readBlock(yuvImage, int2(x, line));
-			if (test.Y() < white.Y())
+			if (test.Y() + SCREEN_MAX_CRC_BRIGHTNESS_ERROR < white.Y())
 				break;
 			boardIndex++;
 			x += 2;
@@ -343,7 +343,7 @@ namespace BoardUtils
 							sourceRgb.x, sourceRgb.y, sourceRgb.z,
 							outputRgb.x, outputRgb.y, outputRgb.z);
 					}
-					else if (distance == maxError)
+					else if (distance == maxError && distance > 0)
 					{
 						totalErrors++;
 					}
