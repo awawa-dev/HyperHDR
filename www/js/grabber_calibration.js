@@ -11,42 +11,7 @@ $(document).ready( function(){
 	  console.log(`Screen supports approximately the gamut specified by the ITU-R Recommendation BT.2020 Color Space or more.`);
 	}
 
-	class ColorRgb {	  
-	  constructor(_R,_G,_B)
-	  {
-		  this.r = _R;
-		  this.g = _G;
-		  this.b = _B;
-	  }
-	  clone(_p)
-	  {
-		  this.r = _p.r;
-		  this.g = _p.g;
-		  this.b = _p.b;
-	  }
-	  divide(_m, _n)
-	  {
-		  this.r -= Math.round(_m * (this.r + (Math.trunc(this.r) % 2)) / _n) - ((_m == 0) ? 0 : (Math.trunc(this.r % 2)));
-		  this.g -= Math.round(_m * (this.g + (Math.trunc(this.g) % 2)) / _n) - ((_m == 0) ? 0 : (Math.trunc(this.g % 2)));
-		  this.b -= Math.round(_m * (this.b + (Math.trunc(this.b) % 2)) / _n) - ((_m == 0) ? 0 : (Math.trunc(this.b % 2)));
-	  }
-	}
-
-	let primeColors = [
-		new ColorRgb(255, 255, 255),
-		new ColorRgb(255, 0,   0  ),
-		new ColorRgb(0,   255, 0  ),
-		new ColorRgb(0,   0,   255),
-		new ColorRgb(255, 255, 0  ),
-		new ColorRgb(0,   255, 255),
-		new ColorRgb(255,   0, 255),
-		new ColorRgb(255, 128, 0  ),
-		new ColorRgb(0,   255, 128),
-		new ColorRgb(255,   0, 128),
-		new ColorRgb(128, 255, 0  ),
-		new ColorRgb(0,   128, 255),
-		new ColorRgb(128,   0, 255) ];
-
+	let currentTestBoard = 0;
 	let checksum = 0;
 	let finish = false;
 	let running = false;
@@ -173,74 +138,130 @@ $(document).ready( function(){
 			alert('Please run fullscreen mode (F11)');
 	};
 
-	const SCREEN_BLOCKS_X = 64;
-	const SCREEN_BLOCKS_Y = 36;
-	const LOGIC_BLOCKS_X_SIZE = 4;
-	const LOGIC_BLOCKS_X =  Math.floor((SCREEN_BLOCKS_X - 1) / LOGIC_BLOCKS_X_SIZE);
-	const COLOR_DIVIDES = 32;
+	const SCREEN_BLOCKS_X = 48;
+	const SCREEN_BLOCKS_Y = 30;
+	const SCREEN_COLOR_STEP = 16;
+	const SCREEN_COLOR_DIMENSION = Math.floor(256 / SCREEN_COLOR_STEP) + 1;
 
-	function draw(x, y, scaleX, scaleY)
-	{
-		let sX = Math.round((x * LOGIC_BLOCKS_X_SIZE + (y % 2) * 2 + 1)* scaleX);
-		let sY = Math.round(y * scaleY);
+	const SCREEN_YUV_RANGE_LIMIT = 2;
 
-		ctx.fillRect(sX, sY, scaleX, scaleY);
+	const SCREEN_CRC_LINES = 2;
+	const SCREEN_CRC_COUNT = 5;
+	const SCREEN_MAX_CRC_BRIGHTNESS_ERROR = 1;
+	const SCREEN_MAX_COLOR_NOISE_ERROR = 8;
+	const SCREEN_SAMPLES_PER_BOARD = Math.floor(SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
+	const SCREEN_LAST_BOARD_INDEX = Math.floor(Math.pow(SCREEN_COLOR_DIMENSION, 3) / SCREEN_SAMPLES_PER_BOARD);
+
+	class int2 {
+		constructor(_x, _y) {
+		  this.x = _x;
+		  this.y = _y;	  
+		}
 	}
 
-	function getColor(index)
+	class byte3 {
+		constructor(_x, _y, _z) {
+		  this.x = _x;
+		  this.y = _y;
+		  this.z = _z;
+		}
+	}
+
+	function indexToColorAndPos(index, color, position)
 	{
-		let color = new ColorRgb(0,0,0);
-		let searching = 0;
+		let currentIndex = index % SCREEN_SAMPLES_PER_BOARD;
+		let boardIndex = Math.floor(index / SCREEN_SAMPLES_PER_BOARD);
 
-		for(let i = 0; i < primeColors.length; i++)
-			for(let j = 0; j < COLOR_DIVIDES; j++)
+		position.y = 1 + Math.floor(currentIndex / Math.floor(SCREEN_BLOCKS_X / 2));
+		position.x = (currentIndex % Math.floor(SCREEN_BLOCKS_X / 2)) * 2 + ((position.y  + boardIndex  )% 2);
+
+		const B = (index % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
+		const G = (Math.floor(index / (SCREEN_COLOR_DIMENSION)) % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
+		const R = Math.floor(index / (SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)) * SCREEN_COLOR_STEP;
+
+		color.x = Math.min(R, 255);
+		color.y = Math.min(G, 255);
+		color.z = Math.min(B, 255);
+
+		return boardIndex;
+	}
+
+	function saveImage(delta, boardIndex, margin)
 			{
-				if (searching == index)
+				for (let line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
 				{
-					color.clone(primeColors[i]);
-					color.divide(j, COLOR_DIVIDES);
-					console.log(`[${color.r}, ${color.g}, ${color.b}]`)
+					let position = new int2 ((line + boardIndex) % 2, line);
 
-					return color;
+					for (let x = 0; x < boardIndex + SCREEN_CRC_COUNT; x++, position.x += 2)
+					{
+						const start = new int2 (position.x * delta.x, position.y * delta.y);
+						const end = new int2 ( ((position.x + 1) * delta.x) - 1, ((position.y + 1) * delta.y) - 1);
+						fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, 255, 255, 255);
+					}
 				}
-				else
-					searching++;
+			};
+
+	function createTestBoards(boardIndex)
+	{
+		const margin = new int2(3, 2);
+		let maxIndex = Math.pow(SCREEN_COLOR_DIMENSION, 3);
+		const image = new int2(canvas.width, canvas.height);
+		const delta = new int2(image.x / SCREEN_BLOCKS_X, image.y / SCREEN_BLOCKS_Y);
+
+		ctx.fillStyle = 'black';
+		ctx.fillRect(0,0, image.x, image.y);
+
+		let lastBoard = 0;
+		for (let index = 0; index < maxIndex; index++)
+		{
+			let color = new byte3(0,0,0);
+			let position = new int2(0,0);
+			let currentBoard = indexToColorAndPos(index, color, position);
+
+			if (currentBoard < 0)
+				return;
+
+			if (boardIndex + 1 == currentBoard)
+			{
+				saveImage(delta, boardIndex, margin);
+				return;
+			}
+			else if (boardIndex > currentBoard)
+				continue;
+
+			if (lastBoard != currentBoard)
+			{
+				ctx.fillStyle = 'black';
+				ctx.fillRect(0,0, image.x, image.y);
 			}
 
-		finish = true;
-		return color;
+			lastBoard = currentBoard;
+
+			const start = new int2 ( position.x * delta.x, position.y * delta.y);
+			const end = new int2 ( ((position.x + 1) * delta.x) - 1, ((position.y + 1) * delta.y) - 1);
+
+			fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.x, color.y, color.z);
+		}
+		saveImage(delta, boardIndex, margin);
 	}
+
+	function fastBox(x1, y1, x2, y2, c1, c2 ,c3)
+	{
+		ctx.fillStyle = `rgb(${c1}, ${c2}, ${c3})`;
+		ctx.fillRect(x1, y1, (x2 - x1), (y2 - y1));
+	}
+
+	let myInterval;
 
 	function drawImage()
 	{
-		let scaleX = canvas.width / SCREEN_BLOCKS_X;
-		let scaleY = canvas.height / SCREEN_BLOCKS_Y;
-		let actual = 0;
-		for(let py = 1; py < SCREEN_BLOCKS_Y - 1; py++)
-			for(let px = 0; px < LOGIC_BLOCKS_X; px++)
-			{				
-				let currentColor = getColor(actual++);
-				ctx.fillStyle = `rgb(${currentColor.r}, ${currentColor.g}, ${currentColor.b})`;
-				draw(px, py, scaleX, scaleY);
-			}
-
-		ctx.fillStyle = `rgb(0, 0, 0)`;
-		draw(0, 0, scaleX, scaleY); draw(0, SCREEN_BLOCKS_Y - 1, scaleX, scaleY);
-		ctx.fillStyle = `rgb(255, 255, 255)`;
-		draw(1, 0, scaleX, scaleY); draw(1, SCREEN_BLOCKS_Y - 1, scaleX, scaleY);
-		
-		for(let py = 0; py < SCREEN_BLOCKS_Y; py += SCREEN_BLOCKS_Y - 1)
-			for(let px = 2; px < 8 + 2; px++)
-			{
-				let sh = 1 << (7 - (px - 2));
-						
-				if (checksum & sh)
-					ctx.fillStyle = `rgb(255,255,255)`;
-				else
-					ctx.fillStyle = `rgb(0,0,0)`;
-
-				draw(px, py, scaleX, scaleY);
-			}
+		clearInterval(myInterval);
+		myInterval= setInterval( function(){          
+			currentTestBoard = (currentTestBoard + 1) % (SCREEN_LAST_BOARD_INDEX + 1);
+			createTestBoards(currentTestBoard);
+		}, 3000);
+		currentTestBoard = 0;
+		createTestBoards(currentTestBoard);
 	}	
 	
 	startCalibration();

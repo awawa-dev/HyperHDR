@@ -229,6 +229,11 @@ namespace ColorSpaceMath
 		return QString("[%1 %2 %3]").arg(v[0], 3).arg(v[1], 3).arg(v[2], 3);
 	}
 
+	QString vecToString(const int3& v)
+	{
+		return QString("[%1 %2 %3]").arg(v[0], 3).arg(v[1], 3).arg(v[2], 3);
+	}
+
 	QString matToString(double4x4 m)
 	{
 		QStringList ret;

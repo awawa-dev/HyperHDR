@@ -28,14 +28,15 @@
 #include <lut-calibrator/BoardUtils.h>
 #include <lut-calibrator/YuvConverter.h>
 #include <utils-image/utils-image.h>
-
+#include <iostream>
+#include <fstream>
 
 // YUV444
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p10:fast=0:dither=none -c:v libx265 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv444_high_quality.mp4
-// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p10 -c:v libx265 -vtag hvc1 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv444_high_quality.mp4
+// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=2020_ncl:p=2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft:npl=200,format=yuv420p10le -c:v libx265 -vtag hvc1 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv444_high_quality.mp4
 // YUV420
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p12:fast=0:dither=none -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv420_low_quality.mp4
-// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=bt2020nc:p=bt2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft,format=yuv444p12 -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=bt2020-10:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
+// ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=2020_ncl:p=2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft:npl=200,format=yuv420p10le -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
 
 using namespace linalg;
 using namespace aliases;
@@ -43,7 +44,7 @@ using namespace aliases;
 namespace BoardUtils
 {
 
-	int indexToColorAndPos(int index, ColorRgb& color, int2& position)
+	int indexToColorAndPos(int index, byte3& color, int2& position)
 	{
 		int currentIndex = index % SCREEN_SAMPLES_PER_BOARD;
 		int boardIndex = index / SCREEN_SAMPLES_PER_BOARD;
@@ -56,9 +57,9 @@ namespace BoardUtils
 		int G = ((index / (SCREEN_COLOR_DIMENSION)) % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
 		int R = (index / (SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)) * SCREEN_COLOR_STEP;
 
-		color.red = std::min(R, 255);
-		color.green = std::min(G, 255);
-		color.blue = std::min(B, 255);
+		color.x = std::min(R, 255);
+		color.y = std::min(G, 255);
+		color.z = std::min(B, 255);
 
 		return boardIndex;
 	}
@@ -73,7 +74,7 @@ namespace BoardUtils
 		const int2 middle = (start + end) / 2;
 
 		if (middle.x + 1 >= yuvImage.width() || middle.y + 1 >= yuvImage.height())
-			throw new std::exception("Incorrect image size");
+			throw std::exception("Incorrect image size");
 
 		for (int x = -1; x <= 1; x++)
 			for (int y = -1; y <= 1; y++)
@@ -82,7 +83,7 @@ namespace BoardUtils
 				color.addColor(yuvImage(pos.x, pos.y));
 			}
 		if (!color.calculateFinalColor())
-			throw new std::exception("Too much noice while reading the color");
+			throw std::exception("Too much noice while reading the color");
 		return color;
 	}
 
@@ -135,7 +136,7 @@ namespace BoardUtils
 		{
 			auto test = readBlock(yuvImage, int2(x, line));
 			if (test.Y() + SCREEN_MAX_CRC_BRIGHTNESS_ERROR < white.Y())
-				throw new std::exception("Invalid CRC header");
+				throw std::exception("Invalid CRC header");
 		}
 
 		while (true && x < SCREEN_BLOCKS_X)
@@ -174,6 +175,9 @@ namespace BoardUtils
 		try
 		{
 			boardIndex = readCrc(yuvImage, line, white);
+			if (boardIndex > SCREEN_LAST_BOARD_INDEX)
+				throw std::exception("Unexpected board");
+
 		}
 		catch (std::exception& ex)
 		{
@@ -181,11 +185,16 @@ namespace BoardUtils
 			return false;
 		}
 
+		if (allColors.isCaptured(boardIndex))
+		{
+			return true;
+		}
+
 		int max1 = (boardIndex + 1) * SCREEN_SAMPLES_PER_BOARD;
 		int max2 = std::pow(SCREEN_COLOR_DIMENSION, 3);
 		for (int currentIndex = boardIndex * SCREEN_SAMPLES_PER_BOARD; currentIndex < max1 && currentIndex < max2; currentIndex++)
 		{
-			ColorRgb color;
+			byte3 color;
 			int2 position;
 			indexToColorAndPos(currentIndex, color, position);
 
@@ -205,6 +214,26 @@ namespace BoardUtils
 				return false;
 			}
 		}
+
+		if (black.Y() > SCREEN_YUV_RANGE_LIMIT || white.Y() < 255 - SCREEN_YUV_RANGE_LIMIT)
+		{
+			if (allColors.getRange() == YuvConverter::COLOR_RANGE::FULL)
+				Error(_log, "The YUV range is changing. Now is LIMITED.");
+			else if (allColors.getRange() == YuvConverter::COLOR_RANGE::UNKNOWN)
+				Info(_log, "The YUV range is LIMITED");
+			allColors.setRange(YuvConverter::COLOR_RANGE::LIMITED);
+		}
+		else
+		{
+			if (allColors.getRange() == YuvConverter::COLOR_RANGE::LIMITED)
+				Error(_log, "The YUV range is changing. Now is FULL.");
+			else if (allColors.getRange() == YuvConverter::COLOR_RANGE::UNKNOWN)
+				Info(_log, "The YUV range is FULL");
+			allColors.setRange(YuvConverter::COLOR_RANGE::FULL);
+		}
+
+
+		Info(_log, "Successfully parsed image of the %i test board", boardIndex);
 
 		return true;
 	}
@@ -257,7 +286,7 @@ namespace BoardUtils
 
 		for (int index = 0; index < maxIndex; index++)
 		{
-			ColorRgb color;
+			byte3 color;
 			int2 position;
 			int currentBoard = indexToColorAndPos(index, color, position);
 
@@ -274,7 +303,7 @@ namespace BoardUtils
 			const int2 start = position * delta;
 			const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
 
-			image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.red, color.green, color.blue);
+			image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.x, color.y, color.z);
 		}
 		saveImage(image, delta, boardIndex, pattern);
 	}
@@ -331,9 +360,9 @@ namespace BoardUtils
 				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 				{
 					const auto& sample = captured.all[r][g][b];
-					int3 sourceRgb = int3(sample.getSourceRGB().red, sample.getSourceRGB().green, sample.getSourceRGB().blue);
+					byte3 sourceRgb = sample.getSourceRGB();
 					auto result = converter.toRgb(YuvConverter::COLOR_RANGE::FULL, YuvConverter::YUV_COEFS::BT709, sample.yuv()) * 255.0;
-					int3 outputRgb(ColorRgb::round(result.x), ColorRgb::round(result.y), ColorRgb::round(result.z));
+					byte3 outputRgb = ColorSpaceMath::to_byte3(result);
 					int distance = linalg::distance(sourceRgb, outputRgb);
 					if (distance > maxError)
 					{
@@ -361,7 +390,7 @@ namespace BoardUtils
 
 	bool CapturedColors::isCaptured(int index) const
 	{
-		return  ((flag & (1 << index)));
+		return  ((_capturedFlag & (1 << index)));
 	}
 
 	bool CapturedColors::areAllCaptured() const
@@ -374,7 +403,64 @@ namespace BoardUtils
 
 	void CapturedColors::setCaptured(int index)
 	{
-		flag |= (1 << index);
+		_capturedFlag |= (1 << index);
+	}
+
+	void CapturedColors::setRange(YuvConverter::COLOR_RANGE range)
+	{
+		_range = range;
+	}
+
+	YuvConverter::COLOR_RANGE CapturedColors::getRange()
+	{
+		return _range;
+	}
+
+	void CapturedColors::saveResult(const char* filename)
+	{
+		std::ofstream myfile;
+		myfile.open(filename, std::ios::trunc | std::ios::out);
+
+		std::list<std::pair<const char*, const char*>> arrayMark = { {"[", "]"}, {"{", "}"} };
+
+		myfile << "// Values of the table represent YUV in range [0 - 255], limited of full" << std::endl;
+		myfile << "// Each row of the " << std::to_string(SCREEN_COLOR_DIMENSION) <<"^3 table consist of the following RGB coordinates:" << std::endl << "// [ ";
+		
+		for (int i = 0, j = 0; i < SCREEN_COLOR_DIMENSION; i++, j += SCREEN_COLOR_STEP)
+		{
+			if (i)
+				myfile << ", ";
+			myfile << std::to_string(std::min(j, 255));
+		}
+
+		myfile << " ]" << std::endl << "// First table is in Python format, second in C++ format" << std::endl << std::endl;
+
+		for(const auto& currentArray : arrayMark)
+		{
+			myfile << currentArray.first << std::endl;
+			for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
+			{
+				myfile << "\t" << currentArray.first << std::endl;
+				for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
+				{
+					myfile << "\t\t" << currentArray.first << std::endl << "\t\t\t";
+					for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
+					{
+						const auto& elem = all[r][g][b];
+						myfile << currentArray.first;
+						myfile << " " << std::to_string(elem.Y()) << ", ";
+						myfile << std::to_string(elem.U()) << ", ";
+						myfile << std::to_string(elem.V()) << " ";
+						myfile << currentArray.second << ((b + 1 < SCREEN_COLOR_DIMENSION) ? "," : "");
+					}
+					myfile << std::endl << "\t\t" << currentArray.second << ((g + 1 < SCREEN_COLOR_DIMENSION) ? "," : "") << std::endl;
+				}
+				myfile << "\t" << currentArray.second << ((r +  1< SCREEN_COLOR_DIMENSION) ? "," : "") << std::endl;
+			}
+			myfile << currentArray.second << std::endl << std::endl << std::endl;
+		}
+
+		myfile.close();
 	}
 }
 

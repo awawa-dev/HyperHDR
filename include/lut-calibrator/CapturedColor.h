@@ -40,13 +40,18 @@
 #include <image/Image.h>
 
 
-struct CapturedColor
+class CapturedColor
 {
-	ColorRgb sourceRGB;
+private:
+	byte3 sourceRGB;
+	double3 sourceRgb;
+	byte3 finalRGB;
 	double3	color, min, max;
-	vec<uint8_t, 3> colorInt;
+	byte3 colorInt;
+
 	int count = 0;
 
+public:
 	CapturedColor() = default;
 
 	const double& y() const { return color.x; }
@@ -60,8 +65,11 @@ struct CapturedColor
 
 	bool calculateFinalColor();
 	void addColor(ColorRgb i);
-	void setSourceRGB(ColorRgb _color);
-	ColorRgb getSourceRGB() const;
+	void setSourceRGB(byte3 _color);
+	long long int getSourceError(const double3& _color);
+	byte3 getSourceRGB() const;
+	void setFinalRGB(double3 _color);
+	byte3 getFinalRGB() const;
 
 	QString toString();
 };

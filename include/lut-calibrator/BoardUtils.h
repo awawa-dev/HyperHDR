@@ -39,6 +39,7 @@
 #include <image/Image.h>
 #include <lut-calibrator/CapturedColor.h>
 #include <utils/Logger.h>
+#include <lut-calibrator/YuvConverter.h>
 
 namespace BoardUtils
 {
@@ -48,6 +49,8 @@ namespace BoardUtils
 	const int SCREEN_COLOR_STEP = 16;
 	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP) + 1;
 
+	const int SCREEN_YUV_RANGE_LIMIT = 2;
+
 	const int SCREEN_CRC_LINES = 2;
 	const int SCREEN_CRC_COUNT = 5;
 	const int SCREEN_MAX_CRC_BRIGHTNESS_ERROR = 1;
@@ -55,7 +58,7 @@ namespace BoardUtils
 	const int SCREEN_SAMPLES_PER_BOARD = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
 	const int SCREEN_LAST_BOARD_INDEX = std::pow(SCREEN_COLOR_DIMENSION, 3) / SCREEN_SAMPLES_PER_BOARD;
 
-	int indexToColorAndPos(int index, ColorRgb& color, int2& position);
+	int indexToColorAndPos(int index, byte3& color, int2& position);
 	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position);
 	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
 	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
@@ -67,7 +70,8 @@ namespace BoardUtils
 	class CapturedColors
 	{
 	private:
-		int flag = 0;
+		int _capturedFlag = 0;
+		YuvConverter::COLOR_RANGE _range = YuvConverter::COLOR_RANGE::UNKNOWN;
 
 	public:
 		CapturedColors() = default;
@@ -79,5 +83,8 @@ namespace BoardUtils
 		bool isCaptured(int index) const;
 		bool areAllCaptured() const;
 		void setCaptured(int index);
+		void setRange(YuvConverter::COLOR_RANGE range);
+		YuvConverter::COLOR_RANGE getRange();
+		void saveResult(const char* filename = "D:/result.txt");
 	};
 };

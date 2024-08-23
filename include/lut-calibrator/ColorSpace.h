@@ -114,6 +114,8 @@ namespace ColorSpaceMath
 
 	QString vecToString(const byte3& v);
 
+	QString vecToString(const int3& v);
+
 	QString matToString(double4x4 m);
 
 	QString matToString(double3x3 m);

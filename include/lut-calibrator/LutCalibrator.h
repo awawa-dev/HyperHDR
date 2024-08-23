@@ -44,9 +44,12 @@
 
 class Logger;
 class GrabberWrapper;
-enum TEST_COLOR_ID;
-struct Result;
-struct MappingPrime;
+class YuvConverter;
+namespace BoardUtils
+{
+	class CapturedColors;
+};
+
 
 namespace linalg {
 	template<class T, int M, int N> struct mat;
@@ -56,13 +59,6 @@ namespace linalg {
 class LutCalibrator : public QObject
 {
 	Q_OBJECT
-
-private:
-	static LutCalibrator* instance;
-public:
-
-	enum capColors { Red = 0, Green = 1, Blue = 2, Yellow = 3, Magenta = 4, Cyan = 5, Orange = 6, Pink = 7, Azure = 8, Brown = 9, Purple = 10, LowRed = 11, LowGreen = 12, LowBlue = 13, LowestGray = 14,
-					 Gray1 = 15, Gray2 = 16, Gray3 = 17, Gray4 = 18, Gray5 = 19, Gray6 = 20, Gray7 = 21, Gray8 = 22, HighestGray = 23, White = 24, None = 25 };
 
 public:
 	LutCalibrator();
@@ -78,26 +74,16 @@ public slots:
 	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin);
 
 private:
-	QString generateShortReport(std::function<QString(const Result&)> selector);
+	QString generateReport(bool full);
 	void sendReport(QString report);
 	bool set1to1LUT();
 	void requestNextTestBoard(int nextStep);
 	void error(QString message);
-	void applyShadow(linalg::vec<double, 3>& color, int shadow);
-	bool getSourceColor(int index, linalg::vec<double,3>& color, TEST_COLOR_ID& prime, int& shadow);
-	linalg::vec<double,3> getColor(const Image<ColorRgb>& image, double blackLevelError, int logicX, int y, double scaleX, double scaleY);
-	uint16_t getCrc(const Image<ColorRgb>& image, double blackLevelError, double whiteLevelError, int y, double scaleX, double scaleY);
 	void handleImage(const Image<ColorRgb>& image);
-	std::list<MappingPrime> toneMapping();
 	void tryHDR10();
 	void setupWhitePointCorrection();
 	void calibrate();
-	void printFullReport();
-
-	bool increaseColor(ColorRgb& color);
-	void storeColor(const ColorRgb& inputColor, const ColorRgb& color);
 	bool finalize(bool fastTrack = false);
-	bool correctionEnd();
 
 	inline int clampInt(int val, int min, int max) { return qMin(qMax(val, min), max);}
 	inline double clampDouble(double val, double min, double max) { return qMin(qMax(val, min), max); }
@@ -107,45 +93,17 @@ private:
 	double	inverse_eotf(double x) noexcept;
 	double	ootf(double  v) noexcept;
 	double	inverse_gamma(double x) noexcept;
-	void	colorCorrection(double& r, double& g, double& b);
 	void	balanceGray(int r, int g, int b, double& _r, double& _g, double& _b);
 	void	fromBT2020toXYZ(double r, double g, double b, double& x, double& y, double& z);
 	void	fromXYZtoBT709(double x, double y, double z, double& r, double& g, double& b);
 	void	fromBT2020toBT709(double x, double y, double z, double& r, double& g, double& b);
-	void	toneMapping(double xhdr, double yhdr, double zhdr, double& xsdr, double& ysdr, double& zsdr);
-	QString colorToQStr(capColors index);
-	QString colorToQStr(ColorRgb color);
-	QString calColorToQStr(capColors index);
-	void	displayPreCalibrationInfo();
-	void	displayPostCalibrationInfo();
 	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
-	//double	getError(ColorRgb first, ColorStat second);
-	void	applyFilter();
-	void	whitePointCorrection(double& nits, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);
+	double	getError(const linalg::vec<uint8_t, 3>& first, const linalg::vec<uint8_t, 3>& second);
+	void	capturedPrimariesCorrection(double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);
 
 	Logger* _log;
-	bool	_mjpegCalibration;
-	bool	_finish;
-	bool	_limitedRange;
-	int		_checksum;
-	int		_currentCoef;
-	double	_coefsResult[4];
-	int		_warningCRC;
-	int		_warningMismatch;
-	double	_saturation;
-	double	_luminance;
-	double	_gammaR;
-	double	_gammaG;
-	double	_gammaB;
-	qint64	_timeStamp;
-	ColorRgb _startColor;
-	ColorRgb _endColor;
-	ColorRgb _minColor;
-	ColorRgb _maxColor;
-	//ColorStat _colorBalance[26];
+	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;
+	std::shared_ptr<YuvConverter> _yuvConverter;
 	MemoryBuffer<uint8_t> _lut;
-	QString _rootPath;
-
-	static ColorRgb primeColors[];
-
+	QString _rootPath;	
 };

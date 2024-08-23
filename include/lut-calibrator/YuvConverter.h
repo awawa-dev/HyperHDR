@@ -42,7 +42,7 @@ class YuvConverter
 {
 public:
 	enum YUV_COEFS { FCC = 0, BT601 = 1, BT709 = 2, BT2020 = 3 };
-	enum COLOR_RANGE { FULL = 0, LIMITED = 1 };
+	enum COLOR_RANGE { UNKNOWN = 0, FULL = 1, LIMITED = 2 };
 	enum YUV_DIRECTION { FROM_RGB_TO_YUV = 0, FROM_YUV_TO_RGB = 1 };
 
 	const std::map<YUV_COEFS, double2> knownCoeffs = {

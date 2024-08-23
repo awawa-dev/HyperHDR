@@ -34,8 +34,12 @@ bool CapturedColor::calculateFinalColor()
 	if (count == 0 || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
 		return false;
 
-	auto tempColor = color / count;
-	colorInt = vec<uint8_t, 3>(std::round(tempColor.x), std::round(tempColor.y), std::round(tempColor.z));
+	colorInt = byte3(color / count);
+	if (colorInt.y >= 127 && colorInt.y <= 129 && colorInt.z >= 127 && colorInt.z <= 129)
+	{
+		colorInt.y = colorInt.z = 128;
+		color.y = color.z = (count * 128.0);
+	}
 	color /= (count * 255.0);
 	ColorSpaceMath::trim01(color);
 
@@ -69,12 +73,29 @@ QString CapturedColor::toString()
 	return QString("(%1, %2, %3)").arg(color.x).arg(color.y).arg(color.z);
 }
 
-void  CapturedColor::setSourceRGB(ColorRgb _color)
+void  CapturedColor::setSourceRGB(byte3 _color)
 {
 	sourceRGB = _color;
+	sourceRgb = ColorSpaceMath::to_double3(_color);
 }
 
-ColorRgb CapturedColor::getSourceRGB() const
+byte3 CapturedColor::getSourceRGB() const
 {
 	return sourceRGB;
+}
+
+
+void  CapturedColor::setFinalRGB(double3 _color)
+{
+	finalRGB = ColorSpaceMath::to_byte3(_color * 255.0);
+}
+
+byte3 CapturedColor::getFinalRGB() const
+{
+	return finalRGB;
+}
+
+long long int CapturedColor::getSourceError(const double3& _color)
+{
+	return std::powl(std::labs(linalg::distance(sourceRgb, _color * 255)), 3);
 }
