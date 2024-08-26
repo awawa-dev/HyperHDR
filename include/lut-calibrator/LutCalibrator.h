@@ -100,6 +100,7 @@ private:
 	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
 	double	getError(const linalg::vec<uint8_t, 3>& first, const linalg::vec<uint8_t, 3>& second);
 	void	capturedPrimariesCorrection(double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);
+	bool	parseTextLut2binary(const char* filename = "D:/interpolated_lut.txt", const char* outfile = "D:/lut_lin_tables.3d");
 
 	Logger* _log;
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;

@@ -53,6 +53,7 @@
 #include <lut-calibrator/BoardUtils.h>
 #include <utils-image/utils-image.h>
 #include <linalg.h>
+#include <fstream>
 
 
 using namespace linalg;
@@ -63,6 +64,74 @@ using namespace BoardUtils;
 
 #define LUT_FILE_SIZE 50331648
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
+
+bool LutCalibrator::parseTextLut2binary(const char* filename, const char* outfile)
+{
+	std::ifstream stream(filename);
+	if (!stream)
+	{
+		return false;
+	}
+	
+	std::string dummy;
+	double3 yuv;
+	_lut.resize(256 * 256 * 256 * 3);
+	memset(_lut.data(), 0, _lut.size());
+	for (int R = 0; R < 256; R++)
+		for (int G = 0; G < 256; G++)
+			for (int B = 0; B < 256; B++)
+				if (std::getline(stream, dummy, '[') >> yuv.x &&
+					std::getline(stream, dummy, ',') >> yuv.y &&
+					std::getline(stream, dummy, ',') >> yuv.z)
+				{
+					byte3 YUV = to_byte3(yuv);
+					int index = LUT_INDEX(YUV.x, YUV.y, YUV.z);
+					_lut.data()[index] = R;
+					_lut.data()[index + 1] = G;
+					_lut.data()[index + 2] = B;
+					
+				}
+				else
+					return false;
+
+	for(int w = 0; w < 3; w++)
+		for(int Y = 2; Y < 256; Y++)
+			for (int U = 0; U < 256; U++)
+				for (int V = 0; V < 256; V++)
+				{
+					int index = LUT_INDEX(Y, U, V);
+					if (_lut.data()[index] == 0 && _lut.data()[index + 1] == 0 && _lut.data()[index + 2] == 0)
+					{
+						bool found = false;						
+							for (int u = 0; u <= 2 && !found; u++)
+								for (int v = 0; v <= 2 && !found; v++)
+									for (int y = 0; y <= 2 && !found; y++)
+								{
+									int YY = Y + ((y % 2) ? y / 2 : -y / 2);
+									int UU = U + ((u % 2) ? u / 2 : -u / 2);
+									int VV = V + ((v % 2) ? v / 2 : -v / 2);
+									if (YY >= 0 && YY <= 255 && UU >= 0 && UU <= 255 && VV >= 0 && VV <= 255)
+									{
+										int index2 = LUT_INDEX(YY, UU, VV);
+										if (_lut.data()[index2] || _lut.data()[index2 + 1] || _lut.data()[index2 + 2])
+										{
+											found = true;
+											_lut.data()[index] = _lut.data()[index2];
+											_lut.data()[index + 1] = _lut.data()[index2 + 1];
+											_lut.data()[index + 2] = _lut.data()[index2 + 2];
+										}
+									}
+								}
+					}
+				}
+
+	std::fstream file;
+	file.open(outfile, std::ios::trunc | std::ios::out |  std::ios::binary);
+	for(int i = 0; i < 3; i++)
+		file.write(reinterpret_cast<char*>(_lut.data()), _lut.size());
+	file.close();
+	return true;
+};
 
 LutCalibrator::LutCalibrator()
 {
