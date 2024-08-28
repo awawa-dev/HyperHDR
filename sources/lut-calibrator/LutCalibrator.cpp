@@ -345,7 +345,8 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 	if (image.width() < 1280 || image.height() < 720)
 	{
-		error(QString("Too low resolution: 1280/720 is the minimum. Received video frame: %1x%2. Stopped.").arg(image.width()).arg(image.height()));
+		//image.save(QSTRING_CSTR(QString("d:/testimage_%1_x_%2.yuv").arg(image.width()).arg(image.height())));
+		error(QString("Too low resolution: 1280/720 is the minimum. Received video frame: %1x%2. Stopped.").arg(image.width()).arg(image.height()));		
 		return;
 	}
 

@@ -46,7 +46,7 @@ public:
 
 	void clear();
 
-	bool save(const char* filename);
+	bool save(const char* filename) const;
 
 private:
 	std::shared_ptr<ImageData<ColorSpace>> _sharedData;

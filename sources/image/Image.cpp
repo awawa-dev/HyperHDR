@@ -152,7 +152,7 @@ void Image<ColorSpace>::clear()
 }
 
 template <>
-bool Image<ColorRgb>::save(const char* filename)
+bool Image<ColorRgb>::save(const char* filename) const
 {
 	std::ofstream myfile;
 	myfile.open(filename, std::ios::trunc | std::ios::out);
