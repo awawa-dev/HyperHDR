@@ -27,6 +27,7 @@
 
 
 #include <image/Image.h>
+#include <fstream>
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image() :
@@ -148,6 +149,17 @@ template <typename ColorSpace>
 void Image<ColorSpace>::clear()
 {
 	_sharedData->clear();
+}
+
+template <>
+bool Image<ColorRgb>::save(const char* filename)
+{
+	std::ofstream myfile;
+	myfile.open(filename, std::ios::trunc | std::ios::out);
+	if (!myfile.is_open())
+		return false;
+	myfile.write(reinterpret_cast<const char*>(rawMem()), size());
+	return true;
 }
 
 template class Image<ColorRgb>;
