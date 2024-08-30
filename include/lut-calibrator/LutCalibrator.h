@@ -89,14 +89,6 @@ private:
 	inline double clampDouble(double val, double min, double max) { return qMin(qMax(val, min), max); }
 	inline int clampToInt(double val, int min, int max) { return qMin(qMax(qRound(val), min), max); }
 
-	double	eotf(double scale, double  x) noexcept;
-	double	inverse_eotf(double x) noexcept;
-	double	ootf(double  v) noexcept;
-	double	inverse_gamma(double x) noexcept;
-	void	balanceGray(int r, int g, int b, double& _r, double& _g, double& _b);
-	void	fromBT2020toXYZ(double r, double g, double b, double& x, double& y, double& z);
-	void	fromXYZtoBT709(double x, double y, double z, double& r, double& g, double& b);
-	void	fromBT2020toBT709(double x, double y, double z, double& r, double& g, double& b);
 	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
 	double	getError(const linalg::vec<uint8_t, 3>& first, const linalg::vec<uint8_t, 3>& second);
 	void	capturedPrimariesCorrection(double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);

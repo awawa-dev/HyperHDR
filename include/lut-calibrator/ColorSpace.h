@@ -73,6 +73,16 @@ namespace ColorSpaceMath
 
 	double3 bt2020_nonlinear_to_linear(double3 input);
 
+	double3 bt2020_linear_to_nonlinear(double3 input);
+
+	double3 srgb_nonlinear_to_linear(double3 input);
+	
+	double3 srgb_linear_to_nonlinear(double3 input);
+
+	double PQ_ST2084(double scale, double  nonlinear);
+
+	double3 PQ_ST2084(double scale, double3 nonlinear);
+
 	double3 from_bt2020_to_XYZ(double3 x);
 
 	double3 from_XYZ_to_bt2020(double3 x);

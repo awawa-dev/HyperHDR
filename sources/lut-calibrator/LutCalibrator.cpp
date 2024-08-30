@@ -562,11 +562,11 @@ void LutCalibrator::tryHDR10()
 
 	if (_capturedColors->getRange() == YuvConverter::COLOR_RANGE::LIMITED)
 	{
-		nits = 10000.0 * eotf(1.0, (white - 16.0) / (235.0 - 16.0));
+		nits = 10000.0 * PQ_ST2084(1.0, (white - 16.0) / (235.0 - 16.0));
 	}
 	else
 	{
-		nits = 10000.0 * eotf(1.0, white / 255.0);
+		nits = 10000.0 * PQ_ST2084(1.0, white / 255.0);
 	}
 
 	Debug(_log, "Assuming the signal is HDR, it is calibrated for %0.2f nits", nits);	
@@ -593,9 +593,7 @@ void LutCalibrator::tryHDR10()
 
 						auto a = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::YUV_COEFS(coef), yuv);
 
-						auto e = double3(eotf(10000.0 / nits, a.x),
-										eotf(10000.0 / nits, a.y),
-										eotf(10000.0 / nits, a.z));
+						auto e = PQ_ST2084(10000.0 / nits, a);
 
 						double3 processingXYZ, srgb;
 						if (altConvert)
@@ -608,18 +606,16 @@ void LutCalibrator::tryHDR10()
 							processingXYZ = from_bt2020_to_XYZ(e);
 							srgb = from_XYZ_to_sRGB(processingXYZ);
 						}
-						
-						for (int i = 0; i < 3; i++)
-							srgb[i] = ootf(srgb[i]);
+
+						srgb = srgb_linear_to_nonlinear(srgb);
 
 						if (tryBt2020Range)
 						{
 							//auto linearBt2020 = bt2020_nonlinear_to_linear(srgb);
 							//double3 xyz = from_sRGB_to_XYZ(linearBt2020);
 							//srgb = from_XYZ_to_sRGB(xyz);
-							srgb = bt2020_nonlinear_to_linear(srgb);
-							for (int i = 0; i < 3; i++)
-								srgb[i] = ootf(srgb[i]);
+							srgb = bt2020_nonlinear_to_linear(srgb);							
+							srgb = srgb_linear_to_nonlinear(srgb);
 						}						
 
 						if (testOnly)
@@ -787,158 +783,9 @@ void LutCalibrator::calibrate()
 
 
 
-double LutCalibrator::eotf(double scale, double  x) noexcept
-{
-	// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp
-
-	constexpr double ST2084_M1 = 0.1593017578125;
-	constexpr double ST2084_M2 = 78.84375;
-	constexpr double ST2084_C1 = 0.8359375;
-	constexpr double ST2084_C2 = 18.8515625;
-	constexpr double ST2084_C3 = 18.6875;
-
-	if (x > 0.0) {
-		double xpow = std::pow(x, 1.0 / ST2084_M2);
-		double num = std::max(xpow - ST2084_C1, 0.0);
-		double den = std::max(ST2084_C2 - ST2084_C3 * xpow, DBL_MIN);
-		x = std::pow(num / den, 1.0 / ST2084_M1);
-	}
-	else {
-		x = 0.0;
-	}
-
-	return scale * x;
-}
-
-double LutCalibrator::inverse_eotf(double x) noexcept
-{
-	// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp
-
-	constexpr double ST2084_M1 = 0.1593017578125;
-	constexpr double ST2084_M2 = 78.84375;
-	constexpr double ST2084_C1 = 0.8359375;
-	constexpr double ST2084_C2 = 18.8515625;
-	constexpr double ST2084_C3 = 18.6875;
-
-	if (x > 0.0f) {
-		double xpow = std::pow(x, ST2084_M1);
-		double num = (ST2084_C1 - 1.0) + (ST2084_C2 - ST2084_C3) * xpow;
-		double den = 1.0 + ST2084_C3 * xpow;
-		x = std::pow(1.0 + num / den, ST2084_M2);
-	}
-	else {
-		x = 0.0f;
-	}
-
-	return x;
-}
-
-double LutCalibrator::ootf(double v) noexcept
-{
-	// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp	
-
-	constexpr double SRGB_ALPHA = 1.055010718947587;
-	constexpr double SRGB_BETA = 0.003041282560128;
-
-	v = std::max(v, 0.0);
-
-	if (v < SRGB_BETA)
-		return v * 12.92;
-	else
-		return SRGB_ALPHA * std::pow(v, 1.0 / 2.4) - (SRGB_ALPHA - 1.0);
-}
-
-double LutCalibrator::inverse_gamma(double x) noexcept
-{
-	// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp
-
-	x = std::max(x, 0.0);
-
-	x = std::pow(x, 1.0 / 2.4);
-
-	return x;
-}
 
 
-void LutCalibrator::fromBT2020toXYZ(double r, double g, double b, double& x, double& y, double& z)
-{
-	x = 0.636958 * r + 0.144617 * g + 0.168881 * b;
-	y = 0.262700 * r + 0.677998 * g + 0.059302 * b;
-	z = 0.000000 * r + 0.028073 * g + 1.060985 * b;
-}
 
-void LutCalibrator::fromXYZtoBT709(double x, double y, double z, double& r, double& g, double& b)
-{
-	r = 3.240970 * x - 1.537383 * y - 0.498611 * z;
-	g = -0.969244 * x + 1.875968 * y + 0.041555 * z;
-	b = 0.055630 * x - 0.203977 * y + 1.056972 * z;
-}
-
-void LutCalibrator::fromBT2020toBT709(double x, double y, double z, double& r, double& g, double& b)
-{
-	r = 1.6605 * x - 0.5876 * y - 0.0728 * z;
-	g = -0.1246 * x + 1.1329 * y - 0.0083 * z;
-	b = -0.0182 * x - 0.1006 * y + 1.1187 * z;
-}
-
-void LutCalibrator::balanceGray(int r, int g, int b, double& _r, double& _g, double& _b)
-{
-	throw std::exception();
-	/*
-	if ((_r == 0 && _g == 0 && _b == 0) ||
-		(_r == 1 && _g == 1 && _b == 1))
-		return;
-
-	int _R = qRound(_r * 255);
-	int _G = qRound(_g * 255);
-	int _B = qRound(_b * 255);
-
-	int max = qMax(_R, qMax(_G, _B));
-	int min = qMin(_R, qMin(_G, _B));
-
-
-	if (max - min < 30)
-	{
-		for (capColors selector = capColors::LowestGray; selector != capColors::None; selector = capColors(((int)selector) + 1))
-		{
-			double whiteR = r * _colorBalance[selector].scaledRed;
-			double whiteG = g * _colorBalance[selector].scaledGreen;
-			double whiteB = b * _colorBalance[selector].scaledBlue;
-			double error = 1;
-
-			if (qAbs(whiteR - whiteG) <= error && qAbs(whiteG - whiteB) <= error && qAbs(whiteB - whiteR) <= error)
-			{
-				_r = _g = _b = (_r + _g + _b) / 3.0;
-				return;
-			}
-		}
-
-		for (capColors selector = capColors::LowestGray; selector != capColors::None; selector = capColors(((int)selector) + 1))
-		{
-			double whiteR = r * _colorBalance[selector].scaledRed;
-			double whiteG = g * _colorBalance[selector].scaledGreen;
-			double whiteB = b * _colorBalance[selector].scaledBlue;
-			double error = 2;
-
-			if (qAbs(whiteR - whiteG) <= error && qAbs(whiteG - whiteB) <= error && qAbs(whiteB - whiteR) <= error)
-			{
-				double average = (_r + _g + _b) / 3.0;
-				_r = (_r + average) / 2;
-				_g = (_g + average) / 2;
-				_b = (_b + average) / 2;
-				return;
-			}
-		}
-	}
-
-	if (max <= 4 && max >= 1)
-	{
-		_r = qMax(_r, 1.0 / 255.0);
-		_g = qMax(_g, 1.0 / 255.0);
-		_b = qMax(_b, 1.0 / 255.0);
-	}
-	*/
-}
 
 /*
 double LutCalibrator::getError(const byte3& first, const byte3& second)
@@ -1205,9 +1052,7 @@ void LutCalibrator::capturedPrimariesCorrection(double nits, int coef, linalg::m
 	for (auto& c : capturedPrimaries)
 	{
 		auto a = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::YUV_COEFS(coef), c.yuv());
-		a.x = eotf(10000.0 / nits, a.x );
-		a.y = eotf(10000.0 / nits, a.y );
-		a.z = eotf(10000.0 / nits, a.z );
+		a = PQ_ST2084(10000.0 / nits, a);
 		actualPrimaries.push_back(a);
 	}
 

@@ -56,11 +56,106 @@ namespace ColorSpaceMath
 			return std::pow((input + alpha - 1) / alpha, 1 / 0.45);
 	}
 
+	double bt2020_linear_to_nonlinear(double input)
+	{
+		const double alpha = 1.09929682680944;
+		const double beta = 0.018053968510807;
+
+		if (input < 0) return -bt2020_linear_to_nonlinear(-input);
+
+		if (input < beta) 
+			return 4.5 * input;
+		else
+			return alpha * std::pow(input, 0.45) - (alpha - 1);
+	}
+
 	double3 bt2020_nonlinear_to_linear(double3 input)
 	{
 		return double3(bt2020_nonlinear_to_linear(input[0]),
 						bt2020_nonlinear_to_linear(input[1]),
 						bt2020_nonlinear_to_linear(input[2]));
+	}
+
+	double3 bt2020_linear_to_nonlinear(double3 input)
+	{
+		return double3(bt2020_linear_to_nonlinear(input[0]),
+			bt2020_linear_to_nonlinear(input[1]),
+			bt2020_linear_to_nonlinear(input[2]));
+	}
+
+	double srgb_nonlinear_to_linear(double input)
+	{
+		constexpr float alpha = 1.055010718947587f;
+		constexpr float beta = 0.003041282560128f;
+
+		input = std::max(input, 0.0);
+
+		if (input < 12.92 * beta)
+			input = input / 12.92f;
+		else
+			input = std::pow((input + (alpha - 1.0)) / alpha, 2.4);
+
+		return input;
+	}
+
+	double3 srgb_nonlinear_to_linear(double3 input)
+	{
+		return double3(srgb_nonlinear_to_linear(input[0]),
+			srgb_nonlinear_to_linear(input[1]),
+			srgb_nonlinear_to_linear(input[2]));
+	}
+
+	double srgb_linear_to_nonlinear(double input)
+	{
+		constexpr float alpha = 1.055010718947587f;
+		constexpr float beta = 0.003041282560128f;
+
+		input = std::max(input, 0.0);
+
+		if (input < beta)
+			input = input * 12.92;
+		else
+			input = alpha * std::pow(input, 1.0 / 2.4) - (alpha - 1.0);
+
+		return input;
+	}
+
+	double3 srgb_linear_to_nonlinear(double3 input)
+	{
+		return double3(srgb_linear_to_nonlinear(input[0]),
+			srgb_linear_to_nonlinear(input[1]),
+			srgb_linear_to_nonlinear(input[2]));
+	}
+
+	double PQ_ST2084(double scale, double  nonlinear)
+	{
+		// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp
+
+		constexpr double ST2084_M1 = 0.1593017578125;
+		constexpr double ST2084_M2 = 78.84375;
+		constexpr double ST2084_C1 = 0.8359375;
+		constexpr double ST2084_C2 = 18.8515625;
+		constexpr double ST2084_C3 = 18.6875;
+
+		if (nonlinear > 0.0)
+		{
+			double xpow = std::pow(nonlinear, 1.0 / ST2084_M2);
+			double num = std::max(xpow - ST2084_C1, 0.0);
+			double den = std::max(ST2084_C2 - ST2084_C3 * xpow, DBL_MIN);
+			nonlinear = std::pow(num / den, 1.0 / ST2084_M1);
+		}
+		else {
+			nonlinear = 0.0;
+		}
+
+		return scale * nonlinear;
+	}
+
+	double3 PQ_ST2084(double scale, double3 nonlinear)
+	{
+		return double3(PQ_ST2084(scale, nonlinear[0]),
+						PQ_ST2084(scale, nonlinear[1]),
+						PQ_ST2084(scale, nonlinear[2]));
 	}
 
 	double3 from_bt2020_to_XYZ(double3 x)
