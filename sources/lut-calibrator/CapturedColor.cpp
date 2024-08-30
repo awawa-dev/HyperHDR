@@ -97,5 +97,5 @@ byte3 CapturedColor::getFinalRGB() const
 
 long long int CapturedColor::getSourceError(const double3& _color)
 {
-	return std::powl(std::labs(linalg::distance(sourceRgb, _color * 255)), 3);
+	return std::pow(linalg::distance(sourceRgb, _color ), 3) / 1000.0;
 }

@@ -71,6 +71,8 @@ namespace ColorSpaceMath
 				0.0193339,	0.1191920,	0.9503041
 		});
 
+	double3 bt2020_nonlinear_to_linear(double3 input);
+
 	double3 from_bt2020_to_XYZ(double3 x);
 
 	double3 from_XYZ_to_bt2020(double3 x);

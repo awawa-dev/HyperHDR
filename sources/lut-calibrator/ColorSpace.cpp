@@ -44,6 +44,25 @@ namespace ColorSpaceMath
 				}
 	};
 
+	double bt2020_nonlinear_to_linear(double input)
+	{
+		const double alpha = 1.09929682680944;
+		const double beta = 0.018053968510807;
+
+		if (input < 0) return -bt2020_nonlinear_to_linear(-input);
+		if (input < beta * 4.5)
+			return input / 4.5;		
+		else
+			return std::pow((input + alpha - 1) / alpha, 1 / 0.45);
+	}
+
+	double3 bt2020_nonlinear_to_linear(double3 input)
+	{
+		return double3(bt2020_nonlinear_to_linear(input[0]),
+						bt2020_nonlinear_to_linear(input[1]),
+						bt2020_nonlinear_to_linear(input[2]));
+	}
+
 	double3 from_bt2020_to_XYZ(double3 x)
 	{
 		return mul(matrix_bt2020_to_XYZ, x);
