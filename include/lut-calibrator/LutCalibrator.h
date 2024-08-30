@@ -74,6 +74,7 @@ public slots:
 	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin);
 
 private:
+	void toneMapping();
 	QString generateReport(bool full);
 	void sendReport(QString report);
 	bool set1to1LUT();

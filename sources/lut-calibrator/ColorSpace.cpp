@@ -127,6 +127,15 @@ namespace ColorSpaceMath
 			srgb_linear_to_nonlinear(input[2]));
 	}
 
+	double3 from_BT2020_to_BT709(double3 a)
+	{
+		double3 b;
+		b.x = 1.6605 * a.x - 0.5876 * a.y - 0.0728 * a.z;
+		b.y = -0.1246 * a.x + 1.1329 * a.y - 0.0083 * a.z;
+		b.z = -0.0182 * a.x - 0.1006 * a.y + 1.1187 * a.z;
+		return b;
+	}
+
 	double PQ_ST2084(double scale, double  nonlinear)
 	{
 		// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp

@@ -375,14 +375,14 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	}
 }
 
-/*
+
 struct MappingPrime {
-	TEST_COLOR_ID prime;
+	byte3 prime;
 	double3 org;
 	double3 real;
 	double3 delta{};
 };
-
+/*
 double3 acesToneMapping(double3 input)
 {
 	const double3x3 aces_input_matrix =
@@ -431,7 +431,7 @@ double3 uncharted2_filmic(double3 v)
 	double3 W = double3(11.2f);
 	double3 white_scale = double3(1.0f) / uncharted2_tonemap_partial(W);
 	return curr * white_scale;
-}
+}*/
 
 void doToneMapping(std::list<MappingPrime>& m, double3& p)
 {
@@ -449,43 +449,40 @@ void doToneMapping(std::list<MappingPrime>& m, double3& p)
 			double chromaCurrentAsp = clamp(a.y / current.real.y, 0.0, 1.0);
 			a.y += prop * last.delta.y * chromaLastAsp + (1 - prop) * current.delta.y * chromaCurrentAsp;
 			a.z += prop * last.delta.z + (1 - prop) * current.delta.z;
+			
 			p = from_XYZ_to_sRGB(lch_to_xyz(a) / 100.0);
 			return;
 		}	
 }
 
-std::list<MappingPrime> LutCalibrator::toneMapping()
+void LutCalibrator::toneMapping()
 {
+	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
 	std::list<MappingPrime> m = {
-		{ TEST_COLOR_ID::GREEN, {}, {} },
-		{ TEST_COLOR_ID::GREEN_BLUE, {}, {} },
-		{ TEST_COLOR_ID::BLUE, {}, {} },
-		{ TEST_COLOR_ID::RED_BLUE, {}, {} },
-		{ TEST_COLOR_ID::RED, {}, {} },
-		{ TEST_COLOR_ID::RED_GREEN, {}, {} },
-		{ TEST_COLOR_ID::RED_GREEN2, {}, {} },
-		{ TEST_COLOR_ID::GREEN_BLUE2, {}, {} },
-		{ TEST_COLOR_ID::RED_BLUE2, {}, {} },
-		{ TEST_COLOR_ID::RED2_GREEN, {}, {} },
-		{ TEST_COLOR_ID::GREEN2_BLUE, {}, {} },
-		{ TEST_COLOR_ID::RED2_BLUE, {}, {} }
+		{ /* GREEN       */ {0       ,SCALE   ,0       }, {}, {} },
+		{ /* GREEN_BLUE  */ {0       ,SCALE   ,SCALE   }, {}, {} },
+		{ /* BLUE        */ {0       ,0       ,SCALE   }, {}, {} },
+		{ /* RED_BLUE    */ {SCALE   ,0       ,SCALE   }, {}, {} },
+		{ /* RED         */ {SCALE   ,0       ,0       }, {}, {} },
+		{ /* RED_GREEN   */ {SCALE   ,SCALE   ,0       }, {}, {} },
+		{ /* RED_GREEN2  */ {SCALE   ,SCALE/2 ,0       }, {}, {} },
+		{ /* GREEN_BLUE2 */ {0       ,SCALE   ,SCALE/2 }, {}, {} },
+		{ /* RED_BLUE2   */ {SCALE   ,0       ,SCALE/2 }, {}, {} },
+		{ /* RED2_GREEN  */ {SCALE/2 ,SCALE   ,0       }, {}, {} },
+		{ /* GREEN2_BLUE */ {0       ,SCALE/2 ,SCALE   }, {}, {} },
+		{ /* RED2_BLUE   */ {SCALE/2 ,0       ,SCALE   }, {}, {} },
 	};
 
 	for (auto& c : m)
 	{
-		auto a = to_double3(TEST_COLORS.at(c.prime).first) / 255.0;
+		auto sample = _capturedColors->all[c.prime.x][c.prime.y][c.prime.z];
+		auto a = to_double3(sample.getSourceRGB()) / 255.0;
 		c.org = xyz_to_lch(from_sRGB_to_XYZ(a) * 100.0);		
 
-		int average = 0;
-		for (int index = COLOR_DIVIDES - 1; index >= 0; index--)
-		{
-			auto b = calibration.results[c.prime][0].outputNormRGB;
-			c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
-			c.delta += c.org - c.real;
-			average++;
-		}
 
-		c.delta /= average;
+		auto b = to_double3(sample.getFinalRGB()) / 255.0;
+		c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
+		c.delta = c.org - c.real;
 	}
 	m.sort([](const MappingPrime& a, const MappingPrime& b) { return a.real.z > b.real.z; });
 
@@ -502,22 +499,24 @@ std::list<MappingPrime> LutCalibrator::toneMapping()
 
 	QStringList info, intro;
 	info.append("Primaries in LCH colorspace");
-	info.append("name,      RGB primary in LCH,     captured primary in LCH       |  primary RGB, captured RGB  |   average LCH delta       |  LCH to RGB way back ");
+	info.append("name,      RGB primary in LCH,     captured primary in LCH       |  primary RGB  |   average LCH delta       |  LCH to RGB way back ");
 	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	for (auto& c : m)
+	for (const auto& c : m)
 	{
+		auto sample = _capturedColors->all[c.prime.x][c.prime.y][c.prime.z];
 		auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
 		auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
-		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7 %8").arg(TEST_COLORS.at(c.prime).second + ":", 12).
+		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7 %8").arg(vecToString(sample.getSourceRGB()), 12).
 											arg(vecToString(c.org)).
 											arg(vecToString(c.real)).
-											arg(vecToString(TEST_COLORS.at(c.prime).first)).
-											arg(vecToString(to_byte3(calibration.results[c.prime][0].outputRGB))).
+											arg(vecToString(sample.getSourceRGB()), 12).
 											arg(vecToString(c.delta)).
 											arg(vecToString(to_byte3(aa))).
 											arg(vecToString(to_byte3(bb))));
 											
 	}
+
+	
 	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
 	info.append("");
 	info.append("");
@@ -525,33 +524,32 @@ std::list<MappingPrime> LutCalibrator::toneMapping()
 	info.append("         Source sRGB color => captured => Rec.2020 processing => LCH final correction");
 	info.append("-------------------------------------------------------------------------------------------------");
 
-	for (auto& c : calibration.results)
-	{
-		bool firstLine = true;
-		for (auto& p : calibration.results[c.first])
-		{
-			auto r = p.outputNormRGB;
+	for (int r = 0; r < SCREEN_COLOR_DIMENSION; r+=4)
+		for (int g = 0; g < SCREEN_COLOR_DIMENSION; g+=4)
+			for (int b = 0; b < SCREEN_COLOR_DIMENSION; b+=4)
+			{
+				bool firstLine = true;
+				auto sample = _capturedColors->all[r][g][b];
 
-			doToneMapping(m, r);
+				auto r = to_double3(sample.getFinalRGB()) / 255.0;
 
-			p.outputRGB = r * 255.0;
+				doToneMapping(m, r);
 
-			if (std::exchange(firstLine, false))
-				info.append(QString("%1: %2 => %3 => %4 => %5").
-					arg(TEST_COLORS.at(c.first).second + ":", 12).
-					arg(vecToString(TEST_COLORS.at(c.first).first)).
-					arg(vecToString(to_byte3(p.inputRGB * 255))).
-					arg(vecToString(to_byte3(p.outputNormRGB * 255))).
-					arg(vecToString(to_byte3(p.outputRGB)))
-				);
-		}
-	}
+				auto corrected = r * 255.0;
+
+				//if (std::exchange(firstLine, false))
+					info.append(QString("%1 => %2 => %3").
+						arg(vecToString(sample.getSourceRGB())).
+						arg(vecToString(sample.getFinalRGB())).
+						arg(vecToString(to_byte3(corrected)))
+					);
+				
+			}
+	
 	info.append("-------------------------------------------------------------------------------------------------");
 	sendReport(info.join("\r\n"));
-
-	return m;
 }
-*/
+
 
 void LutCalibrator::tryHDR10()
 {
