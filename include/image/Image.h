@@ -2,6 +2,8 @@
 
 #include <image/ImageData.h>
 
+enum class PixelFormat;
+
 template <typename ColorSpace>
 class Image
 {
@@ -36,6 +38,10 @@ public:
 
 	ColorSpace& operator()(unsigned x, unsigned y);
 
+	void setOriginFormat(PixelFormat pf);
+
+	PixelFormat getOriginFormat() const;
+
 	void resize(unsigned width, unsigned height);
 
 	uint8_t* rawMem();
@@ -49,5 +55,6 @@ public:
 	bool save(const char* filename) const;
 
 private:
+	PixelFormat	_pixelFormat;
 	std::shared_ptr<ImageData<ColorSpace>> _sharedData;
 };

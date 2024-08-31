@@ -70,6 +70,7 @@ void FrameDecoder::processImage(
 	int outputHeight = (height - _cropTop - _cropBottom);
 
 	outputImage.resize(outputWidth, outputHeight);
+	outputImage.setOriginFormat(pixelFormat);
 
 	uint8_t* destMemory = outputImage.rawMem();
 	int 		destLineSize = outputImage.width() * 3;

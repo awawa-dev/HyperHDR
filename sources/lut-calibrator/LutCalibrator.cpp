@@ -356,6 +356,13 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 		return;
 	}
 
+	auto pixelFormat = image.getOriginFormat();
+	if (pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::MJPEG && pixelFormat != PixelFormat::YUYV)
+	{
+		error("Only NV12/MJPEG/YUYV video format for the USB grabber and NV12 for the flatbuffers source are supported for the LUT calibration.");
+		return;
+	}
+
 	int boardIndex = -1;
 
 	if (!parseBoard(_log, image, boardIndex, (*_capturedColors.get())))
@@ -638,10 +645,9 @@ void LutCalibrator::tryHDR10()
 	
 	for (int coef = YuvConverter::YUV_COEFS::FCC; coef <= YuvConverter::YUV_COEFS::BT2020; coef++)
 	{
-
-		capturedPrimariesCorrection(nits, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
-
 		for (int nitsTest = nits - 30; nitsTest <= nits + 30; nitsTest += 5)
+		{
+			capturedPrimariesCorrection(nitsTest, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 			for (int tryBt2020Range = 0; tryBt2020Range < 2; tryBt2020Range++)
 				for (int altConvert = 0; altConvert < 2; altConvert++)
 				{
@@ -658,6 +664,7 @@ void LutCalibrator::tryHDR10()
 						bestResult.altConvert = altConvert;
 					}
 				}
+		}
 	}
 
 	capturedPrimariesCorrection(bestResult.nits, bestResult.coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
