@@ -641,7 +641,7 @@ void LutCalibrator::tryHDR10()
 
 		capturedPrimariesCorrection(nits, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 
-		for (int nitsTest = nits - 10; nitsTest <= nits + 60; nitsTest +=5)
+		for (int nitsTest = nits - 30; nitsTest <= nits + 30; nitsTest += 5)
 			for (int tryBt2020Range = 0; tryBt2020Range < 2; tryBt2020Range++)
 				for (int altConvert = 0; altConvert < 2; altConvert++)
 				{
@@ -785,7 +785,7 @@ void LutCalibrator::calibrate()
 
 
 
-/*
+
 double LutCalibrator::getError(const byte3& first, const byte3& second)
 {
 	
@@ -899,18 +899,18 @@ double LutCalibrator::getError(const byte3& first, const byte3& second)
 		errorG = 0;
 		errorB = 2 * 100.0 * qAbs(1 - 2 * second[2] / second[0]);
 	}
-	else if (first[1] > 0 && first[2] == first[1] && first[0] == first[1])
+	/*else if (first[1] > 0 && first[2] == first[1] && first[0] == first[1])
 	{
 		errorR = 200 * (first[0] - second[0]);
 		errorB = 200 * (first[1] - second[1]);
 		errorG = 200 * (first[2] - second[2]);
-	}
+	}*/
 
 	return std::pow(errorR, 2) + std::pow(errorG, 2) + std::pow(errorB, 2);
 
-}*/
+}
 
-
+/*
 double LutCalibrator::getError(const byte3& first, const byte3& second)
 {
 
@@ -1034,7 +1034,7 @@ double LutCalibrator::getError(const byte3& first, const byte3& second)
 	return std::pow(errorR, 2) + std::pow(errorG, 2) + std::pow(errorB, 2);
 
 }
-
+*/
 
 
 void LutCalibrator::capturedPrimariesCorrection(double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected)
