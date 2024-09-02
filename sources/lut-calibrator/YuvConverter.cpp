@@ -39,6 +39,13 @@ double3 YuvConverter::toRgb(COLOR_RANGE range, YUV_COEFS coef, const double3& in
 	return double3(ret.x, ret.y, ret.z);
 }
 
+double3 YuvConverter::multiplyColorMatrix(double4x4 matrix, const double3& input) const
+{
+	double4 ret(input, 1);
+	ret = mul(matrix, ret);
+	return double3(ret.x, ret.y, ret.z);
+}
+
 double3 YuvConverter::toYuvBT709(COLOR_RANGE range, const double3& input) const
 {
 	double4 ret(input, 1);
@@ -46,7 +53,7 @@ double3 YuvConverter::toYuvBT709(COLOR_RANGE range, const double3& input) const
 	return double3(ret.x, ret.y, ret.z);
 }
 
-QString YuvConverter::coefToString(YUV_COEFS cf)
+QString YuvConverter::coefToString(YUV_COEFS cf) const
 {
 	switch (cf)
 	{
@@ -95,6 +102,68 @@ YuvConverter::YuvConverter()
 			}
 		}
 }
+
+double2 YuvConverter::getCoef(YUV_COEFS cf)
+{
+	return knownCoeffs.at(cf);
+}
+
+byte3 YuvConverter::yuv_to_rgb(YUV_COEFS coef, COLOR_RANGE range, const byte3& input) const
+{
+	byte3 output;
+	auto cf = knownCoeffs.at(coef);
+
+	const double Kr = cf.x;
+	const double Kb = cf.y;
+	const double Kg = 1.0 - Kr - Kb;
+
+	int x = std::max(std::min(235, (int) input.x), 16);
+	int y = std::max(std::min(240, (int) input.y), 16);
+	int z = std::max(std::min(240, (int) input.z), 16);
+
+	if (range == COLOR_RANGE::LIMITED)
+	{
+		output.x = (255.0 / 219.0) * x + (255.0 / 112) * z * (1 - Kr) - (255.0 * 16.0 / 219 + 255.0 * 128.0 / 112.0 * (1 - Kr));
+		output.y = (255.0 / 219.0) * x - (255.0 / 112) * y * (1 - Kb) * Kb / Kg - (255.0 / 112.0) * z * (1 - Kr) * Kr / Kg
+			- (255.0 * 16.0 / 219.0 - 255.0 / 112.0 * 128.0 * (1 - Kb) * Kb / Kg - 255.0 / 112.0 * 128.0 * (1 - Kr) * Kr / Kg);
+		output.z = (255.0 / 219.0) * x + (255.0 / 112.0) * y * (1 - Kb) - (255.0 * 16 / 219.0 + 255.0 * 128.0 / 112.0 * (1 - Kb));
+	}
+	else
+	{
+		output.x = x + 2 * (z - 128) * (1 - Kr);
+		output.y = x - 2 * (y - 128) * (1 - Kb) * Kb / Kg - 2 * (z - 128) * (1 - Kr) * Kr / Kg;
+		output.z = x + 2 * (y - 128) * (1 - Kb);
+	}
+	return output;
+}
+
+double4x4 YuvConverter::create_yuv_to_rgb_matrix(COLOR_RANGE range, double Kr, double Kb) const
+{
+	const double Kg = 1.0 - Kr - Kb;
+	const double Cr = 0.5 / (1.0 - Kb);
+	const double Cb = 0.5 / (1.0 - Kr);
+
+	double scaleY = 1.0, addY = 0.0, scaleUV = 1.0, addUV = 128 / 255.0;
+
+	if (range == COLOR_RANGE::LIMITED)
+	{
+		scaleY = 219 / 255.0;
+		addY = 16 / 255.0;
+		scaleUV = 224 / 255.0;
+	}
+
+	double4 c1(Kr * scaleY, -Kr * Cr * scaleUV, (1 - Kr) * Cb * scaleUV, 0);
+	double4 c2(Kg * scaleY, -Kg * Cr * scaleUV, -Kg * Cb * scaleUV, 0);
+	double4 c3(Kb * scaleY, (1 - Kb) * Cr * scaleUV, -Kb * Cb * scaleUV, 0);
+	double4 c4(addY, addUV, addUV, 1);
+
+	double4x4 rgb2yuvMatrix(c1, c2, c3, c4);
+
+	double4x4 yuv2rgbMatrix = inverse(rgb2yuvMatrix);
+
+	return yuv2rgbMatrix;
+}
+
 
 QString YuvConverter::toString()
 {

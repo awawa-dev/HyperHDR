@@ -29,10 +29,21 @@
 #include <lut-calibrator/CapturedColor.h>
 #include <lut-calibrator/BoardUtils.h>
 
+byte3  CapturedColor::totalMinYUV, CapturedColor::totalMaxYUV;
+
+void CapturedColor::resetTotalRange()
+{
+	totalMinYUV = { 255, 255, 255 };
+	totalMaxYUV = { 0,0,0 };
+}
+
 bool CapturedColor::calculateFinalColor()
 {
 	if (count == 0 || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
 		return false;
+
+	totalMinYUV = { std::min(totalMinYUV.x, min.x), std::min(totalMinYUV.y, min.y), std::min(totalMinYUV.z, min.z) };
+	totalMaxYUV = { std::max(totalMaxYUV.x, max.x), std::max(totalMaxYUV.y, max.y), std::max(totalMaxYUV.z, max.z) };
 
 	colorInt = byte3(color / count);
 	if (colorInt.y >= 127 && colorInt.y <= 129 && colorInt.z >= 127 && colorInt.z <= 129)
@@ -50,21 +61,31 @@ void CapturedColor::addColor(ColorRgb i)
 {
 	color += double3(i.red, i.green, i.blue);
 
-	if (count == 0 || color.x > i.red)
+	if (count == 0 || min.x > i.red)
 		min.x = i.red;
-	if (count == 0 || color.y > i.green)
+	if (count == 0 || min.y > i.green)
 		min.y = i.green;
-	if (count == 0 || color.z > i.blue)
+	if (count == 0 || min.z > i.blue)
 		min.z = i.blue;
 
-	if (count == 0 || color.x < i.red)
+	if (count == 0 || max.x < i.red)
 		max.x = i.red;
-	if (count == 0 || color.y < i.green)
+	if (count == 0 || max.y < i.green)
 		max.y = i.green;
-	if (count == 0 || color.z < i.blue)
+	if (count == 0 || max.z < i.blue)
 		max.z = i.blue;
 
 	count++;
+}
+
+byte3 CapturedColor::getMaxYUV()
+{
+	return totalMaxYUV;
+}
+
+byte3 CapturedColor::getMinYUV()
+{
+	return totalMinYUV;
 }
 
 

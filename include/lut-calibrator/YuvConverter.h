@@ -52,11 +52,15 @@ public:
 				{YUV_COEFS::BT2020,   {0.2627, 0.0593} }
 	};
 
+	double3 multiplyColorMatrix(double4x4 matrix, const double3& input) const;
 	double3 toRgb(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const;
 	double3 toYuvBT709(COLOR_RANGE range, const double3& input) const;
-	QString coefToString(YUV_COEFS cf);
+	QString coefToString(YUV_COEFS cf) const;
 	YuvConverter();
 	QString toString();
+	double2 getCoef(YUV_COEFS cf);
+	byte3 yuv_to_rgb(YUV_COEFS coef, COLOR_RANGE range, const byte3& input) const;
+	double4x4 create_yuv_to_rgb_matrix(COLOR_RANGE range, double Kr, double Kb) const;
 
 private:
 	std::map<COLOR_RANGE, std::map<YUV_COEFS, double4x4>> yuv2rgb;

@@ -46,8 +46,10 @@ private:
 	byte3 sourceRGB;
 	double3 sourceRgb;
 	byte3 finalRGB;
-	double3	color, min, max;
+	double3	color;
+	byte3 min, max;
 	byte3 colorInt;
+	static byte3 totalMinYUV, totalMaxYUV;
 
 	int count = 0;
 
@@ -70,6 +72,9 @@ public:
 	byte3 getSourceRGB() const;
 	void setFinalRGB(double3 _color);
 	byte3 getFinalRGB() const;
+	static byte3 getMaxYUV();
+	static byte3 getMinYUV();
+	static void resetTotalRange();
 
 	QString toString();
 };

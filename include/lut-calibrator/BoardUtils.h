@@ -74,7 +74,7 @@ namespace BoardUtils
 		YuvConverter::COLOR_RANGE _range = YuvConverter::COLOR_RANGE::UNKNOWN;
 
 	public:
-		CapturedColors() = default;
+		CapturedColors() { CapturedColor::resetTotalRange(); };
 
 		std::vector<std::vector<std::vector<CapturedColor>>> all = std::vector(BoardUtils::SCREEN_COLOR_DIMENSION,
 			std::vector<std::vector<CapturedColor>>(BoardUtils::SCREEN_COLOR_DIMENSION,

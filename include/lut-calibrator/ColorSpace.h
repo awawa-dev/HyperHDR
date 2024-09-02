@@ -40,7 +40,7 @@ using namespace aliases;
 
 namespace ColorSpaceMath
 {
-	enum PRIMARIES { SRGB = 0 };
+	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };
 
 	constexpr mat<double, 3, 3> matrix(std::array<double, 9> m)
 	{
@@ -70,6 +70,8 @@ namespace ColorSpaceMath
 				0.2126729,	0.7151522,	0.0721750,
 				0.0193339,	0.1191920,	0.9503041
 		});
+
+	mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary);
 
 	double3 bt2020_nonlinear_to_linear(double3 input);
 

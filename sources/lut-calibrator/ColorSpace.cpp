@@ -32,14 +32,32 @@ using namespace aliases;
 
 namespace ColorSpaceMath
 {
-	const std::map<PRIMARIES, std::vector<double3>> knownPrimaries = {
+	const std::map<PRIMARIES, std::vector<double2>> knownPrimaries = {
 				{
 					PRIMARIES::SRGB,
 					{
-						{ 0.6400, 0.3300, 0.2126 },
-						{ 0.3000, 0.6000, 0.7152 },
-						{ 0.1500, 0.0600, 0.0722 },
-						{ 0.3127, 0.3290, 1.0000 }
+						{ 0.6400, 0.3300 },
+						{ 0.3000, 0.6000 },
+						{ 0.1500, 0.0600 },
+						{ 0.3127, 0.3290 }
+					}
+				},
+				{
+					PRIMARIES::BT_2020,
+					{
+						{ 0.708, 0.292 },  
+						{ 0.170, 0.797 },
+						{ 0.131, 0.046 },
+						{ 0.3127, 0.3290 }
+					}
+				},
+				{
+					PRIMARIES::WIDE_GAMMUT,
+					{
+						{ 0.7350, 0.2650 },
+						{ 0.1150, 0.8260 },
+						{ 0.1570, 0.0180 },
+						{ 0.3127, 0.3290 }
 					}
 				}
 	};
@@ -136,26 +154,33 @@ namespace ColorSpaceMath
 		return b;
 	}
 
+	linalg::mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary)
+	{
+		const auto& primaries = knownPrimaries.at(primary);
+		return to_XYZ(primaries[0], primaries[1], primaries[2], primaries[3]);
+	}
+
 	double PQ_ST2084(double scale, double  nonlinear)
 	{
-		// https://github.com/sekrit-twc/zimg/blob/master/src/zimg/colorspace/gamma.cpp
-
-		constexpr double ST2084_M1 = 0.1593017578125;
-		constexpr double ST2084_M2 = 78.84375;
-		constexpr double ST2084_C1 = 0.8359375;
-		constexpr double ST2084_C2 = 18.8515625;
-		constexpr double ST2084_C3 = 18.6875;
+		constexpr double M1 = (2610.0 / 16384.0);
+		constexpr double M2 = (2523.0 / 4096.0 ) * 128.0;
+		constexpr double C1 = (3424.0 / 4096.0);
+		constexpr double C2 = (2413.0 / 4096.0) * 32.0;
+		constexpr double C3 = (2392.0 / 4096.0) * 32.0;
 
 		if (nonlinear > 0.0)
 		{
-			double xpow = std::pow(nonlinear, 1.0 / ST2084_M2);
-			double num = std::max(xpow - ST2084_C1, 0.0);
-			double den = std::max(ST2084_C2 - ST2084_C3 * xpow, DBL_MIN);
-			nonlinear = std::pow(num / den, 1.0 / ST2084_M1);
+			double xpow = std::pow(nonlinear, 1.0 / M2);
+			double num = std::max(xpow - C1, 0.0);
+			double den = std::max(C2 - C3 * xpow, DBL_MIN);
+			nonlinear = std::pow(num / den, 1.0 / M1);
 		}
-		else {
-			nonlinear = 0.0;
+		else if (nonlinear < 0.0)
+		{
+			return -PQ_ST2084(scale, -nonlinear);
 		}
+		else
+			return 0;
 
 		return scale * nonlinear;
 	}
