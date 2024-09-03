@@ -513,7 +513,7 @@ void LutCalibrator::toneMapping()
 		auto sample = _capturedColors->all[c.prime.x][c.prime.y][c.prime.z];
 		auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
 		auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
-		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7 %8").arg(vecToString(sample.getSourceRGB()), 12).
+		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7").arg(vecToString(sample.getSourceRGB()), 12).
 											arg(vecToString(c.org)).
 											arg(vecToString(c.real)).
 											arg(vecToString(sample.getSourceRGB()), 12).
@@ -538,21 +538,21 @@ void LutCalibrator::toneMapping()
 				bool firstLine = true;
 				auto sample = _capturedColors->all[r][g][b];
 
-				auto r = to_double3(sample.getFinalRGB()) / 255.0;
 
-				doToneMapping(m, r);
 
-				auto corrected = r * 255.0;
+				auto correct = to_double3(sample.getFinalRGB()) / 255.0;
+
+				doToneMapping(m, correct);
+
+				auto corrected = to_byte3(correct * 255.0);
 
 				//if (std::exchange(firstLine, false))
 					info.append(QString("%1 => %2 => %3").
 						arg(vecToString(sample.getSourceRGB())).
 						arg(vecToString(sample.getFinalRGB())).
-						arg(vecToString(to_byte3(corrected)))
-					);
-				
-			}
-	
+						arg(vecToString(corrected))
+					);								
+			}	
 	info.append("-------------------------------------------------------------------------------------------------");
 	sendReport(info.join("\r\n"));
 }
@@ -582,17 +582,20 @@ void LutCalibrator::tryHDR10()
 
 	struct {
 		YuvConverter::YUV_COEFS coef = YuvConverter::YUV_COEFS::FCC;
-		int nits = 200;
+		double2 coefDelta;
 		double3 aspect;
 		bool bt2020Range = false;
 		bool altConvert = false;;
 	} bestResult;
 
-	auto scoreBoard = [this](bool testOnly, int coef, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& convert_bt2020_to_XYZ, const double3x3& convert_XYZ_to_sRgb, const double& minError, double& currentError) {
+	auto scoreBoard = [this](bool testOnly, int coef, double2 coefDelta, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& convert_bt2020_to_XYZ, const double3x3& convert_XYZ_to_sRgb, const double& minError, double& currentError) {
+		auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + coefDelta;
+		auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
+		
 		for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 			for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
 				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
-					if (!testOnly || (r % 4 == 0 && g % 4 == 0 && b % 4 == 0) || (r == g && g == b))
+					if (!testOnly || ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) && (r != g || g != b || r == SCREEN_COLOR_DIMENSION - 2)))
 					{
 						auto& sample = _capturedColors->all[r][g][b];
 						auto yuv = sample.yuv();
@@ -604,7 +607,7 @@ void LutCalibrator::tryHDR10()
 							yuv.z = (yuv.z - 0.5) * aspect.z + 0.5;
 						}
 
-						auto a = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::YUV_COEFS(coef), yuv);
+						auto a = _yuvConverter->multiplyColorMatrix(coefMatrix,yuv);
 
 						auto e = PQ_ST2084(10000.0 / nits, a);
 
@@ -650,40 +653,80 @@ void LutCalibrator::tryHDR10()
 					}
 		};	
 
-	
-	for (int coef = YuvConverter::YUV_COEFS::FCC; coef <= YuvConverter::YUV_COEFS::BT2020; coef++)
+
+	int coefStarter = YuvConverter::YUV_COEFS::FCC;
+	int coefEnd = YuvConverter::YUV_COEFS::BT2020;
+	double aspectXStarter = 0.95;
+	double aspectYStarter = 0.95;
+	double aspectZStarter = 0.95;
+	double aspectXEnd = 1.1;
+	double aspectYEnd = 1.1;
+	double aspectZEnd = 1.1;
+	double aspectDeltaX = 0.025,aspectDeltaY = 0.025,aspectDeltaZ = 0.025;
+	double krDeltaStart = -0.015, krDeltaEnd = 0.015;
+	double kbDeltaStart = -0.015, kbDeltaEnd = 0.015;
+	int tryBt2020RangeStarter = 0, tryBt2020RangeEnd = 1;
+	int altConvertStarter = 0, altConvertEnd = 1;
+
+	for (int i = 0; i < 2; i++)
 	{
-		capturedPrimariesCorrection(nits, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
+		
+		for (int coef = coefStarter; coef <= coefEnd; coef++)
+		{
+			capturedPrimariesCorrection(nits, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 
-		for (double aspectX = 0.95; aspectX <= 1.1; aspectX += 0.0025)
-			for(double aspectY = 0.95; aspectY <= 1.1; aspectY += 0.0025)
-				for (double aspectZ = 0.95; aspectZ <= 1.1; aspectZ += 0.0025)					
-					for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
-						for (int altConvert = 0; altConvert <= 1; altConvert++)
-						{
-							currentError = 0;
+			for (double krDelta = krDeltaStart; krDelta <= krDeltaEnd; krDelta += 0.001)
+				for (double kbDelta = kbDeltaStart; kbDelta <= kbDeltaEnd; kbDelta += 0.001)
+					for (double aspectX = aspectXStarter; aspectX <= aspectXEnd; aspectX += aspectDeltaX)
+						for (double aspectY = aspectYStarter; aspectY <= aspectYEnd; aspectY += aspectDeltaY)
+							for (double aspectZ = aspectZStarter; aspectZ <= aspectZEnd; aspectZ += aspectDeltaZ)
+								for (int tryBt2020Range = tryBt2020RangeStarter; tryBt2020Range <= tryBt2020RangeEnd; tryBt2020Range++)
+									for (int altConvert = altConvertStarter; altConvert <= altConvertEnd; altConvert++)
+									{
+										currentError = 0;
 
-							scoreBoard(true, coef, nits, double3(aspectX, aspectY, aspectZ), tryBt2020Range, altConvert, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, minError, currentError);
+										scoreBoard(true, coef, double2(krDelta, kbDelta), nits, double3(aspectX, aspectY, aspectZ), tryBt2020Range, altConvert, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, minError, currentError);
 
-							if (currentError < minError)
-							{
-								minError = currentError;
-								bestResult.coef = YuvConverter::YUV_COEFS(coef);
-								bestResult.bt2020Range = tryBt2020Range;
-								bestResult.altConvert = altConvert;
-								bestResult.aspect = double3(aspectX, aspectY, aspectZ);
+										if (currentError < minError)
+										{
+											minError = currentError;
+											bestResult.coef = YuvConverter::YUV_COEFS(coef);
+											bestResult.coefDelta = double2(krDelta, kbDelta);
+											bestResult.bt2020Range = tryBt2020Range;
+											bestResult.altConvert = altConvert;
+											bestResult.aspect = double3(aspectX, aspectY, aspectZ);
+										}
+									}
 
-							}
-						}
-					
+		}
+
+		coefStarter = coefEnd = bestResult.coef;
+		aspectXStarter = std::max(bestResult.aspect.x - 0.05, 0.95);
+		aspectYStarter = std::max(bestResult.aspect.y - 0.05, 0.95);
+		aspectZStarter = std::max(bestResult.aspect.z - 0.05, 0.95);
+		aspectXEnd = std::min(bestResult.aspect.x + 0.05, 1.1);
+		aspectYEnd = std::min(bestResult.aspect.y + 0.05, 1.1);
+		aspectZEnd = std::min(bestResult.aspect.z + 0.05, 1.1);
+
+		aspectDeltaX = (aspectXEnd - aspectXStarter) / 50;
+		aspectDeltaY = (aspectYEnd - aspectYStarter) / 50;
+		aspectDeltaZ = (aspectZEnd - aspectZStarter) / 50;
+
+		krDeltaStart = krDeltaEnd = bestResult.coefDelta.x;
+		kbDeltaStart = kbDeltaEnd = bestResult.coefDelta.y;
+
+		tryBt2020RangeStarter = tryBt2020RangeEnd = bestResult.bt2020Range;
+
+		altConvertStarter = altConvertEnd = bestResult.altConvert;		
 	}
 
 	capturedPrimariesCorrection(nits, bestResult.coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
-	scoreBoard(false, bestResult.coef, nits, bestResult.aspect, bestResult.bt2020Range, bestResult.altConvert, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, minError, currentError);
+	scoreBoard(false, bestResult.coef, bestResult.coefDelta, nits, bestResult.aspect, bestResult.bt2020Range, bestResult.altConvert, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, minError, currentError);
 
-	Debug(_log, "Score: %f", minError);
+	Debug(_log, "Score: %f", minError / 10.0);
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult.coef)));
-	Debug(_log, "Selected nits: %i", bestResult.nits);
+	Debug(_log, "selected coef delta: %f %f", bestResult.coefDelta.x, bestResult.coefDelta.y);
+	Debug(_log, "Selected nits: %f", nits);
 	Debug(_log, "selected bt2020 range: %i", bestResult.bt2020Range);
 	Debug(_log, "selected alt convert: %i", bestResult.altConvert);
 	Debug(_log, "selected aspect: %f %f %f", bestResult.aspect.x, bestResult.aspect.y, bestResult.aspect.z);
@@ -851,34 +894,43 @@ double LutCalibrator::getError(const byte3& first, const byte3& second)
 		else if (first[2] == 128)
 			errorB = (128.0 - second[2]);
 	}
-	else if (first[0] == 255 && first[1] == 255 && first[2] == 0)
+
+	else if (first[0] == first[1] && (first[1] == 255 || first[1] == 128) && first[2] == 0)
 	{
 		if (second[0] <= 1)
 			return std::pow(255, 2) * 3;
 
-		errorR = (double)second[0] - second[1];
-		errorG = (double)second[0] - second[1];
-		errorB = 2 * 100.0 * second[2] / second[0];
+		errorR = ((double)second[0] - second[1]);
+		errorG = second[2];
+		if (first[1] == 255)
+			errorB = std::abs(255.0 - second[1]) + std::abs(255.0 - second[0]);
+		else if (first[1] == 128)
+			errorB = std::abs(128.0 - second[1]) + std::abs(128.0 - second[0]);
 	}
-	else if (first[0] == 255 && first[1] == 0 && first[2] == 255)
+	else if (first[0] == first[2] && (first[2] == 255 || first[2] == 128) && first[1] == 0)
 	{
 		if (second[0] <= 1)
 			return std::pow(255, 2) * 3;
 
-		errorR = (double)second[0] - second[2];
-		errorG = 2 * 100.0 * second[1] / second[0];
-		errorB = (double)second[0] - second[2];
+		errorR = ((double)second[0] - second[2]);
+		errorG = second[1];
+		if (first[2] == 255)
+			errorB = std::abs(255.0 - second[2]) + std::abs(255.0 - second[0]);
+		else if (first[2] == 128)
+			errorB = std::abs(128.0 - second[2]) + std::abs(128.0 - second[0]);
 	}
-	else if (first[0] == 0 && first[1] == 255 && first[2] == 255)
+	else if (first[1] == first[2] && (first[1] == 255 || first[1] == 128) && first[0] == 0)
 	{
 		if (second[2] <= 1)
 			return std::pow(255, 2) * 3;
 
-		errorR = 2 * 100.0 * second[0] / second[2];
-		errorG = (double)second[1] - second[2];
-		errorB = (double)second[1] - second[2];
+		errorR = ((double)second[2] - second[1]);
+		errorG = second[0];
+		if (first[1] == 255)
+			errorB = std::abs(255.0 - second[1]) + std::abs(255.0 - second[2]);
+		else if (first[1] == 128)
+			errorB = std::abs(128.0 - second[1]) + std::abs(128.0 - second[2]);
 	}
-
 	else if (first[0] == 255 && first[1] == 255 && first[2] == 64)
 	{
 		if (second[0] <= 200 || second[1] <= 200 || second[2] < 32)
@@ -998,6 +1050,37 @@ double LutCalibrator::getError(const byte3& first, const byte3& second)
 		if (first[2] == 64)
 			errorB = (second[2] - 64.0) / 2;
 	}
+	else if ((first[0] == 255 || first[0] == 192 || first[0] == 128) &&
+			 (first[1] == 255 || first[1] == 192 || first[1] == 128) &&
+			 (first[2] == 255 || first[2] == 192 || first[2] == 128))
+	{
+		if (first[0] == 255)
+			errorR = (255.0 - second[0]);
+		else if (first[0] == 192)
+			errorR = (192.0 - second[0]);
+		else if (first[0] == 128)
+			errorR = (128.0 - second[0]);
+
+
+		if (first[1] == 255)
+			errorG = (255.0 - second[1]);
+		else if (first[1] == 192)
+			errorG = (192.0 - second[1]);
+		else if (first[1] == 128)
+			errorG = (128.0 - second[1]);
+
+		if (first[2] == 255)
+			errorB = (255.0 - second[2]);
+		else if (first[2] == 192)
+			errorB = (192.0 - second[2]);
+		else if (first[2] == 128)
+			errorB = (128.0 - second[2]);
+
+		errorR /= 4.0;
+		errorG /= 4.0;
+		errorB /= 4.0;
+
+	}
 	/*else if (first[1] > 0 && first[2] == first[1] && first[0] == first[1])
 	{
 		errorR = 200 * (first[0] - second[0]);
@@ -1008,133 +1091,6 @@ double LutCalibrator::getError(const byte3& first, const byte3& second)
 	return std::pow(errorR, 2) + std::pow(errorG, 2) + std::pow(errorB, 2);
 
 }
-
-/*
-double LutCalibrator::getError(const byte3& first, const byte3& second)
-{
-
-	double errorR = 0, errorG = 0, errorB = 0;
-
-	if ((first[0] >= 16) && first[1] == 0 && first[2] == 0)
-	{
-		if (second[0] <= 1)
-			return std::pow(first[0], 2) * 3;
-
-		errorR = 0;
-		errorG = 100.0 * second[1] / second[0];
-		errorB = 100.0 * second[2] / second[0];
-
-		if (first[0] == 255)
-			errorR += (255 - second[0]);
-	}
-	else if (first[0] == 0 && (first[1] >= 16)  && first[2] == 0)
-	{
-		if (second[1] <= 1)
-			return std::pow(first[1], 2) * 3;
-
-		errorR = 100.0 * second[0] / second[1];
-		errorG = 0;
-		errorB = 100.0 * second[2] / second[1];
-
-		if (first[1] == 255)
-			errorG += (255 - second[1]);
-	}
-	else if (first[0] == 0 && first[1] == 0 && (first[2] >= 16))
-	{
-		if (second[2] <= 1)
-			return std::pow(first[2], 2) * 3;
-
-		errorR = 100.0 * second[0] / second[2];
-		errorG = 100.0 * second[1] / second[2];
-		errorB = 0;
-
-		if (first[2] == 255)
-			errorB += (255 - second[2]);
-	}
-	else if (first[0] == 255 && first[1] == 255 && first[2] == 0)
-	{
-		if (second[0] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = second[2] * 2;
-		errorG = 0;
-		errorB = 2 * 100.0 * second[2] / second[0];
-	}
-	else if (first[0] == 255 && first[1] == 0 && first[2] == 255)
-	{
-		if (second[0] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 0;
-		errorG = 2 * 100.0 * second[1] / second[0];
-		errorB = second[1] * 2;
-	}
-	else if (first[0] == 0 && first[1] == 255 && first[2] == 255)
-	{
-		if (second[2] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 2 * 100.0 * second[0] / second[2];
-		errorG = 0;
-		errorB = second[0] * 2;
-	}
-	else if (first[0] == 255 && first[1] == 0 && first[2] == 128)
-	{
-		if (second[0] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 2 * 100.0 * qAbs(1 - 2 * second[2] / second[0]);
-		errorG = 0;
-		errorB = second[1] * 2;
-	}
-	else if (first[0] == 255 && first[1] == 128 && first[2] == 0)
-	{
-		if (second[0] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 2 * 100.0 * qAbs(1 - 2 * second[1] / second[0]);
-		errorG = 0;
-		errorB = second[2] * 2;
-	}
-	else if (first[0] == 0 && first[1] == 128 && first[2] == 255)
-	{
-		if (second[2] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 2 * 100.0 * qAbs(1 - 2 * second[1] / second[2]);
-		errorG = 0;
-		errorB = second[0] * 2;
-	}
-	else if (first[0] == 128 && first[1] == 64 && first[2] == 0)
-	{
-		if (second[0] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 0;
-		errorG = 2 * 100.0 * qAbs(1 - 2 * second[1] / second[0]);
-		errorB = second[2] * 2;
-	}
-	else if (first[0] == 128 && first[1] == 0 && first[2] == 64)
-	{
-		if (second[0] <= 1)
-			return std::pow(255, 2) * 3;
-
-		errorR = 0;
-		errorG = second[1] * 2;
-		errorB = 2 * 100.0 * qAbs(1 - 2 * second[2] / second[0]);
-	}
-	else if (first[1] > 0 && first[2] == first[1] && first[0] == first[1])
-	{
-		errorR = 200 * (first[0] - second[0]);
-		errorB = 200 * (first[1] - second[1]);
-		errorG = 200 * (first[2] - second[2]);
-	}
-
-	return std::pow(errorR, 2) + std::pow(errorG, 2) + std::pow(errorB, 2);
-
-}
-*/
-
 
 void LutCalibrator::capturedPrimariesCorrection(double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected)
 {
