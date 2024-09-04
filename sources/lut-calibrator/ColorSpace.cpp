@@ -25,6 +25,8 @@
 *  SOFTWARE.
 */
 
+#include <QList>
+#include <QStringList>
 #include <lut-calibrator/ColorSpace.h>
 
 using namespace linalg;

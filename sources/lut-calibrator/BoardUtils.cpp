@@ -385,7 +385,7 @@ namespace BoardUtils
 		}
 
 		// all is OK
-		Info(_log, "All [0 - %i] LUT test boards were tested successfully. Total small errors = %i", SCREEN_LAST_BOARD_INDEX, maxError);
+		Info(_log, "All [0 - %i] LUT test boards were tested successfully. Total small errors = %i", SCREEN_LAST_BOARD_INDEX, totalErrors);
 		return true;
 	}
 
