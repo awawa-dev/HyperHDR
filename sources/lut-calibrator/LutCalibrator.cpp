@@ -588,7 +588,7 @@ void LutCalibrator::tryHDR10()
 		bool altConvert = false;;
 	} bestResult;
 
-	auto scoreBoard = [this](bool testOnly, int coef, double2 coefDelta, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& convert_bt2020_to_XYZ, const double3x3& convert_XYZ_to_sRgb, const double& minError, double& currentError) {
+	auto scoreBoard = [this](bool testOnly, int coef, double2 coefDelta, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& bt2020_to_sRgb, const double& minError, double& currentError) {
 		auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + coefDelta;
 		auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
 		
@@ -613,23 +613,18 @@ void LutCalibrator::tryHDR10()
 
 						double3 processingXYZ, srgb;
 						if (altConvert)
-						{
-							processingXYZ = mul(convert_bt2020_to_XYZ, e);
-							srgb = mul(convert_XYZ_to_sRgb, processingXYZ);
+						{							
+							srgb = mul(bt2020_to_sRgb, e);
 						}
 						else
 						{
-							processingXYZ = from_bt2020_to_XYZ(e);
-							srgb = from_XYZ_to_sRGB(processingXYZ);
+							srgb = ColorSpaceMath::from_BT2020_to_BT709(e);
 						}
 
 						srgb = srgb_linear_to_nonlinear(srgb);
 
 						if (tryBt2020Range)
 						{
-							//auto linearBt2020 = bt2020_nonlinear_to_linear(srgb);
-							//double3 xyz = from_sRGB_to_XYZ(linearBt2020);
-							//srgb = from_XYZ_to_sRGB(xyz);
 							srgb = bt2020_nonlinear_to_linear(srgb);							
 							srgb = srgb_linear_to_nonlinear(srgb);
 						}						
@@ -674,6 +669,7 @@ void LutCalibrator::tryHDR10()
 		for (int coef = coefStarter; coef <= coefEnd; coef++)
 		{
 			capturedPrimariesCorrection(nits, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
+			auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
 
 			for (double krDelta = krDeltaStart; krDelta <= krDeltaEnd; krDelta += 0.001)
 				for (double kbDelta = kbDeltaStart; kbDelta <= kbDeltaEnd; kbDelta += 0.001)
@@ -685,7 +681,7 @@ void LutCalibrator::tryHDR10()
 									{
 										currentError = 0;
 
-										scoreBoard(true, coef, double2(krDelta, kbDelta), nits, double3(aspectX, aspectY, aspectZ), tryBt2020Range, altConvert, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, minError, currentError);
+										scoreBoard(true, coef, double2(krDelta, kbDelta), nits, double3(aspectX, aspectY, aspectZ), tryBt2020Range, altConvert, bt2020_to_sRgb, minError, currentError);
 
 										if (currentError < minError)
 										{
@@ -721,7 +717,8 @@ void LutCalibrator::tryHDR10()
 	}
 
 	capturedPrimariesCorrection(nits, bestResult.coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
-	scoreBoard(false, bestResult.coef, bestResult.coefDelta, nits, bestResult.aspect, bestResult.bt2020Range, bestResult.altConvert, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, minError, currentError);
+	auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
+	scoreBoard(false, bestResult.coef, bestResult.coefDelta, nits, bestResult.aspect, bestResult.bt2020Range, bestResult.altConvert, bt2020_to_sRgb, minError, currentError);
 
 	Debug(_log, "Score: %f", minError / 10.0);
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult.coef)));
