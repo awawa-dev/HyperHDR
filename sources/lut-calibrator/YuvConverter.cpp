@@ -25,6 +25,9 @@
 *  SOFTWARE.
 */
 
+#include <QStringList>
+#include <QList>
+#include <QString>
 #include <lut-calibrator/YuvConverter.h>
 #include <mutex>
 
