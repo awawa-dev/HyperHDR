@@ -416,12 +416,15 @@ namespace BoardUtils
 		return _range;
 	}
 
-	void CapturedColors::saveResult(const char* filename)
+	bool CapturedColors::saveResult(const char* filename)
 	{
 		std::ofstream myfile;
 		myfile.open(filename, std::ios::trunc | std::ios::out);
 
-		std::list<std::pair<const char*, const char*>> arrayMark = { {"[", "]"}, {"{", "}"} };
+		if (!myfile.is_open())
+			return false;
+
+		std::list<std::pair<const char*, const char*>> arrayMark = { {"np.array([", "])"}, {"{", "}"} };
 
 		myfile << "// Values of the table represent YUV in range [0 - 255], limited of full" << std::endl;
 		myfile << "// Each row of the " << std::to_string(SCREEN_COLOR_DIMENSION) <<"^3 table consist of the following RGB coordinates:" << std::endl << "// [ ";
@@ -461,6 +464,8 @@ namespace BoardUtils
 		}
 
 		myfile.close();
+
+		return true;
 	}
 }
 

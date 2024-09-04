@@ -221,11 +221,11 @@ QString LutCalibrator::generateReport(bool full)
 	return rep.join("\r\n");
 }
 
-void LutCalibrator::requestNextTestBoard(int nextStep)
+void LutCalibrator::notifyCalibrationFinished()
 {	
 	QJsonObject report;
 	report["status"] = 0;
-	report["validate"] = nextStep;
+	report["validate"] = -1;
 	SignalLutCalibrationUpdated(report);
 }
 
@@ -744,6 +744,16 @@ void LutCalibrator::tryHDR10()
 	Debug(_log, "selected alt convert: %i", bestResult.altConvert);
 	Debug(_log, "selected aspect: %f %f %f", bestResult.aspect.x, bestResult.aspect.y, bestResult.aspect.z);
 
+	// write report (captured raw colors)
+	QString fileLogName = QString("%1%2").arg(_rootPath).arg("/calibration_captured_yuv.txt");
+	if (_capturedColors->saveResult(QSTRING_CSTR(fileLogName)))
+	{
+		Info(_log, "Write captured colors to: %s", QSTRING_CSTR(fileLogName));
+	}
+	else
+	{
+		Error(_log, "Could not save captured colors to: %s", QSTRING_CSTR(fileLogName));
+	}
 	
 	// write LUT table
 	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d");
@@ -851,15 +861,9 @@ void LutCalibrator::calibrate()
 
 	sendReport("HDR10:\r\n" +
 		generateReport(true));
+
+	notifyCalibrationFinished();
 }
-
-
-
-
-
-
-
-
 
 double LutCalibrator::getError(const byte3& first, const byte3& second)
 {

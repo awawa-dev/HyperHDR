@@ -11,6 +11,7 @@ $(document).ready( function(){
 	  console.log(`Screen supports approximately the gamut specified by the ITU-R Recommendation BT.2020 Color Space or more.`);
 	}
 
+	let myInterval;
 	let currentTestBoard = 0;
 	let checksum = 0;
 	let finish = false;
@@ -86,29 +87,26 @@ $(document).ready( function(){
 				
 		if (json.status != 0)
 		{
+			clearInterval(myInterval);
 			document.body.style.overflow = 'visible';
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
+			resetImage();
 			alert("Error occured. Please consult the HyperHDR log.\n\n" + json.error);
 			return;
 		}
 		
 		if (json.validate < 0)
 		{
+			clearInterval(myInterval);
 			finish = true;
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
 			document.body.style.overflow = 'visible';
 			resetImage();
-		}
-		else
-		{
-			checksum = json.validate;
-			drawImage();
-			setTimeout(() => {			
-				requestLutCalibration("capture", checksum, saturation, luminance, gammaR, gammaG, gammaB);
-				}, 500);
-		}
+			alert(`Finished!\n\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
+			return;
+		}		
 	}
 		
 	function startCalibration()
@@ -250,8 +248,6 @@ $(document).ready( function(){
 		ctx.fillStyle = `rgb(${c1}, ${c2}, ${c3})`;
 		ctx.fillRect(x1, y1, (x2 - x1), (y2 - y1));
 	}
-
-	let myInterval;
 
 	function drawImage()
 	{

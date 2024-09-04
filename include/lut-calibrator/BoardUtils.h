@@ -85,6 +85,6 @@ namespace BoardUtils
 		void setCaptured(int index);
 		void setRange(YuvConverter::COLOR_RANGE range);
 		YuvConverter::COLOR_RANGE getRange();
-		void saveResult(const char* filename = "D:/result.txt");
+		bool saveResult(const char* filename = "D:/result.txt");
 	};
 };
