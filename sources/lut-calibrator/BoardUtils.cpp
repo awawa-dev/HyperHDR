@@ -30,6 +30,7 @@
 #include <utils-image/utils-image.h>
 #include <iostream>
 #include <fstream>
+#include <QFile>
 
 // YUV444
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p10:fast=0:dither=none -c:v libx265 -pix_fmt yuv444p10le -profile:v main444-10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv444_high_quality.mp4
@@ -73,7 +74,7 @@ namespace BoardUtils
 		const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
 		const int2 middle = (start + end) / 2;
 
-		if (middle.x + 1 >= yuvImage.width() || middle.y + 1 >= yuvImage.height())
+		if (middle.x + 1 >= static_cast<int>(yuvImage.width()) || middle.y + 1 >= static_cast<int>(yuvImage.height()))
 			throw std::runtime_error("Incorrect image size");
 
 		for (int x = -1; x <= 1; x++)
@@ -242,8 +243,8 @@ namespace BoardUtils
 	{
 		YuvConverter yuvConverter;
 		auto image = utils_image::load2image(filename);
-		for (int y = 0; y < image.height(); y++)
-			for (int x = 0; x < image.width(); x++)			
+		for (int y = 0; y < static_cast<int>(image.height()); y++)
+			for (int x = 0; x < static_cast<int>(image.width()); x++)
 			{
 				ColorRgb& inputRgb = image(x, y);
 				const double3 scaledRgb = double3(inputRgb.red, inputRgb.green, inputRgb.blue) / 255.0;

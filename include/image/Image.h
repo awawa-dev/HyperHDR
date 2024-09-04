@@ -55,6 +55,6 @@ public:
 	bool save(const char* filename) const;
 
 private:
-	PixelFormat	_pixelFormat;
 	std::shared_ptr<ImageData<ColorSpace>> _sharedData;
+	PixelFormat	_pixelFormat;
 };

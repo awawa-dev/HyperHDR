@@ -535,11 +535,7 @@ void LutCalibrator::toneMapping()
 		for (int g = 0; g < SCREEN_COLOR_DIMENSION; g+=4)
 			for (int b = 0; b < SCREEN_COLOR_DIMENSION; b+=4)
 			{
-				bool firstLine = true;
 				auto sample = _capturedColors->all[r][g][b];
-
-
-
 				auto correct = to_double3(sample.getFinalRGB()) / 255.0;
 
 				doToneMapping(m, correct);
