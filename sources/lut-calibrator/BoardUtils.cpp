@@ -74,7 +74,7 @@ namespace BoardUtils
 		const int2 middle = (start + end) / 2;
 
 		if (middle.x + 1 >= yuvImage.width() || middle.y + 1 >= yuvImage.height())
-			throw std::exception("Incorrect image size");
+			throw std::runtime_error("Incorrect image size");
 
 		for (int x = -1; x <= 1; x++)
 			for (int y = -1; y <= 1; y++)
@@ -83,7 +83,7 @@ namespace BoardUtils
 				color.addColor(yuvImage(pos.x, pos.y));
 			}
 		if (!color.calculateFinalColor())
-			throw std::exception("Too much noice while reading the color");
+			throw std::runtime_error("Too much noice while reading the color");
 		return color;
 	}
 
@@ -136,7 +136,7 @@ namespace BoardUtils
 		{
 			auto test = readBlock(yuvImage, int2(x, line));
 			if (test.Y() + SCREEN_MAX_CRC_BRIGHTNESS_ERROR < white.Y())
-				throw std::exception("Invalid CRC header");
+				throw std::runtime_error("Invalid CRC header");
 		}
 
 		while (true && x < SCREEN_BLOCKS_X)
@@ -176,7 +176,7 @@ namespace BoardUtils
 		{
 			boardIndex = readCrc(yuvImage, line, white);
 			if (boardIndex > SCREEN_LAST_BOARD_INDEX)
-				throw std::exception("Unexpected board");
+				throw std::runtime_error("Unexpected board");
 
 		}
 		catch (std::exception& ex)
@@ -256,13 +256,13 @@ namespace BoardUtils
 
 	void createTestBoards(const char* pattern)
 	{
-		constexpr int2 margin(3, 2);
+		const int2 margin(3, 2);
 		int maxIndex = std::pow(SCREEN_COLOR_DIMENSION, 3);
 		int boardIndex = 0;
 		Image<ColorRgb> image(1920, 1080);
 		const int2 delta(image.width() / SCREEN_BLOCKS_X, image.height() / SCREEN_BLOCKS_Y);
 
-		auto saveImage = [](Image<ColorRgb>& image, const int2& delta, int boardIndex, const char* pattern)
+		auto saveImage = [](Image<ColorRgb>& image, const int2& delta, int boardIndex, const char* pattern, int2 margin)
 			{
 				for (int line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
 				{
@@ -295,7 +295,7 @@ namespace BoardUtils
 
 			if (boardIndex != currentBoard)
 			{
-				saveImage(image, delta, boardIndex, pattern);
+				saveImage(image, delta, boardIndex, pattern, margin);
 				image.clear();
 				boardIndex = currentBoard;
 			}
@@ -305,7 +305,7 @@ namespace BoardUtils
 
 			image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.x, color.y, color.z);
 		}
-		saveImage(image, delta, boardIndex, pattern);
+		saveImage(image, delta, boardIndex, pattern, margin);
 	}
 
 	bool verifyTestBoards(Logger* _log, const char* pattern)

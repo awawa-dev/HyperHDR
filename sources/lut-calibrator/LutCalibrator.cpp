@@ -1167,7 +1167,7 @@ void LutCalibrator::capturedPrimariesCorrection(double nits, int coef, linalg::m
 
 double LutCalibrator::fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy)
 {
-	throw std::exception();
+	throw std::runtime_error("not implemented");
 
 
 	/*
