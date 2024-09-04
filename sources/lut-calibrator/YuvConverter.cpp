@@ -39,6 +39,13 @@ double3 YuvConverter::toRgb(COLOR_RANGE range, YUV_COEFS coef, const double3& in
 	return double3(ret.x, ret.y, ret.z);
 }
 
+double3 YuvConverter::toYuv(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const
+{
+	double4 ret(input, 1);
+	ret = mul(rgb2yuv.at(range).at(coef), ret);
+	return double3(ret.x, ret.y, ret.z);
+}
+
 double3 YuvConverter::multiplyColorMatrix(double4x4 matrix, const double3& input) const
 {
 	double4 ret(input, 1);
@@ -95,6 +102,8 @@ YuvConverter::YuvConverter()
 			double4x4 yuv2rgbMatrix = inverse(rgb2yuvMatrix);
 
 			yuv2rgb[range][coeff.first] = yuv2rgbMatrix;
+
+			rgb2yuv[range][coeff.first] = rgb2yuvMatrix;
 
 			if (coeff.first == YUV_COEFS::BT709)
 			{

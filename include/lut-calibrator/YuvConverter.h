@@ -54,6 +54,7 @@ public:
 
 	double3 multiplyColorMatrix(double4x4 matrix, const double3& input) const;
 	double3 toRgb(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const;
+	double3 toYuv(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const;
 	double3 toYuvBT709(COLOR_RANGE range, const double3& input) const;
 	QString coefToString(YUV_COEFS cf) const;
 	YuvConverter();
@@ -64,5 +65,6 @@ public:
 
 private:
 	std::map<COLOR_RANGE, std::map<YUV_COEFS, double4x4>> yuv2rgb;
+	std::map<COLOR_RANGE, std::map<YUV_COEFS, double4x4>> rgb2yuv;
 	std::map<COLOR_RANGE, double4x4> rgb2yuvBT709;
 };

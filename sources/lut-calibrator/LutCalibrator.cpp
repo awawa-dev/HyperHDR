@@ -744,63 +744,63 @@ void LutCalibrator::tryHDR10()
 	Debug(_log, "selected alt convert: %i", bestResult.altConvert);
 	Debug(_log, "selected aspect: %f %f %f", bestResult.aspect.x, bestResult.aspect.y, bestResult.aspect.z);
 
-	/*
-	// correct gamut shift
-	auto m = toneMapping();
+	
+	// write LUT table
+	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d");
+	std::fstream file;
+	file.open(fileName.toStdString(), std::ios::trunc | std::ios::out | std::ios::binary);
 
-	if (!true)
+	if (!file.is_open())
 	{
-		// build LUT table
+		error(QString("Could not open LUT file for writing: %1").arg(fileName));
+	}
+	else
+	{
+		Info(_log, "Writing LUT file to: %s", QSTRING_CSTR(fileName));
 		_lut.resize(LUT_FILE_SIZE);
-		for (int g = 0; g <= 255; g++)
-			for (int b = 0; b <= 255; b++)
-				for (int r = 0; r <= 255; r++)
-				{
-					auto a = double3(r / 255.0, g / 255.0, b / 255.0);
+		for (int phase = 0; phase < 3; phase++)
+		{
+			for (int y = 0; y <= 255; y++)
+				for (int u = 0; u <= 255; u++)
+					for (int v = 0; v <= 255; v++)
+					{
+						byte3 YUV(y, u, v);
+						double3 yuv = to_double3(YUV) / 255.0;
 
-					auto e = double3(eotf(10000.0 / calibration.nits, a.x),
-						eotf(10000.0 / calibration.nits, a.y),
-						eotf(10000.0 / calibration.nits, a.z));
+						if (phase == 0)
+						{
+							yuv = _yuvConverter->toYuv(_capturedColors->getRange(), bestResult.coef, yuv);
+							YUV = to_byte3(yuv * 255);
+						}
 
-					auto srgb = from_XYZ_to_sRGB(from_bt2020_to_XYZ(e));
-					auto ready = double3(clamp(ootf(srgb.x), 0.0, 1.0),
-						clamp(ootf(srgb.y), 0.0, 1.0),
-						clamp(ootf(srgb.z), 0.0, 1.0));
+						if (phase == 0 || phase == 1)
+						{
+							if (YUV.y >= 127 && YUV.y <= 129 && YUV.z >= 127 && YUV.z <= 129)
+							{
+								YUV.y = YUV.z = 128;
+							}
+							yuv = hdr_to_srgb(yuv, byte2(YUV.y, YUV.z), bestResult.aspect, coefMatrix, nits, bestResult.altConvert, bt2020_to_sRgb, bestResult.bt2020Range);
+						}
+						else
+						{
+							yuv = _yuvConverter->toRgb(_capturedColors->getRange(), bestResult.coef, yuv);
+						}
 
-					doToneMapping(m, ready);
-
-					//ready = acesToneMapping(ready);
-					//ready = uncharted2_filmic(ready);					
-
-					byte3 result = to_byte3(ready * 255.0);
-
-					// save it
-					uint32_t ind_lutd = LUT_INDEX(r, g, b);
-					_lut.data()[ind_lutd] = result.x;
-					_lut.data()[ind_lutd + 1] = result.y;
-					_lut.data()[ind_lutd + 2] = result.z;
-		
-		
+						byte3 result = to_byte3(yuv * 255.0);
+						uint32_t ind_lutd = LUT_INDEX(y, u, v);
+						_lut.data()[ind_lutd] = result.x;
+						_lut.data()[ind_lutd + 1] = result.y;
+						_lut.data()[ind_lutd + 2] = result.z;
+					}
+			file.write(reinterpret_cast<char*>(_lut.data()), _lut.size());
+		}
+		file.close();
 	}
 
-	
-
-
-	
-	/*
-	QImage f;
-	f.load("D:/test_image.png");
-	for(int i = 0; i < f.width(); i++)
-		for (int j = 0; j < f.height(); j++)
-		{
-			QColor c = f.pixelColor(QPoint(i, j));
-			uint32_t ind_lutd = LUT_INDEX(c.red(), c.green(), c.blue());
-			QColor d(_lut.data()[ind_lutd], _lut.data()[ind_lutd + 1], _lut.data()[ind_lutd + 2]);
-			f.setPixelColor(QPoint(i, j), d);
-		}
-	f.save("D:/test_image_output.png");
-	*/
-	
+	// reload LUT
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
+	QThread::msleep(500);
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
 }
 
 
@@ -851,8 +851,6 @@ void LutCalibrator::calibrate()
 
 	sendReport("HDR10:\r\n" +
 		generateReport(true));
-
-	toneMapping();
 }
 
 
