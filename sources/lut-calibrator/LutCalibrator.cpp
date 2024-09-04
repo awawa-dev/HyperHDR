@@ -595,15 +595,12 @@ double3 LutCalibrator::hdr_to_srgb(double3 yuv, const byte2& UV, const double3& 
 }
 
 
-void LutCalibrator::scoreBoard(bool testOnly, int coef, double2 coefDelta, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& bt2020_to_sRgb, const double& minError, double& currentError)
+void LutCalibrator::scoreBoard(bool testOnly, const double4x4& coefMatrix, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& bt2020_to_sRgb, const double& minError, double& currentError)
 {
-	auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + coefDelta;
-	auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
-
 	for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 		for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
 			for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
-				if (!testOnly || ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) && (r != g || g != b || r == SCREEN_COLOR_DIMENSION - 2)))
+				if (!testOnly || ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0 && (r != g || g != b)) || (r == g && g == b && r == SCREEN_COLOR_DIMENSION - 2 )))
 				{
 					auto& sample = _capturedColors->all[r][g][b];
 					auto yuv = sample.yuv();
@@ -683,6 +680,10 @@ void LutCalibrator::tryHDR10()
 
 			for (double krDelta = krDeltaStart; krDelta <= krDeltaEnd; krDelta += 0.001)
 				for (double kbDelta = kbDeltaStart; kbDelta <= kbDeltaEnd; kbDelta += 0.001)
+				{
+					auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + double2(krDelta, kbDelta);
+					auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
+
 					for (double aspectX = aspectXStarter; aspectX <= aspectXEnd; aspectX += aspectDeltaX)
 						for (double aspectY = aspectYStarter; aspectY <= aspectYEnd; aspectY += aspectDeltaY)
 							for (double aspectZ = aspectZStarter; aspectZ <= aspectZEnd; aspectZ += aspectDeltaZ)
@@ -691,7 +692,7 @@ void LutCalibrator::tryHDR10()
 									{
 										currentError = 0;
 
-										scoreBoard(true, coef, double2(krDelta, kbDelta), nits, double3(aspectX, aspectY, aspectZ), tryBt2020Range, altConvert, bt2020_to_sRgb, minError, currentError);
+										scoreBoard(true, coefMatrix, nits, double3(aspectX, aspectY, aspectZ), tryBt2020Range, altConvert, bt2020_to_sRgb, minError, currentError);
 
 										if (currentError < minError)
 										{
@@ -703,6 +704,7 @@ void LutCalibrator::tryHDR10()
 											bestResult.aspect = double3(aspectX, aspectY, aspectZ);
 										}
 									}
+				}
 
 		}
 
@@ -728,7 +730,11 @@ void LutCalibrator::tryHDR10()
 
 	capturedPrimariesCorrection(nits, bestResult.coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 	auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
-	scoreBoard(false, bestResult.coef, bestResult.coefDelta, nits, bestResult.aspect, bestResult.bt2020Range, bestResult.altConvert, bt2020_to_sRgb, minError, currentError);
+
+	auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(bestResult.coef)) + bestResult.coefDelta;
+	auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
+
+	scoreBoard(false, coefMatrix, nits, bestResult.aspect, bestResult.bt2020Range, bestResult.altConvert, bt2020_to_sRgb, minError, currentError);
 
 	Debug(_log, "Score: %f", minError / 10.0);
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult.coef)));
