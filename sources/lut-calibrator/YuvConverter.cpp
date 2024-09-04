@@ -192,10 +192,10 @@ QString YuvConverter::toString()
 		ret.append(ColorSpaceMath::matToString(rgb2yuvBT709[range]).split("\r\n"));
 	}
 
-	for (size_t i = 0; i + 5 < ret.size(); i += 5)
-		for (int j = 0; j < 5; j++)
-			if (i + 5 < ret.size())
-				report.append(QString("%1 %2").arg(ret[i], -32).arg(ret[(i++) + 5], -32));
+	for (int i = 0; i + 5 < static_cast<int>(ret.size()); i += 5)
+		for (int j = 0; j < 5; j++, i++)
+			if (i + 5 < static_cast<int>(ret.size()))
+				report.append(QString("%1 %2").arg(ret[i], -32).arg(ret[i + 5], -32));
 
 	return "Supported YUV/RGB matrix transformation:\r\n\r\n" + report.join("\r\n");
 }

@@ -31,6 +31,9 @@
 	#include <cmath>
 	#include <cfloat>
 	#include <climits>
+	#include <map>
+	#include <QString>
+	#include <vector>
 #endif
 
 #include <linalg.h>
