@@ -45,11 +45,12 @@
 class Logger;
 class GrabberWrapper;
 class YuvConverter;
+class CapturedColor;
+
 namespace BoardUtils
 {
 	class CapturedColors;
 };
-
 
 namespace linalg {
 	template<class T, int M, int N> struct mat;
@@ -81,6 +82,8 @@ private:
 	void requestNextTestBoard(int nextStep);
 	void error(QString message);
 	void handleImage(const Image<ColorRgb>& image);
+	linalg::vec<double, 3> hdr_to_srgb(linalg::vec<double, 3> yuv, const linalg::vec<uint8_t, 2>& UV, const linalg::vec<double, 3>& aspect, const linalg::mat<double, 4, 4>& coefMatrix, int nits, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, bool tryBt2020Range);
+	void scoreBoard(bool testOnly, int coef, linalg::vec<double, 2> coefDelta, int nits, linalg::vec<double, 3> aspect, bool tryBt2020Range, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, const double& minError, double& currentError);
 	void tryHDR10();
 	void setupWhitePointCorrection();
 	void calibrate();

@@ -558,6 +558,78 @@ void LutCalibrator::toneMapping()
 }
 
 
+double3 LutCalibrator::hdr_to_srgb(double3 yuv, const byte2& UV, const double3& aspect, const double4x4& coefMatrix, int nits, bool altConvert, const double3x3& bt2020_to_sRgb, bool tryBt2020Range)
+{
+	double3 srgb;
+
+	yuv.x = (yuv.x - 0.5) * aspect.x + 0.5;
+	if (UV.x != UV.y || UV.x < 127 || UV.x > 129)
+	{
+		yuv.y = (yuv.y - 0.5) * aspect.y + 0.5;
+		yuv.z = (yuv.z - 0.5) * aspect.z + 0.5;
+	}
+
+	auto a = _yuvConverter->multiplyColorMatrix(coefMatrix, yuv);
+
+	auto e = PQ_ST2084(10000.0 / nits, a);
+
+
+	if (altConvert)
+	{
+		srgb = mul(bt2020_to_sRgb, e);
+	}
+	else
+	{
+		srgb = ColorSpaceMath::from_BT2020_to_BT709(e);
+	}
+
+	srgb = srgb_linear_to_nonlinear(srgb);
+
+	if (tryBt2020Range)
+	{
+		srgb = bt2020_nonlinear_to_linear(srgb);
+		srgb = srgb_linear_to_nonlinear(srgb);
+	}
+
+	return srgb;
+}
+
+
+void LutCalibrator::scoreBoard(bool testOnly, int coef, double2 coefDelta, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& bt2020_to_sRgb, const double& minError, double& currentError)
+{
+	auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + coefDelta;
+	auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
+
+	for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
+		for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
+			for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
+				if (!testOnly || ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) && (r != g || g != b || r == SCREEN_COLOR_DIMENSION - 2)))
+				{
+					auto& sample = _capturedColors->all[r][g][b];
+					auto yuv = sample.yuv();
+					double3 srgb;
+
+					srgb = hdr_to_srgb(yuv, byte2(sample.U(), sample.V()), aspect, coefMatrix, nits, altConvert, bt2020_to_sRgb, tryBt2020Range);
+
+					if (testOnly)
+					{
+						srgb *= 255;
+						//currentError += sample.getSourceError(srgb);
+						currentError += getError(sample.getSourceRGB(), ColorSpaceMath::to_byte3(srgb));
+
+						if (r + 2 == SCREEN_COLOR_DIMENSION && g + 2 == SCREEN_COLOR_DIMENSION && b + 2 == SCREEN_COLOR_DIMENSION && linalg::maxelem(srgb) > 250)
+							currentError = minError;
+
+						if (currentError >= minError)
+							return;
+					}
+					else
+					{
+						sample.setFinalRGB(srgb);
+					}
+				}
+};
+
 void LutCalibrator::tryHDR10()
 {
 	// detect nits
@@ -586,68 +658,7 @@ void LutCalibrator::tryHDR10()
 		double3 aspect;
 		bool bt2020Range = false;
 		bool altConvert = false;;
-	} bestResult;
-
-	auto scoreBoard = [this](bool testOnly, int coef, double2 coefDelta, int nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& bt2020_to_sRgb, const double& minError, double& currentError) {
-		auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + coefDelta;
-		auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
-		
-		for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
-			for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
-				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
-					if (!testOnly || ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) && (r != g || g != b || r == SCREEN_COLOR_DIMENSION - 2)))
-					{
-						auto& sample = _capturedColors->all[r][g][b];
-						auto yuv = sample.yuv();
-
-						yuv.x = (yuv.x - 0.5) * aspect.x + 0.5;
-						if (sample.U() != sample.V() || sample.U() < 127 || sample.U() > 129)
-						{							
-							yuv.y = (yuv.y - 0.5) * aspect.y + 0.5;
-							yuv.z = (yuv.z - 0.5) * aspect.z + 0.5;
-						}
-
-						auto a = _yuvConverter->multiplyColorMatrix(coefMatrix,yuv);
-
-						auto e = PQ_ST2084(10000.0 / nits, a);
-
-						double3 processingXYZ, srgb;
-						if (altConvert)
-						{							
-							srgb = mul(bt2020_to_sRgb, e);
-						}
-						else
-						{
-							srgb = ColorSpaceMath::from_BT2020_to_BT709(e);
-						}
-
-						srgb = srgb_linear_to_nonlinear(srgb);
-
-						if (tryBt2020Range)
-						{
-							srgb = bt2020_nonlinear_to_linear(srgb);							
-							srgb = srgb_linear_to_nonlinear(srgb);
-						}						
-
-						if (testOnly)
-						{
-							srgb *= 255;
-							//currentError += sample.getSourceError(srgb);
-							currentError += getError(sample.getSourceRGB(), ColorSpaceMath::to_byte3(srgb));
-
-							if (r + 2 == SCREEN_COLOR_DIMENSION && g + 2 == SCREEN_COLOR_DIMENSION && b + 2 == SCREEN_COLOR_DIMENSION && linalg::maxelem(srgb) > 250)
-								currentError = minError;
-
-							if (currentError >= minError)
-								return;
-						}
-						else
-						{
-							sample.setFinalRGB(srgb);
-						}
-					}
-		};	
-
+	} bestResult;	
 
 	int coefStarter = YuvConverter::YUV_COEFS::FCC;
 	int coefEnd = YuvConverter::YUV_COEFS::BT2020;
@@ -663,9 +674,8 @@ void LutCalibrator::tryHDR10()
 	int tryBt2020RangeStarter = 0, tryBt2020RangeEnd = 1;
 	int altConvertStarter = 0, altConvertEnd = 1;
 
-	for (int i = 0; i < 2; i++)
+	for (int phase = 0; phase < 2; phase++)
 	{
-		
 		for (int coef = coefStarter; coef <= coefEnd; coef++)
 		{
 			capturedPrimariesCorrection(nits, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
