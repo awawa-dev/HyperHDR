@@ -258,7 +258,5 @@ $(document).ready( function(){
 		}, 3000);
 		currentTestBoard = 0;
 		createTestBoards(currentTestBoard);
-	}	
-	
-	startCalibration();
+	}
 });
