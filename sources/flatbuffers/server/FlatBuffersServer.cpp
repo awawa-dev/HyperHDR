@@ -33,13 +33,15 @@ FlatBuffersServer::FlatBuffersServer(std::shared_ptr<NetOrigin> netOrigin, const
 	, _userLutFile("")
 	, _currentLutPixelFormat(PixelFormat::RGB24)
 	, _flatbufferToneMappingMode(0)
-{	
+{
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler, Qt::BlockingQueuedConnection);
 }
 
 FlatBuffersServer::~FlatBuffersServer()
 {
 	Debug(_log, "Prepare to shutdown");
 
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler);
 	stopServer();
 
 	Debug(_log, "FlatBuffersServer instance is closed");
@@ -356,3 +358,13 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 	}
 }
 
+void FlatBuffersServer::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
+{
+	if (lut != nullptr && _lut.size() >= lut->size())
+	{
+		memcpy(_lut.data(), lut->data(), lut->size());
+		Info(_log, "The byte array loaded into LUT");
+	}
+	else
+		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+}

@@ -77,10 +77,12 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _benchmarkStatus(-1)
 	, _benchmarkMessage("")
 {
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
 }
 
 Grabber::~Grabber()
 {
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler);
 }
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2)
@@ -859,6 +861,7 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 	if (lut != nullptr && _lut.size() >= lut->size())
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
+		Info(_log, "The byte array loaded into LUT");
 	}
 	else
 		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
