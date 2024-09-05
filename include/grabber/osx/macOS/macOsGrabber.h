@@ -69,7 +69,6 @@ private:
 private:
 	QString					_configurationPath;
 	QTimer					_timer;
-	QSemaphore				_semaphore;
 
 	CGDirectDisplayID		_actualDisplay;
 };
