@@ -1,4 +1,5 @@
 #include <cec/cecHandler.h>
+#include <utils/Logger.h>
 #include <cec.h>
 #include <cecloader.h>
 

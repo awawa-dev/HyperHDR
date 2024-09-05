@@ -17,9 +17,11 @@ bool Parser::parse(const QStringList& arguments)
 	for (Option* option : _options)
 	{
 		QString value = this->value(*option);
-		if (!option->validate(*this, value)) {
+		if (!option->validate(*this, value))
+		{
 			const QString error = option->getError();
-			if (!error.isEmpty()) {
+			if (!error.isEmpty())
+			{
 				_errorText = tr("%1 is not a valid option for %2\n%3").arg(value, option->name(), error);
 			}
 			else

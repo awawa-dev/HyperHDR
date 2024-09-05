@@ -10,7 +10,6 @@ using namespace hyperhdr;
 BlackBorderDetector::BlackBorderDetector(double threshold)
 	: _blackborderThreshold(calculateThreshold(threshold))
 {
-	// empty
 }
 
 uint8_t BlackBorderDetector::calculateThreshold(double threshold) const
@@ -23,8 +22,6 @@ uint8_t BlackBorderDetector::calculateThreshold(double threshold) const
 		rgbThreshold = 255;
 
 	uint8_t blackborderThreshold = uint8_t(rgbThreshold);
-
-	//Debug(Logger::getInstance("BLACKBORDER"), "threshold set to %f (%d)", threshold , int(blackborderThreshold));
 
 	return blackborderThreshold;
 }
@@ -154,6 +151,49 @@ BlackBorder BlackBorderDetector::process_classic(const Image<ColorRgb>& image) c
 
 
 ///
+/// letterbox detection mode (5lines top-bottom only detection)
+BlackBorder BlackBorderDetector::process_letterbox(const Image<ColorRgb>& image) const
+{
+	// test center and 25%, 75% of width
+	// 25 and 75 will check both top and bottom
+	// center will only check top (minimise false detection of captions)
+	int width = image.width();
+	int height = image.height();
+	int width25percent = width / 4;
+	int height33percent = height / 3;
+	int width75percent = width25percent * 3;
+	int xCenter = width / 2;
+
+
+	int firstNonBlackYPixelIndex = -1;
+
+	height--; // remove 1 pixel to get end pixel index
+
+	// find first Y pixel of the image
+	for (int y = 0; y < height33percent; ++y)
+	{
+		if (!isBlack(image(xCenter, y))
+			|| !isBlack(image(width25percent, y))
+			|| !isBlack(image(width75percent, y))
+			|| !isBlack(image(width25percent, (height - y)))
+			|| !isBlack(image(width75percent, (height - y))))
+		{
+			firstNonBlackYPixelIndex = y;
+			break;
+		}
+	}
+
+	// Construct result
+	BlackBorder detectedBorder{};
+
+	detectedBorder.unknown = firstNonBlackYPixelIndex == -1;
+	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
+	detectedBorder.verticalSize = 0;
+
+	return detectedBorder;
+}
+
+///
 /// osd detection mode (find x then y at detected x to avoid changes by osd overlays)
 BlackBorder BlackBorderDetector::process_osd(const Image<ColorRgb>& image) const
 {
@@ -208,48 +248,3 @@ BlackBorder BlackBorderDetector::process_osd(const Image<ColorRgb>& image) const
 	detectedBorder.verticalSize = firstNonBlackXPixelIndex;
 	return detectedBorder;
 }
-
-
-///
-/// letterbox detection mode (5lines top-bottom only detection)
-BlackBorder BlackBorderDetector::process_letterbox(const Image<ColorRgb>& image) const
-{
-	// test center and 25%, 75% of width
-	// 25 and 75 will check both top and bottom
-	// center will only check top (minimise false detection of captions)
-	int width = image.width();
-	int height = image.height();
-	int width25percent = width / 4;
-	int height33percent = height / 3;
-	int width75percent = width25percent * 3;
-	int xCenter = width / 2;
-
-
-	int firstNonBlackYPixelIndex = -1;
-
-	height--; // remove 1 pixel to get end pixel index
-
-	// find first Y pixel of the image
-	for (int y = 0; y < height33percent; ++y)
-	{
-		if (!isBlack(image(xCenter, y))
-			|| !isBlack(image(width25percent, y))
-			|| !isBlack(image(width75percent, y))
-			|| !isBlack(image(width25percent, (height - y)))
-			|| !isBlack(image(width75percent, (height - y))))
-		{
-			firstNonBlackYPixelIndex = y;
-			break;
-		}
-	}
-
-	// Construct result
-	BlackBorder detectedBorder{};
-
-	detectedBorder.unknown = firstNonBlackYPixelIndex == -1;
-	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
-	detectedBorder.verticalSize = 0;
-
-	return detectedBorder;
-}
-

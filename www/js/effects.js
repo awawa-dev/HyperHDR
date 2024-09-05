@@ -83,17 +83,17 @@ $(document).ready( function() {
 	});
 
 	foregroundEffect_editor.on('change',function() {
-		foregroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_foregroundEffect').attr('disabled', true) : $('#btn_submit_foregroundEffect').attr('disabled', false);
+		foregroundEffect_editor.validate().length ? $('#btn_submit_foregroundEffect').attr('disabled', true) : $('#btn_submit_foregroundEffect').attr('disabled', false);
 	});
 
 	backgroundEffect_editor.on('change',function() {
-		backgroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
+		backgroundEffect_editor.validate().length ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
 	});
 	
 	if (isSound)
 	{
 		soundEffect_editor.on('change',function() {
-			soundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_soundEffect').attr('disabled', true) : $('#btn_submit_soundEffect').attr('disabled', false);
+			soundEffect_editor.validate().length ? $('#btn_submit_soundEffect').attr('disabled', true) : $('#btn_submit_soundEffect').attr('disabled', false);
 		});
 	};
 

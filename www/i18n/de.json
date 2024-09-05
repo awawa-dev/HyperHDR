@@ -115,11 +115,11 @@
   "conf_leds_nav_label_ledcontroller": "LED-Controller",
   "conf_leds_nav_label_ledlayout": "LED-Layout",
   "conf_leds_optgroup_RPiGPIO": "RPi-GPIO",
-  "conf_leds_optgroup_RPiPWM": "RPi-PWM",
-  "conf_leds_optgroup_RPiSPI": "RPi SPI",
-  "conf_leds_optgroup_debug": "Debuggen",
-  "conf_leds_optgroup_network": "Netzwerk",
-  "conf_leds_optgroup_usb": "USB/Seriell",
+  "leds_group_1_PWM": "RPi-PWM",
+  "leds_group_0_SPI": "RPi SPI",
+  "leds_group_5_debug": "Debuggen",
+  "leds_group_2_network": "Netzwerk",
+  "leds_group_3_serial": "USB/Seriell",
   "conf_logging_btn_autoscroll": "Automatisches Scrollen",
   "conf_logging_btn_pbupload": "Laden Sie einen Bericht für Supportanfragen hoch",
   "conf_logging_contpolicy": "Datenschutzrichtlinie melden",
@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Deaktivieren, wenn gesperrt",
   "edt_conf_gen_disableOnLocked_expl" : "Schalten Sie die Verarbeitung aus, wenn der Benutzer das System gesperrt hat.",
   "edt_conf_gen_disableLedsStartup_title" : "Schalten Sie die LEDs beim Start aus",
-  "edt_conf_gen_disableLedsStartup_expl" : "Deaktivieren Sie LEDs und alle Komponenten beim Start. Sie müssen sie manuell auf der Hauptseite oder über die JSON-API (COMP_ALL-Komponente) erneut aktivieren."
+  "edt_conf_gen_disableLedsStartup_expl" : "Deaktivieren Sie LEDs und alle Komponenten beim Start. Sie müssen sie manuell auf der Hauptseite oder über die JSON-API (COMP_ALL-Komponente) erneut aktivieren.",
+  "edt_conf_sound_device_smoothing_title" : "Glättung aktivieren",
+  "edt_conf_sound_device_smoothing_expl" : "Aktivieren Sie eine spezielle Glättung für Soundeffekte. Erfordert ein LED-Gerät mit einer Ausgangsfrequenz von 60 Hz. Wenn die Glättung deaktiviert ist, beträgt die Ausgangsfrequenz 20 Hz."
 }

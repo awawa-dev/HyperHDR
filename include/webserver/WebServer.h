@@ -4,16 +4,18 @@
 	#include <QObject>
 	#include <QString>
 	#include <QJsonDocument>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
 
+#include <utils/Logger.h>
+#include <utils/settings.h>
+
 class BonjourServiceRegister;
-class StaticFileServing;
+class FileServer;
 class QtHttpServer;
 class HyperHdrManager;
 class NetOrigin;
+class QtHttpRequest;
+class QtHttpReply;
 
 class WebServer : public QObject
 {
@@ -39,6 +41,7 @@ public slots:
 	void onServerError(QString msg);
 	void handleSettingsUpdate(settings::type type, QJsonDocument config);
 	void setSsdpXmlDesc(const QString& desc);
+	void onInitRequestNeedsReply(QtHttpRequest* request, QtHttpReply* reply);
 
 	quint16 getPort() const { return _port; }
 
@@ -48,7 +51,7 @@ private:
 	bool				 _useSsl;
 	Logger*              _log;
 	QString              _baseUrl;
-	StaticFileServing*   _staticFileServing;
+	
 	QtHttpServer*        _server;
 	std::shared_ptr<NetOrigin> _netOrigin;
 
@@ -58,4 +61,7 @@ private:
 	quint16              WEBSERVER_DEFAULT_PORT = 8090;
 
 	BonjourServiceRegister* _serviceRegister = nullptr;
+	std::shared_ptr<FileServer> _staticFileServing = nullptr;
+
+	static std::weak_ptr<FileServer> globalStaticFileServing;
 };

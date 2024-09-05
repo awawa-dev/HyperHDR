@@ -18,7 +18,7 @@
 			"type" : "array",
 			"title" : "edt_conf_fw_json_title",
 			"required" : true,
-			"default" : ["127.0.0.1:19446"],
+			"default" : [],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_fw_json_itemtitle"
@@ -30,7 +30,7 @@
 			"type" : "array",
 			"title" : "edt_conf_fw_flat_title",
 			"required" : true,
-			"default" : ["127.0.0.1:19401"],
+			"default" : ["remote_ip:19400"],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_fw_flat_itemtitle"

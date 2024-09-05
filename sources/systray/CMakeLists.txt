@@ -20,6 +20,7 @@ endif()
 
 if (UNIX AND NOT APPLE)
 	add_library(systray-widget SHARED ${SYSTRAY_SOURCES} )
+	target_link_libraries(systray-widget PRIVATE image )
 else()
 	add_library(systray-widget ${SYSTRAY_SOURCES} )
 endif()

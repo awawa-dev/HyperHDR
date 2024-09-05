@@ -1,0 +1,30 @@
+pkgname=HyperHDR
+pkgver={VERSION}
+pkgrel=1
+pkgdesc="HyperHDR is an open source ambient light implementation."
+url="https://github.com/awawa-dev/HyperHDR"
+license=('MIT')
+arch=('x86_64')
+install=INSTALL
+depends=('xz' 'glibc>={GLIBC_VERSION}')
+optdepends=('gtk3')
+# not needed fot Github Action
+# source=("git+https://github.com/awawa-dev/HyperHDR.git")
+# md5sums=('SKIP')
+
+build() {
+    export LDFLAGS=${LDFLAGS/-Wl,-z,pack-relative-relocs/}
+    cmake -B build -S .. \
+        -DCMAKE_BUILD_TYPE='None' \
+        -DCMAKE_INSTALL_PREFIX='/usr' \
+        -Wno-dev {BUILD_OPTION}
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    rm -rf $pkgdir/usr/bin/flatc
+    rm -rf $pkgdir/usr/cmake
+    rm -rf $pkgdir/usr/include
+    rm -rf $pkgdir/usr/lib
+}

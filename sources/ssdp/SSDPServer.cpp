@@ -1,5 +1,4 @@
 #include <ssdp/SSDPServer.h>
-#include <utils/QStringUtils.h>
 
 // HyperHDR
 #include <HyperhdrConfig.h>
@@ -139,7 +138,7 @@ void SSDPServer::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString, QString> headers;
 		// parse request
-		QStringList entries = QStringUtils::SPLITTER(data, '\n');
+		QStringList entries = data.split('\n', Qt::SkipEmptyParts);
 		for (auto entry : entries)
 		{
 			// http header parse skip

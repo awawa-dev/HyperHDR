@@ -1,8 +1,6 @@
 $(document).ready( function() {
 	performTranslation();
 	
-	var BOBLIGHT_ENABLED = window.comps.find(element => element.name == "BOBLIGHTSERVER");
-	
 	var conf_editor = null;
 	var conf_editor_net = null;
 	var conf_editor_json = null;
@@ -42,13 +40,6 @@ $(document).ready( function() {
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("general_comp_RAWUDPSERVER"), 'editor_container_rawUdpServer', 'btn_submit_rawUdpServer'));
 		$('#conf_cont').append(createHelpTable(window.schema.rawUdpServer.properties, $.i18n("general_comp_RAWUDPSERVER")));
 			
-		//boblight
-		if (BOBLIGHT_ENABLED)
-		{
-			$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
-			$('#conf_cont').append(createHelpTable(window.schema.boblightServer.properties, $.i18n("edt_conf_bobls_heading_title")));
-		}
-
 		//forwarder
 			$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
 			$('#conf_cont').append(createHelpTable(window.schema.forwarder.properties, $.i18n("edt_conf_fw_heading_title")));
@@ -75,7 +66,7 @@ $(document).ready( function() {
 	}, true, true);
 
 	conf_editor_net.on('change',function() {
-		conf_editor_net.validate().length || window.readOnlyMode ? $('#btn_submit_net').attr('disabled', true) : $('#btn_submit_net').attr('disabled', false);
+		conf_editor_net.validate().length ? $('#btn_submit_net').attr('disabled', true) : $('#btn_submit_net').attr('disabled', false);
 	});
 
 	$('#btn_submit_net').off().on('click',function() {
@@ -88,11 +79,11 @@ $(document).ready( function() {
 	}, true, true);
 	
 	conf_editor.on('change',function() {
-		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		conf_editor.validate().length ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 	});
 
 	conf_editor_json.on('change',function() {
-		conf_editor_json.validate().length || window.readOnlyMode ? $('#btn_submit_jsonserver').attr('disabled', true) : $('#btn_submit_jsonserver').attr('disabled', false);
+		conf_editor_json.validate().length ? $('#btn_submit_jsonserver').attr('disabled', true) : $('#btn_submit_jsonserver').attr('disabled', false);
 	});
 
 	$('#btn_submit_jsonserver').off().on('click',function() {
@@ -105,7 +96,7 @@ $(document).ready( function() {
 	}, true, true);
 
 	conf_editor_fbs.on('change',function() {
-		conf_editor_fbs.validate().length || window.readOnlyMode ? $('#btn_submit_fbserver').attr('disabled', true) : $('#btn_submit_fbserver').attr('disabled', false);
+		conf_editor_fbs.validate().length ? $('#btn_submit_fbserver').attr('disabled', true) : $('#btn_submit_fbserver').attr('disabled', false);
 	});
 
 	$('#btn_submit_fbserver').off().on('click',function() {
@@ -118,7 +109,7 @@ $(document).ready( function() {
 	}, true, true);
 
 	conf_editor_mqtt.on('change',function() {
-		conf_editor_mqtt.validate().length || window.readOnlyMode ? $('#btn_submit_mqtt').attr('disabled', true) : $('#btn_submit_mqtt').attr('disabled', false);
+		conf_editor_mqtt.validate().length ? $('#btn_submit_mqtt').attr('disabled', true) : $('#btn_submit_mqtt').attr('disabled', false);
 	});
 
 	$('#btn_submit_mqtt').off().on('click',function() {
@@ -133,7 +124,7 @@ $(document).ready( function() {
 		}, true, true);
 
 		conf_editor_proto.on('change',function() {
-			conf_editor_proto.validate().length || window.readOnlyMode ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
+			conf_editor_proto.validate().length ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
 		});
 
 		$('#btn_submit_protoserver').off().on('click',function() {
@@ -146,7 +137,7 @@ $(document).ready( function() {
 	}, true, true);
 
 	conf_editor_rawUdp.on('change',function() {
-		conf_editor_rawUdp.validate().length || window.readOnlyMode ? $('#btn_submit_rawUdpServer').attr('disabled', true) : $('#btn_submit_rawUdpServer').attr('disabled', false);
+		conf_editor_rawUdp.validate().length ? $('#btn_submit_rawUdpServer').attr('disabled', true) : $('#btn_submit_rawUdpServer').attr('disabled', false);
 	});
 
 	$('#btn_submit_rawUdpServer').off().on('click',function() {
@@ -155,31 +146,13 @@ $(document).ready( function() {
 
 	document.getElementById('editor_container_rawUdpServer').parentElement.firstElementChild.classList.add('is-instance');
 		
-	//boblight
-	if (BOBLIGHT_ENABLED)
-	{
-		conf_editor_bobl = createJsonEditor('editor_container_boblightserver', {
-			boblightServer     : window.schema.boblightServer
-		}, true, true);
-
-		conf_editor_bobl.on('change',function() {
-			conf_editor_bobl.validate().length || window.readOnlyMode ? $('#btn_submit_boblightserver').attr('disabled', true) : $('#btn_submit_boblightserver').attr('disabled', false);
-		});
-
-		$('#btn_submit_boblightserver').off().on('click',function() {
-			requestWriteConfig(conf_editor_bobl.getValue());
-		});
-
-		document.getElementById('editor_container_boblightserver').parentElement.firstElementChild.classList.add('is-instance');
-	}
-
 		//forwarder
 		conf_editor_forw = createJsonEditor('editor_container_forwarder', {
 			forwarder          : window.schema.forwarder
 		}, true, true);
 
 		conf_editor_forw.on('change',function() {
-			conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
+			conf_editor_forw.validate().length ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
 		});
 
 		$('#btn_submit_forwarder').off().on('click',function() {
@@ -199,11 +172,6 @@ $(document).ready( function() {
 		if (window.serverInfo.hasPROTOBUF == 1)
 		{
 			createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
-		}
-		
-		if (BOBLIGHT_ENABLED)
-		{
-			createHint("intro", $.i18n('conf_network_bobl_intro'), "editor_container_boblightserver");
 		}
 		
 		createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");

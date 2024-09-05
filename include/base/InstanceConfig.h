@@ -5,10 +5,10 @@
 	#include <QMutexLocker>
 
 	#include <atomic>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class SettingsTable;
 
@@ -17,7 +17,7 @@ class InstanceConfig : public QObject
 	Q_OBJECT
 
 public:
-	InstanceConfig(bool master, quint8 instanceIndex, QObject* parent, bool readonlyMode);
+	InstanceConfig(bool master, quint8 instanceIndex, QObject* parent);
 	~InstanceConfig();
 
 	bool upgradeDB(QJsonObject& dbConfig);
@@ -25,7 +25,7 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 	void saveSetting(settings::type key, QString saveData);
 	QJsonObject getSettings() const;
-
+	bool isReadOnlyMode();
 signals:
 	void SignalInstanceSettingsChanged(settings::type type, const QJsonDocument& data);
 
@@ -33,7 +33,6 @@ private:
 	Logger*			_log;
 	std::unique_ptr<SettingsTable> _sTable;
 	QJsonObject		_qconfig;
-	bool			_readonlyMode;
 
 	static QJsonObject			_schemaJson;
 	static QMutex				_lockerSettingsManager;

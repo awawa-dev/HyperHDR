@@ -115,11 +115,11 @@
   "conf_leds_nav_label_ledcontroller": "Kontroler LED",
   "conf_leds_nav_label_ledlayout": "Układ LED",
   "conf_leds_optgroup_RPiGPIO": "RPi GPIO",
-  "conf_leds_optgroup_RPiPWM": "RPi PWM",
-  "conf_leds_optgroup_RPiSPI": "RPi SPI",
-  "conf_leds_optgroup_debug": "Odpluskwić",
-  "conf_leds_optgroup_network": "Sieć",
-  "conf_leds_optgroup_usb": "USB/szeregowy",
+  "leds_group_1_PWM": "RPi PWM",
+  "leds_group_0_SPI": "RPi SPI",
+  "leds_group_5_debug": "Odpluskwić",
+  "leds_group_2_network": "Sieć",
+  "leds_group_3_serial": "USB/szeregowy",
   "conf_logging_btn_autoscroll": "Automatyczne przewijanie",
   "conf_logging_btn_pbupload": "Prześlij raport dotyczący próśb o pomoc",
   "conf_logging_contpolicy": "Zgłoś Polityka prywatności",
@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Wyłącz, gdy jest zablokowany",
   "edt_conf_gen_disableOnLocked_expl" : "Wyłącz przetwarzanie, gdy użytkownik zablokuje system.",
   "edt_conf_gen_disableLedsStartup_title" : "Wyłącz diody LED przy uruchomieniu",
-  "edt_conf_gen_disableLedsStartup_expl" : "Wyłącz diody LED i wszystkie komponenty przy uruchomieniu, musisz je ponownie włączyć ręcznie na stronie głównej lub poprzez API JSON (komponent COMP_ALL)."
+  "edt_conf_gen_disableLedsStartup_expl" : "Wyłącz diody LED i wszystkie komponenty przy uruchomieniu, musisz je ponownie włączyć ręcznie na stronie głównej lub poprzez API JSON (komponent COMP_ALL).",
+  "edt_conf_sound_device_smoothing_title" : "Włącz wygładzanie",
+  "edt_conf_sound_device_smoothing_expl" : "Włącz specjalne wygładzanie efektów dźwiękowych. Wymaga urządzenia LED o częstotliwości wyjściowej 60 Hz. Gdy wygładzanie jest wyłączone, częstotliwość wyjściowa wynosi 20 Hz."
 }

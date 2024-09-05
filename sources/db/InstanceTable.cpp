@@ -1,11 +1,8 @@
 #include <db/InstanceTable.h>
 
-InstanceTable::InstanceTable(bool readonlyMode)
+InstanceTable::InstanceTable()
 	: DBManager()
 {
-
-	setReadonlyMode(readonlyMode);
-
 	// Init instance table
 	setTable("instances");
 	createTable(QStringList() << "instance INTEGER" << "friendly_name TEXT" << "enabled INTEGER DEFAULT 0" << "last_use TEXT");

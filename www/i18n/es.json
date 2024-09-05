@@ -115,11 +115,11 @@
   "conf_leds_nav_label_ledcontroller": "Controlador LED",
   "conf_leds_nav_label_ledlayout": "Diseño de LED",
   "conf_leds_optgroup_RPiGPIO": "RPi GPIO",
-  "conf_leds_optgroup_RPiPWM": "RPi PWM",
-  "conf_leds_optgroup_RPiSPI": "RPi SPI",
-  "conf_leds_optgroup_debug": "Depurar",
-  "conf_leds_optgroup_network": "Red",
-  "conf_leds_optgroup_usb": "USB/Serie",
+  "leds_group_1_PWM": "RPi PWM",
+  "leds_group_0_SPI": "RPi SPI",
+  "leds_group_5_debug": "Depurar",
+  "leds_group_2_network": "Red",
+  "leds_group_3_serial": "USB/Serie",
   "conf_logging_btn_autoscroll": "Desplazamiento automático",
   "conf_logging_btn_pbupload": "Cargar un informe para solicitudes de soporte",
   "conf_logging_contpolicy": "Informar sobre la política de privacidad",
@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Deshabilitar cuando está bloqueado",
   "edt_conf_gen_disableOnLocked_expl" : "Desactivar el procesamiento cuando el usuario haya bloqueado el sistema.",
   "edt_conf_gen_disableLedsStartup_title" : "Apague los LED al inicio",
-  "edt_conf_gen_disableLedsStartup_expl" : "Deshabilite los LED y todos los componentes al inicio, debe volver a habilitarlos manualmente en la página principal o mediante la API JSON (componente COMP_ALL)."
+  "edt_conf_gen_disableLedsStartup_expl" : "Deshabilite los LED y todos los componentes al inicio, debe volver a habilitarlos manualmente en la página principal o mediante la API JSON (componente COMP_ALL).",
+  "edt_conf_sound_device_smoothing_title" : "Habilitar suavizado",
+  "edt_conf_sound_device_smoothing_expl" : "Habilite el suavizado especial para efectos de sonido. Requiere un dispositivo LED con una frecuencia de salida de 60 Hz. Cuando el suavizado está desactivado, la frecuencia de salida es de 20 Hz."
 }

@@ -3,14 +3,13 @@
 #ifndef PCH_ENABLED
 	#include <QJsonObject>
 	#include <QList>
-
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
+#include <utils/settings.h>
+#include <utils/Components.h>
 #include <api/BaseAPI.h>
 #include <base/AccessManager.h>
-#include <utils/LutCalibrator.h>
+#include <lut-calibrator/LutCalibrator.h>
 
 #ifdef ENABLE_BONJOUR
 	#include <bonjour/DiscoveryWrapper.h>

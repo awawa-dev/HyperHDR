@@ -393,9 +393,9 @@ ColorRgb ImageColorAveraging::calcMeanColor(const Image<ColorRgb>& image) const
 		sumBlue += imgData[idx + 2];
 	}
 
-	const uint8_t avgRed = uint8_t(sumRed / (imageSize/3));
-	const uint8_t avgGreen = uint8_t(sumGreen / (imageSize/3));
-	const uint8_t avgBlue = uint8_t(sumBlue / (imageSize/3));
+	const uint8_t avgRed = uint8_t(sumRed / (imageSize / 3));
+	const uint8_t avgGreen = uint8_t(sumGreen / (imageSize / 3));
+	const uint8_t avgBlue = uint8_t(sumBlue / (imageSize / 3));
 
 	return { avgRed, avgGreen, avgBlue };
 }

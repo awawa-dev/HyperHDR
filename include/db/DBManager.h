@@ -8,14 +8,13 @@
 	#include <QVector>
 	#include <QJsonObject>
 	#include <QJsonDocument>
+	#include <QThreadStorage>
 #endif
-
-#include <QThreadStorage>
 
 #include <utils/Logger.h>
 
-class QSqlDatabase;
-class QSqlQuery;
+class SqlDatabase;
+class SqlQuery;
 
 typedef QPair<QString, QVariant> CPair;
 typedef QVector<CPair> VectorPair;
@@ -25,13 +24,15 @@ typedef QVector<CPair> VectorPair;
 class DBManager
 {
 
-public:	
+public:
 	virtual ~DBManager();
 
-	static void initializeDatabaseFilename(QFileInfo databaseName);
+	static void initializeDatabaseFilename(QFileInfo databaseName, bool readOnlyMode);
+	static bool isReadOnlyMode();
+
 	void setTable(const QString& table);
 
-	QSqlDatabase getDB() const;
+	SqlDatabase* getDB() const;
 
 	bool createTable(QStringList& columns) const;
 	bool createColumn(const QString& column) const;
@@ -43,7 +44,6 @@ public:
 	bool deleteRecord(const VectorPair& conditions) const;
 	bool tableExists(const QString& table) const;
 	bool deleteTable(const QString& table) const;
-	void setReadonlyMode(bool readOnly);
 
 	const QJsonObject getBackup();
 	QString restoreBackup(const QJsonObject& backupData);
@@ -53,12 +53,13 @@ protected:
 	DBManager();
 	Logger* _log;
 
-private:	
+private:
 	QString _table;
 
 	bool _readonlyMode;
-	void doAddBindValue(QSqlQuery& query, const QVariantList& variants) const;
+	void doAddBindValue(SqlQuery& query, const QVariantList& variants) const;
 
 	static QFileInfo _databaseName;
-	static QThreadStorage<QSqlDatabase> _databasePool;
+	static QThreadStorage<SqlDatabase*> _databasePool;
+	static bool _readOnlyMode;
 };

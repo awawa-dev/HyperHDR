@@ -11,8 +11,13 @@
 #include "QtHttpRequest.h"
 #include "webserver/WebServer.h"
 #include "HyperhdrConfig.h"
-#include "StaticFileServing.h"
+#include "FileServer.h"
 #include "QtHttpServer.h"
+
+#ifdef USE_STATIC_QT_PLUGINS
+	#include <QtPlugin>
+	Q_IMPORT_PLUGIN(QTlsBackendOpenSSLPlugin)
+#endif
 
 // bonjour
 #ifdef ENABLE_BONJOUR
@@ -22,13 +27,14 @@
 // netUtil
 #include <utils/NetOrigin.h>
 
+std::weak_ptr<FileServer> WebServer::globalStaticFileServing;
+
 WebServer::WebServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, bool useSsl, QObject* parent)
 	: QObject(parent)
 	, _port(0)
 	, _config(config)
 	, _useSsl(useSsl)
 	, _log(Logger::getInstance("WEBSERVER"))
-	, _staticFileServing(nullptr)
 	, _server(nullptr)
 	, _netOrigin(netOrigin)
 {
@@ -71,11 +77,25 @@ void WebServer::initServer()
 	connect(_server, &QtHttpServer::error, this, &WebServer::onServerError);
 
 	// create StaticFileServing
-	_staticFileServing = new StaticFileServing(this);
-	connect(_server, &QtHttpServer::requestNeedsReply, _staticFileServing, &StaticFileServing::onRequestNeedsReply);
+	connect(_server, &QtHttpServer::requestNeedsReply, this, &WebServer::onInitRequestNeedsReply);
 
 	// init
 	handleSettingsUpdate(settings::type::WEBSERVER, _config);
+}
+
+void WebServer::onInitRequestNeedsReply(QtHttpRequest* request, QtHttpReply* reply)
+{
+	if (_staticFileServing == nullptr)
+	{
+		_staticFileServing = globalStaticFileServing.lock();
+		if (_staticFileServing == nullptr)
+		{
+			_staticFileServing = std::make_shared<FileServer>();
+			globalStaticFileServing = _staticFileServing;
+		}
+	}
+
+	_staticFileServing->onRequestNeedsReply(request, reply);
 }
 
 void WebServer::onServerStarted(quint16 port)
@@ -125,7 +145,7 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 			_baseUrl = WEBSERVER_DEFAULT_PATH;
 
 		Info(_log, "Set document root to: %s", QSTRING_CSTR(_baseUrl));
-		_staticFileServing->setBaseUrl(_baseUrl);
+		FileServer::setBaseUrl(_baseUrl);
 
 		// ssl different port
 		quint16 newPort = _useSsl ? obj["sslPort"].toInt(WEBSERVER_DEFAULT_PORT) : obj["port"].toInt(WEBSERVER_DEFAULT_PORT);
@@ -242,7 +262,7 @@ bool WebServer::portAvailable(quint16& port, Logger* log)
 
 void WebServer::setSsdpXmlDesc(const QString& desc)
 {
-	_staticFileServing->setSsdpXmlDesc(desc);
+	FileServer::setSsdpXmlDesc(desc);
 }
 
 void WebServer::onServerError(QString msg)

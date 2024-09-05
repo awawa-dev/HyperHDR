@@ -1,11 +1,8 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <utils/MemoryBuffer.h>
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-#endif
-
+#include <image/MemoryBuffer.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/PixelFormat.h>
 
 // some stuff for HDR tone mapping
@@ -16,7 +13,7 @@ class FrameDecoder
 public:
 	static void processImage(
 		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-		const uint8_t* data, int width, int height, int lineLength,
+		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
 		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
 
 	static void processQImage(

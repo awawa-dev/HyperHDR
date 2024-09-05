@@ -115,11 +115,11 @@
   "conf_leds_nav_label_ledcontroller": "LED ovladač",
   "conf_leds_nav_label_ledlayout": "Rozložení LED",
   "conf_leds_optgroup_RPiGPIO": "RPi GPIO",
-  "conf_leds_optgroup_RPiPWM": "RPi PWM",
-  "conf_leds_optgroup_RPiSPI": "RPi SPI",
-  "conf_leds_optgroup_debug": "Ladit",
-  "conf_leds_optgroup_network": "Síť",
-  "conf_leds_optgroup_usb": "USB/sériový",
+  "leds_group_1_PWM": "RPi PWM",
+  "leds_group_0_SPI": "RPi SPI",
+  "leds_group_5_debug": "Ladit",
+  "leds_group_2_network": "Síť",
+  "leds_group_3_serial": "USB/sériový",
   "conf_logging_btn_autoscroll": "Automatické rolování",
   "conf_logging_btn_pbupload": "Nahrajte zprávu pro žádosti o podporu",
   "conf_logging_contpolicy": "Nahlásit zásady ochrany osobních údajů",
@@ -1241,5 +1241,7 @@
   "edt_conf_gen_disableOnLocked_title" : "Zakázat při uzamčení",
   "edt_conf_gen_disableOnLocked_expl" : "Vypněte zpracování, když uživatel uzamkne systém.",
   "edt_conf_gen_disableLedsStartup_title" : "Vypněte LED při startu",
-  "edt_conf_gen_disableLedsStartup_expl" : "Při spuštění deaktivujte LED a všechny komponenty, musíte je znovu povolit ručně na hlavní stránce nebo přes JSON API (komponenta COMP_ALL)."
+  "edt_conf_gen_disableLedsStartup_expl" : "Při spuštění deaktivujte LED a všechny komponenty, musíte je znovu povolit ručně na hlavní stránce nebo přes JSON API (komponenta COMP_ALL).",
+  "edt_conf_sound_device_smoothing_title" : "Povolit vyhlazování",
+  "edt_conf_sound_device_smoothing_expl" : "Povolit speciální vyhlazování pro zvukové efekty. Vyžaduje LED zařízení s výstupní frekvencí 60 Hz. Když je vyhlazování vypnuto, výstupní frekvence je 20 Hz."
 }

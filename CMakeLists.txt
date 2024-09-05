@@ -1,5 +1,6 @@
 if (WIN32)
-	cmake_minimum_required(VERSION 3.24.0)
+	cmake_minimum_required(VERSION 3.25.0)
+	cmake_policy(SET CMP0141 NEW)
 else()
 	cmake_minimum_required(VERSION 3.16.0)
 endif()
@@ -8,8 +9,12 @@ message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(HyperHdr)
 
-# Parse semantic version of version file
-include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
+
+set(OUR_CMAKE_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_modules)
+set(CMAKE_MODULE_PATH ${OUR_CMAKE_MODULES} ${CMAKE_MODULE_PATH})
+
+# print version
+include (version)
 file (STRINGS "version" HYPERHDR_VERSION)
 SetVersionNumber(HYPERHDR ${HYPERHDR_VERSION})
 
@@ -23,10 +28,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set build variables
 SET ( DEFAULT_PROTOBUF                    ON  )
-SET ( DEFAULT_BOBLIGHT                    OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
-SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON  )
 SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
 SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_DX                          OFF )
@@ -47,23 +50,57 @@ SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
 SET ( DEFAULT_XZ                          ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
 SET ( DEFAULT_SYSTRAY                     ON  )
+SET ( DEFAULT_SHARED_LIBS                 ON  )
+SET ( DEFAULT_EMBEDDED_WEB_RESOURCES      OFF )
 
 # Configure CCache if available
-find_program(CCACHE_FOUND ccache)
-if ( CCACHE_FOUND )
-	if (DEFINED ENV{CCACHE_DIR})
-		message ( STATUS "Found CCache and its env settings: $ENV{CCACHE_DIR}. Will try to use it." )
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-		set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+option(USE_CCACHE_CACHING "Enable CCache caching" ON )
+if (USE_CCACHE_CACHING)
+	find_program(CCACHE_FOUND ccache HINTS "${CMAKE_CURRENT_SOURCE_DIR}/build")
+	if ( CCACHE_FOUND )		
+		if (DEFINED ENV{CCACHE_DIR})
+			set (CCACHE_DIR_CACHE_LOCATION $ENV{CCACHE_DIR})
+			message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )			
+		elseif (WIN32 AND (NOT CMAKE_GITHUB_ACTION))
+			set (CCACHE_DIR_CACHE_LOCATION "$ENV{AppData}/.ccache")
+			message ( STATUS "Found CCache (${CCACHE_FOUND}) and set ccache dir: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )
+		else()
+			set (CCACHE_DIR_CACHE_LOCATION "${CMAKE_BINARY_DIR}/.ccache")
+			message ( STATUS "Found CCache (${CCACHE_FOUND}) and set ccache dir: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )
+		endif()
+
+		if (WIN32)
+			file(COPY_FILE
+				${CCACHE_FOUND} ${CMAKE_BINARY_DIR}/cl.exe
+				ONLY_IF_DIFFERENT
+			)
+			set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+			message ( STATUS "Writing CCache config to user profile: $ENV{USERPROFILE}/.ccache/ccache.conf")
+			configure_file(${OUR_CMAKE_MODULES}/ccache.windows.conf.in $ENV{USERPROFILE}/.ccache/ccache.conf)
+			configure_file(${OUR_CMAKE_MODULES}/Directory.Build.props.in ${CMAKE_BINARY_DIR}/Directory.Build.props)
+		else()
+			set(HYPERHDR_CCACHE_PARAMS
+				CCACHE_MAXSIZE=600M
+				CCACHE_NOCOMPRESS=true
+				CCACHE_DIR=${CCACHE_DIR_CACHE_LOCATION}
+				CCACHE_SLOPPINESS=pch_defines,time_macros
+				CCACHE_INODECACHE=true
+				CACHE STRING "CCache parameters")
+			mark_as_advanced(HYPERHDR_CCACHE_PARAMS)
+
+			set(CMAKE_C_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env ${HYPERHDR_CCACHE_PARAMS} ${CCACHE_FOUND})
+			set(CMAKE_CXX_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env ${HYPERHDR_CCACHE_PARAMS} ${CCACHE_FOUND})
+
+			message(STATUS "Using CCache for compilation. It is invoked as: ${CMAKE_CXX_COMPILER_LAUNCHER}")
+		endif()
 	else()
-		message ( WARNING "Found CCache but env settings: CCACHE_DIR is not set. Skipping." )
-	endif()
-else()
-	message ( STATUS "CCache is not found" )
-endif(CCACHE_FOUND)
+		set( USE_CCACHE_CACHING           OFF )
+		message ( STATUS "CCache is not found" )
+	endif(CCACHE_FOUND)
+endif(USE_CCACHE_CACHING)
 
 # find QT libs
-find_package(Qt6 COMPONENTS Core Network Sql Widgets SerialPort QUIET)
+find_package(Qt6 COMPONENTS Core Network SerialPort QUIET)
 
 if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
 	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
@@ -75,7 +112,7 @@ ELSE()
 		message( STATUS "QT version 6 not found. Searching for QT version 5 instead." )
 	endif()
 	SET(QT_MIN_VERSION "5.10.0")
-	find_package(Qt5 COMPONENTS Core Network SerialPort Sql REQUIRED)
+	find_package(Qt5 COMPONENTS Core Network SerialPort REQUIRED)
 	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
@@ -157,9 +194,10 @@ if ( "${PLATFORM}" MATCHES "osx" )
 		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 	endif()
 	
-	SET ( DEFAULT_AVF                 ON  )
-	SET ( DEFAULT_MAC_SYSTEM          ON  )
-	SET ( DEFAULT_PRECOMPILED_HEADERS OFF )
+	SET ( DEFAULT_AVF                    ON  )
+	SET ( DEFAULT_MAC_SYSTEM             ON  )
+	SET ( DEFAULT_EMBEDDED_WEB_RESOURCES OFF )
+
 elseif ( "${PLATFORM}" MATCHES "rpi" )	
 	SET ( DEFAULT_WS281XPWM  ON  )
 	SET ( DEFAULT_CEC        ON  )
@@ -217,15 +255,12 @@ elseif ( "${PLATFORM}" MATCHES "linux" )
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	
 elseif (WIN32)
-
+	SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 endif()
 
 STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
 STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
 ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
-
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if (DEFAULT_X11)
 	if (NOT CMAKE_CROSSCOMPILING)
@@ -273,6 +308,12 @@ if (UNIX AND NOT APPLE AND (DEFAULT_POWER_MANAGEMENT OR DEFAULT_PIPEWIRE))
 	else()
 		set ( HYPERHDR_HAVE_DBUS                  ON )
 	endif()
+endif()
+
+# Find OpenSSL
+find_package(OpenSSL)
+if (NOT OPENSSL_FOUND)
+	message( WARNING "OpenSSL could not be found. HyperHDR HTTPS instance and Philips Hue support will be disabled." )
 endif()
 
 # Pipewire support
@@ -331,6 +372,17 @@ if (WIN32)
 	else()
 		message( FATAL_ERROR  "Please install 7-zip")
 	endif (SEVENZIP_BIN)
+endif()
+
+if (CMAKE_CROSSCOMPILING)
+	set ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
+	SET ( DEFAULT_SHARED_LIBS                 OFF )
+	set ( DEFAULT_EMBEDDED_WEB_RESOURCES      ON  )
+endif()
+
+if ( APPLE )
+	set ( DEFAULT_EMBEDDED_WEB_RESOURCES      ON  )
+	set ( USE_EMBEDDED_WEB_RESOURCES          ON  )
 endif()
 
 # set the build options
@@ -406,9 +458,6 @@ colorMe("ENABLE_SOUNDCAPWINDOWS = " ${ENABLE_SOUNDCAPWINDOWS})
 
 message( STATUS "\n${CyanColor}SERVICE SUPPORT${ColorReset}")
 
-option(ENABLE_BOBLIGHT   "Enable BOBLIGHT component" ${DEFAULT_BOBLIGHT} )
-colorMe("ENABLE_BOBLIGHT = " ${ENABLE_BOBLIGHT})
-
 option(ENABLE_BONJOUR "Enable the network discovery service" ${DEFAULT_BONJOUR} )
 colorMe("ENABLE_BONJOUR = " ${ENABLE_BONJOUR})
 
@@ -432,11 +481,16 @@ colorMe("ENABLE_XZ = " ${ENABLE_XZ})
 
 message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
-option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
-colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
+option(USE_SHARED_LIBS "Prefer shared libraries over static ones" ${DEFAULT_SHARED_LIBS})
+colorMe("USE_SHARED_LIBS = " ${USE_SHARED_LIBS})
+
+option(USE_EMBEDDED_WEB_RESOURCES "Use embedded web-server resources" ${DEFAULT_EMBEDDED_WEB_RESOURCES})
+colorMe("USE_EMBEDDED_WEB_RESOURCES = " ${USE_EMBEDDED_WEB_RESOURCES})
 
 option(USE_PRECOMPILED_HEADERS "Enable precompiled headers (PCH)" ${DEFAULT_PRECOMPILED_HEADERS})
 colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
+
+colorMe("USE_CCACHE_CACHING = " ${USE_CCACHE_CACHING})
 
 option(USE_SYSTEM_MQTT_LIBS "Use system qmqtt libs" ${DEFAULT_USE_SYSTEM_MQTT_LIBS})
 colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
@@ -444,8 +498,8 @@ colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
 option(USE_SYSTEM_FLATBUFFERS_LIBS "Use system flatbuffers libs" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
 colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
 
-option(USE_SYSTEM_MBEDTLS_LIBS "Use system mbedtls libs" ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS})
-colorMe("USE_SYSTEM_MBEDTLS_LIBS = " ${USE_SYSTEM_MBEDTLS_LIBS})
+option(USE_STATIC_QT_PLUGINS "Enable static QT plugins" ${DEFAULT_STATIC_QT_PLUGINS})
+colorMe("USE_STATIC_QT_PLUGINS = " ${USE_STATIC_QT_PLUGINS})
 
 if(UNIX AND NOT APPLE)
 	option(USE_STANDARD_INSTALLER_NAME "Use the standardized Linux installer name" OFF)
@@ -509,14 +563,14 @@ else()
 	include(CheckCXXCompilerFlag)
     CHECK_CXX_COMPILER_FLAG("/std:c++20" COMPILER_SUPPORTS_CXX20)
     if (COMPILER_SUPPORTS_CXX20)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20")
+		set(CMAKE_CXX_STANDARD 20)
 		message(STATUS "Enabling MSVC support for c++20")
     endif()
 endif()
 
 # Use GNU gold linker if available
 if (NOT WIN32)
-	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+	include (LDGold)
 endif()
 
 # Don't create new dynamic tags (RUNPATH)
@@ -529,6 +583,7 @@ if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 	list(APPEND CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+	list(APPEND CMAKE_INSTALL_RPATH "$ORIGIN/../lib/external")
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
@@ -581,10 +636,16 @@ message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TurboJPEG_LIBRARY}")
 message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TurboJPEG_INCLUDE_DIRS}")
 
 # Embedded QT plugins
-if (USE_STATIC_QT_PLUGINS)
-	foreach(sqlPlugin ${Qt${Qt_VERSION}Sql_PLUGINS} Qt${Qt_VERSION}::Sql)
-		message( STATUS "PLUGIN=${sqlPlugin}")
-		get_target_property(file ${sqlPlugin} LOCATION)
+if (USE_STATIC_QT_PLUGINS AND TARGET Qt6::qmake)
+	get_target_property(QT6_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+	execute_process(
+		COMMAND ${QT6_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+		OUTPUT_VARIABLE QT6_PLUGINS_DIR
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	file(GLOB resultPlugins "${QT6_PLUGINS_DIR}/tls/*openssl*")
+	foreach(file ${resultPlugins})
 		if (NOT IS_SYMLINK ${file})
 			message("Using static QT plugin: " ${file})
 			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
@@ -623,15 +684,15 @@ LIST( APPEND GENERATED_QRC
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
 
 # uninstall target
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
+configure_file( "${OUR_CMAKE_MODULES}/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
-	set_target_properties(qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3)
+	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall liblzma sqlite3 PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

@@ -5,11 +5,10 @@
 	#include <QMutex>
 	#include <QJsonObject>
 	#include <QJsonArray>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
 
+#include <utils/Logger.h>
+#include <utils/settings.h>
 #include <base/SoundCaptureResult.h>
 
 class AnimationBaseMusic;
@@ -22,7 +21,7 @@ protected:
 	Logger*			_logger;
 
 	SoundCapture(const QJsonDocument& effectConfig, QObject* parent = nullptr);
-	~SoundCapture();
+	virtual ~SoundCapture();
 	
 	QList<QString>	_availableDevices;
 	bool			_isActive;
