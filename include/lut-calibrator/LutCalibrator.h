@@ -73,6 +73,7 @@ public slots:
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
 	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin);
+	void calibrate();
 
 private:
 	void toneMapping();
@@ -80,13 +81,13 @@ private:
 	void sendReport(QString report);
 	bool set1to1LUT();
 	void notifyCalibrationFinished();
+	void notifyCalibrationMessage(QString message, bool started = false);
 	void error(QString message);
 	void handleImage(const Image<ColorRgb>& image);
 	linalg::vec<double, 3> hdr_to_srgb(linalg::vec<double, 3> yuv, const linalg::vec<uint8_t, 2>& UV, const linalg::vec<double, 3>& aspect, const linalg::mat<double, 4, 4>& coefMatrix, int nits, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, bool tryBt2020Range);
 	void scoreBoard(bool testOnly, const linalg::mat<double, 4, 4>& coefMatrix, int nits, linalg::vec<double, 3> aspect, bool tryBt2020Range, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, const double& minError, double& currentError);
 	void tryHDR10();
 	void setupWhitePointCorrection();
-	void calibrate();
 	bool finalize(bool fastTrack = false);
 
 	inline int clampInt(int val, int min, int max) { return qMin(qMax(val, min), max);}

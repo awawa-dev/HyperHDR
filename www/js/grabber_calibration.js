@@ -11,9 +11,9 @@ $(document).ready( function(){
 	  console.log(`Screen supports approximately the gamut specified by the ITU-R Recommendation BT.2020 Color Space or more.`);
 	}
 
+	let calibWiz = null;
 	let myInterval;
 	let currentTestBoard = 0;
-	let checksum = 0;
 	let finish = false;
 	let running = false;
 	let saturation = 1;
@@ -21,6 +21,31 @@ $(document).ready( function(){
 	let gammaR = 1;
 	let gammaG = 1;
 	let gammaB = 1;
+
+	$("#select_classic_calibration_label").html($.i18n("option_calibration_classic"));
+	$("#select_video_calibration_label").html($.i18n("option_calibration_video"));
+	$("#video_calibration_overview").html($.i18n("video_calibration_overview"));
+	$("#btn_select_calibration").off('click').on('click', function() {
+		if($('#select_classic_calibration').is(':checked'))
+		{
+			$('#calibration_select_intro').hide();
+			$('#classic_calibration').show();
+		}
+		if($('#select_video_calibration').is(':checked'))
+		{
+			$('#calibration_select_intro').hide();			
+			$('#video_calibration').show();
+		}
+	});
+
+	$("#btn_start_video_calibration").off('click').on('click', function() {
+			finish = false;
+			running = true;			
+			startCalibrationWizard();
+			requestLutCalibration("capture", 0, saturation, luminance, gammaR, gammaG, gammaB);
+	});
+
+
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
@@ -77,26 +102,76 @@ $(document).ready( function(){
 		ctx.fillStyle = gradient;
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 	}
+
+	function startCalibrationWizard() {		
+		$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n("main_menu_grabber_calibration_token"));
+		$('#wizp1_body').html('<h4 id="calibration_running_header" style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-2"></svg><br/></div></div>');
+		$('#wizp2_body').html('<h4 id="calibration_summary_header" style="font-weight:bold;text-transform:uppercase;"></h4><p id="calibration_summary"></p>');
+		$('#wizp1_footer').html('');
+		$('#wizp2_footer').html('<button type="button" class="btn btn-success" name="btn_wiz_closeme_download"><svg data-src="svg/button_success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_ok') + '</button>');
+		//open modal
+		calibWiz= new bootstrap.Modal($("#wizard_modal"), {
+			backdrop: "static",
+			keyboard: false
+		});
+		
+		const backupCalibWizard = $("#wizard_modal").css("z-index");
+		$("#wizard_modal").css("z-index", "10000");		
+		
+		$('#wizp1').toggle(true);
+		$('#wizp2').toggle(false);
+
+		calibWiz.show();
+
+		$("[name='btn_wiz_closeme_download']").off().on('click', function () {
+			$("#wizard_modal").css("z-index", backupCalibWizard);
+			calibWiz.hide();
+			resetWizard(true);
+			reload();
+		});
+	}
 	
 	function handleMessage(event)
 	{
 		let json = event.response.data;
-		
+
 		if (!running)
 			return;
 				
-		if (json.status != 0)
+		if (json.error != null)
 		{
 			clearInterval(myInterval);
 			document.body.style.overflow = 'visible';
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
 			resetImage();
+			if (calibWiz != null)
+			{
+				calibWiz.hide();
+				resetWizard(true);
+			}
 			alert("Error occured. Please consult the HyperHDR log.\n\n" + json.error);
 			return;
 		}
+
+		if (json.message != null)
+		{
+			if (json.start && calibWiz == null)
+			{
+				clearInterval(myInterval);
+				document.body.style.overflow = 'visible';
+				canvas.classList.remove("fullscreen-canvas");				
+				resetImage();
+				startCalibrationWizard();
+			}
+			if (calibWiz != null)
+			{
+				let resElement = document.getElementById("calibration_running_header");
+				resElement.innerHTML = json.message;
+			}
+		}
 		
-		if (json.validate < 0)
+		if (json.finished != null)
 		{
 			clearInterval(myInterval);
 			finish = true;
@@ -104,7 +179,11 @@ $(document).ready( function(){
 			running = false;
 			document.body.style.overflow = 'visible';
 			resetImage();
-			alert(`Finished!\n\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
+
+			let resElement = document.getElementById("calibration_summary_header");
+			resElement.innerHTML = `Finished!<br/>If the new LUT file was successfully created then you can find the path in the HyperHDR logs.<br/>Usually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`;
+			$('#wizp1').toggle(false);
+			$('#wizp2').toggle(true);
 			return;
 		}		
 	}
@@ -115,21 +194,15 @@ $(document).ready( function(){
 		{
 			document.body.style.overflow = 'hidden';
 			canvas.classList.add("fullscreen-canvas");
-			checksum = 0;
 			finish = false;
 			running = true;
-			saturation = document.getElementById('saturation').value;
-			luminance =  document.getElementById('luminance').value;
-			gammaR = document.getElementById('gammaR').value;
-			gammaG = document.getElementById('gammaG').value;
-			gammaB = document.getElementById('gammaB').value;			
 			
 			ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			
 			drawImage();		
 			setTimeout(() => {
-				requestLutCalibration("capture", checksum, saturation, luminance, gammaR, gammaG, gammaB);
+				requestLutCalibration("capture", 0, saturation, luminance, gammaR, gammaG, gammaB);
 			}, 100); 
 		}
 		else

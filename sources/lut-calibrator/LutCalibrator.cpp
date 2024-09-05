@@ -145,7 +145,6 @@ void LutCalibrator::error(QString message)
 	QJsonObject report;
 	stopHandler();
 	Error(_log, QSTRING_CSTR(message));
-	report["status"] = 1;
 	report["error"] = message;
 	SignalLutCalibrationUpdated(report);
 }
@@ -224,8 +223,18 @@ QString LutCalibrator::generateReport(bool full)
 void LutCalibrator::notifyCalibrationFinished()
 {	
 	QJsonObject report;
-	report["status"] = 0;
-	report["validate"] = -1;
+	report["finished"] = true;
+	SignalLutCalibrationUpdated(report);
+}
+
+void LutCalibrator::notifyCalibrationMessage(QString message, bool started)
+{
+	QJsonObject report;
+	report["message"] = message;
+	if (started)
+	{
+		report["start"] = true;
+	}
 	SignalLutCalibrationUpdated(report);
 }
 
@@ -299,17 +308,23 @@ void LutCalibrator::incomingCommand(QString rootpath, GrabberWrapper* grabberWra
 
 	if (defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
-		Debug(_log, "Using video grabber as a source");
+		auto message = "Using video grabber as a source<br/>Waiting for first captured test board..";
+		notifyCalibrationMessage(message);
+		Debug(_log, message);
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
 	}
 	else if (defaultComp == hyperhdr::COMP_SYSTEMGRABBER)
 	{
-		Debug(_log, "Using system grabber as a source");
+		auto message = "Using system grabber as a source<br/>Waiting for first captured test board..";
+		notifyCalibrationMessage(message);
+		Debug(_log, message);
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &LutCalibrator::setSystemImage, Qt::ConnectionType::UniqueConnection);
 	}
 	else
 	{
-		Debug(_log, "Using flatbuffers/protobuffers as a source");
+		auto message = "Using flatbuffers/protobuffers as a source<br/>Waiting for first captured test board..";
+		notifyCalibrationMessage(message);
+		Debug(_log, message);
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalImage, this, &LutCalibrator::signalSetGlobalImageHandler, Qt::ConnectionType::UniqueConnection);
 	}
 }
@@ -365,20 +380,22 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 	int boardIndex = -1;
 
-	if (!parseBoard(_log, image, boardIndex, (*_capturedColors.get())))
+	if (!parseBoard(_log, image, boardIndex, (*_capturedColors.get())) || _capturedColors->isCaptured(boardIndex))
 	{		
 		return;
 	}
-
 	
 	_capturedColors->setCaptured(boardIndex);
+
+	notifyCalibrationMessage(QString("Captured test board: %1<br/>Waiting for the next one...").arg(boardIndex));
 
 
 	if (_capturedColors->areAllCaptured())
 	{
 		Info(_log, "All boards are captured. Starting calibration...");
 		stopHandler();
-		calibrate();
+		notifyCalibrationMessage(QString("All boards are captured<br/>Processing...<br/>This will take a lot of time"), true);
+		QTimer::singleShot(200, this, &LutCalibrator::calibrate);
 	}
 }
 
