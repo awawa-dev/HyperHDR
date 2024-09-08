@@ -57,6 +57,12 @@ namespace linalg {
 	template<class T, int M> struct vec;
 }
 
+namespace ColorSpaceMath {
+	enum HDR_GAMMA;
+}
+
+struct BestResult;
+
 class LutCalibrator : public QObject
 {
 	Q_OBJECT
@@ -76,7 +82,8 @@ public slots:
 	void calibrate();
 
 private:
-	void toneMapping();
+	void fineTune();
+	void printReport();
 	QString generateReport(bool full);
 	void sendReport(QString report);
 	bool set1to1LUT();
@@ -84,24 +91,20 @@ private:
 	void notifyCalibrationMessage(QString message, bool started = false);
 	void error(QString message);
 	void handleImage(const Image<ColorRgb>& image);
-	linalg::vec<double, 3> hdr_to_srgb(linalg::vec<double, 3> yuv, const linalg::vec<uint8_t, 2>& UV, const linalg::vec<double, 3>& aspect, const linalg::mat<double, 4, 4>& coefMatrix, int nits, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, bool tryBt2020Range);
-	void scoreBoard(bool testOnly, const linalg::mat<double, 4, 4>& coefMatrix, int nits, linalg::vec<double, 3> aspect, bool tryBt2020Range, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, const double& minError, double& currentError);
+	linalg::vec<double, 3> hdr_to_srgb(linalg::vec<double, 3> yuv, const linalg::vec<uint8_t, 2>& UV, const linalg::vec<double, 3>& aspect, const linalg::mat<double, 4, 4>& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, int tryBt2020Range);
+	void scoreBoard(bool testOnly, const linalg::mat<double, 4, 4>& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, linalg::vec<double, 3> aspect, bool tryBt2020Range, bool altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, const long long int& minError, long long int& currentError);
 	void tryHDR10();
 	void setupWhitePointCorrection();
-	bool finalize(bool fastTrack = false);
+	bool setTestData();
+	void detectGamma();
 
-	inline int clampInt(int val, int min, int max) { return qMin(qMax(val, min), max);}
-	inline double clampDouble(double val, double min, double max) { return qMin(qMax(val, min), max); }
-	inline int clampToInt(double val, int min, int max) { return qMin(qMax(qRound(val), min), max); }
-
-	double	fineTune(double& optimalRange, double& optimalScale, int& optimalWhite, int& optimalStrategy);
-	double	getError(const linalg::vec<uint8_t, 3>& first, const linalg::vec<uint8_t, 3>& second);
-	void	capturedPrimariesCorrection(double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected);
-	bool	parseTextLut2binary(const char* filename = "D:/interpolated_lut.txt", const char* outfile = "D:/lut_lin_tables.3d");
+	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);
+	bool parseTextLut2binary(const char* filename = "D:/interpolated_lut.txt", const char* outfile = "D:/lut_lin_tables.3d");
 
 	Logger* _log;
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;
 	std::shared_ptr<YuvConverter> _yuvConverter;
+	std::shared_ptr< BestResult> bestResult;
 	MemoryBuffer<uint8_t> _lut;
 	QString _rootPath;	
 };

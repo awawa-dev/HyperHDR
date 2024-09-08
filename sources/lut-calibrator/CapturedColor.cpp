@@ -96,11 +96,11 @@ QString CapturedColor::toString()
 
 void  CapturedColor::setSourceRGB(byte3 _color)
 {
-	sourceRGB = _color;
-	sourceRgb = ColorSpaceMath::to_double3(_color);
+	sourceRGB = ColorSpaceMath::to_int3(_color);
+	sourceRGBdelta = linalg::dot(sourceRGB, sourceRGB);
 }
 
-byte3 CapturedColor::getSourceRGB() const
+int3 CapturedColor::getSourceRGB() const
 {
 	return sourceRGB;
 }
@@ -116,7 +116,14 @@ byte3 CapturedColor::getFinalRGB() const
 	return finalRGB;
 }
 
-long long int CapturedColor::getSourceError(const double3& _color)
-{
-	return std::pow(linalg::distance(sourceRgb, _color ), 3) / 1000.0;
+int CapturedColor::getSourceError(const int3& _color)
+{	
+	if (sourceRGBdelta == 0)
+	{
+		return linalg::dot(_color, _color) * 100;
+	}
+
+	auto delta = linalg::abs( sourceRGB - _color);
+	
+	return (delta.x* delta.x* delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z);
 }

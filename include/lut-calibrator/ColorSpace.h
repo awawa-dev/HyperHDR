@@ -44,6 +44,9 @@ using namespace aliases;
 namespace ColorSpaceMath
 {
 	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };
+	enum HDR_GAMMA { PQ = 0, HLG };
+
+	QString gammaToString(HDR_GAMMA gamma);
 
 	constexpr mat<double, 3, 3> matrix(std::array<double, 9> m)
 	{
@@ -90,6 +93,13 @@ namespace ColorSpaceMath
 
 	double3 PQ_ST2084(double scale, double3 nonlinear);
 
+	double inverse_OETF_HLG(double input);
+
+	double3 inverse_OETF_HLG(double3 input);
+
+	double3 OOTF_HLG(double3 input, double gamma = 1.2);
+	double3 OOTF_HLG(double _input, double gamma = 1.2);
+
 	double3 from_bt2020_to_XYZ(double3 x);
 
 	double3 from_XYZ_to_bt2020(double3 x);
@@ -120,6 +130,10 @@ namespace ColorSpaceMath
 	double3 lch_to_xyz(double3 lch);
 
 	byte3 to_byte3(const double3& v);
+
+	int3 to_int3(const byte3& v);
+
+	int3 to_int3(const double3& v);
 
 	double3 to_double3(const byte3& v);
 

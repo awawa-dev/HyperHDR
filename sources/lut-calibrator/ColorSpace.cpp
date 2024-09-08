@@ -64,6 +64,15 @@ namespace ColorSpaceMath
 				}
 	};
 
+	QString gammaToString(HDR_GAMMA gamma)
+	{
+		if (gamma == HDR_GAMMA::PQ)
+			return "PQ";
+		else if (gamma == HDR_GAMMA::HLG)
+			return "HLG";
+		return "UNKNOWN";
+	}
+
 	double bt2020_nonlinear_to_linear(double input)
 	{
 		const double alpha = 1.09929682680944;
@@ -192,6 +201,43 @@ namespace ColorSpaceMath
 		return double3(PQ_ST2084(scale, nonlinear[0]),
 						PQ_ST2084(scale, nonlinear[1]),
 						PQ_ST2084(scale, nonlinear[2]));
+	}
+
+	double inverse_OETF_HLG(double t)
+	{
+		if (t < 0) return -inverse_OETF_HLG(-t);
+
+		constexpr double a = 0.17883277;
+		constexpr double b = 0.28466892;
+		constexpr double c = 0.55991073;
+		constexpr double one_twelfth = 1.0 / 12.0;
+
+		if (t < 0.5) return t * t / 3.0;
+		else return (std::exp((t - c) / a) + b) * one_twelfth;
+	};
+
+	double3 inverse_OETF_HLG(double3 input)
+	{
+		return double3(inverse_OETF_HLG(input[0]),
+						inverse_OETF_HLG(input[1]),
+						inverse_OETF_HLG(input[2]));
+	}
+
+	double3 OOTF_HLG(double3 input, double gamma)
+	{
+		double3 coefs{ 0.2627, 0.6780, 0.0593 };
+		double luma = linalg::dot(input, coefs);
+		luma = linalg::pow(luma, gamma - 1.0);
+		return input * luma;
+	}
+
+	double3 OOTF_HLG(double _input, double gamma)
+	{
+		double3 input(_input);
+		double3 coefs{ 0.2627, 0.6780, 0.0593 };
+		double luma = linalg::dot(input, coefs);
+		luma = linalg::pow(luma, gamma - 1.0);
+		return input * luma;
 	}
 
 	double3 from_bt2020_to_XYZ(double3 x)
@@ -337,10 +383,20 @@ namespace ColorSpaceMath
 	byte3 to_byte3(const double3& v)
 	{
 		return byte3(
-			std::round(std::max(std::min(v.x, 255.0), 0.0)),
-			std::round(std::max(std::min(v.y, 255.0), 0.0)),
-			std::round(std::max(std::min(v.z, 255.0), 0.0))
+			std::lround(std::max(std::min(v.x, 255.0), 0.0)),
+			std::lround(std::max(std::min(v.y, 255.0), 0.0)),
+			std::lround(std::max(std::min(v.z, 255.0), 0.0))
 		);
+	}
+
+	int3 to_int3(const byte3& v)
+	{
+		return int3(v.x,v.y,v.z);
+	}
+
+	int3 to_int3(const double3& v)
+	{
+		return int3(std::lround(v.x), std::lround(v.y), std::lround(v.z));
 	}
 
 	double3 to_double3(const byte3& v)

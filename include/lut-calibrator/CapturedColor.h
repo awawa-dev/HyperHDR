@@ -43,8 +43,8 @@
 class CapturedColor
 {
 private:
-	byte3 sourceRGB;
-	double3 sourceRgb;
+	int3 sourceRGB;
+	int sourceRGBdelta = 0;
 	byte3 finalRGB;
 	double3	color;
 	byte3 min, max;
@@ -68,8 +68,8 @@ public:
 	bool calculateFinalColor();
 	void addColor(ColorRgb i);
 	void setSourceRGB(byte3 _color);
-	long long int getSourceError(const double3& _color);
-	byte3 getSourceRGB() const;
+	int getSourceError(const int3& _color);
+	int3 getSourceRGB() const;
 	void setFinalRGB(double3 _color);
 	byte3 getFinalRGB() const;
 	static byte3 getMaxYUV();
