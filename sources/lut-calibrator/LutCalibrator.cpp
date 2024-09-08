@@ -593,7 +593,7 @@ void LutCalibrator::printReport()
 }
 
 
-double3 LutCalibrator::hdr_to_srgb(double3 yuv, const byte2& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range)
+linalg::vec<double, 3> LutCalibrator::hdr_to_srgb(linalg::vec<double, 3> yuv, const linalg::vec<uint8_t, 2>& UV, const linalg::vec<double, 3>& aspect, const linalg::mat<double, 4, 4>& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, int tryBt2020Range)
 {
 	double3 srgb;
 
@@ -639,7 +639,7 @@ double3 LutCalibrator::hdr_to_srgb(double3 yuv, const byte2& UV, const double3& 
 }
 
 
-void LutCalibrator::scoreBoard(bool testOnly, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, double3 aspect, bool tryBt2020Range, bool altConvert, const double3x3& bt2020_to_sRgb, const long long& minError, long long int& currentError)
+void LutCalibrator::scoreBoard(bool testOnly, const linalg::mat<double, 4, 4>& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, linalg::vec<double, 3> aspect, int tryBt2020Range, int altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, const long long int& minError, long long int& currentError)
 {
 	for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 		for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
