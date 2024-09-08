@@ -37,14 +37,14 @@
 #endif
 
 #include <linalg.h>
+#include <lut-calibrator/LutCalibrator.h>
 
 using namespace linalg;
 using namespace aliases;
 
 namespace ColorSpaceMath
 {
-	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };
-	enum HDR_GAMMA { PQ = 0, HLG };
+	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };	
 
 	QString gammaToString(HDR_GAMMA gamma);
 

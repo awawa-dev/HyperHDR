@@ -58,7 +58,7 @@ namespace linalg {
 }
 
 namespace ColorSpaceMath {
-	enum HDR_GAMMA : int;
+	enum HDR_GAMMA { PQ = 0, HLG };
 }
 
 struct BestResult;
