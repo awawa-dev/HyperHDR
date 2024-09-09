@@ -228,7 +228,10 @@ namespace ColorSpaceMath
 		double3 coefs{ 0.2627, 0.6780, 0.0593 };
 		double luma = linalg::dot(input, coefs);
 		luma = linalg::pow(luma, gamma - 1.0);
-		return input * luma;
+		if (gamma != 0)
+			return input * luma;
+		else
+			return input;
 	}
 
 	double3 OOTF_HLG(double _input, double gamma)
@@ -237,7 +240,10 @@ namespace ColorSpaceMath
 		double3 coefs{ 0.2627, 0.6780, 0.0593 };
 		double luma = linalg::dot(input, coefs);
 		luma = linalg::pow(luma, gamma - 1.0);
-		return input * luma;
+		if (gamma != 0)
+			return input * luma;
+		else
+			return input;
 	}
 
 	double3 from_bt2020_to_XYZ(double3 x)
