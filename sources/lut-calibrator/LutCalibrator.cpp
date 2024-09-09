@@ -688,7 +688,7 @@ void LutCalibrator::detectGamma()
 	nits[HDR_GAMMA::PQ] = 10000.0 * PQ_ST2084(1.0, maxLevel);	
 
 	for (int gamma = HDR_GAMMA::PQ; gamma <= HDR_GAMMA::HLG; gamma++)
-		for (double gammaHLG = 0; gammaHLG <= ((gamma == HDR_GAMMA::PQ) ? 0 : 1.3); gammaHLG += ((gammaHLG == 0) ? 1.1 : 0.01))
+		for (double gammaHLG = 0; gammaHLG <= ((gamma == HDR_GAMMA::PQ) ? 0 : 1.2); gammaHLG += ((gammaHLG == 0) ? 1.1 : 0.1))
 		{
 			if (gamma == HDR_GAMMA::HLG)
 			{
@@ -705,6 +705,9 @@ void LutCalibrator::detectGamma()
 				capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, nits[gamma], coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 				auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
 
+				for (double aspectX = 0.95; aspectX <= 1.05; aspectX += 0.01)
+					for (double aspectY = 1.15; aspectY >= 0.98; aspectY -= 0.01)
+						for (double aspectZ = 1.15; aspectZ >= 0.98; aspectZ -= 0.01)
 				for (int altConvert = 0; altConvert <= 1; altConvert++)
 					for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
 					{
@@ -716,7 +719,7 @@ void LutCalibrator::detectGamma()
 									{
 										auto& sample = _capturedColors->all[r][g][b];
 										auto yuv = _yuvConverter->multiplyColorMatrix(coefMatrix, sample.yuv());
-										auto srgb = hdr_to_srgb(sample.yuv(), byte2{ sample.U(), sample.V() }, double3{ 1.0, 1.0, 1.0 }, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range);
+										auto srgb = hdr_to_srgb(sample.yuv(), byte2{ sample.U(), sample.V() }, double3{ aspectX, aspectY, aspectZ }, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range);
 										auto SRGB = to_int3(srgb * 255.0);
 
 										currentError += sample.getSourceError(SRGB);
@@ -730,7 +733,7 @@ void LutCalibrator::detectGamma()
 							bestResult->coefDelta = double2(0, 0);
 							bestResult->bt2020Range = tryBt2020Range;
 							bestResult->altConvert = altConvert;
-							bestResult->aspect = double3(1.0, 1.0, 1.0);
+							bestResult->aspect = double3(aspectX, aspectY, aspectZ);
 							bestResult->nits = nits[gamma];
 							bestResult->gamma = HDR_GAMMA(gamma);
 							bestResult->gammaHLG = gammaHLG;
@@ -761,25 +764,14 @@ void  LutCalibrator::fineTune()
 	int tryBt2020Range = bestResult->bt2020Range;
 	int coef = bestResult->coef;
 
-	std::vector<double> gammasHLG;
-	if (gamma == HDR_GAMMA::HLG)
-	{
-		if (bestResult->gammaHLG != 1.2)
-			gammasHLG = { bestResult->gammaHLG, 1.2 };
-		else
-			gammasHLG = { bestResult->gammaHLG };
-	}
-	else
-		gammasHLG = { 0 };
-
-	for (auto gammaHLG : gammasHLG)
+	auto gammaHLG = bestResult->gammaHLG;
 	{
 		if (gamma == HDR_GAMMA::HLG)
 		{
 			nits[HDR_GAMMA::HLG] = 1 / OOTF_HLG(inverse_OETF_HLG(maxLevel), gammaHLG).x;
 		}
-		for (double krDelta = -0.018; krDelta <= 0.018; krDelta += 0.001)
-			for (double kbDelta = -0.018; kbDelta <= 0.018; kbDelta += 0.001)
+		for (double krDelta = -0.018; krDelta <= 0.018; krDelta += 0.002)
+			for (double kbDelta = -0.018; kbDelta <= 0.018; kbDelta += 0.002)
 		{
 			double3x3 convert_bt2020_to_XYZ;
 			double3x3 convert_XYZ_to_sRgb;
@@ -791,42 +783,44 @@ void  LutCalibrator::fineTune()
 			capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, nits[gamma], coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 			auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
 
-			for (double aspectX = 0.95; aspectX <= 1.05; aspectX += 0.01)
-				for (double aspectYZ = 1.08; aspectYZ >= 0.98; aspectYZ -= 0.005)				
-						for (int altConvert = bestResult->altConvert; altConvert <= bestResult->altConvert; altConvert++)
-							for (int tryBt2020Range = bestResult->bt2020Range; tryBt2020Range <= bestResult->bt2020Range; tryBt2020Range++)
-							{
-								double3 aspect(aspectX, aspectYZ, aspectYZ);
+			auto starterX = bestResult->aspect.x;
+			auto starterY = bestResult->aspect.y;
+			auto starterZ = bestResult->aspect.z;
+			for (double aspectX = starterX - 0.03; aspectX <= starterX + 0.03; aspectX += 0.005)
+				for (double aspectY = starterY + 0.03; aspectY >= starterY - 0.03; aspectY -= 0.005)
+					for (double aspectZ = starterZ + 0.03; aspectZ >= starterZ - 0.03; aspectZ -= 0.005)
+					{
+						double3 aspect(aspectX, aspectY, aspectZ);
 
-								long long int currentError = 0;
-								for (int r = SCREEN_COLOR_DIMENSION - 1; r >= 0 && currentError < bestResult->minError; r--)
-									for (int g = SCREEN_COLOR_DIMENSION - 1; g >= 0 && currentError < bestResult->minError; g--)
-										for (int b = SCREEN_COLOR_DIMENSION - 1; b >= 0 && currentError < bestResult->minError; b--)
-											if ((r % 2 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g))
-											{
-												auto& sample = _capturedColors->all[r][g][b];
-												auto yuv = _yuvConverter->multiplyColorMatrix(coefMatrix, sample.yuv());
-												auto srgb = hdr_to_srgb(sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range);
-												auto SRGB = to_int3(srgb * 255.0);
-												currentError += sample.getSourceError(SRGB);
+						long long int currentError = 0;
+						for (int r = SCREEN_COLOR_DIMENSION - 1; r >= 0 && currentError < bestResult->minError; r--)
+							for (int g = SCREEN_COLOR_DIMENSION - 1; g >= 0 && currentError < bestResult->minError; g--)
+								for (int b = SCREEN_COLOR_DIMENSION - 1; b >= 0 && currentError < bestResult->minError; b--)
+									if ((r % 2 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g))
+									{
+										auto& sample = _capturedColors->all[r][g][b];
+										auto yuv = _yuvConverter->multiplyColorMatrix(coefMatrix, sample.yuv());
+										auto srgb = hdr_to_srgb(sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range);
+										auto SRGB = to_int3(srgb * 255.0);
+										currentError += sample.getSourceError(SRGB);
 
-												if (r + 2 == SCREEN_COLOR_DIMENSION && g + 2 == SCREEN_COLOR_DIMENSION && b + 2 == SCREEN_COLOR_DIMENSION && linalg::maxelem(SRGB) > 250)
-													currentError = bestResult->minError;
-											}
+										if (r + 2 == SCREEN_COLOR_DIMENSION && g + 2 == SCREEN_COLOR_DIMENSION && b + 2 == SCREEN_COLOR_DIMENSION && linalg::maxelem(SRGB) > 250)
+											currentError = bestResult->minError;
+									}
 
-								if (currentError < bestResult->minError)
-								{
-									bestResult->minError = currentError;
-									bestResult->coef = YuvConverter::YUV_COEFS(coef);
-									bestResult->coefDelta = kDelta;
-									bestResult->bt2020Range = tryBt2020Range;
-									bestResult->altConvert = altConvert;
-									bestResult->aspect = aspect;
-									bestResult->nits = nits[gamma];
-									bestResult->gamma = HDR_GAMMA(gamma);
-									bestResult->gammaHLG = gammaHLG;
-								}
-							}
+						if (currentError < bestResult->minError)
+						{
+							bestResult->minError = currentError;
+							bestResult->coef = YuvConverter::YUV_COEFS(coef);
+							bestResult->coefDelta = kDelta;
+							bestResult->bt2020Range = tryBt2020Range;
+							bestResult->altConvert = altConvert;
+							bestResult->aspect = aspect;
+							bestResult->nits = nits[gamma];
+							bestResult->gamma = HDR_GAMMA(gamma);
+							bestResult->gammaHLG = gammaHLG;
+						}
+					}
 		}
 	}
 }
