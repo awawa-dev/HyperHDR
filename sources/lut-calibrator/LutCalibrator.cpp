@@ -785,8 +785,10 @@ void LutCalibrator::tryHDR10()
 	// detect nits
 	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
 	const auto white = _capturedColors->all[SCALE][SCALE][SCALE].Y();
-
+	
+	auto totalTime = InternalClock::now();
 	fineTune();
+	totalTime = InternalClock::now() - totalTime;
 		
 	double3x3 convert_bt2020_to_XYZ;
 	double3x3 convert_XYZ_to_sRgb;
@@ -801,18 +803,20 @@ void LutCalibrator::tryHDR10()
 
 	
 	Debug(_log, "Score: %f", bestResult->minError / 1000.0);
+	Debug(_log, "Time: %f", totalTime / 1000.0);
+	
 
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
-	Debug(_log, "selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
+	Debug(_log, "Selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
 	Debug(_log, "Selected EOTF: %s", QSTRING_CSTR(ColorSpaceMath::gammaToString(bestResult->gamma)));
 	if (bestResult->gamma == HDR_GAMMA::HLG)
 	{
 		Debug(_log, "Selected HLG gamma: %f", bestResult->gammaHLG);
 	}
 	Debug(_log, "Selected nits: %f", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * ( 1 / bestResult->nits) : bestResult->nits);	
-	Debug(_log, "selected bt2020 range: %i", bestResult->bt2020Range);
-	Debug(_log, "selected alt convert: %i", bestResult->altConvert);
-	Debug(_log, "selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
+	Debug(_log, "Selected bt2020 range: %i", bestResult->bt2020Range);
+	Debug(_log, "Selected alt convert: %i", bestResult->altConvert);
+	Debug(_log, "Selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
 
 	// write report (captured raw colors)
 	QString fileLogName = QString("%1%2").arg(_rootPath).arg("/calibration_captured_yuv.txt");

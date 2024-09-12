@@ -67,13 +67,14 @@ namespace BoardUtils
 
 	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position)
 	{
-		const int2 delta(yuvImage.width() / SCREEN_BLOCKS_X, yuvImage.height() / SCREEN_BLOCKS_Y);
+		const double2 delta(yuvImage.width() / (double)SCREEN_BLOCKS_X, yuvImage.height() / (double)SCREEN_BLOCKS_Y);
 		CapturedColor color;
 
-		const int2 start = position * delta;
-		const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
-		const int2 middle = (start + end) / 2;
-
+		const double2 positionF{ position };
+		const double2 startF = positionF * delta;
+		const double2 endF = ((positionF + double2(1, 1)) * delta) - double2(1, 1);
+		const int2 middle{ (startF + endF) / 2 };
+		
 		if (middle.x + 1 >= static_cast<int>(yuvImage.width()) || middle.y + 1 >= static_cast<int>(yuvImage.height()))
 			throw std::runtime_error("Incorrect image size");
 
