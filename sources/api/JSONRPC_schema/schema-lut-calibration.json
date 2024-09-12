@@ -15,24 +15,9 @@
 		"tan" : {
 			"type" : "integer"
 		},
-		"checksum": {
-			"type" : "integer",
-			"required" : true
-		},
-		"saturation": {
-			"type" : "number"
-		},
-		"luminance": {
-			"type" : "number"
-		},
-		"gammaR": {
-			"type" : "number"
-		},
-		"gammaG": {
-			"type" : "number"
-		},
-		"gammaB": {
-			"type" : "number"
+		"debug": {
+			"type" : "boolean",
+			"required" : false
 		}
 	},
 	"additionalProperties": false

@@ -74,7 +74,7 @@ signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
 
 public slots:
-	void incomingCommand(QString rootpath, GrabberWrapper* grabberWrapper, hyperhdr::Components defaultComp, int checksum, double saturation, double luminance, double gammaR, double gammaG, double gammaB);
+	void startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug);
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
@@ -96,7 +96,6 @@ private:
 	void tryHDR10();
 	void setupWhitePointCorrection();
 	bool setTestData();
-	void detectGamma();
 
 	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);
 	bool parseTextLut2binary(const char* filename = "D:/interpolated_lut.txt", const char* outfile = "D:/lut_lin_tables.3d");
@@ -106,5 +105,6 @@ private:
 	std::shared_ptr<YuvConverter> _yuvConverter;
 	std::shared_ptr< BestResult> bestResult;
 	MemoryBuffer<uint8_t> _lut;
-	QString _rootPath;	
+	QString _rootPath;
+	bool	_debug;
 };

@@ -411,13 +411,9 @@ namespace ColorSpaceMath
 
 	void trim01(double3& input)
 	{
-		for (int i = 0; i < 3; i++)
-		{
-			if (input[i] > 1.0)
-				input[i] = 1.0;
-			else if (input[i] < 0.0)
-				input[i] = 0.0;
-		}
+		input.x = std::max(0.0, std::min(input.x, 1.0));
+		input.y = std::max(0.0, std::min(input.y, 1.0));
+		input.z = std::max(0.0, std::min(input.z, 1.0));
 	}
 
 	QString vecToString(const double2& v)

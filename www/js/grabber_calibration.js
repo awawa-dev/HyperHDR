@@ -42,7 +42,8 @@ $(document).ready( function(){
 			finish = false;
 			running = true;			
 			startCalibrationWizard();
-			requestLutCalibration("capture", 0, saturation, luminance, gammaR, gammaG, gammaB);
+			const calDebug = document.getElementById('chk_debug').checked;
+			requestLutCalibration("capture", calDebug);
 	});
 
 
@@ -107,7 +108,7 @@ $(document).ready( function(){
 		$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n("main_menu_grabber_calibration_token"));
 		$('#wizp1_body').html('<h4 id="calibration_running_header" style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-2"></svg><br/></div></div>');
 		$('#wizp2_body').html('<h4 id="calibration_summary_header" style="font-weight:bold;text-transform:uppercase;"></h4><p id="calibration_summary"></p>');
-		$('#wizp1_footer').html('');
+		$('#wizp1_footer').html('<button type="button" class="btn btn-danger" name="btn_wiz_abort"><svg data-src="svg/button_cancel.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
 		$('#wizp2_footer').html('<button type="button" class="btn btn-success" name="btn_wiz_closeme_download"><svg data-src="svg/button_success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_ok') + '</button>');
 		//open modal
 		calibWiz= new bootstrap.Modal($("#wizard_modal"), {
@@ -122,6 +123,14 @@ $(document).ready( function(){
 		$('#wizp2').toggle(false);
 
 		calibWiz.show();
+
+		$("[name='btn_wiz_abort']").off().on('click', function () {
+			$("#wizard_modal").css("z-index", backupCalibWizard);
+			requestLutCalibration("stop", false, false);
+			calibWiz.hide();
+			resetWizard(true);
+			reload();
+		});
 
 		$("[name='btn_wiz_closeme_download']").off().on('click', function () {
 			$("#wizard_modal").css("z-index", backupCalibWizard);
@@ -202,7 +211,8 @@ $(document).ready( function(){
 			
 			drawImage();		
 			setTimeout(() => {
-				requestLutCalibration("capture", 0, saturation, luminance, gammaR, gammaG, gammaB);
+				const calDebug = document.getElementById('chk_debug2').checked;
+				requestLutCalibration("capture", calDebug);				
 			}, 100); 
 		}
 		else

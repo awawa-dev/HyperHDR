@@ -1006,17 +1006,12 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 		return;
 	}
 	
-	int checksum = message["checksum"].toInt(-1);
-	double saturation = message["saturation"].toDouble(1.0);
-	double luminance = message["luminance"].toDouble(1.0);
-	double gammaR = message["gammaR"].toDouble(1.0);
-	double gammaG = message["gammaG"].toDouble(1.0);
-	double gammaB = message["gammaB"].toDouble(1.0);
+	bool debug = message["debug"].toBool(false);
 
 	sendSuccessReply(command, tan);
 
 	if (subcommand == "capture")
-		_lutCalibrator->incomingCommand(_instanceManager->getRootPath(), (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr,  getActiveComponent(), checksum, saturation, luminance, gammaR, gammaG, gammaB);
+		_lutCalibrator->startHandler(_instanceManager->getRootPath(), getActiveComponent(), debug);
 	else
 		_lutCalibrator->stopHandler();	
 }
