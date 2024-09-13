@@ -70,6 +70,8 @@ namespace ColorSpaceMath
 			return "PQ";
 		else if (gamma == HDR_GAMMA::HLG)
 			return "HLG";
+		else if (gamma == HDR_GAMMA::sRGB)
+			return "sRGB";
 		return "UNKNOWN";
 	}
 

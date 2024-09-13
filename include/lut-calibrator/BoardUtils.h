@@ -73,6 +73,11 @@ namespace BoardUtils
 		int _capturedFlag = 0;
 		YuvConverter::COLOR_RANGE _range = YuvConverter::COLOR_RANGE::UNKNOWN;
 
+		double _yRange = 0;
+		double _yShift = 0;
+		double _downYLimit = 0;
+		double _upYLimit = 0;
+
 	public:
 		CapturedColors() { CapturedColor::resetTotalRange(); };
 
@@ -81,10 +86,12 @@ namespace BoardUtils
 				std::vector <CapturedColor>(BoardUtils::SCREEN_COLOR_DIMENSION)));;
 
 		bool isCaptured(int index) const;
-		bool areAllCaptured() const;
+		bool areAllCaptured();
+		void finilizeBoard();
+		void correctYRange(double3& yuv);
 		void setCaptured(int index);
 		void setRange(YuvConverter::COLOR_RANGE range);
-		YuvConverter::COLOR_RANGE getRange();
+		YuvConverter::COLOR_RANGE getRange() const;
 		bool saveResult(const char* filename = "D:/result.txt");
 	};
 };

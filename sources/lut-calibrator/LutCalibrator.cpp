@@ -599,6 +599,11 @@ linalg::vec<double, 3> LutCalibrator::hdr_to_srgb(linalg::vec<double, 3> yuv, co
 {
 	double3 srgb;
 
+	if (gamma == HDR_GAMMA::sRGB)
+	{
+		_capturedColors->correctYRange(yuv);
+	}
+
 	yuv.x = (yuv.x - 0.5) * aspect.x + 0.5;
 	if (UV.x != UV.y || UV.x < 127 || UV.x > 129)
 	{
@@ -618,18 +623,28 @@ linalg::vec<double, 3> LutCalibrator::hdr_to_srgb(linalg::vec<double, 3> yuv, co
 	{
 		e = OOTF_HLG(inverse_OETF_HLG(a), gammaHLG) * nits;
 	}
+	else if (gamma == HDR_GAMMA::sRGB)
+	{
+		srgb = a;
+	}
 
 
-	if (altConvert)
+	if (gamma != HDR_GAMMA::sRGB)
 	{
-		srgb = mul(bt2020_to_sRgb, e);
+
+		if (altConvert)
+		{
+			srgb = mul(bt2020_to_sRgb, e);
+		}
+		else
+		{
+			srgb = ColorSpaceMath::from_BT2020_to_BT709(e);
+		}		
+	
+		srgb = srgb_linear_to_nonlinear(srgb);
 	}
-	else
-	{
-		srgb = ColorSpaceMath::from_BT2020_to_BT709(e);
-	}
+
 	ColorSpaceMath::trim01(srgb);
-	srgb = srgb_linear_to_nonlinear(srgb);
 
 	if (tryBt2020Range)
 	{
@@ -678,7 +693,7 @@ void  LutCalibrator::fineTune()
 {
 	const auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
 	const auto white = _capturedColors->all[MAX_IND][MAX_IND][MAX_IND].Y();
-	double2 nits{ 0, 0 };
+	double3 nits{ 0, 0, 0 };
 	double maxLevel = 0;
 
 	if (_capturedColors->getRange() == YuvConverter::COLOR_RANGE::LIMITED)
@@ -692,13 +707,14 @@ void  LutCalibrator::fineTune()
 
 	nits[HDR_GAMMA::PQ] = 10000.0 * PQ_ST2084(1.0, maxLevel);
 
-	for (int gamma = HDR_GAMMA::PQ; gamma <= HDR_GAMMA::HLG; gamma++)
+	for (int gamma = HDR_GAMMA::PQ; gamma <= HDR_GAMMA::sRGB; gamma++)
 	{
 		std::vector<double> gammasHLG;
-		if (gamma == HDR_GAMMA::PQ)
-			gammasHLG = { 0 };
-		else if (gamma == HDR_GAMMA::HLG)
+			
+		if (gamma == HDR_GAMMA::HLG)
 			gammasHLG = { 0 , 1.2, 1.1};
+		else
+			gammasHLG = { 0 };
 
 		for (double gammaHLG : gammasHLG)
 		{
@@ -731,7 +747,7 @@ void  LutCalibrator::fineTune()
 						for (int altConvert = 0; altConvert <= 1; altConvert++)
 							for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
 								for (double aspectX = 1.0; aspectX >= 0.9799; aspectX -= 0.01)
-									for (double aspectYZ = 1.0; aspectYZ <= 1.0901; aspectYZ += 0.005)
+									for (double aspectYZ = 1.0; aspectYZ <= 1.1301; aspectYZ += 0.005)
 
 									{
 										double3 aspect(aspectX, aspectYZ, aspectYZ);
@@ -805,7 +821,6 @@ void LutCalibrator::tryHDR10()
 	Debug(_log, "Score: %f", bestResult->minError / 1000.0);
 	Debug(_log, "Time: %f", totalTime / 1000.0);
 	
-
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
 	Debug(_log, "Selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
 	Debug(_log, "Selected EOTF: %s", QSTRING_CSTR(ColorSpaceMath::gammaToString(bestResult->gamma)));
@@ -813,7 +828,10 @@ void LutCalibrator::tryHDR10()
 	{
 		Debug(_log, "Selected HLG gamma: %f", bestResult->gammaHLG);
 	}
-	Debug(_log, "Selected nits: %f", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * ( 1 / bestResult->nits) : bestResult->nits);	
+	if (bestResult->gamma != HDR_GAMMA::sRGB)
+	{
+		Debug(_log, "Selected nits: %f", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * (1 / bestResult->nits) : bestResult->nits);
+	}
 	Debug(_log, "Selected bt2020 range: %i", bestResult->bt2020Range);
 	Debug(_log, "Selected alt convert: %i", bestResult->altConvert);
 	Debug(_log, "Selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
@@ -928,6 +946,8 @@ void LutCalibrator::calibrate()
 	#endif
 
 	bestResult = std::make_shared<BestResult>();
+	_capturedColors->finilizeBoard();
+
 
 	sendReport("Captured colors:\r\n" +
 				generateReport(false));

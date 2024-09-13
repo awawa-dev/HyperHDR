@@ -395,12 +395,30 @@ namespace BoardUtils
 		return  ((_capturedFlag & (1 << index)));
 	}
 
-	bool CapturedColors::areAllCaptured() const
+	bool CapturedColors::areAllCaptured()
 	{
 		for (int i = 0; i <= BoardUtils::SCREEN_LAST_BOARD_INDEX; i++)
 			if (!isCaptured(i))
 				return false;
+
+		finilizeBoard();
+
 		return true;
+	}
+
+	void CapturedColors::finilizeBoard()
+	{
+		// update stats
+		bool limited = (getRange() == YuvConverter::COLOR_RANGE::LIMITED);
+		_yRange = (limited) ? (235.0 - 16.0) / 255.0 : 1.0;
+		_yShift = (limited) ? (16.0 / 255.0) : 0;
+		_downYLimit = all[0][0][0].y();
+		_upYLimit = all[SCREEN_COLOR_DIMENSION - 1][SCREEN_COLOR_DIMENSION - 1][SCREEN_COLOR_DIMENSION - 1].y();
+	}
+
+	void CapturedColors::correctYRange(double3& yuv)
+	{
+		yuv.x = ((yuv.x - _downYLimit) / (_upYLimit - _downYLimit)) * _yRange + _yShift;
 	}
 
 	void CapturedColors::setCaptured(int index)
@@ -413,7 +431,7 @@ namespace BoardUtils
 		_range = range;
 	}
 
-	YuvConverter::COLOR_RANGE CapturedColors::getRange()
+	YuvConverter::COLOR_RANGE CapturedColors::getRange() const
 	{
 		return _range;
 	}
