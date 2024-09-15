@@ -45,8 +45,8 @@ bool CapturedColor::calculateFinalColor()
 	totalMinYUV = { std::min(totalMinYUV.x, min.x), std::min(totalMinYUV.y, min.y), std::min(totalMinYUV.z, min.z) };
 	totalMaxYUV = { std::max(totalMaxYUV.x, max.x), std::max(totalMaxYUV.y, max.y), std::max(totalMaxYUV.z, max.z) };
 
-	colorInt = byte3(color / count);
-	if (colorInt.y >= 127 && colorInt.y <= 129 && colorInt.z >= 127 && colorInt.z <= 129)
+	colorInt = ColorSpaceMath::to_byte3(color / count);
+	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
 	{
 		colorInt.y = colorInt.z = 128;
 		color.y = color.z = (count * 128.0);
@@ -74,6 +74,27 @@ void CapturedColor::addColor(ColorRgb i)
 		max.y = i.green;
 	if (count == 0 || max.z < i.blue)
 		max.z = i.blue;
+
+	count++;
+}
+
+void CapturedColor::addColor(double3 i)
+{
+	color += i;
+
+	if (count == 0 || min.x > i.x)
+		min.x = i.x;
+	if (count == 0 || min.y > i.y)
+		min.y = i.y;
+	if (count == 0 || min.z > i.z)
+		min.z = i.z;
+
+	if (count == 0 || max.x < i.x)
+		max.x = i.x;
+	if (count == 0 || max.y < i.y)
+		max.y = i.y;
+	if (count == 0 || max.z < i.z)
+		max.z = i.z;
 
 	count++;
 }

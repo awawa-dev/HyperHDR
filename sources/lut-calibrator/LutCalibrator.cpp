@@ -718,7 +718,7 @@ void  LutCalibrator::fineTune()
 
 		for (double gammaHLG : gammasHLG)
 		{
-			if (gammaHLG == 1.1 && bestResult->gammaHLG == 0)
+			if (gammaHLG == 1.1 && bestResult->gamma != HDR_GAMMA::HLG)
 				break;
 
 			if (gamma == HDR_GAMMA::HLG)
@@ -1034,6 +1034,7 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 
 bool LutCalibrator::setTestData()
 {
+	bool oldFormat = false;
 	std::vector<std::vector<std::vector<std::vector<int>>>> testData;
 
 	// asssign your test data from calibration_captured_yuv.txt to testData here	
@@ -1054,7 +1055,17 @@ bool LutCalibrator::setTestData()
 				int B = std::min(b * SCREEN_COLOR_STEP, 255);
 				sample.setSourceRGB(byte3(R, G, B));
 				auto ref = &testData[r][g][b];
-				sample.addColor(ColorRgb((*ref)[0], (*ref)[1], (*ref)[2]));
+				if (oldFormat)
+				{
+					sample.addColor(ColorRgb((*ref)[0], (*ref)[1], (*ref)[2]));
+				}
+				else
+				{
+					sample.addColor(double3((*ref)[0] * 255.0 / IMPORT_SCALE,
+											(*ref)[1] * 255.0 / IMPORT_SCALE,
+											(*ref)[2] * 255.0 / IMPORT_SCALE));
+				}
+				
 				sample.calculateFinalColor();
 			}
 	if (_capturedColors->all[0][0][0].Y() > SCREEN_YUV_RANGE_LIMIT || _capturedColors->all[0][0][0].Y() < 255 - SCREEN_YUV_RANGE_LIMIT)

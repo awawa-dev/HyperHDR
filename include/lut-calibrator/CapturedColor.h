@@ -67,6 +67,7 @@ public:
 
 	bool calculateFinalColor();
 	void addColor(ColorRgb i);
+	void addColor(double3 i);
 	void setSourceRGB(byte3 _color);
 	int getSourceError(const int3& _color);
 	int3 getSourceRGB() const;

@@ -65,10 +65,13 @@ namespace BoardUtils
 		return boardIndex;
 	}
 
-	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position)
+	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position, byte3* _color)
 	{
 		const double2 delta(yuvImage.width() / (double)SCREEN_BLOCKS_X, yuvImage.height() / (double)SCREEN_BLOCKS_Y);
 		CapturedColor color;
+
+		if (_color != nullptr)
+			color.setSourceRGB(*_color);
 
 		const double2 positionF{ position };
 		const double2 startF = positionF * delta;
@@ -206,7 +209,7 @@ namespace BoardUtils
 
 			try
 			{
-				auto capturedColor = readBlock(yuvImage, position);
+				auto capturedColor = readBlock(yuvImage, position, &color);
 				capturedColor.setSourceRGB(color);
 				allColors.all[R][G][B] = capturedColor;
 			}
@@ -446,7 +449,7 @@ namespace BoardUtils
 
 		std::list<std::pair<const char*, const char*>> arrayMark = { {"np.array([", "])"}, {"{", "}"} };
 
-		myfile << "// Values of the table represent YUV in range [0 - 255], limited of full" << std::endl;
+		myfile << "// Values of the table represent YUV in range [0 - 1] * " << std::to_string(IMPORT_SCALE) << ", limited of full" << std::endl;
 		myfile << "// Each row of the " << std::to_string(SCREEN_COLOR_DIMENSION) <<"^3 table consist of the following RGB coordinates:" << std::endl << "// [ ";
 		
 		for (int i = 0, j = 0; i < SCREEN_COLOR_DIMENSION; i++, j += SCREEN_COLOR_STEP)
@@ -469,11 +472,11 @@ namespace BoardUtils
 					myfile << "\t\t" << currentArray.first << std::endl << "\t\t\t";
 					for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 					{
-						const auto& elem = all[r][g][b];
+						const auto& elem = all[r][g][b].yuv();
 						myfile << currentArray.first;
-						myfile << " " << std::to_string(elem.Y()) << ", ";
-						myfile << std::to_string(elem.U()) << ", ";
-						myfile << std::to_string(elem.V()) << " ";
+						myfile << " " << std::to_string(std::lround(elem.x * IMPORT_SCALE)) << ", ";
+						myfile << std::to_string(std::lround(elem.y * IMPORT_SCALE)) << ", ";
+						myfile << std::to_string(std::lround(elem.z * IMPORT_SCALE)) << " ";
 						myfile << currentArray.second << ((b + 1 < SCREEN_COLOR_DIMENSION) ? "," : "");
 					}
 					myfile << std::endl << "\t\t" << currentArray.second << ((g + 1 < SCREEN_COLOR_DIMENSION) ? "," : "") << std::endl;

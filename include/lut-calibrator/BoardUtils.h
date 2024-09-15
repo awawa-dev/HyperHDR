@@ -49,6 +49,8 @@ namespace BoardUtils
 	const int SCREEN_COLOR_STEP = 16;
 	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP) + 1;
 
+	const int IMPORT_SCALE = 1000000;
+
 	const int SCREEN_YUV_RANGE_LIMIT = 2;
 
 	const int SCREEN_CRC_LINES = 2;
@@ -59,7 +61,7 @@ namespace BoardUtils
 	const int SCREEN_LAST_BOARD_INDEX = std::pow(SCREEN_COLOR_DIMENSION, 3) / SCREEN_SAMPLES_PER_BOARD;
 
 	int indexToColorAndPos(int index, byte3& color, int2& position);
-	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position);
+	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position, byte3* _color = nullptr);
 	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
 	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
 	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors);
