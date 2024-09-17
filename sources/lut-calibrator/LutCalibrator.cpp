@@ -599,7 +599,7 @@ linalg::vec<double, 3> LutCalibrator::hdr_to_srgb(linalg::vec<double, 3> yuv, co
 {
 	double3 srgb;
 
-	if (gamma == HDR_GAMMA::sRGB)
+	if (gamma == HDR_GAMMA::sRGB || gamma == HDR_GAMMA::BT2020inSRGB)
 	{
 		_capturedColors->correctYRange(yuv);
 	}
@@ -626,6 +626,10 @@ linalg::vec<double, 3> LutCalibrator::hdr_to_srgb(linalg::vec<double, 3> yuv, co
 	else if (gamma == HDR_GAMMA::sRGB)
 	{
 		srgb = a;
+	}
+	else if (gamma == HDR_GAMMA::BT2020inSRGB)
+	{
+		e = srgb_nonlinear_to_linear(a);
 	}
 
 
@@ -693,7 +697,7 @@ void  LutCalibrator::fineTune()
 {
 	const auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
 	const auto white = _capturedColors->all[MAX_IND][MAX_IND][MAX_IND].Y();
-	double3 nits{ 0, 0, 0 };
+	double4 nits{ 0, 0, 0, 0 };
 	double maxLevel = 0;
 
 	if (_capturedColors->getRange() == YuvConverter::COLOR_RANGE::LIMITED)
@@ -707,7 +711,7 @@ void  LutCalibrator::fineTune()
 
 	nits[HDR_GAMMA::PQ] = 10000.0 * PQ_ST2084(1.0, maxLevel);
 
-	for (int gamma = HDR_GAMMA::PQ; gamma <= HDR_GAMMA::sRGB; gamma++)
+	for (int gamma = HDR_GAMMA::PQ; gamma <= HDR_GAMMA::BT2020inSRGB; gamma++)
 	{
 		std::vector<double> gammasHLG;
 			
@@ -731,12 +735,14 @@ void  LutCalibrator::fineTune()
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))), bestResult->minError / 1000);
 
-				for (double krDelta = -0.018; krDelta <= 0.01801; krDelta += 0.002)
-					for (double kbDelta = -0.018; kbDelta <= 0.01801; kbDelta += 0.002)
+				const int halfKDelta = 9;
+				for (int krIndex = 0; krIndex <= 2 * halfKDelta; krIndex++)
+					for (int kbIndex = 0; kbIndex <= 2 * halfKDelta; kbIndex++)
 					{
 						double3x3 convert_bt2020_to_XYZ;
 						double3x3 convert_XYZ_to_sRgb;
-						double2 kDelta = double2(krDelta, kbDelta);
+						double2 kDelta = double2(((krIndex <= halfKDelta) ? -krIndex : krIndex - halfKDelta),
+							((kbIndex <= halfKDelta) ? -kbIndex : kbIndex - halfKDelta)) * 0.002;
 
 						auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + kDelta;
 						auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
@@ -983,6 +989,10 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 		else if (gamma == ColorSpaceMath::HDR_GAMMA::HLG)
 		{
 			a = OOTF_HLG(inverse_OETF_HLG(a), gammaHLG) * nits;
+		}
+		else if (gamma == ColorSpaceMath::HDR_GAMMA::BT2020inSRGB)
+		{
+			a = srgb_nonlinear_to_linear(a);
 		}
 		actualPrimaries.push_back(a);
 	}

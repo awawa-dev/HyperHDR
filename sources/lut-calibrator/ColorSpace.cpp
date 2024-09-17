@@ -72,6 +72,8 @@ namespace ColorSpaceMath
 			return "HLG";
 		else if (gamma == HDR_GAMMA::sRGB)
 			return "sRGB";
+		else if (gamma == HDR_GAMMA::BT2020inSRGB)
+			return "BT2020 with sRGB TRC";
 		return "UNKNOWN";
 	}
 
