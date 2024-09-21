@@ -65,16 +65,49 @@ using namespace BoardUtils;
 #define LUT_FILE_SIZE 50331648
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
 
-struct BestResult {
+struct BestResult {	
 	YuvConverter::YUV_COEFS coef = YuvConverter::YUV_COEFS::FCC;
+	double4x4 coefMatrix;
 	double2 coefDelta;
 	double3 aspect;
 	int bt2020Range = 0;
 	int altConvert = 0;
+	double3x3 altPrimariesToSrgb;
 	ColorSpaceMath::HDR_GAMMA gamma = ColorSpaceMath::HDR_GAMMA::PQ;
 	double gammaHLG = 0;
-	double nits = 0;
+	double nits = 0;	
+
+	struct Signal
+	{
+		YuvConverter::COLOR_RANGE range = YuvConverter::COLOR_RANGE::FULL;
+		double yRange = 0, upYLimit = 0, downYLimit = 0, yShift = 0;
+	} signal;
+
 	long long int minError = std::numeric_limits<long long int>::max() / 4;
+
+	void serialize(std::stringstream& out)
+	{
+		out.precision(10);
+		out << "/*;" << std::endl;
+		out << "BestResult bestResult;" << std::endl;
+		out << "bestResult.coef = YuvConverter::YUV_COEFS(" << std::to_string(coef) << ");" << std::endl;
+		out << "bestResult.coefMatrix = double4x4"; ColorSpaceMath::serialize(out, coefMatrix); out << ";" << std::endl;
+		out << "bestResult.coefDelta = double2"; ColorSpaceMath::serialize(out, coefDelta); out << ";" << std::endl;
+		out << "bestResult.aspect = double3";  ColorSpaceMath::serialize(out, aspect); out << ";" << std::endl;
+		out << "bestResult.bt2020Range = " << std::to_string(bt2020Range) << ";" << std::endl;
+		out << "bestResult.altConvert = " << std::to_string(altConvert) << ";" << std::endl;
+		out << "bestResult.altPrimariesToSrgb = double3x3"; ColorSpaceMath::serialize(out, altPrimariesToSrgb); out << ";" << std::endl;
+		out << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << std::to_string(gamma) << ");" << std::endl;
+		out << "bestResult.gammaHLG = " << std::to_string(gammaHLG) << ";" << std::endl;
+		out << "bestResult.nits = " << std::to_string(nits) << ";" << std::endl;
+		out << "bestResult.signal.range = YuvConverter::COLOR_RANGE(" << std::to_string(signal.range) << ");" << std::endl;
+		out << "bestResult.signal.yRange = " << std::to_string(signal.yRange) << ";" << std::endl;
+		out << "bestResult.signal.upYLimit = " << std::to_string(signal.upYLimit) << ";" << std::endl;
+		out << "bestResult.signal.downYLimit = " << std::to_string(signal.downYLimit) << ";" << std::endl;
+		out << "bestResult.signal.yShift = " << std::to_string(signal.yShift) << ";" << std::endl;
+		out << "bestResult.minError = " << std::to_string(minError) << ";" << std::endl;
+		out << "*/;" << std::endl;
+	}
 };
 
 bool LutCalibrator::parseTextLut2binary(const char* filename, const char* outfile)
@@ -142,6 +175,8 @@ bool LutCalibrator::parseTextLut2binary(const char* filename, const char* outfil
 	for(int i = 0; i < 3; i++)
 		file.write(reinterpret_cast<char*>(_lut.data()), _lut.size());
 	file.close();
+
+	_lut.releaseMemory();
 	return true;
 };
 
@@ -595,13 +630,13 @@ void LutCalibrator::printReport()
 }
 
 
-linalg::vec<double, 3> LutCalibrator::hdr_to_srgb(linalg::vec<double, 3> yuv, const linalg::vec<uint8_t, 2>& UV, const linalg::vec<double, 3>& aspect, const linalg::mat<double, 4, 4>& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, int tryBt2020Range)
+double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal)
 {
 	double3 srgb;
 
 	if (gamma == HDR_GAMMA::sRGB || gamma == HDR_GAMMA::BT2020inSRGB)
 	{
-		_capturedColors->correctYRange(yuv);
+		CapturedColors::correctYRange(yuv, signal.yRange, signal.upYLimit, signal.downYLimit, signal.yShift);
 	}
 
 	yuv.x = (yuv.x - 0.5) * aspect.x + 0.5;
@@ -670,7 +705,7 @@ void LutCalibrator::scoreBoard(bool testOnly, const linalg::mat<double, 4, 4>& c
 					auto yuv = sample.yuv();
 					double3 srgb;
 
-					srgb = hdr_to_srgb(yuv, byte2(sample.U(), sample.V()), aspect, coefMatrix, gamma, gammaHLG, nits, altConvert, bt2020_to_sRgb, tryBt2020Range);
+					srgb = hdr_to_srgb(_yuvConverter.get(), yuv, byte2(sample.U(), sample.V()), aspect, coefMatrix, gamma, gammaHLG, nits, altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal);
 
 					if (testOnly)
 					{
@@ -700,7 +735,11 @@ void  LutCalibrator::fineTune()
 	double4 nits{ 0, 0, 0, 0 };
 	double maxLevel = 0;
 
-	if (_capturedColors->getRange() == YuvConverter::COLOR_RANGE::LIMITED)
+	bestResult->signal.range = _capturedColors->getRange();
+
+	_capturedColors->getSignalParams(bestResult->signal.yRange, bestResult->signal.upYLimit, bestResult->signal.downYLimit, bestResult->signal.yShift);
+
+	if (bestResult->signal.range == YuvConverter::COLOR_RANGE::LIMITED)
 	{
 		maxLevel = (white - 16.0) / (235.0 - 16.0);
 	}
@@ -745,7 +784,7 @@ void  LutCalibrator::fineTune()
 							((kbIndex <= halfKDelta) ? -kbIndex : kbIndex - halfKDelta)) * 0.002;
 
 						auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + kDelta;
-						auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
+						auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(bestResult->signal.range, coefValues.x, coefValues.y);
 
 						capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, nits[gamma], coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 						auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
@@ -771,7 +810,7 @@ void  LutCalibrator::fineTune()
 													{
 														auto& sample = _capturedColors->all[r][g][b];
 														auto yuv = _yuvConverter->multiplyColorMatrix(coefMatrix, sample.yuv());
-														auto srgb = hdr_to_srgb(sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range);
+														auto srgb = hdr_to_srgb(_yuvConverter.get(), sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal);
 														auto SRGB = to_int3(srgb * 255.0);
 
 
@@ -787,12 +826,14 @@ void  LutCalibrator::fineTune()
 											bestResult->minError = currentError;
 											bestResult->coef = YuvConverter::YUV_COEFS(coef);
 											bestResult->coefDelta = kDelta;
-											bestResult->bt2020Range = tryBt2020Range;
+											bestResult->bt2020Range = tryBt2020Range;											
 											bestResult->altConvert = altConvert;
+											bestResult->altPrimariesToSrgb = bt2020_to_sRgb;
 											bestResult->aspect = aspect;
 											bestResult->nits = nits[gamma];
 											bestResult->gamma = HDR_GAMMA(gamma);
 											bestResult->gammaHLG = gammaHLG;
+											bestResult->coefMatrix = coefMatrix;
 										}
 									}
 					}
@@ -812,21 +853,13 @@ void LutCalibrator::tryHDR10()
 	fineTune();
 	totalTime = InternalClock::now() - totalTime;
 		
-	double3x3 convert_bt2020_to_XYZ;
-	double3x3 convert_XYZ_to_sRgb;
-	capturedPrimariesCorrection(bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, true);
-	auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
-
-	auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(bestResult->coef)) + bestResult->coefDelta;
-	auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(_capturedColors->getRange(), coefValues.x, coefValues.y);
+	
 	long long int currentError = 0;
+	scoreBoard(false, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->aspect, bestResult->bt2020Range, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->minError, currentError);
 
-	scoreBoard(false, coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->aspect, bestResult->bt2020Range, bestResult->altConvert, bt2020_to_sRgb, bestResult->minError, currentError);
-
-	
+	// write result
 	Debug(_log, "Score: %f", bestResult->minError / 1000.0);
-	Debug(_log, "Time: %f", totalTime / 1000.0);
-	
+	Debug(_log, "Time: %f", totalTime / 1000.0);	
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
 	Debug(_log, "Selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
 	Debug(_log, "Selected EOTF: %s", QSTRING_CSTR(ColorSpaceMath::gammaToString(bestResult->gamma)));
@@ -834,17 +867,19 @@ void LutCalibrator::tryHDR10()
 	{
 		Debug(_log, "Selected HLG gamma: %f", bestResult->gammaHLG);
 	}
-	if (bestResult->gamma != HDR_GAMMA::sRGB)
+	if (bestResult->gamma != HDR_GAMMA::sRGB && bestResult->gamma != HDR_GAMMA::BT2020inSRGB)
 	{
 		Debug(_log, "Selected nits: %f", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * (1 / bestResult->nits) : bestResult->nits);
 	}
-	Debug(_log, "Selected bt2020 range: %i", bestResult->bt2020Range);
-	Debug(_log, "Selected alt convert: %i", bestResult->altConvert);
+	Debug(_log, "Selected bt2020 gamma range: %i", bestResult->bt2020Range);
+	Debug(_log, "Selected alternative conversion of primaries: %i", bestResult->altConvert);
 	Debug(_log, "Selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
 
 	// write report (captured raw colors)
+	std::stringstream results;
+	bestResult->serialize(results);
 	QString fileLogName = QString("%1%2").arg(_rootPath).arg("/calibration_captured_yuv.txt");
-	if (_capturedColors->saveResult(QSTRING_CSTR(fileLogName)))
+	if (_capturedColors->saveResult(QSTRING_CSTR(fileLogName), results.str()))
 	{
 		Info(_log, "Write captured colors to: %s", QSTRING_CSTR(fileLogName));
 	}
@@ -853,6 +888,21 @@ void LutCalibrator::tryHDR10()
 		Error(_log, "Could not save captured colors to: %s", QSTRING_CSTR(fileLogName));
 	}
 
+	_lut.releaseMemory();
+	QString errorMessage = writeLUT(_log, _rootPath, bestResult.get());
+	if (!errorMessage.isEmpty())
+	{
+		error(errorMessage);
+	}
+
+	// reload LUT
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
+	QThread::msleep(500);
+	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
+}
+
+QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bestResult)
+{
 	// write LUT table
 	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d");
 	std::fstream file;
@@ -860,10 +910,13 @@ void LutCalibrator::tryHDR10()
 
 	if (!file.is_open())
 	{
-		error(QString("Could not open LUT file for writing: %1").arg(fileName));
+		return QString("Could not open LUT file for writing: %1").arg(fileName);
 	}
 	else
 	{
+		MemoryBuffer<uint8_t> _lut;
+		YuvConverter yuvConverter;
+
 		Info(_log, "Writing LUT file to: %s", QSTRING_CSTR(fileName));
 		_lut.resize(LUT_FILE_SIZE);
 		for (int phase = 0; phase < 3; phase++)
@@ -877,7 +930,7 @@ void LutCalibrator::tryHDR10()
 
 						if (phase == 0)
 						{
-							yuv = _yuvConverter->toYuv(_capturedColors->getRange(), bestResult->coef, yuv);
+							yuv = yuvConverter.toYuv(bestResult->signal.range, bestResult->coef, yuv);
 							YUV = to_byte3(yuv * 255);
 						}
 
@@ -887,11 +940,11 @@ void LutCalibrator::tryHDR10()
 							{
 								YUV.y = YUV.z = 128;
 							}
-							yuv = hdr_to_srgb(yuv, byte2(YUV.y, YUV.z), bestResult->aspect, coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bt2020_to_sRgb, bestResult->bt2020Range);
+							yuv = hdr_to_srgb(&yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal);
 						}
 						else
 						{
-							yuv = _yuvConverter->toRgb(_capturedColors->getRange(), bestResult->coef, yuv);
+							yuv = yuvConverter.toRgb(bestResult->signal.range, bestResult->coef, yuv);
 						}
 
 						byte3 result = to_byte3(yuv * 255.0);
@@ -904,14 +957,8 @@ void LutCalibrator::tryHDR10()
 		}
 		file.close();
 	}
-
-	// reload LUT
-	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
-	QThread::msleep(500);
-	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
+	return QString();
 }
-
-
 
 void LutCalibrator::setupWhitePointCorrection()
 {	
@@ -960,7 +1007,7 @@ void LutCalibrator::calibrate()
 
 	tryHDR10();
 
-	sendReport("HDR10:\r\n" +
+	sendReport("Calibrated:\r\n" +
 		generateReport(true));
 
 	notifyCalibrationFinished();
@@ -1047,7 +1094,7 @@ bool LutCalibrator::setTestData()
 	bool oldFormat = false;
 	std::vector<std::vector<std::vector<std::vector<int>>>> testData;
 
-	// asssign your test data from calibration_captured_yuv.txt to testData here	
+	// asssign your test data from calibration_captured_yuv.txt to testData here
 	
 	if (testData.size() != SCREEN_COLOR_DIMENSION ||
 		testData[0].size() != SCREEN_COLOR_DIMENSION ||

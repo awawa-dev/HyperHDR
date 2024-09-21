@@ -412,14 +412,6 @@ void GrabberWrapper::revive()
 		QTimer::singleShot(3000, _grabber.get(), &Grabber::revive);
 }
 
-void GrabberWrapper::benchmarkCapture(int status, QString message)
-{
-	if (_grabber != nullptr)
-	{
-		_grabber->benchmarkCapture(status, message);
-	}
-}
-
 bool GrabberWrapper::getAutoResume()
 {
 	return _autoResume;

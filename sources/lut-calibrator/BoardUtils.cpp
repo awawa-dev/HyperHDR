@@ -419,9 +419,17 @@ namespace BoardUtils
 		_upYLimit = all[SCREEN_COLOR_DIMENSION - 1][SCREEN_COLOR_DIMENSION - 1][SCREEN_COLOR_DIMENSION - 1].y();
 	}
 
-	void CapturedColors::correctYRange(double3& yuv)
+	void CapturedColors::correctYRange(double3& yuv, double yRange, double upYLimit, double downYLimit, double yShift)
 	{
-		yuv.x = ((yuv.x - _downYLimit) / (_upYLimit - _downYLimit)) * _yRange + _yShift;
+		yuv.x = ((yuv.x - downYLimit) / (upYLimit - downYLimit)) * yRange + yShift;
+	}
+
+	void CapturedColors::getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift)
+	{
+		yRange = _yRange;
+		upYLimit = _upYLimit;
+		downYLimit = _downYLimit;
+		yShift = _yShift;
 	}
 
 	void CapturedColors::setCaptured(int index)
@@ -439,7 +447,7 @@ namespace BoardUtils
 		return _range;
 	}
 
-	bool CapturedColors::saveResult(const char* filename)
+	bool CapturedColors::saveResult(const char* filename, const std::string& result)
 	{
 		std::ofstream myfile;
 		myfile.open(filename, std::ios::trunc | std::ios::out);
@@ -451,7 +459,7 @@ namespace BoardUtils
 
 		myfile << "// Values of the table represent YUV in range [0 - 1] * " << std::to_string(IMPORT_SCALE) << ", limited of full" << std::endl;
 		myfile << "// Each row of the " << std::to_string(SCREEN_COLOR_DIMENSION) <<"^3 table consist of the following RGB coordinates:" << std::endl << "// [ ";
-		
+
 		for (int i = 0, j = 0; i < SCREEN_COLOR_DIMENSION; i++, j += SCREEN_COLOR_STEP)
 		{
 			if (i)
@@ -460,6 +468,8 @@ namespace BoardUtils
 		}
 
 		myfile << " ]" << std::endl << "// First table is in Python format, second in C++ format" << std::endl << std::endl;
+
+		myfile << result;
 
 		for(const auto& currentArray : arrayMark)
 		{

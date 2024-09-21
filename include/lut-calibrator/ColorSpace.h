@@ -152,5 +152,19 @@ namespace ColorSpaceMath
 	QString matToString(double4x4 m);
 
 	QString matToString(double3x3 m);
+
+	
+
+	void serialize(std::stringstream& out, const double2& v);
+
+	void serialize(std::stringstream& out, const double3& v);
+
+	void serialize(std::stringstream& out, const double4& v);
+
+
+	void serialize(std::stringstream& out, const double4x4& m);
+
+	void serialize(std::stringstream& out, const double3x3& m);
+
 };
 

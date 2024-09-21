@@ -39,8 +39,6 @@ public slots:
 	void stop();
 	void revive();
 
-	void benchmarkCapture(int status, QString message);
-
 	QJsonObject getJsonInfo();
 
 	QJsonDocument startCalibration();
@@ -57,7 +55,6 @@ signals:
 	void SignalNewVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void SignalVideoStreamChanged(QString device, QString videoMode);
 	void SignalCecKeyPressed(int key);
-	void SignalBenchmarkUpdate(int status, QString message);
 	void SignalInstancePauseChanged(int instance, bool isEnabled);
 	void SignalSetNewComponentStateToAllInstances(hyperhdr::Components component, bool enable);
 	void SignalSaveCalibration(QString saveData);

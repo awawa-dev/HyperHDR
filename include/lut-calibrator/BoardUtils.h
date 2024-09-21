@@ -90,10 +90,11 @@ namespace BoardUtils
 		bool isCaptured(int index) const;
 		bool areAllCaptured();
 		void finilizeBoard();
-		void correctYRange(double3& yuv);
+		static void correctYRange(double3& yuv, double yRange, double upYLimit, double downYLimit, double yShift);
+		void getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift);
 		void setCaptured(int index);
 		void setRange(YuvConverter::COLOR_RANGE range);
 		YuvConverter::COLOR_RANGE getRange() const;
-		bool saveResult(const char* filename = "D:/result.txt");
+		bool saveResult(const char* filename = "D:/result.txt", const std::string& result = "");
 	};
 };

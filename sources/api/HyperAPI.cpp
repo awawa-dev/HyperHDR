@@ -528,18 +528,8 @@ void HyperAPI::handleBenchmarkCommand(const QJsonObject& message, const QString&
 	GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
-
-	if (grabberWrapper != nullptr)
-	{
-		if (subc == "ping")
-		{
-			emit grabberWrapper->SignalBenchmarkUpdate(status, "pong");
-		}
-		else
-		{
-			BLOCK_CALL_2(grabberWrapper, benchmarkCapture, int, status, QString, subc);
-		}
-	}
+	
+	emit _instanceManager->SignalBenchmarkCapture(status, subc);	
 
 	sendSuccessReply(command, tan);
 }

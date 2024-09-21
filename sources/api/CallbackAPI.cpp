@@ -185,12 +185,12 @@ bool CallbackAPI::subscribeFor(const QString& type, bool unsubscribe)
 			connect(_accessManager.get(), &AccessManager::SignalTokenUpdated, this, &CallbackAPI::tokenChangeHandler, Qt::UniqueConnection);
 	}
 
-	if (type == "benchmark-update" && grabberWrapper != nullptr)
+	if (type == "benchmark-update")
 	{
 		if (unsubscribe)
-			disconnect(grabberWrapper, &GrabberWrapper::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler);
+			disconnect(_instanceManager.get(), &HyperHdrManager::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler);
 		else
-			connect(grabberWrapper, &GrabberWrapper::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler, Qt::UniqueConnection);
+			connect(_instanceManager.get(), &HyperHdrManager::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler, Qt::UniqueConnection);
 	}
 
 	return true;

@@ -47,7 +47,7 @@ namespace ColorSpaceMath
 				{
 					PRIMARIES::BT_2020,
 					{
-						{ 0.708, 0.292 },  
+						{ 0.708, 0.292 },
 						{ 0.170, 0.797 },
 						{ 0.131, 0.046 },
 						{ 0.3127, 0.3290 }
@@ -84,7 +84,7 @@ namespace ColorSpaceMath
 
 		if (input < 0) return -bt2020_nonlinear_to_linear(-input);
 		if (input < beta * 4.5)
-			return input / 4.5;		
+			return input / 4.5;
 		else
 			return std::pow((input + alpha - 1) / alpha, 1 / 0.45);
 	}
@@ -96,7 +96,7 @@ namespace ColorSpaceMath
 
 		if (input < 0) return -bt2020_linear_to_nonlinear(-input);
 
-		if (input < beta) 
+		if (input < beta)
 			return 4.5 * input;
 		else
 			return alpha * std::pow(input, 0.45) - (alpha - 1);
@@ -105,8 +105,8 @@ namespace ColorSpaceMath
 	double3 bt2020_nonlinear_to_linear(double3 input)
 	{
 		return double3(bt2020_nonlinear_to_linear(input[0]),
-						bt2020_nonlinear_to_linear(input[1]),
-						bt2020_nonlinear_to_linear(input[2]));
+			bt2020_nonlinear_to_linear(input[1]),
+			bt2020_nonlinear_to_linear(input[2]));
 	}
 
 	double3 bt2020_linear_to_nonlinear(double3 input)
@@ -178,7 +178,7 @@ namespace ColorSpaceMath
 	double PQ_ST2084(double scale, double  nonlinear)
 	{
 		constexpr double M1 = (2610.0 / 16384.0);
-		constexpr double M2 = (2523.0 / 4096.0 ) * 128.0;
+		constexpr double M2 = (2523.0 / 4096.0) * 128.0;
 		constexpr double C1 = (3424.0 / 4096.0);
 		constexpr double C2 = (2413.0 / 4096.0) * 32.0;
 		constexpr double C3 = (2392.0 / 4096.0) * 32.0;
@@ -203,8 +203,8 @@ namespace ColorSpaceMath
 	double3 PQ_ST2084(double scale, double3 nonlinear)
 	{
 		return double3(PQ_ST2084(scale, nonlinear[0]),
-						PQ_ST2084(scale, nonlinear[1]),
-						PQ_ST2084(scale, nonlinear[2]));
+			PQ_ST2084(scale, nonlinear[1]),
+			PQ_ST2084(scale, nonlinear[2]));
 	}
 
 	double inverse_OETF_HLG(double t)
@@ -223,8 +223,8 @@ namespace ColorSpaceMath
 	double3 inverse_OETF_HLG(double3 input)
 	{
 		return double3(inverse_OETF_HLG(input[0]),
-						inverse_OETF_HLG(input[1]),
-						inverse_OETF_HLG(input[2]));
+			inverse_OETF_HLG(input[1]),
+			inverse_OETF_HLG(input[2]));
 	}
 
 	double3 OOTF_HLG(double3 input, double gamma)
@@ -235,8 +235,8 @@ namespace ColorSpaceMath
 		double3 coefs{ 0.2627, 0.6780, 0.0593 };
 		double luma = linalg::dot(input, coefs);
 		luma = linalg::pow(luma, gamma - 1.0);
-		
-		return input * luma;		
+
+		return input * luma;
 	}
 
 	double3 OOTF_HLG(double _input, double gamma)
@@ -245,7 +245,7 @@ namespace ColorSpaceMath
 
 		if (gamma == 0)
 			return input;
-		
+
 		return OOTF_HLG(input, gamma);
 	}
 
@@ -400,7 +400,7 @@ namespace ColorSpaceMath
 
 	int3 to_int3(const byte3& v)
 	{
-		return int3(v.x,v.y,v.z);
+		return int3(v.x, v.y, v.z);
 	}
 
 	int3 to_int3(const double3& v)
@@ -464,5 +464,43 @@ namespace ColorSpaceMath
 		}
 		return ret.join("\r\n");
 	}
+
+	void serialize(std::stringstream& out, const double2& v)
+	{
+		out << "{" << v[0] << ", " << v[1] << "}";
+	}
+
+	void serialize(std::stringstream& out, const double3& v)
+	{
+		out << "{" << v[0] << ", " << v[1] << ", " << v[2] << "}";
+	}
+
+	void serialize(std::stringstream& out, const double4& v)
+	{
+		out << "{" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "}";
+	}
+
+	void serialize(std::stringstream& out, const double4x4& m)
+	{
+		out << "{";
+		for (int d = 0; d < 4; d++)
+		{
+			if (d != 0) out << ", ";
+			serialize(out, m[d]);
+		}
+		out << "}";
+	}
+
+	void serialize(std::stringstream& out, const double3x3& m)
+	{
+		out << "{";
+		for (int d = 0; d < 3; d++)
+		{
+			if (d != 0) out << ", ";
+			serialize(out, m[d]);			
+		}
+		out << "}";
+	}
+
 };
 
