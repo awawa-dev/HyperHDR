@@ -112,7 +112,7 @@ jobs:
           rm -r repo/pool/ArchLinux ||: 
 
       - name: Upload artifacts from commit        
-        uses: actions/upload-artifact@v4.3.4
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}  
           path: repo
