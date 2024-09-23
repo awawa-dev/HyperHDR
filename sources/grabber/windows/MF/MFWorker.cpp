@@ -198,7 +198,7 @@ void MFWorker::runMe()
 			{
 				Image<ColorRgb> image(_width >> 1, _height >> 1);
 				FrameDecoder::processQImage(
-					_localBuffer.data(), _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+					_localBuffer.data(), nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
 				image.setBufferCacheSize();
 				if (!_directAccess)

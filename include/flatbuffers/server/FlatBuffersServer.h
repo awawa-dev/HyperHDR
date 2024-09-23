@@ -71,4 +71,5 @@ private:
 	QString		_userLutFile;
 	PixelFormat	_currentLutPixelFormat;
 	int			_flatbufferToneMappingMode;
+	bool		_quarterOfFrameMode;
 };
