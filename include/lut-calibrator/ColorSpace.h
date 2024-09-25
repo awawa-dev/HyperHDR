@@ -110,12 +110,33 @@ namespace ColorSpaceMath
 
 	double2 XYZ_to_xy(const double3& a);
 
-	double3x3 to_XYZ(
+	constexpr double3x3 to_XYZ(
 		const double2& red_xy,
 		const double2& green_xy,
 		const double2& blue_xy,
 		const double2& white_xy
-	);
+	)
+	{
+		double3 r(red_xy.x, red_xy.y, 1.0 - (red_xy.x + red_xy.y));
+		double3 g(green_xy.x, green_xy.y, 1.0 - (green_xy.x + green_xy.y));
+		double3 b(blue_xy.x, blue_xy.y, 1.0 - (blue_xy.x + blue_xy.y));
+		double3 w(white_xy.x, white_xy.y, 1.0 - (white_xy.x + white_xy.y));
+
+		w /= white_xy.y;
+
+		double3x3 retMat(r, g, b);
+
+		double3x3 invMat;
+		invMat = linalg::inverse(retMat);
+
+		double3 scale = linalg::mul(invMat, w);
+
+		retMat[0] *= scale.x;
+		retMat[1] *= scale.y;
+		retMat[2] *= scale.z;
+
+		return retMat;
+	};
 
 	double3 xyz_to_lab(double3 xyz);
 

@@ -29,86 +29,127 @@
 #include <lut-calibrator/CapturedColor.h>
 #include <lut-calibrator/BoardUtils.h>
 
-byte3  CapturedColor::totalMinYUV, CapturedColor::totalMaxYUV;
 
-void CapturedColor::resetTotalRange()
+void CapturedColor::importColors(const CapturedColor& color)
 {
-	totalMinYUV = { 255, 255, 255 };
-	totalMaxYUV = { 0,0,0 };
+	for (auto iter = color.inputColors.begin(); iter != color.inputColors.end(); ++iter)
+	{
+		for (int i = 0; i < (*iter).second; i++)
+		{
+			addColor((*iter).first);
+		}
+	}
+	calculateFinalColor();
 }
 
 bool CapturedColor::calculateFinalColor()
 {
-	if (count == 0 || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
+	if (inputColors.empty() || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
 		return false;
 
-	totalMinYUV = { std::min(totalMinYUV.x, min.x), std::min(totalMinYUV.y, min.y), std::min(totalMinYUV.z, min.z) };
-	totalMaxYUV = { std::max(totalMaxYUV.x, max.x), std::max(totalMaxYUV.y, max.y), std::max(totalMaxYUV.z, max.z) };
+	int count = 0;
+	color = double3{ 0,0,0 };
 
-	colorInt = ColorSpaceMath::to_byte3(color / count);
+	for (auto iter = inputColors.begin(); iter != inputColors.end(); ++iter)
+	{
+		color += ((*iter).first) * ((*iter).second);
+		count += ((*iter).second);
+
+		// sort
+		bool inserted = false;
+		for (auto sorted = sortedInputColors.begin(); sorted != sortedInputColors.end(); ++sorted)
+			if (((*iter).second) > (*sorted).second)
+			{
+				sortedInputColors.insert(sorted, std::pair<double3, int>((*iter).first, (*iter).second));
+				inserted = true;
+				break;
+			}
+
+		if (!inserted)
+			sortedInputColors.push_back(std::pair<double3, int>((*iter).first, (*iter).second));
+	}
+
+	auto workColor = color / count;
+
+	colorInt = ColorSpaceMath::to_byte3(workColor);
+	color /= (count * 255.0);
+	
 	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
 	{
 		colorInt.y = colorInt.z = 128;
-		color.y = color.z = (count * 128.0);
+		color.y = color.z = 128.0/255;
 	}
-	color /= (count * 255.0);
+	else
+	{
+		auto delta = workColor - colorInt;
+
+		if (delta.y * delta.z < 0)
+		{
+			if (((fabs(delta.y) >= fabs(delta.z)) && delta.y > 0) ||
+				((fabs(delta.y) < fabs(delta.z)) && delta.z > 0))
+			{
+				colorInt.y = std::floor(workColor.y);
+				colorInt.z = std::floor(workColor.z);
+			}
+			else if (((fabs(delta.y) >= fabs(delta.z)) && delta.y < 0) ||
+				((fabs(delta.y) < fabs(delta.z)) && delta.z < 0))
+			{
+				colorInt.y = std::ceil(workColor.y);
+				colorInt.z = std::ceil(workColor.z);
+			}
+		}
+	}
+	
 	ColorSpaceMath::trim01(color);
 
 	return true;
 }
 
+bool CapturedColor::hasAllSamples()
+{
+	return totalSamples > 27;
+}
+
+bool CapturedColor::hasAnySample()
+{
+	return totalSamples > 0;
+}
+
+
 void CapturedColor::addColor(ColorRgb i)
 {
-	color += double3(i.red, i.green, i.blue);
-
-	if (count == 0 || min.x > i.red)
-		min.x = i.red;
-	if (count == 0 || min.y > i.green)
-		min.y = i.green;
-	if (count == 0 || min.z > i.blue)
-		min.z = i.blue;
-
-	if (count == 0 || max.x < i.red)
-		max.x = i.red;
-	if (count == 0 || max.y < i.green)
-		max.y = i.green;
-	if (count == 0 || max.z < i.blue)
-		max.z = i.blue;
-
-	count++;
+	addColor(double3(i.red, i.green, i.blue));
 }
 
-void CapturedColor::addColor(double3 i)
+void CapturedColor::addColor(const double3& i)
 {
-	color += i;
+	bool empty = !hasAnySample();
 
-	if (count == 0 || min.x > i.x)
+	if (empty || min.x > i.x)
 		min.x = i.x;
-	if (count == 0 || min.y > i.y)
+	if (empty || min.y > i.y)
 		min.y = i.y;
-	if (count == 0 || min.z > i.z)
+	if (empty || min.z > i.z)
 		min.z = i.z;
 
-	if (count == 0 || max.x < i.x)
+	if (empty || max.x < i.x)
 		max.x = i.x;
-	if (count == 0 || max.y < i.y)
+	if (empty || max.y < i.y)
 		max.y = i.y;
-	if (count == 0 || max.z < i.z)
+	if (empty || max.z < i.z)
 		max.z = i.z;
 
-	count++;
-}
+	if (inputColors.find(i) == inputColors.end())
+	{
+		inputColors[i] = 1;
+	}
+	else
+	{
+		inputColors[i] = inputColors[i] + 1;
+	}
 
-byte3 CapturedColor::getMaxYUV()
-{
-	return totalMaxYUV;
+	totalSamples++;
 }
-
-byte3 CapturedColor::getMinYUV()
-{
-	return totalMinYUV;
-}
-
 
 QString CapturedColor::toString()
 {
@@ -127,14 +168,24 @@ int3 CapturedColor::getSourceRGB() const
 }
 
 
-void  CapturedColor::setFinalRGB(double3 _color)
+void  CapturedColor::setFinalRgb(double3 _color)
 {
-	finalRGB = ColorSpaceMath::to_byte3(_color * 255.0);
+	auto input = ColorSpaceMath::to_byte3(_color);
+	bool found = (std::find(finalRGB.begin(), finalRGB.end(), input) != finalRGB.end());
+	if (!found)
+	{
+		finalRGB.push_back(input);
+	}
 }
 
-byte3 CapturedColor::getFinalRGB() const
+std::list<byte3> CapturedColor::getFinalRGB() const
 {
 	return finalRGB;
+}
+
+std::list<std::pair<double3, int>> CapturedColor::getInputColors()
+{
+	return sortedInputColors;
 }
 
 int CapturedColor::getSourceError(const int3& _color)

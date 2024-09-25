@@ -74,7 +74,7 @@ signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
 
 public slots:
-	void startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug);
+	void startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool postprocessing);
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
@@ -91,15 +91,14 @@ private:
 	void notifyCalibrationMessage(QString message, bool started = false);
 	void error(QString message);
 	void handleImage(const Image<ColorRgb>& image);
-	void scoreBoard(bool testOnly, const linalg::mat<double, 4, 4>& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, linalg::vec<double, 3> aspect, int tryBt2020Range, int altConvert, const linalg::mat<double, 3, 3>& bt2020_to_sRgb, const long long int& minError, long long int& currentError);
-	void tryHDR10();
+	void calibration();
 	void setupWhitePointCorrection();
 	bool setTestData();
 
 	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);
 	bool parseTextLut2binary(const char* filename = "D:/interpolated_lut.txt", const char* outfile = "D:/lut_lin_tables.3d");
 
-	static QString writeLUT(Logger* _log, QString _rootPath, BestResult* bestResult);
+	static QString writeLUT(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all);
 
 	Logger* _log;
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;
@@ -108,4 +107,5 @@ private:
 	MemoryBuffer<uint8_t> _lut;
 	QString _rootPath;
 	bool	_debug;
+	bool	_postprocessing;
 };

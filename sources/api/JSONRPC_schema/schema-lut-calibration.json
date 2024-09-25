@@ -18,6 +18,10 @@
 		"debug": {
 			"type" : "boolean",
 			"required" : false
+		},
+		"postprocessing": {
+			"type" : "boolean",
+			"required" : false
 		}
 	},
 	"additionalProperties": false

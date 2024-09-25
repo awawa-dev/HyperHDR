@@ -156,8 +156,10 @@ namespace BoardUtils
 		return boardIndex;
 	}
 
-	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors)
+	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors, bool multiFrame)
 	{
+		bool exit = (multiFrame) ? false : true;
+
 		int line = 0;
 		CapturedColor white, black;
 
@@ -210,8 +212,17 @@ namespace BoardUtils
 			try
 			{
 				auto capturedColor = readBlock(yuvImage, position, &color);
-				capturedColor.setSourceRGB(color);
-				allColors.all[R][G][B] = capturedColor;
+				if (allColors.all[R][G][B].hasAnySample())
+				{					
+					allColors.all[R][G][B].importColors(capturedColor);
+					if (allColors.all[R][G][B].hasAllSamples())
+						exit = true;
+				}
+				else
+				{
+					capturedColor.setSourceRGB(color);
+					allColors.all[R][G][B] = capturedColor;
+				}
 			}
 			catch (std::exception& ex)
 			{
@@ -237,10 +248,19 @@ namespace BoardUtils
 			allColors.setRange(YuvConverter::COLOR_RANGE::FULL);
 		}
 
+		if (multiFrame)
+		{
+			if (!exit)
+				Info(_log, "Successfully parsed image of test board no. %i. Waiting for another frame...", boardIndex);
+			else
+				Info(_log, "Successfully parsed final image of test board no. %i", boardIndex);
+		}
+		else
+		{
+			Info(_log, "Successfully parsed image of the %i test board", boardIndex);
+		}
 
-		Info(_log, "Successfully parsed image of the %i test board", boardIndex);
-
-		return true;
+		return exit;
 	}
 
 	Image<ColorRgb> loadTestBoardAsYuv(const std::string& filename)
@@ -455,45 +475,41 @@ namespace BoardUtils
 		if (!myfile.is_open())
 			return false;
 
-		std::list<std::pair<const char*, const char*>> arrayMark = { {"np.array([", "])"}, {"{", "}"} };
+		std::list<std::pair<const char*, const char*>> arrayMark = { {"{", "}"} }; //  {"np.array([", "])"},
 
-		myfile << "// Values of the table represent YUV in range [0 - 1] * " << std::to_string(IMPORT_SCALE) << ", limited of full" << std::endl;
-		myfile << "// Each row of the " << std::to_string(SCREEN_COLOR_DIMENSION) <<"^3 table consist of the following RGB coordinates:" << std::endl << "// [ ";
-
-		for (int i = 0, j = 0; i < SCREEN_COLOR_DIMENSION; i++, j += SCREEN_COLOR_STEP)
-		{
-			if (i)
-				myfile << ", ";
-			myfile << std::to_string(std::min(j, 255));
-		}
-
-		myfile << " ]" << std::endl << "// First table is in Python format, second in C++ format" << std::endl << std::endl;
-
-		myfile << result;
+		myfile << result << std::endl;
 
 		for(const auto& currentArray : arrayMark)
 		{
-			myfile << currentArray.first << std::endl;
+			myfile << currentArray.first;
 			for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 			{
-				myfile << "\t" << currentArray.first << std::endl;
 				for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
 				{
-					myfile << "\t\t" << currentArray.first << std::endl << "\t\t\t";
+					myfile  << std::endl << "\t";
 					for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 					{
-						const auto& elem = all[r][g][b].yuv();
+						auto elems = all[r][g][b].getInputColors();
 						myfile << currentArray.first;
-						myfile << " " << std::to_string(std::lround(elem.x * IMPORT_SCALE)) << ", ";
-						myfile << std::to_string(std::lround(elem.y * IMPORT_SCALE)) << ", ";
-						myfile << std::to_string(std::lround(elem.z * IMPORT_SCALE)) << " ";
-						myfile << currentArray.second << ((b + 1 < SCREEN_COLOR_DIMENSION) ? "," : "");
+
+						for (const auto& elem : elems)
+						{
+							if (elem != elems.front())
+							{
+								myfile << ",";
+							}
+
+							myfile << " " << std::to_string(elem.second) << ",";
+							myfile << std::to_string((int)elem.first.x) << ",";
+							myfile << std::to_string((int)elem.first.y) << ",";
+							myfile << std::to_string((int)elem.first.z);
+						}
+
+						myfile << currentArray.second << ((r + 1 < SCREEN_COLOR_DIMENSION || g + 1 < SCREEN_COLOR_DIMENSION || b + 1 < SCREEN_COLOR_DIMENSION) ? "," : "");
 					}
-					myfile << std::endl << "\t\t" << currentArray.second << ((g + 1 < SCREEN_COLOR_DIMENSION) ? "," : "") << std::endl;
 				}
-				myfile << "\t" << currentArray.second << ((r +  1< SCREEN_COLOR_DIMENSION) ? "," : "") << std::endl;
 			}
-			myfile << currentArray.second << std::endl << std::endl << std::endl;
+			myfile << std::endl << currentArray.second << std::endl;
 		}
 
 		myfile.close();

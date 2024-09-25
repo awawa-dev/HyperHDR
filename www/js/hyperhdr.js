@@ -653,9 +653,9 @@ function requestLutInstall(address, hardware_brightness, hardware_contrast, hard
 											"now":${now}`);
 }
 
-async function requestLutCalibration(mode, debug)
+async function requestLutCalibration(mode, debug, postprocessing)
 {
-	sendToHyperhdr("lut-calibration", mode, `"debug":${debug}`);
+	sendToHyperhdr("lut-calibration", mode, `"debug":${debug}, "postprocessing":${postprocessing}`);
 }
 
 async function requestHasLedClock()

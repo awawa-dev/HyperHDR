@@ -43,15 +43,15 @@
 class CapturedColor
 {
 private:
+	int totalSamples = 0;
 	int3 sourceRGB;
 	int sourceRGBdelta = 0;
-	byte3 finalRGB;
+	std::list<byte3> finalRGB;
 	double3	color;
+	std::map<double3, int> inputColors;
+	std::list<std::pair<double3, int>> sortedInputColors;
 	byte3 min, max;
 	byte3 colorInt;
-	static byte3 totalMinYUV, totalMaxYUV;
-
-	int count = 0;
 
 public:
 	CapturedColor() = default;
@@ -65,17 +65,18 @@ public:
 	const uint8_t& U() const { return colorInt.y; }
 	const uint8_t& V() const { return colorInt.z; }
 
+	void importColors(const CapturedColor& color);
 	bool calculateFinalColor();
+	bool hasAllSamples();
+	bool hasAnySample();
+	std::list<std::pair<double3, int>> getInputColors();
 	void addColor(ColorRgb i);
-	void addColor(double3 i);
+	void addColor(const double3& i);
 	void setSourceRGB(byte3 _color);
 	int getSourceError(const int3& _color);
 	int3 getSourceRGB() const;
-	void setFinalRGB(double3 _color);
-	byte3 getFinalRGB() const;
-	static byte3 getMaxYUV();
-	static byte3 getMinYUV();
-	static void resetTotalRange();
+	void setFinalRgb(double3 _color);
+	std::list<byte3> getFinalRGB() const;
 
 	QString toString();
 };
