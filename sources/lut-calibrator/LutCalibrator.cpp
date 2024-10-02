@@ -619,7 +619,7 @@ void LutCalibrator::printReport()
 											
 	}
 
-	/*
+	
 	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
 	info.append("");
 	info.append("");
@@ -855,10 +855,6 @@ void  LutCalibrator::fineTune()
 
 void LutCalibrator::calibration()
 {
-	// detect nits
-	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
-	const auto white = _capturedColors->all[SCALE][SCALE][SCALE].Y();
-
 	// calibration
 	auto totalTime = InternalClock::now();
 	fineTune();
@@ -1145,7 +1141,6 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 
 bool LutCalibrator::setTestData()
 {
-	bool oldFormat = false;
 	std::vector<std::vector<int>> testData;
 
 	// asssign your test data from calibration_captured_yuv.txt to testData here

@@ -131,9 +131,9 @@ namespace ColorSpaceMath
 
 		double3 scale = linalg::mul(invMat, w);
 
-		retMat[0] *= scale.x;
-		retMat[1] *= scale.y;
-		retMat[2] *= scale.z;
+		retMat.x *= scale.x;
+		retMat.y *= scale.y;
+		retMat.z *= scale.z;
 
 		return retMat;
 	};
