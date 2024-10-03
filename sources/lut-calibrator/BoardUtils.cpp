@@ -481,7 +481,7 @@ namespace BoardUtils
 
 		for(const auto& currentArray : arrayMark)
 		{
-			myfile << currentArray.first;
+			myfile << "capturedData = " << currentArray.first;
 			for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 			{
 				for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
@@ -489,7 +489,7 @@ namespace BoardUtils
 					myfile  << std::endl << "\t";
 					for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 					{
-						auto elems = all[r][g][b].getInputColors();
+						auto elems = all[r][g][b].getInputYUVColors();
 						myfile << currentArray.first;
 
 						for (const auto& elem : elems)
@@ -509,7 +509,7 @@ namespace BoardUtils
 					}
 				}
 			}
-			myfile << std::endl << currentArray.second << std::endl;
+			myfile << std::endl << currentArray.second << ";" << std::endl;
 		}
 
 		myfile.close();

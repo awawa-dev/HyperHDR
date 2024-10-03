@@ -48,8 +48,9 @@ private:
 	int sourceRGBdelta = 0;
 	std::list<byte3> finalRGB;
 	double3	color;
-	std::map<double3, int> inputColors;
-	std::list<std::pair<double3, int>> sortedInputColors;
+	std::list<std::pair<byte3, int>> inputColors;
+	std::list<std::pair<byte3, int>> sortedInputYUVColors;
+	std::list<std::pair<double3, int>> sortedInputYuvColors;
 	byte3 min, max;
 	byte3 colorInt;
 
@@ -57,8 +58,6 @@ public:
 	CapturedColor() = default;
 
 	const double& y() const { return color.x; }
-	const double& u() const { return color.y; }
-	const double& v() const { return color.z; }
 	const double3& yuv() const { return color; }
 
 	const uint8_t& Y() const { return colorInt.x; }
@@ -69,13 +68,14 @@ public:
 	bool calculateFinalColor();
 	bool hasAllSamples();
 	bool hasAnySample();
-	std::list<std::pair<double3, int>> getInputColors();
+	std::list<std::pair<byte3, int>> getInputYUVColors() const;
+	std::list<std::pair<double3, int>> getInputYuvColors() const;
 	void addColor(ColorRgb i);
-	void addColor(const double3& i);
+	void addColor(const byte3& i);
 	void setSourceRGB(byte3 _color);
-	int getSourceError(const int3& _color);
+	int getSourceError(const int3& _color) const;
 	int3 getSourceRGB() const;
-	void setFinalRgb(double3 _color);
+	void setFinalRGB(byte3 input);
 	std::list<byte3> getFinalRGB() const;
 
 	QString toString();

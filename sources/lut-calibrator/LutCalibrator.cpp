@@ -250,40 +250,45 @@ QString LutCalibrator::generateReport(bool full)
 		if (color.second.x < SCREEN_COLOR_DIMENSION && color.second.y < SCREEN_COLOR_DIMENSION && color.second.z < SCREEN_COLOR_DIMENSION)
 		{
 			const auto& testColor = _capturedColors->all[color.second.x][color.second.y][color.second.z];
-			auto yuv = testColor.yuv();
-
-			auto rgbBT709 =_yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::BT709, yuv) * 255.0;
+			
 
 			if (!full)
-				rep.append(QString("%1: %2 => %3 , YUV: %4")
+			{
+				auto list = testColor.getInputYUVColors();
+
+				QStringList colors;
+				for (auto i = list.begin(); i != list.end(); i++)
+				{
+					const auto& yuv = *(i);
+
+					auto rgbBT709 = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::BT709, static_cast<double3>(yuv.first) / 255.0) * 255.0;
+
+					colors.append(QString("%1 (YUV: %2)")
+						.arg(vecToString(ColorSpaceMath::to_byte3(rgbBT709)), 12)
+						.arg(vecToString(yuv.first), 12)
+					);
+				}
+
+				rep.append(QString("%1: %2 => %3 %4")
 					.arg(QString::fromStdString(color.first), 12)
 					.arg(vecToString(testColor.getSourceRGB()), 12)
-					.arg(vecToString(ColorSpaceMath::to_byte3(rgbBT709)), 12)
-					.arg(vecToString(ColorSpaceMath::to_byte3(yuv * 255.0)), 12));
+					.arg(colors.join(", "))
+					.arg(((list.size() > 1) ? " [source noise detected]" : "")));
+			}
 			else
 			{				
 				auto list = testColor.getFinalRGB();
 
-				if (list.size() == 1)
+				QStringList colors;
+				for (auto i = list.begin(); i != list.end(); i++)
 				{
-					rep.append(QString("%1: %2 => %3 [corrected]")
-						.arg(QString::fromStdString(color.first), 12)
-						.arg(vecToString(testColor.getSourceRGB()), 12)
-						.arg(vecToString(list.front()), 12));
+					colors.append(QString("%1").arg(vecToString((*i)), 12));
 				}
-				else if (list.size() > 1)
-				{
-					QStringList colors;
-					colors.append(QString("%1 {").arg(vecToString(list.front()), 12));
-					for (auto i = ++(list.begin()); i != list.end(); i++)
-					{
-						colors.append(QString("%1").arg(vecToString((*i)), 12));
-					}
-					rep.append(QString("%1: %2 => %3 } [corrected, source noice detected]")
-						.arg(QString::fromStdString(color.first), 12)
-						.arg(vecToString(testColor.getSourceRGB()), 12)
-						.arg(colors.join(" ")));
-				}
+				rep.append(QString("%1: %2 => %3 %4")
+					.arg(QString::fromStdString(color.first), 12)
+					.arg(vecToString(testColor.getSourceRGB()), 12)
+					.arg(colors.join(", "))
+					.arg(((list.size() > 1) ? "[corrected, source noise detected]" : "[corrected]")));
 			}
 
 		};
@@ -636,30 +641,19 @@ void LutCalibrator::printReport()
 				if ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) || _debug)
 				{
 					const auto& sample = _capturedColors->all[r][g][b];
-
-
 					auto list = sample.getFinalRGB();
 
-					if (list.size() == 1)
+					QStringList colors;						
+					for (auto i = list.begin(); i != list.end(); i++)
 					{
-						info.append(QString("%1 => %2").
-							arg(vecToString(sample.getSourceRGB())).
-							arg(vecToString(list.front()))
-						);
+						colors.append(QString("%1").arg(vecToString(*i), 12));
 					}
-					else if (list.size() > 1)
-					{
-						QStringList colors;
-						colors.append(QString("%1 {").arg(vecToString(list.front()), 12));
-						for (auto i = ++(list.begin()); i != list.end(); i++)
-						{
-							colors.append(QString("%1").arg(vecToString(*i), 12));
-						}
-						info.append(QString("%1 => %2 } [source noice detected]")
-							.arg(vecToString(sample.getSourceRGB()), 12)
-							.arg(colors.join(" ")));
-					}											
-				}	
+					info.append(QString("%1 => %2 %3")
+						.arg(vecToString(sample.getSourceRGB()), 12)
+						.arg(colors.join(", "))
+						.arg(((list.size() > 1)?"[source noise detected]" : "")));
+				}
+
 	info.append("-------------------------------------------------------------------------------------------------");
 	sendReport(info.join("\r\n"));
 }
@@ -820,15 +814,29 @@ void  LutCalibrator::fineTune()
 
 													if ((r % 2 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g))
 													{
-														auto& sample = _capturedColors->all[r][g][b];
-														auto srgb = hdr_to_srgb(_yuvConverter.get(), sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal);
-														auto SRGB = to_int3(srgb * 255.0);
-														
-														currentError += sample.getSourceError(SRGB);
+														auto minError = MAX_CALIBRATION_ERROR;
 
-														if ((r + 2 == SCREEN_COLOR_DIMENSION && g + 2 == SCREEN_COLOR_DIMENSION && b + 2 == SCREEN_COLOR_DIMENSION &&
-															(SRGB.x > 248 || SRGB.x < 232)))
-															currentError = bestResult->minError;
+														const auto& sample = _capturedColors->all[r][g][b];
+														auto sampleList = sample.getInputYuvColors();
+
+														for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
+														{
+															auto srgb = hdr_to_srgb(_yuvConverter.get(), (*iter).first, byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal);
+															auto SRGB = to_int3(srgb * 255.0);
+
+															auto sampleError = sample.getSourceError(SRGB);															
+
+															if ((r + 2 == SCREEN_COLOR_DIMENSION && g + 2 == SCREEN_COLOR_DIMENSION && b + 2 == SCREEN_COLOR_DIMENSION &&
+																(SRGB.x > 248 || SRGB.x < 232)))
+																sampleError = bestResult->minError;
+
+															if (sampleError < minError)
+																minError = sampleError;
+														}
+
+														currentError += minError;
+
+														
 													}
 												}
 										if (currentError < bestResult->minError)
@@ -956,7 +964,10 @@ QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bes
 						{
 							if (YUV.y >= 127 && YUV.y <= 129 && YUV.z >= 127 && YUV.z <= 129)
 							{
-								YUV.y = YUV.z = 128;
+								YUV.y = 128;
+								YUV.z = 128;
+								yuv.y = 128.0 / 255.0;
+								yuv.z = 128.0 / 255.0;
 							}
 							yuv = hdr_to_srgb(&yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal);
 						}
@@ -979,26 +990,21 @@ QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bes
 						for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 						{
 							auto& sample = (*all)[r][g][b];
-							uint32_t ind_lutd = LUT_INDEX(((uint32_t)sample.Y()), ((uint32_t)sample.U()), ((uint32_t)sample.V()));
 
-							double rr = _lut.data()[ind_lutd];
-							double gg = _lut.data()[ind_lutd + 1];
-							double bb = _lut.data()[ind_lutd + 2];
-							double3 fColor = double3{ rr, gg, bb };
-							sample.setFinalRgb( fColor);
+							auto list = sample.getInputYUVColors();
+							for(auto item = list.begin(); item != list.end(); ++item)
+							{
+								auto ind_lutd = LUT_INDEX(((uint32_t)(*item).first.x), ((uint32_t)(*item).first.y), ((uint32_t)(*item).first.z));
+								(*item).first = byte3{ _lut.data()[ind_lutd], _lut.data()[ind_lutd + 1], _lut.data()[ind_lutd + 2] };
+								(*item).second = sample.getSourceError(static_cast<int3>((*item).first));
+							}
 
-							auto list = sample.getInputColors();
-							if (list.size() > 1)
-								for(const auto& c : list)
-								{
-									ind_lutd = LUT_INDEX(((uint32_t)c.first.x), ((uint32_t)c.first.y), ((uint32_t)c.first.z));
+							list.sort([](const std::pair<byte3, int>& a, const std::pair<byte3, int>& b) { return a.second < b.second; });
 
-									rr = _lut.data()[ind_lutd];
-									gg = _lut.data()[ind_lutd + 1];
-									bb = _lut.data()[ind_lutd + 2];
-									fColor = double3{ rr, gg, bb };
-									sample.setFinalRgb(fColor);
-								}
+							for (auto item = list.begin(); item != list.end(); ++item)
+							{
+								sample.setFinalRGB((*item).first);
+							}
 						}
 			}
 
@@ -1141,16 +1147,16 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 
 bool LutCalibrator::setTestData()
 {
-	std::vector<std::vector<int>> testData;
+	std::vector<std::vector<int>> capturedData;
 
 	// asssign your test data from calibration_captured_yuv.txt to testData here
 
 
 	// verify
-	if (testData.size() != SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)
+	if (capturedData.size() != SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)
 		return false;
 
-	auto iter = testData.begin();
+	auto iter = capturedData.begin();
 	for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
 		for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
 			for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++, ++iter)

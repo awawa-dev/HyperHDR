@@ -50,6 +50,8 @@ bool CapturedColor::calculateFinalColor()
 	int count = 0;
 	color = double3{ 0,0,0 };
 
+	sortedInputYUVColors.clear();
+	sortedInputYuvColors.clear();
 	for (auto iter = inputColors.begin(); iter != inputColors.end(); ++iter)
 	{
 		color += ((*iter).first) * ((*iter).second);
@@ -57,17 +59,32 @@ bool CapturedColor::calculateFinalColor()
 
 		// sort
 		bool inserted = false;
-		for (auto sorted = sortedInputColors.begin(); sorted != sortedInputColors.end(); ++sorted)
+		for (auto sorted = sortedInputYUVColors.begin(); sorted != sortedInputYUVColors.end(); ++sorted)
 			if (((*iter).second) > (*sorted).second)
 			{
-				sortedInputColors.insert(sorted, std::pair<double3, int>((*iter).first, (*iter).second));
+				sortedInputYUVColors.insert(sorted, std::pair<byte3, int>((*iter).first, (*iter).second));
 				inserted = true;
 				break;
 			}
 
 		if (!inserted)
-			sortedInputColors.push_back(std::pair<double3, int>((*iter).first, (*iter).second));
+			sortedInputYUVColors.push_back(std::pair<byte3, int>((*iter).first, (*iter).second));
 	}
+
+	while(sortedInputYUVColors.size() > 3 || (sortedInputYUVColors.size() == 3 && sortedInputYUVColors.back().second <= 6))
+		sortedInputYUVColors.pop_back();
+	
+	std::for_each(sortedInputYUVColors.begin(), sortedInputYUVColors.end(), [this](std::pair<byte3, int>& m) {
+
+		if (m.first.y >= 127 && m.first.y <= 129 && m.first.z >= 127 && m.first.z <= 129)
+		{
+			m.first.y = 128;
+			m.first.z = 128;
+		}
+
+		sortedInputYuvColors.push_back(std::pair<double3, int>(static_cast<double3>(m.first) / 255.0, m.second));
+	});
+	
 
 	auto workColor = color / count;
 
@@ -118,10 +135,10 @@ bool CapturedColor::hasAnySample()
 
 void CapturedColor::addColor(ColorRgb i)
 {
-	addColor(double3(i.red, i.green, i.blue));
+	addColor(byte3{ i.red, i.green, i.blue });
 }
 
-void CapturedColor::addColor(const double3& i)
+void CapturedColor::addColor(const byte3& i)
 {
 	bool empty = !hasAnySample();
 
@@ -138,15 +155,20 @@ void CapturedColor::addColor(const double3& i)
 		max.y = i.y;
 	if (empty || max.z < i.z)
 		max.z = i.z;
+	
+	auto findIter = std::find_if(inputColors.begin(), inputColors.end(), [&](auto& m) {
+		return m.first == i;
+	});
 
-	if (inputColors.find(i) == inputColors.end())
+	if (findIter == inputColors.end())
 	{
-		inputColors[i] = 1;
+		inputColors.push_back(std::pair<byte3, int>(i, 1));
 	}
 	else
 	{
-		inputColors[i] = inputColors[i] + 1;
+		(*findIter).second++;
 	}
+	
 
 	totalSamples++;
 }
@@ -168,9 +190,8 @@ int3 CapturedColor::getSourceRGB() const
 }
 
 
-void  CapturedColor::setFinalRgb(double3 _color)
+void  CapturedColor::setFinalRGB(byte3 input)
 {
-	auto input = ColorSpaceMath::to_byte3(_color);
 	bool found = (std::find(finalRGB.begin(), finalRGB.end(), input) != finalRGB.end());
 	if (!found)
 	{
@@ -183,12 +204,17 @@ std::list<byte3> CapturedColor::getFinalRGB() const
 	return finalRGB;
 }
 
-std::list<std::pair<double3, int>> CapturedColor::getInputColors()
+std::list<std::pair<byte3, int>> CapturedColor::getInputYUVColors() const
 {
-	return sortedInputColors;
+	return sortedInputYUVColors;
 }
 
-int CapturedColor::getSourceError(const int3& _color)
+std::list<std::pair<double3, int>> CapturedColor::getInputYuvColors() const
+{
+	return sortedInputYuvColors;
+}
+
+int CapturedColor::getSourceError(const int3& _color) const
 {	
 	if (sourceRGBdelta == 0)
 	{
