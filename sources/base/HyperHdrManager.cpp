@@ -49,9 +49,13 @@ HyperHdrManager::HyperHdrManager(const QString& rootPath)
 	, _instanceTable(new InstanceTable())
 	, _rootPath(rootPath)
 	, _fireStarter(0)
+	, _videoBenchmark(this)
 {
 	qRegisterMetaType<InstanceState>("InstanceState");
 	connect(this, &HyperHdrManager::SignalInstanceStateChanged, this, &HyperHdrManager::handleInstanceStateChange);
+
+	connect(&_videoBenchmark, &VideoBenchmark::SignalBenchmarkUpdate, this, &HyperHdrManager::SignalBenchmarkUpdate);
+	connect(this, &HyperHdrManager::SignalBenchmarkCapture, &_videoBenchmark, &VideoBenchmark::benchmarkCapture);
 }
 
 HyperHdrManager::~HyperHdrManager()

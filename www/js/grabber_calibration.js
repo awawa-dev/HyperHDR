@@ -1,49 +1,53 @@
 $(document).ready( function(){
-	class ColorRgb {	  
-	  constructor(_R,_G,_B)
-	  {
-		  this.r = _R;
-		  this.g = _G;
-		  this.b = _B;
-	  }
-	  set(_R,_G,_B)
-	  {
-		  this.r = _R;
-		  this.g = _G;
-		  this.b = _B;
-	  }
-	  equal(x)
-	  {
-		  if (this.r == x.r && this.g == x.g && this.b == x.b)
-			  return true;
-		  else
-			  return false;
-	  }
+	if (window.matchMedia("(color-gamut: srgb)").matches) {
+	  console.log(`Screen supports approximately the sRGB gamut or more.`);
 	}
-	
-	let primeColors = [
-				new ColorRgb(255, 0, 0), new ColorRgb(0, 255, 0), new ColorRgb(0, 0, 255), new ColorRgb(255, 255, 0),
-				new ColorRgb(255, 0, 255), new ColorRgb(0, 255, 255), new ColorRgb(255, 128, 0), new ColorRgb(255, 0, 128), new ColorRgb(0, 128, 255),
-				new ColorRgb(128, 64, 0), new ColorRgb(128, 0, 64),
-				new ColorRgb(128, 0, 0), new ColorRgb(0, 128, 0), new ColorRgb(0, 0, 128),
-				new ColorRgb(16, 16, 16), new ColorRgb(32, 32, 32), new ColorRgb(48, 48, 48), new ColorRgb(64, 64, 64), new ColorRgb(96, 96, 96), new ColorRgb(120, 120, 120), new ColorRgb(144, 144, 144), new ColorRgb(172, 172, 172), new ColorRgb(196, 196, 196), new ColorRgb(220, 220, 220),
-				new ColorRgb(255, 255, 255),
-				new ColorRgb(0, 0, 0)
-				];
 
-	let currentColor = new ColorRgb(0,0,0);
-	let startColor = new ColorRgb(0,0,0);
-	let checksum = 0;
-	let maxLimit = 255;
+	if (window.matchMedia("(color-gamut: p3)").matches) {
+	  console.log(`Screen supports approximately the gamut specified by the DCI P3 Color Space or more.`);
+	}
+
+	if (window.matchMedia("(color-gamut: rec2020)").matches) {
+	  console.log(`Screen supports approximately the gamut specified by the ITU-R Recommendation BT.2020 Color Space or more.`);
+	}
+
+	let calibWiz = null;
+	let myInterval;
+	let currentTestBoard = 0;
 	let finish = false;
 	let running = false;
-	let limited = false;
 	let saturation = 1;
 	let luminance = 1;
 	let gammaR = 1;
 	let gammaG = 1;
 	let gammaB = 1;
-	let coef = 0;
+
+	$("#select_classic_calibration_label").html($.i18n("option_calibration_classic"));
+	$("#select_video_calibration_label").html($.i18n("option_calibration_video"));
+	$("#video_calibration_overview").html($.i18n("video_calibration_overview"));
+	$("#btn_select_calibration").off('click').on('click', function() {
+		if($('#select_classic_calibration').is(':checked'))
+		{
+			$('#calibration_select_intro').hide();
+			$('#classic_calibration').show();
+		}
+		if($('#select_video_calibration').is(':checked'))
+		{
+			$('#calibration_select_intro').hide();			
+			$('#video_calibration').show();
+		}
+	});
+
+	$("#btn_start_video_calibration").off('click').on('click', function() {
+			finish = false;
+			running = true;			
+			startCalibrationWizard();
+			const calDebug = document.getElementById('chk_debug').checked;
+			const calPostprocessing = document.getElementById('chk_postprocessing').checked;
+			requestLutCalibration("capture", calDebug, calPostprocessing);
+	});
+
+
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
@@ -58,11 +62,8 @@ $(document).ready( function(){
 		}, false);
 
 	performTranslation();
-	$("#grabber_calibration_intro").html($.i18n("grabber_calibration_expl"));
-		
-	
 
-	$("#startCalibration").off('click').on('click', function() { limited = false; coef = 0; startCalibration(); });
+	$("#grabber_calibration_intro").html($.i18n("grabber_calibration_expl"));
 	
 	sendToHyperhdr("serverinfo", "", '"subscribe":["lut-calibration-update"]');
 	
@@ -70,6 +71,8 @@ $(document).ready( function(){
 	{
 		handleMessage(event);
 	});
+
+	$("#startCalibration").off('click').on('click', function() { startCalibration(); });
 	
 	resetImage();
 	
@@ -101,63 +104,98 @@ $(document).ready( function(){
 		ctx.fillStyle = gradient;
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 	}
+
+	function startCalibrationWizard() {		
+		$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n("main_menu_grabber_calibration_token"));
+		$('#wizp1_body').html('<h4 id="calibration_running_header" style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-2"></svg><br/></div></div>');
+		$('#wizp2_body').html('<h4 id="calibration_summary_header" style="font-weight:bold;text-transform:uppercase;"></h4><p id="calibration_summary"></p>');
+		$('#wizp1_footer').html('<button type="button" class="btn btn-danger" name="btn_wiz_abort"><svg data-src="svg/button_cancel.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_cancel') + '</button>');
+		$('#wizp2_footer').html('<button type="button" class="btn btn-success" name="btn_wiz_closeme_download"><svg data-src="svg/button_success.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_ok') + '</button>');
+		//open modal
+		calibWiz= new bootstrap.Modal($("#wizard_modal"), {
+			backdrop: "static",
+			keyboard: false
+		});
+		
+		const backupCalibWizard = $("#wizard_modal").css("z-index");
+		$("#wizard_modal").css("z-index", "10000");		
+		
+		$('#wizp1').toggle(true);
+		$('#wizp2').toggle(false);
+
+		calibWiz.show();
+
+		$("[name='btn_wiz_abort']").off().on('click', function () {
+			$("#wizard_modal").css("z-index", backupCalibWizard);
+			requestLutCalibration("stop", false, false);
+			calibWiz.hide();
+			resetWizard(true);
+			reload();
+		});
+
+		$("[name='btn_wiz_closeme_download']").off().on('click', function () {
+			$("#wizard_modal").css("z-index", backupCalibWizard);
+			calibWiz.hide();
+			resetWizard(true);
+			reload();
+		});
+	}
 	
 	function handleMessage(event)
 	{
 		let json = event.response.data;
-		
+
 		if (!running)
 			return;
-		
-		if (json.limited == 1 && !limited)
+				
+		if (json.error != null)
 		{
-			limited = true;
-			startCalibration();
-			return;
-		}
-		
-		if (typeof json.coef != 'undefined' && json.coef != null && !isNaN(json.coef))
-		{
-			console.log(json.coef);
-			coef = json.coef;
-			startCalibration();
-			return;
-		}
-		
-		if (json.status != 0)
-		{
+			clearInterval(myInterval);
 			document.body.style.overflow = 'visible';
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
+			resetImage();
+			if (calibWiz != null)
+			{
+				calibWiz.hide();
+				resetWizard(true);
+			}
 			alert("Error occured. Please consult the HyperHDR log.\n\n" + json.error);
 			return;
 		}
-		
-		if (json.validate != checksum)
+
+		if (json.message != null)
 		{
-			document.body.style.overflow = 'visible';
-			canvas.classList.remove("fullscreen-canvas");
-			running = false;
-			alert("Unexpected CRC: "+json.validate+", waiting for: "+checksum);			
-			return;
+			if (json.start && calibWiz == null)
+			{
+				clearInterval(myInterval);
+				document.body.style.overflow = 'visible';
+				canvas.classList.remove("fullscreen-canvas");				
+				resetImage();
+				startCalibrationWizard();
+			}
+			if (calibWiz != null)
+			{
+				let resElement = document.getElementById("calibration_running_header");
+				resElement.innerHTML = json.message;
+			}
 		}
 		
-		if (finish)
-		{			
+		if (json.finished != null)
+		{
+			clearInterval(myInterval);
+			finish = true;
 			canvas.classList.remove("fullscreen-canvas");
 			running = false;
-			alert(`Finished!\n\nFinal section: ${checksum}.\nIf the new LUT file was successfully created then you can find the path in the HyperHDR logs.\n\nUsually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`);
 			document.body.style.overflow = 'visible';
 			resetImage();
-		}
-		else
-		{
-			checksum++;
-			drawImage();
-			setTimeout(() => {			
-				requestLutCalibration("capture", checksum, startColor, currentColor, limited, saturation, luminance, gammaR, gammaG, gammaB, coef);
-				}, 15);
-		}
+
+			let resElement = document.getElementById("calibration_summary_header");
+			resElement.innerHTML = `Finished!<br/>If the new LUT file was successfully created then you can find the path in the HyperHDR logs.<br/>Usually it's 'lut_lin_tables.3d' in your home HyperHDR folder.`;
+			$('#wizp1').toggle(false);
+			$('#wizp2').toggle(true);
+			return;
+		}		
 	}
 		
 	function startCalibration()
@@ -166,105 +204,144 @@ $(document).ready( function(){
 		{
 			document.body.style.overflow = 'hidden';
 			canvas.classList.add("fullscreen-canvas");
-			currentColor = new ColorRgb(0,0,0);
-			startColor = new ColorRgb(0,0,0);
-			checksum = 0;
 			finish = false;
 			running = true;
-			saturation = document.getElementById('saturation').value;
-			luminance =  document.getElementById('luminance').value;
-			gammaR = document.getElementById('gammaR').value;
-			gammaG = document.getElementById('gammaG').value;
-			gammaB = document.getElementById('gammaB').value;			
 			
 			ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			
 			drawImage();		
 			setTimeout(() => {
-				requestLutCalibration("capture", checksum, startColor, currentColor, limited, saturation, luminance, gammaR, gammaG, gammaB, coef);
-			}, 1000); 
+				const calDebug = document.getElementById('chk_debug2').checked;
+				const calPostprocessing = document.getElementById('chk_postprocessing2').checked;
+				requestLutCalibration("capture", calDebug, calPostprocessing);				
+			}, 100); 
 		}
 		else
 			alert('Please run fullscreen mode (F11)');
 	};
 
-	function drawImage()
-	{		
-		startColor = Object.assign({}, currentColor);
-		
-		let scaleX = canvas.width / 128;
-		let scaleY = canvas.height / 72;
-		
-		for(let py = 0; py < 72; py++)
-			for(let px = (py < 71 && py > 0) ? checksum % 2: 0; px < 128; px++)
-			{
-				let sx = px * scaleX;
-				let ex = (px + 1) * scaleX;
-				let sy = py * scaleY;
-				let ey = (py + 1) * scaleY;
-				
-				if (py < 71 && py > 0)
-				{
-					ctx.fillStyle = `rgb(${currentColor.r}, ${currentColor.g}, ${currentColor.b})`;
-					ctx.fillRect(sx, sy, ex - sx, ey - sy);
+	const SCREEN_BLOCKS_X = 48;
+	const SCREEN_BLOCKS_Y = 30;
+	const SCREEN_COLOR_STEP = 16;
+	const SCREEN_COLOR_DIMENSION = Math.floor(256 / SCREEN_COLOR_STEP) + 1;
 
-					increaseColor(currentColor);
-				}
-				else
-				{
-					if (px == 0)
-						ctx.fillStyle = `rgb(255,255,255)`;
-					else if (px == 1)
-						ctx.fillStyle = `rgb(0,0,0)`;
-					else if (px == 2)
-						ctx.fillStyle = `rgb(255,0,0)`;
-					else if (px == 3)
-						ctx.fillStyle = `rgb(255,255,0)`;
-					else if (px == 4)
-						ctx.fillStyle = `rgb(255,0,255)`;
-					else if (px == 5)
-						ctx.fillStyle = `rgb(0,255,0)`;
-					else if (px == 6)
-						ctx.fillStyle = `rgb(0,255,255)`;
-					else if (px == 7)
-						ctx.fillStyle = `rgb(0,0,255)`;
-					else if (px >= 8 && px < 24)
-					{
-						let sh = 1 << (15 - (px - 8));
-						
-						if (checksum & sh)
-							ctx.fillStyle = `rgb(255,255,255)`;
-						else
-							ctx.fillStyle = `rgb(0,0,0)`;
-					}
-					else if (px >= 24 && px < 60)
-						ctx.fillStyle = `rgb(255,255,255)`;
-					else if (px >= 60 && px < 96)
-						ctx.fillStyle = `rgb(0,0,0)`;
-					else if (px >= 96)
-						ctx.fillStyle = `rgb(128,128,128)`;
-					
-					ctx.fillRect(sx, sy, ex - sx, ey - sy);
-				}
-			}
+	const SCREEN_YUV_RANGE_LIMIT = 2;
+
+	const SCREEN_CRC_LINES = 2;
+	const SCREEN_CRC_COUNT = 5;
+	const SCREEN_MAX_CRC_BRIGHTNESS_ERROR = 1;
+	const SCREEN_MAX_COLOR_NOISE_ERROR = 8;
+	const SCREEN_SAMPLES_PER_BOARD = Math.floor(SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
+	const SCREEN_LAST_BOARD_INDEX = Math.floor(Math.pow(SCREEN_COLOR_DIMENSION, 3) / SCREEN_SAMPLES_PER_BOARD);
+
+	class int2 {
+		constructor(_x, _y) {
+		  this.x = _x;
+		  this.y = _y;	  
+		}
 	}
-	
-	function increaseColor(color)
-	{				
-		debugger;
-		if (color.equal(primeColors[primeColors.length -1]))
-			color.set(primeColors[0].r, primeColors[0].g, primeColors[0].b);
-		else
-		{
-			for (let i = 0; i < primeColors.length; i++ )
-				if (color.equal(primeColors[i]))
+
+	class byte3 {
+		constructor(_x, _y, _z) {
+		  this.x = _x;
+		  this.y = _y;
+		  this.z = _z;
+		}
+	}
+
+	function indexToColorAndPos(index, color, position)
+	{
+		let currentIndex = index % SCREEN_SAMPLES_PER_BOARD;
+		let boardIndex = Math.floor(index / SCREEN_SAMPLES_PER_BOARD);
+
+		position.y = 1 + Math.floor(currentIndex / Math.floor(SCREEN_BLOCKS_X / 2));
+		position.x = (currentIndex % Math.floor(SCREEN_BLOCKS_X / 2)) * 2 + ((position.y  + boardIndex  )% 2);
+
+		const B = (index % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
+		const G = (Math.floor(index / (SCREEN_COLOR_DIMENSION)) % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
+		const R = Math.floor(index / (SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)) * SCREEN_COLOR_STEP;
+
+		color.x = Math.min(R, 255);
+		color.y = Math.min(G, 255);
+		color.z = Math.min(B, 255);
+
+		return boardIndex;
+	}
+
+	function saveImage(delta, boardIndex, margin)
+			{
+				for (let line = 0; line < SCREEN_BLOCKS_Y; line += SCREEN_BLOCKS_Y - 1)
 				{
-					i++;
-					color.set(primeColors[i].r, primeColors[i].g, primeColors[i].b);
-					break;
+					let position = new int2 ((line + boardIndex) % 2, line);
+
+					for (let x = 0; x < boardIndex + SCREEN_CRC_COUNT; x++, position.x += 2)
+					{
+						const start = new int2 (position.x * delta.x, position.y * delta.y);
+						const end = new int2 ( ((position.x + 1) * delta.x) - 1, ((position.y + 1) * delta.y) - 1);
+						fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, 255, 255, 255);
+					}
 				}
-		}		
-		finish = (checksum > 20) ? true : false;
-	}	
+			};
+
+	function createTestBoards(boardIndex)
+	{
+		const margin = new int2(3, 2);
+		let maxIndex = Math.pow(SCREEN_COLOR_DIMENSION, 3);
+		const image = new int2(canvas.width, canvas.height);
+		const delta = new int2(image.x / SCREEN_BLOCKS_X, image.y / SCREEN_BLOCKS_Y);
+
+		ctx.fillStyle = 'black';
+		ctx.fillRect(0,0, image.x, image.y);
+
+		let lastBoard = 0;
+		for (let index = 0; index < maxIndex; index++)
+		{
+			let color = new byte3(0,0,0);
+			let position = new int2(0,0);
+			let currentBoard = indexToColorAndPos(index, color, position);
+
+			if (currentBoard < 0)
+				return;
+
+			if (boardIndex + 1 == currentBoard)
+			{
+				saveImage(delta, boardIndex, margin);
+				return;
+			}
+			else if (boardIndex > currentBoard)
+				continue;
+
+			if (lastBoard != currentBoard)
+			{
+				ctx.fillStyle = 'black';
+				ctx.fillRect(0,0, image.x, image.y);
+			}
+
+			lastBoard = currentBoard;
+
+			const start = new int2 ( position.x * delta.x, position.y * delta.y);
+			const end = new int2 ( ((position.x + 1) * delta.x) - 1, ((position.y + 1) * delta.y) - 1);
+
+			fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.x, color.y, color.z);
+		}
+		saveImage(delta, boardIndex, margin);
+	}
+
+	function fastBox(x1, y1, x2, y2, c1, c2 ,c3)
+	{
+		ctx.fillStyle = `rgb(${c1}, ${c2}, ${c3})`;
+		ctx.fillRect(x1, y1, (x2 - x1), (y2 - y1));
+	}
+
+	function drawImage()
+	{
+		clearInterval(myInterval);
+		myInterval= setInterval( function(){          
+			currentTestBoard = (currentTestBoard + 1) % (SCREEN_LAST_BOARD_INDEX + 1);
+			createTestBoards(currentTestBoard);
+		}, 3000);
+		currentTestBoard = 0;
+		createTestBoards(currentTestBoard);
+	}
 });

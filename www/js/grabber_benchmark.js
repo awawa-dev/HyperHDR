@@ -226,7 +226,7 @@ $(document).ready( function(){
 	{		
 		internalLatency = ((new Date()).getTime() - internalLatency)/indexer;
 						
-		ctx.fillStyle = "yellow";
+		ctx.fillStyle = "#FFFF00";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		await sleep(1000);
@@ -247,7 +247,7 @@ $(document).ready( function(){
 		
 		whiteTimer = (new Date()).getTime();
 		
-		ctx.fillStyle = "white";
+		ctx.fillStyle = "#FFFFFF";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		requestBenchmark(mode, ++whiteIndexer);
@@ -259,7 +259,7 @@ $(document).ready( function(){
 		
 		redTimer = (new Date()).getTime();
 		
-		ctx.fillStyle = "red";
+		ctx.fillStyle = "#FF0000";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		requestBenchmark(mode, ++redIndexer);
@@ -271,7 +271,7 @@ $(document).ready( function(){
 		
 		greenTimer = (new Date()).getTime();
 		
-		ctx.fillStyle = "green";
+		ctx.fillStyle = "#00FF00";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		requestBenchmark(mode, ++greenIndexer);
@@ -283,7 +283,7 @@ $(document).ready( function(){
 		
 		blueTimer = (new Date()).getTime();
 		
-		ctx.fillStyle = "blue";
+		ctx.fillStyle = "#0000FF";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		requestBenchmark(mode, ++blueIndexer);
@@ -295,7 +295,7 @@ $(document).ready( function(){
 		
 		blackTimer = (new Date()).getTime();
 		
-		ctx.fillStyle = "black";
+		ctx.fillStyle = "#000000";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		
 		requestBenchmark(mode, ++blackIndexer);
@@ -312,15 +312,19 @@ $(document).ready( function(){
 			totalDelay = ((new Date()).getTime() - totalDelay);
 			
 			let finalDelay = Math.max(( totalDelay / total ) - internalLatency, 0);
-			$("#logmessages").append("<code class='db_info'>"+$.i18n("dashboard_current_video_device")+": "+window.serverInfo.grabberstate.device+"</code><br/>");
-			$("#logmessages").append("<code class='db_info'>"+$.i18n("dashboard_current_video_mode")+": "+window.serverInfo.grabberstate.videoMode+"</code><br/>");
-			
-			var mode1 = window.serverInfo.grabberstate.videoMode.split(' ');
-			if (mode1.length == 2)
+
+			if (window.serverInfo != null && window.serverInfo.grabberstate != null && window.serverInfo.grabberstate.device != null && window.serverInfo.grabberstate.videoMode != null)
 			{
-				var mode2 = mode1[0].split('x');
-				if (mode2.length == 3 && Number(mode2[2]) > 0)
-					$("#logmessages").append("<code class='db_info'>"+$.i18n("benchmark_exp_delay")+": "+(1000/Number(mode2[2])).toFixed(2)+"ms</code><br/>");
+				$("#logmessages").append("<code class='db_info'>"+$.i18n("dashboard_current_video_device")+": "+window.serverInfo.grabberstate.device+"</code><br/>");
+				$("#logmessages").append("<code class='db_info'>"+$.i18n("dashboard_current_video_mode")+": "+window.serverInfo.grabberstate.videoMode+"</code><br/>");
+			
+				var mode1 = window.serverInfo.grabberstate.videoMode.split(' ');
+				if (mode1.length == 2)
+				{
+					var mode2 = mode1[0].split('x');
+					if (mode2.length == 3 && Number(mode2[2]) > 0)
+						$("#logmessages").append("<code class='db_info'>"+$.i18n("benchmark_exp_delay")+": "+(1000/Number(mode2[2])).toFixed(2)+"ms</code><br/>");
+				}
 			}
 			
 			$("#logmessages").append("<code class='db_info'>"+$.i18n("benchmark_av_delay")+": "+Number((finalDelay).toFixed(2))+"ms</code><br/>");

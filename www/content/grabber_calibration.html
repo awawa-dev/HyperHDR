@@ -1,31 +1,86 @@
 <div id="hyper-subpage" class="container-fluid">
 	<div class="col-12 col-xl-11 col-xxl-10 mb-4">
-		<h3 class="page-header text-start"><svg data-src="svg/lut_calibration.svg" width="28" height="28" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_menu_grabber_calibration_token"></span></h3>
-		<div class="callout callout-info text-start">
-			<h4 id="grabber_calibration_intro" style="font-size:16px"></h4>
-		</div>
+		<h3 class="page-header text-start"><svg data-src="svg/lut_calibration.svg" width="28" height="28" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_menu_grabber_calibration_token"></span></h3>			
 	</div>	
 </div>
-<div class="d-flex justify-content-center pt-2 mb-4">
-<canvas width="1280px" height="720px" id="canvas">
-</canvas>
-</div>
-<div style="text-align:center;" class="w-100 row mb-2">
-	<div class="col-12 form">
-		<span data-i18n="edt_conf_stream_control_saturation">Saturation</span> <input class="form-control form-control-inline" style="display: inline; width:80px;" type="number" id="saturation" min="0" max="5" value="1.0" step="0.01" />
-		<span data-i18n="edt_conf_color_luminanceGain_title">Luminance</span> <input class="form-control form-control-inline" style="display: inline; width:80px;" type="number" id="luminance" min="0" max="5" value="1.0" step="0.01" />
+
+
+
+	<div class="row w-100">
+		<div style="display: flex; justify-content: center; mt-6;" width="100%">
+			<div class="col-lg-6 mt-6" id="conf_imp">
+				<div id="calibration_select_intro" class="card card-default">
+					<div class="card-header"><svg data-src="svg/lut_calibration.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="option_calibration_intro"></span></div>
+					<div class="card-body">				
+						<div class="form-check mt-3">
+							<input class="form-check-input" type="radio" id="select_video_calibration" name="select_calibration_type" />
+							<label class="form-check-label" for="select_video_calibration" id="select_video_calibration_label">
+							</label>
+						</div>
+						<div class="form-check mt-4 mb-3">
+							<input class="form-check-input" type="radio" id="select_classic_calibration" name="select_calibration_type" />
+							<label class="form-check-label" for="select_classic_calibration" id="select_classic_calibration_label">
+							</label>
+						</div>
+					</div>
+					<div class="card-footer" style="text-align: right;">
+						<button class="btn btn-primary" id="btn_select_calibration" data-i18n="general_btn_next">Next</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
-</div>		
-<div style="text-align:center;" class="w-100 row mb-4">
-	<div class="col-12 form">
-		<span data-i18n="edt_conf_color_gammaRed_title">Gamma Red</span> <input class="form-control form-control-inline" style="display: inline; width:80px;" type="number" id="gammaR" min="0" max="5" value="1.0" step="0.01" />
-		<span data-i18n="edt_conf_color_gammaGreen_title">Gamma Green</span> <input class="form-control form-control-inline" style="display: inline; width:80px;" type="number" id="gammaG" min="0" max="5" value="1.0" step="0.01" />
-		<span data-i18n="edt_conf_color_gammaBlue_title">Gamma Blue</span> <input class="form-control form-control-inline" style="display: inline; width:80px;" type="number" id="gammaB" min="0" max="5" value="1.0" step="0.01" />
+	
+
+	<div class="row w-100">
+		<div style="display: flex; justify-content: center; mt-6;" width="100%">
+			<div class="col-lg-6 mt-6" id="video_calibration" style="display: none;">
+				<div id="calibration_select_intro" class="card card-default">
+					<div class="card-header"><svg data-src="svg/lut_calibration.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="option_calibration_intro"></span></div>
+					<div class="card-body">								
+							<span id="video_calibration_overview">
+							</span>
+					</div>
+					<div class="mb-2 text-center d-inline-block">						
+						<div class="form-check d-inline-block">
+							<input class="form-check-input ms-2 float-none" type="checkbox" id="chk_debug" />
+							<label class="form-check-label ms-2" for="chk_debug" data-i18n="chk_calibration_debug"></label>
+						</div>
+						<div class="form-check d-inline-block">
+							<input class="form-check-input ms-2 float-none" type="checkbox" id="chk_postprocessing" checked />
+							<label class="form-check-label ms-2" for="chk_postprocessing" data-i18n="chk_calibration_postprocessing"></label>
+						</div>
+					</div>	
+					<div class="card-footer" style="text-align: right;">
+						<button class="btn btn-primary" id="btn_start_video_calibration"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="general_btn_start">Start</span></button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
-</div>
-<div style="text-align:center;" class="w-100 h-100">
-	<button id="startCalibration" type="button" style="width: 320px;" class="btn btn-success"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="general_btn_start">Start</span></button>
-</div>
+
+<div id="classic_calibration" style="display: none;">	
+	<div class="callout callout-info text-start ms-3 me-3">
+		<h4 id="grabber_calibration_intro" style="font-size:16px"></h4>
+	</div>
+	<div class="d-flex justify-content-center pt-2 mb-4">
+	<canvas width="1280px" height="720px" id="canvas">
+	</canvas>
+	</div>
+	<div class="w-100 mb-2 text-center d-inline-block">
+		<div class="form-check d-inline-block">
+			<input class="form-check-input ms-2 float-none" type="checkbox" id="chk_debug2" />
+			<label class="form-check-label ms-2" for="chk_debug2" data-i18n="chk_calibration_debug"></label>
+		</div>
+		<div class="form-check d-inline-block">
+			<input class="form-check-input ms-2 float-none" type="checkbox" id="chk_postprocessing2" checked />
+			<label class="form-check-label ms-2" for="chk_postprocessing2" data-i18n="chk_calibration_postprocessing"></label>
+		</div>
+	</div>	
+	<div style="text-align:center;" class="w-100 h-100">
+		<button id="startCalibration" type="button" style="width: 320px;" class="btn btn-success"><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="general_btn_start">Start</span></button>
+	</div>
+<div>
 <script>
 $.getScript("/js/grabber_calibration.js");
 </script>

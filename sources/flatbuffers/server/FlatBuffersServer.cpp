@@ -33,13 +33,16 @@ FlatBuffersServer::FlatBuffersServer(std::shared_ptr<NetOrigin> netOrigin, const
 	, _userLutFile("")
 	, _currentLutPixelFormat(PixelFormat::RGB24)
 	, _flatbufferToneMappingMode(0)
-{	
+	, _quarterOfFrameMode(false)
+{
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler, Qt::BlockingQueuedConnection);
 }
 
 FlatBuffersServer::~FlatBuffersServer()
 {
 	Debug(_log, "Prepare to shutdown");
 
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler);
 	stopServer();
 
 	Debug(_log, "FlatBuffersServer instance is closed");
@@ -67,6 +70,8 @@ void FlatBuffersServer::signalRequestSourceHandler(hyperhdr::Components componen
 		if (instanceIndex < 0)
 		{
 			_hdrToneMappingEnabled = (listen) ? _flatbufferToneMappingMode : 0;
+
+			Info(_log, "Tone mapping: %i", _hdrToneMappingEnabled);
 
 			if (_hdrToneMappingEnabled || _currentLutPixelFormat == PixelFormat::YUYV)
 				loadLutFile();
@@ -111,7 +116,7 @@ void FlatBuffersServer::handleSettingsUpdate(settings::type type, const QJsonDoc
 		}
 
 		// HDR tone mapping
-		_flatbufferToneMappingMode = obj["hdrToneMapping"].toBool(false) ? obj["hdrToneMappingMode"].toInt(1) : 0;
+		_flatbufferToneMappingMode = obj["hdrToneMapping"].toBool(false) ? 1 : 0;
 
 		signalRequestSourceHandler(hyperhdr::Components::COMP_HDR, -1, _flatbufferToneMappingMode);
 
@@ -119,6 +124,11 @@ void FlatBuffersServer::handleSettingsUpdate(settings::type type, const QJsonDoc
 		_timeout = obj["timeout"].toInt(5000);
 		// enable check
 		obj["enable"].toBool(true) ? startServer() : stopServer();
+
+		_quarterOfFrameMode = obj["quarterOfFrameMode"].toBool(false);
+
+		Info(_log, "Tone mapping: %i", _flatbufferToneMappingMode);
+		Info(_log, "NV12 quarter of frame mode: %i", _quarterOfFrameMode);		
 	}
 }
 
@@ -292,15 +302,20 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 	if (flatImage->format == FlatBuffersParser::FLATBUFFERS_IMAGE_FORMAT::RGB)
 	{
-		if (_currentLutPixelFormat != PixelFormat::RGB24 && _hdrToneMappingEnabled)
+		if (_currentLutPixelFormat != PixelFormat::RGB24)
 		{
-			_currentLutPixelFormat = PixelFormat::RGB24;
-			loadLutFile();
+			_currentLutPixelFormat = PixelFormat::RGB24;						
+			if (_hdrToneMappingEnabled)
+			{
+				loadLutFile();
+			}
+
+			Debug(_log, "Received first RGB frame. Image size: %i (%i x %i)", flatImage->size, flatImage->width, flatImage->height);
 		}
 
-		if (flatImage->size != flatImage->width * flatImage->height * 3)
+		if (flatImage->size != flatImage->width * flatImage->height * 3 || flatImage->size == 0)
 		{
-			Error(_log, "The RGB image data size does not match the width and height");
+			Error(_log, "The RGB image data size does not match the width and height or it's empty. Image size: %i (%i x %i)", flatImage->size, flatImage->width, flatImage->height);
 		}		
 		else
 		{
@@ -330,9 +345,9 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 		{
 			Error(_log, "The LUT file is not loaded");
 		}
-		else if (flatImage->size != ((flatImage->width * flatImage->height * 3) / 2))
+		else if (flatImage->size != ((flatImage->width * flatImage->height * 3) / 2) || flatImage->size == 0)
 		{
-			Error(_log, "The NV12 image data size (%i) does not match the width and height (%i)", flatImage->size, ((flatImage->width * flatImage->height * 3) / 2));
+			Error(_log, "The NV12 image data size (%i) does not match the width and height (%i) or it's empty", flatImage->size, ((flatImage->width * flatImage->height * 3) / 2));
 		}
 		else if ((flatImage->firstPlane.stride != flatImage->secondPlane.stride) ||
 			(flatImage->firstPlane.stride != 0 && flatImage->firstPlane.stride != flatImage->width))
@@ -343,10 +358,18 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 		else
 		{
 			Image<ColorRgb> image(flatImage->width, flatImage->height);
-			
-			FrameDecoder::processImage(
-				0, 0, 0, 0,
-				flatImage->firstPlane.data, flatImage->secondPlane.data, flatImage->width, flatImage->height, flatImage->width, PixelFormat::NV12, _lut.data(), image);
+
+			if (_quarterOfFrameMode)
+			{
+				FrameDecoder::processQImage(					
+					flatImage->firstPlane.data, flatImage->secondPlane.data, flatImage->width, flatImage->height, flatImage->width, PixelFormat::NV12, _lut.data(), image);
+			}
+			else
+			{
+				FrameDecoder::processImage(
+					0, 0, 0, 0,
+					flatImage->firstPlane.data, flatImage->secondPlane.data, flatImage->width, flatImage->height, flatImage->width, PixelFormat::NV12, _lut.data(), image);
+			}
 			emit GlobalSignals::getInstance()->SignalSetGlobalImage(priority, image, timeout_ms, origin, clientDescription);
 		}
 	}
@@ -356,3 +379,13 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 	}
 }
 
+void FlatBuffersServer::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
+{
+	if (lut != nullptr && _lut.size() >= lut->size())
+	{
+		memcpy(_lut.data(), lut->data(), lut->size());
+		Info(_log, "The byte array loaded into LUT");
+	}
+	else
+		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+}

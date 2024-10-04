@@ -528,18 +528,8 @@ void HyperAPI::handleBenchmarkCommand(const QJsonObject& message, const QString&
 	GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
-
-	if (grabberWrapper != nullptr)
-	{
-		if (subc == "ping")
-		{
-			emit grabberWrapper->SignalBenchmarkUpdate(status, "pong");
-		}
-		else
-		{
-			BLOCK_CALL_2(grabberWrapper, benchmarkCapture, int, status, QString, subc);
-		}
-	}
+	
+	emit _instanceManager->SignalBenchmarkCapture(status, subc);	
 
 	sendSuccessReply(command, tan);
 }
@@ -1006,29 +996,12 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 		return;
 	}
 	
-	int checksum = message["checksum"].toInt(-1);
-	QJsonObject startColor = message["startColor"].toObject();
-	QJsonObject endColor = message["endColor"].toObject();
-	bool limitedRange = message["limitedRange"].toBool(false);
-	double saturation = message["saturation"].toDouble(1.0);
-	double luminance = message["luminance"].toDouble(1.0);
-	double gammaR = message["gammaR"].toDouble(1.0);
-	double gammaG = message["gammaG"].toDouble(1.0);
-	double gammaB = message["gammaB"].toDouble(1.0);
-	int coef = message["coef"].toInt(0);
-	ColorRgb _startColor, _endColor;
-
-	_startColor.red = startColor["r"].toInt(128);
-	_startColor.green = startColor["g"].toInt(128);
-	_startColor.blue = startColor["b"].toInt(128);
-	_endColor.red = endColor["r"].toInt(255);
-	_endColor.green = endColor["g"].toInt(255);
-	_endColor.blue = endColor["b"].toInt(255);
-
+	bool debug = message["debug"].toBool(false);
+	bool postprocessing = message["postprocessing"].toBool(true);
 	sendSuccessReply(command, tan);
 
 	if (subcommand == "capture")
-		_lutCalibrator->incomingCommand(_instanceManager->getRootPath(), (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr, getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
+		_lutCalibrator->startHandler(_instanceManager->getRootPath(), getActiveComponent(), debug, postprocessing);
 	else
 		_lutCalibrator->stopHandler();	
 }
