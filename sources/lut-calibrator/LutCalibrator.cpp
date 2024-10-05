@@ -785,7 +785,7 @@ void  LutCalibrator::fineTune()
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))), bestResult->minError / 1000);
 
-				const int halfKDelta = 9;
+				const int halfKDelta = 12;
 				for (int krIndex = 0; krIndex <= 2 * halfKDelta; krIndex += (_postprocessing) ? 1 : 4 * halfKDelta)
 					for (int kbIndex = 0; kbIndex <= 2 * halfKDelta; kbIndex += (_postprocessing) ? 1 : 4 * halfKDelta)
 					{
@@ -797,8 +797,8 @@ void  LutCalibrator::fineTune()
 
 						for (int altConvert = 0; altConvert <= 1; altConvert++)
 							for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
-								for (double aspectX = 1.015; aspectX >= 0.9999; aspectX -= (_postprocessing) ? 0.0025 : aspectX)
-									for (double aspectYZ = 1.0; aspectYZ <= 1.1301; aspectYZ += (_postprocessing) ? 0.005 : aspectYZ)
+								for (double aspectX = 1.0; aspectX <= 1.0151; aspectX += (_postprocessing) ? 0.0025 : aspectX)
+									for (double aspectYZ = 1.0; aspectYZ <= 1.1501; aspectYZ += (_postprocessing) ? 0.005 : aspectYZ)
 
 									{
 										double3 aspect(aspectX, aspectYZ, aspectYZ);
