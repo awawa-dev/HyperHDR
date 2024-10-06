@@ -69,6 +69,7 @@ class LutCalibrator : public QObject
 
 public:
 	LutCalibrator();
+	static void sendReport(Logger* _log, QString report);
 
 signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
@@ -85,7 +86,6 @@ private:
 	void fineTune(bool precise);
 	void printReport();
 	QString generateReport(bool full);
-	void sendReport(QString report);
 	bool set1to1LUT();
 	void notifyCalibrationFinished();
 	void notifyCalibrationMessage(QString message, bool started = false);

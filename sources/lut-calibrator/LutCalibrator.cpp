@@ -339,7 +339,7 @@ bool LutCalibrator::set1to1LUT()
 }
 
 
-void LutCalibrator::sendReport(QString report)
+void LutCalibrator::sendReport(Logger* _log, QString report)
 {
 	int total = 0;
 	QStringList list;
@@ -565,73 +565,8 @@ void doToneMapping(std::list<MappingPrime>& m, double3& p)
 
 void LutCalibrator::printReport()
 {
-	QStringList info, intro;
-	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
-	std::list<MappingPrime> m = {
-		{ /* GREEN       */ {0       ,SCALE   ,0       }, {}, {} },
-		{ /* GREEN_BLUE  */ {0       ,SCALE   ,SCALE   }, {}, {} },
-		{ /* BLUE        */ {0       ,0       ,SCALE   }, {}, {} },
-		{ /* RED_BLUE    */ {SCALE   ,0       ,SCALE   }, {}, {} },
-		{ /* RED         */ {SCALE   ,0       ,0       }, {}, {} },
-		{ /* RED_GREEN   */ {SCALE   ,SCALE   ,0       }, {}, {} },
-		{ /* RED_GREEN2  */ {SCALE   ,SCALE/2 ,0       }, {}, {} },
-		{ /* GREEN_BLUE2 */ {0       ,SCALE   ,SCALE/2 }, {}, {} },
-		{ /* RED_BLUE2   */ {SCALE   ,0       ,SCALE/2 }, {}, {} },
-		{ /* RED2_GREEN  */ {SCALE/2 ,SCALE   ,0       }, {}, {} },
-		{ /* GREEN2_BLUE */ {0       ,SCALE/2 ,SCALE   }, {}, {} },
-		{ /* RED2_BLUE   */ {SCALE/2 ,0       ,SCALE   }, {}, {} },
-	};
-	/*
-	for (auto& c : m)
-	{
-		auto sample = _capturedColors->all[c.prime.x][c.prime.y][c.prime.z];
-		auto a = static_cast<double3>(sample.getSourceRGB()) / 255.0;
-		c.org = xyz_to_lch(from_sRGB_to_XYZ(a) * 100.0);		
+	QStringList info;
 
-
-		auto b = static_cast<double3>(sample.getFinalRGB().front()) / 255.0;
-		c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
-		c.delta = c.org - c.real;
-	}
-	m.sort([](const MappingPrime& a, const MappingPrime& b) { return a.real.z > b.real.z; });
-
-	auto loopEnd = m.front();
-	auto loopFront = m.back();
-
-	loopEnd.org.z -= 360;
-	loopEnd.real.z -= 360;
-	m.push_back(loopEnd);
-
-	loopFront.org.z += 360;
-	loopFront.real.z += 360;
-	m.push_front(loopFront);
-
-	info.append("Primaries in LCH colorspace");
-	info.append("name,      RGB primary in LCH,     captured primary in LCH       |  primary RGB  |   average LCH delta       |  LCH to RGB way back ");
-	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	for (const auto& c : m)
-	{
-		auto sample = _capturedColors->all[c.prime.x][c.prime.y][c.prime.z];
-		auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
-		auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
-		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7").arg(vecToString(sample.getSourceRGB()), 12).
-											arg(vecToString(c.org)).
-											arg(vecToString(c.real)).
-											arg(vecToString(sample.getSourceRGB()), 12).
-											arg(vecToString(c.delta)).
-											arg(vecToString(to_byte3(aa))).
-											arg(vecToString(to_byte3(bb))));
-											
-	}
-
-	
-	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	info.append("");
-	info.append("");
-	info.append("                                 LCH mapping correction");
-	info.append("         Source sRGB color => captured => Rec.2020 processing => LCH final correction");
-	info.append("-------------------------------------------------------------------------------------------------");
-	*/
 	info.append("-------------------------------------------------------------------------------------------------");
 	info.append("                                        Detailed results");
 	info.append("-------------------------------------------------------------------------------------------------");
@@ -655,11 +590,11 @@ void LutCalibrator::printReport()
 				}
 
 	info.append("-------------------------------------------------------------------------------------------------");
-	sendReport(info.join("\r\n"));
+	sendReport(_log, info.join("\r\n"));
 }
 
 
-double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal)
+static double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal)
 {
 	
 	double3 srgb;
@@ -953,6 +888,73 @@ void LutCalibrator::calibration()
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
 }
 
+
+static std::list<MappingPrime> prepareLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all)
+{
+	QStringList info, intro;
+	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
+	std::list<MappingPrime> m = {
+		{ /* GREEN       */ {0       ,SCALE   ,0       }, {}, {} },
+		{ /* GREEN_BLUE  */ {0       ,SCALE   ,SCALE   }, {}, {} },
+		{ /* BLUE        */ {0       ,0       ,SCALE   }, {}, {} },
+		{ /* RED_BLUE    */ {SCALE   ,0       ,SCALE   }, {}, {} },
+		{ /* RED         */ {SCALE   ,0       ,0       }, {}, {} },
+		{ /* RED_GREEN   */ {SCALE   ,SCALE   ,0       }, {}, {} },
+		{ /* RED_GREEN2  */ {SCALE   ,SCALE / 2 ,0       }, {}, {} },
+		{ /* GREEN_BLUE2 */ {0       ,SCALE   ,SCALE / 2 }, {}, {} },
+		{ /* RED_BLUE2   */ {SCALE   ,0       ,SCALE / 2 }, {}, {} },
+		{ /* RED2_GREEN  */ {SCALE / 2 ,SCALE   ,0       }, {}, {} },
+		{ /* GREEN2_BLUE */ {0       ,SCALE / 2 ,SCALE   }, {}, {} },
+		{ /* RED2_BLUE   */ {SCALE / 2 ,0       ,SCALE   }, {}, {} },
+	};
+	
+	for (auto& c : m)
+	{
+		auto sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
+		auto a = static_cast<double3>(sample.getSourceRGB()) / 255.0;
+		c.org = xyz_to_lch(from_sRGB_to_XYZ(a) * 100.0);
+
+
+		auto b = static_cast<double3>(sample.getFinalRGB().front()) / 255.0;
+		c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
+		c.delta = c.org - c.real;
+	}
+	m.sort([](const MappingPrime& a, const MappingPrime& b) { return a.real.z > b.real.z; });
+
+	auto loopEnd = m.front();
+	auto loopFront = m.back();
+
+	loopEnd.org.z -= 360;
+	loopEnd.real.z -= 360;
+	m.push_back(loopEnd);
+
+	loopFront.org.z += 360;
+	loopFront.real.z += 360;
+	m.push_front(loopFront);
+
+	info.append("Primaries in LCH colorspace");
+	info.append("name,      RGB primary in LCH,     captured primary in LCH       |  primary RGB  |   average LCH delta       |  LCH to RGB way back ");
+	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
+	for (const auto& c : m)
+	{
+		auto sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
+		auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
+		auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
+		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7").arg(vecToString(sample.getSourceRGB()), 12).
+											arg(vecToString(c.org)).
+											arg(vecToString(c.real)).
+											arg(vecToString(sample.getSourceRGB()), 12).
+											arg(vecToString(c.delta)).
+											arg(vecToString(to_byte3(aa))).
+											arg(vecToString(to_byte3(bb))));
+
+	}
+
+	LutCalibrator::sendReport(_log, info.join("\r\n"));
+
+	return m;
+}
+
 QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
 	// write LUT table
@@ -1083,12 +1085,12 @@ void LutCalibrator::calibrate()
 	_capturedColors->finilizeBoard();
 
 
-	sendReport("Captured colors:\r\n" +
+	sendReport(_log, "Captured colors:\r\n" +
 				generateReport(false));
 
 	calibration();
 
-	sendReport("Calibrated:\r\n" +
+	sendReport(_log, "Calibrated:\r\n" +
 		generateReport(true));
 
 	notifyCalibrationFinished();
