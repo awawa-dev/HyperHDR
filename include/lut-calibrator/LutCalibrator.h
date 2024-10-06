@@ -82,7 +82,7 @@ public slots:
 	void calibrate();
 
 private:
-	void fineTune();
+	void fineTune(bool precise);
 	void printReport();
 	QString generateReport(bool full);
 	void sendReport(QString report);

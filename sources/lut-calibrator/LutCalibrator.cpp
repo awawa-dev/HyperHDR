@@ -585,11 +585,11 @@ void LutCalibrator::printReport()
 	for (auto& c : m)
 	{
 		auto sample = _capturedColors->all[c.prime.x][c.prime.y][c.prime.z];
-		auto a = to_double3(sample.getSourceRGB()) / 255.0;
+		auto a = static_cast<double3>(sample.getSourceRGB()) / 255.0;
 		c.org = xyz_to_lch(from_sRGB_to_XYZ(a) * 100.0);		
 
 
-		auto b = to_double3(sample.getFinalRGB()) / 255.0;
+		auto b = static_cast<double3>(sample.getFinalRGB().front()) / 255.0;
 		c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
 		c.delta = c.org - c.real;
 	}
@@ -733,7 +733,7 @@ double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<
 	return srgb;
 }
 
-void  LutCalibrator::fineTune()
+void  LutCalibrator::fineTune(bool precise)
 {
 	const auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
 	const auto white = _capturedColors->all[MAX_IND][MAX_IND][MAX_IND].Y();
@@ -755,12 +755,21 @@ void  LutCalibrator::fineTune()
 
 	nits[HDR_GAMMA::PQ] = 10000.0 * PQ_ST2084(1.0, maxLevel);
 
-	for (int gamma = HDR_GAMMA::PQ; gamma <= HDR_GAMMA::BT2020inSRGB; gamma++)
+	for (int gamma = (precise) ? bestResult->gamma : HDR_GAMMA::PQ; gamma <= HDR_GAMMA::BT2020inSRGB; gamma++)
 	{
 		std::vector<double> gammasHLG;
 			
 		if (gamma == HDR_GAMMA::HLG)
-			gammasHLG = { 0 , 1.2, 1.1};
+		{
+			if (precise)
+			{
+				gammasHLG = { bestResult->gammaHLG };
+			}
+			else
+			{
+				gammasHLG = { 0 , 1.2, 1.1 };
+			}
+		}
 		else
 			gammasHLG = { 0 };
 
@@ -773,7 +782,7 @@ void  LutCalibrator::fineTune()
 			{
 				nits[HDR_GAMMA::HLG] = 1 / OOTF_HLG(inverse_OETF_HLG(maxLevel), gammaHLG).x;
 			}
-			for (int coef = YuvConverter::YUV_COEFS::BT601; coef <= YuvConverter::YUV_COEFS::BT2020; coef++)
+			for (int coef = (precise) ? bestResult->coef : YuvConverter::YUV_COEFS::BT601; coef <= YuvConverter::YUV_COEFS::BT2020; coef++)
 			{
 				double3x3 convert_bt2020_to_XYZ;
 				double3x3 convert_XYZ_to_sRgb;
@@ -785,21 +794,20 @@ void  LutCalibrator::fineTune()
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))), bestResult->minError / 1000);
 
-				const int halfKDelta = 12;
+				const int halfKDelta = (precise) ? 12 : 6;
 				for (int krIndex = 0; krIndex <= 2 * halfKDelta; krIndex += (_postprocessing) ? 1 : 4 * halfKDelta)
 					for (int kbIndex = 0; kbIndex <= 2 * halfKDelta; kbIndex += (_postprocessing) ? 1 : 4 * halfKDelta)
 					{
 						double2 kDelta = double2(((krIndex <= halfKDelta) ? -krIndex : krIndex - halfKDelta),
-							((kbIndex <= halfKDelta) ? -kbIndex : kbIndex - halfKDelta)) * 0.002;
+							((kbIndex <= halfKDelta) ? -kbIndex : kbIndex - halfKDelta)) * ((precise) ? 0.002 : 0.004);
 
 						auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + kDelta;
 						auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(bestResult->signal.range, coefValues.x, coefValues.y);
 
 						for (int altConvert = 0; altConvert <= 1; altConvert++)
 							for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
-								for (double aspectX = 1.0; aspectX <= 1.0151; aspectX += (_postprocessing) ? 0.0025 : aspectX)
-									for (double aspectYZ = 1.0; aspectYZ <= 1.1501; aspectYZ += (_postprocessing) ? 0.005 : aspectYZ)
-
+								for (double aspectX = 1.0; aspectX <= 1.0151; aspectX += (_postprocessing) ? ((precise) ? 0.0025 : 0.0025 * 2.0) : aspectX)
+									for (double aspectYZ = 1.0; aspectYZ <= 1.1501; aspectYZ += (_postprocessing) ? ((precise) ? 0.005 : 0.005 * 2.0) : aspectYZ)
 									{
 										double3 aspect(aspectX, aspectYZ, aspectYZ);
 
@@ -852,11 +860,21 @@ void  LutCalibrator::fineTune()
 											bestResult->gamma = HDR_GAMMA(gamma);
 											bestResult->gammaHLG = gammaHLG;
 											bestResult->coefMatrix = coefMatrix;
+											printf("New score: %i (gamma: %s, coef: %s, kr/kb: %s, yuvCorrection:%s)\n", static_cast<int>(currentError),
+																QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))),
+																QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
+																QSTRING_CSTR(vecToString(kDelta)),
+																QSTRING_CSTR(vecToString(aspect)));
 										}
 									}
 					}
-			}
+				if (precise)
+					break;
+			}			
 		}
+
+		if (precise)
+			break;
 	}
 }
 
@@ -865,7 +883,7 @@ void LutCalibrator::calibration()
 {
 	// calibration
 	auto totalTime = InternalClock::now();
-	fineTune();
+	fineTune(false);
 	totalTime = InternalClock::now() - totalTime;
 
 	if (bestResult->minError >= MAX_CALIBRATION_ERROR)
@@ -873,10 +891,18 @@ void LutCalibrator::calibration()
 		error("The calibration failed. The error is too high.");
 		return;
 	}
+
+	auto totalTime2 = InternalClock::now();
+
+	bestResult->minError = MAX_CALIBRATION_ERROR;
+	fineTune(true);
+
+	totalTime2 = InternalClock::now() - totalTime2;
 	
 	// write result
 	Debug(_log, "Score: %f", bestResult->minError / 1000.0);
-	Debug(_log, "Time: %f", totalTime / 1000.0);
+	Debug(_log, "The first phase time: %f", totalTime / 1000.0);
+	Debug(_log, "The second phase time: %f", totalTime2 / 1000.0);
 	Debug(_log, "The post-processing is: %s", (_postprocessing) ? "enabled" : "disabled");
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
 	Debug(_log, "Selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
