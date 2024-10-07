@@ -70,6 +70,7 @@ struct BestResult{
 	YuvConverter::YUV_COEFS coef = YuvConverter::YUV_COEFS::BT601;
 	double4x4 coefMatrix;
 	double2 coefDelta;
+	double3 colorAspect;
 	double3 aspect;
 	int bt2020Range = 0;
 	int altConvert = 0;
@@ -594,10 +595,10 @@ void LutCalibrator::printReport()
 }
 
 
-static double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal)
-{
-	
+static double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal, double3* colorAspect)
+{	
 	double3 srgb;
+	bool white = true;
 
 	if (gamma == HDR_GAMMA::sRGB || gamma == HDR_GAMMA::BT2020inSRGB)
 	{
@@ -618,6 +619,7 @@ static double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linal
 		const double mid = 128.0 / 256.0;
 		yuv.y = (yuv.y - mid) * aspect.y + mid;
 		yuv.z = (yuv.z - mid) * aspect.z + mid;
+		white = false;
 	}
 
 	auto a = _yuvConverter->multiplyColorMatrix(coefMatrix, yuv);
@@ -663,6 +665,11 @@ static double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linal
 	{
 		srgb = bt2020_nonlinear_to_linear(srgb);
 		srgb = srgb_linear_to_nonlinear(srgb);
+	}
+
+	if (colorAspect != nullptr && !white)
+	{
+		srgb *= (*colorAspect);
 	}
 
 	return srgb;
@@ -739,12 +746,26 @@ void  LutCalibrator::fineTune(bool precise)
 						auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + kDelta;
 						auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(bestResult->signal.range, coefValues.x, coefValues.y);
 
+						for (int coloredAspect = 0; coloredAspect <= 1; coloredAspect++)
 						for (int altConvert = 0; altConvert <= 1; altConvert++)
 							for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
 								for (double aspectX = 1.0; aspectX <= 1.0151; aspectX += (_postprocessing) ? ((precise) ? 0.0025 : 0.0025 * 2.0) : aspectX)
 									for (double aspectYZ = 1.0; aspectYZ <= 1.1501; aspectYZ += (_postprocessing) ? ((precise) ? 0.005 : 0.005 * 2.0) : aspectYZ)
 									{
 										double3 aspect(aspectX, aspectYZ, aspectYZ);
+
+										double3 colorAspect{ 0.0, 0.0, 0.0 };
+
+										if (coloredAspect)
+										{
+											const auto& sampleRed = _capturedColors->all[MAX_IND][0][0];
+											auto red = hdr_to_srgb(_yuvConverter.get(), sampleRed.getInputYuvColors().front().first, byte2{ sampleRed.U(), sampleRed.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal, nullptr);
+											const auto& sampleGreen = _capturedColors->all[0][MAX_IND][0];
+											auto green = hdr_to_srgb(_yuvConverter.get(), sampleGreen.getInputYuvColors().front().first, byte2{ sampleGreen.U(), sampleGreen.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal, nullptr);
+											const auto& sampleBlue = _capturedColors->all[0][0][MAX_IND];
+											auto blue = hdr_to_srgb(_yuvConverter.get(), sampleBlue.getInputYuvColors().front().first, byte2{ sampleBlue.U(), sampleBlue.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal, nullptr);
+											colorAspect = double3{ 1.0 / red.x, 1.0 / green.y, 1.0 / blue.z };
+										}
 
 										long long int currentError = 0;
 										for (int rr = MAX_IND; rr >= 0 && currentError < bestResult->minError; rr--)
@@ -764,7 +785,7 @@ void  LutCalibrator::fineTune(bool precise)
 
 														for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
 														{
-															auto srgb = hdr_to_srgb(_yuvConverter.get(), (*iter).first, byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal);
+															auto srgb = hdr_to_srgb(_yuvConverter.get(), (*iter).first, byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, nits[gamma], altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult->signal, (colorAspect.x > 0 ) ? &colorAspect : nullptr);
 															auto SRGB = to_int3(srgb * 255.0);
 
 															auto sampleError = sample.getSourceError(SRGB);															
@@ -790,6 +811,7 @@ void  LutCalibrator::fineTune(bool precise)
 											bestResult->bt2020Range = tryBt2020Range;											
 											bestResult->altConvert = altConvert;
 											bestResult->altPrimariesToSrgb = bt2020_to_sRgb;
+											bestResult->colorAspect = colorAspect;
 											bestResult->aspect = aspect;
 											bestResult->nits = nits[gamma];
 											bestResult->gamma = HDR_GAMMA(gamma);
@@ -829,7 +851,6 @@ void LutCalibrator::calibration()
 
 	auto totalTime2 = InternalClock::now();
 
-	bestResult->minError = MAX_CALIBRATION_ERROR;
 	fineTune(true);
 
 	totalTime2 = InternalClock::now() - totalTime2;
@@ -853,6 +874,7 @@ void LutCalibrator::calibration()
 	Debug(_log, "Selected bt2020 gamma range: %i", bestResult->bt2020Range);
 	Debug(_log, "Selected alternative conversion of primaries: %i", bestResult->altConvert);
 	Debug(_log, "Selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
+	Debug(_log, "Selected color aspect: %f %f %f", bestResult->colorAspect.x, bestResult->colorAspect.y, bestResult->colorAspect.z);
 
 	if (_debug)
 	{
@@ -997,7 +1019,7 @@ QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bes
 								yuv.y = 128.0 / 255.0;
 								yuv.z = 128.0 / 255.0;
 							}
-							yuv = hdr_to_srgb(&yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal);
+							yuv = hdr_to_srgb(&yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal, ((bestResult->colorAspect.x > 0) ? &bestResult->colorAspect : nullptr));
 						}
 						else
 						{
