@@ -751,6 +751,8 @@ void  LutCalibrator::fineTune(bool precise)
 
 	nits[HDR_GAMMA::PQ] = 10000.0 * PQ_ST2084(1.0, maxLevel);
 
+	bool isKMax = (precise) ? std::abs(linalg::maxelem(bestResult->coefDelta)) > 12 * 0.002 : false;
+
 	for (int gamma = (precise) ? bestResult->gamma : HDR_GAMMA::PQ; gamma <= HDR_GAMMA::BT2020inSRGB; gamma++)
 	{
 		std::vector<double> gammasHLG;
@@ -786,14 +788,14 @@ void  LutCalibrator::fineTune(bool precise)
 				capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, nits[gamma], coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 				auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
 
-				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s. Score: %lli\n",
+				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %lli\n",
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
-					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))), bestResult->minError / 1000);
+					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))),
+					QSTRING_CSTR(vecToString(bestResult->coefDelta)),bestResult->minError / 1000);
 
 				const int halfKDelta = (precise) ? 12 : 8;
-				bool isKMax = (precise) ? std::abs(linalg::maxelem(bestResult->coefDelta)) > 12 * 0.002 : false;
 				for (int krIndex = 0; krIndex <= 2 * halfKDelta; krIndex += (_postprocessing) ? 1 : MAX_HINT)
-					for (int kbIndex = (precise) ? ((krIndex == 0 && isKMax) ? -1 : 0): 0; kbIndex <= 2 * halfKDelta; kbIndex += (_postprocessing) ? 1 : MAX_HINT)
+					for (int kbIndex = ((krIndex == 0 && isKMax) ? -1 : 0); kbIndex <= 2 * halfKDelta; kbIndex += (_postprocessing) ? 1 : MAX_HINT)
 					{
 						double2 kDelta = ((kbIndex >= 0) ?
 											double2( ((krIndex <= halfKDelta) ? -krIndex : krIndex - halfKDelta),
@@ -803,11 +805,11 @@ void  LutCalibrator::fineTune(bool precise)
 						auto coefValues = _yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + kDelta;
 						auto coefMatrix = _yuvConverter->create_yuv_to_rgb_matrix(bestResult->signal.range, coefValues.x, coefValues.y);
 
-						for (int coloredAspectMode = (precise) ? bestResult->coloredAspectMode : 0; coloredAspectMode <= 3; coloredAspectMode += (precise) ? 3 : 1)
-						for (int altConvert = 0; altConvert <= 1; altConvert++)
-							for (int tryBt2020Range = 0; tryBt2020Range <= 1; tryBt2020Range++)
+						for (int coloredAspectMode = (precise) ? bestResult->coloredAspectMode : 0; coloredAspectMode <= 3; coloredAspectMode += (precise) ? MAX_HINT : 1)
+						for (int altConvert = (precise) ? bestResult->altConvert : 0; altConvert <= 1; altConvert += (precise) ? MAX_HINT : 1)
+							for (int tryBt2020Range = (precise) ? bestResult->bt2020Range : 0; tryBt2020Range <= 1; tryBt2020Range += (precise) ? MAX_HINT : 1)
 								for (double aspectX = 1.0; aspectX <= 1.0151; aspectX += (_postprocessing) ? ((precise) ? 0.0025 : 0.0025 * 2.0) : MAX_HDOUBLE)
-									for (double aspectYZ = 1.0; aspectYZ <= 1.1501; aspectYZ += (_postprocessing) ? ((precise) ? MAX_HDOUBLE : 0.005 * 2.0) : MAX_HDOUBLE)
+									for (double aspectYZ = 1.0; aspectYZ <= 1.2101; aspectYZ += (_postprocessing) ? ((precise) ? MAX_HDOUBLE : 0.005 * 2.0) : MAX_HDOUBLE)
 									for (double aspectY = bestResult->aspect.y - 0.02; aspectY <= bestResult->aspect.y + 0.021; aspectY += (_postprocessing && precise) ? 0.005 : MAX_HDOUBLE)
 									for (double aspectZ = bestResult->aspect.z - 0.02; aspectZ <= bestResult->aspect.z + 0.021; aspectZ += (_postprocessing && precise) ? 0.005 : MAX_HDOUBLE)
 									{
