@@ -160,6 +160,18 @@ QJsonArray LedCalibration::getAdjustmentState() const
 void LedCalibration::updateConfig(const QJsonObject& adjustment)
 {
 	if (_calibrationConfig.size() > 0)
+	{
+		const QString adjustmentId = adjustment["id"].toString(_calibrationConfig.front()->getId());
+
+		for (auto colorAdjustment = _calibrationConfig.cbegin(); colorAdjustment != _calibrationConfig.cend(); ++colorAdjustment)
+			if (adjustmentId == (*colorAdjustment)->getId())
+			{
+				(*colorAdjustment)->updateConfig(adjustment);
+				return;
+			}
+
+
 		_calibrationConfig.front()->updateConfig(adjustment);
+	}
 }
 
