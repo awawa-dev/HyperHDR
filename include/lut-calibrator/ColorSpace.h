@@ -77,6 +77,8 @@ namespace ColorSpaceMath
 				0.0193339,	0.1191920,	0.9503041
 		});
 
+	std::vector<double2> getPrimaries(PRIMARIES primary);
+
 	mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary);
 
 	double3 bt2020_nonlinear_to_linear(double3 input);
@@ -150,6 +152,20 @@ namespace ColorSpaceMath
 
 	double3 lch_to_xyz(double3 lch);
 
+	double3 rgb2hsv(double3 rgb);
+
+	double3 hsv2rgb(double3 hsv);
+
+	float3 rgb2hsv(float3 rgb);
+
+	float3 hsv2rgb(float3 hsv);
+
+	double2 primaryRotateAndScale(const double2 primary,
+		const double scaling,
+		const double rotation,
+		const std::vector<double2>& primaries,
+		bool truncate = false);
+
 	byte3 to_byte3(const double3& v);
 
 	int3 to_int3(const byte3& v);
@@ -159,6 +175,7 @@ namespace ColorSpaceMath
 	double3 to_double3(const byte3& v);
 
 	void trim01(double3& input);
+
 
 	QString vecToString(const double2& v);
 
@@ -186,6 +203,5 @@ namespace ColorSpaceMath
 	void serialize(std::stringstream& out, const double4x4& m);
 
 	void serialize(std::stringstream& out, const double3x3& m);
-
 };
 

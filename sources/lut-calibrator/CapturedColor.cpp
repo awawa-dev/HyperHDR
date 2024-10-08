@@ -76,11 +76,11 @@ bool CapturedColor::calculateFinalColor()
 	
 	std::for_each(sortedInputYUVColors.begin(), sortedInputYUVColors.end(), [this](std::pair<byte3, int>& m) {
 
-		if (m.first.y >= 127 && m.first.y <= 129 && m.first.z >= 127 && m.first.z <= 129)
+		/*if (m.first.y >= 127 && m.first.y <= 129 && m.first.z >= 127 && m.first.z <= 129)
 		{
 			m.first.y = 128;
 			m.first.z = 128;
-		}
+		}*/
 
 		sortedInputYuvColors.push_back(std::pair<double3, int>(static_cast<double3>(m.first) / 255.0, m.second));
 	});
@@ -181,7 +181,6 @@ QString CapturedColor::toString()
 void  CapturedColor::setSourceRGB(byte3 _color)
 {
 	sourceRGB = ColorSpaceMath::to_int3(_color);
-	sourceRGBdelta = linalg::dot(sourceRGB, sourceRGB);
 }
 
 int3 CapturedColor::getSourceRGB() const
@@ -215,13 +214,50 @@ std::list<std::pair<double3, int>> CapturedColor::getInputYuvColors() const
 }
 
 int CapturedColor::getSourceError(const int3& _color) const
-{	
-	if (sourceRGBdelta == 0)
-	{
-		return linalg::dot(_color, _color) * 100;
-	}
-
+{		
 	auto delta = linalg::abs( sourceRGB - _color);
+
+
+	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
+	{
+		return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z);
+	}
+	else if (sourceRGB.x == sourceRGB.y)
+	{
+		auto diff = std::abs(_color.x - _color.y);
+		if (_color.x > _color.y)
+		{
+			delta.x = std::min(delta.x, diff);
+			delta.y = std::min(delta.y, diff);
+		}
+		else
+		{
+			delta.x = std::max(delta.x, diff);
+			delta.y = std::max(delta.y, diff);
+		}
+	}
+	else if (sourceRGB.x == sourceRGB.z)
+	{
+		auto diff = std::abs(_color.x - _color.z);
+		delta.x = std::min(delta.x, diff);
+		delta.z = std::min(delta.z, diff);
+	}
+	else if (sourceRGB.y == sourceRGB.z)
+	{
+		auto diff = std::abs(_color.y - _color.z);
+
+		if (_color.z > _color.y)
+		{
+			delta.y = std::min(delta.y, diff);
+			delta.z = std::min(delta.z, diff);
+		}
+		else
+		{
+			delta.y = std::max(delta.y, diff);
+			delta.z = std::max(delta.z, diff);
+		}
+	}
 	
+
 	return (delta.x* delta.x* delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z);
 }

@@ -169,6 +169,11 @@ namespace ColorSpaceMath
 		return b;
 	}
 
+	std::vector<double2> getPrimaries(PRIMARIES primary)
+	{
+		return knownPrimaries.at(primary);
+	}
+
 	linalg::mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary)
 	{
 		const auto& primaries = knownPrimaries.at(primary);
@@ -437,6 +442,57 @@ namespace ColorSpaceMath
 		return ret.join("\r\n");
 	}
 
+
+	constexpr double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
+	{
+		const double denominator = linalg::determinant( double2x2{ {p1.x - p2.x, p3.x - p4.x}, {p1.y - p2.y, p3.y - p4.y} });
+		if (denominator == 0.0)
+			return DBL_MAX;
+
+		const double t = linalg::determinant( double2x2{ {p1.x - p3.x, p3.x - p4.x}, {p1.y - p3.y, p3.y - p4.y} } ) / denominator;
+		if (t >= 0.0)
+			return t;
+		return DBL_MAX;
+	}
+
+	constexpr double maxLenInColorspace
+	(const std::vector<double2>& primaries,
+		const double cos_angle,
+		const double sin_angle)
+	{
+		const double2& p1 = primaries[3];
+
+		const double2 p2 = double2{ p1.x + cos_angle, p1.y + sin_angle };
+
+		double distance_to_edge = DBL_MAX;
+		for (size_t i = 0; i < 3; i++)
+		{
+			const size_t nextPrimary = (i == 2) ? 0 : (i + 1);
+			const double2& p3 = primaries[i];
+			const double2& p4 = primaries[nextPrimary];
+			const float distance = intersectSegments(p1, p2, p3, p4);
+			if (distance < distance_to_edge)
+				distance_to_edge = distance;
+		}
+
+		return distance_to_edge;
+	}
+
+	double2 primaryRotateAndScale(const double2 primary,
+		const double scaling,
+		const double rotation,
+		const std::vector<double2>& primaries,
+		bool truncate)
+	{
+		const double2 d = primary - primaries[3];
+		const double angle = std::atan2(d.y, d.x) + rotation;
+		const double cos_angle = std::cos(angle);
+		const double sin_angle = std::sin(angle);
+		const double2 dx = double2{ cos_angle, sin_angle } * scaling * ((truncate) ? maxLenInColorspace(primaries, cos_angle, sin_angle)  : linalg::length(d));
+
+		return dx + primaries[3];
+	}
+
 	void serialize(std::stringstream& out, const double2& v)
 	{
 		out << "{" << v[0] << ", " << v[1] << "}";
@@ -472,6 +528,94 @@ namespace ColorSpaceMath
 			serialize(out, m[d]);			
 		}
 		out << "}";
+	}
+
+	float3 rgb2hsv(float3 rgb)
+	{
+		float aspect = 0.0f;
+
+		if (rgb.y < rgb.z)
+		{
+			std::swap(rgb.y, rgb.z);
+			aspect = -1.0f;
+		}
+
+		if (rgb.x < rgb.y)
+		{
+			std::swap(rgb.x, rgb.y);
+			aspect = -2.0f / 6.0f - aspect;
+		}
+
+		float chroma = rgb.x - std::min(rgb.y, rgb.z);
+		return float3{
+			/*H*/ std::fabs(aspect + (rgb.y - rgb.z) / (6.0f * chroma + 1e-20f)),
+			/*S*/ chroma / (rgb.x + 1e-20f),
+			/*V*/ rgb.x
+		};
+	}
+
+	float3 hsv2rgb(float3 hsv)
+	{
+		int i = floor(hsv.x * 6);
+		float f = hsv.x * 6 - i;
+		float p = hsv.z * (1 - hsv.y);
+		float q = hsv.z * (1 - f * hsv.y);
+		float t = hsv.z * (1 - (1 - f) * hsv.y);
+
+		switch (i % 6) {
+			case 0: return float3{ hsv.z, t, p }; break;
+			case 1: return float3{ q, hsv.z, p }; break;
+			case 2: return float3{ p, hsv.z, t }; break;
+			case 3: return float3{ p, q, hsv.z }; break;
+			case 4: return float3{ t, p, hsv.z }; break;
+			case 5: return float3{ hsv.z, p, q }; break;
+		}
+
+		return float3();
+	}
+
+	double3 rgb2hsv(double3 rgb)
+	{
+		double aspect = 0.0;
+
+		if (rgb.y < rgb.z)
+		{
+			std::swap(rgb.y, rgb.z);
+			aspect = -1.0;
+		}
+
+		if (rgb.x < rgb.y)
+		{
+			std::swap(rgb.x, rgb.y);
+			aspect = -2.0 / 6.0 - aspect;
+		}
+
+		double chroma = rgb.x - std::min(rgb.y, rgb.z);
+		return double3{
+			/*H*/ std::abs(aspect + (rgb.y - rgb.z) / (6.0 * chroma + 1e-20)),
+			/*S*/ chroma / (rgb.x + 1e-20),
+			/*V*/ rgb.x
+		};
+	}
+
+	double3 hsv2rgb(double3 hsv)
+	{
+		int i = floor(hsv.x * 6);
+		double f = hsv.x * 6 - i;
+		double p = hsv.z * (1 - hsv.y);
+		double q = hsv.z * (1 - f * hsv.y);
+		double t = hsv.z * (1 - (1 - f) * hsv.y);
+
+		switch (i % 6) {
+			case 0: return double3{ hsv.z, t, p }; break;
+			case 1: return double3{ q, hsv.z, p }; break;
+			case 2: return double3{ p, hsv.z, t }; break;
+			case 3: return double3{ p, q, hsv.z }; break;
+			case 4: return double3{ t, p, hsv.z }; break;
+			case 5: return double3{ hsv.z, p, q }; break;
+		}
+
+		return double3();
 	}
 
 };

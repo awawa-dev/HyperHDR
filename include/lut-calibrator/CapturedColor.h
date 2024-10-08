@@ -45,7 +45,6 @@ class CapturedColor
 private:
 	int totalSamples = 0;
 	int3 sourceRGB;
-	int sourceRGBdelta = 0;
 	std::list<byte3> finalRGB;
 	double3	color;
 	std::list<std::pair<byte3, int>> inputColors;
