@@ -722,18 +722,32 @@ void  LutCalibrator::fineTune(bool precise)
 	const auto white = _capturedColors->all[MAX_IND][MAX_IND][MAX_IND].Y();
 	double4 nits{ 0, 0, 0, 0 };
 	double maxLevel = 0;
-	std::list<std::pair<CapturedColor*, int3>> vertex;
+	std::list<std::pair<CapturedColor*, int3>> vertex, masterVertex;
 
-	for (int rr = MAX_IND; rr >= 0; rr--)
-		for (int gg = MAX_IND; gg >= 0; gg--)
-			for (int bb = MAX_IND; bb >= 0; bb--)
+	for (int r = MAX_IND; r >= 0; r--)
+		for (int g = MAX_IND; g >= 0; g--)
+			for (int b = MAX_IND; b >= 0; b--)
 			{
-				int r = (rr == MAX_IND) ? MAX_IND - 1 : ((rr == MAX_IND - 1) ? MAX_IND : rr);
-				int g = (gg == MAX_IND) ? MAX_IND - 1 : ((gg == MAX_IND - 1) ? MAX_IND : gg);
-				int b = (bb == MAX_IND) ? MAX_IND - 1 : ((bb == MAX_IND - 1) ? MAX_IND : bb);
+				
 				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g))
-					vertex.push_back(std::pair<CapturedColor*, int3>(&_capturedColors->all[r][g][b], int3{ r, g, b }));
+				{
+
+					if ((r == MAX_IND - 1 && r == g && g == b)  ||
+
+						(r == MAX_IND - 2 && r == g && g == b) ||
+
+						(r == MAX_IND && g == 0 && b == 0) ||
+
+						(g == MAX_IND && r == 0 && b == 0) ||
+
+						(b == MAX_IND && g == 0 && r == 0))
+						masterVertex.push_back(std::pair<CapturedColor*, int3>(&_capturedColors->all[r][g][b], int3{ r, g, b }));
+					else
+						vertex.push_back(std::pair<CapturedColor*, int3>(&_capturedColors->all[r][g][b], int3{ r, g, b }));
+				}
 			}
+
+	vertex.insert(vertex.begin(), masterVertex.begin(), masterVertex.end());
 
 
 	bestResult->signal.range = _capturedColors->getRange();
@@ -808,7 +822,7 @@ void  LutCalibrator::fineTune(bool precise)
 						for (int coloredAspectMode = (precise) ? bestResult->coloredAspectMode : 0; coloredAspectMode <= 3; coloredAspectMode += (precise) ? MAX_HINT : 1)
 						for (int altConvert = (precise) ? bestResult->altConvert : 0; altConvert <= 1; altConvert += (precise) ? MAX_HINT : 1)
 							for (int tryBt2020Range = (precise) ? bestResult->bt2020Range : 0; tryBt2020Range <= 1; tryBt2020Range += (precise) ? MAX_HINT : 1)
-								for (double aspectX = 1.0; aspectX <= 1.0151; aspectX += (_postprocessing) ? ((precise) ? 0.0025 : 0.0025 * 2.0) : MAX_HDOUBLE)
+								for (double aspectX = (precise) ? 0.97 : 0.985; aspectX <= 1.0151; aspectX += (_postprocessing) ? ((precise && aspectX > 0.9851) ? 0.0025 : 0.0025 * 2.0) : MAX_HDOUBLE)
 									for (double aspectYZ = 1.0; aspectYZ <= 1.2101; aspectYZ += (_postprocessing) ? ((precise) ? MAX_HDOUBLE : 0.005 * 2.0) : MAX_HDOUBLE)
 									for (double aspectY = bestResult->aspect.y - 0.02; aspectY <= bestResult->aspect.y + 0.021; aspectY += (_postprocessing && precise) ? 0.005 : MAX_HDOUBLE)
 									for (double aspectZ = bestResult->aspect.z - 0.02; aspectZ <= bestResult->aspect.z + 0.021; aspectZ += (_postprocessing && precise) ? 0.005 : MAX_HDOUBLE)
@@ -853,8 +867,13 @@ void  LutCalibrator::fineTune(bool precise)
 
 															auto sampleError = sample.getSourceError(SRGB);															
 
-															if ((index.x == SCREEN_COLOR_DIMENSION - 2 && index.y == index.z &&
+															if ((index.x == MAX_IND - 1 && index.x == index.y && index.y == index.z &&
 																(SRGB.x > 248 || SRGB.x < 232)))
+																sampleError = MAX_CALIBRATION_ERROR;
+
+
+															if ((index.x == MAX_IND - 2 && index.x == index.y && index.y == index.z &&
+																(SRGB.x > 228 || SRGB.x < 220)))
 																sampleError = MAX_CALIBRATION_ERROR;
 
 															if (index.x == MAX_IND && index.y == 0 && index.z == 0 &&
