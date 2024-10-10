@@ -76,7 +76,7 @@ signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
 
 public slots:
-	void startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug);
+	void startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool detailedCalibration);
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
@@ -104,4 +104,5 @@ private:
 	MemoryBuffer<uint8_t> _lut;
 	QString _rootPath;
 	bool	_debug;
+	bool	_detailedCalibration;
 };

@@ -205,6 +205,7 @@ LutCalibrator::LutCalibrator()
 	_capturedColors = std::make_shared<CapturedColors>();
 	_yuvConverter = std::make_shared<YuvConverter>();
 	_debug = true;
+	_detailedCalibration = false;
 }
 
 void LutCalibrator::error(QString message)
@@ -378,10 +379,11 @@ void LutCalibrator::sendReport(Logger* _log, QString report)
 	Debug(_log, REPORT_TOKEN "%s\r\n", QSTRING_CSTR(list.join("\r\n")));
 }
 
-void LutCalibrator::startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug)
+void LutCalibrator::startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool detailedCalibration)
 {
 	_rootPath = rootpath;
 	_debug = debug;
+	_detailedCalibration = detailedCalibration;
 
 	stopHandler();
 
@@ -734,7 +736,7 @@ void CalibrationWorker::run()
 
 	printf("Starter thread: %i. Range: [%i - %i)\n", id, krIndexStart, krIndexEnd);
 
-	for (int krIndex = krIndexStart; krIndex < krIndexEnd; krIndex++)
+	for (int krIndex = krIndexStart; krIndex < std::min(krIndexEnd, (halfKDelta * 2) + 1); krIndex++)
 	for (int kbIndex = 0; kbIndex <= 2 * halfKDelta; kbIndex ++)
 	{
 		double2 kDelta = double2(((krIndex <= halfKDelta) ? -krIndex : krIndex - halfKDelta),
@@ -850,8 +852,6 @@ void  LutCalibrator::fineTune(bool precise)
 	double NITS = 0.0;
 	double maxLevel = 0.0;
 
-	Info(_log, "Optimal thread count: %i", QThreadPool::globalInstance()->maxThreadCount());
-
 	// prepare vertexes
 	std::list<std::pair<CapturedColor*, int3>> vertex, masterVertex;
 
@@ -860,7 +860,8 @@ void  LutCalibrator::fineTune(bool precise)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
 				
-				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g))
+				if ((!_detailedCalibration && ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g))) ||
+					(_detailedCalibration && ((r % 2 == 0 && g % 2 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g))))
 				{
 
 					if ((r == MAX_IND - 1 && r == g && g == b)  ||
@@ -879,6 +880,17 @@ void  LutCalibrator::fineTune(bool precise)
 			}
 
 	vertex.insert(vertex.begin(), masterVertex.begin(), masterVertex.end());
+
+	if (!precise)
+	{
+		Info(_log, "The first phase starts");
+		Info(_log, "Optimal thread count: %i", QThreadPool::globalInstance()->maxThreadCount());
+		Info(_log, "Number of test vertexes: %i", vertex.size());
+	}
+	else
+	{
+		Info(_log, "The second phase starts");
+	}
 
 	// set startup parameters (signal)
 	bestResult->signal.range = _capturedColors->getRange();
@@ -908,9 +920,6 @@ void  LutCalibrator::fineTune(bool precise)
 	sampleColors[SampleColor::LOW_RED] = (std::pair<double3, byte2>(sampleRedLow.getInputYuvColors().front().first, byte2{ sampleRedLow.U(), sampleRedLow.V() }));
 	sampleColors[SampleColor::LOW_GREEN] = (std::pair<double3, byte2>(sampleGreenLow.getInputYuvColors().front().first, byte2{ sampleGreenLow.U(), sampleGreenLow.V() }));
 	sampleColors[SampleColor::LOW_BLUE] = (std::pair<double3, byte2>(sampleBlueLow.getInputYuvColors().front().first, byte2{ sampleBlueLow.U(), sampleBlueLow.V() }));
-
-
-	bool isKMax = (precise) ? std::abs(linalg::maxelem(bestResult->coefDelta)) > 12 * 0.002 : false;
 
 	for (int gamma = (precise) ? bestResult->gamma : HDR_GAMMA::PQ; gamma <= HDR_GAMMA::BT2020inSRGB; gamma++)
 	{
@@ -963,7 +972,7 @@ void  LutCalibrator::fineTune(bool precise)
 				QList<CalibrationWorker*> workers;
 				int index = 0;				
 
-				for (int krIndexStart = 0; krIndexStart < halfKDelta * 2; krIndexStart += krDelta)
+				for (int krIndexStart = 0; krIndexStart <= halfKDelta * 2; krIndexStart += krDelta)
 				{
 					auto worker = new CalibrationWorker(bestResult.get(), _yuvConverter.get(), index++, krIndexStart, krIndexStart + krDelta, halfKDelta, precise, coef, sampleColors, gamma, gammaHLG, NITS, bt2020_to_sRgb, vertex);
 					workers.push_back(worker);
@@ -1011,6 +1020,7 @@ void LutCalibrator::calibration()
 	
 	// write result
 	Debug(_log, "Score: %.3f", bestResult->minError / 1000.0);
+	Debug(_log, "The detailed calibration is: %s", (_detailedCalibration) ? "enabled" : "disabled");
 	Debug(_log, "The first phase time: %.3fs", totalTime / 1000.0);
 	Debug(_log, "The second phase time: %.3fs", totalTime2 / 1000.0);
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));

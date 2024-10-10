@@ -71,7 +71,7 @@ bool CapturedColor::calculateFinalColor()
 			sortedInputYUVColors.push_back(std::pair<byte3, int>((*iter).first, (*iter).second));
 	}
 
-	while(sortedInputYUVColors.size() > 3 || (sortedInputYUVColors.size() == 3 && sortedInputYUVColors.back().second <= 6))
+	while(sortedInputYUVColors.size() > 3 || (sortedInputYUVColors.size() == 3 && sortedInputYUVColors.back().second < 6))
 		sortedInputYUVColors.pop_back();
 	
 	std::for_each(sortedInputYUVColors.begin(), sortedInputYUVColors.end(), [this](std::pair<byte3, int>& m) {
