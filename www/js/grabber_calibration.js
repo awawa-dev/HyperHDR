@@ -43,8 +43,7 @@ $(document).ready( function(){
 			running = true;			
 			startCalibrationWizard();
 			const calDebug = document.getElementById('chk_debug').checked;
-			const calPostprocessing = document.getElementById('chk_postprocessing').checked;
-			requestLutCalibration("capture", calDebug, calPostprocessing);
+			requestLutCalibration("capture", calDebug);
 	});
 
 
@@ -213,8 +212,7 @@ $(document).ready( function(){
 			drawImage();		
 			setTimeout(() => {
 				const calDebug = document.getElementById('chk_debug2').checked;
-				const calPostprocessing = document.getElementById('chk_postprocessing2').checked;
-				requestLutCalibration("capture", calDebug, calPostprocessing);				
+				requestLutCalibration("capture", calDebug);				
 			}, 100); 
 		}
 		else
