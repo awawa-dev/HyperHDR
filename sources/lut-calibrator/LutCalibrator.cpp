@@ -67,24 +67,32 @@ using namespace BoardUtils;
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
 #define MAX_CALIBRATION_ERROR 5000000
 
-struct BestResult{
+/////////////////////////////////////////////////////////////////
+//                          HELPERS                            //
+/////////////////////////////////////////////////////////////////
+
+struct BestResult
+{
 	YuvConverter::YUV_COEFS coef = YuvConverter::YUV_COEFS::BT601;
-	double4x4 coefMatrix;
-	double2 coefDelta;
-	int coloredAspectMode = 0;
+	double4x4	coefMatrix;
+	double2		coefDelta;
+	int			coloredAspectMode = 0;
 	std::pair<double3, double3> colorAspect;
-	double3 aspect;
-	int bt2020Range = 0;
-	int altConvert = 0;
-	double3x3 altPrimariesToSrgb;
+	double3		aspect;
+	int			bt2020Range = 0;
+	int			altConvert = 0;
+	double3x3	altPrimariesToSrgb;
 	ColorSpaceMath::HDR_GAMMA gamma = ColorSpaceMath::HDR_GAMMA::PQ;
-	double gammaHLG = 0;
-	double nits = 0;	
+	double		gammaHLG = 0;
+	double		nits = 0;	
 
 	struct Signal
 	{
 		YuvConverter::COLOR_RANGE range = YuvConverter::COLOR_RANGE::FULL;
-		double yRange = 0, upYLimit = 0, downYLimit = 0, yShift = 0;
+		double yRange = 0;
+		double upYLimit = 0;
+		double downYLimit = 0;
+		double yShift = 0;
 	} signal;
 
 	long long int minError = MAX_CALIBRATION_ERROR;
@@ -135,113 +143,61 @@ class CalibrationWorker : public QRunnable
 	const double3x3& bt2020_to_sRgb;
 	const std::list<std::pair<CapturedColor*, int3>>& vertex;
 public:
-	CalibrationWorker(BestResult* bestResult, YuvConverter* yuvConverter, const int id, const int krIndexStart, const int krIndexEnd, const int halfKDelta, const bool precise, const int coef,
-		const std::vector<std::pair<double3, byte2>>& sampleColors, const int gamma, const double gammaHLG, const double NITS, const double3x3& bt2020_to_sRgb,
-		const std::list<std::pair<CapturedColor*, int3>>& vertex);
+	CalibrationWorker(BestResult* _bestResult, YuvConverter* _yuvConverter, const int _id, const int _krIndexStart, const int _krIndexEnd, const int _halfKDelta, const bool _precise, const int _coef,
+		const std::vector<std::pair<double3, byte2>>& _sampleColors, const int _gamma, const double _gammaHLG, const double _NITS, const double3x3& _bt2020_to_sRgb,
+		const std::list<std::pair<CapturedColor*, int3>>& _vertex) :
+		yuvConverter(_yuvConverter),
+		id(_id),
+		krIndexStart(_krIndexStart),
+		krIndexEnd(_krIndexEnd),
+		halfKDelta(_halfKDelta),
+		precise(_precise),
+		coef(_coef),
+		sampleColors(_sampleColors),
+		gamma(_gamma),
+		gammaHLG(_gammaHLG),
+		NITS(_NITS),
+		bt2020_to_sRgb(_bt2020_to_sRgb),
+		vertex(_vertex)
+	{
+		bestResult = *_bestResult;
+		this->setAutoDelete(false);
+	};
 
 	void run() override;
-	void getBestResult(BestResult* otherScore);
+	void getBestResult(BestResult* otherScore)
+	{
+		if (otherScore->minError > bestResult.minError)
+		{
+			(*otherScore) = bestResult;
+		}
+	};
 };
 
-CalibrationWorker::CalibrationWorker(BestResult* _bestResult, YuvConverter* _yuvConverter, const int _id, const int _krIndexStart, const int _krIndexEnd, const int _halfKDelta, const bool _precise, const int _coef,
-	const std::vector<std::pair<double3, byte2>>& _sampleColors, const int _gamma, const double _gammaHLG, const double _NITS, const double3x3& _bt2020_to_sRgb,
-	const std::list<std::pair<CapturedColor*, int3>>& _vertex) :
-	yuvConverter(_yuvConverter),
-	id(_id),
-	krIndexStart(_krIndexStart),
-	krIndexEnd(_krIndexEnd),
-	halfKDelta(_halfKDelta),
-	precise(_precise),
-	coef(_coef),
-	sampleColors(_sampleColors),
-	gamma(_gamma),
-	gammaHLG(_gammaHLG),
-	NITS(_NITS),
-	bt2020_to_sRgb(_bt2020_to_sRgb),
-	vertex(_vertex)
+class CreateLutWorker : public QRunnable
 {
-	bestResult = *_bestResult;	
-	this->setAutoDelete(false);
-}
-
-void CalibrationWorker::getBestResult(BestResult* otherScore)
-{
-	if (otherScore->minError > bestResult.minError)
+	const int startV;
+	const int endV;
+	const int phase;
+	const YuvConverter* yuvConverter;
+	const BestResult* bestResult;
+	uint8_t* lut;
+public:
+	CreateLutWorker(int _startV, int _endV, int _phase, YuvConverter* _yuvConverter, BestResult* _bestResult, uint8_t* _lut) :
+		startV(_startV),
+		endV(_endV),
+		phase(_phase),
+		yuvConverter(_yuvConverter),
+		bestResult(_bestResult),
+		lut(_lut)
 	{
-		(*otherScore) = bestResult;
-	}
-}
-
-
-bool LutCalibrator::parseTextLut2binary(const char* filename, const char* outfile)
-{
-	std::ifstream stream(filename);
-	if (!stream)
-	{
-		return false;
-	}
-	
-	std::string dummy;
-	double3 yuv;
-	_lut.resize(256 * 256 * 256 * 3);
-	memset(_lut.data(), 0, _lut.size());
-	for (int R = 0; R < 256; R++)
-		for (int G = 0; G < 256; G++)
-			for (int B = 0; B < 256; B++)
-				if (std::getline(stream, dummy, '[') >> yuv.x &&
-					std::getline(stream, dummy, ',') >> yuv.y &&
-					std::getline(stream, dummy, ',') >> yuv.z)
-				{
-					byte3 YUV = to_byte3(yuv);
-					int index = LUT_INDEX(YUV.x, YUV.y, YUV.z);
-					_lut.data()[index] = R;
-					_lut.data()[index + 1] = G;
-					_lut.data()[index + 2] = B;
-					
-				}
-				else
-					return false;
-
-	for(int w = 0; w < 3; w++)
-		for(int Y = 2; Y < 256; Y++)
-			for (int U = 0; U < 256; U++)
-				for (int V = 0; V < 256; V++)
-				{
-					int index = LUT_INDEX(Y, U, V);
-					if (_lut.data()[index] == 0 && _lut.data()[index + 1] == 0 && _lut.data()[index + 2] == 0)
-					{
-						bool found = false;						
-							for (int u = 0; u <= 2 && !found; u++)
-								for (int v = 0; v <= 2 && !found; v++)
-									for (int y = 0; y <= 2 && !found; y++)
-								{
-									int YY = Y + ((y % 2) ? y / 2 : -y / 2);
-									int UU = U + ((u % 2) ? u / 2 : -u / 2);
-									int VV = V + ((v % 2) ? v / 2 : -v / 2);
-									if (YY >= 0 && YY <= 255 && UU >= 0 && UU <= 255 && VV >= 0 && VV <= 255)
-									{
-										int index2 = LUT_INDEX(YY, UU, VV);
-										if (_lut.data()[index2] || _lut.data()[index2 + 1] || _lut.data()[index2 + 2])
-										{
-											found = true;
-											_lut.data()[index] = _lut.data()[index2];
-											_lut.data()[index + 1] = _lut.data()[index2 + 1];
-											_lut.data()[index + 2] = _lut.data()[index2 + 2];
-										}
-									}
-								}
-					}
-				}
-
-	std::fstream file;
-	file.open(outfile, std::ios::trunc | std::ios::out |  std::ios::binary);
-	for(int i = 0; i < 3; i++)
-		file.write(reinterpret_cast<char*>(_lut.data()), _lut.size());
-	file.close();
-
-	_lut.releaseMemory();
-	return true;
+	};
+	void run() override;
 };
+
+/////////////////////////////////////////////////////////////////
+//                      LUT CALIBRATOR                         //
+/////////////////////////////////////////////////////////////////
 
 LutCalibrator::LutCalibrator()
 {
@@ -654,7 +610,7 @@ void LutCalibrator::printReport()
 }
 
 
-static double3 hdr_to_srgb(YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal, int colorAspectMode, const std::pair<double3, double3>& colorAspect)
+static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal, int colorAspectMode, const std::pair<double3, double3>& colorAspect)
 {	
 	double3 srgb;
 	bool white = true;
@@ -1054,9 +1010,9 @@ void LutCalibrator::calibration()
 	totalTime2 = InternalClock::now() - totalTime2;
 	
 	// write result
-	Debug(_log, "Score: %f", bestResult->minError / 1000.0);
-	Debug(_log, "The first phase time: %f", totalTime / 1000.0);
-	Debug(_log, "The second phase time: %f", totalTime2 / 1000.0);
+	Debug(_log, "Score: %.3f", bestResult->minError / 1000.0);
+	Debug(_log, "The first phase time: %.3fs", totalTime / 1000.0);
+	Debug(_log, "The second phase time: %.3fs", totalTime2 / 1000.0);
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
 	Debug(_log, "Selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
 	Debug(_log, "Selected EOTF: %s", QSTRING_CSTR(ColorSpaceMath::gammaToString(bestResult->gamma)));
@@ -1096,10 +1052,18 @@ void LutCalibrator::calibration()
 	}
 
 	_lut.releaseMemory();
-	QString errorMessage = writeLUT(_log, _rootPath, bestResult.get(), &(_capturedColors->all));
+
+	auto totalTime3 = InternalClock::now();
+	QString errorMessage = CreateLutFile(_log, _rootPath, bestResult.get(), &(_capturedColors->all));
+	totalTime3 = InternalClock::now() - totalTime3;
+
 	if (!errorMessage.isEmpty())
 	{
 		error(errorMessage);
+	}
+	else
+	{
+		Debug(_log, "The LUT creation time: %.3fs", totalTime3 / 1000.0);
 	}
 
 	// reload LUT
@@ -1175,7 +1139,41 @@ static std::list<MappingPrime> prepareLCH(Logger* _log, std::vector<std::vector<
 	return m;
 }
 
-QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all)
+void CreateLutWorker::run()
+{
+	printf("Starting LUT creation thread for phase %i. V range is [ %i, %i)\n", phase, startV, endV);
+	for (int v = startV; v < endV; v++)
+		for (int u = 0; u <= 255; u++)
+			for (int y = 0; y <= 255; y++)
+			{
+				byte3 YUV(y, u, v);
+				double3 yuv = to_double3(YUV) / 255.0;
+
+				if (phase == 0)
+				{
+					yuv = yuvConverter->toYuv(bestResult->signal.range, bestResult->coef, yuv);
+					YUV = to_byte3(yuv * 255);
+				}
+
+				if (phase == 0 || phase == 1)
+				{
+					//if (YUV.y >= 127 && YUV.y <= 129 && YUV.z >= 127 && YUV.z <= 129) { YUV.y = 128;yuv.y = 128.0 / 255.0; YUV.z = 128;yuv.z = 128.0 / 255.0; }
+					yuv = hdr_to_srgb(yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal, bestResult->coloredAspectMode, bestResult->colorAspect);
+				}
+				else
+				{
+					yuv = yuvConverter->toRgb(bestResult->signal.range, bestResult->coef, yuv);
+				}
+
+				byte3 result = to_byte3(yuv * 255.0);
+				uint32_t ind_lutd = LUT_INDEX(y, u, v);
+				lut[ind_lutd] = result.x;
+				lut[ind_lutd + 1] = result.y;
+				lut[ind_lutd + 2] = result.z;
+			}
+}
+
+QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
 	// write LUT table
 	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d");
@@ -1192,44 +1190,19 @@ QString LutCalibrator::writeLUT(Logger* _log, QString _rootPath, BestResult* bes
 		YuvConverter yuvConverter;
 
 		Info(_log, "Writing LUT file to: %s", QSTRING_CSTR(fileName));
+
 		_lut.resize(LUT_FILE_SIZE);
+
 		for (int phase = 0; phase < 3; phase++)
 		{
-			for (int y = 0; y <= 255; y++)
-				for (int u = 0; u <= 255; u++)
-					for (int v = 0; v <= 255; v++)
-					{
-						byte3 YUV(y, u, v);
-						double3 yuv = to_double3(YUV) / 255.0;
+			const int vDelta = std::ceil(256.0 / QThreadPool::globalInstance()->maxThreadCount());
 
-						if (phase == 0)
-						{
-							yuv = yuvConverter.toYuv(bestResult->signal.range, bestResult->coef, yuv);
-							YUV = to_byte3(yuv * 255);
-						}
-
-						if (phase == 0 || phase == 1)
-						{
-							/*if (YUV.y >= 127 && YUV.y <= 129 && YUV.z >= 127 && YUV.z <= 129)
-							{
-								YUV.y = 128;
-								YUV.z = 128;
-								yuv.y = 128.0 / 255.0;
-								yuv.z = 128.0 / 255.0;
-							}*/
-							yuv = hdr_to_srgb(&yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal, bestResult->coloredAspectMode, bestResult->colorAspect);
-						}
-						else
-						{
-							yuv = yuvConverter.toRgb(bestResult->signal.range, bestResult->coef, yuv);
-						}
-
-						byte3 result = to_byte3(yuv * 255.0);
-						uint32_t ind_lutd = LUT_INDEX(y, u, v);
-						_lut.data()[ind_lutd] = result.x;
-						_lut.data()[ind_lutd + 1] = result.y;
-						_lut.data()[ind_lutd + 2] = result.z;
-					}
+			for (int v = 0; v <= 255; v += vDelta)
+			{
+				auto worker = new CreateLutWorker(v, std::min(v + vDelta, 256), phase, &yuvConverter, bestResult, _lut.data());
+				QThreadPool::globalInstance()->start(worker);
+			}
+			QThreadPool::globalInstance()->waitForDone();
 
 			if (phase == 1 && all != nullptr)
 			{

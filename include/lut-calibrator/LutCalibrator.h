@@ -70,6 +70,7 @@ class LutCalibrator : public QObject
 public:
 	LutCalibrator();
 	static void sendReport(Logger* _log, QString report);
+	static QString CreateLutFile(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all);
 
 signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
@@ -94,11 +95,7 @@ private:
 	void calibration();
 	void setupWhitePointCorrection();
 	bool setTestData();
-
-	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);
-	bool parseTextLut2binary(const char* filename = "D:/interpolated_lut.txt", const char* outfile = "D:/lut_lin_tables.3d");
-
-	static QString writeLUT(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all);
+	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);	
 
 	Logger* _log;
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;
@@ -108,4 +105,3 @@ private:
 	QString _rootPath;
 	bool	_debug;
 };
-
