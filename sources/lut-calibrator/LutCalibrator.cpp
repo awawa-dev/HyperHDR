@@ -55,6 +55,7 @@
 #include <utils-image/utils-image.h>
 #include <linalg.h>
 #include <fstream>
+#include <atomic>
 
 
 using namespace linalg;
@@ -65,11 +66,11 @@ using namespace BoardUtils;
 
 #define LUT_FILE_SIZE 50331648
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
-#define MAX_CALIBRATION_ERROR 5000000
 
 /////////////////////////////////////////////////////////////////
 //                          HELPERS                            //
 /////////////////////////////////////////////////////////////////
+struct MappingPrime;
 
 struct BestResult
 {
@@ -84,7 +85,9 @@ struct BestResult
 	double3x3	altPrimariesToSrgb;
 	ColorSpaceMath::HDR_GAMMA gamma = ColorSpaceMath::HDR_GAMMA::PQ;
 	double		gammaHLG = 0;
-	double		nits = 0;	
+	double		nits = 0;
+	bool		lchEnabled = false;
+	std::pair<std::list<double4>, std::list<double4>> lchPrimaries;
 
 	struct Signal
 	{
@@ -97,7 +100,20 @@ struct BestResult
 
 	long long int minError = MAX_CALIBRATION_ERROR;
 
-	void serialize(std::stringstream& out)
+	void serializePrimaries(std::stringstream& out) const
+	{
+		for (const auto& p : { lchPrimaries.first, lchPrimaries.second })
+		{
+			out << std::endl << "\t\t\tstd::list<double4>{" << std::endl << "\t\t\t\t";
+			for(const auto& v : p)
+			{
+				out << "double4";  ColorSpaceMath::serialize(out, v); out << ", ";
+			}
+			out << std::endl << "\t\t\t}," << std::endl;
+		}
+	}
+
+	void serialize(std::stringstream& out) const
 	{
 		out.precision(12);
 		out << "/*" << std::endl;
@@ -113,13 +129,15 @@ struct BestResult
 		out << "bestResult.altPrimariesToSrgb = double3x3"; ColorSpaceMath::serialize(out, altPrimariesToSrgb); out << ";" << std::endl;
 		out << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << std::to_string(gamma) << ");" << std::endl;
 		out << "bestResult.gammaHLG = " << std::to_string(gammaHLG) << ";" << std::endl;
+		out << "bestResult.lchEnabled = " << std::to_string(lchEnabled) << ";" << std::endl;
+		out << "bestResult.lchPrimaries = std::pair<std::list<double4>, std::list<double4>>{"; serializePrimaries(out) ; out << "\t\t};" << std::endl;
 		out << "bestResult.nits = " << std::to_string(nits) << ";" << std::endl;
 		out << "bestResult.signal.range = YuvConverter::COLOR_RANGE(" << std::to_string(signal.range) << ");" << std::endl;
 		out << "bestResult.signal.yRange = " << std::to_string(signal.yRange) << ";" << std::endl;
 		out << "bestResult.signal.upYLimit = " << std::to_string(signal.upYLimit) << ";" << std::endl;
 		out << "bestResult.signal.downYLimit = " << std::to_string(signal.downYLimit) << ";" << std::endl;
 		out << "bestResult.signal.yShift = " << std::to_string(signal.yShift) << ";" << std::endl;
-		out << "bestResult.minError = " << std::to_string(minError) << ";" << std::endl;
+		out << "bestResult.minError = " << std::to_string(std::round(minError * 100.0)/300000.0) << ";" << std::endl;
 		out << "*/" << std::endl;
 	}
 };
@@ -141,11 +159,13 @@ class CalibrationWorker : public QRunnable
 	const double gammaHLG;
 	const double NITS;
 	const double3x3& bt2020_to_sRgb;
-	const std::list<std::pair<CapturedColor*, int3>>& vertex;
+	std::list<std::pair<CapturedColor*, double3>> vertex;
+	std::atomic<long long int>& weakBestScore;
+	const bool lchCorrection;
 public:
-	CalibrationWorker(BestResult* _bestResult, YuvConverter* _yuvConverter, const int _id, const int _krIndexStart, const int _krIndexEnd, const int _halfKDelta, const bool _precise, const int _coef,
+	CalibrationWorker(BestResult* _bestResult, std::atomic<long long int>& _weakBestScore, YuvConverter* _yuvConverter, const int _id, const int _krIndexStart, const int _krIndexEnd, const int _halfKDelta, const bool _precise, const int _coef,
 		const std::vector<std::pair<double3, byte2>>& _sampleColors, const int _gamma, const double _gammaHLG, const double _NITS, const double3x3& _bt2020_to_sRgb,
-		const std::list<std::pair<CapturedColor*, int3>>& _vertex) :
+		const std::list<CapturedColor*>& _vertex, const bool _lchCorrection) :		
 		yuvConverter(_yuvConverter),
 		id(_id),
 		krIndexStart(_krIndexStart),
@@ -158,14 +178,19 @@ public:
 		gammaHLG(_gammaHLG),
 		NITS(_NITS),
 		bt2020_to_sRgb(_bt2020_to_sRgb),
-		vertex(_vertex)
+		weakBestScore(_weakBestScore),
+		lchCorrection(_lchCorrection)
 	{
 		bestResult = *_bestResult;
 		this->setAutoDelete(false);
+		for (auto& v : _vertex)
+		{
+			vertex.push_back(std::pair<CapturedColor*, double3>(v, double3{}));
+		}
 	};
 
 	void run() override;
-	void getBestResult(BestResult* otherScore)
+	void getBestResult(BestResult* otherScore) const
 	{
 		if (otherScore->minError > bestResult.minError)
 		{
@@ -205,7 +230,7 @@ LutCalibrator::LutCalibrator()
 	_capturedColors = std::make_shared<CapturedColors>();
 	_yuvConverter = std::make_shared<YuvConverter>();
 	_debug = true;
-	_detailedCalibration = false;
+	_lchCorrection = true;
 }
 
 void LutCalibrator::error(QString message)
@@ -379,11 +404,11 @@ void LutCalibrator::sendReport(Logger* _log, QString report)
 	Debug(_log, REPORT_TOKEN "%s\r\n", QSTRING_CSTR(list.join("\r\n")));
 }
 
-void LutCalibrator::startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool detailedCalibration)
+void LutCalibrator::startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection)
 {
 	_rootPath = rootpath;
 	_debug = debug;
-	_detailedCalibration = detailedCalibration;
+	_lchCorrection = lchCorrection;
 
 	stopHandler();
 
@@ -503,9 +528,10 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 
 struct MappingPrime {
-	byte3 prime;
-	double3 org;
-	double3 real;
+	byte3 prime{};
+	CapturedColor* sample = nullptr;
+	double3 org{};
+	double3 real{};
 	double3 delta{};
 };
 /*
@@ -559,26 +585,89 @@ double3 uncharted2_filmic(double3 v)
 	return curr * white_scale;
 }*/
 
-void doToneMapping(std::list<MappingPrime>& m, double3& p)
+void doToneMapping(const std::pair<std::list<double4>, std::list<double4>>& m, double3& p)
 {
 	auto a = xyz_to_lch(from_sRGB_to_XYZ(p) * 100.0);
-	auto iter = m.begin();
-	auto last = *(iter++);
-	for (; iter != m.end(); last = *(iter++))
-		if ((last.real.z >= a.z && a.z >= (*iter).real.z))
+
+	if (a.y < 0.1)
+		return;
+
+	
+	double3 correctionHigh{};
+	auto iterHigh = m.first.begin();
+	auto lastHigh = *(iterHigh++);
+	for (; iterHigh != m.first.end(); lastHigh = *(iterHigh++))
+		if ((lastHigh.w >= a.z && a.z >= (*iterHigh).w))
 		{
-			auto& current = (*iter);
-			double lastAsp = last.real.z - a.z;
-			double curAsp = a.z - current.real.z;
+			auto& current = (*iterHigh);
+			double lastAsp = lastHigh.w - a.z;
+			double curAsp = a.z - current.w;
 			double prop = 1 - (lastAsp / (lastAsp + curAsp));
-			double chromaLastAsp = clamp(a.y / last.real.y, 0.0, 1.0);
-			double chromaCurrentAsp = clamp(a.y / current.real.y, 0.0, 1.0);
-			a.y += prop * last.delta.y * chromaLastAsp + (1 - prop) * current.delta.y * chromaCurrentAsp;
-			a.z += prop * last.delta.z + (1 - prop) * current.delta.z;
-			
-			p = from_XYZ_to_sRGB(lch_to_xyz(a) / 100.0);
-			return;
-		}	
+
+			if (lastHigh.x > 0.0 && current.x > 0.0)
+				correctionHigh.x = prop * lastHigh.x + (1.0 - prop) * current.x;
+			if (lastHigh.y > 0.0 && current.y > 0.0)
+				correctionHigh.y = prop * lastHigh.y + (1.0 - prop) * current.y;
+			correctionHigh.z += prop * lastHigh.z + (1.0 - prop) * current.z;
+			break;
+		}
+
+	double3 correctionLow{};
+	auto iterLow = m.second.begin();
+	auto lastLow = *(iterLow++);
+	for (; iterLow != m.second.end(); lastLow = *(iterLow++))
+		if ((lastLow.w >= a.z && a.z >= (*iterLow).w))
+		{
+			auto& current = (*iterLow);
+			double lastAsp = lastLow.w - a.z;
+			double curAsp = a.z - current.w;
+			double prop = 1 - (lastAsp / (lastAsp + curAsp));
+
+			if (lastLow.x > 0 && current.x > 0)
+				correctionLow.x = prop * lastLow.x + (1 - prop) * current.x;
+			if (lastLow.y > 0 && current.y > 0)
+				correctionLow.y = prop * lastLow.y + (1 - prop) * current.y;
+			correctionLow.z += prop * lastLow.z + (1 - prop) * current.z;
+			break;
+		}
+
+	double3 aHigh = a;
+	if (correctionHigh.x > 0)
+		aHigh.x *= correctionHigh.x;
+	if (correctionHigh.y > 0)
+		aHigh.y *= correctionHigh.y;
+	aHigh.z += correctionHigh.z;
+
+	double3 pHigh = from_XYZ_to_sRGB(lch_to_xyz(aHigh) / 100.0);
+
+
+	double3 aLow = a;
+	if (correctionLow.x > 0)
+		aLow.x *= correctionLow.x;
+	if (correctionLow.y > 0)
+		aLow.y *= correctionLow.y;
+	aLow.z += correctionLow.z;
+
+	double3 pLow = from_XYZ_to_sRGB(lch_to_xyz(aLow) / 100.0);
+
+
+	double max = std::max(linalg::maxelem(pLow), linalg::maxelem(pHigh));
+	double lenLow = std::abs(0.5 - max);
+	double lenHigh = std::abs(1.0 - max);
+	double aspectHigh = (1.0 - lenHigh / (lenLow + lenHigh));
+
+	if (correctionLow.x > 0 && correctionHigh.x > 0)
+	{
+		a.x *= correctionHigh.x * aspectHigh + correctionLow.x * (1.0 - aspectHigh);
+	}
+	if (correctionLow.y > 0 && correctionHigh.y > 0)
+	{
+		a.y *= correctionHigh.y * aspectHigh + correctionLow.y * (1.0 - aspectHigh);
+	}
+	a.z += correctionHigh.z * aspectHigh + correctionLow.z * (1.0 - aspectHigh);
+
+	p = from_XYZ_to_sRGB(lch_to_xyz(a) / 100.0);
+
 }
 
 void LutCalibrator::printReport()
@@ -674,9 +763,7 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 		}		
 	
 		srgb = srgb_linear_to_nonlinear(srgb);
-	}
-
-	ColorSpaceMath::trim01(srgb);
+	}	
 
 	if (tryBt2020Range)
 	{
@@ -725,7 +812,50 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 
 	}
 
+	ColorSpaceMath::trim01(srgb);
+
 	return srgb;
+}
+
+static std::pair<std::list<double4>, std::list<double4>> prepareLCH(std::list<std::list<std::pair<double3, double3>>> __lchPrimaries)
+{
+	int index = 0;
+	std::pair<std::list<double4>, std::list<double4>> ret;
+	
+	for (const auto& _lchPrimaries : __lchPrimaries)
+	{
+		std::list<double4> lchPrimaries;
+		for (const auto& c : _lchPrimaries)
+		{
+			const auto& org = c.first;
+			auto current = xyz_to_lch(from_sRGB_to_XYZ(c.second) * 100.0);
+
+			double4 correctionZ;
+			correctionZ.x = (current.x != 0.0) ? org.x / current.x : 0.0;
+			correctionZ.y = (current.y != 0.0) ? org.y / current.y : 0.0;
+			correctionZ.z = org.z - current.z;
+			correctionZ.w = current.z;
+			lchPrimaries.push_back(correctionZ);
+		}
+
+		lchPrimaries.sort([](const double4& a, const double4& b) { return a.w > b.w; });
+
+		double4 loopEnd = lchPrimaries.front();
+		double4 loopFront = lchPrimaries.back();
+
+		loopEnd.w -= 360.0;
+		lchPrimaries.push_back(loopEnd);
+
+		loopFront.w += 360.0;
+		lchPrimaries.push_front(loopFront);
+
+		if (index++ == 0)
+			ret.first = lchPrimaries;
+		else
+			ret.second = lchPrimaries;
+	}
+
+	return ret;
 }
 
 void CalibrationWorker::run()
@@ -748,7 +878,7 @@ void CalibrationWorker::run()
 		for (int coloredAspectMode = (precise) ? bestResult.coloredAspectMode : 0; coloredAspectMode <= 3; coloredAspectMode += (precise) ? MAX_HINT : 1)
 			for (int altConvert = (precise) ? bestResult.altConvert : 0; altConvert <= 1; altConvert += (precise) ? MAX_HINT : 1)
 				for (int tryBt2020Range = (precise) ? bestResult.bt2020Range : 0; tryBt2020Range <= 1; tryBt2020Range += (precise) ? MAX_HINT : 1)
-					for (double aspectX = (precise) ? 0.97 : 0.985; aspectX <= 1.0151; aspectX += ((precise && aspectX > 0.9851) ? 0.0025 : 0.0025 * 2.0))
+					for (double aspectX = 0.985; aspectX <= 1.0151; aspectX += ((precise) ? 0.0025 : 0.0025 * 2.0))
 						for (double aspectYZ = 1.0; aspectYZ <= 1.2101; aspectYZ += ((precise) ? MAX_HDOUBLE : 0.005 * 2.0))
 							for (double aspectY = bestResult.aspect.y - 0.02; aspectY <= bestResult.aspect.y + 0.021; aspectY += (precise) ? 0.005 : MAX_HDOUBLE)
 								for (double aspectZ = bestResult.aspect.z - 0.02; aspectZ <= bestResult.aspect.z + 0.021; aspectZ += (precise) ? 0.005 : MAX_HDOUBLE)
@@ -756,6 +886,8 @@ void CalibrationWorker::run()
 									double3 aspect = (precise) ? double3{ aspectX, aspectY, aspectZ } : double3{ aspectX, aspectYZ, aspectYZ };
 
 									std::pair<double3, double3> colorAspect = std::pair<double3, double3>({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 });
+
+									std::list<std::pair<double3,double3>> selectedLchHighPrimaries, selectedLchLowPrimaries;
 
 									if (coloredAspectMode)
 									{
@@ -771,13 +903,15 @@ void CalibrationWorker::run()
 									}
 
 									long long int currentError = 0;
-									for (auto v = vertex.cbegin(); v != vertex.cend(); ++v)
+
+									for (auto v = vertex.begin(); v != vertex.end(); ++v)
 									{
-										const auto& sample = *(*v).first;
-										const auto& index = (*v).second;
+										auto& sample = *(*v).first;
+										const auto& index = sample.coords();
 
 										auto minError = MAX_CALIBRATION_ERROR;
 										auto sampleList = sample.getInputYuvColors();
+										bool gotSample = false;
 
 										for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
 										{
@@ -787,41 +921,74 @@ void CalibrationWorker::run()
 
 											auto sampleError = sample.getSourceError(SRGB);
 
-											if ((index.x == MAX_IND - 1 && index.x == index.y && index.y == index.z &&
-												(SRGB.x > 248 || SRGB.x < 232)))
-												sampleError = MAX_CALIBRATION_ERROR;
-
-
-											if ((index.x == MAX_IND - 2 && index.x == index.y && index.y == index.z &&
-												(SRGB.x > 228 || SRGB.x < 220)))
-												sampleError = MAX_CALIBRATION_ERROR;
-
-											if (index.x == MAX_IND && index.y == 0 && index.z == 0 &&
-												SRGB.x < 245)
-												sampleError = MAX_CALIBRATION_ERROR;
-
-											if (index.y == MAX_IND && index.x == 0 && index.z == 0 &&
-												SRGB.y < 245)
-												sampleError = MAX_CALIBRATION_ERROR;
-
-											if (index.z == MAX_IND && index.y == 0 && index.x == 0 &&
-												SRGB.z < 245)
-												sampleError = MAX_CALIBRATION_ERROR;
-
-
 											if (sampleError < minError)
-												minError = sampleError;
+											{
+												(*v).second = srgb;
+												minError = sampleError;												
+											}
 										}
 
 										currentError += minError;
 
-										if (currentError >= bestResult.minError)
+										if (((!precise || !lchCorrection) && (currentError >= bestResult.minError || currentError > weakBestScore))
+											|| currentError >= MAX_CALIBRATION_ERROR)
+										{
+											currentError = MAX_CALIBRATION_ERROR;
 											break;
-									}
+										}
 
-									if (currentError < bestResult.minError)
+										if (precise)
+										{
+											double3 lchPrimaries;
+											auto res = (*v).first->isLchPrimary(&lchPrimaries);
+											if (res == CapturedColor::LchPrimaries::HIGH)
+											{
+												selectedLchHighPrimaries.push_back(std::pair<double3, double3>(lchPrimaries, (*v).second));
+											}
+											else if (res == CapturedColor::LchPrimaries::LOW)
+											{
+												selectedLchLowPrimaries.push_back(std::pair<double3, double3>(lchPrimaries, (*v).second));
+											}
+										}
+										
+									}									
+
+									bool lchFavour = false;
+									long long int lcHError = MAX_CALIBRATION_ERROR;
+
+									std::pair<std::list<double4>, std::list<double4>> selectedLchPrimaries;
+									if (precise && lchCorrection && currentError < MAX_CALIBRATION_ERROR)
 									{
-										bestResult.minError = currentError;
+										lcHError = 0;
+										lchFavour = true;
+
+										selectedLchPrimaries = prepareLCH({ selectedLchHighPrimaries, selectedLchLowPrimaries });
+										
+										for (auto  sample = vertex.begin();  sample != vertex.end(); ++sample)
+										{
+											auto correctedRGB = (*sample).second;
+
+											doToneMapping(selectedLchPrimaries, correctedRGB);
+											lcHError += (*sample).first->getSourceError((int3)(to_byte3(correctedRGB * 255.0)));
+											if (lcHError >= (129 * currentError) / 128 || lcHError > weakBestScore)
+											{
+												lchFavour = false;
+												lcHError = MAX_CALIBRATION_ERROR;
+												break;
+											}
+										}										
+									}
+									else
+										lcHError = MAX_CALIBRATION_ERROR;
+									
+
+									if (currentError < bestResult.minError || lcHError < bestResult.minError)
+									{										
+										bestResult.minError = (lchFavour) ? lcHError  : currentError;
+
+										if (weakBestScore > bestResult.minError)
+											weakBestScore = bestResult.minError;
+
 										bestResult.coef = YuvConverter::YUV_COEFS(coef);
 										bestResult.coefDelta = kDelta;
 										bestResult.bt2020Range = tryBt2020Range;
@@ -834,7 +1001,14 @@ void CalibrationWorker::run()
 										bestResult.gamma = HDR_GAMMA(gamma);
 										bestResult.gammaHLG = gammaHLG;
 										bestResult.coefMatrix = coefMatrix;
-										printf("New local best score: %.3f for thread: %i. Gamma: %s, coef: %s, kr/kb: %s, yuvCorrection: %s\n", currentError / 1000.0, id,
+										bestResult.lchEnabled = (lchFavour);
+										bestResult.lchPrimaries = selectedLchPrimaries;
+										printf("New local best score: %.3f (classic: %.3f, LCH: %.3f %s) for thread: %i. Gamma: %s, coef: %s, kr/kb: %s, yuvCorrection: %s\n", 
+											bestResult.minError / 3000.0,
+											currentError / 3000.0,
+											lcHError / 3000.0,
+											(bestResult.lchEnabled) ? "ON" : "OFF",
+											id,
 											QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))),
 											QSTRING_CSTR(yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
 											QSTRING_CSTR(vecToString(kDelta)),
@@ -842,7 +1016,12 @@ void CalibrationWorker::run()
 									}
 								}
 	}
-	printf("Finished thread: %i. Score: %.3f\n", id, bestResult.minError /1000.0);
+
+	if (bestResult.minError < MAX_CALIBRATION_ERROR)
+		printf("Finished thread: %i. Score: %.3f\n", id, bestResult.minError / 3000.0);		
+	else
+		printf("Finished thread: %i. Could not find anything\n", id);
+		
 }
 
 void  LutCalibrator::fineTune(bool precise)
@@ -851,17 +1030,18 @@ void  LutCalibrator::fineTune(bool precise)
 	const auto white = _capturedColors->all[MAX_IND][MAX_IND][MAX_IND].Y();
 	double NITS = 0.0;
 	double maxLevel = 0.0;
+	std::atomic<long long int> weakBestScore = MAX_CALIBRATION_ERROR;
 
 	// prepare vertexes
-	std::list<std::pair<CapturedColor*, int3>> vertex, masterVertex;
+	std::list<CapturedColor*> vertex, masterVertex;
 
 	for (int r = MAX_IND; r >= 0; r--)
 		for (int g = MAX_IND; g >= 0; g--)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
 				
-				if ((!_detailedCalibration && ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g))) ||
-					(_detailedCalibration && ((r % 2 == 0 && g % 2 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g))))
+				if ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0) 
+					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 
 					if ((r == MAX_IND - 1 && r == g && g == b)  ||
@@ -873,9 +1053,9 @@ void  LutCalibrator::fineTune(bool precise)
 						(g == MAX_IND && r == 0 && b == 0) ||
 
 						(b == MAX_IND && g == 0 && r == 0))
-						masterVertex.push_back(std::pair<CapturedColor*, int3>(&_capturedColors->all[r][g][b], int3{ r, g, b }));
+						masterVertex.push_back(&_capturedColors->all[r][g][b]);
 					else
-						vertex.push_back(std::pair<CapturedColor*, int3>(&_capturedColors->all[r][g][b], int3{ r, g, b }));
+						vertex.push_back(&_capturedColors->all[r][g][b]);
 				}
 			}
 
@@ -961,10 +1141,10 @@ void  LutCalibrator::fineTune(bool precise)
 				capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, NITS, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 				auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
 
-				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %lli\n",
+				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %.3f\n",
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))),
-					QSTRING_CSTR(vecToString(bestResult->coefDelta)),bestResult->minError / 1000);
+					QSTRING_CSTR(vecToString(bestResult->coefDelta)),bestResult->minError / 3000.0);
 
 				const int halfKDelta = (precise) ? 16 : 8;
 				const int krDelta = std::ceil((halfKDelta * 2.0) / QThreadPool::globalInstance()->maxThreadCount());
@@ -974,7 +1154,7 @@ void  LutCalibrator::fineTune(bool precise)
 
 				for (int krIndexStart = 0; krIndexStart <= halfKDelta * 2; krIndexStart += krDelta)
 				{
-					auto worker = new CalibrationWorker(bestResult.get(), _yuvConverter.get(), index++, krIndexStart, krIndexStart + krDelta, halfKDelta, precise, coef, sampleColors, gamma, gammaHLG, NITS, bt2020_to_sRgb, vertex);
+					auto worker = new CalibrationWorker(bestResult.get(), weakBestScore, _yuvConverter.get(), index++, krIndexStart, krIndexStart + krDelta, halfKDelta, precise, coef, sampleColors, gamma, gammaHLG, NITS, bt2020_to_sRgb, vertex, _lchCorrection);
 					workers.push_back(worker);
 					QThreadPool::globalInstance()->start(worker);
 				}
@@ -998,6 +1178,8 @@ void  LutCalibrator::fineTune(bool precise)
 	}
 }
 
+static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all);
+
 
 void LutCalibrator::calibration()
 {
@@ -1019,8 +1201,8 @@ void LutCalibrator::calibration()
 	totalTime2 = InternalClock::now() - totalTime2;
 	
 	// write result
-	Debug(_log, "Score: %.3f", bestResult->minError / 1000.0);
-	Debug(_log, "The detailed calibration is: %s", (_detailedCalibration) ? "enabled" : "disabled");
+	Debug(_log, "Score: %.3f", bestResult->minError / 3000.0);
+	Debug(_log, "LCH: %s", (bestResult->lchEnabled) ? "Enabled" : "Disabled");
 	Debug(_log, "The first phase time: %.3fs", totalTime / 1000.0);
 	Debug(_log, "The second phase time: %.3fs", totalTime2 / 1000.0);
 	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
@@ -1076,6 +1258,33 @@ void LutCalibrator::calibration()
 		Debug(_log, "The LUT creation time: %.3fs", totalTime3 / 1000.0);
 	}
 
+	// LCH
+	reportLCH(_log, &(_capturedColors->all));
+
+	// control score
+	long long int currentError = 0;
+	constexpr auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
+	for (int r = MAX_IND; r >= 0; r--)
+		for (int g = MAX_IND; g >= 0; g--)
+			for (int b = MAX_IND; b >= 0; b--)
+			{
+				if ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
+					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
+				{
+					auto sample = _capturedColors->all[r][g][b];
+					auto sampleList = sample.getFinalRGB();
+					long long int microError = MAX_CALIBRATION_ERROR;
+					for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
+					{
+						auto c = sample.getSourceError((int3)*iter);
+						if (c < microError)
+							microError = c;
+					}
+					currentError += microError;
+				}
+			}
+	Debug(_log, "The control score: %.3f", currentError / 3000.0);
+
 	// reload LUT
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
 	QThread::msleep(500);
@@ -1083,70 +1292,79 @@ void LutCalibrator::calibration()
 }
 
 
-static std::list<MappingPrime> prepareLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all)
+static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
 	QStringList info, intro;
 	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
-	std::list<MappingPrime> m = {
-		{ /* GREEN       */ {0       ,SCALE   ,0       }, {}, {} },
-		{ /* GREEN_BLUE  */ {0       ,SCALE   ,SCALE   }, {}, {} },
-		{ /* BLUE        */ {0       ,0       ,SCALE   }, {}, {} },
-		{ /* RED_BLUE    */ {SCALE   ,0       ,SCALE   }, {}, {} },
-		{ /* RED         */ {SCALE   ,0       ,0       }, {}, {} },
-		{ /* RED_GREEN   */ {SCALE   ,SCALE   ,0       }, {}, {} },
-		{ /* RED_GREEN2  */ {SCALE   ,SCALE / 2 ,0       }, {}, {} },
-		{ /* GREEN_BLUE2 */ {0       ,SCALE   ,SCALE / 2 }, {}, {} },
-		{ /* RED_BLUE2   */ {SCALE   ,0       ,SCALE / 2 }, {}, {} },
-		{ /* RED2_GREEN  */ {SCALE / 2 ,SCALE   ,0       }, {}, {} },
-		{ /* GREEN2_BLUE */ {0       ,SCALE / 2 ,SCALE   }, {}, {} },
-		{ /* RED2_BLUE   */ {SCALE / 2 ,0       ,SCALE   }, {}, {} },
-	};
+	std::list<MappingPrime> mHigh;
+	std::list<MappingPrime> mLow;
+
 	
-	for (auto& c : m)
+	constexpr auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
+	for (int r = MAX_IND; r >= 0; r--)
+		for (int g = MAX_IND; g >= 0; g--)
+			for (int b = MAX_IND; b >= 0; b--)
+			{
+				double3 org;
+				auto ret = (*all)[r][g][b].isLchPrimary(&org);
+				if (ret == CapturedColor::LchPrimaries::HIGH || ret == CapturedColor::LchPrimaries::LOW)
+				{
+					MappingPrime m;
+					m.org = org;
+					m.prime = byte3(r, g, b);
+					if (ret == CapturedColor::LchPrimaries::HIGH)
+						mHigh.push_back(m);
+					else
+						mLow.push_back(m);
+				}
+			}
+
+	
+	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mLow })
 	{
-		auto sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
-		auto a = static_cast<double3>(sample.getSourceRGB()) / 255.0;
-		c.org = xyz_to_lch(from_sRGB_to_XYZ(a) * 100.0);
+		for (MappingPrime& c : *m)
+		{
+			auto& sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
+			auto b = static_cast<double3>(sample.getFinalRGB().front()) / 255.0;
+			c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
+			c.delta = c.org - c.real;
+		}
+		m->sort([](const MappingPrime& a, const MappingPrime& b) { return a.real.z > b.real.z; });
+		MappingPrime loopEnd = m->front();
+		MappingPrime loopFront = m->back();
 
+		loopEnd.org.z -= 360;
+		loopEnd.real.z -= 360;
+		m->push_back(loopEnd);
 
-		auto b = static_cast<double3>(sample.getFinalRGB().front()) / 255.0;
-		c.real = xyz_to_lch(from_sRGB_to_XYZ(b) * 100.0);
-		c.delta = c.org - c.real;
+		loopFront.org.z += 360;
+		loopFront.real.z += 360;
+		m->push_front(loopFront);
 	}
-	m.sort([](const MappingPrime& a, const MappingPrime& b) { return a.real.z > b.real.z; });
-
-	auto loopEnd = m.front();
-	auto loopFront = m.back();
-
-	loopEnd.org.z -= 360;
-	loopEnd.real.z -= 360;
-	m.push_back(loopEnd);
-
-	loopFront.org.z += 360;
-	loopFront.real.z += 360;
-	m.push_front(loopFront);
-
+	
 	info.append("Primaries in LCH colorspace");
 	info.append("name,      RGB primary in LCH,     captured primary in LCH       |  primary RGB  |   average LCH delta       |  LCH to RGB way back ");
 	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	for (const auto& c : m)
+	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mLow })
 	{
-		auto sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
-		auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
-		auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
-		info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7").arg(vecToString(sample.getSourceRGB()), 12).
-											arg(vecToString(c.org)).
-											arg(vecToString(c.real)).
-											arg(vecToString(sample.getSourceRGB()), 12).
-											arg(vecToString(c.delta)).
-											arg(vecToString(to_byte3(aa))).
-											arg(vecToString(to_byte3(bb))));
+		for (MappingPrime& c : *m)
+		{
+			auto& sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
+			auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
+			auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
+			info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7").arg(vecToString(sample.getSourceRGB()), 12).
+				arg(vecToString(c.org)).
+				arg(vecToString(c.real)).
+				arg(vecToString(sample.getSourceRGB()), 12).
+				arg(vecToString(c.delta)).
+				arg(vecToString(to_byte3(aa))).
+				arg(vecToString(to_byte3(bb))));
 
+		}
+		info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
 	}
 
 	LutCalibrator::sendReport(_log, info.join("\r\n"));
-
-	return m;
 }
 
 void CreateLutWorker::run()
@@ -1169,6 +1387,13 @@ void CreateLutWorker::run()
 				{
 					//if (YUV.y >= 127 && YUV.y <= 129 && YUV.z >= 127 && YUV.z <= 129) { YUV.y = 128;yuv.y = 128.0 / 255.0; YUV.z = 128;yuv.z = 128.0 / 255.0; }
 					yuv = hdr_to_srgb(yuvConverter, yuv, byte2(YUV.y, YUV.z), bestResult->aspect, bestResult->coefMatrix, bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->altConvert, bestResult->altPrimariesToSrgb, bestResult->bt2020Range, bestResult->signal, bestResult->coloredAspectMode, bestResult->colorAspect);
+
+					if (bestResult->lchEnabled)
+					{
+						//yuv *= 255.0;
+						doToneMapping(bestResult->lchPrimaries, yuv);
+						//yuv /= 255.0;
+					}
 				}
 				else
 				{

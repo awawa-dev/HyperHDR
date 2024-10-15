@@ -44,20 +44,25 @@
 namespace BoardUtils
 {
 	class CapturedColors;
-	const int SCREEN_BLOCKS_X = 48;
-	const int SCREEN_BLOCKS_Y = 30;
-	const int SCREEN_COLOR_STEP = 16;
-	const int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP) + 1;
 
-	const int IMPORT_SCALE = 1000000;
+	constexpr long long int MAX_CALIBRATION_ERROR = 5000000;
 
-	const int SCREEN_YUV_RANGE_LIMIT = 2;
+	constexpr int SCREEN_BLOCKS_X = 48;
+	constexpr int SCREEN_BLOCKS_Y = 30;
+	constexpr int SCREEN_COLOR_STEP = 16;
+	constexpr int SCREEN_COLOR_DIMENSION = (256 / SCREEN_COLOR_STEP) + 1;
 
-	const int SCREEN_CRC_LINES = 2;
-	const int SCREEN_CRC_COUNT = 5;
-	const int SCREEN_MAX_CRC_BRIGHTNESS_ERROR = 1;
-	const int SCREEN_MAX_COLOR_NOISE_ERROR = 8;
-	const int SCREEN_SAMPLES_PER_BOARD = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
+	constexpr int MAX_INDEX = SCREEN_COLOR_DIMENSION - 1;
+
+	constexpr int IMPORT_SCALE = 1000000;
+
+	constexpr int SCREEN_YUV_RANGE_LIMIT = 2;
+
+	constexpr int SCREEN_CRC_LINES = 2;
+	constexpr int SCREEN_CRC_COUNT = 5;
+	constexpr int SCREEN_MAX_CRC_BRIGHTNESS_ERROR = 1;
+	constexpr int SCREEN_MAX_COLOR_NOISE_ERROR = 8;
+	constexpr int SCREEN_SAMPLES_PER_BOARD = (SCREEN_BLOCKS_X / 2) * (SCREEN_BLOCKS_Y - SCREEN_CRC_LINES);
 	const int SCREEN_LAST_BOARD_INDEX = std::pow(SCREEN_COLOR_DIMENSION, 3) / SCREEN_SAMPLES_PER_BOARD;
 
 	int indexToColorAndPos(int index, byte3& color, int2& position);

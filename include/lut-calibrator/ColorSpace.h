@@ -140,17 +140,17 @@ namespace ColorSpaceMath
 		return retMat;
 	};
 
-	double3 xyz_to_lab(double3 xyz);
+	double3 xyz_to_lab(const double3& xyz);
 
-	double3 lab_to_xyz(double3 lab);
+	double3 lab_to_xyz(const double3& lab);
 
-	double3 lab_to_lch(double3 lab);
+	double3 lab_to_lch(const double3& lab);
 
 	double3 lch_to_lab(double3 lch);
 
-	double3 xyz_to_lch(double3 xyz);
+	double3 xyz_to_lch(const double3& xyz);
 
-	double3 lch_to_xyz(double3 lch);
+	double3 lch_to_xyz(const double3& lch);
 
 	double3 rgb2hsv(double3 rgb);
 

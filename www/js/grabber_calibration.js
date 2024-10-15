@@ -43,8 +43,8 @@ $(document).ready( function(){
 			running = true;			
 			startCalibrationWizard();
 			const calDebug = document.getElementById('chk_debug').checked;
-			const calDetailedCalibration = document.getElementById('chk_detailedcalibration').checked;
-			requestLutCalibration("capture", calDebug, calDetailedCalibration);
+			const calLchCorrection = document.getElementById('chk_lchCorrection').checked;
+			requestLutCalibration("capture", calDebug, calLchCorrection);
 	});
 
 
@@ -213,8 +213,8 @@ $(document).ready( function(){
 			drawImage();		
 			setTimeout(() => {
 				const calDebug = document.getElementById('chk_debug2').checked;
-				const calDetailedCalibration = document.getElementById('chk_detailedcalibration2').checked;
-				requestLutCalibration("capture", calDebug, calDetailedCalibration);				
+				const calLchCorrection = document.getElementById('chk_lchCorrection2').checked;
+				requestLutCalibration("capture", calDebug, calLchCorrection);				
 			}, 100); 
 		}
 		else

@@ -42,9 +42,13 @@
 
 class CapturedColor
 {
+public:
+	enum LchPrimaries { NONE, LOW, HIGH };
+
 private:
 	int totalSamples = 0;
 	int3 sourceRGB;
+	double3 sourceLch;
 	std::list<byte3> finalRGB;
 	double3	color;
 	std::list<std::pair<byte3, int>> inputColors;
@@ -52,12 +56,15 @@ private:
 	std::list<std::pair<double3, int>> sortedInputYuvColors;
 	byte3 min, max;
 	byte3 colorInt;
+	byte3 arrayCoords;
+	LchPrimaries lchPrimary = LchPrimaries::NONE;
 
 public:
 	CapturedColor() = default;
 
 	const double& y() const { return color.x; }
 	const double3& yuv() const { return color; }
+	const byte3& coords() const { return arrayCoords; }	
 
 	const uint8_t& Y() const { return colorInt.x; }
 	const uint8_t& U() const { return colorInt.y; }
@@ -71,10 +78,13 @@ public:
 	std::list<std::pair<double3, int>> getInputYuvColors() const;
 	void addColor(ColorRgb i);
 	void addColor(const byte3& i);
+	void setCoords(const byte3& i);
 	void setSourceRGB(byte3 _color);
 	int getSourceError(const int3& _color) const;
 	int3 getSourceRGB() const;
 	void setFinalRGB(byte3 input);
+	LchPrimaries isLchPrimary(double3* _lchCoords) const;
+
 	std::list<byte3> getFinalRGB() const;
 
 	QString toString();

@@ -19,9 +19,9 @@
 			"type" : "boolean",
 			"required" : false
 		},
-		"detailed_calibration": {
+		"lch_correction": {
 			"type" : "boolean",
-			"required" : false
+			"required" : true
 		}
 	},
 	"additionalProperties": false

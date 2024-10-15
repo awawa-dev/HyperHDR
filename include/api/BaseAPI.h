@@ -18,12 +18,12 @@ public:
 
 	struct ImageCmdData
 	{
-		int priority;
+		int priority = 0;
 		QString origin;
-		int64_t duration;
-		int width;
-		int height;
-		int scale;
+		int64_t duration = 0;
+		int width = 0;
+		int height = 0;
+		int scale = 0;
 		QString format;
 		QString imgName;
 		QString imagedata;

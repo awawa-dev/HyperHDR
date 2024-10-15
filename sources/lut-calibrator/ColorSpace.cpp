@@ -283,7 +283,7 @@ namespace ColorSpaceMath
 	}
 
 
-	double3 xyz_to_lab(double3 xyz)
+	double3 xyz_to_lab(const double3& xyz)
 	{
 		double x = xyz.x / 95.047;
 		double y = xyz.y / 100.00;
@@ -293,14 +293,14 @@ namespace ColorSpaceMath
 		y = (y > 0.008856) ? std::cbrt(y) : (7.787 * y + 16.0 / 116.0);
 		z = (z > 0.008856) ? std::cbrt(z) : (7.787 * z + 16.0 / 116.0);
 
-		return double3(
+		return double3{
 			(116.0 * y) - 16,
 			500 * (x - y),
 			200 * (y - z)
-		);
+		};
 	}
 
-	double3 lab_to_xyz(double3 lab)
+	double3 lab_to_xyz(const double3& lab)
 	{
 		double y = (lab.x + 16.0) / 116.0;
 		double x = lab.y / 500.0 + y;
@@ -310,18 +310,18 @@ namespace ColorSpaceMath
 		double y3 = std::pow(y, 3);
 		double z3 = std::pow(z, 3);
 
-		return double3(
+		return double3{
 			x = ((x3 > 0.008856) ? x3 : ((x - 16.0 / 116.0) / 7.787)) * 95.047,
 			y = ((y3 > 0.008856) ? y3 : ((y - 16.0 / 116.0) / 7.787)) * 100.0,
 			z = ((z3 > 0.008856) ? z3 : ((z - 16.0 / 116.0) / 7.787)) * 108.883
-		);
+		};
 	}
 
-	double3 lab_to_lch(double3 lab)
+	double3 lab_to_lch(const double3& lab)
 	{
-		auto l = lab.x;
-		auto a = lab.y;
-		auto b = lab.z;
+		const auto& l = lab.x;
+		const auto& a = lab.y;
+		const auto& b = lab.z;
 
 		const auto c = std::sqrt(std::pow(a, 2) + std::pow(b, 2));
 
@@ -336,7 +336,7 @@ namespace ColorSpaceMath
 			h = 360.0 - (std::abs(h) / M_PI) * 180.0;
 		}
 
-		return double3(l, c, h);
+		return double3{ l, c, h };
 	}
 
 	double3 lch_to_lab(double3 lch)
@@ -348,22 +348,20 @@ namespace ColorSpaceMath
 
 		double h = lch.z * M_PI / 180.0;
 
-		return double3(
+		return double3{
 			lch.x,
 			std::cos(h) * lch.y,
-			std::sin(h) * lch.y);
+			std::sin(h) * lch.y };
 	}
 
-	double3 xyz_to_lch(double3 xyz)
+	double3 xyz_to_lch(const double3& xyz)
 	{
-		xyz = xyz_to_lab(xyz);
-		return lab_to_lch(xyz);
+		return lab_to_lch(xyz_to_lab(xyz));
 	}
 
-	double3 lch_to_xyz(double3 lch)
+	double3 lch_to_xyz(const double3& lch)
 	{
-		lch = lch_to_lab(lch);
-		return lab_to_xyz(lch);
+		return lab_to_xyz(lch_to_lab(lch));
 	}
 
 	byte3 to_byte3(const double3& v)

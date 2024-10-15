@@ -997,11 +997,11 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 	}
 	
 	bool debug = message["debug"].toBool(false);
-	bool detailedCalibration = message["detailed_calibration"].toBool(false);
+	bool lchCorrection = message["lch_correction"].toBool(false);
 	sendSuccessReply(command, tan);
 
 	if (subcommand == "capture")
-		_lutCalibrator->startHandler(_instanceManager->getRootPath(), getActiveComponent(), debug, detailedCalibration);
+		_lutCalibrator->startHandler(_instanceManager->getRootPath(), getActiveComponent(), debug, lchCorrection);
 	else
 		_lutCalibrator->stopHandler();	
 }

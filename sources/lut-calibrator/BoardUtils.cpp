@@ -437,6 +437,13 @@ namespace BoardUtils
 		_yShift = (limited) ? (16.0 / 255.0) : 0;
 		_downYLimit = all[0][0][0].y();
 		_upYLimit = all[SCREEN_COLOR_DIMENSION - 1][SCREEN_COLOR_DIMENSION - 1][SCREEN_COLOR_DIMENSION - 1].y();
+
+		for (int r = 0; r < SCREEN_COLOR_DIMENSION; r++)
+			for (int g = 0; g < SCREEN_COLOR_DIMENSION; g++)
+				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
+				{
+					all[r][g][b].setCoords(byte3(r, g, b));
+				}
 	}
 
 	void CapturedColors::correctYRange(double3& yuv, double yRange, double upYLimit, double downYLimit, double yShift)

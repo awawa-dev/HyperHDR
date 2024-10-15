@@ -139,7 +139,8 @@ MFWorker::MFWorker() :
 	_frameBegin(0),
 	_hdrToneMappingEnabled(0),
 	_lutBuffer(nullptr),
-	_qframe(false)
+	_qframe(false),
+	_directAccess(false)
 {
 
 }
