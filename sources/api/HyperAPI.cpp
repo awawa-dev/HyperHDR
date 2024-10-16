@@ -525,7 +525,6 @@ void HyperAPI::handleCropCommand(const QJsonObject& message, const QString& comm
 
 void HyperAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
 	
@@ -990,7 +989,7 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 {
 	QString subcommand = message["subcommand"].toString("");
 
-	if (_lutCalibratorThread == nullptr && subcommand == "capture")
+	if (subcommand == "capture")
 	{
 		bool debug = message["debug"].toBool(false);
 		bool lchCorrection = message["lch_correction"].toBool(false);

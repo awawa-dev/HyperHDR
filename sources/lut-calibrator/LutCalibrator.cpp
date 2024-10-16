@@ -642,6 +642,11 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 	{
 		e = srgb_nonlinear_to_linear(a);
 	}
+	else if (gamma == HDR_GAMMA::PQinSRGB)
+	{
+		a = srgb_linear_to_nonlinear(a);
+		e = PQ_ST2084(10000.0 / nits, a);
+	}
 
 
 	if (gamma != HDR_GAMMA::sRGB)
@@ -756,7 +761,6 @@ void CalibrationWorker::run()
 {
 	constexpr int MAX_HINT = std::numeric_limits<int>::max() / 2.0;
 	constexpr double MAX_HDOUBLE = std::numeric_limits<double>::max() / 2.0;
-	constexpr auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
 
 	printf("Starter thread: %i. Range: [%i - %i)\n", id, krIndexStart, krIndexEnd);
 
@@ -815,11 +819,9 @@ void CalibrationWorker::run()
 									for (auto v = vertex.begin(); v != vertex.end(); ++v)
 									{
 										auto& sample = *(*v).first;
-										const auto& index = sample.coords();
 
 										auto minError = MAX_CALIBRATION_ERROR;
 										auto sampleList = sample.getInputYuvColors();
-										bool gotSample = false;
 
 										for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
 										{
@@ -1015,7 +1017,7 @@ void  LutCalibrator::fineTune(bool precise)
 	sampleColors[SampleColor::LOW_GREEN] = (std::pair<double3, byte2>(sampleGreenLow.getInputYuvColors().front().first, byte2{ sampleGreenLow.U(), sampleGreenLow.V() }));
 	sampleColors[SampleColor::LOW_BLUE] = (std::pair<double3, byte2>(sampleBlueLow.getInputYuvColors().front().first, byte2{ sampleBlueLow.U(), sampleBlueLow.V() }));
 
-	for (int gamma = (precise) ? bestResult->gamma : HDR_GAMMA::PQ; gamma <= HDR_GAMMA::BT2020inSRGB; gamma++)
+	for (int gamma = (precise) ? bestResult->gamma : HDR_GAMMA::PQ; gamma <= HDR_GAMMA::PQinSRGB; gamma++)
 	{
 		std::vector<double> gammasHLG;
 			
@@ -1036,6 +1038,10 @@ void  LutCalibrator::fineTune(bool precise)
 		if (gamma == HDR_GAMMA::PQ)
 		{
 			NITS = 10000.0 * PQ_ST2084(1.0, maxLevel);
+		}
+		else if (gamma == HDR_GAMMA::PQinSRGB)
+		{
+			NITS = 10000.0 * PQ_ST2084(1.0, srgb_linear_to_nonlinear(maxLevel));
 		}
 
 		for (double gammaHLG : gammasHLG)
@@ -1228,7 +1234,6 @@ void LutCalibrator::calibration()
 static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
 	QStringList info, intro;
-	const int SCALE = SCREEN_COLOR_DIMENSION - 1;
 	std::list<MappingPrime> mHigh;
 	std::list<MappingPrime> mLow;
 
@@ -1489,6 +1494,11 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 		{
 			a = srgb_nonlinear_to_linear(a);
 		}
+		else if (gamma == HDR_GAMMA::PQinSRGB)
+		{
+			a = srgb_linear_to_nonlinear(a);
+			a = PQ_ST2084(10000.0 / nits, a);
+		}
 		actualPrimaries.push_back(a);
 	}
 
@@ -1570,7 +1580,7 @@ bool LutCalibrator::setTestData()
 
 				const auto& colors = (*iter);
 
-				for (int i = 0; i < colors.size(); i += 4)
+				for (int i = 0; i < static_cast<int>(colors.size()); i += 4)
 				{
 					for (int j = 0; j < colors[i]; j++)
 					{

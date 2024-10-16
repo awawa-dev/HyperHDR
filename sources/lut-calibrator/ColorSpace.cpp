@@ -74,6 +74,8 @@ namespace ColorSpaceMath
 			return "sRGB";
 		else if (gamma == HDR_GAMMA::BT2020inSRGB)
 			return "BT2020 with sRGB TRC";
+		else if (gamma == HDR_GAMMA::PQinSRGB)
+			return "PQ in SRGB";
 		return "UNKNOWN";
 	}
 
@@ -453,7 +455,7 @@ namespace ColorSpaceMath
 		return DBL_MAX;
 	}
 
-	constexpr double maxLenInColorspace
+	double maxLenInColorspace
 	(const std::vector<double2>& primaries,
 		const double cos_angle,
 		const double sin_angle)
