@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef PCH_ENABLED
+	#include <QThread>
+	#include <memory>
+#endif
+
 #include <base/HyperHdrInstance.h>
 #include <base/HyperHdrManager.h>
 #include <base/AccessManager.h>
@@ -122,6 +127,7 @@ protected:
 	std::shared_ptr<GrabberHelper> _systemGrabber;
 	std::shared_ptr<PerformanceCounters> _performanceCounters;
 	std::shared_ptr<DiscoveryWrapper> _discoveryWrapper;
+	std::unique_ptr<QThread, std::function<void(QThread*)>> _lutCalibratorThread;
 
 	struct {
 		bool	init = false;

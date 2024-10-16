@@ -40,7 +40,7 @@
 #include <image/MemoryBuffer.h>
 #include <image/Image.h>
 #include <utils/Components.h>
-
+#include <atomic>
 
 class Logger;
 class GrabberWrapper;
@@ -68,7 +68,8 @@ class LutCalibrator : public QObject
 	Q_OBJECT
 
 public:
-	LutCalibrator();
+	LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection);
+	~LutCalibrator();
 	static void sendReport(Logger* _log, QString report);
 	static QString CreateLutFile(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all);
 
@@ -76,20 +77,21 @@ signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);
 
 public slots:
-	void startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection);
+	void startHandler();
 	void stopHandler();
 	void setVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void setSystemImage(const QString& name, const Image<ColorRgb>& image);
 	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin);
 	void calibrate();
+	void cancelCalibrationSafe();
+	void notifyCalibrationMessage(QString message, bool started = false);
 
 private:
 	void fineTune(bool precise);
 	void printReport();
 	QString generateReport(bool full);
 	bool set1to1LUT();
-	void notifyCalibrationFinished();
-	void notifyCalibrationMessage(QString message, bool started = false);
+	void notifyCalibrationFinished();	
 	void error(QString message);
 	void handleImage(const Image<ColorRgb>& image);
 	void calibration();
@@ -105,4 +107,6 @@ private:
 	QString _rootPath;
 	bool	_debug;
 	bool	_lchCorrection;
+	hyperhdr::Components _defaultComp;
+	std::atomic<bool> _forcedExit;
 };

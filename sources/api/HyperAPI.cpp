@@ -990,20 +990,36 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 {
 	QString subcommand = message["subcommand"].toString("");
 
-	if (_lutCalibrator == nullptr)
+	if (_lutCalibratorThread == nullptr && subcommand == "capture")
 	{
-		sendErrorReply("Please refresh the page and start again", command + "-" + subcommand, tan);
+		bool debug = message["debug"].toBool(false);
+		bool lchCorrection = message["lch_correction"].toBool(false);
+
+		QThread* lutThread = new QThread();
+		LutCalibrator* lutCalibrator = new LutCalibrator(_instanceManager->getRootPath(), getActiveComponent(), debug, lchCorrection);
+		lutCalibrator->moveToThread(lutThread);
+		connect(lutThread, &QThread::finished, lutCalibrator, &LutCalibrator::deleteLater);
+		connect(lutThread, &QThread::started, lutCalibrator, &LutCalibrator::startHandler);		
+		connect(lutCalibrator, &LutCalibrator::SignalLutCalibrationUpdated, this, &CallbackAPI::lutCalibrationUpdateHandler);
+		
+		_lutCalibratorThread = std::unique_ptr<QThread, std::function<void(QThread*)>>(lutThread,
+			[lutCalibrator](QThread* mqttThread) {
+				lutCalibrator->cancelCalibrationSafe();
+				THREAD_REMOVER(QString("LutCalibrator"), mqttThread, lutCalibrator);
+			});
+		_lutCalibratorThread->start();
+	}
+	else if (_lutCalibratorThread != nullptr && subcommand == "stop")
+	{
+		_lutCalibratorThread = nullptr;
+	}
+	else
+	{
+		sendErrorReply("The command does not have any effect", command + "-" + subcommand, tan);
 		return;
 	}
 	
-	bool debug = message["debug"].toBool(false);
-	bool lchCorrection = message["lch_correction"].toBool(false);
 	sendSuccessReply(command, tan);
-
-	if (subcommand == "capture")
-		_lutCalibrator->startHandler(_instanceManager->getRootPath(), getActiveComponent(), debug, lchCorrection);
-	else
-		_lutCalibrator->stopHandler();	
 }
 
 void HyperAPI::handleInstanceCommand(const QJsonObject& message, const QString& command, int tan)

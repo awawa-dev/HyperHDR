@@ -55,8 +55,7 @@
 #include <utils-image/utils-image.h>
 #include <linalg.h>
 #include <fstream>
-#include <atomic>
-
+#include <lut-calibrator/CalibrationWorker.h>
 
 using namespace linalg;
 using namespace aliases;
@@ -72,132 +71,8 @@ using namespace BoardUtils;
 /////////////////////////////////////////////////////////////////
 struct MappingPrime;
 
-struct BestResult
-{
-	YuvConverter::YUV_COEFS coef = YuvConverter::YUV_COEFS::BT601;
-	double4x4	coefMatrix;
-	double2		coefDelta;
-	int			coloredAspectMode = 0;
-	std::pair<double3, double3> colorAspect;
-	double3		aspect;
-	int			bt2020Range = 0;
-	int			altConvert = 0;
-	double3x3	altPrimariesToSrgb;
-	ColorSpaceMath::HDR_GAMMA gamma = ColorSpaceMath::HDR_GAMMA::PQ;
-	double		gammaHLG = 0;
-	double		nits = 0;
-	bool		lchEnabled = false;
-	std::pair<std::list<double4>, std::list<double4>> lchPrimaries;
-
-	struct Signal
-	{
-		YuvConverter::COLOR_RANGE range = YuvConverter::COLOR_RANGE::FULL;
-		double yRange = 0;
-		double upYLimit = 0;
-		double downYLimit = 0;
-		double yShift = 0;
-	} signal;
-
-	long long int minError = MAX_CALIBRATION_ERROR;
-
-	void serializePrimaries(std::stringstream& out) const
-	{
-		for (const auto& p : { lchPrimaries.first, lchPrimaries.second })
-		{
-			out << std::endl << "\t\t\tstd::list<double4>{" << std::endl << "\t\t\t\t";
-			for(const auto& v : p)
-			{
-				out << "double4";  ColorSpaceMath::serialize(out, v); out << ", ";
-			}
-			out << std::endl << "\t\t\t}," << std::endl;
-		}
-	}
-
-	void serialize(std::stringstream& out) const
-	{
-		out.precision(12);
-		out << "/*" << std::endl;
-		out << "BestResult bestResult;" << std::endl;
-		out << "bestResult.coef = YuvConverter::YUV_COEFS(" << std::to_string(coef) << ");" << std::endl;
-		out << "bestResult.coefMatrix = double4x4"; ColorSpaceMath::serialize(out, coefMatrix); out << ";" << std::endl;
-		out << "bestResult.coefDelta = double2"; ColorSpaceMath::serialize(out, coefDelta); out << ";" << std::endl;
-		out << "bestResult.coloredAspectMode = " << std::to_string(coloredAspectMode) << ";" << std::endl;
-		out << "bestResult.colorAspect = std::pair<double3, double3>(double3";  ColorSpaceMath::serialize(out, colorAspect.first); out << ", double3";  ColorSpaceMath::serialize(out, colorAspect.second);  out << ");" << std::endl;
-		out << "bestResult.aspect = double3";  ColorSpaceMath::serialize(out, aspect); out << ";" << std::endl;
-		out << "bestResult.bt2020Range = " << std::to_string(bt2020Range) << ";" << std::endl;
-		out << "bestResult.altConvert = " << std::to_string(altConvert) << ";" << std::endl;
-		out << "bestResult.altPrimariesToSrgb = double3x3"; ColorSpaceMath::serialize(out, altPrimariesToSrgb); out << ";" << std::endl;
-		out << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << std::to_string(gamma) << ");" << std::endl;
-		out << "bestResult.gammaHLG = " << std::to_string(gammaHLG) << ";" << std::endl;
-		out << "bestResult.lchEnabled = " << std::to_string(lchEnabled) << ";" << std::endl;
-		out << "bestResult.lchPrimaries = std::pair<std::list<double4>, std::list<double4>>{"; serializePrimaries(out) ; out << "\t\t};" << std::endl;
-		out << "bestResult.nits = " << std::to_string(nits) << ";" << std::endl;
-		out << "bestResult.signal.range = YuvConverter::COLOR_RANGE(" << std::to_string(signal.range) << ");" << std::endl;
-		out << "bestResult.signal.yRange = " << std::to_string(signal.yRange) << ";" << std::endl;
-		out << "bestResult.signal.upYLimit = " << std::to_string(signal.upYLimit) << ";" << std::endl;
-		out << "bestResult.signal.downYLimit = " << std::to_string(signal.downYLimit) << ";" << std::endl;
-		out << "bestResult.signal.yShift = " << std::to_string(signal.yShift) << ";" << std::endl;
-		out << "bestResult.minError = " << std::to_string(std::round(minError * 100.0)/300000.0) << ";" << std::endl;
-		out << "*/" << std::endl;
-	}
-};
 
 enum SampleColor { RED = 0, GREEN, BLUE, LOW_RED, LOW_GREEN, LOW_BLUE };
-
-class CalibrationWorker : public QRunnable
-{
-	BestResult bestResult;
-	YuvConverter* yuvConverter;
-	const int id;
-	const int krIndexStart;
-	const int krIndexEnd;
-	const int halfKDelta;
-	const bool precise;
-	const int coef;
-	const std::vector<std::pair<double3, byte2>>& sampleColors;
-	const int gamma;
-	const double gammaHLG;
-	const double NITS;
-	const double3x3& bt2020_to_sRgb;
-	std::list<std::pair<CapturedColor*, double3>> vertex;
-	std::atomic<long long int>& weakBestScore;
-	const bool lchCorrection;
-public:
-	CalibrationWorker(BestResult* _bestResult, std::atomic<long long int>& _weakBestScore, YuvConverter* _yuvConverter, const int _id, const int _krIndexStart, const int _krIndexEnd, const int _halfKDelta, const bool _precise, const int _coef,
-		const std::vector<std::pair<double3, byte2>>& _sampleColors, const int _gamma, const double _gammaHLG, const double _NITS, const double3x3& _bt2020_to_sRgb,
-		const std::list<CapturedColor*>& _vertex, const bool _lchCorrection) :		
-		yuvConverter(_yuvConverter),
-		id(_id),
-		krIndexStart(_krIndexStart),
-		krIndexEnd(_krIndexEnd),
-		halfKDelta(_halfKDelta),
-		precise(_precise),
-		coef(_coef),
-		sampleColors(_sampleColors),
-		gamma(_gamma),
-		gammaHLG(_gammaHLG),
-		NITS(_NITS),
-		bt2020_to_sRgb(_bt2020_to_sRgb),
-		weakBestScore(_weakBestScore),
-		lchCorrection(_lchCorrection)
-	{
-		bestResult = *_bestResult;
-		this->setAutoDelete(false);
-		for (auto& v : _vertex)
-		{
-			vertex.push_back(std::pair<CapturedColor*, double3>(v, double3{}));
-		}
-	};
-
-	void run() override;
-	void getBestResult(BestResult* otherScore) const
-	{
-		if (otherScore->minError > bestResult.minError)
-		{
-			(*otherScore) = bestResult;
-		}
-	};
-};
 
 class CreateLutWorker : public QRunnable
 {
@@ -224,13 +99,30 @@ public:
 //                      LUT CALIBRATOR                         //
 /////////////////////////////////////////////////////////////////
 
-LutCalibrator::LutCalibrator()
+LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection)
 {
 	_log = Logger::getInstance("CALIBRATOR");
 	_capturedColors = std::make_shared<CapturedColors>();
 	_yuvConverter = std::make_shared<YuvConverter>();
-	_debug = true;
-	_lchCorrection = true;
+
+	
+	_rootPath = rootpath;
+	_debug = debug;
+	_lchCorrection = lchCorrection;
+	_defaultComp = defaultComp;
+	_forcedExit = false;
+}
+
+LutCalibrator::~LutCalibrator()
+{
+	Info(_log, "The calibration object is deleted");
+}
+
+
+void LutCalibrator::cancelCalibrationSafe()
+{
+	_forcedExit = true;
+	AUTO_CALL_0(this, stopHandler);
 }
 
 void LutCalibrator::error(QString message)
@@ -342,7 +234,7 @@ void LutCalibrator::notifyCalibrationFinished()
 {	
 	QJsonObject report;
 	report["finished"] = true;
-	SignalLutCalibrationUpdated(report);
+	emit SignalLutCalibrationUpdated(report);
 }
 
 void LutCalibrator::notifyCalibrationMessage(QString message, bool started)
@@ -353,7 +245,7 @@ void LutCalibrator::notifyCalibrationMessage(QString message, bool started)
 	{
 		report["start"] = true;
 	}
-	SignalLutCalibrationUpdated(report);
+	emit SignalLutCalibrationUpdated(report);
 }
 
 bool LutCalibrator::set1to1LUT()
@@ -404,12 +296,8 @@ void LutCalibrator::sendReport(Logger* _log, QString report)
 	Debug(_log, REPORT_TOKEN "%s\r\n", QSTRING_CSTR(list.join("\r\n")));
 }
 
-void LutCalibrator::startHandler(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection)
+void LutCalibrator::startHandler()
 {
-	_rootPath = rootpath;
-	_debug = debug;
-	_lchCorrection = lchCorrection;
-
 	stopHandler();
 
 	_capturedColors.reset();
@@ -433,14 +321,14 @@ void LutCalibrator::startHandler(QString rootpath, hyperhdr::Components defaultC
 		return;
 	}				
 
-	if (defaultComp == hyperhdr::COMP_VIDEOGRABBER)
+	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
 		auto message = "Using video grabber as a source<br/>Waiting for first captured test board..";
 		notifyCalibrationMessage(message);
 		Debug(_log, message);
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
 	}
-	else if (defaultComp == hyperhdr::COMP_SYSTEMGRABBER)
+	else if (_defaultComp == hyperhdr::COMP_SYSTEMGRABBER)
 	{
 		auto message = "Using system grabber as a source<br/>Waiting for first captured test board..";
 		notifyCalibrationMessage(message);
@@ -462,6 +350,12 @@ void LutCalibrator::stopHandler()
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &LutCalibrator::setVideoImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalImage, this, &LutCalibrator::signalSetGlobalImageHandler);
 	_lut.releaseMemory();
+
+	if (_forcedExit)
+	{
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
+	}
 }
 
 void LutCalibrator::setVideoImage(const QString& name, const Image<ColorRgb>& image)
@@ -652,7 +546,7 @@ void doToneMapping(const std::pair<std::list<double4>, std::list<double4>>& m, d
 
 
 	double max = std::max(linalg::maxelem(pLow), linalg::maxelem(pHigh));
-	double lenLow = std::abs(0.5 - max);
+	double lenLow = std::abs((128.0/255.0) - max);
 	double lenHigh = std::abs(1.0 - max);
 	double aspectHigh = (1.0 - lenHigh / (lenLow + lenHigh));
 
@@ -869,6 +763,19 @@ void CalibrationWorker::run()
 	for (int krIndex = krIndexStart; krIndex < std::min(krIndexEnd, (halfKDelta * 2) + 1); krIndex++)
 	for (int kbIndex = 0; kbIndex <= 2 * halfKDelta; kbIndex ++)
 	{
+		if (!precise)
+		{
+			QString gammaString = ColorSpaceMath::gammaToString(HDR_GAMMA(gamma));
+			QString coefString = yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef));
+			if (HDR_GAMMA(gamma) == ColorSpaceMath::HDR_GAMMA::HLG)
+				gammaString += QString(" %1").arg(gammaHLG);
+			emit notifyCalibrationMessage(QString("First phase progress<br/>Gamma: %1<br/>Coef: %2<br/>%3/289").arg(gammaString).arg(coefString).arg(++progress), false);
+		}
+		else
+		{
+			emit notifyCalibrationMessage(QString("Second phase progress:<br/>%1/1089").arg(++progress), false);
+		}
+
 		double2 kDelta = double2(((krIndex <= halfKDelta) ? -krIndex : krIndex - halfKDelta),
 				((kbIndex <= halfKDelta) ? -kbIndex : kbIndex - halfKDelta)) * ((precise) ? 0.002 : 0.004);
 
@@ -879,6 +786,7 @@ void CalibrationWorker::run()
 			for (int altConvert = (precise) ? bestResult.altConvert : 0; altConvert <= 1; altConvert += (precise) ? MAX_HINT : 1)
 				for (int tryBt2020Range = (precise) ? bestResult.bt2020Range : 0; tryBt2020Range <= 1; tryBt2020Range += (precise) ? MAX_HINT : 1)
 					for (double aspectX = 0.985; aspectX <= 1.0151; aspectX += ((precise) ? 0.0025 : 0.0025 * 2.0))
+					{
 						for (double aspectYZ = 1.0; aspectYZ <= 1.2101; aspectYZ += ((precise) ? MAX_HDOUBLE : 0.005 * 2.0))
 							for (double aspectY = bestResult.aspect.y - 0.02; aspectY <= bestResult.aspect.y + 0.021; aspectY += (precise) ? 0.005 : MAX_HDOUBLE)
 								for (double aspectZ = bestResult.aspect.z - 0.02; aspectZ <= bestResult.aspect.z + 0.021; aspectZ += (precise) ? 0.005 : MAX_HDOUBLE)
@@ -1015,6 +923,12 @@ void CalibrationWorker::run()
 											QSTRING_CSTR(vecToString(aspect)));
 									}
 								}
+						if (forcedExit)
+						{
+							printf("User terminated thread: %i\n", id);
+							return;
+						}
+					}
 	}
 
 	if (bestResult.minError < MAX_CALIBRATION_ERROR)
@@ -1150,13 +1064,15 @@ void  LutCalibrator::fineTune(bool precise)
 				const int krDelta = std::ceil((halfKDelta * 2.0) / QThreadPool::globalInstance()->maxThreadCount());
 
 				QList<CalibrationWorker*> workers;
-				int index = 0;				
+				int index = 0;
+				std::atomic<int> progress = 0;
 
 				for (int krIndexStart = 0; krIndexStart <= halfKDelta * 2; krIndexStart += krDelta)
 				{
-					auto worker = new CalibrationWorker(bestResult.get(), weakBestScore, _yuvConverter.get(), index++, krIndexStart, krIndexStart + krDelta, halfKDelta, precise, coef, sampleColors, gamma, gammaHLG, NITS, bt2020_to_sRgb, vertex, _lchCorrection);
+					auto worker = new CalibrationWorker(bestResult.get(), weakBestScore, _yuvConverter.get(), index++, krIndexStart, krIndexStart + krDelta, halfKDelta, precise, coef, sampleColors, gamma, gammaHLG, NITS, bt2020_to_sRgb, vertex, _lchCorrection, _forcedExit, progress);
 					workers.push_back(worker);
 					QThreadPool::globalInstance()->start(worker);
+					connect(worker, &CalibrationWorker::notifyCalibrationMessage, this, &LutCalibrator::notifyCalibrationMessage, Qt::DirectConnection);
 				}
 				QThreadPool::globalInstance()->waitForDone();
 
@@ -1168,12 +1084,12 @@ void  LutCalibrator::fineTune(bool precise)
 				qDeleteAll(workers);
 				workers.clear();
 
-				if (precise)
+				if (precise || _forcedExit)
 					break;
 			}			
 		}
 
-		if (precise)
+		if (precise || _forcedExit)
 			break;
 	}
 }
@@ -1185,7 +1101,15 @@ void LutCalibrator::calibration()
 {
 	// calibration
 	auto totalTime = InternalClock::now();
+
 	fineTune(false);
+
+	if (_forcedExit)
+	{
+		error("User terminated calibration");
+		return;
+	}
+
 	totalTime = InternalClock::now() - totalTime;
 
 	if (bestResult->minError >= MAX_CALIBRATION_ERROR)
@@ -1194,9 +1118,16 @@ void LutCalibrator::calibration()
 		return;
 	}
 
+	// fine tuning
 	auto totalTime2 = InternalClock::now();
 
 	fineTune(true);
+
+	if (_forcedExit)
+	{
+		error("User terminated calibration");
+		return;
+	}
 
 	totalTime2 = InternalClock::now() - totalTime2;
 	
@@ -1243,6 +1174,9 @@ void LutCalibrator::calibration()
 		Error(_log, "Could not save captured colors to: %s", QSTRING_CSTR(fileLogName));
 	}
 
+	// create LUT
+	notifyCalibrationMessage("Writing final LUT...");
+
 	_lut.releaseMemory();
 
 	auto totalTime3 = InternalClock::now();
@@ -1287,7 +1221,6 @@ void LutCalibrator::calibration()
 
 	// reload LUT
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
-	QThread::msleep(500);
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
 }
 
@@ -1517,6 +1450,9 @@ void LutCalibrator::calibrate()
 				generateReport(false));
 
 	calibration();
+
+	if (_forcedExit)
+		return;
 
 	sendReport(_log, "Calibrated:\r\n" +
 		generateReport(true));
