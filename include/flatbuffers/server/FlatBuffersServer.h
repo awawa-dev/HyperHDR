@@ -37,6 +37,7 @@ signals:
 	void SignalImportFromProto(int priority, int duration, const Image<ColorRgb>& image, QString clientDescription);
 
 public slots:
+	void handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen);
 	void signalSetLutHandler(MemoryBuffer<uint8_t>* lut);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 	void initServer();
@@ -72,4 +73,5 @@ private:
 	PixelFormat	_currentLutPixelFormat;
 	int			_flatbufferToneMappingMode;
 	bool		_quarterOfFrameMode;
+	bool		_active;
 };

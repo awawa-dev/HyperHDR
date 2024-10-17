@@ -44,6 +44,8 @@ public:
 	bool areInstancesReady();
 
 public slots:
+	void handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen);
+
 	void setSmoothing(int time);
 
 	void setSignalStateByCEC(bool enable);

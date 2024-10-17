@@ -34,8 +34,26 @@ FlatBuffersServer::FlatBuffersServer(std::shared_ptr<NetOrigin> netOrigin, const
 	, _currentLutPixelFormat(PixelFormat::RGB24)
 	, _flatbufferToneMappingMode(0)
 	, _quarterOfFrameMode(false)
+	, _active(false)
 {
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &FlatBuffersServer::signalSetLutHandler, Qt::BlockingQueuedConnection);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &FlatBuffersServer::handleRequestComponent);
+}
+
+void FlatBuffersServer::handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen)
+{
+	if (component == hyperhdr::Components::COMP_FLATBUFSERVER && hyperHdrInd == -1 && _active)
+	{
+		Warning(_log, "Global request to %s FlatBuffersServer", (listen) ? "resume" : "pause");
+		if (listen)
+		{
+			startServer();
+		}
+		else
+		{
+			stopServer();
+		}
+	}
 }
 
 FlatBuffersServer::~FlatBuffersServer()
@@ -123,7 +141,15 @@ void FlatBuffersServer::handleSettingsUpdate(settings::type type, const QJsonDoc
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
 		// enable check
-		obj["enable"].toBool(true) ? startServer() : stopServer();
+		_active = obj["enable"].toBool(true);
+		if (_active)
+		{
+			startServer();
+		}
+		else
+		{
+			stopServer();
+		}
 
 		_quarterOfFrameMode = obj["quarterOfFrameMode"].toBool(false);
 

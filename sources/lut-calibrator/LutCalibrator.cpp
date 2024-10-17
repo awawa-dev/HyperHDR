@@ -335,12 +335,16 @@ void LutCalibrator::startHandler()
 		Debug(_log, message);
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &LutCalibrator::setSystemImage, Qt::ConnectionType::UniqueConnection);
 	}
-	else
+	else if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
 	{
 		auto message = "Using flatbuffers/protobuffers as a source<br/>Waiting for first captured test board..";
 		notifyCalibrationMessage(message);
 		Debug(_log, message);
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalImage, this, &LutCalibrator::signalSetGlobalImageHandler, Qt::ConnectionType::UniqueConnection);
+	}
+	else
+	{
+		error(QString("Cannot use '%1' as a video source for calibration").arg(hyperhdr::componentToString(_defaultComp)));
 	}
 }
 
@@ -355,6 +359,15 @@ void LutCalibrator::stopHandler()
 	{
 		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
 		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
+
+		if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
+		{
+			emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);
+		}
+		if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
+		{
+			emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_FLATBUFSERVER, -1, true);
+		}
 	}
 }
 
@@ -946,7 +959,7 @@ void  LutCalibrator::fineTune(bool precise)
 	const auto white = _capturedColors->all[MAX_IND][MAX_IND][MAX_IND].Y();
 	double NITS = 0.0;
 	double maxLevel = 0.0;
-	std::atomic<long long int> weakBestScore = MAX_CALIBRATION_ERROR;
+	std::atomic<int> weakBestScore = MAX_CALIBRATION_ERROR;
 
 	// prepare vertexes
 	std::list<CapturedColor*> vertex, masterVertex;
@@ -1228,6 +1241,15 @@ void LutCalibrator::calibration()
 	// reload LUT
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
+
+	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
+	{
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);	
+	}
+	if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
+	{
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_FLATBUFSERVER, -1, true);
+	}
 }
 
 
@@ -1446,6 +1468,15 @@ void LutCalibrator::calibrate()
 	#ifndef NDEBUG
 		sendReport(_log, _yuvConverter->toString());
 	#endif
+
+	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
+	{
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);	
+	}
+	if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
+	{
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_FLATBUFSERVER, -1, false);
+	}
 
 	bestResult = std::make_shared<BestResult>();
 	_capturedColors->finilizeBoard();
