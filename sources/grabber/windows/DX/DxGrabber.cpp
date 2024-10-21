@@ -205,7 +205,9 @@ bool DxGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Error(_log, "User selected '%s' device is currently not available and the 'auto' discovery is disabled", QSTRING_CSTR(_deviceName));
+			_retryTimer->setInterval(5000);
+			_retryTimer->start();
+			Error(_log, "User selected '%s' device is currently not available and the 'auto' discovery is disabled. Retry in %.1f sec...", QSTRING_CSTR(_deviceName), _retryTimer->interval()/1000.0);
 			return false;
 		}
 
