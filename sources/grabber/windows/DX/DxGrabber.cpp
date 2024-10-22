@@ -205,8 +205,10 @@ bool DxGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
-			autoDiscovery = true;
+			_retryTimer->setInterval(5000);
+			_retryTimer->start();
+			Error(_log, "User selected '%s' device is currently not available and the 'auto' discovery is disabled. Retry in %.1f sec...", QSTRING_CSTR(_deviceName), _retryTimer->interval()/1000.0);
+			return false;
 		}
 
 		if (autoDiscovery)
@@ -215,8 +217,7 @@ bool DxGrabber::init()
 			if (!_deviceProperties.isEmpty())
 			{
 				foundDevice = _deviceProperties.firstKey();
-				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(foundDevice));
 			}
 		}
 		else
