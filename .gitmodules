@@ -31,3 +31,6 @@
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/nothings/stb.git
+[submodule "external/linalg"]
+	path = external/linalg
+	url = https://github.com/sgorsten/linalg.git

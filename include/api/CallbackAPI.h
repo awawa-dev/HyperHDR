@@ -32,7 +32,6 @@ public:
 	void subscribe(QJsonArray subsArr);
 
 protected:
-	std::unique_ptr<LutCalibrator> _lutCalibrator;
 	Image<ColorRgb> _liveImage;
 
 	void stopDataConnections() override = 0;
@@ -59,11 +58,12 @@ private slots:
 	void instancesListChangedHandler();
 	void tokenChangeHandler(const QVector<AccessManager::AuthDefinition>& def);
 	void signalBenchmarkUpdateHandler(int status, QString message);
-	void lutCalibrationUpdateHandler(const QJsonObject& data);
 	void performanceUpdateHandler(const QJsonObject& data);
 #ifdef ENABLE_BONJOUR
 	void signalDiscoveryFoundServiceHandler(DiscoveryRecord::Service type, QList<DiscoveryRecord> records);
 #endif
+public slots:
+	void lutCalibrationUpdateHandler(const QJsonObject& data);
 
 private:
 	QStringList _availableCommands;

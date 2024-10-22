@@ -17,7 +17,7 @@ public:
 		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
 
 	static void processQImage(
-		const uint8_t* data, int width, int height, int lineLength,
+		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
 		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
 
 	static void processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,

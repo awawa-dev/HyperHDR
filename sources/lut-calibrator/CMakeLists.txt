@@ -11,6 +11,7 @@ add_library(lut-calibrator OBJECT ${lut-calibrator_SOURCES})
 target_link_libraries(lut-calibrator
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
+	linalg
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

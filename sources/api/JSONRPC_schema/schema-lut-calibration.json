@@ -15,51 +15,13 @@
 		"tan" : {
 			"type" : "integer"
 		},
-		"checksum": {
-			"type" : "integer",
+		"debug": {
+			"type" : "boolean",
+			"required" : false
+		},
+		"lch_correction": {
+			"type" : "boolean",
 			"required" : true
-		},
-		"coef": {
-			"type" : "integer",
-			"required" : true
-		},
-		"limitedRange": {
-			"type" : "boolean"
-		},
-		"saturation": {
-			"type" : "number"
-		},
-		"luminance": {
-			"type" : "number"
-		},
-		"gammaR": {
-			"type" : "number"
-		},
-		"gammaG": {
-			"type" : "number"
-		},
-		"gammaB": {
-			"type" : "number"
-		},
-		"startColor": {
-			"type": "object",
-			"required": true,
-			"properties":{			
-				"r" : {"type" : "integer"},
-				"g" : {"type" : "integer"},
-				"b" : {"type" : "integer"}
-			},
-			"additionalProperties": false
-		},
-		"endColor": {
-			"type": "object",
-			"required": true,	
-			"properties":{			
-				"r" : {"type" : "integer"},
-				"g" : {"type" : "integer"},
-				"b" : {"type" : "integer"}
-			},			
-			"additionalProperties": false
 		}
 	},
 	"additionalProperties": false

@@ -6,6 +6,7 @@
 #endif
 
 #include <image/ColorRgb.h>
+#include <utils/VideoBenchmark.h>
 #include <utils/Logger.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
@@ -43,6 +44,8 @@ public:
 	bool areInstancesReady();
 
 public slots:
+	void handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen);
+
 	void setSmoothing(int time);
 
 	void setSignalStateByCEC(bool enable);
@@ -101,6 +104,9 @@ signals:
 
 	void SignalInstancePauseChanged(int instance, bool isEnabled);
 
+	void SignalBenchmarkUpdate(int status, QString message);
+	void SignalBenchmarkCapture(int status, QString message);
+
 private slots:
 	void handleInstanceJustStarted();
 
@@ -126,4 +132,5 @@ private:
 	int		_fireStarter;
 
 	QMap<quint8, PendingRequests> _pendingRequests;
+	VideoBenchmark	_videoBenchmark;
 };

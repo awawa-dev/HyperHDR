@@ -4,7 +4,10 @@
 	#include <sstream>
 	#include <cstdint>
 	#include <iostream>
+	#include <cmath>
 #endif
+
+
 
 struct ColorRgb
 {
@@ -98,6 +101,11 @@ struct ColorRgb
 	inline static uint8_t clamp(int x)
 	{
 		return (x < 0) ? 0 : ((x > 255) ? 255 : uint8_t(x));
+	}
+
+	inline static uint8_t round(double x)
+	{
+		return (x < 0) ? 0 : ((x > 255) ? 255 : static_cast<uint8_t>(std::lround(x)));
 	}
 
 	static void rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t& _hue, uint8_t& _saturation, uint8_t& _value);

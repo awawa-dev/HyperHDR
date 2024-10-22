@@ -810,7 +810,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 							loadLutFile();
 						}
 
-						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() || (_benchmarkStatus >= 0));
+						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating());
 						_workerThread->setup(
 							i,
 							_actualVideoFormat,

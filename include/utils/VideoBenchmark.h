@@ -1,4 +1,6 @@
-/* AVFWrapper.cpp
+#pragma once
+
+/* VideoBenchmark.h
 *
 *  MIT License
 *
@@ -23,21 +25,33 @@
 *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
-*/
+ */
 
-#include <QMetaType>
-#include <grabber/osx/AVF/AVFWrapper.h>
-#include <base/HyperHdrManager.h>
-#include <utils/GlobalSignals.h>
+#ifndef PCH_ENABLED
+#include <QObject>
+#include <QString>
+#endif
 
+#include <image/Image.h>
+#include <utils/Components.h>
 
-AVFWrapper::AVFWrapper(const QString& device,
-	const QString& configurationPath)
-	: GrabberWrapper("macOS AVF:" + device.left(14))
+class VideoBenchmark : public QObject
 {
-	_grabber = std::unique_ptr<Grabber>(new AVFGrabber(device, configurationPath));
-    connect(_grabber.get(), &Grabber::SignalCapturingException, this, &GrabberWrapper::capturingExceptionHandler);
-	connect(_grabber.get(), &Grabber::SignalSetNewComponentStateToAllInstances, this, &GrabberWrapper::SignalSetNewComponentStateToAllInstances);
-	connect(_grabber.get(), &Grabber::SignalSaveCalibration, this, &GrabberWrapper::SignalSaveCalibration);
-}
+	Q_OBJECT
 
+	int			_benchmarkStatus;
+	QString		_benchmarkMessage;
+	bool		_connected;
+
+public:
+	VideoBenchmark(QObject* parent);
+
+public slots:
+	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+	void signalNewVideoImageHandler(const QString& name, const Image<ColorRgb>& image);
+	void benchmarkCapture(int status, QString message);
+	void newFrame(const Image<ColorRgb>& image);
+
+signals:
+	void SignalBenchmarkUpdate(int status, QString message);
+};

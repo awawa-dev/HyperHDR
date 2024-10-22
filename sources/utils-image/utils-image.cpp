@@ -140,4 +140,27 @@ namespace utils_image
 		tjDestroy(_jpegCompressor);
 		tjFree(compressedImage);
 	}
+
+	bool _IMAGE_SHARED_API savePng(const std::string& filename, const Image<ColorRgb>& image)
+	{
+		return stbi_write_png(filename.c_str(), image.width(), image.height(), 3, image.rawMem(), 0);
+	}
+
+	Image<ColorRgb> _IMAGE_SHARED_API load2image(const std::string& filename)
+	{
+		Image<ColorRgb> ret;
+		int w, h, comp;		
+
+		unsigned char* image = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb);
+
+		if (image != nullptr)
+		{
+			ret.resize(w, h);
+			memcpy(ret.rawMem(), image, 3ll * w * h);
+		}
+
+		STBIW_FREE(image);
+
+		return ret;
+	}
 };
