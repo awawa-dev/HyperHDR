@@ -798,11 +798,19 @@ void CalibrationWorker::run()
 
 		auto coefValues = yuvConverter->getCoef(YuvConverter::YUV_COEFS(coef)) + kDelta;
 		auto coefMatrix = yuvConverter->create_yuv_to_rgb_matrix(bestResult.signal.range, coefValues.x, coefValues.y);
+		std::list<int> coloredAspectModeList;
 
-		for (int coloredAspectMode = (precise) ? bestResult.coloredAspectMode : 0; coloredAspectMode <= 3; coloredAspectMode += (precise) ? MAX_HINT : 1)
+		if (!precise)
+			coloredAspectModeList = { 0, 1, 2, 3 };
+		else if (bestResult.coloredAspectMode != 0)
+			coloredAspectModeList = { 0,  bestResult.coloredAspectMode };
+		else
+			coloredAspectModeList = { 0};
+
+		for (const int& coloredAspectMode : coloredAspectModeList)
 			for (int altConvert = (precise) ? bestResult.altConvert : 0; altConvert <= 1; altConvert += (precise) ? MAX_HINT : 1)
 				for (int tryBt2020Range = (precise) ? bestResult.bt2020Range : 0; tryBt2020Range <= 1; tryBt2020Range += (precise) ? MAX_HINT : 1)
-					for (double aspectX = 0.985; aspectX <= 1.0151; aspectX += ((precise) ? 0.0025 : 0.0025 * 2.0))
+					for (double aspectX = 0.99; aspectX <= 1.0101; aspectX += ((precise) ? 0.0025 : 0.0025 * 2.0))
 					{
 						for (double aspectYZ = 1.0; aspectYZ <= 1.2101; aspectYZ += ((precise) ? MAX_HDOUBLE : 0.005 * 2.0))
 							for (double aspectY = bestResult.aspect.y - 0.02; aspectY <= bestResult.aspect.y + 0.021; aspectY += (precise) ? 0.005 : MAX_HDOUBLE)
