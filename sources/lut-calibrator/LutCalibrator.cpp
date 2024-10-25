@@ -492,7 +492,7 @@ double3 uncharted2_filmic(double3 v)
 	return curr * white_scale;
 }*/
 
-void doToneMapping(const std::pair<std::list<double4>, std::list<double4>>& m, double3& p)
+static void doToneMapping(const LchLists& m, double3& p)
 {
 	auto a = xyz_to_lch(from_sRGB_to_XYZ(p) * 100.0);
 
@@ -501,9 +501,9 @@ void doToneMapping(const std::pair<std::list<double4>, std::list<double4>>& m, d
 
 	
 	double3 correctionHigh{};
-	auto iterHigh = m.first.begin();
+	auto iterHigh = m.high.begin();
 	auto lastHigh = *(iterHigh++);
-	for (; iterHigh != m.first.end(); lastHigh = *(iterHigh++))
+	for (; iterHigh != m.high.end(); lastHigh = *(iterHigh++))
 		if ((lastHigh.w >= a.z && a.z >= (*iterHigh).w))
 		{
 			auto& current = (*iterHigh);
@@ -519,10 +519,29 @@ void doToneMapping(const std::pair<std::list<double4>, std::list<double4>>& m, d
 			break;
 		}
 
+	double3 correctionMid{};
+	auto iterMid = m.mid.begin();
+	auto lastMid = *(iterMid++);
+	for (; iterMid != m.mid.end(); lastMid = *(iterMid++))
+		if ((lastMid.w >= a.z && a.z >= (*iterMid).w))
+		{
+			auto& current = (*iterMid);
+			double lastAsp = lastMid.w - a.z;
+			double curAsp = a.z - current.w;
+			double prop = 1 - (lastAsp / (lastAsp + curAsp));
+
+			if (lastMid.x > 0 && current.x > 0)
+				correctionMid.x = prop * lastMid.x + (1 - prop) * current.x;
+			if (lastMid.y > 0 && current.y > 0)
+				correctionMid.y = prop * lastMid.y + (1 - prop) * current.y;
+			correctionMid.z += prop * lastMid.z + (1 - prop) * current.z;
+			break;
+		}
+
 	double3 correctionLow{};
-	auto iterLow = m.second.begin();
+	auto iterLow = m.low.begin();
 	auto lastLow = *(iterLow++);
-	for (; iterLow != m.second.end(); lastLow = *(iterLow++))
+	for (; iterLow != m.low.end(); lastLow = *(iterLow++))
 		if ((lastLow.w >= a.z && a.z >= (*iterLow).w))
 		{
 			auto& current = (*iterLow);
@@ -556,22 +575,53 @@ void doToneMapping(const std::pair<std::list<double4>, std::list<double4>>& m, d
 	aLow.z += correctionLow.z;
 
 	double3 pLow = from_XYZ_to_sRGB(lch_to_xyz(aLow) / 100.0);
-
-
 	double max = std::max(linalg::maxelem(pLow), linalg::maxelem(pHigh));
-	double lenLow = std::abs((128.0/255.0) - max);
-	double lenHigh = std::abs(1.0 - max);
-	double aspectHigh = (1.0 - lenHigh / (lenLow + lenHigh));
 
-	if (correctionLow.x > 0 && correctionHigh.x > 0)
+	if (128.0 / 255.0 >= max)
 	{
-		a.x *= correctionHigh.x * aspectHigh + correctionLow.x * (1.0 - aspectHigh);
+		if (correctionLow.x > 0)
+		{
+			a.x *= correctionLow.x;
+		}
+		if (correctionLow.y > 0)
+		{
+			a.y *= correctionLow.y;
+		}
+		a.z += correctionLow.z;
 	}
-	if (correctionLow.y > 0 && correctionHigh.y > 0)
+	else if (192.0 / 255.0 >= max)
 	{
-		a.y *= correctionHigh.y * aspectHigh + correctionLow.y * (1.0 - aspectHigh);
+		double lenLow = std::abs((128.0 / 255.0) - max);
+		double lenMid = std::abs((192.0 / 255.0) - max);
+		double aspectMid = (1.0 - lenMid / (lenLow + lenMid));
+
+		if (correctionLow.x > 0 && correctionMid.x > 0)
+		{
+			a.x *= correctionMid.x * aspectMid + correctionLow.x * (1.0 - aspectMid);
+		}
+		if (correctionLow.y > 0 && correctionMid.y > 0)
+		{
+			a.y *= correctionMid.y * aspectMid + correctionLow.y * (1.0 - aspectMid);
+		}
+		a.z += correctionMid.z * aspectMid + correctionLow.z * (1.0 - aspectMid);
 	}
-	a.z += correctionHigh.z * aspectHigh + correctionLow.z * (1.0 - aspectHigh);
+	else
+	{
+		double lenMid = std::abs((192.0 / 255.0) - max);
+		double lenHigh = std::abs(1.0 - max);
+		double aspectHigh = (1.0 - lenHigh / (lenMid + lenHigh));
+
+		if (correctionMid.x > 0 && correctionHigh.x > 0)
+		{
+			a.x *= correctionHigh.x * aspectHigh + correctionMid.x * (1.0 - aspectHigh);
+		}
+		if (correctionMid.y > 0 && correctionHigh.y > 0)
+		{
+			a.y *= correctionHigh.y * aspectHigh + correctionMid.y * (1.0 - aspectHigh);
+		}
+		a.z += correctionHigh.z * aspectHigh + correctionMid.z * (1.0 - aspectHigh);
+	}
+
 
 	p = from_XYZ_to_sRGB(lch_to_xyz(a) / 100.0);
 
@@ -729,10 +779,10 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 	return srgb;
 }
 
-static std::pair<std::list<double4>, std::list<double4>> prepareLCH(std::list<std::list<std::pair<double3, double3>>> __lchPrimaries)
+static LchLists prepareLCH(std::list<std::list<std::pair<double3, double3>>> __lchPrimaries)
 {
 	int index = 0;
-	std::pair<std::list<double4>, std::list<double4>> ret;
+	LchLists ret;
 	
 	for (const auto& _lchPrimaries : __lchPrimaries)
 	{
@@ -761,10 +811,13 @@ static std::pair<std::list<double4>, std::list<double4>> prepareLCH(std::list<st
 		loopFront.w += 360.0;
 		lchPrimaries.push_front(loopFront);
 
-		if (index++ == 0)
-			ret.first = lchPrimaries;
-		else
-			ret.second = lchPrimaries;
+		if (index == 0)
+			ret.low = lchPrimaries;
+		else if (index == 1)
+			ret.mid = lchPrimaries;
+		else if (index == 2)
+			ret.high = lchPrimaries;
+		index++;
 	}
 
 	return ret;
@@ -820,7 +873,7 @@ void CalibrationWorker::run()
 
 									std::pair<double3, double3> colorAspect = std::pair<double3, double3>({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 });
 
-									std::list<std::pair<double3,double3>> selectedLchHighPrimaries, selectedLchLowPrimaries;
+									std::list<std::pair<double3,double3>> selectedLchHighPrimaries, selectedLchMidPrimaries, selectedLchLowPrimaries;
 
 									if (coloredAspectMode)
 									{
@@ -876,6 +929,10 @@ void CalibrationWorker::run()
 											{
 												selectedLchHighPrimaries.push_back(std::pair<double3, double3>(lchPrimaries, (*v).second));
 											}
+											else if (res == CapturedColor::LchPrimaries::MID)
+											{
+												selectedLchMidPrimaries.push_back(std::pair<double3, double3>(lchPrimaries, (*v).second));
+											}
 											else if (res == CapturedColor::LchPrimaries::LOW)
 											{
 												selectedLchLowPrimaries.push_back(std::pair<double3, double3>(lchPrimaries, (*v).second));
@@ -887,13 +944,13 @@ void CalibrationWorker::run()
 									bool lchFavour = false;
 									long long int lcHError = MAX_CALIBRATION_ERROR;
 
-									std::pair<std::list<double4>, std::list<double4>> selectedLchPrimaries;
+									LchLists selectedLchPrimaries;
 									if (precise && lchCorrection && currentError < MAX_CALIBRATION_ERROR)
 									{
 										lcHError = 0;
 										lchFavour = true;
 
-										selectedLchPrimaries = prepareLCH({ selectedLchHighPrimaries, selectedLchLowPrimaries });
+										selectedLchPrimaries = prepareLCH({ selectedLchLowPrimaries, selectedLchMidPrimaries, selectedLchHighPrimaries  });
 										
 										for (auto  sample = vertex.begin();  sample != vertex.end(); ++sample)
 										{
@@ -901,7 +958,7 @@ void CalibrationWorker::run()
 
 											doToneMapping(selectedLchPrimaries, correctedRGB);
 											lcHError += (*sample).first->getSourceError((int3)(to_byte3(correctedRGB * 255.0)));
-											if (lcHError >= (129 * currentError) / 128 || lcHError > weakBestScore)
+											if (lcHError >= currentError || lcHError > weakBestScore)
 											{
 												lchFavour = false;
 												lcHError = MAX_CALIBRATION_ERROR;
@@ -970,33 +1027,23 @@ void  LutCalibrator::fineTune(bool precise)
 	std::atomic<int> weakBestScore = MAX_CALIBRATION_ERROR;
 
 	// prepare vertexes
-	std::list<CapturedColor*> vertex, masterVertex;
+	std::list<CapturedColor*> vertex;
 
 	for (int r = MAX_IND; r >= 0; r--)
 		for (int g = MAX_IND; g >= 0; g--)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
 				
-				if ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0) 
+				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0) 
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 
-					if ((r == MAX_IND - 1 && r == g && g == b)  ||
-
-						(r == MAX_IND - 2 && r == g && g == b) ||
-
-						(r == MAX_IND && g == 0 && b == 0) ||
-
-						(g == MAX_IND && r == 0 && b == 0) ||
-
-						(b == MAX_IND && g == 0 && r == 0))
-						masterVertex.push_back(&_capturedColors->all[r][g][b]);
-					else
-						vertex.push_back(&_capturedColors->all[r][g][b]);
+					vertex.push_back(&_capturedColors->all[r][g][b]);
 				}
 			}
 
-	vertex.insert(vertex.begin(), masterVertex.begin(), masterVertex.end());
+	vertex.sort([](CapturedColor*& a, CapturedColor*& b) { return ((int)a->coords().x + a->coords().y + a->coords().z) >
+																				((int)b->coords().x + b->coords().y + b->coords().z); });
 
 	if (!precise)
 	{
@@ -1229,7 +1276,7 @@ void LutCalibrator::calibration()
 		for (int g = MAX_IND; g >= 0; g--)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
-				if ((r % 4 == 0 && g % 4 == 0 && b % 4 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
+				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 					auto sample = _capturedColors->all[r][g][b];
@@ -1265,6 +1312,7 @@ static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<Captured
 {
 	QStringList info, intro;
 	std::list<MappingPrime> mHigh;
+	std::list<MappingPrime> mMid;
 	std::list<MappingPrime> mLow;
 
 	
@@ -1275,20 +1323,22 @@ static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<Captured
 			{
 				double3 org;
 				auto ret = (*all)[r][g][b].isLchPrimary(&org);
-				if (ret == CapturedColor::LchPrimaries::HIGH || ret == CapturedColor::LchPrimaries::LOW)
+				if (ret == CapturedColor::LchPrimaries::HIGH || ret == CapturedColor::LchPrimaries::MID || ret == CapturedColor::LchPrimaries::LOW)
 				{
 					MappingPrime m;
 					m.org = org;
 					m.prime = byte3(r, g, b);
 					if (ret == CapturedColor::LchPrimaries::HIGH)
 						mHigh.push_back(m);
+					else if (ret == CapturedColor::LchPrimaries::MID)
+						mMid.push_back(m);
 					else
 						mLow.push_back(m);
 				}
 			}
 
 	
-	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mLow })
+	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mMid, &mLow })
 	{
 		for (MappingPrime& c : *m)
 		{
@@ -1311,19 +1361,18 @@ static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<Captured
 	}
 	
 	info.append("Primaries in LCH colorspace");
-	info.append("name,      RGB primary in LCH,     captured primary in LCH       |  primary RGB  |   average LCH delta       |  LCH to RGB way back ");
+	info.append("RGB           | RGB primary in LCH        | captured primary in LCH   |   average LCH delta       |  LCH to RGB way back ");
 	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mLow })
+	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mMid, &mLow })
 	{
 		for (MappingPrime& c : *m)
 		{
 			auto& sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
 			auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
 			auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
-			info.append(QString("%1 %2 %3 | %4 %5 | %6 | %7").arg(vecToString(sample.getSourceRGB()), 12).
+			info.append(QString("%1 | %2 | %3 | %4 | %5 %6").arg(vecToString(sample.getSourceRGB()), 12).
 				arg(vecToString(c.org)).
-				arg(vecToString(c.real)).
-				arg(vecToString(sample.getSourceRGB()), 12).
+				arg(vecToString(c.real)).				
 				arg(vecToString(c.delta)).
 				arg(vecToString(to_byte3(aa))).
 				arg(vecToString(to_byte3(bb))));

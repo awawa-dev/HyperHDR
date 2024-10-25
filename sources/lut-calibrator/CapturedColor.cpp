@@ -204,7 +204,21 @@ void CapturedColor::setCoords(const byte3& index)
 		}
 		else
 		{
-			lchPrimary = LchPrimaries::NONE;
+			MAX_IND = (BoardUtils::MAX_INDEX * 3) / 4;
+			if (std::max(std::max(index.x, index.y), index.z) == MAX_IND &&
+				((std::min(index.x, index.z) == 0 && std::max(index.x, index.z) == MAX_IND && (index.y % (MAX_IND / 2) == 0)) ||
+					(std::min(index.x, index.y) == 0 && std::max(index.x, index.y) == MAX_IND && (index.z % (MAX_IND / 2) == 0)) ||
+					(std::min(index.y, index.z) == 0 && std::max(index.y, index.z) == MAX_IND && (index.x % (MAX_IND / 2) == 0)) ||
+					(index.x == MAX_IND && index.y == MAX_IND && index.z == MAX_IND / 2) ||
+					(index.x == MAX_IND && index.y == MAX_IND / 2 && index.z == MAX_IND)
+					))
+			{
+				lchPrimary = LchPrimaries::MID;
+			}
+			else
+			{
+				lchPrimary = LchPrimaries::NONE;
+			}
 		}
 	}
 }
@@ -262,55 +276,6 @@ std::list<std::pair<double3, int>> CapturedColor::getInputYuvColors() const
 
 int CapturedColor::getSourceError(const int3& _color) const
 {
-	constexpr int LIMIT_MAX_UP = 248;
-	constexpr int LIMIT_MAX_DOWN = 232;
-	constexpr int LIMIT_MIDDLE_UP = 228;
-	constexpr int LIMIT_MIDDLE_DOWN = 220;
-
-	if ((arrayCoords.x == BoardUtils::MAX_INDEX - 1 && arrayCoords.x == arrayCoords.y && arrayCoords.y == arrayCoords.z &&
-		(_color.x > LIMIT_MAX_UP || _color.x < LIMIT_MAX_DOWN)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.x == BoardUtils::MAX_INDEX - 2 && arrayCoords.x == arrayCoords.y && arrayCoords.y == arrayCoords.z &&
-		(_color.x > LIMIT_MIDDLE_UP || _color.x < LIMIT_MIDDLE_DOWN)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if (arrayCoords.x == BoardUtils::MAX_INDEX && arrayCoords.y == 0 && arrayCoords.z == 0 &&
-		_color.x < LIMIT_MIDDLE_DOWN)
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if (arrayCoords.y == BoardUtils::MAX_INDEX && arrayCoords.x == 0 && arrayCoords.z == 0 &&
-		_color.y < LIMIT_MIDDLE_DOWN)
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if (arrayCoords.z == BoardUtils::MAX_INDEX && arrayCoords.y == 0 && arrayCoords.x == 0 &&
-		_color.z < LIMIT_MIDDLE_DOWN)
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.x == BoardUtils::MAX_INDEX - 2 && arrayCoords.x == arrayCoords.y && arrayCoords.z == 0 &&
-		((_color.x + _color.y) > LIMIT_MIDDLE_UP * 2)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.x == BoardUtils::MAX_INDEX - 2 && arrayCoords.x == arrayCoords.z && arrayCoords.y == 0 &&
-		((_color.x + _color.z) > LIMIT_MIDDLE_UP * 2)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.y == BoardUtils::MAX_INDEX - 2 && arrayCoords.y == arrayCoords.z && arrayCoords.x == 0 &&
-		((_color.y + _color.z) > LIMIT_MIDDLE_UP * 2)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.x == BoardUtils::MAX_INDEX - 1 && arrayCoords.x == arrayCoords.y && arrayCoords.z == 0 &&
-		((_color.x + _color.y) > LIMIT_MAX_UP * 2)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.x == BoardUtils::MAX_INDEX - 1 && arrayCoords.x == arrayCoords.z && arrayCoords.y == 0 &&
-		((_color.x + _color.z) > LIMIT_MAX_UP * 2)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
-	if ((arrayCoords.y == BoardUtils::MAX_INDEX - 1 && arrayCoords.y == arrayCoords.z && arrayCoords.x == 0 &&
-		((_color.y + _color.z) > LIMIT_MAX_UP * 2)))
-		return BoardUtils::MAX_CALIBRATION_ERROR;
-
 	auto delta = linalg::abs( sourceRGB - _color);
 
 
@@ -318,48 +283,53 @@ int CapturedColor::getSourceError(const int3& _color) const
 	{
 		return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 100;
 	}
-	else if (sourceRGB.x == sourceRGB.y)
+	else if (
+		(arrayCoords.x == 0 || arrayCoords.x == BoardUtils::MAX_INDEX) &&
+		(arrayCoords.y == 0 || arrayCoords.y == BoardUtils::MAX_INDEX) &&
+		(arrayCoords.z == 0 || arrayCoords.z == BoardUtils::MAX_INDEX))
 	{
-		auto diff = std::abs(_color.x - _color.y);
-		if (_color.x > _color.y)
+		if (arrayCoords.x != BoardUtils::MAX_INDEX)
+			delta.x = (delta.x * 3) / 4;
+
+		if (arrayCoords.y != BoardUtils::MAX_INDEX)
+			delta.y = (delta.y * 3) / 4;
+
+		if (arrayCoords.z != BoardUtils::MAX_INDEX)
+			delta.z = (delta.z * 3) / 4;
+
+		return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 50;
+	}
+	else if (sourceRGB.x == sourceRGB.y)
+	{		
+		if (_color.x >= _color.y)
 		{
-			delta.x = std::min(delta.x, diff);
-			delta.y = std::min(delta.y, diff);
+			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 3 / 4;
 		}
 		else
 		{
-			delta.x = std::max(delta.x, diff);
-			delta.y = std::max(delta.y, diff);
+			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 5 / 4;
 		}
 	}
 	else if (sourceRGB.x == sourceRGB.z)
 	{
-		auto diff = std::abs(_color.x - _color.z);
-
-		if (_color.z > _color.x)
+		if (_color.z >= _color.x)
 		{
-			delta.x = std::min(delta.x, diff);
-			delta.z = std::min(delta.z, diff);
+			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 3 / 4;
 		}
 		else
 		{
-			delta.x = std::max(delta.x, diff);
-			delta.z = std::max(delta.z, diff);
+			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 5 / 4;
 		}
 	}
 	else if (sourceRGB.y == sourceRGB.z)
 	{
-		auto diff = std::abs(_color.y - _color.z);
-
-		if (_color.z > _color.y)
+		if (_color.z >= _color.y)
 		{
-			delta.y = std::min(delta.y, diff);
-			delta.z = std::min(delta.z, diff);
+			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 3 / 4;
 		}
 		else
 		{
-			delta.y = std::max(delta.y, diff);
-			delta.z = std::max(delta.z, diff);
+			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 5 / 4;
 		}
 	}
 	

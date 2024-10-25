@@ -49,6 +49,13 @@ using namespace aliases;
 using namespace ColorSpaceMath;
 using namespace BoardUtils;
 
+struct LchLists
+{
+	std::list<double4> low;
+	std::list<double4> mid;
+	std::list<double4> high;
+};
+
 struct BestResult
 {
 	YuvConverter::YUV_COEFS coef = YuvConverter::YUV_COEFS::BT601;
@@ -64,7 +71,7 @@ struct BestResult
 	double		gammaHLG = 0;
 	double		nits = 0;
 	bool		lchEnabled = false;
-	std::pair<std::list<double4>, std::list<double4>> lchPrimaries;
+	LchLists	lchPrimaries;
 
 	struct Signal
 	{
@@ -79,7 +86,7 @@ struct BestResult
 
 	void serializePrimaries(std::stringstream& out) const
 	{
-		for (const auto& p : { lchPrimaries.first, lchPrimaries.second })
+		for (const auto& p : { lchPrimaries.low, lchPrimaries.mid, lchPrimaries.high })
 		{
 			out << std::endl << "\t\t\tstd::list<double4>{" << std::endl << "\t\t\t\t";
 			for (const auto& v : p)
@@ -107,7 +114,7 @@ struct BestResult
 		out << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << std::to_string(gamma) << ");" << std::endl;
 		out << "bestResult.gammaHLG = " << std::to_string(gammaHLG) << ";" << std::endl;
 		out << "bestResult.lchEnabled = " << std::to_string(lchEnabled) << ";" << std::endl;
-		out << "bestResult.lchPrimaries = std::pair<std::list<double4>, std::list<double4>>{"; serializePrimaries(out); out << "\t\t};" << std::endl;
+		out << "bestResult.lchPrimaries = LchLists{"; serializePrimaries(out); out << "\t\t};" << std::endl;
 		out << "bestResult.nits = " << std::to_string(nits) << ";" << std::endl;
 		out << "bestResult.signal.range = YuvConverter::COLOR_RANGE(" << std::to_string(signal.range) << ");" << std::endl;
 		out << "bestResult.signal.yRange = " << std::to_string(signal.yRange) << ";" << std::endl;

@@ -43,7 +43,7 @@
 class CapturedColor
 {
 public:
-	enum LchPrimaries { NONE, LOW, HIGH };
+	enum LchPrimaries { NONE, LOW, MID, HIGH };
 
 private:
 	int totalSamples = 0;
