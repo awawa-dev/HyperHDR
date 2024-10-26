@@ -121,7 +121,7 @@ struct BestResult
 		out << "bestResult.signal.upYLimit = " << std::to_string(signal.upYLimit) << ";" << std::endl;
 		out << "bestResult.signal.downYLimit = " << std::to_string(signal.downYLimit) << ";" << std::endl;
 		out << "bestResult.signal.yShift = " << std::to_string(signal.yShift) << ";" << std::endl;
-		out << "bestResult.minError = " << std::to_string(std::round(minError * 100.0) / 300000.0) << ";" << std::endl;
+		out << "bestResult.minError = " << std::to_string(std::round(minError * 100.0) / 30000.0) << ";" << std::endl;
 		out << "*/" << std::endl;
 	}
 };

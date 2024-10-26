@@ -277,11 +277,11 @@ std::list<std::pair<double3, int>> CapturedColor::getInputYuvColors() const
 int CapturedColor::getSourceError(const int3& _color) const
 {
 	auto delta = linalg::abs( sourceRGB - _color);
-
+	int error = std::min((delta.x * delta.x  + delta.y * delta.y + delta.z * delta.z), (int)BoardUtils::MAX_CALIBRATION_ERROR);
 
 	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
 	{
-		return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 100;
+		return error * 20;
 	}
 	else if (
 		(arrayCoords.x == 0 || arrayCoords.x == BoardUtils::MAX_INDEX) &&
@@ -297,42 +297,54 @@ int CapturedColor::getSourceError(const int3& _color) const
 		if (arrayCoords.z != BoardUtils::MAX_INDEX)
 			delta.z = (delta.z * 3) / 4;
 
-		return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 50;
+		return error * 5;
 	}
 	else if (sourceRGB.x == sourceRGB.y)
-	{		
-		if (_color.x >= _color.y)
+	{
+		if (_color.x == _color.y)
 		{
-			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 3 / 4;
+			return error / 4;
+		}
+		else if (_color.x > _color.y)
+		{
+			return error * 4 / 5;
 		}
 		else
 		{
-			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 5 / 4;
+			return error * 6 / 5;
 		}
 	}
 	else if (sourceRGB.x == sourceRGB.z)
 	{
-		if (_color.z >= _color.x)
+		if (_color.z == _color.x)
 		{
-			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 3 / 4;
+			return error / 4;
+		}
+		else if (_color.z > _color.x)
+		{
+			return error * 3 / 4;
 		}
 		else
 		{
-			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 5 / 4;
+			return error * 5 / 4;
 		}
 	}
 	else if (sourceRGB.y == sourceRGB.z)
 	{
-		if (_color.z >= _color.y)
+		if (_color.z == _color.y)
 		{
-			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 3 / 4;
+			return error / 4;
+		}
+		else if (_color.z > _color.y)
+		{
+			return error * 4 / 5;
 		}
 		else
 		{
-			return (delta.x * delta.x * delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z) * 5 / 4;
+			return error * 6 / 5;
 		}
 	}
 	
 
-	return (delta.x* delta.x* delta.x + delta.y * delta.y * delta.y + delta.z * delta.z * delta.z);
+	return error;
 }

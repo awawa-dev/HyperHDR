@@ -45,7 +45,7 @@ namespace BoardUtils
 {
 	class CapturedColors;
 
-	constexpr long long int MAX_CALIBRATION_ERROR = 5000000;
+	constexpr long long int MAX_CALIBRATION_ERROR = 500000;
 
 	constexpr int SCREEN_BLOCKS_X = 48;
 	constexpr int SCREEN_BLOCKS_Y = 30;

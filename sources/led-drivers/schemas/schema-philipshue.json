@@ -111,7 +111,7 @@
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_candyGamma_title",
-			"default" : true,
+			"default" : false,
 			"propertyOrder" : 10
 		},
 		"restoreOriginalState": {

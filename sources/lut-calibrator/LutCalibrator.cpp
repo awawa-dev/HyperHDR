@@ -895,20 +895,29 @@ void CalibrationWorker::run()
 										auto& sample = *(*v).first;
 
 										auto minError = MAX_CALIBRATION_ERROR;
-										auto sampleList = sample.getInputYuvColors();
 
-										for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
+										if (sample.U() == 128 && sample.V() == 128)
 										{
-											auto srgb = hdr_to_srgb(yuvConverter, (*iter).first, byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, NITS, altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult.signal, coloredAspectMode, colorAspect);
-
-											auto SRGB = to_int3(srgb * 255.0);
-
-											auto sampleError = sample.getSourceError(SRGB);
-
-											if (sampleError < minError)
+											(*v).second = hdr_to_srgb(yuvConverter, sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, NITS, altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult.signal, coloredAspectMode, colorAspect);
+											auto SRGB = to_int3((*v).second * 255.0);
+											minError = sample.getSourceError(SRGB);
+										}
+										else
+										{											
+											auto sampleList = sample.getInputYuvColors();
+											for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
 											{
-												(*v).second = srgb;
-												minError = sampleError;												
+												auto srgb = hdr_to_srgb(yuvConverter, (*iter).first, byte2{ sample.U(), sample.V() }, aspect, coefMatrix, HDR_GAMMA(gamma), gammaHLG, NITS, altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult.signal, coloredAspectMode, colorAspect);
+
+												auto SRGB = to_int3(srgb * 255.0);
+
+												auto sampleError = sample.getSourceError(SRGB);
+
+												if (sampleError < minError)
+												{
+													(*v).second = srgb;
+													minError = sampleError;
+												}
 											}
 										}
 
@@ -992,9 +1001,9 @@ void CalibrationWorker::run()
 										bestResult.lchEnabled = (lchFavour);
 										bestResult.lchPrimaries = selectedLchPrimaries;
 										printf("New local best score: %.3f (classic: %.3f, LCH: %.3f %s) for thread: %i. Gamma: %s, coef: %s, kr/kb: %s, yuvCorrection: %s\n", 
-											bestResult.minError / 3000.0,
-											currentError / 3000.0,
-											lcHError / 3000.0,
+											bestResult.minError / 300.0,
+											currentError / 300.0,
+											lcHError / 300.0,
 											(bestResult.lchEnabled) ? "ON" : "OFF",
 											id,
 											QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))),
@@ -1012,7 +1021,7 @@ void CalibrationWorker::run()
 	}
 
 	if (bestResult.minError < MAX_CALIBRATION_ERROR)
-		printf("Finished thread: %i. Score: %.3f\n", id, bestResult.minError / 3000.0);		
+		printf("Finished thread: %i. Score: %.3f\n", id, bestResult.minError / 300.0);		
 	else
 		printf("Finished thread: %i. Could not find anything\n", id);
 		
@@ -1034,7 +1043,7 @@ void  LutCalibrator::fineTune(bool precise)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
 				
-				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0) 
+				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 
@@ -1132,7 +1141,7 @@ void  LutCalibrator::fineTune(bool precise)
 				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %.3f\n",
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(bestResult->gamma))), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))),
-					QSTRING_CSTR(vecToString(bestResult->coefDelta)),bestResult->minError / 3000.0);
+					QSTRING_CSTR(vecToString(bestResult->coefDelta)),bestResult->minError / 300.0);
 
 				const int halfKDelta = (precise) ? 16 : 8;
 				const int krDelta = std::ceil((halfKDelta * 2.0) / QThreadPool::globalInstance()->maxThreadCount());
@@ -1206,7 +1215,7 @@ void LutCalibrator::calibration()
 	totalTime2 = InternalClock::now() - totalTime2;
 	
 	// write result
-	Debug(_log, "Score: %.3f", bestResult->minError / 3000.0);
+	Debug(_log, "Score: %.3f", bestResult->minError / 300.0);
 	Debug(_log, "LCH: %s", (bestResult->lchEnabled) ? "Enabled" : "Disabled");
 	Debug(_log, "The first phase time: %.3fs", totalTime / 1000.0);
 	Debug(_log, "The second phase time: %.3fs", totalTime2 / 1000.0);
@@ -1276,7 +1285,7 @@ void LutCalibrator::calibration()
 		for (int g = MAX_IND; g >= 0; g--)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
-				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
+				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 					auto sample = _capturedColors->all[r][g][b];
@@ -1291,7 +1300,7 @@ void LutCalibrator::calibration()
 					currentError += microError;
 				}
 			}
-	Debug(_log, "The control score: %.3f", currentError / 3000.0);
+	Debug(_log, "The control score: %.3f", currentError / 300.0);
 
 	// reload LUT
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
