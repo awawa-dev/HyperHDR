@@ -1043,7 +1043,7 @@ void  LutCalibrator::fineTune(bool precise)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
 				
-				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
+				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == g * 2 && g > b) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 
@@ -1285,7 +1285,7 @@ void LutCalibrator::calibration()
 		for (int g = MAX_IND; g >= 0; g--)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
-				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
+				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == g * 2 && g > b) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
 				{
 					auto sample = _capturedColors->all[r][g][b];
