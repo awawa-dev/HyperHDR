@@ -65,6 +65,7 @@ DxGrabber::DxGrabber(const QString& device, const QString& configurationPath)
 	, _retryTimer(new QTimer(this))
 	, _warningCounter(MAX_WARNINGS)
 	, _wideGamut(false)
+	, _multiMonitor(false)
 	
 
 	, _dxRestartNow(false)
@@ -241,7 +242,8 @@ void DxGrabber::enumerateDevices(bool silent)
 		pAdapter->GetDesc1(&pDesc);
 
 		IDXGIOutput* pOutput;
-		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND; j++)
+		UINT j = 0;
+		for (; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND; j++)
 		{
 			DXGI_OUTPUT_DESC oDesc;
 			pOutput->GetDesc(&oDesc);
@@ -251,6 +253,12 @@ void DxGrabber::enumerateDevices(bool silent)
 
 			SafeRelease(&pOutput);
 		}
+
+		if (j > 1)
+		{
+			_deviceProperties.insert(MULTI_MONITOR + "|" + QString::fromWCharArray(pDesc.Description), properties);
+		}
+
 		SafeRelease(&pAdapter);
 	}
 	SafeRelease(&pFactory);
@@ -303,18 +311,21 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 	{
 		DeviceProperties properties;
 		DXGI_ADAPTER_DESC1 pDesc;
+		QString multiName = MULTI_MONITOR + "|" + QString::fromWCharArray(pDesc.Description);
 
 		pAdapter->GetDesc1(&pDesc);
 
+		_multiMonitor = (selectedDeviceName == multiName);
+
 		IDXGIOutput* pOutput;
-		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND && !exitNow; j++)
+		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND && (!exitNow || _multiMonitor); j++)
 		{
 			DXGI_OUTPUT_DESC oDesc;
 			pOutput->GetDesc(&oDesc);
 
 			QString currentName = (QString::fromWCharArray(oDesc.DeviceName) + "|" + QString::fromWCharArray(pDesc.Description));
 
-			exitNow = (currentName == selectedDeviceName);
+			exitNow = (currentName == selectedDeviceName) || _multiMonitor;
 
 			if (exitNow)
 			{

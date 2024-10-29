@@ -111,7 +111,7 @@ const static VideoFormat fmt_array[] =
 	{ MFVideoFormat_Y42T,	"Y42T", PixelFormat::NO_CHANGE },
 	{ MFVideoFormat_P210,	"P210", PixelFormat::NO_CHANGE },
 	{ MFVideoFormat_P216,	"P216", PixelFormat::NO_CHANGE },
-	{ MFVideoFormat_P010,	"P010", PixelFormat::NO_CHANGE },
+	{ MFVideoFormat_P010,	"P010", PixelFormat::P010 },
 	{ MFVideoFormat_P016,	"P016", PixelFormat::NO_CHANGE },
 	{ MFVideoFormat_v210,	"v210", PixelFormat::NO_CHANGE },
 	{ MFVideoFormat_v216,	"v216", PixelFormat::NO_CHANGE },

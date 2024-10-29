@@ -69,6 +69,9 @@ static const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 	{ V4L2_PIX_FMT_YUV420, PixelFormat::I420 },
 	{ V4L2_PIX_FMT_NV12,   PixelFormat::NV12 },
 	{ V4L2_PIX_FMT_MJPEG,  PixelFormat::MJPEG }
+	#ifdef V4L2_PIX_FMT_P010
+		,{ V4L2_PIX_FMT_P010,  PixelFormat::P010 }
+	#endif
 };
 
 

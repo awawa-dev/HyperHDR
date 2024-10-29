@@ -103,6 +103,8 @@ public slots:
 
 private:
 
+	const QString MULTI_MONITOR = "MULTI-MONITOR";
+
 	void captureFrame(DisplayHandle& display);
 
 	QString GetSharedLut();
@@ -127,6 +129,7 @@ private:
 	QTimer*					_retryTimer;
 	int						_warningCounter;
 	bool					_wideGamut;
+	bool					_multiMonitor;
 
 	bool					_dxRestartNow;
 	std::list<std::unique_ptr<DisplayHandle>> _handles;
