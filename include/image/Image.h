@@ -28,6 +28,8 @@ public:
 
 	void gradientVBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t r, uint8_t g, uint8_t b);
 
+	void insertHorizontal(int x, Image<ColorSpace>& source);
+
 	unsigned width() const;
 
 	unsigned height() const;

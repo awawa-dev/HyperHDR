@@ -39,6 +39,8 @@ template <class T> void SafeRelease(T** ppT)
 struct DisplayHandle
 {
 	QString name;
+	int warningCounter = 6;
+	bool wideGamut = false;
 	int actualDivide = -1, actualWidth = 0, actualHeight = 0;
 	uint targetMonitorNits = 0;
 	ID3D11Texture2D* d3dConvertTexture = nullptr;
@@ -51,7 +53,7 @@ struct DisplayHandle
 	ID3D11InputLayout* d3dVertexLayout = nullptr;
 	IDXGIOutputDuplication* d3dDuplicate = nullptr;
 	ID3D11Texture2D* d3dSourceTexture = nullptr;
-	DXGI_OUTDUPL_DESC surfaceProperties;
+	DXGI_OUTDUPL_DESC surfaceProperties{};
 
 	DisplayHandle() = default;
 	DisplayHandle(const DisplayHandle&) = delete;
@@ -107,6 +109,8 @@ private:
 
 	void captureFrame(DisplayHandle& display);
 
+	int captureFrame(DisplayHandle& display, Image<ColorRgb>& image);
+
 	QString GetSharedLut();
 
 	void enumerateDevices(bool silent);
@@ -127,8 +131,6 @@ private:
 	QString					_configurationPath;
 	QTimer*					_timer;
 	QTimer*					_retryTimer;
-	int						_warningCounter;
-	bool					_wideGamut;
 	bool					_multiMonitor;
 
 	bool					_dxRestartNow;

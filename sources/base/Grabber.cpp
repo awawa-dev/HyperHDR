@@ -518,6 +518,34 @@ int Grabber::getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY)
 	return divide;
 }
 
+int Grabber::getTargetSystemFrameDimension(int actualWidth, int actualHeight, int& targetSizeX, int& targetSizeY)
+{
+	int startX = _cropLeft;
+	int startY = _cropTop;
+	int realSizeX = actualWidth - startX - _cropRight;
+	int realSizeY = actualHeight - startY - _cropBottom;
+
+	if (realSizeX <= 16 || realSizeY <= 16)
+	{
+		realSizeX = actualWidth;
+		realSizeY = actualHeight;
+	}
+
+	int checkWidth = realSizeX;
+	int divide = 1;
+
+	while (checkWidth > _width)
+	{
+		divide++;
+		checkWidth = realSizeX / divide;
+	}
+
+	targetSizeX = realSizeX / divide;
+	targetSizeY = realSizeY / divide;
+
+	return divide;
+}
+
 void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize, bool useLut)
 {
 	int targetSizeX, targetSizeY;

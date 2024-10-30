@@ -27,6 +27,7 @@
 
 
 #include <image/Image.h>
+#include <cstring>
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image() :
@@ -94,6 +95,25 @@ template <typename ColorSpace>
 void Image<ColorSpace>::gradientVBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t r, uint8_t g, uint8_t b)
 {
 	_sharedData->gradientVBox(x1, y1, x2, y2, r, g, b);
+}
+
+
+template <typename ColorSpace>
+void Image<ColorSpace>::insertHorizontal(int x, Image<ColorSpace>& source)
+{
+	int copyX = ((x + source.width()) > width()) ? width() - x : source.width();
+	int copyY = std::min(source.height(), height());
+	uint8_t* dest = rawMem() + sizeof(ColorSpace) * x;
+	uint8_t* src = source.rawMem();
+	auto destRowSize = sizeof(ColorSpace) * width();
+	auto srcRowSize = sizeof(ColorSpace) * source.width();
+
+	for (int y = 0; y < copyY; y++)
+	{
+		memcpy(dest, src, copyX * sizeof(ColorSpace));
+		dest += destRowSize;
+		src += srcRowSize;
+	}
 }
 
 template <typename ColorSpace>
