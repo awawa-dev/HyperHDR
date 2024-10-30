@@ -314,7 +314,9 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 		_multiMonitor = (selectedDeviceName == multiName);
 
 		IDXGIOutput* pOutput;
-		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND && (!exitNow || _multiMonitor); j++)
+
+
+		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND && (!exitNow || (_multiMonitor && result)); j++)
 		{
 			DXGI_OUTPUT_DESC oDesc{};
 			pOutput->GetDesc(&oDesc);
@@ -329,38 +331,46 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 
 				if (CHECK(pOutput->QueryInterface(__uuidof(IDXGIOutput6), reinterpret_cast<void**>(&pOutput6))))
 				{
-					HRESULT findDriver = E_FAIL;
-					D3D_FEATURE_LEVEL featureLevel;
-					std::vector<D3D_DRIVER_TYPE> driverTypes{
-						D3D_DRIVER_TYPE_HARDWARE,
-						D3D_DRIVER_TYPE_WARP,
-						D3D_DRIVER_TYPE_REFERENCE,
-						D3D_DRIVER_TYPE_UNKNOWN
-					};
-					
-					CLEAR(featureLevel);
-
-					for (auto& driverType : driverTypes)
+					if (_d3dDevice == nullptr)
 					{
-						findDriver = D3D11CreateDevice(pAdapter, driverType,
-							nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0,
-							D3D11_SDK_VERSION, &_d3dDevice, &featureLevel, &_d3dContext);
+						HRESULT findDriver = E_FAIL;
+						D3D_FEATURE_LEVEL featureLevel;
+						std::vector<D3D_DRIVER_TYPE> driverTypes{
+							D3D_DRIVER_TYPE_HARDWARE,
+							D3D_DRIVER_TYPE_WARP,
+							D3D_DRIVER_TYPE_REFERENCE,
+							D3D_DRIVER_TYPE_UNKNOWN
+						};
 
-						if (SUCCEEDED(findDriver))
+						CLEAR(featureLevel);
+
+						for (auto& driverType : driverTypes)
 						{
-							switch (driverType)
-							{
-								case D3D_DRIVER_TYPE_HARDWARE: Info(_log, "Selected D3D_DRIVER_TYPE_HARDWARE"); break;
-								case D3D_DRIVER_TYPE_WARP: Info(_log, "Selected D3D_DRIVER_TYPE_WARP"); break;
-								case D3D_DRIVER_TYPE_REFERENCE: Info(_log, "Selected D3D_DRIVER_TYPE_REFERENCE"); break;
-								case D3D_DRIVER_TYPE_UNKNOWN: Info(_log, "Selected D3D_DRIVER_TYPE_UNKNOWN"); break;
-							}
+							findDriver = D3D11CreateDevice(pAdapter, driverType,
+								nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0,
+								D3D11_SDK_VERSION, &_d3dDevice, &featureLevel, &_d3dContext);
 
-							break;
+							if (SUCCEEDED(findDriver))
+							{
+								switch (driverType)
+								{
+									case D3D_DRIVER_TYPE_HARDWARE: Info(_log, "Selected D3D_DRIVER_TYPE_HARDWARE"); break;
+									case D3D_DRIVER_TYPE_WARP: Info(_log, "Selected D3D_DRIVER_TYPE_WARP"); break;
+									case D3D_DRIVER_TYPE_REFERENCE: Info(_log, "Selected D3D_DRIVER_TYPE_REFERENCE"); break;
+									case D3D_DRIVER_TYPE_UNKNOWN: Info(_log, "Selected D3D_DRIVER_TYPE_UNKNOWN"); break;
+								}
+
+								break;
+							}
+						}
+
+						if (!SUCCEEDED(findDriver))
+						{
+							_d3dContext = nullptr;
 						}
 					}
 					
-					if (CHECK(findDriver) && _d3dDevice != nullptr)
+					if (_d3dDevice != nullptr)
 					{
 						HRESULT status = E_FAIL;
 						DXGI_OUTPUT_DESC1 descGamut;
@@ -420,7 +430,7 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 
 								if (!display->wideGamut)
 								{
-									int maxSize = std::max((display->actualWidth - _cropLeft - _cropRight), (display->actualHeight - _cropTop - _cropBottom));
+									int maxSize = std::max(display->actualWidth, display->actualHeight);
 
 									display->actualDivide = 0;
 									while (maxSize > _width)
@@ -435,7 +445,7 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 								else
 								{
 									display->actualDivide = -1;
-									getTargetSystemFrameDimension(targetSizeX, targetSizeY);
+									getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
 								}
 							}
 
@@ -479,6 +489,7 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 								else
 								{
 									result = true;
+									_handles.emplace_back(std::move(display));
 									Info(_log, "The DX11 device has been initialized. Hardware acceleration is disabled");
 								}
 							}
@@ -516,6 +527,11 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 	}
 
 	SafeRelease(&pFactory);
+
+	if (!result && _handles.size() > 0)
+	{
+		uninit();
+	}
 
 	return result;
 }
@@ -760,8 +776,11 @@ void DxGrabber::grabFrame()
 				images.push_back(std::pair<int, Image<ColorRgb>>(width, image));
 			}
 
-			width += display->actualWidth;
-			height = std::max(display->actualHeight, height);
+			int targetSizeX = 0, targetSizeY = 0;
+			int divide = getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
+
+			width += targetSizeX;
+			height = std::max(targetSizeY, height);
 		}
 
 		if (useCache && (_cacheImage.width() != width || _cacheImage.height() != height))
@@ -911,7 +930,7 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 				int divide = getTargetSystemFrameDimension(display.actualWidth, display.actualHeight, targetSizeX, targetSizeY);
 
 				image = Image<ColorRgb>(targetSizeX, targetSizeY);
-				FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, (uint8_t*)internalMap.pData, display.actualWidth, display.actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
+				FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, 0, 0, (uint8_t*)internalMap.pData, display.actualWidth, display.actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
 
 				result = 1;
 				_d3dContext->Unmap(display.d3dSourceTexture, 0);
