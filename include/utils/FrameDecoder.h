@@ -8,17 +8,23 @@
 // some stuff for HDR tone mapping
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
 
+namespace FrameDecoderUtils
+{	
+	double unpackChromaP010(double x);
+	double unpackLuminanceP010(double val);
+}
+
 class FrameDecoder
 {
 public:
 	static void processImage(
 		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
+		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping = true);
 
 	static void processQImage(
 		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
+		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping = true);
 
 	static void processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 									   int startX, int startY,

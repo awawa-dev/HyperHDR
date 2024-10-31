@@ -76,6 +76,8 @@ namespace ColorSpaceMath
 			return "BT2020 with sRGB TRC";
 		else if (gamma == HDR_GAMMA::PQinSRGB)
 			return "PQ in SRGB";
+		else if (gamma == HDR_GAMMA::P010)
+			return "P010";
 		return "UNKNOWN";
 	}
 

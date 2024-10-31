@@ -101,7 +101,7 @@ void Grabber::setEnabled(bool enable)
 
 void Grabber::setMonitorNits(int nits)
 {
-	if (_targetMonitorNits != nits)
+	if (static_cast<int>(_targetMonitorNits) != nits)
 	{
 		_targetMonitorNits = nits;
 

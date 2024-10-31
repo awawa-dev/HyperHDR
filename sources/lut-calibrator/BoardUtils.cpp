@@ -231,7 +231,7 @@ namespace BoardUtils
 			}
 		}
 
-		if (black.Y() > SCREEN_YUV_RANGE_LIMIT || white.Y() < 255 - SCREEN_YUV_RANGE_LIMIT)
+		if (black.Y() > SCREEN_YUV_RANGE_LIMIT)
 		{
 			if (allColors.getRange() == YuvConverter::COLOR_RANGE::FULL)
 				Error(_log, "The YUV range is changing. Now is LIMITED.");

@@ -61,6 +61,21 @@
 // some stuff for HDR tone mapping
 #define LUT_FILE_SIZE 50331648
 
+namespace
+{
+	#ifdef V4L2_PIX_FMT_P010
+		#pragma message "P010 is supported on the build machine"
+		bool supportedP010 = true;
+	#else
+		#pragma message "P010 is NOT supported on the build machine"
+		bool supportedP010 = false;
+	#endif
+};
+
+#ifndef V4L2_PIX_FMT_P010
+	#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0')
+#endif
+
 static const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 {
 	{ V4L2_PIX_FMT_YUYV,   PixelFormat::YUYV },
@@ -68,10 +83,8 @@ static const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 	{ V4L2_PIX_FMT_RGB24,  PixelFormat::RGB24 },
 	{ V4L2_PIX_FMT_YUV420, PixelFormat::I420 },
 	{ V4L2_PIX_FMT_NV12,   PixelFormat::NV12 },
-	{ V4L2_PIX_FMT_MJPEG,  PixelFormat::MJPEG }
-	#ifdef V4L2_PIX_FMT_P010
-		,{ V4L2_PIX_FMT_P010,  PixelFormat::P010 }
-	#endif
+	{ V4L2_PIX_FMT_MJPEG,  PixelFormat::MJPEG },
+	{ V4L2_PIX_FMT_P010,  PixelFormat::P010 }
 };
 
 
@@ -84,6 +97,8 @@ V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath
 {
 	// Refresh devices
 	getV4L2devices();
+
+	Debug(_log, "P010 was %s on the build machine", (supportedP010) ? "supported" : "unsupported");
 }
 
 QString V4L2Grabber::GetSharedLut()
@@ -132,7 +147,8 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 		{
 			Debug(_log, "setHdrToneMappingMode replacing LUT and restarting");
 			_V4L2WorkerManager.Stop();
-			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
+			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12)
+				|| (_actualVideoFormat == PixelFormat::P010) || (_actualVideoFormat == PixelFormat::MJPEG))
 				loadLutFile(PixelFormat::YUYV);
 			else
 				loadLutFile(PixelFormat::RGB24);
@@ -982,6 +998,16 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 			_actualVideoFormat = PixelFormat::I420;
 			_frameByteSize = (props.x * props.y * 6) / 4;
 			Info(_log, "Video pixel format is set to: I420");
+		}
+		break;
+
+		case V4L2_PIX_FMT_P010:
+		{
+			loadLutFile(PixelFormat::YUYV);
+			_actualVideoFormat = PixelFormat::P010;
+			_frameByteSize = (props.x * props.y * 6) / 2;
+			_lineLength = props.x * 2;
+			Info(_log, "Video pixel format is set to: P010");
 		}
 		break;
 
