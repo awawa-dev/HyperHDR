@@ -67,7 +67,7 @@ jobs:
             platform: linux
     steps:
       # checkout
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: true
 
@@ -151,7 +151,7 @@ jobs:
             NICE_NAME: x64
     steps:
       # Checkout
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.2
         with:
             submodules: true
 
@@ -229,7 +229,7 @@ jobs:
       QT_VERSION: 6.5.3
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.2
         with:
           submodules: true
 
@@ -337,7 +337,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.2
         if: env.USE_CODEQL == 'true'
         with:
           submodules: true
@@ -361,7 +361,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.2
 
       # generate environment variables
       - name: Generate environment variables from version and tag
