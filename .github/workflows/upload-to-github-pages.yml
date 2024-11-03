@@ -62,7 +62,7 @@ jobs:
 
     steps:
       # checkout
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: true      
 
@@ -124,7 +124,7 @@ jobs:
 
     steps:
       # Download artifacts from previous build process
-      - uses: actions/checkout@v4.2.0
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: false
       - name: Download artifacts
