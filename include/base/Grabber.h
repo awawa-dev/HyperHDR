@@ -117,9 +117,7 @@ public:
 
 	void setSignalDetectionEnable(bool enable);
 
-	void setAutoSignalDetectionEnable(bool enable);
-
-	void benchmarkCapture(int status, QString message);
+	void setAutoSignalDetectionEnable(bool enable);	
 
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
 
@@ -162,6 +160,8 @@ public slots:
 	QJsonObject getJsonInfo();
 
 	QStringList getVideoDevices() const;
+
+	void signalSetLutHandler(MemoryBuffer<uint8_t>* lut);
 
 signals:
 	void SignalNewCapturedFrame(const Image<ColorRgb>& image);
@@ -268,9 +268,6 @@ protected:
 	bool		_signalDetectionEnabled;
 	bool		_signalAutoDetectionEnabled;
 	QSemaphore  _synchro;
-
-	int			_benchmarkStatus;
-	QString		_benchmarkMessage;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

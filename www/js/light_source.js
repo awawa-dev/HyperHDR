@@ -868,7 +868,7 @@ $(document).ready(function()
 			const wizardFn = 'startWizard' + ledType.charAt(0).toUpperCase() + ledType.slice(1);
 			changeWizard(data, wizardTitle, window[wizardFn]);
 		}
-		else if (ledType == "wled" || selectedLedGroup == "leds_group_0_SPI" || selectedLedGroup == "leds_group_4_serial")
+		else if (ledType == "wled" || selectedLedGroup == "leds_group_0_SPI" || selectedLedGroup == "leds_group_3_serial")
 		{					
 			let selectorControl = $("<select id=\"deviceListInstances\" />");
 			let targetControl = 'output';
@@ -880,7 +880,7 @@ $(document).ready(function()
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.host','select_wled_intro','select_wled_rescan'));
 				targetControl = 'host';
 			}
-			else if (selectedLedGroup == "leds_group_4_serial")
+			else if (selectedLedGroup == "leds_group_3_serial")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output','edt_dev_spec_outputPath_title'));
 			else if (selectedLedGroup == "leds_group_0_SPI")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output', 'edt_dev_spec_spipath_title'));

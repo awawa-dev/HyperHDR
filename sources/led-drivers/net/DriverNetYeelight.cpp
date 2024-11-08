@@ -104,6 +104,9 @@ YeelightLight::YeelightLight(Logger* log, const QString& hostname, quint16 port 
 	, _brightnessFactor(1.0)
 	, _transitionEffectParam(API_PARAM_EFFECT_SMOOTH)
 	, _waitTimeQuota(API_DEFAULT_QUOTA_WAIT_TIME)
+	, _colorRgbValue(0)
+	, _bright(0)
+	, _ct(0)
 	, _isOn(false)
 	, _isInMusicMode(false)
 {

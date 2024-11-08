@@ -308,8 +308,8 @@ void ColorSpaceCalibration::applyBacklight(uint8_t& red, uint8_t& green, uint8_t
 		}
 		else
 		{
-			int avVal = (std::min(int(red), std::min(int(green), int(blue))) +
-				std::max(int(red), std::max(int(green), int(blue)))) / 2;
+			int avVal = (1 + std::min(red, std::min(green, blue)) +
+				std::max(red, std::max(green, blue))) / 2;
 			if (avVal < int(_sumBrightnessRGBLow))
 			{
 				red = _sumBrightnessRGBLow;

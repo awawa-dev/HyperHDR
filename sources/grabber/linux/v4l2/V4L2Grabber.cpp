@@ -1186,7 +1186,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							loadLutFile();
 						}
 
-						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() || (_benchmarkStatus >= 0));
+						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() );
 						_workerThread->setup(
 							i,
 							buf,

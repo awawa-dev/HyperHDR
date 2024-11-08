@@ -74,13 +74,13 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _signalDetectionEnabled(false)
 	, _signalAutoDetectionEnabled(false)
 	, _synchro(1)
-	, _benchmarkStatus(-1)
-	, _benchmarkMessage("")
 {
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
 }
 
 Grabber::~Grabber()
 {
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler);
 }
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2)
@@ -822,34 +822,24 @@ void Grabber::handleNewFrame(unsigned int workerIndex, Image<ColorRgb> image, qu
 		{
 			if (checkSignalDetectionManual(image))
 				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
-		}
-		if (_benchmarkStatus >= 0)
-		{
-			ColorRgb pixel = image(image.width() / 2, image.height() / 2);
-			if ((_benchmarkMessage == "white" && pixel.red > 120 && pixel.green > 120 && pixel.blue > 120) ||
-				(_benchmarkMessage == "red" && pixel.red > 120 && pixel.green < 30 && pixel.blue < 30) ||
-				(_benchmarkMessage == "green" && pixel.red < 30 && pixel.green > 120 && pixel.blue < 30) ||
-				(_benchmarkMessage == "blue" && pixel.red < 30 && pixel.green < 40 && pixel.blue > 120) ||
-				(_benchmarkMessage == "black" && pixel.red < 30 && pixel.green < 30 && pixel.blue < 30))
-
-			{
-				emit SignalBenchmarkUpdate(_benchmarkStatus, _benchmarkMessage);
-				_benchmarkStatus = -1;
-				_benchmarkMessage = "";
-			}
-		}
+		}		
 	}
 	else
 		frameStat.directAccess = true;
 }
 
-void Grabber::benchmarkCapture(int status, QString message)
-{
-	_benchmarkStatus = status;
-	_benchmarkMessage = message;
-}
-
 bool Grabber::isInitialized()
 {
 	return _initialized;
+}
+
+void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
+{
+	if (lut != nullptr && _lut.size() >= lut->size())
+	{
+		memcpy(_lut.data(), lut->data(), lut->size());
+		Info(_log, "The byte array loaded into LUT");
+	}
+	else
+		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }

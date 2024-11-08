@@ -70,6 +70,7 @@ void FrameDecoder::processImage(
 	int outputHeight = (height - _cropTop - _cropBottom);
 
 	outputImage.resize(outputWidth, outputHeight);
+	outputImage.setOriginFormat(pixelFormat);
 
 	uint8_t* destMemory = outputImage.rawMem();
 	int 		destLineSize = outputImage.width() * 3;
@@ -101,7 +102,7 @@ void FrameDecoder::processImage(
 #ifdef TAKE_SCREEN_SHOT
 		if (screenShotTaken > 0 && screenShotTaken-- == 1)
 		{
-			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
+			QImage jpgImage((const uint8_t*)outputImage.rawMem(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
 			jpgImage.save("D:/grabber_yuv.png", "png");
 		}
 #endif
@@ -267,7 +268,7 @@ void FrameDecoder::processImage(
 #ifdef TAKE_SCREEN_SHOT
 		if (screenShotTaken > 0 && screenShotTaken-- == 1)
 		{
-			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
+			QImage jpgImage((const uint8_t*)outputImage.rawMem(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
 			jpgImage.save("D:/grabber_nv12.png", "png");
 		}
 #endif
@@ -276,7 +277,7 @@ void FrameDecoder::processImage(
 }
 
 void FrameDecoder::processQImage(
-	const uint8_t* data, int width, int height, int lineLength,
+	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
 	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
 {
 	uint32_t ind_lutd;
@@ -428,13 +429,13 @@ void FrameDecoder::processQImage(
 
 	if (pixelFormat == PixelFormat::NV12)
 	{
-		int deltaU = lineLength * height;
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
 		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
 		{
 			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
 			uint8_t* endDest = currentDest + destLineSize;
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = (uint8_t*)data + deltaU + (((uint64_t)ySource / 2) * lineLength);
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
 
 			while (currentDest < endDest)
 			{

@@ -201,7 +201,7 @@ void V4L2Worker::runMe()
 			{
 				Image<ColorRgb> image(_width >> 1, _height >> 1);
 				FrameDecoder::processQImage(
-					_sharedData, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+					_sharedData, nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
 
 				image.setBufferCacheSize();
 				if (!_directAccess)

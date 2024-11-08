@@ -28,6 +28,7 @@
 #include <QMetaType>
 #include <grabber/windows/MF/MFWrapper.h>
 #include <base/HyperHdrManager.h>
+#include <utils/GlobalSignals.h>
 
 
 MFWrapper::MFWrapper(const QString& device,
@@ -35,7 +36,6 @@ MFWrapper::MFWrapper(const QString& device,
 	: GrabberWrapper("Media Foundation:" + device.left(14))
 {
 	_grabber = std::unique_ptr<Grabber>(new MFGrabber(device, configurationPath));
-	connect(_grabber.get(), &Grabber::SignalBenchmarkUpdate, this, &GrabberWrapper::SignalBenchmarkUpdate);
 	connect(_grabber.get(), &Grabber::SignalCapturingException, this, &GrabberWrapper::capturingExceptionHandler);
 	connect(_grabber.get(), &Grabber::SignalSetNewComponentStateToAllInstances, this, &GrabberWrapper::SignalSetNewComponentStateToAllInstances);
 	connect(_grabber.get(), &Grabber::SignalSaveCalibration, this, &GrabberWrapper::SignalSaveCalibration);

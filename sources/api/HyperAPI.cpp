@@ -525,21 +525,10 @@ void HyperAPI::handleCropCommand(const QJsonObject& message, const QString& comm
 
 void HyperAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
-
-	if (grabberWrapper != nullptr)
-	{
-		if (subc == "ping")
-		{
-			emit grabberWrapper->SignalBenchmarkUpdate(status, "pong");
-		}
-		else
-		{
-			BLOCK_CALL_2(grabberWrapper, benchmarkCapture, int, status, QString, subc);
-		}
-	}
+	
+	emit _instanceManager->SignalBenchmarkCapture(status, subc);	
 
 	sendSuccessReply(command, tan);
 }
@@ -1000,37 +989,36 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 {
 	QString subcommand = message["subcommand"].toString("");
 
-	if (_lutCalibrator == nullptr)
+	if (subcommand == "capture")
 	{
-		sendErrorReply("Please refresh the page and start again", command + "-" + subcommand, tan);
+		bool debug = message["debug"].toBool(false);
+		bool lchCorrection = message["lch_correction"].toBool(false);
+
+		QThread* lutThread = new QThread();
+		LutCalibrator* lutCalibrator = new LutCalibrator(_instanceManager->getRootPath(), getActiveComponent(), debug, lchCorrection);
+		lutCalibrator->moveToThread(lutThread);
+		connect(lutThread, &QThread::finished, lutCalibrator, &LutCalibrator::deleteLater);
+		connect(lutThread, &QThread::started, lutCalibrator, &LutCalibrator::startHandler);		
+		connect(lutCalibrator, &LutCalibrator::SignalLutCalibrationUpdated, this, &CallbackAPI::lutCalibrationUpdateHandler);
+		
+		_lutCalibratorThread = std::unique_ptr<QThread, std::function<void(QThread*)>>(lutThread,
+			[lutCalibrator](QThread* mqttThread) {
+				lutCalibrator->cancelCalibrationSafe();
+				THREAD_REMOVER(QString("LutCalibrator"), mqttThread, lutCalibrator);
+			});
+		_lutCalibratorThread->start();
+	}
+	else if (_lutCalibratorThread != nullptr && subcommand == "stop")
+	{
+		_lutCalibratorThread = nullptr;
+	}
+	else
+	{
+		sendErrorReply("The command does not have any effect", command + "-" + subcommand, tan);
 		return;
 	}
 	
-	int checksum = message["checksum"].toInt(-1);
-	QJsonObject startColor = message["startColor"].toObject();
-	QJsonObject endColor = message["endColor"].toObject();
-	bool limitedRange = message["limitedRange"].toBool(false);
-	double saturation = message["saturation"].toDouble(1.0);
-	double luminance = message["luminance"].toDouble(1.0);
-	double gammaR = message["gammaR"].toDouble(1.0);
-	double gammaG = message["gammaG"].toDouble(1.0);
-	double gammaB = message["gammaB"].toDouble(1.0);
-	int coef = message["coef"].toInt(0);
-	ColorRgb _startColor, _endColor;
-
-	_startColor.red = startColor["r"].toInt(128);
-	_startColor.green = startColor["g"].toInt(128);
-	_startColor.blue = startColor["b"].toInt(128);
-	_endColor.red = endColor["r"].toInt(255);
-	_endColor.green = endColor["g"].toInt(255);
-	_endColor.blue = endColor["b"].toInt(255);
-
 	sendSuccessReply(command, tan);
-
-	if (subcommand == "capture")
-		_lutCalibrator->incomingCommand(_instanceManager->getRootPath(), (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr, getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
-	else
-		_lutCalibrator->stopHandler();	
 }
 
 void HyperAPI::handleInstanceCommand(const QJsonObject& message, const QString& command, int tan)
