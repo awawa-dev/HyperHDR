@@ -65,6 +65,8 @@ private:
 	bool init_device(QString selectedDeviceName);
 
 	void processFrame(int8_t* source);
+
+	void decodeFrame(CGImageRef capturedImage);
 		
 private:
 	QString					_configurationPath;
