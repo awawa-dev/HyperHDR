@@ -1,0 +1,25 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_outputPath_title",
+			"default":"ttyACM0",
+			"propertyOrder" : 1
+		},
+		"rate": {
+			"type": "integer",
+			"title":"edt_dev_spec_baudrate_title",
+			"default": 1000000,
+			"propertyOrder" : 2
+		},
+		"delayAfterConnect": {
+			"type": "integer",
+			"title":"edt_dev_spec_delayAfterConnect_title",
+			"default": 250,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties": true
+}
