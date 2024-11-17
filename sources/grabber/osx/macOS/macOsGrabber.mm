@@ -49,7 +49,18 @@
 #import <Foundation/Foundation.h>
 #import <Foundation/NSProcessInfo.h>
 
-id activity;
+#ifdef MACOS_SCK
+	#import <ScreenCaptureKit/ScreenCaptureKit.h>
+#endif
+
+namespace
+{
+	id activity;
+	#ifdef MACOS_SCK
+		CGColorSpaceRef colorSpaceRgb = nil;
+	#endif
+};
+
 
 macOsGrabber::macOsGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "MACOS_SYSTEM:" + device.left(14))
@@ -99,6 +110,14 @@ void macOsGrabber::uninit()
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	}
 
+	#ifdef MACOS_SCK
+		if (colorSpaceRgb)
+		{
+			CGColorSpaceRelease(colorSpaceRgb);
+			colorSpaceRgb = nil;
+		}
+	#endif
+
 	_actualDisplay = 0;
 
 	_initialized = false;
@@ -122,6 +141,13 @@ bool macOsGrabber::init()
 			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
 			autoDiscovery = true;
 		}
+
+		#ifdef MACOS_SCK
+			if (!colorSpaceRgb)
+			{
+				colorSpaceRgb = CGColorSpaceCreateDeviceRGB();
+			}
+		#endif
 
 		if (autoDiscovery)
 		{
@@ -228,13 +254,82 @@ bool macOsGrabber::init_device(QString selectedDeviceName)
 	return true;
 }
 
-void macOsGrabber::grabFrame()
+void macOsGrabber::decodeFrame(CGImageRef capturedImage)
 {
-	bool stopNow = false;
-		
+	CFDataRef sysData = CGDataProviderCopyData(CGImageGetDataProvider(capturedImage));
+
+	if (sysData != NULL)
+	{
+		uint8_t* rawData = (uint8_t*)CFDataGetBytePtr(sysData);
+		_actualWidth = CGImageGetWidth(capturedImage);
+		_actualHeight = CGImageGetHeight(capturedImage);
+
+		size_t bytesPerRow = CGImageGetBytesPerRow(capturedImage);
+		processSystemFrameBGRA(rawData, static_cast<int>(bytesPerRow));
+
+		CFRelease(sysData);
+	}
+}
+
+void macOsGrabber::grabFrame()
+{	
+	#ifdef MACOS_SCK		
+		[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent* content, NSError* error)
+		{	
+			SCDisplay* target = nil;
+			for (SCDisplay *display in content.displays)
+			{
+				if (display.displayID == _actualDisplay)
+				{
+					target = display;
+					break;
+				}
+			}
+			if (!target)
+			{
+				uninit();
+				QTimer::singleShot(3000, this, &macOsGrabber::start);
+			}
+			else
+			{
+				CGDisplayModeRef displayReference = CGDisplayCopyDisplayMode(_actualDisplay);
+				double scaleAspect = CGDisplayModeGetPixelWidth(displayReference)/static_cast<double>(CGDisplayModeGetWidth(displayReference));
+				CGDisplayModeRelease(displayReference);	
+
+				CGRect displayBounds = CGDisplayBounds(_actualDisplay);
+
+				SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:target excludingWindows:@[]];
+				SCStreamConfiguration* streamConfig = [[SCStreamConfiguration alloc] init];
+
+				streamConfig.width = displayBounds.size.width * scaleAspect;
+				streamConfig.height = displayBounds.size.height * scaleAspect;
+				streamConfig.sourceRect = displayBounds;
+				streamConfig.captureResolution = SCCaptureResolutionBest;
+				streamConfig.scalesToFit = false;
+				streamConfig.queueDepth = 1;
+
+				[SCScreenshotManager captureImageWithFilter:filter
+					configuration:streamConfig
+					completionHandler:^(CGImageRef sourceImg, NSError* error)
+					{
+						if (!error)
+						{							
+							CGImageRef capturedImage = CGImageCreateCopyWithColorSpace(sourceImg, colorSpaceRgb);
+
+							decodeFrame(capturedImage);
+
+							CGImageRelease(capturedImage);
+						}
+					}
+				];
+
+				[streamConfig release];
+				[filter release];
+			}
+		}];
+	#else
+		bool stopNow = false;
 		CGImageRef display;
-		CFDataRef sysData;
-		uint8_t* rawData;
 
 		display = CGDisplayCreateImage(_actualDisplay);
 
@@ -245,28 +340,17 @@ void macOsGrabber::grabFrame()
 		}
 		else
 		{			
-			sysData = CGDataProviderCopyData(CGImageGetDataProvider(display));;
-
-			if (sysData != NULL)
-			{
-				rawData = (uint8_t*)CFDataGetBytePtr(sysData);
-				_actualWidth = CGImageGetWidth(display);
-				_actualHeight = CGImageGetHeight(display);
-
-				size_t bytesPerRow = CGImageGetBytesPerRow(display);
-				processSystemFrameBGRA(rawData, static_cast<int>(bytesPerRow));
-
-				CFRelease(sysData);
-			}
+			decodeFrame(display);
 
 			CGImageRelease(display);
 		}
 
-	if (stopNow)
-	{
-		uninit();
-		QTimer::singleShot(3000, this, &macOsGrabber::start);
-	}
+		if (stopNow)
+		{
+			uninit();
+			QTimer::singleShot(3000, this, &macOsGrabber::start);
+		}
+	#endif	
 }
 
 

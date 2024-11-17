@@ -111,6 +111,9 @@ if (ENABLE_MAC_SYSTEM)
 		MACOS-grabber
 		"-framework CoreGraphics"
 		"-framework Foundation")
+	if (MACOS_SCK)
+		target_link_libraries(hyperhdr "${MACOS_SCK}")
+	endif(MACOS_SCK)
 endif()
 
 if (ENABLE_AVF)
