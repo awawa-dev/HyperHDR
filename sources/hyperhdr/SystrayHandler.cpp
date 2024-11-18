@@ -211,7 +211,14 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QStrin
 	menu->tooltip = fullPath.toStdString();
 #else
 	std::vector<uint8_t> ar;
-	utils_image::svg2png(preloadSvg(filename).toStdString(), iconDim, iconDim, ar);
+	QString svgFile = preloadSvg(filename);
+	#ifdef __APPLE__
+	if (filename.indexOf(":/") == 0 && SystrayDarkmode())
+	{
+		svgFile.replace("fill=\"black\"", "fill=\"white\"");
+	}
+	#endif
+	utils_image::svg2png(svgFile.toStdString(), iconDim, iconDim, ar);
 
 	menu->icon.resize(ar.size());
 	memcpy(menu->icon.data(), ar.data(), ar.size());

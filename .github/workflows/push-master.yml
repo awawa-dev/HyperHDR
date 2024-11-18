@@ -142,7 +142,7 @@ jobs:
       matrix:
         include:        
           - JOB_RUNNER: macos-14
-            JOB_NAME: macOS 14 (arm64/M1/M2)
+            JOB_NAME: macOS 14 (arm64 = M1/M2/M3/M4)
             QT_VERSION: 6
             NICE_NAME: arm64_M1_M2
           - JOB_RUNNER: macos-13

@@ -115,7 +115,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		if [[ $(uname -m) == 'arm64' ]]; then
 			BUILD_OPTION=""
 		else
-			BUILD_OPTION="-DUSE_PRECOMPILED_HEADERS=OFF"
+			BUILD_OPTION="-DUSE_PRECOMPILED_HEADERS=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"
 			export CCACHE_COMPILERCHECK=content
 		fi
 	else
@@ -129,7 +129,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	ls -a build/.ccache
 	cd build
 	ccache -z -d ./.ccache || true
-	cmake -DPLATFORM=${PLATFORM} ${BUILD_OPTION} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+	cmake -DPLATFORM=${PLATFORM} ${BUILD_OPTION} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
 	make -j $(sysctl -n hw.ncpu) || exit 3
 	sudo cpack || exit 3
 	ccache -sv -d ./.ccache || true

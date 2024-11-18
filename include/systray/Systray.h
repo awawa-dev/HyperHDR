@@ -66,6 +66,10 @@ struct SystrayMenu
 	void SystrayClose();
 #endif
 
+#ifdef __APPLE__
+	bool SystrayDarkmode();
+#endif
+
 #ifdef _WIN32
 	HWND SystrayGetWindow();
 #endif

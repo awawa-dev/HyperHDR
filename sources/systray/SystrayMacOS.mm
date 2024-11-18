@@ -125,6 +125,15 @@ int SystrayLoop()
     return 0;
 }
 
+bool SystrayDarkmode()
+{
+    #ifndef MACOS_VERSION_14_UP
+        return NSAppearance.currentAppearance.name == NSAppearanceNameDarkAqua;
+    #else
+        return [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"] != nil;
+    #endif    
+}
+
 void SystrayUpdate(SystrayMenu* tray)
 {
     double iconHeight = [[NSStatusBar systemStatusBar] thickness];
