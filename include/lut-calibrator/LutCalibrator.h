@@ -72,6 +72,7 @@ public:
 	~LutCalibrator();
 	static void sendReport(Logger* _log, QString report);
 	static QString CreateLutFile(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all);
+	static void CreateDefaultLut(QString filepath);
 
 signals:
 	void SignalLutCalibrationUpdated(const QJsonObject& data);

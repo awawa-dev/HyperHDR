@@ -793,16 +793,6 @@ Section "-Core installation"
 ; Install Visual c++ Redistributable
 ExecWait '"$INSTDIR\bin\vc_redist.x64.exe" /install /quiet /norestart'
 
-Push "$INSTDIR\bin\lut_lin_tables.tar.xz"
-Push "$INSTDIR\bin\lut_lin_tables.3d"
-
-ExtractLut::extract
-Pop $0
-StrCmp $0 success SUCCESS
-MessageBox MB_OK|MB_ICONSTOP "$0"
-MessageBox MB_OK|MB_ICONSTOP "Please extract $INSTDIR\bin\lut_lin_tables.tar.xz manually using 7-zip"
-SUCCESS:
-
 SectionEnd
 
 Section "-Add to path"
@@ -925,7 +915,7 @@ Section "Uninstall"
   ;Remove files we installed.
   ;Keep the list of directories here in sync with the File commands above.
 @CPACK_NSIS_DELETE_FILES@
-Delete "$INSTDIR\bin\lut_lin_tables.3d"
+
 @CPACK_NSIS_DELETE_DIRECTORIES@
 
 !ifdef CPACK_NSIS_ADD_REMOVE

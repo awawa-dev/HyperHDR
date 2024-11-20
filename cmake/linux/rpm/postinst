@@ -44,10 +44,6 @@ fi
 start_msg=""
 restart_msg=""
 
-echo "Extracting LUT table..."
-tar -xf /usr/share/hyperhdr/lut/lut_lin_tables.tar.xz -C /usr/share/hyperhdr/lut/
-rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.tar.xz
-
 if grep -m1 systemd /proc/1/comm > /dev/null
 then	
 	# systemd

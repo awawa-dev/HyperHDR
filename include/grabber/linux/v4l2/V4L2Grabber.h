@@ -50,7 +50,7 @@ private:
 
 	void enumerateV4L2devices(bool silent);
 
-	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
+	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE, bool silent = false);
 
 	void getV4L2devices();
 

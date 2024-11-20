@@ -93,6 +93,8 @@ public:
 
 	int  getActualFps() override;
 
+	void pleaseWaitForLut(bool videoGrabber = true);
+
 	void setEncoding(QString enc);
 
 	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);

@@ -41,32 +41,9 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 	_lutBufferInit = false;
 
-	if (color != PixelFormat::NO_CHANGE && color != PixelFormat::RGB24 && color != PixelFormat::YUYV)
+	if (color != PixelFormat::RGB24 && color != PixelFormat::YUYV)
 	{
-		Error(_log, "Unsupported mode for loading LUT table: %s", QSTRING_CSTR(pixelFormatToString(color)));
-		return;
-	}
-
-	if (color == PixelFormat::NO_CHANGE)
-	{
-		_lut.resize(LUT_FILE_SIZE + LUT_MEMORY_ALIGN);
-
-		if (_lut.data() != nullptr)
-		{
-			for (int y = 0; y < 256; y++)
-				for (int u = 0; u < 256; u++)
-					for (int v = 0; v < 256; v++)
-					{
-						uint32_t ind_lutd = LUT_INDEX(y, u, v);
-						ColorRgb::yuv2rgb(y, u, v,
-							_lut.data()[ind_lutd],
-							_lut.data()[ind_lutd + 1],
-							_lut.data()[ind_lutd + 2]);
-					}
-			_lutBufferInit = true;
-		}
-
-		Error(_log, "You have forgotten to put lut_lin_tables.3d file in the HyperHDR configuration folder. Internal LUT table for YUV conversion has been created instead.");
+		if (_log) Error(_log, "Unsupported mode for loading LUT table: %s", QSTRING_CSTR(pixelFormatToString(color)));
 		return;
 	}
 
@@ -79,7 +56,7 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 			if (file.open(QIODevice::ReadOnly))
 			{
 				int length;
-				Debug(_log, "LUT file found: %s", QSTRING_CSTR(fileName3d));
+				if (_log) Debug(_log, "LUT file found: %s", QSTRING_CSTR(fileName3d));
 
 				length = file.size();
 
@@ -89,16 +66,18 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 					if (is_yuv && _hdrToneMappingEnabled)
 					{
-						Debug(_log, "Index 1 for HDR YUV");
+						if (_log) Debug(_log, "Index 1 for HDR YUV");
 						index = LUT_FILE_SIZE;
 					}
 					else if (is_yuv)
 					{
-						Debug(_log, "Index 2 for YUV");
+						if (_log) Debug(_log, "Index 2 for YUV");
 						index = LUT_FILE_SIZE * 2;
 					}
 					else
-						Debug(_log, "Index 0 for HDR RGB");
+					{
+						if (_log) Debug(_log, "Index 0 for HDR RGB");
+					}
 
 					file.seek(index);
 
@@ -106,25 +85,29 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
 					{
-						Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
+						if (_log) Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
 					}
 					else
 					{
 						_lutBufferInit = true;
-						Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
+						if (_log) Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
 					}
 				}
 				else
-					Error(_log, "LUT file has invalid length: %i vs %i => %s", length, (LUT_FILE_SIZE * 3), QSTRING_CSTR(fileName3d));
+				{
+					if (_log) Error(_log, "LUT file has invalid length: %i vs %i => %s", length, (LUT_FILE_SIZE * 3), QSTRING_CSTR(fileName3d));
+				}
 
 				file.close();
 
 				return;
 			}
 			else
-				Warning(_log, "LUT file is not found here: %s", QSTRING_CSTR(fileName3d));
+			{
+				if (_log) Warning(_log, "LUT file is not found here: %s", QSTRING_CSTR(fileName3d));
+			}
 		}
 
-		Error(_log, "Could not find any required LUT file");
+		if (_log) Error(_log, "Could not find any required LUT file");
 	}
 }

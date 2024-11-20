@@ -84,10 +84,6 @@ post_install() {
 	start_msg=""
 	restart_msg=""
 
-	echo "Extracting LUT table..."
-	tar -xf /usr/share/hyperhdr/lut/lut_lin_tables.tar.xz -C /usr/share/hyperhdr/lut/
-	rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.tar.xz
-
 	if grep -m1 systemd /proc/1/comm > /dev/null
 	then	
 		# systemd
@@ -255,8 +251,6 @@ pre_remove() {
 	rm -v /usr/share/applications/hyperhdr* 2>/dev/null
 	rm -rv /usr/share/pixmaps/hyperhdr 2>/dev/null
 
-	echo "Removing LUT table"
-	rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.3d
 	exit 0
 }
 

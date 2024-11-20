@@ -2,18 +2,6 @@ macro(DeployApple TARGET)
 	if(EXISTS ${TARGET_FILE})
 		install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )
 
-		execute_process(
-			COMMAND bash -c "cd ${CMAKE_CURRENT_BINARY_DIR} && tar -xzf ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz"
-			RESULT_VARIABLE STATUS
-			OUTPUT_VARIABLE OUTPUT1			
-		)			
-		if(STATUS AND NOT STATUS EQUAL 0)
-			message( FATAL_ERROR "LUT tar.xz Bad exit status (xz-tools installed?)")
-		else()
-			message( STATUS "LUT tar.xz tar extracted")			
-		endif()
-
-		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lut_lin_tables.3d" DESTINATION "hyperhdr.app/Contents/lut" COMPONENT "HyperHDR")			
 		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
@@ -214,8 +202,6 @@ macro(DeployUnix TARGET)
 	if (EXISTS ${TARGET_FILE})
 		include(GetPrerequisites)
 
-		# Install LUT		
-		install(FILES "${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz" DESTINATION "share/hyperhdr/lut" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION "share/hyperhdr" COMPONENT "HyperHDR")
 
@@ -621,12 +607,6 @@ macro(DeployWindows TARGET)
 			DESTINATION "bin"
 			COMPONENT "HyperHDR"
 		)		
-
-		install(
-			FILES ${PROJECT_SOURCE_DIR}/resources/lut/lut_lin_tables.tar.xz
-			DESTINATION "bin"
-			COMPONENT "HyperHDR"
-		)
 
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
 		

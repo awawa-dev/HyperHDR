@@ -54,6 +54,4 @@ then
 	firewall-cmd --remove-port=8090/tcp
 fi
 
-echo "Removing LUT table"
-rm -f -v /usr/share/hyperhdr/lut/lut_lin_tables.3d
 exit 0

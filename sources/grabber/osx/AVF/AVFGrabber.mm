@@ -176,13 +176,13 @@ QString AVFGrabber::GetSharedLut()
 	return ret;
 }
 
-void AVFGrabber::loadLutFile(PixelFormat color)
+void AVFGrabber::loadLutFile(PixelFormat color, bool silent)
 {
 	// load lut table
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 
-	Grabber::loadLutFile(_log, color, QList<QString>{fileName1, fileName2});
+	Grabber::loadLutFile((!silent) ? _log : nullptr, color, QList<QString>{fileName1, fileName2});
 }
 
 void AVFGrabber::setHdrToneMappingEnabled(int mode)
@@ -813,9 +813,23 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 						AVFWorker* _workerThread = _AVFWorkerManager.workers[i];
 
 						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::I420 ||
-							_actualVideoFormat == PixelFormat::NV12) && !_lutBufferInit)
+							_actualVideoFormat == PixelFormat::NV12 || _hdrToneMappingEnabled) && !_lutBufferInit)
 						{
-							loadLutFile();
+							if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
+							{
+								loadLutFile(PixelFormat::YUYV, true);
+							}
+							else
+							{
+								loadLutFile(PixelFormat::RGB24, true);
+							}
+
+							if (!_lutBufferInit)
+							{
+								pleaseWaitForLut();
+								_AVFWorkerManager.workers[i]->noBusy();
+								return true;
+							}
 						}
 
 						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating());
