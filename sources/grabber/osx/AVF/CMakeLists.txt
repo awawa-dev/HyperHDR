@@ -11,6 +11,10 @@ target_link_libraries(AVF-grabber
 	Qt${Qt_VERSION}::Network
 )
 
+if (${MACOS_MAJOR_VERSION} GREATER_EQUAL "14")
+	target_compile_definitions(AVF-grabber PUBLIC MACOS_VERSION_14_UP)
+endif()
+
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
 	target_precompile_headers(AVF-grabber REUSE_FROM precompiled_hyperhdr_headers)
 endif()

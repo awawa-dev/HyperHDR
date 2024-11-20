@@ -11,6 +11,10 @@ target_link_libraries(MACOS-grabber
 	Qt${Qt_VERSION}::Network
 )
 
+if(MACOS_SCK)
+	target_compile_definitions(MACOS-grabber PUBLIC MACOS_SCK)
+endif()
+
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
 	target_precompile_headers(MACOS-grabber REUSE_FROM precompiled_hyperhdr_headers)
 endif()

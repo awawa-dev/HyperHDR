@@ -49,9 +49,24 @@ HyperHdrManager::HyperHdrManager(const QString& rootPath)
 	, _instanceTable(new InstanceTable())
 	, _rootPath(rootPath)
 	, _fireStarter(0)
+	, _videoBenchmark(this)
 {
 	qRegisterMetaType<InstanceState>("InstanceState");
 	connect(this, &HyperHdrManager::SignalInstanceStateChanged, this, &HyperHdrManager::handleInstanceStateChange);
+
+	connect(&_videoBenchmark, &VideoBenchmark::SignalBenchmarkUpdate, this, &HyperHdrManager::SignalBenchmarkUpdate);
+	connect(this, &HyperHdrManager::SignalBenchmarkCapture, &_videoBenchmark, &VideoBenchmark::benchmarkCapture);
+
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &HyperHdrManager::handleRequestComponent);
+}
+
+void HyperHdrManager::handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen)
+{
+	if (component == hyperhdr::Components::COMP_VIDEOGRABBER && hyperHdrInd == -1)
+	{
+		Warning(_log, "Global request to %s USB grabber", (listen) ? "resume" : "pause");
+		toggleGrabbersAllInstances(listen);
+	}
 }
 
 HyperHdrManager::~HyperHdrManager()

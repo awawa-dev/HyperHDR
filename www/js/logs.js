@@ -98,18 +98,25 @@ $(document).ready(function() {
 
 function LogLine(logger,date,logger_name,level_string,debug,msg)
 {
+	const REPORT_TOKEN = "<Report>";
+
 	var style="";
 	if (level_string=="INFO")
-		style = " class='db_info'";
+		style = "db_info";
 	else if (level_string=="DEBUG")
-		style = " class='db_debug'";
+		style = "db_debug";
 	else if (level_string=="WARNING")
-		style = " class='db_warning'";
+		style = "db_warning";
 	else if (level_string=="ERROR")
-		style = " class='db_error'";
-	
-	if (logger.text().length > 0)
-		logger.append("\n<code"+style+">"+date.toISOString()+" ["+(logger_name).trim()+"] "+debug+msg+"</code>");
+		style = "db_error";
+
+	if (msg.indexOf(REPORT_TOKEN) == 0)
+	{
+		msg = msg.substring(REPORT_TOKEN.length, msg.length);
+		logger.append(`<code class='${style}'>${msg}</code>\n`);
+	}
 	else
-		logger.append("<code"+style+">"+date.toISOString()+" ["+(logger_name).trim()+"] "+debug+msg+"</code>");
+	{
+		logger.append(`<code class='${style}'>${date.toISOString()} [${logger_name.trim()}] ${debug}${msg}</code>\n`);
+	}
 }

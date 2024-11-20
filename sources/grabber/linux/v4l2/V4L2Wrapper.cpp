@@ -28,13 +28,13 @@
 #include <QMetaType>
 #include <grabber/linux/v4l2/V4L2Wrapper.h>
 #include <base/HyperHdrManager.h>
+#include <utils/GlobalSignals.h>
 
 V4L2Wrapper::V4L2Wrapper(const QString& device,
 	const QString& configurationPath)
 	: GrabberWrapper("V4L2:" + device.left(14))
 {
 	_grabber = std::unique_ptr<Grabber>(new V4L2Grabber(device, configurationPath));
-	connect(_grabber.get(), &Grabber::SignalBenchmarkUpdate, this, &GrabberWrapper::SignalBenchmarkUpdate);
     connect(_grabber.get(), &Grabber::SignalCapturingException, this, &GrabberWrapper::capturingExceptionHandler);
 	connect(_grabber.get(), &Grabber::SignalSetNewComponentStateToAllInstances, this, &GrabberWrapper::SignalSetNewComponentStateToAllInstances);
 	connect(_grabber.get(), &Grabber::SignalSaveCalibration, this, &GrabberWrapper::SignalSaveCalibration);

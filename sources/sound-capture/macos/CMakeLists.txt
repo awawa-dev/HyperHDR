@@ -11,6 +11,10 @@ target_link_libraries(sound-capture-macos
 	Qt${Qt_VERSION}::Network
 )
 
+if (${MACOS_MAJOR_VERSION} GREATER_EQUAL "14")
+	target_compile_definitions(sound-capture-macos PUBLIC MACOS_VERSION_14_UP)
+endif()
+
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers AND (NOT APPLE))
 	target_precompile_headers(sound-capture-macos REUSE_FROM precompiled_hyperhdr_headers)
 endif()

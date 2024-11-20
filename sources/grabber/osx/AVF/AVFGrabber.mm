@@ -411,7 +411,11 @@ void AVFGrabber::enumerateAVFdevices(bool silent)
 	_deviceProperties.clear();
 
 	AVCaptureDeviceDiscoverySession* session = [AVCaptureDeviceDiscoverySession
-		discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternalUnknown]
+		#ifndef MACOS_VERSION_14_UP
+			discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternalUnknown]
+		#else
+			discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternal]
+		#endif
 		mediaType:AVMediaTypeVideo
 		position : AVCaptureDevicePositionUnspecified];
 
@@ -516,7 +520,11 @@ bool AVFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pr
 
 
 	for (AVCaptureDevice* device in[AVCaptureDeviceDiscoverySession
-		discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternalUnknown]
+		#ifndef MACOS_VERSION_14_UP
+			discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternalUnknown]
+		#else
+			discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternal]
+		#endif		
 		mediaType:AVMediaTypeVideo
 		position : AVCaptureDevicePositionUnspecified].devices)
 	{
@@ -810,7 +818,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 							loadLutFile();
 						}
 
-						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() || (_benchmarkStatus >= 0));
+						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating());
 						_workerThread->setup(
 							i,
 							_actualVideoFormat,

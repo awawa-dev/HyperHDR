@@ -18,7 +18,6 @@ using namespace hyperhdr;
 CallbackAPI::CallbackAPI(Logger* log, bool localConnection, QObject* parent)
 	: BaseAPI(log, localConnection, parent)
 {
-	_lutCalibrator = nullptr;
 	_availableCommands << "components-update" << "performance-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update" << "lut-calibration-update"
 		<< "adjustment-update" << "leds-colors" << "live-video" << "videomodehdr-update" << "settings-update" << "leds-update" << "instance-update" << "token-update" << "benchmark-update";
 }
@@ -73,14 +72,7 @@ bool CallbackAPI::subscribeFor(const QString& type, bool unsubscribe)
 	{
 		if (unsubscribe)
 		{
-			if (_lutCalibrator != nullptr)
-				disconnect(_lutCalibrator.get(), &LutCalibrator::SignalLutCalibrationUpdated, this, &CallbackAPI::lutCalibrationUpdateHandler);
-			_lutCalibrator = nullptr;
-		}
-		else
-		{
-			_lutCalibrator = std::unique_ptr<LutCalibrator>(new LutCalibrator());
-			connect(_lutCalibrator.get(), &LutCalibrator::SignalLutCalibrationUpdated, this, &CallbackAPI::lutCalibrationUpdateHandler, Qt::UniqueConnection);
+			_lutCalibratorThread = nullptr;
 		}
 	}
 
@@ -185,12 +177,12 @@ bool CallbackAPI::subscribeFor(const QString& type, bool unsubscribe)
 			connect(_accessManager.get(), &AccessManager::SignalTokenUpdated, this, &CallbackAPI::tokenChangeHandler, Qt::UniqueConnection);
 	}
 
-	if (type == "benchmark-update" && grabberWrapper != nullptr)
+	if (type == "benchmark-update")
 	{
 		if (unsubscribe)
-			disconnect(grabberWrapper, &GrabberWrapper::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler);
+			disconnect(_instanceManager.get(), &HyperHdrManager::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler);
 		else
-			connect(grabberWrapper, &GrabberWrapper::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler, Qt::UniqueConnection);
+			connect(_instanceManager.get(), &HyperHdrManager::SignalBenchmarkUpdate, this, &CallbackAPI::signalBenchmarkUpdateHandler, Qt::UniqueConnection);
 	}
 
 	return true;

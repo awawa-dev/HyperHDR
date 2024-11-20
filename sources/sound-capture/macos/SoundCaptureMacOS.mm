@@ -87,7 +87,11 @@ SoundCaptureMacOS::SoundCaptureMacOS(const QJsonDocument& effectConfig, QObject*
 void SoundCaptureMacOS::listDevices()
 {	
 	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession 
-			discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
+			#ifndef MACOS_VERSION_14_UP
+				discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
+			#else
+				discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeMicrophone]
+			#endif
 			mediaType:AVMediaTypeAudio
 			position:AVCaptureDevicePositionUnspecified];
 
@@ -144,7 +148,11 @@ void SoundCaptureMacOS::start()
 		_soundBufferIndex = 0;
 	
 		for (AVCaptureDevice* device in [AVCaptureDeviceDiscoverySession 
-										discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
+										#ifndef MACOS_VERSION_14_UP
+											discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
+										#else
+											discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeMicrophone]
+										#endif
 										mediaType:AVMediaTypeAudio
 										position:AVCaptureDevicePositionUnspecified].devices) 
 		{	

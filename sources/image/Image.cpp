@@ -28,6 +28,8 @@
 
 #include <image/Image.h>
 #include <cstring>
+#include <utils/PixelFormat.h>
+#include <fstream>
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image() :
@@ -37,13 +39,15 @@ Image<ColorSpace>::Image() :
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image(unsigned width, unsigned height) :
-	_sharedData(new ImageData<ColorSpace>(width, height))
+	_sharedData(new ImageData<ColorSpace>(width, height)),
+	_pixelFormat(PixelFormat::NO_CHANGE)
 {
 }
 
 template <typename ColorSpace>
 Image<ColorSpace>::Image(const Image<ColorSpace>& other) :
-	_sharedData(other._sharedData)
+	_sharedData(other._sharedData),
+	_pixelFormat(other._pixelFormat)
 {
 }
 
@@ -51,12 +55,14 @@ template <typename ColorSpace>
 Image<ColorSpace>& Image<ColorSpace>::operator=(const Image<ColorSpace>& other)
 {
 	_sharedData = other._sharedData;
+	_pixelFormat = other._pixelFormat;
 	return *this;
 }
 
 template <typename ColorSpace>
 Image<ColorSpace>& Image<ColorSpace>::operator=(Image<ColorSpace>&& other) noexcept
 {
+	_pixelFormat = other._pixelFormat;
 	_sharedData = std::move(other._sharedData);
 	return *this;
 }
@@ -168,6 +174,29 @@ template <typename ColorSpace>
 void Image<ColorSpace>::clear()
 {
 	_sharedData->clear();
+}
+
+template <typename ColorSpace>
+bool Image<ColorSpace>::save(const char* filename) const
+{
+	std::ofstream myfile;
+	myfile.open(filename, std::ios::trunc | std::ios::out);
+	if (!myfile.is_open())
+		return false;
+	myfile.write(reinterpret_cast<const char*>(rawMem()), size());
+	return true;
+}
+
+template <typename ColorSpace>
+void Image<ColorSpace>::setOriginFormat(PixelFormat pf)
+{
+	_pixelFormat = pf;
+}
+
+template <typename ColorSpace>
+PixelFormat Image<ColorSpace>::getOriginFormat() const
+{
+	return _pixelFormat;
 }
 
 template class Image<ColorRgb>;
