@@ -11,6 +11,7 @@ enum class PixelFormat {
 	I420,
 	NV12,
 	MJPEG,
+	P010,
 	NO_CHANGE
 };
 
@@ -42,6 +43,10 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	{
 		return PixelFormat::MJPEG;
 	}
+	else if (format.compare("p010") == 0)
+	{
+		return PixelFormat::P010;
+	}
 
 	return PixelFormat::NO_CHANGE;
 }
@@ -72,6 +77,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	else if (pixelFormat == PixelFormat::MJPEG)
 	{
 		return "mjpeg";
+	}
+	else if (pixelFormat == PixelFormat::P010)
+	{
+		return "p010";
 	}
 
 	return "NO_CHANGE";

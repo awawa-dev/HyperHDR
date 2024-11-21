@@ -101,7 +101,24 @@ void Grabber::setEnabled(bool enable)
 
 void Grabber::setMonitorNits(int nits)
 {
-	_targetMonitorNits = nits;
+	if (_targetMonitorNits != nits)
+	{
+		_targetMonitorNits = nits;
+
+		Debug(_log, "Set nits to %i", _targetMonitorNits);
+
+		if (_initialized && !_blocked)
+		{
+			Debug(_log, "Restarting video grabber");
+			uninit();
+			start();
+		}
+		else
+		{
+			Info(_log, "Delayed restart of the grabber due to change of monitor nits value");
+			_restartNeeded = true;
+		}
+	}
 }
 
 void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -128,7 +145,24 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 
 void Grabber::enableHardwareAcceleration(bool hardware)
 {
-	_hardware = hardware;
+	if (_hardware != hardware)
+	{
+		_hardware = hardware;
+
+		Debug(_log, "Set hardware acceleration to %s", _hardware ? "enabled" : "disabled");
+
+		if (_initialized && !_blocked)
+		{
+			Debug(_log, "Restarting video grabber");
+			uninit();
+			start();
+		}
+		else
+		{
+			Info(_log, "Delayed restart of the grabber due to change of the hardware acceleration");
+			_restartNeeded = true;
+		}
+	}
 }
 
 bool Grabber::trySetInput(int input)
@@ -501,6 +535,32 @@ int Grabber::getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY)
 	{
 		realSizeX = _actualWidth;
 		realSizeY = _actualHeight;
+	}
+
+	int checkWidth = realSizeX;
+	int divide = 1;
+
+	while (checkWidth > _width)
+	{
+		divide++;
+		checkWidth = realSizeX / divide;
+	}
+
+	targetSizeX = realSizeX / divide;
+	targetSizeY = realSizeY / divide;
+
+	return divide;
+}
+
+int Grabber::getTargetSystemFrameDimension(int actualWidth, int actualHeight, int& targetSizeX, int& targetSizeY)
+{
+	int realSizeX = actualWidth;
+	int realSizeY = actualHeight;
+
+	if (realSizeX <= 16 || realSizeY <= 16)
+	{
+		realSizeX = actualWidth;
+		realSizeY = actualHeight;
 	}
 
 	int checkWidth = realSizeX;

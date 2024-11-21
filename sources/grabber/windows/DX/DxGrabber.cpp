@@ -56,40 +56,17 @@
 
 #define CHECK(hr) SUCCEEDED(hr)
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
-#define MAX_WARNINGS 6
-
-template <class T> void SafeRelease(T** ppT)
-{
-	if (*ppT)
-	{
-		(*ppT)->Release();
-		*ppT = NULL;
-	}
-}
 
 DxGrabber::DxGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "DX11_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _timer(new QTimer(this))
 	, _retryTimer(new QTimer(this))
-	, _warningCounter(MAX_WARNINGS)
-	, _actualDivide(-1)
-	, _wideGamut(false)
-	
+	, _multiMonitor(false)
 
 	, _dxRestartNow(false)
 	, _d3dDevice(nullptr)
 	, _d3dContext(nullptr)
-	, _d3dBuffer(nullptr)
-	, _d3dSampler(nullptr)
-	, _d3dVertexLayout(nullptr)
-	, _d3dVertexShader(nullptr)
-	, _d3dPixelShader(nullptr)
-	, _d3dSourceTexture(nullptr)
-	, _d3dConvertTexture(nullptr)
-	, _d3dConvertTextureView(nullptr)
-	, _d3dRenderTargetView(nullptr)
-	, _d3dDuplicate(nullptr)
 {
 	_timer->setTimerType(Qt::PreciseTimer);
 	connect(_timer, &QTimer::timeout, this, &DxGrabber::grabFrame);
@@ -149,21 +126,10 @@ void DxGrabber::uninit()
 		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	}
 
-	SafeRelease(&_d3dRenderTargetView);
-	SafeRelease(&_d3dSourceTexture);
-	SafeRelease(&_d3dConvertTextureView);
-	SafeRelease(&_d3dConvertTexture);
-	SafeRelease(&_d3dVertexShader);
-	SafeRelease(&_d3dVertexLayout);
-	SafeRelease(&_d3dPixelShader);
-	SafeRelease(&_d3dSampler);
-	SafeRelease(&_d3dBuffer);
-	SafeRelease(&_d3dDuplicate);
+	_handles.clear();
 	SafeRelease(&_d3dContext);
 	SafeRelease(&_d3dDevice);
 
-	_warningCounter = MAX_WARNINGS;
-	_actualDivide = -1;
 	_initialized = false;
 
 	if (_dxRestartNow)
@@ -271,7 +237,8 @@ void DxGrabber::enumerateDevices(bool silent)
 		pAdapter->GetDesc1(&pDesc);
 
 		IDXGIOutput* pOutput;
-		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND; j++)
+		UINT j = 0;
+		for (; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND; j++)
 		{
 			DXGI_OUTPUT_DESC oDesc;
 			pOutput->GetDesc(&oDesc);
@@ -281,6 +248,12 @@ void DxGrabber::enumerateDevices(bool silent)
 
 			SafeRelease(&pOutput);
 		}
+
+		if (j > 1)
+		{
+			_deviceProperties.insert(MULTI_MONITOR + "|" + QString::fromWCharArray(pDesc.Description), properties);
+		}
+
 		SafeRelease(&pAdapter);
 	}
 	SafeRelease(&pFactory);
@@ -332,17 +305,25 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 	for (UINT i = 0; pFactory->EnumAdapters1(i, &pAdapter) != DXGI_ERROR_NOT_FOUND && !exitNow; i++)
 	{
 		DeviceProperties properties;
-		DXGI_ADAPTER_DESC1 pDesc;
+		DXGI_ADAPTER_DESC1 pDesc{};
 
 		pAdapter->GetDesc1(&pDesc);
 
+		QString multiName = MULTI_MONITOR + "|" + QString::fromWCharArray(pDesc.Description);
+
+		_multiMonitor = (selectedDeviceName == multiName);
+
 		IDXGIOutput* pOutput;
-		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND && !exitNow; j++)
+
+
+		for (UINT j = 0; pAdapter->EnumOutputs(j, &pOutput) != DXGI_ERROR_NOT_FOUND && (!exitNow || (_multiMonitor && result)); j++)
 		{
-			DXGI_OUTPUT_DESC oDesc;
+			DXGI_OUTPUT_DESC oDesc{};
 			pOutput->GetDesc(&oDesc);
 
-			exitNow = (QString::fromWCharArray(oDesc.DeviceName) + "|" + QString::fromWCharArray(pDesc.Description)) == selectedDeviceName;
+			QString currentName = (QString::fromWCharArray(oDesc.DeviceName) + "|" + QString::fromWCharArray(pDesc.Description));
+
+			exitNow = (currentName == selectedDeviceName) || _multiMonitor;
 
 			if (exitNow)
 			{
@@ -350,67 +331,78 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 
 				if (CHECK(pOutput->QueryInterface(__uuidof(IDXGIOutput6), reinterpret_cast<void**>(&pOutput6))))
 				{
-					HRESULT findDriver = E_FAIL;
-					D3D_FEATURE_LEVEL featureLevel;
-					std::vector<D3D_DRIVER_TYPE> driverTypes{
-						D3D_DRIVER_TYPE_HARDWARE,
-						D3D_DRIVER_TYPE_WARP,
-						D3D_DRIVER_TYPE_REFERENCE,
-						D3D_DRIVER_TYPE_UNKNOWN
-					};
-					
-					CLEAR(featureLevel);
-
-					for (auto& driverType : driverTypes)
+					if (_d3dDevice == nullptr)
 					{
-						findDriver = D3D11CreateDevice(pAdapter, driverType,
-							nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0,
-							D3D11_SDK_VERSION, &_d3dDevice, &featureLevel, &_d3dContext);
+						HRESULT findDriver = E_FAIL;
+						D3D_FEATURE_LEVEL featureLevel;
+						std::vector<D3D_DRIVER_TYPE> driverTypes{
+							D3D_DRIVER_TYPE_HARDWARE,
+							D3D_DRIVER_TYPE_WARP,
+							D3D_DRIVER_TYPE_REFERENCE,
+							D3D_DRIVER_TYPE_UNKNOWN
+						};
 
-						if (SUCCEEDED(findDriver))
+						CLEAR(featureLevel);
+
+						for (auto& driverType : driverTypes)
 						{
-							switch (driverType)
-							{
-								case D3D_DRIVER_TYPE_HARDWARE: Info(_log, "Selected D3D_DRIVER_TYPE_HARDWARE"); break;
-								case D3D_DRIVER_TYPE_WARP: Info(_log, "Selected D3D_DRIVER_TYPE_WARP"); break;
-								case D3D_DRIVER_TYPE_REFERENCE: Info(_log, "Selected D3D_DRIVER_TYPE_REFERENCE"); break;
-								case D3D_DRIVER_TYPE_UNKNOWN: Info(_log, "Selected D3D_DRIVER_TYPE_UNKNOWN"); break;
-							}
+							findDriver = D3D11CreateDevice(pAdapter, driverType,
+								nullptr, D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0,
+								D3D11_SDK_VERSION, &_d3dDevice, &featureLevel, &_d3dContext);
 
-							break;
+							if (SUCCEEDED(findDriver))
+							{
+								switch (driverType)
+								{
+									case D3D_DRIVER_TYPE_HARDWARE: Info(_log, "Selected D3D_DRIVER_TYPE_HARDWARE"); break;
+									case D3D_DRIVER_TYPE_WARP: Info(_log, "Selected D3D_DRIVER_TYPE_WARP"); break;
+									case D3D_DRIVER_TYPE_REFERENCE: Info(_log, "Selected D3D_DRIVER_TYPE_REFERENCE"); break;
+									case D3D_DRIVER_TYPE_UNKNOWN: Info(_log, "Selected D3D_DRIVER_TYPE_UNKNOWN"); break;
+								}
+
+								break;
+							}
+						}
+
+						if (!SUCCEEDED(findDriver))
+						{
+							_d3dContext = nullptr;
 						}
 					}
 					
-					if (CHECK(findDriver) && _d3dDevice != nullptr)
+					if (_d3dDevice != nullptr)
 					{
 						HRESULT status = E_FAIL;
 						DXGI_OUTPUT_DESC1 descGamut;
 
+						std::unique_ptr<DisplayHandle> display = std::make_unique<DisplayHandle>();
+						display->name = currentName;
+						display->targetMonitorNits = _targetMonitorNits;
+
 						pOutput6->GetDesc1(&descGamut);
 
-						_wideGamut = descGamut.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+						display->wideGamut = descGamut.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
 						Info(_log, "Gamut: %s, min nits: %0.2f, max nits: %0.2f, max frame nits: %0.2f, white point: [%0.2f, %0.2f]",
-									(_wideGamut) ? "HDR" : "SDR", descGamut.MinLuminance, descGamut.MaxLuminance, descGamut.MaxFullFrameLuminance,
+									(display->wideGamut) ? "HDR" : "SDR", descGamut.MinLuminance, descGamut.MaxLuminance, descGamut.MaxFullFrameLuminance,
 									descGamut.WhitePoint[0], descGamut.WhitePoint[1]);
 
-						if (_wideGamut && _targetMonitorNits == 0)
+						if (display->wideGamut && display->targetMonitorNits == 0)
 						{
-							Warning(_log, "Target SDR brightness is set to %i nits. Disabling wide gamut.", _targetMonitorNits);
-							_wideGamut = false;
+							Warning(_log, "Target SDR brightness is set to %i nits. Disabling wide gamut.", display->targetMonitorNits);
+							display->wideGamut = false;
 						}
 
-
-						if (_hardware && _wideGamut)
+						if (_hardware && display->wideGamut)
 						{
-							Info(_log, "Using wide gamut for HDR. Target SDR brightness: %i nits", _targetMonitorNits);
+							Info(_log, "Using wide gamut for HDR. Target SDR brightness: %i nits", display->targetMonitorNits);
 
 							std::vector<DXGI_FORMAT> wideFormat({ DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM });
-							status = pOutput6->DuplicateOutput1(_d3dDevice, 0, static_cast<UINT>(wideFormat.size()), wideFormat.data(), &_d3dDuplicate);
+							status = pOutput6->DuplicateOutput1(_d3dDevice, 0, static_cast<UINT>(wideFormat.size()), wideFormat.data(), &display->d3dDuplicate);
 
 							if (!CHECK(status))
 							{
 								Warning(_log, "No support for DXGI_FORMAT_R16G16B16A16_FLOAT/DXGI_FORMAT_R10G10B10A2_UNORM. Fallback to BGRA");
-								_wideGamut = false;
+								display->wideGamut = false;
 							}
 						}
 
@@ -419,41 +411,41 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 							Info(_log, "Using BGRA format");
 
 							DXGI_FORMAT rgbFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
-							status = pOutput6->DuplicateOutput1(_d3dDevice, 0, 1, &rgbFormat, &_d3dDuplicate);
+							status = pOutput6->DuplicateOutput1(_d3dDevice, 0, 1, &rgbFormat, &display->d3dDuplicate);
 						}
 
 						if (CHECK(status))
 						{
-							CLEAR(_surfaceProperties);
-							_d3dDuplicate->GetDesc(&_surfaceProperties);
+							CLEAR(display->surfaceProperties);
+							display->d3dDuplicate->GetDesc(&display->surfaceProperties);
 
-							Info(_log, "Surface format: %i", _surfaceProperties.ModeDesc.Format);
+							Info(_log, "Surface format: %i", display->surfaceProperties.ModeDesc.Format);
 
-							int targetSizeX = _surfaceProperties.ModeDesc.Width, targetSizeY = _surfaceProperties.ModeDesc.Height;
+							int targetSizeX = display->surfaceProperties.ModeDesc.Width, targetSizeY = display->surfaceProperties.ModeDesc.Height;
 
 							if (_hardware)
 							{								
-								_actualWidth = targetSizeX;
-								_actualHeight = targetSizeY;
+								display->actualWidth = targetSizeX;
+								display->actualHeight = targetSizeY;
 
-								if (!_wideGamut)
+								if (!display->wideGamut)
 								{
-									int maxSize = std::max((_actualWidth - _cropLeft - _cropRight), (_actualHeight - _cropTop - _cropBottom));
+									int maxSize = std::max(display->actualWidth, display->actualHeight);
 
-									_actualDivide = 0;
+									display->actualDivide = 0;
 									while (maxSize > _width)
 									{
-										_actualDivide++;
+										display->actualDivide++;
 										maxSize >>= 1;
 									}
 
-									targetSizeX = _surfaceProperties.ModeDesc.Width >> _actualDivide;
-									targetSizeY = _surfaceProperties.ModeDesc.Height >> _actualDivide;
+									targetSizeX = display->surfaceProperties.ModeDesc.Width >> display->actualDivide;
+									targetSizeY = display->surfaceProperties.ModeDesc.Height >> display->actualDivide;
 								}
 								else
 								{
-									_actualDivide = -1;
-									getTargetSystemFrameDimension(targetSizeX, targetSizeY);
+									display->actualDivide = -1;
+									getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
 								}
 							}
 
@@ -470,22 +462,23 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 							sourceTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 							sourceTextureDesc.MiscFlags = 0;
 							sourceTextureDesc.BindFlags = 0;
-							if (CHECK(_d3dDevice->CreateTexture2D(&sourceTextureDesc, NULL, &_d3dSourceTexture)))
+							if (CHECK(_d3dDevice->CreateTexture2D(&sourceTextureDesc, NULL, &display->d3dSourceTexture)))
 							{
 								_actualVideoFormat = PixelFormat::XRGB;
-								_actualWidth = sourceTextureDesc.Width;
-								_actualHeight = sourceTextureDesc.Height;
+								display->actualWidth = _actualWidth = sourceTextureDesc.Width;
+								display->actualHeight = _actualHeight = sourceTextureDesc.Height;
 
 								loadLutFile(PixelFormat::RGB24);
-								_frameByteSize = _actualWidth * _actualHeight * 4;
-								_lineLength = _actualWidth * 4;
+								_frameByteSize = display->actualWidth * display->actualHeight * 4;
+								_lineLength = display->actualWidth * 4;
 
 								if (_hardware)
 								{
-									result = initShaders();
+									result = initShaders(*display);
 									if (result)
 									{										
-										Info(_log, "The DX11 device has been initialized. Hardware acceleration is enabled");										
+										Info(_log, "The DX11 device has been initialized. Hardware acceleration is enabled");
+										_handles.emplace_back(std::move(display));
 									}
 									else
 									{
@@ -496,6 +489,7 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 								else
 								{
 									result = true;
+									_handles.emplace_back(std::move(display));
 									Info(_log, "The DX11 device has been initialized. Hardware acceleration is disabled");
 								}
 							}
@@ -534,19 +528,24 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 
 	SafeRelease(&pFactory);
 
+	if (!result && _handles.size() > 0)
+	{
+		uninit();
+	}
+
 	return result;
 }
 
-bool DxGrabber::initShaders()
+bool DxGrabber::initShaders(DisplayHandle& display)
 {
 	HRESULT status;
 
 	std::unique_ptr<CD3D11_TEXTURE2D_DESC> descConvert;
 
-	if (_actualDivide < 0)
+	if (display.actualDivide < 0)
 		descConvert = std::make_unique<CD3D11_TEXTURE2D_DESC>(
 						DXGI_FORMAT_B8G8R8A8_UNORM,
-						_actualWidth, _actualHeight,
+						display.actualWidth, display.actualHeight,
 						1,
 						1,
 						D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
@@ -556,9 +555,9 @@ bool DxGrabber::initShaders()
 	else
 		descConvert = std::make_unique<CD3D11_TEXTURE2D_DESC>(
 						DXGI_FORMAT_B8G8R8A8_UNORM,
-						_surfaceProperties.ModeDesc.Width, _surfaceProperties.ModeDesc.Height,
+						display.surfaceProperties.ModeDesc.Width, display.surfaceProperties.ModeDesc.Height,
 						1,
-						_actualDivide + 1,
+						display.actualDivide + 1,
 						D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE,
 						D3D11_USAGE_DEFAULT,
 						0,
@@ -566,19 +565,19 @@ bool DxGrabber::initShaders()
 						0,
 						D3D11_RESOURCE_MISC_GENERATE_MIPS);
 
-	status = _d3dDevice->CreateTexture2D(descConvert.get(), nullptr, &_d3dConvertTexture);
+	status = _d3dDevice->CreateTexture2D(descConvert.get(), nullptr, &display.d3dConvertTexture);
 	if (CHECK(status))
 	{
-		if (_actualDivide < 0)
+		if (display.actualDivide < 0)
 		{
 			CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc(
 				D3D11_RTV_DIMENSION_TEXTURE2D,
 				DXGI_FORMAT_B8G8R8A8_UNORM);
 
-			status = _d3dDevice->CreateRenderTargetView(_d3dConvertTexture, &rtvDesc, &_d3dRenderTargetView);
+			status = _d3dDevice->CreateRenderTargetView(display.d3dConvertTexture, &rtvDesc, &display.d3dRenderTargetView);
 			if (CHECK(status))
 			{
-				_d3dContext->OMSetRenderTargets(1, &_d3dRenderTargetView, NULL);
+				_d3dContext->OMSetRenderTargets(1, &display.d3dRenderTargetView, NULL);
 			}
 			else
 				Error(_log, "CreateRenderTargetView failed. Reason: %x", status);
@@ -592,7 +591,7 @@ bool DxGrabber::initShaders()
 			shaderDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			shaderDesc.Texture2D.MipLevels = descConvert->MipLevels;;
 			
-			status = _d3dDevice->CreateShaderResourceView(_d3dConvertTexture, &shaderDesc, &_d3dConvertTextureView);
+			status = _d3dDevice->CreateShaderResourceView(display.d3dConvertTexture, &shaderDesc, &display.d3dConvertTextureView);
 			return CHECK(status);
 		}
 	}
@@ -601,10 +600,10 @@ bool DxGrabber::initShaders()
 
 	if (CHECK(status))
 	{
-		status = _d3dDevice->CreateVertexShader(g_VertexShaderHyperHDR, sizeof(g_VertexShaderHyperHDR), nullptr, &_d3dVertexShader);
+		status = _d3dDevice->CreateVertexShader(g_VertexShaderHyperHDR, sizeof(g_VertexShaderHyperHDR), nullptr, &display.d3dVertexShader);
 		if (CHECK(status))
 		{
-			_d3dContext->VSSetShader(_d3dVertexShader, NULL, 0);
+			_d3dContext->VSSetShader(display.d3dVertexShader, NULL, 0);
 			_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		}
 		else
@@ -613,10 +612,10 @@ bool DxGrabber::initShaders()
 
 	if (CHECK(status))
 	{
-		status = _d3dDevice->CreatePixelShader(g_PixelShaderHyperHDR, sizeof(g_PixelShaderHyperHDR), nullptr, &_d3dPixelShader);
+		status = _d3dDevice->CreatePixelShader(g_PixelShaderHyperHDR, sizeof(g_PixelShaderHyperHDR), nullptr, &display.d3dPixelShader);
 		if (CHECK(status))
 		{
-			_d3dContext->PSSetShader(_d3dPixelShader, NULL, 0);
+			_d3dContext->PSSetShader(display.d3dPixelShader, NULL, 0);
 		}
 		else
 			Error(_log, "Could not create pixel shaders. Reason: %x", status);
@@ -627,9 +626,9 @@ bool DxGrabber::initShaders()
 		D3D11_INPUT_ELEMENT_DESC layout[] = { {"SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}, };
 		UINT numElements = ARRAYSIZE(layout);
 
-		status = _d3dDevice->CreateInputLayout(layout, numElements, g_VertexShaderHyperHDR, sizeof(g_VertexShaderHyperHDR), &_d3dVertexLayout);
+		status = _d3dDevice->CreateInputLayout(layout, numElements, g_VertexShaderHyperHDR, sizeof(g_VertexShaderHyperHDR), &display.d3dVertexLayout);
 		if (CHECK(status))
-			_d3dContext->IASetInputLayout(_d3dVertexLayout);
+			_d3dContext->IASetInputLayout(display.d3dVertexLayout);
 		else
 			Error(_log, "Could not create vertex layout. Reason: %x", status);
 	}
@@ -646,16 +645,16 @@ bool DxGrabber::initShaders()
 		sDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		sDesc.MinLOD = 0;
 		sDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		status = _d3dDevice->CreateSamplerState(&sDesc, &_d3dSampler);
+		status = _d3dDevice->CreateSamplerState(&sDesc, &display.d3dSampler);
 		if (CHECK(status))
-			_d3dContext->PSSetSamplers(0, 1, &_d3dSampler);
+			_d3dContext->PSSetSamplers(0, 1, &display.d3dSampler);
 		else
 			Error(_log, "Could not create the sampler. Reason: %x", status);
 	}
 
 	if (CHECK(status))
 	{
-		DirectX::XMFLOAT4 params = { static_cast<float>(_targetMonitorNits), 18.8515625f - 18.6875f * _targetMonitorNits, 0.0, 0.0 };
+		DirectX::XMFLOAT4 params = { static_cast<float>(display.targetMonitorNits), 18.8515625f - 18.6875f * display.targetMonitorNits, 0.0, 0.0 };
 
 		D3D11_BUFFER_DESC cbDesc;
 		CLEAR(cbDesc);
@@ -668,11 +667,11 @@ bool DxGrabber::initShaders()
 		CLEAR(initData);
 		initData.pSysMem = &params;
 
-		status = _d3dDevice->CreateBuffer(&cbDesc, &initData, &_d3dBuffer);
+		status = _d3dDevice->CreateBuffer(&cbDesc, &initData, &display.d3dBuffer);
 
 		if (CHECK(status))
 		{
-			_d3dContext->VSSetConstantBuffers(0, 1, &_d3dBuffer);
+			_d3dContext->VSSetConstantBuffers(0, 1, &display.d3dBuffer);
 		}
 		else
 			Error(_log, "Could not create constant buffer. Reason: %x", status);
@@ -699,15 +698,15 @@ bool DxGrabber::initShaders()
 	return false;
 }
 
-HRESULT DxGrabber::deepScaledCopy(ID3D11Texture2D* source)
+HRESULT DxGrabber::deepScaledCopy(DisplayHandle& display, ID3D11Texture2D* source)
 {
 	HRESULT status = S_OK;	
 	
-	if (_actualDivide >= 0)
+	if (display.actualDivide >= 0)
 	{		
-		_d3dContext->CopySubresourceRegion(_d3dConvertTexture, 0, 0, 0, 0, source, 0, NULL);
-		_d3dContext->GenerateMips(_d3dConvertTextureView);
-		_d3dContext->CopySubresourceRegion(_d3dSourceTexture, 0, 0, 0, 0, _d3dConvertTexture, _actualDivide, NULL);
+		_d3dContext->CopySubresourceRegion(display.d3dConvertTexture, 0, 0, 0, 0, source, 0, NULL);
+		_d3dContext->GenerateMips(display.d3dConvertTextureView);
+		_d3dContext->CopySubresourceRegion(display.d3dSourceTexture, 0, 0, 0, 0, display.d3dConvertTexture, display.actualDivide, NULL);
 	}
 	else
 	{
@@ -732,9 +731,9 @@ HRESULT DxGrabber::deepScaledCopy(ID3D11Texture2D* source)
 
 		if (!CHECK(status))
 		{
-			if (_warningCounter > 0)
+			if (display.warningCounter > 0)
 			{
-				Error(_log, "CreateShaderResourceView failed (%i). Reason: %i", _warningCounter--, status);
+				Error(_log, "CreateShaderResourceView failed (%i). Reason: %i", display.warningCounter--, status);
 			}
 			return status;
 		}
@@ -742,18 +741,90 @@ HRESULT DxGrabber::deepScaledCopy(ID3D11Texture2D* source)
 			_d3dContext->PSSetShaderResources(0, 1, &rv);
 
 		_d3dContext->Draw(4, 0);
-		_d3dContext->CopyResource(_d3dSourceTexture, _d3dConvertTexture);
+		_d3dContext->CopyResource(display.d3dSourceTexture, display.d3dConvertTexture);
 		SafeRelease(&rv);
 	}
 
 	return status;
 }
+
 void DxGrabber::grabFrame()
+{
+	if (_handles.size() == 0)
+		return;
+	
+	if (_multiMonitor)
+	{
+		int width = 0;
+		int height = 0;
+		bool useCache = false;
+		std::list<std::pair<int, Image<ColorRgb>>> images;
+
+		for (auto&& display : _handles)
+		{
+			Image<ColorRgb> image;
+			auto result = captureFrame(*display, image);
+
+			if (result < 0)
+				return;
+			else if (result == 0)
+			{
+				useCache = true;
+			}
+			else
+			{
+				images.push_back(std::pair<int, Image<ColorRgb>>(width, image));
+			}
+
+			int targetSizeX = 0, targetSizeY = 0;
+			int divide = getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
+
+			width += targetSizeX;
+			height = std::max(targetSizeY, height);
+		}
+
+		if (useCache && (_cacheImage.width() != width || _cacheImage.height() != height))
+		{
+			Warning(_log, "Invalid cached image size. Cached: %i x %i vs new: %i x %i", _cacheImage.width(), _cacheImage.height(), width, height);
+			return;
+		}
+
+		Image<ColorRgb> image(width, height);
+
+		if (useCache)
+		{
+			memcpy(image.rawMem(), _cacheImage.rawMem(), image.size());
+		}
+		else
+		{
+			memset(image.rawMem(), 0, image.size());
+		}
+
+		for (auto&& source : images)
+		{
+			image.insertHorizontal(source.first, source.second);
+		}
+
+		if (_signalDetectionEnabled)
+		{
+			if (checkSignalDetectionManual(image))
+				emit SignalNewCapturedFrame(image);
+		}
+		else
+			emit SignalNewCapturedFrame(image);
+	}
+	else
+	{
+		captureFrame(*_handles.front());
+	}
+}
+
+void DxGrabber::captureFrame(DisplayHandle& display)
 {
 	DXGI_OUTDUPL_FRAME_INFO infoFrame{};
 	IDXGIResource* resourceDesktop = nullptr;
 
-	auto status = _d3dDuplicate->AcquireNextFrame(0, &infoFrame, &resourceDesktop);
+	auto status = display.d3dDuplicate->AcquireNextFrame(0, &infoFrame, &resourceDesktop);
 
 	if (CHECK(status))
 	{
@@ -768,33 +839,33 @@ void DxGrabber::grabFrame()
 		{
 			if (_hardware)
 			{
-				status = deepScaledCopy(texDesktop);
+				status = deepScaledCopy(display, texDesktop);
 			}
 			else
 			{
-				_d3dContext->CopyResource(_d3dSourceTexture, texDesktop);
+				_d3dContext->CopyResource(display.d3dSourceTexture, texDesktop);
 			}
 
-			if (CHECK(status) && CHECK(_d3dContext->Map(_d3dSourceTexture, 0, D3D11_MAP_READ, 0, &internalMap)))
+			if (CHECK(status) && CHECK(_d3dContext->Map(display.d3dSourceTexture, 0, D3D11_MAP_READ, 0, &internalMap)))
 			{
-				processSystemFrameBGRA((uint8_t*)internalMap.pData, (int)internalMap.RowPitch, !(_hardware && _wideGamut));
-				_d3dContext->Unmap(_d3dSourceTexture, 0);
+				processSystemFrameBGRA((uint8_t*)internalMap.pData, (int)internalMap.RowPitch, !(_hardware && display.wideGamut));
+				_d3dContext->Unmap(display.d3dSourceTexture, 0);
 			}
 
 			SafeRelease(&texDesktop);
 		}
-		else if (_warningCounter > 0)
+		else if (display.warningCounter > 0)
 		{
 			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: %i", status);
-			_warningCounter--;
+			display.warningCounter--;
 		}
 	}
 	else if (status == DXGI_ERROR_WAIT_TIMEOUT)
 	{
-		if (_warningCounter > 0)
+		if (display.warningCounter > 0)
 		{
 			Debug(_log, "AcquireNextFrame didn't return the frame. Just warning: the screen has not changed?");
-			_warningCounter--;
+			display.warningCounter--;
 		}
 
 		if (_cacheImage.width() > 1)
@@ -807,20 +878,106 @@ void DxGrabber::grabFrame()
 		Error(_log, "Lost DirectX capture context. Stopping.");
 		_dxRestartNow = true;
 	}
-	else if (_warningCounter > 0)
+	else if (display.warningCounter > 0)
 	{
 		Error(_log, "AcquireNextFrame failed. Reason: %i", status);
-		_warningCounter--;
+		display.warningCounter--;
 	}
 
 	SafeRelease(&resourceDesktop);
 
-	_d3dDuplicate->ReleaseFrame();
+	display.d3dDuplicate->ReleaseFrame();
 
 	if (_dxRestartNow)
 	{
 		uninit();
 	}
+}
+
+int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
+{
+	int result = -1;
+	DXGI_OUTDUPL_FRAME_INFO infoFrame{};
+	IDXGIResource* resourceDesktop = nullptr;
+
+	auto status = display.d3dDuplicate->AcquireNextFrame(0, &infoFrame, &resourceDesktop);
+
+	if (CHECK(status))
+	{
+		D3D11_MAPPED_SUBRESOURCE internalMap{};
+		ID3D11Texture2D* texDesktop = nullptr;
+
+		CLEAR(internalMap);
+
+		status = resourceDesktop->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&texDesktop);
+
+		if (CHECK(status) && texDesktop != nullptr)
+		{
+			if (_hardware)
+			{
+				status = deepScaledCopy(display, texDesktop);
+			}
+			else
+			{
+				_d3dContext->CopyResource(display.d3dSourceTexture, texDesktop);
+			}
+
+			if (CHECK(status) && CHECK(_d3dContext->Map(display.d3dSourceTexture, 0, D3D11_MAP_READ, 0, &internalMap)))
+			{
+				int lineSize = (int)internalMap.RowPitch;
+				bool useLut = !(_hardware && display.wideGamut);
+				int targetSizeX, targetSizeY;
+				int divide = getTargetSystemFrameDimension(display.actualWidth, display.actualHeight, targetSizeX, targetSizeY);
+
+				image = Image<ColorRgb>(targetSizeX, targetSizeY);
+				FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, 0, 0, (uint8_t*)internalMap.pData, display.actualWidth, display.actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
+
+				result = 1;
+				_d3dContext->Unmap(display.d3dSourceTexture, 0);
+			}
+
+			SafeRelease(&texDesktop);
+		}
+		else if (display.warningCounter > 0)
+		{
+			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: %i", status);
+			display.warningCounter--;
+		}
+	}
+	else if (status == DXGI_ERROR_WAIT_TIMEOUT)
+	{
+		if (display.warningCounter > 0)
+		{
+			Debug(_log, "AcquireNextFrame didn't return the frame. Just warning: the screen has not changed?");
+			display.warningCounter--;
+		}
+
+		if (_cacheImage.width() > 1)
+		{
+			result = 0;
+		}
+	}
+	else if (status == DXGI_ERROR_ACCESS_LOST)
+	{
+		Error(_log, "Lost DirectX capture context. Stopping.");
+		_dxRestartNow = true;
+	}
+	else if (display.warningCounter > 0)
+	{
+		Error(_log, "AcquireNextFrame failed. Reason: %i", status);
+		display.warningCounter--;
+	}
+
+	SafeRelease(&resourceDesktop);
+
+	display.d3dDuplicate->ReleaseFrame();
+
+	if (_dxRestartNow)
+	{
+		uninit();
+	}
+
+	return result;
 }
 
 

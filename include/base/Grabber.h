@@ -176,6 +176,8 @@ protected:
 
 	int getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY);
 
+	int getTargetSystemFrameDimension(int actualWidth, int actualHeight, int& targetSizeX, int& targetSizeY);
+
 	void processSystemFrameBGRA(uint8_t* source, int lineSize = 0, bool useLut = true);
 
 	void processSystemFrameBGR(uint8_t* source, int lineSize = 0);
