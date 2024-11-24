@@ -6,6 +6,7 @@
 
 enum class PixelFormat {
 	YUYV,
+	UYVY,
 	RGB24,
 	XRGB,
 	I420,
@@ -22,6 +23,10 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	if (format.compare("yuyv") == 0)
 	{
 		return PixelFormat::YUYV;
+	}
+	else if (format.compare("uyvy") == 0)
+	{
+		return PixelFormat::UYVY;
 	}
 	else if (format.compare("rgb24") == 0)
 	{
@@ -57,6 +62,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	if (pixelFormat == PixelFormat::YUYV)
 	{
 		return "yuyv";
+	}
+	else if (pixelFormat == PixelFormat::UYVY)
+	{
+		return "uyvy";
 	}
 	else if (pixelFormat == PixelFormat::RGB24)
 	{

@@ -79,12 +79,13 @@ namespace
 static const V4L2Grabber::HyperHdrFormat supportedFormats[] =
 {
 	{ V4L2_PIX_FMT_YUYV,   PixelFormat::YUYV },
+	{ V4L2_PIX_FMT_UYVY,   PixelFormat::UYVY },
 	{ V4L2_PIX_FMT_XRGB32, PixelFormat::XRGB },
 	{ V4L2_PIX_FMT_RGB24,  PixelFormat::RGB24 },
 	{ V4L2_PIX_FMT_YUV420, PixelFormat::I420 },
 	{ V4L2_PIX_FMT_NV12,   PixelFormat::NV12 },
 	{ V4L2_PIX_FMT_MJPEG,  PixelFormat::MJPEG },
-	{ V4L2_PIX_FMT_P010,  PixelFormat::P010 }
+	{ V4L2_PIX_FMT_P010,   PixelFormat::P010 }
 };
 
 
@@ -147,7 +148,7 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 		{
 			Debug(_log, "setHdrToneMappingMode replacing LUT and restarting");
 			_V4L2WorkerManager.Stop();
-			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12)
+			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::UYVY) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12)
 				|| (_actualVideoFormat == PixelFormat::P010) || (_actualVideoFormat == PixelFormat::MJPEG))
 				loadLutFile(PixelFormat::YUYV);
 			else
@@ -577,6 +578,28 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				}
 			}
 
+			if (properties.valid.size() == 0 && devName == "/dev/video0")
+			{
+				DevicePropertiesItem di;
+				di.x = fmt.fmt.pix.width;
+				di.y = fmt.fmt.pix.height;
+				di.fps = 0;
+				di.pf = identifyFormat(fmt.fmt.pix.pixelformat);
+				di.v4l2PixelFormat = fmt.fmt.pix.pixelformat;
+				di.input = inputIndex;
+
+				QString pixelFormat = pixelFormatToString(di.pf);
+				if (di.pf == PixelFormat::NO_CHANGE)
+				{
+					Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
+				}
+				else
+				{
+					Debug(_log, "%s %d x %d @ %d fps %s, input = %i (seems supported, device not fully compatible with v4l2 grabber model, frame rate is unknown)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat), di.input);
+					properties.valid.append(di);
+				}
+			}
+
 			_deviceProperties.insert(realName, properties);
 
 			if (!silent)
@@ -904,7 +927,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 
 	streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	// Check that the driver knows about framerate get/set
-	if (xioctl(VIDIOC_G_PARM, &streamparms) >= 0)
+	if (props.fps > 0 && xioctl(VIDIOC_G_PARM, &streamparms) >= 0)
 	{
 		// Check if the device is able to accept a capture framerate set.
 		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
@@ -917,6 +940,13 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 			else
 				Info(_log, "Set framerate to %d FPS", streamparms.parm.capture.timeperframe.denominator);
 		}
+	}
+	else
+	{
+		if (props.fps == 0)
+			Warning(_log, "The device doesnt report frame rate settings");
+		else
+			Error(_log, "The device doesnt support VIDIOC_G_PARM for frame rate settings");
 	}
 
 	// set the line length
@@ -971,6 +1001,15 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 			_actualVideoFormat = PixelFormat::YUYV;
 			_frameByteSize = props.x * props.y * 2;
 			Info(_log, "Video pixel format is set to: YUYV");
+		}
+		break;
+
+		case V4L2_PIX_FMT_UYVY:
+		{
+			loadLutFile(PixelFormat::YUYV);
+			_actualVideoFormat = PixelFormat::UYVY;
+			_frameByteSize = props.x * props.y * 2;
+			Info(_log, "Video pixel format is set to: UYVY");
 		}
 		break;
 
@@ -1209,10 +1248,11 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 					{
 						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];
 
-						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::I420 ||
+						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::UYVY || _actualVideoFormat == PixelFormat::I420 ||
 							_actualVideoFormat == PixelFormat::NV12 || _hdrToneMappingEnabled) && !_lutBufferInit)
 						{
-							if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
+							if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::UYVY) || (_actualVideoFormat == PixelFormat::I420) ||
+								(_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
 							{
 								loadLutFile(PixelFormat::YUYV, true);
 							}

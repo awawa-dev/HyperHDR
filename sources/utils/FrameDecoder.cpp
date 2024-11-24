@@ -191,7 +191,7 @@ void FrameDecoder::processImage(
 	uint8_t  buffer[8];
 
 	// validate format
-	if (pixelFormat != PixelFormat::YUYV &&
+	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
 		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::P010 && pixelFormat != PixelFormat::MJPEG)
 	{
@@ -200,7 +200,7 @@ void FrameDecoder::processImage(
 	}
 
 	// validate format LUT
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
+	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
 		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010) && lutBuffer == NULL)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
@@ -248,6 +248,30 @@ void FrameDecoder::processImage(
 		return;
 	}
 
+	if (pixelFormat == PixelFormat::UYVY)
+	{
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) << 1));
+
+			while (currentDest < endDest)
+			{
+				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+
+				ind_lutd = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
+				ind_lutd2 = LUT_INDEX(buffer[3], buffer[0], buffer[2]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
+				currentDest += 3;
+				currentSource += 4;
+			}
+		}
+		return;
+	}
 
 	if (pixelFormat == PixelFormat::RGB24)
 	{
@@ -474,7 +498,7 @@ void FrameDecoder::processQImage(
 	uint8_t  buffer[8];
 
 	// validate format
-	if (pixelFormat != PixelFormat::YUYV &&
+	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
 		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::P010)
 	{
@@ -483,7 +507,7 @@ void FrameDecoder::processQImage(
 	}
 
 	// validate format LUT
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::I420 ||
+	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 ||
 		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010) && lutBuffer == NULL)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
@@ -522,6 +546,27 @@ void FrameDecoder::processQImage(
 		return;
 	}
 
+	if (pixelFormat == PixelFormat::UYVY)
+	{
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+
+			while (currentDest < endDest)
+			{
+				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+
+				ind_lutd = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				currentSource += 4;
+			}
+		}
+		return;
+	}
 
 	if (pixelFormat == PixelFormat::RGB24)
 	{
