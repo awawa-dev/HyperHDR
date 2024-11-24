@@ -118,6 +118,28 @@ LutCalibrator::~LutCalibrator()
 	Info(_log, "The calibration object is deleted");
 }
 
+static void unpackP010(double *y, double *u, double *v)
+{
+	if (y !=nullptr)
+	{
+		double val = FrameDecoderUtils::unpackLuminanceP010(*y);
+		
+		*y = val;		
+	}
+
+	for (auto chroma : { u, v })
+		if (chroma != nullptr)
+		{			
+			double val = (*chroma * 255.0 - 128.0) / 128.0;
+			double fVal = FrameDecoderUtils::unpackChromaP010(std::abs(val));
+			*chroma = (128.0  + ((val < 0) ? -fVal : fVal) * 112.0) / 255.0;
+		}
+};
+
+static void unpackP010(double3& yuv)
+{
+	unpackP010(&yuv.x, &yuv.y, &yuv.z);
+};
 
 void LutCalibrator::cancelCalibrationSafe()
 {
@@ -302,6 +324,7 @@ void LutCalibrator::startHandler()
 
 	_capturedColors.reset();
 	_capturedColors = std::make_shared<CapturedColors>();
+	bestResult = std::make_shared<BestResult>();
 
 	if (setTestData())
 	{
@@ -406,10 +429,14 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	}
 
 	auto pixelFormat = image.getOriginFormat();
-	if (pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::MJPEG && pixelFormat != PixelFormat::YUYV)
+	if (pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::MJPEG && pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::P010)
 	{
-		error("Only NV12/MJPEG/YUYV video format for the USB grabber and NV12 for the flatbuffers source are supported for the LUT calibration.");
+		error("Only NV12/MJPEG/YUYV/P010 video format for the USB grabber and NV12 for the flatbuffers source are supported for the LUT calibration.");
 		return;
+	}
+	else if (pixelFormat == PixelFormat::P010)
+	{
+		bestResult->signal.isSourceP010 = true;
 	}
 
 	int boardIndex = -1;
@@ -663,6 +690,11 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 	double3 srgb;
 	bool white = true;
 
+	if (gamma == HDR_GAMMA::P010)
+	{
+		unpackP010(yuv);
+	}
+
 	if (gamma == HDR_GAMMA::sRGB || gamma == HDR_GAMMA::BT2020inSRGB)
 	{
 		CapturedColors::correctYRange(yuv, signal.yRange, signal.upYLimit, signal.downYLimit, signal.yShift);
@@ -689,7 +721,7 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 
 	double3 e;
 
-	if (gamma == HDR_GAMMA::PQ)
+	if (gamma == HDR_GAMMA::PQ || gamma == HDR_GAMMA::P010)
 	{
 		e = PQ_ST2084(10000.0 / nits, a);
 	}
@@ -854,7 +886,16 @@ void CalibrationWorker::run()
 		std::list<int> coloredAspectModeList;
 
 		if (!precise)
-			coloredAspectModeList = { 0, 1, 2, 3 };
+		{
+			if (bestResult.signal.isSourceP010)
+			{
+				coloredAspectModeList = { 0 };
+			}
+			else
+			{
+				coloredAspectModeList = { 0, 1, 2, 3 };
+			}
+		}
 		else if (bestResult.coloredAspectMode != 0)
 			coloredAspectModeList = { 0,  bestResult.coloredAspectMode };
 		else
@@ -1044,7 +1085,8 @@ void  LutCalibrator::fineTune(bool precise)
 			{
 				
 				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == g * 2 && g > b) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
-					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
+					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE
+					|| (bestResult->signal.isSourceP010 && ((r - g > 0 && r - g <= 3 && b == 0) || (r > 0 && g == 0 && b == 0) || (r == 0 && g > 0 && b == 0) || (r == 0 && g == 0 && b > 0))))
 				{
 
 					vertex.push_back(&_capturedColors->all[r][g][b]);
@@ -1068,6 +1110,17 @@ void  LutCalibrator::fineTune(bool precise)
 	// set startup parameters (signal)
 	bestResult->signal.range = _capturedColors->getRange();
 	_capturedColors->getSignalParams(bestResult->signal.yRange, bestResult->signal.upYLimit, bestResult->signal.downYLimit, bestResult->signal.yShift);
+
+	if (bestResult->signal.isSourceP010)
+	{
+		double up = bestResult->signal.upYLimit;
+		unpackP010(&up, nullptr, nullptr);
+		bestResult->signal.upYLimit = up;
+
+		double down = bestResult->signal.downYLimit;
+		unpackP010(&down, nullptr, nullptr);
+		bestResult->signal.downYLimit = down;
+	}
 
 	if (bestResult->signal.range == YuvConverter::COLOR_RANGE::LIMITED)
 	{
@@ -1094,9 +1147,13 @@ void  LutCalibrator::fineTune(bool precise)
 	sampleColors[SampleColor::LOW_GREEN] = (std::pair<double3, byte2>(sampleGreenLow.getInputYuvColors().front().first, byte2{ sampleGreenLow.U(), sampleGreenLow.V() }));
 	sampleColors[SampleColor::LOW_BLUE] = (std::pair<double3, byte2>(sampleBlueLow.getInputYuvColors().front().first, byte2{ sampleBlueLow.U(), sampleBlueLow.V() }));
 
-	for (int gamma = (precise) ? bestResult->gamma : HDR_GAMMA::PQ; gamma <= HDR_GAMMA::PQinSRGB; gamma++)
+	for (int gamma = (precise) ? (bestResult->gamma) : ((bestResult->signal.isSourceP010) ? HDR_GAMMA::P010 : HDR_GAMMA::PQ);
+			 gamma <= HDR_GAMMA::P010; gamma++)
 	{
 		std::vector<double> gammasHLG;
+
+		if (gamma == HDR_GAMMA::P010 && !bestResult->signal.isSourceP010)
+			continue;
 			
 		if (gamma == HDR_GAMMA::HLG)
 		{
@@ -1114,6 +1171,21 @@ void  LutCalibrator::fineTune(bool precise)
 
 		if (gamma == HDR_GAMMA::PQ)
 		{
+			NITS = 10000.0 * PQ_ST2084(1.0, maxLevel);
+		}
+		else if (gamma == HDR_GAMMA::P010)
+		{
+			double unpackWhite = white / 255.0;
+			unpackP010(&unpackWhite, nullptr, nullptr);
+			unpackWhite *= 255.0;
+			if (bestResult->signal.range == YuvConverter::COLOR_RANGE::LIMITED)
+			{
+				maxLevel = (unpackWhite - 16.0) / (235.0 - 16.0);
+			}
+			else
+			{
+				maxLevel = unpackWhite / 255.0;
+			}
 			NITS = 10000.0 * PQ_ST2084(1.0, maxLevel);
 		}
 		else if (gamma == HDR_GAMMA::PQinSRGB)
@@ -1230,11 +1302,12 @@ void LutCalibrator::calibration()
 	{
 		Debug(_log, "Selected nits: %f", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * (1 / bestResult->nits) : bestResult->nits);
 	}
-	Debug(_log, "Selected bt2020 gamma range: %i", bestResult->bt2020Range);
-	Debug(_log, "Selected alternative conversion of primaries: %i", bestResult->altConvert);
+	Debug(_log, "Selected bt2020 gamma range: %s", (bestResult->bt2020Range) ? "yes" : "no");
+	Debug(_log, "Selected alternative conversion of primaries: %s", (bestResult->altConvert) ? "yes" : "no");
 	Debug(_log, "Selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
 	Debug(_log, "Selected color aspect mode: %i", bestResult->coloredAspectMode);
 	Debug(_log, "Selected color aspect: %s %s", QSTRING_CSTR(vecToString(bestResult->colorAspect.first)), QSTRING_CSTR(vecToString(bestResult->colorAspect.second)));
+	Debug(_log, "Selected source is P010: %s", (bestResult->signal.isSourceP010) ? "yes" : "no");
 
 	if (_debug)
 	{
@@ -1286,7 +1359,8 @@ void LutCalibrator::calibration()
 			for (int b = MAX_IND; b >= 0; b--)
 			{
 				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == g * 2 && g > b) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
-					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE)
+					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE
+					|| (bestResult->signal.isSourceP010 && ((r - g > 0 && r - g <= 3 && b == 0) || (r > 0 && g == 0 && b == 0) || (r == 0 && g > 0 && b == 0) || (r == 0 && g == 0 && b > 0))))
 				{
 					auto sample = _capturedColors->all[r][g][b];
 					auto sampleList = sample.getFinalRGB();
@@ -1423,7 +1497,7 @@ void CreateLutWorker::run()
 				}
 				else
 				{
-					yuv = yuvConverter->toRgb(bestResult->signal.range, bestResult->coef, yuv);
+					yuv = yuvConverter->toRgb((bestResult->signal.isSourceP010) ? YuvConverter::COLOR_RANGE::LIMITED : bestResult->signal.range, bestResult->coef, yuv);
 				}
 
 				byte3 result = to_byte3(yuv * 255.0);
@@ -1543,8 +1617,7 @@ void LutCalibrator::calibrate()
 	{
 		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_FLATBUFSERVER, -1, false);
 	}
-
-	bestResult = std::make_shared<BestResult>();
+	
 	_capturedColors->finilizeBoard();
 
 
@@ -1577,9 +1650,16 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 
 	for (auto& c : capturedPrimaries)
 	{
-		auto a = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::YUV_COEFS(coef), c.yuv());
+		auto yuv = c.yuv();
 
-		if (gamma == ColorSpaceMath::HDR_GAMMA::PQ)
+		if (gamma == HDR_GAMMA::P010)
+		{			
+			unpackP010(yuv);
+		}
+
+		auto a = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::YUV_COEFS(coef), yuv);
+
+		if (gamma == ColorSpaceMath::HDR_GAMMA::PQ || gamma == ColorSpaceMath::HDR_GAMMA::P010)
 		{
 			a = PQ_ST2084(10000.0 / nits, a);
 		}

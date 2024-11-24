@@ -189,7 +189,7 @@ void MFGrabber::setHdrToneMappingEnabled(int mode)
 		{
 			Debug(_log, "setHdrToneMappingMode replacing LUT and restarting");
 			_MFWorkerManager.Stop();
-			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
+			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::P010) || (_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
 				loadLutFile(PixelFormat::YUYV);
 			else
 				loadLutFile(PixelFormat::RGB24);
@@ -866,6 +866,14 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 			loadLutFile(PixelFormat::YUYV);
 			_frameByteSize = (6 * props.x * props.y) / 4;
 			_lineLength = props.x;
+		}
+		break;
+
+		case PixelFormat::P010:
+		{
+			loadLutFile(PixelFormat::YUYV);
+			_frameByteSize = (6 * props.x * props.y) / 2;
+			_lineLength = props.x * 2;
 		}
 		break;
 

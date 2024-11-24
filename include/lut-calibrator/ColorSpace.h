@@ -44,7 +44,7 @@ using namespace aliases;
 
 namespace ColorSpaceMath
 {
-	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };	
+	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };
 
 	QString gammaToString(HDR_GAMMA gamma);
 
@@ -84,6 +84,8 @@ namespace ColorSpaceMath
 	double3 bt2020_nonlinear_to_linear(double3 input);
 
 	double3 bt2020_linear_to_nonlinear(double3 input);
+
+	double srgb_nonlinear_to_linear(double input);
 
 	double3 srgb_nonlinear_to_linear(double3 input);
 	

@@ -80,6 +80,7 @@ struct BestResult
 		double upYLimit = 0;
 		double downYLimit = 0;
 		double yShift = 0;
+		bool isSourceP010 = false;
 	} signal;
 
 	long long int minError = MAX_CALIBRATION_ERROR;
@@ -121,6 +122,7 @@ struct BestResult
 		out << "bestResult.signal.upYLimit = " << std::to_string(signal.upYLimit) << ";" << std::endl;
 		out << "bestResult.signal.downYLimit = " << std::to_string(signal.downYLimit) << ";" << std::endl;
 		out << "bestResult.signal.yShift = " << std::to_string(signal.yShift) << ";" << std::endl;
+		out << "bestResult.signal.isSourceP010 = " << std::to_string(signal.isSourceP010) << ";" << std::endl;
 		out << "bestResult.minError = " << std::to_string(std::round(minError * 100.0) / 30000.0) << ";" << std::endl;
 		out << "*/" << std::endl;
 	}
