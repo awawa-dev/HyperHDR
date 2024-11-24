@@ -89,6 +89,8 @@ public slots:
 	void clearInstancePriority(int instance, int priority);
 	std::list<EffectDefinition> getEffects();
 
+	void handleLutRequestSignal();
+
 signals:
 	void SignalInstanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());
 

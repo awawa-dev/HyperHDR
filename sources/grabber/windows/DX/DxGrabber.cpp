@@ -83,13 +83,13 @@ QString DxGrabber::GetSharedLut()
 	return QCoreApplication::applicationDirPath();
 }
 
-void DxGrabber::loadLutFile(PixelFormat color)
+void DxGrabber::loadLutFile(PixelFormat color, bool silent)
 {
 	// load lut table
 	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
 	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
 
-	Grabber::loadLutFile(_log, color, QList<QString>{fileName1, fileName2});
+	Grabber::loadLutFile((!silent) ? _log : nullptr, color, QList<QString>{fileName1, fileName2});
 }
 
 void DxGrabber::setHdrToneMappingEnabled(int mode)
@@ -848,7 +848,16 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 
 			if (CHECK(status) && CHECK(_d3dContext->Map(display.d3dSourceTexture, 0, D3D11_MAP_READ, 0, &internalMap)))
 			{
-				processSystemFrameBGRA((uint8_t*)internalMap.pData, (int)internalMap.RowPitch, !(_hardware && display.wideGamut));
+				bool useLut = !(_hardware && display.wideGamut);
+				if (_hdrToneMappingEnabled && !_lutBufferInit && useLut)
+				{
+					loadLutFile(PixelFormat::RGB24, true);
+					pleaseWaitForLut(false);
+				}
+				else
+				{
+					processSystemFrameBGRA((uint8_t*)internalMap.pData, (int)internalMap.RowPitch, _hdrToneMappingEnabled && useLut);
+				}
 				_d3dContext->Unmap(display.d3dSourceTexture, 0);
 			}
 
@@ -930,7 +939,16 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 				int divide = getTargetSystemFrameDimension(display.actualWidth, display.actualHeight, targetSizeX, targetSizeY);
 
 				image = Image<ColorRgb>(targetSizeX, targetSizeY);
-				FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, 0, 0, (uint8_t*)internalMap.pData, display.actualWidth, display.actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
+
+				if (_hdrToneMappingEnabled && !_lutBufferInit && useLut)
+				{
+					loadLutFile(PixelFormat::RGB24, true);
+					pleaseWaitForLut(false);
+				}
+				else
+				{
+					FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, 0, 0, (uint8_t*)internalMap.pData, display.actualWidth, display.actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
+				}
 
 				result = 1;
 				_d3dContext->Unmap(display.d3dSourceTexture, 0);

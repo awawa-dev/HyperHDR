@@ -95,6 +95,22 @@ public:
 	void run() override;
 };
 
+class DefaultLutCreatorWorker : public QRunnable
+{
+	Logger* log;
+	BestResult bestResult;
+	QString path;
+public:
+	DefaultLutCreatorWorker(BestResult& _bestResult,QString _path) :
+		log(Logger::getInstance("LUT_CREATOR")),
+		bestResult(_bestResult),
+		path(_path)
+	{
+		setAutoDelete(true);
+	};
+	void run() override;
+};
+
 /////////////////////////////////////////////////////////////////
 //                      LUT CALIBRATOR                         //
 /////////////////////////////////////////////////////////////////
@@ -1511,7 +1527,8 @@ void CreateLutWorker::run()
 QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
 	// write LUT table
-	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d");
+	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d.tmp");
+	QString finalFileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d");
 	std::fstream file;
 	file.open(fileName.toStdString(), std::ios::trunc | std::ios::out | std::ios::binary);
 
@@ -1523,21 +1540,25 @@ QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult
 	{
 		MemoryBuffer<uint8_t> _lut;
 		YuvConverter yuvConverter;
+		QThreadPool threadPool;
 
-		Info(_log, "Writing LUT file to: %s", QSTRING_CSTR(fileName));
+		std::remove(finalFileName.toStdString().c_str());
+
+		Info(_log, "Writing LUT to temp file: %s", QSTRING_CSTR(fileName));
+		Info(_log, "Number of threads for LUT creator: %i", threadPool.maxThreadCount());
 
 		_lut.resize(LUT_FILE_SIZE);
 
 		for (int phase = 0; phase < 3; phase++)
 		{
-			const int vDelta = std::ceil(256.0 / QThreadPool::globalInstance()->maxThreadCount());
+			const int vDelta = std::ceil(256.0 / threadPool.maxThreadCount());
 
 			for (int v = 0; v <= 255; v += vDelta)
 			{
 				auto worker = new CreateLutWorker(v, std::min(v + vDelta, 256), phase, &yuvConverter, bestResult, _lut.data());
-				QThreadPool::globalInstance()->start(worker);
+				threadPool.start(worker);
 			}
-			QThreadPool::globalInstance()->waitForDone();
+			threadPool.waitForDone();
 
 			if (phase == 1 && all != nullptr)
 			{
@@ -1566,8 +1587,15 @@ QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult
 
 			file.write(reinterpret_cast<char*>(_lut.data()), _lut.size());
 		}
+		file.flush();
 		file.close();
+	}	
+
+	if (std::rename(fileName.toStdString().c_str(), finalFileName.toStdString().c_str()))
+	{
+		return QString("Could not rename %1 to %2").arg(fileName).arg(finalFileName);
 	}
+
 	return QString();
 }
 
@@ -1779,3 +1807,56 @@ bool LutCalibrator::setTestData()
 	return true;
 }
 
+void LutCalibrator::CreateDefaultLut(QString filepath)
+{
+	BestResult bestResult;
+	bestResult.coef = YuvConverter::YUV_COEFS(1);
+	bestResult.coefMatrix = double4x4{ {1.16438356164, 1.16438356164, 1.16438356164, 0}, {-4.43119136738e-17, -0.387076923077, 2.02178571429, 0}, {1.58691964286, -0.821942994505, -1.77247654695e-16, 0}, {-0.869630789302, 0.53382122535, -1.08791650359, 1} };
+	bestResult.coefDelta = double2{ 0.004, -0.002 };
+	bestResult.coloredAspectMode = 3;
+	bestResult.colorAspect = std::pair<double3, double3>(double3{ 1.08301468119, 1.00959155269, 1.10863646026 }, double3{ 1.06441799482, 1.00700595321, 1.06831049137 });
+	bestResult.aspect = double3{ 0.9925, 1, 1.035 };
+	bestResult.bt2020Range = 0;
+	bestResult.altConvert = 1;
+	bestResult.altPrimariesToSrgb = double3x3{ {1.62995144161, -0.159968936426, -0.0191389994477}, {-0.556261837808, 1.17281602107, -0.104271698501}, {-0.0736896038051, -0.0128470846442, 1.12341069795} };
+	bestResult.gamma = ColorSpaceMath::HDR_GAMMA(0);
+	bestResult.gammaHLG = 0.000000;
+	bestResult.lchEnabled = 0;
+	bestResult.lchPrimaries = LchLists{
+				std::list<double4>{
+
+				},
+
+				std::list<double4>{
+
+				},
+
+				std::list<double4>{
+
+				},
+	};
+	bestResult.nits = 229.625687;
+	bestResult.signal.range = YuvConverter::COLOR_RANGE(2);
+	bestResult.signal.yRange = 0.858824;
+	bestResult.signal.upYLimit = 0.572549;
+	bestResult.signal.downYLimit = 0.062745;
+	bestResult.signal.yShift = 0.062745;
+	bestResult.signal.isSourceP010 = 0;
+	bestResult.minError = 212.883333;
+
+	auto worker = new DefaultLutCreatorWorker(bestResult, filepath);
+	QThreadPool::globalInstance()->start(worker);
+}
+
+void DefaultLutCreatorWorker::run()
+{
+	QString errorMessage = LutCalibrator::CreateLutFile(log, path, &bestResult, nullptr);
+	if (!errorMessage.isEmpty())
+	{
+		Error(log, "Error while creating LUT: %s", QSTRING_CSTR(errorMessage));
+	}
+	else
+	{
+		Info(log, "The default LUT has been created: %s/lut_lin_tables.3d", QSTRING_CSTR(path));
+	}
+}

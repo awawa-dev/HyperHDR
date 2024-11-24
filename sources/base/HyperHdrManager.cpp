@@ -38,6 +38,7 @@
 #include <base/AccessManager.h>
 #include <base/Muxer.h>
 #include <utils/GlobalSignals.h>
+#include <lut-calibrator/LutCalibrator.h>
 
 QString HyperHdrManager::getRootPath()
 {
@@ -58,6 +59,7 @@ HyperHdrManager::HyperHdrManager(const QString& rootPath)
 	connect(this, &HyperHdrManager::SignalBenchmarkCapture, &_videoBenchmark, &VideoBenchmark::benchmarkCapture);
 
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &HyperHdrManager::handleRequestComponent);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalLutRequest, this, &HyperHdrManager::handleLutRequestSignal);
 }
 
 void HyperHdrManager::handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen)
@@ -72,6 +74,18 @@ void HyperHdrManager::handleRequestComponent(hyperhdr::Components component, int
 HyperHdrManager::~HyperHdrManager()
 {
 	Debug(_log, "HyperHdrManager has been removed");
+}
+
+void HyperHdrManager::handleLutRequestSignal()
+{
+	static bool requested = false;
+
+	if (!requested)
+	{
+		requested = true;
+
+		LutCalibrator::CreateDefaultLut(_rootPath);
+	}
 }
 
 void HyperHdrManager::startAll(bool disableOnStartup)
