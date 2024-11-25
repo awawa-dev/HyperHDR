@@ -1,0 +1,43 @@
+{
+	"type" : "object",
+	"title" : "edt_automatic_tone_mapping_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_automatic_tone_mapping_enable_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"tone_mapping_threshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
+			"title" : "edt_automatic_tone_mapping_threshold_title",
+			"minimum" : 155,
+			"maximum" : 255,
+			"default" : 165,
+			"append" : "edt_append_percent",
+			"required" : true,
+			"propertyOrder" : 2
+		},
+		"time_to_tone_mapping" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 5,			
+			"title" : "edt_automatic_tone_mapping_time_title",
+			"minimum" : 5,
+			"maximum": 600,
+			"default" : 30,
+			"append" : "edt_append_s",
+			"required" : true,
+			"propertyOrder" : 3
+		}		
+	},
+	"additionalProperties" : false
+}
