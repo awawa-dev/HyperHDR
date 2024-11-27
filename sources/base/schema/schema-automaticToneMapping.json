@@ -12,18 +12,41 @@
 			"required" : true,
 			"propertyOrder" : 1
 		},
-		"tone_mapping_threshold" :
+		"tone_mapping_y_threshold" :
 		{
 			"type" : "integer",
 			"format": "stepper",			
 			"step" : 1,
-			"title" : "edt_automatic_tone_mapping_threshold_title",
-			"minimum" : 155,
+			"title" : "edt_automatic_tone_mapping_y_threshold_title",
+			"minimum" : 150,
 			"maximum" : 255,
-			"default" : 165,
-			"append" : "edt_append_percent",
+			"default" : 155,
 			"required" : true,
 			"propertyOrder" : 2
+		},
+		"tone_mapping_u_threshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
+			"title" : "edt_automatic_tone_mapping_u_threshold_title",
+			"minimum" : 165,
+			"maximum" : 255,
+			"default" : 175,
+			"required" : true,
+			"propertyOrder" : 3
+		},
+		"tone_mapping_v_threshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
+			"title" : "edt_automatic_tone_mapping_v_threshold_title",
+			"minimum" : 155,
+			"maximum" : 255,
+			"default" : 160,
+			"required" : true,
+			"propertyOrder" : 4
 		},
 		"time_to_tone_mapping" :
 		{
@@ -36,7 +59,7 @@
 			"default" : 30,
 			"append" : "edt_append_s",
 			"required" : true,
-			"propertyOrder" : 3
+			"propertyOrder" : 5
 		}		
 	},
 	"additionalProperties" : false

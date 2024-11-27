@@ -33,6 +33,7 @@ namespace settings {
 		RAWUDPSERVER,
 		PROTOSERVER,
 		MQTT,
+		AUTOTONEMAPPING,
 		INVALID
 	};
 
@@ -65,6 +66,7 @@ namespace settings {
 		case type::RAWUDPSERVER:  return "rawUdpServer";
 		case type::PROTOSERVER:   return "protoServer";
 		case type::MQTT:          return "mqtt";
+		case type::AUTOTONEMAPPING: return "automaticToneMapping";
 		default:                  return "invalid";
 		}
 	}
@@ -96,6 +98,7 @@ namespace settings {
 		else if (type == "rawUdpServer")         return type::RAWUDPSERVER;
 		else if (type == "protoServer")          return type::PROTOSERVER;
 		else if (type == "mqtt")                 return type::MQTT;
+		else if (type == "automaticToneMapping") return type::AUTOTONEMAPPING;
 		else                                     return type::INVALID;
 	}
 }

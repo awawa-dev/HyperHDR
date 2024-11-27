@@ -1255,8 +1255,12 @@
   "edt_automatic_tone_mapping_title" : "Automatic tone mapping",
   "edt_automatic_tone_mapping_enable_title" : "Enable automatic tone mapping",
   "edt_automatic_tone_mapping_enable_expl" : "Automatic tone mapping is only available for YUV/NV12/P010 formats with 'Quarter of frame' mode enabled",
-  "edt_automatic_tone_mapping_threshold_title" : "Brightness threshold",
-  "edt_automatic_tone_mapping_threshold_expl" : "The brightness level that separates raw dark HDR material from the SDR signal",
+  "edt_automatic_tone_mapping_y_threshold_title" : "Brightness threshold (Y)",
+  "edt_automatic_tone_mapping_y_threshold_expl" : "The brightness level that separates raw dark HDR material from the SDR signal",
+  "edt_automatic_tone_mapping_u_threshold_title" : "Blue chroma threshold (U)",
+  "edt_automatic_tone_mapping_u_threshold_expl" : "Blue chroma level that separates raw pale HDR material from the SDR signal",
+  "edt_automatic_tone_mapping_v_threshold_title" : "Red chroma threshold (V)",
+  "edt_automatic_tone_mapping_v_threshold_expl" : "Red chroma level that separates raw pale HDR material from the SDR signal",
   "edt_automatic_tone_mapping_time_title" : "Time to turn on tone mapping",
-  "edt_automatic_tone_mapping_time_title_expl" : "Time to turn on tone mapping if the signal does not exceed the set brightness level"
+  "edt_automatic_tone_mapping_time_title_expl" : "Time to turn on tone mapping if the signal does not exceed the configured threshold levels"
 }

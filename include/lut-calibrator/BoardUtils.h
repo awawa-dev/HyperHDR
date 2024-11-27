@@ -84,6 +84,7 @@ namespace BoardUtils
 		double _yShift = 0;
 		double _downYLimit = 0;
 		double _upYLimit = 0;
+		byte3  _rangeYUV = {};
 
 	public:
 		CapturedColors() = default;
@@ -96,7 +97,7 @@ namespace BoardUtils
 		bool areAllCaptured();
 		void finilizeBoard();
 		static void correctYRange(double3& yuv, double yRange, double upYLimit, double downYLimit, double yShift);
-		void getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift);
+		void getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift, byte3& rangeYUV);
 		void setCaptured(int index);
 		void setRange(YuvConverter::COLOR_RANGE range);
 		YuvConverter::COLOR_RANGE getRange() const;

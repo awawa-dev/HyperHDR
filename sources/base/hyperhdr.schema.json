@@ -102,6 +102,10 @@
 		"mqtt":
 		{
 			"$ref": "schema-mqtt.json"
+		},
+		"automaticToneMapping" :
+		{
+			"$ref": "schema-automaticToneMapping.json"
 		}
 	},
 	"additionalProperties" : false

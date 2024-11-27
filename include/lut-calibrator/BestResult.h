@@ -80,6 +80,7 @@ struct BestResult
 		double upYLimit = 0;
 		double downYLimit = 0;
 		double yShift = 0;
+		byte3  yuvRange = {};
 		bool isSourceP010 = false;
 	} signal;
 
@@ -124,6 +125,7 @@ struct BestResult
 		out << "bestResult.signal.yShift = " << std::to_string(signal.yShift) << ";" << std::endl;
 		out << "bestResult.signal.isSourceP010 = " << std::to_string(signal.isSourceP010) << ";" << std::endl;
 		out << "bestResult.minError = " << std::to_string(std::round(minError * 100.0) / 30000.0) << ";" << std::endl;
+		out << "bestResult.signal.yuvRange = byte3{ " << std::to_string(signal.yuvRange[0]) << ", " << std::to_string(signal.yuvRange[1]) << ", " << std::to_string(signal.yuvRange[2]) << "};" << std::endl;
 		out << "*/" << std::endl;
 	}
 };

@@ -443,6 +443,13 @@ namespace BoardUtils
 				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 				{
 					all[r][g][b].setCoords(byte3(r, g, b));
+					
+					if (all[r][g][b].Y() > _rangeYUV.x)
+						_rangeYUV.x = all[r][g][b].Y();
+					if (all[r][g][b].U() > _rangeYUV.y)
+						_rangeYUV.y = all[r][g][b].U();
+					if (all[r][g][b].V() > _rangeYUV.z)
+						_rangeYUV.z = all[r][g][b].V();
 				}
 	}
 
@@ -451,12 +458,13 @@ namespace BoardUtils
 		yuv.x = ((yuv.x - downYLimit) / (upYLimit - downYLimit)) * yRange + yShift;
 	}
 
-	void CapturedColors::getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift)
+	void CapturedColors::getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift, byte3& rangeYUV)
 	{
 		yRange = _yRange;
 		upYLimit = _upYLimit;
 		downYLimit = _downYLimit;
 		yShift = _yShift;
+		rangeYUV = _rangeYUV;
 	}
 
 	void CapturedColors::setCaptured(int index)

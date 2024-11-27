@@ -26,5 +26,6 @@
 		<file alias="schema-videoDetection.json">schema/schema-videoDetection.json</file>
 		<file alias="schema-network.json">schema/schema-network.json</file>
 		<file alias="schema-mqtt.json">schema/schema-mqtt.json</file>
+		<file alias="schema-automaticToneMapping.json">schema/schema-automaticToneMapping.json</file>
 	</qresource>
 </RCC>

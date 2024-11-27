@@ -122,7 +122,7 @@ bool SettingsTable::isSettingGlobal(const QString& type) const
 		<< settings::typeToString(settings::type::VIDEOGRABBER) << settings::typeToString(settings::type::SYSTEMGRABBER)
 		<< settings::typeToString(settings::type::LOGGER) << settings::typeToString(settings::type::GENERAL)
 		<< settings::typeToString(settings::type::SNDEFFECT) << settings::typeToString(settings::type::VIDEODETECTION)
-		<< settings::typeToString(settings::type::MQTT)
+		<< settings::typeToString(settings::type::MQTT) << settings::typeToString(settings::type::AUTOTONEMAPPING)
 		// legacy
 		<< "grabberV4L2";
 
