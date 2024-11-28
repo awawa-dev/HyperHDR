@@ -423,6 +423,7 @@ template<typename T>
 void HyperHdrDaemon::createVideoGrabberHelper(QJsonDocument config, QString deviceName, QString rootPath)
 {
 	auto videoDetection = getSetting(settings::type::VIDEODETECTION);
+	auto autoToneMapping = getSetting(settings::type::AUTOTONEMAPPING);
 
 	_videoGrabber = std::shared_ptr<GrabberHelper>(
 			new GrabberHelper(),
@@ -436,7 +437,7 @@ void HyperHdrDaemon::createVideoGrabberHelper(QJsonDocument config, QString devi
 	_videoGrabber->moveToThread(_videoGrabberThread);
 	connect(_videoGrabberThread, &QThread::started, _videoGrabber.get(), &GrabberHelper::SignalCreateGrabber);
 	connect(_videoGrabberThread, &QThread::finished, _videoGrabber.get(), &GrabberHelper::deleteLater);
-	connect(_videoGrabber.get(), &GrabberHelper::SignalCreateGrabber, _videoGrabber.get(), [this, videoDetection, config, deviceName, rootPath]() {
+	connect(_videoGrabber.get(), &GrabberHelper::SignalCreateGrabber, _videoGrabber.get(), [this, videoDetection, config, autoToneMapping, deviceName, rootPath]() {
 		_videoGrabber->linker.release(1);
 		auto videoGrabberInstance = new T(deviceName, rootPath);
 		_videoGrabber->setGrabber(videoGrabberInstance);
@@ -450,6 +451,7 @@ void HyperHdrDaemon::createVideoGrabberHelper(QJsonDocument config, QString devi
 		#endif
 		videoGrabberInstance->GrabberWrapper::handleSettingsUpdate(settings::type::VIDEOGRABBER, config);
 		videoGrabberInstance->GrabberWrapper::handleSettingsUpdate(settings::type::VIDEODETECTION, videoDetection);
+		videoGrabberInstance->GrabberWrapper::handleSettingsUpdate(settings::type::AUTOTONEMAPPING, autoToneMapping);
 		_videoGrabber->linker.release(1);
 	});
 

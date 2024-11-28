@@ -966,3 +966,8 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 	else
 		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }
+
+void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec)
+{
+	_automaticToneMapping.setConfig(enabled, newConfig, timeInSec);
+}

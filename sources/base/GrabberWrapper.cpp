@@ -579,6 +579,18 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 		emit SignalVideoStreamChanged(currentDevice, currentVideoMode);
 	}
+
+	if (type == settings::type::AUTOTONEMAPPING && _grabber != nullptr)
+	{
+		const QJsonObject& obj = config.object();
+		auto enabled = obj["enable"].toBool(false);
+		AutomaticToneMapping::ToneMappingThresholds t;
+		t.y = obj["tone_mapping_y_threshold"].toInt(155);
+		t.u = obj["tone_mapping_u_threshold"].toInt(175);
+		t.v = obj["tone_mapping_v_threshold"].toInt(160);
+		auto time = obj["time_to_tone_mapping"].toInt(30);
+		_grabber->setAutomaticToneMappingConfig(enabled, t, time);
+	}
 }
 
 QString GrabberWrapper::getVideoCurrentModeResolution()
