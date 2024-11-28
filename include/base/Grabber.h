@@ -127,6 +127,7 @@ public:
 	QString	getConfigurationPath();
 
 	void setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec);
+	void setAutoToneMappingCurrentStateEnabled(bool enabled);
 
 	struct DevicePropertiesItem
 	{

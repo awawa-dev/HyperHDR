@@ -32,11 +32,16 @@
 #include <utils/InternalClock.h>
 #include <base/AutomaticToneMapping.h>
 
-AutomaticToneMapping::AutomaticToneMapping():
-	_enabled(false),	
+#define DEFAULT_GRACEFUL_TIMEOUT 10
+
+AutomaticToneMapping::AutomaticToneMapping() :
+	_enabled(false),
 	_timeInSec(30),
+	_config{},
+	_running{},
 	_modeSDR(true),
 	_startedTime(0),
+	_gracefulTimeout(DEFAULT_GRACEFUL_TIMEOUT),
 	_log(Logger::getInstance(QString("AUTOTONEMAPPING")))
 {
 }
@@ -44,8 +49,7 @@ AutomaticToneMapping::AutomaticToneMapping():
 AutomaticToneMapping* AutomaticToneMapping::prepare()
 {
 	if (_enabled)
-	{
-		_running = _config;
+	{		
 		return this;
 	}
 	else
@@ -60,7 +64,7 @@ void AutomaticToneMapping::finilize()
 	{
 		bool triggered = (_config.y != _running.y || _config.u != _running.u || _config.v != _running.v);
 
-		if (triggered && !_modeSDR)
+		if (triggered && !_modeSDR && _gracefulTimeout-- <= 0)
 		{
 			QString message = "Tone mapping OFF triggered by: ";
 			if (_config.y != _running.y)
@@ -85,22 +89,32 @@ void AutomaticToneMapping::finilize()
 			else if (_startedTime + _timeInSec < now)
 			{
 				_modeSDR = false;
-				QString message = "Tone mapping ON triggered by configured time";
+				Info(_log, "Tone mapping ON triggered by configured time");
 				GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
 			}
 		}
+
+		if (!triggered)
+			_gracefulTimeout = DEFAULT_GRACEFUL_TIMEOUT;
+
+		_running = _config;
 	}
 }
 
 void AutomaticToneMapping::setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec)
 {
-	_modeSDR = true;
-	_startedTime = 0;
-
 	_enabled = enabled;
 	_config = newConfig;
 	_timeInSec = timeInSec;
+	_running = _config;
 	Info(_log, "Enabled: %s, Time: %i, Thresholds: %i, %i, %i", (enabled) ? "yes" : "no", timeInSec, _config.y, _config.u, _config.v);
+}
+
+void AutomaticToneMapping::setToneMapping(bool enabled)
+{
+	_modeSDR = !enabled;
+	_startedTime = 0;
+	_gracefulTimeout = DEFAULT_GRACEFUL_TIMEOUT;
 }
 
 

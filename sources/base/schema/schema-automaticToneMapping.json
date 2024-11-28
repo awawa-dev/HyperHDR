@@ -20,7 +20,7 @@
 			"title" : "edt_automatic_tone_mapping_y_threshold_title",
 			"minimum" : 150,
 			"maximum" : 255,
-			"default" : 155,
+			"default" : 180,
 			"required" : true,
 			"options": {
 				"dependencies": {

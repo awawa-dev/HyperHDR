@@ -344,6 +344,7 @@ void GrabberWrapper::setHdrToneMappingEnabled(int mode)
 	if (_grabber != NULL)
 	{
 		_grabber->setHdrToneMappingEnabled(mode);
+		_grabber->setAutoToneMappingCurrentStateEnabled(mode);
 	}
 }
 

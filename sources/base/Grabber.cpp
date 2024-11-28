@@ -970,4 +970,14 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec)
 {
 	_automaticToneMapping.setConfig(enabled, newConfig, timeInSec);
+	if (_automaticToneMapping.prepare() && !_qframe)
+		Error(_log, "Automatic tone mapping requires 'Quarter of frame' mode enabled");
+	if (_automaticToneMapping.prepare() && (_enc != PixelFormat::YUYV && _enc != PixelFormat::NV12 && _enc != PixelFormat::P010 ))
+		Warning(_log, "Automatic tone mapping requires YUYV/NV12/P010 video format");
+
+}
+
+void Grabber::setAutoToneMappingCurrentStateEnabled(bool enabled)
+{
+	_automaticToneMapping.setToneMapping(enabled);
 }

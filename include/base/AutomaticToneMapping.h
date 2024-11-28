@@ -42,20 +42,24 @@ public:
 	AutomaticToneMapping* prepare();
 	void finilize();
 	void setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec);
+	void setToneMapping(bool enabled);
 
-	constexpr void checkY(uint8_t& y)
+	constexpr uint8_t checkY(uint8_t y)
 	{
 		if (y > _running.y) _running.y = y;
+		return y;
 	}
 
-	constexpr void checkU(uint8_t& u)
+	constexpr uint8_t checkU(uint8_t u)
 	{
 		if (u > _running.u) _running.u = u;
+		return u;
 	}
 
-	constexpr void checkV(uint8_t& v)
+	constexpr uint8_t checkV(uint8_t v)
 	{
 		if (v > _running.v) _running.v = v;
+		return v;
 	}
 
 	struct ToneMappingThresholds {
@@ -72,6 +76,7 @@ private:
 
 	bool _modeSDR;
 	long _startedTime;
+	int _gracefulTimeout;
 	Logger* _log;
 
 };
