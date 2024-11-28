@@ -7,6 +7,7 @@
 #include <utils/PixelFormat.h>
 #include <base/Grabber.h>
 #include <utils/Components.h>
+#include <base/AutomaticToneMapping.h>
 
 #include <turbojpeg.h>
 
@@ -27,7 +28,7 @@ public:
 		unsigned	__cropBottom, unsigned __cropRight,
 		quint64		__currentFrame, qint64 __frameBegin,
 		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe,
-		bool		__directAccess, QString __deviceName);
+		bool		__directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping);
 
 	void startOnThisThread();
 	void run() override;
@@ -69,6 +70,7 @@ private:
 	bool		_qframe;
 	bool		_directAccess;
 	QString		_deviceName;
+	AutomaticToneMapping* _automaticToneMapping;
 };
 
 class MFWorkerManager : public  QObject

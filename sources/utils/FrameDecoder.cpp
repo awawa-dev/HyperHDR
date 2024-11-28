@@ -492,7 +492,7 @@ void FrameDecoder::processImage(
 
 void FrameDecoder::processQImage(
 	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping)
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping, AutomaticToneMapping* automaticToneMapping)
 {
 	uint32_t ind_lutd;
 	uint8_t  buffer[8];

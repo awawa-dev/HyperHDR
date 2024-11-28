@@ -139,7 +139,8 @@ V4L2Worker::V4L2Worker() :
 	_frameBegin(0),
 	_hdrToneMappingEnabled(0),
 	_lutBuffer(nullptr),
-	_qframe(false)
+	_qframe(false),
+	_automaticToneMapping(nullptr)
 {
 
 }
@@ -154,7 +155,7 @@ void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Pixel
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping)
 {
 	_workerIndex = __workerIndex;
 	memcpy(&_v4l2Buf, __v4l2Buf, sizeof(v4l2_buffer));
@@ -175,6 +176,7 @@ void V4L2Worker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Pixel
 	_qframe = __qframe;
 	_directAccess = __directAccess;
 	_deviceName = __deviceName;
+	_automaticToneMapping = __automaticToneMapping;
 }
 
 v4l2_buffer* V4L2Worker::GetV4L2Buffer()
@@ -201,7 +203,7 @@ void V4L2Worker::runMe()
 			{
 				Image<ColorRgb> image(_width >> 1, _height >> 1);
 				FrameDecoder::processQImage(
-					_sharedData, nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image, _hdrToneMappingEnabled);
+					_sharedData, nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image, _hdrToneMappingEnabled, _automaticToneMapping);
 
 				image.setBufferCacheSize();
 				if (!_directAccess)
