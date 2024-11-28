@@ -7,7 +7,7 @@
 		{
 			"type" : "boolean",
 			"format": "checkbox",
-			"title" : "edt_automatic_tone_mapping_enable_title",
+			"title" : "edt_conf_general_enable_title",
 			"default" : false,
 			"required" : true,
 			"propertyOrder" : 1
@@ -22,6 +22,11 @@
 			"maximum" : 255,
 			"default" : 155,
 			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
 			"propertyOrder" : 2
 		},
 		"tone_mapping_u_threshold" :
@@ -34,6 +39,11 @@
 			"maximum" : 255,
 			"default" : 175,
 			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
 			"propertyOrder" : 3
 		},
 		"tone_mapping_v_threshold" :
@@ -46,6 +56,11 @@
 			"maximum" : 255,
 			"default" : 160,
 			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
 			"propertyOrder" : 4
 		},
 		"time_to_tone_mapping" :
@@ -59,6 +74,11 @@
 			"default" : 30,
 			"append" : "edt_append_s",
 			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
 			"propertyOrder" : 5
 		}		
 	},
