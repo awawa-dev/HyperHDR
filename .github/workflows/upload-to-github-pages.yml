@@ -54,11 +54,17 @@ jobs:
             platform: linux
             niceName: Ubuntu 24.04 LTS           
           - dockerImage: x86_64
-            linuxVersion: Fedora_40
-            dockerName: Fedora 40 (x86_64)
+            linuxVersion: oracular
+            dockerName: Ubuntu 24.10 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Fedora 40
+            niceName: Ubuntu 24.10
+          - dockerImage: x86_64
+            linuxVersion: Fedora_41
+            dockerName: Fedora 41 (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Fedora 41
 
     steps:
       # checkout
