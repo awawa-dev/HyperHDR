@@ -1251,5 +1251,17 @@
   "flatbuffers_nv12_quarter_of_frame_title": "NV12 的四分之一帧",
   "flatbuffers_nv12_quarter_of_frame_expl": "NV12 编解码器包含的亮度信息是颜色信息的四倍。此选项允许您通过将视频帧的高度和宽度减少 2 来减少 CPU 负载，而不会丢失颜色信息。",
   "chk_lchCorrection": "LCH 色彩校正",
-  "grabber_calibration_expl": "此工具可让您为抓取器（或外部 flatbuffers 源）创建一个新的校准 HDR LUT，使其尽可能接近实际输入颜色。<br/>您需要一个可以显示此网页的 HDR10 视频源，例如：在图形驱动程序的属性中启用 HDR 的 Windows 10。<br/>校准期间屏幕可能会闪烁。在 Intel 7 Windows PC 上，该过程通常需要几分钟（取决于主机 CPU 资源和视频捕获帧速率）。<br/><b>计算非常密集，会给您的设备带来压力 <svg data-src='svg/performance_undervoltage.svg' class='svg4hyperhdr ms-1'></svg></b>您可以禁用 LCH 颜色校正以稍微减轻负载<br/>您可以使用其他设备上的浏览器监控 HyperHDR 日志中的进度。<br/><br/><br/><b>1</b> 如果一切都正确连接，此页面应显示在电视屏幕上（作为 HDR 内容）并在 HyperHDR 中实时预览（由抓取器捕获）。</br><b>2</b> 绝对最小捕获分辨率为 1280x720（我们将验证这一点）。推荐使用 1920x1080 YUV/NV12。必须保留 1920/1080 的宽高比。<br/><b>3</b> 如果已启用“四分之一帧模式”，则必须在抓取器属性中将其禁用。<br/><b>4</b> 您必须将抓取器的视频格式设置为 MJPEG/YUV/NV12/P010。<br/><b>5</b> 在运行该过程之前，请将您的 WWW 浏览器置于全屏模式（F11 键，我们将验证这一点）。</br><b>6</b> <b>如果您使用 Windows 11 进行校准，请关闭“夜灯”、“自动管理应用颜色”和“自动 HDR”等功能。请勿更改图形驱动程序中的色彩平衡。GFX 输出应支持例如全 PC 范围内的 10 位或 12 位 RGB。</b><br/><br/>完成校准后，您的新 LUT 表文件 (lut_lin_tables.3d) 将在用户的 HyperHDR 主目录中创建，并且只要您启用 HDR 色调映射即可立即使用。请检查 HyperHDR 日志以了解详细信息。"
+  "grabber_calibration_expl": "此工具可让您为抓取器（或外部 flatbuffers 源）创建一个新的校准 HDR LUT，使其尽可能接近实际输入颜色。<br/>您需要一个可以显示此网页的 HDR10 视频源，例如：在图形驱动程序的属性中启用 HDR 的 Windows 10。<br/>校准期间屏幕可能会闪烁。在 Intel 7 Windows PC 上，该过程通常需要几分钟（取决于主机 CPU 资源和视频捕获帧速率）。<br/><b>计算非常密集，会给您的设备带来压力 <svg data-src='svg/performance_undervoltage.svg' class='svg4hyperhdr ms-1'></svg></b>您可以禁用 LCH 颜色校正以稍微减轻负载<br/>您可以使用其他设备上的浏览器监控 HyperHDR 日志中的进度。<br/><br/><br/><b>1</b> 如果一切都正确连接，此页面应显示在电视屏幕上（作为 HDR 内容）并在 HyperHDR 中实时预览（由抓取器捕获）。</br><b>2</b> 绝对最小捕获分辨率为 1280x720（我们将验证这一点）。推荐使用 1920x1080 YUV/NV12。必须保留 1920/1080 的宽高比。<br/><b>3</b> 如果已启用“四分之一帧模式”，则必须在抓取器属性中将其禁用。<br/><b>4</b> 您必须将抓取器的视频格式设置为 MJPEG/YUV/NV12/P010。<br/><b>5</b> 在运行该过程之前，请将您的 WWW 浏览器置于全屏模式（F11 键，我们将验证这一点）。</br><b>6</b> <b>如果您使用 Windows 11 进行校准，请关闭“夜灯”、“自动管理应用颜色”和“自动 HDR”等功能。请勿更改图形驱动程序中的色彩平衡。GFX 输出应支持例如全 PC 范围内的 10 位或 12 位 RGB。</b><br/><br/>完成校准后，您的新 LUT 表文件 (lut_lin_tables.3d) 将在用户的 HyperHDR 主目录中创建，并且只要您启用 HDR 色调映射即可立即使用。请检查 HyperHDR 日志以了解详细信息。",
+  "edt_automatic_tone_mapping_title": "自动色调映射",
+  "edt_automatic_tone_mapping_enable_explain": "自动色调映射控制仅适用于启用了 <span style='color:red;'>'YUV/NV12/P010'</span> 模式的视频格式。请在 USB 抓取器设置中配置它们。<br/>如果信号在一定时间内未超过配置的阈值水平，则组件将自动启用色调映射，并在超过阈值后立即禁用它。<br/>然后，您可以稍后检查哪个值超过了任何阈值，这实际上导致 HyperHDR 日志中的色调映射被禁用。然后，如果它生成了色调映射禁用的错误事件（阈值太低）或在黑暗的 SDR 场景中生成了不必要的色调映射启用（阈值太高），则可能需要调整配置。",
+  "edt_automatic_tone_mapping_y_threshold_title": "亮度阈值 (Y)",
+  "edt_automatic_tone_mapping_y_threshold_expl": "将原始深色 HDR 材料与 SDR 信号分开的亮度级别。",
+  "edt_automatic_tone_mapping_u_threshold_title": "蓝色色度阈值 (U)",
+  "edt_automatic_tone_mapping_u_threshold_expl": "将原始浅色 HDR 材料与 SDR 信号分开的蓝色色度级别。",
+  "edt_automatic_tone_mapping_v_threshold_title": "红色色度阈值 (V)",
+  "edt_automatic_tone_mapping_v_threshold_expl": "将原始浅色 HDR 材料与 SDR 信号分开的红色色度级别。",
+  "edt_automatic_tone_mapping_time_title": "打开色调映射的时间",
+  "edt_automatic_tone_mapping_time_expl": "如果信号未超过配置的阈值水平，则打开色调映射的时间。",
+  "edt_automatic_tone_mapping_disable_time_title": "关闭色调映射的时间",
+  "edt_automatic_tone_mapping_disable_time_expl": "在理想情况下，此值应为零，因为色调映射应在超过其中一个阈值后立即禁用。但它确实发生了，例如：在启动或切换分辨率时，抓取器可能会生成垃圾帧，从而不必要地禁用色调映射。"
 }
