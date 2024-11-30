@@ -492,7 +492,7 @@ void FrameDecoder::processImage(
 
 void FrameDecoder::processQImage(
 	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping)
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping, AutomaticToneMapping* automaticToneMapping)
 {
 	uint32_t ind_lutd;
 	uint8_t  buffer[8];
@@ -524,7 +524,7 @@ void FrameDecoder::processQImage(
 	int 		destLineSize = outputImage.width() * 3;
 
 
-	if (pixelFormat == PixelFormat::YUYV)
+	if (pixelFormat == PixelFormat::YUYV && automaticToneMapping == nullptr)
 	{
 		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
 		{
@@ -543,6 +543,28 @@ void FrameDecoder::processQImage(
 				currentSource += 4;
 			}
 		}
+		return;
+	}
+	if (pixelFormat == PixelFormat::YUYV && automaticToneMapping != nullptr)
+	{
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+
+			while (currentDest < endDest)
+			{
+				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+
+				ind_lutd = LUT_INDEX((automaticToneMapping->checkY(buffer[0])), (automaticToneMapping->checkU(buffer[1])), (automaticToneMapping->checkV(buffer[3])));
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				currentSource += 4;
+			}
+		}
+		automaticToneMapping->finilize();
 		return;
 	}
 
@@ -662,7 +684,7 @@ void FrameDecoder::processQImage(
 		return;
 	}
 
-	if (pixelFormat == PixelFormat::P010)
+	if (pixelFormat == PixelFormat::P010 && automaticToneMapping == nullptr)
 	{
 		uint16_t p010[2] = {};
 
@@ -713,8 +735,65 @@ void FrameDecoder::processQImage(
 		}
 		return;
 	}
+	if (pixelFormat == PixelFormat::P010 && automaticToneMapping != nullptr)
+	{
+		uint16_t p010[2] = {};
 
-	if (pixelFormat == PixelFormat::NV12)
+		if (!FrameDecoderUtils::initialized)
+		{
+			initP010();
+		}
+
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
+
+			while (currentDest < endDest)
+			{
+				memcpy(((uint16_t*)&p010), ((uint16_t*)currentSource), 2);
+				if (toneMapping)
+				{
+					automaticToneMapping->checkY(p010[0] >> 8);
+
+					buffer[0] = lutP010_y[p010[0] >> 6];
+				}
+				else
+				{
+					buffer[0] = automaticToneMapping->checkY(p010[0] >> 8);
+				}
+				currentSource += 4;
+				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceU), 4);
+				if (toneMapping)
+				{
+					automaticToneMapping->checkU(p010[0] >> 8);
+					automaticToneMapping->checkV(p010[1] >> 8);
+
+					buffer[2] = lutP010_uv[p010[0] >> 6];
+					buffer[3] = lutP010_uv[p010[1] >> 6];
+				}
+				else
+				{
+					buffer[2] = automaticToneMapping->checkU(p010[0] >> 8);
+					buffer[3] = automaticToneMapping->checkV(p010[1] >> 8);
+				}
+
+				currentSourceU += 4;
+
+				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+			}
+		}
+		automaticToneMapping->finilize();
+		return;
+	}
+
+	if (pixelFormat == PixelFormat::NV12 && automaticToneMapping == nullptr)
 	{
 		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
 		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
@@ -737,6 +816,32 @@ void FrameDecoder::processQImage(
 				currentDest += 3;
 			}
 		}
+		return;
+	}
+	if (pixelFormat == PixelFormat::NV12 && automaticToneMapping != nullptr)
+	{
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
+
+			while (currentDest < endDest)
+			{
+				*((uint8_t*)&buffer) = *((uint8_t*)currentSource);
+				currentSource += 2;
+				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceU);
+				currentSourceU += 2;
+
+				ind_lutd = LUT_INDEX((automaticToneMapping->checkY(buffer[0])), (automaticToneMapping->checkU(buffer[2])), (automaticToneMapping->checkV(buffer[3])));
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+			}
+		}
+		automaticToneMapping->finilize();
 		return;
 	}
 }

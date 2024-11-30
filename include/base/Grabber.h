@@ -20,6 +20,7 @@
 #include <utils/LutLoader.h>
 #include <base/DetectionManual.h>
 #include <base/DetectionAutomatic.h>
+#include <base/AutomaticToneMapping.h>
 #include <performance-counters/PerformanceCounters.h>
 
 #if  defined(_WIN32) || defined(WIN32)
@@ -124,6 +125,9 @@ public:
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
 
 	QString	getConfigurationPath();
+
+	void setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec);
+	void setAutoToneMappingCurrentStateEnabled(bool enabled);
 
 	struct DevicePropertiesItem
 	{
@@ -272,6 +276,7 @@ protected:
 	bool		_signalDetectionEnabled;
 	bool		_signalAutoDetectionEnabled;
 	QSemaphore  _synchro;
+	AutomaticToneMapping _automaticToneMapping;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

@@ -1125,7 +1125,7 @@ void  LutCalibrator::fineTune(bool precise)
 
 	// set startup parameters (signal)
 	bestResult->signal.range = _capturedColors->getRange();
-	_capturedColors->getSignalParams(bestResult->signal.yRange, bestResult->signal.upYLimit, bestResult->signal.downYLimit, bestResult->signal.yShift);
+	_capturedColors->getSignalParams(bestResult->signal.yRange, bestResult->signal.upYLimit, bestResult->signal.downYLimit, bestResult->signal.yShift, bestResult->signal.yuvRange);
 
 	if (bestResult->signal.isSourceP010)
 	{
@@ -1136,6 +1136,16 @@ void  LutCalibrator::fineTune(bool precise)
 		double down = bestResult->signal.downYLimit;
 		unpackP010(&down, nullptr, nullptr);
 		bestResult->signal.downYLimit = down;
+
+		double3 yuvrange = static_cast<double3>(bestResult->signal.yuvRange);
+		yuvrange.x /= 255.0;
+		yuvrange.y = (yuvrange.y - 128.0) / 128.0;
+		yuvrange.z = (yuvrange.z - 128.0) / 128.0;
+		unpackP010(yuvrange);
+		yuvrange.x *= 255.0;
+		yuvrange.y = yuvrange.y * 128.0 + 128.0;
+		yuvrange.z = yuvrange.z * 128.0 + 128.0;
+		bestResult->signal.yuvRange = static_cast<byte3>(yuvrange);
 	}
 
 	if (bestResult->signal.range == YuvConverter::COLOR_RANGE::LIMITED)
@@ -1842,7 +1852,7 @@ void LutCalibrator::CreateDefaultLut(QString filepath)
 	bestResult.signal.downYLimit = 0.062745;
 	bestResult.signal.yShift = 0.062745;
 	bestResult.signal.isSourceP010 = 0;
-	bestResult.minError = 212.883333;
+	bestResult.minError = 212;
 
 	auto worker = new DefaultLutCreatorWorker(bestResult, filepath);
 	QThreadPool::globalInstance()->start(worker);

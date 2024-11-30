@@ -4,6 +4,7 @@
 #include <image/ColorRgb.h>
 #include <image/Image.h>
 #include <utils/PixelFormat.h>
+#include <base/AutomaticToneMapping.h>
 
 // some stuff for HDR tone mapping
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
@@ -24,7 +25,7 @@ public:
 
 	static void processQImage(
 		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping = true);
+		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping = true, AutomaticToneMapping* automaticToneMapping = nullptr);
 
 	static void processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 									   int startX, int startY,

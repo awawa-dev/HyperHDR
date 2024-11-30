@@ -1,3 +1,39 @@
+- Automatic tone mapping (#998), HyperHDR v21
+- Add Ubuntu 24.10 and Fedora 41 (#1001), HyperHDR v21
+- Add support for "unicam image" RPi HDMI capture card and UYVY format (#889), HyperHDR v21
+- Breaking change: remove LUT from installer and create it dynamically (#994), HyperHDR v21
+- Fix macOS 15 dark theme menu icons (#988), HyperHDR v21
+- Add P010 HDR10 video format support (2024-11-24) (#968), HyperHDR v21
+- DirectX multi-monitor support (#966), HyperHDR v21
+- macOS 15 sequoia: migrate to ScreenCaptureKit (#984), HyperHDR v21
+- Add Skydimo "support" (#985), HyperHDR v21
+- New LUT calibration based on mp4 test videos (part I) (#896), HyperHDR v21
+- feat: updated rpi_ws281x submodule, thanks @andreasvikke (#974), HyperHDR v21
+- DX grabber: stick to user specified device selection (#961), HyperHDR v21
+- Fix LED colors adjustments by configuration name (#956), HyperHDR v21
+- Add autoresume feature for the macOS software grabber (#879), HyperHDR v21
+- Add NV12 image format support for flatbuffers (#920), HyperHDR v21
+- Update language file's Thanks @AstaRom (#883, #923, #998), HyperHDR v21
+- Update flatbuffers to v24.3.25 (#875), HyperHDR v21
+- Add cache_cleaner for Github Action (#910), HyperHDR v21
+- New build.sh script for the HyperHDR build process (#904), HyperHDR v21
+- Remove Alsa libs from CMake recipe, HyperHDR v21
+- Remove more unnecessary libraries from installers, HyperHDR v21
+- Remove libasound from installers, HyperHDR v21
+- Fix restoring calibration settings (#874), HyperHDR v21
+- Reorganize HyperHDR libs (#887), HyperHDR v21
+- Fix macOS image alignment (#838), HyperHDR v21
+- Remove hyperhdr-remote app. Reason: #856, HyperHDR v21
+- Refactoring of the FlatBuffers client and server (#880), HyperHDR v21
+- Remove mbedtls. Use OpenSSL (#877), HyperHDR v21
+- Removal of QT SQL. Migrate to the SQLite library. (#872), HyperHDR v21
+- New smoothing option for sound effects, fix ArchLinux installer, refactoring of the smoothing module and music effects (#871), HyperHDR v21
+- Removal of QT D-Bus, switch to sdbus-cpp (#864), HyperHDR v21
+- Dependency reductions: removal of heavy QT Gui lib (#861), HyperHDR v21
+- Fix DirectX capturing after new Systray changes, HyperHDR v21
+- New independed systray. Dependency reductions thanks to removal of QWidget (#852), HyperHDR v21
+- Fix: lut calibration for grabberless builds (#840), HyperHDR v21
+- Fix: close LED device on correct Thread (#803), HyperHDR v21
 - Fedora uses xz as the package name, not xz-utils #771 Thanks @hsmalley (v20 beta2 🆕)
 - Fix LUT loading bug to reduce memory usage by 96MB #766 (v20 beta2 🆕)
 - Fix background music effect #761 (v20 beta2 🆕)

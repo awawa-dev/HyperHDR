@@ -151,7 +151,7 @@ endif()
 # OSX dmg generator
 if ( APPLE )
 	SET ( CPACK_GENERATOR "DragNDrop")
-	SET ( CPACK_DMG_FORMAT "UDBZ" )
+	SET ( CPACK_DMG_FORMAT "ULMO" )
 	
 	unset(CPACK_PACKAGE_ICON)
 	set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns")

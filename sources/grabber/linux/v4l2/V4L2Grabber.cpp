@@ -1277,7 +1277,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
-							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName);
+							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName, _automaticToneMapping.prepare());
 
 						if (_V4L2WorkerManager.workersCount > 1)
 							_V4L2WorkerManager.workers[i]->start();

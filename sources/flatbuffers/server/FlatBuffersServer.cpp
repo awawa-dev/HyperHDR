@@ -348,6 +348,12 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 			Image<ColorRgb> image(flatImage->width, flatImage->height);
 			memmove(image.rawMem(), flatImage->firstPlane.data, flatImage->size);
 
+			if (_hdrToneMappingEnabled && !_lutBufferInit)
+			{
+				emit GlobalSignals::getInstance()->SignalLutRequest();
+				Error(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
+			}
+
 			if (getHdrToneMappingEnabled())
 				FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
 
@@ -369,7 +375,8 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 		if (!_lutBufferInit)
 		{
-			Error(_log, "The LUT file is not loaded");
+			emit GlobalSignals::getInstance()->SignalLutRequest();
+			Error(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
 		}
 		else if (flatImage->size != ((flatImage->width * flatImage->height * 3) / 2) || flatImage->size == 0)
 		{

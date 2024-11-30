@@ -141,7 +141,8 @@ AVFWorker::AVFWorker() :
 	_frameBegin(0),
 	_hdrToneMappingEnabled(0),
 	_lutBuffer(nullptr),
-	_qframe(false)
+	_qframe(false),
+	_automaticToneMapping(nullptr)
 {
 
 }
@@ -154,7 +155,7 @@ void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping)
 {
 	_workerIndex = __workerIndex;
 	_lineLength = __lineLength;
@@ -173,6 +174,7 @@ void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	_qframe = __qframe;
 	_directAccess = __directAccess;
 	_deviceName = __deviceName;
+	_automaticToneMapping = __automaticToneMapping;
 
 	_localBuffer.resize((size_t)__size + 1);
 
@@ -193,7 +195,7 @@ void AVFWorker::runMe()
 		{
 			Image<ColorRgb> image(_width >> 1, _height >> 1);
 			FrameDecoder::processQImage(
-				_localBuffer.data(), nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image);
+				_localBuffer.data(), nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image, _hdrToneMappingEnabled, _automaticToneMapping);
 
 			image.setBufferCacheSize();
 			if (!_directAccess)
