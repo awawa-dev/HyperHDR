@@ -80,7 +80,25 @@
 				}
 			},
 			"propertyOrder" : 5
-		}		
+		},
+		"time_to_disable_tone_mapping" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 100,			
+			"title" : "edt_automatic_tone_mapping_disable_time_title",
+			"minimum" : 0,
+			"maximum": 5000,
+			"default" : 500,
+			"append" : "edt_append_ms",
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
+			"propertyOrder" : 6
+		}
 	},
 	"additionalProperties" : false
 }

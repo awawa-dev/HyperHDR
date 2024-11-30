@@ -967,9 +967,9 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }
 
-void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec)
+void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec)
 {
-	_automaticToneMapping.setConfig(enabled, newConfig, timeInSec);
+	_automaticToneMapping.setConfig(enabled, newConfig, timeInSec, timeToDisableInMSec);
 	if (_automaticToneMapping.prepare() && !_qframe)
 		Error(_log, "Automatic tone mapping requires 'Quarter of frame' mode enabled");
 	if (_automaticToneMapping.prepare() && (_enc != PixelFormat::YUYV && _enc != PixelFormat::NV12 && _enc != PixelFormat::P010 ))

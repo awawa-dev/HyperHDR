@@ -37,11 +37,12 @@
 AutomaticToneMapping::AutomaticToneMapping() :
 	_enabled(false),
 	_timeInSec(30),
+	_timeToDisableInMSec(500),
 	_config{},
 	_running{},
 	_modeSDR(true),
 	_startedTime(0),
-	_gracefulTimeout(DEFAULT_GRACEFUL_TIMEOUT),
+	_endingTime(0),
 	_log(Logger::getInstance(QString("AUTOTONEMAPPING")))
 {
 }
@@ -64,20 +65,28 @@ void AutomaticToneMapping::finilize()
 	{
 		bool triggered = (_config.y != _running.y || _config.u != _running.u || _config.v != _running.v);
 
-		if (triggered && !_modeSDR && _gracefulTimeout-- <= 0)
+		if (triggered && !_modeSDR)
 		{
-			QString message = "Tone mapping OFF triggered by: ";
-			if (_config.y != _running.y)
-				message += QString(" Y threshold (%1), ").arg(_running.y);
-			if (_config.u != _running.u)
-				message += QString(" U threshold (%1), ").arg(_running.u);
-			if (_config.v != _running.v)
-				message += QString(" V threshold (%1), ").arg(_running.v);
-			Info(_log, "%s", QSTRING_CSTR(message));
+			auto now = InternalClock::now();
+			if (_endingTime == 0 || _endingTime > now)
+			{
+				_endingTime = now;
+			}
+			else if (_endingTime + _timeToDisableInMSec <= now)
+			{
+				QString message = "Tone mapping OFF triggered by: ";
+				if (_config.y != _running.y)
+					message += QString(" Y threshold (%1), ").arg(_running.y);
+				if (_config.u != _running.u)
+					message += QString(" U threshold (%1), ").arg(_running.u);
+				if (_config.v != _running.v)
+					message += QString(" V threshold (%1), ").arg(_running.v);
+				Info(_log, "%s after %i ms", QSTRING_CSTR(message), now - _endingTime);
 
-			_modeSDR = true;
-			_startedTime = 0;
-			GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
+
+				_modeSDR = true;
+				GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
+			}
 		}
 		else if (!triggered && _modeSDR)
 		{
@@ -86,35 +95,43 @@ void AutomaticToneMapping::finilize()
 			{
 				_startedTime = now;
 			}
-			else if (_startedTime + _timeInSec < now)
+			else if (_startedTime + _timeInSec <= now)
 			{
 				_modeSDR = false;
-				Info(_log, "Tone mapping ON triggered by configured time");
+				Info(_log, "Tone mapping ON triggered after %i sec", now - _startedTime);
 				GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, true);
 			}
 		}
 
 		if (!triggered)
-			_gracefulTimeout = DEFAULT_GRACEFUL_TIMEOUT;
+		{
+			_endingTime = 0;
+		}
+		else
+		{
+			_startedTime = 0;
+		}
 
 		_running = _config;
 	}
 }
 
-void AutomaticToneMapping::setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec)
+void AutomaticToneMapping::setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec)
 {
 	_enabled = enabled;
 	_config = newConfig;
 	_timeInSec = timeInSec;
+	_timeToDisableInMSec = timeToDisableInMSec;
 	_running = _config;
-	Info(_log, "Enabled: %s, Time: %i, Thresholds: %i, %i, %i", (enabled) ? "yes" : "no", timeInSec, _config.y, _config.u, _config.v);
+	Info(_log, "Enabled: %s, time to enable: %is, time to disable: %ims, thresholds: { %i, %i, %i}", (enabled) ? "yes" : "no", _timeInSec, _timeToDisableInMSec, _config.y, _config.u, _config.v);
 }
 
 void AutomaticToneMapping::setToneMapping(bool enabled)
 {
+	Info(_log, "Tone mapping is currently: %s", (enabled) ? "enabled" : "disabled");
 	_modeSDR = !enabled;
 	_startedTime = 0;
-	_gracefulTimeout = DEFAULT_GRACEFUL_TIMEOUT;
+	_endingTime = 0;
 }
 
 

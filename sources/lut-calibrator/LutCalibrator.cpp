@@ -1852,7 +1852,7 @@ void LutCalibrator::CreateDefaultLut(QString filepath)
 	bestResult.signal.downYLimit = 0.062745;
 	bestResult.signal.yShift = 0.062745;
 	bestResult.signal.isSourceP010 = 0;
-	bestResult.minError = 212.883333;
+	bestResult.minError = 212;
 
 	auto worker = new DefaultLutCreatorWorker(bestResult, filepath);
 	QThreadPool::globalInstance()->start(worker);

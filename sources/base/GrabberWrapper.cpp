@@ -589,8 +589,9 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		t.y = obj["tone_mapping_y_threshold"].toInt(155);
 		t.u = obj["tone_mapping_u_threshold"].toInt(175);
 		t.v = obj["tone_mapping_v_threshold"].toInt(160);
-		auto time = obj["time_to_tone_mapping"].toInt(30);
-		_grabber->setAutomaticToneMappingConfig(enabled, t, time);
+		auto timeToEnableInSec = obj["time_to_tone_mapping"].toInt(30);
+		auto timeToDisableInMSec = obj["time_to_disable_tone_mapping"].toInt(500);
+		_grabber->setAutomaticToneMappingConfig(enabled, t, timeToEnableInSec, timeToDisableInMSec);
 	}
 }
 

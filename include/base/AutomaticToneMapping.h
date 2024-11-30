@@ -41,7 +41,7 @@ public:
 
 	AutomaticToneMapping* prepare();
 	void finilize();
-	void setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec);
+	void setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec);
 	void setToneMapping(bool enabled);
 
 	constexpr uint8_t checkY(uint8_t y)
@@ -71,12 +71,13 @@ public:
 private:
 	bool _enabled;
 	int _timeInSec;
+	int _timeToDisableInMSec;
 
 	ToneMappingThresholds _config, _running;
 
 	bool _modeSDR;
 	long _startedTime;
-	int _gracefulTimeout;
+	long _endingTime;
 	Logger* _log;
 
 };
