@@ -828,7 +828,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 							{
 								pleaseWaitForLut();
 								_AVFWorkerManager.workers[i]->noBusy();
-								return true;
+								return false;
 							}
 						}
 

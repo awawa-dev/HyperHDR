@@ -1265,7 +1265,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							{
 								pleaseWaitForLut();
 								_V4L2WorkerManager.workers[i]->noBusy();
-								return true;
+								return false;
 							}
 						}
 

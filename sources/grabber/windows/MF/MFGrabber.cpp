@@ -1023,7 +1023,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 							{
 								pleaseWaitForLut();
 								_MFWorkerManager.workers[i]->noBusy();
-								return true;
+								return false;
 							}
 						}
 
