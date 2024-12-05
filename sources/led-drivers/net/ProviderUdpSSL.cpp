@@ -48,8 +48,10 @@
 #include <led-drivers/net/ProviderUdpSSL.h>
 
 #ifdef USE_STATIC_QT_PLUGINS
-	#include <QtPlugin>
-	Q_IMPORT_PLUGIN(QTlsBackendOpenSSLPlugin)
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+		#include <QtPlugin>
+		Q_IMPORT_PLUGIN(QTlsBackendOpenSSLPlugin)
+	#endif
 #endif
 
 ProviderUdpSSL::ProviderUdpSSL(const QJsonObject& deviceConfig)

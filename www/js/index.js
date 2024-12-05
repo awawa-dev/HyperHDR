@@ -64,7 +64,8 @@ $(document).ready(function () {
 			instNameInit = true;
 		}
 
-		if (window.suppressMissingLutWarningPerSession !== true &&
+		// disable for now
+		if (false && window.suppressMissingLutWarningPerSession !== true &&
 			window.serverInfo.hasOwnProperty('grabbers') && window.serverInfo.grabbers.hasOwnProperty('active') &&
 			window.serverInfo.grabbers.active.length > 0 &&
 			!(window.serverInfo.grabbers.lut_for_hdr_exists === 1) &&
