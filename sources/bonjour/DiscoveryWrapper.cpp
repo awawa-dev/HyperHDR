@@ -88,6 +88,15 @@ QList<DiscoveryRecord> DiscoveryWrapper::getPhilipsHUE()
 	return _hueDevices;
 }
 
+QList<DiscoveryRecord> DiscoveryWrapper::getHomeAssistant()
+{
+	cleanUp(_homeAssistantDevices);
+
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HomeAssistant);
+
+	return _homeAssistantDevices;
+}
+
 QList<DiscoveryRecord> DiscoveryWrapper::getWLED()
 {
 	cleanUp(_wledDevices);
@@ -104,7 +113,7 @@ QList<DiscoveryRecord> DiscoveryWrapper::getHyperHDRServices()
 
 QList<DiscoveryRecord> DiscoveryWrapper::getAllServices()
 {
-	return _hyperhdrSessions + _esp32s2Devices + _espDevices + _hueDevices + _picoDevices + _wledDevices;
+	return _hyperhdrSessions + _esp32s2Devices + _espDevices + _hueDevices + _homeAssistantDevices + _picoDevices + _wledDevices;
 }
 
 void DiscoveryWrapper::requestServicesScan()
@@ -113,6 +122,8 @@ void DiscoveryWrapper::requestServicesScan()
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::WLED);
 	cleanUp(_hueDevices);
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::PhilipsHue);
+	cleanUp(_homeAssistantDevices);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HomeAssistant);
 	cleanUp(_hyperhdrSessions);
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HyperHDR);
 
@@ -172,6 +183,8 @@ void DiscoveryWrapper::signalDiscoveryEventHandler(DiscoveryRecord message)
 		gotMessage(_wledDevices, message);
 	else if (message.type == DiscoveryRecord::Service::PhilipsHue)
 		gotMessage(_hueDevices, message);
+	else if (message.type == DiscoveryRecord::Service::HomeAssistant)
+		gotMessage(_homeAssistantDevices, message);
 	else if (message.type == DiscoveryRecord::Service::Pico)
 		gotMessage(_picoDevices, message);
 	else if (message.type == DiscoveryRecord::Service::ESP32_S2)
