@@ -1,6 +1,7 @@
 #pragma once
 
 #include <led-drivers/LedDevice.h>
+#include <linalg.h>
 
 class DriverNetHomeAssistant : public LedDevice
 {
@@ -15,4 +16,30 @@ private:
 	int write(const std::vector<ColorRgb>& ledValues) override;
 
 	static bool isRegistered;
+};
+
+struct HomeAssistantLamp;
+
+struct HomeAssistantInstance
+{
+	QString homeAssistantHost;
+	QString longLivedAccessToken;
+	bool restoreOriginalState;
+
+	std::list<HomeAssistantLamp> lamps;
+};
+
+struct HomeAssistantLamp
+{
+	enum Mode { RGB = 0, HSV };
+
+	QString name;
+	Mode colorModel;
+
+	struct
+	{
+		int isPoweredOn = -1;
+		int brightness = -1;
+		linalg::aliases::int4 color{ -1, -1, -1, -1 };
+	} orgState;
 };
