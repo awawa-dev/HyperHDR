@@ -662,3 +662,23 @@ async function requestHasLedClock()
 {
 	sendToHyperhdr("leddevice", "hasLedClock", `"ledDeviceType": "", "params": {}`, Math.floor(Math.random() * 1000));
 }
+
+async function tunnel_home_assistant_get(_ip, _path,header={})
+{
+	let data = { service: "home_assistant", ip: _ip, path: _path, data: "", header };
+	let r = await sendAsyncToHyperhdr("tunnel", "get", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
+}
+
+async function tunnel_home_assistant_post(_ip, _path, header={}, _data)
+{
+	let data = { service: "home_assistant", ip: _ip, path: _path, data: _data, header };
+	let r = await sendAsyncToHyperhdr("tunnel", "post", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
+}

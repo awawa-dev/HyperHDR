@@ -60,7 +60,15 @@
 							"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_hsv"]
 						},
 						"propertyOrder" : 2
-					}
+					},
+					"defaultPosition" :
+					{
+						"type": "string",
+						"options": {
+							"hidden": true
+						},
+						"propertyOrder" : 3
+					}					
 				}
 			}
 		}
