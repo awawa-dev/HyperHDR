@@ -11,6 +11,8 @@ public:
 	explicit DriverNetHomeAssistant(const QJsonObject& deviceConfig);
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
+	QJsonObject discover(const QJsonObject& params) override;
+
 private:
 	bool init(const QJsonObject& deviceConfig) override;
 	int write(const std::vector<ColorRgb>& ledValues) override;

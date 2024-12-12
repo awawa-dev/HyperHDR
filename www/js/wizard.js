@@ -2453,3 +2453,38 @@ async function discover_providerHid(hidType)
 		console.log(r);
 	}
 }
+
+//****************************
+// Wizard Home-Assistant
+//****************************
+
+function startWizardHome_assistant(e)
+{
+	$('#wiz_header').html(`<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('wiz_home_assistant_title')}`);
+	$('#wizp1_body').html(`<h4 style="font-weight:bold;text-transform:uppercase;">${$.i18n('wiz_home_assistant_title')}</h4><p>${$.i18n('wiz_ha_intro')}</p><div class="form-group" id="ha_form"></div>`);
+	$('#wizp1_footer').html(`<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('general_btn_continue')}</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('general_btn_cancel')}</button>`);
+
+	$('#ha_form').append(`<label for="hostHA" class="form-label">${$.i18n('device_address')}</label><div><input type="text" id="hostHA" name="haInputParams1" class="form-control float-left d-inline" style="width:52%"/><select id="deviceListInstances" class="form-select bg-warning float-left d-inline" style="width:46%" /></div>`);
+	$('#ha_form').append(`<label for="tokenHA" class="form-label mt-4">${$.i18n('edt_dev_auth_key_title')}</label><input type="text" id="tokenHA" name="haInputParams2" class="form-control">`);
+
+	requestLedDeviceDiscovery('home_assistant').then( (result) => deviceListRefresh('home_assistant', result, $('#hostHA'),'select_ha_intro','main_menu_update_token'));
+
+	let haForm = new bootstrap.Modal($("#wizard_modal"), {
+		backdrop: "static",
+		keyboard: false
+	});
+
+	$('input[name^=haInputParams]').on('change input',function(e){		
+		if ($('#hostHA').val().length > 0 && $('#tokenHA').val().length > 0)
+		{
+			$("#btn_wiz_cont").prop('disabled', false);
+		}
+	});
+
+	haForm.show();
+
+	$('#btn_wiz_cont').off().on('click', function ()
+	{
+		resetWizard();
+	});
+}
