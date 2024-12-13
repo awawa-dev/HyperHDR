@@ -2514,7 +2514,7 @@ function startWizardHome_assistant(e)
 								{
 									let colorMode = null;
 									supported_color_modes.forEach((capability) => {
-										if (capability === "xy")
+										if (capability === "xy" || capability === "rgb")
 										{
 											colorMode = "rgb";
 										}

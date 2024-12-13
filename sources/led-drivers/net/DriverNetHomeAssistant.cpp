@@ -27,6 +27,9 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 		_haInstance.restoreOriginalState = deviceConfig["restoreOriginalState"].toBool(false);
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
 
+		QUrl url("http://" + _haInstance.homeAssistantHost);
+		_restApi = std::make_unique<ProviderRestApi>(url.host(), url.port(8123));		
+		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
 		
 		Debug(_log, "HomeAssistantHost    : %s", QSTRING_CSTR(_haInstance.homeAssistantHost));
 		Debug(_log, "RestoreOriginalState : %s", _haInstance.restoreOriginalState ? "yes" : "no");
@@ -53,8 +56,78 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
+
+bool DriverNetHomeAssistant::powerOnOff(bool isOn)
+{
+	QJsonDocument doc;
+	QJsonObject row;
+	QJsonArray entities;
+
+	for (const auto& lamp : _haInstance.lamps)
+	{
+		entities.push_back(lamp.name);
+	}
+
+	row["entity_id"] = entities;
+	doc.setObject(row);
+
+	QString message(doc.toJson(QJsonDocument::Compact));
+	_restApi->setBasePath(QString("/api/services/light/%1").arg((isOn) ? "turn_on" : "turn_off"));
+	auto response = _restApi->post(message);
+
+	if (response.error())
+	{
+		this->setInError(response.error() ? response.getErrorReason() : "Unknown");
+		setupRetry(1500);
+		return false;
+	}
+
+	return true;
+}
+
+bool DriverNetHomeAssistant::powerOn()
+{
+	return powerOnOff(true);
+}
+
+bool DriverNetHomeAssistant::powerOff()
+{
+	return powerOnOff(false);
+}
+
 int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 {
+	QJsonDocument doc;
+
+	auto rgb = ledValues.begin();
+	for (const auto& lamp : _haInstance.lamps)
+		if (rgb != ledValues.end())
+		{
+			QJsonObject row;
+			auto& color = *(rgb++);
+			
+			row["entity_id"] = lamp.name;
+
+			if (lamp.colorModel == HomeAssistantLamp::Mode::RGB)
+			{
+				row["rgb_color"] = QJsonArray{ color.red, color.green, color.blue };
+				row["brightness"] = std::min(std::max(static_cast<int>(std::roundl(0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue)), 0), 255);
+			}
+			else
+			{
+				uint16_t h;
+				float s, v;
+				color.rgb2hsl(color.red, color.green, color.blue, h, s, v);
+				row["hs_color"] = QJsonArray{ h, static_cast<int>(std::roundl(s * 100.0)) };
+				row["brightness"] = static_cast<int>(std::roundl(v * 255.0));
+			}
+			
+			doc.setObject(row);
+			QString message(doc.toJson(QJsonDocument::Compact));
+			_restApi->setBasePath("/api/services/light/turn_on");
+			_restApi->post(message);
+		}
+
 	return 0;
 }
 

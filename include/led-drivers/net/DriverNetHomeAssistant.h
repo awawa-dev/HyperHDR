@@ -1,6 +1,13 @@
 #pragma once
 
+#ifndef PCH_ENABLED
+	#include <QJsonObject>
+	#include <memory>
+	#include <list>	
+#endif
+
 #include <led-drivers/LedDevice.h>
+#include <led-drivers/net/ProviderRestApi.h>
 #include <linalg.h>
 
 class DriverNetHomeAssistant : public LedDevice
@@ -39,11 +46,18 @@ public:
 
 	QJsonObject discover(const QJsonObject& params) override;
 
+protected:
+	bool powerOn() override;
+	bool powerOff() override;
+
 private:
 	bool init(const QJsonObject& deviceConfig) override;
 	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool powerOnOff(bool isOn);
 
 	HomeAssistantInstance _haInstance;
+
+	std::unique_ptr<ProviderRestApi> _restApi;
 
 	static bool isRegistered;
 };
