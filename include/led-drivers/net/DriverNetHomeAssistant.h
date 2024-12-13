@@ -20,6 +20,8 @@ class DriverNetHomeAssistant : public LedDevice
 	{
 		QString homeAssistantHost;
 		QString longLivedAccessToken;
+		int transition;
+		int constantBrightness;
 		bool restoreOriginalState;
 
 		std::list<HomeAssistantLamp> lamps;

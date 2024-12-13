@@ -14,12 +14,31 @@
 			"required" : true,
 			"propertyOrder" : 2
 		},
+		"transition": {
+			"type": "integer",
+			"title": "edt_dev_spec_transistionTime_title",
+			"default": 0,
+			"append": "ms",
+			"minimum": 0,
+			"maximum": 3000,
+			"required": true,
+			"propertyOrder": 3
+		},
+		"constantBrightness": {
+			"type": "integer",
+			"title": "edt_dev_spec_constantBrightness_title",
+			"default": 0,
+			"minimum": 0,
+			"maximum": 255,
+			"required": true,
+			"propertyOrder": 4
+		},
 		"restoreOriginalState": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : false,
-			"propertyOrder" : 3
+			"propertyOrder" : 5
 		},
 		"maxRetry": {
 			"type" : "integer",
@@ -30,12 +49,12 @@
 			"maximum" : 300,
 			"default" : 60,
 			"required" : true,
-			"propertyOrder" : 4
+			"propertyOrder" : 6
 		},
 		"lamps": {
 			"type": "array",
 			"title":"edt_dev_spec_lights_title",
-			"propertyOrder" : 5,
+			"propertyOrder" : 6,
 			"uniqueItems" : true,
 			"items" : {
 				"type" : "object",

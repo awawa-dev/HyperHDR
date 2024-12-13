@@ -24,6 +24,8 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 
 		_haInstance.homeAssistantHost = deviceConfig["homeAssistantHost"].toString();
 		_haInstance.longLivedAccessToken = deviceConfig["longLivedAccessToken"].toString();
+		_haInstance.transition = deviceConfig["transition"].toInt(0);
+		_haInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(0);
 		_haInstance.restoreOriginalState = deviceConfig["restoreOriginalState"].toBool(false);
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
 
@@ -31,9 +33,11 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 		_restApi = std::make_unique<ProviderRestApi>(url.host(), url.port(8123));		
 		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
 		
-		Debug(_log, "HomeAssistantHost    : %s", QSTRING_CSTR(_haInstance.homeAssistantHost));
-		Debug(_log, "RestoreOriginalState : %s", _haInstance.restoreOriginalState ? "yes" : "no");
-		Debug(_log, "Max retry            : %d", _maxRetry);
+		Debug(_log, "HomeAssistantHost     : %s", QSTRING_CSTR(_haInstance.homeAssistantHost));
+		Debug(_log, "RestoreOriginalState  : %s", (_haInstance.restoreOriginalState) ? "yes" : "no");
+		Debug(_log, "Transition (ms)       : %s", (_haInstance.transition > 0) ? QSTRING_CSTR(QString::number(_haInstance.transition)) : "disabled" );
+		Debug(_log, "ConstantBrightness    : %s", (_haInstance.constantBrightness > 0) ? QSTRING_CSTR(QString::number(_haInstance.constantBrightness)) : "disabled");
+		Debug(_log, "Max retry             : %d", _maxRetry);
 
 		auto arr = deviceConfig["lamps"].toArray();
 
@@ -44,7 +48,7 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 				auto lampObj = lamp.toObject();
 				hl.name = lampObj["name"].toString();
 				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));				
-				Debug(_log, "New lamp (%s)       : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
+				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
 				_haInstance.lamps.push_back(hl);
 			}
 
@@ -105,13 +109,19 @@ int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 		{
 			QJsonObject row;
 			auto& color = *(rgb++);
+			int brightness = 0;
 			
 			row["entity_id"] = lamp.name;
+
+			if (_haInstance.transition > 0)
+			{
+				row["transition"] = _haInstance.transition / 1000.0;
+			}
 
 			if (lamp.colorModel == HomeAssistantLamp::Mode::RGB)
 			{
 				row["rgb_color"] = QJsonArray{ color.red, color.green, color.blue };
-				row["brightness"] = std::min(std::max(static_cast<int>(std::roundl(0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue)), 0), 255);
+				brightness = std::min(std::max(static_cast<int>(std::roundl(0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue)), 0), 255);
 			}
 			else
 			{
@@ -119,9 +129,16 @@ int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 				float s, v;
 				color.rgb2hsl(color.red, color.green, color.blue, h, s, v);
 				row["hs_color"] = QJsonArray{ h, static_cast<int>(std::roundl(s * 100.0)) };
-				row["brightness"] = static_cast<int>(std::roundl(v * 255.0));
+				brightness = std::min(std::max(static_cast<int>(std::roundl(v * 255.0)), 0), 255);
+			}
+
+			if (brightness > 0 && _haInstance.constantBrightness > 0)
+			{
+				brightness = _haInstance.constantBrightness;
 			}
 			
+			row["brightness"] = brightness;
+
 			doc.setObject(row);
 			QString message(doc.toJson(QJsonDocument::Compact));
 			_restApi->setBasePath("/api/services/light/turn_on");
