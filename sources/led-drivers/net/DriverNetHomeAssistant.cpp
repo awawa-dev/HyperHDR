@@ -82,7 +82,7 @@ bool DriverNetHomeAssistant::powerOnOff(bool isOn)
 	if (response.error())
 	{
 		this->setInError(response.error() ? response.getErrorReason() : "Unknown");
-		setupRetry(1500);
+		setupRetry(5000);
 		return false;
 	}
 
@@ -152,7 +152,14 @@ int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 			doc.setObject(row);
 			QString message(doc.toJson(QJsonDocument::Compact));
 			_restApi->setBasePath("/api/services/light/turn_on");
-			_restApi->post(message);
+			auto response = _restApi->post(message);
+
+			if (response.error())
+			{
+				this->setInError(response.error() ? response.getErrorReason() : "Unknown");
+				setupRetry(5000);
+				return false;
+			}
 		}
 
 	return 0;
@@ -167,7 +174,7 @@ bool DriverNetHomeAssistant::saveStates()
 		if (response.error())
 		{
 			this->setInError(response.error() ? response.getErrorReason() : "Unknown");
-			setupRetry(1500);
+			setupRetry(5000);
 			return false;
 		}
 		auto body = response.getBody();

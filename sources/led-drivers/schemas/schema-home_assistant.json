@@ -54,7 +54,7 @@
 		"lamps": {
 			"type": "array",
 			"title":"edt_dev_spec_lights_title",
-			"propertyOrder" : 6,
+			"propertyOrder" : 7,
 			"uniqueItems" : true,
 			"items" : {
 				"type" : "object",
