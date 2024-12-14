@@ -89,6 +89,7 @@ void BonjourServiceRegister::requestToScanHandler(DiscoveryRecord::Service type)
 		case (DiscoveryRecord::Service::HyperHDR): _helper->_scanService |= (1 << DiscoveryRecord::Service::HyperHDR); break;
 		case (DiscoveryRecord::Service::WLED): _helper->_scanService |= (1 << DiscoveryRecord::Service::WLED); break;
 		case (DiscoveryRecord::Service::PhilipsHue): _helper->_scanService |= (1 << DiscoveryRecord::Service::PhilipsHue); break;
+		case (DiscoveryRecord::Service::HomeAssistant): _helper->_scanService |= (1 << DiscoveryRecord::Service::HomeAssistant); break;
 		default: break;
 	}
 }
@@ -102,6 +103,8 @@ void BonjourServiceRegister::messageFromFriendHandler(bool isExists, QString mdn
 		type = DiscoveryRecord::Service::WLED;
 	else if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::PhilipsHue)) >= 0)
 		type = DiscoveryRecord::Service::PhilipsHue;
+	else if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::HomeAssistant)) >= 0)
+		type = DiscoveryRecord::Service::HomeAssistant;
 	else if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::HyperHDR)) >= 0)
 		type = DiscoveryRecord::Service::HyperHDR;
 

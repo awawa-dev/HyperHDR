@@ -1294,7 +1294,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 		const QString& data = message["data"].toString().trimmed();
 		const QString& service = message["service"].toString().trimmed();
 
-		if (service == "hue")
+		if (service == "hue" || service == "home_assistant")
 		{
 			QUrl tempUrl("http://"+ip);
 			if ((path.indexOf("/clip/v2") != 0 && path.indexOf("/api") != 0) || ip.indexOf("/") >= 0)
@@ -1305,7 +1305,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 
 			ProviderRestApi provider;
 
-			QUrl url = QUrl((path.startsWith("/clip/v2") ? "https://" : "http://")+tempUrl.host()+path);
+			QUrl url = QUrl((path.startsWith("/clip/v2") ? "https://" : "http://")+tempUrl.host() + ((service == "home_assistant" && tempUrl.port() >= 0) ? ":" + QString::number(tempUrl.port()) : "") + path);
 
 			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
 

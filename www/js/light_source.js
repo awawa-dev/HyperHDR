@@ -26,6 +26,42 @@ if (typeof ResizeObserver === "function" && _resizeObserver === null)
 	});	
 }
 
+async function deviceListRefresh(ledTypeTarget, discoveryResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel = 'main_menu_update_token')
+{
+	let receiver = $("#deviceListInstances");
+	receiver.off();
+	receiver.empty();
+
+	$("<option />", {value: "", text: $.i18n(targetDiscoveryFirstLabel)}).appendTo(receiver);
+
+	if (discoveryResult.info != null && discoveryResult.info.devices != null)
+	{					
+		(discoveryResult.info.devices).forEach(function (val) {
+			$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
+		});
+	}
+		
+	$("<option />", {value: -1, text: $.i18n(targetDiscoverySecondLabel)}).appendTo(receiver);
+
+	receiver.on('change', function ()
+	{
+		let selVal = $("#deviceListInstances").val();
+		if (selVal == -1)			
+			requestLedDeviceDiscovery(ledTypeTarget).then( (newResult) => deviceListRefresh(ledTypeTarget, newResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel));
+		else if (selVal != "")
+		{
+			if (typeof targetDiscoveryEditor === 'string' || targetDiscoveryEditor instanceof String)
+			{
+				conf_editor.getEditor(targetDiscoveryEditor).setValue(selVal);
+			}
+			else
+			{
+				targetDiscoveryEditor.val(selVal).change();
+			}
+		}
+	});			
+}
+
 function createLedPreview(leds, origin)
 {
 	_lastLeds = leds;
@@ -574,34 +610,7 @@ $(document).ready(function()
 			$('#ip_ma_' + key).prop('checked', slConfig.matrix[key]);
 		else
 			$('#ip_ma_' + key).val(slConfig.matrix[key]);
-	}
-
-	async function deviceListRefresh(ledTypeTarget, discoveryResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel = 'main_menu_update_token')
-	{
-		let receiver = $("#deviceListInstances");
-		receiver.off();
-		receiver.empty();
-
-		$("<option />", {value: "", text: $.i18n(targetDiscoveryFirstLabel)}).appendTo(receiver);
-
-		if (discoveryResult.info != null && discoveryResult.info.devices != null)
-		{					
-			(discoveryResult.info.devices).forEach(function (val) {
-				$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
-			});
-		}
-		
-		$("<option />", {value: -1, text: $.i18n(targetDiscoverySecondLabel)}).appendTo(receiver);
-
-		receiver.on('change', function ()
-		{
-			let selVal = $("#deviceListInstances").val();
-			if (selVal == -1)			
-				requestLedDeviceDiscovery(ledTypeTarget).then( (newResult) => deviceListRefresh(ledTypeTarget, newResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel));
-			else if (selVal != "")
-				conf_editor.getEditor(targetDiscoveryEditor).setValue(selVal);
-		});			
-	}
+	}	
 
 	function saveValues()
 	{
@@ -859,7 +868,7 @@ $(document).ready(function()
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
 		}
-		else if ([ "cololight", "yeelight", "atmoorb"].includes(ledType))
+		else if ([ "cololight", "yeelight", "atmoorb", "home_assistant"].includes(ledType))
 		{
 			const data = {
 				type: ledType

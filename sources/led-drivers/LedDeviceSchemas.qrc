@@ -38,5 +38,6 @@
 		<file alias="schema-yeelight">schemas/schema-yeelight.json</file>
 		<file alias="schema-cololight">schemas/schema-cololight.json</file>
 		<file alias="schema-hyperspi">schemas/schema-hyperspi.json</file>
+		<file alias="schema-home_assistant">schemas/schema-home_assistant.json</file>
 	</qresource>
 </RCC>

@@ -35,7 +35,7 @@
 class DiscoveryRecord
 {
 public:
-	enum Service { Unknown = 0, HyperHDR, WLED, PhilipsHue, Pico, ESP32_S2, ESP, SerialPort, REFRESH_ALL };
+	enum Service { Unknown = 0, HyperHDR, WLED, PhilipsHue, HomeAssistant, Pico, ESP32_S2, ESP, SerialPort, REFRESH_ALL };
 
 	Service type;
 	QString hostName;

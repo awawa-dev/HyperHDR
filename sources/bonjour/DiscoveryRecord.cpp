@@ -33,6 +33,7 @@ const QString DiscoveryRecord::getmDnsHeader(Service service)
 	switch (service)
 	{
 		case(Service::PhilipsHue): return QLatin1String("_hue._tcp"); break;
+		case(Service::HomeAssistant): return QLatin1String("_home-assistant._tcp"); break;
 		case(Service::WLED): return QLatin1String("_wled._tcp"); break;
 		case(Service::HyperHDR): return QLatin1String("_hyperhdr-http._tcp"); break;
 		default: return "SERVICE_UNKNOWN";
@@ -49,6 +50,7 @@ const QString DiscoveryRecord::getName(Service _type)
 	switch (_type)
 	{
 		case(Service::PhilipsHue): return "Hue bridge"; break;
+		case(Service::HomeAssistant): return "Home Assistant"; break;
 		case(Service::WLED): return "WLED"; break;
 		case(Service::HyperHDR): return "HyperHDR"; break;
 		case(Service::Pico): return "Pico/RP2040"; break;

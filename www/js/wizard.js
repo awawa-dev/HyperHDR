@@ -2453,3 +2453,190 @@ async function discover_providerHid(hidType)
 		console.log(r);
 	}
 }
+
+//****************************
+// Wizard Home-Assistant
+//****************************
+
+
+function startWizardHome_assistant(e)
+{
+	$('#wiz_header').html(`<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('wiz_home_assistant_title')}`);
+	$('#wizp1_body').html(`<h4 style="font-weight:bold;text-transform:uppercase;">${$.i18n('wiz_home_assistant_title')}</h4><p>${$.i18n('wiz_ha_intro')}</p><div class="form-group" id="ha_form"></div>`);
+	$('#wizp1_footer').html(`<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled><svg data-src="svg/button_play.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('general_btn_continue')}</button><button type="button" class="btn btn-danger" data-bs-dismiss="modal"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('general_btn_cancel')}</button>`);
+
+	$('#ha_form').append(`<label for="hostHA" class="form-label">${$.i18n('device_address')}</label><div><input type="text" id="hostHA" name="haInputParams1" class="form-control float-left d-inline" style="width:52%"/><select id="deviceListInstances" class="form-select bg-warning float-left d-inline" style="width:46%" /></div>`);
+	$('#ha_form').append(`<label for="tokenHA" class="form-label mt-4">${$.i18n('edt_dev_auth_key_title')}</label><input type="text" id="tokenHA" name="haInputParams2" class="form-control">`);
+
+	requestLedDeviceDiscovery('home_assistant').then( (result) => deviceListRefresh('home_assistant', result, $('#hostHA'),'select_ha_intro','main_menu_update_token'));
+
+	let haForm = new bootstrap.Modal($("#wizard_modal"), {
+		backdrop: "static",
+		keyboard: false
+	});
+
+	$('input[name^=haInputParams]').on('change input',function(e){		
+		if ($('#hostHA').val().length > 0 && $('#tokenHA').val().length > 0)
+		{
+			$("#btn_wiz_cont").prop('disabled', false);
+		}
+	});
+
+	$('#hostHA').val(conf_editor.getEditor("root.specificOptions.homeAssistantHost").getValue());
+	$('#tokenHA').val(conf_editor.getEditor("root.specificOptions.longLivedAccessToken").getValue()).change();
+
+	haForm.show();
+
+	$('#btn_wiz_cont').off().on('click', function ()
+	{
+		let haConfig = {};
+					
+		haConfig.type = 'home_assistant';	
+		haConfig.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
+		haConfig.homeAssistantHost = $('#hostHA').val().trim();
+		haConfig.longLivedAccessToken= $('#tokenHA').val().trim();
+		haConfig.transition = conf_editor.getEditor("root.specificOptions.transition").getValue();
+		haConfig.restoreOriginalState = conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue();
+		haConfig.maxRetry = conf_editor.getEditor("root.specificOptions.maxRetry").getValue();
+		haConfig.lamps = [];		
+
+		tunnel_home_assistant_get(haConfig.homeAssistantHost, '/api/states',{'Authorization':`Bearer ${haConfig.longLivedAccessToken}` }).then( (r) =>
+			{
+				if (r != null && Array.isArray(r))
+				{
+					r.forEach((entity) => {
+						if (typeof (entity) === 'object' && entity["entity_id"] != null)
+						{
+							const attributes = entity["attributes"];
+							if ( attributes != null && typeof (attributes) === 'object')
+							{
+								const supported_color_modes = attributes["supported_color_modes"];
+								if ( supported_color_modes != null && Array.isArray(supported_color_modes) && supported_color_modes.length > 0)
+								{
+									let colorMode = null;
+									supported_color_modes.forEach((capability) => {
+										if (capability === "xy" || capability === "rgb")
+										{
+											colorMode = "rgb";
+										}
+										else if (capability === "hs")
+										{
+											colorMode = "hsv";
+										}										
+									});
+									if (colorMode != null)
+									{
+										var lamp = {};
+										lamp.name = entity["entity_id"];
+										lamp.colorModel = colorMode;
+										haConfig.lamps.push(lamp);
+									}
+								}
+							}
+						}
+					});
+
+					if (window.serverConfig.device != null && window.serverConfig.device.type == haConfig.type &&
+					   Array.isArray(window.serverConfig.device.lamps) && window.serverConfig.device.lamps.length ==  haConfig.lamps.length)
+					{
+						for (var key in haConfig.lamps)
+						if (haConfig.lamps[key].name =  window.serverConfig.device.lamps[key].name)
+						{
+							haConfig.lamps[key].defaultPosition = window.serverConfig.device.lamps[key].defaultPosition;
+						}
+					}
+
+					window.serverConfig.device = haConfig;
+					requestWriteConfig({ "device": window.serverConfig.device });
+					createHaLedConfig(haConfig);
+				}
+				else
+				{
+					showNotification('danger', $.i18n('wiz_hue_e_title'), $.i18n('wiz_hue_e_noapisupport_hint'));
+				}
+			}
+		);		
+	});
+}
+
+function identify_ha_device(host, token, id)
+{
+	const address = host;
+	const bearerToken = token;
+	const deviceId = `{"entity_id": "${id}"}`;
+	tunnel_home_assistant_post(address, '/api/services/light/turn_off', {'Authorization':`Bearer ${bearerToken}` }, deviceId).then(() =>
+		{
+			new Promise((resolve) => setTimeout(resolve, 1000)).then((r) =>
+				{
+					tunnel_home_assistant_post(address, '/api/services/light/turn_on', {'Authorization':`Bearer ${bearerToken}` }, deviceId);
+				});			
+		}
+	);
+}
+
+function createHaLedConfig(haConfig)
+{
+	var lightOptions = [
+		"top", "topleft", "topright",
+		"bottom", "bottomleft", "bottomright",
+		"left", "lefttop", "leftmiddle", "leftbottom",
+		"right", "righttop", "rightmiddle", "rightbottom",
+		"entire",
+		"lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+		"lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121",
+		"lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121"
+	];
+
+	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
+	$('#wizp2_body').append(`<div id="ha_lamps_table_holder"><p style="font-weight:bold">${$.i18n('wiz_hue_e_desc3')}</p></div>`);
+	$('#wizp2_footer').html(`<button type="button" class="btn btn-primary" id="btn_wiz_save"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('general_btn_save')}</button><button type="button" class="btn btn-danger" id="btn_wiz_abort" disabled><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>${$.i18n('general_btn_cancel')}</button>`);
+
+	if (window.serverConfig.leds != null && window.serverConfig.leds.length == haConfig.lamps.length)
+	{
+		$("#btn_wiz_abort").prop('disabled', false);
+	}
+
+	$('#btn_wiz_abort').off().on('click', function () { resetWizard(); });
+	const _haConfig = haConfig;
+	$('#btn_wiz_save').off().on('click', function () {
+		let ledDef = [];
+		for (var key in _haConfig.lamps)
+		{
+			var defaultPosition = $('#ha_lamp_pos_' + key).val();			
+			var idx_content = assignLightPos(key, defaultPosition, _haConfig.lamps[key].name);
+
+			_haConfig.lamps[key].defaultPosition = defaultPosition;
+			ledDef.push(JSON.parse(JSON.stringify(idx_content)));
+		}
+		window.serverConfig.leds = ledDef;
+		requestWriteConfig({ "leds": window.serverConfig.leds });
+		window.serverConfig.device = _haConfig;
+		requestWriteConfig({ "device": window.serverConfig.device });
+		resetWizard();
+	});
+
+	createTableFlex("ha_lamps_table_header", "ha_lamps_rows", "ha_lamps_table_holder");
+	$('.ha_lamps_table_header').append(createTableRowFlex([$.i18n('edt_dev_spec_lightid_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
+	$('.ha_lamps_rows').html("");
+
+	var ledHaIndex = 0;
+	haConfig.lamps.forEach((lamp) => {
+		let options = "";
+		for (var opt in lightOptions)
+		{
+			var val = lightOptions[opt];
+			var txt = (val != 'entire' && val != 'disabled') ? 'conf_leds_layout_cl_' : 'wiz_ids_';
+			options += `<option value="${val}" ${(lamp.defaultPosition === val) ? "selected" : "" } >${$.i18n(txt + val)}</option>`;
+		}
+		let selectLightControl = `<select id="ha_lamp_pos_${ledHaIndex}" class="hue_sel_watch form-select">${options}</select>`;
+		let ipVal = encodeURI(haConfig.homeAssistantHost);
+		let tokenVal = haConfig.longLivedAccessToken;					
+		let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_ha_device("${ipVal}","${tokenVal}","${lamp.name}")>${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;					
+		$('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
+		ledHaIndex++;
+	});
+
+	$('#wizp1').toggle(false);
+	$("#wizard_modal").addClass("modal-lg");
+	$('#wizp2').toggle(true);
+}
