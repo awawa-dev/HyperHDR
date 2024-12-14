@@ -91,11 +91,21 @@ bool DriverNetHomeAssistant::powerOnOff(bool isOn)
 
 bool DriverNetHomeAssistant::powerOn()
 {
+	if (_haInstance.restoreOriginalState)
+	{
+		if (!saveStates())
+			return false;
+	}
 	return powerOnOff(true);
 }
 
 bool DriverNetHomeAssistant::powerOff()
 {
+	if (_haInstance.restoreOriginalState)
+	{
+		restoreStates();
+		return true;
+	}
 	return powerOnOff(false);
 }
 
@@ -146,6 +156,119 @@ int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 		}
 
 	return 0;
+}
+
+bool DriverNetHomeAssistant::saveStates()
+{
+	for (auto& lamp : _haInstance.lamps)
+	{
+		_restApi->setBasePath(QString("/api/states/%1").arg(lamp.name));
+		auto response = _restApi->get();
+		if (response.error())
+		{
+			this->setInError(response.error() ? response.getErrorReason() : "Unknown");
+			setupRetry(1500);
+			return false;
+		}
+		auto body = response.getBody();
+		if (body.isEmpty() || !body.isObject())
+		{
+			Error(_log, "The current state of the light %s is unknown", QSTRING_CSTR(lamp.name));
+			continue;
+		}
+
+		// read state
+		auto obj = body.object();
+		if (obj.contains("state") && !obj["state"].isNull())
+		{
+			lamp.orgState.isPoweredOn = QString::compare(obj["state"].toString("off"), QString("on"), Qt::CaseInsensitive) == 0;
+		}
+		else
+		{
+			lamp.orgState.isPoweredOn = -1;
+		}
+
+		if (obj.contains("attributes") && obj["attributes"].isObject())
+		{
+			auto attribs = obj["attributes"].toObject();
+
+			// read brightness
+			if (attribs.contains("brightness") && !attribs["brightness"].isNull())
+			{
+				lamp.orgState.brightness = attribs["brightness"].toInt(0);
+			}
+			else
+			{
+				lamp.orgState.brightness = -1;
+			}
+
+			// read color
+			if (lamp.colorModel == HomeAssistantLamp::Mode::RGB &&
+				attribs.contains("rgb_color") && attribs["rgb_color"].isArray())
+			{
+				lamp.orgState.color = attribs["rgb_color"].toArray();
+			}
+			else if (lamp.colorModel == HomeAssistantLamp::Mode::HSV &&
+				attribs.contains("hs_color") && attribs["hs_color"].isArray())
+			{
+				lamp.orgState.color = attribs["hs_color"].toArray();
+			}
+			else
+			{
+				lamp.orgState.color = QJsonArray();
+			}
+		}
+
+		QJsonDocument doc;
+		doc.setArray(lamp.orgState.color);
+		QString colorsToString = ((lamp.colorModel == HomeAssistantLamp::Mode::RGB) ? "rgb: " : "hs: " )+ doc.toJson(QJsonDocument::Compact);
+		QString power = (lamp.orgState.isPoweredOn >= 0) ? ((lamp.orgState.isPoweredOn) ? "state: ON" : "state: OFF" ) : "";
+		QString brightness = (lamp.orgState.isPoweredOn >= 0) ? (QString("brightness: %1" ).arg(lamp.orgState.brightness)) : "";
+		QStringList message{ power, brightness, colorsToString };
+				
+		Info(_log, "Saving state of %s: %s", QSTRING_CSTR(lamp.name), QSTRING_CSTR(message.join(", ")));
+
+	}
+	return true;
+}
+
+void DriverNetHomeAssistant::restoreStates()
+{
+	QJsonDocument doc;
+	for (auto& lamp : _haInstance.lamps)
+	{
+		QJsonObject row;
+
+		row["entity_id"] = lamp.name;
+
+		if (lamp.orgState.isPoweredOn < 0)
+			continue;
+
+		if (lamp.orgState.brightness >= 0)
+		{
+			row["brightness"] = lamp.orgState.brightness;
+		}
+		if (lamp.orgState.color.size() > 0)
+		{
+			if (lamp.colorModel == HomeAssistantLamp::Mode::RGB)
+			{
+				row["rgb_color"] = lamp.orgState.color;
+			}
+			else
+			{
+				row["hs_color"] = lamp.orgState.color;
+			}
+		}
+
+		if (!row.isEmpty())
+		{
+			doc.setObject(row);
+			QString message = doc.toJson(QJsonDocument::Compact);
+			Info(_log, "Restoring state of %s: %s", QSTRING_CSTR(lamp.name), QSTRING_CSTR(message));
+			_restApi->setBasePath(QString("/api/services/light/%1").arg((lamp.orgState.isPoweredOn) ? "turn_on" : "turn_off"));
+			_restApi->post(message);
+		}
+	}
 }
 
 QJsonObject DriverNetHomeAssistant::discover(const QJsonObject& params)

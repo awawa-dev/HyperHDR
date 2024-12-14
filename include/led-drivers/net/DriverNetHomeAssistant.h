@@ -2,6 +2,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QJsonObject>
+	#include <QJsonArray>
 	#include <memory>
 	#include <list>	
 #endif
@@ -38,7 +39,7 @@ class DriverNetHomeAssistant : public LedDevice
 		{
 			int isPoweredOn = -1;
 			int brightness = -1;
-			linalg::aliases::int4 color{ -1, -1, -1, -1 };
+			QJsonArray color;
 		} orgState;
 	};
 
@@ -56,6 +57,8 @@ private:
 	bool init(const QJsonObject& deviceConfig) override;
 	int write(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOnOff(bool isOn);
+	bool saveStates();
+	void restoreStates();
 
 	HomeAssistantInstance _haInstance;
 
