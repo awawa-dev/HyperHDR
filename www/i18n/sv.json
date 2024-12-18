@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Dags att slå på tonmapping",
   "edt_automatic_tone_mapping_time_expl": "Dags att aktivera tonmappning om signalen inte överskrider de konfigurerade tröskelnivåerna.",
   "edt_automatic_tone_mapping_disable_time_title": "Dags att stänga av tonmapping",
-  "edt_automatic_tone_mapping_disable_time_expl": "I en ideal värld bör detta värde vara noll, eftersom tonmappning bör inaktiveras omedelbart efter att ha passerat ett av tröskelvärdena. Men det händer till exempel: när man startar eller byter upplösning kan grabbern generera skräpramar, vilket kan inaktivera tonmappning i onödan."
+  "edt_automatic_tone_mapping_disable_time_expl": "I en ideal värld bör detta värde vara noll, eftersom tonmappning bör inaktiveras omedelbart efter att ha passerat ett av tröskelvärdena. Men det händer till exempel: när man startar eller byter upplösning kan grabbern generera skräpramar, vilket kan inaktivera tonmappning i onödan.",
+  "wiz_home_assistant_title": "Home Assistant ljusguiden",
+  "wiz_ha_intro": "Vänligen välj adressen till Home Assistant-instansen och ange 'Long Lived Access Tokens' som skapats där.",
+  "select_ha_intro": "Välj Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Konstant ljusstyrka"
 }

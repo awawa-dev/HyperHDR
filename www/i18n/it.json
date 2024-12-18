@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "È il momento di attivare il tone mapping",
   "edt_automatic_tone_mapping_time_expl": "È il momento di attivare il tone mapping se il segnale non supera i livelli di soglia configurati.",
   "edt_automatic_tone_mapping_disable_time_title": "È il momento di disattivare il tone mapping",
-  "edt_automatic_tone_mapping_disable_time_expl": "In un mondo ideale questo valore dovrebbe essere zero, perché il tone mapping dovrebbe essere disattivato immediatamente dopo aver superato una delle soglie. Ma succede, ad esempio: quando si avvia o si cambia risoluzione, il grabber può generare fotogrammi spazzatura, che possono disattivare inutilmente il tone mapping."
+  "edt_automatic_tone_mapping_disable_time_expl": "In un mondo ideale questo valore dovrebbe essere zero, perché il tone mapping dovrebbe essere disattivato immediatamente dopo aver superato una delle soglie. Ma succede, ad esempio: quando si avvia o si cambia risoluzione, il grabber può generare fotogrammi spazzatura, che possono disattivare inutilmente il tone mapping.",
+  "wiz_home_assistant_title": "Assistente luci Home Assistant",
+  "wiz_ha_intro": "Seleziona l'indirizzo dell'istanza di Home Assistant e inserisci i 'token di accesso di lunga durata' creati lì.",
+  "select_ha_intro": "Seleziona Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Luminosità costante"
 }

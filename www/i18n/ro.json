@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Este timpul să activați maparea tonurilor",
   "edt_automatic_tone_mapping_time_expl": "Este timpul să activați maparea tonurilor dacă semnalul nu depășește nivelurile de prag configurate.",
   "edt_automatic_tone_mapping_disable_time_title": "Este timpul să dezactivați maparea tonurilor",
-  "edt_automatic_tone_mapping_disable_time_expl": "Într-o lume ideală, această valoare ar trebui să fie zero, deoarece maparea tonurilor ar trebui să fie dezactivată imediat după trecerea unuia dintre praguri. Dar se întâmplă, de exemplu: atunci când pornește sau schimbă rezoluția, grabber-ul poate genera cadre nedorite, care pot dezactiva în mod inutil maparea tonurilor."
+  "edt_automatic_tone_mapping_disable_time_expl": "Într-o lume ideală, această valoare ar trebui să fie zero, deoarece maparea tonurilor ar trebui să fie dezactivată imediat după trecerea unuia dintre praguri. Dar se întâmplă, de exemplu: atunci când pornește sau schimbă rezoluția, grabber-ul poate genera cadre nedorite, care pot dezactiva în mod inutil maparea tonurilor.",
+  "wiz_home_assistant_title": "Asistentul de acasă luminează vrăjitorul",
+  "wiz_ha_intro": "Vă rugăm să selectați adresa instanței Home Assistant și introduceți 'Jetonele de acces cu viață lungă' create acolo.",
+  "select_ha_intro": "Selectați Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Luminozitate constantă"
 }

@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Ton eşlemesini açma zamanı",
   "edt_automatic_tone_mapping_time_expl": "Sinyal yapılandırılmış eşik seviyelerini aşmazsa ton eşlemesini açma zamanı.",
   "edt_automatic_tone_mapping_disable_time_title": "Ton eşlemeyi kapatma zamanı",
-  "edt_automatic_tone_mapping_disable_time_expl": "İdeal bir dünyada bu değer sıfır olmalıdır, çünkü ton eşlemesi eşik değerlerinden birini geçtikten hemen sonra devre dışı bırakılmalıdır. Ancak bu olur, örneğin: çözünürlüğü başlatırken veya değiştirirken, yakalayıcı gereksiz kareler üretebilir ve bu da ton eşlemeyi gereksiz yere devre dışı bırakabilir."
+  "edt_automatic_tone_mapping_disable_time_expl": "İdeal bir dünyada bu değer sıfır olmalıdır, çünkü ton eşlemesi eşik değerlerinden birini geçtikten hemen sonra devre dışı bırakılmalıdır. Ancak bu olur, örneğin: çözünürlüğü başlatırken veya değiştirirken, yakalayıcı gereksiz kareler üretebilir ve bu da ton eşlemeyi gereksiz yere devre dışı bırakabilir.",
+  "wiz_home_assistant_title": "Home Assistant ışık sihirbazı",
+  "wiz_ha_intro": "Lütfen Home Assistant örneğinin adresini seçin ve orada oluşturulan 'Uzun Ömürlü Erişim Jetonlarını' girin.",
+  "select_ha_intro": "Home Assistant'ı seçin",
+  "edt_dev_spec_constantBrightness_title": "Sabit parlaklık"
 }

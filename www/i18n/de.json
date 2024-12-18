@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Zeit zum Einschalten des Tone Mappings",
   "edt_automatic_tone_mapping_time_expl": "Zeit zum Einschalten des Tone Mappings, wenn das Signal die konfigurierten Schwellenwerte nicht überschreitet.",
   "edt_automatic_tone_mapping_disable_time_title": "Zeit, das Tone Mapping auszuschalten",
-  "edt_automatic_tone_mapping_disable_time_expl": "In einer idealen Welt sollte dieser Wert Null sein, da das Tone Mapping sofort nach dem Überschreiten eines der Schwellenwerte deaktiviert werden sollte. Aber es passiert beispielsweise: Beim Starten oder Umschalten der Auflösung kann der Grabber Junk-Frames generieren, wodurch das Tone Mapping unnötig deaktiviert werden kann."
+  "edt_automatic_tone_mapping_disable_time_expl": "In einer idealen Welt sollte dieser Wert Null sein, da das Tone Mapping sofort nach dem Überschreiten eines der Schwellenwerte deaktiviert werden sollte. Aber es passiert beispielsweise: Beim Starten oder Umschalten der Auflösung kann der Grabber Junk-Frames generieren, wodurch das Tone Mapping unnötig deaktiviert werden kann.",
+  "wiz_home_assistant_title": "Home Assistant Lichtassistent",
+  "wiz_ha_intro": "Bitte wählen Sie die Adresse der Home Assistant-Instanz aus und geben Sie die dort erstellten 'Long Lived Access Tokens' ein.",
+  "select_ha_intro": "Home Assistant auswählen",
+  "edt_dev_spec_constantBrightness_title": "Konstante Helligkeit"
 }

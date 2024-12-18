@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "打开色调映射的时间",
   "edt_automatic_tone_mapping_time_expl": "如果信号未超过配置的阈值水平，则打开色调映射的时间。",
   "edt_automatic_tone_mapping_disable_time_title": "关闭色调映射的时间",
-  "edt_automatic_tone_mapping_disable_time_expl": "在理想情况下，此值应为零，因为色调映射应在超过其中一个阈值后立即禁用。但它确实发生了，例如：在启动或切换分辨率时，抓取器可能会生成垃圾帧，从而不必要地禁用色调映射。"
+  "edt_automatic_tone_mapping_disable_time_expl": "在理想情况下，此值应为零，因为色调映射应在超过其中一个阈值后立即禁用。但它确实发生了，例如：在启动或切换分辨率时，抓取器可能会生成垃圾帧，从而不必要地禁用色调映射。",
+  "wiz_home_assistant_title": "Home Assistant 灯光向导",
+  "wiz_ha_intro": "请选择 Home Assistant 实例的地址并输入在那里创建的'长寿命访问令牌'。",
+  "select_ha_intro": "选择 Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "恒定亮度"
 }
