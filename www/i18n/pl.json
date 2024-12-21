@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Czas włączyć mapowanie tonów",
   "edt_automatic_tone_mapping_time_expl": "Czas włączyć mapowanie tonów, jeśli sygnał nie przekracza skonfigurowanych poziomów progowych.",
   "edt_automatic_tone_mapping_disable_time_title": "Czas wyłączyć mapowanie tonów",
-  "edt_automatic_tone_mapping_disable_time_expl": "W idealnym świecie ta wartość powinna wynosić zero, ponieważ mapowanie tonów powinno być wyłączone natychmiast po przekroczeniu jednego z progów. Ale tak się dzieje na przykład: podczas uruchamiania lub zmiany rozdzielczości grabber może generować niepotrzebne klatki, które mogą niepotrzebnie wyłączyć mapowanie tonów."
+  "edt_automatic_tone_mapping_disable_time_expl": "W idealnym świecie ta wartość powinna wynosić zero, ponieważ mapowanie tonów powinno być wyłączone natychmiast po przekroczeniu jednego z progów. Ale tak się dzieje na przykład: podczas uruchamiania lub zmiany rozdzielczości grabber może generować niepotrzebne klatki, które mogą niepotrzebnie wyłączyć mapowanie tonów.",
+  "wiz_home_assistant_title": "Kreator oświetlenia Home Assistant",
+  "wiz_ha_intro": "Wybierz adres instancji Home Assistant i wprowadź utworzone tam 'Long Lived Access Tokens'.",
+  "select_ha_intro": "Wybierz Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Stała jasność"
 }

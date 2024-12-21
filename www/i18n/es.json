@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Tiempo para activar el mapeo de tonos",
   "edt_automatic_tone_mapping_time_expl": "Tiempo para activar el mapeo de tonos si la señal no excede los niveles de umbral configurados.",
   "edt_automatic_tone_mapping_disable_time_title": "Momento para desactivar el mapeo de tonos",
-  "edt_automatic_tone_mapping_disable_time_expl": "En un mundo ideal, este valor debería ser cero, porque el mapeo de tonos debería deshabilitarse inmediatamente después de cruzar uno de los umbrales. Pero sucede, por ejemplo: al iniciar o cambiar la resolución, el capturador puede generar fotogramas basura, lo que puede deshabilitar el mapeo de tonos innecesariamente."
+  "edt_automatic_tone_mapping_disable_time_expl": "En un mundo ideal, este valor debería ser cero, porque el mapeo de tonos debería deshabilitarse inmediatamente después de cruzar uno de los umbrales. Pero sucede, por ejemplo: al iniciar o cambiar la resolución, el capturador puede generar fotogramas basura, lo que puede deshabilitar el mapeo de tonos innecesariamente.",
+  "wiz_home_assistant_title": "Asistente de iluminación de Home Assistant",
+  "wiz_ha_intro": "Seleccione la dirección de la instancia de Home Assistant e ingrese los 'Tokens de acceso de larga duración' creados allí.",
+  "select_ha_intro": "Seleccione Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Brillo constante"
 }

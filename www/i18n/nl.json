@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Tijd om toonmapping in te schakelen",
   "edt_automatic_tone_mapping_time_expl": "Tijd om toonmapping in te schakelen als het signaal de geconfigureerde drempelwaarden niet overschrijdt.",
   "edt_automatic_tone_mapping_disable_time_title": "Tijd om tone mapping uit te schakelen",
-  "edt_automatic_tone_mapping_disable_time_expl": "In een ideale wereld zou deze waarde nul moeten zijn, omdat tone mapping onmiddellijk na het overschrijden van een van de drempels zou moeten worden uitgeschakeld. Maar het gebeurt bijvoorbeeld: bij het starten of wisselen van resolutie kan de grabber ongewenste frames genereren, waardoor tone mapping onnodig kan worden uitgeschakeld."
+  "edt_automatic_tone_mapping_disable_time_expl": "In een ideale wereld zou deze waarde nul moeten zijn, omdat tone mapping onmiddellijk na het overschrijden van een van de drempels zou moeten worden uitgeschakeld. Maar het gebeurt bijvoorbeeld: bij het starten of wisselen van resolutie kan de grabber ongewenste frames genereren, waardoor tone mapping onnodig kan worden uitgeschakeld.",
+  "wiz_home_assistant_title": "Home Assistant-verlichtingswizard",
+  "wiz_ha_intro": "Selecteer het adres van de Home Assistant-instantie en voer de daar gemaakte 'Long Lived Access Tokens' in.",
+  "select_ha_intro": "Selecteer Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Constante helderheid"
 }

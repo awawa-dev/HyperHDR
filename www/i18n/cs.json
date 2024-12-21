@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Je čas zapnout mapování tónů",
   "edt_automatic_tone_mapping_time_expl": "Čas pro zapnutí mapování tónů, pokud signál nepřekročí nakonfigurované prahové úrovně.",
   "edt_automatic_tone_mapping_disable_time_title": "Je čas vypnout mapování tónů",
-  "edt_automatic_tone_mapping_disable_time_expl": "V ideálním světě by tato hodnota měla být nula, protože mapování tónů by mělo být zakázáno ihned po překročení jednoho z prahů. Stává se to ale například: při spouštění nebo přepínání rozlišení může grabber generovat nevyžádané snímky, které mohou mapování tónů zbytečně zakázat."
+  "edt_automatic_tone_mapping_disable_time_expl": "V ideálním světě by tato hodnota měla být nula, protože mapování tónů by mělo být zakázáno ihned po překročení jednoho z prahů. Stává se to ale například: při spouštění nebo přepínání rozlišení může grabber generovat nevyžádané snímky, které mohou mapování tónů zbytečně zakázat.",
+  "wiz_home_assistant_title": "Průvodce osvětlením Home Assistant",
+  "wiz_ha_intro": "Vyberte prosím adresu instance Home Assistant a zadejte tam vytvořené 'Long Lived Access Tokens'.",
+  "select_ha_intro": "Vyberte Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Konstantní jas"
 }

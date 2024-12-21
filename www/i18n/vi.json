@@ -1263,5 +1263,9 @@
   "edt_automatic_tone_mapping_time_title": "Thời gian bật ánh xạ tông màu",
   "edt_automatic_tone_mapping_time_expl": "Thời gian bật ánh xạ tông màu nếu tín hiệu không vượt quá ngưỡng ngưỡng đã định cấu hình.",
   "edt_automatic_tone_mapping_disable_time_title": "Đã đến lúc tắt ánh xạ tông màu",
-  "edt_automatic_tone_mapping_disable_time_expl": "Trong thế giới lý tưởng, giá trị này phải bằng không, vì ánh xạ tông màu phải bị vô hiệu hóa ngay sau khi vượt qua một trong các ngưỡng. Nhưng điều này xảy ra, ví dụ: khi bắt đầu hoặc chuyển đổi độ phân giải, trình thu thập có thể tạo ra các khung rác, có thể vô hiệu hóa ánh xạ tông màu một cách không cần thiết."
+  "edt_automatic_tone_mapping_disable_time_expl": "Trong thế giới lý tưởng, giá trị này phải bằng không, vì ánh xạ tông màu phải bị vô hiệu hóa ngay sau khi vượt qua một trong các ngưỡng. Nhưng điều này xảy ra, ví dụ: khi bắt đầu hoặc chuyển đổi độ phân giải, trình thu thập có thể tạo ra các khung rác, có thể vô hiệu hóa ánh xạ tông màu một cách không cần thiết.",
+  "wiz_home_assistant_title": "Trình hướng dẫn đèn Home Assistant",
+  "wiz_ha_intro": "Vui lòng chọn địa chỉ của phiên bản Home Assistant và nhập 'Long Lived Access Tokens' được tạo ở đó.",
+  "select_ha_intro": "Chọn Home Assistant",
+  "edt_dev_spec_constantBrightness_title": "Độ sáng không đổi"
 }
