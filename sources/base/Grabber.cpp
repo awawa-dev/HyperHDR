@@ -74,6 +74,7 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _actualFPS(0)
 	, _actualDeviceName("")
 	, _targetMonitorNits(200)
+	, _reorderDisplays(0)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
 	, _signalDetectionEnabled(false)
@@ -179,6 +180,28 @@ void Grabber::setMonitorNits(int nits)
 		else
 		{
 			Info(_log, "Delayed restart of the grabber due to change of monitor nits value");
+			_restartNeeded = true;
+		}
+	}
+}
+
+void Grabber::setReorderDisplays(int order)
+{
+	if (_reorderDisplays != order)
+	{
+		_reorderDisplays = order;
+
+		Debug(_log, "Set re-order display permutation to %i", _reorderDisplays);
+
+		if (_initialized && !_blocked)
+		{
+			Debug(_log, "Restarting video grabber");
+			uninit();
+			start();
+		}
+		else
+		{
+			Info(_log, "Delayed restart of the grabber due to change of monitor display-order value");
 			_restartNeeded = true;
 		}
 	}

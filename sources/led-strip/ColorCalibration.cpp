@@ -109,9 +109,9 @@ void ColorCalibration::calibrate(ColorRgb& color)
 		{
 			if (B_RGB != 255)
 			{
-				color.red = ((uint32_t)color.red * B_RGB) / 255;
-				color.green = ((uint32_t)color.green * B_RGB) / 255;
-				color.blue = ((uint32_t)color.blue * B_RGB) / 255;
+				color.red = ((uint32_t)color.red * B_RGB + (255 / 2)) / 255;
+				color.green = ((uint32_t)color.green * B_RGB + (255 / 2)) / 255;
+				color.blue = ((uint32_t)color.blue * B_RGB + (255 / 2)) / 255;
 			}
 		}
 		else
@@ -121,17 +121,17 @@ void ColorCalibration::calibrate(ColorRgb& color)
 			uint32_t nrg = (uint32_t)(255 - ored) * (ogreen);
 			uint32_t rg = (uint32_t)(ored) * (ogreen);
 
-			uint8_t black = nrng * (255 - oblue) / 65025;
-			uint8_t red = rng * (255 - oblue) / 65025;
-			uint8_t green = nrg * (255 - oblue) / 65025;
-			uint8_t blue = nrng * (oblue) / 65025;
-			uint8_t cyan = nrg * (oblue) / 65025;
-			uint8_t magenta = rng * (oblue) / 65025;
-			uint8_t yellow = rg * (255 - oblue) / 65025;
-			uint8_t white = rg * (oblue) / 65025;
+			uint32_t black = nrng * (255 - oblue);
+			uint32_t red = rng * (255 - oblue);
+			uint32_t green = nrg * (255 - oblue);
+			uint32_t blue = nrng * (oblue);
+			uint32_t cyan = nrg * (oblue);
+			uint32_t magenta = rng * (oblue);
+			uint32_t yellow = rg * (255 - oblue);
+			uint32_t white = rg * (oblue);
 
-			uint8_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB;
-			uint8_t CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
+			uint64_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB;
+			uint64_t CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
 
 			_blackCalibration->apply(black, 255, OR, OG, OB);
 			_redCalibration->apply(red, B_RGB, RR, RG, RB);
@@ -142,9 +142,9 @@ void ColorCalibration::calibrate(ColorRgb& color)
 			_yellowCalibration->apply(yellow, B_CMY, YR, YG, YB);
 			_whiteCalibration->apply(white, B_W, WR, WG, WB);
 
-			color.red = OR + RR + GR + BR + CR + MR + YR + WR;
-			color.green = OG + RG + GG + BG + CG + MG + YG + WG;
-			color.blue = OB + RB + GB + BB + CB + MB + YB + WB;
+			color.red = std::min((OR + RR + GR + BR + CR + MR + YR + WR + (65025 / 2)) / 65025, (uint64_t) 255);
+			color.green = std::min((OG + RG + GG + BG + CG + MG + YG + WG + (65025 / 2)) / 65025, (uint64_t) 255);
+			color.blue = std::min((OB + RB + GB + BB + CB + MB + YB + WB + (65025 / 2)) / 65025, (uint64_t) 255);
 		}
 	}
 	_colorspaceCalibration->applyBacklight(ored, ogreen, oblue);

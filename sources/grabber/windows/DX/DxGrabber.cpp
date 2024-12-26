@@ -26,6 +26,7 @@
  */
 #define NOMINMAX
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -779,6 +780,11 @@ void DxGrabber::grabFrame()
 			int targetSizeX = 0, targetSizeY = 0;
 			int divide = getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
 
+			if (_reorderDisplays > 0 && result == 0)
+			{
+				images.push_back(std::pair<int, Image<ColorRgb>>(width, Image<ColorRgb>(targetSizeX, 1)));
+			}
+
 			width += targetSizeX;
 			height = std::max(targetSizeY, height);
 		}
@@ -800,10 +806,30 @@ void DxGrabber::grabFrame()
 			memset(image.rawMem(), 0, image.size());
 		}
 
-		for (auto&& source : images)
+		if (_reorderDisplays > 0)
 		{
-			image.insertHorizontal(source.first, source.second);
+			for (int permutation = 0;
+					permutation < _reorderDisplays &&
+					std::next_permutation(images.begin(), images.end(),
+						[=](const std::pair<int, Image<ColorRgb>>& a, const std::pair<int, Image<ColorRgb>>& b)
+							{
+								return a.first < b.first;
+							});
+					permutation++);
+
+			int targetX = 0;
+			for (auto it = images.begin(); it != images.end(); ++it)
+			{
+				it->first = targetX;
+				targetX += it->second.width();
+			}
 		}
+
+		for (auto&& source : images)
+			if (_reorderDisplays == 0 || source.second.height() > 1)
+			{
+				image.insertHorizontal(source.first, source.second);
+			}
 
 		if (_signalDetectionEnabled)
 		{

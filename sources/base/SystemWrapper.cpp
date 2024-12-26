@@ -169,6 +169,8 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 
 			_grabber->setMonitorNits(obj["monitor_nits"].toInt(200));
 
+			_grabber->setReorderDisplays(obj["reorder_displays"].toInt(0));			
+
 			_grabber->setSignalDetectionOffset(
 				obj["sDHOffsetMin"].toDouble(0.25),
 				obj["sDVOffsetMin"].toDouble(0.25),
