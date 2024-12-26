@@ -2494,7 +2494,7 @@ function startWizardHome_assistant(e)
 		haConfig.type = 'home_assistant';	
 		haConfig.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
 		haConfig.homeAssistantHost = $('#hostHA').val().trim();
-		haConfig.longLivedAccessToken= $('#tokenHA').val().trim();
+		haConfig.longLivedAccessToken= `${$('#tokenHA').val().trim()}`;
 		haConfig.transition = conf_editor.getEditor("root.specificOptions.transition").getValue();
 		haConfig.restoreOriginalState = conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue();
 		haConfig.maxRetry = conf_editor.getEditor("root.specificOptions.maxRetry").getValue();
