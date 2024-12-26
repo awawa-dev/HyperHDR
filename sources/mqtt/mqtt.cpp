@@ -24,6 +24,7 @@ mqtt::mqtt(const QJsonDocument& mqttConfig)
 	, _currentRetry(0)
 	, _retryTimer(nullptr)
 	, _initialized(false)
+	, _disableApiAccess(false)
 	, _log(Logger::getInstance("MQTT"))
 	, _clientInstance(nullptr)
 {
@@ -210,6 +211,7 @@ void mqtt::handleSettingsUpdate(settings::type type, const QJsonDocument& config
 		_is_ssl = obj["is_ssl"].toBool(false);
 		_ignore_ssl_errors = obj["ignore_ssl_errors"].toBool(true);
 		_maxRetry = obj["maxRetry"].toInt(120);
+		_disableApiAccess = obj["disableApiAccess"].toBool(false);
 
 		_customTopic = obj["custom_topic"].toString().trimmed();
 		if (_customTopic.isEmpty())
@@ -233,7 +235,13 @@ void mqtt::begin()
 }
 
 void mqtt::executeJson(QString origin, const QJsonDocument& input, QJsonDocument& result)
-{	
+{
+	if (_disableApiAccess)
+	{
+		Error(_log, "API access is disabled in MQTT configuration");
+		return;
+	}
+
 	HyperAPI* _hyperAPI = new HyperAPI(origin, _log, true, this);
 
 	_resultArray = QJsonArray();

@@ -38,6 +38,7 @@
 		},
 		"password" : {
 			"type": "string",
+			"format": "password",
 			"title":"edt_conf_mqtt_password_title",
 			"required" : true,
 			"default" : "",
@@ -74,6 +75,15 @@
 			"default" : "",
 			"propertyOrder" : 8
 		},
+		"disableApiAccess" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_mqtt_disableApiAccess_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 9
+		},
 		"maxRetry":
 		{
 			"type" : "integer",
@@ -84,7 +94,7 @@
 			"maximum" : 120,
 			"default" : 0,
 			"required" : true,
-			"propertyOrder" : 9
+			"propertyOrder" : 10
 		}
 	},
 	"additionalProperties" : false

@@ -56,6 +56,7 @@ private:
 	QTimer*		_retryTimer;
 	bool		_initialized;
 	QJsonArray	_resultArray;
+	bool		_disableApiAccess;
 
 	Logger*		_log;
 	QMQTT::Client*	_clientInstance;	
