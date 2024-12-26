@@ -2577,7 +2577,7 @@ function identify_ha_device(host, token, id)
 function createHaLedConfig(haConfig)
 {
 	var lightOptions = [
-		"top", "topleft", "topright",
+		"disabled", "top", "topleft", "topright",
 		"bottom", "bottomleft", "bottomright",
 		"left", "lefttop", "leftmiddle", "leftbottom",
 		"right", "righttop", "rightmiddle", "rightbottom",
@@ -2606,8 +2606,14 @@ function createHaLedConfig(haConfig)
 			var idx_content = assignLightPos(key, defaultPosition, _haConfig.lamps[key].name);
 
 			_haConfig.lamps[key].defaultPosition = defaultPosition;
-			ledDef.push(JSON.parse(JSON.stringify(idx_content)));
+			if (defaultPosition != "disabled")
+			{
+				ledDef.push(JSON.parse(JSON.stringify(idx_content)));
+			}
 		}
+
+		_haConfig.lamps = _haConfig.lamps.filter(item => item.defaultPosition != "disabled");
+
 		window.serverConfig.leds = ledDef;
 		requestWriteConfig({ "leds": window.serverConfig.leds });
 		window.serverConfig.device = _haConfig;
