@@ -118,9 +118,9 @@ bool ChannelCalibration::isEnabled() const
 	return _enabled;
 }
 
-void ChannelCalibration::apply(uint8_t input, uint8_t brightness, uint8_t& red, uint8_t& green, uint8_t& blue)
-{	
-	red = std::min(((brightness * input * _targetCalibration.red) / 65025), (int)UINT8_MAX);
-	green = std::min(((brightness * input * _targetCalibration.green) / 65025), (int)UINT8_MAX);
-	blue = std::min(((brightness * input * _targetCalibration.blue) / 65025), (int)UINT8_MAX);
+void ChannelCalibration::apply(uint64_t input, uint8_t brightness, uint64_t& red, uint64_t& green, uint64_t& blue) const
+{
+	red   = (brightness * input * _targetCalibration.red   + (65025 / 2)) / 65025;
+	green = (brightness * input * _targetCalibration.green + (65025 / 2)) / 65025;
+	blue  = (brightness * input * _targetCalibration.blue  + (65025 / 2)) / 65025;
 }

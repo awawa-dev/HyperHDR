@@ -86,6 +86,8 @@ public:
 
 	void setMonitorNits(int nits);
 
+	void setReorderDisplays(int order);
+
 	void setFpsSoftwareDecimation(int decimation) override;
 
 	int  getFpsSoftwareDecimation() override;
@@ -269,6 +271,7 @@ protected:
 	int			_actualWidth, _actualHeight, _actualFPS;
 	QString		_actualDeviceName;
 	uint		_targetMonitorNits;
+	int			_reorderDisplays;
 
 	int			_lineLength;
 	int			_frameByteSize;

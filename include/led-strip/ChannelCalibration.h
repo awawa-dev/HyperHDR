@@ -44,7 +44,7 @@ class ChannelCalibration
 public:
 	ChannelCalibration(quint8 instance, QString channelName, const QJsonObject& colorConfig, int defaultR, int defaultG, int defaultB);
 
-	void apply(uint8_t input, uint8_t brightness, uint8_t& red, uint8_t& green, uint8_t& blue);
+	void apply(uint64_t input, uint8_t brightness, uint64_t& red, uint64_t& green, uint64_t& blue) const;
 
 	ColorRgb getAdjustment() const;
 	void setAdjustment(const QJsonArray& value);

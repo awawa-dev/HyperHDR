@@ -71,6 +71,22 @@
 			},
 			"propertyOrder" : 25
 		},
+		"reorder_displays" :
+		{
+			"type" : "integer",
+			"format": "stepper",
+			"title" : "edt_conf_reorder_displays_title",
+			"default" : 0,
+			"minimum" : 0,
+			"maximum" : 255,
+			"required" : true,
+			"options": {			    
+				"dependencies": {
+					"hardware": true
+				}
+			},
+			"propertyOrder" : 26
+		},
 		"cropLeft" :
 		{
 			"type" : "integer",
