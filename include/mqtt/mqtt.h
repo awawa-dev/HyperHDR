@@ -28,6 +28,8 @@ public slots:
 
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
+	void handleSignalMqttSubscribe(bool subscribe, QString topic);
+
 private slots:
 	void connected();
 	void error(const QMQTT::ClientError error);

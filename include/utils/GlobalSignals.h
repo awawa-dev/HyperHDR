@@ -99,4 +99,8 @@ signals:
 	void SignalSetLut(MemoryBuffer<uint8_t>* lut);
 
 	void SignalLutRequest();
+
+	void SignalMqttSubscribe(bool subscribe, QString topic);
+
+	void SignalMqttReceived(QString topic, QString payload);
 };

@@ -9,6 +9,7 @@
 #include <QHostInfo>
 
 #include <api/HyperAPI.h>
+#include <utils/GlobalSignals.h>
 
 // default param %1 is 'HyperHDR', do not edit templates here
 const static QString TEMPLATE_HYPERHDRAPI = QStringLiteral("%1/JsonAPI");
@@ -114,6 +115,8 @@ void mqtt::connected()
 {
 	Debug(_log, "Connected");
 
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe);
+
 	if (_retryTimer != nullptr)
 	{
 		Debug(_log, "Removing retry timer");
@@ -122,12 +125,26 @@ void mqtt::connected()
 		_retryTimer = nullptr;
 	}
 
-	if (_clientInstance != nullptr)
+	if (_clientInstance != nullptr && !_disableApiAccess)
 	{
 		_clientInstance->subscribe(HYPERHDRAPI, 2);
 	}
 }
 
+void mqtt::handleSignalMqttSubscribe(bool subscribe, QString topic)
+{
+	if (_clientInstance == nullptr)
+		return;
+
+	if (subscribe)
+	{
+		_clientInstance->subscribe(topic, 2);
+	}
+	else
+	{
+		_clientInstance->unsubscribe(topic);
+	}
+}
 
 void mqtt::error(const QMQTT::ClientError error)
 {
@@ -306,5 +323,9 @@ void mqtt::received(const QMQTT::Message& message)
 			result.setPayload(returnPayload.toUtf8());
 		}		
 		_clientInstance->publish(result);		
+	}
+	else
+	{
+		emit GlobalSignals::getInstance()->SignalMqttReceived(topic, payload);
 	}
 }
