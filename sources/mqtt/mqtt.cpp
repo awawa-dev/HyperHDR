@@ -50,7 +50,15 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 
 	Debug(_log, "Starting the MQTT connection. Address: %s:%i. Protocol: %s. Authentication: %s, Ignore errors: %s",
 		QSTRING_CSTR(host), port, (is_ssl) ? "SSL" : "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
-	Debug(_log, "MQTT topic: %s, MQTT response: %s", QSTRING_CSTR(HYPERHDRAPI), QSTRING_CSTR(HYPERHDRAPI_RESPONSE));
+
+	if (!_disableApiAccess)
+	{
+		Debug(_log, "MQTT topic: %s, MQTT response: %s", QSTRING_CSTR(HYPERHDRAPI), QSTRING_CSTR(HYPERHDRAPI_RESPONSE));
+	}
+	else
+	{
+		Debug(_log, "MQTT access to HyperHDR API is disabled by user");
+	}
 
 	QHostAddress address(host);
 
@@ -109,13 +117,17 @@ void mqtt::stop()
 void mqtt::disconnected()
 {
 	Debug(_log, "Disconnected");
+
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe);
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish);
 }
 
 void mqtt::connected()
 {
 	Debug(_log, "Connected");
 
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe, Qt::UniqueConnection);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish, Qt::UniqueConnection);
 
 	if (_retryTimer != nullptr)
 	{
@@ -327,5 +339,18 @@ void mqtt::received(const QMQTT::Message& message)
 	else
 	{
 		emit GlobalSignals::getInstance()->SignalMqttReceived(topic, payload);
+	}
+}
+
+void mqtt::handleSignalMqttPublish(QString topic, QString payload)
+{
+	if (_clientInstance != nullptr)
+	{
+		QMQTT::Message message;
+		message.setTopic(topic);
+		message.setQos(0);
+		message.setPayload(payload.toUtf8());
+		
+		_clientInstance->publish(message);
 	}
 }

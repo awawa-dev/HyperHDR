@@ -103,4 +103,6 @@ signals:
 	void SignalMqttSubscribe(bool subscribe, QString topic);
 
 	void SignalMqttReceived(QString topic, QString payload);
+
+	void SignalMqttPublish(QString topic, QString payload);
 };

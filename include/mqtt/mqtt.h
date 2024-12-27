@@ -29,6 +29,7 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void handleSignalMqttSubscribe(bool subscribe, QString topic);
+	void handleSignalMqttPublish(QString topic, QString payload);
 
 private slots:
 	void connected();
