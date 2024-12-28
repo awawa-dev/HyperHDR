@@ -6,7 +6,11 @@
 	#include <memory>
 	#include <list>
 	#include <atomic>
+	#include <chrono>
+	#include <mutex>
 #endif
+
+#include <condition_variable>
 
 #include <led-drivers/LedDevice.h>
 #include <linalg.h>
@@ -58,6 +62,9 @@ private:
 	std::atomic<int>	_colorsFinished;
 	int					_timeLogger;
 	QString				_discoveryMessage;
+
+	std::mutex				_mtx;
+	std::condition_variable	_cv;
 
 	static bool isRegistered;
 };

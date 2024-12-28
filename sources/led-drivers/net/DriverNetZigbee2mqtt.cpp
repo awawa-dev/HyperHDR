@@ -6,6 +6,7 @@ namespace
 {
 	constexpr auto ZIGBEE_DISCOVERY_MESSAGE = "zigbee2mqtt/bridge/devices";
 	constexpr int DEFAULT_TIME_MEASURE_MESSAGE = 25;
+	constexpr int DEFAULT_COMMUNICATION_TIMEOUT_MS = 200;
 }
 
 DriverNetZigbee2mqtt::DriverNetZigbee2mqtt(const QJsonObject& deviceConfig)
@@ -149,12 +150,15 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 
 	auto start = InternalClock::nowPrecise();
 
-	for (int timeout = 0; timeout < 25 && _colorsFinished > 0; timeout++)
+	std::unique_lock<std::mutex> lck(_mtx);
+	_cv.wait_for(lck, std::chrono::milliseconds(DEFAULT_COMMUNICATION_TIMEOUT_MS));
+
+	for (int timeout = 0; timeout < 20 && _colorsFinished > 0 && (InternalClock::nowPrecise() < start + DEFAULT_COMMUNICATION_TIMEOUT_MS); timeout++)
 	{
-		QThread::msleep(8);
+		QThread::msleep(10);
 	}
 
-	if (_colorsFinished > 0)
+	if (_colorsFinished.exchange(0) > 0)
 	{
 		Warning(_log, "The communication timed out after %ims (%i)", (int)(InternalClock::nowPrecise() - start), (++_timeLogger));
 	}
@@ -176,6 +180,10 @@ void DriverNetZigbee2mqtt::handlerSignalMqttReceived(QString topic, QString payl
 	else if (_colorsFinished > 0)
 	{
 		_colorsFinished--;
+		if (_colorsFinished == 0)
+		{
+			_cv.notify_all();
+		}
 	}
 }
 
