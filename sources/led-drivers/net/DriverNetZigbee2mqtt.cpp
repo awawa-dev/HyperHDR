@@ -73,15 +73,12 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 	
 	if (_zigInstance.lamps.size() > 0)
 	{
-		QString topic = QString("zigbee2mqtt/%1").arg(_zigInstance.lamps.back().name);
 		if (isOn)
 		{
-			emit GlobalSignals::getInstance()->SignalMqttSubscribe(true, topic);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttReceived, this, &DriverNetZigbee2mqtt::handlerSignalMqttReceived, Qt::DirectConnection);
 		}
 		else
 		{
-			emit GlobalSignals::getInstance()->SignalMqttSubscribe(false, topic);
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttReceived, this, &DriverNetZigbee2mqtt::handlerSignalMqttReceived);
 		}
 	}
