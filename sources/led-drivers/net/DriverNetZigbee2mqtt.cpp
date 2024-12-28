@@ -1,5 +1,6 @@
 #include <led-drivers/net/DriverNetZigbee2mqtt.h>
 #include <utils/GlobalSignals.h>
+#include <utils/InternalClock.h>
 
 namespace
 {
@@ -10,7 +11,7 @@ namespace
 DriverNetZigbee2mqtt::DriverNetZigbee2mqtt(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig),
 	_discoveryFinished(false),
-	_colorsFinished(false),
+	_colorsFinished(0),
 	_timeLogger(0)
 {
 }
@@ -104,7 +105,7 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 {
 	QJsonDocument doc;
 
-	_colorsFinished = false;
+	_colorsFinished = std::min(ledValues.size(), _zigInstance.lamps.size());
 
 	auto rgb = ledValues.begin();
 	for (const auto& lamp : _zigInstance.lamps)
@@ -149,19 +150,20 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 			emit GlobalSignals::getInstance()->SignalMqttPublish(topic, doc.toJson(QJsonDocument::Compact));
 		}
 
-	int timeout = 0;
-	for (timeout = 0; timeout < 20 && !_colorsFinished; timeout++)
+	auto start = InternalClock::nowPrecise();
+
+	for (int timeout = 0; timeout < 25 && _colorsFinished > 0; timeout++)
 	{
-		QThread::msleep(10);
+		QThread::msleep(8);
 	}
 
-	if (!_colorsFinished)
+	if (_colorsFinished > 0)
 	{
-		Warning(_log, "The communication timed out after 200ms (%i)", (++_timeLogger));
+		Warning(_log, "The communication timed out after %ims (%i)", (int)(InternalClock::nowPrecise() - start), (++_timeLogger));
 	}
 	else if (_timeLogger >= 0 && _timeLogger < DEFAULT_TIME_MEASURE_MESSAGE)
 	{
-		Info(_log, "The communication took: %ims (%i/%i)", timeout * 10, ++_timeLogger, DEFAULT_TIME_MEASURE_MESSAGE);
+		Info(_log, "The communication took: %ims (%i/%i)", (int)(InternalClock::nowPrecise() - start), ++_timeLogger, DEFAULT_TIME_MEASURE_MESSAGE);
 	}
 
 	return 0;
@@ -174,9 +176,9 @@ void DriverNetZigbee2mqtt::handlerSignalMqttReceived(QString topic, QString payl
 		_discoveryMessage = payload;
 		_discoveryFinished = true;
 	}
-	else
+	else if (_colorsFinished > 0)
 	{
-		_colorsFinished = true;
+		_colorsFinished--;
 	}
 }
 

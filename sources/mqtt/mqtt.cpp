@@ -150,7 +150,7 @@ void mqtt::handleSignalMqttSubscribe(bool subscribe, QString topic)
 
 	if (subscribe)
 	{
-		_clientInstance->subscribe(topic, 2);
+		_clientInstance->subscribe(topic, 0);
 	}
 	else
 	{

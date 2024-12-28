@@ -54,7 +54,8 @@ private:
 	bool powerOnOff(bool isOn);
 
 	Zigbee2mqttInstance	_zigInstance;
-	std::atomic<bool>	_discoveryFinished, _colorsFinished;
+	std::atomic<bool>	_discoveryFinished;
+	std::atomic<int>	_colorsFinished;
 	int					_timeLogger;
 	QString				_discoveryMessage;
 
