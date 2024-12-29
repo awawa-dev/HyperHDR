@@ -4,6 +4,8 @@
 	#include <QSet>
 	#include <QJsonDocument>
 	#include <QTimer>
+	#include <QStringList>
+	#include <map>
 #endif
 
 #include <utils/Logger.h>
@@ -30,6 +32,7 @@ public slots:
 
 	void handleSignalMqttSubscribe(bool subscribe, QString topic);
 	void handleSignalMqttPublish(QString topic, QString payload);
+	void handleSignalMqttLastWill(QString id, QStringList pairs);
 
 private slots:
 	void connected();
@@ -60,6 +63,8 @@ private:
 	bool		_initialized;
 	QJsonArray	_resultArray;
 	bool		_disableApiAccess;
+
+	std::map<QString, QStringList> _lastWill;
 
 	Logger*		_log;
 	QMQTT::Client*	_clientInstance;	

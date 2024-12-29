@@ -62,9 +62,11 @@ private:
 	std::atomic<int>	_colorsFinished;
 	int					_timeLogger;
 	QString				_discoveryMessage;
+	int					_mqttId;
 
 	std::mutex				_mtx;
 	std::condition_variable	_cv;
 
+	static int mqttId;
 	static bool isRegistered;
 };

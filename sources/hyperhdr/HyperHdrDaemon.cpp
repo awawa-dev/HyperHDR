@@ -238,6 +238,8 @@ void HyperHdrDaemon::freeObjects()
 {
 	Info(_log, "Cleaning up HyperHdr before quit [preparing]");
 
+	emit GlobalSignals::getInstance()->SignalMqttLastWill(QString(), QStringList());
+
 	disconnect(GlobalSignals::getInstance(), nullptr, nullptr, nullptr);
 	disconnect(_instanceManager.get(), nullptr, nullptr, nullptr);
 	HyperHdrInstance::signalTerminateTriggered();

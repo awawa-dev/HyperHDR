@@ -29,6 +29,8 @@ mqtt::mqtt(const QJsonDocument& mqttConfig)
 	, _log(Logger::getInstance("MQTT"))
 	, _clientInstance(nullptr)
 {
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttLastWill, this, &mqtt::handleSignalMqttLastWill, Qt::UniqueConnection);
+
 	handleSettingsUpdate(settings::type::MQTT, mqttConfig);
 }
 
@@ -352,5 +354,33 @@ void mqtt::handleSignalMqttPublish(QString topic, QString payload)
 		message.setPayload(payload.toUtf8());
 		
 		_clientInstance->publish(message);
+	}
+}
+
+void mqtt::handleSignalMqttLastWill(QString id, QStringList pairs)
+{
+	if (!id.isEmpty() && !pairs.isEmpty())
+	{
+		if ((pairs.size() % 2) == 0)
+		{
+			_lastWill[id] = pairs;
+		}
+	}
+	else if (!id.isEmpty())
+	{
+		_lastWill.erase(id);
+	}
+	else if (_lastWill.size() > 0)
+	{
+		for (const auto& current : _lastWill)
+			for (auto item = current.second.begin(); item != current.second.end(); ++item)
+			{
+				auto topic = *(item++);
+				if (item != current.second.end())
+				{
+					handleSignalMqttPublish(topic, *(item));
+				}
+			}
+		_lastWill.clear();
 	}
 }

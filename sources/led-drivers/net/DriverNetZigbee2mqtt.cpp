@@ -13,7 +13,8 @@ DriverNetZigbee2mqtt::DriverNetZigbee2mqtt(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig),
 	_discoveryFinished(false),
 	_colorsFinished(0),
-	_timeLogger(0)
+	_timeLogger(0),
+	_mqttId(mqttId++)
 {
 }
 
@@ -60,6 +61,7 @@ bool DriverNetZigbee2mqtt::init(const QJsonObject& deviceConfig)
 bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 {
 	QJsonDocument doc;	
+	QStringList lastWill;
 
 	for (const auto& lamp : _zigInstance.lamps)
 	{
@@ -70,16 +72,28 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 		
 		doc.setObject(row);
 		emit GlobalSignals::getInstance()->SignalMqttPublish(topic, doc.toJson(QJsonDocument::Compact));		
+
+		if (isOn)
+		{
+			row["state"] = "OFF";
+			doc.setObject(row);
+
+			lastWill.push_back(topic);
+			lastWill.push_back(doc.toJson(QJsonDocument::Compact));
+		}
 	}
 	
 	if (_zigInstance.lamps.size() > 0)
 	{
+		QString lastWillId = QString("DriverNetZigbee2mqtt:%1").arg(_mqttId);
 		if (isOn)
 		{
+			emit GlobalSignals::getInstance()->SignalMqttLastWill(lastWillId, lastWill);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttReceived, this, &DriverNetZigbee2mqtt::handlerSignalMqttReceived, Qt::DirectConnection);
 		}
 		else
 		{
+			emit GlobalSignals::getInstance()->SignalMqttLastWill(lastWillId, QStringList());
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttReceived, this, &DriverNetZigbee2mqtt::handlerSignalMqttReceived);
 		}
 	}
@@ -328,4 +342,5 @@ void DriverNetZigbee2mqtt::identify(const QJsonObject& params)
 	}
 }
 
+int DriverNetZigbee2mqtt::mqttId = 0;
 bool DriverNetZigbee2mqtt::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("zigbee2mqtt", "leds_group_2_network", DriverNetZigbee2mqtt::construct);
