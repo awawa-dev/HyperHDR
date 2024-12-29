@@ -160,6 +160,8 @@ private:
 	int64_t _frameDrmModifier;
 	PipewireImage _image;
 
+	bool _eglDmaModifierWorkaround = false;
+
 	MemoryBuffer<uint8_t> _memoryCache;
 
 	std::unique_ptr<sdbus::IConnection> _dbusConnection;
