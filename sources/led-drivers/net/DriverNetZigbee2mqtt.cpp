@@ -65,7 +65,8 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 
 	for (const auto& lamp : _zigInstance.lamps)
 	{
-		QString topic = QString("zigbee2mqtt/%1/set").arg(lamp.name);
+		QString topicDevice = QString("zigbee2mqtt/%1").arg(lamp.name);
+		QString topic = QString("%1/set").arg(topicDevice);
 		QJsonObject row;
 
 		row["state"] = (isOn) ? "ON" : "OFF";
@@ -75,11 +76,17 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 
 		if (isOn)
 		{
+			emit GlobalSignals::getInstance()->SignalMqttSubscribe(true, topicDevice);
+
 			row["state"] = "OFF";
 			doc.setObject(row);
 
 			lastWill.push_back(topic);
 			lastWill.push_back(doc.toJson(QJsonDocument::Compact));
+		}
+		else
+		{
+			emit GlobalSignals::getInstance()->SignalMqttSubscribe(false, topicDevice);
 		}
 	}
 	

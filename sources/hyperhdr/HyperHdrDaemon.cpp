@@ -215,11 +215,6 @@ void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 ins
 				_flatProtoBuffersThread->start();
 			}
 
-			if (_mqttThread != nullptr && !_mqttThread->isRunning())
-			{
-				_mqttThread->start();
-			}
-
 			if (_networkThread != nullptr && !_networkThread->isRunning())
 			{
 				_networkThread->start();
@@ -401,6 +396,7 @@ void HyperHdrDaemon::startNetworkServices()
 		[_mqtt](QThread* mqttThread) {
 			THREAD_REMOVER(QString("MQTT"), mqttThread, _mqtt);
 		});
+	_mqttThread->start();
 #endif
 }
 
