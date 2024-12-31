@@ -6,13 +6,11 @@ namespace
 {
 	constexpr auto ZIGBEE_DISCOVERY_MESSAGE = "zigbee2mqtt/bridge/devices";
 	constexpr int DEFAULT_TIME_MEASURE_MESSAGE = 25;
-	constexpr int DEFAULT_COMMUNICATION_TIMEOUT_MS = 200;
 }
 
 DriverNetZigbee2mqtt::DriverNetZigbee2mqtt(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig),
 	_discoveryFinished(false),
-	_colorsFinished(0),
 	_timeLogger(0),
 	_mqttId(mqttId++)
 {
@@ -65,8 +63,7 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 
 	for (const auto& lamp : _zigInstance.lamps)
 	{
-		QString topicDevice = QString("zigbee2mqtt/%1").arg(lamp.name);
-		QString topic = QString("%1/set").arg(topicDevice);
+		QString topic = QString("zigbee2mqtt/%1/set").arg(lamp.name);
 		QJsonObject row;
 
 		row["state"] = (isOn) ? "ON" : "OFF";
@@ -76,17 +73,11 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 
 		if (isOn)
 		{
-			emit GlobalSignals::getInstance()->SignalMqttSubscribe(true, topicDevice);
-
 			row["state"] = "OFF";
 			doc.setObject(row);
 
 			lastWill.push_back(topic);
 			lastWill.push_back(doc.toJson(QJsonDocument::Compact));
-		}
-		else
-		{
-			emit GlobalSignals::getInstance()->SignalMqttSubscribe(false, topicDevice);
 		}
 	}
 	
@@ -123,8 +114,7 @@ bool DriverNetZigbee2mqtt::powerOff()
 int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 {
 	QJsonDocument doc;
-
-	_colorsFinished = std::min(ledValues.size(), _zigInstance.lamps.size());
+	auto start = InternalClock::nowPrecise();
 
 	auto rgb = ledValues.begin();
 	for (const auto& lamp : _zigInstance.lamps)
@@ -168,22 +158,8 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 			doc.setObject(row);
 			emit GlobalSignals::getInstance()->SignalMqttPublish(topic, doc.toJson(QJsonDocument::Compact));
 		}
-
-	auto start = InternalClock::nowPrecise();
-
-	std::unique_lock<std::mutex> lck(_mtx);
-	_cv.wait_for(lck, std::chrono::milliseconds(DEFAULT_COMMUNICATION_TIMEOUT_MS));
-
-	for (int timeout = 0; timeout < 20 && _colorsFinished > 0 && (InternalClock::nowPrecise() < start + DEFAULT_COMMUNICATION_TIMEOUT_MS); timeout++)
-	{
-		QThread::msleep(10);
-	}
-
-	if (_colorsFinished.exchange(0) > 0)
-	{
-		Warning(_log, "The communication timed out after %ims (%i)", (int)(InternalClock::nowPrecise() - start), (++_timeLogger));
-	}
-	else if (_timeLogger >= 0 && _timeLogger < DEFAULT_TIME_MEASURE_MESSAGE)
+	
+	if (_timeLogger >= 0 && _timeLogger < DEFAULT_TIME_MEASURE_MESSAGE)
 	{
 		Info(_log, "The communication took: %ims (%i/%i)", (int)(InternalClock::nowPrecise() - start), ++_timeLogger, DEFAULT_TIME_MEASURE_MESSAGE);
 	}
@@ -197,14 +173,6 @@ void DriverNetZigbee2mqtt::handlerSignalMqttReceived(QString topic, QString payl
 	{
 		_discoveryMessage = payload;
 		_discoveryFinished = true;
-	}
-	else if (_colorsFinished > 0)
-	{
-		_colorsFinished--;
-		if (_colorsFinished == 0)
-		{
-			_cv.notify_all();
-		}
 	}
 }
 

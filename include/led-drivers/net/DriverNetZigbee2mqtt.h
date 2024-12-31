@@ -59,7 +59,6 @@ private:
 
 	Zigbee2mqttInstance	_zigInstance;
 	std::atomic<bool>	_discoveryFinished;
-	std::atomic<int>	_colorsFinished;
 	int					_timeLogger;
 	QString				_discoveryMessage;
 	int					_mqttId;
