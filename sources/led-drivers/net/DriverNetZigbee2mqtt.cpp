@@ -12,7 +12,8 @@ DriverNetZigbee2mqtt::DriverNetZigbee2mqtt(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig),
 	_discoveryFinished(false),
 	_timeLogger(0),
-	_mqttId(mqttId++)
+	_mqttId(mqttId++),
+	_lastUpdate(0)
 {
 }
 
@@ -27,13 +28,8 @@ bool DriverNetZigbee2mqtt::init(const QJsonObject& deviceConfig)
 
 	if (LedDevice::init(deviceConfig))
 	{
-		if (_zigInstance.constantBrightness < 0)
-		{
-			QThread::msleep(750);
-		}
-
 		_zigInstance.transition = deviceConfig["transition"].toInt(0);
-		_zigInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(1);
+		_zigInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(255);
 		
 		Debug(_log, "Transition (ms)       : %s", (_zigInstance.transition > 0) ? QSTRING_CSTR(QString::number(_zigInstance.transition)) : "disabled" );
 		Debug(_log, "ConstantBrightness    : %s", (_zigInstance.constantBrightness > 0) ? QSTRING_CSTR(QString::number(_zigInstance.constantBrightness)) : "disabled");
@@ -101,6 +97,7 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 	}
 
 	_timeLogger = 0;
+	_lastUpdate = InternalClock::now() - 9000;
 	
 	return true;
 }
@@ -118,7 +115,8 @@ bool DriverNetZigbee2mqtt::powerOff()
 int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 {
 	QJsonDocument doc;
-	auto start = InternalClock::nowPrecise();
+	auto start = InternalClock::now();
+	auto lastUpdate = _lastUpdate;
 
 	auto rgb = ledValues.begin();
 	for (auto& lamp : _zigInstance.lamps)
@@ -159,6 +157,11 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 			else if (lamp.currentBrightness > 0 && brightness == 0)
 			{
 				row["brightness"] = lamp.currentBrightness = 0;
+			}
+			else if (start - lastUpdate >= 10000)
+			{
+				_lastUpdate = start;
+				row["brightness"] = lamp.currentBrightness;
 			}
 
 			doc.setObject(row);

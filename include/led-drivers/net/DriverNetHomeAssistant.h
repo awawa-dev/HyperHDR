@@ -22,7 +22,7 @@ class DriverNetHomeAssistant : public LedDevice
 		QString homeAssistantHost;
 		QString longLivedAccessToken;
 		int transition;
-		int constantBrightness;
+		int constantBrightness = 255;
 		bool restoreOriginalState;
 
 		std::list<HomeAssistantLamp> lamps;
@@ -34,6 +34,7 @@ class DriverNetHomeAssistant : public LedDevice
 
 		QString name;
 		Mode colorModel;
+		int currentBrightness = 255;
 
 		struct
 		{
@@ -63,6 +64,7 @@ private:
 	HomeAssistantInstance _haInstance;
 
 	std::unique_ptr<ProviderRestApi> _restApi;
+	long long						_lastUpdate;
 
 	static bool isRegistered;
 };

@@ -21,7 +21,7 @@ class DriverNetZigbee2mqtt : public LedDevice
 	struct Zigbee2mqttInstance
 	{
 		int transition;
-		int constantBrightness = -1;
+		int constantBrightness = 255;
 
 		std::list<Zigbee2mqttLamp> lamps;
 	};
@@ -32,7 +32,7 @@ class DriverNetZigbee2mqtt : public LedDevice
 
 		QString name;
 		Mode colorModel;
-		int currentBrightness;
+		int currentBrightness = 255;
 	};
 
 public:
@@ -60,6 +60,7 @@ private:
 	int					_timeLogger;
 	QString				_discoveryMessage;
 	int					_mqttId;
+	long long			_lastUpdate;
 
 	static int mqttId;
 	static bool isRegistered;

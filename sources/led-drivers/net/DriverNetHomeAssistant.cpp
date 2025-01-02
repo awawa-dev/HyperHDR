@@ -1,4 +1,5 @@
 #include <led-drivers/net/DriverNetHomeAssistant.h>
+#include <utils/InternalClock.h>
 
 #include <HyperhdrConfig.h>
 #ifdef ENABLE_BONJOUR
@@ -6,7 +7,8 @@
 #endif
 
 DriverNetHomeAssistant::DriverNetHomeAssistant(const QJsonObject& deviceConfig)
-	: LedDevice(deviceConfig)
+	: LedDevice(deviceConfig),
+	_lastUpdate(0)
 {
 }
 
@@ -25,7 +27,7 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 		_haInstance.homeAssistantHost = deviceConfig["homeAssistantHost"].toString();
 		_haInstance.longLivedAccessToken = deviceConfig["longLivedAccessToken"].toString();
 		_haInstance.transition = deviceConfig["transition"].toInt(0);
-		_haInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(0);
+		_haInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(255);
 		_haInstance.restoreOriginalState = deviceConfig["restoreOriginalState"].toBool(false);
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
 
@@ -96,6 +98,7 @@ bool DriverNetHomeAssistant::powerOn()
 		if (!saveStates())
 			return false;
 	}
+	_lastUpdate = InternalClock::now() - 9000;
 	return powerOnOff(true);
 }
 
@@ -112,9 +115,11 @@ bool DriverNetHomeAssistant::powerOff()
 int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 {
 	QJsonDocument doc;
+	auto start = InternalClock::now();
+	auto lastUpdate = _lastUpdate;
 
 	auto rgb = ledValues.begin();
-	for (const auto& lamp : _haInstance.lamps)
+	for (auto& lamp : _haInstance.lamps)
 		if (rgb != ledValues.end())
 		{
 			QJsonObject row;
@@ -142,12 +147,19 @@ int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 				brightness = std::min(std::max(static_cast<int>(std::roundl(v * 255.0)), 0), 255);
 			}
 
-			if (brightness > 0 && _haInstance.constantBrightness > 0)
+			if (lamp.currentBrightness <= 0 && brightness > 0)
 			{
-				brightness = _haInstance.constantBrightness;
+				row["brightness"] = lamp.currentBrightness = _haInstance.constantBrightness;
 			}
-			
-			row["brightness"] = brightness;
+			else if (lamp.currentBrightness > 0 && brightness == 0)
+			{
+				row["brightness"] = lamp.currentBrightness = 0;
+			}
+			else if (start - lastUpdate >= 10000)
+			{
+				_lastUpdate = start;
+				row["brightness"] = lamp.currentBrightness;
+			}
 
 			doc.setObject(row);
 			QString message(doc.toJson(QJsonDocument::Compact));
