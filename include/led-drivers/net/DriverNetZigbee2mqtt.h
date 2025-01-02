@@ -7,10 +7,7 @@
 	#include <list>
 	#include <atomic>
 	#include <chrono>
-	#include <mutex>
 #endif
-
-#include <condition_variable>
 
 #include <led-drivers/LedDevice.h>
 #include <linalg.h>
@@ -24,7 +21,7 @@ class DriverNetZigbee2mqtt : public LedDevice
 	struct Zigbee2mqttInstance
 	{
 		int transition;
-		int constantBrightness;
+		int constantBrightness = -1;
 
 		std::list<Zigbee2mqttLamp> lamps;
 	};
@@ -35,6 +32,7 @@ class DriverNetZigbee2mqtt : public LedDevice
 
 		QString name;
 		Mode colorModel;
+		int currentBrightness;
 	};
 
 public:
@@ -62,9 +60,6 @@ private:
 	int					_timeLogger;
 	QString				_discoveryMessage;
 	int					_mqttId;
-
-	std::mutex				_mtx;
-	std::condition_variable	_cv;
 
 	static int mqttId;
 	static bool isRegistered;
