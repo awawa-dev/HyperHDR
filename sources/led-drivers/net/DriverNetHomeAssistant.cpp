@@ -50,6 +50,7 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 				auto lampObj = lamp.toObject();
 				hl.name = lampObj["name"].toString();
 				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));				
+				hl.currentBrightness = _haInstance.constantBrightness;
 				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
 				_haInstance.lamps.push_back(hl);
 			}

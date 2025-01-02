@@ -43,6 +43,7 @@ bool DriverNetZigbee2mqtt::init(const QJsonObject& deviceConfig)
 				auto lampObj = lamp.toObject();
 				hl.name = lampObj["name"].toString();
 				hl.colorModel = static_cast<Zigbee2mqttLamp::Mode>(lampObj["colorModel"].toInt(0));
+				hl.currentBrightness = _zigInstance.constantBrightness;
 				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
 				_zigInstance.lamps.push_back(hl);
 			}
