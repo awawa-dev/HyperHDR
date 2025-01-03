@@ -216,7 +216,6 @@ void PipewireHandler::closeSession()
 	_requestedFPS = 10;
 	_hasFrame = false;
 	_infoUpdated = false;
-	_eglDmaModifierWorkaround = false;
 	_frameDrmFormat = DRM_FORMAT_MOD_INVALID;
 	_frameDrmModifier = DRM_FORMAT_MOD_INVALID;
 
@@ -706,7 +705,6 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	
 	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));	
 	_infoUpdated = false;
-	_eglDmaModifierWorkaround = false;
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);
 };
@@ -784,6 +782,7 @@ void PipewireHandler::captureFrame()
 			else
 			{				
 				QVector<EGLint> attribs;
+				std::vector<std::pair<int, int>> eglDrmModWorkaround;
 				
 				attribs << EGL_WIDTH << _frameWidth << EGL_HEIGHT << _frameHeight << EGL_LINUX_DRM_FOURCC_EXT << EGLint(_frameDrmFormat);
 
@@ -800,10 +799,12 @@ void PipewireHandler::captureFrame()
 					attribs << EGL_DMA_BUF_PLANE_FD_EXT[i] << EGLint(planes.fd) << EGL_DMA_BUF_PLANE_OFFSET_EXT[i] << EGLint(planes.chunk->offset)
 							<< EGL_DMA_BUF_PLANE_PITCH_EXT[i] << EGLint(planes.chunk->stride);
 
-					if (_frameDrmModifier != DRM_FORMAT_MOD_INVALID && !_eglDmaModifierWorkaround)
+					if (_frameDrmModifier != DRM_FORMAT_MOD_INVALID)
 					{
+						int before = attribs.size();
 						attribs	<< EGL_DMA_BUF_PLANE_MODIFIER_LO_EXT[i] << EGLint(_frameDrmModifier & 0xffffffff)
 								<< EGL_DMA_BUF_PLANE_MODIFIER_HI_EXT[i] << EGLint(_frameDrmModifier >> 32);
+						eglDrmModWorkaround.push_back(std::pair<int, int>(before, attribs.size() - 1));
 					}
 				}
 
@@ -811,28 +812,21 @@ void PipewireHandler::captureFrame()
 
 				EGLImage eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
 
-				// https://github.com/awawa-dev/HyperHDR/issues/1028
-				if (!_eglDmaModifierWorkaround && eglImage == EGL_NO_IMAGE_KHR) 
+				if (eglImage == EGL_NO_IMAGE_KHR && eglDrmModWorkaround.size() > 0)
 				{
-					printf("PipewireEGL: failed to create a texture (reason = '%s'). Trying to remove DMA modifiers...\n", eglErrorToString(eglGetError()));
-					
-					_eglDmaModifierWorkaround = true;
-
-					// Removing DMA modifiers from the attributes
-					for (auto it = attribs.begin(); it != attribs.end();)
+					// remove drm mods
+					QVector<EGLint> attribsCopy;
+					for (int i = 0; i < attribs.size(); i++)
 					{
-						if (*it == EGL_NONE)
-							break;
-						
-						// Check if attrib key is dma modifier
-						if (*it >= EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT && *it <= EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT) 
-						{
-							it = attribs.erase(it, it + 2); // removing key and value
-						} else {
-							it = it + 2;
-						}
+						attribsCopy.push_back(attribs[i]);
+						for (const auto& check : eglDrmModWorkaround)
+							if (i >= check.first && i <= check.second)
+							{
+								attribsCopy.pop_back();
+								break;
+							}
 					}
-
+					attribs = attribsCopy;
 					eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
 				}
 
