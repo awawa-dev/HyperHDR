@@ -49,6 +49,8 @@
 #include <cstring>
 #include <iostream>
 #include <dlfcn.h>
+#include <utility>
+	
 
 #include <grabber/linux/pipewire/smartPipewire.h>
 #include <grabber/linux/pipewire/PipewireHandler.h>
@@ -780,6 +782,7 @@ void PipewireHandler::captureFrame()
 			else
 			{				
 				QVector<EGLint> attribs;
+				std::vector<std::pair<int, int>> eglDrmModWorkaround;
 				
 				attribs << EGL_WIDTH << _frameWidth << EGL_HEIGHT << _frameHeight << EGL_LINUX_DRM_FOURCC_EXT << EGLint(_frameDrmFormat);
 
@@ -798,14 +801,34 @@ void PipewireHandler::captureFrame()
 
 					if (_frameDrmModifier != DRM_FORMAT_MOD_INVALID)
 					{
+						int before = attribs.size();
 						attribs	<< EGL_DMA_BUF_PLANE_MODIFIER_LO_EXT[i] << EGLint(_frameDrmModifier & 0xffffffff)
 								<< EGL_DMA_BUF_PLANE_MODIFIER_HI_EXT[i] << EGLint(_frameDrmModifier >> 32);
+						eglDrmModWorkaround.push_back(std::pair<int, int>(before, attribs.size() - 1));
 					}
 				}
 
 				attribs << EGL_IMAGE_PRESERVED_KHR << EGL_TRUE << EGL_NONE;
 
 				EGLImage eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
+
+				if (eglImage == EGL_NO_IMAGE_KHR && eglDrmModWorkaround.size() > 0)
+				{
+					// remove drm mods
+					QVector<EGLint> attribsCopy;
+					for (int i = 0; i < attribs.size(); i++)
+					{
+						attribsCopy.push_back(attribs[i]);
+						for (const auto& check : eglDrmModWorkaround)
+							if (i >= check.first && i <= check.second)
+							{
+								attribsCopy.pop_back();
+								break;
+							}
+					}
+					attribs = attribsCopy;
+					eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
+				}
 
 				if (eglImage == EGL_NO_IMAGE_KHR)
 				{
