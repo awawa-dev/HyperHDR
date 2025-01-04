@@ -44,6 +44,27 @@
 namespace
 {
 	HWND handle = nullptr;
+	SuspendHandler* instance = nullptr;
+}
+
+static void SuspendHandlerQueueHandler(WPARAM wparam)
+{
+	if (instance != nullptr)
+	{
+		MSG message{};
+		QByteArray eventType;
+
+		message.message = WM_POWERBROADCAST;
+		message.wParam = wparam;
+
+		#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+			long result = 0;
+			BLOCK_CALL_3(instance, nativeEventFilter, QByteArray, eventType, void*, &message, long*, &result);
+		#else
+			qintptr result = 0;
+			BLOCK_CALL_3(instance, nativeEventFilter, QByteArray, eventType, void*, &message, qintptr*, &result);
+		#endif
+	}
 }
 
 SuspendHandler::SuspendHandler(bool sessionLocker):
@@ -51,7 +72,9 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 	_notifyMonitorHandle(NULL),
 	_sessionLocker(sessionLocker)
 {
+	instance = this;
 	handle = SystrayGetWindow();
+	SystrayAssignQueueHandler(SuspendHandlerQueueHandler);
 	_notifyHandle = RegisterSuspendResumeNotification(handle, DEVICE_NOTIFY_WINDOW_HANDLE);
 
 	if (_notifyHandle == NULL)
@@ -78,6 +101,8 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 
 SuspendHandler::~SuspendHandler()
 {
+	instance = nullptr;
+
 	if (_notifyHandle != NULL)
 	{
 		UnregisterSuspendResumeNotification(_notifyHandle);
