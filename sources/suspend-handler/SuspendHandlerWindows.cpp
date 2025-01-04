@@ -38,6 +38,7 @@
 #include <windows.h>
 #include <wtsapi32.h>
 #include <systray/Systray.h>
+#include <QCoreApplication>
 
 #pragma comment (lib, "WtsApi32.Lib")
 
@@ -49,7 +50,12 @@ namespace
 
 static void SuspendHandlerQueueHandler(WPARAM wparam)
 {
-	if (instance != nullptr)
+	if (wparam == 0)
+	{
+		auto instance = QCoreApplication::instance();
+		QUEUE_CALL_0(instance, quit);
+	}
+	else if (instance != nullptr)
 	{
 		MSG message{};
 		QByteArray eventType;

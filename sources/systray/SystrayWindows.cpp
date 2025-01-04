@@ -71,6 +71,13 @@ static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
 			}
 			return true;
 
+		case WM_QUERYENDSESSION:
+			if (queueHandler != nullptr && lparam == 0)
+			{
+				queueHandler(0);
+			}
+			return false;
+
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
 			hwnd = nullptr;
