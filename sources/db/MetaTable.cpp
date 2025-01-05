@@ -1,5 +1,6 @@
 #include <QCryptographicHash>
 #include <QNetworkInterface>
+#include <QUuid>
 
 #include <db/MetaTable.h>
 

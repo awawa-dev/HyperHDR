@@ -5,6 +5,7 @@
 #endif
 
 #include <QHostInfo>
+#include <QUuid>
 
 // hyperhdr local includes
 #include <led-drivers/net/DriverNetUdpE131.h>

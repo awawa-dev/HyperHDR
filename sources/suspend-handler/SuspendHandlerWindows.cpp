@@ -107,6 +107,7 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 
 SuspendHandler::~SuspendHandler()
 {
+	SystrayAssignQueueHandler(nullptr);
 	instance = nullptr;
 
 	if (_notifyHandle != NULL)

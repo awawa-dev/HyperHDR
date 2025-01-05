@@ -1,4 +1,5 @@
 #include <QCryptographicHash>
+#include <QUuid>
 
 #include <db/AuthTable.h>
 using namespace hyperhdr;

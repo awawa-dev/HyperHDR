@@ -6,6 +6,7 @@
 #include <base/AccessManager.h>
 #include <db/AuthTable.h>
 #include <db/MetaTable.h>
+#include <QUuid>
 
 using namespace hyperhdr;
 
