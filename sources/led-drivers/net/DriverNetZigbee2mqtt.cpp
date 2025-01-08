@@ -151,7 +151,11 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 				brightness = std::min(std::max(static_cast<int>(std::roundl(v * 255.0)), 0), 255);
 			}
 
-			if (lamp.currentBrightness <= 0 && brightness > 0)
+			if (_zigInstance.constantBrightness == 0)
+			{				
+				row["brightness"] = lamp.currentBrightness = brightness;				
+			}
+			else if (lamp.currentBrightness <= 0 && brightness > 0)
 			{
 				row["brightness"] = lamp.currentBrightness = _zigInstance.constantBrightness;
 			}
@@ -167,6 +171,7 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 
 			doc.setObject(row);
 			emit GlobalSignals::getInstance()->SignalMqttPublish(topic, doc.toJson(QJsonDocument::Compact));
+			QThread::msleep(30);
 		}
 	
 	if (_timeLogger >= 0 && _timeLogger < DEFAULT_TIME_MEASURE_MESSAGE)

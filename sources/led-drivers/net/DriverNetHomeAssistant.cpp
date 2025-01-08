@@ -148,7 +148,11 @@ int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 				brightness = std::min(std::max(static_cast<int>(std::roundl(v * 255.0)), 0), 255);
 			}
 
-			if (lamp.currentBrightness <= 0 && brightness > 0)
+			if (_haInstance.constantBrightness == 0)
+			{
+				row["brightness"] = lamp.currentBrightness = brightness;
+			}
+			else if (lamp.currentBrightness <= 0 && brightness > 0)
 			{
 				row["brightness"] = lamp.currentBrightness = _haInstance.constantBrightness;
 			}

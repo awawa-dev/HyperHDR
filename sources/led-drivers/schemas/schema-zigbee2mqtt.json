@@ -16,7 +16,7 @@
 			"type": "integer",
 			"title": "edt_dev_spec_constantBrightness_title",
 			"default": 255,
-			"minimum": 1,
+			"minimum": 0,
 			"maximum": 255,
 			"required": true,
 			"propertyOrder": 4
