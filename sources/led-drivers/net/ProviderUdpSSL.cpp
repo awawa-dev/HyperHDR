@@ -187,12 +187,10 @@ bool ProviderUdpSSL::initNetwork()
 		}
 	});
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	connect(_socket, &QUdpSocket::errorOccurred, this, [&](QAbstractSocket::SocketError socketError) {
 		QString message = QString("Socket error nr: %1").arg(QString::number(socketError));
 		QUEUE_CALL_1(this, errorHandling, QString, message);
 	});
-#endif
 
 	connect(_socket, &QUdpSocket::readyRead, this, [&](){
 		if (_dtls ==nullptr || _socket == nullptr ||  _socket->pendingDatagramSize() <= 0)
