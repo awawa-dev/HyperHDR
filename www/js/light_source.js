@@ -868,7 +868,7 @@ $(document).ready(function()
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
 		}
-		else if ([ "cololight", "yeelight", "atmoorb", "home_assistant"].includes(ledType))
+		else if ([ "cololight", "yeelight", "atmoorb", "home_assistant", "zigbee2mqtt"].includes(ledType))
 		{
 			const data = {
 				type: ledType

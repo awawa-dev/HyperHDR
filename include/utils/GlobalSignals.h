@@ -29,6 +29,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QObject>
+	#include <QStringList>	
 #endif
 
 #include <image/ColorRgb.h>
@@ -99,4 +100,12 @@ signals:
 	void SignalSetLut(MemoryBuffer<uint8_t>* lut);
 
 	void SignalLutRequest();
+
+	void SignalMqttSubscribe(bool subscribe, QString topic);
+
+	void SignalMqttReceived(QString topic, QString payload);
+
+	void SignalMqttPublish(QString topic, QString payload);
+
+	void SignalMqttLastWill(QString id, QStringList pairs);
 };

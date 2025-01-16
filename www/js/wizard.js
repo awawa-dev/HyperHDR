@@ -2494,8 +2494,9 @@ function startWizardHome_assistant(e)
 		haConfig.type = 'home_assistant';	
 		haConfig.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
 		haConfig.homeAssistantHost = $('#hostHA').val().trim();
-		haConfig.longLivedAccessToken= $('#tokenHA').val().trim();
+		haConfig.longLivedAccessToken= `${$('#tokenHA').val().trim()}`;
 		haConfig.transition = conf_editor.getEditor("root.specificOptions.transition").getValue();
+		haConfig.constantBrightness = conf_editor.getEditor("root.specificOptions.constantBrightness").getValue();
 		haConfig.restoreOriginalState = conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue();
 		haConfig.maxRetry = conf_editor.getEditor("root.specificOptions.maxRetry").getValue();
 		haConfig.lamps = [];		
@@ -2577,7 +2578,7 @@ function identify_ha_device(host, token, id)
 function createHaLedConfig(haConfig)
 {
 	var lightOptions = [
-		"top", "topleft", "topright",
+		"disabled", "top", "topleft", "topright",
 		"bottom", "bottomleft", "bottomright",
 		"left", "lefttop", "leftmiddle", "leftbottom",
 		"right", "righttop", "rightmiddle", "rightbottom",
@@ -2606,8 +2607,14 @@ function createHaLedConfig(haConfig)
 			var idx_content = assignLightPos(key, defaultPosition, _haConfig.lamps[key].name);
 
 			_haConfig.lamps[key].defaultPosition = defaultPosition;
-			ledDef.push(JSON.parse(JSON.stringify(idx_content)));
+			if (defaultPosition != "disabled")
+			{
+				ledDef.push(JSON.parse(JSON.stringify(idx_content)));
+			}
 		}
+
+		_haConfig.lamps = _haConfig.lamps.filter(item => item.defaultPosition != "disabled");
+
 		window.serverConfig.leds = ledDef;
 		requestWriteConfig({ "leds": window.serverConfig.leds });
 		window.serverConfig.device = _haConfig;
@@ -2629,14 +2636,76 @@ function createHaLedConfig(haConfig)
 			options += `<option value="${val}" ${(lamp.defaultPosition === val) ? "selected" : "" } >${$.i18n(txt + val)}</option>`;
 		}
 		let selectLightControl = `<select id="ha_lamp_pos_${ledHaIndex}" class="hue_sel_watch form-select">${options}</select>`;
-		let ipVal = encodeURI(haConfig.homeAssistantHost);
-		let tokenVal = haConfig.longLivedAccessToken;					
-		let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_ha_device("${ipVal}","${tokenVal}","${lamp.name}")>${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;					
-		$('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
+		if (haConfig.type == 'home_assistant')
+		{		
+			let ipVal = encodeURI(haConfig.homeAssistantHost);
+			let tokenVal = haConfig.longLivedAccessToken;					
+			let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_ha_device("${ipVal}","${tokenVal}","${lamp.name}")>${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
+			$('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
+		}
+		else
+		{			
+			let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick="const params = { name: '${lamp.name}', type: '${lamp.colorModel}' }; requestLedDeviceIdentification('${haConfig.type}', params);">${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
+			$('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
+		}
 		ledHaIndex++;
 	});
 
 	$('#wizp1').toggle(false);
 	$("#wizard_modal").addClass("modal-lg");
 	$('#wizp2').toggle(true);
+}
+
+//****************************
+// Wizard zigbee2mqtt
+//****************************
+
+function startWizardZigbee2mqtt(e)
+{
+
+	requestLedDeviceDiscovery('zigbee2mqtt').then( (result) => {
+
+		let zigbeeConfig = {};
+					
+		zigbeeConfig.type = 'zigbee2mqtt';	
+		zigbeeConfig.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
+		zigbeeConfig.transition = conf_editor.getEditor("root.specificOptions.transition").getValue();
+		zigbeeConfig.constantBrightness = conf_editor.getEditor("root.specificOptions.constantBrightness").getValue();
+		zigbeeConfig.lamps = [];
+
+		let discovered = result;
+		if (discovered != null && discovered.success === true && discovered.info != null && discovered.info.devices != null &&
+			Array.isArray(discovered.info.devices) && discovered.info.devices.length > 0)
+		{
+			discovered.info.devices.forEach(dev => {
+				let lamp = {};
+				lamp.name = dev.name;
+				lamp.colorModel = dev.value;
+				zigbeeConfig.lamps.push(lamp);
+			});
+
+			if (window.serverConfig.device != null && window.serverConfig.device.type == zigbeeConfig.type &&
+				Array.isArray(window.serverConfig.device.lamps) && window.serverConfig.device.lamps.length ==  zigbeeConfig.lamps.length)
+			{
+				for (var key in zigbeeConfig.lamps)
+				if (zigbeeConfig.lamps[key].name =  window.serverConfig.device.lamps[key].name)
+				{
+					zigbeeConfig.lamps[key].defaultPosition = window.serverConfig.device.lamps[key].defaultPosition;
+				}
+			}
+
+			createHaLedConfig(zigbeeConfig);
+
+			let zigForm = new bootstrap.Modal($("#wizard_modal"), {
+				backdrop: "static",
+				keyboard: false
+			});
+			zigForm.show();
+		}
+		else
+		{
+			alert($.i18n('wiz_mqtt_error'));
+		}
+				
+	});
 }

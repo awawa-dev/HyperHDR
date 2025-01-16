@@ -39,5 +39,6 @@
 		<file alias="schema-cololight">schemas/schema-cololight.json</file>
 		<file alias="schema-hyperspi">schemas/schema-hyperspi.json</file>
 		<file alias="schema-home_assistant">schemas/schema-home_assistant.json</file>
+		<file alias="schema-zigbee2mqtt">schemas/schema-zigbee2mqtt.json</file>
 	</qresource>
 </RCC>

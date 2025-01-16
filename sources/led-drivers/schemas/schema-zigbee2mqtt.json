@@ -1,19 +1,7 @@
 {
 	"type":"object",
 	"required":true,
-	"properties":{
-		"homeAssistantHost" : {
-			"type": "string",
-			"title":"edt_dev_spec_targetIpHost_title",
-			"required" : true,
-			"propertyOrder" : 1
-		},
-		"longLivedAccessToken" : {
-			"type": "string",
-			"title":"edt_dev_auth_key_title",
-			"required" : true,
-			"propertyOrder" : 2
-		},
+	"properties":{		
 		"transition": {
 			"type": "integer",
 			"title": "edt_dev_spec_transistionTime_title",
@@ -32,24 +20,6 @@
 			"maximum": 255,
 			"required": true,
 			"propertyOrder": 4
-		},
-		"restoreOriginalState": {
-			"type": "boolean",
-			"format": "checkbox",
-			"title":"edt_dev_spec_restoreOriginalState_title",
-			"default" : false,
-			"propertyOrder" : 5
-		},
-		"maxRetry": {
-			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
-			"title" : "edt_dev_max_retry",
-			"minimum" : 0,
-			"maximum" : 300,
-			"default" : 60,
-			"required" : true,
-			"propertyOrder" : 6
 		},
 		"lamps": {
 			"type": "array",
