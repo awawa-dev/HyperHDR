@@ -26,6 +26,7 @@ runs:
         build-essential \
         cmake \
         git \
+        g++ \
         libasound2-dev \
         libegl-dev \
         libftdi-dev \
