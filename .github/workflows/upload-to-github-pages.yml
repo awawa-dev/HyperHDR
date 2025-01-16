@@ -15,7 +15,7 @@ jobs:
 ######################################
   Linux:
     name: ${{ matrix.niceName }} ${{ matrix.linuxVersion }} (${{ matrix.arch }})
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       matrix:
@@ -23,43 +23,51 @@ jobs:
         linuxVersion: [ bullseye, bookworm ]
         dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
         include:        
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             dockerName: Debian (amd64)
             arch: amd64
             platform: linux
-          - dockerImage: arm-32bit-armv6l
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-32bit-armv6l-native
             dockerName: Debian (armhf)
             arch: armhf
             platform: rpi
-          - dockerImage: arm-64bit-aarch64
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-64bit-aarch64-native
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
             arch: amd64
             platform: linux
             niceName: ""
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             arch: amd64
             platform: linux
             niceName: Ubuntu 22.04 LTS
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: noble
             dockerName: Ubuntu 24.04 LTS (x86_64)
             arch: amd64
             platform: linux
             niceName: Ubuntu 24.04 LTS           
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: oracular
             dockerName: Ubuntu 24.10 (x86_64)
             arch: amd64
             platform: linux
             niceName: Ubuntu 24.10
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: Fedora_41
             dockerName: Fedora 41 (x86_64)
             arch: amd64
@@ -67,6 +75,12 @@ jobs:
             niceName: Fedora 41
 
     steps:
+      # start docker
+      - name: Wake-up docker
+        if: matrix.runner == 'ubuntu-24.04-arm'
+        run: |
+          sudo systemctl start docker
+    
       # checkout
       - uses: actions/checkout@v4.2.2
         with:
