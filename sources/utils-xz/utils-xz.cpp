@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <lzma.h>
+#include <cstring>
 #include <utils-xz/utils-xz.h>
 
 _XZ_SHARED_API const char* DecompressXZ(size_t downloadedDataSize, const uint8_t* downloadedData, const char* fileName)
@@ -80,6 +81,102 @@ _XZ_SHARED_API const char* DecompressXZ(size_t downloadedDataSize, const uint8_t
 
 	if (error != nullptr)
 		std::remove(fileName);
+
+	return error;
+}
+
+_XZ_SHARED_API const char* DecompressXZ(size_t downloadedDataSize, const uint8_t* downloadedData, uint8_t* dest, int destSeek, int destSize)
+{
+	size_t outSize = 16842808/2;
+	std::vector<uint8_t> outBuffer;
+	const char* error = nullptr;
+	int currentPos = 0;
+	int writePos = 0;
+
+	try
+	{
+		outBuffer.resize(outSize);
+	}
+	catch (...)
+	{
+		error = "Could not allocate buffer";
+	}
+
+	if (error == nullptr)
+	{
+		const uint32_t flags = LZMA_TELL_UNSUPPORTED_CHECK | LZMA_CONCATENATED;
+		lzma_stream strm = LZMA_STREAM_INIT;
+		strm.next_in = downloadedData;
+		strm.avail_in = downloadedDataSize;
+		lzma_ret lzmaRet = lzma_stream_decoder(&strm, outSize, flags);
+		if (lzmaRet == LZMA_OK)
+		{
+			do {
+				strm.next_out = outBuffer.data();
+				strm.avail_out = outSize;
+				lzmaRet = lzma_code(&strm, LZMA_FINISH);
+				if (lzmaRet == LZMA_MEMLIMIT_ERROR)
+				{
+					outSize = lzma_memusage(&strm);
+					try
+					{
+						outBuffer.resize(outSize);
+					}
+					catch (...)
+					{
+						error = "Could not increase buffer size";
+						break;
+					}
+					lzma_memlimit_set(&strm, outSize);
+					strm.avail_out = 0;
+				}
+				else if (lzmaRet != LZMA_OK && lzmaRet != LZMA_STREAM_END)
+				{
+					error = "LZMA decoder returned error";
+					break;
+				}
+				else
+				{
+					int toWrite = outSize - strm.avail_out;
+					int endPos = currentPos + toWrite;
+					int chunkSize = -1, chunkPos = 0;
+
+					if (currentPos <= destSeek && destSeek + destSize >= endPos)
+					{
+						chunkPos = destSeek - currentPos;
+						chunkSize = toWrite - chunkPos;
+					}
+					else if (currentPos <= destSeek + destSize && destSeek + destSize < endPos)
+					{						
+						chunkSize = (destSeek + destSize) - currentPos;
+					}
+					else if (currentPos >= destSeek && destSeek + destSize >= endPos)
+					{
+						chunkSize = toWrite;
+					}
+
+					if (chunkSize > 0)
+					{
+						memcpy(dest + writePos, outBuffer.data() + chunkPos, chunkSize);
+						writePos += chunkSize;
+					}
+
+					currentPos = endPos;
+				}
+			} while (strm.avail_out == 0 && lzmaRet != LZMA_STREAM_END && (writePos < destSize));
+		}
+		else
+		{
+			error = "Could not initialize LZMA decoder";
+		}
+
+		lzma_end(&strm);
+	}
+
+	if (writePos != destSize)
+	{
+		error = "Incorrect final LUT size";
+	}
 
 	return error;
 }
