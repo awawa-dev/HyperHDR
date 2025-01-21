@@ -26,27 +26,29 @@ runs:
         build-essential \
         cmake \
         git \
+        libgtk-3-dev \
+        libayatana-appindicator3-dev \
         libasound2-dev \
         libegl-dev \
-        libftdi-dev \
+        libflatbuffers-dev flatbuffers-compiler \
+        libftdi1-dev \
         libgl-dev \
         libglvnd-dev \
+        liblzma-dev \
         libpipewire-0.3-dev \
         libqt5serialport5-dev \
-        libqt5sql5-sqlite \
-        libqt5svg5-dev \
-        libqt5x11extras5-dev \
         libssl-dev \
+        libsystemd-dev \
         libturbojpeg0-dev \
         libusb-1.0-0-dev \
         libx11-dev \
         libzstd-dev \
-        nasm \
-        python3-minimal \
+        pkg-config \
         qtbase5-dev \
-        qdbus-qt5 \
-        rpm \
-        libsystemd-dev
+        wget \
+        unzip \
+        pkg-config \
+        python3
 
   - name: Checkout repository
     uses: actions/checkout@v4

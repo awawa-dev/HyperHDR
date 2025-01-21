@@ -1,6 +1,9 @@
 macro(DeployApple TARGET)
 	if(EXISTS ${TARGET_FILE})
+		cmake_policy(PUSH)
+		cmake_policy(SET CMP0177 NEW)	
 		install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )
+		cmake_policy(POP)		
 
 		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
