@@ -21,7 +21,7 @@ jobs:
       matrix:
         niceName: [ Debian ]
         linuxVersion: [ bullseye, bookworm ]
-        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
+        dockerImage: [ x86_64, arm-32bit-armv6l-native, arm-64bit-aarch64-native ]
         include:        
           - runner: ubuntu-24.04
             dockerImage: x86_64
