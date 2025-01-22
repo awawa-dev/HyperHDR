@@ -31,8 +31,8 @@
 #include <utils/InternalClock.h>
 #include <QFile>
 
-#ifdef ENABLE_XZ
-	#include <utils-xz/utils-xz.h>
+#ifdef ENABLE_ZSTD
+	#include <utils-zstd/utils-zstd.h>
 #endif
 
 
@@ -61,8 +61,8 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 			bool compressed = false;
 
 			if (file.open(QIODevice::ReadOnly)
-				#ifdef ENABLE_XZ
-					|| [&]() {file.setFileName(fileName3d + ".xz"); compressed = true; return file.open(QIODevice::ReadOnly); } ()
+				#ifdef ENABLE_ZSTD
+					|| [&]() {file.setFileName(fileName3d + ".zst"); compressed = true; return file.open(QIODevice::ReadOnly); } ()
 				#endif
 				)
 			{
@@ -144,10 +144,10 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 bool LutLoader::decompressLut(Logger* _log, QFile& file, int index)
 {
 	auto now = InternalClock::nowPrecise();
-	const char* retVal = "HyperHDR was built without a support for XZ decoder";
+	const char* retVal = "HyperHDR was built without a support for ZSTD decoder";
 	QByteArray compressedFile = file.readAll();
-	#ifdef ENABLE_XZ
-		retVal = DecompressXZ(compressedFile.size(), reinterpret_cast<uint8_t*>(compressedFile.data()), _lut.data(), index, LUT_FILE_SIZE);
+	#ifdef ENABLE_ZSTD
+		retVal = DecompressZSTD(compressedFile.size(), reinterpret_cast<uint8_t*>(compressedFile.data()), _lut.data(), index, LUT_FILE_SIZE);
 	#endif
 
 	if (retVal != nullptr && _log)

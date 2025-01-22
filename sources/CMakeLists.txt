@@ -33,8 +33,8 @@ add_subdirectory(utils)
 add_subdirectory(utils-image)
 add_subdirectory(webserver)
 
-if(ENABLE_XZ)
-	add_subdirectory(utils-xz)
+if(ENABLE_ZSTD)
+	add_subdirectory(utils-zstd)
 endif()
 
 

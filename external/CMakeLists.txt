@@ -237,17 +237,22 @@ if ( ENABLE_MQTT )
 endif()
 
 #=============================================================================
-# XZ
+# ZSTD
 #=============================================================================
 
-if ( ENABLE_XZ )
-	if (NOT LIBLZMA_FOUND)
-		message( STATUS "System library xz could not be found. Using embedded xz library.")
-		option(BUILD_TESTING "" OFF)
-		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/xz)
-		set_target_properties(liblzma PROPERTIES INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/xz/src/liblzma/api>)		
-		set_property(TARGET liblzma PROPERTY POSITION_INDEPENDENT_CODE ON)
-		add_library(LibLZMA::LibLZMA ALIAS liblzma)
+if ( ENABLE_ZSTD )
+	if (NOT zstd_FOUND)
+		message( STATUS "System library zstd could not be found. Using embedded zstd library.")
+		if(WIN32)
+			set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -I${CMAKE_SOURCE_DIR}/external/zstd/lib")
+		endif()
+		set(ZSTD_BUILD_TESTS OFF)
+		set(ZSTD_LEGACY_SUPPORT OFF)
+		set(ZSTD_BUILD_PROGRAMS OFF)
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/zstd/build/cmake)
+		set_target_properties(libzstd PROPERTIES INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/zstd/lib>)
+		set_property(TARGET libzstd PROPERTY POSITION_INDEPENDENT_CODE ON)
+		add_library(zstd::zstd ALIAS libzstd)
 	endif()
 ENDIF()
 

@@ -47,7 +47,7 @@ SET ( DEFAULT_BONJOUR                     ON  )
 SET ( DEFAULT_MQTT                        ON  )
 SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
-SET ( DEFAULT_XZ                          ON  )
+SET ( DEFAULT_ZSTD                        ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
 SET ( DEFAULT_SYSTRAY                     ON  )
 SET ( DEFAULT_SHARED_LIBS                 ON  )
@@ -382,26 +382,6 @@ if(DEFAULT_CEC)
 	endif()
 endif()
 
-# 7-zip as support
-if (WIN32)
-	# 7zip
-	cmake_policy(SET CMP0053 NEW)
-	set(MYENV "PROGRAMFILES(X86)")
-
-	find_program(SEVENZIP_BIN
-		NAMES 7z 7za
-		HINTS "${MINGWDIR}" "${MINGWLIBS}/bin" "$MYENV/7-zip" "$ENV{ProgramFiles}/7-zip" "$ENV{ProgramW6432}/7-zip"
-		PATH_SUFFIXES bin
-		DOC "7zip executable"
-	)
-
-	if (SEVENZIP_BIN)
-		message( STATUS "7-zip found: ${SEVENZIP_BIN}")
-	else()
-		message( FATAL_ERROR  "Please install 7-zip")
-	endif (SEVENZIP_BIN)
-endif()
-
 if (CMAKE_CROSSCOMPILING)
 	set ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 	SET ( DEFAULT_SHARED_LIBS                 OFF )
@@ -504,8 +484,8 @@ colorMe("ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 option(ENABLE_SYSTRAY "Enable SYSTRAY" ${DEFAULT_SYSTRAY})
 colorMe("ENABLE_SYSTRAY = " ${ENABLE_SYSTRAY})
 
-option(ENABLE_XZ "Enable XZ support" ${DEFAULT_XZ})
-colorMe("ENABLE_XZ = " ${ENABLE_XZ})
+option(ENABLE_ZSTD "Enable ZSTD support" ${DEFAULT_ZSTD})
+colorMe("ENABLE_ZSTD = " ${ENABLE_ZSTD})
 
 message( STATUS "\n${CyanColor}BUILD FEATURES${ColorReset}")
 
@@ -547,8 +527,8 @@ SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
 find_package(GitVersion)
 
-if(ENABLE_XZ)
-	find_package(LibLZMA)
+if(ENABLE_ZSTD)
+	find_package(zstd)
 endif()
 
 # configure a header file to pass some of the CMake settings
@@ -694,13 +674,6 @@ if (WIN32)
 	endif()
 endif()
 
-# Add the source/lib directories
-add_subdirectory(external)
-add_subdirectory(sources)
-
-# Add resources directory
-add_subdirectory(resources)
-
 # remove generated files on make cleaan too
 LIST( APPEND GENERATED_QRC
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
@@ -712,12 +685,19 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC
 configure_file( "${OUR_CMAKE_MODULES}/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
+# Add the source/lib directories
+add_subdirectory(external)
+add_subdirectory(sources)
+
+# Add resources directory
+add_subdirectory(resources)
+
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET liblzma AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers)
-	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall liblzma sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET libzstd_static AND TARGET libzstd_shared AND TARGET zstd AND TARGET clean-all AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers)
+	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared zstd clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()
