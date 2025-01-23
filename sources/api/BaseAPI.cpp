@@ -31,8 +31,8 @@
 #include <base/GrabberHelper.h>
 #include <utils-image/utils-image.h>
 
-#ifdef ENABLE_XZ
-	#include <utils-xz/utils-xz.h>
+#ifdef ENABLE_ZSTD
+	#include <utils-zstd/utils-zstd.h>
 #endif
 
 #ifdef _WIN32
@@ -410,21 +410,21 @@ bool BaseAPI::saveSettings(const QJsonObject& data)
 
 QString BaseAPI::installLut(QNetworkReply* reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
 {
-#ifdef ENABLE_XZ
+#ifdef ENABLE_ZSTD
 	QString error = nullptr;
 
 	if (reply->error() == QNetworkReply::NetworkError::NoError)
 	{
 		QByteArray downloadedData = reply->readAll();
 
-		error = DecompressXZ(downloadedData.size(), reinterpret_cast<uint8_t*>(downloadedData.data()), QSTRING_CSTR(fileName));
+		error = DecompressZSTD(downloadedData.size(), reinterpret_cast<uint8_t*>(downloadedData.data()), QSTRING_CSTR(fileName));
 	}
 	else
 		error = "Could not download LUT file";
 
 	return error;
 #else
-	return "XZ support was disabled in the build configuration";
+	return "ZSTD support was disabled in the build configuration";
 #endif
 }
 
