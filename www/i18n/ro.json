@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Asistentul de acasă luminează vrăjitorul",
   "wiz_ha_intro": "Vă rugăm să selectați adresa instanței Home Assistant și introduceți 'Jetonele de acces cu viață lungă' create acolo.",
   "select_ha_intro": "Selectați Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Luminozitate constantă"
+  "edt_dev_spec_constantBrightness_title": "Luminozitate constantă",
+  "edt_conf_reorder_displays_title": "Reordonați afișajele",
+  "edt_conf_reorder_displays_expl": "Manipulați ordinea (permutările) afișajelor până când îl obțineți pe cel corect în modul multi-monitor.",
+  "edt_conf_mqtt_disableApiAccess_title": "Dezactivați accesul la API",
+  "edt_conf_mqtt_disableApiAccess_expl": "Blocați execuția comenzilor API trimise prin MQTT.",
+  "wiz_zigbee2mqtt_title": "Zigbee2mqtt expert lumini",
+  "wiz_mqtt_error": "Nu s-au putut găsi dispozitive conectate la serverul MQTT. Verificați jurnalele HyperHDR și configurația clientului MQTT în setările de rețea. HyperHDR trebuie să aibă o conexiune validă și activă la brokerul MQTT."
 }

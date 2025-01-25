@@ -1269,5 +1269,9 @@
   "select_ha_intro": "Select Home Assistant",
   "edt_dev_spec_constantBrightness_title": "Constant brightness",
   "edt_conf_reorder_displays_title": "Reorder displays",
-  "edt_conf_reorder_displays_expl": "Manipulate the order (permutations) of the displays until you get the correct one in multi-display mode"
+  "edt_conf_reorder_displays_expl": "Manipulate the order (permutations) of the displays until you get the correct one in multi-monitor mode.",
+  "edt_conf_mqtt_disableApiAccess_title": "Disable API access",
+  "edt_conf_mqtt_disableApiAccess_expl": "Block execution of API commands sent via MQTT.",
+  "wiz_zigbee2mqtt_title": "Zigbee2mqtt lights wizard",
+  "wiz_mqtt_error": "Could not find devices connected to MQTT server. Check HyperHDR logs and MQTT client configuration in network settings. HyperHDR must have a valid and active connection to MQTT broker."
 }

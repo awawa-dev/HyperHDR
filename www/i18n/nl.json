@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Home Assistant-verlichtingswizard",
   "wiz_ha_intro": "Selecteer het adres van de Home Assistant-instantie en voer de daar gemaakte 'Long Lived Access Tokens' in.",
   "select_ha_intro": "Selecteer Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Constante helderheid"
+  "edt_dev_spec_constantBrightness_title": "Constante helderheid",
+  "edt_conf_reorder_displays_title": "Displays opnieuw ordenen",
+  "edt_conf_reorder_displays_expl": "Manipuleer de volgorde (permutaties) van de displays totdat u de juiste krijgt in de multi-monitormodus.",
+  "edt_conf_mqtt_disableApiAccess_title": "API-toegang uitschakelen",
+  "edt_conf_mqtt_disableApiAccess_expl": "Uitvoering van API-opdrachten blokkeren die via MQTT worden verzonden.",
+  "wiz_zigbee2mqtt_title": "Zigbee2mqtt-lampjeswizard",
+  "wiz_mqtt_error": "Kon geen apparaten vinden die zijn verbonden met de MQTT-server. Controleer de HyperHDR-logs en de MQTT-clientconfiguratie in de netwerkinstellingen. HyperHDR moet een geldige en actieve verbinding hebben met de MQTT-broker."
 }

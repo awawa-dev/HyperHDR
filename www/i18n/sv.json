@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Home Assistant ljusguiden",
   "wiz_ha_intro": "Vänligen välj adressen till Home Assistant-instansen och ange 'Long Lived Access Tokens' som skapats där.",
   "select_ha_intro": "Välj Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Konstant ljusstyrka"
+  "edt_dev_spec_constantBrightness_title": "Konstant ljusstyrka",
+  "edt_conf_reorder_displays_title": "Ordna om skärmar",
+  "edt_conf_reorder_displays_expl": "Manipulera ordningen (permutationerna) på displayerna tills du får den korrekta i multi-monitor-läge.",
+  "edt_conf_mqtt_disableApiAccess_title": "Inaktivera API-åtkomst",
+  "edt_conf_mqtt_disableApiAccess_expl": "Blockera exekvering av API-kommandon skickade via MQTT.",
+  "wiz_zigbee2mqtt_title": "Zigbee2mqtt-ljusguiden",
+  "wiz_mqtt_error": "Det gick inte att hitta enheter anslutna till MQTT-servern. Kontrollera HyperHDR-loggar och MQTT-klientkonfiguration i nätverksinställningar. HyperHDR måste ha en giltig och aktiv anslutning till MQTT-mäklare."
 }

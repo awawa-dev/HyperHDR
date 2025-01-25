@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Assistant d'éclairage Home Assistant",
   "wiz_ha_intro": "Veuillez sélectionner l'adresse de l'instance Home Assistant et saisir les 'jetons d'accès longue durée' qui y ont été créés.",
   "select_ha_intro": "Sélectionnez Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Luminosité constante"
+  "edt_dev_spec_constantBrightness_title": "Luminosité constante",
+  "edt_conf_reorder_displays_title": "Réorganiser les affichages",
+  "edt_conf_reorder_displays_expl": "Manipulez l'ordre (permutations) des affichages jusqu'à obtenir le bon en mode multi-écrans.",
+  "edt_conf_mqtt_disableApiAccess_title": "Désactiver l'accès API",
+  "edt_conf_mqtt_disableApiAccess_expl": "Bloquer l'exécution des commandes API envoyées via MQTT.",
+  "wiz_zigbee2mqtt_title": "Assistant d'éclairage Zigbee2mqtt",
+  "wiz_mqtt_error": "Impossible de trouver les appareils connectés au serveur MQTT. Vérifiez les journaux HyperHDR et la configuration du client MQTT dans les paramètres réseau. HyperHDR doit avoir une connexion valide et active au broker MQTT."
 }

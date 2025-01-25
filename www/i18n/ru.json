@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Мастер освещения Home Assistant",
   "wiz_ha_intro": "Выберите адрес экземпляра Home Assistant и введите созданные там 'Long Lived Access Tokens'.",
   "select_ha_intro": "Выберите Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Постоянная яркость"
+  "edt_dev_spec_constantBrightness_title": "Постоянная яркость",
+  "edt_conf_reorder_displays_title": "Измените порядок отображения",
+  "edt_conf_reorder_displays_expl": "Измените порядок (перестановки) отображения, пока не получите правильный в режиме нескольких мониторов.",
+  "edt_conf_mqtt_disableApiAccess_title": "Отключите доступ к API",
+  "edt_conf_mqtt_disableApiAccess_expl": "Блокируйте выполнение команд API, отправленных через MQTT.",
+  "wiz_zigbee2mqtt_title": "Мастер подсветки Zigbee2mqtt",
+  "wiz_mqtt_error": "Не удалось найти устройства, подключенные к серверу MQTT. Проверьте журналы HyperHDR и конфигурацию клиента MQTT в настройках сети. HyperHDR должен иметь действительное и активное подключение к брокеру MQTT."
 }
