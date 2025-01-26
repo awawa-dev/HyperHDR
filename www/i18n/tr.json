@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Home Assistant ışık sihirbazı",
   "wiz_ha_intro": "Lütfen Home Assistant örneğinin adresini seçin ve orada oluşturulan 'Uzun Ömürlü Erişim Jetonlarını' girin.",
   "select_ha_intro": "Home Assistant'ı seçin",
-  "edt_dev_spec_constantBrightness_title": "Sabit parlaklık"
+  "edt_dev_spec_constantBrightness_title": "Sabit parlaklık",
+  "edt_conf_reorder_displays_title": "Ekranları yeniden sırala",
+  "edt_conf_reorder_displays_expl": "Çoklu monitör modunda doğru olanı elde edene kadar ekranların sırasını (permütasyonlarını) değiştir.",
+  "edt_conf_mqtt_disableApiAccess_title": "API erişimini devre dışı bırak",
+  "edt_conf_mqtt_disableApiAccess_expl": "MQTT aracılığıyla gönderilen API komutlarının yürütülmesini engelle.",
+  "wiz_zigbee2mqtt_title": "Zigbee2mqtt ışık sihirbazı",
+  "wiz_mqtt_error": "MQTT sunucusuna bağlı cihazlar bulunamadı. HyperHDR günlüklerini ve ağ ayarlarında MQTT istemci yapılandırmasını kontrol edin. HyperHDR'nin MQTT broker'ına geçerli ve etkin bir bağlantısı olmalıdır."
 }

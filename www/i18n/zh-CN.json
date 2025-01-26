@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Home Assistant 灯光向导",
   "wiz_ha_intro": "请选择 Home Assistant 实例的地址并输入在那里创建的'长寿命访问令牌'。",
   "select_ha_intro": "选择 Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "恒定亮度"
+  "edt_dev_spec_constantBrightness_title": "恒定亮度",
+  "edt_conf_reorder_displays_title": "重新排序显示",
+  "edt_conf_reorder_displays_expl": "操纵显示的顺序（排列），直到在多显示器模式下获得正确的顺序。",
+  "edt_conf_mqtt_disableApiAccess_title": "禁用 API 访问",
+  "edt_conf_mqtt_disableApiAccess_expl": "阻止执行通过 MQTT 发送的 API 命令。",
+  "wiz_zigbee2mqtt_title": "Zigbee2mqtt 灯光向导",
+  "wiz_mqtt_error": "找不到连接到 MQTT 服务器的设备。检查网络设置中的 HyperHDR 日志和 MQTT 客户端配置。HyperHDR 必须与 MQTT 代理建立有效且活跃的连接。"
 }

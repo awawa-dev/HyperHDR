@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Assistente luci Home Assistant",
   "wiz_ha_intro": "Seleziona l'indirizzo dell'istanza di Home Assistant e inserisci i 'token di accesso di lunga durata' creati lì.",
   "select_ha_intro": "Seleziona Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Luminosità costante"
+  "edt_dev_spec_constantBrightness_title": "Luminosità costante",
+  "edt_conf_reorder_displays_title": "Riordina i display",
+  "edt_conf_reorder_displays_expl": "Manipola l'ordine (permutazioni) dei display finché non ottieni quello corretto in modalità multi-monitor.",
+  "edt_conf_mqtt_disableApiAccess_title": "Disabilita l'accesso API",
+  "edt_conf_mqtt_disableApiAccess_expl": "Blocca l'esecuzione dei comandi API inviati tramite MQTT.",
+  "wiz_zigbee2mqtt_title": "Wizard luci Zigbee2mqtt",
+  "wiz_mqtt_error": "Impossibile trovare dispositivi connessi al server MQTT. Controlla i log HyperHDR e la configurazione del client MQTT nelle impostazioni di rete. HyperHDR deve avere una connessione valida e attiva al broker MQTT."
 }

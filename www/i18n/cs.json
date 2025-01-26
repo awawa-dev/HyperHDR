@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Průvodce osvětlením Home Assistant",
   "wiz_ha_intro": "Vyberte prosím adresu instance Home Assistant a zadejte tam vytvořené 'Long Lived Access Tokens'.",
   "select_ha_intro": "Vyberte Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Konstantní jas"
+  "edt_dev_spec_constantBrightness_title": "Konstantní jas",
+  "edt_conf_reorder_displays_title": "Změňte pořadí displejů",
+  "edt_conf_reorder_displays_expl": "Manipulujte s pořadím (permutacemi) zobrazení, dokud nezískáte ten správný v režimu více monitorů.",
+  "edt_conf_mqtt_disableApiAccess_title": "Zakázat přístup k rozhraní API",
+  "edt_conf_mqtt_disableApiAccess_expl": "Blokovat provádění příkazů API odeslaných prostřednictvím MQTT.",
+  "wiz_zigbee2mqtt_title": "Průvodce světly Zigbee2mqtt",
+  "wiz_mqtt_error": "Nelze najít zařízení připojená k serveru MQTT. Zkontrolujte protokoly HyperHDR a konfiguraci klienta MQTT v nastavení sítě. HyperHDR musí mít platné a aktivní připojení k brokerovi MQTT."
 }

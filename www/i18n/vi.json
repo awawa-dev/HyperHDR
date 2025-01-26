@@ -1267,5 +1267,11 @@
   "wiz_home_assistant_title": "Trình hướng dẫn đèn Home Assistant",
   "wiz_ha_intro": "Vui lòng chọn địa chỉ của phiên bản Home Assistant và nhập 'Long Lived Access Tokens' được tạo ở đó.",
   "select_ha_intro": "Chọn Home Assistant",
-  "edt_dev_spec_constantBrightness_title": "Độ sáng không đổi"
+  "edt_dev_spec_constantBrightness_title": "Độ sáng không đổi",
+  "edt_conf_reorder_displays_title": "Sắp xếp lại màn hình",
+  "edt_conf_reorder_displays_expl": "Điều chỉnh thứ tự (hoán vị) của màn hình cho đến khi bạn có được màn hình đúng ở chế độ nhiều màn hình.",
+  "edt_conf_mqtt_disableApiAccess_title": "Tắt quyền truy cập API",
+  "edt_conf_mqtt_disableApiAccess_expl": "Chặn thực thi lệnh API được gửi qua MQTT.",
+  "wiz_zigbee2mqtt_title": "Trình hướng dẫn đèn Zigbee2mqtt",
+  "wiz_mqtt_error": "Không tìm thấy thiết bị được kết nối với máy chủ MQTT. Kiểm tra nhật ký HyperHDR và ​​cấu hình máy khách MQTT trong cài đặt mạng. HyperHDR phải có kết nối hợp lệ và đang hoạt động với môi giới MQTT."
 }
