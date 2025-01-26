@@ -35,7 +35,7 @@ Use -D prefix when configuring the build.
   * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
   * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server
   * ENABLE_SYSTRAY = ON | OFF, enables the systray-widget
-  * ENABLE_XZ = ON | OFF, enables XZ support for LUT downloading
+  * ENABLE_ZSTD = ON | OFF, enables ZSTD support for LUT decompression
 
 * BUILD FEATURES
   * USE_SHARED_LIBS = ON | OFF, if disabled, build the application as monolithic
