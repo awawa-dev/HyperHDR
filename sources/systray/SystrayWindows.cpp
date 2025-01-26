@@ -46,6 +46,7 @@ namespace
 	std::list<HICON> icons;
 	std::list<HBITMAP> bitmaps;
 	ULONG_PTR gdiToken = 0;
+	std::function<void(WPARAM suspend)> queueHandler = nullptr;
 }
 
 HWND SystrayGetWindow()
@@ -53,11 +54,30 @@ HWND SystrayGetWindow()
 	return window;
 }
 
+void SystrayAssignQueueHandler(std::function<void(WPARAM wparam)> _queueHandler)
+{
+	queueHandler = _queueHandler;
+}
+
 static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
                                        LPARAM lparam)
 {
 	switch (msg)
 	{
+		case WM_POWERBROADCAST:
+			if (queueHandler != nullptr && (wparam == PBT_APMSUSPEND || wparam == PBT_APMRESUMESUSPEND || wparam == PBT_POWERSETTINGCHANGE))
+			{				
+				queueHandler(wparam);
+			}
+			return true;
+
+		case WM_QUERYENDSESSION:
+			if (queueHandler != nullptr && lparam == 0)
+			{
+				queueHandler(0);
+			}
+			return false;
+
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
 			hwnd = nullptr;
@@ -290,6 +310,8 @@ void SystrayUpdate(SystrayMenu *tray)
 
 void SystrayClose()
 {
+	queueHandler = nullptr;
+
 	if (systrayIcon.hIcon != nullptr)
 	{
 		Shell_NotifyIcon(NIM_DELETE, &systrayIcon);

@@ -568,7 +568,7 @@ void HyperAPI::lutDownloaded(QNetworkReply* reply, int hardware_brightness, int 
 
 void HyperAPI::handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QString& address = QString("%1/lut_lin_tables.3d.xz").arg(message["subcommand"].toString().trimmed());
+	const QString& address = QString("%1/lut_lin_tables.3d.zst").arg(message["subcommand"].toString().trimmed());
 	int hardware_brightness = message["hardware_brightness"].toInt(0);
 	int hardware_contrast = message["hardware_contrast"].toInt(0);
 	int hardware_saturation = message["hardware_saturation"].toInt(0);

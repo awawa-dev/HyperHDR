@@ -72,6 +72,7 @@ struct SystrayMenu
 
 #ifdef _WIN32
 	HWND SystrayGetWindow();
+	void SystrayAssignQueueHandler(std::function<void(WPARAM wparam)> _queueHandler);
 #endif
 
 

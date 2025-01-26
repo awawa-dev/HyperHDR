@@ -18,58 +18,72 @@ jobs:
 
   Linux:
     name: ${{ matrix.dockerName }}
-    runs-on: ubuntu-22.04
-
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        linuxVersion: [ bullseye ]
-        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
-        include:        
-          - dockerImage: x86_64
+        include:
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: bookworm
             dockerName: Debian Bookworm (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: noble
             dockerName: Ubuntu 24.04 LTS (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: oracular
             dockerName: Ubuntu 24.10 (x86_64)
-            platform: linux               
-          - dockerImage: arm-32bit-armv6l
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)
-            platform: rpi
-          - dockerImage: arm-64bit-aarch64
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
-            platform: rpi
-          - dockerImage: arm-32bit-armv6l
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (ARM 32-bit Raspberry Pi OS)
-            platform: rpi
-          - dockerImage: arm-64bit-aarch64
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (ARM 64-bit Raspberry Pi OS)
-            platform: rpi              
-          - dockerImage: x86_64
+            platform: linux
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: Fedora_41
             dockerName: Fedora 41 (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
             platform: linux
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-32bit-armv6l-native
+            linuxVersion: bullseye
+            dockerName: Debian Bullseye (native ARM 32-bit Raspberry Pi OS)
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-64bit-aarch64-native
+            linuxVersion: bullseye
+            dockerName: Debian Bullseye (native ARM 64-bit Raspberry Pi OS)
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-32bit-armv6l-native
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (native ARM 32-bit Raspberry Pi OS)
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-64bit-aarch64-native
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (native ARM 64-bit Raspberry Pi OS)
+            platform: rpi
     steps:
+      # start docker
+      - name: Wake-up docker
+        if: matrix.runner == 'ubuntu-24.04-arm'
+        run: |
+          sudo systemctl start docker
+
       # checkout
       - uses: actions/checkout@v4.2.2
         with:
@@ -87,7 +101,7 @@ jobs:
        # download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.1.2
+        uses: actions/cache@v4.2.0
         with:
            path: .ccache
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -119,7 +133,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}
           path: deploy/Hyper*
@@ -127,7 +141,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
           path: |
@@ -171,7 +185,7 @@ jobs:
       # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.1.2
+        uses: actions/cache@v4.2.0
         with:
             path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -208,7 +222,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
             name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
@@ -216,7 +230,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
             name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
             path: build/Hyper*.dmg
@@ -238,7 +252,7 @@ jobs:
           submodules: true
 
       - name: Cache Qt
-        uses: actions/cache@v4.1.2
+        uses: actions/cache@v4.2.0
         id: cache-qt-windows
         with:
           path: ${{ runner.workspace }}/Qt
@@ -262,7 +276,7 @@ jobs:
       # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.1.2
+        uses: actions/cache@v4.2.0
         with:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -307,7 +321,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: release-artifact-windows
           path: build/Hyper*
@@ -315,7 +329,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
@@ -326,7 +340,7 @@ jobs:
 
   analyze:
     name: Analyze (CodeQL)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
 
     permissions:
@@ -389,7 +403,7 @@ jobs:
 
       # create draft release and upload artifacts
       - name: Create draft release
-        uses: softprops/action-gh-release@v2.1.0
+        uses: softprops/action-gh-release@v2.2.0
         with:
           name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}
