@@ -4,51 +4,47 @@
 	#include <QJsonObject>
 	#include <QJsonArray>
 	#include <memory>
-	#include <list>	
+	#include <list>
+	#include <atomic>
+	#include <chrono>
 #endif
 
 #include <led-drivers/LedDevice.h>
-#include <led-drivers/net/ProviderRestApi.h>
 #include <linalg.h>
 
-class DriverNetHomeAssistant : public LedDevice
+class DriverNetZigbee2mqtt : public LedDevice
 {
 	Q_OBJECT
 
-	struct HomeAssistantLamp;
+	struct Zigbee2mqttLamp;
 
-	struct HomeAssistantInstance
+	struct Zigbee2mqttInstance
 	{
-		QString homeAssistantHost;
-		QString longLivedAccessToken;
 		int transition;
 		int constantBrightness = 255;
-		bool restoreOriginalState;
 
-		std::list<HomeAssistantLamp> lamps;
+		std::list<Zigbee2mqttLamp> lamps;
 	};
 
-	struct HomeAssistantLamp
+	struct Zigbee2mqttLamp
 	{
 		enum Mode { RGB = 0, HSV };
 
 		QString name;
 		Mode colorModel;
 		int currentBrightness = 255;
-
-		struct
-		{
-			int isPoweredOn = -1;
-			int brightness = -1;
-			QJsonArray color;
-		} orgState;
 	};
 
 public:
-	explicit DriverNetHomeAssistant(const QJsonObject& deviceConfig);
+	explicit DriverNetZigbee2mqtt(const QJsonObject& deviceConfig);
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 	QJsonObject discover(const QJsonObject& params) override;
+
+	void identify(const QJsonObject& params) override;
+
+public slots:
+	void handlerSignalMqttReceived(QString topic, QString payload);
 
 protected:
 	bool powerOn() override;
@@ -58,13 +54,14 @@ private:
 	bool init(const QJsonObject& deviceConfig) override;
 	int write(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOnOff(bool isOn);
-	bool saveStates();
-	void restoreStates();
 
-	HomeAssistantInstance _haInstance;
+	Zigbee2mqttInstance	_zigInstance;
+	std::atomic<bool>	_discoveryFinished;
+	int					_timeLogger;
+	QString				_discoveryMessage;
+	int					_mqttId;
+	long long			_lastUpdate;
 
-	std::unique_ptr<ProviderRestApi> _restApi;
-	long long						_lastUpdate;
-
+	static int mqttId;
 	static bool isRegistered;
 };

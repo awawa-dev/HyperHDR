@@ -9,6 +9,7 @@
 #include <QHostInfo>
 
 #include <api/HyperAPI.h>
+#include <utils/GlobalSignals.h>
 
 // default param %1 is 'HyperHDR', do not edit templates here
 const static QString TEMPLATE_HYPERHDRAPI = QStringLiteral("%1/JsonAPI");
@@ -24,9 +25,12 @@ mqtt::mqtt(const QJsonDocument& mqttConfig)
 	, _currentRetry(0)
 	, _retryTimer(nullptr)
 	, _initialized(false)
+	, _disableApiAccess(false)
 	, _log(Logger::getInstance("MQTT"))
 	, _clientInstance(nullptr)
 {
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttLastWill, this, &mqtt::handleSignalMqttLastWill, Qt::UniqueConnection);
+
 	handleSettingsUpdate(settings::type::MQTT, mqttConfig);
 }
 
@@ -48,7 +52,15 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 
 	Debug(_log, "Starting the MQTT connection. Address: %s:%i. Protocol: %s. Authentication: %s, Ignore errors: %s",
 		QSTRING_CSTR(host), port, (is_ssl) ? "SSL" : "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
-	Debug(_log, "MQTT topic: %s, MQTT response: %s", QSTRING_CSTR(HYPERHDRAPI), QSTRING_CSTR(HYPERHDRAPI_RESPONSE));
+
+	if (!_disableApiAccess)
+	{
+		Debug(_log, "MQTT topic: %s, MQTT response: %s", QSTRING_CSTR(HYPERHDRAPI), QSTRING_CSTR(HYPERHDRAPI_RESPONSE));
+	}
+	else
+	{
+		Debug(_log, "MQTT access to HyperHDR API is disabled by user");
+	}
 
 	QHostAddress address(host);
 
@@ -107,11 +119,17 @@ void mqtt::stop()
 void mqtt::disconnected()
 {
 	Debug(_log, "Disconnected");
+
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe);
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish);
 }
 
 void mqtt::connected()
 {
 	Debug(_log, "Connected");
+
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttSubscribe, this, &mqtt::handleSignalMqttSubscribe, Qt::UniqueConnection);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttPublish, this, &mqtt::handleSignalMqttPublish, Qt::UniqueConnection);
 
 	if (_retryTimer != nullptr)
 	{
@@ -121,12 +139,26 @@ void mqtt::connected()
 		_retryTimer = nullptr;
 	}
 
-	if (_clientInstance != nullptr)
+	if (_clientInstance != nullptr && !_disableApiAccess)
 	{
 		_clientInstance->subscribe(HYPERHDRAPI, 2);
 	}
 }
 
+void mqtt::handleSignalMqttSubscribe(bool subscribe, QString topic)
+{
+	if (_clientInstance == nullptr)
+		return;
+
+	if (subscribe)
+	{
+		_clientInstance->subscribe(topic, 0);
+	}
+	else
+	{
+		_clientInstance->unsubscribe(topic);
+	}
+}
 
 void mqtt::error(const QMQTT::ClientError error)
 {
@@ -210,6 +242,7 @@ void mqtt::handleSettingsUpdate(settings::type type, const QJsonDocument& config
 		_is_ssl = obj["is_ssl"].toBool(false);
 		_ignore_ssl_errors = obj["ignore_ssl_errors"].toBool(true);
 		_maxRetry = obj["maxRetry"].toInt(120);
+		_disableApiAccess = obj["disableApiAccess"].toBool(false);
 
 		_customTopic = obj["custom_topic"].toString().trimmed();
 		if (_customTopic.isEmpty())
@@ -233,7 +266,13 @@ void mqtt::begin()
 }
 
 void mqtt::executeJson(QString origin, const QJsonDocument& input, QJsonDocument& result)
-{	
+{
+	if (_disableApiAccess)
+	{
+		Error(_log, "API access is disabled in MQTT configuration");
+		return;
+	}
+
 	HyperAPI* _hyperAPI = new HyperAPI(origin, _log, true, this);
 
 	_resultArray = QJsonArray();
@@ -298,5 +337,50 @@ void mqtt::received(const QMQTT::Message& message)
 			result.setPayload(returnPayload.toUtf8());
 		}		
 		_clientInstance->publish(result);		
+	}
+	else
+	{
+		emit GlobalSignals::getInstance()->SignalMqttReceived(topic, payload);
+	}
+}
+
+void mqtt::handleSignalMqttPublish(QString topic, QString payload)
+{
+	if (_clientInstance != nullptr)
+	{
+		QMQTT::Message message;
+		message.setTopic(topic);
+		message.setQos(0);
+		message.setPayload(payload.toUtf8());
+		
+		_clientInstance->publish(message);
+	}
+}
+
+void mqtt::handleSignalMqttLastWill(QString id, QStringList pairs)
+{
+	if (!id.isEmpty() && !pairs.isEmpty())
+	{
+		if ((pairs.size() % 2) == 0)
+		{
+			_lastWill[id] = pairs;
+		}
+	}
+	else if (!id.isEmpty())
+	{
+		_lastWill.erase(id);
+	}
+	else if (_lastWill.size() > 0)
+	{
+		for (const auto& current : _lastWill)
+			for (auto item = current.second.begin(); item != current.second.end(); ++item)
+			{
+				auto topic = *(item++);
+				if (item != current.second.end())
+				{
+					handleSignalMqttPublish(topic, *(item));
+				}
+			}
+		_lastWill.clear();
 	}
 }
