@@ -22,11 +22,13 @@ Open source ambient lighting implementation for television and music sets based 
 * Built-in audio visualization effects using **spectrum analysis**
 * MQTT support for IoT
 * Entertainment API v2: per-channel support for Philips Gradient Strip and others
+* Support for Home Assistant lights and zigbee2mqtt ( :new: HyperHDR v21)
+* Automatic tone mapping ( :new: HyperHDR v21)
 * Automatic LUT calibration detects grabber model specific properties for the best quality of HDR/SDR using MP4 test files ( :new: HyperHDR v21)
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
 * Built-in latency benchmark for USB grabbers
-* support for high-quality P010 video format ( :new: HyperHDR v21)
-* easy LED strip geometry editing process, automatic or manual with mouse and context menu per single LED
+* Support for high-quality P010 video format ( :new: HyperHDR v21)
+* Easy LED strip geometry editing process, automatic or manual with mouse and context menu per single LED
 * Automatic signal detection with smart learning capability for USB grabbers
 * SK6812 RGBW: advanced calibration of the white color channel for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI), [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico)
 * Tone mapping for external flatbuffers/protobuf sources
