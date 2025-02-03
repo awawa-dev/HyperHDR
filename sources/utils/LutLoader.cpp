@@ -75,7 +75,7 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 				length = file.size();
 
-				if ((length == LUT_FILE_SIZE * 3) || (length == LUT_FILE_SIZE && !is_yuv) || compressed)
+				if ((length == LUT_FILE_SIZE * 3) || compressed)
 				{
 					int index = 0;
 
