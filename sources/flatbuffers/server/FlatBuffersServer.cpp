@@ -296,6 +296,12 @@ void FlatBuffersServer::loadLutFile()
 
 	if (!_userLutFile.isEmpty())
 	{
+		#ifdef __linux__
+			QString userFileBin = QString("%1/%2").arg(GetSharedLut()).arg(_userLutFile);
+			files.prepend(userFileBin);
+			Debug(_log, "Adding user LUT file for searching: %s", QSTRING_CSTR(userFileBin));
+		#endif
+
 		QString userFile = QString("%1/%2").arg(_configurationPath).arg(_userLutFile);
 		files.prepend(userFile);
 		Debug(_log, "Adding user LUT file for searching: %s", QSTRING_CSTR(userFile));
