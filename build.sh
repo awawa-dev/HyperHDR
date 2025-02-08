@@ -188,6 +188,10 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${ARCHIVE_OPTION}"
 		cache_env="true"
 	fi
+
+	if [[ $DOCKER_IMAGE == *"armv6l"* ]] && [[ $CI_TYPE == "github_action" ]]; then
+		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armv6l ${BUILD_OPTION}"		
+	fi
 	
 	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"
 
