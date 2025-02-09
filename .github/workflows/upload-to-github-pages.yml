@@ -79,7 +79,7 @@ jobs:
       - name: Wake-up docker
         if: matrix.runner == 'ubuntu-24.04-arm'
         run: |
-          sudo systemctl start docker
+          (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker)
     
       # checkout
       - uses: actions/checkout@v4.2.2
