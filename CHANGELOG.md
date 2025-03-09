@@ -1,3 +1,7 @@
+- Fix: armv6l packages overwrote aarch64 packages because they had the same name (#1082) - v21 🆕
+- Flatbuffers: search for user LUTs also in bin dir - v21 🆕
+- Remove support for old 50MB LUT. Use ZSTD instead - v21 🆕
+- Update SSL certificates to hyperhdr.eu - v21 🆕
 - Add support for Home Assistant lights (#1014) - v21beta2 🆕
 - Update language file's (#1026, #1017) thanks @AstaRom - v21beta2 🆕
 - Implement zigbee2mqtt protocol (#1024) - v21beta2 🆕
