@@ -50,53 +50,54 @@
 
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 
-const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
-const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
-const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-uint8_t* lastValidFrame = nullptr;
-size_t lastFrameSize = 0;
+namespace {
+	const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
+	const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
+	const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
+	uint8_t* lastValidFrame = nullptr;
+	size_t lastFrameSize = 0;
 
-int  _captureDev = -1;
-int  _videoDev = -1;
+	int  _captureDev = -1;
+	int  _videoDev = -1;
 
-void* base;
-ssize_t _bytesToRead;
+	void* base;
 
-bool messageShow = false;
-bool _usingAmlogic = false;
+	bool messageShow = false;
+	bool _usingAmlogic = false;
+}
 
 
-FrameBufGrabber::FrameBufGrabber(const QString& device, const QString& configurationPath)
-	: Grabber(configurationPath, "FRAMEBUFFER_SYSTEM:" + device.left(14))
+AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurationPath)
+	: Grabber(configurationPath, "AMLOGIC_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
 	, _semaphore(1)
 	, _handle(-1)
 {
 	_timer.setTimerType(Qt::PreciseTimer);
-	connect(&_timer, &QTimer::timeout, this, &FrameBufGrabber::grabFrame);
+	connect(&_timer, &QTimer::timeout, this, &AmlogicGrabber::grabFrame);
 
 	getDevices();
 }
 
-QString FrameBufGrabber::GetSharedLut()
+QString AmlogicGrabber::GetSharedLut()
 {
 	return "";
 }
 
-void FrameBufGrabber::loadLutFile(PixelFormat color)
+void AmlogicGrabber::loadLutFile(PixelFormat color)
 {
 }
 
-void FrameBufGrabber::setHdrToneMappingEnabled(int mode)
+void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
 }
 
-FrameBufGrabber::~FrameBufGrabber()
+AmlogicGrabber::~AmlogicGrabber()
 {
 	uninit();
 }
 
-void FrameBufGrabber::uninit()
+void AmlogicGrabber::uninit()
 {
 	if (_initialized)
 	{
@@ -107,7 +108,7 @@ void FrameBufGrabber::uninit()
 	_initialized = false;
 }
 
-bool FrameBufGrabber::init()
+bool AmlogicGrabber::init()
 {
 	Debug(_log, "init");
 
@@ -187,17 +188,17 @@ bool FrameBufGrabber::init()
 }
 
 
-void FrameBufGrabber::getDevices()
+void AmlogicGrabber::getDevices()
 {
 	enumerateDevices(false);
 }
 
-bool FrameBufGrabber::isActivated()
+bool AmlogicGrabber::isActivated()
 {
 	return !_deviceProperties.isEmpty();
 }
 
-void FrameBufGrabber::enumerateDevices(bool silent)
+void AmlogicGrabber::enumerateDevices(bool silent)
 {
 	_deviceProperties.clear();
 
@@ -220,7 +221,7 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 	}
 }
 
-bool FrameBufGrabber::start()
+bool AmlogicGrabber::start()
 {
 	try
 	{
@@ -240,7 +241,7 @@ bool FrameBufGrabber::start()
 	return false;
 }
 
-void FrameBufGrabber::stop()
+void AmlogicGrabber::stop()
 {
 	if (_initialized)
 	{
@@ -259,7 +260,7 @@ void FrameBufGrabber::stop()
 	}
 }
 
-void FrameBufGrabber::grabFrame()
+void AmlogicGrabber::grabFrame()
 {
 	bool stopNow = false;
 
@@ -316,7 +317,7 @@ void FrameBufGrabber::grabFrame()
 	}
 }
 
-bool FrameBufGrabber::grabFrameFramebuffer()
+bool AmlogicGrabber::grabFrameFramebuffer()
 {
 	struct fb_var_screeninfo scr;
 	bool isStillActive = false;
@@ -385,7 +386,7 @@ bool FrameBufGrabber::grabFrameFramebuffer()
 }
 
 
-void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void AmlogicGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
 {
 	_cropLeft = cropLeft;
 	_cropRight = cropRight;
@@ -394,7 +395,7 @@ void FrameBufGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigne
 }
 
 
-bool FrameBufGrabber::grabFrameAmlogic()
+bool AmlogicGrabber::grabFrameAmlogic()
 {
 	long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 	long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
@@ -471,7 +472,7 @@ bool FrameBufGrabber::grabFrameAmlogic()
 	return true;
 }
 
-bool FrameBufGrabber::initAmlogic()
+bool AmlogicGrabber::initAmlogic()
 {
 	Info(_log, "Starting Amlogic capture device...");
 	try {
@@ -490,7 +491,7 @@ bool FrameBufGrabber::initAmlogic()
 	}
 }
 
-bool FrameBufGrabber::stopAmlogic()
+bool AmlogicGrabber::stopAmlogic()
 {
 	Info(_log, "Stopping Amlogic capture device...");
 	try {
@@ -509,7 +510,7 @@ bool FrameBufGrabber::stopAmlogic()
 	}
 }
 
-void FrameBufGrabber::closeDeviceAML(int& fd)
+void AmlogicGrabber::closeDeviceAML(int& fd)
 {
 	if (fd >= 0)
 	{
@@ -518,7 +519,7 @@ void FrameBufGrabber::closeDeviceAML(int& fd)
 	}
 }
 
-bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
+bool AmlogicGrabber::openDeviceAML(int& fd, const char* dev)
 {
 	if (fd < 0)
 	{
@@ -531,7 +532,7 @@ bool FrameBufGrabber::openDeviceAML(int& fd, const char* dev)
 	return true;
 }
 
-bool FrameBufGrabber::isVideoPlayingAML()
+bool AmlogicGrabber::isVideoPlayingAML()
 {
 	if (QFile::exists(DEFAULT_VIDEO_DEVICE))
 	{

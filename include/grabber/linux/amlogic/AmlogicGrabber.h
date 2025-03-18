@@ -24,15 +24,15 @@
 #include <grabber/linux/amlogic/Amvideocap.h>
 
 
-class FrameBufGrabber : public Grabber
+class AmlogicGrabber : public Grabber
 {
 	Q_OBJECT
 
 public:
 
-	FrameBufGrabber(const QString& device, const QString& configurationPath);
+	AmlogicGrabber(const QString& device, const QString& configurationPath);
 
-	~FrameBufGrabber();
+	~AmlogicGrabber();
 
 	void setHdrToneMappingEnabled(int mode) override;
 

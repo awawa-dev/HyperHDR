@@ -17,6 +17,7 @@ Use -D prefix when configuring the build.
   * ENABLE_PIPEWIRE = ON | OFF, enables the Pipewire software grabber (Linux)
   * ENABLE_PIPEWIRE_EGL = ON | OFF, enables EGL for the Pipewire grabber (Linux)
   * ENABLE_X11 = ON | OFF, enables the X11 software grabber (Linux)
+  * ENABLE_AMLOGIC = ON | OFF, forces the Amlogic software grabber (Linux)
 
 * HARDWARE GRABBERS
   * ENABLE_AVF = ON | OFF, enables the AVF USB grabber support (macOS)

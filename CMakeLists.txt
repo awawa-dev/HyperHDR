@@ -43,6 +43,7 @@ SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_PIPEWIRE                    OFF )
 SET ( DEFAULT_PIPEWIRE_EGL                OFF )
 SET ( DEFAULT_FRAMEBUFFER                 OFF )
+SET ( DEFAULT_AMLOGIC                     OFF )
 SET ( DEFAULT_SOUNDCAPWINDOWS             OFF )
 SET ( DEFAULT_SOUNDCAPMACOS               OFF )
 SET ( DEFAULT_CEC                         OFF )
@@ -430,6 +431,9 @@ colorMe("ENABLE_DX = " ${ENABLE_DX})
 
 option(ENABLE_FRAMEBUFFER "Enable the framebuffer Linux system grabber" ${DEFAULT_FRAMEBUFFER})
 colorMe("ENABLE_FRAMEBUFFER = " ${ENABLE_FRAMEBUFFER})
+
+option(ENABLE_AMLOGIC "Enable the Amlogic grabber" ${DEFAULT_AMLOGIC})
+colorMe("ENABLE_AMLOGIC = " ${ENABLE_AMLOGIC})
 
 option(ENABLE_MAC_SYSTEM "Enable macOS system grabber" ${DEFAULT_MAC_SYSTEM})
 colorMe("ENABLE_MAC_SYSTEM = " ${ENABLE_MAC_SYSTEM})

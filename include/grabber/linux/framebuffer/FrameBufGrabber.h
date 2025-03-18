@@ -20,9 +20,6 @@
 #include <utils/Components.h>
 
 
-//AML
-#include <grabber/linux/amlogic/Amvideocap.h>
-
 
 class FrameBufGrabber : public Grabber
 {
@@ -68,16 +65,6 @@ private:
 	bool init() override;
 
 	void uninit() override;
-
-
-	//AMLOGIC
-	bool isVideoPlayingAML();
-	void closeDeviceAML(int& fd);
-	bool openDeviceAML(int& fd, const char* dev);	
-	bool initAmlogic();
-	bool stopAmlogic();
-	bool grabFrameAmlogic();
-	bool grabFrameFramebuffer();
 		
 private:
 	QString		_configurationPath;
