@@ -482,6 +482,19 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 		_systemGrabber->linker.release(1);
 		SystemWrapper* softwareGrabberInstance = nullptr;
 
+#if defined(ENABLE_AMLOGIC)
+	if (softwareGrabberInstance == nullptr)
+	{
+		auto candidate = new AmlogicWrapper(deviceName, _rootPath);
+		if (!candidate->isActivated(force))
+		{
+			Warning(_log, "The system doesn't support the amlogic system grabber");
+			candidate->deleteLater();
+		}
+		else
+			softwareGrabberInstance = candidate;
+	}
+#endif
 #if defined(ENABLE_DX)
 		if (softwareGrabberInstance == nullptr)
 		{

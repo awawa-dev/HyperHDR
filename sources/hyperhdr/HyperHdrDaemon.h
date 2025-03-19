@@ -46,6 +46,12 @@
 	typedef QObject FrameBufWrapper;
 #endif
 
+#ifdef ENABLE_AMLOGIC
+#include <grabber/linux/amlogic/AmlogicWrapper.h>
+#else
+	typedef QObject AmlogicWrapper;
+#endif
+
 #ifdef ENABLE_PIPEWIRE
 #include <grabber/linux/pipewire/PipewireWrapper.h>
 #else

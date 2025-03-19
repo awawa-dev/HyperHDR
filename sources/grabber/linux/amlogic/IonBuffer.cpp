@@ -13,7 +13,7 @@
 * more details.
 *
 */
-#include "IonBuffer.h"
+#include <grabber/linux/amlogic/IonBuffer.h>
 
 int IonBuffer::ion_fd = -1;
 
