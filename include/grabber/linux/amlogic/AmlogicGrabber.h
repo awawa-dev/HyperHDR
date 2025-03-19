@@ -69,6 +69,8 @@ private:
 
 	void uninit() override;
 
+	void resetVariables();
+
 
 	//AMLOGIC
 	bool isVideoPlayingAML();
@@ -79,13 +81,12 @@ private:
 	bool grabFrameAmlogic();
 	bool grabFrameFramebuffer();
 
-	MemoryBuffer<uint8_t> aml_frame;
-	MemoryBuffer<uint8_t> lastValidFrame;
-	size_t lastFrameSize = 0;
-	int _captureDev = -1;
-	int _videoDev = -1;
-	bool _usingAmlogic = false;
-	bool messageShow = false;
+	MemoryBuffer<uint8_t> _amlFrame;
+	MemoryBuffer<uint8_t> _lastValidFrame;
+	int _captureDev;
+	int _videoDev;
+	bool _usingAmlogic;
+	bool _messageShow;
 		
 private:
 	QString		_configurationPath;

@@ -680,7 +680,7 @@ void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const Q
 
 	if (settingsType == settings::type::SYSTEMGRABBER && _systemGrabber == nullptr)
 	{
-		#if defined(ENABLE_DX) || defined(ENABLE_PIPEWIRE) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER) || defined(ENABLE_MAC_SYSTEM)
+		#if defined(ENABLE_DX) || defined(ENABLE_PIPEWIRE) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_AMLOGIC)
 			const QJsonObject& grabberConfig = config.object();
 			const QString deviceName = grabberConfig["device"].toString("auto");
 			createSoftwareGrabberHelper(config, deviceName, _rootPath);

@@ -65,10 +65,23 @@ AmlogicGrabber::AmlogicGrabber(const QString& device, const QString& configurati
 	, _semaphore(1)
 	, _handle(-1)
 {
+	resetVariables();
+
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &AmlogicGrabber::grabFrame);
 
 	getDevices();
+}
+
+
+void AmlogicGrabber::resetVariables()
+{
+	_amlFrame.releaseMemory();
+	_lastValidFrame.releaseMemory();
+	_captureDev = -1;
+	_videoDev = -1;
+	_usingAmlogic = false;
+	_messageShow = false;
 }
 
 QString AmlogicGrabber::GetSharedLut()
@@ -247,6 +260,8 @@ void AmlogicGrabber::stop()
 		}
 		_initialized = false;
 
+		resetVariables();
+
 		_semaphore.release();
 		Info(_log, "Stopped");
 	}
@@ -269,32 +284,37 @@ void AmlogicGrabber::grabFrame()
 					}
 					else {
 						Info(_log, "Change to Framebuffer");
-						if (lastValidFrame.size() > 0) {
-							lastValidFrame.releaseMemory();
+						if (_lastValidFrame.size() > 0)
+						{
+							_lastValidFrame.releaseMemory();
 						}
-						if (aml_frame.size() > 0) {
-							aml_frame.releaseMemory();
+						if (_amlFrame.size() > 0)
+						{
+							_amlFrame.releaseMemory();
 						}
 						_usingAmlogic = !stopAmlogic();
 					}
-					messageShow = false;
+					_messageShow = false;
 				}
 
 				// Capture framel
 				if (_usingAmlogic) {
-					if (!messageShow) {
+					if (!_messageShow)
+					{
 						Info(_log, "Grabbing Amlogic");
-						messageShow = true;
+						_messageShow = true;
 					}
 					grabFrameAmlogic();
 				}
 				else {
-					if (!messageShow) {
+					if (!_messageShow)
+					{
 						Info(_log, "Grabbing Framebuffer");
-						messageShow = true;
+						_messageShow = true;
 					}
 					stopNow = grabFrameFramebuffer();
-					if (stopNow) {
+					if (stopNow)
+					{
 						uninit();
 					}
 				}
@@ -406,19 +426,19 @@ bool AmlogicGrabber::grabFrameAmlogic()
 		int linelen = ((_width + 31) & ~31) * 3;
 		size_t _bytesToRead = linelen * _height;
 
-		aml_frame.resize(_bytesToRead);
+		_amlFrame.resize(_bytesToRead);
 
-		if (aml_frame.size() == 0) {
+		if (_amlFrame.size() == 0) {
 			Error(_log, "Malloc _bytesToRead %zu failed\n", _bytesToRead);
 			return false;
 		}
 
-		ssize_t bytesRead = pread(_captureDev, aml_frame.data(), _bytesToRead, 0);
+		ssize_t bytesRead = pread(_captureDev, _amlFrame.data(), _bytesToRead, 0);
 
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
 			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));			
-			aml_frame.releaseMemory();
+			_amlFrame.releaseMemory();
 			return false;
 		}
 		else
@@ -426,26 +446,26 @@ bool AmlogicGrabber::grabFrameAmlogic()
 			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
 				Error(_log, "Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
-				aml_frame.releaseMemory();
+				_amlFrame.releaseMemory();
 				return false;
 			}
 			else {
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
 				{					
-					lastValidFrame.resize(_bytesToRead);
-					if (lastValidFrame.size() > 0) {
-						memcpy(lastValidFrame.data(), aml_frame.data(), _bytesToRead);
-						lastFrameSize = _bytesToRead;
+					_lastValidFrame.resize(_bytesToRead);
+					if (_lastValidFrame.size() > 0)
+					{
+						memcpy(_lastValidFrame.data(), _amlFrame.data(), _bytesToRead);
 					}
 
-					processSystemFrameBGR(static_cast<uint8_t*>(aml_frame.data()), linelen);
+					processSystemFrameBGR(static_cast<uint8_t*>(_amlFrame.data()), linelen);
 					return true;
 				}
 				else
 				{					
-					if (lastValidFrame.size() > 0 && lastFrameSize > 0)
+					if (_lastValidFrame.size() > 0)
 					{					
-						processSystemFrameBGR(lastValidFrame.data(), linelen);
+						processSystemFrameBGR(_lastValidFrame.data(), linelen);
 						return true;
 					}
 	
