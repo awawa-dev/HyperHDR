@@ -1273,5 +1273,6 @@
   "edt_conf_mqtt_disableApiAccess_title": "Disable API access",
   "edt_conf_mqtt_disableApiAccess_expl": "Block execution of API commands sent via MQTT.",
   "wiz_zigbee2mqtt_title": "Zigbee2mqtt lights wizard",
-  "wiz_mqtt_error": "Could not find devices connected to MQTT server. Check HyperHDR logs and MQTT client configuration in network settings. HyperHDR must have a valid and active connection to MQTT broker."
+  "wiz_mqtt_error": "Could not find devices connected to MQTT server. Check HyperHDR logs and MQTT client configuration in network settings. HyperHDR must have a valid and active connection to MQTT broker.",
+  "conf_grabber_amlogic_intro": "Amlogic screen grabber"
 }

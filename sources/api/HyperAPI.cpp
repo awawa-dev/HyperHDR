@@ -365,7 +365,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 			// System Grabber Info //
 			/////////////////////////
 
-#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER)
+#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER) || defined(ENABLE_AMLOGIC)
 
 			QJsonObject resultSGrabber;
 
