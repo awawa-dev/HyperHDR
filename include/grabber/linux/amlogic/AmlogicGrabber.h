@@ -24,15 +24,15 @@
 #include <grabber/linux/amlogic/Amvideocap.h>
 
 
-class FrameBufGrabber : public Grabber
+class AmlogicGrabber : public Grabber
 {
 	Q_OBJECT
 
 public:
 
-	FrameBufGrabber(const QString& device, const QString& configurationPath);
+	AmlogicGrabber(const QString& device, const QString& configurationPath);
 
-	~FrameBufGrabber();
+	~AmlogicGrabber();
 
 	void setHdrToneMappingEnabled(int mode) override;
 
@@ -78,6 +78,14 @@ private:
 	bool stopAmlogic();
 	bool grabFrameAmlogic();
 	bool grabFrameFramebuffer();
+
+	MemoryBuffer<uint8_t> aml_frame;
+	MemoryBuffer<uint8_t> lastValidFrame;
+	size_t lastFrameSize = 0;
+	int _captureDev = -1;
+	int _videoDev = -1;
+	bool _usingAmlogic = false;
+	bool messageShow = false;
 		
 private:
 	QString		_configurationPath;
