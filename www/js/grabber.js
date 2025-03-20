@@ -660,7 +660,10 @@ $(document).ready( function(){
 			else if (window.serverInfo.systemGrabbers.device.indexOf("pipewire")>=0)
 				createHint("intro", $.i18n('conf_grabber_pipewire_intro'), "editor_container_system_device");
 			else if (window.serverInfo.systemGrabbers.device.indexOf("framebuffer")>=0)
-				createHint("intro", $.i18n('conf_grabber_framebuffer_intro'), "editor_container_system_device");			
+				createHint("intro", $.i18n('conf_grabber_framebuffer_intro'), "editor_container_system_device");
+			else if (window.serverInfo.systemGrabbers.device.indexOf("amlogic")>=0)
+				createHint("intro", $.i18n('conf_grabber_amlogic_intro'), "editor_container_system_device");			
+
 			$('[data-schemapath="root.systemGrabber.hdrToneMapping"]').toggle(false);
 			$('[data-schemapath="root.systemGrabber.hardware"]').toggle(false);
 		}

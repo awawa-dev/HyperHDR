@@ -18,6 +18,9 @@
 // framebuffer linux system grabber
 #cmakedefine ENABLE_FRAMEBUFFER
 
+// amlogic system grabber
+#cmakedefine ENABLE_AMLOGIC
+
 // macOs system grabber
 #cmakedefine ENABLE_MAC_SYSTEM
 
