@@ -262,9 +262,20 @@ ENDIF()
 #=============================================================================
 
 if (UNIX AND NOT APPLE AND (ENABLE_POWER_MANAGEMENT OR ENABLE_PIPEWIRE))
-	set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "No doc")
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sdbus-cpp)
-	set_target_properties(sdbus-c++-objlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	if (USE_SYSTEM_SDBUS_CPP_LIBS)
+		pkg_check_modules (sdbus-c++ sdbus-c++>=2.0.0)
+
+		if(NOT sdbus-c++_FOUND)
+			message( WARNING "Could not find: sdbus-c++>=2.0.0. Fallback to sdbus-c++ submodule." )
+		endif()
+	endif()
+
+	if(NOT sdbus-c++_FOUND)
+		message( "Using sdbus-c++ submodule." )
+		set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "No doc")
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sdbus-cpp)
+		set_target_properties(sdbus-c++-objlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	endif()
 endif()
 
 #=============================================================================
