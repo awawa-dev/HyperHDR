@@ -242,10 +242,11 @@ void PipewireHandler::closeSession()
 	}
 
 	_initEGL = false;
-#endif
 
 	for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
 		supVal.hasDma = false;
+
+#endif
 
 	releaseWorkingFrame();
 
@@ -644,12 +645,14 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	_frameDrmModifier = format.info.raw.modifier;
 	_frameOrderRgb = (format.info.raw.format == SPA_VIDEO_FORMAT_RGBx || format.info.raw.format == SPA_VIDEO_FORMAT_RGBA);
 
+#ifdef ENABLE_PIPEWIRE_EGL
 	for (const supportedDmaFormat& val : _supportedDmaFormatsList)
 		if (val.spaFormat == format.info.raw.format)
 		{
 			_frameDrmFormat = val.drmFormat;
 			break;
 		}
+#endif
 
 	printf("Pipewire: video format = %d (%s)\n", format.info.raw.format, spa_debug_type_find_name(spa_type_video_format, format.info.raw.format));
 	printf("Pipewire: video size = %dx%d (RGB order = %s)\n", _frameWidth, _frameHeight, (_frameOrderRgb) ? "true" : "false");
