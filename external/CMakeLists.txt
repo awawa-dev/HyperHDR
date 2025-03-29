@@ -95,6 +95,7 @@ set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
 set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
 set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
 
 #=============================================================================
