@@ -1353,8 +1353,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 	if (stream != nullptr)
 	{
-		const spa_pod*	streamParams[(sizeof(_supportedDmaFormatsList) / sizeof(supportedDmaFormat)) + 1];
-		int streamParamsIndex = 0;
+		std::vector<spa_pod*> streamParams;
 		
 		MemoryBuffer<uint8_t> spaBufferMem(2048);
 
@@ -1392,11 +1391,11 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax), 0);
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax), 0);
-				streamParams[streamParamsIndex++] = reinterpret_cast<spa_pod*> (spa_pod_builder_pop(&spaBuilder, &frameDMA[0]));
+				streamParams.push_back( reinterpret_cast<spa_pod*> (spa_pod_builder_pop(&spaBuilder, &frameDMA[0])) );
 			}
 		#endif
 
-		streamParams[streamParamsIndex++] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&spaBuilder,
+		streamParams.push_back( reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&spaBuilder,
 			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
 			SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
 			SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
@@ -1404,11 +1403,11 @@ pw_stream* PipewireHandler::createCapturingStream()
 				SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRA,
 				SPA_VIDEO_FORMAT_RGBx, SPA_VIDEO_FORMAT_RGBA),
 			SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax),
-			SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax)));
+			SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax))) );
 
 		pw_stream_add_listener(stream, &_pwStreamListener, &pwStreamEvents, this);
 
-		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), streamParams, streamParamsIndex);
+		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), streamParams.data(), streamParams.size());
 
 		if ( res != 0)
 		{
