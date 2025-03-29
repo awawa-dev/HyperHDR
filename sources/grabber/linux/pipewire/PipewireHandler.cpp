@@ -624,6 +624,7 @@ void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state,
 
 void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 {
+	bool hasDma = false;
 	struct spa_video_info format {};
 
 	std::cout << "Pipewire: got new video format selected" << std::endl;
@@ -646,6 +647,8 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	_frameOrderRgb = (format.info.raw.format == SPA_VIDEO_FORMAT_RGBx || format.info.raw.format == SPA_VIDEO_FORMAT_RGBA);
 
 #ifdef ENABLE_PIPEWIRE_EGL
+	hasDma = true;
+
 	for (const supportedDmaFormat& val : _supportedDmaFormatsList)
 		if (val.spaFormat == format.info.raw.format)
 		{
@@ -668,7 +671,7 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 		? (1 << SPA_DATA_DmaBuf) | (1 << SPA_DATA_MemFd) | (1 << SPA_DATA_MemPtr)
 		: (1 << SPA_DATA_MemFd) | (1 << SPA_DATA_MemPtr);
 
-	const bool hasDma = (bufferTypes & (1 << SPA_DATA_DmaBuf));
+	hasDma = hasDma && (bufferTypes & (1 << SPA_DATA_DmaBuf));
 
 	// display capabilities
 	if (hasDma)
