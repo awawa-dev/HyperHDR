@@ -1407,7 +1407,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 		pw_stream_add_listener(stream, &_pwStreamListener, &pwStreamEvents, this);
 
-		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), streamParams.data(), streamParams.size());
+		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), const_cast<const spa_pod**>(streamParams.data()), streamParams.size());
 
 		if ( res != 0)
 		{
