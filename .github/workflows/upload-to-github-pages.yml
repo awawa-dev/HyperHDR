@@ -98,7 +98,7 @@ jobs:
        # download cache
       - name: ccache cache files
         if: ( env.USE_CACHE == '1' )
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.2
         with:
            path: .ccache
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
