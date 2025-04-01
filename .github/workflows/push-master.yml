@@ -101,7 +101,7 @@ jobs:
        # download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.2
         with:
            path: .ccache
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -133,7 +133,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}
           path: deploy/Hyper*
@@ -141,7 +141,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
           path: |
@@ -185,7 +185,7 @@ jobs:
       # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.2
         with:
             path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -222,7 +222,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.1
         with:
             name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
@@ -230,7 +230,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.1
         with:
             name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
             path: build/Hyper*.dmg
@@ -252,7 +252,7 @@ jobs:
           submodules: true
 
       - name: Cache Qt
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.2
         id: cache-qt-windows
         with:
           path: ${{ runner.workspace }}/Qt
@@ -276,7 +276,7 @@ jobs:
       # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.2
         with:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -321,7 +321,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: release-artifact-windows
           path: build/Hyper*
@@ -329,7 +329,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
@@ -395,7 +395,7 @@ jobs:
 
       # Download artifacts from previous build process
       - name: Download artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.1.9
         with:
           path: artifacts
           pattern: release-artifact-*
@@ -403,7 +403,7 @@ jobs:
 
       # create draft release and upload artifacts
       - name: Create draft release
-        uses: softprops/action-gh-release@v2.1.0
+        uses: softprops/action-gh-release@v2.2.1
         with:
           name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}

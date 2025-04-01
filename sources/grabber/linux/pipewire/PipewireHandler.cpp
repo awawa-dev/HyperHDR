@@ -57,6 +57,10 @@
 #include <grabber/linux/pipewire/ScreenCastProxy.h>
 #include <utils/Macros.h>
 
+#ifndef DRM_FORMAT_MOD_INVALID
+	#define DRM_FORMAT_MOD_INVALID ((1ULL<<56) - 1)
+#endif
+
 using namespace sdbus;
 using namespace org::freedesktop::portal;
 
@@ -238,10 +242,11 @@ void PipewireHandler::closeSession()
 	}
 
 	_initEGL = false;
-#endif
 
 	for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
 		supVal.hasDma = false;
+
+#endif
 
 	releaseWorkingFrame();
 
@@ -619,6 +624,7 @@ void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state,
 
 void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 {
+	bool hasDma = false;
 	struct spa_video_info format {};
 
 	std::cout << "Pipewire: got new video format selected" << std::endl;
@@ -640,12 +646,16 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	_frameDrmModifier = format.info.raw.modifier;
 	_frameOrderRgb = (format.info.raw.format == SPA_VIDEO_FORMAT_RGBx || format.info.raw.format == SPA_VIDEO_FORMAT_RGBA);
 
+#ifdef ENABLE_PIPEWIRE_EGL
+	hasDma = true;
+
 	for (const supportedDmaFormat& val : _supportedDmaFormatsList)
 		if (val.spaFormat == format.info.raw.format)
 		{
 			_frameDrmFormat = val.drmFormat;
 			break;
 		}
+#endif
 
 	printf("Pipewire: video format = %d (%s)\n", format.info.raw.format, spa_debug_type_find_name(spa_type_video_format, format.info.raw.format));
 	printf("Pipewire: video size = %dx%d (RGB order = %s)\n", _frameWidth, _frameHeight, (_frameOrderRgb) ? "true" : "false");
@@ -661,7 +671,7 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 		? (1 << SPA_DATA_DmaBuf) | (1 << SPA_DATA_MemFd) | (1 << SPA_DATA_MemPtr)
 		: (1 << SPA_DATA_MemFd) | (1 << SPA_DATA_MemPtr);
 
-	const bool hasDma = (bufferTypes & (1 << SPA_DATA_DmaBuf));
+	hasDma = hasDma && (bufferTypes & (1 << SPA_DATA_DmaBuf));
 
 	// display capabilities
 	if (hasDma)
@@ -1346,8 +1356,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 	if (stream != nullptr)
 	{
-		const spa_pod*	streamParams[(sizeof(_supportedDmaFormatsList) / sizeof(supportedDmaFormat)) + 1];
-		int streamParamsIndex = 0;
+		std::vector<spa_pod*> streamParams;
 		
 		MemoryBuffer<uint8_t> spaBufferMem(2048);
 
@@ -1385,11 +1394,11 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax), 0);
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax), 0);
-				streamParams[streamParamsIndex++] = reinterpret_cast<spa_pod*> (spa_pod_builder_pop(&spaBuilder, &frameDMA[0]));
+				streamParams.push_back( reinterpret_cast<spa_pod*> (spa_pod_builder_pop(&spaBuilder, &frameDMA[0])) );
 			}
 		#endif
 
-		streamParams[streamParamsIndex++] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&spaBuilder,
+		streamParams.push_back( reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&spaBuilder,
 			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
 			SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video),
 			SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
@@ -1397,11 +1406,11 @@ pw_stream* PipewireHandler::createCapturingStream()
 				SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_BGRA,
 				SPA_VIDEO_FORMAT_RGBx, SPA_VIDEO_FORMAT_RGBA),
 			SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax),
-			SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax)));
+			SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax))) );
 
 		pw_stream_add_listener(stream, &_pwStreamListener, &pwStreamEvents, this);
 
-		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), streamParams, streamParamsIndex);
+		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), const_cast<const spa_pod**>(streamParams.data()), streamParams.size());
 
 		if ( res != 0)
 		{
