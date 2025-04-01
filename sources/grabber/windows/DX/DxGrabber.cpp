@@ -904,10 +904,10 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 
 			SafeRelease(&texDesktop);
 		}
-		else if (display.warningCounter > 0)
+		else
 		{
 			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: %i", status);
-			display.warningCounter--;
+			_dxRestartNow = true;
 		}
 	}
 	else if (status == DXGI_ERROR_WAIT_TIMEOUT)
@@ -933,10 +933,9 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 		Error(_log, "DirectX invalid call. Stopping.");
 		_dxRestartNow = true;
 	}
-	else if (display.warningCounter > 0)
+	else
 	{
 		Error(_log, "AcquireNextFrame failed. Reason: %i", status);
-		display.warningCounter--;
 	}
 
 	SafeRelease(&resourceDesktop);
