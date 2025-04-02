@@ -216,8 +216,9 @@ jobs:
             PLATFORM: osx
             USE_CCACHE: ${{ env.USE_CACHE }}
             RESET_CACHE: ${{ env.RESET_CACHE }}
+            JOB_RUNNER: ${{ matrix.JOB_RUNNER }}
         shell: bash
-        run: ./build.sh
+        run: ./build.sh || ( [ "$JOB_RUNNER" == "macos-13" ] && ./build.sh)
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
