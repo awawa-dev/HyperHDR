@@ -266,6 +266,11 @@ bool DxGrabber::start()
 	{
 		if (init())
 		{
+			for (auto&& display : _handles)
+			{
+				display->resetStats();
+			}
+
 			_timer->setInterval(1000 / _fps);
 			_timer->start();
 			Info(_log, "Started");
@@ -866,6 +871,11 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 			if (_hardware)
 			{
 				status = deepScaledCopy(display, texDesktop);
+
+				if (!CHECK(status))
+				{
+					Error(_log, "DeepScaledCopy failed. Reason: %i", status);
+				}
 			}
 			else
 			{
@@ -886,13 +896,18 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 				}
 				_d3dContext->Unmap(display.d3dSourceTexture, 0);
 			}
+			else
+			{
+				Error(_log, "Cannot copy or map texture. Reason: %i. Restarting...", status);
+				_dxRestartNow = true;
+			}
 
 			SafeRelease(&texDesktop);
 		}
-		else if (display.warningCounter > 0)
+		else
 		{
 			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: %i", status);
-			display.warningCounter--;
+			_dxRestartNow = true;
 		}
 	}
 	else if (status == DXGI_ERROR_WAIT_TIMEOUT)
@@ -913,10 +928,14 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 		Error(_log, "Lost DirectX capture context. Stopping.");
 		_dxRestartNow = true;
 	}
-	else if (display.warningCounter > 0)
+	else if (status == DXGI_ERROR_INVALID_CALL)
+	{
+		Error(_log, "DirectX invalid call. Stopping.");
+		_dxRestartNow = true;
+	}
+	else
 	{
 		Error(_log, "AcquireNextFrame failed. Reason: %i", status);
-		display.warningCounter--;
 	}
 
 	SafeRelease(&resourceDesktop);
