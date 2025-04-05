@@ -101,7 +101,7 @@ jobs:
        # download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.2.3
         with:
            path: .ccache
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -185,7 +185,7 @@ jobs:
       # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.2.3
         with:
             path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -252,7 +252,7 @@ jobs:
           submodules: true
 
       - name: Cache Qt
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.2.3
         id: cache-qt-windows
         with:
           path: ${{ runner.workspace }}/Qt
@@ -276,7 +276,7 @@ jobs:
       # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.2.3
         with:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
