@@ -118,6 +118,7 @@ int ProviderFtdi::open()
 	}
 
 	_isDeviceReady = true;
+	_currentRetry = 0;
 	return 0;
 }
 
