@@ -88,6 +88,9 @@ bool ProviderFtdi::openDevice()
 }
 int ProviderFtdi::open()
 {
+	if (_retryMode)
+		return -1;
+
 	_isDeviceReady = false;
 
 	if (!openDevice())
@@ -119,6 +122,8 @@ int ProviderFtdi::open()
 
 	_isDeviceReady = true;
 	_currentRetry = 0;
+	_retryMode = false;
+
 	return 0;
 }
 
