@@ -1,29 +1,42 @@
+/* ProviderSpi.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2025 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
 
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <cerrno>
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+ */
 
-// Linux includes
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-
-// Local HyperHDR includes
+#include <HyperhdrConfig.h>
+#include <algorithm>
 #include <led-drivers/spi/ProviderSpi.h>
 #include <utils/Logger.h>
 
-#include <QDirIterator>
+
+#ifdef ENABLE_SPIFTDI
+	#include <led-drivers/spi/ProviderSpiFtdi.h>
+#endif
 
 ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
-	, _deviceName("/dev/spidev0.0")
-	, _baudRate_Hz(1000000)
-	, _fid(-1)
-	, _spiMode(SPI_MODE_0)
-	, _spiDataInvert(false)
-	, _spiType("")
 {
 }
 
@@ -38,167 +51,97 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
-		_deviceName = deviceConfig["output"].toString(_deviceName);
-		_spiType = deviceConfig["spitype"].toString("");
-		_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
-		_spiMode = deviceConfig["spimode"].toInt(_spiMode);
-		_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
+		bool isInt = false;
+		#ifdef ENABLE_SPIFTDI			
+			long long deviceLocation = deviceConfig["output"].toString().toLong(&isInt, 10);
+			if (isInt)
+			{
+				#ifdef WIN32
+					_provider = std::make_unique<ProviderSpiFtdi>(_log);
+				#else
+					_provider = std::make_unique<ProviderSpiLibFtdi>(_log);
+				#endif
+			}
+		#endif
 
-		if (_spiType == "rp2040" && _baudRate_Hz > 20833333)
-		{
-			_baudRate_Hz = 20833333;
-		}
-
-		Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
-		Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
+		#if !defined(WIN32)
+			if (isInt)
+			{
+				_provider = std::make_unique<ProviderSpiGeneric>(_log);
+			}
+		#endif
 
 		if (_defaultInterval > 0)
+		{
 			Warning(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
+		}
 
-		isInitOK = true;
+		isInitOK = (_provider != nullptr) && _provider->init(deviceConfig);
 	}
 	return isInitOK;
 }
 
 int ProviderSpi::open()
 {
-	int retval = -1;
-	QString errortext;
-	_isDeviceReady = false;
+	_isDeviceReady = false;	
 
-	const int bitsPerWord = 8;
-
-	_fid = ::open(QSTRING_CSTR(_deviceName), O_RDWR);
-
-	if (_fid < 0)
+	if (_provider == nullptr)
 	{
-		errortext = QString("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
-		retval = -1;
-	}
-	else
-	{
-		if (ioctl(_fid, SPI_IOC_WR_MODE, &_spiMode) == -1 || ioctl(_fid, SPI_IOC_RD_MODE, &_spiMode) == -1)
-		{
-			retval = -2;
-		}
-		else
-		{
-			if (ioctl(_fid, SPI_IOC_WR_BITS_PER_WORD, &bitsPerWord) == -1 || ioctl(_fid, SPI_IOC_RD_BITS_PER_WORD, &bitsPerWord) == -1)
-			{
-				retval = -4;
-			}
-			else
-			{
-				if (ioctl(_fid, SPI_IOC_WR_MAX_SPEED_HZ, &_baudRate_Hz) == -1 || ioctl(_fid, SPI_IOC_RD_MAX_SPEED_HZ, &_baudRate_Hz) == -1)
-				{
-					retval = -6;
-				}
-				else
-				{
-					uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-
-					if (_spiType == "rp2040")
-					{
-						writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
-					}
-					else if (_spiType == "esp32")
-					{
-						writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
-					}
-
-					_isDeviceReady = true;
-					retval = 0;
-				}
-			}
-		}
-		if (retval < 0)
-		{
-			errortext = QString("Failed to open device (%1). Error Code: %2").arg(_deviceName).arg(retval);
-		}
-	}
-
-	if (retval < 0)
-	{
-		this->setInError(errortext);
-	}
-
-	return retval;
-}
-
-int ProviderSpi::close()
-{
-	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-	int retval = 0;
-
-	_isDeviceReady = false;
-
-	Debug(_log, "Closing SPI interface");
-
-	if (_spiType == "rp2040")
-	{
-		writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
-	}
-
-	// Test, if device requires closing
-	if (_fid > -1)
-	{
-		// Close device
-		if (::close(_fid) != 0)
-		{
-			Error(_log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_deviceName), strerror(errno));
-			retval = -1;
-		}
-	}
-	return retval;
-}
-
-int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
-{
-	MemoryBuffer<uint8_t> buffer;
-	spi_ioc_transfer _spi;
-
-	memset(&_spi, 0, sizeof(_spi));
-
-	if (_fid < 0)
-	{
+		this->setInError("open: no SPI provider");
 		return -1;
 	}
 
-	_spi.tx_buf = __u64(data);
-	_spi.len = __u32(size);
+	QString errortext = _provider->open();
 
-	if (_spiDataInvert)
+
+	if (!errortext.isEmpty())
 	{
-		buffer.resize(size);
-		for (unsigned i = 0; i < size; i++) {
-			buffer.data()[i] = data[i] ^ 0xff;
-		}
-		_spi.tx_buf = __u64(buffer.data());
+		this->setInError(errortext);
+		return -1;
+	}
+	else
+	{
+		_isDeviceReady = true;
 	}
 
-	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
-	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+	return 0;
+}
 
-	return retVal;
+int ProviderSpi::close()
+{	
+	_isDeviceReady = false;
+
+	if (_provider == nullptr)
+	{
+		Error(_log, "close: no SPI provider");
+		return -1;
+	}
+
+	_provider->close();
+	
+	return 0;
+}
+
+int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
+{	
+	if (_provider == nullptr)
+	{
+		Error(_log, "writeBytes: no SPI provider");
+		return -1;
+	}
+	else
+	{
+		return _provider->writeBytes(size, data);
+	}
 }
 
 int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 {
+	const uint32_t BUFFER_SIZE = 34;
+
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
-	uint8_t buffer[34];
-	spi_ioc_transfer _spi;
-
-	memset(&_spi, 0, sizeof(_spi));
-
-	if (_fid < 0)
-	{
-		return -1;
-	}
-
-	_spi.tx_buf = __u64(&buffer);
-	_spi.len = __u32(34);
-	_spi.delay_usecs = 0;
+	uint8_t buffer[BUFFER_SIZE];
 
 	int retVal = 0;
 
@@ -207,11 +150,11 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 		memset(buffer, 0, sizeof(buffer));
 		buffer[0] = 2;
 		buffer[1] = 0;
-		for (int i = 0; i < 32 && startData < endData; i++, startData++)
+		for (int i = 0; i < BUFFER_SIZE - 2 && startData < endData; i++, startData++)
 		{
 			buffer[2 + i] = *startData;
 		}
-		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
+		retVal = writeBytes(sizeof(buffer), buffer);
 		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
 	}
 
@@ -226,32 +169,24 @@ int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
 	uint8_t buffer[BUFFER_SIZE];
-	spi_ioc_transfer _spi;
-
-	memset(&_spi, 0, sizeof(_spi));
-
-	if (_fid < 0)
-	{
-		return -1;
-	}
-
-	_spi.tx_buf = __u64(&buffer);
-	_spi.len = __u32(BUFFER_SIZE);
-	_spi.delay_usecs = 0;
-
+	
 	int retVal = 0;
 
 	while (retVal >= 0 && startData < endData)
 	{
-		if (startData != data)
-			usleep(1000);
+		#if !defined(WIN32)
+			if (startData != data)
+			{
+				usleep(1000);
+			}
+		#endif
 
 		int sent = std::min(REAL_BUFFER, static_cast<int>(endData - startData));
 		memset(buffer, 0, sizeof(buffer));
 		memcpy(buffer, startData, sent);
 		startData += sent;
 		buffer[REAL_BUFFER] = 0xAA;
-		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
+		retVal = writeBytes(sizeof(buffer), buffer);
 		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
 	}
 
@@ -266,57 +201,84 @@ int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
 	uint8_t buffer[BUFFER_SIZE];
-	spi_ioc_transfer _spi;
-
-	memset(&_spi, 0, sizeof(_spi));
-
-	if (_fid < 0)
-	{
-		return -1;
-	}
-
-	_spi.tx_buf = __u64(&buffer);
-	_spi.len = __u32(BUFFER_SIZE);
-	_spi.delay_usecs = 0;
 
 	int retVal = 0;
 
 	while (retVal >= 0 && startData < endData)
 	{
-		if (startData != data)
-			usleep(1000);
+		#if !defined(WIN32)
+			if (startData != data)
+			{
+				usleep(1000);
+			}
+		#endif
 
 		int sent = std::min(REAL_BUFFER, static_cast<int>(endData - startData));
 		memset(buffer, 0, sizeof(buffer));
 		memcpy(buffer, startData, sent);
 		startData += sent;
-		retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
+		retVal = writeBytes(sizeof(buffer), buffer);
 		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
 	}
 
 	return retVal;
 }
 
+int ProviderSpi::getRate() {
+	if (_provider == nullptr)
+	{
+		Error(_log, "getRate: no SPI provider");
+		return -1;
+	}
+	else
+	{
+		return _provider->getRate();
+	}
+}
+
+QString ProviderSpi::getSpiType() {
+	if (_provider == nullptr)
+	{
+		Error(_log, "getSpiType: no SPI provider");
+		return "";
+	}
+	else
+	{
+		return _provider->getSpiType();
+	}
+}
+
 QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 {
+	QJsonObject params;
+	std::list<std::unique_ptr<ProviderSpiInterface>> discoveryList;
+
+	#ifdef ENABLE_SPIFTDI
+		discoveryList.push_back(std::make_unique<ProviderSpiFtdi>(_log));
+	#endif
+
+
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
 	QStringList files;
-	QDirIterator it("/dev", QStringList() << "spidev*", QDir::System);
 
-	while (it.hasNext())
-		files << it.next();
-	files.sort();
-
-	for (const auto& path : files)
-		deviceList.push_back(QJsonObject{
-			{"value", path},
-			{ "name", path } });
+	for(auto & item : discoveryList)
+	{
+		auto ret = item->discover(params);
+		if (ret.contains("devices") && ret["devices"].isArray())
+		{
+			auto arr = ret["devices"].toArray();
+			for (const auto& val : arr)
+			{
+				deviceList.push_back(val);
+			}
+		}
+	}
 
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());	
 
 	return devicesDiscovered;
 }

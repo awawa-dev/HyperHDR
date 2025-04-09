@@ -1,15 +1,11 @@
 #pragma once
 
-#include <memory>
 #include <led-drivers/LedDevice.h>
-#include <led-drivers/spi/ProviderSpiInterface.h>
 
-class ProviderSpi : public LedDevice
-{	
-	std::unique_ptr<ProviderSpiInterface> _provider;
-
+class ProviderSpiLibFtdi : public LedDevice
+{
 public:
-	ProviderSpi(const QJsonObject& deviceConfig);
+	ProviderSpiLibFtdi(const QJsonObject& deviceConfig);
 	bool init(const QJsonObject& deviceConfig) override;
 	~ProviderSpi() override;
 	int open() override;
@@ -24,6 +20,12 @@ protected:
 	int writeBytesEsp8266(unsigned size, const uint8_t* data);
 	int writeBytesEsp32(unsigned size, const uint8_t* data);
 	int writeBytesRp2040(unsigned size, const uint8_t* data);
-	int getRate();
-	QString getSpiType();
+
+	QString _deviceName;
+	int _baudRate_Hz;
+	int _fid;
+	int _spiMode;
+	bool _spiDataInvert;
+
+	QString _spiType;	
 };

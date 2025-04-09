@@ -76,7 +76,7 @@ void DriverSpiSK9822::bufferWithMaxCurrent(std::vector<uint8_t>& txBuf, const st
 	}
 }
 
-inline __attribute__((always_inline)) unsigned DriverSpiSK9822::scale(const uint8_t value, const int maxLevel, const uint16_t brightness) {
+unsigned DriverSpiSK9822::scale(const uint8_t value, const int maxLevel, const uint16_t brightness) {
 	return (((maxLevel * value + (brightness >> 1)) / brightness));
 }
 

@@ -129,11 +129,12 @@ int DriverSpiHyperSPI::write(const std::vector<ColorRgb>& ledValues)
 	*(writer++) = (uint8_t)((fletcherExt != 0x41) ? fletcherExt : 0xaa);
 	bufferLength = writer -_ledBuffer.data();
 
-	if (_spiType == "esp8266")
+	QString spiType = getSpiType();
+	if (spiType == "esp8266")
 		return writeBytesEsp8266(bufferLength, _ledBuffer.data());
-	else if (_spiType == "esp32")
+	else if (spiType == "esp32")
 		return writeBytesEsp32(bufferLength, _ledBuffer.data());
-	else if (_spiType == "rp2040")
+	else if (spiType == "rp2040")
 		return writeBytesRp2040(bufferLength, _ledBuffer.data());
 	else
 		return writeBytes(bufferLength, _ledBuffer.data());

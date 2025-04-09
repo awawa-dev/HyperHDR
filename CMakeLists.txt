@@ -32,6 +32,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Set build variables
 SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
+SET ( DEFAULT_SPIFTDI                     ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON  )
 SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
 SET ( DEFAULT_USE_SYSTEM_SDBUS_CPP_LIBS   OFF )
@@ -421,6 +422,9 @@ message( STATUS "\n${CyanColor}LED DEVICES${ColorReset}")
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 colorMe("ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
+
+option(ENABLE_SPIFTDI  "Enable the SPI FTDI device" ${DEFAULT_SPIFTDI} )
+colorMe("ENABLE_SPIFTDI = " ${ENABLE_SPIFTDI})
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 colorMe("ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
