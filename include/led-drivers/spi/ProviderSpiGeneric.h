@@ -2,31 +2,24 @@
 
 #include <linux/spi/spidev.h>
 #include <led-drivers/LedDevice.h>
+#include <led-drivers/spi/ProviderSpiInterface.h>
 
-class ProviderSpiGeneric : public LedDevice
+class ProviderSpiGeneric : public QObject, public ProviderSpiInterface
 {
 public:
-	ProviderSpiGeneric(const QJsonObject& deviceConfig);
+	ProviderSpiGeneric(Logger* _log);
+	~ProviderSpiGeneric();
+
+public:
 	bool init(const QJsonObject& deviceConfig) override;
-	~ProviderSpiGeneric() override;
-	int open() override;
+
+	QString open() override;
+	int close() override;
 
 	QJsonObject discover(const QJsonObject& params) override;
 
-public slots:
-	int close() override;
-
-protected:
-	int writeBytes(unsigned size, const uint8_t* data);
-	int writeBytesEsp8266(unsigned size, const uint8_t* data);
-	int writeBytesEsp32(unsigned size, const uint8_t* data);
-	int writeBytesRp2040(unsigned size, const uint8_t* data);
-
-	QString _deviceName;
-	int _baudRate_Hz;
-	int _fid;
-	int _spiMode;
-	bool _spiDataInvert;
-
-	QString _spiType;	
+	int writeBytes(unsigned size, const uint8_t* data) override;
+	int getRate() override;
+	QString getSpiType() override;
+	ProviderSpiInterface::SpiProvider getProviderType() override;
 };

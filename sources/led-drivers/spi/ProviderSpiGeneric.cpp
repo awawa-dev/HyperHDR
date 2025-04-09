@@ -1,5 +1,31 @@
+/* ProviderSpiGeneric.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2025 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
 
-// STL includes
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+ */
+
+ // STL includes
 #include <cstring>
 #include <cstdio>
 #include <iostream>
@@ -11,60 +37,47 @@
 #include <sys/ioctl.h>
 
 // Local HyperHDR includes
-#include <led-drivers/spi/ProviderSpi.h>
+#include <led-drivers/spi/ProviderSpiGeneric.h>
 #include <utils/Logger.h>
 
 #include <QDirIterator>
 
-ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
-	: LedDevice(deviceConfig)
-	, _deviceName("/dev/spidev0.0")
-	, _baudRate_Hz(1000000)
-	, _fid(-1)
-	, _spiMode(SPI_MODE_0)
-	, _spiDataInvert(false)
-	, _spiType("")
+ProviderSpiGeneric::ProviderSpiGeneric(Logger* logger)
+	: QObject(), ProviderSpiInterface(logger)
 {
 }
 
-ProviderSpi::~ProviderSpi()
+
+ProviderSpiGeneric::~ProviderSpiGeneric()
 {
+	close();
 }
 
-bool ProviderSpi::init(const QJsonObject& deviceConfig)
+bool ProviderSpiGeneric::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK = false;
 
-	// Initialise sub-class
-	if (LedDevice::init(deviceConfig))
+	_deviceName = deviceConfig["output"].toString(_deviceName);
+	_spiType = deviceConfig["spitype"].toString("");
+	_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
+	_spiMode = deviceConfig["spimode"].toInt(_spiMode);
+	_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
+
+	if (_spiType == "rp2040" && _baudRate_Hz > 20833333)
 	{
-		_deviceName = deviceConfig["output"].toString(_deviceName);
-		_spiType = deviceConfig["spitype"].toString("");
-		_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
-		_spiMode = deviceConfig["spimode"].toInt(_spiMode);
-		_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
-
-		if (_spiType == "rp2040" && _baudRate_Hz > 20833333)
-		{
-			_baudRate_Hz = 20833333;
-		}
-
-		Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
-		Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
-
-		if (_defaultInterval > 0)
-			Warning(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
-
-		isInitOK = true;
+		_baudRate_Hz = 20833333;
 	}
+
+	Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
+	Debug(_log, "Real speed: %d", getRate());
+	Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
+
 	return isInitOK;
 }
 
-int ProviderSpi::open()
+QString ProviderSpiGeneric::open()
 {
-	int retval = -1;
-	QString errortext;
-	_isDeviceReady = false;
+	QString error;
 
 	const int bitsPerWord = 8;
 
@@ -72,26 +85,25 @@ int ProviderSpi::open()
 
 	if (_fid < 0)
 	{
-		errortext = QString("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
-		retval = -1;
+		error = QString("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
 	}
 	else
 	{
 		if (ioctl(_fid, SPI_IOC_WR_MODE, &_spiMode) == -1 || ioctl(_fid, SPI_IOC_RD_MODE, &_spiMode) == -1)
 		{
-			retval = -2;
+			error = "Cannot set SPI mode";
 		}
 		else
 		{
 			if (ioctl(_fid, SPI_IOC_WR_BITS_PER_WORD, &bitsPerWord) == -1 || ioctl(_fid, SPI_IOC_RD_BITS_PER_WORD, &bitsPerWord) == -1)
 			{
-				retval = -4;
+				error = "Cannot set SPI bits per word";
 			}
 			else
 			{
 				if (ioctl(_fid, SPI_IOC_WR_MAX_SPEED_HZ, &_baudRate_Hz) == -1 || ioctl(_fid, SPI_IOC_RD_MAX_SPEED_HZ, &_baudRate_Hz) == -1)
 				{
-					retval = -6;
+					error = "Cannot set SPI baudrate";
 				}
 				else
 				{
@@ -105,32 +117,17 @@ int ProviderSpi::open()
 					{
 						writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
 					}
-
-					_isDeviceReady = true;
-					retval = 0;
 				}
 			}
 		}
-		if (retval < 0)
-		{
-			errortext = QString("Failed to open device (%1). Error Code: %2").arg(_deviceName).arg(retval);
-		}
 	}
 
-	if (retval < 0)
-	{
-		this->setInError(errortext);
-	}
-
-	return retval;
+	return error;
 }
 
-int ProviderSpi::close()
+int ProviderSpiGeneric::close()
 {
 	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-	int retval = 0;
-
-	_isDeviceReady = false;
 
 	Debug(_log, "Closing SPI interface");
 
@@ -139,20 +136,16 @@ int ProviderSpi::close()
 		writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
 	}
 
-	// Test, if device requires closing
-	if (_fid > -1)
+	if (_fid > -1 && ::close(_fid) != 0)
 	{
-		// Close device
-		if (::close(_fid) != 0)
-		{
-			Error(_log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_deviceName), strerror(errno));
-			retval = -1;
-		}
+		Error(_log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_deviceName), strerror(errno));
+		return -1;
 	}
-	return retval;
+
+	return 0;
 }
 
-int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
+int ProviderSpiGeneric::writeBytes(unsigned size, const uint8_t* data)
 {
 	MemoryBuffer<uint8_t> buffer;
 	spi_ioc_transfer _spi;
@@ -182,7 +175,22 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
 	return retVal;
 }
 
-QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
+int ProviderSpiGeneric::getRate()
+{
+	return _baudRate_Hz;
+}
+
+QString ProviderSpiGeneric::getSpiType()
+{
+	return _spiType;
+}
+
+ProviderSpiInterface::SpiProvider ProviderSpiGeneric::getProviderType()
+{
+	return ProviderSpiInterface::SpiProvider::GENERIC;
+}
+
+QJsonObject ProviderSpiGeneric::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
@@ -198,10 +206,9 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 			{"value", path},
 			{ "name", path } });
 
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "Generic SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
