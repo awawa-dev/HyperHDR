@@ -1,9 +1,8 @@
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
 	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/precompiled_hyperhdr_headers.cpp "void precompiledHeadersHyperHDR(){};")
 	add_library(precompiled_hyperhdr_headers ${CMAKE_CURRENT_BINARY_DIR}/precompiled_hyperhdr_headers.cpp)
-	target_link_libraries(precompiled_hyperhdr_headers Qt${Qt_VERSION}::Gui Qt${Qt_VERSION}::Network)
-
-    target_precompile_headers(precompiled_hyperhdr_headers PRIVATE ${CMAKE_SOURCE_DIR}/include/base/AllHeaders_pch.h ${CMAKE_SOURCE_DIR}/include/base/AllHdrHeaders_pch.h )
+	target_link_libraries(precompiled_hyperhdr_headers PRIVATE Qt${Qt_VERSION}::Network Qt${Qt_VERSION}::Core)
+	target_precompile_headers(precompiled_hyperhdr_headers PRIVATE ${CMAKE_SOURCE_DIR}/include/precompiled_hyperhdr_headers/AllHeaders_pch.h )
 endif()
 
 # Define the current source locations
@@ -15,22 +14,32 @@ add_subdirectory(base)
 add_subdirectory(blackborder)
 add_subdirectory(commandline)
 add_subdirectory(db)
-add_subdirectory(effectengine)
-add_subdirectory(flatbufserver)
+add_subdirectory(effects)
+add_subdirectory(flatbuffers)
 add_subdirectory(grabber)
+add_subdirectory(hyperimage)
+add_subdirectory(image)
 add_subdirectory(jsonserver)
-add_subdirectory(leddevice)
+add_subdirectory(json-utils)
+add_subdirectory(led-drivers)
+add_subdirectory(led-strip)
+add_subdirectory(lut-calibrator)
+add_subdirectory(performance-counters)
 add_subdirectory(sound-capture)
 add_subdirectory(ssdp)
+add_subdirectory(suspend-handler)
+add_subdirectory(systray)
 add_subdirectory(utils)
+add_subdirectory(utils-image)
 add_subdirectory(webserver)
+
+if(ENABLE_ZSTD)
+	add_subdirectory(utils-zstd)
+endif()
+
 
 if (ENABLE_PROTOBUF)
 	add_subdirectory(proto-nano-server)
-endif()
-
-if(ENABLE_BOBLIGHT)
-	add_subdirectory(boblightserver)
 endif()
 
 if (ENABLE_CEC)
@@ -47,8 +56,5 @@ endif()
 
 # Executables
 add_subdirectory(hyperhdr)
-if (NOT APPLE)
-	add_subdirectory(hyperhdr-remote)
-endif()
 
 

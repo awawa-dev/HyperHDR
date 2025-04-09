@@ -15,6 +15,7 @@ class SoundCaptureMacOS : public SoundCapture
 		void stop() override;
 
     private:
+		void stopDevice();
 		void listDevices();
 		bool getPermission();		
 

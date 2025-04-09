@@ -26,6 +26,42 @@ if (typeof ResizeObserver === "function" && _resizeObserver === null)
 	});	
 }
 
+async function deviceListRefresh(ledTypeTarget, discoveryResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel = 'main_menu_update_token')
+{
+	let receiver = $("#deviceListInstances");
+	receiver.off();
+	receiver.empty();
+
+	$("<option />", {value: "", text: $.i18n(targetDiscoveryFirstLabel)}).appendTo(receiver);
+
+	if (discoveryResult.info != null && discoveryResult.info.devices != null)
+	{					
+		(discoveryResult.info.devices).forEach(function (val) {
+			$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
+		});
+	}
+		
+	$("<option />", {value: -1, text: $.i18n(targetDiscoverySecondLabel)}).appendTo(receiver);
+
+	receiver.on('change', function ()
+	{
+		let selVal = $("#deviceListInstances").val();
+		if (selVal == -1)			
+			requestLedDeviceDiscovery(ledTypeTarget).then( (newResult) => deviceListRefresh(ledTypeTarget, newResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel));
+		else if (selVal != "")
+		{
+			if (typeof targetDiscoveryEditor === 'string' || targetDiscoveryEditor instanceof String)
+			{
+				conf_editor.getEditor(targetDiscoveryEditor).setValue(selVal);
+			}
+			else
+			{
+				targetDiscoveryEditor.val(selVal).change();
+			}
+		}
+	});			
+}
+
 function createLedPreview(leds, origin)
 {
 	_lastLeds = leds;
@@ -574,34 +610,7 @@ $(document).ready(function()
 			$('#ip_ma_' + key).prop('checked', slConfig.matrix[key]);
 		else
 			$('#ip_ma_' + key).val(slConfig.matrix[key]);
-	}
-
-	async function deviceListRefresh(ledTypeTarget, discoveryResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel = 'main_menu_update_token')
-	{
-		let receiver = $("#deviceListInstances");
-		receiver.off();
-		receiver.empty();
-
-		$("<option />", {value: "", text: $.i18n(targetDiscoveryFirstLabel)}).appendTo(receiver);
-
-		if (discoveryResult.info != null && discoveryResult.info.devices != null)
-		{					
-			(discoveryResult.info.devices).forEach(function (val) {
-				$("<option />", {value: val.value, text: val.name}).appendTo(receiver);
-			});
-		}
-		
-		$("<option />", {value: -1, text: $.i18n(targetDiscoverySecondLabel)}).appendTo(receiver);
-
-		receiver.on('change', function ()
-		{
-			let selVal = $("#deviceListInstances").val();
-			if (selVal == -1)			
-				requestLedDeviceDiscovery(ledTypeTarget).then( (newResult) => deviceListRefresh(ledTypeTarget, newResult, targetDiscoveryEditor, targetDiscoveryFirstLabel, targetDiscoverySecondLabel));
-			else if (selVal != "")
-				conf_editor.getEditor(targetDiscoveryEditor).setValue(selVal);
-		});			
-	}
+	}	
 
 	function saveValues()
 	{
@@ -733,10 +742,6 @@ $(document).ready(function()
 				$('#leds_custom_save').attr("disabled", true);
 			}
 
-			if (window.readOnlyMode)
-			{
-				$('#leds_custom_save').attr('disabled', true);
-			}
 		}
 	}, window.serverConfig.leds);
 
@@ -811,7 +816,7 @@ $(document).ready(function()
 
 		// change save button state based on validation result
 		var firstValid = conf_editor.validate();
-		if ((firstValid.length > 1 || (firstValid.length == 1 && firstValid[0].path != "root.generalOptions.type")) || window.readOnlyMode)
+		if ((firstValid.length > 1 || (firstValid.length == 1 && firstValid[0].path != "root.generalOptions.type")) )
 		{
 			$('#btn_submit_controller').attr('disabled', true);
 		}
@@ -822,9 +827,9 @@ $(document).ready(function()
 
 		conf_editor.on('change', function()
 		{
-			window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-			window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-			window.readOnlyMode ? $('#leds_custom_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+			$('#btn_submit').attr('disabled', false);
+			$('#btn_submit').attr('disabled', false);
+			$('#btn_submit').attr('disabled', false);
 		});
 
 		// led controller sepecific wizards
@@ -840,7 +845,9 @@ $(document).ready(function()
 			
 			insertCalInfo.prepend(infoRGBW);
 		}
-		
+
+		let selectedLedGroup = $(this.options[this.selectedIndex]).closest('optgroup').attr('data-group-id');
+
 		if (ledType == "philipshue")
 		{
 			$("input[name='root[specificOptions][useEntertainmentAPI]'], input[name='root[specificOptions][useEntertainmentAPIV2]']").bind("change",function()
@@ -861,34 +868,16 @@ $(document).ready(function()
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
 		}
-		else if (ledType == "atmoorb")
+		else if ([ "cololight", "yeelight", "atmoorb", "home_assistant", "zigbee2mqtt"].includes(ledType))
 		{
-			var ledWizardType = (this.checked) ? "atmoorb" : ledType;
-			var data = {
-				type: ledWizardType
+			const data = {
+				type: ledType
 			};
-			var atmoorb_title = 'wiz_atmoorb_title';
-			changeWizard(data, atmoorb_title, startWizardAtmoOrb);
+			const wizardTitle = `wiz_${ledType}_title`;
+			const wizardFn = 'startWizard' + ledType.charAt(0).toUpperCase() + ledType.slice(1);
+			changeWizard(data, wizardTitle, window[wizardFn]);
 		}
-		else if (ledType == "cololight")
-		{
-			var ledWizardType = (this.checked) ? "cololight" : ledType;
-			var data = {
-				type: ledWizardType
-			};
-			var cololight_title = 'wiz_cololight_title';
-			changeWizard(data, cololight_title, startWizardCololight);
-		}
-		else if (ledType == "yeelight")
-		{
-			var ledWizardType = (this.checked) ? "yeelight" : ledType;
-			var data = {
-				type: ledWizardType
-			};
-			var yeelight_title = 'wiz_yeelight_title';
-			changeWizard(data, yeelight_title, startWizardYeelight);
-		}		
-		else if (["apa102", "apa104", "awa_spi", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2801", "ws2812spi", "wled", "adalight", "atmo", "dmx", "karate", "sedu", "tpm2", "hd108"].includes(ledType))
+		else if (ledType == "wled" || selectedLedGroup == "leds_group_0_SPI" || selectedLedGroup == "leds_group_3_serial")
 		{					
 			let selectorControl = $("<select id=\"deviceListInstances\" />");
 			let targetControl = 'output';
@@ -900,9 +889,9 @@ $(document).ready(function()
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.host','select_wled_intro','select_wled_rescan'));
 				targetControl = 'host';
 			}
-			else if (["adalight", "atmo", "dmx", "karate", "sedu", "tpm2"].includes(ledType))
+			else if (selectedLedGroup == "leds_group_3_serial")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output','edt_dev_spec_outputPath_title'));
-			else
+			else if (selectedLedGroup == "leds_group_0_SPI")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output', 'edt_dev_spec_spipath_title'));
 				
 			$(`input[name='root[specificOptions][${targetControl}]']`)[0].style.width = String(58) + "%";
@@ -925,45 +914,23 @@ $(document).ready(function()
 	if (window.serverConfig.device.type == "philipshueentertainment") window.serverConfig.device.type = "philipshue";
 
 	// create led device selection
-	var ledDevices = window.serverInfo.ledDevices.available;
-	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi', 'awa_spi', 'hd108'];
-	var devRPiPWM = ['ws281x'];
-	var devRPiGPIO = ['piblaster'];
+	let ledDevices = window.serverInfo.ledDevices.available;
+	let ledGroups = ledDevices.map(a => a.group).sort().filter(function(value, index, array) {
+		return (index === 0) || (value !== array[index-1]);
+	});
 
-	var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
-	var devUSB = ['adalight', 'dmx', 'atmo', 'lightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
+	ledGroups.forEach((group) => {
+		let elemsInGroups = Array();
+		
+		ledDevices.forEach(a => {
+			if (a.group == group)
+				elemsInGroups.push(a.name);
+		});
 
-	var optArr = [
-		[]
-	];
-	optArr[1] = [];
-	optArr[2] = [];
-	optArr[3] = [];
-	optArr[4] = [];
-	optArr[5] = [];
+		$("#leddevices").append(createSelWithGroupId(elemsInGroups.sort(), $.i18n(group), group));
+	});
 
-	for (var idx = 0; idx < ledDevices.length; idx++)
-	{
-		if ($.inArray(ledDevices[idx], devRPiSPI) != -1)
-			optArr[0].push(ledDevices[idx]);
-		else if ($.inArray(ledDevices[idx], devRPiPWM) != -1)
-			optArr[1].push(ledDevices[idx]);
-		else if ($.inArray(ledDevices[idx], devRPiGPIO) != -1)
-			optArr[2].push(ledDevices[idx]);
-		else if ($.inArray(ledDevices[idx], devNET) != -1)
-			optArr[3].push(ledDevices[idx]);
-		else if ($.inArray(ledDevices[idx], devUSB) != -1)
-			optArr[4].push(ledDevices[idx]);
-		else
-			optArr[5].push(ledDevices[idx]);
-	}
 
-	$("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
-	$("#leddevices").append(createSel(optArr[1], $.i18n('conf_leds_optgroup_RPiPWM')));
-	$("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
-	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
-	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
-	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
 	$("#leddevices").val(window.serverConfig.device.type);
 	
 

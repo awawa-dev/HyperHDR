@@ -118,7 +118,7 @@ function connectionLostDetection(type)
 	}
 	else
 	{
-		$.get("/cgi/cfg_jsonserver", function () { window.watchdog = 0 }).fail(function () { window.watchdog++; });
+		$.get("/hyperhdr_heart_beat", function () { window.watchdog = 0 }).fail(function () { window.watchdog++; });
 	}
 }
 
@@ -478,9 +478,14 @@ function requestSetColor(r, g, b, duration)
 	sendToHyperhdr("color", "", '"color":[' + r + ',' + g + ',' + b + '], "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
-function requestSetImage(data, duration, name)
+
+
+function requestSetImage(data, SX, SY, duration, name)
 {
-	sendToHyperhdr("image", "", '"imagedata":"' + data + '", "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ', "format":"auto", "origin":"' + window.webOrigin + '", "name":"' + name + '"');
+	sendToHyperhdr("image", "",  `"priority": ${window.webPrio},`+
+		`"duration": ${validateDuration(duration)} ,"imagedata":"${data}", "format":"auto", `+
+		`"imagewidth": ${SX}, "imageheight": ${SY},`+
+		`"origin": "${window.webOrigin}", "name": "${name}"`);
 }
 
 function requestSetComponentState(comp, state)
@@ -648,14 +653,32 @@ function requestLutInstall(address, hardware_brightness, hardware_contrast, hard
 											"now":${now}`);
 }
 
-async function requestLutCalibration(mode, params, startColor, endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef)
+async function requestLutCalibration(mode, debug, lch_correction)
 {
-	var sColor = JSON.stringify(startColor);
-	var eColor = JSON.stringify(endColor);
-	sendToHyperhdr("lut-calibration", mode, `"checksum":${params}, "limitedRange":${limitedRange}, "saturation":${saturation}, "luminance":${luminance}, "gammaR":${gammaR}, "gammaG":${gammaG}, "gammaB":${gammaB}, "startColor":${sColor}, "endColor":${eColor}, "coef":${coef}`);
+	sendToHyperhdr("lut-calibration", mode, `"debug":${debug}, "lch_correction":${lch_correction}`);
 }
 
 async function requestHasLedClock()
 {
 	sendToHyperhdr("leddevice", "hasLedClock", `"ledDeviceType": "", "params": {}`, Math.floor(Math.random() * 1000));
+}
+
+async function tunnel_home_assistant_get(_ip, _path,header={})
+{
+	let data = { service: "home_assistant", ip: _ip, path: _path, data: "", header };
+	let r = await sendAsyncToHyperhdr("tunnel", "get", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
+}
+
+async function tunnel_home_assistant_post(_ip, _path, header={}, _data)
+{
+	let data = { service: "home_assistant", ip: _ip, path: _path, data: _data, header };
+	let r = await sendAsyncToHyperhdr("tunnel", "post", data, Math.floor(Math.random() * 1000));
+	if (r["success"] != true || r["isTunnelOk"] != true)
+		return null;
+	else
+		return r["info"];
 }

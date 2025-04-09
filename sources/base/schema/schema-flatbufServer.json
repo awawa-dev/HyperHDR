@@ -42,21 +42,14 @@
 			"default" : false,
 			"propertyOrder" : 4
 		},
-		"hdrToneMappingMode" :
+		"quarterOfFrameMode" :
 		{
-			"type" : "integer",	
-			"title" : "edt_conf_fbs_hdrToneMappingMode_title",		
-			"append" : "edt_append_mode",
-			"enum" : [1, 2],
-			"default" : 1,
+			"type" : "boolean",
+			"format": "checkbox",
 			"required" : true,
-			"propertyOrder" : 5,
-			"options": {
-			    "enum_titles": ["Fullscreen", "Light (border only)"],
-				"dependencies": {
-					"hdrToneMapping": true
-				}
-			}
+			"title" : "flatbuffers_nv12_quarter_of_frame_title",
+			"default" : false,
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties" : false

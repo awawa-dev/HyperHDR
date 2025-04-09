@@ -10,6 +10,7 @@
 #include <base/HyperHdrInstance.h>
 #include <api/HyperAPI.h>
 #include <utils/FrameDecoder.h>
+#include <utils-image/utils-image.h>
 
 #include "WebSocketClient.h"
 #include "QtHttpRequest.h"
@@ -305,8 +306,8 @@ qint64 WebSocketClient::signalCallbackBinaryImageMessageHandler(Image<ColorRgb> 
 	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState))
 		return 0;
 
-	MemoryBuffer<uint8_t> mb;
-	FrameDecoder::encodeJpeg(mb, image, (image.width() > 800));
+	std::vector<uint8_t> mb;
+	utils_image::encodeJpeg(mb, image, (image.width() > 800));
 	
 	qint64 payloadWritten = 0;
 	quint32 payloadSize = static_cast<quint32>(mb.size());

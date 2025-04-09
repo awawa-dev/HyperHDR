@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -27,8 +27,7 @@
 
 
 #include <bonjour/DiscoveryWrapper.h>
-#include <leddevice/LedDevice.h>
-#include <leddevice/LedDeviceFactory.h>
+#include <led-drivers/LedDeviceManufactory.h>
 
 #include <QTimer>
 #include <QString>
@@ -89,6 +88,15 @@ QList<DiscoveryRecord> DiscoveryWrapper::getPhilipsHUE()
 	return _hueDevices;
 }
 
+QList<DiscoveryRecord> DiscoveryWrapper::getHomeAssistant()
+{
+	cleanUp(_homeAssistantDevices);
+
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HomeAssistant);
+
+	return _homeAssistantDevices;
+}
+
 QList<DiscoveryRecord> DiscoveryWrapper::getWLED()
 {
 	cleanUp(_wledDevices);
@@ -105,7 +113,7 @@ QList<DiscoveryRecord> DiscoveryWrapper::getHyperHDRServices()
 
 QList<DiscoveryRecord> DiscoveryWrapper::getAllServices()
 {
-	return _hyperhdrSessions + _esp32s2Devices + _espDevices + _hueDevices + _picoDevices + _wledDevices;
+	return _hyperhdrSessions + _esp32s2Devices + _espDevices + _hueDevices + _homeAssistantDevices + _picoDevices + _wledDevices;
 }
 
 void DiscoveryWrapper::requestServicesScan()
@@ -114,6 +122,8 @@ void DiscoveryWrapper::requestServicesScan()
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::WLED);
 	cleanUp(_hueDevices);
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::PhilipsHue);
+	cleanUp(_homeAssistantDevices);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HomeAssistant);
 	cleanUp(_hyperhdrSessions);
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::HyperHDR);
 
@@ -173,6 +183,8 @@ void DiscoveryWrapper::signalDiscoveryEventHandler(DiscoveryRecord message)
 		gotMessage(_wledDevices, message);
 	else if (message.type == DiscoveryRecord::Service::PhilipsHue)
 		gotMessage(_hueDevices, message);
+	else if (message.type == DiscoveryRecord::Service::HomeAssistant)
+		gotMessage(_homeAssistantDevices, message);
 	else if (message.type == DiscoveryRecord::Service::Pico)
 		gotMessage(_picoDevices, message);
 	else if (message.type == DiscoveryRecord::Service::ESP32_S2)
@@ -190,7 +202,7 @@ void DiscoveryWrapper::signalDiscoveryRequestToScanHandler(DiscoveryRecord::Serv
 			QJsonObject deviceConfig;
 			deviceConfig["type"] = "adalight";
 
-			_serialDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(deviceConfig));
+			_serialDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(deviceConfig));
 		}
 		QJsonObject params;
 		QJsonObject devicesDiscovered = _serialDevice->discover(params);		

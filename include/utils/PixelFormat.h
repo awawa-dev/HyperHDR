@@ -6,11 +6,13 @@
 
 enum class PixelFormat {
 	YUYV,
+	UYVY,
 	RGB24,
 	XRGB,
 	I420,
 	NV12,
 	MJPEG,
+	P010,
 	NO_CHANGE
 };
 
@@ -21,6 +23,10 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	if (format.compare("yuyv") == 0)
 	{
 		return PixelFormat::YUYV;
+	}
+	else if (format.compare("uyvy") == 0)
+	{
+		return PixelFormat::UYVY;
 	}
 	else if (format.compare("rgb24") == 0)
 	{
@@ -42,6 +48,10 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	{
 		return PixelFormat::MJPEG;
 	}
+	else if (format.compare("p010") == 0)
+	{
+		return PixelFormat::P010;
+	}
 
 	return PixelFormat::NO_CHANGE;
 }
@@ -52,6 +62,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	if (pixelFormat == PixelFormat::YUYV)
 	{
 		return "yuyv";
+	}
+	else if (pixelFormat == PixelFormat::UYVY)
+	{
+		return "uyvy";
 	}
 	else if (pixelFormat == PixelFormat::RGB24)
 	{
@@ -72,6 +86,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	else if (pixelFormat == PixelFormat::MJPEG)
 	{
 		return "mjpeg";
+	}
+	else if (pixelFormat == PixelFormat::P010)
+	{
+		return "p010";
 	}
 
 	return "NO_CHANGE";

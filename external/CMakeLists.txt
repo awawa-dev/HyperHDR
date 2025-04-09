@@ -1,10 +1,102 @@
-if(ENABLE_WS281XPWM)
-	add_library(ws281x
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/mailbox.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/ws2811.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/pwm.c ${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/dma.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/pcm.c
-		${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/rpihw.c)
+#=============================================================================
+# SQLite
+#=============================================================================
+
+if (NOT USE_SHARED_LIBS)
+	add_library(sqlite3 "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+else()
+	add_library(sqlite3 SHARED "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
+	if(WIN32)
+	   target_compile_definitions(sqlite3
+		  INTERFACE
+			 "SQLITE_API=__declspec(dllimport)"
+		  PRIVATE
+			 "SQLITE_API=__declspec(dllexport)"
+	   )
+	else()
+	   target_compile_definitions(sqlite3
+		  INTERFACE
+			 "SQLITE_API=__attribute__((visibility(\"default\")))"
+	   )
+	endif()
 endif()
+
+target_include_directories(sqlite3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite")
+target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+
+install(
+    TARGETS   sqlite3
+    LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
+
+set_target_properties(sqlite3 PROPERTIES
+    OUTPUT_NAME   sqlite3
+    PUBLIC_HEADER sqlite3.h
+)
+
+target_compile_definitions(sqlite3 PUBLIC
+	SQLITE_THREADSAFE=2
+	SQLITE_DEFAULT_MEMSTATUS=0
+	SQLITE_DEFAULT_SYNCHRONOUS=3	
+	SQLITE_OMIT_AUTHORIZATION
+	SQLITE_OMIT_DEPRECATED
+)
+
+#=============================================================================
+# Protobuf-nanopb
+#=============================================================================
+
+set(PROTOBUF-NANOPB-SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
+
+add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
+set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
+install(TARGETS protobuf-nanopb EXPORT nanopb-targets
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+target_include_directories(protobuf-nanopb INTERFACE
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+
+#=============================================================================
+# RPi ws281x
+#=============================================================================
+
+if(ENABLE_WS281XPWM)
+	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" FILE_CONTENTS)
+	string(REPLACE "if(BUILD_SHARED)" "if(USE_SHARED_LIBS)" FILE_CONTENTS "${FILE_CONTENTS}")
+	string(REPLACE "configure_file(version.h.in version.h)" [=[configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)]=] FILE_CONTENTS "${FILE_CONTENTS}")
+	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" "${FILE_CONTENTS}")
+
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x)			
+endif()
+
+#=============================================================================
+# LINALG
+#=============================================================================
+
+add_library(linalg INTERFACE)
+target_compile_definitions(linalg INTERFACE LINALG_FORWARD_COMPATIBLE )
+target_include_directories(linalg INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/linalg")
+
+#=============================================================================
+# LUNASVG
+#=============================================================================
+
+
+set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
+set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
+set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
 
 #=============================================================================
 # FLATBUFFER
@@ -21,11 +113,18 @@ if (USE_SYSTEM_FLATBUFFERS_LIBS AND NOT CMAKE_CROSSCOMPILING)
 		set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF PARENT_SCOPE)
 		set(USE_SYSTEM_FLATBUFFERS_LIBS OFF)
 	else()
-		message(STATUS "Found system FLATBUFFERS libs.")
+		message(STATUS "Found system FLATBUFFERS libs (${FLATBUFFERS_INCLUDE_DIRS}).")
+		if (NOT (TARGET flatbuffers))
+			message(STATUS "Creating interface for the FLATBUFFERS lib")
+			add_library(flatbuffers INTERFACE)
+			target_include_directories(flatbuffers INTERFACE ${FLATBUFFERS_INCLUDE_DIRS})
+		endif ()
 	endif()
 endif()
 
 if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
+	cmake_policy(PUSH)
+
 	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
 	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")	
 
@@ -68,9 +167,11 @@ if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
 
 	IF (NOT CMAKE_CROSSCOMPILING)
 		set(FLATBUFFERS_FLATC_EXECUTABLE "$<TARGET_FILE:flatc>")
-	endif()
+	else()
+		message( STATUS "Using host flatc compiler: ${FLATBUFFERS_FLATC_EXECUTABLE}")
+	endif()	
 
-	message( STATUS "Using host flatc compiler: ${FLATBUFFERS_FLATC_EXECUTABLE}")
+	cmake_policy(POP)
 endif()
 
 set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
@@ -95,48 +196,6 @@ function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 				"${SRC_FBS}"
 		DEPENDS "${FLATBUFFERS_FLATC_EXECUTABLE}" ${SRC_FBS})
 endfunction()
-
-#=============================================================================
-# MBEDTLS
-#=============================================================================
-
-if (USE_SYSTEM_MBEDTLS_LIBS)
-	message(STATUS "${YellowColor}Try using the mbedtls system libraries instead of the embedded submodule. Absolutely no guarantee.${ColorReset}")
-	find_package(mbedtls)
-
-	if (NOT MBEDTLS_FOUND)
-		message(STATUS "${RedColor}Could NOT find system mbedtls, fallback to build embedded mbedtl version${ColorReset}")
-		#Fallback: build mbedtls static libray inside project
-		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF PARENT_SCOPE)
-		set(USE_SYSTEM_MBEDTLS_LIBS OFF)
-	else()
-		message(STATUS "Found system MBEDTLS version: ${MBEDTLS_VERSION}")
-	endif()
-endif()
-
-if (NOT USE_SYSTEM_MBEDTLS_LIBS)
-	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared mbedtls libraries")
-	set(ENABLE_TESTING OFF CACHE BOOL "Disable mbedTLS tests")
-	set(ENABLE_PROGRAMS OFF CACHE BOOL "Disable mbedTLS programs")
-	set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "Disable mbedTLS crash on warnings")
-	set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "Disable mbedTLS shared libraries")
-	set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "Enable mbedTLS static libraries")
-
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/mbedtls)	
-
-	set(MBEDTLS_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/mbedtls/include")
-	set(MBEDTLS_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIR} PARENT_SCOPE)
-
-	if (MBEDTLS_INCLUDE_DIR AND EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
-		file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h" _MBEDTLS_VERSION_STRING REGEX "^#define MBEDTLS_VERSION_STRING[ \t\r\n]+\"[0-9]+.[0-9]+.[0-9]+\"")
-		string(REGEX REPLACE "^#define MBEDTLS_VERSION_STRING[ \t\r\n]+\"([0-9]+.[0-9]+.[0-9]+)\"" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-		message(STATUS "Using static mbedtls libraries version: \"${MBEDTLS_VERSION}\"")
-	elseif (MBEDTLS_INCLUDE_DIR AND EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
-		file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
-		string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-		message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
-	endif ()
-endif ()
 
 #=============================================================================
 # MQTT
@@ -165,28 +224,67 @@ if ( ENABLE_MQTT )
 		string(REPLACE "find_package" "#find_package" FILE_CONTENTS "${FILE_CONTENTS}")		
 		file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
 
-		if (NOT WIN32)	
+		cmake_policy(PUSH)
+
+		if (NOT USE_SHARED_LIBS)
 			set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 			set(qmqtt_SHARED OFF)
 		endif()
 
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qmqtt)
+
+		cmake_policy(POP)
 	endif()
 endif()
 
-if ( ENABLE_XZ )
-	option(BUILD_TESTING "" OFF)
-	if (NOT LIBLZMA_FOUND)
-		message( STATUS "System library xz could not be found. Using embedded xz library.")
-		if(MSVC)			
-			set(BACKUP_OF_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})			
-			string(REGEX REPLACE "(\/W[011123456789])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-			message( STATUS "Disable warnings for xz library: ${CMAKE_CXX_FLAGS}")
+#=============================================================================
+# ZSTD
+#=============================================================================
+
+if ( ENABLE_ZSTD )
+	if (NOT zstd_FOUND)
+		message( STATUS "System library zstd could not be found. Using embedded zstd library.")
+		if(WIN32)
+			set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -I${CMAKE_SOURCE_DIR}/external/zstd/lib")
 		endif()
-		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/xz)
-		if(MSVC)
-			set(CMAKE_CXX_FLAGS ${BACKUP_OF_CMAKE_CXX_FLAGS})
-			message( STATUS "Restoring compiling flags after xz: ${CMAKE_CXX_FLAGS}")			
-		endif()		
+		set(ZSTD_BUILD_TESTS OFF)
+		set(ZSTD_LEGACY_SUPPORT OFF)
+		set(ZSTD_BUILD_PROGRAMS OFF)
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/zstd/build/cmake)
+		set_target_properties(libzstd PROPERTIES INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/zstd/lib>)
+		set_property(TARGET libzstd PROPERTY POSITION_INDEPENDENT_CODE ON)
+		add_library(zstd::zstd ALIAS libzstd)
 	endif()
 ENDIF()
+
+#=============================================================================
+# sdbus-cpp
+#=============================================================================
+
+if (UNIX AND NOT APPLE AND (ENABLE_POWER_MANAGEMENT OR ENABLE_PIPEWIRE))
+	if (USE_SYSTEM_SDBUS_CPP_LIBS)
+		pkg_check_modules (sdbus-c++ sdbus-c++>=2.0.0)
+
+		if(NOT sdbus-c++_FOUND)
+			message( WARNING "Could not find: sdbus-c++>=2.0.0. Fallback to sdbus-c++ submodule." )
+		endif()
+	endif()
+
+	if(NOT sdbus-c++_FOUND)
+		message( "Using sdbus-c++ submodule." )
+		set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "No doc")
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sdbus-cpp)
+		set_target_properties(sdbus-c++-objlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	endif()
+endif()
+
+#=============================================================================
+# STB
+#=============================================================================
+
+add_library(stb INTERFACE )
+target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+target_compile_definitions(stb INTERFACE
+	STB_IMAGE_WRITE_IMPLEMENTATION
+	STB_IMAGE_IMPLEMENTATION
+)

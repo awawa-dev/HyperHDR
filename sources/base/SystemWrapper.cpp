@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -34,7 +34,6 @@
 #include <base/SystemWrapper.h>
 #include <base/Grabber.h>
 #include <utils/GlobalSignals.h>
-#include <utils/QStringUtils.h>
 #include <base/HyperHdrManager.h>
 
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
@@ -169,6 +168,8 @@ void SystemWrapper::handleSettingsUpdate(settings::type type, const QJsonDocumen
 			_grabber->enableHardwareAcceleration(obj["hardware"].toBool(false));
 
 			_grabber->setMonitorNits(obj["monitor_nits"].toInt(200));
+
+			_grabber->setReorderDisplays(obj["reorder_displays"].toInt(0));			
 
 			_grabber->setSignalDetectionOffset(
 				obj["sDHOffsetMin"].toDouble(0.25),

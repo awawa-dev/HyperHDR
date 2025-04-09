@@ -11,7 +11,6 @@
 #include <QHostAddress>
 
 
-#include <utils/QStringUtils.h>
 #include "QtHttpClientWrapper.h"
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
@@ -91,7 +90,7 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 			case AwaitingRequest: // "command url version" × 1
 			{
 				QString str = QString::fromUtf8(line).trimmed();
-				QStringList parts = QStringUtils::SPLITTER(str, SPACE);
+				QStringList parts = str.split(SPACE, Qt::SkipEmptyParts);
 				if (parts.size() == 3)
 				{
 					QString command = parts.at(0);
@@ -203,7 +202,7 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 				// add  post data to request and catch /jsonrpc subroute url
 				QString path = m_currentRequest->getUrl().path();
 				QString query = (m_currentRequest->getUrl().hasQuery()) ? m_currentRequest->getUrl().query(QUrl::FullyDecoded) : "";
-				QStringList uri_parts = QStringUtils::SPLITTER(path, '/');
+				QStringList uri_parts = path.split('/', Qt::SkipEmptyParts);
 				bool getCallback = (m_currentRequest->getCommand() == "GET") && !uri_parts.empty() &&
 					uri_parts.at(0) == RPC &&
 					(query.indexOf(REQ, Qt::CaseInsensitive) == 0);

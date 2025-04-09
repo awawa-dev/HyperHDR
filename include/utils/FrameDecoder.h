@@ -1,28 +1,31 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <utils/MemoryBuffer.h>
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-#endif
-
+#include <image/MemoryBuffer.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
 #include <utils/PixelFormat.h>
+#include <base/AutomaticToneMapping.h>
 
 // some stuff for HDR tone mapping
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
 
+namespace FrameDecoderUtils
+{	
+	double unpackChromaP010(double x);
+	double unpackLuminanceP010(double val);
+}
+
 class FrameDecoder
 {
 public:
-	static void encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown);
 	static void processImage(
 		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-		const uint8_t* data, int width, int height, int lineLength,
-		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
+		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
+		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping = true);
 
 	static void processQImage(
-		const uint8_t* data, int width, int height, int lineLength,
-		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage);
+		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
+		const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping = true, AutomaticToneMapping* automaticToneMapping = nullptr);
 
 	static void processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
 									   int startX, int startY,

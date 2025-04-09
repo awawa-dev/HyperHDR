@@ -1,0 +1,66 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{		
+		"transition": {
+			"type": "integer",
+			"title": "edt_dev_spec_transistionTime_title",
+			"default": 0,
+			"append": "ms",
+			"minimum": 0,
+			"maximum": 3000,
+			"required": true,
+			"propertyOrder": 3
+		},
+		"constantBrightness": {
+			"type": "integer",
+			"title": "edt_dev_spec_constantBrightness_title",
+			"default": 255,
+			"minimum": 0,
+			"maximum": 255,
+			"required": true,
+			"propertyOrder": 4
+		},
+		"lamps": {
+			"type": "array",
+			"title":"edt_dev_spec_lights_title",
+			"propertyOrder" : 7,
+			"uniqueItems" : true,
+			"items" : {
+				"type" : "object",
+				"title" : "edt_dev_spec_lights_itemtitle",				
+				"required" : [
+					"name", "colorModel"
+				],
+				"properties" :
+				{						
+					"name" :
+					{
+						"type": "string",
+						"title" : "edt_dev_spec_lights_name",
+						"propertyOrder" : 1
+					},
+					"colorModel": {
+						"type": "integer",
+						"title":"edt_conf_bb_mode_title",
+						"enum" : [0, 1],
+						"default" : 0,
+						"options" : {
+							"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_hsv"]
+						},
+						"propertyOrder" : 2
+					},
+					"defaultPosition" :
+					{
+						"type": "string",
+						"options": {
+							"hidden": true
+						},
+						"propertyOrder" : 3
+					}					
+				}
+			}
+		}
+	},
+	"additionalProperties": true
+}

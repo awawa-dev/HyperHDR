@@ -1,33 +1,17 @@
 # generate windows .rc file for this binary
 if (WIN32)
-	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
+	include(win_rc)
 	generate_win_rc_file(hyperhdr)
-endif()
-
-if (NOT ENABLE_POWER_MANAGEMENT)	
-elseif (WIN32)
-	set(hyperhdr_POWER_MNG "SuspendHandlerWindows.cpp;SuspendHandlerWindows.h")
-elseif (APPLE)
-	set(hyperhdr_POWER_MNG "SuspendHandlerMacOS.mm;SuspendHandlerMacOS.h")
-	find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
-elseif (Qt${Qt_VERSION}DBus_FOUND)
-	set(hyperhdr_POWER_MNG "SuspendHandlerLinux.cpp;SuspendHandlerLinux.h")
-	set(hyperhdr_POWER_MNG_DBUS "Qt${Qt_VERSION}::DBus")
 endif()
 
 add_executable(hyperhdr
 	HyperHdrDaemon.h
-	systray.h
+	SystrayHandler.h
 	HyperHdrDaemon.cpp
-	systray.cpp
+	SystrayHandler.cpp
 	main.cpp
 	${hyperhdr_WIN_RC_PATH}
-	${hyperhdr_POWER_MNG}
 )
-
-if (UNIX AND NOT APPLE AND Qt${Qt_VERSION}DBus_FOUND)
-	target_compile_definitions(hyperhdr PUBLIC HYPERHDR_HAVE_DBUS)
-endif()
 
 # promote hyperhdr as GUI app
 if (WIN32)
@@ -35,31 +19,47 @@ if (WIN32)
 endif()
 
 target_link_libraries(hyperhdr
+	blackborder
 	commandline
-	hyperhdr-base
-	effectengine
-	jsonserver
-	flatbufserver
-	webserver
-	ssdp
 	database
+	effects
+	flatbuffers-client
+	flatbuffers-parser
+	flatbuffers-server
+	hyperhdr-api
+	hyperhdr-base
+	hyperhdr-utils
+	hyperimage
+	image
+	jsonserver
+	json-utils
+	led-drivers
+	led-strip
+	lut-calibrator
+	performance-counters
+	protobuf-nanopb
 	resources
-	Qt${Qt_VERSION}::Widgets
-	${hyperhdr_POWER_MNG_DBUS}
+	ssdp
+	suspend-handler
+	utils-image
+	webserver
 	${APPKIT_FRAMEWORK}
-	${TURBOJPEG_LINK_LIBRARIES}
 )
+
+if (WIN32 OR APPLE)
+	target_link_libraries(hyperhdr systray-widget)
+else()
+	install(TARGETS systray-widget
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
+
+if(ENABLE_ZSTD)
+	target_link_libraries(hyperhdr zstd::zstd utils-zstd)
+endif()
 
 if (USE_STATIC_QT_PLUGINS)
 	target_link_libraries(hyperhdr ${STATIC_QT_PLUGINS_LIBS})
-endif()
-
-if(ENABLE_XZ)
-	if (LIBLZMA_FOUND)
-		target_link_libraries(hyperhdr LibLZMA::LibLZMA)
-	else()
-		target_link_libraries(hyperhdr liblzma)
-	endif()
 endif()
 
 if (ENABLE_PROTOBUF)
@@ -83,11 +83,11 @@ if (ENABLE_V4L2)
 endif ()
 
 if (ENABLE_MF)
-	target_link_libraries(hyperhdr MF-grabber)
+	target_link_libraries(hyperhdr grabber-MF)
 endif ()
 
 if (ENABLE_DX)
-	target_link_libraries(hyperhdr DX-grabber)
+	target_link_libraries(hyperhdr grabber-DX)
 endif ()
 
 if (ENABLE_X11)
@@ -96,6 +96,10 @@ endif ()
 
 if (ENABLE_FRAMEBUFFER)
 	target_link_libraries(hyperhdr framebuffer-grabber "${CMAKE_DL_LIBS}")
+endif ()
+
+if (ENABLE_AMLOGIC)
+	target_link_libraries(hyperhdr amlogic-grabber "${CMAKE_DL_LIBS}")
 endif ()
 
 if (ENABLE_PIPEWIRE)
@@ -107,6 +111,9 @@ if (ENABLE_MAC_SYSTEM)
 		MACOS-grabber
 		"-framework CoreGraphics"
 		"-framework Foundation")
+	if (MACOS_SCK)
+		target_link_libraries(hyperhdr "${MACOS_SCK}")
+	endif(MACOS_SCK)
 endif()
 
 if (ENABLE_AVF)
@@ -133,53 +140,8 @@ if (ENABLE_SOUNDCAPMACOS)
 	target_link_libraries(hyperhdr sound-capture-macos)
 endif ()
 
-
-if(APPLE)
-	install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )	
-elseif(NOT WIN32)
-	install ( TARGETS hyperhdr DESTINATION "share/hyperhdr/bin" COMPONENT "HyperHDR" )
-	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/debian/service DESTINATION "share/hyperhdr/" COMPONENT "HyperHDR" )
-	install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperhdr-icon-32px.png DESTINATION "share/hyperhdr/icons" COMPONENT "HyperHDR" )
-
-	# Desktop file for hyperhdr
-	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperhdr_128.png DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
-	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperhdr.desktop DESTINATION "share/hyperhdr/desktop" COMPONENT "HyperHDR" )
-else()
-	install ( TARGETS hyperhdr DESTINATION "bin" COMPONENT "HyperHDR" )
-
-	#set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
-	#set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
-	include( InstallRequiredSystemLibraries )
-endif()
-
-if(CMAKE_HOST_UNIX AND NOT APPLE)
-	install( CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperhdr/bin/hyperhdr\" \"${CMAKE_BINARY_DIR}/symlink_hyperhdr\" )" COMPONENT "HyperHDR" )
-	install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperhdr DESTINATION "bin" RENAME hyperhdr COMPONENT "HyperHDR" )
-	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperhdr )" COMPONENT "HyperHDR" )
-endif()
-
-# Copy dependencies (not for OSX)
-include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
-
-if(WIN32)
-		if (Qt_VERSION EQUAL 5)
-			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-			get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
-			find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
-		else()
-			get_filename_component(My_Qt6Core_EXECUTABLE_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS} ABSOLUTE)
-			find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${My_Qt6Core_EXECUTABLE_DIR}" NO_DEFAULT_PATH)
-			if (NOT WINDEPLOYQT_EXECUTABLE)
-				find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
-			endif()
-		endif()
-		
-		if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
-			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
-			message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")
-			add_custom_command(TARGET hyperhdr POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:hyperhdr>")			
-		endif()
-endif()		
+# rules for installers
+include(${OUR_CMAKE_MODULES}/../installers.cmake)
 
 if (APPLE)
 	DeployApple("hyperhdr")

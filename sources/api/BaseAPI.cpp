@@ -1,7 +1,6 @@
 #ifndef PCH_ENABLED
 	#include <QResource>
 	#include <QCryptographicHash>
-	#include <QImage>
 	#include <QBuffer>
 	#include <QByteArray>
 	#include <QTimer>
@@ -11,12 +10,13 @@
 	#include <iostream>
 	#include <iterator>
 
-	#include <utils/ColorRgb.h>
+	#include <image/ColorRgb.h>
 	#include <utils/Logger.h>
 	#include <utils/Components.h>
 #endif
 
 #include <QHostInfo>
+#include <QSslSocket>
 
 #include <HyperhdrConfig.h>
 #include <api/BaseAPI.h>
@@ -25,14 +25,14 @@
 #include <base/SystemWrapper.h>
 #include <base/Muxer.h>
 #include <db/AuthTable.h>
-#include <flatbufserver/FlatBufferServer.h>
-#include <utils/ColorSys.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/GlobalSignals.h>
 #include <base/GrabberHelper.h>
+#include <utils-image/utils-image.h>
 
-#ifdef ENABLE_XZ
-	#include <lzma.h>
+#ifdef ENABLE_ZSTD
+	#include <utils-zstd/utils-zstd.h>
 #endif
 
 #ifdef _WIN32
@@ -215,77 +215,43 @@ void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int 
 
 bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp)
 {
+	Image<ColorRgb> image;
 	// truncate name length
 	data.imgName.truncate(16);
 
-	if (data.format == "auto")
-	{
-		QImage img = QImage::fromData(data.data);
-		if (img.isNull())
-		{
-			replyMsg = "Failed to parse picture, the file might be corrupted";
-			return false;
-		}
+	auto imageMemory = QByteArray::fromBase64(QByteArray(data.imagedata.toUtf8()));
 
-		// check for requested scale
-		if (data.scale > 24)
-		{
-			if (img.height() > data.scale)
-			{
-				img = img.scaledToHeight(data.scale);
-			}
-			if (img.width() > data.scale)
-			{
-				img = img.scaledToWidth(data.scale);
-			}
-		}
-
-		// check if we need to force a scale
-		if (img.width() > 2000 || img.height() > 2000)
-		{
-			data.scale = 2000;
-			if (img.height() > data.scale)
-			{
-				img = img.scaledToHeight(data.scale);
-			}
-			if (img.width() > data.scale)
-			{
-				img = img.scaledToWidth(data.scale);
-			}
-		}
-
-		data.width = img.width();
-		data.height = img.height();
-
-		// extract image
-		img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-		data.data.clear();
-		data.data.reserve(img.width() * img.height() * 3);
-		for (int i = 0; i < img.height(); ++i)
-		{
-			const QRgb* scanline = reinterpret_cast<const QRgb*>(img.scanLine(i));
-			for (int j = 0; j < img.width(); ++j)
-			{
-				data.data.append((char)qRed(scanline[j]));
-				data.data.append((char)qGreen(scanline[j]));
-				data.data.append((char)qBlue(scanline[j]));
-			}
-		}
-	}
-	else
-	{
-		// check consistency of the size of the received data
-		if (data.data.size() != data.width * data.height * 3)
+	if (data.format == "rgb")
+	{		
+		if (imageMemory.size() != static_cast<long long>(data.width) * data.height * 3 || imageMemory.size() == 0)
 		{
 			replyMsg = "Size of image data does not match with the width and height";
 			return false;
 		}
+		else if (imageMemory.size() >= 6ll*1024*1024)
+		{
+			replyMsg = "Image too large (max. 6MB)";
+			return false;
+		}
+		image.resize(data.width, data.height);
+		memcpy(image.rawMem(), imageMemory.data(), imageMemory.size());
 	}
+	else if (data.format == "auto")
+	{		
+		image = utils_image::load2image(reinterpret_cast<uint8_t*>(imageMemory.data()), imageMemory.size());
+		
 
-	// copy image
-	Image<ColorRgb> image(data.width, data.height);
-	memcpy(image.rawMem(), data.data.data(), data.data.size());
-
+		if (image.width() == 1)
+		{
+			replyMsg = "Unsupported image";
+			return false;
+		}
+	}
+	else
+	{
+		replyMsg = "Unsupported image type";
+		return false;
+	}
 
 	QUEUE_CALL_4(_hyperhdr.get(), registerInput, int, data.priority, hyperhdr::Components, comp, QString, data.origin, QString, data.imgName);
 	QUEUE_CALL_3(_hyperhdr.get(), setInputImage, int, data.priority, Image<ColorRgb>, image, int64_t, data.duration);
@@ -444,86 +410,21 @@ bool BaseAPI::saveSettings(const QJsonObject& data)
 
 QString BaseAPI::installLut(QNetworkReply* reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
 {
-#ifdef ENABLE_XZ
+#ifdef ENABLE_ZSTD
 	QString error = nullptr;
 
 	if (reply->error() == QNetworkReply::NetworkError::NoError)
 	{
 		QByteArray downloadedData = reply->readAll();
 
-		QFile file(fileName);
-		if (file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-		{
-			size_t outSize = 67174456;
-			MemoryBuffer<uint8_t> outBuffer(outSize);
-
-			if (outBuffer.data() == nullptr)
-			{
-				error = "Could not allocate buffer";
-			}
-			else
-			{
-				const uint32_t flags = LZMA_TELL_UNSUPPORTED_CHECK | LZMA_CONCATENATED;
-				lzma_stream strm = LZMA_STREAM_INIT;
-				strm.next_in = reinterpret_cast<uint8_t*>(downloadedData.data());
-				strm.avail_in = downloadedData.size();
-				lzma_ret lzmaRet = lzma_stream_decoder(&strm, outSize, flags);
-				if (lzmaRet == LZMA_OK)
-				{
-					do {
-						strm.next_out = outBuffer.data();
-						strm.avail_out = outSize;
-						lzmaRet = lzma_code(&strm, LZMA_FINISH);
-						if (lzmaRet == LZMA_MEMLIMIT_ERROR)
-						{
-							outSize = lzma_memusage(&strm);
-							outBuffer.resize(outSize);
-							if (outBuffer.data() == nullptr)
-							{
-								error = QString("Could not increase buffer size");
-								break;
-							}
-							lzma_memlimit_set(&strm, outSize);
-							strm.avail_out = 0;
-						}
-						else if (lzmaRet != LZMA_OK && lzmaRet != LZMA_STREAM_END)
-						{
-							// error
-							error = QString("LZMA decoder return error: %1").arg(lzmaRet);
-							break;
-						}
-						else
-						{
-							qint64 toWrite = static_cast<qint64>(outSize - strm.avail_out);
-							file.write(reinterpret_cast<char*>(outBuffer.data()), toWrite);
-						}
-					} while (strm.avail_out == 0 && lzmaRet != LZMA_STREAM_END);
-					file.flush();
-				}
-				else
-				{
-					error = "Could not initialize LZMA decoder";
-				}
-
-				if (time != 0)
-					file.setFileTime(QDateTime::fromMSecsSinceEpoch(time), QFileDevice::FileModificationTime);
-
-				file.close();
-				if (error != nullptr)
-					file.remove();
-
-				lzma_end(&strm);
-			}
-		}
-		else
-			error = QString("Could not open %1 for writing").arg(fileName);
+		error = DecompressZSTD(downloadedData.size(), reinterpret_cast<uint8_t*>(downloadedData.data()), QSTRING_CSTR(fileName));
 	}
 	else
 		error = "Could not download LUT file";
 
 	return error;
 #else
-	return "XZ support was disabled in the build configuration";
+	return "ZSTD support was disabled in the build configuration";
 #endif
 }
 
@@ -781,4 +682,5 @@ void BaseAPI::putSystemInfo(QJsonObject& system)
 	system["hostName"] = _sysInfo.hostName;
 	system["domainName"] = _sysInfo.domainName;
 	system["qtVersion"] = QT_VERSION_STR;
+	system["openssl"] = (QSslSocket::supportsSsl()) ? QSslSocket::sslLibraryVersionString() : "unsupported";
 }

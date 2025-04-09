@@ -1066,6 +1066,30 @@ function createSel(array, group, split)
 	}
 }
 
+function createSelWithGroupId(array, group, groupId, split)
+{
+	if (array.length != 0)
+	{
+		var el = document.createElement('optgroup');
+		el.setAttribute('label', group);
+		el.setAttribute('data-group-id', groupId);
+		for(var i=0; i<array.length; i++)
+		{
+			var opt;
+			if(split)
+			{
+				opt = array[i].split(":")
+				opt = createSelOpt(opt[0],opt[1])
+			}
+			else
+				opt = createSelOpt(array[i])
+			el.appendChild(opt);
+		}
+		return el;
+	}
+}
+
+
 function performTranslation()
 {
 	$('[data-i18n]').i18n();

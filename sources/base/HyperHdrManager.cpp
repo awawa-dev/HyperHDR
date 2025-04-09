@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -29,6 +29,8 @@
 	#include <QThread>
 #endif
 
+#include <QStringList>
+
 #include <base/HyperHdrManager.h>
 #include <base/HyperHdrInstance.h>
 #include <db/InstanceTable.h>
@@ -36,26 +38,85 @@
 #include <base/AccessManager.h>
 #include <base/Muxer.h>
 #include <utils/GlobalSignals.h>
+#include <lut-calibrator/LutCalibrator.h>
 
 QString HyperHdrManager::getRootPath()
 {
 	return _rootPath;
 }
 
-HyperHdrManager::HyperHdrManager(const QString& rootPath, bool readonlyMode)
+HyperHdrManager::HyperHdrManager(const QString& rootPath)
 	: _log(Logger::getInstance("HYPER_MANAGER"))
-	, _instanceTable(new InstanceTable(readonlyMode))
+	, _instanceTable(new InstanceTable())
 	, _rootPath(rootPath)
-	, _readonlyMode(readonlyMode)
 	, _fireStarter(0)
+	, _videoBenchmark(this)
 {
 	qRegisterMetaType<InstanceState>("InstanceState");
 	connect(this, &HyperHdrManager::SignalInstanceStateChanged, this, &HyperHdrManager::handleInstanceStateChange);
+
+	connect(&_videoBenchmark, &VideoBenchmark::SignalBenchmarkUpdate, this, &HyperHdrManager::SignalBenchmarkUpdate);
+	connect(this, &HyperHdrManager::SignalBenchmarkCapture, &_videoBenchmark, &VideoBenchmark::benchmarkCapture);
+
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, this, &HyperHdrManager::handleRequestComponent);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalLutRequest, this, &HyperHdrManager::handleLutRequestSignal);
+}
+
+void HyperHdrManager::handleRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen)
+{
+	if (component == hyperhdr::Components::COMP_VIDEOGRABBER && hyperHdrInd == -1)
+	{
+		Warning(_log, "Global request to %s USB grabber", (listen) ? "resume" : "pause");
+		toggleGrabbersAllInstances(listen);
+	}
 }
 
 HyperHdrManager::~HyperHdrManager()
 {
 	Debug(_log, "HyperHdrManager has been removed");
+}
+
+void HyperHdrManager::handleLutRequestSignal()
+{
+	static bool requested = false;
+
+	if (!requested)
+	{
+		requested = true;
+
+		LutCalibrator::CreateDefaultLut(_rootPath);
+	}
+}
+
+void HyperHdrManager::startAll(bool disableOnStartup)
+{
+	auto instanceList = _instanceTable->getAllInstances(true);
+
+	_fireStarter = instanceList.count();
+
+	for (const auto& entry : instanceList)
+	{
+		startInstance(entry["instance"].toInt(), nullptr, 0, disableOnStartup);
+	}
+}
+
+void HyperHdrManager::stopAllonExit()
+{
+	disconnect(this, nullptr, nullptr, nullptr);
+
+	Warning(_log, "Running instances: %i, starting instances: %i"
+		, (int)_runningInstances.size()
+		, (int)_startingInstances.size());
+
+	_runningInstances.clear();
+	_startingInstances.clear();
+
+	while (HyperHdrInstance::getTotalRunningCount())
+	{
+		Warning(_log, "Waiting for instances: %i", (int)HyperHdrInstance::getTotalRunningCount());
+		QThread::msleep(25);
+	}
+	Info(_log, "All instances are closed now");
 }
 
 void HyperHdrManager::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
@@ -84,6 +145,62 @@ std::shared_ptr<HyperHdrInstance> HyperHdrManager::getHyperHdrInstance(quint8 in
 	return _runningInstances.value(0);
 }
 
+std::vector<QString> HyperHdrManager::getInstances()
+{
+	std::vector<QString> ret;
+
+	for (const quint8& key : _runningInstances.keys())
+	{
+		ret.push_back(QString::number(key));
+		ret.push_back(_instanceTable->getNamebyIndex(key));
+	}
+
+	return ret;
+}
+
+void HyperHdrManager::setInstanceColor(int instance, int priority, ColorRgb ledColors, int timeout_ms)
+{
+	std::vector<ColorRgb> rgbColor{ ledColors };
+
+	for (const auto& selInstance : _runningInstances)
+		if (instance == -1 || selInstance->getInstanceIndex() == instance)
+		{
+			QUEUE_CALL_3(selInstance.get(), setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
+		}
+}
+
+void  HyperHdrManager::setInstanceEffect(int instance, QString effectName, int priority)
+{
+	for (const auto& selInstance : _runningInstances)
+		if (instance == -1 || selInstance->getInstanceIndex() == instance)
+		{
+			QUEUE_CALL_2(selInstance.get(), setEffect, QString, effectName, int, 1);
+		}
+}
+
+void HyperHdrManager::clearInstancePriority(int instance, int priority)
+{
+	for (const auto& selInstance : _runningInstances)
+		if (instance == -1 || selInstance->getInstanceIndex() == instance)
+		{
+			QUEUE_CALL_1(selInstance.get(), clear, int, 1);
+		}
+}
+
+std::list<EffectDefinition> HyperHdrManager::getEffects()
+{
+	std::list<EffectDefinition> efxs;
+
+	if (IsInstanceRunning(0))
+	{
+		auto inst = getHyperHdrInstance(0);
+
+		SAFE_CALL_0_RET(inst.get(), getEffects, std::list<EffectDefinition>, efxs);
+	}
+
+	return efxs;
+}
+
 QVector<QVariantMap> HyperHdrManager::getInstanceData() const
 {
 	QVector<QVariantMap> instances = _instanceTable->getAllInstances();
@@ -101,37 +218,6 @@ bool HyperHdrManager::areInstancesReady()
 		return false;
 
 	return (--_fireStarter == 0);
-}
-
-void HyperHdrManager::startAll(bool disableOnStartup)
-{
-	auto instanceList = _instanceTable->getAllInstances(true);
-
-	_fireStarter = instanceList.count();
-
-	for (const auto& entry : instanceList)
-	{
-		startInstance(entry["instance"].toInt(), nullptr, 0, disableOnStartup);
-	}
-}
-
-void HyperHdrManager::stopAllonExit()
-{
-	disconnect(this, nullptr, nullptr, nullptr);
-	
-	Warning(_log, "Running instances: %i, starting instances: %i"
-		, (int)_runningInstances.size()
-		, (int)_startingInstances.size());
-
-	_runningInstances.clear();
-	_startingInstances.clear();
-
-	while (HyperHdrInstance::getTotalRunningCount())
-	{
-		Warning(_log, "Waiting for instances: %i", (int)HyperHdrInstance::getTotalRunningCount());
-		QThread::msleep(25);
-	}		
-	Info(_log, "All instances are closed now");
 }
 
 void HyperHdrManager::setSmoothing(int time)
@@ -196,7 +282,11 @@ void HyperHdrManager::hibernate(bool wakeUp, hyperhdr::SystemComponent source)
 
 		if (_hasEffect)
 		{
-			toggleGrabbersAllInstances(wakeUp);
+			if (wakeUp)
+				QTimer::singleShot(3000, this, [this, wakeUp]() { toggleGrabbersAllInstances(wakeUp);  });
+			else
+				toggleGrabbersAllInstances(wakeUp);
+
 			return;
 		}
 	}
@@ -209,7 +299,7 @@ void HyperHdrManager::hibernate(bool wakeUp, hyperhdr::SystemComponent source)
 	else
 	{
 		Warning(_log, "The system is going to wake up");
-		QTimer::singleShot(3000, [this]() { toggleStateAllInstances(true);  });
+		QTimer::singleShot(3000, this, [this]() { toggleStateAllInstances(true);  });
 	}
 }
 
@@ -224,12 +314,11 @@ bool HyperHdrManager::startInstance(quint8 inst, QObject* caller, int tan, bool 
 
 			auto hyperhdr = std::shared_ptr<HyperHdrInstance>(
 				new HyperHdrInstance(inst,
-					_readonlyMode,
 					disableOnStartup,
 					_instanceTable->getNamebyIndex(inst)),
 				[](HyperHdrInstance* oldInstance) {
 					THREAD_REMOVER(QString("HyperHDR instance at index = %1").arg(oldInstance->getInstanceIndex()),
-					oldInstance->thread(), oldInstance);
+						oldInstance->thread(), oldInstance);
 				}
 			);
 
@@ -241,20 +330,20 @@ bool HyperHdrManager::startInstance(quint8 inst, QObject* caller, int tan, bool 
 			connect(hyperhdr.get(), &HyperHdrInstance::SignalInstanceSettingsChanged, this, &HyperHdrManager::SignalSettingsChanged);
 			connect(hyperhdr.get(), &HyperHdrInstance::SignalRequestComponent, this, &HyperHdrManager::SignalCompStateChangeRequest);
 			connect(this, &HyperHdrManager::SignalSetNewComponentStateToAllInstances, hyperhdr.get(), &HyperHdrInstance::setNewComponentState);
-			
+
 			_startingInstances.insert(inst, hyperhdr);
 
 			hyperhdrThread->start();
 
 			_instanceTable->setLastUse(inst);
-			_instanceTable->setEnable(inst, true);			
+			_instanceTable->setEnable(inst, true);
 
 			if (!_pendingRequests.contains(inst) && caller != nullptr)
 			{
 				PendingRequests newDef{ caller, tan };
 				_pendingRequests[inst] = newDef;
 			}
-			
+
 			return true;
 		}
 		Debug(_log, "Can't start Hyperhdr instance index '%d' with name '%s' it's already running or queued for start", inst, QSTRING_CSTR(_instanceTable->getNamebyIndex(inst)));
@@ -276,7 +365,7 @@ bool HyperHdrManager::stopInstance(quint8 instance)
 		{
 			disconnect(this, nullptr, _runningInstances.value(instance).get(), nullptr);
 
-			_instanceTable->setEnable(instance, false);			
+			_instanceTable->setEnable(instance, false);
 
 			_runningInstances.remove(instance);
 
@@ -343,7 +432,7 @@ bool HyperHdrManager::saveName(quint8 inst, const QString& name)
 void HyperHdrManager::handleInstanceJustStarted()
 {
 	HyperHdrInstance* hyperhdr = qobject_cast<HyperHdrInstance*>(sender());
-	quint8 instance = hyperhdr->getInstanceIndex();	
+	quint8 instance = hyperhdr->getInstanceIndex();
 
 	if (_startingInstances.contains(instance))
 	{
@@ -365,7 +454,7 @@ void HyperHdrManager::handleInstanceJustStarted()
 	}
 	else
 		Error(_log, "Could not find instance '%s (index: %i)' in the starting list",
-						QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)), instance);
+			QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)), instance);
 }
 
 const QJsonObject HyperHdrManager::getBackup()
@@ -390,7 +479,7 @@ void HyperHdrManager::saveCalibration(QString saveData)
 {
 	HyperHdrInstance* instance = HyperHdrManager::getHyperHdrInstance(0).get();
 
-	if (instance != nullptr)		
+	if (instance != nullptr)
 		QUEUE_CALL_1(instance, saveCalibration, QString, saveData)
 	else
 		Error(_log, "Hyperhdr instance is not running...can't save the calibration data");

@@ -7,29 +7,16 @@ FILE ( GLOB_RECURSE Api_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_D
 
 set(Api_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
 
-add_library(hyperhdr-api
+add_library(hyperhdr-api OBJECT
 	${Api_SOURCES}
 	${Api_RESOURCES}
 )
 
 target_link_libraries(hyperhdr-api
-	hyperhdr-base
-	hyperhdr-utils
 	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Gui
 	Qt${Qt_VERSION}::Network
 )
 
-if(ENABLE_XZ)
-	if (NOT LIBLZMA_FOUND)
-		target_link_libraries(hyperhdr-api liblzma)
-		target_include_directories(hyperhdr-api PRIVATE "${CMAKE_SOURCE_DIR}/external/xz/src/liblzma/api")
-	else()
-		target_link_libraries(hyperhdr-api LibLZMA::LibLZMA)
-		target_include_directories(hyperhdr-api PRIVATE ${LIBLZMA_INCLUDE_DIR})	
-	endif()
-endif()
-
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
-    target_precompile_headers(hyperhdr-api REUSE_FROM precompiled_hyperhdr_headers)
+	target_precompile_headers(hyperhdr-api REUSE_FROM precompiled_hyperhdr_headers)
 endif()

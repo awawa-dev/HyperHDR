@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -57,7 +57,7 @@ RawUdpServer::~RawUdpServer()
 {
 	stopServer();
 
-	std::cout << "RawUdpServer exists now" << std::endl;
+	std::cout << "RawUdpServer exits now" << std::endl;
 }
 
 void RawUdpServer::initServer()

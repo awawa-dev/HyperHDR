@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -25,42 +25,183 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED
-	#include <utils/Logger.h>
-#endif
 
+#include <utils/Logger.h>
 #include <utils/FrameDecoder.h>
-#include <utils/ColorSys.h>
 
-#include <turbojpeg.h>
+#include <lut-calibrator/ColorSpace.h>
+#include <linalg.h>
+#include <atomic>
+#include <mutex>
 
-//#define TAKE_SCREEN_SHOT
+using namespace linalg;
+using namespace aliases;
 
-#ifdef TAKE_SCREEN_SHOT
-	#include <QImage>
-	int screenShotTaken = 300;
-#endif
+namespace FrameDecoderUtils
+{
+	std::atomic<bool> initialized(false);
+	std::vector<uint8_t> lutP010_y;
+	std::vector<uint8_t> lutP010_uv;
+
+	constexpr double signalBreakP010 = 0.91;
+	constexpr double signalBreakChromaP010 = 0.75;
+
+	static double packChromaP010(double x)
+	{
+		constexpr double pi2 = M_PI / 2.0;
+		if (x < 0.0)
+		{
+			return 0.0;
+		}
+		else if (x <= 0.5)
+		{
+			return x * 1.5;
+		}
+		else if (x <= 1)
+		{			
+			return std::sin(pi2 * ((x - 0.5) / 0.5)) * (1 - signalBreakChromaP010) + signalBreakChromaP010;
+		}
+		return 1;
+	};
+
+	double unpackChromaP010(double x)
+	{
+		constexpr double pi2 = M_PI / 2.0;
+		if (x < 0.0)
+		{
+			return 0.0;
+		}
+		else if (x <= signalBreakChromaP010)
+		{
+			x /= 1.5;
+			return x;
+		}
+		else if (x <= 1)
+		{			
+			x = (x - signalBreakChromaP010) / (1.0 - signalBreakChromaP010);
+			x = std::asin(x);
+			x = x * 0.5 / pi2  + 0.5;
+			return x;
+		}
+
+		return 1;
+	};
+
+	static double packLuminanceP010(double x)
+	{
+		constexpr double pi2 = M_PI / 2.0;
+		if (x < 0.0)
+		{
+			return 0.0;
+		}
+		else if (x <= 0.7)
+		{
+			return x * 1.3;
+		}
+		else if (x <= 1)
+		{
+			return std::sin(pi2 * ((x - 0.7) / 0.3)) * (1 - signalBreakP010) + signalBreakP010;
+		}
+		return 1;
+	};
+
+	double unpackLuminanceP010(double x)
+	{
+		constexpr double pi2 = M_PI / 2.0;
+		if (x < 0.0)
+		{
+			return 0.0;
+		}
+		else if (x <= signalBreakP010)
+		{
+			return x / 1.3;
+		}
+		else if (x <= 1)
+		{
+			x = (x - signalBreakP010) / (1.0 - signalBreakP010);
+			x = std::asin(x);
+			x = x * 0.3 / pi2 + 0.7;
+			return x;
+		}
+
+		return 1;
+	};
+
+
+	static void initP010()
+	{
+		static std::mutex lockerP010;
+		std::lock_guard<std::mutex> locker(lockerP010);
+
+		if (FrameDecoderUtils::initialized)
+			return;
+
+		lutP010_y.resize(1024);
+		lutP010_uv.resize(1024);
+
+		for (int i = 0; i < static_cast<int>(lutP010_y.size()); ++i)
+		{
+			constexpr int sourceRange = 1023;
+			const double sourceValue = std::min(std::max(i, 0), sourceRange)/static_cast<double>(sourceRange);
+			double val = packLuminanceP010(sourceValue);
+			lutP010_y[i] = std::lround(val * 255.0);
+
+			/*
+			double unpack = unpackLuminanceP010(val);
+			double delta = sourceValue - unpack;
+			if (std::abs(delta) > 0.0000001)
+			{
+				bool error = true;
+			}
+			*/
+		}
+
+
+		for (int i = 0; i < static_cast<int>(lutP010_uv.size()); ++i)
+		{
+			constexpr int sourceRange = (960 - 64) / 2;
+			const int current = std::abs(i - 512);
+			const double sourceValue = std::min(current, sourceRange) / static_cast<double>(sourceRange);
+			double val = packChromaP010(sourceValue);
+			lutP010_uv[i] = std::max(std::min(128 + std::lround(((i < 512) ? -val : val) * 128.0), 255l), 0l);;
+
+			/*
+			double unpack = unpackChromaP010(val);
+			double delta = sourceValue - unpack;
+			if (std::abs(delta) > 0.0000001)
+			{
+				bool error = true;
+			}
+			*/
+		}
+
+		FrameDecoderUtils::initialized = true;
+	};	
+};
+
+using namespace FrameDecoderUtils;
+
 
 void FrameDecoder::processImage(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
-	const uint8_t* data, int width, int height, int lineLength,
-	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
+	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping)
 {
 	uint32_t ind_lutd, ind_lutd2;
 	uint8_t  buffer[8];
 
 	// validate format
-	if (pixelFormat != PixelFormat::YUYV &&
+	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
-		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::MJPEG)
+		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::P010 && pixelFormat != PixelFormat::MJPEG)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Invalid pixel format given");
 		return;
 	}
 
 	// validate format LUT
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
-		pixelFormat == PixelFormat::NV12) && lutBuffer == NULL)
+	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
+		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010) && lutBuffer == NULL)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
 		return;
@@ -75,6 +216,7 @@ void FrameDecoder::processImage(
 	int outputHeight = (height - _cropTop - _cropBottom);
 
 	outputImage.resize(outputWidth, outputHeight);
+	outputImage.setOriginFormat(pixelFormat);
 
 	uint8_t* destMemory = outputImage.rawMem();
 	int 		destLineSize = outputImage.width() * 3;
@@ -103,17 +245,33 @@ void FrameDecoder::processImage(
 			}
 		}
 
-#ifdef TAKE_SCREEN_SHOT
-		if (screenShotTaken > 0 && screenShotTaken-- == 1)
-		{
-			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
-			jpgImage.save("D:/grabber_yuv.png", "png");
-		}
-#endif
-
 		return;
 	}
 
+	if (pixelFormat == PixelFormat::UYVY)
+	{
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) << 1));
+
+			while (currentDest < endDest)
+			{
+				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+
+				ind_lutd = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
+				ind_lutd2 = LUT_INDEX(buffer[3], buffer[0], buffer[2]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
+				currentDest += 3;
+				currentSource += 4;
+			}
+		}
+		return;
+	}
 
 	if (pixelFormat == PixelFormat::RGB24)
 	{
@@ -243,22 +401,51 @@ void FrameDecoder::processImage(
 		return;
 	}
 
-	if (pixelFormat == PixelFormat::NV12)
+	if (pixelFormat == PixelFormat::P010)
 	{
-		int deltaU = lineLength * height;
+		uint16_t p010[2] = {};
+
+		if (!FrameDecoderUtils::initialized)
+		{
+			initP010();
+		}
+
+		auto deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
 		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
 		{
 			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
 			uint8_t* endDest = currentDest + destLineSize;
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
-			uint8_t* currentSourceU = (uint8_t*)data + deltaU + (((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft);
+			uint8_t* currentSourceUV = deltaUV + (((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft);
 
 			while (currentDest < endDest)
 			{
-				*((uint16_t*)&buffer) = *((uint16_t*)currentSource);
-				currentSource += 2;
-				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceU);
-				currentSourceU += 2;
+				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSource), 4);
+				if (toneMapping)
+				{
+					buffer[0] = lutP010_y[p010[0] >> 6];
+					buffer[1] = lutP010_y[p010[1] >> 6];
+				}
+				else
+				{
+					buffer[0] = p010[0] >> 8;
+					buffer[1] = p010[1] >> 8;
+				}
+
+				currentSource += 4;
+				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceUV), 4);
+				if (toneMapping)
+				{
+					buffer[2] = lutP010_uv[p010[0] >> 6];
+					buffer[3] = lutP010_uv[p010[1] >> 6];
+				}
+				else
+				{
+					buffer[2] = p010[0] >> 8;
+					buffer[3] = p010[1] >> 8;
+				}
+
+				currentSourceUV += 4;
 
 				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
 				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
@@ -269,36 +456,59 @@ void FrameDecoder::processImage(
 				currentDest += 3;
 			}
 		}
-#ifdef TAKE_SCREEN_SHOT
-		if (screenShotTaken > 0 && screenShotTaken-- == 1)
+		return;
+	}
+
+	if (pixelFormat == PixelFormat::NV12)
+	{
+		auto deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
 		{
-			QImage jpgImage((const uint8_t*)outputImage.memptr(), outputImage.width(), outputImage.height(), 3 * outputImage.width(), QImage::Format_RGB888);
-			jpgImage.save("D:/grabber_nv12.png", "png");
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
+			uint8_t* currentSourceUV = deltaUV + (((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft);
+
+			while (currentDest < endDest)
+			{
+				*((uint16_t*)&buffer) = *((uint16_t*)currentSource);
+				currentSource += 2;
+				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceUV);
+				currentSourceUV += 2;
+
+				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
+				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
+				currentDest += 3;
+			}
 		}
-#endif
+
 		return;
 	}
 }
 
 void FrameDecoder::processQImage(
-	const uint8_t* data, int width, int height, int lineLength,
-	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage)
+	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping, AutomaticToneMapping* automaticToneMapping)
 {
 	uint32_t ind_lutd;
 	uint8_t  buffer[8];
 
 	// validate format
-	if (pixelFormat != PixelFormat::YUYV &&
+	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
-		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12)
+		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::P010)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Invalid pixel format given");
 		return;
 	}
 
 	// validate format LUT
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::I420 ||
-		pixelFormat == PixelFormat::NV12) && lutBuffer == NULL)
+	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 ||
+		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010) && lutBuffer == NULL)
 	{
 		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
 		return;
@@ -314,7 +524,7 @@ void FrameDecoder::processQImage(
 	int 		destLineSize = outputImage.width() * 3;
 
 
-	if (pixelFormat == PixelFormat::YUYV)
+	if (pixelFormat == PixelFormat::YUYV && automaticToneMapping == nullptr)
 	{
 		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
 		{
@@ -335,7 +545,50 @@ void FrameDecoder::processQImage(
 		}
 		return;
 	}
+	if (pixelFormat == PixelFormat::YUYV && automaticToneMapping != nullptr)
+	{
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
 
+			while (currentDest < endDest)
+			{
+				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+
+				ind_lutd = LUT_INDEX((automaticToneMapping->checkY(buffer[0])), (automaticToneMapping->checkU(buffer[1])), (automaticToneMapping->checkV(buffer[3])));
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				currentSource += 4;
+			}
+		}
+		automaticToneMapping->finilize();
+		return;
+	}
+
+	if (pixelFormat == PixelFormat::UYVY)
+	{
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+
+			while (currentDest < endDest)
+			{
+				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+
+				ind_lutd = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+				currentSource += 4;
+			}
+		}
+		return;
+	}
 
 	if (pixelFormat == PixelFormat::RGB24)
 	{
@@ -431,15 +684,124 @@ void FrameDecoder::processQImage(
 		return;
 	}
 
-	if (pixelFormat == PixelFormat::NV12)
+	if (pixelFormat == PixelFormat::P010 && automaticToneMapping == nullptr)
 	{
-		int deltaU = lineLength * height;
+		uint16_t p010[2] = {};
+
+		if (!FrameDecoderUtils::initialized)
+		{
+			initP010();
+		}
+
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
 		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
 		{
 			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
 			uint8_t* endDest = currentDest + destLineSize;
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = (uint8_t*)data + deltaU + (((uint64_t)ySource / 2) * lineLength);
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
+
+			while (currentDest < endDest)
+			{
+				memcpy(((uint16_t*)&p010), ((uint16_t*)currentSource), 2);
+				if (toneMapping)
+				{
+					buffer[0] = lutP010_y[p010[0] >> 6];
+				}
+				else
+				{
+					buffer[0] = p010[0] >> 8;
+				}
+				currentSource += 4;
+				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceU), 4);
+				if (toneMapping)
+				{
+					buffer[2] = lutP010_uv[p010[0] >> 6];
+					buffer[3] = lutP010_uv[p010[1] >> 6];
+				}
+				else
+				{
+					buffer[2] = p010[0] >> 8;
+					buffer[3] = p010[1] >> 8;
+				}
+
+				currentSourceU += 4;
+
+				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+			}
+		}
+		return;
+	}
+	if (pixelFormat == PixelFormat::P010 && automaticToneMapping != nullptr)
+	{
+		uint16_t p010[2] = {};
+
+		if (!FrameDecoderUtils::initialized)
+		{
+			initP010();
+		}
+
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
+
+			while (currentDest < endDest)
+			{
+				memcpy(((uint16_t*)&p010), ((uint16_t*)currentSource), 2);
+				if (toneMapping)
+				{
+					automaticToneMapping->checkY(p010[0] >> 8);
+
+					buffer[0] = lutP010_y[p010[0] >> 6];
+				}
+				else
+				{
+					buffer[0] = automaticToneMapping->checkY(p010[0] >> 8);
+				}
+				currentSource += 4;
+				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceU), 4);
+				if (toneMapping)
+				{
+					automaticToneMapping->checkU(p010[0] >> 8);
+					automaticToneMapping->checkV(p010[1] >> 8);
+
+					buffer[2] = lutP010_uv[p010[0] >> 6];
+					buffer[3] = lutP010_uv[p010[1] >> 6];
+				}
+				else
+				{
+					buffer[2] = automaticToneMapping->checkU(p010[0] >> 8);
+					buffer[3] = automaticToneMapping->checkV(p010[1] >> 8);
+				}
+
+				currentSourceU += 4;
+
+				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+			}
+		}
+		automaticToneMapping->finilize();
+		return;
+	}
+
+	if (pixelFormat == PixelFormat::NV12 && automaticToneMapping == nullptr)
+	{
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
 
 			while (currentDest < endDest)
 			{
@@ -454,6 +816,32 @@ void FrameDecoder::processQImage(
 				currentDest += 3;
 			}
 		}
+		return;
+	}
+	if (pixelFormat == PixelFormat::NV12 && automaticToneMapping != nullptr)
+	{
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
+			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
+
+			while (currentDest < endDest)
+			{
+				*((uint8_t*)&buffer) = *((uint8_t*)currentSource);
+				currentSource += 2;
+				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceU);
+				currentSourceU += 2;
+
+				ind_lutd = LUT_INDEX((automaticToneMapping->checkY(buffer[0])), (automaticToneMapping->checkU(buffer[2])), (automaticToneMapping->checkV(buffer[3])));
+
+				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
+				currentDest += 3;
+			}
+		}
+		automaticToneMapping->finilize();
 		return;
 	}
 }
@@ -502,13 +890,6 @@ void FrameDecoder::applyLUT(uint8_t* _source, unsigned int width, unsigned int h
 			}
 		}
 	}
-#ifdef TAKE_SCREEN_SHOT
-	if (screenShotTaken > 0 && screenShotTaken-- == 1)
-	{
-		QImage jpgImage((const uint8_t*)_source, width, height, 3 * width, QImage::Format_RGB888);
-		jpgImage.save("D:/grabber_mjpeg.png", "png");
-	}
-#endif
 }
 
 void FrameDecoder::processSystemImageBGRA(Image<ColorRgb>& image, int targetSizeX, int targetSizeY,
@@ -723,30 +1104,6 @@ void FrameDecoder::processSystemImagePQ10(Image<ColorRgb>& image, int targetSize
 			dLine += 3;
 		}
 	}
-}
-
-void FrameDecoder::encodeJpeg(MemoryBuffer<uint8_t>& buffer, Image<ColorRgb>& inputImage, bool scaleDown)
-{
-	const int aspect = (scaleDown) ? 2 : 1;
-	const int width = inputImage.width();
-	const int height = inputImage.height() / aspect;
-	int pitch = width * sizeof(ColorRgb) * aspect;
-	int subSample = (scaleDown) ? TJSAMP_422 : TJSAMP_444;
-	int quality = 75;
-
-	unsigned long compressedImageSize = 0;
-	unsigned char* compressedImage = NULL;
-
-	tjhandle _jpegCompressor = tjInitCompress();
-
-	tjCompress2(_jpegCompressor, inputImage.rawMem(), width, pitch, height, TJPF_RGB,
-				&compressedImage, &compressedImageSize, subSample, quality, TJFLAG_FASTDCT);
-
-	buffer.resize(compressedImageSize);
-	memcpy(buffer.data(), compressedImage, compressedImageSize);
-
-	tjDestroy(_jpegCompressor);
-	tjFree(compressedImage);
 }
 
 

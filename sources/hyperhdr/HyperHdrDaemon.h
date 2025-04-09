@@ -8,44 +8,52 @@
 	#include <QStringList>
 #endif
 
+#include <QCoreApplication>
+
 #ifdef ENABLE_V4L2
-	#include <grabber/v4l2/V4L2Wrapper.h>
+	#include <grabber/linux/v4l2/V4L2Wrapper.h>
 #else
 	typedef QObject V4L2Wrapper;
 #endif
 
 #ifdef ENABLE_MF
-	#include <grabber/MF/MFWrapper.h>
+	#include <grabber/windows/MF/MFWrapper.h>
 #else
 	typedef QObject MFWrapper;
 #endif
 
 #ifdef ENABLE_AVF
-	#include <grabber/AVF/AVFWrapper.h>
+	#include <grabber/osx/AVF/AVFWrapper.h>
 #else
 	typedef QObject AVFWrapper;
 #endif
 
 #ifdef ENABLE_DX
-#include <grabber/DX/DxWrapper.h>
+#include <grabber/windows/DX/DxWrapper.h>
 #else
 	typedef QObject DxWrapper;
 #endif
 
 #ifdef ENABLE_X11
-#include <grabber/X11/X11Wrapper.h>
+#include <grabber/linux/X11/X11Wrapper.h>
 #else
 	typedef QObject X11Wrapper;
 #endif
 
 #ifdef ENABLE_FRAMEBUFFER
-#include <grabber/framebuffer/FrameBufWrapper.h>
+#include <grabber/linux/framebuffer/FrameBufWrapper.h>
 #else
 	typedef QObject FrameBufWrapper;
 #endif
 
+#ifdef ENABLE_AMLOGIC
+#include <grabber/linux/amlogic/AmlogicWrapper.h>
+#else
+	typedef QObject AmlogicWrapper;
+#endif
+
 #ifdef ENABLE_PIPEWIRE
-#include <grabber/pipewire/PipewireWrapper.h>
+#include <grabber/linux/pipewire/PipewireWrapper.h>
 #else
 	typedef QObject PipewireWrapper;
 #endif
@@ -58,7 +66,7 @@
 
 
 #ifdef ENABLE_MAC_SYSTEM
-#include <grabber/macOS/macOsWrapper.h>
+#include <grabber/osx/macOS/macOsWrapper.h>
 #else
 	typedef QObject macOsWrapper;
 #endif
@@ -108,13 +116,13 @@ class GrabberHelper;
 class QApplication;
 
 #if defined(_WIN32) && defined(ENABLE_POWER_MANAGEMENT)
-	#include "SuspendHandlerWindows.h"
+	#include <suspend-handler/SuspendHandlerWindows.h>
 #elif defined(__APPLE__) && defined(ENABLE_POWER_MANAGEMENT)
-	#include "SuspendHandlerMacOS.h"
-#elif defined(__linux__) && defined(HYPERHDR_HAVE_DBUS) && defined(ENABLE_POWER_MANAGEMENT)
-	#include "SuspendHandlerLinux.h"
+	#include <suspend-handler/SuspendHandlerMacOS.h>
+#elif defined(__linux__) && defined(ENABLE_POWER_MANAGEMENT)
+	#include <suspend-handler/SuspendHandlerLinux.h>
 #else
-	typedef QObject SuspendHandler;
+	#include <suspend-handler/SuspendHandlerDummy.h>	
 #endif
 
 namespace hyperhdr { enum class InstanceState; }
@@ -125,7 +133,7 @@ class HyperHdrDaemon : public QObject
 
 
 public:
-	HyperHdrDaemon(const QString& rootPath, QApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
+	HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
 	~HyperHdrDaemon();
 
 	QJsonDocument getSetting(settings::type type) const;	

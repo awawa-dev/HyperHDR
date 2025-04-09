@@ -1,8 +1,6 @@
 #pragma once
 
-#ifndef PCH_ENABLED
-	#include <QColor>
-#endif
+#include <image/ColorRgb.h>
 
 #define SOUNDCAP_N_WAVE      1024
 #define SOUNDCAP_LOG2_N_WAVE 10
@@ -10,9 +8,9 @@
 
 struct MovingTarget
 {
-	QColor	_averageColor;
-	QColor	_fastColor;
-	QColor	_slowColor;
+	ColorRgb _averageColor;
+	ColorRgb _fastColor;
+	ColorRgb _slowColor;
 	int32_t	_targetAverageR;
 	int32_t _targetAverageG;
 	int32_t _targetAverageB;
@@ -44,10 +42,10 @@ class SoundCaptureResult
 	uint8_t  pureScaledResult[SOUNDCAP_RESULT_RES];
 	uint8_t  deltas[SOUNDCAP_RESULT_RES];
 	uint8_t  buffScaledResult[SOUNDCAP_RESULT_RES];
-	QColor	 color[SOUNDCAP_RESULT_RES];
+	ColorRgb color[SOUNDCAP_RESULT_RES];
 	int32_t  averageDelta;
 
-	QColor   _lastPrevColor;
+	ColorRgb _lastPrevColor;
 	int32_t  _scaledAverage;
 	int32_t  _oldScaledAverage;
 	int32_t  _currentMax;
@@ -64,15 +62,15 @@ public:
 	uint32_t getResultIndex();
 	void ResetData();
 	void GetBufResult(uint8_t* dest, size_t size);
-	QColor getRangeColor(uint8_t index) const;
-	void RestoreFullLum(QColor& color, int scale = 32);
+	ColorRgb getRangeColor(uint8_t index) const;
+	void RestoreFullLum(ColorRgb& color, int scale = 32);
 	int32_t	getValue(int isMulti);
 	int32_t getValue3Step(int isMulti);
-	bool GetStats(uint32_t& scaledAverage, uint32_t& currentMax, QColor& averageColor, QColor* fastColor = NULL, QColor* slowColor = NULL);
+	bool GetStats(uint32_t& scaledAverage, uint32_t& currentMax, ColorRgb& averageColor, ColorRgb* fastColor = NULL, ColorRgb* slowColor = NULL);
 
 private:
 	bool hasMiddleAverage(int middle);
 	bool hasMiddleSlow(int middle);
 	bool hasMiddleFast(int middle);
-	void CalculateRgbDelta(QColor currentColor, QColor prevColor, QColor selcolor, int& ab_r, int& ab_g, int& ab_b);
+	void CalculateRgbDelta(ColorRgb currentColor, ColorRgb prevColor, ColorRgb selcolor, int& ab_r, int& ab_g, int& ab_b);
 };

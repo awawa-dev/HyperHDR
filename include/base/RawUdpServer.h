@@ -4,7 +4,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -29,10 +29,10 @@
 
 #ifndef PCH_ENABLED
 	#include <QVector>
-
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
 #endif
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
 
 class QUdpSocket;
 class NetOrigin;

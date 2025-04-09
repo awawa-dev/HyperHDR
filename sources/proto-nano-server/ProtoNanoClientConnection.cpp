@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -28,13 +28,12 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QTimer>
-#include <QRgb>
 #include <QThread>
 
-#include <pb_decode.h>
-#include <pb_encode.h>
+#include <nanopb/pb_decode.h>
+#include <nanopb/pb_encode.h>
 #include <ProtoNanoClientConnection.h>
-#include <flatbufserver/FlatBufferServer.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
 
 ProtoNanoClientConnection::ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject* parent)
 	: QObject(parent)

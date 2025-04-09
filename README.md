@@ -17,15 +17,18 @@ Open source ambient lighting implementation for television and music sets based 
 * Support for USB grabbers under Linux, Windows 10, macOS
 * Pipewire/Portal hardware-accelerated screen capturer for Linux/Wayland
 * DirectX screen grabber with pixel and vertex shader processing acceleration for Windows 10/11
-* DirectX screen grabber supports native Windows HDR modes like DXGI_FORMAT_R16G16B16A16_FLOAT
+* DirectX screen grabber supports native Windows HDR modes like DXGI_FORMAT_R16G16B16A16_FLOAT and multi-monitor ( :new: HyperHDR v21)
 * Dynamic video cache buffers. Now Rpi can process even 1080p120 NV12 stream without any size decimation
 * Built-in audio visualization effects using **spectrum analysis**
 * MQTT support for IoT
 * Entertainment API v2: per-channel support for Philips Gradient Strip and others
-* Automatic LUT calibration detects grabber model specific properties for the best quality of HDR/SDR
+* Support for Home Assistant lights and zigbee2mqtt ( :new: HyperHDR v21)
+* Automatic tone mapping ( :new: HyperHDR v21)
+* Automatic LUT calibration detects grabber model specific properties for the best quality of HDR/SDR using MP4 test files ( :new: HyperHDR v21)
 * Optimized multi-instances. You can use for example your TV LED strip and multiple WLED or Philips Hue light sources.
 * Built-in latency benchmark for USB grabbers
-* easy LED strip geometry editing process, automatic or manual with mouse and context menu per single LED
+* Support for high-quality P010 video format ( :new: HyperHDR v21)
+* Easy LED strip geometry editing process, automatic or manual with mouse and context menu per single LED
 * Automatic signal detection with smart learning capability for USB grabbers
 * SK6812 RGBW: advanced calibration of the white color channel for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI), [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico)
 * Tone mapping for external flatbuffers/protobuf sources

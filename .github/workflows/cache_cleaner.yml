@@ -1,0 +1,26 @@
+name: Cache clearing action after closing PR
+run-name: Cache clearing
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  clean_PR_ccache:
+    name: Delete old CCache files
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: yumemi-inc/clean-cache-action@v1.0.5
+        with:
+          ref: 'refs/heads/${{ github.head_ref }}'
+  clean_PR_artifacts:
+    name: Delete old Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: stefanluptak/delete-old-pr-artifacts@v1
+        with:
+          workflow_filename: push-master.yml
+          debug: true

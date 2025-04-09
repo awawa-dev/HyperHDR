@@ -6,13 +6,14 @@
 #include <base/AccessManager.h>
 #include <db/AuthTable.h>
 #include <db/MetaTable.h>
+#include <QUuid>
 
 using namespace hyperhdr;
 
-AccessManager::AccessManager(QObject* parent, bool readonlyMode)
+AccessManager::AccessManager(QObject* parent)
 	: QObject(parent)
-	, _authTable(new AuthTable(readonlyMode))
-	, _metaTable(new MetaTable(readonlyMode))
+	, _authTable(new AuthTable())
+	, _metaTable(new MetaTable())
 	, _pendingRequests()
 	, _authRequired(true)
 	, _timer(new QTimer(this))

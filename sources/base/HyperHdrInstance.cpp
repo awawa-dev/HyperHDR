@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -32,42 +32,33 @@
 	#include <QPair>
 
 	#include <exception>
-	#include <sstream>
-
-	#include <utils/Logger.h>
+	#include <sstream>	
 #endif
 
 #include <HyperhdrConfig.h>
 #include <base/HyperHdrInstance.h>
 #include <base/ImageToLedManager.h>
 #include <utils/GlobalSignals.h>
-#include <leddevice/LedDeviceWrapper.h>
-#include <leddevice/LedDeviceFactory.h>
-#include <base/LedCalibration.h>
+#include <led-drivers/LedDeviceWrapper.h>
+#include <led-strip/LedCalibration.h>
 #include <base/Smoothing.h>
-#include <effectengine/EffectEngine.h>
+#include <effects/EffectEngine.h>
 #include <base/InstanceConfig.h>
 #include <base/VideoControl.h>
 #include <base/SystemControl.h>
 #include <base/GrabberWrapper.h>
 #include <base/RawUdpServer.h>
-#include <utils/ColorSys.h>
 #include <base/ComponentController.h>
 #include <base/Muxer.h>
 #include <base/SoundCapture.h>
 #include <base/SystemWrapper.h>
 #include <base/GrabberHelper.h>
-
-#if defined(ENABLE_BOBLIGHT)	
-	#include <boblightserver/BoblightServer.h>
-#else
-	class BoblightServer {};
-#endif
+#include <utils/Logger.h>
 
 std::atomic<bool> HyperHdrInstance::_signalTerminate(false);
 std::atomic<int>  HyperHdrInstance::_totalRunningCount(0);
 
-HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, bool disableOnStartup, QString name)
+HyperHdrInstance::HyperHdrInstance(quint8 instance, bool disableOnStartup, QString name)
 	: QObject()
 	, _instIndex(instance)
 	, _bootEffect(QTime::currentTime().addSecs(5))
@@ -82,14 +73,12 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool readonlyMode, bool disa
 	, _effectEngine(nullptr)
 	, _videoControl(nullptr)
 	, _systemControl(nullptr)
-	, _boblightServer(nullptr)
 	, _rawUdpServer(nullptr)
 	, _log(nullptr)
 	, _hwLedCount()
 	, _ledGridSize()
 	, _currentLedColors()
 	, _name((name.isEmpty()) ? QString("INSTANCE%1").arg(instance) : name)
-	, _readOnlyMode(readonlyMode)
 	, _disableOnStartup(disableOnStartup)
 {
 	_totalRunningCount++;
@@ -105,7 +94,6 @@ HyperHdrInstance::~HyperHdrInstance()
 	if (_muxer != nullptr)
 		clear(-1, true);
 
-	_boblightServer = nullptr;
 	Info(_log, "[ 1/9] Releasing HyperHDR%i->UdpServer...", _instIndex);
 	_rawUdpServer = nullptr;
 	Info(_log, "[ 2/9] Releasing HyperHDR%i->VideoControl...", _instIndex);
@@ -131,7 +119,7 @@ HyperHdrInstance::~HyperHdrInstance()
 }
 
 void HyperHdrInstance::start()
-{	
+{
 	_log = Logger::getInstance(QString("HYPERHDR%1").arg(_instIndex));
 
 	if (_signalTerminate)
@@ -140,14 +128,14 @@ void HyperHdrInstance::start()
 		return;
 	}
 
-	Info(_log, "Starting the instance");	
+	Info(_log, "Starting the instance");
 
-	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this, _readOnlyMode));
+	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this));
 	_componentController = std::unique_ptr<ComponentController>(new ComponentController(this, _disableOnStartup));
 	connect(_componentController.get(), &ComponentController::SignalComponentStateChanged, this, &HyperHdrInstance::SignalComponentStateChanged);
 	_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(getSetting(settings::type::DEVICE).object()));
 	_muxer = std::unique_ptr<Muxer>(new Muxer(_instIndex, static_cast<int>(_ledString.leds().size()), this));
-	_imageProcessor = std::unique_ptr<ImageToLedManager>(new ImageToLedManager(_ledString, this));	
+	_imageProcessor = std::unique_ptr<ImageToLedManager>(new ImageToLedManager(_ledString, this));
 	connect(_muxer.get(), &Muxer::SignalPrioritiesChanged, this, &HyperHdrInstance::SignalPrioritiesChanged);
 	connect(_muxer.get(), &Muxer::SignalVisiblePriorityChanged, this, &HyperHdrInstance::SignalVisiblePriorityChanged);
 	connect(_muxer.get(), &Muxer::SignalVisibleComponentChanged, this, &HyperHdrInstance::SignalVisibleComponentChanged);
@@ -204,19 +192,13 @@ void HyperHdrInstance::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
-#ifdef ENABLE_BOBLIGHT
-	// boblight, can't live in global scope as it depends on layout
-	_boblightServer = std::unique_ptr<BoblightServer>(new BoblightServer(this, getSetting(settings::type::BOBLSERVER)));
-	connect(this, &HyperHdrInstance::SignalInstanceSettingsChanged, _boblightServer.get(), &BoblightServer::handleSettingsUpdate);
-#endif
-
 	_rawUdpServer = std::unique_ptr<RawUdpServer>(new RawUdpServer(this, getSetting(settings::type::RAWUDPSERVER)));
 	connect(this, &HyperHdrInstance::SignalInstanceSettingsChanged, _rawUdpServer.get(), &RawUdpServer::handleSettingsUpdate);
 
 	// handle background effect
 	QUEUE_CALL_2(this, handleSettingsUpdate,
-					settings::type, settings::type::BGEFFECT,
-					QJsonDocument, getSetting(settings::type::BGEFFECT));
+		settings::type, settings::type::BGEFFECT,
+		QJsonDocument, getSetting(settings::type::BGEFFECT));
 
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, _instIndex, true);
 
@@ -233,21 +215,6 @@ void HyperHdrInstance::start()
 	Info(_log, "The instance is running");
 }
 
-void HyperHdrInstance::signalTerminateTriggered()
-{
-	_signalTerminate = true;
-	LedDevice::signalTerminateTriggered();
-}
-
-bool HyperHdrInstance::isTerminated()
-{
-	return _signalTerminate;
-}
-
-int HyperHdrInstance::getTotalRunningCount()
-{
-	return _totalRunningCount;
-}
 
 void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
@@ -302,7 +269,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = _hwLedCount; // Inject led count info
-		_ledDeviceWrapper->createLedDevice(dev, _smoothing->GetSuggestedInterval(), false);		
+		_ledDeviceWrapper->createLedDevice(dev, _smoothing->GetSuggestedInterval(), false);
 	}
 	else if (type == settings::type::BGEFFECT || type == settings::type::FGEFFECT)
 	{
@@ -361,6 +328,22 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		update();
 }
 
+void HyperHdrInstance::signalTerminateTriggered()
+{
+	_signalTerminate = true;
+	LedDevice::signalTerminateTriggered();
+}
+
+bool HyperHdrInstance::isTerminated()
+{
+	return _signalTerminate;
+}
+
+int HyperHdrInstance::getTotalRunningCount()
+{
+	return _totalRunningCount;
+}
+
 QJsonDocument HyperHdrInstance::getSetting(settings::type type) const
 {
 	return _instanceConfig->getSetting(type);
@@ -416,14 +399,19 @@ QJsonObject HyperHdrInstance::getAverageColor()
 	return ret;
 }
 
-unsigned HyperHdrInstance::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool directMode)
+unsigned HyperHdrInstance::addEffectConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
 {
-	return _smoothing->UpdateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, directMode);
+	return _smoothing->AddEffectConfig(id, settlingTime_ms, ledUpdateFrequency_hz, pause);
 }
 
 int HyperHdrInstance::getLedCount() const
 {
 	return static_cast<int>(_ledString.leds().size());
+}
+
+bool HyperHdrInstance::getReadOnlyMode() const
+{
+	return _instanceConfig->isReadOnlyMode();
 }
 
 void HyperHdrInstance::setSourceAutoSelect(bool state)
@@ -490,7 +478,7 @@ bool HyperHdrInstance::setInputLeds(int priority, const std::vector<ColorRgb>& l
 				_currentLedColors = ledColors;
 			else
 				Warning(_log, "Discrepancy between the number of colors in the input (%i) and the current ones (%i)",
-								ledColors.size(), _currentLedColors.size());
+					ledColors.size(), _currentLedColors.size());
 
 			update();
 		}
@@ -513,7 +501,7 @@ void HyperHdrInstance::signalSetGlobalImageHandler(int priority, const Image<Col
 void HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms, bool clearEffect)
 {
 	if (!_muxer->hasPriority(priority))
-	{		
+	{
 		return;
 	}
 
@@ -573,7 +561,10 @@ void HyperHdrInstance::setColor(int priority, const std::vector<ColorRgb>& ledCo
 	{
 		clear(priority);
 	}
-
+	if (getCurrentPriority() == priority)
+	{
+		emit SignalColorIsSet(ledColors[0], timeout_ms);
+	}
 	// register color
 	_muxer->registerInput(priority, hyperhdr::COMP_COLOR, origin, ledColors[0]);
 	_muxer->setInput(priority, timeout_ms);
@@ -648,15 +639,6 @@ int HyperHdrInstance::setEffect(const QString& effectName, int priority, int tim
 		return _effectEngine->runEffect(effectName, priority, timeout, origin);
 	else
 		return 0;
-}
-
-int HyperHdrInstance::setEffect(const QString& effectName, const QJsonObject& args, int priority, int timeout, const QString& origin, const QString& imageData)
-{
-	if (_effectEngine != nullptr)
-		return _effectEngine->runEffect(effectName, priority, timeout, origin);
-	else
-		return 0;
-
 }
 
 void HyperHdrInstance::setLedMappingType(int mappingType)
@@ -738,7 +720,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 
 		if (diff >= 59000 && diff <= 65000)
 			emit GlobalSignals::getInstance()->SignalPerformanceNewReport(
-				PerformanceReport(hyperhdr::PerformanceReportType::INSTANCE, _computeStats.token, _name, _computeStats.total / qMax(diff/1000.0, 1.0), _computeStats.total, 0, 0, getInstanceIndex()));
+				PerformanceReport(hyperhdr::PerformanceReportType::INSTANCE, _computeStats.token, _name, _computeStats.total / qMax(diff / 1000.0, 1.0), _computeStats.total, 0, 0, getInstanceIndex()));
 
 		_computeStats.statBegin = now;
 		_computeStats.total = 1;
@@ -751,7 +733,7 @@ void HyperHdrInstance::updateResult(std::vector<ColorRgb> _ledBuffer)
 	for (int disabledProcessing = 0; disabledProcessing < 2; disabledProcessing++)
 	{
 		if (disabledProcessing == 1)
-		{			
+		{
 			_ledColorCalibration->applyAdjustment(_ledBuffer);
 		}
 
@@ -838,7 +820,7 @@ void HyperHdrInstance::identifyLed(const QJsonObject& params)
 }
 
 void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
-{	
+{
 	uint64_t now = InternalClock::now();
 	int currentPriority = getCurrentPriority();
 
@@ -880,7 +862,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 
 				// add HSL Value to Array
 				QJsonArray HSLValue;
-				ColorSys::rgb2hsl(priorityInfo.staticColor.red,
+				ColorRgb::rgb2hsl(priorityInfo.staticColor.red,
 					priorityInfo.staticColor.green,
 					priorityInfo.staticColor.blue,
 					Hue, Saturation, Luminace);
@@ -910,7 +892,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 	////////////////////////////////////
 
 	QJsonArray adjustmentArray = _ledColorCalibration->getAdjustmentState();
-	
+
 	info["adjustment"] = adjustmentArray;
 
 	////////////////////////////////////
@@ -923,7 +905,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 	for (const EffectDefinition& effectDefinition : effectsDefinitions)
 	{
 		QJsonObject effect;
-		effect["name"] = effectDefinition.name;
+		effect["name"] = QString::fromStdString(effectDefinition.name);
 		effects.append(effect);
 	}
 	info["effects"] = effects;
@@ -977,7 +959,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 
 			// add HSL Value to Array
 			QJsonArray HSLValue;
-			ColorSys::rgb2hsl(priorityInfo.staticColor.red,
+			ColorRgb::rgb2hsl(priorityInfo.staticColor.red,
 				priorityInfo.staticColor.green,
 				priorityInfo.staticColor.blue,
 				Hue, Saturation, Luminace);
@@ -1012,7 +994,7 @@ void HyperHdrInstance::putJsonInfo(QJsonObject& info, bool full)
 	////////////////
 
 	info["videomodehdr"] = (_componentController->isComponentEnabled(hyperhdr::Components::COMP_HDR)) ? 1 : 0;
-	info["leds"] = getSetting(settings::type::LEDS).array();	
+	info["leds"] = getSetting(settings::type::LEDS).array();
 	info["imageToLedMappingType"] = ImageToLedManager::mappingTypeToStr(_imageProcessor->getLedMappingType());
 }
 

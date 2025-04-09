@@ -1,5 +1,10 @@
 #pragma once
 
+#ifndef PCH_ENABLED
+	#include <QThread>
+	#include <memory>
+#endif
+
 #include <base/HyperHdrInstance.h>
 #include <base/HyperHdrManager.h>
 #include <base/AccessManager.h>
@@ -18,15 +23,15 @@ public:
 
 	struct ImageCmdData
 	{
-		int priority;
+		int priority = 0;
 		QString origin;
-		int64_t duration;
-		int width;
-		int height;
-		int scale;
+		int64_t duration = 0;
+		int width = 0;
+		int height = 0;
+		int scale = 0;
 		QString format;
 		QString imgName;
-		QByteArray data;
+		QString imagedata;
 	};
 
 	struct EffectCmdData
@@ -122,6 +127,7 @@ protected:
 	std::shared_ptr<GrabberHelper> _systemGrabber;
 	std::shared_ptr<PerformanceCounters> _performanceCounters;
 	std::shared_ptr<DiscoveryWrapper> _discoveryWrapper;
+	std::unique_ptr<QThread, std::function<void(QThread*)>> _lutCalibratorThread;
 
 	struct {
 		bool	init = false;

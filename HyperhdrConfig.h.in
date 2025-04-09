@@ -1,5 +1,11 @@
 // Generated config file
 
+// enable emmbeded web resources
+#cmakedefine USE_EMBEDDED_WEB_RESOURCES
+
+// enable shared lib loading
+#cmakedefine USE_SHARED_LIBS
+
 // support for static QT plugins
 #cmakedefine USE_STATIC_QT_PLUGINS
 
@@ -12,6 +18,9 @@
 // framebuffer linux system grabber
 #cmakedefine ENABLE_FRAMEBUFFER
 
+// amlogic system grabber
+#cmakedefine ENABLE_AMLOGIC
+
 // macOs system grabber
 #cmakedefine ENABLE_MAC_SYSTEM
 
@@ -23,9 +32,6 @@
 
 // PipeWire EGL extension
 #cmakedefine ENABLE_PIPEWIRE_EGL
-
-// Define to enable boblight server
-#cmakedefine ENABLE_BOBLIGHT
 
 // Define to enable sound linux
 #cmakedefine ENABLE_SOUNDCAPLINUX
@@ -51,6 +57,9 @@
 // Define to enable the ws281x-pwm-via-dma-device using jgarff's library
 #cmakedefine ENABLE_WS281XPWM
 
+// Define to enable systray control
+#cmakedefine ENABLE_SYSTRAY
+
 // Define to enable network discovery
 #cmakedefine ENABLE_BONJOUR
 
@@ -60,8 +69,8 @@
 // Define to enable system qmqtt
 #cmakedefine USE_SYSTEM_MQTT_LIBS
 
-// Define to enable protobuf
-#cmakedefine ENABLE_XZ
+// Define to enable zstd
+#cmakedefine ENABLE_ZSTD
 
 // Define to enable protobuf
 #cmakedefine ENABLE_PROTOBUF
@@ -73,6 +82,8 @@
 #cmakedefine USE_SYSTEM_MBEDTLS_LIBS
 
 #cmakedefine ENABLE_POWER_MANAGEMENT
+
+#cmakedefine HYPERHDR_HAVE_DBUS
 
 // the hyperhdr build id string
 #define HYPERHDR_BUILD_ID "${HYPERHDR_BUILD_ID}"

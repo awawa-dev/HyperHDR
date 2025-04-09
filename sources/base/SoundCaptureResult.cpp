@@ -1,5 +1,6 @@
 #ifndef PCH_ENABLED
 	#include <cmath>
+	#include <cstring> 
 #endif
 
 #include <base/SoundCaptureResult.h>
@@ -41,18 +42,18 @@ SoundCaptureResult::SoundCaptureResult()
 {
 	ResetData();
 
-	color[0] = QColor(255, 0, 0);
-	color[1] = QColor(190, 0, 0);
-	color[2] = QColor(160, 160, 0);
-	color[3] = QColor(50, 190, 20);
-	color[4] = QColor(20, 255, 50);
-	color[5] = QColor(0, 212, 160);
-	color[6] = QColor(0, 120, 190);
-	color[7] = QColor(0, 0, 255);
+	color[0] = ColorRgb(255, 0, 0);
+	color[1] = ColorRgb(190, 0, 0);
+	color[2] = ColorRgb(160, 160, 0);
+	color[3] = ColorRgb(50, 190, 20);
+	color[4] = ColorRgb(20, 255, 50);
+	color[5] = ColorRgb(0, 212, 160);
+	color[6] = ColorRgb(0, 120, 190);
+	color[7] = ColorRgb(0, 0, 255);
 
 }
 
-QColor SoundCaptureResult::getRangeColor(uint8_t index) const
+ColorRgb SoundCaptureResult::getRangeColor(uint8_t index) const
 {
 	if (index < SOUNDCAP_RESULT_RES)
 		return color[index];
@@ -164,7 +165,7 @@ void SoundCaptureResult::Smooth()
 			{
 				int rr = 0, gg = 0, bb = 0;
 
-				color[i].getRgb(&rr, &gg, &bb);
+				color[i].getRGB(rr, gg, bb);
 
 
 				r += std::max((rr * (_currentMax - 5 * (_currentMax - buffScaledResult[i]))) / _currentMax, 0);
@@ -179,7 +180,7 @@ void SoundCaptureResult::Smooth()
 				g = (Limit((g * 255) / ccScale + 32, 255) * _scaledAverage) / 255;
 				b = (Limit((b * 255) / ccScale + 32, 255) * _scaledAverage) / 255;
 			}
-			QColor currentColor(r, g, b);
+			ColorRgb currentColor(r, g, b);
 
 			int av_r, av_g, av_b;
 			CalculateRgbDelta(currentColor, _lastPrevColor, res._averageColor, av_r, av_g, av_b);
@@ -209,10 +210,10 @@ void SoundCaptureResult::Smooth()
 			}
 
 
-			red = Limit(res._targetFastR + res._fastColor.red(), 255);
-			green = Limit(res._targetFastG + res._fastColor.green(), 255);
-			blue = Limit(res._targetFastB + res._fastColor.blue(), 255);
-			res._fastColor = QColor::fromRgb(red, green, blue);
+			red = Limit(res._targetFastR + res._fastColor.Red(), 255);
+			green = Limit(res._targetFastG + res._fastColor.Green(), 255);
+			blue = Limit(res._targetFastB + res._fastColor.Blue(), 255);
+			res._fastColor = ColorRgb(red, green, blue);
 
 			if (res._targetSlowCounter-- <= 0)
 			{
@@ -232,10 +233,10 @@ void SoundCaptureResult::Smooth()
 			}
 
 
-			red = Limit(res._targetSlowR + res._slowColor.red(), 255);
-			green = Limit(res._targetSlowG + res._slowColor.green(), 255);
-			blue = Limit(res._targetSlowB + res._slowColor.blue(), 255);
-			res._slowColor = QColor::fromRgb(red, green, blue);
+			red = Limit(res._targetSlowR + res._slowColor.Red(), 255);
+			green = Limit(res._targetSlowG + res._slowColor.Green(), 255);
+			blue = Limit(res._targetSlowB + res._slowColor.Blue(), 255);
+			res._slowColor = ColorRgb(red, green, blue);
 
 
 			if (res._targetAverageCounter-- <= 0)
@@ -256,10 +257,10 @@ void SoundCaptureResult::Smooth()
 			}
 
 
-			red = Limit(res._targetAverageR + res._averageColor.red(), 255);
-			green = Limit(res._targetAverageG + res._averageColor.green(), 255);
-			blue = Limit(res._targetAverageB + res._averageColor.blue(), 255);
-			res._averageColor = QColor::fromRgb(red, green, blue);
+			red = Limit(res._targetAverageR + res._averageColor.Red(), 255);
+			green = Limit(res._targetAverageG + res._averageColor.Green(), 255);
+			blue = Limit(res._targetAverageB + res._averageColor.Blue(), 255);
+			res._averageColor = ColorRgb(red, green, blue);
 
 		}
 
@@ -274,11 +275,11 @@ void SoundCaptureResult::Smooth()
 		_resultIndex++;
 }
 
-void SoundCaptureResult::CalculateRgbDelta(QColor currentColor, QColor prevColor, QColor selcolor, int& ab_r, int& ab_g, int& ab_b)
+void SoundCaptureResult::CalculateRgbDelta(ColorRgb currentColor, ColorRgb prevColor, ColorRgb selcolor, int& ab_r, int& ab_g, int& ab_b)
 {
-	ab_r = ((currentColor.red() * 2 + prevColor.red()) / 3) - selcolor.red();
-	ab_g = ((currentColor.green() * 2 + prevColor.green()) / 3) - selcolor.green();
-	ab_b = ((currentColor.blue() * 2 + prevColor.blue()) / 3) - selcolor.blue();
+	ab_r = ((currentColor.Red() * 2 + prevColor.Red()) / 3) - selcolor.Red();
+	ab_g = ((currentColor.Green() * 2 + prevColor.Green()) / 3) - selcolor.Green();
+	ab_b = ((currentColor.Blue() * 2 + prevColor.Blue()) / 3) - selcolor.Blue();
 }
 
 bool SoundCaptureResult::hasMiddleAverage(int middle)
@@ -288,11 +289,11 @@ bool SoundCaptureResult::hasMiddleAverage(int middle)
 		return false;
 	}
 
-	int red = Limit(mtWorking._targetAverageR / 2 + mtWorking._averageColor.red(), 255);
-	int green = Limit(mtWorking._targetAverageG / 2 + mtWorking._averageColor.green(), 255);
-	int blue = Limit(mtWorking._targetAverageB / 2 + mtWorking._averageColor.blue(), 255);
+	int red = Limit(mtWorking._targetAverageR / 2 + mtWorking._averageColor.Red(), 255);
+	int green = Limit(mtWorking._targetAverageG / 2 + mtWorking._averageColor.Green(), 255);
+	int blue = Limit(mtWorking._targetAverageB / 2 + mtWorking._averageColor.Blue(), 255);
 
-	mtWorking._averageColor = QColor::fromRgb(red, green, blue);
+	mtWorking._averageColor = ColorRgb(red, green, blue);
 
 	if (middle == 0)
 		mtWorking._targetAverageCounter--;
@@ -307,11 +308,11 @@ bool SoundCaptureResult::hasMiddleSlow(int middle)
 		return false;
 	}
 
-	int red = Limit(mtWorking._targetSlowR / 2 + mtWorking._slowColor.red(), 255);
-	int green = Limit(mtWorking._targetSlowG / 2 + mtWorking._slowColor.green(), 255);
-	int blue = Limit(mtWorking._targetSlowB / 2 + mtWorking._slowColor.blue(), 255);
+	int red = Limit(mtWorking._targetSlowR / 2 + mtWorking._slowColor.Red(), 255);
+	int green = Limit(mtWorking._targetSlowG / 2 + mtWorking._slowColor.Green(), 255);
+	int blue = Limit(mtWorking._targetSlowB / 2 + mtWorking._slowColor.Blue(), 255);
 
-	mtWorking._slowColor = QColor::fromRgb(red, green, blue);
+	mtWorking._slowColor = ColorRgb(red, green, blue);
 
 	if (middle == 0)
 		mtWorking._targetSlowCounter--;
@@ -326,11 +327,11 @@ bool SoundCaptureResult::hasMiddleFast(int middle)
 		return false;
 	}
 
-	int red = Limit(mtWorking._targetFastR / 2 + mtWorking._fastColor.red(), 255);
-	int green = Limit(mtWorking._targetFastG / 2 + mtWorking._fastColor.green(), 255);
-	int blue = Limit(mtWorking._targetFastB / 2 + mtWorking._fastColor.blue(), 255);
+	int red = Limit(mtWorking._targetFastR / 2 + mtWorking._fastColor.Red(), 255);
+	int green = Limit(mtWorking._targetFastG / 2 + mtWorking._fastColor.Green(), 255);
+	int blue = Limit(mtWorking._targetFastB / 2 + mtWorking._fastColor.Blue(), 255);
 
-	mtWorking._fastColor = QColor::fromRgb(red, green, blue);
+	mtWorking._fastColor = ColorRgb(red, green, blue);
 
 	if (middle == 0)
 		mtWorking._targetFastCounter--;
@@ -339,16 +340,16 @@ bool SoundCaptureResult::hasMiddleFast(int middle)
 }
 
 
-void SoundCaptureResult::RestoreFullLum(QColor& color, int scale)
+void SoundCaptureResult::RestoreFullLum(ColorRgb& color, int scale)
 {
 	int a, b, v;
-	color.getHsv(&a, &b, &v);
+	color.getHsv(a, b, v);
 
 	if (v < scale)
-		color = QColor::fromHsv(a, b, scale);
+		color.fromHsv(a, b, scale);
 }
 
-bool SoundCaptureResult::GetStats(uint32_t& scaledAverage, uint32_t& currentMax, QColor& averageColor, QColor* fastColor, QColor* slowColor)
+bool SoundCaptureResult::GetStats(uint32_t& scaledAverage, uint32_t& currentMax, ColorRgb& averageColor, ColorRgb* fastColor, ColorRgb* slowColor)
 {
 	scaledAverage = _scaledAverage;
 	averageColor = mtWorking._averageColor;
@@ -386,7 +387,7 @@ void SoundCaptureResult::ResetData()
 	averageDelta = 10;
 
 
-	_lastPrevColor = QColor(0, 0, 0);
+	_lastPrevColor = ColorRgb(0, 0, 0);
 	_currentMax = 0;
 
 

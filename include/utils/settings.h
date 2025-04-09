@@ -12,7 +12,6 @@ namespace settings {
 		BGEFFECT,
 		FGEFFECT,
 		BLACKBORDER,
-		BOBLSERVER,
 		COLOR,
 		DEVICE,
 		EFFECTS,
@@ -34,6 +33,7 @@ namespace settings {
 		RAWUDPSERVER,
 		PROTOSERVER,
 		MQTT,
+		AUTOTONEMAPPING,
 		INVALID
 	};
 
@@ -45,7 +45,6 @@ namespace settings {
 		case type::BGEFFECT:      return "backgroundEffect";
 		case type::FGEFFECT:      return "foregroundEffect";
 		case type::BLACKBORDER:   return "blackborderdetector";
-		case type::BOBLSERVER:    return "boblightServer";
 		case type::COLOR:         return "color";
 		case type::DEVICE:        return "device";
 		case type::EFFECTS:       return "effects";
@@ -67,6 +66,7 @@ namespace settings {
 		case type::RAWUDPSERVER:  return "rawUdpServer";
 		case type::PROTOSERVER:   return "protoServer";
 		case type::MQTT:          return "mqtt";
+		case type::AUTOTONEMAPPING: return "automaticToneMapping";
 		default:                  return "invalid";
 		}
 	}
@@ -77,7 +77,6 @@ namespace settings {
 		else if (type == "backgroundEffect")     return type::BGEFFECT;
 		else if (type == "foregroundEffect")     return type::FGEFFECT;
 		else if (type == "blackborderdetector")  return type::BLACKBORDER;
-		else if (type == "boblightServer")       return type::BOBLSERVER;
 		else if (type == "color")                return type::COLOR;
 		else if (type == "device")               return type::DEVICE;
 		else if (type == "effects")              return type::EFFECTS;
@@ -99,6 +98,7 @@ namespace settings {
 		else if (type == "rawUdpServer")         return type::RAWUDPSERVER;
 		else if (type == "protoServer")          return type::PROTOSERVER;
 		else if (type == "mqtt")                 return type::MQTT;
+		else if (type == "automaticToneMapping") return type::AUTOTONEMAPPING;
 		else                                     return type::INVALID;
 	}
 }

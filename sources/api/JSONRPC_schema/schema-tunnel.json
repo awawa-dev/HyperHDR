@@ -18,7 +18,7 @@
 		"service": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["hue"]
+			"enum" : ["hue", "home_assistant"]
 		},
 		"ip": {
 			"type" : "string",

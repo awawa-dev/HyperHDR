@@ -604,7 +604,7 @@ $(document).ready( function(){
 		conf_editor_videoControl = createJsonEditor('editor_container_videoControl', { videoControl: window.schema.videoControl}, true, true, undefined, true);
 
 		conf_editor_videoControl.on('change',function() {
-			(conf_editor_videoControl.validate().length || window.readOnlyMode) ? $('#btn_submit_videoControl').attr('disabled', true) : $('#btn_submit_videoControl').attr('disabled', false);
+			(conf_editor_videoControl.validate().length ) ? $('#btn_submit_videoControl').attr('disabled', true) : $('#btn_submit_videoControl').attr('disabled', false);
 		});
 
 		$('#btn_submit_videoControl').off().on('click',function() {
@@ -638,7 +638,7 @@ $(document).ready( function(){
 		conf_editor_systemControl = createJsonEditor('editor_container_systemControl', { systemControl: window.schema.systemControl}, true, true, undefined, true);
 
 		conf_editor_systemControl.on('change',function() {
-			(conf_editor_systemControl.validate().length || window.readOnlyMode) ? $('#btn_submit_systemControl').attr('disabled', true) : $('#btn_submit_systemControl').attr('disabled', false);
+			(conf_editor_systemControl.validate().length ) ? $('#btn_submit_systemControl').attr('disabled', true) : $('#btn_submit_systemControl').attr('disabled', false);
 		});
 
 		$('#btn_submit_systemControl').off().on('click',function() {
@@ -660,7 +660,10 @@ $(document).ready( function(){
 			else if (window.serverInfo.systemGrabbers.device.indexOf("pipewire")>=0)
 				createHint("intro", $.i18n('conf_grabber_pipewire_intro'), "editor_container_system_device");
 			else if (window.serverInfo.systemGrabbers.device.indexOf("framebuffer")>=0)
-				createHint("intro", $.i18n('conf_grabber_framebuffer_intro'), "editor_container_system_device");			
+				createHint("intro", $.i18n('conf_grabber_framebuffer_intro'), "editor_container_system_device");
+			else if (window.serverInfo.systemGrabbers.device.indexOf("amlogic")>=0)
+				createHint("intro", $.i18n('conf_grabber_amlogic_intro'), "editor_container_system_device");			
+
 			$('[data-schemapath="root.systemGrabber.hdrToneMapping"]').toggle(false);
 			$('[data-schemapath="root.systemGrabber.hardware"]').toggle(false);
 		}
@@ -754,7 +757,7 @@ $(document).ready( function(){
 		BuildCalibrationButton(window.serverConfig.videoGrabber.autoSignalDetection);
 		
 		conf_video_section_editor.on('change',function() {
-			if (conf_video_section_editor.validate().length || window.readOnlyMode)
+			if (conf_video_section_editor.validate().length )
 				$('#btn_submit_videoGrabber').attr('disabled', true);
 			else
 				$('#btn_submit_videoGrabber').attr('disabled', false);

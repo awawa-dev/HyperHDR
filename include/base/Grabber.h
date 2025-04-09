@@ -9,18 +9,19 @@
 	#include <QMultiMap>
 	#include <QSemaphore>
 	#include <atomic>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/Components.h>
-	#include <utils/MemoryBuffer.h>
 #endif
 
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <utils/Components.h>
+#include <image/MemoryBuffer.h>
 #include <utils/FrameDecoder.h>
+#include <utils/LutLoader.h>
 #include <base/DetectionManual.h>
 #include <base/DetectionAutomatic.h>
-#include <utils/PerformanceCounters.h>
+#include <base/AutomaticToneMapping.h>
+#include <performance-counters/PerformanceCounters.h>
 
 #if  defined(_WIN32) || defined(WIN32)
 	// Windows
@@ -33,11 +34,9 @@
 	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
-#define LUT_FILE_SIZE 50331648
-
 #define UNSUPPORTED_DECODER "UNSUPPORTED YUV DECODER"
 
-class Grabber : public DetectionAutomatic, public DetectionManual
+class Grabber : public DetectionAutomatic, public DetectionManual, protected LutLoader
 {
 	Q_OBJECT
 
@@ -87,6 +86,8 @@ public:
 
 	void setMonitorNits(int nits);
 
+	void setReorderDisplays(int order);
+
 	void setFpsSoftwareDecimation(int decimation) override;
 
 	int  getFpsSoftwareDecimation() override;
@@ -94,6 +95,8 @@ public:
 	QString getSignature() override;
 
 	int  getActualFps() override;
+
+	void pleaseWaitForLut(bool videoGrabber = true);
 
 	void setEncoding(QString enc);
 
@@ -119,13 +122,14 @@ public:
 
 	void setSignalDetectionEnable(bool enable);
 
-	void setAutoSignalDetectionEnable(bool enable);
-
-	void benchmarkCapture(int status, QString message);
+	void setAutoSignalDetectionEnable(bool enable);	
 
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
 
 	QString	getConfigurationPath();
+
+	void setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec);
+	void setAutoToneMappingCurrentStateEnabled(bool enabled);
 
 	struct DevicePropertiesItem
 	{
@@ -165,6 +169,8 @@ public slots:
 
 	QStringList getVideoDevices() const;
 
+	void signalSetLutHandler(MemoryBuffer<uint8_t>* lut);
+
 signals:
 	void SignalNewCapturedFrame(const Image<ColorRgb>& image);
 
@@ -175,9 +181,10 @@ signals:
 	void SignalBenchmarkUpdate(int status, QString message);
 
 protected:
-	void loadLutFile(PixelFormat color, const QList<QString>& files);
 
 	int getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY);
+
+	int getTargetSystemFrameDimension(int actualWidth, int actualHeight, int& targetSizeX, int& targetSizeY);
 
 	void processSystemFrameBGRA(uint8_t* source, int lineSize = 0, bool useLut = true);
 
@@ -235,9 +242,6 @@ protected:
 
 	bool _enabled;
 
-	// enable/disable HDR tone mapping
-	uint8_t _hdrToneMappingEnabled;
-
 	/// logger instance
 	Logger* _log;
 
@@ -267,8 +271,7 @@ protected:
 	int			_actualWidth, _actualHeight, _actualFPS;
 	QString		_actualDeviceName;
 	uint		_targetMonitorNits;
-	MemoryBuffer<uint8_t>	_lut;
-	bool		_lutBufferInit;
+	int			_reorderDisplays;
 
 	int			_lineLength;
 	int			_frameByteSize;
@@ -276,9 +279,7 @@ protected:
 	bool		_signalDetectionEnabled;
 	bool		_signalAutoDetectionEnabled;
 	QSemaphore  _synchro;
-
-	int			_benchmarkStatus;
-	QString		_benchmarkMessage;
+	AutomaticToneMapping _automaticToneMapping;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

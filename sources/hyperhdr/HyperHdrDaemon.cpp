@@ -17,29 +17,20 @@
 	#include <stdlib.h>
 #endif
 
-#include <QApplication>
-
+#include <QCoreApplication>
 #include <utils/Components.h>
-#include <utils/JsonUtils.h>
-#include <utils/Image.h>
+#include <image/Image.h>
 #include <utils/GlobalSignals.h>
-#include <leddevice/LedDevice.h>
 #include <base/HyperHdrInstance.h>
 #include <base/GrabberWrapper.h>
 #include <base/GrabberHelper.h>
 #include <base/NetworkForwarder.h>
 
-#ifdef USE_STATIC_QT_PLUGINS
-	#include <QtPlugin>
-	Q_IMPORT_PLUGIN(QJpegPlugin)
-	Q_IMPORT_PLUGIN(QGifPlugin)
-#endif
-
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
 
 // Flatbuffer Server
-#include <flatbufserver/FlatBufferServer.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
 
 // ProtoNanoBuffer Server
 #include <proto-nano-server/ProtoServer.h>
@@ -59,11 +50,11 @@
 // NetOrigin checks
 #include <utils/NetOrigin.h>
 
-#include <utils/PerformanceCounters.h>
+#include <performance-counters/PerformanceCounters.h>
 
 #include "HyperHdrDaemon.h"
 
-HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params, bool isGuiApp)
+HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params, bool isGuiApp)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(nullptr)
@@ -86,6 +77,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 {
 
 	// Register metas for thread queued connection
+	qRegisterMetaType<ColorRgb>("ColorRgb");
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperhdr::Components>("hyperhdr::Components");
 	qRegisterMetaType<settings::type>("settings::type");
@@ -93,10 +85,10 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// First load default configuration for other objects
-	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this, readonlyMode));
+	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this));
 
 	// Instance manager
-	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath, readonlyMode),
+	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath),
 		[](HyperHdrManager* instanceManager) {
 			SMARTPOINTER_MESSAGE("HyperHdrManager");
 			delete instanceManager;
@@ -104,7 +96,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetInstanceManager, this, &HyperHdrDaemon::getInstanceManager, Qt::DirectConnection);
 
 	// Access Manager
-	_accessManager = std::shared_ptr<AccessManager>(new AccessManager(this, readonlyMode),
+	_accessManager = std::shared_ptr<AccessManager>(new AccessManager(this),
 		[](AccessManager* accessManager) {
 			SMARTPOINTER_MESSAGE("AccessManager");
 			delete accessManager;
@@ -145,16 +137,16 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 		settingsChangedHandler(settings::type::LOGGER, getSetting(settings::type::LOGGER));
 	}
 
-#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
-	_soundCapture = std::shared_ptr<SoundCapture>(
-		new SoundGrabber(getSetting(settings::type::SNDEFFECT), this),
-		[](SoundGrabber* soundGrabber) {			
-			SMARTPOINTER_MESSAGE("SoundGrabber");
-			delete soundGrabber;
-		});
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetSoundCapture, this, &HyperHdrDaemon::getSoundCapture, Qt::DirectConnection);
-	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _soundCapture.get(), &SoundGrabber::settingsChangedHandler);
-#endif
+	#if defined(ENABLE_SOUNDCAPWINDOWS) || defined(ENABLE_SOUNDCAPLINUX) || defined(ENABLE_SOUNDCAPMACOS)
+		_soundCapture = std::shared_ptr<SoundCapture>(
+			new SoundGrabber(getSetting(settings::type::SNDEFFECT), this),
+			[](SoundGrabber* soundGrabber) {
+				SMARTPOINTER_MESSAGE("SoundGrabber");
+				delete soundGrabber;
+			});
+		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetSoundCapture, this, &HyperHdrDaemon::getSoundCapture, Qt::DirectConnection);
+		connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _soundCapture.get(), &SoundGrabber::settingsChangedHandler);
+	#endif
 
 
 	// CEC wrapper
@@ -167,7 +159,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	// spawn all Hyperhdr instances (non blocking)
 	settingsChangedHandler(settings::type::VIDEOGRABBER, getSetting(settings::type::VIDEOGRABBER));
 	settingsChangedHandler(settings::type::SYSTEMGRABBER, getSetting(settings::type::SYSTEMGRABBER));
-	QJsonObject genConfig = getSetting(settings::type::GENERAL).object();	
+	QJsonObject genConfig = getSetting(settings::type::GENERAL).object();
 	_disableOnStart = genConfig["disableLedsStartup"].toBool(false);
 	_instanceManager->startAll(_disableOnStart);
 
@@ -177,19 +169,6 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QApplication* parent, bo
 	// pipe settings changes and component state changes from HyperHDRIManager to Daemon
 	connect(_instanceManager.get(), &HyperHdrManager::SignalInstanceStateChanged, this, &HyperHdrDaemon::instanceStateChangedHandler);
 	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, this, &HyperHdrDaemon::settingsChangedHandler);
-
-	// power management
-	#if defined(HAVE_POWER_MANAGEMENT)
-		bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
-
-		_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
-		connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
-
-		#ifdef _WIN32
-			if (QAbstractEventDispatcher::instance() != nullptr)
-				QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler.get());
-		#endif
-	#endif
 
 	// ---- network services -----
 	startNetworkServices();
@@ -204,8 +183,25 @@ void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 ins
 	{
 		if (_instanceManager->areInstancesReady())
 		{
+			// power management
+			#if defined(HAVE_POWER_MANAGEMENT)
+				if (_suspendHandler == nullptr)
+				{
+					QJsonObject genConfig = getSetting(settings::type::GENERAL).object();
+					bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
+
+					_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
+					connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
+
+					#ifdef _WIN32
+						if (QAbstractEventDispatcher::instance() != nullptr)
+							QAbstractEventDispatcher::instance()->installNativeEventFilter(_suspendHandler.get());
+					#endif
+				}
+			#endif
+
 			if (_systemGrabber != nullptr)
-			{				
+			{
 				_systemGrabber->linker.acquire(1);
 			}
 
@@ -232,27 +228,18 @@ void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 ins
 			if (_disableOnStart)
 			{
 				Warning(_log, "The user has disabled LEDs auto-start in the configuration (interface: 'General' tab)");
-				_instanceManager->toggleStateAllInstances(false);				
-			}			
+				_instanceManager->toggleStateAllInstances(false);
+			}
 		}
 	}
-}
-
-QJsonDocument HyperHdrDaemon::getSetting(settings::type type) const
-{
-	if (_instanceZeroConfig == nullptr)
-	{
-		Error(_log, "Default configuration is not initialized");
-		return QJsonDocument();
-	}
-	else
-		return _instanceZeroConfig->getSetting(type);
 }
 
 void HyperHdrDaemon::freeObjects()
 {
 	Info(_log, "Cleaning up HyperHdr before quit [preparing]");
-		
+
+	emit GlobalSignals::getInstance()->SignalMqttLastWill(QString(), QStringList());
+
 	disconnect(GlobalSignals::getInstance(), nullptr, nullptr, nullptr);
 	disconnect(_instanceManager.get(), nullptr, nullptr, nullptr);
 	HyperHdrInstance::signalTerminateTriggered();
@@ -320,18 +307,18 @@ void HyperHdrDaemon::startNetworkServices()
 
 	_flatProtoThread->setObjectName("FlatProtoThread");
 
-	FlatBufferServer* _flatBufferServer = new FlatBufferServer(_netOrigin, getSetting(settings::type::FLATBUFSERVER), _rootPath);
+	FlatBuffersServer* _flatBufferServer = new FlatBuffersServer(_netOrigin, getSetting(settings::type::FLATBUFSERVER), _rootPath);
 	_flatBufferServer->moveToThread(_flatProtoThread);
 	flatProtoThreadClients.push_back(_flatBufferServer);
 	if (_videoGrabber == nullptr)
 	{
-		Warning(_log, "The USB grabber was disabled during build. FlatbufferServer now controlls the HDR state.");		
-		connect(_flatBufferServer, &FlatBufferServer::SignalSetNewComponentStateToAllInstances, _instanceManager.get(), &HyperHdrManager::SignalSetNewComponentStateToAllInstances);
+		Warning(_log, "The USB grabber was disabled during build. FlatbufferServer now controlls the HDR state.");
+		connect(_flatBufferServer, &FlatBuffersServer::SignalSetNewComponentStateToAllInstances, _instanceManager.get(), &HyperHdrManager::SignalSetNewComponentStateToAllInstances);
 	}
-	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, _flatBufferServer, &FlatBufferServer::signalRequestSourceHandler);
-	connect(_flatProtoThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
-	connect(_flatProtoThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
-	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalRequestComponent, _flatBufferServer, &FlatBuffersServer::signalRequestSourceHandler);
+	connect(_flatProtoThread, &QThread::started, _flatBufferServer, &FlatBuffersServer::initServer);
+	connect(_flatProtoThread, &QThread::finished, _flatBufferServer, &FlatBuffersServer::deleteLater);
+	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _flatBufferServer, &FlatBuffersServer::handleSettingsUpdate);
 
 	NetworkForwarder* _networkForwarder = new NetworkForwarder();
 	_networkForwarder->moveToThread(_flatProtoThread);
@@ -345,7 +332,7 @@ void HyperHdrDaemon::startNetworkServices()
 	flatProtoThreadClients.push_back(_protoServer);
 	connect(_flatProtoThread, &QThread::started, _protoServer, &ProtoServer::initServer);
 	connect(_flatProtoThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
-	connect(_protoServer, &ProtoServer::SignalImportFromProto, _flatBufferServer, &FlatBufferServer::SignalImportFromProto);
+	connect(_protoServer, &ProtoServer::SignalImportFromProto, _flatBufferServer, &FlatBuffersServer::SignalImportFromProto);
 	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 #endif
 
@@ -410,11 +397,23 @@ void HyperHdrDaemon::startNetworkServices()
 	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _mqtt, &mqtt::handleSettingsUpdate);
 	connect(mqttThread, &QThread::finished, _mqtt, &mqtt::deleteLater);
 
-	_mqttThread = std::unique_ptr<QThread, std::function<void (QThread*)>>( mqttThread,
+	_mqttThread = std::unique_ptr<QThread, std::function<void(QThread*)>>(mqttThread,
 		[_mqtt](QThread* mqttThread) {
 			THREAD_REMOVER(QString("MQTT"), mqttThread, _mqtt);
 		});
 #endif
+}
+
+
+QJsonDocument HyperHdrDaemon::getSetting(settings::type type) const
+{
+	if (_instanceZeroConfig == nullptr)
+	{
+		Error(_log, "Default configuration is not initialized");
+		return QJsonDocument();
+	}
+	else
+		return _instanceZeroConfig->getSetting(type);
 }
 
 quint16 HyperHdrDaemon::getWebPort()
@@ -425,7 +424,8 @@ quint16 HyperHdrDaemon::getWebPort()
 template<typename T>
 void HyperHdrDaemon::createVideoGrabberHelper(QJsonDocument config, QString deviceName, QString rootPath)
 {
-	auto videoDetection = getSetting(settings::type::VIDEODETECTION);	
+	auto videoDetection = getSetting(settings::type::VIDEODETECTION);
+	auto autoToneMapping = getSetting(settings::type::AUTOTONEMAPPING);
 
 	_videoGrabber = std::shared_ptr<GrabberHelper>(
 			new GrabberHelper(),
@@ -439,7 +439,7 @@ void HyperHdrDaemon::createVideoGrabberHelper(QJsonDocument config, QString devi
 	_videoGrabber->moveToThread(_videoGrabberThread);
 	connect(_videoGrabberThread, &QThread::started, _videoGrabber.get(), &GrabberHelper::SignalCreateGrabber);
 	connect(_videoGrabberThread, &QThread::finished, _videoGrabber.get(), &GrabberHelper::deleteLater);
-	connect(_videoGrabber.get(), &GrabberHelper::SignalCreateGrabber, _videoGrabber.get(), [this, videoDetection, config, deviceName, rootPath]() {
+	connect(_videoGrabber.get(), &GrabberHelper::SignalCreateGrabber, _videoGrabber.get(), [this, videoDetection, config, autoToneMapping, deviceName, rootPath]() {
 		_videoGrabber->linker.release(1);
 		auto videoGrabberInstance = new T(deviceName, rootPath);
 		_videoGrabber->setGrabber(videoGrabberInstance);
@@ -453,12 +453,13 @@ void HyperHdrDaemon::createVideoGrabberHelper(QJsonDocument config, QString devi
 		#endif
 		videoGrabberInstance->GrabberWrapper::handleSettingsUpdate(settings::type::VIDEOGRABBER, config);
 		videoGrabberInstance->GrabberWrapper::handleSettingsUpdate(settings::type::VIDEODETECTION, videoDetection);
+		videoGrabberInstance->GrabberWrapper::handleSettingsUpdate(settings::type::AUTOTONEMAPPING, autoToneMapping);
 		_videoGrabber->linker.release(1);
 	});
 
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetVideoGrabber, this, &HyperHdrDaemon::getVideoGrabber, Qt::DirectConnection);
 	_videoGrabberThread->start();
-	_videoGrabber->linker.acquire(1);	
+	_videoGrabber->linker.acquire(1);
 }
 
 void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString deviceName, QString rootPath)
@@ -481,6 +482,19 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 		_systemGrabber->linker.release(1);
 		SystemWrapper* softwareGrabberInstance = nullptr;
 
+#if defined(ENABLE_AMLOGIC)
+	if (softwareGrabberInstance == nullptr)
+	{
+		auto candidate = new AmlogicWrapper(deviceName, _rootPath);
+		if (!candidate->isActivated(force))
+		{
+			Warning(_log, "The system doesn't support the amlogic system grabber");
+			candidate->deleteLater();
+		}
+		else
+			softwareGrabberInstance = candidate;
+	}
+#endif
 #if defined(ENABLE_DX)
 		if (softwareGrabberInstance == nullptr)
 		{
@@ -548,7 +562,7 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 		}
 #endif
 
-		if (softwareGrabberInstance != nullptr)		
+		if (softwareGrabberInstance != nullptr)
 		{
 			_systemGrabber->setGrabber(softwareGrabberInstance);
 
@@ -561,7 +575,7 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetSystemGrabber, this, &HyperHdrDaemon::getSystemGrabber, Qt::DirectConnection);
 	_systemGrabberThread->start();
-	_systemGrabber->linker.acquire(1);	
+	_systemGrabber->linker.acquire(1);
 }
 
 void HyperHdrDaemon::getInstanceManager(std::shared_ptr<HyperHdrManager>& retVal)
@@ -628,7 +642,7 @@ void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const Q
 	{
 	}
 
-	if (settingsType == settings::type::VIDEOGRABBER  && _videoGrabber == nullptr)
+	if (settingsType == settings::type::VIDEOGRABBER && _videoGrabber == nullptr)
 	{
 		const QJsonObject& grabberConfig = config.object();
 		const QString deviceName = grabberConfig["device"].toString("auto");
@@ -666,7 +680,7 @@ void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const Q
 
 	if (settingsType == settings::type::SYSTEMGRABBER && _systemGrabber == nullptr)
 	{
-		#if defined(ENABLE_DX) || defined(ENABLE_PIPEWIRE) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER) || defined(ENABLE_MAC_SYSTEM)
+		#if defined(ENABLE_DX) || defined(ENABLE_PIPEWIRE) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_AMLOGIC)
 			const QJsonObject& grabberConfig = config.object();
 			const QString deviceName = grabberConfig["device"].toString("auto");
 			createSoftwareGrabberHelper(config, deviceName, _rootPath);

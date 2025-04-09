@@ -60,6 +60,8 @@ $(document).ready(function()
 		b: 0
 	};
 	var lastImgData = "";
+	var lastImgWidth = -1;
+	var lastImgHeight = -1;
 	var lastFileName = "";
 	var colorAdjustmentEnabled = true;
 
@@ -206,9 +208,6 @@ $(document).ready(function()
 				case "VIDEOGRABBER":
 					owner = $.i18n('general_comp_VIDEOGRABBER') + ': <span class="small text-secondary">' + owner + '<span/>';
 					break;
-				case "BOBLIGHTSERVER":
-					owner = $.i18n('general_comp_BOBLIGHTSERVER');
-					break;
 				case "FLATBUFSERVER":
 					owner = $.i18n('general_comp_FLATBUFSERVER');
 					break;
@@ -259,7 +258,7 @@ $(document).ready(function()
 
 		for (const comp of components)
 		{
-			if (comp.name === "ALL")
+			if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.serverInfo.currentInstance != 0))
 				continue;					
 
 			const comp_btn_id = "comp_btn_" + comp.name;
@@ -432,7 +431,7 @@ $(document).ready(function()
 	$("#remote_input_repimg").off().on("click", function()
 	{
 		if (lastImgData != "")
-			requestSetImage(lastImgData, duration, lastFileName);
+			requestSetImage(lastImgData, lastImgWidth, lastImgHeight, duration, lastFileName);
 	});
 
 	$("#remote_input_img").change(function()
@@ -440,12 +439,21 @@ $(document).ready(function()
 		readImg(this, function(src, fileName)
 		{
 			lastFileName = fileName;
-			if (src.includes(","))
-				lastImgData = src.split(",")[1];
-			else
-				lastImgData = src;
 
-			requestSetImage(lastImgData, duration, lastFileName);
+			const imgLoader = new Image();
+			imgLoader.onload = function () {
+				const tempCanvas = document.createElement('canvas');
+				tempCanvas.height = imgLoader.naturalHeight;
+				tempCanvas.width = imgLoader.naturalWidth;
+				const ctx = tempCanvas.getContext('2d');
+				ctx.drawImage(imgLoader, 0, 0);				
+
+				lastImgData = tempCanvas.toDataURL('image/png').split(",")[1];
+				lastImgWidth = tempCanvas.width;
+				lastImgHeight = tempCanvas.height
+				requestSetImage(lastImgData, lastImgWidth, lastImgHeight, duration, lastFileName);
+			}
+			imgLoader.src = src;
 		});
 	});
 	

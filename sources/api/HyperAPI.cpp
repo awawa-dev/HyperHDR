@@ -1,6 +1,5 @@
 #ifndef PCH_ENABLED	
 	#include <QResource>
-	#include <QImage>
 	#include <QBuffer>
 	#include <QByteArray>
 	#include <QTimer>
@@ -20,22 +19,20 @@
 
 #include <HyperhdrConfig.h>
 #include <api/HyperAPI.h>
-#include <leddevice/LedDeviceWrapper.h>
-#include <leddevice/LedDevice.h>
-#include <leddevice/LedDeviceFactory.h>
-#include "../leddevice/dev_net/ProviderRestApi.h"
+#include <led-drivers/LedDeviceWrapper.h>
+#include <led-drivers/LedDeviceManufactory.h>
+#include <led-drivers/net/ProviderRestApi.h>
 
 #include <base/GrabberWrapper.h>
 #include <base/SystemWrapper.h>
 #include <base/SoundCapture.h>
 #include <base/ImageToLedManager.h>
 #include <base/AccessManager.h>
-#include <flatbufserver/FlatBufferServer.h>
-#include <utils/jsonschema/QJsonUtils.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
-#include <utils/ColorSys.h>
-#include <utils/JsonUtils.h>
-#include <utils/PerformanceCounters.h>
+#include <flatbuffers/server/FlatBuffersServer.h>
+#include <json-utils/jsonschema/QJsonUtils.h>
+#include <json-utils/jsonschema/QJsonSchemaChecker.h>
+#include <json-utils/JsonUtils.h>
+#include <performance-counters/PerformanceCounters.h>
 
 // bonjour wrapper
 #ifdef ENABLE_BONJOUR
@@ -266,7 +263,7 @@ void HyperAPI::handleImageCommand(const QJsonObject& message, const QString& com
 	idata.scale = message["scale"].toInt(-1);
 	idata.format = message["format"].toString();
 	idata.imgName = message["name"].toString("");
-	idata.data = QByteArray::fromBase64(QByteArray(message["imagedata"].toString().toUtf8()));
+	idata.imagedata = message["imagedata"].toString();
 	QString replyMsg;
 
 	if (!BaseAPI::setImage(idata, COMP_IMAGE, replyMsg))
@@ -337,9 +334,12 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 
 			QJsonObject ledDevices;
 			QJsonArray availableLedDevices;
-			for (auto dev : LedDeviceWrapper::getDeviceMap())
+			for (auto dev : hyperhdr::leds::GET_ALL_LED_DEVICE(nullptr))
 			{
-				availableLedDevices.append(dev.first);
+				QJsonObject driver;
+				driver["name"] = dev.name;
+				driver["group"] = dev.group;
+				availableLedDevices.append(driver);
 			}
 
 			ledDevices["available"] = availableLedDevices;
@@ -365,7 +365,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 			// System Grabber Info //
 			/////////////////////////
 
-#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER)
+#if defined(ENABLE_DX) || defined(ENABLE_MAC_SYSTEM) || defined(ENABLE_X11) || defined(ENABLE_FRAMEBUFFER) || defined(ENABLE_AMLOGIC)
 
 			QJsonObject resultSGrabber;
 
@@ -525,21 +525,10 @@ void HyperAPI::handleCropCommand(const QJsonObject& message, const QString& comm
 
 void HyperAPI::handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
-
-	if (grabberWrapper != nullptr)
-	{
-		if (subc == "ping")
-		{
-			emit grabberWrapper->SignalBenchmarkUpdate(status, "pong");
-		}
-		else
-		{
-			BLOCK_CALL_2(grabberWrapper, benchmarkCapture, int, status, QString, subc);
-		}
-	}
+	
+	emit _instanceManager->SignalBenchmarkCapture(status, subc);	
 
 	sendSuccessReply(command, tan);
 }
@@ -579,7 +568,7 @@ void HyperAPI::lutDownloaded(QNetworkReply* reply, int hardware_brightness, int 
 
 void HyperAPI::handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QString& address = QString("%1/lut_lin_tables.3d.xz").arg(message["subcommand"].toString().trimmed());
+	const QString& address = QString("%1/lut_lin_tables.3d.zst").arg(message["subcommand"].toString().trimmed());
 	int hardware_brightness = message["hardware_brightness"].toInt(0);
 	int hardware_contrast = message["hardware_contrast"].toInt(0);
 	int hardware_saturation = message["hardware_saturation"].toInt(0);
@@ -1000,37 +989,36 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 {
 	QString subcommand = message["subcommand"].toString("");
 
-	if (_lutCalibrator == nullptr)
+	if (subcommand == "capture")
 	{
-		sendErrorReply("Please refresh the page and start again", command + "-" + subcommand, tan);
+		bool debug = message["debug"].toBool(false);
+		bool lchCorrection = message["lch_correction"].toBool(false);
+
+		QThread* lutThread = new QThread();
+		LutCalibrator* lutCalibrator = new LutCalibrator(_instanceManager->getRootPath(), getActiveComponent(), debug, lchCorrection);
+		lutCalibrator->moveToThread(lutThread);
+		connect(lutThread, &QThread::finished, lutCalibrator, &LutCalibrator::deleteLater);
+		connect(lutThread, &QThread::started, lutCalibrator, &LutCalibrator::startHandler);		
+		connect(lutCalibrator, &LutCalibrator::SignalLutCalibrationUpdated, this, &CallbackAPI::lutCalibrationUpdateHandler);
+		
+		_lutCalibratorThread = std::unique_ptr<QThread, std::function<void(QThread*)>>(lutThread,
+			[lutCalibrator](QThread* mqttThread) {
+				lutCalibrator->cancelCalibrationSafe();
+				THREAD_REMOVER(QString("LutCalibrator"), mqttThread, lutCalibrator);
+			});
+		_lutCalibratorThread->start();
+	}
+	else if (_lutCalibratorThread != nullptr && subcommand == "stop")
+	{
+		_lutCalibratorThread = nullptr;
+	}
+	else
+	{
+		sendErrorReply("The command does not have any effect", command + "-" + subcommand, tan);
 		return;
 	}
 	
-	int checksum = message["checksum"].toInt(-1);
-	QJsonObject startColor = message["startColor"].toObject();
-	QJsonObject endColor = message["endColor"].toObject();
-	bool limitedRange = message["limitedRange"].toBool(false);
-	double saturation = message["saturation"].toDouble(1.0);
-	double luminance = message["luminance"].toDouble(1.0);
-	double gammaR = message["gammaR"].toDouble(1.0);
-	double gammaG = message["gammaG"].toDouble(1.0);
-	double gammaB = message["gammaB"].toDouble(1.0);
-	int coef = message["coef"].toInt(0);
-	ColorRgb _startColor, _endColor;
-
-	_startColor.red = startColor["r"].toInt(128);
-	_startColor.green = startColor["g"].toInt(128);
-	_startColor.blue = startColor["b"].toInt(128);
-	_endColor.red = endColor["r"].toInt(255);
-	_endColor.green = endColor["g"].toInt(255);
-	_endColor.blue = endColor["b"].toInt(255);
-
 	sendSuccessReply(command, tan);
-
-	if (subcommand == "capture")
-		_lutCalibrator->incomingCommand(_instanceManager->getRootPath(), _videoGrabber->grabberWrapper(), getActiveComponent(), checksum, _startColor, _endColor, limitedRange, saturation, luminance, gammaR, gammaG, gammaB, coef);
-	else
-		_lutCalibrator->stopHandler();	
 }
 
 void HyperAPI::handleInstanceCommand(const QJsonObject& message, const QString& command, int tan)
@@ -1126,7 +1114,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 
 		if (subc == "discover")
 		{
-			ledDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(config));
+			ledDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(config));
 			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
@@ -1136,7 +1124,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 		}
 		else if (subc == "getProperties")
 		{
-			ledDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(config));
+			ledDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(config));
 			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject deviceProperties = ledDevice->getProperties(params);
 
@@ -1154,7 +1142,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 			}
 			else
 			{
-				ledDevice = std::unique_ptr<LedDevice>(LedDeviceFactory::construct(config));
+				ledDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(config));
 				ledDevice->identify(params);
 			}
 
@@ -1306,7 +1294,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 		const QString& data = message["data"].toString().trimmed();
 		const QString& service = message["service"].toString().trimmed();
 
-		if (service == "hue")
+		if (service == "hue" || service == "home_assistant")
 		{
 			QUrl tempUrl("http://"+ip);
 			if ((path.indexOf("/clip/v2") != 0 && path.indexOf("/api") != 0) || ip.indexOf("/") >= 0)
@@ -1317,7 +1305,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 
 			ProviderRestApi provider;
 
-			QUrl url = QUrl((path.startsWith("/clip/v2") ? "https://" : "http://")+tempUrl.host()+path);
+			QUrl url = QUrl((path.startsWith("/clip/v2") ? "https://" : "http://")+tempUrl.host() + ((service == "home_assistant" && tempUrl.port() >= 0) ? ":" + QString::number(tempUrl.port()) : "") + path);
 
 			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
 

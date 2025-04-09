@@ -15,60 +15,74 @@ jobs:
 ######################################
   Linux:
     name: ${{ matrix.niceName }} ${{ matrix.linuxVersion }} (${{ matrix.arch }})
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       matrix:
         niceName: [ Debian ]
         linuxVersion: [ bullseye, bookworm ]
-        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
+        dockerImage: [ x86_64, arm-32bit-armv6l-native, arm-64bit-aarch64-native ]
         include:        
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             dockerName: Debian (amd64)
             arch: amd64
             platform: linux
-          - dockerImage: arm-32bit-armv6l
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-32bit-armv6l-native
             dockerName: Debian (armhf)
             arch: armhf
             platform: rpi
-          - dockerImage: arm-64bit-aarch64
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-64bit-aarch64-native
             dockerName: Debian (arm64)
             arch: arm64
             platform: rpi   
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
             arch: amd64
             platform: linux
             niceName: ""
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             arch: amd64
             platform: linux
             niceName: Ubuntu 22.04 LTS
-          - dockerImage: x86_64
-            linuxVersion: mantic
-            dockerName: Ubuntu 23.10 (x86_64)
-            arch: amd64
-            platform: linux
-            niceName: Ubuntu 23.10
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: noble
             dockerName: Ubuntu 24.04 LTS (x86_64)
             arch: amd64
             platform: linux
             niceName: Ubuntu 24.04 LTS           
-          - dockerImage: x86_64
-            linuxVersion: Fedora_39
-            dockerName: Fedora 39 (x86_64)
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
+            linuxVersion: oracular
+            dockerName: Ubuntu 24.10 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Fedora 39
+            niceName: Ubuntu 24.10
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
+            linuxVersion: Fedora_41
+            dockerName: Fedora 41 (x86_64)
+            arch: amd64
+            platform: linux
+            niceName: Fedora 41
 
     steps:
+      # start docker
+      - name: Wake-up docker
+        if: matrix.runner == 'ubuntu-24.04-arm'
+        run: |
+          (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker && sleep 5)
+    
       # checkout
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: true      
 
@@ -84,7 +98,7 @@ jobs:
        # download cache
       - name: ccache cache files
         if: ( env.USE_CACHE == '1' )
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
            path: .ccache
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
@@ -98,10 +112,10 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
-          USE_STANDARD_INSTALLER_NAME: 'ON'
+          USE_STANDARD_INSTALLER_NAME: true
         shell: bash
         run: |
-          ./.ci/ci_build.sh
+          ./build.sh
 
       # deploy the package      
       - name: Get destination path
@@ -118,7 +132,7 @@ jobs:
           rm -r repo/pool/ArchLinux ||: 
 
       - name: Upload artifacts from commit        
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}  
           path: repo
@@ -130,11 +144,11 @@ jobs:
 
     steps:
       # Download artifacts from previous build process
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: false
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.2.1
         with:
           path: repo
           pattern: release-artifact-*
@@ -142,7 +156,7 @@ jobs:
       - name: Display structure of artifacts
         run: ls -R repo
       - name: Deploy the packages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           repository-name: awawa-dev/awawa-dev.github.io
           branch: upload

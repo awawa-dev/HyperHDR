@@ -2,13 +2,13 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
+#  pull_request:
 
 env:
-    USE_CACHE: "0"
-    RESET_CACHE: "0"
-    USE_CODEQL: "1"
-    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && 1 || 0 }}
+    USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
+    RESET_CACHE: ${{ vars.RESET_CACHE && vars.RESET_CACHE || false }}
+    USE_CODEQL: ${{ vars.USE_CODEQL && vars.USE_CODEQL || false }}
+    BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && true || false }}
 
 jobs:
 
@@ -18,66 +18,80 @@ jobs:
 
   Linux:
     name: ${{ matrix.dockerName }}
-    runs-on: ubuntu-22.04
-
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        linuxVersion: [ bullseye ]
-        dockerImage: [ x86_64, arm-32bit-armv6l, arm-64bit-aarch64 ]
-        include:        
-          - dockerImage: x86_64
+        include:
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: bullseye
             dockerName: Debian Bullseye (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: bookworm
             dockerName: Debian Bookworm (x86_64)
             platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: jammy
             dockerName: Ubuntu 22.04 LTS (x86_64)
             platform: linux
-          - dockerImage: x86_64
-            linuxVersion: mantic
-            dockerName: Ubuntu 23.10 (x86_64)
-            platform: linux
-          - dockerImage: x86_64
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: noble
             dockerName: Ubuntu 24.04 LTS (x86_64)
-            platform: linux            
-          - dockerImage: arm-32bit-armv6l
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (ARM 32-bit Raspberry Pi OS)
-            platform: rpi
-          - dockerImage: arm-64bit-aarch64
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (ARM 64-bit Raspberry Pi OS)
-            platform: rpi
-          - dockerImage: arm-32bit-armv6l
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (ARM 32-bit Raspberry Pi OS)
-            platform: rpi
-          - dockerImage: arm-64bit-aarch64
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (ARM 64-bit Raspberry Pi OS)
-            platform: rpi              
-          - dockerImage: x86_64
+            platform: linux
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
+            linuxVersion: oracular
+            dockerName: Ubuntu 24.10 (x86_64)
+            platform: linux
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
+            linuxVersion: Fedora_41
+            dockerName: Fedora 41 (x86_64)
+            platform: linux
+          - runner: ubuntu-24.04
+            dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
             platform: linux
-          - dockerImage: x86_64
-            linuxVersion: Fedora_39
-            dockerName: Fedora 39 (x86_64)
-            platform: linux
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-32bit-armv6l-native
+            linuxVersion: bullseye
+            dockerName: Debian Bullseye (native ARM 32-bit Raspberry Pi OS)
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-64bit-aarch64-native
+            linuxVersion: bullseye
+            dockerName: Debian Bullseye (native ARM 64-bit Raspberry Pi OS)
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-32bit-armv6l-native
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (native ARM 32-bit Raspberry Pi OS)
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            dockerImage: arm-64bit-aarch64-native
+            linuxVersion: bookworm
+            dockerName: Debian Bookworm (native ARM 64-bit Raspberry Pi OS)
+            platform: rpi
     steps:
+      # start docker
+      - name: Wake-up docker
+        if: matrix.runner == 'ubuntu-24.04-arm'
+        run: |
+          (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker && sleep 5)
+
       # checkout
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           submodules: true
 
       # generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -85,18 +99,24 @@ jobs:
           file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
        # download cache
-      - name: ccache cache files
-        if: ( env.USE_CACHE == '1' )
-        uses: actions/cache@v4
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
+        uses: actions/cache@v4.2.3
         with:
            path: .ccache
            key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
            restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
 
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: ${{ github.event.ref }}
+          key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
+
       - name: Check default version
         if: matrix.linuxVersion != 'bullseye'
         run: |
-          echo "USE_STANDARD_INSTALLER_NAME=ON" >> $GITHUB_ENV
+          echo "USE_STANDARD_INSTALLER_NAME=true" >> $GITHUB_ENV
 
       - name: Build packages
         env:
@@ -108,12 +128,12 @@ jobs:
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
-          ./.ci/ci_build.sh
+          ./build.sh
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}
           path: deploy/Hyper*
@@ -121,7 +141,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
           path: |
@@ -140,22 +160,22 @@ jobs:
       matrix:
         include:        
           - JOB_RUNNER: macos-14
-            JOB_NAME: macOS 14 (arm64/M1/M2)
+            JOB_NAME: macOS 14 (arm64 = M1/M2/M3/M4)
             QT_VERSION: 6
             NICE_NAME: arm64_M1_M2
           - JOB_RUNNER: macos-13
             JOB_NAME: macOS 13 (x64)
-            QT_VERSION: 5
+            QT_VERSION: 6
             NICE_NAME: x64
     steps:
       # Checkout
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
             submodules: true
 
       # Generate cache id
       - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
+        if: env.USE_CACHE == 'true'
         id: ccache_cache_timestamp
         shell: cmake -P {0}
         run: |
@@ -163,25 +183,31 @@ jobs:
             file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
 
       # Download cache
-      - name: ccache cache files
-        if: ( env.USE_CACHE == '1' )
-        uses: actions/cache@v4
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
+        uses: actions/cache@v4.2.3
         with:
-            path: .ccache
+            path: build/.ccache
             key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
             restore-keys: macOS-ccache-${{ matrix.NICE_NAME }}
+
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: ${{ github.event.ref }}
+          key: macOS-ccache-${{ matrix.NICE_NAME }}
 
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo || true
+        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
         
       # Set env
       - name: Set QT5 env
         if: ( matrix.QT_VERSION == 5 )
         shell: bash
         run: |
-            export Qt5_DIR=`brew --prefix qt5`;
+            export Qt5_DIR=`brew --prefix qt@5`;
             echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
             
         # Build process
@@ -191,12 +217,12 @@ jobs:
             USE_CCACHE: ${{ env.USE_CACHE }}
             RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
-        run: ./.ci/ci_build.sh
+        run: ./build.sh
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
             name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
@@ -204,7 +230,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
             name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
             path: build/Hyper*.dmg
@@ -221,12 +247,12 @@ jobs:
       QT_VERSION: 6.5.3
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           submodules: true
 
       - name: Cache Qt
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         id: cache-qt-windows
         with:
           path: ${{ runner.workspace }}/Qt
@@ -237,6 +263,46 @@ jobs:
         run: |          
           pip install aqtinstall
           aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
+
+      # Generate cache id
+      - name: Prepare ccache timestamp
+        if: env.USE_CACHE == 'true'
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+            string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
+            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
+
+      # Download cache
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
+        uses: actions/cache@v4.2.3
+        with:
+            path: build/.ccache
+            key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+            restore-keys: ${{ runner.os }}-ccache
+
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        with:
+          ref: ${{ github.event.ref }}
+          key: ${{ runner.os }}-ccache
+
+      - name: Install TurboJPEG
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
+          Start-Process -Wait turbojpeg.exe -ArgumentList "/S"
+
+      - name: Download CCache
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.10/ccache-4.10-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
+
+      - name: Install CCache
+        shell: cmd
+        run: |
+          7z e ccache.zip -o.\build *.exe -r
 
       - name: Set up x64 build architecture environment
         shell: cmd
@@ -250,12 +316,12 @@ jobs:
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
-          ./.ci/ci_build.sh
+          ./build.sh
 
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: release-artifact-windows
           path: build/Hyper*
@@ -263,7 +329,7 @@ jobs:
       # Upload artifacts from commit
       - name: Upload artifacts from commit
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
@@ -274,8 +340,9 @@ jobs:
 
   analyze:
     name: Analyze (CodeQL)
-    runs-on: ubuntu-latest
-    if: ( true )
+    runs-on: ubuntu-24.04
+    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+
     permissions:
       actions: read
       contents: read
@@ -288,12 +355,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
+        if: env.USE_CODEQL == 'true'
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
+        if: env.USE_CODEQL == 'true'
         with:
           language: ${{matrix.language}}
 
@@ -310,7 +379,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       # generate environment variables
       - name: Generate environment variables from version and tag
@@ -326,7 +395,7 @@ jobs:
 
       # Download artifacts from previous build process
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.2.1
         with:
           path: artifacts
           pattern: release-artifact-*
@@ -334,7 +403,7 @@ jobs:
 
       # create draft release and upload artifacts
       - name: Create draft release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.2.1
         with:
           name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}

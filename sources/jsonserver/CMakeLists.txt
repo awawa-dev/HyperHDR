@@ -5,13 +5,11 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/jsonserver)
 
 FILE ( GLOB JsonServer_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(jsonserver ${JsonServer_SOURCES} )
+add_library(jsonserver OBJECT ${JsonServer_SOURCES} )
 
 target_link_libraries(jsonserver
-	hyperhdr-api
-	hyperhdr-base
+	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Gui
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

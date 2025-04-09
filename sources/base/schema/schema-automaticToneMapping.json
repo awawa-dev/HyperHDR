@@ -1,0 +1,104 @@
+{
+	"type" : "object",
+	"title" : "edt_automatic_tone_mapping_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"tone_mapping_y_threshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
+			"title" : "edt_automatic_tone_mapping_y_threshold_title",
+			"minimum" : 150,
+			"maximum" : 255,
+			"default" : 180,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
+			"propertyOrder" : 2
+		},
+		"tone_mapping_u_threshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
+			"title" : "edt_automatic_tone_mapping_u_threshold_title",
+			"minimum" : 165,
+			"maximum" : 255,
+			"default" : 175,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
+			"propertyOrder" : 3
+		},
+		"tone_mapping_v_threshold" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 1,
+			"title" : "edt_automatic_tone_mapping_v_threshold_title",
+			"minimum" : 155,
+			"maximum" : 255,
+			"default" : 160,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"time_to_tone_mapping" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 5,			
+			"title" : "edt_automatic_tone_mapping_time_title",
+			"minimum" : 5,
+			"maximum": 600,
+			"default" : 30,
+			"append" : "edt_append_s",
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
+			"propertyOrder" : 5
+		},
+		"time_to_disable_tone_mapping" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 100,			
+			"title" : "edt_automatic_tone_mapping_disable_time_title",
+			"minimum" : 0,
+			"maximum": 5000,
+			"default" : 500,
+			"append" : "edt_append_ms",
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"enable": true
+				}
+			},
+			"propertyOrder" : 6
+		}
+	},
+	"additionalProperties" : false
+}

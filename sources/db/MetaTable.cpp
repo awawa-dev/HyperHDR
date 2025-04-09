@@ -1,13 +1,12 @@
 #include <QCryptographicHash>
 #include <QNetworkInterface>
+#include <QUuid>
 
 #include <db/MetaTable.h>
 
-MetaTable::MetaTable(bool readonlyMode)
+MetaTable::MetaTable()
 	: DBManager()
 {
-	setReadonlyMode(readonlyMode);
-
 	setTable("meta");
 	createTable(QStringList() << "uuid TEXT" << "created_at TEXT");
 };

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -31,12 +31,16 @@
 #endif
 
 #include <base/Grabber.h>
-#include <utils/ColorSys.h>
 #include <utils/GlobalSignals.h>
 
 const QString Grabber::AUTO_SETTING = QString("auto");
 const int	  Grabber::AUTO_INPUT = -1;
 const int	  Grabber::AUTO_FPS = 0;
+
+namespace
+{
+	const unsigned char pleasewait[] = { 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xfc,0x3f,0xff,0xff,0xff,0xff,0xff,0xff,0xfd,0xdf,0xff,0xff,0xff,0xff,0xff,0xff,0xfc,0x1f,0xff,0xff,0xff,0x31,0x88,0x25,0xb5,0xfe,0x21,0x9f,0xfe,0xdb,0x7b,0x6d,0xb6,0x7f,0x6d,0xbf,0xfe,0xfb,0xc,0x6d,0xb5,0xbf,0x6d,0xbf,0xfe,0xdb,0x6f,0x6d,0xb5,0xbf,0x6d,0xbf,0xff,0x30,0x98,0xc5,0x6,0x3f,0x6d,0x1f,0xff,0xff,0xff,0xef,0xff,0xff,0x7f,0xbf,0xff,0xff,0xff,0xef,0xff,0xff,0x7f,0xbf,0xff,0xff,0xff,0xfd,0xff,0xfe,0x7f,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xfe,0x3c,0x44,0x13,0x9f,0xdb,0x84,0x4f,0xff,0x7e,0xbd,0xbd,0x7f,0xdb,0xb6,0xdf,0xff,0x7e,0x86,0x3b,0xf,0xa5,0xc6,0xdf,0xff,0xe,0xb7,0xb7,0x6f,0xb6,0xf6,0xdf,0xff,0x76,0xcc,0x79,0x9f,0x24,0x8c,0x8f,0xff,0x76,0xff,0xff,0xff,0xff,0xff,0xdf,0xff,0x76,0xff,0xff,0xff,0xff,0xff,0xdf,0xfe,0xc,0xff,0xff,0xff,0xff,0xfe,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff };
+};
 
 
 Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
@@ -50,7 +54,6 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _cropTop(0)
 	, _cropBottom(0)
 	, _enabled(true)
-	, _hdrToneMappingEnabled(0)
 	, _log(Logger::getInstance(grabberName.toUpper()))
 	, _currentFrame(0)
 	, _deviceName()
@@ -71,19 +74,77 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _actualFPS(0)
 	, _actualDeviceName("")
 	, _targetMonitorNits(200)
-	, _lutBufferInit(false)
+	, _reorderDisplays(0)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
 	, _signalDetectionEnabled(false)
 	, _signalAutoDetectionEnabled(false)
 	, _synchro(1)
-	, _benchmarkStatus(-1)
-	, _benchmarkMessage("")
 {
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
 }
 
 Grabber::~Grabber()
 {
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler);
+}
+
+void Grabber::pleaseWaitForLut(bool videoGrabber)
+{
+	Image<ColorRgb> image(_actualWidth, _actualHeight);
+	double sizeX = _actualWidth / 64.0;
+	double sizeY = _actualHeight / 32.0;
+
+	auto timer = InternalClock::now() / 1200;
+
+	ColorRgb fgColor, bgColor;
+
+	if (timer % 8 < 2)
+	{
+		bgColor = ColorRgb::WHITE;
+		fgColor = ColorRgb::BLACK;
+	}
+	else if (timer % 8 < 4)
+	{
+		bgColor = ColorRgb::RED;
+		fgColor = ColorRgb::BLACK;
+	}
+	else if (timer % 8 < 6)
+	{
+		bgColor = ColorRgb::GREEN;
+		fgColor = ColorRgb::BLACK;
+	}
+	else
+	{
+		bgColor = ColorRgb::BLUE;
+		fgColor = ColorRgb::WHITE;
+	}
+
+	image.fastBox(0, 0, image.width(), image.height(), bgColor.red, bgColor.green, bgColor.blue);
+
+	for (int y = 0; y < 32; y++)
+		for (int x = 0; x < 64; x++)
+		{
+			int index = (31 - y) * 8 + (x / 8);
+			uint8_t bit = 1 << (7 - (x % 8));
+			if (index < static_cast<int>(sizeof(pleasewait)) && !(pleasewait[index] & bit))
+			{
+				int fromX = sizeX * x;
+				int fromY = sizeY * y;
+				image.fastBox(fromX, fromY, fromX + sizeX, fromY + sizeY, fgColor.red, fgColor.green, fgColor.blue);
+			}
+		}
+
+	if (videoGrabber)
+	{
+		emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
+	}
+	else
+	{
+		emit GlobalSignals::getInstance()->SignalNewSystemImage(_deviceName, image);
+	}
+
+	emit GlobalSignals::getInstance()->SignalLutRequest();
 }
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2)
@@ -104,7 +165,46 @@ void Grabber::setEnabled(bool enable)
 
 void Grabber::setMonitorNits(int nits)
 {
-	_targetMonitorNits = nits;
+	if (static_cast<int>(_targetMonitorNits) != nits)
+	{
+		_targetMonitorNits = nits;
+
+		Debug(_log, "Set nits to %i", _targetMonitorNits);
+
+		if (_initialized && !_blocked)
+		{
+			Debug(_log, "Restarting video grabber");
+			uninit();
+			start();
+		}
+		else
+		{
+			Info(_log, "Delayed restart of the grabber due to change of monitor nits value");
+			_restartNeeded = true;
+		}
+	}
+}
+
+void Grabber::setReorderDisplays(int order)
+{
+	if (_reorderDisplays != order)
+	{
+		_reorderDisplays = order;
+
+		Debug(_log, "Set re-order display permutation to %i", _reorderDisplays);
+
+		if (_initialized && !_blocked)
+		{
+			Debug(_log, "Restarting video grabber");
+			uninit();
+			start();
+		}
+		else
+		{
+			Info(_log, "Delayed restart of the grabber due to change of monitor display-order value");
+			_restartNeeded = true;
+		}
+	}
 }
 
 void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -131,7 +231,24 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 
 void Grabber::enableHardwareAcceleration(bool hardware)
 {
-	_hardware = hardware;
+	if (_hardware != hardware)
+	{
+		_hardware = hardware;
+
+		Debug(_log, "Set hardware acceleration to %s", _hardware ? "enabled" : "disabled");
+
+		if (_initialized && !_blocked)
+		{
+			Debug(_log, "Restarting video grabber");
+			uninit();
+			start();
+		}
+		else
+		{
+			Info(_log, "Delayed restart of the grabber due to change of the hardware acceleration");
+			_restartNeeded = true;
+		}
+	}
 }
 
 bool Grabber::trySetInput(int input)
@@ -411,100 +528,6 @@ int Grabber::getHdrToneMappingEnabled()
 	return _hdrToneMappingEnabled;
 }
 
-void Grabber::loadLutFile(PixelFormat color, const QList<QString>& files)
-{
-	bool is_yuv = (color == PixelFormat::YUYV);
-
-	_lutBufferInit = false;
-
-	if (color != PixelFormat::NO_CHANGE && color != PixelFormat::RGB24 && color != PixelFormat::YUYV)
-	{
-		Error(_log, "Unsupported mode for loading LUT table: %s", QSTRING_CSTR(pixelFormatToString(color)));
-		return;
-	}
-
-	if (color == PixelFormat::NO_CHANGE)
-	{
-		_lut.resize(LUT_FILE_SIZE + 4);
-
-		if (_lut.data() != nullptr)
-		{
-			for (int y = 0; y < 256; y++)
-				for (int u = 0; u < 256; u++)
-					for (int v = 0; v < 256; v++)
-					{
-						uint32_t ind_lutd = LUT_INDEX(y, u, v);
-						ColorSys::yuv2rgb(y, u, v,
-							_lut.data()[ind_lutd],
-							_lut.data()[ind_lutd + 1],
-							_lut.data()[ind_lutd + 2]);
-					}
-			_lutBufferInit = true;
-		}
-
-		Error(_log, "You have forgotten to put lut_lin_tables.3d file in the HyperHDR configuration folder. Internal LUT table for YUV conversion has been created instead.");
-		return;
-	}
-
-	if (_hdrToneMappingEnabled || is_yuv)
-	{
-		for (QString fileName3d : files)
-		{
-			QFile file(fileName3d);
-
-			if (file.open(QIODevice::ReadOnly))
-			{
-				size_t length;
-				Debug(_log, "LUT file found: %s", QSTRING_CSTR(fileName3d));
-
-				length = file.size();
-
-				if (length == LUT_FILE_SIZE * 3)
-				{
-					qint64 index = 0;
-
-					if (is_yuv && _hdrToneMappingEnabled)
-					{
-						Debug(_log, "Index 1 for HDR YUV");
-						index = LUT_FILE_SIZE;
-					}
-					else if (is_yuv)
-					{
-						Debug(_log, "Index 2 for YUV");
-						index = LUT_FILE_SIZE * 2;
-					}
-					else
-						Debug(_log, "Index 0 for HDR RGB");
-
-					file.seek(index);
-
-					_lut.resize(LUT_FILE_SIZE + 64);
-
-					if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
-					{
-						Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
-					}
-					else
-					{
-						_lutBufferInit = true;
-						Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
-					}
-				}
-				else
-					Error(_log, "LUT file has invalid length: %i %s. Please generate new one LUT table using the generator page.", length, QSTRING_CSTR(fileName3d));
-
-				file.close();
-
-				return;
-			}
-			else
-				Warning(_log, "LUT file is not found here: %s", QSTRING_CSTR(fileName3d));
-		}
-
-		Error(_log, "Could not find any required LUT file");
-	}
-}
-
 QMap<Grabber::VideoControls, int> Grabber::getVideoDeviceControls(const QString& devicePath)
 {
 	QMap<Grabber::VideoControls, int> retVal;
@@ -598,6 +621,32 @@ int Grabber::getTargetSystemFrameDimension(int& targetSizeX, int& targetSizeY)
 	{
 		realSizeX = _actualWidth;
 		realSizeY = _actualHeight;
+	}
+
+	int checkWidth = realSizeX;
+	int divide = 1;
+
+	while (checkWidth > _width)
+	{
+		divide++;
+		checkWidth = realSizeX / divide;
+	}
+
+	targetSizeX = realSizeX / divide;
+	targetSizeY = realSizeY / divide;
+
+	return divide;
+}
+
+int Grabber::getTargetSystemFrameDimension(int actualWidth, int actualHeight, int& targetSizeX, int& targetSizeY)
+{
+	int realSizeX = actualWidth;
+	int realSizeY = actualHeight;
+
+	if (realSizeX <= 16 || realSizeY <= 16)
+	{
+		realSizeX = actualWidth;
+		realSizeY = actualHeight;
 	}
 
 	int checkWidth = realSizeX;
@@ -919,34 +968,39 @@ void Grabber::handleNewFrame(unsigned int workerIndex, Image<ColorRgb> image, qu
 		{
 			if (checkSignalDetectionManual(image))
 				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
-		}
-		if (_benchmarkStatus >= 0)
-		{
-			ColorRgb pixel = image(image.width() / 2, image.height() / 2);
-			if ((_benchmarkMessage == "white" && pixel.red > 120 && pixel.green > 120 && pixel.blue > 120) ||
-				(_benchmarkMessage == "red" && pixel.red > 120 && pixel.green < 30 && pixel.blue < 30) ||
-				(_benchmarkMessage == "green" && pixel.red < 30 && pixel.green > 120 && pixel.blue < 30) ||
-				(_benchmarkMessage == "blue" && pixel.red < 30 && pixel.green < 40 && pixel.blue > 120) ||
-				(_benchmarkMessage == "black" && pixel.red < 30 && pixel.green < 30 && pixel.blue < 30))
-
-			{
-				emit SignalBenchmarkUpdate(_benchmarkStatus, _benchmarkMessage);
-				_benchmarkStatus = -1;
-				_benchmarkMessage = "";
-			}
-		}
+		}		
 	}
 	else
 		frameStat.directAccess = true;
 }
 
-void Grabber::benchmarkCapture(int status, QString message)
-{
-	_benchmarkStatus = status;
-	_benchmarkMessage = message;
-}
-
 bool Grabber::isInitialized()
 {
 	return _initialized;
+}
+
+void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
+{
+	if (lut != nullptr && _lut.size() >= lut->size())
+	{
+		memcpy(_lut.data(), lut->data(), lut->size());
+		Info(_log, "The byte array loaded into LUT");
+	}
+	else
+		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+}
+
+void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec)
+{
+	_automaticToneMapping.setConfig(enabled, newConfig, timeInSec, timeToDisableInMSec);
+	if (_automaticToneMapping.prepare() && !_qframe)
+		Error(_log, "Automatic tone mapping requires 'Quarter of frame' mode enabled");
+	if (_automaticToneMapping.prepare() && (_enc != PixelFormat::YUYV && _enc != PixelFormat::NV12 && _enc != PixelFormat::P010 ))
+		Warning(_log, "Automatic tone mapping requires YUYV/NV12/P010 video format");
+
+}
+
+void Grabber::setAutoToneMappingCurrentStateEnabled(bool enabled)
+{
+	_automaticToneMapping.setToneMapping(enabled);
 }

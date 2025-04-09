@@ -22,16 +22,11 @@ jobs:
         sudo apt install coreutils p7zip-full qemu-user-static xz-utils
 
     - name: Checkout CustomPiOS
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
       with:
         repository: 'guysoft/CustomPiOS'
+        ref: '${{ github.event.inputs.tagCustomPiOS }}'
         path: CustomPiOS
-
-    - name: Select CustomPiOS version
-      if: github.event.inputs.tagCustomPiOS != ''
-      run: |
-        cd CustomPiOS
-        git reset --hard ${{ github.event.inputs.tagCustomPiOS }}
 
     - name: Prepare HyperHDR module
       run: |
@@ -104,7 +99,7 @@ jobs:
         echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
     # artifact upload will take care of zipping for us
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4.6.2
       with:
         name: ${{ steps.copy.outputs.image }}
         path: ${{ steps.copy.outputs.image }}.img.xz

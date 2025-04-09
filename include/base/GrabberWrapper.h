@@ -7,14 +7,13 @@
 	#include <QString>
 	#include <QStringList>
 	#include <QMultiMap>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Logger.h>
-	#include <utils/settings.h>
-	#include <utils/Components.h>
 #endif
 
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
 #include <base/Grabber.h>
 #include <base/DetectionAutomatic.h>
 
@@ -40,8 +39,6 @@ public slots:
 	void stop();
 	void revive();
 
-	void benchmarkCapture(int status, QString message);
-
 	QJsonObject getJsonInfo();
 
 	QJsonDocument startCalibration();
@@ -58,7 +55,6 @@ signals:
 	void SignalNewVideoImage(const QString& name, const Image<ColorRgb>& image);
 	void SignalVideoStreamChanged(QString device, QString videoMode);
 	void SignalCecKeyPressed(int key);
-	void SignalBenchmarkUpdate(int status, QString message);
 	void SignalInstancePauseChanged(int instance, bool isEnabled);
 	void SignalSetNewComponentStateToAllInstances(hyperhdr::Components component, bool enable);
 	void SignalSaveCalibration(QString saveData);

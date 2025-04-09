@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2024 awawa-dev
+*  Copyright (c) 2020-2025 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -29,13 +29,14 @@
 
 #ifndef PCH_ENABLED
 	#include <QObject>
-
-	#include <utils/ColorRgb.h>
-	#include <utils/Image.h>
-	#include <utils/Components.h>
+	#include <QStringList>	
 #endif
 
-#include <utils/PerformanceCounters.h>
+#include <image/ColorRgb.h>
+#include <image/Image.h>
+#include <utils/Components.h>
+
+#include <performance-counters/PerformanceCounters.h>
 #include <bonjour/DiscoveryRecord.h>
 
 class HyperHdrManager;
@@ -94,5 +95,17 @@ signals:
 
 	void SignalDiscoveryRequestToScan(DiscoveryRecord::Service type);
 
-	void SignalDiscoveryEvent(DiscoveryRecord message);	
+	void SignalDiscoveryEvent(DiscoveryRecord message);
+
+	void SignalSetLut(MemoryBuffer<uint8_t>* lut);
+
+	void SignalLutRequest();
+
+	void SignalMqttSubscribe(bool subscribe, QString topic);
+
+	void SignalMqttReceived(QString topic, QString payload);
+
+	void SignalMqttPublish(QString topic, QString payload);
+
+	void SignalMqttLastWill(QString id, QStringList pairs);
 };
