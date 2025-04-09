@@ -32,7 +32,15 @@
 
 
 #ifdef ENABLE_SPIFTDI
-	#include <led-drivers/spi/ProviderSpiFtdi.h>
+	#ifdef WIN32
+		#include <led-drivers/spi/ProviderSpiFtdi.h>
+	#else
+		#include <led-drivers/spi/ProviderSpiLibFtdi.h>
+	#endif
+#endif
+
+#if !defined(WIN32)
+	#include <led-drivers/spi/ProviderSpiGeneric.h>
 #endif
 
 ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
