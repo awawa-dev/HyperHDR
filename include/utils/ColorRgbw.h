@@ -66,12 +66,7 @@ namespace RGBW {
 		SUBTRACT_MINIMUM,
 		SUB_MIN_WARM_ADJUST,
 		SUB_MIN_COOL_ADJUST,
-		WHITE_OFF,
-        HYPERSERIAL_COLD_WHITE,
-        HYPERSERIAL_NEUTRAL_WHITE,
-        WLED_AUTO,
-        WLED_AUTO_MAX,
-        WLED_AUTO_ACCURATE
+		WHITE_OFF
 	};
 
 	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);

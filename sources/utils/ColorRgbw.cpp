@@ -7,8 +7,6 @@ const ColorRgbw ColorRgbw::BLUE   = {   0,   0, 255,   0 };
 const ColorRgbw ColorRgbw::YELLOW = { 255, 255,   0,   0 };
 const ColorRgbw ColorRgbw::WHITE  = {   0,   0,   0, 255 };
 
-#define ROUND_DIVIDE(number, denom) (((number) + (denom) / 2) / (denom))
-
 namespace RGBW {
 
 	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
@@ -25,29 +23,6 @@ namespace RGBW {
 		{
 			return WhiteAlgorithm::SUB_MIN_COOL_ADJUST;
 		}
-		if (str == "hyperserial_cold_white")
-		{
-			return WhiteAlgorithm::HYPERSERIAL_COLD_WHITE;
-		}
-        if (str == "hyperserial_neutral_white")
-        {
-            return WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE;
-        }
-		if (str == "wled_auto")
-		{
-			return WhiteAlgorithm::WLED_AUTO;
-		}
-
-		if (str == "wled_auto_max")
-		{
-			return WhiteAlgorithm::WLED_AUTO_MAX;
-		}
-		
-		if (str == "wled_auto_accurate")
-		{
-			return WhiteAlgorithm::WLED_AUTO_ACCURATE;
-		}
-		
 		if (str.isEmpty() || str == "white_off")
 		{
 			return WhiteAlgorithm::WHITE_OFF;
@@ -106,65 +81,9 @@ namespace RGBW {
 			output->white = 0;
 			break;
 		}
-
-		case WhiteAlgorithm::WLED_AUTO_MAX: 
-		{
-			output->red = input.red;
-			output->green = input.green;
-			output->blue = input.blue;
-			output->white = input.red > input.green ? (input.red > input.blue ? input.red : input.blue) : (input.green > input.blue ? input.green : input.blue);
-			break;
-		}
-		
-		case WhiteAlgorithm::WLED_AUTO_ACCURATE:
-		{
-			output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
-			output->red = input.red - output->white;
-			output->green = input.green - output->white;
-			output->blue = input.blue - output->white;
-			break;
-		}
-
-		case WhiteAlgorithm::WLED_AUTO:
-		{
-
-			output->red = input.red;
-			output->green = input.green;
-			output->blue = input.blue;
-			output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
-			break;
-		}
-        case WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE:
-        case WhiteAlgorithm::HYPERSERIAL_COLD_WHITE:
-        {
-            //cold white config
-            uint8_t gain = 0xFF;
-            uint8_t red = 0xA0;
-            uint8_t green = 0xA0;
-            uint8_t blue = 0xA0;
-
-            if (algorithm == WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE) {
-                gain = 0xFF;
-                red = 0xB0;
-                green = 0xB0;
-                blue = 0x70;
-            }
-
-            uint8_t _r = qMin((uint32_t)(ROUND_DIVIDE(red * input.red,  0xFF)), (uint32_t)0xFF);
-            uint8_t _g = qMin((uint32_t)(ROUND_DIVIDE(green * input.green,  0xFF)), (uint32_t)0xFF);
-            uint8_t _b = qMin((uint32_t)(ROUND_DIVIDE(blue * input.blue,  0xFF)), (uint32_t)0xFF);
-
-            output->white = qMin(_r, qMin(_g, _b));
-            output->red = input.red - _r;
-            output->green = input.green - _g;
-            output->blue = input.blue - _b;
-
-            uint8_t _w = qMin((uint32_t)(ROUND_DIVIDE(gain * output->white,  0xFF)), (uint32_t)0xFF);
-            output->white = _w;
-            break;
-        }
 		default:
 			break;
 		}
 	}
+
 };

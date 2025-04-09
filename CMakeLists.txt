@@ -40,7 +40,6 @@ SET ( DEFAULT_BONJOUR                     ON  )
 SET ( DEFAULT_MQTT                        ON  )
 SET ( DEFAULT_STATIC_QT_PLUGINS           OFF )
 SET ( DEFAULT_PRECOMPILED_HEADERS         ON  )
-SET ( DEFAULT_FTDIDEV                     ON  )
 SET ( DEFAULT_XZ                          ON  )
 SET ( DEFAULT_POWER_MANAGEMENT            ON  )
 
@@ -341,9 +340,6 @@ colorMe("ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 colorMe("ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
 
-option(ENABLE_FTDIDEV "Enable the FTDI device" ${DEFAULT_FTDIDEV})
-colorMe("ENABLE_FTDIDEV = " ${ENABLE_FTDIDEV})
-
 message( STATUS "\n${CyanColor}SOFTWARE GRABBERS${ColorReset}")
 
 option(ENABLE_DX "Enable Windows DirectX 11 system grabber" ${DEFAULT_DX})
@@ -550,88 +546,50 @@ endif()
 
 add_definitions(${QT_DEFINITIONS})
 
-# libjpegturbo and ftdi libraries
-
-if( WIN32 AND (ENABLE_MF OR ENABLE_FTDIDEV))
-	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
-		file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows)
+# libjpegturbo
+if(WIN32)
+	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows)
+		file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/windows)
 	endif()
 
-	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip OR
-		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows OR
-		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libftdi1_x64-windows)
-		message( STATUS "Downloading libjpegturbo and ftdi libraries")
-		file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.04.10/libs4windows.zip
-					  ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip
-					  STATUS WIN_LIBS_DOWNLOAD_STATUS
-					  EXPECTED_HASH MD5=46d91068c9a97d79f74e899dbbeb027b)
+	if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip OR
+		NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows)
+		message( STATUS "Downloading libraries for HyperHDR (Windows)")		
+		file(DOWNLOAD https://github.com/awawa-dev/HyperHDR.libs.provider/releases/download/2023.08.07/libs4windows.zip
+					${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip
+					STATUS WIN_LIBS_DOWNLOAD_STATUS
+					EXPECTED_HASH SHA256=2a0fc14eaad35d8cc36b262c8dcb501d1fac3a72d7bedcca51b71b60395c6c3f)
 		list(GET WIN_LIBS_DOWNLOAD_STATUS 0 WIN_LIBS_DOWNLOAD_STATUS_CODE)
 		if(WIN_LIBS_DOWNLOAD_STATUS_CODE AND NOT WIN_LIBS_DOWNLOAD_STATUS_CODE EQUAL 0)
-			file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip )
-			message( FATAL_ERROR "Could not download libjpegturbo and ftdi libraries")
+			file( REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip )
+			message( FATAL_ERROR "Could not download libraries needed by HyperHDR (Windows)")
 		endif()
 	endif()
 
 	execute_process(
-		COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/ -aoa -y
+		COMMAND ${SEVENZIP_BIN} x ${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libs4windows.zip -o${CMAKE_CURRENT_SOURCE_DIR}/external/windows/ -aoa -y
 		RESULT_VARIABLE STATUS_EXTRACT
 		OUTPUT_VARIABLE OUTPUT1
 	)
 
 	if(STATUS_EXTRACT AND NOT STATUS_EXTRACT EQUAL 0)
-		message( FATAL_ERROR "Could not extract libjpegturbo and ftdi Windows libraries")
+		message( FATAL_ERROR "Could not extract libraries for HyperHDR (Windows)")
 	else()
-		message( STATUS "Package of libjpegturbo and ftdi libraries extracted")
+		message( STATUS "Package of libraries for HyperHDR extracted (Windows)")
 	endif()
 
 	set (TURBOJPEG_FOUND 1)
-	set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/bin")
-	set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
-	set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libjpeg-turbo_x64-windows/include")
-
-	set (LIB_FTDI_FOUND 1)
-	set (LIB_FTDI_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libftdi1_x64-windows/bin")
-	set (LIB_FTDI_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libftdi1_x64-windows/lib/ftdi1.lib")
-	set (LIB_FTDI_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libftdi1_x64-windows/include/libftdi1")
-
-	set (LIB_USB_FOUND 1)
-	set (LIB_USB_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libusb_x64-windows/bin")
-	set (LIB_USB_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libusb_x64-windows/lib/libusb-1.0.lib")
-	set (LIB_USB_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libusb_x64-windows/include/libusb-1.0")
-
-	set (LIB_CONFUSE_LIBRARY_FOUND 1)
-	set (LIB_CONFUSE_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/windows/libconfuse_x64-windows/bin")
-endif()
-
-if ( NOT WIN32 AND ENABLE_FTDIDEV )
-	FIND_PACKAGE(PkgConfig REQUIRED)
-	pkg_check_modules(LIB_FTDI REQUIRED libftdi1)
-	pkg_check_modules(LIB_USB REQUIRED libusb-1.0)
-endif()
-
-if ( ENABLE_V4L2 )
+	set (TURBOJPEG_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/bin")
+	set (TURBOJPEG_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/lib/turbojpeg.lib")
+	set (TURBOJPEG_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/windows/libjpeg-turbo_x64-windows/include")
+else()
 	FIND_PACKAGE(PkgConfig REQUIRED)
 	pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg>=2.0)
-endif()
-
-if( ENABLE_FTDIDEV )
-	if ( LIB_CONFUSE_LIBRARY_FOUND )
-		message( STATUS "LIB_CONFUSE_LIBRARY_DIRS=${LIB_CONFUSE_LIBRARY_DIRS}" )
-	endif()
+endif ()
 	
-message( STATUS "LIB_USB_LIBRARY_DIRS=${LIB_USB_LIBRARY_DIRS}" )
-	message( STATUS "LIB_USB_LINK_LIBRARIES=${LIB_USB_LINK_LIBRARIES}" )
-	message( STATUS "LIB_USB_INCLUDE_DIRS=${LIB_USB_INCLUDE_DIRS}" )
-
-	message( STATUS "LIB_FTDI_LIBRARY_DIRS=${LIB_FTDI_LIBRARY_DIRS}" )
-	message( STATUS "LIB_FTDI_LINK_LIBRARIES=${LIB_FTDI_LINK_LIBRARIES}" )
-	message( STATUS "LIB_FTDI_INCLUDE_DIRS=${LIB_FTDI_INCLUDE_DIRS}" )
-endif()
-
-if( ENABLE_MF OR ENABLE_V4L2 )
-	message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}" )
-	message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}" )
-	message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}" )
+message( STATUS "TURBOJPEG_LIBRARY_DIRS=${TURBOJPEG_LIBRARY_DIRS}")
+message( STATUS "TURBOJPEG_LINK_LIBRARIES=${TURBOJPEG_LINK_LIBRARIES}")
+message( STATUS "TURBOJPEG_INCLUDE_DIRS=${TURBOJPEG_INCLUDE_DIRS}")
 
 # Embedded QT plugins
 if (USE_STATIC_QT_PLUGINS)
@@ -675,7 +633,7 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
 if (WIN32 AND TARGET apidoc AND TARGET flatbuffers AND TARGET flatc AND TARGET mbedcrypto AND TARGET qmqtt AND TARGET liblzma)
-	set_target_properties(qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)
+	set_target_properties(qmqtt apidoc flatbuffers flatc lib mbedcrypto mbedtls mbedx509 resources uninstall liblzma PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

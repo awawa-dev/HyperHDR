@@ -23,8 +23,6 @@ compile_commands.json
 sources/flatbufserver/hyperhdr_reply_generated.h
 sources/flatbufserver/hyperhdr_request_generated.h
 
-# turbojpeg and ftdi windows libraries
-dependencies/windows
 
 external/windows
 
