@@ -612,6 +612,63 @@ macro(DeployWindows TARGET)
 			)
 		endif()
 
+		# Copy FTDI Libs
+		if (ENABLE_FTDIDEV)
+			find_file(FTDIDEV_DLL
+				NAMES "ftdi1.dll"
+				PATHS "${LIB_FTDI_LIBRARY_DIRS}"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+					
+			if(NOT CMAKE_GITHUB_ACTION)
+				get_filename_component(FTDI_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
+				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FTDIDEV_DLL} ${FTDI_RUNTIME_TARGET})
+			endif()
+
+			install(
+				FILES ${FTDIDEV_DLL}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+			
+			find_file(LIBUSB_DLL
+				NAMES "libusb-1.0.dll"
+				PATHS "${LIB_USB_LIBRARY_DIRS}"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+					
+			if(NOT CMAKE_GITHUB_ACTION)
+				get_filename_component(LIBUSB_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
+				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LIBUSB_DLL} ${LIBUSB_RUNTIME_TARGET})
+			endif()
+
+			install(
+				FILES ${LIBUSB_DLL}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+			
+			find_file(LIBCONFUSE_DLL
+				NAMES "libconfuse.dll"
+				PATHS "${LIB_CONFUSE_LIBRARY_DIRS}"
+				NO_DEFAULT_PATH
+				REQUIRED
+			)
+					
+			if(NOT CMAKE_GITHUB_ACTION)
+				get_filename_component(LIBCONFUSE_RUNTIME_TARGET ${TARGET_FILE} DIRECTORY)
+				execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LIBUSB_DLL} ${LIBCONFUSE_RUNTIME_TARGET})
+			endif()
+
+			install(
+				FILES ${LIBCONFUSE_DLL}
+				DESTINATION "bin"
+				COMPONENT "HyperHDR"
+			)
+		endif()
+
 		# Copy MQTT Libs
 		if (ENABLE_MQTT)
 			set (MQTT_TARGET_LIB_FOLDER ${LIBRARY_OUTPUT_PATH}/${CMAKE_BUILD_TYPE})
