@@ -26,7 +26,7 @@ typedef const char* (*PTR_ftdi_get_error_string)(struct ftdi_context* ftdi);
 
 class ProviderSpiLibFtdi : public QObject, public ProviderSpiInterface
 {
-	HMODULE					_dllHandle;
+	void*					_dllHandle;
 	struct ftdi_context*	_deviceHandle;
 
 	PTR_ftdi_new				_fun_ftdi_new;
