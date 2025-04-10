@@ -90,7 +90,7 @@ bool ProviderSpiLibFtdi::loadLibrary()
 
 	_dllHandle = dlopen(LIBFTDI_DLL, RTLD_NOW | RTLD_GLOBAL);
 
-	if (!_dllHandle || _dllHandle == INVALID_HANDLE_VALUE)
+	if (_dllHandle == nullptr)
 	{
 		_dllHandle = nullptr;
 		Error(_log, "Unable to load libftdi.so.1 library");
@@ -118,7 +118,7 @@ bool ProviderSpiLibFtdi::loadLibrary()
 
 		if (error)
 		{
-			FreeLibrary(_dllHandle);
+			dlclose(_dllHandle);
 			_dllHandle = nullptr;
 		}
 	}
@@ -283,7 +283,6 @@ int ProviderSpiLibFtdi::close()
 
 int ProviderSpiLibFtdi::writeBytes(unsigned size, const uint8_t* data)
 {
-	DWORD dwNumBytesSent = 0;
 	std::vector<uint8_t> command;
 
 	// cs & clock low
@@ -296,7 +295,7 @@ int ProviderSpiLibFtdi::writeBytes(unsigned size, const uint8_t* data)
 	command.push_back((size - 1) & 0xFF);
 	command.push_back(((size - 1) >> 8) & 0xFF);
 	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
-	if (_fun_ftdi_write_data(_deviceHandle, const_cast<uint8_t*>(data), size) < 0)
+	if (_fun_ftdi_write_data(_deviceHandle, const_cast<uint8_t*>(data), size) < size)
 	{
 		Error(_log, "The FTDI device reports error while writing");
 		return -1;
@@ -310,7 +309,7 @@ int ProviderSpiLibFtdi::writeBytes(unsigned size, const uint8_t* data)
 	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
 
 
-	return dwNumBytesSent;
+	return size;
 }
 
 int ProviderSpiLibFtdi::getRate()
