@@ -69,6 +69,28 @@ bool DriverSpiHyperSPI::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
+int DriverSpiHyperSPI::open()
+{
+	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
+	auto ret = ProviderSpi::open();
+
+	if (_isDeviceReady)
+	{
+		auto type = getSpiType();
+		if (type == "rp2040")
+		{
+			writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+		}
+		else if (type == "esp32")
+		{
+			writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
+		}
+	}
+
+	return ret;
+}
+
 void DriverSpiHyperSPI::createHeader()
 {
 	unsigned int totalLedCount = _ledCount - 1;

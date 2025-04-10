@@ -104,20 +104,7 @@ QString ProviderSpiGeneric::open()
 				if (ioctl(_fid, SPI_IOC_WR_MAX_SPEED_HZ, &_baudRate_Hz) == -1 || ioctl(_fid, SPI_IOC_RD_MAX_SPEED_HZ, &_baudRate_Hz) == -1)
 				{
 					error = "Cannot set SPI baudrate";
-				}
-				else
-				{
-					uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-
-					if (_spiType == "rp2040")
-					{
-						writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
-					}
-					else if (_spiType == "esp32")
-					{
-						writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
-					}
-				}
+				}				
 			}
 		}
 	}

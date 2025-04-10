@@ -8,6 +8,7 @@ class DriverSpiHyperSPI : public ProviderSpi
 public:
 	explicit DriverSpiHyperSPI(const QJsonObject& deviceConfig);
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+	int open() override;
 
 private:
 	void createHeader();
