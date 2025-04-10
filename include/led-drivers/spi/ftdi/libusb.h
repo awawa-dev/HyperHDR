@@ -31,6 +31,29 @@
 		typedef long usbi_atomic_t;
 	#endif
 
+	enum libusb_speed {
+			/** The OS doesn't report or know the device speed. */
+			LIBUSB_SPEED_UNKNOWN = 0,
+
+			/** The device is operating at low speed (1.5MBit/s). */
+			LIBUSB_SPEED_LOW = 1,
+
+			/** The device is operating at full speed (12MBit/s). */
+			LIBUSB_SPEED_FULL = 2,
+
+			/** The device is operating at high speed (480MBit/s). */
+			LIBUSB_SPEED_HIGH = 3,
+
+			/** The device is operating at super speed (5000MBit/s). */
+			LIBUSB_SPEED_SUPER = 4,
+
+			/** The device is operating at super speed plus (10000MBit/s). */
+			LIBUSB_SPEED_SUPER_PLUS = 5,
+
+			/** The device is operating at super speed plus x2 (20000MBit/s). */
+			LIBUSB_SPEED_SUPER_PLUS_X2 = 6,
+	};
+
 	struct libusb_device_descriptor {
 		/** Size of this descriptor (in bytes) */
 		uint8_t  bLength;
