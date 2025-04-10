@@ -28,7 +28,7 @@ if (UNIX AND NOT APPLE)
 	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_HEADER_DIR}/pwm/pi-blaster/*.h" "${CURRENT_SOURCE_DIR}/pwm/pi-blaster/*.cpp")
 endif()
 
-if ( ENABLE_SPIDEV OR ENABLE_SPIFTDI )
+if ( ENABLE_SPIDEV OR ENABLE_SPI_FTDI )
 	FILE ( GLOB Leddevice_SPI_SOURCES "${CURRENT_HEADER_DIR}/spi/DriverSpi*.h" "${CURRENT_HEADER_DIR}/spi/ProviderSpiInterface.h" "${CURRENT_SOURCE_DIR}/spi/DriverSpi*.cpp" "${CURRENT_HEADER_DIR}/spi/ProviderSpi.h" "${CURRENT_SOURCE_DIR}/spi/ProviderSpi.cpp")
 endif()
 
@@ -37,7 +37,7 @@ if ( ENABLE_SPIDEV )
 	list( APPEND Leddevice_SPI_SOURCES ${Leddevice_ProviderSpiGeneric})
 endif()
 
-if ( ENABLE_SPIFTDI )
+if ( ENABLE_SPI_FTDI )
 	if(WIN32)
 		FILE ( GLOB Leddevice_ProviderSpiFtdi "${CURRENT_HEADER_DIR}/spi/ProviderSpiFtdi.h" "${CURRENT_HEADER_DIR}/spi/ftdi/ftd2xx.h" "${CURRENT_SOURCE_DIR}/spi/ProviderSpiFtdi.cpp")
 		list( APPEND Leddevice_SPI_SOURCES ${Leddevice_ProviderSpiFtdi})

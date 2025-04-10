@@ -31,7 +31,7 @@
 #include <utils/Logger.h>
 
 
-#ifdef ENABLE_SPIFTDI
+#ifdef ENABLE_SPI_FTDI
 	#ifdef WIN32
 		#include <led-drivers/spi/ProviderSpiFtdi.h>
 	#else
@@ -64,7 +64,7 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 	if (LedDevice::init(deviceConfig))
 	{
 		bool isInt = false;
-		#ifdef ENABLE_SPIFTDI			
+		#ifdef ENABLE_SPI_FTDI			
 			deviceConfig["output"].toString().toLong(&isInt, 10);
 			if (isInt)
 			{
@@ -270,7 +270,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 		discoveryList.push_back(std::make_unique<ProviderSpiGeneric>(_log));
 	#endif
 
-	#ifdef ENABLE_SPIFTDI
+	#ifdef ENABLE_SPI_FTDI
 		#ifdef WIN32
 			discoveryList.push_back(std::make_unique<ProviderSpiFtdi>(_log));
 		#else
