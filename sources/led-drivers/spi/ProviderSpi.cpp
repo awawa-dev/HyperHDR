@@ -146,7 +146,7 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
 
 int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 {
-	const uint32_t BUFFER_SIZE = 34;
+	const int32_t BUFFER_SIZE = 34;
 
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
@@ -262,10 +262,18 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	QJsonObject params;
 	std::list<std::unique_ptr<ProviderSpiInterface>> discoveryList;
 
-	#ifdef ENABLE_SPIFTDI
-		discoveryList.push_back(std::make_unique<ProviderSpiFtdi>(_log));
+
+	#if !defined(WIN32)
+		discoveryList.push_back(std::make_unique<ProviderSpiGeneric>(_log));
 	#endif
 
+	#ifdef ENABLE_SPIFTDI
+		#ifdef WIN32
+			discoveryList.push_back(std::make_unique<ProviderSpiFtdi>(_log));
+		#else
+			discoveryList.push_back(std::make_unique<ProviderSpiLibFtdi>(_log));
+		#endif
+	#endif
 
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
