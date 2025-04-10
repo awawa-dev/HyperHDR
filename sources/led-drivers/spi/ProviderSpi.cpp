@@ -41,6 +41,9 @@
 
 #if !defined(WIN32)
 	#include <unistd.h>
+#endif
+
+#if !defined(WIN32) && !defined(APPLE)
 	#include <led-drivers/spi/ProviderSpiGeneric.h>
 #endif
 
@@ -73,7 +76,7 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 			}
 		#endif
 
-		#if !defined(WIN32)
+		#if !defined(WIN32) && !defined(APPLE)
 			if (isInt)
 			{
 				_provider = std::make_unique<ProviderSpiGeneric>(_log);
@@ -263,7 +266,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	std::list<std::unique_ptr<ProviderSpiInterface>> discoveryList;
 
 
-	#if !defined(WIN32)
+	#if !defined(WIN32) && !defined(APPLE)
 		discoveryList.push_back(std::make_unique<ProviderSpiGeneric>(_log));
 	#endif
 
