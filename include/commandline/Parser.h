@@ -3,6 +3,8 @@
 #include "Option.h"
 #include "BooleanOption.h"
 
+#include <QHash>
+
 namespace commandline
 {
 

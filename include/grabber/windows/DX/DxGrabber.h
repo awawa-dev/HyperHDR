@@ -38,8 +38,10 @@ template <class T> void SafeRelease(T** ppT)
 
 struct DisplayHandle
 {
+	static constexpr int WARNING_COUNT = 6;
+
 	QString name;
-	int warningCounter = 6;
+	int warningCounter = DisplayHandle::WARNING_COUNT;
 	bool wideGamut = false;
 	int actualDivide = -1, actualWidth = 0, actualHeight = 0;
 	uint targetMonitorNits = 0;
@@ -70,6 +72,11 @@ struct DisplayHandle
 		SafeRelease(&d3dBuffer);
 		SafeRelease(&d3dDuplicate);
 		printf("SmartPointer is removing: DisplayHandle for %s\n", QSTRING_CSTR(name));
+	};
+
+	void resetStats()
+	{
+		warningCounter = DisplayHandle::WARNING_COUNT;
 	};
 };
 
