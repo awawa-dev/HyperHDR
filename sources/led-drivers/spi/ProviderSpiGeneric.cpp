@@ -114,14 +114,7 @@ QString ProviderSpiGeneric::open()
 
 int ProviderSpiGeneric::close()
 {
-	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
-
 	Debug(_log, "Closing SPI interface");
-
-	if (_spiType == "rp2040")
-	{
-		writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
-	}
 
 	if (_fid > -1 && ::close(_fid) != 0)
 	{
