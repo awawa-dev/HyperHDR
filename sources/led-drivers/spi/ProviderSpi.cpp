@@ -40,6 +40,7 @@
 #endif
 
 #if !defined(WIN32)
+	#include <unistd.h>
 	#include <led-drivers/spi/ProviderSpiGeneric.h>
 #endif
 
@@ -61,7 +62,7 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 	{
 		bool isInt = false;
 		#ifdef ENABLE_SPIFTDI			
-			long long deviceLocation = deviceConfig["output"].toString().toLong(&isInt, 10);
+			deviceConfig["output"].toString().toLong(&isInt, 10);
 			if (isInt)
 			{
 				#ifdef WIN32
