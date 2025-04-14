@@ -48,7 +48,8 @@
 
 namespace
 {
-	constexpr auto* LIBFTDI_DLL = "libftdi.so.1";
+	constexpr auto* LIBFTDI_CANON = "libftdi.so";
+	constexpr auto* LIBFTDI_ALT = "libftdi.so.2";
 }
 
 ProviderSpiLibFtdi::ProviderSpiLibFtdi(Logger* logger)
@@ -88,12 +89,14 @@ bool ProviderSpiLibFtdi::loadLibrary()
 		return true;
 	}
 
-	_dllHandle = dlopen(LIBFTDI_DLL, RTLD_NOW | RTLD_GLOBAL);
+	if ((_dllHandle = dlopen(LIBFTDI_CANON, RTLD_NOW | RTLD_GLOBAL)) == nullptr)
+	{
+		_dllHandle = dlopen(LIBFTDI_ALT, RTLD_NOW | RTLD_GLOBAL);
+	}
 
 	if (_dllHandle == nullptr)
 	{
-		_dllHandle = nullptr;
-		Error(_log, "Unable to load libftdi.so.1 library");
+		Error(_log, "Unable to load %s nor %s library", LIBFTDI_CANON, LIBFTDI_ALT);
 	}
 	else
 	{
