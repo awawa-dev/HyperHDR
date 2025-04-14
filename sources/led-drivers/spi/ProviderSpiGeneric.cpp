@@ -55,8 +55,6 @@ ProviderSpiGeneric::~ProviderSpiGeneric()
 
 bool ProviderSpiGeneric::init(const QJsonObject& deviceConfig)
 {
-	bool isInitOK = false;
-
 	_deviceName = deviceConfig["output"].toString(_deviceName);
 	_spiType = deviceConfig["spitype"].toString("");
 	_baudRate_Hz = deviceConfig["rate"].toInt(_baudRate_Hz);
@@ -72,7 +70,7 @@ bool ProviderSpiGeneric::init(const QJsonObject& deviceConfig)
 	Debug(_log, "Real speed: %d", getRate());
 	Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
 
-	return isInitOK;
+	return true;
 }
 
 QString ProviderSpiGeneric::open()
