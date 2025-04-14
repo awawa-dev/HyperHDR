@@ -77,7 +77,7 @@ bool ProviderSpi::init(const QJsonObject& deviceConfig)
 		#endif
 
 		#if !defined(WIN32) && !defined(__APPLE__)
-			if (isInt)
+			if (!isInt)
 			{
 				_provider = std::make_unique<ProviderSpiGeneric>(_log);
 			}
