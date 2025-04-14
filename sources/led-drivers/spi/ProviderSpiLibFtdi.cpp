@@ -48,8 +48,8 @@
 
 namespace
 {
-	constexpr auto* LIBFTDI_CANON = "libftdi.so";
-	constexpr auto* LIBFTDI_ALT = "libftdi.so.2";
+	constexpr auto* LIBFTDI_CANON = "libftdi1.so";
+	constexpr auto* LIBFTDI_ALT = "libftdi1.so.2";
 }
 
 ProviderSpiLibFtdi::ProviderSpiLibFtdi(Logger* logger)
