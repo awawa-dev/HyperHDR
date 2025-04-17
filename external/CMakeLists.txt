@@ -302,8 +302,21 @@ endif()
 # STB
 #=============================================================================
 
-add_library(stb INTERFACE )
+add_library(stb INTERFACE)
+
+if (USE_SYSTEM_STB_LIBS)
+    find_path(STB_INCLUDE_DIR stb_image.h PATH_SUFFIXES stb)
+    if (NOT STB_INCLUDE_DIR)
+        message(WARNING "Could NOT find system STB libraries. Falling back to embedded STB.")
+        target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+    else()
+        message(STATUS "Found system STB libraries: ${STB_INCLUDE_DIR}")
+        target_include_directories(stb INTERFACE ${STB_INCLUDE_DIR})
+    endif()
+else()
 target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+endif()
+
 target_compile_definitions(stb INTERFACE
 	STB_IMAGE_WRITE_IMPLEMENTATION
 	STB_IMAGE_IMPLEMENTATION

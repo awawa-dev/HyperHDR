@@ -48,6 +48,7 @@ Use -D prefix when configuring the build.
   * USE_SYSTEM_SDBUS_CPP_LIBS = ON | OFF, prefer system sdbus_c++ libs
   * USE_SYSTEM_LUNASVG_LIBS = ON | OFF, prefer system lunasvg libs
   * USE_SYSTEM_NANOPB_LIBS = ON | OFF, prefer system nanopb libs
+  * USE_SYSTEM_STB_LIBS = ON | OFF, prefer system stb libs
   * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the application
   * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming
 
