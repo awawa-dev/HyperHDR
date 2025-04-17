@@ -47,6 +47,14 @@ target_compile_definitions(sqlite3 PUBLIC
 # Protobuf-nanopb
 #=============================================================================
 
+if (USE_SYSTEM_NANOPB_LIBS)
+	find_package(nanopb)
+	if (NOT nanopb_FOUND)
+		message(WARNING "Could NOT find nanopb system libraries. Fallback to nanopb submodule.")
+	endif()
+endif()
+
+if (NOT USE_SYSTEM_NANOPB_LIBS OR NOT nanopb_FOUND)
 set(PROTOBUF-NANOPB-SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
 		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
@@ -64,6 +72,7 @@ install(TARGETS protobuf-nanopb EXPORT nanopb-targets
 target_include_directories(protobuf-nanopb INTERFACE
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+endif()
 
 #=============================================================================
 # RPi ws281x
