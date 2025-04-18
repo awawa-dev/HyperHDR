@@ -101,14 +101,20 @@ target_include_directories(linalg INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/linalg"
 
 set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
 set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
+
 if (USE_SYSTEM_LUNASVG_LIBS)
-    find_package(lunasvg REQUIRED)
-else()
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
-    set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
-	add_library(lunasvg::lunasvg ALIAS lunasvg)
+	find_package(lunasvg)
+	if (NOT lunasvg_FOUND)
+		message(WARNING "Could NOT find lunasvg system libraries. Fallback to lunasvg submodule.")
+	endif()
 endif()
+
+if (NOT USE_SYSTEM_LUNASVG_LIBS OR NOT lunasvg_FOUND)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
+	set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
 
 #=============================================================================

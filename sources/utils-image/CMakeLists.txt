@@ -29,15 +29,15 @@ else()
 	add_library(utils-image STATIC ${utils_image_SOURCES})
 endif()
 
-target_include_directories(utils-image PRIVATE stb lunasvg TurboJPEG::TurboJPEG)
+target_include_directories(utils-image PRIVATE stb lunasvg::lunasvg TurboJPEG::TurboJPEG)
 
 target_link_libraries(utils-image PRIVATE
-    Qt${Qt_VERSION}::Core
-    Qt${Qt_VERSION}::Network
-    stb
-    lunasvg::lunasvg
-    image
-    TurboJPEG::TurboJPEG
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
+	stb
+	lunasvg::lunasvg
+	image
+	TurboJPEG::TurboJPEG
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
