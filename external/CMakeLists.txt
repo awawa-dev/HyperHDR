@@ -103,7 +103,7 @@ set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
 set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
 
 if (USE_SYSTEM_LUNASVG_LIBS)
-	find_package(lunasvg)
+	find_package(lunasvg GLOBAL)
 	if (NOT lunasvg_FOUND)
 		message(WARNING "Could NOT find lunasvg system libraries. Fallback to lunasvg submodule.")
 	endif()
