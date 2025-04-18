@@ -38,7 +38,7 @@ set_target_properties(sqlite3 PROPERTIES
 target_compile_definitions(sqlite3 PUBLIC
 	SQLITE_THREADSAFE=2
 	SQLITE_DEFAULT_MEMSTATUS=0
-	SQLITE_DEFAULT_SYNCHRONOUS=3	
+	SQLITE_DEFAULT_SYNCHRONOUS=3
 	SQLITE_OMIT_AUTHORIZATION
 	SQLITE_OMIT_DEPRECATED
 )
@@ -47,23 +47,32 @@ target_compile_definitions(sqlite3 PUBLIC
 # Protobuf-nanopb
 #=============================================================================
 
-set(PROTOBUF-NANOPB-SOURCES
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
+if (USE_SYSTEM_NANOPB_LIBS)
+	find_package(nanopb)
+	if (NOT nanopb_FOUND)
+		message(WARNING "Could NOT find nanopb system libraries. Fallback to nanopb submodule.")
+	endif()
+endif()
 
-add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
-set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
-install(TARGETS protobuf-nanopb EXPORT nanopb-targets
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if (NOT USE_SYSTEM_NANOPB_LIBS OR NOT nanopb_FOUND)
+	set(PROTOBUF-NANOPB-SOURCES
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
 
-target_include_directories(protobuf-nanopb INTERFACE
-	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+	add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
+	set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
+	install(TARGETS protobuf-nanopb EXPORT nanopb-targets
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+	target_include_directories(protobuf-nanopb INTERFACE
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+endif()
 
 #=============================================================================
 # RPi ws281x
@@ -75,7 +84,7 @@ if(ENABLE_WS281XPWM)
 	string(REPLACE "configure_file(version.h.in version.h)" [=[configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)]=] FILE_CONTENTS "${FILE_CONTENTS}")
 	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" "${FILE_CONTENTS}")
 
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x)			
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x)
 endif()
 
 #=============================================================================
@@ -90,11 +99,22 @@ target_include_directories(linalg INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/linalg"
 # LUNASVG
 #=============================================================================
 
-
 set(no_dev_warnings_backup "$CACHE{CMAKE_WARN_DEPRECATED}")
 set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "" FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
-set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+if (USE_SYSTEM_LUNASVG_LIBS)
+	find_package(lunasvg GLOBAL)
+	if (NOT lunasvg_FOUND)
+		message(WARNING "Could NOT find lunasvg system libraries. Fallback to lunasvg submodule.")
+	endif()
+endif()
+
+if (NOT USE_SYSTEM_LUNASVG_LIBS OR NOT lunasvg_FOUND)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
+	set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
 
 #=============================================================================
@@ -125,7 +145,7 @@ if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
 	cmake_policy(PUSH)
 
 	set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
-	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")	
+	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")
 
 	if (NOT CMAKE_CROSSCOMPILING AND USE_PRECOMPILED_HEADERS)
 		set(FLATBUFFERS_ENABLE_PCH ON CACHE BOOL "")
@@ -142,7 +162,7 @@ if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
 		unset(FLATBUFFERS_FLATC_EXECUTABLE)
 		set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "")
 		set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE BOOL "")
-		set(FLATBUFFERS_HOST_FLATBUFFERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/host_flatc)		
+		set(FLATBUFFERS_HOST_FLATBUFFERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/host_flatc)
 		file(MAKE_DIRECTORY ${FLATBUFFERS_HOST_FLATBUFFERS_DIR})
 
 		EXECUTE_PROCESS ( WORKING_DIRECTORY ${FLATBUFFERS_HOST_FLATBUFFERS_DIR} RESULT_VARIABLE EXEC_RES
@@ -168,7 +188,7 @@ if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
 		set(FLATBUFFERS_FLATC_EXECUTABLE "$<TARGET_FILE:flatc>")
 	else()
 		message( STATUS "Using host flatc compiler: ${FLATBUFFERS_FLATC_EXECUTABLE}")
-	endif()	
+	endif()
 
 	cmake_policy(POP)
 endif()
@@ -177,7 +197,7 @@ set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
 set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIRS} PARENT_SCOPE)
 include_directories(${FLATBUFFERS_INCLUDE_DIRS})
 
-if (FLATBUFFERS_INCLUDE_DIRS AND EXISTS "${FLATBUFFERS_INCLUDE_DIRS}/../package.json")		
+if (FLATBUFFERS_INCLUDE_DIRS AND EXISTS "${FLATBUFFERS_INCLUDE_DIRS}/../package.json")
 		file(STRINGS "${FLATBUFFERS_INCLUDE_DIRS}/../package.json" _FLATBUFFERS_VERSION_STRING REGEX "^[ \t\r\n]+\"version\":[ \t\r\n]+\"[0-9]+.[0-9]+.[0-9]+\",")
 		string(REGEX REPLACE "^[ \t\r\n]+\"version\":[ \t\r\n]+\"([0-9]+.[0-9]+.[0-9]+)\"," "\\1" FLATBUFFERS_PARSE_VERSION "${_FLATBUFFERS_VERSION_STRING}")
 		message(STATUS "Using flatbuffers libraries version: \"${FLATBUFFERS_PARSE_VERSION}\"")
@@ -220,7 +240,7 @@ if ( ENABLE_MQTT )
 		# HyperHDR workaround for fixed Qt5 version
 		file(READ "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt/CMakeLists.txt" FILE_CONTENTS)
 		string(REPLACE "Qt5" "Qt${Qt_VERSION}" FILE_CONTENTS "${FILE_CONTENTS}")
-		string(REPLACE "find_package" "#find_package" FILE_CONTENTS "${FILE_CONTENTS}")		
+		string(REPLACE "find_package" "#find_package" FILE_CONTENTS "${FILE_CONTENTS}")
 		file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
 
 		cmake_policy(PUSH)
@@ -270,8 +290,21 @@ endif()
 # STB
 #=============================================================================
 
-add_library(stb INTERFACE )
-target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+add_library(stb INTERFACE)
+
+if (USE_SYSTEM_STB_LIBS)
+	find_path(STB_INCLUDE_DIR stb_image.h PATH_SUFFIXES stb)
+	if (NOT STB_INCLUDE_DIR)
+		message(WARNING "Could NOT find system STB libraries. Falling back to embedded STB.")
+		target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+	else()
+		message(STATUS "Found system STB libraries: ${STB_INCLUDE_DIR}")
+		target_include_directories(stb INTERFACE ${STB_INCLUDE_DIR})
+	endif()
+else()
+	target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+endif()
+
 target_compile_definitions(stb INTERFACE
 	STB_IMAGE_WRITE_IMPLEMENTATION
 	STB_IMAGE_IMPLEMENTATION

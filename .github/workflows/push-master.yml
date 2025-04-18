@@ -2,7 +2,7 @@ name: HyperHDR CI Build
 
 on:
   push:
-#  pull_request:
+  pull_request:
 
 env:
     USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
@@ -109,6 +109,7 @@ jobs:
 
       - name: Clear branch ccache storage
         uses: yumemi-inc/clean-cache-action@v1
+        continue-on-error: true
         with:
           ref: ${{ github.event.ref }}
           key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
@@ -193,6 +194,7 @@ jobs:
 
       - name: Clear branch ccache storage
         uses: yumemi-inc/clean-cache-action@v1
+        continue-on-error: true
         with:
           ref: ${{ github.event.ref }}
           key: macOS-ccache-${{ matrix.NICE_NAME }}
@@ -284,6 +286,7 @@ jobs:
 
       - name: Clear branch ccache storage
         uses: yumemi-inc/clean-cache-action@v1
+        continue-on-error: true
         with:
           ref: ${{ github.event.ref }}
           key: ${{ runner.os }}-ccache
