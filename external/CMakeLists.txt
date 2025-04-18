@@ -55,23 +55,23 @@ if (USE_SYSTEM_NANOPB_LIBS)
 endif()
 
 if (NOT USE_SYSTEM_NANOPB_LIBS OR NOT nanopb_FOUND)
-set(PROTOBUF-NANOPB-SOURCES
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
-		${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
+	set(PROTOBUF-NANOPB-SOURCES
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_common.c
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_encode.c
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.h
+			${CMAKE_CURRENT_SOURCE_DIR}/nanopb/pb_decode.c)
 
-add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
-set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
-install(TARGETS protobuf-nanopb EXPORT nanopb-targets
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+	add_library(protobuf-nanopb OBJECT ${PROTOBUF-NANOPB-SOURCES})
+	set_target_properties(protobuf-nanopb PROPERTIES OUTPUT_NAME protobuf-nanopb)
+	install(TARGETS protobuf-nanopb EXPORT nanopb-targets
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-target_include_directories(protobuf-nanopb INTERFACE
-	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+	target_include_directories(protobuf-nanopb INTERFACE
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/nanopb>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 endif()
 
 #=============================================================================
@@ -304,16 +304,16 @@ endif()
 add_library(stb INTERFACE)
 
 if (USE_SYSTEM_STB_LIBS)
-    find_path(STB_INCLUDE_DIR stb_image.h PATH_SUFFIXES stb)
-    if (NOT STB_INCLUDE_DIR)
-        message(WARNING "Could NOT find system STB libraries. Falling back to embedded STB.")
-        target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
-    else()
-        message(STATUS "Found system STB libraries: ${STB_INCLUDE_DIR}")
-        target_include_directories(stb INTERFACE ${STB_INCLUDE_DIR})
-    endif()
+	find_path(STB_INCLUDE_DIR stb_image.h PATH_SUFFIXES stb)
+	if (NOT STB_INCLUDE_DIR)
+		message(WARNING "Could NOT find system STB libraries. Falling back to embedded STB.")
+		target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+	else()
+		message(STATUS "Found system STB libraries: ${STB_INCLUDE_DIR}")
+		target_include_directories(stb INTERFACE ${STB_INCLUDE_DIR})
+	endif()
 else()
-target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+	target_include_directories(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb)
 endif()
 
 target_compile_definitions(stb INTERFACE
