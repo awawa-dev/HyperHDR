@@ -260,7 +260,13 @@ jobs:
         with:
           path: ${{ runner.workspace }}/Qt
           key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
-     
+
+      # temporary workaround for aqt: Python 3.13 instead of preinstalled default older version
+      - name: Python 3.13 for aqtinstall
+        uses: actions/setup-python@v5      
+        with:
+          python-version: '3.13'
+
       - name: Install QT
         if: steps.cache-qt-windows.outputs.cache-hit != 'true'
         run: |          
