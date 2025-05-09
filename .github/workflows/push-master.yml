@@ -413,7 +413,7 @@ jobs:
 
       # create draft release and upload artifacts
       - name: Create draft release
-        uses: softprops/action-gh-release@v2.2.1
+        uses: softprops/action-gh-release@v2.2.2
         with:
           name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}
