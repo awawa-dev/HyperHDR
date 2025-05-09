@@ -970,6 +970,11 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 			if (_hardware)
 			{
 				status = deepScaledCopy(display, texDesktop);
+
+				if (!CHECK(status))
+				{
+					Error(_log, "DeepScaledCopy failed. Reason: %i", status);
+				}
 			}
 			else
 			{
@@ -998,6 +1003,11 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 				result = 1;
 				_d3dContext->Unmap(display.d3dSourceTexture, 0);
 			}
+			else
+			{
+				Error(_log, "Cannot copy or map texture. Reason: %i. Restarting...", status);
+				_dxRestartNow = true;
+			}
 
 			SafeRelease(&texDesktop);
 		}
@@ -1023,6 +1033,11 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 	else if (status == DXGI_ERROR_ACCESS_LOST)
 	{
 		Error(_log, "Lost DirectX capture context. Stopping.");
+		_dxRestartNow = true;
+	}
+	else if (status == DXGI_ERROR_INVALID_CALL)
+	{
+		Error(_log, "DirectX invalid call. Stopping.");
 		_dxRestartNow = true;
 	}
 	else if (display.warningCounter > 0)
