@@ -1273,5 +1273,6 @@
   "edt_conf_mqtt_disableApiAccess_title": "Tắt quyền truy cập API",
   "edt_conf_mqtt_disableApiAccess_expl": "Chặn thực thi lệnh API được gửi qua MQTT.",
   "wiz_zigbee2mqtt_title": "Trình hướng dẫn đèn Zigbee2mqtt",
-  "wiz_mqtt_error": "Không tìm thấy thiết bị được kết nối với máy chủ MQTT. Kiểm tra nhật ký HyperHDR và ​​cấu hình máy khách MQTT trong cài đặt mạng. HyperHDR phải có kết nối hợp lệ và đang hoạt động với môi giới MQTT."
+  "wiz_mqtt_error": "Không tìm thấy thiết bị được kết nối với máy chủ MQTT. Kiểm tra nhật ký HyperHDR và ​​cấu hình máy khách MQTT trong cài đặt mạng. HyperHDR phải có kết nối hợp lệ và đang hoạt động với môi giới MQTT.",
+  "conf_grabber_amlogic_intro": "Amlogic screen grabber"
 }
