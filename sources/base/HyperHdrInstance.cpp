@@ -653,7 +653,8 @@ void HyperHdrInstance::setLedMappingType(int mappingType)
 void HyperHdrInstance::handleVisibleComponentChanged(hyperhdr::Components comp)
 {
 	_imageProcessor->setBlackbarDetectDisable((comp == hyperhdr::COMP_EFFECT));
-	_ledColorCalibration->setBacklightEnabled((comp != hyperhdr::COMP_COLOR && comp != hyperhdr::COMP_EFFECT));
+	// _ledColorCalibration->setBacklightEnabled((comp != hyperhdr::COMP_COLOR && comp != hyperhdr::COMP_EFFECT));
+	_ledColorCalibration->setBacklightEnabled((comp != COMP_EFFECT));
 }
 
 void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
