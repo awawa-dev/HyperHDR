@@ -19,7 +19,7 @@ LedDevice* DriverSpiSk6812SPI::construct(const QJsonObject& deviceConfig)
 
 bool DriverSpiSk6812SPI::init(const QJsonObject& deviceConfig)
 {
-	_baudRate_Hz = 3000000;
+	deviceConfig["rate"] = 3000000;
 
 	bool isInitOK = false;
 
@@ -39,7 +39,9 @@ bool DriverSpiSk6812SPI::init(const QJsonObject& deviceConfig)
 		{
 			Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
 
-			WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 4000000), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+			auto rateHz = getRate();
+
+			WarningIf((rateHz < 2050000 || rateHz > 4000000), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", rateHz);
 
 			const int SPI_FRAME_END_LATCH_BYTES = 3;
 			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
