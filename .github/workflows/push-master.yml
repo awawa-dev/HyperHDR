@@ -307,7 +307,7 @@ jobs:
       - name: Download CCache
         shell: powershell
         run: |
-          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.10/ccache-4.10-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.11.3/ccache-4.11.3-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
 
       - name: Install CCache
         shell: cmd
