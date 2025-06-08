@@ -2,6 +2,7 @@
 
 // HyperHDR includes
 #include "ProviderSpi.h"
+#include <led-drivers/ColorRgbw.h>
 
 class DriverSpiSk6812SPI : public ProviderSpi
 {
@@ -14,11 +15,15 @@ private:
 	int write(const std::vector<ColorRgb>& ledValues) override;
 
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
+	uint8_t _white_channel_limit;
+	uint8_t _white_channel_red;
+	uint8_t _white_channel_green;
+	uint8_t _white_channel_blue;
+
+	RGBW::RgbwChannelCorrection channelCorrection;
 
 	const int SPI_BYTES_PER_COLOUR;
-	uint8_t bitpair_to_byte[4];
-
-	ColorRgbw _temp_rgbw;
+	uint8_t bitpair_to_byte[4];	
 
 	static bool isRegistered;
 };

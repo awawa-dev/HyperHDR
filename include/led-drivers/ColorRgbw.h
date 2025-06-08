@@ -69,11 +69,22 @@ namespace RGBW {
 		WHITE_OFF,
 		HYPERSERIAL_COLD_WHITE,
 		HYPERSERIAL_NEUTRAL_WHITE,
+		HYPERSERIAL_CUSTOM,
 		WLED_AUTO,
 		WLED_AUTO_MAX,
 		WLED_AUTO_ACCURATE
 	};
 
+	struct RgbwChannelCorrection
+	{
+		uint8_t white[256];
+		uint8_t red[256];
+		uint8_t green[256];
+		uint8_t blue[256];
+	};
+
+
 	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);
-	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw* output, WhiteAlgorithm algorithm);
+	void prepareRgbwCalibration(RgbwChannelCorrection& channelCorrection, WhiteAlgorithm algorithm, uint8_t gain, uint8_t red, uint8_t green, uint8_t blue);
+	void rgb2rgbw(ColorRgb input, ColorRgbw* output, WhiteAlgorithm algorithm, const RgbwChannelCorrection& channelCorrection);
 }

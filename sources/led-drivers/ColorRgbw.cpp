@@ -33,6 +33,10 @@ namespace RGBW {
 		{
 			return WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE;
 		}
+		if (str == "hyperserial_custom")
+		{
+			return WhiteAlgorithm::HYPERSERIAL_CUSTOM;
+		}
 		if (str == "wled_auto")
 		{
 			return WhiteAlgorithm::WLED_AUTO;
@@ -53,7 +57,44 @@ namespace RGBW {
 		return WhiteAlgorithm::INVALID;
 	}
 
-	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw* output, WhiteAlgorithm algorithm)
+	void prepareRgbwCalibration(RgbwChannelCorrection& channelCorrection, WhiteAlgorithm algorithm, uint8_t gain, uint8_t red, uint8_t green, uint8_t blue)
+	{
+		if (algorithm == WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
+		{
+			gain = 0xFF;
+			red = 0xA0;
+			green = 0xA0;
+			blue = 0xA0;
+		}
+		else if (algorithm == WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE) {
+			gain = 0xFF;
+			red = 0xB0;
+			green = 0xB0;
+			blue = 0x70;
+		}
+		else if (algorithm != WhiteAlgorithm::HYPERSERIAL_CUSTOM)
+		{
+			return;
+		}
+
+		// my HyperSerialESP32 code
+		// prepare LUT calibration table, cold white is much better than "neutral" white
+		for (uint32_t i = 0; i < 256; i++)
+		{
+			// color calibration
+			uint32_t _gain = gain * i;   // adjust gain
+			uint32_t _red = red * i;     // adjust red
+			uint32_t _green = green * i; // adjust green
+			uint32_t _blue = blue * i;   // adjust blue
+
+			channelCorrection.white[i] = (uint8_t)std::min(ROUND_DIVIDE(_gain, 0xFF), (uint32_t)0xFF);
+			channelCorrection.red[i] = (uint8_t)std::min(ROUND_DIVIDE(_red, 0xFF), (uint32_t)0xFF);
+			channelCorrection.green[i] = (uint8_t)std::min(ROUND_DIVIDE(_green, 0xFF), (uint32_t)0xFF);
+			channelCorrection.blue[i] = (uint8_t)std::min(ROUND_DIVIDE(_blue, 0xFF), (uint32_t)0xFF);
+		}
+	}
+
+	void rgb2rgbw(ColorRgb input, ColorRgbw* output, WhiteAlgorithm algorithm, const RgbwChannelCorrection& channelCorrection)
 	{
 		switch (algorithm)
 		{
@@ -135,31 +176,15 @@ namespace RGBW {
 
 		case WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE:
 		case WhiteAlgorithm::HYPERSERIAL_COLD_WHITE:
+		case WhiteAlgorithm::HYPERSERIAL_CUSTOM:
 		{
-			//cold white config
-			uint8_t gain = 0xFF;
-			uint8_t red = 0xA0;
-			uint8_t green = 0xA0;
-			uint8_t blue = 0xA0;
-
-			if (algorithm == WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE) {
-				gain = 0xFF;
-				red = 0xB0;
-				green = 0xB0;
-				blue = 0x70;
-			}
-
-			uint8_t _r = qMin((uint32_t)(ROUND_DIVIDE(red * input.red, 0xFF)), (uint32_t)0xFF);
-			uint8_t _g = qMin((uint32_t)(ROUND_DIVIDE(green * input.green, 0xFF)), (uint32_t)0xFF);
-			uint8_t _b = qMin((uint32_t)(ROUND_DIVIDE(blue * input.blue, 0xFF)), (uint32_t)0xFF);
-
-			output->white = qMin(_r, qMin(_g, _b));
-			output->red = input.red - _r;
-			output->green = input.green - _g;
-			output->blue = input.blue - _b;
-
-			uint8_t _w = qMin((uint32_t)(ROUND_DIVIDE(gain * output->white, 0xFF)), (uint32_t)0xFF);
-			output->white = _w;
+			auto white = std::min(channelCorrection.red[input.red],
+				std::min(channelCorrection.green[input.green],
+					channelCorrection.blue[input.blue]));
+			output->red = input.red - channelCorrection.red[white];
+			output->green = input.green - channelCorrection.green[white];
+			output->blue = input.blue - channelCorrection.blue[white];
+			output->white = channelCorrection.white[white];
 			break;
 		}
 		default:
