@@ -2,7 +2,7 @@
 
 DriverSpiSk6812SPI::DriverSpiSk6812SPI(const QJsonObject& deviceConfig)
 	: ProviderSpi(deviceConfig)
-	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
+	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
 	, _white_channel_limit(255)
 	, _white_channel_red(255)
 	, _white_channel_green(255)
@@ -30,7 +30,7 @@ bool DriverSpiSk6812SPI::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (ProviderSpi::init(deviceConfig))
 	{
-		QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("hyperserial_neutral_white");
+		QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("hyperserial_cold_white");
 
 		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 		_white_channel_limit = qMin(qRound(deviceConfig["white_channel_limit"].toDouble(1) * 255.0 / 100.0), 255);
