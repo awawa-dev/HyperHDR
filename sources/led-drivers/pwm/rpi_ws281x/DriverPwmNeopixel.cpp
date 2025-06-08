@@ -148,15 +148,17 @@ int DriverPwmNeopixel::write(const std::vector<ColorRgb>& ledValues)
 
 	for (const ColorRgb& color : ledValues)
 	{
+		ColorRgbw tempRgbw;
+
 		if (idx >= _ledString->channel[_channel].count)
 		{
 			break;
 		}
 
-		_temp_rgbw.red = color.red;
-		_temp_rgbw.green = color.green;
-		_temp_rgbw.blue = color.blue;
-		_temp_rgbw.white = 0;
+		tempRgbw.red = color.red;
+		tempRgbw.green = color.green;
+		tempRgbw.blue = color.blue;
+		tempRgbw.white = 0;
 
 		if (_ledString->channel[_channel].strip_type == SK6812_STRIP_GRBW)
 		{
@@ -164,7 +166,7 @@ int DriverPwmNeopixel::write(const std::vector<ColorRgb>& ledValues)
 		}
 
 		_ledString->channel[_channel].leds[idx++] =
-			((uint32_t)_temp_rgbw.white << 24) + ((uint32_t)_temp_rgbw.red << 16) + ((uint32_t)_temp_rgbw.green << 8) + _temp_rgbw.blue;
+			((uint32_t)tempRgbw.white << 24) + ((uint32_t)tempRgbw.red << 16) + ((uint32_t)tempRgbw.green << 8) + tempRgbw.blue;
 	}
 
 	while (idx < _ledString->channel[_channel].count)

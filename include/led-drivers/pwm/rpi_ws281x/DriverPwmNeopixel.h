@@ -29,7 +29,5 @@ private:
 
 	RGBW::RgbwChannelCorrection channelCorrection;
 
-	ColorRgbw	_temp_rgbw;
-
 	static bool isRegistered;
 };
