@@ -2,15 +2,15 @@
 #include <ws2811.h>
 
 DriverPwmNeopixel::DriverPwmNeopixel(const QJsonObject& deviceConfig)
-	: LedDevice(deviceConfig),
+	: LedDevice(deviceConfig)
+	, _ledString(nullptr)
+	, _channel(0)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
 	, _white_channel_limit(255)
 	, _white_channel_red(255)
 	, _white_channel_green(255)
 	, _white_channel_blue(255)
 {
-	_ledString = nullptr;
-	_channel = 0;
 }
 
 DriverPwmNeopixel::~DriverPwmNeopixel()
