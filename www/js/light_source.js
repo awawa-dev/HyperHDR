@@ -777,9 +777,9 @@ $(document).ready(function()
 		var values_specific = {};
 		var isCurrentDevice = (window.serverConfig.device.type == ledType);
 		let selectedLedGroup = $(this.options[this.selectedIndex]).closest('optgroup').attr('data-group-id');
-		const spiOnWindows = window.sysInfo.system.productType == "windows" && selectedLedGroup == "leds_group_0_SPI";
+		const spiOnWindowsAndMacOs= (window.sysInfo.system.productType == "windows" || window.sysInfo.system.productType == "macos") && selectedLedGroup == "leds_group_0_SPI";
 
-		if (spiOnWindows)
+		if (spiOnWindowsAndMacOs)
 		{
 			delete specificOptions.properties.output.default;
 		}
@@ -796,7 +796,7 @@ $(document).ready(function()
 		};
 		conf_editor.getEditor("root.generalOptions").setValue(values_general);
 
-		if (spiOnWindows)
+		if (spiOnWindowsAndMacOs)
 		{
 			$("input[name='root[specificOptions][output]']").attr("placeholder", $.i18n("edt_dev_led_ftdi_select"));
 		}
