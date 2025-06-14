@@ -764,8 +764,6 @@ $(document).ready(function()
 	$("#leddevices").off().on("change", function()
 	{
 		var generalOptions = window.serverSchema.properties.device;
-
-		// Modified schema entry "hardwareLedCount" in generalOptions to minimum LedCount
 		var ledType = $(this).val();
 
 		//philipshueentertainment backward fix
@@ -774,22 +772,34 @@ $(document).ready(function()
 		var specificOptions = window.serverSchema.properties.alldevices[ledType];
 		
 		$("#editor_container").empty();
-		
+
+		var values_general = {};
+		var values_specific = {};
+		var isCurrentDevice = (window.serverConfig.device.type == ledType);
+		let selectedLedGroup = $(this.options[this.selectedIndex]).closest('optgroup').attr('data-group-id');
+		const spiOnWindows = window.sysInfo.system.productType == "windows" && selectedLedGroup == "leds_group_0_SPI";
+
+		if (spiOnWindows)
+		{
+			delete specificOptions.properties.output.default;
+		}
+
 		conf_editor = createJsonEditor('editor_container',
 		{
 			generalOptions: generalOptions,
 			specificOptions: specificOptions,
 		});
 
-		var values_general = {};
-		var values_specific = {};
-		var isCurrentDevice = (window.serverConfig.device.type == ledType);
-
 		for (var key in window.serverConfig.device)
 		{
 			if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
 		};
 		conf_editor.getEditor("root.generalOptions").setValue(values_general);
+
+		if (spiOnWindows)
+		{
+			$("input[name='root[specificOptions][output]']").attr("placeholder", $.i18n("edt_dev_led_ftdi_select"));
+		}
 
 		if (isCurrentDevice)
 		{
@@ -801,7 +811,9 @@ $(document).ready(function()
 			conf_editor.getEditor("root.specificOptions").setValue(values_specific);
 		}
 		else
+		{
 			conf_editor.getEditor('root.generalOptions.refreshTime').setValue(0);
+		}
 
 		if (window.serverConfig.smoothing != null && window.serverConfig.smoothing.enable)
 		{
@@ -844,9 +856,7 @@ $(document).ready(function()
 			var insertCalInfo = whiteChannelList.first();
 			
 			insertCalInfo.prepend(infoRGBW);
-		}
-
-		let selectedLedGroup = $(this.options[this.selectedIndex]).closest('optgroup').attr('data-group-id');
+		}		
 
 		if (ledType == "philipshue")
 		{
