@@ -1273,5 +1273,6 @@
   "edt_conf_mqtt_disableApiAccess_title": "API erişimini devre dışı bırak",
   "edt_conf_mqtt_disableApiAccess_expl": "MQTT aracılığıyla gönderilen API komutlarının yürütülmesini engelle.",
   "wiz_zigbee2mqtt_title": "Zigbee2mqtt ışık sihirbazı",
-  "wiz_mqtt_error": "MQTT sunucusuna bağlı cihazlar bulunamadı. HyperHDR günlüklerini ve ağ ayarlarında MQTT istemci yapılandırmasını kontrol edin. HyperHDR'nin MQTT broker'ına geçerli ve etkin bir bağlantısı olmalıdır."
+  "wiz_mqtt_error": "MQTT sunucusuna bağlı cihazlar bulunamadı. HyperHDR günlüklerini ve ağ ayarlarında MQTT istemci yapılandırmasını kontrol edin. HyperHDR'nin MQTT broker'ına geçerli ve etkin bir bağlantısı olmalıdır.",
+  "conf_grabber_amlogic_intro": "Amlogic ekran yakalayıcı"
 }
