@@ -8,6 +8,7 @@ Use -D prefix when configuring the build.
 
 * LED DEVICES  
   * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
+  * ENABLE_SPI_FTDI = ON | OFF, enables SPI libFTDI/FTDI controller on supported systems
   * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library on supported systems
   
 * SOFTWARE GRABBERS

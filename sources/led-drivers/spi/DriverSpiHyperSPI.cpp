@@ -69,6 +69,44 @@ bool DriverSpiHyperSPI::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
+int DriverSpiHyperSPI::open()
+{
+	uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
+	auto ret = ProviderSpi::open();
+
+	if (_isDeviceReady)
+	{
+		auto type = getSpiType();
+		if (type == "rp2040")
+		{
+			writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+		}
+		else if (type == "esp32")
+		{
+			writeBytesEsp32(sizeof(rpBuffer), rpBuffer);
+		}
+	}
+
+	return ret;
+}
+
+int DriverSpiHyperSPI::close()
+{
+	if (_isDeviceReady)
+	{
+		uint8_t rpBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
+
+		auto type = getSpiType();
+		if (type == "rp2040")
+		{
+			writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
+		}		
+	}
+
+	return ProviderSpi::close();
+}
+
 void DriverSpiHyperSPI::createHeader()
 {
 	unsigned int totalLedCount = _ledCount - 1;
@@ -129,11 +167,12 @@ int DriverSpiHyperSPI::write(const std::vector<ColorRgb>& ledValues)
 	*(writer++) = (uint8_t)((fletcherExt != 0x41) ? fletcherExt : 0xaa);
 	bufferLength = writer -_ledBuffer.data();
 
-	if (_spiType == "esp8266")
+	QString spiType = getSpiType();
+	if (spiType == "esp8266")
 		return writeBytesEsp8266(bufferLength, _ledBuffer.data());
-	else if (_spiType == "esp32")
+	else if (spiType == "esp32")
 		return writeBytesEsp32(bufferLength, _ledBuffer.data());
-	else if (_spiType == "rp2040")
+	else if (spiType == "rp2040")
 		return writeBytesRp2040(bufferLength, _ledBuffer.data());
 	else
 		return writeBytes(bufferLength, _ledBuffer.data());

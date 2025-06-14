@@ -3,10 +3,14 @@
 
 DriverPwmNeopixel::DriverPwmNeopixel(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
+	, _ledString(nullptr)
+	, _channel(0)
+	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
+	, _white_channel_limit(255)
+	, _white_channel_red(255)
+	, _white_channel_green(255)
+	, _white_channel_blue(255)
 {
-	_ledString = nullptr;
-	_channel = 0;
-	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm("white_off");
 }
 
 DriverPwmNeopixel::~DriverPwmNeopixel()
@@ -30,17 +34,30 @@ bool DriverPwmNeopixel::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
-		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+		QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("hyperserial_cold_white");
 
 		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 		{
-			errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
+			errortext = QString("unknown white_algorithm: %1").arg(whiteAlgorithm);
 			isInitOK = false;
 		}
 		else
 		{
 			_channel = deviceConfig["pwmchannel"].toInt(0);
+
+			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM)
+			{
+				Debug(_log, "White channel limit     : %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+			}
+
+			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM ||
+				_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE ||
+				_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
+			{
+				RGBW::prepareRgbwCalibration(channelCorrection, _whiteAlgorithm, _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+			}
+
 			if (_channel <0 || _channel >= RPI_PWM_CHANNELS)
 			{
 				errortext = QString("WS281x: invalid PWM channel. Must be greater than 0 and less than %1").arg(RPI_PWM_CHANNELS);
@@ -131,23 +148,25 @@ int DriverPwmNeopixel::write(const std::vector<ColorRgb>& ledValues)
 
 	for (const ColorRgb& color : ledValues)
 	{
+		ColorRgbw tempRgbw;
+
 		if (idx >= _ledString->channel[_channel].count)
 		{
 			break;
 		}
 
-		_temp_rgbw.red = color.red;
-		_temp_rgbw.green = color.green;
-		_temp_rgbw.blue = color.blue;
-		_temp_rgbw.white = 0;
+		tempRgbw.red = color.red;
+		tempRgbw.green = color.green;
+		tempRgbw.blue = color.blue;
+		tempRgbw.white = 0;
 
 		if (_ledString->channel[_channel].strip_type == SK6812_STRIP_GRBW)
 		{
-			Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
+			rgb2rgbw(color, &tempRgbw, _whiteAlgorithm, channelCorrection);
 		}
 
 		_ledString->channel[_channel].leds[idx++] =
-			((uint32_t)_temp_rgbw.white << 24) + ((uint32_t)_temp_rgbw.red << 16) + ((uint32_t)_temp_rgbw.green << 8) + _temp_rgbw.blue;
+			((uint32_t)tempRgbw.white << 24) + ((uint32_t)tempRgbw.red << 16) + ((uint32_t)tempRgbw.green << 8) + tempRgbw.blue;
 	}
 
 	while (idx < _ledString->channel[_channel].count)
