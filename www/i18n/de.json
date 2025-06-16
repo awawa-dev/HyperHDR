@@ -1273,5 +1273,12 @@
   "edt_conf_mqtt_disableApiAccess_title": "API-Zugriff deaktivieren",
   "edt_conf_mqtt_disableApiAccess_expl": "Ausführung von API-Befehlen blockieren, die über MQTT gesendet werden.",
   "wiz_zigbee2mqtt_title": "Zigbee2mqtt-Lichtassistent",
-  "wiz_mqtt_error": "Mit dem MQTT-Server verbundene Geräte konnten nicht gefunden werden. Überprüfen Sie die HyperHDR-Protokolle und die MQTT-Clientkonfiguration in den Netzwerkeinstellungen. HyperHDR muss über eine gültige und aktive Verbindung zum MQTT-Broker verfügen."
+  "wiz_mqtt_error": "Mit dem MQTT-Server verbundene Geräte konnten nicht gefunden werden. Überprüfen Sie die HyperHDR-Protokolle und die MQTT-Clientkonfiguration in den Netzwerkeinstellungen. HyperHDR muss über eine gültige und aktive Verbindung zum MQTT-Broker verfügen.",
+  "conf_grabber_amlogic_intro": "Amlogic-Screengrabber",
+  "edt_dev_enum_hyperserial_cold_white": "HyperSerial, Kaltweiß",
+  "edt_dev_enum_hyperserial_neutral_white": "HyperSerial, Neutralweiß",
+  "edt_dev_enum_wled_auto": "Wled auto",
+  "edt_dev_enum_wled_auto_max": "Wled auto max",
+  "edt_dev_enum_wled_auto_accurate": "Wled auto genau",
+  "edt_dev_led_ftdi_select": "Wählen Sie ein FTDI-Gerät, falls vorhanden"
 }
