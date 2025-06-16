@@ -1273,5 +1273,12 @@
   "edt_conf_mqtt_disableApiAccess_title": "Disabilita l'accesso API",
   "edt_conf_mqtt_disableApiAccess_expl": "Blocca l'esecuzione dei comandi API inviati tramite MQTT.",
   "wiz_zigbee2mqtt_title": "Wizard luci Zigbee2mqtt",
-  "wiz_mqtt_error": "Impossibile trovare dispositivi connessi al server MQTT. Controlla i log HyperHDR e la configurazione del client MQTT nelle impostazioni di rete. HyperHDR deve avere una connessione valida e attiva al broker MQTT."
+  "wiz_mqtt_error": "Impossibile trovare dispositivi connessi al server MQTT. Controlla i log HyperHDR e la configurazione del client MQTT nelle impostazioni di rete. HyperHDR deve avere una connessione valida e attiva al broker MQTT.",
+  "conf_grabber_amlogic_intro": "Screen grabber Amlogic",
+  "edt_dev_enum_hyperserial_cold_white": "HyperSerial, bianco freddo",
+  "edt_dev_enum_hyperserial_neutral_white": "HyperSerial, bianco neutro",
+  "edt_dev_enum_wled_auto": "Wled auto",
+  "edt_dev_enum_wled_auto_max": "Wled auto max",
+  "edt_dev_enum_wled_auto_accurate": "Wled auto preciso",
+  "edt_dev_led_ftdi_select": "Selezionare il dispositivo FTDI se presente"
 }
