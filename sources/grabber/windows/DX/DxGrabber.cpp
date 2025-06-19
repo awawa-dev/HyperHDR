@@ -429,6 +429,12 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 
 							int targetSizeX = display->surfaceProperties.ModeDesc.Width, targetSizeY = display->surfaceProperties.ModeDesc.Height;
 
+							if (display->surfaceProperties.Rotation == DXGI_MODE_ROTATION::DXGI_MODE_ROTATION_ROTATE90 ||
+								display->surfaceProperties.Rotation == DXGI_MODE_ROTATION::DXGI_MODE_ROTATION_ROTATE270)
+							{
+								std::swap(targetSizeX, targetSizeY);
+							}
+
 							if (_hardware)
 							{								
 								display->actualWidth = targetSizeX;
@@ -445,8 +451,8 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 										maxSize >>= 1;
 									}
 
-									targetSizeX = display->surfaceProperties.ModeDesc.Width >> display->actualDivide;
-									targetSizeY = display->surfaceProperties.ModeDesc.Height >> display->actualDivide;
+									targetSizeX >>= display->actualDivide;
+									targetSizeY >>= display->actualDivide;
 								}
 								else
 								{
@@ -570,6 +576,12 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 						1,
 						0,
 						D3D11_RESOURCE_MISC_GENERATE_MIPS);
+
+	if (display.surfaceProperties.Rotation == DXGI_MODE_ROTATION::DXGI_MODE_ROTATION_ROTATE90 ||
+		display.surfaceProperties.Rotation == DXGI_MODE_ROTATION::DXGI_MODE_ROTATION_ROTATE270)
+	{
+		std::swap(descConvert->Width, descConvert->Height);
+	}
 
 	status = _d3dDevice->CreateTexture2D(descConvert.get(), nullptr, &display.d3dConvertTexture);
 	if (CHECK(status))
