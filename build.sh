@@ -1,4 +1,5 @@
 #!/bin/bash
+export
 
 print_manual()
 {
