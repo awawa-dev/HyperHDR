@@ -44,16 +44,6 @@ jobs:
             platform: linux
           - runner: ubuntu-24.04
             dockerImage: x86_64
-            linuxVersion: oracular
-            dockerName: Ubuntu 24.10 (x86_64)
-            platform: linux
-          - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: Fedora_41
-            dockerName: Fedora 41 (x86_64)
-            platform: linux
-          - runner: ubuntu-24.04
-            dockerImage: x86_64
             linuxVersion: ArchLinux
             dockerName: Arch Linux (x86_64)
             platform: linux
@@ -66,11 +56,6 @@ jobs:
             dockerImage: arm-64bit-aarch64-native
             linuxVersion: bullseye
             dockerName: Debian Bullseye (native ARM 64-bit Raspberry Pi OS)
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            dockerImage: arm-32bit-armv6l-native
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (native ARM 32-bit Raspberry Pi OS)
             platform: rpi
           - runner: ubuntu-24.04-arm
             dockerImage: arm-64bit-aarch64-native
