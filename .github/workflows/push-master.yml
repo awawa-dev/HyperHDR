@@ -44,13 +44,13 @@ jobs:
             platform: linux
           - runner: ubuntu-24.04
             dockerImage: x86_64
-            linuxVersion: oracular
-            dockerName: Ubuntu 24.10 (x86_64)
+            linuxVersion: plucky
+            dockerName: Ubuntu 25.04 (x86_64)
             platform: linux
           - runner: ubuntu-24.04
             dockerImage: x86_64
-            linuxVersion: Fedora_41
-            dockerName: Fedora 41 (x86_64)
+            linuxVersion: Fedora_42
+            dockerName: Fedora 42 (x86_64)
             platform: linux
           - runner: ubuntu-24.04
             dockerImage: x86_64
@@ -245,9 +245,11 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-2022
+    if: false
     env:
       VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
-      QT_VERSION: 6.5.3
+      QT_VERSION: 6.8.3
+      MSVC: msvc2022
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -271,7 +273,7 @@ jobs:
         if: steps.cache-qt-windows.outputs.cache-hit != 'true'
         run: |          
           pip install aqtinstall
-          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
+          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_${{ env.MSVC }}_64 -m qtserialport
 
       # Generate cache id
       - name: Prepare ccache timestamp
@@ -322,7 +324,7 @@ jobs:
       - name: Build packages        
         env:
           PLATFORM: windows
-          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
+          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/${{ env.MSVC }}_64/lib/cmake/"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |

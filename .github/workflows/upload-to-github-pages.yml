@@ -61,18 +61,18 @@ jobs:
             niceName: Ubuntu 24.04 LTS           
           - runner: ubuntu-24.04
             dockerImage: x86_64
-            linuxVersion: oracular
-            dockerName: Ubuntu 24.10 (x86_64)
+            linuxVersion: plucky
+            dockerName: Ubuntu 25.04 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Ubuntu 24.10
+            niceName: Ubuntu 25.04
           - runner: ubuntu-24.04
             dockerImage: x86_64
-            linuxVersion: Fedora_41
-            dockerName: Fedora 41 (x86_64)
+            linuxVersion: Fedora_42
+            dockerName: Fedora 42 (x86_64)
             arch: amd64
             platform: linux
-            niceName: Fedora 41
+            niceName: Fedora 42
 
     steps:
       # start docker
