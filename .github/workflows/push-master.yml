@@ -271,7 +271,7 @@ jobs:
         if: steps.cache-qt-windows.outputs.cache-hit != 'true'
         run: |          
           pip install aqtinstall
-          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
+          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2022_64 -m qtserialport
 
       # Generate cache id
       - name: Prepare ccache timestamp
