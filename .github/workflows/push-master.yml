@@ -317,19 +317,17 @@ jobs:
         shell: cmd
         run: |
           7z e ccache.zip -o.\build *.exe -r
-
-      - name: Set up x64 build architecture environment
-        shell: cmd
-        run: call "C:\Program Files\Microsoft Visual Studio\${{env.MSVC}}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           
       # Build packages
       - name: Build packages        
         env:
           PLATFORM: windows
+          VCINSTALLDIR: 'C:/Program Files/Microsoft Visual Studio/${{ env.MSVC }}/Enterprise/VC'
           CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc${{ env.MSVC }}_64/lib/cmake/"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
+          "${{env.VCINSTALLDIR}}/Auxiliary/Build/vcvars64.bat"
           ./build.sh
 
       # Upload artifacts (only on tagged commit)
