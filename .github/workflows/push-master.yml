@@ -322,7 +322,7 @@ jobs:
       - name: Build packages        
         env:
           PLATFORM: windows
-          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
+          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2022_64/lib/cmake/"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
