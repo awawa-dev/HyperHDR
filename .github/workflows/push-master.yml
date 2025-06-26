@@ -2,7 +2,6 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
 
 env:
     USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
@@ -245,11 +244,9 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-2022
-    if: false
     env:
-      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      MSVC: 2022
       QT_VERSION: 6.8.3
-      MSVC: msvc2022
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -263,6 +260,11 @@ jobs:
           path: ${{ runner.workspace }}/Qt
           key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
 
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.9
+
       # temporary workaround for aqt: Python 3.13 instead of preinstalled default older version
       - name: Python 3.13 for aqtinstall
         uses: actions/setup-python@v5      
@@ -273,7 +275,7 @@ jobs:
         if: steps.cache-qt-windows.outputs.cache-hit != 'true'
         run: |          
           pip install aqtinstall
-          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_${{ env.MSVC }}_64 -m qtserialport
+          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc${{ env.MSVC }}_64 -m qtserialport
 
       # Generate cache id
       - name: Prepare ccache timestamp
@@ -318,13 +320,13 @@ jobs:
 
       - name: Set up x64 build architecture environment
         shell: cmd
-        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
+        run: call "C:\Program Files\Microsoft Visual Studio\${{env.MSVC}}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           
       # Build packages
       - name: Build packages        
         env:
           PLATFORM: windows
-          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/${{ env.MSVC }}_64/lib/cmake/"
+          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc${{ env.MSVC }}_64/lib/cmake/"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
