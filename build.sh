@@ -163,7 +163,7 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	cd build
 	cmake -G "Visual Studio 17 2022" ${BUILD_OPTION} -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2
 	./ccache.exe -zp || true
-	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
+	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || (dir D:\a\HyperHDR\HyperHDR\build\sources\api\hyperhdr-api.dir\Release\* && exit 3)
 	./ccache.exe -sv || true
 
 	exit 0;
