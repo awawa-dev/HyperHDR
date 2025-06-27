@@ -1273,5 +1273,12 @@
   "edt_conf_mqtt_disableApiAccess_title": "Dezactivați accesul la API",
   "edt_conf_mqtt_disableApiAccess_expl": "Blocați execuția comenzilor API trimise prin MQTT.",
   "wiz_zigbee2mqtt_title": "Zigbee2mqtt expert lumini",
-  "wiz_mqtt_error": "Nu s-au putut găsi dispozitive conectate la serverul MQTT. Verificați jurnalele HyperHDR și configurația clientului MQTT în setările de rețea. HyperHDR trebuie să aibă o conexiune validă și activă la brokerul MQTT."
+  "wiz_mqtt_error": "Nu s-au putut găsi dispozitive conectate la serverul MQTT. Verificați jurnalele HyperHDR și configurația clientului MQTT în setările de rețea. HyperHDR trebuie să aibă o conexiune validă și activă la brokerul MQTT.",
+  "conf_grabber_amlogic_intro": "Amlogic screen grabber",
+  "edt_dev_enum_hyperserial_cold_white": "HyperSerial, alb rece",
+  "edt_dev_enum_hyperserial_neutral_white": "HyperSerial, alb neutru",
+  "edt_dev_enum_wled_auto": "Wled auto",
+  "edt_dev_enum_wled_auto_max": "Wled auto max",
+  "edt_dev_enum_wled_auto_accurate": "Wled auto precise",
+  "edt_dev_led_ftdi_select": "Selectați dispozitivul FTDI dacă este prezent"
 }
