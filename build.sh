@@ -216,12 +216,13 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DISTRO_VERSION} ../ || exit 2 )"
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
-
-	echo "Pulling HyperHDR container..."	
-	docker container pull $REGISTRY_URL
 	
 	echo "Starting HyperHDR container..."	
-	docker container start $REGISTRY_URL
+	docker run \
+	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
+	-v "${CI_BUILD_DIR}/deploy:/deploy" \
+	-v "${CI_BUILD_DIR}:/source:ro" \
+	$REGISTRY_URL
 
 	echo "Checking QEMU..."
 	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
