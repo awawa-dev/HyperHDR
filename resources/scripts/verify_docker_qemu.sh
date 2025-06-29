@@ -127,7 +127,7 @@ fi
 echo "Target Docker Image Architecture: ${TARGET_DOCKER_ARCH}"
 
 # 3. Conditional QEMU check
-if [ "$HOST_ARCH" = "$TARGET_DOCKER_ARCH" ] || [ "$HOST_ARCH" = "arm64" && "$TARGET_DOCKER_ARCH" = "armhf" ]; then
+if [[ "$HOST_ARCH" == "$TARGET_DOCKER_ARCH" || ( "$HOST_ARCH" == "arm64" && "$TARGET_DOCKER_ARCH" == "armhf" ) ]]; then
     echo "Host architecture (${HOST_ARCH}) matches target Docker image architecture. QEMU emulation is not required."
     echo "Ready to build/run the native image."
     exit 0
