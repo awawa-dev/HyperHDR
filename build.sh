@@ -197,7 +197,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	
 	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"
 
-	if [[ "$DISTRO_NAME" == "ArchLinux" ]]; then
+	if [[ "$DISTRO_NAME" == "archlinux" ]]; then
 		echo "Arch Linux detected"
 		cp cmake/linux/arch/* .
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
@@ -218,14 +218,14 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	fi
 	
 	# verify if QEMU is neccesery
-	#echo "Starting HyperHDR container..."	
-	#docker run --name manifest_provider --read-only $REGISTRY_URL
+	echo "Starting HyperHDR container..."	
+	docker run --name manifest_provider --read-only $REGISTRY_URL
 
-	#echo "Checking if QEMU is neccesery..."
-	#resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
+	echo "Checking if QEMU is neccesery..."
+	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 
-	#docker stop manifest_provider
-	#docker rm manifest_provider
+	docker stop manifest_provider
+	docker rm manifest_provider
 
 	# run docker
 	docker run --rm \
