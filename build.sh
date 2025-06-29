@@ -25,7 +25,7 @@ print_manual()
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}x86_64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}plucky${ColorReset}         | ${YellowColor2}x86_64${ColorReset}"
 	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}42${ColorReset}             | ${YellowColor2}x86_64${ColorReset}"
-	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}latest${ColorReset}         | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}rolling${ColorReset}         | ${YellowColor2}x86_64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
@@ -221,7 +221,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	echo "Starting HyperHDR container..."
 	docker run $REGISTRY_URL
 
-	echo "Check QEMU..."
+	echo "Checking QEMU..."
 	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 
 	# run docker
