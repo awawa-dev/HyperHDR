@@ -114,23 +114,23 @@ function compareHyperHdrVersion(compareA, compareB)
 	var valueA = compareA.split('.');
 	var valueB = compareB.split('.');
 	
-	if (valueA.length < 4 || valueB.length < 4)
+	if (valueA.length < 3 || valueB.length < 3)
 	{
 		console.log(`Invalid length: A:${valueA.length} B:${valueB.length}`);
 		return true;
 	}
 	
 	var finalA = "";
-	for (var i = 0; i < valueA[3].length; i++)
-		if (!isNaN(valueA[3][i]))
-			finalA = finalA.concat(valueA[3][i]);
-	valueA[3] = finalA;
+	for (var i = 0; i < valueA[2].length; i++)
+		if (!isNaN(valueA[2][i]))
+			finalA = finalA.concat(valueA[2][i]);
+	valueA[2] = finalA;
 	
 	var finalB = "";
-	for (var i = 0; i < valueB[3].length; i++)
-		if (!isNaN(valueB[3][i]))
-			finalB = finalB.concat(valueB[3][i]);
-	valueB[3] = finalB;
+	for (var i = 0; i < valueB[2].length; i++)
+		if (!isNaN(valueB[2][i]))
+			finalB = finalB.concat(valueB[2][i]);
+	valueB[2] = finalB;
 
 	if ((compareA.indexOf('beta') >= 0 || compareA.indexOf('alpha') >= 0) &&
 		(compareB.indexOf('beta') < 0 && compareB.indexOf('alpha') < 0))
@@ -146,7 +146,7 @@ function compareHyperHdrVersion(compareA, compareB)
 			return true;
 	}
 	
-	for (var i = 0; i < 4; i++)
+	for (var i = 0; i < 3; i++)
 	{
 		if (Number(valueA[i]) > Number(valueB[i]))
 		{

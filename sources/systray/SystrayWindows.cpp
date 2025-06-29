@@ -104,10 +104,11 @@ static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
 		case WM_COMMAND:
 			if (wparam >= ID_TRAY_FIRST)
 			{
-				MENUITEMINFO item = {
-					.cbSize = sizeof(MENUITEMINFO),
-					.fMask = MIIM_ID | MIIM_DATA
-				};
+				MENUITEMINFO item{};
+
+				item.cbSize = sizeof(MENUITEMINFO);
+				item.fMask = MIIM_ID | MIIM_DATA;
+				
 				if (GetMenuItemInfo(menu, static_cast<UINT>(wparam), FALSE, &item))
 				{
 					SystrayMenu* menu = reinterpret_cast<SystrayMenu*>(item.dwItemData);

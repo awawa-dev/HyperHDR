@@ -160,28 +160,6 @@ cmake --build . --config Release -- -maxcpucount
 bin/Release/hyperhdr -d
 ```
 
-### LibreELEC 
-
-You can find the add-on sources here on branches of my LibreELEC fork: https://github.com/awawa-dev/LibreELEC.tv/ For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
-
-LibreELEC 11/RPi:
-```
-PROJECT=RPi ARCH=arm DEVICE=RPi4 make image
-PROJECT=RPi DEVICE=RPi4 ARCH=arm ./scripts/create_addon hyperhdr
-```
-
-LibreELEC 12/RPi:
-```
-PROJECT=RPi ARCH=aarch64 DEVICE=RPi4 make image
-PROJECT=RPi DEVICE=RPi4 ARCH=aarch64 ./scripts/create_addon hyperhdr
-```
-
-PC(x86_64):
-```
-PROJECT=Generic ARCH=x86_64 DEVICE=Generic make image
-PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
-```
-
 ----
 
 # Build a HyperHDR installer for any supported Linux system on any system using Docker
@@ -193,17 +171,18 @@ pi@ubuntu:~/hyperhdr$ ./build.sh
 
 Required environmental options:
 PLATFORM - one of the supported targets: osx|windows|linux|rpi
-DOCKER_TAG | DOCKER_IMAGE - both are required only for linux|rpi platforms:
-   Debian => bullseye | x86_64
-   Debian => bullseye | arm-32bit-armv6l
-   Debian => bullseye | arm-64bit-aarch64
-   Debian => bookworm | x86_64
-   Debian => bookworm | arm-32bit-armv6l
-   Debian => bookworm | arm-64bit-aarch64
-   Ubuntu => jammy | x86_64
-   Ubuntu => noble | x86_64
-   Fedora => Fedora_40 | x86_64
-   ArchLinux => ArchLinux | x86_64
+DISTRO_NAME  | DISTRO_VERSION | ARCHITECTURE - these are only for linux targets
+   debian    | bullseye       | armhf
+   debian    | bullseye       | arm64
+   debian    | bullseye       | amd64
+   debian    | bookworm       | armhf
+   debian    | bookworm       | arm64
+   debian    | bookworm       | amd64
+   ubuntu    | jammy          | amd64
+   ubuntu    | noble          | amd64
+   ubuntu    | plucky         | amd64
+   fedora    | 42             | amd64
+   archlinux | rolling        | amd64
 
 Optional environmental options:
 BUILD_TYPE - Release|Debug, default is Release version
@@ -213,7 +192,7 @@ USE_CCACHE - false|true, use ccache if available
 RESET_CACHE - false|true, reset ccache storage
 
 Example of usage:
-PLATFORM=rpi DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh
+PLATFORM=rpi DISTRO_NAME=debian DISTRO_VERSION=bullseye ARCHITECTURE=arm64 ./build.sh
 Installers from Docker builds will be ready in the deploy folder
 ```
 
