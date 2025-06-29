@@ -217,8 +217,10 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
 
-	# verify user qemu
-	echo "Starting HyperHDR container..."
+	echo "Pulling HyperHDR container..."	
+	docker container pull $REGISTRY_URL
+	
+	echo "Starting HyperHDR container..."	
 	docker container start $REGISTRY_URL
 
 	echo "Checking QEMU..."
