@@ -16,65 +16,65 @@ jobs:
 ######################
 
   Linux:
-    name: ${{ matrix.dockerName }}
+    name: ${{ matrix.architecture }}/${{ matrix.distroName }}:${{ matrix.distroVersion }}
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (x86_64)
+            architecture: x86_64
+            distroName: debian
+            distroVersion: bullseye               
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (x86_64)
+            architecture: x86_64
+            distroName: debian
+            distroVersion: bookworm              
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: jammy
-            dockerName: Ubuntu 22.04 LTS (x86_64)
+            architecture: x86_64
+            distroName: ubuntu
+            distroVersion: jammy             
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: noble
-            dockerName: Ubuntu 24.04 LTS (x86_64)
+            architecture: x86_64
+            distroName: ubuntu
+            distroVersion: noble               
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: plucky
-            dockerName: Ubuntu 25.04 (x86_64)
+            architecture: x86_64
+            distroName: ubuntu
+            distroVersion: plucky             
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: Fedora_42
-            dockerName: Fedora 42 (x86_64)
+            architecture: x86_64
+            distroName: fedora
+            distroVersion: 42  
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: ArchLinux
-            dockerName: Arch Linux (x86_64)
+            architecture: x86_64
+            distroName: archlinux
+            distroVersion: latest
             platform: linux
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-32bit-armv6l-native
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (native ARM 32-bit Raspberry Pi OS)
+            architecture: armhf
+            distroName: debian
+            distroVersion: bullseye            
             platform: rpi
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-64bit-aarch64-native
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (native ARM 64-bit Raspberry Pi OS)
+            architecture: arm64
+            distroName: debian
+            distroVersion: bullseye  
             platform: rpi
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-32bit-armv6l-native
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (native ARM 32-bit Raspberry Pi OS)
+            architecture: armhf
+            distroName: debian
+            distroVersion: bookworm  
             platform: rpi
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-64bit-aarch64-native
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (native ARM 64-bit Raspberry Pi OS)
+            architecture: arm64
+            distroName: debian
+            distroVersion: bookworm 
             platform: rpi
     steps:
       # start docker
@@ -120,9 +120,9 @@ jobs:
 
       - name: Build packages
         env:
-          DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: ${{ matrix.linuxVersion }}
-          DOCKER_NAME: ${{ matrix.dockerName }}
+          ARCHITECTURE: ${{ matrix.architecture }}
+          DISTRO_NAME: ${{ matrix.distroName }}
+          DISTRO_VERSION: ${{ matrix.distroVersion }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
@@ -135,7 +135,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}
+          name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
           path: deploy/Hyper*
 
       # Upload artifacts from commit
@@ -143,7 +143,7 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
+          name: Linux-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-installer
           path: |
             deploy/Hyper*.deb
             deploy/Hyper*.zst
