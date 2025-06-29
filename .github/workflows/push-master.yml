@@ -22,37 +22,37 @@ jobs:
       matrix:
         include:
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: debian
             distroVersion: bullseye               
             platform: linux
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: debian
             distroVersion: bookworm              
             platform: linux
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: ubuntu
             distroVersion: jammy             
             platform: linux
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: ubuntu
             distroVersion: noble               
             platform: linux
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: ubuntu
             distroVersion: plucky             
             platform: linux
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: fedora
             distroVersion: 42  
             platform: linux
           - runner: ubuntu-24.04
-            architecture: x86_64
+            architecture: amd64
             distroName: archlinux
             distroVersion: latest
             platform: linux
