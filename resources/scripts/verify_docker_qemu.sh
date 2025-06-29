@@ -35,8 +35,6 @@ get_target_docker_architecture() {
     local image="$1"
     local target_arch=""
 
-    echo "  Analyzing HyperHDR's Docker image builder emanifest: ${image}"
-
     # Check if Docker is running
     if ! docker info &>/dev/null; then
         echo "ERROR: Docker is not running or you don't have access to it."
@@ -48,7 +46,6 @@ get_target_docker_architecture() {
     # This works if the image is already pulled locally.
     if docker inspect "${image}" &>/dev/null; then
         target_arch=$(docker inspect "${image}" --format '{{ .Architecture }}')
-        echo "  Image architecture (from local image): ${target_arch}"
         # Normalize arch name (e.g., aarch64 -> arm64)
         case "$target_arch" in
             x86_64) target_arch="amd64" ;;
@@ -57,6 +54,7 @@ get_target_docker_architecture() {
             armv6l) target_arch="armel" ;;
             *) ;; # Keep as is for others
         esac
+        return $target_arch
     else
         echo "ERROR: Image ${image} does not exist locally."
         return 1 # Indicate an error
