@@ -219,7 +219,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	
 	# verify if QEMU is neccesery
 	echo "Starting HyperHDR container..."	
-	docker run --name manifest_provider --read_only $REGISTRY_URL
+	docker run --name manifest_provider --read-only $REGISTRY_URL
 
 	echo "Checking if QEMU is neccesery..."
 	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
