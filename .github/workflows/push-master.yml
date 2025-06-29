@@ -103,15 +103,15 @@ jobs:
         uses: actions/cache@v4.2.3
         with:
            path: .ccache
-           key: ${{ matrix.architecture }}-${{ matrix.distroName }}}-${{ matrix.distroVersion }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}}-${{ matrix.distroVersion }}-ccache-
+           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Clear branch ccache storage
         uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
         with:
           ref: ${{ github.event.ref }}
-          key: ${{ matrix.architecture }}-${{ matrix.distroName }}}-${{ matrix.distroVersion }}-ccache-
+          key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Check default version
         if: matrix.linuxVersion != 'bullseye'
