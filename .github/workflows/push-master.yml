@@ -51,11 +51,11 @@ jobs:
             distroName: fedora
             distroVersion: 42  
             platform: linux
-#          - runner: ubuntu-24.04
-#            architecture: amd64
-#            distroName: archlinux
-#            distroVersion: rolling
-#            platform: linux
+          - runner: ubuntu-24.04
+            architecture: amd64
+            distroName: archlinux
+            distroVersion: rolling
+            platform: linux
           - runner: ubuntu-24.04-arm
             architecture: armhf
             distroName: debian

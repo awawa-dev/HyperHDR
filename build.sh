@@ -217,11 +217,15 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
 	
+	# verify if QEMU is neccesery
 	echo "Starting HyperHDR container..."	
-	docker run $REGISTRY_URL
+	docker run --name manifest_provider --read_only $REGISTRY_URL
 
-	echo "Checking QEMU..."
+	echo "Checking if QEMU is neccesery..."
 	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
+
+	docker stop manifest_provider
+	docker rm manifest_provider
 
 	# run docker
 	docker run --rm \
