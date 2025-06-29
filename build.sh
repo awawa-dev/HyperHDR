@@ -217,6 +217,9 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
 
+	# pull docker
+	docker pull $REGISTRY_URL
+
 	# verify user qemu
 	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 

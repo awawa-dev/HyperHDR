@@ -44,44 +44,22 @@ get_target_docker_architecture() {
         return 1 # Indicate an error
     fi
 
-    # Check if the image is multi-arch (has a manifest list)
-    if docker manifest inspect "${image}" &>/dev/null; then
-        echo "  Multi-architecture image detected."
-        
-        for arch in "${PREFERRED_ARCHITECTURES[@]}"; do
-            if docker manifest inspect "${image}" | jq -e ".[] | select(.platform.architecture==\"${arch}\")" &>/dev/null; then
-                target_arch="${arch}"
-                echo "  Found matching architecture in manifest: ${target_arch}"
-                break # Stop searching after finding the first preferred one
-            fi
-        done
-
-        if [ -z "${target_arch}" ]; then
-            echo "WARNING: None of the preferred architectures found in the image manifest."
-            echo "Available architectures in manifest:"
-            docker manifest inspect "${image}" | jq -r '.[].platform.architecture' | sort -u
-            return 1 # Indicate an error (no preferred arch found)
-        fi
-
+    # If it's a single-architecture image, try to get its architecture from "docker inspect"
+    # This works if the image is already pulled locally.
+    if docker inspect "${image}" &>/dev/null; then
+        target_arch=$(docker inspect "${image}" --format '{{ .Architecture }}')
+        echo "  Image architecture (from local image): ${target_arch}"
+        # Normalize arch name (e.g., aarch64 -> arm64)
+        case "$target_arch" in
+            x86_64) target_arch="amd64" ;;
+            aarch64) target_arch="arm64" ;;
+            armv7l) target_arch="armhf" ;;
+            armv6l) target_arch="armel" ;;
+            *) ;; # Keep as is for others
+        esac
     else
-        echo "  Single-architecture image or non-existent/not-locally-pulled image."
-        # If it's a single-architecture image, try to get its architecture from "docker inspect"
-        # This works if the image is already pulled locally.
-        if docker inspect "${image}" &>/dev/null; then
-            target_arch=$(docker inspect "${image}" --format '{{ .Architecture }}')
-            echo "  Image architecture (from local image): ${target_arch}"
-            # Normalize arch name (e.g., aarch64 -> arm64)
-            case "$target_arch" in
-                x86_64) target_arch="amd64" ;;
-                aarch64) target_arch="arm64" ;;
-                armv7l) target_arch="armhf" ;;
-                armv6l) target_arch="armel" ;;
-                *) ;; # Keep as is for others
-            esac
-        else
-            echo "ERROR: Image ${image} does not exist locally and is not multi-arch. Cannot determine architecture."
-            return 1 # Indicate an error
-        fi
+        echo "ERROR: Image ${image} does not exist locally."
+        return 1 # Indicate an error
     fi
 
     if [ -z "${target_arch}" ]; then
