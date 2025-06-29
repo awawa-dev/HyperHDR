@@ -54,7 +54,6 @@ get_target_docker_architecture() {
             armv6l) target_arch="armel" ;;
             *) ;; # Keep as is for others
         esac
-        return $target_arch
     else
         echo "ERROR: Image ${image} does not exist locally."
         return 1 # Indicate an error
