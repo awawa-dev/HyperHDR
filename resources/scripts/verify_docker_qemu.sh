@@ -52,7 +52,7 @@ get_target_docker_architecture() {
             aarch64) target_arch="arm64" ;;
             armv7l) target_arch="armhf" ;;
             armv6l) target_arch="armhf" ;;
-            armv) target_arch="armhf" ;;
+            arm) target_arch="armhf" ;;
             *) ;; # Keep as is for others
         esac
     else
