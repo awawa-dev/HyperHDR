@@ -219,7 +219,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 
 	# verify user qemu
 	echo "Starting HyperHDR container..."
-	docker run \
+	docker container start \
 	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
 	-v "${CI_BUILD_DIR}/deploy:/deploy" \
 	-v "${CI_BUILD_DIR}:/source:ro" \
