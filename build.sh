@@ -219,17 +219,17 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 
 	# verify user qemu
 	echo "Starting HyperHDR container..."
-	docker run $REGISTRY_URL
+	docker run --rm \
+	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
+	-v "${CI_BUILD_DIR}/deploy:/deploy" \
+	-v "${CI_BUILD_DIR}:/source:ro" \
+	$REGISTRY_URL
 
 	echo "Checking QEMU..."
 	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 
 	# run docker
-	docker run --rm \
-	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
-	-v "${CI_BUILD_DIR}/deploy:/deploy" \
-	-v "${CI_BUILD_DIR}:/source:ro" \
-	$REGISTRY_URL \
+	docker run $REGISTRY_URL \
 	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -rf /source/. /hyperhdr &&
 	cd /hyperhdr && mkdir build && (${executeCommand}) &&
 	(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
