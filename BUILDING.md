@@ -160,28 +160,6 @@ cmake --build . --config Release -- -maxcpucount
 bin/Release/hyperhdr -d
 ```
 
-### LibreELEC 
-
-You can find the add-on sources here on branches of my LibreELEC fork: https://github.com/awawa-dev/LibreELEC.tv/ For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
-
-LibreELEC 11/RPi:
-```
-PROJECT=RPi ARCH=arm DEVICE=RPi4 make image
-PROJECT=RPi DEVICE=RPi4 ARCH=arm ./scripts/create_addon hyperhdr
-```
-
-LibreELEC 12/RPi:
-```
-PROJECT=RPi ARCH=aarch64 DEVICE=RPi4 make image
-PROJECT=RPi DEVICE=RPi4 ARCH=aarch64 ./scripts/create_addon hyperhdr
-```
-
-PC(x86_64):
-```
-PROJECT=Generic ARCH=x86_64 DEVICE=Generic make image
-PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
-```
-
 ----
 
 # Build a HyperHDR installer for any supported Linux system on any system using Docker
