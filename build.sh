@@ -61,7 +61,7 @@ else
 	echo "Local system build detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	CI_TYPE="other"
-	CI_BUILD_DIR="$PWD"
+	CI_BUILD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
 # set environment variables if not exists
@@ -218,14 +218,9 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	fi
 	
 	# verify if QEMU is neccesery
-	echo "Starting HyperHDR container..."	
-	docker run --name manifest_provider --read-only $REGISTRY_URL
-
 	echo "Checking if QEMU is neccesery..."
-	resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
-
-	docker stop manifest_provider
-	docker rm manifest_provider
+	docker pull $REGISTRY_URL
+	$CI_BUILD_DIR/resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 
 	# run docker
 	docker run --rm \

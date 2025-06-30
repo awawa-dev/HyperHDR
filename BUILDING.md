@@ -108,8 +108,8 @@ We assume a 64bit Windows 10. Install the following;
 - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo/releases)
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check during installation: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
-  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 6.5.3 windows desktop win64_msvc2019_64 -m qtserialport`
-  - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.5.3\msvc2019_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
+  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 6.8.3 windows desktop win64_msvc2022_64 -m qtserialport`
+  - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.8.3\msvc2022_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
 - Optional for creating installer packages: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
 Hint: after you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
@@ -158,6 +158,28 @@ cmake --build . --config Release -- -maxcpucount
 
 # Run it from the build directory
 bin/Release/hyperhdr -d
+```
+
+### LibreELEC 
+
+You can find the add-on sources here on branches of my LibreELEC fork: https://github.com/awawa-dev/LibreELEC.tv/ For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
+
+LibreELEC 11/RPi:
+```
+PROJECT=RPi ARCH=arm DEVICE=RPi4 make image
+PROJECT=RPi DEVICE=RPi4 ARCH=arm ./scripts/create_addon hyperhdr
+```
+
+LibreELEC 12/RPi:
+```
+PROJECT=RPi ARCH=aarch64 DEVICE=RPi4 make image
+PROJECT=RPi DEVICE=RPi4 ARCH=aarch64 ./scripts/create_addon hyperhdr
+```
+
+PC(x86_64):
+```
+PROJECT=Generic ARCH=x86_64 DEVICE=Generic make image
+PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
 ```
 
 ----
