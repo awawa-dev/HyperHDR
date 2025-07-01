@@ -1,16 +1,17 @@
 #!/bin/bash
 
+# color me
+EscChar="\033"
+ColorReset="${EscChar}[m"
+RedColor="${EscChar}[31;1m"
+GreenColor="${EscChar}[32;1m"
+YellowColor="${EscChar}[33;1m"
+YellowColor2="${EscChar}[38;5;220m"
+BlueColor="${EscChar}[34;1m"
+CyanColor="${EscChar}[36;1m"
+
 print_manual()
 {
-	EscChar="\033"
-	ColorReset="${EscChar}[m"
-	RedColor="${EscChar}[31;1m"
-	GreenColor="${EscChar}[32;1m"
-	YellowColor="${EscChar}[33;1m"
-	YellowColor2="${EscChar}[38;5;220m"
-	BlueColor="${EscChar}[34;1m"
-	CyanColor="${EscChar}[36;1m"
-
 	printf "\n${GreenColor}Required environmental options:${ColorReset}"
 
 	printf "\n${YellowColor}PLATFORM${ColorReset} - one of the supported targets: osx|windows|linux|rpi"
@@ -72,16 +73,16 @@ fi
 [ -z "${BUILD_ARCHIVES}" ] && BUILD_ARCHIVES=true
 
 
-printf "\nPLATFORM = %s" ${PLATFORM}
-printf "\nDISTRO_NAME = %s" ${DISTRO_NAME}
-printf "\nDISTRO_VERSION = %s" ${DISTRO_VERSION}
-printf "\nARCHITECTURE = %s" ${ARCHITECTURE}
-printf "\nBUILD_TYPE = %s" ${BUILD_TYPE}
-printf "\nBUILD_ARCHIVES = %s" ${BUILD_ARCHIVES}
-printf "\nUSE_STANDARD_INSTALLER_NAME = %s" ${USE_STANDARD_INSTALLER_NAME}
-printf "\nUSE_CCACHE = %s" ${USE_CCACHE}
-printf "\nRESET_CACHE = %s" ${RESET_CACHE}
-printf "\n"
+printf "\n${GreenColor}PLATFORM${ColorReset}       = ${YellowColor}${PLATFORM}${ColorReset}"
+printf "\n${GreenColor}DISTRO_NAME${ColorReset}    = ${YellowColor}${DISTRO_NAME}${ColorReset}"
+printf "\n${GreenColor}DISTRO_VERSION${ColorReset} = ${YellowColor}${DISTRO_VERSION}${ColorReset}"
+printf "\n${GreenColor}ARCHITECTURE${ColorReset}   = ${YellowColor}${ARCHITECTURE}${ColorReset}"
+printf "\n${GreenColor}BUILD_TYPE${ColorReset}     = ${YellowColor}${BUILD_TYPE}${ColorReset}"
+printf "\n${GreenColor}BUILD_ARCHIVES${ColorReset} = ${YellowColor}${BUILD_ARCHIVES}${ColorReset}"
+printf "\n${GreenColor}USE_CCACHE${ColorReset}     = ${YellowColor}${USE_CCACHE}${ColorReset}"
+printf "\n${GreenColor}RESET_CACHE${ColorReset}    = ${YellowColor}${RESET_CACHE}${ColorReset}"
+printf "\n${GreenColor}USE_STANDARD_INSTALLER_NAME${ColorReset} = ${YellowColor}${USE_STANDARD_INSTALLER_NAME}${ColorReset}"
+printf "\n\n"
 
 if [ ${BUILD_ARCHIVES} = true ]; then
 	echo "Build the package archive"
