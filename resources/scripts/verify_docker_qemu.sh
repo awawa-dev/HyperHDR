@@ -131,13 +131,14 @@ echo "Target Docker Image Architecture: ${TARGET_DOCKER_ARCH}"
 if [[ "$HOST_ARCH" == "$TARGET_DOCKER_ARCH" || ( "$HOST_ARCH" == "arm64" && "$TARGET_DOCKER_ARCH" == "armhf" ) ]]; then
     echo "Host architecture (${HOST_ARCH}) matches target Docker image architecture. QEMU emulation is not required."
     echo "Ready to build/run the native image."
-    exit 0
+    return 0
 else
     echo "Host architecture (${HOST_ARCH}) differs from target Docker image architecture (${TARGET_DOCKER_ARCH}). QEMU emulation is required."
     if check_qemu_binfmt; then
+        TARGET_DOCKER_QEMU_LINUX_ARCH="--platform linux/$TARGET_DOCKER_ARCH"
         echo "QEMU user static emulation is ready for cross-architecture HyperHDR compiling."
         echo "You can proceed with your Docker operations."
-        exit 0
+        return 0
     else
         echo "---------------------------------------------------------"
         echo "WARNING: QEMU user static emulation is not detected or not fully configured."

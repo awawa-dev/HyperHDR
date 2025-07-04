@@ -218,19 +218,19 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
 	
-	# verify if QEMU is neccesery
+	# verify if QEMU is neccesery and then set TARGET_DOCKER_QEMU_LINUX_ARCH also
 	echo "Checking if QEMU is neccesery..."
 	docker pull $REGISTRY_URL
-	$CI_BUILD_DIR/resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
+	source $CI_BUILD_DIR/resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 
 	# run docker
-	docker run --rm \
+	docker run --rm ${TARGET_DOCKER_QEMU_LINUX_ARCH} \
 	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
 	-v "${CI_BUILD_DIR}/deploy:/deploy" \
 	-v "${CI_BUILD_DIR}:/source:ro" \
 	$REGISTRY_URL \
 	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -rf /source/. /hyperhdr &&
-	cd /hyperhdr && mkdir build && (${executeCommand}) &&
+	cd /hyperhdr && mkdir -p build && (${executeCommand}) &&
 	(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
 	(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
 	(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&
