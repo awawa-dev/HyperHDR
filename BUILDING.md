@@ -108,8 +108,8 @@ We assume a 64bit Windows 10. Install the following;
 - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo/releases)
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check during installation: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
-  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 6.5.3 windows desktop win64_msvc2019_64 -m qtserialport`
-  - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.5.3\msvc2019_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
+  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 6.8.3 windows desktop win64_msvc2022_64 -m qtserialport`
+  - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.8.3\msvc2022_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
 - Optional for creating installer packages: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
 Hint: after you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
@@ -193,17 +193,18 @@ pi@ubuntu:~/hyperhdr$ ./build.sh
 
 Required environmental options:
 PLATFORM - one of the supported targets: osx|windows|linux|rpi
-DOCKER_TAG | DOCKER_IMAGE - both are required only for linux|rpi platforms:
-   Debian => bullseye | x86_64
-   Debian => bullseye | arm-32bit-armv6l
-   Debian => bullseye | arm-64bit-aarch64
-   Debian => bookworm | x86_64
-   Debian => bookworm | arm-32bit-armv6l
-   Debian => bookworm | arm-64bit-aarch64
-   Ubuntu => jammy | x86_64
-   Ubuntu => noble | x86_64
-   Fedora => Fedora_40 | x86_64
-   ArchLinux => ArchLinux | x86_64
+DISTRO_NAME  | DISTRO_VERSION | ARCHITECTURE - these are only for linux targets
+   debian    | bullseye       | armhf
+   debian    | bullseye       | arm64
+   debian    | bullseye       | amd64
+   debian    | bookworm       | armhf
+   debian    | bookworm       | arm64
+   debian    | bookworm       | amd64
+   ubuntu    | jammy          | amd64
+   ubuntu    | noble          | amd64
+   ubuntu    | plucky         | amd64
+   fedora    | 42             | amd64
+   archlinux | rolling        | amd64
 
 Optional environmental options:
 BUILD_TYPE - Release|Debug, default is Release version
@@ -213,7 +214,7 @@ USE_CCACHE - false|true, use ccache if available
 RESET_CACHE - false|true, reset ccache storage
 
 Example of usage:
-PLATFORM=rpi DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh
+PLATFORM=rpi DISTRO_NAME=debian DISTRO_VERSION=bullseye ARCHITECTURE=arm64 ./build.sh
 Installers from Docker builds will be ready in the deploy folder
 ```
 

@@ -1,30 +1,32 @@
 #!/bin/bash
 
+# color me
+EscChar="\033"
+ColorReset="${EscChar}[m"
+RedColor="${EscChar}[31;1m"
+GreenColor="${EscChar}[32;1m"
+YellowColor="${EscChar}[33;1m"
+YellowColor2="${EscChar}[38;5;220m"
+BlueColor="${EscChar}[34;1m"
+CyanColor="${EscChar}[36;1m"
+
 print_manual()
 {
-	EscChar="\033"
-	ColorReset="${EscChar}[m"
-	RedColor="${EscChar}[31;1m"
-	GreenColor="${EscChar}[32;1m"
-	YellowColor="${EscChar}[33;1m"
-	YellowColor2="${EscChar}[33m"
-	BlueColor="${EscChar}[34;1m"
-	CyanColor="${EscChar}[36;1m"
-
 	printf "\n${GreenColor}Required environmental options:${ColorReset}"
-	printf "\n${YellowColor}PLATFORM${ColorReset} - one of the supported targets: osx|windows|linux|rpi"
-	printf "\n${YellowColor}DOCKER_TAG${ColorReset} | ${YellowColor}DOCKER_IMAGE${ColorReset} - both are required only for linux|rpi platforms:"
 
-	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
-	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}arm-32bit-armv6l${ColorReset}"
-	printf "\n   Debian => ${YellowColor2}bullseye${ColorReset} | ${YellowColor2}arm-64bit-aarch64${ColorReset}"
-	printf "\n   Debian => ${YellowColor2}bookworm${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
-	printf "\n   Debian => ${YellowColor2}bookworm${ColorReset} | ${YellowColor2}arm-32bit-armv6l${ColorReset}"
-	printf "\n   Debian => ${YellowColor2}bookworm${ColorReset} | ${YellowColor2}arm-64bit-aarch64${ColorReset}"
-	printf "\n   Ubuntu => ${YellowColor2}jammy${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
-	printf "\n   Ubuntu => ${YellowColor2}noble${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
-	printf "\n   Fedora => ${YellowColor2}Fedora_40${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
-	printf "\n   ArchLinux => ${YellowColor2}ArchLinux${ColorReset} | ${YellowColor2}x86_64${ColorReset}"
+	printf "\n${YellowColor}PLATFORM${ColorReset} - one of the supported targets: osx|windows|linux|rpi"
+	printf "\n${YellowColor}DISTRO_NAME${ColorReset}  | ${YellowColor}DISTRO_VERSION${ColorReset} | ${YellowColor}ARCHITECTURE${ColorReset} - these are only for linux targets"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}armhf${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}arm64${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}amd64${ColorReset}"	
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}armhf${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}arm64${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}amd64${ColorReset}"	
+	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}jammy${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}plucky${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}42${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}rolling${ColorReset}        | ${YellowColor2}amd64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
@@ -32,13 +34,13 @@ print_manual()
 	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - false|true, use standard Linux package naming"
 	printf "\n${CyanColor}USE_CCACHE${ColorReset} - false|true, use ccache if available"
 	printf "\n${CyanColor}RESET_CACHE${ColorReset} - false|true, reset ccache storage"
-	printf "\n\n${GreenColor}Example of usage:${ColorReset}\n${YellowColor}PLATFORM=rpi DOCKER_TAG=bullseye DOCKER_IMAGE=arm-64bit-aarch64 ./build.sh${ColorReset}"
+	printf "\n\n${GreenColor}Example of usage:${ColorReset}\n${YellowColor}PLATFORM=rpi DISTRO_NAME=debian DISTRO_VERSION=bullseye ARCHITECTURE=arm64 ./build.sh${ColorReset}"
 	printf "\nInstallers from Docker builds will be ready in the ${RedColor}deploy${ColorReset} folder"
 	printf "\n\n"
 	exit 0
 }
 
-if [[ "$PLATFORM" == "" || ( ("$PLATFORM" == "linux" || "$PLATFORM" == "rpi") && ( "$DOCKER_IMAGE" = "" || "$DOCKER_TAG" = "" ) ) ]]; then
+if [[ "$PLATFORM" == "" || ( ("$PLATFORM" == "linux" || "$PLATFORM" == "rpi") && ( "$ARCHITECTURE" = "" || "$DISTRO_NAME" = "" || "$DISTRO_VERSION" = "") ) ]]; then
 	print_manual
 fi
 
@@ -60,7 +62,7 @@ else
 	echo "Local system build detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	CI_TYPE="other"
-	CI_BUILD_DIR="$PWD"
+	CI_BUILD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
 # set environment variables if not exists
@@ -71,15 +73,16 @@ fi
 [ -z "${BUILD_ARCHIVES}" ] && BUILD_ARCHIVES=true
 
 
-printf "\nPLATFORM = %s" ${PLATFORM}
-printf "\nDOCKER_TAG = %s" ${DOCKER_TAG}
-printf "\nDOCKER_IMAGE = %s" ${DOCKER_IMAGE}
-printf "\nBUILD_TYPE = %s" ${BUILD_TYPE}
-printf "\nBUILD_ARCHIVES = %s" ${BUILD_ARCHIVES}
-printf "\nUSE_STANDARD_INSTALLER_NAME = %s" ${USE_STANDARD_INSTALLER_NAME}
-printf "\nUSE_CCACHE = %s" ${USE_CCACHE}
-printf "\nRESET_CACHE = %s" ${RESET_CACHE}
-printf "\n"
+printf "\n${GreenColor}PLATFORM${ColorReset}       = ${YellowColor}${PLATFORM}${ColorReset}"
+printf "\n${GreenColor}DISTRO_NAME${ColorReset}    = ${YellowColor}${DISTRO_NAME}${ColorReset}"
+printf "\n${GreenColor}DISTRO_VERSION${ColorReset} = ${YellowColor}${DISTRO_VERSION}${ColorReset}"
+printf "\n${GreenColor}ARCHITECTURE${ColorReset}   = ${YellowColor}${ARCHITECTURE}${ColorReset}"
+printf "\n${GreenColor}BUILD_TYPE${ColorReset}     = ${YellowColor}${BUILD_TYPE}${ColorReset}"
+printf "\n${GreenColor}BUILD_ARCHIVES${ColorReset} = ${YellowColor}${BUILD_ARCHIVES}${ColorReset}"
+printf "\n${GreenColor}USE_CCACHE${ColorReset}     = ${YellowColor}${USE_CCACHE}${ColorReset}"
+printf "\n${GreenColor}RESET_CACHE${ColorReset}    = ${YellowColor}${RESET_CACHE}${ColorReset}"
+printf "\n${GreenColor}USE_STANDARD_INSTALLER_NAME${ColorReset} = ${YellowColor}${USE_STANDARD_INSTALLER_NAME}${ColorReset}"
+printf "\n\n"
 
 if [ ${BUILD_ARCHIVES} = true ]; then
 	echo "Build the package archive"
@@ -97,7 +100,7 @@ else
 	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=OFF"
 fi
 
-echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}, archive options: ${ARCHIVE_OPTION}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
+echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker: ${ARCHITECTURE}/${DISTRO_NAME}:${DISTRO_VERSION}, archive options: ${ARCHIVE_OPTION}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
 
 # clear ccache if neccesery
 if [ ${RESET_CACHE} = true ]; then
@@ -169,10 +172,10 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	exit 0;
 
 elif [[ "$CI_NAME" == 'linux' ]]; then
-	echo "Compile Hyperhdr with DOCKER_IMAGE = ${DOCKER_IMAGE}, DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
+	echo "Compile Hyperhdr with ARCHITECTURE = ${ARCHITECTURE}, DISTRO_NAME = ${DISTRO_NAME}, DISTRO_VERSION = ${DISTRO_VERSION}"
 	
 	# set GitHub Container Registry url
-	REGISTRY_URL="ghcr.io/awawa-dev/${DOCKER_IMAGE}"
+	REGISTRY_URL="ghcr.io/awawa-dev/${ARCHITECTURE}/${DISTRO_NAME}:${DISTRO_VERSION}"
 	
 	# take ownership of deploy dir
 	mkdir -p ${CI_BUILD_DIR}/deploy
@@ -189,13 +192,13 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		cache_env="true"
 	fi
 
-	if [[ $DOCKER_IMAGE == *"armv6l"* ]] && [[ $CI_TYPE == "github_action" ]]; then
+	if [[ $ARCHITECTURE == *"armv6l"* ]] && [[ $CI_TYPE == "github_action" ]]; then
 		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armv6l ${BUILD_OPTION}"		
 	fi
 	
 	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"
 
-	if [[ "$DOCKER_TAG" == "ArchLinux" ]]; then
+	if [[ "$DISTRO_NAME" == "archlinux" ]]; then
 		echo "Arch Linux detected"
 		cp cmake/linux/arch/* .
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
@@ -211,18 +214,23 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		fi
 		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else
-		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DOCKER_TAG} ../ || exit 2 )"
+		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DISTRO_VERSION} ../ || exit 2 )"
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
+	
+	# verify if QEMU is neccesery and then set TARGET_DOCKER_QEMU_LINUX_ARCH also
+	echo "Checking if QEMU is neccesery..."
+	docker pull $REGISTRY_URL
+	source $CI_BUILD_DIR/resources/scripts/verify_docker_qemu.sh $REGISTRY_URL || { echo "multiarch/qemu-user-static is required for cross-compilation"; exit 1; }
 
 	# run docker
-	docker run --rm \
+	docker run --rm ${TARGET_DOCKER_QEMU_LINUX_ARCH} \
 	-v "${CI_BUILD_DIR}/.ccache:/.ccache" \
 	-v "${CI_BUILD_DIR}/deploy:/deploy" \
 	-v "${CI_BUILD_DIR}:/source:ro" \
-	$REGISTRY_URL:$DOCKER_TAG \
+	$REGISTRY_URL \
 	/bin/bash -c "${cache_env} && cd / && mkdir -p hyperhdr && cp -rf /source/. /hyperhdr &&
-	cd /hyperhdr && mkdir build && (${executeCommand}) &&
+	cd /hyperhdr && mkdir -p build && (${executeCommand}) &&
 	(cp /hyperhdr/build/bin/h* /deploy/ 2>/dev/null || : ) &&
 	(cp /hyperhdr/build/Hyper* /deploy/ 2>/dev/null || : ) &&
 	(cp /hyperhdr/Hyper*.zst /deploy/ 2>/dev/null || : ) &&

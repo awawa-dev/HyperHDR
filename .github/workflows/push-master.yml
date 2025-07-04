@@ -2,7 +2,6 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
 
 env:
     USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
@@ -17,65 +16,65 @@ jobs:
 ######################
 
   Linux:
-    name: ${{ matrix.dockerName }}
+    name: ${{ matrix.architecture }}/${{ matrix.distroName }}:${{ matrix.distroVersion }}
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (x86_64)
+            architecture: amd64
+            distroName: debian
+            distroVersion: bullseye               
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (x86_64)
+            architecture: amd64
+            distroName: debian
+            distroVersion: bookworm              
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: jammy
-            dockerName: Ubuntu 22.04 LTS (x86_64)
+            architecture: amd64
+            distroName: ubuntu
+            distroVersion: jammy             
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: noble
-            dockerName: Ubuntu 24.04 LTS (x86_64)
+            architecture: amd64
+            distroName: ubuntu
+            distroVersion: noble               
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: oracular
-            dockerName: Ubuntu 24.10 (x86_64)
+            architecture: amd64
+            distroName: ubuntu
+            distroVersion: plucky             
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: Fedora_41
-            dockerName: Fedora 41 (x86_64)
+            architecture: amd64
+            distroName: fedora
+            distroVersion: 42  
             platform: linux
           - runner: ubuntu-24.04
-            dockerImage: x86_64
-            linuxVersion: ArchLinux
-            dockerName: Arch Linux (x86_64)
+            architecture: amd64
+            distroName: archlinux
+            distroVersion: rolling
             platform: linux
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-32bit-armv6l-native
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (native ARM 32-bit Raspberry Pi OS)
+            architecture: armhf
+            distroName: debian
+            distroVersion: bullseye            
             platform: rpi
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-64bit-aarch64-native
-            linuxVersion: bullseye
-            dockerName: Debian Bullseye (native ARM 64-bit Raspberry Pi OS)
+            architecture: arm64
+            distroName: debian
+            distroVersion: bullseye  
             platform: rpi
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-32bit-armv6l-native
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (native ARM 32-bit Raspberry Pi OS)
+            architecture: armhf
+            distroName: debian
+            distroVersion: bookworm  
             platform: rpi
           - runner: ubuntu-24.04-arm
-            dockerImage: arm-64bit-aarch64-native
-            linuxVersion: bookworm
-            dockerName: Debian Bookworm (native ARM 64-bit Raspberry Pi OS)
+            architecture: arm64
+            distroName: debian
+            distroVersion: bookworm 
             platform: rpi
     steps:
       # start docker
@@ -104,15 +103,15 @@ jobs:
         uses: actions/cache@v4.2.3
         with:
            path: .ccache
-           key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-           restore-keys: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
+           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Clear branch ccache storage
         uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
         with:
           ref: ${{ github.event.ref }}
-          key: ${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-ccache-
+          key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Check default version
         if: matrix.linuxVersion != 'bullseye'
@@ -121,9 +120,9 @@ jobs:
 
       - name: Build packages
         env:
-          DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: ${{ matrix.linuxVersion }}
-          DOCKER_NAME: ${{ matrix.dockerName }}
+          ARCHITECTURE: ${{ matrix.architecture }}
+          DISTRO_NAME: ${{ matrix.distroName }}
+          DISTRO_VERSION: ${{ matrix.distroVersion }}
           PLATFORM: ${{ matrix.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
@@ -136,7 +135,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: release-artifact-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}
+          name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
           path: deploy/Hyper*
 
       # Upload artifacts from commit
@@ -144,7 +143,7 @@ jobs:
         if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: Linux-${{ matrix.linuxVersion }}-${{ matrix.dockerImage }}-installer
+          name: Linux-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-installer
           path: |
             deploy/Hyper*.deb
             deploy/Hyper*.zst
@@ -246,8 +245,8 @@ jobs:
     name: Windows
     runs-on: windows-2022
     env:
-      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
-      QT_VERSION: 6.5.3
+      MSVC: 2022
+      QT_VERSION: 6.8.3
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -261,6 +260,11 @@ jobs:
           path: ${{ runner.workspace }}/Qt
           key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
 
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.9
+
       # temporary workaround for aqt: Python 3.13 instead of preinstalled default older version
       - name: Python 3.13 for aqtinstall
         uses: actions/setup-python@v5      
@@ -271,7 +275,7 @@ jobs:
         if: steps.cache-qt-windows.outputs.cache-hit != 'true'
         run: |          
           pip install aqtinstall
-          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc2019_64 -m qtserialport
+          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc${{ env.MSVC }}_64 -m qtserialport
 
       # Generate cache id
       - name: Prepare ccache timestamp
@@ -313,19 +317,17 @@ jobs:
         shell: cmd
         run: |
           7z e ccache.zip -o.\build *.exe -r
-
-      - name: Set up x64 build architecture environment
-        shell: cmd
-        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
           
       # Build packages
       - name: Build packages        
         env:
           PLATFORM: windows
-          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc2019_64/lib/cmake/"
+          VCINSTALLDIR: 'C:/Program Files/Microsoft Visual Studio/${{ env.MSVC }}/Enterprise/VC'
+          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc${{ env.MSVC }}_64/lib/cmake/"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
+          "${{env.VCINSTALLDIR}}/Auxiliary/Build/vcvars64.bat"
           ./build.sh
 
       # Upload artifacts (only on tagged commit)
