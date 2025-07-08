@@ -39,8 +39,7 @@
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p12:fast=0:dither=none -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv420_low_quality.mp4
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=2020_ncl:p=2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft:npl=200,format=yuv420p10le -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
 
-using namespace linalg;
-using namespace aliases;
+using namespace Eigen;
 
 namespace BoardUtils
 {
@@ -51,16 +50,16 @@ namespace BoardUtils
 		int boardIndex = index / SCREEN_SAMPLES_PER_BOARD;
 
 		position = int2(0, 1);		
-		position.y += currentIndex / (SCREEN_BLOCKS_X / 2);
-		position.x += (currentIndex % (SCREEN_BLOCKS_X / 2)) * 2 + ((position.y  + boardIndex  )% 2);
+		position.y() += currentIndex / (SCREEN_BLOCKS_X / 2);
+		position.x() += (currentIndex % (SCREEN_BLOCKS_X / 2)) * 2 + ((position.y()  + boardIndex  )% 2);
 
 		int B = (index % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
 		int G = ((index / (SCREEN_COLOR_DIMENSION)) % SCREEN_COLOR_DIMENSION) * SCREEN_COLOR_STEP;
 		int R = (index / (SCREEN_COLOR_DIMENSION * SCREEN_COLOR_DIMENSION)) * SCREEN_COLOR_STEP;
 
-		color.x = std::min(R, 255);
-		color.y = std::min(G, 255);
-		color.z = std::min(B, 255);
+		color.x() = std::min(R, 255);
+		color.y() = std::min(G, 255);
+		color.z() = std::min(B, 255);
 
 		return boardIndex;
 	}
@@ -73,19 +72,19 @@ namespace BoardUtils
 		if (_color != nullptr)
 			color.setSourceRGB(*_color);
 
-		const double2 positionF{ position };
-		const double2 startF = positionF * delta;
-		const double2 endF = ((positionF + double2(1, 1)) * delta) - double2(1, 1);
-		const int2 middle{ (startF + endF) / 2 };
+		const double2 positionF = position.cast<double>();
+		const double2 startF = positionF.cwiseProduct(delta);
+		const double2 endF = ((positionF + double2(1.0, 1.0)).cwiseProduct(delta)) - double2(1.0, 1.0);
+		const int2 middle = ((startF + endF) / 2.0).cast<int>();
 		
-		if (middle.x + 1 >= static_cast<int>(yuvImage.width()) || middle.y + 1 >= static_cast<int>(yuvImage.height()))
+		if (middle.x() + 1 >= static_cast<int>(yuvImage.width()) || middle.y() + 1 >= static_cast<int>(yuvImage.height()))
 			throw std::runtime_error("Incorrect image size");
 
 		for (int x = -1; x <= 1; x++)
 			for (int y = -1; y <= 1; y++)
 			{
 				auto pos = middle + int2(x, y);
-				color.addColor(yuvImage(pos.x, pos.y));
+				color.addColor(yuvImage(pos.x(), pos.y()));
 			}
 		if (!color.calculateFinalColor())
 			throw std::runtime_error("Too much noice while reading the color");
@@ -226,7 +225,7 @@ namespace BoardUtils
 			}
 			catch (std::exception& ex)
 			{
-				Error(_log, "Could not read position [%i, %i]. Too much noice or too low resolution", position.x, position.y);
+				Error(_log, "Could not read position [%i, %i]. Too much noice or too low resolution", position.x(), position.y());
 				return false;
 			}
 		}
@@ -273,7 +272,7 @@ namespace BoardUtils
 				ColorRgb& inputRgb = image(x, y);
 				const double3 scaledRgb = double3(inputRgb.red, inputRgb.green, inputRgb.blue) / 255.0;
 				const double3 outputYuv = yuvConverter.toYuvBT709(YuvConverter::COLOR_RANGE::FULL, scaledRgb) * 255.0;
-				const ColorRgb outputRgb = ColorRgb(ColorRgb::round(outputYuv.x), ColorRgb::round(outputYuv.y), ColorRgb::round(outputYuv.z));
+				const ColorRgb outputRgb = ColorRgb(ColorRgb::round(outputYuv.x()), ColorRgb::round(outputYuv.y()), ColorRgb::round(outputYuv.z()));
 				inputRgb = outputRgb;
 			}
 		return image;
@@ -293,11 +292,11 @@ namespace BoardUtils
 				{
 					int2 position = int2((line + boardIndex) % 2, line);
 
-					for (int x = 0; x < boardIndex + SCREEN_CRC_COUNT; x++, position.x += 2)
+					for (int x = 0; x < boardIndex + SCREEN_CRC_COUNT; x++, position.x() += 2)
 					{
-						const int2 start = position * delta;
-						const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
-						image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, 255, 255, 255);
+						const int2 start = position.cwiseProduct(delta);
+						const int2 end = ((position + int2(1, 1)).cwiseProduct(delta)) - int2(1, 1);
+						image.fastBox(start.x() + margin.x(), start.y() + margin.y(), end.x() - margin.x(), end.y() - margin.y(), 255, 255, 255);
 					}
 				}
 				utils_image::savePng(QString(pattern).arg(QString::number(boardIndex)).toStdString(), image);
@@ -325,10 +324,10 @@ namespace BoardUtils
 				boardIndex = currentBoard;
 			}
 
-			const int2 start = position * delta;
-			const int2 end = ((position + int2(1, 1)) * delta) - int2(1, 1);
+			const int2 start = position.cwiseProduct(delta);
+			const int2 end = ((position + int2(1, 1)).cwiseProduct(delta)) - int2(1, 1);
 
-			image.fastBox(start.x + margin.x, start.y + margin.y, end.x - margin.x, end.y - margin.y, color.x, color.y, color.z);
+			image.fastBox(start.x() + margin.x(), start.y() + margin.y(), end.x() - margin.x(), end.y() - margin.y(), color.x(), color.y(), color.z());
 		}
 		saveImage(image, delta, boardIndex, pattern, margin);
 	}
@@ -388,14 +387,14 @@ namespace BoardUtils
 					int3 sourceRgb = sample.getSourceRGB();
 					auto result = converter.toRgb(YuvConverter::COLOR_RANGE::FULL, YuvConverter::YUV_COEFS::BT709, sample.yuv()) * 255.0;
 					int3 outputRgb = ColorSpaceMath::to_int3(ColorSpaceMath::to_byte3(result));
-					int distance = linalg::distance(sourceRgb, outputRgb);
+					int distance = static_cast<int>((sourceRgb - outputRgb).norm());
 					if (distance > maxError)
 					{
 						totalErrors++;
 						maxError = distance;
 						Warning(_log, "Current max error = %i for color (%i, %i, %i) received (%i, %i, %i)", maxError,
-							sourceRgb.x, sourceRgb.y, sourceRgb.z,
-							outputRgb.x, outputRgb.y, outputRgb.z);
+							sourceRgb.x(), sourceRgb.y(), sourceRgb.z(),
+							outputRgb.x(), outputRgb.y(), outputRgb.z());
 					}
 					else if (distance == maxError && distance > 0)
 					{
@@ -444,18 +443,18 @@ namespace BoardUtils
 				{
 					all[r][g][b].setCoords(byte3(r, g, b));
 					
-					if (all[r][g][b].Y() > _rangeYUV.x)
-						_rangeYUV.x = all[r][g][b].Y();
-					if (all[r][g][b].U() > _rangeYUV.y)
-						_rangeYUV.y = all[r][g][b].U();
-					if (all[r][g][b].V() > _rangeYUV.z)
-						_rangeYUV.z = all[r][g][b].V();
+					if (all[r][g][b].Y() > _rangeYUV.x())
+						_rangeYUV.x() = all[r][g][b].Y();
+					if (all[r][g][b].U() > _rangeYUV.y())
+						_rangeYUV.y() = all[r][g][b].U();
+					if (all[r][g][b].V() > _rangeYUV.z())
+						_rangeYUV.z() = all[r][g][b].V();
 				}
 	}
 
 	void CapturedColors::correctYRange(double3& yuv, double yRange, double upYLimit, double downYLimit, double yShift)
 	{
-		yuv.x = ((yuv.x - downYLimit) / (upYLimit - downYLimit)) * yRange + yShift;
+		yuv.x() = ((yuv.x() - downYLimit) / (upYLimit - downYLimit)) * yRange + yShift;
 	}
 
 	void CapturedColors::getSignalParams(double& yRange, double& upYLimit, double& downYLimit, double& yShift, byte3& rangeYUV)
@@ -515,9 +514,9 @@ namespace BoardUtils
 							}
 
 							myfile << " " << std::to_string(elem.second) << ",";
-							myfile << std::to_string((int)elem.first.x) << ",";
-							myfile << std::to_string((int)elem.first.y) << ",";
-							myfile << std::to_string((int)elem.first.z);
+							myfile << std::to_string((int)elem.first.x()) << ",";
+							myfile << std::to_string((int)elem.first.y()) << ",";
+							myfile << std::to_string((int)elem.first.z());
 						}
 
 						myfile << currentArray.second << ((r + 1 < SCREEN_COLOR_DIMENSION || g + 1 < SCREEN_COLOR_DIMENSION || b + 1 < SCREEN_COLOR_DIMENSION) ? "," : "");

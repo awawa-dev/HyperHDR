@@ -68,7 +68,7 @@ add_library(led-drivers OBJECT ${Leddevice_SOURCES} )
 target_link_libraries(led-drivers
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	linalg
+	eigen
 )
 
 IF ( HAVE_SERIAL_LED )

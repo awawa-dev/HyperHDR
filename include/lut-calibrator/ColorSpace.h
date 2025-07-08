@@ -36,11 +36,8 @@
 	#include <vector>
 #endif
 
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/LutCalibrator.h>
-
-using namespace linalg;
-using namespace aliases;
 
 namespace ColorSpaceMath
 {
@@ -48,38 +45,14 @@ namespace ColorSpaceMath
 
 	QString gammaToString(HDR_GAMMA gamma);
 
-	constexpr mat<double, 3, 3> matrix(std::array<double, 9> m)
-	{
-		double3 c1(m[0], m[3], m[6]);
-		double3 c2(m[1], m[4], m[7]);
-		double3 c3(m[2], m[5], m[8]);
-		return double3x3(c1, c2, c3);
-	}
-
-	constexpr mat<double, 4, 4> matrix4(std::array<double, 16> m)
-	{
-		double4 c1(m[0], m[4], m[8], m[12]);
-		double4 c2(m[1], m[5], m[9], m[13]);
-		double4 c3(m[2], m[6], m[10], m[14]);
-		double4 c4(m[3], m[7], m[11], m[15]);
-		return double4x4(c1, c2, c3, c4);
-	}
-
-	constexpr double3x3 matrix_bt2020_to_XYZ = matrix({
-				0.636958,	0.144617,	0.168881,
-				0.262700,	0.677998,	0.059302,
-				0.000000,	0.028073,	1.060985
-		});
-
-	constexpr double3x3 matrix_sRgb_to_XYZ = matrix({
-				0.4124564,	0.3575761,	0.1804375,
-				0.2126729,	0.7151522,	0.0721750,
-				0.0193339,	0.1191920,	0.9503041
-		});
+	const double3x3 matrix(std::array<double, 9> m);
+	const double4x4 matrix4(const std::array<double, 16>& m);
+	double3x3 matrix_bt2020_to_XYZ();
+	double3x3 matrix_sRgb_to_XYZ();
 
 	std::vector<double2> getPrimaries(PRIMARIES primary);
 
-	mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary);
+	double3x3 getPrimariesToXYZ(PRIMARIES primary);
 
 	double3 bt2020_nonlinear_to_linear(double3 input);
 
@@ -116,30 +89,32 @@ namespace ColorSpaceMath
 
 	double2 XYZ_to_xy(const double3& a);
 
-	constexpr double3x3 to_XYZ(
+	inline double3x3 to_XYZ(
 		const double2& red_xy,
 		const double2& green_xy,
 		const double2& blue_xy,
 		const double2& white_xy
 	)
 	{
-		double3 r(red_xy.x, red_xy.y, 1.0 - (red_xy.x + red_xy.y));
-		double3 g(green_xy.x, green_xy.y, 1.0 - (green_xy.x + green_xy.y));
-		double3 b(blue_xy.x, blue_xy.y, 1.0 - (blue_xy.x + blue_xy.y));
-		double3 w(white_xy.x, white_xy.y, 1.0 - (white_xy.x + white_xy.y));
+		double3 r(red_xy.x(), red_xy.y(), 1.0 - (red_xy.x() + red_xy.y()));
+		double3 g(green_xy.x(), green_xy.y(), 1.0 - (green_xy.x() + green_xy.y()));
+		double3 b(blue_xy.x(), blue_xy.y(), 1.0 - (blue_xy.x() + blue_xy.y()));
+		double3 w(white_xy.x(), white_xy.y(), 1.0 - (white_xy.x() + white_xy.y()));
 
-		w /= white_xy.y;
+		w /= white_xy.y();
 
-		double3x3 retMat(r, g, b);
+		double3x3 retMat;
+		retMat.col(0) = r;
+		retMat.col(1) = g;
+		retMat.col(2) = b;
 
-		double3x3 invMat;
-		invMat = linalg::inverse(retMat);
+		double3x3 invMat = retMat.inverse();
 
-		double3 scale = linalg::mul(invMat, w);
+		double3 scale = invMat * w;
 
-		retMat.x *= scale.x;
-		retMat.y *= scale.y;
-		retMat.z *= scale.z;
+		retMat.col(0) *= scale.x();
+		retMat.col(1) *= scale.y();
+		retMat.col(2) *= scale.z();
 
 		return retMat;
 	};

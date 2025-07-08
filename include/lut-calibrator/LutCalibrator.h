@@ -52,11 +52,6 @@ namespace BoardUtils
 	class CapturedColors;
 };
 
-namespace linalg {
-	template<class T, int M, int N> struct mat;
-	template<class T, int M> struct vec;
-}
-
 namespace ColorSpaceMath {
 	enum HDR_GAMMA { PQ = 0, HLG, sRGB, BT2020inSRGB, PQinSRGB, P010 };
 }
@@ -98,7 +93,6 @@ private:
 	void calibration();
 	void setupWhitePointCorrection();
 	bool setTestData();
-	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);	
 
 	Logger* _log;
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;

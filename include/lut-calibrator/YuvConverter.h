@@ -32,11 +32,8 @@
 	#include <cmath>
 #endif
 
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/ColorSpace.h>
-
-using namespace linalg;
-using namespace aliases;
 
 class YuvConverter
 {

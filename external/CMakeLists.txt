@@ -88,12 +88,10 @@ if(ENABLE_WS281XPWM)
 endif()
 
 #=============================================================================
-# LINALG
+# EIGEN
 #=============================================================================
 
-add_library(linalg INTERFACE)
-target_compile_definitions(linalg INTERFACE LINALG_FORWARD_COMPATIBLE )
-target_include_directories(linalg INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/linalg")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/eigen)
 
 #=============================================================================
 # LUNASVG

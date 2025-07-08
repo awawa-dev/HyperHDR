@@ -28,9 +28,9 @@
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/nothings/stb.git
-[submodule "external/linalg"]
-	path = external/linalg
-	url = https://github.com/sgorsten/linalg.git
 [submodule "external/zstd"]
 	path = external/zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "external/eigen"]
+	path = external/eigen
+	url = https://github.com/awawa-dev/eigen.git

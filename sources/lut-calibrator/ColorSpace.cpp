@@ -29,8 +29,8 @@
 #include <QStringList>
 #include <lut-calibrator/ColorSpace.h>
 
-using namespace linalg;
-using namespace aliases;
+using namespace Eigen;
+
 
 namespace ColorSpaceMath
 {
@@ -62,6 +62,41 @@ namespace ColorSpaceMath
 						{ 0.3127, 0.3290 }
 					}
 				}
+	};
+
+	const double3x3 matrix(std::array<double, 9> m)
+	{
+		double3x3 mat = double3x3::Zero();
+		mat.col(0) = double3(m[0], m[3], m[6]);
+		mat.col(1) = double3(m[1], m[4], m[7]);
+		mat.col(2) = double3(m[2], m[5], m[8]);
+		return mat;
+	}
+
+	const double4x4 matrix4(const std::array<double, 16>& m)
+	{
+		double4x4 mat = double4x4::Zero();
+		mat.col(0) = double4(m[0], m[4], m[8], m[12]);
+		mat.col(1) = double4(m[1], m[5], m[9], m[13]);
+		mat.col(2) = double4(m[2], m[6], m[10], m[14]);
+		mat.col(3) = double4(m[3], m[7], m[11], m[15]);
+		return mat;
+	}
+
+	double3x3 matrix_bt2020_to_XYZ() {
+		return matrix({
+			0.636958,	0.144617,	0.168881,
+			0.262700,	0.677998,	0.059302,
+			0.000000,	0.028073,	1.060985
+			});
+	};
+
+	double3x3 matrix_sRgb_to_XYZ() {
+		return matrix({
+			0.4124564,	0.3575761,	0.1804375,
+			0.2126729,	0.7151522,	0.0721750,
+			0.0193339,	0.1191920,	0.9503041
+			});
 	};
 
 	QString gammaToString(HDR_GAMMA gamma)
@@ -167,9 +202,9 @@ namespace ColorSpaceMath
 	double3 from_BT2020_to_BT709(double3 a)
 	{
 		double3 b;
-		b.x = 1.6605 * a.x - 0.5876 * a.y - 0.0728 * a.z;
-		b.y = -0.1246 * a.x + 1.1329 * a.y - 0.0083 * a.z;
-		b.z = -0.0182 * a.x - 0.1006 * a.y + 1.1187 * a.z;
+		b.x() = 1.6605 * a.x() - 0.5876 * a.y() - 0.0728 * a.z();
+		b.y() = -0.1246 * a.x() + 1.1329 * a.y() - 0.0083 * a.z();
+		b.z() = -0.0182 * a.x() - 0.1006 * a.y() + 1.1187 * a.z();
 		return b;
 	}
 
@@ -178,7 +213,7 @@ namespace ColorSpaceMath
 		return knownPrimaries.at(primary);
 	}
 
-	linalg::mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary)
+	double3x3 getPrimariesToXYZ(PRIMARIES primary)
 	{
 		const auto& primaries = knownPrimaries.at(primary);
 		return to_XYZ(primaries[0], primaries[1], primaries[2], primaries[3]);
@@ -242,15 +277,15 @@ namespace ColorSpaceMath
 			return input;
 
 		double3 coefs{ 0.2627, 0.6780, 0.0593 };
-		double luma = linalg::dot(input, coefs);
-		luma = linalg::pow(luma, gamma - 1.0);
+		double luma = input.dot(coefs);
+		luma = std::pow(luma, gamma - 1.0);
 
 		return input * luma;
 	}
 
 	double3 OOTF_HLG(double _input, double gamma)
 	{
-		double3 input(_input);
+		double3 input = double3::Constant(_input);
 
 		if (gamma == 0)
 			return input;
@@ -260,38 +295,38 @@ namespace ColorSpaceMath
 
 	double3 from_bt2020_to_XYZ(double3 x)
 	{
-		return mul(matrix_bt2020_to_XYZ, x);
+		return matrix_bt2020_to_XYZ() * x;
 	}
 
 	double3 from_XYZ_to_bt2020(double3 x)
 	{
-		constexpr double3x3 m = inverse(matrix_bt2020_to_XYZ);
-		return mul(m, x);
+		const Eigen::Matrix3d m = matrix_bt2020_to_XYZ().inverse();
+		return m * x;
 	}
 
 	double3 from_XYZ_to_sRGB(double3 x)
 	{
-		constexpr double3x3 m = inverse(matrix_sRgb_to_XYZ);
-		return mul(m, x);
+		const double3x3 m = matrix_sRgb_to_XYZ().inverse();
+		return m * x;
 	}
 
 	double3 from_sRGB_to_XYZ(double3 x)
 	{
-		return mul(matrix_sRgb_to_XYZ, x);
+		return matrix_sRgb_to_XYZ() * x;
 	}
 
 	double2 XYZ_to_xy(const double3& a)
 	{
-		double len = std::max(a.x + a.y + a.z, std::numeric_limits<double>::epsilon());
-		return { a.x / len, a.y / len };
+		double len = std::max(a.x() + a.y() + a.z(), std::numeric_limits<double>::epsilon());
+		return { a.x() / len, a.y() / len };
 	}
 
 
 	double3 xyz_to_lab(const double3& xyz)
 	{
-		double x = xyz.x / 95.047;
-		double y = xyz.y / 100.00;
-		double z = xyz.z / 108.883;
+		double x = xyz.x() / 95.047;
+		double y = xyz.y() / 100.00;
+		double z = xyz.z() / 108.883;
 
 		x = (x > 0.008856) ? std::cbrt(x) : (7.787 * x + 16.0 / 116.0);
 		y = (y > 0.008856) ? std::cbrt(y) : (7.787 * y + 16.0 / 116.0);
@@ -306,9 +341,9 @@ namespace ColorSpaceMath
 
 	double3 lab_to_xyz(const double3& lab)
 	{
-		double y = (lab.x + 16.0) / 116.0;
-		double x = lab.y / 500.0 + y;
-		double z = y - lab.z / 200.0;
+		double y = (lab.x() + 16.0) / 116.0;
+		double x = lab.y() / 500.0 + y;
+		double z = y - lab.z() / 200.0;
 
 		double x3 = std::pow(x, 3);
 		double y3 = std::pow(y, 3);
@@ -323,9 +358,9 @@ namespace ColorSpaceMath
 
 	double3 lab_to_lch(const double3& lab)
 	{
-		const auto& l = lab.x;
-		const auto& a = lab.y;
-		const auto& b = lab.z;
+		const auto& l = lab.x();
+		const auto& a = lab.y();
+		const auto& b = lab.z();
 
 		const auto c = std::sqrt(std::pow(a, 2) + std::pow(b, 2));
 
@@ -345,17 +380,17 @@ namespace ColorSpaceMath
 
 	double3 lch_to_lab(double3 lch)
 	{
-		if (lch.z > 360.0)
-			lch.z -= 360.0;
-		else if (lch.z < 360.0)
-			lch.z += 360.0;
+		if (lch.z() > 360.0)
+			lch.z() -= 360.0;
+		else if (lch.z() < 360.0)
+			lch.z() += 360.0;
 
-		double h = lch.z * M_PI / 180.0;
+		double h = lch.z() * M_PI / 180.0;
 
 		return double3{
-			lch.x,
-			std::cos(h) * lch.y,
-			std::sin(h) * lch.y };
+			lch.x(),
+			std::cos(h) * lch.y(),
+			std::sin(h) * lch.y() };
 	}
 
 	double3 xyz_to_lch(const double3& xyz)
@@ -371,32 +406,32 @@ namespace ColorSpaceMath
 	byte3 to_byte3(const double3& v)
 	{
 		return byte3(
-			std::lround(std::max(std::min(v.x, 255.0), 0.0)),
-			std::lround(std::max(std::min(v.y, 255.0), 0.0)),
-			std::lround(std::max(std::min(v.z, 255.0), 0.0))
+			std::lround(std::max(std::min(v.x(), 255.0), 0.0)),
+			std::lround(std::max(std::min(v.y(), 255.0), 0.0)),
+			std::lround(std::max(std::min(v.z(), 255.0), 0.0))
 		);
 	}
 
 	int3 to_int3(const byte3& v)
 	{
-		return int3(v.x, v.y, v.z);
+		return int3(v.x(), v.y(), v.z());
 	}
 
 	int3 to_int3(const double3& v)
 	{
-		return int3(std::lround(v.x), std::lround(v.y), std::lround(v.z));
+		return int3(std::lround(v.x()), std::lround(v.y()), std::lround(v.z()));
 	}
 
 	double3 to_double3(const byte3& v)
 	{
-		return double3(v.x, v.y, v.z);
+		return double3(v.x(), v.y(), v.z());
 	}
 
 	void trim01(double3& input)
 	{
-		input.x = std::max(0.0, std::min(input.x, 1.0));
-		input.y = std::max(0.0, std::min(input.y, 1.0));
-		input.z = std::max(0.0, std::min(input.z, 1.0));
+		input.x() = std::max(0.0, std::min(input.x(), 1.0));
+		input.y() = std::max(0.0, std::min(input.y(), 1.0));
+		input.z() = std::max(0.0, std::min(input.z(), 1.0));
 	}
 
 	QString vecToString(const double2& v)
@@ -429,7 +464,7 @@ namespace ColorSpaceMath
 		QStringList ret;
 		for (int d = 0; d < 4; d++)
 		{
-			ret.append(vecToString(m.row(d)));
+			ret.append(vecToString(static_cast<double4>(m.row(d).transpose())));
 		}
 		return ret.join("\r\n");
 	}
@@ -439,19 +474,18 @@ namespace ColorSpaceMath
 		QStringList ret;
 		for (int d = 0; d < 3; d++)
 		{
-			ret.append(vecToString(m.row(d)));
+			ret.append(vecToString(static_cast<double3>(m.row(d).transpose())));
 		}
 		return ret.join("\r\n");
 	}
 
-
-	constexpr double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
+	const double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
 	{
-		const double denominator = linalg::determinant( double2x2{ {p1.x - p2.x, p3.x - p4.x}, {p1.y - p2.y, p3.y - p4.y} });
+		const double denominator = double2x2{ {p1.x() - p2.x(), p3.x() - p4.x()}, {p1.y() - p2.y(), p3.y() - p4.y()} }.determinant();
 		if (denominator == 0.0)
 			return DBL_MAX;
 
-		const double t = linalg::determinant( double2x2{ {p1.x - p3.x, p3.x - p4.x}, {p1.y - p3.y, p3.y - p4.y} } ) / denominator;
+		const double t = double2x2{ {p1.x() - p3.x(), p3.x() - p4.x()}, {p1.y() - p3.y(), p3.y() - p4.y()} }.determinant() / denominator;
 		if (t >= 0.0)
 			return t;
 		return DBL_MAX;
@@ -464,7 +498,7 @@ namespace ColorSpaceMath
 	{
 		const double2& p1 = primaries[3];
 
-		const double2 p2 = double2{ p1.x + cos_angle, p1.y + sin_angle };
+		const double2 p2 = double2{ p1.x() + cos_angle, p1.y() + sin_angle };
 
 		double distance_to_edge = DBL_MAX;
 		for (size_t i = 0; i < 3; i++)
@@ -487,10 +521,10 @@ namespace ColorSpaceMath
 		bool truncate)
 	{
 		const double2 d = primary - primaries[3];
-		const double angle = std::atan2(d.y, d.x) + rotation;
+		const double angle = std::atan2(d.y(), d.x()) + rotation;
 		const double cos_angle = std::cos(angle);
 		const double sin_angle = std::sin(angle);
-		const double2 dx = double2{ cos_angle, sin_angle } * scaling * ((truncate) ? maxLenInColorspace(primaries, cos_angle, sin_angle)  : linalg::length(d));
+		const double2 dx = double2{ cos_angle, sin_angle } *scaling * ((truncate) ? maxLenInColorspace(primaries, cos_angle, sin_angle) : d.norm());
 
 		return dx + primaries[3];
 	}
@@ -516,7 +550,7 @@ namespace ColorSpaceMath
 		for (int d = 0; d < 4; d++)
 		{
 			if (d != 0) out << ", ";
-			serialize(out, m[d]);
+			serialize(out, static_cast<double4>(m.row(d).transpose()));
 		}
 		out << "}";
 	}
@@ -527,7 +561,7 @@ namespace ColorSpaceMath
 		for (int d = 0; d < 3; d++)
 		{
 			if (d != 0) out << ", ";
-			serialize(out, m[d]);			
+			serialize(out, static_cast<double3>(m.row(d).transpose()));
 		}
 		out << "}";
 	}
@@ -536,41 +570,41 @@ namespace ColorSpaceMath
 	{
 		float aspect = 0.0f;
 
-		if (rgb.y < rgb.z)
+		if (rgb.y() < rgb.z())
 		{
-			std::swap(rgb.y, rgb.z);
+			std::swap(rgb.y(), rgb.z());
 			aspect = -1.0f;
 		}
 
-		if (rgb.x < rgb.y)
+		if (rgb.x() < rgb.y())
 		{
-			std::swap(rgb.x, rgb.y);
+			std::swap(rgb.x(), rgb.y());
 			aspect = -2.0f / 6.0f - aspect;
 		}
 
-		float chroma = rgb.x - std::min(rgb.y, rgb.z);
+		float chroma = rgb.x() - std::min(rgb.y(), rgb.z());
 		return float3{
-			/*H*/ std::fabs(aspect + (rgb.y - rgb.z) / (6.0f * chroma + 1e-20f)),
-			/*S*/ chroma / (rgb.x + 1e-20f),
-			/*V*/ rgb.x
+			/*H*/ std::fabs(aspect + (rgb.y() - rgb.z()) / (6.0f * chroma + 1e-20f)),
+			/*S*/ chroma / (rgb.x() + 1e-20f),
+			/*V*/ rgb.x()
 		};
 	}
 
 	float3 hsv2rgb(float3 hsv)
 	{
-		int i = floor(hsv.x * 6);
-		float f = hsv.x * 6 - i;
-		float p = hsv.z * (1 - hsv.y);
-		float q = hsv.z * (1 - f * hsv.y);
-		float t = hsv.z * (1 - (1 - f) * hsv.y);
+		int i = floor(hsv.x() * 6);
+		float f = hsv.x() * 6 - i;
+		float p = hsv.z() * (1 - hsv.y());
+		float q = hsv.z() * (1 - f * hsv.y());
+		float t = hsv.z() * (1 - (1 - f) * hsv.y());
 
 		switch (i % 6) {
-			case 0: return float3{ hsv.z, t, p }; break;
-			case 1: return float3{ q, hsv.z, p }; break;
-			case 2: return float3{ p, hsv.z, t }; break;
-			case 3: return float3{ p, q, hsv.z }; break;
-			case 4: return float3{ t, p, hsv.z }; break;
-			case 5: return float3{ hsv.z, p, q }; break;
+			case 0: return float3{ hsv.z(), t, p }; break;
+			case 1: return float3{ q, hsv.z(), p }; break;
+			case 2: return float3{ p, hsv.z(), t }; break;
+			case 3: return float3{ p, q, hsv.z() }; break;
+			case 4: return float3{ t, p, hsv.z() }; break;
+			case 5: return float3{ hsv.z(), p, q }; break;
 		}
 
 		return float3();
@@ -580,41 +614,41 @@ namespace ColorSpaceMath
 	{
 		double aspect = 0.0;
 
-		if (rgb.y < rgb.z)
+		if (rgb.y() < rgb.z())
 		{
-			std::swap(rgb.y, rgb.z);
+			std::swap(rgb.y(), rgb.z());
 			aspect = -1.0;
 		}
 
-		if (rgb.x < rgb.y)
+		if (rgb.x() < rgb.y())
 		{
-			std::swap(rgb.x, rgb.y);
+			std::swap(rgb.x(), rgb.y());
 			aspect = -2.0 / 6.0 - aspect;
 		}
 
-		double chroma = rgb.x - std::min(rgb.y, rgb.z);
+		double chroma = rgb.x() - std::min(rgb.y(), rgb.z());
 		return double3{
-			/*H*/ std::abs(aspect + (rgb.y - rgb.z) / (6.0 * chroma + 1e-20)),
-			/*S*/ chroma / (rgb.x + 1e-20),
-			/*V*/ rgb.x
+			/*H*/ std::abs(aspect + (rgb.y() - rgb.z()) / (6.0 * chroma + 1e-20)),
+			/*S*/ chroma / (rgb.x() + 1e-20),
+			/*V*/ rgb.x()
 		};
 	}
 
 	double3 hsv2rgb(double3 hsv)
 	{
-		int i = floor(hsv.x * 6);
-		double f = hsv.x * 6 - i;
-		double p = hsv.z * (1 - hsv.y);
-		double q = hsv.z * (1 - f * hsv.y);
-		double t = hsv.z * (1 - (1 - f) * hsv.y);
+		int i = floor(hsv.x() * 6);
+		double f = hsv.x() * 6 - i;
+		double p = hsv.z() * (1 - hsv.y());
+		double q = hsv.z() * (1 - f * hsv.y());
+		double t = hsv.z() * (1 - (1 - f) * hsv.y());
 
 		switch (i % 6) {
-			case 0: return double3{ hsv.z, t, p }; break;
-			case 1: return double3{ q, hsv.z, p }; break;
-			case 2: return double3{ p, hsv.z, t }; break;
-			case 3: return double3{ p, q, hsv.z }; break;
-			case 4: return double3{ t, p, hsv.z }; break;
-			case 5: return double3{ hsv.z, p, q }; break;
+			case 0: return double3{ hsv.z(), t, p }; break;
+			case 1: return double3{ q, hsv.z(), p }; break;
+			case 2: return double3{ p, hsv.z(), t }; break;
+			case 3: return double3{ p, q, hsv.z() }; break;
+			case 4: return double3{ t, p, hsv.z() }; break;
+			case 5: return double3{ hsv.z(), p, q }; break;
 		}
 
 		return double3();

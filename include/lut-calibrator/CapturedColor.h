@@ -34,7 +34,7 @@
 	#include <vector>
 #endif
 
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/ColorSpace.h>
 #include <image/ColorRgb.h>
 #include <image/Image.h>
@@ -62,13 +62,13 @@ private:
 public:
 	CapturedColor() = default;
 
-	const double& y() const { return color.x; }
+	const double& y() const { return color.x(); }
 	const double3& yuv() const { return color; }
 	const byte3& coords() const { return arrayCoords; }	
 
-	const uint8_t& Y() const { return colorInt.x; }
-	const uint8_t& U() const { return colorInt.y; }
-	const uint8_t& V() const { return colorInt.z; }
+	const uint8_t& Y() const { return colorInt.x(); }
+	const uint8_t& U() const { return colorInt.y(); }
+	const uint8_t& V() const { return colorInt.z(); }
 
 	void importColors(const CapturedColor& color);
 	bool calculateFinalColor();

@@ -44,7 +44,7 @@ void CapturedColor::importColors(const CapturedColor& color)
 
 bool CapturedColor::calculateFinalColor()
 {
-	if (inputColors.empty() || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
+	if (inputColors.empty() || ((max - min).maxCoeff() > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
 		return false;
 
 	int count = 0;
@@ -54,7 +54,7 @@ bool CapturedColor::calculateFinalColor()
 	sortedInputYuvColors.clear();
 	for (auto iter = inputColors.begin(); iter != inputColors.end(); ++iter)
 	{
-		color += ((*iter).first) * ((*iter).second);
+		color += (((*iter).first).cast<double>() * ((*iter).second));
 		count += ((*iter).second);
 
 		// sort
@@ -82,7 +82,7 @@ bool CapturedColor::calculateFinalColor()
 			m.first.z = 128;
 		}*/
 
-		sortedInputYuvColors.push_back(std::pair<double3, int>(static_cast<double3>(m.first) / 255.0, m.second));
+		sortedInputYuvColors.push_back(std::pair<double3, int>(m.first.cast<double>() / 255.0, m.second));
 	});
 	
 
@@ -91,28 +91,28 @@ bool CapturedColor::calculateFinalColor()
 	colorInt = ColorSpaceMath::to_byte3(workColor);
 	color /= (count * 255.0);
 	
-	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
+	if (sourceRGB.x() == sourceRGB.y() && sourceRGB.y() == sourceRGB.z())
 	{
-		colorInt.y = colorInt.z = 128;
-		color.y = color.z = 128.0/255;
+		colorInt.y() = colorInt.z() = 128;
+		color.y() = color.z() = 128.0/255;
 	}
 	else
 	{
-		auto delta = workColor - colorInt;
+		auto delta = workColor - colorInt.cast<double>();;
 
-		if (delta.y * delta.z < 0)
+		if (delta.y() * delta.z() < 0)
 		{
-			if (((fabs(delta.y) >= fabs(delta.z)) && delta.y > 0) ||
-				((fabs(delta.y) < fabs(delta.z)) && delta.z > 0))
+			if (((fabs(delta.y()) >= fabs(delta.z())) && delta.y() > 0) ||
+				((fabs(delta.y()) < fabs(delta.z())) && delta.z() > 0))
 			{
-				colorInt.y = std::floor(workColor.y);
-				colorInt.z = std::floor(workColor.z);
+				colorInt.y() = std::floor(workColor.y());
+				colorInt.z() = std::floor(workColor.z());
 			}
-			else if (((fabs(delta.y) >= fabs(delta.z)) && delta.y < 0) ||
-				((fabs(delta.y) < fabs(delta.z)) && delta.z < 0))
+			else if (((fabs(delta.y()) >= fabs(delta.z())) && delta.y() < 0) ||
+				((fabs(delta.y()) < fabs(delta.z())) && delta.z() < 0))
 			{
-				colorInt.y = std::ceil(workColor.y);
-				colorInt.z = std::ceil(workColor.z);
+				colorInt.y() = std::ceil(workColor.y());
+				colorInt.z() = std::ceil(workColor.z());
 			}
 		}
 	}
@@ -142,19 +142,19 @@ void CapturedColor::addColor(const byte3& i)
 {
 	bool empty = !hasAnySample();
 
-	if (empty || min.x > i.x)
-		min.x = i.x;
-	if (empty || min.y > i.y)
-		min.y = i.y;
-	if (empty || min.z > i.z)
-		min.z = i.z;
+	if (empty || min.x() > i.x())
+		min.x() = i.x();
+	if (empty || min.y() > i.y())
+		min.y() = i.y();
+	if (empty || min.z() > i.z())
+		min.z() = i.z();
 
-	if (empty || max.x < i.x)
-		max.x = i.x;
-	if (empty || max.y < i.y)
-		max.y = i.y;
-	if (empty || max.z < i.z)
-		max.z = i.z;
+	if (empty || max.x() < i.x())
+		max.x() = i.x();
+	if (empty || max.y() < i.y())
+		max.y() = i.y();
+	if (empty || max.z() < i.z())
+		max.z() = i.z();
 	
 	auto findIter = std::find_if(inputColors.begin(), inputColors.end(), [&](auto& m) {
 		return m.first == i;
@@ -180,11 +180,11 @@ void CapturedColor::setCoords(const byte3& index)
 
 	int MAX_IND = BoardUtils::MAX_INDEX;
 
-	if ((std::min(index.x, index.z) == 0 && std::max(index.x, index.z) == MAX_IND && (index.y % (MAX_IND / 2) == 0)) ||
-		(std::min(index.x, index.y) == 0 && std::max(index.x, index.y) == MAX_IND && (index.z % (MAX_IND / 2) == 0)) ||
-		(std::min(index.y, index.z) == 0 && std::max(index.y, index.z) == MAX_IND && (index.x % (MAX_IND / 2) == 0)) ||
-		(index.x == MAX_IND && index.y == MAX_IND && index.z == MAX_IND / 2) ||
-		(index.x == MAX_IND && index.y == MAX_IND / 2 && index.z == MAX_IND)
+	if ((std::min(index.x(), index.z()) == 0 && std::max(index.x(), index.z()) == MAX_IND && (index.y() % (MAX_IND / 2) == 0)) ||
+		(std::min(index.x(), index.y()) == 0 && std::max(index.x(), index.y()) == MAX_IND && (index.z() % (MAX_IND / 2) == 0)) ||
+		(std::min(index.y(), index.z()) == 0 && std::max(index.y(), index.z()) == MAX_IND && (index.x() % (MAX_IND / 2) == 0)) ||
+		(index.x() == MAX_IND && index.y() == MAX_IND && index.z() == MAX_IND / 2) ||
+		(index.x() == MAX_IND && index.y() == MAX_IND / 2 && index.z() == MAX_IND)
 		)
 	{
 		lchPrimary = LchPrimaries::HIGH;
@@ -192,12 +192,12 @@ void CapturedColor::setCoords(const byte3& index)
 	else
 	{
 		MAX_IND /= 2;
-		if (std::max(std::max(index.x, index.y), index.z) == MAX_IND &&
-			((std::min(index.x, index.z) == 0 && std::max(index.x, index.z) == MAX_IND && (index.y % (MAX_IND / 2) == 0)) ||
-			(std::min(index.x, index.y) == 0 && std::max(index.x, index.y) == MAX_IND && (index.z % (MAX_IND / 2) == 0)) ||
-			(std::min(index.y, index.z) == 0 && std::max(index.y, index.z) == MAX_IND && (index.x % (MAX_IND / 2) == 0)) ||
-			(index.x == MAX_IND && index.y == MAX_IND && index.z == MAX_IND / 2) ||
-			(index.x == MAX_IND && index.y == MAX_IND / 2 && index.z == MAX_IND)
+		if (std::max(std::max(index.x(), index.y()), index.z()) == MAX_IND &&
+			((std::min(index.x(), index.z()) == 0 && std::max(index.x(), index.z()) == MAX_IND && (index.y() % (MAX_IND / 2) == 0)) ||
+			(std::min(index.x(), index.y()) == 0 && std::max(index.x(), index.y()) == MAX_IND && (index.z() % (MAX_IND / 2) == 0)) ||
+			(std::min(index.y(), index.z()) == 0 && std::max(index.y(), index.z()) == MAX_IND && (index.x() % (MAX_IND / 2) == 0)) ||
+			(index.x() == MAX_IND && index.y() == MAX_IND && index.z() == MAX_IND / 2) ||
+			(index.x() == MAX_IND && index.y() == MAX_IND / 2 && index.z() == MAX_IND)
 			))
 		{
 			lchPrimary = LchPrimaries::LOW;
@@ -205,12 +205,12 @@ void CapturedColor::setCoords(const byte3& index)
 		else
 		{
 			MAX_IND = (BoardUtils::MAX_INDEX * 3) / 4;
-			if (std::max(std::max(index.x, index.y), index.z) == MAX_IND &&
-				((std::min(index.x, index.z) == 0 && std::max(index.x, index.z) == MAX_IND && (index.y % (MAX_IND / 2) == 0)) ||
-					(std::min(index.x, index.y) == 0 && std::max(index.x, index.y) == MAX_IND && (index.z % (MAX_IND / 2) == 0)) ||
-					(std::min(index.y, index.z) == 0 && std::max(index.y, index.z) == MAX_IND && (index.x % (MAX_IND / 2) == 0)) ||
-					(index.x == MAX_IND && index.y == MAX_IND && index.z == MAX_IND / 2) ||
-					(index.x == MAX_IND && index.y == MAX_IND / 2 && index.z == MAX_IND)
+			if (std::max(std::max(index.x(), index.y()), index.z()) == MAX_IND &&
+				((std::min(index.x(), index.z()) == 0 && std::max(index.x(), index.z()) == MAX_IND && (index.y() % (MAX_IND / 2) == 0)) ||
+					(std::min(index.x(), index.y()) == 0 && std::max(index.x(), index.y()) == MAX_IND && (index.z() % (MAX_IND / 2) == 0)) ||
+					(std::min(index.y(), index.z()) == 0 && std::max(index.y(), index.z()) == MAX_IND && (index.x() % (MAX_IND / 2) == 0)) ||
+					(index.x() == MAX_IND && index.y() == MAX_IND && index.z() == MAX_IND / 2) ||
+					(index.x() == MAX_IND && index.y() == MAX_IND / 2 && index.z() == MAX_IND)
 					))
 			{
 				lchPrimary = LchPrimaries::MID;
@@ -225,14 +225,14 @@ void CapturedColor::setCoords(const byte3& index)
 
 QString CapturedColor::toString()
 {
-	return QString("(%1, %2, %3)").arg(color.x).arg(color.y).arg(color.z);
+	return QString("(%1, %2, %3)").arg(color.x()).arg(color.y()).arg(color.z());
 }
 
 void  CapturedColor::setSourceRGB(byte3 _color)
 {
 	sourceRGB = ColorSpaceMath::to_int3(_color);
 
-	auto srgb = static_cast<double3>(sourceRGB) / 255.0;
+	auto srgb = sourceRGB.cast<double>() / 255.0;
 	sourceLch = ColorSpaceMath::xyz_to_lch(ColorSpaceMath::from_sRGB_to_XYZ(srgb) * 100.0);
 }
 
@@ -276,36 +276,36 @@ std::list<std::pair<double3, int>> CapturedColor::getInputYuvColors() const
 
 int CapturedColor::getSourceError(const int3& _color) const
 {
-	auto delta = linalg::abs( sourceRGB - _color);
-	int error = std::min((delta.x * delta.x  + delta.y * delta.y + delta.z * delta.z), (int)BoardUtils::MAX_CALIBRATION_ERROR);
+	int3 delta = (sourceRGB - _color).cwiseAbs();
+	int error = std::min((delta.x() * delta.x()  + delta.y() * delta.y() + delta.z() * delta.z()), (int)BoardUtils::MAX_CALIBRATION_ERROR);
 
-	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
+	if (sourceRGB.x() == sourceRGB.y() && sourceRGB.y() == sourceRGB.z())
 	{
 		return error * 20;
 	}
 	else if (
-		(arrayCoords.x == 0 || arrayCoords.x == BoardUtils::MAX_INDEX) &&
-		(arrayCoords.y == 0 || arrayCoords.y == BoardUtils::MAX_INDEX) &&
-		(arrayCoords.z == 0 || arrayCoords.z == BoardUtils::MAX_INDEX))
+		(arrayCoords.x() == 0 || arrayCoords.x() == BoardUtils::MAX_INDEX) &&
+		(arrayCoords.y() == 0 || arrayCoords.y() == BoardUtils::MAX_INDEX) &&
+		(arrayCoords.z() == 0 || arrayCoords.z() == BoardUtils::MAX_INDEX))
 	{
-		if (arrayCoords.x != BoardUtils::MAX_INDEX)
-			delta.x = (delta.x * 3) / 4;
+		if (arrayCoords.x() != BoardUtils::MAX_INDEX)
+			delta.x() = (delta.x() * 3) / 4;
 
-		if (arrayCoords.y != BoardUtils::MAX_INDEX)
-			delta.y = (delta.y * 3) / 4;
+		if (arrayCoords.y() != BoardUtils::MAX_INDEX)
+			delta.y() = (delta.y() * 3) / 4;
 
-		if (arrayCoords.z != BoardUtils::MAX_INDEX)
-			delta.z = (delta.z * 3) / 4;
+		if (arrayCoords.z() != BoardUtils::MAX_INDEX)
+			delta.z() = (delta.z() * 3) / 4;
 
 		return error * 5;
 	}
-	else if (sourceRGB.x == sourceRGB.y)
+	else if (sourceRGB.x() == sourceRGB.y())
 	{
-		if (_color.x == _color.y)
+		if (_color.x() == _color.y())
 		{
 			return error / 4;
 		}
-		else if (_color.x > _color.y)
+		else if (_color.x() > _color.y())
 		{
 			return error * 4 / 5;
 		}
@@ -314,13 +314,13 @@ int CapturedColor::getSourceError(const int3& _color) const
 			return error * 6 / 5;
 		}
 	}
-	else if (sourceRGB.x == sourceRGB.z)
+	else if (sourceRGB.x() == sourceRGB.z())
 	{
-		if (_color.z == _color.x)
+		if (_color.z() == _color.x())
 		{
 			return error / 4;
 		}
-		else if (_color.z > _color.x)
+		else if (_color.z() > _color.x())
 		{
 			return error * 3 / 4;
 		}
@@ -329,13 +329,13 @@ int CapturedColor::getSourceError(const int3& _color) const
 			return error * 5 / 4;
 		}
 	}
-	else if (sourceRGB.y == sourceRGB.z)
+	else if (sourceRGB.y() == sourceRGB.z())
 	{
-		if (_color.z == _color.y)
+		if (_color.z() == _color.y())
 		{
 			return error / 4;
 		}
-		else if (_color.z > _color.y)
+		else if (_color.z() > _color.y())
 		{
 			return error * 4 / 5;
 		}
