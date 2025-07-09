@@ -29,7 +29,6 @@
 #include <lut-calibrator/CapturedColor.h>
 #include <lut-calibrator/BoardUtils.h>
 
-
 void CapturedColor::importColors(const CapturedColor& color)
 {
 	for (auto iter = color.inputColors.begin(); iter != color.inputColors.end(); ++iter)
@@ -44,7 +43,7 @@ void CapturedColor::importColors(const CapturedColor& color)
 
 bool CapturedColor::calculateFinalColor()
 {
-	if (inputColors.empty() || (linalg::maxelem(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
+	if (inputColors.empty() || (glm::compMax(max - min) > BoardUtils::SCREEN_MAX_COLOR_NOISE_ERROR))
 		return false;
 
 	int count = 0;
@@ -54,7 +53,7 @@ bool CapturedColor::calculateFinalColor()
 	sortedInputYuvColors.clear();
 	for (auto iter = inputColors.begin(); iter != inputColors.end(); ++iter)
 	{
-		color += ((*iter).first) * ((*iter).second);
+		color += (static_cast<int3>((*iter).first)) * ((*iter).second);
 		count += ((*iter).second);
 
 		// sort
@@ -86,7 +85,7 @@ bool CapturedColor::calculateFinalColor()
 	});
 	
 
-	auto workColor = color / count;
+	double3 workColor = color / static_cast<double>(count);
 
 	colorInt = ColorSpaceMath::to_byte3(workColor);
 	color /= (count * 255.0);
@@ -98,7 +97,7 @@ bool CapturedColor::calculateFinalColor()
 	}
 	else
 	{
-		auto delta = workColor - colorInt;
+		auto delta = workColor - static_cast<double3>(colorInt);
 
 		if (delta.y * delta.z < 0)
 		{
@@ -276,7 +275,7 @@ std::list<std::pair<double3, int>> CapturedColor::getInputYuvColors() const
 
 int CapturedColor::getSourceError(const int3& _color) const
 {
-	auto delta = linalg::abs( sourceRGB - _color);
+	auto delta = glm::abs(sourceRGB - _color);
 	int error = std::min((delta.x * delta.x  + delta.y * delta.y + delta.z * delta.z), (int)BoardUtils::MAX_CALIBRATION_ERROR);
 
 	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)

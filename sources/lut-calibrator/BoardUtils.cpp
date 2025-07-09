@@ -39,9 +39,6 @@
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,colorspace=space=bt709:primaries=bt709:range=pc:trc=iec61966-2-1:ispace=bt709:iprimaries=bt709:irange=pc:itrc=iec61966-2-1:format=yuv444p12:fast=0:dither=none -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:lossless=1:colorprim=bt709:transfer=iec61966-2-1:colormatrix=bt709:range=full -f mp4 test_SDR_yuv420_low_quality.mp4
 // ffmpeg -loop 1 -t 90 -framerate 1/3 -i table_%d.png -stream_loop -1 -i audio.ogg -shortest -map 0:v:0 -map 1:a:0 -vf fps=25,zscale=m=2020_ncl:p=2020:t=smpte2084:r=full:min=709:pin=709:tin=iec61966-2-1:rin=full:c=topleft:npl=200,format=yuv420p10le -c:v libx265 -vtag hvc1 -pix_fmt yuv420p10le -profile:v main10 -preset veryslow -x265-params keyint=75:min-keyint=75:bframes=0:scenecut=0:psy-rd=0:psy-rdoq=0:rdoq=0:sao=false:cutree=false:deblock=false:strong-intra-smoothing=0:hdr10=1:lossless=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:range=full -f mp4 test_HDR_yuv420_low_quality.mp4
 
-using namespace linalg;
-using namespace aliases;
-
 namespace BoardUtils
 {
 
@@ -76,7 +73,7 @@ namespace BoardUtils
 		const double2 positionF{ position };
 		const double2 startF = positionF * delta;
 		const double2 endF = ((positionF + double2(1, 1)) * delta) - double2(1, 1);
-		const int2 middle{ (startF + endF) / 2 };
+		const int2 middle = int2((startF + endF) / 2.0);
 		
 		if (middle.x + 1 >= static_cast<int>(yuvImage.width()) || middle.y + 1 >= static_cast<int>(yuvImage.height()))
 			throw std::runtime_error("Incorrect image size");
@@ -388,7 +385,7 @@ namespace BoardUtils
 					int3 sourceRgb = sample.getSourceRGB();
 					auto result = converter.toRgb(YuvConverter::COLOR_RANGE::FULL, YuvConverter::YUV_COEFS::BT709, sample.yuv()) * 255.0;
 					int3 outputRgb = ColorSpaceMath::to_int3(ColorSpaceMath::to_byte3(result));
-					int distance = linalg::distance(sourceRgb, outputRgb);
+					int distance = static_cast<int>(glm::distance(glm::vec3(sourceRgb), glm::vec3(outputRgb)));
 					if (distance > maxError)
 					{
 						totalErrors++;

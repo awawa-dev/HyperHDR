@@ -53,12 +53,10 @@
 #include <lut-calibrator/YuvConverter.h>
 #include <lut-calibrator/BoardUtils.h>
 #include <utils-image/utils-image.h>
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <fstream>
 #include <lut-calibrator/CalibrationWorker.h>
 
-using namespace linalg;
-using namespace aliases;
 using namespace ColorSpaceMath;
 using namespace BoardUtils;
 
@@ -70,7 +68,7 @@ using namespace BoardUtils;
 //                          HELPERS                            //
 /////////////////////////////////////////////////////////////////
 struct MappingPrime;
-
+static void capturedPrimariesCorrection(Logger* _log, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, glm::dmat3& convert_bt2020_to_XYZ, glm::dmat3& convert_XYZ_to_corrected, std::shared_ptr<YuvConverter>& _yuvConverter, std::shared_ptr<BoardUtils::CapturedColors>& _capturedColors, bool printDebug = false);
 
 enum SampleColor { RED = 0, GREEN, BLUE, LOW_RED, LOW_GREEN, LOW_BLUE };
 
@@ -618,7 +616,7 @@ static void doToneMapping(const LchLists& m, double3& p)
 	aLow.z += correctionLow.z;
 
 	double3 pLow = from_XYZ_to_sRGB(lch_to_xyz(aLow) / 100.0);
-	double max = std::max(linalg::maxelem(pLow), linalg::maxelem(pHigh));
+	double max = std::max(glm::compMax(pLow), glm::compMax(pHigh));
 
 	if (128.0 / 255.0 >= max)
 	{
@@ -701,7 +699,7 @@ void LutCalibrator::printReport()
 }
 
 
-static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal, int colorAspectMode, const std::pair<double3, double3>& colorAspect)
+static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const byte2& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal, int colorAspectMode, const std::pair<double3, double3>& colorAspect)
 {	
 	double3 srgb;
 	bool white = true;
@@ -765,7 +763,7 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 
 		if (altConvert)
 		{
-			srgb = mul(bt2020_to_sRgb, e);
+			srgb = bt2020_to_sRgb * e;
 		}
 		else
 		{
@@ -1233,8 +1231,8 @@ void  LutCalibrator::fineTune(bool precise)
 				double3x3 convert_bt2020_to_XYZ;
 				double3x3 convert_XYZ_to_sRgb;
 
-				capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, NITS, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
-				auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
+				capturedPrimariesCorrection(_log, HDR_GAMMA(gamma), gammaHLG, NITS, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, _yuvConverter, _capturedColors);
+				auto bt2020_to_sRgb = convert_XYZ_to_sRgb * convert_bt2020_to_XYZ;
 
 				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %.3f\n",
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
@@ -1340,7 +1338,7 @@ void LutCalibrator::calibration()
 		double3x3 convert_bt2020_to_XYZ;
 		double3x3 convert_XYZ_to_sRgb;
 
-		capturedPrimariesCorrection(HDR_GAMMA(bestResult->gamma), bestResult->gammaHLG, bestResult->nits, bestResult->coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, true);
+		capturedPrimariesCorrection(_log, HDR_GAMMA(bestResult->gamma), bestResult->gammaHLG, bestResult->nits, bestResult->coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, _yuvConverter, _capturedColors, true);
 	}
 
 	// write report (captured raw colors)
@@ -1477,8 +1475,8 @@ static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<Captured
 		for (MappingPrime& c : *m)
 		{
 			auto& sample = (*all)[c.prime.x][c.prime.y][c.prime.z];
-			auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255;
-			auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
+			auto aa = from_XYZ_to_sRGB(lch_to_xyz(c.org) / 100.0) * 255.0;
+			auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255.0;
 			info.append(QString("%1 | %2 | %3 | %4 | %5 %6").arg(vecToString(sample.getSourceRGB()), 12).
 				arg(vecToString(c.org)).
 				arg(vecToString(c.real)).				
@@ -1506,7 +1504,7 @@ void CreateLutWorker::run()
 				if (phase == 0)
 				{
 					yuv = yuvConverter->toYuv(bestResult->signal.range, bestResult->coef, yuv);
-					YUV = to_byte3(yuv * 255);
+					YUV = to_byte3(yuv * 255.0);
 				}
 
 				if (phase == 0 || phase == 1)
@@ -1676,7 +1674,7 @@ void LutCalibrator::calibrate()
 }
 
 
-void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug)
+static void capturedPrimariesCorrection(Logger* _log, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, glm::dmat3& convert_bt2020_to_XYZ, glm::dmat3& convert_XYZ_to_corrected, std::shared_ptr<YuvConverter>& _yuvConverter, std::shared_ptr<BoardUtils::CapturedColors>& _capturedColors, bool printDebug)
 {
 	std::vector<CapturedColor> capturedPrimaries{
 		_capturedColors->all[SCREEN_COLOR_DIMENSION - 1][0][0], //red
@@ -1717,11 +1715,11 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 		actualPrimaries.push_back(a);
 	}
 
-	constexpr linalg::vec<double, 2> bt2020_red_xy(0.708, 0.292);
-	constexpr linalg::vec<double, 2> bt2020_green_xy(0.17, 0.797);
-	constexpr linalg::vec<double, 2> bt2020_blue_xy(0.131, 0.046);
-	constexpr linalg::vec<double, 2> bt2020_white_xy(0.3127, 0.3290);
-	constexpr double3x3 bt2020_to_XYZ = to_XYZ(bt2020_red_xy, bt2020_green_xy, bt2020_blue_xy, bt2020_white_xy);
+	constexpr double2 bt2020_red_xy(0.708, 0.292);
+	constexpr double2 bt2020_green_xy(0.17, 0.797);
+	constexpr double2 bt2020_blue_xy(0.131, 0.046);
+	constexpr double2 bt2020_white_xy(0.3127, 0.3290);
+	double3x3 bt2020_to_XYZ = to_XYZ(bt2020_red_xy, bt2020_green_xy, bt2020_blue_xy, bt2020_white_xy);
 
 	convert_bt2020_to_XYZ = bt2020_to_XYZ;
 
@@ -1731,22 +1729,22 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 	double2 sRgb_white_xy = { 0.3127f, 0.3290f };
 
 	double3 actual_red_xy(actualPrimaries[0]);
-	actual_red_xy = linalg::mul(convert_bt2020_to_XYZ, actual_red_xy);
+	actual_red_xy = convert_bt2020_to_XYZ * actual_red_xy;
 	sRgb_red_xy = XYZ_to_xy(actual_red_xy);
 
 	double3 actual_green_xy(actualPrimaries[1]);
-	actual_green_xy = mul(convert_bt2020_to_XYZ, actual_green_xy);
+	actual_green_xy = convert_bt2020_to_XYZ * actual_green_xy;
 	sRgb_green_xy = XYZ_to_xy(actual_green_xy);
 
 	double3 actual_blue_xy(actualPrimaries[2]);
-	actual_blue_xy = mul(convert_bt2020_to_XYZ, actual_blue_xy);
+	actual_blue_xy = convert_bt2020_to_XYZ * actual_blue_xy;
 	sRgb_blue_xy = XYZ_to_xy(actual_blue_xy);
 
 	double3 actual_white_xy(actualPrimaries[3]);
-	actual_white_xy = mul(convert_bt2020_to_XYZ, actual_white_xy);
+	actual_white_xy = convert_bt2020_to_XYZ * actual_white_xy;
 	sRgb_white_xy = XYZ_to_xy(actual_white_xy);
 
-	mat<double, 3, 3> convert_sRgb_to_XYZ;
+	double3x3 convert_sRgb_to_XYZ;
 	convert_sRgb_to_XYZ = to_XYZ(sRgb_red_xy, sRgb_green_xy, sRgb_blue_xy, sRgb_white_xy);
 
 	convert_XYZ_to_corrected = inverse(convert_sRgb_to_XYZ);
@@ -1758,9 +1756,9 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 		double2 sRgbB = { 0.15f, 0.06f };
 		double2 sRgbW = { 0.3127f, 0.3290f };
 
-		auto dr = linalg::angle(sRgb_red_xy - sRgb_white_xy, sRgbR - sRgbW);
-		auto dg = linalg::angle(sRgb_green_xy - sRgb_white_xy, sRgbG - sRgbW);
-		auto db = linalg::angle(sRgb_blue_xy - sRgb_white_xy, sRgbB - sRgbW);
+		auto dr = glm::angle(sRgb_red_xy - sRgb_white_xy, sRgbR - sRgbW);
+		auto dg = glm::angle(sRgb_green_xy - sRgb_white_xy, sRgbG - sRgbW);
+		auto db = glm::angle(sRgb_blue_xy - sRgb_white_xy, sRgbB - sRgbW);
 
 		Debug(_log, "--------------------------------- Actual PQ primaries for YUV coefs: %s ---------------------------------", QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))));
 		Debug(_log, "r: (%.3f, %.3f, a: %.3f) vs sRGB(%.3f, %.3f) vs bt2020(%.3f, %.3f) vs wide(%.3f, %.3f)", sRgb_red_xy.x, sRgb_red_xy.y, dr, 0.64f, 0.33f, 0.708f, 0.292f, 0.7350f, 0.2650f);

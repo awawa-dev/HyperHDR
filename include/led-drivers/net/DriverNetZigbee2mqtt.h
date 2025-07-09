@@ -10,7 +10,7 @@
 #endif
 
 #include <led-drivers/LedDevice.h>
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 
 class DriverNetZigbee2mqtt : public LedDevice
 {

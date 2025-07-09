@@ -9,7 +9,7 @@
 
 #include <led-drivers/LedDevice.h>
 #include <led-drivers/net/ProviderRestApi.h>
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 
 class DriverNetHomeAssistant : public LedDevice
 {

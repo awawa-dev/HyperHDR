@@ -39,13 +39,11 @@
 	#include <climits>	
 #endif
 
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/ColorSpace.h>
 #include <lut-calibrator/BoardUtils.h>
 #include <lut-calibrator/YuvConverter.h>
 
-using namespace linalg;
-using namespace aliases;
 using namespace ColorSpaceMath;
 using namespace BoardUtils;
 

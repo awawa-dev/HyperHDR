@@ -88,12 +88,21 @@ if(ENABLE_WS281XPWM)
 endif()
 
 #=============================================================================
-# LINALG
+# GLM
 #=============================================================================
 
-add_library(linalg INTERFACE)
-target_compile_definitions(linalg INTERFACE LINALG_FORWARD_COMPATIBLE )
-target_include_directories(linalg INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/linalg")
+if (USE_SYSTEM_GLM_LIBS)
+	find_package(glm)
+	if (NOT glm_FOUND)
+		message(WARNING "Could NOT find glm system libraries. Fallback to glm submodule.")
+	endif()
+endif()
+
+if (NOT USE_SYSTEM_GLM_LIBS OR NOT glm_FOUND)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glm)
+endif()
+
+target_compile_definitions(glm PUBLIC GLM_ENABLE_EXPERIMENTAL)	
 
 #=============================================================================
 # LUNASVG

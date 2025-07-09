@@ -28,11 +28,9 @@
 */
 
 #include <QRunnable>
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/BestResult.h>
 
-using namespace linalg;
-using namespace aliases;
 using namespace ColorSpaceMath;
 using namespace BoardUtils;
 

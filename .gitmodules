@@ -6,9 +6,6 @@
 	path = external/flatbuffers
 	url = https://github.com/google/flatbuffers
 	branch = master
-[submodule "external/mbedtls"]
-	path = external/mbedtls
-	url = https://github.com/ARMmbed/mbedtls
 [submodule "external/qmqtt"]
 	path = external/qmqtt
 	url = https://github.com/emqx/qmqtt.git
@@ -28,9 +25,9 @@
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/nothings/stb.git
-[submodule "external/linalg"]
-	path = external/linalg
-	url = https://github.com/sgorsten/linalg.git
 [submodule "external/zstd"]
 	path = external/zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm

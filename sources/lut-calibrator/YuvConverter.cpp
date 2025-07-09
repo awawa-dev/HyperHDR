@@ -37,30 +37,30 @@ namespace {
 
 double3 YuvConverter::toRgb(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const
 {
-	double4 ret(input, 1);
-	ret = mul(yuv2rgb.at(range).at(coef), ret);
-	return double3(ret.x, ret.y, ret.z);
+	double4 ret(input, 1.0);
+	ret = yuv2rgb.at(range).at(coef) * ret;
+	return double3(ret); // GLM pozwala na konwersję dvec4 na dvec3 obcinając ostatni komponent
 }
 
 double3 YuvConverter::toYuv(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const
 {
-	double4 ret(input, 1);
-	ret = mul(rgb2yuv.at(range).at(coef), ret);
-	return double3(ret.x, ret.y, ret.z);
+	double4 ret(input, 1.0);
+	ret = rgb2yuv.at(range).at(coef) * ret;
+	return double3(ret);
 }
 
 double3 YuvConverter::multiplyColorMatrix(double4x4 matrix, const double3& input) const
 {
-	double4 ret(input, 1);
-	ret = mul(matrix, ret);
-	return double3(ret.x, ret.y, ret.z);
+	double4 ret(input, 1.0);
+	ret = matrix * ret;
+	return double3(ret);
 }
 
 double3 YuvConverter::toYuvBT709(COLOR_RANGE range, const double3& input) const
 {
-	double4 ret(input, 1);
-	ret = mul(rgb2yuvBT709.at(range), ret);
-	return double3(ret.x, ret.y, ret.z);
+	double4 ret(input, 1.0);
+	ret = rgb2yuvBT709.at(range) * ret;
+	return double3(ret);
 }
 
 QString YuvConverter::coefToString(YUV_COEFS cf) const

@@ -30,12 +30,8 @@
 #include <utils/FrameDecoder.h>
 
 #include <lut-calibrator/ColorSpace.h>
-#include <linalg.h>
 #include <atomic>
 #include <mutex>
-
-using namespace linalg;
-using namespace aliases;
 
 namespace FrameDecoderUtils
 {

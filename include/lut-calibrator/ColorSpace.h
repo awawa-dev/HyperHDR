@@ -36,11 +36,8 @@
 	#include <vector>
 #endif
 
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/LutCalibrator.h>
-
-using namespace linalg;
-using namespace aliases;
 
 namespace ColorSpaceMath
 {
@@ -48,7 +45,7 @@ namespace ColorSpaceMath
 
 	QString gammaToString(HDR_GAMMA gamma);
 
-	constexpr mat<double, 3, 3> matrix(std::array<double, 9> m)
+	constexpr double3x3 matrix(std::array<double, 9> m)
 	{
 		double3 c1(m[0], m[3], m[6]);
 		double3 c2(m[1], m[4], m[7]);
@@ -56,7 +53,7 @@ namespace ColorSpaceMath
 		return double3x3(c1, c2, c3);
 	}
 
-	constexpr mat<double, 4, 4> matrix4(std::array<double, 16> m)
+	constexpr double4x4 matrix4(std::array<double, 16> m)
 	{
 		double4 c1(m[0], m[4], m[8], m[12]);
 		double4 c2(m[1], m[5], m[9], m[13]);
@@ -79,7 +76,7 @@ namespace ColorSpaceMath
 
 	std::vector<double2> getPrimaries(PRIMARIES primary);
 
-	mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary);
+	double3x3 getPrimariesToXYZ(PRIMARIES primary);
 
 	double3 bt2020_nonlinear_to_linear(double3 input);
 
@@ -116,33 +113,12 @@ namespace ColorSpaceMath
 
 	double2 XYZ_to_xy(const double3& a);
 
-	constexpr double3x3 to_XYZ(
+	double3x3 to_XYZ(
 		const double2& red_xy,
 		const double2& green_xy,
 		const double2& blue_xy,
 		const double2& white_xy
-	)
-	{
-		double3 r(red_xy.x, red_xy.y, 1.0 - (red_xy.x + red_xy.y));
-		double3 g(green_xy.x, green_xy.y, 1.0 - (green_xy.x + green_xy.y));
-		double3 b(blue_xy.x, blue_xy.y, 1.0 - (blue_xy.x + blue_xy.y));
-		double3 w(white_xy.x, white_xy.y, 1.0 - (white_xy.x + white_xy.y));
-
-		w /= white_xy.y;
-
-		double3x3 retMat(r, g, b);
-
-		double3x3 invMat;
-		invMat = linalg::inverse(retMat);
-
-		double3 scale = linalg::mul(invMat, w);
-
-		retMat.x *= scale.x;
-		retMat.y *= scale.y;
-		retMat.z *= scale.z;
-
-		return retMat;
-	};
+	);
 
 	double3 xyz_to_lab(const double3& xyz);
 

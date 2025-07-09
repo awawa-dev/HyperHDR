@@ -34,7 +34,7 @@
 	#include <vector>
 #endif
 
-#include <linalg.h>
+#include <lut-calibrator/VectorHelper.h>
 #include <lut-calibrator/ColorSpace.h>
 #include <image/ColorRgb.h>
 #include <image/Image.h>

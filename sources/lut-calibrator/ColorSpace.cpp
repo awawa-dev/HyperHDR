@@ -29,9 +29,6 @@
 #include <QStringList>
 #include <lut-calibrator/ColorSpace.h>
 
-using namespace linalg;
-using namespace aliases;
-
 namespace ColorSpaceMath
 {
 	const std::map<PRIMARIES, std::vector<double2>> knownPrimaries = {
@@ -178,7 +175,7 @@ namespace ColorSpaceMath
 		return knownPrimaries.at(primary);
 	}
 
-	linalg::mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary)
+	double3x3 getPrimariesToXYZ(PRIMARIES primary)
 	{
 		const auto& primaries = knownPrimaries.at(primary);
 		return to_XYZ(primaries[0], primaries[1], primaries[2], primaries[3]);
@@ -242,8 +239,8 @@ namespace ColorSpaceMath
 			return input;
 
 		double3 coefs{ 0.2627, 0.6780, 0.0593 };
-		double luma = linalg::dot(input, coefs);
-		luma = linalg::pow(luma, gamma - 1.0);
+		double luma = glm::dot(input, coefs);
+		luma = glm::pow(luma, gamma - 1.0);
 
 		return input * luma;
 	}
@@ -260,24 +257,24 @@ namespace ColorSpaceMath
 
 	double3 from_bt2020_to_XYZ(double3 x)
 	{
-		return mul(matrix_bt2020_to_XYZ, x);
+		return matrix_bt2020_to_XYZ * x;
 	}
 
 	double3 from_XYZ_to_bt2020(double3 x)
 	{
-		constexpr double3x3 m = inverse(matrix_bt2020_to_XYZ);
-		return mul(m, x);
+		double3x3 m = glm::inverse(matrix_bt2020_to_XYZ);
+		return m * x;
 	}
 
 	double3 from_XYZ_to_sRGB(double3 x)
 	{
-		constexpr double3x3 m = inverse(matrix_sRgb_to_XYZ);
-		return mul(m, x);
+		double3x3 m = glm::inverse(matrix_sRgb_to_XYZ);
+		return m * x;
 	}
 
 	double3 from_sRGB_to_XYZ(double3 x)
 	{
-		return mul(matrix_sRgb_to_XYZ, x);
+		return matrix_sRgb_to_XYZ * x;
 	}
 
 	double2 XYZ_to_xy(const double3& a)
@@ -429,7 +426,8 @@ namespace ColorSpaceMath
 		QStringList ret;
 		for (int d = 0; d < 4; d++)
 		{
-			ret.append(vecToString(m.row(d)));
+			double4 rowAsVec(m[0][d], m[1][d], m[2][d], m[3][d]);
+			ret.append(vecToString(rowAsVec));
 		}
 		return ret.join("\r\n");
 	}
@@ -439,22 +437,32 @@ namespace ColorSpaceMath
 		QStringList ret;
 		for (int d = 0; d < 3; d++)
 		{
-			ret.append(vecToString(m.row(d)));
+			double3 rowAsVec(m[0][d], m[1][d], m[2][d]);
+			ret.append(vecToString(rowAsVec));
 		}
 		return ret.join("\r\n");
 	}
 
 
-	constexpr double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
+	double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
 	{
-		const double denominator = linalg::determinant( double2x2{ {p1.x - p2.x, p3.x - p4.x}, {p1.y - p2.y, p3.y - p4.y} });
-		if (denominator == 0.0)
-			return DBL_MAX;
+		const double denominator = glm::determinant(double2x2(
+			p1.x - p2.x, p1.y - p2.y,
+			p3.x - p4.x, p3.y - p4.y
+		));
 
-		const double t = linalg::determinant( double2x2{ {p1.x - p3.x, p3.x - p4.x}, {p1.y - p3.y, p3.y - p4.y} } ) / denominator;
+		if (denominator == 0.0)
+			return std::numeric_limits<double>::max();
+
+		const double t = glm::determinant(double2x2(
+			p1.x - p3.x, p1.y - p3.y,
+			p3.x - p4.x, p3.y - p4.y
+		)) / denominator;
+
 		if (t >= 0.0)
 			return t;
-		return DBL_MAX;
+
+		return std::numeric_limits<double>::max();
 	}
 
 	double maxLenInColorspace
@@ -490,7 +498,7 @@ namespace ColorSpaceMath
 		const double angle = std::atan2(d.y, d.x) + rotation;
 		const double cos_angle = std::cos(angle);
 		const double sin_angle = std::sin(angle);
-		const double2 dx = double2{ cos_angle, sin_angle } * scaling * ((truncate) ? maxLenInColorspace(primaries, cos_angle, sin_angle)  : linalg::length(d));
+		const double2 dx = double2{ cos_angle, sin_angle } * scaling * ((truncate) ? maxLenInColorspace(primaries, cos_angle, sin_angle)  : glm::length(d));
 
 		return dx + primaries[3];
 	}
@@ -620,5 +628,31 @@ namespace ColorSpaceMath
 		return double3();
 	}
 
+	double3x3 to_XYZ(
+		const double2& red_xy,
+		const double2& green_xy,
+		const double2& blue_xy,
+		const double2& white_xy
+	)
+	{
+		double3 r(red_xy.x, red_xy.y, 1.0 - (red_xy.x + red_xy.y));
+		double3 g(green_xy.x, green_xy.y, 1.0 - (green_xy.x + green_xy.y));
+		double3 b(blue_xy.x, blue_xy.y, 1.0 - (blue_xy.x + blue_xy.y));
+		double3 w(white_xy.x, white_xy.y, 1.0 - (white_xy.x + white_xy.y));
+
+		w /= white_xy.y;
+
+		double3x3 retMat(r, g, b);
+
+		double3x3 invMat = glm::inverse(retMat);
+
+		double3 scale = invMat * w;
+
+		retMat[0] *= scale.x;
+		retMat[1] *= scale.y;
+		retMat[2] *= scale.z;
+
+		return retMat;
+	};
 };
 
