@@ -1232,7 +1232,7 @@ void  LutCalibrator::fineTune(bool precise)
 				double3x3 convert_XYZ_to_sRgb;
 
 				capturedPrimariesCorrection(HDR_GAMMA(gamma), gammaHLG, NITS, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, _capturedColors, _yuvConverter, _log);
-				auto bt2020_to_sRgb = convert_XYZ_to_sRgb * convert_bt2020_to_XYZ;
+				auto bt2020_to_sRgb = (convert_XYZ_to_sRgb * convert_bt2020_to_XYZ);
 
 				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %.3f\n",
 					QSTRING_CSTR(gammaToString(HDR_GAMMA(gamma))), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),

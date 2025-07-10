@@ -50,7 +50,7 @@ class CalibrationWorker : public QObject, public QRunnable
 	const int gamma;
 	const double gammaHLG;
 	const double NITS;
-	const double3x3& bt2020_to_sRgb;
+	const Eigen::Product<Eigen::Matrix3d, Eigen::Matrix3d>& bt2020_to_sRgb;
 	std::list<std::pair<CapturedColor*, double3>> vertex;
 	std::atomic<int>& weakBestScore;
 	const bool lchCorrection;
@@ -58,7 +58,7 @@ class CalibrationWorker : public QObject, public QRunnable
 	std::atomic<int>& progress;
 public:
 	CalibrationWorker(BestResult* _bestResult, std::atomic<int>& _weakBestScore, YuvConverter* _yuvConverter, const int _id, const int _krIndexStart, const int _krIndexEnd, const int _halfKDelta, const bool _precise, const int _coef,
-		const std::vector<std::pair<double3, byte2>>& _sampleColors, const int _gamma, const double _gammaHLG, const double _NITS, const double3x3& _bt2020_to_sRgb,
+		const std::vector<std::pair<double3, byte2>>& _sampleColors, const int _gamma, const double _gammaHLG, const double _NITS, const Eigen::Product<Eigen::Matrix3d, Eigen::Matrix3d>& _bt2020_to_sRgb,
 		const std::list<CapturedColor*>& _vertex, const bool _lchCorrection, std::atomic<bool>& _forcedExit, std::atomic<int>& _progress) :
 		yuvConverter(_yuvConverter),
 		id(_id),

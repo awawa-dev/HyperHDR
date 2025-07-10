@@ -34,3 +34,4 @@
 [submodule "external/eigen"]
 	path = external/eigen
 	url = https://github.com/awawa-dev/eigen.git
+	branch = 3.4
