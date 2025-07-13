@@ -72,7 +72,7 @@ Point3d Animation_CandleLight::CandleRgb()
 	return frgb;
 }
 
-bool Animation_CandleLight::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_CandleLight::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (buffer.size() > 1)
 	{
@@ -80,8 +80,8 @@ bool Animation_CandleLight::hasLedData(std::vector<ColorRgb>& buffer)
 
 		for (size_t i = 0; i < buffer.size(); i++)
 		{
-			Point3d  color = CandleRgb();
-			ColorRgb newColor{ color.x, color.y, color.z };
+			Point3d  colorP = CandleRgb();
+			ColorRgb newColor{ colorP.x, colorP.y, colorP.z };
 
 			ledData.push_back(newColor);
 		}

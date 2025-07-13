@@ -77,7 +77,7 @@ bool Animation_MoodBlobs::Play(HyperImage& painter)
 	return true;
 }
 
-bool Animation_MoodBlobs::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_MoodBlobs::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (static_cast<int>(buffer.size()) != hyperledCount && buffer.size() > 1)
 	{

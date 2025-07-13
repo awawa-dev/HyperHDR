@@ -9,12 +9,7 @@ DriverSerialSkydimo::DriverSerialSkydimo(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSerialSkydimo::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialSkydimo(deviceConfig);
-}
-
-bool DriverSerialSkydimo::init(const QJsonObject& deviceConfig)
+bool DriverSerialSkydimo::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -44,7 +39,7 @@ void DriverSerialSkydimo::CreateHeader()
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
-int DriverSerialSkydimo::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialSkydimo::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -72,5 +67,9 @@ int DriverSerialSkydimo::write(const std::vector<ColorRgb>& ledValues)
 	return writeBytes(bufferLength, _ledBuffer.data());	
 }
 
+LedDevice* DriverSerialSkydimo::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialSkydimo(deviceConfig);
+}
 
 bool DriverSerialSkydimo::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("skydimo", "leds_group_3_serial", DriverSerialSkydimo::construct);

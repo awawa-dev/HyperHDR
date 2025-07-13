@@ -5,14 +5,18 @@
 	#include <sstream>
 	#include <math.h>
 	#include <algorithm>
+	#include <vector>
+	#include <map>
 #endif
 
 #include <image/Image.h>
 #include <utils/Logger.h>
-#include <led-strip/LedString.h>
+#include <base/LedString.h>
+
+#include <linalg.h>
 
 namespace hyperhdr
-{
+{	
 	class ImageColorAveraging
 	{
 	public:
@@ -33,27 +37,23 @@ namespace hyperhdr
 		unsigned horizontalBorder() const;
 		unsigned verticalBorder() const;
 
-		void Process(std::vector<ColorRgb>& colors, const Image<ColorRgb>& image, uint16_t* advanced);
+		void process(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut);
 
 	private:
-		void getMeanLedColor(std::vector<ColorRgb>& ledColors, const Image<ColorRgb>& image) const;
-		void getUniLedColor(std::vector<ColorRgb>& ledColors, const Image<ColorRgb>& image) const;
-		void getMeanAdvLedColor(std::vector<ColorRgb>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const;
+		void getUnicolorForLeds(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const;
+		void getMulticolorForLeds(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const;
 
 		const unsigned _width;
 		const unsigned _height;
+		const bool	_sparseProcessing;
 		const unsigned _horizontalBorder;
 		const unsigned _verticalBorder;
 		int _mappingType;
 
-		std::vector<std::vector<int32_t>> _colorsMap;
-		std::vector<int> _colorsGroups;
+		std::vector<std::vector<uint32_t>> _colorsMap;
+		std::map<int, std::vector<uint32_t>> _colorGroups;
 
-		int _groupMin;
-		int _groupMax;
-
-		ColorRgb calcMeanColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors) const;
-		ColorRgb calcMeanAdvColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors, uint16_t* lut) const;
-		ColorRgb calcMeanColor(const Image<ColorRgb>& image) const;
+		linalg::aliases::float3 calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors, uint16_t* lut) const;
+		linalg::aliases::float3 calcUnicolorForLeds(const Image<ColorRgb>& image, uint16_t* lut) const;
 	};
 }

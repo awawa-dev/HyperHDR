@@ -7,12 +7,7 @@ DriverNetUdpRaw::DriverNetUdpRaw(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetUdpRaw::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetUdpRaw(deviceConfig);
-}
-
-bool DriverNetUdpRaw::init(const QJsonObject& deviceConfig)
+bool DriverNetUdpRaw::init(QJsonObject deviceConfig)
 {
 	_port = RAW_DEFAULT_PORT;
 
@@ -21,7 +16,7 @@ bool DriverNetUdpRaw::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverNetUdpRaw::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetUdpRaw::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	const uint8_t* dataPtr = reinterpret_cast<const uint8_t*>(ledValues.data());
 
@@ -29,6 +24,11 @@ int DriverNetUdpRaw::write(const std::vector<ColorRgb>& ledValues)
 		setLedCount(static_cast<int>(ledValues.size()));
 
 	return writeBytes(_ledRGBCount, dataPtr);
+}
+
+LedDevice* DriverNetUdpRaw::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetUdpRaw(deviceConfig);
 }
 
 bool DriverNetUdpRaw::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("udpraw", "leds_group_2_network", DriverNetUdpRaw::construct);

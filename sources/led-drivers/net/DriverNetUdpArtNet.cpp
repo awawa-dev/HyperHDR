@@ -35,7 +35,7 @@ union artnet_packet_t
 		uint8_t		Net;		// high universe (not used)
 		uint16_t	Length;		// data length (2 - 512)
 		uint8_t		Data[DMX_MAX];	// universe data
-	};
+	} fields;
 #pragma pack(pop)
 
 	uint8_t raw[18 + DMX_MAX];
@@ -44,15 +44,10 @@ union artnet_packet_t
 DriverNetUdpArtNet::DriverNetUdpArtNet(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
 {
-	artnet_packet = std::unique_ptr<artnet_packet_t>(new artnet_packet_t);
+	artnet_packet = std::make_unique<artnet_packet_t>();
 }
 
-LedDevice* DriverNetUdpArtNet::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetUdpArtNet(deviceConfig);
-}
-
-bool DriverNetUdpArtNet::init(const QJsonObject& deviceConfig)
+bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -80,18 +75,18 @@ void DriverNetUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence,
 		this_dmxChannelCount++;
 	}
 
-	memcpy(artnet_packet->ID, "Art-Net\0", 8);
+	memcpy(artnet_packet->fields.ID, "Art-Net\0", 8);
 
-	artnet_packet->OpCode = htons(0x0050);	// OpOutput / OpDmx
-	artnet_packet->ProtVer = htons(0x000e);
-	artnet_packet->Sequence = this_sequence;
-	artnet_packet->Physical = 0;
-	artnet_packet->SubUni = this_universe & 0xff;
-	artnet_packet->Net = (this_universe >> 8) & 0x7f;
-	artnet_packet->Length = htons(this_dmxChannelCount);
+	artnet_packet->fields.OpCode = htons(0x0050);	// OpOutput / OpDmx
+	artnet_packet->fields.ProtVer = htons(0x000e);
+	artnet_packet->fields.Sequence = this_sequence;
+	artnet_packet->fields.Physical = 0;
+	artnet_packet->fields.SubUni = this_universe & 0xff;
+	artnet_packet->fields.Net = (this_universe >> 8) & 0x7f;
+	artnet_packet->fields.Length = htons(this_dmxChannelCount);
 }
 
-int DriverNetUdpArtNet::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetUdpArtNet::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	int retVal = 0;
 	int thisUniverse = _artnet_universe;
@@ -112,7 +107,7 @@ int DriverNetUdpArtNet::write(const std::vector<ColorRgb>& ledValues)
 	for (unsigned int ledIdx = 0; ledIdx < _ledRGBCount; ledIdx++)
 	{
 
-		artnet_packet->Data[dmxIdx++] = rawdata[ledIdx];
+		artnet_packet->fields.Data[dmxIdx++] = rawdata[ledIdx];
 		if ((ledIdx % 3 == 2) && (ledIdx > 0))
 		{
 			dmxIdx += (_artnet_channelsPerFixture - 3);
@@ -132,6 +127,11 @@ int DriverNetUdpArtNet::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return retVal;
+}
+
+LedDevice* DriverNetUdpArtNet::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetUdpArtNet(deviceConfig);
 }
 
 bool DriverNetUdpArtNet::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("udpartnet", "leds_group_2_network", DriverNetUdpArtNet::construct);

@@ -26,7 +26,7 @@
 */
 
 #include <lut-calibrator/BoardUtils.h>
-#include <lut-calibrator/YuvConverter.h>
+#include <infinite-color-engine/YuvConverter.h>
 #include <utils-image/utils-image.h>
 #include <iostream>
 #include <fstream>

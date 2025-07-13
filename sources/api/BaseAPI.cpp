@@ -202,14 +202,14 @@ QString BaseAPI::setInstanceName(quint8 index, const QString& name)
 
 void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int timeout_ms, const QString& origin, hyperhdr::Components callerComp)
 {
-	std::vector<ColorRgb> fledColors;
+	QVector<ColorRgb> fledColors;
 	if (ledColors.size() % 3 == 0)
 	{
 		for (uint64_t i = 0; i < ledColors.size(); i += 3)
 		{
 			fledColors.emplace_back(ColorRgb{ ledColors[i], ledColors[i + 1], ledColors[i + 2] });
 		}
-		QUEUE_CALL_4(_hyperhdr.get(), setColor, int, priority, std::vector<ColorRgb>, fledColors, int, timeout_ms, QString, origin);
+		QUEUE_CALL_4(_hyperhdr.get(), setColor, int, priority, QVector<ColorRgb>, fledColors, int, timeout_ms, QString, origin);
 	}
 }
 

@@ -7,6 +7,7 @@
 	#include <QJsonValue>
 	#include <QJsonDocument>
 	#include <QJsonArray>
+	#include <QVector>
 #endif
 
 #include <base/HyperHdrInstance.h>
@@ -32,7 +33,7 @@ public slots:
 	std::list<EffectDefinition> getEffects() const;
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
 	void visiblePriorityChanged(quint8 priority);
-	void handlerSetLeds(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
+	void handlerSetLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
 
 private slots:
 	void handlerEffectFinished(int priority, QString name, bool forced);

@@ -10,8 +10,7 @@ class ProviderSpi : public LedDevice
 
 public:
 	ProviderSpi(const QJsonObject& deviceConfig);
-	bool init(const QJsonObject& deviceConfig) override;
-	~ProviderSpi() override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 
 	QJsonObject discover(const QJsonObject& params) override;

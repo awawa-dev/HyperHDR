@@ -19,12 +19,7 @@ DriverSpiSK9822::DriverSpiSK9822(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiSK9822::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiSK9822(deviceConfig);
-}
-
-bool DriverSpiSK9822::init(const QJsonObject& deviceConfig)
+bool DriverSpiSK9822::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -132,7 +127,7 @@ void DriverSpiSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t>& txBuf, con
 	}
 }
 
-int DriverSpiSK9822::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiSK9822::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	const int threshold = _globalBrightnessControlThreshold;
 	const int maxLevel = _globalBrightnessControlMaxLevel;
@@ -158,6 +153,11 @@ int DriverSpiSK9822::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiSK9822::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiSK9822(deviceConfig);
 }
 
 bool DriverSpiSK9822::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("sk9822", "leds_group_0_SPI", DriverSpiSK9822::construct);

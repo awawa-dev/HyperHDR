@@ -30,9 +30,9 @@
 #include <lut-calibrator/BoardUtils.h>
 
 
-void CapturedColor::importColors(const CapturedColor& color)
+void CapturedColor::importColors(const CapturedColor& colorImported)
 {
-	for (auto iter = color.inputColors.begin(); iter != color.inputColors.end(); ++iter)
+	for (auto iter = colorImported.inputColors.begin(); iter != colorImported.inputColors.end(); ++iter)
 	{
 		for (int i = 0; i < (*iter).second; i++)
 		{

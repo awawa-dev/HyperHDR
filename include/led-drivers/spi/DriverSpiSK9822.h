@@ -15,8 +15,8 @@ private:
 	int _globalBrightnessControlThreshold;
 	int _globalBrightnessControlMaxLevel;
 	unsigned scale(const uint8_t value, const int maxLevel, const uint16_t brightness);
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 	static bool isRegistered;
 };

@@ -8,6 +8,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <linalg.h>
 
 #define RESERVED 0x00
 #define VERSION_MINOR 0x00
@@ -277,13 +278,7 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject& deviceCo
 {
 }
 
-LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
-{
-	delete _restApi;
-	_restApi = nullptr;
-}
-
-bool LedDevicePhilipsHueBridge::init(const QJsonObject& deviceConfig)
+bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 {
 	// Overwrite non supported/required features
 	if (deviceConfig["refreshTime"].toInt(0) > 0)
@@ -349,7 +344,7 @@ bool LedDevicePhilipsHueBridge::initRestAPI(const QString& hostname, int port, c
 		port = API_DEFAULT_PORT_V2;
 
 	if (_restApi == nullptr)
-		_restApi = new ProviderRestApi(hostname, port);
+		_restApi = std::make_unique<ProviderRestApi>(hostname, port);
 	else
 		_restApi->updateHost(hostname, port);
 
@@ -829,11 +824,11 @@ QStringList LedDevicePhilipsHueBridge::getLightIdsInChannelV2(QJsonObject channe
 				QJsonDocument deviceDocument = get(
 					QString("%1/%2/%3").arg(API_RESOURCE_PATH_V2).arg("device", entertainment["owner"].toObject()["rid"].toString()));
 				QJsonObject device = deviceDocument.object()["data"].toArray().first().toObject();
-				for (const auto& item : device["services"].toArray())
+				for (const auto& itemS : device["services"].toArray())
 				{
-					if (item.toObject()["rtype"].toString() == "light")
+					if (itemS.toObject()["rtype"].toString() == "light")
 					{
-						const QString& lightId = item.toObject()["rid"].toString();
+						const QString& lightId = itemS.toObject()["rid"].toString();
 						lightIDS.append(lightId);
 						_lightStateMapV2.insert(lightId, QJsonObject());
 					}
@@ -1146,15 +1141,6 @@ DriverNetPhilipsHue::DriverNetPhilipsHue(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetPhilipsHue::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetPhilipsHue(deviceConfig);
-}
-
-DriverNetPhilipsHue::~DriverNetPhilipsHue()
-{
-}
-
 bool DriverNetPhilipsHue::setLights()
 {
 	bool isInitOK = true;
@@ -1318,7 +1304,7 @@ bool DriverNetPhilipsHue::initLeds(QString groupName)
 	return isInitOK;
 }
 
-bool DriverNetPhilipsHue::init(const QJsonObject& deviceConfig)
+bool DriverNetPhilipsHue::init(QJsonObject deviceConfig)
 {
 	_configBackup = deviceConfig;
 
@@ -1822,7 +1808,37 @@ bool DriverNetPhilipsHue::switchOff()
 	return result;
 }
 
-int DriverNetPhilipsHue::write(const std::vector<ColorRgb>& ledValues)
+std::pair<bool, int> DriverNetPhilipsHue::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (!_useHueEntertainmentAPI)
+	{
+		return std::pair<bool, int>(false, 0);
+	}
+
+	// lights will be empty sometimes
+	if (_lights.empty())
+	{
+		return std::pair<bool, int>(true, -1);
+	}
+
+	// more lights then leds, stop always
+	if (nonlinearRgbColors->size() < getLightsCount())
+	{
+		Error(_log, "More light-IDs configured than leds, each light-ID requires one led!");
+		return std::pair<bool, int>(true, -1);
+	}
+
+	writeSingleLights(nonlinearRgbColors);
+
+	if (_isInitLeds)
+	{
+		writeStream();
+	}
+
+	return std::pair<bool, int>(true, 0);
+}
+
+int DriverNetPhilipsHue::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	// lights will be empty sometimes
 	if (_lights.empty())
@@ -1849,46 +1865,63 @@ int DriverNetPhilipsHue::write(const std::vector<ColorRgb>& ledValues)
 
 int DriverNetPhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValues)
 {
+	auto convertRgb = [](const ColorRgb& c) -> linalg::aliases::float3 {
+		return { c.red / 255.0f, c.green / 255.0f, c.blue / 255.0f };
+	};
+
+	return writeSingleLightsGeneric(ledValues, convertRgb);
+}
+
+int DriverNetPhilipsHue::writeSingleLights(const SharedOutputColors& nonlinearRgbColors)
+{
+	auto convertNonlinear = [](const linalg::aliases::float3& c) -> linalg::aliases::float3 {
+		return c;
+	};
+
+	return writeSingleLightsGeneric(*nonlinearRgbColors, convertNonlinear);
+}
+
+template <typename ColorContainer, typename Converter>
+int DriverNetPhilipsHue::writeSingleLightsGeneric(
+	const ColorContainer& colors,
+	Converter convert)
+{
+	unsigned int idx = 0;
+
 	if (isApiV2())
 	{
-		// Iterate through lights and set colors.
-		unsigned int idx = 0;
 		for (PhilipsHueLight& light : _lights)
 		{
-			// Get color.
-			ColorRgb color;
-			if (idx > ledValues.size() - 1)
-			{
-				color.red = 0;
-				color.green = 0;
-				color.blue = 0;
-			}
-			else
-			{
-				color = ledValues.at(idx);
-			}
+			linalg::aliases::float3 colorF = (idx < colors.size()) ? convert(colors.at(idx))
+				: linalg::aliases::float3{ 0.f, 0.f, 0.f };
 
+			// MOD: ustawienie koloru dla API V2
+			ColorRgb color{
+				static_cast<uint8_t>(colorF.x * 255.f),
+				static_cast<uint8_t>(colorF.y * 255.f),
+				static_cast<uint8_t>(colorF.z * 255.f)
+			};
 			light.setRGBColor(color);
-			// Scale colors from [0, 255] to [0, 1] and convert to xy space.
-			CiColor xy = CiColor::rgbToCiColor(color.red / 255.0, color.green / 255.0, color.blue / 255.0,
+
+			CiColor xy = CiColor::rgbToCiColor(colorF.x, colorF.y, colorF.z,
 				light.getColorSpace(), _candyGamma);
 
 			this->setOnOffState(light, true);
 			this->setColor(light, xy);
+
 			idx++;
 		}
 		return 0;
 	}
 
-	// Iterate through lights and set colors.
-	unsigned int idx = 0;
+	// MOD: klasyczne API
 	for (PhilipsHueLight& light : _lights)
 	{
-		// Get color.
-		ColorRgb color = ledValues.at(idx);
-		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
-		CiColor xy = CiColor::rgbToCiColor(color.red / 255.0, color.green / 255.0, color.blue / 255.0, light.getColorSpace(), _candyGamma);
+		linalg::aliases::float3 colorF = (idx < colors.size()) ? convert(colors.at(idx))
+			: linalg::aliases::float3{ 0.f, 0.f, 0.f };
 
+		CiColor xy = CiColor::rgbToCiColor(colorF.x, colorF.y, colorF.z,
+			light.getColorSpace(), _candyGamma);
 
 		if (_switchOffOnBlack && xy.bri <= _blackLevel && light.isBlack(true))
 		{
@@ -1917,7 +1950,7 @@ int DriverNetPhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValue
 			if (_switchOffOnBlack && xy.bri > _blackLevel && light.isWhite(true))
 			{
 				if (!currentstate)
-					xy.bri = xy.bri / 2;
+					xy.bri *= 0.5f;
 
 				if (_useHueEntertainmentAPI)
 				{
@@ -2378,8 +2411,13 @@ void DriverNetPhilipsHue::colorChannel(const ColorRgb& colorRgb, unsigned int i)
 {
 	std::vector<ColorRgb> ledValues;
 	ledValues.emplace_back(colorRgb);
-	write(ledValues);
+	writeFiniteColors(ledValues);
 	QThread::sleep(1);
+}
+
+LedDevice* DriverNetPhilipsHue::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetPhilipsHue(deviceConfig);
 }
 
 bool DriverNetPhilipsHue::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("philipshue", "leds_group_2_network", DriverNetPhilipsHue::construct);

@@ -11,9 +11,9 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	void CreateHeader();
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 	void whiteChannelExtension(uint8_t*& writer);
 

@@ -40,12 +40,7 @@ DriverSpiHyperSPI::DriverSpiHyperSPI(const QJsonObject& deviceConfig)
 	_white_channel_blue = 255;
 }
 
-LedDevice* DriverSpiHyperSPI::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiHyperSPI(deviceConfig);
-}
-
-bool DriverSpiHyperSPI::init(const QJsonObject& deviceConfig)
+bool DriverSpiHyperSPI::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -126,7 +121,7 @@ void DriverSpiHyperSPI::createHeader()
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
-int DriverSpiHyperSPI::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiHyperSPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -187,6 +182,11 @@ void DriverSpiHyperSPI::whiteChannelExtension(uint8_t*& writer)
 		*(writer++) = _white_channel_green;
 		*(writer++) = _white_channel_blue;
 	}
+}
+
+LedDevice* DriverSpiHyperSPI::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiHyperSPI(deviceConfig);
 }
 
 bool DriverSpiHyperSPI::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("hyperspi", "leds_group_0_SPI", DriverSpiHyperSPI::construct);//awa_spi

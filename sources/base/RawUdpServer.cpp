@@ -128,7 +128,7 @@ void RawUdpServer::readPendingDatagrams()
 		if (_ownerInstance->getComponentForPriority(_priority) != hyperhdr::COMP_RAWUDPSERVER)
 			_ownerInstance->registerInput(_priority, hyperhdr::COMP_RAWUDPSERVER, QString("%1").arg(datagram.senderAddress().toString()));
 
-		std::vector<ColorRgb> _ledColors;
+		QVector<ColorRgb> _ledColors;
 
 		for (int i = 0; i < dataLen;)
 		{

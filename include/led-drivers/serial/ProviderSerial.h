@@ -14,7 +14,7 @@ public:
 
 protected:
 
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
 	bool powerOff() override;

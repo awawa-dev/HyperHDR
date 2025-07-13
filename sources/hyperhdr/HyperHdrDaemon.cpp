@@ -78,11 +78,13 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 
 	// Register metas for thread queued connection
 	qRegisterMetaType<ColorRgb>("ColorRgb");
+	qRegisterMetaType<SharedOutputColors>("SharedOutputColors");
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperhdr::Components>("hyperhdr::Components");
 	qRegisterMetaType<settings::type>("settings::type");
 	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<QVector<ColorRgb>>("QVector<ColorRgb>");
 
 	// First load default configuration for other objects
 	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this));
@@ -128,8 +130,8 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 			SMARTPOINTER_MESSAGE("NetOrigin");
 			delete netOrigin;
 		});
-	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _netOrigin.get(), &NetOrigin::settingsChangedHandler);
-	_netOrigin->settingsChangedHandler(settings::type::NETWORK, getSetting(settings::type::NETWORK));
+	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _netOrigin.get(), &NetOrigin::handleSettingsUpdate);
+	_netOrigin->handleSettingsUpdate(settings::type::NETWORK, getSetting(settings::type::NETWORK));
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -613,7 +615,7 @@ void HyperHdrDaemon::getDiscoveryWrapper(std::shared_ptr<DiscoveryWrapper>& disc
 	discoveryWrapper = _discoveryWrapper;
 }
 
-void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const QJsonDocument& config)
+void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const QJsonDocument config)
 {
 	if (settingsType == settings::type::LOGGER)
 	{

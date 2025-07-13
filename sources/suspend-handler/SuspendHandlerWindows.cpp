@@ -52,8 +52,8 @@ static void SuspendHandlerQueueHandler(WPARAM wparam)
 {
 	if (wparam == 0)
 	{
-		auto instance = QCoreApplication::instance();
-		QUEUE_CALL_0(instance, quit);
+		auto localInstance = QCoreApplication::instance();
+		QUEUE_CALL_0(localInstance, quit);
 	}
 	else if (instance != nullptr)
 	{

@@ -14,17 +14,16 @@ class DriverNetNanoleaf : public ProviderUdp
 {
 public:
 	explicit DriverNetNanoleaf(const QJsonObject& deviceConfig);
-	~DriverNetNanoleaf() override;
-
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+
 	QJsonObject discover(const QJsonObject& params) override;
 	QJsonObject getProperties(const QJsonObject& params) override;
 	void identify(const QJsonObject& params) override;
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOn() override;
 	bool powerOff() override;
 

@@ -116,7 +116,7 @@ ProviderSpiFtdi::~ProviderSpiFtdi()
 	}
 }
 
-bool ProviderSpiFtdi::init(const QJsonObject& deviceConfig)
+bool ProviderSpiFtdi::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 

@@ -11,12 +11,7 @@ DriverSerialSedu::DriverSerialSedu(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSerialSedu::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialSedu(deviceConfig);
-}
-
-bool DriverSerialSedu::init(const QJsonObject& deviceConfig)
+bool DriverSerialSedu::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -52,10 +47,15 @@ bool DriverSerialSedu::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSerialSedu::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialSedu::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	memcpy(_ledBuffer.data() + 2, ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSerialSedu::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialSedu(deviceConfig);
 }
 
 bool DriverSerialSedu::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("sedu", "leds_group_3_serial", DriverSerialSedu::construct);

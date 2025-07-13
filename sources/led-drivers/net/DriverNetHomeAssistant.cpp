@@ -12,12 +12,7 @@ DriverNetHomeAssistant::DriverNetHomeAssistant(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetHomeAssistant::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetHomeAssistant(deviceConfig);
-}
-
-bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
+bool DriverNetHomeAssistant::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -115,7 +110,7 @@ bool DriverNetHomeAssistant::powerOff()
 	return powerOnOff(false);
 }
 
-int DriverNetHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetHomeAssistant::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	QJsonDocument doc;
 	auto start = InternalClock::now();
@@ -327,6 +322,11 @@ QJsonObject DriverNetHomeAssistant::discover(const QJsonObject& params)
 	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
+}
+
+LedDevice* DriverNetHomeAssistant::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetHomeAssistant(deviceConfig);
 }
 
 bool DriverNetHomeAssistant::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("home_assistant", "leds_group_2_network", DriverNetHomeAssistant::construct);

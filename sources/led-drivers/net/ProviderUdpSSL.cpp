@@ -81,7 +81,7 @@ ProviderUdpSSL::~ProviderUdpSSL()
 	closeNetwork();
 }
 
-bool ProviderUdpSSL::init(const QJsonObject& deviceConfig)
+bool ProviderUdpSSL::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 

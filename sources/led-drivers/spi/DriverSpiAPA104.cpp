@@ -47,13 +47,7 @@ DriverSpiAPA104::DriverSpiAPA104(const QJsonObject& deviceConfig)
 {
 }
 
-
-LedDevice* DriverSpiAPA104::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiAPA104(deviceConfig);
-}
-
-bool DriverSpiAPA104::init(const QJsonObject& deviceConfig)
+bool DriverSpiAPA104::init(QJsonObject deviceConfig)
 {
 	deviceConfig["rate"] = 2235000;
 
@@ -73,7 +67,7 @@ bool DriverSpiAPA104::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiAPA104::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiAPA104::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;
@@ -107,6 +101,11 @@ int DriverSpiAPA104::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiAPA104::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiAPA104(deviceConfig);
 }
 
 bool DriverSpiAPA104::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("apa104", "leds_group_0_SPI", DriverSpiAPA104::construct);

@@ -5,12 +5,7 @@ DriverSpiP9813::DriverSpiP9813(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiP9813::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiP9813(deviceConfig);
-}
-
-bool DriverSpiP9813::init(const QJsonObject& deviceConfig)
+bool DriverSpiP9813::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -23,7 +18,7 @@ bool DriverSpiP9813::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiP9813::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiP9813::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -56,6 +51,11 @@ uint8_t DriverSpiP9813::calculateChecksum(const ColorRgb& color) const
 	res |= (uint8_t)(~(color.red >> 6) & 0x03);
 
 	return res;
+}
+
+LedDevice* DriverSpiP9813::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiP9813(deviceConfig);
 }
 
 bool DriverSpiP9813::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("p9813", "leds_group_0_SPI", DriverSpiP9813::construct);

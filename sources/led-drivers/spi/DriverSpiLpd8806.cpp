@@ -78,12 +78,7 @@ DriverSpiLpd8806::DriverSpiLpd8806(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiLpd8806::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiLpd8806(deviceConfig);
-}
-
-bool DriverSpiLpd8806::init(const QJsonObject& deviceConfig)
+bool DriverSpiLpd8806::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -100,7 +95,7 @@ bool DriverSpiLpd8806::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiLpd8806::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiLpd8806::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -127,6 +122,11 @@ int DriverSpiLpd8806::write(const std::vector<ColorRgb>& ledValues)
 
 	// Write the data
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiLpd8806::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiLpd8806(deviceConfig);
 }
 
 bool DriverSpiLpd8806::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("lpd8806", "leds_group_0_SPI", DriverSpiLpd8806::construct);

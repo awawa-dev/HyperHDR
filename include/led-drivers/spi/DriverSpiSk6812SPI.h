@@ -11,8 +11,8 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	uint8_t _white_channel_limit;

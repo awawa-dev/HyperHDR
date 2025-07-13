@@ -16,10 +16,10 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_smooth_type_title",
-			"enum" : ["linear", "alternative"],
-			"default" : "alternative",
+			"enum" : ["Stepper", "RgbInterpolator", "YuvInterpolator", "HybridInterpolator"],
+			"default" : "Stepper",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_linear", "edt_conf_enum_linear_alternative"]
+				"enum_titles" : ["edt_conf_enum_interpolator_Stepper_title", "edt_conf_enum_interpolator_RgbInterpolator_title", "edt_conf_enum_interpolator_YuvInterpolator_title", "edt_conf_enum_interpolator_HybridInterpolator_title"]
 			},
 			"required" : true,
 			"propertyOrder" : 2
@@ -50,52 +50,73 @@
 			"required" : true,
 			"propertyOrder" : 4
 		},
-		"lowLightAntiFlickeringTreshold" :
+		"smoothingFactor" :
 		{
-			"type" : "integer",
+			"type" : "number",
 			"format": "stepper",			
-			"step" : 1,			
-			"title" : "edt_conf_smooth_antiFlickeringTreshold_title",
-			"minimum" : 0,
-			"maximum": 255,
-			"default" : 32,
+			"step" : 0.05,			
+			"title" : "edt_conf_enum_interpolator_smoothingFactor_title",
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"default" : 0.1,
 			"required" : true,
-			"propertyOrder" : 5
-		},		
-		"lowLightAntiFlickeringValue" :
-		{
-			"type" : "integer",
-			"format": "stepper",			
-			"step" : 1,			
-			"title" : "edt_conf_smooth_antiFlickeringValue_title",
-			"minimum" : 1,
-			"maximum": 8,
-			"default" : 2,
 			"options": {
 				"dependencies": {
-					"lowLightAntiFlickeringTreshold": true
+					"type": "RgbInterpolator"
 				}
 			},
+			"propertyOrder" : 5
+		},
+		"stiffness" :
+		{
+			"type" : "integer",
+			"format": "stepper",			
+			"step" : 10,			
+			"title" : "edt_conf_enum_interpolator_stiffness_title",
+			"minimum" : 0,
+			"maximum": 1000,
+			"default" : 200,
 			"required" : true,
+			"options": {
+				"dependencies": {
+					"type": "HybridInterpolator"
+				}
+			},
 			"propertyOrder" : 6
 		},
-		"lowLightAntiFlickeringTimeout" :
+		"damping" :
 		{
 			"type" : "integer",
 			"format": "stepper",			
-			"step" : 50,	
-			"title" : "edt_conf_smooth_antiFlickeringTimeout_title",
+			"step" : 2,
+			"title" : "edt_conf_enum_interpolator_damping_title",
 			"minimum" : 0,
-			"maximum": 10000,
-			"default" : 250,
-			"append" : "edt_append_ms",
+			"maximum": 1000,
+			"default" : 26,
+			"required" : true,
 			"options": {
 				"dependencies": {
-					"lowLightAntiFlickeringTreshold": true
+					"type": "HybridInterpolator"
 				}
 			},
-			"required" : true,
 			"propertyOrder" : 7
+		},
+		"y_limit" :
+		{
+			"type" : "number",
+			"format": "stepper",			
+			"step" : 0.05,			
+			"title" : "edt_conf_enum_interpolator_y_limit_title",
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"default" : 0,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"type": ["YuvInterpolator", "HybridInterpolator"]
+				}
+			},
+			"propertyOrder" : 8
 		},
 		"continuousOutput" :
 		{

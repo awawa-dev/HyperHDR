@@ -5,12 +5,7 @@ DriverSpiAPA102::DriverSpiAPA102(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiAPA102::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiAPA102(deviceConfig);
-}
-
-bool DriverSpiAPA102::init(const QJsonObject& deviceConfig)
+bool DriverSpiAPA102::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -39,7 +34,7 @@ void DriverSpiAPA102::createHeader()
 	Debug(_log, "APA102 buffer created. Led's number: %d", _ledCount);
 }
 
-int DriverSpiAPA102::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiAPA102::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -58,6 +53,11 @@ int DriverSpiAPA102::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiAPA102::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiAPA102(deviceConfig);
 }
 
 bool DriverSpiAPA102::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("apa102", "leds_group_0_SPI", DriverSpiAPA102::construct);

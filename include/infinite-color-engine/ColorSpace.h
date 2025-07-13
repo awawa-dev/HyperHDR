@@ -37,16 +37,26 @@
 #endif
 
 #include <linalg.h>
-#include <lut-calibrator/LutCalibrator.h>
 
 using namespace linalg;
 using namespace aliases;
 
+struct ColorRgb;
+
 namespace ColorSpaceMath
-{
+{	
+	enum class HDR_GAMMA : int { PQ = 0, HLG, sRGB, BT2020inSRGB, PQinSRGB, P010 };
 	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };
 
 	QString gammaToString(HDR_GAMMA gamma);
+
+	constexpr float3x3 matrixF(const std::array<float, 9>& m) {
+		return float3x3(
+			float3(m[0], m[3], m[6]),
+			float3(m[1], m[4], m[7]),
+			float3(m[2], m[5], m[8])
+		);
+	}
 
 	constexpr mat<double, 3, 3> matrix(std::array<double, 9> m)
 	{
@@ -65,6 +75,12 @@ namespace ColorSpaceMath
 		return double4x4(c1, c2, c3, c4);
 	}
 
+	constexpr float3x3 matrix_srgb_to_bt709 = matrixF({
+		0.2126f,  0.7152f,  0.0722f,
+	   -0.1146f, -0.3854f,  0.5000f,
+		0.5000f, -0.4542f, -0.0458f
+		});
+	
 	constexpr double3x3 matrix_bt2020_to_XYZ = matrix({
 				0.636958,	0.144617,	0.168881,
 				0.262700,	0.677998,	0.059302,
@@ -75,6 +91,30 @@ namespace ColorSpaceMath
 				0.4124564,	0.3575761,	0.1804375,
 				0.2126729,	0.7151522,	0.0721750,
 				0.0193339,	0.1191920,	0.9503041
+		});
+
+	constexpr float3x3 oklabM1 = matrixF({
+		+0.4122214708f, +0.5363325363f, +0.0514459929f,
+		+0.2119034982f, +0.6806995451f, +0.1073969566f,
+		+0.0883024619f, +0.2817188376f, +0.6299787005f
+		});
+
+	constexpr float3x3 oklabM2 = matrixF({
+		+0.2104542553f, +0.7936177850f, -0.0040720468f,
+		+1.9779984951f, -2.4285922050f, +0.4505937099f,
+		+0.0259040371f, +0.7827717662f, -0.8086757660f
+		});
+
+	constexpr float3x3 oklabInvM2 = matrixF({
+		+1.0f, +0.3963377774f, +0.2158037573f,
+		+1.0f, -0.1055613458f, -0.0638541728f,
+		+1.0f, -0.0894841775f, -1.2914855480f
+		});
+
+	constexpr float3x3 oklabInvM1 = matrixF({
+		+4.0767416621f, -3.3077115913f, +0.2309699292f,
+		-1.2684380046f, +2.6097574011f, -0.3413193965f,
+		-0.0228834462f, -0.7034186147f, +1.7263020608f
 		});
 
 	std::vector<double2> getPrimaries(PRIMARIES primary);
@@ -109,6 +149,10 @@ namespace ColorSpaceMath
 	double3 from_bt2020_to_XYZ(double3 x);
 
 	double3 from_XYZ_to_bt2020(double3 x);
+
+	float3 rgb_to_bt709(const aliases::float3& rgb);
+
+	float3 bt709_to_rgb(const aliases::float3& yuv);
 
 	double3 from_XYZ_to_sRGB(double3 x);
 
@@ -156,13 +200,18 @@ namespace ColorSpaceMath
 
 	double3 lch_to_xyz(const double3& lch);
 
-	double3 rgb2hsv(double3 rgb);
+	float3 rgb2hsv(const float3& rgb);
+	// H 0 do 360, reszta 0 do 1
+	float3 hsv2rgb(const float3& hsv);
 
-	double3 hsv2rgb(double3 hsv);
+	float3 clamp_oklab_chroma_to_gamut(const float3& oklab);
 
-	float3 rgb2hsv(float3 rgb);
+	float3 linear_rgb_to_oklab(const float3& c);
 
-	float3 hsv2rgb(float3 hsv);
+	float3 oklab_to_linear_rgb(const float3& lab);
+
+	void test_oklab_clipping();
+	void test_oklab();
 
 	double2 primaryRotateAndScale(const double2 primary,
 		const double scaling,
@@ -171,6 +220,8 @@ namespace ColorSpaceMath
 		bool truncate = false);
 
 	byte3 to_byte3(const double3& v);
+
+	byte3 to_byte3(const float3& v);
 
 	int3 to_int3(const byte3& v);
 
@@ -185,6 +236,8 @@ namespace ColorSpaceMath
 
 	QString vecToString(const double3& v);
 
+	QString vecToString(const float3& v);
+
 	QString vecToString(const double4& v);
 
 	QString vecToString(const byte3& v);
@@ -195,14 +248,13 @@ namespace ColorSpaceMath
 
 	QString matToString(double3x3 m);
 
-	
+	byte3 colorRgbToByte3(ColorRgb* rgb);	
 
 	void serialize(std::stringstream& out, const double2& v);
 
 	void serialize(std::stringstream& out, const double3& v);
 
 	void serialize(std::stringstream& out, const double4& v);
-
 
 	void serialize(std::stringstream& out, const double4x4& m);
 

@@ -10,21 +10,20 @@ class DriverNetWled : public ProviderUdp
 
 public:
 	explicit DriverNetWled(const QJsonObject& deviceConfig);
-	~DriverNetWled() override;
-
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+
 	QJsonObject discover(const QJsonObject& params) override;
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOn() override;
 	bool powerOff() override;
 
 private:
-	bool initRestAPI(const QString& hostname, int port);
+	bool initRestAPI(QString hostname, int port);
 	QString getOnOffRequest(bool isOn) const;
-	ProviderRestApi* _restApi;
+	std::unique_ptr<ProviderRestApi> _restApi;
 
 	QString _hostname;
 	int		_apiPort;

@@ -75,7 +75,7 @@ int AnimationBase::clamp(int v, int lo, int hi)
 	return v;
 }
 
-bool AnimationBase::hasLedData(std::vector<ColorRgb>& buffer)
+bool AnimationBase::hasLedData(QVector<ColorRgb>& buffer)
 {
 	return false;
 }

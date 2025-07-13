@@ -33,7 +33,7 @@
 #endif
 
 #include <linalg.h>
-#include <lut-calibrator/ColorSpace.h>
+#include <infinite-color-engine/ColorSpace.h>
 
 using namespace linalg;
 using namespace aliases;

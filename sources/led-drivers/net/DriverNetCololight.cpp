@@ -77,12 +77,7 @@ DriverNetCololight::DriverNetCololight(const QJsonObject& deviceConfig)
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_SECU), sizeof(PACKET_SECU));
 }
 
-LedDevice* DriverNetCololight::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetCololight(deviceConfig);
-}
-
-bool DriverNetCololight::init(const QJsonObject& deviceConfig)
+bool DriverNetCololight::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -464,7 +459,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 
 					quint16 appID = qFromBigEndian<quint16>(datagram.mid(4, sizeof(appID)));
 
-					if (verbose && appID == 0x8000)
+					if constexpr (verbose && appID == 0x8000)
 					{
 						QString tagVersion = datagram.left(2);
 						quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
@@ -531,7 +526,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 	return isRequestOK;
 }
 
-int DriverNetCololight::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetCololight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	int rc = -1;
 
@@ -744,6 +739,11 @@ void DriverNetCololight::identify(const QJsonObject& params)
 			}
 		}
 	}
+}
+
+LedDevice* DriverNetCololight::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetCololight(deviceConfig);
 }
 
 bool DriverNetCololight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("cololight", "leds_group_2_network", DriverNetCololight::construct);

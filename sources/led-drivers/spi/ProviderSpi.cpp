@@ -52,11 +52,7 @@ ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
 {
 }
 
-ProviderSpi::~ProviderSpi()
-{
-}
-
-bool ProviderSpi::init(const QJsonObject& deviceConfig)
+bool ProviderSpi::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 

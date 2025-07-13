@@ -29,6 +29,9 @@
 
 #ifndef PCH_ENABLED
 	#include <chrono>
+	#include <thread>
+	#include <atomic>
+	#include <QObject>
 #endif
 
 class InternalClock
@@ -40,4 +43,20 @@ public:
 private:
 	const static std::chrono::time_point<std::chrono::steady_clock> start;
 	const static std::chrono::time_point<std::chrono::high_resolution_clock> startPrecise;
+};
+
+class HighResolutionScheduler {
+public:
+	HighResolutionScheduler() = default;
+	~HighResolutionScheduler();
+
+	void start(QObject* receiver, std::function<void()> task, std::chrono::microseconds period);
+	void stop();
+
+private:
+	void sleepUntil(std::chrono::steady_clock::time_point tp);
+
+	std::thread worker;
+	std::atomic<bool> running{ false };
+	void* timer = nullptr;
 };

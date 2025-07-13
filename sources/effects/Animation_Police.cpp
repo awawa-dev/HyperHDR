@@ -54,7 +54,7 @@ bool Animation_Police::Play(HyperImage& painter)
 	return true;
 }
 
-bool Animation_Police::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_Police::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (buffer.size() != ledData.size() && buffer.size() > 1)
 	{

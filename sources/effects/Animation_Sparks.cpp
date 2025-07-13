@@ -47,7 +47,7 @@ bool Animation_Sparks::Play(HyperImage& painter)
 	return true;
 }
 
-bool Animation_Sparks::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_Sparks::hasLedData(QVector<ColorRgb>& buffer)
 {
 	ColorRgb newColor{ color.x, color.y, color.z };
 	ColorRgb blackColor{ 0, 0, 0 };

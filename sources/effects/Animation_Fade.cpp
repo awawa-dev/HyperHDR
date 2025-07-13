@@ -147,7 +147,7 @@ bool Animation_Fade::Play(HyperImage& painter)
 	return true;
 }
 
-bool Animation_Fade::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_Fade::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (currentStep == STEP_1)
 	{

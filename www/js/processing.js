@@ -19,6 +19,25 @@ $(document).ready( function() {
 			$('#realFps').text("");
 	};
 
+	function watchForSmoothingType()
+	{
+		var newType = editor_smoothing.getEditor('root.smoothing.type').getValue();
+		if (newType != null)
+		{
+			var desc ="";
+			switch(newType)
+			{
+				case "Stepper": desc= $.i18n('edt_conf_enum_interpolator_Stepper_expl'); break;
+				case "RgbInterpolator": desc= $.i18n('edt_conf_enum_interpolator_RgbInterpolator_expl');break;
+				case "YuvInterpolator": desc= $.i18n('edt_conf_enum_interpolator_YuvInterpolator_expl');break;
+				case "HybridInterpolator": desc= $.i18n('edt_conf_enum_interpolator_HybridInterpolator_expl');break;
+			}
+			$("#smoothing_algo_explanation").children().first().text(desc);
+		}
+		else
+			$("#smoothing_algo_explanation").children().first().text("");
+	};
+
 	$(window.hyperhdr).off("cmd-hasLedClock-update").on("cmd-hasLedClock-update", function(event)
 	{
 		if (event.response.success)
@@ -72,6 +91,12 @@ $(document).ready( function() {
 	editor_smoothing = createJsonEditor('editor_container_smoothing', {
 		smoothing          : window.schema.smoothing
 	}, true, true, undefined, true);
+
+	editor_container_smoothing.insertAdjacentHTML("beforeend",`<div class="ms-1 me-1 alert alert-yellow row" role="alert" id="smoothing_algo_explanation"><div class="col-12"></div></div>`);
+	editor_smoothing.watch('root.smoothing.type',() => {
+		watchForSmoothingType();
+	});
+	watchForSmoothingType();
 
 	editor_smoothing.on('change',function() {
 		editor_smoothing.validate().length ? $('#btn_submit_smoothing').attr('disabled', true) : $('#btn_submit_smoothing').attr('disabled', false);

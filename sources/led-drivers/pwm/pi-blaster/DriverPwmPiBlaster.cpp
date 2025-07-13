@@ -9,7 +9,7 @@
 // Local LedDevice includes
 #include <led-drivers/pwm/pi-blaster/DriverPwmPiBlaster.h>
 
-DriverPwmPiBlaster::DriverPwmPiBlaster(const QJsonObject &deviceConfig)
+DriverPwmPiBlaster::DriverPwmPiBlaster(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _fid(nullptr)
 {
@@ -35,7 +35,7 @@ DriverPwmPiBlaster::~DriverPwmPiBlaster()
 	}
 }
 
-bool DriverPwmPiBlaster::init(const QJsonObject &deviceConfig)
+bool DriverPwmPiBlaster::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = LedDevice::init(deviceConfig);
 
@@ -69,11 +69,6 @@ bool DriverPwmPiBlaster::init(const QJsonObject &deviceConfig)
 		}
 	}
 	return isInitOK;
-}
-
-LedDevice* DriverPwmPiBlaster::construct(const QJsonObject &deviceConfig)
-{
-	return new DriverPwmPiBlaster(deviceConfig);
 }
 
 int DriverPwmPiBlaster::open()
@@ -133,7 +128,7 @@ int DriverPwmPiBlaster::close()
 	return retval;
 }
 
-int DriverPwmPiBlaster::write(const std::vector<ColorRgb> & ledValues)
+int DriverPwmPiBlaster::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	// Attempt to open if not yet opened
 	if (_fid == nullptr && open() < 0)
@@ -183,6 +178,12 @@ int DriverPwmPiBlaster::write(const std::vector<ColorRgb> & ledValues)
 	}
 
 	return 0;
+}
+
+
+LedDevice* DriverPwmPiBlaster::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverPwmPiBlaster(deviceConfig);
 }
 
 bool DriverPwmPiBlaster::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("piblaster", "leds_group_1_PWM", DriverPwmPiBlaster::construct);

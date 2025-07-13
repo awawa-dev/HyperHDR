@@ -425,16 +425,16 @@ void MFGrabber::enumerateMFdevices(bool silent)
 			{
 				Debug(_log, "Detected %u devices", count);
 
-				for (UINT32 i = 0; i < count; i++)
+				for (UINT32 j = 0; j < count; j++)
 				{
 					UINT32 length;
 					LPWSTR name;
 					LPWSTR symlink;
 
-					hr = devices[i]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &name, &length);
+					hr = devices[j]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &name, &length);
 					if (SUCCEEDED(hr))
 					{
-						hr = devices[i]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &symlink, &length);
+						hr = devices[j]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &symlink, &length);
 						if (SUCCEEDED(hr))
 						{
 							QString dev = QString::fromWCharArray(name);
@@ -447,7 +447,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 
 							Info(_log, "Found capture device: %s", QSTRING_CSTR(dev));
 
-							hr = devices[i]->ActivateObject(IID_PPV_ARGS(&pSource));
+							hr = devices[j]->ActivateObject(IID_PPV_ARGS(&pSource));
 							if (SUCCEEDED(hr))
 							{
 								IMFSourceReader* reader;
@@ -580,7 +580,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 						CoTaskMemFree(symlink);
 					}
 					CoTaskMemFree(name);
-					devices[i]->Release();
+					devices[j]->Release();
 				}
 
 				CoTaskMemFree(devices);
@@ -635,7 +635,7 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 	QString sFormat = identify_format(props.guid, pixelformat), error;
 	DeviceProperties actDevice = _deviceProperties[selectedDeviceName];
 	QString guid = _deviceProperties[selectedDeviceName].name;
-	HRESULT hr, hr1, hr2;
+	HRESULT hr = 0, hr1 = 0, hr2 = 0;
 
 	Info(_log, "Init %s, %d x %d @ %d fps (%s) => %s", QSTRING_CSTR(selectedDeviceName), props.x, props.y, props.fps, QSTRING_CSTR(sFormat), QSTRING_CSTR(guid));
 

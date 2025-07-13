@@ -160,12 +160,12 @@ std::vector<QString> HyperHdrManager::getInstances()
 
 void HyperHdrManager::setInstanceColor(int instance, int priority, ColorRgb ledColors, int timeout_ms)
 {
-	std::vector<ColorRgb> rgbColor{ ledColors };
+	QVector<ColorRgb> rgbColor{ ledColors };
 
 	for (const auto& selInstance : _runningInstances)
 		if (instance == -1 || selInstance->getInstanceIndex() == instance)
 		{
-			QUEUE_CALL_3(selInstance.get(), setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
+			QUEUE_CALL_3(selInstance.get(), setColor, int, 1, QVector<ColorRgb>, rgbColor, int, 0);
 		}
 }
 

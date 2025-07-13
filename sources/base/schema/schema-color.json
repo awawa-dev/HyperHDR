@@ -9,9 +9,9 @@
 			"type" : "string",
 			"required" : true,
 			"title" : "edt_conf_color_imageToLedMappingType_title",
-			"enum" : ["multicolor_mean", "unicolor_mean", "advanced", "weighted"],			
+			"enum" : ["advanced", "unicolor_mean"],
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean", "edt_conf_enum_unicolor_advanced", "edt_conf_enum_unicolor_weighted"]
+				"enum_titles" : ["edt_conf_enum_multicolor_advanced", "edt_conf_enum_unicolor_mean"]
 			},
 			"default"  : "advanced",
 			"propertyOrder" : 1
@@ -30,6 +30,7 @@
 			"type" : "array",
 			"title" : "edt_conf_color_channelAdjustment_header_title",
 			"minItems": 1,
+			"maxItems": 1,
 			"required" : true,
 			"propertyOrder" : 3,
 			"items" :
@@ -39,51 +40,14 @@
 				"title" : "edt_conf_color_channelAdjustment_header_itemtitle",
 				"properties" :
 				{
-					"id" :
-					{
-						"type" : "string",
-						"title" : "edt_conf_color_id_title",
-						"required" : true,
-						"default" : "default",
-						"propertyOrder" : 1
-					},
-					"leds" :
-					{
-						"type" : "string",
-						"title" : "edt_conf_color_leds_title",
-						"required" : true,
-						"default" : "*",
-						"propertyOrder" : 2
-					},
 					"classic_config" :
 					{
 						"type" : "boolean",
 						"format": "checkbox",
 						"title" : "edt_conf_color_classic_config_title",
-						"default" : false,
+						"default" : true,
 						"required" : true,
 						"propertyOrder" : 3
-					},
-					"white" :
-					{
-						"type" : "array",
-						"title" : "edt_conf_color_white_title",
-						"format" : "colorpicker",
-						"required" : true,
-						"default": [255,255,255],
-						"items" : {
-							"type" : "integer",
-							"minimum" : 0,
-							"maximum" : 255
-						},
-						"minItems" : 3,
-						"maxItems" : 3,
-						"options": {
-							"dependencies": {
-								"classic_config": false
-							}
-						},
-						"propertyOrder" : 4
 					},
 					"red" :
 					{
@@ -99,7 +63,7 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
-						"propertyOrder" : 5
+						"propertyOrder" : 4
 					},
 					"green" :
 					{
@@ -115,7 +79,7 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
-						"propertyOrder" : 6
+						"propertyOrder" : 5
 					},
 					"blue" :
 					{
@@ -131,7 +95,7 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
-						"propertyOrder" : 7
+						"propertyOrder" : 6
 					},
 					"cyan" :
 					{
@@ -152,7 +116,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 8
+						"propertyOrder" : 7
 					},
 					"magenta" :
 					{
@@ -173,7 +137,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 9
+						"propertyOrder" : 8
 					},
 					"yellow" :
 					{
@@ -194,20 +158,61 @@
 								"classic_config": false
 							}
 						},
+						"propertyOrder" : 9
+					},
+					"white" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_white_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [255,255,255],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
 						"propertyOrder" : 10
+					},
+					"black" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_black",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [0, 0, 0],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"options": {
+							"dependencies": {
+								"classic_config": false
+							}
+						},
+						"propertyOrder" : 11
 					},
 					"backlightThreshold" :
 					{
-						"type" : "integer",
+						"type" : "number",
 						"format": "stepper",
-						"step" : 1,
+						"step" : 0.0039,
 						"title" : "edt_conf_color_backlightThreshold_title",
 						"required" : true,
 						"minimum" : 0,
-						"maximum": 100,
-						"default" : 1,
-						"append" : "edt_append_percent",
-						"propertyOrder" : 11
+						"maximum": 1.0,
+						"default" : 0.0039,
+						"propertyOrder" : 12
 					},
 					"backlightColored" :
 					{
@@ -216,84 +221,36 @@
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
 						"default" : true,
-						"propertyOrder" : 12,
+						"propertyOrder" : 13,
 						"options": {
 							"dependencies": {
 								"backlightThreshold": true
 							}
 						}
-					},
-					"brightness" :
-					{
-						"type" : "integer",
-						"format": "stepper",
-						"step" : 1,
-						"title" : "edt_conf_color_brightness_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 100,
-						"default" : 100,
-						"options": {
-							"dependencies": {
-								"classic_config": false
-							}
-						},
-						"append" : "edt_append_percent",
-						"propertyOrder" : 13
-					},
-					"brightnessCompensation" :
-					{
-						"type" : "integer",
-						"format": "stepper",
-						"step" : 1,
-						"title" : "edt_conf_color_brightnessComp_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 100,
-						"default" : 0,
-						"options": {
-							"dependencies": {
-								"classic_config": false
-							}
-						},
-						"append" : "edt_append_percent",
-						"propertyOrder" : 14
-					},
-					"gammaRed" :
+					},					
+					"gamma" :
 					{
 						"type" : "number",
 						"format": "stepper",
 						"step" : 0.05,
-						"title" : "edt_conf_color_gammaRed_title",
+						"title" : "edt_conf_color_gamma_title",
 						"required" : true,
 						"minimum" : 0.1,
 						"maximum": 100.0,
 						"default" : 1.5,						
 						"propertyOrder" : 15
 					},
-					"gammaGreen" :
+					"temperatureSetting" :
 					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.05,
-						"title" : "edt_conf_color_gammaGreen_title",
+						"type" : "string",
+						"title" : "perf_temperature",
+						"enum" : ["disabled", "cold", "neutral", "warm", "custom"],
+						"default" : "disabled",
+						"options" : {
+							"enum_titles" : ["led_editor_context_disable", "edt_conf_enum_cold", "edt_conf_enum_neutral", "edt_conf_enum_warm", "edt_conf_enum_custom"]
+						},
 						"required" : true,
-						"minimum" : 0.1,
-						"maximum": 100.0,
-						"default" : 1.5,
-						"propertyOrder" : 16
-					},
-					"gammaBlue" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.05,
-						"title" : "edt_conf_color_gammaBlue_title",
-						"required" : true,
-						"minimum" : 0.1,
-						"maximum": 100.0,
-						"default" : 1.5,
-						"propertyOrder" : 17
+						"propertyOrder" : 18
 					},
 					"temperatureRed" :
 					{
@@ -307,10 +264,10 @@
 						"default" : 255,
 						"options": {
 							"dependencies": {
-								"classic_config": true
+								"temperatureSetting": "custom"
 							}
 						},
-						"propertyOrder" : 18
+						"propertyOrder" : 19
 					},
 					"temperatureGreen" :
 					{
@@ -324,10 +281,10 @@
 						"default" : 255,
 						"options": {
 							"dependencies": {
-								"classic_config": true
+								"temperatureSetting": "custom"
 							}
 						},
-						"propertyOrder" : 19
+						"propertyOrder" : 20
 					},
 					"temperatureBlue" :
 					{
@@ -341,10 +298,10 @@
 						"default" : 255,
 						"options": {
 							"dependencies": {
-								"classic_config": true
+								"temperatureSetting": "custom"
 							}
 						},
-						"propertyOrder" : 20
+						"propertyOrder" : 21
 					},
 					"saturationGain" :
 					{
@@ -355,13 +312,8 @@
 						"required" : true,
 						"minimum" : 0,
 						"maximum": 10,
-						"default" : 1,
-						"options": {
-							"dependencies": {
-								"classic_config": true
-							}
-						},
-						"propertyOrder" : 21
+						"default" : 1,						
+						"propertyOrder" : 22
 					},
 					"luminanceGain" :
 					{
@@ -373,12 +325,7 @@
 						"minimum" : 0,
 						"maximum": 10,
 						"default" : 1,
-						"options": {
-							"dependencies": {
-								"classic_config": true
-							}
-						},
-						"propertyOrder" : 22
+						"propertyOrder" : 23
 					}
 				},
 				"additionalProperties" : false

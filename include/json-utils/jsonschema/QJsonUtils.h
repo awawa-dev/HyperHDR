@@ -334,9 +334,9 @@ private:
 
 							if (!path.isEmpty())
 							{
-								QJsonObject obj;
-								modifyValue(subValue, obj, path, newValue, property);
-								subValue = obj;
+								QJsonObject subObj;
+								modifyValue(subValue, subObj, path, newValue, property);
+								subValue = subObj;
 							}
 							else if (newValue != QJsonValue::Null)
 								subValue = newValue;
@@ -382,12 +382,12 @@ private:
 							QJsonArray array = subValue.toArray();
 							QJsonArray json_array;
 
-							for (QJsonArray::iterator i = array.begin(); i != array.end(); ++i)
+							for (QJsonArray::iterator j = array.begin(); j != array.end(); ++j)
 							{
 								if (!path.isEmpty())
 								{
 									QJsonObject arr;
-									modifyValue(*i, arr, path, newValue, property);
+									modifyValue(*j, arr, path, newValue, property);
 									subValue = arr;
 								}
 								else if (newValue != QJsonValue::Null)
@@ -398,7 +398,7 @@ private:
 								if (!subValue.toObject().isEmpty())
 									json_array.append(subValue);
 								else if (newValue != QJsonValue::Null && arrayLevel != -1)
-									json_array.append((i - array.begin() == arrayLevel) ? subValue : *i);
+									json_array.append((j - array.begin() == arrayLevel) ? subValue : *j);
 							}
 
 							if (!json_array.isEmpty())

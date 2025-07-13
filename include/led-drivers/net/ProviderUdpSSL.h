@@ -26,7 +26,7 @@ public:
 	virtual ~ProviderUdpSSL();
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int closeNetwork();
 	bool initNetwork();	
 	void writeBytes(unsigned int size, const uint8_t* data, bool flush = false);

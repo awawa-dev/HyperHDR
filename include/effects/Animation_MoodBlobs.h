@@ -11,7 +11,7 @@ public:
 		int hyperLatchTime) override;
 
 	bool Play(HyperImage& painter) override;
-	bool hasLedData(std::vector<ColorRgb>& buffer) override;
+	bool hasLedData(QVector<ColorRgb>& buffer) override;
 
 private:
 	int    hyperledCount;

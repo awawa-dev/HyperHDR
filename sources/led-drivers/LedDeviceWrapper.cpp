@@ -88,12 +88,12 @@ void LedDeviceWrapper::handleInternalEnableState(bool newState)
 	if (newState)
 	{
 		connect(_ledDevice.get(), &LedDevice::SignalSmoothingClockTick, _ownerInstance, &HyperHdrInstance::SignalSmoothingClockTick, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
-		connect(_ownerInstance, &HyperHdrInstance::SignalUpdateLeds, _ledDevice.get(), &LedDevice::updateLeds, Qt::UniqueConnection);
+		connect(_ownerInstance, &HyperHdrInstance::SignalFinalOutputColorsReady, _ledDevice.get(), &LedDevice::handleSignalFinalOutputColorsReady, Qt::UniqueConnection);
 	}
 	else
 	{
 		disconnect(_ledDevice.get(), &LedDevice::SignalSmoothingClockTick, _ownerInstance, &HyperHdrInstance::SignalSmoothingClockTick);
-		disconnect(_ownerInstance, &HyperHdrInstance::SignalUpdateLeds, _ledDevice.get(), &LedDevice::updateLeds);
+		disconnect(_ownerInstance, &HyperHdrInstance::SignalFinalOutputColorsReady, _ledDevice.get(), &LedDevice::handleSignalFinalOutputColorsReady);
 	}
 
 	_ownerInstance->setNewComponentState(hyperhdr::COMP_LEDDEVICE, newState);

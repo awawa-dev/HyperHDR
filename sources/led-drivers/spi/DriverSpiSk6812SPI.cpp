@@ -16,12 +16,7 @@ DriverSpiSk6812SPI::DriverSpiSk6812SPI(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiSk6812SPI::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiSk6812SPI(deviceConfig);
-}
-
-bool DriverSpiSk6812SPI::init(const QJsonObject& deviceConfig)
+bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 {
 	deviceConfig["rate"] = 3000000;
 
@@ -73,7 +68,7 @@ bool DriverSpiSk6812SPI::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiSk6812SPI::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiSk6812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgbw) * SPI_BYTES_PER_COLOUR;
@@ -112,6 +107,11 @@ int DriverSpiSk6812SPI::write(const std::vector<ColorRgb>& ledValues)
 	_ledBuffer[spi_ptr++] = 0;
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiSk6812SPI::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiSk6812SPI(deviceConfig);
 }
 
 bool DriverSpiSk6812SPI::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("sk6812spi", "leds_group_0_SPI", DriverSpiSk6812SPI::construct);

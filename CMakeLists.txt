@@ -9,6 +9,8 @@ message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(HyperHdr)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 if (OVERRIDE_ARCHITECTURE)
 	SET ( CMAKE_SYSTEM_PROCESSOR "${OVERRIDE_ARCHITECTURE}")
 endif(OVERRIDE_ARCHITECTURE)
@@ -573,36 +575,36 @@ file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 # Add the project include directory as additional include path
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# enable C++11; MSVC doesn't have c++11 feature switch
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+# Enable C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
-	endif()
-	if(COMPILER_SUPPORTS_CXX17)
-			message(STATUS "Enabling support for C++17")
-			set(CMAKE_CXX_STANDARD 17)
-	else()
-			message(STATUS "No support for C++17 detected. Compilation will most likely fail on your compiler")
-	endif()
+if(MSVC)
+    add_compile_options(/W4)
 else()
-	include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("/std:c++17" COMPILER_SUPPORTS_CXX17)
-    if (COMPILER_SUPPORTS_CXX17)
-		set(CMAKE_CXX_STANDARD 17)
-		message(STATUS "Enabling MSVC support for c++17")
+    add_compile_options(-Wall)
+ 
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        add_compile_options(-Wno-psabi)
     endif()
 endif()
+message(STATUS "C++20 support has been enabled.")
 
-# Use GNU gold linker if available
-if (NOT WIN32)
-	include (LDGold)
+# Use lld then ld.gold linker if available
+if((CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang") AND NOT WIN32 AND NOT APPLE)
+	find_program(LLD_EXECUTABLE lld)
+	find_program(GOLD_EXECUTABLE ld.gold)
+
+	if(LLD_EXECUTABLE)
+		message(STATUS "Found 'lld' linker, enabling...")
+		add_compile_options("-fuse-ld=lld")
+	elseif(GOLD_EXECUTABLE)
+		message(STATUS "Found 'gold' linker, enabling...")
+		add_compile_options("-fuse-ld=gold")
+	else()
+		message(STATUS "Using default system linker (lld and gold not found).")
+	endif()
 endif()
 
 # Don't create new dynamic tags (RUNPATH)
@@ -723,8 +725,8 @@ add_subdirectory(resources)
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET libzstd_static AND TARGET libzstd_shared AND TARGET zstd AND TARGET clean-all AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers)
-	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared zstd clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET libzstd_static AND TARGET libzstd_shared AND TARGET clean-all AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers )
+	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

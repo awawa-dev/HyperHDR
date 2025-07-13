@@ -1,6 +1,6 @@
 #pragma once
 
-/* LedCalibration.h
+/* SharedOutputColors.h
 *
 *  MIT License
 *
@@ -27,35 +27,25 @@
 *  SOFTWARE.
 */
 
-#ifndef PCH_ENABLED	
-	#include <QStringList>
-	#include <QString>
-	#include <QJsonObject>
-
-	#include <vector>	
+#ifndef PCH_ENABLED
+	#include <cstdint>
+	#include <memory>
+	#include <vector>
 #endif
 
-#include <image/ColorRgb.h>
-#include <led-strip/ColorCalibration.h>
+#pragma once
 
-class LedCalibration
-{
-public:
-	LedCalibration(quint8 instance, int ledCnt, const QJsonObject& colorConfig);
-	~LedCalibration();
+#include <QMetaType>
 
-	LedCalibration(const LedCalibration& t) = delete;
-	LedCalibration& operator=(const LedCalibration& x) = delete;
-	
-	void setAdjustmentForLed(int index, std::shared_ptr<ColorCalibration>& adjustment, size_t startLed, size_t endLed);
-	bool verifyAdjustments() const;
-	void setBacklightEnabled(bool enable);
-	QJsonArray getAdjustmentState() const;
-	void applyAdjustment(std::vector<ColorRgb>& ledColors);
-	void updateConfig(const QJsonObject& adjustment);
+namespace linalg {
+	template<class T, int M, int N> struct mat;
+	template<class T, int M> struct vec;
 
-private:
-	std::vector<std::shared_ptr<ColorCalibration>> _calibrationConfig;
-	std::vector<std::shared_ptr<ColorCalibration>> _perLedConfig;
-	Logger* _log;
-};
+	namespace aliases {
+		using float3 = linalg::vec<float, 3>;
+	}
+}
+
+using SharedOutputColors = std::shared_ptr<std::vector<linalg::aliases::float3>>;
+
+Q_DECLARE_METATYPE(SharedOutputColors)

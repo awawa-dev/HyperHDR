@@ -49,7 +49,7 @@ bool Animation_RainbowWaves::Play(HyperImage& painter)
 	return true;
 }
 
-bool Animation_RainbowWaves::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_RainbowWaves::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (buffer.size() > 0)
 	{

@@ -11,6 +11,7 @@
 #include <led-drivers/LedDevice.h>
 #include <base/HyperHdrInstance.h>
 #include <utils/GlobalSignals.h>
+#include <infinite-color-engine/ColorSpace.h>
 
 std::atomic<bool> LedDevice::_signalTerminate(false);
 
@@ -331,7 +332,7 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 	_activeDeviceType = deviceType;
 }
 
-bool LedDevice::init(const QJsonObject& deviceConfig)
+bool LedDevice::init(QJsonObject deviceConfig)
 {
 	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
@@ -448,7 +449,7 @@ void LedDevice::smoothingRestarted(int newSmoothingInterval)
 	}
 }
 
-void LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
+void LedDevice::handleSignalFinalOutputColorsReady(SharedOutputColors ledValues)
 {
 	// stats
 	int64_t now = InternalClock::now();
@@ -502,29 +503,32 @@ void LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 
 int LedDevice::rewriteLEDs()
 {
+	using namespace linalg::aliases;
 	int retval = -1;
 
 	if ((_newFrame2Send || _isRefreshEnabled) && _isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
 	{
 		_newFrame2Send = false;
 
-		std::vector<ColorRgb> copy = _lastLedValues;
+		auto copy = _lastLedValues;
 
 		if (_signalTerminate)
-			copy = std::vector<ColorRgb>(static_cast<unsigned long>(copy.size()), ColorRgb::BLACK);
+		{			
+			std::fill(copy->begin(), copy->end(), float3{ 0.0f, 0.0f, 0.0f });
+		}
 		else if (_blinkIndex >= 0)
 		{
 			int64_t now = InternalClock::now();
-			if (_blinkTime + 4500 < now || _blinkTime > now || _blinkIndex >= static_cast<int>(copy.size()))
+			if (_blinkTime + 4500 < now || _blinkTime > now || _blinkIndex >= static_cast<int>(copy->size()))
 				_blinkIndex = -1;
 			else
 			{
-				copy = std::vector<ColorRgb>(static_cast<unsigned long>(copy.size()), ColorRgb::BLACK);
-				copy[_blinkIndex] = (_blinkTime + 1500 > now) ? ColorRgb::RED : (_blinkTime + 3000 > now) ? ColorRgb::GREEN : ColorRgb::BLUE;
+				std::fill(copy->begin(), copy->end(), float3{ 0.0f, 0.0f, 0.0f });
+				(*copy)[_blinkIndex] = (_blinkTime + 1500 > now) ? float3{ 1.0f, 0.0f, 0.0f } : (_blinkTime + 3000 > now) ? float3{ 0.0f, 1.0f, 0.0f } : float3{ 0.0f, 0.0f, 1.0f };
 			}
 		}		
 
-		if (copy.size() > 0)
+		if (copy->size() > 0)
 			retval = write(copy);
 
 		if (_signalTerminate)
@@ -538,13 +542,13 @@ int LedDevice::rewriteLEDs()
 
 int LedDevice::writeBlack(int numberOfBlack)
 {
+	using namespace linalg::aliases;
 	int rc = -1;
 	
 	Debug(_log, "Set LED strip to black/power off");
 
-	std::vector<ColorRgb> blacks = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK);
-
-	_lastLedValues = blacks;
+	auto blacks = _lastLedValues;
+	std::fill(blacks->begin(), blacks->end(), float3{ 0.0f, 0.0f, 0.0f });
 
 	for (int i = 0; i < numberOfBlack; i++)
 	{
@@ -552,6 +556,33 @@ int LedDevice::writeBlack(int numberOfBlack)
 	}
 
 	return rc;
+}
+
+std::pair<bool, int> LedDevice::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	return std::pair<bool, int>(false, 0);
+}
+
+int LedDevice::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
+{
+	return -1;
+}
+
+int LedDevice::write(SharedOutputColors nonlinearRgbColors)
+{
+	if (auto res = writeInfiniteColors(nonlinearRgbColors); !res.first)
+	{
+		std::vector<ColorRgb> ledValues;
+		ledValues.reserve(nonlinearRgbColors->size());
+		std::transform(nonlinearRgbColors->cbegin(), nonlinearRgbColors->cend(), std::back_inserter(ledValues),
+			[](const auto& v) {
+				auto b = ColorSpaceMath::to_byte3(v * 255.0f);
+				return ColorRgb{ b.x, b.y, b.z };
+			});
+		return writeFiniteColors(ledValues);
+	}
+	else
+		return res.second;
 }
 
 void LedDevice::setLedCount(int ledCount)

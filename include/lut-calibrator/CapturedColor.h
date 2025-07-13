@@ -32,10 +32,11 @@
 	#include <cmath>
 	#include <cstring>
 	#include <vector>
+	#include <list>
 #endif
 
 #include <linalg.h>
-#include <lut-calibrator/ColorSpace.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <image/ColorRgb.h>
 #include <image/Image.h>
 
@@ -70,7 +71,7 @@ public:
 	const uint8_t& U() const { return colorInt.y; }
 	const uint8_t& V() const { return colorInt.z; }
 
-	void importColors(const CapturedColor& color);
+	void importColors(const CapturedColor& colorImported);
 	bool calculateFinalColor();
 	bool hasAllSamples();
 	bool hasAnySample();

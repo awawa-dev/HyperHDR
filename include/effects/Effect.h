@@ -4,6 +4,7 @@
 	#include <QThread>
 	#include <QJsonObject>
 	#include <QTimer>
+	#include <QVector>
 
 	#include <atomic>	
 #endif
@@ -52,7 +53,7 @@ public:
 	static std::list<EffectDefinition> getAvailableEffects();	
 
 signals:
-	void SignalSetLeds(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
+	void SignalSetLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
 	void SignalSetImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);
 	void SignalEffectFinished(int priority, QString name, bool forced);
 
@@ -78,6 +79,6 @@ private:
 	HyperImage			_image;
 	
 	QTimer				_timer;
-	std::vector<ColorRgb>	_ledBuffer;	
+	QVector<ColorRgb>	_ledBuffer;	
 	std::atomic<int>	_ledCount;
 };

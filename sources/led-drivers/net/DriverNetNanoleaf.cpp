@@ -103,15 +103,6 @@ DriverNetNanoleaf::DriverNetNanoleaf(const QJsonObject& deviceConfig)
 {
 }
 
-DriverNetNanoleaf::~DriverNetNanoleaf()
-{
-}
-
-LedDevice* DriverNetNanoleaf::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetNanoleaf(deviceConfig);
-}
-
 bool DriverNetNanoleaf::initLedsConfiguration()
 {
 	bool isInitOK = true;
@@ -256,7 +247,7 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 	return isInitOK;
 }
 
-bool DriverNetNanoleaf::init(const QJsonObject& deviceConfig)
+bool DriverNetNanoleaf::init(QJsonObject deviceConfig)
 {
 	// Overwrite non supported/required features
 	setRefreshTime(0);
@@ -526,7 +517,7 @@ bool DriverNetNanoleaf::powerOff()
 
 
 
-int DriverNetNanoleaf::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetNanoleaf::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	int retVal = 0;
 
@@ -598,6 +589,11 @@ int DriverNetNanoleaf::write(const std::vector<ColorRgb>& ledValues)
 
 	retVal = writeBytes(udpbuffer);
 	return retVal;
+}
+
+LedDevice* DriverNetNanoleaf::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetNanoleaf(deviceConfig);
 }
 
 bool DriverNetNanoleaf::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("nanoleaf", "leds_group_2_network", DriverNetNanoleaf::construct);

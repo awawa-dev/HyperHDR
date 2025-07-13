@@ -29,7 +29,7 @@
 #include <utils/Logger.h>
 #include <utils/FrameDecoder.h>
 
-#include <lut-calibrator/ColorSpace.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <linalg.h>
 #include <atomic>
 #include <mutex>

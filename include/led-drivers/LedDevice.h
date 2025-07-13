@@ -14,6 +14,7 @@
 	#include <algorithm>
 	#include <functional>
 	#include <atomic>
+	#include <utility>	
 #endif
 
 #include <led-drivers/LedDeviceManufactory.h>
@@ -23,6 +24,7 @@
 #include <utils/Components.h>
 #include <led-drivers/ColorRgbw.h>
 #include <performance-counters/PerformanceCounters.h>
+#include <infinite-color-engine/SharedOutputColors.h>
 
 class LedDevice;
 class DiscoveryWrapper;
@@ -58,7 +60,7 @@ public:
 public slots:
 	virtual void start();
 	virtual void stop();
-	void updateLeds(std::vector<ColorRgb> ledValues);
+	void handleSignalFinalOutputColorsReady(SharedOutputColors nonlinearRgbColors);
 	int getRefreshTime() const;
 	int getLedCount() const;
 	QString getActiveDeviceType() const;
@@ -79,10 +81,12 @@ signals:
 
 protected:
 
-	virtual bool init(const QJsonObject& deviceConfig);
+	virtual bool init(QJsonObject deviceConfig);
 	virtual int open();
 	virtual int close();
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
+	int write(SharedOutputColors nonlinearRgbColors);
+	virtual std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors);
+	virtual int writeFiniteColors(const std::vector<ColorRgb>& ledValues);
 	virtual int writeBlack(int numberOfBlack = 2);
 	virtual bool powerOn();
 	virtual bool powerOff();
@@ -140,7 +144,7 @@ private:
 
 	std::atomic_bool	_isRefreshEnabled;
 	std::atomic_bool	_newFrame2Send;
-	std::vector<ColorRgb> _lastLedValues;
+	SharedOutputColors	_lastLedValues;
 
 	struct LedStats
 	{

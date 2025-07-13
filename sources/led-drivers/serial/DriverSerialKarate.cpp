@@ -6,12 +6,7 @@ DriverSerialKarate::DriverSerialKarate(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSerialKarate::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialKarate(deviceConfig);
-}
-
-bool DriverSerialKarate::init(const QJsonObject& deviceConfig)
+bool DriverSerialKarate::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -42,7 +37,7 @@ bool DriverSerialKarate::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSerialKarate::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialKarate::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	for (signed iLed = 0; iLed < static_cast<int>(_ledCount); iLed++)
 	{
@@ -58,6 +53,11 @@ int DriverSerialKarate::write(const std::vector<ColorRgb>& ledValues)
 		_ledBuffer[2] ^= _ledBuffer[i];
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSerialKarate::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialKarate(deviceConfig);
 }
 
 bool DriverSerialKarate::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("karate", "leds_group_3_serial", DriverSerialKarate::construct);

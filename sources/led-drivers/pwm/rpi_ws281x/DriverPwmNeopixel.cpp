@@ -13,16 +13,7 @@ DriverPwmNeopixel::DriverPwmNeopixel(const QJsonObject& deviceConfig)
 {
 }
 
-DriverPwmNeopixel::~DriverPwmNeopixel()
-{
-}
-
-LedDevice* DriverPwmNeopixel::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverPwmNeopixel(deviceConfig);
-}
-
-bool DriverPwmNeopixel::init(const QJsonObject& deviceConfig)
+bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 {
 	QString errortext;
 
@@ -142,7 +133,7 @@ int DriverPwmNeopixel::close()
 }
 
 // Send new values down the LED chain
-int DriverPwmNeopixel::write(const std::vector<ColorRgb>& ledValues)
+int DriverPwmNeopixel::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	int idx = 0;
 
@@ -175,6 +166,11 @@ int DriverPwmNeopixel::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return ws2811_render(_ledString.get()) ? -1 : 0;
+}
+
+LedDevice* DriverPwmNeopixel::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverPwmNeopixel(deviceConfig);
 }
 
 bool DriverPwmNeopixel::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("ws281x", "leds_group_1_PWM", DriverPwmNeopixel::construct);

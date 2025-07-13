@@ -119,7 +119,6 @@ class LedDevicePhilipsHueBridge : public ProviderUdpSSL
 public:
 
 	explicit LedDevicePhilipsHueBridge(const QJsonObject& deviceConfig);
-	~LedDevicePhilipsHueBridge() override;
 
 	bool initRestAPI(const QString& hostname, int port, const QString& token);
 	QJsonDocument get(const QString& route);
@@ -147,10 +146,10 @@ public:
 
 protected:
 
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	bool checkApiError(const QJsonDocument& response, bool supressError = false);
 
-	ProviderRestApi* _restApi;
+	std::unique_ptr<ProviderRestApi> _restApi;
 	QString _hostname;
 	int _apiPort;	
 	QString _username;
@@ -208,8 +207,8 @@ class DriverNetPhilipsHue : public LedDevicePhilipsHueBridge
 
 public:
 	explicit DriverNetPhilipsHue(const QJsonObject& deviceConfig);
-	~DriverNetPhilipsHue() override;
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+
 	QJsonObject discover(const QJsonObject& params) override;
 	QJsonObject getProperties(const QJsonObject& params) override;
 	void identify(const QJsonObject& params) override;
@@ -224,10 +223,11 @@ public slots:
 	void stop() override;
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool switchOn() override;
 	bool switchOff() override;
 	bool powerOn() override;
@@ -251,6 +251,11 @@ private:
 
 	void writeStream(bool flush = false);
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
+	int writeSingleLights(const SharedOutputColors& nonlinearRgbColors);
+	template <typename ColorContainer, typename Converter>
+	int writeSingleLightsGeneric(
+		const ColorContainer& colors,
+		Converter convert);
 
 	std::vector<uint8_t> prepareStreamData() const;
 	std::vector<uint8_t> prepareStreamDataV2();

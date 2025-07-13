@@ -37,11 +37,10 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
-	uint32_t _globalBrightnessControlThreshold;
 	uint16_t _globalBrightnessControlMaxLevel;
 
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 
 	static bool isRegistered;
 };

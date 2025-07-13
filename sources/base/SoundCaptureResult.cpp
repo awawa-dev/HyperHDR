@@ -340,13 +340,13 @@ bool SoundCaptureResult::hasMiddleFast(int middle)
 }
 
 
-void SoundCaptureResult::RestoreFullLum(ColorRgb& color, int scale)
+void SoundCaptureResult::RestoreFullLum(ColorRgb& restoreColor, int scale)
 {
 	int a, b, v;
-	color.getHsv(a, b, v);
+	restoreColor.getHsv(a, b, v);
 
 	if (v < scale)
-		color.fromHsv(a, b, scale);
+		restoreColor.fromHsv(a, b, scale);
 }
 
 bool SoundCaptureResult::GetStats(uint32_t& scaledAverage, uint32_t& currentMax, ColorRgb& averageColor, ColorRgb* fastColor, ColorRgb* slowColor)

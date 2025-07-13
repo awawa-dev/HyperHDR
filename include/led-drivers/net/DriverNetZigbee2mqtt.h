@@ -40,7 +40,6 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 	QJsonObject discover(const QJsonObject& params) override;
-
 	void identify(const QJsonObject& params) override;
 
 public slots:
@@ -51,8 +50,8 @@ protected:
 	bool powerOff() override;
 
 private:
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOnOff(bool isOn);
 
 	Zigbee2mqttInstance	_zigInstance;
@@ -62,6 +61,6 @@ private:
 	int					_mqttId;
 	long long			_lastUpdate;
 
-	static int mqttId;
+	static inline int mqttId = 0;
 	static bool isRegistered;
 };

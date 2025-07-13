@@ -9,9 +9,11 @@
 
 #include <image/Image.h>
 #include <utils/Logger.h>
-#include <led-strip/LedString.h>
+#include <base/LedString.h>
 #include <base/ImageColorAveraging.h>
 #include <blackborder/BlackBorderProcessor.h>
+
+#include <linalg.h>
 
 class HyperHdrInstance;
 
@@ -31,10 +33,12 @@ public:
 	static QString mappingTypeToStr(int mappingType);
 
 	void setSparseProcessing(bool sparseProcessing);
-	void processFrame(std::vector<ColorRgb>& colors, const Image<ColorRgb>& frameBuffer);
+	void processFrame(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& frameBuffer);
+
+signals:
+	void SignalImageToLedsMappingChanged(int mappingType);
 
 public slots:
-
 	void setBlackbarDetectDisable(bool enable);
 	void setLedMappingType(int mapType);
 

@@ -326,7 +326,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 			// Instance report //
 			/////////////////////
 
-			BLOCK_CALL_2(_hyperhdr.get(), putJsonInfo, QJsonObject&, info, bool, true);
+			SAFE_CALL_1_RET(_hyperhdr.get(), getJsonInfo, QJsonObject, info, bool, true);
 
 			///////////////////////////
 			// Available LED devices //
@@ -782,7 +782,7 @@ void HyperAPI::handleConfigCommand(const QJsonObject& message, const QString& co
 		if (_adminAuthorized)
 		{
 			QJsonObject getconfig;
-			BLOCK_CALL_1(_hyperhdr.get(), putJsonConfig, QJsonObject&, getconfig);
+			SAFE_CALL_0_RET(_hyperhdr.get(), getJsonConfig, QJsonObject, getconfig);
 			sendSuccessDataReply(QJsonDocument(getconfig), full_command, tan);
 		}
 		else
@@ -862,7 +862,7 @@ void HyperAPI::handleComponentStateCommand(const QJsonObject& message, const QSt
 	sendSuccessReply(command, tan);
 }
 
-void HyperAPI::handleIncomingColors(const std::vector<ColorRgb>& ledValues)
+void HyperAPI::handleIncomingColors(const QVector<ColorRgb>& ledValues)
 {
 	_currentLedValues = ledValues;
 
@@ -1163,7 +1163,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 	}
 }
 
-void HyperAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
+void HyperAPI::streamLedcolorsUpdate(const QVector<ColorRgb>& ledColors)
 {
 	QJsonObject result;
 	QJsonArray leds;
@@ -1445,7 +1445,7 @@ void HyperAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, 
 
 void HyperAPI::handleAdjustmentCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QJsonObject& adjustment = message["adjustment"].toObject();
+	QJsonObject adjustment = message["adjustment"].toObject();
 
 	QUEUE_CALL_1(_hyperhdr.get(), updateAdjustments, QJsonObject, adjustment);
 
@@ -1567,7 +1567,6 @@ void HyperAPI::handleAuthorizeCommand(const QJsonObject& message, const QString&
 	if (subc == "requestToken")
 	{
 		// use id/comment
-		const QString& comment = message["comment"].toString().trimmed();
 		const bool& acc = message["accept"].toBool(true);
 		if (acc)
 			BaseAPI::setNewTokenRequest(comment, id, tan);

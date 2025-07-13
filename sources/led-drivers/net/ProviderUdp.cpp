@@ -50,7 +50,7 @@ ProviderUdp::ProviderUdp(const QJsonObject& deviceConfig)
 
 ProviderUdp::~ProviderUdp() = default;
 
-bool ProviderUdp::init(const QJsonObject& deviceConfig)
+bool ProviderUdp::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 

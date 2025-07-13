@@ -15,12 +15,7 @@ DriverSerialDMX::DriverSerialDMX(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSerialDMX::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialDMX(deviceConfig);
-}
-
-bool DriverSerialDMX::init(const QJsonObject& deviceConfig)
+bool DriverSerialDMX::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -65,7 +60,7 @@ bool DriverSerialDMX::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSerialDMX::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialDMX::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	switch (_dmxDeviceType) {
 	case 0:
@@ -107,6 +102,11 @@ int DriverSerialDMX::write(const std::vector<ColorRgb>& ledValues)
 #endif
 
 	return writeBytes(_dmxChannelCount, _ledBuffer.data());
+}
+
+LedDevice* DriverSerialDMX::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialDMX(deviceConfig);
 }
 
 bool DriverSerialDMX::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("dmx", "leds_group_3_serial", DriverSerialDMX::construct);

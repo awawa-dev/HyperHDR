@@ -46,7 +46,7 @@ public:
 	{
 	};
 
-	virtual bool init(const QJsonObject& deviceConfig) = 0;
+	virtual bool init(QJsonObject deviceConfig) = 0;
 	virtual ~ProviderSpiInterface() {};
 
 	virtual QString open() = 0;

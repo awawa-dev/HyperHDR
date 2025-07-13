@@ -15,17 +15,16 @@ class DriverNetAtmoOrb : public LedDevice
 
 public:
 	explicit DriverNetAtmoOrb(const QJsonObject& deviceConfig);
-	~DriverNetAtmoOrb() override;
-
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+
 	QJsonObject discover(const QJsonObject& params) override;
 	virtual void identify(const QJsonObject& params) override;
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 private:
 	void setColor(int orbId, const ColorRgb& color, int commandType);

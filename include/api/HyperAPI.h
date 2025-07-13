@@ -3,7 +3,8 @@
 #ifndef PCH_ENABLED
 	#include <QJsonObject>
 	#include <QString>
-	#include <QTimer>	
+	#include <QTimer>
+	#include <QVector>
 #endif
 
 #include <utils/Components.h>
@@ -23,7 +24,7 @@ public:
 	void initialize();
 
 public slots:
-	void streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors);
+	void streamLedcolorsUpdate(const QVector<ColorRgb>& ledColors);
 	void incommingLogMessage(const Logger::T_LOG_MESSAGE&);
 	hyperhdr::Components getActiveComponent();
 
@@ -35,7 +36,7 @@ private slots:
 	void lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 
 protected slots:
-	void handleIncomingColors(const std::vector<ColorRgb>& ledValues) override;
+	void handleIncomingColors(const QVector<ColorRgb>& ledValues) override;
 	void handlerInstanceImageUpdated(const Image<ColorRgb>& image) override;
 	void sendImage();
 
@@ -71,7 +72,7 @@ private:
 	qint64 _lastSentImage;
 
 	/// the current streaming led values
-	std::vector<ColorRgb> _currentLedValues;
+	QVector<ColorRgb> _currentLedValues;
 
 	bool handleInstanceSwitch(quint8 instance = 0, bool forced = false);
 	void handleColorCommand(const QJsonObject& message, const QString& command, int tan);
