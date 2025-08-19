@@ -25,16 +25,18 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 	{
 
 		_haInstance.homeAssistantHost = deviceConfig["homeAssistantHost"].toString();
+		_haInstance.homeAssistantPort = deviceConfig["homeAssistantPort"].toInt(8123);
+		_haInstance.useSSL = deviceConfig["useSSL"].toBool(false);
 		_haInstance.longLivedAccessToken = deviceConfig["longLivedAccessToken"].toString();
 		_haInstance.transition = deviceConfig["transition"].toInt(0);
 		_haInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(255);
 		_haInstance.restoreOriginalState = deviceConfig["restoreOriginalState"].toBool(false);
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
 
-		QUrl url("http://" + _haInstance.homeAssistantHost);
-		_restApi = std::make_unique<ProviderRestApi>(url.host(), url.port(8123));		
+		//QUrl url(_haInstance.homeAssistantHost);
+		_restApi = std::make_unique<ProviderRestApi>(_haInstance.homeAssistantHost, _haInstance.homeAssistantPort, _haInstance.useSSL);
 		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
-		
+
 		Debug(_log, "HomeAssistantHost     : %s", QSTRING_CSTR(_haInstance.homeAssistantHost));
 		Debug(_log, "RestoreOriginalState  : %s", (_haInstance.restoreOriginalState) ? "yes" : "no");
 		Debug(_log, "Transition (ms)       : %s", (_haInstance.transition > 0) ? QSTRING_CSTR(QString::number(_haInstance.transition)) : "disabled" );
@@ -49,7 +51,7 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 				HomeAssistantLamp hl;
 				auto lampObj = lamp.toObject();
 				hl.name = lampObj["name"].toString();
-				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));				
+				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));
 				hl.currentBrightness = _haInstance.constantBrightness;
 				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
 				_haInstance.lamps.push_back(hl);

@@ -20,6 +20,9 @@ class DriverNetHomeAssistant : public LedDevice
 	struct HomeAssistantInstance
 	{
 		QString homeAssistantHost;
+		int homeAssistantPort;
+                bool useSSL;
+
 		QString longLivedAccessToken;
 		int transition;
 		int constantBrightness = 255;
