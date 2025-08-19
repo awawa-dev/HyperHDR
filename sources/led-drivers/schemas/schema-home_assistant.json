@@ -8,27 +8,11 @@
 			"required" : true,
 			"propertyOrder" : 1
 		},
-                "homeAssistantPort": {
-                        "type": "integer",
-                        "title": "edt_dev_spec_networkDevicePort_title",
-                        "default": 8123,
-                        "minimum": 0,
-                        "maximum": 65535,
-                        "required": true,
-                        "propertyOrder": 2
-                },
-                "useSSL": {
-                        "type": "boolean",
-                        "format": "checkbox",
-                        "title": "edt_conf_mqtt_is_ssl_title",
-                        "default" : false,
-                        "propertyOrder" : 3
-                },
 		"longLivedAccessToken" : {
 			"type": "string",
-			"title": "edt_dev_auth_key_title",
+			"title":"edt_dev_auth_key_title",
 			"required" : true,
-			"propertyOrder" : 4
+			"propertyOrder" : 2
 		},
 		"transition": {
 			"type": "integer",
@@ -38,7 +22,7 @@
 			"minimum": 0,
 			"maximum": 3000,
 			"required": true,
-			"propertyOrder": 5
+			"propertyOrder": 3
 		},
 		"constantBrightness": {
 			"type": "integer",
@@ -47,14 +31,14 @@
 			"minimum": 0,
 			"maximum": 255,
 			"required": true,
-			"propertyOrder": 6
+			"propertyOrder": 4
 		},
 		"restoreOriginalState": {
 			"type": "boolean",
 			"format": "checkbox",
-			"title": "edt_dev_spec_restoreOriginalState_title",
+			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : false,
-			"propertyOrder" : 7
+			"propertyOrder" : 5
 		},
 		"maxRetry": {
 			"type" : "integer",
@@ -65,12 +49,12 @@
 			"maximum" : 300,
 			"default" : 60,
 			"required" : true,
-			"propertyOrder" : 8
+			"propertyOrder" : 6
 		},
 		"lamps": {
 			"type": "array",
 			"title":"edt_dev_spec_lights_title",
-			"propertyOrder" : 9,
+			"propertyOrder" : 7,
 			"uniqueItems" : true,
 			"items" : {
 				"type" : "object",

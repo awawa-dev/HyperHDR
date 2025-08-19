@@ -42,9 +42,9 @@
 
 const int TIMEOUT = (500);
 
-ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath, bool useSSL = false)
+ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath)
 	:_log(Logger::getInstance("LEDDEVICE"))
-	, _scheme(useSSL ? "https" : "http")
+	, _scheme((port == 443) ? "https" : "http")
 	, _hostname(host)
 	, _port(port)
 {
@@ -60,14 +60,17 @@ ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& b
 	_workerThread = NetworkHelper::threadFactory();
 }
 
-ProviderRestApi::ProviderRestApi(const QString& host, int port, bool useSSL = false)
-        : ProviderRestApi(host, port, "", useSSL) {}
+ProviderRestApi::ProviderRestApi(QString scheme, QString host, int port, QString basePath)
+	: ProviderRestApi(host, port, basePath)
+{
+	_apiUrl.setScheme(scheme);
+}
 
 ProviderRestApi::ProviderRestApi(const QString& host, int port)
-	: ProviderRestApi(host, port, "", false) {}
+	: ProviderRestApi(host, port, "") {}
 
 ProviderRestApi::ProviderRestApi()
-	: ProviderRestApi("", -1, "", false) {}
+	: ProviderRestApi("", -1) {}
 
 ProviderRestApi::~ProviderRestApi()
 {
