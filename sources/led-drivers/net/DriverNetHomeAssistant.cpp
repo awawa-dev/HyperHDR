@@ -31,7 +31,9 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 		_haInstance.restoreOriginalState = deviceConfig["restoreOriginalState"].toBool(false);
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
 
-		QUrl url(_haInstance.homeAssistantHost.startsWith("https://", Qt::CaseInsensitive) ? _haInstance.homeAssistantHost : "http://" + _haInstance.homeAssistantHost);
+		QUrl url(_haInstance.homeAssistantHost.startsWith("https://", Qt::CaseInsensitive) ||
+				 _haInstance.homeAssistantHost.startsWith("http://", Qt::CaseInsensitive)
+					? _haInstance.homeAssistantHost : "http://" + _haInstance.homeAssistantHost);
 		_restApi = std::make_unique<ProviderRestApi>(url.scheme(), url.host(), url.port(8123));
 		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
 		
