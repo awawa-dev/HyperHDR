@@ -25,6 +25,7 @@ public:
 	ProviderRestApi();
 	ProviderRestApi(const QString& host, int port);
 	ProviderRestApi(const QString& host, int port, const QString& basePath);
+	ProviderRestApi(QString scheme, QString host, int port, QString basePath = "");
 	~ProviderRestApi();
 
 	void  updateHost(const QString& host, int port);

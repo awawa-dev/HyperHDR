@@ -60,6 +60,12 @@ ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& b
 	_workerThread = NetworkHelper::threadFactory();
 }
 
+ProviderRestApi::ProviderRestApi(QString scheme, QString host, int port, QString basePath)
+	: ProviderRestApi(host, port, basePath)
+{
+	_apiUrl.setScheme(scheme);
+}
+
 ProviderRestApi::ProviderRestApi(const QString& host, int port)
 	: ProviderRestApi(host, port, "") {}
 

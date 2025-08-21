@@ -31,8 +31,10 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 		_haInstance.restoreOriginalState = deviceConfig["restoreOriginalState"].toBool(false);
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
 
-		QUrl url("http://" + _haInstance.homeAssistantHost);
-		_restApi = std::make_unique<ProviderRestApi>(url.host(), url.port(8123));		
+		QUrl url(_haInstance.homeAssistantHost.startsWith("https://", Qt::CaseInsensitive) ||
+				 _haInstance.homeAssistantHost.startsWith("http://", Qt::CaseInsensitive)
+					? _haInstance.homeAssistantHost : "http://" + _haInstance.homeAssistantHost);
+		_restApi = std::make_unique<ProviderRestApi>(url.scheme(), url.host(), url.port(8123));
 		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
 		
 		Debug(_log, "HomeAssistantHost     : %s", QSTRING_CSTR(_haInstance.homeAssistantHost));
@@ -49,7 +51,7 @@ bool DriverNetHomeAssistant::init(const QJsonObject& deviceConfig)
 				HomeAssistantLamp hl;
 				auto lampObj = lamp.toObject();
 				hl.name = lampObj["name"].toString();
-				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));				
+				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));
 				hl.currentBrightness = _haInstance.constantBrightness;
 				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
 				_haInstance.lamps.push_back(hl);
