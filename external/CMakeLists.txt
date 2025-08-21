@@ -113,6 +113,16 @@ if (NOT USE_SYSTEM_LUNASVG_LIBS OR NOT lunasvg_FOUND)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
 	set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+	# do not rely on plutvg cmake script to detect C++11 threads support
+	if (NOT WIN32)
+		include(CheckIncludeFile)
+		check_include_file("threads.h" HAVE_THREADS_H)
+		if (NOT HAVE_THREADS_H)
+			message(STATUS "threads.h not found -> defining __STDC_NO_THREADS__ for plutovg target")
+			target_compile_definitions(plutovg PRIVATE __STDC_NO_THREADS__)
+		endif()
+	endif()
 endif()
 
 set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
