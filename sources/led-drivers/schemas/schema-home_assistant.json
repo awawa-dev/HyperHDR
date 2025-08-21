@@ -4,7 +4,7 @@
 	"properties":{
 		"homeAssistantHost" : {
 			"type": "string",
-			"title":"edt_dev_spec_targetIpHost_title",
+			"title":"wiz_home_assistant_api_title",
 			"required" : true,
 			"propertyOrder" : 1
 		},
