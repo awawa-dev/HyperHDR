@@ -1280,5 +1280,6 @@
   "edt_dev_enum_wled_auto": "Wled автоматический",
   "edt_dev_enum_wled_auto_max": "Wled автоматический максимальный",
   "edt_dev_enum_wled_auto_accurate": "Wled автоматический точный",
-  "edt_dev_led_ftdi_select": "Выберите устройство FTDI, если оно присутствует"
+  "edt_dev_led_ftdi_select": "Выберите устройство FTDI, если оно присутствует",
+  "wiz_home_assistant_api_title" : "API адрес Home Assistant"
 }

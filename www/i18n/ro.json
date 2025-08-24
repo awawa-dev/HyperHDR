@@ -1280,5 +1280,6 @@
   "edt_dev_enum_wled_auto": "Wled auto",
   "edt_dev_enum_wled_auto_max": "Wled auto max",
   "edt_dev_enum_wled_auto_accurate": "Wled auto precise",
-  "edt_dev_led_ftdi_select": "Selectați dispozitivul FTDI dacă este prezent"
+  "edt_dev_led_ftdi_select": "Selectați dispozitivul FTDI dacă este prezent",
+  "wiz_home_assistant_api_title" : "Adresa API-ului Home Assistant"
 }

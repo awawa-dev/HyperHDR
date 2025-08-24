@@ -1280,5 +1280,6 @@
   "edt_dev_enum_wled_auto": "Wled tự động",
   "edt_dev_enum_wled_auto_max": "Wled tự động tối đa",
   "edt_dev_enum_wled_auto_accurate": "Wled tự động chính xác",
-  "edt_dev_led_ftdi_select": "Chọn thiết bị FTDI nếu có"
+  "edt_dev_led_ftdi_select": "Chọn thiết bị FTDI nếu có",
+  "wiz_home_assistant_api_title" : "Địa chỉ API Trợ lý tại nhà"
 }
