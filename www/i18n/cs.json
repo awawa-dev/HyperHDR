@@ -1280,5 +1280,6 @@
   "edt_dev_enum_wled_auto": "Wled auto",
   "edt_dev_enum_wled_auto_max": "Wled auto max",
   "edt_dev_enum_wled_auto_accurate": "Wled automaticky přesný",
-  "edt_dev_led_ftdi_select": "Vyberte zařízení FTDI, pokud je k dispozici"
+  "edt_dev_led_ftdi_select": "Vyberte zařízení FTDI, pokud je k dispozici",
+  "wiz_home_assistant_api_title" : "Adresa API domácího asistenta"
 }

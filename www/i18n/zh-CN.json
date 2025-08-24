@@ -1280,5 +1280,6 @@
   "edt_dev_enum_wled_auto": "Wled 自动",
   "edt_dev_enum_wled_auto_max": "Wled 自动最大",
   "edt_dev_enum_wled_auto_accurate": "Wled 自动精确",
-  "edt_dev_led_ftdi_select": "选择 FTDI 设备（如有）"
+  "edt_dev_led_ftdi_select": "选择 FTDI 设备（如有）",
+  "wiz_home_assistant_api_title" : "Home Assistant API 地址"
 }
