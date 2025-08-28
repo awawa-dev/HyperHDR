@@ -232,8 +232,22 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 
 void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBacklight)
 {
+	if (minimalLevel >= 1.0)
+	{
+		if (_log)
+		{
+			Error(_log, "Minimal backlight level is way to high: %f, resetting to 0.0039", minimalLevel);
+		}
+		minimalLevel = 0.0039;
+	}
 	_minimalBacklight = minimalLevel;
 	_coloredBacklight = coloreBacklight;
+	if (_log)
+	{
+		Info(_log, "--- MINIMAL BACKLIGHT ---");
+		Info(_log, "MINIMAL LEVEL: %f", _minimalBacklight);
+		Info(_log, "COLORED:       %s", ((_coloredBacklight)?"true" : "false"));
+	}
 }
 
 void InfiniteProcessing::applyMinimalBacklight(linalg::vec<float, 3>& color) const
