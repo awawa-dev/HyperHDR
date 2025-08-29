@@ -503,7 +503,7 @@ void SystrayHandler::settings()
 
 #ifdef _WIN32
 	const wchar_t* array = (const wchar_t*)link.utf16();
-	ShellExecute(0, 0, array, 0, 0, SW_SHOW);
+	ShellExecuteW(0, 0, array, 0, 0, SW_SHOW);
 #endif
 
 #ifdef __linux__

@@ -30,6 +30,7 @@
 #include <QStringList>
 #include <image/ColorRgb.h>
 #include <infinite-color-engine/ColorSpace.h>
+#include <numbers>
 
 using namespace linalg;
 using namespace aliases;
@@ -346,11 +347,11 @@ namespace ColorSpaceMath
 
 		if (h > 0)
 		{
-			h = (h / M_PI) * 180.0;
+			h = (h / std::numbers::pi) * 180.0;
 		}
 		else
 		{
-			h = 360.0 - (std::abs(h) / M_PI) * 180.0;
+			h = 360.0 - (std::abs(h) / std::numbers::pi) * 180.0;
 		}
 
 		return double3{ l, c, h };
@@ -363,7 +364,7 @@ namespace ColorSpaceMath
 		else if (lch.z < 360.0)
 			lch.z += 360.0;
 
-		double h = lch.z * M_PI / 180.0;
+		double h = lch.z * std::numbers::pi / 180.0;
 
 		return double3{
 			lch.x,

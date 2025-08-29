@@ -207,7 +207,7 @@ void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int 
 	{
 		for (uint64_t i = 0; i < ledColors.size(); i += 3)
 		{
-			fledColors.emplace_back(ColorRgb{ ledColors[i], ledColors[i + 1], ledColors[i + 2] });
+			fledColors.push_back(ColorRgb{ ledColors[i], ledColors[i + 1], ledColors[i + 2] });
 		}
 		QUEUE_CALL_4(_hyperhdr.get(), setColor, int, priority, QVector<ColorRgb>, fledColors, int, timeout_ms, QString, origin);
 	}
@@ -600,9 +600,12 @@ void BaseAPI::putSystemInfo(QJsonObject& system)
 		_sysInfo.domainName = QHostInfo::localDomainName();
 
 		#ifdef _WIN32
-			QString cpucorp = "wmic cpu get name";
 			QProcess windowscpu;
-			windowscpu.startCommand(cpucorp);
+			#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+				windowscpu.start("wmic", { "cpu", "get", "name" });
+			#else
+				windowscpu.startCommand("wmic cpu get name");
+			#endif
 			windowscpu.waitForFinished();
 			QString result = windowscpu.readAllStandardOutput().trimmed();
 			if (result.startsWith("Name", Qt::CaseInsensitive))
