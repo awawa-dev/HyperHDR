@@ -149,7 +149,7 @@ jobs:
         with:
           submodules: false
       - name: Download artifacts
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v5.0.0
         with:
           path: repo
           pattern: release-artifact-*
