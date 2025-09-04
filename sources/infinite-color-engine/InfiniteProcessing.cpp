@@ -123,7 +123,7 @@ void InfiniteProcessing::updateCurrentConfig(const QJsonObject& config)
 		white, black);	
 	
 	TemperaturePreset tempPreset = TemperaturePreset::Disabled;
-	auto configTemp = config["temperatureRed"].toString("disabled");
+	auto configTemp = config["temperatureSetting"].toString("disabled");
 	if (configTemp == "cold") 
 		tempPreset = TemperaturePreset::Cold;
 	else if (configTemp == "neutral")
@@ -245,6 +245,7 @@ void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBack
 	if (_log)
 	{
 		Info(_log, "--- MINIMAL BACKLIGHT ---");
+		Info(_log, "ENABLED:       %s", ((_minimalBacklight > 0.0f) ? "true" : "false"));
 		Info(_log, "MINIMAL LEVEL: %f", _minimalBacklight);
 		Info(_log, "COLORED:       %s", ((_coloredBacklight)?"true" : "false"));
 	}

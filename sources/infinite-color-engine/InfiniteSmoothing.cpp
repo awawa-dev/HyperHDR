@@ -286,7 +286,10 @@ unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlin
 
 void InfiniteSmoothing::setCurrentSmoothingConfigParams(unsigned cfgID)
 {
-	selectConfig(cfgID);
+	if (cfgID != _currentConfigId)
+	{
+		selectConfig(cfgID);
+	}
 }
 
 int InfiniteSmoothing::getSuggestedInterval()

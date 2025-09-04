@@ -555,8 +555,28 @@ void HyperHdrInstance::setColor(int priority, const QVector<ColorRgb>& ledColors
 
 void HyperHdrInstance::updateAdjustments(const QJsonObject& config)
 {
-	_infinite->updateCurrentProcessingConfig(config);
-	emit SignalAdjustmentUpdated(_infinite->getCurrentProcessingConfig());
+	auto oldConfig = _infinite->getCurrentProcessingConfig();
+
+	auto newSettings = (oldConfig.size() == 1) ? oldConfig.first().toObject() : QJsonObject();
+
+	if (newSettings.isEmpty())
+		return;
+
+	for (auto it = config.constBegin(); it != config.constEnd(); ++it)
+	{
+		newSettings[it.key()] = it.value();
+	}
+
+	// pack it
+	QJsonArray newConfig;
+	newConfig.append(newSettings);
+	QJsonObject newObject;	
+	newObject["channelAdjustment"] = newConfig;
+	QJsonDocument newDoc(newObject);
+
+	// send it
+	emit SignalInstanceSettingsChanged(settings::type::COLOR, newDoc);
+	emit SignalAdjustmentUpdated(newConfig);
 	update();
 }
 

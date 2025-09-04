@@ -104,8 +104,8 @@ $(document).ready(function()
 					
 						if (editor.format === "colorpicker")
 							requestAdjustment(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
-						else
-							requestAdjustment(sourceKey, editor.value);
+						else if (editor.getValue() != null)
+							requestAdjustment(sourceKey, JSON.stringify(editor.getValue()));
 					}
 				});				
 		}
