@@ -552,7 +552,7 @@ void InfiniteProcessing::applyBrightnessAndSaturation(linalg::vec<float, 3>& col
 	color.z = std::max(0.0f, std::min(color.z, 1.0f));
 }
 
-linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(IsUint8Vec3 auto color)
+linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(IsUint8Vec3 auto const& color)
 {
 	return {
 		_srgb_uint8_to_linear_uint16_lut[color.x],
@@ -560,9 +560,9 @@ linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(IsUint8Vec3 a
 		_srgb_uint8_to_linear_uint16_lut[color.z]
 	};
 }
-template linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(linalg::vec<uint8_t, 3>);
+template linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(linalg::vec<uint8_t, 3> const&);
 
-linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(IsFloatVec3 auto color)
+linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(IsFloatVec3 auto const& color)
 {
 	linalg::vec<float, 3> result;
 	for (int i = 0; i < 3; ++i)
@@ -579,7 +579,7 @@ linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(IsFloatVec3 auto
 	return result;
 }
 
-linalg::vec<float, 3> InfiniteProcessing::srgbLinearToNonlinear(linalg::vec<float, 3> color)
+linalg::vec<float, 3> InfiniteProcessing::srgbLinearToNonlinear(linalg::vec<float, 3> const& color)
 {
 	linalg::vec<float, 3> result;
 	for (int i = 0; i < 3; ++i)

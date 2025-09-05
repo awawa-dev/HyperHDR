@@ -107,13 +107,6 @@
 				}
 			}
 		},
-		"candyGamma": {
-			"type": "boolean",
-			"format": "checkbox",
-			"title":"edt_dev_spec_candyGamma_title",
-			"default" : false,
-			"propertyOrder" : 10
-		},
 		"restoreOriginalState": {
 			"type": "boolean",
 			"format": "checkbox",

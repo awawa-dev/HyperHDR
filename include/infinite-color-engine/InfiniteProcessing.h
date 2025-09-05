@@ -102,9 +102,9 @@ public:
 	void setMinimalBacklight(float minimalLevel, bool coloreBacklight);
 	void applyMinimalBacklight(linalg::vec<float, 3>& color) const;
 
-	static linalg::vec<float, 3> srgbNonlinearToLinear(IsFloatVec3 auto color);
-	static linalg::vec<float, 3> srgbLinearToNonlinear(linalg::vec<float, 3> color);
-	static linalg::vec<uint16_t, 3> srgbNonlinearToLinear(IsUint8Vec3 auto color);
+	static linalg::vec<float, 3> srgbNonlinearToLinear(IsFloatVec3 auto const& color);
+	static linalg::vec<float, 3> srgbLinearToNonlinear(linalg::vec<float, 3> const& color);
+	static linalg::vec<uint16_t, 3> srgbNonlinearToLinear(IsUint8Vec3 auto const& color);
 
 	static void test();
 

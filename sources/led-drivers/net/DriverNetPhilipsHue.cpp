@@ -8,7 +8,8 @@
 
 #include <chrono>
 #include <cmath>
-#include <linalg.h>
+#include <infinite-color-engine/InfiniteProcessing.h>
+#include <infinite-color-engine/ColorSpace.h>
 
 #define RESERVED 0x00
 #define VERSION_MINOR 0x00
@@ -16,40 +17,12 @@
 
 // Constants
 namespace {
-
 	bool verbose = false;
-
-	const uint8_t HEADER[] =
-	{
-		'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm',
-		0x01, 0x00,
-		0x01,
-		0x00, 0x00,
-		0x01,
-		0x00
-	};
-
-	// Configuration settings
-	const char CONFIG_ADDRESS[] = "output";
-	//const char CONFIG_PORT[] = "port";
-	const char CONFIG_USERNAME[] = "username";
-	const char CONFIG_CLIENTKEY[] = "clientkey";
-	const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
-	const char CONFIG_TRANSITIONTIME[] = "transitiontime";
-	const char CONFIG_BLACK_LIGHTS_TIMEOUT[] = "blackLightsTimeout";
-	const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
-	const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
-	const char CONFIG_LIGHTIDS[] = "lightIds";
-	const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
-	const char CONFIG_GROUPID[] = "groupId";
-
-	const char CONFIG_VERBOSE[] = "verbose";
 
 	// Device Data elements
 	const char DEV_DATA_BRIDGEID[] = "bridgeid";
 	const char DEV_DATA_MODEL[] = "modelid";
 	const char DEV_DATA_NAME[] = "name";
-	//const char DEV_DATA_MANUFACTURER[] = "manufacturer";
 	const char DEV_DATA_FIRMWAREVERSION[] = "swversion";
 	const char DEV_DATA_APIVERSION[] = "apiversion";
 
@@ -71,12 +44,10 @@ namespace {
 	const char API_STREAM_ACTIVE_VALUE_TRUE[] = "true";
 	const char API_STREAM_ACTIVE_VALUE_FALSE[] = "false";
 	const char API_STREAM_OWNER[] = "owner";
-	const char API_STREAM_RESPONSE_FORMAT[] = "/%1/%2/%3/%4";
 
 	// List of resources
 	const char API_XY_COORDINATES[] = "xy";
 	const char API_BRIGHTNESS[] = "bri";
-	//const char API_SATURATION[] = "sat";
 	const char API_TRANSITIONTIME[] = "transitiontime";
 	const char API_MODEID[] = "modelid";
 
@@ -107,7 +78,6 @@ namespace {
 	constexpr std::chrono::milliseconds STREAM_REFRESH_TIME{ 20 };	
 
 	// V2
-	const char CONFIG_ENTERTAINMENT_CONFIGURATION_ID[] = "entertainmentConfigurationId";
 	const int API_DEFAULT_PORT_V2 = 443;
 	const char API_CHANNELS_V2[] = "channels";
 	const char API_GROUPS_V2[] = "entertainment_configuration";
@@ -118,152 +88,6 @@ namespace {
 	const char API_STREAM_OWNER_V2[] = "rid";
 
 } //End of constants
-
-bool operator ==(const CiColor& p1, const CiColor& p2)
-{
-	return ((p1.x == p2.x) && (p1.y == p2.y) && (p1.bri == p2.bri));
-}
-
-bool operator != (const CiColor& p1, const CiColor& p2)
-{
-	return !(p1 == p2);
-}
-
-CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiColorTriangle& colorSpace, bool candyGamma)
-{
-	double cx;
-	double cy;
-	double bri;
-
-	if (red + green + blue > 0)
-	{
-		// Apply gamma correction.
-		double r = red;
-		double g = green;
-		double b = blue;
-
-		if (candyGamma)
-		{
-			r = (red > 0.04045) ? pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
-			g = (green > 0.04045) ? pow((green + 0.055) / (1.0 + 0.055), 2.4) : (green / 12.92);
-			b = (blue > 0.04045) ? pow((blue + 0.055) / (1.0 + 0.055), 2.4) : (blue / 12.92);
-		}
-
-		// Convert to XYZ space.
-		double X = r * 0.664511 + g * 0.154324 + b * 0.162028;
-		double Y = r * 0.283881 + g * 0.668433 + b * 0.047685;
-		double Z = r * 0.000088 + g * 0.072310 + b * 0.986039;
-
-		cx = X / (X + Y + Z);
-		cy = Y / (X + Y + Z);
-
-		// RGB to HSV/B Conversion before gamma correction V/B for brightness, not Y from XYZ Space.
-		// bri = std::max(std::max(red, green), blue);
-		// RGB to HSV/B Conversion after gamma correction V/B for brightness, not Y from XYZ Space.
-		bri = std::max(r, std::max(g, b));
-	}
-	else
-	{
-		cx = 0.0;
-		cy = 0.0;
-		bri = 0.0;
-	}
-
-	if (std::isnan(cx))
-	{
-		cx = 0.0;
-	}
-	if (std::isnan(cy))
-	{
-		cy = 0.0;
-	}
-	if (std::isnan(bri))
-	{
-		bri = 0.0;
-	}
-
-	CiColor xy = { cx, cy, bri };
-
-	if ((red + green + blue) > 0)
-	{
-		// Check if the given XY value is within the color reach of our lamps.
-		if (!isPointInLampsReach(xy, colorSpace))
-		{
-			// It seems the color is out of reach let's find the closes color we can produce with our lamp and send this XY value out.
-			XYColor pAB = getClosestPointToPoint(colorSpace.red, colorSpace.green, xy);
-			XYColor pAC = getClosestPointToPoint(colorSpace.blue, colorSpace.red, xy);
-			XYColor pBC = getClosestPointToPoint(colorSpace.green, colorSpace.blue, xy);
-			// Get the distances per point and see which point is closer to our Point.
-			double dAB = getDistanceBetweenTwoPoints(xy, pAB);
-			double dAC = getDistanceBetweenTwoPoints(xy, pAC);
-			double dBC = getDistanceBetweenTwoPoints(xy, pBC);
-			double lowest = dAB;
-			XYColor closestPoint = pAB;
-			if (dAC < lowest)
-			{
-				lowest = dAC;
-				closestPoint = pAC;
-			}
-			if (dBC < lowest)
-			{
-				//lowest = dBC;
-				closestPoint = pBC;
-			}
-			// Change the xy value to a value which is within the reach of the lamp.
-			xy.x = closestPoint.x;
-			xy.y = closestPoint.y;
-		}
-	}
-	return xy;
-}
-
-double CiColor::crossProduct(XYColor p1, XYColor p2)
-{
-	return p1.x * p2.y - p1.y * p2.x;
-}
-
-bool CiColor::isPointInLampsReach(CiColor p, const CiColorTriangle& colorSpace)
-{
-	bool rc = false;
-	XYColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
-	XYColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };
-	XYColor  q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
-	double s = crossProduct(q, v2) / crossProduct(v1, v2);
-	double t = crossProduct(v1, q) / crossProduct(v1, v2);
-	if ((s >= 0.0) && (t >= 0.0) && (s + t <= 1.0))
-	{
-		rc = true;
-	}
-	return rc;
-}
-
-XYColor CiColor::getClosestPointToPoint(XYColor a, XYColor b, CiColor p)
-{
-	XYColor AP = { p.x - a.x, p.y - a.y };
-	XYColor AB = { b.x - a.x, b.y - a.y };
-	double ab2 = AB.x * AB.x + AB.y * AB.y;
-	double ap_ab = AP.x * AB.x + AP.y * AB.y;
-	double t = ap_ab / ab2;
-	if (t < 0.0)
-	{
-		t = 0.0;
-	}
-	else if (t > 1.0)
-	{
-		t = 1.0;
-	}
-	return { a.x + AB.x * t, a.y + AB.y * t };
-}
-
-double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
-{
-	// Horizontal difference.
-	double dx = p1.x - p2.x;
-	// Vertical difference.
-	double dy = p1.y - p2.y;
-	// Absolute value.
-	return sqrt(dx * dx + dy * dy);
-}
 
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject& deviceConfig)
 	: ProviderUdpSSL(deviceConfig)
@@ -299,7 +123,7 @@ bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 		log("RefreshTime", "%d", this->getRefreshTime());
 
 		//Set hostname as per configuration and_defaultHost default port
-		QString address = deviceConfig[CONFIG_ADDRESS].toString();
+		QString address = deviceConfig["output"].toString();
 
 		//If host not configured the init failed
 		if (address.isEmpty())
@@ -319,7 +143,7 @@ bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 				log("Port", "%u", _apiPort);
 			}
 
-			_username = deviceConfig[CONFIG_USERNAME].toString();
+			_username = deviceConfig["username"].toString();
 
 			if (initRestAPI(_hostname, _apiPort, _username))
 			{
@@ -850,86 +674,38 @@ void LedDevicePhilipsHueBridge::setApiV2(bool version2)
 	_apiV2 = version2;
 }
 
-const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
-{ "LLC001", "LLC005", "LLC006", "LLC007", "LLC010", "LLC011", "LLC012", "LLC013", "LLC014", "LST001" };
-const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
-{ "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
-const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LLC020", "LST002" };
-
 PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx, int onBlackTimeToPowerOff,
-	int onBlackTimeToPowerOn)
+	int onBlackTimeToPowerOn, bool isChannelGroup)
 	: _log(log)
 	, _id(id)
 	, _ledidx(ledidx)
 	, _on(false)
 	, _transitionTime(0)
-	, _color({ 0.0, 0.0, 0.0 })
+	, _color{0.f, 0.f, 0.f}
 	, _hasColor(false)
-	, _colorBlack({ 0.0, 0.0, 0.0 })
-	, _modelId(values[API_MODEID].toString().trimmed().replace("\"", ""))
+	, _colorBlack{ 0.f, 0.f, 0.f }
+	, _modelId(values[API_MODEID].toString("").trimmed().replace("\"", ""))
 	, _lastSendColor(0)
-	, _lastBlack(-1)
-	, _lastWhite(-1)
+	, _lastBlack(0)
+	, _lastWhite(0)
 	, _blackScreenTriggered(false)
 	, _onBlackTimeToPowerOff(onBlackTimeToPowerOff)
 	, _onBlackTimeToPowerOn(onBlackTimeToPowerOn)
 {
-	// Find id in the sets and set the appropriate color space.
-	if (GAMUT_A_MODEL_IDS.find(_modelId) != GAMUT_A_MODEL_IDS.end())
+	if (!isChannelGroup)
 	{
-		Debug(_log, "Recognized model id %s of light ID %d as gamut A", QSTRING_CSTR(_modelId), id);
-		_colorSpace.red = { 0.704, 0.296 };
-		_colorSpace.green = { 0.2151, 0.7106 };
-		_colorSpace.blue = { 0.138, 0.08 };
-		_colorBlack = { 0.138, 0.08, 0.0 };
+		_lightname = values["name"].toString().trimmed().replace("\"", "");
+		Info(_log, "Light ID %d (\"%s\", LED index \"%d\", onBlackTimeToPowerOff: %lld, onBlackTimeToPowerOn: %lld) created", id, QSTRING_CSTR(_lightname), ledidx, _onBlackTimeToPowerOff, _onBlackTimeToPowerOn);
 	}
-	else if (GAMUT_B_MODEL_IDS.find(_modelId) != GAMUT_B_MODEL_IDS.end())
-	{
-		Debug(_log, "Recognized model id %s of light ID %d as gamut B", QSTRING_CSTR(_modelId), id);
-		_colorSpace.red = { 0.675, 0.322 };
-		_colorSpace.green = { 0.409, 0.518 };
-		_colorSpace.blue = { 0.167, 0.04 };
-		_colorBlack = { 0.167, 0.04, 0.0 };
-	}
-	else if (GAMUT_C_MODEL_IDS.find(_modelId) != GAMUT_C_MODEL_IDS.end())
-	{
-		Debug(_log, "Recognized model id %s of light ID %d as gamut C", QSTRING_CSTR(_modelId), id);
-		_colorSpace.red = { 0.6915, 0.3083 };
-		_colorSpace.green = { 0.17, 0.7 };
-		_colorSpace.blue = { 0.1532, 0.0475 };
-		_colorBlack = { 0.1532, 0.0475, 0.0 };
-	}
-	else
-	{
-		Warning(_log, "Did not recognize model id %s of light ID %d", QSTRING_CSTR(_modelId), id);
-		_colorSpace.red = { 1.0, 0.0 };
-		_colorSpace.green = { 0.0, 1.0 };
-		_colorSpace.blue = { 0.0, 0.0 };
-		_colorBlack = { 0.0, 0.0, 0.0 };
-	}
-
-	_lightname = values["name"].toString().trimmed().replace("\"", "");
-	Info(_log, "Light ID %d (\"%s\", LED index \"%d\", onBlackTimeToPowerOff: %d, _onBlackTimeToPowerOn: %d) created", id, QSTRING_CSTR(_lightname), ledidx, _onBlackTimeToPowerOff, _onBlackTimeToPowerOn);
 }
 
-PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, QStringList lightIds,
+PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, QStringList&& lightIds,
 	unsigned int ledidx)
-	: _log(log), _id(id), _ledidx(ledidx), _on(false), _transitionTime(0), _color({ 0.0, 0.0, 0.0 }),
-	_hasColor(false),
-	_colorBlack({ 0.0, 0.0, 0.0 }), _modelId(""),
-	_lastSendColor(0), _lastBlack(-1), _lastWhite(-1),
-	_lightIds(std::move(lightIds))
+	: PhilipsHueLight(log, id, values, ledidx, 0, 0, true)
 {
-
-	_colorSpace.red = { 1.0, 0.0 };
-	_colorSpace.green = { 0.0, 1.0 };
-	_colorSpace.blue = { 0.0, 0.0 };
-	_colorBlack = { 0.0, 0.0, 0.0 };
-
+	_lightIds = std::move(lightIds);
 	_lightname = values["name"].toString().trimmed().replace("\"", "");
-	Info(_log, "Channel ID %d (\"%s\", LED index \"%d\") created",
-		id, QSTRING_CSTR(_lightname), ledidx);
+	Info(_log, "Channel ID %d (\"%s\", LED index \"%d\") created", id, QSTRING_CSTR(_lightname), ledidx);
 }
 
 void PhilipsHueLight::blackScreenTriggered()
@@ -941,8 +717,8 @@ bool PhilipsHueLight::isBusy()
 {
 	bool temp = true;
 
-	uint64_t _currentTime = InternalClock::now();
-	if ((int64_t)(_currentTime - _lastSendColor) >= (int64_t)100)
+	auto _currentTime = InternalClock::now();
+	if (_currentTime - _lastSendColor >= 100)
 	{
 		_lastSendColor = _currentTime;
 		temp = false;
@@ -953,10 +729,7 @@ bool PhilipsHueLight::isBusy()
 
 void PhilipsHueLight::setBlack()
 {
-	CiColor black;
-	black.bri = 0;
-	black.x = 0;
-	black.y = 0;
+	ColorXYB black{ 0.f, 0.f, 0.f };
 	setColor(black);
 }
 
@@ -974,8 +747,8 @@ bool PhilipsHueLight::isBlack(bool isBlack)
 		return false;
 	}
 
-	uint64_t _currentTime = InternalClock::now();
-	if ((int64_t)(_currentTime - _lastBlack) >= (int64_t)_onBlackTimeToPowerOff)
+	auto _currentTime = InternalClock::now();
+	if (_currentTime - _lastBlack >= _onBlackTimeToPowerOff)
 	{
 		return true;
 	}
@@ -997,8 +770,8 @@ bool PhilipsHueLight::isWhite(bool isWhite)
 		return false;
 	}
 
-	uint64_t _currentTime = InternalClock::now();
-	if ((int64_t)(_currentTime - _lastWhite) >= (int64_t)_onBlackTimeToPowerOn)
+	auto _currentTime = InternalClock::now();
+	if (_currentTime - _lastWhite >= _onBlackTimeToPowerOn)
 	{
 		return true;
 	}
@@ -1039,10 +812,7 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 
 	QJsonObject state;
 	state["on"] = lState["on"];
-	_originalColor = CiColor();
-	_originalColor.bri = 0;
-	_originalColor.x = 0;
-	_originalColor.y = 0;
+	_originalColor = { 0.f, 0.f, 0.f };
 	QString c;
 	if (state[API_STATE_ON].toBool())
 	{
@@ -1050,12 +820,12 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 		state[API_BRIGHTNESS] = lState[API_BRIGHTNESS];
 		_on = true;
 		_color = {
-			state[API_XY_COORDINATES].toArray()[0].toDouble(),
-			state[API_XY_COORDINATES].toArray()[1].toDouble(),
-			state[API_BRIGHTNESS].toDouble() / 254.0
+			static_cast<float>(state[API_XY_COORDINATES].toArray()[0].toDouble()),
+			static_cast<float>(state[API_XY_COORDINATES].toArray()[1].toDouble()),
+			static_cast<float>(state[API_BRIGHTNESS].toDouble() / 254.0)
 		};
 		_originalColor = _color;
-		c = QString("{ \"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.bri * 254.0), 0, 'd', 4);
+		c = QString("{ \"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.z * 254.0f), 0, 'd', 4);
 		Debug(_log, "Philips original state stored: %s", QSTRING_CSTR(c));
 		_transitionTime = values[API_STATE].toObject()[API_TRANSITIONTIME].toInt();
 	}
@@ -1073,7 +843,7 @@ void PhilipsHueLight::setTransitionTime(int transitionTime)
 	this->_transitionTime = transitionTime;
 }
 
-void PhilipsHueLight::setColor(const CiColor& color)
+void PhilipsHueLight::setColor(const ColorXYB& color)
 {
 	this->_hasColor = true;
 	this->_color = color;
@@ -1089,7 +859,7 @@ int PhilipsHueLight::getTransitionTime() const
 	return _transitionTime;
 }
 
-CiColor PhilipsHueLight::getColor() const
+ColorXYB PhilipsHueLight::getColor() const
 {
 	return _color;
 }
@@ -1097,11 +867,6 @@ CiColor PhilipsHueLight::getColor() const
 bool PhilipsHueLight::hasColor()
 {
 	return _hasColor;
-}
-
-CiColorTriangle PhilipsHueLight::getColorSpace() const
-{
-	return _colorSpace;
 }
 
 ColorRgb PhilipsHueLight::getRGBColor() const
@@ -1122,22 +887,22 @@ QStringList PhilipsHueLight::getLightIds() const
 DriverNetPhilipsHue::DriverNetPhilipsHue(const QJsonObject& deviceConfig)
 	: LedDevicePhilipsHueBridge(deviceConfig)
 	, _switchOffOnBlack(false)
-	, _brightnessFactor(1.0)
+	, _brightnessFactor(1.0f)
 	, _transitionTime(1)
 	, _isInitLeds(false)
 	, _lightsCount(0)
 	, _groupId(0)
 	, _blackLightsTimeout(15000)
-	, _blackLevel(0.0)
+	, _blackLevel(0.f)
 	, _onBlackTimeToPowerOff(100)
 	, _onBlackTimeToPowerOn(100)
-	, _candyGamma(true)
 	, _handshake_timeout_min(600)
 	, _handshake_timeout_max(2000)
 	, _stopConnection(false)
 	, _lastConfirm(0)
 	, _lastId(-1)
 	, _groupStreamState(false)
+	, _sequenceNumber(0)
 {
 }
 
@@ -1216,7 +981,7 @@ bool DriverNetPhilipsHue::setLights()
 			_useHueEntertainmentAPI = false;
 			Error(_log, "Group-ID [%u] is not usable - Entertainment API usage was disabled!", _groupId);
 		}
-		lArray = _devConfig[CONFIG_LIGHTIDS].toArray();
+		lArray = _devConfig["lightIds"].toArray();
 	}
 
 	QString lightIDStr;
@@ -1276,8 +1041,8 @@ bool DriverNetPhilipsHue::initLeds(QString groupName)
 				_devConfig["sslport"] = API_SSL_SERVER_PORT;
 				_devConfig["servername"] = API_SSL_SERVER_NAME;
 				_devConfig["forcedRefreshTime"] = static_cast<int>(STREAM_REFRESH_TIME.count());
-				_devConfig["psk"] = _devConfig[CONFIG_CLIENTKEY].toString();
-				_devConfig["psk_identity"] = _devConfig[CONFIG_USERNAME].toString();
+				_devConfig["psk"] = _devConfig["clientkey"].toString();
+				_devConfig["psk_identity"] = _devConfig["username"].toString();
 				_devConfig["seed_custom"] = API_SSL_SEED_CUSTOM;
 				_devConfig["retry_left"] = _maxRetry;
 				_devConfig["hs_attempts"] = STREAM_SSL_HANDSHAKE_ATTEMPTS;
@@ -1308,28 +1073,27 @@ bool DriverNetPhilipsHue::init(QJsonObject deviceConfig)
 {
 	_configBackup = deviceConfig;
 
-	verbose = deviceConfig[CONFIG_VERBOSE].toBool(false);
+	verbose = deviceConfig["verbose"].toBool(false);
 
 	// Initialise LedDevice configuration and execution environment
-	_switchOffOnBlack = _devConfig[CONFIG_ON_OFF_BLACK].toBool(true);
-	_blackLightsTimeout = _devConfig[CONFIG_BLACK_LIGHTS_TIMEOUT].toInt(15000);
-	_brightnessFactor = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
-	_transitionTime = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
-	_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
-	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
-	_entertainmentConfigurationId = _devConfig[CONFIG_ENTERTAINMENT_CONFIGURATION_ID].toString("");
-	_groupId = static_cast<quint16>(_devConfig[CONFIG_GROUPID].toInt(0));
+	_switchOffOnBlack = _devConfig["switchOffOnBlack"].toBool(true);
+	_blackLightsTimeout = _devConfig["blackLightsTimeout"].toInt(15000);
+	_brightnessFactor = _devConfig["brightnessFactor"].toDouble(1.0);
+	_transitionTime = _devConfig["transitiontime"].toInt(1);
+	_isRestoreOrigState = _devConfig["restoreOriginalState"].toBool(true);
+	_useHueEntertainmentAPI = deviceConfig["useEntertainmentAPI"].toBool(false);
+	_entertainmentConfigurationId = _devConfig["entertainmentConfigurationId"].toString("");
+	_groupId = static_cast<quint16>(_devConfig["groupId"].toInt(0));
 	_blackLevel = _devConfig["blackLevel"].toDouble(0.0);
 	_onBlackTimeToPowerOff = _devConfig["onBlackTimeToPowerOff"].toInt(100);
 	_onBlackTimeToPowerOn = _devConfig["onBlackTimeToPowerOn"].toInt(100);
-	_candyGamma = _devConfig["candyGamma"].toBool(true);
 	_handshake_timeout_min = _devConfig["handshakeTimeoutMin"].toInt(300);
 	_handshake_timeout_max = _devConfig["handshakeTimeoutMax"].toInt(1000);
 	_maxRetry = _devConfig["maxRetry"].toInt(60);
 	setApiV2(_devConfig["useEntertainmentAPIV2"].toBool(false));
 
-	if (_blackLevel < 0.0) { _blackLevel = 0.0; }
-	if (_blackLevel > 1.0) { _blackLevel = 1.0; }
+	if (_blackLevel < 0.f) { _blackLevel = 0.f; }
+	if (_blackLevel > 1.0f) { _blackLevel = 1.0f; }
 
 	log("Max. retry count", "%d", _maxRetry);
 	log("Off on Black", "%d", static_cast<int>(_switchOffOnBlack));
@@ -1339,7 +1103,6 @@ bool DriverNetPhilipsHue::init(QJsonObject deviceConfig)
 	log("Use Hue Entertainment API", "%d", static_cast<int>(_useHueEntertainmentAPI));
 	log("Use Hue Entertainment API V2", "%d", static_cast<int>(isApiV2()));
 	log("Brightness Threshold", "%f", _blackLevel);
-	log("CandyGamma", "%d", static_cast<int>(_candyGamma));
 	log("Time to power off the lamp on black", "%d", _onBlackTimeToPowerOff);
 	log("Time to power on the lamp on signal", "%d", _onBlackTimeToPowerOn);
 	log("SSL Handshake min", "%d", _handshake_timeout_min);
@@ -1582,7 +1345,7 @@ bool DriverNetPhilipsHue::setStreamGroupState(bool state)
 		else
 		{
 			//Check original Hue response {"success":{"/groups/groupID/stream/active":activeYesNo}}
-			QString valueName = QString(API_STREAM_RESPONSE_FORMAT).arg(API_GROUPS).arg(_groupId).arg(API_STREAM, API_STREAM_ACTIVE);
+			QString valueName = QString("/%1/%2/%3/%4").arg(API_GROUPS).arg(_groupId).arg(API_STREAM, API_STREAM_ACTIVE);
 			if (!map.value(API_SUCCESS).toMap().value(valueName).isValid())
 			{
 				//Workaround
@@ -1661,32 +1424,45 @@ bool DriverNetPhilipsHue::getStreamGroupState()
 	return false;
 }
 
-std::vector<uint8_t> DriverNetPhilipsHue::prepareStreamData() const
+std::vector<uint8_t> DriverNetPhilipsHue::prepareStreamData()
 {
 	std::vector<uint8_t> payload;
 
-	payload.reserve(sizeof(HEADER) + 9 * _lights.size());
+	payload.reserve(16 + 9 * _lights.size());
 
-	for (size_t i = 0; i < sizeof(HEADER); i++)
-		payload.push_back(HEADER[i]);
+	payload.push_back(static_cast<uint8_t>('H'));
+	payload.push_back(static_cast<uint8_t>('u'));
+	payload.push_back(static_cast<uint8_t>('e'));
+	payload.push_back(static_cast<uint8_t>('S'));
+	payload.push_back(static_cast<uint8_t>('t'));
+	payload.push_back(static_cast<uint8_t>('r'));
+	payload.push_back(static_cast<uint8_t>('e'));
+	payload.push_back(static_cast<uint8_t>('a'));
+	payload.push_back(static_cast<uint8_t>('m'));
+	payload.push_back(static_cast<uint8_t>(0x01));
+	payload.push_back(static_cast<uint8_t>(0x00));
+	payload.push_back(static_cast<uint8_t>(_sequenceNumber++));
+	payload.push_back(static_cast<uint8_t>(RESERVED));
+	payload.push_back(static_cast<uint8_t>(RESERVED));
+	payload.push_back(static_cast<uint8_t>(COLORSPACE_XYBRI));
+	payload.push_back(static_cast<uint8_t>(RESERVED));
 
-	for (const PhilipsHueLight& light : _lights)
+
+	for (const auto& light : _lights)
 	{
-		CiColor lightC = light.getColor();
-		quint64 R = lightC.x * 0xffff;
-		quint64 G = lightC.y * 0xffff;
-		quint64 B = lightC.bri * 0xffff;
 		unsigned int id = light.getId();
+		ColorXYB xyb = light.getColor();
 
-		payload.push_back(0x00);
-		payload.push_back(0x00);
+		payload.push_back(0);
+		payload.push_back(0);
 		payload.push_back(static_cast<uint8_t>(id));
-		payload.push_back(static_cast<uint8_t>((R >> 8) & 0xff));
-		payload.push_back(static_cast<uint8_t>(R & 0xff));
-		payload.push_back(static_cast<uint8_t>((G >> 8) & 0xff));
-		payload.push_back(static_cast<uint8_t>(G & 0xff));
-		payload.push_back(static_cast<uint8_t>((B >> 8) & 0xff));
-		payload.push_back(static_cast<uint8_t>(B & 0xff));
+
+		for (int i = 0; i < 3; ++i)
+		{
+			uint16_t value = static_cast<uint16_t>(xyb[i] * 0xffff);
+			payload.push_back(static_cast<uint8_t>((value >> 8) & 0xff));
+			payload.push_back(static_cast<uint8_t>(value & 0xff));
+		}
 	}
 
 	return payload;
@@ -1903,8 +1679,7 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 			};
 			light.setRGBColor(color);
 
-			CiColor xy = CiColor::rgbToCiColor(colorF.x, colorF.y, colorF.z,
-				light.getColorSpace(), _candyGamma);
+			auto xy = nonLinearRgbToColorXYB(colorF);
 
 			this->setOnOffState(light, true);
 			this->setColor(light, xy);
@@ -1920,14 +1695,13 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 		linalg::aliases::float3 colorF = (idx < colors.size()) ? convert(colors.at(idx))
 			: linalg::aliases::float3{ 0.f, 0.f, 0.f };
 
-		CiColor xy = CiColor::rgbToCiColor(colorF.x, colorF.y, colorF.z,
-			light.getColorSpace(), _candyGamma);
+		auto xy = nonLinearRgbToColorXYB(colorF);
 
-		if (_switchOffOnBlack && xy.bri <= _blackLevel && light.isBlack(true))
-		{
-			xy.bri = 0;
+		if (_switchOffOnBlack && xy.z <= _blackLevel && light.isBlack(true))
+		{			
 			xy.x = 0;
 			xy.y = 0;
+			xy.z = 0;
 
 			if (_useHueEntertainmentAPI)
 			{
@@ -1947,10 +1721,10 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 		{
 			bool currentstate = light.getOnOffState();
 
-			if (_switchOffOnBlack && xy.bri > _blackLevel && light.isWhite(true))
+			if (_switchOffOnBlack && xy.z > _blackLevel && light.isWhite(true))
 			{
 				if (!currentstate)
-					xy.bri *= 0.5f;
+					xy.z *= 0.5f;
 
 				if (_useHueEntertainmentAPI)
 				{
@@ -1972,9 +1746,9 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 			}
 		}
 
-		if (xy.bri > _blackLevel)
+		if (xy.z > _blackLevel)
 			light.isBlack(false);
-		if (xy.bri <= _blackLevel)
+		if (xy.z <= _blackLevel)
 			light.isWhite(false);
 
 		idx++;
@@ -2025,23 +1799,22 @@ std::vector<uint8_t> DriverNetPhilipsHue::prepareStreamDataV2()
 		payload.push_back(static_cast<uint8_t>(entertainmentConfigId.at(i).toLatin1()));
 	}
 
-	for (auto light : _lights)
+
+	for (const auto& light : _lights)
 	{
 		auto id = static_cast<uint8_t>(light.getId() & 0x00ff);
-
-		CiColor lightXY = light.getColor();		
-		quint64 R = lightXY.x * 0xffff;
-		quint64 G = lightXY.y * 0xffff;
-		quint64 B = lightXY.bri * 0xffff;
+		ColorXYB lightXY = light.getColor();
 
 		payload.push_back(id);
-		payload.push_back(static_cast<uint8_t>((R >> 8) & 0xff));
-		payload.push_back(static_cast<uint8_t>(R & 0xff));
-		payload.push_back(static_cast<uint8_t>((G >> 8) & 0xff));
-		payload.push_back(static_cast<uint8_t>(G & 0xff));
-		payload.push_back(static_cast<uint8_t>((B >> 8) & 0xff));
-		payload.push_back(static_cast<uint8_t>(B & 0xff));
+
+		for (int i = 0; i < 3; ++i)
+		{
+			uint16_t value = static_cast<uint16_t>(lightXY[i] * 0xffff);
+			payload.push_back(static_cast<uint8_t>((value >> 8) & 0xff));
+			payload.push_back(static_cast<uint8_t>(value & 0xff));
+		}
 	}
+
 	return payload;
 }
 
@@ -2074,26 +1847,25 @@ void DriverNetPhilipsHue::setTransitionTime(PhilipsHueLight& light)
 	}
 }
 
-void DriverNetPhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
+void DriverNetPhilipsHue::setColor(PhilipsHueLight& light, ColorXYB& color)
 {
 	if (!light.hasColor() || light.getColor() != color)
 	{
 		if (!_useHueEntertainmentAPI)
 		{
-			const int bri = qRound(qMin(254.0, _brightnessFactor * qMax(1.0, color.bri * 254.0)));
+			const int bri = std::round(std::min(254.0f, _brightnessFactor * std::max(1.0f, color.z * 254.0f)));
 			QString stateCmd = QString("{\"%1\":[%2,%3],\"%4\":%5}").arg(API_XY_COORDINATES).arg(color.x, 0, 'd', 4).arg(color.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg(bri);
 			setLightState(light.getId(), stateCmd);
 		}
 		else
 		{
-			color.bri = (qMin((double)1.0, _brightnessFactor * qMax((double)0, color.bri)));
-			//if(color.x == 0.0 && color.y == 0.0) color = colorBlack;
+			color.z = (std::min(1.0f, _brightnessFactor * std::max(0.f, color.z)));
 		}
 		light.setColor(color);
 	}
 }
 
-void DriverNetPhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColor& color)
+void DriverNetPhilipsHue::setState(PhilipsHueLight& light, bool on, const ColorXYB& color)
 {
 	QString stateCmd, powerCmd;;
 	bool priority = false;
@@ -2112,7 +1884,7 @@ void DriverNetPhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 		stateCmd += QString("\"%1\":%2,").arg(API_TRANSITIONTIME).arg(_transitionTime);
 	}
 
-	const int bri = qRound(qMin(254.0, _brightnessFactor * qMax(1.0, color.bri * 254.0)));
+	const int bri = std::round(std::min(254.0f, _brightnessFactor * std::max(1.0f, color.z * 254.0f)));
 	if (!light.hasColor() || light.getColor() != color)
 	{
 		if (!light.isBusy() || priority)
@@ -2160,7 +1932,7 @@ bool DriverNetPhilipsHue::powerOn()
 	return powerOn(true);
 }
 
-bool DriverNetPhilipsHue::powerOn(bool wait)
+bool DriverNetPhilipsHue::powerOn(bool /*wait*/)
 {
 	if (_isDeviceReady)
 	{
@@ -2407,7 +2179,39 @@ void DriverNetPhilipsHue::identify(const QJsonObject& params)
 	}
 }
 
-void DriverNetPhilipsHue::colorChannel(const ColorRgb& colorRgb, unsigned int i)
+ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(const linalg::vec<float, 3>& nonlinear)
+{
+	constexpr float BRIGHTNESS_THRESHOLD = 1e-5f;
+	constexpr float SUM_GUARD = 1e-10f;
+	constexpr float3x3 matrix_rgb_to_XYZ = ColorSpaceMath::matrixF({
+		0.664511f, 0.154324f, 0.162028f,  // m[0], m[1], m[2] a tak wyglada: m[0], m[3], m[6]
+		0.283881f, 0.668433f, 0.047685f,  // m[3], m[4], m[5]                m[1], m[4], m[7]
+		0.000088f, 0.072310f, 0.986039f   // m[6], m[7], m[8]                m[2], m[5], m[8]
+	});
+
+	auto rgb_lin = InfiniteProcessing::srgbNonlinearToLinear(nonlinear);
+
+	float3 XYZ = linalg::max(mul(matrix_rgb_to_XYZ, rgb_lin), float3(0.0f));
+
+	auto bri = linalg::maxelem(rgb_lin);
+	if (bri < BRIGHTNESS_THRESHOLD)
+	{
+		return { 0.f, 0.f, 0.f };
+	}
+
+	auto sum = linalg::sum(XYZ);
+	if (sum < SUM_GUARD)
+	{
+		return { 0.f, 0.f, 0.f };
+	}
+
+	auto cx = XYZ.x / sum;
+	auto cy = XYZ.y / sum;
+
+	return { cx, cy, bri };
+}
+
+void DriverNetPhilipsHue::colorChannel(const ColorRgb& colorRgb, unsigned int /*i*/)
 {
 	std::vector<ColorRgb> ledValues;
 	ledValues.emplace_back(colorRgb);

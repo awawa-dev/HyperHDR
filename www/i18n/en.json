@@ -967,7 +967,6 @@
   "onBlackTimeToPowerOn": "Time to power on the lamp if the signal is restored",
   "edt_conf_stream_qFrame_title": "Quarter of frame mode",
   "edt_conf_stream_qFrame_expl": "Video frame is scaled to (width/2, height/2) size. Fast, reduces resources usage and the best is that no information about colors is lost for NV12 and I420 encodings due to their specifications",
-  "edt_dev_spec_candyGamma_title": "'Candy' mode (double gamma correction)",
   "conf_leds_layout_cl_lightPosBottomLeft112": "Bottom: 0  - 50%  from Left",
   "conf_leds_layout_cl_lightPosBottomLeft121": "Bottom: 50 - 100% from Left",
   "conf_leds_layout_cl_lightPosBottomLeftNewMid": "Bottom: 25  - 75%  from Left",

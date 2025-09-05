@@ -1108,7 +1108,9 @@ function SaveHueConfig(saveLamps = true)
 		d.refreshTime = 0;
 		d.verbose = false;
 		//smoothing off
-		sc.smoothing.enable = false;
+		if (sc && sc.smoothing) {
+			sc.smoothing.enable = false;
+		}
 	}
 
 	if (hueType == 'philipshueentertainment')
@@ -1119,7 +1121,9 @@ function SaveHueConfig(saveLamps = true)
 		d.hardwareLedCount = groupLights.length;
 		d.refreshTime = 20;
 		//smoothing on
-		sc.smoothing.enable = true;
+		if (sc && sc.smoothing) {
+			sc.smoothing.enable = true;
+		}
 	}
 
 	window.serverConfig.device = d;
