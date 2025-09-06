@@ -1295,5 +1295,9 @@
   "edt_conf_color_classic_config_title": "RGB Calibration",
   "edt_conf_color_classic_config_expl": "Calibration using the three primary colors (red, green, blue). Sufficient for most cases.",
   "edt_conf_color_gamma_expl": "Additional gamma for each color component. Full neutrality is 1.0, above 1.0 it decreases the color value and below 1.0 it increases it. Don't confuse this with, for example, sRGB gamma correction: the output colors are already in nonlinear space even without this setting.",
-  "edt_conf_color_gamma_title": "Gamma"
+  "edt_conf_color_gamma_title": "Gamma",
+  "edt_conf_processing_scaleOutput_title" : "Scale color output",
+  "edt_conf_processing_scaleOutput_expl" : "Multiplies the RGB color components by a given factor almost at the end of color processing, but before applying the minimum brightness and power limiter",
+  "edt_conf_processing_powerLimit_title" : "Limit power output",
+  "edt_conf_processing_powerLimit_expl" : "This feature checks whether the total power draw for the current scene has been exceeded. If so, it automatically scales down the brightness and color of each LED. <strong>Please note, this is not a substitute for a sufficiently powerful power supply.</strong> This function is only designed to limit excessive brightness and will not protect your equipment from damage due to an undersized power supply. We do not guarantee that this feature will directly translate into limiting the power of the LED setup to a specific wattage value."
 }

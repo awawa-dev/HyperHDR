@@ -85,6 +85,8 @@ InfiniteProcessing::InfiniteProcessing() :
 	_temperature_tint{},
 	_brightness(1.0f),
 	_saturation(1.0f),
+	_scaleOutput(1.0f),
+	_powerLimit(1.0f),
 	_minimalBacklight(1.0f / 255.0f),
 	_coloredBacklight(true),
 	_user_gamma_lut{},
@@ -102,11 +104,33 @@ InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, Logger* log)
 
 void InfiniteProcessing::setProcessingEnabled(bool enabled)
 {
-	_enabled = enabled;
+	if (_enabled != enabled)
+	{
+		_enabled = enabled;
+		if (_log)
+		{
+			Info(_log, "The InfiniteProcessing is set to: %", ((_enabled) ? "enabled" : "disabled"));
+		}
+	}
 }
 
 void InfiniteProcessing::updateCurrentConfig(const QJsonObject& config)
 {
+	TemperaturePreset tempPreset = TemperaturePreset::Disabled;
+	auto configTemp = config["temperatureSetting"].toString("disabled");
+	if (configTemp == "cold")
+		tempPreset = TemperaturePreset::Cold;
+	else if (configTemp == "neutral")
+		tempPreset = TemperaturePreset::Neutral;
+	else if (configTemp == "warm")
+		tempPreset = TemperaturePreset::Warm;
+	else if (configTemp == "custom")
+		tempPreset = TemperaturePreset::Custom;
+	float redTemp = config["temperatureRed"].toDouble(1.0);
+	float greenTemp = config["temperatureGreen"].toDouble(1.0);
+	float blueTemp = config["temperatureBlue"].toDouble(1.0);
+	setTemperature(tempPreset, { redTemp , greenTemp, blueTemp });
+
 	bool usePrimariesOnly = config["classic_config"].toBool(true);
 	auto black = toColorRgb(config["black"].toArray());
 	auto red= toColorRgb(config["red"].toArray());
@@ -116,39 +140,27 @@ void InfiniteProcessing::updateCurrentConfig(const QJsonObject& config)
 	auto magenta = toColorRgb(config["magenta"].toArray());
 	auto yellow = toColorRgb(config["yellow"].toArray());
 	auto white = toColorRgb(config["white"].toArray());
-
 	generateColorspace(
 		usePrimariesOnly, red, green, blue,
 		cyan, magenta, yellow,
 		white, black);	
 	
-	TemperaturePreset tempPreset = TemperaturePreset::Disabled;
-	auto configTemp = config["temperatureSetting"].toString("disabled");
-	if (configTemp == "cold") 
-		tempPreset = TemperaturePreset::Cold;
-	else if (configTemp == "neutral")
-		tempPreset = TemperaturePreset::Neutral;
-	else if (configTemp == "warm")
-		tempPreset = TemperaturePreset::Warm;
-	else if (configTemp == "custom")
-		tempPreset = TemperaturePreset::Custom;
-
-	float redTemp = config["temperatureRed"].toDouble(1.0);
-	float greenTemp = config["temperatureGreen"].toDouble(1.0);
-	float blueTemp = config["temperatureBlue"].toDouble(1.0);
-
-	setTemperature(tempPreset, { redTemp , greenTemp, blueTemp });
+	float brightness = config["luminanceGain"].toDouble(1);
+	float saturation = config["saturationGain"].toDouble(1);	
+	setBrightnessAndSaturation(brightness, saturation);
 
 	float gamma = config["gamma"].toDouble(1.5);
 	generateUserGamma(gamma);
+
+	float scaleOutput = config["scaleOutput"].toDouble(1);
+	setScaleOutput(scaleOutput);
 
 	float minimalBacklight = config["backlightThreshold"].toDouble(0);
 	auto coloredBacklight = config["backlightColored"].toBool(true);
 	setMinimalBacklight(minimalBacklight, coloredBacklight);
 
-	float brightness = config["luminanceGain"].toDouble(1);
-	float saturation = config["saturationGain"].toDouble(1);	
-	setBrightnessAndSaturation(brightness, saturation);
+	float powerLimit = config["powerLimit"].toDouble(1);
+	setPowerLimit(powerLimit);
 
 	_currentConfig = config;
 }
@@ -185,8 +197,11 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 			applyBrightnessAndSaturation(color);
 			color = srgbLinearToNonlinear(color);
 			applyUserGamma(color);
+			applyScaleOutput(color);
 			applyMinimalBacklight(color);
 		}
+
+		applyPowerLimit(linearRgbColors);
 	}
 	else
 	{
@@ -552,6 +567,59 @@ void InfiniteProcessing::applyBrightnessAndSaturation(linalg::vec<float, 3>& col
 	color.z = std::max(0.0f, std::min(color.z, 1.0f));
 }
 
+
+void InfiniteProcessing::setScaleOutput(float scaleOutput)
+{
+	_scaleOutput = std::clamp(scaleOutput, 0.0f, 1.0f);
+
+	if (_log)
+	{
+		Info(_log, "--- SCALE OUTPUT ---");
+		Info(_log, "ENABLED: %s", ((_scaleOutput >= 1.f) ? "false" : "true"));
+		Info(_log, "SCALE:   %0.3f", _scaleOutput);
+	}
+}
+
+void InfiniteProcessing::applyScaleOutput(linalg::vec<float, 3>& color) const
+{
+	if (_scaleOutput >= 1.0f)
+		return;
+
+	color *= _scaleOutput;
+}
+
+
+void InfiniteProcessing::setPowerLimit(float powerLimit)
+{
+	_powerLimit = std::clamp(powerLimit, 0.0f, 1.0f);
+
+	if (_log)
+	{
+		Info(_log, "--- POWER LIMIT ---");
+		Info(_log, "ENABLED: %s", ((_powerLimit >= 1.f) ? "false" : "true"));
+		Info(_log, "LIMIT:   %0.3f", _powerLimit);
+	}
+}
+
+void InfiniteProcessing::applyPowerLimit(SharedOutputColors nonlinearRgbColors) const
+{
+	if (_powerLimit >= 1.0f)
+		return;
+
+	float totalPower = 0.0f;
+	for (auto it = nonlinearRgbColors->begin(); it != nonlinearRgbColors->end(); ++it)
+		totalPower += linalg::sum(*it);
+
+	const float allowedPower = (nonlinearRgbColors->size() * 3.f) * _powerLimit;
+
+	if (totalPower > 0.0f && allowedPower < totalPower)
+	{
+		const float scale = allowedPower / totalPower;
+		for (auto it = nonlinearRgbColors->begin(); it != nonlinearRgbColors->end(); ++it)
+			*it *= scale;
+	}
+}
+
 linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(IsUint8Vec3 auto const& color)
 {
 	return {
@@ -561,6 +629,7 @@ linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(IsUint8Vec3 a
 	};
 }
 template linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(linalg::vec<uint8_t, 3> const&);
+template linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(linalg::vec<float, 3> const&);
 
 linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(IsFloatVec3 auto const& color)
 {

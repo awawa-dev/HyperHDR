@@ -2183,7 +2183,7 @@ ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(const linalg::vec<float, 3>
 {
 	constexpr float BRIGHTNESS_THRESHOLD = 1e-5f;
 	constexpr float SUM_GUARD = 1e-10f;
-	constexpr float3x3 matrix_rgb_to_XYZ = ColorSpaceMath::matrixF({
+	constexpr linalg::aliases::float3x3 matrix_rgb_to_XYZ = ColorSpaceMath::matrixF({
 		0.664511f, 0.154324f, 0.162028f,  // m[0], m[1], m[2] a tak wyglada: m[0], m[3], m[6]
 		0.283881f, 0.668433f, 0.047685f,  // m[3], m[4], m[5]                m[1], m[4], m[7]
 		0.000088f, 0.072310f, 0.986039f   // m[6], m[7], m[8]                m[2], m[5], m[8]
@@ -2191,7 +2191,7 @@ ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(const linalg::vec<float, 3>
 
 	auto rgb_lin = InfiniteProcessing::srgbNonlinearToLinear(nonlinear);
 
-	float3 XYZ = linalg::max(mul(matrix_rgb_to_XYZ, rgb_lin), float3(0.0f));
+	linalg::aliases::float3 XYZ = linalg::max(mul(matrix_rgb_to_XYZ, rgb_lin), linalg::aliases::float3(0.0f));
 
 	auto bri = linalg::maxelem(rgb_lin);
 	if (bri < BRIGHTNESS_THRESHOLD)

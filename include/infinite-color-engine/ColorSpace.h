@@ -38,13 +38,13 @@
 
 #include <linalg.h>
 
-using namespace linalg;
-using namespace aliases;
-
 struct ColorRgb;
 
 namespace ColorSpaceMath
-{	
+{
+	using namespace linalg;
+	using namespace aliases;
+
 	enum class HDR_GAMMA : int { PQ = 0, HLG, sRGB, BT2020inSRGB, PQinSRGB, P010 };
 	enum PRIMARIES { SRGB = 0, BT_2020, WIDE_GAMMUT };
 

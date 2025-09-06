@@ -651,7 +651,7 @@ void HyperHdrInstance::setLedMappingType(int mappingType)
 void HyperHdrInstance::handleVisibleComponentChanged(hyperhdr::Components comp)
 {
 	_imageProcessor->setBlackbarDetectDisable((comp == hyperhdr::COMP_EFFECT));
-	_infinite->setProcessingEnabled((comp != hyperhdr::COMP_COLOR && comp != hyperhdr::COMP_EFFECT));
+	_infinite->setProcessingEnabled(comp != hyperhdr::COMP_COLOR);
 }
 
 void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
@@ -698,7 +698,7 @@ void HyperHdrInstance::update()
 		std::fill(_currentLedColors.begin(), _currentLedColors.end(), priorityInfo.staticColor);
 	}
 
-	std::vector<float3> linear255Color;
+	std::vector<linalg::aliases::float3> linear255Color;
 	linear255Color.reserve(_currentLedColors.size());
 	for (const ColorRgb& c : _currentLedColors)
 	{
@@ -710,7 +710,7 @@ void HyperHdrInstance::update()
 	updateResult(std::move(linear255Color));
 }
 
-void HyperHdrInstance::updateResult(std::vector<float3>&& _ledBuffer)
+void HyperHdrInstance::updateResult(std::vector<linalg::aliases::float3>&& _ledBuffer)
 {
 	// stats
 	int64_t now = InternalClock::now();
@@ -743,7 +743,7 @@ void HyperHdrInstance::updateResult(std::vector<float3>&& _ledBuffer)
 
 	QVector<ColorRgb> nonLinear255Color;
 	nonLinear255Color.reserve(_ledBuffer.size());
-	for (const float3& c : _ledBuffer)
+	for (const linalg::aliases::float3& c : _ledBuffer)
 	{
 		auto temp = ColorSpaceMath::to_byte3(InfiniteProcessing::srgbLinearToNonlinear(c) * 255.0f);
 		nonLinear255Color.push_back(ColorRgb(temp.x, temp.y, temp.z));

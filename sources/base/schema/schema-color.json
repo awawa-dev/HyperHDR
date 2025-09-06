@@ -49,6 +49,69 @@
 						"required" : true,
 						"propertyOrder" : 3
 					},
+					"temperatureSetting" :
+					{
+						"type" : "string",
+						"title" : "perf_temperature",
+						"enum" : ["disabled", "cold", "neutral", "warm", "custom"],
+						"default" : "disabled",
+						"options" : {
+							"enum_titles" : ["led_editor_context_disable", "edt_conf_enum_cold", "edt_conf_enum_neutral", "edt_conf_enum_warm", "edt_conf_enum_custom"]
+						},
+						"required" : true,
+						"propertyOrder" : 4
+					},
+					"temperatureRed" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.0039,
+						"title" : "edt_conf_color_temperatureRed_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 1.0,
+						"default" : 1.0,
+						"options": {
+							"dependencies": {
+								"temperatureSetting": "custom"
+							}
+						},
+						"propertyOrder" : 5
+					},
+					"temperatureGreen" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.0039,
+						"title" : "edt_conf_color_temperatureGreen_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 1.0,
+						"default" : 1.0,
+						"options": {
+							"dependencies": {
+								"temperatureSetting": "custom"
+							}
+						},
+						"propertyOrder" : 6
+					},
+					"temperatureBlue" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.0039,
+						"title" : "edt_conf_color_temperatureBlue_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 1.0,
+						"default" : 1.0,
+						"options": {
+							"dependencies": {
+								"temperatureSetting": "custom"
+							}
+						},
+						"propertyOrder" : 7
+					},
 					"red" :
 					{
 						"type" : "array",
@@ -63,7 +126,7 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
-						"propertyOrder" : 4
+						"propertyOrder" : 8
 					},
 					"green" :
 					{
@@ -79,7 +142,7 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
-						"propertyOrder" : 5
+						"propertyOrder" : 9
 					},
 					"blue" :
 					{
@@ -95,7 +158,7 @@
 						},
 						"minItems" : 3,
 						"maxItems" : 3,
-						"propertyOrder" : 6
+						"propertyOrder" : 10
 					},
 					"cyan" :
 					{
@@ -116,7 +179,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 7
+						"propertyOrder" : 11
 					},
 					"magenta" :
 					{
@@ -137,7 +200,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 8
+						"propertyOrder" : 12
 					},
 					"yellow" :
 					{
@@ -158,7 +221,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 9
+						"propertyOrder" : 13
 					},
 					"white" :
 					{
@@ -179,7 +242,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 10
+						"propertyOrder" : 14
 					},
 					"black" :
 					{
@@ -200,108 +263,7 @@
 								"classic_config": false
 							}
 						},
-						"propertyOrder" : 11
-					},
-					"backlightThreshold" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.0039,
-						"title" : "edt_conf_color_backlightThreshold_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 1.0,
-						"default" : 0.0039,
-						"propertyOrder" : 12
-					},
-					"backlightColored" :
-					{
-						"type" : "boolean",
-						"format": "checkbox",
-						"title" : "edt_conf_color_backlightColored_title",
-						"required" : true,
-						"default" : true,
-						"propertyOrder" : 13,
-						"options": {
-							"dependencies": {
-								"backlightThreshold": true
-							}
-						}
-					},					
-					"gamma" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.05,
-						"title" : "edt_conf_color_gamma_title",
-						"required" : true,
-						"minimum" : 0.1,
-						"maximum": 100.0,
-						"default" : 1.5,						
 						"propertyOrder" : 15
-					},
-					"temperatureSetting" :
-					{
-						"type" : "string",
-						"title" : "perf_temperature",
-						"enum" : ["disabled", "cold", "neutral", "warm", "custom"],
-						"default" : "disabled",
-						"options" : {
-							"enum_titles" : ["led_editor_context_disable", "edt_conf_enum_cold", "edt_conf_enum_neutral", "edt_conf_enum_warm", "edt_conf_enum_custom"]
-						},
-						"required" : true,
-						"propertyOrder" : 18
-					},
-					"temperatureRed" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.0039,
-						"title" : "edt_conf_color_temperatureRed_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 1.0,
-						"default" : 1.0,
-						"options": {
-							"dependencies": {
-								"temperatureSetting": "custom"
-							}
-						},
-						"propertyOrder" : 19
-					},
-					"temperatureGreen" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.0039,
-						"title" : "edt_conf_color_temperatureGreen_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 1.0,
-						"default" : 1.0,
-						"options": {
-							"dependencies": {
-								"temperatureSetting": "custom"
-							}
-						},
-						"propertyOrder" : 20
-					},
-					"temperatureBlue" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.0039,
-						"title" : "edt_conf_color_temperatureBlue_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 1.0,
-						"default" : 1.0,
-						"options": {
-							"dependencies": {
-								"temperatureSetting": "custom"
-							}
-						},
-						"propertyOrder" : 21
 					},
 					"saturationGain" :
 					{
@@ -313,7 +275,7 @@
 						"minimum" : 0,
 						"maximum": 10,
 						"default" : 1,						
-						"propertyOrder" : 22
+						"propertyOrder" : 16
 					},
 					"luminanceGain" :
 					{
@@ -325,7 +287,69 @@
 						"minimum" : 0,
 						"maximum": 10,
 						"default" : 1,
-						"propertyOrder" : 23
+						"propertyOrder" : 17
+					},
+					"gamma" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.05,
+						"title" : "edt_conf_color_gamma_title",
+						"required" : true,
+						"minimum" : 0.1,
+						"maximum": 100.0,
+						"default" : 1.5,						
+						"propertyOrder" : 18
+					},
+					"scaleOutput" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.01,
+						"title" : "edt_conf_processing_scaleOutput_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 1.0,
+						"default" : 1.0,
+						"propertyOrder" : 19
+					},
+					"backlightThreshold" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.0039,
+						"title" : "edt_conf_color_backlightThreshold_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 1.0,
+						"default" : 0.0039,
+						"propertyOrder" : 20
+					},
+					"backlightColored" :
+					{
+						"type" : "boolean",
+						"format": "checkbox",
+						"title" : "edt_conf_color_backlightColored_title",
+						"required" : true,
+						"default" : true,
+						"propertyOrder" : 21,
+						"options": {
+							"dependencies": {
+								"backlightThreshold": true
+							}
+						}
+					},
+					"powerLimit" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.01,
+						"title" : "edt_conf_processing_powerLimit_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 1.0,
+						"default" : 1.0,
+						"propertyOrder" : 22
 					}
 				},
 				"additionalProperties" : false

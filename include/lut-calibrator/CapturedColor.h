@@ -40,6 +40,8 @@
 #include <image/ColorRgb.h>
 #include <image/Image.h>
 
+using namespace linalg;
+using namespace aliases;
 
 class CapturedColor
 {

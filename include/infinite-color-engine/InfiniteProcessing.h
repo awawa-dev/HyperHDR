@@ -99,6 +99,12 @@ public:
 	void setBrightnessAndSaturation(float brightness, float saturation);
 	void applyBrightnessAndSaturation(linalg::vec<float, 3>& color) const;
 
+	void setScaleOutput(float scaleOutput);
+	void applyScaleOutput(linalg::vec<float, 3>& color) const;
+
+	void setPowerLimit(float powerLimit);
+	void applyPowerLimit(SharedOutputColors nonlinearRgbColors) const;
+
 	void setMinimalBacklight(float minimalLevel, bool coloreBacklight);
 	void applyMinimalBacklight(linalg::vec<float, 3>& color) const;
 
@@ -129,6 +135,10 @@ private:
 
 	float _brightness;
 	float _saturation;
+
+	float _scaleOutput;
+
+	float _powerLimit;
 
 	float _minimalBacklight;
 	bool _coloredBacklight;
