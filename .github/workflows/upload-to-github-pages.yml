@@ -83,7 +83,7 @@ jobs:
           (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker && sleep 5)
     
       # checkout
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5.0.0
         with:
           submodules: true      
 
@@ -145,7 +145,7 @@ jobs:
 
     steps:
       # Download artifacts from previous build process
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5.0.0
         with:
           submodules: false
       - name: Download artifacts
