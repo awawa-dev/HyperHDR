@@ -54,7 +54,7 @@
 
 #include "HyperHdrDaemon.h"
 
-HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params, bool isGuiApp)
+HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool /*readonlyMode*/, QStringList params, bool isGuiApp)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(nullptr)
@@ -178,7 +178,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 
 HyperHdrDaemon::~HyperHdrDaemon() = default;
 
-void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name)
+void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 /*instance*/, const QString& /*name*/)
 {
 	// start web server if needed
 	if (state == InstanceState::START)

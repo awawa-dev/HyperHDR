@@ -227,7 +227,7 @@ bool Animation_Swirl::Play(HyperImage& painter)
 }
 
 
-bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const std::vector<Animation_Swirl::SwirlGradient>& bytearray, bool reset)
+bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int /*centerX*/, int /*centerY*/, int angle, const std::vector<Animation_Swirl::SwirlGradient>& bytearray, bool reset)
 {
 	angle = std::max(std::min(angle, 360), 0);
 

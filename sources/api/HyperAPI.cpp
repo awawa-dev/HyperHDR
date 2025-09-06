@@ -221,7 +221,7 @@ void HyperAPI::initialize()
 		connect(this, &HyperAPI::SignalForwardJsonMessage, _hyperhdr.get(), &HyperHdrInstance::SignalForwardJsonMessage);
 }
 
-bool HyperAPI::handleInstanceSwitch(quint8 inst, bool forced)
+bool HyperAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (BaseAPI::setHyperhdrInstance(inst))
 	{		
@@ -500,7 +500,7 @@ void HyperAPI::handleClearallCommand(const QJsonObject& message, const QString& 
 	sendSuccessReply(command, tan);
 }
 
-void HyperAPI::handleHelpCommand(const QJsonObject& message, const QString& command, int tan)
+void HyperAPI::handleHelpCommand(const QJsonObject& /*message*/, const QString& command, int tan)
 {
 	QJsonObject req;
 
@@ -662,7 +662,7 @@ void HyperAPI::handleSourceSelectCommand(const QJsonObject& message, const QStri
 	sendSuccessReply(command, tan);
 }
 
-void HyperAPI::handleSaveDB(const QJsonObject& message, const QString& command, int tan)
+void HyperAPI::handleSaveDB(const QJsonObject& /*message*/, const QString& command, int tan)
 {
 	if (_adminAuthorized)
 	{
@@ -815,7 +815,7 @@ void HyperAPI::handleConfigSetCommand(const QJsonObject& message, const QString&
 	}
 }
 
-void HyperAPI::handleSchemaGetCommand(const QJsonObject& message, const QString& command, int tan)
+void HyperAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const QString& command, int tan)
 {
 	// create result
 	QJsonObject schemaJson, alldevices, properties;
@@ -1257,7 +1257,7 @@ void HyperAPI::handleTokenResponse(bool success, const QString& token, const QSt
 		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
-void HyperAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
+void HyperAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
 {
 	switch (state)
 	{

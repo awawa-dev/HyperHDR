@@ -29,7 +29,6 @@ else()
 	add_library(utils-image STATIC ${utils_image_SOURCES})
 endif()
 
-set_target_properties(utils-image PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(utils-image PRIVATE stb lunasvg::lunasvg TurboJPEG::TurboJPEG)
 
 target_link_libraries(utils-image PRIVATE

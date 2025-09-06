@@ -89,8 +89,6 @@ ImageToLedManager::ImageToLedManager(const LedString& ledString, HyperHdrInstanc
 	connect(hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, this, &ImageToLedManager::handleSettingsUpdate);
 	connect(this, &ImageToLedManager::SignalImageToLedsMappingChanged, hyperhdr, &HyperHdrInstance::SignalImageToLedsMappingChanged);
 
-	for (int i = 0; i < 256; i++)
-		_advanced[i] = i * i;
 	Debug(_log, "ImageToLedManager initialized");
 }
 
@@ -151,7 +149,7 @@ void ImageToLedManager::processFrame(std::vector<float3>& ledColors, const Image
 
 	if (_colorAveraging != nullptr && _colorAveraging->width() == frameBuffer.width() && _colorAveraging->height() == frameBuffer.height())
 	{
-		_colorAveraging->process(ledColors, frameBuffer, _advanced);
+		_colorAveraging->process(ledColors, frameBuffer);
 	}
 }
 

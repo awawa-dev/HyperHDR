@@ -78,7 +78,7 @@ bool Animation_CandleLight::hasLedData(QVector<ColorRgb>& buffer)
 	{
 		ledData.clear();
 
-		for (size_t i = 0; i < buffer.size(); i++)
+		for (int i = 0; i < static_cast<int>(buffer.size()); i++)
 		{
 			Point3d  colorP = CandleRgb();
 			ColorRgb newColor{ colorP.x, colorP.y, colorP.z };

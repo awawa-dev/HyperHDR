@@ -414,17 +414,17 @@ void LutCalibrator::stopHandler()
 	}
 }
 
-void LutCalibrator::setVideoImage(const QString& name, const Image<ColorRgb>& image)
+void LutCalibrator::setVideoImage(const QString& /*name*/, const Image<ColorRgb>& image)
 {
 	handleImage(image);
 }
 
-void LutCalibrator::setSystemImage(const QString& name, const Image<ColorRgb>& image)
+void LutCalibrator::setSystemImage(const QString& /*name*/, const Image<ColorRgb>& image)
 {
 	handleImage(image);
 }
 
-void LutCalibrator::signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin)
+void LutCalibrator::signalSetGlobalImageHandler(int /*priority*/, const Image<ColorRgb>& image, int /*timeout_ms*/, hyperhdr::Components /*origin*/)
 {
 	handleImage(image);
 }

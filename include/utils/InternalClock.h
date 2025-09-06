@@ -58,5 +58,7 @@ private:
 
 	std::thread worker;
 	std::atomic<bool> running{ false };
+#ifdef _WIN32
 	void* timer = nullptr;
+#endif
 };

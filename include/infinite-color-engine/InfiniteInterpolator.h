@@ -19,9 +19,9 @@ public:
 	virtual void updateCurrentColors(float currentTimeMs) = 0;
 	virtual SharedOutputColors getCurrentColors() const = 0;
 
-	virtual void setTransitionDuration(float durationMs) {};
-	virtual void setSpringiness(float stiffness, float damping) {};
-	virtual void setMaxLuminanceChangePerFrame(float maxYChangePerFrame) {};
-	virtual void setSmoothingFactor(float factor) {};
+	virtual void setTransitionDuration(float /*durationMs*/) {};
+	virtual void setSpringiness(float /*stiffness*/, float /*damping*/) {};
+	virtual void setMaxLuminanceChangePerFrame(float /*maxYChangePerFrame*/) {};
+	virtual void setSmoothingFactor(float /*factor*/) {};
 
 };

@@ -111,9 +111,8 @@ void HighResolutionScheduler::stop()
 
 void HighResolutionScheduler::sleepUntil(std::chrono::steady_clock::time_point tp)
 {
-	using hundred_nanoseconds = std::chrono::duration<long long, std::ratio<1, 10000000>>;
-
 #ifdef _WIN32
+	using hundred_nanoseconds = std::chrono::duration<long long, std::ratio<1, 10000000>>;
 	auto now = std::chrono::steady_clock::now();
 	auto diff = std::chrono::duration_cast<hundred_nanoseconds>(tp - now).count();
 

@@ -48,10 +48,10 @@ public:
 
 	struct registerData
 	{
-		hyperhdr::Components component;
+		hyperhdr::Components component = hyperhdr::Components::COMP_INVALID;
 		QString origin;
 		QString owner;
-		hyperhdr::Components callerComp;
+		hyperhdr::Components callerComp = hyperhdr::Components::COMP_INVALID;
 	};
 
 	typedef std::map<int, registerData> MapRegister;

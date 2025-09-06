@@ -46,7 +46,7 @@ ImageColorAveraging::ImageColorAveraging(
 				const unsigned height,
 				const unsigned horizontalBorder,
 				const unsigned verticalBorder,
-				const quint8 instanceIndex,
+				const quint8 /*instanceIndex*/,
 				const std::vector<LedString::Led>& leds)
 	: _width(width)
 	, _height(height)
@@ -175,15 +175,15 @@ unsigned ImageColorAveraging::verticalBorder() const {
 	return _verticalBorder;
 }
 
-void ImageColorAveraging::process(std::vector<float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut)
+void ImageColorAveraging::process(std::vector<float3>& ledColors, const Image<ColorRgb>& image)
 {
 	ledColors.clear();
 	ledColors.reserve(_colorsMap.size());
 
 	switch (_mappingType)
 	{
-		case 1: getUnicolorForLeds(ledColors, image, lut); break;
-		default: getMulticolorForLeds(ledColors, image, lut);
+		case 1: getUnicolorForLeds(ledColors, image); break;
+		default: getMulticolorForLeds(ledColors, image);
 	}
 
 	if (_colorGroups.size() > 0 && _mappingType != 1)
@@ -191,7 +191,7 @@ void ImageColorAveraging::process(std::vector<float3>& ledColors, const Image<Co
 		for (auto& group : _colorGroups)
 		{
 			const auto& combined = ledColors[group.second.front()];
-			for (int g = 1; g < group.second.size(); g++)
+			for (int g = 1; g < static_cast<int>(group.second.size()); g++)
 			{
 				ledColors[group.second[g]] = combined;
 			}
@@ -199,21 +199,21 @@ void ImageColorAveraging::process(std::vector<float3>& ledColors, const Image<Co
 	}
 }
 
-void  ImageColorAveraging::getUnicolorForLeds(std::vector<float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const
+void  ImageColorAveraging::getUnicolorForLeds(std::vector<float3>& ledColors, const Image<ColorRgb>& image) const
 {
-	ledColors.resize(_colorsMap.size(), calcUnicolorForLeds(image, lut));
+	ledColors.resize(_colorsMap.size(), calcUnicolorForLeds(image));
 }
 
 
-void ImageColorAveraging::getMulticolorForLeds(std::vector<float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const
+void ImageColorAveraging::getMulticolorForLeds(std::vector<float3>& ledColors, const Image<ColorRgb>& image) const
 {
 	for (auto colors = _colorsMap.begin(); colors != _colorsMap.end(); ++colors)
 	{
-		ledColors.push_back(calcMulticolorForLeds(image, *colors, lut));
+		ledColors.push_back(calcMulticolorForLeds(image, *colors));
 	}
 }
 
-float3 ImageColorAveraging::calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors, uint16_t* lut) const
+float3 ImageColorAveraging::calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors) const
 {
 	if (colors.size() == 0)
 	{
@@ -234,7 +234,7 @@ float3 ImageColorAveraging::calcMulticolorForLeds(const Image<ColorRgb>& image, 
 	return averageLinear;
 }
 
-float3 ImageColorAveraging::calcUnicolorForLeds(const Image<ColorRgb>& image, uint16_t* lut) const
+float3 ImageColorAveraging::calcUnicolorForLeds(const Image<ColorRgb>& image) const
 {
 	uint_fast64_t sum = 0;
 	linalg::vec<uint_fast64_t, 3> sumLinear(0, 0, 0);

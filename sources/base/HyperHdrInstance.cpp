@@ -523,7 +523,7 @@ bool HyperHdrInstance::setInputInactive(quint8 priority)
 	return _muxer->setInputInactive(priority);
 }
 
-void HyperHdrInstance::signalSetGlobalColorHandler(int priority, const QVector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription)
+void HyperHdrInstance::signalSetGlobalColorHandler(int priority, const QVector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components /*origin*/, QString clientDescription)
 {
 	setColor(priority, ledColor, timeout_ms, clientDescription, true);
 }

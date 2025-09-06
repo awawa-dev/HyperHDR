@@ -84,7 +84,6 @@ std::pair<bool, int> DriverSpiHD108::writeInfiniteColors(SharedOutputColors nonl
 	}
 
 	int index = HD108_START_FRAME_SIZE;
-	uint16_t* data = reinterpret_cast<uint16_t*>(_ledBuffer.data());
 	for (auto const& rgb : *nonlinearRgbColors)
 	{
 		const bool isLit = (rgb.x > 0.0f || rgb.y > 0.0f || rgb.z > 0.0f);

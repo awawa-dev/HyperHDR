@@ -43,6 +43,12 @@ target_compile_definitions(sqlite3 PUBLIC
 	SQLITE_OMIT_DEPRECATED
 )
 
+if(MSVC)
+    target_compile_options(sqlite3 PRIVATE /w)
+else()
+    target_compile_options(sqlite3 PRIVATE -w)
+endif()
+
 #=============================================================================
 # Protobuf-nanopb
 #=============================================================================
@@ -112,9 +118,36 @@ endif()
 if (NOT USE_SYSTEM_LUNASVG_LIBS OR NOT lunasvg_FOUND)
 	set(LUNASVG_BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
 	set(PLUTOVG_BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
+
+
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lunasvg)
-	set_target_properties(lunasvg PROPERTIES POSITION_INDEPENDENT_CODE ON)
-	set_target_properties(plutovg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	set(lunasvg_targets lunasvg plutovg)
+
+	foreach(target IN LISTS lunasvg_targets)
+		set(opts_before)
+		set(opts_after)
+		get_target_property(opts_before ${target} COMPILE_OPTIONS)
+
+		if(MSVC)				
+			foreach(f ${opts_before})
+				if(NOT f MATCHES "/W[1-4]|/w")
+					list(APPEND opts_after ${f})
+				endif()
+			endforeach()
+			list(APPEND opts_after "/w")
+		else()
+			foreach(f ${opts_before})
+				if(NOT f MATCHES "^-w$|^-Wall$|^-Wextra$")
+					list(APPEND opts_after ${f})
+				endif()
+			endforeach()
+			list(APPEND opts_after "-w")
+		endif()
+
+		set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "${opts_after}")
+		get_target_property(opts_now ${target} COMPILE_OPTIONS)
+		message("Lunasvg target '${target}' compile options before: ${opts_before}  after: ${opts_now}")
+	endforeach()
 
 	# do not rely on plutvg cmake script to detect C++11 threads support
 	if (NOT WIN32)
@@ -283,7 +316,6 @@ if ( ENABLE_ZSTD )
 		set(ZSTD_BUILD_PROGRAMS OFF)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/zstd/build/cmake)
 		set_target_properties(libzstd PROPERTIES INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/zstd/lib>)
-		set_property(TARGET libzstd PROPERTY POSITION_INDEPENDENT_CODE ON)
 		add_library(zstd::zstd ALIAS libzstd)
 	endif()
 ENDIF()
@@ -305,7 +337,6 @@ if (UNIX AND NOT APPLE AND (ENABLE_POWER_MANAGEMENT OR ENABLE_PIPEWIRE))
 		message( "Using sdbus-c++ submodule." )
 		set(SDBUSCPP_BUILD_DOCS OFF CACHE BOOL "No doc")
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sdbus-cpp)
-		set_target_properties(sdbus-c++-objlib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	endif()
 endif()
 

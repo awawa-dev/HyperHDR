@@ -88,9 +88,9 @@ InfiniteProcessing::InfiniteProcessing() :
 	_scaleOutput(1.0f),
 	_powerLimit(1.0f),
 	_minimalBacklight(1.0f / 255.0f),
-	_coloredBacklight(true),
-	_user_gamma_lut{},
-	_log(nullptr)
+	_coloredBacklight(true),	
+	_log(nullptr),
+	_user_gamma_lut{}
 {
 	generateUserGamma(1.0f);
 }
@@ -193,10 +193,10 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 		{
 			auto& color = *it;
 			applyTemperature(color);
-			calibrateColorInColorspace(colorCalibration, color);
-			applyBrightnessAndSaturation(color);
-			color = srgbLinearToNonlinear(color);
+			calibrateColorInColorspace(colorCalibration, color);			
+			color = srgbLinearToNonlinear(color);			
 			applyUserGamma(color);
+			applyBrightnessAndSaturation(color);
 			applyScaleOutput(color);
 			applyMinimalBacklight(color);
 		}
@@ -247,13 +247,13 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 
 void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBacklight)
 {
-	if (minimalLevel >= 1.0)
+	if (minimalLevel >= 1.0f)
 	{
 		if (_log)
 		{
 			Error(_log, "Minimal backlight level is way to high: %f, resetting to 0.0039", minimalLevel);
 		}
-		minimalLevel = 0.0039;
+		minimalLevel = 0.0039f;
 	}
 	_minimalBacklight = minimalLevel;
 	_coloredBacklight = coloreBacklight;
@@ -618,51 +618,6 @@ void InfiniteProcessing::applyPowerLimit(SharedOutputColors nonlinearRgbColors) 
 		for (auto it = nonlinearRgbColors->begin(); it != nonlinearRgbColors->end(); ++it)
 			*it *= scale;
 	}
-}
-
-linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(IsUint8Vec3 auto const& color)
-{
-	return {
-		_srgb_uint8_to_linear_uint16_lut[color.x],
-		_srgb_uint8_to_linear_uint16_lut[color.y],
-		_srgb_uint8_to_linear_uint16_lut[color.z]
-	};
-}
-template linalg::vec<uint16_t, 3> InfiniteProcessing::srgbNonlinearToLinear(linalg::vec<uint8_t, 3> const&);
-template linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(linalg::vec<float, 3> const&);
-
-linalg::vec<float, 3> InfiniteProcessing::srgbNonlinearToLinear(IsFloatVec3 auto const& color)
-{
-	linalg::vec<float, 3> result;
-	for (int i = 0; i < 3; ++i)
-	{
-		float val = std::max(0.0f, std::min(color[i], 1.0f));
-
-		float pos = val * (LUT_SIZE - 1);
-		int index0 = static_cast<int>(pos);
-		int index1 = std::min(index0 + 1, LUT_SIZE - 1);
-		float fraction = pos - index0;
-
-		result[i] = linalg::lerp(_srgb_to_linear_lut[index0], _srgb_to_linear_lut[index1], fraction);
-	}
-	return result;
-}
-
-linalg::vec<float, 3> InfiniteProcessing::srgbLinearToNonlinear(linalg::vec<float, 3> const& color)
-{
-	linalg::vec<float, 3> result;
-	for (int i = 0; i < 3; ++i)
-	{
-		float val = std::max(0.0f, std::min(color[i], 1.0f));
-
-		float pos = val * (LUT_SIZE - 1);
-		int index0 = static_cast<int>(pos);
-		int index1 = std::min(index0 + 1, LUT_SIZE - 1);
-		float fraction = pos - index0;
-
-		result[i] = linalg::lerp(_linear_to_srgb_lut[index0], _linear_to_srgb_lut[index1], fraction);
-	}
-	return result;
 }
 
 std::shared_ptr<const CalibrationSnapshot> InfiniteProcessing::getColorspaceCalibrationSnapshot()

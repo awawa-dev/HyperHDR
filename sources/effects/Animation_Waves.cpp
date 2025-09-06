@@ -72,7 +72,7 @@ Point2d Animation_Waves::getPoint(const HyperImage& hyperImage, bool random, dou
 	return p;
 }
 
-int Animation_Waves::getSTime(int hyperLatchTime, int _rt, double steps = 360)
+int Animation_Waves::getSTime(int /*hyperLatchTime*/, int /*_rt*/, [[maybe_unused]] double steps = 360)
 {
 	double sleepTime = std::max(1 / (512 / rotation_time), 0.02);
 
@@ -155,7 +155,7 @@ bool Animation_Waves::Play(HyperImage& painter)
 
 	if (gradientBa.size() > 1)
 	{
-		int l = gradientBa.size() - 1;
+		int l = static_cast<int>(gradientBa.size()) - 1;
 		if (gradientBa[0].items[0] != 0 || gradientBa[l].items[0] != 255)
 		{
 			

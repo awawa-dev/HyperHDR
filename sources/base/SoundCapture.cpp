@@ -52,7 +52,7 @@ namespace
 	QMutex	soundBufferGuard;
 }
 
-SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* parent) :
+SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* /*parent*/) :
 	_isActive(false),
 	_enable_smoothing(true),
 	_selectedDevice(""),

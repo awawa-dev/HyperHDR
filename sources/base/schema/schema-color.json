@@ -40,15 +40,6 @@
 				"title" : "edt_conf_color_channelAdjustment_header_itemtitle",
 				"properties" :
 				{
-					"classic_config" :
-					{
-						"type" : "boolean",
-						"format": "checkbox",
-						"title" : "edt_conf_color_classic_config_title",
-						"default" : true,
-						"required" : true,
-						"propertyOrder" : 3
-					},
 					"temperatureSetting" :
 					{
 						"type" : "string",
@@ -58,6 +49,15 @@
 						"options" : {
 							"enum_titles" : ["led_editor_context_disable", "edt_conf_enum_cold", "edt_conf_enum_neutral", "edt_conf_enum_warm", "edt_conf_enum_custom"]
 						},
+						"required" : true,
+						"propertyOrder" : 3
+					},
+					"classic_config" :
+					{
+						"type" : "boolean",
+						"format": "checkbox",
+						"title" : "edt_conf_color_classic_config_title",
+						"default" : true,
 						"required" : true,
 						"propertyOrder" : 4
 					},
@@ -265,16 +265,16 @@
 						},
 						"propertyOrder" : 15
 					},
-					"saturationGain" :
+					"gamma" :
 					{
 						"type" : "number",
 						"format": "stepper",
 						"step" : 0.05,
-						"title" : "edt_conf_color_saturationGain_title",
+						"title" : "edt_conf_color_gamma_title",
 						"required" : true,
-						"minimum" : 0,
-						"maximum": 10,
-						"default" : 1,						
+						"minimum" : 0.1,
+						"maximum": 100.0,
+						"default" : 1.5,						
 						"propertyOrder" : 16
 					},
 					"luminanceGain" :
@@ -289,16 +289,16 @@
 						"default" : 1,
 						"propertyOrder" : 17
 					},
-					"gamma" :
+					"saturationGain" :
 					{
 						"type" : "number",
 						"format": "stepper",
 						"step" : 0.05,
-						"title" : "edt_conf_color_gamma_title",
+						"title" : "edt_conf_color_saturationGain_title",
 						"required" : true,
-						"minimum" : 0.1,
-						"maximum": 100.0,
-						"default" : 1.5,						
+						"minimum" : 0,
+						"maximum": 10,
+						"default" : 1,						
 						"propertyOrder" : 18
 					},
 					"scaleOutput" :

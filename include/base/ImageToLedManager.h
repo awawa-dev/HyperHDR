@@ -65,5 +65,4 @@ private:
 	std::unique_ptr<hyperhdr::ImageColorAveraging> _colorAveraging;
 	int		_mappingType;
 	bool	_sparseProcessing;
-	uint16_t _advanced[256];	
 };

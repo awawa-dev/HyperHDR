@@ -151,7 +151,7 @@ std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 	return availableActiveEffects;
 }
 
-void EffectEngine::handlerSetLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect)
+void EffectEngine::handlerSetLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, bool /*clearEffect*/)
 {
 	int ledNum = _hyperInstance->getLedCount();
 	if (ledNum == static_cast<int>(ledColors.size()))

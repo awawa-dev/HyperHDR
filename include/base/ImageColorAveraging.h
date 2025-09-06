@@ -37,11 +37,11 @@ namespace hyperhdr
 		unsigned horizontalBorder() const;
 		unsigned verticalBorder() const;
 
-		void process(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut);
+		void process(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image);
 
 	private:
-		void getUnicolorForLeds(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const;
-		void getMulticolorForLeds(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const;
+		void getUnicolorForLeds(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image) const;
+		void getMulticolorForLeds(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& image) const;
 
 		const unsigned _width;
 		const unsigned _height;
@@ -53,7 +53,7 @@ namespace hyperhdr
 		std::vector<std::vector<uint32_t>> _colorsMap;
 		std::map<int, std::vector<uint32_t>> _colorGroups;
 
-		linalg::aliases::float3 calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors, uint16_t* lut) const;
-		linalg::aliases::float3 calcUnicolorForLeds(const Image<ColorRgb>& image, uint16_t* lut) const;
+		linalg::aliases::float3 calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors) const;
+		linalg::aliases::float3 calcUnicolorForLeds(const Image<ColorRgb>& image) const;
 	};
 }

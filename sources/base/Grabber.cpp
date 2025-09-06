@@ -952,7 +952,7 @@ QString Grabber::getSignature()
 		arg(info[Grabber::currentVideoModeInfo::device]);
 }
 
-void Grabber::handleNewFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
+void Grabber::handleNewFrame(unsigned int /*workerIndex*/, Image<ColorRgb> image, quint64 /*sourceCount*/, qint64 _frameBegin)
 {
 	frameStat.goodFrame++;
 	frameStat.averageFrame += InternalClock::nowPrecise() - _frameBegin;

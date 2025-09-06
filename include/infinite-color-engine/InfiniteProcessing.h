@@ -108,9 +108,49 @@ public:
 	void setMinimalBacklight(float minimalLevel, bool coloreBacklight);
 	void applyMinimalBacklight(linalg::vec<float, 3>& color) const;
 
-	static linalg::vec<float, 3> srgbNonlinearToLinear(IsFloatVec3 auto const& color);
-	static linalg::vec<float, 3> srgbLinearToNonlinear(linalg::vec<float, 3> const& color);
-	static linalg::vec<uint16_t, 3> srgbNonlinearToLinear(IsUint8Vec3 auto const& color);
+	static constexpr linalg::vec<uint16_t, 3> srgbNonlinearToLinear(IsUint8Vec3 auto const& color)
+	{
+		return {
+			_srgb_uint8_to_linear_uint16_lut[color.x],
+			_srgb_uint8_to_linear_uint16_lut[color.y],
+			_srgb_uint8_to_linear_uint16_lut[color.z]
+		};
+	}
+
+	static constexpr linalg::vec<float, 3> srgbNonlinearToLinear(IsFloatVec3 auto const& color)
+	{
+		linalg::vec<float, 3> result;
+		for (int i = 0; i < 3; ++i)
+		{
+			float val = std::max(0.0f, std::min(color[i], 1.0f));
+
+			float pos = val * (LUT_SIZE - 1);
+			int index0 = static_cast<int>(pos);
+			int index1 = std::min(index0 + 1, LUT_SIZE - 1);
+			float fraction = pos - index0;
+
+			result[i] = linalg::lerp(_srgb_to_linear_lut[index0], _srgb_to_linear_lut[index1], fraction);
+		}
+		return result;
+	}
+
+	static constexpr linalg::vec<float, 3> srgbLinearToNonlinear(linalg::vec<float, 3> const& color)
+	{
+		linalg::vec<float, 3> result;
+		for (int i = 0; i < 3; ++i)
+		{
+			float val = std::max(0.0f, std::min(color[i], 1.0f));
+
+			float pos = val * (LUT_SIZE - 1);
+			int index0 = static_cast<int>(pos);
+			int index1 = std::min(index0 + 1, LUT_SIZE - 1);
+			float fraction = pos - index0;
+
+			result[i] = linalg::lerp(_linear_to_srgb_lut[index0], _linear_to_srgb_lut[index1], fraction);
+		}
+		return result;
+	}
+
 
 	static void test();
 

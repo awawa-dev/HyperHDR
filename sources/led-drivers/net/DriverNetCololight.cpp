@@ -25,15 +25,7 @@ namespace {
 		0x00, 0x00, 0x00, 0x00
 	};
 
-	const uint8_t TL1_CMD_FIXED_PART[] =
-	{
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0x00,
-		0x00,
-		0x00,
-		0x00
-	};
+	constexpr uint8_t TL1_CMD_FIXED_PART_SIZE = 12;
 
 	const bool verbose = false;
 	const bool verbose3 = false;
@@ -197,9 +189,9 @@ bool DriverNetCololight::getInfo()
 	QByteArray command;
 
 	const quint8 packetSize = 2;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SETVAR); // verb
@@ -263,9 +255,9 @@ bool DriverNetCololight::setColor(const uint32_t color)
 	QByteArray command;
 
 	const quint8 packetSize = 6;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SET); // verb
@@ -300,9 +292,9 @@ bool DriverNetCololight::setState(bool isOn)
 	QByteArray command;
 
 	const quint8 packetSize = 3;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SET); // verb
@@ -379,9 +371,9 @@ bool DriverNetCololight::setTL1CommandMode(bool isOn)
 	QByteArray command;
 
 	const quint8 packetSize = 2;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SETEEPROM); // verb
@@ -479,7 +471,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 
 					quint8 errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
 
-					int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + sizeof(TL1_CMD_FIXED_PART);
+					int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + TL1_CMD_FIXED_PART_SIZE;
 
 					if (errorCode != 0)
 					{

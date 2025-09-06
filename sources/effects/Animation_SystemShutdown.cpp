@@ -49,7 +49,7 @@ EffectDefinition Animation_SystemShutdown::getDefinition()
 
 void Animation_SystemShutdown::Init(
 	HyperImage& hyperImage,
-	int hyperLatchTime
+	int /*hyperLatchTime*/
 )
 {
 

@@ -42,7 +42,7 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 		}
 		else
 		{
-			int total = SINGLE_LUT_SIZE * 3;
+			long long total = SINGLE_LUT_SIZE * 3;
 			ZSTD_inBuffer input = { downloadedData, downloadedDataSize, 0 };
 			while (input.pos < input.size)
 			{
@@ -57,7 +57,7 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 				{
 					file.write(reinterpret_cast<char*>(outBuffer.data()), outBuffer.size());
 				}
-				total -= outBuffer.size();
+				total -= static_cast<long long>(outBuffer.size());
 			}
 			ZSTD_freeDCtx(dctx);
 		}
@@ -83,18 +83,18 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 	}
 	else
 	{
-		int totalOutput = 0;
+		long long totalOutput = 0;
 		ZSTD_inBuffer input = { downloadedData, downloadedDataSize, 0 };
 		while (totalOutput <= destSeek && input.pos < input.size)
 		{
 			ZSTD_outBuffer outputSeek = { dest, static_cast<size_t>(destSize), static_cast<size_t>(0) };
 			size_t const ret = ZSTD_decompressStream(dctx, &outputSeek, &input);
-			if (ZSTD_isError(ret) || outputSeek.pos != destSize)
+			if (ZSTD_isError(ret) || static_cast<long long>(outputSeek.pos) != destSize)
 			{
 				error = "Error during decompression";
 				break;
 			}
-			totalOutput += outputSeek.pos;
+			totalOutput += static_cast<long long>(outputSeek.pos);
 		}
 		ZSTD_freeDCtx(dctx);
 	}

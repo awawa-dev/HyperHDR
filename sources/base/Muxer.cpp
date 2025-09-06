@@ -15,7 +15,7 @@ const int Muxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 const int Muxer::HIGHEST_EFFECT_PRIORITY = 0;
 const int Muxer::LOWEST_EFFECT_PRIORITY = 254;
 
-Muxer::Muxer(int instanceIndex, int ledCount, QObject* parent)
+Muxer::Muxer(int instanceIndex, int /*ledCount*/, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance(QString("MUXER%1").arg(instanceIndex)))
 	, _currentPriority(Muxer::LOWEST_PRIORITY)

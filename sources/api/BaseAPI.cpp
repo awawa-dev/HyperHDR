@@ -200,7 +200,7 @@ QString BaseAPI::setInstanceName(quint8 index, const QString& name)
 	return NO_AUTH;
 }
 
-void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int timeout_ms, const QString& origin, hyperhdr::Components callerComp)
+void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int timeout_ms, const QString& origin, hyperhdr::Components /*callerComp*/)
 {
 	QVector<ColorRgb> fledColors;
 	if (ledColors.size() % 3 == 0)
@@ -213,7 +213,7 @@ void BaseAPI::setColor(int priority, const std::vector<uint8_t>& ledColors, int 
 	}
 }
 
-bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components callerComp)
+bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& replyMsg, hyperhdr::Components /*callerComp*/)
 {
 	Image<ColorRgb> image;
 	// truncate name length
@@ -259,7 +259,7 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 	return true;
 }
 
-bool BaseAPI::clearPriority(int priority, QString& replyMsg, hyperhdr::Components callerComp)
+bool BaseAPI::clearPriority(int priority, QString& replyMsg, hyperhdr::Components /*callerComp*/)
 {
 	if (priority < 0 || (priority > 0 && priority < Muxer::LOWEST_EFFECT_PRIORITY))
 	{
@@ -273,7 +273,7 @@ bool BaseAPI::clearPriority(int priority, QString& replyMsg, hyperhdr::Component
 	return true;
 }
 
-bool BaseAPI::setComponentState(const QString& comp, bool& compState, QString& replyMsg, hyperhdr::Components callerComp)
+bool BaseAPI::setComponentState(const QString& comp, bool& compState, QString& replyMsg, hyperhdr::Components /*callerComp*/)
 {
 	QString input(comp);
 	if (input == "GRABBER")
@@ -301,12 +301,12 @@ bool BaseAPI::setComponentState(const QString& comp, bool& compState, QString& r
 	return false;
 }
 
-void BaseAPI::setLedMappingType(int type, hyperhdr::Components callerComp)
+void BaseAPI::setLedMappingType(int type, hyperhdr::Components /*callerComp*/)
 {
 	QUEUE_CALL_1(_hyperhdr.get(), setLedMappingType, int, type);
 }
 
-void BaseAPI::setVideoModeHdr(int hdr, hyperhdr::Components callerComp)
+void BaseAPI::setVideoModeHdr(int hdr, hyperhdr::Components /*callerComp*/)
 {
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, hdr);
 }
@@ -319,7 +319,7 @@ void BaseAPI::setFlatbufferUserLUT(QString userLUTfile)
 	emit _instanceManager->SignalSettingsChanged(settings::type::FLATBUFSERVER, updateSettings);
 }
 
-bool BaseAPI::setEffect(const EffectCmdData& dat, hyperhdr::Components callerComp)
+bool BaseAPI::setEffect(const EffectCmdData& dat, hyperhdr::Components /*callerComp*/)
 {
 	int res = -1;
 
@@ -331,12 +331,12 @@ bool BaseAPI::setEffect(const EffectCmdData& dat, hyperhdr::Components callerCom
 	return res >= 0;
 }
 
-void BaseAPI::setSourceAutoSelect(bool state, hyperhdr::Components callerComp)
+void BaseAPI::setSourceAutoSelect(bool state, hyperhdr::Components /*callerComp*/)
 {
 	QUEUE_CALL_1(_hyperhdr.get(), setSourceAutoSelect, bool, state);
 }
 
-void BaseAPI::setVisiblePriority(int priority, hyperhdr::Components callerComp)
+void BaseAPI::setVisiblePriority(int priority, hyperhdr::Components /*callerComp*/)
 {
 	QUEUE_CALL_1(_hyperhdr.get(), setVisiblePriority, int, priority);
 }
@@ -391,7 +391,7 @@ QJsonObject BaseAPI::getAverageColor(quint8 index)
 	return res;
 }
 
-void BaseAPI::requestActiveRegister(QObject* callerInstance)
+void BaseAPI::requestActiveRegister([[maybe_unused]] QObject* callerInstance)
 {
 	// TODO FIXME
 	//if (_activeRegisters.size())
@@ -408,7 +408,7 @@ bool BaseAPI::saveSettings(const QJsonObject& data)
 	return rc;
 }
 
-QString BaseAPI::installLut(QNetworkReply* reply, QString fileName, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time)
+QString BaseAPI::installLut(QNetworkReply* reply, QString fileName, int /*hardware_brightness*/, int /*hardware_contrast*/, int /*hardware_saturation*/, qint64 /*time*/)
 {
 #ifdef ENABLE_ZSTD
 	QString error = nullptr;

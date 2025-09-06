@@ -55,7 +55,7 @@ void SystemWrapper::newCapturedFrameHandler(const Image<ColorRgb>& image)
 	emit SignalSystemImage(_grabberName, image);
 }
 
-void SystemWrapper::stateChanged(bool state)
+void SystemWrapper::stateChanged(bool /*state*/)
 {
 
 }
@@ -209,7 +209,7 @@ QString SystemWrapper::getGrabberInfo()
 	return "";
 }
 
-bool SystemWrapper::isActivated(bool forced)
+bool SystemWrapper::isActivated(bool /*forced*/)
 {
 	return true;
 }
