@@ -76,6 +76,8 @@ public:
 	void updateCurrentConfig(const QJsonObject& config);
 	QJsonArray getCurrentConfig();
 
+	void applyyAllProcessingSteps(std::vector<linalg::vec<float, 3>>& linearRgbColors);
+
 	void generateColorspace(
 		bool use_primaries_only,
 		ColorRgb target_red = { 255,0,0 },
@@ -103,7 +105,7 @@ public:
 	void applyScaleOutput(linalg::vec<float, 3>& color) const;
 
 	void setPowerLimit(float powerLimit);
-	void applyPowerLimit(SharedOutputColors nonlinearRgbColors) const;
+	void applyPowerLimit(std::vector<linalg::vec<float, 3>>& linearRgbColors) const;
 
 	void setMinimalBacklight(float minimalLevel, bool coloreBacklight);
 	void applyMinimalBacklight(linalg::vec<float, 3>& color) const;
@@ -154,12 +156,8 @@ public:
 
 	static void test();
 
-public slots:
-	void handleSignalIncomingColors(SharedOutputColors linearRgbColors);
+public slots:	
 	void handleSignalInstanceSettingsChanged(settings::type type, const QJsonDocument& config);
-
-signals:
-	void SignalFinalOutputColorsReady(SharedOutputColors nonlinearRgbColors);
 	
 private:
 	bool _enabled;

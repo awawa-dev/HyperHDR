@@ -44,8 +44,7 @@ CoreInfiniteEngine::CoreInfiniteEngine(HyperHdrInstance* hyperhdr)
 	connect(hyperhdr, &HyperHdrInstance::SignalRequestComponent, _smoothing.get(), &InfiniteSmoothing::handleSignalRequestComponent);
 	connect(hyperhdr, &HyperHdrInstance::SignalSmoothingClockTick, _smoothing.get(), &InfiniteSmoothing::SignalMasterClockTick, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
 	connect(hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, _processing.get(), &InfiniteProcessing::handleSignalInstanceSettingsChanged);
-	connect(_smoothing.get(), &InfiniteSmoothing::SignalProcessedColors, _processing.get(), &InfiniteProcessing::handleSignalIncomingColors, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
-	connect(_processing.get(), &InfiniteProcessing::SignalFinalOutputColorsReady, hyperhdr, &HyperHdrInstance::SignalFinalOutputColorsReady, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
+	connect(_smoothing.get(), &InfiniteSmoothing::SignalProcessedColors, hyperhdr, &HyperHdrInstance::SignalFinalOutputColorsReady, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
 }
 
 int CoreInfiniteEngine::getSuggestedInterval()
@@ -65,6 +64,7 @@ void CoreInfiniteEngine::setCurrentSmoothingConfigParams(unsigned cfgID)
 
 void CoreInfiniteEngine::incomingColors(std::vector<float3>&& _ledBuffer)
 {
+	_processing->applyyAllProcessingSteps(_ledBuffer);
 	_smoothing->incomingColors(std::move(_ledBuffer));
 }
 

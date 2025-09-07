@@ -184,12 +184,12 @@ void InfiniteProcessing::handleSignalInstanceSettingsChanged(settings::type type
 	}
 }
 
-void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgbColors)
+void InfiniteProcessing::applyyAllProcessingSteps(std::vector<linalg::vec<float, 3>>& linearRgbColors)
 {
 	if (_enabled)
 	{
 		auto colorCalibration = getColorspaceCalibrationSnapshot();
-		for (auto it = linearRgbColors->begin(); it != linearRgbColors->end(); ++it)
+		for (auto it = linearRgbColors.begin(); it != linearRgbColors.end(); ++it)
 		{
 			auto& color = *it;
 			applyTemperature(color);
@@ -205,7 +205,7 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 	}
 	else
 	{
-		for (auto it = linearRgbColors->begin(); it != linearRgbColors->end(); ++it)
+		for (auto it = linearRgbColors.begin(); it != linearRgbColors.end(); ++it)
 		{
 			auto& color = *it;
 			color = srgbLinearToNonlinear(color);
@@ -214,7 +214,7 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 
 	if (_colorOrder != LedString::ColorOrder::ORDER_RGB)
 	{
-		for (auto it = linearRgbColors->begin(); it != linearRgbColors->end(); ++it)
+		for (auto it = linearRgbColors.begin(); it != linearRgbColors.end(); ++it)
 		{
 			auto& color = *it;
 			switch (_colorOrder)
@@ -241,8 +241,6 @@ void InfiniteProcessing::handleSignalIncomingColors(SharedOutputColors linearRgb
 			}
 		}
 	}
-
-	emit SignalFinalOutputColorsReady(linearRgbColors);
 }
 
 void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBacklight)
@@ -259,8 +257,7 @@ void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBack
 	_coloredBacklight = coloreBacklight;
 	if (_log)
 	{
-		Info(_log, "--- MINIMAL BACKLIGHT ---");
-		Info(_log, "ENABLED:       %s", ((_minimalBacklight > 0.0f) ? "true" : "false"));
+		Info(_log, "--- MINIMAL BACKLIGHT  (ENABLED: %s) ---", ((_minimalBacklight > 0.0f) ? "true" : "false"));
 		Info(_log, "MINIMAL LEVEL: %f", _minimalBacklight);
 		Info(_log, "COLORED:       %s", ((_coloredBacklight)?"true" : "false"));
 	}
@@ -299,21 +296,25 @@ void InfiniteProcessing::generateColorspace(
 	linalg::mat<float, 3, 3> primary_calib_matrix;
 	CalibrationMode mode = CalibrationMode::None;
 
-
-	if (_log)
-	{
-		Info(_log, "--- LED CALIBRATION ---");
-		Info(_log, "CLASSIC: %s", ((use_primaries_only) ? "true" : "false"));
-		Info(_log, "RED:     %s", std::string(target_red).c_str());
-		Info(_log, "GREEN:   %s", std::string(target_green).c_str());
-		Info(_log, "BLUE:    %s", std::string(target_blue).c_str());
-		Info(_log, "CYAN:    %s", std::string(target_cyan).c_str());
-		Info(_log, "MAGENTA: %s", std::string(target_magenta).c_str());
-		Info(_log, "YELLOW:  %s", std::string(target_yellow).c_str());
-		Info(_log, "WHITE:   %s", std::string(target_white).c_str());
-		Info(_log, "BLACK:   %s", std::string(target_black).c_str());
-	}
-
+	auto printfInfo = [this](bool is_identity, bool use_primaries_only,
+		ColorRgb target_red, ColorRgb target_green, ColorRgb target_blue,
+		ColorRgb target_cyan, ColorRgb target_magenta, ColorRgb target_yellow,
+		ColorRgb target_white, ColorRgb target_black)
+		{
+			if (_log)
+			{
+				Info(_log, "--- LED CALIBRATION (ENABLED: %s) ---", ((!is_identity) ? "true" : "false"));
+				Info(_log, "CLASSIC: %s", ((use_primaries_only) ? "true" : "false"));
+				Info(_log, "RED:     %s", std::string(target_red).c_str());
+				Info(_log, "GREEN:   %s", std::string(target_green).c_str());
+				Info(_log, "BLUE:    %s", std::string(target_blue).c_str());
+				Info(_log, "CYAN:    %s", std::string(target_cyan).c_str());
+				Info(_log, "MAGENTA: %s", std::string(target_magenta).c_str());
+				Info(_log, "YELLOW:  %s", std::string(target_yellow).c_str());
+				Info(_log, "WHITE:   %s", std::string(target_white).c_str());
+				Info(_log, "BLACK:   %s", std::string(target_black).c_str());
+			}
+		};	
 	if (use_primaries_only)
 	{
 		bool is_identity = (target_red == ColorRgb{ 255,0,0 } &&
@@ -322,7 +323,7 @@ void InfiniteProcessing::generateColorspace(
 
 		if (_log)
 		{
-			Info(_log, "ENABLED: %s", ((!is_identity) ? "true" : "false"));
+			printfInfo(is_identity, use_primaries_only, target_red, target_green, target_blue, target_cyan, target_magenta, target_yellow, target_white, target_black);
 		}
 
 		if (is_identity) return;
@@ -360,7 +361,7 @@ void InfiniteProcessing::generateColorspace(
 
 		if (_log)
 		{
-			Info(_log, "ENABLED: %s", ((!is_identity) ? "true" : "false"));
+			printfInfo(is_identity, use_primaries_only, target_red, target_green, target_blue, target_cyan, target_magenta, target_yellow, target_white, target_black);
 		}
 
 		if (is_identity) return;
@@ -514,8 +515,7 @@ void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<fl
 
 	if (_log)
 	{
-		Info(_log, "--- TEMPERATURE ---");
-		Info(_log, "ENABLED: %s", ((_temperature_enabled) ? "true" : "false"));
+		Info(_log, "--- TEMPERATURE (ENABLED: %s) ---", ((_temperature_enabled) ? "true" : "false"));
 		Info(_log, "RED:     %0.3f", _temperature_tint.x);
 		Info(_log, "GREEN:   %0.3f", _temperature_tint.y);
 		Info(_log, "BLUE:    %0.3f", _temperature_tint.z);
@@ -538,8 +538,7 @@ void InfiniteProcessing::setBrightnessAndSaturation(float brightness, float satu
 
 	if (_log)
 	{
-		Info(_log, "--- HSL CORRECTION ---");
-		Info(_log, "ENABLED:    %s", ((std::abs(_brightness - 1.0f) < 1e-5 && std::abs(_saturation - 1.0f) < 1e-5) ? "false" : "true"));
+		Info(_log, "--- HSL CORRECTION (ENABLED: %s) ---", ((std::abs(_brightness - 1.0f) < 1e-5 && std::abs(_saturation - 1.0f) < 1e-5) ? "false" : "true"));
 		Info(_log, "BRIGHTNESS: %0.3f", _brightness);
 		Info(_log, "SATURATION: %0.3f", _saturation);
 	}
@@ -574,8 +573,7 @@ void InfiniteProcessing::setScaleOutput(float scaleOutput)
 
 	if (_log)
 	{
-		Info(_log, "--- SCALE OUTPUT ---");
-		Info(_log, "ENABLED: %s", ((_scaleOutput >= 1.f) ? "false" : "true"));
+		Info(_log, "--- SCALE OUTPUT (ENABLED: %s) ---", ((_scaleOutput >= 1.f) ? "false" : "true"));
 		Info(_log, "SCALE:   %0.3f", _scaleOutput);
 	}
 }
@@ -595,27 +593,26 @@ void InfiniteProcessing::setPowerLimit(float powerLimit)
 
 	if (_log)
 	{
-		Info(_log, "--- POWER LIMIT ---");
-		Info(_log, "ENABLED: %s", ((_powerLimit >= 1.f) ? "false" : "true"));
+		Info(_log, "--- POWER LIMIT (ENABLED: %s) ---", ((_powerLimit >= 1.f) ? "false" : "true"));
 		Info(_log, "LIMIT:   %0.3f", _powerLimit);
 	}
 }
 
-void InfiniteProcessing::applyPowerLimit(SharedOutputColors nonlinearRgbColors) const
+void InfiniteProcessing::applyPowerLimit(std::vector<linalg::vec<float, 3>>& nonlinearRgbColors) const
 {
 	if (_powerLimit >= 1.0f)
 		return;
 
 	float totalPower = 0.0f;
-	for (auto it = nonlinearRgbColors->begin(); it != nonlinearRgbColors->end(); ++it)
+	for (auto it = nonlinearRgbColors.begin(); it != nonlinearRgbColors.end(); ++it)
 		totalPower += linalg::sum(*it);
 
-	const float allowedPower = (nonlinearRgbColors->size() * 3.f) * _powerLimit;
+	const float allowedPower = (nonlinearRgbColors.size() * 3.f) * _powerLimit;
 
 	if (totalPower > 0.0f && allowedPower < totalPower)
 	{
 		const float scale = allowedPower / totalPower;
-		for (auto it = nonlinearRgbColors->begin(); it != nonlinearRgbColors->end(); ++it)
+		for (auto it = nonlinearRgbColors.begin(); it != nonlinearRgbColors.end(); ++it)
 			*it *= scale;
 	}
 }
