@@ -70,21 +70,21 @@ namespace
 		bool active = false;
 		long long started = 0;
 		std::vector<float4> sequence = {
-			{0,    0.0f, 0.0f, 0.0f},
-			{2000, 1.0f, 0.0f, 0.0f},
-			{2100, 0.0f, 0.0f, 0.0f},
-			{2300, 0.0f, 1.0f, 0.0f},
-			{2400, 0.0f, 0.0f, 0.0f},
-			{2600, 0.0f, 1.0f, 0.0f},
-			{2700, 0.0f, 0.0f, 0.0f},
-			{3000, 1.0f, 0.0f, 0.0f},
-			{3050, 0.0f, 1.0f, 0.0f},
-			{3150, 0.0f, 0.0f, 1.0f},
-			{4000, 1.0f, 0.0f, 0.0f},
-			{4100, 0.0f, 0.0f, 1.0f},
-			{4200, 0.0f, 1.0f, 0.0f},
-			{5000, 0.0f, 0.0f, 0.0f},
-			{8000, 0.0f, 0.0f, 0.0f}
+			{0,    0.0f, 0.0f, 0.0f},  // start from black color
+			{2000, 1.0f, 0.0f, 0.0f},  // short (100ms) red color blink at 2.0sec
+			{2100, 0.0f, 0.0f, 0.0f},  // return to black color
+			{2300, 0.0f, 1.0f, 0.0f},  // short (100ms) green color blink at 2.3sec
+			{2400, 0.0f, 0.0f, 0.0f},  // return to black color
+			{2600, 0.0f, 0.0f, 1.0f},  // short (100ms) blue color blink at 2.6sec
+			{2700, 0.0f, 0.0f, 0.0f},  // return to black color
+			{3000, 0.0f, 0.0f, 1.0f},  // start moving to blue color at 3sec
+			{3200, 0.0f, 1.0f, 0.0f},  // then turn to green color at 3.2sec
+			{3400, 1.0f, 0.0f, 0.0f},  // then immediately turn to red color at 3.45sec and wait
+			{4000, 0.0f, 0.0f, 1.0f},  // start moving to blue color at 4sec
+			{4100, 1.0f, 0.0f, 0.0f},  // then turn to red color at 4.1sec
+			{4200, 0.0f, 1.0f, 0.0f},  // the turn to green at 4.2sec and wait 
+			{6000, 0.0f, 0.0f, 0.0f},  // finally return to black color at 6sec
+			{8000, 0.0f, 0.0f, 0.0f}   // the end of the cycle at 6sec
 		};
 		float3 getColorAtTime(long long currentTimeMs)
 		{
@@ -277,6 +277,9 @@ void InfiniteSmoothing::updateLeds()
 
 void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbColors)
 {
+	if (nonlinearRgbColors->size() == 0)
+		return;
+
 	if (testPilot.active)
 	{
 		const auto& color = nonlinearRgbColors->front();

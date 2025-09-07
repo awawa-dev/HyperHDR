@@ -29,8 +29,7 @@ private:
 	std::vector<linalg::aliases::float3> _targetColorsRGB;
 
 	float _initialDuration = 150.0f;
-	float _end_time = 0.0f;
-	float _previousFrameTimeMs = 0.0f;
-
+	float _startAnimationTimeMs = 0.0f;
+	float _targetTime = 0.0f;
 	bool _isAnimationComplete = true;
 };

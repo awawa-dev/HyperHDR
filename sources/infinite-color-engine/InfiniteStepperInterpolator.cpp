@@ -70,7 +70,6 @@ void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_
 
 	if (_currentColorsRGB.size() != new_rgb_targets.size())
 	{
-		_previousFrameTimeMs = startTimeMs;
 		_currentColorsRGB = new_rgb_targets;
 		_targetColorsRGB = std::move(new_rgb_targets);
 		_isAnimationComplete = true;
@@ -80,46 +79,71 @@ void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_
 		_targetColorsRGB = std::move(new_rgb_targets);
 		_isAnimationComplete = false;
 	}
+
+	_startAnimationTimeMs = startTimeMs;
+	_targetTime = startTimeMs + _initialDuration;
 }
 
 void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
 {
 	if (_isAnimationComplete)
-	{
 		return;
-	}
 
-	float dt = currentTimeMs - _previousFrameTimeMs;
-	if (dt <= 0.0f)
-	{
-		return;
-	}
-	_previousFrameTimeMs = currentTimeMs;
+	// obliczenie czasu, analog setupAdvColor
+	float deltaTime = _targetTime - currentTimeMs;
+	float totalTime = _targetTime - _startAnimationTimeMs;
+	float kOrg = std::max(1.0f - deltaTime / totalTime, 0.0001f);
 
-	// prosty filtr dolnoprzepustowy (stała czasowa = _initialDuration)
-	float alpha = dt / _initialDuration;
-	if (alpha > 1.0f) alpha = 1.0f;
+	float4 aspectK = float4{
+		std::min(std::pow(kOrg, 1.0f),   1.0f), // aspectK[0] = kMin
+		std::min(std::pow(kOrg, 0.9f),   1.0f), // aspectK[1] = kMid
+		std::min(std::pow(kOrg, 0.75f),  1.0f), // aspectK[2] = kAbove
+		std::min(std::pow(kOrg, 0.6f),   1.0f)  // aspectK[3] = kMax
+	};
 
-	for (auto current_it = _currentColorsRGB.begin(), target_it = _targetColorsRGB.begin();
-		current_it != _currentColorsRGB.end() && target_it != _targetColorsRGB.end();
-		++current_it, ++target_it)
-	{
-		*current_it = linalg::lerp(*current_it, *target_it, alpha);
-	}
+	float3 limits = float3(16.0f, 32.0f, 60.0f) / 255.0f;
+	// limits[0] = 16/255  => stary limitMin
+	// limits[1] = 32/255  => stary limitMid
+	// limits[2] = 60/255  => stary limitMax
 
-	const float FINISH_COMPONENT_THRESHOLD = 1.0f / 255.0f;
-	if (std::ranges::equal(
-		_currentColorsRGB,
-		_targetColorsRGB,
-		[&](const float3& cur, const float3& target) {
-			return linalg::maxelem(linalg::abs(target - cur)) <= FINISH_COMPONENT_THRESHOLD;
+	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
+		const float FINISH_COMPONENT_THRESHOLD = 1.5f / 255.0f;
+
+		float val = linalg::maxelem(linalg::abs(diff));
+
+		if (val < FINISH_COMPONENT_THRESHOLD)
+		{
+			cur += diff; // cur + diff = target
+			return false; // kolor już osiągnął target
 		}
-	))
+		else
+		{
+			int idx = (val < limits[0]) ? 3 :   // limitMin (16)     => używa kMax
+				(val < limits[1]) ? 2 :         // limitMid (32)     => używa kAbove
+				(val < limits[2]) ? 1 :         // limitMax (60)     => używa kMid
+				0;                              // powyżej limitMax  => używa kMin
+
+			for (int i = 0; i < 3; ++i)
+			{
+				cur[i] += aspectK[idx] * diff[i];
+			}
+			return true;
+		}
+		};
+
+	_isAnimationComplete = true;
+
+	for (auto cur = _currentColorsRGB.begin(), tgt = _targetColorsRGB.begin();
+		cur != _currentColorsRGB.end() && tgt != _targetColorsRGB.end();
+		++cur, ++tgt)
 	{
-		_currentColorsRGB = _targetColorsRGB;
-		_isAnimationComplete = true;
+		if (computeChannelVec(*cur, *tgt - *cur)) // jeśli true => kolor jeszcze nie doszedł do target
+		{
+			_isAnimationComplete = false;
+		}
 	}
 }
+
 
 SharedOutputColors InfiniteStepperInterpolator::getCurrentColors() const
 {
