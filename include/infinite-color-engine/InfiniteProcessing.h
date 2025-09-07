@@ -168,18 +168,19 @@ private:
 	static constexpr int LUT_DIMENSION = 9;
 	CalibrationData _colorCalibrationData;	
 
-	bool _temperature_enabled;
-	linalg::vec<float, 3> _temperature_tint;
+	std::optional <linalg::vec<float, 3>> _temperature_tint;
 
-	float _brightness;
-	float _saturation;
+	std::optional<float> _gamma;
 
-	float _scaleOutput;
+	std::optional<float> _brightness;
+	std::optional<float> _saturation;
 
-	float _powerLimit;
+	std::optional<float> _scaleOutput;
 
-	float _minimalBacklight;
-	bool _coloredBacklight;
+	std::optional<float> _powerLimit;
+
+	std::optional<float> _minimalBacklight;
+	std::optional<bool>	_coloredBacklight;
 
 	Logger* _log;
 	QJsonObject _currentConfig;

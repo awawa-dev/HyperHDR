@@ -81,18 +81,9 @@ namespace
 InfiniteProcessing::InfiniteProcessing() :
 	_enabled(true),
 	_colorOrder(LedString::ColorOrder::ORDER_RGB),
-	_temperature_enabled(false),
-	_temperature_tint{},
-	_brightness(1.0f),
-	_saturation(1.0f),
-	_scaleOutput(1.0f),
-	_powerLimit(1.0f),
-	_minimalBacklight(1.0f / 255.0f),
-	_coloredBacklight(true),	
 	_log(nullptr),
 	_user_gamma_lut{}
 {
-	generateUserGamma(1.0f);
 }
 
 InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, Logger* log) :
@@ -144,16 +135,17 @@ void InfiniteProcessing::updateCurrentConfig(const QJsonObject& config)
 		usePrimariesOnly, red, green, blue,
 		cyan, magenta, yellow,
 		white, black);	
-	
-	float brightness = config["luminanceGain"].toDouble(1);
-	float saturation = config["saturationGain"].toDouble(1);	
-	setBrightnessAndSaturation(brightness, saturation);
+
+
+	float scaleOutput = config["scaleOutput"].toDouble(1);
+	setScaleOutput(scaleOutput);
 
 	float gamma = config["gamma"].toDouble(1.5);
 	generateUserGamma(gamma);
 
-	float scaleOutput = config["scaleOutput"].toDouble(1);
-	setScaleOutput(scaleOutput);
+	float brightness = config["luminanceGain"].toDouble(1);
+	float saturation = config["saturationGain"].toDouble(1);
+	setBrightnessAndSaturation(brightness, saturation);
 
 	float minimalBacklight = config["backlightThreshold"].toDouble(0);
 	auto coloredBacklight = config["backlightColored"].toBool(true);
@@ -193,11 +185,11 @@ void InfiniteProcessing::applyyAllProcessingSteps(std::vector<linalg::vec<float,
 		{
 			auto& color = *it;
 			applyTemperature(color);
-			calibrateColorInColorspace(colorCalibration, color);			
+			calibrateColorInColorspace(colorCalibration, color);
+			applyScaleOutput(color);
 			color = srgbLinearToNonlinear(color);			
 			applyUserGamma(color);
-			applyBrightnessAndSaturation(color);
-			applyScaleOutput(color);
+			applyBrightnessAndSaturation(color);			
 			applyMinimalBacklight(color);
 		}
 
@@ -253,35 +245,44 @@ void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBack
 		}
 		minimalLevel = 0.0039f;
 	}
+
+
 	_minimalBacklight = minimalLevel;
 	_coloredBacklight = coloreBacklight;
+
+	if (_minimalBacklight == 0.0f)
+	{
+		_minimalBacklight.reset();
+		_coloredBacklight.reset();
+	}
+
 	if (_log)
 	{
-		Info(_log, "--- MINIMAL BACKLIGHT  (ENABLED: %s) ---", ((_minimalBacklight > 0.0f) ? "true" : "false"));
-		Info(_log, "MINIMAL LEVEL: %f", _minimalBacklight);
-		Info(_log, "COLORED:       %s", ((_coloredBacklight)?"true" : "false"));
+		bool enabled = _minimalBacklight.has_value() && _coloredBacklight.has_value();
+		Info(_log, "--- MINIMAL BACKLIGHT  (ENABLED: %s) ---", ((enabled) ? "true" : "false"));
+		if (enabled)
+		{
+			Info(_log, "MINIMAL LEVEL: %f", _minimalBacklight.value());
+			Info(_log, "COLORED:       %s", ((_coloredBacklight.value()) ? "true" : "false"));
+		}
 	}
 }
 
 void InfiniteProcessing::applyMinimalBacklight(linalg::vec<float, 3>& color) const
 {
-	if (_minimalBacklight > 0.0f)
+	if (!_minimalBacklight.has_value() || !_coloredBacklight.has_value())
+		return;
+
+	if (_coloredBacklight.value())
 	{
-		if (_coloredBacklight)
+		color = linalg::max(color, float3{ _minimalBacklight.value()});
+	}
+	else
+	{
+		float avVal = (color.x + color.y + color.z) / 3.0f;
+		if (avVal < _minimalBacklight)
 		{
-			color = {
-				std::max(color.x, _minimalBacklight),
-				std::max(color.y, _minimalBacklight),
-				std::max(color.z, _minimalBacklight)
-			};
-		}
-		else
-		{
-			float avVal = (color.x + color.y + color.z) / 3.0f;
-			if (avVal < _minimalBacklight)
-			{
-				color = float3{ _minimalBacklight };
-			}
+			color = float3{ _minimalBacklight.value() };
 		}
 	}
 }
@@ -304,15 +305,21 @@ void InfiniteProcessing::generateColorspace(
 			if (_log)
 			{
 				Info(_log, "--- LED CALIBRATION (ENABLED: %s) ---", ((!is_identity) ? "true" : "false"));
-				Info(_log, "CLASSIC: %s", ((use_primaries_only) ? "true" : "false"));
-				Info(_log, "RED:     %s", std::string(target_red).c_str());
-				Info(_log, "GREEN:   %s", std::string(target_green).c_str());
-				Info(_log, "BLUE:    %s", std::string(target_blue).c_str());
-				Info(_log, "CYAN:    %s", std::string(target_cyan).c_str());
-				Info(_log, "MAGENTA: %s", std::string(target_magenta).c_str());
-				Info(_log, "YELLOW:  %s", std::string(target_yellow).c_str());
-				Info(_log, "WHITE:   %s", std::string(target_white).c_str());
-				Info(_log, "BLACK:   %s", std::string(target_black).c_str());
+				if (!is_identity)
+				{
+					Info(_log, "CLASSIC: %s", ((use_primaries_only) ? "true" : "false"));
+					Info(_log, "RED:     %s", std::string(target_red).c_str());
+					Info(_log, "GREEN:   %s", std::string(target_green).c_str());
+					Info(_log, "BLUE:    %s", std::string(target_blue).c_str());
+					if (!use_primaries_only)
+					{
+						Info(_log, "CYAN:    %s", std::string(target_cyan).c_str());
+						Info(_log, "MAGENTA: %s", std::string(target_magenta).c_str());
+						Info(_log, "YELLOW:  %s", std::string(target_yellow).c_str());
+						Info(_log, "WHITE:   %s", std::string(target_white).c_str());
+						Info(_log, "BLACK:   %s", std::string(target_black).c_str());
+					}
+				}
 			}
 		};	
 	if (use_primaries_only)
@@ -414,10 +421,7 @@ void InfiniteProcessing::calibrateColorInColorspace(const std::shared_ptr<const 
 
 		case CalibrationMode::Matrix:
 		{
-			color = linalg::mul(calibrationSnapshot->primary_calib_matrix, color);
-			color.x = std::max(0.0f, std::min(color.x, 1.0f));
-			color.y = std::max(0.0f, std::min(color.y, 1.0f));
-			color.z = std::max(0.0f, std::min(color.z, 1.0f));
+			color = clamp(linalg::mul(calibrationSnapshot->primary_calib_matrix, color), 0.0f, 1.0f);
 			return;
 		}
 
@@ -456,7 +460,7 @@ void InfiniteProcessing::calibrateColorInColorspace(const std::shared_ptr<const 
 			auto c0 = linalg::lerp(c00, c10, g_frac);
 			auto c1 = linalg::lerp(c01, c11, g_frac);
 
-			color = linalg::lerp(c0, c1, b_frac);
+			color = clamp(linalg::lerp(c0, c1, b_frac), 0.0f, 1.0f);
 			return;
 		}
 	}
@@ -464,20 +468,35 @@ void InfiniteProcessing::calibrateColorInColorspace(const std::shared_ptr<const 
 
 void InfiniteProcessing::generateUserGamma(float gamma)
 {
-	if (_log)
+	_gamma = gamma;
+
+	if (_gamma == 1.0f)
 	{
-		Info(_log, "--- USER GAMMA ---");
-		Info(_log, "GAMMA:   %.2f", gamma);
+		_gamma.reset();
+	}
+	else
+	{
+		for (int i = 0; i < LUT_SIZE; ++i)
+		{
+			_user_gamma_lut[i] = std::pow(static_cast<float>(i) / (LUT_SIZE - 1), _gamma.value());
+		}
 	}
 
-	for (int i = 0; i < LUT_SIZE; ++i)
+	if (_log)
 	{
-		_user_gamma_lut[i] = std::pow(static_cast<float>(i) / (LUT_SIZE - 1), gamma);
+		Info(_log, "--- USER GAMMA (ENABLED: %s) ---", ((_gamma.has_value()) ? "true" : "false"));
+		if (_gamma.has_value())
+		{
+			Info(_log, "GAMMA:   %.2f", _gamma.value());
+		}
 	}
 }
 
 void InfiniteProcessing::applyUserGamma(linalg::vec<float, 3>& color) const
 {
+	if (!_gamma.has_value())
+		return;
+
 	for (int i = 0; i < 3; ++i)
 	{		
 		float pos = color[i] * (LUT_SIZE - 1);
@@ -492,7 +511,7 @@ void InfiniteProcessing::applyUserGamma(linalg::vec<float, 3>& color) const
 
 void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<float, 3>  custom_tint)
 {
-	_temperature_enabled = true;
+	_temperature_tint.reset();
 	switch (preset)
 	{
 		case TemperaturePreset::Warm:
@@ -507,83 +526,94 @@ void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<fl
 		case TemperaturePreset::Custom:
 			_temperature_tint = custom_tint;
 			break;
-		case TemperaturePreset::Disabled:
-		default:
-			_temperature_enabled = false;
-			break;
 	}
 
 	if (_log)
 	{
-		Info(_log, "--- TEMPERATURE (ENABLED: %s) ---", ((_temperature_enabled) ? "true" : "false"));
-		Info(_log, "RED:     %0.3f", _temperature_tint.x);
-		Info(_log, "GREEN:   %0.3f", _temperature_tint.y);
-		Info(_log, "BLUE:    %0.3f", _temperature_tint.z);
+		Info(_log, "--- TEMPERATURE (ENABLED: %s) ---", ((_temperature_tint.has_value()) ? "true" : "false"));
+		if (_temperature_tint.has_value())
+		{
+			Info(_log, "RED:     %0.3f", _temperature_tint.value().x);
+			Info(_log, "GREEN:   %0.3f", _temperature_tint.value().y);
+			Info(_log, "BLUE:    %0.3f", _temperature_tint.value().z);
+		}
 	}
 }
 
 void InfiniteProcessing::applyTemperature(linalg::vec<float, 3>& color) const
 {
-	if (!_temperature_enabled)
+	if (!_temperature_tint.has_value())
 	{
 		return;
 	}
-	color = color * _temperature_tint;
+	color = clamp(color * _temperature_tint.value(), 0.0f, 1.0f);
 }
 
 void InfiniteProcessing::setBrightnessAndSaturation(float brightness, float saturation)
 {
-	_brightness = std::max(0.0f, brightness);
-	_saturation = std::max(0.0f, saturation);
+	if (std::abs(brightness - 1.0f) < 1e-5 && std::abs(saturation - 1.0f) < 1e-5)
+	{
+		_brightness.reset();
+		_saturation.reset();
+	}
+	else
+	{
+		_brightness = std::max(0.0f, brightness);
+		_saturation = std::max(0.0f, saturation);
+	}
 
 	if (_log)
 	{
-		Info(_log, "--- HSL CORRECTION (ENABLED: %s) ---", ((std::abs(_brightness - 1.0f) < 1e-5 && std::abs(_saturation - 1.0f) < 1e-5) ? "false" : "true"));
-		Info(_log, "BRIGHTNESS: %0.3f", _brightness);
-		Info(_log, "SATURATION: %0.3f", _saturation);
+		bool enabled = _brightness.has_value() && _saturation.has_value();
+		Info(_log, "--- HSV CORRECTION (ENABLED: %s) ---", ((enabled) ? "true" : "false"));
+		if (enabled)
+		{
+			Info(_log, "BRIGHTNESS: %0.3f", _brightness.value());
+			Info(_log, "SATURATION: %0.3f", _saturation.value());
+		}
 	}
 }
 
 void InfiniteProcessing::applyBrightnessAndSaturation(linalg::vec<float, 3>& color) const
 {
-	if (std::abs(_brightness - 1.0f) < 1e-5 && std::abs(_saturation - 1.0f) < 1e-5)
-	{
+	if (!_brightness.has_value() || !_saturation.has_value())
 		return;
-	}
 
 	linalg::vec<float, 3> hsv = ColorSpaceMath::rgb2hsv(color);
 
-	hsv.z *= _brightness;
-	hsv.y *= _saturation;
+	hsv.z *= _brightness.value();
+	hsv.y *= _saturation.value();
 
 	hsv.z = std::min(hsv.z, 1.0f);
 	hsv.y = std::min(hsv.y, 1.0f);
 
-	color = ColorSpaceMath::hsv2rgb(hsv);
-
-	color.x = std::max(0.0f, std::min(color.x, 1.0f));
-	color.y = std::max(0.0f, std::min(color.y, 1.0f));
-	color.z = std::max(0.0f, std::min(color.z, 1.0f));
+	color = linalg::clamp(ColorSpaceMath::hsv2rgb(hsv), 0.0f, 1.0f);
 }
 
 
 void InfiniteProcessing::setScaleOutput(float scaleOutput)
 {
-	_scaleOutput = std::clamp(scaleOutput, 0.0f, 1.0f);
+	_scaleOutput = std::clamp(scaleOutput, 0.0f, 2.0f);
+
+	if (_scaleOutput.value() == 1.f)
+		_scaleOutput.reset();
 
 	if (_log)
 	{
-		Info(_log, "--- SCALE OUTPUT (ENABLED: %s) ---", ((_scaleOutput >= 1.f) ? "false" : "true"));
-		Info(_log, "SCALE:   %0.3f", _scaleOutput);
+		Info(_log, "--- SCALE OUTPUT (ENABLED: %s) ---", ((_scaleOutput.has_value()) ? "true" : "false"));
+		if (_scaleOutput.has_value())
+		{
+			Info(_log, "SCALE:   %0.3f", _scaleOutput.value());
+		}
 	}
 }
 
 void InfiniteProcessing::applyScaleOutput(linalg::vec<float, 3>& color) const
 {
-	if (_scaleOutput >= 1.0f)
+	if (!_scaleOutput.has_value())
 		return;
 
-	color *= _scaleOutput;
+	color = linalg::clamp(color * _scaleOutput.value(), 0.0f, 1.0f);
 }
 
 
@@ -591,23 +621,29 @@ void InfiniteProcessing::setPowerLimit(float powerLimit)
 {
 	_powerLimit = std::clamp(powerLimit, 0.0f, 1.0f);
 
+	if (_powerLimit.value() == 1.f)
+		_powerLimit.reset();
+
 	if (_log)
 	{
-		Info(_log, "--- POWER LIMIT (ENABLED: %s) ---", ((_powerLimit >= 1.f) ? "false" : "true"));
-		Info(_log, "LIMIT:   %0.3f", _powerLimit);
+		Info(_log, "--- POWER LIMIT (ENABLED: %s) ---", ((_powerLimit.has_value()) ? "true" : "false"));
+		if (_powerLimit.has_value())
+		{
+			Info(_log, "LIMIT:   %0.3f", _powerLimit.value());
+		}
 	}
 }
 
 void InfiniteProcessing::applyPowerLimit(std::vector<linalg::vec<float, 3>>& nonlinearRgbColors) const
 {
-	if (_powerLimit >= 1.0f)
+	if (!_powerLimit.has_value())
 		return;
 
 	float totalPower = 0.0f;
 	for (auto it = nonlinearRgbColors.begin(); it != nonlinearRgbColors.end(); ++it)
 		totalPower += linalg::sum(*it);
 
-	const float allowedPower = (nonlinearRgbColors.size() * 3.f) * _powerLimit;
+	const float allowedPower = (nonlinearRgbColors.size() * 3.f) * _powerLimit.value();
 
 	if (totalPower > 0.0f && allowedPower < totalPower)
 	{

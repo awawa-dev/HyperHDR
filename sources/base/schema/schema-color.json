@@ -52,15 +52,6 @@
 						"required" : true,
 						"propertyOrder" : 3
 					},
-					"classic_config" :
-					{
-						"type" : "boolean",
-						"format": "checkbox",
-						"title" : "edt_conf_color_classic_config_title",
-						"default" : true,
-						"required" : true,
-						"propertyOrder" : 4
-					},
 					"temperatureRed" :
 					{
 						"type" : "number",
@@ -76,7 +67,7 @@
 								"temperatureSetting": "custom"
 							}
 						},
-						"propertyOrder" : 5
+						"propertyOrder" : 4
 					},
 					"temperatureGreen" :
 					{
@@ -93,7 +84,7 @@
 								"temperatureSetting": "custom"
 							}
 						},
-						"propertyOrder" : 6
+						"propertyOrder" : 5
 					},
 					"temperatureBlue" :
 					{
@@ -110,6 +101,15 @@
 								"temperatureSetting": "custom"
 							}
 						},
+						"propertyOrder" : 6
+					},
+					"classic_config" :
+					{
+						"type" : "boolean",
+						"format": "checkbox",
+						"title" : "edt_conf_color_classic_config_title",
+						"default" : true,
+						"required" : true,
 						"propertyOrder" : 7
 					},
 					"red" :
@@ -265,6 +265,18 @@
 						},
 						"propertyOrder" : 15
 					},
+					"scaleOutput" :
+					{
+						"type" : "number",
+						"format": "stepper",
+						"step" : 0.01,
+						"title" : "edt_conf_processing_scaleOutput_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 2.0,
+						"default" : 1.0,
+						"propertyOrder" : 17
+					},
 					"gamma" :
 					{
 						"type" : "number",
@@ -275,7 +287,7 @@
 						"minimum" : 0.1,
 						"maximum": 100.0,
 						"default" : 1.5,						
-						"propertyOrder" : 16
+						"propertyOrder" : 19
 					},
 					"luminanceGain" :
 					{
@@ -287,7 +299,7 @@
 						"minimum" : 0,
 						"maximum": 10,
 						"default" : 1,
-						"propertyOrder" : 17
+						"propertyOrder" : 21
 					},
 					"saturationGain" :
 					{
@@ -299,19 +311,7 @@
 						"minimum" : 0,
 						"maximum": 10,
 						"default" : 1,						
-						"propertyOrder" : 18
-					},
-					"scaleOutput" :
-					{
-						"type" : "number",
-						"format": "stepper",
-						"step" : 0.01,
-						"title" : "edt_conf_processing_scaleOutput_title",
-						"required" : true,
-						"minimum" : 0,
-						"maximum": 1.0,
-						"default" : 1.0,
-						"propertyOrder" : 19
+						"propertyOrder" : 23
 					},
 					"backlightThreshold" :
 					{
@@ -323,7 +323,7 @@
 						"minimum" : 0,
 						"maximum": 1.0,
 						"default" : 0.0039,
-						"propertyOrder" : 20
+						"propertyOrder" : 25
 					},
 					"backlightColored" :
 					{
@@ -332,7 +332,7 @@
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
 						"default" : true,
-						"propertyOrder" : 21,
+						"propertyOrder" : 27,
 						"options": {
 							"dependencies": {
 								"backlightThreshold": true
@@ -349,7 +349,7 @@
 						"minimum" : 0,
 						"maximum": 1.0,
 						"default" : 1.0,
-						"propertyOrder" : 22
+						"propertyOrder" : 29
 					}
 				},
 				"additionalProperties" : false

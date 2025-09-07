@@ -95,6 +95,13 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
+				"scaleOutput" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0,
+					"maximum": 2.0
+				},
 				"gamma": {
 					"type" : "number",
 					"required" : false,
@@ -149,6 +156,13 @@
 					"required" : false,
 					"minimum" : 0,
 					"maximum" : 1.0
+				},
+				"powerLimit" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0,
+					"maximum": 1.0
 				}
 			},
 			"additionalProperties": false
