@@ -65,11 +65,14 @@ void InfiniteStepperInterpolator::resetToColors(std::vector<float3>&& colors, fl
 
 void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs)
 {
+	if (new_rgb_targets.size() == 0)
+		return;
+
 	if (_currentColorsRGB.size() != new_rgb_targets.size())
 	{
 		_previousFrameTimeMs = startTimeMs;
-		_currentColorsRGB = std::move(new_rgb_targets);
-		_targetColorsRGB = _currentColorsRGB;
+		_currentColorsRGB = new_rgb_targets;
+		_targetColorsRGB = std::move(new_rgb_targets);
 		_isAnimationComplete = true;
 	}
 	else

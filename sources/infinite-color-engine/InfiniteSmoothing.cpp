@@ -64,6 +64,51 @@ namespace
 	constexpr int64_t  DEFAUL_SETTLINGTIME = 200;   // settlingtime in ms
 	constexpr double   DEFAUL_UPDATEFREQUENCY = 25;    // updatefrequncy in hz
 	constexpr double   MINIMAL_UPDATEFREQUENCY = 20;
+
+	struct
+	{
+		bool active = false;
+		long long started = 0;
+		std::vector<float4> sequence = {
+			{0,    0.0f, 0.0f, 0.0f},
+			{2000, 1.0f, 0.0f, 0.0f},
+			{2100, 0.0f, 0.0f, 0.0f},
+			{2300, 0.0f, 1.0f, 0.0f},
+			{2400, 0.0f, 0.0f, 0.0f},
+			{2600, 0.0f, 1.0f, 0.0f},
+			{2700, 0.0f, 0.0f, 0.0f},
+			{3000, 1.0f, 0.0f, 0.0f},
+			{3050, 0.0f, 1.0f, 0.0f},
+			{3150, 0.0f, 0.0f, 1.0f},
+			{4000, 1.0f, 0.0f, 0.0f},
+			{4100, 0.0f, 0.0f, 1.0f},
+			{4200, 0.0f, 1.0f, 0.0f},
+			{5000, 0.0f, 0.0f, 0.0f},
+			{8000, 0.0f, 0.0f, 0.0f}
+		};
+		float3 getColorAtTime(long long currentTimeMs)
+		{
+			long long delta = currentTimeMs - testPilot.started;
+
+			if (!testPilot.sequence.empty() && delta > static_cast<long long>(testPilot.sequence.back().x)) {
+				testPilot.started = currentTimeMs;
+				delta = 0;
+			}
+
+			float3 color = { 0.0f, 0.0f, 0.0f };
+
+			for (size_t i = 1; i < testPilot.sequence.size(); ++i) {
+				if (delta < static_cast<long long>(testPilot.sequence[i].x)) {
+					color = { testPilot.sequence[i - 1].y, testPilot.sequence[i - 1].z, testPilot.sequence[i - 1].w };
+					break;
+				}
+			}
+
+			printf("Δ%4lld | incomingColors: (%d, %d, %d)\n", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
+
+			return color;
+		}
+	} testPilot;
 }
 
 InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
@@ -159,6 +204,11 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 
 		_continuousOutput = obj["continuousOutput"].toBool(true);
 
+		if (testPilot.active = obj["testMode"].toBool(false); testPilot.active)
+		{
+			testPilot.started = InternalClock::now();
+		}
+
 		_configurations[SMOOTHING_USER_CONFIG] = std::make_unique<SmoothingConfig>(
 			SmoothingConfig{
 			.pause = false,
@@ -180,7 +230,7 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 	}
 }
 
-void InfiniteSmoothing::incomingColors(std::vector<float3>&& linearRgbColors)
+void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 {
 	if (_infoInput)
 	{
@@ -194,37 +244,47 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& linearRgbColors)
 
 	if (!isEnabled())
 	{
-		queueColors(std::make_shared<std::vector<float3>>(std::move(linearRgbColors)));
+		queueColors(std::make_shared<std::vector<float3>>(std::move(nonlinearRgbColors)));
 		return;
 	}
 
 	_coolDown = 1;
 
 	_dataSynchro.lock();
-	_interpolator->setTargetColors(std::move(linearRgbColors), InternalClock::now());
+	if (testPilot.active)
+	{
+		std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), testPilot.getColorAtTime(InternalClock::now()));
+	}
+	_interpolator->setTargetColors(std::move(nonlinearRgbColors), InternalClock::now());
 	_dataSynchro.unlock();
-
-	return;
 }
 
 void InfiniteSmoothing::updateLeds()
 {	
-	SharedOutputColors linearRgbColors;
+	SharedOutputColors nonlinearRgbColors;
 
 	{
 		QMutexLocker locker(&_dataSynchro);
 		if (!isEnabled())
 			return;
 		_interpolator->updateCurrentColors(InternalClock::now());
-		linearRgbColors = _interpolator->getCurrentColors();
-	}
 
-	queueColors(std::move(linearRgbColors));
+		nonlinearRgbColors = _interpolator->getCurrentColors();
+	}
+	
+	queueColors(std::move(nonlinearRgbColors));
 }
 
-void InfiniteSmoothing::queueColors(SharedOutputColors&& linearRgbColors)
+void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbColors)
 {
-	emit SignalProcessedColors(linearRgbColors);
+	if (testPilot.active)
+	{
+		const auto& color = nonlinearRgbColors->front();
+		long long delta = InternalClock::now() - testPilot.started;
+		printf("Δ%4lld | updateCurrentColors: (%d, %d, %d)\n", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
+	}
+
+	emit SignalProcessedColors(nonlinearRgbColors);
 }
 
 void InfiniteSmoothing::handleSignalRequestComponent(hyperhdr::Components component, bool state)

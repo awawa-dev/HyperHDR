@@ -35,7 +35,7 @@ public:
 	void setEnable(bool enable);
 	bool isEnabled() const;
 
-	void incomingColors(std::vector<linalg::aliases::float3>&& linearRgbColors);
+	void incomingColors(std::vector<linalg::aliases::float3>&& nonlinearRgbColors);
 	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	bool selectConfig(unsigned cfgId);
@@ -45,7 +45,7 @@ public:
 
 signals:
 	void SignalMasterClockTick();
-	void SignalProcessedColors(SharedOutputColors linearRgbColors);
+	void SignalProcessedColors(SharedOutputColors nonlinearRgbColors);
 
 public slots:
 	void handleSignalInstanceSettingsChanged(settings::type type, const QJsonDocument& config);

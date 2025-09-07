@@ -1299,5 +1299,7 @@
   "edt_conf_processing_scaleOutput_title" : "Scale color",
   "edt_conf_processing_scaleOutput_expl" : "Multiplies the RGB color components by a given factor in the linear RGB space",
   "edt_conf_processing_powerLimit_title" : "Limit power output",
-  "edt_conf_processing_powerLimit_expl" : "This feature checks whether the total power draw for the current scene has been exceeded. If so, it automatically scales down the brightness and color of each LED. <strong>Please note, this is not a substitute for a sufficiently powerful power supply.</strong> This function is only designed to limit excessive brightness and will not protect your equipment from damage due to an undersized power supply. We do not guarantee that this feature will directly translate into limiting the power of the LED setup to a specific wattage value."
+  "edt_conf_processing_powerLimit_expl" : "This feature checks whether the total power draw for the current scene has been exceeded. If so, it automatically scales down the brightness and color of each LED. <strong>Please note, this is not a substitute for a sufficiently powerful power supply.</strong> This function is only designed to limit excessive brightness and will not protect your equipment from damage due to an undersized power supply. We do not guarantee that this feature will directly translate into limiting the power of the LED setup to a specific wattage value.",
+  "edt_conf_smoothing_testMode_title" : "Test mode",
+  "edt_conf_smoothing_testMode_expl" : "Cyclic sudden color changes for smoothing algorithms testing, output to the console (on Windows run HyperHDR with -c parameter)"
 }
