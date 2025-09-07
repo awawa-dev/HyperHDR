@@ -57,72 +57,61 @@ void InfiniteStepperInterpolator::setTransitionDuration(float durationMs)
 	_initialDuration = std::max(1.0f, durationMs);
 }
 
-void InfiniteStepperInterpolator::resetToColors(std::vector<float3> colors)
+void InfiniteStepperInterpolator::resetToColors(std::vector<float3>&& colors, float startTimeMs)
 {
-	_currentColorsRGB = std::move(colors);
-	_targetColorsRGB = _currentColorsRGB;
-	_isAnimationComplete = true;
-	_previousFrameTimeMs = 0.0f;
+	_currentColorsRGB.clear();
+	setTargetColors(std::move(colors), startTimeMs);
 }
 
-void InfiniteStepperInterpolator::setTargetColors(std::vector<float3> new_rgb_targets, float startTimeMs)
+void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs)
 {
-	if (!_isAnimationComplete)
+	if (_currentColorsRGB.size() != new_rgb_targets.size())
 	{
-		updateCurrentColors(startTimeMs);
+		_previousFrameTimeMs = startTimeMs;
+		_currentColorsRGB = std::move(new_rgb_targets);
+		_targetColorsRGB = _currentColorsRGB;
+		_isAnimationComplete = true;
 	}
-
-	_targetColorsRGB = std::move(new_rgb_targets);
-	_end_time = startTimeMs + _initialDuration;
-	_previousFrameTimeMs = startTimeMs;
-	_isAnimationComplete = false;
+	else
+	{
+		_targetColorsRGB = std::move(new_rgb_targets);
+		_isAnimationComplete = false;
+	}
 }
 
 void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
 {
-    if (_isAnimationComplete)
-    {
-        return;
-    }
-    
-    float dt = currentTimeMs - _previousFrameTimeMs;
-    if (dt <= 0.0f)
+	if (_isAnimationComplete)
 	{
-        return;
-    }
-
-    float remaining_time = _end_time - _previousFrameTimeMs;
-
-    float kOrg = (remaining_time > 1e-5f) ? (dt / remaining_time) : 1.0f;
-    kOrg = std::max(0.0f, std::min(kOrg, 1.0f));
-
-    for (size_t i = 0; i < _currentColorsRGB.size(); ++i)
-    {
-        float3& prev = _currentColorsRGB[i];
-        const float3& target = _targetColorsRGB[i];
-        
-        float3 diff = target - prev;
-
-        prev += diff * kOrg;
-    }
-
-    _previousFrameTimeMs = currentTimeMs;
-
-	const float FINISH_COMPONENT_THRESHOLD = 1.0f / 255.0f;
-	bool all_colors_finished = true;
-
-	for (size_t i = 0; i < _currentColorsRGB.size(); ++i)
-	{
-		float3 diff = _targetColorsRGB[i] - _currentColorsRGB[i];
-
-		if (linalg::maxelem(linalg::abs(diff)) > FINISH_COMPONENT_THRESHOLD)
-		{
-			all_colors_finished = false;
-			break;
-		}
+		return;
 	}
 
-	if (all_colors_finished)
+	float dt = currentTimeMs - _previousFrameTimeMs;
+	if (dt <= 0.0f)
+	{
+		return;
+	}
+	_previousFrameTimeMs = currentTimeMs;
+
+	// prosty filtr dolnoprzepustowy (stała czasowa = _initialDuration)
+	float alpha = dt / _initialDuration;
+	if (alpha > 1.0f) alpha = 1.0f;
+
+	for (auto current_it = _currentColorsRGB.begin(), target_it = _targetColorsRGB.begin();
+		current_it != _currentColorsRGB.end() && target_it != _targetColorsRGB.end();
+		++current_it, ++target_it)
+	{
+		*current_it = linalg::lerp(*current_it, *target_it, alpha);
+	}
+
+	const float FINISH_COMPONENT_THRESHOLD = 1.0f / 255.0f;
+	if (std::ranges::equal(
+		_currentColorsRGB,
+		_targetColorsRGB,
+		[&](const float3& cur, const float3& target) {
+			return linalg::maxelem(linalg::abs(target - cur)) <= FINISH_COMPONENT_THRESHOLD;
+		}
+	))
 	{
 		_currentColorsRGB = _targetColorsRGB;
 		_isAnimationComplete = true;
@@ -146,13 +135,12 @@ void InfiniteStepperInterpolator::test()
 		const auto& final_B = std::get<4>(test);
 
 		std::cout << "\n--- TEST: " << name << " ---\n";
-		std::cout << "--------------------------------------------------\n";
-
-		interpolator.resetToColors({ start_A });
+		std::cout << "--------------------------------------------------\n";		
 
 		float base_duration = 150.0f;
 		float time_offset = 0.0f;
 
+		interpolator.resetToColors({ start_A }, 0);
 		interpolator.setTransitionDuration(base_duration);
 		interpolator.setTargetColors({ interrupt_C }, time_offset);
 

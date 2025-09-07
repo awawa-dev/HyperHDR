@@ -15,7 +15,7 @@ class InfiniteRgbInterpolator : public InfiniteInterpolator
 public:
 	InfiniteRgbInterpolator();
 
-	void setTargetColors(std::vector<linalg::aliases::float3> new_rgb_targets, float startTimeMs) override;
+	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs) override;
 	void updateCurrentColors(float currentTimeMs) override;
 	SharedOutputColors getCurrentColors() const override;
 

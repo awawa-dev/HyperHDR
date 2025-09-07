@@ -16,13 +16,13 @@ class InfiniteStepperInterpolator : public InfiniteInterpolator
 public:
 	InfiniteStepperInterpolator();
 	
-	void setTargetColors(std::vector<linalg::aliases::float3> new_rgb_targets, float startTimeMs) override;
+	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs) override;
 	void updateCurrentColors(float currentTimeMs) override;
 	SharedOutputColors getCurrentColors() const override;
 
 	void setTransitionDuration(float durationMs) override;
 
-	void resetToColors(std::vector<linalg::aliases::float3> colors);
+	void resetToColors(std::vector<linalg::aliases::float3>&& colors, float startTimeMs);
 	static void test();
 private:
 	std::vector<linalg::aliases::float3> _currentColorsRGB;

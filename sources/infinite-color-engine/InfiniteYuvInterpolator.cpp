@@ -79,7 +79,7 @@ void InfiniteYuvInterpolator::resetToColors(std::vector<float3> colors)
 	_isAnimationComplete = true;
 }
 
-void InfiniteYuvInterpolator::setTargetColors(std::vector<float3> new_rgb_targets, float startTimeMs)
+void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs)
 {
 	if (!_isAnimationComplete)
 	{

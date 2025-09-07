@@ -66,7 +66,7 @@ void InfiniteRgbInterpolator::resetToColors(std::vector<float3> colors)
 	_isAnimationComplete = true;
 }
 
-void InfiniteRgbInterpolator::setTargetColors(std::vector<float3> new_rgb_targets, float startTimeMs)
+void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs)
 {
 	if (!_isAnimationComplete)
 	{

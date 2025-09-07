@@ -201,7 +201,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& linearRgbColors)
 	_coolDown = 1;
 
 	_dataSynchro.lock();
-	_interpolator->setTargetColors(linearRgbColors, InternalClock::now());
+	_interpolator->setTargetColors(std::move(linearRgbColors), InternalClock::now());
 	_dataSynchro.unlock();
 
 	return;
