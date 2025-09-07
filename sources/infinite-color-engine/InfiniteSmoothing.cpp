@@ -65,7 +65,7 @@ namespace
 	constexpr double   DEFAUL_UPDATEFREQUENCY = 25;    // updatefrequncy in hz
 	constexpr double   MINIMAL_UPDATEFREQUENCY = 20;
 
-	struct
+	struct TestPilot
 	{
 		bool active = false;
 		long long started = 0;
@@ -88,18 +88,18 @@ namespace
 		};
 		float3 getColorAtTime(long long currentTimeMs)
 		{
-			long long delta = currentTimeMs - testPilot.started;
+			long long delta = currentTimeMs - started;
 
-			if (!testPilot.sequence.empty() && delta > static_cast<long long>(testPilot.sequence.back().x)) {
-				testPilot.started = currentTimeMs;
+			if (!sequence.empty() && delta > static_cast<long long>(sequence.back().x)) {
+				started = currentTimeMs;
 				delta = 0;
 			}
 
 			float3 color = { 0.0f, 0.0f, 0.0f };
 
-			for (size_t i = 1; i < testPilot.sequence.size(); ++i) {
-				if (delta < static_cast<long long>(testPilot.sequence[i].x)) {
-					color = { testPilot.sequence[i - 1].y, testPilot.sequence[i - 1].z, testPilot.sequence[i - 1].w };
+			for (size_t i = 1; i < sequence.size(); ++i) {
+				if (delta < static_cast<long long>(sequence[i].x)) {
+					color = { sequence[i - 1].y, sequence[i - 1].z, sequence[i - 1].w };
 					break;
 				}
 			}
