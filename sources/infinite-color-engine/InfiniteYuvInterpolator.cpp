@@ -56,7 +56,6 @@ InfiniteYuvInterpolator::InfiniteYuvInterpolator() = default;
 void InfiniteYuvInterpolator::setTransitionDuration(float durationMs)
 {
 	_initialDuration = std::max(1.0f, durationMs);
-	_deltaMs = std::max(1.0f, durationMs);
 }
 
 void InfiniteYuvInterpolator::setMaxLuminanceChangePerFrame(float maxChangePerStep)
@@ -64,142 +63,139 @@ void InfiniteYuvInterpolator::setMaxLuminanceChangePerFrame(float maxChangePerSt
 	_maxLuminanceChangePerStep = std::max(0.0f, maxChangePerStep);
 }
 
-void InfiniteYuvInterpolator::resetToColors(std::vector<float3> colors)
+//ColorSpaceMath::rgb_to_bt709(_currentColorsRGB[i])
+//ColorSpaceMath::bt709_to_rgb(nextPos)
+
+void InfiniteYuvInterpolator::resetToColors(std::vector<float3> colors, float startTimeMs)
 {
-	size_t new_size = colors.size();
-	_currentColorsRGB = std::move(colors);
-	_targetColorsRGB = _currentColorsRGB;
-	_wasClamped.assign(new_size, false);
-
-	_currentColorsYUV.resize(new_size);
-	for (size_t i = 0; i < new_size; ++i) {
-		_currentColorsYUV[i] = ColorSpaceMath::rgb_to_bt709(_currentColorsRGB[i]);
-	}
-
-	_isAnimationComplete = true;
+	_currentColorsYUV.clear();
+	setTargetColors(std::move(colors), startTimeMs);
 }
 
-void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug)
+void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug)
 {
-	if (!_isAnimationComplete)
+	if (new_rgb_to_yuv_targets.size() == 0)
+		return;
+
+	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+
+	if (debug)
 	{
-		updateCurrentColors(startTimeMs);
+		printf(" | Δ%.0f | time: %.0f | Y-limit: %.3f\n", delta, _initialDuration, _maxLuminanceChangePerStep);
 	}
 
-	_targetColorsRGB = std::move(new_rgb_targets);
-	size_t new_size = _targetColorsRGB.size();
+	startTimeMs -= delta;
 
-	if (_currentColorsRGB.size() != new_size)
+	// convert incoming RGB to YUV
+	_targetColorsRGB = new_rgb_to_yuv_targets;
+	for (auto it_newTargetColorsYUV = new_rgb_to_yuv_targets.begin(); it_newTargetColorsYUV != new_rgb_to_yuv_targets.end(); ++it_newTargetColorsYUV)
 	{
-		_currentColorsRGB.resize(new_size, { 0.0f, 0.0f, 0.0f });
+		*it_newTargetColorsYUV = ColorSpaceMath::rgb_to_bt709(*it_newTargetColorsYUV);
 	}
 
-	std::vector<float3> startColorsRGB = _currentColorsRGB;
-	_startColorsYUV.resize(new_size);
-	_targetColorsYUV.resize(new_size);
-	_wasClamped.assign(new_size, false);
-
-	float new_distance = 0.0f;
-	for (size_t i = 0; i < new_size; ++i)
+	if (_currentColorsYUV.size() != new_rgb_to_yuv_targets.size() || _targetColorsYUV.size() != new_rgb_to_yuv_targets.size())
 	{
-		_startColorsYUV[i] = ColorSpaceMath::rgb_to_bt709(startColorsRGB[i]);
-		_targetColorsYUV[i] = ColorSpaceMath::rgb_to_bt709(_targetColorsRGB[i]);
-		// Używamy dystansu w YUV do obliczeń
-		new_distance += linalg::distance(_startColorsYUV[i], _targetColorsYUV[i]);
+		_lastUpdate = startTimeMs;
+		_currentColorsYUV = new_rgb_to_yuv_targets;
+		_targetColorsYUV = std::move(new_rgb_to_yuv_targets);
+		_isAnimationComplete = true;
 	}
-
-	if (_isAnimationComplete)
+	else
 	{
-		// To jest nowa, pełna animacja
-		_deltaMs = _initialDuration;
-		_initialDistance = new_distance;
+		_targetColorsYUV = std::move(new_rgb_to_yuv_targets);
+		_isAnimationComplete = false;
 	}
-	else {
-		// To jest zmiana celu w trakcie animacji
-		if (_initialDistance > 1e-5f)
-		{
-			float duration_scale = new_distance / _initialDistance;
-			_deltaMs = _initialDuration * duration_scale;
-		}
-		else
-		{
-			// Unikaj dzielenia przez zero, jeśli poprzedni dystans był zerowy
-			_deltaMs = _initialDuration;
-		}
-	}
-	// Upewnij się, że czas nie jest zbyt krótki
-	_deltaMs = std::max(10.0f, _deltaMs);
 
-
-	_startTimeMs = startTimeMs;
-	_isAnimationComplete = false;
+	_startAnimationTimeMs = startTimeMs;
+	_targetTime = startTimeMs + _initialDuration;
+	_currentColorsRGB.reset();
 }
 
 void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
 {
 	if (_isAnimationComplete)
-	{
 		return;
-	}
 
-	float elapsed = currentTimeMs - _startTimeMs;
-	float t = (_deltaMs > 0.0f) ? elapsed / _deltaMs : 1.0f;
+	// obliczenie czasu, analog setupAdvColor
+	float deltaTime = _targetTime - currentTimeMs;
+	float totalTime = _targetTime - _startAnimationTimeMs;
+	float kOrg = std::max(1.0f - deltaTime / totalTime, 0.0001f);
+	_lastUpdate = currentTimeMs;
 
-	_isAnimationComplete = (t >= 1.0f);
+	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
+		const float FINISH_COMPONENT_THRESHOLD = 1.5f / 255.0f;
 
-	size_t num_colors = _targetColorsRGB.size();
-	if (_currentColorsRGB.size() != num_colors) _currentColorsRGB.resize(num_colors);
+		float val = linalg::maxelem(linalg::abs(diff));
 
-	for (size_t i = 0; i < num_colors; ++i)
-	{
-		// Szybka ścieżka dla animacji, które nie były limitowane i których czas minął
-		if (t >= 1.0f && !_wasClamped[i])
+		if (val < FINISH_COMPONENT_THRESHOLD)
 		{
-			_currentColorsRGB[i] = _targetColorsRGB[i];
-			_currentColorsYUV[i] = _targetColorsYUV[i];
-			continue;
+			cur += diff; // cur + diff = target
+			return false; // kolor już osiągnął target
 		}
-
-		float t_clamped = std::max(0.0f, std::min(t, 1.0f));
-		float3 idealPosition = linalg::lerp(_startColorsYUV[i], _targetColorsYUV[i], t_clamped);
-		float3 moveVec = idealPosition - _currentColorsYUV[i];
-
-		float luminanceChangeNeeded = moveVec.x;
-
-		if (_maxLuminanceChangePerStep > 0.0f && std::fabs(luminanceChangeNeeded) > _maxLuminanceChangePerStep)
+		else
 		{
-			float scale = _maxLuminanceChangePerStep / std::fabs(luminanceChangeNeeded);
-			moveVec = moveVec * scale;
-			_wasClamped[i] = true;
-		}
-
-		float3 nextPos = _currentColorsYUV[i] + moveVec;
-
-		_currentColorsYUV[i] = nextPos;
-		_currentColorsRGB[i] = ColorSpaceMath::bt709_to_rgb(nextPos);
-
-		if (t >= 1.0f)
-		{
-			// Jesteśmy w fazie "doganiania"
-			float3 diff = _currentColorsYUV[i] - _targetColorsYUV[i];
-			if (std::max({ std::fabs(diff.x), std::fabs(diff.y), std::fabs(diff.z) }) < YUV_FINISH_THRESHOLD)
+			if (_maxLuminanceChangePerStep == 0.f)
 			{
-				// "Maruder" w końcu dotarł do celu
-				_currentColorsRGB[i] = _targetColorsRGB[i];
-				_currentColorsYUV[i] = _targetColorsYUV[i];
+				cur += kOrg * diff;
 			}
 			else
 			{
-				// Czas minął, a ten kolor wciąż nie jest w celu, więc animacja musi trwać dalej
-				_isAnimationComplete = false;
+				float scale = kOrg;
+				auto stepY = kOrg * diff[0];
+				if (fabs(stepY) > _maxLuminanceChangePerStep)
+				{
+					scale = stepY;
+					stepY = std::copysignf(_maxLuminanceChangePerStep, stepY);
+					scale = fabs(stepY / scale) * kOrg;
+				}
+				cur[0] += stepY;
+
+				for (int i = 1; i < 3; ++i)
+				{
+					cur[i] += scale * diff[i];
+				}
 			}
+
+			return true;
+		}
+	};
+
+	_isAnimationComplete = true;
+
+	for (auto cur = _currentColorsYUV.begin(), tgt = _targetColorsYUV.begin();
+		cur != _currentColorsYUV.end() && tgt != _targetColorsYUV.end();
+		++cur, ++tgt)
+	{
+		if (computeChannelVec(*cur, *tgt - *cur)) // jeśli true => kolor jeszcze nie doszedł do target
+		{
+			_isAnimationComplete = false;
 		}
 	}
+
+	_currentColorsRGB.reset();
 }
 
-SharedOutputColors InfiniteYuvInterpolator::getCurrentColors() const
+SharedOutputColors InfiniteYuvInterpolator::getCurrentColors()
 {
-	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB);
+	if (!_currentColorsRGB.has_value())
+	{
+		if (_isAnimationComplete)
+		{
+			_currentColorsRGB = _targetColorsRGB;
+		}
+		else
+		{
+			std::vector<linalg::aliases::float3> tmp(_currentColorsYUV.size());
+			std::transform(
+				_currentColorsYUV.begin(),
+				_currentColorsYUV.end(),
+				tmp.begin(),
+				[](const auto& yuv) { return linalg::clamp(ColorSpaceMath::bt709_to_rgb(yuv), 0.f, 1.0f); }
+			);
+			_currentColorsRGB = std::move(tmp);
+		}
+	}
+	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB.value());
 }
 
 void InfiniteYuvInterpolator::test()
@@ -217,7 +213,7 @@ void InfiniteYuvInterpolator::test()
 			std::cout << "\n--- TEST: " << name << " ---\n";
 			std::cout << "--------------------------------------------------\n";
 
-			interpolator.resetToColors({ start_A });
+			interpolator.resetToColors({ start_A }, 0);
 
 			// Etap 1: Animacja A -> C
 			interpolator.setTransitionDuration(150.0f);

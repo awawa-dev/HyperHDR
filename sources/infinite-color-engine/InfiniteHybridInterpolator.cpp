@@ -190,7 +190,7 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 	}
 }
 
-SharedOutputColors InfiniteHybridInterpolator::getCurrentColors() const
+SharedOutputColors InfiniteHybridInterpolator::getCurrentColors()
 {
 	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB);
 }

@@ -134,6 +134,7 @@ InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstan
 
 void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 {
+	// critical section
 	QMutexLocker locker(&_dataSynchro);
 
 	try
@@ -242,22 +243,23 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 	_coolDown = 1;
 
 	// critical section
-	_dataSynchro.lock();
-
-	auto nowTime = InternalClock::now();
-	if (testPilot.active)
 	{
-		std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), testPilot.getColorAtTime(nowTime));
-	}
-	_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, testPilot.active);
+		QMutexLocker locker(&_dataSynchro);
 
-	_dataSynchro.unlock();
+		auto nowTime = InternalClock::now();
+		if (testPilot.active)
+		{
+			std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), testPilot.getColorAtTime(nowTime));
+		}
+		_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, testPilot.active);
+	}
 }
 
 void InfiniteSmoothing::updateLeds()
 {	
 	SharedOutputColors nonlinearRgbColors;
 
+	// critical section
 	{
 		QMutexLocker locker(&_dataSynchro);
 		if (!isEnabled())
@@ -266,8 +268,11 @@ void InfiniteSmoothing::updateLeds()
 
 		nonlinearRgbColors = _interpolator->getCurrentColors();
 	}
-	
-	queueColors(std::move(nonlinearRgbColors));
+
+	if (nonlinearRgbColors->size() > 0)
+	{
+		queueColors(std::move(nonlinearRgbColors));
+	}
 }
 
 void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbColors)

@@ -131,7 +131,7 @@ void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
 
 			for (int i = 0; i < 3; ++i)
 			{
-				cur[i] += aspectK[idx] * diff[i];
+				cur[i] = std::clamp(cur[i] + aspectK[idx] * diff[i], 0.f, 1.0f);
 			}
 			return true;
 		}
@@ -151,7 +151,7 @@ void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
 }
 
 
-SharedOutputColors InfiniteExponentialInterpolator::getCurrentColors() const
+SharedOutputColors InfiniteExponentialInterpolator::getCurrentColors()
 {
 	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB);
 }

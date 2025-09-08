@@ -150,9 +150,17 @@ namespace ColorSpaceMath
 
 	double3 from_XYZ_to_bt2020(double3 x);
 
-	float3 rgb_to_bt709(const aliases::float3& rgb);
 
-	float3 bt709_to_rgb(const aliases::float3& yuv);
+	constexpr float3 rgb_to_bt709(const aliases::float3& rgb)
+	{
+		return linalg::mul(matrix_srgb_to_bt709, rgb);
+	}
+
+	constexpr float3 bt709_to_rgb(const aliases::float3& yuv)
+	{
+		constexpr float3x3 m = inverse(matrix_srgb_to_bt709);
+		return linalg::mul(m, yuv);
+	}
 
 	double3 from_XYZ_to_sRGB(double3 x);
 

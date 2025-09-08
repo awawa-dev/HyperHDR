@@ -17,32 +17,24 @@ public:
 
 	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs, bool debug = false) override;
 	void updateCurrentColors(float currentTimeMs) override;
-	SharedOutputColors getCurrentColors() const override;
+	SharedOutputColors getCurrentColors() override;
 
 	void setTransitionDuration(float durationMs) override;
 	void setMaxLuminanceChangePerFrame(float maxChangePerStep) override;
 
-	void resetToColors(std::vector<linalg::aliases::float3> colors);
+	void resetToColors(std::vector<linalg::aliases::float3> colors, float startTimeMs);
 	static void test();
 
 private:
-	std::vector<linalg::aliases::float3> _targetColorsRGB;
-
-	std::vector<linalg::aliases::float3> _startColorsYUV;
+	std::optional<std::vector<linalg::aliases::float3>> _targetColorsRGB;
+	std::optional<std::vector<linalg::aliases::float3>> _currentColorsRGB;
+	std::vector<linalg::aliases::float3> _currentColorsYUV;
 	std::vector<linalg::aliases::float3> _targetColorsYUV;
 
-	std::vector<linalg::aliases::float3> _currentColorsRGB;
-	std::vector<linalg::aliases::float3> _currentColorsYUV;
-
-	std::vector<bool> _wasClamped; // Flaga do śledzenia spowolnionych animacji
-
-	float _initialDistance = 0.0f;
-	float _initialDuration = 300.0f;
-
-	float _startTimeMs = 0.0f;
-	float _deltaMs = 300.0f;
+	float _initialDuration = 150.0f;
+	float _startAnimationTimeMs = 0.0f;
+	float _targetTime = 0.0f;
+	float _lastUpdate = 0.0f;
 	float _maxLuminanceChangePerStep = 0.02f;
 	bool _isAnimationComplete = true;
-
-	static constexpr float YUV_FINISH_THRESHOLD = 2.5f / 255.0f;
 };
