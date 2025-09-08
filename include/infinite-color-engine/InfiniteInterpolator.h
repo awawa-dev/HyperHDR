@@ -15,7 +15,7 @@ class InfiniteInterpolator {
 public:
 	virtual ~InfiniteInterpolator() = default;
 
-	virtual void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs) = 0;
+	virtual void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs, bool debug) = 0;
 	virtual void updateCurrentColors(float currentTimeMs) = 0;
 	virtual SharedOutputColors getCurrentColors() const = 0;
 

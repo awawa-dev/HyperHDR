@@ -63,13 +63,23 @@ void InfiniteStepperInterpolator::resetToColors(std::vector<float3>&& colors, fl
 	setTargetColors(std::move(colors), startTimeMs);
 }
 
-void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs)
+void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug)
 {
 	if (new_rgb_targets.size() == 0)
 		return;
 
-	if (_currentColorsRGB.size() != new_rgb_targets.size())
+	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+
+	if (debug)
 	{
+		printf(" | Δ%.0f | time: %.0f\n", delta, _initialDuration);
+	}
+
+	startTimeMs -= delta;
+
+	if (_currentColorsRGB.size() != new_rgb_targets.size() || _targetColorsRGB.size() != new_rgb_targets.size())
+	{
+		_lastUpdate = startTimeMs;
 		_currentColorsRGB = new_rgb_targets;
 		_targetColorsRGB = std::move(new_rgb_targets);
 		_isAnimationComplete = true;
@@ -93,6 +103,7 @@ void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
 	float deltaTime = _targetTime - currentTimeMs;
 	float totalTime = _targetTime - _startAnimationTimeMs;
 	float kOrg = std::max(1.0f - deltaTime / totalTime, 0.0001f);
+	_lastUpdate = currentTimeMs;
 
 	float4 aspectK = float4{
 		std::min(std::pow(kOrg, 1.0f),   1.0f), // aspectK[0] = kMin

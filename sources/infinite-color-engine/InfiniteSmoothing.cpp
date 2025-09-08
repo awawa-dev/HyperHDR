@@ -79,7 +79,7 @@ namespace
 			{2700, 0.0f, 0.0f, 0.0f},  // return to black color
 			{3000, 0.0f, 0.0f, 1.0f},  // start moving to blue color at 3sec
 			{3200, 0.0f, 1.0f, 0.0f},  // then turn to green color at 3.2sec
-			{3400, 1.0f, 0.0f, 0.0f},  // then immediately turn to red color at 3.45sec and wait
+			{3400, 1.0f, 0.0f, 0.0f},  // then immediately turn to red color at 3.4sec and wait
 			{4000, 0.0f, 0.0f, 1.0f},  // start moving to blue color at 4sec
 			{4100, 1.0f, 0.0f, 0.0f},  // then turn to red color at 4.1sec
 			{4200, 0.0f, 1.0f, 0.0f},  // the turn to green at 4.2sec and wait 
@@ -104,7 +104,7 @@ namespace
 				}
 			}
 
-			printf("Δ%4lld | incomingColors: (%d, %d, %d)\n", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
+			printf("Δ%4lld | incomingColors: (%d, %d, %d)", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
 
 			return color;
 		}
@@ -120,7 +120,6 @@ InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstan
 	_currentConfigId(SMOOTHING_USER_CONFIG),
 	_enabled(false),
 	_connected(false),
-	_smoothingType(SmoothingType::Stepper),
 	_interpolator(std::make_unique<InfiniteStepperInterpolator>()),
 	_infoUpdate(true),
 	_infoInput(true),
@@ -146,23 +145,6 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 		{
 			_connected = false;
 			disconnect(this, &InfiniteSmoothing::SignalMasterClockTick, this, &InfiniteSmoothing::updateLeds);
-		}
-
-		if (_smoothingType == SmoothingType::HybridInterpolator)
-		{
-			_interpolator = std::make_unique<InfiniteHybridInterpolator>();
-		}
-		else if (_smoothingType == SmoothingType::YuvInterpolator)
-		{
-			_interpolator = std::make_unique<InfiniteYuvInterpolator>();
-		}
-		else if (_smoothingType == SmoothingType::RgbInterpolator)
-		{
-			_interpolator = std::make_unique<InfiniteRgbInterpolator>();
-		}
-		else
-		{
-			_interpolator = std::make_unique<InfiniteStepperInterpolator>();
 		}
 		
 		_flushFrame = false;
@@ -214,12 +196,20 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 			.pause = false,
 			.settlingTime = static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
 			.updateInterval = static_cast<int64_t>(std::round(std::max(1000.0 / std::max(obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY), MINIMAL_UPDATEFREQUENCY), 5.0))),
-			.type = StringToEnumSmoothingType(obj["type"].toString()) }
+			.type = StringToEnumSmoothingType(obj["type"].toString()),
+			.smoothingFactor = static_cast<float>(obj["smoothingFactor"].toDouble(0.1)),
+			.stiffness = static_cast<float>(obj["stiffness"].toDouble(200)),
+			.damping = static_cast<float>(obj["damping"].toDouble(26)),
+			.y_limit = static_cast<float>(obj["y_limit"].toDouble())
+			}
 		);
 
-		auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
-		Info(_log, "Updating user config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz)",
-			SMOOTHING_USER_CONFIG, QSTRING_CSTR(EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval));
+		const auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
+		Info(_log, "Updating user config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz)"
+			       ", smoothingFactor: %f, stiffness: %f, damping: %f, y_limit: %f",
+					SMOOTHING_USER_CONFIG, QSTRING_CSTR(EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
+					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
+			);
 
 		if (_currentConfigId == SMOOTHING_USER_CONFIG)
 		{
@@ -237,7 +227,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 		if (!isEnabled())
 			Info(_log, "Smoothing is disabled. Direct output.");
 		else 
-			Info(_log, "Using %s smoothing input (%i)", QSTRING_CSTR(EnumSmoothingTypeToString(_smoothingType)), _currentConfigId);
+			Info(_log, "Using %s smoothing input (%i)", QSTRING_CSTR(EnumSmoothingTypeToString(_configurations[_currentConfigId]->type)), _currentConfigId);
 		_infoInput = false;
 	}
 
@@ -250,12 +240,16 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 
 	_coolDown = 1;
 
+	// critical section
 	_dataSynchro.lock();
+
+	auto nowTime = InternalClock::now();
 	if (testPilot.active)
 	{
-		std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), testPilot.getColorAtTime(InternalClock::now()));
+		std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), testPilot.getColorAtTime(nowTime));
 	}
-	_interpolator->setTargetColors(std::move(nonlinearRgbColors), InternalClock::now());
+	_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, testPilot.active);
+
 	_dataSynchro.unlock();
 }
 
@@ -366,14 +360,40 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 
 	_currentConfigId = (result) ? cfgId : SMOOTHING_USER_CONFIG;
 
-	clearQueuedColors(isEnabled(), true);		
+	clearQueuedColors(isEnabled(), true);
 
-	Info(_log, "Selecting config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz). Smoothing is currently: %s",
-		_currentConfigId, QSTRING_CSTR(EnumSmoothingTypeToString(_smoothingType)), (!_configurations[_currentConfigId]->pause) ? "true" : "false",
-		int(_configurations[_currentConfigId]->settlingTime),
-		int(_configurations[_currentConfigId]->updateInterval),
-		int(1000.0 / _configurations[_currentConfigId]->updateInterval),
-		(_enabled) ? "enabled" : "disabled");
+	const auto& cfg = _configurations[_currentConfigId];
+
+	if (cfg->type == SmoothingType::HybridInterpolator)
+	{
+		_interpolator = std::make_unique<InfiniteHybridInterpolator>();
+	}
+	else if (cfg->type == SmoothingType::YuvInterpolator)
+	{
+		_interpolator = std::make_unique<InfiniteYuvInterpolator>();
+	}
+	else if (cfg->type == SmoothingType::RgbInterpolator)
+	{
+		_interpolator = std::make_unique<InfiniteRgbInterpolator>();
+	}
+	else
+	{
+		_interpolator = std::make_unique<InfiniteStepperInterpolator>();
+	}
+
+	_interpolator->setTransitionDuration(cfg->settlingTime);
+	_interpolator->setSmoothingFactor(cfg->smoothingFactor);
+	_interpolator->setSpringiness(cfg->stiffness,cfg->damping);
+	_interpolator->setMaxLuminanceChangePerFrame(cfg->y_limit);
+
+	Info(_log, "Selecting config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz). Smoothing is currently: %s"
+				", smoothingFactor: %f, stiffness: %f, damping: %f, y_limit: %f",
+		_currentConfigId, QSTRING_CSTR(EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
+		int(cfg->settlingTime),
+		int(cfg->updateInterval),
+		int(1000.0 / cfg->updateInterval),
+		(_enabled) ? "enabled" : "disabled",
+		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
 
 	return result;
 }

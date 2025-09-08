@@ -56,7 +56,6 @@ InfiniteRgbInterpolator::InfiniteRgbInterpolator() = default;
 void InfiniteRgbInterpolator::setTransitionDuration(float durationMs)
 {
 	_initialDuration = std::max(1.0f, durationMs);
-	_deltaMs = _initialDuration;
 }
 
 void InfiniteRgbInterpolator::resetToColors(std::vector<float3> colors)
@@ -66,59 +65,43 @@ void InfiniteRgbInterpolator::resetToColors(std::vector<float3> colors)
 	_isAnimationComplete = true;
 }
 
-void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs)
+void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug)
 {
-	if (!_isAnimationComplete)
+	if (new_rgb_targets.size() == 0)
+		return;
+
+	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+
+	if (debug)
 	{
-		updateCurrentColors(startTimeMs);
+		printf(" | Δ%.0f | time: %.0f | factor: %.3f\n", delta, _initialDuration, _smoothingFactor);
 	}
 
-	_targetColorsRGB = std::move(new_rgb_targets);
-	size_t new_size = _targetColorsRGB.size();
+	startTimeMs -= delta;
 
-	if (_currentColorsRGB.size() != new_size)
+	if (_currentColorsRGB.size() != new_rgb_targets.size() || _targetColorsRGB.size() != new_rgb_targets.size())
 	{
-		_currentColorsRGB.resize(new_size, { 0.0f, 0.0f, 0.0f });
-	}
-
-	_startColorsRGB = _currentColorsRGB;
-
-	float new_distance = 0.0f;
-	for (size_t i = 0; i < new_size; ++i)
-	{
-		new_distance += linalg::distance(_startColorsRGB[i], _targetColorsRGB[i]);
-	}
-
-	if (_isAnimationComplete)
-	{
-		_deltaMs = _initialDuration;
-		_initialDistance = new_distance;
+		_lastUpdate = startTimeMs;
+		_currentColorsRGB = new_rgb_targets;
+		_targetColorsRGB = std::move(new_rgb_targets);
+		_isAnimationComplete = true;
 	}
 	else
 	{
-		if (_initialDistance > 1e-5f)
+		const float inv = 1.f - _smoothingFactor;
+		for (auto it_oldTargetColorsRGB = _targetColorsRGB.begin(),
+			it_newTargetColorsRGB = new_rgb_targets.begin();
+			it_oldTargetColorsRGB != _targetColorsRGB.end();
+			++it_oldTargetColorsRGB, ++it_newTargetColorsRGB)
 		{
-			float duration_scale = new_distance / _initialDistance;
-			_deltaMs = _initialDuration * duration_scale;
+			*it_oldTargetColorsRGB = *it_oldTargetColorsRGB * _smoothingFactor
+				+ *it_newTargetColorsRGB * inv;
 		}
-		else
-		{
-			_deltaMs = _initialDuration;
-		}
+		_isAnimationComplete = false;
 	}
 
-	if (_smoothingFactor > 0.0f)
-	{
-		float durationMultiplier = 1.0f + 2.0f * _smoothingFactor;
-
-		_deltaMs *= durationMultiplier;
-	}
-
-	_deltaMs = std::max(10.0f, _deltaMs);
-
-	_startTimeMs = startTimeMs;
-	_isAnimationComplete = false;
-
+	_startAnimationTimeMs = startTimeMs;
+	_targetTime = startTimeMs + _initialDuration;
 }
 
 void InfiniteRgbInterpolator::setSmoothingFactor(float factor)
@@ -128,44 +111,61 @@ void InfiniteRgbInterpolator::setSmoothingFactor(float factor)
 
 void InfiniteRgbInterpolator::updateCurrentColors(float currentTimeMs)
 {
-	if (!_isAnimationComplete)
-	{		
-		float elapsed = currentTimeMs - _startTimeMs;
-		float t = (_deltaMs > 0.0f) ? elapsed / _deltaMs : 1.0f;
-		size_t num_colors = _targetColorsRGB.size();
+	if (_isAnimationComplete)
+		return;
 
-		_isAnimationComplete = (t >= 1.0f);
+	// obliczenie czasu, analog setupAdvColor
+	float deltaTime = _targetTime - currentTimeMs;
+	float totalTime = _targetTime - _startAnimationTimeMs;
+	float kOrg = std::max(1.0f - deltaTime / totalTime, 0.0001f);
+	_lastUpdate = currentTimeMs;
 
-		if (_smoothingFactor <= 0.0f)
+	float4 aspectK = float4{
+		std::min(std::pow(kOrg, 1.0f),   1.0f), // aspectK[0] = kMin
+		std::min(std::pow(kOrg, 0.9f),   1.0f), // aspectK[1] = kMid
+		std::min(std::pow(kOrg, 0.75f),  1.0f), // aspectK[2] = kAbove
+		std::min(std::pow(kOrg, 0.6f),   1.0f)  // aspectK[3] = kMax
+	};
+
+	float3 limits = float3(16.0f, 32.0f, 60.0f) / 255.0f;
+	// limits[0] = 16/255  => stary limitMin
+	// limits[1] = 32/255  => stary limitMid
+	// limits[2] = 60/255  => stary limitMax
+
+	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
+		const float FINISH_COMPONENT_THRESHOLD = 1.5f / 255.0f;
+
+		float val = linalg::maxelem(linalg::abs(diff));
+
+		if (val < FINISH_COMPONENT_THRESHOLD)
 		{
-			if (t >= 1.0f)
-			{
-				_currentColorsRGB = _targetColorsRGB;
-			}
-			else
-			{
-				t = std::max(0.0f, t);
-				for (size_t i = 0; i < num_colors; ++i) {
-					_currentColorsRGB[i] = linalg::lerp(_startColorsRGB[i], _targetColorsRGB[i], t);
-				}
-			}
+			cur += diff; // cur + diff = target
+			return false; // kolor już osiągnął target
 		}
 		else
 		{
+			int idx = (val < limits[0]) ? 3 :   // limitMin (16)     => używa kMax
+				(val < limits[1]) ? 2 :         // limitMid (32)     => używa kAbove
+				(val < limits[2]) ? 1 :         // limitMax (60)     => używa kMid
+				0;                              // powyżej limitMax  => używa kMin
 
-			float t_clamped = std::max(0.0f, std::min(t, 1.0f));
-			float effective_smoothing = linalg::lerp(_smoothingFactor, 1.0f, t_clamped);
-
-			for (size_t i = 0; i < num_colors; ++i)
+			for (int i = 0; i < 3; ++i)
 			{
-				float3 idealPosition = linalg::lerp(_startColorsRGB[i], _targetColorsRGB[i], t_clamped);
-				_currentColorsRGB[i] = linalg::lerp(_currentColorsRGB[i], idealPosition, effective_smoothing);
+				cur[i] += aspectK[idx] * diff[i];
 			}
+			return true;
+		}
+		};
 
-			if (_isAnimationComplete)
-			{
-				_currentColorsRGB = _targetColorsRGB;
-			}
+	_isAnimationComplete = true;
+
+	for (auto cur = _currentColorsRGB.begin(), tgt = _targetColorsRGB.begin();
+		cur != _currentColorsRGB.end() && tgt != _targetColorsRGB.end();
+		++cur, ++tgt)
+	{
+		if (computeChannelVec(*cur, *tgt - *cur)) // jeśli true => kolor jeszcze nie doszedł do target
+		{
+			_isAnimationComplete = false;
 		}
 	}
 }

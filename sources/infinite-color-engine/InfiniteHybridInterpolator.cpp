@@ -90,7 +90,7 @@ void InfiniteHybridInterpolator::resetToColors(std::vector<float3> colors)
 	_isAnimationComplete = true;
 }
 
-void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs) {
+void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug) {
 	size_t new_size = new_rgb_targets.size();
 	if (_currentColorsRGB.size() != new_size)
 	{

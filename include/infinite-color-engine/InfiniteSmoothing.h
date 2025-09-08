@@ -77,6 +77,10 @@ private:
 		int64_t		  settlingTime;
 		int64_t		  updateInterval;
 		SmoothingType type;
+		float		  smoothingFactor;
+		float		  stiffness;
+		float		  damping;
+		float		  y_limit;
 	};
 
 	std::vector<std::unique_ptr<SmoothingConfig>> _configurations;
@@ -84,7 +88,6 @@ private:
 	unsigned		_currentConfigId;
 	std::atomic_bool _enabled;
 	bool			_connected;
-	SmoothingType	_smoothingType;
 	std::unique_ptr<InfiniteInterpolator> _interpolator;
 	bool			_infoUpdate;
 	bool			_infoInput;
