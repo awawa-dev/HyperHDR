@@ -31,6 +31,7 @@ $(document).ready( function() {
 				case "RgbInterpolator": desc= $.i18n('edt_conf_enum_interpolator_RgbInterpolator_expl');break;
 				case "YuvInterpolator": desc= $.i18n('edt_conf_enum_interpolator_YuvInterpolator_expl');break;
 				case "HybridInterpolator": desc= $.i18n('edt_conf_enum_interpolator_HybridInterpolator_expl');break;
+				case "ExponentialInterpolator": desc= $.i18n('edt_conf_enum_interpolator_ExponentialInterpolator_expl');break;
 			}
 			$("#smoothing_algo_explanation").children().first().text(desc);
 		}

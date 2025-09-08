@@ -67,7 +67,7 @@ private:
 	bool _continuousOutput;
 	bool _flushFrame;
 
-	enum class SmoothingType { Stepper = 0, RgbInterpolator = 1, YuvInterpolator = 2, HybridInterpolator = 3};
+	enum class SmoothingType { Stepper = 0, RgbInterpolator = 1, YuvInterpolator = 2, HybridInterpolator = 3, ExponentialInterpolator = 4};
 	static QString EnumSmoothingTypeToString(SmoothingType type);
 	static SmoothingType StringToEnumSmoothingType(QString name);
 
