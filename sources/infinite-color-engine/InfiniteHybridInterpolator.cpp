@@ -157,8 +157,9 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 
 			cur[1] += step[1];
 			cur[2] += step[2];
+			return true;
 		}
-		};
+	};
 
 	_isAnimationComplete = true;
 
