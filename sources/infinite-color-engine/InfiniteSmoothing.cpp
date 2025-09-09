@@ -154,6 +154,37 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 		_infoInput = true;
 		_coolDown = 0;
 
+		if (restarting || _interpolator == nullptr)
+		{
+			const auto& cfg = _configurations[_currentConfigId];
+
+			if (cfg->type == SmoothingType::HybridInterpolator)
+			{
+				_interpolator = std::make_unique<InfiniteHybridInterpolator>();
+			}
+			else if (cfg->type == SmoothingType::YuvInterpolator)
+			{
+				_interpolator = std::make_unique<InfiniteYuvInterpolator>();
+			}
+			else if (cfg->type == SmoothingType::RgbInterpolator)
+			{
+				_interpolator = std::make_unique<InfiniteRgbInterpolator>();
+			}
+			else if (cfg->type == SmoothingType::ExponentialInterpolator)
+			{
+				_interpolator = std::make_unique<InfiniteExponentialInterpolator>();
+			}
+			else
+			{
+				_interpolator = std::make_unique<InfiniteStepperInterpolator>();
+			}
+
+			_interpolator->setTransitionDuration(cfg->settlingTime);
+			_interpolator->setSmoothingFactor(cfg->smoothingFactor);
+			_interpolator->setSpringiness(cfg->stiffness, cfg->damping);
+			_interpolator->setMaxLuminanceChangePerFrame(cfg->y_limit);
+		}
+
 		if (deviceEnabled && !_connected)
 		{
 			_connected = true;
@@ -369,32 +400,6 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 	clearQueuedColors(isEnabled(), true);
 
 	const auto& cfg = _configurations[_currentConfigId];
-
-	if (cfg->type == SmoothingType::HybridInterpolator)
-	{
-		_interpolator = std::make_unique<InfiniteHybridInterpolator>();
-	}
-	else if (cfg->type == SmoothingType::YuvInterpolator)
-	{
-		_interpolator = std::make_unique<InfiniteYuvInterpolator>();
-	}
-	else if (cfg->type == SmoothingType::RgbInterpolator)
-	{
-		_interpolator = std::make_unique<InfiniteRgbInterpolator>();
-	}
-	else if (cfg->type == SmoothingType::ExponentialInterpolator)
-	{
-		_interpolator = std::make_unique<InfiniteExponentialInterpolator>();
-	}
-	else
-	{
-		_interpolator = std::make_unique<InfiniteStepperInterpolator>();
-	}
-
-	_interpolator->setTransitionDuration(cfg->settlingTime);
-	_interpolator->setSmoothingFactor(cfg->smoothingFactor);
-	_interpolator->setSpringiness(cfg->stiffness,cfg->damping);
-	_interpolator->setMaxLuminanceChangePerFrame(cfg->y_limit);
 
 	Info(_log, "Selecting config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz). Smoothing is currently: %s"
 				", smoothingFactor: %f, stiffness: %f, damping: %f, y_limit: %f",

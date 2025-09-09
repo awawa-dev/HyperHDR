@@ -26,7 +26,7 @@ public:
 	static void test();
 
 private:
-	std::optional<std::vector<linalg::aliases::float3>> _targetColorsRGB;
+	std::vector<linalg::aliases::float3> _targetColorsRGB;
 	std::optional<std::vector<linalg::aliases::float3>> _currentColorsRGB;
 	std::vector<linalg::aliases::float3> _currentColorsYUV;
 	std::vector<linalg::aliases::float3> _targetColorsYUV;
