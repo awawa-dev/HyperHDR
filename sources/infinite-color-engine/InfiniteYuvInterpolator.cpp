@@ -72,6 +72,11 @@ void InfiniteYuvInterpolator::resetToColors(std::vector<float3> colors, float st
 	setTargetColors(std::move(colors), startTimeMs);
 }
 
+void InfiniteYuvInterpolator::setSmoothingFactor(float factor)
+{
+	_smoothingFactor = std::max(0.0f, std::min(factor, 1.0f));
+}
+
 void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug)
 {
 	if (new_rgb_to_yuv_targets.size() == 0)
@@ -81,12 +86,25 @@ void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_y
 
 	if (debug)
 	{
-		printf(" | Δ%.0f | time: %.0f | Y-limit: %.3f\n", delta, _initialDuration, _maxLuminanceChangePerStep);
+		printf(" | Δ%.0f | time: %.0f | Y-limit: %.3f| factor: %.3f\n", delta, _initialDuration, _maxLuminanceChangePerStep, _smoothingFactor);
 	}
 
 	startTimeMs -= delta;
 
-	// convert incoming RGB to YUV
+	// apply target smoothing && convert incoming RGB to YUV
+	if (_smoothingFactor > 0.f && _targetColorsRGB.size() == new_rgb_to_yuv_targets.size())
+	{
+		const float inv = 1.f - _smoothingFactor;
+		for (auto it_oldTargetColorsRGB = _targetColorsRGB.begin(),
+			it_newTargetColorsRGB = new_rgb_to_yuv_targets.begin();
+			it_oldTargetColorsRGB != _targetColorsRGB.end();
+			++it_oldTargetColorsRGB, ++it_newTargetColorsRGB)
+		{
+			*it_newTargetColorsRGB = *it_oldTargetColorsRGB * _smoothingFactor
+				+ *it_newTargetColorsRGB * inv;
+		}
+	}
+
 	_targetColorsRGB = new_rgb_to_yuv_targets;
 	for (auto it_newTargetColorsYUV = new_rgb_to_yuv_targets.begin(); it_newTargetColorsYUV != new_rgb_to_yuv_targets.end(); ++it_newTargetColorsYUV)
 	{

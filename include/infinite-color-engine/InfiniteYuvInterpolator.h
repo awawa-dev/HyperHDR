@@ -21,6 +21,7 @@ public:
 
 	void setTransitionDuration(float durationMs) override;
 	void setMaxLuminanceChangePerFrame(float maxChangePerStep) override;
+	void setSmoothingFactor(float factor) override;
 
 	void resetToColors(std::vector<linalg::aliases::float3> colors, float startTimeMs);
 	static void test();
@@ -36,5 +37,6 @@ private:
 	float _targetTime = 0.0f;
 	float _lastUpdate = 0.0f;
 	float _maxLuminanceChangePerStep = 0.02f;
+	float _smoothingFactor = 0.0f;
 	bool _isAnimationComplete = true;
 };

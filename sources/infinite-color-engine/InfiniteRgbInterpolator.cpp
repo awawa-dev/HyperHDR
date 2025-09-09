@@ -88,14 +88,21 @@ void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targ
 	}
 	else
 	{
-		const float inv = 1.f - _smoothingFactor;
-		for (auto it_oldTargetColorsRGB = _targetColorsRGB.begin(),
-			it_newTargetColorsRGB = new_rgb_targets.begin();
-			it_oldTargetColorsRGB != _targetColorsRGB.end();
-			++it_oldTargetColorsRGB, ++it_newTargetColorsRGB)
+		if (_smoothingFactor > 0.f)
 		{
-			*it_oldTargetColorsRGB = *it_oldTargetColorsRGB * _smoothingFactor
-				+ *it_newTargetColorsRGB * inv;
+			const float inv = 1.f - _smoothingFactor;
+			for (auto it_oldTargetColorsRGB = _targetColorsRGB.begin(),
+				it_newTargetColorsRGB = new_rgb_targets.begin();
+				it_oldTargetColorsRGB != _targetColorsRGB.end();
+				++it_oldTargetColorsRGB, ++it_newTargetColorsRGB)
+			{
+				*it_oldTargetColorsRGB = *it_oldTargetColorsRGB * _smoothingFactor
+					+ *it_newTargetColorsRGB * inv;
+			}
+		}
+		else
+		{
+			_targetColorsRGB = std::move(new_rgb_targets);
 		}
 		_isAnimationComplete = false;
 	}

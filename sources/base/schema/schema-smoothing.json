@@ -62,7 +62,7 @@
 			"required" : true,
 			"options": {
 				"dependencies": {
-					"type": "RgbInterpolator"
+					"type": ["YuvInterpolator", "RgbInterpolator"]
 				}
 			},
 			"propertyOrder" : 5
@@ -105,7 +105,7 @@
 		{
 			"type" : "number",
 			"format": "stepper",			
-			"step" : 0.05,			
+			"step" : 0.01,			
 			"title" : "edt_conf_enum_interpolator_y_limit_title",
 			"minimum" : 0.0,
 			"maximum" : 1.0,
