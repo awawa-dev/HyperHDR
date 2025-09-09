@@ -66,133 +66,136 @@ void InfiniteHybridInterpolator::setSpringiness(float stiffness, float damping)
 
 void InfiniteHybridInterpolator::setMaxLuminanceChangePerFrame(float maxYChangePerFrame)
 {
-	_maxLuminanceChangePerFrame = maxYChangePerFrame;
+	_maxLuminanceChangePerStep = maxYChangePerFrame;
 }
 
-void InfiniteHybridInterpolator::resetToColors(std::vector<float3> colors)
+void InfiniteHybridInterpolator::resetToColors(std::vector<float3> colors, float startTimeMs)
 {
-	size_t new_size = colors.size();
-	_currentColorsRGB = std::move(colors);
-	_finalTargetRGB = _currentColorsRGB;
-
-	_currentColorsYUV.resize(new_size);
-	_pacer_startColorsYUV.resize(new_size);
-	_pacer_targetColorsYUV.resize(new_size);
-	_velocityYUV.assign(new_size, { 0.0f, 0.0f, 0.0f });
-
-	for (size_t i = 0; i < new_size; ++i)
-	{
-		_currentColorsYUV[i] = ColorSpaceMath::rgb_to_bt709(_currentColorsRGB[i]);
-	}
-	_pacer_startColorsYUV = _currentColorsYUV;
-	_pacer_targetColorsYUV = _currentColorsYUV;
-
-	_isAnimationComplete = true;
+	_currentColorsYUV.clear();
+	setTargetColors(std::move(colors), startTimeMs);
 }
 
-void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug) {
-	size_t new_size = new_rgb_targets.size();
-	if (_currentColorsRGB.size() != new_size)
+void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug) {
+	if (new_rgb_to_yuv_targets.size() == 0)
+		return;
+
+	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+
+	if (debug)
 	{
-		_currentColorsRGB.resize(new_size);
-		_currentColorsYUV.resize(new_size);
-		_velocityYUV.resize(new_size);
-		_pacer_startColorsYUV.resize(new_size);
+		printf(" | Δ%.0f | time: %.0f | Y-limit: %.3f| stiffness: %.3f| damping: %.3f\n", delta, _initialDuration, _maxLuminanceChangePerStep, _stiffness, _damping);
 	}
 
-	_finalTargetRGB = new_rgb_targets;
+	startTimeMs -= delta;
 
-	float elapsed = startTimeMs - _startTimeMs;
-	float t = _isAnimationComplete ? 0.0f : std::max(0.0f, std::min(1.0f, (_deltaMs > 0.0f) ? elapsed / _deltaMs : 1.0f));
-
-	_pacer_targetColorsYUV.resize(new_size);
-	float new_distance = 0.0f;
-	for (size_t i = 0; i < new_size; ++i)
+	// convert incoming RGB to YUV
+	_targetColorsRGB = new_rgb_to_yuv_targets;
+	for (auto it_newTargetColorsYUV = new_rgb_to_yuv_targets.begin(); it_newTargetColorsYUV != new_rgb_to_yuv_targets.end(); ++it_newTargetColorsYUV)
 	{
-		float3 pacerCurrentPos = linalg::lerp(_pacer_startColorsYUV[i], _pacer_targetColorsYUV[i], t);
-		_pacer_startColorsYUV[i] = pacerCurrentPos;
-		_pacer_targetColorsYUV[i] = ColorSpaceMath::rgb_to_bt709(new_rgb_targets[i]);
-		new_distance += linalg::distance(_pacer_startColorsYUV[i], _pacer_targetColorsYUV[i]);
+		*it_newTargetColorsYUV = ColorSpaceMath::rgb_to_bt709(*it_newTargetColorsYUV);
 	}
 
-	if (_isAnimationComplete || _initialDistance < 1e-5f)
+	if (_currentColorsYUV.size() != new_rgb_to_yuv_targets.size() || _targetColorsYUV.size() != new_rgb_to_yuv_targets.size())
 	{
-		_lastTimeMs = startTimeMs;
-		_deltaMs = _initialDuration;
-		_initialDistance = new_distance > 1e-5f ? new_distance : 1.0f;
+		_lastUpdate = startTimeMs;
+		_currentColorsYUV = new_rgb_to_yuv_targets;
+		_targetColorsYUV = std::move(new_rgb_to_yuv_targets);
+		_velocitiesYUV.assign(_currentColorsYUV.size(), float3{ 0,0,0 }); // NOWE
+		_isAnimationComplete = true;
 	}
 	else
 	{
-		float duration_scale = new_distance / _initialDistance;
-		_deltaMs = _initialDuration * duration_scale;
+		_targetColorsYUV = std::move(new_rgb_to_yuv_targets);
+		_isAnimationComplete = false;
 	}
-	_deltaMs = std::max(10.0f, _deltaMs);
 
-	_startTimeMs = startTimeMs;	
-	_isAnimationComplete = false;
+	_startAnimationTimeMs = startTimeMs;
+	_targetTime = startTimeMs + _initialDuration;
+	_currentColorsRGB.reset();
 }
 
 void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 	if (_isAnimationComplete)
-	{
 		return;
-	}
 
-	float dt = (currentTimeMs - _lastTimeMs )/ 1000.0f;
-	if (dt <= 0.0f) return;
+	float dt = std::max(currentTimeMs - _lastUpdate, 0.001f);
+	_lastUpdate = currentTimeMs;
 
-	_lastTimeMs = currentTimeMs;
+	auto computeChannelVec = [&](float3& cur, const float3& diff, float3& vel) -> bool {
+		const float FINISH_COMPONENT_THRESHOLD = 1.5f / 255.0f;
 
-	float elapsed = currentTimeMs - _startTimeMs;
-	float t = std::max(0.0f, std::min(1.0f, (_deltaMs > 0.0f) ? elapsed / _deltaMs : 1.0f));
+		float val = linalg::maxelem(linalg::abs(diff));
 
-	bool all_finished = true;
-	for (size_t i = 0; i < _pacer_targetColorsYUV.size(); ++i)
-	{
-		float3 pacerPosition = linalg::lerp(_pacer_startColorsYUV[i], _pacer_targetColorsYUV[i], t);
-		float3 currentPos = _currentColorsYUV[i];
-		float3 currentVel = _velocityYUV[i];
-
-		float3 diffEnd = pacerPosition - currentPos;
-		if (t >= 1.0f && linalg::dot(diffEnd, diffEnd) < FINISH_THRESHOLD_SQ && linalg::dot(currentVel, currentVel) < FINISH_THRESHOLD_SQ)
+		if (val < FINISH_COMPONENT_THRESHOLD)
 		{
-			_currentColorsRGB[i] = _finalTargetRGB[i];
-			_currentColorsYUV[i] = pacerPosition;
-			_velocityYUV[i] = { 0.0f, 0.0f, 0.0f };
-			continue;
+			cur += diff;
+			vel = float3{ 0,0,0 };
+			return false;
 		}
-		all_finished = false;
-
-		float3 springForce = diffEnd * _stiffness;
-		float3 dampingForce = currentVel * -_damping;
-		float3 acceleration = springForce + dampingForce;
-
-		float3 nextVel = currentVel + acceleration * dt;
-		float3 nextPos = currentPos + nextVel * dt;
-
-		float y_change = nextPos.x - currentPos.x;
-		
-		if (_maxLuminanceChangePerFrame > 0 && std::abs(y_change) > _maxLuminanceChangePerFrame)
+		else
 		{
-			float clamped_y_change = std::max(-_maxLuminanceChangePerFrame, std::min(_maxLuminanceChangePerFrame, y_change));
-			nextPos.x = currentPos.x + clamped_y_change;
-			nextVel.x = clamped_y_change / dt;
+			float3 acc = _stiffness * diff - _damping * vel;
+
+			// integracja (Euler semi-implicit)
+			vel += acc * (dt * 0.001f);
+			float3 step = vel * (dt * 0.001f);
+
+			if (_maxLuminanceChangePerStep > 0.f)
+			{
+				float stepY = step[0];
+				if (fabs(stepY) > _maxLuminanceChangePerStep)
+				{
+					stepY = std::copysignf(_maxLuminanceChangePerStep, stepY);
+					vel[0] = stepY / (dt * 0.001f);
+				}
+				cur[0] += stepY;
+			}
+			else
+			{
+				cur[0] += step[0];
+			}
+
+			cur[1] += step[1];
+			cur[2] += step[2];
 		}
+		};
 
-		_currentColorsYUV[i] = nextPos;
-		_velocityYUV[i] = nextVel;
-		_currentColorsRGB[i] = ColorSpaceMath::bt709_to_rgb(nextPos);
-	}
+	_isAnimationComplete = true;
 
-	if (all_finished)
+	for (auto cur = _currentColorsYUV.begin(), tgt = _targetColorsYUV.begin(), vel = _velocitiesYUV.begin();
+		cur != _currentColorsYUV.end() && tgt != _targetColorsYUV.end() && vel != _velocitiesYUV.end();
+		++cur, ++tgt, ++vel)
 	{
-		_isAnimationComplete = true;
+		if (computeChannelVec(*cur, *tgt - *cur, *vel))
+		{
+			_isAnimationComplete = false;
+		}
 	}
+
+	_currentColorsRGB.reset();
 }
 
 SharedOutputColors InfiniteHybridInterpolator::getCurrentColors()
 {
-	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB);
+	if (!_currentColorsRGB.has_value())
+	{
+		if (_isAnimationComplete)
+		{
+			_currentColorsRGB = _targetColorsRGB;
+		}
+		else
+		{
+			std::vector<linalg::aliases::float3> tmp(_currentColorsYUV.size());
+			std::transform(
+				_currentColorsYUV.begin(),
+				_currentColorsYUV.end(),
+				tmp.begin(),
+				[](const auto& yuv) { return linalg::clamp(ColorSpaceMath::bt709_to_rgb(yuv), 0.f, 1.0f); }
+			);
+			_currentColorsRGB = std::move(tmp);
+		}
+	}
+	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB.value());
 }
 
 void InfiniteHybridInterpolator::test() {
@@ -208,7 +211,7 @@ void InfiniteHybridInterpolator::test() {
 		std::cout << "\n--- TEST: " << name << " ---\n";
 		std::cout << "--------------------------------------------------\n";
 
-		interpolator.resetToColors({ start_A });
+		interpolator.resetToColors({ start_A }, 0.f);
 		interpolator.setTransitionDuration(150.0f);
 
 		bool retargeted_to_D = false;

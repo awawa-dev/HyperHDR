@@ -58,7 +58,7 @@
 			"title" : "edt_conf_enum_interpolator_smoothingFactor_title",
 			"minimum" : 0.0,
 			"maximum" : 1.0,
-			"default" : 0.1,
+			"default" : 0.0,
 			"required" : true,
 			"options": {
 				"dependencies": {
@@ -75,7 +75,7 @@
 			"title" : "edt_conf_enum_interpolator_stiffness_title",
 			"minimum" : 0,
 			"maximum": 1000,
-			"default" : 200,
+			"default" : 150,
 			"required" : true,
 			"options": {
 				"dependencies": {

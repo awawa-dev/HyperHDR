@@ -15,7 +15,7 @@ class InfiniteHybridInterpolator : public InfiniteInterpolator
 public:
 	InfiniteHybridInterpolator();
 
-	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs, bool debug = false) override;
+	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug = false) override;
 	void updateCurrentColors(float currentTimeMs) override;
 	SharedOutputColors getCurrentColors() override;
 
@@ -23,30 +23,22 @@ public:
 	void setSpringiness(float stiffness, float damping) override;
 	void setMaxLuminanceChangePerFrame(float maxYChangePerFrame) override;
 
-	void resetToColors(std::vector<linalg::aliases::float3> colors);
+	void resetToColors(std::vector<linalg::aliases::float3> colors, float startTimeMs);
 	static void test();
 
 private:
-	std::vector<linalg::aliases::float3> _currentColorsRGB;
+	std::vector<linalg::aliases::float3> _targetColorsRGB;
+	std::optional<std::vector<linalg::aliases::float3>> _currentColorsRGB;
 	std::vector<linalg::aliases::float3> _currentColorsYUV;
-	std::vector<linalg::aliases::float3> _velocityYUV;
+	std::vector<linalg::aliases::float3> _targetColorsYUV;
+	std::vector<linalg::aliases::float3> _velocitiesYUV;
 
-	std::vector<linalg::aliases::float3> _pacer_startColorsYUV;
-	std::vector<linalg::aliases::float3> _pacer_targetColorsYUV;
-	std::vector<linalg::aliases::float3> _finalTargetRGB;
-
-	float _startTimeMs = 0.0f;
-	float _lastTimeMs = 0.0f;
-	float _deltaMs = 300.0f;
-	float _initialDistance = 0.0f;
-	float _initialDuration = 300.0f;
-
-	float _stiffness = 200.0f;
+	float _initialDuration = 150.0f;
+	float _startAnimationTimeMs = 0.0f;
+	float _targetTime = 0.0f;
+	float _lastUpdate = 0.0f;
+	float _stiffness = 150.0f;
 	float _damping = 26.0f;
-	float _maxLuminanceChangePerFrame = 0;
-
+	float _maxLuminanceChangePerStep = 0.02f;
 	bool _isAnimationComplete = true;
-
-	static constexpr float FINISH_THRESHOLD = 1e-4f;
-	static constexpr float FINISH_THRESHOLD_SQ = FINISH_THRESHOLD * FINISH_THRESHOLD;
 };
