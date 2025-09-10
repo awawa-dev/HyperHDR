@@ -65,14 +65,14 @@ Animation_MoodBlobs::Animation_MoodBlobs() :
 
 
 void Animation_MoodBlobs::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 
 }
 
-bool Animation_MoodBlobs::Play(HyperImage& painter)
+bool Animation_MoodBlobs::Play(HyperImage& /*painter*/)
 {
 	return true;
 }

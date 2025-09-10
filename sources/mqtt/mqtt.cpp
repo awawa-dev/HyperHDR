@@ -92,7 +92,7 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 
 	if (is_ssl && ignore_ssl_errors)
 	{
-		QObject::connect(_clientInstance, &QMQTT::Client::sslErrors, this, [this](const QList<QSslError>& errors) {
+		QObject::connect(_clientInstance, &QMQTT::Client::sslErrors, this, [this](const QList<QSslError>& /*errors*/) {
 			if (_clientInstance != nullptr)
 				_clientInstance->ignoreSslErrors();
 		});

@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_QuatroMultiSlow::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_QuatroMultiSlow::Play(HyperImage& painter)
+bool Animation4Music_QuatroMultiSlow::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

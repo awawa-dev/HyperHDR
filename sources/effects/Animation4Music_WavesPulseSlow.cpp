@@ -45,7 +45,7 @@ EffectDefinition Animation4Music_WavesPulseSlow::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_WavesPulseSlow::Play(HyperImage& painter)
+bool Animation4Music_WavesPulseSlow::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

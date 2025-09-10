@@ -40,15 +40,15 @@ Animation_CandleLight::Animation_CandleLight() :
 };
 
 void Animation_CandleLight::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 	ColorRgb::rgb2hsv(color.x, color.y, color.z, hsv.x, hsv.y, hsv.z);
 	SetSleepTime((int)(0.20 * 1000.0));
 }
 
-bool Animation_CandleLight::Play(HyperImage& painter)
+bool Animation_CandleLight::Play(HyperImage& /*painter*/)
 {
 	return true;
 }

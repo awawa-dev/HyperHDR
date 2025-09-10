@@ -73,8 +73,8 @@ STDMETHODIMP_(ULONG) MFCallback::Release()
 	return uCount;
 }
 
-STDMETHODIMP MFCallback::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
-	DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample* pSample)
+STDMETHODIMP MFCallback::OnReadSample(HRESULT hrStatus, DWORD /*dwStreamIndex*/,
+	DWORD dwStreamFlags, LONGLONG /*llTimestamp*/, IMFSample* pSample)
 {
 
 	EnterCriticalSection(&_criticalSection);

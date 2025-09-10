@@ -42,14 +42,14 @@ Animation_Police::Animation_Police() :
 
 
 void Animation_Police::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 
 }
 
-bool Animation_Police::Play(HyperImage& painter)
+bool Animation_Police::Play(HyperImage& /*painter*/)
 {
 	return true;
 }

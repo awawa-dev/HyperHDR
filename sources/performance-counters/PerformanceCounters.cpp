@@ -112,7 +112,7 @@ PerformanceCounters::~PerformanceCounters()
 	Debug(_log, "PerformanceCounters has been removed");
 }
 
-void PerformanceCounters::performanceInfoRequest(bool all)
+void PerformanceCounters::performanceInfoRequest(bool /*all*/)
 {
 	if (InternalClock::now() - _lastRead < 980)
 		return;

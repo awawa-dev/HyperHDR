@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_PulseGreen::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_PulseGreen::Play(HyperImage& painter)
+bool Animation4Music_PulseGreen::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

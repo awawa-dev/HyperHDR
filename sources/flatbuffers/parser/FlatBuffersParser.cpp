@@ -82,7 +82,7 @@ void FlatBuffersParser::encodeRegisterPriorityIntoFlatbuffers(void* builder, int
 	*bufferSize = _builder->GetSize();
 }
 
-void FlatBuffersParser::encodeColorIntoFlatbuffers(void* builder, int red, int green, int blue, int priority, int duration, uint8_t** buffer, size_t* bufferSize)
+void FlatBuffersParser::encodeColorIntoFlatbuffers(void* builder, int red, int green, int blue, int /*priority*/, int duration, uint8_t** buffer, size_t* bufferSize)
 {
 	auto _builder = reinterpret_cast<flatbuffers::FlatBufferBuilder*>(builder);
 	auto colorReq = hyperhdrnet::CreateColor(*_builder, (red << 16) | (green << 8) | blue, duration);

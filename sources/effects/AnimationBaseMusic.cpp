@@ -50,7 +50,7 @@ void AnimationBaseMusic::restore(MovingTarget* target) {
 	target->CopyFrom(&_myTarget);
 };
 
-void AnimationBaseMusic::Init(HyperImage& hyperImage, int hyperLatchTime)
+void AnimationBaseMusic::Init(HyperImage& /*hyperImage*/, int /*hyperLatchTime*/)
 {
 	SetSleepTime(17);
 };

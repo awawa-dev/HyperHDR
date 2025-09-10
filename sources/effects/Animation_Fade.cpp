@@ -66,14 +66,14 @@ Animation_Fade::Animation_Fade() :
 
 };
 
-void Animation_Fade::SetPoint(Point3d point) {
+void Animation_Fade::SetPoint(Point3d /*point*/) {
 }
 
 #define calcChannel(i) \
 	(uint8_t)(std::min(std::max(int(std::round(colorStart.i + color_step.i*step)),0), int((colorStart.i < colorEnd.i) ? colorEnd.i : colorStart.i)))
 
 void Animation_Fade::Init(
-	HyperImage& hyperImage,
+	HyperImage& /*hyperImage*/,
 	int hyperLatchTime
 )
 {
@@ -142,7 +142,7 @@ void Animation_Fade::Init(
 	repeatCounter = 1;
 }
 
-bool Animation_Fade::Play(HyperImage& painter)
+bool Animation_Fade::Play(HyperImage& /*painter*/)
 {
 	return true;
 }

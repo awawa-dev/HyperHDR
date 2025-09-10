@@ -123,7 +123,7 @@ namespace BoardUtils
 							return false;
 					}
 		}
-		catch (std::exception& ex)
+		catch (std::exception& /*ex*/)
 		{
 			// too much noice or too low resolution
 			return false;
@@ -167,7 +167,7 @@ namespace BoardUtils
 		{
 			getWhiteBlackColorLevels(yuvImage, white, black, line);
 		}
-		catch (std::exception& ex)
+		catch (std::exception& /*ex*/)
 		{
 			Error(_log, "Too much noice or too low resolution");
 			return false;
@@ -186,7 +186,7 @@ namespace BoardUtils
 				throw std::runtime_error("Unexpected board");
 
 		}
-		catch (std::exception& ex)
+		catch (std::exception& /*ex*/)
 		{
 			Error(_log, "Too much noice or too low resolution");
 			return false;
@@ -224,7 +224,7 @@ namespace BoardUtils
 					allColors.all[R][G][B] = capturedColor;
 				}
 			}
-			catch (std::exception& ex)
+			catch (std::exception& /*ex*/)
 			{
 				Error(_log, "Could not read position [%i, %i]. Too much noice or too low resolution", position.x, position.y);
 				return false;

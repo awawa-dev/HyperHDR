@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_QuatroRed::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_QuatroRed::Play(HyperImage& painter)
+bool Animation4Music_QuatroRed::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

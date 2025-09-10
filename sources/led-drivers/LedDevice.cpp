@@ -558,12 +558,12 @@ int LedDevice::writeBlack(int numberOfBlack)
 	return rc;
 }
 
-std::pair<bool, int> LedDevice::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+std::pair<bool, int> LedDevice::writeInfiniteColors(SharedOutputColors /*nonlinearRgbColors*/)
 {
 	return std::pair<bool, int>(false, 0);
 }
 
-int LedDevice::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
+int LedDevice::writeFiniteColors(const std::vector<ColorRgb>& /*ledValues*/)
 {
 	return -1;
 }

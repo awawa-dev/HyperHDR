@@ -10,7 +10,7 @@ Option::Option(const QStringList& names, const QString& description, const QStri
 	: QCommandLineOption(names, description, valueName, defaultValue)
 {}
 
-bool Option::validate(Parser& parser, QString& value)
+bool Option::validate(Parser& /*parser*/, QString& /*value*/)
 {
 	/* By default everything is accepted */
 	return true;

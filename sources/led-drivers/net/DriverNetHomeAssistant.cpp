@@ -292,7 +292,7 @@ void DriverNetHomeAssistant::restoreStates()
 	}
 }
 
-QJsonObject DriverNetHomeAssistant::discover(const QJsonObject& params)
+QJsonObject DriverNetHomeAssistant::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;

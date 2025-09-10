@@ -141,11 +141,11 @@ void DxGrabber::uninit()
 	}
 }
 
-void DxGrabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin)
+void DxGrabber::newWorkerFrameHandler(unsigned int /*workerIndex*/, Image<ColorRgb> /*image*/, quint64 /*sourceCount*/, qint64 /*_frameBegin*/)
 {
 };
 
-void DxGrabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString error, quint64 sourceCount)
+void DxGrabber::newWorkerFrameErrorHandler(unsigned int /*workerIndex*/, QString /*error*/, quint64 /*sourceCount*/)
 {
 };
 
@@ -217,7 +217,7 @@ void DxGrabber::getDevices()
 	enumerateDevices(false);
 }
 
-void DxGrabber::enumerateDevices(bool silent)
+void DxGrabber::enumerateDevices(bool /*silent*/)
 {
 	IDXGIFactory1* pFactory = NULL;
 
@@ -795,7 +795,7 @@ void DxGrabber::grabFrame()
 			}
 
 			int targetSizeX = 0, targetSizeY = 0;
-			int divide = getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
+			getTargetSystemFrameDimension(display->actualWidth, display->actualHeight, targetSizeX, targetSizeY);
 
 			if (_reorderDisplays > 0 && result == 0)
 			{

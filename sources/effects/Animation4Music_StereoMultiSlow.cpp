@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_StereoMultiSlow::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_StereoMultiSlow::Play(HyperImage& painter)
+bool Animation4Music_StereoMultiSlow::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

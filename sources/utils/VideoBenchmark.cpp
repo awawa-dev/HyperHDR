@@ -34,13 +34,13 @@ VideoBenchmark::VideoBenchmark(QObject *parent): QObject(parent),
 	_connected(false)
 {}
 
-void VideoBenchmark::signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription)
+void VideoBenchmark::signalSetGlobalImageHandler(int /*priority*/, const Image<ColorRgb>& image, int /*timeout_ms*/, hyperhdr::Components /*origin*/, QString /*clientDescription*/)
 {
 	newFrame(image);
 }
 
 
-void VideoBenchmark::signalNewVideoImageHandler(const QString& name, const Image<ColorRgb>& image)
+void VideoBenchmark::signalNewVideoImageHandler(const QString& /*name*/, const Image<ColorRgb>& image)
 {
 	newFrame(image);
 }

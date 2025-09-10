@@ -186,7 +186,7 @@ void DriverNetZigbee2mqtt::handlerSignalMqttReceived(QString topic, QString payl
 	}
 }
 
-QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& params)
+QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;

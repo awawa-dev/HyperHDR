@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_StereoWhite::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_StereoWhite::Play(HyperImage& painter)
+bool Animation4Music_StereoWhite::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

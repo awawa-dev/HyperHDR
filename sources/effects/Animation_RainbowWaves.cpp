@@ -37,14 +37,14 @@ Animation_RainbowWaves::Animation_RainbowWaves() :
 
 
 void Animation_RainbowWaves::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 
 }
 
-bool Animation_RainbowWaves::Play(HyperImage& painter)
+bool Animation_RainbowWaves::Play(HyperImage& /*painter*/)
 {
 	return true;
 }

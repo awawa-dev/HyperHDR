@@ -53,7 +53,7 @@ EffectDefinition Animation_KnightRider::getDefinition()
 
 void Animation_KnightRider::Init(
 	HyperImage& hyperImage,
-	int hyperLatchTime)
+	int /*hyperLatchTime*/)
 {
 	hyperImage.resize(KNIGHT_WIDTH, KNIGHT_HEIGHT);
 
