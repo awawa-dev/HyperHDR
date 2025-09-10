@@ -88,7 +88,7 @@ bool CapturedColor::calculateFinalColor()
 
 	auto workColor = color / count;
 
-	colorInt = ColorSpaceMath::to_byte3(workColor);
+	colorInt = ColorSpaceMath::round_to_0_255<byte3>(workColor);
 	color /= (count * 255.0);
 	
 	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)

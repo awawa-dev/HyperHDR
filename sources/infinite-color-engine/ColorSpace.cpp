@@ -371,17 +371,6 @@ namespace ColorSpaceMath
 		return lab_to_xyz(lch_to_lab(lch));
 	}
 
-	byte3 to_byte3(const double3& v)
-	{
-		return byte3(
-			std::lround(std::max(std::min(v.x, 255.0), 0.0)),
-			std::lround(std::max(std::min(v.y, 255.0), 0.0)),
-			std::lround(std::max(std::min(v.z, 255.0), 0.0))
-		);
-	}
-
-	byte3 to_byte3(const float3& v) { return to_byte3(static_cast<double3>(v)); };
-
 	int3 to_int3(const byte3& v)
 	{
 		return int3(v.x, v.y, v.z);
@@ -507,80 +496,6 @@ namespace ColorSpaceMath
 		const double2 dx = double2{ cos_angle, sin_angle } * scaling * ((truncate) ? maxLenInColorspace(primaries, cos_angle, sin_angle)  : linalg::length(d));
 
 		return dx + primaries[3];
-	}
-
-	void serialize(std::stringstream& out, const double2& v)
-	{
-		out << "{" << v[0] << ", " << v[1] << "}";
-	}
-
-	void serialize(std::stringstream& out, const double3& v)
-	{
-		out << "{" << v[0] << ", " << v[1] << ", " << v[2] << "}";
-	}
-
-	void serialize(std::stringstream& out, const double4& v)
-	{
-		out << "{" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "}";
-	}
-
-	void serialize(std::stringstream& out, const double4x4& m)
-	{
-		out << "{";
-		for (int d = 0; d < 4; d++)
-		{
-			if (d != 0) out << ", ";
-			serialize(out, m[d]);
-		}
-		out << "}";
-	}
-
-	void serialize(std::stringstream& out, const double3x3& m)
-	{
-		out << "{";
-		for (int d = 0; d < 3; d++)
-		{
-			if (d != 0) out << ", ";
-			serialize(out, m[d]);			
-		}
-		out << "}";
-	}
-
-
-	float3 rgb2hsv(const float3& rgb)
-	{
-		linalg::vec<float, 3> hsv;
-		float cmax = std::max({ rgb.x, rgb.y, rgb.z });
-		float cmin = std::min({ rgb.x, rgb.y, rgb.z });
-		float diff = cmax - cmin;
-
-		if (cmax == cmin) hsv.x = 0;
-		else if (cmax == rgb.x) hsv.x = std::fmod(60 * ((rgb.y - rgb.z) / diff) + 360, 360);
-		else if (cmax == rgb.y) hsv.x = std::fmod(60 * ((rgb.z - rgb.x) / diff) + 120, 360);
-		else if (cmax == rgb.z) hsv.x = std::fmod(60 * ((rgb.x - rgb.y) / diff) + 240, 360);
-
-		hsv.y = (cmax == 0) ? 0 : (diff / cmax);
-		hsv.z = cmax;
-		return hsv;
-	}
-
-	float3 hsv2rgb(const float3& hsv)
-	{
-		float c = hsv.z * hsv.y;
-		float x_val = c * (1 - std::abs(std::fmod(hsv.x / 60.0, 2) - 1));
-		float m = hsv.z - c;
-		linalg::vec<float, 3> rgb_prime;
-
-		switch (static_cast<int>(hsv.x / 60))
-		{
-			case 0: rgb_prime = { c, x_val, 0 }; break;
-			case 1: rgb_prime = { x_val, c, 0 }; break;
-			case 2: rgb_prime = { 0, c, x_val }; break;
-			case 3: rgb_prime = { 0, x_val, c }; break;
-			case 4: rgb_prime = { x_val, 0, c }; break;
-			default: rgb_prime = { c, 0, x_val }; break;
-		}
-		return { rgb_prime.x + m, rgb_prime.y + m, rgb_prime.z + m };
 	}
 
 	inline float ufast_cbrt(float x)

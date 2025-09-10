@@ -745,7 +745,7 @@ void HyperHdrInstance::updateResult(std::vector<linalg::aliases::float3>&& _ledB
 	nonLinear255Color.reserve(_ledBuffer.size());
 	for (const linalg::aliases::float3& c : _ledBuffer)
 	{
-		auto temp = ColorSpaceMath::to_byte3(InfiniteProcessing::srgbLinearToNonlinear(c) * 255.0f);
+		auto temp = ColorSpaceMath::round_to_0_255<linalg::aliases::byte3>(InfiniteProcessing::srgbLinearToNonlinear(c) * 255.0f);
 		nonLinear255Color.push_back(ColorRgb(temp.x, temp.y, temp.z));
 	}
 	_currentLedColors = std::move(nonLinear255Color);

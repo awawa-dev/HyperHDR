@@ -37,6 +37,7 @@
 #endif
 
 #include <linalg.h>
+#include <concepts>
 
 struct ColorRgb;
 
@@ -208,9 +209,58 @@ namespace ColorSpaceMath
 
 	double3 lch_to_xyz(const double3& lch);
 
-	float3 rgb2hsv(const float3& rgb);
-	// H 0 do 360, reszta 0 do 1
-	float3 hsv2rgb(const float3& hsv);
+	template<typename T>
+	constexpr linalg::vec<T, 3> rgb2hsv(const linalg::vec<T, 3>& rgb)
+	{
+		using std::max;
+		using std::min;
+		using std::fmod;
+
+		linalg::vec<T, 3> hsv;
+		const T cmax = max({ rgb.x, rgb.y, rgb.z });
+		const T cmin = min({ rgb.x, rgb.y, rgb.z });
+		const T diff = cmax - cmin;
+
+		if (cmax == cmin) {
+			hsv.x = T(0);
+		}
+		else if (cmax == rgb.x) {
+			hsv.x = fmod(T(60) * ((rgb.y - rgb.z) / diff) + T(360), T(360));
+		}
+		else if (cmax == rgb.y) {
+			hsv.x = fmod(T(60) * ((rgb.z - rgb.x) / diff) + T(120), T(360));
+		}
+		else {
+			hsv.x = fmod(T(60) * ((rgb.x - rgb.y) / diff) + T(240), T(360));
+		}
+
+		hsv.y = (cmax <= std::numeric_limits<T>::epsilon()) ? T(0) : (diff / cmax);
+		hsv.z = cmax;
+		return hsv;
+	}
+
+	template<typename T>
+	constexpr linalg::vec<T, 3> hsv2rgb(const linalg::vec<T, 3>& hsv)
+	{
+		using std::fmod;
+		using std::fabs;
+
+		const T c = hsv.z * hsv.y;
+		const T x_val = c * (T(1) - fabs(fmod(hsv.x / T(60), T(2)) - T(1)));
+		const T m = hsv.z - c;
+		linalg::vec<T, 3> rgb_prime;
+
+		switch (static_cast<int>(hsv.x / T(60)))
+		{
+			case 0: rgb_prime = { c, x_val, T(0) }; break;
+			case 1: rgb_prime = { x_val, c, T(0) }; break;
+			case 2: rgb_prime = { T(0), c, x_val }; break;
+			case 3: rgb_prime = { T(0), x_val, c }; break;
+			case 4: rgb_prime = { x_val, T(0), c }; break;
+			default: rgb_prime = { c, T(0), x_val }; break;
+		}
+		return { rgb_prime.x + m, rgb_prime.y + m, rgb_prime.z + m };
+	}
 
 	float3 clamp_oklab_chroma_to_gamut(const float3& oklab);
 
@@ -218,7 +268,6 @@ namespace ColorSpaceMath
 
 	float3 oklab_to_linear_rgb(const float3& lab);
 
-	void test_oklab_clipping();
 	void test_oklab();
 
 	double2 primaryRotateAndScale(const double2 primary,
@@ -227,9 +276,26 @@ namespace ColorSpaceMath
 		const std::vector<double2>& primaries,
 		bool truncate = false);
 
-	byte3 to_byte3(const double3& v);
+	template<typename V>
+	concept FloatOrDouble3 =
+		std::same_as<V, float3> || std::same_as<V, double3>;
 
-	byte3 to_byte3(const float3& v);
+	template<typename V>
+	concept ByteOrInt3 =
+		std::same_as<V, byte3> || std::same_as<V, int3>;
+
+	template<ByteOrInt3 OutVec, FloatOrDouble3 V>
+	constexpr OutVec round_to_0_255(const V& v)
+	{
+		using TypeIn = decltype(v.x);
+		using TypeOut = decltype(OutVec::x);
+
+		return OutVec{
+			static_cast<TypeOut>(std::lround(std::clamp(v.x, TypeIn(0), TypeIn(255)))),
+			static_cast<TypeOut>(std::lround(std::clamp(v.y, TypeIn(0), TypeIn(255)))),
+			static_cast<TypeOut>(std::lround(std::clamp(v.z, TypeIn(0), TypeIn(255))))
+		};
+	}
 
 	int3 to_int3(const byte3& v);
 
@@ -256,16 +322,30 @@ namespace ColorSpaceMath
 
 	QString matToString(double3x3 m);
 
-	byte3 colorRgbToByte3(ColorRgb* rgb);	
+	byte3 colorRgbToByte3(ColorRgb* rgb);
 
-	void serialize(std::stringstream& out, const double2& v);
+	template<typename T, int N>
+	void serialize(std::stringstream& out, const linalg::vec<T, N>& v)
+	{
+		out << "{";
+		for (int i = 0; i < N; i++)
+		{
+			if (i != 0) out << ", ";
+			out << v[i];
+		}
+		out << "}";
+	}
 
-	void serialize(std::stringstream& out, const double3& v);
-
-	void serialize(std::stringstream& out, const double4& v);
-
-	void serialize(std::stringstream& out, const double4x4& m);
-
-	void serialize(std::stringstream& out, const double3x3& m);
+	template<typename T, int R, int C>
+	void serialize(std::stringstream& out, const linalg::mat<T, R, C>& m)
+	{
+		out << "{";
+		for (int i = 0; i < R; i++)
+		{
+			if (i != 0) out << ", ";
+			serialize(out, m[i]);
+		}
+		out << "}";
+	}
 };
 

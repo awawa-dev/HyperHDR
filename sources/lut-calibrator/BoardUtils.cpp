@@ -387,7 +387,7 @@ namespace BoardUtils
 					const auto& sample = captured.all[r][g][b];
 					int3 sourceRgb = sample.getSourceRGB();
 					auto result = converter.toRgb(YuvConverter::COLOR_RANGE::FULL, YuvConverter::YUV_COEFS::BT709, sample.yuv()) * 255.0;
-					int3 outputRgb = ColorSpaceMath::to_int3(ColorSpaceMath::to_byte3(result));
+					int3 outputRgb = ColorSpaceMath::round_to_0_255<int3>(result);
 					int distance = linalg::distance(sourceRgb, outputRgb);
 					if (distance > maxError)
 					{

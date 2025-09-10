@@ -576,7 +576,7 @@ int LedDevice::write(SharedOutputColors nonlinearRgbColors)
 		ledValues.reserve(nonlinearRgbColors->size());
 		std::transform(nonlinearRgbColors->cbegin(), nonlinearRgbColors->cend(), std::back_inserter(ledValues),
 			[](const auto& v) {
-				auto b = ColorSpaceMath::to_byte3(v * 255.0f);
+				auto b = ColorSpaceMath::round_to_0_255<linalg::aliases::byte3>(v * 255.0f);
 				return ColorRgb{ b.x, b.y, b.z };
 			});
 		return writeFiniteColors(ledValues);

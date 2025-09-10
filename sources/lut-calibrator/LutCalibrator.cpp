@@ -241,7 +241,7 @@ QString LutCalibrator::generateReport(bool full)
 					auto rgbBT709 = _yuvConverter->toRgb(_capturedColors->getRange(), YuvConverter::BT709, static_cast<double3>(yuv.first) / 255.0) * 255.0;
 
 					colors.append(QString("%1 (YUV: %2)")
-						.arg(vecToString(ColorSpaceMath::to_byte3(rgbBT709)), 12)
+						.arg(vecToString(ColorSpaceMath::round_to_0_255<byte3>(rgbBT709)), 12)
 						.arg(vecToString(yuv.first), 12)
 					);
 				}
@@ -1027,7 +1027,7 @@ void CalibrationWorker::run()
 											auto correctedRGB = (*sample).second;
 
 											doToneMapping(selectedLchPrimaries, correctedRGB);
-											lcHError += (*sample).first->getSourceError((int3)(to_byte3(correctedRGB * 255.0)));
+											lcHError += (*sample).first->getSourceError(round_to_0_255<int3>(correctedRGB * 255.0));
 											if (lcHError >= currentError || lcHError > weakBestScore)
 											{
 												lchFavour = false;
@@ -1492,8 +1492,8 @@ static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<Captured
 				arg(vecToString(c.org)).
 				arg(vecToString(c.real)).				
 				arg(vecToString(c.delta)).
-				arg(vecToString(to_byte3(aa))).
-				arg(vecToString(to_byte3(bb))));
+				arg(vecToString(round_to_0_255<byte3>(aa))).
+				arg(vecToString(round_to_0_255<byte3>(bb))));
 
 		}
 		info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -1515,7 +1515,7 @@ void CreateLutWorker::run()
 				if (phase == 0)
 				{
 					yuv = yuvConverter->toYuv(bestResult->signal.range, bestResult->coef, yuv);
-					YUV = to_byte3(yuv * 255);
+					YUV = round_to_0_255<byte3>(yuv * 255);
 				}
 
 				if (phase == 0 || phase == 1)
@@ -1535,7 +1535,7 @@ void CreateLutWorker::run()
 					yuv = yuvConverter->toRgb((bestResult->signal.isSourceP010) ? YuvConverter::COLOR_RANGE::LIMITED : bestResult->signal.range, bestResult->coef, yuv);
 				}
 
-				byte3 result = to_byte3(yuv * 255.0);
+				byte3 result = round_to_0_255<byte3>(yuv * 255.0);
 				uint32_t ind_lutd = LUT_INDEX(y, u, v);
 				lut[ind_lutd] = result.x;
 				lut[ind_lutd + 1] = result.y;
