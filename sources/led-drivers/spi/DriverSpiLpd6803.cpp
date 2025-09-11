@@ -37,7 +37,7 @@ int DriverSpiLpd6803::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "Lpd6803 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 
@@ -56,7 +56,7 @@ int DriverSpiLpd6803::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	}
 
 	// Write the data
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
 }
 
 LedDevice* DriverSpiLpd6803::construct(const QJsonObject& deviceConfig)

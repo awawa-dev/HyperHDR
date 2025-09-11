@@ -775,7 +775,7 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 								{
 									MFSetAttributeRatio(type, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
 
-									hr = _sourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, NULL, type);
+									hr = _sourceReader->SetCurrentMediaType(static_cast<DWORD>(MF_SOURCE_READER_FIRST_VIDEO_STREAM), NULL, type);
 									if (CHECK(hr))
 									{
 										setStreamParamOK = true;
@@ -907,7 +907,7 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 
 void MFGrabber::uninit_device()
 {
-	_sourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
+	_sourceReader->Flush(static_cast<DWORD>(MF_SOURCE_READER_FIRST_VIDEO_STREAM));
 	_sourceReaderCB->WaitToQuit();
 
 	if (_sourceReader != NULL)
@@ -921,7 +921,7 @@ void MFGrabber::start_capturing()
 {
 	if (_sourceReader)
 	{
-		HRESULT hr = _sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
+		HRESULT hr = _sourceReader->ReadSample(static_cast<DWORD>(MF_SOURCE_READER_FIRST_VIDEO_STREAM), 0, NULL, NULL, NULL, NULL);
 		if (!CHECK(hr))
 			Error(_log, "ReadSample (%i)", hr);
 	}

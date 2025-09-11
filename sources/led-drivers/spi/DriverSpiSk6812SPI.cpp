@@ -76,7 +76,7 @@ int DriverSpiSk6812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "Sk6812SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		const int SPI_FRAME_END_LATCH_BYTES = 3;
 		_ledBuffer.resize(0, 0x00);
@@ -106,7 +106,7 @@ int DriverSpiSk6812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 	_ledBuffer[spi_ptr++] = 0;
 	_ledBuffer[spi_ptr++] = 0;
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
 }
 
 LedDevice* DriverSpiSk6812SPI::construct(const QJsonObject& deviceConfig)

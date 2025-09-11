@@ -23,7 +23,7 @@ int DriverSpiP9813::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "P9813 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
@@ -38,7 +38,7 @@ int DriverSpiP9813::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		*dataPtr++ = color.red;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
 }
 
 uint8_t DriverSpiP9813::calculateChecksum(const ColorRgb& color) const

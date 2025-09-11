@@ -806,7 +806,7 @@ void DxGrabber::grabFrame()
 			height = std::max(targetSizeY, height);
 		}
 
-		if (useCache && (_cacheImage.width() != width || _cacheImage.height() != height))
+		if (useCache && (static_cast<int>(_cacheImage.width()) != width || static_cast<int>(_cacheImage.height()) != height))
 		{
 			Warning(_log, "Invalid cached image size. Cached: %i x %i vs new: %i x %i", _cacheImage.width(), _cacheImage.height(), width, height);
 			return;

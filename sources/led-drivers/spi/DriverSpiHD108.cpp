@@ -110,7 +110,7 @@ std::pair<bool, int> DriverSpiHD108::writeInfiniteColors(SharedOutputColors nonl
 		index += HD108_LED_FRAME_SIZE;
 	}
 
-	return std::pair<bool,int>(true, writeBytes(_ledBuffer.size(), _ledBuffer.data()));
+	return std::pair<bool,int>(true, writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data()));
 }
 
 LedDevice* DriverSpiHD108::construct(const QJsonObject& deviceConfig)

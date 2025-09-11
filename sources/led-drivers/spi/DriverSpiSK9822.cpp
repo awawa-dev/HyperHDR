@@ -135,7 +135,7 @@ int DriverSpiSK9822::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "SK9822 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		const unsigned int startFrameSize = 4;
 		const unsigned int endFrameSize = ((_ledCount / 32) + 1) * 4;
@@ -152,7 +152,7 @@ int DriverSpiSK9822::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		this->bufferWithMaxCurrent(_ledBuffer, ledValues, maxLevel);
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
 }
 
 LedDevice* DriverSpiSK9822::construct(const QJsonObject& deviceConfig)

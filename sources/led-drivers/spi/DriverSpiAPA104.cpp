@@ -75,7 +75,7 @@ int DriverSpiAPA104::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "APA104 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
@@ -100,7 +100,7 @@ int DriverSpiAPA104::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		_ledBuffer[spi_ptr++] = 0;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
 }
 
 LedDevice* DriverSpiAPA104::construct(const QJsonObject& deviceConfig)

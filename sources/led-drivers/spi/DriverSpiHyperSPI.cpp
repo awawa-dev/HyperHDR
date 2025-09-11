@@ -127,7 +127,7 @@ int DriverSpiHyperSPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	{
 		Warning(_log, "AWA spi led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
 
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		createHeader();
 	}
@@ -164,13 +164,13 @@ int DriverSpiHyperSPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 
 	QString spiType = getSpiType();
 	if (spiType == "esp8266")
-		return writeBytesEsp8266(bufferLength, _ledBuffer.data());
+		return writeBytesEsp8266(static_cast<unsigned int>(bufferLength), _ledBuffer.data());
 	else if (spiType == "esp32")
-		return writeBytesEsp32(bufferLength, _ledBuffer.data());
+		return writeBytesEsp32(static_cast<unsigned int>(bufferLength), _ledBuffer.data());
 	else if (spiType == "rp2040")
-		return writeBytesRp2040(bufferLength, _ledBuffer.data());
+		return writeBytesRp2040(static_cast<unsigned int>(bufferLength), _ledBuffer.data());
 	else
-		return writeBytes(bufferLength, _ledBuffer.data());
+		return writeBytes(static_cast<unsigned int>(bufferLength), _ledBuffer.data());
 }
 
 void DriverSpiHyperSPI::whiteChannelExtension(uint8_t*& writer)
