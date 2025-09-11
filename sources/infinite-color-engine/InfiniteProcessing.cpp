@@ -510,8 +510,7 @@ void InfiniteProcessing::applyUserGamma(linalg::vec<float, 3>& color) const
 }
 
 void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<float, 3>  custom_tint)
-{
-	_temperature_tint.reset();
+{	
 	switch (preset)
 	{
 		case TemperaturePreset::Warm:
@@ -525,6 +524,9 @@ void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<fl
 			break;
 		case TemperaturePreset::Custom:
 			_temperature_tint = custom_tint;
+			break;
+		default:
+			_temperature_tint.reset();
 			break;
 	}
 
