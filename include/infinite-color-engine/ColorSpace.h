@@ -306,21 +306,29 @@ namespace ColorSpaceMath
 	void trim01(double3& input);
 
 
-	QString vecToString(const double2& v);
+	template<typename T, int N>
+	QString vecToString(const linalg::vec<T, N>& v)
+	{
+		QStringList parts;
+		for (int i = 0; i < N; ++i) {
+			if constexpr (std::is_integral_v<T>) {
+				parts << QString("%1").arg(v[i], 3);
+			}
+			else {
+				parts << QString::number(v[i], 'f', 3);
+			}
+		}
+		return "[ " + parts.join(" ") + " ]";
+	}
 
-	QString vecToString(const double3& v);
-
-	QString vecToString(const float3& v);
-
-	QString vecToString(const double4& v);
-
-	QString vecToString(const byte3& v);
-
-	QString vecToString(const int3& v);
-
-	QString matToString(double4x4 m);
-
-	QString matToString(double3x3 m);
+	template<typename T, int M, int N>
+	QString matToString(const linalg::mat<T, M, N>& m)
+	{
+		QStringList rows;
+		for (int r = 0; r < M; ++r)
+			rows << vecToString(m.row(r));
+		return rows.join("\r\n");
+	}
 
 	byte3 colorRgbToByte3(ColorRgb* rgb);
 

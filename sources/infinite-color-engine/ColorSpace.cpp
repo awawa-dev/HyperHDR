@@ -398,56 +398,6 @@ namespace ColorSpaceMath
 		input.z = std::max(0.0, std::min(input.z, 1.0));
 	}
 
-	QString vecToString(const double2& v)
-	{
-		return QString("[%1 %2]").arg(v[0], 7, 'f', 3).arg(v[1], 7, 'f', 3);
-	}
-
-	QString vecToString(const double3& v)
-	{
-		return QString("[%1 %2 %3]").arg(v[0], 7, 'f', 3).arg(v[1], 7, 'f', 3).arg(v[2], 7, 'f', 3);
-	}
-
-	QString vecToString(const float3& v)
-	{
-		return QString("[%1 %2 %3]").arg(v[0], 7, 'f', 3).arg(v[1], 7, 'f', 3).arg(v[2], 7, 'f', 3);
-	}
-
-	QString vecToString(const double4& v)
-	{
-		return QString("[%1 %2 %3 %4]").arg(v[0], 6, 'f', 3).arg(v[1], 6, 'f', 3).arg(v[2], 6, 'f', 3).arg(v[3], 6, 'f', 3);
-	}
-
-	QString vecToString(const byte3& v)
-	{
-		return QString("[%1 %2 %3]").arg(v[0], 3).arg(v[1], 3).arg(v[2], 3);
-	}
-
-	QString vecToString(const int3& v)
-	{
-		return QString("[%1 %2 %3]").arg(v[0], 3).arg(v[1], 3).arg(v[2], 3);
-	}
-
-	QString matToString(double4x4 m)
-	{
-		QStringList ret;
-		for (int d = 0; d < 4; d++)
-		{
-			ret.append(vecToString(m.row(d)));
-		}
-		return ret.join("\r\n");
-	}
-
-	QString matToString(double3x3 m)
-	{
-		QStringList ret;
-		for (int d = 0; d < 3; d++)
-		{
-			ret.append(vecToString(m.row(d)));
-		}
-		return ret.join("\r\n");
-	}
-
 	constexpr double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
 	{
 		const double denominator = linalg::determinant( double2x2{ {p1.x - p2.x, p3.x - p4.x}, {p1.y - p2.y, p3.y - p4.y} });
