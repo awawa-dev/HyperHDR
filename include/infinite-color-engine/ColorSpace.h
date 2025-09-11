@@ -38,6 +38,7 @@
 
 #include <linalg.h>
 #include <concepts>
+#include <ostream>
 
 struct ColorRgb;
 
@@ -332,7 +333,7 @@ namespace ColorSpaceMath
 	byte3 colorRgbToByte3(ColorRgb* rgb);
 
 	template<typename T, int N>
-	void serialize(std::stringstream& out, const linalg::vec<T, N>& v)
+	void serialize(std::ostream& out, const linalg::vec<T, N>& v)
 	{
 		out << "{";
 		for (int i = 0; i < N; i++)
@@ -344,7 +345,7 @@ namespace ColorSpaceMath
 	}
 
 	template<typename T, int R, int C>
-	void serialize(std::stringstream& out, const linalg::mat<T, R, C>& m)
+	void serialize(std::ostream& out, const linalg::mat<T, R, C>& m)
 	{
 		out << "{";
 		for (int i = 0; i < R; i++)
