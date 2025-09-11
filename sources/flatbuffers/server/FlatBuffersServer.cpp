@@ -322,6 +322,30 @@ void FlatBuffersServer::handlerImportFromProto(int priority, int duration, const
 	emit GlobalSignals::getInstance()->SignalSetGlobalImage(priority, image, duration, hyperhdr::Components::COMP_PROTOSERVER, clientDescription);
 }
 
+void FlatBuffersServer::requestLUT()
+{
+	static bool requested = false;
+	if (std::exchange(requested,true) == false)
+	{
+		std::shared_ptr<GrabberHelper> videoGrabber = nullptr;
+		emit GlobalSignals::getInstance()->SignalGetVideoGrabber(videoGrabber);
+		if (videoGrabber != nullptr)
+		{
+			videoGrabber.reset();
+			emit GlobalSignals::getInstance()->SignalLutRequest();
+			Warning(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
+		}
+		else
+		{
+			Error(_log, "Automatic LUT creation is disabled for custom grabber-less builds. Provide or calibrate you own LUT using LUT calibration wizard. Must be present in home HyperHDR folder.");
+		}
+	}
+	else
+	{
+		Warning(_log, "Already requested for LUT....");
+	}
+}
+
 void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::FlatbuffersTransientImage* flatImage, int timeout_ms, hyperhdr::Components origin, QString clientDescription)
 {
 	if (QThread::currentThread() != this->thread())
@@ -354,18 +378,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 			if (_hdrToneMappingEnabled && !_lutBufferInit)
 			{
-				std::shared_ptr<GrabberHelper> videoGrabber = nullptr;
-				emit GlobalSignals::getInstance()->SignalGetVideoGrabber(videoGrabber);
-				if (videoGrabber != nullptr)
-				{
-					videoGrabber.reset();
-					emit GlobalSignals::getInstance()->SignalLutRequest();
-					Error(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
-				}
-				else
-				{
-					Error(_log, "Automatic LUT creation is disabled for custom graberlesss build. Provide or calibrate you own LUT using LUT calibration wizard. Must be present in home HyperHDR folder.");
-				}
+				requestLUT();
 			}
 
 			if (getHdrToneMappingEnabled())
@@ -389,8 +402,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 		if (!_lutBufferInit)
 		{
-			emit GlobalSignals::getInstance()->SignalLutRequest();
-			Error(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
+			requestLUT();
 		}
 		else if (flatImage->size != ((flatImage->width * flatImage->height * 3) / 2) || flatImage->size == 0)
 		{

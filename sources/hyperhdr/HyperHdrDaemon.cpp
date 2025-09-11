@@ -479,7 +479,7 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 	connect(_systemGrabberThread, &QThread::started, _systemGrabber.get(), &GrabberHelper::SignalCreateGrabber);
 	connect(_systemGrabberThread, &QThread::finished, _systemGrabber.get(), &GrabberHelper::deleteLater);
 	connect(_systemGrabber.get(), &GrabberHelper::SignalCreateGrabber, _systemGrabber.get(), [this, config, deviceName, rootPath]() {
-		bool force = false;
+		[[maybe_unused]] bool force = false;
 
 		_systemGrabber->linker.release(1);
 		SystemWrapper* softwareGrabberInstance = nullptr;

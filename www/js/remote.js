@@ -259,7 +259,18 @@ $(document).ready(function()
 		for (const comp of components)
 		{
 			if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.serverInfo.currentInstance != 0))
-				continue;					
+				continue;
+
+			if (comp.name === "VIDEOGRABBER")
+			{
+				if (window.serverInfo.grabbers == null || Object.keys(window.serverInfo.grabbers).length === 0)
+					continue;
+			}
+			else if (comp.name === "SYSTEMGRABBER")
+			{
+				if (window.serverInfo.systemGrabbers == null || Object.keys(window.serverInfo.systemGrabbers).length === 0)
+					continue;
+			}
 
 			const comp_btn_id = "comp_btn_" + comp.name;
 

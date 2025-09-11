@@ -309,6 +309,17 @@ $(document).ready(function ()
 							  '</div>';
 		for (var idx = 0; idx < components.length; idx++)
 		{
+			if (components[idx].name === "VIDEOGRABBER")
+			{
+				if (window.serverInfo.grabbers == null || Object.keys(window.serverInfo.grabbers).length === 0)
+					continue;
+			}
+			else if (components[idx].name === "SYSTEMGRABBER")
+			{
+				if (window.serverInfo.systemGrabbers == null || Object.keys(window.serverInfo.systemGrabbers).length === 0)
+					continue;
+			}
+
 			if (components[idx].name != "ALL" && components[idx].name != "GRABBER")
 				components_html += `<div class="row border-bottom hyperhdr-vcenter" style="height:3em;"><div class="col-9 col-md-8 ps-4 ${(components[idx].enabled ? "" : "text-muted")}">${$.i18n('general_comp_' + components[idx].name)}</div><div class="col-3 col-md-4 text-center"><svg data-src="svg/overview_component_${(components[idx].enabled ? "on" : "off")}.svg" fill="currentColor" class="svg4hyperhdr top-0 ps-1"></svg></div></div>`;
 		}

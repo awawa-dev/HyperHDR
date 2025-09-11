@@ -383,7 +383,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 			//////////////////////
 
 			QJsonObject grabbers;
-			GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
+			[[maybe_unused]] GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)
 			if (grabberWrapper != nullptr)
