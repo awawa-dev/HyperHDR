@@ -371,19 +371,9 @@ namespace ColorSpaceMath
 		return lab_to_xyz(lch_to_lab(lch));
 	}
 
-	int3 to_int3(const byte3& v)
-	{
-		return int3(v.x, v.y, v.z);
-	}
-
-	int3 to_int3(const double3& v)
+	int3 round(const double3& v)
 	{
 		return int3(std::lround(v.x), std::lround(v.y), std::lround(v.z));
-	}
-
-	double3 to_double3(const byte3& v)
-	{
-		return double3(v.x, v.y, v.z);
 	}
 
 	byte3 colorRgbToByte3(ColorRgb* rgb)

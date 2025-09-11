@@ -960,7 +960,7 @@ void CalibrationWorker::run()
 										if (sample.U() == 128 && sample.V() == 128)
 										{
 											(*v).second = hdr_to_srgb(yuvConverter, sample.yuv(), byte2{ sample.U(), sample.V() }, aspect, coefMatrix, gamma, gammaHLG, NITS, altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult.signal, coloredAspectMode, colorAspect);
-											auto SRGB = to_int3((*v).second * 255.0);
+											auto SRGB = round((*v).second * 255.0);
 											minError = sample.getSourceError(SRGB);
 										}
 										else
@@ -970,7 +970,7 @@ void CalibrationWorker::run()
 											{
 												auto srgb = hdr_to_srgb(yuvConverter, (*iter).first, byte2{ sample.U(), sample.V() }, aspect, coefMatrix, gamma, gammaHLG, NITS, altConvert, bt2020_to_sRgb, tryBt2020Range, bestResult.signal, coloredAspectMode, colorAspect);
 
-												auto SRGB = to_int3(srgb * 255.0);
+												auto SRGB = round(srgb * 255.0);
 
 												auto sampleError = sample.getSourceError(SRGB);
 
@@ -1510,7 +1510,7 @@ void CreateLutWorker::run()
 			for (int y = 0; y <= 255; y++)
 			{
 				byte3 YUV(y, u, v);
-				double3 yuv = to_double3(YUV) / 255.0;
+				double3 yuv = static_cast<double3>(YUV) / 255.0;
 
 				if (phase == 0)
 				{

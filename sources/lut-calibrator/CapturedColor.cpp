@@ -230,7 +230,7 @@ QString CapturedColor::toString()
 
 void  CapturedColor::setSourceRGB(byte3 _color)
 {
-	sourceRGB = ColorSpaceMath::to_int3(_color);
+	sourceRGB = static_cast<int3>(_color);
 
 	auto srgb = static_cast<double3>(sourceRGB) / 255.0;
 	sourceLch = ColorSpaceMath::xyz_to_lch(ColorSpaceMath::from_sRGB_to_XYZ(srgb) * 100.0);

@@ -297,11 +297,7 @@ namespace ColorSpaceMath
 		};
 	}
 
-	int3 to_int3(const byte3& v);
-
-	int3 to_int3(const double3& v);
-
-	double3 to_double3(const byte3& v);
+	int3 round(const double3& v);
 
 	template<typename T, int N>
 	constexpr auto clamp01(const linalg::vec<T, N>& v)
