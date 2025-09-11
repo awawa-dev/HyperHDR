@@ -303,8 +303,11 @@ namespace ColorSpaceMath
 
 	double3 to_double3(const byte3& v);
 
-	void trim01(double3& input);
-
+	template<typename T, int N>
+	constexpr auto clamp01(const linalg::vec<T, N>& v)
+	{
+		return linalg::clamp(v, T(0), T(1));
+	}
 
 	template<typename T, int N>
 	QString vecToString(const linalg::vec<T, N>& v)

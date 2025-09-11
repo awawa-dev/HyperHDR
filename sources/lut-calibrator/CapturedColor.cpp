@@ -117,7 +117,7 @@ bool CapturedColor::calculateFinalColor()
 		}
 	}
 	
-	ColorSpaceMath::trim01(color);
+	ColorSpaceMath::clamp01(color);
 
 	return true;
 }

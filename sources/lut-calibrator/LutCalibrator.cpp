@@ -826,7 +826,7 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 
 	}
 
-	ColorSpaceMath::trim01(srgb);
+	ColorSpaceMath::clamp01(srgb);
 
 	return srgb;
 }

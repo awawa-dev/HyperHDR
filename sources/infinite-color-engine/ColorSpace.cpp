@@ -391,13 +391,6 @@ namespace ColorSpaceMath
 		return byte3(rgb->red, rgb->green, rgb->blue);
 	}
 
-	void trim01(double3& input)
-	{
-		input.x = std::max(0.0, std::min(input.x, 1.0));
-		input.y = std::max(0.0, std::min(input.y, 1.0));
-		input.z = std::max(0.0, std::min(input.z, 1.0));
-	}
-
 	constexpr double intersectSegments(const double2& p1, const double2& p2, const double2& p3, const double2& p4)
 	{
 		const double denominator = linalg::determinant( double2x2{ {p1.x - p2.x, p3.x - p4.x}, {p1.y - p2.y, p3.y - p4.y} });
