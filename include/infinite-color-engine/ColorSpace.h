@@ -36,9 +36,11 @@
 	#include <vector>
 #endif
 
+#include <QStringList>
 #include <linalg.h>
 #include <concepts>
 #include <ostream>
+
 
 struct ColorRgb;
 
