@@ -146,6 +146,11 @@ $(document).ready( function() {
 	$('#btn_submit_automatic_tone_mapping').off().on('click',function() {
 		requestWriteConfig(editor_automatic_tone_mapping.getValue());
 	});
+
+	if (window.serverInfo.grabbers == null || Object.keys(window.serverInfo.grabbers).length === 0)
+	{
+		$("#editor_container_automatic_tone_mapping").parent().hide();
+	}
 	
 	//create introduction
 	if(window.showOptHelp)
