@@ -451,6 +451,9 @@ void LedDevice::smoothingRestarted(int newSmoothingInterval)
 
 void LedDevice::handleSignalFinalOutputColorsReady(SharedOutputColors ledValues)
 {
+	if (ledValues == nullptr || ledValues->size() == 0)
+		return;
+
 	// stats
 	int64_t now = InternalClock::now();
 	int64_t diff = now - _computeStats.statBegin;
@@ -505,6 +508,9 @@ int LedDevice::rewriteLEDs()
 {
 	using namespace linalg::aliases;
 	int retval = -1;
+
+	if (_lastLedValues == nullptr || _lastLedValues->size() == 0)
+		return 0;
 
 	if ((_newFrame2Send || _isRefreshEnabled) && _isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
 	{
@@ -576,6 +582,9 @@ int LedDevice::writeFiniteColors(const std::vector<ColorRgb>& /*ledValues*/)
 
 int LedDevice::write(SharedOutputColors nonlinearRgbColors)
 {
+	if (nonlinearRgbColors == nullptr || nonlinearRgbColors->size() == 0)
+		return 0;
+
 	if (auto res = writeInfiniteColors(nonlinearRgbColors); !res.first)
 	{
 		std::vector<ColorRgb> ledValues;
