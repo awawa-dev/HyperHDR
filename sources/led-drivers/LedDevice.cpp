@@ -543,16 +543,22 @@ int LedDevice::rewriteLEDs()
 int LedDevice::writeBlack(int numberOfBlack)
 {
 	using namespace linalg::aliases;
-	int rc = -1;
-	
-	Debug(_log, "Set LED strip to black/power off");
+	int rc = -1;	
 
-	auto blacks = _lastLedValues;
-	std::fill(blacks->begin(), blacks->end(), float3{ 0.0f, 0.0f, 0.0f });
-
-	for (int i = 0; i < numberOfBlack; i++)
+	if (auto blacks = _lastLedValues; blacks != nullptr)
 	{
-		rc = write(blacks);
+		Debug(_log, "Set LED strip to black/power off");
+
+		std::fill(blacks->begin(), blacks->end(), float3{ 0.0f, 0.0f, 0.0f });
+
+		for (int i = 0; i < numberOfBlack; i++)
+		{
+			rc = write(blacks);
+		}
+	}
+	else
+	{
+		Warning(_log, "Set LED strip to black/power off, but the LED strip is empty. Skipped");
 	}
 
 	return rc;
