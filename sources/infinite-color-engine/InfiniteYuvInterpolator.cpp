@@ -141,7 +141,7 @@ void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
-		const float FINISH_COMPONENT_THRESHOLD = 0.5f / 255.0f;
+		const float FINISH_COMPONENT_THRESHOLD = 0.0013732906f;
 
 		float val = linalg::maxelem(linalg::abs(diff));
 
