@@ -9,7 +9,7 @@
 
 namespace JsonUtils {
 
-	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
+	bool readFile(const QString& path, QJsonObject& obj, const LoggerName& log, bool ignError)
 	{
 		QString data;
 		if (!FileUtils::readFile(path, data, log, ignError))
@@ -21,7 +21,7 @@ namespace JsonUtils {
 		return true;
 	}
 
-	bool readSchema(const QString& path, QJsonObject& obj, Logger* log)
+	bool readSchema(const QString& path, QJsonObject& obj, const LoggerName& log)
 	{
 		QJsonObject schema;
 		if (!readFile(path, schema, log))
@@ -33,7 +33,7 @@ namespace JsonUtils {
 		return true;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
+	bool parse(const QString& path, const QString& data, QJsonObject& obj, const LoggerName& log)
 	{
 		QJsonDocument doc;
 		if (!parse(path, data, doc, log))
@@ -43,7 +43,7 @@ namespace JsonUtils {
 		return true;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
+	bool parse(const QString& path, const QString& data, QJsonArray& arr, const LoggerName& log)
 	{
 		QJsonDocument doc;
 		if (!parse(path, data, doc, log))
@@ -53,7 +53,7 @@ namespace JsonUtils {
 		return true;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
+	bool parse(const QString& path, const QString& data, QJsonDocument& doc, const LoggerName& log)
 	{
 		//remove Comments in data
 		QString cleanData = data;
@@ -76,13 +76,13 @@ namespace JsonUtils {
 					++errorLine;
 				}
 			}
-			Error(log, "Failed to parse json data from %s: Error: %s at Line: %i, Column: %i, Data: '%s'", QSTRING_CSTR(path), QSTRING_CSTR(error.errorString()), errorLine, errorColumn, QSTRING_CSTR(data));
+			Error(log, "Failed to parse json data from {:s}: Error: {:s} at Line: {:d}, Column: {:d}, Data: '{:s}'", (path), (error.errorString()), errorLine, errorColumn, (data));
 			return false;
 		}
 		return true;
 	}
 
-	bool validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log)
+	bool validate(const QString& file, const QJsonObject& json, const QString& schemaPath, const LoggerName& log)
 	{
 		// get the schema data
 		QJsonObject schema;
@@ -95,7 +95,7 @@ namespace JsonUtils {
 
 	}
 
-	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log)
+	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, const LoggerName& log)
 	{
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schema);
@@ -104,27 +104,24 @@ namespace JsonUtils {
 			const QStringList& errors = schemaChecker.getMessages();
 			for (auto& error : errors)
 			{
-				Error(log, "While validating schema against json data of '%s':%s", QSTRING_CSTR(file), QSTRING_CSTR(error));
+				Error(log, "While validating schema against json data of '{:s}':{:s}", (file), (error));
 			}
 			return false;
 		}
 		return true;
 	}
 
-	bool write(const QString& filename, const QJsonObject& json, Logger* log)
+	bool write(const QString& filename, const QJsonObject& json, const LoggerName& log)
 	{
 		QJsonDocument doc;
 
 		doc.setObject(json);
 		QByteArray data = doc.toJson(QJsonDocument::Indented);
 
-		if (!FileUtils::writeFile(filename, data, log))
-			return false;
-
-		return true;
+		return FileUtils::writeFile(filename, data, log);
 	}
 
-	bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log)
+	bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, const LoggerName& log)
 	{
 		for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 		{
@@ -135,7 +132,7 @@ namespace JsonUtils {
 			{
 				if (!readSchema(":/" + attributeValue.toString(), obj, log))
 				{
-					Error(log, "Error while getting schema ref: %s", QSTRING_CSTR(QString(":/" + attributeValue.toString())));
+					Error(log, "Error while getting schema ref: {:s}", (QString(":/" + attributeValue.toString())));
 					return false;
 				}
 			}

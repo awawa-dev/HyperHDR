@@ -44,27 +44,27 @@ const QByteArray QtHttpReply::getStatusTextForCode(QtHttpReply::StatusCode statu
 	}
 }
 
-int QtHttpReply::getRawDataSize(void) const
+int QtHttpReply::getRawDataSize() const
 {
 	return m_data.size();
 };
 
-bool QtHttpReply::useChunked(void) const
+bool QtHttpReply::useChunked() const
 {
 	return m_useChunked;
 };
 
-QtHttpReply::StatusCode QtHttpReply::getStatusCode(void) const
+QtHttpReply::StatusCode QtHttpReply::getStatusCode() const
 {
 	return m_statusCode;
 };
 
-QByteArray QtHttpReply::getRawData(void) const
+QByteArray QtHttpReply::getRawData() const
 {
 	return m_data;
 };
 
-QList<QByteArray> QtHttpReply::getHeadersList(void) const
+QList<QByteArray> QtHttpReply::getHeadersList() const
 {
 	return m_headersHash.keys();
 };
@@ -89,7 +89,7 @@ void QtHttpReply::appendRawData(const QByteArray& data)
 	m_data.append(data);
 };
 
-void QtHttpReply::resetRawData(void)
+void QtHttpReply::resetRawData()
 {
 	m_data.clear();
 };

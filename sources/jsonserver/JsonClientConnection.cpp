@@ -10,7 +10,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket* socket, bool localConnect
 	: QObject()
 	, _socket(socket)
 	, _receiveBuffer()
-	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
+	, _log("JSONCLIENTCONNECTION")
 {
 	connect(_socket, &QTcpSocket::disconnected, this, &JsonClientConnection::disconnected);
 	connect(_socket, &QTcpSocket::readyRead, this, &JsonClientConnection::readRequest);

@@ -1,0 +1,49 @@
+Checks: >
+  -*,
+  clang-analyzer-*,
+  modernize-*,
+  performance-*,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-union-access,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-no-malloc,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-analyzer-security.insecureAPI.memcpy,
+  -fuchsia-trailing-return,
+  -modernize-use-trailing-return-type,
+  -modernize-use-auto,
+  -modernize-raw-string-literal,
+  -cppcoreguidelines-pro-type-cstyle-cast,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-pro-type-member-init,
+  -cppcoreguidelines-macro-usage,
+  -modernize-avoid-c-arrays,
+  -performance-no-int-to-ptr,
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
+  -clang-analyzer-core.UndefinedBinaryOperatorResult,
+  -modernize-use-default-member-init,
+  -cppcoreguidelines-narrowing-conversions,
+  -modernize-return-braced-init-list,
+  -performance-avoid-endl,
+  -modernize-loop-convert,
+  -clang-analyzer-security.FloatLoopCounter,
+  -modernize-use-emplace,
+  -modernize-macro-to-enum,
+  -performance-enum-size
+
+CheckOptions:
+  - key:             performance-unnecessary-value-param.AllowedTypes
+    value:           ^Q[A-Z].*$
+  - key:             performance-unnecessary-copy-initialization.AllowedTypes
+    value:           ^Q[A-Z].*$
+  - key:             cppcoreguidelines-macro-usage.AllowedRegexp
+    value:           ^DEBUG_*$
+
+HeaderFilterRegex: '^(?!.*(autogen|mocs_|qrc_|/external/|_deps/)).*'
+

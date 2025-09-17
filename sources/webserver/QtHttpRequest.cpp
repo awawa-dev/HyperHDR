@@ -38,37 +38,37 @@ void QtHttpRequest::addHeader(const QByteArray& header, const QByteArray& value)
 	}
 }
 
-int QtHttpRequest::getRawDataSize(void) const
+int QtHttpRequest::getRawDataSize() const
 {
 	return m_data.size();
 };
 
-QUrl QtHttpRequest::getUrl(void) const
+QUrl QtHttpRequest::getUrl() const
 {
 	return m_url;
 };
 
-QString QtHttpRequest::getCommand(void) const
+QString QtHttpRequest::getCommand() const
 {
 	return m_command;
 };
 
-QByteArray QtHttpRequest::getRawData(void) const &
+QByteArray QtHttpRequest::getRawData() const &
 {
 	return m_data;
 };
 
-QtHttpClientWrapper* QtHttpRequest::getClient(void) const
+QtHttpClientWrapper* QtHttpRequest::getClient() const
 {
 	return m_clientHandle;
 };
 
-QtHttpPostData QtHttpRequest::getPostData(void) const
+QtHttpPostData QtHttpRequest::getPostData() const
 {
 	return m_postData;
 };
 
-QtHttpRequest::ClientInfo QtHttpRequest::getClientInfo(void) const
+QtHttpRequest::ClientInfo QtHttpRequest::getClientInfo() const
 {
 	return m_clientInfo;
 };

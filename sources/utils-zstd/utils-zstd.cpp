@@ -4,9 +4,10 @@
 #include <cstdint>
 #include <zstd.h>
 #include <cstring>
+#include <filesystem>
 #include <utils-zstd/utils-zstd.h>
 
-_ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uint8_t* downloadedData, const char* fileName)
+_ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uint8_t* downloadedData, const char* fileNameUtf8)
 {
 	const size_t SINGLE_LUT_SIZE = (static_cast<size_t>(256 * 256 * 256) * 3);
 
@@ -15,6 +16,8 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 	const char* error = nullptr;
 	
 	std::ofstream file;
+	std::filesystem::path fileName{ std::u8string(reinterpret_cast<const char8_t*>(fileNameUtf8)) };
+
 	file.open(fileName, std::ios::out | std::ios::trunc | std::ios::binary);
 
 	if (!file.is_open())
@@ -36,7 +39,7 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 	{
 		ZSTD_DCtx* const dctx = ZSTD_createDCtx();
 
-		if (dctx == NULL)
+		if (dctx == nullptr)
 		{
 			error = "ZSTD_createDCtx() failed!";
 		}
@@ -66,7 +69,10 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 	file.close();
 
 	if (error != nullptr)
-		std::remove(fileName);
+	{
+		std::error_code ec;
+		std::filesystem::remove(fileName, ec);
+	}
 		
 	return error;
 }
@@ -77,7 +83,7 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 
 	ZSTD_DCtx* const dctx = ZSTD_createDCtx();
 
-	if (dctx == NULL)
+	if (dctx == nullptr)
 	{
 		error = "ZSTD_createDCtx() failed!";
 	}

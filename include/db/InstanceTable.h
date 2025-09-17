@@ -14,7 +14,7 @@ public:
 	bool saveName(quint8 inst, const QString& name);
 	QVector<QVariantMap> getAllInstances(bool justEnabled = false);
 	bool instanceExist(quint8 inst);
-	const QString getNamebyIndex(quint8 index);
+	QString getNamebyIndex(quint8 index);
 	void setLastUse(quint8 inst);
 	void setEnable(quint8 inst, bool newState);
 	bool isEnabled(quint8 inst);

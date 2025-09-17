@@ -30,8 +30,8 @@
 #include <QFileInfo>
 #include <QMutexLocker>
 #include <QMutex>
+#include <QByteArray>
 
-#include <sqlite3.h>
 #include <algorithm>
 #include <utility>
 
@@ -72,15 +72,15 @@ bool SqlDatabase::open()
 
 		result = sqlite3_open(textSharedDB, &_handle) == SQLITE_OK;
 
-		if (QFileInfo(_databaseName).exists() && isEmpty())
+		if (QFileInfo::exists(_databaseName) && isEmpty())
 		{
-			sqlite3* handleSrc;
-			const QByteArray& textSrc = _databaseName.toUtf8().constData();
+			sqlite3* handleSrc = nullptr;
+			QByteArray textSrc = _databaseName.toUtf8();
 
-			if (sqlite3_open(textSrc, &handleSrc) == SQLITE_OK)
+			if (sqlite3_open(textSrc.constData(), &handleSrc) == SQLITE_OK)
 			{
-				const QByteArray& textQuery = QString("VACUUM INTO '%1';").arg(sharedDB).toUtf8().constData();
-				sqlite3_exec(handleSrc, textQuery, NULL, NULL, NULL);
+				QByteArray textQuery = QString("VACUUM INTO '%1';").arg(sharedDB).toUtf8();
+				sqlite3_exec(handleSrc, textQuery.constData(), nullptr, nullptr, nullptr);
 				sqlite3_close(handleSrc);
 			}
 		}
@@ -113,17 +113,17 @@ QString SqlDatabase::error()
 
 bool SqlDatabase::transaction()
 {
-	return sqlite3_exec(_handle, "BEGIN TRANSACTION;", NULL, NULL, NULL) == SQLITE_OK;
+	return sqlite3_exec(_handle, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr) == SQLITE_OK;
 }
 
 bool SqlDatabase::commit()
 {
-	return sqlite3_exec(_handle, "END TRANSACTION;", NULL, NULL, NULL) == SQLITE_OK;
+	return sqlite3_exec(_handle, "END TRANSACTION;", nullptr, nullptr, nullptr) == SQLITE_OK;
 }
 
 bool SqlDatabase::rollback()
 {
-	return sqlite3_exec(_handle, "ROLLBACK TRANSACTION;", NULL, NULL, NULL) == SQLITE_OK;
+	return sqlite3_exec(_handle, "ROLLBACK TRANSACTION;", nullptr, nullptr, nullptr) == SQLITE_OK;
 }
 
 bool SqlDatabase::doesColumnExist(QString table, QString column)
@@ -131,10 +131,10 @@ bool SqlDatabase::doesColumnExist(QString table, QString column)
 	bool hasRow = false;
 	QString query = QString("SELECT * FROM pragma_table_info('%1') WHERE name='%2';").arg(table).arg(column);
 	const QByteArray& text = query.toUtf8().constData();
-	sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
+	sqlite3_exec(_handle, text, [](void* _hasRow, int /*argc*/, char** /*argv*/, char** /*azColName*/) {
 		*(reinterpret_cast<bool*>(_hasRow)) = true;
 		return 0;
-		}, &hasRow, NULL);
+		}, &hasRow, nullptr);
 	return hasRow;
 }
 
@@ -143,10 +143,10 @@ bool SqlDatabase::doesTableExist(QString table)
 	bool hasRow = false;
 	QString query = QString("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '%1';").arg(table);
 	const QByteArray& text = query.toUtf8().constData();
-	sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
+	sqlite3_exec(_handle, text, [](void* _hasRow, int /*argc*/, char** /*argv*/, char** /*azColName*/) {
 		*(reinterpret_cast<bool*>(_hasRow)) = true;
 		return 0;
-		}, &hasRow, NULL);
+		}, &hasRow, nullptr);
 	return hasRow;
 }
 
@@ -155,10 +155,10 @@ bool SqlDatabase::isEmpty()
 	bool hasRow = false;
 	QString query = QString("SELECT name FROM sqlite_master WHERE type = 'table';");
 	const QByteArray& text = query.toUtf8().constData();
-	sqlite3_exec(_handle, text, [](void* _hasRow, int argc, char** argv, char** azColName) {
+	sqlite3_exec(_handle, text, [](void* _hasRow, int /*argc*/, char** /*argv*/, char** /*azColName*/) {
 		*(reinterpret_cast<bool*>(_hasRow)) = true;
 		return 0;
-		}, &hasRow, NULL);
+		}, &hasRow, nullptr);
 	return !hasRow;
 }
 
@@ -205,7 +205,7 @@ bool SqlQuery::prepare(QString query)
 		text.data(),
 		text.size(),
 		&_prepared,
-		NULL);
+		nullptr);
 
 	return result == SQLITE_OK;
 }
@@ -222,9 +222,9 @@ bool SqlQuery::exec(QString query)
 	auto result = sqlite3_exec(
 		_connection->_handle,
 		text.data(),
-		NULL,
-		NULL,
-		NULL
+		nullptr,
+		nullptr,
+		nullptr
 	);
 	return result == SQLITE_OK;
 }

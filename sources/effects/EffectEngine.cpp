@@ -41,7 +41,7 @@
 EffectEngine::EffectEngine(HyperHdrInstance* hyperhdr)
 	: _hyperInstance(hyperhdr)
 	, _availableEffects(Effect::getAvailableEffects())
-	, _log(Logger::getInstance(QString("EFFECTENGINE%1").arg(hyperhdr->getInstanceIndex())))
+	, _log(QString("EFFECTENGINE%1").arg(hyperhdr->getInstanceIndex()))
 {
 	qRegisterMetaType<hyperhdr::Components>("hyperhdr::Components");
 
@@ -69,7 +69,7 @@ int EffectEngine::runEffectScript(const QString& name, int priority, int timeout
 
 	if (it == _availableEffects.end())
 	{
-		Debug(_log, "Could not find the effect named: %s", QSTRING_CSTR(name));
+		Debug(_log, "Could not find the effect named: {:s}", (name));
 		return 0;
 	}
 
@@ -89,7 +89,7 @@ int EffectEngine::runEffectScript(const QString& name, int priority, int timeout
 	connect(effect.get(), &Effect::SignalEffectFinished, this, &EffectEngine::handlerEffectFinished);
 
 	// start the effect
-	Debug(_log, "Start the effect: name [%s]", QSTRING_CSTR(name));
+	Debug(_log, "Start the effect: name [{:s}]", (name));
 	_hyperInstance->registerInput(priority, hyperhdr::COMP_EFFECT, origin, name, (*it).smoothingConfig);
 
 	// start the effect
@@ -111,7 +111,7 @@ void EffectEngine::handlerEffectFinished(int priority, QString name, bool forced
 		_hyperInstance->clear(priority);
 	}
 
-	Info(_log, "Effect '%s' has finished.", QSTRING_CSTR(name));
+	Info(_log, "Effect '{:s}' has finished.", (name));
 	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
 	{
 		if ((*effectIt).get() == sender())
@@ -191,7 +191,7 @@ void EffectEngine::createSmoothingConfigs()
 
 int EffectEngine::runEffect(const QString& effectName, int priority, int timeout, const QString& origin)
 {
-	Info(_log, "Run effect \"%s\" on channel %d", QSTRING_CSTR(effectName), priority);
+	Info(_log, "Run effect \"{:s}\" on channel {:d}", (effectName), priority);
 	return runEffectScript(effectName, priority, timeout, origin);
 }
 

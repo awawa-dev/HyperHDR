@@ -155,7 +155,7 @@ bool DriverNetFadeCandy::tryConnect()
 			_client->connectToHost(_host, static_cast<quint16>(_port));
 			if (_client->waitForConnected(CONNECT_TIMEOUT.count()))
 			{
-				Info(_log, "fadecandy/opc: connected to %s:%d on channel %d", QSTRING_CSTR(_host), _port, _channel);
+				Info(_log, "fadecandy/opc: connected to {:s}:{:d} on channel {:d}", (_host), _port, _channel);
 				if (_setFcConfig)
 				{
 					sendFadeCandyConfiguration();

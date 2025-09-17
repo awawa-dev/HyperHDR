@@ -3,8 +3,8 @@
 #ifndef PCH_ENABLED
 	#include <QMap>
 	#include <QVector>
+	#include <vector>
 #endif
-
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
@@ -80,8 +80,8 @@ private:
 	bool _localAdminAuthRequired;
 	QTimer* _timer;
 	QTimer* _authBlockTimer;
-	QVector<uint64_t> _userAuthAttempts;
-	QVector<uint64_t> _tokenAuthAttempts;
+	std::vector<uint64_t> _userAuthAttempts;
+	std::vector<uint64_t> _tokenAuthAttempts;
 
 private slots:
 	void checkTimeout();

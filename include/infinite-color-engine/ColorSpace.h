@@ -267,7 +267,7 @@ namespace ColorSpaceMath
 
 	float3 clamp_oklab_chroma_to_gamut(const float3& oklab);
 
-	float3 linear_rgb_to_oklab(const float3& c);
+	float3 linear_rgb_to_oklab(const float3& rgb);
 
 	float3 oklab_to_linear_rgb(const float3& lab);
 

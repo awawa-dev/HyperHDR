@@ -18,7 +18,7 @@ std::atomic<bool> LedDevice::_signalTerminate(false);
 LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	: QObject(parent)
 	, _devConfig(deviceConfig)
-	, _log(Logger::getInstance("LEDDEVICE_" + deviceConfig["type"].toString("unknown").toUpper()))
+	, _log(QString("LEDDEVICE_%1").arg(deviceConfig["type"].toString("unknown").toUpper()))
 	, _ledBuffer(0)
 	, _refreshTimer(nullptr)
 	, _currentInterval(0)
@@ -26,6 +26,8 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _forcedInterval(0)
 	, _smoothingInterval(0)
 	, _ledCount(0)
+	, _ledRGBCount(0)
+	, _ledRGBWCount(0)
 	, _isRestoreOrigState(false)
 	, _isEnabled(false)
 	, _isDeviceInitialised(false)
@@ -49,12 +51,6 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
 	connect(this, &LedDevice::SignalManualUpdate, this, &LedDevice::rewriteLEDs, Qt::QueuedConnection);
-}
-
-LedDevice::~LedDevice()
-{
-	stopRefreshTimer();
-	stopRetryTimer();
 }
 
 bool LedDevice::switchOn()
@@ -145,7 +141,7 @@ bool LedDevice::powerOn()
 void LedDevice::setInstanceIndex(int instanceIndex)
 {
 	_instanceIndex = instanceIndex;
-	_log = Logger::getInstance(QString("LEDDEVICE%1_%2").arg(_instanceIndex).arg(_activeDeviceType.toUpper()));
+	_log = QString("LEDDEVICE%1_%2").arg(_instanceIndex).arg(_activeDeviceType.toUpper());
 }
 
 int LedDevice::open()
@@ -169,11 +165,11 @@ void LedDevice::setupRetry(int interval)
 	if (_retryTimer == nullptr && _maxRetry > 0)
 	{
 		_currentRetry = _maxRetry;
-		_retryTimer = std::unique_ptr<QTimer>(new QTimer());
-		connect(_retryTimer.get(), &QTimer::timeout, this, [this](){
+		_retryTimer = new QTimer(this);
+		connect(_retryTimer, &QTimer::timeout, this, [this](){
 				if (_currentRetry > 0 && !_signalTerminate)
 				{
-					Warning(_log, "The LED device is not ready... trying to reconnect (try %i/%i).", (_maxRetry - _currentRetry + 1), _maxRetry);
+					Warning(_log, "The LED device is not ready... trying to reconnect (try {:d}/{:d}).", (_maxRetry - _currentRetry + 1), _maxRetry);
 					_currentRetry--;
 					enableDevice(true);
 				}
@@ -189,7 +185,7 @@ void LedDevice::setupRetry(int interval)
 
 void LedDevice::start()
 {
-	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
+	Info(_log, "Start LedDevice '{:s}'.", (_activeDeviceType));
 
 	if (_isDeviceInitialised)
 		close();
@@ -211,7 +207,7 @@ void LedDevice::pauseRetryTimer(bool mode)
 		if (_pauseRetryTimer < 0)
 		{
 			_pauseRetryTimer = (_retryTimer != nullptr && _retryTimer->isActive()) ? _retryTimer->interval() : 0;
-			Debug(_log, "Saving retryTimer (interval: %i)", _pauseRetryTimer);
+			Debug(_log, "Saving retryTimer (interval: {:d})", _pauseRetryTimer);
 			stopRetryTimer();
 		}
 	}
@@ -219,7 +215,7 @@ void LedDevice::pauseRetryTimer(bool mode)
 	{
 		if (_pauseRetryTimer >= 0)
 		{
-			Debug(_log, "Restoring retryTimer (interval: %i)", _pauseRetryTimer);
+			Debug(_log, "Restoring retryTimer (interval: {:d})", _pauseRetryTimer);
 			if (_pauseRetryTimer > 0 && !_isOn)
 			{
 				setupRetry(_pauseRetryTimer);
@@ -289,7 +285,7 @@ void LedDevice::stop()
 	stopRetryTimer();
 	disable();
 
-	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
+	Info(_log, " Stopped LedDevice '{:s}'", (_activeDeviceType));
 }
 
 void LedDevice::disable()
@@ -323,7 +319,7 @@ void LedDevice::setInError(const QString& errorMsg)
 	_isEnabled = false;
 	this->stopRefreshTimer();
 
-	Error(_log, "Device '%s' is disabled due to an error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(errorMsg));
+	Error(_log, "Device '{:s}' is disabled due to an error: '{:s}'", (_activeDeviceType), (errorMsg));
 	emit SignalEnableStateChanged(_isEnabled);
 }
 
@@ -334,7 +330,7 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 
 bool LedDevice::init(QJsonObject deviceConfig)
 {
-	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "deviceConfig: [{:s}]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	_defaultInterval = deviceConfig["refreshTime"].toInt(0);
 	_forcedInterval = deviceConfig["forcedRefreshTime"].toInt(0);
@@ -353,18 +349,18 @@ void LedDevice::startRefreshTimer()
 		// setup refreshTimer
 		if (_refreshTimer == nullptr)
 		{
-			_refreshTimer = std::unique_ptr<QTimer>(new QTimer());
+			_refreshTimer = new QTimer(this);
 			_refreshTimer->setTimerType(Qt::PreciseTimer);
 			_refreshTimer->setInterval(_currentInterval);
 			if (_smoothingInterval > 0)
-				connect(_refreshTimer.get(), &QTimer::timeout, this, &LedDevice::SignalSmoothingClockTick, Qt::UniqueConnection);
+				connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::SignalSmoothingClockTick, Qt::UniqueConnection);
 			else
-				connect(_refreshTimer.get(), &QTimer::timeout, this, &LedDevice::rewriteLEDs, Qt::UniqueConnection);
+				connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::rewriteLEDs, Qt::UniqueConnection);
 		}
 		else
 			_refreshTimer->setInterval(_currentInterval);
 
-		Debug(_log, "Starting timer with interval = %ims", _refreshTimer->interval());
+		Debug(_log, "Starting timer with interval = {:d}ms", _refreshTimer->interval());
 
 		_refreshTimer->start();
 	}
@@ -380,8 +376,10 @@ void LedDevice::stopRefreshTimer()
 	{
 		Debug(_log, "Stopping refresh timer");
 
-		_refreshTimer->stop();
-		_refreshTimer.reset();
+		_refreshTimer->disconnect();
+		_refreshTimer->stop();		
+		_refreshTimer->deleteLater();
+		_refreshTimer = nullptr;
 	}
 }
 
@@ -391,8 +389,10 @@ void LedDevice::stopRetryTimer()
 	{
 		Debug(_log, "Stopping retry timer");
 
-		_retryTimer->stop();
-		_retryTimer.reset();
+		_retryTimer->disconnect();
+		_retryTimer->stop();		
+		_retryTimer->deleteLater();
+		_retryTimer = nullptr;
 	}
 }
 
@@ -404,13 +404,13 @@ void LedDevice::setRefreshTime(int userInterval)
 	{
 		selectedInterval = _forcedInterval;
 		if (userInterval > 0)
-			Warning(_log, "Ignoring user LED refresh rate. Forcing device specific refresh rate = %.2f Hz", (1000.0/selectedInterval));
+			Warning(_log, "Ignoring user LED refresh rate. Forcing device specific refresh rate = {:.2f} Hz", (1000.0/selectedInterval));
 	}
 	else if (_smoothingInterval > 0)
 	{
 		selectedInterval = _smoothingInterval;
 		if (userInterval > 0)
-			Warning(_log, "Ignoring user LED refresh rate. Forcing smoothing refresh rate = %.2f Hz", (1000.0/selectedInterval));
+			Warning(_log, "Ignoring user LED refresh rate. Forcing smoothing refresh rate = {:.2f} Hz", (1000.0/selectedInterval));
 	}
 
 	_currentInterval = qMax(selectedInterval, 0);
@@ -420,7 +420,7 @@ void LedDevice::setRefreshTime(int userInterval)
 
 		_isRefreshEnabled = true;
 
-		Debug(_log, "Refresh rate = %.2f Hz", (1000.0/_currentInterval));
+		Debug(_log, "Refresh rate = {:.2f} Hz", (1000.0/_currentInterval));
 
 		startRefreshTimer();
 	}
@@ -430,7 +430,7 @@ void LedDevice::setRefreshTime(int userInterval)
 		stopRefreshTimer();
 	}
 
-	Debug(_log, "Refresh interval updated to %dms", _currentInterval);
+	Debug(_log, "Refresh interval updated to {:d}ms", _currentInterval);
 }
 
 int LedDevice::hasLedClock()
@@ -445,13 +445,13 @@ void LedDevice::smoothingRestarted(int newSmoothingInterval)
 		_smoothingInterval = newSmoothingInterval;
 		stopRefreshTimer();
 		setRefreshTime(_defaultInterval);
-		Debug(_log, "LED refresh interval adjustment caused by smoothing configuration change to %dms (proposed: %dms)", _currentInterval, newSmoothingInterval);
+		Debug(_log, "LED refresh interval adjustment caused by smoothing configuration change to {:d}ms (proposed: {:d}ms)", _currentInterval, newSmoothingInterval);
 	}
 }
 
-void LedDevice::handleSignalFinalOutputColorsReady(SharedOutputColors ledValues)
+void LedDevice::handleSignalFinalOutputColorsReady(SharedOutputColors infinityLedColors)
 {
-	if (ledValues == nullptr || ledValues->size() == 0)
+	if (infinityLedColors == nullptr || infinityLedColors->empty())
 		return;
 
 	// stats
@@ -488,7 +488,7 @@ void LedDevice::handleSignalFinalOutputColorsReady(SharedOutputColors ledValues)
 	}
 	else
 	{
-		_lastLedValues = ledValues;
+		_lastLedValues = infinityLedColors;
 
 		if (!_isRefreshEnabled)
 		{
@@ -500,8 +500,6 @@ void LedDevice::handleSignalFinalOutputColorsReady(SharedOutputColors ledValues)
 		else if (QThread::currentThread() == this->thread())
 			rewriteLEDs();
 	}
-
-	return;
 }
 
 int LedDevice::rewriteLEDs()
@@ -509,7 +507,7 @@ int LedDevice::rewriteLEDs()
 	using namespace linalg::aliases;
 	int retval = -1;
 
-	if (_lastLedValues == nullptr || _lastLedValues->size() == 0)
+	if (_lastLedValues == nullptr || _lastLedValues->empty())
 		return 0;
 
 	if ((_newFrame2Send || _isRefreshEnabled) && _isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
@@ -534,7 +532,7 @@ int LedDevice::rewriteLEDs()
 			}
 		}		
 
-		if (copy->size() > 0)
+		if (!copy->empty())
 			retval = write(copy);
 
 		if (_signalTerminate)
@@ -582,7 +580,7 @@ int LedDevice::writeFiniteColors(const std::vector<ColorRgb>& /*ledValues*/)
 
 int LedDevice::write(SharedOutputColors nonlinearRgbColors)
 {
-	if (nonlinearRgbColors == nullptr || nonlinearRgbColors->size() == 0)
+	if (nonlinearRgbColors == nullptr || nonlinearRgbColors->empty())
 		return 0;
 
 	if (auto res = writeInfiniteColors(nonlinearRgbColors); !res.first)
@@ -617,7 +615,7 @@ QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
 	QJsonArray deviceList;
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	return devicesDiscovered;
 }
 
@@ -625,7 +623,7 @@ QString LedDevice::discoverFirst()
 {
 	QString deviceDiscovered;
 
-	Debug(_log, "deviceDiscovered: [%s]", QSTRING_CSTR(deviceDiscovered));
+	Debug(_log, "deviceDiscovered: [{:s}]", (deviceDiscovered));
 
 	return deviceDiscovered;
 }
@@ -664,11 +662,11 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 	QJsonObject properties;
 	QJsonObject deviceProperties;
 
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	properties.insert("properties", deviceProperties);
 
-	Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "properties: [{:s}]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return properties;
 }

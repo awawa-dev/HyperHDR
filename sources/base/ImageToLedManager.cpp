@@ -40,7 +40,7 @@ void ImageToLedManager::registerProcessingUnit(
 	const unsigned verticalBorder)
 {
 	if (width > 0 && height > 0)
-		_colorAveraging = std::unique_ptr<ImageColorAveraging>(new ImageColorAveraging(
+		_colorAveraging = std::make_unique<ImageColorAveraging>(
 			_log,
 			_mappingType,
 			_sparseProcessing,
@@ -49,7 +49,7 @@ void ImageToLedManager::registerProcessingUnit(
 			horizontalBorder,
 			verticalBorder,
 			_instanceIndex,
-			_ledString.leds()));
+			_ledString.leds());
 	else
 		_colorAveraging = nullptr;
 }
@@ -76,7 +76,7 @@ QString ImageToLedManager::mappingTypeToStr(int mappingType)
 ImageToLedManager::ImageToLedManager(const LedString& ledString, HyperHdrInstance* hyperhdr)
 	: QObject(hyperhdr)
 	, _instanceIndex(hyperhdr->getInstanceIndex())
-	, _log(Logger::getInstance(QString("IMAGETOLED_MNG%1").arg(_instanceIndex)))
+	, _log(QString("IMAGETOLED_MNG%1").arg(_instanceIndex))
 	, _ledString(ledString)
 	, _borderProcessor(new BlackBorderProcessor(hyperhdr, this))
 	, _colorAveraging(nullptr)
@@ -159,7 +159,7 @@ void ImageToLedManager::setSparseProcessing(bool sparseProcessing)
 
 	_sparseProcessing = sparseProcessing;
 
-	Debug(_log, "setSparseProcessing to %d", _sparseProcessing);
+	Debug(_log, "setSparseProcessing to {:d}", _sparseProcessing);
 	if (_orgmappingType != _sparseProcessing && _colorAveraging != nullptr)
 	{
 		unsigned width = _colorAveraging->width();
@@ -175,7 +175,7 @@ void ImageToLedManager::setLedMappingType(int mapType)
 
 	_mappingType = mapType;
 
-	Debug(_log, "Set LED mapping type to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));
+	Debug(_log, "Set LED mapping type to {:s}", (mappingTypeToStr(mapType)));
 
 	if (_orgmappingType != _mappingType && _colorAveraging != nullptr)
 	{

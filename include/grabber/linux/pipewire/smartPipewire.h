@@ -5,10 +5,10 @@
 struct PipewireImage
 {
 	int		version;
-	bool	isError = false;
+	bool	isError;
 	int		width, height, stride;
 	bool	isOrderRgb;
-	uint8_t* data = nullptr;
+	uint8_t* data;
 };
 extern "C" const char* getPipewireToken();
 extern "C" const char* getPipewireError();

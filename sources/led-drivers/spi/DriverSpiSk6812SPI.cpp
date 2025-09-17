@@ -41,11 +41,11 @@ bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 		}
 		else
 		{
-			Debug(_log, "white_algorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+			Debug(_log, "white_algorithm : {:s}", (whiteAlgorithm));
 
 			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM)
 			{
-				Debug(_log, "White channel limit: %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+				Debug(_log, "White channel limit: {:d}, red: {:d}, green: {:d}, blue: {:d}", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
 			}
 
 			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM ||
@@ -57,7 +57,7 @@ bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 
 			auto rateHz = getRate();
 
-			WarningIf((rateHz < 2050000 || rateHz > 4000000), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", rateHz);
+			WarningIf((rateHz < 2050000 || rateHz > 4000000), _log, "SPI rate {:d} outside recommended range (2050000 -> 4000000)", rateHz);
 
 			const int SPI_FRAME_END_LATCH_BYTES = 3;
 			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
@@ -75,7 +75,7 @@ int DriverSpiSk6812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "Sk6812SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "Sk6812SPI led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
 		const int SPI_FRAME_END_LATCH_BYTES = 3;

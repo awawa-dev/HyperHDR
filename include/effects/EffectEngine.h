@@ -47,6 +47,6 @@ private:
 	std::list<EffectDefinition> _availableEffects;
 	std::list<std::unique_ptr<Effect, void(*)(Effect*)>> _activeEffects;
 
-	Logger* _log;
+	LoggerName _log;
 	EffectDBHandler* _effectDBHandler;
 };

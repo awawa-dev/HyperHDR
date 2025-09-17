@@ -17,16 +17,14 @@ class httpResponse;
 class NetworkHelper;
 class QNetworkReply;
 
-class ProviderRestApi : public QObject
+class ProviderRestApi
 {
-	Q_OBJECT
-
 public:
 	ProviderRestApi();
 	ProviderRestApi(const QString& host, int port);
 	ProviderRestApi(const QString& host, int port, const QString& basePath);
 	ProviderRestApi(QString scheme, QString host, int port, QString basePath = "");
-	~ProviderRestApi();
+	virtual ~ProviderRestApi() = default;
 
 	void  updateHost(const QString& host, int port);
 	QUrl getUrl() const;
@@ -49,7 +47,7 @@ private:
 	void appendPath(QString& path, const QString& appendPath) const;
 	httpResponse executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body = "");
 
-	Logger*   _log;
+	LoggerName _log;
 
 	QUrl      _apiUrl;
 
@@ -85,7 +83,7 @@ public:
 	static std::shared_ptr<QThread> threadFactory();
 
 public slots:
-	void executeOperation(ProviderRestApi* parent, QNetworkAccessManager::Operation op, QUrl url, QString body, httpResponse* response);
+	void executeOperation(ProviderRestApi* parent, QNetworkAccessManager::Operation op, QUrl url, QString body, std::shared_ptr<httpResponse> response);
 	void abortOperation();
 };
 
@@ -122,3 +120,4 @@ private:
 	int _httpStatusCode = 0;
 	QNetworkReply::NetworkError _networkReplyError = QNetworkReply::NoError;
 };
+Q_DECLARE_METATYPE(std::shared_ptr<httpResponse>)

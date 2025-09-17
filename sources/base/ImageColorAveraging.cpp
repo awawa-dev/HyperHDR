@@ -39,7 +39,7 @@ using namespace hyperhdr;
 using namespace linalg::aliases;
 
 ImageColorAveraging::ImageColorAveraging(
-				Logger* _log,
+				const LoggerName& _log,
 				const int mappingType,
 				const bool sparseProcessing,
 				const unsigned width,
@@ -109,7 +109,7 @@ ImageColorAveraging::ImageColorAveraging(
 
 		if (!sparseIndexes && totalSize > 1600)
 		{
-			Warning(_log, "This is large image area for lamp: %i. It contains %i indexes for captured video frame so reduce it by four. Enabling 'sparse processing' option for you. Consider to enable it permanently in the processing configuration to hide that warning.", ledIndex, totalSize);
+			Warning(_log, "This is large image area for lamp: {:d}. It contains {:d} indexes for captured video frame so reduce it by four. Enabling 'sparse processing' option for you. Consider to enable it permanently in the processing configuration to hide that warning.", ledIndex, totalSize);
 			sparseIndexes = true;
 		}
 
@@ -152,7 +152,7 @@ ImageColorAveraging::ImageColorAveraging(
 			_colorGroups[led.group].push_back(ledIndex);
 		}
 	}
-	Info(_log, "Total index number is: %d (memory: %d). User sparse processing is: %s, image size: %d x %d, area number: %d",
+	Info(_log, "Total index number is: {:d} (memory: {:d}). User sparse processing is: {:s}, image size: {:d} x {:d}, area number: {:d}",
 		totalCount, totalCapasity, (sparseProcessing) ? "enabled" : "disabled", width, height, leds.size());
 }
 
@@ -186,7 +186,7 @@ void ImageColorAveraging::process(std::vector<float3>& ledColors, const Image<Co
 		default: getMulticolorForLeds(ledColors, image);
 	}
 
-	if (_colorGroups.size() > 0 && _mappingType != 1)
+	if (!_colorGroups.empty() && _mappingType != 1)
 	{
 		for (auto& group : _colorGroups)
 		{
@@ -215,7 +215,7 @@ void ImageColorAveraging::getMulticolorForLeds(std::vector<float3>& ledColors, c
 
 float3 ImageColorAveraging::calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors) const
 {
-	if (colors.size() == 0)
+	if (colors.empty())
 	{
 		return float3{ 0, 0, 0 };
 	}

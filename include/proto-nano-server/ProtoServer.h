@@ -38,7 +38,7 @@ signals:
 private:
 	QTcpServer*	_server;
 	std::shared_ptr<NetOrigin> _netOrigin;
-	Logger*		_log;
+	LoggerName	_log;
 	int			_timeout;
 	quint16		_port;
 

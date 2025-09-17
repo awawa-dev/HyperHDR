@@ -40,6 +40,7 @@
 #include <stdio.h>
 
 #include <base/HyperHdrInstance.h>
+#include <grabber/GrabberWorker.h>
 #include <utils/GlobalSignals.h>
 
 #include <QDirIterator>
@@ -191,7 +192,7 @@ void AVFGrabber::setHdrToneMappingEnabled(int mode)
 	{
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
-			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
@@ -208,7 +209,7 @@ void AVFGrabber::setHdrToneMappingEnabled(int mode)
 		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 
 AVFGrabber::~AVFGrabber()
@@ -221,7 +222,7 @@ void AVFGrabber::uninit()
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 		stop();
 	}
 }
@@ -247,7 +248,7 @@ bool AVFGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -258,7 +259,7 @@ bool AVFGrabber::init()
 			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -274,7 +275,7 @@ bool AVFGrabber::init()
 
 		DeviceProperties dev = _deviceProperties[foundDevice];
 
-		Debug(_log, "Searching for %s %d x %d @ %d fps (%s)", QSTRING_CSTR(foundDevice), _width, _height, _fps, QSTRING_CSTR(pixelFormatToString(_enc)));
+		Debug(_log, "Searching for {:s} {:d} x {:d} @ {:d} fps ({:s})", (foundDevice), _width, _height, _fps, (pixelFormatToString(_enc)));
 
 
 
@@ -330,9 +331,9 @@ bool AVFGrabber::init()
 		if (foundIndex >= 0)
 		{
 			Info(_log, "*************************************************************************************************");
-			Info(_log, "Starting AVF grabber. Selected: '%s' %d x %d @ %d fps %s", QSTRING_CSTR(foundDevice),
+			Info(_log, "Starting AVF grabber. Selected: '{:s}' {:d} x {:d} @ {:d} fps {:s}", (foundDevice),
 				dev.valid[foundIndex].x, dev.valid[foundIndex].y, dev.valid[foundIndex].fps,
-				QSTRING_CSTR(pixelFormatToString(dev.valid[foundIndex].pf)));
+				(pixelFormatToString(dev.valid[foundIndex].pf)));
 			Info(_log, "*************************************************************************************************");
 
 			if (init_device(foundDevice, dev.valid[foundIndex]))
@@ -457,9 +458,9 @@ void AVFGrabber::enumerateAVFdevices(bool silent)
 						if (!silent)
 						{
 							if (di.pf != PixelFormat::NO_CHANGE)
-								Debug(_log, "%s %d x %d @ %d fps %s (%s)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(sFormat), QSTRING_CSTR(pixelFormatToString(di.pf)));
+								Debug(_log, "{:s} {:d} x {:d} @ {:d} fps {:s} ({:s})", (properties.name), di.x, di.y, di.fps, (sFormat), (pixelFormatToString(di.pf)));
 							else
-								Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(sFormat));
+								Debug(_log, "{:s} {:d} x {:d} @ {:d} fps {:s} (unsupported)", (properties.name), di.x, di.y, di.fps, (sFormat));
 						}
 					}
 				}
@@ -477,9 +478,9 @@ bool AVFGrabber::start()
 		_AVFWorkerManager.Start();
 
 		if (_AVFWorkerManager.workersCount <= 1)
-			Info(_log, "Multithreading for AVF is disabled. Available thread's count %d", _AVFWorkerManager.workersCount);
+			Info(_log, "Multithreading for AVF is disabled. Available thread's count {:d}", _AVFWorkerManager.workersCount);
 		else
-			Info(_log, "Multithreading for AVF is enabled. Available thread's count %d", _AVFWorkerManager.workersCount);
+			Info(_log, "Multithreading for AVF is enabled. Available thread's count {:d}", _AVFWorkerManager.workersCount);
 
 		if (init())
 		{
@@ -490,7 +491,7 @@ bool AVFGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "Start failed (%s)", e.what());
+		Error(_log, "Start failed ({:s})", e.what());
 	}
 
 	return false;
@@ -516,7 +517,7 @@ bool AVFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pr
 	QString guid = _deviceProperties[selectedDeviceName].name;
 	CMTime minFrameDuration;
 
-	Debug(_log, "Init_device: %s, %d x %d @ %d fps (%s) => %s", QSTRING_CSTR(selectedDeviceName), props.x, props.y, props.fps, QSTRING_CSTR(sFormat), QSTRING_CSTR(guid));
+	Debug(_log, "Init_device: {:s}, {:d} x {:d} @ {:d} fps ({:s}) => {:s}", (selectedDeviceName), props.x, props.y, props.fps, (sFormat), (guid));
 
 
 	for (AVCaptureDevice* device in[AVCaptureDeviceDiscoverySession
@@ -573,11 +574,11 @@ bool AVFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pr
 
 							if (!input)
 							{
-								Error(_log, "Could not open video capturing device: %s", apiError.localizedDescription.UTF8String);
+								Error(_log, "Could not open video capturing device: {:s}", apiError.localizedDescription.UTF8String);
 							}
 							else
 							{
-								Info(_log, "Opening: %s", QSTRING_CSTR(selectedDeviceName));
+								Info(_log, "Opening: {:s}", (selectedDeviceName));
 
 								[_avfDelegate->_nativeSession addInput : input] ;
 
@@ -736,11 +737,11 @@ void AVFGrabber::start_capturing()
 void AVFGrabber::receive_image(const void* frameImageBuffer, int size, QString message)
 {
 	if (frameImageBuffer == NULL || size == 0)
-		Error(_log, "Received empty image frame: %s", QSTRING_CSTR(message));
+		Error(_log, "Received empty image frame: {:s}", (message));
 	else
 	{
 		if (!message.isEmpty())
-			Debug(_log, "Received image frame: %s", QSTRING_CSTR(message));
+			Debug(_log, "Received image frame: {:s}", (message));
 
 		process_image(frameImageBuffer, size);
 	}
@@ -758,7 +759,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 	// We do want a new frame...
 	if (size < _frameByteSize && _actualVideoFormat != PixelFormat::MJPEG)
 	{
-		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
+		Error(_log, "Frame too small: {:d} != {:d}", size, _frameByteSize);
 	}
 	else
 	{
@@ -788,30 +789,27 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 				QString currentCache = QString::fromStdString(Image<ColorRgb>::adjustCache());
 
 				if (!currentCache.isEmpty())
-					Info(_log, "%s", QSTRING_CSTR(currentCache));
+					Info(_log, "{:s}", (currentCache));
 			}
 
-			if (_AVFWorkerManager.workers == nullptr)
+			if (_AVFWorkerManager.workers.size() == 0)
 			{
 				_AVFWorkerManager.InitWorkers();
-				Debug(_log, "Worker's thread count  = %d", _AVFWorkerManager.workersCount);
+				Debug(_log, "Worker's thread count  = {:d}", _AVFWorkerManager.workersCount);
 
-				for (unsigned int i = 0; i < _AVFWorkerManager.workersCount && _AVFWorkerManager.workers != nullptr; i++)
+				for (unsigned int i = 0; i < _AVFWorkerManager.workersCount && i < _AVFWorkerManager.workers.size(); i++)
 				{
-					AVFWorker* _workerThread = _AVFWorkerManager.workers[i];
-					connect(_workerThread, &AVFWorker::SignalNewFrameError, this, &AVFGrabber::newWorkerFrameErrorHandler);
-					connect(_workerThread, &AVFWorker::SignalNewFrame, this, &AVFGrabber::newWorkerFrameHandler);
+					connect(_AVFWorkerManager.workers[i].get(), &GrabberWorker::SignalNewFrameError, this, &AVFGrabber::newWorkerFrameErrorHandler);
+					connect(_AVFWorkerManager.workers[i].get(), &GrabberWorker::SignalNewFrame, this, &AVFGrabber::newWorkerFrameHandler);
 				}
 			}
 
-			for (unsigned int i = 0; _AVFWorkerManager.isActive() && i < _AVFWorkerManager.workersCount && _AVFWorkerManager.workers != nullptr; i++)
+			for (unsigned int i = 0; _AVFWorkerManager.isActive() && i < _AVFWorkerManager.workersCount && i < _AVFWorkerManager.workers.size(); i++)
 			{
 				if (_AVFWorkerManager.workers[i]->isFinished() || !_AVFWorkerManager.workers[i]->isRunning())
 				{
 					if (_AVFWorkerManager.workers[i]->isBusy() == false)
 					{
-						AVFWorker* _workerThread = _AVFWorkerManager.workers[i];
-
 						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::I420 ||
 							_actualVideoFormat == PixelFormat::NV12 || _hdrToneMappingEnabled) && !_lutBufferInit)
 						{
@@ -833,7 +831,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 						}
 
 						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating());
-						_workerThread->setup(
+						_AVFWorkerManager.workers[i]->setup(
 							i,
 							_actualVideoFormat,
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
@@ -861,11 +859,11 @@ void AVFGrabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString er
 {
 
 	frameStat.badFrame++;
-	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame {:d} = {:s}", sourceCount, (error));	
 
 	// get next frame	
 	if (workerIndex > _AVFWorkerManager.workersCount)
-		Error(_log, "Frame index = %d, index out of range", sourceCount);
+		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
 	if (workerIndex <= _AVFWorkerManager.workersCount)
 		_AVFWorkerManager.workers[workerIndex]->noBusy();
@@ -879,7 +877,7 @@ void AVFGrabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb>
 
 	// get next frame	
 	if (workerIndex > _AVFWorkerManager.workersCount)
-		Error(_log, "Frame index = %d, index out of range", sourceCount);
+		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
 	if (workerIndex <= _AVFWorkerManager.workersCount)
 		_AVFWorkerManager.workers[workerIndex]->noBusy();

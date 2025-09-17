@@ -26,351 +26,229 @@
 */
 
 
-#include <utils/Logger.h>
 #include <utils/FrameDecoder.h>
+#include <utils/VectorizedDecoders.h>
+#include <utils/FrameDecoderUtils.h>
+#include <base/AutomaticToneMapping.h>
+#include <utils/Logger.h>
 
-#include <infinite-color-engine/ColorSpace.h>
-#include <linalg.h>
 #include <atomic>
 #include <mutex>
 #include <numbers>
 
-using namespace linalg;
-using namespace aliases;
-
-namespace FrameDecoderUtils
-{
-	std::atomic<bool> initialized(false);
-	std::vector<uint8_t> lutP010_y;
-	std::vector<uint8_t> lutP010_uv;
-
-	constexpr double signalBreakP010 = 0.91;
-	constexpr double signalBreakChromaP010 = 0.75;
-
-	static double packChromaP010(double x)
-	{
-		constexpr double pi2 = std::numbers::pi / 2.0;
-		if (x < 0.0)
-		{
-			return 0.0;
-		}
-		else if (x <= 0.5)
-		{
-			return x * 1.5;
-		}
-		else if (x <= 1)
-		{			
-			return std::sin(pi2 * ((x - 0.5) / 0.5)) * (1 - signalBreakChromaP010) + signalBreakChromaP010;
-		}
-		return 1;
-	};
-
-	double unpackChromaP010(double x)
-	{
-		constexpr double pi2 = std::numbers::pi / 2.0;
-		if (x < 0.0)
-		{
-			return 0.0;
-		}
-		else if (x <= signalBreakChromaP010)
-		{
-			x /= 1.5;
-			return x;
-		}
-		else if (x <= 1)
-		{			
-			x = (x - signalBreakChromaP010) / (1.0 - signalBreakChromaP010);
-			x = std::asin(x);
-			x = x * 0.5 / pi2  + 0.5;
-			return x;
-		}
-
-		return 1;
-	};
-
-	static double packLuminanceP010(double x)
-	{
-		constexpr double pi2 = std::numbers::pi / 2.0;
-		if (x < 0.0)
-		{
-			return 0.0;
-		}
-		else if (x <= 0.7)
-		{
-			return x * 1.3;
-		}
-		else if (x <= 1)
-		{
-			return std::sin(pi2 * ((x - 0.7) / 0.3)) * (1 - signalBreakP010) + signalBreakP010;
-		}
-		return 1;
-	};
-
-	double unpackLuminanceP010(double x)
-	{
-		constexpr double pi2 = std::numbers::pi / 2.0;
-		if (x < 0.0)
-		{
-			return 0.0;
-		}
-		else if (x <= signalBreakP010)
-		{
-			return x / 1.3;
-		}
-		else if (x <= 1)
-		{
-			x = (x - signalBreakP010) / (1.0 - signalBreakP010);
-			x = std::asin(x);
-			x = x * 0.3 / pi2 + 0.7;
-			return x;
-		}
-
-		return 1;
-	};
-
-
-	static void initP010()
-	{
-		static std::mutex lockerP010;
-		std::lock_guard<std::mutex> locker(lockerP010);
-
-		if (FrameDecoderUtils::initialized)
-			return;
-
-		lutP010_y.resize(1024);
-		lutP010_uv.resize(1024);
-
-		for (int i = 0; i < static_cast<int>(lutP010_y.size()); ++i)
-		{
-			constexpr int sourceRange = 1023;
-			const double sourceValue = std::min(std::max(i, 0), sourceRange)/static_cast<double>(sourceRange);
-			double val = packLuminanceP010(sourceValue);
-			lutP010_y[i] = std::lround(val * 255.0);
-
-			/*
-			double unpack = unpackLuminanceP010(val);
-			double delta = sourceValue - unpack;
-			if (std::abs(delta) > 0.0000001)
-			{
-				bool error = true;
-			}
-			*/
-		}
-
-
-		for (int i = 0; i < static_cast<int>(lutP010_uv.size()); ++i)
-		{
-			constexpr int sourceRange = (960 - 64) / 2;
-			const int current = std::abs(i - 512);
-			const double sourceValue = std::min(current, sourceRange) / static_cast<double>(sourceRange);
-			double val = packChromaP010(sourceValue);
-			lutP010_uv[i] = std::max(std::min(128 + std::lround(((i < 512) ? -val : val) * 128.0), 255l), 0l);;
-
-			/*
-			double unpack = unpackChromaP010(val);
-			double delta = sourceValue - unpack;
-			if (std::abs(delta) > 0.0000001)
-			{
-				bool error = true;
-			}
-			*/
-		}
-
-		FrameDecoderUtils::initialized = true;
-	};	
-};
-
-using namespace FrameDecoderUtils;
-
-
-void FrameDecoder::processImage(
+template<bool Quarter, bool UseToneMapping, bool UseAutomaticToneMapping>
+void FrameDecoder::processImageVector(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping)
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer,
+	Image<ColorRgb>& outputImage, AutomaticToneMapping* automaticToneMapping)
 {
-	uint32_t ind_lutd, ind_lutd2;
-	uint8_t  buffer[8];
+	LoggerName logger("FrameDecoder");
 
 	// validate format
 	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
-		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::P010 && pixelFormat != PixelFormat::MJPEG)
+		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 &&
+		pixelFormat != PixelFormat::P010 && pixelFormat != PixelFormat::MJPEG)
 	{
-		Error(Logger::getInstance("FrameDecoder"), "Invalid pixel format given");
+		Error(logger, "Invalid pixel format given");
 		return;
 	}
 
-	// validate format LUT
+	// validate LUT
 	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
-		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010) && lutBuffer == NULL)
+		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010 || UseToneMapping) && lutBuffer == nullptr)
 	{
-		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
+		Error(logger, "Missing LUT table for YUV colorspace or tone mapping");
 		return;
 	}
 
-	// sanity check, odd values doesnt work for yuv either way
+	// align crop
 	_cropLeft = (_cropLeft >> 1) << 1;
 	_cropRight = (_cropRight >> 1) << 1;
 
-	// calculate the output size
-	int outputWidth = (width - _cropLeft - _cropRight);
-	int outputHeight = (height - _cropTop - _cropBottom);
+	if constexpr (Quarter)
+		_cropLeft = _cropRight = _cropTop = _cropBottom = 0;
+
+	// output size
+	const int outputWidth = (width - _cropLeft - _cropRight) >> (Quarter ? 1 : 0);
+	const int outputHeight = (height - _cropTop - _cropBottom) >> (Quarter ? 1 : 0);
 
 	outputImage.resize(outputWidth, outputHeight);
 	outputImage.setOriginFormat(pixelFormat);
 
 	uint8_t* destMemory = outputImage.rawMem();
-	int 		destLineSize = outputImage.width() * 3;
+	int      destLineSize = outputImage.width() * 3;
 
-
-	if (pixelFormat == PixelFormat::YUYV)
+	// ---- P010 ----
+	if (pixelFormat == PixelFormat::P010)
 	{
-		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		const FrameDecoderUtils& instance = FrameDecoderUtils::instance();
+		const auto& lutP010_y = instance.getLutP010_y();
+		const auto& lutP010_uv = instance.getlutP010_uv();
+
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ySource += (Quarter ? 2 : 1), ++yDest)
 		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* currentDest = destMemory + (uint64_t)destLineSize * yDest;
 			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) << 1));
 
-			while (currentDest < endDest)
+			uint8_t* currentSource = (uint8_t*)data + (uint64_t)lineLength * ySource + (uint64_t)_cropLeft;
+			uint8_t* currentSourceUV = deltaUV + ((uint64_t)ySource / 2) * lineLength + (uint64_t)_cropLeft;
+
+			if constexpr (UseAutomaticToneMapping) if (yDest % 4 == 0)
 			{
-				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
+				automaticToneMapping->scan_Y_UV_16(width, currentSource, currentSourceUV);
+			};
 
-				ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[3]);
-				ind_lutd2 = LUT_INDEX(buffer[2], buffer[1], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
-				currentDest += 3;
-				currentSource += 4;
+			if constexpr (!UseToneMapping)
+			{
+				VECTOR_P010::process<Quarter>(
+					reinterpret_cast<uint32_t*>(currentSource),
+					reinterpret_cast<uint32_t*>(currentSourceUV),
+					lutBuffer, currentDest, endDest);
+			}
+			else
+			{
+				VECTOR_P010::processlWithToneMapping<Quarter>(
+					reinterpret_cast<uint64_t*>(currentSource),
+					reinterpret_cast<uint64_t*>(currentSourceUV),
+					lutBuffer, currentDest, endDest, lutP010_y, lutP010_uv);
 			}
 		}
 
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::UYVY)
-	{
-		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		if constexpr (UseAutomaticToneMapping)
 		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) << 1));
-
-			while (currentDest < endDest)
-			{
-				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-
-				ind_lutd = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
-				ind_lutd2 = LUT_INDEX(buffer[3], buffer[0], buffer[2]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
-				currentDest += 3;
-				currentSource += 4;
-			}
+			automaticToneMapping->finilize();
 		}
 		return;
 	}
 
-	if (pixelFormat == PixelFormat::RGB24)
-	{
-		for (int yDest = outputHeight - 1, ySource = _cropBottom; yDest >= 0; ++ySource, --yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) * 3));
-
-			if (lutBuffer == NULL)
-				currentSource += 2;
-
-			while (currentDest < endDest)
-			{
-				if (lutBuffer != NULL)
-				{
-					*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-					currentSource += 3;
-					ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
-					*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-					currentDest += 3;
-				}
-				else
-				{
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource;
-					currentSource += 5;
-				}
-			}
-		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::XRGB)
-	{
-		for (int yDest = outputHeight - 1, ySource = _cropBottom; yDest >= 0; ++ySource, --yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) * 4));
-
-			if (lutBuffer == NULL)
-				currentSource += 2;
-
-			while (currentDest < endDest)
-			{
-				if (lutBuffer != NULL)
-				{
-					*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-					currentSource += 4;
-					ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
-					*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-					currentDest += 3;
-				}
-				else
-				{
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource;
-					currentSource += 6;
-				}
-			}
-		}
-		return;
-	}
-
+	// ---- I420 ----
 	if (pixelFormat == PixelFormat::I420)
 	{
 		int deltaU = lineLength * height;
 		int deltaV = lineLength * height * 5 / 4;
-		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ySource += (Quarter ? 2 : 1), ++yDest)
 		{
 			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
 			uint8_t* endDest = currentDest + destLineSize;
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
 			uint8_t* currentSourceU = (uint8_t*)data + deltaU + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 			uint8_t* currentSourceV = (uint8_t*)data + deltaV + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
-
-			while (currentDest < endDest)
-			{
-				*((uint16_t*)&buffer) = *((uint16_t*)currentSource);
-				currentSource += 2;
-				buffer[2] = *(currentSourceU++);
-				buffer[3] = *(currentSourceV++);
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
-				currentDest += 3;
-			}
+		
+			VECTOR_I420::process<Quarter>(
+				reinterpret_cast<uint32_t*>(currentSource),
+				reinterpret_cast<uint16_t*>(currentSourceU),
+				reinterpret_cast<uint16_t*>(currentSourceV),
+				lutBuffer, currentDest, endDest);
 		}
 		return;
 	}
 
+	// ---- NV12 ----
+	if (pixelFormat == PixelFormat::NV12)
+	{
+		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
+
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ySource += (Quarter ? 2 : 1), ++yDest)
+		{
+			uint8_t* currentDest = destMemory + (uint64_t)destLineSize * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+
+			uint8_t* currentSource = (uint8_t*)data + (uint64_t)lineLength * ySource + (uint64_t)_cropLeft;
+			uint8_t* currentSourceUV = deltaUV + ((uint64_t)ySource / 2) * lineLength + (uint64_t)_cropLeft;
+
+			if constexpr (UseAutomaticToneMapping) if (yDest % 4 == 0)
+			{
+				automaticToneMapping->scan_Y_UV_8(width, currentSource, currentSourceUV);
+			};
+
+			VECTOR_NV12::process<Quarter>(
+				reinterpret_cast<uint32_t*>(currentSource),
+				reinterpret_cast<uint32_t*>(currentSourceUV),
+				lutBuffer, currentDest, endDest);
+		}
+
+		if constexpr (UseAutomaticToneMapping)
+		{
+			automaticToneMapping->finilize();
+		}
+
+		return;
+	}
+
+	// ---- YUYV ---
+	if (pixelFormat == PixelFormat::YUYV)
+	{
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ySource += (Quarter ? 2 : 1), ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) << 1));
+
+			if constexpr (UseAutomaticToneMapping) if (yDest % 4 == 0)
+			{
+				automaticToneMapping->scan_YUYV(width, currentSource);
+			};
+
+			VECTOR_YUYV::process<Quarter>(
+				reinterpret_cast<uint32_t*>(currentSource),
+				lutBuffer, currentDest, endDest);
+		}
+
+		if constexpr (UseAutomaticToneMapping)
+		{
+			automaticToneMapping->finilize();
+		}
+
+		return;
+	}
+
+	// ---- UYVY ---
+	if (pixelFormat == PixelFormat::UYVY)
+	{
+		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ySource += (Quarter ? 2 : 1), ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) << 1));
+
+			VECTOR_UYVY::process<Quarter>(
+				reinterpret_cast<uint32_t*>(currentSource),
+				lutBuffer, currentDest, endDest);
+		}
+
+		return;
+	}
+
+	// ---- RGB24 |  XRGB ---
+	if (pixelFormat == PixelFormat::RGB24 || pixelFormat == PixelFormat::XRGB)
+	{
+		const int bytesPerPixel = (pixelFormat == PixelFormat::RGB24) ? 3 : 4;
+		for (int yDest = 0, ySource = height - _cropBottom - 1; yDest < outputHeight; ySource -= (Quarter ? 2 : 1), ++yDest)
+		{
+			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
+			uint8_t* endDest = currentDest + destLineSize;
+			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + (((uint64_t)_cropLeft) * bytesPerPixel));
+
+			if (pixelFormat == PixelFormat::RGB24)
+			{
+				VECTOR_RGB::decode<true, Quarter, UseToneMapping>(
+					currentSource, lutBuffer, currentDest, endDest);
+			}
+			else
+			{
+				VECTOR_RGB::decode<false, Quarter, UseToneMapping>(
+					currentSource, lutBuffer, currentDest, endDest);
+			}
+		}
+
+		return;
+	}
+
+	// ---- PixelFormat::MJPEG ---
 	if (pixelFormat == PixelFormat::MJPEG)
 	{
 		int deltaU = lineLength * height;
@@ -383,479 +261,46 @@ void FrameDecoder::processImage(
 			uint8_t* currentSourceU = (uint8_t*)data + deltaU + ((((uint64_t)ySource) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 			uint8_t* currentSourceV = (uint8_t*)data + deltaV + ((((uint64_t)ySource) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 
-			while (currentDest < endDest)
-			{
-				*((uint16_t*)&buffer) = *((uint16_t*)currentSource);
-				currentSource += 2;
-				buffer[2] = *(currentSourceU++);
-				buffer[3] = *(currentSourceV++);
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
-				currentDest += 3;
-			}
+			VECTOR_I420::process<Quarter>(
+				reinterpret_cast<uint32_t*>(currentSource),
+				reinterpret_cast<uint16_t*>(currentSourceU),
+				reinterpret_cast<uint16_t*>(currentSourceV),
+				lutBuffer, currentDest, endDest);
 		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::P010)
-	{
-		uint16_t p010[2] = {};
-
-		if (!FrameDecoderUtils::initialized)
-		{
-			initP010();
-		}
-
-		auto deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
-		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
-			uint8_t* currentSourceUV = deltaUV + (((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft);
-
-			while (currentDest < endDest)
-			{
-				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSource), 4);
-				if (toneMapping)
-				{
-					buffer[0] = lutP010_y[p010[0] >> 6];
-					buffer[1] = lutP010_y[p010[1] >> 6];
-				}
-				else
-				{
-					buffer[0] = p010[0] >> 8;
-					buffer[1] = p010[1] >> 8;
-				}
-
-				currentSource += 4;
-				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceUV), 4);
-				if (toneMapping)
-				{
-					buffer[2] = lutP010_uv[p010[0] >> 6];
-					buffer[3] = lutP010_uv[p010[1] >> 6];
-				}
-				else
-				{
-					buffer[2] = p010[0] >> 8;
-					buffer[3] = p010[1] >> 8;
-				}
-
-				currentSourceUV += 4;
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
-				currentDest += 3;
-			}
-		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::NV12)
-	{
-		auto deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
-		for (int yDest = 0, ySource = _cropTop; yDest < outputHeight; ++ySource, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
-			uint8_t* currentSourceUV = deltaUV + (((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft);
-
-			while (currentDest < endDest)
-			{
-				*((uint16_t*)&buffer) = *((uint16_t*)currentSource);
-				currentSource += 2;
-				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceUV);
-				currentSourceUV += 2;
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-				ind_lutd2 = LUT_INDEX(buffer[1], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd2]));
-				currentDest += 3;
-			}
-		}
-
 		return;
 	}
 }
 
-void FrameDecoder::processQImage(
-	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-	const PixelFormat pixelFormat, const uint8_t* lutBuffer, Image<ColorRgb>& outputImage, bool toneMapping, AutomaticToneMapping* automaticToneMapping)
-{
-	uint32_t ind_lutd;
-	uint8_t  buffer[8];
+// Explicitly instantiate the template specializations that are used in GrabberWorker.
+template void FrameDecoder::processImageVector<false, false, false>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
-	// validate format
-	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
-		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
-		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 && pixelFormat != PixelFormat::P010)
-	{
-		Error(Logger::getInstance("FrameDecoder"), "Invalid pixel format given");
-		return;
-	}
+template void FrameDecoder::processImageVector<false, true, false>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
-	// validate format LUT
-	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 ||
-		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010) && lutBuffer == NULL)
-	{
-		Error(Logger::getInstance("FrameDecoder"), "Missing LUT table for YUV colorspace");
-		return;
-	}
+template void FrameDecoder::processImageVector<true, false, false>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
-	// calculate the output size
-	int outputWidth = (width) >> 1;
-	int outputHeight = (height) >> 1;
+template void FrameDecoder::processImageVector<true, true, false>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
-	outputImage.resize(outputWidth, outputHeight);
+template void FrameDecoder::processImageVector<false, false, true>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
-	uint8_t* destMemory = outputImage.rawMem();
-	int 		destLineSize = outputImage.width() * 3;
+template void FrameDecoder::processImageVector<false, true, true>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
+template void FrameDecoder::processImageVector<true, false, true>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
-	if (pixelFormat == PixelFormat::YUYV && automaticToneMapping == nullptr)
-	{
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-
-			while (currentDest < endDest)
-			{
-				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[1], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				currentSource += 4;
-			}
-		}
-		return;
-	}
-	if (pixelFormat == PixelFormat::YUYV && automaticToneMapping != nullptr)
-	{
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-
-			while (currentDest < endDest)
-			{
-				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-
-				ind_lutd = LUT_INDEX((automaticToneMapping->checkY(buffer[0])), (automaticToneMapping->checkU(buffer[1])), (automaticToneMapping->checkV(buffer[3])));
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				currentSource += 4;
-			}
-		}
-		automaticToneMapping->finilize();
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::UYVY)
-	{
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-
-			while (currentDest < endDest)
-			{
-				*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-
-				ind_lutd = LUT_INDEX(buffer[1], buffer[0], buffer[2]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-				currentSource += 4;
-			}
-		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::RGB24)
-	{
-		for (int yDest = outputHeight - 1, ySource = 0; yDest >= 0; ySource += 2, --yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-
-			if (lutBuffer == NULL)
-				currentSource += 2;
-
-			while (currentDest < endDest)
-			{
-				if (lutBuffer != NULL)
-				{
-					*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-					currentSource += 6;
-					ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
-					*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-					currentDest += 3;
-				}
-				else
-				{
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource;
-					currentSource += 8;
-				}
-			}
-		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::XRGB)
-	{
-		for (int yDest = outputHeight - 1, ySource = 0; yDest >= 0; ySource += 2, --yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-
-			if (lutBuffer == NULL)
-				currentSource += 2;
-
-			while (currentDest < endDest)
-			{
-				if (lutBuffer != NULL)
-				{
-					*((uint32_t*)&buffer) = *((uint32_t*)currentSource);
-					currentSource += 8;
-					ind_lutd = LUT_INDEX(buffer[2], buffer[1], buffer[0]);
-					*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-					currentDest += 3;
-				}
-				else
-				{
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource--;
-					*currentDest++ = *currentSource;
-					currentSource += 10;
-				}
-			}
-		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::I420)
-	{
-		int deltaU = lineLength * height;
-		int deltaV = lineLength * height * 5 / 4;
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = (uint8_t*)data + deltaU + (ySource * lineLength / 2) / 2;
-			uint8_t* currentSourceV = (uint8_t*)data + deltaV + (ySource * lineLength / 2) / 2;
-
-			while (currentDest < endDest)
-			{
-				*((uint8_t*)&buffer) = *((uint8_t*)currentSource);
-				currentSource += 2;
-				buffer[2] = *(currentSourceU++);
-				buffer[3] = *(currentSourceV++);
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-			}
-		}
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::P010 && automaticToneMapping == nullptr)
-	{
-		uint16_t p010[2] = {};
-
-		if (!FrameDecoderUtils::initialized)
-		{
-			initP010();
-		}
-
-		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
-
-			while (currentDest < endDest)
-			{
-				memcpy(((uint16_t*)&p010), ((uint16_t*)currentSource), 2);
-				if (toneMapping)
-				{
-					buffer[0] = lutP010_y[p010[0] >> 6];
-				}
-				else
-				{
-					buffer[0] = p010[0] >> 8;
-				}
-				currentSource += 4;
-				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceU), 4);
-				if (toneMapping)
-				{
-					buffer[2] = lutP010_uv[p010[0] >> 6];
-					buffer[3] = lutP010_uv[p010[1] >> 6];
-				}
-				else
-				{
-					buffer[2] = p010[0] >> 8;
-					buffer[3] = p010[1] >> 8;
-				}
-
-				currentSourceU += 4;
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-			}
-		}
-		return;
-	}
-	if (pixelFormat == PixelFormat::P010 && automaticToneMapping != nullptr)
-	{
-		uint16_t p010[2] = {};
-
-		if (!FrameDecoderUtils::initialized)
-		{
-			initP010();
-		}
-
-		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
-
-			while (currentDest < endDest)
-			{
-				memcpy(((uint16_t*)&p010), ((uint16_t*)currentSource), 2);
-				if (toneMapping)
-				{
-					automaticToneMapping->checkY(p010[0] >> 8);
-
-					buffer[0] = lutP010_y[p010[0] >> 6];
-				}
-				else
-				{
-					buffer[0] = automaticToneMapping->checkY(p010[0] >> 8);
-				}
-				currentSource += 4;
-				memcpy(((uint32_t*)&p010), ((uint32_t*)currentSourceU), 4);
-				if (toneMapping)
-				{
-					automaticToneMapping->checkU(p010[0] >> 8);
-					automaticToneMapping->checkV(p010[1] >> 8);
-
-					buffer[2] = lutP010_uv[p010[0] >> 6];
-					buffer[3] = lutP010_uv[p010[1] >> 6];
-				}
-				else
-				{
-					buffer[2] = automaticToneMapping->checkU(p010[0] >> 8);
-					buffer[3] = automaticToneMapping->checkV(p010[1] >> 8);
-				}
-
-				currentSourceU += 4;
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-			}
-		}
-		automaticToneMapping->finilize();
-		return;
-	}
-
-	if (pixelFormat == PixelFormat::NV12 && automaticToneMapping == nullptr)
-	{
-		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
-
-			while (currentDest < endDest)
-			{
-				*((uint8_t*)&buffer) = *((uint8_t*)currentSource);
-				currentSource += 2;
-				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceU);
-				currentSourceU += 2;
-
-				ind_lutd = LUT_INDEX(buffer[0], buffer[2], buffer[3]);
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-			}
-		}
-		return;
-	}
-	if (pixelFormat == PixelFormat::NV12 && automaticToneMapping != nullptr)
-	{
-		uint8_t* deltaUV = (dataUV != nullptr) ? (uint8_t*)dataUV : (uint8_t*)data + lineLength * height;
-		for (int yDest = 0, ySource = 0; yDest < outputHeight; ySource += 2, ++yDest)
-		{
-			uint8_t* currentDest = destMemory + ((uint64_t)destLineSize) * yDest;
-			uint8_t* endDest = currentDest + destLineSize;
-			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource));
-			uint8_t* currentSourceU = deltaUV + (((uint64_t)ySource / 2) * lineLength);
-
-			while (currentDest < endDest)
-			{
-				*((uint8_t*)&buffer) = *((uint8_t*)currentSource);
-				currentSource += 2;
-				*((uint16_t*)&(buffer[2])) = *((uint16_t*)currentSourceU);
-				currentSourceU += 2;
-
-				ind_lutd = LUT_INDEX((automaticToneMapping->checkY(buffer[0])), (automaticToneMapping->checkU(buffer[2])), (automaticToneMapping->checkV(buffer[3])));
-
-				*((uint32_t*)currentDest) = *((uint32_t*)(&lutBuffer[ind_lutd]));
-				currentDest += 3;
-			}
-		}
-		automaticToneMapping->finilize();
-		return;
-	}
-}
-
-
-
-
+template void FrameDecoder::processImageVector<true, true, true>(
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
 
 void FrameDecoder::applyLUT(uint8_t* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled)
 {
 	uint8_t buffer[8];
 
-	if (lutBuffer != NULL && _hdrToneMappingEnabled)
+	if (lutBuffer != nullptr && _hdrToneMappingEnabled)
 	{
 		unsigned int sizeX = (width * 10) / 100;
 		unsigned int sizeY = (height * 25) / 100;

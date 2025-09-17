@@ -37,34 +37,38 @@ using namespace aliases;
 
 namespace ColorSpaceMath
 {
-	const std::map<PRIMARIES, std::vector<double2>> knownPrimaries = {
-				{
-					PRIMARIES::SRGB,
+	static const std::map<PRIMARIES, std::vector<double2>>& getKnownPrimaries()
+	{
+		static const std::map<PRIMARIES, std::vector<double2>> knownPrimaries = {
 					{
-						{ 0.6400, 0.3300 },
-						{ 0.3000, 0.6000 },
-						{ 0.1500, 0.0600 },
-						{ 0.3127, 0.3290 }
-					}
-				},
-				{
-					PRIMARIES::BT_2020,
+						PRIMARIES::SRGB,
+						{
+							{ 0.6400, 0.3300 },
+							{ 0.3000, 0.6000 },
+							{ 0.1500, 0.0600 },
+							{ 0.3127, 0.3290 }
+						}
+					},
 					{
-						{ 0.708, 0.292 },
-						{ 0.170, 0.797 },
-						{ 0.131, 0.046 },
-						{ 0.3127, 0.3290 }
-					}
-				},
-				{
-					PRIMARIES::WIDE_GAMMUT,
+						PRIMARIES::BT_2020,
+						{
+							{ 0.708, 0.292 },
+							{ 0.170, 0.797 },
+							{ 0.131, 0.046 },
+							{ 0.3127, 0.3290 }
+						}
+					},
 					{
-						{ 0.7350, 0.2650 },
-						{ 0.1150, 0.8260 },
-						{ 0.1570, 0.0180 },
-						{ 0.3127, 0.3290 }
+						PRIMARIES::WIDE_GAMMUT,
+						{
+							{ 0.7350, 0.2650 },
+							{ 0.1150, 0.8260 },
+							{ 0.1570, 0.0180 },
+							{ 0.3127, 0.3290 }
+						}
 					}
-				}
+		};
+		return knownPrimaries;
 	};
 
 	QString gammaToString(HDR_GAMMA gamma)
@@ -178,12 +182,12 @@ namespace ColorSpaceMath
 
 	std::vector<double2> getPrimaries(PRIMARIES primary)
 	{
-		return knownPrimaries.at(primary);
+		return getKnownPrimaries().at(primary);
 	}
 
 	linalg::mat<double, 3, 3> getPrimariesToXYZ(PRIMARIES primary)
 	{
-		const auto& primaries = knownPrimaries.at(primary);
+		const auto& primaries = getKnownPrimaries().at(primary);
 		return to_XYZ(primaries[0], primaries[1], primaries[2], primaries[3]);
 	}
 

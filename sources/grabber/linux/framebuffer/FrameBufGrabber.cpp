@@ -25,21 +25,21 @@
 *  SOFTWARE.
  */
 
-#include <iostream>
-#include <sys/ioctl.h>
-#include <stdexcept>
-#include <cstdio>
 #include <cassert>
+#include <climits>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <unistd.h>
-#include <sstream>
 #include <fcntl.h>
+#include <iostream>
+#include <linux/fb.h>
+#include <sstream>
+#include <stdexcept>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <limits.h>
-#include <sys/mman.h>
-#include <linux/fb.h>
+#include <unistd.h>
 
 #include <base/HyperHdrInstance.h>
 #include <base/AccessManager.h>
@@ -47,6 +47,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QByteArray>
 
 #include <grabber/linux/framebuffer/FrameBufGrabber.h>
 
@@ -77,7 +78,7 @@ void FrameBufGrabber::setHdrToneMappingEnabled(int mode)
 
 FrameBufGrabber::~FrameBufGrabber()
 {
-	uninit();
+	FrameBufGrabber::uninit();
 }
 
 void FrameBufGrabber::uninit()
@@ -86,7 +87,7 @@ void FrameBufGrabber::uninit()
 	if (_initialized)
 	{		
 		stop();
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 	
 	_initialized = false;
@@ -107,7 +108,7 @@ bool FrameBufGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -118,7 +119,7 @@ bool FrameBufGrabber::init()
 			{				
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -132,13 +133,14 @@ bool FrameBufGrabber::init()
 
 		
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
+		Info(_log, "Starting FrameBuffer grabber. Selected: '{:s}' ({:d}) max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");		
 
-		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
+		QByteArray foundDeviceUtf8 = foundDevice.toUtf8();
+		_handle = open(foundDeviceUtf8.constData(), O_RDONLY);
 		if (_handle < 0)
 		{
-			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);			
+			Error(_log, "Could not open the framebuffer device: '{:s}'. Reason: {:s} ({:d})", (foundDevice), std::strerror(errno), errno);			
 		}
 		else
 		{
@@ -149,19 +151,19 @@ bool FrameBufGrabber::init()
 				if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
 				{
 					_actualDeviceName = foundDevice;
-					Info(_log, "Device '%s' is using currently %ix%ix%i resolution.", QSTRING_CSTR(_actualDeviceName), scr.xres, scr.yres, scr.bits_per_pixel);
+					Info(_log, "Device '{:s}' is using currently {:d}x{:d}x{:d} resolution.", (_actualDeviceName), scr.xres, scr.yres, scr.bits_per_pixel);
 					_initialized = true;
 				}
 				else
 				{
-					Error(_log, "Unsupported %ix%ix%i mode for '%s' device.", scr.xres, scr.yres, scr.bits_per_pixel, QSTRING_CSTR(foundDevice));
+					Error(_log, "Unsupported {:d}x{:d}x{:d} mode for '{:s}' device.", scr.xres, scr.yres, scr.bits_per_pixel, (foundDevice));
 					close(_handle);
 					_handle = -1;
 				}
 			}
 			else
 			{
-				Error(_log, "Could not get the framebuffer dimension for '%s' device. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
+				Error(_log, "Could not get the framebuffer dimension for '{:s}' device. Reason: {:s} ({:d})", (foundDevice), std::strerror(errno), errno);
 				close(_handle);
 				_handle = -1;
 			}			
@@ -189,7 +191,7 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 	for (int i = 0; i <= 16; i++)
 	{
 		QString path = QString("/dev/fb%1").arg(i);
-		if (QFileInfo(path).exists())
+		if (QFileInfo::exists(path))
 		{
 			DeviceProperties properties;
 			DevicePropertiesItem dpi;
@@ -200,7 +202,7 @@ void FrameBufGrabber::enumerateDevices(bool silent)
 			_deviceProperties.insert(path, properties);
 
 			if (!silent)
-				Info(_log, "Found FrameBuffer device: %s", QSTRING_CSTR(path));
+				Info(_log, "Found FrameBuffer device: {:s}", (path));
 		}
 	}	
 }
@@ -219,7 +221,7 @@ bool FrameBufGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "start failed ({:s})", e.what());
 	}
 
 	return false;
@@ -265,7 +267,8 @@ void FrameBufGrabber::grabFrame()
 				Warning(_log, "The handle is lost. Trying to restart the driver.");
 
 				close(_handle);
-				_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
+				QByteArray actualDeviceNameUtf8 = _actualDeviceName.toUtf8();
+				_handle = open(actualDeviceNameUtf8.constData(), O_RDONLY);
 
 				if (_handle >= 0 && ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
 				{

@@ -35,11 +35,7 @@
 	#include <iostream>
 	#include <limits>
 	#include <tuple>
-	#include <iomanip>
 	#include <vector>
-	#include <iostream>
-	#include <iomanip>
-	#include <tuple>
 	#include <cassert>
 	#include <cmath>
 	#include <cstdint>
@@ -79,7 +75,7 @@ void InfiniteYuvInterpolator::setSmoothingFactor(float factor)
 
 void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug)
 {
-	if (new_rgb_to_yuv_targets.size() == 0)
+	if (new_rgb_to_yuv_targets.empty())
 		return;
 
 	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;

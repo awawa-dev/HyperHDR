@@ -41,7 +41,7 @@
 
 GrabberWrapper::GrabberWrapper(const QString& grabberName)
 	: _grabberName(grabberName)
-	, _log(Logger::getInstance(grabberName))
+	, _log(grabberName)
 	, _configLoaded(false)
 	, _grabber(nullptr)
 	, _cecHdrStart(0)
@@ -146,7 +146,7 @@ void GrabberWrapper::signalInstancePauseChangedHandler(int instance, bool isEnab
 		QTimer::singleShot(trigger, Qt::TimerType::PreciseTimer, this, [this, newSignature]() {
 			if (signature == newSignature)
 			{
-				if (_paused_clients.length() == _running_clients.length() && _paused_clients.length() > 0)
+				if (_paused_clients.length() == _running_clients.length() && !_paused_clients.empty())
 				{
 					if (!_isPaused)
 					{
@@ -158,7 +158,7 @@ void GrabberWrapper::signalInstancePauseChangedHandler(int instance, bool isEnab
 						_isPaused = true;
 					}
 				}
-				else if (_paused_clients.length() < _running_clients.length() && _running_clients.length() > 0)
+				else if (_paused_clients.length() < _running_clients.length() && !_running_clients.empty())
 				{
 					if (_isPaused)
 					{
@@ -177,7 +177,7 @@ void GrabberWrapper::setCecStartStop(int cecHdrStart, int cecHdrStop)
 	_cecHdrStart = cecHdrStart;
 	_cecHdrStop = cecHdrStop;
 
-	Debug(_log, "CEC keycode. Start: %i, stop: %i", _cecHdrStart, _cecHdrStop);
+	Debug(_log, "CEC keycode. Start: {:d}, stop: {:d}", _cecHdrStart, _cecHdrStop);
 
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::COMP_CEC, -1, isCEC());
 }
@@ -228,12 +228,12 @@ bool GrabberWrapper::isCEC()
 
 void GrabberWrapper::capturingExceptionHandler(const char* err)
 {
-	Error(_log, "Grabber signals error (%s)", err);
+	Error(_log, "Grabber signals error ({:s})", err);
 }
 
 GrabberWrapper::~GrabberWrapper()
 {
-	Debug(_log, "Closing grabber: %s", QSTRING_CSTR(_grabberName));
+	Debug(_log, "Closing grabber: {:s}", (_grabberName));
 	_grabber = nullptr;
 }
 
@@ -321,12 +321,6 @@ void GrabberWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned
 		_grabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
-void GrabberWrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
-{
-	if (_grabber != nullptr)
-		_grabber->setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
-}
-
 void GrabberWrapper::setSignalDetectionEnable(bool enable)
 {
 	if (_grabber != nullptr)
@@ -341,7 +335,7 @@ void GrabberWrapper::setDeviceVideoStandard(const QString& device)
 
 void GrabberWrapper::setHdrToneMappingEnabled(int mode)
 {
-	if (_grabber != NULL)
+	if (_grabber != nullptr)
 	{
 		_grabber->setHdrToneMappingEnabled(mode);
 		_grabber->setAutoToneMappingCurrentStateEnabled(mode);
@@ -433,33 +427,27 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		QJsonArray hdr = obj["calibration_hdr"].toArray(QJsonArray());
 		std::vector<DetectionAutomatic::calibrationPoint> sdrVec, hdrVec;
 
-		for (auto v : sdr) {
+		sdrVec.reserve(sdr.size());
+		for (const auto& v : sdr) {
 			bool ok = false;
-			QJsonObject element = v.toObject();
-			DetectionAutomatic::calibrationPoint p;
 
-			p = parsePoint(width, height, element, ok);
-
-			if (ok)
-				sdrVec.push_back(p);
+			if (DetectionAutomatic::calibrationPoint p = parsePoint(width, height, v.toObject(), ok); ok)
+				sdrVec.emplace_back(p);
 			else
 				Warning(_log, "Calibration data are damaged");
 		}
 
-		for (auto v : hdr) {
+		hdrVec.reserve(hdr.size());
+		for (const auto& v : hdr) {
 			bool ok = false;
-			QJsonObject element = v.toObject();
-			DetectionAutomatic::calibrationPoint p;
 
-			p = parsePoint(width, height, element, ok);
-
-			if (ok)
-				hdrVec.push_back(p);
+			if (DetectionAutomatic::calibrationPoint p = parsePoint(width, height, v.toObject(), ok); ok)
+				hdrVec.emplace_back(p);
 			else
 				Warning(_log, "Calibration data are damaged");
 		}
 
-		_grabber->setAutomaticCalibrationData(signature, quality, width, height, sdrVec, hdrVec);
+		_grabber->setAutomaticCalibrationData(signature, quality, width, height, std::move(sdrVec), std::move(hdrVec));
 	}
 
 	if (type == settings::type::VIDEOGRABBER && _grabber != nullptr)
@@ -475,13 +463,13 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			if (_autoResume != obj["autoResume"].toBool(false))
 			{
 				_autoResume = obj["autoResume"].toBool(false);
-				Debug(_log, "Auto resume is: %s", (_autoResume) ? "enabled" : "disabled");
+				Debug(_log, "Auto resume is: {:s}", (_autoResume) ? "enabled" : "disabled");
 			}
 
 			if (_pausingModeEnabled != obj["led_off_pause"].toBool(false))
 			{
 				_pausingModeEnabled = obj["led_off_pause"].toBool(false);
-				Debug(_log, "Pausing mode is: %s", (_pausingModeEnabled) ? "enabled" : "disabled");
+				Debug(_log, "Pausing mode is: {:s}", (_pausingModeEnabled) ? "enabled" : "disabled");
 			}
 
 			// crop for video

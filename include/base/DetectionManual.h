@@ -31,7 +31,7 @@ public:
 	void setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax);
 
 private:
-	Logger*		_log;
+	LoggerName	_log;
 	double		_x_frac_min;
 	double		_y_frac_min;
 	double		_x_frac_max;

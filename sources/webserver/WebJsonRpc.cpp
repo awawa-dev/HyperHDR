@@ -18,12 +18,12 @@ WebJsonRpc::WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localC
 	: QObject(parent)
 	, _server(server)
 	, _wrapper(parent)
-	, _log(Logger::getInstance("HTTPJSONRPC"))
+	, _log("HTTPJSONRPC")
 {
 	const QString client = request->getClientInfo().clientAddress.toString();
 	_hyperAPI = new HyperAPI(client, _log, localConnection, this, true);
 	connect(_hyperAPI, &HyperAPI::SignalCallbackJsonMessage, this, &WebJsonRpc::handleCallback);
-	connect(_hyperAPI, &HyperAPI::SignalPerformClientDisconnection, [&]() { _wrapper->closeConnection(); _stopHandle = true; });
+	connect(_hyperAPI, &HyperAPI::SignalPerformClientDisconnection, this, [&]() { _wrapper->closeConnection(); _stopHandle = true; });
 	_hyperAPI->initialize();
 }
 

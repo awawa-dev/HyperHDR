@@ -54,7 +54,8 @@ public:
 
 		//Allow Comments in Config
 		QString config = QString(file.readAll());
-		config.remove(QRegularExpression("([^:]?\\/\\/.*)"));
+		static const QRegularExpression commentRegex("([^:]?\\/\\/.*)");
+		config.remove(commentRegex);
 
 		QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8(), &error);
 		file.close();
@@ -206,13 +207,11 @@ public:
 		{
 		case QJsonValue::Array:
 		{
-			QString ret = "[";
-			for (const QJsonValueRef v : value.toArray())
-			{
-				ret += ((ret.length() > 1) ? ", ": "") + outputNode(v);
+			QStringList parts;
+			for (const QJsonValue& v : value.toArray()) {
+				parts << outputNode(v);
 			}
-			return ret + "]";
-			break;
+			return "[" + parts.join(", ") + "]";
 		}
 		case QJsonValue::Object:
 		{
@@ -374,6 +373,7 @@ private:
 							{
 								if ((path.first().left(1) == "[") && (path.first().right(1) == "]"))
 								{
+									// clazy:skip
 									arrayLevel = path.first().mid(1, path.first().size() - 2).toInt();
 									path.removeFirst();
 								}

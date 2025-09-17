@@ -26,8 +26,8 @@ bool DriverNetZigbee2mqtt::init(QJsonObject deviceConfig)
 		_zigInstance.transition = deviceConfig["transition"].toInt(0);
 		_zigInstance.constantBrightness = deviceConfig["constantBrightness"].toInt(255);
 		
-		Debug(_log, "Transition (ms)       : %s", (_zigInstance.transition > 0) ? QSTRING_CSTR(QString::number(_zigInstance.transition)) : "disabled" );
-		Debug(_log, "ConstantBrightness    : %s", (_zigInstance.constantBrightness > 0) ? QSTRING_CSTR(QString::number(_zigInstance.constantBrightness)) : "disabled");
+		Debug(_log, "Transition (ms)       : {:s}", (_zigInstance.transition > 0) ? (QString::number(_zigInstance.transition)) : "disabled" );
+		Debug(_log, "ConstantBrightness    : {:s}", (_zigInstance.constantBrightness > 0) ? (QString::number(_zigInstance.constantBrightness)) : "disabled");
 
 		auto arr = deviceConfig["lamps"].toArray();
 
@@ -39,11 +39,11 @@ bool DriverNetZigbee2mqtt::init(QJsonObject deviceConfig)
 				hl.name = lampObj["name"].toString();
 				hl.colorModel = static_cast<Zigbee2mqttLamp::Mode>(lampObj["colorModel"].toInt(0));
 				hl.currentBrightness = _zigInstance.constantBrightness;
-				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
+				Debug(_log, "Configured lamp ({:s}) : {:s}", std::string_view((hl.colorModel == 0) ? "RGB" : "HSV"), (hl.name));
 				_zigInstance.lamps.push_back(hl);
 			}
 
-		if (arr.size() > 0)
+		if (!arr.empty())
 		{
 			isInitOK = true;
 		}
@@ -77,7 +77,7 @@ bool DriverNetZigbee2mqtt::powerOnOff(bool isOn)
 		}
 	}
 	
-	if (_zigInstance.lamps.size() > 0)
+	if (!_zigInstance.lamps.empty())
 	{
 		QString lastWillId = QString("DriverNetZigbee2mqtt:%1").arg(_mqttId);
 		if (isOn)
@@ -139,7 +139,7 @@ int DriverNetZigbee2mqtt::writeFiniteColors(const std::vector<ColorRgb>& ledValu
 			{
 				uint16_t h;
 				float s, v;
-				color.rgb2hsl(color.red, color.green, color.blue, h, s, v);
+				ColorRgb::rgb2hsl(color.red, color.green, color.blue, h, s, v);
 
 				QJsonObject hs; hs["hue"] = h; hs["saturation"] = static_cast<int>(std::roundl(s * 100.0));
 				row["color"] = hs;
@@ -171,7 +171,7 @@ int DriverNetZigbee2mqtt::writeFiniteColors(const std::vector<ColorRgb>& ledValu
 	
 	if (_timeLogger >= 0 && _timeLogger < DEFAULT_TIME_MEASURE_MESSAGE)
 	{
-		Info(_log, "The communication took: %ims (%i/%i)", (int)(InternalClock::nowPrecise() - start), ++_timeLogger, DEFAULT_TIME_MEASURE_MESSAGE);
+		Info(_log, "The communication took: {:d}ms ({:d}/{:d})", (int)(InternalClock::nowPrecise() - start), ++_timeLogger, DEFAULT_TIME_MEASURE_MESSAGE);
 	}
 
 	return 0;
@@ -219,7 +219,8 @@ QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& /*params*/)
 		{
 			if (doc.isArray())
 			{
-				for (const auto&& device : doc.array())
+				const QJsonArray devices = doc.array();
+				for (const auto& device : devices)
 					if (device.isObject())
 					{
 						auto item = device.toObject();
@@ -229,14 +230,16 @@ QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& /*params*/)
 							auto defItem = item["definition"].toObject();
 							if (defItem.contains("exposes") && defItem["exposes"].isArray())
 							{
-								for (const auto&& exposesItem : defItem["exposes"].toArray())
+								const QJsonArray exposesArray = defItem["exposes"].toArray();
+								for (const auto& exposesItem : exposesArray)
 									if (exposesItem.isObject())
 									{
 										auto exposesObj = exposesItem.toObject();
 										if (exposesObj.contains("type") && QString::compare(exposesObj["type"].toString(), "light", Qt::CaseInsensitive) == 0 &&
 											exposesObj.contains("features") && exposesObj["features"].isArray())
 										{
-											for (const auto&& featureItem : exposesObj["features"].toArray())
+											const QJsonArray featuresArray = exposesObj["features"].toArray();
+											for (const auto& featureItem : featuresArray)
 												if (featureItem.isObject())
 												{
 													auto features = featureItem.toObject();
@@ -283,7 +286,7 @@ QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& /*params*/)
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
@@ -296,7 +299,7 @@ void DriverNetZigbee2mqtt::identify(const QJsonObject& params)
 		auto type = params["type"].toString();
 		if (!name.isEmpty() && !type.isEmpty())
 		{
-			Debug(_log, "Testing lamp %s (%s)", QSTRING_CSTR(name), QSTRING_CSTR(type));
+			Debug(_log, "Testing lamp {:s} ({:s})", (name), (type));
 			QString topic = QString("zigbee2mqtt/%1/set").arg(name);
 			QJsonDocument doc;
 			QJsonObject rowOn; rowOn["state"] = "ON";

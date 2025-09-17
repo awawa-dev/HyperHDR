@@ -23,7 +23,7 @@ public:
 private:
 	QtHttpServer* _server;
 	QtHttpClientWrapper* _wrapper;
-	Logger*		_log;
+	LoggerName	_log;
 	HyperAPI*	_hyperAPI;
 
 	bool _stopHandle = false;

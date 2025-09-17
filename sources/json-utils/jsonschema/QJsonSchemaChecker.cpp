@@ -1,7 +1,7 @@
 #ifndef PCH_ENABLED
 	#include <iterator>
 	#include <algorithm>
-	#include <math.h>
+	#include <cmath>
 #endif
 
 #include <json-utils/jsonschema/QJsonSchemaChecker.h>
@@ -15,10 +15,7 @@ QJsonSchemaChecker::QJsonSchemaChecker() :
 	// empty
 }
 
-QJsonSchemaChecker::~QJsonSchemaChecker()
-{
-	// empty
-}
+QJsonSchemaChecker::~QJsonSchemaChecker() = default;
 
 bool QJsonSchemaChecker::setSchema(const QJsonObject& schema)
 {
@@ -263,9 +260,10 @@ bool QJsonSchemaChecker::verifyDeps(const QString& property, const QJsonObject& 
 	{
 		const QJsonObject& depends = ((schema[property].toObject())["options"].toObject())["dependencies"].toObject();
 
-		if (depends.keys().size() > 0)
+		if (!depends.keys().empty())
 		{
-			QString firstName = depends.keys().first();
+			const auto depKeys = depends.keys();
+			QString firstName = depKeys.first();
 			if (value.contains(firstName))
 			{
 				if (value[firstName] != depends[firstName])
@@ -566,7 +564,7 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue& value, const QJsonVa
 		return;
 	}
 
-	if (schema.toBool() == true)
+	if (schema.toBool())
 	{
 		// make sure no two items are identical
 

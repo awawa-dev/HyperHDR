@@ -7,7 +7,6 @@
 #include <db/SettingsTable.h>
 #include <json-utils/jsonschema/QJsonUtils.h>
 #include <json-utils/jsonschema/QJsonSchemaChecker.h>
-#include <json-utils/JsonUtils.h>
 
 QJsonObject	InstanceConfig::_schemaJson;
 QMutex		InstanceConfig::_lockerSettingsManager;
@@ -15,13 +14,13 @@ std::atomic<bool> InstanceConfig::_backupMade(false);
 
 InstanceConfig::InstanceConfig(bool master, quint8 instanceIndex, QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance(QString("INSTANCE_CFG%1").arg((master) ? QString() : QString::number(instanceIndex))))
+	, _log(QString("INSTANCE_CFG%1").arg((master) ? QString() : QString::number(instanceIndex)))
 {
 	QMutexLocker locker(&_lockerSettingsManager);
 
 	Info(_log, "Loading instance configuration");
 
-	_sTable = std::unique_ptr<SettingsTable>(new SettingsTable(instanceIndex));
+	_sTable = std::make_unique<SettingsTable>(instanceIndex);
 
 	// get schema
 	if (_schemaJson.isEmpty())
@@ -113,7 +112,7 @@ InstanceConfig::InstanceConfig(bool master, quint8 instanceIndex, QObject* paren
 	if (!valid.second)
 	{
 		for (auto& schemaError : schemaChecker.getMessages())
-			Error(_log, "Schema Syntax Error: %s", QSTRING_CSTR(schemaError));
+			Error(_log, "Schema Syntax Error: {:s}", (schemaError));
 		throw std::runtime_error("The config schema has invalid syntax. This should never happen! Go fix it!");
 	}
 	if (!valid.first || upgradeNeeded)
@@ -125,7 +124,7 @@ InstanceConfig::InstanceConfig(bool master, quint8 instanceIndex, QObject* paren
 			Info(_log, "Creating DB backup first.");
 			QString resultFile = _sTable->createLocalBackup();
 			if (!resultFile.isEmpty())
-				Info(_log, "The backup is saved as: %s", QSTRING_CSTR(resultFile));
+				Info(_log, "The backup is saved as: {:s}", (resultFile));
 			else
 				Warning(_log, "Could not create a backup");
 		}
@@ -133,7 +132,7 @@ InstanceConfig::InstanceConfig(bool master, quint8 instanceIndex, QObject* paren
 		dbConfig = schemaChecker.getAutoCorrectedConfig(dbConfig);
 
 		for (auto& schemaError : schemaChecker.getMessages())
-			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
+			Warning(_log, "Config Fix: {:s}", (schemaError));
 
 		saveSettings(dbConfig, true);
 	}
@@ -176,7 +175,7 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 			dbConfig["color"] = colorObject;
 			///////////////////////////////////////////////////////////
 			version = 2;
-			Info(_log, "DB has been upgraded to version: %i", version);
+			Info(_log, "DB has been upgraded to version: {:d}", version);
 		}
 	}
 
@@ -224,7 +223,7 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 			dbConfig["color"] = colorObject;
 			///////////////////////////////////////////////////////////
 			version = 5;
-			Info(_log, "DB has been upgraded to version: %i", version);
+			Info(_log, "DB has been upgraded to version: {:d}", version);
 		}
 	}
 
@@ -278,7 +277,7 @@ bool InstanceConfig::saveSettings(QJsonObject config, bool correct)
 		config = schemaChecker.getAutoCorrectedConfig(config);
 
 		for (const auto& schemaError : schemaChecker.getMessages())
-			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
+			Warning(_log, "Config Fix: {:s}", (schemaError));
 	}
 
 	// store the new config
@@ -325,7 +324,7 @@ void InstanceConfig::saveSetting(settings::type key, QString saveData)
 {
 	if (!_sTable->createSettingsRecord(settings::typeToString(key), saveData))
 	{
-		Error(_log, "Could not save the config: %s = %s", QSTRING_CSTR(settings::typeToString(key)), QSTRING_CSTR(saveData));
+		Error(_log, "Could not save the config: {:s} = {:s}", (settings::typeToString(key)), (saveData));
 	}
 	else
 	{

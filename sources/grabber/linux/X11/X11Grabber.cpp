@@ -25,18 +25,17 @@
 *  SOFTWARE.
 */
 
+#include <cassert>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <cstdio>
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <limits.h>
 
 #include <base/HyperHdrInstance.h>
 
@@ -79,12 +78,12 @@ X11Grabber::X11Grabber(const QString& device, const QString& configurationPath)
 		_releaseFrame = (void (*)(x11Handle*)) dlsym(_library, "releaseFrame");
 	}
 	else
-		Error(_log, "Could not load X11 proxy library. Did you install libx11? Error: %s", dlerror());
+		Error(_log, "Could not load X11 proxy library. Did you install libx11? Error: {:s}", dlerror());
 
 	if  (_library && (_enumerateX11Displays == nullptr || _releaseX11Displays == nullptr || _releaseFrame == nullptr ||
 		_initX11Display == nullptr || _uninitX11Display == nullptr || _getFrame == nullptr))
 	{		
-		Error(_log, "Could not load X11 proxy library definition. Did you install libx11? Error: %s", dlerror());
+		Error(_log, "Could not load X11 proxy library definition. Did you install libx11? Error: {:s}", dlerror());
 
 		dlclose(_library);
 		_library = nullptr;
@@ -113,7 +112,7 @@ void X11Grabber::setHdrToneMappingEnabled(int mode)
 
 X11Grabber::~X11Grabber()
 {
-	uninit();
+	X11Grabber::uninit();
 
 	// destroy core elements from contructor
 	if (_handle != nullptr)
@@ -135,7 +134,7 @@ void X11Grabber::uninit()
 	if (_initialized)
 	{		
 		stop();
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 	
 
@@ -157,7 +156,7 @@ bool X11Grabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -168,7 +167,7 @@ bool X11Grabber::init()
 			{				
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -182,7 +181,7 @@ bool X11Grabber::init()
 
 		
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting X11 grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
+		Info(_log, "Starting X11 grabber. Selected: '{:s}' ({:d}) max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");		
 
 		if (init_device(_deviceProperties[foundDevice].valid.first().input))
@@ -245,7 +244,7 @@ bool X11Grabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "start failed ({:s})", e.what());
 	}
 
 	return false;

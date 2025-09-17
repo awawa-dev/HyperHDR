@@ -34,11 +34,12 @@
 	#include <Windows.h>
 	using namespace std::chrono_literals;
 #else
-	#include <time.h>
+	#include <ctime>
 #endif
 
 
 const std::chrono::time_point<std::chrono::steady_clock> InternalClock::start = std::chrono::steady_clock::now();
+const std::chrono::time_point<std::chrono::steady_clock> InternalClock::startMicro = std::chrono::steady_clock::now();
 const std::chrono::time_point<std::chrono::high_resolution_clock> InternalClock::startPrecise = std::chrono::high_resolution_clock::now();
 
 long long int InternalClock::now()
@@ -52,6 +53,12 @@ long long int InternalClock::nowPrecise()
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startPrecise).count();
 }
 
+long long int InternalClock::nowMicro()
+{
+	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startMicro).count();
+}
+
+
 bool InternalClock::isPreciseSteady()
 {
 	return std::chrono::high_resolution_clock::is_steady;
@@ -62,7 +69,7 @@ HighResolutionScheduler::~HighResolutionScheduler()
 	stop();
 }
 
-void HighResolutionScheduler::start(QObject* receiver, std::function<void()> task, std::chrono::microseconds period)
+void HighResolutionScheduler::start(QObject* receiver, const std::function<void()>& task, std::chrono::microseconds period)
 {
 	stop();
 

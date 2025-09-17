@@ -137,7 +137,7 @@ signals:
 		quint16 port);
 
 private:
-	Logger* _log;
+	LoggerName _log;
 	QUdpSocket* _udpSocket;
 
 	QString _serverHeader, _uuid, _fbsPort, _pbsPort, _jssPort, _sslPort, _webPort, _name, _descAddress;

@@ -59,5 +59,6 @@ void hyperhdr::THREAD_MULTI_REMOVER(QString message, QThread* parentThread, std:
 
 void hyperhdr::SMARTPOINTER_MESSAGE(QString message)
 {
-	printf("SmartPointer is removing: %s\n", QSTRING_CSTR(message));
+	auto messageChar = message.toUtf8();
+	printf("SmartPointer is removing: %s\n", messageChar.constData());
 }

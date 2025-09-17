@@ -105,7 +105,7 @@ void Animation_Waves::Init(
 	diag = int(diag * 1.3);
 
 
-	if (custom_colors.size() > 0)
+	if (!custom_colors.empty())
 	{
 		int pos = 0;
 		int step = int(255 / custom_colors.size());
@@ -124,7 +124,7 @@ bool Animation_Waves::Play(HyperImage& painter)
 {
 	bool ret = true;
 
-	if (custom_colors.size() == 0)
+	if (custom_colors.empty())
 		return false;
 
 	if (reverse_time >= 1)

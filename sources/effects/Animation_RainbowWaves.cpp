@@ -51,7 +51,7 @@ bool Animation_RainbowWaves::Play(HyperImage& /*painter*/)
 
 bool Animation_RainbowWaves::hasLedData(QVector<ColorRgb>& buffer)
 {
-	if (buffer.size() > 0)
+	if (!buffer.empty())
 	{
 		ColorRgb newColor{ 0,0,0 };
 		ColorRgb::hsv2rgb(hue, 255, 255, newColor.red, newColor.green, newColor.blue);

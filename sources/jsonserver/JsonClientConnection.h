@@ -33,5 +33,5 @@ private:
 	QTcpSocket* _socket;
 	HyperAPI* _hyperAPI;
 	QByteArray _receiveBuffer;
-	Logger* _log;
+	LoggerName _log;
 };

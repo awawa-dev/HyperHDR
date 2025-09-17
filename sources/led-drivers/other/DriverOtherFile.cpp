@@ -36,11 +36,11 @@ bool DriverOtherFile::init(QJsonObject deviceConfig)
 		_file = new QFile(_fileName, this);
 	}
 
-	Debug(_log, "Output filename: %s", QSTRING_CSTR(_fileName));
+	Debug(_log, "Output filename: {:s}", (_fileName));
 
 	_infiniteColorEngine = deviceConfig["infiniteColorEngine"].toBool(false);
 
-	Debug(_log, "Infinite color engine resolution: %s", (_infiniteColorEngine) ? "true": "false");
+	Debug(_log, "Infinite color engine resolution: {:s}", (_infiniteColorEngine) ? "true": "false");
 
 	return initOK;
 }
@@ -50,11 +50,11 @@ int DriverOtherFile::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	Debug(_log, "Open filename: %s", QSTRING_CSTR(_fileName));
+	Debug(_log, "Open filename: {:s}", (_fileName));
 
 	if (!_file->isOpen())
 	{
-		Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
+		Debug(_log, "QIODevice::WriteOnly, {:s}", (_fileName));
 		if (!_file->open(QIODevice::WriteOnly | QIODevice::Text))
 		{
 			QString errortext = QString("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString(), _fileName);
@@ -80,7 +80,7 @@ int DriverOtherFile::close()
 		if (_file->isOpen())
 		{
 			// close device physically
-			Debug(_log, "File: %s", QSTRING_CSTR(_fileName));
+			Debug(_log, "File: {:s}", (_fileName));
 			_file->close();
 		}
 	}
@@ -94,13 +94,18 @@ int DriverOtherFile::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 
 std::pair<bool, int> DriverOtherFile::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
+	if (nonlinearRgbColors->empty())
+	{
+		return { _infiniteColorEngine, 0 };
+	}
+
 	if (_infiniteColorEngine)
 		return { true, writeColors(nullptr, nonlinearRgbColors) };
 	else
 		return { false,0 };
 }
 
-int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors& nonlinearRgbColors)
+int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors& infinityLedColors)
 {	
 	QTextStream out(_file);
 	size_t result = 0;
@@ -124,18 +129,18 @@ int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const S
 		}
 		result = ledValues->size();
 	}
-	else if (nonlinearRgbColors != nullptr)
+	else if (infinityLedColors != nullptr)
 	{
 		QString separator = "";
 		out.setRealNumberNotation(QTextStream::FixedNotation);
 		out.setRealNumberPrecision(4);
 
-		for (auto& color : *nonlinearRgbColors)
+		for (auto& color : *infinityLedColors)
 		{
 			auto format = [](float value){return QString("%1").arg(value, 8, 'f', 4, ' '); };
 			out << std::exchange(separator,", ") << "{" << format(color.x * 255.f) << ", " << format(color.y * 255.f)  << ", " << format(color.z * 255.f) << "}";
 		}
-		result = nonlinearRgbColors->size();
+		result = infinityLedColors->size();
 	}
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))

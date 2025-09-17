@@ -153,7 +153,7 @@ bool Animation_Fade::hasLedData(QVector<ColorRgb>& buffer)
 	{
 		if (fadeInTime > 0)
 		{
-			if (indexer1 == INT_MIN && colors.size() > 0)
+			if (indexer1 == INT_MIN && !colors.empty())
 			{
 				indexer1 = 0;
 				current = { colors[0].x, colors[0].y, colors[0].z };
@@ -209,7 +209,7 @@ bool Animation_Fade::hasLedData(QVector<ColorRgb>& buffer)
 
 	if (currentStep == STEP_4)
 	{
-		if (indexer4 < colorEndTime && colors.size()>0)
+		if (indexer4 < colorEndTime && !colors.empty())
 		{
 			current = { colors[0].x,colors[0].y,colors[0].z };
 			SetSleepTime(minStepTime * 1000);

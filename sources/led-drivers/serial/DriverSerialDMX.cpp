@@ -2,7 +2,7 @@
 
 #include <QSerialPort>
 #ifndef _WIN32
-	#include <time.h>
+	#include <ctime>
 #endif
 
 DriverSerialDMX::DriverSerialDMX(const QJsonObject& deviceConfig)
@@ -37,20 +37,20 @@ bool DriverSerialDMX::init(QJsonObject deviceConfig)
 		}
 		else
 		{
-			//Error(_log, "unknown dmx device type %s", QSTRING_CSTR(dmxString));
+			//Error(_log, "unknown dmx device type {:s}", (dmxString));
 			QString errortext = QString("unknown dmx device type: %1").arg(dmxTypeString);
 			this->setInError(errortext);
 			return false;
 		}
 
-		Debug(_log, "_dmxTypeString \"%s\", _dmxDeviceType %d", QSTRING_CSTR(dmxTypeString), _dmxDeviceType);
+		Debug(_log, "_dmxTypeString \"{:s}\", _dmxDeviceType {:d}", (dmxTypeString), _dmxDeviceType);
 		_serialPort->setStopBits(QSerialPort::TwoStop);
 
 		_dmxLedCount = qMin(static_cast<int>(_ledCount), 512 / _dmxSlotsPerLed);
 		_dmxChannelCount = 1 + _dmxSlotsPerLed * _dmxLedCount;
 
-		Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);
-		Debug(_log, "_ledCount %d, _dmxLedCount %d, _dmxChannelCount %d", _ledCount, _dmxLedCount, _dmxChannelCount);
+		Debug(_log, "_dmxStart {:d}, _dmxSlotsPerLed {:d}", _dmxStart, _dmxSlotsPerLed);
+		Debug(_log, "_ledCount {:d}, _dmxLedCount {:d}, _dmxChannelCount {:d}", _ledCount, _dmxLedCount, _dmxChannelCount);
 
 		_ledBuffer.resize(_dmxChannelCount, 0);
 		_ledBuffer[0] = 0x00;	// NULL START code
@@ -81,11 +81,11 @@ int DriverSerialDMX::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	_serialPort->setBreakEnabled(true);
 	// Note Windows: There is no concept of ns sleeptime, the closest possible is 1ms but requested is 0,000176ms
 #ifndef _WIN32
-	nanosleep((const struct timespec[]) { {0, 176000L} }, NULL);	// 176 uSec break time
+	nanosleep((const struct timespec[]) { {0, 176000L} }, nullptr);	// 176 uSec break time
 #endif
 	_serialPort->setBreakEnabled(false);
 #ifndef _WIN32
-	nanosleep((const struct timespec[]) { {0, 12000L} }, NULL);	// 176 uSec make after break time
+	nanosleep((const struct timespec[]) { {0, 12000L} }, nullptr);	// 176 uSec make after break time
 #endif
 
 #undef uberdebug

@@ -41,7 +41,7 @@ using namespace FlatBuffersParser;
 
 FlatBuffersServerConnection::FlatBuffersServerConnection(QTcpSocket* socket, QLocalSocket* domain, int timeout, QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("FLATBUFSERVER"))
+	, _log("FLATBUFSERVER")
 	, _socket(socket)
 	, _domain(domain)
 	, _clientAddress("@LocalSocket")
@@ -66,7 +66,7 @@ FlatBuffersServerConnection::FlatBuffersServerConnection(QTcpSocket* socket, QLo
 	_timeoutTimer->setSingleShot(true);
 	_timeoutTimer->setInterval(_timeout);
 	connect(_timeoutTimer, &QTimer::timeout, this, [&]() {
-		Warning(_log, "Timeout (%i) has been reached. Disconnecting", _timeoutTimer->interval());
+		Warning(_log, "Timeout ({:d}) has been reached. Disconnecting", _timeoutTimer->interval());
 		forceClose();
 	});
 
@@ -125,7 +125,7 @@ void FlatBuffersServerConnection::readyRead()
 
 			if (_incomingSize > 10000000 || _incomingSize == 0)
 			{
-				Error(_log, "The frame is too large (> 10000000) or too small (0), has %i byte", _incomingSize);
+				Error(_log, "The frame is too large (> 10000000) or too small (0), has {:d} byte", _incomingSize);
 				_incomingSize = 0;
 				_incomingIndex = 0;
 				QUEUE_CALL_0(this, disconnected);
@@ -195,7 +195,7 @@ void FlatBuffersServerConnection::readyRead()
 			{
 				if (priority < 50 || priority > 250)
 				{
-					Error(_log, "Register request from client %s contains invalid priority %d. Valid priority for Flatbuffer connections is between 50 and 250.", QSTRING_CSTR(_clientAddress), priority);
+					Error(_log, "Register request from client {:s} contains invalid priority {:d}. Valid priority for Flatbuffer connections is between 50 and 250.", (_clientAddress), priority);
 				}
 				else
 				{

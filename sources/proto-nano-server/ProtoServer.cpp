@@ -14,7 +14,7 @@ ProtoServer::ProtoServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocume
 	: QObject(parent)
 	, _server(new QTcpServer(this))
 	, _netOrigin(netOrigin)
-	, _log(Logger::getInstance("PROTOSERVER"))
+	, _log("PROTOSERVER")
 	, _timeout(5000)
 	, _port(19445)
 	, _config(config)
@@ -64,7 +64,7 @@ void ProtoServer::newConnection()
 		{
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
-				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
+				Debug(_log, "New connection from {:s}", (socket->peerAddress().toString()));
 				ProtoNanoClientConnection* client = new ProtoNanoClientConnection(socket, _timeout, this);
 				// internal
 				connect(client, &ProtoNanoClientConnection::SignalClientConnectionClosed, this, &ProtoServer::signalClientConnectionClosedHandler);
@@ -94,11 +94,11 @@ void ProtoServer::startServer()
 	{
 		if (!_server->listen(QHostAddress::Any, _port))
 		{
-			Error(_log, "Failed to bind port %d", _port);
+			Error(_log, "Failed to bind port {:d}", _port);
 		}
 		else
 		{
-			Info(_log, "Started on port %d", _port);
+			Info(_log, "Started on port {:d}", _port);
 		}
 	}
 }

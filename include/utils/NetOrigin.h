@@ -3,6 +3,7 @@
 #ifndef PCH_ENABLED
 	#include <QHostAddress>
 	#include <QJsonArray>
+	#include <QMutex>
 #endif
 
 #include <utils/Logger.h>
@@ -21,9 +22,9 @@ private slots:
 
 private:
 	friend class HyperHdrDaemon;
-	NetOrigin(QObject* parent = nullptr, Logger* log = Logger::getInstance("NETWORK"));
+	NetOrigin(QObject* parent = nullptr, const LoggerName& log = "NETWORK");
 
-	Logger* _log;
+	LoggerName _log;
 	bool _internetAccessAllowed;
 	QList<QHostAddress> _ipWhitelist;
 	QMutex _mutex;

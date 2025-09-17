@@ -41,7 +41,7 @@ namespace {
 	const int LUT_MEMORY_ALIGN = 64;
 }
 
-void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString>& files)
+void LutLoader::loadLutFile(const LoggerName& _log, PixelFormat color, const QList<QString>& files)
 {
 	bool is_yuv = (color == PixelFormat::YUYV);
 
@@ -49,7 +49,7 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 	if (color != PixelFormat::RGB24 && color != PixelFormat::YUYV)
 	{
-		if (_log) Error(_log, "Unsupported mode for loading LUT table: %s", QSTRING_CSTR(pixelFormatToString(color)));
+		if (_log.size()) Error(_log, "Unsupported mode for loading LUT table: {:s}", (pixelFormatToString(color)));
 		return;
 	}
 
@@ -68,9 +68,9 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 			{
 				int length;
 
-				if (_log)
+				if (_log.size())
 				{
-					Debug(_log, "LUT file found: %s (%s)", QSTRING_CSTR(file.fileName()), (compressed) ? "compressed" : "uncompressed");
+					Debug(_log, "LUT file found: {:s} ({:s})", (file.fileName()), (compressed) ? "compressed" : "uncompressed");
 				}
 
 				length = file.size();
@@ -81,17 +81,17 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 					if (is_yuv && _hdrToneMappingEnabled)
 					{
-						if (_log) Debug(_log, "Index 1 for HDR YUV");
+						if (_log.size()) Debug(_log, "Index 1 for HDR YUV");
 						index = LUT_FILE_SIZE;
 					}
 					else if (is_yuv)
 					{
-						if (_log) Debug(_log, "Index 2 for YUV");
+						if (_log.size()) Debug(_log, "Index 2 for YUV");
 						index = LUT_FILE_SIZE * 2;
 					}
 					else
 					{
-						if (_log) Debug(_log, "Index 0 for HDR RGB");
+						if (_log.size()) Debug(_log, "Index 0 for HDR RGB");
 					}					
 
 					_lut.resize(LUT_FILE_SIZE + LUT_MEMORY_ALIGN);
@@ -102,21 +102,21 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 
 						if (file.read((char*)_lut.data(), LUT_FILE_SIZE) != LUT_FILE_SIZE)
 						{
-							if (_log) Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
+							if (_log.size()) Error(_log, "Error reading LUT file {:s}", (fileName3d));
 						}
 						else
 						{
 							_lutBufferInit = true;
-							if (_log) Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
+							if (_log.size()) Info(_log, "Found and loaded LUT: '{:s}'", (fileName3d));
 						}
 					}
 					else
 					{
 						_lutBufferInit = decompressLut(_log, file, index);
-						if (_log)
+						if (_log.size())
 						{
-							if (_lutBufferInit) Info(_log, "Found and loaded LUT: '%s'", QSTRING_CSTR(fileName3d));
-							else Error(_log, "Error reading LUT file %s", QSTRING_CSTR(fileName3d));
+							if (_lutBufferInit) Info(_log, "Found and loaded LUT: '{:s}'", (fileName3d));
+							else Error(_log, "Error reading LUT file {:s}", (fileName3d));
 						}
 					}
 
@@ -124,7 +124,7 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 				}
 				else
 				{
-					if (_log) Error(_log, "LUT file has invalid length: %i vs %i => %s", length, (LUT_FILE_SIZE * 3), QSTRING_CSTR(fileName3d));
+					if (_log.size()) Error(_log, "LUT file has invalid length: {:d} vs {:d} => {:s}", length, (LUT_FILE_SIZE * 3), (fileName3d));
 				}
 
 				file.close();
@@ -133,36 +133,36 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 			}
 			else
 			{
-				if (_log) Warning(_log, "LUT file is not found here: %s", QSTRING_CSTR(fileName3d));
+				if (_log.size()) Warning(_log, "LUT file is not found here: {:s}", (fileName3d));
 			}
 		}
 
-		if (_log) Error(_log, "Could not find any required LUT file");
+		if (_log.size()) Error(_log, "Could not find any required LUT file");
 	}
 }
 
-bool LutLoader::decompressLut(Logger* _log, QFile& file, int index)
+bool LutLoader::decompressLut(const LoggerName& _log, QFile& file, int index)
 {
 	auto now = InternalClock::nowPrecise();
-	const char* retVal = "HyperHDR was built without a support for ZSTD decoder";
+	[[maybe_unused]] const char* retVal = "HyperHDR was built without a support for ZSTD decoder";
 	QByteArray compressedFile = file.readAll();
 	#ifdef ENABLE_ZSTD
 		retVal = DecompressZSTD(compressedFile.size(), reinterpret_cast<uint8_t*>(compressedFile.data()), _lut.data(), index, LUT_FILE_SIZE);
 	#endif
 
-	if (retVal != nullptr && _log)
+	if (retVal != nullptr && _log.size())
 	{
-		Error(_log, "Error while decompressing LUT: %s", retVal);
+		Error(_log, "Error while decompressing LUT: {:s}", retVal);
 	}
 
-	if (_log) Info(_log, "Decompression took %f seconds", (InternalClock::nowPrecise() - now) / 1000.0);
+	if (_log.size()) Info(_log, "Decompression took {:f} seconds", (InternalClock::nowPrecise() - now) / 1000.0);
 
 	return retVal == nullptr;
 }
 
-void LutLoader::hasher(int index, Logger* _log)
+void LutLoader::hasher(int index, const LoggerName& _log)
 {
-	if (_log)
+	if (_log.size())
 	{
 		auto start = _lut.data();
 		auto end = start + _lut.size();
@@ -176,6 +176,6 @@ void LutLoader::hasher(int index, Logger* _log)
 			fletcher2 = (fletcher2 + fletcher1) % 255;
 			fletcherExt = (fletcherExt + (*(start++) ^ (position++))) % 255;
 		}
-		Info(_log, "CRC for %i segment: 0x%.2X 0x%.2X 0x%.2X", index, fletcher1, fletcher2, fletcherExt);
+		Info(_log, "CRC for {:d} segment: 0x{:02X} 0x{:02X} 0x{:02X}", index, fletcher1, fletcher2, fletcherExt);
 	}
 }

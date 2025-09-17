@@ -5,10 +5,9 @@
 #include <QTcpServer>
 
 #include <QCryptographicHash>
-#include <QTcpSocket>
+#include <QHostAddress>
 #include <QStringBuilder>
 #include <QStringList>
-#include <QHostAddress>
 
 
 #include "QtHttpClientWrapper.h"
@@ -39,7 +38,7 @@ QtHttpClientWrapper::QtHttpClientWrapper(
 	connect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 }
 
-QString QtHttpClientWrapper::getGuid(void)
+QString QtHttpClientWrapper::getGuid()
 {
 	if (m_guid.isEmpty())
 	{
@@ -55,7 +54,7 @@ QString QtHttpClientWrapper::getGuid(void)
 }
 
 
-void QtHttpClientWrapper::onReplySendDataRequested(void)
+void QtHttpClientWrapper::onReplySendDataRequested()
 {
 	QtHttpReply* reply = qobject_cast<QtHttpReply*> (sender());
 	if (reply != Q_NULLPTR && m_sockClient != nullptr && m_sockClient->state() == QAbstractSocket::ConnectedState)
@@ -77,7 +76,7 @@ void QtHttpClientWrapper::onReplySendDataRequested(void)
 	}
 }
 
-void QtHttpClientWrapper::onClientDataReceived(void)
+void QtHttpClientWrapper::onClientDataReceived()
 {
 	if (m_sockClient != Q_NULLPTR)
 	{
@@ -254,8 +253,8 @@ void QtHttpClientWrapper::onClientDataReceived(void)
 				}
 
 				QtHttpReply reply(m_serverHandle);
-				connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested);
-				connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested);
+				connect(&reply, &QtHttpReply::SignalRequestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested);
+				connect(&reply, &QtHttpReply::SignalRequestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested);
 				emit m_serverHandle->requestNeedsReply(m_currentRequest, &reply); // allow app to handle request
 				m_parsingStatus = sendReplyToClient(&reply);
 
@@ -290,15 +289,15 @@ void QtHttpClientWrapper::closeConnection()
 		QtHttpReply reply(m_serverHandle);
 		reply.setStatusCode(QtHttpReply::StatusCode::Forbidden);
 
-		connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
-		connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+		connect(&reply, &QtHttpReply::SignalRequestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+		connect(&reply, &QtHttpReply::SignalRequestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
 
 		m_parsingStatus = sendReplyToClient(&reply);
 	}
 	m_sockClient->close();
 }
 
-void QtHttpClientWrapper::onReplySendHeadersRequested(void)
+void QtHttpClientWrapper::onReplySendHeadersRequested()
 {
 	QtHttpReply* reply = qobject_cast<QtHttpReply*> (sender());
 
@@ -343,8 +342,8 @@ void QtHttpClientWrapper::onReplySendHeadersRequested(void)
 
 void QtHttpClientWrapper::sendToClientWithReply(QtHttpReply* reply)
 {
-	connect(reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
-	connect(reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+	connect(reply, &QtHttpReply::SignalRequestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+	connect(reply, &QtHttpReply::SignalRequestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
 	m_parsingStatus = sendReplyToClient(reply);
 }
 
@@ -356,8 +355,8 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient(QtHttp
 		{
 			//reply->appendRawData (CRLF);
 			// send all headers and all data in one shot
-			reply->requestSendHeaders();
-			reply->requestSendData();
+			emit reply->SignalRequestSendHeaders();
+			emit reply->SignalRequestSendData();
 		}
 		else
 		{

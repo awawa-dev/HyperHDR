@@ -24,7 +24,7 @@ namespace
 }
 
 cecHandler::cecHandler() :
-	_log(Logger::getInstance("CEC"))
+	_log("CEC")
 {	
 	Info(_log, "CEC object created");
 
@@ -96,14 +96,14 @@ bool cecHandler::start()
 
 		if (_cecAdapter->Open(adapter.strComName))
 		{
-			Info(_log, "%s", QSTRING_CSTR(QString("Success. CEC adapter type '%3' is ready (%1, %2)").arg(adapter.strComName).arg(adapter.strComPath).arg(adapterType)));
+			Info(_log, "{:s}", (QString("Success. CEC adapter type '%3' is ready (%1, %2)").arg(adapter.strComName).arg(adapter.strComPath).arg(adapterType)));
 
 			opened = true;
 			break;
 		}
 		else
 		{
-			Error(_log, "%s", QSTRING_CSTR(QString("Failed to open CEC adapter type '%2' (%1)").arg(adapter.strComName).arg(adapterType)));
+			Error(_log, "{:s}", (QString("Failed to open CEC adapter type '%2' (%1)").arg(adapter.strComName).arg(adapterType)));
 		}	
 	}
 	
@@ -139,10 +139,10 @@ void handleCecLogMessage(void * context, const CEC::cec_log_message* message)
 	switch (message->level)
 	{
 		case CEC::CEC_LOG_ERROR:
-			Error(handler->_log, "CEC library signaling error: %s", message->message);
+			Error(handler->_log, "CEC library signaling error: {:s}", message->message);
 			break;
 		case CEC::CEC_LOG_WARNING:
-			Warning(handler->_log, "CEC library warning: %s", message->message);
+			Warning(handler->_log, "CEC library warning: {:s}", message->message);
 			break;
 		default:
 			break;
@@ -156,7 +156,7 @@ void handleCecKeyPress(void* context, const CEC::cec_keypress* key)
 	if (handler == nullptr)
 		return;
 
-	Debug(handler->_log, "Key pressed: %s, (key code = %i)", _cecAdapter->ToString(key->keycode), (int)key->keycode);
+	Debug(handler->_log, "Key pressed: {:s}, (key code = {:d})", _cecAdapter->ToString(key->keycode), (int)key->keycode);
 
 	emit handler->keyPressed((int)key->keycode);
 }

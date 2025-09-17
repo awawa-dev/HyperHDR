@@ -81,7 +81,7 @@ public:
 		API_NIGHT_LIGHT_MODE
 	};
 
-	YeelightLight(Logger* log, const QString& hostname, quint16 port);
+	YeelightLight(const LoggerName& log, const QString& hostname, quint16 port);
 	virtual ~YeelightLight();
 
 	void setHostname(const QString& hostname, quint16 port);
@@ -118,9 +118,8 @@ private:
 
 	QJsonDocument getCommand(const QString& method, const QJsonArray& params);
 	void mapProperties(const QJsonObject& properties);
-	void log(int logLevel, const char* msg, const char* type, ...);
 
-	Logger* _log;
+	LoggerName _log;
 	int _debugLevel;
 	bool _isInError;
 	QString _host;

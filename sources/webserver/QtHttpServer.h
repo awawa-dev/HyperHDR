@@ -45,8 +45,6 @@ public:
 
 	static const QString& HTTP_VERSION;
 
-	typedef void (QSslSocket::* SslErrorSignal) (const QList<QSslError>&);
-
 	const QString& getServerName(void) const;
 
 	quint16 getServerPort(void) const;

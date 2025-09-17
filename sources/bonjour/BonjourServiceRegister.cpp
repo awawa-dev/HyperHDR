@@ -76,7 +76,7 @@ void BonjourServiceRegister::onThreadExits()
 
 void BonjourServiceRegister::registerService()
 {
-	QTimer::singleShot(1500, [this]() {
+	QTimer::singleShot(1500, this, [this]() {
 		emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::SerialPort);
 		if (_helper != nullptr) _helper->start();
 	});
@@ -144,7 +144,8 @@ void BonjourServiceRegister::resolveIps()
 {
 	if (_result.type != DiscoveryRecord::Service::Unknown && _result.address.isEmpty())
 	{
-		for (const QString& k : _ips.keys())
+		const auto ipKeys = _ips.keys();
+		for (const auto& k : ipKeys)
 			if (QString::compare(_result.hostName, k, Qt::CaseInsensitive) == 0)
 			{
 				_result.address = _ips[k];

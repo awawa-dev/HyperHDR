@@ -31,13 +31,12 @@
 	#include <QFile>
 	#include <QDateTime>
 	#include <QThread>
+	#include <QByteArray>
 
 	#include <cmath>
 	#include <cfloat>
 	#include <climits>	
 #endif
-
-#define STRING_CSTR(x) (x.operator std::string()).c_str()
 
 #include <QCoreApplication>
 #include <QRunnable>
@@ -45,6 +44,7 @@
 #include <utils/Logger.h>
 #include <lut-calibrator/LutCalibrator.h>
 #include <utils/GlobalSignals.h>
+#include <utils/FrameDecoderUtils.h>
 #include <base/GrabberWrapper.h>
 #include <api/HyperAPI.h>
 #include <base/HyperHdrManager.h>
@@ -68,7 +68,6 @@ using namespace BoardUtils;
 
 
 #define LUT_FILE_SIZE 50331648
-#define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
 
 /////////////////////////////////////////////////////////////////
 //                          HELPERS                            //
@@ -101,12 +100,12 @@ public:
 
 class DefaultLutCreatorWorker : public QRunnable
 {
-	Logger* log;
+	LoggerName log;
 	BestResult bestResult;
 	QString path;
 public:
 	DefaultLutCreatorWorker(BestResult& _bestResult,QString _path) :
-		log(Logger::getInstance("LUT_CREATOR")),
+		log("LUT_CREATOR"),
 		bestResult(_bestResult),
 		path(_path)
 	{
@@ -121,7 +120,7 @@ public:
 
 LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection)
 {
-	_log = Logger::getInstance("CALIBRATOR");
+	_log = "CALIBRATOR";
 	_capturedColors = std::make_shared<CapturedColors>();
 	_yuvConverter = std::make_shared<YuvConverter>();
 
@@ -171,9 +170,9 @@ void LutCalibrator::error(QString message)
 {
 	QJsonObject report;
 	stopHandler();
-	Error(_log, QSTRING_CSTR(message));
+	Error(_log, "{:s}", (message));
 	report["error"] = message;
-	SignalLutCalibrationUpdated(report);
+	emit SignalLutCalibrationUpdated(report);
 }
 
 QString LutCalibrator::generateReport(bool full)
@@ -316,7 +315,7 @@ bool LutCalibrator::set1to1LUT()
 }
 
 
-void LutCalibrator::sendReport(Logger* _log, QString report)
+void LutCalibrator::sendReport(const LoggerName& _log, QString report)
 {
 	int total = 0;
 	QStringList list;
@@ -326,7 +325,7 @@ void LutCalibrator::sendReport(Logger* _log, QString report)
 	{
 		if (total + line.size() + 4 >= 1024)
 		{
-			Debug(_log, REPORT_TOKEN "\r\n%s", QSTRING_CSTR(list.join("\r\n")));
+			Debug(_log, REPORT_TOKEN "\r\n{:s}", (list.join("\r\n")));
 			total = 4;
 			list.clear();
 		}
@@ -335,7 +334,7 @@ void LutCalibrator::sendReport(Logger* _log, QString report)
 		list.append(line);
 	}
 
-	Debug(_log, REPORT_TOKEN "%s\r\n", QSTRING_CSTR(list.join("\r\n")));
+	Debug(_log, REPORT_TOKEN "{:s}\r\n", (list.join("\r\n")));
 }
 
 void LutCalibrator::startHandler()
@@ -366,23 +365,20 @@ void LutCalibrator::startHandler()
 
 	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
-		auto message = "Using video grabber as a source<br/>Waiting for first captured test board..";
-		notifyCalibrationMessage(message);
-		Debug(_log, message);
+		notifyCalibrationMessage("Using video grabber as a source<br/>Waiting for first captured test board..");
+		Debug(_log, "Using video grabber as a source<br/>Waiting for first captured test board..");
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &LutCalibrator::setVideoImage, Qt::ConnectionType::UniqueConnection);
 	}
 	else if (_defaultComp == hyperhdr::COMP_SYSTEMGRABBER)
 	{
-		auto message = "Using system grabber as a source<br/>Waiting for first captured test board..";
-		notifyCalibrationMessage(message);
-		Debug(_log, message);
+		notifyCalibrationMessage("Using system grabber as a source<br/>Waiting for first captured test board..");
+		Debug(_log, "Using system grabber as a source<br/>Waiting for first captured test board..");
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &LutCalibrator::setSystemImage, Qt::ConnectionType::UniqueConnection);
 	}
 	else if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
 	{
-		auto message = "Using flatbuffers/protobuffers as a source<br/>Waiting for first captured test board..";
-		notifyCalibrationMessage(message);
-		Debug(_log, message);
+		notifyCalibrationMessage("Using flatbuffers/protobuffers as a source<br/>Waiting for first captured test board..");
+		Debug(_log, "Using flatbuffers/protobuffers as a source<br/>Waiting for first captured test board..");
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalImage, this, &LutCalibrator::signalSetGlobalImageHandler, Qt::ConnectionType::UniqueConnection);
 	}
 	else
@@ -437,7 +433,6 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 	if (image.width() < 1280 || image.height() < 720)
 	{
-		//image.save(QSTRING_CSTR(QString("d:/testimage_%1_x_%2.yuv").arg(image.width()).arg(image.height())));
 		error(QString("Too low resolution: 1280/720 is the minimum. Received video frame: %1x%2. Stopped.").arg(image.width()).arg(image.height()));		
 		return;
 	}
@@ -461,7 +456,7 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 
 	int boardIndex = -1;
 
-	if (!parseBoard(_log, image, boardIndex, (*_capturedColors.get()), true) || _capturedColors->isCaptured(boardIndex))
+	if (!parseBoard(_log, image, boardIndex, (*_capturedColors), true) || _capturedColors->isCaptured(boardIndex))
 	{		
 		return;
 	}
@@ -831,7 +826,7 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 	return srgb;
 }
 
-static LchLists prepareLCH(std::list<std::list<std::pair<double3, double3>>> __lchPrimaries)
+static LchLists prepareLCH(const std::list<std::list<std::pair<double3, double3>>>& __lchPrimaries)
 {
 	int index = 0;
 	LchLists ret;
@@ -1061,16 +1056,19 @@ void CalibrationWorker::run()
 										bestResult.coefMatrix = coefMatrix;
 										bestResult.lchEnabled = (lchFavour);
 										bestResult.lchPrimaries = selectedLchPrimaries;
-										printf("New local best score: %.3f (classic: %.3f, LCH: %.3f %s) for thread: %i. Gamma: %s, coef: %s, kr/kb: %s, yuvCorrection: %s\n", 
-											bestResult.minError / 300.0,
-											currentError / 300.0,
-											lcHError / 300.0,
-											(bestResult.lchEnabled) ? "ON" : "OFF",
-											id,
-											QSTRING_CSTR(gammaToString(gamma)),
-											QSTRING_CSTR(yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
-											QSTRING_CSTR(vecToString(kDelta)),
-											QSTRING_CSTR(vecToString(aspect)));
+
+										std::cout << "New local best score: "
+											<< QString::number(bestResult.minError / 300.0, 'f', 3).toStdString()
+											<< " (classic: " << QString::number(currentError / 300.0, 'f', 3).toStdString()
+											<< ", LCH: " << QString::number(lcHError / 300.0, 'f', 3).toStdString()
+											<< " " << ((bestResult.lchEnabled) ? "ON" : "OFF") << ")"
+											<< " for thread: " << id
+											<< ". Gamma: " << gammaToString(gamma).toStdString()
+											<< ", coef: " << yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef)).toStdString()
+											<< ", kr/kb: " << vecToString(kDelta).toStdString()
+											<< ", yuvCorrection: " << vecToString(aspect).toStdString()
+											<< std::endl;
+
 									}
 								}
 						if (forcedExit)
@@ -1119,8 +1117,8 @@ void  LutCalibrator::fineTune(bool precise)
 	if (!precise)
 	{
 		Info(_log, "The first phase starts");
-		Info(_log, "Optimal thread count: %i", QThreadPool::globalInstance()->maxThreadCount());
-		Info(_log, "Number of test vertexes: %i", vertex.size());
+		Info(_log, "Optimal thread count: {:d}", QThreadPool::globalInstance()->maxThreadCount());
+		Info(_log, "Number of test vertexes: {:d}", vertex.size());
 	}
 	else
 	{
@@ -1245,10 +1243,15 @@ void  LutCalibrator::fineTune(bool precise)
 				capturedPrimariesCorrection(gamma, gammaHLG, NITS, coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb);
 				auto bt2020_to_sRgb = mul(convert_XYZ_to_sRgb, convert_bt2020_to_XYZ);
 
-				printf("Processing gamma: %s, gammaHLG: %f, coef: %s. Current best gamma: %s, gammaHLG: %f, coef: %s (d:%s). Score: %.3f\n",
-					QSTRING_CSTR(gammaToString(gamma)), gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))),
-					QSTRING_CSTR(gammaToString(bestResult->gamma)), bestResult->gammaHLG, QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef))),
-					QSTRING_CSTR(vecToString(bestResult->coefDelta)),bestResult->minError / 300.0);
+				std::cout << "Processing gamma: " << gammaToString(gamma).toStdString()
+					<< ", gammaHLG: " << gammaHLG
+					<< ", coef: " << _yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef)).toStdString()
+					<< ". Current best gamma: " << gammaToString(bestResult->gamma).toStdString()
+					<< ", gammaHLG: " << bestResult->gammaHLG
+					<< ", coef: " << _yuvConverter->coefToString(YuvConverter::YUV_COEFS(bestResult->coef)).toStdString()
+					<< " (d:" << vecToString(bestResult->coefDelta).toStdString() << ")"
+					<< ". Score: " << QString::number(bestResult->minError / 300.0, 'f', 3).toStdString()
+					<< std::endl;
 
 				const int halfKDelta = (precise) ? 16 : 8;
 				const int krDelta = std::ceil((halfKDelta * 2.0) / QThreadPool::globalInstance()->maxThreadCount());
@@ -1284,7 +1287,7 @@ void  LutCalibrator::fineTune(bool precise)
 	}
 }
 
-static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all);
+static void reportLCH(const LoggerName& _log, std::vector<std::vector<std::vector<CapturedColor>>>* all);
 
 
 void LutCalibrator::calibration()
@@ -1322,27 +1325,27 @@ void LutCalibrator::calibration()
 	totalTime2 = InternalClock::now() - totalTime2;
 	
 	// write result
-	Debug(_log, "Score: %.3f", bestResult->minError / 300.0);
-	Debug(_log, "LCH: %s", (bestResult->lchEnabled) ? "Enabled" : "Disabled");
-	Debug(_log, "The first phase time: %.3fs", totalTime / 1000.0);
-	Debug(_log, "The second phase time: %.3fs", totalTime2 / 1000.0);
-	Debug(_log, "Selected coef: %s", QSTRING_CSTR( _yuvConverter->coefToString(bestResult->coef)));
-	Debug(_log, "Selected coef delta: %f %f", bestResult->coefDelta.x, bestResult->coefDelta.y);
-	Debug(_log, "Selected EOTF: %s", QSTRING_CSTR(ColorSpaceMath::gammaToString(bestResult->gamma)));
+	Debug(_log, "Score: {:.3f}", bestResult->minError / 300.0);
+	Debug(_log, "LCH: {:s}", (bestResult->lchEnabled) ? "Enabled" : "Disabled");
+	Debug(_log, "The first phase time: {:.3f}s", totalTime / 1000.0);
+	Debug(_log, "The second phase time: {:.3f}s", totalTime2 / 1000.0);
+	Debug(_log, "Selected coef: {:s}", ( _yuvConverter->coefToString(bestResult->coef)));
+	Debug(_log, "Selected coef delta: {:f} {:f}", bestResult->coefDelta.x, bestResult->coefDelta.y);
+	Debug(_log, "Selected EOTF: {:s}", (ColorSpaceMath::gammaToString(bestResult->gamma)));
 	if (bestResult->gamma == HDR_GAMMA::HLG)
 	{
-		Debug(_log, "Selected HLG gamma: %f", bestResult->gammaHLG);
+		Debug(_log, "Selected HLG gamma: {:f}", bestResult->gammaHLG);
 	}
 	if (bestResult->gamma != HDR_GAMMA::sRGB && bestResult->gamma != HDR_GAMMA::BT2020inSRGB)
 	{
-		Debug(_log, "Selected nits: %f", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * (1 / bestResult->nits) : bestResult->nits);
+		Debug(_log, "Selected nits: {:f}", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * (1 / bestResult->nits) : bestResult->nits);
 	}
-	Debug(_log, "Selected bt2020 gamma range: %s", (bestResult->bt2020Range) ? "yes" : "no");
-	Debug(_log, "Selected alternative conversion of primaries: %s", (bestResult->altConvert) ? "yes" : "no");
-	Debug(_log, "Selected aspect: %f %f %f", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
-	Debug(_log, "Selected color aspect mode: %i", bestResult->coloredAspectMode);
-	Debug(_log, "Selected color aspect: %s %s", QSTRING_CSTR(vecToString(bestResult->colorAspect.first)), QSTRING_CSTR(vecToString(bestResult->colorAspect.second)));
-	Debug(_log, "Selected source is P010: %s", (bestResult->signal.isSourceP010) ? "yes" : "no");
+	Debug(_log, "Selected bt2020 gamma range: {:s}", (bestResult->bt2020Range) ? "yes" : "no");
+	Debug(_log, "Selected alternative conversion of primaries: {:s}", (bestResult->altConvert) ? "yes" : "no");
+	Debug(_log, "Selected aspect: {:f} {:f} {:f}", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
+	Debug(_log, "Selected color aspect mode: {:d}", bestResult->coloredAspectMode);
+	Debug(_log, "Selected color aspect: {:s} {:s}", (vecToString(bestResult->colorAspect.first)), (vecToString(bestResult->colorAspect.second)));
+	Debug(_log, "Selected source is P010: {:s}", (bestResult->signal.isSourceP010) ? "yes" : "no");
 
 	if (_debug)
 	{
@@ -1356,13 +1359,15 @@ void LutCalibrator::calibration()
 	std::stringstream results;
 	bestResult->serialize(results);
 	QString fileLogName = QString("%1%2").arg(_rootPath).arg("/calibration_captured_yuv.txt");
-	if (_capturedColors->saveResult(QSTRING_CSTR(fileLogName), results.str()))
+	QByteArray fileNameRaw = fileLogName.toUtf8();
+
+	if (_capturedColors->saveResult(fileNameRaw.constData(), results.str()))
 	{
-		Info(_log, "Write captured colors to: %s", QSTRING_CSTR(fileLogName));
+		Info(_log, "Write captured colors to: {:s}", (fileLogName));
 	}
 	else
 	{
-		Error(_log, "Could not save captured colors to: %s", QSTRING_CSTR(fileLogName));
+		Error(_log, "Could not save captured colors to: {:s}", (fileLogName));
 	}
 
 	// create LUT
@@ -1380,7 +1385,7 @@ void LutCalibrator::calibration()
 	}
 	else
 	{
-		Debug(_log, "The LUT creation time: %.3fs", totalTime3 / 1000.0);
+		Debug(_log, "The LUT creation time: {:.3f}s", totalTime3 / 1000.0);
 	}
 
 	// LCH
@@ -1409,7 +1414,7 @@ void LutCalibrator::calibration()
 					currentError += microError;
 				}
 			}
-	Debug(_log, "The control score: %.3f", currentError / 300.0);
+	Debug(_log, "The control score: {:.3f}", currentError / 300.0);
 
 	// reload LUT
 	emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_HDR, -1, false);
@@ -1426,9 +1431,9 @@ void LutCalibrator::calibration()
 }
 
 
-static void reportLCH(Logger* _log, std::vector<std::vector<std::vector<CapturedColor>>>* all)
+static void reportLCH(const LoggerName& _log, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
-	QStringList info, intro;
+	QStringList info;
 	std::list<MappingPrime> mHigh;
 	std::list<MappingPrime> mMid;
 	std::list<MappingPrime> mLow;
@@ -1543,7 +1548,7 @@ void CreateLutWorker::run()
 			}
 }
 
-QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all)
+QString LutCalibrator::CreateLutFile(const LoggerName& _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all)
 {
 	// write LUT table
 	QString fileName = QString("%1%2").arg(_rootPath).arg("/lut_lin_tables.3d.tmp");
@@ -1563,8 +1568,8 @@ QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult
 
 		std::remove(finalFileName.toStdString().c_str());
 
-		Info(_log, "Writing LUT to temp file: %s", QSTRING_CSTR(fileName));
-		Info(_log, "Number of threads for LUT creator: %i", threadPool.maxThreadCount());
+		Info(_log, "Writing LUT to temp file: {:s}", (fileName));
+		Info(_log, "Number of threads for LUT creator: {:d}", threadPool.maxThreadCount());
 
 		_lut.resize(LUT_FILE_SIZE);
 
@@ -1616,38 +1621,6 @@ QString LutCalibrator::CreateLutFile(Logger* _log, QString _rootPath, BestResult
 	}
 
 	return QString();
-}
-
-void LutCalibrator::setupWhitePointCorrection()
-{	
-	
-
-	//for (const auto& coeff : YuvConverter::knownCoeffs)
-	{
-		/*
-		QString selected;
-		double min = std::numeric_limits<double>::max();
-		for (int w = WHITE_POINT_D65; w < WHITE_POINT_XY.size(); w++)
-		{
-			const vec<double, 2>& TEST_WHITE = WHITE_POINT_XY[w];
-			
-			auto convert_bt2020_to_XYZ = to_XYZ<double>(PRIMARIES[w][0], PRIMARIES[w][1], PRIMARIES[w][2], TEST_WHITE);
-			auto white_XYZ = mul(convert_bt2020_to_XYZ, whiteLinRGB);
-			auto white_xy = from_XYZ_to_xy(white_XYZ);
-			auto difference = TEST_WHITE - white_xy;
-			auto distance = length2((TEST_WHITE - white_xy) * 1000000);
-			if (distance < min)
-			{
-				min = distance;
-				selected = yuvConverter.coefToString(YuvConverter::YUV_COEFS(coef)) + " => ";
-				selected += (w == WHITE_POINT_D65) ? "D65" : ((w == WHITE_POINT_DCI_P3) ? "DCI_P3" : "unknowm");
-				selected += QString(" (x: %1, y: %2)").arg(TEST_WHITE.x, 0, 'f', 3).arg(TEST_WHITE.y, 0, 'f', 3);
-				calibration.inputBT2020toXYZ[coef] = convert_bt2020_to_XYZ;
-			}
-		}
-		Debug(_log, QSTRING_CSTR(selected));
-		*/
-	}
 }
 
 void LutCalibrator::calibrate()
@@ -1771,11 +1744,11 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 		auto dg = linalg::angle(sRgb_green_xy - sRgb_white_xy, sRgbG - sRgbW);
 		auto db = linalg::angle(sRgb_blue_xy - sRgb_white_xy, sRgbB - sRgbW);
 
-		Debug(_log, "--------------------------------- Actual PQ primaries for YUV coefs: %s ---------------------------------", QSTRING_CSTR(_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))));
-		Debug(_log, "r: (%.3f, %.3f, a: %.3f) vs sRGB(%.3f, %.3f) vs bt2020(%.3f, %.3f) vs wide(%.3f, %.3f)", sRgb_red_xy.x, sRgb_red_xy.y, dr, 0.64f, 0.33f, 0.708f, 0.292f, 0.7350f, 0.2650f);
-		Debug(_log, "g: (%.3f, %.3f, a: %.3f) vs sRGB(%.3f, %.3f) vs bt2020(%.3f, %.3f) vs wide(%.3f, %.3f)", sRgb_green_xy.x, sRgb_green_xy.y, dg, 0.30f, 0.60f, 0.17f, 0.797f, 0.1150f, 0.8260f);
-		Debug(_log, "b: (%.3f, %.3f, a: %.3f) vs sRGB(%.3f, %.3f) vs bt2020(%.3f, %.3f) vs wide(%.3f, %.3f)", sRgb_blue_xy.x, sRgb_blue_xy.y, db, 0.15f, 0.06f, 0.131f, 0.046f, 0.1570f, 0.0180f);
-		Debug(_log, "w: (%.3f, %.3f) vs sRGB(%.3f, %.3f) vs bt2020(%.3f, %.3f) vs wide(%.3f, %.3f)", sRgb_white_xy.x, sRgb_white_xy.y, 0.3127f, 0.3290f, 0.3127f, 0.3290f, 0.3127f, 0.3290f);
+		Debug(_log, "--------------------------------- Actual PQ primaries for YUV coefs: {:s} ---------------------------------", (_yuvConverter->coefToString(YuvConverter::YUV_COEFS(coef))));
+		Debug(_log, "r: ({:.3f}, {:.3f}, a: {:.3f}) vs sRGB({:.3f}, {:.3f}) vs bt2020({:.3f}, {:.3f}) vs wide({:.3f}, {:.3f})", sRgb_red_xy.x, sRgb_red_xy.y, dr, 0.64f, 0.33f, 0.708f, 0.292f, 0.7350f, 0.2650f);
+		Debug(_log, "g: ({:.3f}, {:.3f}, a: {:.3f}) vs sRGB({:.3f}, {:.3f}) vs bt2020({:.3f}, {:.3f}) vs wide({:.3f}, {:.3f})", sRgb_green_xy.x, sRgb_green_xy.y, dg, 0.30f, 0.60f, 0.17f, 0.797f, 0.1150f, 0.8260f);
+		Debug(_log, "b: ({:.3f}, {:.3f}, a: {:.3f}) vs sRGB({:.3f}, {:.3f}) vs bt2020({:.3f}, {:.3f}) vs wide({:.3f}, {:.3f})", sRgb_blue_xy.x, sRgb_blue_xy.y, db, 0.15f, 0.06f, 0.131f, 0.046f, 0.1570f, 0.0180f);
+		Debug(_log, "w: ({:.3f}, {:.3f}) vs sRGB({:.3f}, {:.3f}) vs bt2020({:.3f}, {:.3f}) vs wide({:.3f}, {:.3f})", sRgb_white_xy.x, sRgb_white_xy.y, 0.3127f, 0.3290f, 0.3127f, 0.3290f, 0.3127f, 0.3290f);
 	}
 }
 
@@ -1840,7 +1813,7 @@ void LutCalibrator::CreateDefaultLut(QString filepath)
 	bestResult.altPrimariesToSrgb = double3x3{ {1.62995144161, -0.159968936426, -0.0191389994477}, {-0.556261837808, 1.17281602107, -0.104271698501}, {-0.0736896038051, -0.0128470846442, 1.12341069795} };
 	bestResult.gamma = ColorSpaceMath::HDR_GAMMA(0);
 	bestResult.gammaHLG = 0.000000;
-	bestResult.lchEnabled = 0;
+	bestResult.lchEnabled = false;
 	bestResult.lchPrimaries = LchLists{
 				std::list<double4>{
 
@@ -1860,7 +1833,7 @@ void LutCalibrator::CreateDefaultLut(QString filepath)
 	bestResult.signal.upYLimit = 0.572549;
 	bestResult.signal.downYLimit = 0.062745;
 	bestResult.signal.yShift = 0.062745;
-	bestResult.signal.isSourceP010 = 0;
+	bestResult.signal.isSourceP010 = false;
 	bestResult.minError = 212;
 
 	auto worker = new DefaultLutCreatorWorker(bestResult, filepath);
@@ -1872,10 +1845,10 @@ void DefaultLutCreatorWorker::run()
 	QString errorMessage = LutCalibrator::CreateLutFile(log, path, &bestResult, nullptr);
 	if (!errorMessage.isEmpty())
 	{
-		Error(log, "Error while creating LUT: %s", QSTRING_CSTR(errorMessage));
+		Error(log, "Error while creating LUT: {:s}", (errorMessage));
 	}
 	else
 	{
-		Info(log, "The default LUT has been created: %s/lut_lin_tables.3d", QSTRING_CSTR(path));
+		Info(log, "The default LUT has been created: {:s}/lut_lin_tables.3d", (path));
 	}
 }

@@ -4,14 +4,14 @@
 #include <utils/Logger.h>
 #include <base/HyperHdrInstance.h>
 
-#include <ctype.h>
+#include <cctype>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <unistd.h>
-#include <signal.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include <QCoreApplication>
 
@@ -66,7 +66,7 @@ namespace DefaultSignalHandler
 		std::string mangled_name(begin, end);
 
 		int status;
-		char* realname = abi::__cxa_demangle(mangled_name.c_str(), 0, 0, &status);
+		char* realname = abi::__cxa_demangle(mangled_name.c_str(), nullptr, nullptr, &status);
 		result.insert(result.end(), trace.c_str(), begin);
 
 		if (realname)
@@ -89,7 +89,7 @@ namespace DefaultSignalHandler
 		if (!size)
 			return;
 
-		Logger* log = Logger::getInstance("CORE");
+		LoggerName log("CORE");
 		char** symbols = backtrace_symbols(addresses, size);
 
 		/* Skip first 2 frames as they are signal
@@ -97,7 +97,7 @@ namespace DefaultSignalHandler
 		for (int i = 2; i < size; ++i)
 		{
 			std::string line = std::string("\t") + decipher_trace(symbols[i]);
-			Error(log, line.c_str());
+			Error(log, "{:s}", line.c_str());
 		}
 
 		free(symbols);
@@ -169,7 +169,7 @@ namespace DefaultSignalHandler
 	void install()
 	{
 #ifndef _WIN32
-		Logger* log = Logger::getInstance("CORE");
+		LoggerName log("CORE");
 
 		struct sigaction action {};
 		sigemptyset(&action.sa_mask);
@@ -180,7 +180,7 @@ namespace DefaultSignalHandler
 		{
 			if (sigaction(s.number, &action, nullptr) != 0)
 			{
-				Error(log, "Failed to install handler for %s]\n", s.name);
+				Error(log, "Failed to install handler for {:s}]\n", s.name);
 			}
 		}
 #endif // _WIN32

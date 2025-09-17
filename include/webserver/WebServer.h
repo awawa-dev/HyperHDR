@@ -28,7 +28,7 @@ public:
 	void start();
 	void stop();
 
-	static bool	portAvailable(quint16& port, Logger* log);
+	static bool	portAvailable(quint16& port, const LoggerName& log);
 
 signals:
 	void stateChange(bool newState);
@@ -49,7 +49,7 @@ private:
 	quint16              _port;
 	QJsonDocument        _config;
 	bool				 _useSsl;
-	Logger*              _log;
+	LoggerName           _log;
 	QString              _baseUrl;
 	
 	QtHttpServer*        _server;

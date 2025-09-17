@@ -9,7 +9,7 @@
 	#include <memory>
 #endif
 
-class Logger;
+#include <utils/Logger.h>
 
 namespace hyperhdr
 {
@@ -45,10 +45,10 @@ class PerformanceCounters : public QObject
 
 private:
 	void consoleReport(int type, int token);
-	void createUpdate(PerformanceReport pr);
+	void createUpdate(const PerformanceReport& pr);
 	void deleteUpdate(int type, int id);
 
-	Logger* _log;
+	LoggerName _log;
 	QList<PerformanceReport> _reports;
 	std::unique_ptr<SystemPerformanceCounters> _system;
 	qint64 _lastRead;
@@ -63,7 +63,7 @@ public:
 
 private slots:
 
-	void signalPerformanceNewReportHandler(PerformanceReport pr);
+	void signalPerformanceNewReportHandler(const PerformanceReport& pr);
 	void signalPerformanceStateChangedHandler(bool state, hyperhdr::PerformanceReportType type, int id, QString name = "");
 	
 

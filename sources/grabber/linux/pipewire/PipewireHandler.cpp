@@ -33,23 +33,22 @@
 #include <QUuid>
 
 
-#include <unistd.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <dlfcn.h>
+#include <fcntl.h>
+#include <iostream>
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <cassert>
 #include <sys/wait.h>
-#include <cerrno>
-#include <fcntl.h>
 #include <unistd.h>
-#include <vector>
-#include <cstdio>
-#include <cstdlib>
-#include <time.h>
-#include <cstring>
-#include <iostream>
-#include <dlfcn.h>
 #include <utility>
+#include <vector>
 	
 
 #include <grabber/linux/pipewire/smartPipewire.h>
@@ -86,15 +85,13 @@ Q_DECLARE_METATYPE(PipewireHandler::PipewireStructure);
 Q_DECLARE_METATYPE(pw_stream_state);
 Q_DECLARE_METATYPE(uint32_t);
 
-const QString DESKTOP_SERVICE	 = QStringLiteral("org.freedesktop.portal.Desktop");
-const QString DESKTOP_PATH		 = QStringLiteral("/org/freedesktop/portal/desktop");
-const QString DESKTOP_SCREENCAST = QStringLiteral("org.freedesktop.portal.ScreenCast");
-const QString PORTAL_REQUEST	 = QStringLiteral("org.freedesktop.portal.Request");
-const QString PORTAL_SESSION	 = QStringLiteral("org.freedesktop.portal.Session");
-const QString PORTAL_RESPONSE	 = QStringLiteral("Response");
+constexpr const char* DESKTOP_SERVICE = "org.freedesktop.portal.Desktop";
+constexpr const char* DESKTOP_PATH = "/org/freedesktop/portal/desktop";
+constexpr const char* PORTAL_REQUEST = "org.freedesktop.portal.Request";
+constexpr const char* PORTAL_SESSION = "org.freedesktop.portal.Session";
+constexpr const char* PORTAL_RESPONSE = "Response";
 
-
-const QString REQUEST_TEMPLATE = QStringLiteral("/org/freedesktop/portal/desktop/request/%1/%2");
+constexpr const char* REQUEST_TEMPLATE = "/org/freedesktop/portal/desktop/request/%1/%2";
 
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
@@ -102,8 +99,8 @@ PipewireHandler::PipewireHandler() :
 									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false), _requestedFPS(10), _hasFrame(false),
-									_infoUpdated(false), _initEGL(false), _libEglHandle(NULL), _libGlHandle(NULL),
-									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image()
+									_infoUpdated(false), _initEGL(false), _libEglHandle(nullptr), _libGlHandle(nullptr),
+									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image{}
 {
 	_pwStreamListener = {};
 	_pwCoreListener = {};
@@ -135,16 +132,16 @@ PipewireHandler::~PipewireHandler()
 {
 	closeSession();
 
-	if (_libEglHandle != NULL)
+	if (_libEglHandle != nullptr)
 	{
 		dlclose(_libEglHandle);
-		_libEglHandle = NULL;
+		_libEglHandle = nullptr;
 	}
 
-	if (_libGlHandle != NULL)
+	if (_libGlHandle != nullptr)
 	{
 		dlclose(_libGlHandle);
-		_libGlHandle = NULL;
+		_libGlHandle = nullptr;
 	}
 }
 
@@ -184,10 +181,10 @@ void PipewireHandler::closeSession()
 	{
 		try
 		{
-			sdbus::ServiceName destination{DESKTOP_SERVICE.toStdString()};
+			sdbus::ServiceName destination{ DESKTOP_SERVICE };
 			sdbus::ObjectPath objectPath{_sessionHandle.toStdString()};
 			auto sessionProxy = sdbus::createProxy(*_dbusConnection, std::move(destination), std::move(objectPath));
-			auto call = sessionProxy->createMethodCall(sdbus::InterfaceName{PORTAL_SESSION.toStdString()}, sdbus::MethodName {"Close"});
+			auto call = sessionProxy->createMethodCall(sdbus::InterfaceName{ PORTAL_SESSION }, sdbus::MethodName {"Close"});
 			auto reply = sessionProxy->callMethod(call);
 		}
 		catch (std::exception& e)
@@ -293,7 +290,7 @@ int PipewireHandler::readVersion()
 	try
 	{
 		auto bus = sdbus::createSessionBusConnection();
-		auto proxy = std::make_unique<ScreenCastProxy>(*bus, ServiceName{ DESKTOP_SERVICE.toStdString() }, ObjectPath{ DESKTOP_PATH.toStdString() });
+		auto proxy = std::make_unique<ScreenCastProxy>(*bus, ServiceName{ DESKTOP_SERVICE }, ObjectPath{ DESKTOP_PATH });
 
 		version = proxy->version();
 	}
@@ -321,7 +318,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	try
 	{
 		_dbusConnection = sdbus::createSessionBusConnection();
-		_screenCastProxy = std::make_unique<ScreenCastProxy>(*_dbusConnection, ServiceName{ DESKTOP_SERVICE.toStdString() }, ObjectPath{ DESKTOP_PATH.toStdString() });
+		_screenCastProxy = std::make_unique<ScreenCastProxy>(*_dbusConnection, ServiceName{ DESKTOP_SERVICE }, ObjectPath{ DESKTOP_PATH });
 		_dbusConnection->enterEventLoopAsync();
 
 		_version = _screenCastProxy->version();
@@ -377,7 +374,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_replySessionPath.toStdString()});
 
-		_createSessionProxy->uponSignal(SignalName{PORTAL_RESPONSE.toStdString()}).onInterface(InterfaceName{PORTAL_REQUEST.toStdString()}).call(responseSignalHandler);
+		_createSessionProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
 
         _screenCastProxy->CreateSession(createSessionParams);
 
@@ -428,7 +425,7 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 		};
 
 		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
-		_selectSourceProxy->uponSignal(SignalName{PORTAL_RESPONSE.toStdString()}).onInterface(InterfaceName{PORTAL_REQUEST.toStdString()}).call(responseSignalHandler);
+		_selectSourceProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
 
 		_screenCastProxy->SelectSources(ObjectPath{_sessionHandle.toStdString()}, selectSourceParams);
 
@@ -517,7 +514,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		};
 
 		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_startReplyPath.toStdString()});
-		_startProxy->uponSignal(SignalName{PORTAL_RESPONSE.toStdString()}).onInterface(InterfaceName{PORTAL_REQUEST.toStdString()}).call(responseSignalHandler);
+		_startProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
 
 		_screenCastProxy->Start( ObjectPath{_sessionHandle.toStdString()}, "", startParams);
 
@@ -757,7 +754,7 @@ void PipewireHandler::captureFrame()
 
 	while ((dequeueFrame = pw_stream_dequeue_buffer(_pwStream)) != nullptr)
 	{
-		if (newFrame != nullptr && pw_stream_get_state(_pwStream, NULL) == PW_STREAM_STATE_STREAMING)
+		if (newFrame != nullptr && pw_stream_get_state(_pwStream, nullptr) == PW_STREAM_STATE_STREAMING)
 			pw_stream_queue_buffer(_pwStream, newFrame);
 		newFrame = dequeueFrame;
 	}
@@ -822,7 +819,7 @@ void PipewireHandler::captureFrame()
 
 				EGLImage eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
 
-				if (eglImage == EGL_NO_IMAGE_KHR && eglDrmModWorkaround.size() > 0)
+				if (eglImage == EGL_NO_IMAGE_KHR && !eglDrmModWorkaround.empty())
 				{
 					// remove drm mods
 					QVector<EGLint> attribsCopy;
@@ -945,7 +942,7 @@ void PipewireHandler::captureFrame()
 	if (mappedMemory != nullptr)
 		munmap(mappedMemory, newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset);
 
-	if (newFrame != nullptr && pw_stream_get_state(_pwStream, NULL) == PW_STREAM_STATE_STREAMING)
+	if (newFrame != nullptr && pw_stream_get_state(_pwStream, nullptr) == PW_STREAM_STATE_STREAMING)
 		pw_stream_queue_buffer(_pwStream, newFrame);
 
 	// goodbye
@@ -1058,14 +1055,14 @@ void PipewireHandler::initEGL()
 	if (_initEGL)
 		return;
 
-	if (_libEglHandle == NULL && (_libEglHandle = dlopen("libEGL.so.1", RTLD_NOW | RTLD_GLOBAL)) == NULL)
+	if (_libEglHandle == nullptr && (_libEglHandle = dlopen("libEGL.so.1", RTLD_NOW | RTLD_GLOBAL)) == nullptr)
 	{
 		printf("PipewireEGL: HyperHDR could not open EGL library\n");
 		return;
 	}
 
-	if (_libGlHandle == NULL && ((_libGlHandle = dlopen("libGL.so.1", RTLD_NOW | RTLD_GLOBAL)) == NULL)
-							 && ((_libGlHandle = dlopen("libGL.so", RTLD_NOW | RTLD_GLOBAL)) == NULL))
+	if (_libGlHandle == nullptr && ((_libGlHandle = dlopen("libGL.so.1", RTLD_NOW | RTLD_GLOBAL)) == nullptr)
+							 && ((_libGlHandle = dlopen("libGL.so", RTLD_NOW | RTLD_GLOBAL)) == nullptr))
 	{
 		printf("PipewireEGL: HyperHDR could not open GL library\n");
 		return;

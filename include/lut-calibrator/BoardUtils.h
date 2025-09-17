@@ -69,10 +69,10 @@ namespace BoardUtils
 	CapturedColor readBlock(const Image<ColorRgb>& yuvImage, int2 position, byte3* _color = nullptr);
 	void getWhiteBlackColorLevels(const Image<ColorRgb>& yuvImage, CapturedColor& white, CapturedColor& black, int& line);
 	bool verifyBlackColorPattern(const Image<ColorRgb>& yuvImage, bool isFirstWhite, CapturedColor& black);
-	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors, bool multiFrame = false);
+	bool parseBoard(const LoggerName& _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors, bool multiFrame = false);
 	Image<ColorRgb> loadTestBoardAsYuv(const std::string& filename);
 	void createTestBoards(const char* pattern = "D:/table_%1.png");
-	bool verifyTestBoards(Logger* _log, const char* pattern = "D:/table_%1.png");
+	bool verifyTestBoards(const LoggerName& _log, const char* pattern = "D:/table_%1.png");
 
 	class CapturedColors
 	{
@@ -101,6 +101,6 @@ namespace BoardUtils
 		void setCaptured(int index);
 		void setRange(YuvConverter::COLOR_RANGE range);
 		YuvConverter::COLOR_RANGE getRange() const;
-		bool saveResult(const char* filename = "D:/result.txt", const std::string& result = "");
+		bool saveResult(const char* fileNameUtf8 = "D:/result.txt", const std::string& result = "");
 	};
 };

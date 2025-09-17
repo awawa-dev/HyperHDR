@@ -84,7 +84,6 @@ QString SettingsTable::getSettingsRecordString(const QString& type) const
 
 bool SettingsTable::deleteSettingsRecordString(const QString& type) const
 {
-	QVariantMap results;
 	VectorPair cond;
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance
@@ -95,7 +94,6 @@ bool SettingsTable::deleteSettingsRecordString(const QString& type) const
 
 bool SettingsTable::purge(const QString& type) const
 {
-	QVariantMap results;
 	VectorPair cond;
 	cond.append(CPair("type", type));
 	// when a setting is not global we are searching also for the instance

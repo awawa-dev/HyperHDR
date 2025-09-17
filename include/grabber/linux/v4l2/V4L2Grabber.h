@@ -6,14 +6,14 @@
 
 #include <utils/PixelFormat.h>
 #include <base/Grabber.h>
-#include <grabber/linux/v4l2/V4L2Worker.h>
+#include <grabber/GrabberWorker.h>
 #include <utils/Components.h>
 
 #include <turbojpeg.h>
 
 class QSocketNotifier;
 
-class V4L2Grabber : public Grabber
+class V4L2Grabber final : public Grabber
 {
 	Q_OBJECT
 
@@ -80,7 +80,7 @@ private:
 
 	void throw_errno_exception(const QString& error);
 
-	QString formatRes(int w, int h, QString format);
+	QString formatRes(int w, int h, QString format) const;
 
 	QString formatFrame(int fr);
 
@@ -99,5 +99,5 @@ private:
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 	QSocketNotifier*	_streamNotifier;	
-	V4L2WorkerManager   _V4L2WorkerManager;
+	GrabberManager      _V4L2WorkerManager;
 };

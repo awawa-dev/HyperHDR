@@ -26,7 +26,7 @@ public:
 
 private:
 	QTcpSocket*	_socket;
-	Logger*		_log;
+	LoggerName	_log;
 	HyperAPI*	_hyperAPI;
 
 	void getWsFrameHeader(WebSocketHeader* header);

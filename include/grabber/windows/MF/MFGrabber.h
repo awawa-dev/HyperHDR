@@ -2,7 +2,7 @@
 
 #include <utils/PixelFormat.h>
 #include <base/Grabber.h>
-#include <grabber/windows/MF/MFWorker.h>
+#include <grabber/GrabberWorker.h>
 #include <utils/Components.h>
 
 class  MFCallback;
@@ -70,6 +70,6 @@ private:
 
 	bool			_isMF;
 	MFCallback*		_sourceReaderCB;
-	MFWorkerManager	_MFWorkerManager;
+	GrabberManager	_MFWorkerManager;
 	IMFSourceReader* _sourceReader;
 };

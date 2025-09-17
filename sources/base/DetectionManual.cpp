@@ -1,7 +1,7 @@
 #include <base/Grabber.h>
 
 DetectionManual::DetectionManual() :
-	_log(Logger::getInstance("SIGNAL_OLD"))
+	_log("SIGNAL_OLD")
 	, _x_frac_min(0.25)
 	, _y_frac_min(0.25)
 	, _x_frac_max(0.75)
@@ -71,7 +71,7 @@ void DetectionManual::setSignalThreshold(double redSignalThreshold, double green
 	_noSignalThresholdColor.blue = uint8_t(255 * blueSignalThreshold);
 	_noSignalCounterThreshold = qMax(1, noSignalCounterThreshold);
 
-	Debug(_log, "Signal threshold set to: {%d, %d, %d} and frames: %d", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold);
+	Debug(_log, "Signal threshold set to: {{{:d}, {:d}, {:d}}} and frames: {:d}", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold);
 }
 
 void DetectionManual::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)
@@ -81,7 +81,7 @@ void DetectionManual::setSignalDetectionOffset(double horizontalMin, double vert
 	_x_frac_max = horizontalMax;
 	_y_frac_max = verticalMax;
 
-	Debug(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
+	Debug(_log, "Signal detection area set to: {:f},{:f} x {:f},{:f}", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
 }
 
 bool DetectionManual::getDetectionManualSignal()

@@ -145,7 +145,7 @@ private:
 	std::unique_ptr<SystemControl> _systemControl;
 	std::unique_ptr<RawUdpServer> _rawUdpServer;
 
-	Logger*				_log;
+	LoggerName			_log;
 	int					_hwLedCount;
 	QSize				_ledGridSize;
 

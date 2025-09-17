@@ -59,10 +59,10 @@ bool DriverSpiSk6822SPI::init(QJsonObject deviceConfig)
 	if (ProviderSpi::init(deviceConfig))
 	{
 		auto rateHz = getRate();
-		WarningIf((rateHz < 2000000 || rateHz > 2460000), _log, "SPI rate %d outside recommended range (2000000 -> 2460000)", rateHz);
+		WarningIf((rateHz < 2000000 || rateHz > 2460000), _log, "SPI rate {:d} outside recommended range (2000000 -> 2460000)", rateHz);
 
 		_ledBuffer.resize((_ledRGBCount * SPI_BYTES_PER_COLOUR) + (_ledCount * SPI_BYTES_WAIT_TIME) + SPI_FRAME_END_LATCH_BYTES, 0x00);
-		//	Debug(_log, "_ledBuffer.resize(_ledRGBCount:%d * SPI_BYTES_PER_COLOUR:%d) + ( _ledCount:%d * SPI_BYTES_WAIT_TIME:%d ) + SPI_FRAME_END_LATCH_BYTES:%d, 0x00)", _ledRGBCount, SPI_BYTES_PER_COLOUR, _ledCount, SPI_BYTES_WAIT_TIME,  SPI_FRAME_END_LATCH_BYTES);
+		//	Debug(_log, "_ledBuffer.resize(_ledRGBCount:{:d} * SPI_BYTES_PER_COLOUR:{:d}) + ( _ledCount:{:d} * SPI_BYTES_WAIT_TIME:{:d} ) + SPI_FRAME_END_LATCH_BYTES:{:d}, 0x00)", _ledRGBCount, SPI_BYTES_PER_COLOUR, _ledCount, SPI_BYTES_WAIT_TIME,  SPI_FRAME_END_LATCH_BYTES);
 
 		isInitOK = true;
 	}
@@ -77,7 +77,7 @@ int DriverSpiSk6822SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "Sk6822SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "Sk6822SPI led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);

@@ -32,6 +32,8 @@
 #include <QNetworkInterface>
 #include <QByteArray>
 #include <QElapsedTimer>
+#include <QtEndian>
+
 #include <bit>
 #include <cstdint>
 #include <cstring>
@@ -216,7 +218,8 @@ namespace
 			return std::nullopt;
 
 		DriverNetLifx::MacAddress mac{};
-		auto parts = macStr.split(QRegularExpression("[:-]"));
+		static const QRegularExpression pattern("[:-]");
+		auto parts = macStr.split(pattern);
 		for (int i = 0; i < 6; ++i) {
 			bool ok = false;
 			mac[i] = static_cast<uint8_t>(parts[i].toUInt(&ok, 16));
@@ -264,9 +267,9 @@ QJsonObject DriverNetLifx::discover(const QJsonObject& /*params*/)
 				datagram.resize(socket->pendingDatagramSize());
 				socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
-				if (datagram.size() < sizeof(LifxHeader))
+				if (static_cast<size_t>(datagram.size()) < sizeof(LifxHeader))
 				{
-					Debug(_log, "The response datagram is too small. Got: %i bytes", static_cast<int>(datagram.size()));
+					Debug(_log, "The response datagram is too small. Got: {:d} bytes", static_cast<int>(datagram.size()));
 					continue;
 				}
 
@@ -274,7 +277,7 @@ QJsonObject DriverNetLifx::discover(const QJsonObject& /*params*/)
 				uint16_t pktType = qFromLittleEndian<uint16_t>(hdr->pkt_type);
 				if (pktType != 3)
 				{
-					Debug(_log, "Unexpected pktType != 3. Got: %i", pktType);
+					Debug(_log, "Unexpected pktType != 3. Got: {:d}", pktType);
 					continue;
 				}
 
@@ -297,7 +300,7 @@ QJsonObject DriverNetLifx::discover(const QJsonObject& /*params*/)
 					return val.toObject()["macAddress"].toString() == macStr;
 					}))
 				{
-					Debug(_log, "Mac address already exists: %s", QSTRING_CSTR(macStr));
+					Debug(_log, "Mac address already exists: {:s}", (macStr));
 				}
 				else
 				{
@@ -308,7 +311,7 @@ QJsonObject DriverNetLifx::discover(const QJsonObject& /*params*/)
 	}
 
 	devicesDiscovered.insert("devices", lifxDevices);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
@@ -322,7 +325,7 @@ bool DriverNetLifx::init(QJsonObject deviceConfig)
 
 	// Parse configuration
 	transition = deviceConfig["transition"].toInt(0);
-	Debug(_log, "Transition: %i", transition);
+	Debug(_log, "Transition: {:d}", transition);
 
 	const auto arr = deviceConfig["lamps"].toArray();
 	lamps.clear();
@@ -336,7 +339,7 @@ bool DriverNetLifx::init(QJsonObject deviceConfig)
 		auto mac = macFromString(macString);
 		if (!mac.has_value())
 		{
-			Error(_log, "Could not parse MAC address: %s", QSTRING_CSTR(macString));
+			Error(_log, "Could not parse MAC address: {:s}", (macString));
 			continue;
 		}
 
@@ -345,19 +348,24 @@ bool DriverNetLifx::init(QJsonObject deviceConfig)
 		bool validAddress = address.setAddress(ipString);
 		if (!validAddress)
 		{
-			Error(_log, "Could not parse IP address: %s", QSTRING_CSTR(ipString));
+			Error(_log, "Could not parse IP address: {:s}", (ipString));
 			continue;
 		}
 
-		Debug(_log, "Added %s: %s, MAC: %s", QSTRING_CSTR(lampName), QSTRING_CSTR(ipString), QSTRING_CSTR(macString));
+		Debug(_log, "Added {:s}: {:s}, MAC: {:s}", (lampName), (ipString), (macString));
 		lamps.push_back(std::tuple<QString, QHostAddress, MacAddress>(lampName, address, mac.value()));
 	}
 
-	return isInitOK && (lamps.size() > 0);
+	return isInitOK && (!lamps.empty());
 }
 
 std::pair<bool, int> DriverNetLifx::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
+	if (nonlinearRgbColors->empty())
+	{
+		return { true, 0 };
+	}
+
 	std::vector<std::pair<IpMacAddress, linalg::vec<float, 3>>> lights;
 
 	const size_t n = std::min(nonlinearRgbColors->size(), lamps.size());
@@ -371,7 +379,7 @@ std::pair<bool, int> DriverNetLifx::writeInfiniteColors(SharedOutputColors nonli
 
 void DriverNetLifx::setPower(uint16_t power)
 {
-	Debug(_log, "setPower: %i", power);
+	Debug(_log, "setPower: {:d}", power);
 	sendLifxSetPower(*_udpSocket, lamps, power);	
 }
 
@@ -390,7 +398,7 @@ bool DriverNetLifx::powerOff()
 void DriverNetLifx::identify(const QJsonObject& params)
 {
 	QString jsonString = QString::fromUtf8(QJsonDocument(params).toJson(QJsonDocument::Compact));
-	Debug(_log, "Request to identify the lamp %s", QSTRING_CSTR(jsonString));
+	Debug(_log, "Request to identify the lamp {:s}", (jsonString));
 	if (params.contains("name") && params.contains("ipAddress") && params.contains("macAddress"))
 	{
 		auto socket = std::make_unique<QUdpSocket>();
@@ -409,20 +417,20 @@ void DriverNetLifx::identify(const QJsonObject& params)
 			bool validAddress = address.setAddress(ipAddress);
 			if (!validAddress)
 			{
-				Error(_log, "Could not parse IP address: %s", QSTRING_CSTR(ipAddress));
+				Error(_log, "Could not parse IP address: {:s}", (ipAddress));
 				return;
 			}
 
 			auto mac = macFromString(macAddress);
 			if (!mac.has_value())
 			{
-				Error(_log, "Could not parse MAC address: %s", QSTRING_CSTR(macAddress));
+				Error(_log, "Could not parse MAC address: {:s}", (macAddress));
 				return;
 			}
 
 			if (!name.isEmpty() && !macAddress.isEmpty() && !ipAddress.isEmpty())
 			{
-				Debug(_log, "Testing lamp %s: %s - %s", QSTRING_CSTR(name) , QSTRING_CSTR(ipAddress), QSTRING_CSTR(macAddress));
+				Debug(_log, "Testing lamp {:s}: {:s} - {:s}", (name) , (ipAddress), (macAddress));
 
 				std::vector<std::pair<IpMacAddress, linalg::vec<float, 3>>> lights;				
 				lights.push_back({ std::tuple<QString, QHostAddress, MacAddress>(name, address, mac.value()),  { 0.0, 0.0, 1.0 } });

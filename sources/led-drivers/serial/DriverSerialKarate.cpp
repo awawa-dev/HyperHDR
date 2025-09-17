@@ -15,7 +15,7 @@ bool DriverSerialKarate::init(QJsonObject deviceConfig)
 	{
 		if (_ledCount != 8 && _ledCount != 16)
 		{
-			//Error( _log, "%d channels configured. This should always be 16!", _ledCount);
+			//Error( _log, "{:d} channels configured. This should always be 16!", _ledCount);
 			QString errortext = QString("%1 channels configured. This should always be 8 or 16!").arg(_ledCount);
 			this->setInError(errortext);
 			isInitOK = false;
@@ -28,7 +28,7 @@ bool DriverSerialKarate::init(QJsonObject deviceConfig)
 			_ledBuffer[2] = 0x00;				  // Checksum
 			_ledBuffer[3] = _ledCount * 3;        // Number of Databytes send
 
-			Debug(_log, "Karatelight header for %d leds: 0x%02x 0x%02x 0x%02x 0x%02x", _ledCount,
+			Debug(_log, "Karatelight header for {:d} leds: 0x%02x 0x%02x 0x%02x 0x%02x", _ledCount,
 				_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3]);
 
 			isInitOK = true;

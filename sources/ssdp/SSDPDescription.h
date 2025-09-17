@@ -9,7 +9,7 @@
 ///
 /// def URN urn:schemas-upnp-org:device:Basic:1
 
-static const QString SSDP_DESCRIPTION =	"<?xml version=\"1.0\"?>"
+static constexpr const char* SSDP_DESCRIPTION =	"<?xml version=\"1.0\"?>"
 										"<root xmlns=\"urn:schemas-upnp-org:device-1-0\">"
 											"<specVersion>"
 												"<major>1</major>"

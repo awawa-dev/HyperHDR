@@ -35,17 +35,12 @@
 	#include <iostream>
 	#include <limits>
 	#include <tuple>
-	#include <iomanip>
 	#include <vector>
-	#include <iostream>
-	#include <iomanip>
-	#include <tuple>
 	#include <cassert>
 	#include <cmath>
 	#include <cstdint>
 #endif
 
-#include <limits>
 #include <QMutexLocker>
 
 #include <infinite-color-engine/InfiniteSmoothing.h>
@@ -110,12 +105,18 @@ namespace
 
 			return color;
 		}
-	} testPilot;
+	};
+
+	TestPilot& getTestPilot()
+	{
+		static TestPilot testPilot;
+		return testPilot;
+	}
 }
 
 InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
 	: QObject(),
-	_log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex()))),
+	_log(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex())),
 	_hyperhdr(hyperhdr),
 	_continuousOutput(false),
 	_currentConfigId(SMOOTHING_USER_CONFIG),
@@ -139,7 +140,7 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 
 	try
 	{
-		Info(_log, "Clearing queued colors before: %s%s",
+		Info(_log, "Clearing queued colors before: {:s}{:s}",
 			(deviceEnabled) ? "enabling" : "disabling",
 			(restarting) ? ". Smoothing configuration changed: restarting timer." : "");
 
@@ -218,9 +219,9 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 
 		_continuousOutput = obj["continuousOutput"].toBool(true);
 
-		if (testPilot.active = obj["testMode"].toBool(false); testPilot.active)
+		if (getTestPilot().active = obj["testMode"].toBool(false); getTestPilot().active)
 		{
-			testPilot.started = InternalClock::now();
+			getTestPilot().started = InternalClock::now();
 		}
 
 		_configurations[SMOOTHING_USER_CONFIG] = std::make_unique<SmoothingConfig>(
@@ -237,9 +238,9 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 		);
 
 		const auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
-		Info(_log, "Updating user config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz)"
-			       ", smoothingFactor: %f, stiffness: %f, damping: %f, y_limit: %f",
-					SMOOTHING_USER_CONFIG, QSTRING_CSTR(EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
+		Info(_log, "Updating user config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz)"
+			       ", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+					SMOOTHING_USER_CONFIG, (EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
 					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
 			);
 
@@ -259,7 +260,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 		if (!isEnabled())
 			Info(_log, "Smoothing is disabled. Direct output.");
 		else 
-			Info(_log, "Using %s smoothing input (%i)", QSTRING_CSTR(EnumSmoothingTypeToString(_configurations[_currentConfigId]->type)), _currentConfigId);
+			Info(_log, "Using {:s} smoothing input ({:d})", (EnumSmoothingTypeToString(_configurations[_currentConfigId]->type)), _currentConfigId);
 		_infoInput = false;
 	}
 
@@ -275,11 +276,11 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 		QMutexLocker locker(&_dataSynchro);
 
 		auto nowTime = InternalClock::now();
-		if (testPilot.active)
+		if (getTestPilot().active)
 		{
-			std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), testPilot.getColorAtTime(nowTime));
+			std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), getTestPilot().getColorAtTime(nowTime));
 		}
-		_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, testPilot.active);
+		_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, getTestPilot().active);
 	}
 }
 
@@ -306,25 +307,25 @@ void InfiniteSmoothing::updateLeds()
 		}
 	}	
 
-	if (nonlinearRgbColors->size() > 0 && !finished)
+	if (!nonlinearRgbColors->empty() && !finished)
 	{
 		queueColors(std::move(nonlinearRgbColors));
 	}
 }
 
-void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbColors)
+void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbLedColors)
 {
-	if (nonlinearRgbColors->size() == 0)
+	if (nonlinearRgbLedColors->empty())
 		return;
 
-	if (testPilot.active)
+	if (getTestPilot().active)
 	{
-		const auto& color = nonlinearRgbColors->front();
-		long long delta = InternalClock::now() - testPilot.started;
+		const auto& color = nonlinearRgbLedColors->front();
+		long long delta = InternalClock::now() - getTestPilot().started;
 		printf("Δ%4lld | updateCurrentColors: (%d, %d, %d)\n", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
 	}
 
-	emit SignalProcessedColors(nonlinearRgbColors);
+	emit SignalProcessedColors(nonlinearRgbLedColors);
 }
 
 void InfiniteSmoothing::handleSignalRequestComponent(hyperhdr::Components component, bool state)
@@ -405,9 +406,9 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 
 	const auto& cfg = _configurations[_currentConfigId];
 
-	Info(_log, "Selecting config (%d) => type: %s, pause: %s, settlingTime: %ims, interval: %ims (%iHz). Smoothing is currently: %s"
-				", smoothingFactor: %f, stiffness: %f, damping: %f, y_limit: %f",
-		_currentConfigId, QSTRING_CSTR(EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
+	Info(_log, "Selecting config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz). Smoothing is currently: {:s}"
+				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+		_currentConfigId, (EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
 		int(cfg->settlingTime),
 		int(cfg->updateInterval),
 		int(1000.0 / cfg->updateInterval),

@@ -2,6 +2,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QTimer>
+	#include <QMutex>
 #endif
 
 #include <image/Image.h>

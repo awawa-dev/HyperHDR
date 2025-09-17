@@ -53,8 +53,8 @@ QStringList getProcessIdsByProcessName(const char *processName)
 	dir.setFilter(QDir::Dirs);
 	dir.setSorting(QDir::Name | QDir::Reversed);
 
+	static const QRegularExpression regexp("^\\d*$");
 	for (const QString & pid : dir.entryList()) {
-		QRegularExpression regexp("^\\d*$");
 		if (!regexp.match(pid).hasMatch())
 		{
 			/* Not a number, can not be PID */

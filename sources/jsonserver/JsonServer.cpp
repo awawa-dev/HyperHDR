@@ -19,7 +19,7 @@ JsonServer::JsonServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument
 	: QObject()
 	, _server(new QTcpServer(this))
 	, _openConnections()
-	, _log(Logger::getInstance("JSONSERVER"))
+	, _log("JSONSERVER")
 	, _netOrigin(netOrigin)
 	, _port(0)
 {
@@ -45,11 +45,11 @@ void JsonServer::start()
 
 	if (!_server->listen(QHostAddress::Any, _port))
 	{
-		Error(_log, "Could not bind to port '%d', please use an available port", _port);
+		Error(_log, "Could not bind to port '{:d}', please use an available port", _port);
 		return;
 	}
 
-	Info(_log, "Started on port %d", _port);
+	Info(_log, "Started on port {:d}", _port);
 }
 
 void JsonServer::stop()
@@ -88,7 +88,7 @@ void JsonServer::newConnection()
 		{
 			if (_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
-				Debug(_log, "New connection from: %s ", socket->localAddress().toString().toStdString().c_str());
+				Debug(_log, "New connection from: {:s} ", socket->localAddress().toString().toStdString().c_str());
 				JsonClientConnection* connection = new JsonClientConnection(socket, _netOrigin->isLocalAddress(socket->peerAddress(), socket->localAddress()));
 				_openConnections.insert(connection);
 

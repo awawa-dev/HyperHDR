@@ -19,7 +19,7 @@ protected:
 	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors& infiniteColors);
+	int writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors& infinityLedColors);
 	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 

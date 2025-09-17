@@ -76,7 +76,7 @@ bool DriverNetUdpE131::init(QJsonObject deviceConfig)
 		if (_json_cid.isEmpty())
 		{
 			_e131_cid = QUuid::createUuid();
-			Debug(_log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+			Debug(_log, "e131 no CID found, generated {:s}", (_e131_cid.toString()));
 			isInitOK = true;
 		}
 		else
@@ -84,7 +84,7 @@ bool DriverNetUdpE131::init(QJsonObject deviceConfig)
 			_e131_cid = QUuid(_json_cid);
 			if (!_e131_cid.isNull())
 			{
-				Debug(_log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
+				Debug(_log, "e131  CID found, using {:s}", (_e131_cid.toString()));
 				isInitOK = true;
 			}
 			else
@@ -112,7 +112,8 @@ void DriverNetUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelC
 	/* Frame Layer */
 	e131_packet->fields.frame_flength = htons(0x7000 | (88 + this_dmxChannelCount));
 	e131_packet->fields.frame_vector = htonl(VECTOR_E131_DATA_PACKET);
-	snprintf(e131_packet->fields.source_name, sizeof(e131_packet->fields.source_name), "%s", QSTRING_CSTR(_e131_source_name));
+	QByteArray utf8source = _e131_source_name.toUtf8();
+	snprintf(e131_packet->fields.source_name, sizeof(e131_packet->fields.source_name), "%s", (utf8source.constData()));
 	e131_packet->fields.priority = 100;
 	e131_packet->fields.reserved = htons(0);
 	e131_packet->fields.options = 0;	// Bit 7 =  Preview_Data
@@ -158,7 +159,7 @@ int DriverNetUdpE131::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		{
 #undef e131debug
 #if e131debug
-			Debug(_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
+			Debug(_log, "send packet: rawidx {:d} dmxchannelcount {:d} universe: {:d}, packetsz {:d}"
 				, rawIdx
 				, dmxChannelCount
 				, _e131_universe + rawIdx / DMX_MAX

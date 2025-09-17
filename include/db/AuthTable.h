@@ -3,9 +3,9 @@
 #include <db/DBManager.h>
 
 namespace hyperhdr {
-	const QString NO_AUTH = "No Authorization";
-	const QString DEFAULT_CONFIG_USER = "Hyperhdr";
-	const QString DEFAULT_CONFIG_PASSWORD = "hyperhdr";
+	constexpr const char* NO_AUTH = "No Authorization";
+	constexpr const char* DEFAULT_CONFIG_USER = "Hyperhdr";
+	constexpr const char* DEFAULT_CONFIG_PASSWORD = "hyperhdr";
 }
 
 class AuthTable : public DBManager

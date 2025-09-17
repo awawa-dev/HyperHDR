@@ -21,7 +21,7 @@ namespace hyperhdr
 	{
 	public:
 		ImageColorAveraging(
-			Logger* _log,
+			const LoggerName& _log,
 			const int mappingType,
 			const bool sparseProcessing,
 			const unsigned width,

@@ -61,15 +61,16 @@ bool ProviderUdp::init(QJsonObject deviceConfig)
 
 		if (_address.setAddress(host))
 		{
-			Debug(_log, "Successfully parsed %s as an IP-address.", QSTRING_CSTR(_address.toString()));
+			Debug(_log, "Successfully parsed {:s} as an IP-address.", (_address.toString()));
 		}
 		else
 		{
 			QHostInfo hostInfo = QHostInfo::fromName(host);
 			if (hostInfo.error() == QHostInfo::NoError)
 			{
-				_address = hostInfo.addresses().first();
-				Debug(_log, "Successfully resolved IP-address (%s) for hostname (%s).", QSTRING_CSTR(_address.toString()), QSTRING_CSTR(host));
+				const auto hostAdr = hostInfo.addresses();
+				_address = hostAdr.first();
+				Debug(_log, "Successfully resolved IP-address ({:s}) for hostname ({:s}).", (_address.toString()), (host));
 			}
 			else
 			{
@@ -91,9 +92,20 @@ bool ProviderUdp::init(QJsonObject deviceConfig)
 			else
 			{
 				_port = static_cast<quint16>(config_port);
-				Debug(_log, "UDP socket will write to %s:%u", QSTRING_CSTR(_address.toString()), _port);
+				Debug(_log, "UDP socket will write to {:s}:{:d}", (_address.toString()), _port);
 
-				_udpSocket = std::unique_ptr<QUdpSocket>(new QUdpSocket());
+				if (_udpSocket != nullptr)
+				{
+					_udpSocket->disconnect();
+					if (_udpSocket->isOpen())
+					{
+						_udpSocket->close();
+					}					
+					_udpSocket->deleteLater();
+					_udpSocket = nullptr;
+				}
+
+				_udpSocket = new QUdpSocket(this);
 
 				isInitOK = true;
 			}
@@ -117,7 +129,7 @@ int ProviderUdp::open()
 			if (!_udpSocket->bind(localAddress, localPort))
 			{
 				QString warntext = QString("Could not bind local address: %1, (%2) %3").arg(localAddress.toString()).arg(_udpSocket->error()).arg(_udpSocket->errorString());
-				Warning(_log, "%s", QSTRING_CSTR(warntext));
+				Warning(_log, "{:s}", (warntext));
 			}
 		}
 		// Everything is OK, device is ready
@@ -141,7 +153,7 @@ int ProviderUdp::close()
 		// Test, if device requires closing
 		if (_udpSocket->isOpen())
 		{
-			Debug(_log, "Close UDP-device: %s", QSTRING_CSTR(this->getActiveDeviceType()));
+			Debug(_log, "Close UDP-device: {:s}", (this->getActiveDeviceType()));
 			_udpSocket->close();
 			// Everything is OK -> device is closed
 		}
@@ -156,7 +168,7 @@ int ProviderUdp::writeBytes(const unsigned size, const uint8_t* data)
 
 	if (bytesWritten == -1 || bytesWritten != size)
 	{
-		Warning(_log, "%s", QSTRING_CSTR(QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
+		Warning(_log, "{:s}", (QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 		rc = -1;
 	}
 	return  rc;
@@ -169,7 +181,7 @@ int ProviderUdp::writeBytes(const QByteArray& bytes)
 
 	if (bytesWritten == -1 || bytesWritten != bytes.size())
 	{
-		Warning(_log, "%s", QSTRING_CSTR(QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
+		Warning(_log, "{:s}", (QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 		rc = -1;
 	}
 	return  rc;
@@ -180,6 +192,6 @@ void ProviderUdp::setPort(int port)
 	if (port > 0 && port <= 0xffff && _port != port)
 	{
 		_port = port;
-		Debug(_log, "Updated port to: %i", _port);
+		Debug(_log, "Updated port to: {:d}", _port);
 	}
 }

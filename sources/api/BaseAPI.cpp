@@ -41,7 +41,7 @@
 
 using namespace hyperhdr;
 
-BaseAPI::BaseAPI(Logger* log, bool localConnection, QObject* parent)
+BaseAPI::BaseAPI(const LoggerName& log, bool localConnection, QObject* parent)
 	: QObject(parent),
 	_adminAuthorized(false),
 	_log(log),
@@ -294,7 +294,7 @@ bool BaseAPI::setComponentState(const QString& comp, bool& compState, QString& r
 	}
 	else if (component != COMP_INVALID)
 	{
-		QUEUE_CALL_2(_hyperhdr.get(), SignalRequestComponent, hyperhdr::Components, component, bool, compState);
+		emit _hyperhdr->SignalRequestComponent(component, compState);
 		return true;
 	}
 	replyMsg = QString("Unknown component name: %1").arg(comp);
@@ -417,7 +417,8 @@ QString BaseAPI::installLut(QNetworkReply* reply, QString fileName, int /*hardwa
 	{
 		QByteArray downloadedData = reply->readAll();
 
-		error = DecompressZSTD(downloadedData.size(), reinterpret_cast<uint8_t*>(downloadedData.data()), QSTRING_CSTR(fileName));
+		QByteArray utf8fileName = fileName.toUtf8();
+		error = DecompressZSTD(downloadedData.size(), reinterpret_cast<uint8_t*>(downloadedData.data()), (utf8fileName.constData()));
 	}
 	else
 		error = "Could not download LUT file";

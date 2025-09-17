@@ -27,30 +27,29 @@
 
 #ifndef PCH_ENABLED
 	#include <cmath>
+	#include <mutex>
 
 	#include <utils/settings.h>
 #endif
-
-#include <QMutexLocker>
 
 #include <base/SoundCaptureResult.h>
 #include <base/SoundCapture.h>
 #include <effects/AnimationBaseMusic.h>
 
 namespace
-{
-	SoundCaptureResult resultFFT;
+{	
+	SoundCaptureResult& getResultFFT()
+	{
+		static SoundCaptureResult resultFFT;
+		return resultFFT;
+	}
 	int16_t	imgBuffer[SOUNDCAP_N_WAVE * 2] = {};
+	std::mutex soundBufferGuard;
 }
 
 uint32_t	  SoundCapture::_noSoundCounter = 0;
 bool		  SoundCapture::_noSoundWarning = false;
 bool		  SoundCapture::_soundDetectedInfo = false;
-
-namespace
-{
-	QMutex	soundBufferGuard;
-}
 
 SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* /*parent*/) :
 	_isActive(false),
@@ -59,7 +58,7 @@ SoundCapture::SoundCapture(const QJsonDocument& effectConfig, QObject* /*parent*
 	_isRunning(false),
 	_maxInstance(0)
 {
-	_logger = Logger::getInstance("SOUND_GRABBER");
+	_logger = "SOUND_GRABBER";
 	settingsChangedHandler(settings::type::SNDEFFECT, effectConfig);
 	qRegisterMetaType<uint32_t>("uint32_t");
 }
@@ -75,7 +74,7 @@ QJsonObject SoundCapture::getJsonInfo()
 	QJsonArray availableSoundGrabbers;
 
 	sndgrabber["active"] = getActive();
-	for (auto sndGrabber : getDevices())
+	for (const auto& sndGrabber : getDevices())
 	{
 		availableSoundGrabbers.append(sndGrabber);
 	}
@@ -119,7 +118,7 @@ void SoundCapture::settingsChangedHandler(settings::type type, const QJsonDocume
 			{
 				_selectedDevice = dev;
 				_isActive = true;
-				Info(_logger, "Sound device '%s' is selected for activation", QSTRING_CSTR(_selectedDevice));
+				Info(_logger, "Sound device '{:s}' is selected for activation", (_selectedDevice));
 			}
 		}
 		if (!_isActive)
@@ -144,13 +143,13 @@ uint32_t SoundCapture::open()
 			{
 				Info(_logger, "Sound device is starting");
 
-				resultFFT.ResetData();
+				getResultFFT().ResetData();
 				_noSoundCounter = 0;
 				_noSoundWarning = false;
 				_soundDetectedInfo = false;
 
 				start();
-				Info(_logger, "Sound device has started (handle: %i)", instance);
+				Info(_logger, "Sound device has started (handle: {:d})", instance);
 			}
 		}
 		else
@@ -158,7 +157,7 @@ uint32_t SoundCapture::open()
 	}
 	catch (...)
 	{
-
+		Error(_logger, "Cannot open the sound device");
 	}
 
 	return instance;
@@ -168,7 +167,7 @@ void SoundCapture::close(uint32_t instance)
 {
 	try
 	{
-		Info(_logger, "Releasing sound grabber (handle: %i)", instance);
+		Info(_logger, "Releasing sound grabber (handle: {:d})", instance);
 
 		if (_instances.contains(instance))
 		{
@@ -184,7 +183,7 @@ void SoundCapture::close(uint32_t instance)
 	}
 	catch (...)
 	{
-
+		Error(_logger, "Cannot stop the sound device");
 	}
 }
 
@@ -193,7 +192,8 @@ bool SoundCapture::analyzeSpectrum(int16_t soundBuffer[], int sizeP)
 	if (!_isRunning)
 		return false;
 
-	QMutexLocker locker(&soundBufferGuard);
+	std::lock_guard<std::mutex> locker(soundBufferGuard);
+	SoundCaptureResult& resultFFT = getResultFFT();
 
 	int16_t resolutionP = 10;
 	int16_t sec[SOUNDCAP_RESULT_RES] = {
@@ -225,7 +225,7 @@ bool SoundCapture::analyzeSpectrum(int16_t soundBuffer[], int sizeP)
 
 	if (noSound == 0)
 	{
-		if (fix_fft(soundBuffer, imgBuffer, resolutionP, 0) < 0)
+		if (fix_fft(soundBuffer, imgBuffer, resolutionP, false) < 0)
 			return false;
 
 		for (int i = 0, limit = pow(2, resolutionP - 1), samplerIndex = 0, samplerCount = 0; i < limit; i++)
@@ -268,7 +268,8 @@ bool SoundCapture::analyzeSpectrum(int16_t soundBuffer[], int sizeP)
 
 SoundCaptureResult* SoundCapture::hasResult(AnimationBaseMusic* effect, uint32_t& lastIndex, bool* newAverage, bool* newSlow, bool* newFast, int* isMulti)
 {
-	QMutexLocker locker(&soundBufferGuard);
+	std::lock_guard<std::mutex> locker(soundBufferGuard);
+	SoundCaptureResult& resultFFT = getResultFFT();
 
 	if (lastIndex != resultFFT.getResultIndex())
 	{

@@ -175,11 +175,11 @@ void SoundCaptureMacOS::start()
 
 					if (!input) 
 					{
-						Error(_logger,  "Could not open capturing sound device: %s", apiError.localizedDescription.UTF8String);        
+						Error(_logger,  "Could not open capturing sound device: {:s}", apiError.localizedDescription.UTF8String);        
 					}
 					else
 					{
-						Info(_logger,  "Opening: %s", QSTRING_CSTR(current));
+						Info(_logger,  "Opening: {:s}", (current));
 
 						[_avfSoundDelegate->_nativeSession addInput:input];
 
@@ -229,7 +229,7 @@ void SoundCaptureMacOS::start()
 
 		if (notFound)
 		{
-			Error(_logger, "Could not find selected audio device: '%s' in the system.", QSTRING_CSTR(_selectedDevice));
+			Error(_logger, "Could not find selected audio device: '{:s}' in the system.", (_selectedDevice));
 			return;
 		}
 	}
@@ -269,7 +269,7 @@ void SoundCaptureMacOS::stopDevice()
 	if (!_isRunning)
 		return;
 
-	Info(_logger,  "Disconnecting from sound driver: '%s'", QSTRING_CSTR(_selectedDevice));
+	Info(_logger,  "Disconnecting from sound driver: '{:s}'", (_selectedDevice));
 
 		
 	_isRunning = false;

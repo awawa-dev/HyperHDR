@@ -9,7 +9,8 @@
 	#include <chrono>
 #endif
 
-class Logger;
+#include <utils/Logger.h>
+
 class QUdpSocket;
 
 enum class searchType {
@@ -189,7 +190,7 @@ private:
 
 private:
 
-	Logger* _log;
+	LoggerName _log;
 	QUdpSocket* _udpSocket;
 	QHostAddress _ssdpAddr;
 	quint16 _ssdpPort;

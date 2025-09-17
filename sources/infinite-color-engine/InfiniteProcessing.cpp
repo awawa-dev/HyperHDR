@@ -36,13 +36,8 @@
 	#include <iostream>
 	#include <limits>
 	#include <tuple>
-	#include <iomanip>
 	#include <vector>
-	#include <iostream>
-	#include <iomanip>
-	#include <tuple>
 	#include <cassert>
-	#include <cmath>
 	#include <cstdint>
 #endif
 
@@ -81,12 +76,12 @@ namespace
 InfiniteProcessing::InfiniteProcessing() :
 	_enabled(true),
 	_colorOrder(LedString::ColorOrder::ORDER_RGB),
-	_log(nullptr),
+	_log(""),
 	_user_gamma_lut{}
 {
 }
 
-InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, Logger* log) :
+InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, const LoggerName& log) :
 	InfiniteProcessing()
 {
 	_log = log;
@@ -98,9 +93,9 @@ void InfiniteProcessing::setProcessingEnabled(bool enabled)
 	if (_enabled != enabled)
 	{
 		_enabled = enabled;
-		if (_log)
+		if (_log.size())
 		{
-			Info(_log, "The InfiniteProcessing is set to: %", ((_enabled) ? "enabled" : "disabled"));
+			Info(_log, "The InfiniteProcessing is set to: {:s}", ((_enabled) ? "enabled" : "disabled"));
 		}
 	}
 }
@@ -239,9 +234,9 @@ void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBack
 {
 	if (minimalLevel >= 1.0f)
 	{
-		if (_log)
+		if (_log.size())
 		{
-			Error(_log, "Minimal backlight level is way to high: %f, resetting to 0.0039", minimalLevel);
+			Error(_log, "Minimal backlight level is way to high: {:f}, resetting to 0.0039", minimalLevel);
 		}
 		minimalLevel = 0.0039f;
 	}
@@ -256,14 +251,14 @@ void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBack
 		_coloredBacklight.reset();
 	}
 
-	if (_log)
+	if (_log.size())
 	{
 		bool enabled = _minimalBacklight.has_value() && _coloredBacklight.has_value();
-		Info(_log, "--- MINIMAL BACKLIGHT  (ENABLED: %s) ---", ((enabled) ? "true" : "false"));
+		Info(_log, "--- MINIMAL BACKLIGHT  (ENABLED: {:s}) ---", ((enabled) ? "true" : "false"));
 		if (enabled)
 		{
-			Info(_log, "MINIMAL LEVEL: %f", _minimalBacklight.value());
-			Info(_log, "COLORED:       %s", ((_coloredBacklight.value()) ? "true" : "false"));
+			Info(_log, "MINIMAL LEVEL: {:f}", _minimalBacklight.value());
+			Info(_log, "COLORED:       {:s}", ((_coloredBacklight.value()) ? "true" : "false"));
 		}
 	}
 }
@@ -302,22 +297,22 @@ void InfiniteProcessing::generateColorspace(
 		ColorRgb target_cyan, ColorRgb target_magenta, ColorRgb target_yellow,
 		ColorRgb target_white, ColorRgb target_black)
 		{
-			if (_log)
+			if (_log.size())
 			{
-				Info(_log, "--- LED CALIBRATION (ENABLED: %s) ---", ((!is_identity) ? "true" : "false"));
+				Info(_log, "--- LED CALIBRATION (ENABLED: {:s}) ---", ((!is_identity) ? "true" : "false"));
 				if (!is_identity)
 				{
-					Info(_log, "CLASSIC: %s", ((use_primaries_only) ? "true" : "false"));
-					Info(_log, "RED:     %s", std::string(target_red).c_str());
-					Info(_log, "GREEN:   %s", std::string(target_green).c_str());
-					Info(_log, "BLUE:    %s", std::string(target_blue).c_str());
+					Info(_log, "CLASSIC: {:s}", ((use_primaries_only) ? "true" : "false"));
+					Info(_log, "RED:     {:s}", std::string(target_red).c_str());
+					Info(_log, "GREEN:   {:s}", std::string(target_green).c_str());
+					Info(_log, "BLUE:    {:s}", std::string(target_blue).c_str());
 					if (!use_primaries_only)
 					{
-						Info(_log, "CYAN:    %s", std::string(target_cyan).c_str());
-						Info(_log, "MAGENTA: %s", std::string(target_magenta).c_str());
-						Info(_log, "YELLOW:  %s", std::string(target_yellow).c_str());
-						Info(_log, "WHITE:   %s", std::string(target_white).c_str());
-						Info(_log, "BLACK:   %s", std::string(target_black).c_str());
+						Info(_log, "CYAN:    {:s}", std::string(target_cyan).c_str());
+						Info(_log, "MAGENTA: {:s}", std::string(target_magenta).c_str());
+						Info(_log, "YELLOW:  {:s}", std::string(target_yellow).c_str());
+						Info(_log, "WHITE:   {:s}", std::string(target_white).c_str());
+						Info(_log, "BLACK:   {:s}", std::string(target_black).c_str());
 					}
 				}
 			}
@@ -328,7 +323,7 @@ void InfiniteProcessing::generateColorspace(
 			target_green == ColorRgb{ 0,255,0 } &&
 			target_blue == ColorRgb{ 0,0,255 });
 
-		if (_log)
+		if (_log.size())
 		{
 			printfInfo(is_identity, use_primaries_only, target_red, target_green, target_blue, target_cyan, target_magenta, target_yellow, target_white, target_black);
 		}
@@ -366,7 +361,7 @@ void InfiniteProcessing::generateColorspace(
 			}
 		}
 
-		if (_log)
+		if (_log.size())
 		{
 			printfInfo(is_identity, use_primaries_only, target_red, target_green, target_blue, target_cyan, target_magenta, target_yellow, target_white, target_black);
 		}
@@ -482,12 +477,12 @@ void InfiniteProcessing::generateUserGamma(float gamma)
 		}
 	}
 
-	if (_log)
+	if (_log.size())
 	{
-		Info(_log, "--- USER GAMMA (ENABLED: %s) ---", ((_gamma.has_value()) ? "true" : "false"));
+		Info(_log, "--- USER GAMMA (ENABLED: {:s}) ---", ((_gamma.has_value()) ? "true" : "false"));
 		if (_gamma.has_value())
 		{
-			Info(_log, "GAMMA:   %.2f", _gamma.value());
+			Info(_log, "GAMMA:   {:.2f}", _gamma.value());
 		}
 	}
 }
@@ -530,9 +525,9 @@ void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<fl
 			break;
 	}
 
-	if (_log)
+	if (_log.size())
 	{
-		Info(_log, "--- TEMPERATURE (ENABLED: %s) ---", ((_temperature_tint.has_value()) ? "true" : "false"));
+		Info(_log, "--- TEMPERATURE (ENABLED: {:s}) ---", ((_temperature_tint.has_value()) ? "true" : "false"));
 		if (_temperature_tint.has_value())
 		{
 			Info(_log, "RED:     %0.3f", _temperature_tint.value().x);
@@ -564,10 +559,10 @@ void InfiniteProcessing::setBrightnessAndSaturation(float brightness, float satu
 		_saturation = std::max(0.0f, saturation);
 	}
 
-	if (_log)
+	if (_log.size())
 	{
 		bool enabled = _brightness.has_value() && _saturation.has_value();
-		Info(_log, "--- HSV CORRECTION (ENABLED: %s) ---", ((enabled) ? "true" : "false"));
+		Info(_log, "--- HSV CORRECTION (ENABLED: {:s}) ---", ((enabled) ? "true" : "false"));
 		if (enabled)
 		{
 			Info(_log, "BRIGHTNESS: %0.3f", _brightness.value());
@@ -600,9 +595,9 @@ void InfiniteProcessing::setScaleOutput(float scaleOutput)
 	if (_scaleOutput.value() == 1.f)
 		_scaleOutput.reset();
 
-	if (_log)
+	if (_log.size())
 	{
-		Info(_log, "--- SCALE OUTPUT (ENABLED: %s) ---", ((_scaleOutput.has_value()) ? "true" : "false"));
+		Info(_log, "--- SCALE OUTPUT (ENABLED: {:s}) ---", ((_scaleOutput.has_value()) ? "true" : "false"));
 		if (_scaleOutput.has_value())
 		{
 			Info(_log, "SCALE:   %0.3f", _scaleOutput.value());
@@ -626,9 +621,9 @@ void InfiniteProcessing::setPowerLimit(float powerLimit)
 	if (_powerLimit.value() == 1.f)
 		_powerLimit.reset();
 
-	if (_log)
+	if (_log.size())
 	{
-		Info(_log, "--- POWER LIMIT (ENABLED: %s) ---", ((_powerLimit.has_value()) ? "true" : "false"));
+		Info(_log, "--- POWER LIMIT (ENABLED: {:s}) ---", ((_powerLimit.has_value()) ? "true" : "false"));
 		if (_powerLimit.has_value())
 		{
 			Info(_log, "LIMIT:   %0.3f", _powerLimit.value());
@@ -757,11 +752,11 @@ void InfiniteProcessing::test()
 	std::cout << "----------------------------------------\n\n";
 
 	auto run_full_pipeline = [](InfiniteProcessing& p, linalg::vec<float, 3> color) {
-		color = p.srgbNonlinearToLinear(color);
+		color = InfiniteProcessing::srgbNonlinearToLinear(color);
 		p.calibrateColorInColorspace(p.getColorspaceCalibrationSnapshot(), color);
 		p.applyTemperature(color);
 		p.applyBrightnessAndSaturation(color);
-		color = p.srgbLinearToNonlinear(color);
+		color = InfiniteProcessing::srgbLinearToNonlinear(color);
 		p.applyUserGamma(color);
 		return color;
 		};
@@ -898,58 +893,3 @@ void InfiniteProcessing::test()
 	std::cout << "========================================\n";
 }
 
-/*
-LedCalibration::LedCalibration(quint8 instance, int ledNumber, const QJsonObject& colorConfig)
-	: _perLedConfig(ledNumber, nullptr)
-	, _log(Logger::getInstance("LED_CALIBRATION" + QString::number(instance)))
-{
-	int index = 0;
-	const QRegularExpression overallExp("^([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*$");
-	const QJsonArray& adjustmentConfigArray = colorConfig["channelAdjustment"].toArray();
-
-	for (auto item = adjustmentConfigArray.begin(); item != adjustmentConfigArray.end(); ++item, ++index)
-	{
-		const QJsonObject& config = (*item).toObject();
-		const QString range = config["leds"].toString("").trimmed();
-		std::shared_ptr<ColorCalibration> colorAdjustment = std::make_shared<ColorCalibration>(instance, config);
-
-		_calibrationConfig.push_back(colorAdjustment);
-
-		if (range.compare("*") == 0)
-		{
-			setAdjustmentForLed(index, colorAdjustment, 0, ledNumber - 1);
-			continue;
-		}
-
-		if (!overallExp.match(range).hasMatch())
-		{
-			Warning(_log, "Unrecognized segment range configuration: %s", QSTRING_CSTR(range));
-			continue;
-		}
-
-		for (const auto& segment : range.split(","))
-		{
-			int first = 0, second = 0;
-			bool ok = false;
-			if (segment.contains("-"))
-			{
-				QStringList ledIndices = segment.split("-");
-				if (ledIndices.size() == 2)
-				{
-					first = ledIndices[0].toInt(&ok);
-					second = (ok) ? ledIndices[1].toInt(&ok) : 0;
-				}
-			}
-			else
-			{
-				first = second = segment.toInt(&ok);
-			}
-
-			if (ok)
-				setAdjustmentForLed(index, colorAdjustment, first, second);
-			else
-				Warning(_log, "Unrecognized segment range configuration: %s", QSTRING_CSTR(segment));
-		}
-	}
-}
-*/

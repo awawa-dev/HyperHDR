@@ -6,8 +6,8 @@
 #include <base/SoundCaptureResult.h>
 
 #define Limit(x,y) std::min(std::max(x, 0), y)
-#define LimitMod(x,y) ((x+y) % y)
-#define Drive(x,y) ((x == 0) ? x : ((x>=0 && x < y)? 1 : ( (x<0 && -x < y) ? -1: (x/y) ) ))
+#define LimitMod(x,y) (((x)+(y)) % (y))
+#define Drive(x,y) (((x) == 0) ? (x) : (((x)>=0 && (x) < (y))? 1 : ( ((x)<0 && -(x) < (y)) ? -1: ((x)/(y)) ) ))
 
 int32_t SoundCaptureResult::getValue(int isMulti)
 {
@@ -354,9 +354,9 @@ bool SoundCaptureResult::GetStats(uint32_t& scaledAverage, uint32_t& currentMax,
 	scaledAverage = _scaledAverage;
 	averageColor = mtWorking._averageColor;
 	currentMax = _currentMax;
-	if (fastColor != NULL)
+	if (fastColor != nullptr)
 		*fastColor = mtWorking._fastColor;
-	if (slowColor != NULL)
+	if (slowColor != nullptr)
 		*slowColor = mtWorking._slowColor;
 	return _validData;
 }

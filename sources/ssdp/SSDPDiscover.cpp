@@ -14,7 +14,7 @@
 namespace {
 
 	// as per upnp spec 1.1, section 1.2.2.
-	const QString UPNP_DISCOVER_MESSAGE = "M-SEARCH * HTTP/1.1\r\n"
+	constexpr const char* UPNP_DISCOVER_MESSAGE = "M-SEARCH * HTTP/1.1\r\n"
 		"HOST: %1:%2\r\n"
 		"MAN: \"ssdp:discover\"\r\n"
 		"MX: %3\r\n"
@@ -24,7 +24,7 @@ namespace {
 
 SSDPDiscover::SSDPDiscover(QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("SSDPDISCOVER"))
+	, _log("SSDPDISCOVER")
 	, _udpSocket(new QUdpSocket(this))
 	, _ssdpAddr(DEFAULT_SEARCH_ADDRESS)
 	, _ssdpPort(DEFAULT_SEARCH_PORT)
@@ -52,7 +52,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 {
 	_searchTarget = st;
 	_services.clear();
-	Debug(_log, "Search for Service [%s], address [%s], port [%d]", QSTRING_CSTR(_searchTarget), QSTRING_CSTR(_ssdpAddr.toString()), _ssdpPort);
+	Debug(_log, "Search for Service [{:s}], address [{:s}], port [{:d}]", (_searchTarget), (_ssdpAddr.toString()), _ssdpPort);
 
 	// search
 	sendSearch(_searchTarget);
@@ -72,10 +72,9 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 
 				QString data(datagram);
 
-				//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
+				//Debug(_log, "_data: [{:s}]", (data));
 
-				QMap<QString, QString> headers;
-				QString address;
+				QMap<QString, QString> headers;				
 				// parse request
 
 				QStringList entries = data.split('\n', Qt::SkipEmptyParts);
@@ -106,10 +105,10 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 				{
 					_usnList << headers.value("usn");
 					QUrl url(headers.value("location"));
-					//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
+					//Debug(_log, "Received msearch response from '{:s}:{:d}'. Search target: {:s}",(sender.toString()), senderPort, (headers.value("st")));
 					if (type == searchType::STY_WEBSERVER)
 					{
-						Debug(_log, "Found service [%s] at: %s:%d", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), url.port());
+						Debug(_log, "Found service [{:s}] at: {:s}:{:d}", (st), (url.host()), url.port());
 
 						return url.host() + ":" + QString::number(url.port());
 					}
@@ -122,7 +121,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 						}
 						else
 						{
-							Debug(_log, "Found service [%s] at: %s:%s", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), QSTRING_CSTR(fbsport));
+							Debug(_log, "Found service [{:s}] at: {:s}:{:s}", (st), (url.host()), (fbsport));
 							return url.host() + ":" + fbsport;
 						}
 					}
@@ -135,7 +134,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 						}
 						else
 						{
-							Debug(_log, "Found service at: %s:%s", QSTRING_CSTR(url.host()), QSTRING_CSTR(jssport));
+							Debug(_log, "Found service at: {:s}:{:s}", (url.host()), (jssport));
 							return url.host() + ":" + jssport;
 						}
 					}
@@ -143,7 +142,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 			}
 		}
 	}
-	Debug(_log, "Search timeout, service [%s] not found", QSTRING_CSTR(st));
+	Debug(_log, "Search timeout, service [{:s}] not found", (st));
 	return QString();
 }
 
@@ -190,7 +189,7 @@ void SSDPDiscover::readPendingDatagrams()
 		if (headers.value("st") == _searchTarget)
 		{
 			_usnList << headers.value("usn");
-			//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
+			//Debug(_log, "Received msearch response from '{:s}:{:d}'. Search target: {:s}",(sender.toString()), senderPort, (headers.value("st")));
 			QUrl url(headers.value("location"));
 			emit newService(url.host() + ":" + QString::number(url.port()));
 		}
@@ -202,7 +201,7 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 	_searchTarget = searchTarget;
 	int rc = -1;
 
-	Debug(_log, "Search for Service [%s], address [%s], port [%d]", QSTRING_CSTR(_searchTarget), QSTRING_CSTR(_ssdpAddr.toString()), _ssdpPort);
+	Debug(_log, "Search for Service [{:s}], address [{:s}], port [{:d}]", (_searchTarget), (_ssdpAddr.toString()), _ssdpPort);
 
 	_services.clear();
 
@@ -225,7 +224,7 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 				QString data(datagram);
 
-				//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
+				//Debug(_log, "_data: [{:s}]", (data));
 
 				QMap<QString, QString> headers;
 				// parse request
@@ -248,8 +247,8 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 				QRegularExpressionMatch match = _regExFilter.match(headers[_filterHeader]);
 				if (match.hasMatch())
 				{
-					Debug(_log, "Found target [%s], plus record [%s] matches [%s:%s]", QSTRING_CSTR(_searchTarget), QSTRING_CSTR(headers[_filterHeader]), QSTRING_CSTR(_filterHeader), QSTRING_CSTR(_filter));
-					//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
+					Debug(_log, "Found target [{:s}], plus record [{:s}] matches [{:s}:{:s}]", (_searchTarget), (headers[_filterHeader]), (_filterHeader), (_filter));
+					//Debug(_log, "_data: [{:s}]", (data));
 
 					QString mapKey = headers[key];
 
@@ -284,13 +283,13 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 	if (_services.empty())
 	{
-		Debug(_log, "Search target [%s], no record(s) matching [%s:%s]", QSTRING_CSTR(_searchTarget), QSTRING_CSTR(_filterHeader), QSTRING_CSTR(_filter));
+		Debug(_log, "Search target [{:s}], no record(s) matching [{:s}:{:s}]", (_searchTarget), (_filterHeader), (_filter));
 		rc = 0;
 	}
 	else
 	{
 		rc = _services.size();
-		Debug(_log, " [%d] service record(s) found", rc);
+		Debug(_log, " [{:d}] service record(s) found", rc);
 	}
 	return rc;
 }
@@ -301,7 +300,7 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 
 	for (auto i = _services.begin(); i != _services.end(); ++i)
 	{
-		//Debug(_log, "Device discovered at [%s]", QSTRING_CSTR( i.key() ));
+		//Debug(_log, "Device discovered at [{:s}]", ( i.key() ));
 
 		QJsonObject obj;
 
@@ -362,7 +361,7 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 		result << obj;
 	}
 
-	//Debug(_log, "result: [%s]", QString(QJsonDocument(result).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	//Debug(_log, "result: [{:s}]", QString(QJsonDocument(result).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	return result;
 }
 
@@ -370,7 +369,7 @@ void SSDPDiscover::sendSearch(const QString& st)
 {
 	const QString msg = QString(UPNP_DISCOVER_MESSAGE).arg(_ssdpAddr.toString()).arg(_ssdpPort).arg(_ssdpMaxWaitResponseTime).arg(st);
 
-	//Debug(_log,"Search request: [%s]", QSTRING_CSTR(msg));
+	//Debug(_log,"Search request: [{:s}]", (msg));
 	_udpSocket->writeDatagram(msg.toUtf8(), _ssdpAddr, _ssdpPort);
 }
 
@@ -382,7 +381,7 @@ bool SSDPDiscover::setSearchFilter(const QString& filter, const QString& filterH
 		QString errorString = regEx.errorString();
 		int errorOffset = regEx.patternErrorOffset();
 
-		Error(_log, "Filtering regular expression [%s] error [%d]:[%s]", QSTRING_CSTR(filter), errorOffset, QSTRING_CSTR(errorString));
+		Error(_log, "Filtering regular expression [{:s}] error [{:d}]:[{:s}]", (filter), errorOffset, (errorString));
 		rc = false;
 	}
 	else

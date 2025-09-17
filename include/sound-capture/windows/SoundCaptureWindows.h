@@ -11,14 +11,14 @@ class WindowsSoundThread : public QThread
 	Q_OBJECT
 
 	std::atomic<bool> _exitNow{ false };
-	Logger* _logger;
+	LoggerName _logger;
 	QString _device;
 	SoundCapture* _parent;
 
 	void run() override;
 
 public:
-	WindowsSoundThread(Logger* logger, QString device, SoundCapture* parent);
+	WindowsSoundThread(LoggerName logger, QString device, SoundCapture* parent);
 	void exitNow();
 };
 

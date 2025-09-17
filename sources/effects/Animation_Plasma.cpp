@@ -56,7 +56,7 @@ EffectDefinition Animation_Plasma::getDefinition()
 
 
 double  mapto(double x, double  in_min, double  in_max, double out_min, double out_max) {
-	return double((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
+	return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
 }
 
 void Animation_Plasma::Init(

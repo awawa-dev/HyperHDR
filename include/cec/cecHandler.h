@@ -6,7 +6,7 @@
 	#include <iostream>
 #endif
 
-class Logger;
+#include <utils/Logger.h>
 
 class cecHandler : public QObject
 {
@@ -18,7 +18,7 @@ public:
 
 	bool start();
 	void stop();
-	Logger* _log;
+	LoggerName _log;
 
 signals:
 	void stateChange(bool enabled, QString info);

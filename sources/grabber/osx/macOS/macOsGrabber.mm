@@ -107,7 +107,7 @@ void macOsGrabber::uninit()
 	if (_initialized)
 	{		
 		stop();
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 
 	#ifdef MACOS_SCK
@@ -138,7 +138,7 @@ bool macOsGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -156,7 +156,7 @@ bool macOsGrabber::init()
 			{				
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -170,7 +170,7 @@ bool macOsGrabber::init()
 
 		
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting macOS grabber. Selected: '%s' max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _width, _height, _fps);
+		Info(_log, "Starting macOS grabber. Selected: '{:s}' max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");
 
 		_actualDisplay = _deviceProperties[foundDevice].valid.first().display;
@@ -198,7 +198,7 @@ void macOsGrabber::enumerateDevices(bool silent)
 
 	if (status != kCGErrorSuccess)
 	{
-		Error(_log, "Could not find any display (error: %d)", status);
+		Error(_log, "Could not find any display (error: {:d})", static_cast<int>(status));
 		return;
 	}
 
@@ -208,7 +208,7 @@ void macOsGrabber::enumerateDevices(bool silent)
 		QString id = QString("Display id: %1").arg(dID);
 
 		if (!silent)
-			Info(_log, "Found display: %s", QSTRING_CSTR(id));
+			Info(_log, "Found display: {:s}", (id));
 
 		DeviceProperties properties;
 		DevicePropertiesItem dpi;
@@ -234,7 +234,7 @@ bool macOsGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "start failed ({:s})", e.what());
 	}
 
 	return false;

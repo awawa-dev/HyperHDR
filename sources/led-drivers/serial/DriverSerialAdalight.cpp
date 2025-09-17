@@ -36,7 +36,7 @@ bool DriverSerialAdalight::init(QJsonObject deviceConfig)
 		CreateHeader();
 
 		if (_white_channel_calibration && _awa_mode)
-			Debug(_log, "White channel limit: %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+			Debug(_log, "White channel limit: {:d}, red: {:d}, green: {:d}, blue: {:d}", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
 
 		isInitOK = true;
 	}
@@ -79,7 +79,7 @@ void DriverSerialAdalight::CreateHeader()
 	qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 	_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
-	Debug(_log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,
+	Debug(_log, "Adalight header for {:d} leds: {:c}{:c}{:c} 0x%02x 0x%02x 0x%02x", _ledCount,
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
@@ -87,7 +87,7 @@ int DriverSerialAdalight::writeFiniteColors(const std::vector<ColorRgb>& ledValu
 {
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "Adalight led count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledValues.size());
+		Warning(_log, "Adalight led count has changed (old: {:d}, new: {:d}). Rebuilding header.", _ledCount, ledValues.size());
 		_ledCount = (uint)ledValues.size();
 		_ledRGBCount = _ledCount * 3;
 		CreateHeader();

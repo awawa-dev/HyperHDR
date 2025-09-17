@@ -1,0 +1,12 @@
+Checks=level1,level2,\
+container-inside-loop,\
+detaching-member,\
+inefficient-qlist,\
+missing-qobject-macro,\
+qstring-allocations,\
+qt4-qstring-from-array,\
+no-qstring-arg,\
+range-loop,\
+missing-type-info,\
+no-autodetect,\
+no-skipped-base-method

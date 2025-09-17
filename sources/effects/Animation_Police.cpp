@@ -99,18 +99,14 @@ bool Animation_Police::hasLedData(QVector<ColorRgb>& buffer)
 		{
 			for (int i = 0; i < increment; i++)
 			{
-				auto first = buffer.front();
-				buffer.erase(buffer.begin());
-				buffer.push_back(first);
+				buffer.push_back(buffer.takeFirst());
 			}
 		}
 		else
 		{
 			for (int i = 0; i < increment; i++)
 			{
-				auto last = buffer.back();
-				buffer.pop_back();
-				buffer.insert(buffer.begin(), last);
+				buffer.prepend(buffer.takeLast());
 			}
 		}
 

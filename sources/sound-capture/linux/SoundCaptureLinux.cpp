@@ -28,17 +28,17 @@
 #include <QSemaphore>
 #include <QString>
 #include <QTimer>
+#include <QByteArray>
 
-#include <stdio.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <climits>
 #include <cmath>
-#include <stdexcept>
-#include <iostream>
-#include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
+#include <iostream>
+#include <stdexcept>
+#include <unistd.h>
 
 #include <sound-capture/linux/SoundCaptureLinux.h>
 #include <utils/InternalClock.h>
@@ -54,7 +54,7 @@
 
 #define SOUNDCAPLINUX_BUF_LENP 10
 
-AlsaWorkerThread::AlsaWorkerThread(Logger* logger, QString device, SoundCapture* parent) :
+AlsaWorkerThread::AlsaWorkerThread(const LoggerName& logger, QString device, SoundCapture* parent) :
 	_logger(logger),
 	_device(device),
 	_parent(parent)
@@ -112,7 +112,7 @@ bool AlsaWorkerThread::initAlsaLib()
 	catch (std::exception& ex)
 	{
 		closeAlsaLib();
-		Error(_logger, "Loading Alsa failed: '%s'", ex.what());
+		Error(_logger, "Loading Alsa failed: '{:s}'", ex.what());
 		return false;
 	}
 
@@ -132,8 +132,10 @@ void AlsaWorkerThread::run(){
 	if (!initAlsaLib())
 		return;
 
-	if ((status = this->snd_pcm_open(&handle, QSTRING_CSTR(_device), SND_PCM_STREAM_CAPTURE, 0)) < 0) {
-		Error(_logger, "Cannot open input sound device '%s'. Error: '%s'", QSTRING_CSTR(_device), this->snd_strerror(status));
+	QByteArray deviceUtf8 = _device.toUtf8();
+
+	if ((status = this->snd_pcm_open(&handle, (deviceUtf8.constData()), SND_PCM_STREAM_CAPTURE, 0)) < 0) {
+		Error(_logger, "Cannot open input sound device '{:s}'. Error: '{:s}'", (_device), this->snd_strerror(status));
 
 		// clean-up
 		closeAlsaLib();
@@ -143,7 +145,7 @@ void AlsaWorkerThread::run(){
 	snd_pcm_hw_params_t* selected_hw_params = nullptr;
 
 	if ((status = this->snd_pcm_hw_params_malloc(&selected_hw_params)) < 0) {
-		Error(_logger, "Cannot allocate hardware parameter buffer: '%s'", this->snd_strerror(status));
+		Error(_logger, "Cannot allocate hardware parameter buffer: '{:s}'", this->snd_strerror(status));
 		this->snd_pcm_close(handle);
 
 		// clean-up
@@ -154,22 +156,22 @@ void AlsaWorkerThread::run(){
 	try
 	{
 		if ((status = this->snd_pcm_hw_params_any(handle, selected_hw_params)) < 0) {
-			Error(_logger, "Cannot set snd_pcm_hw_params_any: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params_any: '{:s}'", this->snd_strerror(status));
 			throw 1;
 		}
 
 		if ((status = this->snd_pcm_hw_params_set_access(handle, selected_hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-			Error(_logger, "Cannot set snd_pcm_hw_params_set_access: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params_set_access: '{:s}'", this->snd_strerror(status));
 			throw 2;
 		}
 
 		if ((status = this->snd_pcm_hw_params_set_format(handle, selected_hw_params, SND_PCM_FORMAT_S16_LE)) < 0) {
-			Error(_logger, "Cannot set snd_pcm_hw_params_set_format: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params_set_format: '{:s}'", this->snd_strerror(status));
 			throw 3;
 		}
 
-		if ((status = this->snd_pcm_hw_params_set_rate_near(handle, selected_hw_params, &exactRate, 0)) < 0) {
-			Error(_logger, "Cannot set snd_pcm_hw_params_set_rate_near: '%s'", this->snd_strerror(status));
+		if ((status = this->snd_pcm_hw_params_set_rate_near(handle, selected_hw_params, &exactRate, nullptr)) < 0) {
+			Error(_logger, "Cannot set snd_pcm_hw_params_set_rate_near: '{:s}'", this->snd_strerror(status));
 			throw 4;
 		}
 		else if (exactRate != 22050)
@@ -179,13 +181,13 @@ void AlsaWorkerThread::run(){
 		}
 
 		if ((status = this->snd_pcm_hw_params_set_channels(handle, selected_hw_params, 1)) < 0) {
-			Error(_logger, "Cannot set snd_pcm_hw_params_set_channels: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params_set_channels: '{:s}'", this->snd_strerror(status));
 			throw 6;
 		}
 
-		if ((status = this->snd_pcm_hw_params_set_period_size_near(handle, selected_hw_params, &periodSize, 0)) < 0)
+		if ((status = this->snd_pcm_hw_params_set_period_size_near(handle, selected_hw_params, &periodSize, nullptr)) < 0)
 		{
-			Error(_logger, "Cannot set snd_pcm_hw_params_set_period_size_near: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params_set_period_size_near: '{:s}'", this->snd_strerror(status));
 			throw 7;
 		}
 		else
@@ -195,24 +197,24 @@ void AlsaWorkerThread::run(){
 
 		if ((status = this->snd_pcm_hw_params_set_buffer_size_near(handle, selected_hw_params, &bufferSizeInBytes)) < 0)
 		{
-			Error(_logger, "Cannot set snd_pcm_hw_params_set_buffer_size_near: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params_set_buffer_size_near: '{:s}'", this->snd_strerror(status));
 			throw 8;
 		}
 		else
 			Info(_logger, "Sound buffer size = %lu", (unsigned long)bufferSizeInBytes);		
 
 		if ((status = this->snd_pcm_hw_params(handle, selected_hw_params)) < 0) {
-			Error(_logger, "Cannot set snd_pcm_hw_params: '%s'", this->snd_strerror(status));
+			Error(_logger, "Cannot set snd_pcm_hw_params: '{:s}'", this->snd_strerror(status));
 			throw 9;
 		}
 
 		if ((status = this->snd_pcm_state(handle)) != SND_PCM_STATE_PREPARED) {
-			Error(_logger, "Preparing device failed: '%s'", this->snd_strerror(status));
+			Error(_logger, "Preparing device failed: '{:s}'", this->snd_strerror(status));
 			throw 10;
 		}
 
 		if ((status = this->snd_pcm_start(handle)) < 0) {
-			Error(_logger, "ALSA start failed: '%s'", this->snd_strerror(status));
+			Error(_logger, "ALSA start failed: '{:s}'", this->snd_strerror(status));
 			throw 11;
 		}
 
@@ -238,7 +240,7 @@ void AlsaWorkerThread::run(){
 				_parent->analyzeSpectrum(soundBuffer.data(), SOUNDCAPLINUX_BUF_LENP);
 
 				if (!initialMessage)
-					Debug(_logger, "Got new audio frame: %lli bytes. Remains: %lli bytes", workingSizeSample, this->snd_pcm_avail_update(handle));
+					Debug(_logger, "Got new audio frame: {:d} bytes. Remains: {:d} bytes", workingSizeSample, this->snd_pcm_avail_update(handle));
 				initialMessage = true;
 			}
 			else if (!_exitNow)
@@ -250,21 +252,21 @@ void AlsaWorkerThread::run(){
 			retVal = this->snd_pcm_prepare(handle);
 			if (retVal < 0)
 			{
-				Error(_logger, "Could not recover from EPIPE: %s. Sound capturing thread is exiting now.", this->snd_strerror(retVal));
+				Error(_logger, "Could not recover from EPIPE: {:s}. Sound capturing thread is exiting now.", this->snd_strerror(retVal));
 				break;
 			}
 
 			snd_pcm_state_t state = this->snd_pcm_state(handle);
-			Warning(_logger, "EPIPE detected. Current state: %i", state);
+			Warning(_logger, "EPIPE detected. Current state: {:d}", static_cast<int>(state));
 
 			if ((status = this->snd_pcm_start(handle)) < 0) {
-				Error(_logger, "ALSA restart after EPIPE failed: '%s'", this->snd_strerror(status));
+				Error(_logger, "ALSA restart after EPIPE failed: '{:s}'", this->snd_strerror(status));
 				break;
 			}
 		}
 		else if (retVal < 0)
 		{
-			Error(_logger, "Critical error detected: %s. Sound capturing thread is exiting now.", this->snd_strerror(retVal));
+			Error(_logger, "Critical error detected: {:s}. Sound capturing thread is exiting now.", this->snd_strerror(retVal));
 			break;
 		}
 	}
@@ -314,7 +316,7 @@ bool SoundCaptureLinux::initAlsaLib()
 	catch (std::exception& ex)
 	{
 		closeAlsaLib();
-		Error(_logger, "Loading Alsa failed: '%s'", ex.what());
+		Error(_logger, "Loading Alsa failed: '{:s}'", ex.what());
 		return false;
 	}
 
@@ -332,7 +334,7 @@ void SoundCaptureLinux::listDevices()
 	int status = this->snd_device_name_hint(-1, "pcm", (void***)&devices);
 	if (status != 0)
 	{
-		Error(_logger, "Could not find sound devices for enumerating (%d)", status);
+		Error(_logger, "Could not find sound devices for enumerating ({:d})", status);
 
 		// clean-up
 		closeAlsaLib();
@@ -340,7 +342,7 @@ void SoundCaptureLinux::listDevices()
 	}
 
 	device = devices;
-	while (*device != NULL)
+	while (*device != nullptr)
 	{
 		char *name = this->snd_device_name_get_hint(*device, "NAME");
 
@@ -349,7 +351,7 @@ void SoundCaptureLinux::listDevices()
 			char* desc = this->snd_device_name_get_hint(*device, "DESC");
 			char* ioid = this->snd_device_name_get_hint(*device, "IOID");
 
-			if (ioid == NULL || std::strcmp(ioid, "Output") != 0)
+			if (ioid == nullptr || std::strcmp(ioid, "Output") != 0)
 			{
 				_availableDevices.append(QString(name) + " | " + QString(desc) + " | " + QString(ioid));
 			}
@@ -378,16 +380,16 @@ void SoundCaptureLinux::start()
 	{	
 		QStringList deviceList = _selectedDevice.split('|');
 		
-		if (deviceList.size() == 0)
+		if (deviceList.empty())
 		{
-			Error(_logger, "Invalid device name: %s", QSTRING_CSTR(_selectedDevice));
+			Error(_logger, "Invalid device name: {:s}", (_selectedDevice));
 		}
 		
 		QString device = deviceList.at(0).trimmed();
 		_normalizedName = _selectedDevice;
 		auto it = std::remove_if(_normalizedName.begin(), _normalizedName.end(), [](const QChar& c) { return !c.isLetterOrNumber() && c!=' ' && c!=':' && c!='=' && c!='|' && c!='.'; });
 		_normalizedName.chop(std::distance(it, _normalizedName.end()));
-		Info(_logger, "Opening device: %s", QSTRING_CSTR(_normalizedName));		
+		Info(_logger, "Opening device: {:s}", (_normalizedName));		
 
 		_isRunning = true;
 
@@ -408,7 +410,7 @@ void SoundCaptureLinux::stopDevice()
 	if (!_isRunning)
 		return;
 
-	Info(_logger, "Closing hardware sound driver: '%s'", QSTRING_CSTR(_normalizedName));
+	Info(_logger, "Closing hardware sound driver: '{:s}'", (_normalizedName));
 
 	_isRunning = false;
 

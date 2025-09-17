@@ -4,7 +4,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/osx/AVF)
 
 FILE ( GLOB AVF_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" "${CURRENT_SOURCE_DIR}/*.mm" )
 
-add_library(AVF-grabber OBJECT ${AVF_SOURCES} )
+add_library(AVF-grabber OBJECT ${AVF_SOURCES} "${CMAKE_SOURCE_DIR}/include/grabber/GrabberWorker.h" "${CMAKE_SOURCE_DIR}/sources/grabber/GrabberWorker.cpp" )
 
 target_link_libraries(AVF-grabber
 	Qt${Qt_VERSION}::Core

@@ -36,8 +36,8 @@ using namespace linalg::aliases;
 CoreInfiniteEngine::CoreInfiniteEngine(HyperHdrInstance* hyperhdr)
 	: QObject(),
 	_smoothing(std::make_unique<InfiniteSmoothing>(hyperhdr->getSetting(settings::type::SMOOTHING), hyperhdr)),
-	_processing(std::make_unique<InfiniteProcessing>(hyperhdr->getSetting(settings::type::COLOR), Logger::getInstance(QString("COLORS%1").arg(hyperhdr->getInstanceIndex())))),
-	_log(Logger::getInstance(QString("ENGINE%1").arg(hyperhdr->getInstanceIndex())))
+	_processing(std::make_unique<InfiniteProcessing>(hyperhdr->getSetting(settings::type::COLOR), QString("COLORS%1").arg(hyperhdr->getInstanceIndex()))),
+	_log(QString("ENGINE%1").arg(hyperhdr->getInstanceIndex()))
 {
 	qRegisterMetaType<SharedOutputColors>("SharedOutputColors");
 	connect(hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, _smoothing.get(), &InfiniteSmoothing::handleSignalInstanceSettingsChanged);

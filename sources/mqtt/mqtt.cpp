@@ -12,8 +12,8 @@
 #include <utils/GlobalSignals.h>
 
 // default param %1 is 'HyperHDR', do not edit templates here
-const static QString TEMPLATE_HYPERHDRAPI = QStringLiteral("%1/JsonAPI");
-const static QString TEMPLATE_HYPERHDRAPI_RESPONSE = QStringLiteral("%1/JsonAPI/response");
+constexpr const char* TEMPLATE_HYPERHDRAPI = "%1/JsonAPI";
+constexpr const char* TEMPLATE_HYPERHDRAPI_RESPONSE = "%1/JsonAPI/response";
 
 mqtt::mqtt(const QJsonDocument& mqttConfig)
 	: QObject()
@@ -26,7 +26,7 @@ mqtt::mqtt(const QJsonDocument& mqttConfig)
 	, _retryTimer(nullptr)
 	, _initialized(false)
 	, _disableApiAccess(false)
-	, _log(Logger::getInstance("MQTT"))
+	, _log("MQTT")
 	, _clientInstance(nullptr)
 {
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalMqttLastWill, this, &mqtt::handleSignalMqttLastWill, Qt::UniqueConnection);
@@ -50,12 +50,12 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 	HYPERHDRAPI = QString(TEMPLATE_HYPERHDRAPI).arg(customTopic);
 	HYPERHDRAPI_RESPONSE = QString(TEMPLATE_HYPERHDRAPI_RESPONSE).arg(customTopic);
 
-	Debug(_log, "Starting the MQTT connection. Address: %s:%i. Protocol: %s. Authentication: %s, Ignore errors: %s",
-		QSTRING_CSTR(host), port, (is_ssl) ? "SSL" : "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
+	Debug(_log, "Starting the MQTT connection. Address: {:s}:{:d}. Protocol: {:s}. Authentication: {:s}, Ignore errors: {:s}",
+		(host), port, (is_ssl) ? "SSL" : "NO SSL", (!username.isEmpty() || !password.isEmpty()) ? "YES" : "NO", (ignore_ssl_errors) ? "YES" : "NO");
 
 	if (!_disableApiAccess)
 	{
-		Debug(_log, "MQTT topic: %s, MQTT response: %s", QSTRING_CSTR(HYPERHDRAPI), QSTRING_CSTR(HYPERHDRAPI_RESPONSE));
+		Debug(_log, "MQTT topic: {:s}, MQTT response: {:s}", (HYPERHDRAPI), (HYPERHDRAPI_RESPONSE));
 	}
 	else
 	{
@@ -69,8 +69,11 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 		Debug(_log, "The search for the name translated to the IP address has started...");
 		QHostInfo info = QHostInfo::fromName(host);
 		if (!info.addresses().isEmpty())
-			address = info.addresses().first();
-		Debug(_log, "The search for IP has finished: %s => %s", QSTRING_CSTR(host), QSTRING_CSTR(address.toString()));
+		{
+			const auto infoAdr = info.addresses();
+			address = infoAdr.first();
+		}
+		Debug(_log, "The search for IP has finished: {:s} => {:s}", (host), (address.toString()));
 	}
 	
 	if (is_ssl)
@@ -196,7 +199,7 @@ void mqtt::error(const QMQTT::ClientError error)
 		case(QMQTT::ClientError::MqttNotAuthorizedError): message = "MqttNotAuthorizedError"; break;
 		case(QMQTT::ClientError::MqttNoPingResponse): message = "MqttNoPingResponse"; break;
 	}
-	Error(_log, "Error: %s", QSTRING_CSTR(message));
+	Error(_log, "Error: {:s}", (message));
 
 	initRetry();
 }
@@ -206,7 +209,7 @@ void mqtt::initRetry()
 	if (_maxRetry > 0 && _retryTimer == nullptr)
 	{
 		int intervalSec = 10;
-		Debug(_log, "Prepare to retry in %i seconds (limit: %i)", intervalSec, _maxRetry);
+		Debug(_log, "Prepare to retry in {:d} seconds (limit: {:d})", intervalSec, _maxRetry);
 		_currentRetry = 0;
 		_retryTimer = new QTimer(this);
 		_retryTimer->setInterval(intervalSec * 1000);
@@ -220,7 +223,7 @@ void mqtt::initRetry()
 			}
 			else
 			{
-				Debug(_log, "Retrying %i/%i", _currentRetry, _maxRetry);
+				Debug(_log, "Retrying {:d}/{:d}", _currentRetry, _maxRetry);
 				_clientInstance->connectToHost();
 			}
 		});
@@ -333,7 +336,7 @@ void mqtt::received(const QMQTT::Message& message)
 			executeJson("MQTT", doc, resJson);
 
 			QString returnPayload = resJson.toJson(QJsonDocument::Compact);
-			Debug(_log, "JSON result: %s", QSTRING_CSTR(returnPayload));
+			Debug(_log, "JSON result: {:s}", (returnPayload));
 			result.setPayload(returnPayload.toUtf8());
 		}		
 		_clientInstance->publish(result);		
@@ -370,7 +373,7 @@ void mqtt::handleSignalMqttLastWill(QString id, QStringList pairs)
 	{
 		_lastWill.erase(id);
 	}
-	else if (_lastWill.size() > 0)
+	else if (!_lastWill.empty())
 	{
 		for (const auto& current : _lastWill)
 			for (auto item = current.second.begin(); item != current.second.end(); ++item)

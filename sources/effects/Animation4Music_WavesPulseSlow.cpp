@@ -72,7 +72,7 @@ bool Animation4Music_WavesPulseSlow::getImage(Image<ColorRgb>& newImage)
 
 	newImage.clear();
 
-	if (!r->GetStats(average, maxSingle, empty, NULL, &selected))
+	if (!r->GetStats(average, maxSingle, empty, nullptr, &selected))
 		return false;
 
 	//r->RestoreFullLum(selected);
@@ -95,7 +95,7 @@ bool Animation4Music_WavesPulseSlow::getImage(Image<ColorRgb>& newImage)
 		}
 		else
 		{
-			w2 = std::min((int)((y * (_buffer.size() - 1)) % (scaleY / 2)) * 100 / (scaleY / 2), (int)100);
+			w2 = std::min((int)((y * (_buffer.size() - 1)) % (scaleY / 2)) * 100 / (scaleY / 2), 100);
 			w1 = 100 - w2;
 		}
 		selected = ColorRgb(
@@ -128,7 +128,7 @@ bool Animation4Music_WavesPulseSlow::getImage(Image<ColorRgb>& newImage)
 		}
 		else
 		{
-			we2 = std::min((int)((x * (_buffer.size() - 1)) % (scaleX / 2)) * 100 / (scaleX / 2), (int)100);
+			we2 = std::min((int)((x * (_buffer.size() - 1)) % (scaleX / 2)) * 100 / (scaleX / 2), 100);
 			we1 = 100 - we2;
 		}
 		selected = ColorRgb(

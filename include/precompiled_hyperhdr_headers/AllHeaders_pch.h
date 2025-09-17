@@ -65,5 +65,25 @@
 	#include <stdexcept>
 	#include <utility>
 	#include <vector>
+	#include <iomanip>
+	#include <optional>
+	#include <type_traits>
+
+	#if __has_include(<format>)
+		#include <format>
+		#if !(defined(__cpp_lib_format) && ( !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 130300) ))
+			#if defined(__APPLE__)
+				#warning "********** Warning: <format> found, but C++20 features incomplete/disabled. Falling back to basic logging. **********"
+			#else
+				#pragma message("********** Warning: <format> found, but C++20 features incomplete/disabled. Falling back to basic logging. **********")
+			#endif
+		#endif
+	#else
+		#if defined(__APPLE__)
+			#warning "********** Warning: <format> header not found. Falling back to basic logging. **********"
+		#else
+			#pragma message("********** Warning: <format> header not found. Falling back to basic logging. **********")
+		#endif
+	#endif
 
 #endif // PCH_ENABLED

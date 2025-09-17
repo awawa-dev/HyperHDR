@@ -12,8 +12,8 @@ namespace FileUtils {
 
 	QString getBaseName(const QString& sourceFile);
 
-	bool fileExists(const QString& path, Logger* log, bool ignError = false);
-	bool readFile(const QString& path, QString& data, Logger* log, bool ignError = false);
-	bool writeFile(const QString& path, const QByteArray& data, Logger* log);
-	void resolveFileError(const QFile& file, Logger* log);
+	bool fileExists(const QString& path, const LoggerName& log, bool ignError = false);
+	bool readFile(const QString& path, QString& data, const LoggerName& log, bool ignError = false);
+	bool writeFile(const QString& path, const QByteArray& data, const LoggerName& log);
+	void resolveFileError(const QFile& file, const LoggerName& log);
 }

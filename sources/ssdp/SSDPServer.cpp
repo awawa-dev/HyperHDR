@@ -6,76 +6,76 @@
 #include <QUdpSocket>
 #include <QDateTime>
 
-static const QHostAddress SSDP_ADDR("239.255.255.250");
-static const quint16      SSDP_PORT(1900);
-static const QString      SSDP_MAX_AGE("1800");
+namespace {
+	constexpr const char* SSDP_IP = "239.255.255.250";
+	constexpr quint16     SSDP_PORT(1900);
+	constexpr const char* SSDP_MAX_AGE = "1800";
 
-// as per upnp spec 1.1, section 1.2.2.
-//  - BOOTID.UPNP.ORG
-//  - CONFIGID.UPNP.ORG
-//  - SEARCHPORT.UPNP.ORG (optional)
-// TODO: Make IP and port below another #define and replace message below
-static const QString UPNP_ALIVE_MESSAGE =	"NOTIFY * HTTP/1.1\r\n"
-											"HOST: 239.255.255.250:1900\r\n"
-											"CACHE-CONTROL: max-age=%1\r\n"
-											"LOCATION: %2\r\n"
-											"NT: %3\r\n"
-											"NTS: ssdp:alive\r\n"
-											"SERVER: %4\r\n"
-											"USN: uuid:%5\r\n"
-											"HYPERHDR-FBS-PORT: %6\r\n"
-											"HYPERHDR-JSS-PORT: %7\r\n"
-											"HYPERHDR-NAME: %8\r\n"
-											"\r\n";
 
-// Implement ssdp:update as per spec 1.1, section 1.2.4
-// and use the below define to build the message, where
-// SEARCHPORT.UPNP.ORG are optional.
-// TODO: Make IP and port below another #define and replace message below
-static const QString UPNP_UPDATE_MESSAGE =	"NOTIFY * HTTP/1.1\r\n"
-											"HOST: 239.255.255.250:1900\r\n"
-											"LOCATION: %1\r\n"
-											"NT: %2\r\n"
-											"NTS: ssdp:update\r\n"
-											"USN: uuid:%3\r\n"
-/*                                         "CONFIGID.UPNP.ORG: %4\r\n"
-UPNP spec = 1.1                            "NEXTBOOTID.UPNP.ORG: %5\r\n"
-										   "SEARCHPORT.UPNP.ORG: %6\r\n"
-*/                                         "\r\n";
+	// as per upnp spec 1.1, section 1.2.2.
+	//  - BOOTID.UPNP.ORG
+	//  - CONFIGID.UPNP.ORG
+	//  - SEARCHPORT.UPNP.ORG (optional)
+	// TODO: Make IP and port below another #define and replace message below
+	constexpr const char* UPNP_ALIVE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
+												"HOST: 239.255.255.250:1900\r\n"
+												"CACHE-CONTROL: max-age=%1\r\n"
+												"LOCATION: %2\r\n"
+												"NT: %3\r\n"
+												"NTS: ssdp:alive\r\n"
+												"SERVER: %4\r\n"
+												"USN: uuid:%5\r\n"
+												"HYPERHDR-FBS-PORT: %6\r\n"
+												"HYPERHDR-JSS-PORT: %7\r\n"
+												"HYPERHDR-NAME: %8\r\n"
+												"\r\n";
 
-// TODO: Add this two fields commented below in the BYEBYE MESSAGE
-// as per upnp spec 1.1, section 1.2.2 and 1.2.3.
-//  - BOOTID.UPNP.ORG
-//  - CONFIGID.UPNP.ORG
-// TODO: Make IP and port below another #define and replace message below
-static const QString UPNP_BYEBYE_MESSAGE =	"NOTIFY * HTTP/1.1\r\n"
-											"HOST: 239.255.255.250:1900\r\n"
-											"NT: %1\r\n"
-											"NTS: ssdp:byebye\r\n"
-											"USN: uuid:%2\r\n"
-											"\r\n";
+	// Implement ssdp:update as per spec 1.1, section 1.2.4
+	// and use the below define to build the message, where
+	// SEARCHPORT.UPNP.ORG are optional.
+	// TODO: Make IP and port below another #define and replace message below
+	constexpr const char* UPNP_UPDATE_MESSAGE =	"NOTIFY * HTTP/1.1\r\n"
+												"HOST: 239.255.255.250:1900\r\n"
+												"LOCATION: %1\r\n"
+												"NT: %2\r\n"
+												"NTS: ssdp:update\r\n"
+												"USN: uuid:%3\r\n"
+												"\r\n";
 
-// TODO: Add this three fields commented below in the MSEARCH_RESPONSE
-// as per upnp spec 1.1, section 1.3.3.
-//  - BOOTID.UPNP.ORG
-//  - CONFIGID.UPNP.ORG
-//  - SEARCHPORT.UPNP.ORG (optional)
-static const QString UPNP_MSEARCH_RESPONSE ="HTTP/1.1 200 OK\r\n"
-											"CACHE-CONTROL: max-age = %1\r\n"
-											"DATE: %2\r\n"
-											"EXT: \r\n"
-											"LOCATION: %3\r\n"
-											"SERVER: %4\r\n"
-											"ST: %5\r\n"
-											"USN: uuid:%6\r\n"
-											"HYPERHDR-FBS-PORT: %7\r\n"
-											"HYPERHDR-JSS-PORT: %8\r\n"
-											"HYPERHDR-NAME: %9\r\n"
-											"\r\n";
+	// TODO: Add this two fields commented below in the BYEBYE MESSAGE
+	// as per upnp spec 1.1, section 1.2.2 and 1.2.3.
+	//  - BOOTID.UPNP.ORG
+	//  - CONFIGID.UPNP.ORG
+	// TODO: Make IP and port below another #define and replace message below
+	constexpr const char* UPNP_BYEBYE_MESSAGE =	"NOTIFY * HTTP/1.1\r\n"
+												"HOST: 239.255.255.250:1900\r\n"
+												"NT: %1\r\n"
+												"NTS: ssdp:byebye\r\n"
+												"USN: uuid:%2\r\n"
+												"\r\n";
+
+	// TODO: Add this three fields commented below in the MSEARCH_RESPONSE
+	// as per upnp spec 1.1, section 1.3.3.
+	//  - BOOTID.UPNP.ORG
+	//  - CONFIGID.UPNP.ORG
+	//  - SEARCHPORT.UPNP.ORG (optional)
+	constexpr const char* UPNP_MSEARCH_RESPONSE ="HTTP/1.1 200 OK\r\n"
+												"CACHE-CONTROL: max-age = %1\r\n"
+												"DATE: %2\r\n"
+												"EXT: \r\n"
+												"LOCATION: %3\r\n"
+												"SERVER: %4\r\n"
+												"ST: %5\r\n"
+												"USN: uuid:%6\r\n"
+												"HYPERHDR-FBS-PORT: %7\r\n"
+												"HYPERHDR-JSS-PORT: %8\r\n"
+												"HYPERHDR-NAME: %9\r\n"
+												"\r\n";
+}
 
 SSDPServer::SSDPServer(QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("SSDP"))
+	, _log("SSDP")
 	, _udpSocket(nullptr)
 	, _running(false)
 {
@@ -107,7 +107,7 @@ bool SSDPServer::start()
 	Info(_log, "Starting the SSDP server");
 	if (!_running && _udpSocket->bind(QHostAddress::AnyIPv4, SSDP_PORT, QAbstractSocket::ShareAddress))
 	{
-		_udpSocket->joinMulticastGroup(SSDP_ADDR);
+		_udpSocket->joinMulticastGroup(QHostAddress(SSDP_IP));
 		_running = true;
 		return true;
 	}
@@ -160,7 +160,6 @@ void SSDPServer::readPendingDatagrams()
 
 		if (headers.value("man") == "\"ssdp:discover\"")
 		{
-			//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
 		}
 	}
@@ -168,7 +167,7 @@ void SSDPServer::readPendingDatagrams()
 
 void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp, quint16 senderPort)
 {
-	QString message = UPNP_MSEARCH_RESPONSE.arg(SSDP_MAX_AGE
+	QString message = QString(UPNP_MSEARCH_RESPONSE).arg(SSDP_MAX_AGE
 		, QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy HH:mm:ss GMT")
 		, _descAddress
 		, _serverHeader
@@ -183,12 +182,12 @@ void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp,
 
 void SSDPServer::sendByeBye(const QString& st)
 {
-	QString message = UPNP_BYEBYE_MESSAGE.arg(st, _uuid + "::" + st);
+	QString message = QString(UPNP_BYEBYE_MESSAGE).arg(st, _uuid + "::" + st);
 
 	// we repeat 3 times
 	quint8 rep = 0;
 	while (rep++ < 3) {
-		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
+		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_IP), SSDP_PORT);
 	}
 }
 
@@ -196,7 +195,7 @@ void SSDPServer::sendAlive(const QString& st)
 {
 	const QString tempUSN = (st == "upnp:rootdevice ") ? _uuid + "::" + st : _uuid;
 
-	QString message = UPNP_ALIVE_MESSAGE.arg(SSDP_MAX_AGE
+	QString message = QString(UPNP_ALIVE_MESSAGE).arg(SSDP_MAX_AGE
 		, _descAddress
 		, st
 		, _serverHeader
@@ -208,17 +207,17 @@ void SSDPServer::sendAlive(const QString& st)
 	// we repeat 3 times
 	quint8 rep = 0;
 	while (rep++ < 3) {
-		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
+		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_IP), SSDP_PORT);
 	}
 }
 
 void SSDPServer::sendUpdate(const QString& st)
 {
-	QString message = UPNP_UPDATE_MESSAGE.arg(_descAddress
+	QString message = QString(UPNP_UPDATE_MESSAGE).arg(_descAddress
 		, st
 		, _uuid + "::" + st);
 
-	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
+	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_IP), SSDP_PORT);
 }
 
 void SSDPServer::setDescriptionAddress(const QString& addr)

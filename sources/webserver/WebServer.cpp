@@ -1,12 +1,11 @@
-#include <QTcpSocket>
+#include <QDateTime>
+#include <QFileInfo>
+#include <QJsonObject>
 #include <QSslCertificate>
 #include <QSslKey>
 #include <QSslSocket>
 #include <QTcpServer>
-#include <QFileInfo>
-#include <QJsonObject>
-#include <QTcpServer>
-#include <QDateTime>
+#include <QTcpSocket>
 
 #include "QtHttpRequest.h"
 #include "webserver/WebServer.h"
@@ -36,7 +35,7 @@ WebServer::WebServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& 
 	, _port(0)
 	, _config(config)
 	, _useSsl(useSsl)
-	, _log(Logger::getInstance("WEBSERVER"))
+	, _log("WEBSERVER")
 	, _server(nullptr)
 	, _netOrigin(netOrigin)
 {
@@ -102,7 +101,7 @@ void WebServer::onInitRequestNeedsReply(QtHttpRequest* request, QtHttpReply* rep
 
 void WebServer::onServerStarted(quint16 port)
 {
-	Info(_log, "Started: '%s' on port: %d", QSTRING_CSTR(_server->getServerName()), port);
+	Info(_log, "Started: '{:s}' on port: {:d}", (_server->getServerName()), port);
 
 #ifdef ENABLE_BONJOUR
 	if (!_useSsl)
@@ -139,14 +138,14 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 			QFileInfo info(_baseUrl);
 			if (!info.exists() || !info.isDir())
 			{
-				Error(_log, "Document_root '%s' is invalid", QSTRING_CSTR(_baseUrl));
+				Error(_log, "Document_root '{:s}' is invalid", (_baseUrl));
 				_baseUrl = WEBSERVER_DEFAULT_PATH;
 			}
 		}
 		else
 			_baseUrl = WEBSERVER_DEFAULT_PATH;
 
-		Info(_log, "Set document root to: %s", QSTRING_CSTR(_baseUrl));
+		Info(_log, "Set document root to: {:s}", (_baseUrl));
 		FileServer::setBaseUrl(_baseUrl);
 
 		// ssl different port
@@ -168,7 +167,6 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 			QString crtPath = obj["crtPath"].toString(WEBSERVER_DEFAULT_CRT_PATH);
 
 			QSslKey currKey = _server->getPrivateKey();
-			QList<QSslCertificate> currCerts = _server->getCertificates();
 
 			// check keyPath
 			if ((keyPath != WEBSERVER_DEFAULT_KEY_PATH) && !keyPath.trimmed().isEmpty())
@@ -176,7 +174,7 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				QFileInfo kinfo(keyPath);
 				if (!kinfo.exists())
 				{
-					Error(_log, "No SSL key found at '%s' falling back to internal", QSTRING_CSTR(keyPath));
+					Error(_log, "No SSL key found at '{:s}' falling back to internal", (keyPath));
 					keyPath = WEBSERVER_DEFAULT_KEY_PATH;
 				}
 			}
@@ -189,7 +187,7 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				QFileInfo cinfo(crtPath);
 				if (!cinfo.exists())
 				{
-					Error(_log, "No SSL certificate found at '%s' falling back to internal", QSTRING_CSTR(crtPath));
+					Error(_log, "No SSL certificate found at '{:s}' falling back to internal", (crtPath));
 					crtPath = WEBSERVER_DEFAULT_CRT_PATH;
 				}
 			}
@@ -209,7 +207,7 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				if (!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
 					validList.append(entry);
 				else
-					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('%s')", QSTRING_CSTR(crtPath));
+					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('{:s}')", (crtPath));
 			}
 
 			if (!validList.isEmpty())
@@ -218,7 +216,7 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				_server->setCertificates(validList);
 			}
 			else {
-				Error(_log, "No valid SSL certificate has been found ('%s'). Did you install OpenSSL?", QSTRING_CSTR(crtPath));
+				Error(_log, "No valid SSL certificate has been found ('{:s}'). Did you install OpenSSL?", (crtPath));
 			}
 
 			// load and verify key
@@ -230,7 +228,7 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 
 			if (key.isNull())
 			{
-				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('%s')", QSTRING_CSTR(keyPath));
+				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('{:s}')", (keyPath));
 			}
 			else
 			{
@@ -244,19 +242,19 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 	}
 }
 
-bool WebServer::portAvailable(quint16& port, Logger* log)
+bool WebServer::portAvailable(quint16& port, const LoggerName& log)
 {
 	const quint16 prevPort = port;
 	QTcpServer server;
 	while (!server.listen(QHostAddress::Any, port))
 	{
-		Warning(log, "Port '%d' is already in use, will increment", port);
+		Warning(log, "Port '{:d}' is already in use, will increment", port);
 		port++;
 	}
 	server.close();
 	if (port != prevPort)
 	{
-		Warning(log, "The requested Port '%d' was already in use, will use Port '%d' instead", prevPort, port);
+		Warning(log, "The requested Port '{:d}' was already in use, will use Port '{:d}' instead", prevPort, port);
 		return false;
 	}
 	return true;
@@ -269,12 +267,12 @@ void WebServer::setSsdpXmlDesc(const QString& desc)
 
 void WebServer::onServerError(QString msg)
 {
-	Error(_log, "%s", QSTRING_CSTR(msg));
+	Error(_log, "{:s}", (msg));
 }
 
 void WebServer::onServerStopped()
 {
-	Info(_log, "Stopped: %s", QSTRING_CSTR(_server->getServerName()));
+	Info(_log, "Stopped: {:s}", (_server->getServerName()));
 	emit stateChange(false);
 }
 

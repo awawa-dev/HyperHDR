@@ -243,7 +243,7 @@ protected:
 	bool _enabled;
 
 	/// logger instance
-	Logger* _log;
+	LoggerName _log;
 
 	// statistics
 	struct {

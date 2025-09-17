@@ -42,7 +42,7 @@
 RawUdpServer::RawUdpServer(HyperHdrInstance* ownerInstance, const QJsonDocument& config)
 	: QObject(ownerInstance)
 	, _server(new QUdpSocket(this))
-	, _log(Logger::getInstance("RAW_UDP_SERVER"))
+	, _log("RAW_UDP_SERVER")
 	, _port(0)
 	, _priority(0)
 	, _initialized(false)
@@ -151,13 +151,13 @@ void RawUdpServer::startServer()
 	{
 		if (!_server->bind(QHostAddress::Any, _port))
 		{
-			Error(_log, "Failed to bind port %d", _port);
+			Error(_log, "Failed to bind port {:d}", _port);
 		}
 		else
 		{
 			_initialized = true;
 
-			Info(_log, "Started on port %d. Using network interface: %s", _server->localPort(), QSTRING_CSTR(_server->localAddress().toString()));
+			Info(_log, "Started on port {:d}. Using network interface: {:s}", _server->localPort(), (_server->localAddress().toString()));
 		}
 	}
 }

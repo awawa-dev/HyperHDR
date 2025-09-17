@@ -321,12 +321,12 @@ jobs:
 
       - name: Run clazy
         run: |
-          jq -r '.[] | select((.file | type=="string") and (.file | test("^(external/|_deps/)") | not)) | .file' build/compile_commands.json | xargs clazy-standalone -p build -- > clazy-report.txt 2>&1 || true
+          jq -r '.[] | .file' build/compile_commands.json | tr '\n' '\0' | xargs -0 clazy-standalone -p build -ignore-dirs "/external/|_deps/" 2>&1 | sed "/warning: argument unused during compilation: '-fuse-ld=gold'/d; /\[-Wclazy-const-signal-or-slot\]/,/^[[:space:]]*\^/d; /\[-Wclazy-qstring-arg\]/,/^[[:space:]]*\^/d; /\[-Wclazy-skipped-base-method\]/,/^[[:space:]]*\^/d" | sed '/^In file included from/d; /^[0-9]\+ warning.* generated\./d' > clazy-report.txt || true
 
       - name: Run clang-tidy
         run: |
-          jq -r '.[] | select(.file | test("external/") | not and test("_deps/") | not) | .file' build/compile_commands.json | xargs run-clang-tidy -p build > clang-tidy-report.txt || true
-
+          jq -r '.[] | select(.file | test("external/|_deps/|/mocs_") | not) | .file' build/compile_commands.json | xargs run-clang-tidy -p build -quiet | awk 'BEGIN{b=""}/: warning:/{if(b!=""&&!s)printf"%s",b;b="";s=0;c=$0~/(pass-by-value|value-param)/;l="";nx=0}{b=b$0"\n";if(c){if(nx){if(substr($0,idx)~/^Q[A-Z][a-zA-Z0-9]*/)s=1;nx=0}if($0~/^[ \t]*\|?[ \t]*\^/){idx=index($0,"^");if(substr(l,idx)~/^(const[ \t]+)?Q[A-Z][a-zA-Z0-9]*/)s=1;nx=1}if($0~/^[ \t]*[0-9]+ \|/)l=$0}}END{if(b!=""&&!s)printf"%s",b}' > clang-tidy-report.txt || true
+#          jq -r '.[] | select(.file | test("external/|_deps/|autogen|mocs_|qrc_") | not) | .file' build/compile_commands.json | xargs run-clang-tidy -p build -quiet -config="$(cat .clang-tidy-fix)" -fix > clang-tidy-fix.log 2>&1 || true
       - name: Combine reports
         run: |
           echo "### Clang-Tidy Report" > report.md

@@ -29,20 +29,20 @@ bool DriverNetWled::init(QJsonObject deviceConfig)
 	{
 		// Initialise LedDevice configuration and execution environment
 		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType     : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount       : %d", configuredLedCount);
+		Debug(_log, "DeviceType     : {:s}", (this->getActiveDeviceType()));
+		Debug(_log, "LedCount       : {:d}", configuredLedCount);
 
 		_overrideBrightness = deviceConfig["brightnessMax"].toBool(true);
-		Debug(_log, "Override brightness : %s", (_overrideBrightness) ? "true" : "false");
+		Debug(_log, "Override brightness : {:s}", (_overrideBrightness) ? "true" : "false");
 		
 		_brightnessLevel = deviceConfig["brightnessMaxLevel"].toInt(255);
-		Debug(_log, "Set brightness level: %i", _brightnessLevel);
+		Debug(_log, "Set brightness level: {:d}", _brightnessLevel);
 
 		_restoreConfig = deviceConfig["restoreOriginalState"].toBool(false);
-		Debug(_log, "Restore WLED   : %s", (_restoreConfig) ? "true" : "false");
+		Debug(_log, "Restore WLED   : {:s}", (_restoreConfig) ? "true" : "false");
 
 		_maxRetry = deviceConfig["maxRetry"].toInt(60);
-		Debug(_log, "Max retry      : %d", _maxRetry);
+		Debug(_log, "Max retry      : {:d}", _maxRetry);
 
 		//Set hostname as per configuration
 		QString address = deviceConfig["host"].toString();
@@ -69,12 +69,12 @@ bool DriverNetWled::init(QJsonObject deviceConfig)
 				_devConfig["port"] = _warlsStreamPort;
 
 				isInitOK = ProviderUdp::init(_devConfig);
-				Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR(_hostname));
-				Debug(_log, "Port         : %d", _port);
+				Debug(_log, "Hostname/IP  : {:s}", (_hostname));
+				Debug(_log, "Port         : {:d}", _port);
 			}
 		}
 	}
-	Debug(_log, "[%d]", isInitOK);
+	Debug(_log, "[{:d}]", isInitOK);
 	return isInitOK;
 }
 
@@ -91,7 +91,7 @@ bool DriverNetWled::initRestAPI(QString hostname, int port)
 		isInitOK = true;
 	}
 
-	Debug(_log, "[%d]", isInitOK);
+	Debug(_log, "[{:d}]", isInitOK);
 	return isInitOK;
 }
 
@@ -151,15 +151,15 @@ bool DriverNetWled::powerOn()
 				.arg(infoConfig["uptime"].toInt()).arg(_warlsStreamPort).arg(powerLimiter);
 
 			if (quality < 80 || powerLimiter > 0 || _ledCount != ledsNumber)
-				Warning(_log, "%s", QSTRING_CSTR(infoMessage));
+				Warning(_log, "{:s}", (infoMessage));
 			else
-				Info(_log, "%s", QSTRING_CSTR(infoMessage));
+				Info(_log, "{:s}", (infoMessage));
 			
 			if (powerLimiter > 0)
 				Error(_log, "Serious warning: the power limiter in WLED is set which may lead to unexpected side effects. Use the right cabling & power supply with the appropriate power, not this half-measure.");
 
 			if (_ledCount != ledsNumber)
-				Warning(_log, "The number of LEDs defined in HyperHDR (%i) is different from that defined in WLED (%i)", _ledCount, ledsNumber);
+				Warning(_log, "The number of LEDs defined in HyperHDR ({:d}) is different from that defined in WLED ({:d})", _ledCount, ledsNumber);
 			
 			_customInfo = QString("  %1%").arg(quality);
 
@@ -233,7 +233,7 @@ QJsonObject DriverNetWled::discover(const QJsonObject& /*params*/)
 #endif	
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

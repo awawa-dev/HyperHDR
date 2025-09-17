@@ -41,12 +41,13 @@
 #endif
 
 #include <QBuffer>
-#include <QFile>
+#include <QByteArray>
 #include <QCoreApplication>
-#include <QSettings>
-#include <QFileInfo>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QStringList>
+#include <QSettings>
 
 #include <HyperhdrConfig.h>
 
@@ -62,7 +63,7 @@
 
 #ifdef __linux__
 #define SYSTRAY_WIDGET_LIB "libsystray-widget.so"
-#include <stdlib.h>
+#include <cstdlib>
 #include <dlfcn.h>
 namespace
 {
@@ -230,12 +231,12 @@ void SystrayHandler::createSystray()
 	if (!_haveSystray)
 		return;
 
-	std::unique_ptr<SystrayMenu> mainMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> mainMenu = std::make_unique<SystrayMenu>();
 
 	loadSvg(mainMenu, ":/hyperhdr-tray-icon.svg", _rootFolder);
 
 	// settings menu
-	std::unique_ptr<SystrayMenu> settingsMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> settingsMenu = std::make_unique<SystrayMenu>();
 	loadSvg(settingsMenu, ":/settings.svg", _rootFolder);
 	settingsMenu->label = "&Settings";
 	settingsMenu->context = this;
@@ -246,11 +247,11 @@ void SystrayHandler::createSystray()
 	};
 
 	// separator 1
-	std::unique_ptr<SystrayMenu> separator1 = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> separator1 = std::make_unique<SystrayMenu>();
 	separator1->label = "-";
 
 	// instances
-	std::unique_ptr<SystrayMenu> instances = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> instances = std::make_unique<SystrayMenu>();
 	instances->label = "Instances";
 	loadSvg(instances, ":/instance.svg", _rootFolder);
 
@@ -265,7 +266,7 @@ void SystrayHandler::createSystray()
 			int key = instancesList[i].toInt(&ok);
 			if (ok)
 			{
-				std::unique_ptr<SystrayMenu> instanceItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+				std::unique_ptr<SystrayMenu> instanceItem = std::make_unique<SystrayMenu>();
 				instanceItem->label = instancesList[i + 1].toStdString();
 				instanceItem->checkGroup = key;
 				instanceItem->isChecked = (key == _selectedInstance);
@@ -282,13 +283,13 @@ void SystrayHandler::createSystray()
 			}
 		}
 
-		std::unique_ptr<SystrayMenu> separatorInstance = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+		std::unique_ptr<SystrayMenu> separatorInstance = std::make_unique<SystrayMenu>();
 		separatorInstance->label = "-";
 
 		std::swap(instances->submenu, separatorInstance->next);
 		std::swap(instances->submenu, separatorInstance);
 
-		std::unique_ptr<SystrayMenu> instancesAll = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+		std::unique_ptr<SystrayMenu> instancesAll = std::make_unique<SystrayMenu>();
 		instancesAll->label = "All";
 		instancesAll->isChecked = (_selectedInstance == -1);
 		instancesAll->context = this;
@@ -304,7 +305,7 @@ void SystrayHandler::createSystray()
 	}
 	
 	// color menu
-	std::unique_ptr<SystrayMenu> colorMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> colorMenu = std::make_unique<SystrayMenu>();
 	loadSvg(colorMenu, ":/color.svg", _rootFolder);
 	colorMenu->label = "&Color";
 	colorMenu->context = this;
@@ -318,7 +319,7 @@ void SystrayHandler::createSystray()
 			"</svg>";
 		QString svg = QString(svgTemplate).arg(QString::fromStdString(color));
 		
-		std::unique_ptr<SystrayMenu> colorItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+		std::unique_ptr<SystrayMenu> colorItem = std::make_unique<SystrayMenu>();
 		loadSvg(colorItem, svg, _rootFolder, QString("%1.png").arg(QString::fromStdString(color)));
 		colorItem->label = color;
 		colorItem->context = this;
@@ -339,7 +340,7 @@ void SystrayHandler::createSystray()
 	if (instanceManager != nullptr)
 		efxs = instanceManager->getEffects();
 
-	std::unique_ptr<SystrayMenu> effectsMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> effectsMenu = std::make_unique<SystrayMenu>();
 	loadSvg(effectsMenu, ":/effects.svg", _rootFolder);
 	effectsMenu->label = "&Effects";
 
@@ -360,7 +361,7 @@ void SystrayHandler::createSystray()
 	for (const EffectDefinition& efx : efxsSorted)
 	{
 		QString effectName = QString::fromStdString(efx.name);
-		std::unique_ptr<SystrayMenu> effectItem = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+		std::unique_ptr<SystrayMenu> effectItem = std::make_unique<SystrayMenu>();
 		effectItem->label = effectName.toStdString();
 		effectItem->context = this;
 		effectItem->callback = [](SystrayMenu* m) {
@@ -375,7 +376,7 @@ void SystrayHandler::createSystray()
 	}
 
 	// clear menu
-	std::unique_ptr<SystrayMenu> clearMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> clearMenu = std::make_unique<SystrayMenu>();
 	loadSvg(clearMenu, ":/clear.svg", _rootFolder);
 	clearMenu->label = "&Clear";
 	clearMenu->context = this;
@@ -386,11 +387,11 @@ void SystrayHandler::createSystray()
 	};
 
 	// separator 2
-	std::unique_ptr<SystrayMenu> separator2 = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> separator2 = std::make_unique<SystrayMenu>();
 	separator2->label = "-";
 
 	// quit menu
-	std::unique_ptr<SystrayMenu> quitMenu = std::unique_ptr<SystrayMenu>(new SystrayMenu);
+	std::unique_ptr<SystrayMenu> quitMenu = std::make_unique<SystrayMenu>();
 	loadSvg(quitMenu, ":/quit.svg", _rootFolder);
 	quitMenu->label = "&Quit";
 	quitMenu->context = this;
@@ -508,7 +509,8 @@ void SystrayHandler::settings()
 
 #ifdef __linux__
 	QString command = QString("xdg-open %1").arg(link);
-	if (system(QSTRING_CSTR(command)) == -1)
+	QByteArray commandUtf8 = command.toUtf8();
+	if (system((commandUtf8.constData())) == -1)
 	{
 		printf("xdg-open <http_link> failed. xdg-utils package is required.\n");
 	}

@@ -15,7 +15,7 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <base/Grabber.h>
-#include <grabber/osx/AVF/AVFWorker.h>
+#include <grabber/GrabberWorker.h>
 #include <utils/Components.h>
 
 
@@ -91,7 +91,7 @@ private:
 
 private:
 	bool				_isAVF;
-	AVFWorkerManager	_AVFWorkerManager;
+	GrabberManager		_AVFWorkerManager;
 	bool		_permission;
 };
 

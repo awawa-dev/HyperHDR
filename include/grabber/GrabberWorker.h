@@ -2,6 +2,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QThread>
+	#include <atomic>
 #endif
 
 #include <utils/PixelFormat.h>
@@ -9,26 +10,50 @@
 #include <utils/Components.h>
 #include <base/AutomaticToneMapping.h>
 
-#include <turbojpeg.h>
+#ifndef __APPLE__
+	#include <turbojpeg.h>
+#endif
 
-class MFWorkerManager;
+#ifdef __linux__
+	#include <linux/videodev2.h>
+#endif
 
-class MFWorker : public  QThread
+class GrabberManager;
+
+class GrabberWorker : public  QThread
 {
 	Q_OBJECT
-		friend class MFWorkerManager;
+		friend class GrabberManager;
 
 public:
+#ifdef __linux__
 	void setup(
-		unsigned int _workerIndex,
+		unsigned int _workerIndex, v4l2_buffer* __v4l2Buf,
 		PixelFormat __pixelFormat,
 		uint8_t* __sharedData,
 		int			__size, int __width, int __height, int __lineLength,
 		unsigned	__cropLeft, unsigned  __cropTop,
 		unsigned	__cropBottom, unsigned __cropRight,
 		quint64		__currentFrame, qint64 __frameBegin,
+		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer,
+		bool		__qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping);
+
+	v4l2_buffer* GetV4L2Buffer();
+	struct v4l2_buffer  _v4l2Buf;
+#else
+	void setup(
+		unsigned int _workerIndex,
+		PixelFormat __pixelFormat,
+		uint8_t*	__sharedData,
+		int			__size, int __width, int __height, int __lineLength,
+		unsigned	__cropLeft, unsigned  __cropTop,
+		unsigned	__cropBottom, unsigned __cropRight,
+		quint64		__currentFrame, qint64 __frameBegin,
 		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe,
 		bool		__directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping);
+#endif
+
+	
 
 	void startOnThisThread();
 	void run() override;
@@ -36,8 +61,8 @@ public:
 	bool isBusy();
 	void noBusy();
 
-	MFWorker();
-	~MFWorker();
+	GrabberWorker();
+	~GrabberWorker();
 
 signals:
 	void SignalNewFrame(unsigned int workerIndex, Image<ColorRgb> data, quint64 sourceCount, qint64 _frameBegin);
@@ -47,13 +72,19 @@ private:
 	void runMe();
 	void process_image_jpg_mt();
 
-	tjhandle 	_decompress;
+	#ifndef __APPLE__
+		tjhandle 	_decompress;
+	#endif
 
-	static std::atomic<bool> _isActive;
+	static inline std::atomic<bool> _isActive;
 	std::atomic<bool>    _isBusy;
 	unsigned int 	     _workerIndex;
 	PixelFormat			 _pixelFormat;
-	MemoryBuffer<uint8_t> _localBuffer;
+	#ifdef __linux__
+		uint8_t* _sharedData = nullptr;
+	#else
+		MemoryBuffer<uint8_t> _localBuffer;
+	#endif
 	int			_size;
 	int			_width;
 	int			_height;
@@ -73,13 +104,10 @@ private:
 	AutomaticToneMapping* _automaticToneMapping;
 };
 
-class MFWorkerManager : public  QObject
+class GrabberManager
 {
-	Q_OBJECT
-
 public:
-	MFWorkerManager();
-	~MFWorkerManager();
+	GrabberManager();
 
 	bool isActive();
 	void InitWorkers();
@@ -88,5 +116,5 @@ public:
 
 	// MT workers
 	unsigned int	workersCount;
-	MFWorker** workers;
+	std::vector<std::unique_ptr<GrabberWorker>> workers;
 };

@@ -68,7 +68,7 @@ bool Animation4Music_StereoMultiSlow::getImage(Image<ColorRgb>& newImage)
 
 	newImage.clear();
 
-	if (!r->GetStats(average, maxSingle, empty, NULL, &selected))
+	if (!r->GetStats(average, maxSingle, empty, nullptr, &selected))
 		return false;
 
 	r->RestoreFullLum(selected);

@@ -28,7 +28,7 @@ bool DriverSpiSK9822::init(QJsonObject deviceConfig)
 	{
 		_globalBrightnessControlThreshold = deviceConfig["globalBrightnessControlThreshold"].toInt(255);
 		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(SK9822_GBC_MAX_LEVEL);
-		Info(_log, "[SK9822] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
+		Info(_log, "[SK9822] Using global brightness control with threshold of {:d} and max level of {:d}", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
 
 		const unsigned int startFrameSize = 4;
 		const unsigned int endFrameSize = ((_ledCount / 32) + 1) * 4;
@@ -134,7 +134,7 @@ int DriverSpiSK9822::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "SK9822 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "SK9822 led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
 		const unsigned int startFrameSize = 4;

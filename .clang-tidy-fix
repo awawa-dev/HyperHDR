@@ -1,0 +1,44 @@
+Checks: >
+  -*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-equals-default,
+  modernize-use-equals-delete,
+  modernize-use-bool-literals,
+  modernize-deprecated-headers,
+  performance-faster-string-find,
+  performance-for-range-copy,
+  performance-inefficient-vector-operation,
+  readability-container-size-empty,
+  readability-redundant-string-cstr,
+  readability-string-compare,
+  bugprone-copy-constructor-init,  
+  bugprone-macro-parentheses,
+  readability-redundant-smartptr-get,
+  readability-redundant-control-flow,
+  readability-static-accessed-through-instance,
+  performance-move-const-arg,
+  modernize-make-unique,
+  readability-simplify-boolean-expr,
+  modernize-redundant-void-arg,  
+  readability-redundant-casting,
+  readability-inconsistent-declaration-parameter-name,
+  performance-unnecessary-value-param,
+  performance-unnecessary-copy-initialization
+
+CheckOptions:
+  - key:             performance-unnecessary-value-param.AllowedTypes
+    value:           '.*Q[A-Z].*'
+  - key:             performance-unnecessary-copy-initialization.AllowedTypes
+    value:           '.*Q[A-Z].*'
+
+HeaderFilterRegex: '^(?!.*(autogen|mocs_|qrc_|/external/|_deps/)).*'
+
+#Checks: >
+#  -*,
+#  readability-duplicate-include
+#
+#ExtraArgs:
+#  - "-include"
+#  - "include/precompiled_hyperhdr_headers/AllHeaders_pch.h"
+#  - "-DPCH_ENABLED"

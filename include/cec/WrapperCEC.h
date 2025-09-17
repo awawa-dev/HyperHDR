@@ -7,8 +7,8 @@
 #endif
 
 #include <utils/Components.h>
+#include <utils/Logger.h>
 
-class Logger;
 class cecHandler;
 
 class WrapperCEC : public QObject
@@ -31,5 +31,5 @@ private:
 
 	std::list<int>	_cecClients;
 	cecHandler*		_cecHandler;
-	Logger*			_log;
+	LoggerName		_log;
 };

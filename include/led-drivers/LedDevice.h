@@ -39,7 +39,7 @@ class LedDevice : public QObject
 public:
 
 	LedDevice(const QJsonObject& deviceConfig = QJsonObject(), QObject* parent = nullptr);
-	virtual ~LedDevice();
+	virtual ~LedDevice() = default;
 
 	void setActiveDeviceType(const QString& deviceType);
 	void setLedCount(int ledCount);
@@ -103,10 +103,10 @@ protected:
 
 	QString _activeDeviceType;
 	QJsonObject _devConfig;
-	Logger* _log;
+	LoggerName _log;
 
 	std::vector<uint8_t> _ledBuffer;
-	std::unique_ptr<QTimer> _refreshTimer;
+	QTimer* _refreshTimer;
 
 	int _currentInterval;
 	int _defaultInterval;
@@ -128,7 +128,7 @@ protected:
 	int		_maxRetry;
 	int		_currentRetry;
 	QString _customInfo;
-	std::unique_ptr<QTimer> _retryTimer;
+	QTimer* _retryTimer;
 
 	static std::atomic<bool> _signalTerminate;
 

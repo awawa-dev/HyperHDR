@@ -25,24 +25,23 @@
 *  SOFTWARE.
  */
 
-#include <QTcpSocket>
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QHash>
+#include <QList>
+#include <QMimeDatabase>
+#include <QPair>
+#include <QResource>
 #include <QSslCertificate>
 #include <QSslKey>
 #include <QSslSocket>
-#include <QTcpServer>
-#include <QUrlQuery>
-#include <QMimeDatabase>
 #include <QStringBuilder>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QUrlQuery>
-#include <QList>
-#include <QPair>
-#include <QFile>
-#include <QFileInfo>
-#include <QResource>
 #include <exception>
-#include <QHash>
-#include <QDir>
-#include <QCoreApplication>
 
 
 #include <utils/Logger.h>
@@ -58,7 +57,7 @@ QString         FileServer::_baseUrl;
 QString         FileServer::_ssdpXmlDesc;
 
 FileServer::FileServer():
-	_log(Logger::getInstance("WEBSERVER"))
+	_log("WEBSERVER")
 {
 #if defined(USE_EMBEDDED_WEB_RESOURCES)
 	Q_INIT_RESOURCE(web_resources);
@@ -66,12 +65,12 @@ FileServer::FileServer():
 	_resourcePath = QDir(qApp->applicationDirPath()).filePath("../lib/web_resources.rcc");
 	if (!QResource::registerResource(_resourcePath))
 	{		
-		Error(_log, "Could not initialize web server resources: %s", QSTRING_CSTR(_resourcePath));
+		Error(_log, "Could not initialize web server resources: {:s}", (_resourcePath));
 		_resourcePath = "";
 	}
 	else
 	{
-		Info(_log, "Web server resources initialized: %s", QSTRING_CSTR(_resourcePath));
+		Info(_log, "Web server resources initialized: {:s}", (_resourcePath));
 	}
 #endif
 
@@ -92,7 +91,7 @@ FileServer::~FileServer()
 	#if !defined(USE_EMBEDDED_WEB_RESOURCES)
 	if (!_resourcePath.isEmpty())
 	{
-		Info(_log, "Web server resources released: %s", QSTRING_CSTR(_resourcePath));
+		Info(_log, "Web server resources released: {:s}", (_resourcePath));
 		QResource::unregisterResource(_resourcePath);
 	}
 	#endif

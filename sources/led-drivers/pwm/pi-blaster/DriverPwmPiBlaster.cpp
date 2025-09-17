@@ -5,6 +5,7 @@
 
 // QT includes
 #include <QFile>
+#include <QByteArray>
 
 // Local LedDevice includes
 #include <led-drivers/pwm/pi-blaster/DriverPwmPiBlaster.h>
@@ -17,7 +18,7 @@ DriverPwmPiBlaster::DriverPwmPiBlaster(const QJsonObject& deviceConfig)
 	// -1 is invalid
 	// z is also meaningless
 	// { "gpio" : 4, "ledindex" : 0, "ledcolor" : "r" },
-	#define TABLE_SZ sizeof(_gpio_to_led)/sizeof(_gpio_to_led[0])
+	#define TABLE_SZ (sizeof(_gpio_to_led)/sizeof(_gpio_to_led[0]))
 
 	for (unsigned i=0; i <  TABLE_SZ; i++ )
 	{
@@ -52,7 +53,7 @@ bool DriverPwmPiBlaster::init(QJsonObject deviceConfig)
 		}
 
 		// walk through the JSON configuration and populate the mapping tables
-		for(QJsonArray::const_iterator gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
+		for(auto gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
 		{
 			const QJsonObject value = (*gpioArray).toObject();
 			const int gpio = value["gpio"].toInt(-1);
@@ -64,7 +65,7 @@ bool DriverPwmPiBlaster::init(QJsonObject deviceConfig)
 				_gpio_to_led[gpio] = ledindex;
 				_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
 			} else {
-				Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
+				Warning( _log, "IGNORING gpio {:d} ledindex {:d} color {:c}", gpio,ledindex, ledcolor[0]);
 			}
 		}
 	}
@@ -90,14 +91,15 @@ int DriverPwmPiBlaster::open()
 		}
 		else
 		{
-			_fid = fopen(QSTRING_CSTR(_deviceName), "w");
+			QByteArray deviceNameUtf8 = _deviceName.toUtf8();
+			_fid = fopen((deviceNameUtf8.constData()), "w");
 			if (_fid == nullptr)
 			{
 				errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
 			}
 			else
 			{
-				Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
+				Info( _log, "Connected to device({:s})", (_deviceName));
 
 				// Everything is OK, device is ready
 				_isDeviceReady = true;

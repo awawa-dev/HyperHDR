@@ -65,10 +65,7 @@ namespace utils_image
 		std::list<std::pair<std::string, ColorRgb>>::iterator findIter = std::find_if(colors.begin(), colors.end(),
 			[&colorName](const std::pair<std::string, ColorRgb>& a)
 			{
-				if (a.first == colorName)
-					return true;
-				else
-					return false;
+				return a.first == colorName;
 			}
 		);
 
@@ -91,7 +88,7 @@ namespace utils_image
 
 		int len;
 		unsigned char* png = stbi_write_png_to_mem(bitmap.data(), 0, bitmap.width(), bitmap.height(), 4, &len);
-		if (png == NULL)
+		if (png == nullptr)
 			return;
 
 		buffer.assign(png, png + len);
@@ -127,7 +124,7 @@ namespace utils_image
 		int quality = 75;
 
 		unsigned long compressedImageSize = 0;
-		unsigned char* compressedImage = NULL;
+		unsigned char* compressedImage = nullptr;
 
 		tjhandle _jpegCompressor = tjInitCompress();
 

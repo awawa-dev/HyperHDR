@@ -15,7 +15,7 @@
 
 using namespace hyperhdr;
 
-CallbackAPI::CallbackAPI(Logger* log, bool localConnection, QObject* parent)
+CallbackAPI::CallbackAPI(const LoggerName& log, bool localConnection, QObject* parent)
 	: BaseAPI(log, localConnection, parent)
 {
 	_availableCommands << "components-update" << "performance-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update" << "grabberstate-update" << "lut-calibration-update"
@@ -200,7 +200,7 @@ void CallbackAPI::subscribe(QJsonArray subsArr)
 		}
 	}
 
-	for (const QJsonValueRef entry : subsArr)
+	for (const auto& entry : std::as_const(subsArr))
 	{
 		// config callbacks just if auth is set
 		if ((entry == "settings-update" || entry == "token-update" || entry == "imagestream-start") &&
@@ -270,8 +270,7 @@ void CallbackAPI::componentStateHandler(hyperhdr::Components comp, bool state)
 
 void CallbackAPI::priorityUpdateHandler()
 {
-	QJsonObject info;
-	QJsonArray priorities;
+	QJsonObject info;	
 
 	if (_hyperhdr == nullptr)
 		return;

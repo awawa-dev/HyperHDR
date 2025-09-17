@@ -58,7 +58,7 @@ public slots:
 	void selectInstance();
 
 private slots:
-	void signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name);
+	void signalInstanceStateChangedHandler(hyperhdr::InstanceState state, quint8 instance, const QString& name);
 	void signalSettingsChangedHandler(settings::type type, const QJsonDocument& data);
 	void createSystray();
 
