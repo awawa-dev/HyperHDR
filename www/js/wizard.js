@@ -2557,7 +2557,7 @@ function startWizardHome_assistant(e)
 				}
 				else
 				{
-					showNotification('danger', $.i18n('wiz_hue_e_title'), $.i18n('wiz_hue_e_noapisupport_hint'));
+					showNotification('danger', $.i18n('edt_conf_fbs_timeout_title'), $.i18n('wiz_home_assistant_title'));
 				}
 			}
 		);		
