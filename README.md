@@ -20,10 +20,10 @@ At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house re
 * **Optimized multithreading**, enabling Raspberry Pi to process high-quality video streams  
 * **High portability** across ARM-based embedded platforms  
 * **System diagnostics:** live CPU/RAM usage, CPU temperature, undervoltage detection, USB grabber and LED performance  
-* **USB grabber support** for Linux, Windows 10/11, and macOS  
+* **USB grabber support** for Linux, Windows 10/11, and macOS for P010/NV12/YUYV/MJPEG/UYVY/I420/RGB codecs  
 * **Hardware-accelerated capture:** PipeWire/Portal (Linux/Wayland), DirectX (Windows 10/11)  
-* **HDR-ready DirectX screen grabbing:** Supports DXGI_FORMAT_R16G16B16A16_FLOAT and multiple monitors. 
-* **Optimized video processing:** Our optimized pipeline handles smoothly 1080p **P010**/**NV12**/**YUYV** (even on Rpi4)
+* **HDR-ready DirectX screen grabbing:** Supports DXGI_FORMAT_R16G16B16A16_FLOAT and multiple monitors 
+* **Optimized video processing:** Our optimized pipeline handles smoothly 1080p **P010**/**NV12**/**YUYV** even on Rpi4
 * **Built-in audio visualization** powered by spectrum analysis  
 * **MQTT support** for IoT integration  
 * **Home Assistant and zigbee2mqtt integration**  
