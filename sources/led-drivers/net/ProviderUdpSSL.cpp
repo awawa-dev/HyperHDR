@@ -81,7 +81,7 @@ ProviderUdpSSL::~ProviderUdpSSL()
 	closeNetwork();
 }
 
-bool ProviderUdpSSL::init(const QJsonObject& deviceConfig)
+bool ProviderUdpSSL::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -289,7 +289,7 @@ void ProviderUdpSSL::handshakeTimeout()
 	}
 }
 
-void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flush)
+void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool /*flush*/)
 {
 	if (_dtls != nullptr && _socket != nullptr && (_streamReady || _dtls->isConnectionEncrypted()))
 	{

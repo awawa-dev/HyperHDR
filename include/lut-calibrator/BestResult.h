@@ -40,9 +40,9 @@
 #endif
 
 #include <linalg.h>
-#include <lut-calibrator/ColorSpace.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <lut-calibrator/BoardUtils.h>
-#include <lut-calibrator/YuvConverter.h>
+#include <infinite-color-engine/YuvConverter.h>
 
 using namespace linalg;
 using namespace aliases;
@@ -113,7 +113,7 @@ struct BestResult
 		out << "bestResult.bt2020Range = " << std::to_string(bt2020Range) << ";" << std::endl;
 		out << "bestResult.altConvert = " << std::to_string(altConvert) << ";" << std::endl;
 		out << "bestResult.altPrimariesToSrgb = double3x3"; ColorSpaceMath::serialize(out, altPrimariesToSrgb); out << ";" << std::endl;
-		out << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << std::to_string(gamma) << ");" << std::endl;
+		out << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << (ColorSpaceMath::gammaToString(gamma)).toStdString() << ");" << std::endl;
 		out << "bestResult.gammaHLG = " << std::to_string(gammaHLG) << ";" << std::endl;
 		out << "bestResult.lchEnabled = " << std::to_string(lchEnabled) << ";" << std::endl;
 		out << "bestResult.lchPrimaries = LchLists{"; serializePrimaries(out); out << "\t\t};" << std::endl;

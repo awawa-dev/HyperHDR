@@ -40,15 +40,15 @@ Animation_CandleLight::Animation_CandleLight() :
 };
 
 void Animation_CandleLight::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 	ColorRgb::rgb2hsv(color.x, color.y, color.z, hsv.x, hsv.y, hsv.z);
 	SetSleepTime((int)(0.20 * 1000.0));
 }
 
-bool Animation_CandleLight::Play(HyperImage& painter)
+bool Animation_CandleLight::Play(HyperImage& /*painter*/)
 {
 	return true;
 }
@@ -72,16 +72,16 @@ Point3d Animation_CandleLight::CandleRgb()
 	return frgb;
 }
 
-bool Animation_CandleLight::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_CandleLight::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (buffer.size() > 1)
 	{
 		ledData.clear();
 
-		for (size_t i = 0; i < buffer.size(); i++)
+		for (int i = 0; i < static_cast<int>(buffer.size()); i++)
 		{
-			Point3d  color = CandleRgb();
-			ColorRgb newColor{ color.x, color.y, color.z };
+			Point3d  colorP = CandleRgb();
+			ColorRgb newColor{ colorP.x, colorP.y, colorP.z };
 
 			ledData.push_back(newColor);
 		}

@@ -167,10 +167,10 @@ public:
 	void identify(const QJsonObject& params) override;
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOn() override;
 	bool powerOff() override;
 	bool storeState() override;

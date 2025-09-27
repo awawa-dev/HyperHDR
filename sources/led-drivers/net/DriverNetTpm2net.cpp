@@ -12,12 +12,7 @@ DriverNetTpm2net::DriverNetTpm2net(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetTpm2net::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetTpm2net(deviceConfig);
-}
-
-bool DriverNetTpm2net::init(const QJsonObject& deviceConfig)
+bool DriverNetTpm2net::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -35,7 +30,7 @@ bool DriverNetTpm2net::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverNetTpm2net::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetTpm2net::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	std::vector<uint8_t> tpm2buffer((size_t)_tpm2Max + 7);
 	const uint8_t* rawdata = reinterpret_cast<const uint8_t*>(ledValues.data());
@@ -70,6 +65,11 @@ int DriverNetTpm2net::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return retVal;
+}
+
+LedDevice* DriverNetTpm2net::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetTpm2net(deviceConfig);
 }
 
 bool DriverNetTpm2net::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("tpm2net", "leds_group_2_network", DriverNetTpm2net::construct);

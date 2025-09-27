@@ -3,7 +3,7 @@
 	#include <iostream>
 #endif
 
-#include <led-strip/LedString.h>
+#include <base/LedString.h>
 
 std::vector<LedString::Led>& LedString::leds()
 {

@@ -247,12 +247,12 @@ protected:
 
 	// statistics
 	struct {
-		int64_t			token = 0;
+		int64_t			token;
 		int64_t			frameBegin;
 		int   			averageFrame;
 		unsigned int	badFrame, goodFrame, segment;
 		bool			directAccess;
-	} frameStat;
+	} frameStat = {};
 
 	std::atomic<unsigned long>	 _currentFrame;
 

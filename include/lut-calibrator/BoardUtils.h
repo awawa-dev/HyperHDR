@@ -34,12 +34,12 @@
 #endif
 
 #include <linalg.h>
-#include <lut-calibrator/ColorSpace.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <image/ColorRgb.h>
 #include <image/Image.h>
 #include <lut-calibrator/CapturedColor.h>
 #include <utils/Logger.h>
-#include <lut-calibrator/YuvConverter.h>
+#include <infinite-color-engine/YuvConverter.h>
 
 namespace BoardUtils
 {

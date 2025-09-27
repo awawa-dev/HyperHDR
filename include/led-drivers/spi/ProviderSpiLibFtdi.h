@@ -53,7 +53,7 @@ public:
 	~ProviderSpiLibFtdi();
 
 public:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 
 	QString open() override;
 	int close() override;

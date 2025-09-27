@@ -9,8 +9,8 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 	int _dmxDeviceType = 0;
 	int _dmxStart = 1;

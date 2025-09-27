@@ -172,7 +172,7 @@ void FlatBuffersServerConnection::readyRead()
 
 
 				_mode = result;
-				std::vector<ColorRgb> color{ ColorRgb(flatColor.red, flatColor.green, flatColor.blue) };
+				QVector<ColorRgb> color{ ColorRgb(flatColor.red, flatColor.green, flatColor.blue) };
 				if (_clientDescription.isEmpty())
 					_clientDescription = QString("Forwarder%1").arg(_clientAddress);
 				emit SignalSetGlobalColor(_priority, color, duration, hyperhdr::Components::COMP_FLATBUFSERVER, QString(_clientDescription));

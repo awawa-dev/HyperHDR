@@ -15,7 +15,7 @@ public:
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	explicit DriverPwmPiBlaster(const QJsonObject &deviceConfig);
+	explicit DriverPwmPiBlaster(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Destructor of the LedDevice
@@ -27,7 +27,7 @@ public:
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
 	/// @return LedDevice constructed
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 protected:
 
@@ -35,7 +35,7 @@ protected:
 	/// @brief Initialise the device's configuration
 	///
 	/// @param[in] deviceConfig the JSON device configuration
-	bool init(const QJsonObject &deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 
 	///
 	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open
@@ -60,7 +60,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> &ledValues) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
 	QString _deviceName;

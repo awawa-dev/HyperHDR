@@ -30,9 +30,9 @@
 #include <lut-calibrator/BoardUtils.h>
 
 
-void CapturedColor::importColors(const CapturedColor& color)
+void CapturedColor::importColors(const CapturedColor& colorImported)
 {
-	for (auto iter = color.inputColors.begin(); iter != color.inputColors.end(); ++iter)
+	for (auto iter = colorImported.inputColors.begin(); iter != colorImported.inputColors.end(); ++iter)
 	{
 		for (int i = 0; i < (*iter).second; i++)
 		{
@@ -88,7 +88,7 @@ bool CapturedColor::calculateFinalColor()
 
 	auto workColor = color / count;
 
-	colorInt = ColorSpaceMath::to_byte3(workColor);
+	colorInt = ColorSpaceMath::round_to_0_255<byte3>(workColor);
 	color /= (count * 255.0);
 	
 	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
@@ -117,7 +117,7 @@ bool CapturedColor::calculateFinalColor()
 		}
 	}
 	
-	ColorSpaceMath::trim01(color);
+	ColorSpaceMath::clamp01(color);
 
 	return true;
 }
@@ -230,7 +230,7 @@ QString CapturedColor::toString()
 
 void  CapturedColor::setSourceRGB(byte3 _color)
 {
-	sourceRGB = ColorSpaceMath::to_int3(_color);
+	sourceRGB = static_cast<int3>(_color);
 
 	auto srgb = static_cast<double3>(sourceRGB) / 255.0;
 	sourceLch = ColorSpaceMath::xyz_to_lch(ColorSpaceMath::from_sRGB_to_XYZ(srgb) * 100.0);

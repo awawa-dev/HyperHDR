@@ -48,7 +48,7 @@ public:
 signals:
 	void SignalClearGlobalInput(int priority, bool forceClearAll);
 	void SignalImportFromProto(int priority, int duration, const Image<ColorRgb>& image, QString clientDescription);
-	void SignalSetGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+	void SignalSetGlobalColor(int priority, const QVector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 	void SignalClientConnectionClosed(ProtoNanoClientConnection* client);
 
 public slots:

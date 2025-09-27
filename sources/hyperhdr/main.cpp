@@ -43,6 +43,11 @@
 #include "detectProcess.h"
 #include "HyperHdrDaemon.h"
 
+#if defined(WIN32)
+	#include <io.h>
+	#include <fcntl.h>
+#endif
+
 using namespace commandline;
 
 #if defined(WIN32)
@@ -54,10 +59,13 @@ void CreateConsole()
 	}
 
 	FILE* fDummy;
+	SetConsoleOutputCP(CP_UTF8);
+	_setmode(_fileno(stdout), _O_U16TEXT);
 	freopen_s(&fDummy, "CONOUT$", "w", stdout);
 	freopen_s(&fDummy, "CONOUT$", "w", stderr);
 	freopen_s(&fDummy, "CONIN$", "r", stdin);
 	SetConsoleTitle(TEXT("HyperHDR"));
+
 }
 
 #endif

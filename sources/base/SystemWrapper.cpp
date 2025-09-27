@@ -55,7 +55,7 @@ void SystemWrapper::newCapturedFrameHandler(const Image<ColorRgb>& image)
 	emit SignalSystemImage(_grabberName, image);
 }
 
-void SystemWrapper::stateChanged(bool state)
+void SystemWrapper::stateChanged(bool /*state*/)
 {
 
 }
@@ -199,17 +199,16 @@ QString SystemWrapper::getGrabberInfo()
 {
 #if defined(ENABLE_DX)
 	return "DirectX11";
-#endif
-#if defined(ENABLE_MAC_SYSTEM)
+#elif defined(ENABLE_MAC_SYSTEM)
 	return "macOS";
-#endif
-#if defined(ENABLE_X11)
+#elif defined(ENABLE_X11)
 	return "X11";
-#endif
+#else
 	return "";
+#endif
 }
 
-bool SystemWrapper::isActivated(bool forced)
+bool SystemWrapper::isActivated(bool /*forced*/)
 {
 	return true;
 }

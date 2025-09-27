@@ -49,12 +49,7 @@ DriverSpiSk6822SPI::DriverSpiSk6822SPI(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiSk6822SPI::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiSk6822SPI(deviceConfig);
-}
-
-bool DriverSpiSk6822SPI::init(const QJsonObject& deviceConfig)
+bool DriverSpiSk6822SPI::init(QJsonObject deviceConfig)
 {
 	deviceConfig["rate"] = 2230000;
 
@@ -75,7 +70,7 @@ bool DriverSpiSk6822SPI::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiSk6822SPI::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiSk6822SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;
@@ -83,7 +78,7 @@ int DriverSpiSk6822SPI::write(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "Sk6822SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize((_ledRGBCount * SPI_BYTES_PER_COLOUR) + (_ledCount * SPI_BYTES_WAIT_TIME) + SPI_FRAME_END_LATCH_BYTES, 0x00);
@@ -125,7 +120,12 @@ int DriverSpiSk6822SPI::write(const std::vector<ColorRgb>& ledValues)
 		}
 	*/
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiSk6822SPI::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiSk6822SPI(deviceConfig);
 }
 
 bool DriverSpiSk6822SPI::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("sk6822spi", "leds_group_0_SPI", DriverSpiSk6822SPI::construct);

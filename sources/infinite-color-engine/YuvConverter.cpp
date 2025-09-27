@@ -28,7 +28,7 @@
 #include <QStringList>
 #include <QList>
 #include <QString>
-#include <lut-calibrator/YuvConverter.h>
+#include <infinite-color-engine/YuvConverter.h>
 #include <mutex>
 
 namespace {

@@ -43,16 +43,11 @@ DriverSpiWs2812SPI::DriverSpiWs2812SPI(const QJsonObject& deviceConfig)
 		0b10001100,
 		0b11001000,
 		0b11001100,
-}
+	}
 {
 }
 
-LedDevice* DriverSpiWs2812SPI::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiWs2812SPI(deviceConfig);
-}
-
-bool DriverSpiWs2812SPI::init(const QJsonObject& deviceConfig)
+bool DriverSpiWs2812SPI::init(QJsonObject deviceConfig)
 {
 	deviceConfig["rate"] = 2600000;
 
@@ -73,7 +68,7 @@ bool DriverSpiWs2812SPI::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiWs2812SPI::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiWs2812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;
@@ -81,7 +76,7 @@ int DriverSpiWs2812SPI::write(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "Ws2812SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
@@ -106,7 +101,12 @@ int DriverSpiWs2812SPI::write(const std::vector<ColorRgb>& ledValues)
 		_ledBuffer[spi_ptr++] = 0;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiWs2812SPI::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiWs2812SPI(deviceConfig);
 }
 
 bool DriverSpiWs2812SPI::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("ws2812spi", "leds_group_0_SPI", DriverSpiWs2812SPI::construct);

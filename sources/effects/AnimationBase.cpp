@@ -53,7 +53,7 @@ bool AnimationBase::hasOwnImage()
 	return false;
 };
 
-bool AnimationBase::getImage(Image<ColorRgb>& image)
+bool AnimationBase::getImage(Image<ColorRgb>& /*image*/)
 {
 	return false;
 };
@@ -75,7 +75,7 @@ int AnimationBase::clamp(int v, int lo, int hi)
 	return v;
 }
 
-bool AnimationBase::hasLedData(std::vector<ColorRgb>& buffer)
+bool AnimationBase::hasLedData(QVector<ColorRgb>& /*buffer*/)
 {
 	return false;
 }

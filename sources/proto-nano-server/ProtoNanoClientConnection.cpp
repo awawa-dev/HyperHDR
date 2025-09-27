@@ -82,7 +82,7 @@ void ProtoNanoClientConnection::readyRead()
 	_receiveBuffer = _receiveBuffer.mid(messageSize + 4);
 }
 
-bool ProtoNanoClientConnection::readImage(pb_istream_t* stream, const pb_field_t* field, void** arg)
+bool ProtoNanoClientConnection::readImage(pb_istream_t* stream, const pb_field_t* /*field*/, void** arg)
 {
 	int sizeRgb = (int)((stream->bytes_left) / 3);
 	Image<ColorRgb>* image = (Image<ColorRgb>*) * arg;

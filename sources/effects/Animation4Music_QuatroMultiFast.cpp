@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_QuatroMultiFast::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_QuatroMultiFast::Play(HyperImage& painter)
+bool Animation4Music_QuatroMultiFast::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

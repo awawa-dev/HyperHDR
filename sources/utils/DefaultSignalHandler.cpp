@@ -96,7 +96,7 @@ namespace DefaultSignalHandler
 		 * handler and print_trace functions. */
 		for (int i = 2; i < size; ++i)
 		{
-			std::string line = "\t" + decipher_trace(symbols[i]);
+			std::string line = std::string("\t") + decipher_trace(symbols[i]);
 			Error(log, line.c_str());
 		}
 

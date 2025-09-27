@@ -11,17 +11,7 @@ DriverOtherFile::DriverOtherFile(const QJsonObject& deviceConfig)
 	_printTimeStamp = false;
 }
 
-DriverOtherFile::~DriverOtherFile()
-{
-	delete _file;
-}
-
-LedDevice* DriverOtherFile::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverOtherFile(deviceConfig);
-}
-
-bool DriverOtherFile::init(const QJsonObject& deviceConfig)
+bool DriverOtherFile::init(QJsonObject deviceConfig)
 {
 	bool initOK = LedDevice::init(deviceConfig);
 
@@ -101,7 +91,7 @@ static inline QTextStream& operator<<(QTextStream& os, const ColorRgb& color)
 	return os;
 }
 
-int DriverOtherFile::write(const std::vector<ColorRgb>& ledValues)
+int DriverOtherFile::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	QTextStream out(_file);
 
@@ -134,6 +124,11 @@ int DriverOtherFile::write(const std::vector<ColorRgb>& ledValues)
 	out.flush();
 
 	return 0;
+}
+
+LedDevice* DriverOtherFile::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverOtherFile(deviceConfig);
 }
 
 bool DriverOtherFile::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("file", "leds_group_5_debug", DriverOtherFile::construct);

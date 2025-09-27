@@ -6,12 +6,7 @@ DriverSerialAtmo::DriverSerialAtmo(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSerialAtmo::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialAtmo(deviceConfig);
-}
-
-bool DriverSerialAtmo::init(const QJsonObject& deviceConfig)
+bool DriverSerialAtmo::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -38,10 +33,15 @@ bool DriverSerialAtmo::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSerialAtmo::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialAtmo::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledCount * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSerialAtmo::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialAtmo(deviceConfig);
 }
 
 bool DriverSerialAtmo::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("atmo", "leds_group_3_serial", DriverSerialAtmo::construct);

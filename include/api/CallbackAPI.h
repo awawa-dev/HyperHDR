@@ -3,6 +3,7 @@
 #ifndef PCH_ENABLED
 	#include <QJsonObject>
 	#include <QList>
+	#include <QVector>
 #endif
 
 #include <utils/settings.h>
@@ -43,14 +44,14 @@ signals:
 	void SignalCallbackToClient(QJsonObject);
 
 protected slots:
-	virtual void handleIncomingColors(const std::vector<ColorRgb>& ledValues) = 0;
+	virtual void handleIncomingColors(const QVector<ColorRgb>& ledValues) = 0;
 	virtual void handlerInstanceImageUpdated(const Image<ColorRgb>& image) = 0;
 
 private slots:
 	void componentStateHandler(hyperhdr::Components comp, bool state);
 	void priorityUpdateHandler();
 	void imageToLedsMappingChangeHandler(int mappingType);
-	void signalAdjustmentUpdatedHandler(const QJsonArray& newConfig);
+	void signalAdjustmentUpdatedHandler(QJsonArray newConfig);
 	void videoModeHdrChangeHandler(hyperhdr::Components component, bool enable);
 	void videoStreamChangedHandler(QString device, QString videoMode);
 	void settingsChangeHandler(settings::type type, const QJsonDocument& data);
@@ -68,5 +69,5 @@ public slots:
 private:
 	QStringList _availableCommands;
 	QStringList _subscribedCommands;
-	void doCallback(const QString& cmd, const QVariant& data);	
+	void doCallback(const QString cmd, const QVariant data);	
 };

@@ -31,80 +31,65 @@
 #include <utils/Logger.h>
 #include <cmath>
 #include <algorithm>
+#include <bit>
+#include <linalg.h>
 
 namespace {
+	constexpr size_t HD108_START_FRAME_SIZE = 16;  // 128 bits
+	constexpr size_t HD108_LED_FRAME_SIZE = 8;     // 64 bits
 	const int HD108_MAX_LEVEL = 0x1F;
-	const uint32_t HD108_MAX_THRESHOLD = 100u;
-	const uint32_t HD108_MAX_THRESHOLD_2 = HD108_MAX_THRESHOLD * HD108_MAX_THRESHOLD;
 	const uint16_t HD108_MAX_LEVEL_BIT = 0b1000000000000000;
 }
 
 DriverSpiHD108::DriverSpiHD108(const QJsonObject& deviceConfig)
 	: ProviderSpi(deviceConfig)
-	, _globalBrightnessControlThreshold(HD108_MAX_THRESHOLD)
 	, _globalBrightnessControlMaxLevel(HD108_MAX_LEVEL)
 {
 }
 
-LedDevice* DriverSpiHD108::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiHD108(deviceConfig);
-}
-
-bool DriverSpiHD108::init(const QJsonObject& deviceConfig)
+bool DriverSpiHD108::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
 	// Initialise sub-class
 	if (ProviderSpi::init(deviceConfig))
 	{
-		_globalBrightnessControlThreshold = static_cast<uint32_t>(std::min(
-			std::lround(deviceConfig["globalBrightnessControlThreshold"].toDouble(HD108_MAX_THRESHOLD) * HD108_MAX_THRESHOLD),
-			(long)HD108_MAX_THRESHOLD_2));
-		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(HD108_MAX_LEVEL);
-		Info(_log, "[HD108] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
+		_globalBrightnessControlMaxLevel = std::min(deviceConfig["globalBrightnessControlMaxLevel"].toInt(HD108_MAX_LEVEL), HD108_MAX_LEVEL);
+		Info(_log, "[HD108] Using global brightness control with max level of %d", _globalBrightnessControlMaxLevel);
 
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize((_ledCount * 8) + 16, 0x00);
+		_ledBuffer.clear();
+		_ledBuffer.resize((_ledCount * HD108_LED_FRAME_SIZE) + HD108_START_FRAME_SIZE, 0x00);
 
 		isInitOK = true;
 	}
 	return isInitOK;
 }
 
-static inline uint16_t MSB_FIRST(uint16_t x, bool littleEndian)
-{	
-	if (littleEndian)
-		return (x >> 8) | (x << 8);
+static inline uint16_t MSB_FIRST(uint16_t v)
+{
+	if constexpr (std::endian::native == std::endian::little)
+		return static_cast<uint16_t>((v >> 8) | (v << 8));
 	else
-		return x;
+		return v;
 }
 
-int DriverSpiHD108::write(const std::vector<ColorRgb>& ledValues)
+std::pair<bool, int> DriverSpiHD108::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
-	int littleEndian = 1;
-
-	if (*(char*)&littleEndian != 1)
-		littleEndian = 0;
-
-
-	if (_ledCount != ledValues.size())
+	if (_ledCount != nonlinearRgbColors->size())
 	{
-		Warning(_log, "HD108 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = static_cast<uint>(ledValues.size());
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize((_ledCount * 8) + 16, 0x00);
+		Warning(_log, "HD108 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, nonlinearRgbColors->size());
+		_ledCount = static_cast<uint>(nonlinearRgbColors->size());
+		_ledBuffer.clear();
+		_ledBuffer.resize((_ledCount * HD108_LED_FRAME_SIZE) + HD108_START_FRAME_SIZE, 0x00);
 	}
 
-
-	int index = 8;
-	uint16_t* data = reinterpret_cast<uint16_t*>(_ledBuffer.data());
-	for (auto const& rgb : ledValues)
+	int index = HD108_START_FRAME_SIZE;
+	for (auto const& rgb : *nonlinearRgbColors)
 	{
-		const int isLit = (rgb.red || rgb.green || rgb.blue);
-		uint16_t red = rgb.red * 256u;
-		uint16_t green = rgb.green * 256u;
-		uint16_t blue = rgb.blue * 256u;
+		const bool isLit = (rgb.x > 0.0f || rgb.y > 0.0f || rgb.z > 0.0f);
+		uint16_t red = static_cast<uint16_t>(std::round(rgb.x * 0xffff));
+		uint16_t green = static_cast<uint16_t>(std::round(rgb.y * 0xffff));
+		uint16_t blue = static_cast<uint16_t>(std::round(rgb.z * 0xffff));
 		uint16_t level = HD108_MAX_LEVEL_BIT;
 
 		for (int i = 0; i < 3 && isLit; i++)
@@ -112,22 +97,25 @@ int DriverSpiHD108::write(const std::vector<ColorRgb>& ledValues)
 			level |= (_globalBrightnessControlMaxLevel & HD108_MAX_LEVEL) << (5 * i);
 		}
 
-		if (_globalBrightnessControlThreshold < HD108_MAX_THRESHOLD_2)
-		{
-			red = (red * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD_2;
-			green = (green * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD_2;
-			blue = (blue * _globalBrightnessControlThreshold) / HD108_MAX_THRESHOLD_2;
-		}
-		
+		uint16_t level_be = MSB_FIRST(level);
+		uint16_t red_be = MSB_FIRST(red);
+		uint16_t green_be = MSB_FIRST(green);
+		uint16_t blue_be = MSB_FIRST(blue);
 
-		data[index + 0] = MSB_FIRST(level, littleEndian);
-		data[index + 1] = MSB_FIRST(red, littleEndian);
-		data[index + 2] = MSB_FIRST(green, littleEndian);
-		data[index + 3] = MSB_FIRST(blue, littleEndian);
-		index += 4;
+		memcpy(_ledBuffer.data() + index, &level_be, sizeof(level_be));
+		memcpy(_ledBuffer.data() + index + 2, &red_be, sizeof(red_be));
+		memcpy(_ledBuffer.data() + index + 4, &green_be, sizeof(green_be));
+		memcpy(_ledBuffer.data() + index + 6, &blue_be, sizeof(blue_be));
+
+		index += HD108_LED_FRAME_SIZE;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return std::pair<bool,int>(true, writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data()));
+}
+
+LedDevice* DriverSpiHD108::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiHD108(deviceConfig);
 }
 
 bool DriverSpiHD108::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("hd108", "leds_group_0_SPI", DriverSpiHD108::construct);

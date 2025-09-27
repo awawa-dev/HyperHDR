@@ -9,6 +9,7 @@ add_library(effects OBJECT ${EffectsSOURCES})
 target_link_libraries(effects
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
+	linalg
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

@@ -13,12 +13,7 @@ DriverNetUdpH801::DriverNetUdpH801(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetUdpH801::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetUdpH801(deviceConfig);
-}
-
-bool DriverNetUdpH801::init(const QJsonObject& deviceConfig)
+bool DriverNetUdpH801::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -54,7 +49,7 @@ bool DriverNetUdpH801::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverNetUdpH801::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetUdpH801::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	ColorRgb color = ledValues[0];
 	_message[_prefix_size + 0] = color.red;
@@ -62,6 +57,11 @@ int DriverNetUdpH801::write(const std::vector<ColorRgb>& ledValues)
 	_message[_prefix_size + 2] = color.blue;
 
 	return writeBytes(_message.size(), reinterpret_cast<const uint8_t*>(_message.data()));
+}
+
+LedDevice* DriverNetUdpH801::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetUdpH801(deviceConfig);
 }
 
 bool DriverNetUdpH801::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("udph801", "leds_group_2_network", DriverNetUdpH801::construct);

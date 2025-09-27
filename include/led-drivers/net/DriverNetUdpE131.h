@@ -28,8 +28,8 @@ public:
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 private:
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	void prepare(unsigned this_universe, unsigned this_dmxChannelCount);
 
 	std::unique_ptr<e131_packet_t> e131_packet;

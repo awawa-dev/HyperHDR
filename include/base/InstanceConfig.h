@@ -27,7 +27,7 @@ public:
 	QJsonObject getSettings() const;
 	bool isReadOnlyMode();
 signals:
-	void SignalInstanceSettingsChanged(settings::type type, const QJsonDocument& data);
+	void SignalInstanceSettingsChanged(settings::type type, QJsonDocument data);
 
 private:
 	Logger*			_log;

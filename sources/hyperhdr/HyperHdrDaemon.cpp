@@ -54,7 +54,7 @@
 
 #include "HyperHdrDaemon.h"
 
-HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode, QStringList params, bool isGuiApp)
+HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool /*readonlyMode*/, QStringList params, bool isGuiApp)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(nullptr)
@@ -78,11 +78,13 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 
 	// Register metas for thread queued connection
 	qRegisterMetaType<ColorRgb>("ColorRgb");
+	qRegisterMetaType<SharedOutputColors>("SharedOutputColors");
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperhdr::Components>("hyperhdr::Components");
 	qRegisterMetaType<settings::type>("settings::type");
 	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<QVector<ColorRgb>>("QVector<ColorRgb>");
 
 	// First load default configuration for other objects
 	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this));
@@ -128,8 +130,8 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 			SMARTPOINTER_MESSAGE("NetOrigin");
 			delete netOrigin;
 		});
-	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _netOrigin.get(), &NetOrigin::settingsChangedHandler);
-	_netOrigin->settingsChangedHandler(settings::type::NETWORK, getSetting(settings::type::NETWORK));
+	connect(_instanceManager.get(), &HyperHdrManager::SignalSettingsChanged, _netOrigin.get(), &NetOrigin::handleSettingsUpdate);
+	_netOrigin->handleSettingsUpdate(settings::type::NETWORK, getSetting(settings::type::NETWORK));
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -176,7 +178,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 
 HyperHdrDaemon::~HyperHdrDaemon() = default;
 
-void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name)
+void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 /*instance*/, const QString& /*name*/)
 {
 	// start web server if needed
 	if (state == InstanceState::START)
@@ -477,7 +479,7 @@ void HyperHdrDaemon::createSoftwareGrabberHelper(QJsonDocument config, QString d
 	connect(_systemGrabberThread, &QThread::started, _systemGrabber.get(), &GrabberHelper::SignalCreateGrabber);
 	connect(_systemGrabberThread, &QThread::finished, _systemGrabber.get(), &GrabberHelper::deleteLater);
 	connect(_systemGrabber.get(), &GrabberHelper::SignalCreateGrabber, _systemGrabber.get(), [this, config, deviceName, rootPath]() {
-		bool force = false;
+		[[maybe_unused]] bool force = false;
 
 		_systemGrabber->linker.release(1);
 		SystemWrapper* softwareGrabberInstance = nullptr;
@@ -613,7 +615,7 @@ void HyperHdrDaemon::getDiscoveryWrapper(std::shared_ptr<DiscoveryWrapper>& disc
 	discoveryWrapper = _discoveryWrapper;
 }
 
-void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const QJsonDocument& config)
+void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const QJsonDocument config)
 {
 	if (settingsType == settings::type::LOGGER)
 	{

@@ -47,13 +47,7 @@ DriverSpiAPA104::DriverSpiAPA104(const QJsonObject& deviceConfig)
 {
 }
 
-
-LedDevice* DriverSpiAPA104::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiAPA104(deviceConfig);
-}
-
-bool DriverSpiAPA104::init(const QJsonObject& deviceConfig)
+bool DriverSpiAPA104::init(QJsonObject deviceConfig)
 {
 	deviceConfig["rate"] = 2235000;
 
@@ -73,7 +67,7 @@ bool DriverSpiAPA104::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiAPA104::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiAPA104::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgb) * SPI_BYTES_PER_COLOUR;
@@ -81,7 +75,7 @@ int DriverSpiAPA104::write(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "APA104 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
@@ -106,7 +100,12 @@ int DriverSpiAPA104::write(const std::vector<ColorRgb>& ledValues)
 		_ledBuffer[spi_ptr++] = 0;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiAPA104::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiAPA104(deviceConfig);
 }
 
 bool DriverSpiAPA104::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("apa104", "leds_group_0_SPI", DriverSpiAPA104::construct);

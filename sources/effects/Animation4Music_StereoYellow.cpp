@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_StereoYellow::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_StereoYellow::Play(HyperImage& painter)
+bool Animation4Music_StereoYellow::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

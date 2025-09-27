@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_StereoGreen::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_StereoGreen::Play(HyperImage& painter)
+bool Animation4Music_StereoGreen::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

@@ -19,7 +19,7 @@ public:
 
 protected:
 
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
 	int writeBytes(const unsigned size, const uint8_t* data);

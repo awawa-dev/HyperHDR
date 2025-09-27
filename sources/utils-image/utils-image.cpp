@@ -104,7 +104,7 @@ namespace utils_image
 		Image<ColorRgb> ret;
 		int w, h, comp;
 
-		unsigned char* image = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buffer), size, &w, &h, &comp, STBI_rgb);
+		unsigned char* image = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(buffer), static_cast<int>(size), &w, &h, &comp, STBI_rgb);
 
 		if (image != nullptr)
 		{

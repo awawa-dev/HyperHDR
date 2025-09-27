@@ -57,7 +57,6 @@ void WindowsSoundThread::run()
 
 	WAVEHDR	header = {};
 	HWAVEIN	hWaveIn = nullptr;
-	bool initialMessage = false;
 
 	UINT deviceCount = waveInGetNumDevs(), found = 0;
 

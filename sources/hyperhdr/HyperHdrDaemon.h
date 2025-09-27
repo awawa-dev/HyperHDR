@@ -144,7 +144,7 @@ public slots:
 
 public slots:
 	void instanceStateChangedHandler(hyperhdr::InstanceState state, quint8 instance, const QString& name = QString());
-	void settingsChangedHandler(settings::type type, const QJsonDocument& config);
+	void settingsChangedHandler(settings::type type, const QJsonDocument config);
 	void getInstanceManager(std::shared_ptr<HyperHdrManager>& retVal);
 	void getAccessManager(std::shared_ptr<AccessManager>& retVal);
 	void getSoundCapture(std::shared_ptr<SoundCapture>& retVal);

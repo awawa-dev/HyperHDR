@@ -52,8 +52,8 @@ static void SuspendHandlerQueueHandler(WPARAM wparam)
 {
 	if (wparam == 0)
 	{
-		auto instance = QCoreApplication::instance();
-		QUEUE_CALL_0(instance, quit);
+		auto localInstance = QCoreApplication::instance();
+		QUEUE_CALL_0(localInstance, quit);
 	}
 	else if (instance != nullptr)
 	{
@@ -131,9 +131,9 @@ SuspendHandler::~SuspendHandler()
 }
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, long* result)
+bool SuspendHandler::nativeEventFilter(const QByteArray& /*eventType*/, void* message, long* /*result*/)
 #else
-bool SuspendHandler::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result)
+bool SuspendHandler::nativeEventFilter(const QByteArray& /*eventType*/, void* message, qintptr* /*result*/)
 #endif
 {
 	MSG* msg = static_cast<MSG*>(message);

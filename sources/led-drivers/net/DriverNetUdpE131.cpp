@@ -38,7 +38,7 @@ union e131_packet_t
 		uint16_t address_increment;
 		uint16_t property_value_count;
 		uint8_t  property_values[513];
-	};
+	} fields;
 	#pragma pack(pop)
 
 	uint8_t raw[638];
@@ -57,15 +57,10 @@ namespace
 DriverNetUdpE131::DriverNetUdpE131(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
 {
-	e131_packet = std::unique_ptr<e131_packet_t>(new e131_packet_t);
+	e131_packet = std::make_unique<e131_packet_t>();
 }
 
-LedDevice* DriverNetUdpE131::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetUdpE131(deviceConfig);
-}
-
-bool DriverNetUdpE131::init(const QJsonObject& deviceConfig)
+bool DriverNetUdpE131::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -107,36 +102,36 @@ void DriverNetUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelC
 	memset(e131_packet->raw, 0, sizeof(e131_packet->raw));
 
 	/* Root Layer */
-	e131_packet->preamble_size = htons(16);
-	e131_packet->postamble_size = 0;
-	memcpy(e131_packet->acn_id, _acn_id, 12);
-	e131_packet->root_flength = htons(0x7000 | (110 + this_dmxChannelCount));
-	e131_packet->root_vector = htonl(VECTOR_ROOT_E131_DATA);
-	memcpy(e131_packet->cid, _e131_cid.toRfc4122().constData(), sizeof(e131_packet->cid));
+	e131_packet->fields.preamble_size = htons(16);
+	e131_packet->fields.postamble_size = 0;
+	memcpy(e131_packet->fields.acn_id, _acn_id, 12);
+	e131_packet->fields.root_flength = htons(0x7000 | (110 + this_dmxChannelCount));
+	e131_packet->fields.root_vector = htonl(VECTOR_ROOT_E131_DATA);
+	memcpy(e131_packet->fields.cid, _e131_cid.toRfc4122().constData(), sizeof(e131_packet->fields.cid));
 
 	/* Frame Layer */
-	e131_packet->frame_flength = htons(0x7000 | (88 + this_dmxChannelCount));
-	e131_packet->frame_vector = htonl(VECTOR_E131_DATA_PACKET);
-	snprintf(e131_packet->source_name, sizeof(e131_packet->source_name), "%s", QSTRING_CSTR(_e131_source_name));
-	e131_packet->priority = 100;
-	e131_packet->reserved = htons(0);
-	e131_packet->options = 0;	// Bit 7 =  Preview_Data
+	e131_packet->fields.frame_flength = htons(0x7000 | (88 + this_dmxChannelCount));
+	e131_packet->fields.frame_vector = htonl(VECTOR_E131_DATA_PACKET);
+	snprintf(e131_packet->fields.source_name, sizeof(e131_packet->fields.source_name), "%s", QSTRING_CSTR(_e131_source_name));
+	e131_packet->fields.priority = 100;
+	e131_packet->fields.reserved = htons(0);
+	e131_packet->fields.options = 0;	// Bit 7 =  Preview_Data
 					// Bit 6 =  Stream_Terminated
 					// Bit 5 = Force_Synchronization
-	e131_packet->universe = htons(this_universe);
+	e131_packet->fields.universe = htons(this_universe);
 
 	/* DMX Layer */
-	e131_packet->dmp_flength = htons(0x7000 | (11 + this_dmxChannelCount));
-	e131_packet->dmp_vector = VECTOR_DMP_SET_PROPERTY;
-	e131_packet->type = 0xa1;
-	e131_packet->first_address = htons(0);
-	e131_packet->address_increment = htons(1);
-	e131_packet->property_value_count = htons(1 + this_dmxChannelCount);
+	e131_packet->fields.dmp_flength = htons(0x7000 | (11 + this_dmxChannelCount));
+	e131_packet->fields.dmp_vector = VECTOR_DMP_SET_PROPERTY;
+	e131_packet->fields.type = 0xa1;
+	e131_packet->fields.first_address = htons(0);
+	e131_packet->fields.address_increment = htons(1);
+	e131_packet->fields.property_value_count = htons(1 + this_dmxChannelCount);
 
-	e131_packet->property_values[0] = 0;	// start code
+	e131_packet->fields.property_values[0] = 0;	// start code
 }
 
-int DriverNetUdpE131::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetUdpE131::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	int retVal = 0;
 	int thisChannelCount = 0;
@@ -153,10 +148,10 @@ int DriverNetUdpE131::write(const std::vector<ColorRgb>& ledValues)
 			//			                       is this the last packet?         ?       ^^ last packet      : ^^ earlier packets
 
 			prepare(_e131_universe + rawIdx / DMX_MAX, thisChannelCount);
-			e131_packet->sequence_number = _e131_seq;
+			e131_packet->fields.sequence_number = _e131_seq;
 		}
 
-		e131_packet->property_values[1 + rawIdx % DMX_MAX] = rawdata[rawIdx];
+		e131_packet->fields.property_values[1 + rawIdx % DMX_MAX] = rawdata[rawIdx];
 
 		//     is this the      last byte of last packet    ||   last byte of other packets
 		if ((rawIdx == dmxChannelCount - 1) || (rawIdx % DMX_MAX == DMX_MAX - 1))
@@ -175,6 +170,11 @@ int DriverNetUdpE131::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return retVal;
+}
+
+LedDevice* DriverNetUdpE131::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetUdpE131(deviceConfig);
 }
 
 bool DriverNetUdpE131::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("udpe131", "leds_group_2_network", DriverNetUdpE131::construct);

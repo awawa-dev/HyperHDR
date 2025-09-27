@@ -29,10 +29,11 @@
 #include <utils/Logger.h>
 #include <utils/FrameDecoder.h>
 
-#include <lut-calibrator/ColorSpace.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <linalg.h>
 #include <atomic>
 #include <mutex>
+#include <numbers>
 
 using namespace linalg;
 using namespace aliases;
@@ -48,7 +49,7 @@ namespace FrameDecoderUtils
 
 	static double packChromaP010(double x)
 	{
-		constexpr double pi2 = M_PI / 2.0;
+		constexpr double pi2 = std::numbers::pi / 2.0;
 		if (x < 0.0)
 		{
 			return 0.0;
@@ -66,7 +67,7 @@ namespace FrameDecoderUtils
 
 	double unpackChromaP010(double x)
 	{
-		constexpr double pi2 = M_PI / 2.0;
+		constexpr double pi2 = std::numbers::pi / 2.0;
 		if (x < 0.0)
 		{
 			return 0.0;
@@ -89,7 +90,7 @@ namespace FrameDecoderUtils
 
 	static double packLuminanceP010(double x)
 	{
-		constexpr double pi2 = M_PI / 2.0;
+		constexpr double pi2 = std::numbers::pi / 2.0;
 		if (x < 0.0)
 		{
 			return 0.0;
@@ -107,7 +108,7 @@ namespace FrameDecoderUtils
 
 	double unpackLuminanceP010(double x)
 	{
-		constexpr double pi2 = M_PI / 2.0;
+		constexpr double pi2 = std::numbers::pi / 2.0;
 		if (x < 0.0)
 		{
 			return 0.0;

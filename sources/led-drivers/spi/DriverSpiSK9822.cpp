@@ -19,12 +19,7 @@ DriverSpiSK9822::DriverSpiSK9822(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiSK9822::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiSK9822(deviceConfig);
-}
-
-bool DriverSpiSK9822::init(const QJsonObject& deviceConfig)
+bool DriverSpiSK9822::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -132,7 +127,7 @@ void DriverSpiSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t>& txBuf, con
 	}
 }
 
-int DriverSpiSK9822::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiSK9822::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	const int threshold = _globalBrightnessControlThreshold;
 	const int maxLevel = _globalBrightnessControlMaxLevel;
@@ -140,7 +135,7 @@ int DriverSpiSK9822::write(const std::vector<ColorRgb>& ledValues)
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "SK9822 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		const unsigned int startFrameSize = 4;
 		const unsigned int endFrameSize = ((_ledCount / 32) + 1) * 4;
@@ -157,7 +152,12 @@ int DriverSpiSK9822::write(const std::vector<ColorRgb>& ledValues)
 		this->bufferWithMaxCurrent(_ledBuffer, ledValues, maxLevel);
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiSK9822::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiSK9822(deviceConfig);
 }
 
 bool DriverSpiSK9822::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("sk9822", "leds_group_0_SPI", DriverSpiSK9822::construct);

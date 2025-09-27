@@ -15,6 +15,7 @@ add_library(hyperhdr-api OBJECT
 target_link_libraries(hyperhdr-api
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
+	linalg
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

@@ -8,14 +8,13 @@ class DriverPwmNeopixel : public LedDevice
 {
 public:
 	explicit DriverPwmNeopixel(const QJsonObject& deviceConfig);
-	~DriverPwmNeopixel() override;
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 private:
 

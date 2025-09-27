@@ -27,10 +27,16 @@
 
 #include <base/ImageColorAveraging.h>
 #include <base/ImageToLedManager.h>
+#include <infinite-color-engine/InfiniteProcessing.h>
+
+#include <algorithm>
+#include <ranges>
+#include <iterator>
 
 #define push_back_index(list, index) list.push_back((index) * 3)
 
 using namespace hyperhdr;
+using namespace linalg::aliases;
 
 ImageColorAveraging::ImageColorAveraging(
 				Logger* _log,
@@ -40,16 +46,15 @@ ImageColorAveraging::ImageColorAveraging(
 				const unsigned height,
 				const unsigned horizontalBorder,
 				const unsigned verticalBorder,
-				const quint8 instanceIndex,
+				const quint8 /*instanceIndex*/,
 				const std::vector<LedString::Led>& leds)
 	: _width(width)
 	, _height(height)
+	, _sparseProcessing(sparseProcessing)
 	, _horizontalBorder(horizontalBorder)
 	, _verticalBorder(verticalBorder)
 	, _colorsMap()
-	, _colorsGroups()
-	, _groupMin(-1)
-	, _groupMax(-1)
+	, _colorGroups()
 {
 	Q_ASSERT(_width > 2 * _verticalBorder);
 	Q_ASSERT(_height > 2 * _horizontalBorder);
@@ -67,11 +72,10 @@ ImageColorAveraging::ImageColorAveraging(
 
 	size_t   totalCount = 0;
 	size_t   totalCapasity = 0;
-	int      ledCounter = 0;
 
-	for (const LedString::Led& led : leds)
+	for (int ledIndex = -1; const LedString::Led& led : leds)
 	{
-		ledCounter++;
+		ledIndex++;
 
 		if ((led.maxX_frac - led.minX_frac) < 1e-6 || (led.maxY_frac - led.minY_frac) < 1e-6)
 		{
@@ -105,26 +109,18 @@ ImageColorAveraging::ImageColorAveraging(
 
 		if (!sparseIndexes && totalSize > 1600)
 		{
-			Warning(_log, "This is large image area for lamp: %i. It contains %i indexes for captured video frame so reduce it by four. Enabling 'sparse processing' option for you. Consider to enable it permanently in the processing configuration to hide that warning.", ledCounter, totalSize);
+			Warning(_log, "This is large image area for lamp: %i. It contains %i indexes for captured video frame so reduce it by four. Enabling 'sparse processing' option for you. Consider to enable it permanently in the processing configuration to hide that warning.", ledIndex, totalSize);
 			sparseIndexes = true;
 		}
 
 		const int32_t increment = (sparseIndexes) ? 2 : 1;
 
-		std::vector<int32_t> ledColor;
-		ledColor.reserve((sparseIndexes) ? ((static_cast<unsigned long long>(realYLedCount / 2)) + (realYLedCount % 2)) * ((realXLedCount / 2) + (realXLedCount % 2)) : totalSize);
-
-		if (ImageToLedManager::mappingTypeToInt(QString("weighted")) == _mappingType)
-		{
-			bool left = led.minX_frac == 0;
-			bool right = led.maxX_frac == 1;
-			bool top = led.minY_frac == 0;
-			bool bottom = led.maxY_frac == 1;
-
-			int isCorner = ((left) ? 1 : 0) + ((right) ? 1 : 0) + ((top) ? 1 : 0) + ((bottom) ? 1 : 0);
-
-			if (isCorner != 1)
+		totalCount += _colorsMap.emplace_back([&]{
+			std::vector<uint32_t> ledColor;
+			if (!led.disabled)
 			{
+				ledColor.reserve((sparseIndexes) ? ((static_cast<unsigned long long>(realYLedCount / 2)) + (realYLedCount % 2)) * ((realXLedCount / 2) + (realXLedCount % 2)) : totalSize);
+
 				for (int32_t y = minY_idx; y < maxYLedCount; y += increment)
 				{
 					for (int32_t x = minX_idx; x < maxXLedCount; x += increment)
@@ -133,74 +129,28 @@ ImageColorAveraging::ImageColorAveraging(
 					}
 				}
 			}
-			else if (bottom)
-			{
-				int32_t mid = (minY_idx + maxYLedCount) / 2;
-				for (int32_t y = minY_idx; y < mid; y += increment)
-					for (int32_t x = minX_idx; x < maxXLedCount; x += increment)
-						push_back_index(ledColor, -((int32_t)(y * width + x)));
+			return ledColor;
+		}()).size();
+		totalCapasity += _colorsMap.back().capacity();
 
-				for (int32_t y = mid; y < maxYLedCount; y += increment)
-					for (int32_t x = minX_idx; x < maxXLedCount; x += increment)
-						push_back_index(ledColor, y * width + x);
-			}
-			else if (top)
-			{
-				int32_t mid = (minY_idx + maxYLedCount) / 2;
-				for (int32_t y = minY_idx; y < mid; y += increment)
-					for (int32_t x = minX_idx; x < maxXLedCount; x += increment)
-						push_back_index(ledColor, y * width + x);
-
-				for (int32_t y = mid; y < maxYLedCount; y += increment)
-					for (int32_t x = minX_idx; x < maxXLedCount; x += increment)
-						push_back_index(ledColor, -((int32_t)(y * width + x)));
-			}
-
-			else if (left)
-			{
-				int32_t mid = (minX_idx + maxXLedCount) / 2;
-				for (int32_t y = minY_idx; y < maxYLedCount; y += increment)
-				{
-					for (int32_t x = minX_idx; x < mid; x += increment)
-						push_back_index(ledColor, y * width + x);
-					for (int32_t x = mid; x < maxXLedCount; x += increment)
-						push_back_index(ledColor, -((int32_t)(y * width + x)));
-				}
-			}
-
-			else if (right)
-			{
-				int32_t mid = (minX_idx + maxXLedCount) / 2;
-				for (int32_t y = minY_idx; y < maxYLedCount; y += increment)
-				{
-					for (int32_t x = minX_idx; x < mid; x += increment)
-						push_back_index(ledColor, -((int32_t)(y * width + x)));
-					for (int32_t x = mid; x < maxXLedCount; x += increment)
-						push_back_index(ledColor, y * width + x);
-				}
-			}
-
-		}
-		else
+		if (led.group > 0)
 		{
-			for (int32_t y = minY_idx; y < maxYLedCount; y += increment)
+			if (_colorGroups.contains(led.group))
 			{
-				for (int32_t x = minX_idx; x < maxXLedCount; x += increment)
-				{
-					push_back_index(ledColor, y * width + x);
-				}
+				int master = _colorGroups[led.group].front();
+				auto& dest_vec = _colorsMap[master];
+				auto& source_vec = _colorsMap.back();
+
+				dest_vec.insert(
+					dest_vec.end(),
+					std::make_move_iterator(source_vec.begin()),
+					std::make_move_iterator(source_vec.end())
+				);
+
+				source_vec.clear();
 			}
+			_colorGroups[led.group].push_back(ledIndex);
 		}
-
-		_colorsMap.push_back(ledColor);
-		_colorsGroups.push_back(led.group);
-		if (_groupMin == -1 || led.group < _groupMin)
-			_groupMin = led.group;
-		if (_groupMax == -1 || led.group > _groupMax)
-			_groupMax = led.group;
-
-		totalCount += ledColor.size();
-		totalCapasity += ledColor.capacity();
 	}
 	Info(_log, "Total index number is: %d (memory: %d). User sparse processing is: %s, image size: %d x %d, area number: %d",
 		totalCount, totalCapasity, (sparseProcessing) ? "enabled" : "disabled", width, height, leds.size());
@@ -216,7 +166,6 @@ unsigned ImageColorAveraging::height() const
 	return _height;
 }
 
-
 unsigned ImageColorAveraging::horizontalBorder() const
 {
 	return _horizontalBorder;
@@ -226,176 +175,85 @@ unsigned ImageColorAveraging::verticalBorder() const {
 	return _verticalBorder;
 }
 
-void ImageColorAveraging::Process(std::vector<ColorRgb>& colors, const Image<ColorRgb>& image, uint16_t* advanced)
+void ImageColorAveraging::process(std::vector<float3>& ledColors, const Image<ColorRgb>& image)
 {
+	ledColors.clear();
+	ledColors.reserve(_colorsMap.size());
+
 	switch (_mappingType)
 	{
-		case 3:
-		case 2: getMeanAdvLedColor(colors, image, advanced); break;
-		case 1: getUniLedColor(colors, image); break;
-		default: getMeanLedColor(colors, image);
+		case 1: getUnicolorForLeds(ledColors, image); break;
+		default: getMulticolorForLeds(ledColors, image);
 	}
 
-	if (_groupMax > 0 && _mappingType != 1)
+	if (_colorGroups.size() > 0 && _mappingType != 1)
 	{
-		for (int i = std::max(_groupMin, 1); i <= _groupMax; i++)
+		for (auto& group : _colorGroups)
 		{
-			int32_t r = 0, g = 0, b = 0, c = 0;
-
-			auto groupIn = _colorsGroups.begin();
-			for (auto _rgb = colors.begin(); _rgb != colors.end(); ++_rgb, ++groupIn)
-				if (*groupIn == i)
-				{
-					r += (*_rgb).red;
-					g += (*_rgb).green;
-					b += (*_rgb).blue;
-					c++;
-				}
-
-			if (c > 0)
+			const auto& combined = ledColors[group.second.front()];
+			for (int g = 1; g < static_cast<int>(group.second.size()); g++)
 			{
-				r /= c;
-				g /= c;
-				b /= c;
+				ledColors[group.second[g]] = combined;
 			}
-
-			auto groupOut = _colorsGroups.begin();
-			for (auto _rgb = colors.begin(); _rgb != colors.end(); ++_rgb, ++groupOut)
-				if (*groupOut == i)
-				{
-					(*_rgb).red = r;
-					(*_rgb).green = g;
-					(*_rgb).blue = b;
-				}
 		}
 	}
 }
 
-void ImageColorAveraging::getMeanLedColor(std::vector<ColorRgb>& ledColors, const Image<ColorRgb>& image) const
+void  ImageColorAveraging::getUnicolorForLeds(std::vector<float3>& ledColors, const Image<ColorRgb>& image) const
+{
+	ledColors.resize(_colorsMap.size(), calcUnicolorForLeds(image));
+}
+
+
+void ImageColorAveraging::getMulticolorForLeds(std::vector<float3>& ledColors, const Image<ColorRgb>& image) const
 {
 	for (auto colors = _colorsMap.begin(); colors != _colorsMap.end(); ++colors)
 	{
-		ledColors.push_back(calcMeanColor(image, *colors));
+		ledColors.push_back(calcMulticolorForLeds(image, *colors));
 	}
 }
 
-void ImageColorAveraging::getUniLedColor(std::vector<ColorRgb>& ledColors, const Image<ColorRgb>& image) const
+float3 ImageColorAveraging::calcMulticolorForLeds(const Image<ColorRgb>& image, const std::vector<uint32_t>& colors) const
 {
-	ledColors.resize(_colorsMap.size(), calcMeanColor(image));
-}
-
-
-void ImageColorAveraging::getMeanAdvLedColor(std::vector<ColorRgb>& ledColors, const Image<ColorRgb>& image, uint16_t* lut) const
-{
-	for (auto colors = _colorsMap.begin(); colors != _colorsMap.end(); ++colors)
+	if (colors.size() == 0)
 	{
-		ledColors.push_back(calcMeanAdvColor(image, *colors, lut));
-	}
-}
-
-ColorRgb ImageColorAveraging::calcMeanColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors) const
-{
-	const auto colorVecSize = colors.size();
-
-	if (colorVecSize == 0)
-	{
-		return ColorRgb::BLACK;
+		return float3{ 0, 0, 0 };
 	}
 
-	uint_fast32_t sumRed = 0;
-	uint_fast32_t sumGreen = 0;
-	uint_fast32_t sumBlue = 0;
-	const uint8_t* imgData = image.rawMem();
-
-	for (const unsigned colorOffset : colors)
-	{
-		sumRed += imgData[colorOffset];
-		sumGreen += imgData[colorOffset + 1];
-		sumBlue += imgData[colorOffset + 2];
-	}
-
-	const uint8_t avgRed = uint8_t(sumRed / colorVecSize);
-	const uint8_t avgGreen = uint8_t(sumGreen / colorVecSize);
-	const uint8_t avgBlue = uint8_t(sumBlue / colorVecSize);
-
-	return { avgRed, avgGreen, avgBlue };
-}
-
-ColorRgb ImageColorAveraging::calcMeanAdvColor(const Image<ColorRgb>& image, const std::vector<int32_t>& colors, uint16_t* lut) const
-{
-	const auto colorVecSize = colors.size();
-
-	if (colorVecSize == 0)
-	{
-		return ColorRgb::BLACK;
-	}
-
-	uint_fast64_t sum1 = 0;
-	uint_fast64_t sumRed1 = 0;
-	uint_fast64_t sumGreen1 = 0;
-	uint_fast64_t sumBlue1 = 0;
-
-	uint_fast64_t sum2 = 0;
-	uint_fast64_t sumRed2 = 0;
-	uint_fast64_t sumGreen2 = 0;
-	uint_fast64_t sumBlue2 = 0;
+	linalg::vec<uint_fast64_t, 3> sumLinear(0, 0, 0);
 
 	const uint8_t* imgData = image.rawMem();
 
-	for (const int32_t colorOffset : colors)
+	for (const uint32_t colorOffset : colors)
+	{		
+		sumLinear += InfiniteProcessing::srgbNonlinearToLinear(byte3(imgData[colorOffset], imgData[colorOffset + 1], imgData[colorOffset + 2]));
+	}
+
+	auto averageLinear = (static_cast<float3>(sumLinear) / static_cast<float>(colors.size())) / 65535.0f;
+
+	return averageLinear;
+}
+
+float3 ImageColorAveraging::calcUnicolorForLeds(const Image<ColorRgb>& image) const
+{
+	uint_fast64_t sum = 0;
+	linalg::vec<uint_fast64_t, 3> sumLinear(0, 0, 0);
+
+	const uint8_t* imgData = image.rawMem();
+	const uint32_t rowSize = image.width() * static_cast<uint32_t>(sizeof(ColorRgb));
+	const uint32_t increment = (_sparseProcessing) ? 2 : 1;
+
+	for (uint32_t y = 0; y < image.height(); y += increment)
 	{
-		if (colorOffset >= 0) {
-			sumRed1 += lut[imgData[colorOffset]];
-			sumGreen1 += lut[imgData[colorOffset + 1]];
-			sumBlue1 += lut[imgData[colorOffset + 2]];
-			sum1++;
-		}
-		else {
-			sumRed2 += lut[imgData[(-colorOffset)]];
-			sumGreen2 += lut[imgData[(-colorOffset) + 1]];
-			sumBlue2 += lut[imgData[(-colorOffset) + 2]];
-			sum2++;
+		for (uint32_t colorOffset = y * rowSize; colorOffset < y * rowSize + rowSize; colorOffset += increment * static_cast<uint32_t>(sizeof(ColorRgb)))
+		{
+			sumLinear += InfiniteProcessing::srgbNonlinearToLinear(byte3(imgData[colorOffset], imgData[colorOffset + 1], imgData[colorOffset + 2]));
+			sum++;
 		}
 	}
 
+	auto averageLinear = (static_cast<float3>(sumLinear) / static_cast<float>(sum)) / 65535.0f;
 
-	if (sum1 > 0 && sum2 > 0)
-	{
-		uint16_t avgRed = std::min((uint32_t)sqrt(((sumRed1 * 3) / sum1 + sumRed2 / sum2) / 4), (uint32_t)255);
-		uint16_t avgGreen = std::min((uint32_t)sqrt(((sumGreen1 * 3) / sum1 + sumGreen2 / sum2) / 4), (uint32_t)255);
-		uint16_t avgBlue = std::min((uint32_t)sqrt(((sumBlue1 * 3) / sum1 + sumBlue2 / sum2) / 4), (uint32_t)255);
-
-		return { (uint8_t)avgRed, (uint8_t)avgGreen, (uint8_t)avgBlue };
-	}
-	else
-	{
-		uint16_t avgRed = std::min((uint32_t)sqrt((sumRed1 + sumRed2) / (sum1 + sum2)), (uint32_t)255);
-		uint16_t avgGreen = std::min((uint32_t)sqrt((sumGreen1 + sumGreen2) / (sum1 + sum2)), (uint32_t)255);
-		uint16_t avgBlue = std::min((uint32_t)sqrt((sumBlue1 + sumBlue2) / (sum1 + sum2)), (uint32_t)255);
-
-		return { (uint8_t)avgRed, (uint8_t)avgGreen, (uint8_t)avgBlue };
-	}
+	return averageLinear;
 }
 
-ColorRgb ImageColorAveraging::calcMeanColor(const Image<ColorRgb>& image) const
-{
-	uint_fast32_t sumRed = 0;
-	uint_fast32_t sumGreen = 0;
-	uint_fast32_t sumBlue = 0;
-	const size_t imageSize = image.size();
-
-	const uint8_t* imgData = image.rawMem();
-
-	for (size_t idx = 0; idx < imageSize; idx += 3)
-	{
-		sumRed += imgData[idx];
-		sumGreen += imgData[idx + 1];
-		sumBlue += imgData[idx + 2];
-	}
-
-	const uint8_t avgRed = uint8_t(sumRed / (imageSize / 3));
-	const uint8_t avgGreen = uint8_t(sumGreen / (imageSize / 3));
-	const uint8_t avgBlue = uint8_t(sumBlue / (imageSize / 3));
-
-	return { avgRed, avgGreen, avgBlue };
-}

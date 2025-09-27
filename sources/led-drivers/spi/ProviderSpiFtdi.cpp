@@ -116,7 +116,7 @@ ProviderSpiFtdi::~ProviderSpiFtdi()
 	}
 }
 
-bool ProviderSpiFtdi::init(const QJsonObject& deviceConfig)
+bool ProviderSpiFtdi::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -218,7 +218,7 @@ QString ProviderSpiFtdi::open()
 		command.push_back(0x08);
 		command.push_back(0x08 | 0x02 | 0x01);
 
-		if (_fun_FT_Write(_deviceHandle, command.data(), command.size(), &dwNumBytesSent) != FT_OK)
+		if (_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent) != FT_OK)
 		{
 			error = "Cannot initilize SPI interface";
 		}
@@ -253,12 +253,12 @@ int ProviderSpiFtdi::writeBytes(unsigned size, const uint8_t* data)
 	command.push_back(0x80);
 	command.push_back(0);
 	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_FT_Write(_deviceHandle, command.data(), command.size(), &dwNumBytesSent);
+	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
 
 	command.push_back(0x11);
 	command.push_back((size - 1) & 0xFF);
 	command.push_back(((size - 1) >> 8) & 0xFF);
-	_fun_FT_Write(_deviceHandle, command.data(), command.size(), &dwNumBytesSent);
+	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
 	if (_fun_FT_Write(_deviceHandle, const_cast<uint8_t*>(data), size, &dwNumBytesSent) != FT_OK)
 	{
 		Error(_log, "The FTDI device reports error while writing");
@@ -270,7 +270,7 @@ int ProviderSpiFtdi::writeBytes(unsigned size, const uint8_t* data)
 	command.push_back(0x80);
 	command.push_back(0x08);
 	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_FT_Write(_deviceHandle, command.data(), command.size(), &dwNumBytesSent);
+	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
 
 
 	return dwNumBytesSent;
@@ -308,11 +308,14 @@ QJsonObject ProviderSpiFtdi::discover(const QJsonObject& /*params*/)
 			QJsonArray deviceList;
 			QStringList files;
 
-			for (int i = 0; i < numDevs; i++)
+			for (DWORD i = 0, count = std::min(numDevs, DWORD(std::size(deviceIds))); i < count; ++i)
+			{
 				deviceList.push_back(QJsonObject{
-					{"value", QJsonValue((qint64)deviceIds[i])},
-					{ "name", QString("FTDI SPI device location: %1").arg(QString::number(deviceIds[i])) } });
-			
+					{"value", QJsonValue(static_cast<qint64>(deviceIds[i]))},
+					{"name", QString("FTDI SPI device location: %1").arg(QString::number(deviceIds[i]))}
+					});
+			}
+
 			devicesDiscovered.insert("devices", deviceList);
 
 			Debug(_log, "FTDI SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());			

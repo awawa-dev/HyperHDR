@@ -31,6 +31,7 @@
 #include <blackborder/BlackBorderProcessor.h>
 
 using namespace hyperhdr;
+using namespace linalg::aliases;
 
 void ImageToLedManager::registerProcessingUnit(
 	const unsigned width,
@@ -57,12 +58,6 @@ void ImageToLedManager::registerProcessingUnit(
 // global transform method
 int ImageToLedManager::mappingTypeToInt(const QString& mappingType)
 {
-	if (mappingType == "weighted")
-		return 3;
-
-	if (mappingType == "advanced")
-		return 2;
-
 	if (mappingType == "unicolor_mean")
 		return 1;
 
@@ -71,16 +66,11 @@ int ImageToLedManager::mappingTypeToInt(const QString& mappingType)
 // global transform method
 QString ImageToLedManager::mappingTypeToStr(int mappingType)
 {
-	if (mappingType == 3)
-		return "weighted";
-
-	if (mappingType == 2)
-		return "advanced";
 
 	if (mappingType == 1)
 		return "unicolor_mean";
 
-	return "multicolor_mean";
+	return "advanced";
 }
 
 ImageToLedManager::ImageToLedManager(const LedString& ledString, HyperHdrInstance* hyperhdr)
@@ -97,9 +87,8 @@ ImageToLedManager::ImageToLedManager(const LedString& ledString, HyperHdrInstanc
 	handleSettingsUpdate(settings::type::COLOR, hyperhdr->getSetting(settings::type::COLOR));
 	// listen for changes in color - ledmapping
 	connect(hyperhdr, &HyperHdrInstance::SignalInstanceSettingsChanged, this, &ImageToLedManager::handleSettingsUpdate);
+	connect(this, &ImageToLedManager::SignalImageToLedsMappingChanged, hyperhdr, &HyperHdrInstance::SignalImageToLedsMappingChanged);
 
-	for (int i = 0; i < 256; i++)
-		_advanced[i] = i * i;
 	Debug(_log, "ImageToLedManager initialized");
 }
 
@@ -109,10 +98,7 @@ void ImageToLedManager::handleSettingsUpdate(settings::type type, const QJsonDoc
 	{
 		const QJsonObject& obj = config.object();
 		int newType = mappingTypeToInt(obj["imageToLedMappingType"].toString());
-		if (_mappingType != newType)
-		{
-			setLedMappingType(newType);
-		}
+		setLedMappingType(newType);
 
 		bool newSparse = obj["sparse_processing"].toBool(false);
 		setSparseProcessing(newSparse);
@@ -156,14 +142,14 @@ bool ImageToLedManager::blackBorderDetectorEnabled() const
 	return _borderProcessor->enabled();
 }
 
-void ImageToLedManager::processFrame(std::vector<ColorRgb>& colors, const Image<ColorRgb>& frameBuffer)
+void ImageToLedManager::processFrame(std::vector<float3>& ledColors, const Image<ColorRgb>& frameBuffer)
 {
 	setSize(frameBuffer);;
 	verifyBorder(frameBuffer);
 
 	if (_colorAveraging != nullptr && _colorAveraging->width() == frameBuffer.width() && _colorAveraging->height() == frameBuffer.height())
 	{
-		_colorAveraging->Process(colors, frameBuffer, _advanced);
+		_colorAveraging->process(ledColors, frameBuffer);
 	}
 }
 
@@ -197,6 +183,11 @@ void ImageToLedManager::setLedMappingType(int mapType)
 		unsigned height = _colorAveraging->height();
 
 		registerProcessingUnit(width, height, 0, 0);
+	}
+
+	if (_orgmappingType != _mappingType)
+	{
+		emit SignalImageToLedsMappingChanged(_mappingType);
 	}
 }
 

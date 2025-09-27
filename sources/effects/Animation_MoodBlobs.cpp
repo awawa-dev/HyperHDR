@@ -65,19 +65,19 @@ Animation_MoodBlobs::Animation_MoodBlobs() :
 
 
 void Animation_MoodBlobs::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 
 }
 
-bool Animation_MoodBlobs::Play(HyperImage& painter)
+bool Animation_MoodBlobs::Play(HyperImage& /*painter*/)
 {
 	return true;
 }
 
-bool Animation_MoodBlobs::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_MoodBlobs::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (static_cast<int>(buffer.size()) != hyperledCount && buffer.size() > 1)
 	{

@@ -98,7 +98,7 @@ signals:
 
 	void SignalStartInstanceResponse(QObject* caller, const int& tan);
 
-	void SignalSettingsChanged(settings::type type, const QJsonDocument& data);
+	void SignalSettingsChanged(settings::type type, QJsonDocument data);
 
 	void SignalCompStateChangeRequest(hyperhdr::Components component, bool enable);
 

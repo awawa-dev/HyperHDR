@@ -93,10 +93,10 @@ static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
 				POINT p;
 				GetCursorPos(&p);
 				SetForegroundWindow(hwnd);
-				WORD cmd = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_RIGHTBUTTON |
+				BOOL cmd = TrackPopupMenu(menu, TPM_LEFTALIGN | TPM_RIGHTBUTTON |
 												 TPM_RETURNCMD | TPM_NONOTIFY,
 											p.x, p.y, 0, hwnd, NULL);
-				SendMessage(hwnd, WM_COMMAND, cmd, 0);
+				SendMessage(hwnd, WM_COMMAND, static_cast<WORD>(cmd), 0);
 				return 0;
 			}
 			break;
@@ -111,10 +111,10 @@ static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
 				
 				if (GetMenuItemInfo(menu, static_cast<UINT>(wparam), FALSE, &item))
 				{
-					SystrayMenu* menu = reinterpret_cast<SystrayMenu*>(item.dwItemData);
-					if (menu != nullptr && menu->callback != nullptr)
+					SystrayMenu* sysMenu = reinterpret_cast<SystrayMenu*>(item.dwItemData);
+					if (sysMenu != nullptr && sysMenu->callback != nullptr)
 					{
-						menu->callback(menu);
+						sysMenu->callback(sysMenu);
 					}
 				}
 				return 0;

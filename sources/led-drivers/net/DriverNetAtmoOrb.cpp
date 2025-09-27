@@ -30,17 +30,7 @@ DriverNetAtmoOrb::DriverNetAtmoOrb(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetAtmoOrb::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetAtmoOrb(deviceConfig);
-}
-
-DriverNetAtmoOrb::~DriverNetAtmoOrb()
-{
-	delete _udpSocket;
-}
-
-bool DriverNetAtmoOrb::init(const QJsonObject& deviceConfig)
+bool DriverNetAtmoOrb::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -125,7 +115,7 @@ int DriverNetAtmoOrb::open()
 
 	if (_udpSocket == nullptr)
 	{
-		_udpSocket = new QUdpSocket();
+		_udpSocket = new QUdpSocket(this);
 	}
 
 	// Try to bind the UDP-Socket
@@ -183,7 +173,7 @@ int DriverNetAtmoOrb::close()
 	return retval;
 }
 
-int DriverNetAtmoOrb::write(const std::vector <ColorRgb>& ledValues)
+int DriverNetAtmoOrb::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	// If not in multicast group return
 	if (!_joinedMulticastgroup)
@@ -382,6 +372,11 @@ void DriverNetAtmoOrb::identify(const QJsonObject& params)
 	{
 		Warning(_log, "Identification of Orb with ID='%d' skipped. ID must be in range 1-255", orbId);
 	}
+}
+
+LedDevice* DriverNetAtmoOrb::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetAtmoOrb(deviceConfig);
 }
 
 bool DriverNetAtmoOrb::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("atmoorb", "leds_group_2_network", DriverNetAtmoOrb::construct);

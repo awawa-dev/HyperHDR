@@ -158,18 +158,18 @@ std::vector<QString> HyperHdrManager::getInstances()
 	return ret;
 }
 
-void HyperHdrManager::setInstanceColor(int instance, int priority, ColorRgb ledColors, int timeout_ms)
+void HyperHdrManager::setInstanceColor(int instance, int /*priority*/, ColorRgb ledColors, int /*timeout_ms*/)
 {
-	std::vector<ColorRgb> rgbColor{ ledColors };
+	QVector<ColorRgb> rgbColor{ ledColors };
 
 	for (const auto& selInstance : _runningInstances)
 		if (instance == -1 || selInstance->getInstanceIndex() == instance)
 		{
-			QUEUE_CALL_3(selInstance.get(), setColor, int, 1, std::vector<ColorRgb>, rgbColor, int, 0);
+			QUEUE_CALL_3(selInstance.get(), setColor, int, 1, QVector<ColorRgb>, rgbColor, int, 0);
 		}
 }
 
-void  HyperHdrManager::setInstanceEffect(int instance, QString effectName, int priority)
+void  HyperHdrManager::setInstanceEffect(int instance, QString effectName, int /*priority*/)
 {
 	for (const auto& selInstance : _runningInstances)
 		if (instance == -1 || selInstance->getInstanceIndex() == instance)
@@ -178,7 +178,7 @@ void  HyperHdrManager::setInstanceEffect(int instance, QString effectName, int p
 		}
 }
 
-void HyperHdrManager::clearInstancePriority(int instance, int priority)
+void HyperHdrManager::clearInstancePriority(int instance, int /*priority*/)
 {
 	for (const auto& selInstance : _runningInstances)
 		if (instance == -1 || selInstance->getInstanceIndex() == instance)

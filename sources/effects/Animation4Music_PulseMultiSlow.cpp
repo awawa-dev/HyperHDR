@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_PulseMultiSlow::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_PulseMultiSlow::Play(HyperImage& painter)
+bool Animation4Music_PulseMultiSlow::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

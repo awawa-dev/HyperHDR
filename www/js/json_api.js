@@ -291,8 +291,8 @@ for(var key in window.schema.color.properties.channelAdjustment.items.properties
 			
 			if (editor.format === "colorpicker")
 				requestAdjustmentJson(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
-			else
-				requestAdjustmentJson(sourceKey, editor.value);		
+			else if (editor.getValue() != null)
+				requestAdjustmentJson(sourceKey, JSON.stringify(editor.getValue()));		
 		});				
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

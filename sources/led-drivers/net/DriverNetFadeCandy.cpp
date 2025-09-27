@@ -31,17 +31,7 @@ DriverNetFadeCandy::DriverNetFadeCandy(const QJsonObject& deviceConfig)
 {
 }
 
-DriverNetFadeCandy::~DriverNetFadeCandy()
-{
-	delete _client;
-}
-
-LedDevice* DriverNetFadeCandy::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetFadeCandy(deviceConfig);
-}
-
-bool DriverNetFadeCandy::init(const QJsonObject& deviceConfig)
+bool DriverNetFadeCandy::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -176,7 +166,7 @@ bool DriverNetFadeCandy::tryConnect()
 	return isConnected();
 }
 
-int DriverNetFadeCandy::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetFadeCandy::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	uint idx = OPC_HEADER_SIZE;
 	for (const ColorRgb& color : ledValues)
@@ -230,6 +220,11 @@ void DriverNetFadeCandy::sendFadeCandyConfiguration()
 
 	char firmware_data = static_cast<char>(static_cast<uint8_t>(_noDither) | (static_cast<uint8_t>(_noInterp) << 1) | (static_cast<uint8_t>(_manualLED) << 2) | (static_cast<uint8_t>(_ledOnOff) << 3));
 	sendSysEx(1, 2, QByteArray(1, firmware_data));
+}
+
+LedDevice* DriverNetFadeCandy::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetFadeCandy(deviceConfig);
 }
 
 bool DriverNetFadeCandy::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("fadecandy", "leds_group_2_network", DriverNetFadeCandy::construct);

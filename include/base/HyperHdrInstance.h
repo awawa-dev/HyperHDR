@@ -10,6 +10,7 @@
 	#include <QMap>
 	#include <QTime>
 	#include <QThread>
+	#include <QVector>
 
 	#include <list>
 	#include <memory>
@@ -20,19 +21,19 @@
 #include <image/Image.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
-#include <led-strip/LedString.h>
+#include <base/LedString.h>
 #include <effects/EffectDefinition.h>
 #include <effects/ActiveEffectDefinition.h>
 #include <led-drivers/LedDevice.h>
+#include <lut-calibrator/LutCalibrator.h>
+#include <infinite-color-engine/SharedOutputColors.h>
 
 class Muxer;
 class ComponentController;
 class ImageToLedManager;
 class NetworkForwarder;
-class Smoothing;
+class CoreInfiniteEngine;
 class EffectEngine;
-class LedCalibration;
-class ColorAdjustment;
 class InstanceConfig;
 class VideoControl;
 class SystemControl;
@@ -75,17 +76,17 @@ public slots:
 	int hasLedClock();
 	void identifyLed(const QJsonObject& params);
 	int isComponentEnabled(hyperhdr::Components comp) const;
-	void putJsonConfig(QJsonObject& info) const;
-	void putJsonInfo(QJsonObject& info, bool full);
+	QJsonObject getJsonConfig() const;
+	QJsonObject getJsonInfo(bool full);
 	void registerInput(int priority, hyperhdr::Components component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
 	void saveCalibration(QString saveData);
 	bool saveSettings(const QJsonObject& config, bool correct = false);
 	void setSignalStateByCEC(bool enable);
-	bool setInputLeds(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
+	bool setInputLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
 	void setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, bool clearEffect = true);
 	void signalSetGlobalImageHandler(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
-	void setColor(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, const QString& origin = "System", bool clearEffects = true);
-	void signalSetGlobalColorHandler(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+	void setColor(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms = -1, const QString& origin = "System", bool clearEffects = true);
+	void signalSetGlobalColorHandler(int priority, const QVector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 	bool setInputInactive(quint8 priority);
 	void setLedMappingType(int mappingType);
 	void setNewComponentState(hyperhdr::Components component, bool state);
@@ -98,7 +99,7 @@ public slots:
 	void turnGrabbers(bool active);
 	void update();
 	void updateAdjustments(const QJsonObject& config);
-	void updateResult(std::vector<ColorRgb> _ledBuffer);
+	
 	
 	int setEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");	
 
@@ -112,12 +113,12 @@ signals:
 	void SignalImageToLedsMappingChanged(int mappingType);
 	void SignalInstanceImageUpdated(const Image<ColorRgb>& ret);
 	void SignalForwardJsonMessage(QJsonObject);
-	void SignalInstanceSettingsChanged(settings::type type, const QJsonDocument& data);
-	void SignalAdjustmentUpdated(const QJsonArray& newConfig);
-	void SignalUpdateLeds(const std::vector<ColorRgb>& ledValues);
+	void SignalInstanceSettingsChanged(settings::type type, QJsonDocument data);
+	void SignalAdjustmentUpdated(QJsonArray newConfig);
+	void SignalFinalOutputColorsReady(SharedOutputColors nonlinearRgbColors);
 	void SignalSmoothingClockTick();
 	void SignalSmoothingRestarted(int suggestedInterval);
-	void SignalRawColorsChanged(const std::vector<ColorRgb>& ledValues);
+	void SignalRawColorsChanged(QVector<ColorRgb> ledValues);
 	void SignalInstanceJustStarted();
 	void SignalColorIsSet(ColorRgb color, int duration);
 
@@ -127,6 +128,8 @@ private slots:
 	void handlePriorityChangedLedDevice(const quint8& priority);
 
 private:
+	void updateResult(std::vector<linalg::aliases::float3>&& _ledBuffer);
+
 	const quint8	_instIndex;
 	QTime			_bootEffect;
 	LedString		_ledString;
@@ -135,9 +138,8 @@ private:
 	std::unique_ptr<ComponentController> _componentController;
 	std::unique_ptr<ImageToLedManager> _imageProcessor;
 	std::unique_ptr<Muxer> _muxer;
-	std::unique_ptr<LedCalibration> _ledColorCalibration;
 	std::unique_ptr<LedDeviceWrapper> _ledDeviceWrapper;
-	std::unique_ptr<Smoothing> _smoothing;
+	std::unique_ptr<CoreInfiniteEngine> _infinite;
 	std::unique_ptr<EffectEngine> _effectEngine;
 	std::unique_ptr<VideoControl> _videoControl;
 	std::unique_ptr<SystemControl> _systemControl;
@@ -147,7 +149,7 @@ private:
 	int					_hwLedCount;
 	QSize				_ledGridSize;
 
-	std::vector<ColorRgb>	_currentLedColors;
+	QVector<ColorRgb>	_currentLedColors;
 	QString					_name;
 
 	bool					_disableOnStartup;

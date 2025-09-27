@@ -53,7 +53,7 @@ ProviderSpiGeneric::~ProviderSpiGeneric()
 	close();
 }
 
-bool ProviderSpiGeneric::init(const QJsonObject& deviceConfig)
+bool ProviderSpiGeneric::init(QJsonObject deviceConfig)
 {
 	_deviceName = deviceConfig["output"].toString(_deviceName);
 	_spiType = deviceConfig["spitype"].toString("");

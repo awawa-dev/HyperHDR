@@ -35,19 +35,19 @@ Animation_Sparks::Animation_Sparks() :
 };
 
 void Animation_Sparks::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 	SetSleepTime((int)(sleep_time * 1000.0));
 }
 
-bool Animation_Sparks::Play(HyperImage& painter)
+bool Animation_Sparks::Play(HyperImage& /*painter*/)
 {
 	return true;
 }
 
-bool Animation_Sparks::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_Sparks::hasLedData(QVector<ColorRgb>& buffer)
 {
 	ColorRgb newColor{ color.x, color.y, color.z };
 	ColorRgb blackColor{ 0, 0, 0 };

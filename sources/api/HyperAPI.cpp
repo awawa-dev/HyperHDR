@@ -221,7 +221,7 @@ void HyperAPI::initialize()
 		connect(this, &HyperAPI::SignalForwardJsonMessage, _hyperhdr.get(), &HyperHdrInstance::SignalForwardJsonMessage);
 }
 
-bool HyperAPI::handleInstanceSwitch(quint8 inst, bool forced)
+bool HyperAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (BaseAPI::setHyperhdrInstance(inst))
 	{		
@@ -326,7 +326,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 			// Instance report //
 			/////////////////////
 
-			BLOCK_CALL_2(_hyperhdr.get(), putJsonInfo, QJsonObject&, info, bool, true);
+			SAFE_CALL_1_RET(_hyperhdr.get(), getJsonInfo, QJsonObject, info, bool, true);
 
 			///////////////////////////
 			// Available LED devices //
@@ -383,7 +383,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 			//////////////////////
 
 			QJsonObject grabbers;
-			GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
+			[[maybe_unused]] GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF) || defined(ENABLE_AVF)
 			if (grabberWrapper != nullptr)
@@ -500,7 +500,7 @@ void HyperAPI::handleClearallCommand(const QJsonObject& message, const QString& 
 	sendSuccessReply(command, tan);
 }
 
-void HyperAPI::handleHelpCommand(const QJsonObject& message, const QString& command, int tan)
+void HyperAPI::handleHelpCommand(const QJsonObject& /*message*/, const QString& command, int tan)
 {
 	QJsonObject req;
 
@@ -662,7 +662,7 @@ void HyperAPI::handleSourceSelectCommand(const QJsonObject& message, const QStri
 	sendSuccessReply(command, tan);
 }
 
-void HyperAPI::handleSaveDB(const QJsonObject& message, const QString& command, int tan)
+void HyperAPI::handleSaveDB(const QJsonObject& /*message*/, const QString& command, int tan)
 {
 	if (_adminAuthorized)
 	{
@@ -782,7 +782,7 @@ void HyperAPI::handleConfigCommand(const QJsonObject& message, const QString& co
 		if (_adminAuthorized)
 		{
 			QJsonObject getconfig;
-			BLOCK_CALL_1(_hyperhdr.get(), putJsonConfig, QJsonObject&, getconfig);
+			SAFE_CALL_0_RET(_hyperhdr.get(), getJsonConfig, QJsonObject, getconfig);
 			sendSuccessDataReply(QJsonDocument(getconfig), full_command, tan);
 		}
 		else
@@ -815,7 +815,7 @@ void HyperAPI::handleConfigSetCommand(const QJsonObject& message, const QString&
 	}
 }
 
-void HyperAPI::handleSchemaGetCommand(const QJsonObject& message, const QString& command, int tan)
+void HyperAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const QString& command, int tan)
 {
 	// create result
 	QJsonObject schemaJson, alldevices, properties;
@@ -862,7 +862,7 @@ void HyperAPI::handleComponentStateCommand(const QJsonObject& message, const QSt
 	sendSuccessReply(command, tan);
 }
 
-void HyperAPI::handleIncomingColors(const std::vector<ColorRgb>& ledValues)
+void HyperAPI::handleIncomingColors(const QVector<ColorRgb>& ledValues)
 {
 	_currentLedValues = ledValues;
 
@@ -1163,7 +1163,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 	}
 }
 
-void HyperAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
+void HyperAPI::streamLedcolorsUpdate(const QVector<ColorRgb>& ledColors)
 {
 	QJsonObject result;
 	QJsonArray leds;
@@ -1257,7 +1257,7 @@ void HyperAPI::handleTokenResponse(bool success, const QString& token, const QSt
 		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
-void HyperAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
+void HyperAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
 {
 	switch (state)
 	{
@@ -1445,7 +1445,7 @@ void HyperAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, 
 
 void HyperAPI::handleAdjustmentCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QJsonObject& adjustment = message["adjustment"].toObject();
+	QJsonObject adjustment = message["adjustment"].toObject();
 
 	QUEUE_CALL_1(_hyperhdr.get(), updateAdjustments, QJsonObject, adjustment);
 
@@ -1567,7 +1567,6 @@ void HyperAPI::handleAuthorizeCommand(const QJsonObject& message, const QString&
 	if (subc == "requestToken")
 	{
 		// use id/comment
-		const QString& comment = message["comment"].toString().trimmed();
 		const bool& acc = message["accept"].toBool(true);
 		if (acc)
 			BaseAPI::setNewTokenRequest(comment, id, tan);

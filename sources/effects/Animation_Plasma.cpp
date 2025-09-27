@@ -61,7 +61,7 @@ double  mapto(double x, double  in_min, double  in_max, double out_min, double o
 
 void Animation_Plasma::Init(
 	HyperImage& hyperImage,
-	int hyperLatchTime
+	int /*hyperLatchTime*/
 )
 {
 

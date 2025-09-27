@@ -6,12 +6,7 @@ DriverSerialTpm2::DriverSerialTpm2(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSerialTpm2::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialTpm2(deviceConfig);
-}
-
-bool DriverSerialTpm2::init(const QJsonObject& deviceConfig)
+bool DriverSerialTpm2::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -31,10 +26,15 @@ bool DriverSerialTpm2::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSerialTpm2::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialTpm2::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledRGBCount);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+LedDevice* DriverSerialTpm2::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialTpm2(deviceConfig);
 }
 
 bool DriverSerialTpm2::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("tpm2", "leds_group_3_serial", DriverSerialTpm2::construct);

@@ -224,7 +224,7 @@ void CallbackAPI::removeSubscriptions()
 	}
 }
 
-void CallbackAPI::doCallback(const QString& cmd, const QVariant& data)
+void CallbackAPI::doCallback(const QString cmd, const QVariant data)
 {
 	QJsonObject obj;
 	obj["command"] = cmd;
@@ -276,7 +276,7 @@ void CallbackAPI::priorityUpdateHandler()
 	if (_hyperhdr == nullptr)
 		return;
 
-	BLOCK_CALL_2(_hyperhdr.get(), putJsonInfo, QJsonObject&, info, bool, false);
+	SAFE_CALL_1_RET(_hyperhdr.get(), getJsonInfo, QJsonObject, info, bool, false);
 
 	doCallback("priorities-update", QVariant(info));
 }
@@ -289,7 +289,7 @@ void CallbackAPI::imageToLedsMappingChangeHandler(int mappingType)
 	doCallback("imageToLedMapping-update", QVariant(data));
 }
 
-void CallbackAPI::signalAdjustmentUpdatedHandler(const QJsonArray& newConfig)
+void CallbackAPI::signalAdjustmentUpdatedHandler(QJsonArray newConfig)
 {
 	doCallback("adjustment-update", QVariant(newConfig));
 }

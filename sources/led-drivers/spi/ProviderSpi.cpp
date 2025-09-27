@@ -47,16 +47,38 @@
 	#include <led-drivers/spi/ProviderSpiGeneric.h>
 #endif
 
+
+namespace
+{
+	inline std::string get_error_string(int errnum) {
+		char buffer[256]{};
+
+		#if defined(_WIN32)
+			if (strerror_s(buffer, sizeof(buffer), errnum) != 0)
+				snprintf(buffer, sizeof(buffer), "Unknown error %d", errnum);
+			return std::string(buffer);
+
+		#elif defined(__APPLE__) || defined(__unix__)
+			#ifdef __GLIBC__
+				return std::string(strerror_r(errnum, buffer, sizeof(buffer)));
+			#else
+				if (strerror_r(errnum, buffer, sizeof(buffer)) != 0)
+					snprintf(buffer, sizeof(buffer), "Unknown error %d", errnum);
+				return std::string(buffer);
+			#endif
+		#else
+			snprintf(buffer, sizeof(buffer), "Unknown error %d", errnum);
+			return std::string(buffer);
+		#endif
+	}
+}
+
 ProviderSpi::ProviderSpi(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 {
 }
 
-ProviderSpi::~ProviderSpi()
-{
-}
-
-bool ProviderSpi::init(const QJsonObject& deviceConfig)
+bool ProviderSpi::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -167,7 +189,7 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 			buffer[2 + i] = *startData;
 		}
 		retVal = writeBytes(sizeof(buffer), buffer);
-		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, get_error_string(errno).c_str());
 	}
 
 	return retVal;
@@ -199,7 +221,7 @@ int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 		startData += sent;
 		buffer[REAL_BUFFER] = 0xAA;
 		retVal = writeBytes(sizeof(buffer), buffer);
-		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, get_error_string(errno).c_str());
 	}
 
 	return retVal;
@@ -230,7 +252,7 @@ int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
 		memcpy(buffer, startData, sent);
 		startData += sent;
 		retVal = writeBytes(sizeof(buffer), buffer);
-		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, get_error_string(errno).c_str());
 	}
 
 	return retVal;

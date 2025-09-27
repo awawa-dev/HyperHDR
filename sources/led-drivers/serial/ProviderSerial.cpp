@@ -37,7 +37,7 @@ ProviderSerial::ProviderSerial(const QJsonObject& deviceConfig)
 {
 }
 
-bool ProviderSerial::init(const QJsonObject& deviceConfig)
+bool ProviderSerial::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 

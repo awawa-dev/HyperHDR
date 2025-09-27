@@ -51,7 +51,7 @@ bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& 
 	return true;
 }
 
-void NetOrigin::settingsChangedHandler(settings::type type, const QJsonDocument& config)
+void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if (type == settings::type::NETWORK)
 	{

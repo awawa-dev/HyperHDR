@@ -998,12 +998,7 @@ DriverNetYeelight::~DriverNetYeelight()
 	delete _tcpMusicModeServer;
 }
 
-LedDevice* DriverNetYeelight::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetYeelight(deviceConfig);
-}
-
-bool DriverNetYeelight::init(const QJsonObject& deviceConfig)
+bool DriverNetYeelight::init(QJsonObject deviceConfig)
 {
 	// Overwrite non supported/required features
 	setRefreshTime(0);
@@ -1460,7 +1455,7 @@ void DriverNetYeelight::identify(const QJsonObject& params)
 	}
 }
 
-int DriverNetYeelight::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetYeelight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	//DebugIf(verbose, _log, "enabled [%d], _isDeviceReady [%d]", _isEnabled, _isDeviceReady);
 	int rc = -1;
@@ -1545,6 +1540,11 @@ int DriverNetYeelight::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return rc;
+}
+
+LedDevice* DriverNetYeelight::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetYeelight(deviceConfig);
 }
 
 bool DriverNetYeelight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("yeelight", "leds_group_2_network", DriverNetYeelight::construct);

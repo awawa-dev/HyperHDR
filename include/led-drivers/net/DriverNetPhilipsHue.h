@@ -13,65 +13,31 @@
 #include <led-drivers/LedDevice.h>
 #include "ProviderRestApi.h"
 #include "ProviderUdpSSL.h"
+#include <linalg.h>
 
-struct XYColor
-{
-	double x;
-	double y;
-};
-
-struct CiColorTriangle
-{
-	XYColor red, green, blue;
-};
-
-struct CiColor
-{
-	double x;
-	double y;
-	double bri;
-
-	/// Converts an RGB color to the Hue xy color space and brightness.
-	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
-	static CiColor rgbToCiColor(double red, double green, double blue, const CiColorTriangle& colorSpace, bool candyGamma);
-
-	static bool isPointInLampsReach(CiColor p, const CiColorTriangle& colorSpace);
-	static double crossProduct(XYColor p1, XYColor p2);
-	static XYColor getClosestPointToPoint(XYColor a, XYColor b, CiColor p);
-	static double getDistanceBetweenTwoPoints(CiColor p1, XYColor p2);
-};
-
-bool operator==(const CiColor& p1, const CiColor& p2);
-bool operator!=(const CiColor& p1, const CiColor& p2);
+using ColorXYB = linalg::vec<float, 3>;
 
 class PhilipsHueLight
 {
-
 public:
-	// Hue system model ids (http://www.developers.meethue.com/documentation/supported-lights).
-	static const std::set<QString> GAMUT_A_MODEL_IDS;
-	static const std::set<QString> GAMUT_B_MODEL_IDS;
-	static const std::set<QString> GAMUT_C_MODEL_IDS;
-
 	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx,
 		int onBlackTimeToPowerOff,
-		int onBlackTimeToPowerOn);
-	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, QStringList lightIds,
+		int onBlackTimeToPowerOn,
+		bool isChannelGroup = false);
+	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, QStringList&& lightIds,
 		unsigned int ledidx);
 	~PhilipsHueLight();
 
 	void setOnOffState(bool on);
 	void setTransitionTime(int transitionTime);
-	void setColor(const CiColor& color);
+	void setColor(const ColorXYB& color);
 
 	unsigned int getId() const;
 
 	bool getOnOffState() const;
 	int getTransitionTime() const;
-	CiColor getColor() const;
+	ColorXYB getColor() const;
 	bool hasColor();
-
-	CiColorTriangle getColorSpace() const;
 
 	void saveOriginalState(const QJsonObject& values);
 	QString getOriginalState() const;
@@ -91,24 +57,23 @@ private:
 	unsigned int _ledidx;
 	bool _on;
 	int _transitionTime;
-	CiColor _color;
+	ColorXYB _color;
 	ColorRgb _colorRgb;
 	bool    _hasColor;
-	CiColor _colorBlack;
+	ColorXYB _colorBlack;
 	QString _modelId;
 	QString _lightname;
-	CiColorTriangle _colorSpace;
 
 	QJsonObject _originalStateJSON;
 
 	QString _originalState;
-	CiColor _originalColor;
-	uint64_t _lastSendColor;
-	uint64_t _lastBlack;
-	uint64_t _lastWhite;
+	ColorXYB _originalColor;
+	long long _lastSendColor;
+	long long _lastBlack;
+	long long _lastWhite;
 	bool _blackScreenTriggered;
-	uint64_t _onBlackTimeToPowerOff;
-	uint64_t _onBlackTimeToPowerOn;
+	long long _onBlackTimeToPowerOff;
+	long long _onBlackTimeToPowerOn;
 	QStringList _lightIds;
 };
 
@@ -119,7 +84,6 @@ class LedDevicePhilipsHueBridge : public ProviderUdpSSL
 public:
 
 	explicit LedDevicePhilipsHueBridge(const QJsonObject& deviceConfig);
-	~LedDevicePhilipsHueBridge() override;
 
 	bool initRestAPI(const QString& hostname, int port, const QString& token);
 	QJsonDocument get(const QString& route);
@@ -147,10 +111,10 @@ public:
 
 protected:
 
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	bool checkApiError(const QJsonDocument& response, bool supressError = false);
 
-	ProviderRestApi* _restApi;
+	std::unique_ptr<ProviderRestApi> _restApi;
 	QString _hostname;
 	int _apiPort;	
 	QString _username;
@@ -208,8 +172,8 @@ class DriverNetPhilipsHue : public LedDevicePhilipsHueBridge
 
 public:
 	explicit DriverNetPhilipsHue(const QJsonObject& deviceConfig);
-	~DriverNetPhilipsHue() override;
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+
 	QJsonObject discover(const QJsonObject& params) override;
 	QJsonObject getProperties(const QJsonObject& params) override;
 	void identify(const QJsonObject& params) override;
@@ -217,17 +181,18 @@ public:
 
 	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false);
 	void setTransitionTime(PhilipsHueLight& light);
-	void setColor(PhilipsHueLight& light, CiColor& color);
-	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
+	void setColor(PhilipsHueLight& light, ColorXYB& color);
+	void setState(PhilipsHueLight& light, bool on, const ColorXYB& color);
 
 public slots:
 	void stop() override;
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool switchOn() override;
 	bool switchOff() override;
 	bool powerOn() override;
@@ -251,12 +216,19 @@ private:
 
 	void writeStream(bool flush = false);
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
+	int writeSingleLights(const SharedOutputColors& nonlinearRgbColors);
+	template <typename ColorContainer, typename Converter>
+	int writeSingleLightsGeneric(
+		const ColorContainer& colors,
+		Converter convert);
 
-	std::vector<uint8_t> prepareStreamData() const;
+	static ColorXYB nonLinearRgbToColorXYB(const linalg::vec<float, 3>& nonlinear);
+
+	std::vector<uint8_t> prepareStreamData();
 	std::vector<uint8_t> prepareStreamDataV2();
 
 	bool _switchOffOnBlack;
-	double _brightnessFactor;
+	float _brightnessFactor;
 	int _transitionTime;
 	bool _isInitLeds;
 
@@ -268,10 +240,9 @@ private:
 	quint16		_groupId;
 
 	int			_blackLightsTimeout;
-	double		_blackLevel;
+	float		_blackLevel;
 	int			_onBlackTimeToPowerOff;
 	int			_onBlackTimeToPowerOn;
-	bool		_candyGamma;
 
 	uint32_t    _handshake_timeout_min;
 	uint32_t    _handshake_timeout_max;
@@ -285,7 +256,7 @@ private:
 	int			_lastId;
 	bool		_groupStreamState;
 	QJsonObject _configBackup;
-	std::atomic<uint8_t> _sequenceNumber;
+	uint8_t		_sequenceNumber;
 
 	static bool isRegistered;
 };

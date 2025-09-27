@@ -1,6 +1,7 @@
 #pragma once
 
 #ifndef PCH_ENABLED
+	#include <QVector>
 	#include <cmath>
 #endif
 
@@ -23,7 +24,7 @@ public:
 	virtual ~AnimationBase() = default;
 	virtual bool Play(HyperImage& painter) = 0;
 	virtual void Init(HyperImage& hyperImage, int hyperLatchTime) = 0;
-	virtual bool hasLedData(std::vector<ColorRgb>& buffer);
+	virtual bool hasLedData(QVector<ColorRgb>& buffer);
 	bool		 isStop();
 	void		 SetSleepTime(int sleepTime);
 	int			 GetSleepTime();

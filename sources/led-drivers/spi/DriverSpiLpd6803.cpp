@@ -16,12 +16,7 @@ DriverSpiLpd6803::DriverSpiLpd6803(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverSpiLpd6803::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSpiLpd6803(deviceConfig);
-}
-
-bool DriverSpiLpd6803::init(const QJsonObject& deviceConfig)
+bool DriverSpiLpd6803::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -37,12 +32,12 @@ bool DriverSpiLpd6803::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-int DriverSpiLpd6803::write(const std::vector<ColorRgb>& ledValues)
+int DriverSpiLpd6803::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
 		Warning(_log, "Lpd6803 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
+		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);
 
@@ -61,7 +56,12 @@ int DriverSpiLpd6803::write(const std::vector<ColorRgb>& ledValues)
 	}
 
 	// Write the data
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
+}
+
+LedDevice* DriverSpiLpd6803::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSpiLpd6803(deviceConfig);
 }
 
 bool DriverSpiLpd6803::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("lpd6803", "leds_group_0_SPI", DriverSpiLpd6803::construct);

@@ -26,7 +26,7 @@
 */
 
 #include <lut-calibrator/BoardUtils.h>
-#include <lut-calibrator/YuvConverter.h>
+#include <infinite-color-engine/YuvConverter.h>
 #include <utils-image/utils-image.h>
 #include <iostream>
 #include <fstream>
@@ -123,7 +123,7 @@ namespace BoardUtils
 							return false;
 					}
 		}
-		catch (std::exception& ex)
+		catch (std::exception& /*ex*/)
 		{
 			// too much noice or too low resolution
 			return false;
@@ -167,7 +167,7 @@ namespace BoardUtils
 		{
 			getWhiteBlackColorLevels(yuvImage, white, black, line);
 		}
-		catch (std::exception& ex)
+		catch (std::exception& /*ex*/)
 		{
 			Error(_log, "Too much noice or too low resolution");
 			return false;
@@ -186,7 +186,7 @@ namespace BoardUtils
 				throw std::runtime_error("Unexpected board");
 
 		}
-		catch (std::exception& ex)
+		catch (std::exception& /*ex*/)
 		{
 			Error(_log, "Too much noice or too low resolution");
 			return false;
@@ -224,7 +224,7 @@ namespace BoardUtils
 					allColors.all[R][G][B] = capturedColor;
 				}
 			}
-			catch (std::exception& ex)
+			catch (std::exception& /*ex*/)
 			{
 				Error(_log, "Could not read position [%i, %i]. Too much noice or too low resolution", position.x, position.y);
 				return false;
@@ -387,7 +387,7 @@ namespace BoardUtils
 					const auto& sample = captured.all[r][g][b];
 					int3 sourceRgb = sample.getSourceRGB();
 					auto result = converter.toRgb(YuvConverter::COLOR_RANGE::FULL, YuvConverter::YUV_COEFS::BT709, sample.yuv()) * 255.0;
-					int3 outputRgb = ColorSpaceMath::to_int3(ColorSpaceMath::to_byte3(result));
+					int3 outputRgb = ColorSpaceMath::round_to_0_255<int3>(result);
 					int distance = linalg::distance(sourceRgb, outputRgb);
 					if (distance > maxError)
 					{

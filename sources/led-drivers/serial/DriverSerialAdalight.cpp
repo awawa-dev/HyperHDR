@@ -16,12 +16,7 @@ DriverSerialAdalight::DriverSerialAdalight(const QJsonObject& deviceConfig)
 	_white_channel_blue = 255;
 }
 
-LedDevice* DriverSerialAdalight::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverSerialAdalight(deviceConfig);
-}
-
-bool DriverSerialAdalight::init(const QJsonObject& deviceConfig)
+bool DriverSerialAdalight::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -88,7 +83,7 @@ void DriverSerialAdalight::CreateHeader()
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
-int DriverSerialAdalight::write(const std::vector<ColorRgb>& ledValues)
+int DriverSerialAdalight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -157,6 +152,11 @@ void DriverSerialAdalight::whiteChannelExtension(uint8_t*& writer)
 		*(writer++) = _white_channel_green;
 		*(writer++) = _white_channel_blue;
 	}
+}
+
+LedDevice* DriverSerialAdalight::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverSerialAdalight(deviceConfig);
 }
 
 bool DriverSerialAdalight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("adalight", "leds_group_3_serial", DriverSerialAdalight::construct);

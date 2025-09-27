@@ -167,7 +167,7 @@ static QString preloadSvg(const QString& filename)
 	return filename;
 }
 
-static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, QString rootFolder, QString destFilename = "")
+static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, [[maybe_unused]] QString rootFolder, [[maybe_unused]] QString destFilename = "")
 {
 
 #ifdef __linux__
@@ -259,7 +259,7 @@ void SystrayHandler::createSystray()
 	{
 		std::vector<QString> instancesList;
 		SAFE_CALL_0_RET(instanceManager.get(), getInstances, std::vector<QString>, instancesList);
-		for (int i = instancesList.size() - 2; i >= 0; i -= 2)
+		for (int i = static_cast<int>(instancesList.size()) - 2; i >= 0; i -= 2)
 		{
 			bool ok = false;
 			int key = instancesList[i].toInt(&ok);
@@ -503,7 +503,7 @@ void SystrayHandler::settings()
 
 #ifdef _WIN32
 	const wchar_t* array = (const wchar_t*)link.utf16();
-	ShellExecute(0, 0, array, 0, 0, SW_SHOW);
+	ShellExecuteW(0, 0, array, 0, 0, SW_SHOW);
 #endif
 
 #ifdef __linux__
@@ -549,7 +549,7 @@ void SystrayHandler::clearEfxColor()
 		QUEUE_CALL_2(instanceManager.get(), clearInstancePriority, int, _selectedInstance, int, 1);
 }
 
-void SystrayHandler::signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& name)
+void SystrayHandler::signalInstanceStateChangedHandler(InstanceState state, quint8 instance, const QString& /*name*/)
 {
 	if (instance == _selectedInstance && state == InstanceState::STOP)
 		_selectedInstance = -1;

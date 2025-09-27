@@ -227,7 +227,7 @@ void FlatBuffersClient::setColor(const ColorRgb& color, int priority, int durati
 	uint8_t* outputbuffer = nullptr;
 	size_t outputbufferSize = 0;
 	encodeColorIntoFlatbuffers(_builder, color.red, color.green, color.blue, priority, duration, &outputbuffer, &outputbufferSize);
-	sendMessage(outputbuffer, outputbufferSize);
+	sendMessage(outputbuffer, static_cast<uint32_t>(outputbufferSize));
 	clearFlatbuffersBuilder(_builder);
 }
 
@@ -260,7 +260,7 @@ void FlatBuffersClient::sendImage(const Image<ColorRgb>& image)
 	uint8_t* outputbuffer = nullptr;
 	size_t outputbufferSize = 0;
 	encodeImageIntoFlatbuffers(_builder, image.rawMem(), image.size(), image.width(), image.height(), &outputbuffer, &outputbufferSize);
-	sendMessage(outputbuffer, outputbufferSize);
+	sendMessage(outputbuffer, static_cast<uint32_t>(outputbufferSize));
 	clearFlatbuffersBuilder(_builder);
 }
 
@@ -270,7 +270,7 @@ void FlatBuffersClient::clear(int priority)
 	uint8_t* outputbuffer = nullptr;
 	size_t outputbufferSize = 0;
 	encodeClearPriorityIntoFlatbuffers(_builder, priority, &outputbuffer, &outputbufferSize);
-	sendMessage(outputbuffer, outputbufferSize);
+	sendMessage(outputbuffer, static_cast<uint32_t>(outputbufferSize));
 	clearFlatbuffersBuilder(_builder);
 }
 

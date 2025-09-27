@@ -14,6 +14,7 @@ add_library(hyperhdr-base OBJECT
 target_link_libraries(hyperhdr-base
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
+	infinite-engine
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

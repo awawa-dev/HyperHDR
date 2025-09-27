@@ -26,9 +26,9 @@ public:
 	{
 		QString id;
 		QString comment;
-		QObject* caller;
-		int      tan;
-		uint64_t timeoutTime;
+		QObject* caller = nullptr;
+		int      tan = 0;
+		uint64_t timeoutTime = 0;
 		QString token;
 		QString lastUse;
 	};

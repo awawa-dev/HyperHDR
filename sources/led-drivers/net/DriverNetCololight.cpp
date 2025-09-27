@@ -25,15 +25,7 @@ namespace {
 		0x00, 0x00, 0x00, 0x00
 	};
 
-	const uint8_t TL1_CMD_FIXED_PART[] =
-	{
-		0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		0x00,
-		0x00,
-		0x00,
-		0x00
-	};
+	constexpr uint8_t TL1_CMD_FIXED_PART_SIZE = 12;
 
 	const bool verbose = false;
 	const bool verbose3 = false;
@@ -77,12 +69,7 @@ DriverNetCololight::DriverNetCololight(const QJsonObject& deviceConfig)
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_SECU), sizeof(PACKET_SECU));
 }
 
-LedDevice* DriverNetCololight::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetCololight(deviceConfig);
-}
-
-bool DriverNetCololight::init(const QJsonObject& deviceConfig)
+bool DriverNetCololight::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -202,9 +189,9 @@ bool DriverNetCololight::getInfo()
 	QByteArray command;
 
 	const quint8 packetSize = 2;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SETVAR); // verb
@@ -268,9 +255,9 @@ bool DriverNetCololight::setColor(const uint32_t color)
 	QByteArray command;
 
 	const quint8 packetSize = 6;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SET); // verb
@@ -305,9 +292,9 @@ bool DriverNetCololight::setState(bool isOn)
 	QByteArray command;
 
 	const quint8 packetSize = 3;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SET); // verb
@@ -384,9 +371,9 @@ bool DriverNetCololight::setTL1CommandMode(bool isOn)
 	QByteArray command;
 
 	const quint8 packetSize = 2;
-	int  fixPartsize = sizeof(TL1_CMD_FIXED_PART);
+	int  fixPartsize = TL1_CMD_FIXED_PART_SIZE;
 
-	command.resize(sizeof(TL1_CMD_FIXED_PART) + packetSize);
+	command.resize(TL1_CMD_FIXED_PART_SIZE + packetSize);
 	command.fill('\0');
 
 	command[fixPartsize - 3] = static_cast<char>(SETEEPROM); // verb
@@ -464,7 +451,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 
 					quint16 appID = qFromBigEndian<quint16>(datagram.mid(4, sizeof(appID)));
 
-					if (verbose && appID == 0x8000)
+					if constexpr (verbose && appID == 0x8000)
 					{
 						QString tagVersion = datagram.left(2);
 						quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
@@ -484,7 +471,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 
 					quint8 errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
 
-					int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + sizeof(TL1_CMD_FIXED_PART);
+					int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + TL1_CMD_FIXED_PART_SIZE;
 
 					if (errorCode != 0)
 					{
@@ -531,7 +518,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 	return isRequestOK;
 }
 
-int DriverNetCololight::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetCololight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	int rc = -1;
 
@@ -744,6 +731,11 @@ void DriverNetCololight::identify(const QJsonObject& params)
 			}
 		}
 	}
+}
+
+LedDevice* DriverNetCololight::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetCololight(deviceConfig);
 }
 
 bool DriverNetCololight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("cololight", "leds_group_2_network", DriverNetCololight::construct);

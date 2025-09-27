@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_TestEq::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_TestEq::Play(HyperImage& painter)
+bool Animation4Music_TestEq::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

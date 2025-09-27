@@ -17,12 +17,7 @@ DriverNetZigbee2mqtt::DriverNetZigbee2mqtt(const QJsonObject& deviceConfig)
 {
 }
 
-LedDevice* DriverNetZigbee2mqtt::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetZigbee2mqtt(deviceConfig);
-}
-
-bool DriverNetZigbee2mqtt::init(const QJsonObject& deviceConfig)
+bool DriverNetZigbee2mqtt::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -113,7 +108,7 @@ bool DriverNetZigbee2mqtt::powerOff()
 	return powerOnOff(false);
 }
 
-int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetZigbee2mqtt::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	QJsonDocument doc;
 	auto start = InternalClock::now();
@@ -136,8 +131,8 @@ int DriverNetZigbee2mqtt::write(const std::vector<ColorRgb>& ledValues)
 
 			if (lamp.colorModel == Zigbee2mqttLamp::Mode::RGB)
 			{
-				QJsonObject rgb; rgb["r"] = color.red; rgb["g"] = color.green; rgb["b"] = color.blue;
-				row["color"] = rgb;
+				QJsonObject rgbColor; rgbColor["r"] = color.red; rgbColor["g"] = color.green; rgbColor["b"] = color.blue;
+				row["color"] = rgbColor;
 				brightness = std::min(std::max(static_cast<int>(std::roundl(0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue)), 0), 255);
 			}
 			else
@@ -191,7 +186,7 @@ void DriverNetZigbee2mqtt::handlerSignalMqttReceived(QString topic, QString payl
 	}
 }
 
-QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& params)
+QJsonObject DriverNetZigbee2mqtt::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
@@ -332,5 +327,10 @@ void DriverNetZigbee2mqtt::identify(const QJsonObject& params)
 	}
 }
 
-int DriverNetZigbee2mqtt::mqttId = 0;
+
+LedDevice* DriverNetZigbee2mqtt::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetZigbee2mqtt(deviceConfig);
+}
+
 bool DriverNetZigbee2mqtt::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("zigbee2mqtt", "leds_group_2_network", DriverNetZigbee2mqtt::construct);

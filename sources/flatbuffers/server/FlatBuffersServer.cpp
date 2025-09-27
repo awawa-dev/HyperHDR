@@ -281,17 +281,15 @@ QString FlatBuffersServer::GetSharedLut()
 
 void FlatBuffersServer::loadLutFile()
 {
-	QString fileName01 = QString("%1%2").arg(_configurationPath).arg("/flat_lut_lin_tables.3d");
-	QString fileName02 = QString("%1%2").arg(GetSharedLut()).arg("/flat_lut_lin_tables.3d");
-	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
-	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
-	QList<QString> files({ fileName01, fileName02, fileName1, fileName2 });
+	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/flat_lut_lin_tables.3d");
+	QString fileName2 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
+	QString fileName3 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
+	QList<QString> files({ fileName1, fileName2, fileName3 });
 
 #ifdef __linux__
-	QString fileName03 = QString("/usr/share/hyperhdr/lut/flat_lut_lin_tables.3d");
-	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
-	files.append(fileName03);
-	files.append(fileName3);
+	QString fileName4 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
+
+	files.append(fileName4);
 #endif
 
 	if (!_userLutFile.isEmpty())
@@ -322,6 +320,30 @@ void FlatBuffersServer::handlerImportFromProto(int priority, int duration, const
 		FrameDecoder::applyLUT((uint8_t*)image.rawMem(), image.width(), image.height(), _lut.data(), getHdrToneMappingEnabled());
 
 	emit GlobalSignals::getInstance()->SignalSetGlobalImage(priority, image, duration, hyperhdr::Components::COMP_PROTOSERVER, clientDescription);
+}
+
+void FlatBuffersServer::requestLUT()
+{
+	static bool requested = false;
+	if (std::exchange(requested,true) == false)
+	{
+		std::shared_ptr<GrabberHelper> videoGrabber = nullptr;
+		emit GlobalSignals::getInstance()->SignalGetVideoGrabber(videoGrabber);
+		if (videoGrabber != nullptr)
+		{
+			videoGrabber.reset();
+			emit GlobalSignals::getInstance()->SignalLutRequest();
+			Warning(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
+		}
+		else
+		{
+			Error(_log, "Automatic LUT creation is disabled for custom grabber-less builds. Provide or calibrate you own LUT using LUT calibration wizard. Must be present in home HyperHDR folder.");
+		}
+	}
+	else
+	{
+		Warning(_log, "Already requested for LUT....");
+	}
 }
 
 void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::FlatbuffersTransientImage* flatImage, int timeout_ms, hyperhdr::Components origin, QString clientDescription)
@@ -356,8 +378,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 			if (_hdrToneMappingEnabled && !_lutBufferInit)
 			{
-				emit GlobalSignals::getInstance()->SignalLutRequest();
-				Error(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
+				requestLUT();
 			}
 
 			if (getHdrToneMappingEnabled())
@@ -381,8 +402,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 		if (!_lutBufferInit)
 		{
-			emit GlobalSignals::getInstance()->SignalLutRequest();
-			Error(_log, "The LUT file is not loaded. A new LUT was requested. It usually takes less than a minute");
+			requestLUT();
 		}
 		else if (flatImage->size != ((flatImage->width * flatImage->height * 3) / 2) || flatImage->size == 0)
 		{

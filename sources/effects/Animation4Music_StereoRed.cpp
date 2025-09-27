@@ -43,7 +43,7 @@ EffectDefinition Animation4Music_StereoRed::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_StereoRed::Play(HyperImage& painter)
+bool Animation4Music_StereoRed::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

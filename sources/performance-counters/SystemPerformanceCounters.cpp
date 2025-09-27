@@ -209,7 +209,7 @@ QString SystemPerformanceCounters::getCPU()
 #ifdef UNICODE
 			QString convertedStr = QString::fromWCharArray(bufferData[i].szName);
 #else
-			QString convertedStr = QString::fromLocal8Bit(buffer[i].szName);
+			QString convertedStr = QString::fromLocal8Bit(bufferData[i].szName);
 #endif
 
 			if (convertedStr != "_Total")

@@ -45,7 +45,7 @@ EffectDefinition Animation4Music_WavesPulseSlow::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_WavesPulseSlow::Play(HyperImage& painter)
+bool Animation4Music_WavesPulseSlow::Play(HyperImage& /*painter*/)
 {
 	return false;
 }
@@ -87,10 +87,10 @@ bool Animation4Music_WavesPulseSlow::getImage(Image<ColorRgb>& newImage)
 		int h2 = (newImage.height() * (scaleY - y)) / scaleY;
 		int width = newImage.width() * 0.04;
 
-		int w1, w2, ind = (y * (_buffer.size() - 1)) / (scaleY / 2);
+		int w1, w2, ind = (y * (static_cast<int>(_buffer.size()) - 1)) / (scaleY / 2);
 		if (ind > static_cast<int>(_buffer.size() - 2))
 		{
-			ind = _buffer.size() - 2;
+			ind = static_cast<int>(_buffer.size()) - 2;
 			w1 = 0; w2 = 100;
 		}
 		else
@@ -120,10 +120,10 @@ bool Animation4Music_WavesPulseSlow::getImage(Image<ColorRgb>& newImage)
 		int w2 = (newImage.width() * (scaleX - x)) / scaleX;
 		int height = newImage.height() * 0.067;
 
-		int we1, we2, ind = (x * (_buffer.size() - 1)) / (scaleX / 2);
+		int we1, we2, ind = (x * (static_cast<int>(_buffer.size()) - 1)) / (scaleX / 2);
 		if (ind > static_cast<int>(_buffer.size() - 2))
 		{
-			ind = _buffer.size() - 2;
+			ind = static_cast<int>(_buffer.size()) - 2;
 			we1 = 0; we2 = 100;
 		}
 		else

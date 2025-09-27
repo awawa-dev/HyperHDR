@@ -56,6 +56,7 @@ private:
 	QString GetSharedLut();
 	void loadLutFile();
 	void setupClient(FlatBuffersServerConnection* client);
+	void requestLUT();
 
 	QTcpServer*		_server;
 	QLocalServer*	_domain;

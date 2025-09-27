@@ -85,7 +85,7 @@ signals:
 
 	void SignalSetGlobalImage(int priority, const Image<ColorRgb>& image, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 
-	void SignalSetGlobalColor(int priority, const std::vector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
+	void SignalSetGlobalColor(int priority, const QVector<ColorRgb>& ledColor, int timeout_ms, hyperhdr::Components origin, QString clientDescription);
 
 	void SignalRequestComponent(hyperhdr::Components component, int hyperHdrInd, bool listen);
 

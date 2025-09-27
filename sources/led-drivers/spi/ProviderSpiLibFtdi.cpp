@@ -140,7 +140,7 @@ ProviderSpiLibFtdi::~ProviderSpiLibFtdi()
 	}
 }
 
-bool ProviderSpiLibFtdi::init(const QJsonObject& deviceConfig)
+bool ProviderSpiLibFtdi::init(QJsonObject deviceConfig)
 {
 	bool isInitOK = false;
 
@@ -298,7 +298,7 @@ int ProviderSpiLibFtdi::writeBytes(unsigned size, const uint8_t* data)
 	command.push_back((size - 1) & 0xFF);
 	command.push_back(((size - 1) >> 8) & 0xFF);
 	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
-	if (_fun_ftdi_write_data(_deviceHandle, const_cast<uint8_t*>(data), size) < size)
+	if (_fun_ftdi_write_data(_deviceHandle, const_cast<uint8_t*>(data), size) < static_cast<int>(size))
 	{
 		Error(_log, "The FTDI device reports error while writing");
 		return -1;

@@ -81,6 +81,8 @@ void  ProviderRestApi::updateHost(const QString& host, int port)
 {
 	_hostname = host;
 	_port = port;
+	_apiUrl.setHost(_hostname);
+	_apiUrl.setPort(_port);
 }
 
 void ProviderRestApi::setBasePath(const QString& basePath)
@@ -279,7 +281,7 @@ void NetworkHelper::executeOperation(ProviderRestApi* parent, QNetworkAccessMana
 	_networkReply = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body.toUtf8()) :
 		(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body.toUtf8()) : _networkManager->get(request);
 
-	connect(_networkReply, &QNetworkReply::finished, this, [=]() {getResponse(response);  parent->releaseResultLock(); }, Qt::DirectConnection);
+	connect(_networkReply, &QNetworkReply::finished, this, [this, response, parent]() {getResponse(response);  parent->releaseResultLock(); }, Qt::DirectConnection);
 }
 
 void NetworkHelper::getResponse(httpResponse* response)

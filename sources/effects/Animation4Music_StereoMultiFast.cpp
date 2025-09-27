@@ -42,7 +42,7 @@ EffectDefinition Animation4Music_StereoMultiFast::getDefinition()
 	return ed;
 }
 
-bool Animation4Music_StereoMultiFast::Play(HyperImage& painter)
+bool Animation4Music_StereoMultiFast::Play(HyperImage& /*painter*/)
 {
 	return false;
 }

@@ -200,6 +200,34 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 		version = 4;
 	}
 
+	if (version < 5)
+	{
+		auto colorObject = dbConfig["color"].toObject();
+		if (colorObject.contains("channelAdjustment"))
+		{
+			QJsonArray adjUpdate = colorObject["channelAdjustment"].toArray(), newArray;
+			for (auto iter = adjUpdate.begin(); iter != adjUpdate.end(); ++iter)
+			{
+				QJsonObject newObject = (iter)->toObject();
+				double threshold = newObject["backlightThreshold"].toDouble(0);
+				if (threshold > 0)
+				{
+					newObject["backlightThreshold"] = 0.0039;
+				}
+				else
+				{
+					newObject["backlightThreshold"] = 0.0;
+				}
+				newArray.append(newObject);
+			}
+			colorObject["channelAdjustment"] = newArray;
+			dbConfig["color"] = colorObject;
+			///////////////////////////////////////////////////////////
+			version = 5;
+			Info(_log, "DB has been upgraded to version: %i", version);
+		}
+	}
+
 	generalObject["version"] = version;
 	dbConfig["general"] = generalObject;
 

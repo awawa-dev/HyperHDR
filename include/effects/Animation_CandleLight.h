@@ -13,7 +13,7 @@ public:
 		int hyperLatchTime) override;
 
 	bool Play(HyperImage& painter) override;
-	bool hasLedData(std::vector<ColorRgb>& buffer) override;
+	bool hasLedData(QVector<ColorRgb>& buffer) override;
 
 private:
 
@@ -25,5 +25,5 @@ protected:
 	Point3d    color;
 	Point3dhsv hsv;
 
-	std::vector<ColorRgb> ledData;
+	QVector<ColorRgb> ledData;
 };

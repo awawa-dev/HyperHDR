@@ -13,15 +13,13 @@ class DriverOtherFile : public LedDevice
 {
 public:
 	explicit DriverOtherFile(const QJsonObject& deviceConfig);
-	~DriverOtherFile() override;
-
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 protected:
-	bool init(const QJsonObject& deviceConfig) override;
+	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
-	int write(const std::vector<ColorRgb>& ledValues) override;	
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> _lastWriteTimeNano;

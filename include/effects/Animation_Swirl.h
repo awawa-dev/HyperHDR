@@ -30,7 +30,7 @@ private:
 	int   getSTime(int hyperLatchTime, int _rt, double steps);
 
 	void  buildGradient(std::vector<Animation_Swirl::SwirlGradient>& ba, bool withAlpha, std::vector<Animation_Swirl::SwirlColor> cc, bool closeCircle);
-	bool  imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const std::vector<Animation_Swirl::SwirlGradient>& bytearray, bool reset);
+	static bool  imageConicalGradient(HyperImage& painter, int centerX, int centerY, int angle, const std::vector<Animation_Swirl::SwirlGradient>& bytearray, bool reset);
 
 	Point2d pointS1;
 	Point2d pointS2;

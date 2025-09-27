@@ -33,7 +33,7 @@
 
 #include <base/Muxer.h>
 #include <utils/Components.h>
-#include <base/Smoothing.h>
+#include <infinite-color-engine/InfiniteSmoothing.h>
 
 #include <effects/EffectEngine.h>
 #include <effects/Effect.h>
@@ -151,11 +151,13 @@ std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 	return availableActiveEffects;
 }
 
-void EffectEngine::handlerSetLeds(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect)
+void EffectEngine::handlerSetLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, bool /*clearEffect*/)
 {
 	int ledNum = _hyperInstance->getLedCount();
 	if (ledNum == static_cast<int>(ledColors.size()))
+	{
 		_hyperInstance->setInputLeds(priority, ledColors, timeout_ms, false);
+	}
 	else for (auto&& effect : _activeEffects)
 	{
 		effect->setLedCount(ledNum);
@@ -164,7 +166,7 @@ void EffectEngine::handlerSetLeds(int priority, const std::vector<ColorRgb>& led
 
 void EffectEngine::createSmoothingConfigs()
 {
-	unsigned defaultEffectConfig = SMOOTHING_EFFECT_CONFIGS_START;
+	unsigned defaultEffectConfig = InfiniteSmoothing::SMOOTHING_EFFECT_CONFIGS_START;
 	unsigned dynamicId = defaultEffectConfig + 1;
 
 	_hyperInstance->addEffectConfig(defaultEffectConfig);

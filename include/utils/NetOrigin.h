@@ -17,7 +17,7 @@ public:
 	static bool isLocalAddress(const QHostAddress& address, const QHostAddress& local);
 	
 private slots:
-	void settingsChangedHandler(settings::type type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	friend class HyperHdrDaemon;

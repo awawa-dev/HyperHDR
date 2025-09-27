@@ -8,7 +8,6 @@
 
 DriverNetWled::DriverNetWled(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
-	, _restApi(nullptr)
 	, _apiPort(80)
 	, _warlsStreamPort(21324)
 	, _overrideBrightness(true)
@@ -17,18 +16,7 @@ DriverNetWled::DriverNetWled(const QJsonObject& deviceConfig)
 {
 }
 
-DriverNetWled::~DriverNetWled()
-{
-	delete _restApi;
-	_restApi = nullptr;
-}
-
-LedDevice* DriverNetWled::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverNetWled(deviceConfig);
-}
-
-bool DriverNetWled::init(const QJsonObject& deviceConfig)
+bool DriverNetWled::init(QJsonObject deviceConfig)
 {	
 	bool isInitOK = false;
 
@@ -90,14 +78,14 @@ bool DriverNetWled::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
-bool DriverNetWled::initRestAPI(const QString& hostname, int port)
+bool DriverNetWled::initRestAPI(QString hostname, int port)
 {
 	Debug(_log, "");
 	bool isInitOK = false;
 
 	if (_restApi == nullptr)
 	{
-		_restApi = new ProviderRestApi(hostname, port);
+		_restApi = std::make_unique<ProviderRestApi>(hostname, port);
 		_restApi->setBasePath("/json");
 
 		isInitOK = true;
@@ -250,7 +238,7 @@ QJsonObject DriverNetWled::discover(const QJsonObject& /*params*/)
 	return devicesDiscovered;
 }
 
-int DriverNetWled::write(const std::vector<ColorRgb>& ledValues)
+int DriverNetWled::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (ledValues.size() != _ledCount)
 	{
@@ -289,6 +277,11 @@ int DriverNetWled::write(const std::vector<ColorRgb>& ledValues)
 
 		return _ledRGBCount;
 	}
+}
+
+LedDevice* DriverNetWled::construct(const QJsonObject& deviceConfig)
+{
+	return new DriverNetWled(deviceConfig);
 }
 
 bool DriverNetWled::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("wled", "leds_group_2_network", DriverNetWled::construct);

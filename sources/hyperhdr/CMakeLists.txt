@@ -34,11 +34,11 @@ target_link_libraries(hyperhdr
 	jsonserver
 	json-utils
 	led-drivers
-	led-strip
 	lut-calibrator
 	performance-counters
 	protobuf-nanopb
 	resources
+	infinite-engine
 	ssdp
 	suspend-handler
 	utils-image

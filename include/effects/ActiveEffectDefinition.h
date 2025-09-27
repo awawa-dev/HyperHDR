@@ -8,6 +8,6 @@
 struct ActiveEffectDefinition
 {
 	QString		name;
-	int			priority;
-	int			timeout;
+	int			priority = 0;
+	int			timeout = 0;
 };

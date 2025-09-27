@@ -14,10 +14,6 @@
 			"type": "object",
 			"required": true,
 			"properties": {
-				"id" : {
-					"type" : "string",
-					"required" : false
-				},
 				"classic_config" : {
 					"type" : "boolean",
 					"required" : false
@@ -99,45 +95,28 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"gammaRed": {
+				"scaleOutput" :
+				{
 					"type" : "number",
-					"required" : false,
-					"minimum" : 0.1,
-					"maximum" : 5.0
-				},
-				"gammaGreen": {
-					"type" : "number",
-					"required" : false,
-					"minimum" : 0.1,
-					"maximum" : 5.0
-				},
-				"gammaBlue": {
-					"type" : "number",
-					"required" : false,
-					"minimum" : 0.1,
-					"maximum" : 5.0
-				},
-				"backlightThreshold" : {
-					"type" : "integer",
 					"required" : false,
 					"minimum" : 0,
-					"maximum" : 100
+					"maximum": 2.0
+				},
+				"gamma": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.1,
+					"maximum" : 5.0
+				},				
+				"backlightThreshold" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0,
+					"maximum": 1.0
 				},
 				"backlightColored" : {
 					"type" : "boolean",
 					"required" : false
-				},
-				"brightness" : {
-					"type" : "integer",
-					"required" : false,
-					"minimum" : 0,
-					"maximum" : 100
-				},
-				"brightnessCompensation" : {
-					"type" : "integer",
-					"required" : false,
-					"minimum" : 0,
-					"maximum" : 100
 				},
 				"luminanceGain": {
 					"type" : "number",
@@ -151,23 +130,39 @@
 					"minimum" : 0,
 					"maximum" : 10
 				},
+				"temperatureSetting" :
+				{
+					"type" : "string",
+					"enum" : ["disabled", "cold", "neutral", "warm", "custom"],
+					"options" : {
+						"enum_titles" : ["led_editor_context_disable", "edt_conf_enum_cold", "edt_conf_enum_neutral", "edt_conf_enum_warm", "edt_conf_enum_custom"]
+					},
+					"required" : false
+				},
 				"temperatureRed" : {
-					"type" : "integer",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0,
-					"maximum" : 255
+					"maximum" : 1.0
 				},
 				"temperatureGreen" : {
-					"type" : "integer",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0,
-					"maximum" : 255
+					"maximum" : 1.0
 				},
 				"temperatureBlue" : {
-					"type" : "integer",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0,
-					"maximum" : 255
+					"maximum" : 1.0
+				},
+				"powerLimit" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0,
+					"maximum": 1.0
 				}
 			},
 			"additionalProperties": false

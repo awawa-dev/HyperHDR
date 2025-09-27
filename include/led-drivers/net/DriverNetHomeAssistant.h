@@ -55,8 +55,8 @@ protected:
 	bool powerOff() override;
 
 private:
-	bool init(const QJsonObject& deviceConfig) override;
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	bool init(QJsonObject deviceConfig) override;
+	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 	bool powerOnOff(bool isOn);
 	bool saveStates();
 	void restoreStates();

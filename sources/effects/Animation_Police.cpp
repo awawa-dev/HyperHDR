@@ -42,19 +42,19 @@ Animation_Police::Animation_Police() :
 
 
 void Animation_Police::Init(
-	HyperImage& hyperImage,
-	int hyperLatchTime
+	HyperImage& /*hyperImage*/,
+	int /*hyperLatchTime*/
 )
 {
 
 }
 
-bool Animation_Police::Play(HyperImage& painter)
+bool Animation_Police::Play(HyperImage& /*painter*/)
 {
 	return true;
 }
 
-bool Animation_Police::hasLedData(std::vector<ColorRgb>& buffer)
+bool Animation_Police::hasLedData(QVector<ColorRgb>& buffer)
 {
 	if (buffer.size() != ledData.size() && buffer.size() > 1)
 	{
