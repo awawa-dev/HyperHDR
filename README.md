@@ -9,9 +9,10 @@ HyperHDR is an open-source ambient lighting system for TVs and music setups, bas
 At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before. ( :new: HyperHDR v22)  
 
 ### Key advantages of the Infinite Color Engine:
-* **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results.
-* **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction.
-* **Deep-Color Support:** Compatible devices, such as Philips Hue and HD108 LEDs, benefit from rendering beyond 24-bit depth.
+* **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
+* **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
+* **Deep-Color Support:** Compatible devices, such as Philips Hue and HD108 LEDs, benefit from rendering beyond 24-bit depth
+* **Advanced color smoothing algorithms** including inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
 
 ### Additional features:
 * **Ultra-low CPU usage** on SoCs like Raspberry Pi or Intel N100  
