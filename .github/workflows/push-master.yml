@@ -267,7 +267,7 @@ jobs:
 
       # temporary workaround for aqt: Python 3.13 instead of preinstalled default older version
       - name: Python 3.13 for aqtinstall
-        uses: actions/setup-python@v5      
+        uses: actions/setup-python@v6      
         with:
           python-version: '3.13'
 
