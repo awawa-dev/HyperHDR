@@ -960,6 +960,7 @@ function identHueId(id, off, oState)
 
 function switchToHttps(ip)
 {
+	ip = ip.replace(/^https:\/\//, "");
 	ip = ip.replace(/^http:\/\//, "");
 	ip = ip.replace(/:80$/, "");
 	ip = "https://" + ip;
