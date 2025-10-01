@@ -894,7 +894,6 @@ function checkHueBridge(cb, hueUser)
 					useV2Api=parseInt(json.swversion)>1948086000&&useV2ApiConfig
 					conf_editor.getEditor("root.specificOptions.output").setValue(hueIPs[hueIPsinc].internalipaddress);
 					$('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-					console.log(`CheckHueBridge => useV2Api: ${useV2Api}, swversion: ${json.swversion}, useV2ApiConfig: ${useV2ApiConfig}`);
 					cb(true);
 				}
 				else
@@ -1246,7 +1245,10 @@ function createHueUser()
 					{
 						if (typeof r[0].error != 'undefined')
 						{
-							console.log(connectionRetries + ": link not pressed");
+							if (r[0].error.type = 101)
+								console.log(`Link button not pressed: ${JSON.stringify(r[0].error)} (${connectionRetries})`);
+							else
+								console.log(`An error occurred: ${JSON.stringify(r[0].error)} (${connectionRetries})`);
 						}
 						if (typeof r[0].success != 'undefined')
 						{
@@ -1265,7 +1267,6 @@ function createHueUser()
 									$('#clientkey').val(r[0].success.clientkey);
 									conf_editor.getEditor("root.specificOptions.clientkey").setValue(r[0].success.clientkey);
 								}
-								console.log(`CreateHueUser for EntertainmentAPI: ${JSON.stringify(r, null, 2)}`);
 							}
 							checkHueBridge(checkUserResult, r[0].success.username);
 							clearInterval(UserInterval);
