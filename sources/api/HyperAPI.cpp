@@ -1296,8 +1296,8 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 
 		if (service == "hue" || service == "home_assistant")
 		{
-			QUrl tempUrl("http://"+ip);
-			if ((path.indexOf("/clip/v2") != 0 && path.indexOf("/api") != 0) || ip.indexOf("/") >= 0)
+			QUrl tempUrl(ip.startsWith("http") ? ip : "http://" + ip);
+			if (!path.startsWith("/clip/v2") && !path.startsWith("/api"))
 			{
 				sendErrorReply("Invalid path", full_command, tan);
 				return;
@@ -1305,7 +1305,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 
 			ProviderRestApi provider;
 
-			QUrl url = QUrl((path.startsWith("/clip/v2") ? "https://" : "http://")+tempUrl.host() + ((service == "home_assistant" && tempUrl.port() >= 0) ? ":" + QString::number(tempUrl.port()) : "") + path);
+			QUrl url = QUrl(QString("%1://").arg(tempUrl.scheme()) + tempUrl.host() + ((service == "home_assistant" && tempUrl.port() >= 0) ? ":" + QString::number(tempUrl.port()) : "") + path);
 
 			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
 
