@@ -222,7 +222,7 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-2022
+    runs-on: windows-2025
     env:
       MSVC: 2022
       QT_VERSION: 6.8.3
@@ -263,7 +263,7 @@ jobs:
         shell: cmd
         run: |
           7z e "%TOOLKIT_DIR%\ccache\ccache.zip" -o.\build *.exe -r
-          setx PATH "%TOOLKIT_DIR%\nsis;%PATH%"
+          echo %TOOLKIT_DIR%\nsis>> %GITHUB_PATH%
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'

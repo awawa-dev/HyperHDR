@@ -624,13 +624,15 @@ macro(DeployWindows TARGET)
 
 		find_file(OPENSSL_SSL
 			NAMES libssl-3-x64.dll libssl-1_1-x64.dll libssl-1_1.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${OPENSSL_BASE_DIR}
+			HINTS "${OPENSSL_BASE_DIR}"
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64"
 			PATH_SUFFIXES bin
 		)
 
 		find_file(OPENSSL_CRYPTO
 			NAMES libcrypto-3-x64.dll libcrypto-1_1-x64.dll libcrypto-1_1.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${OPENSSL_BASE_DIR}
+			HINTS "${OPENSSL_BASE_DIR}"
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64"
 			PATH_SUFFIXES bin
 		)
 
