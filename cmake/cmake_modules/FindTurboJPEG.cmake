@@ -59,6 +59,12 @@ Obsolete variables
 if (NOT WIN32)
   find_path(TurboJPEG_INCLUDE_DIR NAMES turbojpeg.h)
 else()
+  set(ToolkitPaths
+    "$ENV{TOOLKIT_DIR}/libjpeg-turbo64/include"
+    "$ENV{TOOLKIT_DIR}/libjpeg-turbo64/bin"
+    "$ENV{TOOLKIT_DIR}/libjpeg-turbo64/lib"
+  )
+
   cmake_host_system_information(RESULT libRegPaths QUERY WINDOWS_REGISTRY "HKLM/SOFTWARE/WOW6432Node" SUBKEYS)
   foreach(regPath ${libRegPaths})
     string(FIND ${regPath} "libjpeg-turbo" have_turbo)
@@ -68,9 +74,10 @@ else()
       break()
     endif()
   endforeach()
-  find_path(TurboJPEG_INCLUDE_DIR NAMES turbojpeg.h PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/include" "c:/libjpeg-turbo/include" "c:/libjpeg-turbo64/include")
-  find_file(TurboJPEG_INSTALL_LIB NAMES turbojpeg.dll PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/bin" "c:/libjpeg-turbo/bin" "c:/libjpeg-turbo64/bin" NO_DEFAULT_PATH)
-  message("Install lib: ${TurboJPEG_INSTALL_LIB}")  
+  find_path(TurboJPEG_INCLUDE_DIR NAMES turbojpeg.h PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/include" "c:/libjpeg-turbo/include" "c:/libjpeg-turbo64/include" ${ToolkitPaths} )
+  find_file(TurboJPEG_INSTALL_LIB NAMES turbojpeg.dll PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/bin" "c:/libjpeg-turbo/bin" "c:/libjpeg-turbo64/bin" ${ToolkitPaths} NO_DEFAULT_PATH)
+  message("Install include: ${TurboJPEG_INCLUDE_DIR}")
+  message("Install lib: ${TurboJPEG_INSTALL_LIB}")
 endif()
 
 set(TurboJPEG_names ${TurboJPEG_NAMES} turbojpeg turbojpeg-static)
@@ -83,8 +90,8 @@ if(NOT TurboJPEG_LIBRARY)
     find_library(TurboJPEG_LIBRARY_RELEASE NAMES ${TurboJPEG_names} NAMES_PER_DIR)
     find_library(TurboJPEG_LIBRARY_DEBUG NAMES ${TurboJPEG_names_debug} NAMES_PER_DIR)
   else()
-    find_library(TurboJPEG_LIBRARY_RELEASE PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/lib/cmake" "c:/libjpeg-turbo/lib" "c:/libjpeg-turbo64/lib" NAMES ${TurboJPEG_names} NAMES_PER_DIR)
-    find_library(TurboJPEG_LIBRARY_DEBUG PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/lib/cmake" "c:/libjpeg-turbo/lib" "c:/libjpeg-turbo64/lib" NAMES ${TurboJPEG_names_debug} NAMES_PER_DIR)
+    find_library(TurboJPEG_LIBRARY_RELEASE PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/lib/cmake" "c:/libjpeg-turbo/lib" "c:/libjpeg-turbo64/lib" ${ToolkitPaths} NAMES ${TurboJPEG_names} NAMES_PER_DIR)
+    find_library(TurboJPEG_LIBRARY_DEBUG PATHS "[HKLM/SOFTWARE/WOW6432Node/${lib_turbo_registry};Install_Dir]/lib/cmake" "c:/libjpeg-turbo/lib" "c:/libjpeg-turbo64/lib" ${ToolkitPaths} NAMES ${TurboJPEG_names_debug} NAMES_PER_DIR)
   endif()
   include(SelectLibraryConfigurations)
   select_library_configurations(TurboJPEG)

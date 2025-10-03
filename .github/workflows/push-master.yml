@@ -226,30 +226,44 @@ jobs:
     env:
       MSVC: 2022
       QT_VERSION: 6.8.3
+      TOOLKIT_DIR: "${{ github.workspace }}\\Toolkit"
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
         with:
           submodules: true
 
-      - name: Cache Qt
+      - name: Cache Toolkit
         uses: actions/cache@v4.2.4
-        id: cache-qt-windows
+        id: cache-toolkit-windows
         with:
-          path: ${{ runner.workspace }}/Qt
-          key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
+          path: ${{ env.TOOLKIT_DIR }}
+          key: ${{ runner.os }}-Toolkit-Qt.${{ env.QT_VERSION }}-NSIS-TurboJPEG
 
-      # temporary workaround for aqt: Python 3.13 instead of preinstalled default older version
       - name: Python 3.13 for aqtinstall
+        if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
         uses: actions/setup-python@v5      
         with:
           python-version: '3.13'
 
-      - name: Install QT
-        if: steps.cache-qt-windows.outputs.cache-hit != 'true'
+      - name: "Install Toolkit: Qt, TurboJPEG and NSIS"
+        if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
+        shell: powershell
         run: |          
+          Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
+          Start-Process -Wait turbojpeg.exe -ArgumentList "/S","/D=$env:TOOLKIT_DIR\libjpeg-turbo64"
+          Invoke-WebRequest -UserAgent "Wget" -Uri "https://prdownloads.sourceforge.net/nsis/nsis-3.11-setup.exe" -OutFile nsis.exe
+          Start-Process -Wait nsis.exe -ArgumentList "/S","/D=$env:TOOLKIT_DIR\nsis"
+          New-Item -ItemType Directory -Force -Path "$env:TOOLKIT_DIR\ccache" | Out-Null
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.12/ccache-4.12-windows-x86_64.zip -OutFile "$env:TOOLKIT_DIR\ccache\ccache.zip" -UseBasicParsing
           pip install aqtinstall
-          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc${{ env.MSVC }}_64 -m qtserialport
+          aqt install-qt -O "$env:TOOLKIT_DIR\Qt" windows desktop $env:QT_VERSION "win64_msvc${env:MSVC}_64" -m qtserialport
+
+      - name: "Restore Toolkit"
+        shell: cmd
+        run: |
+          7z e "%TOOLKIT_DIR%\ccache\ccache.zip" -o.\build *.exe -r
+          setx PATH "%TOOLKIT_DIR%\nsis;%PATH%"
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
@@ -265,28 +279,12 @@ jobs:
         with:
           ref: ${{ github.event.ref }}
           key: ${{ runner.os }}-ccache
-
-      - name: Install TurboJPEG
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
-          Start-Process -Wait turbojpeg.exe -ArgumentList "/S"
-
-      - name: Download CCache
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.12/ccache-4.12-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
-
-      - name: Install CCache
-        shell: cmd
-        run: |
-          7z e ccache.zip -o.\build *.exe -r
           
       - name: Build packages        
         env:
           PLATFORM: windows
           VCINSTALLDIR: 'C:/Program Files/Microsoft Visual Studio/${{ env.MSVC }}/Enterprise/VC'
-          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc${{ env.MSVC }}_64/lib/cmake/"
+          CMAKE_PREFIX_PATH: "${{ env.TOOLKIT_DIR }}\\Qt\\${{ env.QT_VERSION }}\\msvc${{ env.MSVC }}_64\\lib\\cmake\\"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
