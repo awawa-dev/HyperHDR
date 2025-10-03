@@ -481,13 +481,15 @@ macro(DeployUnix TARGET)
 		endforeach()		
 
 		# Copy dependencies to 'share/hyperhdr/lib/external'
+		set(TEMP_RPATH_DIR "${CMAKE_CURRENT_BINARY_DIR}/temp_rpath_fix")
+		file(MAKE_DIRECTORY ${TEMP_RPATH_DIR})
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
 			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})
 			string(FIND ${PREREQUISITE_LIB} "libproxy" libproxyindex)
 			string(FIND ${PREREQUISITE_LIB} "libpxbackend" libpxbackendindex)
 			if((NOT IS_SYMLINK ${PREREQUISITE_LIB}) AND (${libproxyindex} GREATER -1 OR ${libpxbackendindex} GREATER -1))				
 				get_filename_component(pathingFilename ${PREREQUISITE_LIB} NAME)
-				set(FILE_TO_INSTALL "${CMAKE_BINARY_DIR}/${pathingFilename}")
+				set(FILE_TO_INSTALL "${TEMP_RPATH_DIR}/${pathingFilename}")
 				message("Patching RPATH: ${FILE_TO_INSTALL}")
 				file(COPY_FILE ${PREREQUISITE_LIB} ${FILE_TO_INSTALL} )				
 				execute_process (

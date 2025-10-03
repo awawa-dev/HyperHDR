@@ -31,6 +31,11 @@ jobs:
             platform: linux
           - runner: ubuntu-24.04
             architecture: amd64
+            distroName: debian
+            distroVersion: trixie
+            platform: linux
+          - runner: ubuntu-24.04
+            architecture: amd64
             distroName: ubuntu
             distroVersion: jammy             
             platform: linux
@@ -74,6 +79,16 @@ jobs:
             distroName: debian
             distroVersion: bookworm 
             platform: rpi
+          - runner: ubuntu-24.04-arm
+            architecture: armhf
+            distroName: debian
+            distroVersion: trixie
+            platform: rpi
+          - runner: ubuntu-24.04-arm
+            architecture: arm64
+            distroName: debian
+            distroVersion: trixie
+            platform: rpi 
 
     steps:
       # start docker

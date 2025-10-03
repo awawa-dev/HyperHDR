@@ -68,7 +68,7 @@ SET ( DEFAULT_EMBEDDED_WEB_RESOURCES      OFF )
 option(USE_CCACHE_CACHING "Enable CCache caching" ON )
 if (USE_CCACHE_CACHING)
 	find_program(CCACHE_FOUND ccache HINTS "${CMAKE_CURRENT_SOURCE_DIR}/build")
-	if ( CCACHE_FOUND )		
+	if ( CCACHE_FOUND )
 		if (DEFINED ENV{CCACHE_DIR})
 			set (CCACHE_DIR_CACHE_LOCATION $ENV{CCACHE_DIR})
 			message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )			
@@ -90,13 +90,23 @@ if (USE_CCACHE_CACHING)
 			configure_file(${OUR_CMAKE_MODULES}/ccache.windows.conf.in $ENV{USERPROFILE}/.ccache/ccache.conf)
 			configure_file(${OUR_CMAKE_MODULES}/Directory.Build.props.in ${CMAKE_BINARY_DIR}/Directory.Build.props)
 		else()
-			set(HYPERHDR_CCACHE_PARAMS
+			if ( APPLE )
+				set(HYPERHDR_CCACHE_PARAMS
+				CCACHE_MAXSIZE=600M
+				CCACHE_NOCOMPRESS=true
+				CCACHE_DIR=${CCACHE_DIR_CACHE_LOCATION}
+				CCACHE_SLOPPINESS=pch_defines,time_macros,include_file_mtime,include_file_ctime,file_macro
+				CACHE STRING "CCache parameters")
+
+				add_compile_options(-Xclang -fno-pch-timestamp)
+			else()
+				set(HYPERHDR_CCACHE_PARAMS
 				CCACHE_MAXSIZE=600M
 				CCACHE_NOCOMPRESS=true
 				CCACHE_DIR=${CCACHE_DIR_CACHE_LOCATION}
 				CCACHE_SLOPPINESS=pch_defines,time_macros
-				CCACHE_INODECACHE=true
 				CACHE STRING "CCache parameters")
+			endif()
 			mark_as_advanced(HYPERHDR_CCACHE_PARAMS)
 
 			set(CMAKE_C_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env ${HYPERHDR_CCACHE_PARAMS} ${CCACHE_FOUND})

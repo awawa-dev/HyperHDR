@@ -118,7 +118,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		if [[ $(uname -m) == 'arm64' ]]; then
 			BUILD_OPTION=""
 		else
-			BUILD_OPTION="-DUSE_PRECOMPILED_HEADERS=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"
+			BUILD_OPTION="-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"
 			export CCACHE_COMPILERCHECK=content
 		fi
 	else
@@ -207,11 +207,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand=${executeCommand}" && sed -i \"s/{GLIBC_VERSION}/\$(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)$/\1/')/\" PKGBUILD && makepkg"
 		echo ${executeCommand}
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
-		if [ ${USE_CCACHE} = true ]; then
-			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION} -DUSE_PRECOMPILED_HEADERS=OFF/" PKGBUILD
-		else
-			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
-		fi
+		sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
 		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else
 		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DISTRO_VERSION} ../ || exit 2 )"
