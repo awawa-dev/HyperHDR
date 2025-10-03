@@ -148,16 +148,6 @@ if (NOT USE_SYSTEM_LUNASVG_LIBS OR NOT lunasvg_FOUND)
 		get_target_property(opts_now ${target} COMPILE_OPTIONS)
 		message("Lunasvg target '${target}' compile options before: ${opts_before}  after: ${opts_now}")
 	endforeach()
-
-	# do not rely on plutvg cmake script to detect C++11 threads support
-	if (NOT WIN32)
-		include(CheckIncludeFile)
-		check_include_file("threads.h" HAVE_THREADS_H)
-		if (NOT HAVE_THREADS_H)
-			message(STATUS "threads.h not found -> defining __STDC_NO_THREADS__ for plutovg target")
-			target_compile_definitions(plutovg PRIVATE __STDC_NO_THREADS__)
-		endif()
-	endif()
 endif()
 
 set(CMAKE_WARN_DEPRECATED ${no_dev_warnings_backup} CACHE INTERNAL "" FORCE)
@@ -225,7 +215,11 @@ if (NOT USE_SYSTEM_FLATBUFFERS_LIBS OR CMAKE_CROSSCOMPILING)
 		endif()
 	endif()
 
+	file(RENAME "${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers/.git" "${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers/.git.hidden")
+
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers)
+
+	file(RENAME "${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers/.git.hidden" "${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers/.git")
 
 	set(FLATBUFFERS_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers/include")
 
