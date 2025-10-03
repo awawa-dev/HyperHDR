@@ -617,17 +617,18 @@ macro(DeployWindows TARGET)
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION bin COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION bin COMPONENT "HyperHDR")
 
-		find_package(OpenSSL QUIET)
+		find_package(OpenSSL)
+		message("OpenSSL default path: ${OpenSSL_ROOT_DIR}")
 
 		find_file(OPENSSL_SSL
-			NAMES libssl-3-x64.dll libssl-1_1-x64.dll libssl-1_1.dll libssl ssleay32.dll ssl.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			NAMES libssl-3-x64.dll libssl-1_1-x64.dll libssl-1_1.dll
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${OpenSSL_ROOT_DIR}
 			PATH_SUFFIXES bin
 		)
 
 		find_file(OPENSSL_CRYPTO
-			NAMES libcrypto-3-x64.dll libcrypto-1_1-x64.dll libcrypto-1_1.dll libcrypto libeay32.dll crypto.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			NAMES libcrypto-3-x64.dll libcrypto-1_1-x64.dll libcrypto-1_1.dll
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${OpenSSL_ROOT_DIR}
 			PATH_SUFFIXES bin
 		)
 

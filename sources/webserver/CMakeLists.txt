@@ -13,7 +13,7 @@ ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/web_resources.qrc.in ${CMAKE_BINARY_DIR}/web_resources.qrc )
 
 if (USE_EMBEDDED_WEB_RESOURCES)
-	SET(WebConfig_RESOURCES ${CMAKE_BINARY_DIR}/web_resources.qrc)
+    qt_add_resources(WebConfig_RESOURCES ${CMAKE_BINARY_DIR}/web_resources.qrc)
 endif()
 
 add_library(webserver OBJECT

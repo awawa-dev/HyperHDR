@@ -4,7 +4,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/base)
 
 FILE ( GLOB HyperHDR_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-SET(HyperHDR_RESOURCES ${CURRENT_SOURCE_DIR}/resource.qrc)
+qt_add_resources(HyperHDR_RESOURCES ${CURRENT_SOURCE_DIR}/resource.qrc )
 
 add_library(hyperhdr-base OBJECT
 	${HyperHDR_SOURCES}

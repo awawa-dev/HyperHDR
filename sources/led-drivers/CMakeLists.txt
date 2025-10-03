@@ -53,7 +53,7 @@ if ( ENABLE_WS281XPWM )
 	list( APPEND Leddevice_PWM_SOURCES ${Leddevice_rpi_ws281x})
 endif()
 
-set(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc )
+qt_add_resources(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc )
 
 SET( Leddevice_SOURCES
 	${Leddevice_SOURCES}

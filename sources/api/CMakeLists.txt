@@ -5,7 +5,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/api)
 
 FILE ( GLOB_RECURSE Api_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-set(Api_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
+qt_add_resources(Api_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
 
 add_library(hyperhdr-api OBJECT
 	${Api_SOURCES}
