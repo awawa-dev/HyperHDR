@@ -16,88 +16,33 @@ jobs:
 ######################
 
   Linux:
-    name: ${{ matrix.architecture }}/${{ matrix.distroName }}:${{ matrix.distroVersion }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
+    name: ${{ matrix.architecture }}/${{ matrix.distroName}}:${{ matrix.distroVersion }}
+    runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    env:
+      platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
+    strategy:      
       matrix:
+        distroName: [debian]
+        distroVersion: [bullseye, bookworm, trixie]
+        architecture: [amd64, armhf, arm64]        
         include:
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: jammy
             architecture: amd64
-            distroName: debian
-            distroVersion: bullseye               
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: noble
             architecture: amd64
-            distroName: debian
-            distroVersion: bookworm              
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: plucky
             architecture: amd64
-            distroName: debian
-            distroVersion: trixie              
-            platform: linux            
-          - runner: ubuntu-24.04
+          - distroName: fedora
+            distroVersion: 42
             architecture: amd64
-            distroName: ubuntu
-            distroVersion: jammy             
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: ubuntu
-            distroVersion: noble               
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: ubuntu
-            distroVersion: plucky             
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: fedora
-            distroVersion: 42  
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: archlinux
+          - distroName: archlinux
             distroVersion: rolling
-            platform: linux
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: bullseye            
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: bullseye  
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: bookworm  
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: bookworm 
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: trixie
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: trixie
-            platform: rpi            
-    steps:
-      - name: Wake-up docker
-        if: runner.arch == 'ARM' || runner.arch == 'ARM64'
-        run: |
-          (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker && sleep 5)
+            architecture: amd64
 
-      # checkout
+    steps:   
       - uses: actions/checkout@v5.0.0
         with:
           submodules: true
@@ -111,6 +56,7 @@ jobs:
            restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Clear branch ccache storage
+        if: startsWith(github.event.ref, 'refs/tags') == false
         uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
         with:
@@ -118,7 +64,7 @@ jobs:
           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Check default version
-        if: matrix.linuxVersion != 'bullseye'
+        if: matrix.distroVersion != 'bullseye'
         run: |
           echo "USE_STANDARD_INSTALLER_NAME=true" >> $GITHUB_ENV
 
@@ -127,7 +73,7 @@ jobs:
           ARCHITECTURE: ${{ matrix.architecture }}
           DISTRO_NAME: ${{ matrix.distroName }}
           DISTRO_VERSION: ${{ matrix.distroVersion }}
-          PLATFORM: ${{ matrix.platform }}
+          PLATFORM: ${{ env.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
@@ -142,7 +88,7 @@ jobs:
           path: deploy/Hyper*
 
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: Linux-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-installer

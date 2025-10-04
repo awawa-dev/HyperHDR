@@ -14,110 +14,43 @@ jobs:
 ###### Upload to HyperHDR repo #######
 ######################################
   Linux:
-    name: ${{ matrix.architecture }}/${{ matrix.distroName }}:${{ matrix.distroVersion }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
+    name: ${{ matrix.architecture }}/${{ matrix.distroName}}:${{ matrix.distroVersion }}
+    runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    env:
+      platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
+    strategy:      
       matrix:
+        distroName: [debian]
+        distroVersion: [bullseye, bookworm, trixie]
+        architecture: [amd64, armhf, arm64]        
         include:
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: jammy
             architecture: amd64
-            distroName: debian
-            distroVersion: bullseye               
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: noble
             architecture: amd64
-            distroName: debian
-            distroVersion: bookworm              
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: plucky
             architecture: amd64
-            distroName: debian
-            distroVersion: trixie
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: fedora
+            distroVersion: 42
             architecture: amd64
-            distroName: ubuntu
-            distroVersion: jammy             
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: ubuntu
-            distroVersion: noble               
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: ubuntu
-            distroVersion: plucky             
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: fedora
-            distroVersion: 42  
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: archlinux
+          - distroName: archlinux
             distroVersion: rolling
-            platform: linux
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: bullseye            
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: bullseye  
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: bookworm  
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: bookworm 
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: trixie
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: trixie
-            platform: rpi 
+            architecture: amd64
 
-    steps:
-      # start docker
-      - name: Wake-up docker
-        if: matrix.runner == 'ubuntu-24.04-arm'
-        run: |
-          (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker && sleep 5)
-    
-      # checkout
+    steps:   
       - uses: actions/checkout@v5.0.0
         with:
-          submodules: true      
+          submodules: true
 
-      # generate cache id
-      - name: Prepare ccache timestamp
-        if: env.USE_CACHE == '1'
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
-        run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-          file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
-
-       # download cache
-      - name: ccache cache files
-        if: ( env.USE_CACHE == '1' )
+      - name: Download ccache files
+        if: env.USE_CACHE == 'true'
         uses: actions/cache@v4.2.4
         with:
            path: .ccache
-           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
            restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Build packages
@@ -125,7 +58,7 @@ jobs:
           ARCHITECTURE: ${{ matrix.architecture }}
           DISTRO_NAME: ${{ matrix.distroName }}
           DISTRO_VERSION: ${{ matrix.distroVersion }}
-          PLATFORM: ${{ matrix.platform }}
+          PLATFORM: ${{ env.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
           USE_STANDARD_INSTALLER_NAME: true
@@ -133,7 +66,6 @@ jobs:
         run: |
           ./build.sh
 
-      # deploy the package      
       - name: Get destination path
         run: |
           echo "REPO_DIR=repo/pool/${{ matrix.distroVersion }}" >> $GITHUB_ENV
@@ -159,7 +91,6 @@ jobs:
     needs: [Linux]
 
     steps:
-      # Download artifacts from previous build process
       - uses: actions/checkout@v5.0.0
         with:
           submodules: false
