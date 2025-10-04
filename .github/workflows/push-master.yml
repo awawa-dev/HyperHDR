@@ -162,8 +162,8 @@ jobs:
       matrix:
         include:        
           - JOB_RUNNER: macos-15
-            JOB_NAME: macOS 15 (arm64 = M1/M2/M3/M4)
-            NICE_NAME: arm64_M1_M2
+            JOB_NAME: "macOS 15 (arm64: M1/M2/M3/M4)"
+            NICE_NAME: arm64
           - JOB_RUNNER: macos-15-intel
             JOB_NAME: macOS 15 (x64)
             NICE_NAME: x64
