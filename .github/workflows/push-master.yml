@@ -39,7 +39,7 @@ jobs:
             distroVersion: 42
             architecture: amd64
           - distroName: archlinux
-            distroVersion: rolling
+            distroVersion: latest
             architecture: amd64
 
     steps:   

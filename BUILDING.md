@@ -207,7 +207,7 @@ DISTRO_NAME  | DISTRO_VERSION | ARCHITECTURE - these are only for linux targets
    ubuntu    | noble          | amd64
    ubuntu    | plucky         | amd64
    fedora    | 42             | amd64
-   archlinux | rolling        | amd64
+   archlinux | latest         | amd64
 
 Optional environmental options:
 BUILD_TYPE - Release|Debug, default is Release version

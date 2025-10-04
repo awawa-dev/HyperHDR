@@ -29,7 +29,7 @@ print_manual()
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}plucky${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}42${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}rolling${ColorReset}        | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}latest${ColorReset}        | ${YellowColor2}amd64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
