@@ -133,15 +133,13 @@ bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 		}
 		else
 		{
-			QStringList addressparts = address.split(':', Qt::SkipEmptyParts);
-			_hostname = addressparts[0];
+			QUrl url(address);
+
+			_hostname = url.host();
 			log("Hostname/IP", "%s", QSTRING_CSTR(_hostname));
 
-			if (addressparts.size() > 1)
-			{
-				_apiPort = addressparts[1].toInt();
-				log("Port", "%u", _apiPort);
-			}
+			_apiPort = url.port(url.scheme().toLower() == "https" ? 443 : 80);
+			log("Port", "%u", _apiPort);
 
 			_username = deviceConfig["username"].toString();
 
