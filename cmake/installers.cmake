@@ -469,13 +469,15 @@ macro(DeployUnix TARGET)
 		endforeach()		
 
 		# Copy dependencies to 'share/hyperhdr/lib/external'
+		set(TEMP_RPATH_DIR "${CMAKE_CURRENT_BINARY_DIR}/temp_rpath_fix")
+		file(MAKE_DIRECTORY ${TEMP_RPATH_DIR})
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
 			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})
 			string(FIND ${PREREQUISITE_LIB} "libproxy" libproxyindex)
 			string(FIND ${PREREQUISITE_LIB} "libpxbackend" libpxbackendindex)
 			if((NOT IS_SYMLINK ${PREREQUISITE_LIB}) AND (${libproxyindex} GREATER -1 OR ${libpxbackendindex} GREATER -1))				
 				get_filename_component(pathingFilename ${PREREQUISITE_LIB} NAME)
-				set(FILE_TO_INSTALL "${CMAKE_BINARY_DIR}/${pathingFilename}")
+				set(FILE_TO_INSTALL "${TEMP_RPATH_DIR}/${pathingFilename}")
 				message("Patching RPATH: ${FILE_TO_INSTALL}")
 				file(COPY_FILE ${PREREQUISITE_LIB} ${FILE_TO_INSTALL} )				
 				execute_process (
@@ -603,17 +605,22 @@ macro(DeployWindows TARGET)
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION bin COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION bin COMPONENT "HyperHDR")
 
-		find_package(OpenSSL QUIET)
+		find_package(OpenSSL)
+		
+		get_filename_component(OPENSSL_BASE_DIR "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
+		message("OpenSSL default path: ${OPENSSL_BASE_DIR}")
 
 		find_file(OPENSSL_SSL
-			NAMES libssl-3-x64.dll libssl-1_1-x64.dll libssl-1_1.dll libssl ssleay32.dll ssl.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			NAMES libssl-3-x64.dll libssl-1_1-x64.dll libssl-1_1.dll
+			HINTS "${OPENSSL_BASE_DIR}"
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64"
 			PATH_SUFFIXES bin
 		)
 
 		find_file(OPENSSL_CRYPTO
-			NAMES libcrypto-3-x64.dll libcrypto-1_1-x64.dll libcrypto-1_1.dll libcrypto libeay32.dll crypto.dll
-			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64" ${_OPENSSL_ROOT_PATHS}
+			NAMES libcrypto-3-x64.dll libcrypto-1_1-x64.dll libcrypto-1_1.dll
+			HINTS "${OPENSSL_BASE_DIR}"
+			PATHS "C:/Program Files/OpenSSL" "C:/Program Files/OpenSSL-Win64"
 			PATH_SUFFIXES bin
 		)
 

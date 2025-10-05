@@ -22,11 +22,14 @@ print_manual()
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}armhf${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}arm64${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}amd64${ColorReset}"	
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}armhf${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}arm64${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}jammy${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}plucky${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}42${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}rolling${ColorReset}        | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}latest${ColorReset}        | ${YellowColor2}amd64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
@@ -118,7 +121,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 		if [[ $(uname -m) == 'arm64' ]]; then
 			BUILD_OPTION=""
 		else
-			BUILD_OPTION="-DUSE_PRECOMPILED_HEADERS=OFF -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"
+			BUILD_OPTION="-DCMAKE_OSX_DEPLOYMENT_TARGET=10.15"
 			export CCACHE_COMPILERCHECK=content
 		fi
 	else
@@ -207,11 +210,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand=${executeCommand}" && sed -i \"s/{GLIBC_VERSION}/\$(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)$/\1/')/\" PKGBUILD && makepkg"
 		echo ${executeCommand}
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
-		if [ ${USE_CCACHE} = true ]; then
-			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION} -DUSE_PRECOMPILED_HEADERS=OFF/" PKGBUILD
-		else
-			sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
-		fi
+		sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
 		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else
 		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DISTRO_VERSION} ../ || exit 2 )"

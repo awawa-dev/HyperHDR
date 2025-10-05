@@ -16,97 +16,47 @@ jobs:
 ######################
 
   Linux:
-    name: ${{ matrix.architecture }}/${{ matrix.distroName }}:${{ matrix.distroVersion }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
+    name: ${{ matrix.architecture }}/${{ matrix.distroName}}:${{ matrix.distroVersion }}
+    runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    env:
+      platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
+    strategy:      
       matrix:
+        distroName: [debian]
+        distroVersion: [bullseye, bookworm, trixie]
+        architecture: [amd64, armhf, arm64]        
         include:
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: jammy
             architecture: amd64
-            distroName: debian
-            distroVersion: bullseye               
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: noble
             architecture: amd64
-            distroName: debian
-            distroVersion: bookworm              
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: ubuntu
+            distroVersion: plucky
             architecture: amd64
-            distroName: ubuntu
-            distroVersion: jammy             
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: fedora
+            distroVersion: 42
             architecture: amd64
-            distroName: ubuntu
-            distroVersion: noble               
-            platform: linux
-          - runner: ubuntu-24.04
+          - distroName: archlinux
+            distroVersion: latest
             architecture: amd64
-            distroName: ubuntu
-            distroVersion: plucky             
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: fedora
-            distroVersion: 42  
-            platform: linux
-          - runner: ubuntu-24.04
-            architecture: amd64
-            distroName: archlinux
-            distroVersion: rolling
-            platform: linux
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: bullseye            
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: bullseye  
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: armhf
-            distroName: debian
-            distroVersion: bookworm  
-            platform: rpi
-          - runner: ubuntu-24.04-arm
-            architecture: arm64
-            distroName: debian
-            distroVersion: bookworm 
-            platform: rpi
-    steps:
-      # start docker
-      - name: Wake-up docker
-        if: matrix.runner == 'ubuntu-24.04-arm'
-        run: |
-          (sudo systemctl start docker) || (echo "Retrying docker" && sleep 5 && sudo systemctl start docker && sleep 5)
 
-      # checkout
+    steps:   
       - uses: actions/checkout@v5.0.0
         with:
           submodules: true
 
-      # generate cache id
-      - name: Prepare ccache timestamp
-        if: env.USE_CACHE == 'true'
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
-        run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-          file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
-
-       # download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
         uses: actions/cache@v4.3.0
         with:
            path: .ccache
-           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
            restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Clear branch ccache storage
+        if: startsWith(github.event.ref, 'refs/tags') == false
         uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
         with:
@@ -114,7 +64,7 @@ jobs:
           key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Check default version
-        if: matrix.linuxVersion != 'bullseye'
+        if: matrix.distroVersion != 'bullseye'
         run: |
           echo "USE_STANDARD_INSTALLER_NAME=true" >> $GITHUB_ENV
 
@@ -123,24 +73,22 @@ jobs:
           ARCHITECTURE: ${{ matrix.architecture }}
           DISTRO_NAME: ${{ matrix.distroName }}
           DISTRO_VERSION: ${{ matrix.distroVersion }}
-          PLATFORM: ${{ matrix.platform }}
+          PLATFORM: ${{ env.platform }}
           USE_CCACHE: ${{ env.USE_CACHE }}
           RESET_CACHE: ${{ env.RESET_CACHE }}
         shell: bash
         run: |
           ./build.sh
 
-      # Upload artifacts (only on tagged commit)
-      - name: Upload artifacts
+      - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
           path: deploy/Hyper*
 
-      # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: Linux-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-installer
@@ -160,12 +108,10 @@ jobs:
       matrix:
         include:        
           - JOB_RUNNER: macos-15
-            JOB_NAME: macOS 15 (arm64 = M1/M2/M3/M4)
-            QT_VERSION: 6
-            NICE_NAME: arm64_M1_M2
-          - JOB_RUNNER: macos-13
-            JOB_NAME: macOS 13 (x64)
-            QT_VERSION: 6
+            JOB_NAME: "macOS 15 (arm64: M1/M2/M3/M4)"
+            NICE_NAME: arm64
+          - JOB_RUNNER: macos-15-intel
+            JOB_NAME: macOS 15 (x64)
             NICE_NAME: x64
     steps:
       # Checkout
@@ -173,45 +119,26 @@ jobs:
         with:
             submodules: true
 
-      # Generate cache id
-      - name: Prepare ccache timestamp
-        if: env.USE_CACHE == 'true'
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
-        run: |
-            string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
-
-      # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
         uses: actions/cache@v4.3.0
         with:
             path: build/.ccache
-            key: macOS-ccache-${{ matrix.NICE_NAME }}-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-            restore-keys: macOS-ccache-${{ matrix.NICE_NAME }}
+            key: macOS-${{ matrix.NICE_NAME }}-ccache-${{ github.run_id }}
+            restore-keys: macOS-${{ matrix.NICE_NAME }}-ccache
 
       - name: Clear branch ccache storage
         uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
         with:
           ref: ${{ github.event.ref }}
-          key: macOS-ccache-${{ matrix.NICE_NAME }}
+          key: macOS-${{ matrix.NICE_NAME }}-ccache
 
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install -q qt@${{ matrix.QT_VERSION }} xz ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
-        
-      # Set env
-      - name: Set QT5 env
-        if: ( matrix.QT_VERSION == 5 )
-        shell: bash
-        run: |
-            export Qt5_DIR=`brew --prefix qt@5`;
-            echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
+        run: brew install -q qt@6 xz ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
             
-        # Build process
       - name: Build packages
         env:
             PLATFORM: osx
@@ -221,17 +148,15 @@ jobs:
         shell: bash
         run: ./build.sh || ./build.sh
 
-      # Upload artifacts (only on tagged commit)
-      - name: Upload artifacts
+      - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
             name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
 
-      # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
             name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
@@ -243,56 +168,55 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-2022
+    runs-on: windows-2025
     env:
       MSVC: 2022
       QT_VERSION: 6.8.3
+      TOOLKIT_DIR: "${{ github.workspace }}\\Toolkit"
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
         with:
           submodules: true
 
-      - name: Cache Qt
+      - name: Cache Toolkit
         uses: actions/cache@v4.3.0
-        id: cache-qt-windows
+        id: cache-toolkit-windows
         with:
-          path: ${{ runner.workspace }}/Qt
-          key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
+          path: ${{ env.TOOLKIT_DIR }}
+          key: ${{ runner.os }}-Toolkit-Qt.${{ env.QT_VERSION }}-NSIS-TurboJPEG
 
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: 3.27.9
-
-      # temporary workaround for aqt: Python 3.13 instead of preinstalled default older version
       - name: Python 3.13 for aqtinstall
+        if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
         uses: actions/setup-python@v6      
         with:
           python-version: '3.13'
 
-      - name: Install QT
-        if: steps.cache-qt-windows.outputs.cache-hit != 'true'
+      - name: "Install Toolkit: Qt, TurboJPEG and NSIS"
+        if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
+        shell: powershell
         run: |          
+          Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
+          Start-Process -Wait turbojpeg.exe -ArgumentList "/S","/D=$env:TOOLKIT_DIR\libjpeg-turbo64"
+          Invoke-WebRequest -UserAgent "Wget" -Uri "https://prdownloads.sourceforge.net/nsis/nsis-3.11-setup.exe" -OutFile nsis.exe
+          Start-Process -Wait nsis.exe -ArgumentList "/S","/D=$env:TOOLKIT_DIR\nsis"
+          New-Item -ItemType Directory -Force -Path "$env:TOOLKIT_DIR\ccache" | Out-Null
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.12/ccache-4.12-windows-x86_64.zip -OutFile "$env:TOOLKIT_DIR\ccache\ccache.zip" -UseBasicParsing
           pip install aqtinstall
-          aqt install-qt -O ${{ runner.workspace }}/Qt windows desktop ${{ env.QT_VERSION }} win64_msvc${{ env.MSVC }}_64 -m qtserialport
+          aqt install-qt -O "$env:TOOLKIT_DIR\Qt" windows desktop $env:QT_VERSION "win64_msvc${env:MSVC}_64" -m qtserialport
 
-      # Generate cache id
-      - name: Prepare ccache timestamp
-        if: env.USE_CACHE == 'true'
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
+      - name: "Restore Toolkit"
+        shell: cmd
         run: |
-            string(TIMESTAMP current_date "%Y-%m-%d-%H-%M-%S" UTC)
-            file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
+          7z e "%TOOLKIT_DIR%\ccache\ccache.zip" -o.\build *.exe -r
+          echo %TOOLKIT_DIR%\nsis>> %GITHUB_PATH%
 
-      # Download cache
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
         uses: actions/cache@v4.3.0
         with:
             path: build/.ccache
-            key: ${{ runner.os }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+            key: ${{ runner.os }}-ccache-${{ github.run_id }}
             restore-keys: ${{ runner.os }}-ccache
 
       - name: Clear branch ccache storage
@@ -301,46 +225,27 @@ jobs:
         with:
           ref: ${{ github.event.ref }}
           key: ${{ runner.os }}-ccache
-
-      - name: Install TurboJPEG
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
-          Start-Process -Wait turbojpeg.exe -ArgumentList "/S"
-
-      - name: Download CCache
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.11.3/ccache-4.11.3-windows-x86_64.zip -OutFile ccache.zip -UseBasicParsing
-
-      - name: Install CCache
-        shell: cmd
-        run: |
-          7z e ccache.zip -o.\build *.exe -r
           
-      # Build packages
       - name: Build packages        
         env:
           PLATFORM: windows
           VCINSTALLDIR: 'C:/Program Files/Microsoft Visual Studio/${{ env.MSVC }}/Enterprise/VC'
-          CMAKE_PREFIX_PATH: "${{ runner.workspace }}/Qt/${{ env.QT_VERSION }}/msvc${{ env.MSVC }}_64/lib/cmake/"
+          CMAKE_PREFIX_PATH: "${{ env.TOOLKIT_DIR }}\\Qt\\${{ env.QT_VERSION }}\\msvc${{ env.MSVC }}_64\\lib\\cmake\\"
           USE_CCACHE: ${{ env.USE_CACHE }}
         shell: bash
         run: |
           "${{env.VCINSTALLDIR}}/Auxiliary/Build/vcvars64.bat"
           ./build.sh
 
-      # Upload artifacts (only on tagged commit)
-      - name: Upload artifacts
+      - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: release-artifact-windows
           path: build/Hyper*
           
-      # Upload artifacts from commit
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: Windows_x64_setup
@@ -378,6 +283,75 @@ jobs:
         with:
           language: ${{matrix.language}}
 
+#########################################
+####### Static C++20/QT analyze #########
+#########################################
+
+  clang-tidy-clazy:
+    name: Analyze (clang and clazy)
+    runs-on: ubuntu-latest
+    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc jq clang clang-tidy clang-tools clazy build-essential cmake flatbuffers-compiler git libasound2-dev libayatana-appindicator3-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev libgtk-3-dev liblzma-dev libpipewire-0.3-dev libssl-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev libx11-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget
+
+      - name: Configure (CMake with Makefiles)
+        run: |
+          cmake -S . -B build \
+            -DUSE_PRECOMPILED_HEADERS=OFF \
+            -DUSE_CCACHE_CACHING=OFF \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build project
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Run clazy
+        run: |
+          jq -r '.[] | select((.file | type=="string") and (.file | test("^(external/|_deps/)") | not)) | .file' build/compile_commands.json | xargs clazy-standalone -p build -- > clazy-report.txt 2>&1 || true
+
+      - name: Run clang-tidy
+        run: |
+          jq -r '.[] | select(.file | test("external/") | not and test("_deps/") | not) | .file' build/compile_commands.json | xargs run-clang-tidy -p build > clang-tidy-report.txt || true
+
+      - name: Combine reports
+        run: |
+          echo "### Clang-Tidy Report" > report.md
+          echo "\`\`\`" >> report.md
+          cat clang-tidy-report.txt >> report.md
+          echo "\`\`\`" >> report.md
+          echo "" >> report.md
+          echo "### Clazy Report" >> report.md
+          echo "\`\`\`" >> report.md
+          cat clazy-report.txt >> report.md
+          echo "\`\`\`" >> report.md
+
+      - name: Convert report to HTML
+        run: |
+          pandoc report.md -f markdown -t html -s -o cpp_report.html
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: static-cpp-analysis-report
+          path: |
+            cpp_report.html
+            clang-tidy-report.txt
+            clazy-report.txt
+
 ################################
 ###### Publish Releases ########
 ################################
@@ -386,26 +360,23 @@ jobs:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, windows, macOS]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
 
-      # generate environment variables
       - name: Generate environment variables from version and tag
         run: |
           echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
           echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
           echo "preRelease=false" >> $GITHUB_ENV
 
-      # If version contains alpha or beta, mark draft release as pre-release
       - name: Mark release as pre-release
         if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
         run: echo "preRelease=true" >> $GITHUB_ENV
 
-      # Download artifacts from previous build process
       - name: Download artifacts
         uses: actions/download-artifact@v5.0.0
         with:
@@ -413,7 +384,6 @@ jobs:
           pattern: release-artifact-*
           merge-multiple: true          
 
-      # create draft release and upload artifacts
       - name: Create draft release
         uses: softprops/action-gh-release@v2.3.3
         with:
