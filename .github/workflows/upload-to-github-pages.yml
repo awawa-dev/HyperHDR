@@ -47,7 +47,7 @@ jobs:
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
            path: .ccache
            key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
