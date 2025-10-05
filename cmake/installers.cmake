@@ -65,19 +65,6 @@ macro(DeployApple TARGET)
 					endif()
 				endif()
 
-				execute_process(
-					COMMAND brew --prefix openssl@1.1
-					RESULT_VARIABLE BREW_OPENSSL1
-					OUTPUT_VARIABLE BREW_OPENSSL1_PATH
-					OUTPUT_STRIP_TRAILING_WHITESPACE
-				)
-				if (BREW_OPENSSL1 EQUAL 0 AND EXISTS "${BREW_OPENSSL1_PATH}/lib")
-					set(BREW_OPENSSL1_LIB "${BREW_OPENSSL1_PATH}/lib")
-					message("Found OpenSSL@1.1 at ${BREW_OPENSSL1_LIB}")
-					file(GLOB filesSSL1 "${BREW_OPENSSL1_LIB}/*")
-					list (APPEND filesSSL ${filesSSL1})
-				endif()
-
 				#OpenSSL
 				if(filesSSL)
 					list( REMOVE_DUPLICATES filesSSL)
@@ -159,8 +146,9 @@ macro(DeployApple TARGET)
 					endif()
 				endforeach()
 
-			include(BundleUtilities)							
+			include(BundleUtilities)										
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "")
 				
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")

@@ -958,6 +958,15 @@ function identHueId(id, off, oState)
 	tunnel_hue_put($('#ip').val(), '/api/' + $('#user').val() + '/lights/' + id + '/state', put_data);
 }
 
+function switchToHttps(ip)
+{
+	ip = ip.replace(/^https:\/\//, "");
+	ip = ip.replace(/^http:\/\//, "");
+	ip = ip.replace(/:80$/, "");
+	ip = "https://" + ip;
+	return ip;
+}
+
 async function discover_hue_bridges()
 {
 	const res = await requestLedDeviceDiscovery('philipshue');
@@ -980,6 +989,11 @@ async function discover_hue_bridges()
 				console.log("Device:", device);
 
 				var ip = device.ip + ":" + device.port;
+				if (hueType == 'philipshueentertainment')
+				{
+					ip = switchToHttps(ip);
+				}
+
 				console.log("Host:", ip);
 
 				hueIPs.push({ internalipaddress: ip });
@@ -1162,6 +1176,10 @@ function beginWizardHue()
 	else
 	{
 		var ip = eV("output");
+		if (hueType == 'philipshueentertainment')
+		{
+			ip = switchToHttps(ip);
+		}
 		$('#ip').val(ip);
 		hueIPs.unshift({ internalipaddress: ip });
 		if (usr != "")
@@ -1177,7 +1195,12 @@ function beginWizardHue()
 	{
 		if ($('#ip').val() != "")
 		{
-			hueIPs.unshift({ internalipaddress: $('#ip').val() })
+			var ip = $('#ip').val();
+			if (hueType == 'philipshueentertainment')
+			{
+				ip = switchToHttps(ip);
+			}
+			hueIPs.unshift({ internalipaddress: ip });
 			hueIPsinc = 0;
 		}
 		else discover_hue_bridges();
@@ -1245,7 +1268,10 @@ function createHueUser()
 					{
 						if (typeof r[0].error != 'undefined')
 						{
-							console.log(connectionRetries + ": link not pressed");
+							if (r[0].error.type = 101)
+								console.log(`Link button not pressed: ${JSON.stringify(r[0].error)} (${connectionRetries})`);
+							else
+								console.log(`An error occurred: ${JSON.stringify(r[0].error)} (${connectionRetries})`);
 						}
 						if (typeof r[0].success != 'undefined')
 						{
