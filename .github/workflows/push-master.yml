@@ -156,7 +156,7 @@ jobs:
             path: build/Hyper*.dmg
 
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
             name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
@@ -245,7 +245,7 @@ jobs:
           path: build/Hyper*
           
       - name: Upload artifacts from commit
-        if: (startsWith(github.event.ref, 'refs/tags') != true) && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: Windows_x64_setup
