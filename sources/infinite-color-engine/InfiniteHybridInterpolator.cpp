@@ -123,10 +123,11 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff, float3& vel) -> bool {
 		const float FINISH_COMPONENT_THRESHOLD = 0.0013732906f;
+		const float VELOCITY_THRESHOLD = 0.0005f;
 
 		float val = linalg::maxelem(linalg::abs(diff));
 
-		if (val < FINISH_COMPONENT_THRESHOLD)
+		if (val < FINISH_COMPONENT_THRESHOLD && linalg::maxelem(linalg::abs(vel)) < VELOCITY_THRESHOLD)
 		{
 			cur += diff;
 			vel = float3{ 0,0,0 };
@@ -140,23 +141,15 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 			vel += acc * (dt * 0.001f);
 			float3 step = vel * (dt * 0.001f);
 
-			if (_maxLuminanceChangePerStep > 0.f)
+			if (_maxLuminanceChangePerStep > 0.f && fabs(step[0]) > _maxLuminanceChangePerStep)
 			{
-				float stepY = step[0];
-				if (fabs(stepY) > _maxLuminanceChangePerStep)
-				{
-					stepY = std::copysignf(_maxLuminanceChangePerStep, stepY);
-					vel[0] = stepY / (dt * 0.001f);
-				}
-				cur[0] += stepY;
-			}
-			else
-			{
-				cur[0] += step[0];
-			}
+				float scale = _maxLuminanceChangePerStep / fabs(step[0]);
+				step *= scale;
 
-			cur[1] += step[1];
-			cur[2] += step[2];
+				vel *= scale;
+			}
+			cur += step;
+
 			return true;
 		}
 	};

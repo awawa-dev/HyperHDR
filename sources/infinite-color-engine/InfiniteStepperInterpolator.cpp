@@ -102,7 +102,7 @@ void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
 	// obliczenie czasu, analog setupAdvColor
 	float deltaTime = _targetTime - currentTimeMs;
 	float totalTime = _targetTime - _startAnimationTimeMs;
-	float kOrg = std::max(1.0f - deltaTime / totalTime, 0.0001f);
+	float kOrg = std::min(std::max(1.0f - deltaTime / totalTime, 0.0001f), 1.0f);
 	_lastUpdate = currentTimeMs;
 
 	float4 aspectK = float4{
