@@ -125,9 +125,8 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 		const float FINISH_COMPONENT_THRESHOLD = 0.0013732906f;
 		const float VELOCITY_THRESHOLD = 0.0005f;
 
-		float val = linalg::maxelem(linalg::abs(diff));
-
-		if (val < FINISH_COMPONENT_THRESHOLD && linalg::maxelem(linalg::abs(vel)) < VELOCITY_THRESHOLD)
+		if (linalg::maxelem(linalg::abs(diff)) < FINISH_COMPONENT_THRESHOLD && // color match
+			linalg::maxelem(linalg::abs(vel)) < VELOCITY_THRESHOLD) // speed should be almost zero
 		{
 			cur += diff;
 			vel = float3{ 0,0,0 };
