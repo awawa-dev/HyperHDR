@@ -31,10 +31,10 @@ jobs:
             distroVersion: noble
             architecture: amd64
           - distroName: ubuntu
-            distroVersion: plucky
+            distroVersion: questing
             architecture: amd64
           - distroName: fedora
-            distroVersion: 42
+            distroVersion: 43
             architecture: amd64
           - distroName: archlinux
             distroVersion: latest
