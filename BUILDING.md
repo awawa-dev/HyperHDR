@@ -205,8 +205,8 @@ DISTRO_NAME  | DISTRO_VERSION | ARCHITECTURE - these are only for linux targets
    debian    | trixie         | amd64   
    ubuntu    | jammy          | amd64
    ubuntu    | noble          | amd64
-   ubuntu    | plucky         | amd64
-   fedora    | 42             | amd64
+   ubuntu    | questing       | amd64
+   fedora    | 43             | amd64
    archlinux | latest         | amd64
 
 Optional environmental options:
