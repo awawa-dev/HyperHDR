@@ -11,7 +11,7 @@ At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house re
 ### Key advantages of the Infinite Color Engine:
 * **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
 * **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
-* **Deep-Color Support:** Compatible devices, including Philips Hue lamps and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
+* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, Lifx and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
 * **Advanced color smoothing algorithms:** inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
 
 ### Additional features:
