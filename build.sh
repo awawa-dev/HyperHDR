@@ -195,8 +195,8 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		cache_env="true"
 	fi
 
-	if [[ $ARCHITECTURE == *"armv6l"* ]] && [[ $CI_TYPE == "github_action" ]]; then
-		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armv6l ${BUILD_OPTION}"		
+	if [[ $ARCHITECTURE == *"armhf"* ]] && [[ $CI_TYPE == "github_action" ]]; then
+		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armhf ${BUILD_OPTION}"		
 	fi
 	
 	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"

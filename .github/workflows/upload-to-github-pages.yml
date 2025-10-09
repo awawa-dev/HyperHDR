@@ -4,6 +4,7 @@ on:
   push:
     tags:        
       - '*'
+  workflow_dispatch:
 
 env:
     USE_CACHE: "false"
