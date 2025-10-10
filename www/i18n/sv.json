@@ -1303,5 +1303,6 @@
   "edt_conf_smoothing_testMode_title": "Testläge",
   "edt_conf_smoothing_testMode_expl": "Cykliska plötsliga färgförändringar för utjämningsalgoritmtestning, utdata till konsolen (kör HyperHDR med -c-parametern på Windows).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponentiell oändlig interpolator",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klassisk exponentiell implementering av utjämning uppdaterar LED-färger mot ett mål, reagerar snabbt på stora skillnader och saktar ner när de närmar sig målet, vilket producerar mjuka, naturliga övergångar i omgivande ljus."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klassisk exponentiell implementering av utjämning uppdaterar LED-färger mot ett mål, reagerar snabbt på stora skillnader och saktar ner när de närmar sig målet, vilket producerar mjuka, naturliga övergångar i omgivande ljus.",
+  "edt_dev_spec_macAddress_title": "MAC-adress"
 }
