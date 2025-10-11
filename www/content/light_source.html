@@ -677,5 +677,21 @@
 <script src='js/lib/jsonaceeditor.min.js'></script>
 
 <script>
-$.getScript("/js/light_source.js");
+
+$.getScript('js/LedSetups/SetupCommon.js').then(() => {
+	const setupScripts = [
+		'js/LedSetups/SetupPhilipsHue.js',
+		'js/LedSetups/SetupZigbee2mqtt.js',
+		'js/LedSetups/SetupHomeAssistant.js',
+		'js/LedSetups/SetupAtmoorb.js',
+		'js/LedSetups/SetupYeelight.js',
+		'js/LedSetups/SetupCololight.js',
+		'js/LedSetups/SetupLifx.js'
+	].map(src => $.getScript(src));
+
+	$.when(...setupScripts).then(() => {
+		$.getScript('/js/light_source.js');
+	});
+});
+
 </script>

@@ -1304,5 +1304,7 @@
   "edt_conf_smoothing_testMode_expl": "Cyclic sudden color changes for smoothing algorithms testing, output to the console (on Windows run HyperHDR with -c parameter).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponential Infinite Interpolator",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Classic exponential implementation of smoothing updates LED colors toward a target, reacting quickly to large differences and slowing as they approach the target, producing smooth, natural ambient lighting transitions.",
-  "edt_dev_spec_macAddress_title" : "MAC address"
+  "edt_dev_spec_macAddress_title" : "MAC address",
+  "wiz_lifx_error": "Could not find Lifx devices. Check HyperHDR logs.",
+  "wiz_lifx_title": "LIFX lights wizard"
 }
