@@ -674,8 +674,6 @@
 	</div>
 </div>
 <link href="css/jsonaceeditor.min.css" rel="stylesheet" type="text/css" />
-<script src='js/lib/jsonaceeditor.min.js'></script>
-
 <script>
 
 $.getScript('js/LedSetups/SetupCommon.js').then(() => {
@@ -686,7 +684,8 @@ $.getScript('js/LedSetups/SetupCommon.js').then(() => {
 		'js/LedSetups/SetupAtmoorb.js',
 		'js/LedSetups/SetupYeelight.js',
 		'js/LedSetups/SetupCololight.js',
-		'js/LedSetups/SetupLifx.js'
+		'js/LedSetups/SetupLifx.js',
+		'js/lib/jsonaceeditor.min.js'
 	].map(src => $.getScript(src));
 
 	$.when(...setupScripts).then(() => {

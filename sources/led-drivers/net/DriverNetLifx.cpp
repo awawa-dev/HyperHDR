@@ -17,6 +17,8 @@ namespace
 {
 	constexpr uint16_t DEFAULT_FLIX_PORT = 56700;
 	constexpr uint16_t WHITE_COLOR_TEMPERATURE = 6500; //D65
+	constexpr uint16_t POWER_ON = 0xFFFF;
+	constexpr uint16_t POWER_OFF = 0x0;
 
 #pragma pack(push, 1)
 	struct LifxHeader {
@@ -345,13 +347,13 @@ void DriverNetLifx::setPower(uint16_t power)
 
 bool DriverNetLifx::powerOn()
 {
-	setPower(0xFFFF);
+	setPower(POWER_ON);
 	return true;
 }
 
 bool DriverNetLifx::powerOff()
 {
-	setPower(0x0);
+	setPower(POWER_OFF);
 	return true;
 }
 
@@ -394,6 +396,7 @@ void DriverNetLifx::identify(const QJsonObject& params)
 
 				std::vector<std::pair<IpMacAddress, linalg::vec<float, 3>>> lights;				
 				lights.push_back({ std::tuple<QString, QHostAddress, MacAddress>(name, address, mac.value()),  { 0.0, 0.0, 1.0 } });
+				sendLifxSetPower(*socket, { lights.front().first }, POWER_ON);
 				sendLifxColors(*socket, lights, WHITE_COLOR_TEMPERATURE, 250);
 				QThread::msleep(250);
 				lights.clear();

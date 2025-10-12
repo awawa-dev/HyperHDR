@@ -32,7 +32,7 @@
 					"macAddress": {
 						"type": "string",
 						"title": "edt_dev_spec_macAddress_title",
-						"pattern": "^([0-9A-Fa-f]{2}([-:])){5}[0-9A-Fa-f]{2}$",
+						"pattern": "^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$",
 						"default": ""
 					}
 				},
