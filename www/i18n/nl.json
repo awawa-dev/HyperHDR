@@ -1289,13 +1289,13 @@
   "edt_conf_enum_interpolator_y_limit_title": "Begrenzer voor helderheidsverandering",
   "edt_conf_enum_interpolator_y_limit_expl": "Deze parameter stelt een absolute limiet in voor hoeveel de helderheid (het Y-kanaal in YUV) in één updatestap kan veranderen. Het fungeert als een harde limiet die de veerfysica kan overschrijven, waardoor storende flitsen of stroboscopische effecten worden voorkomen tijdens snelle overgangen tussen zeer donkere en zeer heldere kleuren. Door deze waarde op een kleine positieve waarde in te stellen, worden zeer vloeiende helderheidsovergangen gegarandeerd, terwijl het instellen op nul de limiet volledig uitschakelt.",
   "edt_conf_color_backlightThreshold_title": "Minimaal achtergrondverlichtingsniveau",
-  "edt_conf_color_backlightThreshold_expl": "Minimaal helderheidsniveau (schaal 0-1,0). Elke stap van 0,0039(2) komt overeen met 1 op een schaal van 0-255. Uitgeschakeld tijdens effecten, kleuren en in de status \"Uit\".",
+  "edt_conf_color_backlightThreshold_expl": "Minimaal helderheidsniveau (schaal 0-1.0). Elke stap van 0.0039(2) komt overeen met 1 op een schaal van 0-255. Uitgeschakeld tijdens effecten, kleuren en in de status \"Uit\".",
   "edt_conf_color_channelAdjustment_header_title": "Infinite Color Engine",
   "edt_conf_color_channelAdjustment_header_expl": "Maak kleurprofielen die aan een specifiek component kunnen worden toegewezen. Pas kleur, gamma, luminantie, verzadiging en meer aan. Zeer nauwkeurige (float) berekeningen worden gebruikt voor kleurverwerking.",
   "edt_conf_color_classic_config_title": "RGB-kalibratie",
   "edt_conf_color_classic_config_expl": "Kalibratie met de drie primaire kleuren (rood, groen, blauw). Voldoende voor de meeste gevallen.",
   "edt_conf_color_gamma_title": "Gebruikersgamma",
-  "edt_conf_color_gamma_expl": "Extra gamma voor elke kleurcomponent. Volledige neutraliteit is 1,0 (gebruikersgamma uitgeschakeld), boven 1,0 verlaagt het de kleurwaarde en onder 1,0 verhoogt het deze. Verwar dit niet met bijvoorbeeld sRGB-gammacorrectie: de uitvoerkleuren bevinden zich al in een niet-lineaire ruimte, zelfs zonder deze instelling.",
+  "edt_conf_color_gamma_expl": "Extra gamma voor elke kleurcomponent. Volledige neutraliteit is 1.0 (gebruikersgamma uitgeschakeld), boven 1.0 verlaagt het de kleurwaarde en onder 1.0 verhoogt het deze. Verwar dit niet met bijvoorbeeld sRGB-gammacorrectie: de uitvoerkleuren bevinden zich al in een niet-lineaire ruimte, zelfs zonder deze instelling.",
   "edt_conf_processing_scaleOutput_title": "Kleur schalen",
   "edt_conf_processing_scaleOutput_expl": "Vermenigvuldigt de RGB-kleurcomponenten met een bepaalde factor in de lineaire RGB-ruimte.",
   "edt_conf_processing_powerLimit_title": "Beperk het uitgangsvermogen",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Testmodus",
   "edt_conf_smoothing_testMode_expl": "Cyclische, plotselinge kleurveranderingen voor het testen van smoothing-algoritmen, uitvoer naar de console (in Windows: voer HyperHDR uit met de parameter -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponentiële oneindige interpolator",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "De klassieke exponentiële implementatie van smoothing werkt de LED-kleuren bij in de richting van een doel, reageert snel op grote verschillen en vertraagt ​​naarmate de kleuren het doel naderen, wat zorgt voor vloeiende, natuurlijke overgangen in de omgevingsverlichting."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "De klassieke exponentiële implementatie van smoothing werkt de LED-kleuren bij in de richting van een doel, reageert snel op grote verschillen en vertraagt ​​naarmate de kleuren het doel naderen, wat zorgt voor vloeiende, natuurlijke overgangen in de omgevingsverlichting.",
+  "edt_dev_spec_macAddress_title": "MAC-adres",
+  "wiz_lifx_error": "Lifx-apparaten niet gevonden. Controleer de HyperHDR-logs.",
+  "wiz_lifx_title": "LIFX-lampenwizard"
 }

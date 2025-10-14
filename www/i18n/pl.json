@@ -1289,13 +1289,13 @@
   "edt_conf_enum_interpolator_y_limit_title": "Ogranicznik zmiany jasności",
   "edt_conf_enum_interpolator_y_limit_expl": "Ten parametr określa bezwzględny limit zmiany jasności (kanału Y w YUV) w jednym kroku aktualizacji. Działa jak sztywny limit, który może obejść fizykę sprężyny, zapobiegając efektom rażących błysków lub stroboskopu podczas szybkich przejść między bardzo ciemnymi i bardzo jasnymi kolorami. Ustawienie tej wartości na niewielką dodatnią wartość zapewnia bardzo płynne narastanie jasności, a ustawienie na zero całkowicie wyłącza limit.",
   "edt_conf_color_backlightThreshold_title": "Minimalny poziom podświetlenia",
-  "edt_conf_color_backlightThreshold_expl": "Minimalny poziom jasności (skala 0-1,0). Każdy krok 0,0039(2) odpowiada 1 w skali 0-255. Wyłączone podczas efektów, kolorów i w stanie \"Wyłączone\".",
+  "edt_conf_color_backlightThreshold_expl": "Minimalny poziom jasności (skala 0-1.0). Każdy krok 0.0039(2) odpowiada 1 w skali 0-255. Wyłączone podczas efektów, kolorów i w stanie \"Wyłączone\".",
   "edt_conf_color_channelAdjustment_header_title": "Nieskończony silnik kolorów",
   "edt_conf_color_channelAdjustment_header_expl": "Tworzenie profili kolorów, które można przypisać do określonego komponentu. Regulacja koloru, gamma, luminancji, nasycenia i innych parametrów. Do przetwarzania kolorów wykorzystywane są precyzyjne obliczenia (zmiennoprzecinkowe).",
   "edt_conf_color_classic_config_title": "Kalibracja RGB",
   "edt_conf_color_classic_config_expl": "Kalibracja z wykorzystaniem trzech kolorów podstawowych (czerwonego, zielonego, niebieskiego). Wystarczająca w większości przypadków.",
   "edt_conf_color_gamma_title": "Gamma użytkownika",
-  "edt_conf_color_gamma_expl": "Dodatkowa gamma dla każdego komponentu koloru. Pełna neutralność wynosi 1,0 (wyłączenie gamma użytkownika), Powyżej 1,0 wartość koloru maleje, a poniżej 1,0 – rośnie. Nie należy tego mylić na przykład z korekcją gamma sRGB: kolory wyjściowe znajdują się już w przestrzeni nieliniowej, nawet bez tego ustawienia.",
+  "edt_conf_color_gamma_expl": "Dodatkowa gamma dla każdego komponentu koloru. Pełna neutralność wynosi 1.0 (wyłączenie gamma użytkownika), Powyżej 1.0 wartość koloru maleje, a poniżej 1.0 – rośnie. Nie należy tego mylić na przykład z korekcją gamma sRGB: kolory wyjściowe znajdują się już w przestrzeni nieliniowej, nawet bez tego ustawienia.",
   "edt_conf_processing_scaleOutput_title": "Skala kolorów",
   "edt_conf_processing_scaleOutput_expl": "Mnoży składowe koloru RGB przez zadany współczynnik w liniowej przestrzeni RGB.",
   "edt_conf_processing_powerLimit_title": "Ograniczenie mocy wyjściowej",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Tryb testowy",
   "edt_conf_smoothing_testMode_expl": "Cykliczne, nagłe zmiany kolorów do testowania algorytmów wygładzania, wyjście do konsoli (w systemie Windows uruchom HyperHDR z parametrem -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Wykładniczy interpolator nieskończony",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klasyczna wykładnicza implementacja wygładzania aktualizuje kolory diod LED w kierunku celu, szybko reagując na duże różnice i zwalniając w miarę zbliżania się do celu, zapewniając płynne, naturalne przejścia oświetlenia otoczenia."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klasyczna wykładnicza implementacja wygładzania aktualizuje kolory diod LED w kierunku celu, szybko reagując na duże różnice i zwalniając w miarę zbliżania się do celu, zapewniając płynne, naturalne przejścia oświetlenia otoczenia.",
+  "edt_dev_spec_macAddress_title": "Adres MAC",
+  "wiz_lifx_error": "Nie znaleziono urządzeń Lifx. Sprawdź logi HyperHDR.",
+  "wiz_lifx_title": "Kreator oświetlenia LIFX"
 }

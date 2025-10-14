@@ -1289,13 +1289,13 @@
   "edt_conf_enum_interpolator_y_limit_title": "Limitatore di variazione della luminosità",
   "edt_conf_enum_interpolator_y_limit_expl": "Questo parametro imposta un limite assoluto di quanto la luminosità (il canale Y in YUV) può variare in un singolo passaggio di aggiornamento. Agisce come un limite rigido che può ignorare la fisica della molla, prevenendo flash fastidiosi o effetti stroboscopici durante le transizioni rapide tra colori molto scuri e molto chiari. Impostando questo valore su un piccolo valore positivo si garantiscono rampe di luminosità molto fluide, mentre impostandolo su zero si disattiva completamente il limite.",
   "edt_conf_color_backlightThreshold_title": "Livello minimo di retroilluminazione",
-  "edt_conf_color_backlightThreshold_expl": "Livello minimo di luminosità (scala 0-1,0). Ogni intervallo di 0,0039(2) corrisponde a 1 nella scala 0-255. Disattivato durante effetti, colori e in stato \"Off\".
+  "edt_conf_color_backlightThreshold_expl": "Livello minimo di luminosità (scala 0-1.0). Ogni intervallo di 0.0039(2) corrisponde a 1 nella scala 0-255. Disattivato durante effetti, colori e in stato \"Off\".
   "edt_conf_color_channelAdjustment_header_title": "Motore di colori infinito",
   "edt_conf_color_channelAdjustment_header_expl": "Crea profili colore che possono essere assegnati a un componente specifico. Regola colore, gamma, luminanza, saturazione e altro ancora. Calcoli ad alta precisione (float) utilizzati per l'elaborazione del colore.",
   "edt_conf_color_classic_config_title": "Calibrazione RGB",
   "edt_conf_color_classic_config_expl": "Calibrazione utilizzando i tre colori primari (rosso, verde, blu). Sufficiente per la maggior parte dei casi.",
   "edt_conf_color_gamma_title": "Gamma utente",
-  "edt_conf_color_gamma_expl": "Gamma aggiuntivo per ogni componente di colore. La neutralità completa è 1,0 (disabilitando la gamma utente), sopra 1.0 diminuisce il valore del colore e sotto 1.0 lo aumenta. Non confondere questo valore, ad esempio, con la correzione gamma sRGB: i colori di output sono già nello spazio non lineare anche senza questa impostazione.",
+  "edt_conf_color_gamma_expl": "Gamma aggiuntivo per ogni componente di colore. La neutralità completa è 1.0 (disabilitando la gamma utente), sopra 1.0 diminuisce il valore del colore e sotto 1.0 lo aumenta. Non confondere questo valore, ad esempio, con la correzione gamma sRGB: i colori di output sono già nello spazio non lineare anche senza questa impostazione.",
   "edt_conf_processing_scaleOutput_title": "Scala colore",
   "edt_conf_processing_scaleOutput_expl": "Moltiplica le componenti di colore RGB per un dato fattore nello spazio RGB lineare.",
   "edt_conf_processing_powerLimit_title": "Limita potenza in uscita",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Modalità test",
   "edt_conf_smoothing_testMode_expl": "Cambiamenti di colore improvvisi e ciclici per testare gli algoritmi di smoothing, output sulla console (su Windows, eseguire HyperHDR con il parametro -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolatore Esponenziale Infinito",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "L'implementazione esponenziale classica dello smoothing aggiorna i colori dei LED in base a un target, reagendo rapidamente a grandi differenze e rallentando man mano che si avvicinano al target, producendo transizioni di illuminazione ambientale fluide e naturali."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "L'implementazione esponenziale classica dello smoothing aggiorna i colori dei LED in base a un target, reagendo rapidamente a grandi differenze e rallentando man mano che si avvicinano al target, producendo transizioni di illuminazione ambientale fluide e naturali.",
+  "edt_dev_spec_macAddress_title": "Indirizzo MAC",
+  "wiz_lifx_error": "Impossibile trovare i dispositivi Lifx. Controllare i log HyperHDR.",
+  "wiz_lifx_title": "Procedura guidata luci LIFX"
 }
