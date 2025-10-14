@@ -129,7 +129,7 @@ namespace
 		LifxHeader header{};
 
 		header.size = qToLittleEndian<uint16_t>(sizeof(LifxHeader));
-		uint16_t frameFlags = (1 << 14) | (1 << 13);
+		uint16_t frameFlags = (1024 & 0x0FFF) | (1 << 12) | (1 << 13);
 		header.frameFlags = qToLittleEndian<uint16_t>(frameFlags);
 		header.source = qToLittleEndian<uint32_t>(0x12345678);
 
