@@ -131,11 +131,13 @@ namespace
 		header.size = qToLittleEndian<uint16_t>(sizeof(LifxHeader));
 		uint16_t frameFlags = (1024 & 0x0FFF) | (1 << 12) | (1 << 13);
 		header.frameFlags = qToLittleEndian<uint16_t>(frameFlags);
-		header.source = qToLittleEndian<uint32_t>(0x12345678);
+		header.source = qToLittleEndian<uint32_t>(0x11);
 
 		header.target.fill(0);
 
-		header.flags = 0;
+		const char magic[] = "LIFXV2";
+		std::memcpy(header.reserved1.data(), magic, sizeof(header.reserved1));
+		header.flags = 0x04;
 		header.sequence = 0;
 		header.pkt_type = qToLittleEndian<uint16_t>(2);
 
