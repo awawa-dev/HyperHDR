@@ -55,14 +55,6 @@ jobs:
            key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
            restore-keys: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
-      - name: Clear branch ccache storage
-        if: startsWith(github.event.ref, 'refs/tags') == false
-        uses: yumemi-inc/clean-cache-action@v1
-        continue-on-error: true
-        with:
-          ref: ${{ github.event.ref }}
-          key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
-
       - name: Check default version
         if: matrix.distroVersion != 'bullseye'
         run: |
@@ -79,6 +71,14 @@ jobs:
         shell: bash
         run: |
           ./build.sh
+
+      - name: Clear branch ccache storage
+        if: startsWith(github.event.ref, 'refs/tags') == false
+        uses: yumemi-inc/clean-cache-action@v1
+        continue-on-error: true
+        with:
+          ref: ${{ github.event.ref }}
+          key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
@@ -127,13 +127,6 @@ jobs:
             key: macOS-${{ matrix.NICE_NAME }}-ccache-${{ github.run_id }}
             restore-keys: macOS-${{ matrix.NICE_NAME }}-ccache
 
-      - name: Clear branch ccache storage
-        uses: yumemi-inc/clean-cache-action@v1
-        continue-on-error: true
-        with:
-          ref: ${{ github.event.ref }}
-          key: macOS-${{ matrix.NICE_NAME }}-ccache
-
       # Install deps
       - name: Install deps
         shell: bash
@@ -147,6 +140,13 @@ jobs:
             JOB_RUNNER: ${{ matrix.JOB_RUNNER }}
         shell: bash
         run: ./build.sh || ./build.sh
+
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        continue-on-error: true
+        with:
+          ref: ${{ github.event.ref }}
+          key: macOS-${{ matrix.NICE_NAME }}-ccache
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
@@ -218,13 +218,6 @@ jobs:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ github.run_id }}
             restore-keys: ${{ runner.os }}-ccache
-
-      - name: Clear branch ccache storage
-        uses: yumemi-inc/clean-cache-action@v1
-        continue-on-error: true
-        with:
-          ref: ${{ github.event.ref }}
-          key: ${{ runner.os }}-ccache
           
       - name: Build packages        
         env:
@@ -236,6 +229,13 @@ jobs:
         run: |
           "${{env.VCINSTALLDIR}}/Auxiliary/Build/vcvars64.bat"
           ./build.sh
+
+      - name: Clear branch ccache storage
+        uses: yumemi-inc/clean-cache-action@v1
+        continue-on-error: true
+        with:
+          ref: ${{ github.event.ref }}
+          key: ${{ runner.os }}-ccache
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
