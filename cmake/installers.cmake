@@ -5,8 +5,9 @@ macro(DeployApple TARGET)
 		install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )
 		cmake_policy(POP)
 
-		get_target_property(HYPERHDR_BUNDLE_DIR ${TARGET} BUNDLE_DIRECTORY)
-		message(STATUS "Bundle destination: ${HYPERHDR_BUNDLE_DIR}")
+		set(HYPERHDR_BUNDLE_DIR "${CMAKE_INSTALL_PREFIX}/hyperhdr.app")
+		message("Bundle destination: ${HYPERHDR_BUNDLE_DIR}")
+		install(CODE "set(HYPERHDR_BUNDLE_DIR \"${HYPERHDR_BUNDLE_DIR}\")" COMPONENT "HyperHDR")
 
 		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
@@ -44,8 +45,7 @@ macro(DeployApple TARGET)
 			OUTPUT_VARIABLE MYQT_PLUGINS_DIR
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
-
-		install(CODE "set(HYPERHDR_BUNDLE_DIR \"${HYPERHDR_BUNDLE_DIR}\")" COMPONENT "HyperHDR")
+		
 		install(CODE "set(MYQT_PLUGINS_DIR \"${MYQT_PLUGINS_DIR}\")"     COMPONENT "HyperHDR")
 		install(CODE "set(MY_DEPENDENCY_PATHS \"${TARGET_FILE}\")"       COMPONENT "HyperHDR")
 		install(CODE "set(MY_SYSTEM_LIBS_SKIP \"${SYSTEM_LIBS_SKIP}\")"  COMPONENT "HyperHDR")

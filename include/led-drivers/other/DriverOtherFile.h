@@ -30,7 +30,7 @@ private:
 
 	QString _fileName;
 	bool _printTimeStamp;
-	bool _infinityResolution;
+	bool _infiniteColorEngine;
 
 	static bool isRegistered;
 };

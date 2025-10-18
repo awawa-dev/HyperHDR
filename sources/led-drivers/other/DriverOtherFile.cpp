@@ -10,7 +10,7 @@ DriverOtherFile::DriverOtherFile(const QJsonObject& deviceConfig)
 	, _lastWriteTimeNano(std::chrono::high_resolution_clock::now())
 	, _file(nullptr)
 	, _printTimeStamp(true)
-	, _infinityResolution(false)
+	, _infiniteColorEngine(false)
 {	
 }
 
@@ -38,9 +38,9 @@ bool DriverOtherFile::init(QJsonObject deviceConfig)
 
 	Debug(_log, "Output filename: %s", QSTRING_CSTR(_fileName));
 
-	_infinityResolution = deviceConfig["infinityResolution"].toBool(true);
+	_infiniteColorEngine = deviceConfig["infiniteColorEngine"].toBool(false);
 
-	Debug(_log, "Infinite color engine resolution: %s", (_infinityResolution) ? "true": "false");
+	Debug(_log, "Infinite color engine resolution: %s", (_infiniteColorEngine) ? "true": "false");
 
 	return initOK;
 }
@@ -94,7 +94,7 @@ int DriverOtherFile::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 
 std::pair<bool, int> DriverOtherFile::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
-	if (_infinityResolution)
+	if (_infiniteColorEngine)
 		return { true, writeColors(nullptr, nonlinearRgbColors) };
 	else
 		return { false,0 };
@@ -133,7 +133,7 @@ int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const S
 		for (auto& color : *nonlinearRgbColors)
 		{
 			auto format = [](float value){return QString("%1").arg(value, 8, 'f', 4, ' '); };
-			out << std::exchange(separator,", ") << "{" << format(color.x * 255.f) << "," << format(color.y * 255.f)  << "," << format(color.z * 255.f) << "}";
+			out << std::exchange(separator,", ") << "{" << format(color.x * 255.f) << ", " << format(color.y * 255.f)  << ", " << format(color.z * 255.f) << "}";
 		}
 		result = nonlinearRgbColors->size();
 	}
