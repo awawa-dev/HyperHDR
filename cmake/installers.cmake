@@ -71,16 +71,12 @@ macro(DeployApple TARGET)
 					foreach(openssl_lib ${filesSSL})
 						string(FIND ${openssl_lib} "dylib" _indexSSL)
 						if (${_indexSSL} GREATER -1)
-							file(INSTALL
+							file(COPY "${openssl_lib}"
 								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
-								TYPE SHARED_LIBRARY
-								FILES "${openssl_lib}"
 							)
 						else()
-							file(INSTALL
+							file(COPY "${openssl_lib}"
 								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-								TYPE SHARED_LIBRARY
-								FILES "${openssl_lib}"
 							)
 						endif()
 					endforeach()
@@ -93,20 +89,19 @@ macro(DeployApple TARGET)
 					RESOLVED_DEPENDENCIES_VAR _r_deps
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
-				  
+
+				file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
+				file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+
 				foreach(_file ${_r_deps})										
 					string(FIND ${_file} "dylib" _index)
 					if (${_index} GREATER -1)
-						file(INSTALL
+						file(COPY "${_file}"
 							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
 						)
 					else()
-						file(INSTALL
+						file(COPY "${_file}"
 							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
 						)
 					endif()
 				endforeach()				
@@ -127,19 +122,18 @@ macro(DeployApple TARGET)
 								)
 
 							foreach(DEPENDENCY ${PLUGINS})
-									file(INSTALL
+									file(COPY "${DEPENDENCY}"
 										DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-										TYPE SHARED_LIBRARY
-										FILES ${DEPENDENCY}
 									)									
 							endforeach()
 
+							get_filename_component(real_file "${file}" REALPATH)
 							get_filename_component(singleQtLib ${file} NAME)
 							list(APPEND MYQT_PLUGINS "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/${singleQtLib}")
-							file(INSTALL
+							message("Copying real plugin ${real_file} to ${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}")
+							file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}")
+							file(COPY "${real_file}"
 								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}"
-								TYPE SHARED_LIBRARY
-								FILES ${file}
 							)
 
 						endforeach()
@@ -150,7 +144,7 @@ macro(DeployApple TARGET)
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "")
 				
-			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
 
 			message( "Detected architecture: '${SCOPE_CMAKE_SYSTEM_PROCESSOR}'")
