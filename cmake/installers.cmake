@@ -136,7 +136,7 @@ macro(DeployApple TARGET)
 
 							get_filename_component(real_file "${file}" REALPATH)
 							get_filename_component(singleQtLib ${file} NAME)
-							list(APPEND MYQT_PLUGINS "${HYPERHDR_BUNDLE_DIR}/Contents/plugins/${PLUGIN}/${singleQtLib}")
+							list(APPEND MYQT_PLUGINS "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}/${singleQtLib}")
 							file(INSTALL
 								DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/${PLUGIN}"
 								TYPE SHARED_LIBRARY
