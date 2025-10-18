@@ -12,9 +12,15 @@
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_printTimeStamp_title",
-			"default": false,
-			"access" : "advanced",
+			"default": true,
 			"propertyOrder" : 2
+		},
+		"infinityResolution": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_conf_color_channelAdjustment_header_title",
+			"default": false,
+			"propertyOrder" : 3
 		}
 	},
 	"additionalProperties": true
