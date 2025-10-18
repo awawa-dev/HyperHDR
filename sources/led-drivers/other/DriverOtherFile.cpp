@@ -100,7 +100,7 @@ std::pair<bool, int> DriverOtherFile::writeInfiniteColors(SharedOutputColors non
 		return { false,0 };
 }
 
-int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors nonlinearRgbColors)
+int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors& nonlinearRgbColors)
 {	
 	QTextStream out(_file);
 	size_t result = 0;
