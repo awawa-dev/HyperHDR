@@ -392,6 +392,8 @@ $(document).ready(function () {
 	});
 
 	$(".nav-link.system-link").bind('click', systemLink);
+
+	$('#btn_wizard_byteorder').off().on('click', startWizardRGB);
 		
 	$(document).on('collapsed.lte.pushmenu', function(){ 
 		document.getElementById('showMenuIcon').style.opacity = 0;

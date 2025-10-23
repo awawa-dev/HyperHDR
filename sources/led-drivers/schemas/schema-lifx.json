@@ -1,0 +1,47 @@
+{
+    "type": "object",
+	"required": true,
+	"properties": {
+		"transition": {
+			"type": "integer",
+			"title": "edt_dev_spec_transistionTime_title",
+			"default": 0,
+			"append": "ms",
+			"minimum": 0,
+			"maximum": 3000,
+			"required": true,
+			"propertyOrder": 3
+		},
+		"lamps": {
+			"type": "array",
+			"title": "edt_dev_spec_lights_title",
+			"items": {
+				"type": "object",
+				"title": "edt_dev_spec_lights_itemtitle",
+				"properties": {
+					"name" :
+					{
+						"type": "string",
+						"title" : "edt_dev_spec_lights_name"
+					},
+					"ipAddress": {
+						"type": "string",
+						"title": "edt_conf_net_ip_itemtitle",
+						"default": ""
+					},
+					"macAddress": {
+						"type": "string",
+						"title": "edt_dev_spec_macAddress_title",
+						"pattern": "^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$",
+						"default": ""
+					}
+				},
+				"required": ["name", "macAddress", "ipAddress"]
+			},
+			"default": [],
+			"propertyOrder": 4
+		}
+	},
+	"additionalProperties": true
+}
+

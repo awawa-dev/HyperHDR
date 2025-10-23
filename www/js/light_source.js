@@ -790,6 +790,22 @@ $(document).ready(function()
 			specificOptions: specificOptions,
 		});
 
+		// change save button state based on validation result
+		conf_editor.on('change', function()
+		{
+			const errorsOnChange = conf_editor.validate();
+
+			if ((errorsOnChange.length > 1 || (errorsOnChange.length == 1 && errorsOnChange[0].path != "root.generalOptions.type")) )
+			{
+				console.log(JSON.stringify(errorsOnChange, null, 2));
+				$('#btn_submit_controller').attr('disabled', true);
+			}
+			else
+			{
+				$('#btn_submit_controller').attr('disabled', false);
+			}			
+		});
+
 		for (var key in window.serverConfig.device)
 		{
 			if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
@@ -826,24 +842,6 @@ $(document).ready(function()
 				conf_editor.getEditor('root.generalOptions.refreshTime').setValue(Math.round(1000.0/fps));
 		}
 
-		// change save button state based on validation result
-		var firstValid = conf_editor.validate();
-		if ((firstValid.length > 1 || (firstValid.length == 1 && firstValid[0].path != "root.generalOptions.type")) )
-		{
-			$('#btn_submit_controller').attr('disabled', true);
-		}
-		else
-		{
-			$('#btn_submit_controller').attr('disabled', false);
-		}
-
-		conf_editor.on('change', function()
-		{
-			$('#btn_submit').attr('disabled', false);
-			$('#btn_submit').attr('disabled', false);
-			$('#btn_submit').attr('disabled', false);
-		});
-
 		// led controller sepecific wizards
 		$('#btn_wiz_holder').html("");
 		$('#btn_led_device_wiz').off();
@@ -878,7 +876,7 @@ $(document).ready(function()
 			});
 			$("input[name='root[specificOptions][useEntertainmentAPI]']").trigger("change");
 		}
-		else if ([ "cololight", "yeelight", "atmoorb", "home_assistant", "zigbee2mqtt"].includes(ledType))
+		else if ([ "cololight", "yeelight", "atmoorb", "home_assistant", "zigbee2mqtt", "lifx"].includes(ledType))
 		{
 			const data = {
 				type: ledType
