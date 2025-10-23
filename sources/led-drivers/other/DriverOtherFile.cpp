@@ -3,12 +3,15 @@
 #include <QTextStream>
 #include <QFile>
 
+#include <linalg.h>
+
 DriverOtherFile::DriverOtherFile(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _lastWriteTimeNano(std::chrono::high_resolution_clock::now())
 	, _file(nullptr)
-{
-	_printTimeStamp = false;
+	, _printTimeStamp(true)
+	, _infiniteColorEngine(false)
+{	
 }
 
 bool DriverOtherFile::init(QJsonObject deviceConfig)
@@ -26,7 +29,7 @@ bool DriverOtherFile::init(QJsonObject deviceConfig)
 	}
 #endif
 
-	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
+	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(true);
 
 	if (_file == nullptr)
 	{
@@ -34,6 +37,10 @@ bool DriverOtherFile::init(QJsonObject deviceConfig)
 	}
 
 	Debug(_log, "Output filename: %s", QSTRING_CSTR(_fileName));
+
+	_infiniteColorEngine = deviceConfig["infiniteColorEngine"].toBool(false);
+
+	Debug(_log, "Infinite color engine resolution: %s", (_infiniteColorEngine) ? "true": "false");
 
 	return initOK;
 }
@@ -80,40 +87,55 @@ int DriverOtherFile::close()
 	return retval;
 }
 
-static inline QTextStream& operator<<(QTextStream& os, const ColorRgb& color)
-{
-	os << "{"
-		<< static_cast<unsigned>(color.red) << ","
-		<< static_cast<unsigned>(color.green) << ","
-		<< static_cast<unsigned>(color.blue)
-		<< "}";
-
-	return os;
-}
-
 int DriverOtherFile::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
-	QTextStream out(_file);
+	return writeColors(&ledValues, nullptr);
+}
 
-	//printLedValues (ledValues);
+std::pair<bool, int> DriverOtherFile::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (_infiniteColorEngine)
+		return { true, writeColors(nullptr, nonlinearRgbColors) };
+	else
+		return { false,0 };
+}
+
+int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors nonlinearRgbColors)
+{	
+	QTextStream out(_file);
+	size_t result = 0;
 
 	if (_printTimeStamp)
 	{
-		QDateTime now = QDateTime::currentDateTime();
-		auto nowNano = std::chrono::high_resolution_clock::now();
+		auto now = std::chrono::high_resolution_clock::now();
+		auto nanoDouble = std::chrono::duration_cast<std::chrono::nanoseconds>(now - _lastWriteTimeNano).count() / 1000000.0;
 
-		auto nano = std::chrono::duration_cast<std::chrono::nanoseconds>(nowNano-_lastWriteTimeNano).count();
-		double nanoDouble = (nano/1000000.0);
+		out << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg(nanoDouble, 0, 'f', 1);
 
-		out << now.toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg(nanoDouble, 0, 'f', 1);
-
-		_lastWriteTimeNano = std::chrono::high_resolution_clock::now();
+		_lastWriteTimeNano = now;
 	}
 
 	out << " [";
-	for (ColorRgb color : ledValues)
+	if (ledValues)
 	{
-		out << color;
+		for (const auto& color : *ledValues)
+		{
+			out << "{" << color.red << "," << color.green << "," << color.blue << "}";
+		}
+		result = ledValues->size();
+	}
+	else if (nonlinearRgbColors != nullptr)
+	{
+		QString separator = "";
+		out.setRealNumberNotation(QTextStream::FixedNotation);
+		out.setRealNumberPrecision(4);
+
+		for (auto& color : *nonlinearRgbColors)
+		{
+			auto format = [](float value){return QString("%1").arg(value, 8, 'f', 4, ' '); };
+			out << std::exchange(separator,", ") << "{" << format(color.x * 255.f) << ", " << format(color.y * 255.f)  << ", " << format(color.z * 255.f) << "}";
+		}
+		result = nonlinearRgbColors->size();
 	}
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
@@ -123,7 +145,7 @@ int DriverOtherFile::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 #endif
 	out.flush();
 
-	return 0;
+	return static_cast<int>(result);
 }
 
 LedDevice* DriverOtherFile::construct(const QJsonObject& deviceConfig)

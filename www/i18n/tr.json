@@ -1289,13 +1289,13 @@
   "edt_conf_enum_interpolator_y_limit_title": "Parlaklık değişim sınırlayıcısı",
   "edt_conf_enum_interpolator_y_limit_expl": "Bu parametre, parlaklığın (YUV'deki Y kanalı) tek bir güncelleme adımında ne kadar değişebileceğine dair mutlak bir sınır belirler. Yay fiziğini geçersiz kılabilen ve çok koyu ve çok parlak renkler arasında hızlı geçişler sırasında sarsıcı flaşları veya flaş efektlerini önleyen sabit bir sınır görevi görür. Bunu küçük bir pozitif değere ayarlamak, çok düzgün parlaklık artışları sağlarken, sıfıra ayarlamak sınırı tamamen devre dışı bırakır.",
   "edt_conf_color_backlightThreshold_title": "Minimum arka ışık seviyesi",
-  "edt_conf_color_backlightThreshold_expl": "Minimum parlaklık seviyesi (0-1,0 ölçeği). Her 0,0039(2) adımı, 0-255 ölçeğinde 1'e karşılık gelir. Efektler, renkler ve \"Kapalı\" durumunda devre dışıdır.",
+  "edt_conf_color_backlightThreshold_expl": "Minimum parlaklık seviyesi (0-1.0 ölçeği). Her 0.0039(2) adımı, 0-255 ölçeğinde 1'e karşılık gelir. Efektler, renkler ve \"Kapalı\" durumunda devre dışıdır.",
   "edt_conf_color_channelAdjustment_header_title": "Sonsuz Renk Motoru",
   "edt_conf_color_channelAdjustment_header_expl": "Belirli bir bileşene atanabilecek renk profilleri oluşturun. Renk, gama, parlaklık, doygunluk ve daha fazlasını ayarlayın. Renk işleme için yüksek hassasiyetli (float) hesaplamalar kullanılır.",
   "edt_conf_color_classic_config_title": "RGB Kalibrasyonu",
   "edt_conf_color_classic_config_expl": "Üç ana renk (kırmızı, yeşil, mavi) kullanılarak kalibrasyon. Çoğu durum için yeterlidir.",
   "edt_conf_color_gamma_title": "Kullanıcı gaması",
-  "edt_conf_color_gamma_expl": "Her renk bileşeni için ek gama. Tam nötrlük 1,0'dır (kullanıcı gaması devre dışı bırakılır), 1.0'ın üzerindeyse renk değeri azalır, 1.0'ın altındaysa artar. Bunu örneğin sRGB gama düzeltmesiyle karıştırmayın: çıktı renkleri bu ayar olmadan bile doğrusal olmayan uzaydadır.",
+  "edt_conf_color_gamma_expl": "Her renk bileşeni için ek gama. Tam nötrlük 1.0'dır (kullanıcı gaması devre dışı bırakılır), 1.0'ın üzerindeyse renk değeri azalır, 1.0'ın altındaysa artar. Bunu örneğin sRGB gama düzeltmesiyle karıştırmayın: çıktı renkleri bu ayar olmadan bile doğrusal olmayan uzaydadır.",
   "edt_conf_processing_scaleOutput_title": "Renk ölçeği",
   "edt_conf_processing_scaleOutput_expl": "RGB renk bileşenlerini doğrusal RGB uzayında belirli bir faktörle çarpar.",
   "edt_conf_processing_powerLimit_title": "Güç çıkışını sınırla",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Test modu",
   "edt_conf_smoothing_testMode_expl": "Yumuşatma algoritmalarının test edilmesi için döngüsel ani renk değişimleri, konsola çıktı (Windows'ta HyperHDR'ı -c parametresiyle çalıştırın).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Üstel Sonsuz İnterpolatör",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Yumuşatmanın klasik üssel uygulaması, LED renklerini bir hedefe doğru günceller, büyük farklılıklara hızlı tepki verir ve hedefe yaklaştıkça yavaşlar, böylece pürüzsüz ve doğal ortam aydınlatma geçişleri üretir."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Yumuşatmanın klasik üssel uygulaması, LED renklerini bir hedefe doğru günceller, büyük farklılıklara hızlı tepki verir ve hedefe yaklaştıkça yavaşlar, böylece pürüzsüz ve doğal ortam aydınlatma geçişleri üretir.",
+  "edt_dev_spec_macAddress_title": "MAC adresi",
+  "wiz_lifx_error": "Lifx cihazları bulunamadı. HyperHDR kayıtlarını kontrol edin.",
+  "wiz_lifx_title": "LIFX ışık sihirbazı"
 }

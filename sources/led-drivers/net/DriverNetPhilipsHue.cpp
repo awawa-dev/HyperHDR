@@ -133,7 +133,7 @@ bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 		}
 		else
 		{
-			QUrl url(address);
+			QUrl url = QUrl::QUrl::fromUserInput(address);
 
 			_hostname = url.host();
 			log("Hostname/IP", "%s", QSTRING_CSTR(_hostname));

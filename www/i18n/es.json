@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Modo de prueba",
   "edt_conf_smoothing_testMode_expl": "Cambios de color repentinos cíclicos para probar algoritmos de suavizado; salida a la consola (en Windows, ejecute HyperHDR con el parámetro -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolador exponencial infinito",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "La implementación exponencial clásica del suavizado actualiza los colores del LED hacia un objetivo, reaccionando rápidamente a grandes diferencias y ralentizándolos a medida que se acercan al objetivo, lo que produce transiciones de iluminación ambiental suaves y naturales."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "La implementación exponencial clásica del suavizado actualiza los colores del LED hacia un objetivo, reaccionando rápidamente a grandes diferencias y ralentizándolos a medida que se acercan al objetivo, lo que produce transiciones de iluminación ambiental suaves y naturales.",
+  "edt_dev_spec_macAddress_title": "Dirección MAC",
+  "wiz_lifx_error": "No se encontraron dispositivos Lifx. Consulte los registros de HyperHDR.",
+  "wiz_lifx_title": "Asistente de iluminación LIFX"
 }

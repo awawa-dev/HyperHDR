@@ -97,7 +97,7 @@ void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
 		return;
 
 	float dt = currentTimeMs - _lastUpdate;
-	float kOrg = 1.0f - std::exp(-dt / _tau);
+	float kOrg = std::min(std::max(1.0f - std::exp(-dt / _tau), 0.0001f), 1.0f);
 	_lastUpdate = currentTimeMs;
 
 	float4 aspectK = float4{

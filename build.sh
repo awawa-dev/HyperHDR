@@ -27,9 +27,9 @@ print_manual()
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}jammy${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}plucky${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}42${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}latest${ColorReset}        | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}questing${ColorReset}       | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}43${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}latest${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
@@ -195,8 +195,8 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		cache_env="true"
 	fi
 
-	if [[ $ARCHITECTURE == *"armv6l"* ]] && [[ $CI_TYPE == "github_action" ]]; then
-		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armv6l ${BUILD_OPTION}"		
+	if [[ $ARCHITECTURE == *"armhf"* ]] && [[ $CI_TYPE == "github_action" ]]; then
+		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armhf ${BUILD_OPTION}"		
 	fi
 	
 	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"

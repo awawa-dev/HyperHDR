@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "测试模式",
   "edt_conf_smoothing_testMode_expl": "用于平滑算法测试的周期性颜色突变，输出到控制台（在 Windows 上，请使用 -c 参数运行 HyperHDR）。",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "指数无限插值器",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "经典的指数平滑实现，使 LED 色彩向目标值靠拢，对较大的差异做出快速反应，并在接近目标值时减慢速度，从而产生平滑、自然的环境光过渡。"
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "经典的指数平滑实现，使 LED 色彩向目标值靠拢，对较大的差异做出快速反应，并在接近目标值时减慢速度，从而产生平滑、自然的环境光过渡。",
+  "edt_dev_spec_macAddress_title": "MAC 地址",
+  "wiz_lifx_error": "找不到 Lifx 设备。请检查 HyperHDR 日志。",
+  "wiz_lifx_title": "LIFX 灯光向导"
 }

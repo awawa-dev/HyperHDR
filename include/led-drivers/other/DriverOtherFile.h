@@ -19,7 +19,9 @@ protected:
 	bool init(QJsonObject deviceConfig) override;
 	int open() override;
 	int close() override;
+	int writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors infiniteColors);
 	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
+	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 
 private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> _lastWriteTimeNano;
@@ -28,6 +30,7 @@ private:
 
 	QString _fileName;
 	bool _printTimeStamp;
+	bool _infiniteColorEngine;
 
 	static bool isRegistered;
 };

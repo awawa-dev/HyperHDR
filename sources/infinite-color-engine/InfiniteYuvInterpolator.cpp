@@ -137,7 +137,7 @@ void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
 	// obliczenie czasu, analog setupAdvColor
 	float deltaTime = _targetTime - currentTimeMs;
 	float totalTime = _targetTime - _startAnimationTimeMs;
-	float kOrg = std::max(1.0f - deltaTime / totalTime, 0.0001f);
+	float kOrg = std::min(std::max(1.0f - deltaTime / totalTime, 0.0001f), 1.0f);
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
@@ -152,27 +152,13 @@ void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
 		}
 		else
 		{
-			if (_maxLuminanceChangePerStep == 0.f)
+			float3 step = kOrg * diff;
+			if (_maxLuminanceChangePerStep > 0.f && fabs(step[0]) > _maxLuminanceChangePerStep)
 			{
-				cur += kOrg * diff;
+				float scale = _maxLuminanceChangePerStep / fabs(step[0]);
+				step *= scale;
 			}
-			else
-			{
-				float scale = kOrg;
-				auto stepY = kOrg * diff[0];
-				if (fabs(stepY) > _maxLuminanceChangePerStep)
-				{
-					scale = stepY;
-					stepY = std::copysignf(_maxLuminanceChangePerStep, stepY);
-					scale = fabs(stepY / scale) * kOrg;
-				}
-				cur[0] += stepY;
-
-				for (int i = 1; i < 3; ++i)
-				{
-					cur[i] += scale * diff[i];
-				}
-			}
+			cur += step;
 
 			return true;
 		}
