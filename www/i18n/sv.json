@@ -1289,13 +1289,13 @@
   "edt_conf_enum_interpolator_y_limit_title": "Begränsare för ljusstyrka",
   "edt_conf_enum_interpolator_y_limit_expl": "Denna parameter sätter en absolut gräns för hur mycket ljusstyrkan (Y-kanalen i YUV) kan ändras i ett enda uppdateringssteg. Den fungerar som en hård gräns som kan åsidosätta fjäderfysiken och förhindra stötande blixtar eller stroboskopiska effekter under snabba övergångar mellan mycket mörka och mycket ljusa färger. Att ställa in detta på ett litet positivt värde säkerställer mycket jämna ljusstyrkeuppgångar, medan att ställa in det på noll inaktiverar gränsen helt.",
   "edt_conf_color_backlightThreshold_title": "Lägsta nivå för bakgrundsbelysning",
-  "edt_conf_color_backlightThreshold_expl": "Lägsta ljusstyrka (skala 0-1,0). Varje steg på 0,0039(2) motsvarar 1 i skala 0-255. Inaktiverat under effekter, färger och i statusen \"Av\".",
+  "edt_conf_color_backlightThreshold_expl": "Lägsta ljusstyrka (skala 0-1.0). Varje steg på 0.0039(2) motsvarar 1 i skala 0-255. Inaktiverat under effekter, färger och i statusen \"Av\".",
   "edt_conf_color_channelAdjustment_header_title": "Oändlig färgmotor",
   "edt_conf_color_channelAdjustment_header_expl": "Skapa färgprofiler som kan tilldelas en specifik komponent. Justera färg, gamma, luminans, mättnad med mera. Högprecisionsberäkningar (flytande) som används för färgbearbetning.",
   "edt_conf_color_classic_config_title": "RGB-kalibrering",
   "edt_conf_color_classic_config_expl": "Kalibrering med de tre primärfärgerna (röd, grön, blå). Tillräckligt för de flesta fall.",
   "edt_conf_color_gamma_title": "Användargamma",
-  "edt_conf_color_gamma_expl": "Ytterligare gamma för varje färgkomponent. Full neutralitet är 1.0 (inaktiverar användargamma), över 1,0 minskar det färgvärdet och under 1,0 ökar det det. Förväxla inte detta med till exempel sRGB-gammakorrigering: utdatafärgerna är redan i ickelinjärt utrymme även utan denna inställning.",
+  "edt_conf_color_gamma_expl": "Ytterligare gamma för varje färgkomponent. Full neutralitet är 1.0 (inaktiverar användargamma), över 1.0 minskar det färgvärdet och under 1.0 ökar det det. Förväxla inte detta med till exempel sRGB-gammakorrigering: utdatafärgerna är redan i ickelinjärt utrymme även utan denna inställning.",
   "edt_conf_processing_scaleOutput_title": "Skala färg",
   "edt_conf_processing_scaleOutput_expl": "Multiplicerar RGB-färgkomponenterna med en given faktor i det linjära RGB-utrymmet.",
   "edt_conf_processing_powerLimit_title": "Begränsa effektuttaget",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Testläge",
   "edt_conf_smoothing_testMode_expl": "Cykliska plötsliga färgförändringar för utjämningsalgoritmtestning, utdata till konsolen (kör HyperHDR med -c-parametern på Windows).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponentiell oändlig interpolator",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klassisk exponentiell implementering av utjämning uppdaterar LED-färger mot ett mål, reagerar snabbt på stora skillnader och saktar ner när de närmar sig målet, vilket producerar mjuka, naturliga övergångar i omgivande ljus."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klassisk exponentiell implementering av utjämning uppdaterar LED-färger mot ett mål, reagerar snabbt på stora skillnader och saktar ner när de närmar sig målet, vilket producerar mjuka, naturliga övergångar i omgivande ljus.",
+  "edt_dev_spec_macAddress_title": "MAC-adress",
+  "wiz_lifx_error": "Kunde inte hitta Lifx-enheter. Kontrollera HyperHDR-loggar.",
+  "wiz_lifx_title": "LIFX-ljusguide"
 }

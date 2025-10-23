@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Mod testare",
   "edt_conf_smoothing_testMode_expl": "Schimbări ciclice bruște de culoare pentru testarea algoritmilor de netezire, ieșire către consolă (pe Windows rulați HyperHDR cu parametrul -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolator Exponențial Infinit",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Implementarea exponențială clasică a netezirii actualizează culorile LED-urilor către o țintă, reacționând rapid la diferențe mari și încetinind pe măsură ce acestea se apropie de țintă, producând tranziții line și naturale ale iluminării ambientale."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Implementarea exponențială clasică a netezirii actualizează culorile LED-urilor către o țintă, reacționând rapid la diferențe mari și încetinind pe măsură ce acestea se apropie de țintă, producând tranziții line și naturale ale iluminării ambientale.",
+  "edt_dev_spec_macAddress_title": "Adresă MAC",
+  "wiz_lifx_error": "Nu s-au găsit dispozitive Lifx. Verificați jurnalele HyperHDR.",
+  "wiz_lifx_title": "Asistentul pentru lumini LIFX"
 }

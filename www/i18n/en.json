@@ -884,7 +884,7 @@
   "wiz_hue_desc2": "Now choose which lamps should be added. The position assigns the lamp to a specific position on your \"picture\". Disabled lamps won't be added. To identify single lamps press the button on the right.",
   "wiz_hue_e_clientkey_needed": "A clientkey that matches the username is required to use the entertainment API. Please enter an existing one or use the button below to create a new one.",
   "wiz_hue_e_create_user": "Create new User and clientkey",
-  "wiz_hue_e_desc1": "It searches automatically for a hue bridge, in case it can't find one you need to provide the ip address and push the reload button on the right. Now you need a user id and the clientkey, if you don't have both, create a new one.",
+  "wiz_hue_e_desc1": "It searches automatically for a hue bridge, in case it can't find one you need to provide the IP-address and push the reload button on the right. Now you need a user id and the clientkey, if you don't have both, create a new one.",
   "wiz_hue_e_desc2": "Now choose your entertainment group, which has all your lights inside for use with HyperHDR.",
   "wiz_hue_e_desc3": "Now you can choose in which position the respective lamp should be \"in the picture\". A preselection of the position was made based on the configured positions of the lights in the entertainment group. This is just a recommendation and can be customized as desired. You can therefore highlight them briefly by clicking on the right button to improve the selection.",
   "wiz_hue_e_intro1": "This wizards configures HyperHDR for the well known Philips Hue Entertainment system. Features are: Hue Bridge auto detection, user and clientkey creation, entertainment group selection, setting group lights to a specific position on your picture and optimise the HyperHDR settings automatically! So in short: All you need are some clicks and you are done!",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Test mode",
   "edt_conf_smoothing_testMode_expl": "Cyclic sudden color changes for smoothing algorithms testing, output to the console (on Windows run HyperHDR with -c parameter).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponential Infinite Interpolator",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Classic exponential implementation of smoothing updates LED colors toward a target, reacting quickly to large differences and slowing as they approach the target, producing smooth, natural ambient lighting transitions."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Classic exponential implementation of smoothing updates LED colors toward a target, reacting quickly to large differences and slowing as they approach the target, producing smooth, natural ambient lighting transitions.",
+  "edt_dev_spec_macAddress_title": "MAC address",
+  "wiz_lifx_error": "Could not find Lifx devices. Check HyperHDR logs.",
+  "wiz_lifx_title": "LIFX lights wizard"
 }

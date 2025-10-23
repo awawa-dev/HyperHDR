@@ -1289,13 +1289,13 @@
   "edt_conf_enum_interpolator_y_limit_title": "Limiteur de variation de luminosité",
   "edt_conf_enum_interpolator_y_limit_expl": "Ce paramètre définit une limite absolue à la variation de luminosité (canal Y en YUV) lors d'une seule mise à jour. Il agit comme une limite stricte qui peut outrepasser la physique du ressort, évitant ainsi les flashs parasites ou les effets stroboscopiques lors des transitions rapides entre des couleurs très sombres et très vives. Une faible valeur positive garantit des rampes de luminosité très fluides, tandis qu'une valeur nulle désactive complètement la limite.",
   "edt_conf_color_backlightThreshold_title": "Niveau de rétroéclairage minimal",
-  "edt_conf_color_backlightThreshold_expl": "Niveau de luminosité minimal (échelle 0-1,0). Chaque pas de 0,0039(2) correspond à 1 sur l'échelle 0-255. Désactivé pendant les effets, les couleurs et lorsque l'état est \"désactivé\".",
+  "edt_conf_color_backlightThreshold_expl": "Niveau de luminosité minimal (échelle 0-1.0). Chaque pas de 0.0039(2) correspond à 1 sur l'échelle 0-255. Désactivé pendant les effets, les couleurs et lorsque l'état est \"désactivé\".",
   "edt_conf_color_channelAdjustment_header_title": "Moteur de couleurs infini",
   "edt_conf_color_channelAdjustment_header_expl": "Créez des profils de couleurs pouvant être attribués à un composant spécifique. Ajustez la couleur, le gamma, la luminance, la saturation, etc. Calculs de haute précision (flottants) utilisés pour le traitement des couleurs.",
   "edt_conf_color_classic_config_title": "Calibrage RVB",
   "edt_conf_color_classic_config_expl": "Calibrage utilisant les trois couleurs primaires (rouge, vert, bleu). Suffisant dans la plupart des cas.",
   "edt_conf_color_gamma_title": "Gamme utilisateur",
-  "edt_conf_color_gamma_expl": "Gamma supplémentaire pour chaque composante de couleur. La neutralité totale est de 1,0 (désactivation du gamma utilisateur), au-dessus de 1,0, la valeur de la couleur diminue et en dessous, elle l'augmente. Ne confondez pas cela avec, par exemple, la correction gamma sRGB : les couleurs de sortie sont déjà dans un espace non linéaire même sans ce paramètre.",
+  "edt_conf_color_gamma_expl": "Gamma supplémentaire pour chaque composante de couleur. La neutralité totale est de 1.0 (désactivation du gamma utilisateur), au-dessus de 1.0, la valeur de la couleur diminue et en dessous, elle l'augmente. Ne confondez pas cela avec, par exemple, la correction gamma sRGB: les couleurs de sortie sont déjà dans un espace non linéaire même sans ce paramètre.",
   "edt_conf_processing_scaleOutput_title": "Mise à l'échelle des couleurs",
   "edt_conf_processing_scaleOutput_expl": "Multiplie les composantes de couleur RVB par un facteur donné dans l'espace RVB linéaire.",
   "edt_conf_processing_powerLimit_title": "Limitation de la puissance de sortie",
@@ -1303,5 +1303,8 @@
   "edt_conf_smoothing_testMode_title": "Mode test",
   "edt_conf_smoothing_testMode_expl": "Changements de couleur soudains et cycliques pour tester les algorithmes de lissage, sortie vers la console (sous Windows, exécutez HyperHDR avec le paramètre -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolateur exponentiel infini",
-  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "L'implémentation exponentielle classique du lissage actualise les couleurs des LED en fonction d'une cible, réagissant rapidement aux différences importantes et ralentissant à mesure qu'elles s'approchent de la cible, produisant ainsi des transitions d'éclairage ambiant fluides et naturelles."
+  "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "L'implémentation exponentielle classique du lissage actualise les couleurs des LED en fonction d'une cible, réagissant rapidement aux différences importantes et ralentissant à mesure qu'elles s'approchent de la cible, produisant ainsi des transitions d'éclairage ambiant fluides et naturelles.",
+  "edt_dev_spec_macAddress_title": "Adresse MAC",
+  "wiz_lifx_error": "Impossible de trouver les périphériques Lifx. Consultez les journaux HyperHDR.",
+  "wiz_lifx_title": "Assistant d'éclairage LIFX"
 }
