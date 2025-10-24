@@ -1,7 +1,7 @@
-#include <led-drivers/pwm/rpi_pio/DriverRpi2040.h>
+#include <led-drivers/pwm/rpi_pio/DriverRpiPio.h>
 #include <linalg.h>
 
-DriverRpi2040::DriverRpi2040(const QJsonObject& deviceConfig)
+DriverRpiPio::DriverRpiPio(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _isRgbw(false)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
@@ -12,7 +12,7 @@ DriverRpi2040::DriverRpi2040(const QJsonObject& deviceConfig)
 {
 }
 
-bool DriverRpi2040::init(QJsonObject deviceConfig)
+bool DriverRpiPio::init(QJsonObject deviceConfig)
 {
 	QString errortext;
 
@@ -24,7 +24,7 @@ bool DriverRpi2040::init(QJsonObject deviceConfig)
 		_output = deviceConfig["output"].toString("/dev/null");
 		_isRgbw = deviceConfig["rgbw"].toBool(false);
 
-		Debug(_log, "Rp1/rp2040 LED module path : %s", QSTRING_CSTR(_output));
+		Debug(_log, "Rp1/PIO LED module path : %s", QSTRING_CSTR(_output));
 		Debug(_log, "Type : %s", (_isRgbw) ? "RGBW" : "RGB");
 
 		if (_isRgbw)
@@ -39,9 +39,7 @@ bool DriverRpi2040::init(QJsonObject deviceConfig)
 
 			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 			{
-				QString errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
-				this->setInError(errortext);
-				isInitOK = false;
+				errortext = QString("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
 			}
 			else
 			{
@@ -75,7 +73,7 @@ bool DriverRpi2040::init(QJsonObject deviceConfig)
 	return isInitOK;
 }
 
-int DriverRpi2040::open()
+int DriverRpiPio::open()
 {
 	int retval = -1;
 	_isDeviceReady = false;
@@ -84,12 +82,13 @@ int DriverRpi2040::open()
     if (!fi.exists())
 	{
 		Error(_log, "The device does not exists: %s", QSTRING_CSTR(_output));
+		Error(_log, "Must be configured first like for ex: dtoverlay=ws2812-pio,gpio=18,num_leds=30,is_rgbw=1 in /boot/firmware/config.txt. Only RPI5+");
 		return retval;
 	}	
 	
 	if (!fi.isWritable())
 	{
-		Error(_log, "The device is not writable");
+		Error(_log, "The device is not writable. Are you root or have write rights for: %s", QSTRING_CSTR(_output));
 		return retval;
 	}
 
@@ -108,7 +107,7 @@ int DriverRpi2040::open()
 	return retval;
 }
 
-int DriverRpi2040::close()
+int DriverRpiPio::close()
 {
 	int retval = 0;
 	_isDeviceReady = false;
@@ -122,7 +121,7 @@ int DriverRpi2040::close()
 	return retval;
 }
 
-int DriverRpi2040::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
+int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	QByteArray render;
 
@@ -163,9 +162,9 @@ int DriverRpi2040::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	return written;
 }
 
-LedDevice* DriverRpi2040::construct(const QJsonObject& deviceConfig)
+LedDevice* DriverRpiPio::construct(const QJsonObject& deviceConfig)
 {
-	return new DriverRpi2040(deviceConfig);
+	return new DriverRpiPio(deviceConfig);
 }
 
-bool DriverRpi2040::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("rp2040", "leds_group_1_PWM", DriverRpi2040::construct);
+bool DriverRpiPio::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("rpi_pio", "leds_group_1_PWM", DriverRpiPio::construct);

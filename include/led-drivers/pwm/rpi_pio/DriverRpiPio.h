@@ -3,10 +3,10 @@
 #include <led-drivers/LedDevice.h>
 #include <QFile>
 
-class DriverRpi2040 : public LedDevice
+class DriverRpiPio : public LedDevice
 {
 public:
-	explicit DriverRpi2040(const QJsonObject& deviceConfig);
+	explicit DriverRpiPio(const QJsonObject& deviceConfig);
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 protected:

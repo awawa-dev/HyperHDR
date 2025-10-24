@@ -41,6 +41,6 @@
 		<file alias="schema-home_assistant">schemas/schema-home_assistant.json</file>
 		<file alias="schema-zigbee2mqtt">schemas/schema-zigbee2mqtt.json</file>
 		<file alias="schema-lifx">schemas/schema-lifx.json</file>
-		<file alias="schema-rp2040">schemas/schema-rp2040.json</file>
+		<file alias="schema-rpi_pio">schemas/schema-rpi_pio.json</file>
 	</qresource>
 </RCC>
