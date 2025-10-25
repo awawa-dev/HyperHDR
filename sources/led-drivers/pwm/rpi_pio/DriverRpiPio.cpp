@@ -82,25 +82,25 @@ int DriverRpiPio::open()
     if (!fi.exists())
 	{
 		Error(_log, "The device does not exists: %s", QSTRING_CSTR(_output));
-		Error(_log, "Must be configured first like for ex: dtoverlay=ws2812-pio,gpio=18,num_leds=30,is_rgbw=1 in /boot/firmware/config.txt. Only RPI5+");
+		Error(_log, "Must be configured first like for ex: dtoverlay=ws2812-pio,gpio=18,num_leds=30,rgbw in /boot/firmware/config.txt. rgbw only for sk6812 RGBW. num_leds is your LED number. Only RPI5+");
 		return retval;
 	}	
 	
 	if (!fi.isWritable())
 	{
-		Error(_log, "The device is not writable. Are you root or have write rights for: %s", QSTRING_CSTR(_output));
+		Error(_log, "The device is not writable. Are you root or your user has write access rights to: %s", QSTRING_CSTR(_output));
 		return retval;
 	}
 
-	_renderer = std::make_unique<QFile>(_output);
-	if (!_renderer->open(QIODevice::WriteOnly))
+	QFile renderer(_output);
+	if (!renderer.open(QIODevice::WriteOnly))
 	{
-		_renderer = nullptr;
 		Error(_log, "Cannot open the device for writing: %s", QSTRING_CSTR(_output));
 		return retval;
 	}	
 	else
 	{
+		renderer.close();
 		_isDeviceReady = true;
 		retval = 0;
 	}
@@ -112,18 +112,19 @@ int DriverRpiPio::close()
 	int retval = 0;
 	_isDeviceReady = false;
 
-	if (_renderer)
-	{
-		_renderer->close();
-		_renderer = nullptr;
-	}
-
 	return retval;
 }
 
 int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	QByteArray render;
+
+	QFile renderer(_output);
+	if (!renderer.open(QIODevice::WriteOnly))
+	{
+		this->setInError("Cannot open the device for writing");
+		return 0;
+	}
 
 	if (_isRgbw)
 	{
@@ -139,8 +140,8 @@ int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 
 			rgb2rgbw(color, &tempRgbw, _whiteAlgorithm, channelCorrection);
 
-			render.append(static_cast<char>(tempRgbw.red));
 			render.append(static_cast<char>(tempRgbw.green));
+			render.append(static_cast<char>(tempRgbw.red));			
 			render.append(static_cast<char>(tempRgbw.blue));
 			render.append(static_cast<char>(tempRgbw.white));
 		}
@@ -150,14 +151,14 @@ int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		render.reserve(ledValues.size() * 3);
 		for (const ColorRgb& color : ledValues)
 		{
-			render.append(static_cast<char>(color.red));
 			render.append(static_cast<char>(color.green));
+			render.append(static_cast<char>(color.red));			
 			render.append(static_cast<char>(color.blue));
 		}
 	}
 
-	auto written = _renderer->write(render);
-	_renderer->flush();
+	auto written = renderer.write(render);
+	renderer.close();
 
 	return written;
 }

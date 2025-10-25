@@ -1,7 +1,6 @@
 #pragma once
 
 #include <led-drivers/LedDevice.h>
-#include <QFile>
 
 class DriverRpiPio : public LedDevice
 {
@@ -16,7 +15,6 @@ protected:
 	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
 
 private:
-	std::unique_ptr<QFile> _renderer;
 	QString _output;
 	bool _isRgbw;
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
@@ -25,7 +23,7 @@ private:
 	uint8_t _white_channel_green;
 	uint8_t _white_channel_blue;
 
-	RGBW::RgbwChannelCorrection channelCorrection;
+	RGBW::RgbwChannelCorrection channelCorrection{};
 
 	static bool isRegistered;
 };
