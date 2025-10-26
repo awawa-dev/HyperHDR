@@ -127,6 +127,10 @@ int DriverRpiPio::open()
 	}	
 	else
 	{
+		QByteArray render;
+		render.append(static_cast<char>(0));
+		renderer.write(render);
+
 		renderer.close();
 		_isDeviceReady = true;
 		retval = 0;
