@@ -82,14 +82,14 @@ jobs:
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
           path: deploy/Hyper*
 
       - name: Upload artifacts from commit
         if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: Linux-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-installer
           path: |
@@ -150,14 +150,14 @@ jobs:
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
             name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
 
       - name: Upload artifacts from commit
         if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
             name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
             path: build/Hyper*.dmg
@@ -239,14 +239,14 @@ jobs:
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: release-artifact-windows
           path: build/Hyper*
           
       - name: Upload artifacts from commit
         if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: Windows_x64_setup
           path: build/Hyper*.exe
@@ -344,7 +344,7 @@ jobs:
           pandoc report.md -f markdown -t html -s -o cpp_report.html
 
       - name: Upload report artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: static-cpp-analysis-report
           path: |
