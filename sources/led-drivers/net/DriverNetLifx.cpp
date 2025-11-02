@@ -4,6 +4,7 @@
 #include <QUdpSocket>
 #include <QNetworkInterface>
 #include <QByteArray>
+#include <QElapsedTimer>
 #include <bit>
 #include <cstdint>
 #include <cstring>
