@@ -35,6 +35,7 @@ FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 ENABLE_XSYS=0
 ENABLE_SERVICE=0
 STARTUP_MSG="Service is NOT enabled by default for GUI or non-systemd OS"
+STARTUP_MSG_EXPLAIN="Must start as Application for screen capture without USB device!"
 
 if [ $CPU_RPI -eq 1 ]; then
 	ENABLE_SERVICE=1
@@ -141,6 +142,7 @@ case "$STARTUP_MSG" in
   *"HyperHDR is installed as a service"*)
 	printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
   *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
+     printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG_EXPLAIN"
 esac
 [ -z "$REBOOTMESSAGE" ] || printf "\n |  \033[31;1m%-67s\033[0m  |" "$REBOOTMESSAGE"
 printf "\n +-----------------------------------------------------------------------+"

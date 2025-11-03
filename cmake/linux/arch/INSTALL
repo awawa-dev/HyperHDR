@@ -75,6 +75,8 @@ post_install() {
 	ENABLE_XSYS=0
 	ENABLE_SERVICE=0
 	STARTUP_MSG="Service is NOT enabled by default for GUI or non-systemd OS"
+	STARTUP_MSG_EXPLAIN="Must start as Application for screen capture without USB device!"
+
 
 	if [ $CPU_RPI -eq 1 ] || [ -z "${DISPLAY}" ]; then
 		ENABLE_SERVICE=1
@@ -180,6 +182,7 @@ post_install() {
 	  *"HyperHDR is installed as a service"*)
 		printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
 	  *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
+	     printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG_EXPLAIN"
 	esac
 	[ -z "$REBOOTMESSAGE" ] || printf "\n |  \033[31;1m%-67s\033[0m  |" "$REBOOTMESSAGE"
 	printf "\n +-----------------------------------------------------------------------+"
