@@ -12,6 +12,9 @@
 #include <linalg.h>
 
 class InfiniteInterpolator {
+protected:
+	bool _isAnimationComplete = true;
+
 public:
 	virtual ~InfiniteInterpolator() = default;
 
@@ -23,5 +26,5 @@ public:
 	virtual void setSpringiness(float /*stiffness*/, float /*damping*/) {};
 	virtual void setMaxLuminanceChangePerFrame(float /*maxYChangePerFrame*/) {};
 	virtual void setSmoothingFactor(float /*factor*/) {};
-
+	bool isAnimationComplete() { return _isAnimationComplete; }
 };
