@@ -113,7 +113,7 @@ void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
 	// limits[2] = 60/255  => stary limitMax
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
-		const float FINISH_COMPONENT_THRESHOLD = 2.0f / 255.0f;
+		const float FINISH_COMPONENT_THRESHOLD = 0.2f / 255.0f;
 
 		float val = linalg::maxelem(linalg::abs(diff));
 
