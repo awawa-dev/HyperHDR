@@ -94,7 +94,8 @@ macro(DeployApple TARGET)
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
 				  
-				foreach(_file ${_r_deps})										
+				foreach(_libfile ${_r_deps})		
+				    get_filename_component(_file "${_libfile}" REALPATH)
 					string(FIND ${_file} "dylib" _index)
 					if (${_index} GREATER -1)
 						file(INSTALL
