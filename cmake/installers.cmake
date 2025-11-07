@@ -94,23 +94,20 @@ macro(DeployApple TARGET)
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
 				  
-				foreach(_libfile ${_r_deps})		
-				    get_filename_component(_file "${_libfile}" REALPATH)
-					string(FIND ${_file} "dylib" _index)
-					if (${_index} GREATER -1)
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
-						)
-					else()
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
-						)
-					endif()
-				endforeach()				
+				foreach(_libfile ${_r_deps})
+				    get_filename_component(_realfile "${_libfile}" REALPATH)
+				    get_filename_component(_name "${_libfile}" NAME)
+				
+				    if(_libfile MATCHES "\\.dylib$")
+				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
+				    else()
+				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+				    endif()
+				
+				    file(INSTALL DESTINATION "${_dest}" TYPE SHARED_LIBRARY FILES "${_realfile}")
+				
+				    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_realfile}" "${_dest}/${_name}")
+				endforeach()		
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
