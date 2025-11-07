@@ -95,19 +95,21 @@ macro(DeployApple TARGET)
 				)
 				  
 				foreach(_libfile ${_r_deps})
-				    get_filename_component(_realfile "${_libfile}" REALPATH)
-				    get_filename_component(_name "${_libfile}" NAME)
-				
 				    if(_libfile MATCHES "\\.dylib$")
 				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
 				    else()
 				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 				    endif()
 				
-				    file(INSTALL DESTINATION "${_dest}" TYPE SHARED_LIBRARY FILES "${_realfile}")
+				    get_filename_component(_realfile "${_libfile}" REALPATH)
+				    get_filename_component(_alias    "${_libfile}" NAME)
 				
-				    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_realfile}" "${_dest}/${_name}")
-				endforeach()		
+				    file(INSTALL DESTINATION "${_dest}" TYPE SHARED_LIBRARY FILES "${_realfile}")
+
+				    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+				        "${_realfile}" "${_dest}/${_alias}")
+				endforeach()
+
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
