@@ -147,7 +147,47 @@ macro(DeployApple TARGET)
 					endif()
 				endforeach()
 
-			include(BundleUtilities)										
+			include(BundleUtilities)									
+
+
+			set(BUNDLE_DEBUG 1)
+			execute_process(
+			  COMMAND otool -L ${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr
+			  OUTPUT_VARIABLE OTOOL_DEPS
+			  RESULT_VARIABLE OTOOL_DEPS_RES
+			)
+			message("=== otool -L output (exit ${OTOOL_DEPS_RES}) ===\n${OTOOL_DEPS}")
+			execute_process(
+			  COMMAND otool -l ${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr
+			  OUTPUT_VARIABLE OTOOL_RPATH
+			)
+			message("=== otool -l (RPATH info) ===\n${OTOOL_RPATH}")
+			foreach(_dir "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
+			             "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
+			  if(EXISTS "${_dir}")
+			    execute_process(
+			      COMMAND ls -l "${_dir}"
+			      OUTPUT_VARIABLE DIR_LISTING
+			    )
+			    message("=== Listing of ${_dir} ===\n${DIR_LISTING}")
+			  else()
+			    message("Directory ${_dir} does not exist")
+			  endif()
+			endforeach()
+			foreach(_file "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr")
+			  if(EXISTS "${_file}")
+			    execute_process(
+			      COMMAND bash -c "if [ -L \"$1\" ]; then echo SYMLINK; else echo REGULAR; fi" --
+			              "${_file}"
+			      OUTPUT_VARIABLE FILE_TYPE
+			    )
+			    string(STRIP "${FILE_TYPE}" FILE_TYPE)
+			    message("File ${_file} type: ${FILE_TYPE}")
+			  endif()
+			endforeach()
+
+
+			
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "")
 				
