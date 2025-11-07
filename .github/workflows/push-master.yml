@@ -130,7 +130,7 @@ jobs:
       # Install deps
       - name: Install deps
         shell: bash
-        run: brew install -q qtbase qtserialport ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
+        run: brew install -q qtbase qtserialport brotli ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
             
       - name: Build packages
         env:
