@@ -105,9 +105,11 @@ macro(DeployApple TARGET)
 				    get_filename_component(_alias    "${_libfile}" NAME)
 				
 				    file(INSTALL DESTINATION "${_dest}" TYPE SHARED_LIBRARY FILES "${_realfile}")
-
+				
+				    execute_process(COMMAND ${CMAKE_COMMAND} -E rm -f "${_dest}/${_alias}")
+				
 				    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-				        "${_realfile}" "${_dest}/${_alias}")
+				        "${_alias_real}" "${_dest}/${_alias}")
 				endforeach()
 
 				  
