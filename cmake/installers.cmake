@@ -101,16 +101,19 @@ macro(DeployApple TARGET)
 				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 				    endif()
 				
-				    get_filename_component(_realfile "${_libfile}" REALPATH)
-				    get_filename_component(_alias    "${_libfile}" NAME)
+				    get_filename_component(_src_real "${_libfile}" REALPATH)
+				    get_filename_component(_alias     "${_libfile}" NAME)
 				
-				    file(INSTALL DESTINATION "${_dest}" TYPE SHARED_LIBRARY FILES "${_realfile}")
+				    file(INSTALL DESTINATION "${_dest}" TYPE SHARED_LIBRARY FILES "${_src_real}")
+				
+				    get_filename_component(_real_base "${_src_real}" NAME)
 				
 				    execute_process(COMMAND ${CMAKE_COMMAND} -E rm -f "${_dest}/${_alias}")
 				
 				    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-				        "${_alias_real}" "${_dest}/${_alias}")
+				        "${_real_base}" "${_dest}/${_alias}")
 				endforeach()
+
 
 				  
 				list(LENGTH _u_deps _u_length)
