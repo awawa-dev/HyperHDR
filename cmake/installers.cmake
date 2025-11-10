@@ -94,22 +94,14 @@ macro(DeployApple TARGET)
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
 				  
-				foreach(_file ${_r_deps})										
-					string(FIND ${_file} "dylib" _index)
-					if (${_index} GREATER -1)
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
-						)
-					else()
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
-						)
-					endif()
-				endforeach()				
+				foreach(_libfile ${_r_deps})
+				    if(_libfile MATCHES "\\.dylib$")
+				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
+				    else()
+				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+				    endif()
+				    file(COPY "${_libfile}" DESTINATION "${_dest}" FOLLOW_SYMLINK_CHAIN)
+				endforeach()		
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
@@ -147,8 +139,8 @@ macro(DeployApple TARGET)
 					endif()
 				endforeach()
 
-			include(BundleUtilities)										
-			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+			include(BundleUtilities)
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib;${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "")
 				
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
