@@ -8,6 +8,8 @@
 		<string>HyperHDR</string>
 		<key>CFBundleExecutable</key>
 		<string>hyperhdr</string>
+		<key>CFBundleShortVersionString</key>
+		<string>@HYPERHDR_VERSION@</string>		
 		<key>CFBundleIconFile</key>
 		<string>Hyperhdr.icns</string>
 		<key>CFBundleInfoDictionaryVersion</key>
@@ -16,8 +18,11 @@
 		<string>APPL</string>
 		<key>NSCameraUsageDescription</key>
 		<string>HyperHDR needs your permission to access the video capture devices.</string>
+		<key>NSScreenCaptureUsageDescription</key>
+		<string>HyperHDR needs your permission to capture the screen.</string>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>HyperHDR needs your permission to access the sound capture devices.
-NEXT PLEASE RESTART HYPERHDR!</string>		
+		<string>HyperHDR needs your permission to access the sound capture devices. NEXT PLEASE RESTART HYPERHDR!</string>
+		<key>LSUIElement</key>
+		<true/>
 	</dict>
 </plist>
