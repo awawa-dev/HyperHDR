@@ -106,7 +106,7 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0 | libglib2.0-0t64" )
 
 SET ( CPACK_DEBIAN_PACKAGE_SUGGESTS "libx11-6" )
 if ( ENABLE_SYSTRAY )
