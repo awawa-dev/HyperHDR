@@ -9,6 +9,8 @@
 		<key>CFBundleExecutable</key>
 		<string>hyperhdr</string>
 		<key>CFBundleShortVersionString</key>
+		<string>@CPACK_PACKAGE_VERSION@</string>
+		<key>CFBundleVersion</key>
 		<string>@HYPERHDR_VERSION@</string>		
 		<key>CFBundleIconFile</key>
 		<string>Hyperhdr.icns</string>
