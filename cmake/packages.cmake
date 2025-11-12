@@ -155,6 +155,8 @@ if ( APPLE )
 	unset(CPACK_PACKAGE_ICON)
 	set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/cmake/osx/Hyperhdr.icns")
 
+	set(BUNDLE_SHORT_VERSION "${HYPERHDR_VERSION_MAJOR}.${HYPERHDR_VERSION_MINOR}.${HYPERHDR_VERSION_PATCH}")
+
 	configure_file(
 		${CMAKE_SOURCE_DIR}/cmake/osx/Info.plist.in
 		${CMAKE_CURRENT_BINARY_DIR}/Info.plist
