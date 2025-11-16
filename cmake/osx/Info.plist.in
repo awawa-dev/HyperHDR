@@ -23,7 +23,9 @@
 		<key>NSScreenCaptureUsageDescription</key>
 		<string>HyperHDR needs your permission to capture the screen.</string>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>HyperHDR needs your permission to access the sound capture devices. NEXT PLEASE RESTART HYPERHDR!</string>
+		<string>HyperHDR requires microphone access for audio-reactive effects. Once granted, a restart is required to apply the permission.</string>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>HyperHDR needs access to your local network to discover and communicate with other devices.</string>
 		<key>LSUIElement</key>
 		<true/>
 	</dict>
