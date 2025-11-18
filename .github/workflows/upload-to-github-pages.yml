@@ -81,7 +81,7 @@ jobs:
           rm -r repo/pool/ArchLinux ||: 
 
       - name: Upload artifacts from commit        
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
           path: repo
@@ -96,7 +96,7 @@ jobs:
         with:
           submodules: false
       - name: Download artifacts
-        uses: actions/download-artifact@v5.0.0
+        uses: actions/download-artifact@v6.0.0
         with:
           path: repo
           pattern: release-artifact-*

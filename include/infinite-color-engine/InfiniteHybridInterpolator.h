@@ -40,5 +40,4 @@ private:
 	float _stiffness = 150.0f;
 	float _damping = 26.0f;
 	float _maxLuminanceChangePerStep = 0.02f;
-	bool _isAnimationComplete = true;
 };

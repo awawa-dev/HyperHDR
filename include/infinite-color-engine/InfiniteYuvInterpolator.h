@@ -38,5 +38,4 @@ private:
 	float _lastUpdate = 0.0f;
 	float _maxLuminanceChangePerStep = 0.02f;
 	float _smoothingFactor = 0.0f;
-	bool _isAnimationComplete = true;
 };

@@ -1,57 +1,57 @@
 ## Available methods to build HyperHDR:
-### 1. [Native build](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#native-build)
-### 2. [Build a HyperHDR installer for any supported Linux system on any system using Docker](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#build-a-hyperhdr-installer-for-any-supported-linux-system-on-any-system-using-docker)
-### 3. [Github Action (online - easiest)](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR#github-action-online---easiest)
+### 1. [Native build](#native-build)
+### 2. [Build a HyperHDR installer for any supported Linux system on any system using Docker](#build-a-hyperhdr-installer-for-any-supported-linux-system-on-any-system-using-docker)
+### 3. [Online: Github Action](#onlinegithub-action)
 
 ## Available CMake HyperHDR configuration options:
 Use -D prefix when configuring the build.
 
 * LED DEVICES  
-  * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
-  * ENABLE_SPI_FTDI = ON | OFF, enables SPI libFTDI/FTDI controller on supported systems
-  * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library on supported systems
+    * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
+    * ENABLE_SPI_FTDI = ON | OFF, enables SPI libFTDI/FTDI controller on supported systems
+    * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library on supported systems
   
 * SOFTWARE GRABBERS
-  * ENABLE_DX = ON | OFF, enables the DirectX11 software grabber (Windows)
-  * ENABLE_FRAMEBUFFER = ON | OFF, enables the Framebuffer software grabber (Linux)
-  * ENABLE_MAC_SYSTEM = ON | OFF, enables the macOS software grabber (macOS)
-  * ENABLE_PIPEWIRE = ON | OFF, enables the Pipewire software grabber (Linux)
-  * ENABLE_PIPEWIRE_EGL = ON | OFF, enables EGL for the Pipewire grabber (Linux)
-  * ENABLE_X11 = ON | OFF, enables the X11 software grabber (Linux)
-  * ENABLE_AMLOGIC = ON | OFF, forces the Amlogic software grabber (Linux)
+    * ENABLE_DX = ON | OFF, enables the DirectX11 software grabber (Windows)
+    * ENABLE_FRAMEBUFFER = ON | OFF, enables the Framebuffer software grabber (Linux)
+    * ENABLE_MAC_SYSTEM = ON | OFF, enables the macOS software grabber (macOS)
+    * ENABLE_PIPEWIRE = ON | OFF, enables the Pipewire software grabber (Linux)
+    * ENABLE_PIPEWIRE_EGL = ON | OFF, enables EGL for the Pipewire grabber (Linux)
+    * ENABLE_X11 = ON | OFF, enables the X11 software grabber (Linux)
+    * ENABLE_AMLOGIC = ON | OFF, forces the Amlogic software grabber (Linux)
 
 * HARDWARE GRABBERS
-  * ENABLE_AVF = ON | OFF, enables the AVF USB grabber support (macOS)
-  * ENABLE_MF = ON | OFF, enables the MediaFoundation USB grabber support (Windows)
-  * ENABLE_V4L2 = ON | OFF, enables the V4L2 USB grabber support (Linux)
+    * ENABLE_AVF = ON | OFF, enables the AVF USB grabber support (macOS)
+    * ENABLE_MF = ON | OFF, enables the MediaFoundation USB grabber support (Windows)
+    * ENABLE_V4L2 = ON | OFF, enables the V4L2 USB grabber support (Linux)
 
 * SOUND CAPTURING
-  * ENABLE_SOUNDCAPLINUX = ON | OFF, enables the ALSA sound grabber (Linux)
-  * ENABLE_SOUNDCAPMACOS = ON | OFF, enables the sound grabber (macOS)
-  * ENABLE_SOUNDCAPWINDOWS = ON | OFF, enables the sound grabber (Windows)
+    * ENABLE_SOUNDCAPLINUX = ON | OFF, enables the ALSA sound grabber (Linux)
+    * ENABLE_SOUNDCAPMACOS = ON | OFF, enables the sound grabber (macOS)
+    * ENABLE_SOUNDCAPWINDOWS = ON | OFF, enables the sound grabber (Windows)
 
 * SERVICE SUPPORT
-  * ENABLE_BONJOUR = ON | OFF, enables mDNS (do not disable unless required)
-  * ENABLE_CEC = ON | OFF, enables the HDMI-CEC support (Linux)
-  * ENABLE_MQTT = ON | OFF, enables the MQTT support
-  * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
-  * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server
-  * ENABLE_SYSTRAY = ON | OFF, enables the systray-widget
-  * ENABLE_ZSTD = ON | OFF, enables ZSTD support for LUT decompression
+    * ENABLE_BONJOUR = ON | OFF, enables mDNS (do not disable unless required)
+    * ENABLE_CEC = ON | OFF, enables the HDMI-CEC support (Linux)
+    * ENABLE_MQTT = ON | OFF, enables the MQTT support
+    * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
+    * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server
+    * ENABLE_SYSTRAY = ON | OFF, enables the systray-widget
+    * ENABLE_ZSTD = ON | OFF, enables ZSTD support for LUT decompression
 
 * BUILD FEATURES
-  * USE_SHARED_LIBS = ON | OFF, if disabled, build the application as monolithic
-  * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, if enable, embed web content into the application
-  * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
-  * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
-  * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
-  * USE_SYSTEM_FLATBUFFERS_LIBS = ON | OFF, prefer system Flatbuffers libs
-  * USE_SYSTEM_SDBUS_CPP_LIBS = ON | OFF, prefer system sdbus_c++ libs
-  * USE_SYSTEM_LUNASVG_LIBS = ON | OFF, prefer system lunasvg libs
-  * USE_SYSTEM_NANOPB_LIBS = ON | OFF, prefer system nanopb libs
-  * USE_SYSTEM_STB_LIBS = ON | OFF, prefer system stb libs
-  * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the application
-  * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming
+    * USE_SHARED_LIBS = ON | OFF, build the application as non-monolithic
+    * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, embed web content into the app
+    * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
+    * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
+    * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
+    * USE_SYSTEM_FLATBUFFERS_LIBS = ON | OFF, prefer system Flatbuffers libs
+    * USE_SYSTEM_SDBUS_CPP_LIBS = ON | OFF, prefer system sdbus_c++ libs
+    * USE_SYSTEM_LUNASVG_LIBS = ON | OFF, prefer system lunasvg libs
+    * USE_SYSTEM_NANOPB_LIBS = ON | OFF, prefer system nanopb libs
+    * USE_SYSTEM_STB_LIBS = ON | OFF, prefer system stb libs
+    * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the app
+    * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming
 
 ----
 
@@ -64,10 +64,7 @@ Use -D prefix when configuring the build.
 ```console
 sudo apt-get update
 
-sudo apt-get install build-essential cmake git libayatana-appindicator3-dev libasound2-dev wget unzip pkg-config
-libegl-dev libflatbuffers-dev flatbuffers-compiler libftdi1-dev libgl-dev libglvnd-dev liblzma-dev libgtk-3-dev
-libpipewire-0.3-dev libqt5serialport5-dev libssl-dev libx11-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev 
-libzstd-dev python3 pkg-config qtbase5-dev
+sudo apt-get install build-essential cmake flatbuffers-compiler git libasound2-dev libayatana-appindicator3-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev libgtk-3-dev liblzma-dev libpipewire-0.3-dev libssl-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev libx11-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget
 ```
 
 For Raspberry Pi CEC support (optional)
@@ -78,12 +75,8 @@ sudo apt-get install libcec-dev libp8-platform-dev libudev-dev
 ### Fedora
 
 ```console
-sudo dnf -y group install "C Development Tools and Libraries" "Development Tools"
+sudo dnf -y install alsa-lib-devel chrpath cmake fedora-packager flatbuffers-compiler flatbuffers-devel gcc gcc-c++ git gtk3-devel libX11-devel libayatana-appindicator-gtk3-devel libftdi-c++-devel libglvnd-devel libusb1-devel libzstd-devel mesa-libEGL-devel mesa-libGL-devel ninja-build openssl-devel pipewire-devel pkg-config qt6-qtbase-devel qt6-qtserialport-devel systemd-devel turbojpeg-devel unzip wget xz-devel
 
-sudo dnf -y install cmake chrpath git alsa-lib-devel flatbuffers-devel flatbuffers-compiler fedora-packager
-mesa-libEGL-devel libftdi-c++-devel mesa-libGL-devel gtk3-devel libglvnd-devel libayatana-appindicator-gtk3-devel 
-pipewire-devel qt5-qtserialport-devel qt5-qtbase-devel openssl-devel turbojpeg-devel libusb1-devel libX11-devel
-libzstd-devel pkg-config wget xz-devel systemd-devel unzip
 ```
 
 ### Arch Linux
@@ -91,32 +84,32 @@ libzstd-devel pkg-config wget xz-devel systemd-devel unzip
 ```console
 sudo pacman -Syy
 
-sudo pacman -S base-devel qt5-base openssl chrpath cmake flatbuffers git alsa-lib gtk3 libayatana-appindicator
-libftdi libglvnd libjpeg-turbo qt5-serialport wayland libx11 freetds libfbclient mariadb-libs postgresql-libs
-pipewire python mesa dpkg xz fakeroot binutils pkgfile bash systemd-libs wget unzip
+sudo pacman -S alsa-lib base-devel bash binutils chrpath cmake dpkg fakeroot flatbuffers freetds git gtk3 libayatana-appindicator libfbclient libftdi libglvnd libjpeg-turbo libx11 mariadb-libs mesa ninja openssl pipewire pkgfile postgresql-libs python qt6-base qt6-serialport sdbus-cpp systemd-libs unzip wayland wget xz
 ```
 
 ### Windows
 
-We assume a 64bit Windows 10. Install the following;
+We assume a 64bit Windows 10. Install the following:
+
 - [Git](https://git-scm.com/downloads) (Check during installation: Add to PATH)
 - [CMake (Windows win64-x64 Installer)](https://cmake.org/download/) (Check during installation: Add to PATH)
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/)
-  - Select 'Desktop development with C++'
-  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed, but you can stay with default selection.
+    - Select 'Desktop development with C++'
+    - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed, but you can stay with default selection.
 - [OpenSSL](https://slproweb.com/products/Win32OpenSSL.html) (for QT5.15-6.2: OpenSSL v1.1.1, for QT6: OpenSSL 3)
 - [libjpeg-turbo](https://github.com/libjpeg-turbo/libjpeg-turbo/releases)
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check during installation: Add to PATH and Debug Symbols)
-  - Open a console window and execute `pip install aqtinstall`.
-  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 6.8.3 windows desktop win64_msvc2022_64 -m qtserialport`
-  - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.8.3\msvc2022_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
+    - Open a console window and execute `pip install aqtinstall`.
+    - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 6.8.3 windows desktop win64_msvc2022_64 -m qtserialport`
+    - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.8.3\msvc2022_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
 - Optional for creating installer packages: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
-Hint: after you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
+> [!TIP]  
+> After you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
 
 ### macOS
 First install [brew](https://brew.sh/) manager.  
-Next: `brew install qt@6 cmake xz pkg-config`
+Next: `brew install qtbase qtserialport cmake xz pkg-config`
 
 ## Compiling and installing HyperHDR
 
@@ -186,7 +179,7 @@ PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
 
 # Build a HyperHDR installer for any supported Linux system on any system using Docker
 
-All you need is Docker and bash, which is available on every supported system, even on Windows where you only need to enable "Windows Subsystem for Linux". You don't need to install any packages to build HyperHDR because the script uses Docker images provided by https://github.com/awawa-dev/HyperHDR.dev.docker which contain everything you need to build the installer. Thanks to this, you can compile eg. the aarch64 HyperHDR installer for Raspberry Pi even on a PC. Run the `build.sh` script in the main directory.
+All you need is Docker and bash, which is available on every supported system, even on Windows where you only need to enable "Windows Subsystem for Linux". You don't need to install any packages to build HyperHDR because the script uses Docker images provided by https://github.com/awawa-dev/HyperDockerBuilder which contain everything you need to build the installer. Thanks to this, you can compile eg. the aarch64 HyperHDR installer for Raspberry Pi even on a PC. Run the `build.sh` script in the main directory.
 
 ```console
 pi@ubuntu:~/hyperhdr$ ./build.sh 
@@ -202,7 +195,7 @@ DISTRO_NAME  | DISTRO_VERSION | ARCHITECTURE - these are only for linux targets
    debian    | bookworm       | amd64
    debian    | trixie         | armhf
    debian    | trixie         | arm64
-   debian    | trixie         | amd64   
+   debian    | trixie         | amd64
    ubuntu    | jammy          | amd64
    ubuntu    | noble          | amd64
    ubuntu    | questing       | amd64
@@ -225,7 +218,7 @@ The `build.sh` script can also be used to natively build macOS/Windows installer
 
 ----
 
-# Github Action (online - easiest)
+# Online:Github Action
 
 Fork HyperHDR project. Now you must enable project's `Settings → Actions → Actions permissions → Allow all actions and reusable workflows` and save it.
 Once you've done this, any change, even using the Github online editor, will immediately trigger the build in the Actions tab. If this did not happen, you probably did not enable the option described or did it later after making the changes.

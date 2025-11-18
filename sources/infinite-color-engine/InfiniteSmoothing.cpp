@@ -61,6 +61,7 @@ using namespace linalg::aliases;
 
 namespace
 {
+	constexpr auto SMOOTHING_COOLDOWN_PHASE = 3;
 	constexpr auto SMOOTHING_USER_CONFIG = 0;
 	constexpr int64_t  DEFAUL_SETTLINGTIME = 200;   // settlingtime in ms
 	constexpr double   DEFAUL_UPDATEFREQUENCY = 25;    // updatefrequncy in hz
@@ -117,7 +118,6 @@ InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstan
 	_log(Logger::getInstance(QString("SMOOTHING%1").arg(hyperhdr->getInstanceIndex()))),
 	_hyperhdr(hyperhdr),
 	_continuousOutput(false),
-	_flushFrame(false),
 	_currentConfigId(SMOOTHING_USER_CONFIG),
 	_enabled(false),
 	_connected(false),
@@ -149,7 +149,6 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 			disconnect(this, &InfiniteSmoothing::SignalMasterClockTick, this, &InfiniteSmoothing::updateLeds);
 		}
 		
-		_flushFrame = false;
 		_infoUpdate = true;
 		_infoInput = true;
 		_coolDown = 0;
@@ -269,9 +268,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 	{
 		queueColors(std::make_shared<std::vector<float3>>(std::move(nonlinearRgbColors)));
 		return;
-	}
-
-	_coolDown = 1;
+	}	
 
 	// critical section
 	{
@@ -289,7 +286,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 void InfiniteSmoothing::updateLeds()
 {	
 	SharedOutputColors nonlinearRgbColors;
-
+	bool finished = false;
 	// critical section
 	{
 		QMutexLocker locker(&_dataSynchro);
@@ -298,9 +295,18 @@ void InfiniteSmoothing::updateLeds()
 		_interpolator->updateCurrentColors(InternalClock::now());
 
 		nonlinearRgbColors = _interpolator->getCurrentColors();
-	}
 
-	if (nonlinearRgbColors->size() > 0)
+		if (!_interpolator->isAnimationComplete())
+		{
+			_coolDown = SMOOTHING_COOLDOWN_PHASE;
+		}
+		else
+		{
+			finished = (!_continuousOutput) && (_coolDown <= 0 || _coolDown-- <= 0);
+		}
+	}	
+
+	if (nonlinearRgbColors->size() > 0 && !finished)
 	{
 		queueColors(std::move(nonlinearRgbColors));
 	}
@@ -323,8 +329,6 @@ void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbColors)
 
 void InfiniteSmoothing::handleSignalRequestComponent(hyperhdr::Components component, bool state)
 {
-	_flushFrame = state;
-
 	if (component == hyperhdr::COMP_LEDDEVICE)
 	{
 		clearQueuedColors(state);
@@ -446,22 +450,5 @@ InfiniteSmoothing::SmoothingType InfiniteSmoothing::StringToEnumSmoothingType(QS
 	return SmoothingType::Stepper;
 }
 
-
-
-
-/*
-* _currentColors = _targetColorsCopy.deepClone();
-		_previousTime = now;
-
-		if (_flushFrame)
-			queueColors(_currentColors.toVectorColorRgb());
-
-		if (!_continuousOutput && _coolDown > 0)
-		{
-			_coolDown--;
-			_flushFrame = true;
-		}
-		else
-			_flushFrame = _continuousOutput;*/
 
 

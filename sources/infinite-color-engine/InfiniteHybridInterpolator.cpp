@@ -122,7 +122,7 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff, float3& vel) -> bool {
-		const float FINISH_COMPONENT_THRESHOLD = 0.0013732906f;
+		const float FINISH_COMPONENT_THRESHOLD = 0.0013732906f / 10.f;
 		const float VELOCITY_THRESHOLD = 0.0005f;
 
 		if (linalg::maxelem(linalg::abs(diff)) < FINISH_COMPONENT_THRESHOLD && // color match

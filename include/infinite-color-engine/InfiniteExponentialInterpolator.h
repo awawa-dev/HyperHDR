@@ -32,6 +32,5 @@ private:
 	float _tau  = 150.0f;
 	float _startAnimationTimeMs = 0.0f;
 	float _targetTime = 0.0f;
-	float _lastUpdate = 0.0f;
-	bool _isAnimationComplete = true;
+	float _lastUpdate = 0.0f;	
 };

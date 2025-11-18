@@ -48,7 +48,8 @@ WebSocketClient::WebSocketClient(
 		+ QString("Connection: Upgrade\r\n")
 		+ QString("Sec-WebSocket-Accept: ") + QString(hash.data()) + "\r\n\r\n";
 
-	_socket->write(QSTRING_CSTR(data), data.size());
+	QByteArray payload = data.toUtf8();
+	_socket->write(payload);
 	_socket->flush();
 
 	// Init JsonAPI

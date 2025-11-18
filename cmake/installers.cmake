@@ -94,22 +94,14 @@ macro(DeployApple TARGET)
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
 				  
-				foreach(_file ${_r_deps})										
-					string(FIND ${_file} "dylib" _index)
-					if (${_index} GREATER -1)
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
-						)
-					else()
-						file(INSTALL
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
-							TYPE SHARED_LIBRARY
-							FILES "${_file}"
-						)
-					endif()
-				endforeach()				
+				foreach(_libfile ${_r_deps})
+				    if(_libfile MATCHES "\\.dylib$")
+				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
+				    else()
+				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+				    endif()
+				    file(COPY "${_libfile}" DESTINATION "${_dest}" FOLLOW_SYMLINK_CHAIN)
+				endforeach()		
 				  
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
@@ -147,8 +139,8 @@ macro(DeployApple TARGET)
 					endif()
 				endforeach()
 
-			include(BundleUtilities)										
-			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
+			include(BundleUtilities)
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib;${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "")
 				
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
@@ -159,7 +151,7 @@ macro(DeployApple TARGET)
 				cmake_policy(PUSH)
 					cmake_policy(SET CMP0009 NEW)
 					message( "Re-signing bundle's components...")
-					file(GLOB_RECURSE libSignFramework LIST_DIRECTORIES false "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/*")
+					file(GLOB_RECURSE libSignFramework LIST_DIRECTORIES false "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks/*" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/plugins/tls/*")
 					list(APPEND libSignFramework "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/MacOS/hyperhdr")
 					foreach(_fileToSign ${libSignFramework})
 						string(FIND ${_fileToSign} ".framework/Resources" isResources)
@@ -171,7 +163,7 @@ macro(DeployApple TARGET)
 						endif()			
 					endforeach()
 					message( "Perform final verification...")
-					execute_process(COMMAND bash -c "codesign --verify --deep -vvvv ${CMAKE_INSTALL_PREFIX}/hyperhdr.app" RESULT_VARIABLE CODESIGN_VERIFY)
+					execute_process(COMMAND bash -c "codesign --verify --strict --verbose=4 ${CMAKE_INSTALL_PREFIX}/hyperhdr.app" RESULT_VARIABLE CODESIGN_VERIFY)
 					if(NOT CODESIGN_VERIFY EQUAL 0)
 						message(WARNING "Failed to repair the bundle signature: verification failed")
 					endif()
