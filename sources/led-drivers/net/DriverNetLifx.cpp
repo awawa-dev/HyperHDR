@@ -263,7 +263,7 @@ QJsonObject DriverNetLifx::discover(const QJsonObject& /*params*/)
 				datagram.resize(socket->pendingDatagramSize());
 				socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
-				if (datagram.size() < static_cast<int>(sizeof(LifxHeader)))
+				if (datagram.size() < sizeof(LifxHeader))
 				{
 					Debug(_log, "The response datagram is too small. Got: %i bytes", static_cast<int>(datagram.size()));
 					continue;
