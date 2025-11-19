@@ -6,17 +6,17 @@ HyperHDR is an open-source ambient lighting system for TVs and music setups, bas
 
 ## Main Features of HyperHDR
 
-At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before. ( :new: HyperHDR v22)  
+At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue, LIFX and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before. ( :new: HyperHDR v22)  
 
 ### Key advantages of the Infinite Color Engine:
 * **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
 * **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
-* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, Lifx and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
+* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
 * **Advanced color smoothing algorithms:** inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
 
 ### Additional features:
 * **Ultra-low CPU usage** on SoCs like Raspberry Pi or Intel N100  
-* **Lightweight design** with no heavy dependencies (e.g., Python, Java)  
+* **Lightweight design** with no heavy dependencies (e.g. no Python or Java)  
 * **Low-latency video processing** for LED strips and lamps  
 * **Optimized multithreading**, enabling Raspberry Pi to process high-quality video streams  
 * **High portability** across ARM-based embedded platforms  
@@ -53,22 +53,20 @@ Official releases:
 Official Linux repository:  
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
-Latest test builds (GitHub login required):  
+Latest test builds (GitHub Action — login required, master branch, setups in ZIP artifacts):  
 [https://github.com/awawa-dev/HyperHDR/actions](https://github.com/awawa-dev/HyperHDR/actions)
 
-## Manuals & Guides
+## Documentation
 
-[Installation manual](https://github.com/awawa-dev/HyperHDR/wiki/Installation)  
-[Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki)  
-[Complete guide to building an SK6812 RGBW ambient lighting system (2023)](https://www.hyperhdr.eu/2023/02/ultimate-guide-on-how-to-build-led.html)
+[![wiki_link](https://github.com/user-attachments/assets/eb2bd196-dc90-4da3-849b-7211db0783f0)](https://awawa-dev.github.io/wiki/)
 
 ## Community
 
 [HyperHDR Support Forum](https://github.com/awawa-dev/HyperHDR/discussions)
 
-## Building from Source
+## How to Compile HyperHDR from Source
 
-[Compilation guide](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR)
+[Compiling HyperHDR](https://awawa-dev.github.io/wiki/Compiling-HyperHDR.html)
 
 ## In the Press
 
