@@ -2,7 +2,7 @@
 
 ## About
 
-HyperHDR is an open-source ambient lighting system for TVs and music setups, based on real-time video and audio stream analysis. It is designed with a strong focus on stability, high performance, and superior image quality. Optimized for both single-threaded and multi-threaded video processing, HyperHDR runs seamlessly on **Windows**, **macOS** (x64/arm64: M1, M2), and **Linux x64 & ARM** (including Raspberry Pi).
+HyperHDR is an open-source ambient lighting system for TVs and music setups, based on real-time video and audio stream analysis. It is designed with a strong focus on stability, high performance, and high-fidelity video decoding and mapping for precise and vibrant LED visuals. Optimized for both single-threaded and multi-threaded video processing, HyperHDR runs seamlessly on **Windows**, **macOS** (x64/arm64: M1, M2), and **Linux x64 & ARM** (including Raspberry Pi).
 
 ![v20](https://github.com/awawa-dev/HyperHDR/assets/69086569/9bc7999d-1515-4a96-ba5e-8a732cf7d8a4)
 
