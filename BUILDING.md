@@ -1,59 +1,9 @@
-## Available methods to build HyperHDR:
-### 1. [Native build](#native-build)
-### 2. [Build a HyperHDR installer for any supported Linux system on any system using Docker](#build-a-hyperhdr-installer-for-any-supported-linux-system-on-any-system-using-docker)
-### 3. [Online: Github Action](#onlinegithub-action)
+# Available methods to build HyperHDR:
+## 1. [Native build](#native-build)
+## 2. [Build a HyperHDR installer for any supported Linux system on any system using Docker](#build-a-hyperhdr-installer-for-any-supported-linux-system-on-any-system-using-docker)
+## 3. [Online: Github Action](#onlinegithub-action)
 
-## Available CMake HyperHDR configuration options:
-Use -D prefix when configuring the build.
-
-* LED DEVICES  
-    * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
-    * ENABLE_SPI_FTDI = ON | OFF, enables SPI libFTDI/FTDI controller on supported systems
-    * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library on supported systems
-  
-* SOFTWARE GRABBERS
-    * ENABLE_DX = ON | OFF, enables the DirectX11 software grabber (Windows)
-    * ENABLE_FRAMEBUFFER = ON | OFF, enables the Framebuffer software grabber (Linux)
-    * ENABLE_MAC_SYSTEM = ON | OFF, enables the macOS software grabber (macOS)
-    * ENABLE_PIPEWIRE = ON | OFF, enables the Pipewire software grabber (Linux)
-    * ENABLE_PIPEWIRE_EGL = ON | OFF, enables EGL for the Pipewire grabber (Linux)
-    * ENABLE_X11 = ON | OFF, enables the X11 software grabber (Linux)
-    * ENABLE_AMLOGIC = ON | OFF, forces the Amlogic software grabber (Linux)
-
-* HARDWARE GRABBERS
-    * ENABLE_AVF = ON | OFF, enables the AVF USB grabber support (macOS)
-    * ENABLE_MF = ON | OFF, enables the MediaFoundation USB grabber support (Windows)
-    * ENABLE_V4L2 = ON | OFF, enables the V4L2 USB grabber support (Linux)
-
-* SOUND CAPTURING
-    * ENABLE_SOUNDCAPLINUX = ON | OFF, enables the ALSA sound grabber (Linux)
-    * ENABLE_SOUNDCAPMACOS = ON | OFF, enables the sound grabber (macOS)
-    * ENABLE_SOUNDCAPWINDOWS = ON | OFF, enables the sound grabber (Windows)
-
-* SERVICE SUPPORT
-    * ENABLE_BONJOUR = ON | OFF, enables mDNS (do not disable unless required)
-    * ENABLE_CEC = ON | OFF, enables the HDMI-CEC support (Linux)
-    * ENABLE_MQTT = ON | OFF, enables the MQTT support
-    * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
-    * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server
-    * ENABLE_SYSTRAY = ON | OFF, enables the systray-widget
-    * ENABLE_ZSTD = ON | OFF, enables ZSTD support for LUT decompression
-
-* BUILD FEATURES
-    * USE_SHARED_LIBS = ON | OFF, build the application as non-monolithic
-    * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, embed web content into the app
-    * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
-    * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
-    * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
-    * USE_SYSTEM_FLATBUFFERS_LIBS = ON | OFF, prefer system Flatbuffers libs
-    * USE_SYSTEM_SDBUS_CPP_LIBS = ON | OFF, prefer system sdbus_c++ libs
-    * USE_SYSTEM_LUNASVG_LIBS = ON | OFF, prefer system lunasvg libs
-    * USE_SYSTEM_NANOPB_LIBS = ON | OFF, prefer system nanopb libs
-    * USE_SYSTEM_STB_LIBS = ON | OFF, prefer system stb libs
-    * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the app
-    * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming
-
-----
+---
 
 # Native build
 
@@ -155,7 +105,7 @@ bin/Release/hyperhdr -d
 
 ### LibreELEC 
 
-You can find the add-on sources here on branches of my LibreELEC fork: https://github.com/awawa-dev/LibreELEC.tv/ For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
+You can find the add-on sources here on branches of my LibreELEC fork: [link](https://github.com/awawa-dev/LibreELEC.tv) For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
 
 LibreELEC 11/RPi:
 ```
@@ -179,7 +129,7 @@ PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
 
 # Build a HyperHDR installer for any supported Linux system on any system using Docker
 
-All you need is Docker and bash, which is available on every supported system, even on Windows where you only need to enable "Windows Subsystem for Linux". You don't need to install any packages to build HyperHDR because the script uses Docker images provided by https://github.com/awawa-dev/HyperDockerBuilder which contain everything you need to build the installer. Thanks to this, you can compile eg. the aarch64 HyperHDR installer for Raspberry Pi even on a PC. Run the `build.sh` script in the main directory.
+All you need is Docker and Bash, which are available on every supported system — even on Windows, where you only need to enable "Windows Subsystem for Linux". You don’t need to install any additional packages to build HyperHDR, because the script uses Docker images provided by [HyperDockerBuilder](https://github.com/awawa-dev/HyperDockerBuilder), which contain everything required to create the installer. Thanks to this, you can compile, for example, the aarch64 HyperHDR installer for Raspberry Pi directly on a PC. To start, run the `build.sh` script in the main directory.
 
 ```console
 pi@ubuntu:~/hyperhdr$ ./build.sh 
@@ -222,3 +172,55 @@ The `build.sh` script can also be used to natively build macOS/Windows installer
 
 Fork HyperHDR project. Now you must enable project's `Settings → Actions → Actions permissions → Allow all actions and reusable workflows` and save it.
 Once you've done this, any change, even using the Github online editor, will immediately trigger the build in the Actions tab. If this did not happen, you probably did not enable the option described or did it later after making the changes.
+
+---
+
+# Available CMake HyperHDR configuration options:
+Use -D prefix when configuring the build.
+
+* LED DEVICES  
+    * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
+    * ENABLE_SPI_FTDI = ON | OFF, enables SPI libFTDI (FTDI for Windows) controller
+    * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library for RPi 1-4
+  
+* SOFTWARE GRABBERS
+    * ENABLE_DX = ON | OFF, enables the DirectX11 software grabber (Windows)
+    * ENABLE_FRAMEBUFFER = ON | OFF, enables the Framebuffer software grabber (Linux)
+    * ENABLE_MAC_SYSTEM = ON | OFF, enables the macOS software grabber (macOS)
+    * ENABLE_PIPEWIRE = ON | OFF, enables the Pipewire software grabber (Linux)
+    * ENABLE_PIPEWIRE_EGL = ON | OFF, enables EGL for the Pipewire grabber (Linux)
+    * ENABLE_X11 = ON | OFF, enables the X11 software grabber (Linux)
+    * ENABLE_AMLOGIC = ON | OFF, forces the Amlogic software grabber (Linux)
+
+* HARDWARE GRABBERS
+    * ENABLE_AVF = ON | OFF, enables the AVF USB grabber support (macOS)
+    * ENABLE_MF = ON | OFF, enables the MediaFoundation USB grabber support (Windows)
+    * ENABLE_V4L2 = ON | OFF, enables the V4L2 USB grabber support (Linux)
+
+* SOUND CAPTURING
+    * ENABLE_SOUNDCAPLINUX = ON | OFF, enables the ALSA sound grabber (Linux)
+    * ENABLE_SOUNDCAPMACOS = ON | OFF, enables the sound grabber (macOS)
+    * ENABLE_SOUNDCAPWINDOWS = ON | OFF, enables the sound grabber (Windows)
+
+* SERVICE SUPPORT
+    * ENABLE_BONJOUR = ON | OFF, enables mDNS (do not disable unless required)
+    * ENABLE_CEC = ON | OFF, enables the HDMI-CEC support (Linux)
+    * ENABLE_MQTT = ON | OFF, enables the MQTT support
+    * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
+    * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server
+    * ENABLE_SYSTRAY = ON | OFF, enables the systray-widget
+    * ENABLE_ZSTD = ON | OFF, enables ZSTD support for LUT decompression
+
+* BUILD FEATURES
+    * USE_SHARED_LIBS = ON | OFF, build the application as non-monolithic
+    * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, embed web content into the app
+    * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
+    * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
+    * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
+    * USE_SYSTEM_FLATBUFFERS_LIBS = ON | OFF, prefer system Flatbuffers libs
+    * USE_SYSTEM_SDBUS_CPP_LIBS = ON | OFF, prefer system sdbus_c++ libs
+    * USE_SYSTEM_LUNASVG_LIBS = ON | OFF, prefer system lunasvg libs
+    * USE_SYSTEM_NANOPB_LIBS = ON | OFF, prefer system nanopb libs
+    * USE_SYSTEM_STB_LIBS = ON | OFF, prefer system stb libs
+    * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the app
+    * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming

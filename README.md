@@ -1,22 +1,24 @@
+![C++20](https://img.shields.io/badge/Language-C%2B%2B20-blue) ![CMake](https://img.shields.io/badge/Build%20System-CMake-orange) ![MIT](https://img.shields.io/badge/License-MIT-brightgreen) ![Objective‑C++](https://img.shields.io/badge/Language-Objective‑C%2B%2B-lightblue) ![JavaScript](https://img.shields.io/badge/Language-JavaScript-teal) ![HTML](https://img.shields.io/badge/Language-HTML-orange) ![Linear Algebra](https://img.shields.io/badge/Linear%20Algebra-Vector%20Computations-maroon) ![JSON API](https://img.shields.io/badge/JSON%20API-supported-blue) ![Bootstrap 5](https://img.shields.io/badge/UI‑Framework-Bootstrap%205-purple) ![DirectX](https://img.shields.io/badge/DirectX-supported-lightblue) ![Wayland‑PipeWire](https://img.shields.io/badge/Wayland‑PipeWire-supported-teal) ![Sound Reactive](https://img.shields.io/badge/Sound-Reactive-brightgreen) ![MQTT](https://img.shields.io/badge/MQTT-supported-orange) ![mDNS‑Zeroconf](https://img.shields.io/badge/mDNS‑Zeroconf-supported-lightblue) ![USB Grabbers](https://img.shields.io/badge/USB%20Grabbers-enabled-blueviolet) ![Raspberry Pi ARM](https://img.shields.io/badge/Raspberry%20Pi‑ARM-64bit-brightgreen) ![x64](https://img.shields.io/badge/Architecture-x64-blue) ![ARM](https://img.shields.io/badge/Architecture-ARM-orange) ![WLED](https://img.shields.io/badge/WLED-supported-brightgreen) ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-supported-orange) ![Adalight](https://img.shields.io/badge/Adalight-supported-purple)
+
 ## About
 
-HyperHDR is an open-source ambient lighting system for TVs and music setups, based on real-time video and audio stream analysis. It is designed with a strong focus on stability, high performance, and superior image quality. Optimized for both single-threaded and multi-threaded video processing, HyperHDR runs seamlessly on **Windows**, **macOS** (x64/arm64: M1, M2), and **Linux x64 & ARM** (including Raspberry Pi).
+HyperHDR is an open-source ambient lighting system for TVs and music setups, based on real-time video and audio stream analysis. It is designed with a strong focus on stability, high performance, and high-fidelity video decoding and mapping for precise and vibrant LED visuals. Optimized for both single-threaded and multi-threaded video processing, HyperHDR runs seamlessly on **Windows**, **macOS** (x64/arm64: M1, M2), and **Linux x64 & ARM** (including Raspberry Pi).
 
 ![v20](https://github.com/awawa-dev/HyperHDR/assets/69086569/9bc7999d-1515-4a96-ba5e-8a732cf7d8a4)
 
 ## Main Features of HyperHDR
 
-At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before. ( :new: HyperHDR v22)  
+At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue, LIFX and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before. ( :new: HyperHDR v22)  
 
 ### Key advantages of the Infinite Color Engine:
 * **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
 * **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
-* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, Lifx and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
+* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
 * **Advanced color smoothing algorithms:** inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
 
 ### Additional features:
 * **Ultra-low CPU usage** on SoCs like Raspberry Pi or Intel N100  
-* **Lightweight design** with no heavy dependencies (e.g., Python, Java)  
+* **Lightweight design** with no heavy dependencies (e.g. no Python or Java)  
 * **Low-latency video processing** for LED strips and lamps  
 * **Optimized multithreading**, enabling Raspberry Pi to process high-quality video streams  
 * **High portability** across ARM-based embedded platforms  
@@ -53,22 +55,20 @@ Official releases:
 Official Linux repository:  
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
-Latest test builds (GitHub login required):  
+Latest test builds (GitHub Action — login required, select latest build from master branch, setups in ZIP artifacts):  
 [https://github.com/awawa-dev/HyperHDR/actions](https://github.com/awawa-dev/HyperHDR/actions)
 
-## Manuals & Guides
+## Documentation
 
-[Installation manual](https://github.com/awawa-dev/HyperHDR/wiki/Installation)  
-[Official Wiki](https://github.com/awawa-dev/HyperHDR/wiki)  
-[Complete guide to building an SK6812 RGBW ambient lighting system (2023)](https://www.hyperhdr.eu/2023/02/ultimate-guide-on-how-to-build-led.html)
+👉 [Explore Our Wiki](https://awawa-dev.github.io/wiki/) 👈
 
 ## Community
 
 [HyperHDR Support Forum](https://github.com/awawa-dev/HyperHDR/discussions)
 
-## Building from Source
+## How to Compile HyperHDR from Source
 
-[Compilation guide](https://github.com/awawa-dev/HyperHDR/wiki/Compiling-HyperHDR)
+[Compiling HyperHDR](https://awawa-dev.github.io/wiki/Compiling-HyperHDR.html)
 
 ## In the Press
 

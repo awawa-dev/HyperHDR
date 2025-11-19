@@ -25,7 +25,9 @@ IF ( HAVE_SERIAL_LED )
 endif()
 
 if (UNIX AND NOT APPLE)
-	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_HEADER_DIR}/pwm/pi-blaster/*.h" "${CURRENT_SOURCE_DIR}/pwm/pi-blaster/*.cpp")
+	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_HEADER_DIR}/pwm/rpi_pio/*.h" "${CURRENT_SOURCE_DIR}/pwm/rpi_pio/*.cpp")
+	FILE ( GLOB Leddevice_rpi_blaster "${CURRENT_HEADER_DIR}/pwm/pi-blaster/*.h" "${CURRENT_SOURCE_DIR}/pwm/pi-blaster/*.cpp")
+	list( APPEND Leddevice_PWM_SOURCES ${Leddevice_rpi_blaster})
 endif()
 
 if ( ENABLE_SPIDEV OR ENABLE_SPI_FTDI )
