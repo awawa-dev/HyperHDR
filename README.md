@@ -53,12 +53,12 @@ Official releases:
 Official Linux repository:  
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
-Latest test builds (GitHub Action — login required, master branch, setups in ZIP artifacts):  
+Latest test builds (GitHub Action — login required, select latest build from master branch, setups in ZIP artifacts):  
 [https://github.com/awawa-dev/HyperHDR/actions](https://github.com/awawa-dev/HyperHDR/actions)
 
 ## Documentation
 
-[![wiki_link](https://github.com/user-attachments/assets/eb2bd196-dc90-4da3-849b-7211db0783f0)](https://awawa-dev.github.io/wiki/)
+👉 [Explore Our Wiki](https://awawa-dev.github.io/wiki/) 👈
 
 ## Community
 
