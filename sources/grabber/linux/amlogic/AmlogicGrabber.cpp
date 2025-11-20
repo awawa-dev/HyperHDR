@@ -273,13 +273,13 @@ void AmlogicGrabber::grabFrame()
 
 	if (_semaphore.tryAcquire()) {
 		try {
-			if (_initialized) {				
+			if (_initialized) {
 				bool isVideoPlaying = isVideoPlayingAML();
 
 				// Change capture device when needed
 				if (isVideoPlaying != _usingAmlogic) {
 					if (isVideoPlaying) {
-						if (!_usingAmlogic)	Info(_log, "Change to Amlogic");						
+						if (!_usingAmlogic)	Info(_log, "Change to Amlogic");
 						_usingAmlogic = initAmlogic();
 					}
 					else {
@@ -437,7 +437,7 @@ bool AmlogicGrabber::grabFrameAmlogic()
 
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
-			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));			
+			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
 			_amlFrame.releaseMemory();
 			return false;
 		}
@@ -451,7 +451,7 @@ bool AmlogicGrabber::grabFrameAmlogic()
 			}
 			else {
 				if (bytesRead > 0) //Only if capture has data to avoid crash on processSystemFrameBGR
-				{					
+				{
 					_lastValidFrame.resize(_bytesToRead);
 					if (_lastValidFrame.size() > 0)
 					{
@@ -462,13 +462,13 @@ bool AmlogicGrabber::grabFrameAmlogic()
 					return true;
 				}
 				else
-				{					
+				{
 					if (_lastValidFrame.size() > 0)
-					{					
+					{
 						processSystemFrameBGR(_lastValidFrame.data(), linelen);
 						return true;
 					}
-	
+
 					return false;
 				}
 			}

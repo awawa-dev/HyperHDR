@@ -179,7 +179,7 @@ void LedDevice::setupRetry(int interval)
 				}
 				else
 				{
-					Error(_log, "The LED device is not ready... give up.");					
+					Error(_log, "The LED device is not ready... give up.");
 					stopRetryTimer();
 				}
 			});
@@ -284,7 +284,7 @@ void LedDevice::enableDevice(bool toEmit)
 void LedDevice::stop()
 {
 	Debug(_log, "Stop device");
-	
+
 	stopRefreshTimer();
 	stopRetryTimer();
 	disable();
@@ -294,7 +294,7 @@ void LedDevice::stop()
 
 void LedDevice::disable()
 {
-	Debug(_log, "Disable the device");	
+	Debug(_log, "Disable the device");
 	disableDevice(true);
 }
 
@@ -519,7 +519,7 @@ int LedDevice::rewriteLEDs()
 		auto copy = _lastLedValues;
 
 		if (_signalTerminate)
-		{			
+		{
 			std::fill(copy->begin(), copy->end(), float3{ 0.0f, 0.0f, 0.0f });
 		}
 		else if (_blinkIndex >= 0)
@@ -532,7 +532,7 @@ int LedDevice::rewriteLEDs()
 				std::fill(copy->begin(), copy->end(), float3{ 0.0f, 0.0f, 0.0f });
 				(*copy)[_blinkIndex] = (_blinkTime + 1500 > now) ? float3{ 1.0f, 0.0f, 0.0f } : (_blinkTime + 3000 > now) ? float3{ 0.0f, 1.0f, 0.0f } : float3{ 0.0f, 0.0f, 1.0f };
 			}
-		}		
+		}
 
 		if (copy->size() > 0)
 			retval = write(copy);
@@ -549,7 +549,7 @@ int LedDevice::rewriteLEDs()
 int LedDevice::writeBlack(int numberOfBlack)
 {
 	using namespace linalg::aliases;
-	int rc = -1;	
+	int rc = -1;
 
 	if (auto blacks = _lastLedValues; blacks != nullptr)
 	{

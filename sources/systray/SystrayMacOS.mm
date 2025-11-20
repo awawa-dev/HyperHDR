@@ -41,7 +41,7 @@
         {
             pTrayMenu->callback(pTrayMenu);
         }
-    }   
+    }
 @end
 
 namespace
@@ -131,7 +131,7 @@ bool SystrayDarkmode()
         return NSAppearance.currentAppearance.name == NSAppearanceNameDarkAqua;
     #else
         return [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"] != nil;
-    #endif    
+    #endif
 }
 
 void SystrayUpdate(SystrayMenu* tray)

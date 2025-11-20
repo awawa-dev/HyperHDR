@@ -1,5 +1,5 @@
 # Copyright (c) 2020-2025 awawa-dev
-if (NOT WIN32)	
+if (NOT WIN32)
 	if (QMQTT_LIBRARIES AND QMQTT_INCLUDE_DIRS)
 		set(QMQTT_FOUND TRUE)
 	else ()
@@ -16,4 +16,3 @@ if (NOT WIN32)
 		mark_as_advanced(MQTT_INCLUDE_DIRS QMQTT_LIBRARIES)
 	endif()
 endif()
-                                                              

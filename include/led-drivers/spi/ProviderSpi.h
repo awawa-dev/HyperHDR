@@ -5,7 +5,7 @@
 #include <led-drivers/spi/ProviderSpiInterface.h>
 
 class ProviderSpi : public LedDevice
-{	
+{
 	std::unique_ptr<ProviderSpiInterface> _provider;
 
 public:

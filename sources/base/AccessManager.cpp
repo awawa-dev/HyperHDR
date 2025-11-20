@@ -272,7 +272,7 @@ void AccessManager::checkTimeout()
 
 void AccessManager::checkAuthBlockTimeout()
 {
-	// handle user auth block	
+	// handle user auth block
 	QVector<uint64_t>::iterator itu = _userAuthAttempts.begin();
 	while (itu != _userAuthAttempts.end()) {
 		if (*itu < (uint64_t)InternalClock::now())
@@ -281,7 +281,7 @@ void AccessManager::checkAuthBlockTimeout()
 			++itu;
 	}
 
-	// handle token auth block	
+	// handle token auth block
 	QVector<uint64_t>::iterator it = _tokenAuthAttempts.begin();
 	while (it != _tokenAuthAttempts.end()) {
 		if (*it < (uint64_t)InternalClock::now())

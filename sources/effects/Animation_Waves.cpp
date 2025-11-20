@@ -158,7 +158,7 @@ bool Animation_Waves::Play(HyperImage& painter)
 		int l = static_cast<int>(gradientBa.size()) - 1;
 		if (gradientBa[0].items[0] != 0 || gradientBa[l].items[0] != 255)
 		{
-			
+
 			float asp2 = gradientBa[0].items[0] / ((float)gradientBa[1].items[0] - (float)gradientBa[0].items[0]);
 			float asp1 = 1.0 - asp2;
 

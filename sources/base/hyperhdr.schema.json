@@ -30,7 +30,7 @@
 		"systemGrabber" :
 		{
 			"$ref": "schema-systemGrabber.json"
-		},		
+		},
 		"blackborderdetector" :
 		{
 			"$ref": "schema-blackborderdetector.json"

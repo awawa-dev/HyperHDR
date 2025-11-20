@@ -20,7 +20,7 @@
 
         <!-- jQuery -->
         <script src="js/lib/jquery.min.js"></script>
-		
+
         <!--Language Support -->
         <script src="js/lib/jquery.i18n.js"></script>
         <script src="js/lib/jquery.i18n.messagestore.js"></script>
@@ -28,22 +28,22 @@
         <script src="js/lib/jquery.i18n.parser.js"></script>
         <script src="js/lib/jquery.i18n.emitter.js"></script>
         <script src="js/lib/jquery.i18n.language.js"></script>
-		
+
         <!-- md Stuff -->
         <script src="js/lib/marked.min.js"></script>
         <script type="text/javascript" src="js/lib/purify.min.js"></script>
 
         <!-- Base -->
         <script src="js/hyperhdr.js"></script>
-        <script src="js/ui_utils.js"></script>        
+        <script src="js/ui_utils.js"></script>
 
         <script src="js/lib/vanilla-picker.min.js"></script>
-		
+
         <script src="js/lib/jsoneditor.min.js"></script>
         <script type="text/javascript" src="js/lib/svg-loader.min.js" async></script>
 
         <!-- Bootstrap Core CSS -->
-        <link href="css/bootstrap.min.css" rel="stylesheet" />        
+        <link href="css/bootstrap.min.css" rel="stylesheet" />
 
         <!-- AdminLTE CSS -->
         <link href="css/adminlte.hyperhdr.min.css" rel="stylesheet" />
@@ -94,21 +94,21 @@
 					}
 				</style>
 			</noscript>
-			
-			
-			<a href="#" id="main-window-button-menu" class="nav-link" data-widget="pushmenu" role="button" style = "position: fixed; top: 0; right: 0px; z-index: 200">			
-				<div class="icon-menu-control pt-3 pe-3">					
+
+
+			<a href="#" id="main-window-button-menu" class="nav-link" data-widget="pushmenu" role="button" style = "position: fixed; top: 0; right: 0px; z-index: 200">
+				<div class="icon-menu-control pt-3 pe-3">
 					<svg id="showMenuIcon" data-src="svg/left_menu_hide.svg" fill="currentColor" style="width:64px; height:64px; position:absolute; left:-64px; opacity: 1; transition: opacity 0.5s;"></svg>
 					<svg id="hideMenuIcon" data-src="svg/left_menu_show.svg" fill="currentColor" style="width:64px; height:64px; position:absolute; left:-64px; opacity: 0; transition: opacity 0.5s;"></svg>
-				</div>			
+				</div>
 			</a>
-  
+
 			<div id="loading_overlay" class="overlay"></div>
-			
+
 			<!-- Main Sidebar Container -->
-			<aside id="main-window-aside" class="main-sidebar sidebar-light elevation-4">			
+			<aside id="main-window-aside" class="main-sidebar sidebar-light elevation-4">
 			  <!-- Sidebar -->
-			  <div class="sidebar">					
+			  <div class="sidebar">
 				<!-- Sidebar Menu -->
 				<nav class="mt-2">
 				  <ul class="nav nav-pills nav-sidebar nav-child-indent flex-column" data-widget="treeview" role="menu">
@@ -127,7 +127,7 @@
 										<svg id="btn_darkmode_moon_icon" aria-hidden="true" data-src="svg/moon.svg" fill="currentColor" class="svg4hyperhdr leftmenu top-left-menu"></svg>
 									</a>
 								</div>
-								<div class="col bottom-menu ps-0 pe-0">							
+								<div class="col bottom-menu ps-0 pe-0">
 									<div class="btn-group dropdown">
 										<svg id="btn_hypinstanceswitch" data-bs-toggle="dropdown" aria-expanded="false" data-src="svg/instances.svg" fill="currentColor" class="svg4hyperhdr leftmenu top-left-menu disabled"></svg>
 										<ul id="hyperhdr_instances_list" class="dropdown-menu me-2">
@@ -155,38 +155,38 @@
 					<li class="nav-item">
 						<a href="#general" class="nav-link system-link"><svg data-src="svg/general.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_general_conf_token">General</p></a>
 					</li>
-					<li class="nav-item">					
+					<li class="nav-item">
 						<a href="#light_source" class="nav-link system-link"><svg data-src="svg/light_source.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_leds_conf_token">LED Hardware</p></a>
 					</li>
 					<li class="nav-item">
 						<a href="#grabber" class="nav-link system-link" id="grabber_capturing_menu_item"><svg data-src="svg/capturing.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_conf_token">Capturing Hardware</p></a>
 					</li>
-					<li class="nav-item">											
+					<li class="nav-item">
 						<a href="#effects" class="nav-link system-link"><svg data-src="svg/effects.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_effect_conf_token">Effects</p></a>
 					</li>
-					<li class="nav-item">																	
+					<li class="nav-item">
 						<a href="#processing" class="nav-link system-link"><svg data-src="svg/image_processing.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_colors_conf_token">Image Processing</p></a>
-					</li>					
-					<li class="nav-item">																	
+					</li>
+					<li class="nav-item">
 						<a href="#remote" class="nav-link system-link"><svg data-src="svg/remote_control.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_remotecontrol_token">Remote Control</p></a>
 					</li>
-					<li class="nav-item">																	
+					<li class="nav-item">
 						<a href="#logs" class="nav-link system-link"><svg data-src="svg/logs.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_logging_token">Log</p></a>
-					</li>					
-					
+					</li>
+
 					<li class="nav-item">
 						<a href="#" class="nav-link">
 							<svg data-src="svg/advanced.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_advanced_token">Advanced</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 						</a>
 						<ul class="nav nav-treeview">
-							<li class="nav-item">																	
+							<li class="nav-item">
 								<a href="#" class="nav-link">
 									<svg data-src="svg/translate.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="language_selector">Language</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 								</a>
 								<ul id="language_container_menu" class="nav nav-treeview"></ul>
 							</li>
-							
-							<li class="nav-item">																	
+
+							<li class="nav-item">
 								<a href="#" class="nav-link">
 									<svg data-src="svg/misc.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="misc_selector">Misc</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 								</a>
@@ -194,7 +194,7 @@
 									<li id="btn_wizard_byteorder">
 										<a class="nav-link"><svg data-src="svg/rgb_order.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><span data-i18n="wiz_rgb_title"></span></a>
 									</li>
-									<li class="nav-item">																	
+									<li class="nav-item">
 										<a href="#grabber_benchmark" class="nav-link system-link"><svg data-src="svg/video_benchmark.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_benchmark_token">Benchmark</p></a>
 									</li>
 									<li id="btn_streamer" class="nav-item">
@@ -207,51 +207,51 @@
 									</li>
 								</ul>
 							</li>
-							<li class="nav-item">																	
+							<li class="nav-item">
 								<a href="#" class="nav-link">
 									<svg data-src="svg/lut.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="LUT_selector">LUT</p><svg data-src="svg/main_menu_expander.svg" fill="currentColor" class="svg4hyperhdr leftmenu right"></svg>
 								</a>
 								<ul class="nav nav-treeview">
-									<li class="nav-item">																	
+									<li class="nav-item">
 										<a href="#lut_downloader" class="nav-link system-link"><svg data-src="svg/lut_download.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_lut">Download LUT</p></a>
 									</li>
-									<li class="nav-item">																	
+									<li class="nav-item">
 										<a href="#grabber_calibration" class="nav-link system-link"><svg data-src="svg/lut_calibration.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_grabber_calibration_token">LUT calibration</p></a>
 									</li>
-									<li class="nav-item">																	
+									<li class="nav-item">
 										<a href="#lut_generator" class="nav-link system-link"><svg data-src="svg/lut_table.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_LUT_generator_token">LUT table</p></a>
 									</li>
 								</ul>
 							</li>
-							<li class="nav-item">																	
+							<li class="nav-item">
 								<a href="#network" class="nav-link system-link"><svg data-src="svg/network_services.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_network_conf_token">Network</p></a>
 							</li>
-							<li class="nav-item">																	
+							<li class="nav-item">
 								<a href="#json_api" class="nav-link system-link"><svg data-src="svg/json_api.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_json_api_token">JSON API</p></a>
-							</li>							
-							<li class="nav-item">																	
+							</li>
+							<li class="nav-item">
 								<a href="#update" class="nav-link system-link"><svg data-src="svg/update.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_update_token">Update</p></a>
-							</li>							
-							<li class="nav-item">																	
+							</li>
+							<li class="nav-item">
 								<a href="#about" class="nav-link system-link"><svg data-src="svg/about.svg" fill="currentColor" class="svg4hyperhdr leftmenu"></svg><p data-i18n="main_menu_about_token">About</p></a>
-							</li>												
+							</li>
 						</ul>
 					</li>
 				  </ul>
 				</nav>
 				<!-- /.sidebar-menu -->
 			  </div>
-			  
+
 			  <!-- /.sidebar -->
-				   
+
 			</aside>
-			
+
 			<div id="main-window-wrappper" class="content-wrapper">
 				<div id="notification-target" style="display: inline-block; z-index:10000;  position: absolute; top: 0;"></div>
 				<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index:9999;">
 					<div id="toast_success_message" class="toast border border-success" data-bs-delay="1500" role="alert" aria-live="assertive" aria-atomic="true">
 						<div class="toast-header bg-success">
-							<strong class="me-auto h6 mt-2 ms-1 hyperhdr-vcenter" style="line-height:1.5em;"><svg data-src="svg/button_save.svg" style="width:1.5em;" fill="currentColor" class="svg4hyperhdr top-0"></svg><span id="toast_message_header_id"></span></strong>							
+							<strong class="me-auto h6 mt-2 ms-1 hyperhdr-vcenter" style="line-height:1.5em;"><svg data-src="svg/button_save.svg" style="width:1.5em;" fill="currentColor" class="svg4hyperhdr top-0"></svg><span id="toast_message_header_id"></span></strong>
 							<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
 						</div>
 						<div class="toast-body mt-1 row">
@@ -260,7 +260,7 @@
 						</div>
 					</div>
 				</div>
-					
+
 				<!-- Page Content -->
 				<div id="page-wrapper" style="padding: 10px; overflow:auto;">
 					<div id="hyperhdr_global_setting_notify" style="display: none; padding: 0 10px; margin: 0;">
@@ -278,7 +278,7 @@
 
 					<div id="page-content"></div>
 				</div>
-        
+
 				<!-- /#wrapper -->
 
 				<div id="container_connection_lost" style="display: none;"></div>

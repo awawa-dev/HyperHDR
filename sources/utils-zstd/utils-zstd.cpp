@@ -13,7 +13,7 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 	size_t outSize = SINGLE_LUT_SIZE / 2;
 	std::vector<uint8_t> outBuffer;
 	const char* error = nullptr;
-	
+
 	std::ofstream file;
 	file.open(fileName, std::ios::out | std::ios::trunc | std::ios::binary);
 
@@ -26,11 +26,11 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 	{
 		outBuffer.resize(outSize);
 	}
-	catch(...)	
+	catch(...)
 	{
 		error = "Could not allocate buffer";
 	}
-	
+
 
 	if (error == nullptr)
 	{
@@ -67,7 +67,7 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 
 	if (error != nullptr)
 		std::remove(fileName);
-		
+
 	return error;
 }
 
@@ -98,6 +98,6 @@ _ZSTD_SHARED_API const char* DecompressZSTD(size_t downloadedDataSize, const uin
 		}
 		ZSTD_freeDCtx(dctx);
 	}
-	
+
 	return error;
 }

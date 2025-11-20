@@ -72,7 +72,7 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 			address = info.addresses().first();
 		Debug(_log, "The search for IP has finished: %s => %s", QSTRING_CSTR(host), QSTRING_CSTR(address.toString()));
 	}
-	
+
 	if (is_ssl)
 	{
 		QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
@@ -256,7 +256,7 @@ void mqtt::handleSettingsUpdate(settings::type type, const QJsonDocument& config
 		}
 
 		_initialized = true;
-	}	
+	}
 }
 
 void mqtt::begin()
@@ -335,8 +335,8 @@ void mqtt::received(const QMQTT::Message& message)
 			QString returnPayload = resJson.toJson(QJsonDocument::Compact);
 			Debug(_log, "JSON result: %s", QSTRING_CSTR(returnPayload));
 			result.setPayload(returnPayload.toUtf8());
-		}		
-		_clientInstance->publish(result);		
+		}
+		_clientInstance->publish(result);
 	}
 	else
 	{
@@ -352,7 +352,7 @@ void mqtt::handleSignalMqttPublish(QString topic, QString payload)
 		message.setTopic(topic);
 		message.setQos(0);
 		message.setPayload(payload.toUtf8());
-		
+
 		_clientInstance->publish(message);
 	}
 }

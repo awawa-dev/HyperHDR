@@ -4,13 +4,13 @@ find_package(PkgConfig REQUIRED)
 
 if(PKG_CONFIG_FOUND)
 	pkg_check_modules(PCM_X11 x11)
-	
-	find_path(SCREEN_X11_INCLUDE_DIR NAMES X11/Xlib.h PATHS ${PCM_X11_INCLUDEDIR} PATH_SUFFIXES X11)	
+
+	find_path(SCREEN_X11_INCLUDE_DIR NAMES X11/Xlib.h PATHS ${PCM_X11_INCLUDEDIR} PATH_SUFFIXES X11)
 	find_library(SCREEN_X11_LIBRARY NAMES X11 PATHS ${PCM_X11_LIBDIR})
-	
+
 else()
 	message( STATUS "PKG config not found. Fallback to default searching." )
-	find_path(SCREEN_X11_INCLUDE_DIR X11/Xlib.h)	
+	find_path(SCREEN_X11_INCLUDE_DIR X11/Xlib.h)
 	find_library(SCREEN_X11_LIBRARY X11)
 endif()
 

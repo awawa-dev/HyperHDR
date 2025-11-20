@@ -286,7 +286,7 @@
 						"required" : true,
 						"minimum" : 0.1,
 						"maximum": 100.0,
-						"default" : 1.5,						
+						"default" : 1.5,
 						"propertyOrder" : 19
 					},
 					"luminanceGain" :
@@ -310,7 +310,7 @@
 						"required" : true,
 						"minimum" : 0,
 						"maximum": 10,
-						"default" : 1,						
+						"default" : 1,
 						"propertyOrder" : 23
 					},
 					"backlightThreshold" :

@@ -27,7 +27,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QTimer>
-	#include <QThread>	
+	#include <QThread>
 
 	#include <cmath>
 	#include <algorithm>
@@ -58,7 +58,7 @@
 using namespace linalg::aliases;
 
 namespace
-{	
+{
 	float3 to_float3(const ColorRgb& color)
 	{
 		return {
@@ -134,7 +134,7 @@ void InfiniteProcessing::updateCurrentConfig(const QJsonObject& config)
 	generateColorspace(
 		usePrimariesOnly, red, green, blue,
 		cyan, magenta, yellow,
-		white, black);	
+		white, black);
 
 
 	float scaleOutput = config["scaleOutput"].toDouble(1);
@@ -187,9 +187,9 @@ void InfiniteProcessing::applyyAllProcessingSteps(std::vector<linalg::vec<float,
 			applyTemperature(color);
 			calibrateColorInColorspace(colorCalibration, color);
 			applyScaleOutput(color);
-			color = srgbLinearToNonlinear(color);			
+			color = srgbLinearToNonlinear(color);
 			applyUserGamma(color);
-			applyBrightnessAndSaturation(color);			
+			applyBrightnessAndSaturation(color);
 			applyMinimalBacklight(color);
 		}
 
@@ -321,7 +321,7 @@ void InfiniteProcessing::generateColorspace(
 					}
 				}
 			}
-		};	
+		};
 	if (use_primaries_only)
 	{
 		bool is_identity = (target_red == ColorRgb{ 255,0,0 } &&
@@ -498,7 +498,7 @@ void InfiniteProcessing::applyUserGamma(linalg::vec<float, 3>& color) const
 		return;
 
 	for (int i = 0; i < 3; ++i)
-	{		
+	{
 		float pos = color[i] * (LUT_SIZE - 1);
 		int index0 = static_cast<int>(pos);
 		int index1 = std::min(index0 + 1, LUT_SIZE - 1);
@@ -510,7 +510,7 @@ void InfiniteProcessing::applyUserGamma(linalg::vec<float, 3>& color) const
 }
 
 void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<float, 3>  custom_tint)
-{	
+{
 	switch (preset)
 	{
 		case TemperaturePreset::Warm:
@@ -850,7 +850,7 @@ void InfiniteProcessing::test()
 		{ 1.0f, 0.760f, 1.0f }
 	);
 
-	
+
 	run_test("Pipeline - Niezalezna Weryfikacja LUT", { 0.5f, 0.5f, 0.5f },
 		[](auto& p) {
 			p.generateColorspace(false,

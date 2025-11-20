@@ -32,8 +32,8 @@
 			"format": "checkbox",
 			"title":"edt_prevent_pixel_data_splitting_across_universes",
 			"default" : false,
-			"propertyOrder" : 5	
-		}		
+			"propertyOrder" : 5
+		}
 	},
 	"additionalProperties": true
 }

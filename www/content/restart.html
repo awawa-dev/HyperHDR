@@ -23,7 +23,7 @@ function tryReconnect()
 {
 	if(count > 25)
 		window.clearInterval(connectionTimer);
-	
+
 	$.ajax({ url: "/" }).done(function(data) {
 		window.clearInterval(connectionTimer);
 		window.location.href ="/";

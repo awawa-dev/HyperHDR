@@ -73,7 +73,7 @@ bool CapturedColor::calculateFinalColor()
 
 	while(sortedInputYUVColors.size() > 3 || (sortedInputYUVColors.size() == 3 && sortedInputYUVColors.back().second < 6))
 		sortedInputYUVColors.pop_back();
-	
+
 	std::for_each(sortedInputYUVColors.begin(), sortedInputYUVColors.end(), [this](std::pair<byte3, int>& m) {
 
 		/*if (m.first.y >= 127 && m.first.y <= 129 && m.first.z >= 127 && m.first.z <= 129)
@@ -84,13 +84,13 @@ bool CapturedColor::calculateFinalColor()
 
 		sortedInputYuvColors.push_back(std::pair<double3, int>(static_cast<double3>(m.first) / 255.0, m.second));
 	});
-	
+
 
 	auto workColor = color / count;
 
 	colorInt = ColorSpaceMath::round_to_0_255<byte3>(workColor);
 	color /= (count * 255.0);
-	
+
 	if (sourceRGB.x == sourceRGB.y && sourceRGB.y == sourceRGB.z)
 	{
 		colorInt.y = colorInt.z = 128;
@@ -116,7 +116,7 @@ bool CapturedColor::calculateFinalColor()
 			}
 		}
 	}
-	
+
 	ColorSpaceMath::clamp01(color);
 
 	return true;
@@ -155,7 +155,7 @@ void CapturedColor::addColor(const byte3& i)
 		max.y = i.y;
 	if (empty || max.z < i.z)
 		max.z = i.z;
-	
+
 	auto findIter = std::find_if(inputColors.begin(), inputColors.end(), [&](auto& m) {
 		return m.first == i;
 	});
@@ -168,7 +168,7 @@ void CapturedColor::addColor(const byte3& i)
 	{
 		(*findIter).second++;
 	}
-	
+
 
 	totalSamples++;
 }
@@ -344,7 +344,7 @@ int CapturedColor::getSourceError(const int3& _color) const
 			return error * 6 / 5;
 		}
 	}
-	
+
 
 	return error;
 }

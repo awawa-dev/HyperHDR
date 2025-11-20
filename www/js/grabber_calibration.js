@@ -33,14 +33,14 @@ $(document).ready( function(){
 		}
 		if($('#select_video_calibration').is(':checked'))
 		{
-			$('#calibration_select_intro').hide();			
+			$('#calibration_select_intro').hide();
 			$('#video_calibration').show();
 		}
 	});
 
 	$("#btn_start_video_calibration").off('click').on('click', function() {
 			finish = false;
-			running = true;			
+			running = true;
 			startCalibrationWizard();
 			const calDebug = document.getElementById('chk_debug').checked;
 			const calLchCorrection = document.getElementById('chk_lchCorrection').checked;
@@ -51,12 +51,12 @@ $(document).ready( function(){
 
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
-	canvas.addEventListener('click', function() { 
+	canvas.addEventListener('click', function() {
 			if (!running)
 			{
 				if (canvas.classList.contains("fullscreen-canvas"))
 					canvas.classList.remove("fullscreen-canvas");
-				else							
+				else
 					canvas.classList.add("fullscreen-canvas");
 			}
 		}, false);
@@ -64,29 +64,29 @@ $(document).ready( function(){
 	performTranslation();
 
 	$("#grabber_calibration_intro").html($.i18n("grabber_calibration_expl"));
-	
+
 	sendToHyperhdr("serverinfo", "", '"subscribe":["lut-calibration-update"]');
-	
+
 	$(window.hyperhdr).off("cmd-lut-calibration-update").on("cmd-lut-calibration-update", function(event)
 	{
 		handleMessage(event);
 	});
 
 	$("#startCalibration").off('click').on('click', function() { startCalibration(); });
-	
+
 	resetImage();
-	
+
 	function resetImage()
 	{
 		ctx.fillStyle = "white";
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
-	
+
 		var gradient = ctx.createConicGradient(0, canvas.width / 2, canvas.height / 2);
 
-		
+
 		var s = 1/13;
 		gradient.addColorStop(s*0,	`rgb(255, 0,   255)`);
-		gradient.addColorStop(s*1,	`rgb(128, 0,   255)`);		
+		gradient.addColorStop(s*1,	`rgb(128, 0,   255)`);
 		gradient.addColorStop(s*2,	`rgb(0,   0,   255)`);
 		gradient.addColorStop(s*3,	`rgb(0,   128, 255)`);
 		gradient.addColorStop(s*5,	`rgb(0,   255, 255)`);
@@ -94,18 +94,18 @@ $(document).ready( function(){
 		gradient.addColorStop(s*7,	`rgb(0,   255,   0)`);
 		gradient.addColorStop(s*8,	`rgb(128, 255,   0)`);
 		gradient.addColorStop(s*9,	`rgb(255, 255,   0)`);
-		gradient.addColorStop(s*10,	`rgb(255, 128,   0)`);		
+		gradient.addColorStop(s*10,	`rgb(255, 128,   0)`);
 		gradient.addColorStop(s*11,	`rgb(255, 0,     0)`);
 		gradient.addColorStop(s*12,	`rgb(255, 0,   128)`);
-		gradient.addColorStop(s*13,	`rgb(255, 0,   255)`);		
-		
+		gradient.addColorStop(s*13,	`rgb(255, 0,   255)`);
+
 
 		// Set the fill style and draw a rectangle
 		ctx.fillStyle = gradient;
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 	}
 
-	function startCalibrationWizard() {		
+	function startCalibrationWizard() {
 		$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n("main_menu_grabber_calibration_token"));
 		$('#wizp1_body').html('<h4 id="calibration_running_header" style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-2"></svg><br/></div></div>');
 		$('#wizp2_body').html('<h4 id="calibration_summary_header" style="font-weight:bold;text-transform:uppercase;"></h4><p id="calibration_summary"></p>');
@@ -116,10 +116,10 @@ $(document).ready( function(){
 			backdrop: "static",
 			keyboard: false
 		});
-		
+
 		const backupCalibWizard = $("#wizard_modal").css("z-index");
-		$("#wizard_modal").css("z-index", "10000");		
-		
+		$("#wizard_modal").css("z-index", "10000");
+
 		$('#wizp1').toggle(true);
 		$('#wizp2').toggle(false);
 
@@ -140,14 +140,14 @@ $(document).ready( function(){
 			reload();
 		});
 	}
-	
+
 	function handleMessage(event)
 	{
 		let json = event.response.data;
 
 		if (!running)
 			return;
-				
+
 		if (json.error != null)
 		{
 			clearInterval(myInterval);
@@ -170,7 +170,7 @@ $(document).ready( function(){
 			{
 				clearInterval(myInterval);
 				document.body.style.overflow = 'visible';
-				canvas.classList.remove("fullscreen-canvas");				
+				canvas.classList.remove("fullscreen-canvas");
 				resetImage();
 				startCalibrationWizard();
 			}
@@ -180,7 +180,7 @@ $(document).ready( function(){
 				resElement.innerHTML = json.message;
 			}
 		}
-		
+
 		if (json.finished != null)
 		{
 			clearInterval(myInterval);
@@ -195,27 +195,27 @@ $(document).ready( function(){
 			$('#wizp1').toggle(false);
 			$('#wizp2').toggle(true);
 			return;
-		}		
+		}
 	}
-		
+
 	function startCalibration()
 	{
-		if (matchMedia('(display-mode: fullscreen)').matches) 
+		if (matchMedia('(display-mode: fullscreen)').matches)
 		{
 			document.body.style.overflow = 'hidden';
 			canvas.classList.add("fullscreen-canvas");
 			finish = false;
 			running = true;
-			
+
 			ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			
-			drawImage();		
+
+			drawImage();
 			setTimeout(() => {
 				const calDebug = document.getElementById('chk_debug2').checked;
 				const calLchCorrection = document.getElementById('chk_lchCorrection2').checked;
-				requestLutCalibration("capture", calDebug, calLchCorrection);				
-			}, 100); 
+				requestLutCalibration("capture", calDebug, calLchCorrection);
+			}, 100);
 		}
 		else
 			alert('Please run fullscreen mode (F11)');
@@ -238,7 +238,7 @@ $(document).ready( function(){
 	class int2 {
 		constructor(_x, _y) {
 		  this.x = _x;
-		  this.y = _y;	  
+		  this.y = _y;
 		}
 	}
 
@@ -337,7 +337,7 @@ $(document).ready( function(){
 	function drawImage()
 	{
 		clearInterval(myInterval);
-		myInterval= setInterval( function(){          
+		myInterval= setInterval( function(){
 			currentTestBoard = (currentTestBoard + 1) % (SCREEN_LAST_BOARD_INDEX + 1);
 			createTestBoards(currentTestBoard);
 		}, 3000);
