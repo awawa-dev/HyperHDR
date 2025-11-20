@@ -63,7 +63,7 @@ void WrapperCEC::enable(bool enabled)
 
 			disconnect(_cecHandler, &cecHandler::stateChange, this, &WrapperCEC::SignalStateChange);
 			disconnect(_cecHandler, &cecHandler::keyPressed, this, &WrapperCEC::SignalKeyPressed);
-			
+
 			_cecHandler->stop();
 			Info(_log, "Cleaning up libCEC");
 			delete _cecHandler;

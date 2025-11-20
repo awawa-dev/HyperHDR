@@ -52,7 +52,7 @@ SuspendHandler::SuspendHandler(bool sessionLocker)
 {
 	try
 	{
-		auto responseSignalHandler = [&](bool sleep) {				
+		auto responseSignalHandler = [&](bool sleep) {
 			QUEUE_CALL_1(this, sleeping, bool, sleep);
 		};
 
@@ -86,7 +86,7 @@ SuspendHandler::~SuspendHandler()
 }
 
 void SuspendHandler::sleeping(bool sleep)
-{	
+{
 	if (sleep)
 	{
 		std::cout << "OS event: going to sleep" << std::endl;

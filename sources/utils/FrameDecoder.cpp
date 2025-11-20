@@ -59,7 +59,7 @@ namespace FrameDecoderUtils
 			return x * 1.5;
 		}
 		else if (x <= 1)
-		{			
+		{
 			return std::sin(pi2 * ((x - 0.5) / 0.5)) * (1 - signalBreakChromaP010) + signalBreakChromaP010;
 		}
 		return 1;
@@ -78,7 +78,7 @@ namespace FrameDecoderUtils
 			return x;
 		}
 		else if (x <= 1)
-		{			
+		{
 			x = (x - signalBreakChromaP010) / (1.0 - signalBreakChromaP010);
 			x = std::asin(x);
 			x = x * 0.5 / pi2  + 0.5;
@@ -177,7 +177,7 @@ namespace FrameDecoderUtils
 		}
 
 		FrameDecoderUtils::initialized = true;
-	};	
+	};
 };
 
 using namespace FrameDecoderUtils;
@@ -1092,13 +1092,13 @@ void FrameDecoder::processSystemImagePQ10(Image<ColorRgb>& image, int targetSize
 				uint32_t inS = *((uint32_t*)sLine);
 				*(dLine++) = (inS >> 2) & 0xFF;
 				*(dLine++) = (inS >> 12) & 0xFF;
-				*(dLine++) = (inS >> 22) & 0xFF;				
+				*(dLine++) = (inS >> 22) & 0xFF;
 				sLine += divisionX;
 			}
 		}
 		else while (dLine < dLineEnd)
 		{
-			uint32_t inS = *((uint32_t*)sLine);			
+			uint32_t inS = *((uint32_t*)sLine);
 			ind_lutd = LUT_INDEX(((inS >> 2) & 0xFF), ((inS >> 12) & 0xFF), ((inS >> 22) & 0xFF));
 			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
 			sLine += divisionX;

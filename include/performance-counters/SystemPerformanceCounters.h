@@ -22,7 +22,7 @@ class SystemPerformanceCounters
 {
 	private:
 		bool isInitialized = false;
-		void init();		
+		void init();
 
 	#ifdef __linux__
 		int underVoltage = -1;

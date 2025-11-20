@@ -1,7 +1,7 @@
 <div class="container" style="margin: 20px auto; max-width: 600px;">
 	<center>
 		<img
-			id = "no_connection_img"		
+			id = "no_connection_img"
 			alt = "Hmmm...lost the connection to HyperHDR"
 			style = "width : 90%; height: auto; transition: all 0.1s ease;"
 		/>
@@ -34,12 +34,12 @@
 	var animation = -1;
 	var animation_value = 0;
 	var animation_target = 0;
-  
+
 	function animate() {
 
 		if (animation < 0)
 		{
-			animation = 0;		
+			animation = 0;
 			animation_target = Math.round(10+(Math.random()* 80));
 			animation_value = 0;
 		}
@@ -54,14 +54,14 @@
 			else
 			{
 				animation_value = animation_target + Math.round(Math.random()* 20) - 10;
-				if (animation_value < 0) 
+				if (animation_value < 0)
 					animation_value = 0;
-				if (animation_value > 100) 
-					animation_value = 100;				
+				if (animation_value > 100)
+					animation_value = 100;
 			}
 			animation++;
 		}
-		else 
+		else
 			animation = -1;
 
 		if (!connectionLost)
@@ -70,7 +70,7 @@
 			window.clearInterval(animationTimer);
 		}
 		else if (count > 100)
-		{			
+		{
 			animation_value = 100;
 			$('#no_connection_img').css('filter', 'grayscale('+animation_value+'%) contrast('+(100-(animation_value*3/4))+'%) opacity('+(100-(animation_value)/5)+'%)');
 			window.clearInterval(animationTimer);

@@ -148,7 +148,7 @@ AVFWorker::AVFWorker() :
 }
 
 AVFWorker::~AVFWorker()
-{	
+{
 }
 
 void AVFWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,

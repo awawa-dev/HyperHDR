@@ -31,7 +31,7 @@ public slots:
 private slots:
 	void newPendingTokenRequest(const QString& id, const QString& comment);
 	void handleTokenResponse(bool success, const QString& token, const QString& comment, const QString& id, const int& tan);
-	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name = QString());	
+	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name = QString());
 	void handleLedColorsTimer();
 	void lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 
@@ -41,7 +41,7 @@ protected slots:
 	void sendImage();
 
 signals:
-	void SignalCallbackBinaryImageMessage(Image<ColorRgb>);	
+	void SignalCallbackBinaryImageMessage(Image<ColorRgb>);
 	void SignalForwardJsonMessage(QJsonObject);
 	void SignalCallbackJsonMessage(QJsonObject);
 
@@ -49,7 +49,7 @@ protected:
 	void stopDataConnections() override;
 
 private:
-	std::shared_ptr<LoggerManager> _logsManager;	
+	std::shared_ptr<LoggerManager> _logsManager;
 
 	bool _noListener;
 

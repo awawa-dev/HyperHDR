@@ -17,7 +17,7 @@
 			"required": true
 		},
 		"flatbuffers_user_lut_filename": {
-			"type" : "string",			
+			"type" : "string",
 			"required": false
 		}
 	},

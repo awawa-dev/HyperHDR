@@ -10,7 +10,7 @@
 #define LUT_INDEX(y,u,v) ((y + (u<<8) + (v<<16))*3)
 
 namespace FrameDecoderUtils
-{	
+{
 	double unpackChromaP010(double x);
 	double unpackLuminanceP010(double val);
 }

@@ -968,7 +968,7 @@ void Grabber::handleNewFrame(unsigned int /*workerIndex*/, Image<ColorRgb> image
 		{
 			if (checkSignalDetectionManual(image))
 				emit GlobalSignals::getInstance()->SignalNewVideoImage(_deviceName, image);
-		}		
+		}
 	}
 	else
 		frameStat.directAccess = true;

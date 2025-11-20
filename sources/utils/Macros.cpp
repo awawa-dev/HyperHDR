@@ -43,7 +43,7 @@ void hyperhdr::THREAD_REMOVER(QString message, QThread* parentThread, QObject* c
 }
 
 void hyperhdr::THREAD_MULTI_REMOVER(QString message, QThread* parentThread, std::vector<QObject*> clients)
-{	
+{
 	SMARTPOINTER_MESSAGE(message);
 	if (parentThread->isRunning())
 	{

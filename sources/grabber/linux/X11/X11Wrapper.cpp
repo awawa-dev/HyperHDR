@@ -33,7 +33,7 @@ X11Wrapper::X11Wrapper(const QString &device,
 		const QString & configurationPath )
 	: SystemWrapper("X11_SYSTEM:"+device.left(14), &_grabber)
 	, _grabber(device, configurationPath)
-{	
+{
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
     connect(&_grabber, &Grabber::SignalNewCapturedFrame, this, &SystemWrapper::newCapturedFrameHandler, Qt::DirectConnection);
     connect(&_grabber, &Grabber::SignalCapturingException, this, &SystemWrapper::capturingExceptionHandler, Qt::DirectConnection);

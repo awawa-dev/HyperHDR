@@ -31,7 +31,7 @@ namespace FileUtils {
 		}
 
 		QTextStream in(&file);
-		
+
 		data = in.readAll();
 
 		file.close();

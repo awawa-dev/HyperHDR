@@ -30,7 +30,7 @@
 AnimationBaseMusic::AnimationBaseMusic() :
 	AnimationBase()
 {
-	_myTarget.Clear();	
+	_myTarget.Clear();
 };
 
 AnimationBaseMusic::~AnimationBaseMusic()

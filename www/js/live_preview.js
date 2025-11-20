@@ -28,7 +28,7 @@ $(document).ready(function() {
 			twoDPaths.push( build2DPath(led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax-led.hmin) * canvas_width, (led.vmax-led.vmin) * canvas_height, 5) );
 		}
 	};
-	
+
 	function build2DPath(x, y, width, height, radius) {
 
 		if (typeof radius == 'number')
@@ -69,7 +69,7 @@ $(document).ready(function() {
 			$('#vid_btn_4').text($.i18n('main_ledsim_btn_screenshot').substring(0,4));
 		}
 		else
-		{			
+		{
 			$('#vid_btn_1').text($.i18n('main_ledsim_btn_toggleleds'));
 			$('#vid_btn_2').text($.i18n('main_ledsim_btn_togglelednumber'));
 			$('#vid_btn_3').text($.i18n('main_ledsim_btn_togglelivevideo'));
@@ -123,7 +123,7 @@ $(document).ready(function() {
 			resizeStop: function (e) {
 				setStorage("ledsim_width", $("#live_preview_dialog").outerWidth());
 				setStorage("ledsim_height", $("#live_preview_dialog").outerHeight());
-				
+
 				takeCareButton();
 				updateLedLayout();
 			}
@@ -145,7 +145,7 @@ $(document).ready(function() {
 				$("#live_preview_dialog").append( $(btnn[0]) );
 			}
 		}
-		
+
 		$(window.hyperhdr).on("cmd-config-getconfig",function(event){
 			leds = event.response.info.leds;
 			updateLedLayout();
@@ -157,11 +157,11 @@ $(document).ready(function() {
 				{
 					if ( $('#leds_toggle_live_video').hasClass("btn-success"))
 					{
-						requestLedImageStart();					
+						requestLedImageStart();
 					}
 					if ( $('#leds_toggle').hasClass("btn-success"))
 					{
-						requestLedColorsStart();					
+						requestLedColorsStart();
 					}
 				}
 			}, 500);
@@ -193,10 +193,10 @@ $(document).ready(function() {
 				imageCanvasNodeCtx.fillText($.i18n('preview_no_signal'), x + 131, y + 100);
 			}
 		}
-	};	
-	
+	};
+
 	$(window.hyperhdr).one("ready",function(){
-		getReady();		
+		getReady();
 	});
 
 	function printLedsToCanvas(colors)
@@ -248,7 +248,7 @@ $(document).ready(function() {
 		link.remove();
 	});
 
-	$('#leds_toggle').off().on("click", function() {		
+	$('#leds_toggle').off().on("click", function() {
 		ledsCanvasNodeCtx.clear();
 		setClassByBool('#leds_toggle', window.ledStreamActive, "btn-danger", "btn-success");
 		if ( window.ledStreamActive )
@@ -265,7 +265,7 @@ $(document).ready(function() {
 		toggleLedsNum = !toggleLedsNum;
 		toggleClass('#leds_toggle_num', "btn-danger", "btn-success");
 	});
-	
+
 	$('#leds_toggle_live_video').off().on("click", function() {
 		setClassByBool('#leds_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
 		if ( window.imageStreamActive )
@@ -276,25 +276,25 @@ $(document).ready(function() {
 		}
 		else
 		{
-			lastFeedFrame = Date.now();			
+			lastFeedFrame = Date.now();
 			requestLedImageStart();
 			resetImage();
-			feedWatcher();			
+			feedWatcher();
 		}
 	});
 
 	$("#btn_open_ledsim").off().on("click", function(event) {
-		
+
 		if (dialog == null ||typeof dialog === 'undefined')
 			getReady();
-		
+
 		if (window.innerWidth < 740)
 		{
 			$("#live_preview_dialog").width(330);
 			$("#live_preview_dialog").height(320);
-			
+
 			$("#live_preview_dialog").css('top', '10px');
-			$("#live_preview_dialog").css('left', '20px');			
+			$("#live_preview_dialog").css('left', '20px');
 		}
 		else
 		{
@@ -306,11 +306,11 @@ $(document).ready(function() {
 				$("#live_preview_dialog").css('left', '20px');
 		}
 		$("#live_preview_dialog").css('position', 'fixed');
-		
+
 		takeCareButton();
-		
+
 		dialog.open();
-		
+
 		updateLedLayout();
 	});
 
@@ -358,19 +358,19 @@ $(document).ready(function() {
 		{
 			lastFeedFrame = Date.now();
 
-			var imageData = (event.response);			
+			var imageData = (event.response);
 			var image = new Image();
 
 			image.onload = function() {
 			    imageCanvasNodeCtx.drawImage(image, 0, 0, canvas_width, canvas_height);
-			};			
+			};
 
 			var urlCreator = window.URL || window.webkitURL;
 			image.src = urlCreator.createObjectURL(imageData);
 		}
 	});
 
-	
+
 	$(window.hyperhdr).on("cmd-ledcolors-ledstream-update",function(event){
 		if (!modalOpened)
 		{
@@ -382,7 +382,7 @@ $(document).ready(function() {
 		}
 	});
 
-	
+
 	$(window.hyperhdr).on("cmd-settings-update",function(event){
 		var obj = event.response.data
 		Object.getOwnPropertyNames(obj).forEach(function(val, idx, array) {
@@ -391,5 +391,5 @@ $(document).ready(function() {
 		leds = window.serverConfig.leds
 		updateLedLayout();
 	});
-	
+
 });

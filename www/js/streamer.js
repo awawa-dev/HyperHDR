@@ -2,9 +2,9 @@ $(document).ready( function() {
 
 	// check if browser supports streaming
 	if((typeof window.navigator.mediaDevices === "undefined") || (typeof window.navigator.mediaDevices.getDisplayMedia === "undefined"))
-	{	
+	{
 		$("#btn_streamer").toggle();
-	}	
+	}
 
 	// variables
 	var streamActive = false;
