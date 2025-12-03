@@ -101,7 +101,7 @@ PipewireHandler::PipewireHandler() :
 									_isError(false), _version(-1), _streamNodeId(0),
 									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
-									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false), _requestedFPS(10), _hasFrame(false),
+									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false), _requestedFPS(30), _hasFrame(false),
 									_infoUpdated(false), _initEGL(false), _libEglHandle(NULL), _libGlHandle(NULL),
 									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image()
 {
@@ -217,7 +217,7 @@ void PipewireHandler::closeSession()
 	_frameHeight = 0;
 	_frameOrderRgb = false;
 	_framePaused = false;
-	_requestedFPS = 10;
+	_requestedFPS = 30;
 	_hasFrame = false;
 	_infoUpdated = false;
 	_frameDrmFormat = DRM_FORMAT_MOD_INVALID;
@@ -774,7 +774,8 @@ void PipewireHandler::captureFrame()
 				printf("Pipewire: Using MemPTR frame type. The hardware acceleration is DISABLED.\n");			
 		}
 
-#ifdef ENABLE_PIPEWIRE_EGL
+// DISABLED: EGL path uses slow glGetTexImage() - prefer fast CPU path (MemFd/MemPtr)
+#if 0
 		if (newFrame->buffer->datas->type == SPA_DATA_DmaBuf)
 		{
 			if (!_initEGL)
@@ -1055,6 +1056,9 @@ const char* PipewireHandler::eglErrorToString(EGLint error_number)
 
 void PipewireHandler::initEGL()
 {
+	// DISABLED: Force CPU path (MemFd/MemPtr) instead of slow GPU path (DmaBuf + glGetTexImage)
+	return;
+	
 	if (_initEGL)
 		return;
 
