@@ -38,7 +38,7 @@ jobs:
         sudo apt install coreutils p7zip-full qemu-user-static
 
     - name: Checkout CustomPiOS
-      uses: actions/checkout@v5.0.0
+      uses: actions/checkout@v6.0.0
       with:
         repository: 'guysoft/CustomPiOS'
         path: CustomPiOS
