@@ -452,15 +452,15 @@ void InfiniteProcessing::calibrateColorInColorspace(const std::shared_ptr<const 
 			const size_t i011 = b0 + g1 * LUT_DIMENSION + r1 * LUT_DIMENSION * LUT_DIMENSION;
 			const size_t i111 = b1 + g1 * LUT_DIMENSION + r1 * LUT_DIMENSION * LUT_DIMENSION;
 
-			auto c00 = linalg::lerp(calibrationSnapshot->lut[i000], calibrationSnapshot->lut[i100], r_frac);
-			auto c10 = linalg::lerp(calibrationSnapshot->lut[i010], calibrationSnapshot->lut[i110], r_frac);
-			auto c01 = linalg::lerp(calibrationSnapshot->lut[i001], calibrationSnapshot->lut[i101], r_frac);
-			auto c11 = linalg::lerp(calibrationSnapshot->lut[i011], calibrationSnapshot->lut[i111], r_frac);
+			auto c00 = linalg::lerp(calibrationSnapshot->lut[i000], calibrationSnapshot->lut[i100], b_frac);
+			auto c10 = linalg::lerp(calibrationSnapshot->lut[i010], calibrationSnapshot->lut[i110], b_frac);
+			auto c01 = linalg::lerp(calibrationSnapshot->lut[i001], calibrationSnapshot->lut[i101], b_frac);
+			auto c11 = linalg::lerp(calibrationSnapshot->lut[i011], calibrationSnapshot->lut[i111], b_frac);
 
 			auto c0 = linalg::lerp(c00, c10, g_frac);
 			auto c1 = linalg::lerp(c01, c11, g_frac);
 
-			color = clamp(linalg::lerp(c0, c1, b_frac), 0.0f, 1.0f);
+			color = clamp(linalg::lerp(c0, c1, r_frac), 0.0f, 1.0f);
 			return;
 		}
 	}
@@ -850,23 +850,48 @@ void InfiniteProcessing::test()
 		{ 1.0f, 0.760f, 1.0f }
 	);
 
+
+	ColorRgb target_black = { 10, 20, 15 };
+	ColorRgb target_white = { 240, 235, 245 };
+	ColorRgb target_red = { 220,  50,  60 };
+	ColorRgb target_green = { 60,  210,  50 };
+	ColorRgb target_blue = { 50,  60, 220 };
+	ColorRgb target_cyan = { 50, 220, 215 };
+	ColorRgb target_magenta = { 220,  60, 220 };
+	ColorRgb target_yellow = { 220, 210,  60 };
+
+	std::list<std::pair<linalg::vec<float, 3>, linalg::vec<float, 3>>> testPoints = {
+		std::make_pair(linalg::vec<float,3>{0.0f, 0.0f, 0.0f}, linalg::vec<float,3>{0.0392156862745098f, 0.0784313725490196f, 0.058823529411764705f}),
+		std::make_pair(linalg::vec<float,3>{1.0f, 0.0f, 0.0f}, linalg::vec<float,3>{0.8627450980392157f, 0.19607843137254902f, 0.23529411764705882f}),
+		std::make_pair(linalg::vec<float,3>{0.0f, 1.0f, 0.0f}, linalg::vec<float,3>{0.23529411764705882f, 0.8235294117647058f, 0.19607843137254904f}),
+		std::make_pair(linalg::vec<float,3>{0.0f, 0.0f, 1.0f}, linalg::vec<float,3>{0.19607843137254902f, 0.23529411764705882f, 0.8627450980392157f}),
+		std::make_pair(linalg::vec<float,3>{0.0f, 1.0f, 1.0f}, linalg::vec<float,3>{0.19607843137254902f, 0.8627450980392157f, 0.8431372549019607f}),
+		std::make_pair(linalg::vec<float,3>{1.0f, 0.0f, 1.0f}, linalg::vec<float,3>{0.8627450980392157f, 0.23529411764705882f, 0.8627450980392157f}),
+		std::make_pair(linalg::vec<float,3>{1.0f, 1.0f, 0.0f}, linalg::vec<float,3>{0.8627450980392157f, 0.8235294117647058f, 0.23529411764705882f}),
+		std::make_pair(linalg::vec<float,3>{1.0f, 1.0f, 1.0f}, linalg::vec<float,3>{0.9411764705882353f, 0.9215686274509804f, 0.9607843137254903f}),
+		std::make_pair(linalg::vec<float,3>{0.3f, 0.3f, 0.3f}, linalg::vec<float,3>{0.35015686274509805f, 0.3573137254901961f, 0.35864705882352943f}),
+		std::make_pair(linalg::vec<float,3>{0.7f, 0.7f, 0.7f}, linalg::vec<float,3>{0.6878823529411764f, 0.6797450980392157f, 0.6980196078431372f}),
+		std::make_pair(linalg::vec<float,3>{0.1f, 0.4f, 0.8f}, linalg::vec<float,3>{0.25113725490196076f, 0.4676078431372549f, 0.7128627450980393f}),
+		std::make_pair(linalg::vec<float,3>{0.8f, 0.4f, 0.1f}, linalg::vec<float,3>{0.7178039215686275f, 0.44015686274509797f, 0.27913725490196073f}),
+		std::make_pair(linalg::vec<float,3>{0.4f, 0.2f, 0.7f}, linalg::vec<float,3>{0.4459607843137255f, 0.33537254901960784f, 0.6515294117647058f}),
+		std::make_pair(linalg::vec<float,3>{0.4f, 0.7f, 0.2f}, linalg::vec<float,3>{0.45772549019607844f, 0.6294901960784313f, 0.32603921568627453f}),
+		std::make_pair(linalg::vec<float,3>{0.2f, 0.6f, 0.4f}, linalg::vec<float,3>{0.3143529411764706f, 0.5684705882352942f, 0.4420392156862745f}),
+		std::make_pair(linalg::vec<float,3>{0.6f, 0.3f, 0.9f}, linalg::vec<float,3>{0.6048627450980392f, 0.42584313725490197f, 0.8083529411764706f})
+	};
 	
-	run_test("Pipeline - Niezalezna Weryfikacja LUT", { 0.5f, 0.5f, 0.5f },
-		[](auto& p) {
-			p.generateColorspace(false,
-				{ 240, 50, 30 },   // target_red
-				{ 10, 250, 11 },   // target_green
-				{ 23, 45, 255 },   // target_blue
-				{ 0,255,255 },
-				{ 255,0,255 },
-				{ 250, 240, 0 },   // target_yellow
-				{ 255,255,255 },
-				{ 1, 2, 2 }        // target_black
-				);
-		},
-		run_full_pipeline,
-		{ 0.511f, 0.549f, 0.526f }
-	);
+	for(const auto& t : testPoints)
+	{
+		run_test("Pipeline - Niezalezna Weryfikacja Kalibracji RGBCMYK", t.first,
+			[=](auto& p) {
+				p.generateColorspace(false,
+					target_red, target_green, target_blue,
+					target_cyan, target_magenta, target_yellow,
+					target_white, target_black);
+			},
+			[](auto& p, auto c) { p.calibrateColorInColorspace(p.getColorspaceCalibrationSnapshot(), c); return c; },
+			t.second
+		);
+	}
 
 	std::cout << "========================================\n";
 	std::cout << "              Koniec testów\n";
