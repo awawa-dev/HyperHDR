@@ -67,5 +67,5 @@ private:
 	std::map<QString, QStringList> _lastWill;
 
 	Logger*		_log;
-	QMQTT::Client*	_clientInstance;	
+	QMQTT::Client*	_clientInstance;
 };

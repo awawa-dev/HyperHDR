@@ -29,7 +29,7 @@
 					"type": "array",
 					"items": {
 						"type":"object",
-						"properties": {						
+						"properties": {
 							"config":            { "type" : "string"  },
 							"hyperhdr_instance": { "type" : "integer" },
 							"type":              { "type" : "string"  }

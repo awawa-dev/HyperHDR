@@ -5,7 +5,7 @@ function systemLink(e)
 	loadContent(e);
 	window.scrollTo(0, 0);
 	if (isSmallScreen())
-		$('[data-widget="pushmenu"]').PushMenu('collapse');		
+		$('[data-widget="pushmenu"]').PushMenu('collapse');
 }
 
 $(document).ready(function () {
@@ -17,12 +17,12 @@ $(document).ready(function () {
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 			handleDarkMode();
 		}
-	
+
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
 			setStorage("darkMode", "off", false);
 		}
 	}
-	
+
 	if(getStorage("darkMode", false) == "on")
 	{
 		handleDarkMode();
@@ -37,9 +37,9 @@ $(document).ready(function () {
 			return;
 
 		window.serverInfo = event.response.info;
-		
+
 		window.readOnlyMode = window.sysInfo.hyperhdr.readOnlyMode;
-	
+
 		// comps
 		window.comps = event.response.info.components;
 
@@ -55,7 +55,7 @@ $(document).ready(function () {
 					$("#hyperhdr_disabled_notify").fadeIn("fast");
 			}
 		});
-			
+
 		// update listing at button
 		updateHyperhdrInstanceListing();
 
@@ -73,18 +73,18 @@ $(document).ready(function () {
 		{
 			window.suppressMissingLutWarningPerSession = true;
 			setTimeout(function(){
-				var suppressMissingLutWarningCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
+				var suppressMissingLutWarningCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') +
 					': <input id="chk_suppressMissingLutWarning" class="form-check-input" type="checkbox" onChange="suppressMissingLutWarning()"> </div>';
 				showNotification('warning', $.i18n('warning_lut_not_found_1'), $.i18n('warning_lut_not_found_t'),
 					'<a href="#lut_downloader" class="ms-1 callout-link" style="cursor:pointer;" onClick="systemLink(event);">' +
-					$.i18n('warning_lut_not_found_3') + '</a><br/><br/>' + $.i18n('warning_lut_not_found_2') + 
+					$.i18n('warning_lut_not_found_3') + '</a><br/><br/>' + $.i18n('warning_lut_not_found_2') +
 					'<a href="#grabber_calibration" class="ms-1 me-2 callout-link" style="cursor:pointer;" onClick="systemLink(event);">' +
 					$.i18n('main_menu_grabber_calibration_token') + '</a>' +
 					$.i18n('dashboard_newsbox_readmore') + ":" +
 					'<a href="https://www.hyperhdr.eu/2022/04/usb-grabbers-hdr-to-sdr-quality-test.html" class="ms-1 callout-link" style="cursor:pointer;">' +
-					$.i18n('dashboard_newsbox_visitblog') + '</a>' +					
+					$.i18n('dashboard_newsbox_visitblog') + '</a>' +
 					suppressMissingLutWarningCheckbox);
-			}, 500);			
+			}, 500);
 		}
 
 		if (window.suppressErrorDetectedWarningPerSession !== true &&
@@ -93,15 +93,15 @@ $(document).ready(function () {
 		{
 			window.suppressErrorDetectedWarningPerSession = true;
 			setTimeout(function(){
-				var suppressErrorDetectedWarningCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
+				var suppressErrorDetectedWarningCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') +
 					': <input id="chk_suppressErrorDetectedWarning" class="form-check-input" type="checkbox" onChange="suppressErrorDetectedWarningCheckbox()"> </div>';
 				showNotification('warning', $.i18n('warning_errors_detected_1'), $.i18n('warning_errors_detected_t'),
 					`<div class="text-danger">${window.serverInfo.lastError}</div>`+
 					$.i18n('warning_errors_detected_2') +
 					'<a href="#logs" class="ms-1 callout-link" style="cursor:pointer;" onClick="systemLink(event);">' +
-					$.i18n('main_menu_logging_token') + '</a>' +		
+					$.i18n('main_menu_logging_token') + '</a>' +
 					suppressErrorDetectedWarningCheckbox);
-			}, 700);			
+			}, 700);
 		}
 
 		let VIDEO_CAPTURE_AVAILABLE = (window.serverInfo.grabbers != null && window.serverInfo.grabbers.available != null &&
@@ -115,10 +115,10 @@ $(document).ready(function () {
 	}); // end cmd-serverinfo
 
 	//End language selection
-	
+
 	$(window.hyperhdr).on("cmd-sessions-update", function (event) {
-		let incoming = event.response.data;		
-		let newArray = window.serverInfo.sessions.filter(old => old.name != incoming.service).concat(incoming.items);		
+		let incoming = event.response.data;
+		let newArray = window.serverInfo.sessions.filter(old => old.name != incoming.service).concat(incoming.items);
 		window.serverInfo.sessions = newArray.sort((a, b) => a.name > b. name);
 
 		// actions
@@ -187,34 +187,34 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).on("cmd-authorize-login", function (event) {
 		// show menu
-		var tar = document.getElementById("main-window-wrappper");	
+		var tar = document.getElementById("main-window-wrappper");
 		if (tar != null)
 		{
 			tar.classList.remove("content-wrapper-nonactive");
 			tar.classList.add("content-wrapper");
 		};
-		
+
 		var aside = document.getElementById("main-window-aside");
 		if (aside != null)
 		{
 			aside.classList.remove("d-none");
 		}
-		
+
 		var abutton = document.getElementById("main-window-button-menu");
 		if (abutton != null)
 		{
 			abutton.classList.remove("d-none");
 		}
-	
+
 		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
 		{
 			$("#btn_lock_ui").addClass('disabled');
 			setTimeout(function(){
-				var supprPwWarnCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') + 
+				var supprPwWarnCheckbox = '<div class="text-end text-muted mt-1 me-3 mb-2">'+$.i18n('dashboard_message_do_not_show_again') +
 					': <input id="chk_suppressDefaultPw" type="checkbox" class="form-check-input" onChange="suppressDefaultPwWarning()"> </div>';
 				showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a class="ms-1 callout-link" style="cursor:pointer;" onClick="changePassword()">' +
 					$.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox);
-			}, 500);			
+			}, 500);
 		}
 		else
 		{
@@ -228,13 +228,13 @@ $(document).ready(function () {
 		}
 
 		requestServerConfigSchema();
-		
+
 		resizeMainWindow();
 	});
 
 	$(window.hyperhdr).on("cmd-authorize-newPassword", function (event) {
 		if (event.response.success === true) {
-			toaster('success', $.i18n("infoDialog_general_success_title"), $.i18n("InfoDialog_changePassword_success"), 500);			
+			toaster('success', $.i18n("infoDialog_general_success_title"), $.i18n("InfoDialog_changePassword_success"), 500);
 			// not necessarily true, but better than nothing
 			window.defaultPasswordIsSet = false;
 			$("#btn_lock_ui").css('color','inherit');
@@ -255,18 +255,18 @@ $(document).ready(function () {
 		}
 		else {
 			// hide menu
-			var tar = document.getElementById("main-window-wrappper");	
-			
+			var tar = document.getElementById("main-window-wrappper");
+
 			if (tar != null)
 			{
 				tar.classList.add("content-wrapper-nonactive");
 				tar.classList.remove("content-wrapper");
 			};
-			
+
 			var aside = document.getElementById("main-window-aside");
 			if (aside != null)
 				aside.classList.add("d-none");
-			
+
 			var abutton = document.getElementById("main-window-button-menu");
 			if (abutton != null)
 				abutton.classList.add("d-none");
@@ -326,12 +326,12 @@ $(document).ready(function () {
 
 	$(window.hyperhdr).on("cmd-videomodehdr-update", function (event) {
 		window.serverInfo.videomodehdr = event.response.data.videomodehdr;
-	});	
+	});
 
 	$(window.hyperhdr).on("cmd-grabberstate-update", function (event) {
 		window.serverInfo.grabberstate = event.response.data;
 		$(window.hyperhdr).trigger("grabberstate-update", event.response.data);
-	});	
+	});
 
 	$(window.hyperhdr).on("cmd-components-update", function (event) {
 		let obj = event.response.data
@@ -394,12 +394,12 @@ $(document).ready(function () {
 	$(".nav-link.system-link").bind('click', systemLink);
 
 	$('#btn_wizard_byteorder').off().on('click', startWizardRGB);
-		
-	$(document).on('collapsed.lte.pushmenu', function(){ 
+
+	$(document).on('collapsed.lte.pushmenu', function(){
 		document.getElementById('showMenuIcon').style.opacity = 0;
 		document.getElementById('hideMenuIcon').style.opacity = 1;
 	});
-	
+
 	$(document).on('shown.lte.pushmenu', function(){
 		document.getElementById('showMenuIcon').style.opacity = 1;
 		document.getElementById('hideMenuIcon').style.opacity = 0;
@@ -408,25 +408,25 @@ $(document).ready(function () {
 
 function suppressDefaultPwWarning()
 {
-	if (document.getElementById('chk_suppressDefaultPw').checked) 
+	if (document.getElementById('chk_suppressDefaultPw').checked)
 		setStorage("suppressDefaultPwWarning", "true");
-	else 
+	else
 		setStorage("suppressDefaultPwWarning", "false");
 }
 
 function suppressErrorDetectedWarningCheckbox()
 {
-	if (document.getElementById('chk_suppressErrorDetectedWarning').checked) 
+	if (document.getElementById('chk_suppressErrorDetectedWarning').checked)
 		setStorage("suppressErrorDetectedWarning", "true");
-	else 
+	else
 		setStorage("suppressErrorDetectedWarning", "false");
 }
 
 function suppressMissingLutWarning()
 {
-	if (document.getElementById('chk_suppressMissingLutWarning').checked) 
+	if (document.getElementById('chk_suppressMissingLutWarning').checked)
 		setStorage("suppressMissingLutWarning", "true");
-	else 
+	else
 		setStorage("suppressMissingLutWarning", "false");
 }
 
@@ -441,8 +441,8 @@ $("#btn_darkmode").off().on("click",function(e){
 	else {
 		handleLightMode();
 		setStorage("darkMode", "off", false);
-		setStorage("darkModeOverwrite", true, true);		
-	}	
+		setStorage("darkModeOverwrite", true, true);
+	}
 });
 
 $(window).on('resize', function() {
@@ -450,9 +450,9 @@ $(window).on('resize', function() {
 });
 
 function resizeMainWindow()
-{	
-	//document.title = ($('#hyper-subpage').width());	
-    if(parseInt($("#main-window-aside").css('margin-left')) < -50) 
+{
+	//document.title = ($('#hyper-subpage').width());
+    if(parseInt($("#main-window-aside").css('margin-left')) < -50)
 	{
 		$('#page-content').addClass('main-no-margin');
 		$('#page-content').addClass('small-me');

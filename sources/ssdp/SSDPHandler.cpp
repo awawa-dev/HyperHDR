@@ -53,8 +53,8 @@ void SSDPHandler::initServer()
 			Warning(_log, "Could not obtain the local address. Retry later (%i/%i)", (DEFAULT_RETRY - _retry + 1), DEFAULT_RETRY);
 			QTimer::singleShot(30000, this, [this]() {
 				if (!_running && _localAddress.isEmpty() && _retry > 0)
-					initServer();				
-			});			
+					initServer();
+			});
 			_retry--;
 		}
 		else
@@ -76,7 +76,7 @@ void SSDPHandler::initServer()
 	// listen for mSearchRequestes
 	connect(this, &SSDPServer::msearchRequestReceived, this, &SSDPHandler::handleMSearchRequest);
 
-	handleWebServerStateChange(true);	
+	handleWebServerStateChange(true);
 }
 
 void SSDPHandler::stopServer()
@@ -106,7 +106,7 @@ void SSDPHandler::handleWebServerStateChange(bool newState)
 			Warning(_log, "Could not start the SSDP server");
 	}
 	else
-	{				
+	{
 		emit newSsdpXmlDesc("");
 		sendAnnounceList(false);
 		stop();

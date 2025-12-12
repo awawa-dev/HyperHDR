@@ -6,7 +6,7 @@
 			"type" : "string",
 			"required" : true,
 			"enum" : ["video-crop"]
-		},		
+		},
 		"tan" : {
 			"type" : "integer"
 		},
@@ -15,7 +15,7 @@
 			"type": "object",
 			"required": true,
 			"properties":
-			{				
+			{
 				"left":
 				{
 					"type": "integer",

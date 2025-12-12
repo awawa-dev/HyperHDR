@@ -203,7 +203,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	qint64 timeTotal = InternalClock::nowPrecise() - begin;
 
-	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));	
+	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
 
 	if (response.error())
 		Error(_log, "Reply error. Reason: %s", QSTRING_CSTR(response.getErrorReason()));
@@ -243,7 +243,7 @@ void NetworkHelper::abortOperation()
 {
 	if (_networkReply != nullptr)
 	{
-		_timeout = true;		
+		_timeout = true;
 		_networkReply->abort();
 	}
 }

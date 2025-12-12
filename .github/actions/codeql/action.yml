@@ -18,7 +18,7 @@ inputs:
 
 runs:
   using: "composite"
-  steps:    
+  steps:
   - name: Install libraries
     shell: bash
     run: |
@@ -93,7 +93,7 @@ runs:
 
   - name: Filter out external libraries
     uses: advanced-security/filter-sarif@v1
-    with:    
+    with:
       patterns: |
         -external/**
       input: sarif-results/${{ inputs.language }}.sarif

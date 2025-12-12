@@ -20,11 +20,11 @@ jobs:
     runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     env:
       platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
-    strategy:      
+    strategy:
       matrix:
         distroName: [debian]
         distroVersion: [bullseye, bookworm, trixie]
-        architecture: [amd64, armhf, arm64]        
+        architecture: [amd64, armhf, arm64]
         include:
           - distroName: ubuntu
             distroVersion: jammy
@@ -42,7 +42,7 @@ jobs:
             distroVersion: latest
             architecture: amd64
 
-    steps:   
+    steps:
       - uses: actions/checkout@v6.0.0
         with:
           submodules: true
@@ -106,7 +106,7 @@ jobs:
     runs-on: ${{ matrix.JOB_RUNNER }}
     strategy:
       matrix:
-        include:        
+        include:
           - JOB_RUNNER: macos-15
             JOB_NAME: "macOS 15 (arm64: M1/M2/M3/M4)"
             NICE_NAME: arm64
@@ -131,7 +131,7 @@ jobs:
       - name: Install deps
         shell: bash
         run: brew install -q qtbase qtserialport ccache zstd webp jpeg-turbo flatbuffers pkg-config || true
-            
+
       - name: Build packages
         env:
             PLATFORM: osx
@@ -152,7 +152,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v5.0.0
         with:
-            name: release-artifact-${{ matrix.JOB_RUNNER }}      
+            name: release-artifact-${{ matrix.JOB_RUNNER }}
             path: build/Hyper*.dmg
 
       - name: Upload artifacts from commit
@@ -188,14 +188,14 @@ jobs:
 
       - name: Python 3.13 for aqtinstall
         if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
-        uses: actions/setup-python@v6      
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
       - name: "Install Toolkit: Qt, TurboJPEG and NSIS"
         if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
         shell: powershell
-        run: |          
+        run: |
           Invoke-WebRequest -Method Get -Uri https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.3/libjpeg-turbo-3.0.3-vc64.exe -OutFile turbojpeg.exe -UseBasicParsing
           Start-Process -Wait turbojpeg.exe -ArgumentList "/S","/D=$env:TOOLKIT_DIR\libjpeg-turbo64"
           Invoke-WebRequest -UserAgent "Wget" -Uri "https://prdownloads.sourceforge.net/nsis/nsis-3.11-setup.exe" -OutFile nsis.exe
@@ -218,8 +218,8 @@ jobs:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ github.run_id }}
             restore-keys: ${{ runner.os }}-ccache
-          
-      - name: Build packages        
+
+      - name: Build packages
         env:
           PLATFORM: windows
           VCINSTALLDIR: 'C:/Program Files/Microsoft Visual Studio/${{ env.MSVC }}/Enterprise/VC'
@@ -243,7 +243,7 @@ jobs:
         with:
           name: release-artifact-windows
           path: build/Hyper*
-          
+
       - name: Upload artifacts from commit
         if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v5.0.0
@@ -382,7 +382,7 @@ jobs:
         with:
           path: artifacts
           pattern: release-artifact-*
-          merge-multiple: true          
+          merge-multiple: true
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2.5.0

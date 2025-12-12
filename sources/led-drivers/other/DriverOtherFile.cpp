@@ -11,7 +11,7 @@ DriverOtherFile::DriverOtherFile(const QJsonObject& deviceConfig)
 	, _file(nullptr)
 	, _printTimeStamp(true)
 	, _infiniteColorEngine(false)
-{	
+{
 }
 
 bool DriverOtherFile::init(QJsonObject deviceConfig)
@@ -101,7 +101,7 @@ std::pair<bool, int> DriverOtherFile::writeInfiniteColors(SharedOutputColors non
 }
 
 int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const SharedOutputColors& nonlinearRgbColors)
-{	
+{
 	QTextStream out(_file);
 	size_t result = 0;
 

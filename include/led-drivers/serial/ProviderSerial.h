@@ -22,7 +22,7 @@ protected:
 	QJsonObject discover(const QJsonObject& params) override;
 	int writeBytes(const qint64 size, const uint8_t* data);
 
-	QString _deviceName;	
+	QString _deviceName;
 	QSerialPort* _serialPort;
 	qint32 _baudRate_Hz;
 

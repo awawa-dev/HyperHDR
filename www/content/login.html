@@ -1,5 +1,5 @@
 <div class="container pt-5 mt-5" style="max-width: 500px;">
-	<div class="card card-danger">				
+	<div class="card card-danger">
 		<div class="card-header"><svg data-src="svg/login_user_icon.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>Login</span></div>
 		<div class="card-body">
 			<form>
@@ -11,7 +11,7 @@
 					<div class="col-12 mt-1">
 						<div class="d-flex flex-row-reverse input-group w-100 mt-1 mb-1">
 							<input name="show_pw" class="form-check-input" style="margin: 0px;" type="checkbox" id="show_pw" />
-							<label id="labShowHide" for="show_pw" class="form-check-label small pe-2 d-flex align-items-center" style="display: inline;">show password:</label>						
+							<label id="labShowHide" for="show_pw" class="form-check-label small pe-2 d-flex align-items-center" style="display: inline;">show password:</label>
 						</div>
 					</div>
 				</div>
@@ -26,7 +26,7 @@
 
 </div>
 
-<script>	
+<script>
 	removeOverlay();
 
 	$("#password")
@@ -38,6 +38,6 @@
 	$("#show_pw")
 		.off()
 		.on("change", function (e) {
-			e.currentTarget.checked ? $("#password").attr("type", "text") : $("#password").attr("type", "password");			
+			e.currentTarget.checked ? $("#password").attr("type", "text") : $("#password").attr("type", "password");
 		});
 </script>

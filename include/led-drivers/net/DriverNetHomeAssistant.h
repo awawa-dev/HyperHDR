@@ -4,7 +4,7 @@
 	#include <QJsonObject>
 	#include <QJsonArray>
 	#include <memory>
-	#include <list>	
+	#include <list>
 #endif
 
 #include <led-drivers/LedDevice.h>

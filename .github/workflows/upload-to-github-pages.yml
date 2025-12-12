@@ -2,7 +2,7 @@ name: HyperHDR Package Build (Github Pages Repo)
 
 on:
   push:
-    tags:        
+    tags:
       - '*'
   workflow_dispatch:
 
@@ -19,11 +19,11 @@ jobs:
     runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     env:
       platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
-    strategy:      
+    strategy:
       matrix:
         distroName: [debian]
         distroVersion: [bullseye, bookworm, trixie]
-        architecture: [amd64, armhf, arm64]        
+        architecture: [amd64, armhf, arm64]
         include:
           - distroName: ubuntu
             distroVersion: jammy
@@ -41,7 +41,7 @@ jobs:
             distroVersion: latest
             architecture: amd64
 
-    steps:   
+    steps:
       - uses: actions/checkout@v6.0.0
         with:
           submodules: true
@@ -75,12 +75,12 @@ jobs:
         run: |
           mkdir -p ${{ env.REPO_DIR }}
           mkdir -p repo/others
-          mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||: 
-          mv deploy/Hyper*.rpm repo/others ||: 
-          mv deploy/Hyper*.zst repo/others ||: 
-          rm -r repo/pool/ArchLinux ||: 
+          mv deploy/Hyper*.deb ${{ env.REPO_DIR }} ||:
+          mv deploy/Hyper*.rpm repo/others ||:
+          mv deploy/Hyper*.zst repo/others ||:
+          rm -r repo/pool/ArchLinux ||:
 
-      - name: Upload artifacts from commit        
+      - name: Upload artifacts from commit
         uses: actions/upload-artifact@v5.0.0
         with:
           name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
@@ -100,7 +100,7 @@ jobs:
         with:
           path: repo
           pattern: release-artifact-*
-          merge-multiple: true    
+          merge-multiple: true
       - name: Display structure of artifacts
         run: ls -R repo
       - name: Deploy the packages

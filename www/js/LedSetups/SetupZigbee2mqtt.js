@@ -8,8 +8,8 @@ function startWizardZigbee2mqtt(e)
     requestLedDeviceDiscovery('zigbee2mqtt').then( (result) => {
 
         let zigbeeConfig = {};
-                    
-        zigbeeConfig.type = 'zigbee2mqtt';  
+
+        zigbeeConfig.type = 'zigbee2mqtt';
         zigbeeConfig.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
         zigbeeConfig.transition = conf_editor.getEditor("root.specificOptions.transition").getValue();
         zigbeeConfig.constantBrightness = conf_editor.getEditor("root.specificOptions.constantBrightness").getValue();
@@ -48,6 +48,6 @@ function startWizardZigbee2mqtt(e)
         {
             alert($.i18n('wiz_mqtt_error'));
         }
-                
+
     });
 }

@@ -372,7 +372,7 @@ std::pair<bool, int> DriverNetLifx::writeInfiniteColors(SharedOutputColors nonli
 void DriverNetLifx::setPower(uint16_t power)
 {
 	Debug(_log, "setPower: %i", power);
-	sendLifxSetPower(*_udpSocket, lamps, power);	
+	sendLifxSetPower(*_udpSocket, lamps, power);
 }
 
 bool DriverNetLifx::powerOn()
@@ -424,7 +424,7 @@ void DriverNetLifx::identify(const QJsonObject& params)
 			{
 				Debug(_log, "Testing lamp %s: %s - %s", QSTRING_CSTR(name) , QSTRING_CSTR(ipAddress), QSTRING_CSTR(macAddress));
 
-				std::vector<std::pair<IpMacAddress, linalg::vec<float, 3>>> lights;				
+				std::vector<std::pair<IpMacAddress, linalg::vec<float, 3>>> lights;
 				lights.push_back({ std::tuple<QString, QHostAddress, MacAddress>(name, address, mac.value()),  { 0.0, 0.0, 1.0 } });
 				sendLifxSetPower(*socket, { lights.front().first }, POWER_ON);
 				sendLifxColors(*socket, lights, WHITE_COLOR_TEMPERATURE, 250);

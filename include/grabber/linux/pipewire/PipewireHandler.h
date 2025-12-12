@@ -82,7 +82,7 @@ public:
 	void startSession(QString restorationToken, uint32_t requestedFPS);
 	void closeSession();
 	bool hasError();
-	
+
 	int		getVersion();
 	QString getToken();
 	QString getError();
@@ -107,7 +107,7 @@ public Q_SLOTS:
 	void onStateChanged(enum pw_stream_state old, enum pw_stream_state state, const char* error);
 	void onProcessFrame();
 	void onCoreError(uint32_t id, int seq, int res, const char *message);
-	
+
 signals:
 	void onParamsChangedSignal(uint32_t id, const struct spa_pod* param);
 	void onStateChangedSignal(enum pw_stream_state old, enum pw_stream_state state, const char* error);
@@ -205,10 +205,10 @@ private:
 		GLenum glFormat;
 		const char* friendlyName;
 		bool hasDma;
-		QVector<uint64_t> modifiers;		
+		QVector<uint64_t> modifiers;
 	};
 
-	supportedDmaFormat _supportedDmaFormatsList[4] = {						
+	supportedDmaFormat _supportedDmaFormatsList[4] = {
 			{ DRM_FORMAT_XRGB8888, SPA_VIDEO_FORMAT_BGRx, GL_BGRA, "DRM_FORMAT_XRGB8888", false},
 			{ DRM_FORMAT_ARGB8888, SPA_VIDEO_FORMAT_BGRA, GL_BGRA, "DRM_FORMAT_ARGB8888", false},
 			{ DRM_FORMAT_XBGR8888, SPA_VIDEO_FORMAT_RGBx, GL_RGBA, "DRM_FORMAT_XBGR8888", false},

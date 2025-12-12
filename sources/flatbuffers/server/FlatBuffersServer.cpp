@@ -154,7 +154,7 @@ void FlatBuffersServer::handleSettingsUpdate(settings::type type, const QJsonDoc
 		_quarterOfFrameMode = obj["quarterOfFrameMode"].toBool(false);
 
 		Info(_log, "Tone mapping: %i", _flatbufferToneMappingMode);
-		Info(_log, "NV12 quarter of frame mode: %i", _quarterOfFrameMode);		
+		Info(_log, "NV12 quarter of frame mode: %i", _quarterOfFrameMode);
 	}
 }
 
@@ -201,7 +201,7 @@ void FlatBuffersServer::handlerNewConnection()
 			FlatBuffersServerConnection* client = new FlatBuffersServerConnection(nullptr, socket, _timeout, this);
 			QString anyError = client->getErrorString();
 			if (anyError.isEmpty())
-			{				
+			{
 				// internal
 				setupClient(client);
 			}
@@ -358,7 +358,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 	{
 		if (_currentLutPixelFormat != PixelFormat::RGB24)
 		{
-			_currentLutPixelFormat = PixelFormat::RGB24;						
+			_currentLutPixelFormat = PixelFormat::RGB24;
 			if (_hdrToneMappingEnabled)
 			{
 				loadLutFile();
@@ -370,7 +370,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 		if (flatImage->size != flatImage->width * flatImage->height * 3 || flatImage->size == 0)
 		{
 			Error(_log, "The RGB image data size does not match the width and height or it's empty. Image size: %i (%i x %i)", flatImage->size, flatImage->width, flatImage->height);
-		}		
+		}
 		else
 		{
 			Image<ColorRgb> image(flatImage->width, flatImage->height);
@@ -420,7 +420,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 			if (_quarterOfFrameMode)
 			{
-				FrameDecoder::processQImage(					
+				FrameDecoder::processQImage(
 					flatImage->firstPlane.data, flatImage->secondPlane.data, flatImage->width, flatImage->height, flatImage->width, PixelFormat::NV12, _lut.data(), image);
 			}
 			else
