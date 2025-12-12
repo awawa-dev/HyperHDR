@@ -50,7 +50,7 @@ AutomaticToneMapping::AutomaticToneMapping() :
 AutomaticToneMapping* AutomaticToneMapping::prepare()
 {
 	if (_enabled)
-	{		
+	{
 		return this;
 	}
 	else

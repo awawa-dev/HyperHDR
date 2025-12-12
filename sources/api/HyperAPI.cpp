@@ -1,4 +1,4 @@
-#ifndef PCH_ENABLED	
+#ifndef PCH_ENABLED
 	#include <QResource>
 	#include <QBuffer>
 	#include <QByteArray>
@@ -224,7 +224,7 @@ void HyperAPI::initialize()
 bool HyperAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (BaseAPI::setHyperhdrInstance(inst))
-	{		
+	{
 		Debug(_log, "Client '%s' switch to HyperHDR instance %d", QSTRING_CSTR(_peerAddress), inst);
 		return true;
 	}
@@ -398,7 +398,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 
 			QJsonArray sessions;
 
-#ifdef ENABLE_BONJOUR					
+#ifdef ENABLE_BONJOUR
 			QList<DiscoveryRecord> services;
 			if (_discoveryWrapper != nullptr)
 				SAFE_CALL_0_RET(_discoveryWrapper.get(), getAllServices, QList<DiscoveryRecord>, services);
@@ -527,8 +527,8 @@ void HyperAPI::handleBenchmarkCommand(const QJsonObject& message, const QString&
 {
 	const QString& subc = message["subcommand"].toString().trimmed();
 	int status = message["status"].toInt();
-	
-	emit _instanceManager->SignalBenchmarkCapture(status, subc);	
+
+	emit _instanceManager->SignalBenchmarkCapture(status, subc);
 
 	sendSuccessReply(command, tan);
 }
@@ -998,9 +998,9 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 		LutCalibrator* lutCalibrator = new LutCalibrator(_instanceManager->getRootPath(), getActiveComponent(), debug, lchCorrection);
 		lutCalibrator->moveToThread(lutThread);
 		connect(lutThread, &QThread::finished, lutCalibrator, &LutCalibrator::deleteLater);
-		connect(lutThread, &QThread::started, lutCalibrator, &LutCalibrator::startHandler);		
+		connect(lutThread, &QThread::started, lutCalibrator, &LutCalibrator::startHandler);
 		connect(lutCalibrator, &LutCalibrator::SignalLutCalibrationUpdated, this, &CallbackAPI::lutCalibrationUpdateHandler);
-		
+
 		_lutCalibratorThread = std::unique_ptr<QThread, std::function<void(QThread*)>>(lutThread,
 			[lutCalibrator](QThread* mqttThread) {
 				lutCalibrator->cancelCalibrationSafe();
@@ -1017,7 +1017,7 @@ void HyperAPI::handleLutCalibrationCommand(const QJsonObject& message, const QSt
 		sendErrorReply("The command does not have any effect", command + "-" + subcommand, tan);
 		return;
 	}
-	
+
 	sendSuccessReply(command, tan);
 }
 
@@ -1159,7 +1159,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 		else
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);
-		}		
+		}
 	}
 }
 

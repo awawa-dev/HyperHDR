@@ -1,7 +1,7 @@
 $(document).ready(function()
 {
 	performTranslation();
-	
+
 	function createDivRemoteTable(hid, bid, cont)
 	{
 		var table = document.createElement('div');
@@ -12,23 +12,23 @@ $(document).ready(function()
 		table.style.marginBottom = "0px";
 		thead.className = hid + " fw-bold container";
 		tbody.className = bid + " container";
-			
-		table.appendChild(thead);	
+
+		table.appendChild(thead);
 		table.appendChild(tbody);
 
 		$('#'+cont).append(table);
 	}
-	
+
 	function createRemoteTableRow(list, head, align)
 	{
 		var row = document.createElement('div');
-		
+
 		row.className = 'row row-cols-4 mb-2 border-bottom';
 
 		for(var i = 0; i < list.length; i++)
 		{
 			var el = document.createElement('div');
-			
+
 			if (i == 0)
 				el.className = 'ps-1 pe-0 col-xl-2 col-sm-2 col-xs-2';
 			else if (i == 2)
@@ -37,10 +37,10 @@ $(document).ready(function()
 				el.className = 'ps-1 pe-0 col-xl-5 col-sm-4 col-xs-4';
 			else
 				el.className = 'ps-1 pe-0 col-xl-4 col-sm-4 col-xs-4';
-			
+
 			if(head === true)
 				el.style.fontWeight = "bold";
-			
+
 			if(align)
 				el.style.verticalAlign = "middle";
 
@@ -84,8 +84,8 @@ $(document).ready(function()
 
 	const editor_color = createJsonEditor('conf_cont', {
 		color              : window.schema.color.properties.channelAdjustment.items
-	}, true, true);	
-	
+	}, true, true);
+
 	function BindColorCalibration()
 	{
 		for(var key in window.schema.color.properties.channelAdjustment.items.properties)
@@ -93,34 +93,34 @@ $(document).ready(function()
 			const sourceKey = key;
 			const sourcePath = 'root.color.'+key;
 			const selectEditor = editor_color.getEditor(sourcePath);
-			
+
 			if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
-				selectEditor.container.hidden = true; 
+				selectEditor.container.hidden = true;
 			else
 				editor_color.watch(sourcePath,() => {
 					if (colorAdjustmentEnabled)
 					{
 						const editor = editor_color.getEditor(sourcePath);
-					
+
 						if (editor.format === "colorpicker")
 							requestAdjustment(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
 						else if (editor.getValue() != null)
 							requestAdjustment(sourceKey, JSON.stringify(editor.getValue()));
 					}
-				});				
+				});
 		}
 	}
-	
+
 	function updateColorAdjustment()
-	{	
+	{
 		if (Array.isArray(window.serverInfo.adjustment) && window.serverInfo.adjustment.length > 0)
 			editor_color.getEditor("root.color").setValue(window.serverInfo.adjustment[0]);
 		else if (window.serverConfig['color'].hasOwnProperty('channelAdjustment') && window.serverConfig['color'].channelAdjustment.length > 0)
 			editor_color.getEditor("root.color").setValue(window.serverConfig['color'].channelAdjustment[0]);
 
 		BindColorCalibration();
-	}	
-	
+	}
+
 
 	function sendEffect()
 	{
@@ -216,7 +216,7 @@ $(document).ready(function()
 					break;
 				case "RAWUDPSERVER":
 					owner = $.i18n('general_comp_RAWUDPSERVER');
-					break;					
+					break;
 			}
 
 			if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
@@ -235,7 +235,7 @@ $(document).ready(function()
 		var btn_auto_text = (window.serverInfo.priorities_autoselect ? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
 		var btn_call_state = (clearAll ? "" : "disabled");
 		$('#auto_btn').html('<button id="srcBtn' + i + '" type="button" ' + btn_auto_state + ' class="mb-1 btn ' + btn_auto_color + '" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">' + $.i18n('remote_input_label_autoselect') + ' (' + btn_auto_text + ')</button>');
-		$('#auto_btn').append('<button type="button" ' + btn_call_state + ' class="mb-1 btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">' + $.i18n('remote_input_clearall') + '</button>');		
+		$('#auto_btn').append('<button type="button" ' + btn_call_state + ' class="mb-1 btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">' + $.i18n('remote_input_clearall') + '</button>');
 	}
 
 	function updateLedMapping()
@@ -247,14 +247,14 @@ $(document).ready(function()
 		{
 			var btn_style = (mapping == mappingList[ix]) ? 'btn-success' : 'btn-primary';
 			var newRow = $('<div class="row">').append('<button type="button" id="lmBtn_' + mappingList[ix] + '" class="btn ' + btn_style + '" style="margin:3px;min-width:200px" onclick="requestMappingType(\'' + mappingList[ix] + '\');">' + $.i18n('remote_maptype_label_' + mappingList[ix]) + '</button>');
-			
+
 			$('#mappingsbutton').append(newRow);
 		}
 	}
 
 	function initComponents()
 	{
-		var components = window.comps;		
+		var components = window.comps;
 
 		for (const comp of components)
 		{
@@ -291,12 +291,12 @@ $(document).ready(function()
 	{
 		let compButton = $(`#comp_btn_${component.name}`);
 		if (compButton.length)
-		{		
+		{
 			compButton.off('change');
-				
+
 			compButton.prop('checked', component.enabled);
 			compButton.prop('disabled', false);
-				
+
 			compButton.change(e =>
 			{
 				e.currentTarget.setAttribute('disabled', 'disabled');
@@ -317,7 +317,7 @@ $(document).ready(function()
 			for (var i = 0; i < newEffects.length; i++)
 			{
 				var effectName = newEffects[i].name;
-				
+
 				if (effectName.indexOf('Music:') >= 0)
 					soundEffects.push(effectName);
 				else
@@ -349,14 +349,14 @@ $(document).ready(function()
 
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
-	{		      
+	{
 		cpcolor = getStorage('rmcpcolor');
-		
+
 		if (!(/^#[0-9A-F]{6}$/i.test(cpcolor)))
 		{
-			cpcolor = "#000000";			
-		}		
-			
+			cpcolor = "#000000";
+		}
+
 		rgb = hexToRgb(cpcolor);
 	}
 
@@ -367,7 +367,7 @@ $(document).ready(function()
 	}
 
 	var pickerInit = false;
-	const colorParent = document.querySelector('#remote_color');	
+	const colorParent = document.querySelector('#remote_color');
 	const picker = new Picker(
 	{
 		parent: colorParent,
@@ -377,39 +377,39 @@ $(document).ready(function()
 		editorFormat: 'rgb',
 		popup: 'bottom',
 		onChange: function(color)
-		{			
+		{
 			if (color != null && color.rgba != null && !isNaN(color.rgba[0]) && !isNaN(color.rgba[1]) && !isNaN(color.rgba[2]))
 			{
 				var myHex = (color.hex.length >= 7) ? color.hex.slice(0, 7) : color.hex;
-				
+
 				$('#remote_color_target').val(color.rgbString);
 				document.querySelector('#remote_color_target_invoker').style.backgroundColor = color.rgbaString;
-				
+
 				if (!pickerInit)
 					pickerInit = true;
 				else
-				{														
+				{
 					rgb.r = color.rgba[0];
 					rgb.g = color.rgba[1];
 					rgb.b = color.rgba[2];
 					sendColor();
 					setStorage('rmcpcolor', myHex);
-					updateInputSelect();					
+					updateInputSelect();
 				}
 			}
 		}
 	});
-	
+
 	$("#remote_color_target_invoker").off().on("click", function()
 	{
 		picker.openHandler();
 	});
-	
+
 	$("#remote_color_target").off().on("click", function()
 	{
 		picker.openHandler();
 	});
-	
+
 	$("#reset_color").off().on("click", function()
 	{
 		requestPriorityClear();
@@ -433,7 +433,7 @@ $(document).ready(function()
 	{
 		if (this.id == "remote_input_rescol")
 		{
-			sendColor();			
+			sendColor();
 		}
 		else
 			sendEffect();
@@ -457,7 +457,7 @@ $(document).ready(function()
 				tempCanvas.height = imgLoader.naturalHeight;
 				tempCanvas.width = imgLoader.naturalWidth;
 				const ctx = tempCanvas.getContext('2d');
-				ctx.drawImage(imgLoader, 0, 0);				
+				ctx.drawImage(imgLoader, 0, 0);
 
 				lastImgData = tempCanvas.toDataURL('image/png').split(",")[1];
 				lastImgWidth = tempCanvas.width;
@@ -467,7 +467,7 @@ $(document).ready(function()
 			imgLoader.src = src;
 		});
 	});
-	
+
 	function StepUpDown(me, where)
 	{
 		var target = me.parentElement.parentElement.firstElementChild;
@@ -480,8 +480,8 @@ $(document).ready(function()
 			$(target).trigger('change');
 		};
 	};
-	
-	$("#effect-stepper-down").off().on("click", function(event) { StepUpDown(this, "down"); });	
+
+	$("#effect-stepper-down").off().on("click", function(event) { StepUpDown(this, "down"); });
 	$("#effect-stepper-up").off().on("click", function(event) { StepUpDown(this, "up"); });
 
 	//force first update
@@ -491,8 +491,8 @@ $(document).ready(function()
 	updateVideoModeHdr();
 	updateEffectlist();
 	updateColorAdjustment();
-	
-	
+
+
 	var instHeaders = document.getElementsByClassName("card-header");
 	Array.prototype.forEach.call(instHeaders, function(instHeader, index) {
 		if (!instHeader.classList.contains('not-instance'))
@@ -522,7 +522,7 @@ $(document).ready(function()
 		}
 		colorAdjustmentEnabled = true;
 	});
-	
+
 	$(window.hyperhdr).on("cmd-imageToLedMapping-update", function(event)
 	{
 		window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType;

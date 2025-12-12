@@ -156,17 +156,17 @@ public:
 
 	static void test();
 
-public slots:	
+public slots:
 	void handleSignalInstanceSettingsChanged(settings::type type, const QJsonDocument& config);
-	
+
 private:
 	bool _enabled;
 
 	LedString::ColorOrder _colorOrder;
 
-	static constexpr int LUT_SIZE = 512;	
+	static constexpr int LUT_SIZE = 512;
 	static constexpr int LUT_DIMENSION = 9;
-	CalibrationData _colorCalibrationData;	
+	CalibrationData _colorCalibrationData;
 
 	std::optional <linalg::vec<float, 3>> _temperature_tint;
 

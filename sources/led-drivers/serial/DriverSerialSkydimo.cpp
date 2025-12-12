@@ -48,7 +48,7 @@ int DriverSerialSkydimo::writeFiniteColors(const std::vector<ColorRgb>& ledValue
 		_ledRGBCount = _ledCount * 3;
 		CreateHeader();
 	}
-	
+
 	auto bufferLength = _headerSize + ledValues.size() * sizeof(ColorRgb);
 
 	if (bufferLength > _ledBuffer.size())
@@ -61,10 +61,10 @@ int DriverSerialSkydimo::writeFiniteColors(const std::vector<ColorRgb>& ledValue
 
 	memcpy(writer, ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	writer += ledValues.size() * sizeof(ColorRgb);
-		
+
 	bufferLength = writer - _ledBuffer.data();
 
-	return writeBytes(bufferLength, _ledBuffer.data());	
+	return writeBytes(bufferLength, _ledBuffer.data());
 }
 
 LedDevice* DriverSerialSkydimo::construct(const QJsonObject& deviceConfig)

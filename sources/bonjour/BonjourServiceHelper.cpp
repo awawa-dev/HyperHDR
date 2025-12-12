@@ -386,7 +386,7 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 	mdns_string_t service_string = { serviceNameBuf.data(), strlen(serviceNameBuf.data()) };
 	mdns_string_t hostname_string = { hostnameBuf.data(), strlen(hostnameBuf.data()) };
 
-	// Build the service instance "<hostname>.<_service-name>._tcp.local." string	
+	// Build the service instance "<hostname>.<_service-name>._tcp.local." string
 	const QByteArray& serviceInstanceBuf = QString::asprintf("%.*s:%i.%.*s", MDNS_STRING_FORMAT(hostname_string), service_port, MDNS_STRING_FORMAT(service_string)).toLocal8Bit();
 	mdns_string_t service_instance_string = { serviceInstanceBuf.data(), strlen(serviceInstanceBuf.data()) };
 

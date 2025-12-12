@@ -19,7 +19,7 @@ private:
 	static QString			_ssdpXmlDesc;
 	static QString			_baseUrl;
 	QHash<QString, QString> _mimeDb;
-	Logger*					_log;	
+	Logger*					_log;
 	QString					_resourcePath;
 
 	void printErrorToReply(QtHttpReply* reply, QtHttpReply::StatusCode code, QString errorMessage);

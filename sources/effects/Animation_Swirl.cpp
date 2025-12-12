@@ -195,7 +195,7 @@ void Animation_Swirl::Init(
 		baS1.push_back({ (uint8_t)(x*10), 255,   0, 255, 255 });
 		baS1.push_back({ (uint8_t)(x*11), 255,   0, 128, 255 });
 		baS1.push_back({ 255, 255,   0,   0, 255 });
-		
+
 	}
 
 	if (_enableSecond && _custColors2.size() > 1)
@@ -233,7 +233,7 @@ bool Animation_Swirl::imageConicalGradient(HyperImage& painter, int /*centerX*/,
 
 	std::vector<uint8_t> arr;
 	for(const Animation_Swirl::SwirlGradient& item : bytearray)
-	{		
+	{
 		arr.push_back(item.items[0]);
 		arr.push_back(item.items[1]);
 		arr.push_back(item.items[2]);

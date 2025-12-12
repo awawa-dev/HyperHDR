@@ -333,7 +333,7 @@ int main(int argc, char** argv)
 
 		#ifdef _WIN32
 			SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		#endif	
+		#endif
 
 		try
 		{
@@ -356,7 +356,7 @@ int main(int argc, char** argv)
 					systray->loop();
 					});
 
-				timer->setInterval(200);			
+				timer->setInterval(200);
 				timer->start();
 			#endif
 

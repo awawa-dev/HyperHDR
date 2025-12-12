@@ -92,7 +92,7 @@ void LutLoader::loadLutFile(Logger* _log, PixelFormat color, const QList<QString
 					else
 					{
 						if (_log) Debug(_log, "Index 0 for HDR RGB");
-					}					
+					}
 
 					_lut.resize(LUT_FILE_SIZE + LUT_MEMORY_ALIGN);
 

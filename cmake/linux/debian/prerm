@@ -17,8 +17,8 @@ then
 	# disable user specific symlink
 	echo "Disabling service and removing entry"
 	systemctl -q disable hyperhdr"@${FOUND_USR}"
-	
-	rm -v /etc/systemd/system/hyperhdr@.service 2>/dev/null	
+
+	rm -v /etc/systemd/system/hyperhdr@.service 2>/dev/null
 
 elif [ -e /sbin/initctl ]
 then

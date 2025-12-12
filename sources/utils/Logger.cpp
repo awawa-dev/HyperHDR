@@ -3,7 +3,7 @@
 	#include <QFileInfo>
 	#include <QMutexLocker>
 	#include <QJsonObject>
-	
+
 	#include <iostream>
 	#include <algorithm>
 	#include <time.h>
@@ -167,7 +167,7 @@ Logger::~Logger()
 {
 	if (_hasConsole || _forceVerbose)
 	{
-#ifndef _WIN32				
+#ifndef _WIN32
 		std::cout << "\033[0m";
 #endif
 	}
@@ -206,7 +206,7 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 
 		localWriteMutex.lock();
 
-		#ifndef _WIN32				
+		#ifndef _WIN32
 			prefix = "\033[0m";
 			sufix = "\033[36;1m";
 		#else
@@ -245,10 +245,10 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 			.arg(sufix)
 			.toStdString()
 			<< std::endl;
-		#ifdef _WIN32		
+		#ifdef _WIN32
 			SetConsoleTextAttribute(consoleHandle, 11);
 		#endif
-		
+
 		localWriteMutex.unlock();
 	}
 
