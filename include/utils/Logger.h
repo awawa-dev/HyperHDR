@@ -155,6 +155,9 @@ private:
 		else if constexpr (std::is_arithmetic_v<D>) {
 			return std::forward<T>(v);
 		}
+		else if constexpr (std::is_same_v<D, std::string_view>) {
+			return QString::fromUtf8(v.data(), static_cast<int>(v.size()));
+		}
 		else {
 			return QString::fromLatin1(typeid(D).name());
 		}

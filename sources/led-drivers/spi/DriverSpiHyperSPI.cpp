@@ -117,7 +117,7 @@ void DriverSpiHyperSPI::createHeader()
 	qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 	_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
-	Debug(_log, "SPI header for {:d} leds: {:c}{:c}{:c} 0x%02x 0x%02x 0x%02x", _ledCount,
+	Debug(_log, "SPI header for {:d} leds: {:c} {:c} {:c} {:d} {:d} {:d}", _ledCount,
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
