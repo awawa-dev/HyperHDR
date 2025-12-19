@@ -38,7 +38,7 @@
 
 SystemWrapper::SystemWrapper(const QString& grabberName, Grabber* ggrabber)
 	: _grabberName(grabberName)
-	, _log(Logger::getInstance(grabberName))
+	, _log(grabberName)
 	, _configLoaded(false)
 	, _grabber(ggrabber)
 {
@@ -62,22 +62,22 @@ void SystemWrapper::stateChanged(bool /*state*/)
 
 void SystemWrapper::capturingExceptionHandler(const char* err)
 {
-	Error(_log, "Grabber signals error (%s)", err);
+	Error(_log, "Grabber signals error ({:s})", err);
 }
 
 SystemWrapper::~SystemWrapper()
 {
-	Debug(_log, "Closing grabber: %s", QSTRING_CSTR(_grabberName));
+	Debug(_log, "Closing grabber: {:s}", (_grabberName));
 }
 
 void SystemWrapper::signalRequestSourceHandler(hyperhdr::Components component, int hyperhdrInd, bool listen)
 {
 	if (component == hyperhdr::Components::COMP_SYSTEMGRABBER)
 	{
-		if (listen && !GRABBER_SYSTEM_CLIENTS.contains(hyperhdrInd))
-			GRABBER_SYSTEM_CLIENTS.append(hyperhdrInd);
-		else if (!listen)
-			GRABBER_SYSTEM_CLIENTS.removeOne(hyperhdrInd);
+		if (listen)
+			GRABBER_SYSTEM_CLIENTS.push_back(hyperhdrInd);
+		else
+			GRABBER_SYSTEM_CLIENTS.remove(hyperhdrInd);
 
 		if (GRABBER_SYSTEM_CLIENTS.empty())
 			stop();
@@ -106,12 +106,6 @@ void SystemWrapper::setSignalThreshold(double redSignalThreshold, double greenSi
 		_grabber->setSignalThreshold(redSignalThreshold, greenSignalThreshold, blueSignalThreshold, noSignalCounterThreshold);
 }
 
-void SystemWrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
-{
-	if (_grabber != nullptr)
-		_grabber->setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
-}
-
 void SystemWrapper::setSignalDetectionEnable(bool enable)
 {
 	if (_grabber != nullptr)
@@ -126,7 +120,7 @@ void SystemWrapper::setDeviceVideoStandard(const QString& device)
 
 void SystemWrapper::setHdrToneMappingEnabled(int mode)
 {
-	if (_grabber != NULL)
+	if (_grabber != nullptr)
 	{
 		_grabber->setHdrToneMappingEnabled(mode);
 	}

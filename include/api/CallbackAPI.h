@@ -28,7 +28,7 @@ class CallbackAPI : public BaseAPI
 	Q_OBJECT
 
 public:
-	CallbackAPI(Logger* log, bool localConnection, QObject* parent);
+	CallbackAPI(const LoggerName& log, bool localConnection, QObject* parent);
 
 	void subscribe(QJsonArray subsArr);
 
@@ -38,7 +38,7 @@ protected:
 	void stopDataConnections() override = 0;
 	void removeSubscriptions() override;
 	void addSubscriptions() override;
-	bool subscribeFor(const QString& cmd, bool unsubscribe = false);
+	bool subscribeFor(const QString& type, bool unsubscribe = false);
 
 signals:
 	void SignalCallbackToClient(QJsonObject);

@@ -35,7 +35,7 @@ void DriverSerialSkydimo::CreateHeader()
 	_ledBuffer[4] = 0;
 	_ledBuffer[5] = std::min(_ledCount, 255u);
 
-	Debug(_log, "Skydimo header for %d leds: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", _ledCount,
+	Debug(_log, "Skydimo header for {:d} leds: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", _ledCount,
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
@@ -43,7 +43,7 @@ int DriverSerialSkydimo::writeFiniteColors(const std::vector<ColorRgb>& ledValue
 {
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "Skydimo led count has changed (old: %d, new: %d). Rebuilding header.", _ledCount, ledValues.size());
+		Warning(_log, "Skydimo led count has changed (old: {:d}, new: {:d}). Rebuilding header.", _ledCount, ledValues.size());
 		_ledCount = (uint)ledValues.size();
 		_ledRGBCount = _ledCount * 3;
 		CreateHeader();

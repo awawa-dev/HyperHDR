@@ -14,6 +14,7 @@
 	#include <QMap>
 	#include <QMultiMap>
 	#include <QTimer>
+	#include <QByteArray>
 
 	#include <vector>
 	#include <map>
@@ -71,7 +72,8 @@ struct DisplayHandle
 		SafeRelease(&d3dSampler);
 		SafeRelease(&d3dBuffer);
 		SafeRelease(&d3dDuplicate);
-		printf("SmartPointer is removing: DisplayHandle for %s\n", QSTRING_CSTR(name));
+		QByteArray utf8Name = name.toUtf8();
+		printf("SmartPointer is removing: DisplayHandle for %s\n", utf8Name.constData());
 	};
 
 	void resetStats()

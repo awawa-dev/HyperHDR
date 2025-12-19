@@ -21,9 +21,7 @@ Option::Option(const QCommandLineOption& other)
 {}
 
 Option::~Option()
-{
-
-}
+= default;
 
 QString Option::value(Parser& parser) const
 {
@@ -32,7 +30,8 @@ QString Option::value(Parser& parser) const
 
 QString Option::name() const
 {
-	return this->names().last();
+	const QStringList n = this->names();
+	return n.last();
 }
 
 QString Option::getError() const

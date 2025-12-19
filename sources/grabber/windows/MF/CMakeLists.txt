@@ -4,7 +4,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/windows/MF)
 
 FILE ( GLOB GRABBER_MF_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(grabber-MF OBJECT ${GRABBER_MF_SOURCES} )
+add_library(grabber-MF OBJECT ${GRABBER_MF_SOURCES} "${CMAKE_SOURCE_DIR}/include/grabber/GrabberWorker.h" "${CMAKE_SOURCE_DIR}/sources/grabber/GrabberWorker.cpp")
 
 target_link_libraries(grabber-MF
 	Qt${Qt_VERSION}::Core

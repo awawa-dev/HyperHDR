@@ -19,7 +19,7 @@ class BaseAPI : public QObject
 	Q_OBJECT
 
 public:
-	BaseAPI(Logger* log, bool localConnection, QObject* parent);
+	BaseAPI(const LoggerName& log, bool localConnection, QObject* parent);
 
 	struct ImageCmdData
 	{
@@ -118,7 +118,7 @@ protected:
 	
 	bool _adminAuthorized;
 
-	Logger* _log;
+	LoggerName _log;
 	std::shared_ptr<HyperHdrManager>	_instanceManager;
 	std::shared_ptr<AccessManager>		_accessManager;	
 	std::shared_ptr<HyperHdrInstance>	_hyperhdr;

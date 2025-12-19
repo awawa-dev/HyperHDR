@@ -42,7 +42,7 @@ bool DriverNetUdpH801::init(QJsonObject deviceConfig)
 			_message[_prefix_size + _colors + i * _id_size + 2] = (_ids[i] >> 0x10) & 0xFF;
 		}
 
-		Debug(_log, "H801 using %s:%d", _address.toString().toStdString().c_str(), _port);
+		Debug(_log, "H801 using {:s}:{:d}", _address.toString().toStdString().c_str(), _port);
 
 		isInitOK = true;
 	}

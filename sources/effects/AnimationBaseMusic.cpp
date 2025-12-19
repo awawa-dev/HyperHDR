@@ -34,8 +34,7 @@ AnimationBaseMusic::AnimationBaseMusic() :
 };
 
 AnimationBaseMusic::~AnimationBaseMusic()
-{
-}
+= default;
 
 bool AnimationBaseMusic::isSoundEffect()
 {

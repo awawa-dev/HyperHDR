@@ -28,26 +28,27 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QSocketNotifier>
+#include <QByteArray>
 
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <cstdio>
 #include <cassert>
+#include <climits>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <sstream>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/mman.h>
-#include <sys/ioctl.h>
+#include <iostream>
 #include <linux/videodev2.h>
-#include <limits.h>
+#include <sstream>
+#include <stdexcept>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <base/HyperHdrInstance.h>
+#include <grabber/GrabberWorker.h>
 #include <utils/GlobalSignals.h>
 
 #include <grabber/linux/v4l2/V4L2Grabber.h>
@@ -64,7 +65,6 @@
 namespace
 {
 	#ifdef V4L2_PIX_FMT_P010
-		#pragma message "P010 is supported on the build machine"
 		bool supportedP010 = true;
 	#else
 		#pragma message "P010 is NOT supported on the build machine"
@@ -99,7 +99,7 @@ V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath
 	// Refresh devices
 	getV4L2devices();
 
-	Debug(_log, "P010 was %s on the build machine", (supportedP010) ? "supported" : "unsupported");
+	Debug(_log, "P010 was {:s} on the build machine", (supportedP010) ? "supported" : "unsupported");
 }
 
 QString V4L2Grabber::GetSharedLut()
@@ -120,7 +120,7 @@ QString V4L2Grabber::GetSharedLut()
 	QFileInfo info(ret);
 
 	ret = info.absoluteFilePath();
-	Debug(_log, "LUT folder location: '%s'", QSTRING_CSTR(ret));
+	Debug(_log, "LUT folder location: '{:s}'", (ret));
 	return ret;
 }
 
@@ -140,7 +140,7 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 	{
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
-			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
@@ -158,12 +158,12 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
-	uninit();
+	V4L2Grabber::uninit();
 }
 
 void V4L2Grabber::uninit()
@@ -171,7 +171,7 @@ void V4L2Grabber::uninit()
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 		stop();
 	}
 }
@@ -196,13 +196,13 @@ bool V4L2Grabber::init()
 				if (it.value().name == _deviceName)
 				{
 					foundDevice = it.key();
-					Debug(_log, "Using new name %s for %s", QSTRING_CSTR(foundDevice), QSTRING_CSTR(_deviceName));
+					Debug(_log, "Using new name {:s} for {:s}", (foundDevice), (_deviceName));
 					_deviceName = foundDevice;
 				}
 
 			if (foundDevice.isNull() || foundDevice.isEmpty())
 			{
-				Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 				autoDiscovery = true;
 			}
 		}
@@ -215,7 +215,7 @@ bool V4L2Grabber::init()
 				{
 					foundDevice = it.key();
 					_deviceName = foundDevice;
-					Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+					Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 				}
 		}
 		else
@@ -223,13 +223,13 @@ bool V4L2Grabber::init()
 
 		if (foundDevice.isNull() || foundDevice.isEmpty() || !_deviceProperties.contains(foundDevice))
 		{
-			Error(_log, "Could not find any capture device %s", QSTRING_CSTR(foundDevice));
+			Error(_log, "Could not find any capture device {:s}", (foundDevice));
 			return false;
 		}
 
 		DeviceProperties dev = _deviceProperties[foundDevice];
 
-		Debug(_log, "Searching for %s %d x %d @ %d fps, input: %i (%s)", QSTRING_CSTR(foundDevice), _width, _height, _fps, _input, QSTRING_CSTR(pixelFormatToString(_enc)));
+		Debug(_log, "Searching for {:s} {:d} x {:d} @ {:d} fps, input: {:d} ({:s})", (foundDevice), _width, _height, _fps, _input, (pixelFormatToString(_enc)));
 
 		for (int i = 0; i < dev.valid.count() && foundIndex < 0; i++)
 		{
@@ -295,9 +295,9 @@ bool V4L2Grabber::init()
 			try
 			{
 				Info(_log, "*************************************************************************************************");
-				Info(_log, "Starting V4L2 grabber. Selected: %s [%s] %d x %d @ %d fps %s input %d", QSTRING_CSTR(foundDevice), QSTRING_CSTR(dev.name),
+				Info(_log, "Starting V4L2 grabber. Selected: {:s} [{:s}] {:d} x {:d} @ {:d} fps {:s} input {:d}", (foundDevice), (dev.name),
 					dev.valid[foundIndex].x, dev.valid[foundIndex].y, dev.valid[foundIndex].fps,
-					QSTRING_CSTR(pixelFormatToString(dev.valid[foundIndex].pf)), _input);
+					(pixelFormatToString(dev.valid[foundIndex].pf)), _input);
 				Info(_log, "*************************************************************************************************");
 
 				if (init_device(foundDevice, dev.valid[foundIndex]))
@@ -307,7 +307,7 @@ bool V4L2Grabber::init()
 			}
 			catch (std::exception& e)
 			{
-				Error(_log, "V4l2 init failed (%s). Closing...", e.what());
+				Error(_log, "V4l2 init failed ({:s}). Closing...", e.what());
 
 				uninit_device();
 				close_device();
@@ -322,7 +322,7 @@ bool V4L2Grabber::init()
 
 
 
-QString V4L2Grabber::formatRes(int w, int h, QString format)
+QString V4L2Grabber::formatRes(int w, int h, QString format) const
 {
 	QString ws = QString::number(w);
 	QString hs = QString::number(h);
@@ -377,8 +377,9 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 		if (it.fileName().startsWith("video"))
 		{
 			QString devName = "/dev/" + it.fileName();
+			QByteArray devNameUtf8 = devName.toUtf8();
 
-			int fd = open(QSTRING_CSTR(devName), O_RDWR | O_NONBLOCK, 0);
+			int fd = open(devNameUtf8.constData(), O_RDWR | O_NONBLOCK, 0);
 
 			if (fd < 0)
 			{
@@ -416,31 +417,31 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 			DeviceProperties properties;
 			properties.name = devName;
 
-			Info(_log, "Found capture device: %s", QSTRING_CSTR(devName));
+			Info(_log, "Found capture device: {:s}", (devName));
 
 			// get device capabilities			
 			if (getControl(fd, V4L2_CID_BRIGHTNESS, properties.brightness.minVal, properties.brightness.maxVal, properties.brightness.defVal))
 			{
 				properties.brightness.enabled = true;
-				Debug(_log, "Device has 'brightness' control => min: %i, max: %i, default: %i", int(properties.brightness.minVal), int(properties.brightness.maxVal), int(properties.brightness.defVal));
+				Debug(_log, "Device has 'brightness' control => min: {:d}, max: {:d}, default: {:d}", int(properties.brightness.minVal), int(properties.brightness.maxVal), int(properties.brightness.defVal));
 			}
 
 			if (getControl(fd, V4L2_CID_CONTRAST, properties.contrast.minVal, properties.contrast.maxVal, properties.contrast.defVal))
 			{
 				properties.contrast.enabled = true;
-				Debug(_log, "Device has 'contrast' control => min: %i, max: %i, default: %i", int(properties.contrast.minVal), int(properties.contrast.maxVal), int(properties.contrast.defVal));
+				Debug(_log, "Device has 'contrast' control => min: {:d}, max: {:d}, default: {:d}", int(properties.contrast.minVal), int(properties.contrast.maxVal), int(properties.contrast.defVal));
 			}
 
 			if (getControl(fd, V4L2_CID_SATURATION, properties.saturation.minVal, properties.saturation.maxVal, properties.saturation.defVal))
 			{
 				properties.saturation.enabled = true;
-				Debug(_log, "Device has 'saturation' control => min: %i, max: %i, default: %i", int(properties.saturation.minVal), int(properties.saturation.maxVal), int(properties.saturation.defVal));
+				Debug(_log, "Device has 'saturation' control => min: {:d}, max: {:d}, default: {:d}", int(properties.saturation.minVal), int(properties.saturation.maxVal), int(properties.saturation.defVal));
 			}
 
 			if (getControl(fd, V4L2_CID_HUE, properties.hue.minVal, properties.hue.maxVal, properties.hue.defVal))
 			{
 				properties.hue.enabled = true;
-				Debug(_log, "Device has 'hue' control => min: %i, max: %i, default: %i", int(properties.hue.minVal), int(properties.hue.maxVal), int(properties.hue.defVal));
+				Debug(_log, "Device has 'hue' control => min: {:d}, max: {:d}, default: {:d}", int(properties.hue.minVal), int(properties.hue.maxVal), int(properties.hue.defVal));
 			}
 
 			// collect available device inputs (index & name)
@@ -479,7 +480,6 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 									CLEAR(searchFrameEnum);
 
 									QString pixelFormat = pixelFormatToString(identifyFormat(formatDesc.pixelformat));
-									QString resolution = formatRes(frmsizeenum.discrete.width, frmsizeenum.discrete.height, pixelFormat);
 									QString displayResolutions = formatRes(frmsizeenum.discrete.width, frmsizeenum.discrete.height, "");
 
 									searchFrameEnum.index = 0;
@@ -526,7 +526,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 											di.input = input.index;
 
 											if (di.pf == PixelFormat::NO_CHANGE)
-												Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
+												Debug(_log, "{:s} {:d} x {:d} @ {:d} fps {:s} (unsupported)", (properties.name), di.x, di.y, di.fps, (pixelFormat));
 											else
 												properties.valid.append(di);
 										}
@@ -546,7 +546,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 
 			if (close(fd) < 0)
 			{
-				Warning(_log, "Error closing '%s' device. Skipping...", QSTRING_CSTR(devName));
+				Warning(_log, "Error closing '{:s}' device. Skipping...", (devName));
 				continue;
 			}
 
@@ -565,7 +565,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 			}
 
 			// UTV007 workaround
-			if (properties.valid.size() == 0 && realName.indexOf("usbtv ", 0, Qt::CaseInsensitive) == 0)
+			if (properties.valid.empty() && realName.indexOf("usbtv ", 0, Qt::CaseInsensitive) == 0)
 			{
 				Warning(_log, "To have proper colors when using UTV007 grabber, you may need to add 'sudo systemctl stop hyperhdr@pi && v4l2-ctl -s pal-B && sudo systemctl start hyperhdr@pi' to /etc/rc.local or run it manually to set the PAL standard");
 				for (int input = 0; input < properties.inputs.size(); input++)
@@ -578,7 +578,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				}
 			}
 
-			if (properties.valid.size() == 0 && devName == "/dev/video0")
+			if (properties.valid.empty() && devName == "/dev/video0")
 			{
 				DevicePropertiesItem di;
 				di.x = fmt.fmt.pix.width;
@@ -591,11 +591,11 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				QString pixelFormat = pixelFormatToString(di.pf);
 				if (di.pf == PixelFormat::NO_CHANGE)
 				{
-					Debug(_log, "%s %d x %d @ %d fps %s (unsupported)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat));
+					Debug(_log, "{:s} {:d} x {:d} @ {:d} fps {:s} (unsupported)", (properties.name), di.x, di.y, di.fps, (pixelFormat));
 				}
 				else
 				{
-					Debug(_log, "%s %d x %d @ %d fps %s, input = %i (seems supported, device not fully compatible with v4l2 grabber model, frame rate is unknown)", QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormat), di.input);
+					Debug(_log, "{:s} {:d} x {:d} @ {:d} fps {:s}, input = {:d} (seems supported, device not fully compatible with v4l2 grabber model, frame rate is unknown)", (properties.name), di.x, di.y, di.fps, (pixelFormat), di.input);
 					properties.valid.append(di);
 				}
 			}
@@ -607,7 +607,7 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 				for (int i = 0; i < properties.valid.count(); i++)
 				{
 					const auto& di = properties.valid[i];
-					Info(_log, "%s [%s] %d x %d @ %d fps %s input %d", QSTRING_CSTR(realName), QSTRING_CSTR(properties.name), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)), di.input);
+					Info(_log, "{:s} [{:s}] {:d} x {:d} @ {:d} fps {:s} input {:d}", (realName), (properties.name), di.x, di.y, di.fps, (pixelFormatToString(di.pf)), di.input);
 				}
 			}
 		}
@@ -622,9 +622,9 @@ bool V4L2Grabber::start()
 		_V4L2WorkerManager.Start();
 
 		if (_V4L2WorkerManager.workersCount <= 1)
-			Info(_log, "Multithreading for V4L2 is disabled. Available thread's count %d", _V4L2WorkerManager.workersCount);
+			Info(_log, "Multithreading for V4L2 is disabled. Available thread's count {:d}", _V4L2WorkerManager.workersCount);
 		else
-			Info(_log, "Multithreading for V4L2 is enabled. Available thread's count %d", _V4L2WorkerManager.workersCount);
+			Info(_log, "Multithreading for V4L2 is enabled. Available thread's count {:d}", _V4L2WorkerManager.workersCount);
 
 		if (init() && _streamNotifier != nullptr && !_streamNotifier->isEnabled())
 		{
@@ -636,7 +636,7 @@ bool V4L2Grabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "Video capture fails to start (%s)", e.what());
+		Error(_log, "Video capture fails to start ({:s})", e.what());
 	}
 
 	return false;
@@ -721,7 +721,7 @@ bool V4L2Grabber::init_mmap()
 
 		_buffers[n_buffers].length = buf.length;
 		_buffers[n_buffers].start = mmap(
-			NULL,
+			nullptr,
 			buf.length,
 			PROT_READ | PROT_WRITE,
 			MAP_SHARED,
@@ -793,8 +793,10 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 	struct stat st;
 
 	DeviceProperties actDevice = _deviceProperties[selectedDeviceName];
+	QString actDeviceName = actDevice.name;
+	QByteArray actDeviceNameUtf8 = actDeviceName.toUtf8();
 
-	if (-1 == stat(QSTRING_CSTR(actDevice.name), &st))
+	if (-1 == stat(actDeviceNameUtf8.constData(), &st))
 	{
 		throw_errno_exception("Cannot identify '" + actDevice.name + "' as a device");
 		return false;
@@ -806,7 +808,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		return false;
 	}
 
-	_fileDescriptor = open(QSTRING_CSTR(actDevice.name), O_RDWR | O_NONBLOCK, 0);
+	_fileDescriptor = open(actDeviceNameUtf8.constData(), O_RDWR | O_NONBLOCK, 0);
 
 	if (_fileDescriptor == -1)
 	{
@@ -884,7 +886,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		if (xioctl(VIDIOC_S_INPUT, &inputTemp) == -1)
 			Error(_log, "Input settings are not supported.");
 		else
-			Info(_log, "Set device input to: %s", v4l2Input.name);
+			Info(_log, "Set device input to: {:s}", reinterpret_cast<const char*>(v4l2Input.name));
 	}
 
 	// get the current settings
@@ -919,7 +921,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 
 
 	// display the used width and height
-	Info(_log, "Set resolution to: %d x %d", props.x, props.y);
+	Info(_log, "Set resolution to: {:d} x {:d}", props.x, props.y);
 
 	// Trying to set frame rate
 	struct v4l2_streamparm streamparms;
@@ -938,7 +940,7 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 			if (xioctl(VIDIOC_S_PARM, &streamparms) == -1)
 				Error(_log, "Frame rate settings not supported.");
 			else
-				Info(_log, "Set framerate to %d FPS", streamparms.parm.capture.timeperframe.denominator);
+				Info(_log, "Set framerate to {:d} FPS", streamparms.parm.capture.timeperframe.denominator);
 		}
 	}
 	else
@@ -957,9 +959,9 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		long selVal = (_brightness != 0) ? _brightness : actDevice.brightness.defVal;
 
 		if (setControl(V4L2_CID_BRIGHTNESS, selVal))
-			Info(_log, "Brightness set to: %i (%s)", selVal, (selVal == actDevice.brightness.defVal) ? "default" : "user");
+			Info(_log, "Brightness set to: {:d} ({:s})", selVal, (selVal == actDevice.brightness.defVal) ? "default" : "user");
 		else
-			Error(_log, "Could not set brightness to: %i", selVal);
+			Error(_log, "Could not set brightness to: {:d}", selVal);
 	}
 
 	if (actDevice.contrast.enabled)
@@ -967,9 +969,9 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		long selVal = (_contrast != 0) ? _contrast : actDevice.contrast.defVal;
 
 		if (setControl(V4L2_CID_CONTRAST, selVal))
-			Info(_log, "Contrast set to: %i (%s)", selVal, (selVal == actDevice.contrast.defVal) ? "default" : "user");
+			Info(_log, "Contrast set to: {:d} ({:s})", selVal, (selVal == actDevice.contrast.defVal) ? "default" : "user");
 		else
-			Error(_log, "Could not set contrast to: %i", selVal);
+			Error(_log, "Could not set contrast to: {:d}", selVal);
 	}
 
 	if (actDevice.saturation.enabled)
@@ -977,9 +979,9 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		long selVal = (_saturation != 0) ? _saturation : actDevice.saturation.defVal;
 
 		if (setControl(V4L2_CID_SATURATION, selVal))
-			Info(_log, "Saturation set to: %i (%s)", selVal, (selVal == actDevice.saturation.defVal) ? "default" : "user");
+			Info(_log, "Saturation set to: {:d} ({:s})", selVal, (selVal == actDevice.saturation.defVal) ? "default" : "user");
 		else
-			Error(_log, "Could not set saturation to: %i", selVal);
+			Error(_log, "Could not set saturation to: {:d}", selVal);
 	}
 
 	if (actDevice.hue.enabled)
@@ -987,9 +989,9 @@ bool V4L2Grabber::init_device(QString selectedDeviceName, DevicePropertiesItem p
 		long selVal = (_hue != 0) ? _hue : actDevice.hue.defVal;
 
 		if (setControl(V4L2_CID_HUE, selVal))
-			Info(_log, "Hue set to: %i (%s)", selVal, (selVal == actDevice.hue.defVal) ? "default" : "user");
+			Info(_log, "Hue set to: {:d} ({:s})", selVal, (selVal == actDevice.hue.defVal) ? "default" : "user");
 		else
-			Error(_log, "Could not set hue to: %i", selVal);
+			Error(_log, "Could not set hue to: {:d}", selVal);
 	}
 
 	// check pixel format and frame size
@@ -1127,7 +1129,7 @@ void V4L2Grabber::stop_capturing()
 	enum v4l2_buf_type type;
 
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	ErrorIf((xioctl(VIDIOC_STREAMOFF, &type) == -1), _log, "VIDIOC_STREAMOFF  error code  %d, %s", errno, strerror(errno));
+	ErrorIf((xioctl(VIDIOC_STREAMOFF, &type) == -1), _log, "VIDIOC_STREAMOFF  error code  {:d}, {:s}", errno, strerror(errno));
 }
 
 int V4L2Grabber::read_frame()
@@ -1192,7 +1194,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 	// We do want a new frame...
 	if (size < _frameByteSize && _actualVideoFormat != PixelFormat::MJPEG)
 	{
-		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
+		Error(_log, "Frame too small: {:d} != {:d}", size, _frameByteSize);
 	}
 	else
 	{
@@ -1222,32 +1224,29 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 				QString currentCache = QString::fromStdString(Image<ColorRgb>::adjustCache());
 
 				if (!currentCache.isEmpty())
-					Info(_log, "%s", QSTRING_CSTR(currentCache));
+					Info(_log, "{:s}", (currentCache));
 			}
 
-			if (_V4L2WorkerManager.workers == nullptr)
+			if (_V4L2WorkerManager.workers.empty())
 			{
 				_V4L2WorkerManager.InitWorkers();
-				Debug(_log, "Worker's thread count  = %d", _V4L2WorkerManager.workersCount);
+				Debug(_log, "Worker's thread count  = {:d}", _V4L2WorkerManager.workersCount);
 
-				for (unsigned int i = 0; i < _V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers != nullptr; i++)
+				for (unsigned int i = 0; i < _V4L2WorkerManager.workersCount && i < _V4L2WorkerManager.workers.size(); i++)
 				{
-					V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];
-					connect(_workerThread, &V4L2Worker::SignalNewFrameError, this, &V4L2Grabber::newWorkerFrameErrorHandler);
-					connect(_workerThread, &V4L2Worker::SignalNewFrame, this, &V4L2Grabber::newWorkerFrameHandler);
+					connect(_V4L2WorkerManager.workers[i].get(), &GrabberWorker::SignalNewFrameError, this, &V4L2Grabber::newWorkerFrameErrorHandler);
+					connect(_V4L2WorkerManager.workers[i].get(), &GrabberWorker::SignalNewFrame, this, &V4L2Grabber::newWorkerFrameHandler);
 				}
 			}
 
 			frameStat.segment |= (1 << buf->index);
 
-			for (unsigned int i = 0; _V4L2WorkerManager.isActive() && i < _V4L2WorkerManager.workersCount && _V4L2WorkerManager.workers != nullptr; i++)
+			for (unsigned int i = 0; _V4L2WorkerManager.isActive() && i < _V4L2WorkerManager.workersCount && i < _V4L2WorkerManager.workers.size(); i++)
 			{
 				if (_V4L2WorkerManager.workers[i]->isFinished() || !_V4L2WorkerManager.workers[i]->isRunning())
 				{
 					if (_V4L2WorkerManager.workers[i]->isBusy() == false)
 					{
-						V4L2Worker* _workerThread = _V4L2WorkerManager.workers[i];
-
 						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::UYVY || _actualVideoFormat == PixelFormat::I420 ||
 							_actualVideoFormat == PixelFormat::NV12 || _hdrToneMappingEnabled) && !_lutBufferInit)
 						{
@@ -1270,7 +1269,7 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 						}
 
 						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating() );
-						_workerThread->setup(
+						_V4L2WorkerManager.workers[i]->setup(
 							i,
 							buf,
 							_actualVideoFormat,
@@ -1300,24 +1299,21 @@ void V4L2Grabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString e
 	frameStat.badFrame++;
 	if (error.indexOf(QString(UNSUPPORTED_DECODER)) == 0)
 	{
-		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: %s)", QSTRING_CSTR(error));
+		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: {:s})", (error));
 	}
-	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
 
 	// get next frame
-	if (workerIndex > _V4L2WorkerManager.workersCount)
-		Error(_log, "Frame index = %d, index out of range", sourceCount);
+	if (!(workerIndex < _V4L2WorkerManager.workersCount && workerIndex < _V4L2WorkerManager.workers.size()))
+		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
-	else if (_V4L2WorkerManager.workers == nullptr ||
-		_V4L2WorkerManager.isActive() == false ||
+	else if (_V4L2WorkerManager.isActive() == false ||
 		xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
 	{
-		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = %d, worker = %d, is_active = %d.",
+		Error(_log, "Frame index = {:d}, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = {:d}, worker = {:d}, is_active = {:d}.",
 			sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());
 	}
 
-	if (workerIndex <= _V4L2WorkerManager.workersCount)
-		_V4L2WorkerManager.workers[workerIndex]->noBusy();
+	_V4L2WorkerManager.workers[workerIndex]->noBusy();
 }
 
 
@@ -1326,19 +1322,17 @@ void V4L2Grabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb
 	handleNewFrame(workerIndex, image, sourceCount, _frameBegin);
 
 	// get next frame
-	if (workerIndex > _V4L2WorkerManager.workersCount)
-		Error(_log, "Frame index = %d, index out of range", sourceCount);
+	if (!(workerIndex < _V4L2WorkerManager.workersCount && workerIndex < _V4L2WorkerManager.workers.size()))
+		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
-	else if (_V4L2WorkerManager.workers == nullptr ||
-		_V4L2WorkerManager.isActive() == false ||
+	else if (_V4L2WorkerManager.isActive() == false ||
 		xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
 	{
-		Error(_log, "Frame index = %d, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = %d, worker = %d, is_active = %d.",
+		Error(_log, "Frame index = {:d}, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = {:d}, worker = {:d}, is_active = {:d}.",
 			sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());
 	}
 
-	if (workerIndex <= _V4L2WorkerManager.workersCount)
-		_V4L2WorkerManager.workers[workerIndex]->noBusy();
+	_V4L2WorkerManager.workers[workerIndex]->noBusy();
 }
 
 int V4L2Grabber::xioctl(int request, void* arg)
@@ -1367,12 +1361,12 @@ int V4L2Grabber::xioctl(int fileDescriptor, int request, void* arg)
 
 void V4L2Grabber::throw_exception(const QString& error)
 {
-	Error(_log, "Throws error: %s", QSTRING_CSTR(error));
+	Error(_log, "Throws error: {:s}", (error));
 }
 
 void V4L2Grabber::throw_errno_exception(const QString& error)
 {
-	Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
+	Error(_log, "Throws error nr: {:s}", (QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
 }
 
 

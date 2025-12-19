@@ -37,7 +37,7 @@
 
 ProtoNanoClientConnection::ProtoNanoClientConnection(QTcpSocket* socket, int timeout, QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("PROTOSERVER"))
+	, _log("PROTOSERVER")
 	, _socket(socket)
 	, _clientAddress(socket->peerAddress().toString())
 	, _timeoutTimer(new QTimer(this))
@@ -89,10 +89,7 @@ bool ProtoNanoClientConnection::readImage(pb_istream_t* stream, const pb_field_t
 
 	image->resize(sizeRgb, 1);
 
-	if (!pb_read(stream, image->rawMem(), sizeRgb * 3))
-		return false;
-
-	return true;
+	return pb_read(stream, image->rawMem(), sizeRgb * 3);
 }
 
 void ProtoNanoClientConnection::processData(const uint8_t* buffer, uint32_t messageSize)
@@ -167,7 +164,7 @@ void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& mes
 	if (priority < 50 || priority > 250)
 	{
 		sendErrorReply("The priority " + std::to_string(priority) + " is not in the valid priority range between 50 and 250.");
-		Error(_log, "The priority %d is not in the proto-connection range between 50 and 250.", priority);
+		Error(_log, "The priority {:d} is not in the proto-connection range between 50 and 250.", priority);
 		return;
 	}
 

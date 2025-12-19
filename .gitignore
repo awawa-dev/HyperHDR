@@ -25,6 +25,8 @@ build/
 include/flatbuffers/parser/hyperhdr_reply_generated.h
 include/flatbuffers/parser/hyperhdr_request_generated.h
 
+tests/codec_test/build/
+
 
 # Kdevelop project files
 *.kdev*

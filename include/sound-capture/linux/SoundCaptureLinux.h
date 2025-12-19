@@ -40,14 +40,14 @@ class AlsaWorkerThread : public QThread
 	Q_OBJECT
 		
 		std::atomic<bool> _exitNow{ false };
-		Logger* _logger;
+		LoggerName _logger;
 		QString _device;
 		SoundCapture* _parent;
 
 		void run() override;
 
 	public:
-		AlsaWorkerThread(Logger* logger, QString device, SoundCapture* parent);
+		AlsaWorkerThread(const LoggerName& logger, QString device, SoundCapture* parent);
 		void exitNow();
 
 	private:

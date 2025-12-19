@@ -31,10 +31,6 @@
 #include <infinite-color-engine/YuvConverter.h>
 #include <mutex>
 
-namespace {
-	std::mutex yuvConverterMutex;
-}
-
 double3 YuvConverter::toRgb(COLOR_RANGE range, YUV_COEFS coef, const double3& input) const
 {
 	double4 ret(input, 1);

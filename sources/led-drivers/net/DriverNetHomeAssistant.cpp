@@ -32,11 +32,11 @@ bool DriverNetHomeAssistant::init(QJsonObject deviceConfig)
 		_restApi = std::make_unique<ProviderRestApi>(url.scheme(), url.host(), url.port(8123));
 		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
 		
-		Debug(_log, "HomeAssistantHost     : %s", QSTRING_CSTR(_haInstance.homeAssistantHost));
-		Debug(_log, "RestoreOriginalState  : %s", (_haInstance.restoreOriginalState) ? "yes" : "no");
-		Debug(_log, "Transition (ms)       : %s", (_haInstance.transition > 0) ? QSTRING_CSTR(QString::number(_haInstance.transition)) : "disabled" );
-		Debug(_log, "ConstantBrightness    : %s", (_haInstance.constantBrightness > 0) ? QSTRING_CSTR(QString::number(_haInstance.constantBrightness)) : "disabled");
-		Debug(_log, "Max retry             : %d", _maxRetry);
+		Debug(_log, "HomeAssistantHost     : {:s}", (_haInstance.homeAssistantHost));
+		Debug(_log, "RestoreOriginalState  : {:s}", (_haInstance.restoreOriginalState) ? "yes" : "no");
+		Debug(_log, "Transition (ms)       : {:s}", (_haInstance.transition > 0) ? (QString::number(_haInstance.transition)) : "disabled" );
+		Debug(_log, "ConstantBrightness    : {:s}", (_haInstance.constantBrightness > 0) ? (QString::number(_haInstance.constantBrightness)) : "disabled");
+		Debug(_log, "Max retry             : {:d}", _maxRetry);
 
 		auto arr = deviceConfig["lamps"].toArray();
 
@@ -48,11 +48,11 @@ bool DriverNetHomeAssistant::init(QJsonObject deviceConfig)
 				hl.name = lampObj["name"].toString();
 				hl.colorModel = static_cast<HomeAssistantLamp::Mode>(lampObj["colorModel"].toInt(0));
 				hl.currentBrightness = _haInstance.constantBrightness;
-				Debug(_log, "Configured lamp (%s) : %s", (hl.colorModel == 0) ? "RGB" : "HSV", QSTRING_CSTR(hl.name));
+				Debug(_log, "Configured lamp ({:s}) : {:s}", std::string_view((hl.colorModel == 0) ? "RGB" : "HSV"), (hl.name));
 				_haInstance.lamps.push_back(hl);
 			}
 
-		if (_haInstance.homeAssistantHost.length() > 0 && _haInstance.longLivedAccessToken.length() > 0 && arr.size() > 0)
+		if (_haInstance.homeAssistantHost.length() > 0 && _haInstance.longLivedAccessToken.length() > 0 && !arr.empty())
 		{
 			isInitOK = true;
 		}
@@ -140,7 +140,7 @@ int DriverNetHomeAssistant::writeFiniteColors(const std::vector<ColorRgb>& ledVa
 			{
 				uint16_t h;
 				float s, v;
-				color.rgb2hsl(color.red, color.green, color.blue, h, s, v);
+				ColorRgb::rgb2hsl(color.red, color.green, color.blue, h, s, v);
 				row["hs_color"] = QJsonArray{ h, static_cast<int>(std::roundl(s * 100.0)) };
 				brightness = std::min(std::max(static_cast<int>(std::roundl(v * 255.0)), 0), 255);
 			}
@@ -194,7 +194,7 @@ bool DriverNetHomeAssistant::saveStates()
 		auto body = response.getBody();
 		if (body.isEmpty() || !body.isObject())
 		{
-			Error(_log, "The current state of the light %s is unknown", QSTRING_CSTR(lamp.name));
+			Error(_log, "The current state of the light {:s} is unknown", (lamp.name));
 			continue;
 		}
 
@@ -247,7 +247,7 @@ bool DriverNetHomeAssistant::saveStates()
 		QString brightness = (lamp.orgState.isPoweredOn >= 0) ? (QString("brightness: %1" ).arg(lamp.orgState.brightness)) : "";
 		QStringList message{ power, brightness, colorsToString };
 				
-		Info(_log, "Saving state of %s: %s", QSTRING_CSTR(lamp.name), QSTRING_CSTR(message.join(", ")));
+		Info(_log, "Saving state of {:s}: {:s}", (lamp.name), (message.join(", ")));
 
 	}
 	return true;
@@ -269,7 +269,7 @@ void DriverNetHomeAssistant::restoreStates()
 		{
 			row["brightness"] = lamp.orgState.brightness;
 		}
-		if (lamp.orgState.color.size() > 0)
+		if (!lamp.orgState.color.empty())
 		{
 			if (lamp.colorModel == HomeAssistantLamp::Mode::RGB)
 			{
@@ -285,7 +285,7 @@ void DriverNetHomeAssistant::restoreStates()
 		{
 			doc.setObject(row);
 			QString message = doc.toJson(QJsonDocument::Compact);
-			Info(_log, "Restoring state of %s: %s", QSTRING_CSTR(lamp.name), QSTRING_CSTR(message));
+			Info(_log, "Restoring state of {:s}: {:s}", (lamp.name), (message));
 			_restApi->setBasePath(QString("/api/services/light/%1").arg((lamp.orgState.isPoweredOn) ? "turn_on" : "turn_off"));
 			_restApi->post(message);
 		}
@@ -319,7 +319,7 @@ QJsonObject DriverNetHomeAssistant::discover(const QJsonObject& /*params*/)
 #endif	
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

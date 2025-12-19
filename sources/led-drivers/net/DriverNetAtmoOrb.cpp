@@ -12,8 +12,8 @@
 // Constants
 namespace {
 
-	const QString MULTICAST_GROUP_DEFAULT_ADDRESS = "239.255.255.250";
-	const quint16 MULTICAST_GROUP_DEFAULT_PORT = 49692;
+	constexpr const char* MULTICAST_GROUP_DEFAULT_ADDRESS = "239.255.255.250";
+	constexpr quint16 MULTICAST_GROUP_DEFAULT_PORT = 49692;
 
 	constexpr std::chrono::milliseconds DEFAULT_DISCOVERY_TIMEOUT{ 2000 };
 
@@ -43,15 +43,15 @@ bool DriverNetAtmoOrb::init(QJsonObject deviceConfig)
 		_skipSmoothingDiff = deviceConfig["skipSmoothingDiff"].toInt(0);
 		QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(',', Qt::SkipEmptyParts);
 
-		Debug(_log, "DeviceType        : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount          : %d", this->getLedCount());
-		Debug(_log, "RefreshTime       : %d", this->getRefreshTime());
+		Debug(_log, "DeviceType        : {:s}", (this->getActiveDeviceType()));
+		Debug(_log, "LedCount          : {:d}", this->getLedCount());
+		Debug(_log, "RefreshTime       : {:d}", this->getRefreshTime());
 
-		Debug(_log, "MulticastGroup    : %s", QSTRING_CSTR(_multicastGroup));
-		Debug(_log, "MulticastGroupPort: %d", _multiCastGroupPort);
-		Debug(_log, "Orb ID list       : %s", QSTRING_CSTR(deviceConfig["orbIds"].toString()));
-		Debug(_log, "Use Orb Smoothing : %d", _useOrbSmoothing);
-		Debug(_log, "Skip SmoothingDiff: %d", _skipSmoothingDiff);
+		Debug(_log, "MulticastGroup    : {:s}", (_multicastGroup));
+		Debug(_log, "MulticastGroupPort: {:d}", _multiCastGroupPort);
+		Debug(_log, "Orb ID list       : {:s}", (deviceConfig["orbIds"].toString()));
+		Debug(_log, "Use Orb Smoothing : {:d}", _useOrbSmoothing);
+		Debug(_log, "Skip SmoothingDiff: {:d}", _skipSmoothingDiff);
 
 		_orbIds.clear();
 
@@ -63,7 +63,7 @@ bool DriverNetAtmoOrb::init(QJsonObject deviceConfig)
 			{
 				if (id < 1 || id > 255)
 				{
-					Warning(_log, "Skip orb id '%d'. IDs must be in range 1-255", id);
+					Warning(_log, "Skip orb id '{:d}'. IDs must be in range 1-255", id);
 				}
 				else
 				{
@@ -72,7 +72,7 @@ bool DriverNetAtmoOrb::init(QJsonObject deviceConfig)
 			}
 			else
 			{
-				Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
+				Error(_log, "orb id '{:s}' is not a number", (id_str));
 			}
 		}
 
@@ -98,7 +98,7 @@ bool DriverNetAtmoOrb::init(QJsonObject deviceConfig)
 			{
 				if (numberOrbs > configuredLedCount)
 				{
-					Info(_log, "%s: More Orbs [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount);
+					Info(_log, "{:s}: More Orbs [{:d}] than configured LEDs [{:d}].", (this->getActiveDeviceType()), numberOrbs, configuredLedCount);
 				}
 
 				isInitOK = true;
@@ -165,7 +165,7 @@ int DriverNetAtmoOrb::close()
 		// Test, if device requires closing
 		if (_udpSocket->isOpen())
 		{
-			Debug(_log, "Close UDP-device: %s", QSTRING_CSTR(this->getActiveDeviceType()));
+			Debug(_log, "Close UDP-device: {:s}", (this->getActiveDeviceType()));
 			_udpSocket->close();
 			// Everything is OK -> device is closed
 		}
@@ -259,13 +259,13 @@ void DriverNetAtmoOrb::setColor(int orbId, const ColorRgb& color, int commandTyp
 
 void DriverNetAtmoOrb::sendCommand(const QByteArray& bytes)
 {
-	//Debug ( _log, "command: [%s] -> %s:%u", QSTRING_CSTR( QString(bytes.toHex())), QSTRING_CSTR(_groupAddress.toString()), _multiCastGroupPort );
+	//Debug ( _log, "command: [%s] -> %s:%u", ( QString(bytes.toHex())), (_groupAddress.toString()), _multiCastGroupPort );
 	_udpSocket->writeDatagram(bytes.data(), bytes.size(), _groupAddress, _multiCastGroupPort);
 }
 
 QJsonObject DriverNetAtmoOrb::discover(const QJsonObject& params)
 {
-	//Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	//Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
@@ -277,7 +277,7 @@ QJsonObject DriverNetAtmoOrb::discover(const QJsonObject& params)
 
 	if (open() == 0)
 	{
-		Debug(_log, "Send discovery requests to all AtmoOrbs listening to %s:%d", QSTRING_CSTR(_multicastGroup), _multiCastGroupPort);
+		Debug(_log, "Send discovery requests to all AtmoOrbs listening to {:s}:{:d}", (_multicastGroup), _multiCastGroupPort);
 		setColor(0, ColorRgb::BLACK, 8);
 
 		if (_udpSocket->waitForReadyRead(DEFAULT_DISCOVERY_TIMEOUT.count()))
@@ -299,7 +299,7 @@ QJsonObject DriverNetAtmoOrb::discover(const QJsonObject& params)
 						unsigned char orbId = datagram[0];
 						if (orbId > 0)
 						{
-							Debug(_log, "Orb ID (%d) discovered at [%s]", orbId, QSTRING_CSTR(senderIP.toString()));
+							Debug(_log, "Orb ID ({:d}) discovered at [{:s}]", orbId, (senderIP.toString()));
 							_services.insert(orbId, senderIP);
 						}
 					}
@@ -323,10 +323,10 @@ QJsonObject DriverNetAtmoOrb::discover(const QJsonObject& params)
 		{
 			QString hostname = hostInfo.hostName();
 			//Seems that for Windows no local domain name is resolved
-			if (!hostInfo.localDomainName().isEmpty())
+			if (!QHostInfo::localDomainName().isEmpty())
 			{
-				obj.insert("hostname", hostname.remove("." + hostInfo.localDomainName()));
-				obj.insert("domain", hostInfo.localDomainName());
+				obj.insert("hostname", hostname.remove("." + QHostInfo::localDomainName()));
+				obj.insert("domain", QHostInfo::localDomainName());
 			}
 			else
 			{
@@ -340,14 +340,14 @@ QJsonObject DriverNetAtmoOrb::discover(const QJsonObject& params)
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
 
 void DriverNetAtmoOrb::identify(const QJsonObject& params)
 {
-	//Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	//Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	int orbId = 0;
 	if (params["id"].isString())
@@ -361,7 +361,7 @@ void DriverNetAtmoOrb::identify(const QJsonObject& params)
 
 	if (orbId > 0 && orbId < 256)
 	{
-		Debug(_log, "Orb ID [%d]", orbId);
+		Debug(_log, "Orb ID [{:d}]", orbId);
 		if (open() == 0)
 		{
 			setColor(orbId, ColorRgb::BLACK, 9);
@@ -370,7 +370,7 @@ void DriverNetAtmoOrb::identify(const QJsonObject& params)
 	}
 	else
 	{
-		Warning(_log, "Identification of Orb with ID='%d' skipped. ID must be in range 1-255", orbId);
+		Warning(_log, "Identification of Orb with ID='{:d}' skipped. ID must be in range 1-255", orbId);
 	}
 }
 

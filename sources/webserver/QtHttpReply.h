@@ -11,9 +11,7 @@ class QtHttpServer;
 
 class QtHttpReply : public QObject
 {
-	Q_OBJECT
-		Q_ENUMS(StatusCode)
-
+	Q_OBJECT		
 public:
 	explicit QtHttpReply(QtHttpServer* parent);
 
@@ -30,6 +28,7 @@ public:
 		BadGateway = 502,
 		ServiceUnavailable = 503,
 	};
+	Q_ENUM(StatusCode)
 
 	int               getRawDataSize(void) const;
 	bool              useChunked(void) const;
@@ -43,14 +42,14 @@ public:
 
 public slots:
 	void setUseChunked(bool chunked = false);
-	void setStatusCode(StatusCode statusCode);
+	void setStatusCode(QtHttpReply::StatusCode statusCode);
 	void appendRawData(const QByteArray& data);
 	void addHeader(const QByteArray& header, const QByteArray& value);
 	void resetRawData(void);
 
 signals:
-	void requestSendHeaders(void);
-	void requestSendData(void);
+	void SignalRequestSendHeaders(void);
+	void SignalRequestSendData(void);
 
 private:
 	bool							m_useChunked;

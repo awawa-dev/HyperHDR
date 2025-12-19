@@ -58,6 +58,7 @@
 
 #include <grabber/windows/MF/MFGrabber.h>
 #include <grabber/windows/MF/MFCallback.h>
+#include <grabber/GrabberWorker.h>
 #include <utils/GlobalSignals.h>
 
 #include <turbojpeg.h>
@@ -181,7 +182,7 @@ void MFGrabber::setHdrToneMappingEnabled(int mode)
 	{
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
-			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
@@ -198,7 +199,7 @@ void MFGrabber::setHdrToneMappingEnabled(int mode)
 		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 
 MFGrabber::~MFGrabber()
@@ -230,7 +231,7 @@ void MFGrabber::uninit()
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 		stop();
 	}
 }
@@ -252,7 +253,7 @@ bool MFGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -263,7 +264,7 @@ bool MFGrabber::init()
 			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -279,7 +280,7 @@ bool MFGrabber::init()
 
 		DeviceProperties dev = _deviceProperties[foundDevice];
 
-		Debug(_log, "Searching for %s %d x %d @ %d fps (%s)", QSTRING_CSTR(foundDevice), _width, _height, _fps, QSTRING_CSTR(pixelFormatToString(_enc)));
+		Debug(_log, "Searching for {:s} {:d} x {:d} @ {:d} fps ({:s})", (foundDevice), _width, _height, _fps, (pixelFormatToString(_enc)));
 
 
 
@@ -338,9 +339,9 @@ bool MFGrabber::init()
 		if (foundIndex >= 0)
 		{
 			Info(_log, "*************************************************************************************************");
-			Info(_log, "Starting MF grabber. Selected: '%s' %d x %d @ %d fps %s", QSTRING_CSTR(foundDevice),
+			Info(_log, "Starting MF grabber. Selected: '{:s}' {:d} x {:d} @ {:d} fps {:s}", (foundDevice),
 				dev.valid[foundIndex].x, dev.valid[foundIndex].y, dev.valid[foundIndex].fps,
-				QSTRING_CSTR(pixelFormatToString(dev.valid[foundIndex].pf)));
+				(pixelFormatToString(dev.valid[foundIndex].pf)));
 			Info(_log, "*************************************************************************************************");
 
 			if (init_device(foundDevice, dev.valid[foundIndex]))
@@ -423,7 +424,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 			hr = MFEnumDeviceSources(attr, &devices, &count);
 			if (SUCCEEDED(hr))
 			{
-				Debug(_log, "Detected %u devices", count);
+				Debug(_log, "Detected {:d} devices", count);
 
 				for (UINT32 j = 0; j < count; j++)
 				{
@@ -445,7 +446,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 							DeviceProperties properties;
 							properties.name = QString::fromWCharArray(symlink);
 
-							Info(_log, "Found capture device: %s", QSTRING_CSTR(dev));
+							Info(_log, "Found capture device: {:s}", (dev));
 
 							hr = devices[j]->ActivateObject(IID_PPV_ARGS(&pSource));
 							if (SUCCEEDED(hr))
@@ -462,28 +463,28 @@ void MFGrabber::enumerateMFdevices(bool silent)
 									if (SUCCEEDED(hr))
 									{
 										properties.brightness.enabled = true;
-										Debug(_log, "Device has 'brightness' control => min: %i, max: %i, default: %i", int(properties.brightness.minVal), int(properties.brightness.maxVal), int(properties.brightness.defVal));
+										Debug(_log, "Device has 'brightness' control => min: {:d}, max: {:d}, default: {:d}", int(properties.brightness.minVal), int(properties.brightness.maxVal), int(properties.brightness.defVal));
 									}
 
 									hr = pProcAmp->GetRange(VideoProcAmp_Contrast, &properties.contrast.minVal, &properties.contrast.maxVal, &lStep, &properties.contrast.defVal, &lCaps);
 									if (SUCCEEDED(hr))
 									{
 										properties.contrast.enabled = true;
-										Debug(_log, "Device has 'contrast' control => min: %i, max: %i, default: %i", int(properties.contrast.minVal), int(properties.contrast.maxVal), int(properties.contrast.defVal));
+										Debug(_log, "Device has 'contrast' control => min: {:d}, max: {:d}, default: {:d}", int(properties.contrast.minVal), int(properties.contrast.maxVal), int(properties.contrast.defVal));
 									}
 
 									hr = pProcAmp->GetRange(VideoProcAmp_Saturation, &properties.saturation.minVal, &properties.saturation.maxVal, &lStep, &properties.saturation.defVal, &lCaps);
 									if (SUCCEEDED(hr))
 									{
 										properties.saturation.enabled = true;
-										Debug(_log, "Device has 'saturation' control => min: %i, max: %i, default: %i", int(properties.saturation.minVal), int(properties.saturation.maxVal), int(properties.saturation.defVal));
+										Debug(_log, "Device has 'saturation' control => min: {:d}, max: {:d}, default: {:d}", int(properties.saturation.minVal), int(properties.saturation.maxVal), int(properties.saturation.defVal));
 									}
 
 									hr = pProcAmp->GetRange(VideoProcAmp_Hue, &properties.hue.minVal, &properties.hue.maxVal, &lStep, &properties.hue.defVal, &lCaps);
 									if (SUCCEEDED(hr))
 									{
 										properties.hue.enabled = true;
-										Debug(_log, "Device has 'hue' control => min: %i, max: %i, default: %i", int(properties.hue.minVal), int(properties.hue.maxVal), int(properties.hue.defVal));
+										Debug(_log, "Device has 'hue' control => min: {:d}, max: {:d}, default: {:d}", int(properties.hue.minVal), int(properties.hue.maxVal), int(properties.hue.defVal));
 									}
 
 									pProcAmp->Release();
@@ -537,7 +538,7 @@ void MFGrabber::enumerateMFdevices(bool silent)
 																w == 1920 && h == 1080 && framerate == 60)
 															{
 																if (!silent)
-																	Warning(_log, "BLACKLIST %s %d x %d @ %d fps %s (%s)", QSTRING_CSTR(dev), w, h, framerate, QSTRING_CSTR(sFormat), QSTRING_CSTR(pixelFormatToString(pixelformat)));
+																	Warning(_log, "BLACKLIST {:s} {:d} x {:d} @ {:d} fps {:s} ({:s})", (dev), w, h, framerate, (sFormat), (pixelFormatToString(pixelformat)));
 															}
 															else
 															{
@@ -558,11 +559,11 @@ void MFGrabber::enumerateMFdevices(bool silent)
 																properties.valid.append(di);
 
 																if (!silent)
-																	Info(_log, "%s %d x %d @ %d fps %s (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(sFormat), QSTRING_CSTR(pixelFormatToString(di.pf)));
+																	Info(_log, "{:s} {:d} x {:d} @ {:d} fps {:s} ({:s})", (dev), di.x, di.y, di.fps, (sFormat), (pixelFormatToString(di.pf)));
 															}
 														}
 														//else
-														//	Debug(_log,  "%s %d x %d @ %d fps %s", QSTRING_CSTR(properties.name), w, h, fr1/fr2, QSTRING_CSTR(sFormat));
+														//	Debug(_log,  "{:s} {:d} x {:d} @ {:d} fps {:s}", (properties.name), w, h, fr1/fr2, (sFormat));
 													}
 												}
 											}
@@ -598,9 +599,9 @@ bool MFGrabber::start()
 		_MFWorkerManager.Start();
 
 		if (_MFWorkerManager.workersCount <= 1)
-			Info(_log, "Multithreading for MEDIA_FOUNDATION is disabled. Available thread's count %d", _MFWorkerManager.workersCount);
+			Info(_log, "Multithreading for MEDIA_FOUNDATION is disabled. Available thread's count {:d}", _MFWorkerManager.workersCount);
 		else
-			Info(_log, "Multithreading for MEDIA_FOUNDATION is enabled. Available thread's count %d", _MFWorkerManager.workersCount);
+			Info(_log, "Multithreading for MEDIA_FOUNDATION is enabled. Available thread's count {:d}", _MFWorkerManager.workersCount);
 
 		if (init())
 		{
@@ -611,7 +612,7 @@ bool MFGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "start failed ({:s})", e.what());
 	}
 
 	return false;
@@ -637,7 +638,7 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 	QString guid = _deviceProperties[selectedDeviceName].name;
 	HRESULT hr = 0, hr1 = 0, hr2 = 0;
 
-	Info(_log, "Init %s, %d x %d @ %d fps (%s) => %s", QSTRING_CSTR(selectedDeviceName), props.x, props.y, props.fps, QSTRING_CSTR(sFormat), QSTRING_CSTR(guid));
+	Info(_log, "Init {:s}, {:d} x {:d} @ {:d} fps ({:s}) => {:s}", (selectedDeviceName), props.x, props.y, props.fps, (sFormat), (guid));
 
 	IMFMediaSource* device = NULL;
 	IMFAttributes* pAttributes;
@@ -693,9 +694,9 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 				hr = pProcAmp->Set(VideoProcAmp_Brightness, selVal, VideoProcAmp_Flags_Manual);
 
 				if (SUCCEEDED(hr))
-					Info(_log, "Brightness set to: %i (%s)", selVal, (selVal == actDevice.brightness.defVal) ? "default" : "user");
+					Info(_log, "Brightness set to: {:d} ({:s})", selVal, (selVal == actDevice.brightness.defVal) ? "default" : "user");
 				else
-					Error(_log, "Could not set brightness to: %i", selVal);
+					Error(_log, "Could not set brightness to: {:d}", selVal);
 			}
 
 			if (actDevice.contrast.enabled)
@@ -704,9 +705,9 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 				hr = pProcAmp->Set(VideoProcAmp_Contrast, selVal, VideoProcAmp_Flags_Manual);
 
 				if (SUCCEEDED(hr))
-					Info(_log, "Contrast set to: %i (%s)", selVal, (selVal == actDevice.contrast.defVal) ? "default" : "user");
+					Info(_log, "Contrast set to: {:d} ({:s})", selVal, (selVal == actDevice.contrast.defVal) ? "default" : "user");
 				else
-					Error(_log, "Could not set contrast to: %i", selVal);
+					Error(_log, "Could not set contrast to: {:d}", selVal);
 			}
 
 			if (actDevice.saturation.enabled)
@@ -715,9 +716,9 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 				hr = pProcAmp->Set(VideoProcAmp_Saturation, selVal, VideoProcAmp_Flags_Manual);
 
 				if (SUCCEEDED(hr))
-					Info(_log, "Saturation set to: %i (%s)", selVal, (selVal == actDevice.saturation.defVal) ? "default" : "user");
+					Info(_log, "Saturation set to: {:d} ({:s})", selVal, (selVal == actDevice.saturation.defVal) ? "default" : "user");
 				else
-					Error(_log, "Could not set saturation to: %i", selVal);
+					Error(_log, "Could not set saturation to: {:d}", selVal);
 			}
 
 			if (actDevice.hue.enabled)
@@ -726,9 +727,9 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 				hr = pProcAmp->Set(VideoProcAmp_Hue, selVal, VideoProcAmp_Flags_Manual);
 
 				if (SUCCEEDED(hr))
-					Info(_log, "Hue set to: %i (%s)", selVal, (selVal == actDevice.hue.defVal) ? "default" : "user");
+					Info(_log, "Hue set to: {:d} ({:s})", selVal, (selVal == actDevice.hue.defVal) ? "default" : "user");
 				else
-					Error(_log, "Could not set hue to: %i", selVal);
+					Error(_log, "Could not set hue to: {:d}", selVal);
 			}
 
 			pProcAmp->Release();
@@ -811,13 +812,13 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 				result = true;
 			}
 			else
-				Error(_log, "Could not stream set params (%s)", QSTRING_CSTR(error));
+				Error(_log, "Could not stream set params ({:s})", (error));
 		}
 		else
-			Error(_log, "MFCreateSourceReaderFromMediaSource (%i)", hr);
+			Error(_log, "MFCreateSourceReaderFromMediaSource ({:d})", hr);
 	}
 	else
-		Error(_log, "Could not open device (%s)", QSTRING_CSTR(error));
+		Error(_log, "Could not open device ({:s})", (error));
 
 
 
@@ -839,7 +840,7 @@ bool MFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pro
 		_actualFPS = props.fps;
 		_actualDeviceName = selectedDeviceName;
 
-		Info(_log, "******************** SUCCESFULLY SET CAPTURE PARAMETERS: %i %i %s ********************", _actualWidth, _actualHeight, QSTRING_CSTR(pixelFormatToString(_actualVideoFormat)));
+		Info(_log, "******************** SUCCESFULLY SET CAPTURE PARAMETERS: {:d} {:d} {:s} ********************", _actualWidth, _actualHeight, (pixelFormatToString(_actualVideoFormat)));
 
 
 		switch (props.pf)
@@ -923,18 +924,18 @@ void MFGrabber::start_capturing()
 	{
 		HRESULT hr = _sourceReader->ReadSample(static_cast<DWORD>(MF_SOURCE_READER_FIRST_VIDEO_STREAM), 0, NULL, NULL, NULL, NULL);
 		if (!CHECK(hr))
-			Error(_log, "ReadSample (%i)", hr);
+			Error(_log, "ReadSample ({:d})", hr);
 	}
 }
 
 void MFGrabber::receive_image(const void* frameImageBuffer, int size, QString message)
 {
 	if (frameImageBuffer == NULL || size == 0)
-		Warning(_log, "Received empty image frame: %s", QSTRING_CSTR(message));
+		Warning(_log, "Received empty image frame: {:s}", (message));
 	else
 	{
 		if (!message.isEmpty())
-			Debug(_log, "Received image frame: %s", QSTRING_CSTR(message));
+			Debug(_log, "Received image frame: {:s}", (message));
 		process_image(frameImageBuffer, size);
 	}
 
@@ -953,7 +954,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 	// We do want a new frame...
 	if (size < _frameByteSize && _actualVideoFormat != PixelFormat::MJPEG)
 	{
-		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
+		Error(_log, "Frame too small: {:d} != {:d}", size, _frameByteSize);
 	}
 	else
 	{
@@ -983,30 +984,27 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 				QString currentCache = QString::fromStdString(Image<ColorRgb>::adjustCache());
 
 				if (!currentCache.isEmpty())
-					Info(_log, "%s", QSTRING_CSTR(currentCache));
+					Info(_log, "{:s}", (currentCache));
 			}
 
-			if (_MFWorkerManager.workers == nullptr)
+			if (_MFWorkerManager.workers.size() == 0)
 			{
 				_MFWorkerManager.InitWorkers();
-				Debug(_log, "Worker's thread count  = %d", _MFWorkerManager.workersCount);
+				Debug(_log, "Worker's thread count  = {:d}", _MFWorkerManager.workersCount);
 
-				for (unsigned int i = 0; i < _MFWorkerManager.workersCount && _MFWorkerManager.workers != nullptr; i++)
-				{
-					MFWorker* _workerThread = _MFWorkerManager.workers[i];
-					connect(_workerThread, &MFWorker::SignalNewFrameError, this, &MFGrabber::newWorkerFrameErrorHandler);
-					connect(_workerThread, &MFWorker::SignalNewFrame, this, &MFGrabber::newWorkerFrameHandler);
+				for (unsigned int i = 0; i < _MFWorkerManager.workersCount && i < _MFWorkerManager.workers.size(); i++)
+				{					
+					connect(_MFWorkerManager.workers[i].get(), &GrabberWorker::SignalNewFrameError, this, &MFGrabber::newWorkerFrameErrorHandler);
+					connect(_MFWorkerManager.workers[i].get(), &GrabberWorker::SignalNewFrame, this, &MFGrabber::newWorkerFrameHandler);
 				}
 			}
 
-			for (unsigned int i = 0; _MFWorkerManager.isActive() && i < _MFWorkerManager.workersCount && _MFWorkerManager.workers != nullptr; i++)
+			for (unsigned int i = 0; _MFWorkerManager.isActive() && i < _MFWorkerManager.workersCount && i < _MFWorkerManager.workers.size(); i++)
 			{
 				if (_MFWorkerManager.workers[i]->isFinished() || !_MFWorkerManager.workers[i]->isRunning())
 				{
 					if (_MFWorkerManager.workers[i]->isBusy() == false)
 					{
-						MFWorker* _workerThread = _MFWorkerManager.workers[i];
-
 						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::I420 ||
 							_actualVideoFormat == PixelFormat::NV12 || _hdrToneMappingEnabled) && !_lutBufferInit)
 						{
@@ -1028,7 +1026,7 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 						}
 
 						bool directAccess = !(_signalAutoDetectionEnabled || _signalDetectionEnabled || isCalibrating());
-						_workerThread->setup(
+						_MFWorkerManager.workers[i]->setup(
 							i,
 							_actualVideoFormat,
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
@@ -1058,13 +1056,13 @@ void MFGrabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString err
 	frameStat.badFrame++;
 	if (error.indexOf(QString(UNSUPPORTED_DECODER)) == 0)
 	{
-		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: %s)", QSTRING_CSTR(error));
+		Error(_log, "Unsupported MJPEG/YUV format. Please contact HyperHDR developers! (info: {:s})", (error));
 	}
-	//Debug(_log, "Error occured while decoding mjpeg frame %d = %s", sourceCount, QSTRING_CSTR(error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame {:d} = {:s}", sourceCount, (error));	
 
 	// get next frame	
 	if (workerIndex > _MFWorkerManager.workersCount)
-		Error(_log, "Frame index = %d, index out of range", sourceCount);
+		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
 	if (workerIndex <= _MFWorkerManager.workersCount)
 		_MFWorkerManager.workers[workerIndex]->noBusy();
@@ -1078,7 +1076,7 @@ void MFGrabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb> 
 
 	// get next frame	
 	if (workerIndex > _MFWorkerManager.workersCount)
-		Error(_log, "Frame index = %d, index out of range", sourceCount);
+		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
 	if (workerIndex <= _MFWorkerManager.workersCount)
 		_MFWorkerManager.workers[workerIndex]->noBusy();

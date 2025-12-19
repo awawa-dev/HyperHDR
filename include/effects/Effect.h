@@ -14,10 +14,9 @@
 #include <utils/Components.h>
 #include <image/Image.h>
 #include <effects/AnimationBase.h>
-
+#include <utils/Logger.h>
 
 class HyperHdrInstance;
-class Logger;
 class SoundCapture;
 
 class Effect : public QObject
@@ -73,7 +72,7 @@ private:
 	int64_t				_endTime;
 	QVector<ColorRgb>	_colors;
 
-	Logger*				_log;
+	LoggerName			_log;
 	std::atomic<bool>	_interrupt;
 
 	HyperImage			_image;

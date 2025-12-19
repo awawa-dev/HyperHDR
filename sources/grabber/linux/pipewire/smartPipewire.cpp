@@ -30,21 +30,21 @@
 #include <QString>
 #include <QThread>
 
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <fcntl.h>
+#include <iostream>
+#include <memory>
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <cassert>
 #include <sys/wait.h>
-#include <cerrno>
-#include <fcntl.h>
 #include <unistd.h>
 #include <vector>
-#include <cstdio>
-#include <cstdlib>
-#include <time.h>
-#include <cstring>
-#include <iostream>
-#include <memory>
 
 #include <grabber/linux/pipewire/PipewireHandler.h>
 
@@ -124,7 +124,7 @@ bool hasPipewire()
 
 PipewireImage getFramePipewire()
 {
-	PipewireImage retVal;
+	PipewireImage retVal{};
 
 	pipewireHandler.getImage(retVal);
 

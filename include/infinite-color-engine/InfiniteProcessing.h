@@ -11,11 +11,11 @@
 #include <image/ColorRgb.h>
 #include <infinite-color-engine/SharedOutputColors.h>
 #include <utils/settings.h>
+#include <utils/Logger.h>
 #include <utils/Components.h>
 #include <utils/InternalClock.h>
 #include <base/LedString.h>
 #include <linalg.h>
-
 
 template<typename T>
 concept IsFloatVec3 = std::same_as<T, linalg::vec<float, 3>>;
@@ -69,7 +69,7 @@ public:
 	};
 
 	InfiniteProcessing();
-	InfiniteProcessing(const QJsonDocument& config, Logger* _log);
+	InfiniteProcessing(const QJsonDocument& config, const LoggerName& _log);
 	~InfiniteProcessing() = default;
 
 	void setProcessingEnabled(bool enabled);
@@ -182,7 +182,7 @@ private:
 	std::optional<float> _minimalBacklight;
 	std::optional<bool>	_coloredBacklight;
 
-	Logger* _log;
+	LoggerName _log;
 	QJsonObject _currentConfig;
 
 private:

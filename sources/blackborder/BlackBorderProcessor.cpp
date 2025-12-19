@@ -214,10 +214,10 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 		{
 			_oldThreshold = newThreshold;
 
-			_borderDetector = std::unique_ptr<BlackBorderDetector>(new BlackBorderDetector(newThreshold));
+			_borderDetector = std::make_unique<BlackBorderDetector>(newThreshold);
 		}
 
-		Info(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
+		Info("BLACKBORDER", "Set mode to: {:s}", (_detectionMode));
 
 		// eval the comp state
 		handleCompStateChangeRequest(hyperhdr::COMP_BLACKBORDER, obj["enable"].toBool(true));

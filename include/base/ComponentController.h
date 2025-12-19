@@ -33,7 +33,7 @@ private slots:
 	void handleCompStateChangeRequest(hyperhdr::Components comps, bool activated);
 
 private:
-	Logger* _log;
+	LoggerName _log;
 	std::map<hyperhdr::Components, bool> _componentStates;
 	std::map<hyperhdr::Components, bool> _prevComponentStates;
 	std::map<hyperhdr::Components, bool> _prevGrabbers;

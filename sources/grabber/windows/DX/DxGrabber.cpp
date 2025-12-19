@@ -99,7 +99,7 @@ void DxGrabber::setHdrToneMappingEnabled(int mode)
 	{
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
-			Debug(_log, "setHdrToneMappingMode to: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
@@ -107,7 +107,7 @@ void DxGrabber::setHdrToneMappingEnabled(int mode)
 		loadLutFile(PixelFormat::RGB24);
 	}
 	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: %s", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
 }
 
 DxGrabber::~DxGrabber()
@@ -124,7 +124,7 @@ void DxGrabber::uninit()
 		_cacheImage = Image<ColorRgb>();
 
 		stop();
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 
 	_handles.clear();
@@ -174,7 +174,7 @@ bool DxGrabber::init()
 		{
 			_retryTimer->setInterval(5000);
 			_retryTimer->start();
-			Error(_log, "User selected '%s' device is currently not available and the 'auto' discovery is disabled. Retry in %.1f sec...", QSTRING_CSTR(_deviceName), _retryTimer->interval()/1000.0);
+			Error(_log, "User selected '{:s}' device is currently not available and the 'auto' discovery is disabled. Retry in {:.1f} sec...", (_deviceName), _retryTimer->interval()/1000.0);
 			return false;
 		}
 
@@ -184,7 +184,7 @@ bool DxGrabber::init()
 			if (!_deviceProperties.isEmpty())
 			{
 				foundDevice = _deviceProperties.firstKey();
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(foundDevice));
+				Debug(_log, "Auto discovery set to {:s}", (foundDevice));
 			}
 		}
 		else
@@ -198,7 +198,7 @@ bool DxGrabber::init()
 
 
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting DX grabber. Selected: '%s' max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _width, _height, _fps);
+		Info(_log, "Starting DX grabber. Selected: '{:s}' max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");
 
 		if (initDirectX(foundDevice))
@@ -279,7 +279,7 @@ bool DxGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "start failed ({:s})", e.what());
 	}
 
 	return false;
@@ -388,19 +388,19 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 						pOutput6->GetDesc1(&descGamut);
 
 						display->wideGamut = descGamut.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-						Info(_log, "Gamut: %s, min nits: %0.2f, max nits: %0.2f, max frame nits: %0.2f, white point: [%0.2f, %0.2f]",
-									(display->wideGamut) ? "HDR" : "SDR", descGamut.MinLuminance, descGamut.MaxLuminance, descGamut.MaxFullFrameLuminance,
+						Info(_log, "Gamut: {:s}, min nits: %0.2f, max nits: %0.2f, max frame nits: %0.2f, white point: [%0.2f, %0.2f]",
+									std::string_view((display->wideGamut) ? "HDR" : "SDR"), descGamut.MinLuminance, descGamut.MaxLuminance, descGamut.MaxFullFrameLuminance,
 									descGamut.WhitePoint[0], descGamut.WhitePoint[1]);
 
 						if (display->wideGamut && display->targetMonitorNits == 0)
 						{
-							Warning(_log, "Target SDR brightness is set to %i nits. Disabling wide gamut.", display->targetMonitorNits);
+							Warning(_log, "Target SDR brightness is set to {:d} nits. Disabling wide gamut.", display->targetMonitorNits);
 							display->wideGamut = false;
 						}
 
 						if (_hardware && display->wideGamut)
 						{
-							Info(_log, "Using wide gamut for HDR. Target SDR brightness: %i nits", display->targetMonitorNits);
+							Info(_log, "Using wide gamut for HDR. Target SDR brightness: {:d} nits", display->targetMonitorNits);
 
 							std::vector<DXGI_FORMAT> wideFormat({ DXGI_FORMAT_R16G16B16A16_FLOAT, DXGI_FORMAT_R10G10B10A2_UNORM });
 							status = pOutput6->DuplicateOutput1(_d3dDevice, 0, static_cast<UINT>(wideFormat.size()), wideFormat.data(), &display->d3dDuplicate);
@@ -425,7 +425,7 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 							CLEAR(display->surfaceProperties);
 							display->d3dDuplicate->GetDesc(&display->surfaceProperties);
 
-							Info(_log, "Surface format: %i", display->surfaceProperties.ModeDesc.Format);
+							Info(_log, "Surface format: {:d}", static_cast<int>(display->surfaceProperties.ModeDesc.Format));
 
 							int targetSizeX = display->surfaceProperties.ModeDesc.Width, targetSizeY = display->surfaceProperties.ModeDesc.Height;
 
@@ -522,7 +522,7 @@ bool DxGrabber::initDirectX(QString selectedDeviceName)
 								_retryTimer->start();
 							}
 							else
-								Error(_log, "Could not create a mirror for d3d device (busy resources?). Code: %i", status);
+								Error(_log, "Could not create a mirror for d3d device (busy resources?). Code: {:d}", status);
 						}
 					}
 					else
@@ -598,7 +598,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 				_d3dContext->OMSetRenderTargets(1, &display.d3dRenderTargetView, NULL);
 			}
 			else
-				Error(_log, "CreateRenderTargetView failed. Reason: %x", status);
+				Error(_log, "CreateRenderTargetView failed. Reason: {:x}", status);
 		}
 		else
 		{
@@ -614,7 +614,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 		}
 	}
 	else
-		Error(_log, "CreateConvertTexture2D failed. Reason: %x", status);
+		Error(_log, "CreateConvertTexture2D failed. Reason: {:x}", status);
 
 	if (CHECK(status))
 	{
@@ -625,7 +625,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 			_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		}
 		else
-			Error(_log, "Could not create vertex shaders. Reason: %x", status);
+			Error(_log, "Could not create vertex shaders. Reason: {:x}", status);
 	}
 
 	if (CHECK(status))
@@ -636,7 +636,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 			_d3dContext->PSSetShader(display.d3dPixelShader, NULL, 0);
 		}
 		else
-			Error(_log, "Could not create pixel shaders. Reason: %x", status);
+			Error(_log, "Could not create pixel shaders. Reason: {:x}", status);
 	}
 
 	if (CHECK(status))
@@ -648,7 +648,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 		if (CHECK(status))
 			_d3dContext->IASetInputLayout(display.d3dVertexLayout);
 		else
-			Error(_log, "Could not create vertex layout. Reason: %x", status);
+			Error(_log, "Could not create vertex layout. Reason: {:x}", status);
 	}
 
 	if (CHECK(status))
@@ -667,7 +667,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 		if (CHECK(status))
 			_d3dContext->PSSetSamplers(0, 1, &display.d3dSampler);
 		else
-			Error(_log, "Could not create the sampler. Reason: %x", status);
+			Error(_log, "Could not create the sampler. Reason: {:x}", status);
 	}
 
 	if (CHECK(status))
@@ -692,7 +692,7 @@ bool DxGrabber::initShaders(DisplayHandle& display)
 			_d3dContext->VSSetConstantBuffers(0, 1, &display.d3dBuffer);
 		}
 		else
-			Error(_log, "Could not create constant buffer. Reason: %x", status);
+			Error(_log, "Could not create constant buffer. Reason: {:x}", status);
 	}
 
 
@@ -751,7 +751,7 @@ HRESULT DxGrabber::deepScaledCopy(DisplayHandle& display, ID3D11Texture2D* sourc
 		{
 			if (display.warningCounter > 0)
 			{
-				Error(_log, "CreateShaderResourceView failed (%i). Reason: %i", display.warningCounter--, status);
+				Error(_log, "CreateShaderResourceView failed ({:d}). Reason: {:d}", display.warningCounter--, status);
 			}
 			return status;
 		}
@@ -808,7 +808,7 @@ void DxGrabber::grabFrame()
 
 		if (useCache && (static_cast<int>(_cacheImage.width()) != width || static_cast<int>(_cacheImage.height()) != height))
 		{
-			Warning(_log, "Invalid cached image size. Cached: %i x %i vs new: %i x %i", _cacheImage.width(), _cacheImage.height(), width, height);
+			Warning(_log, "Invalid cached image size. Cached: {:d} x {:d} vs new: {:d} x {:d}", _cacheImage.width(), _cacheImage.height(), width, height);
 			return;
 		}
 
@@ -886,7 +886,7 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 
 				if (!CHECK(status))
 				{
-					Error(_log, "DeepScaledCopy failed. Reason: %i", status);
+					Error(_log, "DeepScaledCopy failed. Reason: {:d}", status);
 				}
 			}
 			else
@@ -910,7 +910,7 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 			}
 			else
 			{
-				Error(_log, "Cannot copy or map texture. Reason: %i. Restarting...", status);
+				Error(_log, "Cannot copy or map texture. Reason: {:d}. Restarting...", status);
 				_dxRestartNow = true;
 			}
 
@@ -918,7 +918,7 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 		}
 		else
 		{
-			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: %i", status);
+			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: {:d}", status);
 			_dxRestartNow = true;
 		}
 	}
@@ -947,7 +947,7 @@ void DxGrabber::captureFrame(DisplayHandle& display)
 	}
 	else
 	{
-		Error(_log, "AcquireNextFrame failed. Reason: %i", status);
+		Error(_log, "AcquireNextFrame failed. Reason: {:d}", status);
 	}
 
 	SafeRelease(&resourceDesktop);
@@ -985,7 +985,7 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 
 				if (!CHECK(status))
 				{
-					Error(_log, "DeepScaledCopy failed. Reason: %i", status);
+					Error(_log, "DeepScaledCopy failed. Reason: {:d}", status);
 				}
 			}
 			else
@@ -1017,7 +1017,7 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 			}
 			else
 			{
-				Error(_log, "Cannot copy or map texture. Reason: %i. Restarting...", status);
+				Error(_log, "Cannot copy or map texture. Reason: {:d}. Restarting...", status);
 				_dxRestartNow = true;
 			}
 
@@ -1025,7 +1025,7 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 		}
 		else if (display.warningCounter > 0)
 		{
-			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: %i", status);
+			Error(_log, "ResourceDesktop->QueryInterface failed. Reason: {:d}", status);
 			display.warningCounter--;
 		}
 	}
@@ -1054,7 +1054,7 @@ int DxGrabber::captureFrame(DisplayHandle& display, Image<ColorRgb>& image)
 	}
 	else if (display.warningCounter > 0)
 	{
-		Error(_log, "AcquireNextFrame failed. Reason: %i", status);
+		Error(_log, "AcquireNextFrame failed. Reason: {:d}", status);
 		display.warningCounter--;
 	}
 

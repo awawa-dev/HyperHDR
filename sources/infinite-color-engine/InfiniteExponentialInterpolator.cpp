@@ -30,19 +30,15 @@
 #include <QThread>	
 
 #include <algorithm>
+#include <cassert>
 #include <chrono>
+#include <cmath>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <tuple>
-#include <iomanip>
 #include <vector>
-#include <iostream>
-#include <iomanip>
-#include <tuple>
-#include <cassert>
-#include <cmath>
-#include <cstdint>
 #endif
 
 #include <infinite-color-engine/InfiniteExponentialInterpolator.h>
@@ -66,7 +62,7 @@ void InfiniteExponentialInterpolator::resetToColors(std::vector<float3>&& colors
 
 void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug)
 {
-	if (new_rgb_targets.size() == 0)
+	if (new_rgb_targets.empty())
 		return;
 
 	if (debug)

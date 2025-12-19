@@ -44,8 +44,7 @@ AccessManager::AccessManager(QObject* parent)
 }
 
 AccessManager::~AccessManager()
-{
-}
+= default;
 
 const QString AccessManager::loadPipewire()
 {
@@ -93,7 +92,6 @@ QVector<AccessManager::AuthDefinition> AccessManager::getTokenList() const
 
 QString AccessManager::getUserToken(const QString& usr) const
 {
-	QString tok = _authTable->getUserToken(usr);
 	return QString(_authTable->getUserToken(usr));
 }
 
@@ -101,9 +99,9 @@ void AccessManager::setAuthBlock(bool user)
 {
 	// current timestamp +10 minutes
 	if (user)
-		_userAuthAttempts.append(InternalClock::now() + 600000);
+		_userAuthAttempts.push_back(InternalClock::now() + 600000);
 	else
-		_tokenAuthAttempts.append(InternalClock::now() + 600000);
+		_tokenAuthAttempts.push_back(InternalClock::now() + 600000);
 
 	_authBlockTimer->start();
 }
@@ -132,7 +130,7 @@ bool AccessManager::isTokenAuthorized(const QString& token)
 		return false;
 	}
 	// timestamp update
-	SignalTokenUpdated(getTokenList());
+	emit SignalTokenUpdated(getTokenList());
 	return true;
 }
 
@@ -272,23 +270,13 @@ void AccessManager::checkTimeout()
 
 void AccessManager::checkAuthBlockTimeout()
 {
-	// handle user auth block	
-	QVector<uint64_t>::iterator itu = _userAuthAttempts.begin();
-	while (itu != _userAuthAttempts.end()) {
-		if (*itu < (uint64_t)InternalClock::now())
-			itu = _userAuthAttempts.erase(itu);
-		else
-			++itu;
-	}
+	const uint64_t now = InternalClock::now();
 
-	// handle token auth block	
-	QVector<uint64_t>::iterator it = _tokenAuthAttempts.begin();
-	while (it != _tokenAuthAttempts.end()) {
-		if (*it < (uint64_t)InternalClock::now())
-			it = _tokenAuthAttempts.erase(it);
-		else
-			++it;
-	}
+	// handle user auth block
+	std::erase_if(_userAuthAttempts, [now](uint64_t t) { return t < now; });
+
+	// handle token auth block
+	std::erase_if(_tokenAuthAttempts, [now](uint64_t t) { return t < now; });
 
 	// if the lists are empty we stop
 	if (_userAuthAttempts.empty() && _tokenAuthAttempts.empty())
@@ -317,10 +305,10 @@ bool AccessManager::isLocalAdminAuthRequired() const
 
 bool AccessManager::isUserAuthBlocked() const
 {
-	return (_userAuthAttempts.length() >= 10);
+	return (_userAuthAttempts.size() >= 10);
 }
 
 bool AccessManager::isTokenAuthBlocked() const
 {
-	return (_tokenAuthAttempts.length() >= 25);
+	return (_tokenAuthAttempts.size() >= 25);
 }

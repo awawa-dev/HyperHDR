@@ -126,10 +126,10 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 		QString deviceManufacturer = jsonAllPanelInfo[DEV_DATA_MANUFACTURER].toString();
 		_deviceFirmwareVersion = jsonAllPanelInfo[DEV_DATA_FIRMWAREVERSION].toString();
 
-		Debug(_log, "Name           : %s", QSTRING_CSTR(deviceName));
-		Debug(_log, "Model          : %s", QSTRING_CSTR(_deviceModel));
-		Debug(_log, "Manufacturer   : %s", QSTRING_CSTR(deviceManufacturer));
-		Debug(_log, "FirmwareVersion: %s", QSTRING_CSTR(_deviceFirmwareVersion));
+		Debug(_log, "Name           : {:s}", (deviceName));
+		Debug(_log, "Model          : {:s}", (_deviceModel));
+		Debug(_log, "Manufacturer   : {:s}", (deviceManufacturer));
+		Debug(_log, "FirmwareVersion: {:s}", (_deviceFirmwareVersion));
 
 		// Get panel details from /panelLayout/layout
 		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
@@ -151,7 +151,7 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 			int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
 			//int panelOrientation = panelObj[PANEL_ORIENTATION].toInt();
 
-			DebugIf(verbose, _log, "Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+			DebugIf(verbose, _log, "Panel [{:d}] ({:d},{:d}) - Type: [{:d}]", panelId, panelX, panelY, panelshapeType);
 
 			// Skip Rhythm panels
 			if (panelshapeType != RHYTM)
@@ -172,7 +172,7 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 			{
 				for (auto posX = posY->second.cbegin(); posX != posY->second.cend(); ++posX)
 				{
-					DebugIf(verbose3, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
+					DebugIf(verbose3, _log, "panelMap[{:d}][{:d}]={:d}", posY->first, posX->first, posX->second);
 
 					if (_topDown)
 					{
@@ -189,7 +189,7 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 				// Sort panels right to left
 				for (auto posX = posY->second.crbegin(); posX != posY->second.crend(); ++posX)
 				{
-					DebugIf(verbose3, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
+					DebugIf(verbose3, _log, "panelMap[{:d}][{:d}]={:d}", posY->first, posX->first, posX->second);
 
 					if (_topDown)
 					{
@@ -206,17 +206,17 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 		this->_panelLedCount = _panelIds.size();
 		_devConfig["hardwareLedCount"] = _panelLedCount;
 
-		Debug(_log, "PanelsNum      : %d", panelNum);
-		Debug(_log, "PanelLedCount  : %d", _panelLedCount);
+		Debug(_log, "PanelsNum      : {:d}", panelNum);
+		Debug(_log, "PanelLedCount  : {:d}", _panelLedCount);
 
 		// Check. if enough panels were found.
 		int configuredLedCount = this->getLedCount();
 		_endPos = _startPos + configuredLedCount - 1;
 
-		Debug(_log, "Sort Top>Down  : %d", _topDown);
-		Debug(_log, "Sort Left>Right: %d", _leftRight);
-		Debug(_log, "Start Panel Pos: %d", _startPos);
-		Debug(_log, "End Panel Pos  : %d", _endPos);
+		Debug(_log, "Sort Top>Down  : {:d}", _topDown);
+		Debug(_log, "Sort Left>Right: {:d}", _leftRight);
+		Debug(_log, "Start Panel Pos: {:d}", _startPos);
+		Debug(_log, "End Panel Pos  : {:d}", _endPos);
 
 		if (_panelLedCount < configuredLedCount)
 		{
@@ -230,7 +230,7 @@ bool DriverNetNanoleaf::initLedsConfiguration()
 		{
 			if (_panelLedCount > this->getLedCount())
 			{
-				Info(_log, "%s: More panels [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
+				Info(_log, "{:s}: More panels [{:d}] than configured LEDs [{:d}].", (this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
 			}
 
 			// Check, if start position + number of configured LEDs is greater than number of panels available
@@ -257,16 +257,16 @@ bool DriverNetNanoleaf::init(QJsonObject deviceConfig)
 		Info(_log, "Device Nanoleaf does not require setting refresh time. Refresh time is ignored.");
 	}
 
-	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "deviceConfig: [{:s}]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	bool isInitOK = false;
 
 	if (LedDevice::init(deviceConfig))
 	{
 		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %d", configuredLedCount);
-		Debug(_log, "RefreshTime  : %d", this->getRefreshTime());
+		Debug(_log, "DeviceType   : {:s}", (this->getActiveDeviceType()));
+		Debug(_log, "LedCount     : {:d}", configuredLedCount);
+		Debug(_log, "RefreshTime  : {:d}", this->getRefreshTime());
 
 		// Read panel organisation configuration
 		if (deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].isString())
@@ -314,8 +314,8 @@ bool DriverNetNanoleaf::init(QJsonObject deviceConfig)
 					_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
 
 					isInitOK = ProviderUdp::init(_devConfig);
-					Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR(_hostname));
-					Debug(_log, "Port         : %d", _port);
+					Debug(_log, "Hostname/IP  : {:s}", (_hostname));
+					Debug(_log, "Port         : {:d}", _port);
 				}
 			}
 		}
@@ -329,7 +329,7 @@ bool DriverNetNanoleaf::initRestAPI(const QString& hostname, int port, const QSt
 
 	if (_restApi == nullptr)
 	{
-		_restApi = std::unique_ptr<ProviderRestApi>(new ProviderRestApi(hostname, port));
+		_restApi = std::make_unique<ProviderRestApi>(hostname, port);
 
 		//Base-path is api-path + authentication token
 		_restApi->setBasePath(QString(API_BASE_PATH).arg(token));
@@ -400,7 +400,7 @@ QJsonObject DriverNetNanoleaf::discover(const QJsonObject& /*params*/)
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
@@ -408,7 +408,7 @@ QJsonObject DriverNetNanoleaf::discover(const QJsonObject& /*params*/)
 
 void DriverNetNanoleaf::identify(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString host = params["host"].toString("");
 	if (!host.isEmpty())
@@ -436,14 +436,14 @@ void DriverNetNanoleaf::identify(const QJsonObject& params)
 		httpResponse response = _restApi->put();
 		if (response.error())
 		{
-			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			Warning(_log, "{:s} identification failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
 		}
 	}
 }
 
 QJsonObject DriverNetNanoleaf::getProperties(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
 	// Get Nanoleaf device properties
@@ -474,12 +474,12 @@ QJsonObject DriverNetNanoleaf::getProperties(const QJsonObject& params)
 		httpResponse response = _restApi->get();
 		if (response.error())
 		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			Warning(_log, "{:s} get properties failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
 		}
 
 		properties.insert("properties", response.getBody().object());
 
-		Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+		Debug(_log, "properties: [{:s}]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	}
 	return properties;
 }
@@ -558,7 +558,7 @@ int DriverNetNanoleaf::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		{
 			// Set panels not configured to black;
 			color = ColorRgb::BLACK;
-			DebugIf(verbose3, _log, "[%d] >= panelLedCount [%d] => Set to BLACK", panelCounter, _panelLedCount);
+			DebugIf(verbose3, _log, "[{:d}] >= panelLedCount [{:d}] => Set to BLACK", panelCounter, _panelLedCount);
 		}
 
 		// Set panelID
@@ -578,13 +578,13 @@ int DriverNetNanoleaf::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		qToBigEndian<quint16>(static_cast<quint16>(tranitionTime), udpbuffer.data() + i);
 		i += 2;
 
-		DebugIf(verbose3, _log, "[%u] Color: {%u,%u,%u}", panelCounter, color.red, color.green, color.blue);
+		DebugIf(verbose3, _log, "[{:d}] Color: {{{:d},{:d},{:d}}}", panelCounter, color.red, color.green, color.blue);
 	}
 
 	if (verbose3)
 	{
-		Debug(_log, "UDP-Address [%s], UDP-Port [%u], udpBufferSize[%d], Bytes to send [%d]", QSTRING_CSTR(_address.toString()), _port, udpBufferSize, i);
-		Debug(_log, "packet: [%s]", QSTRING_CSTR(toHex(udpbuffer, 64)));
+		Debug(_log, "UDP-Address [{:s}], UDP-Port [{:d}], udpBufferSize[{:d}], Bytes to send [{:d}]", (_address.toString()), _port, udpBufferSize, i);
+		Debug(_log, "packet: [{:s}]", (toHex(udpbuffer, 64)));
 	}
 
 	retVal = writeBytes(udpbuffer);

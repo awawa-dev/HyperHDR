@@ -9,7 +9,7 @@
 #include <utils/Logger.h>
 #include <base/Muxer.h>
 
-#define	TIMEOUT_INACTIVE -100
+#define	TIMEOUT_INACTIVE (-100)
 
 const int Muxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 const int Muxer::HIGHEST_EFFECT_PRIORITY = 0;
@@ -17,7 +17,7 @@ const int Muxer::LOWEST_EFFECT_PRIORITY = 254;
 
 Muxer::Muxer(int instanceIndex, int /*ledCount*/, QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance(QString("MUXER%1").arg(instanceIndex)))
+	, _log(QString("MUXER%1").arg(instanceIndex))
 	, _currentPriority(Muxer::LOWEST_PRIORITY)
 	, _previousPriority(_currentPriority)
 	, _manualSelectedPriority(256)
@@ -55,11 +55,7 @@ Muxer::Muxer(int instanceIndex, int /*ledCount*/, QObject* parent)
 }
 
 Muxer::~Muxer()
-{
-	delete _updateTimer;
-	delete _timer;
-	delete _blockTimer;
-}
+= default;
 
 QList<int> Muxer::getPriorities() const
 {
@@ -100,7 +96,7 @@ bool Muxer::setInput(int priority, int64_t timeout_ms)
 {
 	if (!_activeInputs.contains(priority))
 	{
-		Error(_log, "setInput() used without registerInput() for priority '%d', probably the priority reached timeout", priority);
+		Error(_log, "setInput() used without registerInput() for priority '{:d}', probably the priority reached timeout", priority);
 		return false;
 	}
 
@@ -128,7 +124,7 @@ bool Muxer::setInput(int priority, int64_t timeout_ms)
 	// emit active change
 	if (activeChange)
 	{
-		Info(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
+		Info(_log, "Priority {:d} is now {:s}", priority, active ? "active" : "inactive");
 		if (_currentPriority < priority)
 			emit SignalPrioritiesChanged();
 		setCurrentTime();
@@ -144,12 +140,12 @@ bool Muxer::setSourceAutoSelectEnabled(bool enable, bool update)
 		// on disable we need to make sure the last priority call to setPriority is still valid
 		if (!enable && !_activeInputs.contains(_manualSelectedPriority))
 		{
-			Warning(_log, "Can't disable auto selection, as the last manual selected priority (%d) is no longer available", _manualSelectedPriority);
+			Warning(_log, "Can't disable auto selection, as the last manual selected priority ({:d}) is no longer available", _manualSelectedPriority);
 			return false;
 		}
 
 		_sourceAutoSelectEnabled = enable;
-		Debug(_log, "Source auto select is now %s", enable ? "enabled" : "disabled");
+		Debug(_log, "Source auto select is now {:s}", enable ? "enabled" : "disabled");
 
 		// update _currentPriority if called from external
 		if (update)
@@ -198,7 +194,7 @@ void Muxer::registerInput(int priority, hyperhdr::Components component, const QS
 
 	if (newInput)
 	{
-		Info(_log, "Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperhdr::componentToIdString(component), priority);
+		Info(_log, "Register new input '{:s}/{:s}' with priority {:d} as inactive", (origin), hyperhdr::componentToIdString(component), priority);
 		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
 		if (!_sourceAutoSelectEnabled)
 			emit SignalPrioritiesChanged();
@@ -222,7 +218,7 @@ bool Muxer::clearInput(int priority)
 	{
 		if (_activeInputs.remove(priority))
 		{
-			Info(_log, "Removed source priority %d", priority);
+			Info(_log, "Removed source priority {:d}", priority);
 			// on clear success update _currentPriority
 			setCurrentTime();
 		}
@@ -244,7 +240,8 @@ void Muxer::clearAll(bool forceClearAll)
 	}
 	else
 	{
-		for (auto key : _activeInputs.keys())
+		const auto keys = _activeInputs.keys();
+		for (const auto& key : keys)
 		{
 			const InputInfo& info = getInputInfo(key);
 			if ((info.componentId == hyperhdr::COMP_COLOR || info.componentId == hyperhdr::COMP_EFFECT || info.componentId == hyperhdr::COMP_IMAGE) && key < Muxer::LOWEST_PRIORITY - 1)
@@ -260,28 +257,28 @@ void Muxer::setCurrentTime()
 	const int64_t now = InternalClock::now();
 	int newPriority = Muxer::LOWEST_PRIORITY;
 
-	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
+	for (QMutableMapIterator<int, InputInfo> infoIter(_activeInputs); infoIter.hasNext(); )
 	{
-		if (infoIt->timeout > 0 && infoIt->timeout <= now)
+		infoIter.next();
+		InputInfo& infoIt = infoIter.value();
+		if (infoIt.timeout > 0 && infoIt.timeout <= now)
 		{
-			int tPrio = infoIt->priority;
-			infoIt = _activeInputs.erase(infoIt);
-			Info(_log, "Timeout clear for priority %d", tPrio);
+			int tPrio = infoIt.priority;
+			infoIter.remove();
+			Info(_log, "Timeout clear for priority {:d}", tPrio);
 			emit SignalPrioritiesChanged();
 		}
 		else
 		{
 			// timeoutTime of -100 is awaiting data (inactive); skip
-			if (infoIt->timeout > TIMEOUT_INACTIVE)
-				newPriority = qMin(newPriority, infoIt->priority);
+			if (infoIt.timeout > TIMEOUT_INACTIVE)
+				newPriority = qMin(newPriority, infoIt.priority);
 
 			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255
-			if (infoIt->priority < Muxer::LOWEST_EFFECT_PRIORITY &&
-				infoIt->timeout > 0 &&
-				(infoIt->componentId == hyperhdr::COMP_EFFECT || infoIt->componentId == hyperhdr::COMP_COLOR || infoIt->componentId == hyperhdr::COMP_IMAGE))
+			if (infoIt.priority < Muxer::LOWEST_EFFECT_PRIORITY &&
+				infoIt.timeout > 0 &&
+				(infoIt.componentId == hyperhdr::COMP_EFFECT || infoIt.componentId == hyperhdr::COMP_COLOR || infoIt.componentId == hyperhdr::COMP_IMAGE))
 				emit SignalTimeTrigger_Internal(); // as signal to prevent Threading issues
-
-			++infoIt;
 		}
 	}
 	// evaluate, if manual selected priority is still available
@@ -293,7 +290,7 @@ void Muxer::setCurrentTime()
 		}
 		else
 		{
-			Debug(_log, "The manual selected priority '%d' is no longer available, switching to auto selection", _manualSelectedPriority);
+			Debug(_log, "The manual selected priority '{:d}' is no longer available, switching to auto selection", _manualSelectedPriority);
 			// update state, but no _currentPriority re-eval
 			setSourceAutoSelectEnabled(true, false);
 		}
@@ -304,7 +301,7 @@ void Muxer::setCurrentTime()
 	{
 		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
-		Info(_log, "Set visible priority to %d", newPriority);
+		Info(_log, "Set visible priority to {:d}", newPriority);
 		emit SignalVisiblePriorityChanged(newPriority);
 		// check for visible comp change
 		if (comp != _prevVisComp)

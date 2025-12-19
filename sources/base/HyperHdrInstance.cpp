@@ -76,7 +76,7 @@ HyperHdrInstance::HyperHdrInstance(quint8 instance, bool disableOnStartup, QStri
 	, _videoControl(nullptr)
 	, _systemControl(nullptr)
 	, _rawUdpServer(nullptr)
-	, _log(nullptr)
+	, _log("")
 	, _hwLedCount()
 	, _ledGridSize()
 	, _currentLedColors()
@@ -96,33 +96,33 @@ HyperHdrInstance::~HyperHdrInstance()
 	if (_muxer != nullptr)
 		clear(-1, true);
 
-	Info(_log, "[ 1/9] Releasing HyperHDR%i->UdpServer...", _instIndex);
+	Info(_log, "[ 1/9] Releasing HyperHDR{:d}->UdpServer...", _instIndex);
 	_rawUdpServer = nullptr;
-	Info(_log, "[ 2/9] Releasing HyperHDR%i->VideoControl...", _instIndex);
+	Info(_log, "[ 2/9] Releasing HyperHDR{:d}->VideoControl...", _instIndex);
 	_videoControl = nullptr;
-	Info(_log, "[ 3/9] Releasing HyperHDR%i->SystemControl...", _instIndex);
+	Info(_log, "[ 3/9] Releasing HyperHDR{:d}->SystemControl...", _instIndex);
 	_systemControl = nullptr;
-	Info(_log, "[ 4/9] Releasing HyperHDR%i->EffectEngine...", _instIndex);
+	Info(_log, "[ 4/9] Releasing HyperHDR{:d}->EffectEngine...", _instIndex);
 	_effectEngine = nullptr;
-	Info(_log, "[ 5/9] Releasing HyperHDR%i->InstanceConfiguration...", _instIndex);
+	Info(_log, "[ 5/9] Releasing HyperHDR{:d}->InstanceConfiguration...", _instIndex);
 	_instanceConfig = nullptr;
-	Info(_log, "[ 6/9] Releasing HyperHDR%i->LED driver wrapper...", _instIndex);
+	Info(_log, "[ 6/9] Releasing HyperHDR{:d}->LED driver wrapper...", _instIndex);
 	_ledDeviceWrapper = nullptr;
-	Info(_log, "[ 7/9] Releasing HyperHDR%i->InfiniteColorEngine...", _instIndex);
+	Info(_log, "[ 7/9] Releasing HyperHDR{:d}->InfiniteColorEngine...", _instIndex);
 	_infinite = nullptr;
-	Info(_log, "[ 8/9] Releasing HyperHDR%i->ComponentController...", _instIndex);
+	Info(_log, "[ 8/9] Releasing HyperHDR{:d}->ComponentController...", _instIndex);
 	_componentController = nullptr;
-	Info(_log, "[ 9/9] Releasing HyperHDR%i->Muxer...", _instIndex);
+	Info(_log, "[ 9/9] Releasing HyperHDR{:d}->Muxer...", _instIndex);
 	_muxer = nullptr;
 
 	_totalRunningCount--;
 
-	Warning(_log, "The instance has been released succesfully [left: %i]", (int)_totalRunningCount);
+	Warning(_log, "The instance has been released succesfully [left: {:d}]", (int)_totalRunningCount);
 }
 
 void HyperHdrInstance::start()
 {
-	_log = Logger::getInstance(QString("HYPERHDR%1").arg(_instIndex));
+	_log = QString("HYPERHDR%1").arg(_instIndex);
 
 	if (_signalTerminate)
 	{
@@ -132,12 +132,12 @@ void HyperHdrInstance::start()
 
 	Info(_log, "Starting the instance");
 
-	_instanceConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(false, _instIndex, this));
-	_componentController = std::unique_ptr<ComponentController>(new ComponentController(this, _disableOnStartup));
+	_instanceConfig = std::make_unique<InstanceConfig>(false, _instIndex, this);
+	_componentController = std::make_unique<ComponentController>(this, _disableOnStartup);
 	connect(_componentController.get(), &ComponentController::SignalComponentStateChanged, this, &HyperHdrInstance::SignalComponentStateChanged);
 	_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(getSetting(settings::type::DEVICE).object()));
-	_muxer = std::unique_ptr<Muxer>(new Muxer(_instIndex, static_cast<int>(_ledString.leds().size()), this));
-	_imageProcessor = std::unique_ptr<ImageToLedManager>(new ImageToLedManager(_ledString, this));
+	_muxer = std::make_unique<Muxer>(_instIndex, static_cast<int>(_ledString.leds().size()), this);
+	_imageProcessor = std::make_unique<ImageToLedManager>(_ledString, this);
 	connect(_muxer.get(), &Muxer::SignalPrioritiesChanged, this, &HyperHdrInstance::SignalPrioritiesChanged);
 	connect(_muxer.get(), &Muxer::SignalVisiblePriorityChanged, this, &HyperHdrInstance::SignalVisiblePriorityChanged);
 	connect(_muxer.get(), &Muxer::SignalVisibleComponentChanged, this, &HyperHdrInstance::SignalVisibleComponentChanged);
@@ -145,7 +145,7 @@ void HyperHdrInstance::start()
 	_ledGridSize = LedString::getLedLayoutGridSize(getSetting(settings::type::LEDS).array());
 	_currentLedColors = QVector<ColorRgb>(_ledString.leds().size(), ColorRgb::BLACK);
 
-	Info(_log, "Led strip RGB order is: %s", QSTRING_CSTR(LedString::colorOrderToString(_ledString.colorOrder)));
+	Info(_log, "Led strip RGB order is: {:s}", (LedString::colorOrderToString(_ledString.colorOrder)));
 
 	connect(_instanceConfig.get(), &InstanceConfig::SignalInstanceSettingsChanged, this, &HyperHdrInstance::SignalInstanceSettingsChanged);
 
@@ -164,18 +164,18 @@ void HyperHdrInstance::start()
 	ledDevice["currentLedCount"] = _hwLedCount; // Inject led count info
 	
 
-	_ledDeviceWrapper = std::unique_ptr<LedDeviceWrapper>(new LedDeviceWrapper(this));
+	_ledDeviceWrapper = std::make_unique<LedDeviceWrapper>(this);
 	connect(this, &HyperHdrInstance::SignalRequestComponent, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
 	_ledDeviceWrapper->createLedDevice(ledDevice, _infinite->getSuggestedInterval(), _disableOnStartup);
 
 	// create the effect engine; needs to be initialized after smoothing!
-	_effectEngine = std::unique_ptr<EffectEngine>(new EffectEngine(this));
+	_effectEngine = std::make_unique<EffectEngine>(this);
 	connect(this, &HyperHdrInstance::SignalVisiblePriorityChanged, _effectEngine.get(), &EffectEngine::visiblePriorityChanged);
 
 	// create the Daemon capture interface
-	_videoControl = std::unique_ptr<VideoControl>(new VideoControl(this));
+	_videoControl = std::make_unique<VideoControl>(this);
 
-	_systemControl = std::unique_ptr<SystemControl>(new SystemControl(this));
+	_systemControl = std::make_unique<SystemControl>(this);
 
 	// forwards global signals to the corresponding slots
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalClearGlobalInput, this, &HyperHdrInstance::clear);
@@ -185,7 +185,7 @@ void HyperHdrInstance::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
-	_rawUdpServer = std::unique_ptr<RawUdpServer>(new RawUdpServer(this, getSetting(settings::type::RAWUDPSERVER)));
+	_rawUdpServer = std::make_unique<RawUdpServer>(this, getSetting(settings::type::RAWUDPSERVER));
 	connect(this, &HyperHdrInstance::SignalInstanceSettingsChanged, _rawUdpServer.get(), &RawUdpServer::handleSettingsUpdate);
 
 	// handle background effect
@@ -239,7 +239,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 		// force ledString update, if device ByteOrder changed
 		if (_ledString.colorOrder != LedString::stringToColorOrder(dev["colorOrder"].toString("rgb")))
 		{
-			Info(_log, "New RGB order is: %s", QSTRING_CSTR(dev["colorOrder"].toString("rgb")));
+			Info(_log, "New RGB order is: {:s}", (dev["colorOrder"].toString("rgb")));
 			_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(dev));
 			_imageProcessor->setLedString(_ledString);
 		}
@@ -276,7 +276,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 			if (isBootEffect && effectDuration <= 0)
 			{
 				effectDuration = 3000;
-				Warning(_log, "Boot effect duration 'infinity' is forbidden, set to default value %d ms", effectDuration);
+				Warning(_log, "Boot effect duration 'infinity' is forbidden, set to default value {:d} ms", effectDuration);
 			}
 
 			if (effectType.contains("color"))
@@ -291,12 +291,12 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 				};
 
 				setColor(effectPriority, colors, effectDuration);
-				Info(_log, "%s: color set to [%d, %d, %d]", effectDesc, colors[0].red, colors[0].green, colors[0].blue);
+				Info(_log, "{:s}: color set to [{:d}, {:d}, {:d}]", effectDesc, colors[0].red, colors[0].green, colors[0].blue);
 			}
 			else
 			{
 				int result = setEffect(effectAnimation, effectPriority, effectDuration);
-				Info(_log, "%s: animation set to '%s' [%s]", effectDesc, QSTRING_CSTR(effectAnimation), ((result == 0) ? "started" : "failed"));
+				Info(_log, "{:s}: animation set to '{:s}' [{:s}]", effectDesc, (effectAnimation), ((result == 0) ? "started" : "failed"));
 			}
 		}
 	}
@@ -461,7 +461,7 @@ bool HyperHdrInstance::setInputLeds(int priority, const QVector<ColorRgb>& ledCo
 			if (_currentLedColors.size() == ledColors.size())
 				_currentLedColors = ledColors;
 			else
-				Warning(_log, "Discrepancy between the number of colors in the input (%i) and the current ones (%i)",
+				Warning(_log, "Discrepancy between the number of colors in the input ({:d}) and the current ones ({:d})",
 					ledColors.size(), _currentLedColors.size());
 
 			update();
@@ -506,7 +506,7 @@ void HyperHdrInstance::setInputImage(int priority, const Image<ColorRgb>& image,
 
 				_imageProcessor->processFrame(colors, image);
 
-				if (colors.size() > 0)
+				if (!colors.empty())
 				{
 					updateResult(std::move(colors));
 					emit SignalInstanceImageUpdated(image);
@@ -530,7 +530,7 @@ void HyperHdrInstance::signalSetGlobalColorHandler(int priority, const QVector<C
 
 void HyperHdrInstance::setColor(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, const QString& origin, bool clearEffects)
 {
-	if (ledColors.size() == 0)
+	if (ledColors.empty())
 		return;
 
 	// clear effect if this call does not come from an effect
@@ -661,7 +661,7 @@ void HyperHdrInstance::handlePriorityChangedLedDevice(const quint8& priority)
 
 	int previousPriority = _muxer->getPreviousPriority();
 
-	Info(_log, "New priority[%d], previous [%d]", priority, previousPriority);
+	Info(_log, "New priority[{:d}], previous [{:d}]", priority, previousPriority);
 	if (priority == Muxer::LOWEST_PRIORITY)
 	{
 		Warning(_log, "No source left -> switch LED-Device off");

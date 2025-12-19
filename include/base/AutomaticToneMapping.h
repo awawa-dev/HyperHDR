@@ -27,9 +27,6 @@
 
 #pragma once
 
-#ifndef PCH_ENABLED
-#endif
-
 #include <utils/Logger.h>
 
 class AutomaticToneMapping
@@ -43,6 +40,10 @@ public:
 	void finilize();
 	void setConfig(bool enabled, const ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec);
 	void setToneMapping(bool enabled);
+
+	void scan_YUYV(int width, uint8_t* currentSource);
+	void scan_Y_UV_8(int width, uint8_t* currentSourceY, uint8_t* currentSourceUV);
+	void scan_Y_UV_16(int width, uint8_t* currentSourceY, uint8_t* currentSourceUV);
 
 	constexpr uint8_t checkY(uint8_t y)
 	{
@@ -74,10 +75,11 @@ private:
 	int _timeToDisableInMSec;
 
 	ToneMappingThresholds _config, _running;
+	bool _triggered;
 
 	bool _modeSDR;
 	long _startedTime;
 	long _endingTime;
-	Logger* _log;
+	LoggerName _log;
 
 };

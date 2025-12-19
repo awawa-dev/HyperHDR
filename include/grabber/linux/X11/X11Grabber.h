@@ -21,7 +21,7 @@
 
 
 
-class X11Grabber : public Grabber
+class X11Grabber final : public Grabber
 {
 	Q_OBJECT
 

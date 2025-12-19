@@ -35,7 +35,7 @@ class ProviderSpiInterface
 public:
 	enum SpiProvider { NONE, GENERIC, FTDI, LIB_FTDI };
 
-	ProviderSpiInterface(Logger* logger) :
+	ProviderSpiInterface(LoggerName logger) :
 		_deviceName("/dev/spidev0.0")
 		, _baudRate_Hz(1000000)
 		, _fid(-1)		
@@ -68,5 +68,5 @@ protected:
 	int _spiMode;
 
 	QString _spiType;
-	Logger* _log;
+	LoggerName _log;
 };

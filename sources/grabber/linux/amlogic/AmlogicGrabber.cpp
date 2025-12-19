@@ -47,6 +47,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QByteArray>
 
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 #include <image/MemoryBuffer.h>
@@ -107,7 +108,7 @@ void AmlogicGrabber::uninit()
 	if (_initialized)
 	{
 		stop();
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 
 	_initialized = false;
@@ -128,7 +129,7 @@ bool AmlogicGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -139,7 +140,7 @@ bool AmlogicGrabber::init()
 			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -153,13 +154,14 @@ bool AmlogicGrabber::init()
 
 
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting FrameBuffer grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
+		Info(_log, "Starting FrameBuffer grabber. Selected: '{:s}' ({:d}) max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");
 
-		_handle = open(QSTRING_CSTR(foundDevice), O_RDONLY);
+		QByteArray foundDeviceUtf8 = foundDevice.toUtf8();
+		_handle = open(foundDeviceUtf8.constData(), O_RDONLY);
 		if (_handle < 0)
 		{
-			Error(_log, "Could not open the framebuffer device: '%s'. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
+			Error(_log, "Could not open the framebuffer device: '{:s}'. Reason: {:s} ({:d})", (foundDevice), std::strerror(errno), errno);
 		}
 		else
 		{
@@ -170,19 +172,19 @@ bool AmlogicGrabber::init()
 				if (scr.bits_per_pixel == 16 || scr.bits_per_pixel == 24 || scr.bits_per_pixel == 32)
 				{
 					_actualDeviceName = foundDevice;
-					Info(_log, "Device '%s' is using currently %ix%ix%i resolution.", QSTRING_CSTR(_actualDeviceName), scr.xres, scr.yres, scr.bits_per_pixel);
+					Info(_log, "Device '{:s}' is using currently {:d}x{:d}x{:d} resolution.", (_actualDeviceName), scr.xres, scr.yres, scr.bits_per_pixel);
 					_initialized = true;
 				}
 				else
 				{
-					Error(_log, "Unsupported %ix%ix%i mode for '%s' device.", scr.xres, scr.yres, scr.bits_per_pixel, QSTRING_CSTR(foundDevice));
+					Error(_log, "Unsupported {:d}x{:d}x{:d} mode for '{:s}' device.", scr.xres, scr.yres, scr.bits_per_pixel, (foundDevice));
 					close(_handle);
 					_handle = -1;
 				}
 			}
 			else
 			{
-				Error(_log, "Could not get the framebuffer dimension for '%s' device. Reason: %s (%i)", QSTRING_CSTR(foundDevice), std::strerror(errno), errno);
+				Error(_log, "Could not get the framebuffer dimension for '{:s}' device. Reason: {:s} ({:d})", (foundDevice), std::strerror(errno), errno);
 				close(_handle);
 				_handle = -1;
 			}
@@ -221,7 +223,7 @@ void AmlogicGrabber::enumerateDevices(bool silent)
 			_deviceProperties.insert(path, properties);
 
 			if (!silent)
-				Info(_log, "Found FrameBuffer device: %s", QSTRING_CSTR(path));
+				Info(_log, "Found FrameBuffer device: {:s}", (path));
 		}
 	}
 }
@@ -240,7 +242,7 @@ bool AmlogicGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "Start failed (%s)", e.what());
+		Error(_log, "Start failed ({:s})", e.what());
 	}
 
 	return false;
@@ -321,7 +323,7 @@ void AmlogicGrabber::grabFrame()
 			}
 		}
 		catch (const std::exception& e) {
-			Error(_log, "Error capturing frame: %s", e.what());
+			Error(_log, "Error capturing frame: {:s}", e.what());
 		}
 
 		_semaphore.release();
@@ -343,7 +345,9 @@ bool AmlogicGrabber::grabFrameFramebuffer()
 		Info(_log, "The handle is lost. Trying to restart the driver."); //quitar
 
 		close(_handle);
-		_handle = open(QSTRING_CSTR(_actualDeviceName), O_RDONLY);
+
+		QByteArray actualDeviceNameUtf8 = _actualDeviceName.toUtf8();
+		_handle = open(actualDeviceNameUtf8.constData(), O_RDONLY);
 
 		if (_handle >= 0 && ioctl(_handle, FBIOGET_VSCREENINFO, &scr) == 0)
 		{
@@ -437,7 +441,7 @@ bool AmlogicGrabber::grabFrameAmlogic()
 
 		if (bytesRead < 0 && !EAGAIN && errno > 0)
 		{
-			Error(_log, "Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));			
+			Error(_log, "Capture frame failed  failed - Retrying. Error [{:d}] - {:s}", errno, strerror(errno));			
 			_amlFrame.releaseMemory();
 			return false;
 		}
@@ -445,7 +449,7 @@ bool AmlogicGrabber::grabFrameAmlogic()
 		{
 			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
-				Error(_log, "Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
+				Error(_log, "Capture failed to grab entire image [bytesToRead({:d}) != bytesRead({:d})]", _bytesToRead, bytesRead);
 				_amlFrame.releaseMemory();
 				return false;
 			}
@@ -483,7 +487,7 @@ bool AmlogicGrabber::initAmlogic()
 	try {
 		_captureDev = open(DEFAULT_CAPTURE_DEVICE, O_RDWR);
 		if (_captureDev < 0) {
-			Error(_log, "Failed to open Amlogic capture device: %s", strerror(errno));
+			Error(_log, "Failed to open Amlogic capture device: {:s}", strerror(errno));
 			return false;
 		}
 
@@ -491,7 +495,7 @@ bool AmlogicGrabber::initAmlogic()
 		return true;
 	}
 	catch (const std::exception& e) {
-		Error(_log, "Failed to open Amlogic capture device: %s", e.what());
+		Error(_log, "Failed to open Amlogic capture device: {:s}", e.what());
 		return false;
 	}
 }
@@ -510,7 +514,7 @@ bool AmlogicGrabber::stopAmlogic()
 
 	}
 	catch (const std::exception& e) {
-		Error(_log, "Failed to stop Amlogic capture device: %s", e.what());
+		Error(_log, "Failed to stop Amlogic capture device: {:s}", e.what());
 		return false;
 	}
 }
@@ -544,14 +548,14 @@ bool AmlogicGrabber::isVideoPlayingAML()
 		int videoDisabled = 1;
 		if (!openDeviceAML(_videoDev, DEFAULT_VIDEO_DEVICE))
 		{
-			Error(_log, "Failed to open video device(%s): %d - %s", DEFAULT_VIDEO_DEVICE, errno, strerror(errno));
+			Error(_log, "Failed to open video device({:s}): {:d} - {:s}", DEFAULT_VIDEO_DEVICE, errno, strerror(errno));
 		}
 		else
 		{
 			// Check the video disabled flag
 			if (ioctl(_videoDev, AMSTREAM_IOC_GET_VIDEO_DISABLE, &videoDisabled) < 0)
 			{
-				Error(_log, "Failed to retrieve video state from device: %d - %s", errno, strerror(errno));
+				Error(_log, "Failed to retrieve video state from device: {:d} - {:s}", errno, strerror(errno));
 				closeDeviceAML(_videoDev);
 			}
 			else

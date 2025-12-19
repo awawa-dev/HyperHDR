@@ -70,7 +70,7 @@ private:
 	static bool writeError(pb_ostream_t* stream, const pb_field_iter_t* field, void* const* arg);
 
 private:
-	Logger*		_log;
+	LoggerName	_log;
 	QTcpSocket*	_socket;	
 	const QString _clientAddress;
 

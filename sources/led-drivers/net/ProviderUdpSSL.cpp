@@ -104,23 +104,24 @@ bool ProviderUdpSSL::init(QJsonObject deviceConfig)
 
 		if (_address.setAddress(host))
 		{
-			Debug(_log, "Successfully parsed %s as an ip address.", QSTRING_CSTR(host));
+			Debug(_log, "Successfully parsed {:s} as an ip address.", (host));
 		}
 		else
 		{
-			Debug(_log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR(host));
+			Debug(_log, "Failed to parse [{:s}] as an ip address.", (host));
 			QHostInfo info = QHostInfo::fromName(host);
 			if (info.addresses().isEmpty())
 			{
-				Debug(_log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR(host));
+				Debug(_log, "Failed to parse [{:s}] as a hostname.", (host));
 				QString errortext = QString("Invalid target address [%1]!").arg(host);
 				this->setInError(errortext);
 				isInitOK = false;
 			}
 			else
 			{
-				Debug(_log, "Successfully parsed %s as a hostname.", QSTRING_CSTR(host));
-				_address = info.addresses().first();
+				Debug(_log, "Successfully parsed {:s} as a hostname.", (host));
+				const auto hostAdr = info.addresses();
+				_address = hostAdr.first();
 			}
 		}
 
@@ -135,7 +136,7 @@ bool ProviderUdpSSL::init(QJsonObject deviceConfig)
 		else
 		{
 			_ssl_port = config_port;
-			Debug(_log, "UDP SSL using %s:%u", QSTRING_CSTR(_address.toString()), _ssl_port);
+			Debug(_log, "UDP SSL using {:s}:{:d}", (_address.toString()), _ssl_port);
 			isInitOK = true;
 		}
 	}
@@ -166,7 +167,7 @@ bool ProviderUdpSSL::initNetwork()
 		auto cipher = QSslCipher(name);
 		if (cipher.isNull())
 		{
-			Error(_log, "You system is missing support for %s cipher. Please install OpenSSL 1.1.1 or higher (3.x).", QSTRING_CSTR(name));
+			Error(_log, "You system is missing support for {:s} cipher. Please install OpenSSL 1.1.1 or higher (3.x).", (name));
 			this->setInError("Cannot initialize the neccesery ciphers. Please install OpenSSL 1.1.1 or higher (3.x)");
 			return false;
 		}
@@ -244,6 +245,7 @@ int ProviderUdpSSL::closeNetwork()
 
 	if (_dtls != nullptr)
 	{
+		_dtls->disconnect();
 		_dtls->shutdown(_socket);
 		_dtls->deleteLater();
 		_dtls = nullptr;
@@ -251,6 +253,7 @@ int ProviderUdpSSL::closeNetwork()
 
 	if (_socket != nullptr)
 	{
+		_socket->disconnect();
 		if (_socket->state() == QAbstractSocket::SocketState::ConnectedState)
 		{
 			_socket->close();
@@ -273,7 +276,7 @@ void ProviderUdpSSL::handshakeTimeout()
 {
 	if (_handshake_attempts_left > 0)
 	{
-		Debug(_log, "Timeout. Resuming handshake (%i/%i)", (_handshake_attempts - _handshake_attempts_left + 1), _handshake_attempts);
+		Debug(_log, "Timeout. Resuming handshake ({:d}/{:d})", (_handshake_attempts - _handshake_attempts_left + 1), _handshake_attempts);
 		_handshake_attempts_left--;
 
 		if (!_dtls->handleTimeout(_socket))

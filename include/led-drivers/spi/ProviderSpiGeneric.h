@@ -4,10 +4,10 @@
 #include <led-drivers/LedDevice.h>
 #include <led-drivers/spi/ProviderSpiInterface.h>
 
-class ProviderSpiGeneric : public QObject, public ProviderSpiInterface
+class ProviderSpiGeneric final : public QObject, public ProviderSpiInterface
 {
 public:
-	ProviderSpiGeneric(Logger* _log);
+	ProviderSpiGeneric(const LoggerName& logger);
 	~ProviderSpiGeneric();
 
 public:

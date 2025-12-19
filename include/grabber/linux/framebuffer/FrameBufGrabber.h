@@ -21,7 +21,7 @@
 
 
 
-class FrameBufGrabber : public Grabber
+class FrameBufGrabber final : public Grabber
 {
 	Q_OBJECT
 

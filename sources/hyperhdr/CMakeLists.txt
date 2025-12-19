@@ -151,6 +151,6 @@ elseif(WIN32) # Windows
 	DeployWindows("hyperhdr")
 endif ()
 
-if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)
+if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers AND WIN32)
     target_precompile_headers(hyperhdr REUSE_FROM precompiled_hyperhdr_headers)
 endif()

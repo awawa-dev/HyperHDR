@@ -189,7 +189,7 @@ int ProviderSpi::writeBytesEsp8266(unsigned size, const uint8_t* data)
 			buffer[2 + i] = *startData;
 		}
 		retVal = writeBytes(sizeof(buffer), buffer);
-		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, get_error_string(errno).c_str());
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: {:d}, {:s}", errno, get_error_string(errno).c_str());
 	}
 
 	return retVal;
@@ -221,7 +221,7 @@ int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 		startData += sent;
 		buffer[REAL_BUFFER] = 0xAA;
 		retVal = writeBytes(sizeof(buffer), buffer);
-		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, get_error_string(errno).c_str());
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: {:d}, {:s}", errno, get_error_string(errno).c_str());
 	}
 
 	return retVal;
@@ -252,7 +252,7 @@ int ProviderSpi::writeBytesRp2040(unsigned size, const uint8_t* data)
 		memcpy(buffer, startData, sent);
 		startData += sent;
 		retVal = writeBytes(sizeof(buffer), buffer);
-		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, get_error_string(errno).c_str());
+		ErrorIf((retVal < 0), _log, "SPI failed to write. errno: {:d}, {:s}", errno, get_error_string(errno).c_str());
 	}
 
 	return retVal;
@@ -301,8 +301,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	#endif
 
 	QJsonObject devicesDiscovered;
-	QJsonArray deviceList;
-	QStringList files;
+	QJsonArray deviceList;	
 
 	for(auto & item : discoveryList)
 	{
@@ -320,7 +319,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());	
+	Debug(_log, "SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());	
 
 	return devicesDiscovered;
 }

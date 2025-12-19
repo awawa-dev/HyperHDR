@@ -9,7 +9,7 @@
 using namespace hyperhdr;
 
 ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disableOnStartup) :
-	_log(Logger::getInstance(QString("COMPONENTCTRL%1").arg(hyperhdr->getInstanceIndex()))),
+	_log(QString("COMPONENTCTRL%1").arg(hyperhdr->getInstanceIndex())),
 	_disableOnStartup(disableOnStartup)
 {
 	// init all comps to false
@@ -24,7 +24,7 @@ ComponentController::ComponentController(HyperHdrInstance* hyperhdr, bool disabl
 
 	connect(this, &ComponentController::SignalRequestComponent, hyperhdr, &HyperHdrInstance::SignalRequestComponent);
 	connect(hyperhdr, &HyperHdrInstance::SignalRequestComponent, this, &ComponentController::handleCompStateChangeRequest);
-	Debug(_log, "ComponentController is initialized. Components are %s", (_disableOnStartup) ? "DISABLED" : "ENABLED");
+	Debug(_log, "ComponentController is initialized. Components are {:s}", (_disableOnStartup) ? "DISABLED" : "ENABLED");
 }
 
 ComponentController::~ComponentController()
@@ -96,7 +96,7 @@ void ComponentController::setNewComponentState(hyperhdr::Components comp, bool a
 {
 	if (_componentStates[comp] != activated)
 	{
-		Info(_log, "%s: %s", componentToString(comp), (activated ? "enabled" : "disabled"));
+		Info(_log, "{:s}: {:s}", componentToString(comp), (activated ? "enabled" : "disabled"));
 		_componentStates[comp] = activated;
 		// emit component has changed state
 		emit SignalComponentStateChanged(comp, activated);

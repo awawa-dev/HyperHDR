@@ -38,7 +38,7 @@ namespace
 	constexpr auto* FTDI_DLL = _T("ftd2xx.dll");
 }
 
-ProviderSpiFtdi::ProviderSpiFtdi(Logger* logger)
+ProviderSpiFtdi::ProviderSpiFtdi(const LoggerName& logger)
 	: QObject(), ProviderSpiInterface(logger),
 		_dllHandle(nullptr),
 		_deviceHandle(0),
@@ -131,9 +131,9 @@ bool ProviderSpiFtdi::init(QJsonObject deviceConfig)
 		_baudRate_Hz = 20833333;
 	}
 
-	Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
-	Debug(_log, "Real speed: %d", getRate());
-	Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);	
+	Debug(_log, "Speed: {:d}, Type: {:s}", _baudRate_Hz, (_spiType));
+	Debug(_log, "Real speed: {:d}", getRate());
+	Debug(_log, "Inverted: {:s}, Mode: {:d}", (_spiDataInvert) ? "yes" : "no", _spiMode);	
 
 	isInitOK = loadLibrary();
 	
@@ -318,7 +318,7 @@ QJsonObject ProviderSpiFtdi::discover(const QJsonObject& /*params*/)
 
 			devicesDiscovered.insert("devices", deviceList);
 
-			Debug(_log, "FTDI SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());			
+			Debug(_log, "FTDI SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());			
 		}
 		else
 		{

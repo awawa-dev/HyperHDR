@@ -34,7 +34,7 @@
 #include <base/HyperHdrManager.h>
 
 DetectionAutomatic::DetectionAutomatic() :
-	_log(Logger::getInstance("SIGNAL_AUTO")),
+	_log("SIGNAL_AUTO"),
 	_saveResources(false),
 	_errorTolerance(9),
 	_modelTolerance(90),
@@ -66,7 +66,7 @@ QJsonDocument DetectionAutomatic::startCalibration()
 		calibrationData.model = _modelTolerance;
 		calibrationData.isRunning = true;
 
-		Info(_log, "%s", QSTRING_CSTR(calibrationData.status));
+		Info(_log, "{:s}", (calibrationData.status));
 	}
 
 	QJsonObject val;
@@ -84,7 +84,7 @@ QJsonDocument DetectionAutomatic::stopCalibration()
 		calibrationData.status = "Calibration was interrupted";
 		setHdrToneMappingEnabled(calibrationData.backupHDR);
 		setFpsSoftwareDecimation(calibrationData.decimationFPS);
-		Warning(_log, "%s", QSTRING_CSTR(calibrationData.status));
+		Warning(_log, "{:s}", (calibrationData.status));
 	}
 
 	QJsonObject val;
@@ -236,7 +236,7 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 		calibrationData.isRunning = false;
 		setHdrToneMappingEnabled(calibrationData.backupHDR);
 		setFpsSoftwareDecimation(calibrationData.decimationFPS);
-		Error(_log, "The calibration is finished. %s", QSTRING_CSTR(calibrationData.status));
+		Error(_log, "The calibration is finished. {:s}", (calibrationData.status));
 		return;
 	}
 
@@ -254,7 +254,7 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 		calibrationData.isRunning = false;
 		setHdrToneMappingEnabled(calibrationData.backupHDR);
 		setFpsSoftwareDecimation(calibrationData.decimationFPS);
-		Error(_log, "The calibration is finished. %s", QSTRING_CSTR(calibrationData.status));
+		Error(_log, "The calibration is finished. {:s}", (calibrationData.status));
 		return;
 	}
 
@@ -264,14 +264,14 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 		calibrationData.phaseEndTime = calibrationData.endTime;
 		calibrationData.currentPhase = calibrationPhase::CALIBRATING_SDR;
 		calibrationData.status = "Capturing SDR frames";
-		Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
+		Debug(_log, "{:s}", (calibrationData.status));
 	}
 	else if (calibrationData.currentPhase == calibrationPhase::WAITING_FOR_HDR && getHdrToneMappingEnabled() == 1)
 	{
 		calibrationData.phaseEndTime = calibrationData.endTime;
 		calibrationData.currentPhase = calibrationPhase::CALIBRATING_HDR;
 		calibrationData.status = "Capturing HDR frames";
-		Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
+		Debug(_log, "{:s}", (calibrationData.status));
 	}
 	else if (calibrationData.currentPhase == calibrationPhase::CALIBRATING_SDR ||
 		calibrationData.currentPhase == calibrationPhase::CALIBRATING_HDR)
@@ -313,7 +313,7 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 				calibrationData.phaseEndTime = InternalClock::now() + 3000 + 500;
 				calibrationData.currentPhase = calibrationPhase::WAITING_FOR_HDR;
 				calibrationData.status = "Waiting for first HDR frame";
-				Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
+				Debug(_log, "{:s}", (calibrationData.status));
 			}
 		}
 		else
@@ -351,7 +351,7 @@ void DetectionAutomatic::calibrateFrame(Image<ColorRgb>& image)
 
 				calibrationData.status = QString("The calibration %5. Got %1 SDR test points (from %3) and %2 HDR test points (from %4).").
 					arg(calibrationData.sdrStat).arg(calibrationData.hdrStat).arg(calibrationData.sdrPoint.size()).arg(calibrationData.hdrPoint.size()).arg(res);
-				Debug(_log, "%s", QSTRING_CSTR(calibrationData.status));
+				Debug(_log, "{:s}", (calibrationData.status));
 
 				setHdrToneMappingEnabled(calibrationData.backupHDR);
 				setFpsSoftwareDecimation(calibrationData.decimationFPS);
@@ -372,7 +372,7 @@ void DetectionAutomatic::setAutoSignalParams(bool saveResources, int errorTolera
 	_modelTolerance = modelTolerance;
 	_sleepTime = sleepTime;
 	_wakeTime = wakeTime;
-	Debug(_log, "Automatic signal detection -> errorTolerance: %i, modelTolerance: %i, sleepTime: %i, wakeTime: %i",
+	Debug(_log, "Automatic signal detection -> errorTolerance: {:d}, modelTolerance: {:d}, sleepTime: {:d}, wakeTime: {:d}",
 		_errorTolerance, _modelTolerance, _sleepTime, _wakeTime);
 }
 
@@ -427,16 +427,24 @@ void DetectionAutomatic::saveResult()
 }
 
 void DetectionAutomatic::setAutomaticCalibrationData(QString signature, int quality, int width, int height,
-	std::vector<DetectionAutomatic::calibrationPoint> sdrVec, std::vector<DetectionAutomatic::calibrationPoint> hdrVec)
+	std::vector<DetectionAutomatic::calibrationPoint>&& sdrVec, std::vector<DetectionAutomatic::calibrationPoint>&& hdrVec)
 {
 	resetStats();
 	checkData.reset();
-	checkData.signature = signature;
-	checkData.quality = quality;
-	checkData.width = width;
-	checkData.height = height;
-	checkData.sdrPoint = sdrVec;
-	checkData.hdrPoint = hdrVec;
+
+	if (sdrVec.size() != hdrVec.size() || sdrVec.empty())
+	{
+		Debug(_log, "Empty config for automatic detection. Size: sdr = {:d}, hdr = {:d}", sdrVec.size(), hdrVec.size());
+	}
+	else
+	{
+		checkData.signature = signature;
+		checkData.quality = quality;
+		checkData.width = width;
+		checkData.height = height;
+		checkData.sdrPoint = std::move(sdrVec);
+		checkData.hdrPoint = std::move(hdrVec);
+	}
 }
 
 void DetectionAutomatic::resetStats()
@@ -450,13 +458,13 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 {
 	int hdrMode = getHdrToneMappingEnabled();
 
-	if (checkData.width <= 0 || checkData.height <= 0 || checkData.quality <= 0 || checkData.sdrPoint.size() == 0 || checkData.hdrPoint.size() == 0)
+	if (checkData.width <= 0 || checkData.height <= 0 || checkData.quality <= 0 || checkData.sdrPoint.empty() || checkData.hdrPoint.empty())
 	{
 		QString oldStatus = checkData.status;
 		checkData.status = "Don't have a calibration data. Please run the calibration procedure in the panel grabber tab.";
 		if (oldStatus != checkData.status)
 		{
-			Error(_log, "%s", QSTRING_CSTR(checkData.status));
+			Error(_log, "{:s}", (checkData.status));
 			resetStats();
 		}
 		return true;
@@ -468,7 +476,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 		checkData.status = "Calibration data is not meant for the current video stream (different dimensions). Please run the calibration procedure in the panel grabber tab.";
 		if (oldStatus != checkData.status)
 		{
-			Error(_log, "%s", QSTRING_CSTR(checkData.status));
+			Error(_log, "{:s}", (checkData.status));
 			resetStats();
 		}
 		return true;
@@ -480,7 +488,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 		checkData.status = "Automatic detection doesn't work for the HDR border mode";
 		if (oldStatus != checkData.status)
 		{
-			Error(_log, "%s", QSTRING_CSTR(checkData.status));
+			Error(_log, "{:s}", (checkData.status));
 			resetStats();
 		}
 		return true;
@@ -491,7 +499,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 		QString oldStatus = checkData.status;
 		checkData.status = "Calibration data signature is different from the current stream signature. Just a warning. Please run the calibration procedure in the panel grabber tab.";
 		if (oldStatus != checkData.status)
-			Warning(_log, "%s (have: '%s' <> current: '%s')", QSTRING_CSTR(checkData.status), QSTRING_CSTR(checkData.signature), QSTRING_CSTR(getSignature()));
+			Warning(_log, "{:s} (have: '{:s}' <> current: '{:s}')", (checkData.status), (checkData.signature), (getSignature()));
 	}
 
 	std::vector<DetectionAutomatic::calibrationPoint>& data = (hdrMode == 0) ? checkData.sdrPoint : checkData.hdrPoint;
@@ -505,7 +513,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 			_on++;
 	}
 
-	int finalQuality = (_on * checkData.quality) / (_on + _off);
+	int finalQuality = (_on * checkData.quality) / std::max(_on + _off, 1);
 	bool hasSignal = (finalQuality <= _modelTolerance);
 
 	if (!hasSignal && _noSignal)
@@ -525,7 +533,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 	{
 		if (_offSignalTime == 0)
 		{
-			Info(_log, "No signal detected. The cognition model's probability: %i%%", finalQuality);
+			Info(_log, "No signal detected. The cognition model's probability: {:d}%%", finalQuality);
 			_offSignalTime = time;
 		}
 
@@ -557,7 +565,7 @@ bool DetectionAutomatic::checkSignal(Image<ColorRgb>& image)
 	{
 		if (_onSignalTime == 0)
 		{
-			Info(_log, "Signal detected. The cognition model's probability: %i%%", std::max(100 - finalQuality, 0));
+			Info(_log, "Signal detected. The cognition model's probability: {:d}%%", std::max(100 - finalQuality, 0));
 			_onSignalTime = time;
 		}
 

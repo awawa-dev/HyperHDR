@@ -59,7 +59,7 @@ private slots:
 
 private:
 	quint8		_instanceIndex;
-	Logger*		_log;	
+	LoggerName	_log;	
 	LedString	_ledString;
 	hyperhdr::BlackBorderProcessor* _borderProcessor;
 	std::unique_ptr<hyperhdr::ImageColorAveraging> _colorAveraging;

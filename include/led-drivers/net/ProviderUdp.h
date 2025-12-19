@@ -26,7 +26,7 @@ protected:
 	int writeBytes(const QByteArray& bytes);
 	void setPort(int port);
 
-	std::unique_ptr<QUdpSocket> _udpSocket;
+	QUdpSocket* _udpSocket;
 	QHostAddress _address;
 	quint16       _port;
 	QString      _defaultHost;

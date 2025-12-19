@@ -39,7 +39,7 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 
 			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM)
 			{
-				Debug(_log, "White channel limit     : %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+				Debug(_log, "White channel limit     : {:d}, red: {:d}, green: {:d}, blue: {:d}", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
 			}
 
 			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM ||
@@ -71,10 +71,10 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 				_ledString->channel[!_channel].brightness = 0;
 				_ledString->channel[!_channel].strip_type = _ledString->channel[_channel].strip_type;
 
-				Debug(_log, "ws281x selected dma     : %d", _ledString->dmanum);
-				Debug(_log, "ws281x selected channel : %d", _channel);
-				Debug(_log, "ws281x total channels   : %d", RPI_PWM_CHANNELS);
-				Debug(_log, "ws281x strip type       : %d", _ledString->channel[_channel].strip_type);
+				Debug(_log, "ws281x selected dma     : {:d}", _ledString->dmanum);
+				Debug(_log, "ws281x selected channel : {:d}", _channel);
+				Debug(_log, "ws281x total channels   : {:d}", RPI_PWM_CHANNELS);
+				Debug(_log, "ws281x strip type       : {:d}", _ledString->channel[_channel].strip_type);
 
 				if (_defaultInterval > 0)
 					Warning(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");

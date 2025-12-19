@@ -6,7 +6,7 @@
 
 WrapperCEC::WrapperCEC():
 	_cecHandler(nullptr),
-	_log(Logger::getInstance("CEC"))
+	_log("CEC")
 {
 }
 

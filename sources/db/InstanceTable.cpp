@@ -83,15 +83,11 @@ QVector<QVariantMap> InstanceTable::getAllInstances(bool justEnabled)
 	getRecords(results, QStringList(), QStringList() << "instance ASC");
 	if (justEnabled)
 	{
-		for (auto it = results.begin(); it != results.end();)
-		{
-			if (!(*it)["enabled"].toBool())
+		for(QMutableVectorIterator<QVariantMap> it(results); it.hasNext();)
+			if (!it.next()["enabled"].toBool())
 			{
-				it = results.erase(it);
-				continue;
+				it.remove();
 			}
-			++it;
-		}
 	}
 	return results;
 }
@@ -103,7 +99,7 @@ bool InstanceTable::instanceExist(quint8 inst)
 	return recordExists(cond);
 }
 
-const QString InstanceTable::getNamebyIndex(quint8 index)
+QString InstanceTable::getNamebyIndex(quint8 index)
 {
 	QVariantMap results;
 	VectorPair cond;

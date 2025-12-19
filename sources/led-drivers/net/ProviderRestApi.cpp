@@ -43,14 +43,12 @@
 const int TIMEOUT = (500);
 
 ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& basePath)
-	:_log(Logger::getInstance("LEDDEVICE"))
+	:_log("LEDDEVICE")
 	, _scheme((port == 443) ? "https" : "http")
 	, _hostname(host)
 	, _port(port)
 {
-	qRegisterMetaType<QNetworkRequest>();
-	qRegisterMetaType<QUrl>();
-	qRegisterMetaType<QByteArray>();
+	qRegisterMetaType<std::shared_ptr<httpResponse>>("std::shared_ptr<httpResponse>");
 
 	_apiUrl.setScheme(_scheme);
 	_apiUrl.setHost(host);
@@ -71,11 +69,6 @@ ProviderRestApi::ProviderRestApi(const QString& host, int port)
 
 ProviderRestApi::ProviderRestApi()
 	: ProviderRestApi("", -1) {}
-
-ProviderRestApi::~ProviderRestApi()
-{
-
-}
 
 void  ProviderRestApi::updateHost(const QString& host, int port)
 {
@@ -99,7 +92,7 @@ void ProviderRestApi::appendPath(QString& path, const QString& appendPath) const
 {
 	auto list = path.split('/', Qt::SkipEmptyParts);
 	list.append(appendPath.split('/', Qt::SkipEmptyParts));
-	path = (list.size()) ? "/" + list.join('/') : "";
+	path = (!list.empty()) ? "/" + list.join('/') : "";
 }
 
 void ProviderRestApi::addHeader(const QString &key, const QString &value)
@@ -167,7 +160,7 @@ const QMap<QString, QString>& ProviderRestApi::getHeaders() {
 
 httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation op, const QUrl& url, const QString& body)
 {
-	httpResponse response;
+	auto response = std::make_shared<httpResponse>();
 	qint64 begin = InternalClock::nowPrecise();
 	QString opCode = (op == QNetworkAccessManager::PutOperation) ? "PUT" :
 						 (op == QNetworkAccessManager::PostOperation) ? "POST" :
@@ -176,10 +169,10 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	if (opCode.length() == 0)
 	{
 		Error(_log, "Unsupported opertion code");
-		return response;
+		return *response;
 	}
 
-	Debug(_log, "%s begin: [%s] [%s]", QSTRING_CSTR(opCode), QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
+	Debug(_log, "{:s} begin: [{:s}] [{:s}]", (opCode), (url.toString()), (body));
 
 	// Perform request
 	NetworkHelper* networkHelper(new NetworkHelper());
@@ -188,7 +181,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	_resultLocker.lock();
 
-	BLOCK_CALL_5(networkHelper, executeOperation, ProviderRestApi*, this, QNetworkAccessManager::Operation, op, QUrl, url, QString, body, httpResponse*, &response);
+	BLOCK_CALL_5(networkHelper, executeOperation, ProviderRestApi*, this, QNetworkAccessManager::Operation, op, QUrl, url, QString, body, std::shared_ptr<httpResponse>, response);
 
 	if (_resultLocker.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT)))
 	{
@@ -203,16 +196,16 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	qint64 timeTotal = InternalClock::nowPrecise() - begin;
 
-	Debug(_log, "%s end (%lld ms): [%s] [%s]", QSTRING_CSTR(opCode), timeTotal, QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));	
+	Debug(_log, "{:s} end ({:d} ms): [{:s}] [{:s}]", (opCode), timeTotal, (url.toString()), (body));	
 
-	if (response.error())
-		Error(_log, "Reply error. Reason: %s", QSTRING_CSTR(response.getErrorReason()));
+	if (response->error())
+		Error(_log, "Reply error. Reason: {:s}", (response->getErrorReason()));
 	else
-		Debug(_log, "Reply OK [%d]", response.getHttpStatusCode());
+		Debug(_log, "Reply OK [{:d}]", response->getHttpStatusCode());
 
 	networkHelper->deleteLater();
 
-	return response;
+	return *response;
 }
 
 void ProviderRestApi::releaseResultLock()
@@ -261,7 +254,7 @@ NetworkHelper::~NetworkHelper()
 	delete _networkManager;
 }
 
-void NetworkHelper::executeOperation(ProviderRestApi* parent, QNetworkAccessManager::Operation op, QUrl url, QString body, httpResponse* response)
+void NetworkHelper::executeOperation(ProviderRestApi* parent, QNetworkAccessManager::Operation op, QUrl url, QString body, std::shared_ptr<httpResponse> response)
 {
 	QNetworkRequest request(url);
 
@@ -281,7 +274,7 @@ void NetworkHelper::executeOperation(ProviderRestApi* parent, QNetworkAccessMana
 	_networkReply = (op == QNetworkAccessManager::PutOperation) ? _networkManager->put(request, body.toUtf8()) :
 		(op == QNetworkAccessManager::PostOperation) ? _networkManager->post(request, body.toUtf8()) : _networkManager->get(request);
 
-	connect(_networkReply, &QNetworkReply::finished, this, [this, response, parent]() {getResponse(response);  parent->releaseResultLock(); }, Qt::DirectConnection);
+	connect(_networkReply, &QNetworkReply::finished, this, [this, response, parent]() {getResponse(response.get());  parent->releaseResultLock(); }, Qt::DirectConnection);
 }
 
 void NetworkHelper::getResponse(httpResponse* response)

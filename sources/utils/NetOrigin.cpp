@@ -6,7 +6,7 @@
 
 #include <utils/NetOrigin.h>
 
-NetOrigin::NetOrigin(QObject* parent, Logger* log)
+NetOrigin::NetOrigin(QObject* parent, const LoggerName& log)
 	: QObject(parent)
 	, _log(log)
 	, _internetAccessAllowed(false)
@@ -26,7 +26,7 @@ bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& l
 
 	if (!isLocalAddress(address, local))
 	{
-		Warning(_log, "Client connection with IP address '%s' has been rejected! It's not whitelisted, access denied.", QSTRING_CSTR(address.toString()));
+		Warning(_log, "Client connection with IP address '{:s}' has been rejected! It's not whitelisted, access denied.", (address.toString()));
 		return false;
 	}
 	return true;
@@ -72,7 +72,7 @@ void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			QHostAddress host(entry);
 			if (host.isNull())
 			{
-				Warning(_log, "The whitelisted IP address '%s' isn't valid! Skipped", QSTRING_CSTR(entry));
+				Warning(_log, "The whitelisted IP address '{:s}' isn't valid! Skipped", (entry));
 				continue;
 			}
 			_ipWhitelist << host;

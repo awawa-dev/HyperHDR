@@ -61,7 +61,7 @@ private:
 	QTcpServer*		_server;
 	QLocalServer*	_domain;
 	std::shared_ptr<NetOrigin> _netOrigin;
-	Logger*			_log;
+	LoggerName		_log;
 	int				_timeout;
 	quint16			_port;
 

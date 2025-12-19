@@ -66,7 +66,7 @@ bool Animation4Music_PulseMultiSlow::getImage(Image<ColorRgb>& newImage)
 	ColorRgb color, empty;
 	uint32_t maxSingle, average;
 
-	if (!r->GetStats(average, maxSingle, empty, NULL, &color))
+	if (!r->GetStats(average, maxSingle, empty, nullptr, &color))
 		return false;
 
 	int red = color.Red();

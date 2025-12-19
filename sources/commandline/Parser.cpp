@@ -14,7 +14,7 @@ bool Parser::parse(const QStringList& arguments)
 		return false;
 	}
 
-	for (Option* option : _options)
+	for (Option* option : std::as_const(_options))
 	{
 		QString value = this->value(*option);
 		if (!option->validate(*this, value))

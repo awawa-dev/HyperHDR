@@ -58,7 +58,7 @@ private:
 	void stopServer();
 
 	QUdpSocket*		_server;
-	Logger*			_log;
+	LoggerName		_log;
 	quint16			_port;
 	int				_priority;
 	bool			_initialized;

@@ -41,7 +41,7 @@ class DiscoveryWrapper : public QObject
 	Q_OBJECT
 
 private:
-	Logger*		_log;
+	LoggerName		_log;
 	std::unique_ptr<LedDevice>	_serialDevice;
 
 public:
@@ -55,7 +55,7 @@ public slots:
 	QList<DiscoveryRecord> getHyperHDRServices();
 	QList<DiscoveryRecord> getAllServices();	
 
-	void signalDiscoveryEventHandler(DiscoveryRecord message);
+	void signalDiscoveryEventHandler(const DiscoveryRecord& message);
 	void signalDiscoveryRequestToScanHandler(DiscoveryRecord::Service type);
 
 signals:
@@ -63,7 +63,7 @@ signals:
 
 private:
 	void requestServicesScan();
-	void gotMessage(QList<DiscoveryRecord>& target, DiscoveryRecord message);
+	void gotMessage(QList<DiscoveryRecord>& target, const DiscoveryRecord& message);
 	void cleanUp(QList<DiscoveryRecord>& target);
 
 	// contains all current active service sessions

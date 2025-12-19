@@ -47,9 +47,9 @@ bool ProviderSerial::init(QJsonObject deviceConfig)
 	if (LedDevice::init(deviceConfig))
 	{
 
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %d", this->getLedCount());
-		Debug(_log, "RefreshTime  : %d", this->getRefreshTime());
+		Debug(_log, "DeviceType   : {:s}", (this->getActiveDeviceType()));
+		Debug(_log, "LedCount     : {:d}", this->getLedCount());
+		Debug(_log, "RefreshTime  : {:d}", this->getRefreshTime());
 
 		_deviceName = deviceConfig["output"].toString("auto");
 
@@ -64,13 +64,13 @@ bool ProviderSerial::init(QJsonObject deviceConfig)
 		_maxRetry = _devConfig["maxRetry"].toInt(60);
 		_forceSerialDetection = deviceConfig["forceSerialDetection"].toBool(false);
 
-		Debug(_log, "Device name   : %s", QSTRING_CSTR(_deviceName));
-		Debug(_log, "Auto selection: %d", _isAutoDeviceName);
-		Debug(_log, "Baud rate     : %d", _baudRate_Hz);
-		Debug(_log, "ESP handshake : %s", (_espHandshake) ? "ON" : "OFF");
-		Debug(_log, "Force ESP/Pico Detection : %s", (_forceSerialDetection) ? "ON" : "OFF");
-		Debug(_log, "Delayed open  : %d", _delayAfterConnect_ms);
-		Debug(_log, "Retry limit   : %d", _maxRetry);
+		Debug(_log, "Device name   : {:s}", (_deviceName));
+		Debug(_log, "Auto selection: {:d}", _isAutoDeviceName);
+		Debug(_log, "Baud rate     : {:d}", _baudRate_Hz);
+		Debug(_log, "ESP handshake : {:s}", (_espHandshake) ? "ON" : "OFF");
+		Debug(_log, "Force ESP/Pico Detection : {:s}", (_forceSerialDetection) ? "ON" : "OFF");
+		Debug(_log, "Delayed open  : {:d}", _delayAfterConnect_ms);
+		Debug(_log, "Retry limit   : {:d}", _maxRetry);
 
 		if (_defaultInterval > 0)
 			Warning(_log, "The refresh timer is enabled ('Refresh time' > 0) and may limit the performance of the LED driver. Ignore this error if you set it on purpose for some reason (but you almost never need it).");
@@ -124,7 +124,7 @@ bool ProviderSerial::waitForExitStats()
 			{
 				auto incoming = QString(_serialPort->readAll());
 
-				Info(_log, "Received goodbye: '%s' (%i)", QSTRING_CSTR(incoming), incoming.length());
+				Info(_log, "Received goodbye: '{:s}' ({:d})", (incoming), incoming.length());
 				return true;
 			}
 		}		
@@ -161,7 +161,7 @@ int ProviderSerial::close()
 
 		_serialPort->close();
 
-		Debug(_log, "Serial port is closed: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Serial port is closed: {:s}", (_deviceName));
 
 	}
 	return retval;
@@ -200,24 +200,24 @@ bool ProviderSerial::tryOpen(int delayAfterConnect_ms)
 
 	if (!_serialPort->isOpen())
 	{
-		Info(_log, "Opening UART: %s", QSTRING_CSTR(_deviceName));
+		Info(_log, "Opening UART: {:s}", (_deviceName));
 
 		_frameDropCounter = 0;
 
 		_serialPort->setBaudRate(_baudRate_Hz);
 
-		Debug(_log, "_serialPort.open(QIODevice::ReadWrite): %s, Baud rate [%d]bps", QSTRING_CSTR(_deviceName), _baudRate_Hz);
+		Debug(_log, "_serialPort.open(QIODevice::ReadWrite): {:s}, Baud rate [{:d}]bps", (_deviceName), _baudRate_Hz);
 
 		QSerialPortInfo serialPortInfo(_deviceName);
 
 		QJsonObject portInfo;
-		Debug(_log, "portName:          %s", QSTRING_CSTR(serialPortInfo.portName()));
-		Debug(_log, "systemLocation:    %s", QSTRING_CSTR(serialPortInfo.systemLocation()));
-		Debug(_log, "description:       %s", QSTRING_CSTR(serialPortInfo.description()));
-		Debug(_log, "manufacturer:      %s", QSTRING_CSTR(serialPortInfo.manufacturer()));
-		Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.productIdentifier(), 0, 16)));
-		Debug(_log, "vendorIdentifier:  %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.vendorIdentifier(), 0, 16)));
-		Debug(_log, "serialNumber:      %s", QSTRING_CSTR(serialPortInfo.serialNumber()));
+		Debug(_log, "portName:          {:s}", (serialPortInfo.portName()));
+		Debug(_log, "systemLocation:    {:s}", (serialPortInfo.systemLocation()));
+		Debug(_log, "description:       {:s}", (serialPortInfo.description()));
+		Debug(_log, "manufacturer:      {:s}", (serialPortInfo.manufacturer()));
+		Debug(_log, "productIdentifier: {:s}", (QString("0x%1").arg(serialPortInfo.productIdentifier(), 0, 16)));
+		Debug(_log, "vendorIdentifier:  {:s}", (QString("0x%1").arg(serialPortInfo.vendorIdentifier(), 0, 16)));
+		Debug(_log, "serialNumber:      {:s}", (serialPortInfo.serialNumber()));
 
 		if (!serialPortInfo.isNull())
 		{
@@ -245,14 +245,14 @@ bool ProviderSerial::tryOpen(int delayAfterConnect_ms)
 	if (delayAfterConnect_ms > 0)
 	{
 
-		Debug(_log, "delayAfterConnect for %d ms - start", delayAfterConnect_ms);
+		Debug(_log, "delayAfterConnect for {:d} ms - start", delayAfterConnect_ms);
 
 		// Wait delayAfterConnect_ms before allowing write
 		QEventLoop loop;
 		QTimer::singleShot(delayAfterConnect_ms, &loop, &QEventLoop::quit);
 		loop.exec();
 
-		Debug(_log, "delayAfterConnect for %d ms - finished", delayAfterConnect_ms);
+		Debug(_log, "delayAfterConnect for {:d} ms - finished", delayAfterConnect_ms);
 	}
 
 	return _serialPort->isOpen();
@@ -290,7 +290,7 @@ int ProviderSerial::writeBytes(const qint64 size, const uint8_t* data)
 		{
 			if (_serialPort->error() == QSerialPort::TimeoutError)
 			{
-				Debug(_log, "Timeout after %dms: %d frames already dropped", WRITE_TIMEOUT, _frameDropCounter);
+				Debug(_log, "Timeout after {:d}ms: {:d} frames already dropped", static_cast<int>(WRITE_TIMEOUT.count()), _frameDropCounter);
 
 				++_frameDropCounter;
 
@@ -346,15 +346,15 @@ QString ProviderSerial::discoverFirst()
 					(_espHandshake && round == 0 && knownESPA) ||
 					(_espHandshake && round == 1 && knownESPB) ||
 					(!_espHandshake && round == 2 &&
-						port.description().contains("Bluetooth", Qt::CaseInsensitive) == false &&
-						port.systemLocation().contains("ttyAMA0", Qt::CaseInsensitive) == false))
+						!port.description().contains("Bluetooth", Qt::CaseInsensitive) &&
+						!port.systemLocation().contains("ttyAMA0", Qt::CaseInsensitive)))
 				{
-					Info(_log, "Serial port auto-discovery. Found serial port device: %s", QSTRING_CSTR(infoMessage));
+					Info(_log, "Serial port auto-discovery. Found serial port device: {:s}", (infoMessage));
 					return port.portName();
 				}
 				else
 				{
-					Warning(_log, "Serial port auto-discovery. Skipping this device for now: %s, VID: 0x%x, PID: 0x%x", QSTRING_CSTR(infoMessage), vendor, prodId);
+					Warning(_log, "Serial port auto-discovery. Skipping this device for now: {:s}, VID: 0x{:x}, PID: 0x{:x}", (infoMessage), vendor, prodId);
 				}
 			}
 		}
@@ -412,7 +412,7 @@ QJsonObject ProviderSerial::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("devices", deviceList);
 
 #ifndef ENABLE_BONJOUR
-	Debug(_log, "Serial devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "Serial devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 #endif
 
 	return devicesDiscovered;

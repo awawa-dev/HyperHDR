@@ -15,7 +15,7 @@ namespace FileUtils {
 		return fi.fileName();
 	}
 
-	bool readFile(const QString& path, QString& data, Logger* log, bool ignError)
+	bool readFile(const QString& path, QString& data, const LoggerName& log, bool ignError)
 	{
 		QFile file(path);
 		if (!fileExists(path, log, ignError))
@@ -39,17 +39,17 @@ namespace FileUtils {
 		return true;
 	}
 
-	bool fileExists(const QString& path, Logger* log, bool ignError)
+	bool fileExists(const QString& path, const LoggerName& log, bool ignError)
 	{
 		if (!QFile::exists(path))
 		{
-			ErrorIf((!ignError), log, "File does not exist: %s", QSTRING_CSTR(path));
+			ErrorIf((!ignError), log, "File does not exist: {:s}", (path));
 			return false;
 		}
 		return true;
 	}
 
-	bool writeFile(const QString& path, const QByteArray& data, Logger* log)
+	bool writeFile(const QString& path, const QByteArray& data, const LoggerName& log)
 	{
 		QFile file(path);
 		if (!file.open(QFile::WriteOnly | QFile::Truncate))
@@ -68,56 +68,56 @@ namespace FileUtils {
 		return true;
 	}
 
-	void resolveFileError(const QFile& file, Logger* log)
+	void resolveFileError(const QFile& file, const LoggerName& log)
 	{
 		QFile::FileError error = file.error();
-		const char* fn = QSTRING_CSTR(file.fileName());
+		QString fn = (file.fileName());
 		switch (error)
 		{
 		case QFileDevice::NoError:
-			Debug(log, "No error occurred while procesing file: %s", fn);
+			Debug(log, "No error occurred while procesing file: {:s}", fn);
 			break;
 		case QFileDevice::ReadError:
-			Error(log, "Can't read file: %s", fn);
+			Error(log, "Can't read file: {:s}", fn);
 			break;
 		case QFileDevice::WriteError:
-			Error(log, "Can't write file: %s", fn);
+			Error(log, "Can't write file: {:s}", fn);
 			break;
 		case QFileDevice::FatalError:
-			Error(log, "Fatal error while processing file: %s", fn);
+			Error(log, "Fatal error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::ResourceError:
-			Error(log, "Resource Error while processing file: %s", fn);
+			Error(log, "Resource Error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::OpenError:
-			Error(log, "Can't open file: %s", fn);
+			Error(log, "Can't open file: {:s}", fn);
 			break;
 		case QFileDevice::AbortError:
-			Error(log, "Abort Error while processing file: %s", fn);
+			Error(log, "Abort Error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::TimeOutError:
-			Error(log, "Timeout Error while processing file: %s", fn);
+			Error(log, "Timeout Error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::UnspecifiedError:
-			Error(log, "Unspecified Error while processing file: %s", fn);
+			Error(log, "Unspecified Error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::RemoveError:
-			Error(log, "Failed to remove file: %s", fn);
+			Error(log, "Failed to remove file: {:s}", fn);
 			break;
 		case QFileDevice::RenameError:
-			Error(log, "Failed to rename file: %s", fn);
+			Error(log, "Failed to rename file: {:s}", fn);
 			break;
 		case QFileDevice::PositionError:
-			Error(log, "Position Error while processing file: %s", fn);
+			Error(log, "Position Error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::ResizeError:
-			Error(log, "Resize Error while processing file: %s", fn);
+			Error(log, "Resize Error while processing file: {:s}", fn);
 			break;
 		case QFileDevice::PermissionsError:
-			Error(log, "Permission Error at file: %s", fn);
+			Error(log, "Permission Error at file: {:s}", fn);
 			break;
 		case QFileDevice::CopyError:
-			Error(log, "Error during file copy of file: %s", fn);
+			Error(log, "Error during file copy of file: {:s}", fn);
 			break;
 		default:
 			break;

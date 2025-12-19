@@ -22,7 +22,7 @@ WebSocketClient::WebSocketClient(
 	QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent)
 	: QObject(parent)
 	, _socket(sock)
-	, _log(Logger::getInstance("WEBSOCKET"))
+	, _log("WEBSOCKET")
 {
 	// connect socket; disconnect handled from QtHttpServer
 	connect(_socket, &QTcpSocket::readyRead, this, &WebSocketClient::handleWebSocketFrame);
@@ -37,7 +37,7 @@ WebSocketClient::WebSocketClient(
 	connect(_hyperAPI, &HyperAPI::SignalCallbackBinaryImageMessage, this, &WebSocketClient::signalCallbackBinaryImageMessageHandler);
 	connect(_hyperAPI, &HyperAPI::SignalPerformClientDisconnection, this, [this]() { this->sendClose(CLOSECODE::NORMAL); });
 
-	Debug(_log, "New connection from %s", QSTRING_CSTR(client));
+	Debug(_log, "New connection from {:s}", (client));
 
 	// do handshake
 	secWebSocketKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -180,15 +180,15 @@ void WebSocketClient::handleWebSocketFrame()
 				break;
 
 			default:				
-					Warning(_log, "Unexpected %d\n%s\n", _wsh.opCode, QSTRING_CSTR(QString(buf)));
+					Warning(_log, "Unexpected {:d}\n{:s}\n", _wsh.opCode, (QString(buf)));
 		}
 	}
 }
 
 void WebSocketClient::sendClose(int status, QString reason)
 {
-	Debug(_log, "send close: %d %s", status, QSTRING_CSTR(reason));
-	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
+	Debug(_log, "send close: {:d} {:s}", status, (reason));
+	ErrorIf(!reason.isEmpty(), _log, "{:s}", (reason));
 	_receiveBuffer.clear();
 	QByteArray sendBuffer;
 
@@ -248,14 +248,14 @@ qint64 WebSocketClient::sendMessage(const QJsonObject& obj)
 		else
 		{
 			_socket->flush();
-			Error(_log, "Error writing bytes to socket: %s", QSTRING_CSTR(_socket->errorString()));
+			Error(_log, "Error writing bytes to socket: {:s}", (_socket->errorString()));
 			break;
 		}
 	}
 
 	if (payloadSize != payloadWritten)
 	{
-		Error(_log, "Error writing bytes to socket %d bytes from %d written", payloadWritten, payloadSize);
+		Error(_log, "Error writing bytes to socket {:d} bytes from {:d} written", payloadWritten, payloadSize);
 		return -1;
 	}
 
@@ -334,14 +334,14 @@ qint64 WebSocketClient::signalCallbackBinaryImageMessageHandler(Image<ColorRgb> 
 		else
 		{
 			_socket->flush();
-			Error(_log, "Error writing bytes to socket: %s", QSTRING_CSTR(_socket->errorString()));
+			Error(_log, "Error writing bytes to socket: {:s}", (_socket->errorString()));
 			break;
 		}
 	}
 
 	if (payloadSize != payloadWritten)
 	{		
-		Error(_log, "Error writing bytes to socket %d bytes from %d written", payloadWritten, payloadSize);
+		Error(_log, "Error writing bytes to socket {:d} bytes from {:d} written", payloadWritten, payloadSize);
 		return -1;
 	}
 

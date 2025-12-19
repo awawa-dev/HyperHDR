@@ -80,7 +80,7 @@ public slots:
 
 	void saveCalibration(QString saveData);
 
-	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
+	void handleInstanceStateChange(hyperhdr::InstanceState state, quint8 instance, const QString& name);
 
 	std::vector<QString> getInstances();
 
@@ -92,7 +92,7 @@ public slots:
 	void handleLutRequestSignal();
 
 signals:
-	void SignalInstanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());
+	void SignalInstanceStateChanged(hyperhdr::InstanceState state, quint8 instance, const QString& name = QString());
 
 	void SignalInstancesListChanged();
 
@@ -125,7 +125,7 @@ private:
 
 private:
 	
-	Logger*			_log;
+	LoggerName		_log;
 	std::unique_ptr<InstanceTable> _instanceTable;
 	const QString	_rootPath;
 	QMap<quint8, std::shared_ptr<HyperHdrInstance>> _runningInstances;

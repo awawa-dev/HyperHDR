@@ -44,7 +44,7 @@
 
 NetworkForwarder::NetworkForwarder()
 	: QObject(nullptr)
-	, _log(Logger::getInstance("NETFORWARDER"))
+	, _log("NETFORWARDER")
 	, _forwarderEnabled(false)
 	, _priority(140)
 	, _hasImage(false)
@@ -143,7 +143,7 @@ void NetworkForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		if (!_jsonSlaves.isEmpty())
 		{
-			Info(_log, "Forward now to json targets '%s'", QSTRING_CSTR(_jsonSlaves.join(", ")));
+			Info(_log, "Forward now to json targets '{:s}'", (_jsonSlaves.join(", ")));
 			connect(hyperhdr.get(), &HyperHdrInstance::SignalForwardJsonMessage, this, &NetworkForwarder::forwardJsonMessage, Qt::UniqueConnection);
 		}			
 
@@ -169,7 +169,7 @@ void NetworkForwarder::handleCompStateChangeRequest(hyperhdr::Components compone
 
 		_forwarderEnabled = enable;
 		handleSettingsUpdate(settings::type::NETFORWARD, netForConf);
-		Info(_log, "Forwarder has changed state to %s", (_forwarderEnabled ? "enabled" : "disabled"));
+		Info(_log, "Forwarder has changed state to {:s}", (_forwarderEnabled ? "enabled" : "disabled"));
 	}
 }
 
@@ -178,7 +178,7 @@ void NetworkForwarder::addJsonSlave(const QString& slave, const QJsonObject& obj
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)
 	{
-		Error(_log, "Unable to parse address (%s)", QSTRING_CSTR(slave));
+		Error(_log, "Unable to parse address ({:s})", (slave));
 		return;
 	}
 
@@ -186,14 +186,14 @@ void NetworkForwarder::addJsonSlave(const QString& slave, const QJsonObject& obj
 	parts[1].toUShort(&ok);
 	if (!ok)
 	{
-		Error(_log, "Unable to parse port number (%s)", QSTRING_CSTR(parts[1]));
+		Error(_log, "Unable to parse port number ({:s})", (parts[1]));
 		return;
 	}
 
 	// verify loop with jsonserver
 	if (QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
 	{
-		Error(_log, "Loop between JsonServer and Forwarder! (%s)", QSTRING_CSTR(slave));
+		Error(_log, "Loop between JsonServer and Forwarder! ({:s})", (slave));
 		return;
 	}
 
@@ -208,7 +208,7 @@ void NetworkForwarder::addFlatbufferSlave(const QString& slave, const QJsonObjec
 		QStringList parts = slave.split(":");
 		if (parts.size() != 2)
 		{
-			Error(_log, "Unable to parse address (%s)", QSTRING_CSTR(slave));
+			Error(_log, "Unable to parse address ({:s})", (slave));
 			return;
 		}
 
@@ -216,14 +216,14 @@ void NetworkForwarder::addFlatbufferSlave(const QString& slave, const QJsonObjec
 		parts[1].toUShort(&ok);
 		if (!ok)
 		{
-			Error(_log, "Unable to parse port number (%s)", QSTRING_CSTR(parts[1]));
+			Error(_log, "Unable to parse port number ({:s})", (parts[1]));
 			return;
 		}
 
 		// verify loop with flatbufserver
 		if (QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
 		{
-			Error(_log, "Loop between Flatbuffer Server and Forwarder! (%s)", QSTRING_CSTR(slave));
+			Error(_log, "Loop between Flatbuffer Server and Forwarder! ({:s})", (slave));
 			return;
 		}
 	}
@@ -240,7 +240,7 @@ void NetworkForwarder::addFlatbufferSlave(const QString& slave, const QJsonObjec
 		}
 		else
 		{
-			Error(_log, "Could not initialize client: %s", QSTRING_CSTR(anyError));
+			Error(_log, "Could not initialize client: {:s}", (anyError));
 			flatbuf->deleteLater();
 		}
 	}
@@ -329,7 +329,7 @@ void NetworkForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* s
 
 	// parse reply data
 	QJsonParseError error;
-	QJsonDocument reply = QJsonDocument::fromJson(serializedReply, &error);
+	QJsonDocument::fromJson(serializedReply, &error);
 
 	if (error.error != QJsonParseError::NoError)
 	{

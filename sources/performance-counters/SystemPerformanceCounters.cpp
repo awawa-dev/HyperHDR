@@ -30,8 +30,8 @@
 	#include <QFile>
 
 	#include <iostream>
-	#include <stdlib.h>
-	#include <stdio.h>
+	#include <cstdlib>
+	#include <cstdio>
 	#include <vector>	
 #endif
 
@@ -61,9 +61,9 @@ int SystemPerformanceCounters::readCpuLines()
 
 	FILE* fp = fopen("/proc/stat", "r");
 
-	if (fp != NULL)
+	if (fp != nullptr)
 	{
-		for (; fgets(buffer, MAXPERFBUFFER, fp) != NULL && numberOfCPU <= MAXPERFCPU; numberOfCPU++)
+		for (; fgets(buffer, MAXPERFBUFFER, fp) != nullptr && numberOfCPU <= MAXPERFCPU; numberOfCPU++)
 		{
 			int ind = (numberOfCPU + 1) * 4;
 
@@ -85,7 +85,7 @@ void SystemPerformanceCounters::readVoltage()
 {
 	try
 	{
-		ssize_t len = klogctl(10, NULL, 0);
+		ssize_t len = klogctl(10, nullptr, 0);
 
 		underVoltage = -1;
 
@@ -99,7 +99,7 @@ void SystemPerformanceCounters::readVoltage()
 				buf.resize(len);
 				buf[len - 1] = 0;
 
-				if (strstr(buf.data(), "Under-voltage detected!") != NULL || strstr(buf.data(), "Undervoltage detected!") != NULL)
+				if (strstr(buf.data(), "Under-voltage detected!") != nullptr || strstr(buf.data(), "Undervoltage detected!") != nullptr)
 					underVoltage = 1;
 				else
 					underVoltage = 0;
@@ -314,7 +314,7 @@ QString SystemPerformanceCounters::getRAM()
 
 		unsigned long available = 0, total = 0, free = 0;
 		FILE* pFile = fopen("/proc/meminfo", "r");
-		if (pFile != NULL)
+		if (pFile != nullptr)
 		{
 			if (fscanf(pFile, "MemTotal: %lu kB\n", &total) == 1 &&
 				fscanf(pFile, "MemFree: %lu kB\n", &free) == 1 &&
@@ -334,7 +334,7 @@ QString SystemPerformanceCounters::getRAM()
 #endif
 		jResult["totalPhysMem"] = (qint64) totalPhysMem;
 		jResult["takenMem"] = (qint64)takenMem;
-		jResult["aspect"] = (qint64) aspect;
+		jResult["aspect"] = aspect;
 
 		return QJsonDocument(jResult).toJson(QJsonDocument::Compact);
 	}
@@ -355,7 +355,7 @@ QString SystemPerformanceCounters::getTEMP()
 
 		FILE* fp = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
 
-		if (fp != NULL)
+		if (fp != nullptr)
 		{
 			long long int temp;
 

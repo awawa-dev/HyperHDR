@@ -231,8 +231,6 @@ inline void SAFE_CALL_TEST_FUN() {};
 		target->method(p1value, p2value, p3value, p4value); \
 }
 
-#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
-
 namespace hyperhdr {
 	void THREAD_REMOVER(QString message, QThread* parentThread, QObject* client);
 	void THREAD_MULTI_REMOVER(QString message, QThread* parentThread, std::vector<QObject*> clients);

@@ -24,7 +24,7 @@ typedef void (*PTR_ftdi_list_free)(struct ftdi_device_list** devlist);
 typedef const char* (*PTR_ftdi_get_error_string)(struct ftdi_context* ftdi);
 
 
-class ProviderSpiLibFtdi : public QObject, public ProviderSpiInterface
+class ProviderSpiLibFtdi final : public QObject, public ProviderSpiInterface
 {
 	void*					_dllHandle;
 	struct ftdi_context*	_deviceHandle;
@@ -49,7 +49,7 @@ class ProviderSpiLibFtdi : public QObject, public ProviderSpiInterface
 	bool loadLibrary();
 
 public:
-	ProviderSpiLibFtdi(Logger* _log);
+	ProviderSpiLibFtdi(const LoggerName& logger);
 	~ProviderSpiLibFtdi();
 
 public:

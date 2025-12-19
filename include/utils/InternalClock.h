@@ -39,10 +39,12 @@ class InternalClock
 public:
 	static long long int now();
 	static long long int nowPrecise();
+	static long long int nowMicro();
 	static bool isPreciseSteady();
 private:
 	const static std::chrono::time_point<std::chrono::steady_clock> start;
 	const static std::chrono::time_point<std::chrono::high_resolution_clock> startPrecise;
+	const static std::chrono::time_point<std::chrono::steady_clock> startMicro;
 };
 
 class HighResolutionScheduler {
@@ -50,7 +52,7 @@ public:
 	HighResolutionScheduler() = default;
 	~HighResolutionScheduler();
 
-	void start(QObject* receiver, std::function<void()> task, std::chrono::microseconds period);
+	void start(QObject* receiver, const std::function<void()>& task, std::chrono::microseconds period);
 	void stop();
 
 private:

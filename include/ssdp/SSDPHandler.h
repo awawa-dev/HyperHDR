@@ -90,7 +90,7 @@ signals:
 	void newSsdpXmlDesc(QString newSsdpDesc);
 
 private:
-	Logger*		_log;
+	LoggerName	_log;
 	QString		_localAddress;
 	QString		_uuid;
 	int			_retry;

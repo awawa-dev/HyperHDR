@@ -15,7 +15,6 @@
 
 #include <QCoreApplication>
 #include <QHostInfo>
-#include <QBuffer>
 
 #include <HyperhdrConfig.h>
 #include <api/HyperAPI.h>
@@ -41,10 +40,9 @@
 
 using namespace hyperhdr;
 
-HyperAPI::HyperAPI(QString peerAddress, Logger* log, bool localConnection, QObject* parent, bool noListener)
+HyperAPI::HyperAPI(QString peerAddress, const LoggerName& log, bool localConnection, QObject* parent, bool noListener)
 	: CallbackAPI(log, localConnection, parent)
 {
-	_logsManager = LoggerManager::getInstance();
 	_noListener = noListener;
 	_peerAddress = peerAddress;
 	_streaming_logging_activated = false;
@@ -225,7 +223,7 @@ bool HyperAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (BaseAPI::setHyperhdrInstance(inst))
 	{		
-		Debug(_log, "Client '%s' switch to HyperHDR instance %d", QSTRING_CSTR(_peerAddress), inst);
+		Debug(_log, "Client '{:s}' switch to HyperHDR instance {:d}", (_peerAddress), inst);
 		return true;
 	}
 	return false;
@@ -334,7 +332,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 
 			QJsonObject ledDevices;
 			QJsonArray availableLedDevices;
-			for (auto dev : hyperhdr::leds::GET_ALL_LED_DEVICE(nullptr))
+			for (const auto& dev : hyperhdr::leds::GET_ALL_LED_DEVICE(nullptr))
 			{
 				QJsonObject driver;
 				driver["name"] = dev.name;
@@ -450,7 +448,7 @@ void HyperAPI::handleServerInfoCommand(const QJsonObject& message, const QString
 #endif
 
 			info["hostname"] = QHostInfo::localHostName();
-			info["lastError"] = Logger::getLastError();
+			info["lastError"] = Logger::getInstance()->getLastError();
 
 
 			////////////////
@@ -518,7 +516,7 @@ void HyperAPI::handleCropCommand(const QJsonObject& message, const QString& comm
 	int b = adjustment["bottom"].toInt(0);
 
 	if (grabberWrapper != nullptr)
-		emit grabberWrapper->setCropping(l, r, t, b);
+		grabberWrapper->setCropping(l, r, t, b);
 
 	sendSuccessReply(command, tan);
 }
@@ -553,11 +551,11 @@ void HyperAPI::lutDownloaded(QNetworkReply* reply, int hardware_brightness, int 
 		QString newConfig = QJsonDocument(grabber).toJson(QJsonDocument::Compact);
 		BLOCK_CALL_2(_hyperhdr.get(), setSetting, settings::type, settings::type::VIDEOGRABBER, QString, newConfig);
 
-		Info(_log, "New LUT has been installed as: %s (from: %s)", QSTRING_CSTR(fileName), QSTRING_CSTR(reply->url().toString()));
+		Info(_log, "New LUT has been installed as: {:s} (from: {:s})", (fileName), (reply->url().toString()));
 	}
 	else
 	{
-		Error(_log, "Error occured while installing new LUT: %s", QSTRING_CSTR(error));
+		Error(_log, "Error occured while installing new LUT: {:s}", (error));
 	}
 
 	QJsonObject report;
@@ -574,7 +572,7 @@ void HyperAPI::handleLutInstallCommand(const QJsonObject& message, const QString
 	int hardware_saturation = message["hardware_saturation"].toInt(0);
 	qint64 time = message["now"].toInt(0);
 
-	Debug(_log, "Request to install LUT from: %s (params => [%i, %i, %i])", QSTRING_CSTR(address),
+	Debug(_log, "Request to install LUT from: {:s} (params => [{:d}, {:d}, {:d}])", (address),
 		hardware_brightness, hardware_contrast, hardware_saturation);
 	if (_adminAuthorized)
 	{
@@ -708,7 +706,6 @@ void HyperAPI::handleLoadDB(const QJsonObject& message, const QString& command, 
 void HyperAPI::handlePerformanceCounters(const QJsonObject& message, const QString& command, int tan)
 {
 	QString subcommand = message["subcommand"].toString("");
-	QString full_command = command + "-" + subcommand;
 
 	if (subcommand == "all")
 	{
@@ -872,7 +869,7 @@ void HyperAPI::handleIncomingColors(const QVector<ColorRgb>& ledValues)
 
 void HyperAPI::handleLedColorsTimer()
 {
-	emit streamLedcolorsUpdate(_currentLedValues);
+	streamLedcolorsUpdate(_currentLedValues);
 }
 
 void HyperAPI::handleLedColorsCommand(const QJsonObject& message, const QString& command, int tan)
@@ -942,17 +939,17 @@ void HyperAPI::handleLoggingCommand(const QJsonObject& message, const QString& c
 			if (!_streaming_logging_activated)
 			{
 				_streaming_logging_reply["command"] = command + "-update";
-				connect(_logsManager.get(), &LoggerManager::newLogMessage, this, &HyperAPI::incommingLogMessage);
-				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str()); // needed to trigger log sending
+				connect(Logger::getInstance(), &Logger::SignalNewLogMessage, this, &HyperAPI::incommingLogMessage, Qt::UniqueConnection);
+				Debug(_log, "log streaming activated for client {:s}", _peerAddress.toStdString().c_str()); // needed to trigger log sending
 			}
 		}
 		else if (subcommand == "stop")
 		{
 			if (_streaming_logging_activated)
 			{
-				disconnect(_logsManager.get(), &LoggerManager::newLogMessage, this, &HyperAPI::incommingLogMessage);
+				disconnect(Logger::getInstance(), &Logger::SignalNewLogMessage, this, &HyperAPI::incommingLogMessage);
 				_streaming_logging_activated = false;
-				Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
+				Debug(_log, "log streaming deactivated for client  {:s}", _peerAddress.toStdString().c_str());
 			}
 		}
 		else
@@ -1094,7 +1091,7 @@ void HyperAPI::handleInstanceCommand(const QJsonObject& message, const QString& 
 
 void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "message: [{:s}]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	const QString& subc = message["subcommand"].toString().trimmed();
 	const QString& devType = message["ledDeviceType"].toString().trimmed();
@@ -1118,7 +1115,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
-			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+			Debug(_log, "response: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 			sendSuccessDataReply(QJsonDocument(devicesDiscovered), full_command, tan);
 		}
@@ -1128,7 +1125,7 @@ void HyperAPI::handleLedDeviceCommand(const QJsonObject& message, const QString&
 			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject deviceProperties = ledDevice->getProperties(params);
 
-			Debug(_log, "response: [%s]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+			Debug(_log, "response: [{:s}]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 			sendSuccessDataReply(QJsonDocument(deviceProperties), full_command, tan);
 		}
@@ -1211,7 +1208,7 @@ void HyperAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE& msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		SAFE_CALL_0_RET(_logsManager.get(), getLogMessageBuffer, QJsonArray, messageArray);
+		SAFE_CALL_0_RET(Logger::getInstance(), getLogMessageBuffer, QJsonArray, messageArray);
 	}
 	else
 	{
@@ -1274,11 +1271,11 @@ void HyperAPI::handleInstanceStateChange(InstanceState state, quint8 instance, c
 
 void HyperAPI::stopDataConnections()
 {
-	LoggerManager::getInstance()->disconnect();
+	disconnect(Logger::getInstance(), nullptr, this, nullptr);
 	_streaming_logging_activated = false;
 	CallbackAPI::removeSubscriptions();
 	// led stream colors
-	disconnect(_hyperhdr.get(), &HyperHdrInstance::SignalRawColorsChanged, this, 0);
+	disconnect(_hyperhdr.get(), &HyperHdrInstance::SignalRawColorsChanged, this, nullptr);
 	_ledStreamTimer->stop();
 }
 
@@ -1307,7 +1304,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 
 			QUrl url = QUrl(QString("%1://").arg(tempUrl.scheme()) + tempUrl.host() + ((service == "home_assistant" && tempUrl.port() >= 0) ? ":" + QString::number(tempUrl.port()) : "") + path);
 
-			Debug(_log, "Tunnel request for: %s", QSTRING_CSTR(url.toString()));
+			Debug(_log, "Tunnel request for: {:s}", (url.toString()));
 
 			if (!url.isValid())
 			{
@@ -1317,7 +1314,7 @@ void HyperAPI::handleTunnel(const QJsonObject& message, const QString& command, 
 
 			if (!isLocal(url.host()))
 			{
-				Error(_log, "Could not resolve '%s' as IP local address at your HyperHDR host device.", QSTRING_CSTR(url.host()));
+				Error(_log, "Could not resolve '{:s}' as IP local address at your HyperHDR host device.", (url.host()));
 				sendErrorReply("The Philips Hue wizard supports only valid IP addresses in the LOCAL network.\nIt may be preferable to use the IP4 address instead of the host name if you are having problems with DNS resolution.", full_command, tan);
 				return;
 			}
@@ -1395,7 +1392,7 @@ bool HyperAPI::isLocal(QString hostname)
 		uint8_t a = adr >> 24;
 		uint8_t b = (adr >> 16) & 0xff;
 
-		Debug(_log, "IP4 prefix: %i.%i", a, b);
+		Debug(_log, "IP4 prefix: {:d}.{:d}", a, b);
 
 		return ((a == 192 && b == 168) || (a == 10) || (a == 172 && b >= 16 && b <32));
 	}
@@ -1404,7 +1401,7 @@ bool HyperAPI::isLocal(QString hostname)
 	{
 		auto i = address.toString();
 
-		Debug(_log, "IP6 prefix: %s", QSTRING_CSTR(i.left(4)));
+		Debug(_log, "IP6 prefix: {:s}", (i.left(4)));
 
 		return i.indexOf("fd") == 0 || i.indexOf("fe80") == 0;
 	}

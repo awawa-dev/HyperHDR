@@ -37,13 +37,13 @@ public:
 		_serialPort->write((char*)comBuffer, sizeof(comBuffer));
 	}
 
-	static void initializeEsp(QSerialPort* _serialPort, QSerialPortInfo& serialPortInfo, Logger*& _log, bool _forceSerialDetection)
+	static void initializeEsp(QSerialPort* _serialPort, QSerialPortInfo& serialPortInfo, LoggerName _log, bool _forceSerialDetection)
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x15, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 
 		if (serialPortInfo.productIdentifier() == 0xa && serialPortInfo.vendorIdentifier() == 0x2e8a)
 		{
-			Warning(_log, "Detected Rp2040 type board. HyperHDR skips the reset. State: %i, %i",
+			Warning(_log, "Detected Rp2040 type board. HyperHDR skips the reset. State: {:d}, {:d}",
 				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
 			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
@@ -54,7 +54,7 @@ public:
 		}
 		else if (serialPortInfo.productIdentifier() == 0x80c2 && serialPortInfo.vendorIdentifier() == 0x303a)
 		{
-			Warning(_log, "Detected ESP32-S2 lolin mini type board. HyperHDR skips the reset. State: %i, %i",
+			Warning(_log, "Detected ESP32-S2 lolin mini type board. HyperHDR skips the reset. State: {:d}, {:d}",
 				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
 			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
@@ -65,7 +65,7 @@ public:
 		}
 		else if (serialPortInfo.productIdentifier() == 0x3483 && serialPortInfo.vendorIdentifier() == 0x1106)
 		{
-			Warning(_log, "Enabling the Rpi4 udev bug workaround. The serial device is incorrectly identified by the OS and HyperHDR skips the reset. State: %i, %i",
+			Warning(_log, "Enabling the Rpi4 udev bug workaround. The serial device is incorrectly identified by the OS and HyperHDR skips the reset. State: {:d}, {:d}",
 				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
 			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
@@ -76,7 +76,7 @@ public:
 		}
 		else if (_forceSerialDetection)
 		{
-			Warning(_log, "Force ESP/Pico detection override enabled. HyperHDR skips the reset. State: %i, %i",
+			Warning(_log, "Force ESP/Pico detection override enabled. HyperHDR skips the reset. State: {:d}, {:d}",
 				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
 			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
@@ -121,12 +121,12 @@ public:
 				QString result = QString(incoming).remove('*').replace('\n', ' ').trimmed();
 				if (result.indexOf("Awa driver", Qt::CaseInsensitive) >= 0)
 				{
-					Info(_log, "DETECTED DEVICE USING HyperSerialEsp8266/HyperSerialESP32/HyperSerialPico FIRMWARE (%s) at %i msec", QSTRING_CSTR(result), int(InternalClock::now() - start));
+					Info(_log, "DETECTED DEVICE USING HyperSerialEsp8266/HyperSerialESP32/HyperSerialPico FIRMWARE ({:s}) at {:d} msec", (result), int(InternalClock::now() - start));
 					start = 0;
 					break;
 				}
 				else
-					Info(_log, "ESP sent: '%s'", QSTRING_CSTR(result));
+					Info(_log, "ESP sent: '{:s}'", (result));
 			}
 		}
 

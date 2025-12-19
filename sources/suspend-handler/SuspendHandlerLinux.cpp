@@ -26,26 +26,25 @@
  */
 
 
-
-#include <algorithm>
-#include <cstdint>
-#include <limits>
-#include <cmath>
-#include <cassert>
-#include <stdlib.h>
 #include <sdbus-c++/sdbus-c++.h>
+#include <algorithm>
+#include <base/HyperHdrManager.h>
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <image/Image.h>
+#include <iostream>
+#include <limits>
 #include <suspend-handler/SuspendHandlerLinux.h>
 #include <utils/Components.h>
-#include <image/Image.h>
-#include <base/HyperHdrManager.h>
-#include <iostream>
 
 using namespace sdbus;
 
 namespace {
-	const QString UPOWER_SERVICE = QStringLiteral("org.freedesktop.login1");
-	const QString UPOWER_PATH = QStringLiteral("/org/freedesktop/login1");
-	const QString UPOWER_INTERFACE = QStringLiteral("org.freedesktop.login1.Manager");
+	constexpr const char* UPOWER_SERVICE = "org.freedesktop.login1";
+	constexpr const char* UPOWER_PATH = "/org/freedesktop/login1";
+	constexpr const char* UPOWER_INTERFACE = "org.freedesktop.login1.Manager";
 }
 
 SuspendHandler::SuspendHandler(bool sessionLocker)
@@ -57,8 +56,8 @@ SuspendHandler::SuspendHandler(bool sessionLocker)
 		};
 
 		_dbusConnection = sdbus::createSystemBusConnection();
-		_suspendHandlerProxy = sdbus::createProxy(*_dbusConnection, ServiceName{ UPOWER_SERVICE.toStdString() }, ObjectPath{ UPOWER_PATH.toStdString() });
-		_suspendHandlerProxy->uponSignal(SignalName{ "PrepareForSleep" }).onInterface(InterfaceName{ UPOWER_INTERFACE.toStdString() }).call(responseSignalHandler);
+		_suspendHandlerProxy = sdbus::createProxy(*_dbusConnection, ServiceName{ UPOWER_SERVICE }, ObjectPath{ UPOWER_PATH });
+		_suspendHandlerProxy->uponSignal(SignalName{ "PrepareForSleep" }).onInterface(InterfaceName{ UPOWER_INTERFACE }).call(responseSignalHandler);
 		_dbusConnection->enterEventLoopAsync();
 
 		_suspendHandlerProxy = nullptr;

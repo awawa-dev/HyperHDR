@@ -22,9 +22,7 @@ QtHttpServerWrapper::QtHttpServerWrapper(QObject* parent)
 }
 
 QtHttpServerWrapper::~QtHttpServerWrapper(void)
-{
-
-}
+= default;
 
 void QtHttpServerWrapper::setUseSecure(const bool ssl)
 {
@@ -57,7 +55,7 @@ void QtHttpServer::start(quint16 port)
 	}
 }
 
-void QtHttpServer::stop(void)
+void QtHttpServer::stop()
 {
 	if (m_sockServer->isListening())
 	{
@@ -73,7 +71,7 @@ void QtHttpServer::stop(void)
 	}
 }
 
-void QtHttpServer::onClientConnected(void)
+void QtHttpServer::onClientConnected()
 {
 	while (m_sockServer->hasPendingConnections())
 	{
@@ -87,7 +85,7 @@ void QtHttpServer::onClientConnected(void)
 				{
 					if (QSslSocket* ssl = qobject_cast<QSslSocket*> (sock))
 					{
-						connect(ssl, SslErrorSignal(&QSslSocket::sslErrors), this, &QtHttpServer::onClientSslErrors);
+						connect(ssl, QOverload<const QList<QSslError>&>::of(&QSslSocket::sslErrors), this, &QtHttpServer::onClientSslErrors);
 						connect(ssl, &QSslSocket::encrypted, this, &QtHttpServer::onClientSslEncrypted);
 						connect(ssl, &QSslSocket::peerVerifyError, this, &QtHttpServer::onClientSslPeerVerifyError);
 						connect(ssl, &QSslSocket::modeChanged, this, &QtHttpServer::onClientSslModeChanged);
@@ -111,7 +109,7 @@ void QtHttpServer::onClientConnected(void)
 	}
 }
 
-void QtHttpServer::onClientDisconnected(void)
+void QtHttpServer::onClientDisconnected()
 {
 	if (QTcpSocket* sockClient = qobject_cast<QTcpSocket*> (sender()))
 	{
@@ -130,17 +128,17 @@ void QtHttpServer::setUseSecure(const bool ssl)
 	m_sockServer->setUseSecure(m_useSsl);
 }
 
-const QString& QtHttpServer::getServerName(void) const
+const QString& QtHttpServer::getServerName() const
 {
 	return m_serverName;
 };
 
-quint16 QtHttpServer::getServerPort(void) const
+quint16 QtHttpServer::getServerPort() const
 {
 	return m_sockServer->serverPort();
 };
 
-QString QtHttpServer::getErrorString(void) const
+QString QtHttpServer::getErrorString() const
 {
 	return m_sockServer->errorString();
 };
@@ -176,7 +174,7 @@ QList<QSslCertificate> QtHttpServer::getCertificates()
 	return m_sslCerts;
 };
 
-void QtHttpServer::onClientSslEncrypted(void)
+void QtHttpServer::onClientSslEncrypted()
 {
 };
 

@@ -55,7 +55,7 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, in
 	, _timer(this)
 	, _ledCount(hyperhdr->getLedCount())
 {
-	_log = Logger::getInstance(QString("EFFECT%1(%2)").arg(_instanceIndex).arg((_name.length() > 9) ? _name.left(6) + "..." : _name));
+	_log = QString("EFFECT%1(%2)").arg(_instanceIndex).arg((_name.length() > 9) ? _name.left(6) + "..." : _name);
 
 	_colors.resize(_ledCount);
 	_colors.fill(ColorRgb::BLACK);	
@@ -101,7 +101,7 @@ Effect::~Effect()
 		QUEUE_CALL_1(_soundCapture.get(), close, uint32_t, _soundHandle);
 	}
 
-	Info(_log, "Effect named: '%s' is deleted", QSTRING_CSTR(_name));
+	Info(_log, "Effect named: '{:s}' is deleted", (_name));
 }
 
 void Effect::start()
@@ -117,7 +117,7 @@ void Effect::start()
 
 	_timer.setInterval(_effect->GetSleepTime());
 
-	Info(_log, "Begin playing the %s with priority: %i", (_isSoundEffect) ? "music effect" : "effect", _priority);
+	Info(_log, "Begin playing the {:s} with priority: {:d}", (_isSoundEffect) ? "music effect" : "effect", _priority);
 
 	run();
 	_timer.start();	
@@ -170,7 +170,7 @@ void Effect::run()
 
 void Effect::stop()
 {
-	Info(_log, "The effect quits with priority: %i", _priority);
+	Info(_log, "The effect quits with priority: {:d}", _priority);
 
 	_timer.stop();
 

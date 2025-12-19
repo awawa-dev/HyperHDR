@@ -25,23 +25,22 @@
 *  SOFTWARE.
  */
 
-#include <unistd.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <dlfcn.h>
+#include <fcntl.h>
+#include <iostream>
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <cassert>
 #include <sys/wait.h>
-#include <cerrno>
-#include <fcntl.h>
 #include <unistd.h>
-#include <vector>
-#include <cstdio>
-#include <cstdlib>
-#include <time.h>
-#include <cstring>
-#include <iostream>
-#include <dlfcn.h>
 #include <utility>
+#include <vector>
 
 #include <led-drivers/spi/ProviderSpiLibFtdi.h>
 #include <utils/Logger.h>
@@ -52,7 +51,7 @@ namespace
 	constexpr auto* LIBFTDI_ALT = "libftdi1.so.2";
 }
 
-ProviderSpiLibFtdi::ProviderSpiLibFtdi(Logger* logger)
+ProviderSpiLibFtdi::ProviderSpiLibFtdi(const LoggerName& logger)
 	: QObject(), ProviderSpiInterface(logger),
 	_dllHandle(nullptr),
 	_deviceHandle(nullptr),
@@ -96,7 +95,7 @@ bool ProviderSpiLibFtdi::loadLibrary()
 
 	if (_dllHandle == nullptr)
 	{
-		Error(_log, "Unable to load %s nor %s library", LIBFTDI_CANON, LIBFTDI_ALT);
+		Error(_log, "Unable to load {:s} nor {:s} library", LIBFTDI_CANON, LIBFTDI_ALT);
 	}
 	else
 	{
@@ -131,7 +130,7 @@ bool ProviderSpiLibFtdi::loadLibrary()
 
 ProviderSpiLibFtdi::~ProviderSpiLibFtdi()
 {
-	close();
+	ProviderSpiLibFtdi::close();
 
 	if (_dllHandle != nullptr)
 	{
@@ -155,9 +154,9 @@ bool ProviderSpiLibFtdi::init(QJsonObject deviceConfig)
 		_baudRate_Hz = 20833333;
 	}
 
-	Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
-	Debug(_log, "Real speed: %d", getRate());
-	Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
+	Debug(_log, "Speed: {:d}, Type: {:s}", _baudRate_Hz, (_spiType));
+	Debug(_log, "Real speed: {:d}", getRate());
+	Debug(_log, "Inverted: {:s}, Mode: {:d}", (_spiDataInvert) ? "yes" : "no", _spiMode);
 
 	isInitOK = loadLibrary();
 
@@ -183,7 +182,7 @@ QString ProviderSpiLibFtdi::open()
 
 	if (_fun_ftdi_usb_open_bus_addr(_deviceHandle, (deviceLocation >> 8) & 0xff, (deviceLocation) & 0xff) < 0)
 	{
-		Error(_log, "libFTDI ftdi_usb_open_bus_addr has failed: %s", _fun_ftdi_get_error_string(_deviceHandle));
+		Error(_log, "libFTDI ftdi_usb_open_bus_addr has failed: {:s}", _fun_ftdi_get_error_string(_deviceHandle));
 
 		_fun_ftdi_free(_deviceHandle);
 		_deviceHandle = nullptr;
@@ -355,8 +354,7 @@ QJsonObject ProviderSpiLibFtdi::discover(const QJsonObject& /*params*/)
 		{
 			if (numDevs > 0)
 			{
-				QJsonArray deviceList;
-				QStringList files;
+				QJsonArray deviceList;				
 
 				struct ftdi_device_list* curDev = devlist;
 				while (curDev)
@@ -370,7 +368,7 @@ QJsonObject ProviderSpiLibFtdi::discover(const QJsonObject& /*params*/)
 
 				devicesDiscovered.insert("devices", deviceList);
 
-				Debug(_log, "libFTDI SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+				Debug(_log, "libFTDI SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 			}
 			else
 			{

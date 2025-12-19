@@ -97,7 +97,7 @@ void ImageData<ColorSpace>::resize(unsigned width, unsigned height)
 	if (width == _width && height == _height)
 		return;
 
-	if ((width * height) > unsigned((_width * _height)))
+	if ((width * height) > (_width * _height))
 	{
 		freeMemory();
 		getMemory(width, height);

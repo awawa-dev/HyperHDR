@@ -45,13 +45,13 @@ public:
 	bool tableExists(const QString& table) const;
 	bool deleteTable(const QString& table) const;
 
-	const QJsonObject getBackup();
+	QJsonObject getBackup();
 	QString restoreBackup(const QJsonObject& backupData);
 	QString createLocalBackup();
 
 protected:
 	DBManager();
-	Logger* _log;
+	LoggerName _log;
 
 private:
 	QString _table;

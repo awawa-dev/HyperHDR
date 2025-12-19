@@ -23,7 +23,7 @@
 class AccessManager;
 
 
-class PipewireGrabber : public Grabber
+class PipewireGrabber final : public Grabber
 {
 	Q_OBJECT
 

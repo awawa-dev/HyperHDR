@@ -28,6 +28,8 @@
 #include <led-drivers/pwm/rpi_pio/DriverRpiPio.h>
 #include <linalg.h>
 
+#include <QFileInfo>
+
 DriverRpiPio::DriverRpiPio(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _isRgbw(false)
@@ -51,8 +53,8 @@ bool DriverRpiPio::init(QJsonObject deviceConfig)
 		_output = deviceConfig["output"].toString("/dev/null");
 		_isRgbw = deviceConfig["rgbw"].toBool(false);
 
-		Debug(_log, "Rp1/PIO LED module path : %s", QSTRING_CSTR(_output));
-		Debug(_log, "Type : %s", (_isRgbw) ? "RGBW" : "RGB");
+		Debug(_log, "Rp1/PIO LED module path : {:s}", (_output));
+		Debug(_log, "Type : {:s}", (_isRgbw) ? "RGBW" : "RGB");
 
 		if (_isRgbw)
 		{
@@ -70,11 +72,11 @@ bool DriverRpiPio::init(QJsonObject deviceConfig)
 			}
 			else
 			{
-				Debug(_log, "white_algorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+				Debug(_log, "white_algorithm : {:s}", (whiteAlgorithm));
 
 				if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM)
 				{
-					Debug(_log, "White channel limit: %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+					Debug(_log, "White channel limit: {:d}, red: {:d}, green: {:d}, blue: {:d}", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
 				}
 
 				if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM ||
@@ -108,21 +110,21 @@ int DriverRpiPio::open()
 	QFileInfo fi(_output);
     if (!fi.exists())
 	{
-		Error(_log, "The device does not exists: %s", QSTRING_CSTR(_output));
+		Error(_log, "The device does not exists: {:s}", (_output));
 		Error(_log, "Must be configured first like for ex: dtoverlay=ws2812-pio,gpio=18,num_leds=30,rgbw in /boot/firmware/config.txt. rgbw only for sk6812 RGBW. num_leds is your LED number. Only RPI5+");
 		return retval;
 	}	
 	
 	if (!fi.isWritable())
 	{
-		Error(_log, "The device is not writable. Are you root or your user has write access rights to: %s", QSTRING_CSTR(_output));
+		Error(_log, "The device is not writable. Are you root or your user has write access rights to: {:s}", (_output));
 		return retval;
 	}
 
 	QFile renderer(_output);
 	if (!renderer.open(QIODevice::WriteOnly))
 	{
-		Error(_log, "Cannot open the device for writing: %s", QSTRING_CSTR(_output));
+		Error(_log, "Cannot open the device for writing: {:s}", (_output));
 		return retval;
 	}	
 	else

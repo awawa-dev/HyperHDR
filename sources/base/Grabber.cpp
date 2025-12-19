@@ -54,7 +54,7 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _cropTop(0)
 	, _cropBottom(0)
 	, _enabled(true)
-	, _log(Logger::getInstance(grabberName.toUpper()))
+	, _log(grabberName.toUpper())
 	, _currentFrame(0)
 	, _deviceName()
 	, _enc(PixelFormat::NO_CHANGE)
@@ -159,7 +159,7 @@ bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Gra
 
 void Grabber::setEnabled(bool enable)
 {
-	Info(_log, "Capture interface is now %s", enable ? "enabled" : "disabled");
+	Info(_log, "Capture interface is now {:s}", enable ? "enabled" : "disabled");
 	_enabled = enable;
 }
 
@@ -169,7 +169,7 @@ void Grabber::setMonitorNits(int nits)
 	{
 		_targetMonitorNits = nits;
 
-		Debug(_log, "Set nits to %i", _targetMonitorNits);
+		Debug(_log, "Set nits to {:d}", _targetMonitorNits);
 
 		if (_initialized && !_blocked)
 		{
@@ -191,7 +191,7 @@ void Grabber::setReorderDisplays(int order)
 	{
 		_reorderDisplays = order;
 
-		Debug(_log, "Set re-order display permutation to %i", _reorderDisplays);
+		Debug(_log, "Set re-order display permutation to {:d}", _reorderDisplays);
 
 		if (_initialized && !_blocked)
 		{
@@ -213,7 +213,7 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	{
 		if (cropLeft + cropRight >= (unsigned)_width || cropTop + cropBottom >= (unsigned)_height)
 		{
-			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, higher than height/width %d/%d", cropLeft, cropRight, cropTop, cropBottom, _height, _width);
+			Error(_log, "Rejecting invalid crop values: left: {:d}, right: {:d}, top: {:d}, bottom: {:d}, higher than height/width {:d}/{:d}", cropLeft, cropRight, cropTop, cropBottom, _height, _width);
 			return;
 		}
 	}
@@ -225,7 +225,7 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 
 	if (cropLeft >= 0 || cropRight >= 0 || cropTop >= 0 || cropBottom >= 0)
 	{
-		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
+		Info(_log, "Cropping image: width={:d} height={:d}; crop: left={:d} right={:d} top={:d} bottom={:d} ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
 }
 
@@ -235,7 +235,7 @@ void Grabber::enableHardwareAcceleration(bool hardware)
 	{
 		_hardware = hardware;
 
-		Debug(_log, "Set hardware acceleration to %s", _hardware ? "enabled" : "disabled");
+		Debug(_log, "Set hardware acceleration to {:s}", _hardware ? "enabled" : "disabled");
 
 		if (_initialized && !_blocked)
 		{
@@ -269,11 +269,11 @@ bool Grabber::trySetWidthHeight(int width, int height)
 	{
 		if ((width != 0 && height != 0) && (_cropLeft + _cropRight >= width || _cropTop + _cropBottom >= height))
 		{
-			Error(_log, "Rejecting invalid width/height values as it collides with image cropping: width: %d, height: %d", width, height);
+			Error(_log, "Rejecting invalid width/height values as it collides with image cropping: width: {:d}, height: {:d}", width, height);
 			return false;
 		}
 
-		Debug(_log, "Set new width: %d, height: %d for capture", width, height);
+		Debug(_log, "Set new width: {:d}, height: {:d} for capture", width, height);
 		_width = width;
 		_height = height;
 
@@ -296,7 +296,7 @@ int Grabber::getImageHeight()
 void Grabber::setFpsSoftwareDecimation(int decimation)
 {
 	_fpsSoftwareDecimation = decimation;
-	Debug(_log, "setFpsSoftwareDecimation to: %i", decimation);
+	Debug(_log, "setFpsSoftwareDecimation to: {:d}", decimation);
 }
 
 int Grabber::getFpsSoftwareDecimation()
@@ -314,7 +314,7 @@ void Grabber::setEncoding(QString enc)
 	PixelFormat _oldEnc = _enc;
 
 	_enc = parsePixelFormat(enc);
-	Debug(_log, "Force encoding to: %s (old: %s)", QSTRING_CSTR(pixelFormatToString(_enc)), QSTRING_CSTR(pixelFormatToString(_oldEnc)));
+	Debug(_log, "Force encoding to: {:s} (old: {:s})", (pixelFormatToString(_enc)), (pixelFormatToString(_oldEnc)));
 
 	if (_oldEnc != _enc)
 	{
@@ -344,25 +344,25 @@ void Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, i
 			if (_brightness != brightness && brightness == 0 && dev.brightness.enabled)
 			{
 				brightness = (int)dev.brightness.defVal;
-				Debug(_log, "Reset brightness to default: %i (user value: 0)", brightness);
+				Debug(_log, "Reset brightness to default: {:d} (user value: 0)", brightness);
 			}
 
 			if (_contrast != contrast && contrast == 0 && dev.contrast.enabled)
 			{
 				contrast = (int)dev.contrast.defVal;
-				Debug(_log, "Reset contrast to default: %i (user value: 0)", contrast);
+				Debug(_log, "Reset contrast to default: {:d} (user value: 0)", contrast);
 			}
 
 			if (_saturation != saturation && saturation == 0 && dev.saturation.enabled)
 			{
 				saturation = (int)dev.saturation.defVal;
-				Debug(_log, "Reset saturation to default: %i (user value: 0)", saturation);
+				Debug(_log, "Reset saturation to default: {:d} (user value: 0)", saturation);
 			}
 
 			if (_hue != hue && hue == 0 && dev.hue.enabled)
 			{
 				hue = (int)dev.hue.defVal;
-				Debug(_log, "Reset hue to default: %i (user value: 0)", hue);
+				Debug(_log, "Reset hue to default: {:d} (user value: 0)", hue);
 			}
 		}
 
@@ -371,7 +371,7 @@ void Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, i
 		_saturation = saturation;
 		_hue = hue;
 
-		Debug(_log, "Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
+		Debug(_log, "Set brightness to {:d}, contrast to {:d}, saturation to {:d}, hue to {:d}", _brightness, _contrast, _saturation, _hue);
 
 		if (_initialized && !_blocked)
 		{
@@ -393,7 +393,7 @@ void Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, i
 void Grabber::setQFrameDecimation(int setQframe)
 {
 	_qframe = setQframe;
-	Info(_log, QSTRING_CSTR(QString("setQFrameDecimation is now: %1").arg(_qframe ? "enabled" : "disabled")));
+	Info(_log, "{:s}", (QString("setQFrameDecimation is now: %1").arg(_qframe ? "enabled" : "disabled")));
 }
 
 void Grabber::unblockAndRestart(bool running)
@@ -449,7 +449,7 @@ bool Grabber::setWidthHeight(int width, int height)
 {
 	if (Grabber::trySetWidthHeight(width, height))
 	{
-		Debug(_log, "setWidthHeight preparing to restarting video grabber %i", _initialized);
+		Debug(_log, "setWidthHeight preparing to restarting video grabber {:d}", _initialized);
 
 		if (_initialized && !_blocked)
 		{
@@ -494,7 +494,7 @@ void Grabber::setDeviceVideoStandard(QString device)
 	QString olddeviceName = _deviceName;
 	if (_deviceName != device)
 	{
-		Debug(_log, "setDeviceVideoStandard preparing to restart video grabber. Old: '%s' new: '%s'", QSTRING_CSTR(_deviceName), QSTRING_CSTR(device));
+		Debug(_log, "setDeviceVideoStandard preparing to restart video grabber. Old: '{:s}' new: '{:s}'", (_deviceName), (device));
 
 		_deviceName = device;
 
@@ -754,7 +754,7 @@ void Grabber::setSignalDetectionEnable(bool enable)
 	if (_signalDetectionEnabled != enable)
 	{
 		_signalDetectionEnabled = enable;
-		Info(_log, "Signal detection is now %s", enable ? "enabled" : "disabled");
+		Info(_log, "Signal detection is now {:s}", enable ? "enabled" : "disabled");
 	}
 }
 
@@ -763,7 +763,7 @@ void Grabber::setAutoSignalDetectionEnable(bool enable)
 	if (_signalAutoDetectionEnabled != enable)
 	{
 		_signalAutoDetectionEnabled = enable;
-		Info(_log, "Automatic signal detection is now %s", enable ? "enabled" : "disabled");
+		Info(_log, "Automatic signal detection is now {:s}", enable ? "enabled" : "disabled");
 	}
 }
 
@@ -890,7 +890,7 @@ QJsonObject Grabber::getJsonInfo()
 
 
 		QJsonArray availableResolutions;
-		for (auto x : resolutions)
+		for (const auto& x : std::as_const(resolutions))
 		{
 			availableResolutions.append(x);
 		}
@@ -898,7 +898,7 @@ QJsonObject Grabber::getJsonInfo()
 
 		QJsonArray availableVideoCodec;
 		videoCodecs.sort();
-		for (auto x : videoCodecs)
+		for (const auto& x : std::as_const(videoCodecs))
 		{
 			availableVideoCodec.append(x);
 		}
@@ -987,7 +987,7 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 		Info(_log, "The byte array loaded into LUT");
 	}
 	else
-		Error(_log, "Could not set LUT: current size = %i, incoming size = %i", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+		Error(_log, "Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
 }
 
 void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec)

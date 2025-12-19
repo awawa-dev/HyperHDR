@@ -68,8 +68,7 @@ namespace hyperhdr::leds
 	{
 		const std::list<LedDeviceDefinition>& drivers = GET_ALL_LED_DEVICE(nullptr);
 
-		Logger* log = Logger::getInstance("LEDDEVICE");
-		QJsonDocument config(deviceConfig);
+		LoggerName log = "LEDDEVICE";
 
 		QString type = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
@@ -90,7 +89,7 @@ namespace hyperhdr::leds
 		else
 		{
 			QString dummyDeviceType = "file";
-			Error(log, "Dummy device type (%s) used, because configured driver '%s' could not be found", QSTRING_CSTR(dummyDeviceType), QSTRING_CSTR(type));
+			Error(log, "Dummy device type ({:s}) used, because configured driver '{:s}' could not be found", (dummyDeviceType), (type));
 
 			QJsonObject dummyDeviceConfig;
 			dummyDeviceConfig.insert("type", dummyDeviceType);

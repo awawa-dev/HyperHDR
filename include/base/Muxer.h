@@ -14,11 +14,11 @@
 #include <image/ColorRgb.h>
 #include <image/Image.h>
 #include <utils/Components.h>
+#include <utils/Logger.h>
 
 #define SMOOTHING_DEFAULT_CONFIG 0
 
 class QTimer;
-class Logger;
 
 class Muxer : public QObject
 {
@@ -43,7 +43,7 @@ public:
 	~Muxer() override;
 
 	void setEnable(bool enable);
-	bool setSourceAutoSelectEnabled(bool enabel, bool update = true);
+	bool setSourceAutoSelectEnabled(bool enable, bool update = true);
 	bool isSourceAutoSelectEnabled() const { return _sourceAutoSelectEnabled; }
 	bool setPriority(int priority);
 	int getCurrentPriority() const { return _currentPriority; }
@@ -72,7 +72,7 @@ private slots:
 private:
 	hyperhdr::Components getComponentOfPriority(int priority) const;
 
-	Logger* _log;
+	LoggerName _log;
 	int _currentPriority;
 	int _previousPriority;
 	int _manualSelectedPriority;

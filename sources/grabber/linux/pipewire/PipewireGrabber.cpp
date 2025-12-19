@@ -25,18 +25,17 @@
 *  SOFTWARE.
  */
 
+#include <cassert>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <cstdio>
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <limits.h>
 
 #include <base/HyperHdrInstance.h>
 #include <base/AccessManager.h>
@@ -50,13 +49,16 @@
 #include <utils/GlobalSignals.h>
 #include <dlfcn.h>
 
-bool (*_hasPipewire)() = nullptr;
-const char* (*_getPipewireError)() = nullptr;
-void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS) = nullptr;
-void (*_uninitPipewireDisplay)() = nullptr;
-PipewireImage (*_getFramePipewire)() = nullptr;
-void (*_releaseFramePipewire)() = nullptr;
-const char* (*_getPipewireToken)() = nullptr;
+namespace
+{
+	bool (*_hasPipewire)() = nullptr;
+	const char* (*_getPipewireError)() = nullptr;
+	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS) = nullptr;
+	void (*_uninitPipewireDisplay)() = nullptr;
+	PipewireImage(*_getFramePipewire)() = nullptr;
+	void (*_releaseFramePipewire)() = nullptr;
+	const char* (*_getPipewireToken)() = nullptr;
+}
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "PIPEWIRE_SYSTEM:" + device.left(14))
@@ -85,11 +87,11 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
 	}
 	else
-		Warning(_log, "Could not load Pipewire proxy library. Error: %s", dlerror());
+		Warning(_log, "Could not load Pipewire proxy library. Error: {:s}", dlerror());
 
 	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr))
 	{
-		Error(_log, "Could not load Pipewire proxy library definition. Error: %s", dlerror());
+		Error(_log, "Could not load Pipewire proxy library definition. Error: {:s}", dlerror());
 
 		dlclose(_library);
 		_library = nullptr;
@@ -133,7 +135,7 @@ void PipewireGrabber::setHdrToneMappingEnabled(int mode)
 
 PipewireGrabber::~PipewireGrabber()
 {
-	uninit();
+	PipewireGrabber::uninit();
 
 	if (_library)
 	{
@@ -149,7 +151,7 @@ void PipewireGrabber::uninit()
 	if (_initialized)
 	{		
 		stop();
-		Debug(_log, "Uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 	
 
@@ -177,7 +179,7 @@ bool PipewireGrabber::init()
 
 		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
-			Debug(_log, "Device %s is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device {:s} is not available. Changing to auto.", (_deviceName));
 			autoDiscovery = true;
 		}
 
@@ -188,7 +190,7 @@ bool PipewireGrabber::init()
 			{				
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}
 		}
 		else
@@ -202,7 +204,7 @@ bool PipewireGrabber::init()
 
 		
 		Info(_log, "*************************************************************************************************");
-		Info(_log, "Starting Pipewire grabber. Selected: '%s' (%i) max width: %d (%d) @ %d fps", QSTRING_CSTR(foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
+		Info(_log, "Starting Pipewire grabber. Selected: '{:s}' ({:d}) max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");		
 
 		if (init_device(_deviceProperties[foundDevice].valid.first().input))
@@ -249,7 +251,7 @@ bool PipewireGrabber::start()
 	}
 	catch (std::exception& e)
 	{
-		Error(_log, "start failed (%s)", e.what());
+		Error(_log, "start failed ({:s})", e.what());
 	}
 
 	return false;
@@ -279,7 +281,7 @@ bool PipewireGrabber::init_device(int _display)
 	if (token.isNull())
 		token = "";
 	else
-		Info(_log, "Loading restoration token: %s", QSTRING_CSTR(maskToken(token)));
+		Info(_log, "Loading restoration token: {:s}", (maskToken(token)));
 	_initPipewireDisplay(token.toLatin1().constData(), _fps);
 
 	_isActive = true;
@@ -324,9 +326,9 @@ void PipewireGrabber::grabFrame()
 		if (!_versionCheck)
 		{
 			if (data.version >= 4)
-				Info(_log, "Portal protocol version: %i", data.version);
+				Info(_log, "Portal protocol version: {:d}", data.version);
 			else
-				Warning(_log, "Legacy portal protocol version: %i. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
+				Warning(_log, "Legacy portal protocol version: {:d}. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
 
 			_versionCheck = true;
 		}
@@ -338,7 +340,7 @@ void PipewireGrabber::grabFrame()
 
 			if (!token.isEmpty() && _accessManager != nullptr)
 			{
-				Info(_log, "Saving restoration token: %s", QSTRING_CSTR(maskToken(token)));
+				Info(_log, "Saving restoration token: {:s}", (maskToken(token)));
 
 				_accessManager->savePipewire(token);
 
@@ -352,7 +354,7 @@ void PipewireGrabber::grabFrame()
 			if (data.isError)
 			{
 				QString err = QString("%1").arg(_getPipewireError());
-				Error(_log, "Could not capture pipewire frame: %s", QSTRING_CSTR(err));
+				Error(_log, "Could not capture pipewire frame: {:s}", (err));
 				stopNow = true;
 			}
 		}

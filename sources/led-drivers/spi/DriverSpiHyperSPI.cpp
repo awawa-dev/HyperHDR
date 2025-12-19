@@ -56,7 +56,7 @@ bool DriverSpiHyperSPI::init(QJsonObject deviceConfig)
 		createHeader();
 
 		if (_white_channel_calibration)
-			Debug(_log, "White channel limit: %i, red: %i, green: %i, blue: %i", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+			Debug(_log, "White channel limit: {:d}, red: {:d}, green: {:d}, blue: {:d}", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
 
 		isInitOK = true;
 	}
@@ -117,7 +117,7 @@ void DriverSpiHyperSPI::createHeader()
 	qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 	_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
-	Debug(_log, "SPI header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,
+	Debug(_log, "SPI header for {:d} leds: {:c} {:c} {:c} {:d} {:d} {:d}", _ledCount,
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
 }
 
@@ -125,7 +125,7 @@ int DriverSpiHyperSPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "AWA spi led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "AWA spi led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 
 		_ledCount = static_cast<uint>(ledValues.size());
 

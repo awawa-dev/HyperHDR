@@ -58,7 +58,7 @@ bool DriverSpiWs2812SPI::init(QJsonObject deviceConfig)
 	{
 		auto rateHz = getRate();
 
-		WarningIf((rateHz < 2106000 || rateHz > 3075000), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", rateHz);
+		WarningIf((rateHz < 2106000 || rateHz > 3075000), _log, "SPI rate {:d} outside recommended range (2106000 -> 3075000)", rateHz);
 
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
@@ -75,7 +75,7 @@ int DriverSpiWs2812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "Ws2812SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "Ws2812SPI led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);

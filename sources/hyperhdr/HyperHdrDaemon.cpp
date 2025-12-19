@@ -14,10 +14,9 @@
 	#include <QThread>
 
 	#include <cassert>
-	#include <stdlib.h>
+	#include <cstdlib>
 #endif
 
-#include <QCoreApplication>
 #include <utils/Components.h>
 #include <image/Image.h>
 #include <utils/GlobalSignals.h>
@@ -56,7 +55,7 @@
 
 HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool /*readonlyMode*/, QStringList params, bool isGuiApp)
 	: QObject(parent)
-	, _log(Logger::getInstance("DAEMON"))
+	, _log("DAEMON")
 	, _instanceManager(nullptr)
 	, _accessManager(nullptr)
 	, _netOrigin(nullptr)
@@ -87,7 +86,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 	qRegisterMetaType<QVector<ColorRgb>>("QVector<ColorRgb>");
 
 	// First load default configuration for other objects
-	_instanceZeroConfig = std::unique_ptr<InstanceConfig>(new InstanceConfig(true, 0, this));
+	_instanceZeroConfig = std::make_unique<InstanceConfig>(true, 0, this);
 
 	// Instance manager
 	_instanceManager = std::shared_ptr<HyperHdrManager>(new HyperHdrManager(rootPath),
@@ -192,7 +191,7 @@ void HyperHdrDaemon::instanceStateChangedHandler(InstanceState state, quint8 /*i
 					QJsonObject genConfig = getSetting(settings::type::GENERAL).object();
 					bool lockedEnable = genConfig["disableOnLocked"].toBool(false);
 
-					_suspendHandler = std::unique_ptr<SuspendHandler>(new SuspendHandler(lockedEnable));
+					_suspendHandler = std::make_unique<SuspendHandler>(lockedEnable);
 					connect(_suspendHandler.get(), &SuspendHandler::SignalHibernate, _instanceManager.get(), &HyperHdrManager::hibernate);
 
 					#ifdef _WIN32
@@ -624,19 +623,19 @@ void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const Q
 		std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 		if (level == "silent")
 		{
-			Logger::setLogLevel(Logger::OFF);
+			Logger::getInstance()->setLogLevel(Logger::OFF);
 		}
 		else if (level == "warn")
 		{
-			Logger::setLogLevel(Logger::LogLevel::WARNING);
+			Logger::getInstance()->setLogLevel(Logger::LogLevel::WARNING);
 		}
 		else if (level == "verbose")
 		{
-			Logger::setLogLevel(Logger::INFO);
+			Logger::getInstance()->setLogLevel(Logger::INFO);
 		}
 		else if (level == "debug")
 		{
-			Logger::setLogLevel(Logger::DEBUG);
+			Logger::getInstance()->setLogLevel(Logger::DEBUG);
 		}
 	}
 

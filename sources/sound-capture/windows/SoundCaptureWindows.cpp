@@ -36,7 +36,7 @@
 
 #define SOUNDCAPWINDOWS_BUF_LENP 10
 
-WindowsSoundThread::WindowsSoundThread(Logger* logger, QString device, SoundCapture* parent) :
+WindowsSoundThread::WindowsSoundThread(LoggerName logger, QString device, SoundCapture* parent) :
 	_logger(logger),
 	_device(device),
 	_parent(parent)
@@ -72,7 +72,7 @@ void WindowsSoundThread::run()
 
 	if (found >= deviceCount)
 	{
-		Error(_logger, "Could not find '%s' device for open", QSTRING_CSTR(_device));
+		Error(_logger, "Could not find '{:s}' device for open", (_device));
 		return;
 	}
 
@@ -89,7 +89,7 @@ void WindowsSoundThread::run()
 
 	if (result != MMSYSERR_NOERROR)
 	{
-		Error(_logger, "Error during opening sound device '%s'. Error code: %i", QSTRING_CSTR(_device), result);
+		Error(_logger, "Error during opening sound device '{:s}'. Error code: {:d}", (_device), result);
 		return;
 	}
 
@@ -105,7 +105,7 @@ void WindowsSoundThread::run()
 	if (result != MMSYSERR_NOERROR)
 	{
 		waveInClose(hWaveIn);
-		Error(_logger, "Error during starting sound device '%s'. Error code: %i", QSTRING_CSTR(_device), result);
+		Error(_logger, "Error during starting sound device '{:s}'. Error code: {:d}", (_device), result);
 		return;
 	}
 
@@ -165,12 +165,12 @@ void SoundCaptureWindows::start()
 
 		if (deviceList.size() == 0)
 		{
-			Error(_logger, "Invalid device name: %s", QSTRING_CSTR(_selectedDevice));
+			Error(_logger, "Invalid device name: {:s}", (_selectedDevice));
 		}
 
 		QString device = deviceList.at(0).trimmed();
 		_normalizedName = device;
-		Info(_logger, "Opening device: %s", QSTRING_CSTR(_normalizedName));
+		Info(_logger, "Opening device: {:s}", (_normalizedName));
 
 		_isRunning = true;
 
@@ -191,7 +191,7 @@ void SoundCaptureWindows::stopDevice()
 	if (!_isRunning)
 		return;
 
-	Info(_logger, "Closing hardware sound driver: '%s'", QSTRING_CSTR(_normalizedName));
+	Info(_logger, "Closing hardware sound driver: '{:s}'", (_normalizedName));
 
 	_isRunning = false;
 

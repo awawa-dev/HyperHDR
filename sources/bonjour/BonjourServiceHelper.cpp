@@ -10,9 +10,9 @@
 #include <utils/Logger.h>
 #include <HyperhdrConfig.h>
 
-#include <stdio.h>
-#include <errno.h>
-#include <signal.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
 #include <vector>
 
 #ifdef _WIN32
@@ -232,8 +232,8 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 
 #else
 
-	struct ifaddrs* ifaddr = 0;
-	struct ifaddrs* ifa = 0;
+	struct ifaddrs* ifaddr = nullptr;
+	struct ifaddrs* ifa = nullptr;
 
 	if (getifaddrs(&ifaddr) < 0)
 		printf("Unable to get interface addresses\n");
@@ -270,7 +270,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 					}
 				}
 				if (log_addr) {
-					QString addr = ip_address_to_string(saddr, sizeof(struct sockaddr_in));
+					ip_address_to_string(saddr, sizeof(struct sockaddr_in));
 				}
 			}
 		}
@@ -304,7 +304,7 @@ int BonjourServiceHelper::open_client_sockets(int* sockets, int max_sockets, int
 					}
 				}
 				if (log_addr) {
-					QString addr = ip_address_to_string(saddr, sizeof(struct sockaddr_in6));
+					ip_address_to_string(saddr, sizeof(struct sockaddr_in6));
 				}
 			}
 		}
@@ -328,7 +328,7 @@ int BonjourServiceHelper::open_service_sockets(int* sockets, int max_sockets)
 
 	// Call the client socket function to enumerate and get local addresses,
 	// but not open the actual sockets
-	open_client_sockets(0, 0, 0);
+	open_client_sockets(nullptr, 0, 0);
 
 	if (num_sockets < max_sockets) {
 		struct sockaddr_in sock_addr;
@@ -367,7 +367,7 @@ int BonjourServiceHelper::open_service_sockets(int* sockets, int max_sockets)
 
 int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, int service_port)
 {
-	Logger* _log = Logger::getInstance("SERVICE_mDNS");
+	LoggerName _log = "SERVICE_mDNS";
 	int sockets[32];
 	int num_sockets = open_service_sockets(sockets, sizeof(sockets) / sizeof(sockets[0]));
 
@@ -465,7 +465,7 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 	serviceMessage.push_back(service.txt_record[0]);
 
 	for (int i = 0; i < num_sockets; i++)
-		mdns_announce_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, 0, 0,
+		mdns_announce_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, nullptr, 0,
 			serviceMessage.data(), serviceMessage.size());
 
 
@@ -486,7 +486,7 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 100000;
 
-		if (select(nfds, &readfs, 0, 0, &timeout) >= 0)
+		if (select(nfds, &readfs, nullptr, nullptr, &timeout) >= 0)
 		{
 			for (int i = 0; i < num_sockets; i++)
 			{
@@ -529,7 +529,7 @@ int BonjourServiceHelper::service_mdns(QString hostname, QString serviceName, in
 	Info(_log, "Sending goodbye");
 
 	for (int i = 0; i < num_sockets; i++)
-		mdns_goodbye_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, 0, 0,
+		mdns_goodbye_multicast(sockets[i], mainBuffer.data(), mainBuffer.length(), service.record_ptr, nullptr, 0,
 			serviceMessage.data(), serviceMessage.size());
 
 	// free resources
@@ -587,7 +587,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 	const char dns_sd[] = "_services._dns-sd._udp.local.";
 
-	const char* record_name = 0;
+	const char* record_name = nullptr;
 	if (rtype == MDNS_RECORDTYPE_PTR)
 		record_name = "PTR";
 	else if (rtype == MDNS_RECORDTYPE_SRV)
@@ -601,7 +601,7 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 	else if (rtype == MDNS_RECORDTYPE_ANY)
 		record_name = "ANY";
 
-	if (record_name == 0)
+	if (record_name == nullptr)
 		return 0;
 
 	if ((name.length == (sizeof(dns_sd) - 1)) &&
@@ -622,11 +622,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
-					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0, 0,
+					query_id, (mdns_record_type)rtype, name.str, name.length, answer, nullptr, 0, nullptr,
 					0);
 			}
 			else {
-				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0, 0,
+				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, nullptr, 0, nullptr,
 					0);
 			}
 		}
@@ -666,11 +666,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
-					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
+					query_id, (mdns_record_type)rtype, name.str, name.length, answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 			else {
-				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
+				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 		}
@@ -705,11 +705,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
-					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
+					query_id, (mdns_record_type)rtype, name.str, name.length, answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 			else {
-				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
+				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 		}
@@ -740,11 +740,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
-					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
+					query_id, (mdns_record_type)rtype, name.str, name.length, answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 			else {
-				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
+				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 		}
@@ -772,11 +772,11 @@ int BonjourServiceHelper::serviceCallback(int sock, const struct sockaddr* from,
 
 			if (unicast) {
 				mdns_query_answer_unicast(sock, from, addrlen, sendbuffer, sizeof(sendbuffer),
-					query_id, (mdns_record_type)rtype, name.str, name.length, answer, 0, 0,
+					query_id, (mdns_record_type)rtype, name.str, name.length, answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 			else {
-				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, 0, 0,
+				mdns_query_answer_multicast(sock, sendbuffer, sizeof(sendbuffer), answer, nullptr, 0,
 					additional.data(), additional.size());
 			}
 		}

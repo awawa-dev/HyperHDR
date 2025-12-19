@@ -7,6 +7,7 @@
 	#include <QString>
 	#include <QStringList>
 	#include <QMultiMap>
+	#include <list>
 #endif
 
 #include <image/ColorRgb.h>
@@ -19,8 +20,6 @@
 
 class GlobalSignals;
 class QTimer;
-
-static QList<int> GRABBER_SYSTEM_CLIENTS;
 
 class SystemWrapper : public QObject
 {
@@ -48,7 +47,6 @@ signals:
 
 public slots:
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);
-	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setDeviceVideoStandard(const QString& device);
 	void setHdrToneMappingEnabled(int mode);
@@ -58,7 +56,9 @@ public slots:
 protected:
 	virtual QString getGrabberInfo();
 	QString		_grabberName;
-	Logger*		_log;
+	LoggerName	_log;
 	bool		_configLoaded;
 	Grabber*	_grabber;
+
+	static inline std::list<int> GRABBER_SYSTEM_CLIENTS;
 };

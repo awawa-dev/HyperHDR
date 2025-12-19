@@ -20,11 +20,11 @@ using ColorXYB = linalg::vec<float, 3>;
 class PhilipsHueLight
 {
 public:
-	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx,
+	PhilipsHueLight(const LoggerName& log, unsigned int id, QJsonObject values, unsigned int ledidx,
 		int onBlackTimeToPowerOff,
 		int onBlackTimeToPowerOn,
 		bool isChannelGroup = false);
-	PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, QStringList&& lightIds,
+	PhilipsHueLight(const LoggerName& log, unsigned int id, QJsonObject values, QStringList&& lightIds,
 		unsigned int ledidx);
 	~PhilipsHueLight();
 
@@ -52,7 +52,7 @@ public:
 
 private:
 
-	Logger* _log;
+	LoggerName _log;
 	unsigned int _id;
 	unsigned int _ledidx;
 	bool _on;
@@ -125,8 +125,6 @@ protected:
 
 	bool isStreamOwner(const QString& streamOwner) const;
 	bool initMaps();
-
-	void log(const char* msg, const char* type, ...) const;
 
 	std::list<QString> getCiphersuites() override;
 

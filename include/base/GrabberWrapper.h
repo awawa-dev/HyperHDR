@@ -64,7 +64,6 @@ public slots:
 	int  getHdrToneMappingEnabled();
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold);
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
-	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setDeviceVideoStandard(const QString& device);
 	void setFpsSoftwareDecimation(int decimation);	
@@ -84,7 +83,7 @@ protected:
 
 	QString		_grabberName;
 
-	Logger*		_log;
+	LoggerName	_log;
 
 	bool		_configLoaded;
 

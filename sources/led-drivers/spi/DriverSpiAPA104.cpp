@@ -58,7 +58,7 @@ bool DriverSpiAPA104::init(QJsonObject deviceConfig)
 	{
 		auto rateHz = getRate();
 
-		WarningIf((rateHz < 2000000 || rateHz > 2470000), _log, "SPI rate %d outside recommended range (2000000 -> 2470000)", rateHz);
+		WarningIf((rateHz < 2000000 || rateHz > 2470000), _log, "SPI rate {:d} outside recommended range (2000000 -> 2470000)", rateHz);
 
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
@@ -74,7 +74,7 @@ int DriverSpiAPA104::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "APA104 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "APA104 led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
 		_ledBuffer.resize(0, 0x00);

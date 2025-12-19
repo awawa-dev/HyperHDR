@@ -31,14 +31,14 @@ void DriverSpiAPA102::createHeader()
 	_ledBuffer[2] = 0x00;
 	_ledBuffer[3] = 0x00;
 
-	Debug(_log, "APA102 buffer created. Led's number: %d", _ledCount);
+	Debug(_log, "APA102 buffer created. Led's number: {:d}", _ledCount);
 }
 
 int DriverSpiAPA102::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
-		Warning(_log, "APA102 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
+		Warning(_log, "APA102 led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
 		createHeader();

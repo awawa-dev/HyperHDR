@@ -89,19 +89,12 @@ PerformanceCounters::PerformanceCounters()
 	qRegisterMetaType<PerformanceReport>();
 	qRegisterMetaType<hyperhdr::PerformanceReportType>("hyperhdr::PerformanceReportType");
 
-	_system = std::unique_ptr<SystemPerformanceCounters>(new SystemPerformanceCounters());
+	_system = std::make_unique<SystemPerformanceCounters>();
 
 	_lastRead = 0;
 	_lastNetworkScan = 0;
 
-	try
-	{
-		_log = Logger::getInstance("PERFORMANCE");
-	}
-	catch (...)
-	{
-		Debug(_log, "Failed to initialized");
-	}
+	_log = "PERFORMANCE";
 
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalPerformanceNewReport, this, &PerformanceCounters::signalPerformanceNewReportHandler);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalPerformanceStateChanged, this, &PerformanceCounters::signalPerformanceStateChangedHandler);
@@ -177,7 +170,7 @@ qint64 PerformanceCounters::currentToken()
 	return (InternalClock::now() / 1000) / (qint64)60;
 }
 
-void PerformanceCounters::signalPerformanceNewReportHandler(PerformanceReport pr)
+void PerformanceCounters::signalPerformanceNewReportHandler(const PerformanceReport& pr)
 {
 	QMutableListIterator<PerformanceReport> cleaner(this->_reports);
 	qint64 now = InternalClock::now() / 1000;
@@ -197,13 +190,16 @@ void PerformanceCounters::signalPerformanceNewReportHandler(PerformanceReport pr
 
 	bool _inserted = false;
 
-	for (auto ins = this->_reports.begin(); ins != this->_reports.end(); ++ins)
-		if ((*ins).id > pr.id || ((*ins).id == pr.id && (*ins).type >= pr.type))
+	QMutableListIterator<PerformanceReport> inserter(_reports);
+	while (inserter.hasNext()) {
+		const PerformanceReport& current = inserter.next();
+		if (current.id > pr.id || (current.id == pr.id && current.type >= pr.type))
 		{
-			this->_reports.insert(ins, pr);
+			inserter.insert(pr);
 			_inserted = true;
 			break;
 		}
+	}
 
 	if (!_inserted)
 		this->_reports.append(pr);
@@ -246,7 +242,7 @@ void PerformanceCounters::consoleReport(int type, int token)
 		type == static_cast<int>(PerformanceReportType::INSTANCE) ||
 		type == static_cast<int>(PerformanceReportType::LED))
 	{
-		for (auto z : this->_reports)
+		for (const auto& z : this->_reports)
 			if (z.token != token && (
 				z.type == static_cast<int>(PerformanceReportType::VIDEO_GRABBER) ||
 				z.type == static_cast<int>(PerformanceReportType::INSTANCE) ||
@@ -280,11 +276,11 @@ void PerformanceCounters::consoleReport(int type, int token)
 	}
 
 	if (list.count() > 0)
-		Info(_log, "%s", QSTRING_CSTR(list.join(", ")));
+		Info(_log, "{:s}", (list.join(", ")));
 
 }
 
-void PerformanceCounters::createUpdate(PerformanceReport pr)
+void PerformanceCounters::createUpdate(const PerformanceReport& pr)
 {
 	QJsonObject report;
 	qint64 helper = InternalClock::now() / 1000;
@@ -320,7 +316,7 @@ void PerformanceCounters::deleteUpdate(int type, int id)
 void PerformanceCounters::triggerBroadcast()
 {
 	QJsonArray arr;
-	for (auto pr : this->_reports)
+	for (const auto& pr : this->_reports)
 	{
 		QJsonObject report;
 		qint64 helper = InternalClock::now() / 1000;

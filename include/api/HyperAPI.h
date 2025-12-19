@@ -19,7 +19,7 @@ class HyperAPI : public CallbackAPI
 	Q_OBJECT
 
 public:
-	HyperAPI(QString peerAddress, Logger* log, bool localConnection, QObject* parent, bool noListener = false);
+	HyperAPI(QString peerAddress, const LoggerName& log, bool localConnection, QObject* parent, bool noListener = false);
 	void handleMessage(const QString& message, const QString& httpAuthHeader = "");
 	void initialize();
 
@@ -31,7 +31,7 @@ public slots:
 private slots:
 	void newPendingTokenRequest(const QString& id, const QString& comment);
 	void handleTokenResponse(bool success, const QString& token, const QString& comment, const QString& id, const int& tan);
-	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name = QString());	
+	void handleInstanceStateChange(hyperhdr::InstanceState state, quint8 instance, const QString& name = QString());
 	void handleLedColorsTimer();
 	void lutDownloaded(QNetworkReply* reply, int hardware_brightness, int hardware_contrast, int hardware_saturation, qint64 time);
 

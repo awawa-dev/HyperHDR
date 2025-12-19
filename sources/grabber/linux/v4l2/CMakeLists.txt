@@ -4,7 +4,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/linux/v4l2)
 
 FILE ( GLOB V4L2_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-add_library(v4l2-grabber OBJECT ${V4L2_SOURCES} )
+add_library(v4l2-grabber OBJECT ${V4L2_SOURCES} "${CMAKE_SOURCE_DIR}/include/grabber/GrabberWorker.h" "${CMAKE_SOURCE_DIR}/sources/grabber/GrabberWorker.cpp" )
 
 target_link_libraries(v4l2-grabber
 	Qt${Qt_VERSION}::Core

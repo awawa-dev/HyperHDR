@@ -13,11 +13,13 @@
 
 #define DEFAULT_RETRY 10
 
-static const QString SSDP_IDENTIFIER("urn:hyperhdr.eu:device:basic:1");
+namespace {
+	constexpr const char* SSDP_IDENTIFIER = "urn:hyperhdr.eu:device:basic:1";
+}
 
 SSDPHandler::SSDPHandler(QString uuid, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, quint16 webPort, const QString& name, QObject* parent)
 	: SSDPServer(parent)
-	, _log(Logger::getInstance("SSDP"))
+	, _log("SSDP")
 	, _localAddress()
 	, _uuid(uuid)
 	, _retry(DEFAULT_RETRY)
@@ -50,7 +52,7 @@ void SSDPHandler::initServer()
 	{
 		if (_retry > 0)
 		{
-			Warning(_log, "Could not obtain the local address. Retry later (%i/%i)", (DEFAULT_RETRY - _retry + 1), DEFAULT_RETRY);
+			Warning(_log, "Could not obtain the local address. Retry later ({:d}/{:d})", (DEFAULT_RETRY - _retry + 1), DEFAULT_RETRY);
 			QTimer::singleShot(30000, this, [this]() {
 				if (!_running && _localAddress.isEmpty() && _retry > 0)
 					initServer();				
@@ -180,7 +182,7 @@ QString SSDPHandler::getLocalAddress() const
 			if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
 			{
 				QString retVal = address.toString();
-				Debug(_log, "The local address is: %s", QSTRING_CSTR(retVal));
+				Debug(_log, "The local address is: {:s}", (retVal));
 				return retVal;
 			}
 		}
@@ -193,7 +195,7 @@ QString SSDPHandler::getLocalAddress() const
 		if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
 		{
 			QString retVal = address.toString();
-			Debug(_log, "The local address is: %s", QSTRING_CSTR(retVal));
+			Debug(_log, "The local address is: {:s}", (retVal));
 			return retVal;
 		}
 	}
@@ -220,7 +222,7 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 #else
 		int randomDelay = qrand() % (maxDelay * 1000);
 #endif
-		QTimer::singleShot(randomDelay, respond);
+		QTimer::singleShot(randomDelay, this, respond);
 	}
 	else
 	{
@@ -251,7 +253,7 @@ QString SSDPHandler::buildDesc() const
 	/// %7 protobuf port              19445
 	/// %8 flatbuf port               19400
 
-	return SSDP_DESCRIPTION.arg(
+	return QString(SSDP_DESCRIPTION).arg(
 		getBaseAddress(),
 		QString("HyperHDR (%1)").arg(_localAddress),
 		QString(HYPERHDR_VERSION),

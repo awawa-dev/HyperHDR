@@ -41,8 +41,9 @@
 #include <utils/Logger.h>
 
 #include <QDirIterator>
+#include <QByteArray>
 
-ProviderSpiGeneric::ProviderSpiGeneric(Logger* logger)
+ProviderSpiGeneric::ProviderSpiGeneric(const LoggerName& logger)
 	: QObject(), ProviderSpiInterface(logger)
 {
 }
@@ -50,7 +51,7 @@ ProviderSpiGeneric::ProviderSpiGeneric(Logger* logger)
 
 ProviderSpiGeneric::~ProviderSpiGeneric()
 {
-	close();
+	ProviderSpiGeneric::close();
 }
 
 bool ProviderSpiGeneric::init(QJsonObject deviceConfig)
@@ -66,9 +67,9 @@ bool ProviderSpiGeneric::init(QJsonObject deviceConfig)
 		_baudRate_Hz = 20833333;
 	}
 
-	Debug(_log, "Speed: %d, Type: %s", _baudRate_Hz, QSTRING_CSTR(_spiType));
-	Debug(_log, "Real speed: %d", getRate());
-	Debug(_log, "Inverted: %s, Mode: %d", (_spiDataInvert) ? "yes" : "no", _spiMode);
+	Debug(_log, "Speed: {:d}, Type: {:s}", _baudRate_Hz, (_spiType));
+	Debug(_log, "Real speed: {:d}", getRate());
+	Debug(_log, "Inverted: {:s}, Mode: {:d}", (_spiDataInvert) ? "yes" : "no", _spiMode);
 
 	return true;
 }
@@ -79,7 +80,8 @@ QString ProviderSpiGeneric::open()
 
 	const int bitsPerWord = 8;
 
-	_fid = ::open(QSTRING_CSTR(_deviceName), O_RDWR);
+	QByteArray deviceNameUtf8 = _deviceName.toUtf8();
+	_fid = ::open((deviceNameUtf8.constData()), O_RDWR);
 
 	if (_fid < 0)
 	{
@@ -116,7 +118,7 @@ int ProviderSpiGeneric::close()
 
 	if (_fid > -1 && ::close(_fid) != 0)
 	{
-		Error(_log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_deviceName), strerror(errno));
+		Error(_log, "Failed to close device ({:s}). Error message: {:s}", (_deviceName), strerror(errno));
 		return -1;
 	}
 
@@ -148,7 +150,7 @@ int ProviderSpiGeneric::writeBytes(unsigned size, const uint8_t* data)
 	}
 
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
-	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno, strerror(errno));
+	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: {:d}, {:s}", errno, strerror(errno));
 
 	return retVal;
 }
@@ -186,7 +188,7 @@ QJsonObject ProviderSpiGeneric::discover(const QJsonObject& /*params*/)
 
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "Generic SPI devices discovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	Debug(_log, "Generic SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

@@ -18,7 +18,7 @@ class SoundCapture : public QObject
 	Q_OBJECT
 
 protected:
-	Logger*			_logger;
+	LoggerName		_logger;
 
 	SoundCapture(const QJsonDocument& effectConfig, QObject* parent = nullptr);
 	virtual ~SoundCapture();

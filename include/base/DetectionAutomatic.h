@@ -42,7 +42,7 @@ public:
 	void setAutoSignalParams(bool _saveResources, int errorTolerance, int modelTolerance, int sleepTime, int wakeTime);
 
 	void setAutomaticCalibrationData(QString signature, int quality, int width, int height,
-		std::vector<DetectionAutomatic::calibrationPoint> sdrVec, std::vector<DetectionAutomatic::calibrationPoint> hdrVec);
+		std::vector<DetectionAutomatic::calibrationPoint>&& sdrVec, std::vector<DetectionAutomatic::calibrationPoint>&& hdrVec);
 
 	virtual int  getHdrToneMappingEnabled() = 0;
 	virtual void setHdrToneMappingEnabled(int mode) = 0;
@@ -62,7 +62,7 @@ public slots:
 	QJsonDocument getCalibrationInfo();
 
 private:
-	Logger* _log;
+	LoggerName _log;
 
 	enum class calibrationPhase { WAITING_FOR_SDR, CALIBRATING_SDR, WAITING_FOR_HDR, CALIBRATING_HDR };
 

@@ -69,7 +69,7 @@ private:
 	bool initParserLibrary();
 
 private:
-	Logger*			_log;
+	LoggerName		_log;
 	QTcpSocket*		_socket;
 	QLocalSocket*	_domain;
 	QString			_clientAddress;

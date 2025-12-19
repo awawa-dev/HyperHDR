@@ -17,8 +17,8 @@ class LutLoader {
 
 		MemoryBuffer<uint8_t>	_lut;		
 
-		void loadLutFile(Logger* _log, PixelFormat color, const QList<QString>& files);
+		void loadLutFile(const LoggerName& _log, PixelFormat color, const QList<QString>& files);
 	private:
-		bool decompressLut(Logger* _log, QFile& file, int index);
-		void hasher(int index, Logger* _log);
+		bool decompressLut(const LoggerName& _log, QFile& file, int index);
+		void hasher(int index, const LoggerName& _log);
 };

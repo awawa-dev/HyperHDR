@@ -45,15 +45,14 @@ QThreadStorage<SqlDatabase*> DBManager::_databasePool;
 bool DBManager::_readOnlyMode = false;
 
 DBManager::DBManager()
-	: _log(Logger::getInstance("DB"))
+	: _log("DB")
 	, _readonlyMode(false)
 {
 
 }
 
 DBManager::~DBManager()
-{
-}
+= default;
 
 void DBManager::initializeDatabaseFilename(QFileInfo databaseName, bool readOnlyMode)
 {
@@ -77,11 +76,11 @@ SqlDatabase* DBManager::getDB() const
 
 		if (!db->open())
 		{
-			Error(_log, QSTRING_CSTR(db->error()));
+			Error(_log, "{:s}", (db->error()));
 			throw std::runtime_error("Failed to open database connection!");
 		}
 		else
-			Info(_log, "Database opened: %s", QSTRING_CSTR(_databaseName.absoluteFilePath()));
+			Info(_log, "Database opened: {:s}", (_databaseName.absoluteFilePath()));
 
 		return db;
 	}
@@ -134,7 +133,7 @@ bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& co
 	doAddBindValue(query, cValues);
 	if (!query.exec())
 	{
-		Error(_log, "Failed to create record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prep.join(", ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+		Error(_log, "Failed to create record: '{:s}' in table: '{:s}' Error: {:s}", (prep.join(", ")), (_table), (idb->error()));
 		return false;
 	}
 	return true;
@@ -161,7 +160,7 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 	doAddBindValue(query, bindVal);
 	if (!query.exec())
 	{
-		Error(_log, "Failed recordExists(): '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+		Error(_log, "Failed recordExists(): '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
 		return false;
 	}
 
@@ -170,10 +169,7 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 		entry++;
 	}
 
-	if (entry)
-		return true;
-
-	return false;
+	return entry != 0;
 }
 
 bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& columns) const
@@ -220,20 +216,20 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 		doAddBindValue(query, prepBindVal);
 		if (!query.exec())
 		{
-			Error(_log, "Failed to update record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+			Error(_log, "Failed to update record: '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
 			idb->rollback();
 			return false;
 		}
 	}
 	else
 	{
-		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
+		Error(_log, "Could not create a DB transaction. Error: {:s}", (idb->error()));
 		return false;
 	}
 
 	if (!idb->commit())
 	{
-		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
+		Error(_log, "Could not commit the DB transaction. Error: {:s}", (idb->error()));
 	}
 
 	return true;
@@ -270,7 +266,7 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 
 	if (!query.exec())
 	{
-		Error(_log, "Failed to get record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+		Error(_log, "Failed to get record: '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
 		return false;
 	}
 
@@ -278,7 +274,7 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	query.next();
 
 	SqlRecord rec = query.record();
-	for (unsigned int i = 0; i < rec.count(); i++)
+	for (int i = 0; i < static_cast<int>(rec.count()); i++)
 	{
 		results[rec.fieldName(i)] = rec.value(i);
 	}
@@ -306,7 +302,7 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 
 	if (!query.exec())
 	{
-		Error(_log, "Failed to get records: '%s' in table: '%s' Error: %s", QSTRING_CSTR(sColumns), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+		Error(_log, "Failed to get records: '{:s}' in table: '{:s}' Error: {:s}", (sColumns), (_table), (idb->error()));
 		return false;
 	}
 
@@ -315,7 +311,7 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	{
 		QVariantMap entry;
 		SqlRecord rec = query.record();
-		for (unsigned int i = 0; i < rec.count(); i++)
+		for (int i = 0; i < static_cast<int>(rec.count()); i++)
 		{
 			entry[rec.fieldName(i)] = rec.value(i);
 		}
@@ -335,7 +331,7 @@ bool DBManager::deleteRecord(const VectorPair& conditions) const
 
 	if (conditions.isEmpty())
 	{
-		Error(_log, "Oops, a deleteRecord() call wants to delete the entire table (%s)! Denied it", QSTRING_CSTR(_table));
+		Error(_log, "Oops, a deleteRecord() call wants to delete the entire table ({:s})! Denied it", (_table));
 		return false;
 	}
 
@@ -358,7 +354,7 @@ bool DBManager::deleteRecord(const VectorPair& conditions) const
 		doAddBindValue(query, bindValues);
 		if (!query.exec())
 		{
-			Error(_log, "Failed to delete record: '%s' in table: '%s' Error: %s", QSTRING_CSTR(prepCond.join(" ")), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+			Error(_log, "Failed to delete record: '{:s}' in table: '{:s}' Error: {:s}", (prepCond.join(" ")), (_table), (idb->error()));
 			return false;
 		}
 		return true;
@@ -389,12 +385,12 @@ bool DBManager::createTable(QStringList& columns) const
 		// default CURRENT_TIMESTAMP is not supported by ALTER TABLE
 		if (!query.exec(QString("CREATE TABLE %1 ( %2 )").arg(_table, tcolumn)))
 		{
-			Error(_log, "Failed to create table: '%s' Error: %s", QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+			Error(_log, "Failed to create table: '{:s}' Error: {:s}", (_table), (idb->error()));
 			return false;
 		}
 	}
 	// create columns if required
-	int err = 0;
+	int errors = 0;
 	for (const auto& column : columns)
 	{
 		QString columnName = column.split(' ').at(0);
@@ -402,14 +398,11 @@ bool DBManager::createTable(QStringList& columns) const
 		{
 			if (!createColumn(column))
 			{
-				err++;
+				errors++;
 			}
 		}
 	}
-	if (err)
-		return false;
-
-	return true;
+	return errors == 0;
 }
 
 bool DBManager::createColumn(const QString& column) const
@@ -423,7 +416,7 @@ bool DBManager::createColumn(const QString& column) const
 	SqlQuery query(idb);
 	if (!query.exec(QString("ALTER TABLE %1 ADD COLUMN %2").arg(_table, column)))
 	{
-		Error(_log, "Failed to create column: '%s' in table: '%s' Error: %s", QSTRING_CSTR(column), QSTRING_CSTR(_table), QSTRING_CSTR(idb->error()));
+		Error(_log, "Failed to create column: '{:s}' in table: '{:s}' Error: {:s}", (column), (_table), (idb->error()));
 		return false;
 	}
 	return true;
@@ -448,7 +441,7 @@ bool DBManager::deleteTable(const QString& table) const
 		SqlQuery query(idb);
 		if (!query.exec(QString("DROP TABLE %1").arg(table)))
 		{
-			Error(_log, "Failed to delete table: '%s' Error: %s", QSTRING_CSTR(table), QSTRING_CSTR(idb->error()));
+			Error(_log, "Failed to delete table: '{:s}' Error: {:s}", (table), (idb->error()));
 			return false;
 		}
 	}
@@ -486,7 +479,7 @@ void DBManager::doAddBindValue(SqlQuery& query, const QVariantList& variants) co
 	}
 }
 
-const QJsonObject DBManager::getBackup()
+QJsonObject DBManager::getBackup()
 {
 	QJsonObject backup;
 	SqlDatabase* idb = getDB();
@@ -523,7 +516,7 @@ const QJsonObject DBManager::getBackup()
 	{
 		QJsonObject entry;
 		SqlRecord rec = queryInst.record();
-		for (unsigned int i = 0; i < rec.count(); i++)
+		for (int i = 0; i < static_cast<int>(rec.count()); i++)
 			if (instanceKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
 			{
 				entry[rec.fieldName(i)] = QJsonValue::fromVariant(rec.value(i));
@@ -539,7 +532,7 @@ const QJsonObject DBManager::getBackup()
 		SqlRecord rec = querySet.record();
 		bool valid = false;
 
-		for (unsigned int i = 0; i < rec.count(); i++)
+		for (int i = 0; i < static_cast<int>(rec.count()); i++)
 			if (settingsKeys.contains(rec.fieldName(i), Qt::CaseInsensitive) && !rec.value(i).isNull())
 			{
 				QVariant column = rec.value(i);
@@ -577,7 +570,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 	Info(_log, "Creating DB backup first.");
 	QString resultFile = createLocalBackup();
 	if (!resultFile.isEmpty())
-		Info(_log, "The backup is saved as: %s", QSTRING_CSTR(resultFile));
+		Info(_log, "The backup is saved as: {:s}", (resultFile));
 	else
 		Warning(_log, "Could not create a backup");
 
@@ -624,7 +617,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 
 				if (!queryInstInsert.exec())
 				{
-					Error(_log, "Failed to create record in table 'instances'. Error: %s", QSTRING_CSTR(idb->error()));
+					Error(_log, "Failed to create record in table 'instances'. Error: {:s}", (idb->error()));
 					idb->rollback();
 					_readonlyMode = rm;
 					return "Failed to create record in table 'instances': " + idb->error();
@@ -657,7 +650,7 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 
 				if (!querySetInsert.exec())
 				{
-					Error(_log, "Failed to create record in table 'settings'. Error: %s", QSTRING_CSTR(idb->error()));
+					Error(_log, "Failed to create record in table 'settings'. Error: {:s}", (idb->error()));
 					idb->rollback();
 					_readonlyMode = rm;
 					return "Failed to create record in table 'settings': " + idb->error();
@@ -667,14 +660,14 @@ QString DBManager::restoreBackup(const QJsonObject& backupData)
 	}
 	else
 	{
-		Error(_log, "Could not create a DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
+		Error(_log, "Could not create a DB transaction. Error: {:s}", (idb->error()));
 		_readonlyMode = rm;
 		return  "Could not create a DB transaction. Error: " + idb->error();
 	}
 
 	if (!idb->commit())
 	{
-		Error(_log, "Could not commit the DB transaction. Error: %s", QSTRING_CSTR(idb->error()));
+		Error(_log, "Could not commit the DB transaction. Error: {:s}", (idb->error()));
 		_readonlyMode = rm;
 		return  "Could not commit the DB transaction. Error: " + idb->error();
 	}

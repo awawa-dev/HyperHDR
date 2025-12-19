@@ -158,7 +158,7 @@ private:
 	template<typename T> void createVideoGrabberHelper(QJsonDocument config, QString deviceName, QString rootPath);
 	void createSoftwareGrabberHelper(QJsonDocument config, QString deviceName, QString rootPath);
 
-	Logger*					_log;
+	LoggerName					_log;
 	std::shared_ptr<HyperHdrManager> _instanceManager;
 	std::shared_ptr<AccessManager> _accessManager;
 	std::shared_ptr<NetOrigin> _netOrigin;

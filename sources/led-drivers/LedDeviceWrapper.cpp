@@ -9,6 +9,7 @@
 #include <utils/Macros.h>
 
 // qt
+#include <future>
 #include <QMutexLocker>
 #include <QThread>
 #include <QDir>
@@ -29,32 +30,40 @@ LedDeviceWrapper::~LedDeviceWrapper()
 
 void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval, bool disableOnStartup)
 {
+	auto threadReadyPromisePtr = std::make_shared<std::promise<void>>();
+	const int instanceIndex = _ownerInstance->getInstanceIndex();
+
 	_ledDevice.reset();
 
 	config["smoothingRefreshTime"] = smoothingInterval;
 
 	QThread* thread = new QThread();
-	thread->setObjectName("LedDeviceThread");
-
-	_ledDevice = std::unique_ptr<LedDevice, void(*)(LedDevice*)>(
-		hyperhdr::leds::CONSTRUCT_LED_DEVICE(config),
-		[](LedDevice* oldLed) {
-			QUEUE_CALL_0(oldLed, stop);
-			hyperhdr::THREAD_REMOVER(QString("LedDevice"), oldLed->thread(), oldLed);
-		}
-	);
-	_ledDevice->setInstanceIndex(_ownerInstance->getInstanceIndex());
-	_ledDevice->moveToThread(thread);
-
-	// setup thread management
-	if (!disableOnStartup)
-		connect(thread, &QThread::started, _ledDevice.get(), &LedDevice::start);
-	connect(thread, &QThread::finished, _ledDevice.get(), &LedDevice::stop);
-	connect(_ownerInstance, &HyperHdrInstance::SignalSmoothingRestarted, _ledDevice.get(), &LedDevice::smoothingRestarted, Qt::QueuedConnection);
-	connect(_ledDevice.get(), &LedDevice::SignalEnableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
+	thread->setObjectName(QString("LedDeviceThread%1").arg(instanceIndex));
 
 	// start the thread
 	thread->start();
+
+	QObject::connect(thread, &QThread::started, this, [this, threadReadyPromisePtr, config, instanceIndex, disableOnStartup]() {
+		_ledDevice = std::unique_ptr<LedDevice, void(*)(LedDevice*)>(
+			hyperhdr::leds::CONSTRUCT_LED_DEVICE(config),
+			[](LedDevice* oldLed) {
+				QUEUE_CALL_0(oldLed, stop);
+				hyperhdr::THREAD_REMOVER(QString("%1 [LedDevice]").arg(oldLed->thread()->objectName()), oldLed->thread(), oldLed);
+			}
+		);
+		_ledDevice->setInstanceIndex(instanceIndex);
+
+		// setup thread management
+		if (!disableOnStartup)
+			QUEUE_CALL_0(_ledDevice.get(), start);
+
+		connect(_ownerInstance, &HyperHdrInstance::SignalSmoothingRestarted, _ledDevice.get(), &LedDevice::smoothingRestarted, Qt::QueuedConnection);
+		connect(_ledDevice.get(), &LedDevice::SignalEnableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
+
+		threadReadyPromisePtr->set_value();
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection | Qt::DirectConnection));
+
+	threadReadyPromisePtr->get_future().get();
 }
 
 void LedDeviceWrapper::handleComponentState(hyperhdr::Components component, bool state)
@@ -116,7 +125,7 @@ unsigned int LedDeviceWrapper::getLedCount() const
 
 QString LedDeviceWrapper::getActiveDeviceType() const
 {
-	QString value = 0;
+	QString value = nullptr;
 	if (_ledDevice != nullptr)
 		SAFE_CALL_0_RET(_ledDevice.get(), getActiveDeviceType, QString, value);
 	return value;
@@ -151,6 +160,7 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 	// read the JSON schema from the resource
 	QDir dir(":/leddevices/");
 	QJsonObject result, schemaJson;
+	LoggerName logger = "LedDevice";
 
 	for (QString& item : dir.entryList())
 	{
@@ -158,13 +168,13 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 		QString devName = item.remove("schema-");
 
 		QString data;
-		if (!FileUtils::readFile(schemaPath, data, Logger::getInstance("LedDevice")))
+		if (!FileUtils::readFile(schemaPath, data, logger))
 		{
 			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
 		}
 
 		QJsonObject schema;
-		if (!JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LedDevice")))
+		if (!JsonUtils::parse(schemaPath, data, schema, logger))
 		{
 			throw std::runtime_error("ERROR: JSON schema wrong of file: " + item.toStdString());
 		}

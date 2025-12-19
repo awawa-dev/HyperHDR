@@ -25,11 +25,11 @@
 *  SOFTWARE.
 */
 
-#include <grabber/linux/X11/smartX11.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
+#include <grabber/linux/X11/smartX11.h>
 
 struct x11Displays* enumerateX11Displays()
 {
@@ -71,7 +71,7 @@ void releaseX11Displays(struct x11Displays* buffer)
 
 	free(buffer->display);
 
-	buffer->display = 0;
+	buffer->display = nullptr;
 
 	buffer->display = nullptr;
 
@@ -87,7 +87,7 @@ static XErrorHandler oldHandler = nullptr;
 
 x11Handle* initX11Display(int display)
 {	
-	Display* maindisplay = XOpenDisplay(NULL);
+	Display* maindisplay = XOpenDisplay(nullptr);
 
 	if (maindisplay == nullptr)
 		return nullptr;

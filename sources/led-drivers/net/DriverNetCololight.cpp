@@ -78,7 +78,7 @@ bool DriverNetCololight::init(QJsonObject deviceConfig)
 	if (ProviderUdp::init(deviceConfig))
 	{
 		// Initialise LedDevice configuration and execution environment
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
+		Debug(_log, "DeviceType   : {:s}", (this->getActiveDeviceType()));
 
 		if (initLedsConfiguration())
 		{
@@ -116,10 +116,10 @@ bool DriverNetCololight::initLedsConfiguration()
 			_modelType = STRIP;
 			modelTypeText = "Strip";
 			_ledLayoutType = STRIP_LAYOUT;
-			Info(_log, "Model not identified, assuming Cololight %s", QSTRING_CSTR(modelTypeText));
+			Info(_log, "Model not identified, assuming Cololight {:s}", (modelTypeText));
 			break;
 		}
-		Debug(_log, "Model type   : %s", QSTRING_CSTR(modelTypeText));
+		Debug(_log, "Model type   : {:s}", (modelTypeText));
 
 		if (getLedCount() == 0)
 		{
@@ -134,7 +134,7 @@ bool DriverNetCololight::initLedsConfiguration()
 		}
 		else
 		{
-			Debug(_log, "LedCount     : %d", getLedCount());
+			Debug(_log, "LedCount     : {:d}", getLedCount());
 
 			int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
 
@@ -149,7 +149,7 @@ bool DriverNetCololight::initLedsConfiguration()
 			{
 				if (getLedCount() > configuredLedCount)
 				{
-					Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
+					Info(_log, "{:s}: More LEDs [{:d}] than configured LEDs in layout [{:d}].", (this->getActiveDeviceType()), getLedCount(), configuredLedCount);
 				}
 				isInitOK = true;
 			}
@@ -161,7 +161,7 @@ bool DriverNetCololight::initLedsConfiguration()
 
 void DriverNetCololight::initDirectColorCmdTemplate()
 {
-	int ledNumber = static_cast<int>(this->getLedCount());
+	int ledNumber = this->getLedCount();
 
 	_directColorCommandTemplate.clear();
 
@@ -207,7 +207,7 @@ bool DriverNetCololight::getInfo()
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose, _log, "#[0x{:x}], Data returned: [{:s}]", _sequenceNumber, (toHex(response)));
 
 			quint16 ledNum = qFromBigEndian<quint16>(response.data() + 1);
 
@@ -227,7 +227,7 @@ bool DriverNetCololight::getInfo()
 				setLedCount(0);
 			}
 
-			Debug(_log, "#LEDs found [0x%x], [%u], distance [%d]", _ledBeadCount, _ledBeadCount, _distance);
+			Debug(_log, "#LEDs found [0x{:x}], [{:d}], distance [{:d}]", _ledBeadCount, _ledBeadCount, _distance);
 
 			isCmdOK = true;
 		}
@@ -275,7 +275,7 @@ bool DriverNetCololight::setColor(const uint32_t color)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose, _log, "#[0x{:x}], Data returned: [{:s}]", _sequenceNumber, (toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -311,7 +311,7 @@ bool DriverNetCololight::setState(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose, _log, "#[0x{:x}], Data returned: [{:s}]", _sequenceNumber, (toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -335,7 +335,7 @@ bool DriverNetCololight::setStateDirect(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose, _log, "#[0x{:x}], Data returned: [{:s}]", _sequenceNumber, (toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -389,7 +389,7 @@ bool DriverNetCololight::setTL1CommandMode(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose, _log, "#[0x{:x}], Data returned: [{:s}]", _sequenceNumber, (toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -412,7 +412,7 @@ bool DriverNetCololight::sendRequest(const appID appID, const QByteArray& comman
 
 	++_sequenceNumber;
 
-	DebugIf(verbose3, _log, "packet: ([0x%x], [%u])[%s]", size, size, QSTRING_CSTR(toHex(packet, 64)));
+	DebugIf(verbose3, _log, "packet: ([0x{:x}], [{:d}])[{:s}]", size, size, (toHex(packet, 64)));
 
 	if (writeBytes(packet) < 0)
 	{
@@ -447,7 +447,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 
 				if (datagram.size() >= 10)
 				{
-					DebugIf(verbose3, _log, "response: [%s]", QSTRING_CSTR(toHex(datagram, 64)));
+					DebugIf(verbose3, _log, "response: [{:s}]", (toHex(datagram, 64)));
 
 					quint16 appID = qFromBigEndian<quint16>(datagram.mid(4, sizeof(appID)));
 
@@ -456,17 +456,17 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 						QString tagVersion = datagram.left(2);
 						quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
 
-						Debug(_log, "Response HEADER: tagVersion [%s], appID: [0x%.2x][%u], packet size: [0x%.4x][%u]", QSTRING_CSTR(tagVersion), appID, appID, packetSize, packetSize);
+						Debug(_log, "Response HEADER: tagVersion [{:s}], appID: [0x{:02x}][{:d}], packet size: [0x{:04x}][{:d}]", (tagVersion), appID, appID, packetSize, packetSize);
 
 						quint32 dictionary = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER)));
 						quint32 checkSum = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary)));
 						quint32 salt = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum), sizeof(salt)));
 						quint32 sequenceNumber = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum) + sizeof(salt)));
 
-						Debug(_log, "Response SECU  : Dict: [0x%.4x][%u], Sum: [0x%.4x][%u], Salt: [0x%.4x][%u], SN: [0x%.4x][%u]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
+						Debug(_log, "Response SECU : Dict: [0x{:04x}][{:d}], Sum: [0x{:04x}][{:d}], Salt: [0x{:04x}][{:d}], SN: [0x{:04x}][{:d}]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
 
 						quint8 packetSN = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU)));
-						Debug(_log, "Response packSN: [0x%.4x][%u]", packetSN, packetSN);
+						Debug(_log, "Response packSN: [0x{:04x}][{:d}]", packetSN, packetSN);
 					}
 
 					quint8 errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
@@ -481,11 +481,11 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 						if (errorCode == 16)
 						{
 							//TL1 Command failure
-							Error(_log, "Request [0x%x] failed =with error [%u], appID [%u], originalVerb [0x%x]", originalRequestPacketSN, errorCode, appID, originalVerb);
+							Error(_log, "Request [0x{:x}] failed =with error [{:d}], appID [{:d}], originalVerb [0x{:x}]", originalRequestPacketSN, errorCode, appID, originalVerb);
 						}
 						else
 						{
-							Error(_log, "Request [0x%x] failed with error [%u], appID [%u]", originalRequestPacketSN, errorCode, appID);
+							Error(_log, "Request [0x{:x}] failed with error [{:d}], appID [{:d}]", originalRequestPacketSN, errorCode, appID);
 						}
 					}
 					else
@@ -501,7 +501,7 @@ bool DriverNetCololight::readResponse(QByteArray& response)
 								if (verbose)
 								{
 									quint8 originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
-									Debug(_log, "Cmd [0x%x], Data returned: [%s]", originalVerb, QSTRING_CSTR(toHex(response)));
+									Debug(_log, "Cmd [0x{:x}], Data returned: [{:s}]", originalVerb, (toHex(response)));
 								}
 							}
 							else
@@ -605,8 +605,8 @@ QJsonObject DriverNetCololight::discover(const QJsonObject& /*params*/)
 					QString ipAddress = QHostAddress(senderIP.toIPv4Address()).toString();
 					_services.insert(ipAddress, headers);
 
-					Debug(_log, "Cololight discovered at [%s]", QSTRING_CSTR(ipAddress));
-					DebugIf(verbose3, _log, "_data: [%s]", QSTRING_CSTR(data));
+					Debug(_log, "Cololight discovered at [{:s}]", (ipAddress));
+					DebugIf(verbose3, _log, "_data: [{:s}]", (data));
 				}
 			}
 		}
@@ -658,14 +658,14 @@ QJsonObject DriverNetCololight::discover(const QJsonObject& /*params*/)
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
-	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
 
 QJsonObject DriverNetCololight::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
 	QString apiHostname = params["host"].toString("");
@@ -692,21 +692,21 @@ QJsonObject DriverNetCololight::getProperties(const QJsonObject& params)
 					break;
 				}
 				properties.insert("modelType", modelTypeText);
-				properties.insert("ledCount", static_cast<int>(getLedCount()));
+				properties.insert("ledCount", getLedCount());
 				properties.insert("ledBeadCount", _ledBeadCount);
 				properties.insert("distance", _distance);
 			}
 		}
 	}
 
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "properties: [{:s}]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return properties;
 }
 
 void DriverNetCololight::identify(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString apiHostname = params["host"].toString("");
 	quint16 apiPort = static_cast<quint16>(params["port"].toInt(API_DEFAULT_PORT));

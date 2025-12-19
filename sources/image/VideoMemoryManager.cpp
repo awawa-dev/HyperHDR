@@ -80,14 +80,14 @@ std::unique_ptr<MemoryBuffer<uint8_t>> VideoMemoryManager::request(size_t size)
 {
 	if (size != _currentSize)
 	{
-		return std::unique_ptr<MemoryBuffer<uint8_t>>(new MemoryBuffer<uint8_t>(size));
+		return std::make_unique<MemoryBuffer<uint8_t>>(size);
 	}
 
 	std::lock_guard<std::mutex> locker(_locker);
 
-	if (_stack.size() == 0)
+	if (_stack.empty())
 	{
-		return std::unique_ptr<MemoryBuffer<uint8_t>>(new MemoryBuffer<uint8_t>(size));
+		return std::make_unique<MemoryBuffer<uint8_t>>(size);
 	}
 	else
 	{
@@ -138,7 +138,7 @@ std::string VideoMemoryManager::adjustCache()
 		info = true;
 
 	// clean up buffer if neccesery
-	if (!_needed && !_prevNeeded && _stack.size() > 0)
+	if (!_needed && !_prevNeeded && !_stack.empty())
 	{
 		_stack.pop_back();
 		cleanup = true;

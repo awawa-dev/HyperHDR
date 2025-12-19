@@ -35,7 +35,7 @@ public slots:
 private:
 	QTcpServer* _server;
 	QSet<JsonClientConnection*> _openConnections;
-	Logger* _log;
+	LoggerName _log;
 
 	std::shared_ptr<NetOrigin> _netOrigin;
 

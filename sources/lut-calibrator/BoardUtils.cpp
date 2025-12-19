@@ -30,6 +30,7 @@
 #include <utils-image/utils-image.h>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <QFile>
 
 // YUV444
@@ -144,7 +145,7 @@ namespace BoardUtils
 				throw std::runtime_error("Invalid CRC header");
 		}
 
-		while (true && x < SCREEN_BLOCKS_X)
+		while (x < SCREEN_BLOCKS_X)
 		{
 			auto test = readBlock(yuvImage, int2(x, line));
 			if (test.Y() + SCREEN_MAX_CRC_BRIGHTNESS_ERROR < white.Y())
@@ -156,7 +157,7 @@ namespace BoardUtils
 		return boardIndex;
 	}
 
-	bool parseBoard(Logger* _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors, bool multiFrame)
+	bool parseBoard(const LoggerName& _log, const Image<ColorRgb>& yuvImage, int& boardIndex, CapturedColors& allColors, bool multiFrame)
 	{
 		bool exit = (multiFrame) ? false : true;
 
@@ -226,7 +227,7 @@ namespace BoardUtils
 			}
 			catch (std::exception& /*ex*/)
 			{
-				Error(_log, "Could not read position [%i, %i]. Too much noice or too low resolution", position.x, position.y);
+				Error(_log, "Could not read position [{:d}, {:d}]. Too much noice or too low resolution", position.x, position.y);
 				return false;
 			}
 		}
@@ -251,13 +252,13 @@ namespace BoardUtils
 		if (multiFrame)
 		{
 			if (!exit)
-				Info(_log, "Successfully parsed image of test board no. %i. Waiting for another frame...", boardIndex);
+				Info(_log, "Successfully parsed image of test board no. {:d}. Waiting for another frame...", boardIndex);
 			else
-				Info(_log, "Successfully parsed final image of test board no. %i", boardIndex);
+				Info(_log, "Successfully parsed final image of test board no. {:d}", boardIndex);
 		}
 		else
 		{
-			Info(_log, "Successfully parsed image of the %i test board", boardIndex);
+			Info(_log, "Successfully parsed image of the {:d} test board", boardIndex);
 		}
 
 		return exit;
@@ -333,7 +334,7 @@ namespace BoardUtils
 		saveImage(image, delta, boardIndex, pattern, margin);
 	}
 
-	bool verifyTestBoards(Logger* _log, const char* pattern)
+	bool verifyTestBoards(const LoggerName& _log, const char* pattern)
 	{
 		int boardIndex = -1;
 		CapturedColors captured;
@@ -345,7 +346,7 @@ namespace BoardUtils
 
 			if (!QFile::exists(file))
 			{
-				Error(_log, "LUT test board: %i. File %s does not exists", i, QSTRING_CSTR(file));
+				Error(_log, "LUT test board: {:d}. File {:s} does not exists", i, (file));
 				return false;
 			}
 
@@ -353,19 +354,19 @@ namespace BoardUtils
 
 			if (image.width() == 1 || image.height() == 1)
 			{
-				Error(_log, "LUT test board: %i. Could load PNG: %s", i, QSTRING_CSTR(file));
+				Error(_log, "LUT test board: {:d}. Could load PNG: {:s}", i, (file));
 				return false;
 			}
 
 			if (!parseBoard(_log, image, boardIndex, captured))
 			{
-				Error(_log, "LUT test board: %i. Could not parse: %s", i, QSTRING_CSTR(file));
+				Error(_log, "LUT test board: {:d}. Could not parse: {:s}", i, (file));
 				return false;
 			}
 
 			if (boardIndex != i)
 			{
-				Error(_log, "LUT test board: %i. Could not parse: %s. Incorrect board index: %i", i, QSTRING_CSTR(file), boardIndex);
+				Error(_log, "LUT test board: {:d}. Could not parse: {:s}. Incorrect board index: {:d}", i, (file), boardIndex);
 				return false;
 			}
 			captured.setCaptured(boardIndex);
@@ -393,7 +394,7 @@ namespace BoardUtils
 					{
 						totalErrors++;
 						maxError = distance;
-						Warning(_log, "Current max error = %i for color (%i, %i, %i) received (%i, %i, %i)", maxError,
+						Warning(_log, "Current max error = {:d} for color ({:d}, {:d}, {:d}) received ({:d}, {:d}, {:d})", maxError,
 							sourceRgb.x, sourceRgb.y, sourceRgb.z,
 							outputRgb.x, outputRgb.y, outputRgb.z);
 					}
@@ -404,12 +405,12 @@ namespace BoardUtils
 				}
 		if (maxError > 1)
 		{
-			Error(_log, "Failed to verify colors. The error is too high (%i > 1)", maxError);
+			Error(_log, "Failed to verify colors. The error is too high ({:d} > 1)", maxError);
 			return false;
 		}
 
 		// all is OK
-		Info(_log, "All [0 - %i] LUT test boards were tested successfully. Total small errors = %i", SCREEN_LAST_BOARD_INDEX, totalErrors);
+		Info(_log, "All [0 - {:d}] LUT test boards were tested successfully. Total small errors = {:d}", SCREEN_LAST_BOARD_INDEX, totalErrors);
 		return true;
 	}
 
@@ -482,10 +483,12 @@ namespace BoardUtils
 		return _range;
 	}
 
-	bool CapturedColors::saveResult(const char* filename, const std::string& result)
+	bool CapturedColors::saveResult(const char* fileNameUtf8, const std::string& result)
 	{
 		std::ofstream myfile;
-		myfile.open(filename, std::ios::trunc | std::ios::out);
+		std::filesystem::path fileName{ std::u8string(reinterpret_cast<const char8_t*>(fileNameUtf8)) };
+
+		myfile.open(fileName, std::ios::trunc | std::ios::out);
 
 		if (!myfile.is_open())
 			return false;

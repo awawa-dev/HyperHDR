@@ -21,8 +21,8 @@
 #include <utils/InternalClock.h>
 #include <infinite-color-engine/SharedOutputColors.h>
 #include <infinite-color-engine/InfiniteInterpolator.h>
+#include <utils/Logger.h>
 
-class Logger;
 class HyperHdrInstance;
 
 class InfiniteSmoothing : public QObject
@@ -55,12 +55,12 @@ private slots:
 	void updateLeds();
 	
 private:
-	void queueColors(SharedOutputColors&& ledColors);
+	void queueColors(SharedOutputColors&& nonlinearRgbLedColors);
 	void clearQueuedColors(bool deviceEnabled = false, bool restarting = false);
 
-	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, bool directMode = false);
+	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, bool pause = false);
 
-	Logger* _log;
+	LoggerName _log;
 	HyperHdrInstance* _hyperhdr;
 	QMutex _dataSynchro;
 

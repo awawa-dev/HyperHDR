@@ -58,7 +58,7 @@ private:
 	QAbstractSocket::SocketState	_prevSocketState;
 	QLocalSocket::LocalSocketState	_prevLocalState;
 
-	Logger* _log;
+	LoggerName _log;
 	QString	_error;
 	void*	_builder;
 

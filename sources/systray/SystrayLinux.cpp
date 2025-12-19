@@ -25,9 +25,9 @@
 *  SOFTWARE.
 */
 
-#include <string.h>
-#include <stddef.h>
 #include <algorithm>
+#include <cstddef>
+#include <cstring>
 #include <iostream>
 
 #include <systray/Systray.h>
@@ -117,7 +117,7 @@ extern "C"
 
 	bool SystrayInitialize(SystrayMenu* tray)
 	{
-		if (gtk_init_check(0, NULL) == FALSE)
+		if (gtk_init_check(nullptr, nullptr) == FALSE)
 		{
 			return false;
 		}

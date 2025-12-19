@@ -39,5 +39,5 @@ public:
 private:
 	std::unique_ptr<InfiniteSmoothing> _smoothing;
 	std::unique_ptr<InfiniteProcessing> _processing;
-	Logger* _log;
+	LoggerName _log;
 };

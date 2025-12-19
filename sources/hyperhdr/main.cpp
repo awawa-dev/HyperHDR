@@ -6,13 +6,12 @@
 	#include <QResource>
 	#include <QDir>
 	#include <QStringList>
-	#include <QStringList>
 
 	#include <exception>
 	#include <iostream>
 	#include <cassert>
-	#include <stdlib.h>
-	#include <stdio.h>
+	#include <cstdlib>
+	#include <cstdio>
 #endif
 
 #include <csignal>
@@ -70,7 +69,7 @@ void CreateConsole()
 
 #endif
 
-#define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
+#define PERM0664 (QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup)
 
 HyperHdrDaemon* hyperhdrd = nullptr;
 
@@ -97,17 +96,21 @@ QCoreApplication* createApplication(bool& isGuiApp, int& argc, char* argv[])
 #else
 	if (!forceNoGui)
 	{
-		isGuiApp = (getenv("DISPLAY") != NULL &&
-			((getenv("XDG_SESSION_TYPE") != NULL && strcmp(getenv("XDG_SESSION_TYPE"), "tty") != 0) || getenv("WAYLAND_DISPLAY") != NULL));
-		std::cout << ((isGuiApp) ? "GUI" : "Console") << " application: " << std::endl;
+		const char* display = getenv("DISPLAY");
+		const char* xdgType = getenv("XDG_SESSION_TYPE");
+		const char* wayland = getenv("WAYLAND_DISPLAY");
+
+		isGuiApp = (display != nullptr && ((xdgType != nullptr && strcmp(xdgType, "tty") != 0) || wayland != nullptr ));
+
+		std::cout << (isGuiApp ? "GUI" : "Console") << " application" << std::endl;
 	}
 #endif
 
 	QCoreApplication* app = new QCoreApplication(argc, argv);
-	app->setApplicationName("HyperHdr");
-	app->setApplicationVersion(HYPERHDR_VERSION);
+	QCoreApplication::setApplicationName("HyperHdr");
+	QCoreApplication::setApplicationVersion(HYPERHDR_VERSION);
 	// add optional library path
-	app->addLibraryPath(QCoreApplication::applicationDirPath() + "/../lib");
+	QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/../lib");
 
 	return app;
 }
@@ -192,26 +195,26 @@ int main(int argc, char** argv)
 #endif
 
 	// initialize main logger and set global log level
-	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::INFO);
+	LoggerName log("MAIN");
+	Logger::getInstance()->setLogLevel(Logger::INFO);
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
 	{
-		Logger::setLogLevel(Logger::OFF);
+		Logger::getInstance()->setLogLevel(Logger::OFF);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(verboseOption))
 	{
-		Logger::forceVerbose();
-		Logger::setLogLevel(Logger::INFO);
+		Logger::getInstance()->forceVerbose();
+		Logger::getInstance()->setLogLevel(Logger::INFO);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(debugOption))
 	{
-		Logger::setLogLevel(Logger::DEBUG);
+		Logger::getInstance()->setLogLevel(Logger::DEBUG);
 		logLevelCheck++;
 	}
 
@@ -220,6 +223,8 @@ int main(int argc, char** argv)
 		Error(log, "aborting, because options --silent --verbose --debug can't be used together");
 		return 0;
 	}
+
+	qInstallMessageHandler(Logger::qtMessageHandler);
 
 #ifdef ENABLE_PIPEWIRE
 	if (parser.isSet(pipewireOption))
@@ -252,7 +257,7 @@ int main(int argc, char** argv)
 					readonlyMode = true;
 				}
 
-				Info(log, "Database path: '%s', readonlyMode = %s", QSTRING_CSTR(dbFile.absoluteFilePath()), (readonlyMode) ? "enabled" : "disabled");
+				Info(log, "Database path: '{:s}', readonlyMode = {:s}", (dbFile.absoluteFilePath()), (readonlyMode) ? "enabled" : "disabled");
 			}
 		}
 		else
@@ -273,12 +278,12 @@ int main(int argc, char** argv)
 		{
 			if (readonlyMode)
 			{
-				Error(log, "Password reset is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(userDataDirectory.absolutePath()));
+				Error(log, "Password reset is not possible. The user data path '{:s}' is not writeable.", (userDataDirectory.absolutePath()));
 				throw std::runtime_error("Password reset failed");
 			}
 			else
 			{
-				std::unique_ptr<AuthTable> table = std::unique_ptr<AuthTable>(new AuthTable());
+				std::unique_ptr<AuthTable> table = std::make_unique<AuthTable>();
 				if (table->resetHyperhdrUser()) {
 					Info(log, "Password reset successful");
 					exit(0);
@@ -295,7 +300,7 @@ int main(int argc, char** argv)
 		{
 			if (readonlyMode)
 			{
-				Error(log, "Deleting the configuration database is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log, "Deleting the configuration database is not possible. The user data path '{:s}' is not writeable.", (dbFile.absolutePath()));
 				throw std::runtime_error("Deleting the configuration database failed");
 			}
 			else
@@ -314,21 +319,21 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					Warning(log, "Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
+					Warning(log, "Configuration database [{:s}] does not exist!", (dbFile.absoluteFilePath()));
 				}
 			}
 		}
 
-		Info(log, "Starting HyperHdr - %s, %s, built: %s:%s", HYPERHDR_VERSION, HYPERHDR_BUILD_ID, __DATE__, __TIME__);
-		Debug(log, "QtVersion [%s]", QT_VERSION_STR);
+		Info(log, "Starting HyperHdr - {:s}, {:s}, built: {:s}:{:s}", std::string_view(HYPERHDR_VERSION), std::string_view(HYPERHDR_BUILD_ID), std::string_view(__DATE__), std::string_view(__TIME__));
+		Debug(log, "QtVersion [{:s}]", std::string_view(QT_VERSION_STR));
 
 		if (!readonlyMode)
 		{
-			Info(log, "Set user data path to '%s'", QSTRING_CSTR(userDataDirectory.absolutePath()));
+			Info(log, "Set user data path to '{:s}'", (userDataDirectory.absolutePath()));
 		}
 		else
 		{
-			Warning(log, "The user data path '%s' is not writeable. HyperHdr starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
+			Warning(log, "The user data path '{:s}' is not writeable. HyperHdr starts in read-only mode. Configuration updates will not be persisted!", (userDataDirectory.absolutePath()));
 		}
 
 		#ifdef _WIN32
@@ -341,7 +346,7 @@ int main(int argc, char** argv)
 		}
 		catch (std::exception& e)
 		{
-			Error(log, "Main HyperHDR service aborted: %s", e.what());
+			Error(log, "Main HyperHDR service aborted: {:s}", e.what());
 			throw;
 		}
 
@@ -375,7 +380,7 @@ int main(int argc, char** argv)
 			rc = app->exec();
 		}
 
-		Info(log, "The application closed with code %d", rc);
+		Info(log, "The application closed with code {:d}", rc);
 
 		delete systray;
 		systray = nullptr;
@@ -385,11 +390,8 @@ int main(int argc, char** argv)
 	}
 	catch (std::exception& e)
 	{
-		Error(log, "HyperHDR aborted: %s", e.what());
+		Error(log, "HyperHDR aborted: {:s}", e.what());
 	}
-
-	// delete components
-	Logger::deleteInstance();
 
 #ifdef _WIN32
 	if (parser.isSet(consoleOption))

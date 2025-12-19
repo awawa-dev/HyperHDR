@@ -39,7 +39,7 @@ class ProviderSpiFtdi : public QObject, public ProviderSpiInterface
 	bool loadLibrary();
 
 public:
-	ProviderSpiFtdi(Logger* _log);
+	ProviderSpiFtdi(const LoggerName& _log);
 	~ProviderSpiFtdi();
 
 public:

@@ -40,7 +40,7 @@
 
 DiscoveryWrapper::DiscoveryWrapper(QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance(QString("NET_DISCOVERY")))
+	, _log("NET_DISCOVERY")
 	, _serialDevice(nullptr)
 {
 	// register meta
@@ -69,7 +69,7 @@ void DiscoveryWrapper::cleanUp(QList<DiscoveryRecord>& target)
 			DiscoveryRecord& message = i.value();
 			QString log = QString("%1 %2 at %3:%4 (%5)").arg("Removing not responding").arg(message.getName()).arg(message.address).arg(message.port).arg(message.hostName);
 
-			Warning(_log, "%s", QSTRING_CSTR(log));
+			Warning(_log, "{:s}", (log));
 			action = message.type;
 			i.remove();			
 		}
@@ -133,7 +133,7 @@ void DiscoveryWrapper::requestServicesScan()
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::SerialPort);
 }
 
-void DiscoveryWrapper::gotMessage(QList<DiscoveryRecord>& target, DiscoveryRecord message)
+void DiscoveryWrapper::gotMessage(QList<DiscoveryRecord>& target, const DiscoveryRecord& message)
 {
 	QList<DiscoveryRecord> newSessions;
 
@@ -169,13 +169,13 @@ void DiscoveryWrapper::gotMessage(QList<DiscoveryRecord>& target, DiscoveryRecor
 	{
 		QString log = QString("%1 %2 at %3:%4 (%5)").arg((message.isExists) ? "Found" : "Deregistering").arg(message.getName()).arg(message.address).arg(message.port).arg(message.hostName);
 
-		Info(_log, "%s", QSTRING_CSTR(log));
+		Info(_log, "{:s}", (log));
 		target = newSessions;
 		emit SignalDiscoveryFoundService(message.type, target);
 	}
 }
 
-void DiscoveryWrapper::signalDiscoveryEventHandler(DiscoveryRecord message)
+void DiscoveryWrapper::signalDiscoveryEventHandler(const DiscoveryRecord& message)
 {
 	if (message.type == DiscoveryRecord::Service::HyperHDR)
 		gotMessage(_hyperhdrSessions, message);

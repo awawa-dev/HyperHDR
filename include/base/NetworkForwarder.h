@@ -43,7 +43,7 @@ public slots:
 	void startedHandler();
 	void signalColorIsSetHandler(ColorRgb color, int duration);
 	void signalForwardImageHandler();
-	void handlerInstanceImageUpdated(const Image<ColorRgb>& ret);
+	void handlerInstanceImageUpdated(const Image<ColorRgb>& image);
 
 private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
@@ -54,7 +54,7 @@ private slots:
 private:
 	std::weak_ptr<HyperHdrInstance> _instanceZero;
 
-	Logger* _log;
+	LoggerName _log;
 	QStringList   _jsonSlaves;
 	QStringList _flatSlaves;
 	bool _forwarderEnabled;

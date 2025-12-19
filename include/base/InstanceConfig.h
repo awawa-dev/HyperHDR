@@ -30,7 +30,7 @@ signals:
 	void SignalInstanceSettingsChanged(settings::type type, QJsonDocument data);
 
 private:
-	Logger*			_log;
+	LoggerName		_log;
 	std::unique_ptr<SettingsTable> _sTable;
 	QJsonObject		_qconfig;
 
