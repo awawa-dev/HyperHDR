@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "Multiplica los componentes de color RGB por un factor determinado en el espacio RGB lineal.",
   "edt_conf_processing_powerLimit_title": "Limitar la potencia de salida",
   "edt_conf_processing_powerLimit_expl": "Esta función comprueba si se ha excedido el consumo total de energía de la escena actual. De ser así, reduce automáticamente el brillo y el color de cada LED. Tenga en cuenta que esto no sustituye a una fuente de alimentación suficientemente potente. Esta función solo está diseñada para limitar el brillo excesivo y no protege su equipo de daños causados ​​por una fuente de alimentación insuficiente. No garantizamos que esta función limite directamente la potencia de la configuración LED a un valor de potencia específico.",
-  "edt_conf_smoothing_testMode_title": "Modo de prueba",
   "edt_conf_smoothing_testMode_expl": "Cambios de color repentinos cíclicos para probar algoritmos de suavizado; salida a la consola (en Windows, ejecute HyperHDR con el parámetro -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolador exponencial infinito",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "La implementación exponencial clásica del suavizado actualiza los colores del LED hacia un objetivo, reaccionando rápidamente a grandes diferencias y ralentizándolos a medida que se acercan al objetivo, lo que produce transiciones de iluminación ambiental suaves y naturales.",

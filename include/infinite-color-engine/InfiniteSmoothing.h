@@ -91,4 +91,5 @@ private:
 	bool			_infoUpdate;
 	bool			_infoInput;
 	int				_coolDown;
+	long long		_lastSentFrame;
 };

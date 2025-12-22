@@ -123,18 +123,9 @@
 			"type" : "boolean",
 			"format": "checkbox",
 			"title" : "edt_conf_smooth_continuousOutput_title",
-			"default" : false,
+			"default" : true,
 			"required" : true,
 			"propertyOrder" : 10
-		},
-		"testMode" :
-		{
-			"type" : "boolean",
-			"format": "checkbox",
-			"title" : "edt_conf_smoothing_testMode_title",
-			"default" : false,
-			"required" : true,
-			"propertyOrder" : 11
 		}
 	},
 	"additionalProperties" : false

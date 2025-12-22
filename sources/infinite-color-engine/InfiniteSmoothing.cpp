@@ -61,57 +61,6 @@ namespace
 	constexpr int64_t  DEFAUL_SETTLINGTIME = 200;   // settlingtime in ms
 	constexpr double   DEFAUL_UPDATEFREQUENCY = 25;    // updatefrequncy in hz
 	constexpr double   MINIMAL_UPDATEFREQUENCY = 20;
-
-	struct TestPilot
-	{
-		bool active = false;
-		long long started = 0;
-		std::vector<float4> sequence = {
-			{0,    0.0f, 0.0f, 0.0f},  // start from black color
-			{2000, 1.0f, 0.0f, 0.0f},  // short (100ms) red color blink at 2.0sec
-			{2100, 0.0f, 0.0f, 0.0f},  // return to black color
-			{2300, 0.0f, 1.0f, 0.0f},  // short (100ms) green color blink at 2.3sec
-			{2400, 0.0f, 0.0f, 0.0f},  // return to black color
-			{2600, 0.0f, 0.0f, 1.0f},  // short (100ms) blue color blink at 2.6sec
-			{2700, 0.0f, 0.0f, 0.0f},  // return to black color
-			{3000, 0.0f, 0.0f, 1.0f},  // start moving to blue color at 3sec
-			{3200, 0.0f, 1.0f, 0.0f},  // then turn to green color at 3.2sec
-			{3400, 1.0f, 0.0f, 0.0f},  // then immediately turn to red color at 3.4sec and wait
-			{4000, 0.0f, 0.0f, 1.0f},  // start moving to blue color at 4sec
-			{4100, 1.0f, 0.0f, 0.0f},  // then turn to red color at 4.1sec
-			{4200, 0.0f, 1.0f, 0.0f},  // the turn to green at 4.2sec and wait 
-			{6000, 0.0f, 0.0f, 0.0f},  // finally return to black color at 6sec
-			{8000, 0.0f, 0.0f, 0.0f}   // the end of the cycle at 6sec
-		};
-		float3 getColorAtTime(long long currentTimeMs)
-		{
-			long long delta = currentTimeMs - started;
-
-			if (!sequence.empty() && delta > static_cast<long long>(sequence.back().x)) {
-				started = currentTimeMs;
-				delta = 0;
-			}
-
-			float3 color = { 0.0f, 0.0f, 0.0f };
-
-			for (size_t i = 1; i < sequence.size(); ++i) {
-				if (delta < static_cast<long long>(sequence[i].x)) {
-					color = { sequence[i - 1].y, sequence[i - 1].z, sequence[i - 1].w };
-					break;
-				}
-			}
-
-			printf("Δ%4lld | incomingColors: (%d, %d, %d)", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
-
-			return color;
-		}
-	};
-
-	TestPilot& getTestPilot()
-	{
-		static TestPilot testPilot;
-		return testPilot;
-	}
 }
 
 InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstance* hyperhdr)
@@ -125,7 +74,8 @@ InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstan
 	_interpolator(std::make_unique<InfiniteStepperInterpolator>()),
 	_infoUpdate(true),
 	_infoInput(true),
-	_coolDown(0)
+	_coolDown(SMOOTHING_COOLDOWN_PHASE),
+	_lastSentFrame(0)
 {
 	// init cfg 0 (SMOOTHING_USER_CONFIG)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
@@ -152,7 +102,8 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 		
 		_infoUpdate = true;
 		_infoInput = true;
-		_coolDown = 0;
+		_coolDown = (deviceEnabled) ? SMOOTHING_COOLDOWN_PHASE: 0;
+		_lastSentFrame = 0;
 
 		if (restarting || _interpolator == nullptr)
 		{
@@ -219,11 +170,6 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 
 		_continuousOutput = obj["continuousOutput"].toBool(true);
 
-		if (getTestPilot().active = obj["testMode"].toBool(false); getTestPilot().active)
-		{
-			getTestPilot().started = InternalClock::now();
-		}
-
 		_configurations[SMOOTHING_USER_CONFIG] = std::make_unique<SmoothingConfig>(
 			SmoothingConfig{
 			.pause = false,
@@ -276,11 +222,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 		QMutexLocker locker(&_dataSynchro);
 
 		auto nowTime = InternalClock::now();
-		if (getTestPilot().active)
-		{
-			std::fill(nonlinearRgbColors.begin(), nonlinearRgbColors.end(), getTestPilot().getColorAtTime(nowTime));
-		}
-		_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, getTestPilot().active);
+		_interpolator->setTargetColors(std::move(nonlinearRgbColors), nowTime, false);
 	}
 }
 
@@ -288,12 +230,15 @@ void InfiniteSmoothing::updateLeds()
 {	
 	SharedOutputColors nonlinearRgbColors;
 	bool finished = false;
+	long long timeNow = 0;
 	// critical section
 	{
 		QMutexLocker locker(&_dataSynchro);
 		if (!isEnabled())
 			return;
-		_interpolator->updateCurrentColors(InternalClock::now());
+
+		timeNow = InternalClock::now();
+		_interpolator->updateCurrentColors(timeNow);
 
 		nonlinearRgbColors = _interpolator->getCurrentColors();
 
@@ -301,14 +246,18 @@ void InfiniteSmoothing::updateLeds()
 		{
 			_coolDown = SMOOTHING_COOLDOWN_PHASE;
 		}
-		else
+		else if (!_continuousOutput)
 		{
-			finished = (!_continuousOutput) && (_coolDown <= 0 || _coolDown-- <= 0);
+			if (_coolDown > 0)
+				_coolDown--;
+			else if (std::abs(timeNow - _lastSentFrame) < 1000)
+				finished = true;
 		}
 	}	
 
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
+		_lastSentFrame = timeNow;
 		queueColors(std::move(nonlinearRgbColors));
 	}
 }
@@ -317,13 +266,6 @@ void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbLedColors)
 {
 	if (nonlinearRgbLedColors->empty())
 		return;
-
-	if (getTestPilot().active)
-	{
-		const auto& color = nonlinearRgbLedColors->front();
-		long long delta = InternalClock::now() - getTestPilot().started;
-		printf("Δ%4lld | updateCurrentColors: (%d, %d, %d)\n", delta, (int)(color.x * 255), (int)(color.y * 255), (int)(color.z * 255));
-	}
 
 	emit SignalProcessedColors(nonlinearRgbLedColors);
 }

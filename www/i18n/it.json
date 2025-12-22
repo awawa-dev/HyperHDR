@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "Moltiplica le componenti di colore RGB per un dato fattore nello spazio RGB lineare.",
   "edt_conf_processing_powerLimit_title": "Limita potenza in uscita",
   "edt_conf_processing_powerLimit_expl": "Questa funzione verifica se il consumo energetico totale per la scena corrente è stato superato. In tal caso, riduce automaticamente la luminosità e il colore di ciascun LED. <strong>Nota: questa funzione non sostituisce un alimentatore sufficientemente potente.</strong> Questa funzione è progettata solo per limitare la luminosità eccessiva e non protegge l'apparecchiatura da danni dovuti a un alimentatore sottodimensionato. Non garantiamo che questa funzione si traduca direttamente nella limitazione della potenza della configurazione LED a un valore di wattaggio specifico.",
-  "edt_conf_smoothing_testMode_title": "Modalità test",
   "edt_conf_smoothing_testMode_expl": "Cambiamenti di colore improvvisi e ciclici per testare gli algoritmi di smoothing, output sulla console (su Windows, eseguire HyperHDR con il parametro -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolatore Esponenziale Infinito",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "L'implementazione esponenziale classica dello smoothing aggiorna i colori dei LED in base a un target, reagendo rapidamente a grandi differenze e rallentando man mano che si avvicinano al target, producendo transizioni di illuminazione ambientale fluide e naturali.",

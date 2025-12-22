@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "RGB renk bileşenlerini doğrusal RGB uzayında belirli bir faktörle çarpar.",
   "edt_conf_processing_powerLimit_title": "Güç çıkışını sınırla",
   "edt_conf_processing_powerLimit_expl": "Bu özellik, mevcut sahne için toplam güç tüketiminin aşılıp aşılmadığını kontrol eder. Aşılırsa, her bir LED'in parlaklığını ve rengini otomatik olarak azaltır. <strong>Lütfen unutmayın, bu yeterince güçlü bir güç kaynağının yerine geçmez.</strong> Bu işlev yalnızca aşırı parlaklığı sınırlamak için tasarlanmıştır ve ekipmanınızı yetersiz güç kaynağı nedeniyle oluşabilecek hasarlardan korumaz. Bu özelliğin, LED kurulumunun gücünü belirli bir watt değerine doğrudan sınırlayacağını garanti etmiyoruz.",
-  "edt_conf_smoothing_testMode_title": "Test modu",
   "edt_conf_smoothing_testMode_expl": "Yumuşatma algoritmalarının test edilmesi için döngüsel ani renk değişimleri, konsola çıktı (Windows'ta HyperHDR'ı -c parametresiyle çalıştırın).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Üstel Sonsuz İnterpolatör",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Yumuşatmanın klasik üssel uygulaması, LED renklerini bir hedefe doğru günceller, büyük farklılıklara hızlı tepki verir ve hedefe yaklaştıkça yavaşlar, böylece pürüzsüz ve doğal ortam aydınlatma geçişleri üretir.",
