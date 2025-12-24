@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "Multipliziert die RGB-Farbkomponenten mit einem bestimmten Faktor im linearen RGB-Raum.",
   "edt_conf_processing_powerLimit_title": "Leistungsbegrenzung",
   "edt_conf_processing_powerLimit_expl": "Diese Funktion prüft, ob die Gesamtleistungsaufnahme der aktuellen Szene überschritten wurde. Falls ja, werden Helligkeit und Farbe jeder LED automatisch reduziert. <strong>Bitte beachten Sie: Dies ist kein Ersatz für ein ausreichend leistungsstarkes Netzteil.</strong> Diese Funktion dient lediglich der Begrenzung übermäßiger Helligkeit und schützt Ihre Geräte nicht vor Schäden durch ein zu kleines Netzteil. Wir garantieren nicht, dass diese Funktion die Leistung des LED-Setups direkt auf einen bestimmten Wattwert begrenzt.",
-  "edt_conf_smoothing_testMode_title": "Testmodus",
   "edt_conf_smoothing_testMode_expl": "Zyklische, plötzliche Farbänderungen zum Testen von Glättungsalgorithmen, Ausgabe in der Konsole (unter Windows HyperHDR mit dem Parameter -c ausführen).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponentieller Unendlicher Interpolator",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Die klassische exponentielle Implementierung der Glättung aktualisiert die LED-Farben in Richtung eines Ziels. Sie reagiert schnell auf große Unterschiede und verlangsamt sich bei Annäherung an das Ziel. Dadurch entstehen sanfte, natürliche Übergänge der Umgebungsbeleuchtung.",

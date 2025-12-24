@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "Multiplicerar RGB-färgkomponenterna med en given faktor i det linjära RGB-utrymmet.",
   "edt_conf_processing_powerLimit_title": "Begränsa effektuttaget",
   "edt_conf_processing_powerLimit_expl": "Denna funktion kontrollerar om den totala effektförbrukningen för den aktuella scenen har överskridits. Om så är fallet skalar den automatiskt ner ljusstyrkan och färgen för varje LED. <strong>Observera att detta inte ersätter en tillräckligt kraftfull strömförsörjning.</strong> Den här funktionen är endast utformad för att begränsa överdriven ljusstyrka och skyddar inte din utrustning från skador på grund av en för liten strömförsörjning. Vi garanterar inte att den här funktionen direkt kommer att leda till att LED-installationens effekt begränsas till ett specifikt effektvärde.",
-  "edt_conf_smoothing_testMode_title": "Testläge",
   "edt_conf_smoothing_testMode_expl": "Cykliska plötsliga färgförändringar för utjämningsalgoritmtestning, utdata till konsolen (kör HyperHDR med -c-parametern på Windows).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponentiell oändlig interpolator",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klassisk exponentiell implementering av utjämning uppdaterar LED-färger mot ett mål, reagerar snabbt på stora skillnader och saktar ner när de närmar sig målet, vilket producerar mjuka, naturliga övergångar i omgivande ljus.",

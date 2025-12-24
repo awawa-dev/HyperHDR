@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "将 RGB 颜色分量乘以线性 RGB 空间中的给定因子。",
   "edt_conf_processing_powerLimit_title": "限制功率输出",
   "edt_conf_processing_powerLimit_expl": "此功能会检查当前场景的总功耗是否已超出。如果超出，则会自动降低每个 LED 的亮度和颜色。<strong>请注意，这不能替代足够强大的电源。</strong>此功能仅用于限制过高的亮度，并不能保护您的设备免受电源功率不足造成的损坏。我们不保证此功能会直接转化为将 LED 设备的功率限制在特定瓦数值。",
-  "edt_conf_smoothing_testMode_title": "测试模式",
   "edt_conf_smoothing_testMode_expl": "用于平滑算法测试的周期性颜色突变，输出到控制台（在 Windows 上，请使用 -c 参数运行 HyperHDR）。",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "指数无限插值器",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "经典的指数平滑实现，使 LED 色彩向目标值靠拢，对较大的差异做出快速反应，并在接近目标值时减慢速度，从而产生平滑、自然的环境光过渡。",

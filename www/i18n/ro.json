@@ -1300,7 +1300,6 @@
   "edt_conf_processing_scaleOutput_expl": "Înmulțește componentele culorii RGB cu un factor dat în spațiul RGB liniar.",
   "edt_conf_processing_powerLimit_title": "Limitare putere de ieșire",
   "edt_conf_processing_powerLimit_expl": "Această funcție verifică dacă a fost depășit consumul total de energie pentru scena curentă. Dacă da, reduce automat luminozitatea și culoarea fiecărui LED. <strong>Vă rugăm să rețineți că acest lucru nu înlocuiește o sursă de alimentare suficient de puternică.</strong> Această funcție este concepută doar pentru a limita luminozitatea excesivă și nu va proteja echipamentul de deteriorarea cauzată de o sursă de alimentare subdimensionată. Nu garantăm că această funcție se va traduce direct în limitarea puterii configurației LED la o anumită valoare a puterii.",
-  "edt_conf_smoothing_testMode_title": "Mod testare",
   "edt_conf_smoothing_testMode_expl": "Schimbări ciclice bruște de culoare pentru testarea algoritmilor de netezire, ieșire către consolă (pe Windows rulați HyperHDR cu parametrul -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Interpolator Exponențial Infinit",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Implementarea exponențială clasică a netezirii actualizează culorile LED-urilor către o țintă, reacționând rapid la diferențe mari și încetinind pe măsură ce acestea se apropie de țintă, producând tranziții line și naturale ale iluminării ambientale.",
