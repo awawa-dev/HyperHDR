@@ -48,6 +48,7 @@
 #include <infinite-color-engine/InfiniteYuvInterpolator.h>
 #include <infinite-color-engine/InfiniteRgbInterpolator.h>
 #include <infinite-color-engine/InfiniteHybridInterpolator.h>
+#include <infinite-color-engine/InfiniteHybridRgbInterpolator.h>
 #include <infinite-color-engine/InfiniteExponentialInterpolator.h>
 #include <base/HyperHdrInstance.h>
 
@@ -112,6 +113,10 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 			if (cfg->type == SmoothingType::HybridInterpolator)
 			{
 				_interpolator = std::make_unique<InfiniteHybridInterpolator>();
+			}
+			else if (cfg->type == SmoothingType::HybridRgbInterpolator)
+			{
+				_interpolator = std::make_unique<InfiniteHybridRgbInterpolator>();
 			}
 			else if (cfg->type == SmoothingType::YuvInterpolator)
 			{
@@ -375,6 +380,8 @@ QString InfiniteSmoothing::EnumSmoothingTypeToString(SmoothingType type)
 		return QString("HybridInterpolator");
 	else if (type == SmoothingType::ExponentialInterpolator)
 		return QString("ExponentialInterpolator");
+	else if (type == SmoothingType::HybridRgbInterpolator)
+		return QString("HybridRgbInterpolator");
 
 	return QString("Stepper");
 }
@@ -389,6 +396,8 @@ InfiniteSmoothing::SmoothingType InfiniteSmoothing::StringToEnumSmoothingType(QS
 		return SmoothingType::HybridInterpolator;
 	else if (name == QString("ExponentialInterpolator"))
 		return SmoothingType::ExponentialInterpolator;
+	else if (name == QString("HybridRgbInterpolator"))
+		return SmoothingType::HybridRgbInterpolator;
 
 	return SmoothingType::Stepper;
 }
