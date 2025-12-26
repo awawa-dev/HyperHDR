@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDebug>
 #include <QObject>
 #include <QVector>
 #include <QList>
@@ -13,8 +14,11 @@
 #include <spa/debug/types.h>
 #include <grabber/linux/pipewire/smartPipewire.h>
 #include <linux/types.h>
+#include <sys/mman.h>
 #include <HyperhdrConfig.h>
 #include <memory>
+#include <atomic>
+#include <array>
 
 #if !PW_CHECK_VERSION(0, 3, 29)
 #define SPA_POD_PROP_FLAG_MANDATORY (1u << 3)
@@ -40,16 +44,25 @@ typedef EGLBoolean (*eglDestroyImageKHRFun)(EGLDisplay dpy, EGLImageKHR image);
 typedef EGLContext(*eglCreateContextFun)(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint* attrib_list);
 typedef EGLBoolean(*eglDestroyContextFun)(EGLDisplay display, EGLContext context);
 typedef EGLBoolean(*eglMakeCurrentFun)(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx);
+typedef EGLContext(*eglGetCurrentContextFun)(void);
 typedef EGLBoolean(*eglBindAPIFun)(EGLenum api);
 typedef void (*glEGLImageTargetTexture2DOESFun)(GLenum target, GLeglImageOES image);
 
-typedef void* (*glXGetProcAddressARBFun)(const char*);
 typedef void (*glBindTextureFun)(GLenum target, GLuint texture);
 typedef void (*glDeleteTexturesFun)(GLsizei n, const GLuint* textures);
 typedef void (*glGenTexturesFun)(GLsizei n, GLuint* textures);
 typedef GLenum (*glGetErrorFun)(void);
 typedef void (*glGetTexImageFun)(GLenum target, GLint level, GLenum format, GLenum type, void* pixels);
 typedef void (*glTexParameteriFun)(GLenum target, GLenum pname, GLint param);
+typedef void (*glGenerateMipmapFun)(GLenum target);
+typedef void (*glPixelStoreiFun)(GLenum pname,GLint param);
+typedef void (*glGenFramebuffersFun)(GLsizei n, GLuint* ids);
+typedef void (*glBindFramebufferFun)(GLenum target, GLuint framebuffer);
+typedef void (*glFramebufferTexture2DFun)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+typedef void (*glReadPixelsFun)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void* data);
+typedef void (*glDeleteFramebuffersFun)(GLsizei n, GLuint* framebuffers);
+typedef void (*glBlitFramebufferFun)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+typedef void (*glTexImage2DFun)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* data);
 
 #define fourcc_code(a, b, c, d) ((__u32)(a) | ((__u32)(b) << 8) | \
 				 ((__u32)(c) << 16) | ((__u32)(d) << 24))
@@ -79,13 +92,17 @@ public:
 
 	PipewireHandler();
 	~PipewireHandler();
-	void startSession(QString restorationToken, uint32_t requestedFPS);
+
+	void startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize);
 	void closeSession();
 	bool hasError();
 	
 	int		getVersion();
 	QString getToken();
 	QString getError();
+
+	pw_stream* getPipewireStream();
+	bool hasIncomingFrame(struct pw_buffer* dequeueFrame);
 
 	static int	readVersion();
 
@@ -107,6 +124,7 @@ public Q_SLOTS:
 	void onStateChanged(enum pw_stream_state old, enum pw_stream_state state, const char* error);
 	void onProcessFrame();
 	void onCoreError(uint32_t id, int seq, int res, const char *message);
+	void onReleaseBuffer(struct pw_buffer* buffer);
 	
 signals:
 	void onParamsChangedSignal(uint32_t id, const struct spa_pod* param);
@@ -117,7 +135,7 @@ signals:
 private:
 	uint8_t* createMemory(int size);
 	void reportError(const QString& input);
-	const QString fourCCtoString(int64_t val);
+	QString fourCCtoString(int64_t val);
 
 	pw_stream*	createCapturingStream();
 	QString		getSessionToken();
@@ -146,14 +164,15 @@ private:
 	struct pw_buffer*		_backupFrame;
 	struct pw_buffer*		_workingFrame;
 
+	int		_targetMaxSize;
 	int		_frameWidth;
 	int		_frameHeight;
 	bool	_frameOrderRgb;
-	bool	_framePaused;
 	uint32_t _requestedFPS;
-	bool	_hasFrame;
-	bool	_infoUpdated;
+	std::atomic<struct pw_buffer*> _incomingFrame;
+	int		_infoUpdate;
 	bool	_initEGL;
+	bool	_enableEGL;
 	void*	_libEglHandle;
 	void*	_libGlHandle;
 	int64_t _frameDrmFormat;
@@ -181,19 +200,31 @@ private:
 	eglCreateContextFun eglCreateContext = nullptr;
 	eglDestroyContextFun eglDestroyContext = nullptr;
 	eglMakeCurrentFun eglMakeCurrent = nullptr;
+	eglGetCurrentContextFun eglGetCurrentContext = nullptr;
 	glEGLImageTargetTexture2DOESFun glEGLImageTargetTexture2DOES = nullptr;
 	eglBindAPIFun eglBindAPI = nullptr;
 
-	glXGetProcAddressARBFun glXGetProcAddressARB = nullptr;
 	glBindTextureFun glBindTexture = nullptr;
 	glDeleteTexturesFun glDeleteTextures = nullptr;
 	glGenTexturesFun glGenTextures = nullptr;
 	glGetErrorFun glGetError = nullptr;
 	glGetTexImageFun glGetTexImage = nullptr;
 	glTexParameteriFun glTexParameteri = nullptr;
+	glGenerateMipmapFun glGenerateMipmap = nullptr;
+	glPixelStoreiFun glPixelStorei = nullptr;
+	glGenFramebuffersFun glGenFramebuffers = nullptr;
+	glBindFramebufferFun glBindFramebuffer = nullptr;
+	glFramebufferTexture2DFun glFramebufferTexture2D = nullptr;
+	glReadPixelsFun glReadPixels = nullptr;
+	glDeleteFramebuffersFun glDeleteFramebuffers = nullptr;
+	glBlitFramebufferFun glBlitFramebuffer = nullptr;
+	glTexImage2DFun glTexImage2D = nullptr;
 
 	EGLDisplay displayEgl = EGL_NO_DISPLAY;
 	EGLContext contextEgl = EGL_NO_CONTEXT;
+	GLuint _eglTexture = 0;
+	GLuint _eglScratchTex = 0;
+	std::array<GLuint, 2> _eglFbos = { 0, 0 };
 
 	const char* eglErrorToString(EGLint error_number);
 	const char* glErrorToString(GLenum errorType);
@@ -214,7 +245,16 @@ private:
 			{ DRM_FORMAT_XBGR8888, SPA_VIDEO_FORMAT_RGBx, GL_RGBA, "DRM_FORMAT_XBGR8888", false},
 			{ DRM_FORMAT_ABGR8888, SPA_VIDEO_FORMAT_RGBA, GL_RGBA, "DRM_FORMAT_ABGR8888", false}
 	};
-
 #endif
 
+	struct PipewireCache {
+
+	#ifdef ENABLE_PIPEWIRE_EGL
+		EGLImageKHR eglImage = EGL_NO_IMAGE_KHR;
+	#endif
+
+		void* mmapPtr = MAP_FAILED;
+		size_t mmapSize = 0;
+
+	};
 };

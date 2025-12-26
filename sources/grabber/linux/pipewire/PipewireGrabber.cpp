@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -53,7 +53,7 @@ namespace
 {
 	bool (*_hasPipewire)() = nullptr;
 	const char* (*_getPipewireError)() = nullptr;
-	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS) = nullptr;
+	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize) = nullptr;
 	void (*_uninitPipewireDisplay)() = nullptr;
 	PipewireImage(*_getFramePipewire)() = nullptr;
 	void (*_releaseFramePipewire)() = nullptr;
@@ -81,7 +81,7 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_getPipewireToken = (const char* (*)()) dlsym(_library, "getPipewireToken");
 		_getPipewireError = (const char* (*)()) dlsym(_library, "getPipewireError");
 		_hasPipewire = (bool (*)()) dlsym(_library, "hasPipewire");
-		_initPipewireDisplay = (void (*)(const char*, uint32_t)) dlsym(_library, "initPipewireDisplay");
+		_initPipewireDisplay = (void (*)(const char*, uint32_t, bool, int)) dlsym(_library, "initPipewireDisplay");
 		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uninitPipewireDisplay");
 		_getFramePipewire = (PipewireImage (*)()) dlsym(_library, "getFramePipewire");
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
@@ -154,7 +154,7 @@ void PipewireGrabber::uninit()
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 	
-
+	_isActive = false;
 	_initialized = false;
 }
 
@@ -263,12 +263,12 @@ void PipewireGrabber::stop()
 	{
 		_timer.stop();
 
-		_uninitPipewireDisplay();
-		_isActive = false;
+		_uninitPipewireDisplay();		
 		_initialized = false;
 		
 		Info(_log, "Stopped");
 	}
+	_isActive = false;
 }
 
 bool PipewireGrabber::init_device(int _display)
@@ -282,14 +282,9 @@ bool PipewireGrabber::init_device(int _display)
 		token = "";
 	else
 		Info(_log, "Loading restoration token: {:s}", (maskToken(token)));
-	_initPipewireDisplay(token.toLatin1().constData(), _fps);
+	_initPipewireDisplay(token.toLatin1().constData(), _fps, _hardware, _width);
 
-	_isActive = true;
-
-	if (!_isActive)
-		Error(_log, "Could not initialized Pipewire grabber");
-
-	return _isActive;
+	return true;
 }
 
 QString PipewireGrabber::maskToken(const QString& token) const
@@ -319,7 +314,7 @@ void PipewireGrabber::grabFrame()
 	bool stopNow = false;
 		
 	
-	if (_initialized && _isActive)
+	if (_initialized)
 	{
 		PipewireImage data = _getFramePipewire();
 
@@ -360,6 +355,7 @@ void PipewireGrabber::grabFrame()
 		}
 		else
 		{
+			_isActive = true;
 			_actualWidth = data.width;
 			_actualHeight = data.height;
 
@@ -374,7 +370,19 @@ void PipewireGrabber::grabFrame()
 	
 	if (stopNow)
 	{
+		bool lastActive = _isActive;
 		uninit();
+		_isActive = lastActive;
+		if (_isActive)
+		{
+			QTimer::singleShot(3000, this, [this]() {
+				if (_isActive)
+				{
+					_isActive = false;
+					start();
+				}
+			});
+		}
 	}
 }
 
