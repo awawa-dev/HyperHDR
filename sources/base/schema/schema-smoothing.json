@@ -17,7 +17,7 @@
 			"type" : "string",
 			"title" : "edt_conf_smooth_type_title",
 			"enum" : ["Stepper", "YuvInterpolator", "RgbInterpolator", "HybridInterpolator", "HybridRgbInterpolator", "ExponentialInterpolator"],
-			"default" : "Stepper",
+			"default" : "HybridRgbInterpolator",
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_interpolator_Stepper_title", "edt_conf_enum_interpolator_YuvInterpolator_title", "edt_conf_enum_interpolator_RgbInterpolator_title", "edt_conf_enum_interpolator_HybridInterpolator_title", "edt_conf_enum_interpolator_HybridRgbInterpolator_title", "edt_conf_enum_interpolator_ExponentialInterpolator_title"]
 			},
