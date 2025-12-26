@@ -57,15 +57,15 @@ private:
 	void enumerateDevices(bool silent);
 
 	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
-	
+
 	void getDevices();
 
 	bool init() override;
 
 	void uninit() override;
-	
+
 	bool init_device(int _display);
-		
+
 	QString					_configurationPath;
 	QTimer					_timer;
 	QSemaphore				_semaphore;

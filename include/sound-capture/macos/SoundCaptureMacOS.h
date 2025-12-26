@@ -17,7 +17,7 @@ class SoundCaptureMacOS : public SoundCapture
     private:
 		void stopDevice();
 		void listDevices();
-		bool getPermission();		
+		bool getPermission();
 
 		size_t     _soundBufferIndex = 0;
 		int16_t    _soundBuffer[(1<<SOUNDCAPMACOS_BUF_LENP)*2] = {};

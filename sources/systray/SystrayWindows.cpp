@@ -66,7 +66,7 @@ static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
 	{
 		case WM_POWERBROADCAST:
 			if (queueHandler != nullptr && (wparam == PBT_APMSUSPEND || wparam == PBT_APMRESUMESUSPEND || wparam == PBT_POWERSETTINGCHANGE))
-			{				
+			{
 				queueHandler(wparam);
 			}
 			return true;
@@ -108,7 +108,7 @@ static LRESULT CALLBACK _tray_wnd_proc(HWND hwnd, UINT msg, WPARAM wparam,
 
 				item.cbSize = sizeof(MENUITEMINFO);
 				item.fMask = MIIM_ID | MIIM_DATA;
-				
+
 				if (GetMenuItemInfo(menu, static_cast<UINT>(wparam), FALSE, &item))
 				{
 					SystrayMenu* sysMenu = reinterpret_cast<SystrayMenu*>(item.dwItemData);
@@ -185,10 +185,10 @@ static HMENU _tray_menu(SystrayMenu *m, UINT *id)
 							item.hbmpItem = hbmp;
 							bitmaps.push_back(hbmp);
 							delete pBitmap;
-						}						
+						}
 					}
-					pStream->Release();					
-				}				
+					pStream->Release();
+				}
 			}
 
 			InsertMenuItem(hmenu, *id, TRUE, &item);
@@ -302,11 +302,11 @@ void SystrayUpdate(SystrayMenu *tray)
 	cleanup();
 
 	icons.push_back(icon);
-	
+
 	UINT id = ID_TRAY_FIRST;
 
 	menu = _tray_menu(tray->submenu.get(), &id);
-	SendMessage(window, WM_INITMENUPOPUP, (WPARAM)menu, 0);	
+	SendMessage(window, WM_INITMENUPOPUP, (WPARAM)menu, 0);
 }
 
 void SystrayClose()

@@ -69,5 +69,5 @@ public slots:
 private:
 	QStringList _availableCommands;
 	QStringList _subscribedCommands;
-	void doCallback(const QString cmd, const QVariant data);	
+	void doCallback(const QString cmd, const QVariant data);
 };

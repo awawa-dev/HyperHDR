@@ -11,7 +11,7 @@
 		<key>CFBundleShortVersionString</key>
 		<string>@BUNDLE_SHORT_VERSION@</string>
 		<key>CFBundleVersion</key>
-		<string>@HYPERHDR_VERSION@</string>		
+		<string>@HYPERHDR_VERSION@</string>
 		<key>CFBundleIconFile</key>
 		<string>Hyperhdr.icns</string>
 		<key>CFBundleInfoDictionaryVersion</key>

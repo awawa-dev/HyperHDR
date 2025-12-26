@@ -36,5 +36,5 @@ private:
 
 	static QJsonObject			_schemaJson;
 	static QMutex				_lockerSettingsManager;
-	static std::atomic<bool>	_backupMade;	
+	static std::atomic<bool>	_backupMade;
 };

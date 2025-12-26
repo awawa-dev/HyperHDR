@@ -124,7 +124,7 @@ private:
 	bool isInstAllowed(quint8 inst) const { return (inst > 0); }
 
 private:
-	
+
 	LoggerName		_log;
 	std::unique_ptr<InstanceTable> _instanceTable;
 	const QString	_rootPath;

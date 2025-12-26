@@ -122,7 +122,7 @@ public:
 
 	void setSignalDetectionEnable(bool enable);
 
-	void setAutoSignalDetectionEnable(bool enable);	
+	void setAutoSignalDetectionEnable(bool enable);
 
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
 

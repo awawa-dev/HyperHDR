@@ -94,7 +94,7 @@ void FlatBuffersParser::encodeColorIntoFlatbuffers(void* builder, int red, int g
 }
 
 bool FlatBuffersParser::verifyFlatbuffersReplyBuffer(const uint8_t* messageData, size_t messageSize, bool* _sent, bool* _registered, int* _priority)
-{	
+{
 	flatbuffers::Verifier verifier(messageData, messageSize);
 
 	if (hyperhdrnet::VerifyReplyBuffer(verifier))
@@ -138,7 +138,7 @@ static void sendErrorReply(flatbuffers::FlatBufferBuilder* _builder, const char*
 	_builder->Finish(reply);
 }
 
-int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8_t* messageData, size_t messageSize,									
+int FlatBuffersParser::decodeIncomingFlatbuffersFrame(void* builder, const uint8_t* messageData, size_t messageSize,
 									int* priority, std::string* clientDescription, int* duration,
 									FlatbuffersTransientImage& image,
 									FlatbuffersColor& color,

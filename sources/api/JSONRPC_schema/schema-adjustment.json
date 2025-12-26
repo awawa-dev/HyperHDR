@@ -107,7 +107,7 @@
 					"required" : false,
 					"minimum" : 0.1,
 					"maximum" : 5.0
-				},				
+				},
 				"backlightThreshold" : {
 					"type" : "number",
 					"required" : false,

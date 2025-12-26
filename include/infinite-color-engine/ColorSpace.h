@@ -84,7 +84,7 @@ namespace ColorSpaceMath
 	   -0.1146f, -0.3854f,  0.5000f,
 		0.5000f, -0.4542f, -0.0458f
 		});
-	
+
 	constexpr double3x3 matrix_bt2020_to_XYZ = matrix({
 				0.636958,	0.144617,	0.168881,
 				0.262700,	0.677998,	0.059302,
@@ -132,7 +132,7 @@ namespace ColorSpaceMath
 	double srgb_nonlinear_to_linear(double input);
 
 	double3 srgb_nonlinear_to_linear(double3 input);
-	
+
 	double3 srgb_linear_to_nonlinear(double3 input);
 
 	double srgb_linear_to_nonlinear(double input);

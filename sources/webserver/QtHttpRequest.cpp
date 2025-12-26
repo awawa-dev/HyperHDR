@@ -84,7 +84,7 @@ int QtHttpRequest::getHeader(const QByteArray& header, int defValue)
 	bool ok = false;
 	int resValue = temp.toInt(&ok);
 
-	if (ok)	
+	if (ok)
 		return resValue;
 	else
 		return defValue;

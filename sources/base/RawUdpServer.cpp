@@ -26,8 +26,8 @@
 */
 
 #ifndef PCH_ENABLED
-	#include <QJsonObject>	
-	#include <QCoreApplication>	
+	#include <QJsonObject>
+	#include <QCoreApplication>
 	#include <QTimer>
 #endif
 

@@ -64,7 +64,7 @@ public slots:
 	const QString loadPipewire();
 
 signals:
-	void newPendingTokenRequest(const QString& id, const QString& comment);	
+	void newPendingTokenRequest(const QString& id, const QString& comment);
 	void SignalTokenUpdated(QVector<AccessManager::AuthDefinition>);
 	void SignalTokenNotifyClient(bool success, QObject* caller, const QString& token, const QString& comment, const QString& id, const int& tan);
 

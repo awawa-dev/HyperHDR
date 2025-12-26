@@ -84,41 +84,41 @@
 - Fix QT5.15 issue when building on Windows #605 (v20 beta)
 - Add new effect: Rainbow Waves #607 (v20 beta)
 - MQTT: hostname address resolver. Thanks @lougovsk #586 (v20 beta)
-- V4L: allow setting of V4L device input, fixes #537. Thanks @Thinner77 #540 (v20 beta)  
-- Update flatbuffers to v23.5.26 #596 (v20 beta)  
-- Pause the USB grabber when all LEDs are off to reduce load #608 (v20 beta) 
-- Add support for HD108 led strip, 16/48bits colors #527 (v20 beta)  
-- Use optional system libs for compiling #541 (v20 beta)  
-- Update mbedtls to 3.4.0 #589 (v20 beta)  
+- V4L: allow setting of V4L device input, fixes #537. Thanks @Thinner77 #540 (v20 beta)
+- Update flatbuffers to v23.5.26 #596 (v20 beta)
+- Pause the USB grabber when all LEDs are off to reduce load #608 (v20 beta)
+- Add support for HD108 led strip, 16/48bits colors #527 (v20 beta)
+- Use optional system libs for compiling #541 (v20 beta)
+- Update mbedtls to 3.4.0 #589 (v20 beta)
 - Add Ubuntu support to HyperHDR and Github Pages APT repository #522 (v20 beta)
 - New JsonAPI method to calculate average color of selected instance #611 (v20 beta)
-- Workaround for critical Rpi udev bug affecting serial ports #583 (v20 beta)  
-- Add Arch Linux support #520 (v20 beta)  
-- Fix chrome/edge fullscreen detection #519 (v20 beta)  
-- Add automatic LUT downloader & installer #568 (v20 beta)  
-- Allow LUT calibration when no USB grabber is present #518 (v20 beta)  
-- Live update WLED/udpraw LEDs number #564 (v20 beta) 
-- Add support for Raspberry Pi Pico (Rp2040) HyperSerialPico #560 (v20 beta)  
-- Do not use TurboJPEG for RGB during calibration #508 (v20 beta)  
-- Update Github actions/checkout@v3 #403 (v20 beta) 
-- glibc requirements for DEB installer #402 (v20 beta)  
-- Remove folders nesting #363 (v20 beta)  
-- New JSON API method to update smoothing parameters #352 (v20 beta)  
-- Update Github actions/download@v3 #372 (v20 beta)  
-- Remove depraciated ::set-output from Github Action #390 (v20 beta)  
-- Upgrade Bootstrap to 5.2.3 / improved 'video live preview' on smartphones #336 (v20 beta)  
-- LED designer context menu to disable, identify or customize LED position and size etc   
-- Added Philips Hue Entertainment API 2. Support for Hue gradients (thanks  @gibahjoe)  
-- Save/restore WLED state and set max brightness at startup  
-- Support for precompiled headers  
-- Colored cmake output  
-- Adalight: auto-resume, resume the device if failed  
-- Adalight: ESP8266/ESP32 auto-discovery, 'auto' searches for known ESP  
-- Adalight: ESP8266/ESP32 handshake to properly initialize the ESP device and read statistics  
-- Add statistics about dropped LED frames  
-- Add support for utv007 / Linux  
-- Modifiable SPI path with device auto-detection  
-- Flatbuffers: selectable custom LUT files via API  
+- Workaround for critical Rpi udev bug affecting serial ports #583 (v20 beta)
+- Add Arch Linux support #520 (v20 beta)
+- Fix chrome/edge fullscreen detection #519 (v20 beta)
+- Add automatic LUT downloader & installer #568 (v20 beta)
+- Allow LUT calibration when no USB grabber is present #518 (v20 beta)
+- Live update WLED/udpraw LEDs number #564 (v20 beta)
+- Add support for Raspberry Pi Pico (Rp2040) HyperSerialPico #560 (v20 beta)
+- Do not use TurboJPEG for RGB during calibration #508 (v20 beta)
+- Update Github actions/checkout@v3 #403 (v20 beta)
+- glibc requirements for DEB installer #402 (v20 beta)
+- Remove folders nesting #363 (v20 beta)
+- New JSON API method to update smoothing parameters #352 (v20 beta)
+- Update Github actions/download@v3 #372 (v20 beta)
+- Remove depraciated ::set-output from Github Action #390 (v20 beta)
+- Upgrade Bootstrap to 5.2.3 / improved 'video live preview' on smartphones #336 (v20 beta)
+- LED designer context menu to disable, identify or customize LED position and size etc
+- Added Philips Hue Entertainment API 2. Support for Hue gradients (thanks  @gibahjoe)
+- Save/restore WLED state and set max brightness at startup
+- Support for precompiled headers
+- Colored cmake output
+- Adalight: auto-resume, resume the device if failed
+- Adalight: ESP8266/ESP32 auto-discovery, 'auto' searches for known ESP
+- Adalight: ESP8266/ESP32 handshake to properly initialize the ESP device and read statistics
+- Add statistics about dropped LED frames
+- Add support for utv007 / Linux
+- Modifiable SPI path with device auto-detection
+- Flatbuffers: selectable custom LUT files via API
 - Overall performance without tone mapping for USB grabbers improved x10 (MJPEG) and x3 (YUV) over Hyperion NG 2.0.0.8A thanks to optimization & using of multi-threading
 - Direct support for USB grabbers under Windows 10, Linux and macOS (really fast & of course multi-threaded)
 - Support for software screen grabbers: DirectX11, CoreGraphics, X11

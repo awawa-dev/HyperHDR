@@ -22,8 +22,8 @@ PB_BIND(proto_HyperhdrReply, proto_HyperhdrReply, AUTO)
 
 
 /* Definition for extension field proto_ColorRequest_colorRequest */
-typedef struct _proto_ColorRequest_colorRequest_extmsg { 
-    proto_ColorRequest colorRequest; 
+typedef struct _proto_ColorRequest_colorRequest_extmsg {
+    proto_ColorRequest colorRequest;
 } proto_ColorRequest_colorRequest_extmsg;
 #define proto_ColorRequest_colorRequest_extmsg_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  colorRequest,     10)
@@ -39,8 +39,8 @@ const pb_extension_type_t proto_ColorRequest_colorRequest = {
 };
 
 /* Definition for extension field proto_ImageRequest_imageRequest */
-typedef struct _proto_ImageRequest_imageRequest_extmsg { 
-    proto_ImageRequest imageRequest; 
+typedef struct _proto_ImageRequest_imageRequest_extmsg {
+    proto_ImageRequest imageRequest;
 } proto_ImageRequest_imageRequest_extmsg;
 #define proto_ImageRequest_imageRequest_extmsg_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  imageRequest,     11)
@@ -56,8 +56,8 @@ const pb_extension_type_t proto_ImageRequest_imageRequest = {
 };
 
 /* Definition for extension field proto_ClearRequest_clearRequest */
-typedef struct _proto_ClearRequest_clearRequest_extmsg { 
-    proto_ClearRequest clearRequest; 
+typedef struct _proto_ClearRequest_clearRequest_extmsg {
+    proto_ClearRequest clearRequest;
 } proto_ClearRequest_clearRequest_extmsg;
 #define proto_ClearRequest_clearRequest_extmsg_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  clearRequest,     12)

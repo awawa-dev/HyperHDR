@@ -1,7 +1,7 @@
 {
 	"type":"object",
 	"required":true,
-	"properties":{		
+	"properties":{
 		"transition": {
 			"type": "integer",
 			"title": "edt_dev_spec_transistionTime_title",
@@ -28,12 +28,12 @@
 			"uniqueItems" : true,
 			"items" : {
 				"type" : "object",
-				"title" : "edt_dev_spec_lights_itemtitle",				
+				"title" : "edt_dev_spec_lights_itemtitle",
 				"required" : [
 					"name", "colorModel"
 				],
 				"properties" :
-				{						
+				{
 					"name" :
 					{
 						"type": "string",
@@ -57,7 +57,7 @@
 							"hidden": true
 						},
 						"propertyOrder" : 3
-					}					
+					}
 				}
 			}
 		}

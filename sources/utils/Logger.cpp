@@ -2,7 +2,7 @@
 	#include <QDateTime>
 	#include <QFileInfo>
 	#include <QJsonObject>
-	
+
 	#include <iostream>
 	#include <algorithm>
 	#include <ctime>
@@ -26,7 +26,7 @@
 #endif
 
 namespace
-{	
+{
 	#ifdef _WIN32
 		HANDLE consoleHandle = nullptr;
 	#endif
@@ -99,14 +99,14 @@ Logger::Logger()
 
 
 	std::string message = (_hasConsole) ? "TTY is attached to the log output" : "TTY is not attached to the log output";
-	storeMessage("LOGGER", LogLevel::INFO, __FILE__, __func__, __LINE__, message);	
+	storeMessage("LOGGER", LogLevel::INFO, __FILE__, __func__, __LINE__, message);
 }
 
 Logger::~Logger()
 {
 	if (_hasConsole || _forceVerbose)
 	{
-#ifndef _WIN32				
+#ifndef _WIN32
 		std::cout << "\033[0m";
 #endif
 	}
@@ -132,7 +132,7 @@ void Logger::storeMessage(const LoggerName& logName, LogLevel level, const char*
 		std::lock_guard logGuard(_logLock);
 
 		if (level == Logger::ERRORR)
-			_lastError = QString("%1 [%2] %3").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).arg(logName).arg(logMsg.message);		
+			_lastError = QString("%1 [%2] %3").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).arg(logName).arg(logMsg.message);
 
 		if (_hasConsole || _forceVerbose)
 		{
@@ -149,7 +149,7 @@ void Logger::storeMessage(const LoggerName& logName, LogLevel level, const char*
 			QString name = logMsg.loggerName;
 			name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
-		#ifndef _WIN32				
+		#ifndef _WIN32
 			prefix = "\033[0m";
 			sufix = "\033[36;1m";
 		#else
@@ -188,7 +188,7 @@ void Logger::storeMessage(const LoggerName& logName, LogLevel level, const char*
 				.arg(sufix)
 				.toStdString()
 				<< std::endl;
-		#ifdef _WIN32		
+		#ifdef _WIN32
 			SetConsoleTextAttribute(consoleHandle, 11);
 		#endif
 		}

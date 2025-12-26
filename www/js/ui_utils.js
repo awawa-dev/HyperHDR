@@ -48,7 +48,7 @@ function loadContent(event, forceRefresh)
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 
 	if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperHdrInstance))
-		if ((typeof lastSelectedInstance !== 'undefined') && 
+		if ((typeof lastSelectedInstance !== 'undefined') &&
 			(typeof window.serverInfo.instance[lastSelectedInstance] !== 'undefined') &&
 			 typeof(window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)
 		{
@@ -85,14 +85,14 @@ function loadContent(event, forceRefresh)
 				removeStorage('lastSelectedInstance', false);
 				tag = 'overview';
 				setStorage('lasthashtag', tag, true);
-				
+
 				$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 					if(status == "error")
 					{
 						var resultContent = document.getElementById('page-content');
 						resultContent.innerHTML = `<h3>${encodeURIComponent(tag)}</h3><br/>${$.i18n('info_404')}`;
 						removeOverlay();
-					}					
+					}
 				});
 			}
 		});
@@ -113,14 +113,14 @@ function updateHyperhdrInstanceListing()
 			var currInstMarker = (data[key].instance == window.currentHyperHdrInstance) ? 'data-src="svg/instances_top_menu_indicator.svg"' : '';
 			var currInstMarkerBackground = (data[key].instance == window.currentHyperHdrInstance) ? 'text-success' : 'instance-unselected-marker';
 			var currTextMarker = (data[key].instance == window.currentHyperHdrInstance) ? "my-text-success" : "";
-		
+
 			var myName = data[key].friendly_name;
-		
+
 			if (myName.length>20)
 				myName = myName.slice(0,17) + '...';
-		
+
 			var html = `<li id="hyperhdrinstance_${data[key].instance}"><a>`+
-							'<div class="d-flex" style="cursor: pointer;">'+							
+							'<div class="d-flex" style="cursor: pointer;">'+
 								`<div class="flex ps-2 pe-1 ${currInstMarkerBackground}">`+
 									`<svg xmlns="http://www.w3.org/2000/svg" ${currInstMarker} width="16" height="16" fill="currentColor" style="position: relative;top: -2px;"></svg>`+
 								'</div>'+
@@ -146,7 +146,7 @@ function updateHyperhdrInstanceListing()
 	{
 		for(var i = 0; i< hyperHDRs.length; i++)
 			if(hyperHDRs[i].name == "HyperHDR")
-			{				
+			{
 				if (i == 0)
 				{
 					if (hasItems)
@@ -154,7 +154,7 @@ function updateHyperhdrInstanceListing()
 				}
 				else if (hasItems)
 					$('#hyperhdr_instances_list').append('<li class="dropdown-divider bg-info"></li>');
-				
+
 
 				var hostName = hyperHDRs[i].host;
 
@@ -164,7 +164,7 @@ function updateHyperhdrInstanceListing()
 				}
 
 				var html = `<li id="remote_hyperhdrinstance_${i}" class="text-info" data-toggle="tooltip" data-placement="right" title="${hostName}"><a>`+
-						'<div class="d-flex" style="cursor: pointer;">'+							
+						'<div class="d-flex" style="cursor: pointer;">'+
 							`<div class="flex ps-2 pe-1">`+
 								`<svg xmlns="http://www.w3.org/2000/svg" data-src="svg/button_link.svg" width="16" height="16" fill="currentColor" style="position: relative;top: -2px;"></svg>`+
 							'</div>'+
@@ -182,13 +182,13 @@ function updateHyperhdrInstanceListing()
 				});
 
 				hasItems = true;
-			}		
+			}
 	}
 
-	
+
 	if (hasItems)
-	{			
-		$('#btn_hypinstanceswitch').removeClass('disabled');		
+	{
+		$('#btn_hypinstanceswitch').removeClass('disabled');
 	}
 	else
 	{
@@ -200,14 +200,14 @@ function updateHyperhdrInstanceListing()
 function switchLang(newLang)
 {
 	if (newLang !== storedLang)
-	{		
+	{
 		setStorage("langcode", newLang);
 		reload();
 	}
 }
 
 function initLanguageSelection()
-{		
+{
 	var langLocale = storedLang;
 
 	// If no language has been set, resolve browser locale
@@ -228,36 +228,36 @@ function initLanguageSelection()
 	else
 	{
 		// If language is not supported by hyperhdr, try fallback language
-		langLocale = $.i18n().options.fallbackLocale.substring(0,2);	
+		langLocale = $.i18n().options.fallbackLocale.substring(0,2);
 		langIdx = availLang.indexOf(langLocale);
 		if ( langIdx > -1 )
 		{
 			langText = availLangText[langIdx];
 		}
 	}
-	
+
 	var newTree = $("#language_container_menu");
 	newTree.empty();
 	for (var i = 0; i < availLang.length; i++)
-	{		
+	{
 		var newLang = $('<li>');
-		
-		var newLink = $('<a>');		
+
+		var newLink = $('<a>');
 		newLink.addClass("nav-link");
-		
+
 		const sendId = availLang[i];
 		newLink.on("click", function(){
 			switchLang(sendId);
 		});
-		
-		var ilink = `<svg ${(i == langIdx) ? 'data-src="svg/main_menu_lang_selected.svg"' : ''} fill="currentColor" class="svg4hyperhdr"></svg>`;		
+
+		var ilink = `<svg ${(i == langIdx) ? 'data-src="svg/main_menu_lang_selected.svg"' : ''} fill="currentColor" class="svg4hyperhdr"></svg>`;
 		var item = $('<p>');
-		item.html(availLangText[i]); 
-		
+		item.html(availLangText[i]);
+
 		$(newLink).append(ilink);
 		$(newLink).append(item);
 		$(newLang).append(newLink);
-		$(newTree).append(newLang);		
+		$(newTree).append(newLang);
 	}
 }
 
@@ -313,7 +313,7 @@ function toaster(type, header, message, delay)
 	textelemHeader.innerText  = header;
 	let textelemBody = document.getElementById('toast_message_body_id');
 	textelemBody.innerText  = message;
-	let myToastEl = document.getElementById('toast_success_message');			
+	let myToastEl = document.getElementById('toast_success_message');
 	let myToast = bootstrap.Toast.getOrCreateInstance(myToastEl);
 	if (delay <= 0)
 		myToast.show();
@@ -329,7 +329,7 @@ function showInfoDialog(type,header,message)
 	headerControl.removeClass();
 	headerControl.addClass("modal-header modal-hyperhdr-header");
 	masterControl.removeClass();
-	masterControl.addClass("modal fade");	
+	masterControl.addClass("modal fade");
 
 	if (type=="error" || type=="warning" || type=="success" || type == "confirm")
 	{
@@ -368,14 +368,14 @@ function showInfoDialog(type,header,message)
 
 		if (message.length > 120)
 			masterControl.addClass("modal-lg");
-		masterControl.addClass("modal-hyperhdr-danger-warning-success");	
+		masterControl.addClass("modal-hyperhdr-danger-warning-success");
 
 		$('#new_modal_dialog_title').html('<h4 class="text-center">'+ header +'</h4>');
 		$('#new_modal_dialog_body').html('<div style="align-items: center; display: flex;">'+
 											`<div style="position: relative; left: 0px; ">`+
 												`<svg data-src="svg/${selectedSvg}" fill="currentColor" class="svg4hyperhdr ${selectedIcon}" style="position:static;"></svg>`+
 											'</div>'+
-											'<h5 class="ps-3">'+ message +'</h5>'+											
+											'<h5 class="ps-3">'+ message +'</h5>'+
 										 '</div>');
 
 		if (type == "confirm")
@@ -433,15 +433,15 @@ function showInfoDialog(type,header,message)
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 		$('#id_body').append(message);
 	}
-	
+
 	const myTarget = ((type == "renameInstance" || type == "changePassword" || type == "deleteInstance" ||
 						type=="error" || type=="warning" || type=="success" || type == "confirm") ? "#new_modal_dialog" : "#modal_dialog");
-	
+
 	const modal = new bootstrap.Modal($(myTarget), {
 		backdrop : "static",
 		keyboard: false
 	});
-	
+
 	modal.show();
 
 	$(document).on('click', myTarget, function (event) {
@@ -453,7 +453,7 @@ function showInfoDialog(type,header,message)
 }
 
 function createHintH(type, text, container)
-{	
+{
 	$('#'+container).prepend('<div class="callout '+type+'"><h4 style="font-size:16px">'+text+'</h4></div><hr/>');
 }
 
@@ -545,41 +545,41 @@ function putInstanceName(targetplace)
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 	var instName = (lastSelectedInstance!=null) ? getInstanceNameByIndex(lastSelectedInstance) : getInstanceNameByIndex(0);
 	var maxLen = 22;
-	
+
 	if (isSmallScreen())
 		maxLen = 19;
-	
+
 	if (instName.length > maxLen+1+3)
 		instName= instName.slice(0,maxLen)+'...';
-	
+
 	var con = document.createElement('div');
 	con.classList.add("card-tools");
 	var span = document.createElement('span');
 	span.classList.add("badge", "bg-danger");
 	span.style.fontWeight = "normal";
-	
+
 	span.innerHTML = instName;
 	con.appendChild(span);
-	
+
 	targetplace.appendChild(con);
 }
 
 function createJsonEditor(container, schema, setconfig, usePanel, arrayre = undefined, showInstance = false)
 {
 	var targetPlace = document.getElementById(container);
-	
+
 	if (targetPlace.parentElement != null && targetPlace.parentElement.parentElement !=null &&
 		!targetPlace.parentElement.parentElement.classList.contains('editor_column'))
 	{
 		targetPlace.parentElement.parentElement.classList.add('editor_column');
 	}
-	
+
 	$('#'+container).off();
 	$('#'+container).html("");
 
 	if (typeof arrayre === 'undefined')
 		arrayre = true;
-	
+
 	var editor = new JSONEditor(targetPlace,
 	{
 		theme: 'bootstrap5hyperhdr',
@@ -605,7 +605,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre = unde
 		$('#'+container+' h4').first().remove();
 		$('#'+container+' .well').first().removeClass('well well-sm');
 	}
-	
+
 	if (showInstance && targetPlace != null && targetPlace.parentElement != null && targetPlace.parentElement.firstElementChild.classList.contains('card-header'))
 	{
 		putInstanceName(targetPlace.parentElement.firstElementChild);
@@ -624,7 +624,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre = unde
 
 function buildWL(link,linkt,cl)
 {
-	
+
 	return '';
 }
 
@@ -687,18 +687,18 @@ function showNotification(type, message, title="", addhtml="")
 		<div class="notIcon hyperhdr-vcenter">
 			<svg data-src="svg/notification_warning.svg" style="width:2em;padding-bottom: 15px;" fill="currentColor" class="svg4hyperhdr hidden-xs me-0"></svg>
 		</div><div class="alertProgress alertProgressAnim" style="height:0%;z-index:1;"></div><div class="alertProgress bg-secondary h-100" style="z-index:0;"></div>
-		<h5><b>${title}</b></h5><hr/>${message}${addhtml}	
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>					
+		<h5><b>${title}</b></h5><hr/>${message}${addhtml}
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 	</div>`;
 
 	let targetPlace = document.getElementById("notification-target");
 	targetPlace.innerHTML += code;
-	
+
 	setTimeout(function(i) {
 		let target = document.getElementById(i);
 		if (target!=null)
 		{
-			target.classList.add("remove-alert");		
+			target.classList.add("remove-alert");
 			setTimeout(function(j) {
 				let k = document.getElementById(j);
 				if (k != null)
@@ -746,8 +746,8 @@ function createDivTable(hid, bid, cont)
 	table.style.marginBottom = "0px";
 	thead.className = hid + " container";
 	tbody.className = bid + " container";
-		
-	table.appendChild(thead);	
+
+	table.appendChild(thead);
 	table.appendChild(tbody);
 
 	$('#'+cont).append(table);
@@ -762,13 +762,13 @@ function createDivTable(hid, bid, cont)
 function createTableRow(list, head, align)
 {
 	var row = document.createElement('div');
-	
+
 	row.className = 'row mb-2';
 
 	for(var i = 0; i < list.length; i++)
 	{
 		var el = document.createElement('div');
-		
+
 		if (list.length == 2)
 		{
 			if (i==0)
@@ -778,10 +778,10 @@ function createTableRow(list, head, align)
 		}
 		else
 			el.className = 'col';
-		
+
 		if(head === true)
 			el.style.fontWeight = "bold";
-		
+
 		if(align)
 			el.style.verticalAlign = "middle";
 
@@ -792,18 +792,18 @@ function createTableRow(list, head, align)
 }
 
 function createTableFlex(hid, bid, cont, bless, tclass)
-{	
+{
 	var table = document.createElement('div');
 	var thead = document.createElement('div');
 	var tbody = document.createElement('div');
 
 	table.className = "container";
-	
+
 	if(bless === true)
 		table.className += " borderless";
 	else
 		thead.style.borderBottom = "thin solid lightgray";
-	
+
 	if(typeof tclass !== "undefined")
 		table.className += " "+tclass;
 	table.style.marginBottom = "0px";
@@ -820,13 +820,13 @@ function createTableFlex(hid, bid, cont, bless, tclass)
 function createTableRowFlex(list, head, align)
 {
 	var row = document.createElement('div');
-	
+
 	row.className = 'd-flex flex-row mb-2';
 
 	for(var i = 0; i < list.length; i++)
 	{
 		var el = document.createElement('div');
-		
+
 		if (list.length == 2)
 		{
 			if (i==0)
@@ -834,12 +834,12 @@ function createTableRowFlex(list, head, align)
 			else
 				el.className = 'w-100 d-flex p-2 justify-content-center';
 		}
-		else 
+		else
 			el.className = 'w-100 d-flex p-2';
-		
+
 		if(head === true)
 			el.style.fontWeight = "bold";
-		
+
 		if(align)
 			el.style.verticalAlign = "middle";
 
@@ -870,7 +870,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 	helpBtn.className = "btn btn-warning btn-warning-noset";
 	helpBtn.style.cssFloat = "left";
 	helpBtn.innerHTML = '<svg data-src="svg/button_help.svg" fill="currentColor" class="svg4hyperhdr"></svg>'+$.i18n('panel_help_button');
-	helpBtn.addEventListener("click", function() 
+	helpBtn.addEventListener("click", function()
 		{
 			var clientObj = helpBtn.parentElement.parentElement.parentElement.parentElement;
 			var target = clientObj.nextElementSibling;
@@ -884,7 +884,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 				{
 					var searching = target.parentElement.firstElementChild;
 					var index = 0;
-					
+
 					while (searching != null && searching != clientObj)
 					{
 						if (searching.classList.contains('editor_column') ||
@@ -892,14 +892,14 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 							index++;
 						searching = searching.nextElementSibling;
 					}
-					
+
 					if ((index % 2) && searching == clientObj)
 					{
 						var breaker = document.createElement('div');
 						breaker.classList.add("w-100");
 						breaker.classList.add("breaker");
 						clientObj.parentNode.insertBefore(breaker, clientObj);
-						clientObj.scrollIntoView({behavior: "smooth"}); 
+						clientObj.scrollIntoView({behavior: "smooth"});
 					}
 				}
 			}
@@ -908,21 +908,21 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 				target.classList.add("d-none");
 				helpBtn.classList.remove("btn-warning-set");
 				helpBtn.classList.add("btn-warning-noset");
-				
-				if (clientObj.previousElementSibling != null && 
+
+				if (clientObj.previousElementSibling != null &&
 					clientObj.previousElementSibling.classList.contains("breaker"))
 				{
 					(clientObj.previousElementSibling).remove();
 					clientObj.scrollIntoView({behavior: "smooth"});
 				}
-			}			
+			}
 		}
-	); 
-	var common = document.createElement("div");	
+	);
+	var common = document.createElement("div");
 	common.appendChild(helpBtn);
-	common.appendChild(saveBtn);	
-	
-	return createPanel(phead, "", common, "card-default", bodyid);	
+	common.appendChild(saveBtn);
+
+	return createPanel(phead, "", common, "card-default", bodyid);
 }
 
 function sortProperties(list)
@@ -942,7 +942,7 @@ function sortProperties(list)
 function createHelpTable(list, phead){
 	var table = document.createElement('div');
 	table.className = "container";
-	
+
 	list = sortProperties(list);
 
 	phead = '<svg data-src="svg/help_table_icon.svg" fill="#FFE810" class="svg4hyperhdr"></svg>' +phead + ' '+$.i18n("conf_helptable_expl");
@@ -975,7 +975,7 @@ function createHelpTable(list, phead){
 			}
 		}
 	}
-	
+
 	var finalHelp =  createPanel(phead, table);
 	finalHelp.classList.add('d-none');
 	finalHelp.classList.add('help-column');
@@ -1140,7 +1140,7 @@ function getReleases(callback)
 function handleDarkMode()
 {
 	$('body').addClass('dark-mode');
-	$('aside').addClass('dark-mode');	
+	$('aside').addClass('dark-mode');
 
 	setStorage("darkMode", "on", false);
 	$('#btn_darkmode_moon_icon').addClass('d-none');
@@ -1150,7 +1150,7 @@ function handleDarkMode()
 function handleLightMode()
 {
 	$('body').removeClass('dark-mode');
-	$('aside').removeClass('dark-mode');	
+	$('aside').removeClass('dark-mode');
 
 	setStorage("darkMode", "on", false);
 	$('#btn_darkmode_moon_icon').removeClass('d-none');

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef PCH_ENABLED	
+#ifndef PCH_ENABLED
 	#include <QHostAddress>
 	#include <chrono>
 #endif

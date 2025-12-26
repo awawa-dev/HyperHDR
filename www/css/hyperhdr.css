@@ -57,7 +57,7 @@ body:not(.dark-mode) .stats-report-warning {
 
 .svg4hyperhdr {
     display: inline-flex;
-    align-self: center;	
+    align-self: center;
 }
 
 svg.svg4hyperhdr {
@@ -173,7 +173,7 @@ body:not(.dark-mode) #perf_cpu_usage>span[class^="cpu_"], body:not(.dark-mode) #
 		height: 100%;
 		position: absolute;
 		top: 0;
-		left: 0;	  
+		left: 0;
 		padding-top: 15px;
 		border-radius: 6px 0 0 6px;
 		border-color: none;
@@ -183,7 +183,7 @@ body:not(.dark-mode) #perf_cpu_usage>span[class^="cpu_"], body:not(.dark-mode) #
 		width: 4px;
 		position: absolute;
 		bottom: 0;
-		left: 60px;	  
+		left: 60px;
 		border-color: none;
 	}
 
@@ -293,7 +293,7 @@ body:not(.dark-mode) .alert.parentAlert {
 		height: 100%;
 		position: absolute;
 		top: 0;
-		left: 0;	  
+		left: 0;
 		padding-top: 15px;
 		border-radius: 6px 0 0 6px;
 		border-color: none;
@@ -313,8 +313,8 @@ body:not(.dark-mode) .alert.parentAlert {
 		width: 4px;
 		position: absolute;
 		bottom: 0;
-		left: 12px;	  
-		border-color: none;		
+		left: 12px;
+		border-color: none;
 	}
 
 	#logmessages {
@@ -393,17 +393,17 @@ body:not(.dark-mode) .alert.parentAlert {
     width: 11rem !important;
 }
 
-.layout_default.picker_wrapper {  
+.layout_default.picker_wrapper {
     width: 29em !important;
 }
 
-.layout_default.picker_wrapper {  
+.layout_default.picker_wrapper {
     z-index: 100;
 }
 
 /* drag and resizable modal http://gijgo.com/ */
 body:not(.dark-mode) .modal-header.gj-draggable{
-	background-color:#1d9ef0 !important;	
+	background-color:#1d9ef0 !important;
 }
 
 .dark-mode .modal-header.gj-draggable{
@@ -430,7 +430,7 @@ body:not(.dark-mode) #live_preview_dialog{
 }
 
 .dark-mode #live_preview_dialog{
-	border-color: #3e454d !important;	
+	border-color: #3e454d !important;
 	border-width: 1px !important;
 	border-style: solid !important;
 	border-top-left-radius: 6px !important;
@@ -547,7 +547,7 @@ body:not(.dark-mode) .card-default>.card-header{
     padding-bottom: 9px;
     margin: 40px 0 20px;
     margin-top: 15px;
-    border-bottom: 1px solid #eee;	
+    border-bottom: 1px solid #eee;
 }
 
 .page-header > span {
@@ -559,18 +559,18 @@ div.card-body{
 }
 
 .card-body td{
-	padding: 0.5rem;	
+	padding: 0.5rem;
 }
 
 .col-form-label>label{
 	padding-left:0px !important;
 	padding-right:0px !important;
 	font-weight: bold;
-	
+
 }
 
 .dark-mode div.col-form-label>label{
-	font-weight: 300 !important;	
+	font-weight: 300 !important;
 }
 
 
@@ -581,21 +581,21 @@ div.card-body{
 /* toggle component in the remote */
 .toggle-group > .toggle-off
 {
-	padding-left: 20px;	
+	padding-left: 20px;
 	background-color: red;
     border-color: purple;
 }
 
 body:not(.dark-mode) .toggle-group > .toggle-handle
-{	
+{
 	background-color: #EEE;
-	border-color: #CCC;	
+	border-color: #CCC;
 }
 
 .dark-mode .toggle-group > .toggle-handle
-{	
+{
 	background-color: #888;
-	border-color: #999;	
+	border-color: #999;
 }
 
 /* log messages */
@@ -603,8 +603,8 @@ body:not(.dark-mode) pre > #logmessages
 {
 	display: block;
 	padding: 9.5px;
-	margin: 0 0 10px;	
-	word-break: normal;	
+	margin: 0 0 10px;
+	word-break: normal;
 	color: #333;
 	background-color: #f5f5f5;
 	border: 1px solid #ccc;
@@ -615,8 +615,8 @@ body:not(.dark-mode) pre > #logmessages
 {
 	display: block;
 	padding: 9.5px;
-	margin: 0 0 10px;	
-	word-break: normal;	
+	margin: 0 0 10px;
+	word-break: normal;
 	color: #BBB;
 	background-color: #212529;
 	border: 1px solid #333;
@@ -638,7 +638,7 @@ body:not(.dark-mode) pre > #logmessages
     margin-bottom: 1px !important;
 }
 
-#collapse3 > .card-body > .container 
+#collapse3 > .card-body > .container
 {
 	padding-left: 0px;
 	padding-right: 0px;
@@ -649,7 +649,7 @@ body:not(.dark-mode) pre > #logmessages
 {
 	border-radius: .25em;
     height: 1.5rem;
-    width: 1.5rem;	
+    width: 1.5rem;
 }
 
 .card .fa, .page-header>.fa
@@ -676,11 +676,11 @@ body:not(.dark-mode) .my-text-success {
 }
 
 .nav-pills li:not(.menu-is-opening) > .nav-link:hover {
-	cursor: pointer;	
+	cursor: pointer;
 }
 
 .nav-pills li.menu-is-opening > .nav-link:hover {
-	cursor: default;		
+	cursor: default;
 }
 
 .sidebar-light:not(.dark-mode) .menu-is-opening > .nav-link {
@@ -692,7 +692,7 @@ body:not(.dark-mode) .my-text-success {
 }
 
 .dark-mode .menu-is-opening > .nav-link {
-	background: rgb(55, 61, 68);	
+	background: rgb(55, 61, 68);
 }
 
 .dark-mode .nav-pills .nav-item > .nav-link:hover {
@@ -735,7 +735,7 @@ body:not(.dark-mode) #btn_hypinstanceswitch.disabled, body:not(.dark-mode) #btn_
 #hyperhdr_instances_list.show
 {
 	margin-left: -3rem !important;
-	margin-top: 0.5rem !important;	
+	margin-top: 0.5rem !important;
 }
 
 .dark-mode #hyperhdr_instances_list>.dropdown-divider
@@ -968,7 +968,7 @@ body:not(.dark-mode) .lutdownloader{
 }
 
 .crosslineDark {
-     background: 
+     background:
          linear-gradient(to top left,
              rgba(0,0,0,0) 0%,
              rgba(0,0,0,0) calc(50% - 1px),
@@ -984,7 +984,7 @@ body:not(.dark-mode) .lutdownloader{
 }
 
 .crosslineWhite {
-     background: 
+     background:
          linear-gradient(to top left,
              rgba(0,0,0,0) 0%,
              rgba(0,0,0,0) calc(50% - 1.5px),
@@ -1046,7 +1046,7 @@ body:not(.dark-mode) .lutdownloader{
 	 transition: .4s ease;
 	 -webkit-tap-highlight-color: transparent;
 	 height: 30px;
-	 width: 52px;	 
+	 width: 52px;
 	 border-radius: 60px;
 }
  input.mobileToggle + label:before {
@@ -1091,46 +1091,46 @@ body:not(.dark-mode) .lutdownloader{
 }
 
 body:not(.dark-mode) input.mobileToggle:checked + label:before
-{	
-	background: #198754;	
+{
+	background: #198754;
 }
 
 .dark-mode input.mobileToggle:checked + label:before
-{	
-	background: #00bc8c;	
+{
+	background: #00bc8c;
 }
 
 body:not(.dark-mode) input.mobileToggle + label:before
-{	
-	background: #dc3545;	
+{
+	background: #dc3545;
 }
 
 .dark-mode input.mobileToggle + label:before
-{	
+{
 	background: #e74c3c;
 }
 
 body:not(.dark-mode) input.mobileToggle:not(:checked) + label
-{	
+{
 	border-color: #ec4555;
 }
 
 .dark-mode input.mobileToggle:not(:checked) + label
-{	
+{
 	border-color: #f75c4c;
 }
 
 body:not(.dark-mode) input.mobileToggle:checked + label
-{	
+{
 	border-color: #299764;
 }
 
 .dark-mode input.mobileToggle:checked + label
-{	
+{
 	border-color: #10cc9c;
 }
 
 input.mobileToggle:disabled + label:before
-{	
-	background: #a0a0a0 !important;	
+{
+	background: #a0a0a0 !important;
 }

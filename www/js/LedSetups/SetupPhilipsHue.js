@@ -346,7 +346,7 @@ function SaveHueConfig(saveLamps = true)
     {
         hueLedConfig = sc.leds;
     }
-    
+
     sc.leds = hueLedConfig;
 
     //Adjust gamma, brightness and compensation
@@ -500,7 +500,7 @@ function beginWizardHue()
 
     $('#btn_wiz_save').off().on("click", function ()
     {
-        SaveHueConfig();        
+        SaveHueConfig();
         resetWizard();
     });
 
@@ -519,7 +519,7 @@ function createHueUser()
     {
         tunnel_hue_post($("#ip").val(), '/api', JSON.stringify(data)).then( (r) =>
             {
-                if (r != null)  
+                if (r != null)
                 {
                     if (Object.keys(r).length === 0)
                     {
@@ -753,8 +753,8 @@ function get_hue_lights()
                     let descLightVal = (useV2Api) ? `Channel ${lightid}` : r[lightid].name;
                     let selectLightControl = `<select id="hue_${lightid}" class="hue_sel_watch form-select">${options}</select>`;
                     let ipVal = encodeURI($("#ip").val());
-                    let userVal = encodeURI($("#user").val());                  
-                    let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_hue_device("${ipVal}","${userVal}",${lightid})>***${$.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid)}</button>`;                 
+                    let userVal = encodeURI($("#user").val());
+                    let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_hue_device("${ipVal}","${userVal}",${lightid})>***${$.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid)}</button>`;
                     $('.lidsb').append(createTableRowFlex([`${lightid} (${descLightVal})`, selectLightControl, buttonLightLink]));
                 }
 

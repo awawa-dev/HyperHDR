@@ -67,7 +67,7 @@ public:
 
 	const double& y() const { return color.x; }
 	const double3& yuv() const { return color; }
-	const byte3& coords() const { return arrayCoords; }	
+	const byte3& coords() const { return arrayCoords; }
 
 	const uint8_t& Y() const { return colorInt.x; }
 	const uint8_t& U() const { return colorInt.y; }

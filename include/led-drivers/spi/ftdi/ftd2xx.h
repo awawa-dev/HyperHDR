@@ -76,14 +76,14 @@ kernel & user mode
 
 #endif // _WIN32
 
-/** @name FT_HANDLE 
+/** @name FT_HANDLE
  * An opaque value used as a handle to an opened FT device.
  */
 typedef PVOID	FT_HANDLE;
 
 /** @{
- * @name FT_STATUS 
- * @details Return status values for API calls. 
+ * @name FT_STATUS
+ * @details Return status values for API calls.
  */
 typedef ULONG	FT_STATUS;
 
@@ -112,7 +112,7 @@ enum {
 };
 /** @} */
 
-/** @name FT_SUCCESS Macro 
+/** @name FT_SUCCESS Macro
  * Macro to determine success of an API call.
  * @returns Non-zero for successful call.
  */
@@ -144,7 +144,7 @@ enum {
 #define FT_LIST_MASK (FT_LIST_NUMBER_ONLY|FT_LIST_BY_INDEX|FT_LIST_ALL)
 /** @} */
 
-/** @{ 
+/** @{
  * @name Baud Rates
  * Standard baud rates supported by many implementations and applications.
  * @see FT_SetBaudRate
@@ -165,7 +165,7 @@ enum {
 #define FT_BAUD_921600		921600
 /** @} */
 
-/** @{ 
+/** @{
  * @name Word Lengths
  * @see FT_SetDataCharacteristics
  */
@@ -173,7 +173,7 @@ enum {
 #define FT_BITS_7			(UCHAR) 7
 /** @} */
 
-/** @{ 
+/** @{
  * @name Stop Bits
  * @see FT_SetDataCharacteristics
  */
@@ -183,7 +183,7 @@ enum {
 
 /* * @name Parity
  * @see FT_SetDataCharacteristics
- * @{ 
+ * @{
  */
 #define FT_PARITY_NONE		(UCHAR) 0
 #define FT_PARITY_ODD		(UCHAR) 1
@@ -192,7 +192,7 @@ enum {
 #define FT_PARITY_SPACE		(UCHAR) 4
 /** @} */
 
-/** @{ 
+/** @{
  * @name Flow Control
  * @see FT_SetFlowControl
  */
@@ -202,7 +202,7 @@ enum {
 #define FT_FLOW_XON_XOFF	0x0400
 /** @} */
 
-/** @{ 
+/** @{
  * @name Purge rx and tx buffers
  * @see FT_Purge
  */
@@ -210,7 +210,7 @@ enum {
 #define FT_PURGE_TX			2
 /** @} */
 
-/** @{ 
+/** @{
  * @name Events
  * @see FT_SetEventNotification
  */
@@ -221,7 +221,7 @@ typedef void(*PFT_EVENT_HANDLER)(DWORD, DWORD);
 #define FT_EVENT_LINE_STATUS	4
 /** @} */
 
-/** @{ 
+/** @{
  * @name Timeouts
  * @see FT_SetTimeouts
  */
@@ -229,7 +229,7 @@ typedef void(*PFT_EVENT_HANDLER)(DWORD, DWORD);
 #define FT_DEFAULT_TX_TIMEOUT	300
 /** @} */
 
-/** @{ 
+/** @{
  * @name Device Types
  * @details Known supported FTDI device types supported by this library.
  */
@@ -272,7 +272,7 @@ enum {
 };
 /** @} */
 
-/** @{ 
+/** @{
  * @name Bit Modes
  * @see FT_SetBitMode FT_GetBitMode
  */
@@ -286,7 +286,7 @@ enum {
 #define FT_BITMODE_SYNC_FIFO				0x40
 /** @} */
 
-/** @{ 
+/** @{
  * @name FT232R CBUS Options EEPROM values
  */
 #define FT_232R_CBUS_TXDEN					0x00	//	Tx Data Enable
@@ -308,7 +308,7 @@ enum {
 #define FT_232R_CBUS3_WR					0x0D	//	CBUS3 WR#
 /** @} */
 
-/** @{ 
+/** @{
  * @name FT232H CBUS Options EEPROM values
  */
 #define FT_232H_CBUS_TRISTATE				0x00	//	Tristate
@@ -326,7 +326,7 @@ enum {
 #define FT_232H_CBUS_CLK7_5					0x0C	//	7.5MHz clock
 /** @} */
 
-/** @{ 
+/** @{
  * @name FT X Series CBUS Options EEPROM values
  */
 #define FT_X_SERIES_CBUS_TRISTATE			0x00	//	Tristate
@@ -350,10 +350,10 @@ enum {
 #define FT_X_SERIES_CBUS_BITBANG_WR			0x12	//	Bit-bang write strobe
 #define FT_X_SERIES_CBUS_BITBANG_RD			0x13	//	Bit-bang read strobe
 #define FT_X_SERIES_CBUS_TIMESTAMP			0x14	//	Toggle output when a USB SOF token is received
-#define FT_X_SERIES_CBUS_KEEP_AWAKE			0x15	//	
+#define FT_X_SERIES_CBUS_KEEP_AWAKE			0x15	//
 /** @} */
 
-/** @{ 
+/** @{
  * @name Driver Types
  */
 #define FT_DRIVER_TYPE_D2XX		0
@@ -363,7 +363,7 @@ enum {
 /** @{
  * @name FT_DEVICE_LIST_INFO_NODE Device Information Flags
  * @par Summary
- * These flags are used in the Flags member of FT_DEVICE_LIST_INFO_NODE to indicated the state of 
+ * These flags are used in the Flags member of FT_DEVICE_LIST_INFO_NODE to indicated the state of
  * the device and speed of the device.
 */
 enum {
@@ -386,7 +386,7 @@ extern "C" {
 		);
 #endif // FTD2XX_STATIC
 
-/**	 * @name D2XX Classic Functions 
+/**	 * @name D2XX Classic Functions
  	The functions listed in this section are compatible with all FTDI devices.
  */
 /** @{ */
@@ -397,18 +397,18 @@ extern "C" {
 	 * Linux
 	 * Mac OS X (10.4 and later)
 	 * @par Summary
-	 * A command to include a custom VID and PID combination within the internal device list table. 
+	 * A command to include a custom VID and PID combination within the internal device list table.
 	 * This will allow the driver to load for the specified VID and PID combination.
 	 * @param dwVID Device Vendor ID (VID)
 	 * @param dwPID Device Product ID (PID)
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * By default, the driver will support a limited set of VID and PID matched devices (VID 0x0403 
+	 * By default, the driver will support a limited set of VID and PID matched devices (VID 0x0403
 	 * with PIDs for standard FTDI devices only).
-	 * @n In order to use the driver with other VID and PID combinations the FT_SetVIDPID function 
+	 * @n In order to use the driver with other VID and PID combinations the FT_SetVIDPID function
 	 * must be used prior to calling FT_ListDevices, FT_Open, FT_OpenEx or FT_CreateDeviceInfoList.
-	 * @note Extra function for non-Windows platforms to compensate for lack of .INF file to specify 
+	 * @note Extra function for non-Windows platforms to compensate for lack of .INF file to specify
 	 * Vendor and Product IDs.
 	 */
 	FTD2XX_API FT_STATUS FT_SetVIDPID(
@@ -435,14 +435,14 @@ extern "C" {
 		DWORD * pdwPID
 		);
 
-#endif // _WIN32        
+#endif // _WIN32
 
 	/** @noop FT_CreateDeviceInfoList
 	 * @par Supported Operating Systems
 	 * Linux
 	 * Mac OS X (10.4 and later)
 	 * Windows (2000 and later)
-	 * Windows CE (4.2 and later) 
+	 * Windows CE (4.2 and later)
 	 * @par Summary
 	 * This function builds a device information list and returns the number of D2XX devices connected to the
 	 * system. The list contains information about both unopen and open devices.
@@ -454,7 +454,7 @@ extern "C" {
 	 * allocate space for the device information list and retrieve the list using FT_GetDeviceInfoList or
 	 * FT_GetDeviceInfoDetail.
 	 * @n If the devices connected to the system change, the device info list will not be updated until
-	 * FT_CreateDeviceInfoList is called again. 
+	 * FT_CreateDeviceInfoList is called again.
 	 * @see FT_GetDeviceInfoList
 	 * @see FT_GetDeviceInfoDetail
 	 */
@@ -482,7 +482,7 @@ extern "C" {
 	 * Linux
 	 * Mac OS X (10.4 and later)
 	 * Windows (2000 and later)
-	 * Windows CE (4.2 and later) 
+	 * Windows CE (4.2 and later)
 	 * @par Summary
 	 * This function returns a device information list and the number of D2XX devices in the list.
 	 * @param *pDest Pointer to an array of FT_DEVICE_LIST_INFO_NODE structures.
@@ -505,7 +505,7 @@ extern "C" {
 	 * the application. The number of devices returned by FT_CreateDeviceInfoList can be used to do this.
 	 * When programming in Visual Basic, LabVIEW or similar languages, FT_GetDeviceInfoDetail may be
 	 * required instead of this function.
-	 * @note Please note that Windows CE does not support location IDs. As such, the Location ID parameter in the 
+	 * @note Please note that Windows CE does not support location IDs. As such, the Location ID parameter in the
 	 * structure will be empty.
 	 * @see FT_CreateDeviceInfoList
 	 */
@@ -519,7 +519,7 @@ extern "C" {
 	 * Linux
 	 * Mac OS X (10.4 and later)
 	 * Windows (2000 and later)
-	 * Windows CE (4.2 and later) 
+	 * Windows CE (4.2 and later)
 	 * @par Summary
 	 * This function returns an entry from the device information list.
 	 * @param dwIndex Index of the entry in the device info list.
@@ -545,7 +545,7 @@ extern "C" {
 	 * parameter will indicate that the device is open, but other fields will be unpopulated.
 	 * To return the whole device info list as an array of FT_DEVICE_LIST_INFO_NODE structures, use
 	 * FT_CreateDeviceInfoList.
-	 * @note Please note that Windows CE does not support location IDs. As such, the Location ID parameter in the 
+	 * @note Please note that Windows CE does not support location IDs. As such, the Location ID parameter in the
 	 * structure will be empty.
 	 * @see FT_CreateDeviceInfoList
 	 */
@@ -578,8 +578,8 @@ extern "C" {
 	 * FT_LIST_NUMBER_ONLY bit is set in dwFlags, the parameter pvArg1 is interpreted as a pointer to a
 	 * DWORD location to store the number of devices currently connected.
 	 * @n It can be used to return device information: if FT_OPEN_BY_SERIAL_NUMBER bit is set in dwFlags, the
-	 * serial number string will be returned; if FT_OPEN_BY_DESCRIPTION bit is set in dwFlags, the product 
-	 * description string will be returned; if FT_OPEN_BY_LOCATION bit is set in dwFlags, the Location ID will 
+	 * serial number string will be returned; if FT_OPEN_BY_DESCRIPTION bit is set in dwFlags, the product
+	 * description string will be returned; if FT_OPEN_BY_LOCATION bit is set in dwFlags, the Location ID will
 	 * be returned; if none of these bits is set, the serial number string will be returned by default.
 	 * @n It can be used to return device string information for a single device. If FT_LIST_BY_INDEX and
 	 * FT_OPEN_BY_SERIAL_NUMBER or FT_OPEN_BY_DESCRIPTION bits are set in dwFlags, the parameter
@@ -594,7 +594,7 @@ extern "C" {
 	 * NULL pointer so the array will contain one more location than the number of devices connected.
 	 * @n The location ID of a device is returned if FT_LIST_BY_INDEX and FT_OPEN_BY_LOCATION bits are set in
 	 * dwFlags. In this case the parameter pvArg1 is interpreted as the index of the device, and the parameter
-	 * pvArg2 is interpreted as a pointer to a variable of type long to contain the location ID. Indexes are 
+	 * pvArg2 is interpreted as a pointer to a variable of type long to contain the location ID. Indexes are
 	 * zerobased, and the error code FT_DEVICE_NOT_FOUND is returned for an invalid index. Please note that
 	 * Windows CE and Linux do not support location IDs.
 	 * @n The location IDs of all connected devices are returned if FT_LIST_ALL and FT_OPEN_BY_LOCATION bits
@@ -620,10 +620,10 @@ extern "C" {
 	 * @par Summary
 	 * Open the device and return a handle which will be used for subsequent accesses.
 	 * @param deviceNumber Index of the device to open. Indices are 0 based.
-	 * @param pHandle Pointer to a variable of type FT_HANDLE where the handle will be stored. This handle must 
+	 * @param pHandle Pointer to a variable of type FT_HANDLE where the handle will be stored. This handle must
 	 * be used to access the device.
 	 * @return
-	 * FT_OK if successful, otherwise the return value is an FT error code. 
+	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
 	 * Although this function can be used to open multiple devices by setting iDevice to 0, 1, 2 etc. there is no
 	 * ability to open a specific device. To open named devices, use the function FT_OpenEx.
@@ -648,17 +648,17 @@ extern "C" {
 	 * location of a device on USB). Location IDs for specific USB ports can be obtained using the utility
 	 * USBView and are given in hexadecimal format. Location IDs for devices connected to a system can be
 	 * obtained by calling FT_GetDeviceInfoList or FT_ListDevices with the appropriate flags.
-	 * @param pvArg1 Pointer to an argument whose type depends on the value of dwFlags. 
+	 * @param pvArg1 Pointer to an argument whose type depends on the value of dwFlags.
 	 * It is normally be interpreted as a pointer to a null terminated string.
 	 * @param dwFlags FT_OPEN_BY_SERIAL_NUMBER, FT_OPEN_BY_DESCRIPTION or FT_OPEN_BY_LOCATION.
 	 * @param pHandle Pointer to a variable of type FT_HANDLE where the handle will be
 	 * stored. This handle must be used to access the device.
-	 * @returns 
-	 * FT_OK if successful, otherwise the return value is an FT error code. 
-	 * @remarks 
+	 * @returns
+	 * FT_OK if successful, otherwise the return value is an FT error code.
+	 * @remarks
 	 * The parameter specified in pvArg1 depends on dwFlags: if dwFlags is FT_OPEN_BY_SERIAL_NUMBER,
 	 * pvArg1 is interpreted as a pointer to a null-terminated string that represents the serial number of the
-	 * device; if dwFlags is FT_OPEN_BY_DESCRIPTION, pvArg1 is interpreted as a pointer to a nullterminated 
+	 * device; if dwFlags is FT_OPEN_BY_DESCRIPTION, pvArg1 is interpreted as a pointer to a nullterminated
 	 * string that represents the device description; if dwFlags is FT_OPEN_BY_LOCATION, pvArg1
 	 * is interpreted as a long value that contains the location ID of the device. Please note that Windows CE
 	 * and Linux do not support location IDs.
@@ -680,7 +680,7 @@ extern "C" {
 	 * @par Summary
 	 * Close an open device.
 	 * @param ftHandle Handle of the device.
-	 * @returns 
+	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_Close(
@@ -760,7 +760,7 @@ extern "C" {
 	 * @param dwBaudRate Baud rate.
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code
-	 */ 
+	 */
 	FTD2XX_API FT_STATUS WINAPI FT_SetBaudRate(
 		FT_HANDLE ftHandle,
 		ULONG dwBaudRate
@@ -800,7 +800,7 @@ extern "C" {
 	 * @param ftHandle Handle of the device.
 	 * @param uWordLength Number of bits per word - must be FT_BITS_8 or FT_BITS_7.
 	 * @param uStopBits Number of stop bits - must be FT_STOP_BITS_1 or FT_STOP_BITS_2.
-	 * @param uParity Parity - must be FT_PARITY_NONE, FT_PARITY_ODD, FT_PARITY_EVEN, 
+	 * @param uParity Parity - must be FT_PARITY_NONE, FT_PARITY_ODD, FT_PARITY_EVEN,
 	 * FT_PARITY_MARK or FT_PARITY SPACE.
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
@@ -841,7 +841,7 @@ extern "C" {
 	 * @par Summary
 	 * This function sets the flow control for the device.
 	 * @param ftHandle Handle of the device.
-	 * @param usFlowControl Must be one of FT_FLOW_NONE, FT_FLOW_RTS_CTS, FT_FLOW_DTR_DSR or 
+	 * @param usFlowControl Must be one of FT_FLOW_NONE, FT_FLOW_RTS_CTS, FT_FLOW_DTR_DSR or
 	 * FT_FLOW_XON_XOFF.
 	 * @param uXonChar Character used to signal Xon. Only used if flow control is FT_FLOW_XON_XOFF.
 	 * @param uXoffChar Character used to signal Xoff. Only used if flow control is	FT_FLOW_XON_XOFF.
@@ -938,7 +938,7 @@ extern "C" {
 	 * @param ftHandle Handle of the device.
 	 * @param lpdwModemStatus Pointer to a variable of type DWORD which receives the modem
 	 * status and line status from the device.
-	 * @returns 
+	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
 	 * The least significant byte of the lpdwModemStatus value holds the modem status. On Windows and
@@ -1011,7 +1011,7 @@ extern "C" {
 		FT_HANDLE ftHandle,
 		LPDWORD lpdwLocId
 		);
-#endif // _WIN32        
+#endif // _WIN32
 
 	/** @noop FT_GetDriverVersion
 	 * @par Supported Operating Systems
@@ -1175,7 +1175,7 @@ extern "C" {
 	 * Sets the BREAK condition for the device.
 	 * @param ftHandle Handle of the device.
 	 * @returns
-	 * FT_OK if successful, otherwise the return value is an FT error code	
+	 * FT_OK if successful, otherwise the return value is an FT error code
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_SetBreakOn(
 		FT_HANDLE ftHandle
@@ -1220,7 +1220,7 @@ extern "C" {
 	 * Linux
 	 * Mac OS X (10.4 and later)
 	 * Windows (2000 and later)
-	 * Windows CE (4.2 and later) 
+	 * Windows CE (4.2 and later)
 	 * @par Summary
 	 * This function sends a reset command to the device.
 	 * @param ftHandle Handle of the device.
@@ -1240,7 +1240,7 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This function is used to attempt to recover the port after a failure. It is not equivalent 
+	 * This function is used to attempt to recover the port after a failure. It is not equivalent
 	 * to an unplug-replug event. For the equivalent of an unplug-replug event, use FT_CyclePort.
 	 * @see FT_CyclePort
 	 */
@@ -1257,13 +1257,13 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * The effect of this function is the same as disconnecting then reconnecting the device from 
-	 * USB. Possible use of this function is situations where a fatal error has occurred and it is 
-	 * difficult, or not possible, to recover without unplugging and replugging the USB cable. 
-	 * This function can also be used after reprogramming the EEPROM to force the FTDI device to 
+	 * The effect of this function is the same as disconnecting then reconnecting the device from
+	 * USB. Possible use of this function is situations where a fatal error has occurred and it is
+	 * difficult, or not possible, to recover without unplugging and replugging the USB cable.
+	 * This function can also be used after reprogramming the EEPROM to force the FTDI device to
 	 * read the new EEPROM contents which would	otherwise require a physical disconnect-reconnect.
-	 * @n As the current session is not restored when the driver is reloaded, the application must 
-	 * be able to recover after calling this function. It is ithe responisbility of the application 
+	 * @n As the current session is not restored when the driver is reloaded, the application must
+	 * be able to recover after calling this function. It is ithe responisbility of the application
 	 * to close the handle after successfully calling FT_CyclePort.
 	 * @n For FT4232H, FT2232H and FT2232 devices, FT_CyclePort will only work under Windows XP and later.
 	 */
@@ -1376,7 +1376,7 @@ extern "C" {
 	 * Windows (2000 and later)
 	 * Windows CE (4.2 and later)
 	 * @par Summary
-	 * This function allows the maximum time in milliseconds that a USB request can remain outstanding to 
+	 * This function allows the maximum time in milliseconds that a USB request can remain outstanding to
 	 * be set.
 	 * @param ftHandle Handle of the device.
 	 * @param ulDeadmanTimeout Deadman timeout value in milliseconds. Default value is 5000.
@@ -1438,15 +1438,15 @@ extern "C" {
  * is 48 words (1 word = 2 bytes).
  * @li The first two characters of the serial number are the manufacturer ID.
  * @li The Manufacturer string length plus the Description string length is less than or equal to 40
- * characters with the following functions: FT_EE_Read, FT_EE_Program, FT_EE_ProgramEx, 
+ * characters with the following functions: FT_EE_Read, FT_EE_Program, FT_EE_ProgramEx,
  * FT_EEPROM_Read, FT_EEPROM_Program.
- * @li The serial number should be maximum 15 characters long on single port devices (eg FT232R, FT-X) 
+ * @li The serial number should be maximum 15 characters long on single port devices (eg FT232R, FT-X)
  * and 14 characters on multi port devices (eg FT2232H, FT4232H). If it is longer then it may be
  * truncated and will not have a null terminator.
 
- * For instance a serial number which is 15 characters long on a multi-port device will have an 
- * effective serial number which is 16 characters long since the serial number is appended with the 
- * channel identifier (A,B,etc). The buffer used to return the string from the API is only 16 
+ * For instance a serial number which is 15 characters long on a multi-port device will have an
+ * effective serial number which is 16 characters long since the serial number is appended with the
+ * channel identifier (A,B,etc). The buffer used to return the string from the API is only 16
  * characters in size so the NULL termination will be lost.
  * @n If the serial number or description are too long in the EEPROM or configuration of a device then the
  * strings returned by FT_GetDeviceInfo and FT_ListDevices may not be NULL terminated
@@ -1489,7 +1489,7 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * EEPROMs for FTDI devices are organised by WORD, so each value written to the EEPROM is 
+	 * EEPROMs for FTDI devices are organised by WORD, so each value written to the EEPROM is
 	 * 16-bits wide.
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_WriteEE(
@@ -1518,7 +1518,7 @@ extern "C" {
 		);
 
 	/**
-	 * Structure to hold program data for FT_EE_Program, FT_EE_ProgramEx, FT_EE_Read 
+	 * Structure to hold program data for FT_EE_Program, FT_EE_ProgramEx, FT_EE_Read
 	 * and FT_EE_ReadEx functions.
 	 * @see FT_EE_Read
 	 * @see FT_EE_ReadEx
@@ -1527,7 +1527,7 @@ extern "C" {
 	 */
 	typedef struct ft_program_data {
 
-		DWORD Signature1;			/// Header - must be 0x00000000 
+		DWORD Signature1;			/// Header - must be 0x00000000
 		DWORD Signature2;			/// Header - must be 0xffffffff
 		DWORD Version;				/// Header - FT_PROGRAM_DATA version
 		//			0 = original
@@ -1686,7 +1686,7 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This function interprets the parameter pData as a pointer to a structure of type FT_PROGRAM_DATA 
+	 * This function interprets the parameter pData as a pointer to a structure of type FT_PROGRAM_DATA
 	 * that contains storage for the data to be read from the EEPROM.
 	 * @n The function does not perform any checks on buffer sizes, so the buffers passed in the
 	 * FT_PROGRAM_DATA structure must be big enough to accommodate their respective strings (including
@@ -1697,7 +1697,7 @@ extern "C" {
 	 * This is done through the Signature1, Signature2 and Version elements of the structure. Signature1
 	 * should always be 0x00000000, Signature2 should always be 0xFFFFFFFF and Version can be set to use
 	 * whichever version is required. For compatibility with all current devices Version should be set to the
-	 * latest version of the FT_PROGRAM_DATA structure which is defined in FTD2XX.h. 
+	 * latest version of the FT_PROGRAM_DATA structure which is defined in FTD2XX.h.
 	 * @see FT_PROGRAM_DATA
 	 * */
 	FTD2XX_API FT_STATUS WINAPI FT_EE_Read(
@@ -1761,19 +1761,19 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This function interprets the parameter pData as a pointer to a structure of type FT_PROGRAM_DATA 
-	 * that	contains the data to write to the EEPROM. The data is written to EEPROM, then read back and 
+	 * This function interprets the parameter pData as a pointer to a structure of type FT_PROGRAM_DATA
+	 * that	contains the data to write to the EEPROM. The data is written to EEPROM, then read back and
 	 * verified.
-	 * @n If the SerialNumber field in FT_PROGRAM_DATA is NULL, or SerialNumber points to a NULL string, 
+	 * @n If the SerialNumber field in FT_PROGRAM_DATA is NULL, or SerialNumber points to a NULL string,
 	 * a serial number based on the ManufacturerId and the current date and time will be generated. The
-	 * Manufacturer string length plus the Description string length must be less than or equal to 40 
+	 * Manufacturer string length plus the Description string length must be less than or equal to 40
 	 * characters.
-	 * @note Note that the DLL must be informed which version of the FT_PROGRAM_DATA structure is being 
-	 * used. This is done through the Signature1, Signature2 and Version elements of the structure. 
-	 * Signature1 should always be 0x00000000, Signature2 should always be 0xFFFFFFFF and Version can be 
-	 * set to use whichever version is required. For compatibility with all current devices Version 
+	 * @note Note that the DLL must be informed which version of the FT_PROGRAM_DATA structure is being
+	 * used. This is done through the Signature1, Signature2 and Version elements of the structure.
+	 * Signature1 should always be 0x00000000, Signature2 should always be 0xFFFFFFFF and Version can be
+	 * set to use whichever version is required. For compatibility with all current devices Version
 	 * should be set to the latest version of the FT_PROGRAM_DATA structure which is defined in FTD2XX.h.
-	 * If pData is NULL, the structure version will default to 0 (original BM series) and the device will 
+	 * If pData is NULL, the structure version will default to 0 (original BM series) and the device will
 	 * be programmed with the default data.
 	 * @see FT_PROGRAM_DATA
 	 */
@@ -1799,14 +1799,14 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This variation of the FT_EE_Program function was included to provide support for languages such 
+	 * This variation of the FT_EE_Program function was included to provide support for languages such
 	 * as LabVIEW where problems can occur when string pointers are contained in a structure.
-	 * @n This function interprets the parameter pData as a pointer to a structure of type FT_PROGRAM_DATA 
-	 * that contains the data to write to the EEPROM. The data is written to EEPROM, then read back and 
-	 * verified. The string pointer parameters in the FT_PROGRAM_DATA structure should be allocated as 
+	 * @n This function interprets the parameter pData as a pointer to a structure of type FT_PROGRAM_DATA
+	 * that contains the data to write to the EEPROM. The data is written to EEPROM, then read back and
+	 * verified. The string pointer parameters in the FT_PROGRAM_DATA structure should be allocated as
 	 * DWORDs to avoid overlapping of parameters. The string parameters are then passed in separately.
-	 * @n If the SerialNumber field is NULL, or SerialNumber points to a NULL string, a serial number based 
-	 * on the ManufacturerId and the current date and time will be generated. The Manufacturer string 
+	 * @n If the SerialNumber field is NULL, or SerialNumber points to a NULL string, a serial number based
+	 * on the ManufacturerId and the current date and time will be generated. The Manufacturer string
 	 * length plus the Description string length must be less than or equal to 40 characters.
 	 * @note Note that the DLL must be informed which version of the FT_PROGRAM_DATA structure is being used.
 	 * This is done through the Signature1, Signature2 and Version elements of the structure. Signature1
@@ -1835,13 +1835,13 @@ extern "C" {
 	 * @par Summary
 	 * Get the available size of the EEPROM user area.
 	 * @param ftHandle Handle of the device.
-	 * @param lpdwSize Pointer to a DWORD that receives the available size, in bytes, of the EEPROM 
+	 * @param lpdwSize Pointer to a DWORD that receives the available size, in bytes, of the EEPROM
 	 * user area.
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
 	 * The user area of an FTDI device EEPROM is the total area of the EEPROM that is unused by device
-	 * configuration information and descriptors. This area is available to the user to store information 
+	 * configuration information and descriptors. This area is available to the user to store information
 	 * specific	to their application. The size of the user area depends on the length of the Manufacturer,
 	 * ManufacturerId, Description and SerialNumber strings programmed into the EEPROM.
 	 */
@@ -1865,13 +1865,13 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This function interprets the parameter pucData as a pointer to an array of bytes of size 
-	 * dwDataLen that contains storage for the data to be read from the EEPROM user area. The actual 
+	 * This function interprets the parameter pucData as a pointer to an array of bytes of size
+	 * dwDataLen that contains storage for the data to be read from the EEPROM user area. The actual
 	 * number of bytes read is stored in the DWORD referenced by lpdwBytesRead.
-	 * @n If dwDataLen is less than the size of the EEPROM user area, then dwDataLen bytes are read 
-	 * into the buffer. Otherwise, the whole of the EEPROM user area is read into the buffer. The 
+	 * @n If dwDataLen is less than the size of the EEPROM user area, then dwDataLen bytes are read
+	 * into the buffer. Otherwise, the whole of the EEPROM user area is read into the buffer. The
 	 * available user area size can be determined by calling FT_EE_UASize.
-	 * @n An application should check the function return value and lpdwBytesRead when FT_EE_UARead 
+	 * @n An application should check the function return value and lpdwBytesRead when FT_EE_UARead
 	 * returns.
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_EE_UARead(
@@ -1895,9 +1895,9 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This function interprets the parameter pucData as a pointer to an array of bytes of size 
-	 * dwDataLen that contains the data to be written to the EEPROM user area. It is a programming 
-	 * error for dwDataLen to be greater than the size of the EEPROM user area. The available user 
+	 * This function interprets the parameter pucData as a pointer to an array of bytes of size
+	 * dwDataLen that contains the data to be written to the EEPROM user area. It is a programming
+	 * error for dwDataLen to be greater than the size of the EEPROM user area. The available user
 	 * area size can be determined by calling FT_EE_UASize.
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_EE_UAWrite(
@@ -1941,7 +1941,7 @@ extern "C" {
 
 	/**  @noop FT_EEPROM_2232
 	 * @par Summary
-	 * Structure to hold data for the FT2232C, FT2232D and FT2232L data in the FT_EEPROM_Program 
+	 * Structure to hold data for the FT2232C, FT2232D and FT2232L data in the FT_EEPROM_Program
 	 * and FT_EEPROM_Read functions.
 	 * This is appended to an FT_EEPROM_HEADER structure.
 	 * @see FT_EEPROM_HEADER
@@ -2099,7 +2099,7 @@ extern "C" {
 		UCHAR IsFifoTar;			/// non-zero if interface is 245 FIFO CPU target
 		UCHAR IsFastSer;			/// non-zero if interface is Fast serial
 		UCHAR IsFT1248;			/// non-zero if interface is FT1248
-		UCHAR PowerSaveEnable;		/// 
+		UCHAR PowerSaveEnable;		///
 		/// Driver option
 		UCHAR DriverType;			/// non-zero if interface is to use VCP drivers
 	} FT_EEPROM_232H, *PFT_EEPROM_232H;
@@ -2150,8 +2150,8 @@ extern "C" {
 		UCHAR FT1248Lsb;			/// FT1248 data is LSB (1) or MSB (0)
 		UCHAR FT1248FlowControl;	/// FT1248 flow control enable
 		/// Hardware options
-		UCHAR RS485EchoSuppress;	/// 
-		UCHAR PowerSaveEnable;		/// 
+		UCHAR RS485EchoSuppress;	///
+		UCHAR PowerSaveEnable;		///
 		/// Driver option
 		UCHAR DriverType;			/// non-zero if interface is to use VCP drivers
 	} FT_EEPROM_X_SERIES, *PFT_EEPROM_X_SERIES;
@@ -2221,7 +2221,7 @@ extern "C" {
 
 	/**  @noop FT_EEPROM_PD_PDO_mv_ma
 	 * @par Summary
-	 * Structure to hold PDO Configuration structure, mA supported values 0 to 10230mA, mV supported 
+	 * Structure to hold PDO Configuration structure, mA supported values 0 to 10230mA, mV supported
 	 * values 0 to 51100mV. This is part of the FT_EEPROM_PD structure.
 	 * @see FT_EEPROM_PD
 	 */
@@ -2244,7 +2244,7 @@ extern "C" {
 
 	/**  @noop FT_EEPROM_PD
 	 * @par Summary
-	 * Structure to hold power delivery configuration data for the FT4233PD, FT2233PD, FT4232PD, 
+	 * Structure to hold power delivery configuration data for the FT4233PD, FT2233PD, FT4232PD,
 	 * FT2232PD, FT233PD and FT232PD in the FT_EEPROM_Program and FT_EEPROM_Read functions.
 	 * This is appended to an FT_EEPROM_HEADER and a base device structure.
 	 * e_g. @verbatim
@@ -2276,7 +2276,7 @@ extern "C" {
 		UCHAR extvconn;		/// non-zero to enable External vConn
 
 		/// GPIO Configuration
-		UCHAR count;		/// GPIO Count, supported values are 0 to 7 
+		UCHAR count;		/// GPIO Count, supported values are 0 to 7
 		UCHAR gpio1;		/// GPIO Number 1, supports device GPIO values
 		UCHAR gpio2;		/// GPIO Number 2, supports device GPIO values
 		UCHAR gpio3;		/// GPIO Number 3, supports device GPIO values
@@ -2390,8 +2390,8 @@ extern "C" {
 	 * Linux
 	 * Mac OS X (10.4 and later)
 	 * Windows (XP and later)
-	 * @par Summary 
-	 * Read data from the EEPROM, this command will work for all existing FTDI chipset, and must be 
+	 * @par Summary
+	 * Read data from the EEPROM, this command will work for all existing FTDI chipset, and must be
 	 * used for the FT-X series.
 	 * @param ftHandle Handle of the device.
 	 * @param *eepromData Pointer to a buffer that contains the data to be read.
@@ -2413,7 +2413,7 @@ extern "C" {
 	 * @li PFT_EEPROM_4232H is the structure for FT4232H devices.
 	 * @li PFT_EEPROM_232H is the structure for FT232H devices.
 	 * @li PFT_EEPROM_X_SERIES is the structure for FT2xxX devices.
-	 * 
+	 *
 	 * The function does not perform any checks on buffer sizes, so the buffers passed in the eepromDATA
 	 * structure must be big enough to accommodate their respective strings (including null terminators).
 	 * The sizes shown in the following example are more than adequate and can be rounded down if necessary.
@@ -2462,7 +2462,7 @@ extern "C" {
 	 * @li PFT_EEPROM_4232H is the structure for FT4232H devices.
 	 * @li PFT_EEPROM_232H is the structure for FT232H devices.
 	 * @li PFT_EEPROM_X_SERIES is the structure for FT2xxX devices.
-	 * 
+	 *
 	 * The function does not perform any checks on buffer sizes, so the buffers passed in the eepromDATA
 	 * structure must be big enough to accommodate their respective strings (including null terminators).
 	 * @n The sizes shown in the following example are more than adequate and can be rounded down if necessary.
@@ -2506,8 +2506,8 @@ extern "C" {
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
 	 * In the FT8U232AM and FT8U245AM devices, the receive buffer timeout that is used to flush remaining
-	 * data from the receive buffer was fixed at 16 ms. In all other FTDI devices, this timeout is 
-	 * programmable and can be set at 1 ms intervals between 2ms and 255 ms. This allows the device to 
+	 * data from the receive buffer was fixed at 16 ms. In all other FTDI devices, this timeout is
+	 * programmable and can be set at 1 ms intervals between 2ms and 255 ms. This allows the device to
 	 * be better optimize for protocols requiring faster response times from short data packets.
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_SetLatencyTimer(
@@ -2529,8 +2529,8 @@ extern "C" {
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
 	 * In the FT8U232AM and FT8U245AM devices, the receive buffer timeout that is used to flush remaining
-	 * data from the receive buffer was fixed at 16 ms. In all other FTDI devices, this timeout is 
-	 * programmable and can be set at 1 ms intervals between 2ms and 255 ms. This allows the device to  
+	 * data from the receive buffer was fixed at 16 ms. In all other FTDI devices, this timeout is
+	 * programmable and can be set at 1 ms intervals between 2ms and 255 ms. This allows the device to
 	 * be better optimized for protocols requiring faster response times from short data packets.
 	 */
 	FTD2XX_API FT_STATUS WINAPI FT_GetLatencyTimer(
@@ -2548,9 +2548,9 @@ extern "C" {
 	 * Enables different chip modes.
 	 * @param ftHandle Handle of the device.
 	 * @param ucMask Required value for bit mode mask. This sets up which bits are inputs and outputs.
-	 * A bit value of 0 sets the corresponding pin to an input, a bit value of 1 sets the corresponding 
+	 * A bit value of 0 sets the corresponding pin to an input, a bit value of 1 sets the corresponding
 	 * pin to an output.
-	 * @n In the case of CBUS Bit Bang, the upper nibble of this value controls which pins are inputs 
+	 * @n In the case of CBUS Bit Bang, the upper nibble of this value controls which pins are inputs
 	 * and outputs,	while the lower nibble controls which of the outputs are high and low.
 	 * @param ucEnable Mode value. Can be one of the following:
 	 * @li 0x0 = Reset
@@ -2564,11 +2564,11 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * For a description of available bit modes for the FT232R, see the application note "Bit Bang Modes 
+	 * For a description of available bit modes for the FT232R, see the application note "Bit Bang Modes
 	 * for the FT232R and FT245R".
 	 * @n For a description of available bit modes for the FT2232, see the application note "Bit Mode
 	 * Functions for the FT2232".
-	 * @n For a description of Bit Bang Mode for the FT232B and FT245B, see the application note 
+	 * @n For a description of Bit Bang Mode for the FT232B and FT245B, see the application note
 	 * "FT232B/FT245B Bit Bang Mode".
 	 * @n Application notes are available for download from the FTDI website.
 	 * Note that to use CBUS Bit Bang for the FT232R, the CBUS must be configured for CBUS Bit Bang in the
@@ -2595,13 +2595,13 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * For a description of available bit modes for the FT232R, see the application note "Bit Bang Modes 
+	 * For a description of available bit modes for the FT232R, see the application note "Bit Bang Modes
 	 * for the FT232R and FT245R".
-	 * @n For a description of available bit modes for the FT2232, see the application note "Bit Mode 
+	 * @n For a description of available bit modes for the FT2232, see the application note "Bit Mode
 	 * Functions for the FT2232".
 	 * @n For a description of bit bang modes for the FT232B and FT245B, see the application note
 	 * "FT232B/FT245B Bit Bang Mode".
-	 * @n For a description of bit modes supported by the FT4232H and FT2232H devices, please see the 
+	 * @n For a description of bit modes supported by the FT4232H and FT2232H devices, please see the
 	 * IC data sheets.
 	 * @n These application notes are available for download from the FTDI website.
 	 */
@@ -2624,10 +2624,10 @@ extern "C" {
 	 * @returns
 	 * FT_OK if successful, otherwise the return value is an FT error code.
 	 * @remarks
-	 * This function can be used to change the transfer sizes from the default transfer size of 4096 
-	 * bytes to	better suit the application requirements. Transfer sizes must be set to a multiple 
+	 * This function can be used to change the transfer sizes from the default transfer size of 4096
+	 * bytes to	better suit the application requirements. Transfer sizes must be set to a multiple
 	 * of 64 bytes between 64 bytes and 64k bytes.
-	 * @n When FT_SetUSBParameters is called, the change comes into effect immediately and any data 
+	 * @n When FT_SetUSBParameters is called, the change comes into effect immediately and any data
 	 * that was	held in the driver at the time of the change is lost.
 	 * @note Note that, at present, only ulInTransferSize is supported.
 	 */
@@ -2654,12 +2654,12 @@ extern "C" {
 	 * Windows (2000 and later)
 	 * Windows CE (4.2 and later)
 	 * @par Summary
-	 * Opens the specified device and return a handle which will be used for subsequent accesses. 
+	 * Opens the specified device and return a handle which will be used for subsequent accesses.
 	 * The device can be specified by its serial number, device description, or location.
 	 * @n This function must be used if overlapped I/O is required.
-	 * @param lpszName Meaning depends on the value of dwAttrsAndFlags. Can be a pointer to a null 
-	 * terminated string that contains the description or serial number of the device, or can be 
-	 * the location of the device. These values can be obtained from the FT_CreateDeviceInfoList, 
+	 * @param lpszName Meaning depends on the value of dwAttrsAndFlags. Can be a pointer to a null
+	 * terminated string that contains the description or serial number of the device, or can be
+	 * the location of the device. These values can be obtained from the FT_CreateDeviceInfoList,
 	 * FT_GetDeviceInfoDetail or FT_ListDevices	functions.
 	 * @param dwAccess Type of access to the device. Access can be GENERIC_READ,
 	 * GENERIC_WRITE or both. Ignored in Linux.
@@ -2678,9 +2678,9 @@ extern "C" {
 	 * The meaning of lpszName depends on dwAttrsAndFlags: if FT_OPEN_BY_SERIAL_NUMBER or
 	 * FT_OPEN_BY_DESCRIPTION is set in dwAttrsAndFlags, lpszName contains a pointer to a null terminated
 	 * string that contains the device's serial number or description; if FT_OPEN_BY_LOCATION is set in
-	 * dwAttrsAndFlags, lpszName is interpreted as a value of type long that contains the location ID of 
+	 * dwAttrsAndFlags, lpszName is interpreted as a value of type long that contains the location ID of
 	 * the device. dwAccess can be GENERIC_READ, GENERIC_WRITE or both; dwShareMode must be set to 0;
-	 * lpSecurityAttributes must be set to NULL; dwCreate must be set to OPEN_EXISTING; dwAttrsAndFlags 
+	 * lpSecurityAttributes must be set to NULL; dwCreate must be set to OPEN_EXISTING; dwAttrsAndFlags
 	 * is a combination of FILE_ATTRIBUTE_NORMAL, FILE_FLAG_OVERLAPPED if overlapped I/O is used,
 	 * FT_OPEN_BY_SERIAL_NUMBER or FT_OPEN_BY_DESCRIPTION or FT_OPEN_BY_LOCATION; hTemplate
 	 * must be NULL.
@@ -2728,39 +2728,39 @@ extern "C" {
 	 * @param lpdwBytesReturned Pointer to a variable that receives the number of bytes read from
 	 * the device.
 	 * @param lpOverlapped Pointer to an overlapped structure.
-	 * @returns 
+	 * @returns
 	 * If the function is successful, the return value is nonzero.
 	 * If the function is unsuccessful, the return value is zero.
 	 * @remarks
-	 * This function supports both non-overlapped and overlapped I/O, except under Linux, Mac OS X 
+	 * This function supports both non-overlapped and overlapped I/O, except under Linux, Mac OS X
 	 * and Windows CE where only non-overlapped IO is supported.
 	 * @n @b Non-overlapped @b I/O
 	 * @n The parameter, lpOverlapped, must be NULL for non-overlapped I/O.
 	 * @n This function always returns the number of bytes read in lpdwBytesReturned.
-	 * This function does not return until dwBytesToRead have been read into the buffer. The number of 
+	 * This function does not return until dwBytesToRead have been read into the buffer. The number of
 	 * bytes in the receive queue can be determined by calling FT_GetStatus or FT_GetQueueStatus, and
 	 * passed as dwBytesToRead so that the function reads the device and returns immediately.
 	 * @n When a read timeout has been setup in a previous call to FT_W32_SetCommTimeouts, this function
-	 * returns when the timer expires or dwBytesToRead have been read, whichever occurs first. If a 
+	 * returns when the timer expires or dwBytesToRead have been read, whichever occurs first. If a
 	 * timeout occurred, any available data is read into lpBuffer and the function returns a non-zero value.
-	 * @n An application should use the function return value and lpdwBytesReturned when processing the 
-	 * buffer. If the return value is non-zero and lpdwBytesReturned is equal to dwBytesToRead then the 
-	 * function has	completed normally. If the return value is non-zero and lpdwBytesReturned is less 
-	 * then dwBytesToRead then a timeout has occurred, and the read request has been partially completed. 
+	 * @n An application should use the function return value and lpdwBytesReturned when processing the
+	 * buffer. If the return value is non-zero and lpdwBytesReturned is equal to dwBytesToRead then the
+	 * function has	completed normally. If the return value is non-zero and lpdwBytesReturned is less
+	 * then dwBytesToRead then a timeout has occurred, and the read request has been partially completed.
 	 * @note Note that if a timeout	occurred and no data was read, the return value is still non-zero.
 	 * @n @b Overlapped @b I/O
-	 * @n When the device has been opened for overlapped I/O, an application can issue a request and 
-	 * perform some additional work while the request is pending. This contrasts with the case 
-	 * of non-overlapped I/O in	which the application issues a request and receives control again only 
+	 * @n When the device has been opened for overlapped I/O, an application can issue a request and
+	 * perform some additional work while the request is pending. This contrasts with the case
+	 * of non-overlapped I/O in	which the application issues a request and receives control again only
 	 * after the request has been completed.
-	 * @n The parameter, lpOverlapped, must point to an initialized OVERLAPPED structure. If there is 
-	 * enough data in the receive queue to satisfy the request, the request completes immediately and 
+	 * @n The parameter, lpOverlapped, must point to an initialized OVERLAPPED structure. If there is
+	 * enough data in the receive queue to satisfy the request, the request completes immediately and
 	 * the return code is non-zero. The number of bytes read is returned in lpdwBytesReturned.
 	 * @n If there is not enough data in the receive queue to satisfy the request, the request completes
 	 * immediately, and the return code is zero, signifying an error. An application should call
 	 * FT_W32_GetLastError to get the cause of the error. If the error code is ERROR_IO_PENDING, the
-	 * overlapped operation is still in progress, and the application can perform other processing. 
-	 * Eventually, the application checks the result of the overlapped request by calling 
+	 * overlapped operation is still in progress, and the application can perform other processing.
+	 * Eventually, the application checks the result of the overlapped request by calling
 	 * FT_W32_GetOverlappedResult.
 	 * @n If successful, the number of bytes read is returned in lpdwBytesReturned.
 	 */
@@ -2796,18 +2796,18 @@ extern "C" {
 	 * @n This function always returns the number of bytes written in lpdwBytesWritten.
 	 * This function does not return until dwBytesToWrite have been written to the device.
 	 * When a write timeout has been setup in a previous call to FT_W32_SetCommTimeouts, this function
-	 * returns when the timer expires or dwBytesToWrite have been written, whichever occurs first. If a 
-	 * timeout occurred, lpdwBytesWritten contains the number of bytes actually written, and the function 
+	 * returns when the timer expires or dwBytesToWrite have been written, whichever occurs first. If a
+	 * timeout occurred, lpdwBytesWritten contains the number of bytes actually written, and the function
 	 * returns a non-zero value.
-	 * @n An application should always use the function return value and lpdwBytesWritten. If the return 
-	 * value is	non-zero and lpdwBytesWritten is equal to dwBytesToWrite then the function has completed 
-	 * normally. If	the return value is non-zero and lpdwBytesWritten is less then dwBytesToWrite then a 
-	 * timeout has occurred, and the write request has been partially completed. 
+	 * @n An application should always use the function return value and lpdwBytesWritten. If the return
+	 * value is	non-zero and lpdwBytesWritten is equal to dwBytesToWrite then the function has completed
+	 * normally. If	the return value is non-zero and lpdwBytesWritten is less then dwBytesToWrite then a
+	 * timeout has occurred, and the write request has been partially completed.
 	 * @note Note that if a timeout occurred and no data was written, the return value is still non-zero.
 	 * @n @b Overlapped @b I/O
 	 * @n When the device has been opened for overlapped I/O, an application can issue a request and perform
-	 * some additional work while the request is pending. This contrasts with the case of non-overlapped 
-	 * I/O in which the application issues a request and receives control again only after the request has 
+	 * some additional work while the request is pending. This contrasts with the case of non-overlapped
+	 * I/O in which the application issues a request and receives control again only after the request has
 	 * been	completed.
 	 * @n The parameter, lpOverlapped, must point to an initialized OVERLAPPED structure.
 	 * This function completes immediately, and the return code is zero, signifying an error. An application
@@ -2916,7 +2916,7 @@ extern "C" {
 	 * If the function is successful, the return value is nonzero.
 	 * If the function is unsuccessful, the return value is zero.
 	 * @remarks
-	 * This function has no effect. It is the responsibility of the driver to allocate sufficient 
+	 * This function has no effect. It is the responsibility of the driver to allocate sufficient
 	 * storage for I/O requests.
 	 */
 	FTD2XX_API BOOL WINAPI FT_W32_SetupComm(
@@ -3043,12 +3043,12 @@ typedef struct _FTTIMEOUTS {
 	 * If the function is unsuccessful, the return value is zero.
 	 * @remarks
 	 * Timeouts are calculated using the information in the FTTIMEOUTS structure.
-	 * @n For read requests, the number of bytes to be read is multiplied by the total timeout 
-	 * multiplier, and added to the total timeout constant. So, if TS is an FTTIMEOUTS structure 
+	 * @n For read requests, the number of bytes to be read is multiplied by the total timeout
+	 * multiplier, and added to the total timeout constant. So, if TS is an FTTIMEOUTS structure
 	 * and the number of bytes to read is dwToRead, the read timeout, rdTO, is calculated as follows.
 	 * @n rdTO = (dwToRead * TS.ReadTotalTimeoutMultiplier) + TS.ReadTotalTimeoutConstant
-	 * @n For write requests, the number of bytes to be written is multiplied by the total timeout 
-	 * multiplier, and added to the total timeout constant. So, if TS is an FTTIMEOUTS structure 
+	 * @n For write requests, the number of bytes to be written is multiplied by the total timeout
+	 * multiplier, and added to the total timeout constant. So, if TS is an FTTIMEOUTS structure
 	 * and the number of bytes to write is dwToWrite, the write timeout, wrTO, is calculated as follows.
 	 * @n wrTO = (dwToWrite * TS.WriteTotalTimeoutMultiplier) + TS.WriteTotalTimeoutConstant
 	 * @n Linux and Mac OS X currently ignore the ReadIntervalTimeout, ReadTotalTimeoutMultiplier and
@@ -3123,7 +3123,7 @@ typedef struct _FTTIMEOUTS {
 	 * @par Summary
 	 * This function specifies events that the device has to monitor.
 	 * @param ftHandle Handle of the device.
-	 * @param ulEventMask Mask containing events that the device has to monitor. This can be a combination of 
+	 * @param ulEventMask Mask containing events that the device has to monitor. This can be a combination of
 	 * the following:
 	 * @li EV_BREAK - BREAK condition detected
 	 * @li EV_CTS - Change in Clear To Send (CTS)
@@ -3138,7 +3138,7 @@ typedef struct _FTTIMEOUTS {
 	 * If the function is successful, the return value is nonzero.
 	 * If the function is unsuccessful, the return value is zero.
 	 * @remarks
-	 * This function specifies the events that the device should monitor. An application can call the 
+	 * This function specifies the events that the device should monitor. An application can call the
 	 * function FT_W32_WaitCommEvent to wait for an event to occur.
 	 */
 	FTD2XX_API BOOL WINAPI FT_W32_SetCommMask(
@@ -3152,7 +3152,7 @@ typedef struct _FTTIMEOUTS {
 	 * @par Summary
 	 * Retrieves the events that are currently being monitored by a device.
 	 * @param ftHandle Handle of the device.
-	 * @param lpdwEventMask Pointer to a location that receives a mask that contains the events that are 
+	 * @param lpdwEventMask Pointer to a location that receives a mask that contains the events that are
 	 * currently enabled. This parameter can be one or more of the following values:
 	 * @li EV_BREAK - BREAK condition detected
 	 * @li EV_CTS - Change in Clear To Send (CTS)
@@ -3167,7 +3167,7 @@ typedef struct _FTTIMEOUTS {
 	 * If the function is successful, the return value is nonzero.
 	 * If the function is unsuccessful, the return value is zero.
 	 * @remarks
-	 * This function returns events currently being monitored by the device. Event monitoring for these 
+	 * This function returns events currently being monitored by the device. Event monitoring for these
 	 * events is enabled by the FT_W32_SetCommMask function.
 	 */
 	FTD2XX_API BOOL WINAPI FT_W32_GetCommMask(
@@ -3186,7 +3186,7 @@ typedef struct _FTTIMEOUTS {
 	 * @param ftHandle Handle of the device.
 	 * @param pulEvent Pointer to a location that receives a mask that contains the events that occurred.
 	 * @param lpOverlapped Pointer to an overlapped structure.
-	 * @returns 
+	 * @returns
 	 * If the function is successful, the return value is nonzero.
 	 * If the function is unsuccessful, the return value is zero.
 	 * @remarks
@@ -3194,13 +3194,13 @@ typedef struct _FTTIMEOUTS {
 	 * where only non-overlapped IO is supported.
 	 * @n @b Non-overlapped @b I/O
 	 * The parameter, lpOverlapped, must be NULL for non-overlapped I/O.
-	 * @n This function does not return until an event that has been specified in a call to 
-	 * FT_W32_SetCommMask has occurred. The events that occurred and resulted in this function returning 
+	 * @n This function does not return until an event that has been specified in a call to
+	 * FT_W32_SetCommMask has occurred. The events that occurred and resulted in this function returning
 	 * are stored in lpdwEvent.
 	 * @n @b Overlapped @b I/O
 	 * @n When the device has been opened for overlapped I/O, an application can issue a request and perform
-	 * some additional work while the request is pending. This contrasts with the case of non-overlapped 
-	 * I/O in which the application issues a request and receives control again only after the request has 
+	 * some additional work while the request is pending. This contrasts with the case of non-overlapped
+	 * I/O in which the application issues a request and receives control again only after the request has
 	 * been	completed.
 	 * @n The parameter, lpOverlapped, must point to an initialized OVERLAPPED structure.
 	 * This function does not return until an event that has been specified in a call to FT_W32_SetCommMask
@@ -3208,10 +3208,10 @@ typedef struct _FTTIMEOUTS {
 	 * @n If an event has already occurred, the request completes immediately, and the return code is non-zero.
 	 * @n The events that occurred are stored in lpdwEvent.
 	 * @n If an event has not yet occurred, the request completes immediately, and the return code is zero,
-	 * signifying an error. An application should call FT_W32_GetLastError to get the cause of the error. If 
-	 * the error code is ERROR_IO_PENDING, the overlapped operation is still in progress, and the application 
-	 * can perform other processing. Eventually, the application checks the result of the overlapped request 
-	 * by calling FT_W32_GetOverlappedResult. The events that occurred and resulted in this function 
+	 * signifying an error. An application should call FT_W32_GetLastError to get the cause of the error. If
+	 * the error code is ERROR_IO_PENDING, the overlapped operation is still in progress, and the application
+	 * can perform other processing. Eventually, the application checks the result of the overlapped request
+	 * by calling FT_W32_GetOverlappedResult. The events that occurred and resulted in this function
 	 * returning are stored in lpdwEvent.
 	 */
 	FTD2XX_API BOOL WINAPI FT_W32_WaitCommEvent(
@@ -3258,7 +3258,7 @@ typedef struct _FTTIMEOUTS {
 	 * @remarks
 	 * This function is normally used with overlapped I/O and so is not supported in Windows CE. For a
 	 * description of its use, see FT_W32_ReadFile and FT_W32_WriteFile.
-	 * @n In Linux and Mac OS X, this function returns a DWORD that directly maps to the FT Errors (for 
+	 * @n In Linux and Mac OS X, this function returns a DWORD that directly maps to the FT Errors (for
 	 * example the FT_INVALID_HANDLE error number).
 	 */
 	FTD2XX_API DWORD WINAPI FT_W32_GetLastError(

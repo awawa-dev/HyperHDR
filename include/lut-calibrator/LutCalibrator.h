@@ -92,12 +92,12 @@ private:
 	void printReport();
 	QString generateReport(bool full);
 	bool set1to1LUT();
-	void notifyCalibrationFinished();	
+	void notifyCalibrationFinished();
 	void error(QString message);
 	void handleImage(const Image<ColorRgb>& image);
 	void calibration();
 	bool setTestData();
-	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);	
+	void capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int coef, linalg::mat<double, 3, 3>& convert_bt2020_to_XYZ, linalg::mat<double, 3, 3>& convert_XYZ_to_corrected, bool printDebug = false);
 
 	LoggerName _log;
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;

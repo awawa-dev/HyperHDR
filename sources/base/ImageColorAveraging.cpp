@@ -225,7 +225,7 @@ float3 ImageColorAveraging::calcMulticolorForLeds(const Image<ColorRgb>& image, 
 	const uint8_t* imgData = image.rawMem();
 
 	for (const uint32_t colorOffset : colors)
-	{		
+	{
 		sumLinear += InfiniteProcessing::srgbNonlinearToLinear(byte3(imgData[colorOffset], imgData[colorOffset + 1], imgData[colorOffset + 2]));
 	}
 

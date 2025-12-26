@@ -185,7 +185,7 @@ void ProtoNanoClientConnection::handleImageCommand(const proto_ImageRequest& mes
 	}
 
 	// must resize
-	image.resize(width, height);	
+	image.resize(width, height);
 
 	emit SignalImportFromProto(_priority, duration, image, _clientDescription);
 

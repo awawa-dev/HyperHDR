@@ -116,7 +116,7 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 		_haveSystray = SystrayInitialize(nullptr);
 #else
 	_haveSystray = SystrayInitialize(nullptr);
-#endif	
+#endif
 }
 
 SystrayHandler::~SystrayHandler()
@@ -303,7 +303,7 @@ void SystrayHandler::createSystray()
 		std::swap(instances->submenu, instancesAll->next);
 		std::swap(instances->submenu, instancesAll);
 	}
-	
+
 	// color menu
 	std::unique_ptr<SystrayMenu> colorMenu = std::make_unique<SystrayMenu>();
 	loadSvg(colorMenu, ":/color.svg", _rootFolder);
@@ -318,7 +318,7 @@ void SystrayHandler::createSystray()
 			"<rect width=\"26\" height=\"26\" x=\"3\" y=\"3\" fill=\"%1\" stroke-width=\"2\" stroke=\"gray\" />"
 			"</svg>";
 		QString svg = QString(svgTemplate).arg(QString::fromStdString(color));
-		
+
 		std::unique_ptr<SystrayMenu> colorItem = std::make_unique<SystrayMenu>();
 		loadSvg(colorItem, svg, _rootFolder, QString("%1.png").arg(QString::fromStdString(color)));
 		colorItem->label = color;
@@ -437,7 +437,7 @@ void SystrayHandler::createSystray()
 	std::swap(separator1->next, instances);
 #endif
 
-	std::swap(settingsMenu->next, separator1);	
+	std::swap(settingsMenu->next, separator1);
 	std::swap(mainMenu->submenu, settingsMenu);
 
 	SystrayUpdate(mainMenu.get());
@@ -446,7 +446,7 @@ void SystrayHandler::createSystray()
 
 #ifdef _WIN32
 bool SystrayHandler::getCurrentAutorunState()
-{	
+{
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
 	return reg.value("Hyperhdr", 0).toString() == qApp->applicationFilePath().replace('/', '\\');
 }
@@ -515,11 +515,11 @@ void SystrayHandler::settings()
 		printf("xdg-open <http_link> failed. xdg-utils package is required.\n");
 	}
 #endif
-	
+
 #ifdef __APPLE__
 	std::string slink = link.toStdString();
 	CFURLRef url = CFURLCreateWithBytes(
-		NULL,                       
+		NULL,
 		(UInt8*)slink.c_str(),
 		slink.length(),
 		kCFStringEncodingASCII,

@@ -25,7 +25,7 @@ function startWizardCololight(e)
         + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><svg data-src="svg/button_close.svg" fill="currentColor" class="svg4hyperhdr"></svg>'
         + $.i18n('general_btn_cancel') + '</button>');
 
-    //open modal  
+    //open modal
     var ta4 = new bootstrap.Modal($("#wizard_modal"), {
         backdrop: "static",
         keyboard: false

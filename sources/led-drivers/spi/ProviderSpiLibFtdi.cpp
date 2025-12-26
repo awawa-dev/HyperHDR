@@ -354,7 +354,7 @@ QJsonObject ProviderSpiLibFtdi::discover(const QJsonObject& /*params*/)
 		{
 			if (numDevs > 0)
 			{
-				QJsonArray deviceList;				
+				QJsonArray deviceList;
 
 				struct ftdi_device_list* curDev = devlist;
 				while (curDev)

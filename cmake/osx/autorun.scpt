@@ -26,7 +26,7 @@ on run argv
       set icon size of theViewOptions to 64
       delay 5
     close
-    
+
     open
       update without registering applications
       tell container window

@@ -54,11 +54,11 @@ We assume a 64bit Windows 10. Install the following:
     - May need to add QT6 path before compiling, for example: `set CMAKE_PREFIX_PATH=C:\Qt\6.8.3\msvc2022_64\lib\cmake\` or for older QT5 `set Qt5_Dir=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5\`
 - Optional for creating installer packages: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
-> [!TIP]  
+> [!TIP]
 > After you execute the configuration command in the build folder (for example ```cmake -DCMAKE_BUILD_TYPE=Release ..```) you should receive *.sln solution project file that can be opened in Visual Studio. Select `hyperhdr` project as default for the solution to run it after compilation.
 
 ### macOS
-First install [brew](https://brew.sh/) manager.  
+First install [brew](https://brew.sh/) manager.
 Next: `brew install qtbase qtserialport cmake xz pkg-config`
 
 ## Compiling and installing HyperHDR
@@ -94,7 +94,7 @@ mkdir build
 cd build
 # You might need to setup MSVC env first
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-# Maintainers: to build the HyperHDR installer, install NSIS and define environment variable:  
+# Maintainers: to build the HyperHDR installer, install NSIS and define environment variable:
 # set VCINSTALLDIR="C:\Program Files\Microsoft Visual Studio\2022\Community\VC"
 cmake -DPLATFORM=windows -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . --config Release -- -maxcpucount
@@ -103,9 +103,9 @@ cmake --build . --config Release -- -maxcpucount
 bin/Release/hyperhdr -d
 ```
 
-### LibreELEC 
+### LibreELEC
 
-You can find the add-on sources here on branches of my LibreELEC fork: [link](https://github.com/awawa-dev/LibreELEC.tv) For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
+You can find the add-on sources here on branches of my LibreELEC fork: [link](https://github.com/awawa-dev/LibreELEC.tv) For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example:
 
 LibreELEC 11/RPi:
 ```
@@ -132,7 +132,7 @@ PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
 All you need is Docker and Bash, which are available on every supported system — even on Windows, where you only need to enable "Windows Subsystem for Linux". You don’t need to install any additional packages to build HyperHDR, because the script uses Docker images provided by [HyperDockerBuilder](https://github.com/awawa-dev/HyperDockerBuilder), which contain everything required to create the installer. Thanks to this, you can compile, for example, the aarch64 HyperHDR installer for Raspberry Pi directly on a PC. To start, run the `build.sh` script in the main directory.
 
 ```console
-pi@ubuntu:~/hyperhdr$ ./build.sh 
+pi@ubuntu:~/hyperhdr$ ./build.sh
 
 Required environmental options:
 PLATFORM - one of the supported targets: osx|windows|linux|rpi
@@ -178,11 +178,11 @@ Once you've done this, any change, even using the Github online editor, will imm
 # Available CMake HyperHDR configuration options:
 Use -D prefix when configuring the build.
 
-* LED DEVICES  
+* LED DEVICES
     * ENABLE_SPIDEV = ON | OFF, enables SPI LED devices on supported systems
     * ENABLE_SPI_FTDI = ON | OFF, enables SPI libFTDI (FTDI for Windows) controller
     * ENABLE_WS281XPWM = ON | OFF, enables WS281x LED library for RPi 1-4
-  
+
 * SOFTWARE GRABBERS
     * ENABLE_DX = ON | OFF, enables the DirectX11 software grabber (Windows)
     * ENABLE_FRAMEBUFFER = ON | OFF, enables the Framebuffer software grabber (Linux)

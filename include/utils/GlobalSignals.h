@@ -29,7 +29,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QObject>
-	#include <QStringList>	
+	#include <QStringList>
 #endif
 
 #include <image/ColorRgb.h>

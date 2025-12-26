@@ -51,7 +51,7 @@ EffectEngine::EffectEngine(HyperHdrInstance* hyperhdr)
 
 EffectEngine::~EffectEngine()
 {
-	_activeEffects.clear();	
+	_activeEffects.clear();
 
 	Debug(_log, "EffectEngine is released");
 }

@@ -86,7 +86,7 @@ static int x11errorHandler(Display* d, XErrorEvent* e)
 static XErrorHandler oldHandler = nullptr;
 
 x11Handle* initX11Display(int display)
-{	
+{
 	Display* maindisplay = XOpenDisplay(nullptr);
 
 	if (maindisplay == nullptr)
@@ -94,7 +94,7 @@ x11Handle* initX11Display(int display)
 
 	struct x11Handle* retVal = (struct x11Handle*)malloc(sizeof(struct x11Handle));
 
-	retVal->handle = (void*)maindisplay;	
+	retVal->handle = (void*)maindisplay;
 	retVal->index = display;
 	retVal->image = nullptr;
 	retVal->width = 0;
@@ -135,7 +135,7 @@ void uninitX11Display(x11Handle* retVal)
 
 	retVal->handle = nullptr;
 
-	free(retVal);	
+	free(retVal);
 }
 
 unsigned char* getFrame(x11Handle* retVal)

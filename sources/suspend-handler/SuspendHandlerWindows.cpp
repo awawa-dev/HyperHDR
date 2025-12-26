@@ -87,7 +87,7 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 		std::cout << "COULD NOT REGISTER SLEEP HANDLER!" << std::endl;
 	else
 		std::cout << "Sleep handler registered!" << std::endl;
-	
+
 	if (_sessionLocker)
 	{
 		_notifyMonitorHandle = RegisterPowerSettingNotification(handle, &GUID_SESSION_DISPLAY_STATUS, DEVICE_NOTIFY_WINDOW_HANDLE);
@@ -96,7 +96,7 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 			std::cout << "Session handler registered!" << std::endl;
 		else
 		{
-			std::cout << "COULD NOT REGISTER SESSION HANDLER!" << std::endl;			
+			std::cout << "COULD NOT REGISTER SESSION HANDLER!" << std::endl;
 			if (_notifyMonitorHandle != NULL)
 				UnregisterSuspendResumeNotification(_notifyMonitorHandle);
 			_notifyMonitorHandle = NULL;
@@ -125,7 +125,7 @@ SuspendHandler::~SuspendHandler()
 			std::cout << "Monitor state handler deregistered!" << std::endl;
 		}
 		_notifyMonitorHandle = NULL;
-		
+
 		WTSUnRegisterSessionNotification(handle);
 	}
 }
@@ -141,7 +141,7 @@ bool SuspendHandler::nativeEventFilter(const QByteArray& /*eventType*/, void* me
 	if (msg->message == WM_POWERBROADCAST)
 	{
 		switch (msg->wParam)
-		{			
+		{
 			case PBT_APMRESUMESUSPEND:
 				emit SignalHibernate(true, hyperhdr::SystemComponent::SUSPEND);
 				return true;
@@ -151,10 +151,10 @@ bool SuspendHandler::nativeEventFilter(const QByteArray& /*eventType*/, void* me
 				return true;
 				break;
 		}
-		
+
 		if (_sessionLocker && msg->wParam == PBT_POWERSETTINGCHANGE && msg->lParam != 0)
 		{
-			POWERBROADCAST_SETTING* s = reinterpret_cast<POWERBROADCAST_SETTING*>(msg->lParam);			
+			POWERBROADCAST_SETTING* s = reinterpret_cast<POWERBROADCAST_SETTING*>(msg->lParam);
 			if (s != nullptr && s->PowerSetting == GUID_SESSION_DISPLAY_STATUS && s->DataLength > 0)
 			{
 				if (s->Data[0] == 1)

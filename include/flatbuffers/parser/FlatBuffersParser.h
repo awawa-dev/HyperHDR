@@ -51,7 +51,7 @@ namespace FlatBuffersParser
 			int	size;
 			int	stride;
 		} firstPlane, secondPlane;
-		
+
 		int width;
 		int height;
 		int size;

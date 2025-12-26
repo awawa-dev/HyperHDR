@@ -71,7 +71,7 @@ private:
 
 private:
 	LoggerName	_log;
-	QTcpSocket*	_socket;	
+	QTcpSocket*	_socket;
 	const QString _clientAddress;
 
 	QTimer*		_timeoutTimer;

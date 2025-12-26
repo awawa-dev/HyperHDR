@@ -18,10 +18,10 @@ print_manual()
 	printf "\n${YellowColor}DISTRO_NAME${ColorReset}  | ${YellowColor}DISTRO_VERSION${ColorReset} | ${YellowColor}ARCHITECTURE${ColorReset} - these are only for linux targets"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}armhf${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}arm64${ColorReset}"
-	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}amd64${ColorReset}"	
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bullseye${ColorReset}       | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}armhf${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}arm64${ColorReset}"
-	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}amd64${ColorReset}"	
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}bookworm${ColorReset}       | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}armhf${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}arm64${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
@@ -89,7 +89,7 @@ printf "\n\n"
 
 if [ ${BUILD_ARCHIVES} = true ]; then
 	echo "Build the package archive"
-	ARCHIVE_OPTION=" -DBUILD_ARCHIVES=ON"	
+	ARCHIVE_OPTION=" -DBUILD_ARCHIVES=ON"
 else
 	echo "Do not build the package archive"
 	ARCHIVE_OPTION=" -DBUILD_ARCHIVES=OFF"
@@ -97,7 +97,7 @@ fi
 
 if [ ${USE_STANDARD_INSTALLER_NAME} = true ]; then
 	echo "Use standard naming"
-	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=ON"	
+	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=ON"
 else
 	echo "Do not use standard naming"
 	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=OFF"
@@ -117,7 +117,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	echo "Start: osx or darwin"
 
 	if [ ${USE_CCACHE} = true ]; then
-		echo "Using ccache"		
+		echo "Using ccache"
 		if [[ $(uname -m) == 'arm64' ]]; then
 			BUILD_OPTION=""
 		else
@@ -143,7 +143,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	exit 1 || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
 
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
-	echo "Start: windows"	
+	echo "Start: windows"
 	echo "Number of cores: $NUMBER_OF_PROCESSORS"
 
 	if [ ${USE_CCACHE} = true ]; then
@@ -176,10 +176,10 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 
 elif [[ "$CI_NAME" == 'linux' ]]; then
 	echo "Compile Hyperhdr with ARCHITECTURE = ${ARCHITECTURE}, DISTRO_NAME = ${DISTRO_NAME}, DISTRO_VERSION = ${DISTRO_VERSION}"
-	
+
 	# set GitHub Container Registry url
 	REGISTRY_URL="ghcr.io/awawa-dev/${ARCHITECTURE}/${DISTRO_NAME}:${DISTRO_VERSION}"
-	
+
 	# take ownership of deploy dir
 	mkdir -p ${CI_BUILD_DIR}/deploy
 	mkdir -p .ccache
@@ -190,15 +190,15 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		cache_env="export CCACHE_DIR=/.ccache && ccache -z"
 		ls -a .ccache
 	else
-		echo "Not using ccache"		
+		echo "Not using ccache"
 		BUILD_OPTION="-DUSE_CCACHE_CACHING=OFF ${ARCHIVE_OPTION}"
 		cache_env="true"
 	fi
 
 	if [[ $ARCHITECTURE == *"armhf"* ]] && [[ $CI_TYPE == "github_action" ]]; then
-		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armhf ${BUILD_OPTION}"		
+		BUILD_OPTION="-DOVERRIDE_ARCHITECTURE=armhf ${BUILD_OPTION}"
 	fi
-	
+
 	echo "Build option: ${BUILD_OPTION}, ccache: ${cache_env}"
 
 	if [[ "$DISTRO_NAME" == "archlinux" ]]; then
@@ -216,7 +216,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		executeCommand="cd build && ( cmake ${BUILD_OPTION} -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBIAN_NAME_TAG=${DISTRO_VERSION} ../ || exit 2 )"
 		executeCommand+=" && ( make -j $(nproc) package || exit 3 )"
 	fi
-	
+
 	# verify if QEMU is neccesery and then set TARGET_DOCKER_QEMU_LINUX_ARCH also
 	echo "Checking if QEMU is neccesery..."
 	docker pull $REGISTRY_URL
@@ -236,7 +236,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	(ccache -sv || true) &&
 	exit 0;
 	exit 1 " || { echo "---> HyperHDR compilation failed! Abort"; exit 5; }
-	
+
 	# overwrite file owner to current user
 	sudo chown -fR $(stat -c "%U:%G" ${CI_BUILD_DIR}/deploy) ${CI_BUILD_DIR}/deploy
 fi

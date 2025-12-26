@@ -29,7 +29,7 @@
 				"wled_auto",
 				"wled_auto_max",
 				"wled_auto_accurate",
-				"white_off"				
+				"white_off"
 			],
 			"default": "hyperserial_cold_white",
 			"options": {

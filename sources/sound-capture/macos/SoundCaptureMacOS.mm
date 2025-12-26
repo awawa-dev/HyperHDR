@@ -39,14 +39,14 @@
 @class AudioStreamDelegate;
 
 namespace {
-	AudioStreamDelegate*	_avfSoundDelegate = nil;	
+	AudioStreamDelegate*	_avfSoundDelegate = nil;
 }
 
 @interface AudioStreamDelegate : NSObject<AVCaptureAudioDataOutputSampleBufferDelegate>
 {
 @public
 	SoundCaptureMacOS*	_avfGrabber;
-	dispatch_queue_t	_sequencer;	
+	dispatch_queue_t	_sequencer;
 	AVCaptureSession*	_nativeSession;
 }
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
@@ -60,7 +60,7 @@ namespace {
     {
 		return;
     }
-	if (!CMSampleBufferDataIsReady(sampleBuffer)) {        
+	if (!CMSampleBufferDataIsReady(sampleBuffer)) {
         return;
     }
     if (_avfGrabber != nullptr)
@@ -71,7 +71,7 @@ namespace {
 		if (CMBlockBufferGetDataPointer(blockBuffer, 0, NULL, &frameBytes, &rawSoundData) == kCMBlockBufferNoErr)
 		{
 			_avfGrabber->recordCallback(frameBytes, reinterpret_cast<uint8_t*>(rawSoundData));
-		}    
+		}
     }
 }
 
@@ -79,14 +79,14 @@ namespace {
 
 SoundCaptureMacOS::SoundCaptureMacOS(const QJsonDocument& effectConfig, QObject* parent)
                             : SoundCapture(effectConfig, parent)
-{		
+{
 	listDevices();
 }
 
 
 void SoundCaptureMacOS::listDevices()
-{	
-	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession 
+{
+	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession
 			#ifndef MACOS_VERSION_14_UP
 				discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
 			#else
@@ -97,8 +97,8 @@ void SoundCaptureMacOS::listDevices()
 
 	if (session!=nullptr)
 	{
-		for (AVCaptureDevice* device in session.devices) 
-		{	
+		for (AVCaptureDevice* device in session.devices)
+		{
 			_availableDevices.append(QString(device.localizedName.UTF8String) + " (" + QString(device.uniqueID.UTF8String) + ")");
 		}
 	}
@@ -106,28 +106,28 @@ void SoundCaptureMacOS::listDevices()
 
 bool SoundCaptureMacOS::getPermission()
 {
-	
+
 	if ([AVCaptureDevice respondsToSelector:@selector(authorizationStatusForMediaType:)])
-	{       
+	{
         if ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio] == AVAuthorizationStatusAuthorized)
 		{
             Info(_logger, "HyperHDR has the sound capture's permission");
-			return true;	
+			return true;
         }
         else
-		{            
+		{
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL grantedPerm) {
-                if (grantedPerm) 
+                if (grantedPerm)
                     Info(_logger, "Got the sound capture permission. Please restart the application.");
                 else
-					Error(_logger, "HyperHDR has NOT been granted the sound capture's permission");                				
-            } ];            
+					Error(_logger, "HyperHDR has NOT been granted the sound capture's permission");
+            } ];
         }
     }
 	else
 		Error(_logger, "Selector for authorizationStatusForMediaType failed");
 
-	Error(_logger, "HyperHDR have NOT got the sound capture's permission.");     
+	Error(_logger, "HyperHDR have NOT got the sound capture's permission.");
 	return false;
 }
 
@@ -139,23 +139,23 @@ SoundCaptureMacOS::~SoundCaptureMacOS()
 void SoundCaptureMacOS::start()
 {
 	if (!getPermission())
-		return;	
-	
+		return;
+
 	if (_isActive && !_isRunning)
 	{
 		bool    		notFound = true;
 
 		_soundBufferIndex = 0;
-	
-		for (AVCaptureDevice* device in [AVCaptureDeviceDiscoverySession 
+
+		for (AVCaptureDevice* device in [AVCaptureDeviceDiscoverySession
 										#ifndef MACOS_VERSION_14_UP
 											discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
 										#else
 											discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeMicrophone]
 										#endif
 										mediaType:AVMediaTypeAudio
-										position:AVCaptureDevicePositionUnspecified].devices) 
-		{	
+										position:AVCaptureDevicePositionUnspecified].devices)
+		{
 			QString current = QString(device.localizedName.UTF8String) + " (" + QString(device.uniqueID.UTF8String) + ")";
 			if (current == _selectedDevice && notFound)
 			{
@@ -167,15 +167,15 @@ void SoundCaptureMacOS::start()
 					Error(_logger,  "Audio listener creation failed");
 				}
 				else
-				{							
+				{
 					_avfSoundDelegate->_nativeSession = [AVCaptureSession new];
 
 					NSError* apiError = nil;
 					AVCaptureDeviceInput* input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&apiError];
 
-					if (!input) 
+					if (!input)
 					{
-						Error(_logger,  "Could not open capturing sound device: {:s}", apiError.localizedDescription.UTF8String);        
+						Error(_logger,  "Could not open capturing sound device: {:s}", apiError.localizedDescription.UTF8String);
 					}
 					else
 					{
@@ -193,7 +193,7 @@ void SoundCaptureMacOS::start()
 						AudioChannelLayout channelLayout;
 						bzero( &channelLayout, sizeof(channelLayout));
 						channelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
-						
+
 						output.audioSettings = [NSDictionary dictionaryWithObjectsAndKeys:
 												[ NSNumber numberWithInt: kAudioFormatLinearPCM ], AVFormatIDKey,
 												[ NSNumber numberWithInt: 1 ], AVNumberOfChannelsKey,
@@ -203,8 +203,8 @@ void SoundCaptureMacOS::start()
 												[ NSNumber numberWithInt: 16], AVLinearPCMBitDepthKey,
 												[ NSNumber numberWithBool: NO], AVLinearPCMIsBigEndianKey,
 												[ NSData dataWithBytes: &channelLayout length: sizeof(channelLayout) ], AVChannelLayoutKey,
-												nil];																					
-		
+												nil];
+
 						_avfSoundDelegate->_avfGrabber = this;
 						_avfSoundDelegate->_sequencer = dispatch_queue_create("AudioDataOutputQueue", DISPATCH_QUEUE_SERIAL);
 						[output setSampleBufferDelegate:_avfSoundDelegate queue:_avfSoundDelegate->_sequencer];
@@ -216,14 +216,14 @@ void SoundCaptureMacOS::start()
 								Info(_logger,  "AVF audio grabber starts capturing");
 							else
 								Error(_logger,  "AVF audio grabber isn't capturing");
-						}			
-		
+						}
+
 						[device unlockForConfiguration];
 
 						Info(_logger,  "AVF audio grabber initialized successfully");
-						_isRunning = true;						
+						_isRunning = true;
 					}
-				}				
+				}
 			}
 		}
 
@@ -271,7 +271,7 @@ void SoundCaptureMacOS::stopDevice()
 
 	Info(_logger,  "Disconnecting from sound driver: '{:s}'", (_selectedDevice));
 
-		
+
 	_isRunning = false;
 
 	if (_avfSoundDelegate!=nullptr && _avfSoundDelegate->_nativeSession  != nullptr)
@@ -279,7 +279,7 @@ void SoundCaptureMacOS::stopDevice()
 		[_avfSoundDelegate->_nativeSession stopRunning];
 		[_avfSoundDelegate->_nativeSession release];
 		_avfSoundDelegate->_nativeSession = nullptr;
-		_avfSoundDelegate->_sequencer = nullptr;				
+		_avfSoundDelegate->_sequencer = nullptr;
 	}
 	_avfSoundDelegate = nullptr;
 	Info(_logger,  "AVF sound grabber uninit");

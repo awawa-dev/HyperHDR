@@ -62,7 +62,7 @@ private:
 	void enumerateDevices(bool silent);
 
 	void loadLutFile(PixelFormat color = PixelFormat::NO_CHANGE);
-	
+
 	void getDevices();
 
 	bool init() override;
@@ -75,7 +75,7 @@ private:
 	//AMLOGIC
 	bool isVideoPlayingAML();
 	void closeDeviceAML(int& fd);
-	bool openDeviceAML(int& fd, const char* dev);	
+	bool openDeviceAML(int& fd, const char* dev);
 	bool initAmlogic();
 	bool stopAmlogic();
 	bool grabFrameAmlogic();
@@ -87,7 +87,7 @@ private:
 	int _videoDev;
 	bool _usingAmlogic;
 	bool _messageShow;
-		
+
 private:
 	QString		_configurationPath;
 	QTimer		_timer;

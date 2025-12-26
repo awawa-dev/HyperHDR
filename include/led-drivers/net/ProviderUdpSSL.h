@@ -28,7 +28,7 @@ public:
 protected:
 	bool init(QJsonObject deviceConfig) override;
 	int closeNetwork();
-	bool initNetwork();	
+	bool initNetwork();
 	void writeBytes(unsigned int size, const uint8_t* data, bool flush = false);
 	virtual std::list<QString> getCiphersuites();
 

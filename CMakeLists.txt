@@ -71,7 +71,7 @@ if (USE_CCACHE_CACHING)
 	if ( CCACHE_FOUND )
 		if (DEFINED ENV{CCACHE_DIR})
 			set (CCACHE_DIR_CACHE_LOCATION $ENV{CCACHE_DIR})
-			message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )			
+			message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )
 		elseif (WIN32 AND (NOT CMAKE_GITHUB_ACTION))
 			set (CCACHE_DIR_CACHE_LOCATION "$ENV{AppData}/.ccache")
 			message ( STATUS "Found CCache (${CCACHE_FOUND}) and set ccache dir: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )
@@ -123,9 +123,9 @@ endif(USE_CCACHE_CACHING)
 # find QT libs
 find_package(Qt6 COMPONENTS Core Network SerialPort QUIET)
 
-if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))	
+if (Qt6Core_FOUND AND NOT (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON"))
 	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
-	SET( Qt_VERSION 6 )	
+	SET( Qt_VERSION 6 )
 ELSE()
 	if (DO_NOT_USE_QT_VERSION_6_LIBS STREQUAL "ON")
 		message( STATUS "Search for QT version 6 is disabled: QT5 is preferred. Enable QT6 by setting DO_NOT_USE_QT_VERSION_6_LIBS to OFF." )
@@ -138,10 +138,10 @@ ELSE()
 	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 	ENDIF()
-	SET( Qt_VERSION 5 )	
+	SET( Qt_VERSION 5 )
 ENDIF()
 
-IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )	
+IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_SOUNDCAPLINUX ON )
 	SET ( DEFAULT_V4L2          ON )
 	SET ( DEFAULT_X11           ON )
@@ -166,14 +166,14 @@ if ( NOT DEFINED PLATFORM )
 		SET( PLATFORM "linux")
 	elseif ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
 		SET( PLATFORM "rpi")
-		
+
 
 		FILE( READ /proc/cpuinfo SYSTEM_CPUINFO )
 		STRING ( TOLOWER "${SYSTEM_CPUINFO}" SYSTEM_CPUINFO )
 		if ( "${SYSTEM_CPUINFO}" MATCHES "amlogic" AND ${CMAKE_SIZEOF_VOID_P} EQUAL 4 )
 			SET( PLATFORM "amlogic" )
 		elseif ( ("${SYSTEM_CPUINFO}" MATCHES "amlogic" OR "${SYSTEM_CPUINFO}" MATCHES "odroid-c2" OR "${SYSTEM_CPUINFO}" MATCHES "vero4k") AND ${CMAKE_SIZEOF_VOID_P} EQUAL 8 )
-			SET( PLATFORM "amlogic64" )		
+			SET( PLATFORM "amlogic64" )
 		endif()
 	endif()
 	if ( PLATFORM )
@@ -200,22 +200,22 @@ ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
 	SET ( DEFAULT_SOUNDCAPMACOS ON )
-	
+
 	include_directories("/opt/X11/include/")
-	
-	if(APPLE AND EXISTS /usr/local/opt/qt6)			
+
+	if(APPLE AND EXISTS /usr/local/opt/qt6)
 		INCLUDE(CheckCXXCompilerFlag)
 		CHECK_CXX_COMPILER_FLAG("-Werror=unguarded-availability" REQUIRES_UNGUARDED_AVAILABILITY)
 		IF(REQUIRES_UNGUARDED_AVAILABILITY)
 			LIST(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "-Werror=unguarded-availability")
 		ENDIF()
-	
+
 		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt6")
-	elseif(APPLE AND EXISTS /usr/local/opt/qt5)	
+	elseif(APPLE AND EXISTS /usr/local/opt/qt5)
 		list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 	endif()
-	
-	SET ( DEFAULT_AVF                    ON  )	
+
+	SET ( DEFAULT_AVF                    ON  )
 	SET ( DEFAULT_EMBEDDED_WEB_RESOURCES OFF )
 
 	if(CMAKE_OSX_DEPLOYMENT_TARGET)
@@ -248,17 +248,17 @@ if ( "${PLATFORM}" MATCHES "osx" )
 		endif()
 	endif(CMAKE_OSX_HYPERHDR_DEPLOYMENT_TARGET)
 
-elseif ( "${PLATFORM}" MATCHES "rpi" )	
+elseif ( "${PLATFORM}" MATCHES "rpi" )
 	SET ( DEFAULT_WS281XPWM  ON  )
 	SET ( DEFAULT_CEC        ON  )
 	SET ( DEFAULT_SYSTRAY    OFF )
-	
+
 	# GL dispatcher
 	find_library (GLD GLdispatch)
 	if(NOT GLD AND NOT CMAKE_CROSSCOMPILING)
 		message(FATAL_ERROR "GLdispatch library not found. Install libglvnd-dev")
 	endif()
-		
+
 
 	message("Found: ${GLD}")
 	add_library(GLD SHARED IMPORTED)
@@ -269,10 +269,10 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 		else()
 			file(STRINGS "/proc/device-tree/model" ARM_MODEL NEWLINE_CONSUME)
 		endif()
-		
+
 		STRING ( TOLOWER "${ARM_MODEL}" ARM_MODEL)
 		message(STATUS "Arm model info: ${ARM_MODEL}")
-	
+
 		string(FIND "${ARM_MODEL}" "raspberry" IS_RASPBERRY)
 		if(${IS_RASPBERRY} EQUAL -1)
 			set (IS_RASPBERRY_PI OFF)
@@ -292,7 +292,7 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 	else()
 		message(STATUS "Platform variant: generic ARM")
 	endif()
-	
+
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
 	SET ( DEFAULT_AMLOGIC    ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic64" )
@@ -303,7 +303,7 @@ elseif ( "${PLATFORM}" MATCHES "linux" )
 		SET ( DEFAULT_WS281XPWM  ON )
 	endif()
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
-	
+
 elseif (WIN32)
 	SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 endif()
@@ -315,7 +315,7 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 if (DEFAULT_X11)
 	if (NOT CMAKE_CROSSCOMPILING)
 		find_package(XLibs QUIET )
-	endif()	
+	endif()
 	if (NOT XLibs_FOUND)
 		message( WARNING "X11 libs not found. Disabling support for X11.")
 		SET ( DEFAULT_X11                          OFF )
@@ -595,7 +595,7 @@ if(MSVC)
     add_compile_options(/W4)
 else()
     add_compile_options(-Wall)
- 
+
     if(CMAKE_COMPILER_IS_GNUCXX)
         add_compile_options(-Wno-psabi)
     endif()
@@ -656,7 +656,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	find_package(WindowsSDK REQUIRED)
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
-	
+
 	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2022_64")
 	if ((Qt5Core_FOUND AND NOT (DEFINED ENV{Qt5_DIR})) OR (Qt6Core_FOUND AND NOT (DEFINED ENV{Qt6_DIR})))
@@ -691,7 +691,7 @@ if (USE_STATIC_QT_PLUGINS AND TARGET Qt6::qmake)
 			message("Using static QT plugin: " ${file})
 			set(STATIC_QT_PLUGINS_LIBS ${STATIC_QT_PLUGINS_LIBS} ${file})
 		endif()
-	endforeach()	
+	endforeach()
 endif()
 
 if (WIN32)
@@ -733,12 +733,12 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
 if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET libzstd_static AND TARGET libzstd_shared AND TARGET clean-all AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers )
-	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
+	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()
 
-if (NOT ENABLE_BONJOUR)	
+if (NOT ENABLE_BONJOUR)
 	message( FATAL_ERROR "The network discovery service (ENABLE_BONJOUR) is an important feature of HyperHDR. If you know what you are doing, remove this safe-break.")
 endif()
 

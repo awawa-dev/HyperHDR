@@ -96,7 +96,7 @@ int DriverSpiHyperSPI::close()
 		if (type == "rp2040")
 		{
 			writeBytesRp2040(sizeof(rpBuffer), rpBuffer);
-		}		
+		}
 	}
 
 	return ProviderSpi::close();

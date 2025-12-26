@@ -39,7 +39,7 @@ Animation_AtomicSwirl::Animation_AtomicSwirl() :
 	center_y = 0.5;
 	reverse = false;
 
-	
+
 	custom_colors.push_back({ 0,0,0 });
 	custom_colors.push_back({ 255,255,0 });
 	custom_colors.push_back({ 0,0,0 });

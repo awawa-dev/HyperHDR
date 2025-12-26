@@ -96,7 +96,7 @@ void VideoControl::handleUsbImage()
 
 	if (!_usbCaptEnabled)
 		return;
-	
+
 	incoming.mutex.lock();
 	{
 		name = incoming.name;
@@ -180,7 +180,7 @@ void VideoControl::setUsbInactive()
 		if (_stream)
 		{
 			_stream = false;
-			std::shared_ptr<GrabberHelper> grabberHelper;			
+			std::shared_ptr<GrabberHelper> grabberHelper;
 			emit GlobalSignals::getInstance()->SignalGetVideoGrabber(grabberHelper);
 			if (grabberHelper != nullptr && grabberHelper->grabberWrapper() != nullptr)
 				QUEUE_CALL_0(grabberHelper->grabberWrapper(), revive);

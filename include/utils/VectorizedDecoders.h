@@ -80,7 +80,7 @@ namespace VECTOR_UYVY {
 
 			const uint32_t u0 = uyvy0 & 0xFF;
 			const uint32_t v0 = (uyvy0 >> 16) & 0xFF;
-			const uint32_t y00 = (uyvy0 >> 8) & 0xFF;			
+			const uint32_t y00 = (uyvy0 >> 8) & 0xFF;
 			const uint32_t y01 = (uyvy0 >> 24);
 			const uint32_t base0 = (u0 << 8) | (v0 << 16);
 
@@ -161,13 +161,13 @@ namespace VECTOR_I420 {
 			const uint32_t y00 = y & 0xFF;
 			const uint32_t y01 = (y >> 8) & 0xFF;
 			const uint32_t base0 = (u0 << 8) | (v0 << 16);
-			
+
 			const uint32_t u1 = (u >> 8) & 0xFF;
 			const uint32_t v1 = (v >> 8) & 0xFF;
 			const uint32_t y10 = (y >> 16) & 0xFF;
 			const uint32_t y11 = (y >> 24) ;
 			const uint32_t base1 = (u1 << 8) | (v1 << 16);
-			
+
 			*reinterpret_cast<uint32_t*>(dest) = *reinterpret_cast<const uint32_t*>(&lutBuffer[(base0 | y00) * 3]); dest += 3;
 			if constexpr (!quarterMode)
 				{*reinterpret_cast<uint32_t*>(dest) = *reinterpret_cast<const uint32_t*>(&lutBuffer[(base0 | y01) * 3]); dest += 3;}
@@ -176,7 +176,7 @@ namespace VECTOR_I420 {
 			if constexpr (!quarterMode)
 				{*reinterpret_cast<uint32_t*>(dest) = *reinterpret_cast<const uint32_t*>(&lutBuffer[(base1 | y11) * 3]); dest += 3;}
 		}
-	}	
+	}
 }
 
 
@@ -210,7 +210,7 @@ namespace VECTOR_NV12 {
 			*reinterpret_cast<uint32_t*>(dest) = *reinterpret_cast<const uint32_t*>(&lutBuffer[(base1 | y10) * 3]); dest += 3;
 			if constexpr (!quarterMode)
 				{*reinterpret_cast<uint32_t*>(dest) = *reinterpret_cast<const uint32_t*>(&lutBuffer[(base1 | y11) * 3]); dest += 3;}
-		}	
+		}
 	}
 }
 
@@ -253,7 +253,7 @@ namespace VECTOR_P010 {
 
 		}
 	}
-	
+
 	template<bool quarterMode>
 	static inline void processlWithToneMapping(
 		uint64_t* currentSourceY,

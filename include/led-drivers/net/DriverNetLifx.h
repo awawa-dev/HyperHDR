@@ -8,7 +8,7 @@
 #include <QHostAddress>
 
 class DriverNetLifx : public ProviderUdp
-{	
+{
 public:
 	explicit DriverNetLifx(const QJsonObject& deviceConfig);
 	static LedDevice* construct(const QJsonObject& deviceConfig);

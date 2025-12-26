@@ -1,5 +1,5 @@
 /* PipewireHandler.cpp
-* 
+*
 *  MIT License
 *
 *  Copyright (c) 2020-2025 awawa-dev
@@ -49,7 +49,7 @@
 #include <unistd.h>
 #include <utility>
 #include <vector>
-	
+
 
 #include <grabber/linux/pipewire/smartPipewire.h>
 #include <grabber/linux/pipewire/PipewireHandler.h>
@@ -150,11 +150,11 @@ void PipewireHandler::closeSession()
 	if (_pwMainThreadLoop != nullptr)
 	{
 		pw_thread_loop_wait(_pwMainThreadLoop);
-		pw_thread_loop_stop(_pwMainThreadLoop);		
+		pw_thread_loop_stop(_pwMainThreadLoop);
 	}
 
 	if (_pwStream != nullptr)
-	{		
+	{
 		pw_stream_destroy(_pwStream);
 		_pwStream = nullptr;
 	}
@@ -197,15 +197,15 @@ void PipewireHandler::closeSession()
 	_sourceReplyPath = "";
 	_replySessionPath = "";
 	_sessionHandle = "";
-	
+
 	_screenCastProxy = nullptr;
 	_createSessionProxy = nullptr;
 	_selectSourceProxy = nullptr;
 	_startProxy = nullptr;
 	_dbusConnection = nullptr;
-	
+
 	_pwStreamListener = {};
-	_pwCoreListener = {};	
+	_pwCoreListener = {};
 	_portalStatus = false;
 	_isError = false;
 	_errorMessage = "";
@@ -234,7 +234,7 @@ void PipewireHandler::closeSession()
 	if (displayEgl != EGL_NO_DISPLAY)
 	{
 		auto res = eglTerminate(displayEgl);
-		std::cout << "PipewireEGL: terminate the display => " << res << std::endl;		
+		std::cout << "PipewireEGL: terminate the display => " << res << std::endl;
 		displayEgl = EGL_NO_DISPLAY;
 	}
 
@@ -524,7 +524,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		reportError(QString("Pipewire: Failed to select a source: %1").arg(QString::fromLocal8Bit(ex.what())));
 	}
 
-	
+
 	std::cout << "Pipewire: Start finished" << std::endl;
 }
 
@@ -533,7 +533,7 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	std::cout << "Pipewire: Got response from portal Start" << std::endl;
 
 	if (response != 0)
-	{		
+	{
 		reportError(QString("Pipewire: Failed to start or cancel dialog: %1").arg(response));
 		_sessionHandle = "";
 		return;
@@ -552,12 +552,12 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	_frameWidth = nodeStreamWidth;
 	_frameHeight = nodeStreamHeight;
 	_portalStatus = true;
-	
+
 	//------------------------------------------------------------------------------------
 	std::cout << "Connecting to Pipewire interface for stream: " << _frameWidth << " x " << _frameHeight << std::endl;
 
 	pw_init(nullptr, nullptr);
-	
+
 	if ( nullptr == (_pwMainThreadLoop = pw_thread_loop_new("pipewire-hyperhdr-loop", nullptr)))
 	{
 		reportError("Pipewire: failed to create new Pipewire thread loop");
@@ -571,7 +571,7 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 		reportError("Pipewire: failed to create new Pipewire context");
 		return;
 	}
-	
+
 	if ( nullptr == (_pwContextConnection = pw_context_connect(_pwNewContext, nullptr, 0)))
 	{
 		reportError("Pipewire: could not connect to the Pipewire context");
@@ -597,7 +597,7 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state, const char* error)
 {
 	if (state != PW_STREAM_STATE_STREAMING && _pwStream != nullptr)
-	{		
+	{
 		_framePaused = true;
 	}
 
@@ -709,8 +709,8 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	}
 
 	pw_thread_loop_lock(_pwMainThreadLoop);
-	
-	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));	
+
+	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));
 	_infoUpdated = false;
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);
@@ -734,11 +734,11 @@ void PipewireHandler::getImage(PipewireImage& retVal)
 }
 
 void PipewireHandler::captureFrame()
-{	
+{
 	struct pw_buffer* newFrame = nullptr;
 	struct pw_buffer* dequeueFrame = nullptr;
 	uint8_t* mappedMemory = nullptr;
-	uint8_t* frameBuffer = nullptr;	
+	uint8_t* frameBuffer = nullptr;
 
 	if (_pwStream == nullptr || _framePaused)
 		return;
@@ -768,7 +768,7 @@ void PipewireHandler::captureFrame()
 			else if (newFrame->buffer->datas->type == SPA_DATA_DmaBuf)
 				printf("Pipewire: Using DmaBuf frame type. The hardware acceleration is ENABLED.\n");
 			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
-				printf("Pipewire: Using MemPTR frame type. The hardware acceleration is DISABLED.\n");			
+				printf("Pipewire: Using MemPTR frame type. The hardware acceleration is DISABLED.\n");
 		}
 
 #ifdef ENABLE_PIPEWIRE_EGL
@@ -787,10 +787,10 @@ void PipewireHandler::captureFrame()
 				printf("PipewireEGL: failed to make a current context (reason = '%s')\n", eglErrorToString(eglGetError()));
 			}
 			else
-			{				
+			{
 				QVector<EGLint> attribs;
 				std::vector<std::pair<int, int>> eglDrmModWorkaround;
-				
+
 				attribs << EGL_WIDTH << _frameWidth << EGL_HEIGHT << _frameHeight << EGL_LINUX_DRM_FOURCC_EXT << EGLint(_frameDrmFormat);
 
 				EGLint EGL_DMA_BUF_PLANE_FD_EXT[]     = { EGL_DMA_BUF_PLANE0_FD_EXT,     EGL_DMA_BUF_PLANE1_FD_EXT,     EGL_DMA_BUF_PLANE2_FD_EXT,     EGL_DMA_BUF_PLANE3_FD_EXT };
@@ -880,7 +880,7 @@ void PipewireHandler::captureFrame()
 								{
 									glGetTexImage(GL_TEXTURE_2D, 0, supVal.glFormat, GL_UNSIGNED_BYTE, frameBuffer);
 									glRes = glGetError();
-									
+
 									if (glRes != GL_NO_ERROR)
 									{
 										printf("PipewireGL: could not render the DMA texture (%s)\n", glErrorToString(glRes));
@@ -897,7 +897,7 @@ void PipewireHandler::captureFrame()
 								}
 						}
 
-						glDeleteTextures(1, &texture);					
+						glDeleteTextures(1, &texture);
 					}
 					eglDestroyImageKHR(displayEgl, eglImage);
 				}
@@ -931,7 +931,7 @@ void PipewireHandler::captureFrame()
 				}
 			}
 			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
-			{				
+			{
 				_image.data = createMemory(_image.stride * _frameHeight);
 				memcpy(_image.data, static_cast<uint8_t*>(newFrame->buffer->datas[0].data), static_cast<size_t>(_image.stride) * _frameHeight);
 			}
@@ -1126,7 +1126,7 @@ void PipewireHandler::initEGL()
 	{
 		printf("PipewireEGL: failed to get eglDestroyContext\n");
 		return;
-	}	
+	}
 
 	if ((eglMakeCurrent = (eglMakeCurrentFun)eglGetProcAddress("eglMakeCurrent")) == nullptr)
 	{
@@ -1150,7 +1150,7 @@ void PipewireHandler::initEGL()
 	{
 		printf("PipewireEGL: failed to get eglBindAPI\n");
 		return;
-	}	
+	}
 
 	if ((glXGetProcAddressARB = (glXGetProcAddressARBFun)dlsym(_libGlHandle, "glXGetProcAddressARB")) == nullptr)
 	{
@@ -1249,7 +1249,7 @@ void PipewireHandler::initEGL()
 		printf("PipewireEGL: Found %d DMA-BUF formats\n", dmaCount);
 	}
 
-	
+
 	QVector<uint32_t> dmaFormats(dmaCount);
 
 	if (dmaCount > 0 && eglQueryDmaBufFormatsEXT(displayEgl, dmaCount, (EGLint*)dmaFormats.data(), &dmaCount))
@@ -1289,7 +1289,7 @@ void PipewireHandler::initEGL()
 		{
 			printf("PipewireEGL: Found unsupported by HyperHDR '%s' DMA format\n", fourCCtoString(val).toLocal8Bit().constData());
 		}
-	}	
+	}
 }
 #endif
 
@@ -1317,7 +1317,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 		.version = PW_VERSION_STREAM_EVENTS,
 		.state_changed = [](void* handler, enum pw_stream_state old, enum pw_stream_state state, const char* error) {
 			emit reinterpret_cast<PipewireHandler*>(handler)->onStateChangedSignal(old, state, error);
-		},		
+		},
 		.param_changed = [](void* handler, uint32_t id, const struct spa_pod* param) {
 			emit reinterpret_cast<PipewireHandler*>(handler)->onParamsChangedSignal(id, param);
 		},
@@ -1330,7 +1330,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 		.version = PW_VERSION_CORE_EVENTS,
 		.info = [](void *user_data, const struct pw_core_info *info) {
 			std::cout << "Pipewire: core info reported. Version = " << info->version << std::endl;
-		},		
+		},
 		.error = [](void *handler, uint32_t id, int seq, int res, const char *message) {
 			std::cout << "Pipewire: core error reported" << std::endl;
 			emit reinterpret_cast<PipewireHandler*>(handler)->onCoreErrorSignal(id, seq, res, message);
@@ -1346,7 +1346,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 	spa_fraction pwFramerateMax = SPA_FRACTION(60, 1);
 
 	pw_properties* reuseProps = pw_properties_new_string("pipewire.client.reuse=1");
-	
+
 	pw_core_add_listener(_pwContextConnection, &_pwCoreListener, &pwCoreEvents, this);
 
 	pw_stream* stream = pw_stream_new(_pwContextConnection, "hyperhdr-stream-receiver", reuseProps);
@@ -1354,7 +1354,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 	if (stream != nullptr)
 	{
 		std::vector<spa_pod*> streamParams;
-		
+
 		MemoryBuffer<uint8_t> spaBufferMem(2048);
 
 		auto spaBuilder = SPA_POD_BUILDER_INIT(spaBufferMem.data(), static_cast<uint32_t>(spaBufferMem.size()));
@@ -1366,12 +1366,12 @@ pw_stream* PipewireHandler::createCapturingStream()
 		for (const supportedDmaFormat& val : _supportedDmaFormatsList)
 			if (val.hasDma)
 			{
-				spa_pod_frame frameDMA[2];		
+				spa_pod_frame frameDMA[2];
 				spa_pod_builder_push_object(&spaBuilder, &frameDMA[0], SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video), 0);
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
 				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_format, SPA_POD_Id(val.spaFormat), 0);
-			
+
 				if (val.modifiers.count() == 1 && val.modifiers[0] == DRM_FORMAT_MOD_INVALID)
 				{
 					spa_pod_builder_prop(&spaBuilder, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY);

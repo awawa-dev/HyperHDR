@@ -19,7 +19,7 @@ function startWizardHome_assistant(e)
         keyboard: false
     });
 
-    $('input[name^=haInputParams]').on('change input',function(e){      
+    $('input[name^=haInputParams]').on('change input',function(e){
         if ($('#hostHA').val().length > 0 && $('#tokenHA').val().length > 0)
         {
             $("#btn_wiz_cont").prop('disabled', false);
@@ -34,8 +34,8 @@ function startWizardHome_assistant(e)
     $('#btn_wiz_cont').off().on('click', function ()
     {
         let haConfig = {};
-                    
-        haConfig.type = 'home_assistant';   
+
+        haConfig.type = 'home_assistant';
         haConfig.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
         haConfig.homeAssistantHost = $('#hostHA').val().trim();
         haConfig.longLivedAccessToken= escape($('#tokenHA').val().trim());
@@ -43,7 +43,7 @@ function startWizardHome_assistant(e)
         haConfig.constantBrightness = conf_editor.getEditor("root.specificOptions.constantBrightness").getValue();
         haConfig.restoreOriginalState = conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue();
         haConfig.maxRetry = conf_editor.getEditor("root.specificOptions.maxRetry").getValue();
-        haConfig.lamps = [];        
+        haConfig.lamps = [];
 
         tunnel_home_assistant_get(haConfig.homeAssistantHost, '/api/states',{'Authorization':`Bearer ${haConfig.longLivedAccessToken}` }).then( (r) =>
             {
@@ -67,7 +67,7 @@ function startWizardHome_assistant(e)
                                         else if (capability === "hs")
                                         {
                                             colorMode = "hsv";
-                                        }                                       
+                                        }
                                     });
                                     if (colorMode != null)
                                     {
@@ -100,7 +100,7 @@ function startWizardHome_assistant(e)
                     showNotification('danger', $.i18n('edt_conf_fbs_timeout_title'), $.i18n('wiz_home_assistant_title'));
                 }
             }
-        );      
+        );
     });
 }
 
@@ -114,7 +114,7 @@ function identify_ha_device(host, token, id)
             new Promise((resolve) => setTimeout(resolve, 1000)).then((r) =>
                 {
                     tunnel_home_assistant_post(address, '/api/services/light/turn_on', {'Authorization':`Bearer ${bearerToken}` }, deviceId);
-                });         
+                });
         }
     );
 }

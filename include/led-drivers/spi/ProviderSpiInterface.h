@@ -38,7 +38,7 @@ public:
 	ProviderSpiInterface(LoggerName logger) :
 		_deviceName("/dev/spidev0.0")
 		, _baudRate_Hz(1000000)
-		, _fid(-1)		
+		, _fid(-1)
 		, _spiDataInvert(false)
 		, _spiMode(0)
 		, _spiType("")

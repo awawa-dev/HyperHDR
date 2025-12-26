@@ -23,7 +23,7 @@ private:
 	RGBW::RgbwChannelCorrection channelCorrection;
 
 	const int SPI_BYTES_PER_COLOUR;
-	uint8_t bitpair_to_byte[4];	
+	uint8_t bitpair_to_byte[4];
 
 	static bool isRegistered;
 };

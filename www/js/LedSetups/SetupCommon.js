@@ -149,7 +149,7 @@ function createLedConfig(haConfig)
         let ledDef = [];
         for (var key in _haConfig.lamps)
         {
-            var defaultPosition = $('#ha_lamp_pos_' + key).val();           
+            var defaultPosition = $('#ha_lamp_pos_' + key).val();
             var idx_content = assignLightPos(key, defaultPosition, _haConfig.lamps[key].name);
 
             _haConfig.lamps[key].defaultPosition = defaultPosition;
@@ -183,19 +183,19 @@ function createLedConfig(haConfig)
         }
         let selectLightControl = `<select id="ha_lamp_pos_${ledHaIndex}" class="hue_sel_watch form-select">${options}</select>`;
         if (haConfig.type == 'home_assistant')
-        {       
+        {
             let ipVal = encodeURI(haConfig.homeAssistantHost);
-            let tokenVal = haConfig.longLivedAccessToken;                   
+            let tokenVal = haConfig.longLivedAccessToken;
             let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_ha_device("${ipVal}","${tokenVal}","${lamp.name}")>${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
             $('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
         }
         else if (haConfig.type == 'lifx')
-        {           
+        {
             let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick="const params = { name: '${lamp.name}', ipAddress: '${lamp.ipAddress}', macAddress: '${lamp.macAddress}' }; requestLedDeviceIdentification('${haConfig.type}', params);">${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
             $('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
         }
         else /* ZIGBEE */
-        {           
+        {
             let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick="const params = { name: '${lamp.name}', type: '${lamp.colorModel}' }; requestLedDeviceIdentification('${haConfig.type}', params);">${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
             $('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
         }

@@ -45,7 +45,7 @@ start_msg=""
 restart_msg=""
 
 if grep -m1 systemd /proc/1/comm > /dev/null
-then	
+then
 	# systemd
 	if [ -z "${DISPLAY}" ]; then
 		echo "HyperHDR is installed as a service and starts automatically"
@@ -55,8 +55,8 @@ then
 		ENABLE_SERVICE=0
 		ENABLE_XSYS=1
 	fi
-	
-	install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service	
+
+	install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service
 
 	if [ $ENABLE_SERVICE -eq 1 ]; then
 		systemctl enable hyperhdr"@${FOUND_USR}".service
@@ -65,7 +65,7 @@ then
 	fi
 
 elif [ -e /sbin/initctl ]
-then	
+then
 	# upstart
 	if [ $ENABLE_SERVICE -eq 1 ]; then
 		echo "Init daemon: upstart (service is enabled by default)"
@@ -76,7 +76,7 @@ then
 		echo "Init daemon: upstart (service is NOT enabled by default)"
 	fi
 
-else	
+else
 	# sysV
 	if [ $ENABLE_SERVICE -eq 1 ]; then
 		echo "Init daemon: sysV (enabled by default)"
@@ -142,7 +142,7 @@ printf "\n |  Start the service: \033[37;1msudo systemctl start hyperhdr@%-12s\0
 printf "\n |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |" "$FOUND_USR"
 printf "\n |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
 printf "\n +-----------------------------------------------------------------------+"
-case "$STARTUP_MSG" in 
+case "$STARTUP_MSG" in
   *"HyperHDR is installed as a service"*)
 	printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
   *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"

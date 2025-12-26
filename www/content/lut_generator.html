@@ -8,7 +8,7 @@
 
 
 <script>
-var lut = null; 
+var lut = null;
 
 var c1=0.8359375;
 var c2=18.8515625;
@@ -43,13 +43,13 @@ function clamp(val,min,max)
 }
 
 function Correction(channel, input)
-{	
+{
 	var value = input;
 	if (channel==0)
 	{
 		if (value <= minR)
 			value = 0;
-		
+
 		if (gainR != 1 && gainR != 0)
 			value = Math.pow(value/255.0, 1/gainR)*255;
 	}
@@ -57,7 +57,7 @@ function Correction(channel, input)
 	{
 		if (value <= minG)
 			value = 0;
-		
+
 		if (gainG != 1 && gainG != 0)
 			value = Math.pow(value/255.0, 1/gainG)*255;
 	}
@@ -65,7 +65,7 @@ function Correction(channel, input)
 	{
 		if (value <= minB)
 			value = 0;
-		
+
 		if (gainB != 1 && gainB != 0)
 			value = Math.pow(value/255.0, 1/gainB)*255;
 	}
@@ -73,13 +73,13 @@ function Correction(channel, input)
 }
 
 function CorrectionSDR(channel, input)
-{	
+{
 	var value = input;
 	if (channel==0)
 	{
 		if (value <= minR_SDR)
 			value = 0;
-		
+
 		if (gainR_SDR != 1 && gainR_SDR != 0)
 			value = Math.pow(value/255.0, 1/gainR_SDR)*255;
 	}
@@ -87,7 +87,7 @@ function CorrectionSDR(channel, input)
 	{
 		if (value <= minG_SDR)
 			value = 0;
-		
+
 		if (gainG_SDR != 1 && gainG_SDR != 0)
 			value = Math.pow(value/255.0, 1/gainG_SDR)*255;
 	}
@@ -95,7 +95,7 @@ function CorrectionSDR(channel, input)
 	{
 		if (value <= minB_SDR)
 			value = 0;
-		
+
 		if (gainB_SDR != 1 && gainB_SDR != 0)
 			value = Math.pow(value/255.0, 1/gainB_SDR)*255;
 	}
@@ -106,17 +106,17 @@ function CorrectionSDR(channel, input)
 
   var parsers = {
     "3dl": {
-      parseHeader: function(lines) {        
+      parseHeader: function(lines) {
 		while (lines[0] !== 'undefined')
 		{
 			if (lines[0].indexOf("#")==-1)
 				break;
 			lines.shift();
 		}
-		
+
         var header = lines.shift().split(" ").map(parseInt);
         var cubeSize = header.length;
-        return {        
+        return {
           cubeSize: cubeSize,
 		  max : 0
         };
@@ -149,12 +149,12 @@ function CorrectionSDR(channel, input)
 
   function onFileReaded(fileContent, fileExt) {
     var lutModel = parseFileContent(fileContent, parsers[fileExt]);
-	
+
 	lut = new Uint8Array(256*256*256*3);
 	for (var r = 0; r < 256; r++)
-	{		
+	{
 		for (var g = 0; g < 256; g++)
-		{	
+		{
 			for (var b = 0; b < 256; b++)
 			{
 				var ir =  clamp( Math.floor (r /  (256/lutModel.header.cubeSize)),0,lutModel.header.cubeSize-1);
@@ -165,7 +165,7 @@ function CorrectionSDR(channel, input)
 				res[0] =  t.r;
 				res[1] =  t.g;
 				res[2] =  t.b;
-				
+
 				if (lutModel.header.max>300)
 				{
 					for (var s=0;s<3;s++)
@@ -174,10 +174,10 @@ function CorrectionSDR(channel, input)
 				var index = lutIndex(r,g,b);
 				lut[index + lutIndexC(0)]=res[0];
 				lut[index + lutIndexC(1)]=res[1];
-				lut[index + lutIndexC(2)]=res[2];							
+				lut[index + lutIndexC(2)]=res[2];
 			}
 		}
-	}   
+	}
 	rendertest();
   }
 
@@ -196,8 +196,8 @@ function CorrectionSDR(channel, input)
 	  if (lutEntry.g>header.max)
 		  header.max = lutEntry.g;
 	  if (lutEntry.b>header.max)
-		  header.max = lutEntry.b;	  
-      cubeArray[indexes[0]][indexes[1]][indexes[2]] = lutEntry;	  
+		  header.max = lutEntry.b;
+      cubeArray[indexes[0]][indexes[1]][indexes[2]] = lutEntry;
     }
 
     return {
@@ -246,8 +246,8 @@ function gam_pq_lin(v) {
 }
 
 function gam_lin_srgb(v) {
-	if (v > 0.0031308) 
-		return ((1.055 * Math.pow(v, (1.0 / 2.4))) - 0.055) 
+	if (v > 0.0031308)
+		return ((1.055 * Math.pow(v, (1.0 / 2.4))) - 0.055)
 	else
 		return v * 12.92;
 }
@@ -281,32 +281,32 @@ var downloadImage = function(){
   link.click();
 };
 
-function handleImage(e){	
+function handleImage(e){
 	var reader = new FileReader();
 	reader.onload = function(event){
 		var img = new Image();
 		img.onload = function(){
 			var canvas = document.getElementById('myCanvas');
-			var ctx = canvas.getContext('2d');		
+			var ctx = canvas.getContext('2d');
 			canvas.width = img.width;
 			canvas.height = img.height;
 			canvas.style.width  = '100%';
 			canvas.style.height = '600px';
 			ctx.drawImage(img,0,0);
-			
+
 			canvas = document.getElementById('sdrCanvas');
-			ctx = canvas.getContext('2d');		
+			ctx = canvas.getContext('2d');
 			canvas.width = img.width;
 			canvas.height = img.height;
 			canvas.style.width  = '100%';
 			canvas.style.height = '600px';
 			ctx.drawImage(img,0,0);
-			
+
 		}
 		img.src = event.target.result;
 		document.getElementById('backup').src = img.src;
 	}
-	reader.readAsDataURL(e.target.files[0]);     
+	reader.readAsDataURL(e.target.files[0]);
 }
 
 var makeLutSemaphore=0;
@@ -314,7 +314,7 @@ var saveFinished =0;
 
 function setProgress(newVal){
 	$('#lut_progress').css('width', newVal+'%').attr('aria-valuenow', newVal);
-	
+
 	if (newVal==0 || newVal == 100)
 		$('#lut_progress').removeClass('progress-bar-animated');
 	else
@@ -323,15 +323,15 @@ function setProgress(newVal){
 
 async function SaveLut() {
 	await checkLut(false);
-	
+
 	saveFinished =0;
 	setProgress(0);
-	
+
 	var HDRyuv = new Uint8Array(256*256*256*3);
 	for (var Y = 0; Y < 256; Y++)
-	{	 
+	{
 		(function() {
-			var y = Y;	  
+			var y = Y;
 			setTimeout(function() {
 					for (var u = 0; u < 256; u++)
 						for (var v = 0; v < 256; v++)
@@ -350,20 +350,20 @@ async function SaveLut() {
 							HDRyuv[index + lutIndexC(1)]=lut[indexRgb + lutIndexC(1)];
 							HDRyuv[index + lutIndexC(2)]=lut[indexRgb + lutIndexC(2)];
 						}
-					  
+
 					setProgress((y*50)/255);
 					saveFinished++;
 			}, 0);
 		})();
-	} 
-	
+	}
+
 	var yuv = new Uint8Array(256*256*256*3);
 	for (var Y = 0; Y < 256; Y++)
 	{
-	 
+
 	  (function() {
-	  		var y = Y;	
-	  		
+	  		var y = Y;
+
 	  		setTimeout(function() {
 	  		    for (var u = 0; u < 256; u++)
 				  for (var v = 0; v < 256; v++)
@@ -375,7 +375,7 @@ async function SaveLut() {
 					var _R = clamp((298 * c + 409 * e + 128) >> 8,0,255);
 					var _G = clamp((298 * c - 100 * d - 208 * e + 128) >> 8,0,255);
 					var _B = clamp((298 * c + 516 * d + 128) >> 8,0,255);
-					
+
 					var index = lutIndex(y,u,v);
 					yuv[index + lutIndexC(0)]=CorrectionSDR(0, _R);
 					yuv[index + lutIndexC(1)]=CorrectionSDR(1, _G);
@@ -386,12 +386,12 @@ async function SaveLut() {
 		            saveFinished++;
 		        }, 0);
 	  })();
-	  
-	} 
-	
+
+	}
+
 	while (saveFinished<256*2)
 		await new Promise(r => setTimeout(r, 750));
-		
+
 	var data = new Blob([lut,HDRyuv,yuv], {type: "application/octet-stream"});
 	saveData(data, "lut_lin_tables.3d");
 }
@@ -404,7 +404,7 @@ async function checkLut(force)
 	var _minR = document.getElementById('minR').value;
 	var _minG = document.getElementById('minG').value;
 	var _minB = document.getElementById('minB').value;
-	
+
 	var _gainR_SDR = document.getElementById('gainR_SDR').value;
 	var _gainG_SDR = document.getElementById('gainG_SDR').value;
 	var _gainB_SDR = document.getElementById('gainB_SDR').value;
@@ -412,13 +412,13 @@ async function checkLut(force)
 	var _minG_SDR = document.getElementById('minG_SDR').value;
 	var _minB_SDR = document.getElementById('minB_SDR').value;
 
-	var change = 
+	var change =
 		(_gainR != gainR ||
 		 _gainG != gainG ||
 		 _gainB != gainB ||
 		 _minR != minR   ||
 		 _minG != minG   ||
-		 _minB != minB   ||	
+		 _minB != minB   ||
 		 _gainR_SDR != gainR_SDR ||
 		 _gainG_SDR != gainG_SDR ||
 		 _gainB_SDR != gainB_SDR ||
@@ -427,14 +427,14 @@ async function checkLut(force)
 		 _minB_SDR != minB_SDR);
 
 
-	
+
 	if (lut == null || force || change)
 	{
 		makeLutSemaphore=0;
 		MakeLut();
 		while(makeLutSemaphore<16)
 			await new Promise(r => setTimeout(r, 750));
-	}	
+	}
 }
 
 
@@ -452,22 +452,22 @@ function load()
 {
 	const hdr = document.getElementById('myCanvas');
 	const sdr = document.getElementById('sdrCanvas');
-		
-	var loadImg = function(blob){	  		
+
+	var loadImg = function(blob){
 		var img = new Image();
 		img.onload = function(){
 			var hdrctx = hdr.getContext('2d');
-			var sdrctx = sdr.getContext('2d');		
+			var sdrctx = sdr.getContext('2d');
 			hdr.width = img.width;
 			hdr.height = img.height;
 			hdr.style.width  = '100%';
-			hdr.style.height = '600px';			
-		
+			hdr.style.height = '600px';
+
 			sdr.width = img.width;
 			sdr.height = img.height;
 			sdr.style.width  = '100%';
-			sdr.style.height = '600px';			
-			
+			sdr.style.height = '600px';
+
 			hdrctx.drawImage(img, 0, 0);
 			sdrctx.drawImage(img, 0, 0);
 		}
@@ -475,11 +475,11 @@ function load()
 	  	img.src = blob;
 		document.getElementById('backup').src = blob;
 	};
-	
-	loadImg('img/lut/sample.png');	
 
-	document.getElementById('inpImage').onchange = handleImage;	
-	
+	loadImg('img/lut/sample.png');
+
+	document.getElementById('inpImage').onchange = handleImage;
+
 	var lutFileInput = document.getElementById('lut-file-input');
     lutFileInput.addEventListener('change', onFileChange, false);
 }
@@ -489,7 +489,7 @@ function MakeLut()
 	lut = new Uint8Array(256*256*256*3);
 	for (var i = 0; i < 16; i++)
 	{
-		
+
 		(function() {
 		        var currentPosition = i;
 		        setTimeout(function() {
@@ -497,7 +497,7 @@ function MakeLut()
 		        }, 0);
 	        })();
 
-	}	
+	}
 }
 
 function MakeLutPart(i)
@@ -508,26 +508,26 @@ function MakeLutPart(i)
 	var peak = 1;
 	if (!isNaN(document.getElementById('gain').value))
 		gain = document.getElementById('gain').value*50/100;
-		
-	
+
+
 	gainR = document.getElementById('gainR').value;
 	gainG = document.getElementById('gainG').value;
 	gainB = document.getElementById('gainB').value;
 	minR = document.getElementById('minR').value;
 	minG = document.getElementById('minG').value;
 	minB = document.getElementById('minB').value;
-	
+
 	gainR_SDR = document.getElementById('gainR_SDR').value;
 	gainG_SDR = document.getElementById('gainG_SDR').value;
 	gainB_SDR = document.getElementById('gainB_SDR').value;
 	minR_SDR = document.getElementById('minR_SDR').value;
 	minG_SDR = document.getElementById('minG_SDR').value;
 	minB_SDR = document.getElementById('minB_SDR').value;
-	
+
 	for (var r = i*16; r < (i+1)*16; r++)
-	{		
+	{
 		for (var g = 0; g < 256; g++)
-		{	
+		{
 			for (var b = 0; b < 256; b++)
 			{
 				var res = MakeLutElem(r,g,b,algo,bt2020,gain,1);
@@ -547,25 +547,25 @@ function RefreshProgress(i)
 	MakeLutPart(i);
 }
 
-function gam_lin_srgb_ite(v) {	
-	if (v > 0.018) 
-		return ((1.099 * Math.pow(v, (1.0 / 2.2))) - 0.099) 
+function gam_lin_srgb_ite(v) {
+	if (v > 0.018)
+		return ((1.099 * Math.pow(v, (1.0 / 2.2))) - 0.099)
 	else
 		return v * 4.5;
 }
-  
-  
+
+
 function ite(input)
-{    				
+{
 	var dr = clamp(input[0],0,1);
 	var dg = clamp(input[1],0,1);
 	var db = clamp(input[2],0,1);
-	   
+
 	var y  = 0.299    * dr + 0.587    * dg + 0.114    * db;
 	var Cb = ((- 0.168736 * dr - 0.331264 * dg + 0.5      * db));
-	var Cr = ((+ 0.5      * dr - 0.418688 * dg - 0.081312 * db));		
+	var Cr = ((+ 0.5      * dr - 0.418688 * dg - 0.081312 * db));
 	var Y = y*255;
-	
+
 	var a1 = 1.8712e-5;
 	var b1 = -2.7334e-3;
 	var c1 = 1.3141;
@@ -573,58 +573,58 @@ function ite(input)
 	var b2 = -7.4622e-4;
 	var c2 = 1.2528;
 	var E;
-	
+
 	if (Y <= 70)
 		E = a1 * Y * Y + b1 * Y + c1;
 	else
 		E = a2 * Y * Y + b2 * Y + c2;
-	
+
 	var yHDR = Math.pow(Y,E);
-	
+
 	var sc = 1;
 	if (y > 1e-20)
 		sc = (1.075 * yHDR)/y;
-		
+
 	var CbHdr = Cb * sc;
 	var CrHdr = Cr * sc;
-	
+
 	var A = Math.pow ( clamp(yHDR + 1.4746  * CrHdr, 0, 1000)/1000, 2.4);
 	var B = Math.pow ( clamp(yHDR - 0.16455 * CbHdr - 0.57135 * CrHdr, 0, 1000)/1000, 2.4);
 	var C = Math.pow ( clamp(yHDR + 1.8814  * CbHdr, 0, 1000)/1000, 2.4);
-	
+
 	// output
 	var Lmax = 700;
     input[0] = clamp(A * Lmax,0,255)/255;
 	input[1] = clamp(B * Lmax,0,255)/255;
-	input[2] = clamp(C * Lmax,0,255)/255;	
+	input[2] = clamp(C * Lmax,0,255)/255;
 }
- 
+
 function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
-{	
+{
 	var cmat = [1.6605, -0.5876, -0.0728,-0.1246,  1.1329, -0.0083,-0.0182, -0.1006,  1.1187];
 	var input = new Array(3);
-	
+
 	input[0] = r / 225.0;
 	input[1] = g / 225.0;
 	input[2] = b / 225.0;
-			
+
 	input[0]=clamp(input[0],0,1);
 	input[1]=clamp(input[1],0,1);
 	input[2]=clamp(input[2],0,1);
-	
+
 	let first = new Array(3);
-	
+
 	if (bt2020)
-	{		
+	{
 		var buf_rgb = new Array(3);
-		
+
 		buf_rgb[0] = input[0];
 		buf_rgb[1] = input[1];
-		buf_rgb[2] = input[2];	
-		
-		first[0] = Math.sqrt(clamp(buf_rgb[0] * cmat[0] + buf_rgb[1] * cmat[1] + buf_rgb[2] * cmat[2],0,1)); 
+		buf_rgb[2] = input[2];
+
+		first[0] = Math.sqrt(clamp(buf_rgb[0] * cmat[0] + buf_rgb[1] * cmat[1] + buf_rgb[2] * cmat[2],0,1));
 		first[1] = Math.sqrt(clamp(buf_rgb[0] * cmat[3] + buf_rgb[1] * cmat[4] + buf_rgb[2] * cmat[5],0,1));
-		first[2] = Math.sqrt(clamp(buf_rgb[0] * cmat[6] + buf_rgb[1] * cmat[7] + buf_rgb[2] * cmat[8],0,1));	
+		first[2] = Math.sqrt(clamp(buf_rgb[0] * cmat[6] + buf_rgb[1] * cmat[7] + buf_rgb[2] * cmat[8],0,1));
 	}
 	else
 	{
@@ -632,68 +632,68 @@ function MakeLutElem(r,g,b,algo,bt2020,gain,peak)
 		first[1] = input[1];
 		first[2] = input[2];
 	}
-		
+
 	ite(first);
-	
-	for (var chnl = 0; chnl < 3; chnl++) {		
+
+	for (var chnl = 0; chnl < 3; chnl++) {
 		input[chnl] = clamp(gam_pq_lin(input[chnl])*gain, 0, 1);
 	}
-	
+
 	if (bt2020)
 	{
 		let v0 = input[0];
 		let v1 = input[1];
 		let v2 = input[2];
-		input[0] = clamp(v0 * cmat[0] + v1 * cmat[1] + v2 * cmat[2], 0, 1); 
+		input[0] = clamp(v0 * cmat[0] + v1 * cmat[1] + v2 * cmat[2], 0, 1);
 		input[1] = clamp(v0 * cmat[3] + v1 * cmat[4] + v2 * cmat[5], 0, 1);
-		input[2] = clamp(v0 * cmat[6] + v1 * cmat[7] + v2 * cmat[8], 0, 1); 
-	}	
-	
+		input[2] = clamp(v0 * cmat[6] + v1 * cmat[7] + v2 * cmat[8], 0, 1);
+	}
+
 	for (var chnl = 0; chnl < 3; chnl++) {
 		input[chnl] = clamp(gam_lin_srgb(input[chnl]), 0, 1);
-	}	
-		
+	}
+
 	for (var i=0;i<3;i++)
-		input[i]=Math.sqrt(((first[i]*first[i]*1) + (input[i]*input[i]*3))/4);		
-	
+		input[i]=Math.sqrt(((first[i]*first[i]*1) + (input[i]*input[i]*3))/4);
+
     if (algo=="R")
 	{
-		//XYZ		
+		//XYZ
 		var X = input[0] *0.4124564 + input[1] * 0.3575761 + input[2] * 0.1804375;
 		var Y = input[0] *0.2126729 + input[1] * 0.7151522 + input[2] * 0.0721750;
 		var Z = input[0] *0.0193339 + input[1] * 0.1191920 + input[2] * 0.9503041;
-		
+
 		//XY
 		var inv = 1.0/(X+Y+Z);
 		input[0] =  Y;
 		input[1] = X*inv;
 		input[2] = Y*inv;
-		
-		
-		
+
+
+
 		var l_old = (0.2126 * input[0] + 0.7152 * input[1] + 0.0722 * input[2]);
 		var numerator = l_old * (1.0 + (l_old / (peak * peak)));
 		var l_new = numerator / (1.0 + l_old);
 		for (var chnl = 0; chnl < 3; chnl++)
 			input[chnl] = extendedReinhard(input[chnl], l_new, l_old);
-			
-			
+
+
 		//XYZ
 		X = input[0]*input[1]/input[2];
 		Y = input[0];
-		Z = input[0]*(1.0 - input[1] - input[2])/input[2];		
+		Z = input[0]*(1.0 - input[1] - input[2])/input[2];
 		//RGB
 		input[0] =  X* 3.2404542 - Y*1.5371385 - Z*0.4985314;
 		input[1] = -X*0.9692660  + Y*1.8760108 + Z*0.0415560;
 		input[2] =  X*0.0556434  - Y*0.2040259 + Z*1.0572252;
-		
+
 	}
 	else if (algo=="H")
 	{
-		for (var chnl = 0; chnl < 3; chnl++) 
-			input[chnl] = hable(input[chnl])/hable(peak);;			
+		for (var chnl = 0; chnl < 3; chnl++)
+			input[chnl] = hable(input[chnl])/hable(peak);;
 	}
-	
+
 	input[0] = clamp(Correction(0, input[0] * 255.0), 0, 255);
 	input[1] = clamp(Correction(1, input[1] * 255.0), 0, 255);
 	input[2] = clamp(Correction(2, input[2] * 255.0), 0, 255);
@@ -724,8 +724,8 @@ function rendertest()
 
 	}
 	context.putImageData(imgd, 0, 0);
-	
-	
+
+
 	canvas = document.getElementById('sdrCanvas');
 	context = canvas.getContext('2d');
 	context.drawImage(document.getElementById('backup'), 0, 0);
@@ -733,10 +733,10 @@ function rendertest()
 	imgd = context.getImageData(0, 0, canvas.width, canvas.height);
 	pix = imgd.data;
 
-	for (var i = 0, n = pix.length; i < n; i += 4) {	
+	for (var i = 0, n = pix.length; i < n; i += 4) {
 		pix[i]   = CorrectionSDR(0, pix[i]);
 		pix[i+1] = CorrectionSDR(1, pix[i+1]);
-		pix[i+2] = CorrectionSDR(2, pix[i+2]);		
+		pix[i+2] = CorrectionSDR(2, pix[i+2]);
 	}
 	context.putImageData(imgd, 0, 0);
 }
@@ -749,7 +749,7 @@ function hable(v) {
 	const E = 0.02;
 	const F = 0.30;
 	const W = 11.2;
-	
+
 	return ((v*(A*v+C*B)+D*E)/(v*(A*v+B)+D*F))-E/F;
 }
 
@@ -791,32 +791,32 @@ $("#backup").click(function() {
 					<td style="text-align:right;vertical-align:middle;">
 						<label for="lut_progress" style="font-weight: normal;"><span data-i18n="lut_generator_ind">The progress indicator</span>:</label>
 					</td>
-					<td style="text-align:left;vertical-align:middle;" colspan="2">					
+					<td style="text-align:left;vertical-align:middle;" colspan="2">
 						<div class="progress w-100">
 						  <div class="progress-bar progress-bar-striped" id="lut_progress" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-						</div>					
+						</div>
 					</td>
-				</tr>	
-				<tr height="64px">   
+				</tr>
+				<tr height="64px">
 					<td style="text-align:right;vertical-align:middle;">BT.2020 to BT.709 (HDR):</td>
 					<td style="text-align:left" colspan="2">
 						<div class="input-group">
 							<input class="form-check-input" type="checkbox" id="bt2020" checked>
 						</div>
 					<td>
-				</tr>		
-				<tr height="64px">   
+				</tr>
+				<tr height="64px">
 					<td style="text-align:right;vertical-align:middle;"><span data-i18n="lut_generator_gain">Enter gain (HDR, default 60)</span>:</td>
 					<td style="text-align:left" colspan="2">
 						<input class="form-control form-control-inline" type="number" id="gain" min="0" max="10000" value=60 />
 					<td>
 				</tr>
 				<tr>
-					<td style="text-align:right">	
+					<td style="text-align:right">
 							<label class="btn btn-light" style="background-color: transparent; vertical-align:middle;font-weight: normal;">Hable (HDR) <input  type="radio" id="algoH" name="algo" value="H" ></label>
 					</td>
 					<td style="text-align:center">
-							<label class="btn btn-light" style="background-color: transparent; vertical-align:middle;font-weight: normal;">Reinhard (HDR) <input type="radio" id="algoR" name="algo" value="R" ></label>					
+							<label class="btn btn-light" style="background-color: transparent; vertical-align:middle;font-weight: normal;">Reinhard (HDR) <input type="radio" id="algoR" name="algo" value="R" ></label>
 					</td>
 					<td style="text-align:left">
 							<label class="btn btn-light" style="background-color: transparent; vertical-align:middle;font-weight: normal;">None <input type="radio" id="algoN" name="algo" value="N" checked></label>
@@ -826,7 +826,7 @@ $("#backup").click(function() {
 					<td colspan="3"><span data-i18n="lut_generator_main1">Minimal treshold for each color of RGB(0-can be over 255 before clipping). Value below or equal the setting is considered as 0. Useful for noise in the dark scenes and let minimal brightness from the image processing to kick in. Works for HDR tone mapping enabled.</span></td>
 				</tr>
 				<tr>
-					<td style="text-align:right">	
+					<td style="text-align:right">
 							<span data-i18n="lut_generator_opt1_r">Min. treshold red</span> (HDR): <input class="form-control form-control-inline" style="width:80px" type="number" id="minR" min="0" max="255" value="0" />
 					</td>
 					<td style="text-align:center">
@@ -840,7 +840,7 @@ $("#backup").click(function() {
 					<td colspan="3"><span data-i18n="lut_generator_main2">Gamma correction for each channel. Useful if you experience for ex. too much green or your image is too dark and your grabber doesn't allow brightness control. Works for HDR tone mapping enabled.</span></td>
 				</tr>
 				<tr>
-					<td style="text-align:right">	
+					<td style="text-align:right">
 							<span data-i18n="lut_generator_opt2_r">Gamma red</span> (HDR): <input class="form-control form-control-inline" style="width:80px" type="number" id="gainR" min="0" max="5" value="1" step="0.01" />
 					</td>
 					<td style="text-align:center">
@@ -849,12 +849,12 @@ $("#backup").click(function() {
 					<td style="text-align:left">
 							<span data-i18n="lut_generator_opt2_b">Gamma blue</span> (HDR): <input class="form-control form-control-inline" style="width:80px" type="number" id="gainB" min="0" max="5" value="1" step="0.01" />
 					</td>
-				</tr>			
+				</tr>
 				<tr>
 					<td colspan="3"><span data-i18n="lut_generator_main3">Minimal treshold for each color of RGB(0-255). Value below or equal the setting is considered as 0. Useful for noise in the dark scenes and let minimal brightness from the image processing to kick in. Works for YUV (YUV/NV12/I420) codecs without HDR tone mapping enabled.</span></td>
 				</tr>
 				<tr>
-					<td style="text-align:right">	
+					<td style="text-align:right">
 							<span data-i18n="lut_generator_opt1_r">Min. treshold red</span> (SDR): <input class="form-control form-control-inline" style="width:80px" type="number" id="minR_SDR" min="0" max="255" value="0" />
 					</td>
 					<td style="text-align:center">
@@ -868,7 +868,7 @@ $("#backup").click(function() {
 					<td colspan="3"><span data-i18n="lut_generator_main4">Gamma correction for each channel. Useful if you experience for ex. too much green or your image is too dark and your grabber doesn't allow brightness control. Works for YUV (YUV/NV12/I420) codecs without HDR tone mapping enabled.</span></td>
 				</tr>
 				<tr>
-					<td style="text-align:right">	
+					<td style="text-align:right">
 							<span data-i18n="lut_generator_opt2_r">Gamma red</span> (SDR): <input class="form-control form-control-inline" style="width:80px" type="number" id="gainR_SDR" min="0" max="5" value="1" step="0.01" />
 					</td>
 					<td style="text-align:center">
@@ -877,11 +877,11 @@ $("#backup").click(function() {
 					<td style="text-align:left">
 							<span data-i18n="lut_generator_opt2_b">Gamma blue</span> (SDR): <input class="form-control form-control-inline" style="width:80px" type="number" id="gainB_SDR" min="0" max="5" value="1" step="0.01" />
 					</td>
-				</tr>			
+				</tr>
 			</table>
 		</div>
 		<div class="card-footer">
-			
+
 				<div class="d-flex flex-row-reverse bd-highlight mb-3">
 						<div class="ms-2">
 							 <button type="button" onclick="MakeLut()" class="btn btn-secondary"><span data-i18n="lut_generator_button1">Generate LUT</span></button>
@@ -899,9 +899,9 @@ $("#backup").click(function() {
 						</div>
 						<div class="ms-2">
 							 <button type="button" onclick="SaveLut()" class="btn btn-success" ><span data-i18n="lut_generator_button5">Save LUT</span></button>
-						</div>			
-				</div>	
-			
+						</div>
+				</div>
+
 		</div>
 	</div>
 </div>
@@ -915,13 +915,13 @@ $("#backup").click(function() {
 		<td style="width:1%;"></td>
 		<td style="width:49%;text-align:center;">
 		<span data-i18n="lut_generator_preview2">HDR preview (HDR tone mapping option enabled)</span>
-		</td>		
+		</td>
 	</tr>
 	<tr>
 		<td style="width:49%;text-align:left;padding-left: 1px;"><img id="backup" style="vertical-align: top;width:100%;" width="800" height="600"/></td>
-		<td style="width:1%;"></td>	
 		<td style="width:1%;"></td>
-		<td style="width:49%;text-align:right;padding-right: 1px;"><canvas id="myCanvas" style="vertical-align: top;" width="800" height="600"></canvas>			 
+		<td style="width:1%;"></td>
+		<td style="width:49%;text-align:right;padding-right: 1px;"><canvas id="myCanvas" style="vertical-align: top;" width="800" height="600"></canvas>
 		</td>
 	</tr>
 	<tr height="24px">
@@ -930,14 +930,14 @@ $("#backup").click(function() {
 		</td>
 		<td style="width:1%;"></td>
 		<td style="width:1%;"></td>
-		<td style="width:49%;text-align:center;"> &nbsp;	
+		<td style="width:49%;text-align:center;"> &nbsp;
 		</td>
-	</tr>	
+	</tr>
 	<tr>
 		<td style="width:49%;text-align:left;padding-left: 1px;"><canvas id="sdrCanvas" style="vertical-align: top;" width="800" height="600"/></td>
 		<td style="width:1%;"></td>
 		<td style="width:1%;"></td>
-		<td style="width:49%;text-align:right;padding-right: 1px;">&nbsp;			 
+		<td style="width:49%;text-align:right;padding-right: 1px;">&nbsp;
 		</td>
 	</tr>
 	<tr height="24px">

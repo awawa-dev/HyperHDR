@@ -80,17 +80,17 @@ BaseAPI::BaseAPI(const LoggerName& log, bool localConnection, QObject* parent)
 		return;
 	}
 
-	emit GlobalSignals::getInstance()->SignalGetSoundCapture(_soundCapture);	
+	emit GlobalSignals::getInstance()->SignalGetSoundCapture(_soundCapture);
 	emit GlobalSignals::getInstance()->SignalGetVideoGrabber(_videoGrabber);
 	emit GlobalSignals::getInstance()->SignalGetSystemGrabber(_systemGrabber);
-	emit GlobalSignals::getInstance()->SignalGetDiscoveryWrapper(_discoveryWrapper);	
-	
+	emit GlobalSignals::getInstance()->SignalGetDiscoveryWrapper(_discoveryWrapper);
+
 	SAFE_CALL_1_RET(_instanceManager.get(), getHyperHdrInstance, std::shared_ptr<HyperHdrInstance>, _hyperhdr, quint8, 0);
 	if (_hyperhdr == nullptr)
 	{
 		Error(_log, "Could not get HyperHDR first instance");
 		return;
-	}	
+	}
 
 	// connect to possible token responses that has been requested
 	connect(_accessManager.get(), &AccessManager::SignalTokenNotifyClient, this, [this](bool success, QObject* caller, const QString& token, const QString& comment, const QString& id, const int& tan)
@@ -222,7 +222,7 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 	auto imageMemory = QByteArray::fromBase64(QByteArray(data.imagedata.toUtf8()));
 
 	if (data.format == "rgb")
-	{		
+	{
 		if (imageMemory.size() != static_cast<long long>(data.width) * data.height * 3 || imageMemory.size() == 0)
 		{
 			replyMsg = "Size of image data does not match with the width and height";
@@ -237,9 +237,9 @@ bool BaseAPI::setImage(ImageCmdData& data, hyperhdr::Components comp, QString& r
 		memcpy(image.rawMem(), imageMemory.data(), imageMemory.size());
 	}
 	else if (data.format == "auto")
-	{		
+	{
 		image = utils_image::load2image(reinterpret_cast<uint8_t*>(imageMemory.data()), imageMemory.size());
-		
+
 
 		if (image.width() == 1)
 		{
@@ -313,7 +313,7 @@ void BaseAPI::setVideoModeHdr(int hdr, hyperhdr::Components /*callerComp*/)
 
 void BaseAPI::setFlatbufferUserLUT(QString userLUTfile)
 {
-	QJsonObject obj;	
+	QJsonObject obj;
 	obj[BASEAPI_FLATBUFFER_USER_LUT_FILE] = userLUTfile;
 	QJsonDocument updateSettings(obj);
 	emit _instanceManager->SignalSettingsChanged(settings::type::FLATBUFSERVER, updateSettings);
@@ -347,7 +347,7 @@ void BaseAPI::registerInput(int priority, hyperhdr::Components component, const 
 		_activeRegisters.erase(priority);
 
 	_activeRegisters.insert({ priority, registerData{component, origin, owner, callerComp} });
-	
+
 	QUEUE_CALL_4(_hyperhdr.get(), registerInput, int, priority, hyperhdr::Components, component, QString, origin, QString, owner);
 }
 
@@ -585,7 +585,7 @@ void BaseAPI::logout()
 }
 
 void BaseAPI::putSystemInfo(QJsonObject& system)
-{	
+{
 	if (!_sysInfo.init)
 	{
 		_sysInfo.init = true;

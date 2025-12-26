@@ -29,7 +29,7 @@ ProtoServer::~ProtoServer()
 }
 
 void ProtoServer::initServer()
-{	
+{
 	connect(_server, &QTcpServer::newConnection, this, &ProtoServer::newConnection);
 	handleSettingsUpdate(settings::type::PROTOSERVER, _config);
 }

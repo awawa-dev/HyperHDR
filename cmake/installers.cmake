@@ -1,9 +1,9 @@
 macro(DeployApple TARGET)
 	if(EXISTS ${TARGET_FILE})
 		cmake_policy(PUSH)
-		cmake_policy(SET CMP0177 NEW)	
+		cmake_policy(SET CMP0177 NEW)
 		install ( TARGETS hyperhdr DESTINATION "share/.." COMPONENT "HyperHDR" )
-		cmake_policy(POP)		
+		cmake_policy(POP)
 
 		install(FILES "${PROJECT_SOURCE_DIR}/cmake/osx/Hyperhdr.icns" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION "hyperhdr.app/Contents/Resources" COMPONENT "HyperHDR")
@@ -30,8 +30,8 @@ macro(DeployApple TARGET)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:utils-image> DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
 		endif()
 
-		if ( Qt5Core_FOUND )			
-			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)		
+		if ( Qt5Core_FOUND )
+			get_target_property(MYQT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
 		else()
 			SET (MYQT_QMAKE_EXECUTABLE "${_qt_import_prefix}/../../../bin/qmake")
 		endif()
@@ -87,13 +87,13 @@ macro(DeployApple TARGET)
 				else()
 					message( WARNING "OpenSSL NOT found (https instance will not work)")
 				endif()
-				
+
 				file(GET_RUNTIME_DEPENDENCIES
 					EXECUTABLES ${MY_DEPENDENCY_PATHS}
 					RESOLVED_DEPENDENCIES_VAR _r_deps
 					UNRESOLVED_DEPENDENCIES_VAR _u_deps
 				)
-				  
+
 				foreach(_libfile ${_r_deps})
 				    if(_libfile MATCHES "\\.dylib$")
 				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
@@ -101,8 +101,8 @@ macro(DeployApple TARGET)
 				        set(_dest "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 				    endif()
 				    file(COPY "${_libfile}" DESTINATION "${_dest}" FOLLOW_SYMLINK_CHAIN)
-				endforeach()		
-				  
+				endforeach()
+
 				list(LENGTH _u_deps _u_length)
 				if("${_u_length}" GREATER 0)
 					message(WARNING "Unresolved dependencies detected!")
@@ -111,11 +111,11 @@ macro(DeployApple TARGET)
 				foreach(PLUGIN "tls")
 					if(EXISTS ${MYQT_PLUGINS_DIR}/${PLUGIN})
 						file(GLOB files "${MYQT_PLUGINS_DIR}/${PLUGIN}/*openssl*")
-						foreach(file ${files})							
+						foreach(file ${files})
 								file(GET_RUNTIME_DEPENDENCIES
 								EXECUTABLES ${file}
 								RESOLVED_DEPENDENCIES_VAR PLUGINS
-								UNRESOLVED_DEPENDENCIES_VAR _u_deps				
+								UNRESOLVED_DEPENDENCIES_VAR _u_deps
 								)
 
 							foreach(DEPENDENCY ${PLUGINS})
@@ -123,7 +123,7 @@ macro(DeployApple TARGET)
 										DESTINATION "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib"
 										TYPE SHARED_LIBRARY
 										FILES ${DEPENDENCY}
-									)									
+									)
 							endforeach()
 
 							get_filename_component(real_file "${file}" REALPATH)
@@ -142,8 +142,8 @@ macro(DeployApple TARGET)
 			include(BundleUtilities)
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "${MYQT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib;${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/Frameworks")
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/hyperhdr.app" "" "")
-				
-			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")			
+
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/hyperhdr.app/Contents/lib")
 			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
 
 			message( "Detected architecture: '${SCOPE_CMAKE_SYSTEM_PROCESSOR}'")
@@ -160,7 +160,7 @@ macro(DeployApple TARGET)
 							if(NOT CODESIGN_VERIFY EQUAL 0)
 								message(WARNING "Failed to repair the component signature: signing failed for ${_fileToSign}")
 							endif()
-						endif()			
+						endif()
 					endforeach()
 					message( "Perform final verification...")
 					execute_process(COMMAND bash -c "codesign --verify --strict --verbose=4 ${CMAKE_INSTALL_PREFIX}/hyperhdr.app" RESULT_VARIABLE CODESIGN_VERIFY)
@@ -170,7 +170,7 @@ macro(DeployApple TARGET)
 				cmake_policy(POP)
 			endif()
 		]] COMPONENT "HyperHDR")
-	else()		
+	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
@@ -253,13 +253,13 @@ macro(DeployUnix TARGET)
 		endif()
 
 		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		if ( Qt5Core_FOUND )			
+		if ( Qt5Core_FOUND )
 			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
 			execute_process(
 				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 				OUTPUT_VARIABLE QT_PLUGINS_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)		
+			)
 		elseif ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
 			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 			execute_process(
@@ -269,7 +269,7 @@ macro(DeployUnix TARGET)
 			)
 		endif()
 
-		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")		
+		message(STATUS "QT plugin path: ${QT_PLUGINS_DIR}")
 
 		# Copy CEC lib
 		if (ENABLE_CEC)
@@ -289,7 +289,7 @@ macro(DeployUnix TARGET)
 					get_filename_component(resolvedCec ${LIBCEC} ABSOLUTE)
 					list (APPEND cecFiles ${resolvedCec})
 				endif()
-			endforeach()			
+			endforeach()
 
 			# install cec
 			foreach(cecFile ${cecFiles})
@@ -297,10 +297,10 @@ macro(DeployUnix TARGET)
 				foreach(installCec ${foundCec})
 					message(STATUS "Adding CEC: ${installCec}")
 					gp_append_unique(PREREQUISITE_LIBS ${installCec})
-				endforeach()				
+				endforeach()
 			endforeach()
 		endif()
-				
+
 		# Create a qt.conf file in 'share/hyperhdr/bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
 		install(
@@ -314,7 +314,7 @@ macro(DeployUnix TARGET)
 		install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperhdr DESTINATION "bin" RENAME hyperhdr COMPONENT "HyperHDR" )
 		install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperhdr )" COMPONENT "HyperHDR" )
 
-		# install CODE 	
+		# install CODE
 		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")"					COMPONENT "HyperHDR")
 		install(CODE "set(PREREQUISITE_LIBS \"${PREREQUISITE_LIBS}\")"		COMPONENT "HyperHDR")
 		install(CODE "set(QT_PLUGINS_DIR \"${QT_PLUGINS_DIR}\")"			COMPONENT "HyperHDR")
@@ -389,7 +389,7 @@ macro(DeployUnix TARGET)
 		)
 
 		#message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
-		include(GetPrerequisites)		
+		include(GetPrerequisites)
 		# Extract dependencies ignoring the system ones
 		if (NOT CMAKE_CROSSCOMPILING)
 			# get HyperHDR deps
@@ -412,7 +412,7 @@ macro(DeployUnix TARGET)
 				if (${_sysDBusindex} GREATER -1)
 					list(APPEND DEPENDENCIES ${systrayLib})
 				endif()
-			endforeach()						
+			endforeach()
 		endif()
 
 		# Copy Qt plugins to 'share/hyperhdr/lib/plugins'
@@ -433,22 +433,22 @@ macro(DeployUnix TARGET)
 						TYPE SHARED_LIBRARY
 						FILES ${file}
 					)
-						
+
 				endforeach()
 			endif()
 		endforeach()
 
-		# Append symlink and non-symlink dependencies to the list		
+		# Append symlink and non-symlink dependencies to the list
 		foreach(DEPENDENCY ${DEPENDENCIES})
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-			
+
 			foreach(myitem ${SYSTEM_LIBS_SKIP})
 				string(FIND ${resolved} ${myitem} _index)
 				if (${_index} EQUAL 0)
-					break()									
+					break()
 				endif()
 			endforeach()
-					
+
 			if (${_index} EQUAL 0)
 				continue() # Skip system libraries
 			else()
@@ -459,7 +459,7 @@ macro(DeployUnix TARGET)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 				#message("Basic check added: ${resolved_file} (${resolved})")
 			endif()
-		endforeach()		
+		endforeach()
 
 		# Copy dependencies to 'share/hyperhdr/lib/external'
 		set(TEMP_RPATH_DIR "${CMAKE_CURRENT_BINARY_DIR}/temp_rpath_fix")
@@ -468,11 +468,11 @@ macro(DeployUnix TARGET)
 			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})
 			string(FIND ${PREREQUISITE_LIB} "libproxy" libproxyindex)
 			string(FIND ${PREREQUISITE_LIB} "libpxbackend" libpxbackendindex)
-			if((NOT IS_SYMLINK ${PREREQUISITE_LIB}) AND (${libproxyindex} GREATER -1 OR ${libpxbackendindex} GREATER -1))				
+			if((NOT IS_SYMLINK ${PREREQUISITE_LIB}) AND (${libproxyindex} GREATER -1 OR ${libpxbackendindex} GREATER -1))
 				get_filename_component(pathingFilename ${PREREQUISITE_LIB} NAME)
 				set(FILE_TO_INSTALL "${TEMP_RPATH_DIR}/${pathingFilename}")
 				message("Patching RPATH: ${FILE_TO_INSTALL}")
-				file(COPY_FILE ${PREREQUISITE_LIB} ${FILE_TO_INSTALL} )				
+				file(COPY_FILE ${PREREQUISITE_LIB} ${FILE_TO_INSTALL} )
 				execute_process (
 					COMMAND bash -c "chrpath -d ${FILE_TO_INSTALL}"
 					OUTPUT_VARIABLE outputResult
@@ -485,7 +485,7 @@ macro(DeployUnix TARGET)
 				DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperhdr/lib/external"
 				TYPE SHARED_LIBRARY
 			)
-		endforeach()		
+		endforeach()
 	]] COMPONENT "HyperHDR")
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
@@ -506,7 +506,7 @@ macro(DeployWindows TARGET)
 		include( InstallRequiredSystemLibraries )
 
 		message("Collecting Dependencies for target file: ${TARGET_FILE}")
-		
+
 		# Collect the runtime libraries
 		get_filename_component(COMPILER_PATH "${CMAKE_CXX_COMPILER}" DIRECTORY)
 		if (Qt_VERSION EQUAL 5)
@@ -591,15 +591,15 @@ macro(DeployWindows TARGET)
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
 			DESTINATION "bin"
 			COMPONENT "HyperHDR"
-		)		
+		)
 
 		INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT "HyperHDR")
-		
+
 		install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION bin COMPONENT "HyperHDR")
 		install(FILES "${PROJECT_SOURCE_DIR}/3RD_PARTY_LICENSES" DESTINATION bin COMPONENT "HyperHDR")
 
 		find_package(OpenSSL)
-		
+
 		get_filename_component(OPENSSL_BASE_DIR "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
 		message("OpenSSL default path: ${OPENSSL_BASE_DIR}")
 
@@ -640,7 +640,7 @@ macro(DeployWindows TARGET)
 				find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
 			endif()
 		endif()
-		
+
 		if (WINDEPLOYQT_EXECUTABLE AND (NOT CMAKE_GITHUB_ACTION))
 			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
 			message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")

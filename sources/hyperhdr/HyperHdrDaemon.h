@@ -2,7 +2,7 @@
 
 #include <HyperhdrConfig.h>
 
-#ifndef PCH_ENABLED	
+#ifndef PCH_ENABLED
 	#include <QObject>
 	#include <QJsonObject>
 	#include <QStringList>
@@ -122,7 +122,7 @@ class QApplication;
 #elif defined(__linux__) && defined(ENABLE_POWER_MANAGEMENT)
 	#include <suspend-handler/SuspendHandlerLinux.h>
 #else
-	#include <suspend-handler/SuspendHandlerDummy.h>	
+	#include <suspend-handler/SuspendHandlerDummy.h>
 #endif
 
 namespace hyperhdr { enum class InstanceState; }
@@ -136,7 +136,7 @@ public:
 	HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent, bool logLvlOverwrite, bool readonlyMode = false, QStringList params = QStringList(), bool isGuiApp = true);
 	~HyperHdrDaemon();
 
-	QJsonDocument getSetting(settings::type type) const;	
+	QJsonDocument getSetting(settings::type type) const;
 
 public slots:
 	void freeObjects();

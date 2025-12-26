@@ -128,7 +128,7 @@ if (NOT USE_SYSTEM_LUNASVG_LIBS OR NOT lunasvg_FOUND)
 		set(opts_after)
 		get_target_property(opts_before ${target} COMPILE_OPTIONS)
 
-		if(MSVC)				
+		if(MSVC)
 			foreach(f ${opts_before})
 				if(NOT f MATCHES "/W[1-4]|/w")
 					list(APPEND opts_after ${f})

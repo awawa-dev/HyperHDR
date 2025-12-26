@@ -66,7 +66,7 @@ post_install() {
 		NET_IP=`hostname -s | cut -d " " -f1`
 	else
 		NET_IP=`/sbin/ip route get 1 | awk '{print $(NF-2);exit}'`
-	fi	
+	fi
 
 	# search for users in system, returns first entry
 	FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
@@ -85,7 +85,7 @@ post_install() {
 	restart_msg=""
 
 	if grep -m1 systemd /proc/1/comm > /dev/null
-	then	
+	then
 		# systemd
 		if [ -z "${DISPLAY}" ]; then
 			echo "HyperHDR is installed as a service and starts automatically"
@@ -96,7 +96,7 @@ post_install() {
 			ENABLE_XSYS=1
 		fi
 
-		install_file /usr/share/hyperhdr/service/hyperhdr.systemd /usr/lib/systemd/system/hyperhdr@.service	
+		install_file /usr/share/hyperhdr/service/hyperhdr.systemd /usr/lib/systemd/system/hyperhdr@.service
 
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			systemctl enable hyperhdr"@${FOUND_USR}".service
@@ -105,7 +105,7 @@ post_install() {
 		fi
 
 	elif [ -e /usr/bin/initctl ]
-	then	
+	then
 		# upstart
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			echo "Init daemon: upstart (service is enabled by default)"
@@ -116,7 +116,7 @@ post_install() {
 			echo "Init daemon: upstart (service is NOT enabled by default)"
 		fi
 
-	else	
+	else
 		# sysV
 		if [ $ENABLE_SERVICE -eq 1 ]; then
 			echo "Init daemon: sysV (enabled by default)"
@@ -176,7 +176,7 @@ post_install() {
 	printf "\n |  Stop the service: \033[37;1msudo systemctl stop hyperhdr@%-12s\033[0m          |" "$FOUND_USR"
 	printf "\n |  Troubleshooting? Run HyperHDR manually: \033[37;1m/usr/bin/hyperhdr\033[0m            |"
 	printf "\n +-----------------------------------------------------------------------+"
-	case "$STARTUP_MSG" in 
+	case "$STARTUP_MSG" in
 	  *"HyperHDR is installed as a service"*)
 		printf "\n |  \033[32;1m%-67s\033[0m  |" "$STARTUP_MSG";;
 	  *) printf "\n |  \033[31;1m%-67s\033[0m  |" "$STARTUP_MSG"
@@ -191,7 +191,7 @@ post_install() {
 	then
 		update-desktop-database -q
 	fi
-	
+
 }
 
 pre_upgrade() {
@@ -221,7 +221,7 @@ pre_remove() {
 		echo "Disabling service and removing entry"
 		systemctl -q disable hyperhdr"@${FOUND_USR}"
 
-		rm -v /usr/lib/systemd/system/hyperhdr@.service 2>/dev/null	
+		rm -v /usr/lib/systemd/system/hyperhdr@.service 2>/dev/null
 
 	elif [ -e /usr/bin/initctl ]
 	then

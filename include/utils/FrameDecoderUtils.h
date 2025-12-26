@@ -44,7 +44,7 @@ public:
 
 	const std::array<uint8_t,1024>& getLutP010_y() const { return lutP010_y; }
 	const std::array<uint8_t,1024>& getlutP010_uv() const { return lutP010_uv; }
-	
+
 	static constexpr double signalBreakP010 = 0.91;
 	static constexpr double signalBreakChromaP010 = 0.75;
 

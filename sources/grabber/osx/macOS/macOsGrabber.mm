@@ -84,7 +84,7 @@ QString macOsGrabber::GetSharedLut()
 }
 
 void macOsGrabber::loadLutFile(PixelFormat color)
-{		
+{
 }
 
 void macOsGrabber::setHdrToneMappingEnabled(int mode)
@@ -105,7 +105,7 @@ void macOsGrabber::uninit()
 {
 	// stop if the grabber was not stopped
 	if (_initialized)
-	{		
+	{
 		stop();
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
@@ -153,7 +153,7 @@ bool macOsGrabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
+			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
@@ -168,13 +168,13 @@ bool macOsGrabber::init()
 			return false;
 		}
 
-		
+
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting macOS grabber. Selected: '{:s}' max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _width, _height, _fps);
 		Info(_log, "*************************************************************************************************");
 
 		_actualDisplay = _deviceProperties[foundDevice].valid.first().display;
-		_initialized = true;		
+		_initialized = true;
 	}
 
 	return _initialized;
@@ -217,13 +217,13 @@ void macOsGrabber::enumerateDevices(bool silent)
 		properties.valid.append(dpi);
 
 		_deviceProperties.insert(id, properties);
-	}	
+	}
 }
 
 bool macOsGrabber::start()
 {
 	try
-	{		
+	{
 		if (init())
 		{
 			_timer.setInterval(1000/_fps);
@@ -250,7 +250,7 @@ void macOsGrabber::stop()
 }
 
 bool macOsGrabber::init_device(QString selectedDeviceName)
-{	
+{
 	return true;
 }
 
@@ -272,10 +272,10 @@ void macOsGrabber::decodeFrame(CGImageRef capturedImage)
 }
 
 void macOsGrabber::grabFrame()
-{	
-	#ifdef MACOS_SCK		
+{
+	#ifdef MACOS_SCK
 		[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent* content, NSError* error)
-		{	
+		{
 			SCDisplay* target = nil;
 			for (SCDisplay *display in content.displays)
 			{
@@ -294,7 +294,7 @@ void macOsGrabber::grabFrame()
 			{
 				CGDisplayModeRef displayReference = CGDisplayCopyDisplayMode(_actualDisplay);
 				double scaleAspect = CGDisplayModeGetPixelWidth(displayReference)/static_cast<double>(CGDisplayModeGetWidth(displayReference));
-				CGDisplayModeRelease(displayReference);	
+				CGDisplayModeRelease(displayReference);
 
 				CGRect displayBounds = CGDisplayBounds(_actualDisplay);
 
@@ -313,7 +313,7 @@ void macOsGrabber::grabFrame()
 					completionHandler:^(CGImageRef sourceImg, NSError* error)
 					{
 						if (!error)
-						{							
+						{
 							CGImageRef capturedImage = CGImageCreateCopyWithColorSpace(sourceImg, colorSpaceRgb);
 
 							decodeFrame(capturedImage);
@@ -334,12 +334,12 @@ void macOsGrabber::grabFrame()
 		display = CGDisplayCreateImage(_actualDisplay);
 
 		if (display == NULL)
-		{			
+		{
 			Error(_log, "Lost connection to the display or user didn't grant access rights");
 			stopNow = true;
 		}
 		else
-		{			
+		{
 			decodeFrame(display);
 
 			CGImageRelease(display);
@@ -350,7 +350,7 @@ void macOsGrabber::grabFrame()
 			uninit();
 			QTimer::singleShot(3000, this, &macOsGrabber::start);
 		}
-	#endif	
+	#endif
 }
 
 

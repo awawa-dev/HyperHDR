@@ -15,7 +15,7 @@
 		"tone_mapping_y_threshold" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_automatic_tone_mapping_y_threshold_title",
 			"minimum" : 150,
@@ -32,7 +32,7 @@
 		"tone_mapping_u_threshold" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_automatic_tone_mapping_u_threshold_title",
 			"minimum" : 165,
@@ -49,7 +49,7 @@
 		"tone_mapping_v_threshold" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 1,
 			"title" : "edt_automatic_tone_mapping_v_threshold_title",
 			"minimum" : 155,
@@ -66,8 +66,8 @@
 		"time_to_tone_mapping" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 5,			
+			"format": "stepper",
+			"step" : 5,
 			"title" : "edt_automatic_tone_mapping_time_title",
 			"minimum" : 5,
 			"maximum": 600,
@@ -84,8 +84,8 @@
 		"time_to_disable_tone_mapping" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 100,			
+			"format": "stepper",
+			"step" : 100,
 			"title" : "edt_automatic_tone_mapping_disable_time_title",
 			"minimum" : 0,
 			"maximum": 5000,

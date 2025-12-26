@@ -4,7 +4,7 @@
 	#include <QString>
 
 	#include <cstdint>
-	#include <iostream>	
+	#include <iostream>
 #endif
 
 #include <image/ColorRgb.h>

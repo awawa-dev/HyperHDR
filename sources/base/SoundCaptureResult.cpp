@@ -1,6 +1,6 @@
 #ifndef PCH_ENABLED
 	#include <cmath>
-	#include <cstring> 
+	#include <cstring>
 #endif
 
 #include <base/SoundCaptureResult.h>

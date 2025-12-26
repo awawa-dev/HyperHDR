@@ -71,7 +71,7 @@ void DiscoveryWrapper::cleanUp(QList<DiscoveryRecord>& target)
 
 			Warning(_log, "{:s}", (log));
 			action = message.type;
-			i.remove();			
+			i.remove();
 		}
 	}
 
@@ -205,7 +205,7 @@ void DiscoveryWrapper::signalDiscoveryRequestToScanHandler(DiscoveryRecord::Serv
 			_serialDevice = std::unique_ptr<LedDevice>(hyperhdr::leds::CONSTRUCT_LED_DEVICE(deviceConfig));
 		}
 		QJsonObject params;
-		QJsonObject devicesDiscovered = _serialDevice->discover(params);		
+		QJsonObject devicesDiscovered = _serialDevice->discover(params);
 	}
 	else if (type == DiscoveryRecord::Service::REFRESH_ALL)
 	{

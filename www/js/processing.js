@@ -52,20 +52,20 @@ $(document).ready( function() {
 				editor_smoothing.getEditor('root.smoothing.updateFrequency').setValue(1000/interval);
 				editor_smoothing.getEditor('root.smoothing.updateFrequency').disable();
 			}
-		}		
+		}
 	});
 
 	requestHasLedClock();
-		
+
 	{
-		//color		
+		//color
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/image_processing_color_calibration.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_color_heading_title"), 'editor_container_color', 'btn_submit_color'));
 		$('#conf_cont').append(createHelpTable(window.schema.color.properties, $.i18n("edt_conf_color_heading_title")));
-		
-		//smoothing		
+
+		//smoothing
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/image_processing_smoothing.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_smooth_heading_title"), 'editor_container_smoothing', 'btn_submit_smoothing'));
 		$('#conf_cont').append(createHelpTable(window.schema.smoothing.properties, $.i18n("edt_conf_smooth_heading_title")));
-		
+
 		//blackborder
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/image_processing_blackborder.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
 		$('#conf_cont').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title")));
@@ -73,8 +73,8 @@ $(document).ready( function() {
 		//automatic tone mapping
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/hdr.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_automatic_tone_mapping_title"), 'editor_container_automatic_tone_mapping', 'btn_submit_automatic_tone_mapping'));
 		$('#conf_cont').append(createHelpTable(window.schema.automaticToneMapping.properties, $.i18n("edt_automatic_tone_mapping_title")));
-	}	
-	
+	}
+
 	//color
 	editor_color = createJsonEditor('editor_container_color', {
 		color              : window.schema.color
@@ -83,11 +83,11 @@ $(document).ready( function() {
 	editor_color.on('change',function() {
 		editor_color.validate().length ? $('#btn_submit_color').attr('disabled', true) : $('#btn_submit_color').attr('disabled', false);
 	});
-	
+
 	$('#btn_submit_color').off().on('click',function() {
 		requestWriteConfig(editor_color.getValue());
 	});
-	
+
 	//smoothing
 	editor_smoothing = createJsonEditor('editor_container_smoothing', {
 		smoothing          : window.schema.smoothing
@@ -101,9 +101,9 @@ $(document).ready( function() {
 
 	editor_smoothing.on('change',function() {
 		editor_smoothing.validate().length ? $('#btn_submit_smoothing').attr('disabled', true) : $('#btn_submit_smoothing').attr('disabled', false);
-		
+
 	});
-	
+
 	$('#btn_submit_smoothing').off().on('click',function() {
 		requestWriteConfig(editor_smoothing.getValue());
 	});
@@ -112,7 +112,7 @@ $(document).ready( function() {
 	if (appendFps != null)
 	{
 		let realRefreshRate = document.createElement("span");
-		realRefreshRate.setAttribute("id", "realFps");		
+		realRefreshRate.setAttribute("id", "realFps");
 		appendFps.get(0).prepend(realRefreshRate);
 	};
 
@@ -129,7 +129,7 @@ $(document).ready( function() {
 	editor_blackborder.on('change',function() {
 		editor_blackborder.validate().length ? $('#btn_submit_blackborder').attr('disabled', true) : $('#btn_submit_blackborder').attr('disabled', false);
 	});
-	
+
 	$('#btn_submit_blackborder').off().on('click',function() {
 		requestWriteConfig(editor_blackborder.getValue());
 	});
@@ -142,7 +142,7 @@ $(document).ready( function() {
 	editor_automatic_tone_mapping.on('change',function() {
 		editor_automatic_tone_mapping.validate().length ? $('#btn_submit_automatic_tone_mapping').attr('disabled', true) : $('#btn_submit_automatic_tone_mapping').attr('disabled', false);
 	});
-	
+
 	$('#btn_submit_automatic_tone_mapping').off().on('click',function() {
 		requestWriteConfig(editor_automatic_tone_mapping.getValue());
 	});
@@ -151,7 +151,7 @@ $(document).ready( function() {
 	{
 		$("#editor_container_automatic_tone_mapping").parent().hide();
 	}
-	
+
 	//create introduction
 	if(window.showOptHelp)
 	{
@@ -160,6 +160,6 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_colors_blackborder_intro'), "editor_container_blackborder");
 		createHint("intro", $.i18n('edt_automatic_tone_mapping_enable_explain'), "editor_container_automatic_tone_mapping");
 	}
-	
+
 	removeOverlay();
 });

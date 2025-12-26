@@ -1,6 +1,6 @@
 $(document).ready( function() {
 	performTranslation();
-	
+
 	var conf_editor = null;
 	var conf_editor_net = null;
 	var conf_editor_json = null;
@@ -10,11 +10,11 @@ $(document).ready( function() {
 	var conf_editor_forw = null;
 	var conf_editor_rawUdp = null;
 	var conf_editor_mqtt = null;
-	
+
 	{
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/general_settings.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_webc_heading_title"), 'editor_container', 'btn_submit_www'));
 		$('#conf_cont').append(createHelpTable(window.schema.webConfig.properties, $.i18n("edt_conf_webc_heading_title")));
-		
+
 		//network
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_net_heading_title"), 'editor_container_net', 'btn_submit_net'));
 		$('#conf_cont').append(createHelpTable(window.schema.network.properties, $.i18n("edt_conf_net_heading_title")));
@@ -29,7 +29,7 @@ $(document).ready( function() {
 
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_mqtt_heading_title"), 'editor_container_mqtt', 'btn_submit_mqtt'));
 		$('#conf_cont').append(createHelpTable(window.schema.mqtt.properties, $.i18n("edt_conf_mqtt_heading_title")));
-		
+
 		if (window.serverInfo.hasPROTOBUF == 1)
 		{
 			//protoserver
@@ -39,27 +39,27 @@ $(document).ready( function() {
 
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("general_comp_RAWUDPSERVER"), 'editor_container_rawUdpServer', 'btn_submit_rawUdpServer'));
 		$('#conf_cont').append(createHelpTable(window.schema.rawUdpServer.properties, $.i18n("general_comp_RAWUDPSERVER")));
-			
+
 		//forwarder
 			$('#conf_cont').append(createOptPanel('<svg data-src="svg/network_services.svg" width="18" height="18" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
 			$('#conf_cont').append(createHelpTable(window.schema.forwarder.properties, $.i18n("edt_conf_fw_heading_title")));
-		
+
 		//Reorder hardcoded token div at the end
 		var tocMoved = $("#tok_desc").detach();
 		$('#conf_cont').append(tocMoved);
-	}	
+	}
 
 	conf_editor = createJsonEditor('editor_container', {
 		webConfig : window.schema.webConfig
 	}, true, true);
-	
+
 	$('#btn_submit_www').off().on('click',function() {
 		var val = conf_editor.getValue();
 		window.fastReconnect = true;
 		window.jsonPort = val.webConfig.port;
 		requestWriteConfig(val);
 	});
-	
+
 	// net
 	conf_editor_net = createJsonEditor('editor_container_net', {
 		network         : window.schema.network
@@ -77,7 +77,7 @@ $(document).ready( function() {
 	conf_editor_json = createJsonEditor('editor_container_jsonserver', {
 		jsonServer         : window.schema.jsonServer
 	}, true, true);
-	
+
 	conf_editor.on('change',function() {
 		conf_editor.validate().length ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 	});
@@ -145,7 +145,7 @@ $(document).ready( function() {
 	});
 
 	document.getElementById('editor_container_rawUdpServer').parentElement.firstElementChild.classList.add('is-instance');
-		
+
 		//forwarder
 		conf_editor_forw = createJsonEditor('editor_container_forwarder', {
 			forwarder          : window.schema.forwarder
@@ -168,12 +168,12 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
 		createHint("intro", $.i18n('conf_network_mqtt_intro'), "editor_container_mqtt");
 		createHint("intro", $.i18n('edt_udp_raw_server'), "editor_container_rawUdpServer");
-		
+
 		if (window.serverInfo.hasPROTOBUF == 1)
 		{
 			createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
 		}
-		
+
 		createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");
 		createHint("intro", $.i18n('conf_network_tok_intro'), "tok_desc_cont");
 	}
@@ -239,12 +239,12 @@ $(document).ready( function() {
 	})
 
 	checkApiTokenState(window.serverConfig.network.apiAuth);
-	
+
 	var instHeaders = document.getElementsByClassName("card-header");
 	Array.prototype.forEach.call(instHeaders, function(instHeader, index) {
 		if (instHeader.classList.contains('is-instance'))
 			putInstanceName(instHeader);
 	});
-	
+
 	removeOverlay();
 });

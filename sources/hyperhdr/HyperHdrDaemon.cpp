@@ -120,7 +120,7 @@ HyperHdrDaemon::HyperHdrDaemon(const QString& rootPath, QCoreApplication* parent
 		[](DiscoveryWrapper* bonjourBrowserWrapper) {
 			SMARTPOINTER_MESSAGE("DiscoveryWrapper");
 			delete bonjourBrowserWrapper;
-		});	
+		});
 		connect(GlobalSignals::getInstance(), &GlobalSignals::SignalGetDiscoveryWrapper, this, &HyperHdrDaemon::getDiscoveryWrapper, Qt::DirectConnection);
 	#endif
 
@@ -668,7 +668,7 @@ void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const Q
 #endif
 
 
-#if defined(ENABLE_V4L2)		
+#if defined(ENABLE_V4L2)
 		if (_videoGrabber == nullptr)
 		{
 			createVideoGrabberHelper<V4L2Wrapper>(config, deviceName, _rootPath);
@@ -676,7 +676,7 @@ void HyperHdrDaemon::settingsChangedHandler(settings::type settingsType, const Q
 #elif !defined(ENABLE_MF) && !defined(ENABLE_AVF)
 		Warning(_log, "!The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
-		
+
 	}
 
 	if (settingsType == settings::type::SYSTEMGRABBER && _systemGrabber == nullptr)

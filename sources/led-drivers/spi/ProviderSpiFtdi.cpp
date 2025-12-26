@@ -93,7 +93,7 @@ bool ProviderSpiFtdi::loadLibrary()
 		LOAD_PROC(FT_SetUSBParameters);
 		LOAD_PROC(FT_SetLatencyTimer);
 		LOAD_PROC(FT_SetFlowControl);
-		
+
 		if (error)
 		{
 			FreeLibrary(_dllHandle);
@@ -133,10 +133,10 @@ bool ProviderSpiFtdi::init(QJsonObject deviceConfig)
 
 	Debug(_log, "Speed: {:d}, Type: {:s}", _baudRate_Hz, (_spiType));
 	Debug(_log, "Real speed: {:d}", getRate());
-	Debug(_log, "Inverted: {:s}, Mode: {:d}", (_spiDataInvert) ? "yes" : "no", _spiMode);	
+	Debug(_log, "Inverted: {:s}, Mode: {:d}", (_spiDataInvert) ? "yes" : "no", _spiMode);
 
 	isInitOK = loadLibrary();
-	
+
 	return isInitOK;
 }
 
@@ -158,7 +158,7 @@ QString ProviderSpiFtdi::open()
 		return "Cannot open selected FTDI device";
 	}
 
-	Debug(_log, "Initializing MPSSE interface...");	
+	Debug(_log, "Initializing MPSSE interface...");
 
 	if (error.isEmpty() && _fun_FT_ResetDevice(_deviceHandle) != FT_OK)
 	{
@@ -240,7 +240,7 @@ int ProviderSpiFtdi::close()
 		_fun_FT_Close(_deviceHandle);
 		_deviceHandle = 0;
 	}
-	
+
 	return 0;
 }
 
@@ -318,7 +318,7 @@ QJsonObject ProviderSpiFtdi::discover(const QJsonObject& /*params*/)
 
 			devicesDiscovered.insert("devices", deviceList);
 
-			Debug(_log, "FTDI SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());			
+			Debug(_log, "FTDI SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 		}
 		else
 		{

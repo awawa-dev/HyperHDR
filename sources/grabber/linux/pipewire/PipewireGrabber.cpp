@@ -95,14 +95,14 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 
 		dlclose(_library);
 		_library = nullptr;
-	}	
-	
+	}
+
 	// Refresh devices
 	if (_library)
 	{
 		Info(_log, "Loaded Pipewire proxy library for screen capturing");
 		getDevices();
-	}	
+	}
 }
 
 bool PipewireGrabber::hasPipewire(bool force)
@@ -126,7 +126,7 @@ QString PipewireGrabber::GetSharedLut()
 }
 
 void PipewireGrabber::loadLutFile(PixelFormat color)
-{		
+{
 }
 
 void PipewireGrabber::setHdrToneMappingEnabled(int mode)
@@ -149,11 +149,11 @@ void PipewireGrabber::uninit()
 {
 	// stop if the grabber was not stopped
 	if (_initialized)
-	{		
+	{
 		stop();
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
-	
+
 
 	_initialized = false;
 }
@@ -187,7 +187,7 @@ bool PipewireGrabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
+			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
@@ -202,13 +202,13 @@ bool PipewireGrabber::init()
 			return false;
 		}
 
-		
+
 		Info(_log, "*************************************************************************************************");
 		Info(_log, "Starting Pipewire grabber. Selected: '{:s}' ({:d}) max width: {:d} ({:d}) @ {:d} fps", (foundDevice), _deviceProperties[foundDevice].valid.first().input, _width, _height, _fps);
-		Info(_log, "*************************************************************************************************");		
+		Info(_log, "*************************************************************************************************");
 
 		if (init_device(_deviceProperties[foundDevice].valid.first().input))
-			_initialized = true;		
+			_initialized = true;
 	}
 
 	return _initialized;
@@ -233,14 +233,14 @@ void PipewireGrabber::enumerateDevices(bool silent)
 		dpi.input = 1;
 		properties.valid.append(dpi);
 
-		_deviceProperties.insert(id, properties);		
-	}	
+		_deviceProperties.insert(id, properties);
+	}
 }
 
 bool PipewireGrabber::start()
 {
 	try
-	{		
+	{
 		if (init())
 		{
 			_timer.setInterval(1000/_fps);
@@ -266,7 +266,7 @@ void PipewireGrabber::stop()
 		_uninitPipewireDisplay();
 		_isActive = false;
 		_initialized = false;
-		
+
 		Info(_log, "Stopped");
 	}
 }
@@ -317,8 +317,8 @@ void PipewireGrabber::stateChanged(bool state)
 void PipewireGrabber::grabFrame()
 {
 	bool stopNow = false;
-		
-	
+
+
 	if (_initialized && _isActive)
 	{
 		PipewireImage data = _getFramePipewire();
@@ -346,7 +346,7 @@ void PipewireGrabber::grabFrame()
 
 				_storedToken = true;
 			}
-		}			
+		}
 
 
 		if (data.data == nullptr)
@@ -371,7 +371,7 @@ void PipewireGrabber::grabFrame()
 			_releaseFramePipewire();
 		}
 	}
-	
+
 	if (stopNow)
 	{
 		uninit();

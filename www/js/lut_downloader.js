@@ -22,8 +22,8 @@ $(document).ready( function(){
 	{
 		$("#lut_not_found_id").removeClass("d-none");
 	}
-	
-	function startDownloadWizard() {		
+
+	function startDownloadWizard() {
 		$('#wiz_header').html('<svg data-src="svg/wizard.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n("main_menu_grabber_lut"));
 		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n("perf_please_wait") + '</h4><div class="row pe-1 ps-2"><div class="col-12 p-3 mt-3 text-center"><svg data-src="svg/spinner_large.svg" fill="currentColor" class="svg4hyperhdr mb-2"></svg><br/></div></div>');
 		$('#wizp2_body').html('<h4 id="download_summary_header" style="font-weight:bold;text-transform:uppercase;"></h4><p id="download_summary"></p>');
@@ -34,10 +34,10 @@ $(document).ready( function(){
 			backdrop: "static",
 			keyboard: false
 		});
-		
+
 		var backupDownWizard = $("#wizard_modal").css("z-index");
-		$("#wizard_modal").css("z-index", "10000");		
-		
+		$("#wizard_modal").css("z-index", "10000");
+
 		$('#wizp1').toggle(true);
 		$('#wizp2').toggle(false);
 
@@ -152,12 +152,12 @@ $(document).ready( function(){
 			$('#download_summary_header').css('color', 'red');
 			resElement.innerHTML = '<svg data-src="svg/error.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('infoDialog_general_error_title');
 			resElement = document.getElementById("download_summary");
-			resElement.innerHTML = event.response.info.error;	
+			resElement.innerHTML = event.response.info.error;
 		}
-		
+
 
 		$('#wizp1').toggle(false);
 		$('#wizp2').toggle(true);
 	});
-		
+
 });

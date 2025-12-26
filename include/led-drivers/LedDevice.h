@@ -14,7 +14,7 @@
 	#include <algorithm>
 	#include <functional>
 	#include <atomic>
-	#include <utility>	
+	#include <utility>
 #endif
 
 #include <led-drivers/LedDeviceManufactory.h>
@@ -112,7 +112,7 @@ protected:
 	int _defaultInterval;
 	int _forcedInterval;
 	int _smoothingInterval;
-	
+
 	uint _ledCount;
 	uint _ledRGBCount;
 	uint _ledRGBWCount;

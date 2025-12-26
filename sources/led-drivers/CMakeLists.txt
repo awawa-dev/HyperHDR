@@ -4,7 +4,7 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/led-drivers)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/led-drivers)
 
 IF ( Qt5SerialPort_FOUND OR Qt6SerialPort_FOUND )
-	SET( HAVE_SERIAL_LED ON) 
+	SET( HAVE_SERIAL_LED ON)
 	MESSAGE (STATUS "Found Qt SerialPort library")
 	include_directories( dev_serial )
 else()
@@ -13,14 +13,14 @@ endif()
 
 FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_HEADER_DIR}/*.h"
-	"${CURRENT_SOURCE_DIR}/*.cpp"		
+	"${CURRENT_SOURCE_DIR}/*.cpp"
 	"${CURRENT_HEADER_DIR}/net/*.h"
 	"${CURRENT_SOURCE_DIR}/net/*.cpp"
 	"${CURRENT_HEADER_DIR}/other/*.h"
 	"${CURRENT_SOURCE_DIR}/other/*.cpp"
 )
 
-IF ( HAVE_SERIAL_LED )	
+IF ( HAVE_SERIAL_LED )
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_HEADER_DIR}/serial/*.h" "${CURRENT_SOURCE_DIR}/serial/*.cpp")
 endif()
 

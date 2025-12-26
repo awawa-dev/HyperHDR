@@ -55,7 +55,7 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 				isInitOK = false;
 			}
 			else
-			{				
+			{
 				memset(_ledString.get(), 0, sizeof(ws2811_t));
 				_ledString->freq = deviceConfig["freq"].toInt(800000UL);
 				_ledString->dmanum = deviceConfig["dma"].toInt(5);

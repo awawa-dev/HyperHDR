@@ -51,7 +51,7 @@ private:
 	bool				 _useSsl;
 	LoggerName           _log;
 	QString              _baseUrl;
-	
+
 	QtHttpServer*        _server;
 	std::shared_ptr<NetOrigin> _netOrigin;
 

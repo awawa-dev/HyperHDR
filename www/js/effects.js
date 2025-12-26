@@ -1,12 +1,12 @@
 $(document).ready( function() {
 	performTranslation();
 	var oldEffects = [];
-	var effects_editor = null;	
+	var effects_editor = null;
 	var foregroundEffect_editor = null;
 	var backgroundEffect_editor = null;
 	var soundEffect_editor = null;
 	var isSound = (window.serverInfo.sound != null);
-	
+
 	{
 		//foreground effect
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/effects_startup_effect.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_fge_heading_title"), 'editor_container_foregroundEffect', 'btn_submit_foregroundEffect'));
@@ -14,8 +14,8 @@ $(document).ready( function() {
 
 		//background effect
 		$('#conf_cont').append(createOptPanel('<svg data-src="svg/effects_background_effect.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_bge_heading_title"), 'editor_container_backgroundEffect', 'btn_submit_backgroundEffect'));
-		$('#conf_cont').append(createHelpTable(window.schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title")));		
-		
+		$('#conf_cont').append(createHelpTable(window.schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title")));
+
 		if (isSound)
 		{
 			//sound effect
@@ -23,7 +23,7 @@ $(document).ready( function() {
 			$('#conf_cont').append(createHelpTable(window.schema.soundEffect.properties, $.i18n("edt_conf_sound_heading_title")));
 		}
 	}
-	
+
 	var newEffects = window.serverInfo.effects.sort(function(a, b) {
 		if (a.name.indexOf('Music:') >= 0 && b.name.indexOf('Music:') < 0)
 			return 1;
@@ -31,26 +31,26 @@ $(document).ready( function() {
 			return -1;
 		return (a.name > b.name);
 	});
-	
+
 	var _foregroundEffect = window.schema.foregroundEffect;
 	var _backgroundEffect = window.schema.backgroundEffect;
 
-	
+
 	_foregroundEffect.properties.effect.enum = [];
 	_backgroundEffect.properties.effect.enum = [];
 	_foregroundEffect.properties.effect.options.enum_titles = [];
 	_backgroundEffect.properties.effect.options.enum_titles = [];
 
-	
+
 	for(var i = 0; i < newEffects.length; i++)
 	{
 		var effectName = newEffects[i].name.toString();
 		_foregroundEffect.properties.effect.enum.push(effectName);
 		_backgroundEffect.properties.effect.enum.push(effectName);
 		_foregroundEffect.properties.effect.options.enum_titles.push(effectName);
-		_backgroundEffect.properties.effect.options.enum_titles.push(effectName);		
+		_backgroundEffect.properties.effect.options.enum_titles.push(effectName);
 	}
-	
+
 	foregroundEffect_editor = createJsonEditor('editor_container_foregroundEffect', {
 		foregroundEffect   : _foregroundEffect
 	}, true, true, undefined, true);
@@ -63,16 +63,16 @@ $(document).ready( function() {
 	{
 		var devices =window.serverInfo.sound.sound_available;
 		var _soundEffect = window.schema.soundEffect;
-		
+
 		_soundEffect.properties.device.enum = [];
 		_soundEffect.properties.device.options = {};
 		_soundEffect.properties.device.options.enum_titles = [];
 		for(var i = 0; i < devices.length; i++)
 		{
-			_soundEffect.properties.device.enum.push(devices[i].toString());			
-			_soundEffect.properties.device.options.enum_titles.push(devices[i].toString());			
+			_soundEffect.properties.device.enum.push(devices[i].toString());
+			_soundEffect.properties.device.options.enum_titles.push(devices[i].toString());
 		}
-	
+
 		soundEffect_editor = createJsonEditor('editor_container_soundEffect', {
 			soundEffect   : _soundEffect
 		}, true, true);
@@ -89,7 +89,7 @@ $(document).ready( function() {
 	backgroundEffect_editor.on('change',function() {
 		backgroundEffect_editor.validate().length ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
 	});
-	
+
 	if (isSound)
 	{
 		soundEffect_editor.on('change',function() {
@@ -126,10 +126,10 @@ $(document).ready( function() {
 	{
 		createHint("intro", $.i18n('conf_effect_fgeff_intro'), "editor_container_foregroundEffect");
 		createHint("intro", $.i18n('conf_effect_bgeff_intro'), "editor_container_backgroundEffect");
-		
-		if (isSound)	
+
+		if (isSound)
 			createHint("intro", $.i18n('conf_effect_sndeff_intro'), "editor_container_soundEffect");
-	}	
-	
+	}
+
 	removeOverlay();
 });

@@ -15,7 +15,7 @@ class LutLoader {
 		int		_hdrToneMappingEnabled = 0;
 		bool	_lutBufferInit = false;
 
-		MemoryBuffer<uint8_t>	_lut;		
+		MemoryBuffer<uint8_t>	_lut;
 
 		void loadLutFile(const LoggerName& _log, PixelFormat color, const QList<QString>& files);
 	private:

@@ -16,7 +16,7 @@ class NetOrigin : public QObject
 public:
 	bool accessAllowed(const QHostAddress& address, const QHostAddress& local);
 	static bool isLocalAddress(const QHostAddress& address, const QHostAddress& local);
-	
+
 private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 

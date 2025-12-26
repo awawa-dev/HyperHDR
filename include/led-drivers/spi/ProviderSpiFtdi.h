@@ -34,7 +34,7 @@ class ProviderSpiFtdi : public QObject, public ProviderSpiInterface
 	PTR_FT_SetBaudRate		_fun_FT_SetBaudRate;
 	PTR_FT_SetUSBParameters	_fun_FT_SetUSBParameters;
 	PTR_FT_SetLatencyTimer	_fun_FT_SetLatencyTimer;
-	PTR_FT_SetFlowControl	_fun_FT_SetFlowControl;	
+	PTR_FT_SetFlowControl	_fun_FT_SetFlowControl;
 
 	bool loadLibrary();
 
@@ -44,7 +44,7 @@ public:
 
 public:
 	bool init(QJsonObject deviceConfig) override;
-	
+
 	QString open() override;
 	int close() override;
 

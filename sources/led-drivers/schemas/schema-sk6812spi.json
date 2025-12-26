@@ -11,8 +11,8 @@
 		},
 		"rate": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 100000,			
+			"format" : "stepper",
+			"step"   : 100000,
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 3000000,
 			"propertyOrder" : 2
@@ -38,7 +38,7 @@
 				"wled_auto",
 				"wled_auto_max",
 				"wled_auto_accurate",
-				"white_off"				
+				"white_off"
 			],
 			"default": "hyperserial_cold_white",
 			"options": {

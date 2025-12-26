@@ -8,8 +8,8 @@ function startWizardLifx(e)
     requestLedDeviceDiscovery('lifx').then( (result) => {
 
         let lifxConfig = {};
-                    
-        lifxConfig.type = 'lifx';  
+
+        lifxConfig.type = 'lifx';
         lifxConfig.transition = conf_editor.getEditor("root.specificOptions.transition").getValue();
         lifxConfig.lamps = [];
 
@@ -47,6 +47,6 @@ function startWizardLifx(e)
         {
             alert($.i18n('wiz_lifx_error'));
         }
-                
+
     });
 }

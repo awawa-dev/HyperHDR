@@ -27,8 +27,8 @@
 		"time_ms" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 25,			
+			"format": "stepper",
+			"step" : 25,
 			"title" : "edt_conf_smooth_time_ms_title",
 			"minimum" : 25,
 			"maximum": 5000,
@@ -40,8 +40,8 @@
 		"updateFrequency" :
 		{
 			"type" : "number",
-			"format": "stepper",			
-			"step" : 5,			
+			"format": "stepper",
+			"step" : 5,
 			"title" : "edt_conf_smooth_updateFrequency_title",
 			"minimum" : 20.0,
 			"maximum" : 200.0,
@@ -53,8 +53,8 @@
 		"smoothingFactor" :
 		{
 			"type" : "number",
-			"format": "stepper",			
-			"step" : 0.05,			
+			"format": "stepper",
+			"step" : 0.05,
 			"title" : "edt_conf_enum_interpolator_smoothingFactor_title",
 			"minimum" : 0.0,
 			"maximum" : 1.0,
@@ -70,8 +70,8 @@
 		"stiffness" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
-			"step" : 10,			
+			"format": "stepper",
+			"step" : 10,
 			"title" : "edt_conf_enum_interpolator_stiffness_title",
 			"minimum" : 0,
 			"maximum": 1000,
@@ -87,7 +87,7 @@
 		"damping" :
 		{
 			"type" : "integer",
-			"format": "stepper",			
+			"format": "stepper",
 			"step" : 2,
 			"title" : "edt_conf_enum_interpolator_damping_title",
 			"minimum" : 0,
@@ -104,8 +104,8 @@
 		"y_limit" :
 		{
 			"type" : "number",
-			"format": "stepper",			
-			"step" : 0.01,			
+			"format": "stepper",
+			"step" : 0.01,
 			"title" : "edt_conf_enum_interpolator_y_limit_title",
 			"minimum" : 0.0,
 			"maximum" : 1.0,

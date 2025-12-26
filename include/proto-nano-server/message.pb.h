@@ -10,65 +10,65 @@
 #endif
 
 /* Enum definitions */
-typedef enum _proto_HyperhdrRequest_Command { 
-    proto_HyperhdrRequest_Command_COLOR = 1, 
-    proto_HyperhdrRequest_Command_IMAGE = 2, 
-    proto_HyperhdrRequest_Command_CLEAR = 3, 
-    proto_HyperhdrRequest_Command_CLEARALL = 4 
+typedef enum _proto_HyperhdrRequest_Command {
+    proto_HyperhdrRequest_Command_COLOR = 1,
+    proto_HyperhdrRequest_Command_IMAGE = 2,
+    proto_HyperhdrRequest_Command_CLEAR = 3,
+    proto_HyperhdrRequest_Command_CLEARALL = 4
 } proto_HyperhdrRequest_Command;
 
-typedef enum _proto_HyperhdrReply_Type { 
-    proto_HyperhdrReply_Type_REPLY = 1, 
-    proto_HyperhdrReply_Type_VIDEO = 2 
+typedef enum _proto_HyperhdrReply_Type {
+    proto_HyperhdrReply_Type_REPLY = 1,
+    proto_HyperhdrReply_Type_VIDEO = 2
 } proto_HyperhdrReply_Type;
 
 /* Struct definitions */
-typedef struct _proto_ClearRequest { 
+typedef struct _proto_ClearRequest {
     /* priority which need to be cleared */
-    int32_t priority; 
+    int32_t priority;
 } proto_ClearRequest;
 
-typedef struct _proto_ColorRequest { 
+typedef struct _proto_ColorRequest {
     /* priority to use when setting the color */
-    int32_t priority; 
+    int32_t priority;
     /* integer value containing the rgb color (0x00RRGGBB) */
-    int32_t RgbColor; 
+    int32_t RgbColor;
     /* duration of the request (negative results in infinite) */
     bool has_duration;
-    int32_t duration; 
+    int32_t duration;
 } proto_ColorRequest;
 
-typedef struct _proto_HyperhdrReply { 
+typedef struct _proto_HyperhdrReply {
     /* Identifies which field is filled in. */
-    proto_HyperhdrReply_Type type; 
+    proto_HyperhdrReply_Type type;
     /* flag indication success or failure */
     bool has_success;
-    bool success; 
+    bool success;
     /* string indicating the reason for failure (if applicable) */
-    pb_callback_t error; 
+    pb_callback_t error;
     /* Proto Messages for video mode */
     bool has_video;
-    int32_t video; 
+    int32_t video;
 } proto_HyperhdrReply;
 
-typedef struct _proto_HyperhdrRequest { 
+typedef struct _proto_HyperhdrRequest {
     /* command specification */
-    proto_HyperhdrRequest_Command command; 
-    pb_extension_t *extensions; 
+    proto_HyperhdrRequest_Command command;
+    pb_extension_t *extensions;
 } proto_HyperhdrRequest;
 
-typedef struct _proto_ImageRequest { 
+typedef struct _proto_ImageRequest {
     /* priority to use when setting the image */
-    int32_t priority; 
+    int32_t priority;
     /* width of the image */
-    int32_t imagewidth; 
+    int32_t imagewidth;
     /* height of the image */
-    int32_t imageheight; 
+    int32_t imageheight;
     /* image data */
-    pb_callback_t imagedata; 
+    pb_callback_t imagedata;
     /* duration of the request (negative results in infinite) */
     bool has_duration;
-    int32_t duration; 
+    int32_t duration;
 } proto_ImageRequest;
 
 

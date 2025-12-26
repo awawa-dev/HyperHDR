@@ -22,7 +22,7 @@ protected:
 
 	SoundCapture(const QJsonDocument& effectConfig, QObject* parent = nullptr);
 	virtual ~SoundCapture();
-	
+
 	QList<QString>	_availableDevices;
 	bool			_isActive;
 	bool			_enable_smoothing;

@@ -13,12 +13,12 @@
 			"format": "checkbox",
 			"default" : true,
 			"propertyOrder" : 2
-		},		
+		},
 		"brightnessMaxLevel":
 		{
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title" : "wledCustomBrightnessLevel",
 			"minimum" : 1,
 			"maximum" : 255,
@@ -41,8 +41,8 @@
 		"maxRetry":
 		{
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title" : "edt_dev_max_retry",
 			"minimum" : 0,
 			"maximum" : 300,

@@ -21,10 +21,10 @@
 	#include <QMutex>
 	#include <QMutexLocker>
 	#include <QNetworkReply>
-	#include <QPair>	
+	#include <QPair>
 	#include <QRectF>
 	#include <QRegularExpression>
-	#include <QSemaphore>	
+	#include <QSemaphore>
 	#include <QSet>
 	#include <QSize>
 	#include <QSocketNotifier>
@@ -40,7 +40,7 @@
 	#include <QUrlQuery>
 	#include <QVariant>
 	#include <QVector>
-	
+
 	#include <algorithm>
 	#include <atomic>
 	#include <cassert>

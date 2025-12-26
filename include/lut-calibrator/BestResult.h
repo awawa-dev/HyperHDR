@@ -36,7 +36,7 @@
 
 	#include <cmath>
 	#include <cfloat>
-	#include <climits>	
+	#include <climits>
 #endif
 
 #include <linalg.h>

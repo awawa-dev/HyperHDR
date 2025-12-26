@@ -3,7 +3,7 @@
 	"required" : true,
 	"title" : "edt_conf_instC_heading_title",
 	"properties" :
-	{		
+	{
 		"systemInstanceEnable" :
 		{
 			"type" : "boolean",

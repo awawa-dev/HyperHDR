@@ -448,7 +448,7 @@ namespace ColorSpaceMath
 		y = y - (y - x / (y * y)) / 3.0f;
 		return y;
 	}
-	
+
 	float3 linear_rgb_to_oklab(const float3& rgb)
 	{
 		float3 lms = mul(oklabM1, rgb);
@@ -470,7 +470,7 @@ namespace ColorSpaceMath
 		};
 		return mul(oklabInvM1, lms);
 	}
-	
+
 	float3 clamp_oklab_chroma_to_gamut(const float3& oklab)
 	{
 		float L = oklab.x;
@@ -553,8 +553,8 @@ namespace ColorSpaceMath
 			<< rgb_max_error.y * 255.0f << ", "
 			<< rgb_max_error.z * 255.0f << ")\n";
 
-		
-		std::cout << "-----------------------------------------\n";		
+
+		std::cout << "-----------------------------------------\n";
 		auto approx_equal = [](const float3& a, const float3& b, float tol = 1e-4f) {
 			for (int i = 0; i < 3; ++i) {
 				if (std::fabs(a[i] - b[i]) > tol) return false;

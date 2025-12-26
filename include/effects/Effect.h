@@ -6,7 +6,7 @@
 	#include <QTimer>
 	#include <QVector>
 
-	#include <atomic>	
+	#include <atomic>
 #endif
 
 #include <hyperimage/HyperImage.h>
@@ -49,7 +49,7 @@ public:
 	QString getName()     const;
 	int getTimeout()      const;
 
-	static std::list<EffectDefinition> getAvailableEffects();	
+	static std::list<EffectDefinition> getAvailableEffects();
 
 signals:
 	void SignalSetLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
@@ -76,8 +76,8 @@ private:
 	std::atomic<bool>	_interrupt;
 
 	HyperImage			_image;
-	
+
 	QTimer				_timer;
-	QVector<ColorRgb>	_ledBuffer;	
+	QVector<ColorRgb>	_ledBuffer;
 	std::atomic<int>	_ledCount;
 };

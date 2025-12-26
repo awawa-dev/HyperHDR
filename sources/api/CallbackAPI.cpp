@@ -270,7 +270,7 @@ void CallbackAPI::componentStateHandler(hyperhdr::Components comp, bool state)
 
 void CallbackAPI::priorityUpdateHandler()
 {
-	QJsonObject info;	
+	QJsonObject info;
 
 	if (_hyperhdr == nullptr)
 		return;

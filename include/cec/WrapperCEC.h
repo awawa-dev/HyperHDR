@@ -20,7 +20,7 @@ public:
 	~WrapperCEC() override;
 
 public slots:
-	void sourceRequestHandler(hyperhdr::Components component, int hyperHdrInd, bool listen);	
+	void sourceRequestHandler(hyperhdr::Components component, int hyperHdrInd, bool listen);
 
 signals:
 	void SignalStateChange(bool enabled, QString info);

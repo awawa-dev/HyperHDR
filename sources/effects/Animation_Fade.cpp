@@ -241,7 +241,7 @@ bool Animation_Fade::hasLedData(QVector<ColorRgb>& buffer)
 		else
 			return false;
 	}
-	
+
 	std::fill(buffer.begin(), buffer.end(), ColorRgb(current.x, current.y, current.z ));
 	return true;
 }

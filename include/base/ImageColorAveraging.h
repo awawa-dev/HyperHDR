@@ -16,7 +16,7 @@
 #include <linalg.h>
 
 namespace hyperhdr
-{	
+{
 	class ImageColorAveraging
 	{
 	public:

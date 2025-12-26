@@ -27,7 +27,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QTimer>
-	#include <QThread>	
+	#include <QThread>
 
 	#include <algorithm>
 	#include <chrono>
@@ -169,7 +169,7 @@ void InfiniteStepperInterpolator::test()
 		const auto& final_B = std::get<4>(test);
 
 		std::cout << "\n--- TEST: " << name << " ---\n";
-		std::cout << "--------------------------------------------------\n";		
+		std::cout << "--------------------------------------------------\n";
 
 		float base_duration = 150.0f;
 		float time_offset = 0.0f;

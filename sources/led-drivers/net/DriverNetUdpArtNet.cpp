@@ -23,7 +23,7 @@ namespace {
 
 // http://stackoverflow.com/questions/16396013/artnet-packet-structure
 union artnet_packet_t
-{	
+{
 #pragma pack(push, 1)
 	struct {
 		char		ID[8];		// "Art-Net"

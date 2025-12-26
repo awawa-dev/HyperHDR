@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PCH_ENABLED
-	#include <QJsonObject>	
+	#include <QJsonObject>
 #endif
 
 #include <utils/Logger.h>

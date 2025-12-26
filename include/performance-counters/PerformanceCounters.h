@@ -65,7 +65,7 @@ private slots:
 
 	void signalPerformanceNewReportHandler(const PerformanceReport& pr);
 	void signalPerformanceStateChangedHandler(bool state, hyperhdr::PerformanceReportType type, int id, QString name = "");
-	
+
 
 public slots:
 	void triggerBroadcast();

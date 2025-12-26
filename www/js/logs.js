@@ -14,7 +14,7 @@ function CopyToClipboard(par)
 		document.execCommand("copy");
 	}
 	catch (ex) {
-		console.warn("Copy to clipboard failed.", ex);		
+		console.warn("Copy to clipboard failed.", ex);
 	}
 	finally {
 		document.body.removeChild(textarea);
@@ -23,11 +23,11 @@ function CopyToClipboard(par)
 
 $(document).ready(function() {
 	var messages;
-	
+
 	if(window.showOptHelp)
-	{		
+	{
 		createHintH("callout-info", $.i18n('conf_logging_label_intro'), "log_head");
-	}	
+	}
 
 	$('#btn_autoscroll').off().on('click',function() {
 		toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
@@ -44,8 +44,8 @@ $(document).ready(function() {
 	$('#btn_copylogs').off().on('click',function() {
 		let copyText = $("#logmessages").text();
 		CopyToClipboard(copyText);
-	});	
-	
+	});
+
 	$(window.hyperhdr).unbind("cmd-logging-update");
 	$("#logmessages").empty();
 	requestLoggingStart();
@@ -53,8 +53,8 @@ $(document).ready(function() {
 	$(window.hyperhdr).on("cmd-logging-update",
 		function(event)
 		{
-			messages = (event.response.result.messages);				
-				
+			messages = (event.response.result.messages);
+
 			var utcDate = new Date();
 			var offsetDate = utcDate.getTimezoneOffset();
 
@@ -71,16 +71,16 @@ $(document).ready(function() {
 				var level_string = messages[idx].levelString;
 				var utime = messages[idx].utime;
 
-				var debug = "";					
-					
+				var debug = "";
+
 				if(level_string == "DEBUG")
 				{
 					debug = "("+file_name+":"+line+") ";
-				}					
+				}
 
 				var date = new Date(parseInt(utime) - offsetDate * 60000);
 
-				LogLine($("#logmessages"), date, logger_name, level_string, debug, msg);					
+				LogLine($("#logmessages"), date, logger_name, level_string, debug, msg);
 			}
 
 			if($("#btn_autoscroll").hasClass('btn-success'))

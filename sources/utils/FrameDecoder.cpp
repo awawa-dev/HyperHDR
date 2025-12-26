@@ -137,7 +137,7 @@ void FrameDecoder::processImageVector(
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
 			uint8_t* currentSourceU = (uint8_t*)data + deltaU + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 			uint8_t* currentSourceV = (uint8_t*)data + deltaV + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
-		
+
 			VECTOR_I420::process<Quarter>(
 				reinterpret_cast<uint32_t*>(currentSource),
 				reinterpret_cast<uint16_t*>(currentSourceU),
@@ -537,13 +537,13 @@ void FrameDecoder::processSystemImagePQ10(Image<ColorRgb>& image, int targetSize
 				uint32_t inS = *((uint32_t*)sLine);
 				*(dLine++) = (inS >> 2) & 0xFF;
 				*(dLine++) = (inS >> 12) & 0xFF;
-				*(dLine++) = (inS >> 22) & 0xFF;				
+				*(dLine++) = (inS >> 22) & 0xFF;
 				sLine += divisionX;
 			}
 		}
 		else while (dLine < dLineEnd)
 		{
-			uint32_t inS = *((uint32_t*)sLine);			
+			uint32_t inS = *((uint32_t*)sLine);
 			ind_lutd = LUT_INDEX(((inS >> 2) & 0xFF), ((inS >> 12) & 0xFF), ((inS >> 22) & 0xFF));
 			*((uint32_t*)dLine) = *((uint32_t*)(&_lutBuffer[ind_lutd]));
 			sLine += divisionX;

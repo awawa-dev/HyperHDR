@@ -40,7 +40,7 @@
 					{
 						"type" : "string",
 						"title" : "edt_dev_spec_colorComponent_title",
-						"enum" : ["r","g","b","w"],						
+						"enum" : ["r","g","b","w"],
 						"options" : {
 							"enum_titles" : ["r","g","b","w"]
 						},

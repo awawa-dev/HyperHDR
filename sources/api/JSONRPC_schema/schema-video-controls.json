@@ -6,7 +6,7 @@
 			"type" : "string",
 			"required" : true,
 			"enum" : ["video-controls"]
-		},		
+		},
 		"tan" : {
 			"type" : "integer"
 		},
@@ -15,7 +15,7 @@
 			"type": "object",
 			"required": true,
 			"properties":
-			{				
+			{
 				"hardware_brightness":
 				{
 					"type": "integer",

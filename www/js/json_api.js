@@ -14,7 +14,7 @@ function CopyToClipboard(par)
 		document.execCommand("copy");
 	}
 	catch (ex) {
-		console.warn("Copy to clipboard failed.", ex);		
+		console.warn("Copy to clipboard failed.", ex);
 	}
 	finally {
 		document.body.removeChild(textarea);
@@ -22,25 +22,25 @@ function CopyToClipboard(par)
 }
 
 function CopyJson(sender)
-{	
+{
 	CopyToClipboard(sender.text());
 }
 
 function CopyLink(sender)
-{	
+{
 	var rpc = GetAddress();
 	var text = sender.text().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
-	
+
 	CopyToClipboard(urlenc);
 }
 
 function CopyLinkSafe(sender)
-{	
+{
 	var rpc = GetAddress();
 	var text = sender.text().replace(/[\r\n]/g,'').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
-	
+
 	CopyToClipboard(urlenc);
 }
 
@@ -49,25 +49,25 @@ function RunIt(sender)
 	var rpc = GetAddress();
 	var text = sender.text().replace(/[\r\n]/g,'').replace(/\s+/g, '').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
-		
-	window.open(urlenc); 
+
+	window.open(urlenc);
 }
 function RunItSafe(sender)
 {
 	var rpc = GetAddress();
 	var text = sender.text().replace(/[\r\n]/g,'').replace(/\t/g, '');
 	var urlenc=encodeURI(rpc+text);
-		
-	window.open(urlenc); 
+
+	window.open(urlenc);
 }
 
-$(document).ready( function(){	
+$(document).ready( function(){
 $("textarea").attr("placeholder", $.i18n('json_api_ouput'));
 performTranslation();
 $("#json_api_components_expl_multi").html($.i18n("json_api_components_expl_multi"));
 
 // components
-var componentJson = 
+var componentJson =
 `{
 	"command":"componentstate",
 	"componentstate":
@@ -76,7 +76,7 @@ var componentJson =
 		"state": {1}
 	}
 }`;
- 
+
 $('input[name="compState"]').change(
 	function(){
 		if ($("input[name='compState_onoff']:checked").val())
@@ -90,26 +90,26 @@ $('input[name="compState_onoff"]').change(
 		{
 			BuildComponentJson();
 		}
-	});	
-	
+	});
+
 function BuildComponentJson()
 {
 	$('button[name="compStateButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var component = $('input[name="compState"]:checked').val();
 	var state = $('input[name="compState_onoff"]:checked').val();
 	var finJson = componentJson.replace("{0}", component).replace("{1}", state);
 	$("#compState_json").text(finJson);
 }
 ////////////////////////////////////////////////////////////////////////////////
-var switchJson = 
+var switchJson =
 `{
   "command" : "instance",
   "subcommand" : "switchTo",
   "instance" : {0}
-}`;	
+}`;
 
 $('#instanceIndex').on('input',
 	function(){
@@ -125,21 +125,21 @@ $('#instanceIndex').on('input',
 			});
 			$("#switch_json").html("");
 		}
-	});	
-	
+	});
+
 function BuildSwitchJson()
 {
 	$('button[name="switchButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var component = $('#instanceIndex').val();
 	var finJson = switchJson.replace("{0}", component);
 	$("#switch_json").text(finJson);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-var serverJson = 
+var serverJson =
 `{
     "command":"serverinfo"
 }`
@@ -147,7 +147,7 @@ var serverJson =
 $("#server_json").text(serverJson);
 
 ////////////////////////////////////////////////////////////////////////////////
-var cropJson = 
+var cropJson =
 `{
   "command" : "video-crop",
   "crop":
@@ -165,7 +165,7 @@ $('input[name="videoCrop"]').on('input',
 		var cropRight = $("#cropRight").val();
 		var cropTop = $("#cropTop").val();
 		var cropBottom = $("#cropBottom").val();
-		
+
 		if  (
 		    ((!isNaN(cropLeft)) && !isNaN(parseFloat(cropLeft))) &&
 			((!isNaN(cropRight)) && !isNaN(parseFloat(cropRight))) &&
@@ -181,14 +181,14 @@ $('input[name="videoCrop"]').on('input',
 			});
 			$("#video_crop_json").html("");
 		}
-	});	
-	
+	});
+
 function BuildCropJson()
 {
 	$('button[name="videoCropButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var cropLeft = $("#cropLeft").val();
 	var cropRight = $("#cropRight").val();
 	var cropTop = $("#cropTop").val();
@@ -198,7 +198,7 @@ function BuildCropJson()
 }
 
 /////////////////////////////////////////////////////////////////////////
-var startStopJson = 
+var startStopJson =
 `{
   "command" : "instance",
   "subcommand" : "{0}",
@@ -220,23 +220,23 @@ function checkStartStop(){
 		$("#compInstanceStart_json").html("");
 	}
 };
- 
+
 $('#instanceStartStopIndex').on('input',
 	function(){
 		checkStartStop();
 	});
-	
+
 $('input[name="compInstanceStartStop"]').change(
 	function(){
 		checkStartStop();
-	});	
-	
+	});
+
 function BuildStartStoptJson()
 {
 	$('button[name="instanceStartButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var component = $("#instanceStartStopIndex").val();
 	var state = $('input[name="compInstanceStartStop"]:checked').val();
 	var finJson = startStopJson.replace("{1}", component).replace("{0}", state);
@@ -244,10 +244,10 @@ function BuildStartStoptJson()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-var adjustmentJson = 
+var adjustmentJson =
 `{
   "command" : "adjustment",
-  "adjustment" : 
+  "adjustment" :
   {
      {2}"{0}" : {1}
   }
@@ -255,23 +255,23 @@ var adjustmentJson =
 
 const editor_color = createJsonEditor('adjustmentEditor', {
 		color              : window.schema.color.properties.channelAdjustment.items
-	}, true, true);	
-	
+	}, true, true);
+
 function requestAdjustmentJson(type, value)
-{	
+{
 	var line = '"classic_config" : {0},\n     ';
 	const editor = editor_color.getEditor('root.color.classic_config');
 	var adj = adjustmentJson;
-	
-	
+
+
 	if (type == "classic_config")
 		line = '';
 	else
 		line = line.replace('{0}',  editor.value);
-		
+
 	adj = adj.replace("{0}", type).replace("{1}", value).replace("{2}", line);
 	$("#adjustment_json").text(adj);
-	
+
 	$('button[name="adjustmentButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
@@ -282,21 +282,21 @@ for(var key in window.schema.color.properties.channelAdjustment.items.properties
 	const sourceKey = key;
 	const sourcePath = 'root.color.'+key;
 	const selectEditor = editor_color.getEditor(sourcePath);
-	
+
 	if ((selectEditor.path == "root.color.id") || (selectEditor.path == "root.color.leds"))
-		selectEditor.container.hidden = true; 
+		selectEditor.container.hidden = true;
 	else
-		editor_color.watch(sourcePath,() => {			
+		editor_color.watch(sourcePath,() => {
 			const editor = editor_color.getEditor(sourcePath);
-			
+
 			if (editor.format === "colorpicker")
 				requestAdjustmentJson(sourceKey, '['+editor.retVal[0]+','+editor.retVal[1]+','+editor.retVal[2]+']');
 			else if (editor.getValue() != null)
-				requestAdjustmentJson(sourceKey, JSON.stringify(editor.getValue()));		
-		});				
+				requestAdjustmentJson(sourceKey, JSON.stringify(editor.getValue()));
+		});
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var effectJson = 
+var effectJson =
 `{
   "command":"effect",
   "effect":{
@@ -336,9 +336,9 @@ function sendJsonColor()
 	lastTypeEffect = 0;
 	var colorA = "[" + rgb.r + "," + rgb.g + "," + rgb.b +"]";
 	var sc = colorJson.replace("{0}", colorA).replace("{1}",validateDuration(duration)).replace("{2}", effectPriority);
-	
+
 	$("#effect_json").text(sc);
-	
+
 	$('button[name="effectsButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
@@ -351,19 +351,19 @@ function sendJsonEffect()
 	if (efx != "__none__")
 	{
 		var sc = effectJson.replace("{0}", efx).replace("{1}",validateDuration(duration)).replace("{2}", effectPriority);
-		
+
 		$("#effect_json").text(sc);
-		
+
 		$('button[name="effectsButtons"]').each(function(i, obj) {
 			$(this).removeClass('disabled');
 		});
 	}
 }
-	
+
 function updateEffectlist()
 {
 	var newEffects = window.serverInfo.effects;
-	
+
 	$('#effect_select').html('<option value="__none__"></option>');
 	var soundEffects = [];
 	var classicEffects = [];
@@ -371,7 +371,7 @@ function updateEffectlist()
 	for (var i = 0; i < newEffects.length; i++)
 	{
 		var effectName = newEffects[i].name;
-		
+
 		if (effectName.indexOf('Music:') >= 0)
 			soundEffects.push(effectName);
 		else
@@ -379,7 +379,7 @@ function updateEffectlist()
 
 	}
 	$('#effect_select').append(createSel(classicEffects, $.i18n('remote_optgroup_classicEffects')));
-	$('#effect_select').append(createSel(soundEffects, $.i18n('remote_optgroup_musicEffects')));			
+	$('#effect_select').append(createSel(soundEffects, $.i18n('remote_optgroup_musicEffects')));
 }
 
 function StepUpDown(me, where)
@@ -395,7 +395,7 @@ function StepUpDown(me, where)
 	};
 };
 
-$("#effect-stepper-down").off().on("click", function(event) { StepUpDown(this, "down"); DurChange(); });	
+$("#effect-stepper-down").off().on("click", function(event) { StepUpDown(this, "down"); DurChange(); });
 $("#effect-stepper-up").off().on("click", function(event) { StepUpDown(this, "up"); DurChange(); });
 
 updateEffectlist();
@@ -406,12 +406,12 @@ $("#effect_select").off().on("change", function(event)
 });
 
 if (getStorage('rmcpcolor') != null)
-{		
+{
 	cpcolor = getStorage('rmcpcolor');
 	rgb = hexToRgb(cpcolor);
 }
 
-const colorParent = document.querySelector('#remote_color');	
+const colorParent = document.querySelector('#remote_color');
 const picker = new Picker(
 {
 	parent: colorParent,
@@ -425,10 +425,10 @@ const picker = new Picker(
 		if (color != null && color.rgba != null && !isNaN(color.rgba[0]) && !isNaN(color.rgba[1]) && !isNaN(color.rgba[2]))
 		{
 			var myHex = (color.hex.length >= 7) ? color.hex.slice(0, 7) : color.hex;
-			
+
 			$('#remote_color_target').val(color.rgbString);
 			document.querySelector('#remote_color_target_invoker').style.backgroundColor = color.rgbaString;
-			
+
 			if (!pickerInit)
 				pickerInit = true;
 			else
@@ -436,7 +436,7 @@ const picker = new Picker(
 				rgb.r = color.rgba[0];
 				rgb.g = color.rgba[1];
 				rgb.b = color.rgba[2];
-				sendJsonColor();			
+				sendJsonColor();
 			}
 		}
 	}
@@ -474,15 +474,15 @@ $('#effectPriority').off().on('input', function() {
 	if (lastTypeEffect == 0)
 		sendJsonColor();
 	else
-		sendJsonEffect();	
+		sendJsonEffect();
 });
 
 ////////////////////////////////////////////////////////////////////////////////
-var clearJson = 
+var clearJson =
 `{
   "command" : "clear",
   "priority" : {0}
-}`;	
+}`;
 
 $('#clearPriority').on('input',
 	function(){
@@ -498,27 +498,27 @@ $('#clearPriority').on('input',
 			});
 			$("#clearPriority_json").html("");
 		}
-	});	
-	
+	});
+
 function BuildClearJson()
 {
 	$('button[name="clearPriorityButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var component = $('#clearPriority').val();
 	var finJson = clearJson.replace("{0}", component);
 	$("#clearPriority_json").text(finJson);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-var componentHdr = 
+var componentHdr =
 `{
 	"command":"videomodehdr",
 	"HDR":{0},
 	"flatbuffers_user_lut_filename":"{1}"
 }`;
- 
+
 $('input[name="hdrModeState"], #flatbuffersUserLut').change(
 	function(){
 		if ($("input[name='hdrModeState']:checked").val())
@@ -526,22 +526,22 @@ $('input[name="hdrModeState"], #flatbuffersUserLut').change(
 			BuildHdrJson();
 		}
 	});
-	
+
 function BuildHdrJson()
 {
 	$('button[name="hdrModeButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-		
-	var state = $('input[name="hdrModeState"]:checked').val();	
+
+	var state = $('input[name="hdrModeState"]:checked').val();
 	var flatbufferUserLut = $('#flatbuffersUserLut').val();
 	var finJson = (flatbufferUserLut.length > 0) ? componentHdr.replace("{0}", state).replace("{1}", flatbufferUserLut) :
 													componentHdr.replace("{0},", state).replace('"flatbuffers_user_lut_filename":"{1}"', "");
-	
+
 	$("#hdrMode_json").text(finJson);
 }
 ////////////////////////////////////////////////////////////////////////////////
-var videoControlsJson = 
+var videoControlsJson =
 `{
   "command" : "video-controls",
   "video-controls":
@@ -559,7 +559,7 @@ $('input[name="videoVControl"]').on('input',
 		var VControlContrast = $("#VControlContrast").val();
 		var VControlSaturation = $("#VControlSaturation").val();
 		var VControlHue = $("#VControlHue").val();
-		
+
 		if  (
 		    ((!isNaN(VControlBrightness)) && !isNaN(parseFloat(VControlBrightness))) &&
 			((!isNaN(VControlContrast)) && !isNaN(parseFloat(VControlContrast))) &&
@@ -575,14 +575,14 @@ $('input[name="videoVControl"]').on('input',
 			});
 			$("#video_VControl_json").html("");
 		}
-	});	
-	
+	});
+
 function BuildVControlJson()
 {
 	$('button[name="videoVControlButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var VControlBrightness = $("#VControlBrightness").val();
 	var VControlContrast = $("#VControlContrast").val();
 	var VControlSaturation = $("#VControlSaturation").val();
@@ -593,23 +593,23 @@ function BuildVControlJson()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-var smoothingControl = 
+var smoothingControl =
 `{
 	"command":"smoothing",
 	"subcommand":"{0}",
 	"time":{1}
 }`;
- 
+
 $('input[name="api_smoothing_target"], #json_api_smoothing_time').change(
 	function(){
-		BuildSmoothingJson();		
+		BuildSmoothingJson();
 	});
 
 $('#json_api_smoothing_time').keyup(
 	function(){
 		BuildSmoothingJson();
 	});
-	
+
 function BuildSmoothingJson()
 {
 	if ($("input[name='api_smoothing_target']:checked").val() && !isNaN($("#json_api_smoothing_time").val()) && $("#json_api_smoothing_time").val() >= 25)
@@ -617,17 +617,17 @@ function BuildSmoothingJson()
 		$('button[name="smoothingControlButtons"]').each(function(i, obj) {
 			$(this).removeClass('disabled');
 		});
-		
-		var target = $('input[name="api_smoothing_target"]:checked').val();	
+
+		var target = $('input[name="api_smoothing_target"]:checked').val();
 		var time = $('#json_api_smoothing_time').val();
 		var finJson = smoothingControl.replace("{0}", target).replace("{1}", time);
-	
+
 		$("#smoothingControl_json").text(finJson);
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////
-var currentStateJson = 
+var currentStateJson =
 `{
   "command" : "current-state",
   "subcommand" : "{0}",
@@ -649,23 +649,23 @@ function checkCurrentState(){
 		$("#instanceCurrentState_json").html("");
 	}
 };
- 
+
 $('#instanceCurrentStateIndex').on('input',
 	function(){
 		checkCurrentState();
 	});
-	
+
 $('input[name="instanceCurrentStateCommand"]').change(
 	function(){
 		checkCurrentState();
-	});	
-	
+	});
+
 function BuildCurrentStatetJson()
 {
 	$('button[name="instanceCurrentStateButtons"]').each(function(i, obj) {
 		$(this).removeClass('disabled');
 	});
-	
+
 	var component = $("#instanceCurrentStateIndex").val();
 	var state = $('input[name="instanceCurrentStateCommand"]:checked').val();
 	var finJson = currentStateJson.replace("{1}", component).replace("{0}", state);

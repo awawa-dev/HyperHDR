@@ -8,7 +8,7 @@
 			"type" : "string",
 			"default"  : "",
 			"required" : true
-		},		
+		},
 		"quality" :
 		{
 			"type" : "integer",
@@ -16,7 +16,7 @@
 			"maximum" : 100,
 			"default"  : 0,
 			"required" : true
-		},		
+		},
 		"width" :
 		{
 			"type" : "integer",
@@ -48,7 +48,7 @@
 						"type" : "integer",
 						"minimum" : 0,
 						"required" : true
-					},					
+					},
 					"color" :
 					{
 						"type" : "array",
@@ -84,7 +84,7 @@
 						"type" : "integer",
 						"minimum" : 0,
 						"required" : true
-					},					
+					},
 					"color" :
 					{
 						"type" : "array",

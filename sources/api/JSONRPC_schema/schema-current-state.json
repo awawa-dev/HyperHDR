@@ -20,7 +20,7 @@
 			"minimum" : 0,
 			"maximum" : 255,
 			"required": true
-		}		
+		}
 	},
 	"additionalProperties": false
 }

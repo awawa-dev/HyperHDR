@@ -18,14 +18,14 @@
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
-			"default": 2000000,			
+			"default": 2000000,
 			"propertyOrder" : 3
 		},
 		"espHandshake" :
 		{
 			"type" : "boolean",
 			"format": "checkbox",
-			"title" : "edt_serial_espHandshake",		
+			"title" : "edt_serial_espHandshake",
 			"default" : false,
 			"required" : true,
 			"options": {
@@ -40,7 +40,7 @@
 
 			"type" : "boolean",
 			"format": "checkbox",
-			"title" : "edt_dev_spec_forceSerialDetection",		
+			"title" : "edt_dev_spec_forceSerialDetection",
 			"default" : false,
 			"required" : true,
 			"options": {
@@ -157,8 +157,8 @@
 		"maxRetry":
 		{
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title" : "edt_dev_max_retry",
 			"minimum" : 0,
 			"maximum" : 120,

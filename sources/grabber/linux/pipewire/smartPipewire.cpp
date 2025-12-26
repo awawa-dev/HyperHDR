@@ -58,7 +58,7 @@ void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS)
 }
 
 void releaseFramePipewire()
-{	
+{
 	pipewireHandler.releaseWorkingFrame();
 }
 
@@ -83,7 +83,7 @@ const char* getPipewireError()
 }
 
 void uninitPipewireDisplay()
-{	
+{
 	pipewireHandler.closeSession();
 }
 

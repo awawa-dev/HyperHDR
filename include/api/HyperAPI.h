@@ -41,7 +41,7 @@ protected slots:
 	void sendImage();
 
 signals:
-	void SignalCallbackBinaryImageMessage(Image<ColorRgb>);	
+	void SignalCallbackBinaryImageMessage(Image<ColorRgb>);
 	void SignalForwardJsonMessage(QJsonObject);
 	void SignalCallbackJsonMessage(QJsonObject);
 
@@ -49,7 +49,7 @@ protected:
 	void stopDataConnections() override;
 
 private:
-	std::shared_ptr<LoggerManager> _logsManager;	
+	std::shared_ptr<LoggerManager> _logsManager;
 
 	bool _noListener;
 

@@ -98,6 +98,6 @@ private:
 
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
-	QSocketNotifier*	_streamNotifier;	
+	QSocketNotifier*	_streamNotifier;
 	GrabberManager      _V4L2WorkerManager;
 };

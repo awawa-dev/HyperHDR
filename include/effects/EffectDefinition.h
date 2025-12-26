@@ -13,7 +13,7 @@ struct EffectDefinition
 {
 	std::string	name;
 	bool		smoothingDirectMode;
-	bool		smoothingCustomSettings;	
+	bool		smoothingCustomSettings;
 	int			smoothingTime;
 	int			smoothingFrequency;
 	unsigned	smoothingConfig;
@@ -21,7 +21,7 @@ struct EffectDefinition
 
 	EffectDefinition(EffectConstructor effectFactory, int _smoothingTime = 0, int _smoothingFrequency = 0) :
 		EffectDefinition(false, effectFactory, _smoothingTime, _smoothingFrequency)
-	{		
+	{
 	}
 
 	EffectDefinition(bool _directMode, EffectConstructor effectFactory, int _smoothingTime = 0, int _smoothingFrequency = 0) :
