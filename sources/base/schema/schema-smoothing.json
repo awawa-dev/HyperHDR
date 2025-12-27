@@ -16,10 +16,10 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_smooth_type_title",
-			"enum" : ["Stepper", "YuvInterpolator", "RgbInterpolator", "HybridInterpolator", "ExponentialInterpolator"],
-			"default" : "Stepper",
+			"enum" : ["Stepper", "YuvInterpolator", "RgbInterpolator", "HybridInterpolator", "HybridRgbInterpolator", "ExponentialInterpolator"],
+			"default" : "HybridRgbInterpolator",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_interpolator_Stepper_title", "edt_conf_enum_interpolator_YuvInterpolator_title", "edt_conf_enum_interpolator_RgbInterpolator_title", "edt_conf_enum_interpolator_HybridInterpolator_title", "edt_conf_enum_interpolator_ExponentialInterpolator_title"]
+				"enum_titles" : ["edt_conf_enum_interpolator_Stepper_title", "edt_conf_enum_interpolator_YuvInterpolator_title", "edt_conf_enum_interpolator_RgbInterpolator_title", "edt_conf_enum_interpolator_HybridInterpolator_title", "edt_conf_enum_interpolator_HybridRgbInterpolator_title", "edt_conf_enum_interpolator_ExponentialInterpolator_title"]
 			},
 			"required" : true,
 			"propertyOrder" : 2
@@ -62,7 +62,7 @@
 			"required" : true,
 			"options": {
 				"dependencies": {
-					"type": ["YuvInterpolator", "RgbInterpolator"]
+					"type": ["YuvInterpolator", "RgbInterpolator", "HybridRgbInterpolator"]
 				}
 			},
 			"propertyOrder" : 5
@@ -79,7 +79,7 @@
 			"required" : true,
 			"options": {
 				"dependencies": {
-					"type": "HybridInterpolator"
+					"type": ["HybridInterpolator", "HybridRgbInterpolator"]
 				}
 			},
 			"propertyOrder" : 6
@@ -96,7 +96,7 @@
 			"required" : true,
 			"options": {
 				"dependencies": {
-					"type": "HybridInterpolator"
+					"type": ["HybridInterpolator", "HybridRgbInterpolator"]
 				}
 			},
 			"propertyOrder" : 7
