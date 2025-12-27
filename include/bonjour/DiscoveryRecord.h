@@ -49,10 +49,10 @@ public:
 	static const QString getmDnsHeader(Service service);
 	static const QString getName(Service _type);
 
-	const QString getName() const;	
+	const QString getName() const;
 	void resetTTL();
 	bool expired();
-	
+
 
 	bool operator==(const DiscoveryRecord& other) const;
 	bool operator!=(const DiscoveryRecord& other) const;

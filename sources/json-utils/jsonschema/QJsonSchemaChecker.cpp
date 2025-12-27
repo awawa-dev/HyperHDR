@@ -240,7 +240,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 			if (_correct == "create")
 			{
 				QJsonValue newProperty = QJsonUtils::create(propertyValue, _ignoreRequired);
-				QJsonUtils::modify(_autoCorrected, _currentPath, newProperty, property);				
+				QJsonUtils::modify(_autoCorrected, _currentPath, newProperty, property);
 				setMessage("Create property: " + property + " with value: " + QJsonUtils::outputNode(newProperty));
 			}
 

@@ -18,7 +18,7 @@
 #include "WebSocketUtils.h"
 
 
-WebSocketClient::WebSocketClient(	
+WebSocketClient::WebSocketClient(
 	QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent)
 	: QObject(parent)
 	, _socket(sock)
@@ -179,7 +179,7 @@ void WebSocketClient::handleWebSocketFrame()
 				}
 				break;
 
-			default:				
+			default:
 					Warning(_log, "Unexpected {:d}\n{:s}\n", _wsh.opCode, (QString(buf)));
 		}
 	}
@@ -309,7 +309,7 @@ qint64 WebSocketClient::signalCallbackBinaryImageMessageHandler(Image<ColorRgb> 
 
 	std::vector<uint8_t> mb;
 	utils_image::encodeJpeg(mb, image, (image.width() > 800));
-	
+
 	qint64 payloadWritten = 0;
 	quint32 payloadSize = static_cast<quint32>(mb.size());
 	char* payload = reinterpret_cast<char*>(mb.data());
@@ -340,7 +340,7 @@ qint64 WebSocketClient::signalCallbackBinaryImageMessageHandler(Image<ColorRgb> 
 	}
 
 	if (payloadSize != payloadWritten)
-	{		
+	{
 		Error(_log, "Error writing bytes to socket {:d} bytes from {:d} written", payloadWritten, payloadSize);
 		return -1;
 	}

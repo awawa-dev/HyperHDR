@@ -25,10 +25,10 @@ namespace
 
 cecHandler::cecHandler() :
 	_log("CEC")
-{	
+{
 	Info(_log, "CEC object created");
 
-	_cecCallbacks.Clear();	
+	_cecCallbacks.Clear();
 	_cecCallbacks.logMessage = handleCecLogMessage;
 	_cecCallbacks.keyPress = handleCecKeyPress;
 	_cecCallbacks.commandReceived = handleCecCommandMessage;
@@ -77,7 +77,7 @@ bool cecHandler::start()
 	}
 
 	// __ARM_ARCH_ISA_A64
-	
+
 	for (const auto& adapter : adapters)
 	{
 		QString adapterType = "unknown";
@@ -104,9 +104,9 @@ bool cecHandler::start()
 		else
 		{
 			Error(_log, "{:s}", (QString("Failed to open CEC adapter type '%2' (%1)").arg(adapter.strComName).arg(adapterType)));
-		}	
+		}
 	}
-	
+
 
 	if (!opened)
 	{
@@ -119,7 +119,7 @@ bool cecHandler::start()
 }
 
 void cecHandler::stop()
-{	
+{
 	if (_cecAdapter)
 	{
 		Info(_log, "Stopping CEC handler");
@@ -130,7 +130,7 @@ void cecHandler::stop()
 }
 
 void handleCecLogMessage(void * context, const CEC::cec_log_message* message)
-{	
+{
 	cecHandler* handler = static_cast<cecHandler*>(context);
 
 	if (handler == nullptr)
@@ -146,7 +146,7 @@ void handleCecLogMessage(void * context, const CEC::cec_log_message* message)
 			break;
 		default:
 			break;
-	}	
+	}
 }
 
 void handleCecKeyPress(void* context, const CEC::cec_keypress* key)
@@ -164,12 +164,12 @@ void handleCecKeyPress(void* context, const CEC::cec_keypress* key)
 
 void handleCecCommandMessage(void * context, const CEC::cec_command* command)
 {
-	
+
 	cecHandler* handler = static_cast<cecHandler*>(context);
 
 	if (handler == nullptr || _cecAdapter == nullptr ||
 		(command->opcode != CEC::CEC_OPCODE_SET_STREAM_PATH && command->opcode != CEC::CEC_OPCODE_STANDBY))
-		return;	
+		return;
 
 	if (command->opcode == CEC::CEC_OPCODE_SET_STREAM_PATH)
 	{
@@ -179,5 +179,5 @@ void handleCecCommandMessage(void * context, const CEC::cec_command* command)
 	{
 		emit handler->stateChange(false, QString(_cecAdapter->ToString(command->initiator)));
 	}
-	
+
 }

@@ -11,7 +11,7 @@ class QtHttpServer;
 
 class QtHttpReply : public QObject
 {
-	Q_OBJECT		
+	Q_OBJECT
 public:
 	explicit QtHttpReply(QtHttpServer* parent);
 

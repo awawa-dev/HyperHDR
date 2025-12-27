@@ -62,7 +62,7 @@ protected:
 	virtual void removeSubscriptions() = 0;
 	virtual void addSubscriptions() = 0;
 
-	void init();	
+	void init();
 
 	bool clearPriority(int priority, QString& replyMsg, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	std::map<hyperhdr::Components, bool> getAllComponents();
@@ -84,7 +84,7 @@ protected:
 	void setSourceAutoSelect(bool state, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	void setVideoModeHdr(int hdr, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
 	void setVisiblePriority(int priority, hyperhdr::Components callerComp = hyperhdr::COMP_INVALID);
-	
+
 	bool startInstance(quint8 index, int tan = 0);
 	void stopInstance(quint8 index);
 
@@ -115,12 +115,12 @@ protected:
 	bool hasHyperhdrDefaultPw();
 	void logout();
 	void putSystemInfo(QJsonObject& system);
-	
+
 	bool _adminAuthorized;
 
 	LoggerName _log;
 	std::shared_ptr<HyperHdrManager>	_instanceManager;
-	std::shared_ptr<AccessManager>		_accessManager;	
+	std::shared_ptr<AccessManager>		_accessManager;
 	std::shared_ptr<HyperHdrInstance>	_hyperhdr;
 	std::shared_ptr<SoundCapture> _soundCapture;
 	std::shared_ptr<GrabberHelper> _videoGrabber;
@@ -147,7 +147,7 @@ protected:
 		QString domainName;
 	} _sysInfo;
 
-signals:	
+signals:
 	void SignalPendingTokenClientNotification(const QString& id, const QString& comment);
 	void SignalPerformClientDisconnection();
 	void SignalTokenClientNotification(bool success, const QString& token, const QString& comment, const QString& id, const int& tan);
@@ -161,5 +161,5 @@ private:
 	bool _localConnection;
 	quint8 _currentInstanceIndex;
 
-	std::map<int, registerData> _activeRegisters;	
+	std::map<int, registerData> _activeRegisters;
 };

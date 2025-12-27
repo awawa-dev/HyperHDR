@@ -193,7 +193,7 @@ void AlsaWorkerThread::run(){
 		else
 			Info(_logger, "Sound period size = %lu", (unsigned long)periodSize);
 
-		bufferSizeInBytes = periodSize * 2;	
+		bufferSizeInBytes = periodSize * 2;
 
 		if ((status = this->snd_pcm_hw_params_set_buffer_size_near(handle, selected_hw_params, &bufferSizeInBytes)) < 0)
 		{
@@ -201,7 +201,7 @@ void AlsaWorkerThread::run(){
 			throw 8;
 		}
 		else
-			Info(_logger, "Sound buffer size = %lu", (unsigned long)bufferSizeInBytes);		
+			Info(_logger, "Sound buffer size = %lu", (unsigned long)bufferSizeInBytes);
 
 		if ((status = this->snd_pcm_hw_params(handle, selected_hw_params)) < 0) {
 			Error(_logger, "Cannot set snd_pcm_hw_params: '{:s}'", this->snd_strerror(status));
@@ -377,26 +377,26 @@ SoundCaptureLinux::~SoundCaptureLinux()
 void SoundCaptureLinux::start()
 {
 	if (_isActive && !_isRunning)
-	{	
+	{
 		QStringList deviceList = _selectedDevice.split('|');
-		
+
 		if (deviceList.empty())
 		{
 			Error(_logger, "Invalid device name: {:s}", (_selectedDevice));
 		}
-		
+
 		QString device = deviceList.at(0).trimmed();
 		_normalizedName = _selectedDevice;
 		auto it = std::remove_if(_normalizedName.begin(), _normalizedName.end(), [](const QChar& c) { return !c.isLetterOrNumber() && c!=' ' && c!=':' && c!='=' && c!='|' && c!='.'; });
 		_normalizedName.chop(std::distance(it, _normalizedName.end()));
-		Info(_logger, "Opening device: {:s}", (_normalizedName));		
+		Info(_logger, "Opening device: {:s}", (_normalizedName));
 
 		_isRunning = true;
 
 		_thread = new AlsaWorkerThread(_logger, device, this);
 		_thread->setObjectName("SoundCapturing");
-		connect(_thread, &AlsaWorkerThread::finished, this, [this]() {stop(); });		
-		_thread->start();		
+		connect(_thread, &AlsaWorkerThread::finished, this, [this]() {stop(); });
+		_thread->start();
 	}
 }
 

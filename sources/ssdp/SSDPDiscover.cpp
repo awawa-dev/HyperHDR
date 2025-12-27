@@ -74,7 +74,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 
 				//Debug(_log, "_data: [{:s}]", (data));
 
-				QMap<QString, QString> headers;				
+				QMap<QString, QString> headers;
 				// parse request
 
 				QStringList entries = data.split('\n', Qt::SkipEmptyParts);

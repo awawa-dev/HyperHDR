@@ -66,7 +66,7 @@ $(document).ready( function() {
 	{
 		showInfoDialog('warning', "Can't store settings", "Your browser doesn't support localStorage. You can't save a specific language setting (fallback to 'auto detection') and access level (fallback to 'default'). Some wizards may be hidden. You could still use the webinterface without further issues");
 		initTrans('auto');
-		storedLang = 'auto';		
+		storedLang = 'auto';
 		$('#btn_setlang').attr("disabled", true);
 	}
 
@@ -82,7 +82,7 @@ $(document).ready( function() {
 		requestLogout();
 		removeStorage('loginToken', true);
 		location.replace('/');
-	});	
+	});
 });
 
 function compareHyperHdrVersion(compareA, compareB)
@@ -92,40 +92,40 @@ function compareHyperHdrVersion(compareA, compareB)
 		console.log(`Invalid length: A:${compareA.length} B:${compareB.length}`);
 		return true;
 	}
-	
+
 	if (isNaN(compareA[0]))
 		compareA = compareA.substring(1);
 	if (isNaN(compareB[0]))
 		compareB = compareB.substring(1);
-		
+
 	if ((compareA.indexOf('alpha') >= 0) &&
 		(compareB.indexOf('alpha') < 0))
 		{
 			return false;
 		}
-		
+
 	if ((compareB.indexOf('alpha') >= 0) &&
 		(compareA.indexOf('alpha') < 0))
 		{
 			return true;
-		}		
-		
-		
+		}
+
+
 	var valueA = compareA.split('.');
 	var valueB = compareB.split('.');
-	
+
 	if (valueA.length < 3 || valueB.length < 3)
 	{
 		console.log(`Invalid length: A:${valueA.length} B:${valueB.length}`);
 		return true;
 	}
-	
+
 	var finalA = "";
 	for (var i = 0; i < valueA[2].length; i++)
 		if (!isNaN(valueA[2][i]))
 			finalA = finalA.concat(valueA[2][i]);
 	valueA[2] = finalA;
-	
+
 	var finalB = "";
 	for (var i = 0; i < valueB[2].length; i++)
 		if (!isNaN(valueB[2][i]))
@@ -145,7 +145,7 @@ function compareHyperHdrVersion(compareA, compareB)
 		if (Number(valueA[0]) >= Number(valueB[0]))
 			return true;
 	}
-	
+
 	for (var i = 0; i < 3; i++)
 	{
 		if (Number(valueA[i]) > Number(valueB[i]))
@@ -157,6 +157,6 @@ function compareHyperHdrVersion(compareA, compareB)
 			return false;
 		}
 	}
-	
+
 	return false;
 }

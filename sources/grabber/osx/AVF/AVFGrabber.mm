@@ -62,7 +62,7 @@
 {
 @public
 	AVFGrabber*			_avfGrabber;
-	dispatch_queue_t	_sequencer;	
+	dispatch_queue_t	_sequencer;
 	AVCaptureSession*	_nativeSession;
 }
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
@@ -525,7 +525,7 @@ bool AVFGrabber::init_device(QString selectedDeviceName, DevicePropertiesItem pr
 			discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternalUnknown]
 		#else
 			discoverySessionWithDeviceTypes : @[AVCaptureDeviceTypeExternal]
-		#endif		
+		#endif
 		mediaType:AVMediaTypeVideo
 		position : AVCaptureDevicePositionUnspecified].devices)
 	{
@@ -783,7 +783,7 @@ bool AVFGrabber::process_image(const void* frameImageBuffer, int size)
 				if (diff >= 59000 && diff <= 65000)
 					emit GlobalSignals::getInstance()->SignalPerformanceNewReport(
 					PerformanceReport(hyperhdr::PerformanceReportType::VIDEO_GRABBER, frameStat.token, this->_actualDeviceName + access, total / qMax(diff / 1000.0, 1.0), av, frameStat.goodFrame, frameStat.badFrame));
-				
+
 				resetCounter(now);
 
 				QString currentCache = QString::fromStdString(Image<ColorRgb>::adjustCache());
@@ -859,9 +859,9 @@ void AVFGrabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString er
 {
 
 	frameStat.badFrame++;
-	//Debug(_log, "Error occured while decoding mjpeg frame {:d} = {:s}", sourceCount, (error));	
+	//Debug(_log, "Error occured while decoding mjpeg frame {:d} = {:s}", sourceCount, (error));
 
-	// get next frame	
+	// get next frame
 	if (workerIndex > _AVFWorkerManager.workersCount)
 		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 
@@ -875,7 +875,7 @@ void AVFGrabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb>
 {
 	handleNewFrame(workerIndex, image, sourceCount, _frameBegin);
 
-	// get next frame	
+	// get next frame
 	if (workerIndex > _AVFWorkerManager.workersCount)
 		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
 

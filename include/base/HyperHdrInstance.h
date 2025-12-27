@@ -52,7 +52,7 @@ class HyperHdrInstance : public QObject
 public:
 	HyperHdrInstance(quint8 instance, bool disableOnstartup, QString name);
 	~HyperHdrInstance();
-	
+
 	quint8 getInstanceIndex() const { return _instIndex; }
 	QSize getLedGridSize() const { return _ledGridSize; }
 	bool getScanParameters(size_t led, double& hscanBegin, double& hscanEnd, double& vscanBegin, double& vscanEnd) const;
@@ -99,9 +99,9 @@ public slots:
 	void turnGrabbers(bool active);
 	void update();
 	void updateAdjustments(const QJsonObject& config);
-	
-	
-	int setEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");	
+
+
+	int setEffect(const QString& effectName, int priority, int timeout = -1, const QString& origin = "System");
 
 signals:
 	void SignalComponentStateChanged(hyperhdr::Components comp, bool state);
@@ -156,7 +156,7 @@ private:
 
 	static std::atomic<bool>	_signalTerminate;
 	static std::atomic<int>		_totalRunningCount;
-	
+
 	struct {
 		qint64		token = 0;
 		qint64		statBegin = 0;

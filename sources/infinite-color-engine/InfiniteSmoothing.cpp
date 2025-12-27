@@ -27,7 +27,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QTimer>
-	#include <QThread>	
+	#include <QThread>
 
 	#include <algorithm>
 	#include <chrono>
@@ -100,7 +100,7 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 			_connected = false;
 			disconnect(this, &InfiniteSmoothing::SignalMasterClockTick, this, &InfiniteSmoothing::updateLeds);
 		}
-		
+
 		_infoUpdate = true;
 		_infoInput = true;
 		_coolDown = (deviceEnabled) ? SMOOTHING_COOLDOWN_PHASE: 0;
@@ -210,7 +210,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 	{
 		if (!isEnabled())
 			Info(_log, "Smoothing is disabled. Direct output.");
-		else 
+		else
 			Info(_log, "Using {:s} smoothing input ({:d})", (EnumSmoothingTypeToString(_configurations[_currentConfigId]->type)), _currentConfigId);
 		_infoInput = false;
 	}
@@ -220,7 +220,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 	{
 		queueColors(std::make_shared<std::vector<float3>>(std::move(nonlinearRgbColors)));
 		return;
-	}	
+	}
 
 	// critical section
 	{
@@ -232,7 +232,7 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
 }
 
 void InfiniteSmoothing::updateLeds()
-{	
+{
 	SharedOutputColors nonlinearRgbColors;
 	bool finished = false;
 	long long timeNow = 0;
@@ -258,7 +258,7 @@ void InfiniteSmoothing::updateLeds()
 			else if (std::abs(timeNow - _lastSentFrame) < 1000)
 				finished = true;
 		}
-	}	
+	}
 
 	if (!nonlinearRgbColors->empty() && !finished)
 	{
@@ -308,7 +308,7 @@ unsigned InfiniteSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequ
 unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
 {
 	int64_t interval =  (ledUpdateFrequency_hz > std::numeric_limits<double>::epsilon()) ? static_cast<int64_t>(1000.0 / ledUpdateFrequency_hz) : 10;
-	
+
 	if (cfgID < static_cast<unsigned>(_configurations.size()))
 	{
 		_configurations[cfgID] = std::make_unique<SmoothingConfig>(SmoothingConfig{ .pause = pause, .settlingTime = settlingTime_ms, .updateInterval = interval, .type = SmoothingType::Stepper });

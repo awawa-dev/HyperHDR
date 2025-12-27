@@ -38,7 +38,7 @@ typedef snd_pcm_sframes_t (*snd_pcm_avail_update_fun)(snd_pcm_t* pcm);
 class AlsaWorkerThread : public QThread
 {
 	Q_OBJECT
-		
+
 		std::atomic<bool> _exitNow{ false };
 		LoggerName _logger;
 		QString _device;

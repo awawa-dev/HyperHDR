@@ -113,8 +113,8 @@ int DriverRpiPio::open()
 		Error(_log, "The device does not exists: {:s}", (_output));
 		Error(_log, "Must be configured first like for ex: dtoverlay=ws2812-pio,gpio=18,num_leds=30,rgbw in /boot/firmware/config.txt. rgbw only for sk6812 RGBW. num_leds is your LED number. Only RPI5+");
 		return retval;
-	}	
-	
+	}
+
 	if (!fi.isWritable())
 	{
 		Error(_log, "The device is not writable. Are you root or your user has write access rights to: {:s}", (_output));
@@ -126,7 +126,7 @@ int DriverRpiPio::open()
 	{
 		Error(_log, "Cannot open the device for writing: {:s}", (_output));
 		return retval;
-	}	
+	}
 	else
 	{
 		QByteArray render;
@@ -174,7 +174,7 @@ int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 			rgb2rgbw(color, &tempRgbw, _whiteAlgorithm, channelCorrection);
 
 			render.append(static_cast<char>(tempRgbw.red));
-			render.append(static_cast<char>(tempRgbw.green));			
+			render.append(static_cast<char>(tempRgbw.green));
 			render.append(static_cast<char>(tempRgbw.blue));
 			render.append(static_cast<char>(tempRgbw.white));
 		}
@@ -185,7 +185,7 @@ int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		for (const ColorRgb& color : ledValues)
 		{
 			render.append(static_cast<char>(color.red));
-			render.append(static_cast<char>(color.green));			
+			render.append(static_cast<char>(color.green));
 			render.append(static_cast<char>(color.blue));
 		}
 	}

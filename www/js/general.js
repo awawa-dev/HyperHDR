@@ -24,10 +24,10 @@ $(document).ready(function()
 		requestWriteConfig(conf_editor_logs.getValue());
 	});
 
-	
+
 	$('#conf_cont').append(createOptPanel('<svg data-src="svg/general_settings.svg" fill="currentColor" class="svg4hyperhdr"></svg>', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
 	$('#conf_cont').append(createHelpTable(window.schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
-	
+
 
 	conf_editor = createJsonEditor('editor_container',
 	{
@@ -99,7 +99,7 @@ $(document).ready(function()
 			var renameBtn = '<button id="instren_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-primary btn-sm"><svg data-src="svg/button_edit.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_rename') + '</button>';
 			var startBtn = ""
 			var delBtn = "";
-			
+
 			if (inst[key].instance > 0)
 			{
 				delBtn = '<button id="instdel_' + inst[key].instance + '" type="button" class="h-100 w-100 btn btn-warning btn-sm"><svg data-src="svg/button_delete.svg" fill="currentColor" class="svg4hyperhdr"></svg>' + $.i18n('general_btn_delete') + '</button>';
@@ -112,7 +112,7 @@ $(document).ready(function()
 				.append($('<div>', {class: "col mt-2 mb-2"}).append(startBtn))
 				.append($('<div>', {class: "col mt-2 mb-2"}).append(delBtn)));
 			newRow.append(colHeader).append(colAction);
-			
+
 			$('#instanceList').append(newRow);
 			$('#instren_' + inst[key].instance).off().on('click', handleInstanceRename);
 			$('#inst_' + inst[key].instance).off().on('click', handleInstanceStartStop);
@@ -123,7 +123,7 @@ $(document).ready(function()
 			$('#btn_submit').attr('disabled', false);
 		}
 	}
-	
+
 	buildInstanceList();
 
 	$('#inst_name').off().on('input', function(e)
@@ -212,7 +212,7 @@ $(document).ready(function()
 	});
 
 	//export
-	$('#btn_export_conf').off().on('click', async () => 
+	$('#btn_export_conf').off().on('click', async () =>
 	{
 		var d = new Date();
 		var month = d.getMonth() + 1;
@@ -221,10 +221,10 @@ $(document).ready(function()
 		var timestamp = d.getFullYear() + '-' +
 			(month < 10 ? '0' : '') + month + '-' +
 			(day < 10 ? '0' : '') + day;
-			
+
 		var backup = await requestGetDB();
 		if (backup.success === true)
-			download(JSON.stringify(backup.info, null, "\t"), 'HyperHDR-' + window.currentVersion + '-Backup-' + timestamp + '.json', "application/json");		
+			download(JSON.stringify(backup.info, null, "\t"), 'HyperHDR-' + window.currentVersion + '-Backup-' + timestamp + '.json', "application/json");
 	});
 
 	//create introduction

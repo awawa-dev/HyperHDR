@@ -30,7 +30,7 @@
 #include <utils/Logger.h>
 
 class AutomaticToneMapping
-{	
+{
 public:
 	struct ToneMappingThresholds;
 

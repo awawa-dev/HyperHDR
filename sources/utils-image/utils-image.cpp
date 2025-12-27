@@ -45,7 +45,7 @@
 #include <stb_image.h>
 #include <utils-image/utils-image.h>
 
-#include <utility>	
+#include <utility>
 #include <list>
 
 namespace utils_image
@@ -78,7 +78,7 @@ namespace utils_image
 	void _IMAGE_SHARED_API svg2png(const std::string& svgFile, int width, int height, std::vector<uint8_t>& buffer)
 	{
 		const std::uint32_t bgColor = 0x00000000;
-		
+
 		auto document = lunasvg::Document::loadFromData(svgFile);
 
 		auto bitmap = document->renderToBitmap(width, height, bgColor);
@@ -146,7 +146,7 @@ namespace utils_image
 	Image<ColorRgb> _IMAGE_SHARED_API load2image(const std::string& filename)
 	{
 		Image<ColorRgb> ret;
-		int w, h, comp;		
+		int w, h, comp;
 
 		unsigned char* image = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb);
 

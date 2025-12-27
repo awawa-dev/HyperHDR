@@ -29,11 +29,11 @@ public:
 
 	~GrabberWrapper() override;
 
-	bool isCEC();	
+	bool isCEC();
 	bool getAutoResume();
 
 public slots:
-	void capturingExceptionHandler(const char* err);	
+	void capturingExceptionHandler(const char* err);
 
 	bool start();
 	void stop();
@@ -66,7 +66,7 @@ public slots:
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 	void setSignalDetectionEnable(bool enable);
 	void setDeviceVideoStandard(const QString& device);
-	void setFpsSoftwareDecimation(int decimation);	
+	void setFpsSoftwareDecimation(int decimation);
 	void setEncoding(QString enc);
 	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 	void setQFrameDecimation(int setQframe);

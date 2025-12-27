@@ -27,7 +27,7 @@
 
 #ifndef PCH_ENABLED
 	#include <QTimer>
-	#include <QThread>	
+	#include <QThread>
 
 	#include <cmath>
 	#include <algorithm>

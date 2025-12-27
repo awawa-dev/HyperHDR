@@ -62,7 +62,7 @@ void NetworkForwarder::startedHandler()
 		return;
 	}
 
-	std::shared_ptr<HyperHdrInstance> hyperhdr;	
+	std::shared_ptr<HyperHdrInstance> hyperhdr;
 	SAFE_CALL_1_RET(instanceManager.get(), getHyperHdrInstance, std::shared_ptr<HyperHdrInstance>, hyperhdr, quint8, 0);
 	if (hyperhdr == nullptr)
 	{
@@ -76,7 +76,7 @@ void NetworkForwarder::startedHandler()
 	connect(hyperhdr.get(), &HyperHdrInstance::SignalInstanceSettingsChanged, this, &NetworkForwarder::handleSettingsUpdate);
 	connect(hyperhdr.get(), &HyperHdrInstance::SignalRequestComponent, this, &NetworkForwarder::handleCompStateChangeRequest);
 	connect(hyperhdr.get(), &HyperHdrInstance::SignalColorIsSet, this, &NetworkForwarder::signalColorIsSetHandler);
-	
+
 
 	handleCompStateChangeRequest(hyperhdr::COMP_FORWARDER, true);
 }
@@ -101,7 +101,7 @@ void NetworkForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 			return;
 
 		_jsonSlaves.clear();
-		_flatSlaves.clear();		
+		_flatSlaves.clear();
 		while (!_forwardClients.isEmpty())
 			_forwardClients.takeFirst()->deleteLater();
 
@@ -145,7 +145,7 @@ void NetworkForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 		{
 			Info(_log, "Forward now to json targets '{:s}'", (_jsonSlaves.join(", ")));
 			connect(hyperhdr.get(), &HyperHdrInstance::SignalForwardJsonMessage, this, &NetworkForwarder::forwardJsonMessage, Qt::UniqueConnection);
-		}			
+		}
 
 		if (!_flatSlaves.isEmpty())
 		{
@@ -162,7 +162,7 @@ void NetworkForwarder::handleCompStateChangeRequest(hyperhdr::Components compone
 	{
 		auto hyperhdr = _instanceZero.lock();
 		if (hyperhdr == nullptr)
-			return;		
+			return;
 
 		QJsonDocument netForConf;
 		SAFE_CALL_1_RET(hyperhdr.get(), getSetting, QJsonDocument, netForConf, settings::type, settings::type::NETFORWARD);
@@ -276,7 +276,7 @@ void NetworkForwarder::handlerInstanceImageUpdated(const Image<ColorRgb>& image)
 {
 	if (_hasImage.exchange(true))
 		return;
-	
+
 	_image = image;
 
 	emit SignalForwardImage();
@@ -291,7 +291,7 @@ void NetworkForwarder::signalForwardImageHandler()
 	{
 		emit _forwardClients.at(i)->SignalImageToSend(_image);
 	}
-	
+
 	_image = Image<ColorRgb>();
 }
 

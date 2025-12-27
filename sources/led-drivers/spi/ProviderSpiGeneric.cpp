@@ -104,7 +104,7 @@ QString ProviderSpiGeneric::open()
 				if (ioctl(_fid, SPI_IOC_WR_MAX_SPEED_HZ, &_baudRate_Hz) == -1 || ioctl(_fid, SPI_IOC_RD_MAX_SPEED_HZ, &_baudRate_Hz) == -1)
 				{
 					error = "Cannot set SPI baudrate";
-				}				
+				}
 			}
 		}
 	}

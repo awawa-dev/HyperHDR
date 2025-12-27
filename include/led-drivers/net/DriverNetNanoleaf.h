@@ -43,7 +43,7 @@ private:
 	bool _leftRight;
 	int _startPos;
 	int _endPos;
-	
+
 	QString _deviceModel;
 	QString _deviceFirmwareVersion;
 	ushort _extControlVersion;

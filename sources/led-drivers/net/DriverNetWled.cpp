@@ -17,7 +17,7 @@ DriverNetWled::DriverNetWled(const QJsonObject& deviceConfig)
 }
 
 bool DriverNetWled::init(QJsonObject deviceConfig)
-{	
+{
 	bool isInitOK = false;
 
 	Debug(_log, "Initializing WLED");
@@ -34,7 +34,7 @@ bool DriverNetWled::init(QJsonObject deviceConfig)
 
 		_overrideBrightness = deviceConfig["brightnessMax"].toBool(true);
 		Debug(_log, "Override brightness : {:s}", (_overrideBrightness) ? "true" : "false");
-		
+
 		_brightnessLevel = deviceConfig["brightnessMaxLevel"].toInt(255);
 		Debug(_log, "Set brightness level: {:d}", _brightnessLevel);
 
@@ -154,13 +154,13 @@ bool DriverNetWled::powerOn()
 				Warning(_log, "{:s}", (infoMessage));
 			else
 				Info(_log, "{:s}", (infoMessage));
-			
+
 			if (powerLimiter > 0)
 				Error(_log, "Serious warning: the power limiter in WLED is set which may lead to unexpected side effects. Use the right cabling & power supply with the appropriate power, not this half-measure.");
 
 			if (_ledCount != ledsNumber)
 				Warning(_log, "The number of LEDs defined in HyperHDR ({:d}) is different from that defined in WLED ({:d})", _ledCount, ledsNumber);
-			
+
 			_customInfo = QString("  %1%").arg(quality);
 
 			ProviderUdp::setPort(_warlsStreamPort);
@@ -211,7 +211,7 @@ QJsonObject DriverNetWled::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-	
+
 #ifdef ENABLE_BONJOUR
 	std::shared_ptr<DiscoveryWrapper> bonInstance = _discoveryWrapper.lock();
 	if (bonInstance != nullptr)
@@ -230,7 +230,7 @@ QJsonObject DriverNetWled::discover(const QJsonObject& /*params*/)
 	}
 #else
 	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintenair was compiling this version of HyperHDR");
-#endif	
+#endif
 
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());

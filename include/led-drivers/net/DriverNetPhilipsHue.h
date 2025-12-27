@@ -45,7 +45,7 @@ public:
 	bool isBlack(bool isBlack);
 	bool isWhite(bool isWhite);
 	void setBlack();
-	void blackScreenTriggered();	
+	void blackScreenTriggered();
 	ColorRgb getRGBColor() const;
 	void setRGBColor(const ColorRgb color);
 	QStringList getLightIds() const;
@@ -116,7 +116,7 @@ protected:
 
 	std::unique_ptr<ProviderRestApi> _restApi;
 	QString _hostname;
-	int _apiPort;	
+	int _apiPort;
 	QString _username;
 	bool	_useHueEntertainmentAPI;
 

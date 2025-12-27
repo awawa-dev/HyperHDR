@@ -51,7 +51,7 @@ namespace BoardUtils
 		int currentIndex = index % SCREEN_SAMPLES_PER_BOARD;
 		int boardIndex = index / SCREEN_SAMPLES_PER_BOARD;
 
-		position = int2(0, 1);		
+		position = int2(0, 1);
 		position.y += currentIndex / (SCREEN_BLOCKS_X / 2);
 		position.x += (currentIndex % (SCREEN_BLOCKS_X / 2)) * 2 + ((position.y  + boardIndex  )% 2);
 
@@ -78,7 +78,7 @@ namespace BoardUtils
 		const double2 startF = positionF * delta;
 		const double2 endF = ((positionF + double2(1, 1)) * delta) - double2(1, 1);
 		const int2 middle{ (startF + endF) / 2 };
-		
+
 		if (middle.x + 1 >= static_cast<int>(yuvImage.width()) || middle.y + 1 >= static_cast<int>(yuvImage.height()))
 			throw std::runtime_error("Incorrect image size");
 
@@ -214,7 +214,7 @@ namespace BoardUtils
 			{
 				auto capturedColor = readBlock(yuvImage, position, &color);
 				if (allColors.all[R][G][B].hasAnySample())
-				{					
+				{
 					allColors.all[R][G][B].importColors(capturedColor);
 					if (allColors.all[R][G][B].hasAllSamples())
 						exit = true;
@@ -444,7 +444,7 @@ namespace BoardUtils
 				for (int b = 0; b < SCREEN_COLOR_DIMENSION; b++)
 				{
 					all[r][g][b].setCoords(byte3(r, g, b));
-					
+
 					if (all[r][g][b].Y() > _rangeYUV.x)
 						_rangeYUV.x = all[r][g][b].Y();
 					if (all[r][g][b].U() > _rangeYUV.y)

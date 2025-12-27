@@ -58,7 +58,7 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, in
 	_log = QString("EFFECT%1(%2)").arg(_instanceIndex).arg((_name.length() > 9) ? _name.left(6) + "..." : _name);
 
 	_colors.resize(_ledCount);
-	_colors.fill(ColorRgb::BLACK);	
+	_colors.fill(ColorRgb::BLACK);
 
 	_timer.setTimerType(Qt::PreciseTimer);
 	connect(&_timer, &QTimer::timeout, this, &Effect::run);
@@ -93,7 +93,7 @@ Effect::Effect(HyperHdrInstance* hyperhdr, int visiblePriority, int priority, in
 }
 
 Effect::~Effect()
-{	
+{
 	delete _effect;
 
 	if (_isSoundEffect && _soundCapture != nullptr)
@@ -113,14 +113,14 @@ void Effect::start()
 	if (_timeout > 0)
 		_endTime = InternalClock::now() + _timeout;
 	else
-		_endTime = -1;	
+		_endTime = -1;
 
 	_timer.setInterval(_effect->GetSleepTime());
 
 	Info(_log, "Begin playing the {:s} with priority: {:d}", (_isSoundEffect) ? "music effect" : "effect", _priority);
 
 	run();
-	_timer.start();	
+	_timer.start();
 }
 
 void Effect::run()
@@ -148,7 +148,7 @@ void Effect::run()
 	if (_effect->hasOwnImage())
 	{
 		Image<ColorRgb> image(80, 45);
-			
+
 		if (_effect->getImage(image))
 			emit SignalSetImage(_priority, image, left, false);
 	}
@@ -233,7 +233,7 @@ int Effect::getTimeout()      const {
 
 QString Effect::getDescription() const
 {
-	return QString("effect%1/%2 => \"%3\"").		
+	return QString("effect%1/%2 => \"%3\"").
 		arg(_instanceIndex).
 		arg(_priority).
 		arg(_name);

@@ -33,7 +33,7 @@
 #include <cstring>
 
 #include <hyperimage/HyperImage.h>
-#include <utility>	
+#include <utility>
 #include <list>
 
 
@@ -48,7 +48,7 @@ HyperImage::HyperImage(int width, int height)
 }
 
 int HyperImage::width() const
-{	
+{
 	return _surface.width();
 }
 
@@ -85,7 +85,7 @@ void HyperImage::drawHorizontalLine(int ax, int bx, int by)
 }
 
 void HyperImage::drawPoint(int x, int y)
-{	
+{
 	if (x < width() && y < height())
 	{
 		_surface(x, y) = _pen;
@@ -215,7 +215,7 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 	{
 		for (int x = 0; x < w; x++)
 		{
-			ColorRgb c;			
+			ColorRgb c;
 
 			float dx = (x - w/2);
 			float dy = (h/2 - y);
@@ -223,7 +223,7 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 			float deltaAngle = angle;
 
 			if (len > 0.0)
-			{				
+			{
 				double newAngle = atan2(1.0, 0.0) - atan2(dy, dx);
 				newAngle = newAngle * 360.0 / (2 * pi);
 				deltaAngle += newAngle;
@@ -282,7 +282,7 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 						break;
 					}
 				}
-				
+
 
 				lastAngle = nextAngle;
 				lastColor = nextColor;
@@ -295,7 +295,7 @@ void HyperImage::conicalFill(double angle, const std::vector<uint8_t>& points, b
 				data[1] = c.green;
 				data[2] = c.blue;
 			}
-			else 
+			else
 			{
 				float asp1 = lastAlfa / 255.0;
 				float asp2 = 1 - asp1;

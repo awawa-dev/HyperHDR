@@ -95,7 +95,7 @@ private:
 
 		calibration();
 		void reset();
-		void buildPoints(QString _signature, int _width, int _height);		
+		void buildPoints(QString _signature, int _width, int _height);
 	} calibrationData, checkData;
 
 	void calibrateFrame(Image<ColorRgb>& image);

@@ -31,7 +31,7 @@ bool DriverNetHomeAssistant::init(QJsonObject deviceConfig)
 					? _haInstance.homeAssistantHost : "http://" + _haInstance.homeAssistantHost);
 		_restApi = std::make_unique<ProviderRestApi>(url.scheme(), url.host(), url.port(8123));
 		_restApi->addHeader("Authorization", QString("Bearer %1").arg(_haInstance.longLivedAccessToken));
-		
+
 		Debug(_log, "HomeAssistantHost     : {:s}", (_haInstance.homeAssistantHost));
 		Debug(_log, "RestoreOriginalState  : {:s}", (_haInstance.restoreOriginalState) ? "yes" : "no");
 		Debug(_log, "Transition (ms)       : {:s}", (_haInstance.transition > 0) ? (QString::number(_haInstance.transition)) : "disabled" );
@@ -123,7 +123,7 @@ int DriverNetHomeAssistant::writeFiniteColors(const std::vector<ColorRgb>& ledVa
 			QJsonObject row;
 			auto& color = *(rgb++);
 			int brightness = 0;
-			
+
 			row["entity_id"] = lamp.name;
 
 			if (_haInstance.transition > 0)
@@ -246,7 +246,7 @@ bool DriverNetHomeAssistant::saveStates()
 		QString power = (lamp.orgState.isPoweredOn >= 0) ? ((lamp.orgState.isPoweredOn) ? "state: ON" : "state: OFF" ) : "";
 		QString brightness = (lamp.orgState.isPoweredOn >= 0) ? (QString("brightness: %1" ).arg(lamp.orgState.brightness)) : "";
 		QStringList message{ power, brightness, colorsToString };
-				
+
 		Info(_log, "Saving state of {:s}: {:s}", (lamp.name), (message.join(", ")));
 
 	}
@@ -316,7 +316,7 @@ QJsonObject DriverNetHomeAssistant::discover(const QJsonObject& /*params*/)
 	}
 #else
 	Error(_log, "The Network Discovery Service was mysteriously disabled while the maintainer was compiling this version of HyperHDR");
-#endif	
+#endif
 
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());

@@ -11,8 +11,8 @@
 		},
 		"rate": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 1000000,			
+			"format" : "stepper",
+			"step"   : 1000000,
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
 			"minimum": 1000000,
@@ -28,8 +28,8 @@
 		},
 		"globalBrightnessControlMaxLevel": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title":"edt_dev_spec_globalBrightnessControlMaxLevel_title",
 			"default": 31,
 			"minimum": 1,

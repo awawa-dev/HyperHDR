@@ -42,8 +42,8 @@
 		},
 		"maxRetry": {
 			"type" : "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title" : "edt_dev_max_retry",
 			"minimum" : 0,
 			"maximum" : 300,
@@ -58,12 +58,12 @@
 			"uniqueItems" : true,
 			"items" : {
 				"type" : "object",
-				"title" : "edt_dev_spec_lights_itemtitle",				
+				"title" : "edt_dev_spec_lights_itemtitle",
 				"required" : [
 					"name", "colorModel"
 				],
 				"properties" :
-				{						
+				{
 					"name" :
 					{
 						"type": "string",
@@ -87,7 +87,7 @@
 							"hidden": true
 						},
 						"propertyOrder" : 3
-					}					
+					}
 				}
 			}
 		}

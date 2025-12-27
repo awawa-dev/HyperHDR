@@ -176,7 +176,7 @@ bool ProviderUdpSSL::initNetwork()
 
 	config.setPeerVerifyMode(QSslSocket::QueryPeer);
 	_dtls->setDtlsConfiguration(config);
-	_dtls->setPeer(_address, _ssl_port);	
+	_dtls->setPeer(_address, _ssl_port);
 
 	connect(_dtls, &QDtls::pskRequired, this, &ProviderUdpSSL::pskRequired);
 	connect(_dtls, &QDtls::handshakeTimeout, this, &ProviderUdpSSL::handshakeTimeout);
@@ -297,7 +297,7 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool /*f
 	if (_dtls != nullptr && _socket != nullptr && (_streamReady || _dtls->isConnectionEncrypted()))
 	{
 		_streamReady = true;
-		
+
 		QByteArray dgram = QByteArray::fromRawData(reinterpret_cast<const char*>(data), size);
 		if (_dtls->writeDatagramEncrypted(_socket, dgram) < 0)
 		{

@@ -1,7 +1,7 @@
 #include <HyperhdrConfig.h>
 
 #ifdef ENABLE_BONJOUR
-	#include <bonjour/DiscoveryWrapper.h>	
+	#include <bonjour/DiscoveryWrapper.h>
 #endif
 
 // LedDevice includes
@@ -127,7 +127,7 @@ bool ProviderSerial::waitForExitStats()
 				Info(_log, "Received goodbye: '{:s}' ({:d})", (incoming), incoming.length());
 				return true;
 			}
-		}		
+		}
 	}
 
 	return false;
@@ -398,7 +398,7 @@ QJsonObject ProviderSerial::discover(const QJsonObject& /*params*/)
 		}
 
 		if (newRecord.type != DiscoveryRecord::Service::Unknown)
-		{			
+		{
 			newRecord.hostName = info.description();
 			newRecord.address = info.portName();
 			newRecord.isExists = true;

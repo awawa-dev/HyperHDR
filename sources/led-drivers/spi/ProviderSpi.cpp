@@ -86,7 +86,7 @@ bool ProviderSpi::init(QJsonObject deviceConfig)
 	if (LedDevice::init(deviceConfig))
 	{
 		bool isInt = false;
-		#ifdef ENABLE_SPI_FTDI			
+		#ifdef ENABLE_SPI_FTDI
 			deviceConfig["output"].toString().toLong(&isInt, 10);
 			if (isInt)
 			{
@@ -117,7 +117,7 @@ bool ProviderSpi::init(QJsonObject deviceConfig)
 
 int ProviderSpi::open()
 {
-	_isDeviceReady = false;	
+	_isDeviceReady = false;
 
 	if (_provider == nullptr)
 	{
@@ -142,7 +142,7 @@ int ProviderSpi::open()
 }
 
 int ProviderSpi::close()
-{	
+{
 	_isDeviceReady = false;
 
 	if (_provider == nullptr)
@@ -152,12 +152,12 @@ int ProviderSpi::close()
 	}
 
 	_provider->close();
-	
+
 	return 0;
 }
 
 int ProviderSpi::writeBytes(unsigned size, const uint8_t* data)
-{	
+{
 	if (_provider == nullptr)
 	{
 		Error(_log, "writeBytes: no SPI provider");
@@ -203,7 +203,7 @@ int ProviderSpi::writeBytesEsp32(unsigned size, const uint8_t* data)
 	uint8_t* startData = (uint8_t*)data;
 	uint8_t* endData = (uint8_t*)data + size;
 	uint8_t buffer[BUFFER_SIZE];
-	
+
 	int retVal = 0;
 
 	while (retVal >= 0 && startData < endData)
@@ -301,7 +301,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	#endif
 
 	QJsonObject devicesDiscovered;
-	QJsonArray deviceList;	
+	QJsonArray deviceList;
 
 	for(auto & item : discoveryList)
 	{
@@ -319,7 +319,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 	devicesDiscovered.insert("devices", deviceList);
 
-	Debug(_log, "SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());	
+	Debug(_log, "SPI devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }

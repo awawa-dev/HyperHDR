@@ -100,7 +100,7 @@ bool ProviderUdp::init(QJsonObject deviceConfig)
 					if (_udpSocket->isOpen())
 					{
 						_udpSocket->close();
-					}					
+					}
 					_udpSocket->deleteLater();
 					_udpSocket = nullptr;
 				}

@@ -75,7 +75,7 @@ namespace {
 	const char API_SSL_SEED_CUSTOM[] = "dtls_client";
 	const int API_SSL_SERVER_PORT = 2100;
 	const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
-	constexpr std::chrono::milliseconds STREAM_REFRESH_TIME{ 20 };	
+	constexpr std::chrono::milliseconds STREAM_REFRESH_TIME{ 20 };
 
 	// V2
 	const int API_DEFAULT_PORT_V2 = 443;
@@ -151,7 +151,7 @@ bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 				}
 				else
 				{
-					setupRetry(2000);		
+					setupRetry(2000);
 				}
 			}
 		}
@@ -224,7 +224,7 @@ bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument& response, boo
 
 std::list<QString> LedDevicePhilipsHueBridge::getCiphersuites()
 {
-	
+
 	std::list<QString> ret { "PSK-AES128-GCM-SHA256" };
 	return ret;
 }
@@ -1035,7 +1035,7 @@ bool DriverNetPhilipsHue::initLeds(QString groupName)
 				_devConfig["hs_attempts"] = STREAM_SSL_HANDSHAKE_ATTEMPTS;
 				_devConfig["hs_timeout_min"] = static_cast<int>(_handshake_timeout_min);
 				_devConfig["hs_timeout_max"] = static_cast<int>(_handshake_timeout_max);
-				
+
 				isInitOK = ProviderUdpSSL::init(_devConfig);
 
 			}
@@ -1690,7 +1690,7 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 		auto xy = nonLinearRgbToColorXYB(colorF);
 
 		if (_switchOffOnBlack && xy.z <= _blackLevel && light.isBlack(true))
-		{			
+		{
 			xy.x = 0;
 			xy.y = 0;
 			xy.z = 0;

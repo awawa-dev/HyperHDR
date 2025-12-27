@@ -7,7 +7,7 @@
 	#include <QJsonDocument>
 	#include <QNetworkReply>
 
-	#include <memory>	
+	#include <memory>
 #endif
 
 #include <utils/Logger.h>

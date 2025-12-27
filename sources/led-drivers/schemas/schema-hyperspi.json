@@ -11,8 +11,8 @@
 		},
 		"rate": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 100000,			
+			"format" : "stepper",
+			"step"   : 100000,
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 25000000,
 			"propertyOrder" : 2

@@ -196,7 +196,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	qint64 timeTotal = InternalClock::nowPrecise() - begin;
 
-	Debug(_log, "{:s} end ({:d} ms): [{:s}] [{:s}]", (opCode), timeTotal, (url.toString()), (body));	
+	Debug(_log, "{:s} end ({:d} ms): [{:s}] [{:s}]", (opCode), timeTotal, (url.toString()), (body));
 
 	if (response->error())
 		Error(_log, "Reply error. Reason: {:s}", (response->getErrorReason()));
@@ -236,7 +236,7 @@ void NetworkHelper::abortOperation()
 {
 	if (_networkReply != nullptr)
 	{
-		_timeout = true;		
+		_timeout = true;
 		_networkReply->abort();
 	}
 }

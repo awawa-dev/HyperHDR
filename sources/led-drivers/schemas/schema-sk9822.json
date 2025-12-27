@@ -11,8 +11,8 @@
 		},
 		"rate": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 100000,			
+			"format" : "stepper",
+			"step"   : 100000,
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
 			"propertyOrder" : 2
@@ -26,8 +26,8 @@
 		},
 		"globalBrightnessControlMaxLevel": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title":"edt_dev_spec_globalBrightnessControlMaxLevel_title",
 			"default": 31,
 			"minimum": 1,
@@ -36,8 +36,8 @@
 		},
 		"globalBrightnessControlThreshold": {
 			"type": "integer",
-			"format" : "stepper",			
-			"step"   : 1,			
+			"format" : "stepper",
+			"step"   : 1,
 			"title":"edt_dev_spec_globalBrightnessControlThreshold_title",
 			"default": 255,
 			"minimum": 0,

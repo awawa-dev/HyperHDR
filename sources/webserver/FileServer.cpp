@@ -64,7 +64,7 @@ FileServer::FileServer():
 #else
 	_resourcePath = QDir(qApp->applicationDirPath()).filePath("../lib/web_resources.rcc");
 	if (!QResource::registerResource(_resourcePath))
-	{		
+	{
 		Error(_log, "Could not initialize web server resources: {:s}", (_resourcePath));
 		_resourcePath = "";
 	}
@@ -83,7 +83,7 @@ FileServer::FileServer():
 	_mimeDb["svg"] = "image/svg+xml";
 	_mimeDb["jpg"] = "image/jpeg";
 	_mimeDb["jpeg"] = "image/jpeg";
-	_mimeDb["woff2"] = "font/woff2";	
+	_mimeDb["woff2"] = "font/woff2";
 }
 
 FileServer::~FileServer()
@@ -117,8 +117,8 @@ void FileServer::setSsdpXmlDesc(const QString& desc)
 void FileServer::printErrorToReply(QtHttpReply* reply, QtHttpReply::StatusCode code, QString errorMessage)
 {
 	reply->setStatusCode(code);
-	reply->addHeader("Content-Type", QByteArrayLiteral("text/html"));	
-	reply->appendRawData(QString(QString::number(code) + " - " + errorMessage).toLocal8Bit());	
+	reply->addHeader("Content-Type", QByteArrayLiteral("text/html"));
+	reply->appendRawData(QString(QString::number(code) + " - " + errorMessage).toLocal8Bit());
 }
 
 QString FileServer::getMimeName(QString filename)
@@ -127,7 +127,7 @@ QString FileServer::getMimeName(QString filename)
 
 	if (extension.isEmpty() || !_mimeDb.contains(extension))
 		return QMimeDatabase().mimeTypeForFile(filename).name();
-		
+
 	return _mimeDb[extension];
 }
 

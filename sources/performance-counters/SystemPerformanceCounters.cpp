@@ -32,7 +32,7 @@
 	#include <iostream>
 	#include <cstdlib>
 	#include <cstdio>
-	#include <vector>	
+	#include <vector>
 #endif
 
 #include <utils/InternalClock.h>
@@ -151,7 +151,7 @@ void SystemPerformanceCounters::init()
 		}
 
 
-#endif		
+#endif
 	}
 	catch (...)
 	{
@@ -330,7 +330,7 @@ QString SystemPerformanceCounters::getRAM()
 		physMemAv /= (1024 * 1024);
 
 		long long takenMem = totalPhysMem - physMemAv;
-		qint64 aspect = (takenMem * 100) / totalPhysMem;		
+		qint64 aspect = (takenMem * 100) / totalPhysMem;
 #endif
 		jResult["totalPhysMem"] = (qint64) totalPhysMem;
 		jResult["takenMem"] = (qint64)takenMem;

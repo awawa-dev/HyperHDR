@@ -140,7 +140,7 @@ bool YeelightLight::open()
 	}
 
 	if (_tcpSocket->state() == QAbstractSocket::ConnectedState)
-	{		
+	{
 		rc = true;
 	}
 	else
@@ -186,7 +186,7 @@ bool YeelightLight::close()
 	{
 		// Test, if stream socket requires closing
 		if (_tcpStreamSocket->isOpen())
-		{			
+		{
 			_tcpStreamSocket->close();
 		}
 	}
@@ -777,7 +777,7 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress& hostAddress, int p
 	if (on)
 	{
 		paramlist << hostAddress.toString() << port;
-	
+
 		// Music Mode is only on, if write did not fail nor quota was exceeded
 		if ( writeCommand( getCommand( API_METHOD_MUSIC_MODE, paramlist ) ) > -1 )
 		{

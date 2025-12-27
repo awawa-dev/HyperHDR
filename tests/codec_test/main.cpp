@@ -59,7 +59,7 @@ int cropLeft = 0, cropRight = 0, cropTop = 0, cropBottom = 0;
 LutLoader lut;
 
 void old_func(uint8_t* frameData, const TestFile& testFile, bool quarter, bool toneMapping, Image<ColorRgb>& image)
-{	
+{
 	if (quarter)
 		FrameDecoder::processQImage(
 			frameData, nullptr, INPUT_X, INPUT_Y, testFile.lineLength, testFile.pixelFormat, lut._lut.data(), image, toneMapping, nullptr);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 			{"test_image_yuyv.bin", PixelFormat::YUYV    , INPUT_X * INPUT_Y * 2      , INPUT_X * 2},
 			{ "test_image_uyvy.bin", PixelFormat::UYVY    , INPUT_X* INPUT_Y * 2      , INPUT_X * 2 },
 			{"test_image_yuv420.bin", PixelFormat::I420  , (6 * INPUT_X * INPUT_Y) / 4, INPUT_X},
-			{"test_image_rgb24.bin", PixelFormat::RGB24  , INPUT_X * INPUT_Y * 3      , INPUT_X * 3},			
+			{"test_image_rgb24.bin", PixelFormat::RGB24  , INPUT_X * INPUT_Y * 3      , INPUT_X * 3},
 			{"test_image_xrgb32.bin", PixelFormat::XRGB  , INPUT_X * INPUT_Y * 4      , INPUT_X * 4}
 	};
 
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 				benchmark(new_func, timesNew, buffer, testFile, quarter, toneMapping, imgNew);
 				benchmark(old_func, timesOld, buffer, testFile, quarter, toneMapping, imgOld);
 				benchmark(new_func, timesNew, buffer, testFile, quarter, toneMapping, imgNew);
-				
+
 
 				int resCompare  = 0;
 				if (imgNew.front().width() != imgOld.front().width() || imgNew.front().height() != imgOld.front().height() ||
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
 					<< " | " << fmtCell(QString::number(newStats.avg), 12)
 					<< " | " << fmtCell(QString::number(newStats.median), 10)
 					<< " | " << fmtCell((std::isnan(speedup)) ? "-" : QString::number(speedup, 'f', 2) +"%", 8)
-					<< " |\n";					
+					<< " |\n";
 
 				// zapisujemy wynik new_func jako PPM
 				QString baseName = QFileInfo(fileName).baseName();

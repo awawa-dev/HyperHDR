@@ -5,7 +5,7 @@
 	#include <QString>
 	#include <QMap>
 	#include <QAtomicInteger>
-	#include <QList>	
+	#include <QList>
 	#include <QJsonArray>
 	#include <QByteArray>
 
@@ -18,7 +18,7 @@
 	#include <string>
 	#include <mutex>
 	#include <array>
-		
+
 	#if __has_include(<format>)
 		#include <format>
 	#else
@@ -74,7 +74,7 @@ public:
 
 	void forceVerbose();
 	QString getLastError() const;
-	
+
 	void     setLogLevel(LogLevel level);
 	LogLevel getLogLevel() const;
 	void	 storeMessage(const LoggerName& name, LogLevel level, const char* sourceFile, const char* func, unsigned int line, const std::string& msg);
@@ -96,7 +96,7 @@ private:
 	bool			_hasConsole;
 	LogLevel		_logLevel;
 
-	std::list<Logger::T_LOG_MESSAGE> _logs;	
+	std::list<Logger::T_LOG_MESSAGE> _logs;
 };
 
 #if defined(__cpp_lib_format) && ( !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 130300) )
@@ -128,7 +128,7 @@ private:
 				  const char* functionName,
 				  unsigned int line,
 				  std::format_string<LoggedFormatType<Args>...> fmt,
-				  Args&&... args) 
+				  Args&&... args)
 	{
 		std::string result = std::format(fmt, formatArgConverter(std::forward<Args>(args))...);
 		Logger::getInstance()->storeMessage(loggerContext, level, fileName, functionName, line, result);

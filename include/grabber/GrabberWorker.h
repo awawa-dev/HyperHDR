@@ -53,7 +53,7 @@ public:
 		bool		__directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping);
 #endif
 
-	
+
 
 	void startOnThisThread();
 	void run() override;

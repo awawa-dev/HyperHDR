@@ -6,7 +6,7 @@ add_library(proto-nano-server OBJECT
 	${CURRENT_SOURCE_DIR}/ProtoNanoClientConnection.cpp
 	${CURRENT_HEADER_DIR}/ProtoNanoClientConnection.h
 	${CURRENT_SOURCE_DIR}/message.pb.c
-	${CURRENT_HEADER_DIR}/message.pb.h	
+	${CURRENT_HEADER_DIR}/message.pb.h
 	${CURRENT_SOURCE_DIR}/ProtoServer.cpp
 	${CURRENT_HEADER_DIR}/ProtoServer.h
 )

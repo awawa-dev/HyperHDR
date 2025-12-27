@@ -37,7 +37,7 @@
 #include <effects/AnimationBaseMusic.h>
 
 namespace
-{	
+{
 	SoundCaptureResult& getResultFFT()
 	{
 		static SoundCaptureResult resultFFT;

@@ -27,7 +27,7 @@
 
 #pragma once
 
-#ifndef PCH_ENABLED		
+#ifndef PCH_ENABLED
 	#include <memory>
 	#include <vector>
 #endif
@@ -51,7 +51,7 @@ public slots:
 	void setColor(ColorRgb color);
 	void settings();
 	void setEffect(QString effect);
-	void clearEfxColor();	
+	void clearEfxColor();
 	void loop();
 	void close();
 	void setAutorunState();

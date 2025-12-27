@@ -53,7 +53,7 @@ public slots:
 
 private slots:
 	void updateLeds();
-	
+
 private:
 	void queueColors(SharedOutputColors&& nonlinearRgbLedColors);
 	void clearQueuedColors(bool deviceEnabled = false, bool restarting = false);

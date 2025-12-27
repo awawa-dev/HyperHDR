@@ -155,7 +155,7 @@ void GrabberWorker::runMe()
 	if (_isActive && _width > 0 && _height > 0)
 	{
 		if (_pixelFormat == PixelFormat::MJPEG)
-		{			
+		{
 			process_image_jpg_mt();
 		}
 		else
@@ -223,7 +223,7 @@ void GrabberWorker::process_image_jpg_mt()
         emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 		return;
 	}
-	
+
 	if ((_subsamp != TJSAMP_422 && _subsamp != TJSAMP_420) && _hdrToneMappingEnabled > 0)
 	{
 		emit SignalNewFrameError(_workerIndex, QString("%1: %2").arg(UNSUPPORTED_DECODER).arg(_subsamp), _currentFrame);
@@ -247,7 +247,7 @@ void GrabberWorker::process_image_jpg_mt()
 			{
 				emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 				return;
-			}		
+			}
 
 		FrameDecoder::dispatchProcessImageVector[false][_hdrToneMappingEnabled][false](
 			_cropLeft, _cropRight, _cropTop, _cropBottom,
@@ -262,7 +262,7 @@ void GrabberWorker::process_image_jpg_mt()
 			{
 				emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 				return;
-			}					
+			}
 
 		FrameDecoder::dispatchProcessImageVector[false][false][false](
 			_cropLeft, _cropRight, _cropTop, _cropBottom,
@@ -275,9 +275,9 @@ void GrabberWorker::process_image_jpg_mt()
 			{
 				emit SignalNewFrameError(_workerIndex, QString(tjGetErrorStr()), _currentFrame);
 				return;
-			}		
+			}
 	}
-	
+
 	image.setBufferCacheSize();
 	if (!_directAccess)
 		emit SignalNewFrame(_workerIndex, image, _currentFrame, _frameBegin);

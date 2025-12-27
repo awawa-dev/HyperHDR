@@ -3,7 +3,7 @@
 #ifndef PCH_ENABLED
 	#include <QFile>
 	#include <QString>
-	#include <QByteArray>	
+	#include <QByteArray>
 #endif
 
 #include <utils/Logger.h>

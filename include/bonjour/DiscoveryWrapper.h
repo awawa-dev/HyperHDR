@@ -53,13 +53,13 @@ public slots:
 	QList<DiscoveryRecord> getHomeAssistant();
 	QList<DiscoveryRecord> getWLED();
 	QList<DiscoveryRecord> getHyperHDRServices();
-	QList<DiscoveryRecord> getAllServices();	
+	QList<DiscoveryRecord> getAllServices();
 
 	void signalDiscoveryEventHandler(const DiscoveryRecord& message);
 	void signalDiscoveryRequestToScanHandler(DiscoveryRecord::Service type);
 
 signals:
-	void SignalDiscoveryFoundService(DiscoveryRecord::Service type, QList<DiscoveryRecord> records);	
+	void SignalDiscoveryFoundService(DiscoveryRecord::Service type, QList<DiscoveryRecord> records);
 
 private:
 	void requestServicesScan();

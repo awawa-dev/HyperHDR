@@ -35,7 +35,7 @@
 
 	#include <cmath>
 	#include <cfloat>
-	#include <climits>	
+	#include <climits>
 #endif
 
 #include <QCoreApplication>
@@ -124,7 +124,7 @@ LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp,
 	_capturedColors = std::make_shared<CapturedColors>();
 	_yuvConverter = std::make_shared<YuvConverter>();
 
-	
+
 	_rootPath = rootpath;
 	_debug = debug;
 	_lchCorrection = lchCorrection;
@@ -142,13 +142,13 @@ static void unpackP010(double *y, double *u, double *v)
 	if (y !=nullptr)
 	{
 		double val = FrameDecoderUtils::unpackLuminanceP010(*y);
-		
-		*y = val;		
+
+		*y = val;
 	}
 
 	for (auto chroma : { u, v })
 		if (chroma != nullptr)
-		{			
+		{
 			double val = (*chroma * 255.0 - 128.0) / 128.0;
 			double fVal = FrameDecoderUtils::unpackChromaP010(std::abs(val));
 			*chroma = (128.0  + ((val < 0) ? -fVal : fVal) * 112.0) / 255.0;
@@ -226,7 +226,7 @@ QString LutCalibrator::generateReport(bool full)
 		if (color.second.x < SCREEN_COLOR_DIMENSION && color.second.y < SCREEN_COLOR_DIMENSION && color.second.z < SCREEN_COLOR_DIMENSION)
 		{
 			const auto& testColor = _capturedColors->all[color.second.x][color.second.y][color.second.z];
-			
+
 
 			if (!full)
 			{
@@ -252,7 +252,7 @@ QString LutCalibrator::generateReport(bool full)
 					.arg(((list.size() > 1) ? " [source noise detected]" : "")));
 			}
 			else
-			{				
+			{
 				auto list = testColor.getFinalRGB();
 
 				QStringList colors;
@@ -272,7 +272,7 @@ QString LutCalibrator::generateReport(bool full)
 }
 
 void LutCalibrator::notifyCalibrationFinished()
-{	
+{
 	QJsonObject report;
 	report["finished"] = true;
 	emit SignalLutCalibrationUpdated(report);
@@ -358,10 +358,10 @@ void LutCalibrator::startHandler()
 	QThread::msleep(1500);
 
 	if (!set1to1LUT())
-	{			
+	{
 		error("Could not allocated memory (~50MB) for internal temporary buffer. Stopped.");
 		return;
-	}				
+	}
 
 	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
@@ -426,14 +426,14 @@ void LutCalibrator::signalSetGlobalImageHandler(int /*priority*/, const Image<Co
 }
 
 void LutCalibrator::handleImage(const Image<ColorRgb>& image)
-{	
+{
 	//////////////////////////////////////////////////////////////////////////
 	/////////////////////////  Verify source  ////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 
 	if (image.width() < 1280 || image.height() < 720)
 	{
-		error(QString("Too low resolution: 1280/720 is the minimum. Received video frame: %1x%2. Stopped.").arg(image.width()).arg(image.height()));		
+		error(QString("Too low resolution: 1280/720 is the minimum. Received video frame: %1x%2. Stopped.").arg(image.width()).arg(image.height()));
 		return;
 	}
 
@@ -457,10 +457,10 @@ void LutCalibrator::handleImage(const Image<ColorRgb>& image)
 	int boardIndex = -1;
 
 	if (!parseBoard(_log, image, boardIndex, (*_capturedColors), true) || _capturedColors->isCaptured(boardIndex))
-	{		
+	{
 		return;
 	}
-	
+
 	_capturedColors->setCaptured(boardIndex);
 
 	notifyCalibrationMessage(QString("Captured test board: %1<br/>Waiting for the next one...").arg(boardIndex));
@@ -541,7 +541,7 @@ static void doToneMapping(const LchLists& m, double3& p)
 	if (a.y < 0.1)
 		return;
 
-	
+
 	double3 correctionHigh{};
 	auto iterHigh = m.high.begin();
 	auto lastHigh = *(iterHigh++);
@@ -684,7 +684,7 @@ void LutCalibrator::printReport()
 					const auto& sample = _capturedColors->all[r][g][b];
 					auto list = sample.getFinalRGB();
 
-					QStringList colors;						
+					QStringList colors;
 					for (auto i = list.begin(); i != list.end(); i++)
 					{
 						colors.append(QString("%1").arg(vecToString(*i), 12));
@@ -701,7 +701,7 @@ void LutCalibrator::printReport()
 
 
 static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const linalg::vec<uint8_t, 2>& UV, const double3& aspect, const double4x4& coefMatrix, ColorSpaceMath::HDR_GAMMA gamma, double gammaHLG, double nits, int altConvert, const double3x3& bt2020_to_sRgb, int tryBt2020Range, const BestResult::Signal& signal, int colorAspectMode, const std::pair<double3, double3>& colorAspect)
-{	
+{
 	double3 srgb;
 	bool white = true;
 
@@ -769,10 +769,10 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 		else
 		{
 			srgb = ColorSpaceMath::from_BT2020_to_BT709(e);
-		}		
-	
+		}
+
 		srgb = srgb_linear_to_nonlinear(srgb);
-	}	
+	}
 
 	if (tryBt2020Range)
 	{
@@ -830,7 +830,7 @@ static LchLists prepareLCH(const std::list<std::list<std::pair<double3, double3>
 {
 	int index = 0;
 	LchLists ret;
-	
+
 	for (const auto& _lchPrimaries : __lchPrimaries)
 	{
 		std::list<double4> lchPrimaries;
@@ -959,7 +959,7 @@ void CalibrationWorker::run()
 											minError = sample.getSourceError(SRGB);
 										}
 										else
-										{											
+										{
 											auto sampleList = sample.getInputYuvColors();
 											for (auto iter = sampleList.cbegin(); iter != sampleList.cend(); ++iter)
 											{
@@ -1003,8 +1003,8 @@ void CalibrationWorker::run()
 												selectedLchLowPrimaries.push_back(std::pair<double3, double3>(lchPrimaries, (*v).second));
 											}
 										}
-										
-									}									
+
+									}
 
 									bool lchFavour = false;
 									long long int lcHError = MAX_CALIBRATION_ERROR;
@@ -1016,7 +1016,7 @@ void CalibrationWorker::run()
 										lchFavour = true;
 
 										selectedLchPrimaries = prepareLCH({ selectedLchLowPrimaries, selectedLchMidPrimaries, selectedLchHighPrimaries  });
-										
+
 										for (auto  sample = vertex.begin();  sample != vertex.end(); ++sample)
 										{
 											auto correctedRGB = (*sample).second;
@@ -1029,14 +1029,14 @@ void CalibrationWorker::run()
 												lcHError = MAX_CALIBRATION_ERROR;
 												break;
 											}
-										}										
+										}
 									}
 									else
 										lcHError = MAX_CALIBRATION_ERROR;
-									
+
 
 									if (currentError < bestResult.minError || lcHError < bestResult.minError)
-									{										
+									{
 										bestResult.minError = (lchFavour) ? lcHError  : currentError;
 
 										if (weakBestScore > bestResult.minError)
@@ -1080,10 +1080,10 @@ void CalibrationWorker::run()
 	}
 
 	if (bestResult.minError < MAX_CALIBRATION_ERROR)
-		printf("Finished thread: %i. Score: %.3f\n", id, bestResult.minError / 300.0);		
+		printf("Finished thread: %i. Score: %.3f\n", id, bestResult.minError / 300.0);
 	else
 		printf("Finished thread: %i. Could not find anything\n", id);
-		
+
 }
 
 void  LutCalibrator::fineTune(bool precise)
@@ -1101,7 +1101,7 @@ void  LutCalibrator::fineTune(bool precise)
 		for (int g = MAX_IND; g >= 0; g--)
 			for (int b = MAX_IND; b >= 0; b--)
 			{
-				
+
 				if ((r % 4 == 0 && g % 4 == 0 && b % 2 == 0) || (r == g * 2 && g > b) || (r <= 6 && g <= 6 && b <= 6) || (r == b && b == g) || (r == g && r > 0) || (r == b && r > 0)
 					|| _capturedColors->all[r][g][b].isLchPrimary(nullptr) != CapturedColor::LchPrimaries::NONE
 					|| (bestResult->signal.isSourceP010 && ((r - g > 0 && r - g <= 3 && b == 0) || (r > 0 && g == 0 && b == 0) || (r == 0 && g > 0 && b == 0) || (r == 0 && g == 0 && b > 0))))
@@ -1157,7 +1157,7 @@ void  LutCalibrator::fineTune(bool precise)
 	else
 	{
 		maxLevel = white / 255.0;
-	}	
+	}
 
 	std::vector<std::pair<double3, byte2>> sampleColors(6);
 	const auto& sampleRed = _capturedColors->all[MAX_IND][0][0];
@@ -1187,7 +1187,7 @@ void  LutCalibrator::fineTune(bool precise)
 
 		if (gamma == HDR_GAMMA::P010 && !bestResult->signal.isSourceP010)
 			continue;
-			
+
 		if (gamma == HDR_GAMMA::HLG)
 		{
 			if (precise)
@@ -1279,7 +1279,7 @@ void  LutCalibrator::fineTune(bool precise)
 
 				if (precise || _forcedExit)
 					break;
-			}			
+			}
 		}
 
 		if (precise || _forcedExit)
@@ -1323,7 +1323,7 @@ void LutCalibrator::calibration()
 	}
 
 	totalTime2 = InternalClock::now() - totalTime2;
-	
+
 	// write result
 	Debug(_log, "Score: {:.3f}", bestResult->minError / 300.0);
 	Debug(_log, "LCH: {:s}", (bestResult->lchEnabled) ? "Enabled" : "Disabled");
@@ -1422,7 +1422,7 @@ void LutCalibrator::calibration()
 
 	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
-		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);	
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, true);
 	}
 	if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
 	{
@@ -1438,7 +1438,7 @@ static void reportLCH(const LoggerName& _log, std::vector<std::vector<std::vecto
 	std::list<MappingPrime> mMid;
 	std::list<MappingPrime> mLow;
 
-	
+
 	constexpr auto MAX_IND = SCREEN_COLOR_DIMENSION - 1;
 	for (int r = MAX_IND; r >= 0; r--)
 		for (int g = MAX_IND; g >= 0; g--)
@@ -1460,7 +1460,7 @@ static void reportLCH(const LoggerName& _log, std::vector<std::vector<std::vecto
 				}
 			}
 
-	
+
 	for (std::list<MappingPrime>*& m : std::list<std::list<MappingPrime>*>{ &mHigh, &mMid, &mLow })
 	{
 		for (MappingPrime& c : *m)
@@ -1482,7 +1482,7 @@ static void reportLCH(const LoggerName& _log, std::vector<std::vector<std::vecto
 		loopFront.real.z += 360;
 		m->push_front(loopFront);
 	}
-	
+
 	info.append("Primaries in LCH colorspace");
 	info.append("RGB           | RGB primary in LCH        | captured primary in LCH   |   average LCH delta       |  LCH to RGB way back ");
 	info.append("--------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -1495,7 +1495,7 @@ static void reportLCH(const LoggerName& _log, std::vector<std::vector<std::vecto
 			auto bb = from_XYZ_to_sRGB(lch_to_xyz(c.real) / 100.0) * 255;
 			info.append(QString("%1 | %2 | %3 | %4 | %5 %6").arg(vecToString(sample.getSourceRGB()), 12).
 				arg(vecToString(c.org)).
-				arg(vecToString(c.real)).				
+				arg(vecToString(c.real)).
 				arg(vecToString(c.delta)).
 				arg(vecToString(round_to_0_255<byte3>(aa))).
 				arg(vecToString(round_to_0_255<byte3>(bb))));
@@ -1613,7 +1613,7 @@ QString LutCalibrator::CreateLutFile(const LoggerName& _log, QString _rootPath, 
 		}
 		file.flush();
 		file.close();
-	}	
+	}
 
 	if (std::rename(fileName.toStdString().c_str(), finalFileName.toStdString().c_str()))
 	{
@@ -1631,13 +1631,13 @@ void LutCalibrator::calibrate()
 
 	if (_defaultComp == hyperhdr::COMP_VIDEOGRABBER)
 	{
-		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);	
+		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_VIDEOGRABBER, -1, false);
 	}
 	if (_defaultComp == hyperhdr::COMP_FLATBUFSERVER)
 	{
 		emit GlobalSignals::getInstance()->SignalRequestComponent(hyperhdr::Components::COMP_FLATBUFSERVER, -1, false);
 	}
-	
+
 	_capturedColors->finilizeBoard();
 
 
@@ -1673,7 +1673,7 @@ void LutCalibrator::capturedPrimariesCorrection(ColorSpaceMath::HDR_GAMMA gamma,
 		auto yuv = c.yuv();
 
 		if (gamma == HDR_GAMMA::P010)
-		{			
+		{
 			unpackP010(yuv);
 		}
 
@@ -1783,8 +1783,8 @@ bool LutCalibrator::setTestData()
 					{
 						sample.addColor(ColorRgb(colors[i+1], colors[i+2], colors[i+3]));
 					}
-				}				
-				
+				}
+
 				sample.calculateFinalColor();
 			}
 	if (_capturedColors->all[0][0][0].Y() > SCREEN_YUV_RANGE_LIMIT || _capturedColors->all[0][0][0].Y() < 255 - SCREEN_YUV_RANGE_LIMIT)

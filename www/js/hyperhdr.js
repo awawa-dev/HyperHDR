@@ -212,10 +212,10 @@ function initWebSocket()
 
 							if (error == "Not ready")
 								window.location.reload();
-							else							
+							else
 								$(window.hyperhdr).trigger({ type: "error", reason: error });
 
-							console.log("[window.websocket::onmessage] ", error);							
+							console.log("[window.websocket::onmessage] ", error);
 						}
 					}
 				}
@@ -267,7 +267,7 @@ async function sendAsyncToHyperhdr(command, subcommand, data, tan = 1)
 {
 	let obj = { command, tan };
 
-	if (subcommand) 
+	if (subcommand)
 	{
 		Object.assign(obj, { subcommand });
 	}

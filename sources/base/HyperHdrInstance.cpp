@@ -32,7 +32,7 @@
 	#include <QPair>
 
 	#include <exception>
-	#include <sstream>	
+	#include <sstream>
 #endif
 #include <QMetaMethod>
 
@@ -162,7 +162,7 @@ void HyperHdrInstance::start()
 	// initialize LED-devices
 	QJsonObject ledDevice = getSetting(settings::type::DEVICE).object();
 	ledDevice["currentLedCount"] = _hwLedCount; // Inject led count info
-	
+
 
 	_ledDeviceWrapper = std::make_unique<LedDeviceWrapper>(this);
 	connect(this, &HyperHdrInstance::SignalRequestComponent, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
@@ -570,7 +570,7 @@ void HyperHdrInstance::updateAdjustments(const QJsonObject& config)
 	// pack it
 	QJsonArray newConfig;
 	newConfig.append(newSettings);
-	QJsonObject newObject;	
+	QJsonObject newObject;
 	newObject["channelAdjustment"] = newConfig;
 	QJsonDocument newDoc(newObject);
 
@@ -756,8 +756,8 @@ void HyperHdrInstance::updateResult(std::vector<linalg::aliases::float3>&& _ledB
 	}
 
 	if (_ledDeviceWrapper->enabled())
-	{		
-		_infinite->incomingColors(std::move(_ledBuffer));		
+	{
+		_infinite->incomingColors(std::move(_ledBuffer));
 	}
 }
 
