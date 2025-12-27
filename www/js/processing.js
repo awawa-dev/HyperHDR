@@ -24,16 +24,7 @@ $(document).ready( function() {
 		var newType = editor_smoothing.getEditor('root.smoothing.type').getValue();
 		if (newType != null)
 		{
-			var desc ="";
-			switch(newType)
-			{
-				case "Stepper": desc= $.i18n('edt_conf_enum_interpolator_Stepper_expl'); break;
-				case "RgbInterpolator": desc= $.i18n('edt_conf_enum_interpolator_RgbInterpolator_expl');break;
-				case "YuvInterpolator": desc= $.i18n('edt_conf_enum_interpolator_YuvInterpolator_expl');break;
-				case "HybridInterpolator": desc= $.i18n('edt_conf_enum_interpolator_HybridInterpolator_expl');break;
-				case "HybridRgbInterpolator": desc= $.i18n('edt_conf_enum_interpolator_HybridRgbInterpolator_expl');break;
-				case "ExponentialInterpolator": desc= $.i18n('edt_conf_enum_interpolator_ExponentialInterpolator_expl');break;
-			}
+			var desc = $.i18n(`edt_conf_enum_interpolator_${newType}_expl`);
 			$("#smoothing_algo_explanation").children().first().text(desc);
 		}
 		else
