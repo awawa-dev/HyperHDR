@@ -104,7 +104,7 @@ jobs:
       - name: Display structure of artifacts
         run: ls -R repo
       - name: Deploy the packages
-        uses: JamesIves/github-pages-deploy-action@v4.7.4
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           repository-name: awawa-dev/awawa-dev.github.io
           branch: upload
