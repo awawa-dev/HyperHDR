@@ -50,6 +50,7 @@
 #include <unistd.h>
 #include <utility>
 #include <vector>
+#include <mutex>
 	
 
 #include <grabber/linux/pipewire/smartPipewire.h>
@@ -92,8 +93,6 @@ constexpr const char* PORTAL_REQUEST = "org.freedesktop.portal.Request";
 constexpr const char* PORTAL_SESSION = "org.freedesktop.portal.Session";
 constexpr const char* PORTAL_RESPONSE = "Response";
 
-constexpr const char* REQUEST_TEMPLATE = "/org/freedesktop/portal/desktop/request/%1/%2";
-
 constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
 PipewireHandler::PipewireHandler() :
@@ -115,6 +114,11 @@ PipewireHandler::PipewireHandler() :
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
+
+	static std::once_flag pwInitOnce;
+	std::call_once(pwInitOnce, [] {
+		pw_init(nullptr, nullptr);
+	});
 }
 
 QString PipewireHandler::getToken()
@@ -388,16 +392,13 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 	QString requestUUID = getRequestToken();
 
-	_replySessionPath = QString(REQUEST_TEMPLATE).arg(_sender).arg(requestUUID);
-
-
 	std::map<std::string, sdbus::Variant> createSessionParams{
 		{"session_handle_token", sdbus::Variant(getSessionToken().toStdString())},
 		{"handle_token", sdbus::Variant(requestUUID.toStdString())}
 	};
     try
     {
-		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
 			auto sessionHandleIter = results.find("session_handle");
 			if (sessionHandleIter == results.end())
@@ -411,12 +412,12 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 			}
 		};
 
-		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_replySessionPath.toStdString()});
+		sdbus::ObjectPath requestPath = _screenCastProxy->CreateSession(createSessionParams);
+		_replySessionPath = QString::fromStdString(static_cast<std::string>(requestPath));
+
+		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_replySessionPath.toStdString()});
 
 		_createSessionProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
-
-        _screenCastProxy->CreateSession(createSessionParams);
-
     }
 	catch(std::exception& ex)
     {
@@ -441,8 +442,6 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 
 	_sessionHandle = session;
 
-	_sourceReplyPath = QString(REQUEST_TEMPLATE).arg(_sender).arg(requestUUID);
-
 	std::map<std::string, sdbus::Variant> selectSourceParams{
 		{ "multiple", sdbus::Variant(false)},
 		{ "types", sdbus::Variant((uint)1)},
@@ -458,16 +457,16 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 
 	try
 	{
-		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
 			QUEUE_CALL_1(this, selectSourcesResponse, uint, resultCode);
 		};
 
-		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
+		sdbus::ObjectPath sourceRequestPath = _screenCastProxy->SelectSources(sdbus::ObjectPath{ _sessionHandle.toStdString() }, selectSourceParams);
+		_sourceReplyPath = QString::fromStdString(static_cast<std::string>(sourceRequestPath));
+
+		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
 		_selectSourceProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
-
-		_screenCastProxy->SelectSources(ObjectPath{_sessionHandle.toStdString()}, selectSourceParams);
-
 	}
 	catch(std::exception& ex)
 	{
@@ -489,14 +488,18 @@ void PipewireHandler::selectSourcesResponse(uint response)
 
 	QString requestUUID = getRequestToken();
 
-	_startReplyPath = QString(REQUEST_TEMPLATE).arg(_sender).arg(requestUUID);
-
 	std::map<std::string, sdbus::Variant> startParams{{ "handle_token", sdbus::Variant(requestUUID.toStdString()) }};
 
 	try
 	{
-		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
+			if (resultCode != 0)
+			{
+				qWarning().nospace() << "Start session returned an error code: " << ((resultCode == 1) ? "cancelled" : "other");
+				return;
+			}
+
 			try
 			{
 				QString restoreHandle;
@@ -552,11 +555,12 @@ void PipewireHandler::selectSourcesResponse(uint response)
 			}
 		};
 
-		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_startReplyPath.toStdString()});
+		sdbus::ObjectPath startRequestPath = _screenCastProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams);
+
+		_startReplyPath = QString::fromStdString(static_cast<std::string>(startRequestPath));
+
+		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_startReplyPath.toStdString()});
 		_startProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
-
-		_screenCastProxy->Start( ObjectPath{_sessionHandle.toStdString()}, "", startParams);
-
 	}
 	catch(std::exception& ex)
 	{
@@ -594,8 +598,6 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	
 	//------------------------------------------------------------------------------------
 	qDebug().nospace() << "Connecting to Pipewire interface for stream: " << _frameWidth << " x " << _frameHeight;
-
-	pw_init(nullptr, nullptr);
 	
 	if ( nullptr == (_pwMainThreadLoop = pw_thread_loop_new("pipewire-hyperhdr-loop", nullptr)))
 	{
@@ -608,25 +610,18 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	if ( nullptr == (_pwNewContext = pw_context_new(pw_thread_loop_get_loop(_pwMainThreadLoop), nullptr, 0)))
 	{
 		reportError("Pipewire: failed to create new Pipewire context");
-		return;
-	}
-	
-	if ( nullptr == (_pwContextConnection = pw_context_connect(_pwNewContext, nullptr, 0)))
+	}	
+	else if ( nullptr == (_pwContextConnection = pw_context_connect(_pwNewContext, nullptr, 0)))
 	{
 		reportError("Pipewire: could not connect to the Pipewire context");
-		return;
 	}
-
-	if ( nullptr == (_pwStream = createCapturingStream()))
+	else if ( nullptr == (_pwStream = createCapturingStream()))
 	{
 		reportError("Pipewire: failed to create new receiving Pipewire stream");
-		return;
 	}
-
-	if (pw_thread_loop_start(_pwMainThreadLoop) < 0)
+	else if (pw_thread_loop_start(_pwMainThreadLoop) < 0)
 	{
 		reportError("Pipewire: could not start main Pipewire loop");
-		return;
 	}
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);
@@ -699,6 +694,11 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 			break;
 		}
 #endif
+	if (hasDma && _frameDrmFormat == DRM_FORMAT_MOD_INVALID)
+	{
+		qWarning().nospace() << "Pipewire: proposed unsupported texture, ignoring DMA";
+		hasDma = false;
+	}
 
 	qDebug().nospace() << "Pipewire: video format = " << format.info.raw.format << " (" << spa_debug_type_find_name(spa_type_video_format, format.info.raw.format) << ")";
 	qDebug().nospace() << "Pipewire: video size = " << _frameWidth << "x" << _frameHeight << " (RGB order = " << ((_frameOrderRgb) ? "true" : "false") << ")";
@@ -864,6 +864,7 @@ void PipewireHandler::captureFrame()
 			if (eglImage == EGL_NO_IMAGE_KHR)
 			{
 				qCritical().nospace() << "PipewireEGL: failed to create a eglCreateImageKHR texture (reason = '" << eglErrorToString(eglGetError()) << "')";
+				qCritical().nospace() << "PipewireEGL: width = " << _frameWidth << ", height = " << _frameHeight << ", DRM format = " << _frameDrmFormat << ", ndatas = " << newFrame->buffer->n_datas;
 			}
 			else
 			{

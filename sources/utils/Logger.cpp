@@ -45,6 +45,7 @@
 #ifndef _WIN32
 	#include <syslog.h>
 	#include <unistd.h>
+	#include <cstring>
 #elif _WIN32
 	#include <io.h>
 	#include <windows.h>
@@ -134,7 +135,8 @@ Logger::~Logger()
 	if (_hasConsole || _forceVerbose)
 	{
 #ifndef _WIN32				
-		std::cout << "\033[0m";
+		const char* reset_color = "\033[0m";
+		write(STDOUT_FILENO, reset_color, strlen(reset_color));
 #endif
 	}
 }

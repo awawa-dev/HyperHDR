@@ -75,7 +75,7 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 	_timer->setTimerType(Qt::PreciseTimer);
 	connect(_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
 
-	_retryTimer->setInterval(3500);
+	_retryTimer->setInterval(6000);
 	_retryTimer->setSingleShot(true);
 	connect(_retryTimer, &QTimer::timeout, this, &PipewireGrabber::restart);
 
@@ -117,7 +117,12 @@ void PipewireGrabber::restart()
 	{
 		Info(_log, "Restarting the grabber");
 		uninit();
-		start();
+		QTimer::singleShot(1000, this, [this]() {
+			if (_retryTimer->isActive())
+			{
+				this->start();
+			}
+		});
 		_retryTimer->start();
 	}
 	else
@@ -330,7 +335,7 @@ void PipewireGrabber::stateChanged(bool state)
 	{
 		Info(_log, "Removing restoration token");
 
-		BLOCK_CALL_1(_accessManager.get(), savePipewire, QString, "");
+		QUEUE_CALL_1(_accessManager.get(), savePipewire, QString, "");
 	}
 }
 
@@ -362,7 +367,7 @@ void PipewireGrabber::grabFrame()
 			{
 				Info(_log, "Saving restoration token: {:s}", (maskToken(token)));
 
-				BLOCK_CALL_1(_accessManager.get(), savePipewire, QString, token);
+				QUEUE_CALL_1(_accessManager.get(), savePipewire, QString, token);
 
 				_storedToken = true;
 			}
