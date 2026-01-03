@@ -640,10 +640,6 @@ void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state,
 		reportError(QString("Pipewire: stream reports error '%1'").arg(error));
 		return;
 	}
-	else if (old == PW_STREAM_STATE_STREAMING && state != old)
-	{
-		reportError(QString("Pipewire: stream has stopped %1").arg(error));
-	}
 
 	if (state == PW_STREAM_STATE_UNCONNECTED) qDebug().nospace() << "Pipewire: state UNCONNECTED (" << (int)state << ", " << (int)old << ")";
 	else if (state == PW_STREAM_STATE_CONNECTING) qDebug().nospace() << "Pipewire: state CONNECTING (" << (int)state << ", " << (int)old << ")";
@@ -658,6 +654,11 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	struct spa_video_info format {};
 
 	qDebug().nospace() << "Pipewire: got new video format selected";
+
+	if (param == nullptr && id == SPA_PARAM_Format && !_isError)
+	{
+		reportError("Pipewire: stream parameters have changed");		
+	}
 
 	if (param == nullptr || id != SPA_PARAM_Format)
 	{
@@ -767,15 +768,18 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 
 void PipewireHandler::onProcessFrame()
 {
-	if (auto cstate = pw_stream_get_state(_pwStream, nullptr); _incomingFrame != nullptr && cstate == PW_STREAM_STATE_STREAMING)
+	if (_pwStream != nullptr && _incomingFrame != nullptr)
 	{
-		captureFrame();
-	}
+		if (auto cstate = pw_stream_get_state(_pwStream, nullptr); cstate == PW_STREAM_STATE_STREAMING)
+		{
+			captureFrame();
+		}
 
-	if (auto cstate = pw_stream_get_state(_pwStream, nullptr); _incomingFrame != nullptr && (cstate == PW_STREAM_STATE_PAUSED || cstate == PW_STREAM_STATE_STREAMING))
-	{
-		pw_stream_queue_buffer(_pwStream, _incomingFrame);
-		_incomingFrame = nullptr;
+		if (auto cstate = pw_stream_get_state(_pwStream, nullptr); (cstate == PW_STREAM_STATE_PAUSED || cstate == PW_STREAM_STATE_STREAMING))
+		{
+			pw_stream_queue_buffer(_pwStream, _incomingFrame);
+			_incomingFrame = nullptr;
+		}
 	}
 };
 

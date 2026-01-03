@@ -44,6 +44,7 @@ public:
 private slots:
 
 	void grabFrame();
+	void restart();
 
 public slots:
 
@@ -74,7 +75,8 @@ private:
 		
 private:
 	QString					_configurationPath;
-	QTimer					_timer;
+	QTimer*					_timer;
+	QTimer*					_retryTimer;
 
 	void*					_library;
 	int						_actualDisplay;

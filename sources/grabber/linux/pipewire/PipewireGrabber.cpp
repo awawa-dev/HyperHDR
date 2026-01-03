@@ -63,6 +63,8 @@ namespace
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "PIPEWIRE_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
+	, _timer(new QTimer(this))
+	, _retryTimer(new QTimer(this))
 	, _library(nullptr)
 	, _actualDisplay(0)
 	, _isActive(false)
@@ -70,8 +72,12 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 	, _versionCheck(false)
 	, _accessManager(nullptr)
 {
-	_timer.setTimerType(Qt::PreciseTimer);
-	connect(&_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
+	_timer->setTimerType(Qt::PreciseTimer);
+	connect(_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
+
+	_retryTimer->setInterval(3500);
+	_retryTimer->setSingleShot(true);
+	connect(_retryTimer, &QTimer::timeout, this, &PipewireGrabber::restart);
 
 	// Load library
 	_library = dlopen("libsmart-pipewire.so", RTLD_NOW);
@@ -103,6 +109,21 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		Info(_log, "Loaded Pipewire proxy library for screen capturing");
 		getDevices();
 	}	
+}
+
+void PipewireGrabber::restart()
+{
+	if (!_isActive)
+	{
+		Info(_log, "Restarting the grabber");
+		uninit();
+		start();
+		_retryTimer->start();
+	}
+	else
+	{
+		Info(_log, "The grabber is working now. Stop restarting.");
+	}
 }
 
 bool PipewireGrabber::hasPipewire(bool force)
@@ -154,7 +175,6 @@ void PipewireGrabber::uninit()
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 	
-	_isActive = false;
 	_initialized = false;
 }
 
@@ -243,8 +263,8 @@ bool PipewireGrabber::start()
 	{		
 		if (init())
 		{
-			_timer.setInterval(1000/_fps);
-			_timer.start();
+			_timer->setInterval(1000/_fps);
+			_timer->start();
 			Info(_log, "Started");
 			return true;
 		}
@@ -261,14 +281,16 @@ void PipewireGrabber::stop()
 {
 	if (_initialized)
 	{
-		_timer.stop();
+		_timer->stop();
 
 		_uninitPipewireDisplay();		
 		_initialized = false;
 		
 		Info(_log, "Stopped");
 	}
+
 	_isActive = false;
+	_retryTimer->stop();
 }
 
 bool PipewireGrabber::init_device(int _display)
@@ -373,19 +395,8 @@ void PipewireGrabber::grabFrame()
 	
 	if (stopNow)
 	{
-		bool lastActive = _isActive;
 		uninit();
-		_isActive = lastActive;
-		if (_isActive)
-		{
-			QTimer::singleShot(3000, this, [this]() {
-				if (_isActive)
-				{
-					_isActive = false;
-					start();
-				}
-			});
-		}
+		_retryTimer->start();
 	}
 }
 
