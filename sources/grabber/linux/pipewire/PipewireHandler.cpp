@@ -1069,6 +1069,7 @@ void PipewireHandler::onReleaseBuffer(struct pw_buffer* buffer)
 
 		qDebug().nospace() << "Pipewire: releasing cached texture/memory";
 
+	#ifdef ENABLE_PIPEWIRE_EGL
 		if (cache->eglImage != EGL_NO_IMAGE_KHR && displayEgl != EGL_NO_DISPLAY)
 		{
 			if (eglGetCurrentContext() != contextEgl)
@@ -1079,6 +1080,7 @@ void PipewireHandler::onReleaseBuffer(struct pw_buffer* buffer)
 			eglDestroyImageKHR(displayEgl, cache->eglImage);
 			qDebug() << "Pipewire EGL: delete image";
 		}
+	#endif
 
 		if (cache->mmapPtr != MAP_FAILED && cache->mmapSize > 0)
 		{
