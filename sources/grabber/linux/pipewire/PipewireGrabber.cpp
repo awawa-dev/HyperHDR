@@ -277,7 +277,10 @@ bool PipewireGrabber::init_device(int _display)
 	_storedToken = false;
 	_versionCheck = false;
 
-	QString token = (_accessManager != nullptr) ? _accessManager->loadPipewire() : nullptr;
+	QString token = nullptr;
+
+	SAFE_CALL_0_RET(_accessManager.get(), loadPipewire, QString, token);
+
 	if (token.isNull())
 		token = "";
 	else
@@ -305,7 +308,7 @@ void PipewireGrabber::stateChanged(bool state)
 	{
 		Info(_log, "Removing restoration token");
 
-		_accessManager->savePipewire("");
+		BLOCK_CALL_1(_accessManager.get(), savePipewire, QString, "");
 	}
 }
 
@@ -337,7 +340,7 @@ void PipewireGrabber::grabFrame()
 			{
 				Info(_log, "Saving restoration token: {:s}", (maskToken(token)));
 
-				_accessManager->savePipewire(token);
+				BLOCK_CALL_1(_accessManager.get(), savePipewire, QString, token);
 
 				_storedToken = true;
 			}
