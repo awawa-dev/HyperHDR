@@ -310,6 +310,11 @@ bool PipewireHandler::hasError()
 	return _isError;
 }
 
+bool PipewireHandler::isRestartNeeded()
+{
+	return _isError || _replySessionPath.isEmpty() || (_startReplyPath.isEmpty() && !_portalStatus);
+}
+
 int PipewireHandler::getVersion()
 {
 	return _version;
@@ -494,9 +499,11 @@ void PipewireHandler::selectSourcesResponse(uint response)
 	{
 		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
+			_startReplyPath = "";
+
 			if (resultCode != 0)
 			{
-				qWarning().nospace() << "Start session returned an error code: " << ((resultCode == 1) ? "cancelled" : "other");
+				reportError(QString("Start session returned an error code: %1").arg(((resultCode == 1) ? "cancelled" : "other")));
 				return;
 			}
 
@@ -516,7 +523,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 				auto streamsIter = results.find("streams");
 				if (streamsIter == results.end())
 				{
-					qCritical().nospace() << "Start session didnt return streams";
+					reportError("Start session didnt return streams");
 				}
 				else
 				{

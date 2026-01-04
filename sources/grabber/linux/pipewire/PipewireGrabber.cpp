@@ -58,6 +58,7 @@ namespace
 	PipewireImage(*_getFramePipewire)() = nullptr;
 	void (*_releaseFramePipewire)() = nullptr;
 	const char* (*_getPipewireToken)() = nullptr;
+	bool (*_isRestartNeeded)() = nullptr;
 }
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
@@ -91,11 +92,13 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uninitPipewireDisplay");
 		_getFramePipewire = (PipewireImage (*)()) dlsym(_library, "getFramePipewire");
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
+		_isRestartNeeded = (bool (*)()) dlsym(_library, "isRestartNeeded");
 	}
 	else
 		Warning(_log, "Could not load Pipewire proxy library. Error: {:s}", dlerror());
 
-	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr))
+	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr ||
+		_initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr || _isRestartNeeded == nullptr))
 	{
 		Error(_log, "Could not load Pipewire proxy library definition. Error: {:s}", dlerror());
 
@@ -115,14 +118,21 @@ void PipewireGrabber::restart()
 {
 	if (!_isActive)
 	{
-		Info(_log, "Restarting the grabber");
-		uninit();
-		QTimer::singleShot(1000, this, [this]() {
-			if (_retryTimer->isActive())
-			{
-				this->start();
-			}
-		});
+		if (_isRestartNeeded())
+		{
+			Info(_log, "Restarting the grabber");
+			uninit();
+			QTimer::singleShot(1000, this, [this]() {
+				if (_retryTimer->isActive())
+				{
+						this->start();
+				}
+			});
+		}
+		else
+		{
+			Info(_log, "The grabber restart is not needed.");
+		}
 		_retryTimer->start();
 	}
 	else

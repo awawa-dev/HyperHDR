@@ -131,3 +131,7 @@ PipewireImage getFramePipewire()
 	return retVal;
 }
 
+bool isRestartNeeded()
+{
+	return pipewireHandler.isRestartNeeded();
+}

@@ -17,4 +17,5 @@ extern "C" void initPipewireDisplay(const char* restorationToken, uint32_t reque
 extern "C" void uninitPipewireDisplay();
 extern "C" PipewireImage getFramePipewire();
 extern "C" void releaseFramePipewire();
+extern "C" bool isRestartNeeded();
 

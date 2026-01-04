@@ -96,6 +96,7 @@ public:
 	void startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize);
 	void closeSession();
 	bool hasError();
+	bool isRestartNeeded();
 	
 	int		getVersion();
 	QString getToken();
