@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -68,7 +68,7 @@ void HyperHdrManager::handleRequestComponent(hyperhdr::Components component, int
 	if (component == hyperhdr::Components::COMP_VIDEOGRABBER && hyperHdrInd == -1)
 	{
 		Warning(_log, "Global request to {:s} USB grabber", (listen) ? "resume" : "pause");
-		toggleGrabbersAllInstances(listen);
+		toggleGrabbersAllInstances(listen, false, true);
 	}
 }
 
@@ -254,11 +254,11 @@ void HyperHdrManager::toggleStateAllInstances(bool pause)
 	}
 }
 
-void HyperHdrManager::toggleGrabbersAllInstances(bool pause)
+void HyperHdrManager::toggleGrabbersAllInstances(bool pause, bool includingSystemGrabber, bool includingVideoGrabber)
 {
 	for (const auto& instance : std::as_const(_runningInstances))
 	{
-		QUEUE_CALL_1(instance.get(), turnGrabbers, bool, pause);
+		QUEUE_CALL_3(instance.get(), turnGrabbers, bool, pause, bool, includingSystemGrabber, bool, includingVideoGrabber);
 	}
 }
 
@@ -267,41 +267,24 @@ void HyperHdrManager::hibernate(bool wakeUp, hyperhdr::SystemComponent source)
 	if (source == hyperhdr::SystemComponent::LOCKER || source == hyperhdr::SystemComponent::MONITOR)
 	{
 		Debug(_log, "OS event: {:s}", (source == hyperhdr::SystemComponent::LOCKER) ? ((wakeUp) ? "OS unlocked" : "OS locked") : ((wakeUp) ? "Monitor On" : "Monitor Off"));
-		bool _hasEffect = false;
-		for (const auto& instance : std::as_const(_runningInstances))
-		{
-			SAFE_CALL_1_RET(instance.get(), hasPriority, bool, _hasEffect, int, Muxer::LOWEST_EFFECT_PRIORITY);
-			if (_hasEffect)
-			{
-				break;
-			}
-		}
 
-		if (!wakeUp && _hasEffect)
-		{
-			Warning(_log, "The user has set a background effect, and therefore we will not turn off the LEDs when locking the operating system");
-		}
-
-		if (_hasEffect)
-		{
-			if (wakeUp)
-				QTimer::singleShot(3000, this, [this, wakeUp]() { toggleGrabbersAllInstances(wakeUp);  });
-			else
-				toggleGrabbersAllInstances(wakeUp);
-
-			return;
-		}
+		if (wakeUp)
+			QTimer::singleShot(3000, this, [this, wakeUp]() { toggleGrabbersAllInstances(wakeUp, true, false);  });
+		else
+			toggleGrabbersAllInstances(wakeUp, true, false);
 	}
-
-	if (!wakeUp)
+	else if (source == hyperhdr::SystemComponent::SUSPEND)
 	{
-		Warning(_log, "The system is going to sleep");
-		toggleStateAllInstances(false);
-	}
-	else
-	{
-		Warning(_log, "The system is going to wake up");
-		QTimer::singleShot(3000, this, [this]() { toggleStateAllInstances(true);  });
+		if (!wakeUp)
+		{
+			Warning(_log, "The system is going to sleep");
+			toggleStateAllInstances(false);
+		}
+		else
+		{
+			Warning(_log, "The system is going to wake up");
+			QTimer::singleShot(3000, this, [this]() { toggleStateAllInstances(true);  });
+		}
 	}
 }
 

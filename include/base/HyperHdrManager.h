@@ -68,7 +68,7 @@ public slots:
 
 	void toggleStateAllInstances(bool pause = false);
 
-	void toggleGrabbersAllInstances(bool pause = false);
+	void toggleGrabbersAllInstances(bool pause, bool includingSystemGrabber, bool includingVideoGrabber);
 
 	void hibernate(bool wakeUp, hyperhdr::SystemComponent source);
 

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -84,19 +84,19 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 	_notifyHandle = RegisterSuspendResumeNotification(handle, DEVICE_NOTIFY_WINDOW_HANDLE);
 
 	if (_notifyHandle == NULL)
-		std::cout << "COULD NOT REGISTER SLEEP HANDLER!" << std::endl;
+		qCritical().nospace() << "COULD NOT REGISTER SLEEP HANDLER!";
 	else
-		std::cout << "Sleep handler registered!" << std::endl;
+		qDebug().nospace() << "Sleep handler registered!";
 	
 	if (_sessionLocker)
 	{
 		_notifyMonitorHandle = RegisterPowerSettingNotification(handle, &GUID_SESSION_DISPLAY_STATUS, DEVICE_NOTIFY_WINDOW_HANDLE);
 
 		if (_notifyMonitorHandle != NULL && WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
-			std::cout << "Session handler registered!" << std::endl;
+			qDebug().nospace() << "Session handler registered!";
 		else
 		{
-			std::cout << "COULD NOT REGISTER SESSION HANDLER!" << std::endl;			
+			qCritical().nospace() << "COULD NOT REGISTER SESSION HANDLER!";
 			if (_notifyMonitorHandle != NULL)
 				UnregisterSuspendResumeNotification(_notifyMonitorHandle);
 			_notifyMonitorHandle = NULL;
@@ -113,7 +113,7 @@ SuspendHandler::~SuspendHandler()
 	if (_notifyHandle != NULL)
 	{
 		UnregisterSuspendResumeNotification(_notifyHandle);
-		std::cout << "Sleep handler deregistered!" << std::endl;
+		qDebug().nospace() << "Sleep handler deregistered!";
 	}
 	_notifyHandle = NULL;
 
@@ -122,7 +122,7 @@ SuspendHandler::~SuspendHandler()
 		if (_notifyMonitorHandle != NULL)
 		{
 			UnregisterSuspendResumeNotification(_notifyMonitorHandle);
-			std::cout << "Monitor state handler deregistered!" << std::endl;
+			qDebug().nospace() << "Monitor state handler deregistered!";
 		}
 		_notifyMonitorHandle = NULL;
 		
@@ -180,7 +180,7 @@ bool SuspendHandler::nativeEventFilter(const QByteArray& /*eventType*/, void* me
 
 				if (GetSystemMetrics(SM_REMOTESESSION) != 0)
 				{
-					std::cout << "Detected RDP session. Skipping disable on lock." << std::endl;
+					qDebug().nospace() << "Detected RDP session. Skipping disable on lock.";
 				}
 				else
 				{

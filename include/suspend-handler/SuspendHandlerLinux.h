@@ -50,6 +50,10 @@ public slots:
 	void sleeping(bool sleep);
 
 private:
+	std::unique_ptr<sdbus::IProxy> _gnomeScreenSaverProxy;
+	std::unique_ptr<sdbus::IProxy> _kdePowerProxy;
+	std::unique_ptr<sdbus::IProxy> _xfcePowerProxy;
+	std::unique_ptr<sdbus::IConnection> _sessionBus;
 	std::unique_ptr<sdbus::IProxy> _suspendHandlerProxy;
 	std::unique_ptr<sdbus::IConnection> _dbusConnection;
 };
