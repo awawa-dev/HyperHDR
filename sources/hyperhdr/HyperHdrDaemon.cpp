@@ -294,7 +294,7 @@ void HyperHdrDaemon::freeObjects()
 	Info(_log, "Releasing SmartPointer: NetOrigin [15/15]");
 	_netOrigin = nullptr;
 
-	Info(_log, "Resources are freed [finished]");
+	Info(_log, "Resources have been freed [finished]");
 }
 
 void HyperHdrDaemon::startNetworkServices()
