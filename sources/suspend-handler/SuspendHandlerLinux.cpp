@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -45,13 +45,48 @@ namespace {
 	constexpr const char* UPOWER_SERVICE = "org.freedesktop.login1";
 	constexpr const char* UPOWER_PATH = "/org/freedesktop/login1";
 	constexpr const char* UPOWER_INTERFACE = "org.freedesktop.login1.Manager";
+	constexpr const char* GNOME_SERVICE = "org.gnome.ScreenSaver";
+	constexpr const char* GNOME_PATH = "/org/gnome/ScreenSaver";
+	constexpr const char* KDE_SERVICE = "org.freedesktop.ScreenSaver";
+	constexpr const char* KDE_PATH = "/org/freedesktop/ScreenSaver";
+	constexpr const char* XFCE_SERVICE = "org.xfce.PowerManager";
+	constexpr const char* XFCE_PATH = "/org/xfce/PowerManager";
 }
 
 SuspendHandler::SuspendHandler(bool sessionLocker)
 {
 	try
+	{			
+		auto monitorSignalHandler = [this](QString source, bool isOff) {
+			qDebug().nospace() << "Display event: monitor is " << (isOff ? "OFF" : "ON") << " (reporting: " << source << ")";
+			emit SignalHibernate(!isOff, hyperhdr::SystemComponent::MONITOR);
+		};
+
+		_sessionBus = sdbus::createSessionBusConnection();
+		_gnomeScreenSaverProxy = sdbus::createProxy(*_sessionBus, ServiceName{ GNOME_SERVICE }, ObjectPath{ GNOME_PATH });
+		_gnomeScreenSaverProxy->uponSignal(SignalName{ "ActiveChanged" }).onInterface(InterfaceName{ GNOME_SERVICE }).call([monitorSignalHandler](bool active) {
+			monitorSignalHandler(QString(GNOME_SERVICE), active);
+		});
+		_kdePowerProxy = sdbus::createProxy(*_sessionBus, ServiceName{ KDE_SERVICE }, ObjectPath{ KDE_PATH });
+		_kdePowerProxy->uponSignal(SignalName{ "ActiveChanged" }).onInterface(InterfaceName{ KDE_SERVICE }).call([monitorSignalHandler](bool active) {
+			monitorSignalHandler(QString(KDE_SERVICE), active);
+		});
+		_xfcePowerProxy = sdbus::createProxy(*_sessionBus, ServiceName{ XFCE_SERVICE }, ObjectPath{ XFCE_PATH });
+		_xfcePowerProxy->uponSignal(SignalName{ "StateChanged" }).onInterface(InterfaceName{ XFCE_SERVICE }).call([monitorSignalHandler](uint32_t state) {
+			monitorSignalHandler(QString(XFCE_SERVICE), state == 3);
+		});
+		_sessionBus->enterEventLoopAsync();
+
+		qDebug().nospace() << "THE MONITOR STATE HANDLER IS REGISTERED!";
+	}
+	catch (std::exception& ex)
 	{
-		auto responseSignalHandler = [&](bool sleep) {				
+		qCritical().nospace() << "COULD NOT REGISTER MONITOR STATE HANDLER NEEDED BY, FOR EXAMPLE, PIPEWIRE GRABBER (WHICH WONT WORK AS A SERVICE): " << ex.what();
+	}
+
+	try
+	{
+		auto responseSignalHandler = [this](bool sleep) {
 			QUEUE_CALL_1(this, sleeping, bool, sleep);
 		};
 
@@ -60,13 +95,11 @@ SuspendHandler::SuspendHandler(bool sessionLocker)
 		_suspendHandlerProxy->uponSignal(SignalName{ "PrepareForSleep" }).onInterface(InterfaceName{ UPOWER_INTERFACE }).call(responseSignalHandler);
 		_dbusConnection->enterEventLoopAsync();
 
-		_suspendHandlerProxy = nullptr;
-		_dbusConnection = nullptr;
-		std::cout << "THE SLEEP HANDLER IS REGISTERED!" << std::endl;
+		qDebug().nospace() << "THE SLEEP HANDLER IS REGISTERED!";
 	}
 	catch (std::exception& ex)
 	{
-		std::cout << "COULD NOT REGISTER THE SLEEP HANDLER: " << ex.what() << std::endl;
+		qCritical().nospace() << "COULD NOT REGISTER THE SLEEP HANDLER: " << ex.what();
 	}
 }
 
@@ -74,13 +107,19 @@ SuspendHandler::~SuspendHandler()
 {
 	try
 	{
+		_xfcePowerProxy = nullptr;
+		_gnomeScreenSaverProxy = nullptr;
+		_kdePowerProxy = nullptr;
+		_sessionBus = nullptr;
+
 		_suspendHandlerProxy = nullptr;
 		_dbusConnection = nullptr;
-		std::cout << "THE SLEEP HANDLER IS DEREGISTERED!" << std::endl;
+
+		qDebug().nospace() << "THE SLEEP HANDLER IS DEREGISTERED!";
 	}
 	catch (std::exception& ex)
 	{
-		std::cout << "COULD NOT DEREGISTER THE SLEEP HANDLER: " << ex.what() << std::endl;
+		qCritical().nospace() << "COULD NOT DEREGISTER THE SLEEP HANDLER: " << ex.what();
 	}
 }
 
@@ -88,12 +127,12 @@ void SuspendHandler::sleeping(bool sleep)
 {	
 	if (sleep)
 	{
-		std::cout << "OS event: going to sleep" << std::endl;
+		qDebug().nospace() << "OS event: going to sleep";
 		emit SignalHibernate(false, hyperhdr::SystemComponent::SUSPEND);
 	}
 	else
 	{
-		std::cout << "OS event: waking up" << std::endl;
+		qDebug().nospace() << "OS event: waking up";
 		emit SignalHibernate(true, hyperhdr::SystemComponent::SUSPEND);
 	}
 }

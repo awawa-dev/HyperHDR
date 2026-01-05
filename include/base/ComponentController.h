@@ -27,7 +27,7 @@ signals:
 
 public slots:
 	void setNewComponentState(hyperhdr::Components comp, bool activated);
-	void turnGrabbers(bool activated);
+	void turnGrabbers(bool activated, bool includingSystemGrabber, bool includingVideoGrabber);
 
 private slots:
 	void handleCompStateChangeRequest(hyperhdr::Components comps, bool activated);

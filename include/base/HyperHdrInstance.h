@@ -96,7 +96,7 @@ public slots:
 	bool setVisiblePriority(int priority);
 	bool sourceAutoSelectEnabled() const;
 	void start();
-	void turnGrabbers(bool active);
+	void turnGrabbers(bool active, bool includingSystemGrabber, bool includingVideoGrabber);
 	void update();
 	void updateAdjustments(const QJsonObject& config);
 	

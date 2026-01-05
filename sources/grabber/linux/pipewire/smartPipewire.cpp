@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -51,10 +51,10 @@
 PipewireHandler pipewireHandler;
 
 
-void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS)
+void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize)
 {
 	QString qRestorationToken = QString("%1").arg(restorationToken);
-	pipewireHandler.startSession(qRestorationToken, requestedFPS);
+	pipewireHandler.startSession(qRestorationToken, requestedFPS, enableEGL, targetMaxSize);
 }
 
 void releaseFramePipewire()
@@ -131,3 +131,7 @@ PipewireImage getFramePipewire()
 	return retVal;
 }
 
+bool isRestartNeeded()
+{
+	return pipewireHandler.isRestartNeeded();
+}

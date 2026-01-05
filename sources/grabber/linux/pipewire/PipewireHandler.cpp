@@ -2,7 +2,7 @@
 * 
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -31,6 +31,7 @@
 #include <QVariantMap>
 #include <QDebug>
 #include <QUuid>
+#include <QStringList>
 
 
 #include <cassert>
@@ -49,6 +50,7 @@
 #include <unistd.h>
 #include <utility>
 #include <vector>
+#include <mutex>
 	
 
 #include <grabber/linux/pipewire/smartPipewire.h>
@@ -91,15 +93,15 @@ constexpr const char* PORTAL_REQUEST = "org.freedesktop.portal.Request";
 constexpr const char* PORTAL_SESSION = "org.freedesktop.portal.Session";
 constexpr const char* PORTAL_RESPONSE = "Response";
 
-constexpr const char* REQUEST_TEMPLATE = "/org/freedesktop/portal/desktop/request/%1/%2";
+constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
 									_isError(false), _version(-1), _streamNodeId(0),
 									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
-									_frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _framePaused(false), _requestedFPS(10), _hasFrame(false),
-									_infoUpdated(false), _initEGL(false), _libEglHandle(nullptr), _libGlHandle(nullptr),
+									_targetMaxSize(512), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
+									_infoUpdate(DEFAULT_UPDATE_NUMBER), _initEGL(false), _enableEGL(true), _libEglHandle(nullptr), _libGlHandle(nullptr),
 									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image{}
 {
 	_pwStreamListener = {};
@@ -112,6 +114,11 @@ PipewireHandler::PipewireHandler() :
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
+
+	static std::once_flag pwInitOnce;
+	std::call_once(pwInitOnce, [] {
+		pw_init(nullptr, nullptr);
+	});
 }
 
 QString PipewireHandler::getToken()
@@ -149,7 +156,6 @@ void PipewireHandler::closeSession()
 {
 	if (_pwMainThreadLoop != nullptr)
 	{
-		pw_thread_loop_wait(_pwMainThreadLoop);
 		pw_thread_loop_stop(_pwMainThreadLoop);		
 	}
 
@@ -189,7 +195,7 @@ void PipewireHandler::closeSession()
 		}
 		catch (std::exception& e)
 		{
-			std::cout << "Pipewire: could not close session: " << e.what() << std::endl;
+			qWarning().nospace() << "Pipewire: could not close session: " << e.what();
 		}
 	}
 
@@ -203,7 +209,7 @@ void PipewireHandler::closeSession()
 	_selectSourceProxy = nullptr;
 	_startProxy = nullptr;
 	_dbusConnection = nullptr;
-	
+
 	_pwStreamListener = {};
 	_pwCoreListener = {};	
 	_portalStatus = false;
@@ -213,28 +219,53 @@ void PipewireHandler::closeSession()
 	_frameWidth = 0;
 	_frameHeight = 0;
 	_frameOrderRgb = false;
-	_framePaused = false;
 	_requestedFPS = 10;
-	_hasFrame = false;
-	_infoUpdated = false;
+	_incomingFrame = nullptr;
+	_infoUpdate = DEFAULT_UPDATE_NUMBER;
 	_frameDrmFormat = DRM_FORMAT_MOD_INVALID;
 	_frameDrmModifier = DRM_FORMAT_MOD_INVALID;
 
 #ifdef ENABLE_PIPEWIRE_EGL
+	if (contextEgl != EGL_NO_CONTEXT && displayEgl != EGL_NO_DISPLAY && eglGetCurrentContext() != contextEgl)
+	{
+		eglMakeCurrent(displayEgl, EGL_NO_SURFACE, EGL_NO_SURFACE, contextEgl);
+	}
+
+	if (_eglTexture != 0)
+	{
+		glDeleteTextures(1, &_eglTexture);
+		_eglTexture = 0;
+		qDebug() << "Pipewire EGL: target texture deleted";
+	}
+
+	if (_eglScratchTex != 0)
+	{
+		glDeleteTextures(1, &_eglScratchTex);
+		_eglScratchTex = 0;
+		qDebug() << "Pipewire EGL: scratch texture deleted";
+	}
+
+	if (_eglFbos[0] != 0 || _eglFbos[1] != 0)
+	{
+		glDeleteFramebuffers(static_cast<GLsizei>(_eglFbos.size()), _eglFbos.data());
+		_eglFbos.fill(0);
+		qDebug() << "Pipewire EGL: eglFbos deleted";
+	}
+
 	if (contextEgl != EGL_NO_CONTEXT)
 	{
 		auto rel = eglMakeCurrent(displayEgl, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		std::cout << "PipewireEGL: releasing EGL context => " << rel << std::endl;
+		qDebug().nospace() << "PipewireEGL: releasing EGL context => " << rel;
 
 		auto res = eglDestroyContext(displayEgl, contextEgl);
-		std::cout << "PipewireEGL: destroying EGL context => " << res << std::endl;
+		qDebug().nospace() << "PipewireEGL: destroying EGL context => " << res;
 		contextEgl = EGL_NO_CONTEXT;
 	}
 
 	if (displayEgl != EGL_NO_DISPLAY)
 	{
 		auto res = eglTerminate(displayEgl);
-		std::cout << "PipewireEGL: terminate the display => " << res << std::endl;		
+		qDebug().nospace() << "PipewireEGL: terminate the display => " << res;
 		displayEgl = EGL_NO_DISPLAY;
 	}
 
@@ -247,9 +278,10 @@ void PipewireHandler::closeSession()
 
 	releaseWorkingFrame();
 
-	createMemory(0);
+	_image = {};
+	createMemory(0);	
 
-	std::cout << "Pipewire: driver is closed now" << std::endl;
+	qDebug().nospace() << "Pipewire: driver is closed now";
 }
 
 void PipewireHandler::releaseWorkingFrame()
@@ -270,12 +302,17 @@ void PipewireHandler::reportError(const QString& input)
 {
 	_isError = true;
 	_errorMessage = input;
-	std::cerr << qPrintable(input) << std::endl;
+	qCritical().nospace() << qPrintable(input);
 }
 
 bool PipewireHandler::hasError()
 {
 	return _isError;
+}
+
+bool PipewireHandler::isRestartNeeded()
+{
+	return _isError || _replySessionPath.isEmpty() || (_startReplyPath.isEmpty() && !_portalStatus);
 }
 
 int PipewireHandler::getVersion()
@@ -296,24 +333,35 @@ int PipewireHandler::readVersion()
 	}
 	catch (std::exception& e)
 	{
-		std::cout << "Pipewire: could not read Portal ScreenCast version" << std::endl;
+		qCritical().nospace() << "Pipewire: could not read Portal ScreenCast version";
 		version = -1;
 	}
 
 	return version;
 }
 
-void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS)
+void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize)
 {
-	std::cout << "Pipewire: initialization invoked. Cleaning up first..." << std::endl;
+	qDebug().nospace() << "Pipewire: initialization invoked. Cleaning up first...";
 
 	closeSession();
+
+	_enableEGL = enableEGL;
+	_targetMaxSize = targetMaxSize;
+
+	#ifdef ENABLE_PIPEWIRE_EGL
+		qDebug().nospace() << "Pipewire: support for EGL is " << ((_enableEGL) ? "enabled" : "disabled");
+	#else
+		qDebug().nospace() << "Pipewire: support for EGL is DISABLED (in the build)";
+	#endif
 
 	if (requestedFPS < 1 || requestedFPS > 60)
 	{
 		reportError("Pipewire: invalid capture rate.");
 		return;
 	}
+
+	qDebug().nospace() << "Pipewire: targetMaxSize = " << _targetMaxSize;
 
 	try
 	{
@@ -325,7 +373,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	}
 	catch(std::exception& e)
 	{
-		std::cout << "Pipewire: could not read Portal ScreenCast version" << std::endl;
+		qCritical().nospace() << "Pipewire: could not read Portal ScreenCast version";
 		_version = -1;
 	}
 
@@ -345,12 +393,9 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	if (_sender.length() > 0 && _sender[0] == ':')
 		_sender = _sender.right(_sender.length()-1);
 
-	std::cout << "Sender: " << qPrintable(_sender) << std::endl;
+	qDebug().nospace() << "Sender: " << qPrintable(_sender);
 
 	QString requestUUID = getRequestToken();
-
-	_replySessionPath = QString(REQUEST_TEMPLATE).arg(_sender).arg(requestUUID);
-
 
 	std::map<std::string, sdbus::Variant> createSessionParams{
 		{"session_handle_token", sdbus::Variant(getSessionToken().toStdString())},
@@ -358,12 +403,12 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	};
     try
     {
-		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
 			auto sessionHandleIter = results.find("session_handle");
 			if (sessionHandleIter == results.end())
 			{
-				std::cout << "Create session didnt return a handle" << std::endl;
+				qDebug().nospace() << "Create session didnt return a handle";
 			}
 			else
 			{
@@ -372,25 +417,25 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 			}
 		};
 
-		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_replySessionPath.toStdString()});
+		sdbus::ObjectPath requestPath = _screenCastProxy->CreateSession(createSessionParams);
+		_replySessionPath = QString::fromStdString(static_cast<std::string>(requestPath));
+
+		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_replySessionPath.toStdString()});
 
 		_createSessionProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
-
-        _screenCastProxy->CreateSession(createSessionParams);
-
     }
 	catch(std::exception& ex)
     {
         reportError(QString("Pipewire: Failed to create session: %1").arg(QString::fromLocal8Bit(ex.what())));
     }
-	std::cout << "Requested FPS: " << _requestedFPS << std::endl;
-	std::cout << "Pipewire: CreateSession finished" << std::endl;
+	qDebug().nospace() << "Requested FPS: " << _requestedFPS;
+	qDebug().nospace() << "Pipewire: CreateSession finished";
 }
 
 
 void PipewireHandler::createSessionResponse(uint response, QString session)
 {
-	std::cout << "Pipewire: Got response from portal CreateSession" << std::endl;
+	qDebug().nospace() << "Pipewire: Got response from portal CreateSession";
 
 	if (response != 0)
 	{
@@ -402,8 +447,6 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 
 	_sessionHandle = session;
 
-	_sourceReplyPath = QString(REQUEST_TEMPLATE).arg(_sender).arg(requestUUID);
-
 	std::map<std::string, sdbus::Variant> selectSourceParams{
 		{ "multiple", sdbus::Variant(false)},
 		{ "types", sdbus::Variant((uint)1)},
@@ -414,34 +457,34 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 	if (!_restorationToken.isEmpty())
 	{
 		selectSourceParams["restore_token"] = sdbus::Variant(_restorationToken.toStdString());
-		std::cout << "Pipewire: Has restoration token: " << qPrintable(QString(_restorationToken).right(12)) << std::endl;
+		qDebug().nospace() << "Pipewire: Has restoration token: " << qPrintable(QString(_restorationToken).right(12));
 	}
 
 	try
 	{
-		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
 			QUEUE_CALL_1(this, selectSourcesResponse, uint, resultCode);
 		};
 
-		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
+		sdbus::ObjectPath sourceRequestPath = _screenCastProxy->SelectSources(sdbus::ObjectPath{ _sessionHandle.toStdString() }, selectSourceParams);
+		_sourceReplyPath = QString::fromStdString(static_cast<std::string>(sourceRequestPath));
+
+		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
 		_selectSourceProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
-
-		_screenCastProxy->SelectSources(ObjectPath{_sessionHandle.toStdString()}, selectSourceParams);
-
 	}
 	catch(std::exception& ex)
 	{
 		reportError(QString("Pipewire: Failed to select a source: %1").arg(QString::fromLocal8Bit(ex.what())));
 	}
 
-	std::cout << "Pipewire: SelectSources finished" << std::endl;
+	qDebug().nospace() << "Pipewire: SelectSources finished";
 }
 
 
 void PipewireHandler::selectSourcesResponse(uint response)
 {
-	std::cout << "Pipewire: Got response from portal SelectSources" << std::endl;
+	qDebug().nospace() << "Pipewire: Got response from portal SelectSources";
 
 	if (response != 0) {
 		reportError(QString("Pipewire: Failed to select sources: %1").arg(response));
@@ -450,21 +493,27 @@ void PipewireHandler::selectSourcesResponse(uint response)
 
 	QString requestUUID = getRequestToken();
 
-	_startReplyPath = QString(REQUEST_TEMPLATE).arg(_sender).arg(requestUUID);
-
 	std::map<std::string, sdbus::Variant> startParams{{ "handle_token", sdbus::Variant(requestUUID.toStdString()) }};
 
 	try
 	{
-		auto responseSignalHandler = [&] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
+			_startReplyPath = "";
+
+			if (resultCode != 0)
+			{
+				reportError(QString("Start session returned an error code: %1").arg(((resultCode == 1) ? "cancelled" : "other")));
+				return;
+			}
+
 			try
 			{
 				QString restoreHandle;
 				auto restoreHandleIter = results.find("restore_token");
 				if (restoreHandleIter == results.end())
 				{
-					std::cout << "Start session didnt return a restoration handle" << std::endl;
+					qWarning().nospace() << "Start session didnt return a restoration handle";
 				}
 				else
 				{
@@ -474,7 +523,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 				auto streamsIter = results.find("streams");
 				if (streamsIter == results.end())
 				{
-					std::cout << "Start session didnt return streams" << std::endl;
+					reportError("Start session didnt return streams");
 				}
 				else
 				{
@@ -482,7 +531,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 						streamsIter->second.get<std::vector<sdbus::Struct<uint32_t, std::map<std::string, sdbus::Variant>>>>();
 					if (streams.empty())
 					{
-						std::cout << "Start session didnt return any stream" << std::endl;
+						qWarning().nospace() << "Start session didnt return any stream";
 					}
 
 					auto stream = streams[0];
@@ -494,7 +543,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 					auto sizeIter = nodeStruct.find("size");
 					if (sizeIter == nodeStruct.end())
 					{
-						std::cout << "Could not read stream size" << std::endl;
+						qWarning().nospace() << "Could not read stream size";
 					}
 					else
 					{
@@ -513,11 +562,12 @@ void PipewireHandler::selectSourcesResponse(uint response)
 			}
 		};
 
-		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{""}, sdbus::ObjectPath{_startReplyPath.toStdString()});
+		sdbus::ObjectPath startRequestPath = _screenCastProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams);
+
+		_startReplyPath = QString::fromStdString(static_cast<std::string>(startRequestPath));
+
+		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_startReplyPath.toStdString()});
 		_startProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
-
-		_screenCastProxy->Start( ObjectPath{_sessionHandle.toStdString()}, "", startParams);
-
 	}
 	catch(std::exception& ex)
 	{
@@ -525,12 +575,12 @@ void PipewireHandler::selectSourcesResponse(uint response)
 	}
 
 	
-	std::cout << "Pipewire: Start finished" << std::endl;
+	qDebug().nospace() << "Pipewire: Start finished";
 }
 
 void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32_t nodeId, int nodeStreamWidth, int nodeStreamHeight)
 {
-	std::cout << "Pipewire: Got response from portal Start" << std::endl;
+	qDebug().nospace() << "Pipewire: Got response from portal Start";
 
 	if (response != 0)
 	{		
@@ -542,10 +592,10 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	if (!restoreHandle.isEmpty())
 	{
 		_restorationToken = restoreHandle;
-		std::cout << "Received restoration token: " << qPrintable(QString(_restorationToken).right(12)) << std::endl;
+		qDebug().nospace() << "Received restoration token: " << qPrintable(QString(_restorationToken).right(12));
 	}
 	else
-		std::cout << "No restoration token (portal protocol version 4 required and must be implemented by the backend GNOME/KDE... etc)" << std::endl;
+		qDebug().nospace() << "No restoration token (portal protocol version 4 required and must be implemented by the backend GNOME/KDE... etc)";
 
 
 	_streamNodeId = nodeId;
@@ -554,9 +604,7 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	_portalStatus = true;
 	
 	//------------------------------------------------------------------------------------
-	std::cout << "Connecting to Pipewire interface for stream: " << _frameWidth << " x " << _frameHeight << std::endl;
-
-	pw_init(nullptr, nullptr);
+	qDebug().nospace() << "Connecting to Pipewire interface for stream: " << _frameWidth << " x " << _frameHeight;
 	
 	if ( nullptr == (_pwMainThreadLoop = pw_thread_loop_new("pipewire-hyperhdr-loop", nullptr)))
 	{
@@ -569,25 +617,18 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	if ( nullptr == (_pwNewContext = pw_context_new(pw_thread_loop_get_loop(_pwMainThreadLoop), nullptr, 0)))
 	{
 		reportError("Pipewire: failed to create new Pipewire context");
-		return;
-	}
-	
-	if ( nullptr == (_pwContextConnection = pw_context_connect(_pwNewContext, nullptr, 0)))
+	}	
+	else if ( nullptr == (_pwContextConnection = pw_context_connect(_pwNewContext, nullptr, 0)))
 	{
 		reportError("Pipewire: could not connect to the Pipewire context");
-		return;
 	}
-
-	if ( nullptr == (_pwStream = createCapturingStream()))
+	else if ( nullptr == (_pwStream = createCapturingStream()))
 	{
 		reportError("Pipewire: failed to create new receiving Pipewire stream");
-		return;
 	}
-
-	if (pw_thread_loop_start(_pwMainThreadLoop) < 0)
+	else if (pw_thread_loop_start(_pwMainThreadLoop) < 0)
 	{
 		reportError("Pipewire: could not start main Pipewire loop");
-		return;
 	}
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);
@@ -595,28 +636,18 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 
 
 void PipewireHandler::onStateChanged(pw_stream_state old, pw_stream_state state, const char* error)
-{
-	if (state != PW_STREAM_STATE_STREAMING && _pwStream != nullptr)
-	{		
-		_framePaused = true;
-	}
-
-	if (state == PW_STREAM_STATE_STREAMING)
-	{
-		_framePaused = false;
-	}
-
+{	
 	if (state == PW_STREAM_STATE_ERROR)
 	{
 		reportError(QString("Pipewire: stream reports error '%1'").arg(error));
 		return;
 	}
 
-	if (state == PW_STREAM_STATE_UNCONNECTED) printf("Pipewire: state UNCONNECTED (%d, %d)\n", (int)state, (int)old);
-	else if (state == PW_STREAM_STATE_CONNECTING) printf("Pipewire: state CONNECTING (%d, %d)\n", (int)state, (int)old);
-	else if (state == PW_STREAM_STATE_PAUSED) printf("Pipewire: state PAUSED (%d, %d)\n", (int)state, (int)old);
-	else if (state == PW_STREAM_STATE_STREAMING) printf("Pipewire: state STREAMING (%d, %d)\n", (int)state, (int)old);
-	else printf("Pipewire: state UNKNOWN (%d, %d)\n", (int)state, (int)old);
+	if (state == PW_STREAM_STATE_UNCONNECTED) qDebug().nospace() << "Pipewire: state UNCONNECTED (" << (int)state << ", " << (int)old << ")";
+	else if (state == PW_STREAM_STATE_CONNECTING) qDebug().nospace() << "Pipewire: state CONNECTING (" << (int)state << ", " << (int)old << ")";
+	else if (state == PW_STREAM_STATE_PAUSED) qDebug().nospace() << "Pipewire: state PAUSED (" << (int)state << ", " << (int)old << ")";
+	else if (state == PW_STREAM_STATE_STREAMING) qDebug().nospace() << "Pipewire: state STREAMING (" << (int)state << ", " << (int)old << ")";
+	else qDebug().nospace() << "Pipewire: state UNKNOWN (" << (int)state << ", " << (int)old << ")";
 }
 
 void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
@@ -624,19 +655,36 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	bool hasDma = false;
 	struct spa_video_info format {};
 
-	std::cout << "Pipewire: got new video format selected" << std::endl;
+	qDebug().nospace() << "Pipewire: got new video format selected";
+
+	if (param == nullptr && id == SPA_PARAM_Format && !_isError)
+	{
+		reportError("Pipewire: stream parameters have changed");		
+	}
 
 	if (param == nullptr || id != SPA_PARAM_Format)
+	{
+		qDebug().nospace() << "Pipewire: not a SPA_PARAM_Format or empty. Got: " << id << ". Params are: " << ((param == nullptr) ? "empty" : "not empty");
 		return;
+	}
 
 	if (spa_format_parse(param, &format.media_type, &format.media_subtype) < 0)
+	{
+		qDebug().nospace() << "Pipewire: not a media/submedia type";
 		return;
+	}
 
 	if (format.media_type != SPA_MEDIA_TYPE_video || format.media_subtype != SPA_MEDIA_SUBTYPE_raw)
+	{
+		qDebug().nospace() << "Pipewire: not a video or raw type";
 		return;
+	}
 
 	if (spa_format_video_raw_parse(param, &format.info.raw) < 0)
+	{
+		qDebug().nospace() << "Pipewire: cant parse raw info";
 		return;
+	}
 
 	_frameWidth = format.info.raw.size.width;
 	_frameHeight = format.info.raw.size.height;
@@ -653,14 +701,19 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 			break;
 		}
 #endif
+	if (hasDma && _frameDrmFormat == DRM_FORMAT_MOD_INVALID)
+	{
+		qWarning().nospace() << "Pipewire: proposed unsupported texture, ignoring DMA";
+		hasDma = false;
+	}
 
-	printf("Pipewire: video format = %d (%s)\n", format.info.raw.format, spa_debug_type_find_name(spa_type_video_format, format.info.raw.format));
-	printf("Pipewire: video size = %dx%d (RGB order = %s)\n", _frameWidth, _frameHeight, (_frameOrderRgb) ? "true" : "false");
-	printf("Pipewire: framerate = %d/%d\n", format.info.raw.framerate.num, format.info.raw.framerate.denom);
+	qDebug().nospace() << "Pipewire: video format = " << format.info.raw.format << " (" << spa_debug_type_find_name(spa_type_video_format, format.info.raw.format) << ")";
+	qDebug().nospace() << "Pipewire: video size = " << _frameWidth << "x" << _frameHeight << " (RGB order = " << ((_frameOrderRgb) ? "true" : "false") << ")";
+	qDebug().nospace() << "Pipewire: framerate = " << format.info.raw.framerate.num << "/" << format.info.raw.framerate.denom;
 
-	uint8_t updateBuffer[1000];
+	uint8_t updateBuffer[1536];
 	struct spa_pod_builder updateBufferBuilder = SPA_POD_BUILDER_INIT(updateBuffer, sizeof(updateBuffer));
-	const struct spa_pod* updatedParams[1];
+	const struct spa_pod* updatedParams[2];
 	const uint32_t stride = SPA_ROUND_UP_N(_frameWidth * 4, 4);
 	const int32_t size = _frameHeight * stride;
 
@@ -673,24 +726,27 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	// display capabilities
 	if (hasDma)
 	{
-		printf("Pipewire: DMA buffer available. Format: %s. Modifier: %s.\n",
-				fourCCtoString(_frameDrmFormat).toLocal8Bit().constData(),
-				fourCCtoString(_frameDrmModifier).toLocal8Bit().constData());
+		qDebug().nospace() << "Pipewire: DMA buffer available. Format: " << fourCCtoString(_frameDrmFormat) << ". Modifier: " << fourCCtoString(_frameDrmModifier);
 	}
 	if (bufferTypes & (1 << SPA_DATA_MemFd))
 	{
-		printf("Pipewire: MemFD buffer available\n");
+		qDebug().nospace() << "Pipewire: MemFD buffer available";
 	}
 	if (bufferTypes & (1 << SPA_DATA_MemPtr))
 	{
-		printf("Pipewire: MemPTR buffer available\n");
+		qDebug().nospace() << "Pipewire: MemPTR buffer available";
 	}
+
+	updatedParams[0] = (struct spa_pod*)spa_pod_builder_add_object(&updateBufferBuilder,
+								SPA_TYPE_OBJECT_ParamMeta, SPA_PARAM_Meta,
+								SPA_PARAM_META_type, SPA_POD_Id(SPA_META_Header),
+								SPA_PARAM_META_size, SPA_POD_Int(sizeof(struct spa_meta_header)));
 
 	if (hasDma)
 	{
-		updatedParams[0] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&updateBufferBuilder,
+		updatedParams[1] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&updateBufferBuilder,
 								SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
-								SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 16),
+								SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(1, 1, 8),
 								SPA_PARAM_BUFFERS_size, SPA_POD_Int(size),
 								SPA_PARAM_BUFFERS_stride, SPA_POD_CHOICE_RANGE_Int(stride, stride, INT32_MAX),
 								SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
@@ -698,9 +754,9 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	}
 	else
 	{
-		updatedParams[0] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&updateBufferBuilder,
+		updatedParams[1] = reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&updateBufferBuilder,
 								SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
-								SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(2, 2, 16),
+								SPA_PARAM_BUFFERS_buffers, SPA_POD_CHOICE_RANGE_Int(1, 1, 2),
 								SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
 								SPA_PARAM_BUFFERS_size, SPA_POD_Int(size),
 								SPA_PARAM_BUFFERS_stride, SPA_POD_CHOICE_RANGE_Int(stride, stride, INT32_MAX),
@@ -709,24 +765,36 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 	}
 
 	pw_thread_loop_lock(_pwMainThreadLoop);
-	
-	printf("Pipewire: updated parameters %d\n", pw_stream_update_params(_pwStream, updatedParams, 1));	
-	_infoUpdated = false;
+
+	auto upParam = pw_stream_update_params(_pwStream, updatedParams, 2);
+	qDebug().nospace() << "Pipewire: updated parameters " << upParam;
+	_infoUpdate = DEFAULT_UPDATE_NUMBER;
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);
 };
 
 void PipewireHandler::onProcessFrame()
 {
-	captureFrame();
-	_hasFrame = (_image.data != nullptr);
+	if (_pwStream != nullptr && _incomingFrame != nullptr)
+	{
+		if (auto cstate = pw_stream_get_state(_pwStream, nullptr); cstate == PW_STREAM_STATE_STREAMING)
+		{
+			captureFrame();
+		}
+
+		if (auto cstate = pw_stream_get_state(_pwStream, nullptr); (cstate == PW_STREAM_STATE_PAUSED || cstate == PW_STREAM_STATE_STREAMING))
+		{
+			pw_stream_queue_buffer(_pwStream, _incomingFrame);
+			_incomingFrame = nullptr;
+		}
+	}
 };
 
 void PipewireHandler::getImage(PipewireImage& retVal)
 {
-	if (_framePaused)
+	if (hasError())
 	{
-		_image.isError = hasError();
+		_image.isError = true;
 		_image.data = nullptr;
 	}
 
@@ -735,15 +803,7 @@ void PipewireHandler::getImage(PipewireImage& retVal)
 
 void PipewireHandler::captureFrame()
 {	
-	struct pw_buffer* newFrame = nullptr;
-	struct pw_buffer* dequeueFrame = nullptr;
-	uint8_t* mappedMemory = nullptr;
-	uint8_t* frameBuffer = nullptr;	
-
-	if (_pwStream == nullptr || _framePaused)
-		return;
-
-	_hasFrame = false;
+	struct pw_buffer* newFrame = _incomingFrame;
 
 	_image.width = _frameWidth;
 	_image.height = _frameHeight;
@@ -752,201 +812,257 @@ void PipewireHandler::captureFrame()
 	_image.isError = hasError();
 	_image.stride = 0;
 
-	while ((dequeueFrame = pw_stream_dequeue_buffer(_pwStream)) != nullptr)
+	if (_infoUpdate)
 	{
-		if (newFrame != nullptr && pw_stream_get_state(_pwStream, nullptr) == PW_STREAM_STATE_STREAMING)
-			pw_stream_queue_buffer(_pwStream, newFrame);
-		newFrame = dequeueFrame;
+		if (newFrame->buffer->datas->type == SPA_DATA_MemFd)
+			qDebug().nospace() << "Pipewire: Using MemFD frame type. The hardware acceleration is DISABLED.";
+		else if (newFrame->buffer->datas->type == SPA_DATA_DmaBuf)
+			qDebug().nospace() << "Pipewire: Using DmaBuf frame type. The hardware acceleration is ENABLED.";
+		else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
+			qDebug().nospace() << "Pipewire: Using MemPTR frame type. The hardware acceleration is DISABLED.";
 	}
 
-	if (newFrame != nullptr)
-	{
-		if (!_infoUpdated)
-		{
-			if (newFrame->buffer->datas->type == SPA_DATA_MemFd)
-				printf("Pipewire: Using MemFD frame type. The hardware acceleration is DISABLED.\n");
-			else if (newFrame->buffer->datas->type == SPA_DATA_DmaBuf)
-				printf("Pipewire: Using DmaBuf frame type. The hardware acceleration is ENABLED.\n");
-			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
-				printf("Pipewire: Using MemPTR frame type. The hardware acceleration is DISABLED.\n");			
-		}
-
 #ifdef ENABLE_PIPEWIRE_EGL
-		if (newFrame->buffer->datas->type == SPA_DATA_DmaBuf)
+	if (newFrame->buffer->datas->type == SPA_DATA_DmaBuf)
+	{
+		if (!_initEGL)
 		{
-			if (!_initEGL)
+			qCritical().nospace() << "PipewireEGL: EGL is not initialized";
+		}
+		else if (newFrame->buffer->n_datas == 0 || newFrame->buffer->n_datas > 4)
+		{
+			qCritical().nospace() << "PipewireEGL: unexpected plane number";
+		}
+		else if (eglGetCurrentContext() != contextEgl && !eglMakeCurrent(displayEgl, EGL_NO_SURFACE, EGL_NO_SURFACE, contextEgl))
+		{
+			qCritical().nospace() << "PipewireEGL: failed to make a current context (reason = '" << eglErrorToString(eglGetError()) << "')";
+		}
+		else
+		{
+			QVector<EGLint> attribs;
+
+			attribs << EGL_WIDTH << _frameWidth << EGL_HEIGHT << _frameHeight << EGL_LINUX_DRM_FOURCC_EXT << EGLint(_frameDrmFormat);
+
+			EGLint EGL_DMA_BUF_PLANE_FD_EXT[] = { EGL_DMA_BUF_PLANE0_FD_EXT,     EGL_DMA_BUF_PLANE1_FD_EXT,     EGL_DMA_BUF_PLANE2_FD_EXT,     EGL_DMA_BUF_PLANE3_FD_EXT };
+			EGLint EGL_DMA_BUF_PLANE_OFFSET_EXT[] = { EGL_DMA_BUF_PLANE0_OFFSET_EXT, EGL_DMA_BUF_PLANE1_OFFSET_EXT, EGL_DMA_BUF_PLANE2_OFFSET_EXT, EGL_DMA_BUF_PLANE3_OFFSET_EXT };
+			EGLint EGL_DMA_BUF_PLANE_PITCH_EXT[] = { EGL_DMA_BUF_PLANE0_PITCH_EXT,  EGL_DMA_BUF_PLANE1_PITCH_EXT,  EGL_DMA_BUF_PLANE2_PITCH_EXT,  EGL_DMA_BUF_PLANE3_PITCH_EXT };
+			EGLint EGL_DMA_BUF_PLANE_MODIFIER_LO_EXT[] = { EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT, EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT, EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT, EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT };
+			EGLint EGL_DMA_BUF_PLANE_MODIFIER_HI_EXT[] = { EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT, EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT, EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT, EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT };
+
+			for (uint32_t i = 0; i < newFrame->buffer->n_datas && i < 4; i++)
 			{
-				printf("PipewireEGL: EGL is not initialized\n");
+				auto planes = newFrame->buffer->datas[i];
+
+				attribs << EGL_DMA_BUF_PLANE_FD_EXT[i] << EGLint(planes.fd) << EGL_DMA_BUF_PLANE_OFFSET_EXT[i] << EGLint(planes.chunk->offset)
+					<< EGL_DMA_BUF_PLANE_PITCH_EXT[i] << EGLint(planes.chunk->stride);
+
+				if (_frameDrmModifier != DRM_FORMAT_MOD_INVALID)
+				{
+					attribs << EGL_DMA_BUF_PLANE_MODIFIER_LO_EXT[i] << EGLint(_frameDrmModifier & 0xffffffff)
+						<< EGL_DMA_BUF_PLANE_MODIFIER_HI_EXT[i] << EGLint(_frameDrmModifier >> 32);
+				}
 			}
-			else if (newFrame->buffer->n_datas == 0 || newFrame->buffer->n_datas > 4)
+
+			attribs << EGL_IMAGE_PRESERVED_KHR << EGL_FALSE << EGL_NONE;
+
+			auto eglImage = (newFrame->user_data != nullptr) ? static_cast<PipewireCache*>(newFrame->user_data)->eglImage :
+				eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
+
+			if (eglImage == EGL_NO_IMAGE_KHR)
 			{
-				printf("PipewireEGL: unexpected plane number\n");
-			}
-			else if (!eglMakeCurrent(displayEgl, EGL_NO_SURFACE, EGL_NO_SURFACE, contextEgl))
-			{
-				printf("PipewireEGL: failed to make a current context (reason = '%s')\n", eglErrorToString(eglGetError()));
+				qCritical().nospace() << "PipewireEGL: failed to create a eglCreateImageKHR texture (reason = '" << eglErrorToString(eglGetError()) << "')";
+				qCritical().nospace() << "PipewireEGL: width = " << _frameWidth << ", height = " << _frameHeight << ", DRM format = " << _frameDrmFormat << ", ndatas = " << newFrame->buffer->n_datas;
 			}
 			else
-			{				
-				QVector<EGLint> attribs;
-				std::vector<std::pair<int, int>> eglDrmModWorkaround;
-				
-				attribs << EGL_WIDTH << _frameWidth << EGL_HEIGHT << _frameHeight << EGL_LINUX_DRM_FOURCC_EXT << EGLint(_frameDrmFormat);
-
-				EGLint EGL_DMA_BUF_PLANE_FD_EXT[]     = { EGL_DMA_BUF_PLANE0_FD_EXT,     EGL_DMA_BUF_PLANE1_FD_EXT,     EGL_DMA_BUF_PLANE2_FD_EXT,     EGL_DMA_BUF_PLANE3_FD_EXT };
-				EGLint EGL_DMA_BUF_PLANE_OFFSET_EXT[] = { EGL_DMA_BUF_PLANE0_OFFSET_EXT, EGL_DMA_BUF_PLANE1_OFFSET_EXT, EGL_DMA_BUF_PLANE2_OFFSET_EXT, EGL_DMA_BUF_PLANE3_OFFSET_EXT };
-				EGLint EGL_DMA_BUF_PLANE_PITCH_EXT[]  = { EGL_DMA_BUF_PLANE0_PITCH_EXT,  EGL_DMA_BUF_PLANE1_PITCH_EXT,  EGL_DMA_BUF_PLANE2_PITCH_EXT,  EGL_DMA_BUF_PLANE3_PITCH_EXT };
-				EGLint EGL_DMA_BUF_PLANE_MODIFIER_LO_EXT[] = { EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT, EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT, EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT, EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT };
-				EGLint EGL_DMA_BUF_PLANE_MODIFIER_HI_EXT[] = { EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT, EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT, EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT, EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT };
-
-				for(uint32_t i = 0; i < newFrame->buffer->n_datas && i < 4; i++)
+			{
+				if (newFrame->user_data == nullptr)
 				{
-					auto planes = newFrame->buffer->datas[i];
-
-					attribs << EGL_DMA_BUF_PLANE_FD_EXT[i] << EGLint(planes.fd) << EGL_DMA_BUF_PLANE_OFFSET_EXT[i] << EGLint(planes.chunk->offset)
-							<< EGL_DMA_BUF_PLANE_PITCH_EXT[i] << EGLint(planes.chunk->stride);
-
-					if (_frameDrmModifier != DRM_FORMAT_MOD_INVALID)
-					{
-						int before = attribs.size();
-						attribs	<< EGL_DMA_BUF_PLANE_MODIFIER_LO_EXT[i] << EGLint(_frameDrmModifier & 0xffffffff)
-								<< EGL_DMA_BUF_PLANE_MODIFIER_HI_EXT[i] << EGLint(_frameDrmModifier >> 32);
-						eglDrmModWorkaround.push_back(std::pair<int, int>(before, attribs.size() - 1));
-					}
+					PipewireCache* cache = new PipewireCache();
+					cache->eglImage = eglImage;
+					newFrame->user_data = cache;
+					qDebug().nospace() << "PipewireEGL: cached new eglCreateImageKHR texture";
 				}
 
-				attribs << EGL_IMAGE_PRESERVED_KHR << EGL_TRUE << EGL_NONE;
+				GLenum glRes = GL_NO_ERROR;
 
-				EGLImage eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
-
-				if (eglImage == EGL_NO_IMAGE_KHR && !eglDrmModWorkaround.empty())
+				if (_eglTexture == 0)
 				{
-					// remove drm mods
-					QVector<EGLint> attribsCopy;
-					for (int i = 0; i < attribs.size(); i++)
+					glGenTextures(1, &_eglTexture);
+					glRes = glGetError();
+
+					if (glRes == GL_NO_ERROR)
 					{
-						attribsCopy.push_back(attribs[i]);
-						for (const auto& check : eglDrmModWorkaround)
-							if (i >= check.first && i <= check.second)
-							{
-								attribsCopy.pop_back();
-								break;
-							}
-					}
-					attribs = attribsCopy;
-					eglImage = eglCreateImageKHR(displayEgl, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, (EGLClientBuffer) nullptr, attribs.data());
-				}
+						if (_infoUpdate)
+							qDebug().nospace() << "PipewireGL: target texture created";
 
-				if (eglImage == EGL_NO_IMAGE_KHR)
-				{
-					printf("PipewireEGL: failed to create a texture (reason = '%s')\n", eglErrorToString(eglGetError()));
+						glBindTexture(GL_TEXTURE_2D, _eglTexture);
+						glRes = glGetError();
+
+						if (glRes == GL_NO_ERROR)
+						{
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+						}
+					}
 				}
 				else
 				{
-					if (!_infoUpdated)
-						printf("PipewireEGL: got the texture\n");
+					glBindTexture(GL_TEXTURE_2D, _eglTexture);
+					glRes = glGetError();
+				}
 
-					GLenum glRes;
-					GLuint texture;
-
-					glGenTextures(1, &texture);
+				if (glRes != GL_NO_ERROR)
+				{
+					qCritical().nospace() << "PipewireGL: could not create/bind target texture (" << glErrorToString(glRes) << ")";
+				}
+				else
+				{
+					glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, eglImage);
 					glRes = glGetError();
 
 					if (glRes != GL_NO_ERROR)
 					{
-						printf("PipewireGL: could not render create a texture (%s)", glErrorToString(glRes));
+						qCritical().nospace() << "PipewireGL: glEGLImageTargetTexture2DOES failed (" << glErrorToString(glRes) << ")";
 					}
 					else
 					{
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-						glBindTexture(GL_TEXTURE_2D, texture);
+						if (_infoUpdate)
+							qDebug().nospace() << "PipewireGL: glEGLImageTargetTexture2DOES OK";
 
-						glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, eglImage);
-						glRes = glGetError();
+						auto prefferedFormat = GL_RGBA;
+						for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
+							if (_frameDrmFormat == supVal.drmFormat)
+							{
+								prefferedFormat = supVal.glFormat;
+								break;
+							}
 
-						if (glRes != GL_NO_ERROR)
+						double ratio = static_cast<double>(std::max(_frameWidth, _frameHeight)) / std::max(_targetMaxSize, 1);
+						_image.width = std::max(1, (int)(_frameWidth / ratio));
+						_image.height = std::max(1, (int)(_frameHeight / ratio));
+
+						if (_infoUpdate)
+							qDebug().nospace() << "PipewireGL: scaling to " << _image.width << "x" << _image.height << " on GPU";;
+
+						if (glRes == GL_NO_ERROR && (_eglFbos[0] == 0 || _eglFbos[1] == 0))
 						{
-							printf("PipewireGL: glEGLImageTargetTexture2DOES failed (%s)\n", glErrorToString(glRes));
+							qDebug().nospace() << "PipewireGL: creating and caching eglFbos";
+							glGenFramebuffers(static_cast<GLsizei>(_eglFbos.size()), _eglFbos.data());
+							if (glRes = glGetError(); glRes != GL_NO_ERROR)
+							{
+								qCritical().nospace() << "PipewireGL: glGenFramebuffers failed (" << glErrorToString(glRes) << ")";
+							}
 						}
-						else
-						{
-							frameBuffer = createMemory(newFrame->buffer->datas[0].chunk->stride * _frameHeight);
 
-							for (supportedDmaFormat& supVal : _supportedDmaFormatsList)
-								if (_frameDrmFormat == supVal.drmFormat)
+						if (glRes == GL_NO_ERROR && _eglScratchTex == 0)
+						{
+							qDebug().nospace() << "PipewireGL: creating and caching scratch texture";
+							glGenTextures(1, &_eglScratchTex);
+							if (glRes = glGetError(); glRes != GL_NO_ERROR)
+							{
+								qCritical().nospace() << "PipewireGL: glGenTextures for scratch texture failed (" << glErrorToString(glRes) << ")";
+							}
+							else
+							{
+								glBindTexture(GL_TEXTURE_2D, _eglScratchTex);
+								glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _image.width, _image.height, 0, prefferedFormat, GL_UNSIGNED_BYTE, nullptr);
+								if (glRes = glGetError(); glRes != GL_NO_ERROR)
 								{
-									glGetTexImage(GL_TEXTURE_2D, 0, supVal.glFormat, GL_UNSIGNED_BYTE, frameBuffer);
-									glRes = glGetError();
-									
-									if (glRes != GL_NO_ERROR)
-									{
-										printf("PipewireGL: could not render the DMA texture (%s)\n", glErrorToString(glRes));
-									}
-									else
-									{
-										if (!_infoUpdated)
-											printf("PipewireEGL: succesfully rendered the DMA texture\n");
-
-										_image.data = frameBuffer;
-									}
-
-									break;
+									qCritical().nospace() << "PipewireGL: glTexImage2D for scratch texture failed (" << glErrorToString(glRes) << ")";
 								}
+							}
 						}
 
-						glDeleteTextures(1, &texture);					
+						if (glRes == GL_NO_ERROR && _eglFbos[0] != 0 && _eglFbos[1] != 0 && _eglScratchTex != 0)
+						{
+							glBindFramebuffer(GL_READ_FRAMEBUFFER, _eglFbos[0]);
+							glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _eglTexture, 0);
+
+							glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _eglFbos[1]);
+							glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _eglScratchTex, 0);
+
+							glBlitFramebuffer(0, 0, _frameWidth, _frameHeight, 0, 0, _image.width, _image.height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+							if (glRes = glGetError(); glRes == GL_NO_ERROR)
+							{
+								_image.data = createMemory(_image.width * _image.height * 4);
+
+								glBindFramebuffer(GL_FRAMEBUFFER, _eglFbos[1]);
+								glPixelStorei(GL_PACK_ALIGNMENT, 1);
+								glReadPixels(0, 0, _image.width, _image.height, prefferedFormat, GL_UNSIGNED_BYTE, _image.data);
+
+								if (glRes = glGetError(); glRes != GL_NO_ERROR)
+								{
+									qCritical().nospace() << "PipewireGL: glReadPixels failed (" << glErrorToString(glRes) << ")";
+								}
+
+								glBindFramebuffer(GL_FRAMEBUFFER, 0);
+							}
+							else
+							{
+								qCritical().nospace() << "PipewireGL: glBlitFramebuffer failed (" << glErrorToString(glRes) << ")";
+							}
+						}
 					}
-					eglDestroyImageKHR(displayEgl, eglImage);
 				}
 			}
 		}
-		else
+	}
+	else
 #endif
-		if (newFrame->buffer->datas[0].data == nullptr)
-		{
-			printf("Pipewire: empty buffer\n");
-		}
-		else
-		{
-			_image.stride = newFrame->buffer->datas->chunk->stride;
+	{
+		_image.stride = newFrame->buffer->datas->chunk->stride;
 
-			if (newFrame->buffer->datas->type == SPA_DATA_MemFd)
+		if (newFrame->buffer->datas->type == SPA_DATA_MemFd)
+		{
+			auto mmapSize = (newFrame->user_data != nullptr) ? static_cast<PipewireCache*>(newFrame->user_data)->mmapSize :
+				newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset;
+			auto mmapPtr = (newFrame->user_data != nullptr) ? static_cast<PipewireCache*>(newFrame->user_data)->mmapPtr :
+				static_cast<uint8_t*>(mmap(nullptr, mmapSize, PROT_READ, MAP_PRIVATE, newFrame->buffer->datas->fd, 0));
+
+			if (mmapPtr == MAP_FAILED)
 			{
-				mappedMemory = static_cast<uint8_t*>(mmap(nullptr,
-												newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset,
-												PROT_READ, MAP_PRIVATE, newFrame->buffer->datas->fd, 0));
+				qCritical().nospace() << "Pipewire: Failed to mmap the memory: " << strerror(errno);
+			}
+			else
+			{
+				if (_infoUpdate)
+					qDebug().nospace() << "Pipewire: mapped memory";
 
-				if (mappedMemory == MAP_FAILED)
+				_image.data = createMemory(_image.stride * _frameHeight);
+				memcpy(_image.data, mmapPtr, static_cast<size_t>(_image.stride)* _frameHeight);
+				
+				if (newFrame->user_data == nullptr)
 				{
-					printf("Pipewire: Failed to mmap the memory: %s ", strerror(errno));
-					mappedMemory = nullptr;
-				}
-				else
-				{
-					_image.data = createMemory(_image.stride * _frameHeight);
-					memcpy(_image.data, mappedMemory, static_cast<size_t>(_image.stride) * _frameHeight);
+					PipewireCache* cache = new PipewireCache();
+					cache->mmapSize = mmapSize;
+					cache->mmapPtr = mmapPtr;
+					newFrame->user_data = cache;
+					qDebug().nospace() << "Pipewire: new mapped memory cached";
 				}
 			}
-			else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
-			{				
+		}
+		else if (newFrame->buffer->datas->type == SPA_DATA_MemPtr)
+		{
+			if (newFrame->buffer->datas[0].data == nullptr)
+			{
+				qCritical().nospace() << "Pipewire: empty buffer";
+			}
+			else
+			{
+				if (_infoUpdate)
+					qDebug().nospace() << "Pipewire: prepare to copy already mapped memory";
+
 				_image.data = createMemory(_image.stride * _frameHeight);
 				memcpy(_image.data, static_cast<uint8_t*>(newFrame->buffer->datas[0].data), static_cast<size_t>(_image.stride) * _frameHeight);
 			}
 		}
 	}
 
-	// clean up
-	if (mappedMemory != nullptr)
-		munmap(mappedMemory, newFrame->buffer->datas->maxsize + newFrame->buffer->datas->mapoffset);
-
-	if (newFrame != nullptr && pw_stream_get_state(_pwStream, nullptr) == PW_STREAM_STATE_STREAMING)
-		pw_stream_queue_buffer(_pwStream, newFrame);
-
 	// goodbye
-	_infoUpdated = true;
+	if (_infoUpdate > 0)
+		_infoUpdate--;
 };
 
 uint8_t* PipewireHandler::createMemory(int size)
@@ -957,12 +1073,55 @@ uint8_t* PipewireHandler::createMemory(int size)
 	return _memoryCache.data();
 }
 
+void PipewireHandler::onReleaseBuffer(struct pw_buffer* buffer)
+{
+	if (buffer->user_data != nullptr)
+	{		
+		PipewireCache* cache = static_cast<PipewireCache*>(buffer->user_data);
+
+		qDebug().nospace() << "Pipewire: releasing cached texture/memory";
+
+	#ifdef ENABLE_PIPEWIRE_EGL
+		if (cache->eglImage != EGL_NO_IMAGE_KHR && displayEgl != EGL_NO_DISPLAY)
+		{
+			if (eglGetCurrentContext() != contextEgl)
+			{
+				eglMakeCurrent(displayEgl, EGL_NO_SURFACE, EGL_NO_SURFACE, contextEgl);
+				qDebug() << "Pipewire EGL: switch context";
+			}
+			eglDestroyImageKHR(displayEgl, cache->eglImage);
+			qDebug() << "Pipewire EGL: delete image";
+		}
+	#endif
+
+		if (cache->mmapPtr != MAP_FAILED && cache->mmapSize > 0)
+		{
+			munmap(cache->mmapPtr, cache->mmapSize);
+			qDebug() << "Pipewire: unmap memory";
+		}
+
+		delete cache;
+		buffer->user_data = nullptr;
+	}
+
+	struct pw_buffer* expected = buffer;
+	if (_incomingFrame.compare_exchange_strong(expected, nullptr))
+	{
+		qDebug() << "Pipewire: removing incoming frame because it's invalid now";
+		if (auto cstate = pw_stream_get_state(_pwStream, nullptr); (cstate == PW_STREAM_STATE_PAUSED || cstate == PW_STREAM_STATE_STREAMING))
+		{
+			pw_stream_queue_buffer(_pwStream, buffer);
+		}
+	}
+}
+
 void PipewireHandler::onCoreError(uint32_t id, int seq, int res, const char *message)
 {
 	reportError(QString("Pipewire: core reports error '%1'").arg(message));
 }
 
 #ifdef ENABLE_PIPEWIRE_EGL
+
 const char* PipewireHandler::glErrorToString(GLenum errorType)
 {
 	switch (errorType) {
@@ -1057,154 +1216,202 @@ void PipewireHandler::initEGL()
 
 	if (_libEglHandle == nullptr && (_libEglHandle = dlopen("libEGL.so.1", RTLD_NOW | RTLD_GLOBAL)) == nullptr)
 	{
-		printf("PipewireEGL: HyperHDR could not open EGL library\n");
+		qCritical().nospace() << "PipewireEGL: HyperHDR could not open EGL library";
 		return;
 	}
 
 	if (_libGlHandle == nullptr && ((_libGlHandle = dlopen("libGL.so.1", RTLD_NOW | RTLD_GLOBAL)) == nullptr)
 							 && ((_libGlHandle = dlopen("libGL.so", RTLD_NOW | RTLD_GLOBAL)) == nullptr))
 	{
-		printf("PipewireEGL: HyperHDR could not open GL library\n");
+		qCritical().nospace() << "PipewireEGL: HyperHDR could not open GL library";
 		return;
 	}
 
 	if ((eglGetProcAddress = (eglGetProcAddressFun)dlsym(_libEglHandle, "eglGetProcAddress")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglGetProcAddress\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglGetProcAddress";
 		return;
 	}
 
 	if ((eglGetPlatformDisplay = (eglGetPlatformDisplayFun)eglGetProcAddress("eglGetPlatformDisplay")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglGetPlatformDisplay\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglGetPlatformDisplay";
 		return;
 	}
 
 	if ((eglTerminate = (eglTerminateFun)eglGetProcAddress("eglTerminate")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglTerminate\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglTerminate";
 		return;
 	}
 
 	if ((eglInitialize = (eglInitializeFun)eglGetProcAddress("eglInitialize")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglInitialize\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglInitialize";
 		return;
 	}
 
 	if ((eglQueryDmaBufFormatsEXT = (eglQueryDmaBufFormatsEXTFun)eglGetProcAddress("eglQueryDmaBufFormatsEXT")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglQueryDmaBufFormatsEXT\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglQueryDmaBufFormatsEXT";
 		return;
 	}
 
 	if ((eglQueryDmaBufModifiersEXT = (eglQueryDmaBufModifiersEXTFun)eglGetProcAddress("eglQueryDmaBufModifiersEXT")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglQueryDmaBufModifiersEXT\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglQueryDmaBufModifiersEXT";
 		return;
 	}
 
 	if ((eglCreateImageKHR = (eglCreateImageKHRFun)eglGetProcAddress("eglCreateImageKHR")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglCreateImageKHR\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglCreateImageKHR";
 		return;
 	}
 
 	if ((eglDestroyImageKHR = (eglDestroyImageKHRFun)eglGetProcAddress("eglDestroyImageKHR")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglDestroyImageKHR\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglDestroyImageKHR";
 		return;
 	}
 
 	if ((eglCreateContext = (eglCreateContextFun)eglGetProcAddress("eglCreateContext")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglCreateContext\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglCreateContext";
 		return;
 	}
 
 	if ((eglDestroyContext = (eglDestroyContextFun)eglGetProcAddress("eglDestroyContext")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglDestroyContext\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglDestroyContext";
 		return;
 	}	
 
 	if ((eglMakeCurrent = (eglMakeCurrentFun)eglGetProcAddress("eglMakeCurrent")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglMakeCurrent\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglMakeCurrent";
+		return;
+	}
+	 
+	if ((eglGetCurrentContext = (eglGetCurrentContextFun)eglGetProcAddress("eglGetCurrentContext")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireEGL: failed to get eglGetCurrentContext";
 		return;
 	}
 
 	if ((eglGetError = (eglGetErrorFun)eglGetProcAddress("eglGetError")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglGetError\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglGetError";
 		return;
 	}
 
 	if ((glEGLImageTargetTexture2DOES = (glEGLImageTargetTexture2DOESFun)eglGetProcAddress("glEGLImageTargetTexture2DOES")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get glEGLImageTargetTexture2DOES\n");
+		qCritical().nospace() << "PipewireEGL: failed to get glEGLImageTargetTexture2DOES";
 		return;
 	}
 
 	if ((eglBindAPI = (eglBindAPIFun)eglGetProcAddress("eglBindAPI")) == nullptr)
 	{
-		printf("PipewireEGL: failed to get eglBindAPI\n");
-		return;
-	}	
-
-	if ((glXGetProcAddressARB = (glXGetProcAddressARBFun)dlsym(_libGlHandle, "glXGetProcAddressARB")) == nullptr)
-	{
-		printf("PipewireGL: failed to get glXGetProcAddressARB\n");
+		qCritical().nospace() << "PipewireEGL: failed to get eglBindAPI";
 		return;
 	}
 
-	if ((glBindTexture = (glBindTextureFun)glXGetProcAddressARB("glBindTexture")) == nullptr)
+	if ((glBindTexture = (glBindTextureFun)eglGetProcAddress("glBindTexture")) == nullptr)
 	{
-		printf("PipewireGL: failed to get glBindTexture\n");
+		qCritical().nospace() << "PipewireGL: failed to get glBindTexture";
 		return;
 	}
 
-	if ((glDeleteTextures = (glDeleteTexturesFun)glXGetProcAddressARB("glDeleteTextures")) == nullptr)
+	if ((glDeleteTextures = (glDeleteTexturesFun)eglGetProcAddress("glDeleteTextures")) == nullptr)
 	{
-		printf("PipewireGL: failed to get glDeleteTextures\n");
+		qCritical().nospace() << "PipewireGL: failed to get glDeleteTextures";
 		return;
 	}
 
-	if ((glGenTextures = (glGenTexturesFun)glXGetProcAddressARB("glGenTextures")) == nullptr)
+	if ((glGenTextures = (glGenTexturesFun)eglGetProcAddress("glGenTextures")) == nullptr)
 	{
-		printf("PipewireGL: failed to get glGenTextures\n");
+		qCritical().nospace() << "PipewireGL: failed to get glGenTextures";
 		return;
 	}
 
-	if ((glGetError = (glGetErrorFun)glXGetProcAddressARB("glGetError")) == nullptr)
+	if ((glGetError = (glGetErrorFun)eglGetProcAddress("glGetError")) == nullptr)
 	{
-		printf("PipewireGL: failed to get glGetError\n");
+		qCritical().nospace() << "PipewireGL: failed to get glGetError";
 		return;
 	}
 
-	if ((glGetTexImage = (glGetTexImageFun)glXGetProcAddressARB("glGetTexImage")) == nullptr)
+	if ((glGetTexImage = (glGetTexImageFun)eglGetProcAddress("glGetTexImage")) == nullptr)
 	{
-		printf("PipewireGL: failed to get glGetTexImage\n");
+		qCritical().nospace() << "PipewireGL: failed to get glGetTexImage";
 		return;
 	}
 
-	if ((glTexParameteri = (glTexParameteriFun)glXGetProcAddressARB("glTexParameteri")) == nullptr)
+	if ((glTexParameteri = (glTexParameteriFun)eglGetProcAddress("glTexParameteri")) == nullptr)
 	{
-		printf("PipewireGL: failed to get glTexParameteri\n");
+		qCritical().nospace() << "PipewireGL: failed to get glTexParameteri";
 		return;
 	}
+	
+	if ((glGenerateMipmap = (glGenerateMipmapFun)eglGetProcAddress("glGenerateMipmap")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glGenerateMipmap";
+		return;
+	}
+	
+	if ((glPixelStorei = (glPixelStoreiFun)eglGetProcAddress("glPixelStorei")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glPixelStorei";
+		return;
+	}
+	if ((glGenFramebuffers = (glGenFramebuffersFun)eglGetProcAddress("glGenFramebuffers")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glGenFramebuffers";
+		return;
+	}
+	if ((glBindFramebuffer = (glBindFramebufferFun)eglGetProcAddress("glBindFramebuffer")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glBindFramebuffer";
+		return;
+	}
+	if ((glFramebufferTexture2D = (glFramebufferTexture2DFun)eglGetProcAddress("glFramebufferTexture2D")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glFramebufferTexture2D";
+		return;
+	}
+	if ((glReadPixels = (glReadPixelsFun)eglGetProcAddress("glReadPixels")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glReadPixels";
+		return;
+	}
+	if ((glDeleteFramebuffers = (glDeleteFramebuffersFun)eglGetProcAddress("glDeleteFramebuffers")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glDeleteFramebuffers";
+		return;
+	}
+	if ((glBlitFramebuffer = (glBlitFramebufferFun)eglGetProcAddress("glBlitFramebuffer")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glBlitFramebuffer";
+		return;
+	}
+	if ((glTexImage2D = (glTexImage2DFun)eglGetProcAddress("glTexImage2D")) == nullptr)
+	{
+		qCritical().nospace() << "PipewireGL: failed to get glTexImage2D";
+		return;
+	}
+
 
 	if (displayEgl == EGL_NO_DISPLAY)
 	{
 		bool x11session = qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("x11") && !qEnvironmentVariableIsSet("WAYLAND_DISPLAY");
-		printf("Session type: %s , X11 detected: %s\n", qgetenv("XDG_SESSION_TYPE").constData(), (x11session) ? "yes" : "no");
+		qDebug().nospace() << "Session type: " << qgetenv("XDG_SESSION_TYPE") << " , X11 detected: " << ((x11session) ? "yes" : "no");
 
 		displayEgl = (x11session) ? eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr) :
 									eglGetPlatformDisplay(EGL_PLATFORM_WAYLAND_KHR, (void*)EGL_DEFAULT_DISPLAY, nullptr);
 
 		if (displayEgl == EGL_NO_DISPLAY)
 		{
-			printf("PipewireEGL: no EGL display\n");
+			qCritical().nospace() << "PipewireEGL: no EGL display";
 			return;
 		}
 		else
@@ -1212,11 +1419,11 @@ void PipewireHandler::initEGL()
 			EGLint major, minor;
 			if (eglInitialize(displayEgl, &major, &minor))
 			{
-				printf("PipewireEGL: EGL initialized for HyperHDR. Version: %d.%d\n", major, minor);
+				qDebug().nospace() << "PipewireEGL: EGL initialized for HyperHDR. Version: " << major << "." << minor;
 			}
 			else
 			{
-				printf("PipewireEGL: failed to init the display\n");
+				qCritical().nospace() << "PipewireEGL: failed to init the display";
 				return;
 			}
 		}
@@ -1224,7 +1431,7 @@ void PipewireHandler::initEGL()
 
 	if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE)
 	{
-		printf("PipewireEGL: could not bing OpenGL API (reason = '%s')\n", eglErrorToString(eglGetError()));
+		qCritical().nospace() << "PipewireEGL: could not bing OpenGL API (reason = '" << eglErrorToString(eglGetError()) << "')";
 		return;
 	}
 
@@ -1232,7 +1439,7 @@ void PipewireHandler::initEGL()
 	{
 		if ((contextEgl = eglCreateContext(displayEgl, nullptr, EGL_NO_CONTEXT, nullptr)) == EGL_NO_CONTEXT)
 		{
-			printf("PipewireEGL: Failed to create a context (reason = '%s')\n", eglErrorToString(eglGetError()));
+			qCritical().nospace() << "PipewireEGL: Failed to create a context (reason = '" << eglErrorToString(eglGetError()) << "')";
 			return;
 		}
 	}
@@ -1241,12 +1448,12 @@ void PipewireHandler::initEGL()
 
 	if (!eglQueryDmaBufFormatsEXT(displayEgl, 0, nullptr, &dmaCount))
 	{
-		printf("PipewireEGL: Failed to query DMA-BUF format count (count = %d, reason = '%s')\n", dmaCount, eglErrorToString(eglGetError()));
+		qCritical().nospace() << "PipewireEGL: Failed to query DMA-BUF format count (count = " << dmaCount << ", reason = '" << eglErrorToString(eglGetError()) << "')";
 		return;
 	}
 	else if (dmaCount > 0)
 	{
-		printf("PipewireEGL: Found %d DMA-BUF formats\n", dmaCount);
+		qDebug().nospace() << "PipewireEGL: Found " << dmaCount  << " DMA-BUF formats";
 	}
 
 	
@@ -1254,18 +1461,21 @@ void PipewireHandler::initEGL()
 
 	if (dmaCount > 0 && eglQueryDmaBufFormatsEXT(displayEgl, dmaCount, (EGLint*)dmaFormats.data(), &dmaCount))
 	{
-		printf("PipewireEGL: got DMA format list (count = %d)\n", dmaCount);
+		qDebug().nospace() << "PipewireEGL: got DMA format list (count = " << dmaCount << ")";
 	}
 	else
 	{
-		printf("PipewireEGL: Failed to get DMA-BUF formats (reason = '%s')\n", eglErrorToString(eglGetError()));
+		qCritical().nospace() << "PipewireEGL: Failed to get DMA-BUF formats (reason = '" << eglErrorToString(eglGetError()) << "')";
 		return;
 	}
 
+	QStringList supportedList;
+	QStringList unsupportedList;
 
 	foreach(const uint32_t& val, dmaFormats)
 	{
 		bool found = false;
+		auto fourCC = fourCCtoString(val);
 
 		for(supportedDmaFormat& supVal : _supportedDmaFormatsList)
 			if (val == supVal.drmFormat)
@@ -1276,7 +1486,7 @@ void PipewireHandler::initEGL()
 					supVal.modifiers = QVector<uint64_t>(modCount);
 					if (eglQueryDmaBufModifiersEXT(displayEgl, supVal.drmFormat, modCount, supVal.modifiers.data(), nullptr, &modCount))
 					{
-						printf("PipewireEGL: Found %s DMA format (%s)\n", supVal.friendlyName, fourCCtoString(val).toLocal8Bit().constData());
+						supportedList << QString("%1 (%2)").arg(supVal.friendlyName).arg(fourCC);
 						supVal.hasDma = true;
 						found = true;
 						_initEGL = true;
@@ -1287,13 +1497,24 @@ void PipewireHandler::initEGL()
 
 		if (!found)
 		{
-			printf("PipewireEGL: Found unsupported by HyperHDR '%s' DMA format\n", fourCCtoString(val).toLocal8Bit().constData());
+			unsupportedList << fourCC;
 		}
-	}	
+	}
+
+
+	if (!supportedList.isEmpty())
+	{
+		qDebug().nospace() << "PipewireEGL: Found supported by HyperHDR formats: " << supportedList.join(", ");
+	}
+
+	if (!unsupportedList.isEmpty())
+	{
+		qDebug().nospace() << "PipewireEGL: Found unsupported by HyperHDR formats: " << unsupportedList.join(", ");
+	}
 }
 #endif
 
-const QString PipewireHandler::fourCCtoString(int64_t val)
+QString PipewireHandler::fourCCtoString(int64_t val)
 {
 	QString buf;
 	if (val == DRM_FORMAT_MOD_INVALID)
@@ -1311,6 +1532,17 @@ const QString PipewireHandler::fourCCtoString(int64_t val)
 	return buf;
 }
 
+pw_stream* PipewireHandler::getPipewireStream()
+{
+	return _pwStream;
+}
+
+bool PipewireHandler::hasIncomingFrame(struct pw_buffer* dequeueFrame)
+{
+	auto expected = static_cast<struct pw_buffer*>(nullptr);
+	return !_incomingFrame.compare_exchange_strong(expected, dequeueFrame);
+}
+
 pw_stream* PipewireHandler::createCapturingStream()
 {
 	static const pw_stream_events pwStreamEvents = {
@@ -1321,18 +1553,38 @@ pw_stream* PipewireHandler::createCapturingStream()
 		.param_changed = [](void* handler, uint32_t id, const struct spa_pod* param) {
 			emit reinterpret_cast<PipewireHandler*>(handler)->onParamsChangedSignal(id, param);
 		},
-		.process = [](void *handler) {
-			emit reinterpret_cast<PipewireHandler*>(handler)->onProcessFrameSignal();
+		.remove_buffer = [](void* handler, struct pw_buffer* b) {
+			auto master = reinterpret_cast<PipewireHandler*>(handler);
+			BLOCK_CALL_1(master, onReleaseBuffer, struct pw_buffer*, b);
 		},
+		.process = [](void *handler) {
+			auto master = reinterpret_cast<PipewireHandler*>(handler);
+			if (auto pwStream = master->getPipewireStream(); pwStream != nullptr)
+			{
+				if (auto dequeueFrame = pw_stream_dequeue_buffer(pwStream); dequeueFrame != nullptr)
+				{
+					
+					if (!master->hasIncomingFrame(dequeueFrame))
+					{
+						emit master->onProcessFrameSignal();
+					}
+					else
+					{
+						qDebug().nospace() << "Pipewire: skipping new frame processing - the queue is full";
+						pw_stream_queue_buffer(pwStream, dequeueFrame);
+					}
+				}
+			}
+		}
 	};
 
 	static const pw_core_events pwCoreEvents = {
 		.version = PW_VERSION_CORE_EVENTS,
 		.info = [](void *user_data, const struct pw_core_info *info) {
-			std::cout << "Pipewire: core info reported. Version = " << info->version << std::endl;
+			qDebug().nospace() << "Pipewire: core info reported. Version = " << info->version;
 		},		
 		.error = [](void *handler, uint32_t id, int seq, int res, const char *message) {
-			std::cout << "Pipewire: core error reported" << std::endl;
+			qCritical().nospace() << "Pipewire: core error reported";
 			emit reinterpret_cast<PipewireHandler*>(handler)->onCoreErrorSignal(id, seq, res, message);
 		},
 	};
@@ -1355,44 +1607,47 @@ pw_stream* PipewireHandler::createCapturingStream()
 	{
 		std::vector<spa_pod*> streamParams;
 		
-		MemoryBuffer<uint8_t> spaBufferMem(2048);
+		MemoryBuffer<uint8_t> spaBufferMem(3072);
 
 		auto spaBuilder = SPA_POD_BUILDER_INIT(spaBufferMem.data(), static_cast<uint32_t>(spaBufferMem.size()));
 
 		#ifdef ENABLE_PIPEWIRE_EGL
 
-		initEGL();
+		if (_enableEGL)
+		{
+			initEGL();
 
-		for (const supportedDmaFormat& val : _supportedDmaFormatsList)
-			if (val.hasDma)
-			{
-				spa_pod_frame frameDMA[2];		
-				spa_pod_builder_push_object(&spaBuilder, &frameDMA[0], SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
-				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video), 0);
-				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
-				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_format, SPA_POD_Id(val.spaFormat), 0);
-			
-				if (val.modifiers.count() == 1 && val.modifiers[0] == DRM_FORMAT_MOD_INVALID)
+			for (const supportedDmaFormat& val : _supportedDmaFormatsList)
+				if (val.hasDma)
 				{
-					spa_pod_builder_prop(&spaBuilder, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY);
-					spa_pod_builder_long(&spaBuilder, val.modifiers[0]);
-				}
-				else if (val.modifiers.count() > 0)
-				{
-					spa_pod_builder_prop(&spaBuilder, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
-					spa_pod_builder_push_choice(&spaBuilder, &frameDMA[1], SPA_CHOICE_Enum, 0);
-					spa_pod_builder_long(&spaBuilder, val.modifiers[0]);
-					for (auto modVal : val.modifiers)
+					spa_pod_frame frameDMA[2];
+					spa_pod_builder_push_object(&spaBuilder, &frameDMA[0], SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+					spa_pod_builder_add(&spaBuilder, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video), 0);
+					spa_pod_builder_add(&spaBuilder, SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
+					spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_format, SPA_POD_Id(val.spaFormat), 0);
+
+					if (val.modifiers.count() == 1 && val.modifiers[0] == DRM_FORMAT_MOD_INVALID)
 					{
-						spa_pod_builder_long(&spaBuilder, modVal);
+						spa_pod_builder_prop(&spaBuilder, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY);
+						spa_pod_builder_long(&spaBuilder, val.modifiers[0]);
 					}
-					spa_pod_builder_pop(&spaBuilder, &frameDMA[1]);
-				}
+					else if (val.modifiers.count() > 0)
+					{
+						spa_pod_builder_prop(&spaBuilder, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY | SPA_POD_PROP_FLAG_DONT_FIXATE);
+						spa_pod_builder_push_choice(&spaBuilder, &frameDMA[1], SPA_CHOICE_Enum, 0);
+						spa_pod_builder_long(&spaBuilder, val.modifiers[0]);
+						for (auto modVal : val.modifiers)
+						{
+							spa_pod_builder_long(&spaBuilder, modVal);
+						}
+						spa_pod_builder_pop(&spaBuilder, &frameDMA[1]);
+					}
 
-				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax), 0);
-				spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax), 0);
-				streamParams.push_back( reinterpret_cast<spa_pod*> (spa_pod_builder_pop(&spaBuilder, &frameDMA[0])) );
-			}
+					spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_size, SPA_POD_CHOICE_RANGE_Rectangle(&pwScreenBoundsDefault, &pwScreenBoundsMin, &pwScreenBoundsMax), 0);
+					spa_pod_builder_add(&spaBuilder, SPA_FORMAT_VIDEO_framerate, SPA_POD_CHOICE_RANGE_Fraction(&pwFramerateDefault, &pwFramerateMin, &pwFramerateMax), 0);
+					streamParams.push_back(reinterpret_cast<spa_pod*> (spa_pod_builder_pop(&spaBuilder, &frameDMA[0])));
+				}
+		}
 		#endif
 
 		streamParams.push_back( reinterpret_cast<spa_pod*> (spa_pod_builder_add_object(&spaBuilder,
@@ -1407,16 +1662,16 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 		pw_stream_add_listener(stream, &_pwStreamListener, &pwStreamEvents, this);
 
-		auto res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), const_cast<const spa_pod**>(streamParams.data()), streamParams.size());
+		int res = pw_stream_connect(stream, PW_DIRECTION_INPUT, _streamNodeId, static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT), const_cast<const spa_pod**>(streamParams.data()), streamParams.size());
 
 		if ( res != 0)
 		{
-			printf("Pipewire: could not connect to the stream. Error code: %d\n", res);
+			qCritical().nospace() << "Pipewire: could not connect to the stream. Error code: " << res;
 			pw_stream_destroy(stream);
 			stream = nullptr;
 		}
 		else
-			printf("Pipewire: the stream is connected\n");
+			qDebug().nospace() << "Pipewire: the stream is connected";
 	}
 
 	return stream;

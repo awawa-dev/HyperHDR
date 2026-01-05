@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2025 awawa-dev
+# Copyright (c) 2020-2026 awawa-dev
 if (NOT WIN32)	
 	if (QMQTT_LIBRARIES AND QMQTT_INCLUDE_DIRS)
 		set(QMQTT_FOUND TRUE)

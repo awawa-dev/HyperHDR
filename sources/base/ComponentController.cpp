@@ -103,25 +103,33 @@ void ComponentController::setNewComponentState(hyperhdr::Components comp, bool a
 	}
 }
 
-void ComponentController::turnGrabbers(bool activated)
+void ComponentController::turnGrabbers(bool activated, bool includingSystemGrabber, bool includingVideoGrabber)
 {
-	if (_prevGrabbers.empty() && !activated)
-	{
-		_prevGrabbers.emplace(COMP_SYSTEMGRABBER, isComponentEnabled(COMP_SYSTEMGRABBER));
-		_prevGrabbers.emplace(COMP_VIDEOGRABBER, isComponentEnabled(COMP_VIDEOGRABBER));
-		for (const auto& comp : _prevGrabbers)
-			if (comp.second)
+	std::list<hyperhdr::Components> components;
+
+	if (includingSystemGrabber) components.push_back(COMP_SYSTEMGRABBER);
+	if (includingVideoGrabber) components.push_back(COMP_VIDEOGRABBER);
+
+	for(const auto& component : components)
+		if (activated)
+		{
+			if (_prevGrabbers.contains(component))
 			{
-				emit SignalRequestComponent(comp.first, false);
+				auto previousStatusIsEnabled = _prevGrabbers[component];
+				Info(_log, "Restoring {:s} state {:s} after resuming", componentToIdString(component), (previousStatusIsEnabled) ? "ON" : "OFF");
+				emit SignalRequestComponent(component, previousStatusIsEnabled);
 			}
-	}
-	else if (!_prevGrabbers.empty() && activated)
-	{
-		for (const auto& comp : _prevGrabbers)
-			if (comp.second)
+			_prevGrabbers.erase(component);
+		}
+		else
+		{
+			auto currentStatusIsEnabled = isComponentEnabled(component);
+			if (!_prevGrabbers.contains(component))
 			{
-				emit SignalRequestComponent(comp.first, true);
+				Info(_log, "Saving {:s} state {:s} before stopping", componentToIdString(component), (currentStatusIsEnabled) ? "ON" : "OFF");
+				_prevGrabbers.emplace(component, currentStatusIsEnabled);
 			}
-		_prevGrabbers.clear();
-	}
+			if (currentStatusIsEnabled)
+				emit SignalRequestComponent(component, false);
+		}
 }

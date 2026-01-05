@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -53,16 +53,19 @@ namespace
 {
 	bool (*_hasPipewire)() = nullptr;
 	const char* (*_getPipewireError)() = nullptr;
-	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS) = nullptr;
+	void (*_initPipewireDisplay)(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize) = nullptr;
 	void (*_uninitPipewireDisplay)() = nullptr;
 	PipewireImage(*_getFramePipewire)() = nullptr;
 	void (*_releaseFramePipewire)() = nullptr;
 	const char* (*_getPipewireToken)() = nullptr;
+	bool (*_isRestartNeeded)() = nullptr;
 }
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
 	: Grabber(configurationPath, "PIPEWIRE_SYSTEM:" + device.left(14))
 	, _configurationPath(configurationPath)
+	, _timer(new QTimer(this))
+	, _retryTimer(new QTimer(this))
 	, _library(nullptr)
 	, _actualDisplay(0)
 	, _isActive(false)
@@ -70,8 +73,12 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 	, _versionCheck(false)
 	, _accessManager(nullptr)
 {
-	_timer.setTimerType(Qt::PreciseTimer);
-	connect(&_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
+	_timer->setTimerType(Qt::PreciseTimer);
+	connect(_timer, &QTimer::timeout, this, &PipewireGrabber::grabFrame);
+
+	_retryTimer->setInterval(6000);
+	_retryTimer->setSingleShot(true);
+	connect(_retryTimer, &QTimer::timeout, this, &PipewireGrabber::restart);
 
 	// Load library
 	_library = dlopen("libsmart-pipewire.so", RTLD_NOW);
@@ -81,15 +88,17 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		_getPipewireToken = (const char* (*)()) dlsym(_library, "getPipewireToken");
 		_getPipewireError = (const char* (*)()) dlsym(_library, "getPipewireError");
 		_hasPipewire = (bool (*)()) dlsym(_library, "hasPipewire");
-		_initPipewireDisplay = (void (*)(const char*, uint32_t)) dlsym(_library, "initPipewireDisplay");
+		_initPipewireDisplay = (void (*)(const char*, uint32_t, bool, int)) dlsym(_library, "initPipewireDisplay");
 		_uninitPipewireDisplay = (void (*)()) dlsym(_library, "uninitPipewireDisplay");
 		_getFramePipewire = (PipewireImage (*)()) dlsym(_library, "getFramePipewire");
 		_releaseFramePipewire = (void (*)()) dlsym(_library, "releaseFramePipewire");
+		_isRestartNeeded = (bool (*)()) dlsym(_library, "isRestartNeeded");
 	}
 	else
 		Warning(_log, "Could not load Pipewire proxy library. Error: {:s}", dlerror());
 
-	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr || _initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr))
+	if (_library && (_getPipewireToken == nullptr || _hasPipewire == nullptr || _releaseFramePipewire == nullptr ||
+		_initPipewireDisplay == nullptr || _uninitPipewireDisplay == nullptr || _getFramePipewire == nullptr || _isRestartNeeded == nullptr))
 	{
 		Error(_log, "Could not load Pipewire proxy library definition. Error: {:s}", dlerror());
 
@@ -103,6 +112,33 @@ PipewireGrabber::PipewireGrabber(const QString& device, const QString& configura
 		Info(_log, "Loaded Pipewire proxy library for screen capturing");
 		getDevices();
 	}	
+}
+
+void PipewireGrabber::restart()
+{
+	if (!_isActive)
+	{
+		if (_isRestartNeeded())
+		{
+			Info(_log, "Restarting the grabber");
+			uninit();
+			QTimer::singleShot(1000, this, [this]() {
+				if (_retryTimer->isActive())
+				{
+						this->start();
+				}
+			});
+		}
+		else
+		{
+			Info(_log, "The grabber restart is not needed.");
+		}
+		_retryTimer->start();
+	}
+	else
+	{
+		Info(_log, "The grabber is working now. Stop restarting.");
+	}
 }
 
 bool PipewireGrabber::hasPipewire(bool force)
@@ -154,7 +190,6 @@ void PipewireGrabber::uninit()
 		Debug(_log, "Uninit grabber: {:s}", (_deviceName));
 	}
 	
-
 	_initialized = false;
 }
 
@@ -243,8 +278,8 @@ bool PipewireGrabber::start()
 	{		
 		if (init())
 		{
-			_timer.setInterval(1000/_fps);
-			_timer.start();
+			_timer->setInterval(1000/_fps);
+			_timer->start();
 			Info(_log, "Started");
 			return true;
 		}
@@ -261,14 +296,16 @@ void PipewireGrabber::stop()
 {
 	if (_initialized)
 	{
-		_timer.stop();
+		_timer->stop();
 
-		_uninitPipewireDisplay();
-		_isActive = false;
+		_uninitPipewireDisplay();		
 		_initialized = false;
 		
 		Info(_log, "Stopped");
 	}
+
+	_isActive = false;
+	_retryTimer->stop();
 }
 
 bool PipewireGrabber::init_device(int _display)
@@ -277,19 +314,17 @@ bool PipewireGrabber::init_device(int _display)
 	_storedToken = false;
 	_versionCheck = false;
 
-	QString token = (_accessManager != nullptr) ? _accessManager->loadPipewire() : nullptr;
+	QString token = nullptr;
+
+	SAFE_CALL_0_RET(_accessManager.get(), loadPipewire, QString, token);
+
 	if (token.isNull())
 		token = "";
 	else
 		Info(_log, "Loading restoration token: {:s}", (maskToken(token)));
-	_initPipewireDisplay(token.toLatin1().constData(), _fps);
+	_initPipewireDisplay(token.toLatin1().constData(), _fps, _hardware, _width);
 
-	_isActive = true;
-
-	if (!_isActive)
-		Error(_log, "Could not initialized Pipewire grabber");
-
-	return _isActive;
+	return true;
 }
 
 QString PipewireGrabber::maskToken(const QString& token) const
@@ -310,7 +345,7 @@ void PipewireGrabber::stateChanged(bool state)
 	{
 		Info(_log, "Removing restoration token");
 
-		_accessManager->savePipewire("");
+		QUEUE_CALL_1(_accessManager.get(), savePipewire, QString, "");
 	}
 }
 
@@ -319,7 +354,7 @@ void PipewireGrabber::grabFrame()
 	bool stopNow = false;
 		
 	
-	if (_initialized && _isActive)
+	if (_initialized)
 	{
 		PipewireImage data = _getFramePipewire();
 
@@ -342,7 +377,7 @@ void PipewireGrabber::grabFrame()
 			{
 				Info(_log, "Saving restoration token: {:s}", (maskToken(token)));
 
-				_accessManager->savePipewire(token);
+				QUEUE_CALL_1(_accessManager.get(), savePipewire, QString, token);
 
 				_storedToken = true;
 			}
@@ -360,6 +395,7 @@ void PipewireGrabber::grabFrame()
 		}
 		else
 		{
+			_isActive = true;
 			_actualWidth = data.width;
 			_actualHeight = data.height;
 
@@ -375,6 +411,7 @@ void PipewireGrabber::grabFrame()
 	if (stopNow)
 	{
 		uninit();
+		_retryTimer->start();
 	}
 }
 
