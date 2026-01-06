@@ -8,6 +8,7 @@
    - Add Infinite Color Engine support to file LED driver (#1311) - v22beta1 🆕
    - Infinite Color Engine: add Lifx support for beyond 24-bit rendering (#1299) - v22beta1 🆕
    - Infinite Color Engine: fix for YUV & hybrid interpolators (#1302) - v22beta1 🆕
+   - Fix RGBCMYK calibration (#1369) - v22beta1 🆕
 - Significant speedup for YUV/NV12/P010 and related codecs (#1374) - v22beta1 🆕
    - Permormance increased up to 46%
    - Compared performace of Rpi5 vs N100 in HyperHDR video decoding benchmark
@@ -18,12 +19,12 @@
    - Auto-resume - automatically restarts the grabber if dimensions change or the stream fails
    - EGL texture caching - improves performance by reusing textures
    - MemFD caching - reuses file descriptor memory mappings
-- Update language file's. Thanks @AstaRom (#1396, #1300, #1288, #1131) - v22beta1 🆕
-- Smoothing: restore continuous output control + stricter end detection (#1337) - v22beta1 🆕
-   - Fix rendering w/o continuous output (#1377) - v22beta1 🆕
-- Fix RGBCMYK calibration (#1369) - v22beta1 🆕
+- Philips Hue driver: add option for linear or nonlinear RGB color output (#1401) - v22beta1 🆕
 - Add PWM support for Raspberry Pi 5 GPIO/PIO (#1317) - v22beta1 🆕
    - Reported needed kernel LED module change to the RPi
+- Update language file's. Thanks @AstaRom (#1396, #1300, #1288, #1131, #1402) - v22beta1 🆕
+- Smoothing: restore continuous output control + stricter end detection (#1337) - v22beta1 🆕
+   - Fix rendering w/o continuous output (#1377) - v22beta1 🆕
 - Hide HyperHDR from the macOS Dock (#1345) - v22beta1 🆕
 - Add replacement for libglib2.0-0 (armhf, Y2038 bug) (#1341) - v22beta1 🆕
 - Add QElapsedTimer include to DriverNetLifx.cpp Thanks @arfoll (#1330) - v22beta1 🆕
