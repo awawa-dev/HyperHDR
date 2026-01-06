@@ -1194,7 +1194,7 @@
   "main_menu_grabber_lut_restart": "Veuillez redémarrer votre système pour que les modifications prennent pleinement effet !<br>Configuration de la pince USB avec Luminosité=$1, Contraste=$2, Saturation=$3 a été sauvé.",
   "main_menu_grabber_lut_confirm": "Êtes-vous sûr de télécharger et d'installer le nouveau fichier LUT pour votre carte d'acquisition?",
   "edt_conf_stream_ledoff_title": "Pause lorsque les LED sont éteintes",
-  "edt_conf_stream_ledoff_expl": "Éteignez complètement la pince USB après 10 secondes lorsque tous les dispositifs LED sont éteints. Reprendre à nouveau lorsque le dispositif LED est activé.",
+  "edt_conf_stream_ledoff_expl": "Éteignez complètement la pince USB grabber 10 secondes lorsque tous les dispositifs LED sont éteints. Reprendre à nouveau lorsque le dispositif LED est activé.",
   "json_api_instanceCurrentState_header": "Obtenir l'état actuel de l'instance",
   "json_api_instanceCurrentState_expl": "Obtenez l'état actuel et mis à jour de l'instance, comme la couleur moyenne des voyants.",
   "general_btn_average_color": "Couleur moyenne",

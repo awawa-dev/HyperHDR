@@ -1194,7 +1194,7 @@
   "main_menu_grabber_lut_restart": "Vă rugăm să reporniți sistemul pentru ca modificările să intre în vigoare!<br>Configurare USB grabber cu Luminozitate=$1, Contrast=$2, Saturare=$3 a fost salvat.",
   "main_menu_grabber_lut_confirm": "Sunteți sigur că descărcați și instalați un nou fișier LUT pentru grabber?",
   "edt_conf_stream_ledoff_title": "Întrerupeți când LED-urile sunt stinse",
-  "edt_conf_stream_ledoff_expl": "Opriți complet prinderea USB după 10 secunde când toate dispozitivele LED sunt oprite. Reluați din nou când dispozitivul LED este activat.",
+  "edt_conf_stream_ledoff_expl": "Opriți complet prinderea USB grabber 10 secunde când toate dispozitivele LED sunt oprite. Reluați din nou când dispozitivul LED este activat.",
   "json_api_instanceCurrentState_header": "Obțineți starea curentă a instanței",
   "json_api_instanceCurrentState_expl": "Obțineți starea actuală, actualizată a instanței, cum ar fi culoarea medie a LED-urilor.",
   "general_btn_average_color": "Culoare medie",
