@@ -1194,7 +1194,7 @@
   "main_menu_grabber_lut_restart": "Start uw systeem opnieuw op om de wijzigingen volledig door te voeren!<br>USB grabber configuratie met Helderheid=$1, Contrast=$2, Verzadiging=$3 werd gered.",
   "main_menu_grabber_lut_confirm": "Weet u zeker dat u een nieuw LUT bestand voor uw grabber downloadt en installeert?",
   "edt_conf_stream_ledoff_title": "Pauzeren wanneer de leds uit zijn",
-  "edt_conf_stream_ledoff_expl": "Schakel de USB-grijper volledig uit na 10 seconden wanneer alle LED-apparaten zijn uitgeschakeld. Hervat opnieuw wanneer het LED-apparaat is ingeschakeld.",
+  "edt_conf_stream_ledoff_expl": "Schakel de USB‑grabber volledig uit na 10 seconden wanneer alle LED-apparaten zijn uitgeschakeld. Hervat opnieuw wanneer het LED-apparaat is ingeschakeld.",
   "json_api_instanceCurrentState_header": "Haal de huidige status van de instantie op",
   "json_api_instanceCurrentState_expl": "Haal de huidige, bijgewerkte status van de instantie op, zoals de gemiddelde kleur van de LED's.",
   "general_btn_average_color": "Gemiddelde kleur",

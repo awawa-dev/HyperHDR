@@ -1194,7 +1194,7 @@
   "main_menu_grabber_lut_restart": "Riavvia il sistema affinché le modifiche abbiano effetto completo!<br>Configurazione USB grabber con Luminosità=$1, Contrasto=$2, Saturazione=$3 è stato salvato.",
   "main_menu_grabber_lut_confirm": "Sei sicuro di scaricare e installare il nuovo file LUT per il tuo grabber?",
   "edt_conf_stream_ledoff_title": "Pausa quando i LED sono spenti",
-  "edt_conf_stream_ledoff_expl": "Spegnere completamente la pinza USB dopo 10 secondi quando tutti i dispositivi LED sono spenti. Riprendere di nuovo quando il dispositivo LED è abilitato.",
+  "edt_conf_stream_ledoff_expl": "Spegnere completamente la pinza USB grabber 10 secondi quando tutti i dispositivi LED sono spenti. Riprendere di nuovo quando il dispositivo LED è abilitato.",
   "json_api_instanceCurrentState_header": "Ottieni lo stato corrente dell'istanza",
   "json_api_instanceCurrentState_expl": "Ottieni lo stato corrente e aggiornato dell'istanza, ad esempio il colore medio dei LED.",
   "general_btn_average_color": "Colore medio",

@@ -1194,7 +1194,7 @@
   "main_menu_grabber_lut_restart": "¡Reinicie su sistema para que los cambios surtan efecto por completo!<br>Configuración del capturador USB con Brillo=$1, Contraste=$2, Saturación=$3 fue salvado.",
   "main_menu_grabber_lut_confirm": "¿Está seguro de descargar e instalar un nuevo archivo LUT para su capturador?",
   "edt_conf_stream_ledoff_title": "Pausa cuando los LED están apagados",
-  "edt_conf_stream_ledoff_expl": "Apague la pinza USB por completo después de 10 segundos cuando todos los dispositivos LED estén apagados. Reanudar de nuevo cuando el dispositivo LED esté habilitado.",
+  "edt_conf_stream_ledoff_expl": "Apague completamente el USB grabber después de 10 segundos cuando todos los dispositivos LED estén apagados. Vuelva a activarlo cuando el dispositivo LED esté habilitado.",
   "json_api_instanceCurrentState_header": "Obtener el estado actual de la instancia",
   "json_api_instanceCurrentState_expl": "Obtenga el estado actual y actualizado de la instancia, como el color promedio de los LED.",
   "general_btn_average_color": "Color promedio",
