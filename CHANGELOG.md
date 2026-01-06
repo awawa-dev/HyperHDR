@@ -6,12 +6,12 @@
    - Start migrating to modern C++20
    - Add Hybrid RGB Smoothing Interpolator (#1379) - v22beta1 🆕
    - Add Infinite Color Engine support to file LED driver (#1311) - v22beta1 🆕
-   - Infinite Color Engine: add Lifx support for beyond 24-bit rendering (#1299) - v22beta1 🆕
+   - Infinite Color Engine: add LIFX support for beyond 24-bit rendering (#1299) - v22beta1 🆕
    - Infinite Color Engine: fix for YUV & hybrid interpolators (#1302) - v22beta1 🆕
    - Fix RGBCMYK calibration (#1369) - v22beta1 🆕
 - Significant speedup for YUV/NV12/P010 and related codecs (#1374) - v22beta1 🆕
-   - Permormance increased up to 46%
-   - Compared performace of Rpi5 vs N100 in HyperHDR video decoding benchmark
+   - Performance increased up to 46%
+   - Compared performance of RPi 5 vs N100 in HyperHDR video decoding benchmark
    - Switched to modern C++20 format style logging   
  - Improved, faster Pipewire + option to disable EGL #1397 - v22beta1 🆕
    - GPU Scaling (EGL/DMA mode) - scales the desktop on the GPU; only the small final texture is sent to the CPU
@@ -21,26 +21,26 @@
    - MemFD caching - reuses file descriptor memory mappings
 - Philips Hue driver: add option for linear or nonlinear RGB color output (#1401) - v22beta1 🆕
 - Add PWM support for Raspberry Pi 5 GPIO/PIO (#1317) - v22beta1 🆕
-   - Reported needed kernel LED module change to the RPi
-- Update language file's. Thanks @AstaRom (#1396, #1300, #1288, #1131, #1402) - v22beta1 🆕
+   - Reported necessary kernel LED module changes to the RPi team
+- Full FTDI and libFTDI dynamic runtime support. Thanks @nurikk-sa for help (#1155) - v22beta1 🆕
+   - libFTDI support on Linux/macOS
+   - support of manufacturer "ftd2xx.dll" driver on Windows
+- Windows DX grabber: multi-monitor capturing status check & restart - v22beta1 🆕
+- DirectX grabber: support for portrait mode (#1200) - v22beta1 🆕
+- Update language files. Thanks @AstaRom (#1396, #1300, #1288, #1131, #1402, #1403) - v22beta1 🆕
 - Smoothing: restore continuous output control + stricter end detection (#1337) - v22beta1 🆕
    - Fix rendering w/o continuous output (#1377) - v22beta1 🆕
 - Hide HyperHDR from the macOS Dock (#1345) - v22beta1 🆕
 - Add replacement for libglib2.0-0 (armhf, Y2038 bug) (#1341) - v22beta1 🆕
 - Add QElapsedTimer include to DriverNetLifx.cpp Thanks @arfoll (#1330) - v22beta1 🆕
-- Add just released Ubuntu 25.10 & incoming Fedora43 (#1304) - v22beta1 🆕
-- Add Windows-2025, macos-15-intel, Debian Trixie and migrate others (#1296) - v22beta1 🆕
-- Fix for OpenSSL on macOS (needed by https/tls) (#1290) - v22beta1 🆕
+- Add just released Ubuntu 25.10 & incoming Fedora 43 (#1304) - v22beta1 🆕
+- Add Windows-2025, macOS-15-intel, Debian Trixie and migrate others (#1296) - v22beta1 🆕
+- Fix for OpenSSL on macOS (needed by HTTPS/TLS) (#1290) - v22beta1 🆕
 - Updated Home Assistant module to enable SSL support. Thanks @josh-blake (#1249) - v22beta1 🆕
-- Dont rely on plutvg cmake script to detect C++11 threads support (#1253) - v22beta1 🆕
-- Migrate ALL installers to QT 6.8+. Breaking: docker build subsystem (#1203) - v22beta1 🆕
+- Don't rely on plutovg CMake script to detect C++11 threads support (#1253) - v22beta1 🆕
+- Migrate ALL installers to Qt 6.8+. Breaking: docker build subsystem (#1203) - v22beta1 🆕
    - reduced size of HyperHDR's installers
-- DirectX grabber: support for portrait mode (#1200) - v22beta1 🆕
-- Full ftdi and libftdi dynamic runtime support. Thanks @nurikk-sa for help (#1155) - v22beta1 🆕
-   - libFTDI support on Linux/macOS
-   - support of manufacturer "ftd2xx.dll" driver on Windows
 - Remove min/max limits to allow using only a very small part of the screen capture as input area. Thanks @markusressel (#1175) - v22beta1 🆕
-- Windows DX grabber: multi-monitor capturing status check & restart - v22beta1 🆕
 - Update CMake configuration to add support for additional system libraries. Thanks @hatch01 (#1158) - v22beta1 🆕
 - Add USE_SYSTEM_SDBUS_CPP_LIBS option (#1140) - v22beta1 🆕
 - Update LunaSVG to v3.1.0 (#1139) - v22beta1 🆕
