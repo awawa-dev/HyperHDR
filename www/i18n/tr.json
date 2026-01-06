@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Yumuşatmanın klasik üssel uygulaması, LED renklerini bir hedefe doğru günceller, büyük farklılıklara hızlı tepki verir ve hedefe yaklaştıkça yavaşlar, böylece pürüzsüz ve doğal ortam aydınlatma geçişleri üretir.",
   "edt_dev_spec_macAddress_title": "MAC adresi",
   "wiz_lifx_error": "Lifx cihazları bulunamadı. HyperHDR kayıtlarını kontrol edin.",
-  "wiz_lifx_title": "LIFX ışık sihirbazı"
+  "wiz_lifx_title": "LIFX ışık sihirbazı",
+  "edt_dev_spec_convertToLinearRgb_title": "Lineer RGB’ye dönüştür"
 }

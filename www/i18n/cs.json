@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klasická exponenciální implementace vyhlazování aktualizuje barvy LED diod směrem k cíli, rychle reaguje na velké rozdíly a zpomaluje, jak se k cíli přibližují, čímž vytváří plynulé a přirozené přechody mezi okolním osvětlením.",
   "edt_dev_spec_macAddress_title": "MAC adresa",
   "wiz_lifx_error": "Nepodařilo se najít zařízení Lifx. Zkontrolujte protokoly HyperHDR.",
-  "wiz_lifx_title": "Průvodce světly LIFX"
+  "wiz_lifx_title": "Průvodce světly LIFX",
+  "edt_dev_spec_convertToLinearRgb_title": "Převést na lineární RGB"
 }

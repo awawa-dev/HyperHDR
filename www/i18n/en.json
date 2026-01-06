@@ -1308,5 +1308,5 @@
   "edt_dev_spec_macAddress_title": "MAC address",
   "wiz_lifx_error": "Could not find Lifx devices. Check HyperHDR logs.",
   "wiz_lifx_title": "LIFX lights wizard",
-  "edt_dev_spec_convertToLinearRgb_title" : "Convert to linear RGB"
+  "edt_dev_spec_convertToLinearRgb_title": "Convert to linear RGB"
 }
