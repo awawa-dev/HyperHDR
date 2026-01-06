@@ -1,52 +1,101 @@
-- Fix: armv6l packages overwrote aarch64 packages because they had the same name (#1082) - v21 🆕
-- Flatbuffers: search for user LUTs also in bin dir - v21 🆕
-- Remove support for old 50MB LUT. Use ZSTD instead - v21 🆕
-- Update SSL certificates to hyperhdr.eu - v21 🆕
-- Add support for Home Assistant lights (#1014) - v21beta2 🆕
-- Update language file's (#1026, #1017) thanks @AstaRom - v21beta2 🆕
-- Implement zigbee2mqtt protocol (#1024) - v21beta2 🆕
-- Add support for ZSTD compression for all LUT files (#1062) - v21beta2 🆕
-- Fix CodeQL script (#1058) - v21beta2 🆕
-- Lightning-fast builds: use native Github Action ARM runners (#1057) - v21beta2 🆕
-- Windows: fix suspend & power off handling (#1039) - v21beta2 🆕
-- Pipewire drm workaround fix (#1029) thanks @dankmolot - v21beta2 🆕
-- Feature to re-order displays in multi-display mode (#1023) - v21beta2 🆕
-- Automatic tone mapping (#998) - v21beta1 🆕
-- Add Ubuntu 24.10 and Fedora 41 (#1001) - v21beta1 🆕
-- Add support for "unicam image" RPi HDMI capture card and UYVY format (#889) - v21beta1 🆕
-- Breaking change: remove LUT from installer and create it dynamically (#994) - v21beta1 🆕
-- Fix macOS 15 dark theme menu icons (#988) - v21beta1 🆕
-- Add P010 HDR10 video format support (2024-11-24) (#968) - v21beta1 🆕
-- DirectX multi-monitor support (#966) - v21beta1 🆕
-- macOS 15 sequoia: migrate to ScreenCaptureKit (#984) - v21beta1 🆕
-- Add Skydimo "support" (#985) - v21beta1 🆕
-- New LUT calibration based on mp4 test videos (part I) (#896) - v21beta1 🆕
-- feat: updated rpi_ws281x submodule, thanks @andreasvikke (#974) - v21beta1 🆕
-- DX grabber: stick to user specified device selection (#961) - v21beta1 🆕
-- Fix LED colors adjustments by configuration name (#956) - v21beta1 🆕
-- Add autoresume feature for the macOS software grabber (#879) - v21beta1 🆕
-- Add NV12 image format support for flatbuffers (#920) - v21beta1 🆕
-- Update language file's Thanks @AstaRom (#883, #923, #998) - v21beta1 🆕
-- Update flatbuffers to v24.3.25 (#875) - v21beta1 🆕
-- Add cache_cleaner for Github Action (#910) - v21beta1 🆕
-- New build.sh script for the HyperHDR build process (#904) - v21beta1 🆕
-- Remove Alsa libs from CMake recipe - v21beta1 🆕
-- Remove more unnecessary libraries from installers - v21beta1 🆕
-- Remove libasound from installers - v21beta1 🆕
-- Fix restoring calibration settings (#874) - v21beta1 🆕
-- Reorganize HyperHDR libs (#887) - v21beta1 🆕
-- Fix macOS image alignment (#838) - v21beta1 🆕
-- Remove hyperhdr-remote app. Reason: #856 - v21beta1 🆕
-- Refactoring of the FlatBuffers client and server (#880) - v21beta1 🆕
-- Remove mbedtls. Use OpenSSL (#877) - v21beta1 🆕
-- Removal of QT SQL. Migrate to the SQLite library. (#872) - v21beta1 🆕
-- New smoothing option for sound effects, fix ArchLinux installer, refactoring of the smoothing module and music effects (#871) - v21beta1 🆕
-- Removal of QT D-Bus, switch to sdbus-cpp (#864) - v21beta1 🆕
-- Dependency reductions: removal of heavy QT Gui lib (#861) - v21beta1 🆕
-- Fix DirectX capturing after new Systray changes - v21beta1 🆕
-- New independed systray. Dependency reductions thanks to removal of QWidget (#852) - v21beta1 🆕
-- Fix: lut calibration for grabberless builds (#840) - v21beta1 🆕
-- Fix: close LED device on correct Thread (#803) - v21beta1 🆕
+- Infinite Color Engine - Breaking 24-bit Limits (#1261) - v22beta1 🆕
+   - Floating-Point Precision: All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
+   - Linear sRGB Accuracy: Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
+   - Deep-Color Support: Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
+   - Advanced color smoothing algorithms: inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
+   - Start migrating to modern C++20
+   - Add Hybrid RGB Smoothing Interpolator (#1379) - v22beta1 🆕
+   - Add Infinite Color Engine support to file LED driver (#1311) - v22beta1 🆕
+   - Infinite Color Engine: add LIFX support for beyond 24-bit rendering (#1299) - v22beta1 🆕
+   - Infinite Color Engine: fix for YUV & hybrid interpolators (#1302) - v22beta1 🆕
+   - Fix RGBCMYK calibration (#1369) - v22beta1 🆕
+- Significant speedup for YUV/NV12/P010 and related codecs (#1374) - v22beta1 🆕
+   - Performance increased up to 46%
+   - Compared performance of RPi 5 vs N100 in HyperHDR video decoding benchmark
+   - Switched to modern C++20 format style logging   
+ - Improved, faster Pipewire + option to disable EGL #1397 - v22beta1 🆕
+   - GPU Scaling (EGL/DMA mode) - scales the desktop on the GPU; only the small final texture is sent to the CPU
+   - Optional HW acceleration - option to disable EGL in the Pipewire configuration
+   - Auto-resume - automatically restarts the grabber if dimensions change or the stream fails
+   - EGL texture caching - improves performance by reusing textures
+   - MemFD caching - reuses file descriptor memory mappings
+- Philips Hue driver: add option for linear or nonlinear RGB color output (#1401) - v22beta1 🆕
+- Add PWM support for Raspberry Pi 5 GPIO/PIO (#1317) - v22beta1 🆕
+   - Reported necessary kernel LED module changes to the RPi team
+- Full FTDI and libFTDI dynamic runtime support. Thanks @nurikk-sa for help (#1155) - v22beta1 🆕
+   - libFTDI support on Linux/macOS
+   - support of manufacturer "ftd2xx.dll" driver on Windows
+- Windows DX grabber: multi-monitor capturing status check & restart - v22beta1 🆕
+- DirectX grabber: support for portrait mode (#1200) - v22beta1 🆕
+- Update language files. Thanks @AstaRom (#1396, #1300, #1288, #1131, #1402, #1403) - v22beta1 🆕
+- Smoothing: restore continuous output control + stricter end detection (#1337) - v22beta1 🆕
+   - Fix rendering w/o continuous output (#1377) - v22beta1 🆕
+- Hide HyperHDR from the macOS Dock (#1345) - v22beta1 🆕
+- Add replacement for libglib2.0-0 (armhf, Y2038 bug) (#1341) - v22beta1 🆕
+- Add QElapsedTimer include to DriverNetLifx.cpp Thanks @arfoll (#1330) - v22beta1 🆕
+- Add just released Ubuntu 25.10 & incoming Fedora 43 (#1304) - v22beta1 🆕
+- Add Windows-2025, macOS-15-intel, Debian Trixie and migrate others (#1296) - v22beta1 🆕
+- Fix for OpenSSL on macOS (needed by HTTPS/TLS) (#1290) - v22beta1 🆕
+- Updated Home Assistant module to enable SSL support. Thanks @josh-blake (#1249) - v22beta1 🆕
+- Don't rely on plutovg CMake script to detect C++11 threads support (#1253) - v22beta1 🆕
+- Migrate ALL installers to Qt 6.8+. Breaking: docker build subsystem (#1203) - v22beta1 🆕
+   - reduced size of HyperHDR's installers
+- Remove min/max limits to allow using only a very small part of the screen capture as input area. Thanks @markusressel (#1175) - v22beta1 🆕
+- Update CMake configuration to add support for additional system libraries. Thanks @hatch01 (#1158) - v22beta1 🆕
+- Add USE_SYSTEM_SDBUS_CPP_LIBS option (#1140) - v22beta1 🆕
+- Update LunaSVG to v3.1.0 (#1139) - v22beta1 🆕
+- Fix ENABLE_PIPEWIRE_EGL=OFF build (#1138) - v22beta1 🆕
+- Amlogic grabber restore & refactor. Thanks @santievil (#1119) - v22beta1 🆕
+- Fix Dutch translations. Thanks @dijkstrar (#1122) - v22beta1 🆕
+- Fix: armv6l packages overwrote aarch64 packages because they had the same name (#1082) - v21
+- Flatbuffers: search for user LUTs also in bin dir - v21
+- Remove support for old 50MB LUT. Use ZSTD instead - v21
+- Update SSL certificates to hyperhdr.eu - v21
+- Add support for Home Assistant lights (#1014) - v21beta2
+- Update language file's (#1026, #1017) thanks @AstaRom - v21beta2
+- Implement zigbee2mqtt protocol (#1024) - v21beta2
+- Add support for ZSTD compression for all LUT files (#1062) - v21beta2
+- Fix CodeQL script (#1058) - v21beta2
+- Lightning-fast builds: use native Github Action ARM runners (#1057) - v21beta2
+- Windows: fix suspend & power off handling (#1039) - v21beta2
+- Pipewire drm workaround fix (#1029) thanks @dankmolot - v21beta2
+- Feature to re-order displays in multi-display mode (#1023) - v21beta2
+- Automatic tone mapping (#998) - v21beta1
+- Add Ubuntu 24.10 and Fedora 41 (#1001) - v21beta1
+- Add support for "unicam image" RPi HDMI capture card and UYVY format (#889) - v21beta1
+- Breaking change: remove LUT from installer and create it dynamically (#994) - v21beta1
+- Fix macOS 15 dark theme menu icons (#988) - v21beta1
+- Add P010 HDR10 video format support (2024-11-24) (#968) - v21beta1
+- DirectX multi-monitor support (#966) - v21beta1
+- macOS 15 sequoia: migrate to ScreenCaptureKit (#984) - v21beta1
+- Add Skydimo "support" (#985) - v21beta1
+- New LUT calibration based on mp4 test videos (part I) (#896) - v21beta1
+- feat: updated rpi_ws281x submodule, thanks @andreasvikke (#974) - v21beta1
+- DX grabber: stick to user specified device selection (#961) - v21beta1
+- Fix LED colors adjustments by configuration name (#956) - v21beta1
+- Add autoresume feature for the macOS software grabber (#879) - v21beta1
+- Add NV12 image format support for flatbuffers (#920) - v21beta1
+- Update language file's Thanks @AstaRom (#883, #923, #998) - v21beta1
+- Update flatbuffers to v24.3.25 (#875) - v21beta1
+- Add cache_cleaner for Github Action (#910) - v21beta1
+- New build.sh script for the HyperHDR build process (#904) - v21beta1
+- Remove Alsa libs from CMake recipe - v21beta1
+- Remove more unnecessary libraries from installers - v21beta1
+- Remove libasound from installers - v21beta1
+- Fix restoring calibration settings (#874) - v21beta1
+- Reorganize HyperHDR libs (#887) - v21beta1
+- Fix macOS image alignment (#838) - v21beta1
+- Remove hyperhdr-remote app. Reason: #856 - v21beta1
+- Refactoring of the FlatBuffers client and server (#880) - v21beta1
+- Remove mbedtls. Use OpenSSL (#877) - v21beta1
+- Removal of QT SQL. Migrate to the SQLite library. (#872) - v21beta1
+- New smoothing option for sound effects, fix ArchLinux installer, refactoring of the smoothing module and music effects (#871) - v21beta1
+- Removal of QT D-Bus, switch to sdbus-cpp (#864) - v21beta1
+- Dependency reductions: removal of heavy QT Gui lib (#861) - v21beta1
+- Fix DirectX capturing after new Systray changes - v21beta1
+- New independed systray. Dependency reductions thanks to removal of QWidget (#852) - v21beta1
+- Fix: lut calibration for grabberless builds (#840) - v21beta1
+- Fix: close LED device on correct Thread (#803) - v21beta1
 - Fedora uses xz as the package name, not xz-utils #771 Thanks @hsmalley (v20 beta2)
 - Fix LUT loading bug to reduce memory usage by 96MB #766 (v20 beta2)
 - Fix background music effect #761 (v20 beta2)

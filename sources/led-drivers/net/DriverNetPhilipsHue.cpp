@@ -873,6 +873,7 @@ QStringList PhilipsHueLight::getLightIds() const
 
 DriverNetPhilipsHue::DriverNetPhilipsHue(const QJsonObject& deviceConfig)
 	: LedDevicePhilipsHueBridge(deviceConfig)
+	, _convertToLinearRgb(false)
 	, _switchOffOnBlack(false)
 	, _brightnessFactor(1.0f)
 	, _transitionTime(1)
@@ -1063,6 +1064,7 @@ bool DriverNetPhilipsHue::init(QJsonObject deviceConfig)
 	verbose = deviceConfig["verbose"].toBool(false);
 
 	// Initialise LedDevice configuration and execution environment
+	_convertToLinearRgb = _devConfig["convertToLinearRgb"].toBool(false);
 	_switchOffOnBlack = _devConfig["switchOffOnBlack"].toBool(true);
 	_blackLightsTimeout = _devConfig["blackLightsTimeout"].toInt(15000);
 	_brightnessFactor = _devConfig["brightnessFactor"].toDouble(1.0);
@@ -1082,6 +1084,7 @@ bool DriverNetPhilipsHue::init(QJsonObject deviceConfig)
 	if (_blackLevel < 0.f) { _blackLevel = 0.f; }
 	if (_blackLevel > 1.0f) { _blackLevel = 1.0f; }
 
+	Debug(_log, "Convert output to linear RGB: {:s}", (_convertToLinearRgb) ? "true" : "false");
 	Debug(_log, "Max. retry count: {:d}", _maxRetry);
 	Debug(_log, "Off on Black: {:d}", static_cast<int>(_switchOffOnBlack));
 	Debug(_log, "Brightness Factor: {:f}", _brightnessFactor);
@@ -1671,7 +1674,7 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 			};
 			light.setRGBColor(color);
 
-			auto xy = nonLinearRgbToColorXYB(colorF);
+			auto xy = nonLinearRgbToColorXYB(_convertToLinearRgb, colorF);
 
 			this->setOnOffState(light, true);
 			this->setColor(light, xy);
@@ -1687,7 +1690,7 @@ int DriverNetPhilipsHue::writeSingleLightsGeneric(
 		linalg::aliases::float3 colorF = (idx < colors.size()) ? convert(colors.at(idx))
 			: linalg::aliases::float3{ 0.f, 0.f, 0.f };
 
-		auto xy = nonLinearRgbToColorXYB(colorF);
+		auto xy = nonLinearRgbToColorXYB(_convertToLinearRgb, colorF);
 
 		if (_switchOffOnBlack && xy.z <= _blackLevel && light.isBlack(true))
 		{			
@@ -2171,7 +2174,7 @@ void DriverNetPhilipsHue::identify(const QJsonObject& params)
 	}
 }
 
-ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(const linalg::vec<float, 3>& nonlinear)
+ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(bool convertToLinearRgb, const linalg::vec<float, 3>& nonlinear)
 {
 	constexpr float BRIGHTNESS_THRESHOLD = 1e-5f;
 	constexpr float SUM_GUARD = 1e-10f;
@@ -2181,11 +2184,11 @@ ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(const linalg::vec<float, 3>
 		0.000088f, 0.072310f, 0.986039f   // m[6], m[7], m[8]                m[2], m[5], m[8]
 	});
 
-	auto rgb_lin = InfiniteProcessing::srgbNonlinearToLinear(nonlinear);
+	auto inputRgb = (convertToLinearRgb) ? InfiniteProcessing::srgbNonlinearToLinear(nonlinear) : nonlinear;
 
-	linalg::aliases::float3 XYZ = linalg::max(mul(matrix_rgb_to_XYZ, rgb_lin), linalg::aliases::float3(0.0f));
+	linalg::aliases::float3 XYZ = linalg::max(mul(matrix_rgb_to_XYZ, inputRgb), linalg::aliases::float3(0.0f));
 
-	auto bri = linalg::maxelem(rgb_lin);
+	auto bri = linalg::maxelem(inputRgb);
 	if (bri < BRIGHTNESS_THRESHOLD)
 	{
 		return { 0.f, 0.f, 0.f };

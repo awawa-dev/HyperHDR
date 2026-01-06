@@ -220,11 +220,12 @@ private:
 		const ColorContainer& colors,
 		Converter convert);
 
-	static ColorXYB nonLinearRgbToColorXYB(const linalg::vec<float, 3>& nonlinear);
+	static ColorXYB nonLinearRgbToColorXYB(bool convertToLinearRgb, const linalg::vec<float, 3>& nonlinear);
 
 	std::vector<uint8_t> prepareStreamData();
 	std::vector<uint8_t> prepareStreamDataV2();
 
+	bool _convertToLinearRgb;
 	bool _switchOffOnBlack;
 	float _brightnessFactor;
 	int _transitionTime;
