@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Việc triển khai làm mịn theo hàm mũ cổ điển sẽ cập nhật màu sắc đèn LED hướng đến mục tiêu, phản ứng nhanh với những khác biệt lớn và chậm lại khi chúng tiến gần đến mục tiêu, tạo ra hiệu ứng chuyển tiếp ánh sáng xung quanh mượt mà, tự nhiên.",
   "edt_dev_spec_macAddress_title": "Địa chỉ MAC",
   "wiz_lifx_error": "Không tìm thấy thiết bị Lifx. Hãy kiểm tra nhật ký HyperHDR.",
-  "wiz_lifx_title": "Trình hướng dẫn đèn LIFX"
+  "wiz_lifx_title": "Trình hướng dẫn đèn LIFX",
+  "edt_dev_spec_convertToLinearRgb_title": "Chuyển đổi sang RGB tuyến tính"
 }

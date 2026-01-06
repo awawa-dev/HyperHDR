@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "经典的指数平滑实现，使 LED 色彩向目标值靠拢，对较大的差异做出快速反应，并在接近目标值时减慢速度，从而产生平滑、自然的环境光过渡。",
   "edt_dev_spec_macAddress_title": "MAC 地址",
   "wiz_lifx_error": "找不到 Lifx 设备。请检查 HyperHDR 日志。",
-  "wiz_lifx_title": "LIFX 灯光向导"
+  "wiz_lifx_title": "LIFX 灯光向导",
+  "edt_dev_spec_convertToLinearRgb_title": "转换为线性 RGB"
 }

@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klasyczna wykładnicza implementacja wygładzania aktualizuje kolory diod LED w kierunku celu, szybko reagując na duże różnice i zwalniając w miarę zbliżania się do celu, zapewniając płynne, naturalne przejścia oświetlenia otoczenia.",
   "edt_dev_spec_macAddress_title": "Adres MAC",
   "wiz_lifx_error": "Nie znaleziono urządzeń Lifx. Sprawdź logi HyperHDR.",
-  "wiz_lifx_title": "Kreator oświetlenia LIFX"
+  "wiz_lifx_title": "Kreator oświetlenia LIFX",
+  "edt_dev_spec_convertToLinearRgb_title": "Konwertuj na liniowe RGB"
 }

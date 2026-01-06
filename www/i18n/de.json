@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Die klassische exponentielle Implementierung der Glättung aktualisiert die LED-Farben in Richtung eines Ziels. Sie reagiert schnell auf große Unterschiede und verlangsamt sich bei Annäherung an das Ziel. Dadurch entstehen sanfte, natürliche Übergänge der Umgebungsbeleuchtung.",
   "edt_dev_spec_macAddress_title": "MAC-Adresse",
   "wiz_lifx_error": "LiFX-Geräte konnten nicht gefunden werden. Überprüfen Sie die HyperHDR-Protokolle.",
-  "wiz_lifx_title": "LIFX-Lichtassistent"
+  "wiz_lifx_title": "LIFX-Lichtassistent",
+  "edt_dev_spec_convertToLinearRgb_title": "In lineares RGB umwandeln"
 }

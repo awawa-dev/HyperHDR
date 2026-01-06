@@ -1307,5 +1307,6 @@
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Implementarea exponențială clasică a netezirii actualizează culorile LED-urilor către o țintă, reacționând rapid la diferențe mari și încetinind pe măsură ce acestea se apropie de țintă, producând tranziții line și naturale ale iluminării ambientale.",
   "edt_dev_spec_macAddress_title": "Adresă MAC",
   "wiz_lifx_error": "Nu s-au găsit dispozitive Lifx. Verificați jurnalele HyperHDR.",
-  "wiz_lifx_title": "Asistentul pentru lumini LIFX"
+  "wiz_lifx_title": "Asistentul pentru lumini LIFX",
+  "edt_dev_spec_convertToLinearRgb_title": "Convertiți în RGB liniar"
 }
