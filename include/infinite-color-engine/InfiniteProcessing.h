@@ -69,7 +69,7 @@ public:
 	};
 
 	InfiniteProcessing();
-	InfiniteProcessing(const QJsonDocument& config, const LoggerName& _log);
+	InfiniteProcessing(const QJsonDocument& config, LedString::ColorOrder colorOrder, const LoggerName& _log);
 	~InfiniteProcessing() = default;
 
 	void setProcessingEnabled(bool enabled);

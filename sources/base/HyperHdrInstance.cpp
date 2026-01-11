@@ -141,11 +141,11 @@ void HyperHdrInstance::start()
 	connect(_muxer.get(), &Muxer::SignalPrioritiesChanged, this, &HyperHdrInstance::SignalPrioritiesChanged);
 	connect(_muxer.get(), &Muxer::SignalVisiblePriorityChanged, this, &HyperHdrInstance::SignalVisiblePriorityChanged);
 	connect(_muxer.get(), &Muxer::SignalVisibleComponentChanged, this, &HyperHdrInstance::SignalVisibleComponentChanged);
-	_infinite = std::make_unique<CoreInfiniteEngine>(this);
+	_infinite = std::make_unique<CoreInfiniteEngine>(this, _ledString.colorOrder);
+	Info(_log, "Led strip RGB order is: {:s}", (LedString::colorOrderToString(_ledString.colorOrder)));
 	_ledGridSize = LedString::getLedLayoutGridSize(getSetting(settings::type::LEDS).array());
 	_currentLedColors = QVector<ColorRgb>(_ledString.leds().size(), ColorRgb::BLACK);
-
-	Info(_log, "Led strip RGB order is: {:s}", (LedString::colorOrderToString(_ledString.colorOrder)));
+	
 
 	connect(_instanceConfig.get(), &InstanceConfig::SignalInstanceSettingsChanged, this, &HyperHdrInstance::SignalInstanceSettingsChanged);
 

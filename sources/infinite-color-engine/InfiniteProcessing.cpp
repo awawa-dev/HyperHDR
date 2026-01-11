@@ -81,10 +81,11 @@ InfiniteProcessing::InfiniteProcessing() :
 {
 }
 
-InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, const LoggerName& log) :
+InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, LedString::ColorOrder colorOrder, const LoggerName& log) :
 	InfiniteProcessing()
 {
 	_log = log;
+	_colorOrder = colorOrder;
 	handleSignalInstanceSettingsChanged(settings::type::COLOR, config);
 }
 
@@ -164,6 +165,7 @@ void InfiniteProcessing::handleSignalInstanceSettingsChanged(settings::type type
 	if (type == settings::type::DEVICE)
 	{
 		_colorOrder = LedString::stringToColorOrder(config["colorOrder"].toString("rgb"));
+		Info(_log, "Current active RGB order is: {:s}", (config["colorOrder"].toString("rgb")));
 	}
 	else if (type == settings::type::COLOR)
 	{
