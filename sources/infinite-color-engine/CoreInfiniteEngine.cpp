@@ -33,10 +33,10 @@ using namespace hyperhdr;
 using namespace ColorSpaceMath;
 using namespace linalg::aliases;
 
-CoreInfiniteEngine::CoreInfiniteEngine(HyperHdrInstance* hyperhdr)
+CoreInfiniteEngine::CoreInfiniteEngine(HyperHdrInstance* hyperhdr, LedString::ColorOrder colorOrder)
 	: QObject(),
 	_smoothing(std::make_unique<InfiniteSmoothing>(hyperhdr->getSetting(settings::type::SMOOTHING), hyperhdr)),
-	_processing(std::make_unique<InfiniteProcessing>(hyperhdr->getSetting(settings::type::COLOR), QString("COLORS%1").arg(hyperhdr->getInstanceIndex()))),
+	_processing(std::make_unique<InfiniteProcessing>(hyperhdr->getSetting(settings::type::COLOR), colorOrder, QString("COLORS%1").arg(hyperhdr->getInstanceIndex()))),
 	_log(QString("ENGINE%1").arg(hyperhdr->getInstanceIndex()))
 {
 	qRegisterMetaType<SharedOutputColors>("SharedOutputColors");
