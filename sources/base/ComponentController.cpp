@@ -43,8 +43,9 @@ void ComponentController::handleCompStateChangeRequest(hyperhdr::Components comp
 			Debug(_log, "Disabling HyperHDR instance: saving current component states first");
 			_componentStates[COMP_ALL] = false;
 
+			auto componentStatesCopy = _componentStates;
 			for (int i = 0; i < 2; i++)
-				for (const auto& comp : _componentStates)
+				for (const auto& comp : componentStatesCopy)
 					if (comp.first != COMP_ALL &&
 						((i == 0 && comp.first == COMP_LEDDEVICE) || (i == 1 && comp.first != COMP_LEDDEVICE)))
 					{
@@ -126,7 +127,16 @@ void ComponentController::turnGrabbers(bool activated, bool includingSystemGrabb
 			auto currentStatusIsEnabled = isComponentEnabled(component);
 			if (!_prevGrabbers.contains(component))
 			{
-				Info(_log, "Saving {:s} state {:s} before stopping", componentToIdString(component), (currentStatusIsEnabled) ? "ON" : "OFF");
+				if (_prevComponentStates.contains(component))
+				{					
+					currentStatusIsEnabled = _prevComponentStates[component];
+					_prevComponentStates.erase(component);
+					Info(_log, "Component {:s} state {:s} was already saved when the instance was disabled. The value is now taken over by the grabber’s own resume procedure", componentToIdString(component), (currentStatusIsEnabled) ? "ON" : "OFF");
+				}
+				else
+				{
+					Info(_log, "Saving {:s} state {:s} before stopping", componentToIdString(component), (currentStatusIsEnabled) ? "ON" : "OFF");
+				}
 				_prevGrabbers.emplace(component, currentStatusIsEnabled);
 			}
 			if (currentStatusIsEnabled)
