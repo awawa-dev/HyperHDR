@@ -166,7 +166,7 @@ void HyperHdrInstance::start()
 
 	_ledDeviceWrapper = std::make_unique<LedDeviceWrapper>(this);
 	connect(this, &HyperHdrInstance::SignalRequestComponent, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
-	_ledDeviceWrapper->createLedDevice(ledDevice, _infinite->getSuggestedInterval(), _disableOnStartup);
+	_ledDeviceWrapper->createLedDevice(ledDevice, _infinite->getSuggestedInterval(), _infinite->getAntiFlickeringFilterState(), _disableOnStartup);
 
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = std::make_unique<EffectEngine>(this);
@@ -246,7 +246,7 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = _hwLedCount; // Inject led count info
-		_ledDeviceWrapper->createLedDevice(dev, _infinite->getSuggestedInterval(), false);
+		_ledDeviceWrapper->createLedDevice(dev, _infinite->getSuggestedInterval(), _infinite->getAntiFlickeringFilterState(), false);
 	}
 	else if (type == settings::type::BGEFFECT || type == settings::type::FGEFFECT)
 	{

@@ -29,6 +29,7 @@ public:
 	~CoreInfiniteEngine() = default;
 
 	int getSuggestedInterval();
+	bool getAntiFlickeringFilterState();
 	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	void incomingColors(std::vector<linalg::aliases::float3>&& _ledBuffer);

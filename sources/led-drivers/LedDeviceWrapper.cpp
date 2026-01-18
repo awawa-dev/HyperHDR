@@ -28,7 +28,7 @@ LedDeviceWrapper::~LedDeviceWrapper()
 	_ledDevice.reset();
 }
 
-void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval, bool disableOnStartup)
+void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval, bool antiFlickeringFilter, bool disableOnStartup)
 {
 	auto threadReadyPromisePtr = std::make_shared<std::promise<void>>();
 	const int instanceIndex = _ownerInstance->getInstanceIndex();
@@ -36,6 +36,7 @@ void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval
 	_ledDevice.reset();
 
 	config["smoothingRefreshTime"] = smoothingInterval;
+	config["smoothingAntiFlickeringFilter"] = antiFlickeringFilter;
 
 	QThread* thread = new QThread();
 	thread->setObjectName(QString("LedDeviceThread%1").arg(instanceIndex));

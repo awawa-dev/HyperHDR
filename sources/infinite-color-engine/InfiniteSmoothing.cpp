@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -76,7 +76,8 @@ InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstan
 	_infoUpdate(true),
 	_infoInput(true),
 	_coolDown(SMOOTHING_COOLDOWN_PHASE),
-	_lastSentFrame(0)
+	_lastSentFrame(0),
+	_antiFlickeringFilter(false)
 {
 	// init cfg 0 (SMOOTHING_USER_CONFIG)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
@@ -147,7 +148,7 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 			connect(this, &InfiniteSmoothing::SignalMasterClockTick, this, &InfiniteSmoothing::updateLeds, Qt::DirectConnection);
 		}
 
-		emit _hyperhdr->SignalSmoothingRestarted(this->getSuggestedInterval());
+		emit _hyperhdr->SignalSmoothingRestarted(this->getSuggestedInterval(), this->getAntiFlickeringFilterState());
 
 		Info(_log, "Smoothing queue is cleared");
 	}
@@ -174,6 +175,7 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 		}
 
 		_continuousOutput = obj["continuousOutput"].toBool(true);
+		_antiFlickeringFilter = obj["antiFlickeringFilter"].toBool(true);
 
 		_configurations[SMOOTHING_USER_CONFIG] = std::make_unique<SmoothingConfig>(
 			SmoothingConfig{
@@ -190,9 +192,9 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 
 		const auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
 		Info(_log, "Updating user config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz)"
-			       ", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+			       ", antiFlickeringFilter: {:s}, smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
 					SMOOTHING_USER_CONFIG, (EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
-					cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
+					((_antiFlickeringFilter) ? "enabled": "disabled"), cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
 			);
 
 		if (_currentConfigId == SMOOTHING_USER_CONFIG)
@@ -343,6 +345,11 @@ int InfiniteSmoothing::getSuggestedInterval()
 	return (isEnabled()) ? static_cast<int>(_configurations[_currentConfigId]->updateInterval) : 0;
 }
 
+bool InfiniteSmoothing::getAntiFlickeringFilterState()
+{
+	return _antiFlickeringFilter;
+}
+
 bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 {
 	bool result = (cfgId < (unsigned)_configurations.size());
@@ -353,13 +360,14 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 
 	const auto& cfg = _configurations[_currentConfigId];
 
-	Info(_log, "Selecting config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz). Smoothing is currently: {:s}"
+	Info(_log, "Selecting config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz). Smoothing is currently: {:s} and antiFlickeringFilter is: {:s}"
 				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
 		_currentConfigId, (EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
 		int(cfg->settlingTime),
 		int(cfg->updateInterval),
 		int(1000.0 / cfg->updateInterval),
 		(_enabled) ? "enabled" : "disabled",
+		((_antiFlickeringFilter) ? "enabled" : "disabled"),
 		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
 
 	return result;
