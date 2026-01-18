@@ -222,9 +222,19 @@ bool InstanceConfig::upgradeDB(QJsonObject& dbConfig)
 			colorObject["channelAdjustment"] = newArray;
 			dbConfig["color"] = colorObject;
 			///////////////////////////////////////////////////////////
-			version = 5;
-			Info(_log, "DB has been upgraded to version: {:d}", version);
+			version = 5;			
 		}
+	}
+
+	if (version < 6)
+	{		
+		if (!generalObject["disableOnLocked"].toBool())
+		{
+			Info(_log, "Enabling disableOnLocked for better compatibility with software grabbers");
+			generalObject["disableOnLocked"] = true;
+		}
+		version = 6;
+		Info(_log, "DB has been upgraded to version: {:d}", version);
 	}
 
 	generalObject["version"] = version;
