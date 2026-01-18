@@ -14,7 +14,6 @@ target_link_libraries(smart-pipewire PUBLIC
 	image
 	sdbus-c++
 )
-set_property(TARGET smart-pipewire PROPERTY CXX_STANDARD 17)
 
 # Grabber
 FILE ( GLOB PIPEWIRE_SOURCES "${CURRENT_HEADER_DIR}/smartPipewire.h" "${CURRENT_HEADER_DIR}/PipewireGrabber.h" "${CURRENT_HEADER_DIR}/PipewireWrapper.h"
