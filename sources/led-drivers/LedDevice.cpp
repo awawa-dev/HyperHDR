@@ -630,37 +630,21 @@ int LedDevice::write(SharedOutputColors nonlinearRgbColors)
 		{
 			if (nonlinearRgbColors->size() == _lastFinityLedValues->size())
 			{
-				constexpr float half_lsb = 0.5f * (1.0f / 255.0f);
-
-				std::transform(_lastFinityLedValues->begin(), _lastFinityLedValues->end(),
-					nonlinearRgbColors->begin(),
-					_lastFinityLedValues->begin(),
-					[half_lsb](const linalg::aliases::float3& oldV, const linalg::aliases::float3& newV) {
-
-						linalg::aliases::float3 result = oldV;
-						linalg::aliases::float3 diff = linalg::abs(newV - oldV);
-
-						for (int i = 0; i < 3; ++i) 
-							if (diff[i] > half_lsb)
-							{
-								result[i] = newV[i];
-							}						
-
-						if (linalg::maxelem(result) < half_lsb)
-						{
-							return linalg::aliases::float3(0.0f);
-						}
-
-						return result;
-					});
-
 				std::vector<ColorRgb> ledValues;
-				ledValues.reserve(_lastFinityLedValues->size());
-				std::transform(_lastFinityLedValues->cbegin(), _lastFinityLedValues->cend(), std::back_inserter(ledValues),
-					[](const auto& v) {
-						auto b = ColorSpaceMath::round_to_0_255<linalg::aliases::byte3>(v * 255.0f);
-						return ColorRgb{ b.x, b.y, b.z };
-					});
+				ledValues.reserve(nonlinearRgbColors->size());
+
+				for (size_t i = 0; i < nonlinearRgbColors->size(); ++i) {
+					auto& oldV = (*_lastFinityLedValues)[i];
+					const auto& newV = (*nonlinearRgbColors)[i];
+
+					if (linalg::maxelem(linalg::abs(newV - oldV) * 255.0f) > 0.49f)
+					{
+						oldV = newV;
+					}
+
+					auto b = ColorSpaceMath::round_to_0_255<linalg::aliases::byte3>(oldV * 255.0f);
+					ledValues.push_back({ b.x, b.y, b.z });
+				}
 				return writeFiniteColors(ledValues);
 			}
 			else
