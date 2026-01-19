@@ -55,33 +55,36 @@ namespace {
 
 SuspendHandler::SuspendHandler(bool sessionLocker)
 {
-	try
-	{			
-		auto monitorSignalHandler = [this](QString source, bool isOff) {
-			qDebug().nospace() << "Display event: monitor is " << (isOff ? "OFF" : "ON") << " (reporting: " << source << ")";
-			emit SignalHibernate(!isOff, hyperhdr::SystemComponent::MONITOR);
-		};
-
-		_sessionBus = sdbus::createSessionBusConnection();
-		_gnomeScreenSaverProxy = sdbus::createProxy(*_sessionBus, ServiceName{ GNOME_SERVICE }, ObjectPath{ GNOME_PATH });
-		_gnomeScreenSaverProxy->uponSignal(SignalName{ "ActiveChanged" }).onInterface(InterfaceName{ GNOME_SERVICE }).call([monitorSignalHandler](bool active) {
-			monitorSignalHandler(QString(GNOME_SERVICE), active);
-		});
-		_kdePowerProxy = sdbus::createProxy(*_sessionBus, ServiceName{ KDE_SERVICE }, ObjectPath{ KDE_PATH });
-		_kdePowerProxy->uponSignal(SignalName{ "ActiveChanged" }).onInterface(InterfaceName{ KDE_SERVICE }).call([monitorSignalHandler](bool active) {
-			monitorSignalHandler(QString(KDE_SERVICE), active);
-		});
-		_xfcePowerProxy = sdbus::createProxy(*_sessionBus, ServiceName{ XFCE_SERVICE }, ObjectPath{ XFCE_PATH });
-		_xfcePowerProxy->uponSignal(SignalName{ "StateChanged" }).onInterface(InterfaceName{ XFCE_SERVICE }).call([monitorSignalHandler](uint32_t state) {
-			monitorSignalHandler(QString(XFCE_SERVICE), state == 3);
-		});
-		_sessionBus->enterEventLoopAsync();
-
-		qDebug().nospace() << "THE MONITOR STATE HANDLER IS REGISTERED!";
-	}
-	catch (std::exception& ex)
+	if (sessionLocker)
 	{
-		qCritical().nospace() << "COULD NOT REGISTER MONITOR STATE HANDLER NEEDED BY, FOR EXAMPLE, PIPEWIRE GRABBER (WHICH WONT WORK AS A SERVICE): " << ex.what();
+		try
+		{
+			auto monitorSignalHandler = [this](QString source, bool isOff) {
+				qDebug().nospace() << "Display event: monitor is " << (isOff ? "OFF" : "ON") << " (reporting: " << source << ")";
+				emit SignalHibernate(!isOff, hyperhdr::SystemComponent::MONITOR);
+				};
+
+			_sessionBus = sdbus::createSessionBusConnection();
+			_gnomeScreenSaverProxy = sdbus::createProxy(*_sessionBus, ServiceName{ GNOME_SERVICE }, ObjectPath{ GNOME_PATH });
+			_gnomeScreenSaverProxy->uponSignal(SignalName{ "ActiveChanged" }).onInterface(InterfaceName{ GNOME_SERVICE }).call([monitorSignalHandler](bool active) {
+				monitorSignalHandler(QString(GNOME_SERVICE), active);
+				});
+			_kdePowerProxy = sdbus::createProxy(*_sessionBus, ServiceName{ KDE_SERVICE }, ObjectPath{ KDE_PATH });
+			_kdePowerProxy->uponSignal(SignalName{ "ActiveChanged" }).onInterface(InterfaceName{ KDE_SERVICE }).call([monitorSignalHandler](bool active) {
+				monitorSignalHandler(QString(KDE_SERVICE), active);
+				});
+			_xfcePowerProxy = sdbus::createProxy(*_sessionBus, ServiceName{ XFCE_SERVICE }, ObjectPath{ XFCE_PATH });
+			_xfcePowerProxy->uponSignal(SignalName{ "StateChanged" }).onInterface(InterfaceName{ XFCE_SERVICE }).call([monitorSignalHandler](uint32_t state) {
+				monitorSignalHandler(QString(XFCE_SERVICE), state == 3);
+				});
+			_sessionBus->enterEventLoopAsync();
+
+			qDebug().nospace() << "THE MONITOR STATE HANDLER IS REGISTERED!";
+		}
+		catch (std::exception& ex)
+		{
+			qCritical().nospace() << "COULD NOT REGISTER MONITOR STATE HANDLER NEEDED BY, FOR EXAMPLE, PIPEWIRE GRABBER (WHICH WONT WORK AS A SERVICE): " << ex.what();
+		}
 	}
 
 	try

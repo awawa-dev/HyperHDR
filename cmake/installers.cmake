@@ -370,8 +370,6 @@ macro(DeployUnix TARGET)
 			"ld-"
 			"libasound"
 			"libblkid"
-			"libbrotlicommon"
-			"libbrotlidec"
 			"libffi"
 			"libgio-2"
 			"libgmodule-2"

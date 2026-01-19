@@ -117,7 +117,7 @@ signals:
 	void SignalAdjustmentUpdated(QJsonArray newConfig);
 	void SignalFinalOutputColorsReady(SharedOutputColors nonlinearRgbColors);
 	void SignalSmoothingClockTick();
-	void SignalSmoothingRestarted(int suggestedInterval);
+	void SignalSmoothingRestarted(int suggestedInterval, bool antiflickeringfilter);
 	void SignalRawColorsChanged(QVector<ColorRgb> ledValues);
 	void SignalInstanceJustStarted();
 	void SignalColorIsSet(ColorRgb color, int duration);

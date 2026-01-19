@@ -68,6 +68,8 @@
 	#include <iomanip>
 	#include <optional>
 	#include <type_traits>
+	#include <concepts>
+	#include <tuple>
 
 	#if __has_include(<format>)
 		#include <format>

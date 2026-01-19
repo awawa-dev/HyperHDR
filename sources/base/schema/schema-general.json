@@ -38,7 +38,7 @@
 			"type" : "boolean",
 			"format": "checkbox",
 			"title" : "edt_conf_gen_disableOnLocked_title",
-			"default" : false,
+			"default" : true,
 			"required" : true,
 			"propertyOrder" : 5
 		},

@@ -40,6 +40,7 @@ public:
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	bool selectConfig(unsigned cfgId);
 	int getSuggestedInterval();
+	bool getAntiFlickeringFilterState();
 
 	static constexpr auto SMOOTHING_EFFECT_CONFIGS_START = 1;
 
@@ -92,4 +93,5 @@ private:
 	bool			_infoInput;
 	int				_coolDown;
 	long long		_lastSentFrame;
+	bool			_antiFlickeringFilter;
 };
