@@ -1296,7 +1296,6 @@
   "edt_conf_processing_scaleOutput_expl": "Vermenigvuldigt de RGB-kleurcomponenten met een bepaalde factor in de lineaire RGB-ruimte.",
   "edt_conf_processing_powerLimit_title": "Beperk het uitgangsvermogen",
   "edt_conf_processing_powerLimit_expl": "Deze functie controleert of het totale opgenomen vermogen voor de huidige scène is overschreden. Zo ja, dan worden de helderheid en kleur van elke LED automatisch verlaagd. <strong>Let op: dit is geen vervanging voor een voldoende krachtige voeding.</strong> Deze functie is alleen bedoeld om overmatige helderheid te beperken en beschermt uw apparatuur niet tegen schade door een te kleine voeding. We garanderen niet dat deze functie direct leidt tot het beperken van het vermogen van de LED-opstelling tot een specifiek wattage.",
-  "edt_conf_smoothing_testMode_expl": "Cyclische, plotselinge kleurveranderingen voor het testen van smoothing-algoritmen, uitvoer naar de console (in Windows: voer HyperHDR uit met de parameter -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponentiële oneindige interpolator",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "De klassieke exponentiële implementatie van smoothing werkt de LED-kleuren bij in de richting van een doel, reageert snel op grote verschillen en vertraagt ​​naarmate de kleuren het doel naderen, wat zorgt voor vloeiende, natuurlijke overgangen in de omgevingsverlichting.",
   "edt_dev_spec_macAddress_title": "MAC-adres",

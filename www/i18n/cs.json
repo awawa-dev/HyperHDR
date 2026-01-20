@@ -1296,7 +1296,6 @@
   "edt_conf_processing_scaleOutput_expl": "Vynásobí barevné složky RGB daným faktorem v lineárním prostoru RGB.",
   "edt_conf_processing_powerLimit_title": "Omezení výstupního výkonu",
   "edt_conf_processing_powerLimit_expl": "Tato funkce kontroluje, zda byl překročen celkový odběr energie pro aktuální scénu. Pokud ano, automaticky sníží jas a barvu každé LED diody. <strong>Upozorňujeme, že se nejedná o náhradu dostatečně výkonného zdroje napájení.</strong> Tato funkce je navržena pouze k omezení nadměrného jasu a nechrání vaše zařízení před poškozením v důsledku poddimenzovaného zdroje napájení. Nezaručujeme, že se tato funkce přímo projeví omezením výkonu LED diod na určitou hodnotu výkonu.",
-  "edt_conf_smoothing_testMode_expl": "Cyklické náhlé změny barev pro testování algoritmů vyhlazování, výstup do konzole (ve Windows spusťte HyperHDR s parametrem -c).",
   "edt_conf_enum_interpolator_ExponentialInterpolator_title": "Exponenciální nekonečný interpolátor",
   "edt_conf_enum_interpolator_ExponentialInterpolator_expl": "Klasická exponenciální implementace vyhlazování aktualizuje barvy LED diod směrem k cíli, rychle reaguje na velké rozdíly a zpomaluje, jak se k cíli přibližují, čímž vytváří plynulé a přirozené přechody mezi okolním osvětlením.",
   "edt_dev_spec_macAddress_title": "MAC adresa",
