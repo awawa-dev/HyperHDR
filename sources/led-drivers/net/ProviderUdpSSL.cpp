@@ -157,6 +157,7 @@ bool ProviderUdpSSL::initNetwork()
 
 	_dtls = new QDtls(QSslSocket::SslClientMode, this);
 	_socket = new QUdpSocket(this);
+	_socket->bind(QHostAddress::AnyIPv4);
 	_handshake_attempts_left = _handshake_attempts;
 
 	QSslConfiguration config = QSslConfiguration::defaultDtlsConfiguration();
@@ -171,52 +172,51 @@ bool ProviderUdpSSL::initNetwork()
 			this->setInError("Cannot initialize the neccesery ciphers. Please install OpenSSL 1.1.1 or higher (3.x)");
 			return false;
 		}
+		allowedCiphers.append(cipher);
 	};
 	config.setCiphers(allowedCiphers);
 
-	config.setPeerVerifyMode(QSslSocket::QueryPeer);
+	config.setProtocol(QSsl::DtlsV1_2);
+	config.setAllowedNextProtocols({});
+	config.setPeerVerifyMode(QSslSocket::VerifyNone);
 	_dtls->setDtlsConfiguration(config);
 	_dtls->setPeer(_address, _ssl_port);	
 
 	connect(_dtls, &QDtls::pskRequired, this, &ProviderUdpSSL::pskRequired);
 	connect(_dtls, &QDtls::handshakeTimeout, this, &ProviderUdpSSL::handshakeTimeout);
-	connect(_socket, &QUdpSocket::connected, this, [&]() {
-		if (_dtls != nullptr && _socket != nullptr)
-		{
-			Debug(_log, "Connected to the host. Initiating a handshake");
-			_dtls->doHandshake(_socket);
-		}
-	});
 
 	connect(_socket, &QUdpSocket::errorOccurred, this, [&](QAbstractSocket::SocketError socketError) {
 		QString message = QString("Socket error nr: %1").arg(QString::number(socketError));
 		QUEUE_CALL_1(this, errorHandling, QString, message);
 	});
 
-	connect(_socket, &QUdpSocket::readyRead, this, [&](){
+	connect(_socket, &QUdpSocket::readyRead, this, [this](){
 		if (_dtls ==nullptr || _socket == nullptr ||  _socket->pendingDatagramSize() <= 0)
 			return;
 
-		QByteArray dgram(_socket->pendingDatagramSize(), Qt::Uninitialized);
-		const qint64 bytesRead = _socket->readDatagram(dgram.data(), dgram.size());
-		if (_dtls->isConnectionEncrypted() || bytesRead <= 0)
-			return;
+		while (_socket->hasPendingDatagrams()) {
+			QByteArray dgram(_socket->pendingDatagramSize(), Qt::Uninitialized);
+			const qint64 bytesRead = _socket->readDatagram(dgram.data(), dgram.size());
 
-		Debug(_log, "Welcome datagram received. Proceeding with a handshake");
+			if (_dtls->handshakeState() == QDtls::HandshakeComplete || _dtls->isConnectionEncrypted() || bytesRead <= 0)
+				continue;
 
-		dgram.resize(bytesRead);
+			Debug(_log, "Welcome datagram received. Proceeding with a handshake");
 
-		if (!_dtls->doHandshake(_socket, dgram))
-		{
-			QString message = "Failed to continue the handshake";
-			QUEUE_CALL_1(this, errorHandling, QString, message);
-			return;
-		}
+			dgram.resize(bytesRead);
 
-		if (_dtls->isConnectionEncrypted())
-		{
-			Debug(_log, "Established encrypted connection");
-			_streamReady = true;
+			if (!_dtls->doHandshake(_socket, dgram))
+			{
+				QString message = "Failed to continue the handshake";
+				QUEUE_CALL_1(this, errorHandling, QString, message);
+				return;
+			}
+
+			if (_dtls->isConnectionEncrypted())
+			{
+				Debug(_log, "Established encrypted connection");
+				_streamReady = true;
+			}
 		}
 	});
 
