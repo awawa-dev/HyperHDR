@@ -77,7 +77,8 @@ InfiniteSmoothing::InfiniteSmoothing(const QJsonDocument& config, HyperHdrInstan
 	_infoInput(true),
 	_coolDown(SMOOTHING_COOLDOWN_PHASE),
 	_lastSentFrame(0),
-	_antiFlickeringFilter(false)
+	_antiFlickeringFilter(false),
+	_minimalBacklight(0.f)
 {
 	// init cfg 0 (SMOOTHING_USER_CONFIG)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY);
@@ -206,8 +207,10 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 	}
 }
 
-void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors)
+void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors, std::optional<float> minimalBacklight)
 {
+	_minimalBacklight = (minimalBacklight.has_value()) ? minimalBacklight.value() : 0.f;
+
 	if (_infoInput)
 	{
 		if (!isEnabled())
@@ -247,7 +250,7 @@ void InfiniteSmoothing::updateLeds()
 		timeNow = InternalClock::now();
 		_interpolator->updateCurrentColors(timeNow);
 
-		nonlinearRgbColors = _interpolator->getCurrentColors();
+		nonlinearRgbColors = _interpolator->getCurrentColors(_minimalBacklight);
 
 		if (!_interpolator->isAnimationComplete())
 		{

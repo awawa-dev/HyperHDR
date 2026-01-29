@@ -232,6 +232,11 @@ void InfiniteProcessing::applyyAllProcessingSteps(std::vector<linalg::vec<float,
 	}
 }
 
+std::optional<float> InfiniteProcessing::getMinimalBacklight()
+{
+	return _minimalBacklight;
+}
+
 void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBacklight)
 {
 	if (minimalLevel >= 1.0f)

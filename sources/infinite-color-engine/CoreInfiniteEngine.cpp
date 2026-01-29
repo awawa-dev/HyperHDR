@@ -70,7 +70,7 @@ void CoreInfiniteEngine::setCurrentSmoothingConfigParams(unsigned cfgID)
 void CoreInfiniteEngine::incomingColors(std::vector<float3>&& _ledBuffer)
 {
 	_processing->applyyAllProcessingSteps(_ledBuffer);
-	_smoothing->incomingColors(std::move(_ledBuffer));
+	_smoothing->incomingColors(std::move(_ledBuffer), _processing->getMinimalBacklight());
 }
 
 void CoreInfiniteEngine::setProcessingEnabled(bool enabled)

@@ -74,7 +74,7 @@ void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_t
 	if (new_rgb_to_yuv_targets.empty())
 		return;
 
-	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+	const float delta = (!_isAnimationComplete) ? std::clamp(startTimeMs - _lastUpdate, 0.f, 100.0f) : 0.f;
 
 	if (debug)
 	{
@@ -111,9 +111,12 @@ void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_t
 
 void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 	if (_isAnimationComplete)
+	{
+		_lastUpdate = currentTimeMs;
 		return;
+	}
 
-	float dt = std::max(currentTimeMs - _lastUpdate, 0.001f);
+	float dt = std::clamp(currentTimeMs - _lastUpdate, 0.001f, 100.0f);
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff, float3& vel) -> bool {
@@ -163,7 +166,7 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 	_currentColorsRGB.reset();
 }
 
-SharedOutputColors InfiniteHybridInterpolator::getCurrentColors()
+SharedOutputColors InfiniteHybridInterpolator::getCurrentColors(float minBrightness)
 {
 	if (!_currentColorsRGB.has_value())
 	{
@@ -178,7 +181,7 @@ SharedOutputColors InfiniteHybridInterpolator::getCurrentColors()
 				_currentColorsYUV.begin(),
 				_currentColorsYUV.end(),
 				tmp.begin(),
-				[](const auto& yuv) { return linalg::clamp(ColorSpaceMath::bt709_to_rgb(yuv), 0.f, 1.0f); }
+				[minBrightness](const auto& yuv) { return linalg::clamp(ColorSpaceMath::bt709_to_rgb(yuv), minBrightness, 1.0f); }
 			);
 			_currentColorsRGB = std::move(tmp);
 		}

@@ -107,6 +107,7 @@ public:
 	void setPowerLimit(float powerLimit);
 	void applyPowerLimit(std::vector<linalg::vec<float, 3>>& linearRgbColors) const;
 
+	std::optional<float> getMinimalBacklight();
 	void setMinimalBacklight(float minimalLevel, bool coloreBacklight);
 	void applyMinimalBacklight(linalg::vec<float, 3>& color) const;
 

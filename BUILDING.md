@@ -14,7 +14,7 @@
 ```console
 sudo apt-get update
 
-sudo apt-get install build-essential cmake flatbuffers-compiler git libasound2-dev libayatana-appindicator3-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev libgtk-3-dev liblzma-dev libpipewire-0.3-dev libssl-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev libx11-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget
+sudo apt-get install build-essential cmake flatbuffers-compiler git libasound2-dev libayatana-appindicator3-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev libgtk-3-dev liblzma-dev libpipewire-0.3-dev libssl-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev libx11-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget chrpath
 ```
 
 For Raspberry Pi CEC support (optional)
@@ -25,7 +25,7 @@ sudo apt-get install libcec-dev libp8-platform-dev libudev-dev
 ### Fedora
 
 ```console
-sudo dnf -y install alsa-lib-devel chrpath cmake fedora-packager flatbuffers-compiler flatbuffers-devel gcc gcc-c++ git gtk3-devel libX11-devel libayatana-appindicator-gtk3-devel libftdi-c++-devel libglvnd-devel libusb1-devel libzstd-devel mesa-libEGL-devel mesa-libGL-devel ninja-build openssl-devel pipewire-devel pkg-config qt6-qtbase-devel qt6-qtserialport-devel systemd-devel turbojpeg-devel unzip wget xz-devel
+sudo dnf -y install alsa-lib-devel chrpath cmake fedora-packager flatbuffers-compiler flatbuffers-devel gcc gcc-c++ git gtk3-devel libX11-devel libayatana-appindicator-gtk3-devel libftdi-c++-devel libglvnd-devel libusb1-devel libzstd-devel mesa-libEGL-devel mesa-libGL-devel ninja-build openssl-devel pipewire-devel pkg-config qt6-qtbase-devel qt6-qtserialport-devel systemd-devel turbojpeg-devel unzip wget xz-devel chrpath
 
 ```
 
@@ -34,7 +34,7 @@ sudo dnf -y install alsa-lib-devel chrpath cmake fedora-packager flatbuffers-com
 ```console
 sudo pacman -Syy
 
-sudo pacman -S alsa-lib base-devel bash binutils chrpath cmake dpkg fakeroot flatbuffers freetds git gtk3 libayatana-appindicator libfbclient libftdi libglvnd libjpeg-turbo libx11 mariadb-libs mesa ninja openssl pipewire pkgfile postgresql-libs python qt6-base qt6-serialport sdbus-cpp systemd-libs unzip wayland wget xz
+sudo pacman -S alsa-lib base-devel bash binutils chrpath cmake dpkg fakeroot flatbuffers freetds git gtk3 libayatana-appindicator libfbclient libftdi libglvnd libjpeg-turbo libx11 mariadb-libs mesa ninja openssl pipewire pkgfile postgresql-libs python qt6-base qt6-serialport sdbus-cpp systemd-libs unzip wayland wget xz chrpath
 ```
 
 ### Windows
