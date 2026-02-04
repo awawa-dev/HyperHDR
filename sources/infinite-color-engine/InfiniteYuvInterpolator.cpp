@@ -78,7 +78,7 @@ void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_y
 	if (new_rgb_to_yuv_targets.empty())
 		return;
 
-	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+	const float delta = (!_isAnimationComplete) ? std::clamp(startTimeMs - _lastUpdate, 0.f, 100.0f) : 0.f;
 
 	if (debug)
 	{
@@ -128,7 +128,10 @@ void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_y
 void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
 {
 	if (_isAnimationComplete)
+	{
+		_lastUpdate = currentTimeMs;
 		return;
+	}
 
 	// obliczenie czasu, analog setupAdvColor
 	float deltaTime = _targetTime - currentTimeMs;
@@ -175,7 +178,7 @@ void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
 	_currentColorsRGB.reset();
 }
 
-SharedOutputColors InfiniteYuvInterpolator::getCurrentColors()
+SharedOutputColors InfiniteYuvInterpolator::getCurrentColors(float minBrightness)
 {
 	if (!_currentColorsRGB.has_value())
 	{
@@ -190,7 +193,7 @@ SharedOutputColors InfiniteYuvInterpolator::getCurrentColors()
 				_currentColorsYUV.begin(),
 				_currentColorsYUV.end(),
 				tmp.begin(),
-				[](const auto& yuv) { return linalg::clamp(ColorSpaceMath::bt709_to_rgb(yuv), 0.f, 1.0f); }
+				[minBrightness](const auto& yuv) { return linalg::clamp(ColorSpaceMath::bt709_to_rgb(yuv), minBrightness, 1.0f); }
 			);
 			_currentColorsRGB = std::move(tmp);
 		}

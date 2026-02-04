@@ -118,6 +118,15 @@
 			},
 			"propertyOrder" : 8
 		},
+		"antiFlickeringFilter" :
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_conf_smooth_antiFlickeringFilter_title",
+			"default" : true,
+			"required" : true,
+			"propertyOrder" : 9
+		},
 		"continuousOutput" :
 		{
 			"type" : "boolean",

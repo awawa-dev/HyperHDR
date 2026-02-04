@@ -1,3 +1,15 @@
+- Fix: Initial smoothing surge after period of static video input (#1410) - fix for v22beta1 🆕
+- Fix: Minimum brightness preservation in YUV and Hybrid-Inertia smoothing modes (#1410) - fix for v22beta1 🆕
+- upgrades old style format logging (with %) to c++20 format in some places (#1410) - fix for v22beta1 🆕
+- restores custom user RGB order at the start (#1410) - fix for v22beta1 🆕
+- restores compatibility with Qt5.15 (#1410) - fix for v22beta1 🆕
+- Improved state management of the software grabber during sleep and monitor‑suspend events (#1410) - fix for v22beta1 🆕
+  - PipeWire is particularly sensitive to sessions resuming too early after such events and, despite having provided a saved session token, would display a new source select dialog after resume when screen‑lock‑after‑suspend was enabled
+- Set disableOnLocked option enabled by default, because software grabbers for ex. Pipewire wont function properly without it (#1410) - fix for v22beta1 🆕
+- Fix translation resources
+- Infinite Color Engine: new anti-flickering filter in the smoothing configuration (#1410) - fix for v22beta1 🆕
+   - Implements an anti-flickering filter that minimizes quantization jitter on 8-bit-per-channel drivers (24-bit RGB). Deep color capable drivers (like Philips Hue using entertainment mode) are bypassed as they don't suffer from LSB oscillation.
+- Improved handshake stability connecting to Philips Hue bridge using OpenSSL 3.2+ (#1410) - fix for v22beta1 🆕
 - Infinite Color Engine - Breaking 24-bit Limits (#1261) - v22beta1 🆕
    - Floating-Point Precision: All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
    - Linear sRGB Accuracy: Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction

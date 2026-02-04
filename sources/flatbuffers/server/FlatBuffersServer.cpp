@@ -154,7 +154,7 @@ void FlatBuffersServer::handleSettingsUpdate(settings::type type, const QJsonDoc
 		_quarterOfFrameMode = obj["quarterOfFrameMode"].toBool(false);
 
 		Info(_log, "Tone mapping: {:d}", _flatbufferToneMappingMode);
-		Info(_log, "NV12 quarter of frame mode: {:d}", _quarterOfFrameMode);		
+		Info(_log, "Scale NV12 frame size to 25%: {:d}", _quarterOfFrameMode);		
 	}
 }
 

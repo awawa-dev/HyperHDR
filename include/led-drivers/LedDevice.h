@@ -70,7 +70,7 @@ public slots:
 	virtual bool switchOn();
 	virtual bool switchOff();
 	void blinking(QJsonObject params);
-	void smoothingRestarted(int newSmoothingInterval);
+	void smoothingRestarted(int newSmoothingInterval, bool antiflickeringfilter);
 	int hasLedClock();
 	void pauseRetryTimer(bool mode);
 
@@ -125,6 +125,7 @@ protected:
 	bool _isOn;
 	bool _isDeviceInError;
 
+	bool	_antiFlickeringFilter;
 	int		_maxRetry;
 	int		_currentRetry;
 	QString _customInfo;
@@ -145,6 +146,7 @@ private:
 	std::atomic_bool	_isRefreshEnabled;
 	std::atomic_bool	_newFrame2Send;
 	SharedOutputColors	_lastLedValues;
+	SharedOutputColors	_lastFinityLedValues;
 
 	struct LedStats
 	{

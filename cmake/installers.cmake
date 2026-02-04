@@ -318,6 +318,7 @@ macro(DeployUnix TARGET)
 		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")"					COMPONENT "HyperHDR")
 		install(CODE "set(PREREQUISITE_LIBS \"${PREREQUISITE_LIBS}\")"		COMPONENT "HyperHDR")
 		install(CODE "set(QT_PLUGINS_DIR \"${QT_PLUGINS_DIR}\")"			COMPONENT "HyperHDR")
+		install(CODE "set(TEMP_RPATH_DIR \"${CMAKE_CURRENT_BINARY_DIR}/temp_rpath_fix\")" COMPONENT "HyperHDR")
 
 		install(CODE [[
 
@@ -370,8 +371,6 @@ macro(DeployUnix TARGET)
 			"ld-"
 			"libasound"
 			"libblkid"
-			"libbrotlicommon"
-			"libbrotlidec"
 			"libffi"
 			"libgio-2"
 			"libgmodule-2"
@@ -461,8 +460,7 @@ macro(DeployUnix TARGET)
 			endif()
 		endforeach()		
 
-		# Copy dependencies to 'share/hyperhdr/lib/external'
-		set(TEMP_RPATH_DIR "${CMAKE_CURRENT_BINARY_DIR}/temp_rpath_fix")
+		# Copy dependencies to 'share/hyperhdr/lib/external'		
 		file(MAKE_DIRECTORY ${TEMP_RPATH_DIR})
 		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
 			set(FILE_TO_INSTALL ${PREREQUISITE_LIB})

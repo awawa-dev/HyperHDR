@@ -1,3 +1,30 @@
+/* LedDevice.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2026 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+ */
+
 #ifndef PCH_ENABLED
 	#include <QResource>
 	#include <QStringList>
@@ -34,11 +61,13 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _isDeviceReady(false)
 	, _isOn(false)
 	, _isDeviceInError(false)
+	, _antiFlickeringFilter(false)
 	, _maxRetry(60)
 	, _currentRetry(0)
 	, _retryTimer(nullptr)
 	, _isRefreshEnabled(false)
 	, _newFrame2Send(false)
+	, _lastFinityLedValues(std::make_shared<std::vector<linalg::aliases::float3>>())
 	, _blinkIndex(-1)
 	, _blinkTime(0)
 	, _instanceIndex(-1)
@@ -263,6 +292,7 @@ void LedDevice::enableDevice(bool toEmit)
 		{
 			if (switchOn())
 			{
+				_lastFinityLedValues->clear();
 				_isDeviceReady = true;
 				_isEnabled = true;
 				stopRetryTimer();
@@ -303,6 +333,8 @@ void LedDevice::disableDevice(bool toEmit)
 		if (_isRefreshEnabled)
 			this->stopRefreshTimer();
 
+		_lastFinityLedValues->clear();
+
 		switchOff();
 		close();
 
@@ -335,6 +367,8 @@ bool LedDevice::init(QJsonObject deviceConfig)
 	_defaultInterval = deviceConfig["refreshTime"].toInt(0);
 	_forcedInterval = deviceConfig["forcedRefreshTime"].toInt(0);
 	_smoothingInterval = deviceConfig["smoothingRefreshTime"].toInt(0);
+	_antiFlickeringFilter = deviceConfig["smoothingAntiFlickeringFilter"].toBool(false);
+	Debug(_log, "SetAntiFlickeringFilter: {:s}", ((_antiFlickeringFilter) ? "enabled" : "disabled"));
 
 	setLedCount(deviceConfig["currentLedCount"].toInt(1)); // property injected to reflect real led count
 	setRefreshTime(deviceConfig["refreshTime"].toInt(_currentInterval));
@@ -438,7 +472,7 @@ int LedDevice::hasLedClock()
 	return _forcedInterval;
 }
 
-void LedDevice::smoothingRestarted(int newSmoothingInterval)
+void LedDevice::smoothingRestarted(int newSmoothingInterval, bool antiflickeringfilter)
 {
 	if (_smoothingInterval != newSmoothingInterval)
 	{
@@ -446,6 +480,12 @@ void LedDevice::smoothingRestarted(int newSmoothingInterval)
 		stopRefreshTimer();
 		setRefreshTime(_defaultInterval);
 		Debug(_log, "LED refresh interval adjustment caused by smoothing configuration change to {:d}ms (proposed: {:d}ms)", _currentInterval, newSmoothingInterval);
+	}
+
+	if (_antiFlickeringFilter != antiflickeringfilter)
+	{
+		_antiFlickeringFilter = antiflickeringfilter;
+		Debug(_log, "SetAntiFlickeringFilter: {:s}", ((_antiFlickeringFilter) ? "enabled" : "disabled"));
 	}
 }
 
@@ -585,6 +625,35 @@ int LedDevice::write(SharedOutputColors nonlinearRgbColors)
 
 	if (auto res = writeInfiniteColors(nonlinearRgbColors); !res.first)
 	{
+		// finity output using antiflickering filter
+		if (_antiFlickeringFilter)
+		{
+			if (nonlinearRgbColors->size() == _lastFinityLedValues->size())
+			{
+				std::vector<ColorRgb> ledValues;
+				ledValues.reserve(nonlinearRgbColors->size());
+
+				for (size_t i = 0; i < nonlinearRgbColors->size(); ++i) {
+					auto& oldV = (*_lastFinityLedValues)[i];
+					const auto& newV = (*nonlinearRgbColors)[i];
+
+					if (linalg::maxelem(linalg::abs(newV - oldV) * 255.0f) > 0.49f)
+					{
+						oldV = newV;
+					}
+
+					auto b = ColorSpaceMath::round_to_0_255<linalg::aliases::byte3>(oldV * 255.0f);
+					ledValues.push_back({ b.x, b.y, b.z });
+				}
+				return writeFiniteColors(ledValues);
+			}
+			else
+			{
+				*_lastFinityLedValues = *nonlinearRgbColors;
+			}
+		}
+
+		// default finity output
 		std::vector<ColorRgb> ledValues;
 		ledValues.reserve(nonlinearRgbColors->size());
 		std::transform(nonlinearRgbColors->cbegin(), nonlinearRgbColors->cend(), std::back_inserter(ledValues),
@@ -593,6 +662,12 @@ int LedDevice::write(SharedOutputColors nonlinearRgbColors)
 				return ColorRgb{ b.x, b.y, b.z };
 			});
 		return writeFiniteColors(ledValues);
+	}
+	else if (_antiFlickeringFilter)
+	{
+		_antiFlickeringFilter = false;
+		Warning(_log, "AntiFlickeringFilter was requested to be enabled, but the {:s} LED driver supports deep color and does not need it, so it is being disabled.", _activeDeviceType);
+		return res.second;
 	}
 	else
 		return res.second;

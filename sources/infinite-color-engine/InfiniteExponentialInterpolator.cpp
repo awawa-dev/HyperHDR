@@ -90,7 +90,10 @@ void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_
 void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
 {
 	if (_isAnimationComplete)
+	{
+		_lastUpdate = currentTimeMs;
 		return;
+	}
 
 	float dt = currentTimeMs - _lastUpdate;
 	float kOrg = std::min(std::max(1.0f - std::exp(-dt / _tau), 0.0001f), 1.0f);
@@ -147,7 +150,7 @@ void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
 }
 
 
-SharedOutputColors InfiniteExponentialInterpolator::getCurrentColors()
+SharedOutputColors InfiniteExponentialInterpolator::getCurrentColors(float /*minBrightness*/)
 {
 	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB);
 }

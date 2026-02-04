@@ -74,7 +74,7 @@ void InfiniteHybridRgbInterpolator::setTargetColors(std::vector<float3>&& new_rg
 	if (new_rgb_targets.empty())
 		return;
 
-	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+	const float delta = (!_isAnimationComplete) ? std::clamp(startTimeMs - _lastUpdate, 0.f, 100.0f) : 0.f;
 
 	if (debug)
 	{
@@ -118,9 +118,12 @@ void InfiniteHybridRgbInterpolator::setTargetColors(std::vector<float3>&& new_rg
 
 void InfiniteHybridRgbInterpolator::updateCurrentColors(float currentTimeMs) {
 	if (_isAnimationComplete)
+	{
+		_lastUpdate = currentTimeMs;
 		return;
+	}
 
-	float dt = std::max(currentTimeMs - _lastUpdate, 0.001f);
+	float dt = std::clamp(currentTimeMs - _lastUpdate, 0.001f, 100.0f);
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& tgt, const float3& diff, float3& vel) -> bool {
@@ -159,13 +162,13 @@ void InfiniteHybridRgbInterpolator::updateCurrentColors(float currentTimeMs) {
 	}
 }
 
-SharedOutputColors InfiniteHybridRgbInterpolator::getCurrentColors()
+SharedOutputColors InfiniteHybridRgbInterpolator::getCurrentColors(float minBrightness)
 {
 	auto result = std::make_shared<std::vector<linalg::vec<float, 3>>>();
 	result->reserve(_currentColorsRGB.size());
 
 	for (const auto& rgb : _currentColorsRGB)
-		result->push_back(linalg::clamp(rgb, 0.f, 1.f));
+		result->push_back(linalg::clamp(rgb, minBrightness, 1.f));
 
 	return result;
 }

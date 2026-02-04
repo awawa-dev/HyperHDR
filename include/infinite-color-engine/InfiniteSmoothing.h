@@ -35,11 +35,12 @@ public:
 	void setEnable(bool enable);
 	bool isEnabled() const;
 
-	void incomingColors(std::vector<linalg::aliases::float3>&& nonlinearRgbColors);
+	void incomingColors(std::vector<linalg::aliases::float3>&& nonlinearRgbColors, std::optional<float> minimalBacklight);
 	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	bool selectConfig(unsigned cfgId);
 	int getSuggestedInterval();
+	bool getAntiFlickeringFilterState();
 
 	static constexpr auto SMOOTHING_EFFECT_CONFIGS_START = 1;
 
@@ -92,4 +93,6 @@ private:
 	bool			_infoInput;
 	int				_coolDown;
 	long long		_lastSentFrame;
+	bool			_antiFlickeringFilter;
+	float			_minimalBacklight;
 };

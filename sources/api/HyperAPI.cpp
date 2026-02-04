@@ -510,13 +510,13 @@ void HyperAPI::handleCropCommand(const QJsonObject& message, const QString& comm
 {
 	GrabberWrapper* grabberWrapper = (_videoGrabber != nullptr) ? _videoGrabber->grabberWrapper() : nullptr;
 	const QJsonObject& adjustment = message["crop"].toObject();
-	int l = adjustment["left"].toInt(0);
-	int r = adjustment["right"].toInt(0);
-	int t = adjustment["top"].toInt(0);
-	int b = adjustment["bottom"].toInt(0);
+	unsigned l = static_cast<unsigned>(adjustment["left"].toInt(0));
+	unsigned r = static_cast<unsigned>(adjustment["right"].toInt(0));
+	unsigned t = static_cast<unsigned>(adjustment["top"].toInt(0));
+	unsigned b = static_cast<unsigned>(adjustment["bottom"].toInt(0));
 
 	if (grabberWrapper != nullptr)
-		grabberWrapper->setCropping(l, r, t, b);
+		QUEUE_CALL_4(grabberWrapper,setCropping, unsigned, l, unsigned, r, unsigned, t, unsigned, b);
 
 	sendSuccessReply(command, tan);
 }

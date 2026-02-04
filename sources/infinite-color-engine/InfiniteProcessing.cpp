@@ -81,10 +81,11 @@ InfiniteProcessing::InfiniteProcessing() :
 {
 }
 
-InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, const LoggerName& log) :
+InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, LedString::ColorOrder colorOrder, const LoggerName& log) :
 	InfiniteProcessing()
 {
 	_log = log;
+	_colorOrder = colorOrder;
 	handleSignalInstanceSettingsChanged(settings::type::COLOR, config);
 }
 
@@ -164,6 +165,7 @@ void InfiniteProcessing::handleSignalInstanceSettingsChanged(settings::type type
 	if (type == settings::type::DEVICE)
 	{
 		_colorOrder = LedString::stringToColorOrder(config["colorOrder"].toString("rgb"));
+		Info(_log, "Current active RGB order is: {:s}", (config["colorOrder"].toString("rgb")));
 	}
 	else if (type == settings::type::COLOR)
 	{
@@ -228,6 +230,11 @@ void InfiniteProcessing::applyyAllProcessingSteps(std::vector<linalg::vec<float,
 			}
 		}
 	}
+}
+
+std::optional<float> InfiniteProcessing::getMinimalBacklight()
+{
+	return _minimalBacklight;
 }
 
 void InfiniteProcessing::setMinimalBacklight(float minimalLevel, bool coloreBacklight)
@@ -530,9 +537,9 @@ void InfiniteProcessing::setTemperature(TemperaturePreset preset, linalg::vec<fl
 		Info(_log, "--- TEMPERATURE (ENABLED: {:s}) ---", ((_temperature_tint.has_value()) ? "true" : "false"));
 		if (_temperature_tint.has_value())
 		{
-			Info(_log, "RED:     %0.3f", _temperature_tint.value().x);
-			Info(_log, "GREEN:   %0.3f", _temperature_tint.value().y);
-			Info(_log, "BLUE:    %0.3f", _temperature_tint.value().z);
+			Info(_log, "RED:     {:0.3f}", _temperature_tint.value().x);
+			Info(_log, "GREEN:   {:0.3f}", _temperature_tint.value().y);
+			Info(_log, "BLUE:    {:0.3f}", _temperature_tint.value().z);
 		}
 	}
 }
@@ -565,8 +572,8 @@ void InfiniteProcessing::setBrightnessAndSaturation(float brightness, float satu
 		Info(_log, "--- HSV CORRECTION (ENABLED: {:s}) ---", ((enabled) ? "true" : "false"));
 		if (enabled)
 		{
-			Info(_log, "BRIGHTNESS: %0.3f", _brightness.value());
-			Info(_log, "SATURATION: %0.3f", _saturation.value());
+			Info(_log, "BRIGHTNESS: {:0.3f}", _brightness.value());
+			Info(_log, "SATURATION: {:0.3f}", _saturation.value());
 		}
 	}
 }
@@ -600,7 +607,7 @@ void InfiniteProcessing::setScaleOutput(float scaleOutput)
 		Info(_log, "--- SCALE OUTPUT (ENABLED: {:s}) ---", ((_scaleOutput.has_value()) ? "true" : "false"));
 		if (_scaleOutput.has_value())
 		{
-			Info(_log, "SCALE:   %0.3f", _scaleOutput.value());
+			Info(_log, "SCALE:   {:0.3f}", _scaleOutput.value());
 		}
 	}
 }
@@ -626,7 +633,7 @@ void InfiniteProcessing::setPowerLimit(float powerLimit)
 		Info(_log, "--- POWER LIMIT (ENABLED: {:s}) ---", ((_powerLimit.has_value()) ? "true" : "false"));
 		if (_powerLimit.has_value())
 		{
-			Info(_log, "LIMIT:   %0.3f", _powerLimit.value());
+			Info(_log, "LIMIT:   {:0.3f}", _powerLimit.value());
 		}
 	}
 }

@@ -65,7 +65,7 @@ void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targ
 	if (new_rgb_targets.empty())
 		return;
 
-	const float delta = (!_isAnimationComplete) ? std::max(startTimeMs - _lastUpdate, 0.f) : 0.f;
+	const float delta = (!_isAnimationComplete) ? std::clamp(startTimeMs - _lastUpdate, 0.f, 100.0f) : 0.f;
 
 	if (debug)
 	{
@@ -114,7 +114,10 @@ void InfiniteRgbInterpolator::setSmoothingFactor(float factor)
 void InfiniteRgbInterpolator::updateCurrentColors(float currentTimeMs)
 {
 	if (_isAnimationComplete)
+	{
+		_lastUpdate = currentTimeMs;
 		return;
+	}
 
 	// obliczenie czasu, analog setupAdvColor
 	float deltaTime = _targetTime - currentTimeMs;
@@ -172,7 +175,7 @@ void InfiniteRgbInterpolator::updateCurrentColors(float currentTimeMs)
 	}
 }
 
-SharedOutputColors InfiniteRgbInterpolator::getCurrentColors()
+SharedOutputColors InfiniteRgbInterpolator::getCurrentColors(float /*minBrightness*/)
 {
 	return std::make_shared<std::vector<linalg::vec<float, 3>>>(_currentColorsRGB);
 }
