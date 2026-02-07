@@ -15,7 +15,7 @@ jobs:
             const body = context.payload.issue.body;
             
             // Check for markers or supported links
-            const hasMarkers = /\[MAIN\] Starting HyperHdr|PERFORMANCE/.test(body);
+            const hasMarkers = /Starting HyperHdr|PERFORMANCE/.test(body);
             const hasLinks = /(pastebin\.com|privatebin\.net|hastebin\.com|mpaste\.com)/i.test(body);
             
             if (!hasMarkers && !hasLinks) {
