@@ -14,7 +14,7 @@ body:
 
         #### 🧪 USE SEARCH AND TEST LATEST VERSION FIRST
         <p align="left">
-          <small>Please <b>search existing Issues and Discussions</b> to see if this has been reported.<br>Also, check the <b>latest Github Actions/beta builds</b> – the issue might already be fixed there.</small>
+          <small>Please <b>search existing <a href="https://wiki.hyperhdr.eu/FAQ">FAQ</a>, Github Issues and Discussions</b> to see if this has been reported.<br>Also, check the <b>latest Github Actions/beta builds</b> – the issue might already be fixed there.</small>
         </p>
 
   - type: textarea
@@ -58,7 +58,7 @@ body:
       description: Select your hardware platform
       options:
         - "..."
-        - "Windows (x64)"
+        - "Windows"
         - "Raspberry Pi 5"
         - "Raspberry Pi 4"
         - "Raspberry Pi 3 (your grabber may be affected by the V4L2 kernel bug)"
