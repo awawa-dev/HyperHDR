@@ -22,7 +22,7 @@ jobs:
         sudo apt install coreutils p7zip-full qemu-user-static xz-utils
 
     - name: Checkout CustomPiOS
-      uses: actions/checkout@v6.0.1
+      uses: actions/checkout@v6.0.2
       with:
         repository: 'guysoft/CustomPiOS'
         ref: '${{ github.event.inputs.tagCustomPiOS }}'
