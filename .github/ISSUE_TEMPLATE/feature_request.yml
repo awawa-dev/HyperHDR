@@ -9,7 +9,7 @@ body:
       description: Describe exactly how this should work (user flow).
     validations:
       required: true
-      min_length: 50
+      min_length: 30
 
   - type: textarea
     id: justification
