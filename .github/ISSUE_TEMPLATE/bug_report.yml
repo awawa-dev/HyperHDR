@@ -5,17 +5,17 @@ body:
   - type: markdown
     attributes:
       value: |
-        ### 🛡️ SECURITY & PRIVACY FIRST
-        **IMPORTANT:** Before posting any logs or screenshots, **sanitize your data**. 
-        Remove any:
-        * **API Tokens/Keys** (e.g., Philips Hue, WLED, Home Assistant, etc.)
-        * **Passwords or Credentials**
-        * **Private Network Details** (if you consider them sensitive)
-        
-        *Your logs are public. It is your responsibility to remove private information.*
+        #### 🛡️ SECURITY & PRIVACY FIRST
+        <p align="left">
+          <small><b>IMPORTANT:</b> Before posting any logs or screenshots, <b>sanitize your data</b>.</small><br>
+          <small>Remove any: API Tokens/Keys (Hue, WLED, HA, etc.), Passwords, or Private Network Details.</small><br>
+          <small><i>Your logs are public. It is your responsibility to remove private information.</i></small>
+        </p>
 
-        ### 🧪 TEST LATEST VERSION FIRST
-        Before reporting, please check the **latest Github Actions/beta builds**. The issue might already be fixed there!        
+        #### 🧪 USE SEARCH AND TEST LATEST VERSION FIRST
+        <p align="left">
+          <small>Please <b>search existing Issues and Discussions</b> to see if this has been reported.<br>Also, check the <b>latest Github Actions/beta builds</b> – the issue might already be fixed there.</small>
+        </p>
 
   - type: textarea
     id: reproduction-path
@@ -33,6 +33,7 @@ body:
       label: Have you tested the latest Github Action/beta build?
       description: We strongly recommend testing the latest dev build before reporting.
       options:
+        - "..."
         - "Yes, the problem still exists in the latest beta/Github Action builds"
         - "No, I am only using the official stable release"
     validations:
@@ -43,6 +44,7 @@ body:
     attributes:
       label: Did this work in a previous stable version?
       options:
+        - "..."
         - "Yes, it worked in the previous version"
         - "No, it never worked for me"
         - "N/A (This is a new feature)"
@@ -55,15 +57,16 @@ body:
       label: Platform
       description: Select your hardware platform
       options:
-        - "Raspberry Pi Zero 2 W (your grabber may be affected by the V4L2 kernel bug)"
-        - "Raspberry Pi 3 (your grabber may be affected by the V4L2 kernel bug)"
-        - "Raspberry Pi 4"
-        - "Raspberry Pi 5"
+        - "..."
         - "Windows (x64)"
+        - "Raspberry Pi 5"
+        - "Raspberry Pi 4"
+        - "Raspberry Pi 3 (your grabber may be affected by the V4L2 kernel bug)"
+        - "Raspberry Pi Zero 2 W (your grabber may be affected by the V4L2 kernel bug)"
         - "Linux (x64:  Ubuntu/Debian/Fedora/Arch)"
         - "Linux (arm64)"
         - "macOS"
-        - "webOS (remember that we do not handle webOS builds)"
+        - "webOS (please note: we do not provide official webOS installers)"
     validations:
       required: true
 
@@ -73,14 +76,15 @@ body:
       label: Capture Device / Grabber
       description: Which grabber or software capture method are you using?
       options:
-        - Pipewire (Software)
-        - DirectX11 (Software)
-        - Flatbuffers/Protobuffers (Software)        
+        - "..."
         - MS2109 (USB)
         - MS2130 (USB)
         - UGREEN 25173 (USB)
-        - Other USB Grabber (provide model in the "Detailed Reproduction Path")
-        - Other software Grabber (provide type in the "Detailed Reproduction Path")        
+        - Pipewire (Software)
+        - DirectX11 (Software)
+        - Flatbuffers/Protobuffers (Software)        
+        - Other software capture (provide type in the "Detailed Reproduction Path")
+        - Other USB Grabber (provide model in the "Detailed Reproduction Path")        
         - Not applicable
     validations:
       required: true
@@ -91,6 +95,7 @@ body:
       label: LED Driver
       description: Which main LED driver is selected in the configuration?
       options:
+        - "..."
         - HyperSerialPico
         - HyperSerialSpi        
         - HyperSerialESP32
@@ -108,7 +113,7 @@ body:
     id: system-about
     attributes:
       label: System About Info
-      description: Paste the content of the 'Advanced' -> 'About' system configuration tab here.
+      description: "Paste the content of the 'Advanced' -> 'About HyperHDR' system configuration tab here."
       placeholder: "If the WebUI does not start, type: 'GUI not accessible'"
     validations:
       required: true
@@ -118,9 +123,9 @@ body:
     attributes:
       label: Application Log
       description: |
-        Logs must refer to the issue and be taken in its entirety after approx. 2-3 minutes of runtime.
-        If the application doesn't start: run it from the command line (on Windows use the `-c` parameter) and copy the output from the terminal.
-        Accepted links: PrivateBin, Pastebin, Hastebin, mPaste.
+        Logs must be relevant to the issue and provided in full after approx. 2-3 minutes of runtime or immediately after the error occurs.<br>
+        If the application doesn't start: run it from the command line (use the <code>-c</code> parameter on Windows) and copy the output.<br>
+        <b>Accepted links:</b> PrivateBin, Pastebin, Hastebin, mPaste.<br>
       placeholder: "Paste your sanitized logs here or provide a link..."
     validations:
       required: true
