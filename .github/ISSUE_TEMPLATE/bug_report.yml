@@ -112,7 +112,6 @@ body:
       placeholder: "If the WebUI does not start, type: 'GUI not accessible'"
     validations:
       required: true
-    render: text
 
   - type: textarea
     id: logs
@@ -125,7 +124,6 @@ body:
       placeholder: "Paste your sanitized logs here or provide a link..."
     validations:
       required: true
-    render: shell
 
   - type: checkboxes
     id: terms

@@ -10,7 +10,6 @@ body:
     validations:
       required: true
       min_length: 50
-    render: text
 
   - type: textarea
     id: justification
@@ -20,4 +19,3 @@ body:
     validations:
       required: true
       min_length: 30
-    render: text
