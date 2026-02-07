@@ -56,11 +56,11 @@ Official Linux repository:
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
 Latest test builds (GitHub Action — login required, select latest build from master branch, setups in ZIP artifacts):  
-[https://github.com/awawa-dev/HyperHDR/actions](https://github.com/awawa-dev/HyperHDR/actions)
+![Latest build on master](https://github.com/awawa-dev/HyperHDR/actions?query=branch%3Amaster)
 
 ## Documentation
 
-👉 [Explore Our Wiki](https://awawa-dev.github.io/wiki/) 👈
+👉 [Explore Our Wiki](https://wiki.hyperhdr.eu/) 👈
 
 ## Community
 
