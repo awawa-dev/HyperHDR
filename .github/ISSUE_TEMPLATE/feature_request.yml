@@ -1,0 +1,23 @@
+name: 🚀 Feature Request
+description: Suggest a new functionality
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: functionality-path
+    attributes:
+      label: Detailed functionality path
+      description: Describe exactly how this should work (user flow).
+    validations:
+      required: true
+      min_length: 50
+    render: text
+
+  - type: textarea
+    id: justification
+    attributes:
+      label: Justification
+      description: Why is this needed and how does it improve HyperHDR?
+    validations:
+      required: true
+      min_length: 30
+    render: text

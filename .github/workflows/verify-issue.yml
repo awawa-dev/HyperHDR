@@ -1,0 +1,36 @@
+name: Verify New Issue
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  check-logs:
+    if: contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate issue content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body;
+            
+            // Check for markers or supported links
+            const hasMarkers = /\[MAIN\] Starting HyperHdr|PERFORMANCE/.test(body);
+            const hasLinks = /(pastebin\.com|privatebin\.net|hastebin\.com|mpaste\.com)/i.test(body);
+            
+            if (!hasMarkers && !hasLinks) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                body: "❌ **Log verification failed!**\n\nTo process this report, we need valid logs. Please update your issue:\n1. Include **`[MAIN] Starting HyperHdr`** or **`PERFORMANCE`** markers.\n2. Or provide a link to **Pastebin, PrivateBin, Hastebin or mPaste**.\n3. Logs should represent ~2-3 minutes of runtime.\n\n⚠️ **SECURITY:** Remove all private tokens/keys before posting!\n\n*This issue is closed. It will be reviewed once valid logs are provided.*"
+              });
+              
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                state: 'closed',
+                labels: ['bug', 'missing-logs']
+              });
+            }
