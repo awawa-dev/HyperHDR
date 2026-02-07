@@ -56,7 +56,7 @@ Official Linux repository:
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
 Latest test builds (GitHub Action — login required, select latest build from master branch, setups in ZIP artifacts):  
-![Latest build on master](https://github.com/awawa-dev/HyperHDR/workflows/Build/badge.svg?branch=master)
+![Latest build on master](https://github.com/awawa-dev/HyperHDR/actions?query=branch%3Amaster)
 
 ## Documentation
 
