@@ -140,7 +140,7 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 	{
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
-			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : "Enabled");
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
@@ -158,7 +158,7 @@ void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
 	}
 	else
-		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : ((mode == 1) ? "Fullscreen" : "Border mode"));
+		Debug(_log, "setHdrToneMappingMode nothing changed: {:s}", (mode == 0) ? "Disabled" : "Enabled");
 }
 
 V4L2Grabber::~V4L2Grabber()

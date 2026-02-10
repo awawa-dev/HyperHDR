@@ -156,8 +156,11 @@ bool ProviderUdpSSL::initNetwork()
 	closeNetwork();
 
 	_dtls = new QDtls(QSslSocket::SslClientMode, this);
-	_socket = new QUdpSocket(this);
-	_socket->bind(QHostAddress::AnyIPv4);
+	_socket = new QUdpSocket(this);	
+	if (!_socket->bind(QHostAddress::AnyIPv4))
+	{
+		Error(_log, "Cannot bind the port: {:s}", _socket->errorString());
+	}
 	_handshake_attempts_left = _handshake_attempts;
 
 	QSslConfiguration config = QSslConfiguration::defaultDtlsConfiguration();
@@ -199,7 +202,13 @@ bool ProviderUdpSSL::initNetwork()
 			const qint64 bytesRead = _socket->readDatagram(dgram.data(), dgram.size());
 
 			if (_dtls->handshakeState() == QDtls::HandshakeComplete || _dtls->isConnectionEncrypted() || bytesRead <= 0)
+			{
+				if (_dtls->isConnectionEncrypted())
+				{
+					_streamReady = true;
+				}
 				continue;
+			}
 
 			Debug(_log, "Welcome datagram received. Proceeding with a handshake");
 
@@ -254,10 +263,7 @@ int ProviderUdpSSL::closeNetwork()
 	if (_socket != nullptr)
 	{
 		_socket->disconnect();
-		if (_socket->state() == QAbstractSocket::SocketState::ConnectedState)
-		{
-			_socket->close();
-		}
+		_socket->close();
 		_socket->deleteLater();
 		_socket = nullptr;
 	}

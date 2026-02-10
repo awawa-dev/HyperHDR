@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "desteklenmiyor",
   "edt_conf_stream_hdrToneMapping_title": "HDR'den SDR'ye ton eşleme",
   "edt_conf_stream_hdrToneMapping_expl": "Etkinleştirilirse, HyperHDR, yakalayıcı tarafından SDR formatı olarak yakalanan HDR10 içeriğinin renklerini düzeltmeye çalışacaktır. Varsayılan 3D LUT dosyası <span class='fw-bold'>'lut_lin_tables.3d'</span> zaten dahil edilmiştir. <span class='fw-bold'>Bir tane oluşturabilir ve ' içindeki bağlantıyı kullanarak efekti önizleyebilirsiniz. Gelişmiş menü'.</span><br/>Bu dosyayı yüklemek için tipik gizli yapılandırma klasörünüz (doğrulamak için 'Günlükler' sayfasını kontrol edin):<br/>Rpi→&#47;home&#47;pi&#47 ;.hyperhdr<br/>Windows→c:&#47;Kullanıcılar&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "LUT modu efekti için alan",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Yalnızca MJPG: Tam Ekran için mod 1 veya daha hızlı Kenarlık Modu için mod 2 (siyah kenarlıklarla çalışmayın)",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Yazılım çerçevesi atlama",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Kaynakları kaydetmek için her n'inci kare yalnızca işlenecektir. Örn. bu seçenek 5'e ayarlıyken yakalayıcı 30FPS'ye ayarlanırsa, nihai sonuç yaklaşık 6FPS olacaktır (1 - devre dışı)",
   "edt_conf_stream_streamEncoding_title": "Video formatı",

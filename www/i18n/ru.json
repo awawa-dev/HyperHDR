@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "Неподдерживаемый",
   "edt_conf_stream_hdrToneMapping_title": "Отображение тонов HDR в SDR",
   "edt_conf_stream_hdrToneMapping_expl": "Если этот параметр включен, HyperHDR попытается исправить цвета содержимого HDR10, которое было захвачено граббером в формате SDR. Файл 3D LUT по умолчанию <span class='fw-bold'>'lut_lin_tables.3d'</span> уже включен. <span class='fw-bold'>Вы можете создать его и просмотреть эффект, используя ссылку в 'Расширенное меню'.</span><br/>Типичная скрытая папка конфигурации для загрузки этого файла (проверьте страницу 'Журналы' для подтверждения):<br/>Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "Область для эффекта режима LUT",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Только MJPG: режим 1 для полноэкранного режима или режим 2 для более быстрого режима границы (не работают с черными границами).",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Программный пропуск кадра",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Для экономии ресурсов будет обрабатываться только каждый n-й кадр. Например, если граббер установлен на 30FPS с этой опцией, установленной на 5, окончательный результат будет около 6FPS (1 - отключено).",
   "edt_conf_stream_streamEncoding_title": "Формат видео",

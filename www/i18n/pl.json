@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "Nieobsługiwane",
   "edt_conf_stream_hdrToneMapping_title": "Mapowanie tonów HDR na SDR",
   "edt_conf_stream_hdrToneMapping_expl": "Jeśli ta opcja jest włączona, HyperHDR spróbuje poprawić kolory treści HDR10, która została przechwycona przez grabber w formacie SDR. Domyślny plik 3D LUT <span class='fw-bold'>'lut_lin_tables.3d'</span> jest już dołączony. <span class='fw-bold'>Możesz go wygenerować i wyświetlić podgląd efektu za pomocą linku w 'Menu zaawansowane'.</span><br/>Twój typowy ukryty folder konfiguracyjny do przesłania tego pliku to (sprawdź stronę 'Dzienniki', aby potwierdzić):<br/>Rpi→&#47;home&#47;pi&#47 ;.hyperhdr<br/>Windows→c:&#47;Użytkownicy&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "Obszar efektu trybu LUT",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Tylko MJPG: tryb 1 dla pełnego ekranu lub tryb 2 dla szybszego trybu obramowania (nie działa z czarnymi ramkami)",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Pomijanie ramek oprogramowania",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Aby zaoszczędzić zasoby, każda n-ta klatka będzie przetwarzana tylko. Na przykład jeśli grabber jest ustawiony na 30FPS przy tej opcji ustawionej na 5, końcowy wynik wyniesie około 6FPS (1 - wyłączony)",
   "edt_conf_stream_streamEncoding_title": "Format wideo",

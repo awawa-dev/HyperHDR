@@ -65,22 +65,6 @@
 			"required" : true,
 			"propertyOrder" : 23
 		},
-		"hdrToneMappingMode" :
-		{
-			"type" : "integer",	
-			"title" : "edt_conf_stream_hdrToneMappingMode_title",		
-			"append" : "edt_append_mode",
-			"enum" : [1, 2],
-			"default" : 1,
-			"required" : true,
-			"propertyOrder" : 24,
-			"options": {
-			    "enum_titles": ["Fullscreen", "MJPEG border only"],
-				"dependencies": {
-					"hdrToneMapping": true
-				}
-			}
-		},
 		"cecHdrStart" :
 		{
 			"type" : "integer",

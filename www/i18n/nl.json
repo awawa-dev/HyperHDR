@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "Niet ondersteund",
   "edt_conf_stream_hdrToneMapping_title": "HDR naar SDR tonemapping",
   "edt_conf_stream_hdrToneMapping_expl": "Indien ingeschakeld, zal HyperHDR proberen de kleuren te corrigeren van de HDR10-inhoud die door de grabber is vastgelegd als SDR-indeling. Standaard 3D LUT-bestand <span class='fw-bold'>'lut_lin_tables.3d'</span> is al inbegrepen. <span class='fw-bold'>U kunt er een genereren en een voorbeeld van het effect bekijken via de link in de ' Geavanceerd menu'.</span><br/>Uw typische verborgen configuratiemap om dat bestand in te uploaden is (controleer de pagina 'Logboeken' om te bevestigen):<br/>Rpi→&#47;home&#47;pi&#47 ;.hyperhdr<br/>Windows→c:&#47;Gebruikers&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "Gebied voor LUT-moduseffect",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Alleen MJPG: modus 1 voor volledig scherm of modus 2 voor snellere randmodus (werk niet met zwarte randen)",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Softwareframe overslaan",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Om resources te besparen, wordt alleen elk n'th frame verwerkt. Voor bijv. als grabber is ingesteld op 30FPS met deze optie ingesteld op 5, zal het uiteindelijke resultaat ongeveer 6FPS zijn (1 - uitgeschakeld)",
   "edt_conf_stream_streamEncoding_title": "Videoformaat",

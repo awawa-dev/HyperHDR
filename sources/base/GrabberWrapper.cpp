@@ -512,7 +512,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 
 
 			// HDR tone mapping
-			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false) ? obj["hdrToneMappingMode"].toInt(1) : 0);
+			setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false));
 
 			// software frame skipping
 			_grabber->setFpsSoftwareDecimation(obj["fpsSoftwareDecimation"].toInt(1));

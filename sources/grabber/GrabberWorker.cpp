@@ -168,7 +168,7 @@ void GrabberWorker::runMe()
 				const uint8_t* frameData = _localBuffer.data();
 			#endif
 
-			FrameDecoder::dispatchProcessImageVector[_qframe][_hdrToneMappingEnabled][_qframe && _automaticToneMapping != nullptr](
+			FrameDecoder::dispatchProcessImageVector[_qframe][static_cast<bool>(_hdrToneMappingEnabled)][_qframe && _automaticToneMapping != nullptr](
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
 				frameData, nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image, _automaticToneMapping);
 

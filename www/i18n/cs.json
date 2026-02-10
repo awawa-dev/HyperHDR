@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "Nepodporováno",
   "edt_conf_stream_hdrToneMapping_title": "Mapování tónu z HDR na SDR",
   "edt_conf_stream_hdrToneMapping_expl": "Pokud je povoleno, HyperHDR se pokusí opravit barvy obsahu HDR10, který byl zachycen chytačem jako formát SDR. Výchozí soubor 3D LUT <span class='fw-bold'>'lut_lin_tables.3d'</span> je již zahrnut. <span class='fw-bold'>Můžete jej vygenerovat a zobrazit náhled efektu pomocí odkazu v 'Pokročilá nabídka'.</span><br/>Vaše typická skrytá konfigurační složka, do které chcete soubor nahrát, je (pro potvrzení zkontrolujte stránku 'Protokoly'):<br/>Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "Oblast pro efekt režimu LUT",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Pouze MJPG: režim 1 pro celou obrazovku nebo režim 2 pro rychlejší režim ohraničení (nefunguje s černými okraji)",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Přeskakování rámce softwaru",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Aby se ušetřily zdroje, bude zpracován pouze každý n -tý snímek. Za ex. pokud je grabber nastaven na 30 FPS s touto možností nastavenou na 5, konečný výsledek bude kolem 6 FPS (1 - deaktivováno)",
   "edt_conf_stream_streamEncoding_title": "Formát videa",
