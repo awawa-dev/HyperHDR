@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "Không được hỗ trợ",
   "edt_conf_stream_hdrToneMapping_title": "Ánh xạ tông màu từ HDR sang SDR",
   "edt_conf_stream_hdrToneMapping_expl": "Nếu được bật, HyperHDR sẽ cố gắng chỉnh sửa màu sắc của nội dung HDR10 đã được trình thu nhận dưới dạng định dạng SDR. Tệp LUT 3D mặc định <span class='fw-bold'>'lut_lin_tables.3d'</span> đã được bao gồm. <span class='fw-bold'>Bạn có thể tạo một tệp và xem trước hiệu ứng bằng liên kết trong 'Menu nâng cao'.</span><br/>Thư mục cấu hình ẩn điển hình của bạn để tải tệp đó lên là (kiểm tra trang 'Nhật ký' để xác nhận):<br/>Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "Khu vực cho hiệu ứng chế độ LUT",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Chỉ MJPG: chế độ 1 cho Toàn màn hình hoặc chế độ 2 cho Chế độ viền nhanh hơn (không hoạt động với viền đen)",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Bỏ qua khung phần mềm",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Để tiết kiệm tài nguyên, mọi khung hình thứ n sẽ chỉ được xử lý. Đối với người yêu cũ. nếu grabber được đặt thành 30FPS với tùy chọn này được đặt thành 5, kết quả cuối cùng sẽ là khoảng 6FPS (1 - bị vô hiệu hóa)",
   "edt_conf_stream_streamEncoding_title": "Định dạng video",

@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "Neacceptat",
   "edt_conf_stream_hdrToneMapping_title": "Cartografierea tonurilor HDR la SDR",
   "edt_conf_stream_hdrToneMapping_expl": "Dacă este activat, HyperHDR va încerca să corecteze culorile conținutului HDR10 care a fost capturat de captator ca format SDR. Fișierul LUT 3D implicit <span class='fw-bold'>'lut_lin_tables.3d'</span> este deja inclus. <span class='fw-bold'>Puteți genera unul și previzualiza efectul folosind linkul din 'Meniu avansat'.</span><br/>Dosarul tipic de configurare ascuns în care să încărcați fișierul este (verificați pagina 'Jurnaluri' pentru a confirma):<br/>Rpi→&#47;home&#47;pi&#47;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "Zona pentru efectul modului LUT",
-  "edt_conf_stream_hdrToneMappingMode_expl": "Numai MJPG: modul 1 pentru ecran complet sau modul 2 pentru modul Border mai rapid (nu funcționați cu margini negre)",
   "edt_conf_stream_fpsSoftwareDecimation_title": "Omiterea cadrului software",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "Pentru a economisi resurse, fiecare cadru n'th va fi procesat numai. De ex. dacă Grabber este setat la 30FPS cu această opțiune setată la 5, rezultatul final va fi de aproximativ 6FPS (1 - dezactivat)",
   "edt_conf_stream_streamEncoding_title": "Format video",

@@ -927,8 +927,6 @@
   "wiz_yeelight_unsupported": "不支持",
   "edt_conf_stream_hdrToneMapping_title": "HDR 到 SDR 色调映射",
   "edt_conf_stream_hdrToneMapping_expl": "如果启用，HyperHDR 将尝试校正由采集器以 SDR 格式捕获的 HDR10 内容的颜色。默认 3D LUT 文件 <span class='fw-bold'>'lut_lin_tables.3d'</span> 已包含在内。<span class='fw-bold'>您可以生成一个并使用 ' 中的链接预览效果高级菜单'。</span><br/>上传该文件的典型隐藏配置文件夹是（检查“日志”页面以确认）：<br/>Rpi→&#47;home&#47;pi&#47 ;.hyperhdr<br/>Windows→c:&#47;Users&#47;NAME&#47;.hyperhdr",
-  "edt_conf_stream_hdrToneMappingMode_title": "LUT 模式效果区域",
-  "edt_conf_stream_hdrToneMappingMode_expl": "仅 MJPG：模式 1 用于全屏或模式 2 用于更快的边框模式（不适用于黑色边框）",
   "edt_conf_stream_fpsSoftwareDecimation_title": "软件跳帧",
   "edt_conf_stream_fpsSoftwareDecimation_expl": "为了节省资源，每第 n 帧将只处理一次。例如。如果将抓取器设置为 30FPS，并将此选项设置为 5，则最终结果将约为 6FPS（1 - 禁用）",
   "edt_conf_stream_streamEncoding_title": "视频格式",
