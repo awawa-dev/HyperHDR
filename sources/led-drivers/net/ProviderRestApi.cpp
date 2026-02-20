@@ -49,6 +49,8 @@ ProviderRestApi::ProviderRestApi(const QString& host, int port, const QString& b
 	, _port(port)
 {
 	qRegisterMetaType<std::shared_ptr<httpResponse>>("std::shared_ptr<httpResponse>");
+	qRegisterMetaType<ProviderRestApi*>("ProviderRestApi*");
+	qRegisterMetaType<QNetworkAccessManager::Operation>("QNetworkAccessManager::Operation");	
 
 	_apiUrl.setScheme(_scheme);
 	_apiUrl.setHost(host);
