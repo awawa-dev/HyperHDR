@@ -78,6 +78,8 @@ SuspendHandler::SuspendHandler(bool sessionLocker):
 	_notifyMonitorHandle(NULL),
 	_sessionLocker(sessionLocker)
 {
+	qRegisterMetaType<qintptr*>("qintptr*");
+
 	instance = this;
 	handle = SystrayGetWindow();
 	SystrayAssignQueueHandler(SuspendHandlerQueueHandler);
