@@ -10,6 +10,7 @@
 - Infinite Color Engine: new anti-flickering filter in the smoothing configuration (#1410) - fix for v22beta1 🆕
    - Implements an anti-flickering filter that minimizes quantization jitter on 8-bit-per-channel drivers (24-bit RGB). Deep color capable drivers (like Philips Hue using entertainment mode) are bypassed as they don't suffer from LSB oscillation.
 - Improved handshake stability connecting to Philips Hue bridge using OpenSSL 3.2+ (#1410) - fix for v22beta1 🆕
+- Fix: Add missing Qt meta-type registrations (#1456) - fix for v22beta1 🆕
 - Infinite Color Engine - Breaking 24-bit Limits (#1261) - v22beta1 🆕
    - Floating-Point Precision: All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
    - Linear sRGB Accuracy: Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
