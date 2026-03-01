@@ -1140,7 +1140,7 @@
   "conf_network_proto_intro": "El PROTO-Port de todas las instancias de HyperHDR (obsoleto).<br/>Principalmente para usar con la aplicación Android Screen Grabber. <span style='color:red;'>El mapeo de tonos HDR a SDR</span> se puede habilitar en la configuración del servidor Flatbuffers y también funciona para Protocol Buffers (componente compartido).",
   "philips_option_changed_bri": "<p style='color: red'>Primero configure sus lámparas LED de Philips con la aplicación móvil de Philips: durante la configuración, seleccione el grupo ENTRETENIMIENTO para sus lámparas (debe obtener el ID de este grupo). De lo contrario, el rendimiento de la comunicación con la antigua API json será muy malo.</p> Recuerde que el uso de otros sistemas de automatización del hogar conectados a las lámparas puede causar varios efectos secundarios cuando se ejecuta HyperHDR.",
   "select_wled_intro": "Seleccione WLED",
-  "select_wled_rescan": "Volver a escanear la red",
+  "select_network_rescan": "Volver a escanear la red",
   "wledBrightnessOverride": "Anular el brillo WLED",
   "wledCustomBrightnessLevel": "Nivel de brillo WLED personalizado",
   "edt_conf_mqtt_heading_title": "cliente MQTT",
@@ -1301,5 +1301,9 @@
   "wiz_lifx_title": "Asistente de iluminación LIFX",
   "edt_dev_spec_convertToLinearRgb_title": "Convertir a RGB lineal",
   "edt_conf_smooth_antiFlickeringFilter_title": "Filtro antiparpadeo",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Activa un filtro de Infinite Color Engine que reduce el parpadeo sutil de los LED causado por la cuantificación de color RGB de 24 bits. Los controladores que admiten formatos de color extendidos (color profundo), como Philips Hue (en modo Entertainment) o los dispositivos LIFX, no necesitan este filtro en absoluto."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Activa un filtro de Infinite Color Engine que reduce el parpadeo sutil de los LED causado por la cuantificación de color RGB de 24 bits. Los controladores que admiten formatos de color extendidos (color profundo), como Philips Hue (en modo Entertainment) o los dispositivos LIFX, no necesitan este filtro en absoluto.",
+  "select_hyperk_intro": "Seleccione Hyperk",
+  "hyperkBrightnessOverride": "Anular el brillo Hyperk",
+  "hyperkCustomBrightnessLevel": "Nivel de brillo Hyperk personalizado",
+  "about_hyperk": "Más información sobre Hyperk, el controlador WiFi oficial para HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Un controlador LED inalámbrico, ligero y de alto rendimiento para la <b>familia ESP8266, ESP32 (incluyendo S2/S3/C2/C3/C5/C6) y Raspberry Pi Pico (RP2040/RP2350)</b>. Una alternativa rápida y multiarquitectura para controlar tiras LED a través de WiFi con soporte nativo para los sistemas de domótica existentes."
 }

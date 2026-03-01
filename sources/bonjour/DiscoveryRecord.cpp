@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -36,6 +36,7 @@ const QString DiscoveryRecord::getmDnsHeader(Service service)
 		case(Service::HomeAssistant): return QLatin1String("_home-assistant._tcp"); break;
 		case(Service::WLED): return QLatin1String("_wled._tcp"); break;
 		case(Service::HyperHDR): return QLatin1String("_hyperhdr-http._tcp"); break;
+		case(Service::Hyperk): return QLatin1String("_hyperk._tcp"); break;
 		default: return "SERVICE_UNKNOWN";
 	}
 }
@@ -52,6 +53,7 @@ const QString DiscoveryRecord::getName(Service _type)
 		case(Service::PhilipsHue): return "Hue bridge"; break;
 		case(Service::HomeAssistant): return "Home Assistant"; break;
 		case(Service::WLED): return "WLED"; break;
+		case(Service::Hyperk): return "Hyperk"; break;
 		case(Service::HyperHDR): return "HyperHDR"; break;
 		case(Service::Pico): return "Pico/RP2040"; break;
 		case(Service::ESP32_S2): return "ESP32-S2"; break;
@@ -68,7 +70,7 @@ void DiscoveryRecord::resetTTL()
 bool DiscoveryRecord::expired()
 {
 	ttl >>= 1;
-	if (type == Service::WLED)
+	if (type == Service::WLED || type == Service::Hyperk)
 		return ttl == 0;
 	else if (type == Service::Pico || type == Service::ESP32_S2 || type == Service::ESP)
 		return ttl <= 2;

@@ -1140,7 +1140,7 @@
   "conf_network_proto_intro": "PROTO-porten för alla HyperHDR-instanser (fasad).<br/>Främst för användning med Android Screen Grabber-appen. <span style='color:red;'>HDR till SDR-tonmappning</span> kan aktiveras i Flatbuffers Server-konfiguration och det fungerar även för Protocol Buffers (delad komponent).",
   "philips_option_changed_bri": "<p style='color: red'>Konfigurera först dina Philips LED-lampor med Philips mobilapp: under installationen väljer du gruppen UNDERHÅLLNING för dina lampor (du bör få ID för denna grupp). Annars kommer kommunikationsprestanda med det gamla json-API:et att bli mycket dålig!</p> Kom ihåg att användning av andra hemautomationssystem anslutna till lampor kan orsaka olika biverkningar när du kör HyperHDR.",
   "select_wled_intro": "Välj WLED",
-  "select_wled_rescan": "Skanna nätverket igen",
+  "select_network_rescan": "Skanna nätverket igen",
   "wledBrightnessOverride": "Åsidosätt WLED-ljusstyrkan",
   "wledCustomBrightnessLevel": "Anpassad WLED-ljusstyrka",
   "edt_conf_mqtt_heading_title": "MQTT-klient",
@@ -1301,5 +1301,9 @@
   "wiz_lifx_title": "LIFX-ljusguide",
   "edt_dev_spec_convertToLinearRgb_title": "Konvertera till linjärt RGB",
   "edt_conf_smooth_antiFlickeringFilter_title": "Anti-flimmerfilter",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Aktiverar ett Infinite Color Engine-filter som reducerar subtilt LED-flimmer orsakat av 24-bitars RGB-färgkvantisering. Kontroller som stöder utökade färgformat (deep color), såsom Philips Hue (i Entertainment-läge) eller LIFX-enheter, behöver inte detta filter alls."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Aktiverar ett Infinite Color Engine-filter som reducerar subtilt LED-flimmer orsakat av 24-bitars RGB-färgkvantisering. Kontroller som stöder utökade färgformat (deep color), såsom Philips Hue (i Entertainment-läge) eller LIFX-enheter, behöver inte detta filter alls.",
+  "select_hyperk_intro": "Välj Hyperk",
+  "hyperkBrightnessOverride": "Åsidosätt Hyperk-ljusstyrkan",
+  "hyperkCustomBrightnessLevel": "Anpassad Hyperk-ljusstyrka",
+  "about_hyperk": "Läs mer om Hyperk, den officiella WiFi-drivrutinen för HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>En lättviktig, trådlös LED-kontroller med hög prestanda för <b>ESP8266, ESP32-familjen (inklusive S2/S3/C2/C3/C5/C6) och Raspberry Pi Pico (RP2040/RP2350)</b>. Ett snabbt alternativ med stöd för flera arkitekturer för att styra LED-remsor över WiFi, med inbyggt stöd för befintliga hemautomationssystem."
 }

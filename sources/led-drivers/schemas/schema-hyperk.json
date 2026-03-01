@@ -1,0 +1,171 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"host" : {
+			"type": "string",
+			"title":"edt_dev_spec_targetIp_title",
+			"propertyOrder" : 1
+		},
+		"port" : {
+			"type": "integer",
+			"title":"edt_dev_spec_port_title",
+			"default": 4048,
+			"minimum" : 0,
+			"maximum" : 65535,
+			"propertyOrder" : 2
+		},
+		"rgbw": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_useRgbwProtocol_title",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"white_algorithm": {
+			"type": "string",
+			"title": "edt_dev_spec_whiteLedAlgor_title",
+			"required" : true,
+			"enum": [
+				"subtract_minimum",
+				"sub_min_cool_adjust",
+				"sub_min_warm_adjust",
+				"hyperserial_cold_white",
+				"hyperserial_neutral_white",
+				"hyperserial_custom",
+				"wled_auto",
+				"wled_auto_max",
+				"wled_auto_accurate",
+				"white_off"				
+			],
+			"default": "hyperserial_cold_white",
+			"options": {
+				"enum_titles": [
+					"edt_dev_enum_subtract_minimum",
+					"edt_dev_enum_sub_min_cool_adjust",
+					"edt_dev_enum_sub_min_warm_adjust",
+					"edt_dev_enum_hyperserial_cold_white",
+					"edt_dev_enum_hyperserial_neutral_white",
+					"edt_rgbw_calibration_enable",
+					"edt_dev_enum_wled_auto",
+					"edt_dev_enum_wled_auto_max",
+					"edt_dev_enum_wled_auto_accurate",
+					"edt_dev_enum_white_off"
+				],
+				"dependencies": {
+					"rgbw": true
+				}
+			},
+			"propertyOrder": 4
+		},
+		"brightnessMax": {
+			"type": "boolean",
+			"title":"hyperkBrightnessOverride",
+			"format": "checkbox",
+			"default" : true,
+			"propertyOrder" : 5
+		},		
+		"brightnessMaxLevel":
+		{
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "hyperkCustomBrightnessLevel",
+			"minimum" : 1,
+			"maximum" : 255,
+			"default" : 255,
+			"options": {
+				"dependencies": {
+					"brightnessMax": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 6
+		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_restoreOriginalState_title",
+			"default" : false,
+			"propertyOrder" : 7
+		},
+		"maxRetry":
+		{
+			"type" : "integer",
+			"format" : "stepper",			
+			"step"   : 1,			
+			"title" : "edt_dev_max_retry",
+			"minimum" : 0,
+			"maximum" : 300,
+			"default" : 60,
+			"required" : true,
+			"propertyOrder" : 8
+		},
+		"white_channel_limit": {
+			"type": "number",
+			"title":"edt_rgbw_calibration_limit",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 100,
+			"step": 0.25,
+			"minimum" : 0,
+			"maximum" : 100,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"white_algorithm": "hyperserial_custom"
+				}
+			},
+			"propertyOrder" : 9
+		},
+		"white_channel_red": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_red",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_algorithm": "hyperserial_custom"
+				}
+			},
+			"propertyOrder" : 10
+		},
+		"white_channel_green": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_green",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_algorithm": "hyperserial_custom"
+				}
+			},
+			"propertyOrder" : 11
+		},
+		"white_channel_blue": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_blue",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_algorithm": "hyperserial_custom"
+				}
+			},
+			"propertyOrder" : 12
+		}
+	},
+	"additionalProperties": true
+}

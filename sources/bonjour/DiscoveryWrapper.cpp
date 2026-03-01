@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -106,6 +106,15 @@ QList<DiscoveryRecord> DiscoveryWrapper::getWLED()
 	return _wledDevices;
 }
 
+QList<DiscoveryRecord> DiscoveryWrapper::getHyperk()
+{
+	cleanUp(_hyperkDevices);
+
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::Hyperk);
+
+	return _hyperkDevices;
+}
+
 QList<DiscoveryRecord> DiscoveryWrapper::getHyperHDRServices()
 {
 	return _hyperhdrSessions;
@@ -118,6 +127,8 @@ QList<DiscoveryRecord> DiscoveryWrapper::getAllServices()
 
 void DiscoveryWrapper::requestServicesScan()
 {
+	cleanUp(_hyperkDevices);
+	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::Hyperk);
 	cleanUp(_wledDevices);
 	emit GlobalSignals::getInstance()->SignalDiscoveryRequestToScan(DiscoveryRecord::Service::WLED);
 	cleanUp(_hueDevices);
@@ -179,6 +190,8 @@ void DiscoveryWrapper::signalDiscoveryEventHandler(const DiscoveryRecord& messag
 {
 	if (message.type == DiscoveryRecord::Service::HyperHDR)
 		gotMessage(_hyperhdrSessions, message);
+	else if (message.type == DiscoveryRecord::Service::Hyperk)
+		gotMessage(_hyperkDevices, message);
 	else if (message.type == DiscoveryRecord::Service::WLED)
 		gotMessage(_wledDevices, message);
 	else if (message.type == DiscoveryRecord::Service::PhilipsHue)
