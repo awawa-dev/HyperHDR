@@ -22,6 +22,7 @@ protected:
 	RGBW::RgbwChannelCorrection channelCorrection{};
 
 	std::vector<uint8_t> _rgbwBuffer;
+	std::vector<uint8_t> _ddpFrame;
 
 	static bool isRegistered;
 };

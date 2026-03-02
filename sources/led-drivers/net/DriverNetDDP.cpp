@@ -128,39 +128,38 @@ int DriverNetDDP::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	const size_t maxColorsInUdpFrame = maxLedsInFrame * colorSize;
 
 	size_t realRgbSize = std::min<size_t>(end - start, maxColorsInUdpFrame);
-	std::vector<uint8_t> ddpFrame;
 	
-	ddpFrame.reserve(realRgbSize + ddpHeaderOverhead);
+	_ddpFrame.reserve(realRgbSize + ddpHeaderOverhead);
 	sequenceNum = (sequenceNum % 0x0F) + 1;
 
 	while (start < end)
 	{		
 		realRgbSize = std::min<size_t>(end - start, maxColorsInUdpFrame);
-		ddpFrame.resize(realRgbSize + ddpHeaderOverhead, 0);
+		_ddpFrame.resize(realRgbSize + ddpHeaderOverhead, 0);
 
 		bool isLast = (start + realRgbSize >= end);
 
 		// Bajt 0: Flags (V1: 0x40 | Push: 0x01 = 0x41)
-		ddpFrame[0] = (isLast) ? 0x41 : 0x40;
+		_ddpFrame[0] = (isLast) ? 0x41 : 0x40;
 		// Bajt 1: Sequence (0x00-0x0F)		
-		ddpFrame[1] = sequenceNum;
+		_ddpFrame[1] = sequenceNum;
 		// Bajt 2: Data Type (RGB = 0x0B, RGBW = 0x1B)
-		ddpFrame[2] = (_isRgbw) ? 0x1B : 0x0B;
+		_ddpFrame[2] = (_isRgbw) ? 0x1B : 0x0B;
 		// Bajt 3: Destination ID
-		ddpFrame[3] = 0x01;
+		_ddpFrame[3] = 0x01;
 
 		// offset in byte
-		qToBigEndian<uint32_t>(colorOffset, &ddpFrame[4]);
+		qToBigEndian<uint32_t>(colorOffset, &_ddpFrame[4]);
 
 		// color data size in byte
-		qToBigEndian<uint16_t>(static_cast<uint16_t>(realRgbSize), &ddpFrame[8]);
+		qToBigEndian<uint16_t>(static_cast<uint16_t>(realRgbSize), &_ddpFrame[8]);
 
-		memcpy(ddpFrame.data() + ddpHeaderOverhead, start, realRgbSize);
+		memcpy(_ddpFrame.data() + ddpHeaderOverhead, start, realRgbSize);
 		start += realRgbSize;
 		colorOffset += static_cast<uint32_t>(realRgbSize);
 
 		// send UDP frame
-		writeBytes(static_cast<int>(ddpFrame.size()), ddpFrame.data());
+		writeBytes(static_cast<int>(_ddpFrame.size()), _ddpFrame.data());
 	}
 
 	return static_cast<int>(ledsNumber);
