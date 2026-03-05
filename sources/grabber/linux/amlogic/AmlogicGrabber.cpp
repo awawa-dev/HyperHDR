@@ -98,6 +98,41 @@ void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
 }
 
+bool AmlogicGrabber::getAspectRatio(int& arW, int& arH)
+{
+	QFile fw("/sys/class/video/frame_width");
+    QFile fh("/sys/class/video/frame_height");
+    if (!fw.open(QIODevice::ReadOnly) || !fh.open(QIODevice::ReadOnly))
+    {
+        Debug(_log, "Cant open amlogic frame properties");
+        return false;
+    }
+
+    int w = fw.readAll().trimmed().toInt();
+    int h = fh.readAll().trimmed().toInt();
+
+    fw.close();
+    fh.close();
+
+    int g = std::gcd(w, h);
+
+    arW = w / g;
+    arH = h / g;
+    return true;
+}
+
+bool AmlogicGrabber::setCapturedHeight()
+{
+	int w, h;
+	if (getAspectRatio(w, h))
+	{
+		_height = (_width * h) / w;
+		return true;
+	}
+	else
+		return false;
+}
+
 AmlogicGrabber::~AmlogicGrabber()
 {
 	uninit();
@@ -305,6 +340,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
+						setCapturedHeight();
 					}
 					grabFrameAmlogic();
 				}
