@@ -1140,7 +1140,7 @@
   "conf_network_proto_intro": "Tüm HyperHDR örneklerinin PROTO-Portu (kullanımdan kaldırıldı).<br/>Temel olarak Android Screen Grabber uygulamasıyla kullanım içindir. <span style='color:red;'>HDR'den SDR'ye ton eşleme</span>, Flatbuffers Server yapılandırmasında etkinleştirilebilir ve Protokol Tamponları (paylaşılan bileşen) için de çalışır.",
   "philips_option_changed_bri": "<p style='color: red'>İlk olarak Philips LED lambalarınızı Philips mobil uygulamasını kullanarak kurun: kurulum sırasında lambalarınız için EĞLENCE grubunu seçin (bu grubun kimliğini almalısınız). Aksi takdirde, eski json API'sini kullanarak iletişim performansı çok kötü olacaktır!</p> Lambalara bağlı diğer ev otomasyon sistemlerini kullanmanın HyperHDR'yi çalıştırırken çeşitli yan etkilere neden olabileceğini unutmayın.",
   "select_wled_intro": "WLED'i seçin",
-  "select_wled_rescan": "Ağı yeniden tara",
+  "select_network_rescan": "Ağı yeniden tara",
   "wledBrightnessOverride": "WLED parlaklığını geçersiz kıl",
   "wledCustomBrightnessLevel": "Özel WLED parlaklık seviyesi",
   "edt_conf_mqtt_heading_title": "MQTT istemcisi",
@@ -1301,5 +1301,9 @@
   "wiz_lifx_title": "LIFX ışık sihirbazı",
   "edt_dev_spec_convertToLinearRgb_title": "Lineer RGB’ye dönüştür",
   "edt_conf_smooth_antiFlickeringFilter_title": "Titreme önleme filtresi",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "24 bit RGB renk nicelemesinin neden olduğu hafif LED titremesini azaltan bir Infinite Color Engine filtresini etkinleştirir. Philips Hue (Eğlence modunda) veya LIFX cihazları gibi genişletilmiş renk formatlarını (derin renk) destekleyen denetleyicilerin bu filtreye hiç ihtiyacı yoktur."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "24 bit RGB renk nicelemesinin neden olduğu hafif LED titremesini azaltan bir Infinite Color Engine filtresini etkinleştirir. Philips Hue (Eğlence modunda) veya LIFX cihazları gibi genişletilmiş renk formatlarını (derin renk) destekleyen denetleyicilerin bu filtreye hiç ihtiyacı yoktur.",
+  "select_hyperk_intro": "Hyperk'i seçin",
+  "hyperkBrightnessOverride": "Hyperk parlaklığını geçersiz kıl",
+  "hyperkCustomBrightnessLevel": "Özel Hyperk parlaklık seviyesi",
+  "about_hyperk": "HyperHDR'ın resmi WiFi sürücüsü olan Hyperk hakkında daha fazla bilgi edinin: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br><b>ESP8266, ESP32 ailesi (S2/S3/C2/C3/C5/C6 dahil) ve Raspberry Pi Pico (RP2040/RP2350)</b> için hafif, kablosuz ve yüksek performanslı LED kontrolcü. Mevcut ev otomasyon sistemleri için hazır destek sunan, WiFi üzerinden LED şeritleri sürmek için hızlı ve çok mimarili bir alternatif."
 }

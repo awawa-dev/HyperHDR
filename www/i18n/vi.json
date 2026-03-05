@@ -1140,7 +1140,7 @@
   "conf_network_proto_intro": "Cổng PROTO của tất cả các phiên bản HyperHDR (không được dùng nữa).<br/>Chủ yếu để sử dụng với ứng dụng Android Screen Grabber. <span style='color: red;'>Ánh xạ tông màu từ HDR sang SDR</span> có thể được bật trong cấu hình Máy chủ Flatbuffers và nó cũng hoạt động cho Bộ đệm giao thức (thành phần được chia sẻ).",
   "philips_option_changed_bri": "<p style='color: red'>Trước tiên, hãy thiết lập đèn LED Philips của bạn bằng ứng dụng Philips dành cho thiết bị di động: trong khi thiết lập, hãy chọn nhóm GIẢI TRÍ cho đèn của bạn (bạn nên lấy ID của nhóm này). Nếu không, hiệu suất giao tiếp khi sử dụng API json cũ sẽ rất kém!</p> Hãy nhớ rằng việc sử dụng các hệ thống tự động hóa gia đình khác được kết nối với đèn có thể gây ra nhiều tác dụng phụ khác nhau khi chạy HyperHDR.",
   "select_wled_intro": "Chọn WLED",
-  "select_wled_rescan": "Quét lại mạng",
+  "select_network_rescan": "Quét lại mạng",
   "wledBrightnessOverride": "Ghi đè độ sáng WLED",
   "wledCustomBrightnessLevel": "Mức độ sáng WLED tùy chỉnh",
   "edt_conf_mqtt_heading_title": "Máy khách MQTT",
@@ -1301,5 +1301,9 @@
   "wiz_lifx_title": "Trình hướng dẫn đèn LIFX",
   "edt_dev_spec_convertToLinearRgb_title": "Chuyển đổi sang RGB tuyến tính",
   "edt_conf_smooth_antiFlickeringFilter_title": "Bộ lọc chống nhấp nháy",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Kích hoạt bộ lọc Infinite Color Engine giúp giảm hiện tượng nhấp nháy đèn LED tinh vi do lượng tử hóa màu RGB 24-bit gây ra. Các bộ điều khiển hỗ trợ định dạng màu mở rộng (deep color), chẳng hạn như Philips Hue (ở chế độ Giải trí) hoặc thiết bị LIFX, hoàn toàn không cần bộ lọc này."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Kích hoạt bộ lọc Infinite Color Engine giúp giảm hiện tượng nhấp nháy đèn LED tinh vi do lượng tử hóa màu RGB 24-bit gây ra. Các bộ điều khiển hỗ trợ định dạng màu mở rộng (deep color), chẳng hạn như Philips Hue (ở chế độ Giải trí) hoặc thiết bị LIFX, hoàn toàn không cần bộ lọc này.",
+  "select_hyperk_intro": "Chọn Hyperk",
+  "hyperkBrightnessOverride": "Ghi đè độ sáng Hyperk",
+  "hyperkCustomBrightnessLevel": "Mức độ sáng Hyperk tùy chỉnh",
+  "about_hyperk": "Tìm hiểu thêm về Hyperk, trình điều khiển WiFi chính thức của HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Bộ điều khiển LED không dây nhẹ, hiệu suất cao dành cho <b>dòng ESP8266, ESP32 (bao gồm S2/S3/C2/C3/C5/C6) và Raspberry Pi Pico (RP2040/RP2350)</b>. Giải pháp thay thế nhanh, đa kiến trúc để điều khiển dải LED qua WiFi với hỗ trợ sẵn có cho các hệ thống tự động hóa gia đình hiện nay."
 }

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -87,6 +87,7 @@ void BonjourServiceRegister::requestToScanHandler(DiscoveryRecord::Service type)
 	switch (type)
 	{
 		case (DiscoveryRecord::Service::HyperHDR): _helper->_scanService |= (1 << DiscoveryRecord::Service::HyperHDR); break;
+		case (DiscoveryRecord::Service::Hyperk): _helper->_scanService |= (1 << DiscoveryRecord::Service::Hyperk); break;
 		case (DiscoveryRecord::Service::WLED): _helper->_scanService |= (1 << DiscoveryRecord::Service::WLED); break;
 		case (DiscoveryRecord::Service::PhilipsHue): _helper->_scanService |= (1 << DiscoveryRecord::Service::PhilipsHue); break;
 		case (DiscoveryRecord::Service::HomeAssistant): _helper->_scanService |= (1 << DiscoveryRecord::Service::HomeAssistant); break;
@@ -101,6 +102,8 @@ void BonjourServiceRegister::messageFromFriendHandler(bool isExists, QString mdn
 
 	if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::WLED)) >= 0)
 		type = DiscoveryRecord::Service::WLED;
+	if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::Hyperk)) >= 0)
+		type = DiscoveryRecord::Service::Hyperk;
 	else if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::PhilipsHue)) >= 0)
 		type = DiscoveryRecord::Service::PhilipsHue;
 	else if (mdnsString.indexOf(DiscoveryRecord::getmDnsHeader(DiscoveryRecord::Service::HomeAssistant)) >= 0)

@@ -1140,7 +1140,7 @@
   "conf_network_proto_intro": "PROTO-Port všech instancí HyperHDR (zastaralé).<br/>Hlavně pro použití s aplikací Android Screen Grabber. <span style='color:red;'>Mapování tónů HDR na SDR</span> lze povolit v konfiguraci serveru Flatbuffers a funguje také pro vyrovnávací paměti protokolu (sdílená komponenta).",
   "philips_option_changed_bri": "<p style='color: red'>Nejprve nastavte své LED lampy Philips pomocí mobilní aplikace Philips: během nastavování vyberte pro své lampy skupinu ZÁBAVA (měli byste získat ID této skupiny). V opačném případě bude komunikační výkon pomocí starého json API velmi špatný!</p> Pamatujte, že používání jiných systémů domácí automatizace připojených k lampám může způsobit různé vedlejší efekty při spuštění HyperHDR.",
   "select_wled_intro": "Vyberte WLED",
-  "select_wled_rescan": "Znovu prohledejte síť",
+  "select_network_rescan": "Znovu prohledejte síť",
   "wledBrightnessOverride": "Přepsat jas WLED",
   "wledCustomBrightnessLevel": "Vlastní úroveň jasu WLED",
   "edt_conf_mqtt_heading_title": "Klient MQTT",
@@ -1301,5 +1301,9 @@
   "wiz_lifx_title": "Průvodce světly LIFX",
   "edt_dev_spec_convertToLinearRgb_title": "Převést na lineární RGB",
   "edt_conf_smooth_antiFlickeringFilter_title": "Filtr proti blikání",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Povolí filtr silnika Infinite Color Engine, který snižuje jemné blikání LED způsobené 24bitovou kvantizací barev RGB. Ovladače podporující rozšířené formáty barev (deep color), jako je Philips Hue (v režimu Entertainment) nebo zařízení LIFX, tento filtr vůbec nepotřebují."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Povolí filtr silnika Infinite Color Engine, který snižuje jemné blikání LED způsobené 24bitovou kvantizací barev RGB. Ovladače podporující rozšířené formáty barev (deep color), jako je Philips Hue (v režimu Entertainment) nebo zařízení LIFX, tento filtr vůbec nepotřebují.",
+  "select_hyperk_intro": "Vyberte Hyperk",  
+  "hyperkBrightnessOverride": "Přepsat jas Hyperk",
+  "hyperkCustomBrightnessLevel": "Vlastní úroveň jasu Hyperk",
+  "about_hyperk": "Zjistěte více o Hyperk – oficiálním WiFi ovladači pro HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Lehký, bezdrátový a vysoce výkonný LED ovladač pro <b>rodinu ESP8266, ESP32 (včetně S2/S3/C2/C3/C5/C6) a Raspberry Pi Pico (RP2040/RP2350)</b>. Rychlá, vícearchitekturová alternativa pro ovládání LED pásků přes WiFi s přímou podporou pro stávající systémy domácí automatizace."
 }

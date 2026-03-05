@@ -745,7 +745,7 @@
   "infoDialog_import_confirm_text": "Are you sure to import \"$1\"? <p class='mt-2' style='color: red;'>This process cannot be undone! HyperHDR will close after a successful import and you have to restart it manually if HyperHDR is not configured as a Linux service.</p>",
   "infoDialog_import_confirm_title": "Confirm import",
   "infoDialog_import_hyperror_text": "The selected configuration file \"$1\" can't be imported. It's not compatible with HyperHDR v17 and higher!",
-  "infoDialog_import_jsonerror_text": "The selected configuration file \"$1\" is no .json file or it's corrupted. Error message: ($2)",
+  "infoDialog_import_jsonerror_text": "The selected configuration file \"$1\" is not a json file or it's corrupted. Error message: ($2)",
   "infoDialog_wizrgb_text": "Your RGB Byte Order is already well adjusted.",
   "infoDialog_writeconf_error_text": "Saving your configuration failed.",
   "infoDialog_writeimage_error_text": "The selected file \"$1\" is no image file or it's corrupted! Please select another image file.",
@@ -1146,7 +1146,7 @@
   "conf_network_proto_intro": "The PROTO-Port of all HyperHDR instances (deprecated).<br/>Mainly for use with the Android Screen Grabber app. <span style='color:red;'>HDR to SDR tone mapping</span> can be enabled in Flatbuffers Server configuration and it works also for Protocol Buffers (shared component).",
   "philips_option_changed_bri": "<p style='color: red'>First set up your Philips LED lamps using the Philips mobile app: during setup, select the ENTERTAINMENT group for your lamps (you should get the ID of this group). Otherwise, communication performance using the old json API will be very bad!</p> Remember that using other home automation systems connected to lamps can cause various side effects when running HyperHDR.",
   "select_wled_intro": "Select WLED",
-  "select_wled_rescan": "Rescan network",
+  "select_network_rescan": "Rescan network",
   "wledBrightnessOverride": "Override WLED brightness",
   "wledCustomBrightnessLevel": "Custom WLED brightness level",
   "edt_conf_mqtt_heading_title": "MQTT client",
@@ -1308,5 +1308,9 @@
   "wiz_lifx_title": "LIFX lights wizard",
   "edt_dev_spec_convertToLinearRgb_title": "Convert to linear RGB",
   "edt_conf_smooth_antiFlickeringFilter_title": "Anti‑flicker filter",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Enables an infinite color engine filter that reduces subtle LED flickering caused by 24‑bit RGB color quantization. Controllers that support extended color formats (deep color), such as Philips Hue (in Entertainment mode) or LIFX devices, do not need this filter at all."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Enables an infinite color engine filter that reduces subtle LED flickering caused by 24‑bit RGB color quantization. Controllers that support extended color formats (deep color), such as Philips Hue (in Entertainment mode) or LIFX devices, do not need this filter at all.",
+  "select_hyperk_intro": "Select Hyperk",
+  "hyperkBrightnessOverride": "Override Hyperk brightness",
+  "hyperkCustomBrightnessLevel": "Custom Hyperk brightness level",
+  "about_hyperk": "Learn more about Hyperk, the official HyperHDR WiFi driver: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>A lightweight, high-performance wireless LED controller for the <b>ESP8266, ESP32 family (including S2/S3/C2/C3/C5/C6), and Raspberry Pi Pico (RP2040/RP2350)</b>. A fast, multi-arch alternative for driving LED strips over WiFi with out-of-the-box support for existing home automation systems."
 }

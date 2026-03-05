@@ -1140,7 +1140,7 @@
   "conf_network_proto_intro": "Portul PROTO al tuturor instanțelor HyperHDR (învechit).<br/>Pentru a fi utilizat în principal cu aplicația Android Screen Grabber. <span style='color:red;'>Maparea tonurilor HDR la SDR</span> poate fi activată în configurația Flatbuffers Server și funcționează și pentru Protocol Buffers (componentă partajată).",
   "philips_option_changed_bri": "<p style='color: red'>Configurați mai întâi lămpile LED Philips folosind aplicația mobilă Philips: în timpul configurării, selectați grupul DIVERTISMENT pentru lămpi (ar trebui să obțineți ID-ul acestui grup). În caz contrar, performanța comunicării folosind vechiul API json va fi foarte proastă!</p> Amintiți-vă că utilizarea altor sisteme de automatizare a locuinței conectate la lămpi poate provoca diverse efecte secundare atunci când rulați HyperHDR.",
   "select_wled_intro": "Selectați WLED",
-  "select_wled_rescan": "Rescanați rețeaua",
+  "select_network_rescan": "Rescanați rețeaua",
   "wledBrightnessOverride": "Ignorați luminozitatea WLED",
   "wledCustomBrightnessLevel": "Nivel de luminozitate WLED personalizat",
   "edt_conf_mqtt_heading_title": "Client MQTT",
@@ -1301,5 +1301,9 @@
   "wiz_lifx_title": "Asistentul pentru lumini LIFX",
   "edt_dev_spec_convertToLinearRgb_title": "Convertiți în RGB liniar",
   "edt_conf_smooth_antiFlickeringFilter_title": "Filtru anti-pâlpâire",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Activează un filtru Infinite Color Engine care reduce pâlpâirea subtilă a LED-urilor cauzată de cuantizarea culorilor RGB pe 24 de biți. Controlerele care acceptă formate de culoare extinse (deep color), cum ar fi Philips Hue (în modul Entertainment) sau dispozitivele LIFX, nu au deloc nevoie de acest filtru."
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Activează un filtru Infinite Color Engine care reduce pâlpâirea subtilă a LED-urilor cauzată de cuantizarea culorilor RGB pe 24 de biți. Controlerele care acceptă formate de culoare extinse (deep color), cum ar fi Philips Hue (în modul Entertainment) sau dispozitivele LIFX, nu au deloc nevoie de acest filtru.",
+  "select_hyperk_intro": "Selectați Hyperk",
+  "hyperkBrightnessOverride": "Ignorați luminozitatea Hyperk",
+  "hyperkCustomBrightnessLevel": "Nivel de luminozitate Hyperk personalizat",
+  "about_hyperk": "Află mai multe despre Hyperk, driverul WiFi oficial pentru HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Un controller LED wireless, performant și compact pentru <b>familia ESP8266, ESP32 (inclusiv S2/S3/C2/C3/C5/C6) și Raspberry Pi Pico (RP2040/RP2350)</b>. O alternativă rapidă și multi-arhitectură pentru controlul benzilor LED prin WiFi, cu suport nativ pentru sistemele de automatizare a locuinței existente."
 }

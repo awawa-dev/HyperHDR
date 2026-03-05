@@ -107,33 +107,19 @@ namespace RGBW {
 			break;
 		}
 
+		case WhiteAlgorithm::SUB_MIN_COOL_ADJUST:
 		case WhiteAlgorithm::SUB_MIN_WARM_ADJUST:
 		{
 			// http://forum.garagecube.com/viewtopic.php?t=10178
-			// warm white
-			const double F1(0.274);
-			const double F2(0.454);
-			const double F3(2.333);
+			const float F1((algorithm == WhiteAlgorithm::SUB_MIN_COOL_ADJUST) ? 0.299f : 0.274f);
+			const float F2((algorithm == WhiteAlgorithm::SUB_MIN_COOL_ADJUST) ? 0.587f : 0.454f);
+			const float F3((algorithm == WhiteAlgorithm::SUB_MIN_COOL_ADJUST) ? 0.114f : 2.333f);
 
-			output->white = static_cast<uint8_t>(qMin(input.red * F1, qMin(input.green * F2, input.blue * F3)));
-			output->red = input.red - static_cast<uint8_t>(output->white / F1);
-			output->green = input.green - static_cast<uint8_t>(output->white / F2);
-			output->blue = input.blue - static_cast<uint8_t>(output->white / F3);
-			break;
-		}
-
-		case WhiteAlgorithm::SUB_MIN_COOL_ADJUST:
-		{
-			// http://forum.garagecube.com/viewtopic.php?t=10178
-			// cold white
-			const double F1(0.299);
-			const double F2(0.587);
-			const double F3(0.114);
-
-			output->white = static_cast<uint8_t>(qMin(input.red * F1, qMin(input.green * F2, input.blue * F3)));
-			output->red = input.red - static_cast<uint8_t>(output->white / F1);
-			output->green = input.green - static_cast<uint8_t>(output->white / F2);
-			output->blue = input.blue - static_cast<uint8_t>(output->white / F3);
+			const float w = std::min({ input.red * F1, input.green * F2, input.blue * F3 });
+			output->white = static_cast<uint8_t>(std::clamp(std::round(w), 0.f, 255.f));
+			output->red = static_cast<uint8_t>(std::clamp(std::round(input.red - w / F1), 0.f, 255.f));
+			output->green = static_cast<uint8_t>(std::clamp(std::round(input.green - w / F2), 0.f, 255.f));
+			output->blue = static_cast<uint8_t>(std::clamp(std::round(input.blue - w / F3), 0.f, 255.f));
 			break;
 		}
 
