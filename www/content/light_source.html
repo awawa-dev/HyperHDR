@@ -676,7 +676,7 @@
 <link href="css/jsonaceeditor.min.css" rel="stylesheet" type="text/css" />
 <script>
 
-$.getScript('js/LedSetups/SetupCommon.js').then(() => {
+	$.getScript('js/LedSetups/SetupCommon.js').then(() => {
 	const setupScripts = [
 		'js/LedSetups/SetupPhilipsHue.js',
 		'js/LedSetups/SetupZigbee2mqtt.js',
@@ -685,6 +685,7 @@ $.getScript('js/LedSetups/SetupCommon.js').then(() => {
 		'js/LedSetups/SetupYeelight.js',
 		'js/LedSetups/SetupCololight.js',
 		'js/LedSetups/SetupLifx.js',
+		'js/LedSetups/SetupWiz.js',
 		'js/lib/jsonaceeditor.min.js'
 	].map(src => $.getScript(src));
 

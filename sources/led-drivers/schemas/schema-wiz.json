@@ -1,0 +1,55 @@
+{
+	"type": "object",
+	"required": true,
+	"properties": {
+		"port": {
+			"type": "integer",
+			"title": "edt_dev_spec_networkDevicePort_title",
+			"default": 38899,
+			"minimum": 1,
+			"maximum": 65535,
+			"access": "expert",
+			"propertyOrder": 1
+		},
+		"dimming": {
+			"type": "integer",
+			"title": "edt_conf_color_brightness_title",
+			"default": 100,
+			"minimum": 0,
+			"maximum": 100,
+			"append": "%",
+			"access": "advanced",
+			"propertyOrder": 2
+		},
+		"lamps": {
+			"type": "array",
+			"title": "edt_dev_spec_lights_title",
+			"items": {
+				"type": "object",
+				"title": "edt_dev_spec_lights_itemtitle",
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "edt_dev_spec_lights_name"
+					},
+					"ipAddress": {
+						"type": "string",
+						"title": "edt_conf_net_ip_itemtitle",
+						"default": ""
+					},
+					"macAddress": {
+						"type": "string",
+						"title": "edt_dev_spec_macAddress_title",
+						"pattern": "^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$",
+						"default": ""
+					}
+				},
+				"required": ["name", "ipAddress"]
+			},
+			"default": [],
+			"propertyOrder": 3
+		}
+	},
+	"additionalProperties": true
+}
+
