@@ -1,3 +1,30 @@
+/* DriverNetWiz.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2026 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+*/
+
 #include <led-drivers/net/DriverNetWiz.h>
 
 #include <QUdpSocket>
@@ -5,9 +32,10 @@
 #include <QElapsedTimer>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QThread>
 
 #include <algorithm>
+#include <chrono>
+#include <thread>
 
 namespace
 {
@@ -250,38 +278,34 @@ void DriverNetWiz::identify(const QJsonObject& params)
 		return;
 	}
 
-	auto sendSetPilot = [&](int r, int g, int b, int dimming, bool state = true) {
+	{
 		QJsonObject root;
 		QJsonObject p;
-		p.insert("state", state);
-		p.insert("r", r);
-		p.insert("g", g);
-		p.insert("b", b);
-		p.insert("dimming", dimming);
+		p.insert("state", true);
+		p.insert("r", 0);
+		p.insert("g", 0);
+		p.insert("b", 255);
+		p.insert("dimming", 100);
 		root.insert("method", "setPilot");
 		root.insert("params", p);
 		const QByteArray packet = QJsonDocument(root).toJson(QJsonDocument::Compact);
 		socket->writeDatagram(packet, address, static_cast<quint16>(port));
-	};
-
-	const QByteArray onPacket = buildPowerPacket(true);
-	socket->writeDatagram(onPacket, address, static_cast<quint16>(port));
-
-	// Match the LIFX identify UX: a quick "blue" then a visible fade out.
-	// WiZ doesn't provide a LIFX-like duration field here, so we approximate it by stepping dimming.
-	sendSetPilot(0, 0, 255, 100, true);
-	QThread::msleep(250);
-
-	constexpr int fadeMs = 2000;
-	constexpr int steps = 8;
-	for (int i = steps; i >= 0; --i)
-	{
-		const int dim = static_cast<int>((100.0 * i) / steps);
-		sendSetPilot(0, 0, 255, dim, true);
-		QThread::msleep(fadeMs / steps);
 	}
 
-	sendSetPilot(0, 0, 0, 100, true);
+	std::thread([address, port] {
+		QUdpSocket socket;
+		if (!socket.bind(QHostAddress::AnyIPv4, 0, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint))
+			return;
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+		QJsonObject root;
+		QJsonObject p;
+		p.insert("state", false);
+		root.insert("method", "setPilot");
+		root.insert("params", p);
+		socket.writeDatagram(QJsonDocument(root).toJson(QJsonDocument::Compact), address, static_cast<quint16>(port));
+	}).detach();
 }
 
 LedDevice* DriverNetWiz::construct(const QJsonObject& deviceConfig)
