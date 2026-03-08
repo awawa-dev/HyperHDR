@@ -22,6 +22,7 @@
 #include <infinite-color-engine/SharedOutputColors.h>
 #include <infinite-color-engine/InfiniteInterpolator.h>
 #include <utils/Logger.h>
+#include <deque>
 
 class HyperHdrInstance;
 
