@@ -32,10 +32,9 @@
 #include <QElapsedTimer>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QThread>
 
 #include <algorithm>
-#include <chrono>
-#include <thread>
 
 namespace
 {
@@ -278,34 +277,38 @@ void DriverNetWiz::identify(const QJsonObject& params)
 		return;
 	}
 
-	{
+	auto sendSetPilot = [&](int r, int g, int b, int dimming, bool state = true) {
 		QJsonObject root;
 		QJsonObject p;
-		p.insert("state", true);
-		p.insert("r", 0);
-		p.insert("g", 0);
-		p.insert("b", 255);
-		p.insert("dimming", 100);
+		p.insert("state", state);
+		p.insert("r", r);
+		p.insert("g", g);
+		p.insert("b", b);
+		p.insert("dimming", dimming);
 		root.insert("method", "setPilot");
 		root.insert("params", p);
 		const QByteArray packet = QJsonDocument(root).toJson(QJsonDocument::Compact);
 		socket->writeDatagram(packet, address, static_cast<quint16>(port));
+	};
+
+	const QByteArray onPacket = buildPowerPacket(true);
+	socket->writeDatagram(onPacket, address, static_cast<quint16>(port));
+
+	// Match the LIFX identify UX: a quick "blue" then a visible fade out.
+	// WiZ doesn't provide a LIFX-like duration field here, so we approximate it by stepping dimming.
+	sendSetPilot(0, 0, 255, 100, true);
+	QThread::msleep(250);
+
+	constexpr int fadeMs = 2000;
+	constexpr int steps = 8;
+	for (int i = steps; i >= 0; --i)
+	{
+		const int dim = static_cast<int>((100.0 * i) / steps);
+		sendSetPilot(0, 0, 255, dim, true);
+		QThread::msleep(fadeMs / steps);
 	}
 
-	std::thread([address, port] {
-		QUdpSocket socket;
-		if (!socket.bind(QHostAddress::AnyIPv4, 0, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint))
-			return;
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-		QJsonObject root;
-		QJsonObject p;
-		p.insert("state", false);
-		root.insert("method", "setPilot");
-		root.insert("params", p);
-		socket.writeDatagram(QJsonDocument(root).toJson(QJsonDocument::Compact), address, static_cast<quint16>(port));
-	}).detach();
+	sendSetPilot(0, 0, 0, 100, true);
 }
 
 LedDevice* DriverNetWiz::construct(const QJsonObject& deviceConfig)
