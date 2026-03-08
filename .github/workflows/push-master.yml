@@ -75,11 +75,11 @@ jobs:
 
       - name: Clear branch ccache storage
         if: startsWith(github.event.ref, 'refs/tags') == false
-        uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
-        with:
-          ref: ${{ github.event.ref }}
-          key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-
+        run: |
+          gh cache list --ref ${{ github.event.ref }} --key "${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
@@ -143,11 +143,11 @@ jobs:
         run: ./build.sh || ./build.sh
 
       - name: Clear branch ccache storage
-        uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
-        with:
-          ref: ${{ github.event.ref }}
-          key: macOS-${{ matrix.NICE_NAME }}-ccache
+        run: |
+          gh cache list --ref ${{ github.event.ref }} --key "macOS-${{ matrix.NICE_NAME }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
@@ -232,11 +232,11 @@ jobs:
           ./build.sh
 
       - name: Clear branch ccache storage
-        uses: yumemi-inc/clean-cache-action@v1
         continue-on-error: true
-        with:
-          ref: ${{ github.event.ref }}
-          key: ${{ runner.os }}-ccache
+        run: |
+          gh cache list --ref ${{ github.event.ref }} --key "${{ runner.os }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'

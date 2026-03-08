@@ -1,0 +1,64 @@
+#!/bin/sh
+
+echo "Finalizing HyperHDR setup"
+
+# === Podstawowe informacje systemowe ===
+# Alternatywa dla hostname -I (Fedora często nie ma tego preinstalowanego w tej formie)
+NET_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{print $7}' | head -n 1)
+[ -z "$NET_IP" ] && NET_IP=$(hostname -I 2>/dev/null | cut -d " " -f1)
+[ -z "$NET_IP" ] && NET_IP="127.0.0.1"
+
+FOUND_USR="${SUDO_USER:-$(who | grep -o -m1 '^[a-zA-Z0-9]*' | head -1)}"
+[ -z "$FOUND_USR" ] && FOUND_USR="root"
+
+ENABLE_SERVICE=0
+STARTUP_MSG="Service is NOT enabled by default for GUI OS"
+REBOOTMESSAGE=""
+start_msg=""
+
+# === systemd (jedyny wspierany init) ===
+if grep -m1 systemd /proc/1/comm > /dev/null; then
+    if [ -z "${DISPLAY}" ]; then
+        echo "Init daemon: systemd (service is enabled by default for console systems)"
+        ENABLE_SERVICE=1
+        STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
+    else
+        echo "Init daemon: GUI detected (service is NOT enabled by default)"
+        ENABLE_SERVICE=0
+    fi
+
+    # instalujemy szablon usługi
+    systemctl daemon-reload
+
+    if [ $ENABLE_SERVICE -eq 1 ]; then
+        systemctl enable --now "hyperhdr@${FOUND_USR}.service" 2>/dev/null || true
+        start_msg="systemctl start hyperhdr for user ${FOUND_USR}"
+    fi
+else
+    echo "Warning: No systemd detected. Service management will be manual."
+fi
+
+echo "${start_msg}"
+
+# === Komunikaty końcowe ===
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |                  HyperHDR has been installed/updated!                 |"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |  For configuration, visit with your browser: %%13s:%%s       |" "$NET_IP" "8090"
+printf "\n |  If already used by another service try: %%13s:%%s           |" "$NET_IP" "8091"
+printf "\n |  Start the service: sudo systemctl start hyperhdr@%%-12s        |" "$FOUND_USR"
+printf "\n |  Stop the service: sudo systemctl stop hyperhdr@%%-12s          |" "$FOUND_USR"
+printf "\n |  Troubleshooting? Run HyperHDR manually: /usr/bin/hyperhdr            |"
+printf "\n +-----------------------------------------------------------------------+"
+case "$STARTUP_MSG" in 
+  *"HyperHDR is installed as a service"*)
+    printf "\n |  %%-67s  |" "$STARTUP_MSG";;
+  *) printf "\n |  %%-67s  |" "$STARTUP_MSG"
+esac
+[ -z "$REBOOTMESSAGE" ] || printf "\n |  %%-67s  |" "$REBOOTMESSAGE"
+printf "\n +-----------------------------------------------------------------------+"
+printf "\n |  Webpage: https://hyperhdr.eu                                         |"
+printf "\n |  GitHub: https://github.com/awawa-dev/HyperHDR                        |"
+printf "\n +-----------------------------------------------------------------------+\n"
+
+exit 0

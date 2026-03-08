@@ -1,133 +1,70 @@
 #!/bin/sh
 
-install_file()
-{
-	src="$1"
-	dest="$2"
-
-	if [ ! -e "$dest" ]
-	then
-		cp "$src" "${dest}"
-		return 1
-	else
-		echo "Service file already exists, skip creation"
-		return 0
-	fi
-}
-
-
 echo "Finalizing HyperHDR setup"
 
-#check system
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
-CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
-
-#Check for a bootloader as Berryboot
-BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
-
-#get current system ip
+# === Podstawowe informacje systemowe ===
+if [ -f /proc/device-tree/model ] && grep -q "Raspberry Pi" /proc/device-tree/model; then
+    CPU_RPI=1
+else
+    CPU_RPI=0
+fi
 NET_IP=`hostname -I | cut -d " " -f1`
-
-# search for users in system, returns first entry
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
-# determine if we should use a service
-ENABLE_XSYS=0
 ENABLE_SERVICE=0
-STARTUP_MSG="Service is NOT enabled by default for GUI or non-systemd OS"
+STARTUP_MSG="Service is NOT enabled by default for GUI OS"
+REBOOTMESSAGE=""
 
 if [ $CPU_RPI -eq 1 ]; then
-	ENABLE_SERVICE=1
-	STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
+    ENABLE_SERVICE=1
+    STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
 fi
 
 start_msg=""
-restart_msg=""
 
-if grep -m1 systemd /proc/1/comm > /dev/null
-then	
-	# systemd
-	if [ -z "${DISPLAY}" ]; then
-		STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
-		echo "Init daemon: systemd (service is enabled by default for console systems)"
-		ENABLE_SERVICE=1
-	else
-		echo "Init daemon: GUI detected (service is NOT enabled by default, you can run HyperHDR as an application or service with 'systemctl enable (and next: start) hyperhdr@${FOUND_USR}.service')"
-		ENABLE_SERVICE=0
-		ENABLE_XSYS=1
-	fi
-	
-	install_file /usr/share/hyperhdr/service/hyperhdr.systemd /etc/systemd/system/hyperhdr@.service	
+# === systemd (jedyny wspierany init) ===
+if grep -m1 systemd /proc/1/comm > /dev/null; then
+    if [ -z "${DISPLAY}" ]; then
+        echo "Init daemon: systemd (service is enabled by default for console systems)"
+        ENABLE_SERVICE=1
+        STARTUP_MSG="HyperHDR is installed as a service and starts automatically"
+    else
+        echo "Init daemon: GUI detected (service is NOT enabled by default)"
+        ENABLE_SERVICE=0
+    fi
 
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		systemctl enable hyperhdr"@${FOUND_USR}".service
-		start_msg="systemctl start hyperhdr for user ${FOUND_USR}"
-		systemctl start hyperhdr"@${FOUND_USR}"
-	fi
+    # instalujemy szablon usługi
+    systemctl daemon-reload
 
-elif [ -e /sbin/initctl ]
-then	
-	# upstart
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		echo "Init daemon: upstart (service is enabled by default)"
-		install_file /usr/share/hyperhdr/service/hyperhdr.initctl /etc/init/hyperhdr.conf && initctl reload-configuration
-		start_msg="initctl start hyperhdr"
-		initctl start hyperhdr
-	else
-		echo "Init daemon: upstart (service is NOT enabled by default)"
-	fi
-
-else	
-	# sysV
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		echo "Init daemon: sysV (enabled by default)"
-		install_file /usr/share/hyperhdr/service/hyperhdr.init /etc/init.d/hyperhdr && chmod +x /etc/init.d/hyperhdr && update-rc.d hyperhdr defaults 98 02
-		start_msg="service hyperhdr start"
-		service hyperhdr start
-	else
-		echo "Init daemon: sysV (service is NOT enabled by default)"
-	fi
+    if [ $ENABLE_SERVICE -eq 1 ]; then
+        systemctl enable --now "hyperhdr@${FOUND_USR}.service" 2>/dev/null || true
+        start_msg="systemctl start hyperhdr for user ${FOUND_USR}"
+    fi
+else
+    echo "Warning: No systemd detected. Service management will be manual."
 fi
 
-#cleanup
-rm -r /usr/share/hyperhdr/service
-
-#link binarys and set exec bit
-BINSP=/usr/share/hyperhdr/bin
-BINTP=/usr/bin
-chmod +x -R $BINSP
-ln -fs $BINSP/hyperhdr $BINTP/hyperhdr
-
-# install desktop icons
-echo "Install HyperHDR desktop icons"
-mkdir /usr/share/pixmaps/hyperhdr 2>/dev/null
-cp /usr/share/hyperhdr/desktop/*.png /usr/share/pixmaps/hyperhdr 2>/dev/null
-desktop-file-install /usr/share/hyperhdr/desktop/hyperhdr.desktop 2>/dev/null
-
-# cleanup desktop icons
-rm -r /usr/share/hyperhdr/desktop 2>/dev/null
-
-#Check, if dtparam=spi=on is in place
+# === SPI dla Raspberry Pi ===
 if [ $CPU_RPI -eq 1 ]; then
-	BOOT_DIR="/boot"
-	if [ $BOOT_BERRYBOOT -eq 1 ]; then
-		BOOT_DIR=$(sed -ne "s#/dev/mmcblk0p1 \([^ ]*\) vfat rw,.*#\1#p" /etc/mtab)
-	fi
-	if [ -z "$BOOT_DIR" -o ! -f "$BOOT_DIR/config.txt" ]; then
-		echo 'Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
-		SPIOK=1 # Not sure if OK, but don't ask to reboot
-	else
-		SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
-		if [ $SPIOK -ne 1 ]; then
-			echo 'Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
-			sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
-			REBOOTMESSAGE="Restart Raspberry Pi, SPI has been enabled in $BOOT_DIR/config.txt"
-		fi
-	fi
+    if [ -f "/boot/firmware/config.txt" ]; then
+        BOOT_DIR="/boot/firmware"
+    else
+        BOOT_DIR="/boot"
+    fi
+
+    if [ -f "$BOOT_DIR/config.txt" ]; then
+        SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
+        if [ $SPIOK -ne 1 ]; then
+            echo "Raspberry Pi found – enabling SPI in $BOOT_DIR/config.txt"
+            sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
+            REBOOTMESSAGE="Restart Raspberry Pi – SPI has been enabled in $BOOT_DIR/config.txt"
+        fi
+    fi
 fi
 
-echo ${start_msg}
+echo "${start_msg}"
 
+# === Komunikaty końcowe ===
 printf "\n +-----------------------------------------------------------------------+"
 printf "\n |                 \033[32;1mHyperHDR has been installed/updated!\033[0m                  |"
 printf "\n +-----------------------------------------------------------------------+"

@@ -88,6 +88,10 @@
 
 #cmakedefine HYPERHDR_HAVE_DBUS
 
+#cmakedefine PORTABLE_LIB_FOLDER "@PORTABLE_LIB_FOLDER@"
+
+#cmakedefine WEB_RESOURCES_FOLDER "@WEB_RESOURCES_FOLDER@"
+
 // the hyperhdr build id string
 #define HYPERHDR_BUILD_ID "${HYPERHDR_BUILD_ID}"
 #define HYPERHDR_GIT_REMOTE "${HYPERHDR_GIT_REMOTE}"

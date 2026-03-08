@@ -32,7 +32,6 @@ install(
 
 set_target_properties(sqlite3 PROPERTIES
     OUTPUT_NAME   sqlite3
-    PUBLIC_HEADER sqlite3.h
 )
 
 target_compile_definitions(sqlite3 PUBLIC
@@ -86,7 +85,7 @@ endif()
 
 if(ENABLE_WS281XPWM)
 	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" FILE_CONTENTS)
-	string(REPLACE "if(BUILD_SHARED)" "if(USE_SHARED_LIBS)" FILE_CONTENTS "${FILE_CONTENTS}")
+	string(REPLACE "if(BUILD_SHARED)" "if(USE_SHARED_LIBS AND ENABLE_DEPENDENCY_PACKAGING)" FILE_CONTENTS "${FILE_CONTENTS}")
 	string(REPLACE "configure_file(version.h.in version.h)" [=[configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)]=] FILE_CONTENTS "${FILE_CONTENTS}")
 	file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" "${FILE_CONTENTS}")
 
