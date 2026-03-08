@@ -385,7 +385,7 @@ QJsonObject HyperHdrInstance::getAverageColor()
 
 unsigned HyperHdrInstance::addEffectConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
 {
-	return _infinite->addCustomSmoothingConfig(id, settlingTime_ms, ledUpdateFrequency_hz, pause);
+	return _infinite->addCustomSmoothingConfig(id, settlingTime_ms, ledUpdateFrequency_hz, 0, pause);
 }
 
 int HyperHdrInstance::getLedCount() const

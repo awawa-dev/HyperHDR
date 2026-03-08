@@ -36,7 +36,7 @@ public:
 	bool isEnabled() const;
 
 	void incomingColors(std::vector<linalg::aliases::float3>&& nonlinearRgbColors, std::optional<float> minimalBacklight);
-	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause);
+	unsigned addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, double ledUpdateDelay_fr, bool pause);
 	void setCurrentSmoothingConfigParams(unsigned cfgID);
 	bool selectConfig(unsigned cfgId);
 	int getSuggestedInterval();
@@ -80,6 +80,7 @@ private:
 		float		  smoothingFactor;
 		float		  stiffness;
 		float		  damping;
+		float		  updateDelayFrames;
 		float		  y_limit;
 	};
 
@@ -95,4 +96,8 @@ private:
 	long long		_lastSentFrame;
 	bool			_antiFlickeringFilter;
 	float			_minimalBacklight;
+	std::vector<std::deque<SharedOutputColors>> _frameDelayBuffers;
+	std::vector<float> _lastDelayFrames;
+	std::vector<std::deque<long long>> _frameDelayTimestamps;
+
 };

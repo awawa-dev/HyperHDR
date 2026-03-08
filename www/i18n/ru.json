@@ -1214,6 +1214,7 @@
   "edt_conf_monitor_nits_title": "Коррекция яркости HDR",
   "edt_conf_monitor_nits_expl": "Целевая яркость SDR, используемая для преобразования HDR в SDR. Если значение равно 0, это отключает аппаратное преобразование цвета при сохранении ускоренного масштабирования.",
   "edt_append_nits": "nits",
+  "edt_append_frames": "Frames",
   "edt_conf_gen_disableOnLocked_title": "Отключить при блокировке",
   "edt_conf_gen_disableOnLocked_expl": "Отключить обработку когда пользователь заблокировал систему.",
   "edt_conf_gen_disableLedsStartup_title": "Выключить светодиоды при запуске",
