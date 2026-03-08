@@ -291,24 +291,18 @@ void DriverNetWiz::identify(const QJsonObject& params)
 		socket->writeDatagram(packet, address, static_cast<quint16>(port));
 	};
 
-	const QByteArray onPacket = buildPowerPacket(true);
-	socket->writeDatagram(onPacket, address, static_cast<quint16>(port));
+	// Turn on the lamp
+	sendSetPilot(0, 0, 255, 0, true);
+	QThread::msleep(400);
 
-	// Match the LIFX identify UX: a quick "blue" then a visible fade out.
-	// WiZ doesn't provide a LIFX-like duration field here, so we approximate it by stepping dimming.
-	sendSetPilot(0, 0, 255, 100, true);
-	QThread::msleep(250);
-
-	constexpr int fadeMs = 2000;
-	constexpr int steps = 8;
-	for (int i = steps; i >= 0; --i)
-	{
-		const int dim = static_cast<int>((100.0 * i) / steps);
-		sendSetPilot(0, 0, 255, dim, true);
-		QThread::msleep(fadeMs / steps);
-	}
-
-	sendSetPilot(0, 0, 0, 100, true);
+	// Start the pulse effect
+	QJsonObject pulseRoot;
+	QJsonObject pulseParams;
+	pulseParams.insert("delta", 100);
+	pulseParams.insert("duration", 1000);
+	pulseRoot.insert("method", "pulse");
+	pulseRoot.insert("params", pulseParams);
+	socket->writeDatagram(QJsonDocument(pulseRoot).toJson(QJsonDocument::Compact), address, static_cast<quint16>(port));
 }
 
 LedDevice* DriverNetWiz::construct(const QJsonObject& deviceConfig)
