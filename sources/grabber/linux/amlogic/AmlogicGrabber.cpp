@@ -114,6 +114,12 @@ bool AmlogicGrabber::getAspectRatio(int& arW, int& arH)
     int w = fw.readAll().trimmed().toInt();
     int h = fh.readAll().trimmed().toInt();
 
+	if (w <= 0 || h <= 0)
+	{
+		Debug(_log, "Invalid frame dimensions: {:d}x{:d}", w, h);
+		return false;
+	}
+
     fw.close();
     fh.close();
 
