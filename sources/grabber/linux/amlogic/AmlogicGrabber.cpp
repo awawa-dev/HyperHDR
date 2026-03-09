@@ -45,9 +45,12 @@
 #include <base/AccessManager.h>
 
 #include <QDirIterator>
+#include <QFile>
 #include <QFileInfo>
+#include <numeric>
 #include <QCoreApplication>
 #include <QByteArray>
+
 
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 #include <image/MemoryBuffer.h>
