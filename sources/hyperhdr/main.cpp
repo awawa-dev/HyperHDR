@@ -14,6 +14,7 @@
 	#include <cstdio>
 #endif
 
+#include <QStandardPaths>
 #include <csignal>
 
 #if !defined(__APPLE__) && !defined(_WIN32)
@@ -107,7 +108,7 @@ QCoreApplication* createApplication(bool& isGuiApp, int& argc, char* argv[])
 #endif
 
 	QCoreApplication* app = new QCoreApplication(argc, argv);
-	QCoreApplication::setApplicationName("HyperHdr");
+	QCoreApplication::setApplicationName("HyperHDR");
 	QCoreApplication::setApplicationVersion(HYPERHDR_VERSION);
 	// add optional library path
 	QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/../lib");
@@ -140,8 +141,13 @@ int main(int argc, char** argv)
 	Parser parser("HyperHDR Daemon");
 	parser.addHelpOption();
 
+	QString defaultDataPath = QDir(QDir::homePath()).absoluteFilePath(".hyperhdr");
+	if (!QDir(defaultDataPath).exists()) {
+		defaultDataPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+	}
+
 	BooleanOption& versionOption = parser.add<BooleanOption>(0x0, "version", "Show version information");
-	Option& userDataOption = parser.add<Option>('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperhdr");
+	Option& userDataOption = parser.add<Option>('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", defaultDataPath);
 	BooleanOption& resetPassword = parser.add<BooleanOption>(0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperhdr'");
 	BooleanOption& deleteDB = parser.add<BooleanOption>(0x0, "deleteDatabase", "Start all over? This Option will delete the database");
 	BooleanOption& silentOption = parser.add<BooleanOption>('s', "silent", "Do not print any outputs");
