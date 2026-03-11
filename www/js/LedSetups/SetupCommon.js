@@ -189,7 +189,7 @@ function createLedConfig(haConfig)
             let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_ha_device("${ipVal}","${tokenVal}","${lamp.name}")>${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
             $('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));
         }
-        else if (haConfig.type == 'lifx')
+        else if (haConfig.type == 'lifx' || haConfig.type == 'wiz')
         {           
             let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick="const params = { name: '${lamp.name}', ipAddress: '${lamp.ipAddress}', macAddress: '${lamp.macAddress}' }; requestLedDeviceIdentification('${haConfig.type}', params);">${$.i18n('wiz_identify_light', ledHaIndex)}</button>`;
             $('.ha_lamps_rows').append(createTableRowFlex([lamp.name, selectLightControl, buttonLightLink]));

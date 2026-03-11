@@ -1306,6 +1306,8 @@
   "edt_dev_spec_macAddress_title": "MAC address",
   "wiz_lifx_error": "Could not find Lifx devices. Check HyperHDR logs.",
   "wiz_lifx_title": "LIFX lights wizard",
+  "wiz_wiz_error": "No Philips WiZ devices found. Enable \"Allow local communication\" in the WiZ app and try again.",
+  "wiz_wiz_title": "Philips WiZ Wizard",
   "edt_dev_spec_convertToLinearRgb_title": "Convert to linear RGB",
   "edt_conf_smooth_antiFlickeringFilter_title": "Anti‑flicker filter",
   "edt_conf_smooth_antiFlickeringFilter_expl": "Enables an infinite color engine filter that reduces subtle LED flickering caused by 24‑bit RGB color quantization. Controllers that support extended color formats (deep color), such as Philips Hue (in Entertainment mode) or LIFX devices, do not need this filter at all.",
