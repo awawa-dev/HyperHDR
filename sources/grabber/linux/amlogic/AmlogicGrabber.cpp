@@ -45,9 +45,12 @@
 #include <base/AccessManager.h>
 
 #include <QDirIterator>
+#include <QFile>
 #include <QFileInfo>
+#include <numeric>
 #include <QCoreApplication>
 #include <QByteArray>
+
 
 #include <grabber/linux/amlogic/AmlogicGrabber.h>
 #include <image/MemoryBuffer.h>
@@ -96,6 +99,47 @@ void AmlogicGrabber::loadLutFile(PixelFormat color)
 
 void AmlogicGrabber::setHdrToneMappingEnabled(int mode)
 {
+}
+
+bool AmlogicGrabber::getAspectRatio(int& arW, int& arH)
+{
+	QFile fw("/sys/class/video/frame_width");
+    QFile fh("/sys/class/video/frame_height");
+    if (!fw.open(QIODevice::ReadOnly) || !fh.open(QIODevice::ReadOnly))
+    {
+        Debug(_log, "Cant open amlogic frame properties");
+        return false;
+    }
+
+    int w = fw.readAll().trimmed().toInt();
+    int h = fh.readAll().trimmed().toInt();
+
+	if (w <= 0 || h <= 0)
+	{
+		Debug(_log, "Invalid frame dimensions: {:d}x{:d}", w, h);
+		return false;
+	}
+
+    fw.close();
+    fh.close();
+
+    int g = std::gcd(w, h);
+
+    arW = w / g;
+    arH = h / g;
+    return true;
+}
+
+bool AmlogicGrabber::setCapturedHeight()
+{
+	int w, h;
+	if (getAspectRatio(w, h))
+	{
+		_height = (_width * h) / w;
+		return true;
+	}
+	else
+		return false;
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -305,6 +349,7 @@ void AmlogicGrabber::grabFrame()
 					{
 						Info(_log, "Grabbing Amlogic");
 						_messageShow = true;
+						setCapturedHeight();
 					}
 					grabFrameAmlogic();
 				}

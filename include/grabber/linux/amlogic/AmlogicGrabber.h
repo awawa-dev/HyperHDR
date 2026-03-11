@@ -80,6 +80,8 @@ private:
 	bool stopAmlogic();
 	bool grabFrameAmlogic();
 	bool grabFrameFramebuffer();
+	bool getAspectRatio(int& arW, int& arH);
+	bool setCapturedHeight();
 
 	MemoryBuffer<uint8_t> _amlFrame;
 	MemoryBuffer<uint8_t> _lastValidFrame;
