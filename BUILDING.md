@@ -158,6 +158,7 @@ BUILD_ARCHIVES - false|true, cpack will build ZIP package
 USE_STANDARD_INSTALLER_NAME - false|true, use standard Linux package naming
 USE_CCACHE - false|true, use ccache if available
 RESET_CACHE - false|true, reset ccache storage
+INCLUDE_DEP_LIB - false|true, bundle dependency libs into the Linux installer
 
 Example of usage:
 PLATFORM=rpi DISTRO_NAME=debian DISTRO_VERSION=bullseye ARCHITECTURE=arm64 ./build.sh
@@ -224,3 +225,4 @@ Use -D prefix when configuring the build.
     * USE_SYSTEM_STB_LIBS = ON | OFF, prefer system stb libs
     * USE_STATIC_QT_PLUGINS = ON | OFF, embed static QT-plugins into the app
     * USE_STANDARD_INSTALLER_NAME = ON | OFF, use standard Linux package naming
+    * ENABLE_DEPENDENCY_PACKAGING = ON | OFF, bundle dependency libs into the Linux installer

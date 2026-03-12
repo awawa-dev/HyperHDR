@@ -2,7 +2,7 @@
 Name=HyperHDR
 GenericName=HyperHDR Ambient Lighting
 Comment=Real-time ambient lighting system for TVs, monitors and LEDs
-Icon=/usr/share/pixmaps/hyperhdr/hyperhdr_128.png
+Icon=hyperhdr
 Terminal=false
 TryExec=hyperhdr
 Exec=hyperhdr

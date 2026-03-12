@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -62,7 +62,11 @@ FileServer::FileServer():
 #if defined(USE_EMBEDDED_WEB_RESOURCES)
 	Q_INIT_RESOURCE(web_resources);
 #else
-	_resourcePath = QDir(qApp->applicationDirPath()).filePath("../lib/web_resources.rcc");
+	#ifdef WEB_RESOURCES_FOLDER
+		_resourcePath = QDir(QCoreApplication::applicationDirPath()).filePath(QString(WEB_RESOURCES_FOLDER) + "/web_resources.rcc");
+	#else
+		_resourcePath = QDir(qApp->applicationDirPath()).filePath("../lib/web_resources.rcc");
+	#endif
 	if (!QResource::registerResource(_resourcePath))
 	{		
 		Error(_log, "Could not initialize web server resources: {:s}", (_resourcePath));

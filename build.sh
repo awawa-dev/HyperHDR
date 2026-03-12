@@ -34,6 +34,7 @@ print_manual()
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
 	printf "\n${CyanColor}BUILD_TYPE${ColorReset} - Release|Debug, default is Release version"
 	printf "\n${CyanColor}BUILD_ARCHIVES${ColorReset} - false|true, cpack will build ZIP package"
+	printf "\n${CyanColor}INCLUDE_DEP_LIB${ColorReset} - false|true, include dependent libraries in the installer"
 	printf "\n${CyanColor}USE_STANDARD_INSTALLER_NAME${ColorReset} - false|true, use standard Linux package naming"
 	printf "\n${CyanColor}USE_CCACHE${ColorReset} - false|true, use ccache if available"
 	printf "\n${CyanColor}RESET_CACHE${ColorReset} - false|true, reset ccache storage"
@@ -74,6 +75,7 @@ fi
 [ -z "${USE_CCACHE}" ] && USE_CCACHE=true
 [ -z "${RESET_CACHE}" ] && RESET_CACHE=false
 [ -z "${BUILD_ARCHIVES}" ] && BUILD_ARCHIVES=true
+[ -z "${INCLUDE_DEP_LIB}" ] && INCLUDE_DEP_LIB=true
 
 
 printf "\n${GreenColor}PLATFORM${ColorReset}       = ${YellowColor}${PLATFORM}${ColorReset}"
@@ -84,6 +86,7 @@ printf "\n${GreenColor}BUILD_TYPE${ColorReset}     = ${YellowColor}${BUILD_TYPE}
 printf "\n${GreenColor}BUILD_ARCHIVES${ColorReset} = ${YellowColor}${BUILD_ARCHIVES}${ColorReset}"
 printf "\n${GreenColor}USE_CCACHE${ColorReset}     = ${YellowColor}${USE_CCACHE}${ColorReset}"
 printf "\n${GreenColor}RESET_CACHE${ColorReset}    = ${YellowColor}${RESET_CACHE}${ColorReset}"
+printf "\n${GreenColor}INCLUDE_DEP_LIB{ColorReset} = ${YellowColor}${INCLUDE_DEP_LIB}${ColorReset}"
 printf "\n${GreenColor}USE_STANDARD_INSTALLER_NAME${ColorReset} = ${YellowColor}${USE_STANDARD_INSTALLER_NAME}${ColorReset}"
 printf "\n\n"
 
@@ -101,6 +104,14 @@ if [ ${USE_STANDARD_INSTALLER_NAME} = true ]; then
 else
 	echo "Do not use standard naming"
 	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DUSE_STANDARD_INSTALLER_NAME=OFF"
+fi
+
+if [ ${INCLUDE_DEP_LIB} = true ]; then
+	echo "Include dependent libraries in the installer"
+	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DENABLE_DEPENDENCY_PACKAGING=ON"
+else
+	echo "Do not include dependent libraries in the installer"
+	ARCHIVE_OPTION=" ${ARCHIVE_OPTION} -DENABLE_DEPENDENCY_PACKAGING=OFF"
 fi
 
 echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker: ${ARCHITECTURE}/${DISTRO_NAME}:${DISTRO_VERSION}, archive options: ${ARCHIVE_OPTION}, use ccache: ${USE_CCACHE}, reset ccache: ${RESET_CACHE}"
@@ -207,7 +218,15 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		chmod -R a+rw ${CI_BUILD_DIR}/deploy
 		versionFile=`cat version`
 		executeCommand="echo \"GLIBC version: \$(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)$/\1/')\""
-		executeCommand=${executeCommand}" && sed -i \"s/{GLIBC_VERSION}/\$(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)$/\1/')/\" PKGBUILD && makepkg"
+		executeCommand=${executeCommand}" && sed -i \"s/{GLIBC_VERSION}/\$(ldd --version | head -1 | sed 's/[^0-9]*\([.0-9]*\)$/\1/')/\" PKGBUILD"
+
+		if [ ${INCLUDE_DEP_LIB} = true ]; then
+			executeCommand=${executeCommand}" && makepkg"
+		else
+			executeCommand=${executeCommand}" && sed -i 's|) #<depends>| alsa-lib libftdi gtk3 hicolor-icon-theme libayatana-appindicator libjpeg-turbo libusb libx11 libglvnd mesa openssl pipewire qt6-base qt6-serialport systemd-libs wayland xz zstd)|' PKGBUILD"
+			executeCommand=${executeCommand}" && makepkg -d"
+		fi
+
 		echo ${executeCommand}
 		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
 		sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD

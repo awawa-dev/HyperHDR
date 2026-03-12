@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $1 -eq 0 ]; then
+    echo "Preparing to uninstall HyperHDR"
+    FOUND_USR=$(who | grep -o -m1 '^\w*\b' || echo "root")
+    HYPERHDR_RUNNING=false
+    pgrep hyperhdr > /dev/null 2>&1 && HYPERHDR_RUNNING=true
+
+    if grep -m1 systemd /proc/1/comm > /dev/null; then
+        $HYPERHDR_RUNNING && systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
+        systemctl -q disable hyperhdr"@${FOUND_USR}" 2>/dev/null
+        systemctl daemon-reload
+    fi
+    killall hyperhdr 2> /dev/null
+fi
+exit 0

@@ -110,7 +110,13 @@ QCoreApplication* createApplication(bool& isGuiApp, int& argc, char* argv[])
 	QCoreApplication* app = new QCoreApplication(argc, argv);
 	QCoreApplication::setApplicationName("HyperHDR");
 	QCoreApplication::setApplicationVersion(HYPERHDR_VERSION);
-	// add optional library path
+
+	// add optional library path	
+	#ifdef PORTABLE_LIB_FOLDER
+		const QString base = QDir(QCoreApplication::applicationDirPath()).filePath(PORTABLE_LIB_FOLDER) + "/external";
+		for (const auto& p : { base, base + "/plugins" })
+			if (QDir(p).exists()) QCoreApplication::addLibraryPath(p);
+	#endif
 	QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/../lib");
 
 	return app;

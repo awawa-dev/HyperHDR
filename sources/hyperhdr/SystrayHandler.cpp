@@ -193,7 +193,7 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, [[mayb
 		destFilename.replace(".svg", ".png");
 	}
 
-	QString fullPath = rootFolder + "/icons/" + destFilename;
+	QString fullPath = rootFolder + "/systray-icons/" + destFilename;
 	QFileInfo iconFile(fullPath);
 
 	if (!iconFile.exists())
@@ -201,7 +201,17 @@ static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, [[mayb
 		QDir().mkpath(iconFile.absolutePath());
 
 		std::vector<uint8_t> ar;
-		utils_image::svg2png(preloadSvg(filename).toStdString(), iconDim, iconDim, ar);
+
+		QString svgData = preloadSvg(filename);
+
+		if (filename.contains("clear.svg", Qt::CaseInsensitive)) {			
+			svgData.replace("fill=\"black\"", QString("fill=\"#FFFF00\""));
+		}
+		else if (filename.contains("settings.svg", Qt::CaseInsensitive)) {
+			svgData.replace("fill=\"black\"", QString("fill=\"#00FF00\""));
+		}
+
+		utils_image::svg2png(svgData.toStdString(), iconDim, iconDim, ar);
 
 		QFile newIcon(fullPath);
 		newIcon.open(QIODevice::WriteOnly);
