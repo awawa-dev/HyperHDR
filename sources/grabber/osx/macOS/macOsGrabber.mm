@@ -304,6 +304,7 @@ void macOsGrabber::grabFrame()
 				streamConfig.width = displayBounds.size.width * scaleAspect;
 				streamConfig.height = displayBounds.size.height * scaleAspect;
 				streamConfig.sourceRect = displayBounds;
+				streamConfig.sourceRect = CGRectMake(0, 0, displayBounds.size.width, displayBounds.size.height);
 				streamConfig.captureResolution = SCCaptureResolutionBest;
 				streamConfig.scalesToFit = false;
 				streamConfig.queueDepth = 1;
@@ -319,6 +320,11 @@ void macOsGrabber::grabFrame()
 							decodeFrame(capturedImage);
 
 							CGImageRelease(capturedImage);
+						}
+						else if (error)
+						{
+							QString errorMessage = QString::fromNSString([error localizedDescription]);
+							Error(_log, "captureImageWithFilter Error: {:s}", errorMessage);
 						}
 					}
 				];
