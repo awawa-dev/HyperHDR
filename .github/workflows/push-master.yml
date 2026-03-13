@@ -2,7 +2,6 @@ name: HyperHDR CI Build
 
 on:
   push:
-  pull_request:
 
 env:
     USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
@@ -238,19 +237,91 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      - name: Upload unsigned artifacts
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: unsigned-windows-installer
+          path: build/Hyper*
+          retention-days: 1
+
+################################
+###### Sign Windows ############
+################################
+
+  sign-windows:
+    name: Sign Windows Installer
+    needs: [windows]
+    runs-on: ubuntu-24.04
+    env:
+      USE_SIGNPATH: ${{ vars.USE_SIGNPATH || 'false' }}
+    steps:
+      - name: Download unsigned artifact
+        uses: actions/download-artifact@v8.0.0
+        with:
+          name: unsigned-windows-installer
+          path: to_sign
+
+      - name: Check SignPath Secrets
+        if: env.USE_SIGNPATH == 'true' && github.event_name != 'pull_request'
+        env:
+          SIGNPATH_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+        run: |
+          if [ -z "$SIGNPATH_TOKEN" ] || [ -z "$SIGNPATH_ORGANIZATION_ID" ]; then
+            echo "USE_SIGNPATH=false" >> $GITHUB_ENV
+            echo "SignPath secrets not found. Skipping signing process."
+          fi
+
+      - name: Upload unsigned ZIP to GitHub (SignPath V2 requirement)
+        if: ${{ env.USE_SIGNPATH == 'true' }}
+        id: upload-unsigned-artifact
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: signpath_upload
+          path: to_sign/
+          retention-days: 1
+
+      - name: Sign artifact with SignPath
+        if: env.USE_SIGNPATH == 'true'
+        id: signpath_step
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: 'hyperhdr'
+          signing-policy-slug: ${{ startsWith(github.ref, 'refs/tags/') && 'release-signing' || 'test-signing' }}
+          github-artifact-id: ${{ steps.upload-unsigned-artifact.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed_artifact
+
+      - name: Check SignPath result & fail if needed
+        if: always() && env.USE_SIGNPATH == 'true'
+        run: |
+          if [ "${{ steps.signpath_step.outcome }}" != "success" ]; then
+            echo "::error::SignPath action failed technically (check logs for timeout/network issues)."
+            exit 1
+          fi
+          
+          if [ ! -d "signed_artifact" ] || [ -z "$(ls -A signed_artifact 2>/dev/null)" ]; then
+            echo "::error::SignPath reported success, but NO signed artifacts were downloaded!"
+            echo "This usually means the signing request was REJECTED or failed silently."
+            exit 1
+          fi          
+          echo "Signing successful. Artifacts found in 'signed_artifact'."
+          
       - name: Upload artifacts (release)
         if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7.0.0
         with:
           name: release-artifact-windows
-          path: build/Hyper*
+          path: ${{ env.USE_SIGNPATH == 'true' && 'signed_artifact' || 'to_sign' }}/Hyper*.exe
           
       - name: Upload artifacts from commit
         if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: Windows_x64_setup
-          path: build/Hyper*.exe
+          name: Windows_x64_setup_${{ env.USE_SIGNPATH == 'true' && 'signed' || 'unsigned' }}
+          path: ${{ env.USE_SIGNPATH == 'true' && 'signed_artifact' || 'to_sign' }}/Hyper*.exe
 
 ################################
 ####### CodeQL support #########
@@ -360,7 +431,7 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
-    needs: [Linux, windows, macOS]
+    needs: [Linux, sign-windows, macOS]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
