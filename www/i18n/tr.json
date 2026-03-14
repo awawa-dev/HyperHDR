@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "Hyperk'i seçin",
   "hyperkBrightnessOverride": "Hyperk parlaklığını geçersiz kıl",
   "hyperkCustomBrightnessLevel": "Özel Hyperk parlaklık seviyesi",
-  "about_hyperk": "HyperHDR'ın resmi WiFi sürücüsü olan Hyperk hakkında daha fazla bilgi edinin: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br><b>ESP8266, ESP32 ailesi (S2/S3/C2/C3/C5/C6 dahil) ve Raspberry Pi Pico (RP2040/RP2350)</b> için hafif, kablosuz ve yüksek performanslı LED kontrolcü. Mevcut ev otomasyon sistemleri için hazır destek sunan, WiFi üzerinden LED şeritleri sürmek için hızlı ve çok mimarili bir alternatif."
+  "about_hyperk": "HyperHDR'ın resmi WiFi sürücüsü olan Hyperk hakkında daha fazla bilgi edinin: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br><b>ESP8266, ESP32 ailesi (S2/S3/C2/C3/C5/C6 dahil) ve Raspberry Pi Pico (RP2040/RP2350)</b> için hafif, kablosuz ve yüksek performanslı LED kontrolcü. Mevcut ev otomasyon sistemleri için hazır destek sunan, WiFi üzerinden LED şeritleri sürmek için hızlı ve çok mimarili bir alternatif.",
+  "edt_enable_ice_rgbw": "Infinite Color Engine RGBW özelliğini etkinleştir (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>bilgi</a>)",
+  "edt_ice_white_mixer_threshold": "ICE beyaz karıştırıcı eşiği",
+  "edt_ice_white_led_intensity": "ICE beyaz LED yoğunluğu",
+  "edt_ice_white_temperatur_r": "ICE beyaz sıcaklığı – kırmızı",
+  "edt_ice_white_temperatur_g": "ICE beyaz sıcaklığı – yeşil",
+  "edt_ice_white_temperatur_b": "ICE beyaz sıcaklığı – mavi"
 }

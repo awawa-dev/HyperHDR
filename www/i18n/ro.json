@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "Selectați Hyperk",
   "hyperkBrightnessOverride": "Ignorați luminozitatea Hyperk",
   "hyperkCustomBrightnessLevel": "Nivel de luminozitate Hyperk personalizat",
-  "about_hyperk": "Află mai multe despre Hyperk, driverul WiFi oficial pentru HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Un controller LED wireless, performant și compact pentru <b>familia ESP8266, ESP32 (inclusiv S2/S3/C2/C3/C5/C6) și Raspberry Pi Pico (RP2040/RP2350)</b>. O alternativă rapidă și multi-arhitectură pentru controlul benzilor LED prin WiFi, cu suport nativ pentru sistemele de automatizare a locuinței existente."
+  "about_hyperk": "Află mai multe despre Hyperk, driverul WiFi oficial pentru HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Un controller LED wireless, performant și compact pentru <b>familia ESP8266, ESP32 (inclusiv S2/S3/C2/C3/C5/C6) și Raspberry Pi Pico (RP2040/RP2350)</b>. O alternativă rapidă și multi-arhitectură pentru controlul benzilor LED prin WiFi, cu suport nativ pentru sistemele de automatizare a locuinței existente.",
+  "edt_enable_ice_rgbw": "Activează Infinite Color Engine RGBW (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>info</a>)",
+  "edt_ice_white_mixer_threshold": "Prag mixer alb ICE",
+  "edt_ice_white_led_intensity": "Intensitate LED alb ICE",
+  "edt_ice_white_temperatur_r": "Temperatură alb ICE – roșu",
+  "edt_ice_white_temperatur_g": "Temperatură alb ICE – verde",
+  "edt_ice_white_temperatur_b": "Temperatură alb ICE – albastru"
 }

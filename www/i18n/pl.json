@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "Wybierz Hyperk",
   "hyperkBrightnessOverride": "Zastąp jasność Hyperk",
   "hyperkCustomBrightnessLevel": "Niestandardowy poziom jasności Hyperk",
-  "about_hyperk": "Dowiedz się więcej o Hyperk – oficjalnym sterowniku WiFi dla HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Lekki, wydajny i bezprzewodowy kontroler LED dla <b>rodziny ESP8266, ESP32 (w tym S2/S3/C2/C3/C5/C6) oraz Raspberry Pi Pico (RP2040/RP2350)</b>. Szybka, wieloarchitekturowa alternatywa do sterowania paskami LED przez WiFi z gotowym wsparciem dla istniejących systemów automatyki domowej."
+  "about_hyperk": "Dowiedz się więcej o Hyperk – oficjalnym sterowniku WiFi dla HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Lekki, wydajny i bezprzewodowy kontroler LED dla <b>rodziny ESP8266, ESP32 (w tym S2/S3/C2/C3/C5/C6) oraz Raspberry Pi Pico (RP2040/RP2350)</b>. Szybka, wieloarchitekturowa alternatywa do sterowania paskami LED przez WiFi z gotowym wsparciem dla istniejących systemów automatyki domowej.",
+  "edt_enable_ice_rgbw": "Włącz RGBW Infinite Color Engine (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>info</a>)",
+  "edt_ice_white_mixer_threshold": "Próg miksera bieli ICE",
+  "edt_ice_white_led_intensity": "Intensywność białej diody ICE",
+  "edt_ice_white_temperatur_r": "Temperatura bieli ICE – czerwony",
+  "edt_ice_white_temperatur_g": "Temperatura bieli ICE – zielony",
+  "edt_ice_white_temperatur_b": "Temperatura bieli ICE – niebieski"
 }

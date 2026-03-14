@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "Выберите Hyperk",
   "hyperkBrightnessOverride": "Переопределить яркость Hyperk",
   "hyperkCustomBrightnessLevel": "Пользовательский уровень яркости Hyperk",
-  "about_hyperk": "Узнайте больше о Hyperk — официальном WiFi-драйвере для HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Легкий беспроводной высокопроизводительный LED-контроллер для <b>семейства ESP8266, ESP32 (включая S2/S3/C2/C3/C5/C6) и Raspberry Pi Pico (RP2040/RP2350)</b>. Быстрая мультиархитектурная альтернатива для управления LED-лентами по WiFi с готовой поддержкой существующих систем умного дома."
+  "about_hyperk": "Узнайте больше о Hyperk — официальном WiFi-драйвере для HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Легкий беспроводной высокопроизводительный LED-контроллер для <b>семейства ESP8266, ESP32 (включая S2/S3/C2/C3/C5/C6) и Raspberry Pi Pico (RP2040/RP2350)</b>. Быстрая мультиархитектурная альтернатива для управления LED-лентами по WiFi с готовой поддержкой существующих систем умного дома.",
+  "edt_enable_ice_rgbw": "Включить Infinite Color Engine RGBW (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>info</a>)",
+  "edt_ice_white_mixer_threshold": "Порог микшера белого ICE",
+  "edt_ice_white_led_intensity": "Интенсивность белого светодиода ICE",
+  "edt_ice_white_temperatur_r": "Цветовая температура ICE – красный",
+  "edt_ice_white_temperatur_g": "Цветовая температура ICE – зеленый",
+  "edt_ice_white_temperatur_b": "Цветовая температура ICE – синий"
 }

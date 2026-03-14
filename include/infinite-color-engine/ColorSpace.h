@@ -287,6 +287,15 @@ namespace ColorSpaceMath
 	concept ByteOrInt3 =
 		std::same_as<V, byte3> || std::same_as<V, int3>;
 
+
+	template<typename V>
+	concept FloatOrDouble4 =
+		std::same_as<V, float4> || std::same_as<V, double4>;
+
+	template<typename V>
+	concept ByteOrInt4 =
+		std::same_as<V, byte4> || std::same_as<V, int4>;
+
 	template<ByteOrInt3 OutVec, FloatOrDouble3 V>
 	constexpr OutVec round_to_0_255(const V& v)
 	{
@@ -297,6 +306,20 @@ namespace ColorSpaceMath
 			static_cast<TypeOut>(std::lround(std::clamp(v.x, TypeIn(0), TypeIn(255)))),
 			static_cast<TypeOut>(std::lround(std::clamp(v.y, TypeIn(0), TypeIn(255)))),
 			static_cast<TypeOut>(std::lround(std::clamp(v.z, TypeIn(0), TypeIn(255))))
+		};
+	}
+
+	template<ByteOrInt4 OutVec, FloatOrDouble4 V>
+	constexpr OutVec round_to_0_255(const V& v)
+	{
+		using TypeIn = decltype(v.x);
+		using TypeOut = decltype(OutVec::x);
+
+		return OutVec{
+			static_cast<TypeOut>(std::lround(std::clamp(v.x, TypeIn(0), TypeIn(255)))),
+			static_cast<TypeOut>(std::lround(std::clamp(v.y, TypeIn(0), TypeIn(255)))),
+			static_cast<TypeOut>(std::lround(std::clamp(v.z, TypeIn(0), TypeIn(255)))),
+			static_cast<TypeOut>(std::lround(std::clamp(v.w, TypeIn(0), TypeIn(255))))
 		};
 	}
 

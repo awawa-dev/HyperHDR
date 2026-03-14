@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "选择 Hyperk",
   "hyperkBrightnessOverride": "覆盖 Hyperk 亮度",
   "hyperkCustomBrightnessLevel": "自定义 Hyperk 亮度级别",
-  "about_hyperk": "了解更多关于 Hyperk — HyperHDR 官方 WiFi 驱动程序的信息：<a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>一款适用于 <b>ESP8266、ESP32 系列（包括 S2/S3/C2/C3/C5/C6）及 Raspberry Pi Pico (RP2040/RP2350)</b> 的轻量化、高性能无线 LED 控制器。这是一款快速、多架构的替代方案，支持通过 WiFi 控制 LED 灯带，并对现有的家庭自动化系统提供开箱即用的支持。"
+  "about_hyperk": "了解更多关于 Hyperk — HyperHDR 官方 WiFi 驱动程序的信息：<a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>一款适用于 <b>ESP8266、ESP32 系列（包括 S2/S3/C2/C3/C5/C6）及 Raspberry Pi Pico (RP2040/RP2350)</b> 的轻量化、高性能无线 LED 控制器。这是一款快速、多架构的替代方案，支持通过 WiFi 控制 LED 灯带，并对现有的家庭自动化系统提供开箱即用的支持。",
+  "edt_enable_ice_rgbw": "启用 Infinite Color Engine RGBW (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>信息</a>)",
+  "edt_ice_white_mixer_threshold": "ICE 白光混色阈值",
+  "edt_ice_white_led_intensity": "ICE 白光 LED 亮度",
+  "edt_ice_white_temperatur_r": "ICE 白光色温 - 红",
+  "edt_ice_white_temperatur_g": "ICE 白光色温 - 绿",
+  "edt_ice_white_temperatur_b": "ICE 白光色温 - 蓝"
 }
