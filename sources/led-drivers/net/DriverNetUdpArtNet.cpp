@@ -53,6 +53,7 @@ DriverNetUdpArtNet::DriverNetUdpArtNet(const QJsonObject& deviceConfig)
 	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
 	, _ice_white_mixer_threshold(0.02f)
 	, _ice_white_led_intensity(1.8f)
+	, _ice_smooth_fade(true)
 {
 	artnet_packet = std::make_unique<artnet_packet_t>();
 }
@@ -76,8 +77,9 @@ bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
 		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
 		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
-		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
-			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
+		_ice_smooth_fade = deviceConfig["ice_white_smooth_fade"].toBool(true);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}, smooth fade: {:s}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity, ((_ice_smooth_fade) ? "enabled" : "disabled"));
 
 		isInitOK = true;
 	}
@@ -154,7 +156,7 @@ std::pair<bool, int> DriverNetUdpArtNet::writeInfiniteColors(SharedOutputColors 
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, true);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_smooth_fade, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, true);
 
 	int channelsPerFixture = (std::max)(4, _artnet_channelsPerFixture);
 	int totalBytesWritten = 0;

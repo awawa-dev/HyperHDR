@@ -24,6 +24,7 @@ private:
 	linalg::aliases::float3 _ice_white_temperatur;
 	float _ice_white_mixer_threshold;
 	float _ice_white_led_intensity;
+	bool _ice_smooth_fade;
 
 	bool _isRgbw;
 	RGBW::WhiteAlgorithm _whiteAlgorithm;

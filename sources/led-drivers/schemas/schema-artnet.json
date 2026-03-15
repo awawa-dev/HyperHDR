@@ -121,7 +121,20 @@
 				}
 			},
 			"propertyOrder" : 11
-		}	
+		},	
+		"ice_white_smooth_fade": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_ice_white_smooth_fade",
+			"required" : true,
+			"default": true,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 12
+		}			
 	},
 	"additionalProperties": true
 }

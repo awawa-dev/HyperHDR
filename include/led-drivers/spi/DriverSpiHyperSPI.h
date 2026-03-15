@@ -27,6 +27,7 @@ private:
 	linalg::aliases::float3 _ice_white_temperatur;
 	float _ice_white_mixer_threshold;
 	float _ice_white_led_intensity;
+	bool _ice_smooth_fade;
 
 	bool _white_channel_calibration;
 	uint8_t _white_channel_limit;

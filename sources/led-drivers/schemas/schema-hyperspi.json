@@ -105,6 +105,19 @@
 			},
 			"propertyOrder" : 8
 		},
+		"ice_white_smooth_fade": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_ice_white_smooth_fade",
+			"required" : true,
+			"default": true,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 9
+		},		
 		"white_channel_calibration": {
 			"type": "boolean",
 			"format": "checkbox",

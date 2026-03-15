@@ -37,6 +37,7 @@ DriverRpiPio::DriverRpiPio(const QJsonObject& deviceConfig)
 	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
 	, _ice_white_mixer_threshold(0.02f)
 	, _ice_white_led_intensity(1.8f)
+	, _ice_smooth_fade(true)
 	, _isRgbw(false)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
 	, _white_channel_limit(255)
@@ -61,8 +62,9 @@ bool DriverRpiPio::init(QJsonObject deviceConfig)
 		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
 		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
 		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
-		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
-			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
+		_ice_smooth_fade = deviceConfig["ice_white_smooth_fade"].toBool(true);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}, smooth fade: {:s}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity, ((_ice_smooth_fade) ? "enabled" : "disabled"));
 
 		_output = deviceConfig["output"].toString("/dev/null");
 		_isRgbw = deviceConfig["rgbw"].toBool(false);
@@ -227,7 +229,7 @@ std::pair<bool, int> DriverRpiPio::writeInfiniteColors(SharedOutputColors nonlin
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, true);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_smooth_fade, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, true);
 
 	auto written = renderer.write(reinterpret_cast<const char*>(_ledBuffer.data()), _ledBuffer.size());
 	renderer.close();
