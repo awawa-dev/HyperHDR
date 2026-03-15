@@ -69,12 +69,14 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, floa
 	float4 target4;
 	if (whiteLedIntensity > denom)
 	{
-		const float common = linalg::minelem(rgbCalibrated);
-		const float w_mian = (1.0f - whiteMixerThreshold);
-		const float w_factor = (w_mian < denom) ? 0.0f : std::clamp((common - whiteMixerThreshold) / w_mian, 0.0f, 1.0f);
-		const float3 w_logic = common * whitePointRgb * w_factor;
-		const float3 rgbTarget = clamp(rgbCalibrated - w_logic * whiteLedIntensity, 0.0f, 1.0f);
-		target4 = float4(rgbTarget.x, rgbTarget.y, rgbTarget.z, (w_logic.x * 0.299f) + (w_logic.y * 0.587f) + (w_logic.z * 0.114f));
+		float common = linalg::minelem(rgbCalibrated * whitePointRgb);
+		float w_factor = std::clamp((common - whiteMixerThreshold) / (1.0f - whiteMixerThreshold), 0.0f, 1.0f);
+		float base_w_amount = common * w_factor;
+		float3 rgb_to_subtract = whitePointRgb * base_w_amount;
+		float3 rgbTarget = linalg::clamp(rgbCalibrated - rgb_to_subtract, 0.0f, 1.0f);
+		float w_output = base_w_amount / whiteLedIntensity;
+
+		target4 = float4(rgbTarget.x, rgbTarget.y, rgbTarget.z, w_output);
 	}
 	else {
 		target4 = float4(rgbCalibrated.x, rgbCalibrated.y, rgbCalibrated.z, 0);

@@ -125,7 +125,7 @@ int DriverNetDDP::writeFiniteColors(bool isRgbw, const int ledsNumber, const std
 {
 	static uint8_t sequenceNum = 0;
 
-	if (isRgbw && ledValues.size() == 0 && _rgbwBuffer.size() != ledsNumber) {
+	if (isRgbw && ledValues.size() == 0 && _rgbwBuffer.size() != ledsNumber * 4) {
 		Error(_log, "RGBW colors were not provided");
 		return 0;
 	}
