@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "Vyberte Hyperk",  
   "hyperkBrightnessOverride": "Přepsat jas Hyperk",
   "hyperkCustomBrightnessLevel": "Vlastní úroveň jasu Hyperk",
-  "about_hyperk": "Zjistěte více o Hyperk – oficiálním WiFi ovladači pro HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Lehký, bezdrátový a vysoce výkonný LED ovladač pro <b>rodinu ESP8266, ESP32 (včetně S2/S3/C2/C3/C5/C6) a Raspberry Pi Pico (RP2040/RP2350)</b>. Rychlá, vícearchitekturová alternativa pro ovládání LED pásků přes WiFi s přímou podporou pro stávající systémy domácí automatizace."
+  "about_hyperk": "Zjistěte více o Hyperk – oficiálním WiFi ovladači pro HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Lehký, bezdrátový a vysoce výkonný LED ovladač pro <b>rodinu ESP8266, ESP32 (včetně S2/S3/C2/C3/C5/C6) a Raspberry Pi Pico (RP2040/RP2350)</b>. Rychlá, vícearchitekturová alternativa pro ovládání LED pásků přes WiFi s přímou podporou pro stávající systémy domácí automatizace.",
+  "edt_enable_ice_rgbw": "Aktivovat Infinite Color Engine RGBW (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>info</a>)",
+  "edt_ice_white_mixer_threshold": "ICE práh mixování bílé",
+  "edt_ice_white_led_intensity": "ICE intenzita bílé LED",
+  "edt_ice_white_temperatur_r": "ICE teplota bílé – červená",
+  "edt_ice_white_temperatur_g": "ICE teplota bílé – zelená",
+  "edt_ice_white_temperatur_b": "ICE teplota bílé – modrá"  
 }

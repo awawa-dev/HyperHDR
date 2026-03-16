@@ -1305,5 +1305,11 @@
   "select_hyperk_intro": "Chọn Hyperk",
   "hyperkBrightnessOverride": "Ghi đè độ sáng Hyperk",
   "hyperkCustomBrightnessLevel": "Mức độ sáng Hyperk tùy chỉnh",
-  "about_hyperk": "Tìm hiểu thêm về Hyperk, trình điều khiển WiFi chính thức của HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Bộ điều khiển LED không dây nhẹ, hiệu suất cao dành cho <b>dòng ESP8266, ESP32 (bao gồm S2/S3/C2/C3/C5/C6) và Raspberry Pi Pico (RP2040/RP2350)</b>. Giải pháp thay thế nhanh, đa kiến trúc để điều khiển dải LED qua WiFi với hỗ trợ sẵn có cho các hệ thống tự động hóa gia đình hiện nay."
+  "about_hyperk": "Tìm hiểu thêm về Hyperk, trình điều khiển WiFi chính thức của HyperHDR: <a href='https://github.com/awawa-dev/Hyperk'>https://github.com/awawa-dev/Hyperk</a><br><br>Bộ điều khiển LED không dây nhẹ, hiệu suất cao dành cho <b>dòng ESP8266, ESP32 (bao gồm S2/S3/C2/C3/C5/C6) và Raspberry Pi Pico (RP2040/RP2350)</b>. Giải pháp thay thế nhanh, đa kiến trúc để điều khiển dải LED qua WiFi với hỗ trợ sẵn có cho các hệ thống tự động hóa gia đình hiện nay.",
+  "edt_enable_ice_rgbw": "Kích hoạt Infinite Color Engine RGBW (<a href='https://github.com/awawa-dev/HyperHDR/wiki/ICE_RGBW' style='color:red'>thông tin</a>)",
+  "edt_ice_white_mixer_threshold": "Ngưỡng bộ trộn màu trắng ICE",
+  "edt_ice_white_led_intensity": "Cường độ LED trắng ICE",
+  "edt_ice_white_temperatur_r": "Nhiệt độ màu trắng ICE – đỏ",
+  "edt_ice_white_temperatur_g": "Nhiệt độ màu trắng ICE – xanh lá",
+  "edt_ice_white_temperatur_b": "Nhiệt độ màu trắng ICE – xanh dương"
 }
