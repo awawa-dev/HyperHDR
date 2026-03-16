@@ -45,7 +45,14 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 	if (states.size() != ledCount)
 	{
 		states.clear();
-		states.resize(ledCount, float4{ 0.0f});
+		states.reserve(ledCount);
+
+		for (const auto& color : infiniteColors)
+		{
+			LEDState state{};
+			state.last_input = color;
+			states.emplace_back(state);
+		}
 	}
 
 	auto wanted = writeIndex + ledCount * sizeof(byte4);
@@ -63,8 +70,23 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 	}
 }
 
-byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, float4& oldRgbCalibrated, const float& whiteMixerThreshold, const float& whiteLedIntensity, const float3& whitePointRgb, bool rgbOrder)
+byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float& whiteMixerThreshold, const float& whiteLedIntensity, const float3& whitePointRgb, bool rgbOrder)
 {
+	if (state.last_input == rgbCalibrated) {
+		return state.last_sent_bytes;
+	}
+
+	float max_in = linalg::maxelem(rgbCalibrated);
+	if (max_in < 1e-5f) {
+		state.last_sent_bytes = { 0, 0, 0, 0 };
+		state.error = { 0.0f, 0.0f, 0.0f, 0.0f };
+		state.last_input = rgbCalibrated;
+		state.last_output = { 0.0f, 0.0f, 0.0f, 0.0f };
+		return state.last_sent_bytes;
+	}
+
+	state.last_input = rgbCalibrated;
+
 	constexpr float denom = 0.00001f;
 	float4 target4;
 	if (whiteLedIntensity > denom)
@@ -82,17 +104,30 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, floa
 		target4 = float4(rgbCalibrated.x, rgbCalibrated.y, rgbCalibrated.z, 0);
 	}
 
-	if (linalg::maxelem(linalg::abs(target4 - oldRgbCalibrated) * 255.0f) > 0.49f)
-	{
-		oldRgbCalibrated = target4;
+	float4 current_target = linalg::clamp(target4 + state.error, 0.0f, 1.0f);
+	float4 potential_float = linalg::round(current_target * 255.0f) / 255.0f;
+	float4 diff = linalg::abs(potential_float - state.last_output) * 255.0f;
+
+	if (linalg::maxelem(diff) > 0.49f) {
+		state.last_output = potential_float;
 	}
 
-	auto finalColor = ColorSpaceMath::round_to_0_255<linalg::aliases::byte4>(oldRgbCalibrated * 255.0f);
+	int4 final_out = static_cast<int4>(linalg::round(state.last_output * 255.0f));
+	final_out = linalg::clamp(final_out, int4(0), int4(255));
 
-	return (rgbOrder) ? static_cast<byte4>(finalColor) : byte4(
-		static_cast<uint8_t>(finalColor.y), // G
-		static_cast<uint8_t>(finalColor.x), // R
-		static_cast<uint8_t>(finalColor.z), // B
-		static_cast<uint8_t>(finalColor.w)  // W
+	float delta_motion = linalg::length2(rgbCalibrated - state.last_input);
+	float leak = linalg::lerp(0.96f, 0.80f, std::clamp(delta_motion * 50.0f, 0.0f, 1.0f));
+
+	state.error = (current_target - state.last_output) * leak;
+
+
+	state.last_sent_bytes = (rgbOrder) ? static_cast<byte4>(final_out) : byte4(
+		static_cast<uint8_t>(final_out.y), // G
+		static_cast<uint8_t>(final_out.x), // R
+		static_cast<uint8_t>(final_out.z), // B
+		static_cast<uint8_t>(final_out.w)  // W
 	);
+
+
+	return state.last_sent_bytes;
 }
