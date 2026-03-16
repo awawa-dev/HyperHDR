@@ -83,9 +83,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 		state.last_input = rgbCalibrated;
 		state.last_output = { 0.0f, 0.0f, 0.0f, 0.0f };
 		return state.last_sent_bytes;
-	}
-
-	state.last_input = rgbCalibrated;
+	}	
 
 	constexpr float denom = 0.00001f;
 	float4 target4;
@@ -128,6 +126,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 		static_cast<uint8_t>(final_out.w)  // W
 	);
 
+	state.last_input = rgbCalibrated;
 
 	return state.last_sent_bytes;
 }
