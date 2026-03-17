@@ -10,7 +10,7 @@ class InfiniteColorEngineRgbw
 		linalg::aliases::float3 last_input = { 0.0f, 0.0f, 0.0f };
 		linalg::aliases::float4 last_output = { 0.0f, 0.0f, 0.0f, 0.0f };
 		linalg::aliases::byte4 last_sent_bytes = { 0, 0, 0, 0 };
-		int last_gb = 1;
+		bool initialized = false;
 	};
 
 public:

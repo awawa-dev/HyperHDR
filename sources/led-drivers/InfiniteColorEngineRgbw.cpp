@@ -51,6 +51,7 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 		{
 			LEDState state{};
 			state.last_input = color;
+			state.initialized = false;
 			states.emplace_back(state);
 		}
 	}
@@ -72,7 +73,7 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 
 byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float& whiteMixerThreshold, const float& whiteLedIntensity, const float3& whitePointRgb, bool rgbOrder)
 {
-	if (state.last_input == rgbCalibrated) {
+	if (state.last_input == rgbCalibrated && state.initialized) {
 		return state.last_sent_bytes;
 	}
 
@@ -82,6 +83,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 		state.error = { 0.0f, 0.0f, 0.0f, 0.0f };
 		state.last_input = rgbCalibrated;
 		state.last_output = { 0.0f, 0.0f, 0.0f, 0.0f };
+		state.initialized = true;
 		return state.last_sent_bytes;
 	}	
 
@@ -127,6 +129,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	);
 
 	state.last_input = rgbCalibrated;
+	state.initialized = true;
 
 	return state.last_sent_bytes;
 }
