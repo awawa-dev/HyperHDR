@@ -92,7 +92,8 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	if (whiteLedIntensity > denom)
 	{
 		float common = linalg::minelem(rgbCalibrated * whitePointRgb);
-		float w_factor = std::clamp((common - whiteMixerThreshold) / (1.0f - whiteMixerThreshold), 0.0f, 1.0f);
+		float w_mian = (1.0f - whiteMixerThreshold);
+		float w_factor = (w_mian > denom) ? std::clamp((common - whiteMixerThreshold) / w_mian, 0.0f, 1.0f) : 1.0f;
 		float base_w_amount = common * w_factor;
 		float3 rgb_to_subtract = whitePointRgb * base_w_amount;
 		float3 rgbTarget = linalg::clamp(rgbCalibrated - rgb_to_subtract, 0.0f, 1.0f);
