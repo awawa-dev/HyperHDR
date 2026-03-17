@@ -39,7 +39,6 @@ public:
 
 	std::vector<Led>& leds();
 	const std::vector<Led>& leds() const;
-	ColorOrder colorOrder = ColorOrder::ORDER_RGB;
 
 	bool hasDisabled = false;
 

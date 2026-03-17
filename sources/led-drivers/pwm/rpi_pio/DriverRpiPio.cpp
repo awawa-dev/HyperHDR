@@ -227,7 +227,7 @@ std::pair<bool, int> DriverRpiPio::writeInfiniteColors(SharedOutputColors nonlin
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, true);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
 
 	auto written = renderer.write(reinterpret_cast<const char*>(_ledBuffer.data()), _ledBuffer.size());
 	renderer.close();

@@ -141,8 +141,7 @@ void HyperHdrInstance::start()
 	connect(_muxer.get(), &Muxer::SignalPrioritiesChanged, this, &HyperHdrInstance::SignalPrioritiesChanged);
 	connect(_muxer.get(), &Muxer::SignalVisiblePriorityChanged, this, &HyperHdrInstance::SignalVisiblePriorityChanged);
 	connect(_muxer.get(), &Muxer::SignalVisibleComponentChanged, this, &HyperHdrInstance::SignalVisibleComponentChanged);
-	_infinite = std::make_unique<CoreInfiniteEngine>(this, _ledString.colorOrder);
-	Info(_log, "Led strip RGB order is: {:s}", (LedString::colorOrderToString(_ledString.colorOrder)));
+	_infinite = std::make_unique<CoreInfiniteEngine>(this);
 	_ledGridSize = LedString::getLedLayoutGridSize(getSetting(settings::type::LEDS).array());
 	_currentLedColors = QVector<ColorRgb>(_ledString.leds().size(), ColorRgb::BLACK);
 	
@@ -235,14 +234,6 @@ void HyperHdrInstance::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		// handle hwLedCount update
 		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(1), getLedCount());
-
-		// force ledString update, if device ByteOrder changed
-		if (_ledString.colorOrder != LedString::stringToColorOrder(dev["colorOrder"].toString("rgb")))
-		{
-			Info(_log, "New RGB order is: {:s}", (dev["colorOrder"].toString("rgb")));
-			_ledString = LedString::createLedString(getSetting(settings::type::LEDS).array(), LedString::createColorOrder(dev));
-			_imageProcessor->setLedString(_ledString);
-		}
 
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = _hwLedCount; // Inject led count info

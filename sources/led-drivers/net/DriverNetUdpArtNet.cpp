@@ -154,7 +154,7 @@ std::pair<bool, int> DriverNetUdpArtNet::writeInfiniteColors(SharedOutputColors 
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, true);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
 
 	int channelsPerFixture = (std::max)(4, _artnet_channelsPerFixture);
 	int totalBytesWritten = 0;

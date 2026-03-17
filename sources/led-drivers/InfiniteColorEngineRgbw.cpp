@@ -38,7 +38,7 @@
 using namespace linalg::aliases;
 
 void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infiniteColors, const float& whiteMixerThreshold, const float& whiteLedIntensity, const float3& whitePointRgb,
-											std::vector<uint8_t>& output, size_t writeIndex, bool rgbOrder)
+											std::vector<uint8_t>& output, size_t writeIndex, LedString::ColorOrder colorOrder)
 {
 	const size_t ledCount = infiniteColors.size();
 
@@ -65,13 +65,13 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 
 	for (; colorIt != infiniteColors.cend(); ++colorIt, ++stateIt)
 	{
-		byte4 led = encodeRgbwFrame(*colorIt, *stateIt, whiteMixerThreshold, whiteLedIntensity, whitePointRgb, rgbOrder);
+		byte4 led = encodeRgbwFrame(*colorIt, *stateIt, whiteMixerThreshold, whiteLedIntensity, whitePointRgb, colorOrder);
 		std::memcpy(output.data() + writeIndex, &led, sizeof(led));
 		writeIndex += sizeof(led);
 	}
 }
 
-byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float& whiteMixerThreshold, const float& whiteLedIntensity, const float3& whitePointRgb, bool rgbOrder)
+byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float& whiteMixerThreshold, const float& whiteLedIntensity, const float3& whitePointRgb, LedString::ColorOrder colorOrder)
 {
 	if (state.last_input == rgbCalibrated && state.initialized) {
 		return state.last_sent_bytes;
@@ -121,13 +121,26 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 
 	state.error = (current_target - state.last_output) * leak;
 
-
-	state.last_sent_bytes = (rgbOrder) ? static_cast<byte4>(final_out) : byte4(
-		static_cast<uint8_t>(final_out.y), // G
-		static_cast<uint8_t>(final_out.x), // R
-		static_cast<uint8_t>(final_out.z), // B
-		static_cast<uint8_t>(final_out.w)  // W
-	);
+	switch (const auto base = static_cast<byte4>(final_out);  colorOrder)
+	{
+		case LedString::ColorOrder::ORDER_BGR:
+			state.last_sent_bytes = { base.z, base.y, base.x, base.w };
+			break;
+		case LedString::ColorOrder::ORDER_RBG:
+			state.last_sent_bytes = { base.x, base.z, base.y, base.w };
+			break;
+		case LedString::ColorOrder::ORDER_GRB:
+			state.last_sent_bytes = { base.y, base.x, base.z, base.w };
+			break;
+		case LedString::ColorOrder::ORDER_GBR:
+			state.last_sent_bytes = { base.y, base.z, base.x, base.w };
+			break;
+		case LedString::ColorOrder::ORDER_BRG:
+			state.last_sent_bytes = { base.z, base.x, base.y, base.w };
+			break;
+		default: [[likely]]
+			state.last_sent_bytes = base;
+	};
 
 	state.last_input = rgbCalibrated;
 	state.initialized = true;

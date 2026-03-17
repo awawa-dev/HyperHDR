@@ -196,7 +196,7 @@ std::pair<bool, int> DriverNetDDP::writeInfiniteColors(SharedOutputColors nonlin
 	}
 	
 	_rgbwBuffer.resize(nonlinearRgbColors->size() * 4);
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _rgbwBuffer, 0, true);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _rgbwBuffer, 0, _colorOrder);
 
 
 	return { true, writeFiniteColors(true, static_cast<int>(nonlinearRgbColors->size()), {}) };

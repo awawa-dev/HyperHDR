@@ -152,7 +152,7 @@ std::pair<bool, int> DriverSpiHyperSPI::writeInfiniteColors(SharedOutputColors n
 	}
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, true);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, _colorOrder);
 
 	// add space at the end for fletcher checksum
 	auto wanted = _headerSize + _ledCount * sizeof(linalg::aliases::byte4) + 8;

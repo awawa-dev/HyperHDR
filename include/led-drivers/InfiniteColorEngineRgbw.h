@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <linalg.h>
+#include <base/LedString.h>
 
 class InfiniteColorEngineRgbw
 {
@@ -14,9 +15,9 @@ class InfiniteColorEngineRgbw
 	};
 
 public:
-	void renderRgbwFrame(const std::vector<linalg::aliases::float3>& infiniteColors, const float& whiteMixerThreshold, const float& whiteLedIntensity, const linalg::aliases::float3& whitePointRgb, std::vector<uint8_t>& output, size_t writeIndex, bool rgbOrder);
+	void renderRgbwFrame(const std::vector<linalg::aliases::float3>& infiniteColors, const float& whiteMixerThreshold, const float& whiteLedIntensity, const linalg::aliases::float3& whitePointRgb, std::vector<uint8_t>& output, size_t writeIndex, LedString::ColorOrder colorOrder);
 
 private:	
-	linalg::aliases::byte4 encodeRgbwFrame(const linalg::aliases::float3& rgbCalibrated, LEDState& state, const float& whiteMixerThreshold, const float& whiteLedIntensity, const linalg::aliases::float3& whitePointRgb, bool rgbOrder);
+	linalg::aliases::byte4 encodeRgbwFrame(const linalg::aliases::float3& rgbCalibrated, LEDState& state, const float& whiteMixerThreshold, const float& whiteLedIntensity, const linalg::aliases::float3& whitePointRgb, LedString::ColorOrder colorOrder);
 	std::vector<LEDState> states;
 };
