@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <iostream>
 #include <cerrno>
+#include <utility>
 
 // Linux includes
 #include <fcntl.h>
@@ -116,7 +117,7 @@ int ProviderSpiGeneric::close()
 {
 	Debug(_log, "Closing SPI interface");
 
-	if (_fid > -1 && ::close(_fid) != 0)
+	if (auto fid = std::exchange(_fid, -1); fid > -1 && ::close(fid) != 0)
 	{
 		Error(_log, "Failed to close device ({:s}). Error message: {:s}", (_deviceName), strerror(errno));
 		return -1;
