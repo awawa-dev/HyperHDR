@@ -8,13 +8,16 @@ HyperHDR is an open-source ambient lighting system for TVs and music setups, bas
 
 ## Main Features of HyperHDR
 
-At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue, LIFX and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before. ( :new: HyperHDR v22)  
+At the heart of HyperHDR lies the **Infinite Color Engine** ( :new: HyperHDR v22), our own in-house rendering pipeline designed for maximum precision and visual fidelity. By leveraging floating-point processing, it produces smoother gradients, eliminates rounding artifacts, and ensures stable, consistent color transformations. While many other solutions rely on basic 24-bit color operations that introduce precision loss and visible banding, the Infinite Color Engine achieves uncompromised accuracy and professional-grade results. With deep-color support for Philips Hue, LIFX and HD108 devices, HyperHDR provides richer, more vibrant illumination than ever before.  
 
-### Key advantages of the Infinite Color Engine:
+The Infinite Color Engine has also paved the way for our bespoke, internally developed RGB-to-RGBW conversion, featuring energy-preserving extraction, temperature-aware mapping, and temporal dithering with motion-adaptive diffusion and hysteresis to eliminate flickering.  
+
+### Key advantages of the Infinite Color Engine ( :new: HyperHDR v22):
 * **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
 * **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
 * **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
-* **Advanced color smoothing algorithms:** inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
+* **Advanced color smoothing algorithms:** Inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
+* **High-precision RGB-to-RGBW conversion:** Energy-aware power balancing, white point temperature calibration, temporal dithering and anti-flicker hysteresis
 
 ### Additional features:
 * **Ultra-low CPU usage** on SoCs like Raspberry Pi or Intel N100  
@@ -36,12 +39,11 @@ At the heart of HyperHDR lies the **Infinite Color Engine**, our own in-house re
 * **P010 support** for Windows, Linux: our patched Raspberry Pi OS image (P010 is unsupported in mainline OS)
 * **Intuitive LED strip editor**, with automatic or manual geometry editing via mouse and context menus  
 * **Smart signal detection** with adaptive learning for USB grabbers  
-* **Advanced SK6812 RGBW calibration** for [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSPI](https://github.com/awawa-dev/HyperSPI), and [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico)  
 * **External tone mapping support** for flatbuffers/protobuf sources  
 * **Wide LED strip compatibility** and for WS281x, APA102, HD107, SK9822, SK6812 our ultra-fast LED controllers:  
   * [HyperSPI](https://github.com/awawa-dev/HyperSPI) for ESP8266/ESP32/rp2040  
   * [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico) USB serial port 2Mb+ speed connection    
-  * [HyperSerialWLED](https://github.com/awawa-dev/HyperSerialWLED): our optimized WLED fork with USB serial port 2Mb+ speed connection
+  * :new: [Hyperk](https://github.com/awawa-dev/Hyperk): our optimized wireless LED controller for esp8266/ESP32 (inc. S2/S3/C2/C3/C5/C6) and Raspberry Pi Pico W (rp2040/rp2350) family
 
 HyperHDR’s advanced video pipeline significantly enhances LED output, creating a smoother, more immersive ambient lighting experience. It works with SDR, HDR, and Dolby Vision (LLDV if supported by your hardware). Instead of relying on USB grabbers, you can also use software screen capture directly from your PC.  
 

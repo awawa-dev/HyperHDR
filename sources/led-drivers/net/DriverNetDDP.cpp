@@ -26,6 +26,7 @@
  */
 
 #include <led-drivers/net/DriverNetDDP.h>
+#include <infinite-color-engine/ColorSpace.h>
 
 #include <QtEndian>
 
@@ -35,6 +36,10 @@ namespace {
 
 DriverNetDDP::DriverNetDDP(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
+	, _ice_white_mixer_threshold(0.02f)
+	, _ice_white_led_intensity(1.8f)
 	, _isRgbw(false)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
 	, _white_channel_limit(255)
@@ -54,6 +59,15 @@ bool DriverNetDDP::init(QJsonObject deviceConfig)
 	// Initialise sub-class
 	if (ProviderUdp::init(deviceConfig))
 	{
+		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.02);
+		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
+
 		_isRgbw = deviceConfig["rgbw"].toBool(false);
 
 		Debug(_log, "Type : {:s}", (_isRgbw) ? "RGBW" : "RGB");
@@ -101,13 +115,23 @@ bool DriverNetDDP::init(QJsonObject deviceConfig)
 
 int DriverNetDDP::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
-	static uint8_t sequenceNum = 0;
-
 	if (ledValues.size() != _ledCount)
 		setLedCount(static_cast<int>(ledValues.size()));
 
+	return writeFiniteColors(_isRgbw, static_cast<int>(ledValues.size()), ledValues);
+}
+
+int DriverNetDDP::writeFiniteColors(bool isRgbw, const int ledsNumber, const std::vector<ColorRgb>& ledValues)
+{
+	static uint8_t sequenceNum = 0;
+
+	if (isRgbw && ledValues.size() == 0 && _rgbwBuffer.size() != ledsNumber * 4) {
+		Error(_log, "RGBW colors were not provided");
+		return 0;
+	}
+
 	// convert RGB to RGBW if neccesery
-	if (_isRgbw) {
+	if (isRgbw && ledValues.size() > 0) {
 		_rgbwBuffer.resize(ledValues.size() * 4);
 		for (auto rgbwBufferData = _rgbwBuffer.data(); const ColorRgb& color : ledValues)
 		{
@@ -118,10 +142,9 @@ int DriverNetDDP::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		}
 	}
 
-	const size_t ledsNumber = ledValues.size();
-	const size_t colorSize = (_isRgbw) ? 4 : 3;
-	const size_t maxLedsInFrame = (_isRgbw) ? 360 : 480;
-	const uint8_t* start = (_isRgbw) ? _rgbwBuffer.data() : reinterpret_cast<const uint8_t*>(ledValues.data());
+	const size_t colorSize = (isRgbw) ? 4 : 3;
+	const size_t maxLedsInFrame = (isRgbw) ? 360 : 480;
+	const uint8_t* start = (isRgbw) ? _rgbwBuffer.data() : reinterpret_cast<const uint8_t*>(ledValues.data());
 	const uint8_t* end = start + ledsNumber * colorSize;
 	uint32_t colorOffset = 0;
 	constexpr size_t ddpHeaderOverhead = 10;
@@ -144,7 +167,7 @@ int DriverNetDDP::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 		// Bajt 1: Sequence (0x00-0x0F)		
 		_ddpFrame[1] = sequenceNum;
 		// Bajt 2: Data Type (RGB = 0x0B, RGBW = 0x1B)
-		_ddpFrame[2] = (_isRgbw) ? 0x1B : 0x0B;
+		_ddpFrame[2] = (isRgbw) ? 0x1B : 0x0B;
 		// Bajt 3: Destination ID
 		_ddpFrame[3] = 0x01;
 
@@ -163,6 +186,20 @@ int DriverNetDDP::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return static_cast<int>(ledsNumber);
+}
+
+std::pair<bool, int> DriverNetDDP::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
+		return { _enable_ice_rgbw, 0 };
+	}
+	
+	_rgbwBuffer.resize(nonlinearRgbColors->size() * 4);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _rgbwBuffer, 0, _colorOrder);
+
+
+	return { true, writeFiniteColors(true, static_cast<int>(nonlinearRgbColors->size()), {}) };
 }
 
 LedDevice* DriverNetDDP::construct(const QJsonObject& deviceConfig)

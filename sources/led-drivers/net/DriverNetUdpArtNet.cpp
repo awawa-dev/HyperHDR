@@ -1,11 +1,8 @@
 #include <led-drivers/net/DriverNetUdpArtNet.h>
+#include <infinite-color-engine/ColorSpace.h>
 
-#ifdef _WIN32
-	#include <winsock.h>
-#else
-	#include <arpa/inet.h>
-#endif
-
+#include <bit>
+#include <cstring>
 #include <QHostInfo>
 
 /**
@@ -19,6 +16,15 @@
 namespace {
 	const int DMX_MAX = 512;
 	const ushort ARTNET_DEFAULT_PORT = 6454;
+
+	constexpr uint16_t cpp_htons(uint16_t value) {
+		if constexpr (std::endian::native == std::endian::little) {
+			return ((value & 0xFF) << 8) | ((value >> 8) & 0xFF);
+		}
+		else {
+			return value;
+		}
+	}
 }
 
 // http://stackoverflow.com/questions/16396013/artnet-packet-structure
@@ -43,6 +49,10 @@ union artnet_packet_t
 
 DriverNetUdpArtNet::DriverNetUdpArtNet(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
+	, _ice_white_mixer_threshold(0.02f)
+	, _ice_white_led_intensity(1.8f)
 {
 	artnet_packet = std::make_unique<artnet_packet_t>();
 }
@@ -60,6 +70,15 @@ bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 		_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
 		_disableSplitting = deviceConfig["disableSplitting"].toBool(false);
 
+		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.02);
+		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
+
 		isInitOK = true;
 	}
 	return isInitOK;
@@ -68,22 +87,18 @@ bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 // populates the headers
 void DriverNetUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount)
 {
-	// WTF? why do the specs say:
-	// "This value should be an even number in the range 2 – 512. "
-	if (this_dmxChannelCount & 0x1)
-	{
-		this_dmxChannelCount++;
-	}
+	if (this_dmxChannelCount & 1) this_dmxChannelCount++;
+	if (this_dmxChannelCount > DMX_MAX) this_dmxChannelCount = DMX_MAX;
 
 	memcpy(artnet_packet->fields.ID, "Art-Net\0", 8);
 
-	artnet_packet->fields.OpCode = htons(0x0050);	// OpOutput / OpDmx
-	artnet_packet->fields.ProtVer = htons(0x000e);
+	artnet_packet->fields.OpCode = cpp_htons(0x0050);	// OpOutput / OpDmx
+	artnet_packet->fields.ProtVer = cpp_htons(0x000e);
 	artnet_packet->fields.Sequence = this_sequence;
 	artnet_packet->fields.Physical = 0;
 	artnet_packet->fields.SubUni = this_universe & 0xff;
 	artnet_packet->fields.Net = (this_universe >> 8) & 0x7f;
-	artnet_packet->fields.Length = htons(this_dmxChannelCount);
+	artnet_packet->fields.Length = cpp_htons(this_dmxChannelCount);
 }
 
 int DriverNetUdpArtNet::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
@@ -127,6 +142,69 @@ int DriverNetUdpArtNet::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 	}
 
 	return retVal;
+}
+
+std::pair<bool, int> DriverNetUdpArtNet::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
+		return { _enable_ice_rgbw, 0 };
+	}
+
+	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
+
+	// RGBW by Infinite Color Engine
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+
+	int channelsPerFixture = (std::max)(4, _artnet_channelsPerFixture);
+	int totalBytesWritten = 0;
+	int thisUniverse = _artnet_universe;
+	int dmxIdx = 0;
+	memset(artnet_packet->raw, 0, sizeof(artnet_packet->raw));
+
+	auto sendCurrentUniverse = [&]() {
+		if (dmxIdx == 0) return;
+
+		int sendLength = (dmxIdx % 2 != 0) ? dmxIdx + 1 : dmxIdx;
+
+		if (++_artnet_seq == 0)
+		{
+			_artnet_seq = 1;
+		}
+		prepare(thisUniverse, _artnet_seq, sendLength);
+		totalBytesWritten += writeBytes(18 + qMin(sendLength, DMX_MAX), artnet_packet->raw);
+
+		memset(artnet_packet->raw, 0, sizeof(artnet_packet->raw));
+		thisUniverse++;
+		dmxIdx = 0;
+	};
+
+	const uint8_t* bufferEnd = _ledBuffer.data() + _ledBuffer.size();
+	for (const uint8_t* rgbw = _ledBuffer.data(); rgbw < bufferEnd; rgbw += 4)
+	{
+		if (_disableSplitting && (dmxIdx + channelsPerFixture > DMX_MAX))
+		{
+			sendCurrentUniverse();
+		}
+
+		for (int ch = 0; ch < channelsPerFixture; ++ch)
+		{
+			if (dmxIdx >= DMX_MAX)
+			{
+				sendCurrentUniverse();
+			}
+
+			uint8_t value = (ch < 4) ? rgbw[ch] : 0;
+			artnet_packet->fields.Data[dmxIdx++] = value;
+		}
+	}
+
+	if (dmxIdx > 0)
+	{
+		sendCurrentUniverse();
+	}
+
+	return { true, totalBytesWritten };
 }
 
 LedDevice* DriverNetUdpArtNet::construct(const QJsonObject& deviceConfig)

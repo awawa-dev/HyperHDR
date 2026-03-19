@@ -64,6 +64,13 @@ FileServer::FileServer():
 #else
 	#ifdef WEB_RESOURCES_FOLDER
 		_resourcePath = QDir(QCoreApplication::applicationDirPath()).filePath(QString(WEB_RESOURCES_FOLDER) + "/web_resources.rcc");
+		if (!QFile::exists(_resourcePath)) {
+			QString binResPath = QDir(qApp->applicationDirPath()).filePath("../lib/web_resources.rcc");
+			if (QFile::exists(binResPath)) {
+				Warning(_log, "Could not initialize web server resources using: {:s}. Fallback to classic path: {:s}", _resourcePath, binResPath);
+				_resourcePath = binResPath;
+			}
+		}
 	#else
 		_resourcePath = QDir(qApp->applicationDirPath()).filePath("../lib/web_resources.rcc");
 	#endif

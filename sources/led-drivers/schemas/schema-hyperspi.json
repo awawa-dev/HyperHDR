@@ -17,13 +17,106 @@
 			"default": 25000000,
 			"propertyOrder" : 2
 		},
+		"enable_ice_rgbw": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_enable_ice_rgbw",
+			"required" : true,
+			"default": false,
+			"propertyOrder" : 3
+		},		
+		"ice_white_mixer_threshold": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_mixer_threshold",
+			"required" : true,
+			"default" : 0.02,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"ice_white_led_intensity": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_led_intensity",
+			"required" : true,
+			"default" : 1.8,
+			"step": 0.05,
+			"minimum" : 0.5,
+			"maximum" : 5.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 5
+		},		
+		"ice_white_temperatur_r": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_r",
+			"required" : true,
+			"default" : 0.8,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 6
+		},
+		"ice_white_temperatur_g": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_g",
+			"required" : true,
+			"default" : 0.8,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 7
+		},
+		"ice_white_temperatur_b": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_b",
+			"required" : true,
+			"default" : 0.8,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 8
+		},
 		"white_channel_calibration": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_rgbw_calibration_enable",
 			"required" : true,
 			"default": false,
-			"propertyOrder" : 4
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": false
+				}
+			},
+			"propertyOrder" : 9
 		},
 		"white_channel_limit": {
 			"type": "number",
@@ -40,7 +133,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 5
+			"propertyOrder" : 10
 		},
 		"white_channel_red": {
 			"type": "integer",
@@ -56,7 +149,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 6
+			"propertyOrder" : 11
 		},
 		"white_channel_green": {
 			"type": "integer",
@@ -72,7 +165,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 7
+			"propertyOrder" : 12
 		},
 		"white_channel_blue": {
 			"type": "integer",
@@ -88,7 +181,7 @@
 					"white_channel_calibration": true
 				}
 			},
-			"propertyOrder" : 8
+			"propertyOrder" : 13
 		},
 		"spitype": {
 			"type": "string",
@@ -99,14 +192,14 @@
 			},
 			"default" : "esp8266",
 			"required" : true,
-			"propertyOrder" : 9
+			"propertyOrder" : 14
 		},
 		"invert": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
-			"propertyOrder" : 10
+			"propertyOrder" : 15
 		}
 	},
 	"additionalProperties": true

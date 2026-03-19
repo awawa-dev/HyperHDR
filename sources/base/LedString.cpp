@@ -102,7 +102,6 @@ LedString LedString::createLedString(const QJsonArray& ledConfigArray, const Col
 		}
 
 		// Get the order of the rgb channels for this led (default is device order)
-		ledString.colorOrder = stringToColorOrder(ledConfig["colorOrder"].toString(deviceOrderStr));
 		ledString.leds().push_back(led);
 	}
 	return ledString;

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -26,12 +26,17 @@
 */
 
 #include <led-drivers/pwm/rpi_pio/DriverRpiPio.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <linalg.h>
 
 #include <QFileInfo>
 
 DriverRpiPio::DriverRpiPio(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
+	, _ice_white_mixer_threshold(0.02f)
+	, _ice_white_led_intensity(1.8f)
 	, _isRgbw(false)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
 	, _white_channel_limit(255)
@@ -50,6 +55,15 @@ bool DriverRpiPio::init(QJsonObject deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
+		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.02);
+		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
+
 		_output = deviceConfig["output"].toString("/dev/null");
 		_isRgbw = deviceConfig["rgbw"].toBool(false);
 
@@ -194,6 +208,31 @@ int DriverRpiPio::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	renderer.close();
 
 	return written;
+}
+
+std::pair<bool, int> DriverRpiPio::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
+		return { _enable_ice_rgbw, 0 };
+	}
+
+	QFile renderer(_output);
+	if (!renderer.open(QIODevice::WriteOnly))
+	{
+		this->setInError("Cannot open the device for writing");
+		return { true, 0 };
+	}
+
+	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
+
+	// RGBW by Infinite Color Engine
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+
+	auto written = renderer.write(reinterpret_cast<const char*>(_ledBuffer.data()), _ledBuffer.size());
+	renderer.close();
+
+	return { true, written };
 }
 
 LedDevice* DriverRpiPio::construct(const QJsonObject& deviceConfig)

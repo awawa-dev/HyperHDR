@@ -15,12 +15,105 @@
 			"maximum" : 65535,
 			"propertyOrder" : 2
 		},
+		"enable_ice_rgbw": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_enable_ice_rgbw",
+			"required" : true,
+			"default": false,
+			"propertyOrder" : 3
+		},		
+		"ice_white_mixer_threshold": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_mixer_threshold",
+			"required" : true,
+			"default" : 0.02,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"ice_white_led_intensity": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_led_intensity",
+			"required" : true,
+			"default" : 1.8,
+			"step": 0.05,
+			"minimum" : 0.5,
+			"maximum" : 5.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 5
+		},		
+		"ice_white_temperatur_r": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_r",
+			"required" : true,
+			"default" : 0.8,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 6
+		},
+		"ice_white_temperatur_g": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_g",
+			"required" : true,
+			"default" : 0.8,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 7
+		},
+		"ice_white_temperatur_b": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_b",
+			"required" : true,
+			"default" : 0.8,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 8
+		},
 		"rgbw": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_useRgbwProtocol_title",
 			"default": false,
-			"propertyOrder" : 3
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": false
+				}
+			},
+			"propertyOrder" : 9
 		},
 		"white_algorithm": {
 			"type": "string",
@@ -56,14 +149,14 @@
 					"rgbw": true
 				}
 			},
-			"propertyOrder": 4
+			"propertyOrder": 10
 		},
 		"brightnessMax": {
 			"type": "boolean",
 			"title":"hyperkBrightnessOverride",
 			"format": "checkbox",
 			"default" : true,
-			"propertyOrder" : 5
+			"propertyOrder" : 11
 		},		
 		"brightnessMaxLevel":
 		{
@@ -80,14 +173,14 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 6
+			"propertyOrder" : 12
 		},
 		"restoreOriginalState": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : false,
-			"propertyOrder" : 7
+			"propertyOrder" : 13
 		},
 		"maxRetry":
 		{
@@ -99,7 +192,7 @@
 			"maximum" : 300,
 			"default" : 60,
 			"required" : true,
-			"propertyOrder" : 8
+			"propertyOrder" : 14
 		},
 		"white_channel_limit": {
 			"type": "number",
@@ -116,7 +209,7 @@
 					"white_algorithm": "hyperserial_custom"
 				}
 			},
-			"propertyOrder" : 9
+			"propertyOrder" : 15
 		},
 		"white_channel_red": {
 			"type": "integer",
@@ -132,7 +225,7 @@
 					"white_algorithm": "hyperserial_custom"
 				}
 			},
-			"propertyOrder" : 10
+			"propertyOrder" : 16
 		},
 		"white_channel_green": {
 			"type": "integer",
@@ -148,7 +241,7 @@
 					"white_algorithm": "hyperserial_custom"
 				}
 			},
-			"propertyOrder" : 11
+			"propertyOrder" : 17
 		},
 		"white_channel_blue": {
 			"type": "integer",
@@ -164,7 +257,7 @@
 					"white_algorithm": "hyperserial_custom"
 				}
 			},
-			"propertyOrder" : 12
+			"propertyOrder" : 18
 		}
 	},
 	"additionalProperties": true
