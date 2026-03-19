@@ -1214,6 +1214,7 @@
   "edt_conf_monitor_nits_title": "HDR-Helligkeitskorrektur",
   "edt_conf_monitor_nits_expl": "SDR-Zielhelligkeit, die für die Konvertierung von HDR in SDR verwendet wird. Bei 0 wird die Hardware-Farbkonvertierung deaktiviert und gleichzeitig die beschleunigte Skalierung beibehalten.",
   "edt_append_nits": "nits",
+  "edt_append_frames": "Frames",
   "edt_conf_gen_disableOnLocked_title": "Deaktivieren bei gesperrtem System oder ausgeschaltetem Monitor",
   "edt_conf_gen_disableOnLocked_expl": "Stoppt die Verarbeitung des Software‑Grabbers bei System­sperre oder ausgeschaltetem Monitor.",
   "edt_conf_gen_disableLedsStartup_title": "Schalten Sie die LEDs beim Start aus",

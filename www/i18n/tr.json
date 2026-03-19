@@ -1214,6 +1214,7 @@
   "edt_conf_monitor_nits_title": "HDR parlaklık düzeltmesi",
   "edt_conf_monitor_nits_expl": "HDR'den SDR'ye dönüştürme için kullanılan SDR hedef parlaklığı. 0 ise, hızlandırılmış ölçeklendirmeyi korurken donanım renk dönüşümünü devre dışı bırakır.",
   "edt_append_nits": "nits",
+  "edt_append_frames": "Frames",
   "edt_conf_gen_disableOnLocked_title": "Kilitlendiğinde devre dışı bırak",
   "edt_conf_gen_disableOnLocked_expl": "Kullanıcı sistemi kilitlediğinde işlemeyi kapatın.",
   "edt_conf_gen_disableLedsStartup_title": "Başlangıçta LED'leri kapatın",

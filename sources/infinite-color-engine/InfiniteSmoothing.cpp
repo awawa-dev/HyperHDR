@@ -187,15 +187,16 @@ void InfiniteSmoothing::handleSignalInstanceSettingsChanged(settings::type type,
 			.smoothingFactor = static_cast<float>(obj["smoothingFactor"].toDouble(0.1)),
 			.stiffness = static_cast<float>(obj["stiffness"].toDouble(200)),
 			.damping = static_cast<float>(obj["damping"].toDouble(26)),
+			.updateDelayFrames = static_cast<double>(obj["updateDelay"].toInt(0)),
 			.y_limit = static_cast<float>(obj["y_limit"].toDouble())
 			}
 		);
 
 		const auto& cfg = _configurations[SMOOTHING_USER_CONFIG];
 		Info(_log, "Updating user config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz)"
-			       ", antiFlickeringFilter: {:s}, smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+			       ", antiFlickeringFilter: {:s}, smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:d}, y_limit: {:f}",
 					SMOOTHING_USER_CONFIG, (EnumSmoothingTypeToString(cfg->type)), (cfg->pause) ? "true" : "false", int(cfg->settlingTime), int(cfg->updateInterval), int(1000.0 / cfg->updateInterval),
-					((_antiFlickeringFilter) ? "enabled": "disabled"), cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit
+					((_antiFlickeringFilter) ? "enabled": "disabled"), cfg->smoothingFactor, cfg->stiffness, cfg->damping,  cfg->updateDelayFrames, cfg->y_limit
 			);
 
 		if (_currentConfigId == SMOOTHING_USER_CONFIG)
@@ -237,39 +238,59 @@ void InfiniteSmoothing::incomingColors(std::vector<float3>&& nonlinearRgbColors,
 }
 
 void InfiniteSmoothing::updateLeds()
-{	
-	SharedOutputColors nonlinearRgbColors;
-	bool finished = false;
-	long long timeNow = 0;
-	// critical section
-	{
-		QMutexLocker locker(&_dataSynchro);
-		if (!isEnabled())
-			return;
+{
+    SharedOutputColors nonlinearRgbColors;
+    long long timeNow = 0;
+    bool finished = false;
 
-		timeNow = InternalClock::now();
-		_interpolator->updateCurrentColors(timeNow);
+    // critical section
+    {
+        QMutexLocker locker(&_dataSynchro);
 
-		nonlinearRgbColors = _interpolator->getCurrentColors(_minimalBacklight);
+        if (!isEnabled())
+        {
+            _frameDelayBuffer.clear();
+            return;
+        }
 
-		if (!_interpolator->isAnimationComplete())
-		{
-			_coolDown = SMOOTHING_COOLDOWN_PHASE;
-		}
-		else if (!_continuousOutput)
-		{
-			if (_coolDown > 0)
-				_coolDown--;
-			else if (std::abs(timeNow - _lastSentFrame) < 1000)
-				finished = true;
-		}
-	}	
+        timeNow = InternalClock::now();
+        _interpolator->updateCurrentColors(timeNow);
+        nonlinearRgbColors = _interpolator->getCurrentColors(_minimalBacklight);
 
-	if (!nonlinearRgbColors->empty() && !finished)
-	{
-		_lastSentFrame = timeNow;
-		queueColors(std::move(nonlinearRgbColors));
-	}
+        if (!_interpolator->isAnimationComplete())
+        {
+            _coolDown = SMOOTHING_COOLDOWN_PHASE;
+        }
+        else if (!_continuousOutput)
+        {
+            if (_coolDown > 0)
+                _coolDown--;
+            else if (std::abs(timeNow - _lastSentFrame) < 1000)
+                finished = true;
+        }
+    }
+
+    if (nonlinearRgbColors->empty() || finished)
+    {
+        _frameDelayBuffer.clear();
+        return;
+    }
+
+    // Global delay in frames
+    size_t currentDelay = static_cast<size_t>(_configurations[_currentConfigId]->updateDelayFrames);
+
+    if (currentDelay > 0)
+    {
+        _frameDelayBuffer.push_back(nonlinearRgbColors);
+        if (_frameDelayBuffer.size() <= currentDelay)
+            return;
+
+        nonlinearRgbColors = std::move(_frameDelayBuffer.front());
+        _frameDelayBuffer.pop_front();
+    }
+
+    _lastSentFrame = InternalClock::now();
+    queueColors(std::move(nonlinearRgbColors));
 }
 
 void InfiniteSmoothing::queueColors(SharedOutputColors&& nonlinearRgbLedColors)
@@ -310,7 +331,7 @@ unsigned InfiniteSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequ
 	return static_cast<unsigned>(_configurations.size() - 1);
 }
 
-unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, bool pause)
+unsigned InfiniteSmoothing::addCustomSmoothingConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz,  int ledUpdateDelay_fr, bool pause)
 {
 	int64_t interval =  (ledUpdateFrequency_hz > std::numeric_limits<double>::epsilon()) ? static_cast<int64_t>(1000.0 / ledUpdateFrequency_hz) : 10;
 	
@@ -364,14 +385,14 @@ bool InfiniteSmoothing::selectConfig(unsigned cfgId)
 	const auto& cfg = _configurations[_currentConfigId];
 
 	Info(_log, "Selecting config ({:d}) => type: {:s}, pause: {:s}, settlingTime: {:d}ms, interval: {:d}ms ({:d}Hz). Smoothing is currently: {:s} and antiFlickeringFilter is: {:s}"
-				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, y_limit: {:f}",
+				", smoothingFactor: {:f}, stiffness: {:f}, damping: {:f}, updateDelayFrames: {:d}, y_limit: {:f}",
 		_currentConfigId, (EnumSmoothingTypeToString(cfg->type)), (!cfg->pause) ? "true" : "false",
 		int(cfg->settlingTime),
 		int(cfg->updateInterval),
 		int(1000.0 / cfg->updateInterval),
 		(_enabled) ? "enabled" : "disabled",
 		((_antiFlickeringFilter) ? "enabled" : "disabled"),
-		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
+		cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->updateDelayFrames, cfg->y_limit);
 
 	return result;
 }
