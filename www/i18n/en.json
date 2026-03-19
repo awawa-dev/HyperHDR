@@ -1320,5 +1320,6 @@
   "edt_ice_white_led_intensity": "ICE white led intensity",
   "edt_ice_white_temperatur_r": "ICE white temperature red",
   "edt_ice_white_temperatur_g": "ICE white temperature green",
-  "edt_ice_white_temperatur_b": "ICE white temperature blue"
+  "edt_ice_white_temperatur_b": "ICE white temperature blue",
+  "edt_prevent_pixel_data_splitting_across_universes": "Prevent Pixel Splitting across Universes"
 }

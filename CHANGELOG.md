@@ -1,3 +1,4 @@
+- RGBW with Temporal Dithering - powered by Infinite Color Engine (#1483) - v22beta2 🆕
 - Switch to Filesystem Hierarchy Standard (FHS) compliant installation on Linux (#1477) - v22beta2 🆕
 - Migrate to standard OS config location if ~/.hyperhdr folder is missing (#1472) - v22beta2 🆕
 - Add Philips WiZ support (driver + web wizard) Thanks @user83749 (#1469) - v22beta2 🆕
