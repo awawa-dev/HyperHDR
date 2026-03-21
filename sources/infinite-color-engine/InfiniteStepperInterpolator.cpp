@@ -90,7 +90,7 @@ void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_
 	_targetTime = startTimeMs + _initialDuration;
 }
 
-void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
+void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness)
 {
 	if (_isAnimationComplete)
 	{
@@ -199,7 +199,7 @@ void InfiniteStepperInterpolator::test()
 				retargeted_to_B = true;
 			}
 
-			interpolator.updateCurrentColors(time_ms);
+			interpolator.updateCurrentColors(time_ms, 0.f);
 
 			auto temp_color = interpolator.getCurrentColors();
 			const auto& current_color = *(temp_color);

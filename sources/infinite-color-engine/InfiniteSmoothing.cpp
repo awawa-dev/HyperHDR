@@ -248,7 +248,7 @@ void InfiniteSmoothing::updateLeds()
 			return;
 
 		timeNow = InternalClock::now();
-		_interpolator->updateCurrentColors(timeNow);
+		_interpolator->updateCurrentColors(timeNow, _minimalBacklight);
 
 		nonlinearRgbColors = _interpolator->getCurrentColors(_minimalBacklight);
 

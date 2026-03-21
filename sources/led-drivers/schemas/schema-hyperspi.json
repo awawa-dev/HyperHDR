@@ -30,7 +30,7 @@
 			"format" : "stepper",						
 			"title":"edt_ice_white_mixer_threshold",
 			"required" : true,
-			"default" : 0.02,
+			"default" : 0.0,
 			"step": 0.05,
 			"minimum" : 0.0,
 			"maximum" : 1.0,

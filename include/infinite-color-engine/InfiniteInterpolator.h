@@ -19,7 +19,7 @@ public:
 	virtual ~InfiniteInterpolator() = default;
 
 	virtual void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs, bool debug) = 0;
-	virtual void updateCurrentColors(float currentTimeMs) = 0;
+	virtual void updateCurrentColors(float currentTimeMs, float minBrightness) = 0;
 	virtual SharedOutputColors getCurrentColors(float minBrightness) = 0;
 
 	virtual void setTransitionDuration(float /*durationMs*/) {};

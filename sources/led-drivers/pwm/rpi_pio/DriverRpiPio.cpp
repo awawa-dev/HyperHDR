@@ -35,7 +35,7 @@ DriverRpiPio::DriverRpiPio(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _enable_ice_rgbw(false)
 	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
-	, _ice_white_mixer_threshold(0.02f)
+	, _ice_white_mixer_threshold(0.0f)
 	, _ice_white_led_intensity(1.8f)
 	, _isRgbw(false)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
@@ -56,7 +56,7 @@ bool DriverRpiPio::init(QJsonObject deviceConfig)
 	if (LedDevice::init(deviceConfig))
 	{
 		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
-		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.02);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
 		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
 		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
 		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
@@ -227,7 +227,7 @@ std::pair<bool, int> DriverRpiPio::writeInfiniteColors(SharedOutputColors nonlin
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
 
 	auto written = renderer.write(reinterpret_cast<const char*>(_ledBuffer.data()), _ledBuffer.size());
 	renderer.close();

@@ -116,7 +116,7 @@ void InfiniteHybridRgbInterpolator::setTargetColors(std::vector<float3>&& new_rg
 	_targetTime = startTimeMs + _initialDuration;
 }
 
-void InfiniteHybridRgbInterpolator::updateCurrentColors(float currentTimeMs) {
+void InfiniteHybridRgbInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness) {
 	if (_isAnimationComplete)
 	{
 		_lastUpdate = currentTimeMs;
@@ -144,6 +144,12 @@ void InfiniteHybridRgbInterpolator::updateCurrentColors(float currentTimeMs) {
 			// integracja (Euler semi-implicit)
 			vel += acc * (dt * 0.001f);
 			cur += vel * (dt * 0.001f);
+
+			for (int i = 0; i < 3; i++)
+				if (cur[i] < minBrightness || cur[i] > 1.0f) {
+					vel[i] = 0.0f;
+					cur[i] = std::clamp(cur[i], minBrightness, 1.0f);
+				}
 
 			return true;
 		}
@@ -207,7 +213,7 @@ void InfiniteHybridRgbInterpolator::test() {
 				retargeted_to_B = true;
 			}
 
-			interpolator.updateCurrentColors(time_ms);
+			interpolator.updateCurrentColors(time_ms, 0.f);
 
 			auto temp_color = interpolator.getCurrentColors();
 			const auto& current_color = *(temp_color);

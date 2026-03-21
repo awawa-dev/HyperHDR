@@ -13,7 +13,7 @@ jobs:
     permissions:
       actions: write
     steps:
-      - run: gh cache delete --all --ref "refs/heads/${{ github.head_ref }}" --repo ${{ github.repository }}
+      - run: gh cache delete --all --ref "refs/pull/${{ github.event.pull_request.number }}/merge" --repo ${{ github.repository }} || true
         env:
           GH_TOKEN: ${{ github.token }}
   clean_PR_artifacts:
