@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <linalg.h>
 #include <limits>
 #include <led-drivers/InfiniteColorEngineRgbw.h>
