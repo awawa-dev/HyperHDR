@@ -34,7 +34,7 @@
 DriverRpiPio::DriverRpiPio(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _enable_ice_rgbw(false)
-	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
 	, _ice_white_mixer_threshold(0.0f)
 	, _ice_white_led_intensity(1.8f)
 	, _isRgbw(false)

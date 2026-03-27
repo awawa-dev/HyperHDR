@@ -1,4 +1,5 @@
 #include <led-drivers/other/DriverOtherFile.h>
+#include <infinite-color-engine/ColorSpace.h>
 
 #include <QTextStream>
 #include <QFile>
@@ -11,6 +12,10 @@ DriverOtherFile::DriverOtherFile(const QJsonObject& deviceConfig)
 	, _file(nullptr)
 	, _printTimeStamp(true)
 	, _infiniteColorEngine(false)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
+	, _ice_white_mixer_threshold(0.0f)
+	, _ice_white_led_intensity(1.8f)
 {	
 }
 
@@ -41,6 +46,15 @@ bool DriverOtherFile::init(QJsonObject deviceConfig)
 	_infiniteColorEngine = deviceConfig["infiniteColorEngine"].toBool(false);
 
 	Debug(_log, "Infinite color engine resolution: {:s}", (_infiniteColorEngine) ? "true": "false");
+
+	_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+	_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
+	_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+	_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_red"].toDouble(1.0);
+	_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_green"].toDouble(1.0);
+	_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_blue"].toDouble(1.0);
+	Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+		((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
 	return initOK;
 }
@@ -96,10 +110,10 @@ std::pair<bool, int> DriverOtherFile::writeInfiniteColors(SharedOutputColors non
 {
 	if (nonlinearRgbColors->empty())
 	{
-		return { _infiniteColorEngine, 0 };
+		return { _infiniteColorEngine || _enable_ice_rgbw, 0 };
 	}
 
-	if (_infiniteColorEngine)
+	if (_infiniteColorEngine || _enable_ice_rgbw)
 		return { true, writeColors(nullptr, nonlinearRgbColors) };
 	else
 		return { false,0 };
@@ -135,10 +149,28 @@ int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const S
 		out.setRealNumberNotation(QTextStream::FixedNotation);
 		out.setRealNumberPrecision(4);
 
-		for (auto& color : *infinityLedColors)
-		{
-			auto format = [](float value){return QString("%1").arg(value, 8, 'f', 4, ' '); };
-			out << std::exchange(separator,", ") << "{" << format(color.x * 255.f) << ", " << format(color.y * 255.f)  << ", " << format(color.z * 255.f) << "}";
+
+		if (_enable_ice_rgbw) {
+			_ledBuffer.resize(infinityLedColors->size() * 4);
+
+			// RGBW by Infinite Color Engine
+			_infiniteColorEngineRgbw.renderRgbwFrame(*infinityLedColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+
+			auto start = _ledBuffer.data();
+			auto end = start + _ledBuffer.size() - 4;
+			auto format = [&](uint8_t v) { return QString("%1").arg(v);};
+
+			for (uint8_t* current = start; current <= end; current += 4)
+			{
+				out << std::exchange(separator, ", ") <<  "{" << format(current[0]) << "," << format(current[1]) << "," << format(current[2]) << "," << format(current[3]) << "}";
+			}
+		}
+		else {
+			for (auto& color : *infinityLedColors)
+			{
+				auto format = [](float value) {return QString("%1").arg(value, 8, 'f', 4, ' '); };
+				out << std::exchange(separator, ", ") << "{" << format(color.x * 255.f) << ", " << format(color.y * 255.f) << ", " << format(color.z * 255.f) << "}";
+			}
 		}
 		result = infinityLedColors->size();
 	}
