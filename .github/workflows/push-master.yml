@@ -77,7 +77,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags') == false
         continue-on-error: true
         run: |
-          gh cache list --ref ${{ github.event.ref }} --key "${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+          gh cache list --ref "${{ github.ref }}" --key "${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -145,7 +145,7 @@ jobs:
       - name: Clear branch ccache storage
         continue-on-error: true
         run: |
-          gh cache list --ref ${{ github.event.ref }} --key "macOS-${{ matrix.NICE_NAME }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+          gh cache list --ref "${{ github.ref }}" --key "macOS-${{ matrix.NICE_NAME }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -234,7 +234,7 @@ jobs:
       - name: Clear branch ccache storage
         continue-on-error: true
         run: |
-          gh cache list --ref ${{ github.event.ref }} --key "${{ runner.os }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+          gh cache list --ref "${{ github.ref }}" --key "${{ runner.os }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
         env:
           GH_TOKEN: ${{ github.token }}
 

@@ -50,8 +50,8 @@ union artnet_packet_t
 DriverNetUdpArtNet::DriverNetUdpArtNet(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
 	, _enable_ice_rgbw(false)
-	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
-	, _ice_white_mixer_threshold(0.02f)
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
+	, _ice_white_mixer_threshold(0.0f)
 	, _ice_white_led_intensity(1.8f)
 {
 	artnet_packet = std::make_unique<artnet_packet_t>();
@@ -71,11 +71,11 @@ bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 		_disableSplitting = deviceConfig["disableSplitting"].toBool(false);
 
 		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
-		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.02);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
 		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
-		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
-		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
-		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_red"].toDouble(1.0);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_green"].toDouble(1.0);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_blue"].toDouble(1.0);
 		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
 			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
@@ -154,7 +154,7 @@ std::pair<bool, int> DriverNetUdpArtNet::writeInfiniteColors(SharedOutputColors 
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
 
 	int channelsPerFixture = (std::max)(4, _artnet_channelsPerFixture);
 	int totalBytesWritten = 0;

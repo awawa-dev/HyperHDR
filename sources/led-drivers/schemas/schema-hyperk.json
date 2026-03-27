@@ -28,7 +28,7 @@
 			"format" : "stepper",						
 			"title":"edt_ice_white_mixer_threshold",
 			"required" : true,
-			"default" : 0.02,
+			"default" : 0.0,
 			"step": 0.05,
 			"minimum" : 0.0,
 			"maximum" : 1.0,
@@ -55,12 +55,12 @@
 			},
 			"propertyOrder" : 5
 		},		
-		"ice_white_temperatur_r": {
+		"ice_white_temperatur_red": {
 			"type": "number",
 			"format" : "stepper",						
 			"title":"edt_ice_white_temperatur_r",
 			"required" : true,
-			"default" : 0.8,
+			"default" : 1.0,
 			"step": 0.05,
 			"minimum" : 0.0,
 			"maximum" : 1.0,
@@ -71,12 +71,12 @@
 			},
 			"propertyOrder" : 6
 		},
-		"ice_white_temperatur_g": {
+		"ice_white_temperatur_green": {
 			"type": "number",
 			"format" : "stepper",						
 			"title":"edt_ice_white_temperatur_g",
 			"required" : true,
-			"default" : 0.8,
+			"default" : 1.0,
 			"step": 0.05,
 			"minimum" : 0.0,
 			"maximum" : 1.0,
@@ -87,12 +87,12 @@
 			},
 			"propertyOrder" : 7
 		},
-		"ice_white_temperatur_b": {
+		"ice_white_temperatur_blue": {
 			"type": "number",
 			"format" : "stepper",						
 			"title":"edt_ice_white_temperatur_b",
 			"required" : true,
-			"default" : 0.8,
+			"default" : 1.0,
 			"step": 0.05,
 			"minimum" : 0.0,
 			"maximum" : 1.0,

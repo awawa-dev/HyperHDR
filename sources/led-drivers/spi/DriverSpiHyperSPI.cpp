@@ -33,8 +33,8 @@ DriverSpiHyperSPI::DriverSpiHyperSPI(const QJsonObject& deviceConfig)
 	: ProviderSpi(deviceConfig)
 	, _headerSize(6)
 	, _enable_ice_rgbw(false)
-	, _ice_white_temperatur{ 0.8f, 0.8f, 0.8f }
-	, _ice_white_mixer_threshold(0.02f)
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
+	, _ice_white_mixer_threshold(0.0f)
 	, _ice_white_led_intensity(1.8f)
 	, _white_channel_calibration(false)
 	, _white_channel_limit(255)
@@ -52,11 +52,11 @@ bool DriverSpiHyperSPI::init(QJsonObject deviceConfig)
 	if (ProviderSpi::init(deviceConfig))
 	{
 		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
-		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.02);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
 		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
-		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_r"].toDouble(0.8);
-		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_g"].toDouble(0.8);
-		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_b"].toDouble(0.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_red"].toDouble(1.0);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_green"].toDouble(1.0);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_blue"].toDouble(1.0);
 		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
 			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
@@ -152,7 +152,7 @@ std::pair<bool, int> DriverSpiHyperSPI::writeInfiniteColors(SharedOutputColors n
 	}
 
 	// RGBW by Infinite Color Engine
-	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, _colorOrder);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, _colorOrder);
 
 	// add space at the end for fletcher checksum
 	auto wanted = _headerSize + _ledCount * sizeof(linalg::aliases::byte4) + 8;
