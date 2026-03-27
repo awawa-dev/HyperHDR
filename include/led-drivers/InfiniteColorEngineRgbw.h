@@ -7,7 +7,7 @@
 class InfiniteColorEngineRgbw
 {
 	struct LEDState {
-		linalg::aliases::float4 error = linalg::aliases::float4{ 0.0f };
+		linalg::aliases::float3 error = linalg::aliases::float3{ 0.0f };
 		linalg::aliases::float3 last_input = linalg::aliases::float3{ -1.0f };
 		linalg::aliases::byte4 last_sent_bytes = linalg::aliases::byte4{ uint8_t(0) };
 		int8_t flow_control = 0;

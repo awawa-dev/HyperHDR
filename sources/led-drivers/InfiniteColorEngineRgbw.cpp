@@ -74,7 +74,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	};
 
 	if (state.last_input == rgbCalibrated) {
-		state.error = float4{ 0.0f, 0.0f, 0.0f, 0.0f };
+		state.error = float3{ 0.0f };
 		return state.last_sent_bytes;
 	}
 
@@ -92,7 +92,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	const int8_t newFlow = signFun(diff[diffMaxIndex]);	
 	bool enableDithering = ((std::exchange(state.flow_control, newFlow) == newFlow) && diffAbs[diffMaxIndex] >= motionThreshold);
 
-	const float3 input255 = (enableDithering) ? rgbCalibrated * 255.0f + float3{state.error.x, state.error.y, state.error.z} : rgbCalibrated * 255.0f;
+	const float3 input255 = (enableDithering) ? rgbCalibrated * 255.0f + state.error : rgbCalibrated * 255.0f;
 	float4 target4;
 	if (whiteLedIntensity > denom)
 	{
@@ -100,10 +100,9 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 		const float w_mian = (255.0f - whiteMixerThreshold);
 		const float w_factor = (w_mian > denom) ? std::clamp((common - whiteMixerThreshold) / w_mian, 0.0f, 1.0f) : 1.0f;
 		const float base_w_amount = common * w_factor;
-		const float w_ideal = (enableDithering) ? base_w_amount / whiteLedIntensity + state.error.w : base_w_amount / whiteLedIntensity;
-		const float w_output = std::round(w_ideal);
+		const float w_output = std::round(base_w_amount / whiteLedIntensity);
 		const float3 targetRgb = (w_output != 0.0f) ? input255 - whitePointRgb * w_output * whiteLedIntensity : input255;
-		target4 = float4(targetRgb.x, targetRgb.y, targetRgb.z, w_ideal);
+		target4 = float4(targetRgb.x, targetRgb.y, targetRgb.z, w_output);
 	}
 	else {
 		target4 = float4(input255.x, input255.y, input255.z, 0.0f);
@@ -114,10 +113,12 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	if (enableDithering){
 		const float delta_motion = linalg::length2(diff);
 		const float leak = linalg::lerp(0.96f, 0.80f, std::clamp(delta_motion * 50.0f, 0.0f, 1.0f));
-		state.error = (target4 - target_rounded) * leak;
+		state.error.x = (target4.x - target_rounded.x) * leak;
+		state.error.y = (target4.y - target_rounded.y) * leak;
+		state.error.z = (target4.z - target_rounded.z) * leak;
 	}
 	else {
-		state.error = float4{ 0.0f, 0.0f, 0.0f, 0.0f };
+		state.error = float3{ 0.0f };
 	}
 	
 	switch (const auto base = static_cast<byte4>(target_rounded);  colorOrder)
