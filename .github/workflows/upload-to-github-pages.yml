@@ -26,16 +26,13 @@ jobs:
         architecture: [amd64, armhf, arm64]        
         include:
           - distroName: ubuntu
-            distroVersion: jammy
-            architecture: amd64
-          - distroName: ubuntu
             distroVersion: noble
             architecture: amd64
           - distroName: ubuntu
-            distroVersion: questing
+            distroVersion: resolute
             architecture: amd64
           - distroName: fedora
-            distroVersion: 43
+            distroVersion: 44
             architecture: amd64
           - distroName: archlinux
             distroVersion: latest
