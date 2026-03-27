@@ -58,15 +58,18 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 	constexpr double motionThreshold = 0.01 / 255.0;
 
 	float actualMotionThreshold = (currentInterval > 0 && currentInterval < 17) ? motionThreshold * (currentInterval / 17.0): motionThreshold;
+	bool customWhite = linalg::minelem(whitePointRgb) < 0.99999f || linalg::maxelem(whitePointRgb) > 1.00001f;
 
 	for (; colorIt != infiniteColors.cend(); ++colorIt, ++stateIt)
 	{
-		byte4 led = encodeRgbwFrame(*colorIt, *stateIt, actualMotionThreshold, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder);
+		byte4 led = (customWhite) ? encodeRgbwFrame<true>(*colorIt, *stateIt, actualMotionThreshold, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder):
+									encodeRgbwFrame<false>(*colorIt, *stateIt, actualMotionThreshold, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder);
 		std::memcpy(output.data() + writeIndex, &led, sizeof(led));
 		writeIndex += sizeof(led);
 	}
 }
 
+template<bool CustomWhiteTemp>
 byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float motionThreshold, const float whiteMixerThreshold, const float whiteLedIntensity, const float3& whitePointRgb, LedString::ColorOrder colorOrder)
 {
 	auto signFun = [](float x) noexcept {
@@ -96,12 +99,13 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	float4 target4;
 	if (whiteLedIntensity > denom)
 	{
-		const float common = linalg::minelem(input255 * whitePointRgb);
+		const float common = (CustomWhiteTemp) ? linalg::minelem(input255 * whitePointRgb) : linalg::minelem(input255);
 		const float w_mian = (255.0f - whiteMixerThreshold);
 		const float w_factor = (w_mian > denom) ? std::clamp((common - whiteMixerThreshold) / w_mian, 0.0f, 1.0f) : 1.0f;
 		const float base_w_amount = common * w_factor;
 		const float w_output = std::round(base_w_amount / whiteLedIntensity);
-		const float3 targetRgb = (w_output != 0.0f) ? input255 - whitePointRgb * w_output * whiteLedIntensity : input255;
+		const float3 rgbSub = (CustomWhiteTemp) ? (whitePointRgb * w_output * whiteLedIntensity) : float3{ w_output * whiteLedIntensity };
+		const float3 targetRgb = (w_output != 0.0f) ? input255 - rgbSub : input255;
 		target4 = float4(targetRgb.x, targetRgb.y, targetRgb.z, w_output);
 	}
 	else {
