@@ -109,6 +109,16 @@ void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_t
 	_currentColorsRGB.reset();
 }
 
+void InfiniteHybridInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_targetColorsRGB.clear();
+	_currentColorsRGB.reset();
+	_currentColorsYUV.clear();
+	_targetColorsYUV.clear();
+	_velocitiesYUV.clear();
+}
+
 void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness) {
 	if (_isAnimationComplete)
 	{

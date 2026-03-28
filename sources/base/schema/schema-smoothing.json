@@ -132,7 +132,7 @@
 			"type" : "boolean",
 			"format": "checkbox",
 			"title" : "edt_conf_smooth_continuousOutput_title",
-			"default" : true,
+			"default" : false,
 			"required" : true,
 			"propertyOrder" : 10
 		}

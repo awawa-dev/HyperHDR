@@ -37,6 +37,10 @@
 #include <infinite-color-engine/ColorSpace.h>
 using namespace linalg::aliases;
 
+namespace {
+	constexpr float denom = 0.00001f;
+}
+
 void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infiniteColors, const int currentInterval, const float whiteMixerThreshold, const float whiteLedIntensity, const float3& whitePointRgb,
 											std::vector<uint8_t>& output, size_t writeIndex, LedString::ColorOrder colorOrder)
 {
@@ -59,18 +63,20 @@ void InfiniteColorEngineRgbw::renderRgbwFrame(const std::vector<float3>& infinit
 
 	float actualMotionThreshold = (currentInterval > 0 && currentInterval < 17) ? motionThreshold * (currentInterval / 17.0): motionThreshold;
 	bool customWhite = linalg::minelem(whitePointRgb) < 0.99999f || linalg::maxelem(whitePointRgb) > 1.00001f;
+	float invWhiteMixerMian255 = (255.0f - whiteMixerThreshold255);
+	invWhiteMixerMian255 = (invWhiteMixerMian255 > denom) ? 1.0f / invWhiteMixerMian255 : 0.0f;
 
 	for (; colorIt != infiniteColors.cend(); ++colorIt, ++stateIt)
 	{
-		byte4 led = (customWhite) ? encodeRgbwFrame<true>(*colorIt, *stateIt, actualMotionThreshold, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder):
-									encodeRgbwFrame<false>(*colorIt, *stateIt, actualMotionThreshold, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder);
+		byte4 led = (customWhite) ? encodeRgbwFrame<true>(*colorIt, *stateIt, actualMotionThreshold, invWhiteMixerMian255, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder):
+									encodeRgbwFrame<false>(*colorIt, *stateIt, actualMotionThreshold, invWhiteMixerMian255, whiteMixerThreshold255, whiteLedIntensity, whitePointRgb, colorOrder);
 		std::memcpy(output.data() + writeIndex, &led, sizeof(led));
 		writeIndex += sizeof(led);
 	}
 }
 
 template<bool CustomWhiteTemp>
-byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float motionThreshold, const float whiteMixerThreshold, const float whiteLedIntensity, const float3& whitePointRgb, LedString::ColorOrder colorOrder)
+byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDState& state, const float motionThreshold, const float invWhiteMixerMian255, const float whiteMixerThreshold255, const float whiteLedIntensity, const float3& whitePointRgb, LedString::ColorOrder colorOrder)
 {
 	auto signFun = [](float x) noexcept {
 		return (x > 0) - (x < 0);
@@ -85,9 +91,7 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 		state = LEDState{};
 		state.last_input = rgbCalibrated;
 		return state.last_sent_bytes;
-	}
-
-	constexpr float denom = 0.00001f;
+	}	
 
 	const float3 diff = rgbCalibrated - state.last_input;
 	const float3 diffAbs = linalg::abs(diff);
@@ -99,9 +103,8 @@ byte4 InfiniteColorEngineRgbw::encodeRgbwFrame(const float3& rgbCalibrated, LEDS
 	float4 target4;
 	if (whiteLedIntensity > denom)
 	{
-		const float common = (CustomWhiteTemp) ? linalg::minelem(input255 * whitePointRgb) : linalg::minelem(input255);
-		const float w_mian = (255.0f - whiteMixerThreshold);
-		const float w_factor = (w_mian > denom) ? std::clamp((common - whiteMixerThreshold) / w_mian, 0.0f, 1.0f) : 1.0f;
+		const float common = (CustomWhiteTemp) ? linalg::minelem(input255 * whitePointRgb) : linalg::minelem(input255);		
+		const float w_factor = (invWhiteMixerMian255 > denom) ? std::clamp((common - whiteMixerThreshold255) * invWhiteMixerMian255, 0.0f, 1.0f) : 1.0f;
 		const float base_w_amount = common * w_factor;
 		const float w_output = std::round(base_w_amount / whiteLedIntensity);
 		const float3 rgbSub = (CustomWhiteTemp) ? (whitePointRgb * w_output * whiteLedIntensity) : float3{ w_output * whiteLedIntensity };

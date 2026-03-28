@@ -125,7 +125,16 @@ void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_y
 	_currentColorsRGB.reset();
 }
 
-void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness)
+void InfiniteYuvInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_targetColorsRGB.clear();
+	_currentColorsRGB.reset();
+	_currentColorsYUV.clear();
+	_targetColorsYUV.clear();
+}
+
+void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{
