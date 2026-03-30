@@ -18,7 +18,7 @@ public:
 
 private:
 	template<bool CustomWhiteTemp>
-	linalg::aliases::byte4 encodeRgbwFrame(const linalg::aliases::float3& rgbCalibrated, LEDState& state, const float motionThreshold, const float whiteMixerThreshold, const float whiteLedIntensity, const linalg::aliases::float3& whitePointRgb, LedString::ColorOrder colorOrder);
+	linalg::aliases::byte4 encodeRgbwFrame(const linalg::aliases::float3& rgbCalibrated, LEDState& state, const float motionThreshold, const float invWhiteMixerMian255, const float whiteMixerThreshold255, const float whiteLedIntensity, const linalg::aliases::float3& whitePointRgb, LedString::ColorOrder colorOrder);
 
 	std::vector<LEDState> states;
 };

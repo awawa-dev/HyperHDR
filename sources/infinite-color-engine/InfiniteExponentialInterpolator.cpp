@@ -87,7 +87,14 @@ void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_
 	_targetTime = startTimeMs + _initialDuration;
 }
 
-void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness)
+void InfiniteExponentialInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_currentColorsRGB.clear();
+	_targetColorsRGB.clear();
+}
+
+void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{

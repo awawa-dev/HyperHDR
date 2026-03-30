@@ -19,6 +19,7 @@ public:
 	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs, bool debug = false) override;
 	void updateCurrentColors(float currentTimeMs, float minBrightness) override;
 	SharedOutputColors getCurrentColors(float minBrightness = 0.f) override;
+	void resetState() override;
 
 	void setTransitionDuration(float durationMs) override;
 

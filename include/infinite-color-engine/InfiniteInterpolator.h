@@ -21,6 +21,7 @@ public:
 	virtual void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_targets, float startTimeMs, bool debug) = 0;
 	virtual void updateCurrentColors(float currentTimeMs, float minBrightness) = 0;
 	virtual SharedOutputColors getCurrentColors(float minBrightness) = 0;
+	virtual void resetState() = 0;
 
 	virtual void setTransitionDuration(float /*durationMs*/) {};
 	virtual void setSpringiness(float /*stiffness*/, float /*damping*/) {};
