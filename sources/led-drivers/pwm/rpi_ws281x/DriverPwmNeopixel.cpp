@@ -1,4 +1,5 @@
 #include <led-drivers/pwm/rpi_ws281x/DriverPwmNeopixel.h>
+#include <infinite-color-engine/ColorSpace.h>
 #include <ws2811.h>
 
 DriverPwmNeopixel::DriverPwmNeopixel(const QJsonObject& deviceConfig)
@@ -10,6 +11,10 @@ DriverPwmNeopixel::DriverPwmNeopixel(const QJsonObject& deviceConfig)
 	, _white_channel_red(255)
 	, _white_channel_green(255)
 	, _white_channel_blue(255)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
+	, _ice_white_mixer_threshold(0.0f)
+	, _ice_white_led_intensity(1.8f)
 {
 }
 
@@ -25,6 +30,7 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
+		const bool isRgbw = deviceConfig["rgbw"].toBool(false);
 		QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("hyperserial_cold_white");
 
 		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
@@ -37,16 +43,24 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 		{
 			_channel = deviceConfig["pwmchannel"].toInt(0);
 
-			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM)
-			{
-				Debug(_log, "White channel limit     : {:d}, red: {:d}, green: {:d}, blue: {:d}", _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
-			}
+			if (isRgbw) {
+				_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+				_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
+				_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+				_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_red"].toDouble(1.0);
+				_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_green"].toDouble(1.0);
+				_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_blue"].toDouble(1.0);
+				Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+					((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
-			if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_CUSTOM ||
-				_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE ||
-				_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
-			{
-				RGBW::prepareRgbwCalibration(channelCorrection, _whiteAlgorithm, _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+				if (!_enable_ice_rgbw) {
+					if (_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE ||
+						_whiteAlgorithm == RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
+					{
+						RGBW::prepareRgbwCalibration(channelCorrection, _whiteAlgorithm, _white_channel_limit, _white_channel_red, _white_channel_green, _white_channel_blue);
+					}
+					Debug(_log, "RGBW algorithm: {:s}", whiteAlgorithm);
+				}
 			}
 
 			if (_channel <0 || _channel >= RPI_PWM_CHANNELS)
@@ -62,7 +76,7 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 				_ledString->channel[_channel].gpionum = deviceConfig["gpio"].toInt(18);
 				_ledString->channel[_channel].count = deviceConfig["leds"].toInt(256);
 				_ledString->channel[_channel].invert = deviceConfig["invert"].toInt(0);
-				_ledString->channel[_channel].strip_type = (deviceConfig["rgbw"].toBool(false) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
+				_ledString->channel[_channel].strip_type = ((isRgbw) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
 				_ledString->channel[_channel].brightness = 255;
 
 				_ledString->channel[!_channel].gpionum = 0;
@@ -71,6 +85,7 @@ bool DriverPwmNeopixel::init(QJsonObject deviceConfig)
 				_ledString->channel[!_channel].brightness = 0;
 				_ledString->channel[!_channel].strip_type = _ledString->channel[_channel].strip_type;
 
+				Debug(_log, "ws281x color type       : {:s}", ((isRgbw) ? "RGBW" : "RGB"));
 				Debug(_log, "ws281x selected dma     : {:d}", _ledString->dmanum);
 				Debug(_log, "ws281x selected channel : {:d}", _channel);
 				Debug(_log, "ws281x total channels   : {:d}", RPI_PWM_CHANNELS);
@@ -166,6 +181,41 @@ int DriverPwmNeopixel::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	}
 
 	return ws2811_render(_ledString.get()) ? -1 : 0;
+}
+
+std::pair<bool, int> DriverPwmNeopixel::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
+		return { _enable_ice_rgbw, 0 };
+	}
+
+	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
+
+	// RGBW by Infinite Color Engine
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+
+	auto start = _ledBuffer.data();
+	auto end = start + _ledBuffer.size() - 4;
+	int idx = 0;
+
+	for (uint8_t* current = start; current <= end; current += 4)
+	{
+		if (idx >= _ledString->channel[_channel].count)
+		{
+			break;
+		}
+
+		_ledString->channel[_channel].leds[idx++] =
+			(((uint32_t)current[3]) << 24) + (((uint32_t)current[0]) << 16) + (((uint32_t)current[1]) << 8) + current[2];
+	}
+
+	while (idx < _ledString->channel[_channel].count)
+	{
+		_ledString->channel[_channel].leds[idx++] = 0;
+	}
+
+	return { true, ws2811_render(_ledString.get()) ? -1 : 0 };
 }
 
 LedDevice* DriverPwmNeopixel::construct(const QJsonObject& deviceConfig)
