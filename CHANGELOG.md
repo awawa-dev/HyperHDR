@@ -1,15 +1,19 @@
 - RGBW with Temporal Dithering - powered by Infinite Color Engine (#1483) - v22beta2 🆕
+   - Temporal Dithering: Improved Precision and Adaptive Stabilization (#1490) - v22beta2 🆕
+   - Add RGBW dithering for legacy RPi PWM & SPI sk6812 driver (#1498) - v22beta2 🆕
 - Switch to Filesystem Hierarchy Standard (FHS) compliant installation on Linux (#1477) - v22beta2 🆕
 - Migrate to standard OS config location if ~/.hyperhdr folder is missing (#1472) - v22beta2 🆕
 - Add Philips WiZ support (driver + web wizard) Thanks @user83749 (#1469) - v22beta2 🆕
 - Add aspect ratio detection for Amlogic grabber. Thanks @santievil (#1476) - v22beta2 🆕
 - Fix remote tab JSON parsing error caused by missing black color in API JSON scheme (#1471) - v22beta2 🆕
 - Implement DDP / Hyperk drivers (#1467) - v22beta2 🆕
+- Add Ubuntu 26.04 LTS and Fedora 44 (#1491) - v22beta2 🆕
+- Fix build without PCH enabled. Thanks @HiassofT for help (#1497) - v22beta2 🆕
 - Fix: Initial smoothing surge after period of static video input (#1410) - v22beta2 🆕
 - Fix: Minimum brightness preservation in YUV and Hybrid-Inertia smoothing modes (#1410) - v22beta2 🆕
-- upgrades old style format logging (with %) to c++20 format in some places (#1410) - v22beta2 🆕
-- restores custom user RGB order at the start (#1410) - v22beta2 🆕
-- restores compatibility with Qt5.15 (#1410) - v22beta2 🆕
+- Upgrades old style format logging (with %) to c++20 format in some places (#1410) - v22beta2 🆕
+- Restores custom user RGB order at the start (#1410) - v22beta2 🆕
+- Restores compatibility with Qt5.15 (#1410) - v22beta2 🆕
 - Improved state management of the software grabber during sleep and monitor‑suspend events (#1410) - v22beta2 🆕
   - PipeWire is particularly sensitive to sessions resuming too early after such events and, despite having provided a saved session token, would display a new source select dialog after resume when screen‑lock‑after‑suspend was enabled
 - Set disableOnLocked option enabled by default, because software grabbers for ex. Pipewire wont function properly without it (#1410) - v22beta2 🆕
