@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "Preparing to uninstall HyperHDR"
-FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
+FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
 HYPERHDR_RUNNING=false
 pgrep hyperhdr > /dev/null 2>&1 && HYPERHDR_RUNNING=true
 
