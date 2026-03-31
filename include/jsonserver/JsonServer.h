@@ -19,6 +19,10 @@ class JsonServer : public QObject
 {
 	Q_OBJECT
 
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+		Q_MOC_INCLUDE(<jsonserver/JsonClientConnection.h>)
+	#endif
+
 public:
 	JsonServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config);
 	~JsonServer() override;

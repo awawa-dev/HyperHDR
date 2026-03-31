@@ -5,9 +5,9 @@
 #include <QTcpServer>
 #include <QDateTime>
 
-#include "QtHttpReply.h"
-#include "QtHttpHeader.h"
-#include "QtHttpServer.h"
+#include <webserver/QtHttpReply.h>
+#include <webserver/QtHttpHeader.h>
+#include <webserver/QtHttpServer.h>
 
 
 QtHttpReply::QtHttpReply(QtHttpServer* parent)

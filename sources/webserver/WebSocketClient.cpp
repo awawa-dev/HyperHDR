@@ -12,10 +12,10 @@
 #include <utils/FrameDecoder.h>
 #include <utils-image/utils-image.h>
 
-#include "WebSocketClient.h"
-#include "QtHttpRequest.h"
-#include "QtHttpHeader.h"
-#include "WebSocketUtils.h"
+#include <webserver/WebSocketClient.h>
+#include <webserver/QtHttpRequest.h>
+#include <webserver/QtHttpHeader.h>
+#include <webserver/WebSocketUtils.h>
 
 
 WebSocketClient::WebSocketClient(	
