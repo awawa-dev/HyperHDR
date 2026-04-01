@@ -3,6 +3,8 @@
 #include <led-drivers/LedDevice.h>
 #include <led-drivers/spi/ProviderSpiInterface.h>
 
+#include <vector>
+
 #include <led-drivers/spi/ftdi/ftdi.h>
 #include <led-drivers/spi/ftdi/libusb.h>
 
@@ -28,6 +30,7 @@ class ProviderSpiLibFtdi final : public QObject, public ProviderSpiInterface
 {
 	void*					_dllHandle;
 	struct ftdi_context*	_deviceHandle;
+	std::vector<uint8_t>		_writeCommand;
 
 	PTR_ftdi_new				_fun_ftdi_new;
 	PTR_ftdi_usb_open_bus_addr	_fun_ftdi_usb_open_bus_addr;
