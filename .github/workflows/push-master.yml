@@ -383,7 +383,7 @@ jobs:
           merge-multiple: true          
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v2.6.1
         with:
           name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}
