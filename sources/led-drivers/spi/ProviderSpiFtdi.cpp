@@ -25,7 +25,9 @@
 *  SOFTWARE.
  */
 
+#include <algorithm>
 #include <cstring>
+#include <iterator>
 #include <led-drivers/spi/ProviderSpiFtdi.h>
 #include <utils/Logger.h>
 
@@ -220,7 +222,7 @@ QString ProviderSpiFtdi::open()
 
 		if (_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent) != FT_OK)
 		{
-			error = "Cannot initilize SPI interface";
+			error = "Cannot initialize SPI interface";
 		}
 	}
 
@@ -246,34 +248,40 @@ int ProviderSpiFtdi::close()
 
 int ProviderSpiFtdi::writeBytes(unsigned size, const uint8_t* data)
 {
+	if (size == 0 || size > 65536)
+	{
+		return -1;
+	}
+
 	DWORD dwNumBytesSent = 0;
 	std::vector<uint8_t> command;
+	command.reserve(3 + 3 + size + 3);
 
 	// cs & clock low
 	command.push_back(0x80);
 	command.push_back(0);
 	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
 
+	// MPSSE DO_WRITE command + length
 	command.push_back(0x11);
 	command.push_back((size - 1) & 0xFF);
 	command.push_back(((size - 1) >> 8) & 0xFF);
-	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
-	if (_fun_FT_Write(_deviceHandle, const_cast<uint8_t*>(data), size, &dwNumBytesSent) != FT_OK)
+
+	// data payload
+	command.insert(command.end(), data, data + size);
+
+	// cs high
+	command.push_back(0x80);
+	command.push_back(0x08);
+	command.push_back(0x08 | 0x02 | 0x01);
+
+	if (_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent) != FT_OK)
 	{
 		Error(_log, "The FTDI device reports error while writing");
 		return -1;
 	}
 
-	// cs high
-	command.clear();
-	command.push_back(0x80);
-	command.push_back(0x08);
-	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
-
-
-	return dwNumBytesSent;
+	return size;
 }
 
 int ProviderSpiFtdi::getRate()
@@ -308,8 +316,7 @@ QJsonObject ProviderSpiFtdi::discover(const QJsonObject& /*params*/)
 			QJsonArray deviceList;
 			QStringList files;
 
-			for (DWORD i = 0, count = std::min(numDevs, DWORD(std::size(deviceIds))); i < count; ++i)
-			{
+			for (DWORD i = 0, count = std::min(numDevs, DWORD(std::size(deviceIds))); i < count; i++)
 				deviceList.push_back(QJsonObject{
 					{"value", QJsonValue(static_cast<qint64>(deviceIds[i]))},
 					{"name", QString("FTDI SPI device location: %1").arg(QString::number(deviceIds[i]))}

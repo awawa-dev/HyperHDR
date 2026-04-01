@@ -25,30 +25,22 @@
 *  SOFTWARE.
  */
 
-#include <cassert>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <ctime>
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <iostream>
-#include <sys/mman.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <utility>
 #include <vector>
+#include <dlfcn.h>
 
 #include <led-drivers/spi/ProviderSpiLibFtdi.h>
 #include <utils/Logger.h>
 
 namespace
 {
+#ifdef __APPLE__
+	constexpr auto* LIBFTDI_CANON = "libftdi1.dylib";
+	constexpr auto* LIBFTDI_ALT = "libftdi1.1.dylib";
+#else
 	constexpr auto* LIBFTDI_CANON = "libftdi1.so";
 	constexpr auto* LIBFTDI_ALT = "libftdi1.so.2";
+#endif
 }
 
 ProviderSpiLibFtdi::ProviderSpiLibFtdi(const LoggerName& logger)
@@ -204,7 +196,7 @@ QString ProviderSpiLibFtdi::open()
 
 	if (error.isEmpty() && _fun_ftdi_write_data_set_chunksize(_deviceHandle, 65535) < 0)
 	{
-		error = "libFTDI ftdi_usb_reset did not return properly";
+		error = "libFTDI ftdi_write_data_set_chunksize did not return properly";
 	}
 
 	if (error.isEmpty() && _fun_ftdi_set_event_char(_deviceHandle, 0, false) < 0)
@@ -257,7 +249,7 @@ QString ProviderSpiLibFtdi::open()
 
 		if (_fun_ftdi_write_data(_deviceHandle, command.data(), command.size()) < 0)
 		{
-			error = "Cannot initilize SPI interface";
+			error = "Cannot initialize SPI interface";
 		}
 	}
 
@@ -285,31 +277,37 @@ int ProviderSpiLibFtdi::close()
 
 int ProviderSpiLibFtdi::writeBytes(unsigned size, const uint8_t* data)
 {
+	if (size == 0 || size > 65536)
+	{
+		return -1;
+	}
+
 	std::vector<uint8_t> command;
+	command.reserve(3 + 3 + size + 3);
 
 	// cs & clock low
 	command.push_back(0x80);
 	command.push_back(0);
 	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
 
+	// MPSSE DO_WRITE command + length
 	command.push_back(0x11);
 	command.push_back((size - 1) & 0xFF);
 	command.push_back(((size - 1) >> 8) & 0xFF);
-	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
-	if (_fun_ftdi_write_data(_deviceHandle, const_cast<uint8_t*>(data), size) < static_cast<int>(size))
+
+	// data payload
+	command.insert(command.end(), data, data + size);
+
+	// cs high
+	command.push_back(0x80);
+	command.push_back(0x08);
+	command.push_back(0x08 | 0x02 | 0x01);
+
+	if (_fun_ftdi_write_data(_deviceHandle, command.data(), static_cast<int>(command.size())) < static_cast<int>(command.size()))
 	{
 		Error(_log, "The FTDI device reports error while writing");
 		return -1;
 	}
-
-	// cs high
-	command.clear();
-	command.push_back(0x80);
-	command.push_back(0x08);
-	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
-
 
 	return size;
 }
