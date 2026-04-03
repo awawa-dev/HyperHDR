@@ -4,9 +4,9 @@
 #include <QSslSocket>
 #include <QTcpServer>
 
-#include "QtHttpRequest.h"
-#include "QtHttpHeader.h"
-#include "QtHttpServer.h"
+#include <webserver/QtHttpRequest.h>
+#include <webserver/QtHttpHeader.h>
+#include <webserver/QtHttpServer.h>
 
 QtHttpRequest::QtHttpRequest(QtHttpClientWrapper* client, QtHttpServer* parent)
 	: QObject(parent)

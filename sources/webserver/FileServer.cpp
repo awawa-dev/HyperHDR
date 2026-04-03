@@ -46,11 +46,11 @@
 
 #include <utils/Logger.h>
 
-#include "QtHttpRequest.h"
-#include "QtHttpReply.h"
-#include "QtHttpHeader.h"
+#include <webserver/QtHttpRequest.h>
+#include <webserver/QtHttpReply.h>
+#include <webserver/QtHttpHeader.h>
 
-#include "FileServer.h"
+#include <webserver/FileServer.h>
 #include "HyperhdrConfig.h"
 
 QString         FileServer::_baseUrl;

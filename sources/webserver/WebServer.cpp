@@ -7,11 +7,11 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
-#include "QtHttpRequest.h"
-#include "webserver/WebServer.h"
+#include <webserver/QtHttpRequest.h>
+#include <webserver/WebServer.h>
 #include "HyperhdrConfig.h"
-#include "FileServer.h"
-#include "QtHttpServer.h"
+#include <webserver/FileServer.h>
+#include <webserver/QtHttpServer.h>
 
 #ifdef USE_STATIC_QT_PLUGINS
 	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))

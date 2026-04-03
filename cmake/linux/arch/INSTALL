@@ -1,6 +1,6 @@
 pre_install() {
     echo "Preparing to install HyperHDR..."
-    FOUND_USR=$(who | grep -o -m1 '^\w*\b' || echo "root")
+    FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
     if pgrep hyperhdr > /dev/null 2>&1; then
         if grep -m1 systemd /proc/1/comm > /dev/null; then
             systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
@@ -20,7 +20,7 @@ post_install() {
     [ -z "$NET_IP" ] && NET_IP=$(hostname -I 2>/dev/null | cut -d " " -f1)
     [ -z "$NET_IP" ] && NET_IP="127.0.0.1"
     
-    FOUND_USR=$(who | grep -o -m1 '^\w*\b' || echo "root")
+    FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
 
     ENABLE_SERVICE=0
     STARTUP_MSG="Service is NOT enabled by default for GUI OS"
@@ -76,7 +76,7 @@ post_upgrade() {
 
 pre_remove() {
     echo "Preparing to uninstall HyperHDR"
-    FOUND_USR=$(who | grep -o -m1 '^\w*\b' || echo "root")
+    FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
     HYPERHDR_RUNNING=false
     pgrep hyperhdr > /dev/null 2>&1 && HYPERHDR_RUNNING=true
 
