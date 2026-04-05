@@ -219,21 +219,24 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				Error(_log, "No valid SSL certificate has been found ('{:s}'). Did you install OpenSSL?", (crtPath));
 			}
 
-			// load and verify key
-			QFile kfile(keyPath);
-			kfile.open(QIODevice::ReadOnly);
-			// The key should be RSA enrcrypted and PEM format, optional the passPhrase
-			QSslKey key(&kfile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, obj["keyPassPhrase"].toString().toUtf8());
-			kfile.close();
-
-			if (key.isNull())
-			{
-				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('{:s}')", (keyPath));
+			// load and verify key			
+			if (QFile kfile(keyPath); !kfile.open(QIODevice::ReadOnly)) {
+				Error(_log, "Cannot open SSL key using path: '{:s}'", (keyPath));
 			}
-			else
-			{
-				Info(_log, "Setup private SSL key");
-				_server->setPrivateKey(key);
+			else {
+				// The key should be RSA enrcrypted and PEM format, optional the passPhrase
+				QSslKey key(&kfile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, obj["keyPassPhrase"].toString().toUtf8());
+				kfile.close();
+
+				if (key.isNull())
+				{
+					Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('{:s}')", (keyPath));
+				}
+				else
+				{
+					Info(_log, "Setup private SSL key");
+					_server->setPrivateKey(key);
+				}
 			}
 		}
 
