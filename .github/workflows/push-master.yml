@@ -255,7 +255,7 @@ jobs:
 
   analyze:
     name: Analyze (CodeQL)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
 
     permissions:
@@ -288,7 +288,7 @@ jobs:
   clang-tidy-clazy:
     name: Analyze (clang and clazy)
     runs-on: ubuntu-latest
-    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL && false || false }}
 
     permissions:
       contents: read
