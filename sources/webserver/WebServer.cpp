@@ -195,28 +195,31 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				crtPath = WEBSERVER_DEFAULT_CRT_PATH;
 
 			// load and verify crt
-			QFile cfile(crtPath);
-			cfile.open(QIODevice::ReadOnly);
-			QList<QSslCertificate> validList;
-			QList<QSslCertificate> cList = QSslCertificate::fromDevice(&cfile, QSsl::Pem);
-			cfile.close();
-
-			// Filter for valid certs
-			for (const auto& entry : cList)
-			{
-				if (!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
-					validList.append(entry);
-				else
-					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('{:s}')", (crtPath));
-			}
-
-			if (!validList.isEmpty())
-			{
-				Info(_log, "Setup SSL certificate");
-				_server->setCertificates(validList);
+			if (QFile cfile(crtPath); !cfile.open(QIODevice::ReadOnly)) {
+				Error(_log, "Cannot open cert file using path: '{:s}'", (crtPath));
 			}
 			else {
-				Error(_log, "No valid SSL certificate has been found ('{:s}'). Did you install OpenSSL?", (crtPath));
+				QList<QSslCertificate> validList;
+				QList<QSslCertificate> cList = QSslCertificate::fromDevice(&cfile, QSsl::Pem);
+				cfile.close();
+
+				// Filter for valid certs
+				for (const auto& entry : cList)
+				{
+					if (!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
+						validList.append(entry);
+					else
+						Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('{:s}')", (crtPath));
+				}
+
+				if (!validList.isEmpty())
+				{
+					Info(_log, "Setup SSL certificate");
+					_server->setCertificates(validList);
+				}
+				else {
+					Error(_log, "No valid SSL certificate has been found ('{:s}'). Did you install OpenSSL?", (crtPath));
+				}
 			}
 
 			// load and verify key			
