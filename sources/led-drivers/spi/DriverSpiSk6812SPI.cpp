@@ -1,3 +1,30 @@
+/* DriverSpiSk6812SPI.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2026 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+ */
+
 #include <led-drivers/spi/DriverSpiSk6812SPI.h>
 #include <infinite-color-engine/ColorSpace.h>
 
@@ -27,7 +54,7 @@ DriverSpiSk6812SPI::DriverSpiSk6812SPI(const QJsonObject& deviceConfig)
 
 bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 {
-	deviceConfig["rate"] = 3200000;
+	deviceConfig["rate"] = std::max(deviceConfig["rate"].toInt(3200000), 3000000);
 
 	bool isInitOK = false;
 
@@ -75,7 +102,7 @@ bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 
 			auto rateHz = getRate();
 
-			WarningIf((rateHz < 3100000 || rateHz > 3300000), _log, "SPI rate {:d} outside recommended range (3200000)", rateHz);
+			WarningIf((rateHz < 3200000 || rateHz > 3334000), _log, "Real SPI rate {:d} outside recommended range (3200000-3334000, ideal: 3200000)", rateHz);
 
 			_ledBuffer.assign(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
