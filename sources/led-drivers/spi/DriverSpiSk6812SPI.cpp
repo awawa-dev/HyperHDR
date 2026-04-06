@@ -1,6 +1,10 @@
 #include <led-drivers/spi/DriverSpiSk6812SPI.h>
 #include <infinite-color-engine/ColorSpace.h>
 
+namespace {
+	constexpr int SPI_FRAME_END_LATCH_BYTES = 4;
+}
+
 DriverSpiSk6812SPI::DriverSpiSk6812SPI(const QJsonObject& deviceConfig)
 	: ProviderSpi(deviceConfig)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::HYPERSERIAL_COLD_WHITE)
@@ -11,9 +15,9 @@ DriverSpiSk6812SPI::DriverSpiSk6812SPI(const QJsonObject& deviceConfig)
 	, SPI_BYTES_PER_COLOUR(4)
 	, bitpair_to_byte{
 		0b10001000,
-		0b10001100,
-		0b11001000,
-		0b11001100}
+		0b10001110,
+		0b11101000,
+		0b11101110}
 	, _enable_ice_rgbw(false)
 	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
 	, _ice_white_mixer_threshold(0.0f)
@@ -23,7 +27,7 @@ DriverSpiSk6812SPI::DriverSpiSk6812SPI(const QJsonObject& deviceConfig)
 
 bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 {
-	deviceConfig["rate"] = 3000000;
+	deviceConfig["rate"] = 3200000;
 
 	bool isInitOK = false;
 
@@ -71,10 +75,9 @@ bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 
 			auto rateHz = getRate();
 
-			WarningIf((rateHz < 2050000 || rateHz > 4000000), _log, "SPI rate {:d} outside recommended range (2050000 -> 4000000)", rateHz);
+			WarningIf((rateHz < 3100000 || rateHz > 3300000), _log, "SPI rate {:d} outside recommended range (3200000)", rateHz);
 
-			const int SPI_FRAME_END_LATCH_BYTES = 3;
-			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+			_ledBuffer.assign(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
 			isInitOK = true;
 		}
@@ -92,9 +95,7 @@ int DriverSpiSk6812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 		Warning(_log, "Sk6812SPI led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
-		const int SPI_FRAME_END_LATCH_BYTES = 3;
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+		_ledBuffer.assign(SPI_BYTES_PER_LED * _ledCount + SPI_FRAME_END_LATCH_BYTES, 0x00);
 	}
 
 	for (const ColorRgb& color : ledValues)
@@ -116,10 +117,6 @@ int DriverSpiSk6812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 		spi_ptr += SPI_BYTES_PER_LED;
 	}
 
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
-
 	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());
 }
 
@@ -138,9 +135,7 @@ std::pair<bool, int> DriverSpiSk6812SPI::writeInfiniteColors(SharedOutputColors 
 		Warning(_log, "Sk6812SPI led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, nonlinearRgbColors->size());
 		_ledCount = static_cast<uint>(nonlinearRgbColors->size());
 
-		const int SPI_FRAME_END_LATCH_BYTES = 3;
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+		_ledBuffer.assign(SPI_BYTES_PER_LED * _ledCount + SPI_FRAME_END_LATCH_BYTES, 0x00);
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -168,10 +163,6 @@ std::pair<bool, int> DriverSpiSk6812SPI::writeInfiniteColors(SharedOutputColors 
 		}
 		spi_ptr += SPI_BYTES_PER_LED;
 	}
-
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
 
 	return { true, writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data()) };
 }
