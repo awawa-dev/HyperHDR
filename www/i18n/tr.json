@@ -806,7 +806,7 @@
   "remote_input_sourceactiv_btn": "Kaynak aktif",
   "remote_input_status": "Durum/İşlem",
   "remote_losthint": "Not: Yeniden başlatmanın ardından tüm değişiklikler kaybolur.",
-  "remote_maptype_intro": "LED düzeni, her LED'in görüntünün hangi bölümünü kullandığını tanımlar; burada algoritmayı seçebilirsiniz. 1$",
+  "remote_maptype_intro": "LED düzeni, her LED'in görüntünün hangi bölümünü kullandığını tanımlar; burada algoritmayı seçebilirsiniz. $1",
   "remote_maptype_label": "Eşleme türü",
   "remote_maptype_label_multicolor_mean": "çok renkli",
   "remote_maptype_label_unicolor_mean": "tek renkli",

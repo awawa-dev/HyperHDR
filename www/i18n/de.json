@@ -1303,7 +1303,7 @@
   "wiz_wiz_title": "Philips WiZ Wizard",
   "edt_dev_spec_convertToLinearRgb_title": "In lineares RGB umwandeln",
   "edt_conf_smooth_antiFlickeringFilter_title": "Anti‑Flimmer‑Filter",
-  "edt_conf_smooth_antiFlickeringFilter_expl": "Aktiviert einen Infinite Color Engine-Filter, der feines LED-Flimmern reduziert, das durch 24-Bit-RGB-Farbquantisierung verursacht wird. Controller, die erweiterte Farbformate unterstützen (Deep Color), wie Philips Hue (im Entertainment-Modus) lub LIFX-Geräte, benötigen diesen Filter nicht.",
+  "edt_conf_smooth_antiFlickeringFilter_expl": "Aktiviert einen Infinite Color Engine-Filter, der feines LED-Flimmern reduziert, das durch 24-Bit-RGB-Farbquantisierung verursacht wird. Controller, die erweiterte Farbformate unterstützen (Deep Color), wie Philips Hue (im Entertainment-Modus) oder LIFX-Geräte, benötigen diesen Filter nicht.",
   "select_hyperk_intro": "Hyperk auswählen",
   "hyperkBrightnessOverride": "Hyperk-Helligkeit überschreiben",
   "hyperkCustomBrightnessLevel": "Benutzerdefinierte Hyperk-Helligkeitsstufe",
