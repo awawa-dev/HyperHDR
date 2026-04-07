@@ -102,7 +102,7 @@ bool DriverSpiSk6812SPI::init(QJsonObject deviceConfig)
 
 			auto rateHz = getRate();
 
-			WarningIf((rateHz < 3200000 || rateHz > 3334000), _log, "Real SPI rate {:d} outside recommended range (3200000-3334000, ideal: 3200000)", rateHz);
+			WarningIf((rateHz < 3000000 || rateHz > 3334000), _log, "Real SPI rate {:d} outside of recommended range (3000000-3334000, ideal: 3200000)", rateHz);
 
 			_ledBuffer.assign(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
