@@ -195,45 +195,51 @@ void WebServer::handleSettingsUpdate(settings::type type, QJsonDocument config)
 				crtPath = WEBSERVER_DEFAULT_CRT_PATH;
 
 			// load and verify crt
-			QFile cfile(crtPath);
-			cfile.open(QIODevice::ReadOnly);
-			QList<QSslCertificate> validList;
-			QList<QSslCertificate> cList = QSslCertificate::fromDevice(&cfile, QSsl::Pem);
-			cfile.close();
-
-			// Filter for valid certs
-			for (const auto& entry : cList)
-			{
-				if (!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
-					validList.append(entry);
-				else
-					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('{:s}')", (crtPath));
-			}
-
-			if (!validList.isEmpty())
-			{
-				Info(_log, "Setup SSL certificate");
-				_server->setCertificates(validList);
+			if (QFile cfile(crtPath); !cfile.open(QIODevice::ReadOnly)) {
+				Error(_log, "Cannot open cert file using path: '{:s}'", (crtPath));
 			}
 			else {
-				Error(_log, "No valid SSL certificate has been found ('{:s}'). Did you install OpenSSL?", (crtPath));
+				QList<QSslCertificate> validList;
+				QList<QSslCertificate> cList = QSslCertificate::fromDevice(&cfile, QSsl::Pem);
+				cfile.close();
+
+				// Filter for valid certs
+				for (const auto& entry : cList)
+				{
+					if (!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
+						validList.append(entry);
+					else
+						Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('{:s}')", (crtPath));
+				}
+
+				if (!validList.isEmpty())
+				{
+					Info(_log, "Setup SSL certificate");
+					_server->setCertificates(validList);
+				}
+				else {
+					Error(_log, "No valid SSL certificate has been found ('{:s}'). Did you install OpenSSL?", (crtPath));
+				}
 			}
 
-			// load and verify key
-			QFile kfile(keyPath);
-			kfile.open(QIODevice::ReadOnly);
-			// The key should be RSA enrcrypted and PEM format, optional the passPhrase
-			QSslKey key(&kfile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, obj["keyPassPhrase"].toString().toUtf8());
-			kfile.close();
-
-			if (key.isNull())
-			{
-				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('{:s}')", (keyPath));
+			// load and verify key			
+			if (QFile kfile(keyPath); !kfile.open(QIODevice::ReadOnly)) {
+				Error(_log, "Cannot open SSL key using path: '{:s}'", (keyPath));
 			}
-			else
-			{
-				Info(_log, "Setup private SSL key");
-				_server->setPrivateKey(key);
+			else {
+				// The key should be RSA enrcrypted and PEM format, optional the passPhrase
+				QSslKey key(&kfile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, obj["keyPassPhrase"].toString().toUtf8());
+				kfile.close();
+
+				if (key.isNull())
+				{
+					Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('{:s}')", (keyPath));
+				}
+				else
+				{
+					Info(_log, "Setup private SSL key");
+					_server->setPrivateKey(key);
+				}
 			}
 		}
 
