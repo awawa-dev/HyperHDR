@@ -36,10 +36,10 @@ const QByteArray QtHttpReply::getStatusTextForCode(QtHttpReply::StatusCode statu
 {
 	switch (statusCode)
 	{
-	case Ok:         return QByteArrayLiteral("OK.");
-	case BadRequest: return QByteArrayLiteral("Bad request !");
-	case Forbidden:  return QByteArrayLiteral("Forbidden !");
-	case NotFound:   return QByteArrayLiteral("Not found !");
+	case Ok:         return QByteArrayLiteral("OK");
+	case BadRequest: return QByteArrayLiteral("Bad Request");
+	case Forbidden:  return QByteArrayLiteral("Forbidden");
+	case NotFound:   return QByteArrayLiteral("Not Found");
 	default:         return QByteArrayLiteral("");
 	}
 }
