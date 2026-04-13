@@ -312,7 +312,7 @@
   "edt_conf_fw_flat_itemtitle": "Цель Flatbuffer",
   "edt_conf_fw_flat_title": "Список клиентов Flatbuffer",
   "edt_conf_fw_flat_expl": "Одна цель Flatbuffer на строку. Содержит IP:PORT (Пример: 127.0.0.1:19401)",
-  "edt_conf_fw_heading_title": "Экспедитор",
+  "edt_conf_fw_heading_title": "Переадресация",
   "edt_conf_fw_json_itemtitle": "Цель JSON",
   "edt_conf_fw_json_title": "Список клиентов JSON",
   "edt_conf_fw_json_expl": "Одна цель JSON на строку. Содержит IP:PORT (пример: 127.0.0.1:19446)",

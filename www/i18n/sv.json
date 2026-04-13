@@ -312,7 +312,7 @@
   "edt_conf_fw_flat_itemtitle": "Flatbuffer-mål",
   "edt_conf_fw_flat_title": "Lista över Flatbuffer-klienter",
   "edt_conf_fw_flat_expl": "Ett Flatbuffer-mål per rad. Innehåller IP:PORT (Exempel: 127.0.0.1:19401)",
-  "edt_conf_fw_heading_title": "Speditör",
+  "edt_conf_fw_heading_title": "Vidarebefordran",
   "edt_conf_fw_json_itemtitle": "JSON -mål",
   "edt_conf_fw_json_title": "Lista över JSON -klienter",
   "edt_conf_fw_json_expl": "Ett JSON -mål per rad. Innehåller IP:PORT (Exempel: 127.0.0.1:19446)",

@@ -312,7 +312,7 @@
   "edt_conf_fw_flat_itemtitle": "mục tiêu phẳng",
   "edt_conf_fw_flat_title": "Danh sách khách hàng của bộ đệm phẳng",
   "edt_conf_fw_flat_expl": "Một mục tiêu bộ đệm phẳng trên mỗi dòng. Chứa IP:PORT (Ví dụ: 127.0.0.1:19401)",
-  "edt_conf_fw_heading_title": "Người giao nhận",
+  "edt_conf_fw_heading_title": "Chuyển tiếp",
   "edt_conf_fw_json_itemtitle": "Mục tiêu JSON",
   "edt_conf_fw_json_title": "Danh sách khách hàng JSON",
   "edt_conf_fw_json_expl": "Một mục tiêu JSON trên mỗi dòng. Chứa IP:PORT (Ví dụ: 127.0.0.1:19446)",

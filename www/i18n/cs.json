@@ -312,7 +312,7 @@
   "edt_conf_fw_flat_itemtitle": "Flatbuffer cíl",
   "edt_conf_fw_flat_title": "Seznam klientů Flatbuffer",
   "edt_conf_fw_flat_expl": "Jeden cíl Flatbuffer na řádek. Obsahuje IP:PORT (Příklad: 127.0.0.1:19401)",
-  "edt_conf_fw_heading_title": "Dopravce",
+  "edt_conf_fw_heading_title": "Přesměrování",
   "edt_conf_fw_json_itemtitle": "Cíl JSON",
   "edt_conf_fw_json_title": "Seznam klientů JSON",
   "edt_conf_fw_json_expl": "Jeden cíl JSON na řádek. Obsahuje IP:PORT (Příklad: 127.0.0.1:19446)",

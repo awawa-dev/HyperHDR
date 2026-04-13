@@ -312,7 +312,7 @@
   "edt_conf_fw_flat_itemtitle": "bersaglio Flatbuffer",
   "edt_conf_fw_flat_title": "Elenco dei clienti Flatbuffer",
   "edt_conf_fw_flat_expl": "Un target Flatbuffer per riga. Contiene IP:PORT (Esempio: 127.0.0.1:19401)",
-  "edt_conf_fw_heading_title": "Spedizioniere",
+  "edt_conf_fw_heading_title": "Inoltro",
   "edt_conf_fw_json_itemtitle": "Obiettivo JSON",
   "edt_conf_fw_json_title": "Elenco dei client JSON",
   "edt_conf_fw_json_expl": "Un target JSON per riga. Contiene IP:PORT (Esempio: 127.0.0.1:19446)",
