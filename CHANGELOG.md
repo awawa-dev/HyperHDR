@@ -3,6 +3,7 @@
    - Add RGBW dithering for legacy RPi PWM & SPI sk6812 driver (#1498) - v22beta2 🆕
 - Switch to Filesystem Hierarchy Standard (FHS) compliant installation on Linux (#1477) - v22beta2 🆕
 - Migrate to standard OS config location if ~/.hyperhdr folder is missing (#1472) - v22beta2 🆕
+- Integrate SignPath for automated Windows code signing (#1479) - v22beta2 🆕
 - Add Philips WiZ support (driver + web wizard) Thanks @user83749 (#1469) - v22beta2 🆕
 - Add aspect ratio detection for Amlogic grabber. Thanks @santievil (#1476) - v22beta2 🆕
 - Fix remote tab JSON parsing error caused by missing black color in API JSON scheme (#1471) - v22beta2 🆕
