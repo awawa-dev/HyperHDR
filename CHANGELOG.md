@@ -9,6 +9,8 @@
 - Implement DDP / Hyperk drivers (#1467) - v22beta2 🆕
 - Add Ubuntu 26.04 LTS and Fedora 44 (#1491) - v22beta2 🆕
 - Fix build without PCH enabled. Thanks @HiassofT for help (#1497) - v22beta2 🆕
+- Update language files. Thanks @AstaRom (#1445) - v22beta2 🆕
+- Fix: use IANA-compliant HTTP reason phrases. Thanks @joeshull (#1510) - v22beta2 🆕
 - Fix: Initial smoothing surge after period of static video input (#1410) - v22beta2 🆕
 - Fix: Minimum brightness preservation in YUV and Hybrid-Inertia smoothing modes (#1410) - v22beta2 🆕
 - Upgrades old style format logging (with %) to c++20 format in some places (#1410) - v22beta2 🆕
