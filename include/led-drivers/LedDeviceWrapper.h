@@ -27,6 +27,9 @@ public:
 	QString getActiveDeviceType() const;
 	bool enabled() const;
 	unsigned int getLedCount() const;
+	QJsonObject getRuntimeTransferCurveState() const;
+	QString setRuntimeTransferCurveProfile(QString profileId);
+	QString setDaytimeUplift(bool enabled, int blend, const QString& profileId);
 	void identifyLed(const QJsonObject& params);
 	int hasLedClock();
 

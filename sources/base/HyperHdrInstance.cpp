@@ -326,6 +326,11 @@ QJsonDocument HyperHdrInstance::getSetting(settings::type type) const
 	return _instanceConfig->getSetting(type);
 }
 
+QJsonObject HyperHdrInstance::getLedDeviceRuntimeTransferCurveState() const
+{
+	return (_ledDeviceWrapper != nullptr) ? _ledDeviceWrapper->getRuntimeTransferCurveState() : QJsonObject();
+}
+
 void HyperHdrInstance::setSetting(settings::type type, QString config)
 {
 	return _instanceConfig->saveSetting(type, config);
@@ -334,6 +339,22 @@ void HyperHdrInstance::setSetting(settings::type type, QString config)
 bool HyperHdrInstance::saveSettings(const QJsonObject& config, bool correct)
 {
 	return _instanceConfig->saveSettings(config, correct);
+}
+
+QString HyperHdrInstance::setLedDeviceRuntimeTransferCurveProfile(QString profileId)
+{
+	if (_ledDeviceWrapper == nullptr)
+		return QString("No active LED device");
+
+	return _ledDeviceWrapper->setRuntimeTransferCurveProfile(profileId);
+}
+
+QString HyperHdrInstance::setLedDeviceDaytimeUplift(bool enabled, int blend, const QString& profileId)
+{
+	if (_ledDeviceWrapper == nullptr)
+		return QString("No active LED device");
+
+	return _ledDeviceWrapper->setDaytimeUplift(enabled, blend, profileId);
 }
 
 void HyperHdrInstance::saveCalibration(QString saveData)

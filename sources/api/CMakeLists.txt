@@ -5,6 +5,13 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/api)
 
 FILE ( GLOB_RECURSE Api_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
+# In-source builds generate Qt autogen files under sources/api/hyperhdr-api_autogen.
+# Keep those generated files out of the source list to avoid AutoMoc recursion errors.
+list(FILTER Api_SOURCES EXCLUDE REGEX ".*/hyperhdr-api_autogen/.*")
+list(FILTER Api_SOURCES EXCLUDE REGEX ".*/CMakeFiles/.*")
+list(FILTER Api_SOURCES EXCLUDE REGEX ".*/moc_.*\\.cpp$")
+list(FILTER Api_SOURCES EXCLUDE REGEX ".*/qrc_.*\\.cpp$")
+
 qt_add_resources(Api_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
 
 add_library(hyperhdr-api OBJECT

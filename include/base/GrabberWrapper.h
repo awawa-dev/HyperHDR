@@ -31,6 +31,11 @@ public:
 
 	bool isCEC();	
 	bool getAutoResume();
+	QJsonObject getLutRuntimeInfo() const;
+	void setLutMemoryCacheEnabled(bool enabled);
+	bool applyLutSwitch(const QStringList& candidateFiles, QString& error);
+	bool applyLutSwitch(const QStringList& candidateFiles, const QStringList& interpolationCandidateFiles, int interpolationBlend, QString& error);
+	bool reloadLut(QString& error);
 
 public slots:
 	void capturingExceptionHandler(const char* err);	
@@ -38,6 +43,7 @@ public slots:
 	bool start();
 	void stop();
 	void revive();
+	void forceRevive();
 
 	QJsonObject getJsonInfo();
 
@@ -94,6 +100,8 @@ protected:
 	bool		_autoResume;
 	bool		_isPaused;
 	bool		_pausingModeEnabled;
+
+	QTimer*		_reviveTimer;
 
 	QList<int>	_running_clients;
 	QList<int>	_paused_clients;

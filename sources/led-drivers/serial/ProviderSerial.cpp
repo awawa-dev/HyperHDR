@@ -20,7 +20,7 @@
 #include <led-drivers/serial/EspTools.h>
 
 // Constants
-constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
+constexpr std::chrono::milliseconds DEFAULT_WRITE_TIMEOUT{ 1000 };	// default device write timeout in ms
 constexpr std::chrono::milliseconds OPEN_TIMEOUT{ 5000 };		// device open timeout in ms
 const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
 const int NUM_POWEROFF_WRITE_BLACK = 3;	// Number of write "BLACK" during powering off
@@ -31,6 +31,7 @@ ProviderSerial::ProviderSerial(const QJsonObject& deviceConfig)
 	, _baudRate_Hz(1000000)
 	, _isAutoDeviceName(false)
 	, _delayAfterConnect_ms(0)
+	, _writeTimeout_ms(static_cast<int>(DEFAULT_WRITE_TIMEOUT.count()))
 	, _frameDropCounter(0)
 	, _espHandshake(true)
 	, _forceSerialDetection(false)
@@ -60,6 +61,9 @@ bool ProviderSerial::init(QJsonObject deviceConfig)
 		_isAutoDeviceName = _deviceName.toLower() == "auto";
 		_baudRate_Hz = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
+		_writeTimeout_ms = deviceConfig["writeTimeout"].toInt(static_cast<int>(DEFAULT_WRITE_TIMEOUT.count()));
+		if (_writeTimeout_ms < 0)
+			_writeTimeout_ms = 0;
 		_espHandshake = deviceConfig["espHandshake"].toBool(false);
 		_maxRetry = _devConfig["maxRetry"].toInt(60);
 		_forceSerialDetection = deviceConfig["forceSerialDetection"].toBool(false);
@@ -67,6 +71,7 @@ bool ProviderSerial::init(QJsonObject deviceConfig)
 		Debug(_log, "Device name   : {:s}", (_deviceName));
 		Debug(_log, "Auto selection: {:d}", _isAutoDeviceName);
 		Debug(_log, "Baud rate     : {:d}", _baudRate_Hz);
+		Debug(_log, "Write timeout : {:d}ms ({:s})", _writeTimeout_ms, (_writeTimeout_ms > 0) ? "blocking" : "non-blocking");
 		Debug(_log, "ESP handshake : {:s}", (_espHandshake) ? "ON" : "OFF");
 		Debug(_log, "Force ESP/Pico Detection : {:s}", (_forceSerialDetection) ? "ON" : "OFF");
 		Debug(_log, "Delayed open  : {:d}", _delayAfterConnect_ms);
@@ -286,11 +291,11 @@ int ProviderSerial::writeBytes(const qint64 size, const uint8_t* data)
 	}
 	else
 	{
-		if (!_serialPort->waitForBytesWritten(WRITE_TIMEOUT.count()))
+		if (_writeTimeout_ms > 0 && !_serialPort->waitForBytesWritten(_writeTimeout_ms))
 		{
 			if (_serialPort->error() == QSerialPort::TimeoutError)
 			{
-				Debug(_log, "Timeout after {:d}ms: {:d} frames already dropped", static_cast<int>(WRITE_TIMEOUT.count()), _frameDropCounter);
+				Debug(_log, "Timeout after {:d}ms: {:d} frames already dropped", _writeTimeout_ms, _frameDropCounter);
 
 				++_frameDropCounter;
 

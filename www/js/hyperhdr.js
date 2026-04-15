@@ -494,6 +494,11 @@ function requestSetComponentState(comp, state)
 	sendToHyperhdr("componentstate", "", '"componentstate":{"component":"' + comp + '","state":' + state_str + '}');
 }
 
+function requestVideoGrabberRevive()
+{
+	sendToHyperhdr("videograbber-revive", "", '');
+}
+
 function requestSetSource(prio)
 {
 	if (prio == "auto")
@@ -515,6 +520,31 @@ function requestWriteConfig(config, full)
 	}
 
 	sendToHyperhdr("config", "setconfig", '"config":' + JSON.stringify(window.serverConfig));
+}
+
+function requestLutSwitchingGet()
+{
+	return sendAsyncToHyperhdr("lut-switching", "get");
+}
+
+function requestLutSwitchingApply(data)
+{
+	return sendAsyncToHyperhdr("lut-switching", "apply", data);
+}
+
+function requestLutSwitchingSave(data)
+{
+	return sendAsyncToHyperhdr("lut-switching", "save", data);
+}
+
+function requestLutSwitchingApplyRuntime(data)
+{
+	return sendAsyncToHyperhdr("lut-switching", "apply-runtime", data);
+}
+
+function requestLutSwitchingReload()
+{
+	return sendAsyncToHyperhdr("lut-switching", "reload");
 }
 
 function requestTestEffect(effectName, effectPy, effectArgs, data)
@@ -653,9 +683,89 @@ function requestLutInstall(address, hardware_brightness, hardware_contrast, hard
 											"now":${now}`);
 }
 
-async function requestLutCalibration(mode, debug, lch_correction)
+async function requestTransferHeadersList()
 {
-	sendToHyperhdr("lut-calibration", mode, `"debug":${debug}, "lch_correction":${lch_correction}`);
+	return sendAsyncToHyperhdr("transfer-headers", "list", null, Math.floor(Math.random() * 1000));
+}
+
+async function requestTransferHeadersActive()
+{
+	return sendAsyncToHyperhdr("transfer-headers", "get-active", null, Math.floor(Math.random() * 1000));
+}
+
+async function requestTransferHeaderSave(name, content)
+{
+	return sendAsyncToHyperhdr("transfer-headers", "save", { name, content }, Math.floor(Math.random() * 1000));
+}
+
+async function requestTransferHeaderDelete(profile)
+{
+	return sendAsyncToHyperhdr("transfer-headers", "delete", { profile }, Math.floor(Math.random() * 1000));
+}
+
+async function requestCurrentStateVideoStream(instance)
+{
+	return sendAsyncToHyperhdr("current-state", "video-stream-get", { instance }, Math.floor(Math.random() * 1000));
+}
+
+async function requestCalibrationHeadersList()
+{
+	return sendAsyncToHyperhdr("calibration-headers", "list", null, Math.floor(Math.random() * 1000));
+}
+
+async function requestCalibrationHeaderSave(name, content)
+{
+	return sendAsyncToHyperhdr("calibration-headers", "save", { name, content }, Math.floor(Math.random() * 1000));
+}
+
+async function requestCalibrationHeaderDelete(profile)
+{
+	return sendAsyncToHyperhdr("calibration-headers", "delete", { profile }, Math.floor(Math.random() * 1000));
+}
+
+async function requestRgbwLutHeadersList()
+{
+	return sendAsyncToHyperhdr("rgbw-lut-headers", "list", null, Math.floor(Math.random() * 1000));
+}
+
+async function requestRgbwLutHeadersActive()
+{
+	return sendAsyncToHyperhdr("rgbw-lut-headers", "get-active", null, Math.floor(Math.random() * 1000));
+}
+
+async function requestRgbwLutHeaderSave(name, content)
+{
+	return sendAsyncToHyperhdr("rgbw-lut-headers", "save", { name, content }, Math.floor(Math.random() * 1000));
+}
+
+async function requestRgbwLutHeaderDelete(profile)
+{
+	return sendAsyncToHyperhdr("rgbw-lut-headers", "delete", { profile }, Math.floor(Math.random() * 1000));
+}
+
+async function requestRgbwLutHeaderSetActive(profile)
+{
+	return sendAsyncToHyperhdr("rgbw-lut-headers", "set-active", { profile }, Math.floor(Math.random() * 1000));
+}
+
+async function requestSolverProfilesList()
+{
+	return sendAsyncToHyperhdr("solver-profiles", "list", null, Math.floor(Math.random() * 1000));
+}
+
+async function requestSolverProfileSave(name, content)
+{
+	return sendAsyncToHyperhdr("solver-profiles", "save", { name, content }, Math.floor(Math.random() * 1000));
+}
+
+async function requestSolverProfileDelete(profile)
+{
+	return sendAsyncToHyperhdr("solver-profiles", "delete", { profile }, Math.floor(Math.random() * 1000));
+}
+
+async function requestLutCalibration(mode, debug, lch_correction, colored_aspect_mode = -1, nits_override = -1)
+{
+	sendToHyperhdr("lut-calibration", mode, `"debug":${debug}, "lch_correction":${lch_correction}, "colored_aspect_mode":${colored_aspect_mode}, "nits_override":${nits_override}`);
 }
 
 async function requestHasLedClock()

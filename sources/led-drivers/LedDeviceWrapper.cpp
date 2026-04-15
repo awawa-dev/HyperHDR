@@ -4,9 +4,11 @@
 #include <led-drivers/LedDeviceManufactory.h>
 
 // util
+#include <base/HyperHdrManager.h>
 #include <base/HyperHdrInstance.h>
 #include <json-utils/JsonUtils.h>
 #include <utils/Macros.h>
+#include <utils/GlobalSignals.h>
 
 // qt
 #include <future>
@@ -32,11 +34,15 @@ void LedDeviceWrapper::createLedDevice(QJsonObject config, int smoothingInterval
 {
 	auto threadReadyPromisePtr = std::make_shared<std::promise<void>>();
 	const int instanceIndex = _ownerInstance->getInstanceIndex();
+	std::shared_ptr<HyperHdrManager> instanceManager;
+	emit GlobalSignals::getInstance()->SignalGetInstanceManager(instanceManager);
 
 	_ledDevice.reset();
 
 	config["smoothingRefreshTime"] = smoothingInterval;
 	config["smoothingAntiFlickeringFilter"] = antiFlickeringFilter;
+	if (instanceManager != nullptr)
+		config["configurationPath"] = instanceManager->getRootPath();
 
 	QThread* thread = new QThread();
 	thread->setObjectName(QString("LedDeviceThread%1").arg(instanceIndex));
@@ -141,6 +147,34 @@ QString LedDeviceWrapper::getActiveDeviceType() const
 bool LedDeviceWrapper::enabled() const
 {
 	return _enabled;
+}
+
+QJsonObject LedDeviceWrapper::getRuntimeTransferCurveState() const
+{
+	QJsonObject value;
+	if (_ledDevice != nullptr)
+		SAFE_CALL_0_RET(_ledDevice.get(), getRuntimeTransferCurveState, QJsonObject, value);
+	return value;
+}
+
+QString LedDeviceWrapper::setRuntimeTransferCurveProfile(QString profileId)
+{
+	if (_ledDevice == nullptr)
+		return "No active LED device";
+
+	QString result;
+	SAFE_CALL_1_RET(_ledDevice.get(), setRuntimeTransferCurveProfile, QString, result, QString, profileId);
+	return result;
+}
+
+QString LedDeviceWrapper::setDaytimeUplift(bool enabled, int blend, const QString& profileId)
+{
+	if (_ledDevice == nullptr)
+		return "No active LED device";
+
+	QString result;
+	SAFE_CALL_3_RET(_ledDevice.get(), setDaytimeUplift, QString, result, bool, enabled, int, blend, QString, profileId);
+	return result;
 }
 
 void LedDeviceWrapper::identifyLed(const QJsonObject& params)

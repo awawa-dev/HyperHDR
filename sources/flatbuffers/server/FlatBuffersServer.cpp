@@ -420,7 +420,7 @@ void FlatBuffersServer::handlerImageReceived(int priority, FlatBuffersParser::Fl
 
 			FrameDecoder::dispatchProcessImageVector[_quarterOfFrameMode][_hdrToneMappingEnabled][false](
 				0, 0, 0, 0,
-				flatImage->firstPlane.data, flatImage->secondPlane.data, flatImage->width, flatImage->height, flatImage->width, PixelFormat::NV12, _lut.data(), image, nullptr);
+				flatImage->firstPlane.data, flatImage->secondPlane.data, flatImage->width, flatImage->height, flatImage->width, PixelFormat::NV12, _lut.data(), nullptr, 0, nullptr, nullptr, 0, 0, image, nullptr);
 
 			emit GlobalSignals::getInstance()->SignalSetGlobalImage(priority, image, timeout_ms, origin, clientDescription);
 		}

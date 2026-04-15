@@ -1032,7 +1032,8 @@ bool MFGrabber::process_image(const void* frameImageBuffer, int size)
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
-							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName, _automaticToneMapping.prepare());
+							const_cast<uint8_t*>(getCurrentLutBuffer()), const_cast<uint8_t*>(getCurrentLutInterpolationBuffer()), getCurrentLutInterpolationBlend(),
+							nullptr, nullptr, 0, 0, _qframe, directAccess, _deviceName, _automaticToneMapping.prepare());
 
 						if (_MFWorkerManager.workersCount > 1)
 							_MFWorkerManager.workers[i]->start();

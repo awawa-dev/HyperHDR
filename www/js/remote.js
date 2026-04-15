@@ -235,7 +235,8 @@ $(document).ready(function()
 		var btn_auto_text = (window.serverInfo.priorities_autoselect ? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
 		var btn_call_state = (clearAll ? "" : "disabled");
 		$('#auto_btn').html('<button id="srcBtn' + i + '" type="button" ' + btn_auto_state + ' class="mb-1 btn ' + btn_auto_color + '" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">' + $.i18n('remote_input_label_autoselect') + ' (' + btn_auto_text + ')</button>');
-		$('#auto_btn').append('<button type="button" ' + btn_call_state + ' class="mb-1 btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">' + $.i18n('remote_input_clearall') + '</button>');		
+		$('#auto_btn').append('<button type="button" ' + btn_call_state + ' class="mb-1 btn btn-danger" style="margin-right:5px;display:inline-block;" onclick="requestClearAll();">' + $.i18n('remote_input_clearall') + '</button>');
+		$('#auto_btn').append('<button type="button" class="mb-1 btn btn-warning" style="display:inline-block;" onclick="requestVideoGrabberRevive();">Force Grabber Revive</button>');		
 	}
 
 	function updateLedMapping()

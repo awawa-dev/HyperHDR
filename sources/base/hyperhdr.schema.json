@@ -106,6 +106,10 @@
 		"automaticToneMapping" :
 		{
 			"$ref": "schema-automaticToneMapping.json"
+		},
+		"lutSwitching" :
+		{
+			"$ref": "schema-lutSwitching.json"
 		}
 	},
 	"additionalProperties" : false

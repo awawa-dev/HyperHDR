@@ -73,6 +73,7 @@ public slots:
 	int getLedCount() const;
 	bool getReadOnlyMode() const;
 	QJsonDocument getSetting(settings::type type) const;
+	QJsonObject getLedDeviceRuntimeTransferCurveState() const;
 	int hasLedClock();
 	void identifyLed(const QJsonObject& params);
 	int isComponentEnabled(hyperhdr::Components comp) const;
@@ -81,6 +82,8 @@ public slots:
 	void registerInput(int priority, hyperhdr::Components component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
 	void saveCalibration(QString saveData);
 	bool saveSettings(const QJsonObject& config, bool correct = false);
+	QString setLedDeviceRuntimeTransferCurveProfile(QString profileId);
+	QString setLedDeviceDaytimeUplift(bool enabled, int blend, const QString& profileId);
 	void setSignalStateByCEC(bool enable);
 	bool setInputLeds(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
 	void setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, bool clearEffect = true);

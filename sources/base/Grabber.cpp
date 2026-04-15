@@ -26,8 +26,10 @@
  */
 
 #ifndef PCH_ENABLED
+	#include <cmath>
 	#include <QFile>
 	#include <QJsonArray>
+	#include <QJsonObject>
 #endif
 
 #include <base/Grabber.h>
@@ -66,6 +68,7 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _blocked(false)
 	, _restartNeeded(false)
 	, _initialized(false)
+	, _lutCalibrationOverrideActive(false)
 	, _fpsSoftwareDecimation(1)
 	, _hardware(false)
 	, _actualVideoFormat(PixelFormat::NO_CHANGE)
@@ -80,13 +83,65 @@ Grabber::Grabber(const QString& configurationPath, const QString& grabberName)
 	, _signalDetectionEnabled(false)
 	, _signalAutoDetectionEnabled(false)
 	, _synchro(1)
+	, _lutInterpolationBlend(0)
+	, _lutMemoryCacheEnabled(true)
+	, _lutRuntimeTransitionInterpolationBlend(0)
+	, _lutRuntimeTransitionBlend(0)
+	, _lutRuntimeTransitionFrameStep(0)
+	, _lutRuntimeTransitionActive(false)
+	, _lutRuntimeCurrentUsesTransitionSlot(false)
+	, _lutRuntimeTransitionTargetUsesTransitionSlot(false)
 {
 	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler, Qt::BlockingQueuedConnection);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetCalibrationLutOverride, this, &Grabber::signalSetCalibrationLutOverrideHandler, Qt::BlockingQueuedConnection);
 }
 
 Grabber::~Grabber()
 {
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetLut, this, &Grabber::signalSetLutHandler);
+	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetCalibrationLutOverride, this, &Grabber::signalSetCalibrationLutOverrideHandler);
+}
+
+namespace
+{
+	constexpr int kLutRuntimeTransitionDurationMs = 180;
+	constexpr int kLutRuntimeTransitionMinFrames = 3;
+	constexpr int kLutRuntimeTransitionMaxFrames = 12;
+
+	QString normalizeLutPath(const QString& path)
+	{
+		return QDir::cleanPath(path.trimmed());
+	}
+
+	QString resolveSelectedCandidate(const QStringList& configuredCandidates)
+	{
+		for (const QString& candidate : configuredCandidates)
+		{
+			const QString normalizedCandidate = normalizeLutPath(candidate);
+			if (!normalizedCandidate.isEmpty() && QFileInfo::exists(normalizedCandidate))
+				return normalizedCandidate;
+		}
+		return QString();
+	}
+
+	bool selectedCandidateMatchesLoadedFile(const QString& selectedCandidate, const QString& loadedFile)
+	{
+		if (selectedCandidate.isEmpty())
+			return false;
+		const QString normalizedLoaded = normalizeLutPath(loadedFile);
+		if (normalizedLoaded.isEmpty())
+			return false;
+		return normalizeLutPath(selectedCandidate).compare(normalizedLoaded, Qt::CaseInsensitive) == 0;
+	}
+
+	uint8_t calculateLutRuntimeTransitionFrameStep(const int actualFps)
+	{
+		const int boundedFps = std::max(actualFps, 1);
+		const int transitionFrames = qBound(kLutRuntimeTransitionMinFrames,
+			static_cast<int>(std::lround((static_cast<double>(boundedFps) * kLutRuntimeTransitionDurationMs) / 1000.0)),
+			kLutRuntimeTransitionMaxFrames);
+		return static_cast<uint8_t>(std::max(1, (255 + transitionFrames - 1) / transitionFrames));
+	}
 }
 
 void Grabber::pleaseWaitForLut(bool videoGrabber)
@@ -331,6 +386,366 @@ void Grabber::setEncoding(QString enc)
 		}
 
 	}
+}
+
+void Grabber::setLutCandidateFiles(const QStringList& files)
+{
+	QStringList normalized;
+	for (const QString& file : files)
+	{
+		const QString cleaned = QDir::cleanPath(file.trimmed());
+		if (cleaned.isEmpty() || normalized.contains(cleaned, Qt::CaseInsensitive))
+			continue;
+		normalized.append(cleaned);
+	}
+	_lutCandidateFiles = normalized;
+}
+
+QStringList Grabber::getLutCandidateFiles() const
+{
+	return _lutCandidateFiles;
+}
+
+void Grabber::setLutInterpolationCandidateFiles(const QStringList& files, int blend)
+{
+	QStringList normalized;
+	for (const QString& file : files)
+	{
+		const QString cleaned = QDir::cleanPath(file.trimmed());
+		if (cleaned.isEmpty() || normalized.contains(cleaned, Qt::CaseInsensitive))
+			continue;
+		normalized.append(cleaned);
+	}
+
+	_lutInterpolationCandidateFiles = normalized;
+	_lutInterpolationBlend = static_cast<uint8_t>(qBound(0, blend, 255));
+	if (_lutInterpolationCandidateFiles.isEmpty())
+		_lutInterpolationBlend = 0;
+}
+
+QStringList Grabber::getLutInterpolationCandidateFiles() const
+{
+	return _lutInterpolationCandidateFiles;
+}
+
+int Grabber::getLutInterpolationBlend() const
+{
+	return _lutInterpolationBlend;
+}
+
+const uint8_t* Grabber::getCurrentLutBuffer() const
+{
+	if (_lutCalibrationOverrideActive)
+		return (_lutBufferInit && _lut.data() != nullptr) ? _lut.data() : nullptr;
+
+	const LutLoader& currentLoader = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionLoader : static_cast<const LutLoader&>(*this);
+	return (currentLoader._lutBufferInit && currentLoader._lut.data() != nullptr) ? currentLoader._lut.data() : nullptr;
+}
+
+const uint8_t* Grabber::getCurrentLutInterpolationBuffer() const
+{
+	if (_lutCalibrationOverrideActive)
+		return nullptr;
+
+	const LutLoader& currentLoader = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionInterpolationLoader : _lutInterpolationLoader;
+	return (currentLoader._lutBufferInit && currentLoader._lut.data() != nullptr) ? currentLoader._lut.data() : nullptr;
+}
+
+uint8_t Grabber::getCurrentLutInterpolationBlend() const
+{
+	if (_lutCalibrationOverrideActive)
+		return 0;
+
+	return _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionInterpolationBlend : _lutInterpolationBlend;
+}
+
+const uint8_t* Grabber::getTransitionTargetLutBuffer() const
+{
+	if (_lutCalibrationOverrideActive || !_lutRuntimeTransitionActive)
+		return nullptr;
+
+	const LutLoader& targetLoader = _lutRuntimeTransitionTargetUsesTransitionSlot ? _lutRuntimeTransitionLoader : static_cast<const LutLoader&>(*this);
+	return (targetLoader._lutBufferInit && targetLoader._lut.data() != nullptr) ? targetLoader._lut.data() : nullptr;
+}
+
+const uint8_t* Grabber::getTransitionTargetLutInterpolationBuffer() const
+{
+	if (_lutCalibrationOverrideActive || !_lutRuntimeTransitionActive)
+		return nullptr;
+
+	const LutLoader& targetLoader = _lutRuntimeTransitionTargetUsesTransitionSlot ? _lutRuntimeTransitionInterpolationLoader : _lutInterpolationLoader;
+	return (targetLoader._lutBufferInit && targetLoader._lut.data() != nullptr) ? targetLoader._lut.data() : nullptr;
+}
+
+uint8_t Grabber::getTransitionTargetLutInterpolationBlend() const
+{
+	if (_lutCalibrationOverrideActive || !_lutRuntimeTransitionActive)
+		return 0;
+	return _lutRuntimeTransitionTargetUsesTransitionSlot ? _lutRuntimeTransitionInterpolationBlend : _lutInterpolationBlend;
+}
+
+uint8_t Grabber::getLutRuntimeTransitionBlend() const
+{
+	if (_lutCalibrationOverrideActive)
+		return 0;
+
+	return _lutRuntimeTransitionActive ? _lutRuntimeTransitionBlend : 0;
+}
+
+bool Grabber::isLutRuntimeTransitionActive() const
+{
+	return !_lutCalibrationOverrideActive && _lutRuntimeTransitionActive;
+}
+
+bool Grabber::isCalibrationLutOverrideActive() const
+{
+	return _lutCalibrationOverrideActive;
+}
+
+void Grabber::advanceLutRuntimeTransition()
+{
+	if (!_lutRuntimeTransitionActive)
+		return;
+
+	const int nextBlend = std::min(255, static_cast<int>(_lutRuntimeTransitionBlend) + std::max(1, static_cast<int>(_lutRuntimeTransitionFrameStep)));
+	_lutRuntimeTransitionBlend = static_cast<uint8_t>(nextBlend);
+	if (_lutRuntimeTransitionBlend < 255)
+		return;
+
+	// Propagate the target's interpolation blend into the slot that is about
+	// to become "current" so getCurrentLutInterpolationBlend() returns the
+	// correct value immediately after the flip.
+	const uint8_t targetInterpolation = _lutRuntimeTransitionTargetUsesTransitionSlot
+		? _lutRuntimeTransitionInterpolationBlend
+		: _lutInterpolationBlend;
+
+	_lutRuntimeCurrentUsesTransitionSlot = _lutRuntimeTransitionTargetUsesTransitionSlot;
+	_lutRuntimeTransitionActive = false;
+	_lutRuntimeTransitionBlend = 0;
+	_lutRuntimeTransitionFrameStep = 0;
+	_lutRuntimeTransitionTargetUsesTransitionSlot = _lutRuntimeCurrentUsesTransitionSlot;
+
+	// Write the propagated blend into the now-current slot.
+	if (_lutRuntimeCurrentUsesTransitionSlot)
+		_lutRuntimeTransitionInterpolationBlend = targetInterpolation;
+	else
+		_lutInterpolationBlend = targetInterpolation;
+}
+
+void Grabber::setLutMemoryCacheEnabled(bool enabled)
+{
+	_lutMemoryCacheEnabled = enabled;
+}
+
+bool Grabber::isLutMemoryCacheEnabled() const
+{
+	return _lutMemoryCacheEnabled;
+}
+
+void Grabber::clearLutMemoryCache()
+{
+	const int count = LutLoader::getMemoryCacheEntryCount();
+	LutLoader::clearLutMemoryCache();
+	if (count > 0)
+		Info(_log, "Cleared LUT memory cache ({:d} entries released)", count);
+}
+
+PixelFormat Grabber::getCurrentLutPixelFormatHint() const
+{
+	const PixelFormat format = (_actualVideoFormat != PixelFormat::NO_CHANGE) ? _actualVideoFormat : _enc;
+	switch (format)
+	{
+		case PixelFormat::YUYV:
+		case PixelFormat::UYVY:
+		case PixelFormat::I420:
+		case PixelFormat::NV12:
+		case PixelFormat::P010:
+		case PixelFormat::MJPEG:
+			return PixelFormat::YUYV;
+		default:
+			return PixelFormat::RGB24;
+	}
+}
+
+bool Grabber::reloadLut(QString& error)
+{
+	if (tryPrepareLutRuntimeTransition(_log, getCurrentLutPixelFormatHint(),
+		_lutCandidateFiles, _lutInterpolationCandidateFiles, _lutInterpolationBlend, error))
+		return error.isEmpty();
+
+	return loadConfiguredLutSelection(_log, getCurrentLutPixelFormatHint(), error);
+}
+
+bool Grabber::tryPrepareLutRuntimeTransition(const LoggerName& log, PixelFormat color,
+	const QStringList& primaryCandidates, const QStringList& secondaryCandidates, uint8_t interpolationBlend, QString& error)
+{
+	if (_lutCalibrationOverrideActive || !_lutMemoryCacheEnabled || getCurrentLutBuffer() == nullptr || primaryCandidates.isEmpty())
+		return false;
+
+	const bool interpolationRequested = interpolationBlend > 0 && !secondaryCandidates.isEmpty();
+	const QString resolvedPrimaryCandidate = resolveSelectedCandidate(primaryCandidates);
+	const QString resolvedInterpolationCandidate = interpolationRequested ? resolveSelectedCandidate(secondaryCandidates) : QString();
+	if (resolvedPrimaryCandidate.isEmpty())
+		return false;
+
+	const QString currentPrimaryFile = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionLoader.getLoadedLutFile() : _loadedLutFile;
+	const QString currentInterpolationFile = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionInterpolationLoader.getLoadedLutFile() : _lutInterpolationLoader.getLoadedLutFile();
+	const int currentLoadedHdrMode = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionLoader._loadedHdrToneMappingMode : _loadedHdrToneMappingMode;
+	if (selectedCandidateMatchesLoadedFile(resolvedPrimaryCandidate, currentPrimaryFile) &&
+		(!interpolationRequested || selectedCandidateMatchesLoadedFile(resolvedInterpolationCandidate, currentInterpolationFile)) &&
+		currentLoadedHdrMode == _hdrToneMappingEnabled)
+	{
+		if (_lutRuntimeCurrentUsesTransitionSlot)
+			_lutRuntimeTransitionInterpolationBlend = interpolationRequested ? interpolationBlend : 0;
+		else
+			_lutInterpolationBlend = interpolationRequested ? interpolationBlend : 0;
+
+		_lutRuntimeTransitionActive = false;
+		_lutRuntimeTransitionBlend = 0;
+		_lutRuntimeTransitionFrameStep = 0;
+		error.clear();
+		return true;
+	}
+
+	const bool targetUsesTransitionSlot = !_lutRuntimeCurrentUsesTransitionSlot;
+	LutLoader& targetPrimaryLoader = targetUsesTransitionSlot ? _lutRuntimeTransitionLoader : static_cast<LutLoader&>(*this);
+	LutLoader* targetInterpolationLoader = targetUsesTransitionSlot ? &_lutRuntimeTransitionInterpolationLoader : &_lutInterpolationLoader;
+	if (!loadLutSelection(log, color, _hdrToneMappingEnabled,
+		primaryCandidates, secondaryCandidates, interpolationBlend, true,
+		targetPrimaryLoader, targetInterpolationLoader, error))
+	{
+		return true;
+	}
+
+	if (targetUsesTransitionSlot)
+		_lutRuntimeTransitionInterpolationBlend = interpolationRequested ? interpolationBlend : 0;
+	else
+		_lutInterpolationBlend = interpolationRequested ? interpolationBlend : 0;
+
+	// Clear the current slot's interpolation blend so the outgoing side of the
+	// crossfade does not keep decoding with a stale DV bucket blend value.
+	if (_lutRuntimeCurrentUsesTransitionSlot)
+		_lutRuntimeTransitionInterpolationBlend = 0;
+	else
+		_lutInterpolationBlend = 0;
+
+	_lutRuntimeTransitionTargetUsesTransitionSlot = targetUsesTransitionSlot;
+	_lutRuntimeTransitionBlend = 0;
+	_lutRuntimeTransitionFrameStep = calculateLutRuntimeTransitionFrameStep((_actualFPS > 0) ? _actualFPS : _fps);
+	_lutRuntimeTransitionActive = true;
+	Debug(log, "Starting cached LUT runtime transition: currentSlot={:s}, targetSlot={:s}, step={:d}",
+		_lutRuntimeCurrentUsesTransitionSlot ? "transition" : "base",
+		_lutRuntimeTransitionTargetUsesTransitionSlot ? "transition" : "base",
+		_lutRuntimeTransitionFrameStep);
+		error.clear();
+	return true;
+}
+
+QJsonObject Grabber::getLutRuntimeInfo() const
+{
+	QJsonObject runtime;
+	QJsonArray candidates;
+	QJsonArray interpolationCandidates;
+	for (const QString& file : _lutCandidateFiles)
+		candidates.append(file);
+	for (const QString& file : _lutInterpolationCandidateFiles)
+		interpolationCandidates.append(file);
+
+	runtime["candidateFiles"] = candidates;
+	runtime["interpolationCandidateFiles"] = interpolationCandidates;
+	const QString currentLoadedFile = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionLoader.getLoadedLutFile() : _loadedLutFile;
+	const QString currentInterpolationFile = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionInterpolationLoader.getLoadedLutFile() : _lutInterpolationLoader.getLoadedLutFile();
+	runtime["lutBufferInit"] = (getCurrentLutBuffer() != nullptr);
+	runtime["hdrToneMappingEnabled"] = (_hdrToneMappingEnabled != 0);
+	runtime["loadedFile"] = currentLoadedFile;
+	runtime["loadedFileExists"] = !currentLoadedFile.isEmpty() && QFileInfo::exists(currentLoadedFile);
+	runtime["loadedCompressed"] = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionLoader.isLoadedLutCompressed() : _loadedLutCompressed;
+	runtime["memoryCacheEnabled"] = _lutMemoryCacheEnabled;
+	runtime["memoryCacheEntries"] = LutLoader::getMemoryCacheEntryCount();
+	runtime["memoryCacheMaxEntries"] = LutLoader::getMemoryCacheMaxEntries();
+	runtime["interpolationBlend"] = getCurrentLutInterpolationBlend();
+	runtime["interpolationBlendRatio"] = static_cast<double>(getCurrentLutInterpolationBlend()) / 255.0;
+	runtime["loadedInterpolationFile"] = currentInterpolationFile;
+	runtime["loadedInterpolationFileExists"] = !currentInterpolationFile.isEmpty() && QFileInfo::exists(currentInterpolationFile);
+	runtime["loadedInterpolationCompressed"] = _lutRuntimeCurrentUsesTransitionSlot ? _lutRuntimeTransitionInterpolationLoader.isLoadedLutCompressed() : _lutInterpolationLoader.isLoadedLutCompressed();
+	runtime["interpolationActive"] = getCurrentLutInterpolationBlend() > 0 && getCurrentLutInterpolationBuffer() != nullptr;
+	runtime["runtimeTransitionActive"] = _lutRuntimeTransitionActive;
+	runtime["runtimeTransitionBlend"] = _lutRuntimeTransitionBlend;
+	runtime["runtimeTransitionBlendRatio"] = static_cast<double>(_lutRuntimeTransitionBlend) / 255.0;
+	runtime["runtimeTransitionFrameStep"] = _lutRuntimeTransitionFrameStep;
+	if (_lutRuntimeTransitionActive)
+	{
+		const QString targetLoadedFile = _lutRuntimeTransitionTargetUsesTransitionSlot ? _lutRuntimeTransitionLoader.getLoadedLutFile() : _loadedLutFile;
+		const QString targetInterpolationFile = _lutRuntimeTransitionTargetUsesTransitionSlot ? _lutRuntimeTransitionInterpolationLoader.getLoadedLutFile() : _lutInterpolationLoader.getLoadedLutFile();
+		runtime["runtimeTransitionTargetFile"] = targetLoadedFile;
+		runtime["runtimeTransitionTargetInterpolationFile"] = targetInterpolationFile;
+		runtime["runtimeTransitionTargetInterpolationBlend"] = getTransitionTargetLutInterpolationBlend();
+		runtime["runtimeTransitionTargetInterpolationBlendRatio"] = static_cast<double>(getTransitionTargetLutInterpolationBlend()) / 255.0;
+	}
+
+	if (getCurrentLutBuffer() != nullptr)
+	{
+		uint32_t checkSum = 0;
+		for (int i = 0; i < 256; i += 2)
+			for (int j = 32; j <= 160; j += 64)
+				checkSum ^= *(reinterpret_cast<const uint32_t*>(&(getCurrentLutBuffer()[LUT_INDEX(j, i, (255 - i))])));
+		runtime["lutFastCRC"] = "0x" + QString("%1").arg(checkSum, 4, 16).toUpper();
+	}
+
+	return runtime;
+}
+
+bool Grabber::loadConfiguredLutSelection(const LoggerName& log, PixelFormat color, QString& error)
+{
+	return loadLutSelection(log, color, _hdrToneMappingEnabled,
+		_lutCandidateFiles, _lutInterpolationCandidateFiles, _lutInterpolationBlend, _lutMemoryCacheEnabled,
+		*this, &_lutInterpolationLoader, error);
+}
+
+void Grabber::clearCalibrationLutOverride()
+{
+	_lutCalibrationOverrideActive = false;
+}
+
+bool Grabber::loadLutSelection(const LoggerName& log, PixelFormat color, int hdrToneMappingEnabled,
+	const QStringList& primaryCandidates, const QStringList& secondaryCandidates, uint8_t interpolationBlend, bool useMemoryCache,
+	LutLoader& primaryLoader, LutLoader* secondaryLoader, QString& error)
+{
+	if (primaryCandidates.isEmpty())
+	{
+		error = "No LUT candidate files configured";
+		return false;
+	}
+
+	primaryLoader._hdrToneMappingEnabled = hdrToneMappingEnabled;
+	primaryLoader.loadLutFile(log, color, primaryCandidates, useMemoryCache);
+	if (!primaryLoader._lutBufferInit)
+	{
+		error = "Could not load any required LUT file";
+		return false;
+	}
+
+	if (secondaryLoader != nullptr)
+	{
+		secondaryLoader->_lutBufferInit = false;
+		secondaryLoader->_loadedLutFile.clear();
+		secondaryLoader->_loadedLutCompressed = false;
+		secondaryLoader->_lut.releaseMemory();
+
+		if (interpolationBlend > 0 && !secondaryCandidates.isEmpty())
+		{
+			secondaryLoader->_hdrToneMappingEnabled = hdrToneMappingEnabled;
+			secondaryLoader->loadLutFile(log, color, secondaryCandidates, useMemoryCache);
+			if (!secondaryLoader->_lutBufferInit)
+			{
+				error = "Could not load the interpolation LUT file";
+				return false;
+			}
+		}
+	}
+
+	error.clear();
+	return true;
 }
 
 void Grabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
@@ -670,7 +1085,7 @@ void Grabber::processSystemFrameBGRA(uint8_t* source, int lineSize, bool useLut)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit || !useLut) ? nullptr : _lut.data(), lineSize);
+	FrameDecoder::processSystemImageBGRA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || getCurrentLutBuffer() == nullptr || !useLut) ? nullptr : const_cast<uint8_t*>(getCurrentLutBuffer()), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
@@ -687,7 +1102,7 @@ void Grabber::processSystemFrameBGR(uint8_t* source, int lineSize)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	FrameDecoder::processSystemImageBGR(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || getCurrentLutBuffer() == nullptr) ? nullptr : const_cast<uint8_t*>(getCurrentLutBuffer()), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
@@ -704,7 +1119,7 @@ void Grabber::processSystemFrameBGR16(uint8_t* source, int lineSize)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageBGR16(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	FrameDecoder::processSystemImageBGR16(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || getCurrentLutBuffer() == nullptr) ? nullptr : const_cast<uint8_t*>(getCurrentLutBuffer()), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
@@ -721,7 +1136,7 @@ void Grabber::processSystemFrameRGBA(uint8_t* source, int lineSize)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImageRGBA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	FrameDecoder::processSystemImageRGBA(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || getCurrentLutBuffer() == nullptr) ? nullptr : const_cast<uint8_t*>(getCurrentLutBuffer()), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
@@ -738,7 +1153,7 @@ void Grabber::processSystemFramePQ10(uint8_t* source, int lineSize)
 	int divide = getTargetSystemFrameDimension(targetSizeX, targetSizeY);
 	Image<ColorRgb> image(targetSizeX, targetSizeY);
 
-	FrameDecoder::processSystemImagePQ10(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || !_lutBufferInit) ? nullptr : _lut.data(), lineSize);
+	FrameDecoder::processSystemImagePQ10(image, targetSizeX, targetSizeY, _cropLeft, _cropTop, source, _actualWidth, _actualHeight, divide, (_hdrToneMappingEnabled == 0 || getCurrentLutBuffer() == nullptr) ? nullptr : const_cast<uint8_t*>(getCurrentLutBuffer()), lineSize);
 
 	if (_signalDetectionEnabled)
 	{
@@ -767,20 +1182,26 @@ void Grabber::setAutoSignalDetectionEnable(bool enable)
 	}
 }
 
+void Grabber::resetSignalDetection()
+{
+	resetStats();
+	resetManualDetection();
+}
+
 void Grabber::revive()
 {
-	bool checkSignal = false;
+	bool signalLostByDetection = false;
 
 	if (_signalAutoDetectionEnabled)
 	{
-		checkSignal = getDetectionAutoSignal();
+		signalLostByDetection = getDetectionAutoSignal();
 	}
 	else if (_signalDetectionEnabled)
 	{
-		checkSignal = getDetectionManualSignal();
+		signalLostByDetection = getDetectionManualSignal();
 	}
 
-	if (checkSignal)
+	if (signalLostByDetection && _initialized)
 	{
 		Warning(_log, "The video control requested for the grabber restart due to signal lost, but it's caused by signal detection. No restart.");
 		return;
@@ -788,6 +1209,12 @@ void Grabber::revive()
 
 	if (_synchro.tryAcquire())
 	{
+		if (signalLostByDetection)
+		{
+			Warning(_log, "Signal detection reported lost but grabber is not initialized. Resetting detection state for recovery.");
+			resetSignalDetection();
+		}
+
 		Warning(_log, "The video control requested for the grabber restart due to signal lost");
 		stop();
 		start();
@@ -925,16 +1352,9 @@ QJsonObject Grabber::getJsonInfo()
 
 	grabbers["current"] = current;
 
-	if (_lut.data() != nullptr)
-	{
-		uint32_t checkSum = 0;
-		for (int i = 0; i < 256; i += 2)
-			for (int j = 32; j <= 160; j += 64)
-			{
-				checkSum ^= *(reinterpret_cast<uint32_t*>(&(_lut.data()[LUT_INDEX(j, i, (255 - i))])));
-			}
-		grabbers["lutFastCRC"] = "0x" + QString("%1").arg(checkSum, 4, 16).toUpper();
-	}
+	const QJsonObject lutRuntime = getLutRuntimeInfo();
+	for (auto iter = lutRuntime.begin(); iter != lutRuntime.end(); ++iter)
+		grabbers.insert(iter.key(), iter.value());
 
 	return grabbers;
 }
@@ -984,10 +1404,24 @@ void Grabber::signalSetLutHandler(MemoryBuffer<uint8_t>* lut)
 	if (lut != nullptr && _lut.size() >= lut->size())
 	{
 		memcpy(_lut.data(), lut->data(), lut->size());
+		_lutBufferInit = true;
+		_lutCalibrationOverrideActive = true;
+		_lutRuntimeTransitionActive = false;
+		_lutRuntimeTransitionBlend = 0;
+		_lutRuntimeTransitionFrameStep = 0;
+		_lutRuntimeTransitionTargetUsesTransitionSlot = _lutRuntimeCurrentUsesTransitionSlot;
 		Info(_log, "The byte array loaded into LUT");
 	}
 	else
 		Error(_log, "Could not set LUT: current size = {:d}, incoming size = {:d}", _lut.size(), (lut != nullptr) ? lut->size() : 0);
+}
+
+void Grabber::signalSetCalibrationLutOverrideHandler(bool enabled)
+{
+	if (enabled)
+		_lutCalibrationOverrideActive = true;
+	else
+		clearCalibrationLutOverride();
 }
 
 void Grabber::setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec)

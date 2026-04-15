@@ -36,6 +36,7 @@ private:
 	bool tryOpen(int delayAfterConnect_ms);
 	bool _isAutoDeviceName;
 	int _delayAfterConnect_ms;
+	int _writeTimeout_ms;
 	int _frameDropCounter;
 	bool _espHandshake;
 	bool _forceSerialDetection;

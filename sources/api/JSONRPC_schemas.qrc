@@ -16,6 +16,11 @@
         <file alias="schema-ledcolors">JSONRPC_schema/schema-ledcolors.json</file>
         <file alias="schema-lut-calibration">JSONRPC_schema/schema-lut-calibration.json</file>
         <file alias="schema-lut-install">JSONRPC_schema/schema-lut-install.json</file>
+        <file alias="schema-lut-switching">JSONRPC_schema/schema-lut-switching.json</file>
+        <file alias="schema-transfer-headers">JSONRPC_schema/schema-transfer-headers.json</file>
+        <file alias="schema-calibration-headers">JSONRPC_schema/schema-calibration-headers.json</file>
+        <file alias="schema-rgbw-lut-headers">JSONRPC_schema/schema-rgbw-lut-headers.json</file>
+        <file alias="schema-solver-profiles">JSONRPC_schema/schema-solver-profiles.json</file>
         <file alias="schema-signal-calibration">JSONRPC_schema/schema-signal-calibration.json</file>
         <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
         <file alias="schema-save-db">JSONRPC_schema/schema-save-db.json</file>
@@ -33,6 +38,7 @@
         <file alias="schema-performance-counters">JSONRPC_schema/schema-performance-counters.json</file>
         <file alias="schema-smoothing">JSONRPC_schema/schema-smoothing.json</file>
         <file alias="schema-current-state">JSONRPC_schema/schema-current-state.json</file>
+        <file alias="schema-videograbber-revive">JSONRPC_schema/schema-videograbber-revive.json</file>
         <!-- The following schemas are derecated but used to ensure backward compatibility with Classic remote control-->
         <file alias="schema-transform">JSONRPC_schema/schema-classic.json</file>
         <file alias="schema-correction">JSONRPC_schema/schema-classic.json</file>

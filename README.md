@@ -62,6 +62,12 @@ Latest test builds (GitHub Action — login required, select latest build from m
 
 👉 [Explore Our Wiki](https://wiki.hyperhdr.eu/) 👈
 
+Branch-specific host-side notes for the RawHID/Adalight16 16-bit work (including upstream merge/rebase guidance):
+[README_RAW_HID_16BIT_CHANGES.md](README_RAW_HID_16BIT_CHANGES.md)
+
+Pi-side notes for LUT switching, current Ugoos constraints, and deferred Dolby Vision metadata-driven switching:
+[README_LUT_SWITCHING_NOTES.md](README_LUT_SWITCHING_NOTES.md)
+
 ## Community
 
 [HyperHDR Support Forum](https://github.com/awawa-dev/HyperHDR/discussions)

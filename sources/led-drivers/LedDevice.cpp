@@ -30,6 +30,7 @@
 	#include <QStringList>
 	#include <QDir>
 	#include <QTimer>
+	#include <QThread>
 
 	#include <sstream>
 	#include <iomanip>
@@ -55,6 +56,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _ledCount(0)
 	, _ledRGBCount(0)
 	, _ledRGBWCount(0)
+	, _colorOrder(LedString::ColorOrder::ORDER_RGB)
 	, _isRestoreOrigState(false)
 	, _isEnabled(false)
 	, _isDeviceInitialised(false)
@@ -360,6 +362,25 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 	_activeDeviceType = deviceType;
 }
 
+QJsonObject LedDevice::getRuntimeTransferCurveState() const
+{
+	return QJsonObject();
+}
+
+QString LedDevice::setRuntimeTransferCurveProfile(QString profileId)
+{
+	Q_UNUSED(profileId);
+	return "Runtime transfer curve switching is not supported by the active LED device";
+}
+
+QString LedDevice::setDaytimeUplift(bool enabled, int blend, const QString& profileId)
+{
+	Q_UNUSED(enabled);
+	Q_UNUSED(blend);
+	Q_UNUSED(profileId);
+	return "Daytime uplift is not supported by the active LED device";
+}
+
 bool LedDevice::init(QJsonObject deviceConfig)
 {
 	Debug(_log, "deviceConfig: [{:s}]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
@@ -369,6 +390,8 @@ bool LedDevice::init(QJsonObject deviceConfig)
 	_smoothingInterval = deviceConfig["smoothingRefreshTime"].toInt(0);
 	_antiFlickeringFilter = deviceConfig["smoothingAntiFlickeringFilter"].toBool(false);
 	Debug(_log, "SetAntiFlickeringFilter: {:s}", ((_antiFlickeringFilter) ? "enabled" : "disabled"));
+	_colorOrder = LedString::stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
+	Info(_log, "Device RGB order is: {:s}", LedString::colorOrderToString(_colorOrder));
 
 	setLedCount(deviceConfig["currentLedCount"].toInt(1)); // property injected to reflect real led count
 	setRefreshTime(deviceConfig["refreshTime"].toInt(_currentInterval));
@@ -749,7 +772,6 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 bool LedDevice::storeState()
 {
 	bool rc = true;
-
 	if (_isRestoreOrigState)
 	{
 		// Save device's original state
@@ -757,6 +779,16 @@ bool LedDevice::storeState()
 		// store original power on/off state, if available
 	}
 	return rc;
+}
+
+void LedDevice::requestCurrentFrameRefresh()
+{
+	_newFrame2Send = true;
+
+	if (QThread::currentThread() == thread())
+		rewriteLEDs();
+	else
+		emit SignalManualUpdate();
 }
 
 bool LedDevice::restoreState()

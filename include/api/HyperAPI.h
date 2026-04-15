@@ -101,8 +101,14 @@ private:
 	void handleVideoControlsCommand(const QJsonObject& message, const QString& command, int tan);
 	void handleBenchmarkCommand(const QJsonObject& message, const QString& command, int tan);
 	void handleLutInstallCommand(const QJsonObject& message, const QString& command, int tan);
+	void handleLutSwitchingCommand(const QJsonObject& message, const QString& command, int tan);
+	void handleTransferHeadersCommand(const QJsonObject& message, const QString& command, int tan);
+	void handleCalibrationHeadersCommand(const QJsonObject& message, const QString& command, int tan);
+	void handleRgbwLutHeadersCommand(const QJsonObject& message, const QString& command, int tan);
+	void handleSolverProfilesCommand(const QJsonObject& message, const QString& command, int tan);
 	void handleSmoothingCommand(const QJsonObject& message, const QString& command, int tan);
 	void handleCurrentStateCommand(const QJsonObject& message, const QString& command, int tan);
+	void handleVideoGrabberReviveCommand(const QJsonObject& message, const QString& command, int tan);
 	void handleTunnel(const QJsonObject& message, const QString& command, int tan);
 	void handleNotImplemented(const QString& command, int tan);
 	void handleSaveDB(const QJsonObject& message, const QString& command, int tan);

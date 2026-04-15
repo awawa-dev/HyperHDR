@@ -20,6 +20,11 @@ FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_SOURCE_DIR}/other/*.cpp"
 )
 
+list(APPEND Leddevice_SOURCES
+	"${CURRENT_HEADER_DIR}/InfiniteColorEngineRgbw.h"
+	"${CURRENT_SOURCE_DIR}/InfiniteColorEngineRgbw.cpp"
+)
+
 IF ( HAVE_SERIAL_LED )	
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_HEADER_DIR}/serial/*.h" "${CURRENT_SOURCE_DIR}/serial/*.cpp")
 endif()

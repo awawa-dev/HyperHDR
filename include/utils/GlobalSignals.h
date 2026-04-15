@@ -98,6 +98,7 @@ signals:
 	void SignalDiscoveryEvent(DiscoveryRecord message);
 
 	void SignalSetLut(MemoryBuffer<uint8_t>* lut);
+	void SignalSetCalibrationLutOverride(bool enabled);
 
 	void SignalLutRequest();
 

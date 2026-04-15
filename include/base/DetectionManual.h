@@ -30,6 +30,9 @@ public:
 
 	void setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax);
 
+protected:
+	void resetManualDetection();
+
 private:
 	LoggerName	_log;
 	double		_x_frac_min;

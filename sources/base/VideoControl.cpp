@@ -37,11 +37,20 @@
 
 bool VideoControl::_stream = false;
 
+namespace
+{
+	constexpr int kUsbInactiveMissThreshold = 3;
+	constexpr int kUsbReviveRetryLimit = 8;
+	const LoggerName kVideoControlLog = "VIDEOCONTROL";
+}
+
 VideoControl::VideoControl(HyperHdrInstance* hyperhdr)
 	: QObject()
 	, _hyperhdr(hyperhdr)
 	, _usbCaptEnabled(false)
 	, _alive(false)
+	, _usbInactiveMisses(0)
+	, _usbReviveAttempts(0)
 	, _usbCaptPrio(0)
 	, _usbCaptName()
 	, _usbInactiveTimer(new QTimer(this))
@@ -110,13 +119,15 @@ void VideoControl::handleUsbImage()
 
 	_stream = true;
 
-	if (_usbCaptName != name)
+	if (!_alive || _usbCaptName != name)
 	{
 		_usbCaptName = name;
 		_hyperhdr->registerInput(_usbCaptPrio, hyperhdr::COMP_VIDEOGRABBER, "System", _usbCaptName);
 	}
 
 	_alive = true;
+	_usbInactiveMisses = 0;
+	_usbReviveAttempts = 0;
 
 	if (!_usbInactiveTimer->isActive() && _usbInactiveTimer->remainingTime() < 0)
 		_usbInactiveTimer->start();
@@ -130,6 +141,8 @@ void VideoControl::setUsbCaptureEnable(bool enable)
 	{
 		if (enable)
 		{
+			_usbInactiveMisses = 0;
+			_usbReviveAttempts = 0;
 			_hyperhdr->registerInput(_usbCaptPrio, hyperhdr::COMP_VIDEOGRABBER, "System", _usbCaptName);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &VideoControl::handleIncomingUsbImage, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
 		}
@@ -138,6 +151,8 @@ void VideoControl::setUsbCaptureEnable(bool enable)
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &VideoControl::handleIncomingUsbImage);
 			_hyperhdr->clear(_usbCaptPrio);
 			_usbInactiveTimer->stop();
+			_usbInactiveMisses = 0;
+			_usbReviveAttempts = 0;
 		}
 
 		_usbCaptEnabled = enable;
@@ -175,15 +190,23 @@ void VideoControl::setUsbInactive()
 {
 	if (!_alive)
 	{
+		if (++_usbInactiveMisses < kUsbInactiveMissThreshold)
+			return;
+
 		_hyperhdr->setInputInactive(_usbCaptPrio);
 
-		if (_stream)
+		if ((_stream || _usbReviveAttempts > 0) && _usbReviveAttempts < kUsbReviveRetryLimit)
 		{
 			_stream = false;
+			++_usbReviveAttempts;
+			_usbInactiveMisses = 0;
 			std::shared_ptr<GrabberHelper> grabberHelper;			
 			emit GlobalSignals::getInstance()->SignalGetVideoGrabber(grabberHelper);
 			if (grabberHelper != nullptr && grabberHelper->grabberWrapper() != nullptr)
+			{
+				Warning(kVideoControlLog, "USB grabber inactive after signal loss. Requesting revive attempt {:d}/{:d}", _usbReviveAttempts, kUsbReviveRetryLimit);
 				QUEUE_CALL_0(grabberHelper->grabberWrapper(), revive);
+			}
 		}
 	}
 

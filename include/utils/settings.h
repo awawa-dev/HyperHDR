@@ -34,6 +34,7 @@ namespace settings {
 		PROTOSERVER,
 		MQTT,
 		AUTOTONEMAPPING,
+		LUTSWITCHING,
 		INVALID
 	};
 
@@ -67,6 +68,7 @@ namespace settings {
 		case type::PROTOSERVER:   return "protoServer";
 		case type::MQTT:          return "mqtt";
 		case type::AUTOTONEMAPPING: return "automaticToneMapping";
+		case type::LUTSWITCHING:  return "lutSwitching";
 		default:                  return "invalid";
 		}
 	}
@@ -99,6 +101,7 @@ namespace settings {
 		else if (type == "protoServer")          return type::PROTOSERVER;
 		else if (type == "mqtt")                 return type::MQTT;
 		else if (type == "automaticToneMapping") return type::AUTOTONEMAPPING;
+		else if (type == "lutSwitching")         return type::LUTSWITCHING;
 		else                                     return type::INVALID;
 	}
 }

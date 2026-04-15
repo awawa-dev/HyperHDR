@@ -35,11 +35,13 @@
 	#include <QString>
 
 	#include <algorithm>
+	#include <sstream>
 #endif
 
 #include <image/MemoryBuffer.h>
 #include <image/Image.h>
 #include <utils/Components.h>
+#include <utils/Logger.h>
 #include <atomic>
 
 class Logger;
@@ -68,7 +70,7 @@ class LutCalibrator : public QObject
 	Q_OBJECT
 
 public:
-	LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection);
+	LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection, int coloredAspectMode = -1, double nitsOverride = -1.0);
 	~LutCalibrator();
 	static void sendReport(const LoggerName& _log, QString report);
 	static QString CreateLutFile(const LoggerName& _log, QString _rootPath, BestResult* bestResult, std::vector<std::vector<std::vector<CapturedColor>>>* all);
@@ -94,6 +96,9 @@ private:
 	bool set1to1LUT();
 	void notifyCalibrationFinished();	
 	void error(QString message);
+	bool writeCapturedYuvDump(const char* contextMessage = nullptr);
+	void appendAttemptDiagnostic(std::stringstream& results, const BestResult& result, const char* label) const;
+	void logClosestAttemptDiagnostic(const char* label) const;
 	void handleImage(const Image<ColorRgb>& image);
 	void calibration();
 	bool setTestData();
@@ -103,10 +108,13 @@ private:
 	std::shared_ptr<BoardUtils::CapturedColors> _capturedColors;
 	std::shared_ptr<YuvConverter> _yuvConverter;
 	std::shared_ptr< BestResult> bestResult;
+	std::shared_ptr<BestResult> _phaseDiagnosticResult;
 	MemoryBuffer<uint8_t> _lut;
 	QString _rootPath;
 	bool	_debug;
 	bool	_lchCorrection;
+	int		_selectedColoredAspectMode;
+	double		_selectedNitsOverride;
 	hyperhdr::Components _defaultComp;
 	std::atomic<bool> _forcedExit;
 };

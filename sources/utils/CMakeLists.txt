@@ -10,6 +10,13 @@ else()
 	LIST ( REMOVE_ITEM Utils_SOURCES "${CURRENT_SOURCE_DIR}/SystemPerformanceCounters.cpp" )
 endif()
 
+# In-source builds can generate Qt artifacts under sources/utils/hyperhdr-utils_autogen.
+# Keep generated outputs out of source globs to avoid duplicate moc symbols.
+list(FILTER Utils_SOURCES EXCLUDE REGEX ".*/hyperhdr-utils_autogen/.*")
+list(FILTER Utils_SOURCES EXCLUDE REGEX ".*/CMakeFiles/.*")
+list(FILTER Utils_SOURCES EXCLUDE REGEX ".*/moc_.*\\.cpp$")
+list(FILTER Utils_SOURCES EXCLUDE REGEX ".*/qrc_.*\\.cpp$")
+
 add_library(hyperhdr-utils OBJECT ${Utils_SOURCES})
 
 target_link_libraries(hyperhdr-utils

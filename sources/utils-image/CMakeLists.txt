@@ -5,6 +5,12 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/utils-image)
 
 FILE ( GLOB_RECURSE utils_image_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
+# Exclude generated build artifacts from recursive source globs.
+list(FILTER utils_image_SOURCES EXCLUDE REGEX ".*/[^/]*_autogen/.*")
+list(FILTER utils_image_SOURCES EXCLUDE REGEX ".*/CMakeFiles/.*")
+list(FILTER utils_image_SOURCES EXCLUDE REGEX ".*/moc_.*\\.cpp$")
+list(FILTER utils_image_SOURCES EXCLUDE REGEX ".*/qrc_.*\\.cpp$")
+
 if (USE_SHARED_LIBS)
 	add_library(utils-image SHARED ${utils_image_SOURCES})
 	if(WIN32)

@@ -28,6 +28,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QSocketNotifier>
+#include <QTimer>
 #include <QByteArray>
 
 #include <cassert>
@@ -94,15 +95,20 @@ V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _streamNotifier(nullptr)
+	, _retryTimer(new QTimer(this))
 
 {
+	_retryTimer->setInterval(5000);
+	_retryTimer->setSingleShot(true);
+	connect(_retryTimer, &QTimer::timeout, this, &V4L2Grabber::start);
+
 	// Refresh devices
 	getV4L2devices();
 
 	Debug(_log, "P010 was {:s} on the build machine", (supportedP010) ? "supported" : "unsupported");
 }
 
-QString V4L2Grabber::GetSharedLut()
+QString V4L2Grabber::GetSharedLut() const
 {
 	char result[PATH_MAX];
 
@@ -126,33 +132,192 @@ QString V4L2Grabber::GetSharedLut()
 
 void V4L2Grabber::loadLutFile(PixelFormat color, bool silent)
 {
-	// load lut table
-	QString fileName1 = QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d");
-	QString fileName2 = QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d");
-	QString fileName3 = QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d");
+	Grabber::loadLutFile((!silent) ? _log : nullptr, color, buildLutFileCandidates());
+}
 
-	Grabber::loadLutFile((!silent) ? _log : nullptr, color, QList<QString>{fileName1, fileName2, fileName3});
+QStringList V4L2Grabber::buildLutFileCandidates() const
+{
+	QStringList candidates;
+	auto appendUnique = [&candidates](const QString& path) {
+		const QString cleaned = QDir::cleanPath(path.trimmed());
+		if (cleaned.isEmpty() || candidates.contains(cleaned, Qt::CaseInsensitive))
+			return;
+		candidates.append(cleaned);
+	};
+
+	for (const QString& configured : _lutCandidateFiles)
+		appendUnique(configured);
+
+	appendUnique(QString("%1%2").arg(_configurationPath).arg("/lut_lin_tables.3d"));
+	appendUnique(QString("%1%2").arg(GetSharedLut()).arg("/lut_lin_tables.3d"));
+	appendUnique(QString("/usr/share/hyperhdr/lut/lut_lin_tables.3d"));
+
+	return candidates;
+}
+
+bool V4L2Grabber::reloadLut(QString& error)
+{
+	const bool workersWereActive = _V4L2WorkerManager.isActive();
+	const PixelFormat lutFormat = getCurrentLutPixelFormatHint();
+	const QStringList candidates = buildLutFileCandidates();
+	const QStringList interpolationCandidates = _lutInterpolationCandidateFiles;
+	const bool stopWorkersForLutMutation = workersWereActive && _V4L2WorkerManager.workersCount > 1;
+	if (stopWorkersForLutMutation)
+		_V4L2WorkerManager.Stop();
+
+	if (!_lutCalibrationOverrideActive &&
+		tryPrepareLutRuntimeTransition(_log, lutFormat, candidates, interpolationCandidates, _lutInterpolationBlend, error))
+	{
+		if (stopWorkersForLutMutation)
+			_V4L2WorkerManager.Start();
+		if (error.isEmpty())
+			resetSignalDetection();
+		return error.isEmpty();
+	}
+
+	const bool interpolationRequested = _lutInterpolationBlend > 0 && !interpolationCandidates.isEmpty();
+	auto normalizePath = [](const QString& path) {
+		return QDir::cleanPath(path.trimmed());
+	};
+	auto resolveSelectedCandidate = [&normalizePath](const QStringList& configuredCandidates) {
+		for (const QString& candidate : configuredCandidates)
+		{
+			const QString normalizedCandidate = normalizePath(candidate);
+			if (!normalizedCandidate.isEmpty() && QFileInfo::exists(normalizedCandidate))
+				return normalizedCandidate;
+		}
+		return QString();
+	};
+	const QString resolvedPrimaryCandidate = resolveSelectedCandidate(candidates);
+	const QString resolvedInterpolationCandidate = interpolationRequested ? resolveSelectedCandidate(interpolationCandidates) : QString();
+	auto selectedCandidateMatchesLoadedFile = [&normalizePath](const QString& selectedCandidate, const QString& loadedFile) {
+		if (selectedCandidate.isEmpty())
+			return false;
+		const QString normalizedLoaded = normalizePath(loadedFile);
+		if (normalizedLoaded.isEmpty())
+			return false;
+		return normalizePath(selectedCandidate).compare(normalizedLoaded, Qt::CaseInsensitive) == 0;
+	};
+	if (candidates.isEmpty())
+	{
+		error = "No LUT candidate files configured";
+		if (stopWorkersForLutMutation)
+			_V4L2WorkerManager.Start();
+		return false;
+	}
+
+	const bool primaryAlreadyLoaded = _lutBufferInit && selectedCandidateMatchesLoadedFile(resolvedPrimaryCandidate, _loadedLutFile)
+		&& _loadedHdrToneMappingMode == _hdrToneMappingEnabled;
+	const bool secondaryAlreadyLoaded = !interpolationRequested ||
+		(_lutInterpolationLoader._lutBufferInit && selectedCandidateMatchesLoadedFile(resolvedInterpolationCandidate, _lutInterpolationLoader.getLoadedLutFile()));
+	if (primaryAlreadyLoaded && secondaryAlreadyLoaded)
+	{
+		if (!interpolationRequested)
+		{
+			_lutInterpolationLoader._lutBufferInit = false;
+			_lutInterpolationLoader._loadedLutFile.clear();
+			_lutInterpolationLoader._loadedLutCompressed = false;
+		}
+
+		Debug(_log, "reloadLut updated interpolation state without reloading LUT buffers");
+		error.clear();
+		if (stopWorkersForLutMutation)
+			_V4L2WorkerManager.Start();
+		return true;
+	}
+
+	if (!_lutCalibrationOverrideActive && !stopWorkersForLutMutation && workersWereActive && _lut.data() != nullptr && _lut.size() >= LUT_FILE_SIZE)
+	{
+		LutLoader stagedLut;
+		LutLoader stagedInterpolationLut;
+		if (loadLutSelection(_log, lutFormat, _hdrToneMappingEnabled,
+			candidates, interpolationCandidates, _lutInterpolationBlend, _lutMemoryCacheEnabled,
+			stagedLut, &stagedInterpolationLut, error) &&
+			stagedLut._lutBufferInit && stagedLut._lut.data() != nullptr && stagedLut._lut.size() <= _lut.size())
+		{
+			memcpy(_lut.data(), stagedLut._lut.data(), stagedLut._lut.size());
+			_lutBufferInit = true;
+			_loadedHdrToneMappingMode = stagedLut._loadedHdrToneMappingMode;
+			_loadedLutFile = stagedLut.getLoadedLutFile();
+			_loadedLutCompressed = stagedLut.isLoadedLutCompressed();
+
+			if (interpolationRequested && stagedInterpolationLut._lutBufferInit && stagedInterpolationLut._lut.data() != nullptr)
+			{
+				if (_lutInterpolationLoader._lut.data() == nullptr || _lutInterpolationLoader._lut.size() < stagedInterpolationLut._lut.size())
+					_lutInterpolationLoader._lut.resize(stagedInterpolationLut._lut.size());
+				memcpy(_lutInterpolationLoader._lut.data(), stagedInterpolationLut._lut.data(), stagedInterpolationLut._lut.size());
+				_lutInterpolationLoader._lutBufferInit = true;
+				_lutInterpolationLoader._loadedHdrToneMappingMode = stagedInterpolationLut._loadedHdrToneMappingMode;
+				_lutInterpolationLoader._loadedLutFile = stagedInterpolationLut.getLoadedLutFile();
+				_lutInterpolationLoader._loadedLutCompressed = stagedInterpolationLut.isLoadedLutCompressed();
+			}
+			else
+			{
+				_lutInterpolationLoader._lutBufferInit = false;
+				_lutInterpolationLoader._loadedLutFile.clear();
+				_lutInterpolationLoader._loadedLutCompressed = false;
+			}
+
+			Debug(_log, "reloadLut hot-swapped active LUT without restarting V4L2 workers");
+			resetSignalDetection();
+			error.clear();
+			return true;
+		}
+
+		Warning(_log, "reloadLut could not hot-swap the active LUT set, falling back to worker restart");
+	}
+
+	if (workersWereActive)
+		_V4L2WorkerManager.Stop();
+
+	if (!loadConfiguredLutSelection(_log, lutFormat, error))
+	{
+		if (stopWorkersForLutMutation)
+			_V4L2WorkerManager.Start();
+		return false;
+	}
+
+	if (workersWereActive)
+		_V4L2WorkerManager.Start();
+
+	if (!_lutBufferInit)
+	{
+		error = error.isEmpty() ? "Could not load any required LUT file" : error;
+		if (stopWorkersForLutMutation)
+			_V4L2WorkerManager.Start();
+		return false;
+	}
+
+	resetSignalDetection();
+	error.clear();
+	return true;
 }
 
 void V4L2Grabber::setHdrToneMappingEnabled(int mode)
 {
 	if (_hdrToneMappingEnabled != mode || _lut.data() == nullptr)
 	{
+		const int previousMode = _hdrToneMappingEnabled;
 		_hdrToneMappingEnabled = mode;
 		if (_lut.data() != nullptr || !mode)
 			Debug(_log, "setHdrToneMappingMode to: {:s}", (mode == 0) ? "Disabled" : "Enabled");
 		else
 			Warning(_log, "setHdrToneMappingMode to: enable, but the LUT file is currently unloaded");
 
+		// When leaving HDR/DV mode (switching to SDR), release the
+		// in-memory LUT cache so that accumulated DV bucket LUTs
+		// do not consume RAM indefinitely.
+		if (mode == 0 && previousMode != 0)
+			clearLutMemoryCache();
+
 		if (_V4L2WorkerManager.isActive())
 		{
 			Debug(_log, "setHdrToneMappingMode replacing LUT and restarting");
 			_V4L2WorkerManager.Stop();
-			if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::UYVY) || (_actualVideoFormat == PixelFormat::I420) || (_actualVideoFormat == PixelFormat::NV12)
-				|| (_actualVideoFormat == PixelFormat::P010) || (_actualVideoFormat == PixelFormat::MJPEG))
-				loadLutFile(PixelFormat::YUYV);
-			else
-				loadLutFile(PixelFormat::RGB24);
+			QString lutError;
+			reloadLut(lutError);
+			if (!lutError.isEmpty())
+				Warning(_log, "{:s}", (lutError));
 			_V4L2WorkerManager.Start();
 		}
 		emit SignalSetNewComponentStateToAllInstances(hyperhdr::Components::COMP_HDR, (mode != 0));
@@ -616,6 +781,14 @@ void V4L2Grabber::enumerateV4L2devices(bool silent)
 
 bool V4L2Grabber::start()
 {
+	if (_streamNotifier != nullptr && _streamNotifier->isEnabled())
+	{
+		_retryTimer->stop();
+		return true;
+	}
+
+	_retryTimer->stop();
+
 	try
 	{
 		resetCounter(InternalClock::now());
@@ -639,11 +812,19 @@ bool V4L2Grabber::start()
 		Error(_log, "Video capture fails to start ({:s})", e.what());
 	}
 
+	if (!_retryTimer->isActive())
+	{
+		Warning(_log, "Video capture failed to start. Retry in {:.1f} sec...", _retryTimer->interval() / 1000.0);
+		_retryTimer->start();
+	}
+
 	return false;
 }
 
 void V4L2Grabber::stop()
 {
+	_retryTimer->stop();
+
 	if (_streamNotifier != nullptr && _streamNotifier->isEnabled())
 	{
 		_V4L2WorkerManager.Stop();
@@ -1250,14 +1431,13 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 						if ((_actualVideoFormat == PixelFormat::YUYV || _actualVideoFormat == PixelFormat::UYVY || _actualVideoFormat == PixelFormat::I420 ||
 							_actualVideoFormat == PixelFormat::NV12 || _hdrToneMappingEnabled) && !_lutBufferInit)
 						{
-							if ((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::UYVY) || (_actualVideoFormat == PixelFormat::I420) ||
-								(_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG))
+							QString lutError;
+							if (!loadConfiguredLutSelection(_log,
+								((_actualVideoFormat == PixelFormat::YUYV) || (_actualVideoFormat == PixelFormat::UYVY) || (_actualVideoFormat == PixelFormat::I420) ||
+								(_actualVideoFormat == PixelFormat::NV12) || (_actualVideoFormat == PixelFormat::MJPEG)) ? PixelFormat::YUYV : PixelFormat::RGB24,
+								lutError))
 							{
-								loadLutFile(PixelFormat::YUYV, true);
-							}
-							else
-							{
-								loadLutFile(PixelFormat::RGB24, true);
+								Warning(_log, "{:s}", (lutError));
 							}
 
 							if (!_lutBufferInit)
@@ -1276,7 +1456,14 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 							(uint8_t*)frameImageBuffer, size, _actualWidth, _actualHeight, _lineLength,
 							_cropLeft, _cropTop, _cropBottom, _cropRight,
 							processFrameIndex, InternalClock::nowPrecise(), _hdrToneMappingEnabled,
-							(_lutBufferInit) ? _lut.data() : nullptr, _qframe, directAccess, _deviceName, _automaticToneMapping.prepare());
+							const_cast<uint8_t*>(getCurrentLutBuffer()),
+							const_cast<uint8_t*>(getCurrentLutInterpolationBuffer()),
+							getCurrentLutInterpolationBlend(),
+							const_cast<uint8_t*>(getTransitionTargetLutBuffer()),
+							const_cast<uint8_t*>(getTransitionTargetLutInterpolationBuffer()),
+							getTransitionTargetLutInterpolationBlend(),
+							getLutRuntimeTransitionBlend(), _qframe, directAccess, _deviceName, _automaticToneMapping.prepare());
+						advanceLutRuntimeTransition();
 
 						if (_V4L2WorkerManager.workersCount > 1)
 							_V4L2WorkerManager.workers[i]->start();
@@ -1305,12 +1492,18 @@ void V4L2Grabber::newWorkerFrameErrorHandler(unsigned int workerIndex, QString e
 	// get next frame
 	if (!(workerIndex < _V4L2WorkerManager.workersCount && workerIndex < _V4L2WorkerManager.workers.size()))
 		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
-
-	else if (_V4L2WorkerManager.isActive() == false ||
-		xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+	else if (_fileDescriptor >= 0 && _streamNotifier != nullptr && _streamNotifier->isEnabled())
 	{
-		Error(_log, "Frame index = {:d}, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = {:d}, worker = {:d}, is_active = {:d}.",
-			sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());
+		if (xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+		{
+			Error(_log, "Frame index = {:d}, critical VIDIOC_QBUF error in v4l2 driver. Buf index = {:d}, worker = {:d}, is_active = {:d}.",
+				sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());
+		}
+	}
+	else if (!_V4L2WorkerManager.isActive())
+	{
+		Debug(_log, "Frame index = {:d}, skipped VIDIOC_QBUF while V4L2 workers were intentionally inactive. Buf index = {:d}, worker = {:d}.",
+			sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex);
 	}
 
 	_V4L2WorkerManager.workers[workerIndex]->noBusy();
@@ -1324,12 +1517,18 @@ void V4L2Grabber::newWorkerFrameHandler(unsigned int workerIndex, Image<ColorRgb
 	// get next frame
 	if (!(workerIndex < _V4L2WorkerManager.workersCount && workerIndex < _V4L2WorkerManager.workers.size()))
 		Error(_log, "Frame index = {:d}, index out of range", sourceCount);
-
-	else if (_V4L2WorkerManager.isActive() == false ||
-		xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+	else if (_fileDescriptor >= 0 && _streamNotifier != nullptr && _streamNotifier->isEnabled())
 	{
-		Error(_log, "Frame index = {:d}, inactive or critical VIDIOC_QBUF error in v4l2 driver. Buf index = {:d}, worker = {:d}, is_active = {:d}.",
-			sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());
+		if (xioctl(VIDIOC_QBUF, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()))
+		{
+			Error(_log, "Frame index = {:d}, critical VIDIOC_QBUF error in v4l2 driver. Buf index = {:d}, worker = {:d}, is_active = {:d}.",
+				sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex, _V4L2WorkerManager.isActive());
+		}
+	}
+	else if (!_V4L2WorkerManager.isActive())
+	{
+		Debug(_log, "Frame index = {:d}, skipped VIDIOC_QBUF while V4L2 workers were intentionally inactive. Buf index = {:d}, worker = {:d}.",
+			sourceCount, _V4L2WorkerManager.workers[workerIndex]->GetV4L2Buffer()->index, workerIndex);
 	}
 
 	_V4L2WorkerManager.workers[workerIndex]->noBusy();

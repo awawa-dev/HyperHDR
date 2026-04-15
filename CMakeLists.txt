@@ -20,7 +20,11 @@ set(CMAKE_MODULE_PATH ${OUR_CMAKE_MODULES} ${CMAKE_MODULE_PATH})
 
 # print version
 include (version)
-file (STRINGS "version" HYPERHDR_VERSION)
+if (EXISTS "${CMAKE_SOURCE_DIR}/version.txt")
+	file (STRINGS "${CMAKE_SOURCE_DIR}/version.txt" HYPERHDR_VERSION)
+else()
+	file (STRINGS "${CMAKE_SOURCE_DIR}/version" HYPERHDR_VERSION)
+endif()
 SetVersionNumber(HYPERHDR ${HYPERHDR_VERSION})
 
 

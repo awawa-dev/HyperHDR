@@ -36,6 +36,8 @@ private:
 
 	bool	_usbCaptEnabled;
 	bool	_alive;
+	int		_usbInactiveMisses;
+	int		_usbReviveAttempts;
 	quint8	_usbCaptPrio;
 	QString	_usbCaptName;
 	QTimer*	_usbInactiveTimer;

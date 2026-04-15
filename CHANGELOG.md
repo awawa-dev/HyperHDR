@@ -1,16 +1,23 @@
-- Fix: Initial smoothing surge after period of static video input (#1410) - fix for v22beta1 🆕
-- Fix: Minimum brightness preservation in YUV and Hybrid-Inertia smoothing modes (#1410) - fix for v22beta1 🆕
-- upgrades old style format logging (with %) to c++20 format in some places (#1410) - fix for v22beta1 🆕
-- restores custom user RGB order at the start (#1410) - fix for v22beta1 🆕
-- restores compatibility with Qt5.15 (#1410) - fix for v22beta1 🆕
-- Improved state management of the software grabber during sleep and monitor‑suspend events (#1410) - fix for v22beta1 🆕
+- RGBW with Temporal Dithering - powered by Infinite Color Engine (#1483) - v22beta2 🆕
+- Switch to Filesystem Hierarchy Standard (FHS) compliant installation on Linux (#1477) - v22beta2 🆕
+- Migrate to standard OS config location if ~/.hyperhdr folder is missing (#1472) - v22beta2 🆕
+- Add Philips WiZ support (driver + web wizard) Thanks @user83749 (#1469) - v22beta2 🆕
+- Add aspect ratio detection for Amlogic grabber. Thanks @santievil (#1476) - v22beta2 🆕
+- Fix remote tab JSON parsing error caused by missing black color in API JSON scheme (#1471) - v22beta2 🆕
+- Implement DDP / Hyperk drivers (#1467) - v22beta2 🆕
+- Fix: Initial smoothing surge after period of static video input (#1410) - v22beta2 🆕
+- Fix: Minimum brightness preservation in YUV and Hybrid-Inertia smoothing modes (#1410) - v22beta2 🆕
+- upgrades old style format logging (with %) to c++20 format in some places (#1410) - v22beta2 🆕
+- restores custom user RGB order at the start (#1410) - v22beta2 🆕
+- restores compatibility with Qt5.15 (#1410) - v22beta2 🆕
+- Improved state management of the software grabber during sleep and monitor‑suspend events (#1410) - v22beta2 🆕
   - PipeWire is particularly sensitive to sessions resuming too early after such events and, despite having provided a saved session token, would display a new source select dialog after resume when screen‑lock‑after‑suspend was enabled
-- Set disableOnLocked option enabled by default, because software grabbers for ex. Pipewire wont function properly without it (#1410) - fix for v22beta1 🆕
-- Fix translation resources
-- Infinite Color Engine: new anti-flickering filter in the smoothing configuration (#1410) - fix for v22beta1 🆕
+- Set disableOnLocked option enabled by default, because software grabbers for ex. Pipewire wont function properly without it (#1410) - v22beta2 🆕
+- Fix translation resources - v22beta2 🆕
+- Infinite Color Engine: new anti-flickering filter in the smoothing configuration (#1410) - v22beta2 🆕
    - Implements an anti-flickering filter that minimizes quantization jitter on 8-bit-per-channel drivers (24-bit RGB). Deep color capable drivers (like Philips Hue using entertainment mode) are bypassed as they don't suffer from LSB oscillation.
-- Improved handshake stability connecting to Philips Hue bridge using OpenSSL 3.2+ (#1410) - fix for v22beta1 🆕
-- Fix: Add missing Qt meta-type registrations (#1456) - fix for v22beta1 🆕
+- Improved handshake stability connecting to Philips Hue bridge using OpenSSL 3.2+ (#1410) - v22beta2 🆕
+- Fix: Add missing Qt meta-type registrations (#1456) - v22beta2 🆕
 - Infinite Color Engine - Breaking 24-bit Limits (#1261) - v22beta1 🆕
    - Floating-Point Precision: All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
    - Linear sRGB Accuracy: Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
@@ -255,3 +262,62 @@
 - Ready to write SD images of HyperHDR
 - Fix for SK9822 leds on SPI (aka fake APA102)
 - Windows, macOS DMG and Linux DEB & RPM installers contain default LUT table
+
+## BFI Branch Summary
+
+This repository currently tracks upstream HyperHDR while carrying a custom BFI-focused LED output path for host-owned RGBW processing. The public branch for this work is https://github.com/JChalka/HyperHDR/tree/BFI.
+
+Firmware-side Teensy sketches and USB descriptor changes are intentionally out of tree at the moment and will be published separately.
+
+### Release summary
+
+This branch extends HyperHDR with a custom high-precision output stack aimed at Teensy-driven RGBW systems:
+
+- Linux RawHID LED output for high-throughput 16-bit transport, including hidraw VID/PID discovery and optional sideband log ingestion.
+- Host-owned RGBW solving and BFI-oriented highlight handling for RawHID, including the current solver-aware Q16 clamp policy.
+- Transfer-header and calibration-header storage, JSON-RPC APIs, and web UI controls so HyperHDR can own transfer and calibration profiles for RawHID targets.
+- Adalight16 improvements, including configurable serial write timeout handling and preserved float-to-Q16 output.
+- VRRoom probing/reference tooling and transfer-curve notes used to support ongoing HDR/DV/LLDV switching research.
+
+### Upstream parity status against HyperHDR-Latest (March 2026)
+
+Verified upstream items already present in this branch:
+
+- RGBW temporal dithering via the upstream Infinite Color Engine RGBW path.
+- DDP and Hyperk network LED driver support.
+- The remote-tab JSON schema fix from v22beta2.
+- Philips WiZ support and the related driver/schema integration.
+- Amlogic aspect-ratio detection updates.
+- Linux config-path fallback in sources/hyperhdr/main.cpp when ~/.hyperhdr is absent.
+
+The targeted v22beta2 parity gaps identified during the March 2026 audit have been merged into this branch. Future parity checks should still be repeated after each upstream sync because this note is intentionally scoped to the items reviewed here rather than serving as a full semantic merge report.
+
+### Maintenance inventory: upstream files modified by this branch
+
+- sources/api/HyperAPI.cpp
+- sources/api/JSONRPC_schemas.qrc
+- sources/base/GrabberWrapper.cpp
+- sources/led-drivers/LedDeviceSchemas.qrc
+- sources/led-drivers/schemas/schema-rawhid.json
+- sources/led-drivers/serial/DriverSerialAdalight16.cpp
+- sources/led-drivers/serial/ProviderSerial.cpp
+- include/led-drivers/serial/ProviderSerial.h
+- www/content/light_source.html
+- www/js/hyperhdr.js
+- www/js/light_source.js
+
+### Maintenance inventory: files created or provided by this branch
+
+- include/led-drivers/other/DriverOtherRawHid.h
+- sources/led-drivers/other/DriverOtherRawHid.cpp
+- sources/led-drivers/other/RawHidSolverLaddersRgb.h
+- sources/led-drivers/other/RawHidSolverLaddersRgbw.h
+- sources/led-drivers/other/RawHidTransferCurve3_4New.h
+- sources/api/JSONRPC_schema/schema-transfer-headers.json
+- sources/api/JSONRPC_schema/schema-calibration-headers.json
+- sources/led-drivers/schemas/schema-adalight16.json
+- README_RAW_HID_16BIT_CHANGES.md
+- README_COLORSPACE_TRANSFER_REFERENCE.md
+- tools/vrroom_web_probe.py
+- tools/vrroom_probe_manifest.json
+- tools/vrroom_dump/

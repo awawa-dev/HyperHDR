@@ -61,6 +61,9 @@ public slots:
 
 	QJsonDocument getCalibrationInfo();
 
+protected:
+	void resetStats();
+
 private:
 	LoggerName _log;
 
@@ -101,7 +104,6 @@ private:
 	void calibrateFrame(Image<ColorRgb>& image);
 	void saveResult();
 	bool checkSignal(Image<ColorRgb>& image);
-	void resetStats();
 
 	bool _saveResources;
 	int _errorTolerance;

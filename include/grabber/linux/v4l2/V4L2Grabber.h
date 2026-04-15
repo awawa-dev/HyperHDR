@@ -12,6 +12,7 @@
 #include <turbojpeg.h>
 
 class QSocketNotifier;
+class QTimer;
 
 class V4L2Grabber final : public Grabber
 {
@@ -31,6 +32,7 @@ public:
 	int  grabFrame(Image<ColorRgb>&);
 
 	void setHdrToneMappingEnabled(int mode) override;
+	bool reloadLut(QString& error) override;
 
 public slots:
 
@@ -46,7 +48,8 @@ private slots:
 	int read_frame();
 
 private:
-	QString GetSharedLut();
+	QString GetSharedLut() const;
+	QStringList buildLutFileCandidates() const;
 
 	void enumerateV4L2devices(bool silent);
 
@@ -99,5 +102,6 @@ private:
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 	QSocketNotifier*	_streamNotifier;	
+	QTimer*				_retryTimer;
 	GrabberManager      _V4L2WorkerManager;
 };

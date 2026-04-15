@@ -66,6 +66,11 @@ using namespace aliases;
 using namespace ColorSpaceMath;
 using namespace BoardUtils;
 
+static double calibrationScore(long long int minError)
+{
+	return static_cast<double>(minError) / 300.0;
+}
+
 
 #define LUT_FILE_SIZE 50331648
 
@@ -118,7 +123,7 @@ public:
 //                      LUT CALIBRATOR                         //
 /////////////////////////////////////////////////////////////////
 
-LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection)
+LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp, bool debug, bool lchCorrection, int coloredAspectMode, double nitsOverride)
 {
 	_log = "CALIBRATOR";
 	_capturedColors = std::make_shared<CapturedColors>();
@@ -128,6 +133,8 @@ LutCalibrator::LutCalibrator(QString rootpath, hyperhdr::Components defaultComp,
 	_rootPath = rootpath;
 	_debug = debug;
 	_lchCorrection = lchCorrection;
+	_selectedColoredAspectMode = coloredAspectMode;
+	_selectedNitsOverride = nitsOverride;
 	_defaultComp = defaultComp;
 	_forcedExit = false;
 }
@@ -337,6 +344,107 @@ void LutCalibrator::sendReport(const LoggerName& _log, QString report)
 	Debug(_log, REPORT_TOKEN "{:s}\r\n", (list.join("\r\n")));
 }
 
+bool LutCalibrator::writeCapturedYuvDump(const char* contextMessage)
+{
+	if (_capturedColors == nullptr)
+		return false;
+
+	std::stringstream results;
+	results.precision(12);
+	if (contextMessage != nullptr && contextMessage[0] != '\0')
+	{
+		results << "/* " << contextMessage << " */" << std::endl;
+	}
+
+	if (bestResult != nullptr)
+	{
+		if (bestResult->minError < MAX_CALIBRATION_ERROR)
+		{
+			bestResult->serialize(results);
+		}
+		else
+		{
+			results << "/*" << std::endl;
+			results << "Calibration summary before abort:" << std::endl;
+			results << "bestResult.minError = " << std::to_string(calibrationScore(bestResult->minError)) << ";" << std::endl;
+			results << "bestResult.gamma = ColorSpaceMath::HDR_GAMMA(" << (ColorSpaceMath::gammaToString(bestResult->gamma)).toStdString() << ");" << std::endl;
+			results << "bestResult.signal.range = YuvConverter::COLOR_RANGE(" << std::to_string(bestResult->signal.range) << ");" << std::endl;
+			results << "bestResult.signal.yRange = " << std::to_string(bestResult->signal.yRange) << ";" << std::endl;
+			results << "bestResult.signal.upYLimit = " << std::to_string(bestResult->signal.upYLimit) << ";" << std::endl;
+			results << "bestResult.signal.downYLimit = " << std::to_string(bestResult->signal.downYLimit) << ";" << std::endl;
+			results << "bestResult.signal.yShift = " << std::to_string(bestResult->signal.yShift) << ";" << std::endl;
+			results << "bestResult.signal.isSourceP010 = " << std::to_string(bestResult->signal.isSourceP010) << ";" << std::endl;
+			results << "bestResult.signal.yuvRange = byte3{ " << std::to_string(bestResult->signal.yuvRange[0]) << ", " << std::to_string(bestResult->signal.yuvRange[1]) << ", " << std::to_string(bestResult->signal.yuvRange[2]) << "};" << std::endl;
+			results << "No first-phase candidate beat MAX_CALIBRATION_ERROR, so transform-specific fields were not populated." << std::endl;
+			if (_phaseDiagnosticResult != nullptr)
+			{
+				appendAttemptDiagnostic(results, *_phaseDiagnosticResult, "Closest attempted first-phase fit before threshold rejection:");
+			}
+			else
+			{
+				results << "No first-phase attempt diagnostic was captured." << std::endl;
+			}
+			results << "*/" << std::endl;
+		}
+	}
+
+	QString fileLogName = QString("%1%2").arg(_rootPath).arg("/calibration_captured_yuv.txt");
+	QByteArray fileNameRaw = fileLogName.toUtf8();
+
+	if (_capturedColors->saveResult(fileNameRaw.constData(), results.str()))
+	{
+		Info(_log, "Write captured colors to: {:s}", (fileLogName));
+		return true;
+	}
+
+	Error(_log, "Could not save captured colors to: {:s}", (fileLogName));
+	return false;
+}
+
+void LutCalibrator::appendAttemptDiagnostic(std::stringstream& results, const BestResult& result, const char* label) const
+{
+	results << label << std::endl;
+	results << "attempt.score = " << std::to_string(calibrationScore(result.minError)) << ";" << std::endl;
+	results << "attempt.rawMinError = " << std::to_string(result.minError) << ";" << std::endl;
+	results << "attempt.gamma = ColorSpaceMath::HDR_GAMMA(" << (ColorSpaceMath::gammaToString(result.gamma)).toStdString() << ");" << std::endl;
+	results << "attempt.gammaHLG = " << std::to_string(result.gammaHLG) << ";" << std::endl;
+	results << "attempt.coef = YuvConverter::YUV_COEFS(" << std::to_string(result.coef) << ");" << std::endl;
+	results << "attempt.coefDelta = double2"; ColorSpaceMath::serialize(results, result.coefDelta); results << ";" << std::endl;
+	results << "attempt.aspect = double3"; ColorSpaceMath::serialize(results, result.aspect); results << ";" << std::endl;
+	results << "attempt.colorAspect = std::pair<double3, double3>(double3"; ColorSpaceMath::serialize(results, result.colorAspect.first); results << ", double3"; ColorSpaceMath::serialize(results, result.colorAspect.second); results << ");" << std::endl;
+	results << "attempt.nits = " << std::to_string(result.nits) << ";" << std::endl;
+	results << "attempt.bt2020Range = " << std::to_string(result.bt2020Range) << ";" << std::endl;
+	results << "attempt.altConvert = " << std::to_string(result.altConvert) << ";" << std::endl;
+	results << "attempt.coloredAspectMode = " << std::to_string(result.coloredAspectMode) << ";" << std::endl;
+	results << "attempt.lchEnabled = " << std::to_string(result.lchEnabled) << ";" << std::endl;
+}
+
+void LutCalibrator::logClosestAttemptDiagnostic(const char* label) const
+{
+	if (_phaseDiagnosticResult == nullptr)
+	{
+		Info(_log, "{:s} No phase diagnostic candidate was captured.", label);
+		return;
+	}
+
+	Info(_log,
+		"{:s} Score: {:.3f}, rawMinError: {}, EOTF: {:s}, coef: {:s}, nits: {:.6f}, kr/kb: {:s}, aspect: {:s}, LCH: {:s}",
+		label,
+		calibrationScore(_phaseDiagnosticResult->minError),
+		_phaseDiagnosticResult->minError,
+		ColorSpaceMath::gammaToString(_phaseDiagnosticResult->gamma),
+		_yuvConverter->coefToString(_phaseDiagnosticResult->coef),
+		_phaseDiagnosticResult->nits,
+		vecToString(_phaseDiagnosticResult->coefDelta),
+		vecToString(_phaseDiagnosticResult->aspect),
+		(_phaseDiagnosticResult->lchEnabled) ? "Enabled" : "Disabled");
+
+	if (_phaseDiagnosticResult->gamma == HDR_GAMMA::HLG)
+	{
+		Info(_log, "{:s} HLG gamma: {:.6f}", label, _phaseDiagnosticResult->gammaHLG);
+	}
+}
+
 void LutCalibrator::startHandler()
 {
 	stopHandler();
@@ -344,6 +452,7 @@ void LutCalibrator::startHandler()
 	_capturedColors.reset();
 	_capturedColors = std::make_shared<CapturedColors>();
 	bestResult = std::make_shared<BestResult>();
+	_phaseDiagnosticResult.reset();
 
 	if (setTestData())
 	{
@@ -392,6 +501,7 @@ void LutCalibrator::stopHandler()
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewSystemImage, this, &LutCalibrator::setSystemImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage, this, &LutCalibrator::setVideoImage);
 	disconnect(GlobalSignals::getInstance(), &GlobalSignals::SignalSetGlobalImage, this, &LutCalibrator::signalSetGlobalImageHandler);
+	emit GlobalSignals::getInstance()->SignalSetCalibrationLutOverride(false);
 	_lut.releaseMemory();
 
 	if (_forcedExit)
@@ -806,6 +916,22 @@ static double3 hdr_to_srgb(const YuvConverter* _yuvConverter, double3 yuv, const
 				srgb *= av;
 			}
 		}
+		else if (colorAspectMode == 4)
+		{
+			double maxComponent = linalg::maxelem(srgb);
+			double blend = (maxComponent <= 0.5) ? 0.0 : std::min(1.0, (maxComponent - 0.5) / 0.5);
+			double3 dynamicAspect = (colorAspect).second * (1.0 - blend) + (colorAspect).first * blend;
+
+			if (!white)
+			{
+				srgb *= dynamicAspect;
+			}
+			else
+			{
+				double av = (dynamicAspect.x + dynamicAspect.y + dynamicAspect.z) / 3.0;
+				srgb *= av;
+			}
+		}
 		else
 		{
 			if (!white)
@@ -900,7 +1026,11 @@ void CalibrationWorker::run()
 		auto coefMatrix = yuvConverter->create_yuv_to_rgb_matrix(bestResult.signal.range, coefValues.x, coefValues.y);
 		std::list<int> coloredAspectModeList;
 
-		if (!precise)
+		if (bestResult.selectedColoredAspectMode >= 0)
+		{
+			coloredAspectModeList = { bestResult.selectedColoredAspectMode };
+		}
+		else if (!precise)
 		{
 			if (bestResult.signal.isSourceP010)
 			{
@@ -908,7 +1038,7 @@ void CalibrationWorker::run()
 			}
 			else
 			{
-				coloredAspectModeList = { 0, 1, 2, 3 };
+				coloredAspectModeList = { 0, 1, 2, 3, 4 };
 			}
 		}
 		else if (bestResult.coloredAspectMode != 0)
@@ -1034,6 +1164,27 @@ void CalibrationWorker::run()
 									else
 										lcHError = MAX_CALIBRATION_ERROR;
 									
+									auto diagnosticError = (lchFavour) ? lcHError : currentError;
+									if (!hasDiagnosticBestResult || diagnosticError < diagnosticBestResult.minError)
+									{
+										hasDiagnosticBestResult = true;
+										diagnosticBestResult.minError = diagnosticError;
+										diagnosticBestResult.coef = YuvConverter::YUV_COEFS(coef);
+										diagnosticBestResult.coefDelta = kDelta;
+										diagnosticBestResult.bt2020Range = tryBt2020Range;
+										diagnosticBestResult.altConvert = altConvert;
+										diagnosticBestResult.altPrimariesToSrgb = bt2020_to_sRgb;
+										diagnosticBestResult.coloredAspectMode = coloredAspectMode;
+										diagnosticBestResult.colorAspect = colorAspect;
+										diagnosticBestResult.aspect = aspect;
+										diagnosticBestResult.nits = NITS;
+										diagnosticBestResult.gamma = gamma;
+										diagnosticBestResult.gammaHLG = gammaHLG;
+										diagnosticBestResult.coefMatrix = coefMatrix;
+										diagnosticBestResult.lchEnabled = lchFavour;
+										diagnosticBestResult.lchPrimaries = selectedLchPrimaries;
+									}
+
 
 									if (currentError < bestResult.minError || lcHError < bestResult.minError)
 									{										
@@ -1093,6 +1244,9 @@ void  LutCalibrator::fineTune(bool precise)
 	double NITS = 0.0;
 	double maxLevel = 0.0;
 	std::atomic<int> weakBestScore = MAX_CALIBRATION_ERROR;
+	BestResult phaseDiagnosticResult;
+	phaseDiagnosticResult.minError = LLONG_MAX;
+	bool hasPhaseDiagnosticResult = false;
 
 	// prepare vertexes
 	std::list<CapturedColor*> vertex;
@@ -1127,6 +1281,8 @@ void  LutCalibrator::fineTune(bool precise)
 
 	// set startup parameters (signal)
 	bestResult->signal.range = _capturedColors->getRange();
+	bestResult->selectedColoredAspectMode = _selectedColoredAspectMode;
+	bestResult->selectedNitsOverride = _selectedNitsOverride;
 	_capturedColors->getSignalParams(bestResult->signal.yRange, bestResult->signal.upYLimit, bestResult->signal.downYLimit, bestResult->signal.yShift, bestResult->signal.yuvRange);
 
 	if (bestResult->signal.isSourceP010)
@@ -1158,6 +1314,17 @@ void  LutCalibrator::fineTune(bool precise)
 	{
 		maxLevel = white / 255.0;
 	}	
+
+	if (!precise)
+	{
+		Info(_log,
+			"Phase-1 signal summary: capturedWhiteY={:.6f}, range={}, maxLevel={:.6f}, selectedNitsOverride={:.6f}, isSourceP010={}",
+			static_cast<double>(white),
+			(bestResult->signal.range == YuvConverter::COLOR_RANGE::LIMITED) ? "LIMITED" : ((bestResult->signal.range == YuvConverter::COLOR_RANGE::FULL) ? "FULL" : "UNKNOWN"),
+			maxLevel,
+			bestResult->selectedNitsOverride,
+			bestResult->signal.isSourceP010 ? 1 : 0);
+	}
 
 	std::vector<std::pair<double3, byte2>> sampleColors(6);
 	const auto& sampleRed = _capturedColors->all[MAX_IND][0][0];
@@ -1226,6 +1393,11 @@ void  LutCalibrator::fineTune(bool precise)
 			NITS = 10000.0 * PQ_ST2084(1.0, srgb_linear_to_nonlinear(maxLevel));
 		}
 
+		if (bestResult->selectedNitsOverride > 0.0 && (gamma == HDR_GAMMA::PQ || gamma == HDR_GAMMA::P010 || gamma == HDR_GAMMA::PQinSRGB))
+		{
+			NITS = bestResult->selectedNitsOverride;
+		}
+
 		for (double gammaHLG : gammasHLG)
 		{
 			if (gammaHLG == 1.1 && bestResult->gamma != HDR_GAMMA::HLG)
@@ -1272,6 +1444,10 @@ void  LutCalibrator::fineTune(bool precise)
 				for (const auto& worker : workers)
 				{
 					worker->getBestResult(bestResult.get());
+					if (worker->getDiagnosticBestResult(&phaseDiagnosticResult))
+					{
+						hasPhaseDiagnosticResult = true;
+					}
 				}
 
 				qDeleteAll(workers);
@@ -1284,6 +1460,21 @@ void  LutCalibrator::fineTune(bool precise)
 
 		if (precise || _forcedExit)
 			break;
+	}
+
+	if (!precise)
+	{
+		if (hasPhaseDiagnosticResult)
+		{
+			if (_phaseDiagnosticResult == nullptr)
+				_phaseDiagnosticResult = std::make_shared<BestResult>(phaseDiagnosticResult);
+			else
+				(*_phaseDiagnosticResult) = phaseDiagnosticResult;
+		}
+		else
+		{
+			_phaseDiagnosticResult.reset();
+		}
 	}
 }
 
@@ -1305,8 +1496,13 @@ void LutCalibrator::calibration()
 
 	totalTime = InternalClock::now() - totalTime;
 
+	writeCapturedYuvDump((bestResult->minError >= MAX_CALIBRATION_ERROR)
+		? "Captured colors exported before aborting after the first calibration phase."
+		: "Captured colors exported after completing the first calibration phase.");
+
 	if (bestResult->minError >= MAX_CALIBRATION_ERROR)
 	{
+		logClosestAttemptDiagnostic("First-phase closest attempted fit.");
 		error("The calibration failed. The error is too high.");
 		return;
 	}
@@ -1340,10 +1536,18 @@ void LutCalibrator::calibration()
 	{
 		Debug(_log, "Selected nits: {:f}", (bestResult->gamma == HDR_GAMMA::HLG) ? 1000.0 * (1 / bestResult->nits) : bestResult->nits);
 	}
+	if (_selectedNitsOverride > 0.0)
+	{
+		Debug(_log, "Requested NITS override: {:f}", _selectedNitsOverride);
+	}
 	Debug(_log, "Selected bt2020 gamma range: {:s}", (bestResult->bt2020Range) ? "yes" : "no");
 	Debug(_log, "Selected alternative conversion of primaries: {:s}", (bestResult->altConvert) ? "yes" : "no");
 	Debug(_log, "Selected aspect: {:f} {:f} {:f}", bestResult->aspect.x, bestResult->aspect.y, bestResult->aspect.z);
 	Debug(_log, "Selected color aspect mode: {:d}", bestResult->coloredAspectMode);
+	if (_selectedColoredAspectMode >= 0)
+	{
+		Debug(_log, "Requested color aspect mode override: {:d}", _selectedColoredAspectMode);
+	}
 	Debug(_log, "Selected color aspect: {:s} {:s}", (vecToString(bestResult->colorAspect.first)), (vecToString(bestResult->colorAspect.second)));
 	Debug(_log, "Selected source is P010: {:s}", (bestResult->signal.isSourceP010) ? "yes" : "no");
 
@@ -1355,20 +1559,7 @@ void LutCalibrator::calibration()
 		capturedPrimariesCorrection(bestResult->gamma, bestResult->gammaHLG, bestResult->nits, bestResult->coef, convert_bt2020_to_XYZ, convert_XYZ_to_sRgb, true);
 	}
 
-	// write report (captured raw colors)
-	std::stringstream results;
-	bestResult->serialize(results);
-	QString fileLogName = QString("%1%2").arg(_rootPath).arg("/calibration_captured_yuv.txt");
-	QByteArray fileNameRaw = fileLogName.toUtf8();
-
-	if (_capturedColors->saveResult(fileNameRaw.constData(), results.str()))
-	{
-		Info(_log, "Write captured colors to: {:s}", (fileLogName));
-	}
-	else
-	{
-		Error(_log, "Could not save captured colors to: {:s}", (fileLogName));
-	}
+	writeCapturedYuvDump("Captured colors exported after successful calibration.");
 
 	// create LUT
 	notifyCalibrationMessage("Writing final LUT...");

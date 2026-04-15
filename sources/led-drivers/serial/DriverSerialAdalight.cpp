@@ -1,4 +1,6 @@
 #include <led-drivers/serial/DriverSerialAdalight.h>
+
+#include <infinite-color-engine/ColorSpace.h>
 #include <QtEndian>
 
 #include <cassert>
@@ -8,6 +10,10 @@ DriverSerialAdalight::DriverSerialAdalight(const QJsonObject& deviceConfig)
 	, _headerSize(6)
 	, _ligthBerryAPA102Mode(false)
 	, _awa_mode(false)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
+	, _ice_white_mixer_threshold(0.0f)
+	, _ice_white_led_intensity(1.8f)
 {
 	_white_channel_calibration = false;
 	_white_channel_limit = 255;
@@ -26,6 +32,14 @@ bool DriverSerialAdalight::init(QJsonObject deviceConfig)
 
 		_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
 		_awa_mode = deviceConfig["awa_mode"].toBool(false);
+		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
+		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+		_ice_white_temperatur.x = deviceConfig.contains("ice_white_temperatur_red") ? deviceConfig["ice_white_temperatur_red"].toDouble(1.0) : deviceConfig["ice_white_temperatur_r"].toDouble(1.0);
+		_ice_white_temperatur.y = deviceConfig.contains("ice_white_temperatur_green") ? deviceConfig["ice_white_temperatur_green"].toDouble(1.0) : deviceConfig["ice_white_temperatur_g"].toDouble(1.0);
+		_ice_white_temperatur.z = deviceConfig.contains("ice_white_temperatur_blue") ? deviceConfig["ice_white_temperatur_blue"].toDouble(1.0) : deviceConfig["ice_white_temperatur_b"].toDouble(1.0);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
 		_white_channel_calibration = deviceConfig["white_channel_calibration"].toBool(false);
 		_white_channel_limit = qMin(qRound(deviceConfig["white_channel_limit"].toDouble(1) * 255.0 / 100.0), 255);
@@ -74,13 +88,54 @@ void DriverSerialAdalight::CreateHeader()
 	}
 
 	_ledBuffer[0] = 'A';
-	_ledBuffer[1] = (_awa_mode) ? 'w' : 'd';
-	_ledBuffer[2] = (_awa_mode && _white_channel_calibration) ? 'A' : 'a';
+	_ledBuffer[1] = (_awa_mode) ? ((_enable_ice_rgbw) ? 'W' : 'w') : 'd';
+	_ledBuffer[2] = (_awa_mode && (_white_channel_calibration && !_enable_ice_rgbw)) ? 'A' : 'a';
 	qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 	_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
-	Debug(_log, "Adalight header for {:d} leds: {:c} {:c} {:c} {:d} {:d} {:d}", _ledCount,
+	Debug(_log, "Adalight header for {:d} {:s} leds: {:c} {:c} {:c} {:d} {:d} {:d}", _ledCount, ((_enable_ice_rgbw) ? "infinite" : "finite"),
 		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]);
+}
+
+std::pair<bool, int> DriverSerialAdalight::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (nonlinearRgbColors == nullptr || nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+		return { _enable_ice_rgbw, 0 };
+
+	if (_ledCount != nonlinearRgbColors->size())
+	{
+		Warning(_log, "Adalight infinite led count has changed (old: {:d}, new: {:d}). Rebuilding header.", _ledCount, nonlinearRgbColors->size());
+		_ledCount = static_cast<uint>(nonlinearRgbColors->size());
+		_ledRGBCount = _ledCount * 3;
+		CreateHeader();
+	}
+
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, _colorOrder);
+
+	const size_t wanted = _headerSize + _ledCount * sizeof(linalg::aliases::byte4) + 8u;
+	if (_ledBuffer.size() < wanted)
+		_ledBuffer.resize(wanted, 0x00);
+
+	uint8_t* hasher = _ledBuffer.data() + _headerSize;
+	uint8_t* writer = hasher + _ledCount * sizeof(linalg::aliases::byte4);
+
+	uint16_t fletcher1 = 0;
+	uint16_t fletcher2 = 0;
+	uint16_t fletcherExt = 0;
+	uint8_t position = 0;
+	while (hasher < writer)
+	{
+		const uint8_t byte = *(hasher++);
+		fletcherExt = (fletcherExt + (byte ^ (position++))) % 255u;
+		fletcher1 = (fletcher1 + byte) % 255u;
+		fletcher2 = (fletcher2 + fletcher1) % 255u;
+	}
+
+	*(writer++) = static_cast<uint8_t>(fletcher1);
+	*(writer++) = static_cast<uint8_t>(fletcher2);
+	*(writer++) = static_cast<uint8_t>((fletcherExt != 0x41u) ? fletcherExt : 0xaau);
+
+	return { true, writeBytes(static_cast<unsigned int>(writer - _ledBuffer.data()), _ledBuffer.data()) };
 }
 
 int DriverSerialAdalight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)

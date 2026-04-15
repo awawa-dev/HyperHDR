@@ -22,6 +22,16 @@
 		"lch_correction": {
 			"type" : "boolean",
 			"required" : true
+		},
+		"colored_aspect_mode": {
+			"type" : "integer",
+			"required" : false,
+			"minimum" : -1,
+			"maximum" : 4
+		},
+		"nits_override": {
+			"type" : "any",
+			"required" : false
 		}
 	},
 	"additionalProperties": false

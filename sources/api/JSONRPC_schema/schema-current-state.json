@@ -10,7 +10,7 @@
 		"subcommand" : {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["average-color"]
+			"enum" : ["average-color", "video-stream-get", "video-stream-report"]
 		},
 		"tan" : {
 			"type" : "integer"
@@ -20,6 +20,11 @@
 			"minimum" : 0,
 			"maximum" : 255,
 			"required": true
+		},
+		"state": {
+			"type": "object",
+			"properties": {},
+			"additionalProperties": true
 		}		
 	},
 	"additionalProperties": false

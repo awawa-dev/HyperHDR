@@ -18,6 +18,7 @@
 #endif
 
 #include <led-drivers/LedDeviceManufactory.h>
+#include <base/LedString.h>
 #include <image/MemoryBuffer.h>
 #include <image/ColorRgb.h>
 #include <utils/Logger.h>
@@ -64,6 +65,9 @@ public slots:
 	int getRefreshTime() const;
 	int getLedCount() const;
 	QString getActiveDeviceType() const;
+	virtual QJsonObject getRuntimeTransferCurveState() const;
+	virtual QString setRuntimeTransferCurveProfile(QString profileId);
+	virtual QString setDaytimeUplift(bool enabled, int blend, const QString& profileId);
 	bool componentState() const;
 	void enable();
 	void disable();
@@ -92,6 +96,7 @@ protected:
 	virtual bool powerOff();
 	virtual bool storeState();
 	virtual bool restoreState();
+	void requestCurrentFrameRefresh();
 
 	void enableDevice(bool toEmit);
 	void disableDevice(bool toEmit);
@@ -116,6 +121,7 @@ protected:
 	uint _ledCount;
 	uint _ledRGBCount;
 	uint _ledRGBWCount;
+	LedString::ColorOrder _colorOrder;
 
 	bool	_isRestoreOrigState;
 	QJsonObject _orignalStateValues;

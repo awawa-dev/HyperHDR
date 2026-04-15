@@ -1,0 +1,249 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_outputPath_title",
+			"default":"auto",
+			"propertyOrder" : 1
+		},
+		"awa_mode": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_awa_mode_title",
+			"default": true,
+			"propertyOrder" : 2
+		},
+		"rate": {
+			"type": "integer",
+			"title":"edt_dev_spec_baudrate_title",
+			"default": 30000000,
+			"propertyOrder" : 3
+		},
+		"writeTimeout": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "Serial write timeout (0 = non-blocking)",
+			"default": 1000,
+			"minimum": 0,
+			"maximum": 5000,
+			"append": "ms",
+			"access": "expert",
+			"propertyOrder": 4
+		},
+		"espHandshake":
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_serial_espHandshake",
+			"default" : false,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"awa_mode": true
+				}
+			},
+			"propertyOrder" : 5
+		},
+		"forceSerialDetection":
+		{
+			"type" : "boolean",
+			"format": "checkbox",
+			"title" : "edt_dev_spec_forceSerialDetection",
+			"default" : false,
+			"required" : true,
+			"options": {
+				"dependencies": {
+					"awa_mode": true
+				}
+			},
+			"propertyOrder" : 6
+		},
+		"enable_ice_rgbw": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_enable_ice_rgbw",
+			"required" : true,
+			"default": false,
+			"options": {
+				"dependencies": {
+					"awa_mode": true
+				}
+			},
+			"propertyOrder" : 7
+		},
+		"ice_white_mixer_threshold": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_mixer_threshold",
+			"required" : true,
+			"default" : 0.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 8
+		},
+		"ice_white_led_intensity": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_led_intensity",
+			"required" : true,
+			"default" : 1.8,
+			"step": 0.05,
+			"minimum" : 0.5,
+			"maximum" : 5.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 9
+		},
+		"ice_white_temperatur_red": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_temperatur_r",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 10
+		},
+		"ice_white_temperatur_green": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_temperatur_g",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 11
+		},
+		"ice_white_temperatur_blue": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_temperatur_b",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 12
+		},
+		"white_channel_calibration": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_rgbw_calibration_enable",
+			"required" : true,
+			"default": false,
+			"options": {
+				"dependencies": {
+					"awa_mode": true,
+					"enable_ice_rgbw": false
+				}
+			},
+			"propertyOrder" : 13
+		},
+		"white_channel_limit": {
+			"type": "number",
+			"title":"edt_rgbw_calibration_limit",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 100,
+			"step": 0.25,
+			"minimum" : 0,
+			"maximum" : 100,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 14
+		},
+		"white_channel_red": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_red",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 15
+		},
+		"white_channel_green": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_green",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 16
+		},
+		"white_channel_blue": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_blue",
+			"format" : "stepper",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 17
+		},
+		"maxRetry":
+		{
+			"type" : "integer",
+			"format" : "stepper",
+			"step"   : 1,
+			"title" : "edt_dev_max_retry",
+			"minimum" : 0,
+			"maximum" : 120,
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 18
+		}
+	},
+	"additionalProperties": true
+}

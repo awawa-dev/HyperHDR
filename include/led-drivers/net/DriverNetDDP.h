@@ -2,6 +2,8 @@
 
 #include "ProviderUdp.h"
 
+#include <led-drivers/InfiniteColorEngineRgbw.h>
+
 class DriverNetDDP : public ProviderUdp
 {
 public:
@@ -11,6 +13,14 @@ public:
 protected:
 	bool init(QJsonObject deviceConfig) override;
 	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
+	int writeFiniteColors(bool isRgbw, const int ledsNumber, const std::vector<ColorRgb>& ledValues);
+	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
+
+	InfiniteColorEngineRgbw _infiniteColorEngineRgbw;
+	bool _enable_ice_rgbw;
+	linalg::aliases::float3 _ice_white_temperatur;
+	float _ice_white_mixer_threshold;
+	float _ice_white_led_intensity;
 
 	bool _isRgbw;
 	RGBW::WhiteAlgorithm _whiteAlgorithm;

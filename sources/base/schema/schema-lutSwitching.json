@@ -1,0 +1,695 @@
+{
+	"type" : "object",
+	"required" : true,
+	"title" : "edt_conf_lut_switching_heading_title",
+	"properties" :
+	{
+		"enabled" :
+		{
+			"type" : "boolean",
+			"format" : "checkbox",
+			"title" : "edt_conf_lut_switching_enabled_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"directory" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_directory_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 2
+		},
+		"activeLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_active_file_title",
+			"default" : "lut_lin_tables.3d",
+			"required" : true,
+			"propertyOrder" : 3
+		},
+		"sdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_sdr_file_title",
+			"default" : "lut_lin_tables_sdr.3d",
+			"required" : true,
+			"propertyOrder" : 4
+		},
+		"hdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_hdr_file_title",
+			"default" : "lut_lin_tables_hdr.3d",
+			"required" : true,
+			"propertyOrder" : 5
+		},
+		"lldvLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_lldv_file_title",
+			"default" : "lut_lin_tables_lldv.3d",
+			"required" : true,
+			"propertyOrder" : 6
+		},
+		"ugoosSdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_ugoos_sdr_file_title",
+			"default" : "lut_lin_tables_sdr_ugoos.3d",
+			"required" : true,
+			"propertyOrder" : 7
+		},
+		"ugoosHdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_ugoos_hdr_file_title",
+			"default" : "lut_lin_tables_hdr_ugoos.3d",
+			"required" : true,
+			"propertyOrder" : 8
+		},
+		"ugoosLldvLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_ugoos_lldv_file_title",
+			"default" : "lut_lin_tables_lldv_ugoos.3d",
+			"required" : true,
+			"propertyOrder" : 9
+		},
+		"appletvSdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_appletv_sdr_file_title",
+			"default" : "lut_lin_tables_sdr_appletv.3d",
+			"required" : true,
+			"propertyOrder" : 10
+		},
+		"appletvHdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_appletv_hdr_file_title",
+			"default" : "lut_lin_tables_hdr_appletv.3d",
+			"required" : true,
+			"propertyOrder" : 11
+		},
+		"appletvLldvLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_appletv_lldv_file_title",
+			"default" : "lut_lin_tables_lldv_appletv.3d",
+			"required" : true,
+			"propertyOrder" : 12
+		},
+		"steamdeckSdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_steamdeck_sdr_file_title",
+			"default" : "lut_lin_tables_sdr_steamdeck.3d",
+			"required" : true,
+			"propertyOrder" : 13
+		},
+		"steamdeckHdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_steamdeck_hdr_file_title",
+			"default" : "lut_lin_tables_hdr_steamdeck.3d",
+			"required" : true,
+			"propertyOrder" : 14
+		},
+		"steamdeckLldvLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_steamdeck_lldv_file_title",
+			"default" : "lut_lin_tables_lldv_steamdeck.3d",
+			"required" : true,
+			"propertyOrder" : 15
+		},
+		"rx3SdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_rx3_sdr_file_title",
+			"default" : "lut_lin_tables_sdr_rx3.3d",
+			"required" : true,
+			"propertyOrder" : 16
+		},
+		"rx3HdrLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_rx3_hdr_file_title",
+			"default" : "lut_lin_tables_hdr_rx3.3d",
+			"required" : true,
+			"propertyOrder" : 17
+		},
+		"rx3LldvLutFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_rx3_lldv_file_title",
+			"default" : "lut_lin_tables_lldv_rx3.3d",
+			"required" : true,
+			"propertyOrder" : 18
+		},
+		"activeMode" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_active_mode_title",
+			"default" : "hdr",
+			"enum" : ["sdr", "hdr", "lldv"],
+			"options" :
+			{
+				"enum_titles" : ["SDR", "HDR", "LLDV"]
+			},
+			"required" : true,
+			"propertyOrder" : 19
+		},
+		"activeInput" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_active_input_title",
+			"default" : "",
+			"enum" : ["", "ugoos", "appletv", "steamdeck", "rx3"],
+			"options" :
+			{
+				"enum_titles" : ["Auto / none", "Ugoos", "Apple TV", "Steam Deck", "RX3"]
+			},
+			"required" : true,
+			"propertyOrder" : 20
+		},
+		"lastCustomFile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_last_custom_file_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 22
+		},
+		"sdrUsesHdrFile" :
+		{
+			"type" : "boolean",
+			"format" : "checkbox",
+			"title" : "edt_conf_lut_switching_sdr_hdr_fallback_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 23
+		},
+		"transferAutomationEnabled" :
+		{
+			"type" : "boolean",
+			"format" : "checkbox",
+			"title" : "edt_conf_lut_switching_transfer_automation_enabled_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 24
+		},
+		"lutMemoryCacheEnabled" :
+		{
+			"type" : "boolean",
+			"format" : "checkbox",
+			"title" : "Store LUTs In Memory",
+			"default" : true,
+			"required" : true,
+			"propertyOrder" : 24
+		},
+		"transferSdrProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_sdr_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 24
+		},
+		"transferHlgProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_hlg_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 25
+		},
+		"transferHdrProfiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 26
+		},
+		"transferHdrMdl1000Profiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 27
+		},
+		"transferHdrMdl4000Profiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 28
+		},
+		"transferHdrLowProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_hdr_low_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 29
+		},
+		"transferHdrMidProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_hdr_mid_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 30
+		},
+		"transferHdrHighProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_hdr_high_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 31
+		},
+		"transferHdrLowNitLimit" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_lut_switching_transfer_hdr_low_nits_title",
+			"default" : 400,
+			"required" : true,
+			"propertyOrder" : 32
+		},
+		"transferHdrMidNitLimit" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_lut_switching_transfer_hdr_mid_nits_title",
+			"default" : 1000,
+			"required" : true,
+			"propertyOrder" : 33
+		},
+		"transferDolbyVisionMdl1000Profiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 34
+		},
+		"transferDolbyVisionMdl4000Profiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 35
+		},
+		"transferDolbyVisionMdl1000RatioNumerator" :
+		{
+			"type" : "integer",
+			"title" : "Dolby Vision MDL1000 transfer ratio numerator",
+			"default" : 2,
+			"required" : true,
+			"propertyOrder" : 35
+		},
+		"transferDolbyVisionMdl1000RatioDenominator" :
+		{
+			"type" : "integer",
+			"title" : "Dolby Vision MDL1000 transfer ratio denominator",
+			"default" : 4,
+			"required" : true,
+			"propertyOrder" : 35
+		},
+		"transferDolbyVisionMdl4000RatioNumerator" :
+		{
+			"type" : "integer",
+			"title" : "Dolby Vision MDL4000 transfer ratio numerator",
+			"default" : 3,
+			"required" : true,
+			"propertyOrder" : 35
+		},
+		"transferDolbyVisionMdl4000RatioDenominator" :
+		{
+			"type" : "integer",
+			"title" : "Dolby Vision MDL4000 transfer ratio denominator",
+			"default" : 5,
+			"required" : true,
+			"propertyOrder" : 35
+		},
+		"transferDolbyVisionLowProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_dv_low_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 36
+		},
+		"transferDolbyVisionMidProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_dv_mid_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 37
+		},
+		"transferDolbyVisionHighProfile" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_lut_switching_transfer_dv_high_profile_title",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 38
+		},
+		"transferDolbyVisionLowNitLimit" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_lut_switching_transfer_dv_low_nits_title",
+			"default" : 400,
+			"required" : true,
+			"propertyOrder" : 39
+		},
+		"transferDolbyVisionMidNitLimit" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_lut_switching_transfer_dv_mid_nits_title",
+			"default" : 1000,
+			"required" : true,
+			"propertyOrder" : 40
+		},
+		"kodiDolbyVisionBucketMetric" :
+		{
+			"type" : "string",
+			"title" : "Dolby Vision bucket metric",
+			"default" : "l1AvgNits",
+			"enum" : ["l1AvgNits", "l1MaxNits", "sceneAverageIndex"],
+			"options" :
+			{
+				"enum_titles" : ["L1 average nits", "L1 max nits", "Scene average index"]
+			},
+			"required" : true,
+			"propertyOrder" : 41
+		},
+		"kodiDolbyVisionSceneIndexHighlightWeight" :
+		{
+			"type" : "number",
+			"format" : "stepper",
+			"title" : "Dolby Vision scene index highlight weight (k)",
+			"default" : 0.25,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"step" : 0.01,
+			"required" : true,
+			"propertyOrder" : 41.1
+		},
+		"kodiHdrMdl1000Thresholds" :
+		{
+			"type" : "string",
+			"title" : "HDR MDL1000 thresholds",
+			"default" : "250",
+			"required" : true,
+			"propertyOrder" : 42
+		},
+		"kodiHdrMdl4000Thresholds" :
+		{
+			"type" : "string",
+			"title" : "HDR MDL4000 thresholds",
+			"default" : "250",
+			"required" : true,
+			"propertyOrder" : 43
+		},
+		"kodiHdrMdlOnlyFallbackNits" :
+		{
+			"type" : "integer",
+			"title" : "HDR MDL-only fallback nits",
+			"default" : 400,
+			"minimum" : 1,
+			"maximum" : 10000,
+			"required" : true,
+			"propertyOrder" : 43.5
+		},
+		"kodiHdrThresholds" :
+		{
+			"type" : "string",
+			"title" : "HDR thresholds",
+			"default" : "250",
+			"required" : true,
+			"propertyOrder" : 44
+		},
+		"kodiDolbyVisionMdl1000Thresholds" :
+		{
+			"type" : "string",
+			"title" : "Dolby Vision MDL1000 thresholds",
+			"default" : "69, 120, 200",
+			"required" : true,
+			"propertyOrder" : 45
+		},
+		"kodiDolbyVisionMdl4000Thresholds" :
+		{
+			"type" : "string",
+			"title" : "Dolby Vision MDL4000 thresholds",
+			"default" : "69, 120, 200, 400",
+			"required" : true,
+			"propertyOrder" : 46
+		},
+		"ugoosHdrMetadataLutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 46
+		},
+		"ugoosHdrMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 47
+		},
+		"ugoosHdrMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 48
+		},
+		"ugoosDolbyVisionMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 49
+		},
+		"ugoosDolbyVisionMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 50
+		},
+		"appletvHdrMetadataLutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 51
+		},
+		"appletvHdrMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 52
+		},
+		"appletvHdrMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 53
+		},
+		"appletvDolbyVisionMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 54
+		},
+		"appletvDolbyVisionMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 55
+		},
+		"steamdeckHdrMetadataLutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 56
+		},
+		"steamdeckHdrMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 57
+		},
+		"steamdeckHdrMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 58
+		},
+		"steamdeckDolbyVisionMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 59
+		},
+		"steamdeckDolbyVisionMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 60
+		},
+		"rx3HdrMetadataLutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 61
+		},
+		"rx3HdrMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 62
+		},
+		"rx3HdrMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 63
+		},
+		"rx3DolbyVisionMdl1000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 64
+		},
+		"rx3DolbyVisionMdl4000LutFiles" :
+		{
+			"type" : "array",
+			"items" : { "type" : "string" },
+			"default" : [],
+			"required" : true,
+			"propertyOrder" : 65
+		},
+		"daytimeUpliftEnabled" :
+		{
+			"type" : "boolean",
+			"format" : "checkbox",
+			"title" : "Enable daytime uplift",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 70
+		},
+		"daytimeUpliftProfile" :
+		{
+			"type" : "string",
+			"title" : "Daytime uplift profile",
+			"default" : "",
+			"required" : true,
+			"propertyOrder" : 71
+		},
+		"daytimeUpliftStartHour" :
+		{
+			"type" : "integer",
+			"title" : "Daytime uplift start hour",
+			"default" : 8,
+			"minimum" : 0,
+			"maximum" : 23,
+			"required" : true,
+			"propertyOrder" : 72
+		},
+		"daytimeUpliftStartMinute" :
+		{
+			"type" : "integer",
+			"title" : "Daytime uplift start minute",
+			"default" : 0,
+			"minimum" : 0,
+			"maximum" : 59,
+			"required" : true,
+			"propertyOrder" : 73
+		},
+		"daytimeUpliftEndHour" :
+		{
+			"type" : "integer",
+			"title" : "Daytime uplift end hour",
+			"default" : 18,
+			"minimum" : 0,
+			"maximum" : 23,
+			"required" : true,
+			"propertyOrder" : 74
+		},
+		"daytimeUpliftEndMinute" :
+		{
+			"type" : "integer",
+			"title" : "Daytime uplift end minute",
+			"default" : 0,
+			"minimum" : 0,
+			"maximum" : 59,
+			"required" : true,
+			"propertyOrder" : 75
+		},
+		"daytimeUpliftRampMinutes" :
+		{
+			"type" : "integer",
+			"title" : "Daytime uplift ramp minutes",
+			"default" : 30,
+			"minimum" : 0,
+			"maximum" : 120,
+			"required" : true,
+			"propertyOrder" : 76
+		},
+		"daytimeUpliftMaxBlend" :
+		{
+			"type" : "integer",
+			"title" : "Daytime uplift max blend",
+			"default" : 128,
+			"minimum" : 1,
+			"maximum" : 255,
+			"required" : true,
+			"propertyOrder" : 77
+		}
+	},
+	"additionalProperties" : false
+}

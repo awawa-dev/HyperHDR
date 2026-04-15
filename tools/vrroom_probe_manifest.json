@@ -1,0 +1,4415 @@
+{
+  "fetched_count": 36,
+  "files": [
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/index.html",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [
+          "http://vrroom-09/css/style.css",
+          "http://vrroom-09/js/config.js",
+          "http://vrroom-09/js/main.js",
+          "http://vrroom-09/js/requests.js",
+          "http://www.hdfury.com/",
+          "https://hdfury.com/wp-content/uploads/2022/03/VRROOM.png"
+        ],
+        "forms": [
+          {
+            "action": "http://vrroom-09/",
+            "id": "",
+            "inputs": [
+              {
+                "id": "edidfileupload",
+                "name": "edidfile",
+                "tag": "input",
+                "type": "file",
+                "value": ""
+              },
+              {
+                "id": "tablelocation",
+                "name": "loc",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "SEND EDID"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          },
+          {
+            "action": "http://vrroom-09/",
+            "id": "setosdparam",
+            "inputs": [
+              {
+                "id": "osd_x",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "20"
+              },
+              {
+                "id": "osd_y",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "945"
+              },
+              {
+                "id": "osd__color--fg",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "5"
+              },
+              {
+                "id": "osd__color--bg",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "5"
+              },
+              {
+                "id": "osd__color--level",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "7"
+              },
+              {
+                "id": "osd__item--source",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--videofield",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--videoif",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--hdrrxtx",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--hdrif",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--audiofield",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--rxvideoinfo",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--rxhdrinfo",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osd__item--ignoremeta",
+                "name": "osdsource",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osdmaskenable",
+                "name": "osdmaskparam",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "osdmask_x",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "20"
+              },
+              {
+                "id": "osdmask_y",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "945"
+              },
+              {
+                "id": "osdmask_x1",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "20"
+              },
+              {
+                "id": "osdmask_y1",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "945"
+              },
+              {
+                "id": "osd__mask--level",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "3"
+              },
+              {
+                "id": "osd__mask--gs",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "10"
+              },
+              {
+                "id": "",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "SEND OSD VALUES"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          },
+          {
+            "action": "http://vrroom-09/",
+            "id": "osdtextform",
+            "inputs": [
+              {
+                "id": "osdtext_x",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "20"
+              },
+              {
+                "id": "osdtext_y",
+                "name": "",
+                "tag": "input",
+                "type": "number",
+                "value": "945"
+              },
+              {
+                "id": "osdtextcontent",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": ""
+              },
+              {
+                "id": "",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "SEND TEXT VALUES"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          },
+          {
+            "action": "http://vrroom-09/",
+            "id": "setmacrosform",
+            "inputs": [
+              {
+                "id": "macro__enable",
+                "name": "macro__enable",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macro__everysync",
+                "name": "macro__everysync",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__hdr10mode",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__syncdelay",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "20"
+              },
+              {
+                "id": "macros__sdrtv",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sdrtvcustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__sdrfilm",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sdrfilmcustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__sdrbt2020",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sdrbt2020custom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__3d",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__3dcustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__xvcolor",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__xvcolorcustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__hlgbt709",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__hlgbt709custom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__hlgbt2020",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__hlgbt2020custom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__hdr10main",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__hdr10maincustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__hdr10optional",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__hdr10optionalcustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__hdr10bt709",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__hdr10bt709custom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macros__lldv",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__lldvcustom",
+                "name": "",
+                "tag": "input",
+                "type": "text",
+                "value": "21:89:01:50:4d:47:31:32:0a:00"
+              },
+              {
+                "id": "macro__execcustomcode",
+                "name": "macro__execcustomcode",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__selbeforeafter",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__execdelay",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb1",
+                "name": "macro__customcb1",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__custommode1",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sb1",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "macros__customaction1",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb2",
+                "name": "macro__customcb2",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__custommode2",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sb2",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "macros__customaction2",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb3",
+                "name": "macro__customcb3",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__custommode3",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sb3",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "macros__customaction3",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb4",
+                "name": "macro__customcb4",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__custommode4",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sb4",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "macros__customaction4",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb5",
+                "name": "macro__customcb5",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__custommode5",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sb5",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "macros__customaction5",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb6",
+                "name": "macro__customcb6",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__custommode6",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macros__sb6",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "macros__customaction6",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "macro__customcb7",
+                "name": "macro__customcb6",
+                "tag": "input",
+                "type": "checkbox",
+                "value": ""
+              },
+              {
+                "id": "macros__customaction7",
+                "name": "",
+                "tag": "select",
+                "type": "",
+                "value": ""
+              },
+              {
+                "id": "",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "Send Macro Values"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          },
+          {
+            "action": "http://vrroom-09/",
+            "id": "",
+            "inputs": [
+              {
+                "id": "audiovolume",
+                "name": "vol",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "audiobass",
+                "name": "bass",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "audiotreb",
+                "name": "treb",
+                "tag": "input",
+                "type": "number",
+                "value": "0"
+              },
+              {
+                "id": "audiosubmit",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "SEND"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          },
+          {
+            "action": "http://vrroom-09/",
+            "id": "",
+            "inputs": [
+              {
+                "id": "importfile",
+                "name": "",
+                "tag": "input",
+                "type": "file",
+                "value": ""
+              },
+              {
+                "id": "importfile__btn",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "IMPORT"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          },
+          {
+            "action": "http://vrroom-09/",
+            "id": "",
+            "inputs": [
+              {
+                "id": "uploadfile",
+                "name": "datafile",
+                "tag": "input",
+                "type": "file",
+                "value": ""
+              },
+              {
+                "id": "uploadfw__btn",
+                "name": "",
+                "tag": "input",
+                "type": "submit",
+                "value": "SEND"
+              }
+            ],
+            "method": "get",
+            "name": ""
+          }
+        ],
+        "interesting_fields": [
+          {
+            "id": "portseltx0",
+            "name": "insel",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "portseltx1",
+            "name": "insel",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edidcopybot",
+            "name": "edidmode",
+            "tag": "input",
+            "type": "radio",
+            "value": "copytx0"
+          },
+          {
+            "id": "edidcopytop",
+            "name": "edidmode",
+            "tag": "input",
+            "type": "radio",
+            "value": "copytx1"
+          },
+          {
+            "id": "edidfixed",
+            "name": "edidmode",
+            "tag": "input",
+            "type": "radio",
+            "value": "fixed"
+          },
+          {
+            "id": "edidcustom",
+            "name": "edidmode",
+            "tag": "input",
+            "type": "radio",
+            "value": "custom"
+          },
+          {
+            "id": "edidtableinp1",
+            "name": "edidtableinp1",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edidtableinp2",
+            "name": "edidtableinp2",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edidtableinp3",
+            "name": "edidtableinp3",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edidtableinp4",
+            "name": "edidtableinp4",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edidautomix",
+            "name": "edidmode",
+            "tag": "input",
+            "type": "radio",
+            "value": "automix"
+          },
+          {
+            "id": "edid__videotx",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__frlcb",
+            "name": "edid__frlcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__frl",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__vrrcb",
+            "name": "edid__vrrcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__vrr",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__allmcb",
+            "name": "edid__allmcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__allm",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__hdrcb",
+            "name": "edid__hdrcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__hdr",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__dvcb",
+            "name": "edid__dvcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__dv",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__audiomode",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__pcmcb",
+            "name": "edid__pcmcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__pcmch",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__pcmsr",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__pcmbw",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__truehdcb",
+            "name": "edid__truehdcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__truehd",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__truehdsr",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__ddpluscb",
+            "name": "edid__ddpluscb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__ddplus",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__ddplussr",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__ddcb",
+            "name": "edid__ddcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__dd",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__dtshdcb",
+            "name": "edid__dtshdcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__dtshd",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__dtshdsr",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__dtscb",
+            "name": "edid__dtscb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__dts",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__onebitcb",
+            "name": "edid__onebitcb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "edid__onebit",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edid__onebitsp",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "edidfileupload",
+            "name": "edidfile",
+            "tag": "input",
+            "type": "file",
+            "value": ""
+          },
+          {
+            "id": "",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "SEND EDID"
+          },
+          {
+            "id": "hdr__captured",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdrcustom",
+            "name": "infoframe_cbhdrcustom",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdrcustomhdronly",
+            "name": "infoframe_cbhdrcustomhdronly",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdrcustomhlgonly",
+            "name": "infoframe_cbhdrcustomhlgonly",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdrcustomhlgonlyauto",
+            "name": "infoframe_cbhdrcustomhlgonlyauto",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdrcustomlldvonly",
+            "name": "infoframe_cbhdrcustomlldvonly",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdr10disable",
+            "name": "infoframe_cbhdr10disable",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhlgdisable",
+            "name": "infoframe_cbhlgdisable",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cblldvdisable",
+            "name": "infoframe_cblldvdisable",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbhdrdisable",
+            "name": "infoframe_cbhdrdisable",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "createhdr__eotf",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createhdr__primaries",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createhdr__wp",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createhdr__maxlum",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "4000"
+          },
+          {
+            "id": "createhdr__minlum",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.0001"
+          },
+          {
+            "id": "createhdr__maxcll",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "1000"
+          },
+          {
+            "id": "createhdr__maxfall",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "400"
+          },
+          {
+            "id": "infoframe__customhdr",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "avi__captured",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbavicustom",
+            "name": "infoframe_cbavicustom",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "infoframe_cbavidisable",
+            "name": "infoframe_cbavidisable",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "createavi__vic",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createavi__csc",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createavi__range",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "infoframe__customavi",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "allmmode_follow",
+            "name": "allmmode",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "allmmode_off",
+            "name": "allmmode",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "allmmode_on",
+            "name": "allmmode",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "allmmode_target",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "dv__captured",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "dv__tx0edidblock",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "createdv__interface",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__primaries",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__yuv422",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__gdim",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__backlight",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__backlightluma",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__lldv1012b",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "createdv__rx",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.680"
+          },
+          {
+            "id": "createdv__ry",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.320"
+          },
+          {
+            "id": "createdv__gx",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.265"
+          },
+          {
+            "id": "createdv__gy",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.690"
+          },
+          {
+            "id": "createdv__bx",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.150"
+          },
+          {
+            "id": "createdv__by",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0.060"
+          },
+          {
+            "id": "createdv__maxlum",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "1000"
+          },
+          {
+            "id": "createdv__minlum",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "infoframe__lldvdatablock",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "osd__item--source",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--videofield",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--videoif",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--hdrrxtx",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--hdrif",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--audiofield",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--rxvideoinfo",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--rxhdrinfo",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--ignoremeta",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "earcforce",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "earcspeakermap",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "earcmutemode",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "earctxmode",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10mode",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sdrbt2020",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sdrbt2020custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hlgbt709",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hlgbt709custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hlgbt2020",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hlgbt2020custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hdr10main",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10maincustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hdr10optional",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10optionalcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hdr10bt709",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10bt709custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__lldv",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__lldvcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "earcunmutecnt",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "mutetx0audio_on",
+            "name": "mutetx0audio",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "mutetx0audio_off",
+            "name": "mutetx0audio",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "mutetx1audio_on",
+            "name": "mutetx1audio",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "mutetx1audio_off",
+            "name": "mutetx1audio",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "tx1plus5_on",
+            "name": "tx1plus5",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "tx1plus5_off",
+            "name": "tx1plus5",
+            "tag": "input",
+            "type": "radio",
+            "value": ""
+          },
+          {
+            "id": "resetedid__cb",
+            "name": "resetedid__cb",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          }
+        ],
+        "keyword_lines": [
+          "HDFury VRROOM",
+          "EDID",
+          "HDR/AVI",
+          "CEC/EARC",
+          "SOURCE:",
+          "IN TX0:",
+          "IN TX1:",
+          "VIDEO TX0:",
+          "VIDEO TX1:",
+          "AUDIO TX0:",
+          "AUDIO TX1:",
+          "eARC RX:",
+          "ROUTE:",
+          "EDID TX0:",
+          "EDID TX1:",
+          "EDID AUD:",
+          "MODE 0 - SPLITTER TX0/TX1 FRL5 VRR",
+          "MODE 1 - SPLITTER TX0/TX1 UPSCALE FRL5",
+          "MODE 2 - MATRIX TMDS",
+          "MODE 3 - MATRIX FRL->TMDS",
+          "MODE 5 - MATRIX RX0:FRL5 + RX1-3:TMDS",
+          "MODE 0: Split input to both TX0 and TX1. FRL5 and VRR are supported.",
+          "MODE 1: Split input to both TX0 and TX1. TX0 upscales up to FRL5. No VRR supported.",
+          "MODE 2: Matrix mode. FRL",
+          "MODE 3: Matrix mode. TX1 FRL->TMDS",
+          "MODE 4: Matrix mode. TX1 downscale. FRL",
+          "VRRoom will reboot when switching between Split / Matrix modes",
+          "TX0:",
+          "- COPY TX1 -",
+          "TX1:",
+          "- COPY TX0 -",
+          "COPY TX0 SINK",
+          "Copy the connected TX0 sink EDID capabilities. No modifications.",
+          "COPY TX1 SINK",
+          "Copy the connected TX1 sink EDID capabilities. No modifications.",
+          "FIXED TEST EDID",
+          "Standard EDID table to verify cable issues. EDID max caps 4K60 420 300MHz 8b stereo audio.",
+          "CUSTOM EDID",
+          "Custom EDID tables for various situations. The first 10 tables can be replaced over LAN.",
+          "2 - Custom Default [Q70J HDR10+ 7.1]",
+          "4 - Custom Default [Q9FN ALLM VRR HDR10+]",
+          "5 - Custom Default [SONY A1 LLDV DCI-P3]",
+          "9 - Custom Default [PanaGZ960E DV HDR10+]",
+          "10 - Custom Default [SONY A1 LLDV BT2020]",
+          "11 - 8K60-420 FRL-5 VRR HDR 7.1",
+          "12 - 8K60-420 FRL-5 VRR HDR 5.1",
+          "13 - 8K60-420 FRL-5 VRR HDR 2.0",
+          "14 - 8K60-420 FRL-5 HDR 7.1",
+          "15 - 8K60-420 FRL-5 HDR 5.1",
+          "16 - 8K60-420 FRL-5 HDR 2.0",
+          "17 - 4K120-444 FRL-5 10b VRR HDR 7.1",
+          "18 - 4K120-444 FRL-5 10b VRR HDR 5.1",
+          "19 - 4K120-444 FRL-5 10b VRR HDR 2.0",
+          "20 - 4K120-444 FRL-5 10b HDR 7.1",
+          "21 - 4K120-444 FRL-5 10b HDR 5.1",
+          "22 - 4K120-444 FRL-5 10b HDR 2.0",
+          "23 - 4K120-420 VRR HDR 7.1",
+          "24 - 4K120-420 VRR HDR 5.1",
+          "25 - 4K120-420 VRR HDR 2.0",
+          "26 - 4K120-420 HDR 7.1",
+          "27 - 4K120-420 HDR 5.1",
+          "28 - 4K120-420 HDR 2.0",
+          "29 - 4K60-444 600MHz HDR BT2020 7.1",
+          "30 - 4K60-444 600MHz HDR BT2020 5.1",
+          "31 - 4K60-444 600MHz HDR BT2020 2.0",
+          "32 - 4K60-444 600MHz BT2020 7.1",
+          "33 - 4K60-444 600MHz BT2020 5.1",
+          "34 - 4K60-444 600MHz BT2020 2.0",
+          "35 - 4K50-444 600MHz HDR BT2020 7.1",
+          "36 - 4K50-444 600MHz HDR BT2020 5.1",
+          "37 - 4K50-444 600MHz HDR BT2020 2.0",
+          "38 - 4K50-444 600MHz BT2020 7.1",
+          "39 - 4K50-444 600MHz BT2020 5.1",
+          "40 - 4K50-444 600MHz BT2020 2.0",
+          "41 - 4K60-420 12bit HDR BT2020 7.1",
+          "42 - 4K60-420 12bit HDR BT2020 5.1",
+          "43 - 4K60-420 12bit HDR BT2020 2.0",
+          "44 - 4K60-420 12bit BT2020 7.1",
+          "45 - 4K60-420 12bit BT2020 5.1",
+          "46 - 4K60-420 12bit BT2020 2.0",
+          "47 - 4K60-420 8-bit 300MHz HDR BT2020 7.1",
+          "48 - 4K60-420 8-bit 300MHz HDR BT2020 5.1",
+          "49 - 4K60-420 8-bit 300MHz HDR BT2020 2.0",
+          "50 - 4K60-420 8-bit 300MHz BT2020 7.1",
+          "51 - 4K60-420 8-bit 300MHz BT2020 5.1",
+          "52 - 4K60-420 8-bit 300MHz BT2020 2.0",
+          "53 - 4K30-444 300MHz HDR BT2020 7.1",
+          "54 - 4K30-444 300MHz HDR BT2020 5.1",
+          "55 - 4K30-444 300MHz HDR BT2020 2.0",
+          "56 - 4K30-444 300MHz BT2020 7.1",
+          "57 - 4K30-444 300MHz BT2020 5.1",
+          "58 - 4K30-444 300MHz BT2020 2.0",
+          "59 - 4K30-RGB 300MHz HDR BT2020 7.1",
+          "60 - 4K30-RGB 300MHz HDR BT2020 5.1",
+          "61 - 4K30-RGB 300MHz HDR BT2020 2.0",
+          "62 - 4K30-RGB 300MHz BT2020 7.1",
+          "63 - 4K30-RGB 300MHz BT2020 5.1",
+          "64 - 4K30-RGB 300MHz BT2020 2.0",
+          "65 - 4K24-422 12-bit HDR BT2020 7.1",
+          "66 - 4K24-422 12-bit HDR BT2020 5.1",
+          "67 - 4K24-422 12-bit HDR BT2020 2.0",
+          "68 - 4K24-422 12-bit BT2020 7.1",
+          "69 - 4K24-422 12-bit BT2020 5.1",
+          "70 - 4K24-422 12-bit BT2020 2.0",
+          "71 - 4K24-422 12-bit 7.1",
+          "72 - 4K24-422 12-bit 5.1",
+          "73 - 4K24-422 12-bit 2.0",
+          "74 - 1080p60-444 12-bit HDR BT2020 7.1",
+          "75 - 1080p60-444 12-bit HDR BT2020 5.1",
+          "76 - 1080p60-444 12-bit HDR BT2020 2.0",
+          "77 - 1080p60-444 12-bit BT2020 7.1",
+          "78 - 1080p60-444 12-bit BT2020 5.1",
+          "79 - 1080p60-444 12-bit BT2020 2.0",
+          "80 - 1080p60-444 12-bit 7.1",
+          "81 - 1080p60-444 12-bit 5.1",
+          "82 - 1080p60-444 12-bit 2.0",
+          "83 - 1080p24-444 12-bit HDR BT2020 7.1",
+          "84 - 1080p24-444 12-bit HDR BT2020 5.1",
+          "85 - 1080p24-444 12-bit HDR BT2020 2.0",
+          "86 - 1080p24-444 12-bit BT2020 7.1",
+          "87 - 1080p24-444 12-bit BT2020 5.1",
+          "88 - 1080p24-444 12-bit BT2020 2.0",
+          "89 - 1080p24-444 8-bit 7.1",
+          "90 - 1080p24-444 8-bit 5.1",
+          "91 - 1080p24-444 8-bit 2.0",
+          "92 - 1080i60-444 8-bit 7.1",
+          "93 - 1080i60-444 8-bit 5.1",
+          "94 - 1080i60-444 8-bit 2.0",
+          "95 - 720p60-444 8-bit 7.1",
+          "96 - 720p60-444 8-bit 5.1",
+          "97 - 720p60-444 8-bit 2.0",
+          "98 - 480p60-444 8-bit 7.1",
+          "99 - 480p60-444 8-bit 5.1",
+          "100 - 480p60-444 8-bit 2.0",
+          "COPY TX SINK EDID and MODIFY (AUTOMIX)",
+          "Automix EDID tables. Customize capabilities of the connected TX0 / TX1 sink EDID table.",
+          "Selected TX SINK will be used for the main video capabilities.",
+          "TX SINK:",
+          "FRL RATE",
+          "FRL-5 / 40Gbps",
+          "FRL-4 / 32Gbps",
+          "FRL-3 / 24Gbps",
+          "FRL-2 / 18Gbps",
+          "FRL-1 / 9Gbps",
+          "NO FRL / DISABLED",
+          "ALLM",
+          "HDR10",
+          "HDR10 / HLG",
+          "HDR10+",
+          "HDR10+ / HLG",
+          "Use DV creator page in CUSTOM mode",
+          "ARC/BEAM1",
+          "ARC/DD+",
+          "eARC OUT",
+          "In CUSTOM mode the base audio capabilities are copied from TX SINK selected port, and",
+          "COPY SINK",
+          "AUTOMIXED EDID HAS OVERFLOWED",
+          "HDR10+ Descriptor Removed",
+          "DV descriptor removed",
+          "DOWNLOAD ACTIVE EDID TABLES:",
+          "RX0 EDID",
+          "RX1 EDID",
+          "RX2 EDID",
+          "RX3 EDID",
+          "TX0 EDID",
+          "TX1 EDID",
+          "AUD EDID",
+          "eARC CDS",
+          "SAVE ACTIVE EDID TO CUSTOM EDID #:",
+          "EDID 8",
+          "EDID 9",
+          "EDID 10",
+          "UPLOAD EDID TABLES:",
+          "CAPTURED INPUT HDR METADATA:",
+          "HDR METADATA GENERATOR:",
+          "Use custom HDR for TX0 and TX1 [ignore RX HDR]",
+          "Use custom HDR for TX0 and TX1 when input is HDR10 [ignore RX HDR]",
+          "Use custom HDR for TX0 and TX1 when input is HLG [ignore RX HDR]",
+          "Use custom HDR for TX0 and TX1 when input is HLG and display has no HLG support",
+          "Use custom HDR for TX0 and TX1 when input is LLDV",
+          "Disable output HDR for TX0 and TX1 when input is HDR10",
+          "Disable output HDR for TX0 and TX1 when input is HLG",
+          "Disable output LLDV for TX0 and TX1 when input is LLDV",
+          "Disable all output HDR/HLG [keep LLDV]",
+          "HDR Luminance Range",
+          "HLG ITU-R BT.2100-0",
+          "Send HDR",
+          "CAPTURED AVI METADATA:",
+          "CUSTOM AVI INFOFRAME GENERATOR:",
+          "Use custom AVI [for advanced users only]",
+          "Disable AVI sending [send nothing]",
+          "YCbCr 444 BT709",
+          "YCbCr 422 BT709",
+          "YCbCr 420 BT709",
+          "RGB BT2020",
+          "YCbCr 444 BT2020",
+          "YCbCr 422 BT2020",
+          "YCbCr 420 BT2020",
+          "Send AVI",
+          "Use custom VSI [for advanced users only]",
+          "Allows to control the TV supported ALLM feature",
+          "ON -setting forces ALLM enabled at all times - ignores RX ALLM",
+          "OFF -setting forces ALLM disabled at all times - ignores RX ALLM",
+          "FOLLOW -setting lets the source control enable/disable",
+          "ALLM MODE:",
+          "OTHER CAPTURED METADATA:",
+          "CAPTURED INPUT DOLBY VISION METADATA [from source]:",
+          "DV Status:",
+          "DV interface:",
+          "Backlight metadata:",
+          "CONNECTED DOLBY VISION EDID DATABLOCK [sink tx0]:",
+          "DV Version:",
+          "DV DM Version:",
+          "DV Interface:",
+          "YUV422 12bit:",
+          "CONSTRUCT CUSTOM DOLBY VISION DATA BLOCK (for advanced users only):",
+          "Generates a 12-byte DV Version 2 Data Block. Select AUTOMIX with CUSTOM STRING -flag to activate.",
+          "Low latency 12Bit YCbCr 422",
+          "Low latency 12Bit YCbCr 422 and RGB/YCbCr 444 10/12Bit",
+          "Standard DV and low latency 12Bit YCbCr 422",
+          "Standard DV and low latency 422/444/RGB",
+          "10b 444/RGB",
+          "12b 444/RGB",
+          "Send DV",
+          "Source Name",
+          "HDR RX/TX Info:",
+          "HDR IF:",
+          "RX HDR info:",
+          "Ignore Metadata Change:",
+          "CEC / eARC / ARC CONTROL:",
+          "VRRoom has three separate CEC zones to support CEC commands and ARC/eARC communication.",
+          "MAIN ZONE CEC controls channel switching and eARC/ARC retrieval from the TX0 connected display",
+          "eARC TX zone controls the volume and power up/down of the eARC TX connected AVR/Soundbar as well as eARC/ARC transmission",
+          "All changes to CEC/eARC/ARC parameters require a VRROOM power cycle. Unplug/replug power",
+          "MAIN ZONE CEC must be enabled to support CEC channel switching and eARC/ARC retrieval",
+          "eARC/ARC support requires \"Audio System\", make sure no other AVR devices are connected to the TV",
+          "eARC can support lossless bitstream formats, such as MAT atmos, TrueHD, DTS:X, PCM 7.1",
+          "ARC can support up to of DD+ Atmos, stereo PCM",
+          "Audio System [eARC/ARC]",
+          "Video Processor [no eARC/ARC]",
+          "eARC/ARC:",
+          "Auto eARC/HDMI",
+          "Manual eARC",
+          "Auto ARC/HDMI",
+          "Manual ARC",
+          "AUTO relies on TV CEC commands for switching between eARC/ARC and HDMI. Select the auto mode according to TV capabilities",
+          "If the display supports eARC, select Manual eARC. All audio will be routed via TV eARC",
+          "If the display supports ARC only, select Manual ARC. All audio will be routed via TV ARC",
+          "ARC is max DD+. Consider EDID settings to not exceed the max capability from the HDMI input",
+          "Some TVs will incorrectly stream mark 7.1 for all eARC content with more speakers than stereo",
+          "MUTE from TV/source remotes can use dedicated CEC mute on/off commands or a toggle command",
+          "eARC TX ZONE:",
+          "Always ARC",
+          "Auto eARC/ARC [default]",
+          "If the connected device only supports ARC, choose the Always ARC-option, otherwise leave as default",
+          "When using Always ARC-option make sure input port AUDIO CAPS don't exceed soundbar/AVR capabilities",
+          "Typical ARC soundbar supports maximum DD+ and stereo PCM. Use ARC/BEAM1 or ARC/DD+ AUDIO CAPS",
+          "VRRoom issues automated power on/off CEC commands to the AUDIO OUT connected sink.",
+          "Request Audio Mode = Instructs the sink to enter System Audio mode and to enable volume control",
+          "Request Audio Mode + Routing Change = As above but also issues Routing Change to switch to the VRRoom input",
+          "VRRoom has a capability to individually disable CEC from inputs.",
+          "HDR10 MODE:",
+          "Ignore Metadata",
+          "SDR-BT709 (HDTV)",
+          "FRAME ADAPT HDR",
+          "SDR-BT709 (Film)",
+          "SDR-BT2020",
+          "HLG-BT709",
+          "HLG-BT2020",
+          "HDR10-DC4K",
+          "HDR10-Opt",
+          "HDR10-DC1K",
+          "HDR10-Rec709",
+          "HDR10-BT709",
+          "LLDV",
+          "CUSTOM HDR10 PROFILES:",
+          "IF HDR10",
+          "VRROOM SETUP:",
+          "HTPC MODE RX0:",
+          "HTPC MODE RX1:",
+          "Time offset in milliseconds to start sending audio data to the sink. 50msec min",
+          "eARC UNMUTE:",
+          "Additional time offset in milliseconds to start sending audio data to the eARC TX.",
+          "HDR 1",
+          "HDR 2",
+          "MUTE TX0 AUDIO:",
+          "MUTE TX1 AUDIO:",
+          "TX1 +5V FORCE:",
+          "VRROOM will listen to this port for IP / Telnet commands",
+          "VRROOM CONTROL:",
+          "EDID FACTORY SETTINGS:"
+        ],
+        "scripts": [
+          "http://vrroom-09/js/config.js",
+          "http://vrroom-09/js/main.js",
+          "http://vrroom-09/js/requests.js"
+        ],
+        "status_fields": {
+          "EDID TX0": "AUDIO:",
+          "EDID TX1": "AUDIO: EDID AUD: AUDIO: OP",
+          "Hostname": "not connected",
+          "IN TX0": "SOURCE:",
+          "IP Address": "not connected FW VER: not connected INFO EDID HDR/AVI DV OSD CEC/EARC MACROS CONFIG",
+          "MODE": "MODE 0 - SPLITTER TX0/TX1 FRL5 VRR MODE 1 - SPLITTER TX0/TX1 UPSCALE FRL5 MODE 2 - MATRIX TMDS MODE 3 - MATRIX FRL->TMDS MODE 4 - MATRIX DOWNSCALE MODE 5 - MATRIX RX0:FRL5 + RX1-3:TMDS MODE 0: Split input to both TX0 and TX1. FRL5 and VRR are supported. MODE 1: Split input to both TX0 and TX1. TX0 upscales up to FRL5. No VRR supported. MODE 2: Matrix mode. FRL not supported. MODE 3: Matrix mode. TX1 FRL->TMDS not supported. MODE 4: Matrix mode. TX1 downscale. FRL not supported VRRoom will reboot when switching between Split / Matrix modes PORT SELECTOR: TX0: 0 - INPUT 0 1 - INPUT 1 2 - INPUT 2 3 - INPUT 3 - COPY TX1 - TX1: 0 - INPUT 0 1 - INPUT 1 2 - INPUT 2 3 - INPUT 3 - COPY TX0 - COPY TX0 SINK Copy the connected TX0 sink EDID capabilities. No modifications. COPY TX1 SINK Copy the connected TX1 sink EDID capabilities. No modifications. FIXED TEST EDID Standard EDID table to verify cable issues. EDID max caps 4K60 420 300MHz 8b stereo audio. CUSTOM EDID Custom EDID tables for various situations. The first 10 tables can be replaced over LAN. 5.1 means LPCM-5.1 48kHz 24bit, DTS 5.1, DD 5.1, DD+ 7.1 means LPCM-7.1 192kHz 24bit, MAT Atmos, TrueHD, DTS-X (with IMAX), DTSHD (with MA), DD+, DTS, DD INPUT 0: 1 - Custom Default [SONY A85J 7.1] 2 - Custom Default [Q70J HDR10+ 7.1] 3 - Custom Default [DENON S960H 8K] 4 - Custom Default [Q9FN ALLM VRR HDR10+] 5 - Custom Default [SONY A1 LLDV DCI-P3] 6 - Custom Default [LG NANO 8K 7.1] 7 - Custom Default [LG C9 7.1] 8 - Custom Default [LG C1 7.1] 9 - Custom Default [PanaGZ960E DV HDR10+] 10 - Custom Default [SONY A1 LLDV BT2020] 11 - 8K60-420 FRL-5 VRR HDR 7.1 12 - 8K60-420 FRL-5 VRR HDR 5.1 13 - 8K60-420 FRL-5 VRR HDR 2.0 14 - 8K60-420 FRL-5 HDR 7.1 15 - 8K60-420 FRL-5 HDR 5.1 16 - 8K60-420 FRL-5 HDR 2.0 17 - 4K120-444 FRL-5 10b VRR HDR 7.1 18 - 4K120-444 FRL-5 10b VRR HDR 5.1 19 - 4K120-444 FRL-5 10b VRR HDR 2.0 20 - 4K120-444 FRL-5 10b HDR 7.1 21 - 4K120-444 FRL-5 10b HDR 5.1 22 - 4K120-444 FRL-5 10b HDR 2.0 23 - 4K120-420 VRR HDR 7.1 24 - 4K120-420 VRR HDR 5.1 25 - 4K120-420 VRR HDR 2.0 26 - 4K120-420 HDR 7.1 27 - 4K120-420 HDR 5.1 28 - 4K120-420 HDR 2.0 29 - 4K60-444 600MHz HDR BT2020 7.1 30 - 4K60-444 600MHz HDR BT2020 5.1 31 - 4K60-444 600MHz HDR BT2020 2.0 32 - 4K60-444 600MHz BT2020 7.1 33 - 4K60-444 600MHz BT2020 5.1 34 - 4K60-444 600MHz BT2020 2.0 35 - 4K50-444 600MHz HDR BT2020 7.1 36 - 4K50-444 600MHz HDR BT2020 5.1 37 - 4K50-444 600MHz HDR BT2020 2.0 38 - 4K50-444 600MHz BT2020 7.1 39 - 4K50-444 600MHz BT2020 5.1 40 - 4K50-444 600MHz BT2020 2.0 41 - 4K60-420 12bit HDR BT2020 7.1 42 - 4K60-420 12bit HDR BT2020 5.1 43 - 4K60-420 12bit HDR BT2020 2.0 44 - 4K60-420 12bit BT2020 7.1 45 - 4K60-420 12bit BT2020 5.1 46 - 4K60-420 12bit BT2020 2.0 47 - 4K60-420 8-bit 300MHz HDR BT2020 7.1 48 - 4K60-420 8-bit 300MHz HDR BT2020 5.1 49 - 4K60-420 8-bit 300MHz HDR BT2020 2.0 50 - 4K60-420 8-bit 300MHz BT2020 7.1 51 - 4K60-420 8-bit 300MHz BT2020 5.1 52 - 4K60-420 8-bit 300MHz BT2020 2.0 53 - 4K30-444 300MHz HDR BT2020 7.1 54 - 4K30-444 300MHz HDR BT2020 5.1 55 - 4K30-444 300MHz HDR BT2020 2.0 56 - 4K30-444 300MHz BT2020 7.1 57 - 4K30-444 300MHz BT2020 5.1 58 - 4K30-444 300MHz BT2020 2.0 59 - 4K30-RGB 300MHz HDR BT2020 7.1 60 - 4K30-RGB 300MHz HDR BT2020 5.1 61 - 4K30-RGB 300MHz HDR BT2020 2.0 62 - 4K30-RGB 300MHz BT2020 7.1 63 - 4K30-RGB 300MHz BT2020 5.1 64 - 4K30-RGB 300MHz BT2020 2.0 65 - 4K24-422 12-bit HDR BT2020 7.1 66 - 4K24-422 12-bit HDR BT2020 5.1 67 - 4K24-422 12-bit HDR BT2020 2.0 68 - 4K24-422 12-bit BT2020 7.1 69 - 4K24-422 12-bit BT2020 5.1 70 - 4K24-422 12-bit BT2020 2.0 71 - 4K24-422 12-bit 7.1 72 - 4K24-422 12-bit 5.1 73 - 4K24-422 12-bit 2.0 74 - 1080p60-444 12-bit HDR BT2020 7.1 75 - 1080p60-444 12-bit HDR BT2020 5.1 76 - 1080p60-444 12-bit HDR BT2020 2.0 77 - 1080p60-444 12-bit BT2020 7.1 78 - 1080p60-444 12-bit BT2020 5.1 79 - 1080p60-444 12-bit BT2020 2.0 80 - 1080p60-444 12-bit 7.1 81 - 1080p60-444 12-bit 5.1 82 - 1080p60-444 12-bit 2.0 83 - 1080p24-444 12-bit HDR BT2020 7.1 84 - 1080p24-444 12-bit HDR BT2020 5.1 85 - 1080p24-444 12-bit HDR BT2020 2.0 86 - 1080p24-444 12-bit BT2020 7.1 87 - 1080p24-444 12-bit BT2020 5.1 88 - 1080p24-444 12-bit BT2020 2.0 89 - 1080p24-444 8-bit 7.1 90 - 1080p24-444 8-bit 5.1 91 - 1080p24-444 8-bit 2.0 92 - 1080i60-444 8-bit 7.1 93 - 1080i60-444 8-bit 5.1 94 - 1080i60-444 8-bit 2.0 95 - 720p60-444 8-bit 7.1 96 - 720p60-444 8-bit 5.1 97 - 720p60-444 8-bit 2.0 98 - 480p60-444 8-bit 7.1 99 - 480p60-444 8-bit 5.1 100 - 480p60-444 8-bit 2.0 INPUT 1: 0 - Follow INPUT 0 INPUT 2: 0 - Follow INPUT 0 INPUT 3: 0 - Follow INPUT 0 COPY TX SINK EDID and MODIFY (AUTOMIX) Automix EDID tables. Customize capabilities of the connected TX0 / TX1 sink EDID table. Selected TX SINK will be used for the main video capabilities. TX SINK: TX0 TX1 The settings below can be used to modify, add and remove video capabilities. FRL RATE FRL-5 / 40Gbps FRL-4 / 32Gbps FRL-3 / 24Gbps FRL-2 / 18Gbps FRL-1 / 9Gbps NO FRL / DISABLED VRR ENABLE REMOVE ALL ALLM ENABLE REMOVE ALL HDR HDR10 HDR10 / HLG HDR10+ HDR10+ / HLG REMOVE ALL DV LG C1 SONY X930E Z9D CUSTOM REMOVE ALL Use DV creator page in CUSTOM mode Selected AUDIO CAPS indicates where audio caps are copied from. AUDIO CAPS: STEREO 5.1 7.1 ARC/BEAM1 ARC/DD+ TX0 TX1 AUDIO OUT eARC OUT CUSTOM In CUSTOM mode the base audio capabilities are copied from TX SINK selected port, and the following settings can be used to modify, add or remove capabilities. L-PCM 2.0 STEREO 2.1 3.1 4.1 5.1 6.1 7.1 up to 48kHz up to 96kHz up to 192kHz up to 16bit up to 20bit up to 24bit TRUEHD MAT ATMOS NO ATMOS REMOVE up to 48kHz up to 96kHz up to 192kHz COPY SINK DD+ ATMOS NO ATMOS REMOVE up to 48kHz up to 96kHz up to 192kHz COPY SINK DD ENABLE REMOVE DTS-HDMA DTS:X IMAX DTS:X NO DTS:X REMOVE up to 48kHz up to 96kHz up to 192kHz COPY SINK DTS ENABLE REMOVE ONE BIT ENABLE REMOVE 2.0 STEREO 5.1 WARNING: AUTOMIXED EDID HAS OVERFLOWED Audio Vendor Specific Descriptor Removed HDR10+ Descriptor Removed Audio replaced with LPCM Stereo + Atmos caps DV descriptor removed DOWNLOAD ACTIVE EDID TABLES: RX0 EDID RX1 EDID RX2 EDID RX3 EDID TX0 EDID TX1 EDID AUD EDID eARC CDS SAVE ACTIVE EDID TO CUSTOM EDID #: EDID 8 EDID 9 EDID 10 UPLOAD EDID TABLES: TABLE #: 1 - Custom #1 2 - Custom #2 3 - Custom #3 4 - Custom #4 5 - Custom #5 6 - Custom #6 7 - Custom #7 8 - Custom #8 9 - Custom #9 10 - Custom #10 CAPTURED INPUT HDR METADATA: EOTF: GRN: BLU: RED: WP: Max/Min Lum: MaxCLL/FALL: HDR METADATA GENERATOR: Use custom HDR for TX0 and TX1 [ignore RX HDR] Use custom HDR for TX0 and TX1 when input is HDR10 [ignore RX HDR] Use custom HDR for TX0 and TX1 when input is HLG [ignore RX HDR] Use custom HDR for TX0 and TX1 when input is HLG and display has no HLG support Use custom HDR for TX0 and TX1 when input is LLDV Disable output HDR for TX0 and TX1 when input is HDR10 Disable output HDR for TX0 and TX1 when input is HLG Disable output LLDV for TX0 and TX1 when input is LLDV Disable all output HDR/HLG [keep LLDV] EOTF: SDR Luminance Range HDR Luminance Range SMPTE ST 2084 HLG ITU-R BT.2100-0 Primaries: ITU-R BT 709-5 ITU-R BT 2020-2 DCI P3 WP: D65 Max Luminance [nits]: Min Luminance [nits]: MaxCLL [nits]: MaxFALL [nits]: Create IF Default IF Send HDR CAPTURED AVI METADATA: VIC: Colorimetry: Range: CUSTOM AVI INFOFRAME GENERATOR: Use custom AVI [for advanced users only] Disable AVI sending [send nothing] VIC: 1080p60 1080p24 4k60 4k24 Primaries: RGB YCbCr 444 BT709 YCbCr 422 BT709 YCbCr 420 BT709 RGB BT2020 YCbCr 444 BT2020 YCbCr 422 BT2020 YCbCr 420 BT2020 Range: Default / Not specified Limited Range [16-235] Full Range [0-255] Create IF Send AVI CUSTOM VSI INFOFRAME GENERATOR: Use custom VSI [for advanced users only] Disable VSI sending [send nothing] Default VSI Send VSI AUTO LOW LATENCY MODE CONTROL: Allows to control the TV supported ALLM feature ON -setting forces ALLM enabled at all times - ignores RX ALLM OFF -setting forces ALLM disabled at all times - ignores RX ALLM FOLLOW -setting lets the source control enable/disable ALLM MODE: FOLLOW OFF ON Assign to input: 0 - INPUT 0 1 - INPUT 1 2 - INPUT 2 3 - INPUT 3 - ALL - UHD ALLIANCE FILM MAKER MODE: Enable Film Maker Mode OTHER CAPTURED METADATA: SPD INFOFRAME: AUD INFOFRAME: HVS INFOFRAME: VSI INFOFRAME: HFV INFOFRAME: CAPTURED INPUT DOLBY VISION METADATA [from source]: DV Status: DV interface: Backlight metadata: Backlight Max Luminance: Auxiliary runmode: Auxiliary version: Auxiliary debug: CONNECTED DOLBY VISION EDID DATABLOCK [sink tx0]: DV Version: DV DM Version: DV Interface: 2160p60: YUV422 12bit: Global Dimming: Backlight Control: RED Primary: GREEN Primary: BLUE Primary: MAX/MIN Luminance: CONSTRUCT CUSTOM DOLBY VISION DATA BLOCK (for advanced users only): Generates a 12-byte DV Version 2 Data Block. Select AUTOMIX with CUSTOM STRING -flag to activate. DV Interface: Low latency 12Bit YCbCr 422 Low latency 12Bit YCbCr 422 and RGB/YCbCr 444 10/12Bit Standard DV and low latency 12Bit YCbCr 422 Standard DV and low latency 422/444/RGB Primaries: ITU-R BT 709-5 ITU-R BT 2020-2 DCI P3 CUSTOM YUV422 12bit: not supported supported Global Dimming: not supported supported Backlight Ctrl: not supported supported Backlight Minlum: 25 nits 50 nits 75 nits 100 nits Support 10/12b: 10/12b disabled 10b 444/RGB 12b 444/RGB RED Primary X: RED primary Y: GREEN primary X: GREEN primary Y: BLUE primary X: BLUE primary Y: MAX luminance [nits]: Range 100 - 10000 nits MIN luminance [nits]: Range 0 - 1 nits Create Default Send DV OSD SETUP: [press SEND after config] OSD ENABLE FADE SECONDS: [OSD video] FADE SECONDS: [OSD no input] OSD LOCATION [X]: OSD LOCATION [Y]: OSD COLOR [FRONT]: OSD COLOR [BACK]: OSD COLOR [LEVEL]: OSD INFO FLAGS: Source Name Video Field: Video IF: HDR RX/TX Info: HDR IF: Audio Field: Rx Video Info: RX HDR info: Ignore Metadata Change: OSD MASK SETUP: OSD MASK ENABLE OSD MASK [X]: OSD MASK [Y]: OSD MASK1 [X]: OSD MASK1 [Y]: OSD MASK LEVEL: OSD GRAYSCALE: OSD TEXT SETUP: OSD TEXT ENABLE NEVER FADE OSD TEXT [X]: OSD TEXT [Y]: TEXT TO BE DISPLAYED: CEC / eARC / ARC CONTROL: VRRoom has three separate CEC zones to support CEC commands and ARC/eARC communication. MAIN ZONE CEC controls channel switching and eARC/ARC retrieval from the TX0 connected display AUDIO OUT zone controls the volume and power up/down of the AUDIO OUT connected AVR/Soundbar eARC TX zone controls the volume and power up/down of the eARC TX connected AVR/Soundbar as well as eARC/ARC transmission All changes to CEC/eARC/ARC parameters require a VRROOM power cycle. Unplug/replug power MAIN ZONE: MAIN ZONE CEC must be enabled to support CEC channel switching and eARC/ARC retrieval eARC/ARC support requires \"Audio System\", make sure no other AVR devices are connected to the TV eARC can support lossless bitstream formats, such as MAT atmos, TrueHD, DTS:X, PCM 7.1 ARC can support up to of DD+ Atmos, stereo PCM CEC: Audio System [eARC/ARC] Video Processor [no eARC/ARC] CEC is enabled when the checkbox is selected eARC/ARC: Auto eARC/HDMI Manual eARC Manual HDMI Auto ARC/HDMI Manual ARC AUTO relies on TV CEC commands for switching between eARC/ARC and HDMI. Select the auto mode according to TV capabilities If the display supports eARC, select Manual eARC. All audio will be routed via TV eARC If the display supports ARC only, select Manual ARC. All audio will be routed via TV ARC ARC is max DD+. Consider EDID settings to not exceed the max capability from the HDMI input SPEAKER MAP Automatic Force 5.1 Some TVs will incorrectly stream mark 7.1 for all eARC content with more speakers than stereo It usually results in 5.1 speaker systems to lose the surrounds Use the Force 5.1 -setting to correct the speaker mapping in such systems MUTE MODE MUTE on/off MUTE toggle MUTE from TV/source remotes can use dedicated CEC mute on/off commands or a toggle command Some TVs will cause the toggle command to lose track if pressed many times too quickly eARC TX ZONE: OUT MODE: Always ARC Auto eARC/ARC [default] If the connected device only supports ARC, choose the Always ARC-option, otherwise leave as default When using Always ARC-option make sure input port AUDIO CAPS don't exceed soundbar/AVR capabilities Typical ARC soundbar supports maximum DD+ and stereo PCM. Use ARC/BEAM1 or ARC/DD+ AUDIO CAPS AUDIO OUT ZONE: POWER ON: Disabled Request Audio Mode Request Audio Mode + Routing Change POWER OFF: Disabled Automatic VRRoom issues automated power on/off CEC commands to the AUDIO OUT connected sink. Request Audio Mode = Instructs the sink to enter System Audio mode and to enable volume control Request Audio Mode + Routing Change = As above but also issues Routing Change to switch to the VRRoom input INPUT PORT CEC CONTROL: VRRoom has a capability to individually disable CEC from inputs. When disabled, no CEC commands will be allowed from the respective input. IN0 IN1 IN2 IN3 Checked means enabled. Default is checked. RS232 COMMANDS: RS232 BAUD RATE: 9600 19200 57600 115200 Send Ascii Send Binary MACRO CONTROL: ENABLE SEND ON EVERY SYNC HDR10 MODE: Automatic (default) Ignore Metadata Semi-Automatic Custom SYNC DELAY (secs): CONTENT/CALIBRATION PICTURE MODE OSD NAME CUSTOM HEX SDR-BT709 (HDTV) DO NOTHING HDR10 HLG USER 1 USER 2 USER 3 USER 4 USER 5 (2015+) USER 6 (2015+) FILM NATURAL ANIMATION THX STAGE (2014 only) GAMMA NORMAL GAMMA A GAMMA B GAMMA C GAMMA CUSTOM 1 GAMMA CUSTOM 2 GAMMA CUSTOM 3 GAMMA D GAMMA FILM 1 GAMMA FILM 2 FRAME ADAPT HDR CUSTOM SDR-TV SDR-BT709 (Film) SDR-Film SDR-BT2020 SDR-BT2020 3D 3D x.v.Color x.v.Color HLG-BT709 HLG-BT709 HLG-BT2020 HLG-BT2020 HDR10 HDR10-DC4K HDR10-Opt HDR10-DC1K HDR10-Rec709 HDR10-BT709 LLDV LLDV ALWAYS EXECUTE CUSTOM HEX BEFORE AFTER THE SELECTED PICTURE MODE WITH A DELAY OF 1 sec 3 sec 5 sec 7 sec 10 sec 15 sec 20 sec 25 sec CUSTOM HDR10 PROFILES: IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL ABOVE THEN ELSE VRROOM SETUP: AUTOSWITCH INPUTS: OFF ON POWER HDCP VERSION: 1.4 Auto HTPC MODE RX0: ON OFF HTPC MODE RX1: ON OFF HTPC MODE RX2: ON OFF HTPC MODE RX3: ON OFF AUDIO UNMUTE: SEND Time offset in milliseconds to start sending audio data to the sink. 50msec min eARC UNMUTE: SEND Additional time offset in milliseconds to start sending audio data to the eARC TX. OLED DISPLAY: ON OFF OLED FADE: SEND OLED PAGE: INFO IP RX INFO HDR 1 HDR 2 IF INFO REBOOT TIMER(hours): SEND AUDIO OUT FORMAT: 720p60 1080p60 MUTE TX0 AUDIO: ON OFF MUTE TX1 AUDIO: ON OFF IR: ON OFF IR CODE SET: SET 1 SET 2 SET 3 TX1 +5V FORCE: ON OFF RELAY: ON OFF ANALOG L/R AUDIO CONTROL: VOLUME [-100 to +10dB] BASS [-10 to +10dB] TREBLE [-10 to +10dB] IP CONFIG: Reboot required for any changes in DHCP / STATIC IP DHCP: ON OFF mDNS: ON OFF Current IP Configuration: IP ADDR: IP MASK: IP GW: MAC: Configure Static IP: This address is used when DHCP is off IP ADDR: IP MASK: IP GW: SET IP Configure TCP port: [requires reboot to apply] VRROOM will listen to this port for IP / Telnet commands IP INTERRUPTS: ON OFF IP PORT: SET PORT VRROOM CONTROL: REBOOT UNIT REBOOT EXPORT CONFIG EXPORT IMPORT CONFIG ISSUE HOTPLUG SEND RESET TO FACTORY DEFAULTS: CLEAR ALL SETTINGS TO FACTORY DEFAULTS: EDID FACTORY SETTINGS: RESET FW UPDATE: Refresh"
+        },
+        "stylesheets": [
+          "http://vrroom-09/css/style.css"
+        ],
+        "title": "HDFury VRROOM"
+      },
+      "sha256": "f4fc927ada2c5c72e2dc9677c67bb0524ed69aae401af79c3f44af2b847d5e4a",
+      "size": 137763,
+      "status": 200,
+      "url": "http://vrroom-09/"
+    },
+    {
+      "content_type": "text/css",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/css/style.css",
+      "error": "",
+      "sha256": "e4afb4a6835ed599dda179dad6ef4d01c4e7639bd755043d1348b3ddf20ef895",
+      "size": 8291,
+      "status": 200,
+      "text_preview": ":root {\n  --color-primary-light: #fafafa;\n  --color-primary-dark: #2d2d2d;\n  --color-gray-light-1: #faf9f9;\n  --color-gray-light-2: #f4f2f2;\n  --color-gray-light-3: #f0eeee;\n  --color-gray-light-4: #ccc;\n  --color-gray-dark-1: #333;\n  --color-gray-dark-2: #777;\n  --color-gray-dark-3: #999; }\n\n* {\n  margin: 0;\n  padding: 0; }\n\n*,\n*::before,\n*::after {\n  box-sizing: inherit; }\n\nhtml {\n  box-sizing: border-box;\n  font-size: 62.5%; }\n\nbody {\n  font-family: verdana, arial, sans-serif;\n  font-weight: 400;\n  line-height: 1.6;\n  /*   background-color: #f6f3f6; */\n  background-color: var(--color-primary-dark); }\n\n.container {\n  max-width: 100rem;\n  padding: 3rem;\n  margin: 3rem auto;\n  background-color: #f6f3f6; }\n  @media only screen and (max-width: 1000px) {\n    .container {\n      padding: 0rem 0 1rem 0;\n      margin: 0rem auto; } }\n\n.header {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 2.5rem;\n  color: var(--color-primary-light);\n  background-color: #2d2d2d;\n  padding: 2rem;\n  font-weight: 600; }\n  @media only screen and (max-width: 500px) {\n    .header {\n      flex-direction: column;\n      justify-content: center;\n      padding: 2rem 0 1rem 0;\n      align-items: center; } }\n  .header__logo {\n    display: flex;\n    align-items: center; }\n  .header__name {\n    display: flex;\n    font-size: 3rem;\n    margin-left: 4rem;\n    align-items: center; }\n    @media only screen and (max-width: 500px) {\n      .header__name {\n        margin-top: 2rem; } }\n  .header__name2 {\n    display: flex;\n    font-size: 5rem;\n    margin-left: 3rem;\n    align-items: center; }\n\n.unit-info {\n  /* display:flex;\r\n    justify-content: space-between; */\n  color: var(--color-primary-light);\n  background-color: #282828;\n  font-size: 1rem;\n  font-weight: 400;\n  padding: 0.5rem 2rem; }\n  @media only screen and (max-width: 500px) {\n    .unit-info {\n      display: flex;\n      flex-direction: column;\n      align-items: center; } }\n\n.gen__title {\n  font-weight: 600; }\n\n.gen__bt",
+      "url": "http://vrroom-09/css/style.css"
+    },
+    {
+      "content_type": "application/x-javascript",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/config.js",
+      "error": "",
+      "sha256": "6981e7233b038599b1b6426859610caf22e55f81dd3ceb84467d6c2cf9fed447",
+      "size": 38526,
+      "status": 200,
+      "text_preview": "\"use strict\";\r\n\r\nfunction pad(str) {\r\n\tlet val=[];\r\n\tlet size = str.length;\r\n\tif(size >= 512)\r\n\t{\r\n\t\tsize = 512;\r\n\t}\r\n\telse if(size >= 384)\r\n\t{\r\n\t\tsize = 384;\r\n\t}\r\n\telse\r\n\t{\r\n\t\tsize = 256;\r\n\t}\r\n\tfor (let i=0; i<size; i++)\r\n\t{\r\n\t\tval[i] = str[i].toString(16);\r\n\t\tif (val[i].length < 2)\r\n\t\t\tval[i] = `0${val[i]}`\r\n\t}\r\n\treturn (val.join(' '));\r\n}\r\n\r\nfunction parseCs(val) {\r\n    switch (val)\r\n    {\r\n      case 35: return 'follow'; break;\r\n      case 2: return 'rgb full'; break;\r\n      case 6: return 'rgb 2020'; break;\r\n      case 18: return 'YCbCr 444 709'; break;\r\n      case 24: return 'YCbCr 444 2020'; break;\r\n      case 9: return 'YCbCr 422 709'; break;\r\n      case 15: return 'YCbCr 422 2020'; break;\r\n      case 27: return 'YCbCr 420 709'; break;\r\n      case 33: return 'YCbCr 420 2020'; break;\r\n    }\r\n} \r\n\r\nfunction revParseCs(val) {\r\n  switch (val)\r\n  {\r\n    case 'follow': return 35; break;\r\n    case 'rgb full': return 2; break;\r\n    case 'rgb 2020': return 6 ; break;\r\n    case 'YCbCr 444 709': return 18; break;\r\n    case 'YCbCr 444 2020': return 24; break;\r\n    case 'YCbCr 422 709': return 9; break;\r\n    case 'YCbCr 422 2020': return 15; break;\r\n    case 'YCbCr 420 709': return 27; break;\r\n    case 'YCbCr 420 2020': return 33; break;\r\n  }\r\n} \r\nfunction parseDc(val) {\r\n  switch (val)\r\n  {\r\n    case 6: return 'follow'; break;\r\n    case 1: return '8-bit'; break;\r\n    case 3: return '10-bit'; break;\r\n    case 4: return '12-bit'; break;\r\n    case 5: return '16-bit'; break;\r\n  }\r\n} \r\n\r\nfunction revParseDc(val) {\r\n  switch (val)\r\n  {\r\n    case 'follow': return 6; break;\r\n    case '8-bit': return 1; break;\r\n    case '10-bit': return 3; break;\r\n    case '12-bit': return 4; break;\r\n    case '16-bit': return 5; break;\r\n  }\r\n} \r\n\r\nfunction stringToArrayBuffer(str) {\r\n    var buf = new ArrayBuffer(str.length);\r\n    var bufView = new Uint8Array(buf);\r\n\r\n    for (var i=0, strLen=str.length; i<strLen; i++) {\r\n        bufView[i] = str.charCodeAt(i);\r\n    }\r\n\r\n    return buf;\r\n}\r\nfunc",
+      "url": "http://vrroom-09/js/config.js"
+    },
+    {
+      "content_type": "application/x-javascript",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/main.js",
+      "error": "",
+      "sha256": "9509c8c1612429c86162d723c21c8fbed37d25d1d34121c4daa0fbd57ac63c8f",
+      "size": 46552,
+      "status": 200,
+      "text_preview": "\ufeffconst PRODUCTSTR = 'VRROOM';\r\nvar url = \"\";\r\n\r\n//var url = \"http://192.168.1.121\";\r\n\r\n\r\nfunction download(data, filename, type) {\r\n    var file = new Blob([data], { type: type });\r\n    if (window.navigator.msSaveOrOpenBlob) // IE10+\r\n        window.navigator.msSaveOrOpenBlob(file, filename);\r\n    else { \r\n        let a = document.createElement(\"a\"),\r\n            urlfile = URL.createObjectURL(file);\r\n        a.href = urlfile;\r\n        a.download = filename;\r\n        document.body.appendChild(a);\r\n        a.click();\r\n        setTimeout(function () {\r\n            document.body.removeChild(a);\r\n            window.URL.revokeObjectURL(url);\r\n        }, 0);\r\n    }\r\n}\r\n\r\nconst statusMsgTimeout = () => {\r\n    setTimeout(() => {\r\n        document.getElementById('status').innerHTML = 'READY';\r\n    }, 3000);\r\n};\r\n\r\nfunction SetActiveValues(name, value) {\r\n    var xhttp = new XMLHttpRequest();\r\n    xhttp.onreadystatechange = function () {\r\n        if (this.readyState === 4 && this.status === 200) {\r\n            document.getElementById('status').innerHTML = 'COMMAND SENT OK';\r\n            statusMsgTimeout();\r\n        } else {\r\n            if (this.readyState === 4 && this.status === 404) {\r\n                document.getElementById('status').innerHTML = this.responseText;\r\n            }\r\n        }\r\n    };\r\n    xhttp.open(\"GET\", url + \"/cmd?\" + name + \"=\" + value);\r\n    xhttp.timeout = timeoutSecs;\r\n    xhttp.ontimeout = (e) => document.getElementById('status').innerHTML = msgTimeout;\r\n    xhttp.send();\r\n}\r\n\r\nasync function uploadFw(event) {\r\n    event.preventDefault();\r\n\r\n    let uploadStart, uploadStart2, uploadStart3, uploadStart4, uploadStart5;\r\n\r\n    var formElement = document.querySelector(\".uploadfw__form\");\r\n    var formData = new FormData(formElement);\r\n\r\n    uploadStart = await new Promise(resolve => {\r\n        var xhr = new XMLHttpRequest();\r\n        document.getElementById('uploadfw__btn').disabled = true;\r\n        document.getElementById('status').innerHTML = 'FW UPLOA",
+      "url": "http://vrroom-09/js/main.js"
+    },
+    {
+      "content_type": "application/x-javascript",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/requests.js",
+      "error": "",
+      "sha256": "d6189af3621f1611f2980626bb760529835d84fc305f25297d591c9ed5cc32b9",
+      "size": 85441,
+      "status": 200,
+      "text_preview": "\ufeff\r\nconst d2h = (d) => (\"00\" + (+d).toString(16)).toUpperCase().slice(-2); \r\n\r\nfunction hex_to_ascii(str1) {\r\n    var hex = str1.toString();\r\n    var str = '';\r\n    for (var n = 0; n < hex.length; n += 2) {\r\n        str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));\r\n    }\r\n    return str;\r\n}\r\nfunction dec2hexString(dec) {\r\n    return  (dec+0x100).toString(16).substr(-2).toUpperCase();\r\n }\r\nconst timeoutSecs = 5000;\r\nconst msgTimeout = 'CONNECTION FAILED';\r\n\r\nfunction requestActiveVideo() {\r\n    var xhttp = new XMLHttpRequest();\r\n\r\n      xhttp.onreadystatechange = function () {\r\n         if (this.readyState === 4 && this.status === 200) {\r\n  \r\n            if ( (this.response.portseltx0 === '4') ||\r\n                (this.response.portseltx1 === '4') ||\r\n                (this.response.portseltx0 === this.response.portseltx1) )\r\n                    document.getElementById(\"portseltext\").innerHTML = 'PORT SELECTOR:';\r\n                else\r\n                    document.getElementById(\"portseltext\").innerHTML = 'PORT SELECTOR:';\r\n\r\n                    \r\n            if ( ( (this.response.portseltx1 === '4') || (this.response.portseltx0 === this.response.portseltx1) ) &&\r\n                ( (this.response.opmode == \"0\") || (this.response.opmode == \"1\") ) )\r\n            {\r\n                document.getElementById(\"infoline__spd1\").innerHTML = 'SPLITTER MODE';   \r\n            }\r\n            else\r\n            {\r\n                document.getElementById(\"infoline__spd1\").innerHTML = this.response.SPDASC1;\r\n                document.getElementById(\"infoline__rx1\").innerHTML = this.response.RX1; \r\n            }\r\n\r\n            if ( (this.response.portseltx0 === '4')  )\r\n            {\r\n                document.getElementById(\"infoline__spd\").innerHTML = 'SPLITTER MODE';\r\n            }\r\n            else\r\n            {\r\n                document.getElementById(\"infoline__spd\").innerHTML = this.response.SPDASC;\r\n                document.getElementById(\"infoline__rx\").innerHTML = th",
+      "url": "http://vrroom-09/js/requests.js"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/brdinfo.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "{\"hostname\":\"VRROOM-09\",\"ipaddress\":\"192.168.8.111\",\"serial\":\"0005030723004609\",\"pcbv\":\"3\",\"version\":\"FW: 0.63\"}"
+        ],
+        "scripts": [],
+        "status_fields": {
+          "FW": "0.63\"}"
+        },
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "4b8148c196232b97518eeee941885847296dee44bf205e39526d5b9e3841d046",
+      "size": 114,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/brdinfo.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/infopage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "{ \"portseltx0\":\"0\", \"portseltx1\":\"4\", \"opmode\":\"0\", \"pcbv\":\"3\", \"RX0\":\" 4K23.976 297MHz 422 BT2020 12b LLDV \", \"RX1\":\" no signal\", \"TX0\":\" 4K23.976 295MHz 422 BT2020 12b LLDV \", \"TX1\":\"4K23.976 295MHz 422 BT2020 12b LLDV \", \"AUD0\":\" bitstream 192kHz\", \"AUD1\":\" bitstream 192kHz\", \"AUDOUT\":\"bitstream 192kHz\", \"EARCRX\":\"eARC/ARC not active\", \"earcst\":\"0\", \"arcst\":\"0\", \"SINK0\":\"LG TV SSCR2: 4K120 444 FRL6 VRR DSC ALLM DV HDR10 HLG \", \"EDIDA0\":\"MAT Atmos, DD Atmos, DD, DTS:X+IMAX, DTSHD, DTS, LPCM 7.1 192kHz 24b\", \"SINK1\":\"MEC-R-4-HV: 4K120 444 FRL5 VRR ALLM DV HDR10 \", \"EDIDA1\":\"MAT Atmos, DD Atmos, DD, DTS:X+IMAX, DTSHD, DTS, LPCM 7.1 192kHz 24b\", \"SINK2\":\"DENON-AVR: 1080P60 12b \", \"EDIDA2\":\"MAT Atmos, DD Atmos, DD, DTS:X+IMAX, DTSHD, DTS, LPCM 7.1 192kHz 24b\", \"SPDASC\":\"Amlogic MBox Meson Ref\", \"SPDASC1\":\"\", \"tx0hpd\":\"1\", \"tx0rs\":\"1\", \"tx0tmds\":\"1\", \"tx0ns\":\"0\", \"tx0scerr\":\"0\", \"tx1hpd\":\"1\", \"tx1rs\":\"1\", \"tx1tmds\":\"1\", \"tx1ns\":\"0\", \"tx1scerr\":\"0\", \"txaudhpd\":\"1\", \"txaudrs\":\"1\", \"earcout5v\":\"0\", \"rx0in5v\":\"2\", \"rx1in5v\":\"2\", \"rx2in5v\":\"2\", \"rx3in5v\":\"1\"}"
+        ],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "33c4d7b10a867e374fa5b16900b308677f7bd51ab15b05bb52ab4db30aac3a8e",
+      "size": 1674,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/infopage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "{ \"edidmode\":\"2\", \"edidtableinp1\":\"8\", \"edidtableinp2\":\"5\", \"edidtableinp3\":\"0\", \"edidtableinp4\":\"0\", \"defaultedid\":\"0\", \"edidfrlmode\":\"5\", \"ediddvmode\":\"3\", \"edidhdrmode\":\"1\", \"edidpcmchmode\":\"8\", \"edidpcmsrmode\":\"2\", \"edidpcmbwmode\":\"2\", \"edidtruehdmode\":\"0\", \"edidtruehdsrmode\":\"3\", \"edidddmode\":\"1\", \"edidddplusmode\":\"0\", \"edidddplussrmode\":\"3\", \"ediddtshdmode\":\"0\", \"ediddtshdsrmode\":\"3\", \"edidfrlflag\":\"0\", \"edidvrrflag\":\"0\", \"edidvrrmode\":\"1\", \"edidallmflag\":\"0\", \"edidallmmode\":\"1\", \"edidhdrflag\":\"0\", \"ediddvflag\":\"0\", \"edidpcmflag\":\"0\", \"edidtruehdflag\":\"0\", \"edidddflag\":\"0\", \"edidddplusflag\":\"0\", \"edidonebitflag\":\"0\", \"edidonebitmode\":\"0\", \"edidonebitspmode\":\"1\", \"ediddtsflag\":\"0\", \"ediddtsmode\":\"1\", \"ediddtshdflag\":\"0\", \"edidaudioflags\":\"320\", \"edidoverflow\":\"0\"}"
+        ],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "e53bc73ff40e7d3068a92da295fd9770828bee9b74be5dee86b4509141594872",
+      "size": 1730,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/sclpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "2400f0c9c39ed1f1e11fae6e45a8596f236dbc97e40ae960db901fd4c9f4388c",
+      "size": 44,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/sclpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/hdrpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "{ \"SPD\":\"83:01:19:d1:41:6d:6c:6f:67:69:63:00:4d:42:6f:78:20:4d:65:73:6f:6e:20:52:65:66:00:00:01:00:00\", \"SPD1\":\"\", \"AVI\":\"82:02:0d:9a:30:e8:60:5d:00:00:00:00:00:00:00:00:00\", \"AUD\":\"84:01:0a:70:01:00:00:00:00:00:00:00:00:00\", \"HDR\":\"\", \"HDRCUSTOM\":\"87:01:1a:b0:02:00:c2:33:c4:86:4c:1d:b8:0b:d0:84:80:3e:13:3d:42:40:a0:0f:32:00:e8:03:90:01:00\", \"AVICUSTOM\":\"82:02:0d:ae:40:c0:60:61:00:00:00:00:00:00:00:00:00\", \"VSICUSTOM\":\"81:01:1b:63:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00\", \"HVS\":\"\", \"VSI\":\"81:01:1b:4a:46:d0:00:03:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00\", \"HFV\":\"\", \"DV0\":\"eb:01:46:d0:00:48:02:96:80:5e:65:97:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00\", \"DVCUSTOM\":\"eb:01:46:d0:00:45:03:90:86:60:76:8f:00:00:00:00:00:00:00:00:00:00:00:00:00:00\", \"CHST\":\"02:19:00:0e:00:00:00:00\", \"filmmaker\":\"1\", \"allmmode\":\"0\", \"allmtarget\":\"4\", \"customhdr\":\"0\", \"customavi\":\"0\", \"disablehdr\":\"0\", \"disableavi\":\"0\", \"hdrcustomhdronly\":\"0\", \"hdrcustomhlgonly\":\"0\", \"hdrcustomlldvonly\":\"0\", \"hdr10disable\":\"0\", \"hlgdisable\":\"0\", \"lldvdisable\":\"0\", \"hdrcustomhlgonlyauto\":\"0\"}"
+        ],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "c11dcd9494410ebb7b2cc78a4074282361f1bb306a21a92a6e9c1f08cf9d71ab",
+      "size": 1955,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/hdrpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/osdpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0003\u0015\u0000\u0007?\u0001 \u0001\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0014\u0003\ufffd\u0000\u0001\u0003\ufffd\u0007\ufffd\u00048\u0015\u0000\u0000\u0014\u0000\u0014VRRoom by HDFURY 2023\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+        ],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "7516f93dfacc1756342c3f6140738be39a6c304edfbba62649cd24bcdfee08e3",
+      "size": 86,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/osdpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/cecpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "{ \"cec\":\"1\", \"cecla\":\"5\", \"cectx0power\":\"0\", \"earctxmode\":\"1\", \"earcmutemode\":\"0\", \"cec0en\":\"1\", \"cec1en\":\"1\", \"cec2en\":\"0\", \"cec3en\":\"1\", \"azpoweronmode\":\"2\", \"azpoweroffmode\":\"1\", \"earcspeakermap\":\"1\", \"earcforce\":\"0\", \"cdsstring\":\"01:01:17:32:67:7e:03:57:06:03:0f:7f:07:15:07:50:3e:1f:c0:5f:7e:03:83:4f:00:00:00:00:00:00:00\", \"baudrate\":\"19200\"}"
+        ],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "00f903243aa4b480a39a273f3b1caf9e68bffa1af9d82f0cf14a3d8a5f4451ee",
+      "size": 638,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/cecpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/jvcpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "da11207bd9eac5b72c008d0601f426c63ca6eee0722685c16e62a7b160391111",
+      "size": 226,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/jvcpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/confpage.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [
+          "{ \"enclevel\":\"0\", \"autosw\":\"0\", \"iractive\":\"1\", \"ircodeset\":\"1\", \"tx0plus5\":\"1\", \"tx1plus5\":\"1\", \"sonyfix\":\"0\", \"scaleselection\":\"3\", \"htpcmode0\":\"0\", \"htpcmode1\":\"0\", \"htpcmode2\":\"0\", \"htpcmode3\":\"0\", \"macrorep\":\"0\", \"audiooutreso\":\"0\", \"mutetx0\":\"0\", \"mutetx1\":\"0\", \"relay\":\"0\", \"analogvolume\":\"0\", \"analogbass\":\"0\", \"analogtreble\":\"0\", \"staticip\":\"staticip 192.168.1.250/255.255.255.0/192.168.1.1\", \"activeip\":\"activeip 192.168.8.111/255.255.255.0/192.168.8.1\", \"dhcp\":\"1\", \"tcpport\":\"2222\", \"macaddr\":\"18:9B:A5:D4:12:01\", \"mdns\":\"0\", \"ipinterrupt\":\"0\", \"reboottimer\":\"0\", \"unmutecnt\":\"500\", \"earcunmutecnt\":\"0\", \"oled\":\"1\", \"oledpage\":\"0\", \"oledfade\":\"30\"}"
+        ],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "b46ceee711c873ca405fe71953819a738e9ae1f49c15cd93ae3dffbcaf5f8be8",
+      "size": 1413,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/confpage.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidrx0.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "7023ce95de9560919a293b274995419ddfef527464fa1ba34f83214dd79fb435",
+      "size": 514,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidrx0.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidrx1.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "1d52a662444850cfb9f731a40a64b8108dcd86b48f91865f49c1233c91401303",
+      "size": 258,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidrx1.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidrx2.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "102c6858ea0ca87d4527ce5bb9bbd845ccba33da26912dffaff366e56938c598",
+      "size": 514,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidrx2.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidrx3.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "d2e9b33af2c5692acdf1dbbcca5a2b15ad76e9ddd045ae7b04a361727ea0425e",
+      "size": 514,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidrx3.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidtx0.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "98c3326078dfa327ecba5003cba5e2e31244458473ff39063f98d3220a9d5e73",
+      "size": 386,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidtx0.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidtx1.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "8f5b9d0a85e8f4fd1e20cabc0ce62126ae2f547dd6e46bdc457e2cba1a9bfdf5",
+      "size": 258,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidtx1.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidaud.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "a78b2e5660537b926ab64a8f1912fb1db1f081b42c6e2b0f51e9894e016b4f92",
+      "size": 258,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidaud.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/edidcds.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "d637ec3c0c2942f39183805f8848d2ebba3948bb43c8762e9296ad663c6d0db3",
+      "size": 258,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/edidcds.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/macrosparam.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/macrosparam"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/osdparam.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/osdparam"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/osdtext.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/osdtext"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/cmd.html",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "size": 2,
+      "status": 200,
+      "url": "http://vrroom-09/cmd"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/cmd__q_insel.html",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "size": 2,
+      "status": 200,
+      "url": "http://vrroom-09/cmd?insel="
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/GET.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/js/GET"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/POST.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/js/POST"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/file.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/js/file"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/js/url.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/js/url"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/uploadfw.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/uploadfw"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/uploadedid.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/uploadedid"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/scalerparam.html",
+      "error": "http error 404",
+      "sha256": "d19d73c829b9065ab4b4ebae91b33abc81eb516c8b2bc1299bf2876708edf2bf",
+      "size": 1202,
+      "status": 404,
+      "url": "http://vrroom-09/scalerparam"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/rtosinfo.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "1dfec6a11cba8584738436b2c24a7cee52f3b5d1ce8902f139bed96d8ed36eba",
+      "size": 447,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/rtosinfo.ssi"
+    },
+    {
+      "content_type": "text/html",
+      "download_path": "//hyperhdr.local/pi/hyperhdr-master/hyperhdr/tools/vrroom_dump/ssi/cfslog.ssi",
+      "error": "",
+      "html_summary": {
+        "discovered_urls": [],
+        "forms": [],
+        "interesting_fields": [],
+        "keyword_lines": [],
+        "scripts": [],
+        "status_fields": {},
+        "stylesheets": [],
+        "title": ""
+      },
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "size": 2,
+      "status": 200,
+      "url": "http://vrroom-09/ssi/cfslog.ssi"
+    }
+  ],
+  "landing_page": {
+    "discovered_urls": [
+      "http://vrroom-09/css/style.css",
+      "http://vrroom-09/js/config.js",
+      "http://vrroom-09/js/main.js",
+      "http://vrroom-09/js/requests.js",
+      "http://www.hdfury.com/",
+      "https://hdfury.com/wp-content/uploads/2022/03/VRROOM.png"
+    ],
+    "forms": [
+      {
+        "action": "http://vrroom-09/",
+        "id": "",
+        "inputs": [
+          {
+            "id": "edidfileupload",
+            "name": "edidfile",
+            "tag": "input",
+            "type": "file",
+            "value": ""
+          },
+          {
+            "id": "tablelocation",
+            "name": "loc",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "SEND EDID"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      },
+      {
+        "action": "http://vrroom-09/",
+        "id": "setosdparam",
+        "inputs": [
+          {
+            "id": "osd_x",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "20"
+          },
+          {
+            "id": "osd_y",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "945"
+          },
+          {
+            "id": "osd__color--fg",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "5"
+          },
+          {
+            "id": "osd__color--bg",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "5"
+          },
+          {
+            "id": "osd__color--level",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "7"
+          },
+          {
+            "id": "osd__item--source",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--videofield",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--videoif",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--hdrrxtx",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--hdrif",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--audiofield",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--rxvideoinfo",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--rxhdrinfo",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osd__item--ignoremeta",
+            "name": "osdsource",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osdmaskenable",
+            "name": "osdmaskparam",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "osdmask_x",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "20"
+          },
+          {
+            "id": "osdmask_y",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "945"
+          },
+          {
+            "id": "osdmask_x1",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "20"
+          },
+          {
+            "id": "osdmask_y1",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "945"
+          },
+          {
+            "id": "osd__mask--level",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "3"
+          },
+          {
+            "id": "osd__mask--gs",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "10"
+          },
+          {
+            "id": "",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "SEND OSD VALUES"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      },
+      {
+        "action": "http://vrroom-09/",
+        "id": "osdtextform",
+        "inputs": [
+          {
+            "id": "osdtext_x",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "20"
+          },
+          {
+            "id": "osdtext_y",
+            "name": "",
+            "tag": "input",
+            "type": "number",
+            "value": "945"
+          },
+          {
+            "id": "osdtextcontent",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": ""
+          },
+          {
+            "id": "",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "SEND TEXT VALUES"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      },
+      {
+        "action": "http://vrroom-09/",
+        "id": "setmacrosform",
+        "inputs": [
+          {
+            "id": "macro__enable",
+            "name": "macro__enable",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macro__everysync",
+            "name": "macro__everysync",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10mode",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__syncdelay",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "20"
+          },
+          {
+            "id": "macros__sdrtv",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sdrtvcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__sdrfilm",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sdrfilmcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__sdrbt2020",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sdrbt2020custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__3d",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__3dcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__xvcolor",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__xvcolorcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hlgbt709",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hlgbt709custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hlgbt2020",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hlgbt2020custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hdr10main",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10maincustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hdr10optional",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10optionalcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__hdr10bt709",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__hdr10bt709custom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macros__lldv",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__lldvcustom",
+            "name": "",
+            "tag": "input",
+            "type": "text",
+            "value": "21:89:01:50:4d:47:31:32:0a:00"
+          },
+          {
+            "id": "macro__execcustomcode",
+            "name": "macro__execcustomcode",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__selbeforeafter",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__execdelay",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb1",
+            "name": "macro__customcb1",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__custommode1",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sb1",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "macros__customaction1",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb2",
+            "name": "macro__customcb2",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__custommode2",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sb2",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "macros__customaction2",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb3",
+            "name": "macro__customcb3",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__custommode3",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sb3",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "macros__customaction3",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb4",
+            "name": "macro__customcb4",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__custommode4",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sb4",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "macros__customaction4",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb5",
+            "name": "macro__customcb5",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__custommode5",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sb5",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "macros__customaction5",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb6",
+            "name": "macro__customcb6",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__custommode6",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macros__sb6",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "macros__customaction6",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "macro__customcb7",
+            "name": "macro__customcb6",
+            "tag": "input",
+            "type": "checkbox",
+            "value": ""
+          },
+          {
+            "id": "macros__customaction7",
+            "name": "",
+            "tag": "select",
+            "type": "",
+            "value": ""
+          },
+          {
+            "id": "",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "Send Macro Values"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      },
+      {
+        "action": "http://vrroom-09/",
+        "id": "",
+        "inputs": [
+          {
+            "id": "audiovolume",
+            "name": "vol",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "audiobass",
+            "name": "bass",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "audiotreb",
+            "name": "treb",
+            "tag": "input",
+            "type": "number",
+            "value": "0"
+          },
+          {
+            "id": "audiosubmit",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "SEND"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      },
+      {
+        "action": "http://vrroom-09/",
+        "id": "",
+        "inputs": [
+          {
+            "id": "importfile",
+            "name": "",
+            "tag": "input",
+            "type": "file",
+            "value": ""
+          },
+          {
+            "id": "importfile__btn",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "IMPORT"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      },
+      {
+        "action": "http://vrroom-09/",
+        "id": "",
+        "inputs": [
+          {
+            "id": "uploadfile",
+            "name": "datafile",
+            "tag": "input",
+            "type": "file",
+            "value": ""
+          },
+          {
+            "id": "uploadfw__btn",
+            "name": "",
+            "tag": "input",
+            "type": "submit",
+            "value": "SEND"
+          }
+        ],
+        "method": "get",
+        "name": ""
+      }
+    ],
+    "interesting_fields": [
+      {
+        "id": "portseltx0",
+        "name": "insel",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "portseltx1",
+        "name": "insel",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edidcopybot",
+        "name": "edidmode",
+        "tag": "input",
+        "type": "radio",
+        "value": "copytx0"
+      },
+      {
+        "id": "edidcopytop",
+        "name": "edidmode",
+        "tag": "input",
+        "type": "radio",
+        "value": "copytx1"
+      },
+      {
+        "id": "edidfixed",
+        "name": "edidmode",
+        "tag": "input",
+        "type": "radio",
+        "value": "fixed"
+      },
+      {
+        "id": "edidcustom",
+        "name": "edidmode",
+        "tag": "input",
+        "type": "radio",
+        "value": "custom"
+      },
+      {
+        "id": "edidtableinp1",
+        "name": "edidtableinp1",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edidtableinp2",
+        "name": "edidtableinp2",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edidtableinp3",
+        "name": "edidtableinp3",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edidtableinp4",
+        "name": "edidtableinp4",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edidautomix",
+        "name": "edidmode",
+        "tag": "input",
+        "type": "radio",
+        "value": "automix"
+      },
+      {
+        "id": "edid__videotx",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__frlcb",
+        "name": "edid__frlcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__frl",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__vrrcb",
+        "name": "edid__vrrcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__vrr",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__allmcb",
+        "name": "edid__allmcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__allm",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__hdrcb",
+        "name": "edid__hdrcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__hdr",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__dvcb",
+        "name": "edid__dvcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__dv",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__audiomode",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__pcmcb",
+        "name": "edid__pcmcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__pcmch",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__pcmsr",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__pcmbw",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__truehdcb",
+        "name": "edid__truehdcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__truehd",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__truehdsr",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__ddpluscb",
+        "name": "edid__ddpluscb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__ddplus",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__ddplussr",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__ddcb",
+        "name": "edid__ddcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__dd",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__dtshdcb",
+        "name": "edid__dtshdcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__dtshd",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__dtshdsr",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__dtscb",
+        "name": "edid__dtscb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__dts",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__onebitcb",
+        "name": "edid__onebitcb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "edid__onebit",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edid__onebitsp",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "edidfileupload",
+        "name": "edidfile",
+        "tag": "input",
+        "type": "file",
+        "value": ""
+      },
+      {
+        "id": "",
+        "name": "",
+        "tag": "input",
+        "type": "submit",
+        "value": "SEND EDID"
+      },
+      {
+        "id": "hdr__captured",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdrcustom",
+        "name": "infoframe_cbhdrcustom",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdrcustomhdronly",
+        "name": "infoframe_cbhdrcustomhdronly",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdrcustomhlgonly",
+        "name": "infoframe_cbhdrcustomhlgonly",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdrcustomhlgonlyauto",
+        "name": "infoframe_cbhdrcustomhlgonlyauto",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdrcustomlldvonly",
+        "name": "infoframe_cbhdrcustomlldvonly",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdr10disable",
+        "name": "infoframe_cbhdr10disable",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhlgdisable",
+        "name": "infoframe_cbhlgdisable",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cblldvdisable",
+        "name": "infoframe_cblldvdisable",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbhdrdisable",
+        "name": "infoframe_cbhdrdisable",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "createhdr__eotf",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createhdr__primaries",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createhdr__wp",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createhdr__maxlum",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "4000"
+      },
+      {
+        "id": "createhdr__minlum",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.0001"
+      },
+      {
+        "id": "createhdr__maxcll",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "1000"
+      },
+      {
+        "id": "createhdr__maxfall",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "400"
+      },
+      {
+        "id": "infoframe__customhdr",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "avi__captured",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbavicustom",
+        "name": "infoframe_cbavicustom",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "infoframe_cbavidisable",
+        "name": "infoframe_cbavidisable",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "createavi__vic",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createavi__csc",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createavi__range",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "infoframe__customavi",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "allmmode_follow",
+        "name": "allmmode",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "allmmode_off",
+        "name": "allmmode",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "allmmode_on",
+        "name": "allmmode",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "allmmode_target",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "dv__captured",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "dv__tx0edidblock",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "createdv__interface",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__primaries",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__yuv422",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__gdim",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__backlight",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__backlightluma",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__lldv1012b",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "createdv__rx",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.680"
+      },
+      {
+        "id": "createdv__ry",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.320"
+      },
+      {
+        "id": "createdv__gx",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.265"
+      },
+      {
+        "id": "createdv__gy",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.690"
+      },
+      {
+        "id": "createdv__bx",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.150"
+      },
+      {
+        "id": "createdv__by",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0.060"
+      },
+      {
+        "id": "createdv__maxlum",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "1000"
+      },
+      {
+        "id": "createdv__minlum",
+        "name": "",
+        "tag": "input",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "id": "infoframe__lldvdatablock",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": ""
+      },
+      {
+        "id": "osd__item--source",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--videofield",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--videoif",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--hdrrxtx",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--hdrif",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--audiofield",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--rxvideoinfo",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--rxhdrinfo",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "osd__item--ignoremeta",
+        "name": "osdsource",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      },
+      {
+        "id": "earcforce",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "earcspeakermap",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "earcmutemode",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "earctxmode",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__hdr10mode",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__sdrbt2020",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__sdrbt2020custom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "macros__hlgbt709",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__hlgbt709custom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "macros__hlgbt2020",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__hlgbt2020custom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "macros__hdr10main",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__hdr10maincustom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "macros__hdr10optional",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__hdr10optionalcustom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "macros__hdr10bt709",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__hdr10bt709custom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "macros__lldv",
+        "name": "",
+        "tag": "select",
+        "type": "",
+        "value": ""
+      },
+      {
+        "id": "macros__lldvcustom",
+        "name": "",
+        "tag": "input",
+        "type": "text",
+        "value": "21:89:01:50:4d:47:31:32:0a:00"
+      },
+      {
+        "id": "earcunmutecnt",
+        "name": "vol",
+        "tag": "input",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "id": "mutetx0audio_on",
+        "name": "mutetx0audio",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "mutetx0audio_off",
+        "name": "mutetx0audio",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "mutetx1audio_on",
+        "name": "mutetx1audio",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "mutetx1audio_off",
+        "name": "mutetx1audio",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "tx1plus5_on",
+        "name": "tx1plus5",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "tx1plus5_off",
+        "name": "tx1plus5",
+        "tag": "input",
+        "type": "radio",
+        "value": ""
+      },
+      {
+        "id": "resetedid__cb",
+        "name": "resetedid__cb",
+        "tag": "input",
+        "type": "checkbox",
+        "value": ""
+      }
+    ],
+    "keyword_lines": [
+      "HDFury VRROOM",
+      "EDID",
+      "HDR/AVI",
+      "CEC/EARC",
+      "SOURCE:",
+      "IN TX0:",
+      "IN TX1:",
+      "VIDEO TX0:",
+      "VIDEO TX1:",
+      "AUDIO TX0:",
+      "AUDIO TX1:",
+      "eARC RX:",
+      "ROUTE:",
+      "EDID TX0:",
+      "EDID TX1:",
+      "EDID AUD:",
+      "MODE 0 - SPLITTER TX0/TX1 FRL5 VRR",
+      "MODE 1 - SPLITTER TX0/TX1 UPSCALE FRL5",
+      "MODE 2 - MATRIX TMDS",
+      "MODE 3 - MATRIX FRL->TMDS",
+      "MODE 5 - MATRIX RX0:FRL5 + RX1-3:TMDS",
+      "MODE 0: Split input to both TX0 and TX1. FRL5 and VRR are supported.",
+      "MODE 1: Split input to both TX0 and TX1. TX0 upscales up to FRL5. No VRR supported.",
+      "MODE 2: Matrix mode. FRL",
+      "MODE 3: Matrix mode. TX1 FRL->TMDS",
+      "MODE 4: Matrix mode. TX1 downscale. FRL",
+      "VRRoom will reboot when switching between Split / Matrix modes",
+      "TX0:",
+      "- COPY TX1 -",
+      "TX1:",
+      "- COPY TX0 -",
+      "COPY TX0 SINK",
+      "Copy the connected TX0 sink EDID capabilities. No modifications.",
+      "COPY TX1 SINK",
+      "Copy the connected TX1 sink EDID capabilities. No modifications.",
+      "FIXED TEST EDID",
+      "Standard EDID table to verify cable issues. EDID max caps 4K60 420 300MHz 8b stereo audio.",
+      "CUSTOM EDID",
+      "Custom EDID tables for various situations. The first 10 tables can be replaced over LAN.",
+      "2 - Custom Default [Q70J HDR10+ 7.1]",
+      "4 - Custom Default [Q9FN ALLM VRR HDR10+]",
+      "5 - Custom Default [SONY A1 LLDV DCI-P3]",
+      "9 - Custom Default [PanaGZ960E DV HDR10+]",
+      "10 - Custom Default [SONY A1 LLDV BT2020]",
+      "11 - 8K60-420 FRL-5 VRR HDR 7.1",
+      "12 - 8K60-420 FRL-5 VRR HDR 5.1",
+      "13 - 8K60-420 FRL-5 VRR HDR 2.0",
+      "14 - 8K60-420 FRL-5 HDR 7.1",
+      "15 - 8K60-420 FRL-5 HDR 5.1",
+      "16 - 8K60-420 FRL-5 HDR 2.0",
+      "17 - 4K120-444 FRL-5 10b VRR HDR 7.1",
+      "18 - 4K120-444 FRL-5 10b VRR HDR 5.1",
+      "19 - 4K120-444 FRL-5 10b VRR HDR 2.0",
+      "20 - 4K120-444 FRL-5 10b HDR 7.1",
+      "21 - 4K120-444 FRL-5 10b HDR 5.1",
+      "22 - 4K120-444 FRL-5 10b HDR 2.0",
+      "23 - 4K120-420 VRR HDR 7.1",
+      "24 - 4K120-420 VRR HDR 5.1",
+      "25 - 4K120-420 VRR HDR 2.0",
+      "26 - 4K120-420 HDR 7.1",
+      "27 - 4K120-420 HDR 5.1",
+      "28 - 4K120-420 HDR 2.0",
+      "29 - 4K60-444 600MHz HDR BT2020 7.1",
+      "30 - 4K60-444 600MHz HDR BT2020 5.1",
+      "31 - 4K60-444 600MHz HDR BT2020 2.0",
+      "32 - 4K60-444 600MHz BT2020 7.1",
+      "33 - 4K60-444 600MHz BT2020 5.1",
+      "34 - 4K60-444 600MHz BT2020 2.0",
+      "35 - 4K50-444 600MHz HDR BT2020 7.1",
+      "36 - 4K50-444 600MHz HDR BT2020 5.1",
+      "37 - 4K50-444 600MHz HDR BT2020 2.0",
+      "38 - 4K50-444 600MHz BT2020 7.1",
+      "39 - 4K50-444 600MHz BT2020 5.1",
+      "40 - 4K50-444 600MHz BT2020 2.0",
+      "41 - 4K60-420 12bit HDR BT2020 7.1",
+      "42 - 4K60-420 12bit HDR BT2020 5.1",
+      "43 - 4K60-420 12bit HDR BT2020 2.0",
+      "44 - 4K60-420 12bit BT2020 7.1",
+      "45 - 4K60-420 12bit BT2020 5.1",
+      "46 - 4K60-420 12bit BT2020 2.0",
+      "47 - 4K60-420 8-bit 300MHz HDR BT2020 7.1",
+      "48 - 4K60-420 8-bit 300MHz HDR BT2020 5.1",
+      "49 - 4K60-420 8-bit 300MHz HDR BT2020 2.0",
+      "50 - 4K60-420 8-bit 300MHz BT2020 7.1",
+      "51 - 4K60-420 8-bit 300MHz BT2020 5.1",
+      "52 - 4K60-420 8-bit 300MHz BT2020 2.0",
+      "53 - 4K30-444 300MHz HDR BT2020 7.1",
+      "54 - 4K30-444 300MHz HDR BT2020 5.1",
+      "55 - 4K30-444 300MHz HDR BT2020 2.0",
+      "56 - 4K30-444 300MHz BT2020 7.1",
+      "57 - 4K30-444 300MHz BT2020 5.1",
+      "58 - 4K30-444 300MHz BT2020 2.0",
+      "59 - 4K30-RGB 300MHz HDR BT2020 7.1",
+      "60 - 4K30-RGB 300MHz HDR BT2020 5.1",
+      "61 - 4K30-RGB 300MHz HDR BT2020 2.0",
+      "62 - 4K30-RGB 300MHz BT2020 7.1",
+      "63 - 4K30-RGB 300MHz BT2020 5.1",
+      "64 - 4K30-RGB 300MHz BT2020 2.0",
+      "65 - 4K24-422 12-bit HDR BT2020 7.1",
+      "66 - 4K24-422 12-bit HDR BT2020 5.1",
+      "67 - 4K24-422 12-bit HDR BT2020 2.0",
+      "68 - 4K24-422 12-bit BT2020 7.1",
+      "69 - 4K24-422 12-bit BT2020 5.1",
+      "70 - 4K24-422 12-bit BT2020 2.0",
+      "71 - 4K24-422 12-bit 7.1",
+      "72 - 4K24-422 12-bit 5.1",
+      "73 - 4K24-422 12-bit 2.0",
+      "74 - 1080p60-444 12-bit HDR BT2020 7.1",
+      "75 - 1080p60-444 12-bit HDR BT2020 5.1",
+      "76 - 1080p60-444 12-bit HDR BT2020 2.0",
+      "77 - 1080p60-444 12-bit BT2020 7.1",
+      "78 - 1080p60-444 12-bit BT2020 5.1",
+      "79 - 1080p60-444 12-bit BT2020 2.0",
+      "80 - 1080p60-444 12-bit 7.1",
+      "81 - 1080p60-444 12-bit 5.1",
+      "82 - 1080p60-444 12-bit 2.0",
+      "83 - 1080p24-444 12-bit HDR BT2020 7.1",
+      "84 - 1080p24-444 12-bit HDR BT2020 5.1",
+      "85 - 1080p24-444 12-bit HDR BT2020 2.0",
+      "86 - 1080p24-444 12-bit BT2020 7.1",
+      "87 - 1080p24-444 12-bit BT2020 5.1",
+      "88 - 1080p24-444 12-bit BT2020 2.0",
+      "89 - 1080p24-444 8-bit 7.1",
+      "90 - 1080p24-444 8-bit 5.1",
+      "91 - 1080p24-444 8-bit 2.0",
+      "92 - 1080i60-444 8-bit 7.1",
+      "93 - 1080i60-444 8-bit 5.1",
+      "94 - 1080i60-444 8-bit 2.0",
+      "95 - 720p60-444 8-bit 7.1",
+      "96 - 720p60-444 8-bit 5.1",
+      "97 - 720p60-444 8-bit 2.0",
+      "98 - 480p60-444 8-bit 7.1",
+      "99 - 480p60-444 8-bit 5.1",
+      "100 - 480p60-444 8-bit 2.0",
+      "COPY TX SINK EDID and MODIFY (AUTOMIX)",
+      "Automix EDID tables. Customize capabilities of the connected TX0 / TX1 sink EDID table.",
+      "Selected TX SINK will be used for the main video capabilities.",
+      "TX SINK:",
+      "FRL RATE",
+      "FRL-5 / 40Gbps",
+      "FRL-4 / 32Gbps",
+      "FRL-3 / 24Gbps",
+      "FRL-2 / 18Gbps",
+      "FRL-1 / 9Gbps",
+      "NO FRL / DISABLED",
+      "ALLM",
+      "HDR10",
+      "HDR10 / HLG",
+      "HDR10+",
+      "HDR10+ / HLG",
+      "Use DV creator page in CUSTOM mode",
+      "ARC/BEAM1",
+      "ARC/DD+",
+      "eARC OUT",
+      "In CUSTOM mode the base audio capabilities are copied from TX SINK selected port, and",
+      "COPY SINK",
+      "AUTOMIXED EDID HAS OVERFLOWED",
+      "HDR10+ Descriptor Removed",
+      "DV descriptor removed",
+      "DOWNLOAD ACTIVE EDID TABLES:",
+      "RX0 EDID",
+      "RX1 EDID",
+      "RX2 EDID",
+      "RX3 EDID",
+      "TX0 EDID",
+      "TX1 EDID",
+      "AUD EDID",
+      "eARC CDS",
+      "SAVE ACTIVE EDID TO CUSTOM EDID #:",
+      "EDID 8",
+      "EDID 9",
+      "EDID 10",
+      "UPLOAD EDID TABLES:",
+      "CAPTURED INPUT HDR METADATA:",
+      "HDR METADATA GENERATOR:",
+      "Use custom HDR for TX0 and TX1 [ignore RX HDR]",
+      "Use custom HDR for TX0 and TX1 when input is HDR10 [ignore RX HDR]",
+      "Use custom HDR for TX0 and TX1 when input is HLG [ignore RX HDR]",
+      "Use custom HDR for TX0 and TX1 when input is HLG and display has no HLG support",
+      "Use custom HDR for TX0 and TX1 when input is LLDV",
+      "Disable output HDR for TX0 and TX1 when input is HDR10",
+      "Disable output HDR for TX0 and TX1 when input is HLG",
+      "Disable output LLDV for TX0 and TX1 when input is LLDV",
+      "Disable all output HDR/HLG [keep LLDV]",
+      "HDR Luminance Range",
+      "HLG ITU-R BT.2100-0",
+      "Send HDR",
+      "CAPTURED AVI METADATA:",
+      "CUSTOM AVI INFOFRAME GENERATOR:",
+      "Use custom AVI [for advanced users only]",
+      "Disable AVI sending [send nothing]",
+      "YCbCr 444 BT709",
+      "YCbCr 422 BT709",
+      "YCbCr 420 BT709",
+      "RGB BT2020",
+      "YCbCr 444 BT2020",
+      "YCbCr 422 BT2020",
+      "YCbCr 420 BT2020",
+      "Send AVI",
+      "Use custom VSI [for advanced users only]",
+      "Allows to control the TV supported ALLM feature",
+      "ON -setting forces ALLM enabled at all times - ignores RX ALLM",
+      "OFF -setting forces ALLM disabled at all times - ignores RX ALLM",
+      "FOLLOW -setting lets the source control enable/disable",
+      "ALLM MODE:",
+      "OTHER CAPTURED METADATA:",
+      "CAPTURED INPUT DOLBY VISION METADATA [from source]:",
+      "DV Status:",
+      "DV interface:",
+      "Backlight metadata:",
+      "CONNECTED DOLBY VISION EDID DATABLOCK [sink tx0]:",
+      "DV Version:",
+      "DV DM Version:",
+      "DV Interface:",
+      "YUV422 12bit:",
+      "CONSTRUCT CUSTOM DOLBY VISION DATA BLOCK (for advanced users only):",
+      "Generates a 12-byte DV Version 2 Data Block. Select AUTOMIX with CUSTOM STRING -flag to activate.",
+      "Low latency 12Bit YCbCr 422",
+      "Low latency 12Bit YCbCr 422 and RGB/YCbCr 444 10/12Bit",
+      "Standard DV and low latency 12Bit YCbCr 422",
+      "Standard DV and low latency 422/444/RGB",
+      "10b 444/RGB",
+      "12b 444/RGB",
+      "Send DV",
+      "Source Name",
+      "HDR RX/TX Info:",
+      "HDR IF:",
+      "RX HDR info:",
+      "Ignore Metadata Change:",
+      "CEC / eARC / ARC CONTROL:",
+      "VRRoom has three separate CEC zones to support CEC commands and ARC/eARC communication.",
+      "MAIN ZONE CEC controls channel switching and eARC/ARC retrieval from the TX0 connected display",
+      "eARC TX zone controls the volume and power up/down of the eARC TX connected AVR/Soundbar as well as eARC/ARC transmission",
+      "All changes to CEC/eARC/ARC parameters require a VRROOM power cycle. Unplug/replug power",
+      "MAIN ZONE CEC must be enabled to support CEC channel switching and eARC/ARC retrieval",
+      "eARC/ARC support requires \"Audio System\", make sure no other AVR devices are connected to the TV",
+      "eARC can support lossless bitstream formats, such as MAT atmos, TrueHD, DTS:X, PCM 7.1",
+      "ARC can support up to of DD+ Atmos, stereo PCM",
+      "Audio System [eARC/ARC]",
+      "Video Processor [no eARC/ARC]",
+      "eARC/ARC:",
+      "Auto eARC/HDMI",
+      "Manual eARC",
+      "Auto ARC/HDMI",
+      "Manual ARC",
+      "AUTO relies on TV CEC commands for switching between eARC/ARC and HDMI. Select the auto mode according to TV capabilities",
+      "If the display supports eARC, select Manual eARC. All audio will be routed via TV eARC",
+      "If the display supports ARC only, select Manual ARC. All audio will be routed via TV ARC",
+      "ARC is max DD+. Consider EDID settings to not exceed the max capability from the HDMI input",
+      "Some TVs will incorrectly stream mark 7.1 for all eARC content with more speakers than stereo",
+      "MUTE from TV/source remotes can use dedicated CEC mute on/off commands or a toggle command",
+      "eARC TX ZONE:",
+      "Always ARC",
+      "Auto eARC/ARC [default]",
+      "If the connected device only supports ARC, choose the Always ARC-option, otherwise leave as default",
+      "When using Always ARC-option make sure input port AUDIO CAPS don't exceed soundbar/AVR capabilities",
+      "Typical ARC soundbar supports maximum DD+ and stereo PCM. Use ARC/BEAM1 or ARC/DD+ AUDIO CAPS",
+      "VRRoom issues automated power on/off CEC commands to the AUDIO OUT connected sink.",
+      "Request Audio Mode = Instructs the sink to enter System Audio mode and to enable volume control",
+      "Request Audio Mode + Routing Change = As above but also issues Routing Change to switch to the VRRoom input",
+      "VRRoom has a capability to individually disable CEC from inputs.",
+      "HDR10 MODE:",
+      "Ignore Metadata",
+      "SDR-BT709 (HDTV)",
+      "FRAME ADAPT HDR",
+      "SDR-BT709 (Film)",
+      "SDR-BT2020",
+      "HLG-BT709",
+      "HLG-BT2020",
+      "HDR10-DC4K",
+      "HDR10-Opt",
+      "HDR10-DC1K",
+      "HDR10-Rec709",
+      "HDR10-BT709",
+      "LLDV",
+      "CUSTOM HDR10 PROFILES:",
+      "IF HDR10",
+      "VRROOM SETUP:",
+      "HTPC MODE RX0:",
+      "HTPC MODE RX1:",
+      "Time offset in milliseconds to start sending audio data to the sink. 50msec min",
+      "eARC UNMUTE:",
+      "Additional time offset in milliseconds to start sending audio data to the eARC TX.",
+      "HDR 1",
+      "HDR 2",
+      "MUTE TX0 AUDIO:",
+      "MUTE TX1 AUDIO:",
+      "TX1 +5V FORCE:",
+      "VRROOM will listen to this port for IP / Telnet commands",
+      "VRROOM CONTROL:",
+      "EDID FACTORY SETTINGS:"
+    ],
+    "scripts": [
+      "http://vrroom-09/js/config.js",
+      "http://vrroom-09/js/main.js",
+      "http://vrroom-09/js/requests.js"
+    ],
+    "status_fields": {
+      "EDID TX0": "AUDIO:",
+      "EDID TX1": "AUDIO: EDID AUD: AUDIO: OP",
+      "Hostname": "not connected",
+      "IN TX0": "SOURCE:",
+      "IP Address": "not connected FW VER: not connected INFO EDID HDR/AVI DV OSD CEC/EARC MACROS CONFIG",
+      "MODE": "MODE 0 - SPLITTER TX0/TX1 FRL5 VRR MODE 1 - SPLITTER TX0/TX1 UPSCALE FRL5 MODE 2 - MATRIX TMDS MODE 3 - MATRIX FRL->TMDS MODE 4 - MATRIX DOWNSCALE MODE 5 - MATRIX RX0:FRL5 + RX1-3:TMDS MODE 0: Split input to both TX0 and TX1. FRL5 and VRR are supported. MODE 1: Split input to both TX0 and TX1. TX0 upscales up to FRL5. No VRR supported. MODE 2: Matrix mode. FRL not supported. MODE 3: Matrix mode. TX1 FRL->TMDS not supported. MODE 4: Matrix mode. TX1 downscale. FRL not supported VRRoom will reboot when switching between Split / Matrix modes PORT SELECTOR: TX0: 0 - INPUT 0 1 - INPUT 1 2 - INPUT 2 3 - INPUT 3 - COPY TX1 - TX1: 0 - INPUT 0 1 - INPUT 1 2 - INPUT 2 3 - INPUT 3 - COPY TX0 - COPY TX0 SINK Copy the connected TX0 sink EDID capabilities. No modifications. COPY TX1 SINK Copy the connected TX1 sink EDID capabilities. No modifications. FIXED TEST EDID Standard EDID table to verify cable issues. EDID max caps 4K60 420 300MHz 8b stereo audio. CUSTOM EDID Custom EDID tables for various situations. The first 10 tables can be replaced over LAN. 5.1 means LPCM-5.1 48kHz 24bit, DTS 5.1, DD 5.1, DD+ 7.1 means LPCM-7.1 192kHz 24bit, MAT Atmos, TrueHD, DTS-X (with IMAX), DTSHD (with MA), DD+, DTS, DD INPUT 0: 1 - Custom Default [SONY A85J 7.1] 2 - Custom Default [Q70J HDR10+ 7.1] 3 - Custom Default [DENON S960H 8K] 4 - Custom Default [Q9FN ALLM VRR HDR10+] 5 - Custom Default [SONY A1 LLDV DCI-P3] 6 - Custom Default [LG NANO 8K 7.1] 7 - Custom Default [LG C9 7.1] 8 - Custom Default [LG C1 7.1] 9 - Custom Default [PanaGZ960E DV HDR10+] 10 - Custom Default [SONY A1 LLDV BT2020] 11 - 8K60-420 FRL-5 VRR HDR 7.1 12 - 8K60-420 FRL-5 VRR HDR 5.1 13 - 8K60-420 FRL-5 VRR HDR 2.0 14 - 8K60-420 FRL-5 HDR 7.1 15 - 8K60-420 FRL-5 HDR 5.1 16 - 8K60-420 FRL-5 HDR 2.0 17 - 4K120-444 FRL-5 10b VRR HDR 7.1 18 - 4K120-444 FRL-5 10b VRR HDR 5.1 19 - 4K120-444 FRL-5 10b VRR HDR 2.0 20 - 4K120-444 FRL-5 10b HDR 7.1 21 - 4K120-444 FRL-5 10b HDR 5.1 22 - 4K120-444 FRL-5 10b HDR 2.0 23 - 4K120-420 VRR HDR 7.1 24 - 4K120-420 VRR HDR 5.1 25 - 4K120-420 VRR HDR 2.0 26 - 4K120-420 HDR 7.1 27 - 4K120-420 HDR 5.1 28 - 4K120-420 HDR 2.0 29 - 4K60-444 600MHz HDR BT2020 7.1 30 - 4K60-444 600MHz HDR BT2020 5.1 31 - 4K60-444 600MHz HDR BT2020 2.0 32 - 4K60-444 600MHz BT2020 7.1 33 - 4K60-444 600MHz BT2020 5.1 34 - 4K60-444 600MHz BT2020 2.0 35 - 4K50-444 600MHz HDR BT2020 7.1 36 - 4K50-444 600MHz HDR BT2020 5.1 37 - 4K50-444 600MHz HDR BT2020 2.0 38 - 4K50-444 600MHz BT2020 7.1 39 - 4K50-444 600MHz BT2020 5.1 40 - 4K50-444 600MHz BT2020 2.0 41 - 4K60-420 12bit HDR BT2020 7.1 42 - 4K60-420 12bit HDR BT2020 5.1 43 - 4K60-420 12bit HDR BT2020 2.0 44 - 4K60-420 12bit BT2020 7.1 45 - 4K60-420 12bit BT2020 5.1 46 - 4K60-420 12bit BT2020 2.0 47 - 4K60-420 8-bit 300MHz HDR BT2020 7.1 48 - 4K60-420 8-bit 300MHz HDR BT2020 5.1 49 - 4K60-420 8-bit 300MHz HDR BT2020 2.0 50 - 4K60-420 8-bit 300MHz BT2020 7.1 51 - 4K60-420 8-bit 300MHz BT2020 5.1 52 - 4K60-420 8-bit 300MHz BT2020 2.0 53 - 4K30-444 300MHz HDR BT2020 7.1 54 - 4K30-444 300MHz HDR BT2020 5.1 55 - 4K30-444 300MHz HDR BT2020 2.0 56 - 4K30-444 300MHz BT2020 7.1 57 - 4K30-444 300MHz BT2020 5.1 58 - 4K30-444 300MHz BT2020 2.0 59 - 4K30-RGB 300MHz HDR BT2020 7.1 60 - 4K30-RGB 300MHz HDR BT2020 5.1 61 - 4K30-RGB 300MHz HDR BT2020 2.0 62 - 4K30-RGB 300MHz BT2020 7.1 63 - 4K30-RGB 300MHz BT2020 5.1 64 - 4K30-RGB 300MHz BT2020 2.0 65 - 4K24-422 12-bit HDR BT2020 7.1 66 - 4K24-422 12-bit HDR BT2020 5.1 67 - 4K24-422 12-bit HDR BT2020 2.0 68 - 4K24-422 12-bit BT2020 7.1 69 - 4K24-422 12-bit BT2020 5.1 70 - 4K24-422 12-bit BT2020 2.0 71 - 4K24-422 12-bit 7.1 72 - 4K24-422 12-bit 5.1 73 - 4K24-422 12-bit 2.0 74 - 1080p60-444 12-bit HDR BT2020 7.1 75 - 1080p60-444 12-bit HDR BT2020 5.1 76 - 1080p60-444 12-bit HDR BT2020 2.0 77 - 1080p60-444 12-bit BT2020 7.1 78 - 1080p60-444 12-bit BT2020 5.1 79 - 1080p60-444 12-bit BT2020 2.0 80 - 1080p60-444 12-bit 7.1 81 - 1080p60-444 12-bit 5.1 82 - 1080p60-444 12-bit 2.0 83 - 1080p24-444 12-bit HDR BT2020 7.1 84 - 1080p24-444 12-bit HDR BT2020 5.1 85 - 1080p24-444 12-bit HDR BT2020 2.0 86 - 1080p24-444 12-bit BT2020 7.1 87 - 1080p24-444 12-bit BT2020 5.1 88 - 1080p24-444 12-bit BT2020 2.0 89 - 1080p24-444 8-bit 7.1 90 - 1080p24-444 8-bit 5.1 91 - 1080p24-444 8-bit 2.0 92 - 1080i60-444 8-bit 7.1 93 - 1080i60-444 8-bit 5.1 94 - 1080i60-444 8-bit 2.0 95 - 720p60-444 8-bit 7.1 96 - 720p60-444 8-bit 5.1 97 - 720p60-444 8-bit 2.0 98 - 480p60-444 8-bit 7.1 99 - 480p60-444 8-bit 5.1 100 - 480p60-444 8-bit 2.0 INPUT 1: 0 - Follow INPUT 0 INPUT 2: 0 - Follow INPUT 0 INPUT 3: 0 - Follow INPUT 0 COPY TX SINK EDID and MODIFY (AUTOMIX) Automix EDID tables. Customize capabilities of the connected TX0 / TX1 sink EDID table. Selected TX SINK will be used for the main video capabilities. TX SINK: TX0 TX1 The settings below can be used to modify, add and remove video capabilities. FRL RATE FRL-5 / 40Gbps FRL-4 / 32Gbps FRL-3 / 24Gbps FRL-2 / 18Gbps FRL-1 / 9Gbps NO FRL / DISABLED VRR ENABLE REMOVE ALL ALLM ENABLE REMOVE ALL HDR HDR10 HDR10 / HLG HDR10+ HDR10+ / HLG REMOVE ALL DV LG C1 SONY X930E Z9D CUSTOM REMOVE ALL Use DV creator page in CUSTOM mode Selected AUDIO CAPS indicates where audio caps are copied from. AUDIO CAPS: STEREO 5.1 7.1 ARC/BEAM1 ARC/DD+ TX0 TX1 AUDIO OUT eARC OUT CUSTOM In CUSTOM mode the base audio capabilities are copied from TX SINK selected port, and the following settings can be used to modify, add or remove capabilities. L-PCM 2.0 STEREO 2.1 3.1 4.1 5.1 6.1 7.1 up to 48kHz up to 96kHz up to 192kHz up to 16bit up to 20bit up to 24bit TRUEHD MAT ATMOS NO ATMOS REMOVE up to 48kHz up to 96kHz up to 192kHz COPY SINK DD+ ATMOS NO ATMOS REMOVE up to 48kHz up to 96kHz up to 192kHz COPY SINK DD ENABLE REMOVE DTS-HDMA DTS:X IMAX DTS:X NO DTS:X REMOVE up to 48kHz up to 96kHz up to 192kHz COPY SINK DTS ENABLE REMOVE ONE BIT ENABLE REMOVE 2.0 STEREO 5.1 WARNING: AUTOMIXED EDID HAS OVERFLOWED Audio Vendor Specific Descriptor Removed HDR10+ Descriptor Removed Audio replaced with LPCM Stereo + Atmos caps DV descriptor removed DOWNLOAD ACTIVE EDID TABLES: RX0 EDID RX1 EDID RX2 EDID RX3 EDID TX0 EDID TX1 EDID AUD EDID eARC CDS SAVE ACTIVE EDID TO CUSTOM EDID #: EDID 8 EDID 9 EDID 10 UPLOAD EDID TABLES: TABLE #: 1 - Custom #1 2 - Custom #2 3 - Custom #3 4 - Custom #4 5 - Custom #5 6 - Custom #6 7 - Custom #7 8 - Custom #8 9 - Custom #9 10 - Custom #10 CAPTURED INPUT HDR METADATA: EOTF: GRN: BLU: RED: WP: Max/Min Lum: MaxCLL/FALL: HDR METADATA GENERATOR: Use custom HDR for TX0 and TX1 [ignore RX HDR] Use custom HDR for TX0 and TX1 when input is HDR10 [ignore RX HDR] Use custom HDR for TX0 and TX1 when input is HLG [ignore RX HDR] Use custom HDR for TX0 and TX1 when input is HLG and display has no HLG support Use custom HDR for TX0 and TX1 when input is LLDV Disable output HDR for TX0 and TX1 when input is HDR10 Disable output HDR for TX0 and TX1 when input is HLG Disable output LLDV for TX0 and TX1 when input is LLDV Disable all output HDR/HLG [keep LLDV] EOTF: SDR Luminance Range HDR Luminance Range SMPTE ST 2084 HLG ITU-R BT.2100-0 Primaries: ITU-R BT 709-5 ITU-R BT 2020-2 DCI P3 WP: D65 Max Luminance [nits]: Min Luminance [nits]: MaxCLL [nits]: MaxFALL [nits]: Create IF Default IF Send HDR CAPTURED AVI METADATA: VIC: Colorimetry: Range: CUSTOM AVI INFOFRAME GENERATOR: Use custom AVI [for advanced users only] Disable AVI sending [send nothing] VIC: 1080p60 1080p24 4k60 4k24 Primaries: RGB YCbCr 444 BT709 YCbCr 422 BT709 YCbCr 420 BT709 RGB BT2020 YCbCr 444 BT2020 YCbCr 422 BT2020 YCbCr 420 BT2020 Range: Default / Not specified Limited Range [16-235] Full Range [0-255] Create IF Send AVI CUSTOM VSI INFOFRAME GENERATOR: Use custom VSI [for advanced users only] Disable VSI sending [send nothing] Default VSI Send VSI AUTO LOW LATENCY MODE CONTROL: Allows to control the TV supported ALLM feature ON -setting forces ALLM enabled at all times - ignores RX ALLM OFF -setting forces ALLM disabled at all times - ignores RX ALLM FOLLOW -setting lets the source control enable/disable ALLM MODE: FOLLOW OFF ON Assign to input: 0 - INPUT 0 1 - INPUT 1 2 - INPUT 2 3 - INPUT 3 - ALL - UHD ALLIANCE FILM MAKER MODE: Enable Film Maker Mode OTHER CAPTURED METADATA: SPD INFOFRAME: AUD INFOFRAME: HVS INFOFRAME: VSI INFOFRAME: HFV INFOFRAME: CAPTURED INPUT DOLBY VISION METADATA [from source]: DV Status: DV interface: Backlight metadata: Backlight Max Luminance: Auxiliary runmode: Auxiliary version: Auxiliary debug: CONNECTED DOLBY VISION EDID DATABLOCK [sink tx0]: DV Version: DV DM Version: DV Interface: 2160p60: YUV422 12bit: Global Dimming: Backlight Control: RED Primary: GREEN Primary: BLUE Primary: MAX/MIN Luminance: CONSTRUCT CUSTOM DOLBY VISION DATA BLOCK (for advanced users only): Generates a 12-byte DV Version 2 Data Block. Select AUTOMIX with CUSTOM STRING -flag to activate. DV Interface: Low latency 12Bit YCbCr 422 Low latency 12Bit YCbCr 422 and RGB/YCbCr 444 10/12Bit Standard DV and low latency 12Bit YCbCr 422 Standard DV and low latency 422/444/RGB Primaries: ITU-R BT 709-5 ITU-R BT 2020-2 DCI P3 CUSTOM YUV422 12bit: not supported supported Global Dimming: not supported supported Backlight Ctrl: not supported supported Backlight Minlum: 25 nits 50 nits 75 nits 100 nits Support 10/12b: 10/12b disabled 10b 444/RGB 12b 444/RGB RED Primary X: RED primary Y: GREEN primary X: GREEN primary Y: BLUE primary X: BLUE primary Y: MAX luminance [nits]: Range 100 - 10000 nits MIN luminance [nits]: Range 0 - 1 nits Create Default Send DV OSD SETUP: [press SEND after config] OSD ENABLE FADE SECONDS: [OSD video] FADE SECONDS: [OSD no input] OSD LOCATION [X]: OSD LOCATION [Y]: OSD COLOR [FRONT]: OSD COLOR [BACK]: OSD COLOR [LEVEL]: OSD INFO FLAGS: Source Name Video Field: Video IF: HDR RX/TX Info: HDR IF: Audio Field: Rx Video Info: RX HDR info: Ignore Metadata Change: OSD MASK SETUP: OSD MASK ENABLE OSD MASK [X]: OSD MASK [Y]: OSD MASK1 [X]: OSD MASK1 [Y]: OSD MASK LEVEL: OSD GRAYSCALE: OSD TEXT SETUP: OSD TEXT ENABLE NEVER FADE OSD TEXT [X]: OSD TEXT [Y]: TEXT TO BE DISPLAYED: CEC / eARC / ARC CONTROL: VRRoom has three separate CEC zones to support CEC commands and ARC/eARC communication. MAIN ZONE CEC controls channel switching and eARC/ARC retrieval from the TX0 connected display AUDIO OUT zone controls the volume and power up/down of the AUDIO OUT connected AVR/Soundbar eARC TX zone controls the volume and power up/down of the eARC TX connected AVR/Soundbar as well as eARC/ARC transmission All changes to CEC/eARC/ARC parameters require a VRROOM power cycle. Unplug/replug power MAIN ZONE: MAIN ZONE CEC must be enabled to support CEC channel switching and eARC/ARC retrieval eARC/ARC support requires \"Audio System\", make sure no other AVR devices are connected to the TV eARC can support lossless bitstream formats, such as MAT atmos, TrueHD, DTS:X, PCM 7.1 ARC can support up to of DD+ Atmos, stereo PCM CEC: Audio System [eARC/ARC] Video Processor [no eARC/ARC] CEC is enabled when the checkbox is selected eARC/ARC: Auto eARC/HDMI Manual eARC Manual HDMI Auto ARC/HDMI Manual ARC AUTO relies on TV CEC commands for switching between eARC/ARC and HDMI. Select the auto mode according to TV capabilities If the display supports eARC, select Manual eARC. All audio will be routed via TV eARC If the display supports ARC only, select Manual ARC. All audio will be routed via TV ARC ARC is max DD+. Consider EDID settings to not exceed the max capability from the HDMI input SPEAKER MAP Automatic Force 5.1 Some TVs will incorrectly stream mark 7.1 for all eARC content with more speakers than stereo It usually results in 5.1 speaker systems to lose the surrounds Use the Force 5.1 -setting to correct the speaker mapping in such systems MUTE MODE MUTE on/off MUTE toggle MUTE from TV/source remotes can use dedicated CEC mute on/off commands or a toggle command Some TVs will cause the toggle command to lose track if pressed many times too quickly eARC TX ZONE: OUT MODE: Always ARC Auto eARC/ARC [default] If the connected device only supports ARC, choose the Always ARC-option, otherwise leave as default When using Always ARC-option make sure input port AUDIO CAPS don't exceed soundbar/AVR capabilities Typical ARC soundbar supports maximum DD+ and stereo PCM. Use ARC/BEAM1 or ARC/DD+ AUDIO CAPS AUDIO OUT ZONE: POWER ON: Disabled Request Audio Mode Request Audio Mode + Routing Change POWER OFF: Disabled Automatic VRRoom issues automated power on/off CEC commands to the AUDIO OUT connected sink. Request Audio Mode = Instructs the sink to enter System Audio mode and to enable volume control Request Audio Mode + Routing Change = As above but also issues Routing Change to switch to the VRRoom input INPUT PORT CEC CONTROL: VRRoom has a capability to individually disable CEC from inputs. When disabled, no CEC commands will be allowed from the respective input. IN0 IN1 IN2 IN3 Checked means enabled. Default is checked. RS232 COMMANDS: RS232 BAUD RATE: 9600 19200 57600 115200 Send Ascii Send Binary MACRO CONTROL: ENABLE SEND ON EVERY SYNC HDR10 MODE: Automatic (default) Ignore Metadata Semi-Automatic Custom SYNC DELAY (secs): CONTENT/CALIBRATION PICTURE MODE OSD NAME CUSTOM HEX SDR-BT709 (HDTV) DO NOTHING HDR10 HLG USER 1 USER 2 USER 3 USER 4 USER 5 (2015+) USER 6 (2015+) FILM NATURAL ANIMATION THX STAGE (2014 only) GAMMA NORMAL GAMMA A GAMMA B GAMMA C GAMMA CUSTOM 1 GAMMA CUSTOM 2 GAMMA CUSTOM 3 GAMMA D GAMMA FILM 1 GAMMA FILM 2 FRAME ADAPT HDR CUSTOM SDR-TV SDR-BT709 (Film) SDR-Film SDR-BT2020 SDR-BT2020 3D 3D x.v.Color x.v.Color HLG-BT709 HLG-BT709 HLG-BT2020 HLG-BT2020 HDR10 HDR10-DC4K HDR10-Opt HDR10-DC1K HDR10-Rec709 HDR10-BT709 LLDV LLDV ALWAYS EXECUTE CUSTOM HEX BEFORE AFTER THE SELECTED PICTURE MODE WITH A DELAY OF 1 sec 3 sec 5 sec 7 sec 10 sec 15 sec 20 sec 25 sec CUSTOM HDR10 PROFILES: IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL BELOW OR EQUALS TO THEN IF HDR10 Max Brightness Min Brightness MaxCLL ABOVE THEN ELSE VRROOM SETUP: AUTOSWITCH INPUTS: OFF ON POWER HDCP VERSION: 1.4 Auto HTPC MODE RX0: ON OFF HTPC MODE RX1: ON OFF HTPC MODE RX2: ON OFF HTPC MODE RX3: ON OFF AUDIO UNMUTE: SEND Time offset in milliseconds to start sending audio data to the sink. 50msec min eARC UNMUTE: SEND Additional time offset in milliseconds to start sending audio data to the eARC TX. OLED DISPLAY: ON OFF OLED FADE: SEND OLED PAGE: INFO IP RX INFO HDR 1 HDR 2 IF INFO REBOOT TIMER(hours): SEND AUDIO OUT FORMAT: 720p60 1080p60 MUTE TX0 AUDIO: ON OFF MUTE TX1 AUDIO: ON OFF IR: ON OFF IR CODE SET: SET 1 SET 2 SET 3 TX1 +5V FORCE: ON OFF RELAY: ON OFF ANALOG L/R AUDIO CONTROL: VOLUME [-100 to +10dB] BASS [-10 to +10dB] TREBLE [-10 to +10dB] IP CONFIG: Reboot required for any changes in DHCP / STATIC IP DHCP: ON OFF mDNS: ON OFF Current IP Configuration: IP ADDR: IP MASK: IP GW: MAC: Configure Static IP: This address is used when DHCP is off IP ADDR: IP MASK: IP GW: SET IP Configure TCP port: [requires reboot to apply] VRROOM will listen to this port for IP / Telnet commands IP INTERRUPTS: ON OFF IP PORT: SET PORT VRROOM CONTROL: REBOOT UNIT REBOOT EXPORT CONFIG EXPORT IMPORT CONFIG ISSUE HOTPLUG SEND RESET TO FACTORY DEFAULTS: CLEAR ALL SETTINGS TO FACTORY DEFAULTS: EDID FACTORY SETTINGS: RESET FW UPDATE: Refresh"
+    },
+    "stylesheets": [
+      "http://vrroom-09/css/style.css"
+    ],
+    "title": "HDFury VRROOM"
+  },
+  "max_files": 128,
+  "root_url": "http://vrroom-09/"
+}

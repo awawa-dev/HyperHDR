@@ -28,6 +28,7 @@
 */
 
 #include <QRunnable>
+#include <climits>
 #include <linalg.h>
 #include <lut-calibrator/BestResult.h>
 
@@ -41,6 +42,8 @@ class CalibrationWorker : public QObject, public QRunnable
 	Q_OBJECT
 
 	BestResult bestResult;
+	BestResult diagnosticBestResult;
+	bool hasDiagnosticBestResult = false;
 	YuvConverter* yuvConverter;
 	const int id;
 	const int krIndexStart;
@@ -80,6 +83,7 @@ public:
 		progress(_progress)
 	{
 		bestResult = *_bestResult;
+		diagnosticBestResult.minError = LLONG_MAX;
 		this->setAutoDelete(false);
 		for (auto& v : _vertex)
 		{
@@ -94,6 +98,18 @@ public:
 		{
 			(*otherScore) = bestResult;
 		}
+	};
+	bool getDiagnosticBestResult(BestResult* otherScore) const
+	{
+		if (!hasDiagnosticBestResult)
+			return false;
+
+		if (otherScore->minError > diagnosticBestResult.minError)
+		{
+			(*otherScore) = diagnosticBestResult;
+		}
+
+		return true;
 	};
 signals:
 	void notifyCalibrationMessage(QString message, bool started);

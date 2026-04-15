@@ -88,3 +88,9 @@ bool DetectionManual::getDetectionManualSignal()
 {
 	return !_noSignalDetected;
 }
+
+void DetectionManual::resetManualDetection()
+{
+	_noSignalDetected = false;
+	_noSignalCounter = 0;
+}

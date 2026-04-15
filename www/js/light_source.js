@@ -15,6 +15,787 @@ function round(number)
 var _lastLeds = [];
 var _lastOrigin = "";
 var _resizeObserver = null;
+var transferHeaderProfiles = [];
+var transferHeaderStoragePath = "";
+var transferHeaderActiveState = null;
+var transferHeaderActivePollHandle = null;
+var calibrationHeaderProfiles = [];
+var calibrationHeaderStoragePath = "";
+var rgbwLutHeaderProfiles = [];
+var rgbwLutHeaderStoragePath = "";
+var rgbwLutHeaderActiveState = null;
+var solverProfileProfiles = [];
+var solverProfileStoragePath = "";
+var pendingLedDeviceEditorState = null;
+var lastAppliedRawHidRuntimeProfile = null;
+
+function getTransferHeaderInfoFromServerInfo()
+{
+	const grabbers = (window.serverInfo && window.serverInfo.grabbers) ? window.serverInfo.grabbers : {};
+	return {
+		path: grabbers.transfer_headers_path || "",
+		headers: Array.isArray(grabbers.transfer_headers) ? grabbers.transfer_headers.slice() : []
+	};
+}
+
+function syncTransferHeaderState(response)
+{
+	const info = (response && response.info) ? response.info : getTransferHeaderInfoFromServerInfo();
+	transferHeaderStoragePath = info.path || "";
+	transferHeaderProfiles = Array.isArray(info.headers) ? info.headers.slice() : [];
+	transferHeaderProfiles.sort((left, right) => {
+		const leftName = (left.name || left.slug || left.id || "").toString();
+		const rightName = (right.name || right.slug || right.id || "").toString();
+		return leftName.localeCompare(rightName, undefined, { sensitivity: "base" });
+	});
+
+	window.serverInfo.grabbers = window.serverInfo.grabbers || {};
+	window.serverInfo.grabbers.transfer_headers_path = transferHeaderStoragePath;
+	window.serverInfo.grabbers.transfer_headers = transferHeaderProfiles.slice();
+	return transferHeaderProfiles;
+}
+
+function getTransferHeaderActiveStateFromServerInfo()
+{
+	const grabbers = (window.serverInfo && window.serverInfo.grabbers) ? window.serverInfo.grabbers : {};
+	return grabbers.transfer_headers_active || null;
+}
+
+function syncTransferHeaderActiveState(response)
+{
+	const active = (response && response.active) ? response.active : (response && response.info ? response.info : getTransferHeaderActiveStateFromServerInfo());
+	transferHeaderActiveState = active || null;
+	window.serverInfo.grabbers = window.serverInfo.grabbers || {};
+	window.serverInfo.grabbers.transfer_headers_active = transferHeaderActiveState;
+	return transferHeaderActiveState;
+}
+
+function getRawHidTransferProfileForEditor(originalLedType)
+{
+	if (pendingLedDeviceEditorState && pendingLedDeviceEditorState.ledType === originalLedType)
+		return pendingLedDeviceEditorState.specificOptions.transferCurveProfile;
+
+	const currentDeviceType = (window.serverConfig && window.serverConfig.device && window.serverConfig.device.type) ? window.serverConfig.device.type : "";
+	if (originalLedType === "rawhid" && originalLedType === currentDeviceType && transferHeaderActiveState && transferHeaderActiveState.profile)
+		return transferHeaderActiveState.profile;
+
+	return window.serverConfig.device.transferCurveProfile;
+}
+
+function applyRawHidRuntimeTransferProfileToEditor(force)
+{
+	if (!conf_editor || $("#leddevices").val() !== "rawhid")
+		return;
+
+	if (pendingLedDeviceEditorState)
+		return;
+
+	if (!window.serverConfig || !window.serverConfig.device || window.serverConfig.device.type !== "rawhid")
+		return;
+
+	const profileEditor = conf_editor.getEditor("root.specificOptions.transferCurveProfile");
+	if (!profileEditor || !transferHeaderActiveState || !transferHeaderActiveState.profile)
+		return;
+
+	const runtimeProfile = transferHeaderActiveState.profile;
+	const savedProfile = window.serverConfig.device.transferCurveProfile || "curve3_4_new";
+	const currentValue = profileEditor.getValue();
+	if (!force && currentValue !== savedProfile && currentValue !== lastAppliedRawHidRuntimeProfile)
+		return;
+
+	if (currentValue !== runtimeProfile)
+		profileEditor.setValue(runtimeProfile);
+
+	lastAppliedRawHidRuntimeProfile = runtimeProfile;
+	syncRawHidTransferCurveEditors(conf_editor);
+}
+
+function refreshTransferHeaderActiveState(force)
+{
+	return requestTransferHeadersActive().then((result) => {
+		if (!result || result.success === false)
+			return null;
+
+		syncTransferHeaderActiveState(result);
+		applyRawHidRuntimeTransferProfileToEditor(!!force);
+		return transferHeaderActiveState;
+	}).catch(() => null);
+}
+
+function getCalibrationHeaderInfoFromServerInfo()
+{
+	const grabbers = (window.serverInfo && window.serverInfo.grabbers) ? window.serverInfo.grabbers : {};
+	return {
+		path: grabbers.calibration_headers_path || "",
+		headers: Array.isArray(grabbers.calibration_headers) ? grabbers.calibration_headers.slice() : []
+	};
+}
+
+function getSolverProfileInfoFromServerInfo()
+{
+	const grabbers = (window.serverInfo && window.serverInfo.grabbers) ? window.serverInfo.grabbers : {};
+	return {
+		path: grabbers.solver_profiles_path || "",
+		profiles: Array.isArray(grabbers.solver_profiles) ? grabbers.solver_profiles.slice() : []
+	};
+}
+
+function getRgbwLutHeaderInfoFromServerInfo()
+{
+	const grabbers = (window.serverInfo && window.serverInfo.grabbers) ? window.serverInfo.grabbers : {};
+	return {
+		path: grabbers.rgbw_lut_headers_path || "",
+		headers: Array.isArray(grabbers.rgbw_lut_headers) ? grabbers.rgbw_lut_headers.slice() : []
+	};
+}
+
+function getRgbwLutHeaderActiveStateFromServerInfo()
+{
+	const grabbers = (window.serverInfo && window.serverInfo.grabbers) ? window.serverInfo.grabbers : {};
+	return grabbers.rgbw_lut_headers_active || null;
+}
+
+function syncCalibrationHeaderState(response)
+{
+	const info = (response && response.info) ? response.info : getCalibrationHeaderInfoFromServerInfo();
+	calibrationHeaderStoragePath = info.path || "";
+	calibrationHeaderProfiles = Array.isArray(info.headers) ? info.headers.slice() : [];
+	calibrationHeaderProfiles.sort((left, right) => {
+		const leftName = (left.name || left.slug || left.id || "").toString();
+		const rightName = (right.name || right.slug || right.id || "").toString();
+		return leftName.localeCompare(rightName, undefined, { sensitivity: "base" });
+	});
+
+	window.serverInfo.grabbers = window.serverInfo.grabbers || {};
+	window.serverInfo.grabbers.calibration_headers_path = calibrationHeaderStoragePath;
+	window.serverInfo.grabbers.calibration_headers = calibrationHeaderProfiles.slice();
+	return calibrationHeaderProfiles;
+}
+
+function syncSolverProfileState(response)
+{
+	const info = (response && response.info) ? response.info : getSolverProfileInfoFromServerInfo();
+	solverProfileStoragePath = info.path || "";
+	solverProfileProfiles = Array.isArray(info.profiles) ? info.profiles.slice() : [];
+	solverProfileProfiles.sort((left, right) => {
+		const leftBuiltin = (left.id || "") === "builtin";
+		const rightBuiltin = (right.id || "") === "builtin";
+		if (leftBuiltin !== rightBuiltin)
+			return leftBuiltin ? -1 : 1;
+		const leftName = (left.name || left.slug || left.id || "").toString();
+		const rightName = (right.name || right.slug || right.id || "").toString();
+		return leftName.localeCompare(rightName, undefined, { sensitivity: "base" });
+	});
+
+	window.serverInfo.grabbers = window.serverInfo.grabbers || {};
+	window.serverInfo.grabbers.solver_profiles_path = solverProfileStoragePath;
+	window.serverInfo.grabbers.solver_profiles = solverProfileProfiles.slice();
+	return solverProfileProfiles;
+}
+
+function syncRgbwLutHeaderState(response)
+{
+	const info = (response && response.info) ? response.info : getRgbwLutHeaderInfoFromServerInfo();
+	rgbwLutHeaderStoragePath = info.path || "";
+	rgbwLutHeaderProfiles = Array.isArray(info.headers) ? info.headers.slice() : [];
+	rgbwLutHeaderProfiles.sort((left, right) => {
+		const leftName = (left.name || left.slug || left.id || "").toString();
+		const rightName = (right.name || right.slug || right.id || "").toString();
+		return leftName.localeCompare(rightName, undefined, { sensitivity: "base" });
+	});
+
+	window.serverInfo.grabbers = window.serverInfo.grabbers || {};
+	window.serverInfo.grabbers.rgbw_lut_headers_path = rgbwLutHeaderStoragePath;
+	window.serverInfo.grabbers.rgbw_lut_headers = rgbwLutHeaderProfiles.slice();
+	if (response && response.active)
+		syncRgbwLutHeaderActiveState(response);
+	return rgbwLutHeaderProfiles;
+}
+
+function syncRgbwLutHeaderActiveState(response)
+{
+	const active = (response && response.active) ? response.active : (response && response.info ? response.info : getRgbwLutHeaderActiveStateFromServerInfo());
+	rgbwLutHeaderActiveState = active || null;
+	window.serverInfo.grabbers = window.serverInfo.grabbers || {};
+	window.serverInfo.grabbers.rgbw_lut_headers_active = rgbwLutHeaderActiveState;
+	return rgbwLutHeaderActiveState;
+}
+
+function applyTransferHeaderOptionsToRawHidSchema(schema, currentValue)
+{
+	if (!schema || !schema.properties || !schema.properties.transferCurveProfile)
+		return schema;
+
+	const profileSchema = schema.properties.transferCurveProfile;
+	const options = [
+		{ value: "disabled", title: "Disabled" },
+		{ value: "curve3_4_new", title: "Curve 3.4 new" }
+	];
+
+	transferHeaderProfiles.forEach((profile) => {
+		const value = profile.id || (profile.slug ? `custom:${profile.slug}` : "");
+		if (!value || options.some((entry) => entry.value === value))
+			return;
+
+		options.push({
+			value,
+			title: profile.name || value
+		});
+	});
+
+	if (currentValue && !options.some((entry) => entry.value === currentValue))
+	{
+		options.push({
+			value: currentValue,
+			title: currentValue
+		});
+	}
+
+	profileSchema.enum = options.map((entry) => entry.value);
+	profileSchema.options = profileSchema.options || {};
+	profileSchema.options.enum_titles = options.map((entry) => entry.title);
+	return schema;
+}
+
+function applyCalibrationHeaderOptionsToRawHidSchema(schema, currentValue)
+{
+	if (!schema || !schema.properties || !schema.properties.calibrationHeaderProfile)
+		return schema;
+
+	const profileSchema = schema.properties.calibrationHeaderProfile;
+	const options = [
+		{ value: "disabled", title: "Disabled" }
+	];
+
+	calibrationHeaderProfiles.forEach((profile) => {
+		const value = profile.id || (profile.slug ? `custom:${profile.slug}` : "");
+		if (!value || options.some((entry) => entry.value === value))
+			return;
+
+		options.push({
+			value,
+			title: profile.name || value
+		});
+	});
+
+	if (currentValue && !options.some((entry) => entry.value === currentValue))
+	{
+		options.push({
+			value: currentValue,
+			title: currentValue
+		});
+	}
+
+	profileSchema.enum = options.map((entry) => entry.value);
+	profileSchema.options = profileSchema.options || {};
+	profileSchema.options.enum_titles = options.map((entry) => entry.title);
+	return schema;
+}
+
+function applySolverProfileOptionsToRawHidSchema(schema, currentValue)
+{
+	if (!schema || !schema.properties || !schema.properties.solverProfile)
+		return schema;
+
+	const profileSchema = schema.properties.solverProfile;
+	const options = [
+		{ value: "builtin", title: "Built-in" }
+	];
+
+	solverProfileProfiles.forEach((profile) => {
+		const value = profile.id || (profile.slug ? `custom:${profile.slug}` : "");
+		if (!value || options.some((entry) => entry.value === value))
+			return;
+
+		options.push({
+			value,
+			title: profile.name || value
+		});
+	});
+
+	if (currentValue && !options.some((entry) => entry.value === currentValue))
+	{
+		options.push({
+			value: currentValue,
+			title: currentValue
+		});
+	}
+
+	profileSchema.enum = options.map((entry) => entry.value);
+	profileSchema.options = profileSchema.options || {};
+	profileSchema.options.enum_titles = options.map((entry) => entry.title);
+	return schema;
+}
+
+function applyRgbwLutHeaderOptionsToRawHidSchema(schema, currentValue)
+{
+	if (!schema || !schema.properties || !schema.properties.rgbwLutProfile)
+		return schema;
+
+	const profileSchema = schema.properties.rgbwLutProfile;
+	const options = [
+		{ value: "disabled", title: "Disabled" }
+	];
+
+	rgbwLutHeaderProfiles.forEach((profile) => {
+		const value = profile.id || (profile.slug ? `custom:${profile.slug}` : "");
+		if (!value || options.some((entry) => entry.value === value))
+			return;
+
+		options.push({
+			value,
+			title: profile.name || value
+		});
+	});
+
+	if (currentValue && !options.some((entry) => entry.value === currentValue))
+	{
+		options.push({
+			value: currentValue,
+			title: currentValue
+		});
+	}
+
+	profileSchema.enum = options.map((entry) => entry.value);
+	profileSchema.options = profileSchema.options || {};
+	profileSchema.options.enum_titles = options.map((entry) => entry.title);
+	return schema;
+}
+
+function getFirstStoredRgbwLutProfileId()
+{
+	for (const profile of rgbwLutHeaderProfiles)
+	{
+		const value = profile.id || (profile.slug ? `custom:${profile.slug}` : "");
+		if (value && value !== "disabled")
+			return value;
+	}
+
+	return "disabled";
+}
+
+function renderTransferHeaders()
+{
+	$("#transfer_header_storage_path").text(transferHeaderStoragePath || "-");
+
+	const rows = $("#transfer_header_rows");
+	rows.empty();
+
+	if (!transferHeaderProfiles.length)
+	{
+		$("#transfer_header_empty").removeClass("d-none");
+		return;
+	}
+
+	$("#transfer_header_empty").addClass("d-none");
+	transferHeaderProfiles.forEach((profile) => {
+		const modified = profile.modifiedDate ? new Date(profile.modifiedDate).toLocaleString() : "-";
+		const row = $("<tr />");
+		$("<td />").text(profile.name || profile.slug || profile.id || "-").appendTo(row);
+		$("<td />").text(profile.bucketCount || "-").appendTo(row);
+		$("<td />").text(modified).appendTo(row);
+		const actionCell = $("<td />", { class: "text-end" });
+		$("<button />", {
+			type: "button",
+			class: "btn btn-sm btn-danger transfer-header-delete",
+			text: "Delete"
+		}).attr("data-profile", profile.id || "").appendTo(actionCell);
+		actionCell.appendTo(row);
+		rows.append(row);
+	});
+}
+
+function renderCalibrationHeaders()
+{
+	$("#calibration_header_storage_path").text(calibrationHeaderStoragePath || "-");
+
+	const rows = $("#calibration_header_rows");
+	rows.empty();
+
+	if (!calibrationHeaderProfiles.length)
+	{
+		$("#calibration_header_empty").removeClass("d-none");
+		return;
+	}
+
+	$("#calibration_header_empty").addClass("d-none");
+	calibrationHeaderProfiles.forEach((profile) => {
+		const modified = profile.modifiedDate ? new Date(profile.modifiedDate).toLocaleString() : "-";
+		const row = $("<tr />");
+		$("<td />").text(profile.name || profile.slug || profile.id || "-").appendTo(row);
+		$("<td />").text(profile.bucketCount || "-").appendTo(row);
+		$("<td />").text(modified).appendTo(row);
+		const actionCell = $("<td />", { class: "text-end" });
+		$("<button />", {
+			type: "button",
+			class: "btn btn-sm btn-danger calibration-header-delete",
+			text: "Delete"
+		}).attr("data-profile", profile.id || "").appendTo(actionCell);
+		actionCell.appendTo(row);
+		rows.append(row);
+	});
+}
+
+function renderSolverProfiles()
+{
+	$("#solver_profile_storage_path").text(solverProfileStoragePath || "-");
+
+	const rows = $("#solver_profile_rows");
+	rows.empty();
+
+	const customProfiles = solverProfileProfiles.filter((profile) => (profile.id || "") !== "builtin");
+	if (!customProfiles.length)
+	{
+		$("#solver_profile_empty").removeClass("d-none");
+		return;
+	}
+
+	$("#solver_profile_empty").addClass("d-none");
+	customProfiles.forEach((profile) => {
+		const modified = profile.modifiedDate ? new Date(profile.modifiedDate).toLocaleString() : "-";
+		const row = $("<tr />");
+		$("<td />").text(profile.name || profile.slug || profile.id || "-").appendTo(row);
+		$("<td />").text(profile.stateCount || "-").appendTo(row);
+		$("<td />").text(modified).appendTo(row);
+		const actionCell = $("<td />", { class: "text-end" });
+		$("<button />", {
+			type: "button",
+			class: "btn btn-sm btn-danger solver-profile-delete",
+			text: "Delete"
+		}).attr("data-profile", profile.id || "").appendTo(actionCell);
+		actionCell.appendTo(row);
+		rows.append(row);
+	});
+}
+
+function renderRgbwLutHeaders()
+{
+	$("#rgbw_lut_header_storage_path").text(rgbwLutHeaderStoragePath || "-");
+
+	const activeDevice = rgbwLutHeaderActiveState && rgbwLutHeaderActiveState.ledDeviceType ? rgbwLutHeaderActiveState.ledDeviceType : "-";
+	const activeMode = rgbwLutHeaderActiveState && rgbwLutHeaderActiveState.mode ? rgbwLutHeaderActiveState.mode : "-";
+	const activeProfile = rgbwLutHeaderActiveState && rgbwLutHeaderActiveState.profile ? rgbwLutHeaderActiveState.profile : "disabled";
+	const profileExists = !!(rgbwLutHeaderActiveState && rgbwLutHeaderActiveState.profileExists);
+	const canSetProfile = !!(rgbwLutHeaderActiveState && rgbwLutHeaderActiveState.canSetProfile);
+	const statusText = !canSetProfile ? "Current LED device is not RawHID" : (!profileExists && activeProfile !== "disabled") ? "Selected profile is missing" : (activeMode === "lutHeader" && activeProfile !== "disabled") ? "LUT mode active" : (activeProfile !== "disabled") ? "Profile selected but LUT mode is off" : "No RGBW LUT selected";
+
+	$("#rgbw_lut_header_active_device").text(activeDevice);
+	$("#rgbw_lut_header_active_mode").text(activeMode);
+	$("#rgbw_lut_header_active_profile").text(activeProfile);
+	$("#rgbw_lut_header_active_status").text(statusText);
+
+	const rows = $("#rgbw_lut_header_rows");
+	rows.empty();
+
+	if (!rgbwLutHeaderProfiles.length)
+	{
+		$("#rgbw_lut_header_empty").removeClass("d-none");
+		return;
+	}
+
+	$("#rgbw_lut_header_empty").addClass("d-none");
+	rgbwLutHeaderProfiles.forEach((profile) => {
+		const modified = profile.modifiedDate ? new Date(profile.modifiedDate).toLocaleString() : "-";
+		const profileId = profile.id || "";
+		const isSelected = !!rgbwLutHeaderActiveState && rgbwLutHeaderActiveState.profile === profileId;
+		const row = $("<tr />");
+		$("<td />").text(profile.name || profile.slug || profile.id || "-").appendTo(row);
+		$("<td />").text(profile.gridSize || "-").appendTo(row);
+		$("<td />").text(profile.entryCount || "-").appendTo(row);
+		$("<td />").html(isSelected ? '<span class="badge bg-success">Selected</span>' : '<span class="text-muted">-</span>').appendTo(row);
+		$("<td />").text(modified).appendTo(row);
+		const actionCell = $("<td />", { class: "text-end" });
+		$("<button />", {
+			type: "button",
+			class: "btn btn-sm btn-outline-primary me-2 rgbw-lut-header-set-active",
+			text: isSelected ? "Selected" : "Use in RawHID"
+		}).attr("data-profile", profileId).prop("disabled", isSelected || !canSetProfile).appendTo(actionCell);
+		$("<button />", {
+			type: "button",
+			class: "btn btn-sm btn-danger rgbw-lut-header-delete",
+			text: "Delete"
+		}).attr("data-profile", profileId).appendTo(actionCell);
+		actionCell.appendTo(row);
+		rows.append(row);
+	});
+}
+
+function captureLedDeviceEditorState()
+{
+	if (!conf_editor)
+		return null;
+
+	try
+	{
+		return {
+			ledType: $("#leddevices").val(),
+			generalOptions: conf_editor.getEditor("root.generalOptions").getValue(),
+			specificOptions: conf_editor.getEditor("root.specificOptions").getValue()
+		};
+	}
+	catch (error)
+	{
+		return null;
+	}
+}
+
+function refreshRawHidProfileEditorOptions()
+{
+	if ($("#leddevices").val() !== "rawhid")
+		return;
+
+	pendingLedDeviceEditorState = captureLedDeviceEditorState();
+	$("#leddevices").trigger("change");
+}
+
+function syncRawHidTransferCurveEditors(editor)
+{
+	if (!editor)
+		return;
+
+	const ownerEditor = editor.getEditor("root.specificOptions.transferCurveOwner");
+	const profileEditor = editor.getEditor("root.specificOptions.transferCurveProfile");
+	const calibrationOwnerEditor = editor.getEditor("root.specificOptions.calibrationHeaderOwner");
+	const calibrationProfileEditor = editor.getEditor("root.specificOptions.calibrationHeaderProfile");
+	const calibrationOrderEditor = editor.getEditor("root.specificOptions.calibrationTransferOrder");
+	if (!ownerEditor || !profileEditor || !calibrationOwnerEditor || !calibrationProfileEditor || !calibrationOrderEditor)
+		return;
+
+	const owner = ownerEditor.getValue();
+	const transferProfile = profileEditor.getValue();
+	const calibrationOwner = calibrationOwnerEditor.getValue();
+	const calibrationProfile = calibrationProfileEditor.getValue();
+	const showTransferProfile = owner === "hyperhdr";
+	const showCalibrationProfile = calibrationOwner === "hyperhdr";
+	const showCalibrationOrder =
+		owner === "hyperhdr" && transferProfile !== "disabled" &&
+		calibrationOwner === "hyperhdr" && calibrationProfile !== "disabled";
+
+	setRawHidEditorRowVisible(editor, "root.specificOptions.transferCurveProfile", showTransferProfile);
+	setRawHidEditorRowVisible(editor, "root.specificOptions.calibrationHeaderProfile", showCalibrationProfile);
+	setRawHidEditorRowVisible(editor, "root.specificOptions.calibrationTransferOrder", showCalibrationOrder);
+}
+
+function setRawHidEditorRowVisible(editor, editorPath, visible)
+{
+	const fieldEditor = editor.getEditor(editorPath);
+	const fieldRow = $("#editor_container div[data-schemapath='" + editorPath + "']").first();
+
+	fieldRow.toggle(visible);
+	if (!fieldEditor)
+		return;
+
+	if (visible)
+		fieldEditor.enable();
+	else
+		fieldEditor.disable();
+}
+
+function syncRawHidScenePolicyEditors(editor)
+{
+	if (!editor)
+		return;
+
+	const modeEditor = editor.getEditor("root.specificOptions.scenePolicyMode");
+	const highlightEditor = editor.getEditor("root.specificOptions.scenePolicyEnableHighlight");
+	if (!modeEditor || !highlightEditor)
+		return;
+
+	const mode = modeEditor.getValue();
+	const showSolverProfile = mode === "solverAwareV2" || mode === "solverAwareV3";
+	const showHighlightSettings = !!highlightEditor.getValue();
+	const showHighlightThreshold = showHighlightSettings && (mode === "solverAwareV2" || mode === "solverAwareV3");
+	const highlightDependentEditors = [
+		"root.specificOptions.highlightShadowPercent",
+		"root.specificOptions.highlightShadowMinPeakDelta",
+		"root.specificOptions.highlightShadowUniformSpreadMax",
+		"root.specificOptions.highlightShadowTriggerMargin",
+		"root.specificOptions.highlightShadowMinSceneMedian",
+		"root.specificOptions.highlightShadowMinSceneAvg",
+		"root.specificOptions.highlightShadowDimUniformMedian"
+	];
+
+	highlightDependentEditors.forEach((editorPath) => setRawHidEditorRowVisible(editor, editorPath, showHighlightSettings));
+	setRawHidEditorRowVisible(editor, "root.specificOptions.solverProfile", showSolverProfile);
+	setRawHidEditorRowVisible(editor, "root.specificOptions.highlightShadowQ16Threshold", showHighlightThreshold);
+}
+
+function syncRawHidPayloadEditors(editor)
+{
+	if (!editor)
+		return;
+
+	const payloadEditor = editor.getEditor("root.specificOptions.payloadMode");
+	const iceRgbwEditor = editor.getEditor("root.specificOptions.enable_ice_rgbw");
+	const temporalDitheringEditor = editor.getEditor("root.specificOptions.ice_rgbw_temporal_dithering");
+	if (!payloadEditor)
+		return;
+
+	payloadEditor.enable();
+
+	if (!iceRgbwEditor || !temporalDitheringEditor)
+		return;
+
+	const showTemporalDithering = !!iceRgbwEditor.getValue();
+	setRawHidEditorRowVisible(editor, "root.specificOptions.ice_rgbw_temporal_dithering", showTemporalDithering);
+}
+
+function syncRawHidRgbwEditors(editor)
+{
+	if (!editor)
+		return;
+
+	const modeEditor = editor.getEditor("root.specificOptions.rgbwMode");
+	const profileEditor = editor.getEditor("root.specificOptions.rgbwLutProfile");
+	if (!modeEditor)
+		return;
+
+	const lutModeEnabled = modeEditor.getValue() === "lutHeader";
+	setRawHidEditorRowVisible(editor, "root.specificOptions.rgbwLutProfile", lutModeEnabled);
+	setRawHidEditorRowVisible(editor, "root.specificOptions.rgbwLutTransferOrder", lutModeEnabled);
+
+	if (!lutModeEnabled || !profileEditor)
+		return;
+
+	const currentValue = profileEditor.getValue() || "disabled";
+	if (currentValue !== "disabled")
+		return;
+
+	const firstStoredProfile = getFirstStoredRgbwLutProfileId();
+	if (firstStoredProfile !== "disabled")
+		profileEditor.setValue(firstStoredProfile);
+}
+
+function populateTransferHeaderContentFromFile(file)
+{
+	if (!file)
+		return;
+
+	const reader = new FileReader();
+	reader.onload = function(event)
+	{
+		$("#transfer_header_content").val(event.target.result || "");
+		const inferredName = file.name.replace(/\.[^.]+$/, "");
+		$("#transfer_header_name").val(inferredName);
+	};
+	reader.readAsText(file);
+}
+
+function populateCalibrationHeaderContentFromFile(file)
+{
+	if (!file)
+		return;
+
+	const reader = new FileReader();
+	reader.onload = function(event)
+	{
+		$("#calibration_header_content").val(event.target.result || "");
+		const inferredName = file.name.replace(/\.[^.]+$/, "");
+		$("#calibration_header_name").val(inferredName);
+	};
+	reader.readAsText(file);
+}
+
+function populateSolverProfileContentFromFile(file)
+{
+	if (!file)
+		return;
+
+	const reader = new FileReader();
+	reader.onload = function(event)
+	{
+		$("#solver_profile_content").val(event.target.result || "");
+		const inferredName = file.name.replace(/\.[^.]+$/, "");
+		$("#solver_profile_name").val(inferredName);
+	};
+	reader.readAsText(file);
+}
+
+function populateRgbwLutHeaderContentFromFile(file)
+{
+	if (!file)
+		return;
+
+	const reader = new FileReader();
+	reader.onload = function(event)
+	{
+		$("#rgbw_lut_header_content").val(event.target.result || "");
+		const inferredName = file.name.replace(/\.[^.]+$/, "");
+		$("#rgbw_lut_header_name").val(inferredName);
+	};
+	reader.readAsText(file);
+}
+
+function getSchemaHelpText(value)
+{
+	if (!value)
+		return "";
+
+	const translated = $.i18n(value);
+	return translated === value ? value : translated;
+}
+
+function createSchemaDescriptionHelpTable(list, heading)
+{
+	const table = document.createElement("div");
+	table.className = "table table-hover borderless";
+	table.appendChild(createTableRow([$.i18n("conf_helptable_option"), $.i18n("conf_helptable_expl")], true, false));
+
+	const sorted = sortProperties($.extend(true, {}, list));
+	for (const entry of sorted)
+	{
+		if (entry.access === "system")
+			continue;
+		if (entry.options && entry.options.hidden)
+			continue;
+		if (!entry.description)
+			continue;
+
+		table.appendChild(createTableRow([
+			getSchemaHelpText(entry.title),
+			getSchemaHelpText(entry.description)
+		], false, false));
+	}
+
+	const panelHeading = '<svg data-src="svg/help_table_icon.svg" fill="#FFE810" class="svg4hyperhdr"></svg>' + heading + ' ' + $.i18n("conf_helptable_expl");
+	const panel = createPanel(panelHeading, table);
+	panel.classList.add("help-column");
+	return panel;
+}
+
+function renderLedDeviceHelpPanel(ledType, specificOptions)
+{
+	const helpWrap = $("#led_device_help_wrap");
+	const helpPanel = $("#led_device_help_panel");
+	const helpButton = $("#btn_help_controller");
+
+	helpButton.off("click");
+	helpButton.removeClass("btn-warning-set").addClass("btn-warning-noset");
+	helpWrap.addClass("d-none");
+	helpPanel.empty();
+
+	if (ledType !== "rawhid" || !specificOptions || !specificOptions.properties)
+	{
+		helpButton.hide();
+		return;
+	}
+
+	const hasDescriptions = Object.values(specificOptions.properties).some((entry) => !!entry.description);
+	if (!hasDescriptions)
+	{
+		helpButton.hide();
+		return;
+	}
+
+	helpPanel.append(createSchemaDescriptionHelpTable(specificOptions.properties, "RawHID"));
+	helpButton.show();
+	helpButton.on("click", function() {
+		const isActive = helpButton.hasClass("btn-warning-set");
+		helpWrap.toggleClass("d-none", isActive);
+		helpButton.toggleClass("btn-warning-set", !isActive);
+		helpButton.toggleClass("btn-warning-noset", isActive);
+	});
+}
 
 if (typeof ResizeObserver === "function" && _resizeObserver === null)
 {
@@ -765,11 +1546,30 @@ $(document).ready(function()
 	{
 		var generalOptions = window.serverSchema.properties.device;
 		var ledType = $(this).val();
+		const originalLedType = ledType;
 
 		//philipshueentertainment backward fix
 		if (ledType == "philipshueentertainment") ledType = "philipshue";
 
-		var specificOptions = window.serverSchema.properties.alldevices[ledType];
+		var specificOptions = $.extend(true, {}, window.serverSchema.properties.alldevices[ledType]);
+		if (ledType == "rawhid")
+		{
+			const currentProfile = getRawHidTransferProfileForEditor(originalLedType);
+			const currentCalibrationProfile = (pendingLedDeviceEditorState && pendingLedDeviceEditorState.ledType === originalLedType)
+				? pendingLedDeviceEditorState.specificOptions.calibrationHeaderProfile
+				: window.serverConfig.device.calibrationHeaderProfile;
+			const currentRgbwLutProfile = (pendingLedDeviceEditorState && pendingLedDeviceEditorState.ledType === originalLedType)
+				? pendingLedDeviceEditorState.specificOptions.rgbwLutProfile
+				: window.serverConfig.device.rgbwLutProfile;
+			const currentSolverProfile = (pendingLedDeviceEditorState && pendingLedDeviceEditorState.ledType === originalLedType)
+				? pendingLedDeviceEditorState.specificOptions.solverProfile
+				: window.serverConfig.device.solverProfile;
+			applyTransferHeaderOptionsToRawHidSchema(specificOptions, currentProfile);
+			applyCalibrationHeaderOptionsToRawHidSchema(specificOptions, currentCalibrationProfile);
+			applyRgbwLutHeaderOptionsToRawHidSchema(specificOptions, currentRgbwLutProfile);
+			applySolverProfileOptionsToRawHidSchema(specificOptions, currentSolverProfile);
+		}
+		renderLedDeviceHelpPanel(ledType, specificOptions);
 		
 		$("#editor_container").empty();
 
@@ -829,6 +1629,101 @@ $(document).ready(function()
 		else
 		{
 			conf_editor.getEditor('root.generalOptions.refreshTime').setValue(0);
+		}
+
+		if (pendingLedDeviceEditorState && pendingLedDeviceEditorState.ledType === originalLedType)
+		{
+			conf_editor.getEditor("root.generalOptions").setValue(pendingLedDeviceEditorState.generalOptions || {});
+			conf_editor.getEditor("root.specificOptions").setValue(pendingLedDeviceEditorState.specificOptions || {});
+			pendingLedDeviceEditorState = null;
+		}
+
+		if (ledType == "rawhid")
+		{
+			const modeEditor = conf_editor.getEditor("root.specificOptions.scenePolicyMode");
+			const rgbwModeEditor = conf_editor.getEditor("root.specificOptions.rgbwMode");
+			const ownerEditor = conf_editor.getEditor("root.specificOptions.transferCurveOwner");
+			const transferProfileEditor = conf_editor.getEditor("root.specificOptions.transferCurveProfile");
+			const calibrationOwnerEditor = conf_editor.getEditor("root.specificOptions.calibrationHeaderOwner");
+			const calibrationProfileEditor = conf_editor.getEditor("root.specificOptions.calibrationHeaderProfile");
+			const payloadEditor = conf_editor.getEditor("root.specificOptions.payloadMode");
+			const iceRgbwEditor = conf_editor.getEditor("root.specificOptions.enable_ice_rgbw");
+			const highlightEditor = conf_editor.getEditor("root.specificOptions.scenePolicyEnableHighlight");
+			if (ownerEditor)
+				ownerEditor.on("change", function() {
+					syncRawHidTransferCurveEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidTransferCurveEditors(conf_editor);
+					});
+				});
+			if (transferProfileEditor)
+				transferProfileEditor.on("change", function() {
+					syncRawHidTransferCurveEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidTransferCurveEditors(conf_editor);
+					});
+				});
+			if (calibrationOwnerEditor)
+				calibrationOwnerEditor.on("change", function() {
+					syncRawHidTransferCurveEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidTransferCurveEditors(conf_editor);
+					});
+				});
+			if (calibrationProfileEditor)
+				calibrationProfileEditor.on("change", function() {
+					syncRawHidTransferCurveEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidTransferCurveEditors(conf_editor);
+					});
+				});
+			if (payloadEditor)
+				payloadEditor.on("change", function() {
+					syncRawHidPayloadEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidPayloadEditors(conf_editor);
+					});
+				});
+			if (iceRgbwEditor)
+				iceRgbwEditor.on("change", function() {
+					syncRawHidPayloadEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidPayloadEditors(conf_editor);
+					});
+				});
+			if (highlightEditor)
+				highlightEditor.on("change", function() {
+					syncRawHidScenePolicyEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidScenePolicyEditors(conf_editor);
+					});
+				});
+			if (modeEditor)
+				modeEditor.on("change", function() {
+					syncRawHidScenePolicyEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidScenePolicyEditors(conf_editor);
+					});
+				});
+			if (rgbwModeEditor)
+				rgbwModeEditor.on("change", function() {
+					syncRawHidRgbwEditors(conf_editor);
+					window.requestAnimationFrame(function() {
+						syncRawHidRgbwEditors(conf_editor);
+					});
+				});
+			syncRawHidPayloadEditors(conf_editor);
+			syncRawHidTransferCurveEditors(conf_editor);
+			syncRawHidScenePolicyEditors(conf_editor);
+			syncRawHidRgbwEditors(conf_editor);
+			applyRawHidRuntimeTransferProfileToEditor(true);
+			window.requestAnimationFrame(function() {
+				syncRawHidPayloadEditors(conf_editor);
+				syncRawHidTransferCurveEditors(conf_editor);
+				syncRawHidScenePolicyEditors(conf_editor);
+				syncRawHidRgbwEditors(conf_editor);
+				applyRawHidRuntimeTransferProfileToEditor(true);
+			});
 		}
 
 		if (window.serverConfig.smoothing != null && window.serverConfig.smoothing.enable)
@@ -945,6 +1840,327 @@ $(document).ready(function()
 
 
 	$("#leddevices").val(window.serverConfig.device.type);
+	syncTransferHeaderState();
+	syncTransferHeaderActiveState();
+	renderTransferHeaders();
+	syncCalibrationHeaderState();
+	renderCalibrationHeaders();
+	syncRgbwLutHeaderState();
+	syncRgbwLutHeaderActiveState();
+	renderRgbwLutHeaders();
+	syncSolverProfileState();
+	renderSolverProfiles();
+
+	$("#transfer_header_file").off().on("change", function()
+	{
+		populateTransferHeaderContentFromFile(this.files && this.files.length ? this.files[0] : null);
+	});
+
+	$("#calibration_header_file").off().on("change", function()
+	{
+		populateCalibrationHeaderContentFromFile(this.files && this.files.length ? this.files[0] : null);
+	});
+
+	$("#solver_profile_file").off().on("change", function()
+	{
+		populateSolverProfileContentFromFile(this.files && this.files.length ? this.files[0] : null);
+	});
+
+	$("#rgbw_lut_header_file").off().on("change", function()
+	{
+		populateRgbwLutHeaderContentFromFile(this.files && this.files.length ? this.files[0] : null);
+	});
+
+	$("#btn_transfer_header_save").off().on("click", async function()
+	{
+		const name = $("#transfer_header_name").val().trim();
+		const content = $("#transfer_header_content").val().trim();
+
+		if (!name)
+		{
+			showNotification("warning", "Transfer header name is required.");
+			return;
+		}
+		if (!content)
+		{
+			showNotification("warning", "Transfer header content is required.");
+			return;
+		}
+
+		$(this).attr("disabled", true);
+		const result = await requestTransferHeaderSave(name, content);
+		$(this).attr("disabled", false);
+
+		if (!result || result.success === false)
+		{
+			showNotification("danger", result && result.error ? result.error : "Failed to save transfer header.");
+			return;
+		}
+
+		syncTransferHeaderState(result);
+		renderTransferHeaders();
+		refreshRawHidProfileEditorOptions();
+		$("#transfer_header_file").val("");
+		showNotification("success", "Transfer header saved.");
+	});
+
+	$("#transfer_header_rows").off("click", ".transfer-header-delete").on("click", ".transfer-header-delete", async function()
+	{
+		const profile = $(this).attr("data-profile");
+		if (!profile)
+			return;
+
+		$(this).attr("disabled", true);
+		const result = await requestTransferHeaderDelete(profile);
+		if (!result || result.success === false)
+		{
+			$(this).attr("disabled", false);
+			showNotification("danger", result && result.error ? result.error : "Failed to delete transfer header.");
+			return;
+		}
+
+		syncTransferHeaderState(result);
+		renderTransferHeaders();
+		refreshRawHidProfileEditorOptions();
+		showNotification("success", "Transfer header deleted.");
+	});
+
+	$("#btn_calibration_header_save").off().on("click", async function()
+	{
+		const name = $("#calibration_header_name").val().trim();
+		const content = $("#calibration_header_content").val().trim();
+
+		if (!name)
+		{
+			showNotification("warning", "Calibration header name is required.");
+			return;
+		}
+		if (!content)
+		{
+			showNotification("warning", "Calibration header content is required.");
+			return;
+		}
+
+		$(this).attr("disabled", true);
+		const result = await requestCalibrationHeaderSave(name, content);
+		$(this).attr("disabled", false);
+
+		if (!result || result.success === false)
+		{
+			showNotification("danger", result && result.error ? result.error : "Failed to save calibration header.");
+			return;
+		}
+
+		syncCalibrationHeaderState(result);
+		renderCalibrationHeaders();
+		refreshRawHidProfileEditorOptions();
+		$("#calibration_header_file").val("");
+		showNotification("success", "Calibration header saved.");
+	});
+
+	$("#calibration_header_rows").off("click", ".calibration-header-delete").on("click", ".calibration-header-delete", async function()
+	{
+		const profile = $(this).attr("data-profile");
+		if (!profile)
+			return;
+
+		$(this).attr("disabled", true);
+		const result = await requestCalibrationHeaderDelete(profile);
+		if (!result || result.success === false)
+		{
+			$(this).attr("disabled", false);
+			showNotification("danger", result && result.error ? result.error : "Failed to delete calibration header.");
+			return;
+		}
+
+		syncCalibrationHeaderState(result);
+		renderCalibrationHeaders();
+		refreshRawHidProfileEditorOptions();
+		showNotification("success", "Calibration header deleted.");
+	});
+
+	$("#btn_rgbw_lut_header_save").off().on("click", async function()
+	{
+		const name = $("#rgbw_lut_header_name").val().trim();
+		const content = $("#rgbw_lut_header_content").val().trim();
+
+		if (!name)
+		{
+			showNotification("warning", "RGBW LUT header name is required.");
+			return;
+		}
+		if (!content)
+		{
+			showNotification("warning", "RGBW LUT header content is required.");
+			return;
+		}
+
+		$(this).attr("disabled", true);
+		const result = await requestRgbwLutHeaderSave(name, content);
+		$(this).attr("disabled", false);
+
+		if (!result || result.success === false)
+		{
+			showNotification("danger", result && result.error ? result.error : "Failed to save RGBW LUT header.");
+			return;
+		}
+
+		syncRgbwLutHeaderState(result);
+		renderRgbwLutHeaders();
+		refreshRawHidProfileEditorOptions();
+		$("#rgbw_lut_header_file").val("");
+		showNotification("success", "RGBW LUT header saved.");
+	});
+
+	$("#rgbw_lut_header_rows").off("click", ".rgbw-lut-header-delete").on("click", ".rgbw-lut-header-delete", async function()
+	{
+		const profile = $(this).attr("data-profile");
+		if (!profile)
+			return;
+
+		$(this).attr("disabled", true);
+		const result = await requestRgbwLutHeaderDelete(profile);
+		if (!result || result.success === false)
+		{
+			$(this).attr("disabled", false);
+			showNotification("danger", result && result.error ? result.error : "Failed to delete RGBW LUT header.");
+			return;
+		}
+
+		syncRgbwLutHeaderState(result);
+		renderRgbwLutHeaders();
+		refreshRawHidProfileEditorOptions();
+		showNotification("success", "RGBW LUT header deleted.");
+	});
+
+	$("#rgbw_lut_header_rows").off("click", ".rgbw-lut-header-set-active").on("click", ".rgbw-lut-header-set-active", async function()
+	{
+		const profile = $(this).attr("data-profile");
+		if (!profile)
+			return;
+
+		$(this).attr("disabled", true);
+		const result = await requestRgbwLutHeaderSetActive(profile);
+		if (!result || result.success === false)
+		{
+			$(this).attr("disabled", false);
+			showNotification("danger", result && result.error ? result.error : "Failed to select RGBW LUT header.");
+			return;
+		}
+
+		syncRgbwLutHeaderState(result);
+		syncRgbwLutHeaderActiveState(result);
+		renderRgbwLutHeaders();
+		refreshRawHidProfileEditorOptions();
+		showNotification("success", "RGBW LUT header selected for RawHID.");
+	});
+
+	$("#btn_solver_profile_save").off().on("click", async function()
+	{
+		const name = $("#solver_profile_name").val().trim();
+		const content = $("#solver_profile_content").val().trim();
+
+		if (!name)
+		{
+			showNotification("warning", "Solver profile name is required.");
+			return;
+		}
+		if (!content)
+		{
+			showNotification("warning", "Solver profile content is required.");
+			return;
+		}
+
+		$(this).attr("disabled", true);
+		const result = await requestSolverProfileSave(name, content);
+		$(this).attr("disabled", false);
+
+		if (!result || result.success === false)
+		{
+			showNotification("danger", result && result.error ? result.error : "Failed to save solver profile.");
+			return;
+		}
+
+		syncSolverProfileState(result);
+		renderSolverProfiles();
+		refreshRawHidProfileEditorOptions();
+		$("#solver_profile_file").val("");
+		showNotification("success", "Solver profile saved.");
+	});
+
+	$("#solver_profile_rows").off("click", ".solver-profile-delete").on("click", ".solver-profile-delete", async function()
+	{
+		const profile = $(this).attr("data-profile");
+		if (!profile)
+			return;
+
+		$(this).attr("disabled", true);
+		const result = await requestSolverProfileDelete(profile);
+		if (!result || result.success === false)
+		{
+			$(this).attr("disabled", false);
+			showNotification("danger", result && result.error ? result.error : "Failed to delete solver profile.");
+			return;
+		}
+
+		syncSolverProfileState(result);
+		renderSolverProfiles();
+		refreshRawHidProfileEditorOptions();
+		showNotification("success", "Solver profile deleted.");
+	});
+
+	requestTransferHeadersList().then((result) => {
+		if (!result || result.success === false)
+			return;
+
+		syncTransferHeaderState(result);
+		renderTransferHeaders();
+		refreshRawHidProfileEditorOptions();
+	});
+
+	refreshTransferHeaderActiveState(true);
+	if (transferHeaderActivePollHandle)
+		clearInterval(transferHeaderActivePollHandle);
+	transferHeaderActivePollHandle = setInterval(function()
+	{
+		refreshTransferHeaderActiveState(false);
+	}, 3000);
+
+	requestCalibrationHeadersList().then((result) => {
+		if (!result || result.success === false)
+			return;
+
+		syncCalibrationHeaderState(result);
+		renderCalibrationHeaders();
+		refreshRawHidProfileEditorOptions();
+	});
+
+	requestRgbwLutHeadersList().then((result) => {
+		if (!result || result.success === false)
+			return;
+
+		syncRgbwLutHeaderState(result);
+		syncRgbwLutHeaderActiveState(result);
+		renderRgbwLutHeaders();
+		refreshRawHidProfileEditorOptions();
+	});
+
+	requestRgbwLutHeadersActive().then((result) => {
+		if (!result || result.success === false)
+			return;
+
+		syncRgbwLutHeaderActiveState(result);
+		renderRgbwLutHeaders();
+	});
+
+	requestSolverProfilesList().then((result) => {
+		if (!result || result.success === false)
+			return;
+
+		syncSolverProfileState(result);
+		renderSolverProfiles();
+		refreshRawHidProfileEditorOptions();
+	});
 	
 
 	// validate textfield and update preview
@@ -1310,6 +2526,23 @@ $(document).ready(function()
 
 		var general = conf_editor.getEditor("root.generalOptions").getValue();
 		var specific = conf_editor.getEditor("root.specificOptions").getValue();
+		if (ledDevice === "rawhid" && specific.rgbwMode === "lutHeader")
+		{
+			if (!specific.rgbwLutProfile || specific.rgbwLutProfile === "disabled")
+			{
+				const firstStoredProfile = getFirstStoredRgbwLutProfileId();
+				if (firstStoredProfile === "disabled")
+				{
+					showNotification("warning", "RawHID RGBW LUT mode requires a stored RGBW LUT header profile.");
+					return;
+				}
+
+				specific.rgbwLutProfile = firstStoredProfile;
+				const profileEditor = conf_editor.getEditor("root.specificOptions.rgbwLutProfile");
+				if (profileEditor)
+					profileEditor.setValue(firstStoredProfile);
+			}
+		}
 		for (var key in general)
 		{
 			result.device[key] = general[key];

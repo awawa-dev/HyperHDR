@@ -1,0 +1,2116 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>HDFury VRROOM</title>
+    <link href="css/style.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container">
+
+        <header id="header" class="header">
+             <a href="http://www.hdfury.com" target="_blank">
+                <img class="header__logo" src="https://hdfury.com/wp-content/uploads/2022/03/VRROOM.png" alt="HDFury VRROOM">
+           </a>
+             
+        </header>
+
+        <div class="unit-info">
+            <div id="unit-info__hostname" class="unit-info__hostname">HOSTNAME: not connected</div>
+            <div id="unit-info__ip" class="unit-info__ip">IP ADDRESS: not connected</div>
+            <div id="unit-info__version" class="unit-info__version">FW VER: not connected</div>
+        </div>
+
+        <div class="contents">
+            <div class="tab">
+                <button class="tab__btnlinks tab__main" onclick="openTab(event, 'routing')">INFO</button>
+                <button class="tab__btnlinks" onclick="openTab(event, 'edid')">EDID</button>
+                <button class="tab__btnlinks" onclick="openTab(event, 'hdr')">HDR/AVI</button>
+                <button class="tab__btnlinks" onclick="openTab(event, 'dvdecode')">DV</button>
+                <button class="tab__btnlinks" onclick="openTab(event, 'osd')">OSD</button>  
+                <button class="tab__btnlinks" onclick="openTab(event, 'cec')">CEC/EARC</button>
+                <button class="tab__btnlinks" onclick="openTab(event, 'macros')">MACROS</button> 
+                <button class="tab__btnlinks" onclick="openTab(event, 'config')">CONFIG</button>
+            </div>
+
+            <div id="routing" class="tab__content tab__routing">
+
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">SOURCE:</span>
+                        <div id="infoline__spd" class="actvideoinfo--border"></div>
+                </div>
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">IN TX0:</span>
+                    <div id="infoline__rx" class="actvideoinfo--border"></div>
+                </div>
+                <br />
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">SOURCE:</span>
+                    <div id="infoline__spd1" class="actvideoinfo--border"></div>
+                </div>
+
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">IN TX1:</span>
+                    <div id="infoline__rx1" class="actvideoinfo--border"></div>
+                </div>
+                <br />
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">VIDEO TX0:</span>
+                        <div id="infoline__tx0" class="actvideoinfo--border"></div>
+                </div>
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">VIDEO TX1:</span>
+                        <div id="infoline__tx1" class="actvideoinfo--border"></div>
+                </div>
+                <br />
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">AUDIO TX0:</span>
+                        <div id="infoline__aud" class="actvideoinfo--border"></div>
+                </div>                
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">AUDIO TX1:</span>
+                    <div id="infoline__aud1" class="actvideoinfo--border"></div>
+                </div> 
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">AUDIO OUT:</span>
+                    <div id="infoline__audout" class="actvideoinfo--border"></div>
+                </div> 
+                <br /> 
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">eARC RX:</span>
+                    <div id="infoline__earcrxaudio" class="actvideoinfo--border"></div>
+                </div>  
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">ROUTE:</span>
+                    <div id="infoline__audioroute" class="actvideoinfo--border"></div>
+                </div>                   
+                <br />
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">EDID TX0:</span>
+                        <div id="infoline__sink0" class="actvideoinfo--border"></div>
+                </div>        
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">AUDIO:</span>
+                        <div id="infoline__sink0audio" class="actvideoinfo--border"></div>
+                </div>             
+                <div class="actvideoinfo">
+                        <span class="actvideoinfo--text gen__title">EDID TX1:</span>
+                        <div id="infoline__sink1" class="actvideoinfo--border"></div>
+                </div>   
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">AUDIO:</span>
+                    <div id="infoline__sink1audio" class="actvideoinfo--border"></div>
+                </div>  
+          
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">EDID AUD:</span>
+                    <div id="infoline__sink2" class="actvideoinfo--border"></div>
+                </div>   
+                <div class="actvideoinfo">
+                    <span class="actvideoinfo--text gen__title">AUDIO:</span>
+                    <div id="infoline__sink2audio" class="actvideoinfo--border"></div>
+                </div>  
+                <br />                 
+                <hr />
+                <br />
+                <div>
+                    <span class="actvideoinfo--text gen__title">OP Mode:</span>
+                    <select id="opmode" class="styled-select slate" onchange="setOpMode(value)">
+                            <option value="0">MODE 0 - SPLITTER TX0/TX1 FRL5 VRR</option>    
+                            <option value="1">MODE 1 - SPLITTER TX0/TX1 UPSCALE FRL5</option>    
+                            <option value="2">MODE 2 - MATRIX TMDS</option>    
+                            <option value="3">MODE 3 - MATRIX FRL->TMDS</option>    
+                            <option value="4">MODE 4 - MATRIX DOWNSCALE</option>                                
+                            <option value="5">MODE 5 - MATRIX RX0:FRL5 + RX1-3:TMDS</option>
+                   </select> 
+                   <div style="font-size: 1.3rem">MODE 0: Split input to both TX0 and TX1. FRL5 and VRR are supported.</div> 
+                   <div style="font-size: 1.3rem">MODE 1: Split input to both TX0 and TX1. TX0 upscales up to FRL5. No VRR supported.</div> 
+                   <div style="font-size: 1.3rem">MODE 2: Matrix mode. FRL <span id="pcbverinfo1">not </span>supported.</div> 
+                   <div style="font-size: 1.3rem">MODE 3: Matrix mode. TX1 FRL->TMDS <span id="pcbverinfo2">not </span>supported. </div> 
+                   <div style="font-size: 1.3rem">MODE 4: Matrix mode. TX1 downscale. FRL <span id="pcbverinfo3">not </span> supported</div> 
+                   <div style="font-size: 1.3rem">VRRoom will reboot when switching between Split / Matrix modes</div> 
+                </div> 
+ 
+                <br />
+                <div>
+                        <div class="gen__title" id="portseltext">PORT SELECTOR:</div>                       
+                        <span class="actvideoinfo--text gen__title">TX0:</span>
+                        <select id="portseltx0" class="styled-select slate" onchange="setInputPort()" name="insel">
+                                <option value="0">0 - INPUT 0</option>    
+                                <option value="1">1 - INPUT 1</option>    
+                                <option value="2">2 - INPUT 2</option>    
+                                <option value="3">3 - INPUT 3</option>
+                                <option value="4">- COPY TX1 -</option>       
+                        </select> 
+             
+                </div>           
+                <div>
+                        <span class="actvideoinfo--text gen__title">TX1:</span>
+                        <select id="portseltx1" class="styled-select slate" onchange="setInputPort()" name="insel">
+                                <option value="0">0 - INPUT 0</option>    
+                                <option value="1">1 - INPUT 1</option>    
+                                <option value="2">2 - INPUT 2</option>    
+                                <option value="3">3 - INPUT 3</option>    
+                                <option value="4">- COPY TX0 -</option>    
+                       </select> 
+                </div>
+                <br />
+            </div>
+
+
+            <div id="edid" class="tab__content">
+                <br />        
+                <input id="edidcopybot" onchange="SetActiveValues(name, value)" type="radio" name="edidmode" value="copytx0">
+                <label for="edidcopybot" class="edidcopybot gen__title">COPY TX0 SINK</label>
+                <div style="font-size: 1.3rem">Copy the connected TX0 sink EDID capabilities. No modifications.</div> 
+                <br />
+                <hr />
+                <br />
+                <input id="edidcopytop" onchange="SetActiveValues(name, value)" type="radio" name="edidmode" value="copytx1">
+                <label for="edidcopytop" class="edidcopytop gen__title">COPY TX1 SINK</label>
+                <div style="font-size: 1.3rem">Copy the connected TX1 sink EDID capabilities. No modifications.</div> 
+                <br />
+                <hr />
+                <br />
+                <input id="edidfixed" onchange="SetActiveValues(name, value)" type="radio" name="edidmode" value="fixed">
+                <label for="edidfixed" class="edidfixed gen__title">FIXED TEST EDID</label>
+                <div style="font-size: 1.3rem">Standard EDID table to verify cable issues. EDID max caps 4K60 420 300MHz 8b stereo audio.</div> 
+                <br>
+
+                <hr />
+                <br />
+
+                <input type="radio" id="edidcustom" class="edidmode" name="edidmode" value="custom" onchange="SetActiveValues(name, value)">
+                <label for="edidcustom" class="edidcustom gen__title">CUSTOM EDID</label>
+                <div style="font-size: 1.3rem">Custom EDID tables for various situations. The first 10 tables can be replaced over LAN.</div> 
+                <div style="font-size: 1.3rem"> 5.1 means LPCM-5.1 48kHz 24bit, DTS 5.1, DD 5.1, DD+</div> 
+                <div style="font-size: 1.3rem"> 7.1 means LPCM-7.1 192kHz 24bit, MAT Atmos, TrueHD, DTS-X (with IMAX), DTSHD (with MA), DD+, DTS, DD</div> 
+  
+                <br />
+
+                <div>
+                    <span class="edid__item">INPUT 0:</span>
+                    <select id="edidtableinp1" class="styled-select slate" onchange="SetActiveValues(name, value)" name="edidtableinp1">
+       
+                        <option value="1">1 - Custom Default [SONY A85J 7.1]</option>
+                        <option value="2">2 - Custom Default [Q70J HDR10+ 7.1]</option>
+                        <option value="3">3 - Custom Default [DENON S960H 8K]</option>
+                        <option value="4">4 - Custom Default [Q9FN ALLM VRR HDR10+]</option>
+                        <option value="5">5 - Custom Default [SONY A1 LLDV DCI-P3]</option>
+                        <option value="6">6 - Custom Default [LG NANO 8K 7.1]</option>
+                        <option value="7">7 - Custom Default [LG C9 7.1]</option>
+                        <option value="8">8 - Custom Default [LG C1 7.1]</option>
+                        <option value="9">9 - Custom Default [PanaGZ960E DV HDR10+]</option>
+                        <option value="10">10 - Custom Default [SONY A1 LLDV BT2020]</option>
+                
+                        <option value="11">11 - 8K60-420 FRL-5 VRR HDR 7.1</option>
+                        <option value="12">12 - 8K60-420 FRL-5 VRR HDR 5.1</option>
+                        <option value="13">13 - 8K60-420 FRL-5 VRR HDR 2.0</option>
+                        <option value="14">14 - 8K60-420 FRL-5 HDR 7.1</option>
+                        <option value="15">15 - 8K60-420 FRL-5 HDR 5.1</option>
+                        <option value="16">16 - 8K60-420 FRL-5 HDR 2.0</option>
+                        <option value="17">17 - 4K120-444 FRL-5 10b VRR HDR 7.1</option>
+                        <option value="18">18 - 4K120-444 FRL-5 10b VRR HDR 5.1</option>
+                        <option value="19">19 - 4K120-444 FRL-5 10b VRR HDR 2.0</option>
+                        <option value="20">20 - 4K120-444 FRL-5 10b HDR 7.1</option>
+                        <option value="21">21 - 4K120-444 FRL-5 10b HDR 5.1</option>
+                        <option value="22">22 - 4K120-444 FRL-5 10b HDR 2.0</option>
+                        <option value="23">23 - 4K120-420 VRR HDR 7.1</option>
+                        <option value="24">24 - 4K120-420 VRR HDR 5.1</option>
+                        <option value="25">25 - 4K120-420 VRR HDR 2.0</option>
+                        <option value="26">26 - 4K120-420 HDR 7.1</option>
+                        <option value="27">27 - 4K120-420 HDR 5.1</option>
+                        <option value="28">28 - 4K120-420 HDR 2.0</option>
+
+                        <option value="29">29 - 4K60-444 600MHz HDR BT2020 7.1</option>
+                        <option value="30">30 - 4K60-444 600MHz HDR BT2020 5.1</option>
+                        <option value="31">31 - 4K60-444 600MHz HDR BT2020 2.0</option>
+                        <option value="32">32 - 4K60-444 600MHz BT2020 7.1</option>
+                        <option value="33">33 - 4K60-444 600MHz BT2020 5.1</option>
+                        <option value="34">34 - 4K60-444 600MHz BT2020 2.0</option>
+                
+                        <option value="35">35 - 4K50-444 600MHz HDR BT2020 7.1</option>
+                        <option value="36">36 - 4K50-444 600MHz HDR BT2020 5.1</option>
+                        <option value="37">37 - 4K50-444 600MHz HDR BT2020 2.0</option>
+                        <option value="38">38 - 4K50-444 600MHz BT2020 7.1</option>
+                        <option value="39">39 - 4K50-444 600MHz BT2020 5.1</option>
+                        <option value="40">40 - 4K50-444 600MHz BT2020 2.0</option>
+         
+                        <option value="41">41 - 4K60-420 12bit HDR BT2020 7.1</option>
+                        <option value="42">42 - 4K60-420 12bit HDR BT2020 5.1</option>
+                        <option value="43">43 - 4K60-420 12bit HDR BT2020 2.0</option>
+                        <option value="44">44 - 4K60-420 12bit BT2020 7.1</option>
+                        <option value="45">45 - 4K60-420 12bit BT2020 5.1</option>
+                        <option value="46">46 - 4K60-420 12bit BT2020 2.0</option>
+                          
+                        <option value="47">47 - 4K60-420 8-bit 300MHz HDR BT2020 7.1</option>
+                        <option value="48">48 - 4K60-420 8-bit 300MHz HDR BT2020 5.1</option>
+                        <option value="49">49 - 4K60-420 8-bit 300MHz HDR BT2020 2.0</option>
+                        <option value="50">50 - 4K60-420 8-bit 300MHz BT2020 7.1</option>
+                        <option value="51">51 - 4K60-420 8-bit 300MHz BT2020 5.1</option>
+                        <option value="52">52 - 4K60-420 8-bit 300MHz BT2020 2.0</option>
+
+                        <option value="53">53 - 4K30-444 300MHz HDR BT2020 7.1</option>
+                        <option value="54">54 - 4K30-444 300MHz HDR BT2020 5.1</option>
+                        <option value="55">55 - 4K30-444 300MHz HDR BT2020 2.0</option>
+                        <option value="56">56 - 4K30-444 300MHz BT2020 7.1</option>
+                        <option value="57">57 - 4K30-444 300MHz BT2020 5.1</option>
+                        <option value="58">58 - 4K30-444 300MHz BT2020 2.0</option>
+              
+                        <option value="59">59 - 4K30-RGB 300MHz HDR BT2020 7.1</option>
+                        <option value="60">60 - 4K30-RGB 300MHz HDR BT2020 5.1</option>
+                        <option value="61">61 - 4K30-RGB 300MHz HDR BT2020 2.0</option>
+                        <option value="62">62 - 4K30-RGB 300MHz BT2020 7.1</option>
+                        <option value="63">63 - 4K30-RGB 300MHz BT2020 5.1</option>
+                        <option value="64">64 - 4K30-RGB 300MHz BT2020 2.0</option>
+
+                        <option value="65">65 - 4K24-422 12-bit HDR BT2020 7.1</option>
+                        <option value="66">66 - 4K24-422 12-bit HDR BT2020 5.1</option>
+                        <option value="67">67 - 4K24-422 12-bit HDR BT2020 2.0</option>
+                        <option value="68">68 - 4K24-422 12-bit BT2020 7.1</option>
+                        <option value="69">69 - 4K24-422 12-bit BT2020 5.1</option>
+                        <option value="70">70 - 4K24-422 12-bit BT2020 2.0</option>
+                        <option value="71">71 - 4K24-422 12-bit 7.1</option>
+                        <option value="72">72 - 4K24-422 12-bit 5.1</option>
+                        <option value="73">73 - 4K24-422 12-bit 2.0</option>
+                
+                        <option value="74">74 - 1080p60-444 12-bit HDR BT2020 7.1 </option>
+                        <option value="75">75 - 1080p60-444 12-bit HDR BT2020 5.1</option>
+                        <option value="76">76 - 1080p60-444 12-bit HDR BT2020 2.0</option>
+                        <option value="77">77 - 1080p60-444 12-bit BT2020 7.1 </option>
+                        <option value="78">78 - 1080p60-444 12-bit BT2020 5.1 </option>
+                        <option value="79">79 - 1080p60-444 12-bit BT2020 2.0</option>
+                        <option value="80">80 - 1080p60-444 12-bit 7.1 </option>
+                        <option value="81">81 - 1080p60-444 12-bit 5.1 </option>
+                        <option value="82">82 - 1080p60-444 12-bit 2.0</option>
+                
+                        <option value="83">83 - 1080p24-444 12-bit HDR BT2020 7.1</option>
+                        <option value="84">84 - 1080p24-444 12-bit HDR BT2020 5.1</option>
+                        <option value="85">85 - 1080p24-444 12-bit HDR BT2020 2.0</option>
+                        <option value="86">86 - 1080p24-444 12-bit BT2020 7.1</option>
+                        <option value="87">87 - 1080p24-444 12-bit BT2020 5.1</option>
+                        <option value="88">88 - 1080p24-444 12-bit BT2020 2.0</option>
+                        <option value="89">89 - 1080p24-444 8-bit 7.1</option>
+                        <option value="90">90 - 1080p24-444 8-bit 5.1</option>
+                        <option value="91">91 - 1080p24-444 8-bit 2.0</option>
+                
+                        <option value="92">92 - 1080i60-444 8-bit 7.1</option>
+                        <option value="93">93 - 1080i60-444 8-bit 5.1</option>
+                        <option value="94">94 - 1080i60-444 8-bit 2.0</option>
+                
+                        <option value="95">95 - 720p60-444 8-bit 7.1</option>
+                        <option value="96">96 - 720p60-444 8-bit 5.1</option>
+                        <option value="97">97 - 720p60-444 8-bit 2.0</option>
+                
+                        <option value="98">98 - 480p60-444 8-bit 7.1</option>
+                        <option value="99">99 - 480p60-444 8-bit 5.1</option>
+                        <option value="100">100 - 480p60-444 8-bit 2.0</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="edid__item">INPUT 1:</span>
+                    <select id="edidtableinp2" class="styled-select slate" onchange="SetActiveValues(name, value)" name="edidtableinp2">
+                            <option value="0">0 - Follow INPUT 0</option>                   
+                    </select> 
+                </div>
+                <div>
+                    <span class="edid__item">INPUT 2:</span>
+                    <select id="edidtableinp3" class="styled-select slate" onchange="SetActiveValues(name, value)" name="edidtableinp3">
+                            <option value="0">0 - Follow INPUT 0</option>    
+                    </select> 
+                </div>
+                <div>
+                    <span class="edid__item">INPUT 3:</span>
+                    <select id="edidtableinp4" class="styled-select slate" onchange="SetActiveValues(name, value)" name="edidtableinp4">
+                            <option value="0">0 - Follow INPUT 0</option>    
+                    </select> 
+                </div>
+                <br />
+                <hr />
+                <br />
+          
+                <input type="radio" id="edidautomix" class="edidmode" name="edidmode" value="automix" onchange="SetActiveValues(name, value)" checked>
+                <label for="edidautomix" class="edidautomix gen__title">COPY TX SINK EDID and MODIFY (AUTOMIX)</label>
+                <div style="font-size: 1.3rem">Automix EDID tables. Customize capabilities of the connected TX0 / TX1 sink EDID table.</div> 
+                <br />
+                <div style="font-size: 1.3rem">Selected TX SINK will be used for the main video capabilities.</div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                      TX SINK:
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__videotx" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edid', value)">
+                                <option value="videotx0 on">TX0</option>
+                                <option value="videotx1 on">TX1</option>
+                            </select>        
+                    </div>  
+                </div> 
+ 
+                <div style="font-size: 1.3rem">The settings below can be used to modify, add and remove video capabilities.</div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__frlcb" type="checkbox" name="edid__frlcb" onchange="SetActiveValues('edidfrlflag', (checked)?'on':'off')">
+                        <label for="edid__frlcb" class="edid__item--selector">FRL RATE</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__frl" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidfrlmode', value)">
+                                <option value="5">FRL-5 / 40Gbps</option>
+                                <option value="4">FRL-4 / 32Gbps</option>
+                                <option value="3">FRL-3 / 24Gbps</option>
+                                <option value="2">FRL-2 / 18Gbps</option>
+                                <option value="1">FRL-1 / 9Gbps</option>
+                                <option value="0">NO FRL / DISABLED</option>
+                            </select>        
+                    </div>   
+                </div>   
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__vrrcb" type="checkbox" name="edid__vrrcb" onchange="SetActiveValues('edidvrrflag', (checked)?'on':'off')">
+                        <label for="edid__vrrcb" class="edid__item--selector">VRR</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                        <select id="edid__vrr" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidvrrmode', value)">
+                            <option value="1">ENABLE</option>
+                            <option value="0">REMOVE ALL</option>
+                        </select>        
+                    </div>   
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__allmcb" type="checkbox" name="edid__allmcb" onchange="SetActiveValues('edidallmflag', (checked)?'on':'off')">
+                        <label for="edid__allmcb" class="edid__item--selector">ALLM</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                        <select id="edid__allm" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidallmmode', value)">
+                            <option value="1">ENABLE</option>
+                            <option value="0">REMOVE ALL</option>
+                        </select>        
+                    </div>   
+                </div>  
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__hdrcb" type="checkbox" name="edid__hdrcb" onchange="SetActiveValues('edidhdrflag', (checked)?'on':'off')">
+                        <label for="edid__hdrcb" class="edid__item--selector">HDR</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__hdr" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidhdrmode', value)">
+                                <option value="0">HDR10</option>
+                                <option value="1">HDR10 / HLG</option>
+                                <option value="2">HDR10+</option>
+                                <option value="3">HDR10+ / HLG</option>
+                                <option value="4">REMOVE ALL</option>
+                            </select>        
+                    </div>   
+                </div>                 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__dvcb" type="checkbox" name="edid__dvcb" onchange="SetActiveValues('ediddvflag', (checked)?'on':'off')">
+                        <label for="edid__dvcb" class="edid__item--selector">DV</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__dv" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('ediddvmode', value)">
+                                <option value="0">LG C1</option>
+                                <option value="1">SONY X930E</option>
+                                <option value="2">Z9D</option>  
+                                <option value="3">CUSTOM</option>
+                                <option value="4">REMOVE ALL</option>
+                            </select>        
+                    </div>   
+                    <div style="font-size: 1.3rem">Use DV creator page in CUSTOM mode</div> 
+                </div>  
+                <br />
+
+                <div style="font-size: 1.3rem">Selected AUDIO CAPS indicates where audio caps are copied from.</div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        AUDIO CAPS:
+                    </div> 
+  
+                    <div class="macros__main--condition">        
+                            <select id="edid__audiomode" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edid', value)">
+                                <option value="2ch on" >STEREO</option>
+                                <option value="spdif on">5.1</option>
+                                <option value="allaudio on">7.1</option>
+                                <option value="arcbeam on">ARC/BEAM1</option>
+                                <option value="arcddp on">ARC/DD+</option>
+                                <option value="audiotx0 on">TX0</option>
+                                <option value="audiotx1 on">TX1</option>
+                                <option value="audioout on">AUDIO OUT</option>
+                                <option value="earcout on">eARC OUT</option>                               
+                                <option value="audiocustom on">CUSTOM</option>
+                            </select>        
+                    </div>  
+                </div> 
+                
+                <div id="overflow--line1" style="font-size: 1.3rem" >In CUSTOM mode the base audio capabilities are copied from TX SINK selected port, and</div>
+                <div id="overflow--line1" style="font-size: 1.3rem" >the following settings can be used to modify, add or remove capabilities.</div>
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__pcmcb" type="checkbox" name="edid__pcmcb" onchange="SetActiveValues('edidpcmflag', (checked)?'on':'off')">
+                        <label for="edid__pcmcb" class="edid__item--selector">L-PCM</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__pcmch" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidpcmchmode', value)">
+                                <option value="2">2.0 STEREO</option>
+                                <option value="3">2.1</option>
+                                <option value="4">3.1</option>
+                                <option value="5">4.1</option>
+                                <option value="6">5.1</option>
+                                <option value="7">6.1</option>
+                                <option value="8">7.1</option>
+                            </select>        
+                    </div>   
+                    <div class="macros__main--condition">        
+                        <select id="edid__pcmsr" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidpcmsrmode', value)">
+                            <option value="0">up to 48kHz</option>
+                            <option value="1">up to 96kHz</option>
+                            <option value="2">up to 192kHz</option>
+                        </select>        
+                    </div>  
+                    <div class="macros__main--condition">        
+                        <select id="edid__pcmbw" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidpcmbwmode', value)">
+                            <option value="0">up to 16bit</option>
+                            <option value="1">up to 20bit</option>
+                            <option value="2">up to 24bit</option>
+                        </select>        
+                    </div>  
+                </div> 
+
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__truehdcb" type="checkbox" name="edid__truehdcb" onchange="SetActiveValues('edidtruehdflag', (checked)?'on':'off')">
+                        <label for="edid__truehdcb" class="edid__item--selector">TRUEHD</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__truehd" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidtruehdmode', value)">
+                                <option value="0">MAT ATMOS</option>
+                                <option value="1">NO ATMOS</option>
+                                <option value="2">REMOVE</option>
+                            </select>        
+                    </div> 
+                    <div class="macros__main--condition">        
+                        <select id="edid__truehdsr" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidtruehdsrmode', value)">
+                            <option value="0">up to 48kHz</option>
+                            <option value="1">up to 96kHz</option>
+                            <option value="2">up to 192kHz</option>
+                            <option value="3">COPY SINK</option>
+                        </select>        
+                    </div>    
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__ddpluscb" type="checkbox" name="edid__ddpluscb" onchange="SetActiveValues('edidddplusflag', (checked)?'on':'off')">
+                        <label for="edid__ddpluscb" class="edid__item--selector">DD+</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__ddplus" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidddplusmode', value)">
+                                <option value="0">ATMOS</option>
+                                <option value="1">NO ATMOS</option>
+                                <option value="2">REMOVE</option>
+                            </select>        
+                    </div>  
+                    <div class="macros__main--condition">        
+                        <select id="edid__ddplussr" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidddplussrmode', value)">
+                            <option value="0">up to 48kHz</option>
+                            <option value="1">up to 96kHz</option>
+                            <option value="2">up to 192kHz</option>
+                            <option value="3">COPY SINK</option>
+                        </select>        
+                    </div>   
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__ddcb" type="checkbox" name="edid__ddcb" onchange="SetActiveValues('edidddflag', (checked)?'on':'off')">
+                        <label for="edid__ddcb" class="edid__item--selector">DD</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                        <select id="edid__dd" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidddmode', value)">
+                            <option value="1">ENABLE</option>
+                            <option value="0">REMOVE</option>
+                        </select>        
+                    </div>   
+
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__dtshdcb" type="checkbox" name="edid__dtshdcb" onchange="SetActiveValues('ediddtshdflag', (checked)?'on':'off')">
+                        <label for="edid__dtshdcb" class="edid__item--selector">DTS-HDMA</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__dtshd" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('ediddtshdmode', value)">
+                                <option value="0">DTS:X IMAX</option>
+                                <option value="1">DTS:X</option>
+                                <option value="2">NO DTS:X</option>
+                                <option value="3">REMOVE</option>
+                            </select>        
+                    </div>   
+                    <div class="macros__main--condition">        
+                        <select id="edid__dtshdsr" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('ediddtshdsrmode', value)">
+                            <option value="0">up to 48kHz</option>
+                            <option value="1">up to 96kHz</option>
+                            <option value="2">up to 192kHz</option>
+                            <option value="3">COPY SINK</option>
+                        </select>        
+                    </div>   
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__dtscb" type="checkbox" name="edid__dtscb" onchange="SetActiveValues('ediddtsflag', (checked)?'on':'off')">
+                        <label for="edid__dtscb" class="edid__item--selector">DTS</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                        <select id="edid__dts" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('ediddtsmode', value)">
+                            <option value="1">ENABLE</option>
+                            <option value="0">REMOVE</option>
+                        </select>        
+                    </div>  
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="edid__onebitcb" type="checkbox" name="edid__onebitcb" onchange="SetActiveValues('edidonebitflag', (checked)?'on':'off')">
+                        <label for="edid__onebitcb" class="edid__item--selector">ONE BIT</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                            <select id="edid__onebit" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidonebitmode', value)">
+                                <option value="1">ENABLE</option>
+                                <option value="0">REMOVE</option>
+                            </select>        
+                    </div>  
+                    <div class="macros__main--condition">        
+                        <select id="edid__onebitsp" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('edidonebitspmode', value)">
+                            <option value="0">2.0 STEREO</option>
+                            <option value="1">5.1</option>
+                        </select>        
+                    </div>   
+                </div> 
+
+                <br />      
+                <hr /> 
+
+                <br />
+                <div id="edidoverflow">
+                    <span class="edid__item" style="font-weight: 600;">WARNING: </span>
+                    <span style="font-weight: 600;" >AUTOMIXED EDID HAS OVERFLOWED</span>
+                    <br>
+                    <div id="overflow--line1" style="margin-left: 21rem;font-size: 1.3rem" >Audio Vendor Specific Descriptor Removed</div>
+                    <div id="overflow--line2" style="margin-left: 21rem;font-size: 1.3rem" >HDR10+ Descriptor Removed</div>
+                    <div id="overflow--line3" style="margin-left: 21rem;font-size: 1.3rem" >Audio replaced with LPCM Stereo + Atmos caps </div>
+                    <div id="overflow--line4" style="margin-left: 21rem;font-size: 1.3rem" >DV descriptor removed</div>
+                  <br /> 
+                </div>
+
+                <div>
+                    <div id="downloadedid" class="downloadedid gen__title">DOWNLOAD ACTIVE EDID TABLES:</div>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('RX0');">RX0 EDID</button>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('RX1');">RX1 EDID</button>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('RX2');">RX2 EDID</button>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('RX3');">RX3 EDID</button>
+                    <br />
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('TX0');">TX0 EDID</button>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('TX1');">TX1 EDID</button>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('AUD');">AUD EDID</button>
+                    <button type="button" class="edid__item--dlbutton" onclick="requestEdidData('CDS');">eARC CDS</button>
+                    <br />
+                    <br />
+                    <div id="edid_savecustom10" class="downloadedid gen__title">SAVE ACTIVE EDID TO CUSTOM EDID #:</div>
+                        <button type="button" class="edid__item--dlbutton" onclick="SetActiveValues('edid save8', 'on');">EDID 8</button>
+                        <button type="button" class="edid__item--dlbutton" onclick="SetActiveValues('edid save9', 'on');">EDID 9</button>
+                        <button type="button" class="edid__item--dlbutton" onclick="SetActiveValues('edid save10', 'on');">EDID 10</button>
+                    </div>
+                <br />
+
+                <div id="uploadedidtext" class="uploadedidtext gen__title">UPLOAD EDID TABLES:</div>
+                <div class="uploadedid">
+                    <form class="uploadedid__form" onsubmit="uploadEdid(event)" >
+                        <input type="file" id="edidfileupload" class="custom-file-input" name="edidfile"  accept=".bin" size="50" style="width: 30rem">
+ 
+                        <span class="x">TABLE #:</span>
+                        <select id="tablelocation" class="styled-select slate" name="loc">
+                            <option value="0">1 - Custom #1</option>
+                            <option value="1">2 - Custom #2</option>
+                            <option value="2">3 - Custom #3</option>
+                            <option value="3">4 - Custom #4</option>
+                            <option value="4">5 - Custom #5</option>
+                            <option value="5">6 - Custom #6</option>
+                            <option value="6">7 - Custom #7</option>
+                            <option value="7">8 - Custom #8</option>
+                            <option value="8">9 - Custom #9</option>
+                            <option value="9">10 - Custom #10</option>  
+                        </select>
+                        <input type="submit" value="SEND EDID" class="edid__item--dlbutton">
+                    </form>
+                </div>
+
+            </div>
+
+
+            <div id="hdr" class="tab__content">
+                <div class="gen__title">CAPTURED INPUT HDR METADATA:</div>
+                <div class="infoframe">
+                    <input id="hdr__captured" class="infoframe--border" type="text" readonly>
+                </div>
+                <div class="infoframe__inhdrinfo">
+                        <div>
+                            <div id="infoframe__decode--eotf" style="font-weight: bolder;">
+                                EOTF: 
+                            </div>
+                            <div id="infoframe__decode--primary0">
+                                GRN:
+                            </div>
+                            <div id="infoframe__decode--primary1">
+                                BLU:
+                            </div>
+                            <div id="infoframe__decode--primary2">
+                                RED:
+                            </div>
+                            <div id="infoframe__decode--primarywp">
+                                WP:
+                            </div>
+                            <div id="infoframe__decode--maxlum">
+                                Max/Min Lum:
+                            </div>
+
+                            <div id="infoframe__decode--maxcll">
+                                MaxCLL/FALL:
+                            </div>
+         
+                        </div>
+                </div> 
+                <br />
+     
+                <hr />
+                <div class="gen__title">HDR METADATA GENERATOR:</div> 
+                <br />
+                <input id="infoframe_cbhdrcustom" class="infoframe_cbhdrcustom" type="checkbox" name="infoframe_cbhdrcustom" onchange="SetActiveValues('hdrcustom', checked?'on':'off')">
+                <label for="infoframe_cbhdrcustom">Use custom HDR for TX0 and TX1 [ignore RX HDR]</label>     
+                <br />                   
+                <input id="infoframe_cbhdrcustomhdronly" class="infoframe_cbhdrcustomhdronly" type="checkbox" name="infoframe_cbhdrcustomhdronly" onchange="SetActiveValues('hdrcustomhdronly', checked?'on':'off')">
+                <label for="infoframe_cbhdrcustomhdronly">Use custom HDR for TX0 and TX1 when input is HDR10 [ignore RX HDR]</label>     
+                <br />  
+                <input id="infoframe_cbhdrcustomhlgonly" class="infoframe_cbhdrcustomhlgonly" type="checkbox" name="infoframe_cbhdrcustomhlgonly" onchange="SetActiveValues('hdrcustomhlgonly', checked?'on':'off')">
+                <label for="infoframe_cbhdrcustomhlgonly">Use custom HDR for TX0 and TX1 when input is HLG [ignore RX HDR]</label>     
+                <br />                 
+                <input id="infoframe_cbhdrcustomhlgonlyauto" class="infoframe_cbhdrcustomhlgonlyauto" type="checkbox" name="infoframe_cbhdrcustomhlgonlyauto" onchange="SetActiveValues('hdrcustomhlgonlyauto', checked?'on':'off')">
+                <label for="infoframe_cbhdrcustomhlgonlyauto">Use custom HDR for TX0 and TX1 when input is HLG and display has no HLG support</label>     
+                <br />                 
+                <input id="infoframe_cbhdrcustomlldvonly" class="infoframe_cbhdrcustomlldvonly" type="checkbox" name="infoframe_cbhdrcustomlldvonly" onchange="SetActiveValues('hdrcustomlldvonly', checked?'on':'off')">
+                <label for="infoframe_cbhdrcustomlldvonly">Use custom HDR for TX0 and TX1 when input is LLDV</label>     
+                <br />  
+                <input id="infoframe_cbhdr10disable" class="infoframe_cbhdr10disable" type="checkbox" name="infoframe_cbhdr10disable" onchange="SetActiveValues('hdr10onlydisable', checked?'on':'off')">
+                <label for="infoframe_cbhdr10disable">Disable output HDR for TX0 and TX1 when input is HDR10</label>     
+                <br />                  
+                <input id="infoframe_cbhlgdisable" class="infoframe_cbhlgdisable" type="checkbox" name="infoframe_cbhlgdisable" onchange="SetActiveValues('hlgonlydisable', checked?'on':'off')">
+                <label for="infoframe_cbhlgdisable">Disable output HDR for TX0 and TX1 when input is HLG</label>     
+                <br />                    
+                <input id="infoframe_cblldvdisable" class="infoframe_cblldvdisable" type="checkbox" name="infoframe_cblldvdisable" onchange="SetActiveValues('lldvonlydisable', checked?'on':'off')">
+                <label for="infoframe_cblldvdisable">Disable output LLDV for TX0 and TX1 when input is LLDV</label>     
+                <br />          
+                <input id="infoframe_cbhdrdisable" class="infoframe_cbhdrdisable" type="checkbox" name="infoframe_cbhdrdisable" onchange="SetActiveValues('hdrdisable', checked?'on':'off')">
+                <label for="infoframe_cbhdrdisable">Disable all output HDR/HLG [keep LLDV]</label>  
+
+                <div class="infoframe">
+                        <label for="createhdr__eotf" style="flex: 0 0 7rem" >EOTF:</label>
+                        <select style="flex: 0 0 18rem; margin-right: 3rem;" id="createhdr__eotf" class="styled-select styled-select--narrow">
+                                <option value=0>SDR Luminance Range</option>
+                                <option value=1>HDR Luminance Range</option>
+                                <option selected value=2>SMPTE ST 2084</option>
+                                <option value=3>HLG ITU-R BT.2100-0</option>
+                        </select>	
+                        <label for="createhdr__primaries" style="flex: 0 0 7rem">Primaries:</label>
+                        <select style="flex: 0 0 18rem; margin-right: 3rem;" id="createhdr__primaries" class="styled-select styled-select--narrow">
+                                <option value="0">ITU-R BT 709-5</option>
+                                <option value="1">ITU-R BT 2020-2</option>
+                                <option selected value="2">DCI P3</option>
+                        </select>	
+                        <label for="createhdr__wp" style="flex: 0 0 7rem">WP:</label>
+                        <select style="flex: 0 0 18rem" id="createhdr__wp" class="styled-select styled-select--narrow">
+                                <option value="0">D65</option>
+                        </select>	                       
+                 
+                </div>
+
+                <div class="inoframe" style="flex-direction: column; justify-content: space-between;">
+                        <div>
+                                <span class="osd__item">Max Luminance [nits]: </span>
+                                <input class="gen__sbox" id="createhdr__maxlum" type="number" min="1" max="65535" step="1" value="4000" required>
+                        </div>
+                        <div>
+                                <span class="osd__item">Min Luminance [nits]: </span>
+                                <input class="gen__sbox" id="createhdr__minlum" type="number" min="0.0001" max="6.5535" value="0.0001" required>
+                        </div>
+                        <div>
+                                <span class="osd__item">MaxCLL [nits]: </span>
+                                <input class="gen__sbox" id="createhdr__maxcll" type="number" min="1" max="65535" step="1" value="1000" required>
+                        </div>
+                        <div>
+                                <span class="osd__item">MaxFALL [nits]: </span>
+                                <input class="gen__sbox" id="createhdr__maxfall" type="number" min="1" max="65535" step="1" value="400" required>
+                        </div>
+                    
+                </div>
+
+                <div class="infoframe">             
+                     <input id="infoframe__customhdr" class="infoframe--border" type="text">                           
+                </div>
+
+                <button type="button" class="gen__btn" onclick="createHdrIf()">Create IF</button>   
+                <button type="button" class="gen__btn" onclick="setDefaultHdrIf()">Default IF</button>  
+                <button type="button" class="gen__btn" onclick="setCustomHdr()">Send HDR</button>    
+
+                <br />
+                
+               <br />  
+                <hr />  
+               <div class="gen__title">CAPTURED AVI METADATA:</div>      
+               <div class="infoframe">
+                   <input id="avi__captured" class="infoframe--border" type="text" readonly>
+               </div>
+
+               <div class="infoframe__decode">
+                       <div class="infoframe__decode--line1">
+                           <div id="infoframe__decode--vic">
+                               VIC: 
+                           </div>
+                           <div id="infoframe__decode--csc">
+                               Colorimetry:
+                           </div>
+                           <div id="infoframe__decode--range">
+                               Range:
+                           </div>
+                     </div>    
+               </div>
+           
+               <hr />  
+               <div class="gen__title">CUSTOM AVI INFOFRAME GENERATOR:</div>
+               <br />
+               <input id="infoframe_cbavicustom" class="infoframe_cbavicustom" type="checkbox" name="infoframe_cbavicustom" onchange="SetActiveValues('avicustom', checked?'on':'off')">
+               <label for="infoframe_cbavicustom">Use custom AVI [for advanced users only]</label>  
+               <br />                                     
+               <input id="infoframe_cbavidisable" class="infoframe_cbavidisable" type="checkbox" name="infoframe_cbavidisable" onchange="SetActiveValues('avidisable', checked?'on':'off')">
+               <label for="infoframe_cbavidisable">Disable AVI sending [send nothing]</label>    
+
+               <div class="infoframe">
+                       <label for="createavi__vic" style="flex: 0 0 7rem" >VIC:</label>
+                       <select style="flex: 0 0 18rem; margin-right: 3rem;" id="createavi__vic" class="styled-select styled-select--narrow">
+                               <option value="0">1080p60</option>
+                               <option value="1">1080p24</option>
+                               <option selected value=2>4k60</option>
+                               <option value="3">4k24</option>
+                       </select>	
+                       <label for="createavi__csc" style="flex: 0 0 7rem">Primaries:</label>
+                       <select style="flex: 0 0 18rem; margin-right: 3rem;" id="createavi__csc" class="styled-select styled-select--narrow">
+                               <option selected value="0">RGB</option>
+                               <option value="1">YCbCr 444 BT709</option>
+                               <option value="2">YCbCr 422 BT709</option>
+                               <option value="3">YCbCr 420 BT709</option>
+                               <option value="4">RGB BT2020</option>
+                               <option value="5">YCbCr 444 BT2020</option>
+                               <option value="6">YCbCr 422 BT2020</option>
+                               <option value="7">YCbCr 420 BT2020</option>
+                       </select>	                      
+                       <label for="createavi__range" style="flex: 0 0 7rem" >Range:</label>
+                       <select style="flex: 0 0 18rem; margin-right: 3rem;" id="createavi__range" class="styled-select styled-select--narrow">
+                               <option selected value="0">Default / Not specified</option>
+                               <option value="1">Limited Range [16-235]</option>
+                               <option value="2">Full Range [0-255]</option>
+                       </select>                
+               </div>
+
+
+                <div class="infoframe">             
+                       <input id="infoframe__customavi" class="infoframe--border" type="text">
+               </div>
+               <button type="button" class="gen__btn" onclick="createAviIf()">Create IF</button>                      
+               <button type="button" class="gen__btn" onclick="setCustomAvi()">Send AVI</button>  
+               <br />
+               <br />
+
+
+               <hr />  
+               <div class="gen__title">CUSTOM VSI INFOFRAME GENERATOR:</div>
+               <br />
+               <input id="infoframe_cbvsicustom" class="infoframe_cbavicustom" type="checkbox" name="infoframe_cbvsicustom" onchange="SetActiveValues('vsicustom', checked?'on':'off')">
+               <label for="infoframe_cbvsicustom">Use custom VSI [for advanced users only]</label>  
+               <br />                                     
+               <input id="infoframe_cbvsidisable" class="infoframe_cbavidisable" type="checkbox" name="infoframe_cbvsidisable" onchange="SetActiveValues('vsidisable', checked?'on':'off')">
+               <label for="infoframe_cbvsidisable">Disable VSI sending [send nothing]</label>    
+
+                <div class="infoframe">             
+                       <input id="infoframe__customvsi" class="infoframe--border" type="text">
+               </div>                    
+               <button type="button" class="gen__btn" onclick="setDefaultVsiIf()">Default VSI</button>  
+               <button type="button" class="gen__btn" onclick="setCustomVsi()">Send VSI</button>  
+               <br />
+               <br />
+
+
+               
+               <hr />  
+               <div class="gen__title">AUTO LOW LATENCY MODE CONTROL:</div>
+               <div style="font-size: 1.3rem">Allows to control the TV supported ALLM feature</div> 
+               <div style="font-size: 1.3rem">ON -setting forces ALLM enabled at all times - ignores RX ALLM</div> 
+               <div style="font-size: 1.3rem">OFF -setting forces ALLM disabled at all times - ignores RX ALLM</div> 
+               <div style="font-size: 1.3rem">FOLLOW -setting lets the source control enable/disable</div> 
+               <br />   
+               <span class="config__item">ALLM MODE:</span>
+               <input type="radio" class="radiobutton" id="allmmode_follow" name="allmmode" onchange="SetActiveValues(name,'follow')" />
+               <label for="allmmode_follow" class="config__item--radio">FOLLOW</label>
+               <input type="radio" class="radiobutton" id="allmmode_off" name="allmmode" onchange="SetActiveValues(name,'off')" />
+               <label for="allmmode_off" class="config__item--radio">OFF</label>
+               <input type="radio" class="radiobutton" id="allmmode_on" name="allmmode" onchange="SetActiveValues(name,'on')" />
+               <label for="allmmode_on" class="config__item--radio">ON</label>
+               <br />                         
+               <span class="edid__item">Assign to input:</span>
+               <select id="allmmode_target" class="styled-select styled-select--narrow" onchange="SetActiveValues('allmtarget', value)">
+                    <option value="0">0 - INPUT 0</option>    
+                    <option value="1">1 - INPUT 1</option>    
+                    <option value="2">2 - INPUT 2</option>    
+                    <option value="3">3 - INPUT 3</option>
+                    <option selected value="4">- ALL -</option>     
+               </select>
+               <br /> 
+               <br /> 
+               <hr />  
+               <div class="gen__title">UHD ALLIANCE FILM MAKER MODE:</div>
+               <br />   
+               <input id="infoframe_cbfilmmaker" class="infoframe_cbfilmmaker" type="checkbox" name="infoframe_cbfilmmaker" onchange="SetActiveValues('filmmaker', checked?'on':'off')">
+               <label for="infoframe_cbfilmmaker">Enable Film Maker Mode</label>  
+               <br />  
+               <br />
+                <hr />
+                
+                <div class="gen__title">OTHER CAPTURED METADATA:</div>
+   
+
+                <div class="infoframe">
+                    <span class="styled-inputbox--text">SPD INFOFRAME:</span>
+                    <div id="spd__captured" class="infoframe--border"></div>
+                </div>         
+
+                <div class="infoframe">
+                    <span class="styled-inputbox--text">AUD INFOFRAME:</span>
+                    <div id="aud__captured" class="infoframe--border"></div>
+                </div>
+                    
+                <div class="infoframe">
+                    <span class="styled-inputbox--text">HVS INFOFRAME:</span>
+                    <div id="hvs__captured" class="infoframe--border"></div>
+                </div>
+
+                <div class="infoframe">
+                    <span class="styled-inputbox--text">VSI INFOFRAME:</span>
+                    <div id="vsi__captured" class="infoframe--border"></div>
+                </div>
+
+                <div class="infoframe">
+                    <span class="styled-inputbox--text">HFV INFOFRAME:</span>
+                    <div id="hfv__captured" class="infoframe--border"></div>
+                </div>
+
+
+                <br>
+                <br>
+
+            </div>
+
+            <div id="dvdecode" class="tab__content">
+                <div class="gen__title">CAPTURED INPUT DOLBY VISION METADATA [from source]:  </div>
+                     
+                <div class="infoframe">
+                    <input id="dv__captured" class="infoframe--border" type="text" readonly>
+                </div>
+                <div class="infoframe__decode">
+                    <div class="infoframe__decode--line1">
+                        <div >DV Status: <span id="infoframe__decode--dvstatus"></span></div>
+                        <div >DV interface: <span id="infoframe__decode--dvinterface"></span></div>
+                        <div >Backlight metadata: <span id="infoframe__decode--dvbacklightmeta"></span></div>
+                        <div >Backlight Max Luminance: <span id="infoframe__decode--dvbacklightmaxlum"></span></div>
+                        <div >Auxiliary runmode: <span id="infoframe__decode--dvauxrunmode"></span></div>
+                        <div >Auxiliary version: <span id="infoframe__decode--dvauxrunversion"></span></div>
+                        <div >Auxiliary debug: <span id="infoframe__decode--dvauxdebug"></span></div>
+                   </div>
+                </div>
+                <hr />
+                <div class="gen__title">CONNECTED DOLBY VISION EDID DATABLOCK [sink tx0]:</div>
+                 
+                <div class="infoframe">
+                    <input id="dv__tx0edidblock" class="infoframe--border" type="text" readonly>
+                </div>
+                <div class="infoframe__decode">
+                    <div class="infoframe__decode--line1">
+                        <div >DV Version: <span id="infoframe__decode--dvversion"></span></div>
+                        <div >DV DM Version: <span id="infoframe__decode--dvdmversion"></span></div>
+                        <div >DV Interface: <span id="infoframe__decode--dvInterface"></span></div>
+                        <div >2160p60: <span id="infoframe__decode--support2160"></span></div>
+                        <div >YUV422 12bit: <span id="infoframe__decode--supportYuv422"></span></div>
+                        <div >Global Dimming: <span id="infoframe__decode--supportGlobDim"></span></div>
+                        <div >Backlight Control: <span id="infoframe__decode--supportBackLight"></span></div>                                              
+                        <div >RED Primary: <span id="infoframe__decode--Rprim"></span></div>
+                        <div >GREEN Primary: <span id="infoframe__decode--Gprim"></span></div>
+                        <div >BLUE Primary: <span id="infoframe__decode--Bprim"></span></div>
+                        <div >MAX/MIN Luminance: <span id="infoframe__decode--dvlum"></span></div>
+                    </div>   
+                </div>
+                <hr />
+                <div class="gen__title">CONSTRUCT CUSTOM DOLBY VISION DATA BLOCK (for advanced users only):</div> 
+                <div style="font-size: 1.4rem">Generates a 12-byte DV Version 2 Data Block. Select AUTOMIX with CUSTOM STRING -flag to activate.</div> 
+                <div class="infoframe">
+                    <label for="createdv__interface" style="flex: 0 0 12rem">DV Interface:</label>
+                    <select style="flex: 0 0 40rem; margin-right: 3rem;" id="createdv__interface" class="styled-select styled-select--narrow" >
+                            <option selected value="0">Low latency 12Bit YCbCr 422</option>
+                            <option value="1">Low latency 12Bit YCbCr 422 and RGB/YCbCr 444 10/12Bit</option>
+                            <option value="2">Standard DV and low latency 12Bit YCbCr 422</option>
+                            <option value="3">Standard DV and low latency 422/444/RGB</option>
+                    </select>	              
+                </div>
+                <div class="infoframe">
+                    <label for="createdv__primaries" style="flex: 0 0 12rem">Primaries:</label>
+                    <select style="flex: 0 0 12rem; margin-right: 3rem;" id="createdv__primaries" class="styled-select styled-select--narrow" onchange="setDvCreatePrimaries();">
+                            <option value="0">ITU-R BT 709-5</option>
+                            <option value="1">ITU-R BT 2020-2</option>
+                            <option selected value="2">DCI P3</option>
+                            <option value="3">CUSTOM</option>
+                    </select>	 
+                    <label for="createdv__yuv422" style="flex: 0 0 14rem">YUV422 12bit:</label>
+                    <select style="flex: 0 0 12rem; margin-right: 3rem;" id="createdv__yuv422" class="styled-select styled-select--narrow">
+                            <option value="0">not supported</option>
+                            <option selected value="1">supported</option>
+                    </select>	                         
+                    <label for="createdv__gdim" style="flex: 0 0 14rem">Global Dimming:</label>
+                    <select style="flex: 0 0 12rem; margin-right: 3rem;" id="createdv__gdim" class="styled-select styled-select--narrow">
+                            <option selected value="0">not supported</option>
+                            <option value="1">supported</option>
+                    </select>	
+                </div>
+                <div class="infoframe">
+                    <label for="createdv__backlight" style="flex: 0 0 12rem">Backlight Ctrl:</label>
+                    <select style="flex: 0 0 12rem; margin-right: 3rem;" id="createdv__backlight" class="styled-select styled-select--narrow">
+                        <option selected value="0">not supported</option>
+                        <option value="1">supported</option>
+                    </select>	 
+                    <label for="createdv__backlightluma" style="flex: 0 0 15rem">Backlight Minlum:</label>
+                    <select style="flex: 0 0 12rem; margin-right: 3rem;" id="createdv__backlightluma" class="styled-select styled-select--narrow">
+                            <option  value="0">25 nits</option>
+                            <option  value="1">50 nits</option>
+                            <option  value="2">75 nits</option>
+                            <option selected value="3">100 nits</option>
+                    </select>
+                    <label for="createdv__lldv1012b" style="flex: 0 0 15rem">Support 10/12b:</label>
+                    <select style="flex: 0 0 12rem; margin-right: 3rem;" id="createdv__lldv1012b" class="styled-select styled-select--narrow">
+                            <option  selected value="0">10/12b disabled</option>
+                            <option  value="1">10b 444/RGB</option>
+                            <option  value="2">12b 444/RGB</option>
+                    </select>
+
+                </div>
+                <div id="dvprimaries" style="flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <span class="osd__item">RED Primary X: </span>
+                            <input class="gen__sbox" id="createdv__rx" type="number" step="0.001" value="0.680" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">RED primary Y: </span>
+                            <input class="gen__sbox" id="createdv__ry" type="number" step="0.001" value="0.320" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">GREEN primary X: </span>
+                            <input class="gen__sbox" id="createdv__gx" type="number" step="0.001" value="0.265"  required>
+                        </div>
+                        <div>
+                            <span class="osd__item">GREEN primary Y: </span>
+                            <input class="gen__sbox" id="createdv__gy" type="number" step="0.001" value="0.690" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">BLUE primary X: </span>
+                            <input class="gen__sbox" id="createdv__bx" type="number" step="0.001" value="0.150" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">BLUE primary Y: </span>
+                            <input class="gen__sbox" id="createdv__by" type="number" step="0.001" value="0.060" required>
+                        </div>                       
+                        <div>
+                            <span class="osd__item">MAX luminance [nits]: </span>
+                            <input class="gen__sbox" id="createdv__maxlum" type="number" min="100" max="10000" step="50" value="1000"  required>
+                            <span class="osd__item" style="font-size: 1.3rem">Range 100 - 10000 nits</span>
+                        </div>  
+                        <div>
+                            <span class="osd__item">MIN luminance [nits]: </span>
+                            <input class="gen__sbox" id="createdv__minlum" type="number" min="0" max="1" step="0.001" value="0"   required>
+                            <span class="osd__item" style="font-size: 1.3rem">Range 0 - 1 nits</span>
+                        </div>                  
+                    </div>
+
+                <div class="infoframe">             
+                    <input id="infoframe__lldvdatablock" class="infoframe--border" type="text">                           
+                </div>
+
+                <button type="button" class="gen__btn" onclick="createLldvDataBlock()">Create</button>   
+                <button type="button" class="gen__btn" onclick="setDefaultLldvDataBlock()">Default</button>  
+                <button type="button" class="gen__btn" onclick="setCustomLldvDataBlock()">Send DV</button>    
+
+                <br />
+                <br />
+      
+
+
+
+            </div> 
+
+            <div id="osd" class="tab__content">
+                <div>
+                    <div class="gen__title">OSD SETUP: [press SEND after config]</div>   
+                    <br />    
+                    <input id="osdenable" type="checkbox" name="osdparam">
+                    <label for="osdenable" class="edid__item--selector">OSD ENABLE</label>
+                </div>
+                <br />
+                <div>
+                    <span class="osd__item">FADE SECONDS: [OSD video] </span>
+                    <input class="gen__sbox" id="osd__fade" type="number" min="0" max="1000" step="1" value="60" required>           
+                </div>
+                
+                <div>
+                    <span class="osd__item">FADE SECONDS: [OSD no input]</span>
+                    <input class="gen__sbox" id="osd__fadeinfo" type="number" min="0" max="1000" step="1" value="30" required>                
+                </div>
+
+                 <br />
+                 
+                <form id="setosdparam" onsubmit="setOsdParam(event)">
+
+                        <div>
+                            <span class="osd__item">OSD LOCATION [X]: </span>
+                            <input class="gen__sbox" id="osd_x" type="number" min="1" max="1920" step="1" value="20" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">OSD LOCATION [Y]: </span>
+                            <input class="gen__sbox" id="osd_y" type="number"  min="1" max="1080" step="1" value="945" required>
+                        </div>                   
+                        <div>
+                            <span class="osd__item"> OSD COLOR [FRONT]: </span>
+                            <input class="gen__sbox" id="osd__color--fg" type="number" min="0" max="31" step="1" value="5" required>
+                        </div>
+                        <div>
+                            <span class="osd__item"> OSD COLOR [BACK]: </span>
+                            <input class="gen__sbox" id="osd__color--bg" type="number" min="0" max="31" step="1" value="5" required>
+                        </div>
+                        <div>
+                            <span class="osd__item"> OSD COLOR [LEVEL]: </span>
+                            <input class="gen__sbox" id="osd__color--level" type="number" min="1" max="7" step="1" value="7" required>
+                        </div>
+                        <br />
+                        <div class="gen__title">OSD INFO FLAGS:</div>  
+                        <span class="osd__item">Source Name </span>
+                        <input id="osd__item--source" type="checkbox" name="osdsource" >
+                        <br />
+                        <span class="osd__item">Video Field: </span>
+                        <input id="osd__item--videofield" type="checkbox" name="osdsource">
+                        <br />
+                        <span class="osd__item">Video IF: </span>
+                        <input id="osd__item--videoif" type="checkbox" name="osdsource" >
+                        <br />
+                        <span class="osd__item">HDR RX/TX Info: </span>
+                        <input id="osd__item--hdrrxtx" type="checkbox" name="osdsource" >
+                        <br />
+                        <span class="osd__item">HDR IF: </span>
+                        <input id="osd__item--hdrif" type="checkbox" name="osdsource" >
+                        <br />
+                        <span class="osd__item">Audio Field: </span>
+                        <input id="osd__item--audiofield" type="checkbox" name="osdsource" >
+                        <br />
+                        <span class="osd__item">Rx Video Info: </span>
+                        <input id="osd__item--rxvideoinfo" type="checkbox" name="osdsource" >
+                        <br />
+                        <span class="osd__item">RX HDR info: </span>
+                        <input id="osd__item--rxhdrinfo" type="checkbox" name="osdsource">
+                        <br />
+                        <span class="osd__item">Ignore Metadata Change: </span>
+                        <input id="osd__item--ignoremeta" type="checkbox" name="osdsource" >
+
+                        <br />                   
+                        <br />
+                        
+                        <div>
+                            <div class="gen__title">OSD MASK SETUP:</div>              
+                            <input id="osdmaskenable" type="checkbox" name="osdmaskparam">
+                            <label for="osdmaskenable" class="edid__item--selector">OSD MASK ENABLE</label>
+                        </div>
+                        <br />
+                        <div>
+                            <span class="osd__item">OSD MASK [X]: </span>
+                            <input class="gen__sbox" id="osdmask_x" type="number" min="1" max="1920" step="1" value="20" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">OSD MASK [Y]: </span>
+                            <input class="gen__sbox" id="osdmask_y" type="number" min="1" max="1080" step="1" value="945" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">OSD MASK1 [X]: </span>
+                            <input class="gen__sbox" id="osdmask_x1" type="number" min="1" max="1920" step="1" value="20" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">OSD MASK1 [Y]: </span>
+                            <input class="gen__sbox" id="osdmask_y1" type="number" min="1" max="1080" step="1" value="945" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">OSD MASK LEVEL: </span>
+                            <input class="gen__sbox" id="osd__mask--level" type="number" min="1" max="7" step="1" value="3" required>
+                        </div>
+                        <div>
+                            <span class="osd__item">OSD GRAYSCALE: </span>
+                            <input class="gen__sbox" id="osd__mask--gs" type="number" min="0" max="15" step="1" value="10" required>
+                        </div>    
+                        <br />               
+                        <input type="submit" class="macros__btn" value="SEND OSD VALUES">
+
+                </form>
+
+                <br />
+                <hr />
+                <div>
+                    <br />
+                    <div class="gen__title">OSD TEXT SETUP:</div>    
+                    <input id="cbosdtext" type="checkbox" name="osdtext">
+                    <label for="cbosdtext" class="edid__item--selector">OSD TEXT ENABLE</label>
+                    <br />
+                    <input id="cbosdtextneverfade" type="checkbox" name="osdtextnf">
+                    <label for="cbosdtextneverfade" class="edid__item--selector">NEVER FADE</label>
+
+                </div>              
+                <br />
+                <form id="osdtextform" onsubmit="setOsdText(event)">
+                    <div>
+                        <span class="osd__item">OSD TEXT [X]: </span>
+                        <input class="gen__sbox" id="osdtext_x" type="number" min="1" max="1920" step="1" value="20" required>
+                    </div>
+                    <div>
+                        <span class="osd__item">OSD TEXT [Y]: </span>
+                        <input class="gen__sbox" id="osdtext_y" type="number" min="1" max="1080" step="1" value="945" required>
+                    </div>
+                    <br />
+                    <div class="gen__title">TEXT TO BE DISPLAYED:</div>    
+                    <input type="text" id="osdtextcontent" class="gen__input--border" />
+
+                    <input type="submit" class="macros__btn" value="SEND TEXT VALUES">
+
+                </form>
+            </div>
+
+            <div id="cec" class="tab__content">
+                <div class="gen__title">CEC / eARC / ARC CONTROL:</div> 
+                <div style="font-size: 1.3rem">VRRoom has three separate CEC zones to support CEC commands and ARC/eARC communication.</div>    
+                <div style="font-size: 1.3rem">MAIN ZONE CEC controls channel switching and eARC/ARC retrieval from the TX0 connected display</div>    
+                <div style="font-size: 1.3rem">AUDIO OUT zone controls the volume and power up/down of the AUDIO OUT connected AVR/Soundbar</div>    
+                <div style="font-size: 1.3rem">eARC TX zone controls the volume and power up/down of the eARC TX connected AVR/Soundbar as well as eARC/ARC transmission</div>                 
+                <br />
+                <div style="font-size: 1.3rem">All changes to CEC/eARC/ARC parameters require a VRROOM power cycle. Unplug/replug power</div> 
+                <br /> 
+                <hr />
+                <div class="gen__title">MAIN ZONE:</div> 
+                <div style="font-size: 1.3rem">MAIN ZONE CEC must be enabled to support CEC channel switching and eARC/ARC retrieval</div>                   
+                <div style="font-size: 1.3rem">eARC/ARC support requires "Audio System", make sure no other AVR devices are connected to the TV</div> 
+                <div style="font-size: 1.3rem">eARC can support lossless bitstream formats, such as MAT atmos, TrueHD, DTS:X, PCM 7.1</div>
+                <div style="font-size: 1.3rem">ARC can support up to of DD+ Atmos, stereo PCM</div>
+                <br /> 
+                 <div class="macros__main"> 
+                    <div class="macros__main--cb">                            
+                        <input id="cec__enable" type="checkbox" name="cec__enable" onchange="SetActiveValues('cec', (checked)?'on':'off')">
+                        <label for="cec__enable" class="edid__item--selector">CEC:</label>
+                    </div> 
+                    <div class="macros__main--condition">        
+                        <select id="macros__ceclamode" class="styled-select slate" name="macros__ceclamode" onchange="SetActiveValues('cecla', value)">
+                            <option value="5">Audio System [eARC/ARC]</option>
+                            <option value="14">Video Processor [no eARC/ARC]</option>
+                        </select>  
+                    </div>   
+                </div>   
+                <div style="font-size: 1.3rem">CEC is enabled when the checkbox is selected</div> 
+
+                <br />  
+                 <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        eARC/ARC:
+                      </div> 
+                    <div class="macros__main--condition">        
+                            <select id="earcforce" class="styled-select styled-select--narrow" onchange="SetActiveValues('earcforce', value)">
+                                <option value="0">Auto eARC/HDMI</option>
+                                <option value="1">Manual eARC</option>
+                                <option value="2">Manual HDMI</option>
+                                <option value="3">Auto ARC/HDMI</option>
+                                <option value="4">Manual ARC</option>
+                            </select>        
+                    </div>   
+                </div>   
+                <div style="font-size: 1.3rem">AUTO relies on TV CEC commands for switching between eARC/ARC and HDMI. Select the auto mode according to TV capabilities</div>
+                <div style="font-size: 1.3rem">If the display supports eARC, select Manual eARC. All audio will be routed via TV eARC</div>
+                <div style="font-size: 1.3rem">If the display supports ARC only, select Manual ARC. All audio will be routed via TV ARC</div>
+                <div style="font-size: 1.3rem">ARC is max DD+. Consider EDID settings to not exceed the max capability from the HDMI input</div>
+                <br /> 
+
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        SPEAKER MAP
+                      </div> 
+                    <div class="macros__main--condition">        
+                            <select id="earcspeakermap" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('earcspeakermap', value)">
+                                <option value="0">Automatic</option>
+                                <option value="1">Force 5.1</option>
+                            </select>        
+                    </div>   
+                </div> 
+                <div style="font-size: 1.3rem">Some TVs will incorrectly stream mark 7.1 for all eARC content with more speakers than stereo</div>
+                <div style="font-size: 1.3rem">It usually results in 5.1 speaker systems to lose the surrounds</div>
+                <div style="font-size: 1.3rem">Use the Force 5.1 -setting to correct the speaker mapping in such systems</div>
+                <br />
+
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        MUTE MODE
+                      </div> 
+                    <div class="macros__main--condition">        
+                            <select id="earcmutemode" class="styled-select styled-select--extranarrow" onchange="SetActiveValues('earcmutemode', value)">
+                                <option value="0">MUTE on/off</option>
+                                <option value="1">MUTE toggle</option>
+                            </select>        
+                    </div>   
+                </div> 
+                <div style="font-size: 1.3rem">MUTE from TV/source remotes can use dedicated CEC mute on/off commands or a toggle command</div>
+                <div style="font-size: 1.3rem">Some TVs will cause the toggle command to lose track if pressed many times too quickly</div>
+                <br />
+                <hr />
+                <div class="gen__title">eARC TX ZONE:</div> 
+                <br />
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        OUT MODE:
+                      </div> 
+                    <div class="macros__main--condition">        
+                            <select id="earctxmode" class="styled-select styled-select--narrow" onchange="SetActiveValues('earctxmode', value)">
+                                <option value="0">Always ARC</option>
+                                <option value="1">Auto eARC/ARC [default]</option>
+                            </select>        
+                    </div>   
+                </div> 
+                <div style="font-size: 1.3rem">If the connected device only supports ARC, choose the Always ARC-option, otherwise leave as default</div>
+                <div style="font-size: 1.3rem">When using Always ARC-option make sure input port AUDIO CAPS don't exceed soundbar/AVR capabilities</div>
+                <div style="font-size: 1.3rem">Typical ARC soundbar supports maximum DD+ and stereo PCM. Use ARC/BEAM1 or ARC/DD+ AUDIO CAPS</div>
+                <br />
+                <hr />
+                <div class="gen__title">AUDIO OUT ZONE:</div> 
+                <br />
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        POWER ON:
+                      </div> 
+                    <div class="macros__main--condition">        
+                            <select id="azpoweronmode" class="styled-select styled-select" onchange="SetActiveValues('azpoweronmode', value)">
+                                <option value="0">Disabled</option>
+                                <option value="1">Request Audio Mode </option>
+                                <option value="2">Request Audio Mode + Routing Change </option>    
+                            </select>        
+                    </div>   
+                </div> 
+                <div class="macros__main"> 
+                    <div class="macros__main--cb" style="font-weight: 500">                            
+                        POWER OFF:
+                      </div> 
+                    <div class="macros__main--condition">        
+                            <select id="azpoweroffmode" class="styled-select styled-select--narrow" onchange="SetActiveValues('azpoweroffmode', value)">
+                                <option value="0">Disabled</option>
+                                <option value="1">Automatic </option>
+                            </select>        
+                    </div>   
+                </div> 
+                <div style="font-size: 1.3rem">VRRoom issues automated power on/off CEC commands to the AUDIO OUT connected sink.</div>
+                <div style="font-size: 1.3rem">Request Audio Mode = Instructs the sink to enter System Audio mode and to enable volume control</div>
+                <div style="font-size: 1.3rem">Request Audio Mode + Routing Change = As above but also issues Routing Change to switch to the VRRoom input</div>
+                <br />
+                <hr />
+                <div class="gen__title">INPUT PORT CEC CONTROL:</div> 
+                <div style="font-size: 1.3rem">VRRoom has a capability to individually disable CEC from inputs.</div>
+                <div style="font-size: 1.3rem">When disabled, no CEC commands will be allowed from the respective input.</div>
+                <br />
+                <div class="macros__main"> 
+                    <div class="macros__main--cb">     
+                        <label for="cec__enable0" class="edid__item--selector">IN0</label>                       
+                        <input id="cec__enable0" type="checkbox" name="cec__enable0" onchange="SetActiveValues('cec0en', (checked)?1:0)">
+
+                    </div> 
+                    <div class="macros__main--cb"> 
+                        <label for="cec__enable1" class="edid__item--selector">IN1</label>                           
+                        <input id="cec__enable1" type="checkbox" name="cec__enable1" onchange="SetActiveValues('cec1en', (checked)?1:0)">
+                    </div> 
+                    <div class="macros__main--cb">     
+                        <label for="cec__enable2" class="edid__item--selector">IN2</label>                       
+                        <input id="cec__enable2" type="checkbox" name="cec__enable2" onchange="SetActiveValues('cec2en', (checked)?1:0)">
+
+                    </div> 
+                    <div class="macros__main--cb"> 
+                        <label for="cec__enable3" class="edid__item--selector">IN3</label>                           
+                        <input id="cec__enable3" type="checkbox" name="cec__enable3" onchange="SetActiveValues('cec3en', (checked)?1:0)">
+                    </div> 
+                </div> 
+                <div style="font-size: 1.3rem">Checked means enabled. Default is checked.</div>
+   
+                <br />
+                <hr />
+
+
+
+                <br />
+                <div class="gen__title">RS232 COMMANDS:</div>
+                RS232 BAUD RATE:
+                <select id="baudrate" class="styled-select slate" onchange="SetActiveValues(name, value)" name="baud">
+                    <option value="0">9600</option>
+                    <option value="1">19200</option>
+                    <option value="2">57600</option>
+                    <option value="3">115200</option>
+                </select>
+                <div class="cecrs232">
+            
+                    <input id="rs232text--asc" class="cecrs232--border" type="text" size="50" value="power on\r">
+                    <button type="button" class="gen__btn" onclick="sendRs232('ascii');">Send Ascii</button>
+                </div>  
+
+                <div class="cecrs232">  
+                    <input id="rs232text--bin" class="cecrs232--border" type="text" size="50" value="21:89:01:50:4d:50:4d:30:43:0a">
+                    <button type="button" class="gen__btn" onclick="sendRs232('binary');">Send Binary</button>
+                </div>
+                <br>
+                
+
+
+                   
+            </div>
+
+
+            <div id="macros" class="tab__content">
+                <form id="setmacrosform" class="setmacrosform" onsubmit="setMacrosParam(event)">
+                    <div class="gen__title">MACRO CONTROL:</div>
+ 
+                    <input id="macro__enable" type="checkbox" name="macro__enable">
+                    <label for="macro__enable" class="edid__item--selector">ENABLE</label>
+                    <br />
+                    <input id="macro__everysync" type="checkbox" name="macro__everysync">
+                    <label for="macro__everysync" class="edid__item--selector">SEND ON EVERY SYNC</label>
+                    <br />
+                    <div >
+                    <br />
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    HDR10 MODE:
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__hdr10mode" class="styled-select styled-select--narrow">
+                                        <option value="0">Automatic (default)</option>
+                                        <option value="1">Ignore Metadata</option>
+                                        <option value="2">Semi-Automatic</option>
+                                        <option value="3">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <span class="config__item">SYNC DELAY (secs):</span>
+                        <input class="gen__sbox" id="macros__syncdelay" type="number" name="vol" min="0" step="1" value="20">
+                    </div>
+                    <br />
+
+                    <div class="macros__main gen__title"> 
+                        <div class="macros__main--content">        
+                            CONTENT/CALIBRATION
+                        </div>    
+                        <div class="macros__main--mode" style="margin-left: 3rem;">        
+                            PICTURE MODE
+                        </div>    
+                        <div class="macros__main--name">        
+                            OSD NAME
+                        </div> 
+                        <div class="macros__main--name" style="margin-left: 6rem;">        
+                            CUSTOM HEX
+                        </div>    
+                    </div>   
+                        
+                    <div class="macros__main"> 
+                        <div class="macros__main--content">        
+                                SDR-BT709 (HDTV)
+                        </div>    
+                        <div class="macros__main--mode">        
+                            <select id="macros__sdrtv" class="styled-select styled-select--narrow">
+                                <option value="0">DO NOTHING</option>
+                                <option value="1">HDR10</option>
+                                <option value="2">HLG</option>
+                                <option value="3">USER 1</option>
+                                <option value="4">USER 2</option>
+                                <option value="5">USER 3</option>  
+                                <option value="6">USER 4</option>  
+                                <option value="7">USER 5 (2015+)</option>  
+                                <option value="8">USER 6 (2015+)</option>  
+                                <option value="9">FILM</option>  
+                                <option value="10">NATURAL</option>  
+                                <option value="11">ANIMATION</option>  
+                                <option value="12">THX</option>  
+                                <option value="13">STAGE (2014 only)</option>  
+                                <option value="14">GAMMA NORMAL</option>  
+                                <option value="15">GAMMA A</option>  
+                                <option value="16">GAMMA B</option>  
+                                <option value="17">GAMMA C</option>  
+                                <option value="18">GAMMA CUSTOM 1</option>  
+                                <option value="19">GAMMA CUSTOM 2</option>  
+                                <option value="20">GAMMA CUSTOM 3</option>  
+                                <option value="21">GAMMA D</option>  
+                                <option value="22">GAMMA FILM 1</option>  
+                                <option value="23">GAMMA FILM 2</option> 
+                                <option value="24">FRAME ADAPT HDR</option> 
+                                <option value="25">CUSTOM</option>   
+                            </select>        
+                        </div>    
+                        <div class="macros__main--name">        
+                                SDR-TV
+                        </div>    
+                        <div class="macros__main">        
+                                <input id="macros__sdrtvcustom" class="macros__main--border" type="text" maxlength="44" value="21:89:01:50:4d:47:31:32:0a:00">
+                        </div>   
+                    </div>  
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    SDR-BT709 (Film)
+                            </div>    
+                            <div class="macros__main--mode">                                   
+                                <select id="macros__sdrfilm" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    SDR-Film
+                            </div> 
+                            <div class="macros__main">        
+                                <input id="macros__sdrfilmcustom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>        
+                    </div>   
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    SDR-BT2020
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__sdrbt2020" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    SDR-BT2020
+                            </div>    
+                            <div class="macros__main">        
+                                <input id="macros__sdrbt2020custom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>        
+                    </div>                       
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    3D
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__3d" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    3D
+                            </div>    
+                            <div class="macros__main">        
+                                <input id="macros__3dcustom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>        
+                    </div>                     
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    x.v.Color
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__xvcolor" class="styled-select styled-select--narrow"> </select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    x.v.Color
+                            </div>    
+                            <div class="macros__main">        
+                                <input id="macros__xvcolorcustom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>        
+                    </div>  
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    HLG-BT709
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__hlgbt709" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    HLG-BT709
+                            </div>                               
+                            <div class="macros__main">        
+                                <input id="macros__hlgbt709custom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>        
+
+                    </div>  
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    HLG-BT2020
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__hlgbt2020" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    HLG-BT2020
+                            </div>
+                            <div class="macros__main">        
+                                <input id="macros__hlgbt2020custom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>            
+                    </div>  
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    HDR10
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__hdr10main" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    HDR10-DC4K
+                            </div> 
+                            <div class="macros__main">        
+                                <input id="macros__hdr10maincustom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>           
+                    </div>  
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    HDR10-Opt
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__hdr10optional" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    HDR10-DC1K
+                            </div> 
+                            <div class="macros__main">        
+                                <input id="macros__hdr10optionalcustom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>           
+                    </div>  
+                    <div class="macros__main"> 
+                            <div class="macros__main--content">        
+                                    HDR10-Rec709
+                            </div>    
+                            <div class="macros__main--mode">        
+                                <select id="macros__hdr10bt709" class="styled-select styled-select--narrow"></select>        
+                            </div>    
+                            <div class="macros__main--name">        
+                                    HDR10-BT709
+                            </div>  
+                            <div class="macros__main">        
+                                <input id="macros__hdr10bt709custom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                            </div>          
+                    </div>  
+                    <div class="macros__main"> 
+                        <div class="macros__main--content">        
+                               LLDV
+                        </div>    
+                        <div class="macros__main--mode">        
+                            <select id="macros__lldv" class="styled-select styled-select--narrow"></select>        
+                        </div>    
+                        <div class="macros__main--name">        
+                                LLDV
+                        </div>  
+                        <div class="macros__main">        
+                            <input id="macros__lldvcustom" class="macros__main--border" type="text" value="21:89:01:50:4d:47:31:32:0a:00">
+                        </div>          
+                    </div>                 
+               
+ 
+                    <div class="macros__main"> 
+                        <div class="macros__main--content" style="font-size: 1.3rem;">     
+                            <input id="macro__execcustomcode" type="checkbox" name="macro__execcustomcode">   
+                            <label for="macro__execcustomcode">ALWAYS EXECUTE CUSTOM HEX</label>
+                        </div>    
+                        <div class="macros__main--mode">        
+                            <select id="macros__selbeforeafter" class="styled-select styled-select--narrow" >
+                                <option value="0">BEFORE</option>
+                                <option value="1">AFTER</option> 
+                            </select>        
+                        </div>    
+                        <div class="macros__main" style="font-size: 1.3rem; margin-left: 2rem; margin-right:8rem">        
+                                THE SELECTED PICTURE MODE WITH A DELAY OF
+                        </div>    
+                        <div class="macros__main--mode">        
+                            <select id="macros__execdelay" class="styled-select styled-select--narrow" style="width: 10rem; margin-left:0rem; ">
+                                <option value="0">1 sec</option>
+                                <option value="1">3 sec</option> 
+                                <option value="2">5 sec</option> 
+                                <option value="3">7 sec</option> 
+                                <option value="4">10 sec</option> 
+                                <option value="5">15 sec</option> 
+                                <option value="6">20 sec</option> 
+                                <option value="7">25 sec</option> 
+                            </select>        
+                        </div>                       
+                    </div>  
+               
+                    <br />                   
+                    <div class="gen__title">CUSTOM HDR10 PROFILES:</div>
+                    <div class="macros__main"> 
+                        <div class="macros__main--cb"> 
+                            <input id="macro__customcb1" type="checkbox" name="macro__customcb1">
+                            <label for="macro__customcb1">IF HDR10</label>
+                        </div>  
+
+                        <div class="macros__main--condition">        
+                                <select id="macros__custommode1" class="styled-select styled-select--extranarrow">
+                                    <option value="0">Max Brightness</option>
+                                    <option value="1">Min Brightness</option>
+                                    <option value="2">MaxCLL</option>
+                                </select>        
+                        </div>   
+
+                        <div class="macros__main">        
+                            BELOW OR EQUALS TO
+                        </div> 
+
+                        <div class="macros__main">        
+                                <input class="gen__sbox" id="macros__sb1" type="number" name="vol" min="0" step="1" value="0">
+                                THEN
+                        </div>  
+
+                        <div class="macros__main"> 
+                              
+                                <select id="macros__customaction1" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div>  
+
+                    <div class="macros__main"> 
+                        <div class="macros__main--cb">                            
+                            <input id="macro__customcb2" type="checkbox" name="macro__customcb2">
+                            <label for="macro__customcb2" class="edid__item--selector">IF HDR10</label>
+                        </div>  
+                        <div class="macros__main--condition">        
+                                <select id="macros__custommode2" class="styled-select styled-select--extranarrow">
+                                    <option value="0">Max Brightness</option>
+                                    <option value="1">Min Brightness</option>
+                                    <option value="2">MaxCLL</option>
+                                </select>        
+                        </div>   
+                        <div class="macros__main">        
+                            BELOW OR EQUALS TO
+                        </div> 
+                        <div class="macros__main">        
+                                <input class="gen__sbox" id="macros__sb2" type="number" name="vol" min="0" step="1" value="0">
+                                THEN
+                        </div>  
+                        <div class="macros__main">                               
+                                <select id="macros__customaction2" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div> 
+                    
+                    <div class="macros__main"> 
+                        <div class="macros__main--cb">                            
+                            <input id="macro__customcb3" type="checkbox" name="macro__customcb3">
+                            <label for="macro__customcb3" class="edid__item--selector">IF HDR10</label>
+                        </div>  
+                        <div class="macros__main--condition">        
+                                <select id="macros__custommode3" class="styled-select styled-select--extranarrow">
+                                    <option value="0">Max Brightness</option>
+                                    <option value="1">Min Brightness</option>
+                                    <option value="2">MaxCLL</option>
+                                </select>        
+                        </div>   
+                        <div class="macros__main">        
+                            BELOW OR EQUALS TO
+                        </div> 
+                        <div class="macros__main">        
+                                <input class="gen__sbox" id="macros__sb3" type="number" name="vol" min="0" step="1" value="0">
+                                THEN
+                        </div>  
+                        <div class="macros__main">                               
+                                <select id="macros__customaction3" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div>
+
+
+                    <div class="macros__main"> 
+                        <div class="macros__main--cb">                            
+                            <input id="macro__customcb4" type="checkbox" name="macro__customcb4">
+                            <label for="macro__customcb4" class="edid__item--selector">IF HDR10</label>
+                        </div>  
+                        <div class="macros__main--condition">        
+                                <select id="macros__custommode4" class="styled-select styled-select--extranarrow">
+                                    <option value="0">Max Brightness</option>
+                                    <option value="1">Min Brightness</option>
+                                    <option value="2">MaxCLL</option>
+                                </select>        
+                        </div>   
+                        <div class="macros__main">        
+                            BELOW OR EQUALS TO
+                        </div> 
+                        <div class="macros__main">        
+                                <input class="gen__sbox" id="macros__sb4" type="number" name="vol" min="0" step="1" value="0">
+                                THEN
+                        </div>  
+                        <div class="macros__main">                               
+                                <select id="macros__customaction4" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div>            
+
+                    <div class="macros__main"> 
+                        <div class="macros__main--cb">                            
+                            <input id="macro__customcb5" type="checkbox" name="macro__customcb5">
+                            <label for="macro__customcb5" class="edid__item--selector">IF HDR10</label>
+                        </div>  
+                        <div class="macros__main--condition">        
+                                <select id="macros__custommode5" class="styled-select styled-select--extranarrow">
+                                    <option value="0">Max Brightness</option>
+                                    <option value="1">Min Brightness</option>
+                                    <option value="2">MaxCLL</option>
+                                </select>        
+                        </div>   
+                        <div class="macros__main">        
+                            BELOW OR EQUALS TO
+                        </div> 
+                        <div class="macros__main">        
+                                <input class="gen__sbox" id="macros__sb5" type="number" name="vol" min="0" step="1" value="0">
+                                THEN
+                        </div>  
+                        <div class="macros__main">                               
+                                <select id="macros__customaction5" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div>
+                    
+                    <div class="macros__main"> 
+                        <div class="macros__main--cb">                            
+                            <input id="macro__customcb6" type="checkbox" name="macro__customcb6">
+                            <label for="macro__customcb6" class="edid__item--selector">IF HDR10</label>
+                        </div>  
+                        <div class="macros__main--condition">        
+                                <select id="macros__custommode6" class="styled-select styled-select--extranarrow">
+                                    <option value="0">Max Brightness</option>
+                                    <option value="1">Min Brightness</option>
+                                    <option value="2">MaxCLL</option>
+                                </select>        
+                        </div>   
+                        <div class="macros__main">        
+                            ABOVE
+                        </div> 
+                        <div class="macros__main">        
+                                <input style="margin-left: 13rem;" class="gen__sbox" id="macros__sb6" type="number" name="vol" min="0" step="1" value="0">
+                                THEN
+                        </div>  
+                        <div class="macros__main">                               
+                                <select id="macros__customaction6" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div>
+
+                    <div class="macros__main" > 
+                        <div class="macros__main--cb">                            
+                            <input id="macro__customcb7" type="checkbox" name="macro__customcb6">
+                            <label for="macro__customcb7" class="edid__item--selector">ELSE</label>
+                        </div>  
+
+                        <div class="macros__main--condition">                               
+                            <select id="macros__customaction7" class="styled-select styled-select--extranarrow"></select>        
+                        </div> 
+                    </div>
+                    <br />
+                    <div class="macros__btn--loc">
+                            <input type="submit" class="macros__btn"  value="Send Macro Values">
+                    </div>
+                    <br />
+                </form>
+
+            </div>   
+
+
+
+            <div id="config" class="tab__content">
+                <div class="gen__title">VRROOM SETUP:</div>   
+                <br />
+                <span class="config__item">AUTOSWITCH INPUTS:</span>
+                <input type="radio" class="radiobutton" id="autosw_off" name="autosw" onchange="SetActiveValues(name,'off')" />
+                <label for="autosw_off" class="config__item--radio">OFF</label>
+    
+                <input type="radio" class="radiobutton" id="autosw_on" name="autosw" onchange="SetActiveValues(name,'on')" />
+                <label for="autosw_on" class="config__item--radio">ON POWER</label>
+                
+                <br /> 
+                <br />                
+                <span class="config__item">HDCP VERSION:</span>
+                <input type="radio" class="radiobutton" id="encode_14" name="encode" onchange="SetActiveValues(name,checked?'14':'auto')"  />
+                <label for="encode_14" class="config__item--radio">1.4</label>
+                <input type="radio" class="radiobutton" id="encode_auto" name="encode" onchange="SetActiveValues(name,checked?'auto':'14')" />
+                <label for="encode_auto" class="config__item--radio">Auto</label>
+                <br />
+
+                <span class="config__item">HTPC MODE RX0:</span>
+                <input type="radio" class="radiobutton" id="htpcmode0_on" name="htpcmode0" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="htpcmode0_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="htpcmode0_off" name="htpcmode0" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="htpcmode0_off" class="config__item--radio">OFF</label>
+                <br />
+                <span class="config__item">HTPC MODE RX1:</span>
+                <input type="radio" class="radiobutton" id="htpcmode1_on" name="htpcmode1" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="htpcmode1_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="htpcmode1_off" name="htpcmode1" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="htpcmode1_off" class="config__item--radio">OFF</label>
+                <br />
+                <span class="config__item">HTPC MODE RX2:</span>
+                <input type="radio" class="radiobutton" id="htpcmode2_on" name="htpcmode2" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="htpcmode2_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="htpcmode2_off" name="htpcmode2" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="htpcmode2_off" class="config__item--radio">OFF</label>
+                <br />                      
+                <span class="config__item">HTPC MODE RX3:</span>
+                <input type="radio" class="radiobutton" id="htpcmode3_on" name="htpcmode3" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="htpcmode3_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="htpcmode3_off" name="htpcmode3" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="htpcmode3_off" class="config__item--radio">OFF</label>
+                <br />  
+                <br />  
+                <span class="config__item">AUDIO UNMUTE: </span>
+                <input class="gen__sbox" id="unmutecnt" type="number" name="vol" min="50" step="1" value="500">
+                <button id="btnunmutecnt" class="btnfade gen__btn" onclick="setUnmuteCnt()">SEND</button>
+                <div style="font-size: 1.3rem">Time offset in milliseconds to start sending audio data to the sink. 50msec min</div>     
+                <span class="config__item">eARC UNMUTE: </span>
+                <input class="gen__sbox" id="earcunmutecnt" type="number" name="vol" min="0" step="1" value="0">
+                <button id="btnunmutecnt" class="btnfade gen__btn" onclick="setEarcUnmuteCnt()">SEND</button>
+                <div style="font-size: 1.3rem">Additional time offset in milliseconds to start sending audio data to the eARC TX. </div> 
+                <br />    
+                
+                <span class="config__item">OLED DISPLAY: </span>
+                <input type="radio" class="radiobutton" id="oled_on" name="oled" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="oled_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="oled_off" name="oled" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="oled_off" class="config__item--radio">OFF</label>
+                <br />
+
+                <span class="config__item">OLED FADE:</span>
+                <input class="gen__sbox" id="fadevaluetext" type="number" name="vol" min="1" step="1" value="60">
+                <button id="btnfade" class="btnfade gen__btn" onclick="setOledFade()">SEND</button>
+                <br />
+                <br />
+                <div class="macros__main--condition">        
+                    OLED PAGE:
+                <select id="oledpage" class="styled-select styled-select--extranarrow" name='oledpage' onchange="SetActiveValues(name,value)">
+                    <option value="0">INFO</option>
+                    <option value="1">IP</option>
+                    <option value="2">RX INFO</option>
+                    <option value="3">HDR 1</option>
+                    <option value="4">HDR 2</option>
+                    <option value="5">IF INFO</option>
+                </select>        
+                </div> 
+                <br /> 
+                <span class="config__item">REBOOT TIMER(hours):</span>
+                <input class="gen__sbox" id="reboottext" type="number" name="vol" min="1" step="1" value="5">
+                <button id="btnreboot" class="btnfade gen__btn" onclick="setReboot()">SEND</button>
+                <br />
+                <br /> 
+                <span class="config__item">AUDIO OUT FORMAT:</span>
+                <input type="radio" class="radiobutton" id="audiooutreso_720" name="audiooutreso" onchange="SetActiveValues(name,'720')" />
+                <label for="audiooutreso_720" class="config__item--radio">720p60</label>
+                <input type="radio" class="radiobutton" id="audiooutreso_1080" name="audiooutreso" onchange="SetActiveValues(name,'1080')" />
+                <label for="audiooutreso_1080" class="config__item--radio">1080p60</label>
+                <br />                         
+            
+                <span class="config__item">MUTE TX0 AUDIO:</span>
+                <input type="radio" class="radiobutton" id="mutetx0audio_on" name="mutetx0audio" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="mutetx0audio_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="mutetx0audio_off" name="mutetx0audio" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="mutetx0audio_off" class="config__item--radio">OFF</label>
+                <br />
+                <span class="config__item">MUTE TX1 AUDIO:</span>
+                <input type="radio" class="radiobutton" id="mutetx1audio_on" name="mutetx1audio" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="mutetx1audio_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="mutetx1audio_off" name="mutetx1audio" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="mutetx1audio_off" class="config__item--radio">OFF</label>
+                <br />              
+                <span class="config__item">IR:</span>
+                <input type="radio" class="radiobutton" id="iractive_on" name="iractive" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="iractive_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="iractive_off" name="iractive" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="iractive_off" class="config__item--radio">OFF</label>
+                <br /> 
+                <span class="config__item">IR CODE SET:</span>
+                <input type="radio" class="radiobutton" id="ircode_1" name="ircodeset" onchange="SetActiveValues(name,checked?'1':'off')" />
+                <label for="ircode_1" class="config__item--radio">SET 1</label>
+                <input type="radio" class="radiobutton" id="ircode_2" name="ircodeset" onchange="SetActiveValues(name,checked?'2':'off')" />
+                <label for="ircode_2" class="config__item--radio">SET 2</label>
+                <input type="radio" class="radiobutton" id="ircode_3" name="ircodeset" onchange="SetActiveValues(name,checked?'3':'off')" />
+                <label for="ircode_3" class="config__item--radio">SET 3</label>
+                <br /> 
+                <br /> 
+
+                <span class="config__item">TX1 +5V FORCE:</span>
+                <input type="radio" class="radiobutton" id="tx1plus5_on" name="tx1plus5" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="tx1plus5_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="tx1plus5_off" name="tx1plus5" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="tx1plus5_off" class="config__item--radio">OFF</label>
+                <br />
+                <span class="config__item">RELAY:</span>
+                <input type="radio" class="radiobutton" id="relay_on" name="relay" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="relay_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="relay_off" name="relay" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="relay_off" class="config__item--radio">OFF</label>                
+                <br />                 <br />                
+                <hr />
+                <div class="gen__title">ANALOG L/R AUDIO CONTROL:</div> 
+                <br />
+                <form class="audio" onsubmit="setAnalogAudio(event, vol)">
+               
+                        <span class="config__item">VOLUME</span>
+                        <input class="gen__sbox" id="audiovolume" type="number" name="vol" min="-102" max="10" step="1" value="0" required>
+                        [-100 to +10dB]
+                        <br />
+                        <span class="config__item">BASS</span>
+                        <input class="gen__sbox" id="audiobass" type="number" name="bass" min="-10" max="10" step="1" value="0" required>
+                        [-10 to +10dB]
+                        <br />
+                        <span class="config__item">TREBLE</span>
+                        <input class="gen__sbox" id="audiotreb" type="number" name="treb" min="-10" max="10" step="1" value="0" required>
+                        [-10 to +10dB]
+                        <br />
+                        <input type="submit" id="audiosubmit" class="audiosubmit gen__btn" value="SEND">
+                </form>
+
+                <br />
+
+
+                <br />
+                <hr />
+                <div class="gen__title">IP CONFIG: </div> 
+                Reboot required for any changes in DHCP / STATIC IP 
+                <br />
+                <br />
+                <span class="config__item">DHCP: </span>
+ 
+                <input type="radio" class="radiobutton" id="dhcp_on" name="dhcp" onchange="setDhcp('on')" />
+                <label for="dhcp_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="dhcp_off" name="dhcp" onchange="setDhcp('off')" />
+                <label for="dhcp_off" class="config__item--radio">OFF</label>
+                <br />
+                <span class="config__item">mDNS: </span>
+
+                <input type="radio" class="radiobutton" id="mdns_on" name="mdns" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="mdns_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="mdns_off" name="mdns" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="mdns_off" class="config__item--radio">OFF</label>
+                <br />
+                <br />
+                <div>Current IP Configuration:</div>
+       
+                <span class="config__item">IP ADDR:</span>
+                <input class="cecrs232--border" id="ipaddr" type="text" name="ipaddr" readonly>
+                <br />
+                <span class="config__item">IP MASK:</span>
+                <input class="cecrs232--border" id="ipmask" type="text" name="ipmask" readonly>
+                <br />
+                <span class="config__item">IP GW:</span>
+                <input class="cecrs232--border" id="ipgw" type="text" name="ipgw" readonly>
+                <br />
+                <span class="config__item">MAC:</span>
+                <input class="cecrs232--border" id="macaddr" type="text" name="macaddr" readonly>
+                <br />
+                <br />
+
+                Configure Static IP:
+                <br />
+                This address is used when DHCP is off
+                <div>
+                
+                        <span class="config__item">IP ADDR:</span>
+                        <input class="cecrs232--border" id="ipsaddr" type="text" name="ipaddr" required>
+                        <br />
+                        <span class="config__item">IP MASK:</span>
+                        <input class="cecrs232--border" id="ipsmask" type="text" name="ipmask" required>
+                        <br />
+                        <span class="config__item">IP GW:</span>
+                        <input class="cecrs232--border" id="ipsgw" type="text" name="ipgw" required>
+                        <br />
+                        <br />
+                        <button id="setipbtn" type="button" class="gen__btn" onclick="setIpConfig()">SET IP</button>      
+                </div>
+                <br />
+                Configure TCP port: [requires reboot to apply]
+                <br />
+                VRROOM will listen to this port for IP / Telnet commands 
+                <br />
+                <span class="config__item">IP INTERRUPTS: </span>
+                <input type="radio" class="radiobutton" id="ipinterrupt_on" name="ipinterrupt" onchange="SetActiveValues(name,checked?'on':'off')" />
+                <label for="ipinterrupt_on" class="config__item--radio">ON</label>
+                <input type="radio" class="radiobutton" id="ipinterrupt_off" name="ipinterrupt" onchange="SetActiveValues(name,checked?'off':'on')" />
+                <label for="ipinterrupt_off" class="config__item--radio">OFF</label>
+                <div>             
+                        <span class="config__item">IP PORT:</span>
+                        <input class="cecrs232--border" id="tcpport" type="text" name="tcpport" required>
+                        <br />
+                        <button type="button" class="gen__btn" onclick="setTcpPort()">SET PORT</button> 
+                </div>
+                <br />
+                <hr />
+                <div class="gen__title">VRROOM CONTROL:</div> 
+                <br />
+                <div>
+                    <span class="config__item">REBOOT UNIT</span>
+                    <button id="reboot_btn" class="gen__btn" onclick="SetActiveValues('reboot','')">REBOOT</button>  
+                </div>
+                <br /> 
+                <div>                   
+                    <span class="config__item">EXPORT CONFIG</span>
+                    <button id="hotplub_btn" class="gen__btn" onclick="requestConfigData()">EXPORT</button>  
+                </div>
+                
+                <div class="uploadfwimport">
+                    <form class="uploadfwimport__form" onsubmit="openFileImport(event)" >
+                       <label for="importfile" class="config__itm--radio">IMPORT CONFIG</label>                  
+                       <input id="importfile" style="margin-left: 13rem; width: 35rem;" type="file" accept='text/plain' class="gen__btn uploadw_s_input" >
+                       <input id="importfile__btn"  type="submit" value="IMPORT" class="gen__btn">
+                   </form>
+                </div>    
+                
+                <br />
+                <span class="config__item">ISSUE HOTPLUG</span>
+                <button id="hotplub_btn" class="gen__btn" onclick="SetActiveValues('hotplug','')">SEND</button>
+                <br />
+
+                <br />
+                RESET TO FACTORY DEFAULTS:
+                <div class="macros__main--cb"> 
+                    <input id="resetsettings__cb" type="checkbox" name="resetsettings__cb">
+                    <label for="resetsettings__cb">CLEAR ALL SETTINGS TO FACTORY DEFAULTS:</label>
+                </div>  
+                <div class="macros__main--cb"> 
+                    <input id="resetedid__cb" type="checkbox" name="resetedid__cb">
+                    <label for="resetedid__cb">EDID FACTORY SETTINGS:</label>
+                </div>  
+                <div class="configreset">   
+                                             
+                        <input id="freset" class="cecrs232--border" type="text" onfocus="this.value=''" value="Type RESET here">
+                        <button type="button" class="gen__btn" onclick="factoryReset()">RESET</button>                    
+                </div>
+                <br />
+         
+
+                <br />
+                <div class="uploadfw">
+                     <form class="uploadfw__form" onsubmit="uploadFw(event)" >
+                        <label for="uploadfile" class="config__itm--radio">FW UPDATE:</label>                  
+                        <input id="uploadfile"  style="margin-left: 13rem; width: 35rem;"  type="file" name="datafile" class="uploadfw__input" >
+                        <input id="uploadfw__btn" type="submit" value="SEND" class="gen__btn">
+                    </form>
+                </div>
+                <br />
+
+                <br />
+
+            </div>
+
+
+            <div class="status">
+                <div id="status" class="status__message"></div>
+                <button class="gen__btn" onclick="refreshTab(event)">Refresh</button>
+            </div>
+
+        </div> 
+    </div>
+
+    <script src="js/requests.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/config.js"></script>
+</body>
+
+</html>

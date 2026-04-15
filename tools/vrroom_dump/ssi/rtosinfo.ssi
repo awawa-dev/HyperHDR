@@ -1,0 +1,7 @@
+<pre><br>Name          State     Priority     Stack      Num<br>-------------------------------------------------------<br>tcpip_thread   	X	6	1079	4
+Main_Thread    	R	3	1037	1
+IDLE           	R	0	97	3
+App_Thread     	B	3	471	2
+EthIf          	B	6	287	5
+echod          	B	3	375	6
+<br><br>-------------------------------------------------------<br>B : Blocked, R : Ready, D : Deleted, S : Suspended<br><br>SPI errors: 0<br>I2C errors: 0<br>

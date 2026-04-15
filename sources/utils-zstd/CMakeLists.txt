@@ -5,6 +5,12 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/utils-zstd)
 
 FILE ( GLOB_RECURSE utils_zstd_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp" )
 
+# Exclude generated build artifacts from recursive source globs.
+list(FILTER utils_zstd_SOURCES EXCLUDE REGEX ".*/[^/]*_autogen/.*")
+list(FILTER utils_zstd_SOURCES EXCLUDE REGEX ".*/CMakeFiles/.*")
+list(FILTER utils_zstd_SOURCES EXCLUDE REGEX ".*/moc_.*\\.cpp$")
+list(FILTER utils_zstd_SOURCES EXCLUDE REGEX ".*/qrc_.*\\.cpp$")
+
 if (USE_SHARED_LIBS)
 	add_library(utils-zstd SHARED ${utils_zstd_SOURCES})
 	if(WIN32)

@@ -16,14 +16,16 @@ namespace FrameDecoder
 	void processImageVector(
 		int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 		const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
-		const PixelFormat pixelFormat, const uint8_t* lutBuffer,
+		const PixelFormat pixelFormat, const uint8_t* lutBuffer, const uint8_t* lutInterpolationBuffer, uint8_t lutInterpolationBlend,
+		const uint8_t* transitionLutBuffer, const uint8_t* transitionLutInterpolationBuffer, uint8_t transitionLutInterpolationBlend, uint8_t lutRuntimeTransitionBlend,
 		Image<ColorRgb>& outputImage, AutomaticToneMapping* automaticToneMapping);
 
 	constexpr void (*dispatchProcessImageVector[2][2][2])(
 		int cropLeft, int cropRight, int cropTop, int cropBottom,
 		const uint8_t* data, const uint8_t* dataUV,
 		int width, int height, int lineLength,
-		PixelFormat pixelFormat, const uint8_t* lutBuffer,
+		PixelFormat pixelFormat, const uint8_t* lutBuffer, const uint8_t* lutInterpolationBuffer, uint8_t lutInterpolationBlend,
+		const uint8_t* transitionLutBuffer, const uint8_t* transitionLutInterpolationBuffer, uint8_t transitionLutInterpolationBlend, uint8_t lutRuntimeTransitionBlend,
 		Image<ColorRgb>& outputImage,
 		AutomaticToneMapping* automaticToneMapping) =
 	{

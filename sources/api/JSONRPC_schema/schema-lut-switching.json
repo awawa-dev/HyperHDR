@@ -1,0 +1,297 @@
+{
+	"type": "object",
+	"required": true,
+	"properties": {
+		"command": {
+			"type": "string",
+			"required": true,
+			"enum": ["lut-switching"]
+		},
+		"subcommand": {
+			"type": "string",
+			"required": true,
+			"enum": ["get", "apply", "reload", "save", "apply-runtime"]
+		},
+		"mode": {
+			"type": "string"
+		},
+		"input": {
+			"type": "string"
+		},
+		"file": {
+			"type": "string"
+		},
+		"enabled": {
+			"type": "boolean"
+		},
+		"directory": {
+			"type": "string"
+		},
+		"activeLutFile": {
+			"type": "string"
+		},
+		"sdrLutFile": {
+			"type": "string"
+		},
+		"hdrLutFile": {
+			"type": "string"
+		},
+		"lldvLutFile": {
+			"type": "string"
+		},
+		"ugoosSdrLutFile": {
+			"type": "string"
+		},
+		"ugoosHdrLutFile": {
+			"type": "string"
+		},
+		"ugoosLldvLutFile": {
+			"type": "string"
+		},
+		"appletvSdrLutFile": {
+			"type": "string"
+		},
+		"appletvHdrLutFile": {
+			"type": "string"
+		},
+		"appletvLldvLutFile": {
+			"type": "string"
+		},
+		"steamdeckSdrLutFile": {
+			"type": "string"
+		},
+		"steamdeckHdrLutFile": {
+			"type": "string"
+		},
+		"steamdeckLldvLutFile": {
+			"type": "string"
+		},
+		"rx3SdrLutFile": {
+			"type": "string"
+		},
+		"rx3HdrLutFile": {
+			"type": "string"
+		},
+		"rx3LldvLutFile": {
+			"type": "string"
+		},
+		"sdrUsesHdrFile": {
+			"type": "boolean"
+		},
+		"activeMode": {
+			"type": "string"
+		},
+		"activeInput": {
+			"type": "string"
+		},
+		"lastCustomFile": {
+			"type": "string"
+		},
+		"transferAutomationEnabled": {
+			"type": "boolean"
+		},
+		"lutMemoryCacheEnabled": {
+			"type": "boolean"
+		},
+		"transferSdrProfile": {
+			"type": "string"
+		},
+		"transferHlgProfile": {
+			"type": "string"
+		},
+		"transferHdrProfiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"transferHdrMdl1000Profiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"transferHdrMdl4000Profiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"transferHdrLowProfile": {
+			"type": "string"
+		},
+		"transferHdrMidProfile": {
+			"type": "string"
+		},
+		"transferHdrHighProfile": {
+			"type": "string"
+		},
+		"transferHdrLowNitLimit": {
+			"type": "integer"
+		},
+		"transferHdrMidNitLimit": {
+			"type": "integer"
+		},
+		"transferDolbyVisionLowProfile": {
+			"type": "string"
+		},
+		"transferDolbyVisionMidProfile": {
+			"type": "string"
+		},
+		"transferDolbyVisionHighProfile": {
+			"type": "string"
+		},
+		"transferDolbyVisionLowNitLimit": {
+			"type": "integer"
+		},
+		"transferDolbyVisionMidNitLimit": {
+			"type": "integer"
+		},
+		"kodiDolbyVisionBucketMetric": {
+			"type": "string"
+		},
+		"kodiDolbyVisionSceneIndexHighlightWeight": {
+			"type": "number"
+		},
+		"transferDolbyVisionMdl1000Profiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"transferDolbyVisionMdl4000Profiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"transferDolbyVisionMdl1000RatioNumerator": {
+			"type": "integer"
+		},
+		"transferDolbyVisionMdl1000RatioDenominator": {
+			"type": "integer"
+		},
+		"transferDolbyVisionMdl4000RatioNumerator": {
+			"type": "integer"
+		},
+		"transferDolbyVisionMdl4000RatioDenominator": {
+			"type": "integer"
+		},
+		"kodiHdrThresholds": {
+			"type": "string"
+		},
+		"kodiHdrMdl1000Thresholds": {
+			"type": "string"
+		},
+		"kodiHdrMdl4000Thresholds": {
+			"type": "string"
+		},
+		"kodiDolbyVisionMdl1000Thresholds": {
+			"type": "string"
+		},
+		"kodiDolbyVisionMdl4000Thresholds": {
+			"type": "string"
+		},
+		"ugoosHdrMetadataLutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"ugoosHdrMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"ugoosHdrMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"ugoosDolbyVisionMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"ugoosDolbyVisionMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"appletvHdrMetadataLutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"appletvHdrMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"appletvHdrMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"appletvDolbyVisionMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"appletvDolbyVisionMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"steamdeckHdrMetadataLutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"steamdeckHdrMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"steamdeckHdrMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"steamdeckDolbyVisionMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"steamdeckDolbyVisionMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"rx3HdrMetadataLutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"rx3HdrMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"rx3HdrMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"rx3DolbyVisionMdl1000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"rx3DolbyVisionMdl4000LutFiles": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"tan": {
+			"type": "integer"
+		},
+		"kodiHdrMdlOnlyFallbackNits": {
+			"type": "integer"
+		},
+		"daytimeUpliftEnabled": {
+			"type": "boolean"
+		},
+		"daytimeUpliftProfile": {
+			"type": "string"
+		},
+		"daytimeUpliftStartHour": {
+			"type": "integer"
+		},
+		"daytimeUpliftStartMinute": {
+			"type": "integer"
+		},
+		"daytimeUpliftEndHour": {
+			"type": "integer"
+		},
+		"daytimeUpliftEndMinute": {
+			"type": "integer"
+		},
+		"daytimeUpliftRampMinutes": {
+			"type": "integer"
+		},
+		"daytimeUpliftMaxBlend": {
+			"type": "integer"
+		}
+	},
+	"additionalProperties": false
+}

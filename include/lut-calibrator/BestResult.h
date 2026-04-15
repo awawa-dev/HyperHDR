@@ -62,6 +62,8 @@ struct BestResult
 	double4x4	coefMatrix;
 	double2		coefDelta;
 	int			coloredAspectMode = 0;
+	int			selectedColoredAspectMode = -1;
+	double		selectedNitsOverride = -1.0;
 	std::pair<double3, double3> colorAspect;
 	double3		aspect;
 	int			bt2020Range = 0;

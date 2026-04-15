@@ -35,7 +35,8 @@ public:
 		unsigned	__cropLeft, unsigned  __cropTop,
 		unsigned	__cropBottom, unsigned __cropRight,
 		quint64		__currentFrame, qint64 __frameBegin,
-		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer,
+		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, uint8_t* __lutInterpolationBuffer, uint8_t __lutInterpolationBlend,
+		uint8_t* __transitionLutBuffer, uint8_t* __transitionLutInterpolationBuffer, uint8_t __transitionLutInterpolationBlend, uint8_t __lutRuntimeTransitionBlend,
 		bool		__qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping);
 
 	v4l2_buffer* GetV4L2Buffer();
@@ -49,7 +50,8 @@ public:
 		unsigned	__cropLeft, unsigned  __cropTop,
 		unsigned	__cropBottom, unsigned __cropRight,
 		quint64		__currentFrame, qint64 __frameBegin,
-		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe,
+		int			__hdrToneMappingEnabled, uint8_t* __lutBuffer, uint8_t* __lutInterpolationBuffer, uint8_t __lutInterpolationBlend,
+		uint8_t* __transitionLutBuffer, uint8_t* __transitionLutInterpolationBuffer, uint8_t __transitionLutInterpolationBlend, uint8_t __lutRuntimeTransitionBlend, bool __qframe,
 		bool		__directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping);
 #endif
 
@@ -98,6 +100,12 @@ private:
 	qint64		_frameBegin;
 	uint8_t	    _hdrToneMappingEnabled;
 	uint8_t*	_lutBuffer;
+	uint8_t*	_lutInterpolationBuffer;
+	uint8_t*	_transitionLutBuffer;
+	uint8_t*	_transitionLutInterpolationBuffer;
+	uint8_t	_lutInterpolationBlend;
+	uint8_t	_lutRuntimeTransitionBlend;
+	uint8_t	_transitionLutInterpolationBlend;
 	bool		_qframe;
 	bool		_directAccess;
 	QString		_deviceName;

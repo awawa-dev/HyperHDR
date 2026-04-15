@@ -36,8 +36,21 @@
 #include <mutex>
 #include <numbers>
 
+namespace
+{
+	void blendDecodedImageBuffers(uint8_t* primary, const uint8_t* secondary, size_t byteCount, uint8_t blend)
+	{
+		if (primary == nullptr || secondary == nullptr || byteCount == 0 || blend == 0)
+			return;
+
+		const int primaryWeight = 255 - blend;
+		for (size_t index = 0; index < byteCount; ++index)
+			primary[index] = static_cast<uint8_t>((primary[index] * primaryWeight + secondary[index] * blend + 127) / 255);
+	}
+}
+
 template<bool Quarter, bool UseToneMapping, bool UseAutomaticToneMapping>
-void FrameDecoder::processImageVector(
+static void processImageVectorSingleLut(
 	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
 	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
 	const PixelFormat pixelFormat, const uint8_t* lutBuffer,
@@ -45,7 +58,6 @@ void FrameDecoder::processImageVector(
 {
 	LoggerName logger("FrameDecoder");
 
-	// validate format
 	if (pixelFormat != PixelFormat::YUYV && pixelFormat != PixelFormat::UYVY &&
 		pixelFormat != PixelFormat::XRGB && pixelFormat != PixelFormat::RGB24 &&
 		pixelFormat != PixelFormat::I420 && pixelFormat != PixelFormat::NV12 &&
@@ -55,7 +67,6 @@ void FrameDecoder::processImageVector(
 		return;
 	}
 
-	// validate LUT
 	if ((pixelFormat == PixelFormat::YUYV || pixelFormat == PixelFormat::UYVY || pixelFormat == PixelFormat::I420 || pixelFormat == PixelFormat::MJPEG ||
 		pixelFormat == PixelFormat::NV12 || pixelFormat == PixelFormat::P010 || UseToneMapping) && lutBuffer == nullptr)
 	{
@@ -63,14 +74,12 @@ void FrameDecoder::processImageVector(
 		return;
 	}
 
-	// align crop
 	_cropLeft = (_cropLeft >> 1) << 1;
 	_cropRight = (_cropRight >> 1) << 1;
 
 	if constexpr (Quarter)
 		_cropLeft = _cropRight = _cropTop = _cropBottom = 0;
 
-	// output size
 	const int outputWidth = (width - _cropLeft - _cropRight) >> (Quarter ? 1 : 0);
 	const int outputHeight = (height - _cropTop - _cropBottom) >> (Quarter ? 1 : 0);
 
@@ -137,7 +146,7 @@ void FrameDecoder::processImageVector(
 			uint8_t* currentSource = (uint8_t*)data + (((uint64_t)lineLength * ySource) + ((uint64_t)_cropLeft));
 			uint8_t* currentSourceU = (uint8_t*)data + deltaU + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
 			uint8_t* currentSourceV = (uint8_t*)data + deltaV + ((((uint64_t)ySource / 2) * lineLength) + ((uint64_t)_cropLeft)) / 2;
-		
+
 			VECTOR_I420::process<Quarter>(
 				reinterpret_cast<uint32_t*>(currentSource),
 				reinterpret_cast<uint16_t*>(currentSourceU),
@@ -271,30 +280,103 @@ void FrameDecoder::processImageVector(
 	}
 }
 
+template<bool Quarter, bool UseToneMapping, bool UseAutomaticToneMapping>
+static void processImageVectorLutPair(
+	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
+	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, const uint8_t* lutInterpolationBuffer, uint8_t lutInterpolationBlend,
+	Image<ColorRgb>& outputImage, AutomaticToneMapping* automaticToneMapping)
+{
+	if (lutInterpolationBuffer != nullptr && lutInterpolationBlend >= 255)
+	{
+		processImageVectorSingleLut<Quarter, UseToneMapping, UseAutomaticToneMapping>(
+			_cropLeft, _cropRight, _cropTop, _cropBottom,
+			data, dataUV, width, height, lineLength,
+			pixelFormat, lutInterpolationBuffer,
+			outputImage, automaticToneMapping);
+		return;
+	}
+
+	processImageVectorSingleLut<Quarter, UseToneMapping, UseAutomaticToneMapping>(
+		_cropLeft, _cropRight, _cropTop, _cropBottom,
+		data, dataUV, width, height, lineLength,
+		pixelFormat, lutBuffer,
+		outputImage, automaticToneMapping);
+
+	if (lutInterpolationBuffer == nullptr || lutInterpolationBlend == 0)
+		return;
+
+	Image<ColorRgb> interpolationImage;
+	if constexpr (UseAutomaticToneMapping)
+	{
+		processImageVectorSingleLut<Quarter, UseToneMapping, false>(
+			_cropLeft, _cropRight, _cropTop, _cropBottom,
+			data, dataUV, width, height, lineLength,
+			pixelFormat, lutInterpolationBuffer,
+			interpolationImage, nullptr);
+	}
+	else
+	{
+		processImageVectorSingleLut<Quarter, UseToneMapping, UseAutomaticToneMapping>(
+			_cropLeft, _cropRight, _cropTop, _cropBottom,
+			data, dataUV, width, height, lineLength,
+			pixelFormat, lutInterpolationBuffer,
+			interpolationImage, automaticToneMapping);
+	}
+
+	blendDecodedImageBuffers(outputImage.rawMem(), interpolationImage.rawMem(), static_cast<size_t>(outputImage.width()) * outputImage.height() * 3, lutInterpolationBlend);
+}
+
+template<bool Quarter, bool UseToneMapping, bool UseAutomaticToneMapping>
+void FrameDecoder::processImageVector(
+	int _cropLeft, int _cropRight, int _cropTop, int _cropBottom,
+	const uint8_t* data, const uint8_t* dataUV, int width, int height, int lineLength,
+	const PixelFormat pixelFormat, const uint8_t* lutBuffer, const uint8_t* lutInterpolationBuffer, uint8_t lutInterpolationBlend,
+	const uint8_t* transitionLutBuffer, const uint8_t* transitionLutInterpolationBuffer, uint8_t transitionLutInterpolationBlend, uint8_t lutRuntimeTransitionBlend,
+	Image<ColorRgb>& outputImage, AutomaticToneMapping* automaticToneMapping)
+{
+	processImageVectorLutPair<Quarter, UseToneMapping, UseAutomaticToneMapping>(
+		_cropLeft, _cropRight, _cropTop, _cropBottom,
+		data, dataUV, width, height, lineLength,
+		pixelFormat, lutBuffer, lutInterpolationBuffer, lutInterpolationBlend,
+		outputImage, automaticToneMapping);
+
+	if (transitionLutBuffer == nullptr || lutRuntimeTransitionBlend == 0)
+		return;
+
+	Image<ColorRgb> transitionImage;
+	processImageVectorLutPair<Quarter, UseToneMapping, UseAutomaticToneMapping>(
+		_cropLeft, _cropRight, _cropTop, _cropBottom,
+		data, dataUV, width, height, lineLength,
+		pixelFormat, transitionLutBuffer, transitionLutInterpolationBuffer, transitionLutInterpolationBlend,
+		transitionImage, automaticToneMapping);
+	blendDecodedImageBuffers(outputImage.rawMem(), transitionImage.rawMem(), static_cast<size_t>(outputImage.width()) * outputImage.height() * 3, lutRuntimeTransitionBlend);
+}
+
 // Explicitly instantiate the template specializations that are used in GrabberWorker.
 template void FrameDecoder::processImageVector<false, false, false>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<false, true, false>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<true, false, false>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<true, true, false>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<false, false, true>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<false, true, true>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<true, false, true>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 template void FrameDecoder::processImageVector<true, true, true>(
-	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, Image<ColorRgb>&, AutomaticToneMapping*);
+	int, int, int, int, const uint8_t*, const uint8_t*, int, int, int, PixelFormat, const uint8_t*, const uint8_t*, uint8_t, const uint8_t*, const uint8_t*, uint8_t, uint8_t, Image<ColorRgb>&, AutomaticToneMapping*);
 
 void FrameDecoder::applyLUT(uint8_t* _source, unsigned int width, unsigned int height, const uint8_t* lutBuffer, const int _hdrToneMappingEnabled)
 {

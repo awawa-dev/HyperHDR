@@ -21,6 +21,14 @@ $(document).ready( function(){
 	let gammaR = 1;
 	let gammaG = 1;
 	let gammaB = 1;
+	const coloredAspectModeOptions = [
+		{ value: -1, label: "Auto" },
+		{ value: 0, label: "0 - Off" },
+		{ value: 1, label: "1 - High primaries" },
+		{ value: 2, label: "2 - Fixed high/low average" },
+		{ value: 3, label: "3 - Low primaries" },
+		{ value: 4, label: "4 - Dynamic low/high blend" }
+	];
 
 	$("#select_classic_calibration_label").html($.i18n("option_calibration_classic"));
 	$("#select_video_calibration_label").html($.i18n("option_calibration_video"));
@@ -44,7 +52,9 @@ $(document).ready( function(){
 			startCalibrationWizard();
 			const calDebug = document.getElementById('chk_debug').checked;
 			const calLchCorrection = document.getElementById('chk_lchCorrection').checked;
-			requestLutCalibration("capture", calDebug, calLchCorrection);
+			const coloredAspectMode = getSelectedColoredAspectMode('select_coloredAspectMode');
+			const nitsOverride = getSelectedNitsOverride('input_nitsOverride');
+			requestLutCalibration("capture", calDebug, calLchCorrection, coloredAspectMode, nitsOverride);
 	});
 
 
@@ -71,6 +81,9 @@ $(document).ready( function(){
 	{
 		handleMessage(event);
 	});
+
+	setupColoredAspectModeSelects();
+	setupNitsOverrideInputs();
 
 	$("#startCalibration").off('click').on('click', function() { startCalibration(); });
 	
@@ -214,12 +227,72 @@ $(document).ready( function(){
 			setTimeout(() => {
 				const calDebug = document.getElementById('chk_debug2').checked;
 				const calLchCorrection = document.getElementById('chk_lchCorrection2').checked;
-				requestLutCalibration("capture", calDebug, calLchCorrection);				
+				const coloredAspectMode = getSelectedColoredAspectMode('select_coloredAspectMode2');
+				const nitsOverride = getSelectedNitsOverride('input_nitsOverride2');
+				requestLutCalibration("capture", calDebug, calLchCorrection, coloredAspectMode, nitsOverride);				
 			}, 100); 
 		}
 		else
 			alert('Please run fullscreen mode (F11)');
 	};
+
+	function setupColoredAspectModeSelects()
+	{
+		populateColoredAspectModeSelect('select_coloredAspectMode');
+		populateColoredAspectModeSelect('select_coloredAspectMode2');
+
+		$('#select_coloredAspectMode').off('change').on('change', function() {
+			$('#select_coloredAspectMode2').val($(this).val());
+		});
+
+		$('#select_coloredAspectMode2').off('change').on('change', function() {
+			$('#select_coloredAspectMode').val($(this).val());
+		});
+	}
+
+	function populateColoredAspectModeSelect(elementId)
+	{
+		const select = $('#' + elementId);
+		select.empty();
+
+		for (const option of coloredAspectModeOptions)
+		{
+			select.append($('<option>', {
+				value: option.value,
+				text: option.label
+			}));
+		}
+
+		select.val('-1');
+	}
+
+	function getSelectedColoredAspectMode(elementId)
+	{
+		return parseInt(document.getElementById(elementId).value, 10);
+	}
+
+	function setupNitsOverrideInputs()
+	{
+		$('#input_nitsOverride').off('input').on('input', function() {
+			$('#input_nitsOverride2').val($(this).val());
+		});
+
+		$('#input_nitsOverride2').off('input').on('input', function() {
+			$('#input_nitsOverride').val($(this).val());
+		});
+	}
+
+	function getSelectedNitsOverride(elementId)
+	{
+		const value = document.getElementById(elementId).value.trim();
+		if (value === '')
+		{
+			return -1;
+		}
+
+		const parsed = parseFloat(value);
+		return Number.isFinite(parsed) && parsed > 0 ? parsed : -1;
+	}
 
 	const SCREEN_BLOCKS_X = 48;
 	const SCREEN_BLOCKS_Y = 30;

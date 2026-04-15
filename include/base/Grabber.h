@@ -99,6 +99,25 @@ public:
 	void pleaseWaitForLut(bool videoGrabber = true);
 
 	void setEncoding(QString enc);
+	void setLutCandidateFiles(const QStringList& files);
+	QStringList getLutCandidateFiles() const;
+	void setLutInterpolationCandidateFiles(const QStringList& files, int blend);
+	QStringList getLutInterpolationCandidateFiles() const;
+	int getLutInterpolationBlend() const;
+	void setLutMemoryCacheEnabled(bool enabled);
+	bool isLutMemoryCacheEnabled() const;
+	void clearLutMemoryCache();
+	QJsonObject getLutRuntimeInfo() const;
+	const uint8_t* getCurrentLutBuffer() const;
+	const uint8_t* getCurrentLutInterpolationBuffer() const;
+	uint8_t getCurrentLutInterpolationBlend() const;
+	const uint8_t* getTransitionTargetLutBuffer() const;
+	const uint8_t* getTransitionTargetLutInterpolationBuffer() const;
+	uint8_t getTransitionTargetLutInterpolationBlend() const;
+	uint8_t getLutRuntimeTransitionBlend() const;
+	bool isLutRuntimeTransitionActive() const;
+	bool isCalibrationLutOverrideActive() const;
+	void advanceLutRuntimeTransition();
 
 	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 
@@ -122,11 +141,14 @@ public:
 
 	void setSignalDetectionEnable(bool enable);
 
-	void setAutoSignalDetectionEnable(bool enable);	
+	void setAutoSignalDetectionEnable(bool enable);
+
+	void resetSignalDetection();
 
 	QList<Grabber::DevicePropertiesItem> getVideoDeviceModesFullInfo(const QString& devicePath);
 
 	QString	getConfigurationPath();
+	virtual bool reloadLut(QString& error);
 
 	void setAutomaticToneMappingConfig(bool enabled, const AutomaticToneMapping::ToneMappingThresholds& newConfig, int timeInSec, int timeToDisableInMSec);
 	void setAutoToneMappingCurrentStateEnabled(bool enabled);
@@ -170,6 +192,7 @@ public slots:
 	QStringList getVideoDevices() const;
 
 	void signalSetLutHandler(MemoryBuffer<uint8_t>* lut);
+	void signalSetCalibrationLutOverrideHandler(bool enabled);
 
 signals:
 	void SignalNewCapturedFrame(const Image<ColorRgb>& image);
@@ -195,6 +218,14 @@ protected:
 	void processSystemFrameRGBA(uint8_t* source, int lineSize = 0);
 
 	void processSystemFramePQ10(uint8_t* source, int lineSize = 0);
+	PixelFormat getCurrentLutPixelFormatHint() const;
+	bool loadConfiguredLutSelection(const LoggerName& log, PixelFormat color, QString& error);
+	static bool loadLutSelection(const LoggerName& log, PixelFormat color, int hdrToneMappingEnabled,
+		const QStringList& primaryCandidates, const QStringList& secondaryCandidates, uint8_t interpolationBlend, bool useMemoryCache,
+		LutLoader& primaryLoader, LutLoader* secondaryLoader, QString& error);
+	bool tryPrepareLutRuntimeTransition(const LoggerName& log, PixelFormat color,
+		const QStringList& primaryCandidates, const QStringList& secondaryCandidates, uint8_t interpolationBlend, QString& error);
+	void clearCalibrationLutOverride();
 
 	void handleNewFrame(unsigned int workerIndex, Image<ColorRgb> image, quint64 sourceCount, qint64 _frameBegin);
 
@@ -264,6 +295,7 @@ protected:
 	bool		_blocked;
 	bool		_restartNeeded;
 	bool		_initialized;
+	bool		_lutCalibrationOverrideActive;
 	int			_fpsSoftwareDecimation;
 	bool		_hardware;
 
@@ -280,6 +312,19 @@ protected:
 	bool		_signalAutoDetectionEnabled;
 	QSemaphore  _synchro;
 	AutomaticToneMapping _automaticToneMapping;
+	QStringList _lutCandidateFiles;
+	QStringList _lutInterpolationCandidateFiles;
+	uint8_t _lutInterpolationBlend;
+	bool _lutMemoryCacheEnabled;
+	LutLoader _lutInterpolationLoader;
+	LutLoader _lutRuntimeTransitionLoader;
+	LutLoader _lutRuntimeTransitionInterpolationLoader;
+	uint8_t _lutRuntimeTransitionInterpolationBlend;
+	uint8_t _lutRuntimeTransitionBlend;
+	uint8_t _lutRuntimeTransitionFrameStep;
+	bool _lutRuntimeTransitionActive;
+	bool _lutRuntimeCurrentUsesTransitionSlot;
+	bool _lutRuntimeTransitionTargetUsesTransitionSlot;
 };
 
 bool sortDevicePropertiesItem(const Grabber::DevicePropertiesItem& v1, const Grabber::DevicePropertiesItem& v2);

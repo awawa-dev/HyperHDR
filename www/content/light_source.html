@@ -3,13 +3,14 @@
 	<ul id="leds_cfg_nav" class="nav nav-tabs">
 		<li class="nav-item"><button class="nav-link active" aria-selected="true" aria-current="menucontroller" href="#menu_controller" data-bs-toggle="tab" data-bs-target="#menu_controller" type="button" role="tab" data-i18n="conf_leds_nav_label_ledcontroller">LED Controller</button></li>
 		<li class="nav-item"><button class="nav-link" aria-selected="false" href="#menu_gencfg" data-bs-toggle="tab" data-bs-target="#menu_gencfg" type="button" role="tab" data-i18n="conf_leds_nav_label_ledlayout">LED Layout</button></li>
+		<li class="nav-item"><button class="nav-link" aria-selected="false" href="#menu_transfer_headers" data-bs-toggle="tab" data-bs-target="#menu_transfer_headers" type="button" role="tab">Transfer Headers</button></li>
 	</ul>
 
 	<div class="tab-content">
 		<div id="menu_controller" class="tab-pane fade show active" style="padding-top: 10px;" aria-labelledby="menucontroller">
 			<div class="row">
 				<div class="col-lg-12" id="leddevice_intro"></div>
-				<div class="col-md-12 col-xl-10 col-xxl-7">
+				<div class="col-md-12 col-xl-10 col-xxl-7" id="led_device_editor_column">
 					<div class="card card-default">
 						<div class="card-header form-group" id="instTarget3">
 							<div class="d-flex flex-row" id="instTarget1">
@@ -29,9 +30,13 @@
 							</div>
 						</div>
 						<div class="card-footer" style="text-align: right;">
+							<button id="btn_help_controller" class="btn btn-warning btn-warning-noset" style="float: left; display: none;"><svg data-src="svg/button_help.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="panel_help_button">Help</span></button>
 							<button id="btn_submit_controller" class="btn btn-primary"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="general_button_savesettings">Save Settings</span></button>
 						</div>
 					</div>
+				</div>
+				<div class="col-md-12 col-xl-10 col-xxl-5 d-none" id="led_device_help_wrap">
+					<div id="led_device_help_panel"></div>
 				</div>
 			</div>
 		</div>
@@ -585,6 +590,267 @@
 							<button type="button" class="btn btn-danger" id="leds_prev_toggle_num"><svg data-src="svg/light_source_show_numbers.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_ledsim_btn_togglelednumber">toggle led numbers</span></button>
 							<button type="button" class="btn btn-primary" id="leds_prev_checklist"><svg data-src="svg/button_help.svg" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="conf_leds_layout_btn_checklist">toggle led numbers</span></button>
 							<button type="button" class="btn btn-warning" id="leds_prev_zoom"><svg id="cmd_zoom_in_icon" data-src="svg/button_zoom.svg" fill="currentColor" class="svg4hyperhdr"></svg><svg id="cmd_zoom_out_icon" data-src="svg/button_zoom_out.svg" fill="currentColor" class="svg4hyperhdr d-none"></svg><span data-i18n="conf_leds_layout_btn_zoom">zoom</span></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="menu_transfer_headers" class="tab-pane fade" style="padding-top: 10px;" aria-labelledby="menutransferheaders">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="alert alert-info" role="alert">
+						Transfer headers are stored in HyperHDR's data directory and become available in RawHID when the transfer owner is set to HyperHDR.
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Upload Or Paste Header</h4>
+						</div>
+						<div class="card-body">
+							<div class="mb-3">
+								<label for="transfer_header_name" class="form-label">Profile name</label>
+								<input id="transfer_header_name" type="text" class="form-control" placeholder="Required display name" />
+							</div>
+							<div class="mb-3">
+								<label for="transfer_header_file" class="form-label">Header file</label>
+								<input id="transfer_header_file" type="file" class="form-control" accept=".h,.hpp,.txt" />
+							</div>
+							<div class="mb-3">
+								<label for="transfer_header_content" class="form-label">Header text</label>
+								<textarea id="transfer_header_content" class="form-control" rows="16" spellcheck="false" placeholder="Paste a transfer header containing BUCKET_COUNT and TARGET_R/G/B/W arrays"></textarea>
+							</div>
+							<div class="small text-muted">
+								Accepted format: a generated C/C++ header with BUCKET_COUNT plus TARGET_R, TARGET_G, TARGET_B, and TARGET_W uint16 tables. Any positive bucket count is supported as long as the declared array lengths match. Extra VALUE, LOWER, UPPER, or BFI arrays may be present and are ignored for storage.
+							</div>
+						</div>
+						<div class="card-footer text-end">
+							<button id="btn_transfer_header_save" class="btn btn-primary"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>Save Transfer Header</span></button>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Stored Headers</h4>
+						</div>
+						<div class="card-body">
+							<div class="small text-muted mb-3">Storage path: <span id="transfer_header_storage_path">-</span></div>
+							<div id="transfer_header_empty" class="text-muted">No transfer headers stored yet.</div>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle mb-0">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Buckets</th>
+											<th>Updated</th>
+											<th class="text-end">Actions</th>
+										</tr>
+									</thead>
+									<tbody id="transfer_header_rows"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-12 mt-4">
+					<div class="alert alert-info" role="alert">
+						Calibration headers are stored separately and become available in RawHID when calibration ownership is set to HyperHDR.
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Upload Or Paste Calibration Header</h4>
+						</div>
+						<div class="card-body">
+							<div class="mb-3">
+								<label for="calibration_header_name" class="form-label">Profile name</label>
+								<input id="calibration_header_name" type="text" class="form-control" placeholder="Required display name" />
+							</div>
+							<div class="mb-3">
+								<label for="calibration_header_file" class="form-label">Header file</label>
+								<input id="calibration_header_file" type="file" class="form-control" accept=".h,.hpp,.txt" />
+							</div>
+							<div class="mb-3">
+								<label for="calibration_header_content" class="form-label">Header text</label>
+								<textarea id="calibration_header_content" class="form-control" rows="16" spellcheck="false" placeholder="Paste a true16 calibration header containing LUT_R/G/B/W_16_TO_16 arrays"></textarea>
+							</div>
+							<div class="small text-muted">
+								Accepted format: a generated C/C++ header with LUT_R_16_TO_16, LUT_G_16_TO_16, LUT_B_16_TO_16, and LUT_W_16_TO_16 uint16 tables. The LUT size can be any positive declared length as long as all four arrays match.
+							</div>
+						</div>
+						<div class="card-footer text-end">
+							<button id="btn_calibration_header_save" class="btn btn-primary"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>Save Calibration Header</span></button>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Stored Calibration Headers</h4>
+						</div>
+						<div class="card-body">
+							<div class="small text-muted mb-3">Storage path: <span id="calibration_header_storage_path">-</span></div>
+							<div id="calibration_header_empty" class="text-muted">No calibration headers stored yet.</div>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle mb-0">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Buckets</th>
+											<th>Updated</th>
+											<th class="text-end">Actions</th>
+										</tr>
+									</thead>
+									<tbody id="calibration_header_rows"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-12 mt-4">
+					<div class="alert alert-info" role="alert">
+						RGBW LUT headers are stored separately and become available in RawHID when the RGBW mode is set to the measured LUT path.
+					</div>
+				</div>
+				<div class="col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Current RawHID RGBW LUT Selection</h4>
+						</div>
+						<div class="card-body">
+							<div class="row g-3">
+								<div class="col-xl-3 col-md-6">
+									<div class="small text-muted">LED device</div>
+									<div id="rgbw_lut_header_active_device" class="fw-semibold">-</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
+									<div class="small text-muted">RGBW mode</div>
+									<div id="rgbw_lut_header_active_mode" class="fw-semibold">-</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
+									<div class="small text-muted">Selected profile</div>
+									<div id="rgbw_lut_header_active_profile" class="fw-semibold">-</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
+									<div class="small text-muted">Status</div>
+									<div id="rgbw_lut_header_active_status" class="fw-semibold">-</div>
+								</div>
+							</div>
+							<div id="rgbw_lut_header_active_hint" class="small text-muted mt-3">
+								Use the action buttons below to choose which stored RGBW LUT header RawHID should use.
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Upload Or Paste RGBW LUT Header</h4>
+						</div>
+						<div class="card-body">
+							<div class="mb-3">
+								<label for="rgbw_lut_header_name" class="form-label">Profile name</label>
+								<input id="rgbw_lut_header_name" type="text" class="form-control" placeholder="Required display name" />
+							</div>
+							<div class="mb-3">
+								<label for="rgbw_lut_header_file" class="form-label">Header file</label>
+								<input id="rgbw_lut_header_file" type="file" class="form-control" accept=".h,.hpp,.txt" />
+							</div>
+							<div class="mb-3">
+								<label for="rgbw_lut_header_content" class="form-label">Header text</label>
+								<textarea id="rgbw_lut_header_content" class="form-control" rows="16" spellcheck="false" placeholder="Paste a measured RGBW LUT header containing RGBW_LUT_GRID_SIZE, RGBW_LUT_ENTRY_COUNT, and RGBW_LUT_R/G/B/W arrays"></textarea>
+							</div>
+							<div class="small text-muted">
+								Accepted format: a generated C/C++ header with RGBW_LUT_GRID_SIZE, RGBW_LUT_ENTRY_COUNT, axis metadata, and flattened RGBW_LUT_R, RGBW_LUT_G, RGBW_LUT_B, and RGBW_LUT_W uint16 arrays in RGB-major order.
+							</div>
+						</div>
+						<div class="card-footer text-end">
+							<button id="btn_rgbw_lut_header_save" class="btn btn-primary"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>Save RGBW LUT Header</span></button>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Stored RGBW LUT Headers</h4>
+						</div>
+						<div class="card-body">
+							<div class="small text-muted mb-3">Storage path: <span id="rgbw_lut_header_storage_path">-</span></div>
+							<div id="rgbw_lut_header_empty" class="text-muted">No RGBW LUT headers stored yet.</div>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle mb-0">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>Grid</th>
+											<th>Entries</th>
+											<th>Selected</th>
+											<th>Updated</th>
+											<th class="text-end">Actions</th>
+										</tr>
+									</thead>
+									<tbody id="rgbw_lut_header_rows"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-12 mt-4">
+					<div class="alert alert-info" role="alert">
+						Solver profiles are stored separately and are used by RawHID solver-aware host analysis when a custom solver profile is selected.
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+								<h4 class="card-title mb-0">Upload Or Paste Temporal Solver Header</h4>
+						</div>
+						<div class="card-body">
+							<div class="mb-3">
+								<label for="solver_profile_name" class="form-label">Profile name</label>
+								<input id="solver_profile_name" type="text" class="form-control" placeholder="Required display name" />
+							</div>
+							<div class="mb-3">
+									<label for="solver_profile_file" class="form-label">Temporal runtime solver header</label>
+									<input id="solver_profile_file" type="file" class="form-control" accept=".h,.hpp,.txt,.json" />
+							</div>
+							<div class="mb-3">
+									<label for="solver_profile_content" class="form-label">Temporal solver header text</label>
+									<textarea id="solver_profile_content" class="form-control" rows="16" spellcheck="false" placeholder="Paste the generated temporal_runtime_solver_header with LADDER_R/G/B/W plus LOWER and UPPER arrays"></textarea>
+							</div>
+							<div class="small text-muted">
+									Preferred format: the generated temporal runtime solver header containing <code>LADDER_R</code>, <code>LADDER_G</code>, <code>LADDER_B</code>, <code>LADDER_W</code> and matching <code>_LOWER</code> and <code>_UPPER</code> arrays. HyperHDR stores the uploaded header and derives the normalized JSON profile from it. Legacy JSON uploads with a <code>channels</code> object are still accepted for compatibility.
+							</div>
+						</div>
+						<div class="card-footer text-end">
+							<button id="btn_solver_profile_save" class="btn btn-primary"><svg data-src="svg/button_save.svg" fill="currentColor" class="svg4hyperhdr"></svg><span>Save Solver Profile</span></button>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-6 col-lg-12">
+					<div class="card card-default">
+						<div class="card-header">
+							<h4 class="card-title mb-0">Stored Solver Profiles</h4>
+						</div>
+						<div class="card-body">
+							<div class="small text-muted mb-3">Storage path: <span id="solver_profile_storage_path">-</span></div>
+							<div id="solver_profile_empty" class="text-muted">No custom solver profiles stored yet.</div>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle mb-0">
+									<thead>
+										<tr>
+											<th>Name</th>
+											<th>States</th>
+											<th>Updated</th>
+											<th class="text-end">Actions</th>
+										</tr>
+									</thead>
+									<tbody id="solver_profile_rows"></tbody>
+								</table>
+							</div>
 						</div>
 					</div>
 				</div>

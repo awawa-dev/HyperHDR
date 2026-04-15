@@ -1,0 +1,29 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["transfer-headers"]
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["list", "save", "delete", "get-active", "set-active"]
+		},
+		"name": {
+			"type" : "string"
+		},
+		"content": {
+			"type" : "string"
+		},
+		"profile": {
+			"type" : "string"
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}

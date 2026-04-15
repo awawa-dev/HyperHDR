@@ -61,6 +61,12 @@ GrabberWorker::GrabberWorker() :
 	_frameBegin(0),
 	_hdrToneMappingEnabled(0),
 	_lutBuffer(nullptr),
+	_lutInterpolationBuffer(nullptr),
+	_transitionLutBuffer(nullptr),
+	_transitionLutInterpolationBuffer(nullptr),
+	_lutInterpolationBlend(0),
+	_lutRuntimeTransitionBlend(0),
+	_transitionLutInterpolationBlend(0),
 	_qframe(false),
 	_directAccess(false),
 	_automaticToneMapping(nullptr)
@@ -86,7 +92,9 @@ void GrabberWorker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Pi
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, uint8_t* __lutInterpolationBuffer, uint8_t __lutInterpolationBlend,
+	uint8_t* __transitionLutBuffer, uint8_t* __transitionLutInterpolationBuffer, uint8_t __transitionLutInterpolationBlend, uint8_t __lutRuntimeTransitionBlend,
+	bool __qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping)
 {
 	_workerIndex = __workerIndex;
 	memcpy(&_v4l2Buf, __v4l2Buf, sizeof(v4l2_buffer));
@@ -104,6 +112,12 @@ void GrabberWorker::setup(unsigned int __workerIndex, v4l2_buffer* __v4l2Buf, Pi
 	_frameBegin = __frameBegin;
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	_lutBuffer = __lutBuffer;
+	_lutInterpolationBuffer = __lutInterpolationBuffer;
+	_lutInterpolationBlend = __lutInterpolationBlend;
+	_transitionLutBuffer = __transitionLutBuffer;
+	_transitionLutInterpolationBuffer = __transitionLutInterpolationBuffer;
+	_transitionLutInterpolationBlend = __transitionLutInterpolationBlend;
+	_lutRuntimeTransitionBlend = __lutRuntimeTransitionBlend;
 	_qframe = __qframe;
 	_directAccess = __directAccess;
 	_deviceName = __deviceName;
@@ -119,7 +133,9 @@ void GrabberWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	uint8_t* __sharedData, int __size, int __width, int __height, int __lineLength,
 	uint __cropLeft, uint  __cropTop, uint __cropBottom, uint __cropRight,
 	quint64 __currentFrame, qint64 __frameBegin,
-	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, bool __qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping)
+	int __hdrToneMappingEnabled, uint8_t* __lutBuffer, uint8_t* __lutInterpolationBuffer, uint8_t __lutInterpolationBlend,
+	uint8_t* __transitionLutBuffer, uint8_t* __transitionLutInterpolationBuffer, uint8_t __transitionLutInterpolationBlend, uint8_t __lutRuntimeTransitionBlend,
+	bool __qframe, bool __directAccess, QString __deviceName, AutomaticToneMapping* __automaticToneMapping)
 {
 	_workerIndex = __workerIndex;
 	_lineLength = __lineLength;
@@ -135,6 +151,12 @@ void GrabberWorker::setup(unsigned int __workerIndex, PixelFormat __pixelFormat,
 	_frameBegin = __frameBegin;
 	_hdrToneMappingEnabled = __hdrToneMappingEnabled;
 	_lutBuffer = __lutBuffer;
+	_lutInterpolationBuffer = __lutInterpolationBuffer;
+	_lutInterpolationBlend = __lutInterpolationBlend;
+	_transitionLutBuffer = __transitionLutBuffer;
+	_transitionLutInterpolationBuffer = __transitionLutInterpolationBuffer;
+	_transitionLutInterpolationBlend = __transitionLutInterpolationBlend;
+	_lutRuntimeTransitionBlend = __lutRuntimeTransitionBlend;
 	_qframe = __qframe;
 	_directAccess = __directAccess;
 	_deviceName = __deviceName;
@@ -170,7 +192,8 @@ void GrabberWorker::runMe()
 
 			FrameDecoder::dispatchProcessImageVector[_qframe][static_cast<bool>(_hdrToneMappingEnabled)][_qframe && _automaticToneMapping != nullptr](
 				_cropLeft, _cropRight, _cropTop, _cropBottom,
-				frameData, nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, image, _automaticToneMapping);
+				frameData, nullptr, _width, _height, _lineLength, _pixelFormat, _lutBuffer, _lutInterpolationBuffer, _lutInterpolationBlend,
+				_transitionLutBuffer, _transitionLutInterpolationBuffer, _transitionLutInterpolationBlend, _lutRuntimeTransitionBlend, image, _automaticToneMapping);
 
 			image.setBufferCacheSize();
 			if (!_directAccess)
@@ -251,7 +274,8 @@ void GrabberWorker::process_image_jpg_mt()
 
 		FrameDecoder::dispatchProcessImageVector[false][_hdrToneMappingEnabled][false](
 			_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpgBuffer.data(), nullptr, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, image, _automaticToneMapping);
+			jpgBuffer.data(), nullptr, _width, _height, _width, (_subsamp == TJSAMP_422) ? PixelFormat::MJPEG : PixelFormat::I420, _lutBuffer, _lutInterpolationBuffer, _lutInterpolationBlend,
+			_transitionLutBuffer, _transitionLutInterpolationBuffer, _transitionLutInterpolationBlend, _lutRuntimeTransitionBlend, image, _automaticToneMapping);
 	}
 	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
@@ -266,7 +290,7 @@ void GrabberWorker::process_image_jpg_mt()
 
 		FrameDecoder::dispatchProcessImageVector[false][false][false](
 			_cropLeft, _cropRight, _cropTop, _cropBottom,
-			jpgBuffer.data(), nullptr, _width, _height, _width * 3, PixelFormat::RGB24, nullptr, image, nullptr);
+			jpgBuffer.data(), nullptr, _width, _height, _width * 3, PixelFormat::RGB24, nullptr, nullptr, 0, nullptr, nullptr, 0, 0, image, nullptr);
 	}
 	else
 	{

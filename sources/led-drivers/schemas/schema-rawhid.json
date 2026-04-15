@@ -2,23 +2,692 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_outputPath_title",
+			"default":"auto",
+			"propertyOrder" : 1
+		},
 		"VID": {
 			"type": "string",
 			"title":"edt_dev_spec_vid_title",
-			"default" : "0x2341",
-			"propertyOrder" : 1
+			"default" : "0x16C0",
+			"propertyOrder" : 2
 		},
 		"PID": {
 			"type": "string",
 			"title":"edt_dev_spec_pid_title",
-			"default" : "0x8036",
-			"propertyOrder" : 2
+			"default" : "0x04d6",
+			"propertyOrder" : 3
+		},
+		"reportSize": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID report size",
+			"description": "Maximum bytes HyperHDR sends in each USB RawHID report. Keep this matched to the firmware buffer size. Larger values reduce packet count, while smaller values can help if the firmware expects shorter reports.",
+			"default": 1024,
+			"minimum": 8,
+			"maximum": 1024,
+			"append": "bytes",
+			"access": "expert",
+			"propertyOrder": 4
+		},
+		"writeTimeout": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID write timeout (0 = non-blocking)",
+			"description": "How long HyperHDR waits for each USB write to finish. Raise it if writes occasionally time out on a busy system. Lower it for faster failure detection. Set 0 only if the firmware and host path are known to handle non-blocking writes cleanly.",
+			"default": 1000,
+			"minimum": 0,
+			"maximum": 5000,
+			"append": "ms",
+			"access": "expert",
+			"propertyOrder": 5
+		},
+		"readLogChannel": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title": "Read incoming RawHID logs",
+			"description": "Reads diagnostic messages sent back by the Teensy over RawHID. Leave this enabled while tuning or debugging. Disable it only if you want the quietest possible host path.",
+			"default": true,
+			"access": "expert",
+			"propertyOrder": 6
+		},
+		"logPollIntervalFrames": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID log poll interval",
+			"description": "How often HyperHDR checks the device for queued log reports. Lower values surface logs sooner but add more host polling. Higher values reduce overhead but delay feedback.",
+			"default": 420,
+			"minimum": 1,
+			"maximum": 512,
+			"append": "frames",
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"readLogChannel": true
+				}
+			},
+			"propertyOrder": 7
+		},
+		"logReadBudget": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID log read budget",
+			"description": "Maximum number of log reports HyperHDR reads during one poll pass. Increase it if the device can burst a lot of debug output. Decrease it if logs should consume less time per frame.",
+			"default": 8,
+			"minimum": 1,
+			"maximum": 64,
+			"append": "reports",
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"readLogChannel": true
+				}
+			},
+			"propertyOrder": 8
 		},
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 0,
-			"propertyOrder" : 3
+			"append" : "ms",
+			"propertyOrder" : 9
+		},
+		"payloadMode": {
+			"type": "string",
+			"title": "RawHID payload mode",
+			"description": "Selects how pixel data is packed before it is sent to the firmware. RGB16 is the safest option and keeps full 16-bit channels. RGB12 carry uses less bandwidth, which can help on larger setups, but the firmware must decode the packed 12-bit stream correctly. With host ICE RGBW enabled, RGB12 carry remains supported and sends four packed 12-bit channels using a 6-byte RGBW payload.",
+			"default": "rgb16",
+			"enum": ["rgb16", "rgb12carry"],
+			"options": {
+				"enum_titles": ["RGB16", "RGB12 carry"]
+			},
+			"access": "expert",
+			"propertyOrder": 10
+		},
+		"transferCurveOwner": {
+			"type": "string",
+			"title": "RawHID transfer curve owner",
+			"description": "Controls where perceptual shaping happens. Disabled sends linear data only. Teensy means the firmware applies its own transfer/header logic. HyperHDR means the PC applies the selected profile first, which is useful when you want host-side control and matching behavior across devices.",
+			"default": "teensy",
+			"enum": ["disabled", "teensy", "hyperhdr"],
+			"options": {
+				"enum_titles": ["Disabled", "Teensy", "HyperHDR"]
+			},
+			"access": "expert",
+			"propertyOrder": 44
+		},
+		"transferCurveProfile": {
+			"type": "string",
+			"title": "RawHID transfer curve profile",
+			"description": "Transfer/header profile HyperHDR applies when the owner is set to HyperHDR. Choose the profile that best matches the firmware calibration you want to drive. Switching profiles changes how shadows, highlights, and overall brightness are shaped before transport.",
+			"default": "curve3_4_new",
+			"access": "expert",
+			"propertyOrder": 45
+		},
+		"calibrationHeaderOwner": {
+			"type": "string",
+			"title": "RawHID calibration header owner",
+			"description": "Controls where true16 input calibration is applied. Disabled leaves calibration off. Teensy means the firmware owns the calibration LUTs. HyperHDR means the PC applies the selected calibration header before sending Q16 values to the solver-aware path.",
+			"default": "teensy",
+			"enum": ["disabled", "teensy", "hyperhdr"],
+			"options": {
+				"enum_titles": ["Disabled", "Teensy", "HyperHDR"]
+			},
+			"access": "expert",
+			"propertyOrder": 46
+		},
+		"calibrationHeaderProfile": {
+			"type": "string",
+			"title": "RawHID calibration header profile",
+			"description": "True16 calibration profile HyperHDR applies when calibration ownership is set to HyperHDR. Use a generated LUT_R/G/B/W 16-to-16 header that matches the display and firmware solver tables.",
+			"default": "disabled",
+			"access": "expert",
+			"propertyOrder": 47
+		},
+		"calibrationTransferOrder": {
+			"type": "string",
+			"title": "RawHID host transfer/calibration order",
+			"description": "Controls the ordering when HyperHDR owns both the transfer curve and calibration header. Transfer then calibration preserves the current host transfer path before calibration. Calibration then transfer lets you A/B the inverse order without changing firmware.",
+			"default": "transfer_then_calibration",
+			"enum": ["transfer_then_calibration", "calibration_then_transfer"],
+			"options": {
+				"enum_titles": ["Transfer then calibration", "Calibration then transfer"]
+			},
+			"access": "expert",
+			"propertyOrder": 48
+		},
+		"solverProfile": {
+			"type": "string",
+			"title": "RawHID solver profile",
+			"description": "Selects the solver ladder set HyperHDR uses for solver-aware host analysis. Built-in uses the compiled fallback ladders. Custom profiles load uploaded solver JSON profiles, including lower and upper ladder values, from HyperHDR storage.",
+			"default": "builtin",
+			"access": "expert",
+			"propertyOrder": 49
+		},
+		"scenePolicyMode": {
+			"type": "string",
+			"title": "RawHID host policy mode",
+			"description": "Selects the supported host-side policy path. Disabled leaves the base firmware behavior alone. Host solver-aware v2 keeps the legacy highlight-aware Q16 guard that was tuned around fixed black-frame assumptions. Host solver-aware v3 switches the host analysis onto the solver's emitted-output model so scene decisions follow the derived ladder density and average solver output instead of a fixed 4096/black-frame approximation.",
+			"default": "disabled",
+			"enum": ["disabled", "solverAwareV2", "solverAwareV3"],
+			"options": {
+				"enum_titles": ["Disabled", "Host solver-aware v2", "Host solver-aware v3"]
+			},
+			"access": "expert",
+			"propertyOrder": 11
+		},
+		"scenePolicyEnableHighlight": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title": "Enable RawHID highlight policy",
+			"description": "Enables extra checks for localized highlights. Use this when bright peaks should stay exempt from the solver-aware Q16 cap. Disabling it leaves the solver-aware mode on without highlight-specific protection.",
+			"default": true,
+			"access": "expert",
+			"propertyOrder": 12
+		},
+		"highlightShadowPercent": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight selection percent",
+			"description": "Top portion of LEDs treated as highlight candidates. Higher values consider more of the frame as possible highlights, which can make the highlight policy trigger more often. Lower values restrict it to only the brightest peaks.",
+			"default": 6,
+			"minimum": 0,
+			"maximum": 100,
+			"append": "%",
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 25
+		},
+		"highlightShadowMinPeakDelta": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight min peak delta",
+			"description": "Minimum gap between the brightest highlight candidates and the rest of the scene. Raise it to require more obvious peaks. Lower it if subtle highlights should still count.",
+			"default": 12,
+			"minimum": 0,
+			"maximum": 255,
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 26
+		},
+		"highlightShadowUniformSpreadMax": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight uniform spread max",
+			"description": "Rejects highlight detection when the selected bright pixels are too evenly spread across the frame. Lower values make the policy prefer compact highlight clusters. Higher values allow broader bright regions to pass.",
+			"default": 8,
+			"minimum": 0,
+			"maximum": 255,
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 27
+		},
+		"highlightShadowTriggerMargin": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight trigger margin",
+			"description": "Extra margin applied before the highlight policy triggers. Increase it to make highlight activation more conservative. Decrease it if the highlight path should engage earlier.",
+			"default": 6,
+			"minimum": 0,
+			"maximum": 255,
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 28
+		},
+		"highlightShadowMinSceneMedian": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight min scene median",
+			"description": "Minimum median scene level required before highlight logic is allowed to act. Raise it to suppress highlight decisions in darker content. Lower it if highlight handling should still be available in dimmer scenes.",
+			"default": 22,
+			"minimum": 0,
+			"maximum": 255,
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 29
+		},
+		"highlightShadowMinSceneAvg": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight min scene average",
+			"description": "Minimum average scene energy required for highlight handling. Higher values make highlight logic stay out of low-level scenes. Lower values let it participate more often.",
+			"default": 26,
+			"minimum": 0,
+			"maximum": 255,
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 30
+		},
+		"highlightShadowDimUniformMedian": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight dim-uniform median",
+			"description": "Median level used to classify scenes that are too dim and uniform for meaningful highlight separation. Increase it to reject more dim content. Decrease it if the highlight policy should continue operating deeper into the shadows.",
+			"default": 52,
+			"minimum": 0,
+			"maximum": 255,
+			"access": "expert",
+			"options": { "dependencies": { "scenePolicyEnableHighlight": true } },
+			"propertyOrder": 31
+		},
+		"highlightShadowQ16Threshold": {
+			"type": "integer",
+			"format": "stepper",
+			"title": "RawHID highlight non-highlight Q16 cap",
+			"description": "Maximum processed Q16 level used by the host solver in solver-aware mode before any optional highlight exemption is applied. When highlight selection is enabled, highlighted pixels are exempt from this cap and non-highlight pixels are clamped before the host solver chooses the final ladder state. With scene and highlight toggles off, this still works as a general solver-aware brightness cap. Increase it to let ordinary content reach higher Q16 levels. Lower it to reserve more headroom for highlights or to act as a stricter brightness ceiling. Set 65535 to effectively disable the cap.",
+			"default": 53247,
+			"minimum": 0,
+			"maximum": 65535,
+			"access": "expert",
+			"propertyOrder": 49
+		},
+		"rgbwMode": {
+			"type": "string",
+			"title": "RawHID RGBW mode",
+			"description": "Selects the mutually exclusive host-side RGBW path. Disabled keeps standard RGB transport. ICE uses the existing Infinite Color Engine host mixer. Classic min mirrors the Teensy-style white extraction using w=min(rgb). Centroid min uses the measured white-axis subtraction vector but keeps the conservative min(rgb) white amount. Gated min adds the same measured white-axis subtraction with a chromaticity gate so extraction only engages near the configured white target. LUT header uses an uploaded sampled RGBW grid generated from measured data. Exact white extracts along the measured white-axis solve directly, which is the most aggressive analytic host-side white replacement mode.",
+			"default": "disabled",
+			"enum": ["disabled", "ice", "classicMin", "centroidMin", "gatedMin", "lutHeader", "exactWhite"],
+			"options": {
+				"enum_titles": ["Disabled", "ICE RGBW", "Classic min(rgb)", "Measured centroid min", "Gated min", "Measured RGBW LUT header", "Exact white"]
+			},
+			"access": "expert",
+			"propertyOrder": 32
+		},
+		"rgbwLutProfile": {
+			"type": "string",
+			"title": "RawHID RGBW LUT header profile",
+			"description": "Selects the uploaded sampled RGBW LUT header HyperHDR uses when RGBW mode is set to the LUT-backed path. The profile should be generated from measured RGBW data and exported through the RGBW LUT header uploader.",
+			"default": "disabled",
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "lutHeader"
+				}
+			},
+			"propertyOrder": 33
+		},
+		"rgbwLutTransferOrder": {
+			"type": "string",
+			"title": "RawHID RGBW LUT transfer order",
+			"description": "Controls whether HyperHDR applies the active transfer curve before the LUT-header RGBW extraction or after LUT sampling on the emitted RGBW channels. The default preserves the existing path: RGB -> transfer curve -> RGBW LUT. The alternate mode uses RGB -> RGBW LUT -> transfer curve.",
+			"default": "transfer_before_lut",
+			"enum": ["transfer_before_lut", "lut_then_transfer"],
+			"options": {
+				"enum_titles": ["Transfer before RGBW LUT", "RGBW LUT before transfer"]
+			},
+			"access": "expert",
+			"propertyOrder": 34
+		},
+		"rgbwApplyD65Correction": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title": "Apply D65 correction to RawHID RGBW extraction",
+			"description": "Biases the host RGBW extraction target toward D65 instead of the measured white centroid alone. The correction is blended, not hard-switched, so you can steer whites toward D65 without forcing the full target. ICE RGBW keeps using its existing white-temperature controls; this toggle applies to the non-ICE host extraction modes.",
+			"required": true,
+			"default": false,
+			"access": "expert",
+			"propertyOrder": 33
+		},
+		"rgbwD65Strength": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID D65 correction strength",
+			"description": "Blend amount for D65 correction on the non-ICE RawHID RGBW modes. 0 keeps the measured white target. 1 applies the full D65-corrected target. Lower values are usually safer if D65 correction starts pushing whites or warm colors too far.",
+			"required": true,
+			"default": 0.35,
+			"step": 0.05,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwApplyD65Correction": true
+				}
+			},
+			"propertyOrder": 34
+		},
+		"ice_rgbw_temporal_dithering": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title": "RawHID ICE RGBW temporal dithering",
+			"description": "Controls HyperHDR temporal dithering for host-owned RGBW output on RawHID. Leave this off if your external temporal rendering pipeline should remain the only dithering stage. This setting applies to host-owned RGBW operation in both RGB16 and RGB12 carry payload modes, even though the visible effect is strongest when the output is quantized for transport.",
+			"required": true,
+			"default": false,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "ice"
+				}
+			},
+			"propertyOrder": 35
+		},
+		"ice_white_mixer_threshold": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_mixer_threshold",
+			"description": "Minimum neutral content needed before HyperHDR starts moving energy into the white channel. Lower values use the white LED more often. Higher values keep more energy in RGB unless the color is very close to neutral.",
+			"required" : true,
+			"default" : 0.00,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "ice"
+				}
+			},
+			"propertyOrder" : 36
+		},
+		"ice_white_led_intensity": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_led_intensity",
+			"description": "Scales how strongly the white channel contributes once it is selected. Increase it if the white LED is physically weak. Decrease it if whites look overdriven or wash out color balance.",
+			"required" : true,
+			"default" : 1.8,
+			"step": 0.05,
+			"minimum" : 0.5,
+			"maximum" : 5.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "ice"
+				}
+			},
+			"propertyOrder" : 37
+		},
+		"ice_white_temperatur_red": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_temperatur_r",
+			"description": "Red contribution used to model the white emitter temperature when host ICE RGBW is active. Raise it to warm the white output. Lower it to pull the white point away from red.",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "ice"
+				}
+			},
+			"propertyOrder" : 38
+		},
+		"ice_white_temperatur_green": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_temperatur_g",
+			"description": "Green contribution used to model the white emitter temperature when host ICE RGBW is active. Adjust this to center the perceived white point and neutral balance.",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "ice"
+				}
+			},
+			"propertyOrder" : 39
+		},
+		"ice_white_temperatur_blue": {
+			"type": "number",
+			"format" : "stepper",
+			"title":"edt_ice_white_temperatur_b",
+			"description": "Blue contribution used to model the white emitter temperature when host ICE RGBW is active. Raise it for a cooler white appearance. Lower it for a warmer white appearance.",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "ice"
+				}
+			},
+			"propertyOrder" : 40
+		},
+		"rgbwGatedUvRadius": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID gated-min u'v' radius",
+			"description": "Maximum u'v' distance from the selected white target before the gated-min mode disables white extraction. Lower values make the gate stricter. Higher values let more near-neutral colors use the white channel.",
+			"required": true,
+			"default": 0.020,
+			"step": 0.001,
+			"minimum": 0.0,
+			"maximum": 0.25,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "gatedMin"
+				}
+			},
+			"propertyOrder": 41
+		},
+		"rgbwGatedPower": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID gated-min falloff power",
+			"description": "Shapes how quickly gated-min extraction falls off as a color moves away from the white target. Higher values hold back the white channel more strongly until the color is very close to white.",
+			"required": true,
+			"default": 1.75,
+			"step": 0.05,
+			"minimum": 0.05,
+			"maximum": 8.0,
+			"access": "expert",
+			"options": {
+				"dependencies": {
+					"rgbwMode": "gatedMin"
+				}
+			},
+			"propertyOrder": 42
+		},
+		"rgbwCentroidRedX": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid R.x",
+			"description": "Measured x chromaticity for the red emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.6845,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 43
+		},
+		"rgbwCentroidRedY": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid R.y",
+			"description": "Measured y chromaticity for the red emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.3155,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 44
+		},
+		"rgbwCentroidGreenX": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid G.x",
+			"description": "Measured x chromaticity for the green emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.1367,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 45
+		},
+		"rgbwCentroidGreenY": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid G.y",
+			"description": "Measured y chromaticity for the green emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.7489,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 46
+		},
+		"rgbwCentroidBlueX": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid B.x",
+			"description": "Measured x chromaticity for the blue emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.1301,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 47
+		},
+		"rgbwCentroidBlueY": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid B.y",
+			"description": "Measured y chromaticity for the blue emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.0662,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 48
+		},
+		"rgbwCentroidWhiteX": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid W.x",
+			"description": "Measured x chromaticity for the white emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.3309,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 49
+		},
+		"rgbwCentroidWhiteY": {
+			"type": "number",
+			"format": "stepper",
+			"title": "RawHID RGBW centroid W.y",
+			"description": "Measured y chromaticity for the white emitter used by centroid-based RawHID RGBW extraction modes.",
+			"required": true,
+			"default": 0.3590,
+			"step": 0.0001,
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"access": "expert",
+			"propertyOrder": 50
+		},
+		"white_channel_calibration": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_rgbw_calibration_enable",
+			"description": "Enables static RGBW white-channel calibration for devices that use a dedicated white LED without host ICE RGBW mixing. Turn this on when neutral whites need manual balancing against the RGB channels.",
+			"required" : true,
+			"default": false,
+			"options": {
+				"dependencies": {
+					"rgbwMode": "disabled"
+				}
+			},
+			"propertyOrder" : 51
+		},
+		"white_channel_limit": {
+			"type": "number",
+			"title":"edt_rgbw_calibration_limit",
+			"format" : "stepper",
+			"description": "Maximum percentage of the white channel HyperHDR may use during RGBW calibration. Lower it if whites overpower colored content. Raise it if the dedicated white LED is underused.",
+			"required" : true,
+			"default" : 100,
+			"step": 0.25,
+			"minimum" : 0,
+			"maximum" : 100,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 52
+		},
+		"white_channel_red": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_red",
+			"format" : "stepper",
+			"description": "Manual red trim used when calibrating the white channel. Lower it if whites look too red. Raise it if whites need more red support.",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 53
+		},
+		"white_channel_green": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_green",
+			"format" : "stepper",
+			"description": "Manual green trim used when calibrating the white channel. Lower it if whites look too green. Raise it if the white point needs more green.",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 54
+		},
+		"white_channel_blue": {
+			"type": "integer",
+			"title":"edt_rgbw_calibration_blue",
+			"format" : "stepper",
+			"description": "Manual blue trim used when calibrating the white channel. Lower it if whites look too cool or blue. Raise it if whites need a cooler balance.",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+			"propertyOrder" : 55
+		},
+		"maxRetry":
+		{
+			"type" : "integer",
+			"format" : "stepper",
+			"step"   : 1,
+			"title" : "edt_dev_max_retry",
+			"description" : "How many consecutive send failures HyperHDR tolerates before it treats the device as disconnected. Higher values are more tolerant of brief USB glitches. Lower values detect failures sooner but can reconnect more aggressively.",
+			"minimum" : 0,
+			"maximum" : 120,
+			"default" : 0,
+			"required" : true,
+			"propertyOrder" : 56
 		}
 	},
 	"additionalProperties": true

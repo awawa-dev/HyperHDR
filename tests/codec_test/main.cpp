@@ -73,7 +73,7 @@ void new_func(uint8_t* frameData, const TestFile& testFile, bool quarter, bool t
 {
 	FrameDecoder::dispatchProcessImageVector[quarter][toneMapping][false](
 		cropLeft, cropRight, cropTop, cropBottom,
-		frameData, nullptr, INPUT_X, INPUT_Y, testFile.lineLength, testFile.pixelFormat, lut._lut.data(), image, nullptr);
+		frameData, nullptr, INPUT_X, INPUT_Y, testFile.lineLength, testFile.pixelFormat, lut._lut.data(), nullptr, 0, image, nullptr);
 }
 
 bool savePPM(const QString& filename, const Image<ColorRgb>& img)

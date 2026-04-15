@@ -1,0 +1,377 @@
+:root {
+  --color-primary-light: #fafafa;
+  --color-primary-dark: #2d2d2d;
+  --color-gray-light-1: #faf9f9;
+  --color-gray-light-2: #f4f2f2;
+  --color-gray-light-3: #f0eeee;
+  --color-gray-light-4: #ccc;
+  --color-gray-dark-1: #333;
+  --color-gray-dark-2: #777;
+  --color-gray-dark-3: #999; }
+
+* {
+  margin: 0;
+  padding: 0; }
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit; }
+
+html {
+  box-sizing: border-box;
+  font-size: 62.5%; }
+
+body {
+  font-family: verdana, arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  /*   background-color: #f6f3f6; */
+  background-color: var(--color-primary-dark); }
+
+.container {
+  max-width: 100rem;
+  padding: 3rem;
+  margin: 3rem auto;
+  background-color: #f6f3f6; }
+  @media only screen and (max-width: 1000px) {
+    .container {
+      padding: 0rem 0 1rem 0;
+      margin: 0rem auto; } }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: var(--color-primary-light);
+  background-color: #2d2d2d;
+  padding: 2rem;
+  font-weight: 600; }
+  @media only screen and (max-width: 500px) {
+    .header {
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem 0 1rem 0;
+      align-items: center; } }
+  .header__logo {
+    display: flex;
+    align-items: center; }
+  .header__name {
+    display: flex;
+    font-size: 3rem;
+    margin-left: 4rem;
+    align-items: center; }
+    @media only screen and (max-width: 500px) {
+      .header__name {
+        margin-top: 2rem; } }
+  .header__name2 {
+    display: flex;
+    font-size: 5rem;
+    margin-left: 3rem;
+    align-items: center; }
+
+.unit-info {
+  /* display:flex;
+    justify-content: space-between; */
+  color: var(--color-primary-light);
+  background-color: #282828;
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 0.5rem 2rem; }
+  @media only screen and (max-width: 500px) {
+    .unit-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center; } }
+
+.gen__title {
+  font-weight: 600; }
+
+.gen__btn {
+  height: 2.6rem;
+  width: 10rem;
+  padding: 0.3rem 1rem; }
+
+.gen__sbox {
+  height: 2.6rem;
+  width: 8rem;
+  text-align: center; }
+
+.gen__sboxwide {
+  height: 2.6rem;
+  width: 20rem;
+  text-align: center; }
+
+.gen__input {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0.5rem auto;
+  height: 3rem;
+  margin-right: 1rem;
+  margin: 2rem auto; }
+  @media only screen and (max-width: 1000px) {
+    .gen__input {
+      flex-direction: column;
+      justify-content: space-between;
+      height: 6rem;
+      padding: 1rem; } }
+  .gen__input--border {
+    width: 50rem;
+    margin-right: 1rem;
+    height: 2.6rem;
+    border: solid 1px rgba(10, 10, 10, 0.3); }
+  .gen__input--text {
+    flex: 1; }
+
+.styled-select {
+  height: 3rem;
+  margin: 0.5rem;
+  width: 35rem;
+  border: solid 1px rgba(10, 10, 10, 0.1); }
+  .styled-select--narrow {
+    width: 18rem; }
+  .styled-select--extranarrow {
+    width: 15rem; }
+
+.styled-inputbox {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.5rem auto;
+  height: 3rem;
+  margin-right: 1rem;
+  margin: 1rem auto; }
+  @media only screen and (max-width: 1000px) {
+    .styled-inputbox {
+      flex-direction: column;
+      justify-content: space-between;
+      height: 6rem;
+      padding: 1rem; } }
+  .styled-inputbox--border {
+    flex: 1;
+    height: 3rem;
+    border: solid 1px rgba(10, 10, 10, 0.3);
+    font-size: 1.3rem;
+    align-content: center; }
+  .styled-inputbox--noborder {
+    flex: 1;
+    height: 3rem; }
+  .styled-inputbox--text {
+    flex: 0 0 16rem; }
+  .styled-inputbox--custom {
+    display: flex;
+    width: 60rem;
+    height: 3rem;
+    border: solid 1px rgba(10, 10, 10, 0.3); }
+
+.tab {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  background-color: #f1f1f1; }
+  .tab__btnlinks {
+    background-color: inherit;
+    outline: none;
+    flex: 1 1 9rem;
+    cursor: pointer;
+    padding: 1rem 0;
+    transition: 0.3s;
+    font-size: 1.6rem;
+    border: 1px solid rgba(10, 10, 10, 0.1); }
+  .tab__btnlinks:hover {
+    background-color: #ddd; }
+  .tab__btnlinks.active {
+    background-color: #ccc; }
+  .tab__content {
+    display: none;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid #ccc;
+    border-top: none;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #696969; }
+
+.actvideoinfo {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.5rem auto;
+  height: 2.5rem;
+  margin-right: 1rem;
+  margin: 1rem auto; }
+  .actvideoinfo--border {
+    flex: 1;
+    height: 3rem;
+    border: solid 1px rgba(10, 10, 10, 0.1);
+    padding-left: 1rem; }
+  .actvideoinfo--text {
+    padding-right: 1rem;
+    text-align: right;
+    flex: 0 0 14rem; }
+  .actvideoinfo--custom {
+    display: flex;
+    align-items: center;
+    width: 60rem;
+    height: 3rem;
+    border: solid 1px rgba(10, 10, 10, 0.3); }
+
+.edid__item {
+  display: inline-block;
+  width: 20rem;
+  padding-left: 5rem; }
+  .edid__item--audio {
+    display: inline-block;
+    width: 10rem; }
+  .edid__item--dlbutton {
+    padding: 0.3rem 1rem;
+    width: 10rem; }
+
+.scaler {
+  margin-left: 1rem; }
+
+.port0scale {
+  padding-left: 5rem; }
+
+.scaler__custom--para {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around; }
+
+.infoframe {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0.5rem auto;
+  height: 3rem;
+  margin-right: 1rem;
+  margin: 2rem auto; }
+  .infoframe--border {
+    flex: 0 1 80rem;
+    margin-right: 1rem;
+    padding-left: 0.5rem;
+    height: 3rem;
+    border: solid 1px rgba(10, 10, 10, 0.3);
+    font-size: 1.3rem; }
+  .infoframe--text {
+    flex: 1; }
+
+.infoframe__decode {
+  align-items: bottom;
+  padding: 0.5rem auto;
+  margin-right: 1rem;
+  margin: 2rem auto;
+  font-size: 1.3rem; }
+
+.infoframe__inhdrinfo {
+  font-size: 1.3rem; }
+
+.osd__item {
+  display: inline-block;
+  width: 30rem; }
+  .osd__item--option {
+    display: inline-block;
+    width: 10rem; }
+  .osd__item--dlbutton {
+    padding: 0.3rem 1rem; }
+  .osd__item--param {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: blue; }
+
+.cecrs232 {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0.5rem auto;
+  height: 3rem;
+  margin-right: 1rem;
+  margin: 2rem auto; }
+  .cecrs232--border {
+    flex: 0 0 30rem;
+    margin-right: 1rem;
+    height: 3rem;
+    padding-left: 1rem;
+    border: solid 1px rgba(10, 10, 10, 0.3); }
+  .cecrs232--text {
+    flex: 1; }
+
+.macros__main {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 2rem;
+  margin: 1.2rem auto;
+  /*
+    @media only screen and (max-width: $medium-bp) {
+        flex-direction: column;  
+        justify-content: space-between;
+        height: 6rem;
+        padding: 1rem;
+    } 
+*/ }
+  .macros__main--content {
+    flex: 0 0 25rem; }
+  .macros__main--narrowcontent {
+    flex: 0 0 12rem; }
+  .macros__main--mode {
+    flex: 0 0 18rem; }
+  .macros__main--condition {
+    flex: 0 0 12rem; }
+  .macros__main--cb {
+    flex: 0 0 12rem; }
+  .macros__main--border {
+    flex: 0 0 25rem;
+    margin-right: 1rem;
+    height: 3rem;
+    padding-left: 1rem;
+    border: solid 1px rgba(10, 10, 10, 0.3); }
+  .macros__main--text {
+    flex: 1; }
+  .macros__main--name {
+    flex: 0 0 13rem;
+    margin-left: 2rem; }
+
+.macros__btn {
+  height: 3rem;
+  width: 20rem;
+  padding: 0.3rem 1rem; }
+  .macros__btn--loc {
+    display: flex;
+    justify-content: center; }
+
+.config__item {
+  display: inline-block;
+  width: 22rem;
+  margin-right: 5rem; }
+  .config__item--radio {
+    display: inline-block;
+    width: 15rem; }
+  .config__item--btn {
+    padding: 0.3rem 1rem; }
+
+.status {
+  display: flex;
+  font-size: 1.4rem;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-primary-light);
+  background-color: var(--color-primary-dark);
+  padding: 0.6rem 2rem;
+  font-weight: 600; }
+  @media only screen and (max-width: 500px) {
+    .status {
+      flex-direction: column;
+      justify-content: center;
+      padding: 1rem; } }
+  .status__message {
+    color: var(--color-primary-light); }
+  .status__button {
+    width: 10rem;
+    border: none;
+    height: 1.8rem;
+    border: none; }

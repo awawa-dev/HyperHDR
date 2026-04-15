@@ -1,5 +1,7 @@
 #include <led-drivers/net/DriverNetUdpArtNet.h>
 
+#include <infinite-color-engine/ColorSpace.h>
+
 #ifdef _WIN32
 	#include <winsock.h>
 #else
@@ -43,6 +45,10 @@ union artnet_packet_t
 
 DriverNetUdpArtNet::DriverNetUdpArtNet(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
+	, _enable_ice_rgbw(false)
+	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
+	, _ice_white_mixer_threshold(0.0f)
+	, _ice_white_led_intensity(1.8f)
 {
 	artnet_packet = std::make_unique<artnet_packet_t>();
 }
@@ -59,6 +65,15 @@ bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 		_artnet_universe = deviceConfig["universe"].toInt(1);
 		_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
 		_disableSplitting = deviceConfig["disableSplitting"].toBool(false);
+
+		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
+		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_red"].toDouble(1.0);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_green"].toDouble(1.0);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_blue"].toDouble(1.0);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
 		isInitOK = true;
 	}
@@ -127,6 +142,68 @@ int DriverNetUdpArtNet::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 	}
 
 	return retVal;
+}
+
+std::pair<bool, int> DriverNetUdpArtNet::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
+{
+	if (nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
+		return { _enable_ice_rgbw, 0 };
+	}
+
+	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
+
+	int channelsPerFixture = (std::max)(4, _artnet_channelsPerFixture);
+	int totalBytesWritten = 0;
+	int thisUniverse = _artnet_universe;
+	int dmxIdx = 0;
+	memset(artnet_packet->raw, 0, sizeof(artnet_packet->raw));
+
+	auto sendCurrentUniverse = [&]() {
+		if (dmxIdx == 0)
+			return;
+
+		int sendLength = (dmxIdx % 2 != 0) ? dmxIdx + 1 : dmxIdx;
+
+		if (++_artnet_seq == 0)
+		{
+			_artnet_seq = 1;
+		}
+		prepare(thisUniverse, _artnet_seq, sendLength);
+		totalBytesWritten += writeBytes(18 + qMin(sendLength, DMX_MAX), artnet_packet->raw);
+
+		memset(artnet_packet->raw, 0, sizeof(artnet_packet->raw));
+		thisUniverse++;
+		dmxIdx = 0;
+	};
+
+	const uint8_t* bufferEnd = _ledBuffer.data() + _ledBuffer.size();
+	for (const uint8_t* rgbw = _ledBuffer.data(); rgbw < bufferEnd; rgbw += 4)
+	{
+		if (_disableSplitting && (dmxIdx + channelsPerFixture > DMX_MAX))
+		{
+			sendCurrentUniverse();
+		}
+
+		for (int channel = 0; channel < channelsPerFixture; ++channel)
+		{
+			if (dmxIdx >= DMX_MAX)
+			{
+				sendCurrentUniverse();
+			}
+
+			const uint8_t value = (channel < 4) ? rgbw[channel] : 0;
+			artnet_packet->fields.Data[dmxIdx++] = value;
+		}
+	}
+
+	if (dmxIdx > 0)
+	{
+		sendCurrentUniverse();
+	}
+
+	return { true, totalBytesWritten };
 }
 
 LedDevice* DriverNetUdpArtNet::construct(const QJsonObject& deviceConfig)

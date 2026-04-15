@@ -1,0 +1,433 @@
+<div id="hyper-subpage" class="container-fluid" style="float:left;">
+	<div class="row">
+		<div class="col-lg-12">
+			<h3 class="page-header"><svg data-src="svg/lut.svg" width="28" height="28" fill="currentColor" class="svg4hyperhdr"></svg><span data-i18n="main_menu_grabber_lut_switching"></span></h3>
+			<div class="row">
+				<div class="col-12">
+					<div class="alert alert-secondary mb-4" data-i18n="main_menu_grabber_lut_switching_intro"></div>
+				</div>
+			</div>
+			<div class="row g-3">
+				<div class="col-xl-7">
+					<div class="card card-default">
+						<div class="card-header"><span data-i18n="main_menu_grabber_lut_switching_title"></span></div>
+						<div class="card-body">
+							<div class="form-check form-switch mb-3">
+								<input class="form-check-input" type="checkbox" id="lut_switching_enabled">
+								<label class="form-check-label" for="lut_switching_enabled" data-i18n="lut_switching_enabled"></label>
+							</div>
+							<div class="mb-3">
+								<label class="form-label" for="lut_switching_directory" data-i18n="lut_switching_directory"></label>
+								<input class="form-control" id="lut_switching_directory" type="text">
+							</div>
+							<div class="mb-3">
+								<label class="form-label" for="lut_switching_active_file" data-i18n="lut_switching_active_file"></label>
+								<input class="form-control" id="lut_switching_active_file" type="text">
+							</div>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label class="form-label" for="lut_switching_sdr_file" data-i18n="lut_switching_sdr_file"></label>
+									<input class="form-control" id="lut_switching_sdr_file" type="text">
+								</div>
+								<div class="col-md-6">
+									<label class="form-label" for="lut_switching_hdr_file" data-i18n="lut_switching_hdr_file"></label>
+									<input class="form-control" id="lut_switching_hdr_file" type="text">
+								</div>
+							</div>
+							<div class="mt-3 mb-3">
+								<label class="form-label" for="lut_switching_lldv_file" data-i18n="lut_switching_lldv_file"></label>
+								<input class="form-control" id="lut_switching_lldv_file" type="text">
+							</div>
+							<div class="mt-4">
+								<h5 class="mb-3" data-i18n="lut_switching_per_input_title"></h5>
+								<p class="text-muted" data-i18n="lut_switching_per_input_intro"></p>
+								<div class="table-responsive">
+									<table class="table table-sm align-middle">
+										<thead>
+											<tr>
+												<th data-i18n="lut_switching_input"></th>
+												<th data-i18n="lut_switching_mode_sdr"></th>
+												<th data-i18n="lut_switching_mode_hdr"></th>
+												<th data-i18n="lut_switching_mode_lldv"></th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td data-i18n="lut_switching_input_ugoos"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_ugoos_sdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_ugoos_hdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_ugoos_lldv_file" type="text"></td>
+											</tr>
+											<tr>
+												<td data-i18n="lut_switching_input_appletv"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_appletv_sdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_appletv_hdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_appletv_lldv_file" type="text"></td>
+											</tr>
+											<tr>
+												<td data-i18n="lut_switching_input_steamdeck"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_steamdeck_sdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_steamdeck_hdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_steamdeck_lldv_file" type="text"></td>
+											</tr>
+											<tr>
+												<td data-i18n="lut_switching_input_rx3"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_rx3_sdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_rx3_hdr_file" type="text"></td>
+												<td><input class="form-control form-control-sm" id="lut_switching_rx3_lldv_file" type="text"></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="form-check mb-3">
+								<input class="form-check-input" type="checkbox" id="lut_switching_sdr_uses_hdr">
+								<label class="form-check-label" for="lut_switching_sdr_uses_hdr" data-i18n="lut_switching_sdr_uses_hdr"></label>
+							</div>
+							<div class="form-check mb-3">
+								<input class="form-check-input" type="checkbox" id="lut_switching_memory_cache_enabled">
+								<label class="form-check-label" for="lut_switching_memory_cache_enabled">Store LUTs in memory</label>
+								<div class="form-text">Keeps LUT files resident in RAM so repeated bucket and blend updates reuse memory instead of re-reading from disk. This is recommended on the Pi and is intended as the base for smoother future multi-point LUT gradients.</div>
+							</div>
+							<div class="mt-4 pt-4 border-top">
+								<h5 class="mb-3" data-i18n="lut_switching_transfer_title"></h5>
+								<p class="text-muted" data-i18n="lut_switching_transfer_intro"></p>
+								<div class="form-check form-switch mb-3">
+									<input class="form-check-input" type="checkbox" id="lut_switching_transfer_enabled">
+									<label class="form-check-label" for="lut_switching_transfer_enabled" data-i18n="lut_switching_transfer_enabled"></label>
+								</div>
+								<div class="row g-3 mb-3">
+									<div class="col-md-6">
+										<label class="form-label" for="lut_switching_transfer_sdr_profile" data-i18n="lut_switching_transfer_sdr"></label>
+										<input class="form-control form-control-sm" id="lut_switching_transfer_sdr_profile" type="text" list="lut_switching_transfer_profile_options">
+									</div>
+									<div class="col-md-6">
+										<label class="form-label" for="lut_switching_transfer_hlg_profile" data-i18n="lut_switching_transfer_hlg"></label>
+										<input class="form-control form-control-sm" id="lut_switching_transfer_hlg_profile" type="text" list="lut_switching_transfer_profile_options">
+									</div>
+								</div>
+								<div class="row g-3 mb-3">
+									<div class="col-md-6">
+										<label class="form-label" for="lut_switching_dv_mdl1000_ratio_numerator">Dolby Vision MDL1000 rank ratio</label>
+										<div class="input-group input-group-sm">
+											<input class="form-control lut-switching-transfer-ratio" id="lut_switching_dv_mdl1000_ratio_numerator" type="number" min="1" step="1" placeholder="2">
+											<span class="input-group-text">/</span>
+											<input class="form-control lut-switching-transfer-ratio" id="lut_switching_dv_mdl1000_ratio_denominator" type="number" min="1" step="1" placeholder="4">
+										</div>
+										<div class="form-text">Controls how many Dolby Vision MDL1000 transfer ranks are derived from the active MDL1000 bucket count.</div>
+									</div>
+									<div class="col-md-6">
+										<label class="form-label" for="lut_switching_dv_mdl4000_ratio_numerator">Dolby Vision MDL4000 rank ratio</label>
+										<div class="input-group input-group-sm">
+											<input class="form-control lut-switching-transfer-ratio" id="lut_switching_dv_mdl4000_ratio_numerator" type="number" min="1" step="1" placeholder="3">
+											<span class="input-group-text">/</span>
+											<input class="form-control lut-switching-transfer-ratio" id="lut_switching_dv_mdl4000_ratio_denominator" type="number" min="1" step="1" placeholder="5">
+										</div>
+										<div class="form-text">Controls how many Dolby Vision MDL4000 transfer ranks are derived from the active MDL4000 bucket count.</div>
+									</div>
+								</div>
+								<div id="lut_switching_transfer_bucket_sections" class="row g-3"></div>
+								<datalist id="lut_switching_transfer_profile_options"></datalist>
+								<div class="form-text">HDR transfer profiles follow HDR buckets derived from static HDR metadata. Dolby Vision transfer profiles follow Dolby Vision family-specific ranks derived from forwarded Kodi Dolby Vision metadata, not the HDR MaxCLL or MaxFALL path.</div>
+							</div>
+							<div class="mt-4 pt-4 border-top">
+								<h5 class="mb-3">Kodi runtime threshold prep</h5>
+								<p class="text-muted mb-3">These thresholds drive HyperHDR's metadata-driven bucket logic. HDR compares against HDR static metadata, while Dolby Vision compares against forwarded Kodi Dolby Vision runtime values. Enter strictly increasing cd/m^2 or nit values separated by commas.</p>
+								<div class="row g-3">
+									<div class="col-12">
+										<label class="form-label" for="lut_switching_kodi_hdr_mdl1000_thresholds">HDR MDL1000 thresholds</label>
+										<input class="form-control" id="lut_switching_kodi_hdr_mdl1000_thresholds" type="text" placeholder="250">
+										<div class="form-text">HDR titles with mastering luminance up to 1000 nits use this bucket ladder. The HDR bucket metric comes from HDR static metadata, using MaxCLL first and falling back to other HDR fields only when needed.</div>
+										<div class="small text-muted mt-1" id="lut_switching_kodi_hdr_mdl1000_threshold_summary"></div>
+									</div>
+									<div class="col-12">
+										<label class="form-label" for="lut_switching_kodi_hdr_mdl4000_thresholds">HDR MDL4000 thresholds</label>
+										<input class="form-control" id="lut_switching_kodi_hdr_mdl4000_thresholds" type="text" placeholder="250">
+										<div class="form-text">HDR titles mastered above 1000 nits use this separate bucket ladder. This still uses HDR static metadata only; it does not read Dolby Vision L1 or FLL runtime values.</div>
+										<div class="small text-muted mt-1" id="lut_switching_kodi_hdr_mdl4000_threshold_summary"></div>
+									</div>
+									<div class="col-md-6">
+										<label class="form-label" for="lut_switching_kodi_hdr_mdl_only_fallback_nits">HDR MDL-only fallback nits</label>
+										<input class="form-control" id="lut_switching_kodi_hdr_mdl_only_fallback_nits" type="number" min="1" max="10000" step="1" placeholder="400">
+										<div class="form-text">When an HDR title reports mastering display luminance but neither MaxCLL nor MaxFALL, the bucket metric is capped to this value instead of using the full MDL nits.</div>
+									</div>
+									<div class="col-12">
+										<label class="form-label" for="lut_switching_kodi_dv_bucket_metric">Dolby Vision bucket metric</label>
+										<select class="form-select" id="lut_switching_kodi_dv_bucket_metric">
+											<option value="l1AvgNits">L1 average nits</option>
+											<option value="l1MaxNits">L1 max nits</option>
+											<option value="sceneAverageIndex">Scene average index</option>
+										</select>
+										<div class="form-text">Choose which live Dolby Vision runtime metric drives the bucket ladder. Average and max preserve the existing modes, while scene average index blends L1 avg and L1 max with temporal smoothing and L6 constraints for a steadier scene-driven decision.</div>
+									</div>
+									<div class="col-md-6">
+										<label class="form-label" for="lut_switching_kodi_dv_scene_index_highlight_weight">Dolby Vision scene index highlight weight (k)</label>
+										<input class="form-control" id="lut_switching_kodi_dv_scene_index_highlight_weight" type="number" min="0" max="1" step="0.01" placeholder="0.25">
+										<div class="form-text">Base weighting applied to the L1 max highlight term when scene average index mode is selected. Highlight gating can reduce the effective k in scenes dominated by small bright accents, but this value remains the user-controlled starting point.</div>
+									</div>
+									<div class="col-12">
+										<label class="form-label" for="lut_switching_kodi_dv_mdl1000_thresholds">Dolby Vision L1/FLL MDL1000 thresholds</label>
+										<input class="form-control" id="lut_switching_kodi_dv_mdl1000_thresholds" type="text" placeholder="69, 120, 200">
+										<div class="form-text">These thresholds compare against the selected live Dolby Vision L1 bucket metric. They are separate from HDR MaxCLL and MaxFALL metadata.</div>
+										<div class="small text-muted mt-1" id="lut_switching_kodi_dv_mdl1000_threshold_summary"></div>
+									</div>
+									<div class="col-12">
+										<label class="form-label" for="lut_switching_kodi_dv_mdl4000_thresholds">Dolby Vision L1/FLL MDL4000 thresholds</label>
+										<input class="form-control" id="lut_switching_kodi_dv_mdl4000_thresholds" type="text" placeholder="69, 120, 200, 400">
+										<div class="form-text">Separate MDL1000 and MDL4000 families are prepared here. Dolby Vision family detection still uses Dolby Vision source metadata, while the runtime bucket metric comes from the selected Dolby Vision L1 value. Planned fallback order is matching MDL1000 bucket first, then the shared LLDV LUT.</div>
+										<div class="small text-muted mt-1" id="lut_switching_kodi_dv_mdl4000_threshold_summary"></div>
+									</div>
+								</div>
+							</div>
+							<div class="mt-4">
+								<h5 class="mb-3">Metadata bucket LUT files</h5>
+								<p class="text-muted">These fields drive metadata-driven LUT selection. HDR and Dolby Vision both split into MDL1000 and MDL4000 families, but they do not use the same metadata path. HDR buckets use HDR static metadata, while Dolby Vision buckets use Dolby Vision source metadata for family selection and Dolby Vision L1 or FLL runtime values for bucket selection. Blank HDR buckets fall back to the shared HDR LUT. Blank DV MDL4000 entries fall back to the matching MDL1000 entry before the shared LLDV LUT.</p>
+								<div id="lut_switching_metadata_bucket_sections" class="row g-3"></div>
+								<div class="mt-3 d-flex gap-2 flex-wrap">
+									<button type="button" class="btn btn-outline-primary" id="lut_switching_save_runtime_sections">Save transfer / bucket settings</button>
+									<button type="button" class="btn btn-outline-secondary" id="lut_switching_apply_runtime_decisions">Apply runtime transfer / bucket decisions</button>
+								</div>
+								<div class="form-text mt-2">These extra actions do not replace the bottom save-and-apply button. Use them to persist or test transfer and metadata-bucket changes without forcing the explicit LUT reload path.</div>
+							</div>
+							<div class="mt-4 pt-4 border-top">
+								<h5 class="mb-3">Daytime uplift</h5>
+								<p class="text-muted">Blends a secondary transfer curve (default: SDR built-in) on top of the active HDR/DV curve during daytime hours. The blend ramps smoothly at the configured window edges.</p>
+								<div class="form-check form-switch mb-3">
+									<input class="form-check-input" type="checkbox" id="lut_switching_daytime_uplift_enabled">
+									<label class="form-check-label" for="lut_switching_daytime_uplift_enabled">Enable daytime uplift</label>
+								</div>
+								<div class="row g-3 mb-3">
+									<div class="col-md-4">
+										<label class="form-label" for="lut_switching_daytime_uplift_profile">Uplift profile</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_profile" type="text" placeholder="curve3_4_new" list="lut_switching_transfer_profile_options">
+										<div class="form-text">Leave empty or use "curve3_4_new" for the built-in SDR curve, or specify a custom transfer profile (e.g. "custom:key").</div>
+									</div>
+									<div class="col-md-4">
+										<label class="form-label" for="lut_switching_daytime_uplift_max_blend">Max blend (1–255)</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_max_blend" type="number" min="1" max="255" step="1" placeholder="128">
+										<div class="form-text">Peak daytime blend at full ramp. 128 = 50 % mix between the active transfer curve and the uplift profile.</div>
+									</div>
+									<div class="col-md-4">
+										<label class="form-label" for="lut_switching_daytime_uplift_ramp_minutes">Ramp (minutes)</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_ramp_minutes" type="number" min="0" max="120" step="1" placeholder="30">
+										<div class="form-text">Smooth transition period at the start and end of the daytime window.</div>
+									</div>
+								</div>
+								<div class="row g-3 mb-3">
+									<div class="col-md-3">
+										<label class="form-label" for="lut_switching_daytime_uplift_start_hour">Start hour</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_start_hour" type="number" min="0" max="23" step="1" placeholder="8">
+									</div>
+									<div class="col-md-3">
+										<label class="form-label" for="lut_switching_daytime_uplift_start_minute">Start minute</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_start_minute" type="number" min="0" max="59" step="1" placeholder="0">
+									</div>
+									<div class="col-md-3">
+										<label class="form-label" for="lut_switching_daytime_uplift_end_hour">End hour</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_end_hour" type="number" min="0" max="23" step="1" placeholder="18">
+									</div>
+									<div class="col-md-3">
+										<label class="form-label" for="lut_switching_daytime_uplift_end_minute">End minute</label>
+										<input class="form-control form-control-sm" id="lut_switching_daytime_uplift_end_minute" type="number" min="0" max="59" step="1" placeholder="0">
+									</div>
+								</div>
+								<div class="small text-muted" id="lut_switching_daytime_uplift_status"></div>
+							</div>
+							<div class="row g-3 align-items-end">
+								<div class="col-md-4">
+									<label class="form-label" for="lut_switching_mode" data-i18n="lut_switching_mode"></label>
+									<select class="form-select" id="lut_switching_mode">
+										<option value="sdr" data-i18n="lut_switching_mode_sdr">SDR</option>
+										<option value="hdr" data-i18n="lut_switching_mode_hdr">HDR</option>
+										<option value="lldv" data-i18n="lut_switching_mode_lldv">LLDV</option>
+									</select>
+								</div>
+								<div class="col-md-4">
+									<label class="form-label" for="lut_switching_input" data-i18n="lut_switching_input"></label>
+									<select class="form-select" id="lut_switching_input">
+										<option value="" data-i18n="lut_switching_input_auto">Auto / none</option>
+										<option value="ugoos" data-i18n="lut_switching_input_ugoos">Ugoos</option>
+										<option value="appletv" data-i18n="lut_switching_input_appletv">Apple TV</option>
+										<option value="steamdeck" data-i18n="lut_switching_input_steamdeck">Steam Deck</option>
+										<option value="rx3" data-i18n="lut_switching_input_rx3">RX3</option>
+									</select>
+								</div>
+								<div class="col-md-4">
+									<label class="form-label" for="lut_switching_custom_file" data-i18n="lut_switching_custom_file"></label>
+									<input class="form-control" id="lut_switching_custom_file" type="text">
+									<div class="form-text" data-i18n="lut_switching_custom_file_expl"></div>
+								</div>
+							</div>
+							<div class="mt-4 d-flex gap-2 flex-wrap">
+								<button type="button" class="btn btn-success" id="lut_switching_save_apply" data-i18n="lut_switching_save_apply"></button>
+								<button type="button" class="btn btn-secondary" id="lut_switching_reload" data-i18n="lut_switching_reload"></button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-5">
+					<div class="card card-default mb-3">
+						<div class="card-header d-flex justify-content-between align-items-center">
+							<span data-i18n="lut_switching_stream_report"></span>
+							<button type="button" class="btn btn-sm btn-secondary" id="lut_switching_stream_refresh" data-i18n="general_btn_refresh"></button>
+						</div>
+						<div class="card-body">
+							<div class="alert alert-secondary py-2 mb-3" data-i18n="lut_switching_stream_report_intro"></div>
+							<div id="lut_switching_stream_empty" class="text-muted" data-i18n="lut_switching_stream_empty"></div>
+							<div id="lut_switching_stream_content" style="display:none;">
+								<div class="row g-3 mb-3">
+									<div class="col-sm-6">
+										<div class="small text-muted" data-i18n="lut_switching_stream_received"></div>
+										<div id="lut_switching_stream_received" class="fw-bold"></div>
+									</div>
+									<div class="col-sm-6">
+										<div class="small text-muted" data-i18n="lut_switching_stream_reported_by"></div>
+										<div id="lut_switching_stream_reported_by" class="fw-bold"></div>
+									</div>
+									<div class="col-sm-6">
+										<div class="small text-muted" data-i18n="lut_switching_stream_mode"></div>
+										<div id="lut_switching_stream_mode" class="fw-bold"></div>
+									</div>
+									<div class="col-sm-6">
+										<div class="small text-muted" data-i18n="lut_switching_stream_input"></div>
+										<div id="lut_switching_stream_input" class="fw-bold"></div>
+									</div>
+								</div>
+								<div class="table-responsive mb-3">
+									<table class="table table-sm align-middle mb-0">
+										<tbody>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_dynamic_range"></th>
+												<td id="lut_switching_stream_dynamic_range"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_chroma"></th>
+												<td id="lut_switching_stream_chroma"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_bit_depth"></th>
+												<td id="lut_switching_stream_bit_depth"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_pixel_clock"></th>
+												<td id="lut_switching_stream_pixel_clock"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_colorspace"></th>
+												<td id="lut_switching_stream_colorspace"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_avi"></th>
+												<td id="lut_switching_stream_avi"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_hdr"></th>
+												<td id="lut_switching_stream_hdr"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_dv"></th>
+												<td id="lut_switching_stream_dv"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_transfer"></th>
+												<td id="lut_switching_stream_transfer"></td>
+											</tr>
+											<tr>
+												<th scope="row" data-i18n="lut_switching_stream_transfer_nits"></th>
+												<td id="lut_switching_stream_transfer_nits"></td>
+											</tr>
+											<tr>
+												<th scope="row">LUT bucket decision</th>
+												<td id="lut_switching_stream_lut_bucket"></td>
+											</tr>
+											<tr>
+												<th scope="row">LUT bucket metric</th>
+												<td id="lut_switching_stream_lut_bucket_nits"></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+										<div class="border rounded p-3 mb-3">
+											<div class="d-flex justify-content-between align-items-center mb-2">
+												<div class="fw-semibold">Forwarded Kodi Dolby Vision metadata</div>
+											</div>
+											<div class="small text-muted mb-2">This section carries both Dolby Vision source metadata used for family detection and Dolby Vision L1 or FLL runtime values used for bucket and transfer rank decisions.</div>
+											<div id="lut_switching_kodi_dv_empty" class="text-muted">No forwarded Kodi Dolby Vision metadata has been reported yet.</div>
+											<div id="lut_switching_kodi_dv_content" style="display:none;">
+												<div class="row g-3 mb-3">
+													<div class="col-sm-6">
+														<div class="small text-muted">Status</div>
+														<div id="lut_switching_kodi_dv_status" class="fw-bold"></div>
+													</div>
+													<div class="col-sm-6">
+														<div class="small text-muted">Kodi endpoint</div>
+														<div id="lut_switching_kodi_dv_host" class="fw-bold text-break"></div>
+													</div>
+													<div class="col-sm-6">
+														<div class="small text-muted">Transport</div>
+														<div id="lut_switching_kodi_dv_transport" class="fw-bold"></div>
+													</div>
+													<div class="col-sm-6">
+														<div class="small text-muted">FLL source</div>
+														<div id="lut_switching_kodi_dv_fll_source" class="fw-bold"></div>
+													</div>
+												</div>
+												<div class="table-responsive mb-3">
+													<table class="table table-sm align-middle mb-0">
+														<tbody>
+															<tr>
+																<th scope="row">L1 min|max|avg</th>
+																<td id="lut_switching_kodi_dv_l1"></td>
+															</tr>
+															<tr>
+																<th scope="row">FLL lower|upper|avg</th>
+																<td id="lut_switching_kodi_dv_fll"></td>
+															</tr>
+															<tr>
+																<th scope="row">L6 metadata</th>
+																<td id="lut_switching_kodi_dv_l6"></td>
+															</tr>
+															<tr>
+																<th scope="row">Last error</th>
+																<td id="lut_switching_kodi_dv_error"></td>
+															</tr>
+														</tbody>
+													</table>
+												</div>
+												<div>
+													<div class="small text-muted">Kodi raw label snapshot</div>
+													<pre id="lut_switching_kodi_dv_snapshot" class="small bg-body-tertiary border rounded p-3 mb-0" style="max-height:220px; overflow:auto;"></pre>
+												</div>
+											</div>
+										</div>
+								<div class="mb-3">
+									<div class="small text-muted" data-i18n="lut_switching_stream_raw_status"></div>
+									<div id="lut_switching_stream_raw_status" class="fw-bold text-break"></div>
+								</div>
+								<div>
+									<div class="small text-muted" data-i18n="lut_switching_stream_snapshot"></div>
+									<pre id="lut_switching_stream_snapshot" class="small bg-body-tertiary border rounded p-3 mb-0" style="max-height:280px; overflow:auto;"></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card card-default">
+						<div class="card-header"><span data-i18n="lut_switching_runtime"></span></div>
+						<div class="card-body">
+							<p><strong data-i18n="lut_switching_runtime_loaded"></strong><br><span id="lut_switching_runtime_loaded"></span></p>
+							<p><strong data-i18n="lut_switching_runtime_crc"></strong><br><span id="lut_switching_runtime_crc"></span></p>
+							<p><strong data-i18n="lut_switching_runtime_compressed"></strong><br><span id="lut_switching_runtime_compressed"></span></p>
+							<p><strong data-i18n="lut_switching_runtime_buffer"></strong><br><span id="lut_switching_runtime_buffer"></span></p>
+							<p><strong data-i18n="lut_switching_runtime_candidates"></strong></p>
+							<ul id="lut_switching_runtime_candidates" class="mb-0"></ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+$.getScript("/js/lut_switching.js");
+</script>

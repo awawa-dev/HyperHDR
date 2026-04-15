@@ -49,8 +49,16 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName)
 	, _autoResume(false)
 	, _isPaused(false)
 	, _pausingModeEnabled(false)
+	, _reviveTimer(new QTimer(this))
 {
 	Debug(_log, "Starting the grabber wrapper");
+
+	_reviveTimer->setSingleShot(true);
+	_reviveTimer->setInterval(3000);
+	connect(_reviveTimer, &QTimer::timeout, this, [this]() {
+		if (_grabber != nullptr)
+			_grabber->revive();
+	});
 
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	connect(this, &GrabberWrapper::SignalNewVideoImage, GlobalSignals::getInstance(), &GlobalSignals::SignalNewVideoImage);
@@ -280,6 +288,62 @@ QJsonObject GrabberWrapper::getJsonInfo()
 	return grabbers;
 }
 
+QJsonObject GrabberWrapper::getLutRuntimeInfo() const
+{
+	if (_grabber == nullptr)
+		return QJsonObject();
+
+	return _grabber->getLutRuntimeInfo();
+}
+
+void GrabberWrapper::setLutMemoryCacheEnabled(bool enabled)
+{
+	if (_grabber != nullptr)
+		_grabber->setLutMemoryCacheEnabled(enabled);
+}
+
+bool GrabberWrapper::applyLutSwitch(const QStringList& candidateFiles, QString& error)
+
+{
+	return applyLutSwitch(candidateFiles, QStringList(), 0, error);
+}
+
+bool GrabberWrapper::applyLutSwitch(const QStringList& candidateFiles, const QStringList& interpolationCandidateFiles, int interpolationBlend, QString& error)
+{
+	if (_grabber == nullptr)
+	{
+		error = "No video grabber is available";
+		return false;
+	}
+
+	_grabber->setLutCandidateFiles(candidateFiles);
+	_grabber->setLutInterpolationCandidateFiles(interpolationCandidateFiles, interpolationBlend);
+	if (!_grabber->isInitialized())
+	{
+		error.clear();
+		return true;
+	}
+
+	return _grabber->reloadLut(error);
+}
+
+bool GrabberWrapper::reloadLut(QString& error)
+{
+	if (_grabber == nullptr)
+	{
+		error = "No video grabber is available";
+		return false;
+	}
+
+	if (!_grabber->isInitialized())
+	{
+		error.clear();
+		return true;
+	}
+
+	return _grabber->reloadLut(error);
+}
+
 QMap<Grabber::currentVideoModeInfo, QString> GrabberWrapper::getVideoCurrentMode() const
 {
 	if (_grabber != nullptr)
@@ -403,8 +467,22 @@ DetectionAutomatic::calibrationPoint GrabberWrapper::parsePoint(int width, int h
 
 void GrabberWrapper::revive()
 {
-	if (_grabber != nullptr && _autoResume)
-		QTimer::singleShot(3000, _grabber.get(), &Grabber::revive);
+	if (_grabber != nullptr && _autoResume && !_reviveTimer->isActive())
+		_reviveTimer->start();
+}
+
+void GrabberWrapper::forceRevive()
+{
+	if (_grabber == nullptr)
+		return;
+
+	Warning(_log, "Force revive requested via API. Resetting signal detection and restarting grabber.");
+
+	_reviveTimer->stop();
+
+	_grabber->resetSignalDetection();
+	_grabber->stop();
+	_grabber->start();
 }
 
 bool GrabberWrapper::getAutoResume()

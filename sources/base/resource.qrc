@@ -24,6 +24,7 @@
 		<file alias="schema-videoControl.json">schema/schema-videoControl.json</file>
 		<file alias="schema-systemControl.json">schema/schema-systemControl.json</file>
 		<file alias="schema-videoDetection.json">schema/schema-videoDetection.json</file>
+		<file alias="schema-lutSwitching.json">schema/schema-lutSwitching.json</file>
 		<file alias="schema-network.json">schema/schema-network.json</file>
 		<file alias="schema-mqtt.json">schema/schema-mqtt.json</file>
 		<file alias="schema-automaticToneMapping.json">schema/schema-automaticToneMapping.json</file>

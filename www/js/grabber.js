@@ -755,7 +755,7 @@ $(document).ready( function(){
 					window.schema.videoGrabber.properties.videoEncoding.options.enum_titles.push(name);
 			}
 			
-			for(var i = 0; i < currentInfo.inputs.length && currentInfo.inputs.length > 1; i++)
+			for(var i = 0; i < currentInfo.inputs.length; i++)
 			{
 				var inputnr = parseInt((currentInfo.inputs[i].inputIndex).toString());            
 				var name = (currentInfo.inputs[i].inputName).toString();

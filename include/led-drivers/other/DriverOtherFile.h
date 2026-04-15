@@ -6,6 +6,7 @@
 #endif
 
 #include <led-drivers/LedDevice.h>
+#include <led-drivers/InfiniteColorEngineRgbw.h>
 
 class QFile;
 
@@ -31,6 +32,12 @@ private:
 	QString _fileName;
 	bool _printTimeStamp;
 	bool _infiniteColorEngine;
+
+	InfiniteColorEngineRgbw _infiniteColorEngineRgbw;
+	bool _enable_ice_rgbw;
+	linalg::aliases::float3 _ice_white_temperatur;
+	float _ice_white_mixer_threshold;
+	float _ice_white_led_intensity;
 
 	static bool isRegistered;
 };
