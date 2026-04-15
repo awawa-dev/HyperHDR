@@ -1,9 +1,8 @@
 #pragma once
 
 #include <vector>
-
-#include <base/LedString.h>
 #include <linalg.h>
+#include <base/LedString.h>
 
 class InfiniteColorEngineRgbw
 {
@@ -14,6 +13,7 @@ class InfiniteColorEngineRgbw
 		int8_t flow_control = 0;
 	};
 
+public:
 public:
 	struct RgbwTargetQ16
 	{

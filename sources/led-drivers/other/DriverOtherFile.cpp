@@ -152,6 +152,8 @@ int DriverOtherFile::writeColors(const std::vector<ColorRgb>* ledValues, const S
 		if (_enable_ice_rgbw)
 		{
 			_ledBuffer.resize(infinityLedColors->size() * 4);
+
+			// RGBW by Infinite Color Engine
 			_infiniteColorEngineRgbw.renderRgbwFrame(*infinityLedColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
 
 			auto start = _ledBuffer.data();

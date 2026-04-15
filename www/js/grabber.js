@@ -107,20 +107,20 @@ $(document).ready( function(){
 			firstMes = firstMes.replace("<m_odel>", backup.info.model).replace("<q_uality>", backup.info.quality);
 			secondMes = secondMes.replace("<sdrStat>", backup.info.sdrStat).replace("<sdrPoint>", backup.info.sdrPoint).replace("<hdrStat>", backup.info.hdrStat).replace("<hdrPoint>", backup.info.hdrPoint);
 			
-			$('#live_calibration_summary').html(firstMes + " "+secondMes);
+			$('#live_calibration_summary').html(DOMPurify.sanitize(`${firstMes} ${secondMes}`));
 			$('#wizp2').toggle(false);
 			$('#wizp3').toggle(true);
 		}
 		else
 		{
-			$('#live_calibration_log').html(backup.info.status.
+			$('#live_calibration_log').html(DOMPurify.sanitize(backup.info.status.
 											replace("Processing SDR frames:", $.i18n("edt_conf_stream_wizard_calibrating_message_SDR")).
 											replace("Processing HDR frames:", $.i18n("edt_conf_stream_wizard_calibrating_message_HDR")).
 											replace("Waiting for the first SDR frame", $.i18n("edt_conf_stream_wizard_calibrating_message_waiting")).
 											replace("Preparing for capturing SDR frame", $.i18n("edt_conf_stream_wizard_calibrating_message_prepare_SDR")).
 											replace("Preparing for capturing HDR frame", $.i18n("edt_conf_stream_wizard_calibrating_message_prepare_HDR")).
 											replace("Waiting for first HDR frame", $.i18n("edt_conf_stream_wizard_calibrating_message_waiting_first_HDR"))
-											);
+											));
 		}		
 	}
 	

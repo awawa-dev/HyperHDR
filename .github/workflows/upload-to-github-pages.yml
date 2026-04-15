@@ -26,16 +26,13 @@ jobs:
         architecture: [amd64, armhf, arm64]        
         include:
           - distroName: ubuntu
-            distroVersion: jammy
-            architecture: amd64
-          - distroName: ubuntu
             distroVersion: noble
             architecture: amd64
           - distroName: ubuntu
-            distroVersion: questing
+            distroVersion: resolute
             architecture: amd64
           - distroName: fedora
-            distroVersion: 43
+            distroVersion: 44
             architecture: amd64
           - distroName: archlinux
             distroVersion: latest
@@ -48,7 +45,7 @@ jobs:
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
            path: .ccache
            key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
@@ -96,7 +93,7 @@ jobs:
         with:
           submodules: false
       - name: Download artifacts
-        uses: actions/download-artifact@v8.0.0
+        uses: actions/download-artifact@v8.0.1
         with:
           path: repo
           pattern: release-artifact-*

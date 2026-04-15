@@ -26,6 +26,7 @@
 #include <led-drivers/ColorRgbw.h>
 #include <performance-counters/PerformanceCounters.h>
 #include <infinite-color-engine/SharedOutputColors.h>
+#include <base/LedString.h>
 
 class LedDevice;
 class DiscoveryWrapper;
@@ -113,6 +114,7 @@ protected:
 	std::vector<uint8_t> _ledBuffer;
 	QTimer* _refreshTimer;
 
+	LedString::ColorOrder _colorOrder;
 	int _currentInterval;
 	int _defaultInterval;
 	int _forcedInterval;

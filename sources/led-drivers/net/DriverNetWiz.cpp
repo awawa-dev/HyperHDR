@@ -291,9 +291,11 @@ void DriverNetWiz::identify(const QJsonObject& params)
 		socket->writeDatagram(packet, address, static_cast<quint16>(port));
 	};
 
+	// Turn on the lamp
 	sendSetPilot(0, 0, 255, 0, true);
 	QThread::msleep(400);
 
+	// Start the pulse effect
 	QJsonObject pulseRoot;
 	QJsonObject pulseParams;
 	pulseParams.insert("delta", 100);

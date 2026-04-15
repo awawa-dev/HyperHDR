@@ -10,13 +10,13 @@
 #include <QStringList>
 
 
-#include "QtHttpClientWrapper.h"
-#include "QtHttpRequest.h"
-#include "QtHttpReply.h"
-#include "QtHttpServer.h"
-#include "QtHttpHeader.h"
-#include "WebSocketClient.h"
-#include "WebJsonRpc.h"
+#include <webserver/QtHttpClientWrapper.h>
+#include <webserver/QtHttpRequest.h>
+#include <webserver/QtHttpReply.h>
+#include <webserver/QtHttpServer.h>
+#include <webserver/QtHttpHeader.h>
+#include <webserver/WebSocketClient.h>
+#include <webserver/WebJsonRpc.h>
 
 #define REQ "request="
 #define RPC "json-rpc"

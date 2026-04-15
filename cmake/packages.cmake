@@ -69,7 +69,9 @@ SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERHDR_VERSION_MINOR}")
 SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERHDR_VERSION_PATCH}")
 
 if(USE_STANDARD_INSTALLER_NAME AND UNIX AND NOT APPLE)
-	string(REPLACE "." ";" HYPERHDR_VERSION_LIST ${HYPERHDR_VERSION})
+	string(REPLACE "-alpha." "alpha" COMPAT_VERSION "${HYPERHDR_VERSION}")
+	string(REPLACE "-beta." "beta" COMPAT_VERSION "${COMPAT_VERSION}")
+	string(REPLACE "." ";" HYPERHDR_VERSION_LIST ${COMPAT_VERSION})
 	list(LENGTH HYPERHDR_VERSION_LIST HYPERHDR_VERSION_LIST_LEN)
 	if (HYPERHDR_VERSION_LIST_LEN EQUAL 3)
 		list(GET HYPERHDR_VERSION_LIST 2 H_ELEM_2)
@@ -121,9 +123,9 @@ SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
 SET ( CPACK_RPM_PACKAGE_REQUIRES "xz" )
 SET ( CPACK_RPM_PACKAGE_AUTOREQPROV 0 )
-SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/preinst" )
-SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/postinst" )
-SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/prerm" )
+SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%pre" )
+SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%post")
+SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%preun" )
 SET ( CPACK_RPM_SPEC_MORE_DEFINE "%define _build_id_links none" )
 if ( ENABLE_SYSTRAY )
 	SET( CPACK_RPM_PACKAGE_SUGGESTS "gtk3")
@@ -138,9 +140,31 @@ if ( UNIX AND NOT APPLE )
 		string(CONCAT CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, glibc >= ${GLIBC_VERSION}" )
 	endif()
 
+	if(NOT ENABLE_DEPENDENCY_PACKAGING)
+		message("Adding system runtime dependencies (ENABLE_DEPENDENCY_PACKAGING=OFF)")
+
+		set(HYPERHDR_DEB_RUNTIME_DEPS
+			"libasound2 | libasound2t64, libayatana-appindicator3-1, libegl1, libgl1, libglvnd0, libglx0, libgtk-3-0 | libgtk-3-0t64, liblzma5, libpipewire-0.3-0, libssl3 | libssl3t64 | libssl1.1, libsystemd0, libturbojpeg0, libftdi1 | libftdi1-2, libusb-1.0-0, libx11-6, libzstd1, libqt6core6, libqt6network6, libqt6serialport6"
+		)
+
+		string(CONCAT CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${HYPERHDR_DEB_RUNTIME_DEPS}")
+
+		set(HYPERHDR_RPM_RUNTIME_DEPS
+			"alsa-lib, libayatana-appindicator-gtk3, libftdi, gtk3, libX11, libglvnd, mesa-libEGL, mesa-libGL, libusb1, libzstd, openssl-libs, pipewire-libs, qt6-qtbase, qt6-qtserialport, systemd-libs, turbojpeg, xz-libs, hicolor-icon-theme"
+		)
+
+		string(CONCAT CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, ${HYPERHDR_RPM_RUNTIME_DEPS}")
+
+		if(ENABLE_CEC)
+			string(CONCAT CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libcec7 | libcec6 | libcec4 | libcec-dev")
+			string(CONCAT CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, libcec")
+		endif()
+	endif()
+
 	message("DEB deps: ${CPACK_DEBIAN_PACKAGE_DEPENDS}")
 	message("RPM deps: ${CPACK_RPM_PACKAGE_REQUIRES}")
 endif()
+
 
 #if(BUILD_ARCHIVES)
 	SET ( CPACK_DEBIAN_COMPRESSION_TYPE "xz" )

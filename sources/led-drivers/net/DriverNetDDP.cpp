@@ -26,7 +26,6 @@
  */
 
 #include <led-drivers/net/DriverNetDDP.h>
-
 #include <infinite-color-engine/ColorSpace.h>
 
 #include <QtEndian>
@@ -195,9 +194,10 @@ std::pair<bool, int> DriverNetDDP::writeInfiniteColors(SharedOutputColors nonlin
 	{
 		return { _enable_ice_rgbw, 0 };
 	}
-
+	
 	_rgbwBuffer.resize(nonlinearRgbColors->size() * 4);
 	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _rgbwBuffer, 0, _colorOrder);
+
 
 	return { true, writeFiniteColors(true, static_cast<int>(nonlinearRgbColors->size()), {}) };
 }

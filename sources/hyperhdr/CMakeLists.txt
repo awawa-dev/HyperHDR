@@ -141,14 +141,27 @@ if (ENABLE_SOUNDCAPMACOS)
 endif ()
 
 # rules for installers
-include(${OUR_CMAKE_MODULES}/../installers.cmake)
+if (APPLE) # macOS
+	include(${OUR_CMAKE_MODULES}/../installer_macos.cmake)
+	InstallerMacOS("hyperhdr")
+elseif (NOT WIN32) # Linux
 
-if (APPLE)
-	DeployApple("hyperhdr")
-elseif (NOT WIN32) # Unix
-	DeployUnix("hyperhdr")
+	if(ENABLE_DEPENDENCY_PACKAGING)
+		set(rpath_libs_dir "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr:$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr/external:$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr/external/plugins")
+	else()
+		set(rpath_libs_dir "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}/hyperhdr")
+	endif()
+
+	set_target_properties(hyperhdr PROPERTIES
+		INSTALL_RPATH       "${rpath_libs_dir}"
+		BUILD_WITH_INSTALL_RPATH FALSE
+		INSTALL_RPATH_USE_LINK_PATH FALSE)
+
+	include(${OUR_CMAKE_MODULES}/../installer_linux.cmake)
+	InstallerLinux("hyperhdr")
 elseif(WIN32) # Windows
-	DeployWindows("hyperhdr")
+	include(${OUR_CMAKE_MODULES}/../installer_windows.cmake)
+	InstallerWindows("hyperhdr")
 endif ()
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers AND WIN32)

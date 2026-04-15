@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ProviderUdp.h"
+#include <led-drivers/InfiniteColorEngineRgbw.h>
 
 #include <led-drivers/InfiniteColorEngineRgbw.h>
 

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -90,10 +90,15 @@ void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_
 	_targetTime = startTimeMs + _initialDuration;
 }
 
-void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness)
-{
-	Q_UNUSED(minBrightness);
+void InfiniteStepperInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_currentColorsRGB.clear();
+	_targetColorsRGB.clear();
+}
 
+void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
+{
 	if (_isAnimationComplete)
 	{
 		_lastUpdate = currentTimeMs;

@@ -1,3 +1,30 @@
+/* DriverSerialAdalight.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2026 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+ */
+
 #include <led-drivers/serial/DriverSerialAdalight.h>
 
 #include <infinite-color-engine/ColorSpace.h>
@@ -14,12 +41,12 @@ DriverSerialAdalight::DriverSerialAdalight(const QJsonObject& deviceConfig)
 	, _ice_white_temperatur{ 1.0f, 1.0f, 1.0f }
 	, _ice_white_mixer_threshold(0.0f)
 	, _ice_white_led_intensity(1.8f)
+	, _white_channel_calibration(false)
+	, _white_channel_limit(255)
+	, _white_channel_red(255)
+	, _white_channel_green(255)
+	, _white_channel_blue(255)
 {
-	_white_channel_calibration = false;
-	_white_channel_limit = 255;
-	_white_channel_red = 255;
-	_white_channel_green = 255;
-	_white_channel_blue = 255;
 }
 
 bool DriverSerialAdalight::init(QJsonObject deviceConfig)
@@ -40,6 +67,15 @@ bool DriverSerialAdalight::init(QJsonObject deviceConfig)
 		_ice_white_temperatur.z = deviceConfig.contains("ice_white_temperatur_blue") ? deviceConfig["ice_white_temperatur_blue"].toDouble(1.0) : deviceConfig["ice_white_temperatur_b"].toDouble(1.0);
 		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
 			((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
+
+		_enable_ice_rgbw = deviceConfig["enable_ice_rgbw"].toBool(false);
+		_ice_white_mixer_threshold = deviceConfig["ice_white_mixer_threshold"].toDouble(0.0);
+		_ice_white_led_intensity = deviceConfig["ice_white_led_intensity"].toDouble(1.8);
+		_ice_white_temperatur.x = deviceConfig["ice_white_temperatur_red"].toDouble(1.0);
+		_ice_white_temperatur.y = deviceConfig["ice_white_temperatur_green"].toDouble(1.0);
+		_ice_white_temperatur.z = deviceConfig["ice_white_temperatur_blue"].toDouble(1.0);
+		Debug(_log, "Infinite Color Engine RGBW is: {:s}, white channel temp for the white LED: {:s}, white mixer threshold: {:f}, white LED intensity: {:f}",
+				((_enable_ice_rgbw) ? "enabled" : "disabled"), ColorSpaceMath::vecToString(_ice_white_temperatur), _ice_white_mixer_threshold, _ice_white_led_intensity);
 
 		_white_channel_calibration = deviceConfig["white_channel_calibration"].toBool(false);
 		_white_channel_limit = qMin(qRound(deviceConfig["white_channel_limit"].toDouble(1) * 255.0 / 100.0), 255);
@@ -100,7 +136,9 @@ void DriverSerialAdalight::CreateHeader()
 std::pair<bool, int> DriverSerialAdalight::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
 	if (nonlinearRgbColors == nullptr || nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
 		return { _enable_ice_rgbw, 0 };
+	}
 
 	if (_ledCount != nonlinearRgbColors->size())
 	{
@@ -110,6 +148,7 @@ std::pair<bool, int> DriverSerialAdalight::writeInfiniteColors(SharedOutputColor
 		CreateHeader();
 	}
 
+	// RGBW by Infinite Color Engine
 	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, _colorOrder);
 
 	const size_t wanted = _headerSize + _ledCount * sizeof(linalg::aliases::byte4) + 8u;

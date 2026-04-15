@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -114,6 +114,14 @@ void InfiniteHybridRgbInterpolator::setTargetColors(std::vector<float3>&& new_rg
 
 	_startAnimationTimeMs = startTimeMs;
 	_targetTime = startTimeMs + _initialDuration;
+}
+
+void InfiniteHybridRgbInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_targetColorsRGB.clear();
+	_currentColorsRGB.clear();
+	_velocitiesRGB.clear();
 }
 
 void InfiniteHybridRgbInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness) {

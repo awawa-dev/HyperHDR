@@ -1,13 +1,8 @@
 #include <led-drivers/net/DriverNetUdpArtNet.h>
-
 #include <infinite-color-engine/ColorSpace.h>
 
-#ifdef _WIN32
-	#include <winsock.h>
-#else
-	#include <arpa/inet.h>
-#endif
-
+#include <bit>
+#include <cstring>
 #include <QHostInfo>
 
 /**
@@ -21,6 +16,15 @@
 namespace {
 	const int DMX_MAX = 512;
 	const ushort ARTNET_DEFAULT_PORT = 6454;
+
+	constexpr uint16_t cpp_htons(uint16_t value) {
+		if constexpr (std::endian::native == std::endian::little) {
+			return ((value & 0xFF) << 8) | ((value >> 8) & 0xFF);
+		}
+		else {
+			return value;
+		}
+	}
 }
 
 // http://stackoverflow.com/questions/16396013/artnet-packet-structure
@@ -83,22 +87,18 @@ bool DriverNetUdpArtNet::init(QJsonObject deviceConfig)
 // populates the headers
 void DriverNetUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount)
 {
-	// WTF? why do the specs say:
-	// "This value should be an even number in the range 2 – 512. "
-	if (this_dmxChannelCount & 0x1)
-	{
-		this_dmxChannelCount++;
-	}
+	if (this_dmxChannelCount & 1) this_dmxChannelCount++;
+	if (this_dmxChannelCount > DMX_MAX) this_dmxChannelCount = DMX_MAX;
 
 	memcpy(artnet_packet->fields.ID, "Art-Net\0", 8);
 
-	artnet_packet->fields.OpCode = htons(0x0050);	// OpOutput / OpDmx
-	artnet_packet->fields.ProtVer = htons(0x000e);
+	artnet_packet->fields.OpCode = cpp_htons(0x0050);	// OpOutput / OpDmx
+	artnet_packet->fields.ProtVer = cpp_htons(0x000e);
 	artnet_packet->fields.Sequence = this_sequence;
 	artnet_packet->fields.Physical = 0;
 	artnet_packet->fields.SubUni = this_universe & 0xff;
 	artnet_packet->fields.Net = (this_universe >> 8) & 0x7f;
-	artnet_packet->fields.Length = htons(this_dmxChannelCount);
+	artnet_packet->fields.Length = cpp_htons(this_dmxChannelCount);
 }
 
 int DriverNetUdpArtNet::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
@@ -152,6 +152,8 @@ std::pair<bool, int> DriverNetUdpArtNet::writeInfiniteColors(SharedOutputColors 
 	}
 
 	_ledBuffer.resize(nonlinearRgbColors->size() * 4);
+
+	// RGBW by Infinite Color Engine
 	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, 0, _colorOrder);
 
 	int channelsPerFixture = (std::max)(4, _artnet_channelsPerFixture);

@@ -4,7 +4,6 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/hyperhdr
-WorkingDirectory=/usr/share/hyperhdr/bin
 User=%i
 TimeoutStopSec=5
 KillMode=mixed

@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -137,7 +137,9 @@ void DriverSpiHyperSPI::createHeader()
 std::pair<bool, int> DriverSpiHyperSPI::writeInfiniteColors(SharedOutputColors nonlinearRgbColors)
 {
 	if (nonlinearRgbColors == nullptr || nonlinearRgbColors->empty() || !_enable_ice_rgbw)
+	{
 		return { _enable_ice_rgbw, 0 };
+	}
 
 	if (_ledCount != nonlinearRgbColors->size())
 	{
@@ -148,16 +150,10 @@ std::pair<bool, int> DriverSpiHyperSPI::writeInfiniteColors(SharedOutputColors n
 		createHeader();
 	}
 
-	_infiniteColorEngineRgbw.renderRgbwFrame(
-		*nonlinearRgbColors,
-		_currentInterval,
-		_ice_white_mixer_threshold,
-		_ice_white_led_intensity,
-		_ice_white_temperatur,
-		_ledBuffer,
-		_headerSize,
-		_colorOrder);
+	// RGBW by Infinite Color Engine
+	_infiniteColorEngineRgbw.renderRgbwFrame(*nonlinearRgbColors, _currentInterval, _ice_white_mixer_threshold, _ice_white_led_intensity, _ice_white_temperatur, _ledBuffer, _headerSize, _colorOrder);
 
+	// add space at the end for fletcher checksum
 	auto wanted = _headerSize + _ledCount * sizeof(linalg::aliases::byte4) + 8;
 	if (_ledBuffer.size() < wanted)
 		_ledBuffer.resize(wanted);
