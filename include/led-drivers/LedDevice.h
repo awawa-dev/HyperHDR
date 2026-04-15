@@ -123,7 +123,6 @@ protected:
 	uint _ledCount;
 	uint _ledRGBCount;
 	uint _ledRGBWCount;
-	LedString::ColorOrder _colorOrder;
 
 	bool	_isRestoreOrigState;
 	QJsonObject _orignalStateValues;

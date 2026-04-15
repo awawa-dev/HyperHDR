@@ -1,3 +1,47 @@
+## ⚠️ Fork Disclaimer
+
+**This is an unofficial fork of HyperHDR.** Awawa-dev does not maintain this fork, will not diagnose issues related to this fork, and this fork may drift from the main branch. This fork is experimental and may break known-working features. Currently only tested on a Raspberry Pi 5 with 8GB RAM.
+
+Fork repository: https://github.com/JChalka/HyperHDR/tree/BFI
+
+---
+
+## v22.0.0beta2-bfi — Fork Changes
+
+### RawHID LED Driver & Temporal BFI
+- RawHID USB HID LED driver for Teensy-based temporal Blended Frame Insertion (BFI).
+  - Companion Teensy sketch: [HyperTeensy_Temporal_Blend](https://github.com/JChalka/Blended-Frame-Insertion/tree/main/examples/HyperTeensy_Temporal_Blend)
+- Scene-policy modes: `energyBurst`, `solverAwareV2`, `solverAwareV3` for highlight detection and temporal energy management.
+- Full Q16 (16-bit) pipeline for RGBW rendering via `renderRgbwQ16Frame`, `computeRgbwTarget`, and `RgbwTargetQ16` struct in Infinite Color Engine.
+- File-backed solver profile storage, selection, and upload support (`solver-profiles` JSON-RPC API).
+- Solver-aware V3: direct solver emitted-output energy model replacing old fixed 4096-entry host solver lookup.
+
+### LUT Switching & DV/HDR Tone Mapping
+- LUT memory caching with cache-first fast path in `LutLoader::loadLutFile()` — checks QHash before any file I/O.
+- Memory-scaled LRU cache cap: `computeMaxCacheEntries()` based on 25% total RAM or total RAM minus 512MB reserved, floor at 2 entries.
+- `clearLutMemoryCache()` method wired into V4L2 grabber when tone mapping is disabled.
+- Runtime LUT info JSON exposes `memoryCacheMaxEntries`.
+- Dolby Vision LUT switching improvements for runtime transitions.
+
+### Calibration Guards
+- Three `_lutCalibrationOverrideActive` guards: `tryPrepareLutRuntimeTransition()`, V4L2 `reloadLut()`, and V4L2 hot-swap memcpy path.
+
+### V4L2 Grabber
+- Input 0 dropdown fix: removed `&& currentInfo.inputs.length > 1` guard in `grabber.js` so input 0 is always selectable.
+
+### Web UI
+- Solver profile discovery, dropdown population, and upload/delete UI in LED Hardware page.
+- Updated transfer-header and calibration-header help text for arbitrary `BUCKET_COUNT` support.
+
+### Build & Housekeeping
+- Fork version branding: `22.0.0beta2-bfi`.
+- Null-pointer guards (`nonlinearRgbColors == nullptr ||`) in all RGBW driver write paths (Adalight, HyperSPI, RpiPio, ArtNet, File).
+- Merged 16 upstream commits from awawa-dev/HyperHDR master (up to `b2f7dc3`).
+
+---
+
+## Upstream Changelog
+
 - RGBW with Temporal Dithering - powered by Infinite Color Engine (#1483) - v22beta2 🆕
    - Temporal Dithering: Improved Precision and Adaptive Stabilization (#1490) - v22beta2 🆕
    - Add RGBW dithering for legacy RPi PWM & SPI sk6812 driver (#1498) - v22beta2 🆕

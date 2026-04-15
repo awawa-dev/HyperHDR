@@ -18,7 +18,6 @@ private:
 	void CreateHeader();
 	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
-	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 
 	void whiteChannelExtension(uint8_t*& writer);
 
