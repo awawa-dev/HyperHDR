@@ -25,30 +25,22 @@
 *  SOFTWARE.
  */
 
-#include <cassert>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <ctime>
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <iostream>
-#include <sys/mman.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <utility>
 #include <vector>
+#include <dlfcn.h>
 
 #include <led-drivers/spi/ProviderSpiLibFtdi.h>
 #include <utils/Logger.h>
 
 namespace
 {
+#ifdef __APPLE__
+	constexpr auto* LIBFTDI_CANON = "libftdi1.dylib";
+	constexpr auto* LIBFTDI_ALT = "libftdi1.1.dylib";
+#else
 	constexpr auto* LIBFTDI_CANON = "libftdi1.so";
 	constexpr auto* LIBFTDI_ALT = "libftdi1.so.2";
+#endif
 }
 
 ProviderSpiLibFtdi::ProviderSpiLibFtdi(const LoggerName& logger)
@@ -57,6 +49,8 @@ ProviderSpiLibFtdi::ProviderSpiLibFtdi(const LoggerName& logger)
 	_deviceHandle(nullptr),
 	_fun_ftdi_new(nullptr),
 	_fun_ftdi_usb_open_bus_addr(nullptr),
+	_fun_ftdi_usb_open_string(nullptr),
+	_fun_ftdi_usb_get_strings(nullptr),
 	_fun_ftdi_free(nullptr),
 	_fun_ftdi_usb_reset(nullptr),
 	_fun_ftdi_set_baudrate(nullptr),
@@ -103,6 +97,8 @@ bool ProviderSpiLibFtdi::loadLibrary()
 
 		LOAD_PROC(ftdi_new);
 		LOAD_PROC(ftdi_usb_open_bus_addr);
+		LOAD_PROC(ftdi_usb_open_string);
+		LOAD_PROC(ftdi_usb_get_strings);
 		LOAD_PROC(ftdi_free);
 		LOAD_PROC(ftdi_usb_reset);
 		LOAD_PROC(ftdi_set_baudrate);
@@ -167,27 +163,42 @@ QString ProviderSpiLibFtdi::open()
 {
 	QString error;
 
-	bool isInt = false;
-	long long deviceLocation = _deviceName.toLong(&isInt, 10);
-
-	if (!isInt)
-	{
-		return "The device name is not a FTDI path (must be a number)";
-	}
-
 	if ((_deviceHandle = _fun_ftdi_new()) == nullptr)
 	{
 		return "libFTDI ftdi_new has failed";
 	}
 
-	if (_fun_ftdi_usb_open_bus_addr(_deviceHandle, (deviceLocation >> 8) & 0xff, (deviceLocation) & 0xff) < 0)
+	bool isInt = false;
+	long long deviceLocation = _deviceName.toLong(&isInt, 10);
+
+	if (isInt)
 	{
-		Error(_log, "libFTDI ftdi_usb_open_bus_addr has failed: {:s}", _fun_ftdi_get_error_string(_deviceHandle));
+		Debug(_log, "Opening FTDI device by bus:addr location: {:d} (bus={:d}, addr={:d})",
+			deviceLocation, (int)((deviceLocation >> 8) & 0xff), (int)(deviceLocation & 0xff));
 
-		_fun_ftdi_free(_deviceHandle);
-		_deviceHandle = nullptr;
+		if (_fun_ftdi_usb_open_bus_addr(_deviceHandle, (deviceLocation >> 8) & 0xff, (deviceLocation) & 0xff) < 0)
+		{
+			Error(_log, "libFTDI ftdi_usb_open_bus_addr has failed: {:s}", _fun_ftdi_get_error_string(_deviceHandle));
 
-		return "libFTDI ftdi_usb_open_bus_addr has failed";
+			_fun_ftdi_free(_deviceHandle);
+			_deviceHandle = nullptr;
+
+			return "libFTDI ftdi_usb_open_bus_addr has failed";
+		}
+	}
+	else
+	{
+		Debug(_log, "Opening FTDI device by string identifier: {:s}", _deviceName.toUtf8().constData());
+
+		if (_fun_ftdi_usb_open_string(_deviceHandle, _deviceName.toUtf8().constData()) < 0)
+		{
+			Error(_log, "libFTDI ftdi_usb_open_string has failed: {:s}", _fun_ftdi_get_error_string(_deviceHandle));
+
+			_fun_ftdi_free(_deviceHandle);
+			_deviceHandle = nullptr;
+
+			return QString("libFTDI ftdi_usb_open_string has failed for '%1'").arg(_deviceName);
+		}
 	}
 
 	Debug(_log, "Initializing MPSSE interface...");
@@ -204,7 +215,7 @@ QString ProviderSpiLibFtdi::open()
 
 	if (error.isEmpty() && _fun_ftdi_write_data_set_chunksize(_deviceHandle, 65535) < 0)
 	{
-		error = "libFTDI ftdi_usb_reset did not return properly";
+		error = "libFTDI ftdi_write_data_set_chunksize did not return properly";
 	}
 
 	if (error.isEmpty() && _fun_ftdi_set_event_char(_deviceHandle, 0, false) < 0)
@@ -257,7 +268,7 @@ QString ProviderSpiLibFtdi::open()
 
 		if (_fun_ftdi_write_data(_deviceHandle, command.data(), command.size()) < 0)
 		{
-			error = "Cannot initilize SPI interface";
+			error = "Cannot initialize SPI interface";
 		}
 	}
 
@@ -285,31 +296,37 @@ int ProviderSpiLibFtdi::close()
 
 int ProviderSpiLibFtdi::writeBytes(unsigned size, const uint8_t* data)
 {
+	if (size == 0 || size > 65536)
+	{
+		return -1;
+	}
+
 	std::vector<uint8_t> command;
+	command.reserve(3 + 3 + size + 3);
 
 	// cs & clock low
 	command.push_back(0x80);
 	command.push_back(0);
 	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
 
+	// MPSSE DO_WRITE command + length
 	command.push_back(0x11);
 	command.push_back((size - 1) & 0xFF);
 	command.push_back(((size - 1) >> 8) & 0xFF);
-	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
-	if (_fun_ftdi_write_data(_deviceHandle, const_cast<uint8_t*>(data), size) < static_cast<int>(size))
+
+	// data payload
+	command.insert(command.end(), data, data + size);
+
+	// cs high
+	command.push_back(0x80);
+	command.push_back(0x08);
+	command.push_back(0x08 | 0x02 | 0x01);
+
+	if (_fun_ftdi_write_data(_deviceHandle, command.data(), static_cast<int>(command.size())) < static_cast<int>(command.size()))
 	{
 		Error(_log, "The FTDI device reports error while writing");
 		return -1;
 	}
-
-	// cs high
-	command.clear();
-	command.push_back(0x80);
-	command.push_back(0x08);
-	command.push_back(0x08 | 0x02 | 0x01);
-	_fun_ftdi_write_data(_deviceHandle, command.data(), command.size());
-
 
 	return size;
 }
@@ -354,15 +371,34 @@ QJsonObject ProviderSpiLibFtdi::discover(const QJsonObject& /*params*/)
 		{
 			if (numDevs > 0)
 			{
-				QJsonArray deviceList;				
+				QJsonArray deviceList;
 
 				struct ftdi_device_list* curDev = devlist;
 				while (curDev)
 				{
 					long deviceLocation = ((curDev->dev->bus_number & 0xff) << 8) | (curDev->dev->device_address & 0xff);
+
+					char manufacturer[128] = {0};
+					char description[128] = {0};
+					char serial[128] = {0};
+					_fun_ftdi_usb_get_strings(ftdic, curDev->dev, manufacturer, sizeof(manufacturer), description, sizeof(description), serial, sizeof(serial));
+
+					QString displayName = QString("libFTDI SPI device location: %1").arg(QString::number(deviceLocation));
+					if (serial[0] != '\0')
+						displayName += QString(" (serial: %1)").arg(serial);
+					if (description[0] != '\0')
+						displayName += QString(" [%1]").arg(description);
+
+					QString stableId;
+					if (serial[0] != '\0')
+						stableId = QString("s:0x%1:0x%2:%3")
+							.arg(curDev->dev->device_descriptor.idVendor, 4, 16, QChar('0'))
+							.arg(curDev->dev->device_descriptor.idProduct, 4, 16, QChar('0'))
+							.arg(serial);
+
 					deviceList.push_back(QJsonObject{
-						{"value", QJsonValue((qint64)deviceLocation)},
-						{ "name", QString("libFTDI SPI device location: %1").arg(QString::number(deviceLocation)) } });
+						{"value", stableId.isEmpty() ? QJsonValue((qint64)deviceLocation) : QJsonValue(stableId)},
+						{"name", displayName}});
 					curDev = curDev->next;
 				}
 
