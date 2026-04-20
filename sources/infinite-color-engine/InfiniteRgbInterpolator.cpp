@@ -145,7 +145,7 @@ void InfiniteRgbInterpolator::updateCurrentColors(float currentTimeMs, float /*m
 	// limits[2] = 60/255  => stary limitMax
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
-		const float FINISH_COMPONENT_THRESHOLD = 0.2f / 255.0f;
+		constexpr float FINISH_COMPONENT_THRESHOLD = 0.0013732906f / 10.f;
 
 		float val = linalg::maxelem(linalg::abs(diff));
 
