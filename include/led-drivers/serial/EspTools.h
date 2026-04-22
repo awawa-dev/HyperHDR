@@ -35,6 +35,7 @@ public:
 	{
 		uint8_t comBuffer[] = { 0x41, 0x77, 0x41, 0x2a, 0xa2, 0x35, 0x68, 0x79, 0x70, 0x65, 0x72, 0x68, 0x64, 0x72 };
 		_serialPort->write((char*)comBuffer, sizeof(comBuffer));
+		_serialPort->flush();
 	}
 
 	static void initializeEsp(QSerialPort* _serialPort, QSerialPortInfo& serialPortInfo, LoggerName _log, bool _forceSerialDetection)
@@ -46,11 +47,11 @@ public:
 			Warning(_log, "Detected RP2040/RP2350 type board. HyperHDR skips the reset. State: {:d}, {:d}",
 				_serialPort->isDataTerminalReady(), _serialPort->isRequestToSend());
 
-			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
-
 			_serialPort->setDataTerminalReady(true);
 			_serialPort->setRequestToSend(true);
-			_serialPort->setRequestToSend(false);
+			QThread::msleep(10);
+			_serialPort->write((char*)comBuffer, sizeof(comBuffer));
+			_serialPort->flush();
 		}
 		else if (serialPortInfo.productIdentifier() == 0x80c2 && serialPortInfo.vendorIdentifier() == 0x303a)
 		{
