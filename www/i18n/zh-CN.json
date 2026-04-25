@@ -1,6 +1,6 @@
 {
   "general_btn_on": "开启",
-  "InfoDialog_access_text": "根据设置级别，您可以调整更多选项或获得更多功能。建议初学者使用“默认”级别。",
+  "InfoDialog_access_text": "根据设置级别，您可以调整更多选项或获得更多功能。建议使用“默认”级别。",
   "InfoDialog_access_title": "设置级别",
   "InfoDialog_changePassword_success": "密码修改成功！",
   "InfoDialog_changePassword_title": "更改密码",
