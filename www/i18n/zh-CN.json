@@ -13,7 +13,7 @@
   "InfoDialog_nowrite_title": "写入权限错误！",
   "about_3rd_party_licenses": "第三方许可证",
   "about_3rd_party_licenses_error": "无法从网络获取第三方许可信息。<br/>请通过此链接访问 GitHub 资源。",
-  "about_build": "构建源码",
+  "about_build": "构建源代码",
   "about_builddate": "构建日期",
   "about_contribute": "参与 HyperHDR 的开发！",
   "about_credits": "感谢所有开发者的贡献！",
