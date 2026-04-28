@@ -8,6 +8,7 @@
 - Add aspect ratio detection for Amlogic grabber. Thanks @santievil (#1476) - v22beta2 🆕
 - Fix remote tab JSON parsing error caused by missing black color in API JSON scheme (#1471) - v22beta2 🆕
 - Implement DDP / Hyperk drivers (#1467) - v22beta2 🆕
+- Prepare support for RP2350 in HyperSerialPico integration (#1521) - v22beta2 🆕
 - Add Ubuntu 26.04 LTS and Fedora 44 (#1491) - v22beta2 🆕
 - Fix build without PCH enabled. Thanks @HiassofT for help (#1497) - v22beta2 🆕
 - Update language files. Thanks @AstaRom (#1445) - v22beta2 🆕
