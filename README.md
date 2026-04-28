@@ -36,7 +36,7 @@ The Infinite Color Engine has also paved the way for our bespoke, internally dev
 * **Automatic tone mapping** for SDR/HDR content  
 * **Automatic LUT calibration** for optimal HDR/SDR grabber quality using MP4 test files  
 * **Latency benchmarking** for USB grabbers  
-* **P010 support** on Windows and Linux (our patched Raspberry Pi OS image - P010 is not supported in the mainline OS)
+* **P010 support** on Windows & Linux (our patched Raspberry Pi OS image - P010 is not supported in mainline OS)
 * **Intuitive LED strip editor**, with automatic or manual geometry editing via mouse and context menus  
 * **Smart signal detection** with adaptive learning for USB grabbers  
 * **External tone mapping support** for flatbuffers/protobuf sources  
@@ -54,8 +54,7 @@ HyperHDR’s advanced video pipeline significantly enhances LED output, creating
 **Official releases:**  
 [https://github.com/awawa-dev/HyperHDR/releases](https://github.com/awawa-dev/HyperHDR/releases)
 
-Windows installers are code-signed by [SignPath Foundation](https://signpath.org).  
-See our [Code Signing Policy](CODE_SIGNING_POLICY.md).
+Windows installers are code-signed by [SignPath Foundation](https://signpath.org). See our [Code Signing Policy](CODE_SIGNING_POLICY.md).
 
 **Official Linux repository:**  
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
