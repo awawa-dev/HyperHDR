@@ -4,7 +4,7 @@
 // project includes
 #include "HyperhdrConfig.h"
 #include <jsonserver/JsonServer.h>
-#include "JsonClientConnection.h"
+#include <jsonserver/JsonClientConnection.h>
 
 #include <utils/NetOrigin.h>
 #include <api/HyperAPI.h>

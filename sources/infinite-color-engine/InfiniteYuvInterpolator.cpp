@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -125,7 +125,16 @@ void InfiniteYuvInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_y
 	_currentColorsRGB.reset();
 }
 
-void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs)
+void InfiniteYuvInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_targetColorsRGB.clear();
+	_currentColorsRGB.reset();
+	_currentColorsYUV.clear();
+	_targetColorsYUV.clear();
+}
+
+void InfiniteYuvInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{
@@ -238,7 +247,7 @@ void InfiniteYuvInterpolator::test()
 					retargeted_to_B = true;
 				}
 
-				interpolator.updateCurrentColors(time_ms);
+				interpolator.updateCurrentColors(time_ms, 0.f);
 
 				auto temp_color = interpolator.getCurrentColors();
 				const auto& current_color = *(temp_color);

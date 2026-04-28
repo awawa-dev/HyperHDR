@@ -9,7 +9,7 @@ else
     CPU_RPI=0
 fi
 NET_IP=`hostname -I | cut -d " " -f1`
-FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
+FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
 
 ENABLE_SERVICE=0
 STARTUP_MSG="Service is NOT enabled by default for GUI OS"

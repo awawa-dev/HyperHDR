@@ -141,12 +141,22 @@ void InfiniteSmoothing::clearQueuedColors(bool deviceEnabled, bool restarting)
 			_interpolator->setSmoothingFactor(cfg->smoothingFactor);
 			_interpolator->setSpringiness(cfg->stiffness, cfg->damping);
 			_interpolator->setMaxLuminanceChangePerFrame(cfg->y_limit);
+
+			Info(_log, "Interpolator has been initialized. Current params are: type = {:s}, time = {:d}, factor = {:f}, stiffness = {:f}, damping = {:f}, y_limit = {:f}",
+													EnumSmoothingTypeToString(cfg->type), cfg->settlingTime, cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
+		}
+		else if (_interpolator != nullptr)
+		{
+			const auto& cfg = _configurations[_currentConfigId];
+			_interpolator->resetState();
+			Info(_log, "Interpolator has been reset. Current params are: type = {:s}, time = {:d}, factor = {:f}, stiffness = {:f}, damping = {:f}, y_limit = {:f}",
+												EnumSmoothingTypeToString(cfg->type), cfg->settlingTime, cfg->smoothingFactor, cfg->stiffness, cfg->damping, cfg->y_limit);
 		}
 
 		if (deviceEnabled && !_connected)
 		{
 			_connected = true;
-			connect(this, &InfiniteSmoothing::SignalMasterClockTick, this, &InfiniteSmoothing::updateLeds, Qt::DirectConnection);
+			connect(this, &InfiniteSmoothing::SignalMasterClockTick, this, &InfiniteSmoothing::updateLeds, static_cast<Qt::ConnectionType>(Qt::DirectConnection | Qt::UniqueConnection));
 		}
 
 		emit _hyperhdr->SignalSmoothingRestarted(this->getSuggestedInterval(), this->getAntiFlickeringFilterState());
@@ -248,7 +258,7 @@ void InfiniteSmoothing::updateLeds()
 			return;
 
 		timeNow = InternalClock::now();
-		_interpolator->updateCurrentColors(timeNow);
+		_interpolator->updateCurrentColors(timeNow, _minimalBacklight);
 
 		nonlinearRgbColors = _interpolator->getCurrentColors(_minimalBacklight);
 

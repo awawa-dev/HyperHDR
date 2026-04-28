@@ -8,7 +8,7 @@ NET_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{print $7}' | head -n 1)
 [ -z "$NET_IP" ] && NET_IP=$(hostname -I 2>/dev/null | cut -d " " -f1)
 [ -z "$NET_IP" ] && NET_IP="127.0.0.1"
 
-FOUND_USR="${SUDO_USER:-$(who | grep -o -m1 '^[a-zA-Z0-9]*' | head -1)}"
+FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
 [ -z "$FOUND_USR" ] && FOUND_USR="root"
 
 ENABLE_SERVICE=0

@@ -27,16 +27,13 @@ jobs:
         architecture: [amd64, armhf, arm64]        
         include:
           - distroName: ubuntu
-            distroVersion: jammy
-            architecture: amd64
-          - distroName: ubuntu
             distroVersion: noble
             architecture: amd64
           - distroName: ubuntu
-            distroVersion: questing
+            distroVersion: resolute
             architecture: amd64
           - distroName: fedora
-            distroVersion: 43
+            distroVersion: 44
             architecture: amd64
           - distroName: archlinux
             distroVersion: latest
@@ -49,7 +46,7 @@ jobs:
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
            path: .ccache
            key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
@@ -76,7 +73,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags') == false
         continue-on-error: true
         run: |
-          gh cache list --ref ${{ github.event.ref }} --key "${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+          gh cache list --ref "${{ github.ref }}" --key "${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -121,7 +118,7 @@ jobs:
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
             path: build/.ccache
             key: macOS-${{ matrix.NICE_NAME }}-ccache-${{ github.run_id }}
@@ -144,7 +141,7 @@ jobs:
       - name: Clear branch ccache storage
         continue-on-error: true
         run: |
-          gh cache list --ref ${{ github.event.ref }} --key "macOS-${{ matrix.NICE_NAME }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+          gh cache list --ref "${{ github.ref }}" --key "macOS-${{ matrix.NICE_NAME }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -180,7 +177,7 @@ jobs:
           submodules: true
 
       - name: Cache Toolkit
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         id: cache-toolkit-windows
         with:
           path: ${{ env.TOOLKIT_DIR }}
@@ -213,7 +210,7 @@ jobs:
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
             path: build/.ccache
             key: ${{ runner.os }}-ccache-${{ github.run_id }}
@@ -233,7 +230,7 @@ jobs:
       - name: Clear branch ccache storage
         continue-on-error: true
         run: |
-          gh cache list --ref ${{ github.event.ref }} --key "${{ runner.os }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
+          gh cache list --ref "${{ github.ref }}" --key "${{ runner.os }}-ccache" --limit 100 --json id --jq '.[].id' | xargs -r -n1 gh cache delete
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -329,7 +326,7 @@ jobs:
 
   analyze:
     name: Analyze (CodeQL)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
 
     permissions:
@@ -362,7 +359,7 @@ jobs:
   clang-tidy-clazy:
     name: Analyze (clang and clazy)
     runs-on: ubuntu-latest
-    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL && false || false }}
 
     permissions:
       contents: read
@@ -450,14 +447,14 @@ jobs:
         run: echo "preRelease=true" >> $GITHUB_ENV
 
       - name: Download artifacts
-        uses: actions/download-artifact@v8.0.0
+        uses: actions/download-artifact@v8.0.1
         with:
           path: artifacts
           pattern: release-artifact-*
           merge-multiple: true          
 
       - name: Create draft release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v2.6.1
         with:
           name: HyperHDR ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}

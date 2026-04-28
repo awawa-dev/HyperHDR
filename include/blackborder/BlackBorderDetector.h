@@ -16,7 +16,7 @@ namespace hyperhdr
 	{
 	public:
 		BlackBorderDetector(double threshold);
-		uint8_t calculateThreshold(double blackborderThreshold) const;
+		static uint8_t calculateThreshold(double blackborderThreshold);
 		BlackBorder process(const Image<ColorRgb>& image) const;
 		BlackBorder process_classic(const Image<ColorRgb>& image) const;
 		BlackBorder process_osd(const Image<ColorRgb>& image) const;

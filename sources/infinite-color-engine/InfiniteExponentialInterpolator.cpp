@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -87,7 +87,14 @@ void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_
 	_targetTime = startTimeMs + _initialDuration;
 }
 
-void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs)
+void InfiniteExponentialInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_currentColorsRGB.clear();
+	_targetColorsRGB.clear();
+}
+
+void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{
@@ -194,7 +201,7 @@ void InfiniteExponentialInterpolator::test()
 				retargeted_to_B = true;
 			}
 
-			interpolator.updateCurrentColors(time_ms);
+			interpolator.updateCurrentColors(time_ms, 0.f);
 
 			auto temp_color = interpolator.getCurrentColors();
 			const auto& current_color = *(temp_color);

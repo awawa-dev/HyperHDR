@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -81,12 +81,12 @@ InfiniteProcessing::InfiniteProcessing() :
 {
 }
 
-InfiniteProcessing::InfiniteProcessing(const QJsonDocument& config, LedString::ColorOrder colorOrder, const LoggerName& log) :
+InfiniteProcessing::InfiniteProcessing(const QJsonDocument& colorConfig, const QJsonDocument& deviceConfig, const LoggerName& log) :
 	InfiniteProcessing()
 {
 	_log = log;
-	_colorOrder = colorOrder;
-	handleSignalInstanceSettingsChanged(settings::type::COLOR, config);
+	handleSignalInstanceSettingsChanged(settings::type::DEVICE, deviceConfig);
+	handleSignalInstanceSettingsChanged(settings::type::COLOR, colorConfig);
 }
 
 void InfiniteProcessing::setProcessingEnabled(bool enabled)
@@ -164,8 +164,13 @@ void InfiniteProcessing::handleSignalInstanceSettingsChanged(settings::type type
 {
 	if (type == settings::type::DEVICE)
 	{
-		_colorOrder = LedString::stringToColorOrder(config["colorOrder"].toString("rgb"));
-		Info(_log, "Current active RGB order is: {:s}", (config["colorOrder"].toString("rgb")));
+		if (config["enable_ice_rgbw"].toBool(false)) {
+			_colorOrder = LedString::ColorOrder::ORDER_RGB;
+			Info(_log, "RGBW dithering is using own color order - switching internal mixer to default {:s}", LedString::colorOrderToString(_colorOrder) );
+		} else {
+			_colorOrder = LedString::stringToColorOrder(config["colorOrder"].toString("rgb"));
+			Info(_log, "Current active RGB order is: {:s}", LedString::colorOrderToString(_colorOrder));
+		}
 	}
 	else if (type == settings::type::COLOR)
 	{

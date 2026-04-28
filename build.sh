@@ -25,10 +25,9 @@ print_manual()
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}armhf${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}arm64${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}jammy${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}questing${ColorReset}       | ${YellowColor2}amd64${ColorReset}"
-	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}43${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}resolute${ColorReset}       | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}44${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}archlinux${ColorReset} | ${YellowColor2}latest${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
 
 	printf "\n\n${GreenColor}Optional environmental options:${ColorReset}"
@@ -86,7 +85,7 @@ printf "\n${GreenColor}BUILD_TYPE${ColorReset}     = ${YellowColor}${BUILD_TYPE}
 printf "\n${GreenColor}BUILD_ARCHIVES${ColorReset} = ${YellowColor}${BUILD_ARCHIVES}${ColorReset}"
 printf "\n${GreenColor}USE_CCACHE${ColorReset}     = ${YellowColor}${USE_CCACHE}${ColorReset}"
 printf "\n${GreenColor}RESET_CACHE${ColorReset}    = ${YellowColor}${RESET_CACHE}${ColorReset}"
-printf "\n${GreenColor}INCLUDE_DEP_LIB{ColorReset} = ${YellowColor}${INCLUDE_DEP_LIB}${ColorReset}"
+printf "\n${GreenColor}INCLUDE_DEP_LIB${ColorReset} = ${YellowColor}${INCLUDE_DEP_LIB}${ColorReset}"
 printf "\n${GreenColor}USE_STANDARD_INSTALLER_NAME${ColorReset} = ${YellowColor}${USE_STANDARD_INSTALLER_NAME}${ColorReset}"
 printf "\n\n"
 
