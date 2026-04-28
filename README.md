@@ -2,7 +2,7 @@
 
 ## About
 
-HyperHDR is an open-source ambient lighting system for TVs and music setups, based on real-time video and audio stream analysis. It is designed with a strong focus on stability, high performance, and high-fidelity video decoding and mapping for precise and vibrant LED visuals. Optimized for both single-threaded and multi-threaded video processing, HyperHDR runs seamlessly on **Windows**, **macOS** (x64/arm64: M1, M2), and **Linux x64 & ARM** (including Raspberry Pi).
+HyperHDR is an open-source ambient lighting system for TVs and music setups. It performs real-time analysis of video and audio streams to create immersive LED lighting. Designed with a strong focus on stability, high performance, and high-fidelity video decoding and mapping, HyperHDR delivers precise and vibrant LED visuals. Optimized for both single- and multi-threaded video processing, it runs seamlessly on **Windows**, **macOS** (x64 & arm64), and **Linux** (x64 & ARM, including Raspberry Pi).
 
 ![v20](https://github.com/awawa-dev/HyperHDR/assets/69086569/9bc7999d-1515-4a96-ba5e-8a732cf7d8a4)
 
@@ -15,8 +15,8 @@ The Infinite Color Engine has also paved the way for our bespoke, internally dev
 ### Key advantages of the Infinite Color Engine ( :new: HyperHDR v22):
 * **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
 * **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
-* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
-* **Advanced color smoothing algorithms:** Inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
+* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth
+* **Advanced Color Smoothing Algorithms:** Inertial-physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
 * **High-precision RGB-to-RGBW conversion:** Energy-aware power balancing, white point temperature calibration, temporal dithering and anti-flicker hysteresis
 
 ### Additional features:
@@ -26,39 +26,43 @@ The Infinite Color Engine has also paved the way for our bespoke, internally dev
 * **Optimized multithreading**, enabling Raspberry Pi to process high-quality video streams  
 * **High portability** across ARM-based embedded platforms  
 * **System diagnostics:** live CPU/RAM usage, CPU temperature, undervoltage detection, USB grabber and LED performance  
-* **USB grabber support** for Linux, Windows 10/11, and macOS for P010/NV12/YUYV/MJPEG/UYVY/I420/RGB   
+* **USB grabber support** on Linux, Windows 10/11, and macOS for P010/NV12/YUYV/MJPEG/UYVY/I420/RGB   
 * **Hardware-accelerated capture:** PipeWire/Portal (Linux/Wayland), DirectX (Windows 10/11)  
 * **HDR-ready DirectX screen grabbing:** Supports DXGI_FORMAT_R16G16B16A16_FLOAT and multiple monitors 
-* **Optimized video processing:** Our optimized pipeline handles smoothly 1080p **P010**/**NV12**/**YUYV** even on Rpi4
+* **Optimized video processing:** Our pipeline smoothly handles 1080p **P010**/**NV12**/**YUYV** even on Rpi4
 * **Built-in audio visualization** powered by spectrum analysis  
 * **MQTT support** for IoT integration  
 * **Home Assistant and zigbee2mqtt integration**  
 * **Automatic tone mapping** for SDR/HDR content  
 * **Automatic LUT calibration** for optimal HDR/SDR grabber quality using MP4 test files  
 * **Latency benchmarking** for USB grabbers  
-* **P010 support** for Windows, Linux: our patched Raspberry Pi OS image (P010 is unsupported in mainline OS)
+* **P010 support** on Windows & Linux (our patched Raspberry Pi OS image - P010 is not supported in mainline OS)
 * **Intuitive LED strip editor**, with automatic or manual geometry editing via mouse and context menus  
 * **Smart signal detection** with adaptive learning for USB grabbers  
 * **External tone mapping support** for flatbuffers/protobuf sources  
-* **Wide LED strip compatibility** and for WS281x, APA102, HD107, SK9822, SK6812 our ultra-fast LED controllers:  
-  * [HyperSPI](https://github.com/awawa-dev/HyperSPI) for ESP8266/ESP32/rp2040  
+* **Wide LED strip compatibility** including WS281x, APA102, HD107, SK9822, SK6812 and our ultra-fast LED controllers:  
+  * [HyperSPI](https://github.com/awawa-dev/HyperSPI) for ESP8266/ESP32/RP2040  
   * [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico) USB serial port 2Mb+ speed connection    
-  * :new: [Hyperk](https://github.com/awawa-dev/Hyperk): our optimized wireless LED controller for esp8266/ESP32 (inc. S2/S3/C2/C3/C5/C6) and Raspberry Pi Pico W (rp2040/rp2350) family
+  * :new: [Hyperk](https://github.com/awawa-dev/Hyperk): our optimized wireless LED controller for ESP8266/ESP32 (incl. S2/S3/C2/C3/C5/C6) and Raspberry Pi Pico W (RP2040/RP2350) family
 
-HyperHDR’s advanced video pipeline significantly enhances LED output, creating a smoother, more immersive ambient lighting experience. It works with SDR, HDR, and Dolby Vision (LLDV if supported by your hardware). Instead of relying on USB grabbers, you can also use software screen capture directly from your PC.  
+HyperHDR’s advanced video pipeline significantly enhances LED output, creating a smoother, more immersive ambient lighting experience. It works with SDR, HDR, and Dolby Vision (Low Latency Dolby Vision / LLDV only, if supported by your hardware). Instead of relying on USB grabbers, you can also use software screen capture directly from your PC.  
 
 ![example](https://github.com/awawa-dev/HyperHDR/assets/69086569/4077c05d-4c02-47eb-8d64-a334064403b3)
 
 ## Downloads
 
-Official releases:  
+**Official releases:**  
 [https://github.com/awawa-dev/HyperHDR/releases](https://github.com/awawa-dev/HyperHDR/releases)
 
-Official Linux repository:  
+Windows installers are code-signed by [SignPath Foundation](https://signpath.org). See our [Code Signing Policy](CODE_SIGNING_POLICY.md).
+
+**Official Linux repository:**  
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
-Latest test builds (GitHub Action — login required, select latest build from master branch, setups in ZIP artifacts):  
-![Latest build on master](https://github.com/awawa-dev/HyperHDR/actions?query=branch%3Amaster)
+**Latest test builds** (GitHub Actions):  
+[View latest builds on master branch](https://github.com/awawa-dev/HyperHDR/actions?query=event:push+branch:master)
+
+Login required → select the latest build from the **master** branch → download setups from the ZIP artifacts.
 
 ## Documentation
 
