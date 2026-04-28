@@ -1170,7 +1170,7 @@
   "conf_leds_disabled_notification": "Vissa lysdioder är inaktiverade av användaren!",
   "conf_leds_layout_context": "Högerklicka på lysdioden för att visa snabbmenyn. Med CTRL-tangenten väljer du objektet nedan.",
   "conf_leds_layout_btn_zoom": "Zoom",
-  "edt_serial_espHandshake": "Esp8266/ESP32/Rp2040-handslag (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>info</a>)",
+  "edt_serial_espHandshake": "Esp8266/ESP32/RP2040/RP2350-handslag (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver": "Den här drivrutinen är avsedd för avancerade användare och <b>rekommenderas eller stöds inte</b> av HyperHDR-teamet. Vänligen läs avsnittet med vanliga frågor om projektet för skäl och be oss inte om hjälp om du försöker använda det eftersom det <b>återkallar allt stöd för hela din HyperHDR-konfiguration</b>. Välj en bättre lösning som HyperSerialEsp8266/HyperSerialESP32 (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>about</a>) eller HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>om</a>).<br/><br/><b>RPi 0-4 användare (ws2812b/sk6812 SPI-drivrutiner):</b><br>Lås din Pi:s baskärnfrekvens i config.txt för att förhindra SPI-korruption. Varning: kan öka temperaturen. PWM-drivrutinen och RPi 5 påverkas inte.",
   "edt_dev_spec_awa_mode_title": "Höghastighetsseriellt AWA-protokoll med dataintegritetskontroll (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>info</a>)",
   "edt_dev_spec_forceSerialDetection": "Forcera HyperSerial detektering (ignorera kortet ProductId/VendorId)",

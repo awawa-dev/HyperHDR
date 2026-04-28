@@ -1170,7 +1170,7 @@
   "conf_leds_disabled_notification": "¡Algunos LED están desactivados por el usuario!",
   "conf_leds_layout_context": "Haga clic con el botón derecho en el LED para mostrar el menú contextual. Con la tecla CTRL selecciona el objeto de abajo.",
   "conf_leds_layout_btn_zoom": "Zoom",
-  "edt_serial_espHandshake": "Protocolo de enlace Esp8266/ESP32/Rp2040 (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>info</a>)",
+  "edt_serial_espHandshake": "Protocolo de enlace Esp8266/ESP32/RP2040/RP2350 (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>info</a>)",
   "edt_rpi_ws281x_driver": "Este controlador está diseñado para usuarios avanzados y <b>no se recomienda ni se admite</b> por parte del equipo de HyperHDR. Lea la sección de preguntas frecuentes del proyecto para conocer los motivos y no nos pida ayuda si intenta usarlo porque <b>revoca cualquier soporte para toda su configuración de HyperHDR</b>. Elija una mejor solución como HyperSerialEsp8266/HyperSerialESP32 (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>about</a>) o HyperSPI (<a href='https://github.com/awawa-dev/HyperSPI' style='color:red'>acerca de</a>).<br/><br/><b>Usuarios de RPi 0-4 (controladores SPI ws2812b/sk6812):</b><br>Bloquee la frecuencia base del núcleo de su Pi en config.txt para evitar la corrupción de SPI. Advertencia: puede aumentar la temperatura. El controlador PWM y la RPi 5 no se ven afectados.",
   "edt_dev_spec_awa_mode_title": "Protocolo AWA serial de alta velocidad con verificación de integridad de datos (<a href='https://wiki.hyperhdr.eu/HyperSerial' style='color:red'>info</a>)",
   "edt_dev_spec_forceSerialDetection": "Forzar la detección de HyperSerial (ignorar el ProductId/VendorId de la placa)",
