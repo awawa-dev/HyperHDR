@@ -15,8 +15,8 @@ The Infinite Color Engine has also paved the way for our bespoke, internally dev
 ### Key advantages of the Infinite Color Engine ( :new: HyperHDR v22):
 * **Floating-Point Precision:** All color computations use high-precision floating-point arithmetic, eliminating cumulative rounding errors for more accurate results
 * **Linear sRGB Accuracy:** Core color transformations are processed in linear sRGB space, ensuring physically correct and consistent light reproduction
-* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth.
-* **Advanced color smoothing algorithms:** Inertia-based physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
+* **Deep-Color Support:** Compatible devices, including Philips Hue lamps, LIFX and HD108 LEDs, can take advantage of rendering beyond standard 24-bit RGB color depth
+* **Advanced Color Smoothing Algorithms:** Inertial-physics, exponential, and perceptually-uniform YUV/RGB interpolators for more fluid and natural color transitions
 * **High-precision RGB-to-RGBW conversion:** Energy-aware power balancing, white point temperature calibration, temporal dithering and anti-flicker hysteresis
 
 ### Additional features:
@@ -26,10 +26,10 @@ The Infinite Color Engine has also paved the way for our bespoke, internally dev
 * **Optimized multithreading**, enabling Raspberry Pi to process high-quality video streams  
 * **High portability** across ARM-based embedded platforms  
 * **System diagnostics:** live CPU/RAM usage, CPU temperature, undervoltage detection, USB grabber and LED performance  
-* **USB grabber support** for Linux, Windows 10/11, and macOS for P010/NV12/YUYV/MJPEG/UYVY/I420/RGB   
+* **USB grabber support** on Linux, Windows 10/11, and macOS for P010/NV12/YUYV/MJPEG/UYVY/I420/RGB   
 * **Hardware-accelerated capture:** PipeWire/Portal (Linux/Wayland), DirectX (Windows 10/11)  
 * **HDR-ready DirectX screen grabbing:** Supports DXGI_FORMAT_R16G16B16A16_FLOAT and multiple monitors 
-* **Optimized video processing:** Our optimized pipeline smoothly handles 1080p **P010**/**NV12**/**YUYV** even on Rpi4
+* **Optimized video processing:** Our pipeline smoothly handles 1080p **P010**/**NV12**/**YUYV** even on Rpi4
 * **Built-in audio visualization** powered by spectrum analysis  
 * **MQTT support** for IoT integration  
 * **Home Assistant and zigbee2mqtt integration**  
@@ -41,9 +41,9 @@ The Infinite Color Engine has also paved the way for our bespoke, internally dev
 * **Smart signal detection** with adaptive learning for USB grabbers  
 * **External tone mapping support** for flatbuffers/protobuf sources  
 * **Wide LED strip compatibility** including WS281x, APA102, HD107, SK9822, SK6812 and our ultra-fast LED controllers:  
-  * [HyperSPI](https://github.com/awawa-dev/HyperSPI) for ESP8266/ESP32/rp2040  
+  * [HyperSPI](https://github.com/awawa-dev/HyperSPI) for ESP8266/ESP32/RP2040  
   * [HyperSerialEsp8266](https://github.com/awawa-dev/HyperSerialEsp8266), [HyperSerialESP32](https://github.com/awawa-dev/HyperSerialESP32), [HyperSerialPico](https://github.com/awawa-dev/HyperSerialPico) USB serial port 2Mb+ speed connection    
-  * :new: [Hyperk](https://github.com/awawa-dev/Hyperk): our optimized wireless LED controller for esp8266/ESP32 (inc. S2/S3/C2/C3/C5/C6) and Raspberry Pi Pico W (rp2040/rp2350) family
+  * :new: [Hyperk](https://github.com/awawa-dev/Hyperk): our optimized wireless LED controller for ESP8266/ESP32 (incl. S2/S3/C2/C3/C5/C6) and Raspberry Pi Pico W (RP2040/RP2350) family
 
 HyperHDR’s advanced video pipeline significantly enhances LED output, creating a smoother, more immersive ambient lighting experience. It works with SDR, HDR, and Dolby Vision (Low Latency Dolby Vision / LLDV only, if supported by your hardware). Instead of relying on USB grabbers, you can also use software screen capture directly from your PC.  
 
