@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Sağ alt (köşe)",
   "conf_leds_layout_cl_cornergap": "Köşe Boşluğu",
   "conf_leds_layout_cl_edgegap": "Kenar Boşluğu",
-  "conf_leds_layout_cl_gaglength": "boşluk uzunluğu",
+  "conf_leds_layout_cl_gaplength": "boşluk uzunluğu",
   "conf_leds_layout_cl_gappos": "boşluk pozisyonu",
   "conf_leds_layout_cl_hleddepth": "Yatay LED derinliği",
   "conf_leds_layout_cl_inppos": "Giriş konumu",

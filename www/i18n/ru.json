@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Нижний правый (угол)",
   "conf_leds_layout_cl_cornergap": "Угловой зазор",
   "conf_leds_layout_cl_edgegap": "Зазор между краями",
-  "conf_leds_layout_cl_gaglength": "Длина зазора",
+  "conf_leds_layout_cl_gaplength": "Длина зазора",
   "conf_leds_layout_cl_gappos": "Позиция разрыва",
   "conf_leds_layout_cl_hleddepth": "Горизонтальная глубина светодиода",
   "conf_leds_layout_cl_inppos": "Позиция ввода",

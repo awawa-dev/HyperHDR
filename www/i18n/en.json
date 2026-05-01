@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Bottom Right (Corner)",
   "conf_leds_layout_cl_cornergap": "Corner Gap",
   "conf_leds_layout_cl_edgegap": "Edge Gap",
-  "conf_leds_layout_cl_gaglength": "Gap length",
+  "conf_leds_layout_cl_gaplength": "Gap length",
   "conf_leds_layout_cl_gappos": "Gap position",
   "conf_leds_layout_cl_hleddepth": "Horizontal LED depth",
   "conf_leds_layout_cl_inppos": "Input position",

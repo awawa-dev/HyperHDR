@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Unten rechts (Ecke)",
   "conf_leds_layout_cl_cornergap": "Ecklücke",
   "conf_leds_layout_cl_edgegap": "Randlücke",
-  "conf_leds_layout_cl_gaglength": "Lückenlänge",
+  "conf_leds_layout_cl_gaplength": "Lückenlänge",
   "conf_leds_layout_cl_gappos": "Lückenposition",
   "conf_leds_layout_cl_hleddepth": "Horizontale LED-Tiefe",
   "conf_leds_layout_cl_inppos": "Eingabeposition",

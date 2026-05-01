@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Rechtsonder (hoek)",
   "conf_leds_layout_cl_cornergap": "Hoekopening",
   "conf_leds_layout_cl_edgegap": "Randopening",
-  "conf_leds_layout_cl_gaglength": "spleet lengte",
+  "conf_leds_layout_cl_gaplength": "spleet lengte",
   "conf_leds_layout_cl_gappos": "spleetpositie",
   "conf_leds_layout_cl_hleddepth": "Horizontale LED-diepte",
   "conf_leds_layout_cl_inppos": "Invoerpositie:",

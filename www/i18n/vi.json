@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Dưới cùng bên phải (Góc)",
   "conf_leds_layout_cl_cornergap": "Khoảng trống ở góc",
   "conf_leds_layout_cl_edgegap": "Khoảng cách cạnh",
-  "conf_leds_layout_cl_gaglength": "Khoảng cách chiều dài",
+  "conf_leds_layout_cl_gaplength": "Khoảng cách chiều dài",
   "conf_leds_layout_cl_gappos": "vị trí khoảng cách",
   "conf_leds_layout_cl_hleddepth": "Chiều sâu LED ngang",
   "conf_leds_layout_cl_inppos": "Vị trí đầu vào",
