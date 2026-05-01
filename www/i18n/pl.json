@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Dolny prawy (róg)",
   "conf_leds_layout_cl_cornergap": "Szczelina narożna",
   "conf_leds_layout_cl_edgegap": "Szczelina na krawędzi",
-  "conf_leds_layout_cl_gaglength": "Długość szczeliny",
+  "conf_leds_layout_cl_gaplength": "Długość szczeliny",
   "conf_leds_layout_cl_gappos": "Pozycja przerwy",
   "conf_leds_layout_cl_hleddepth": "Pozioma głębokość LED",
   "conf_leds_layout_cl_inppos": "Pozycja wejścia",

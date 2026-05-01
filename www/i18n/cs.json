@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Vpravo dole (roh)",
   "conf_leds_layout_cl_cornergap": "Rohová mezera",
   "conf_leds_layout_cl_edgegap": "Mezera v hraně",
-  "conf_leds_layout_cl_gaglength": "Délka mezery",
+  "conf_leds_layout_cl_gaplength": "Délka mezery",
   "conf_leds_layout_cl_gappos": "pozice mezery",
   "conf_leds_layout_cl_hleddepth": "Horizontální hloubka LED",
   "conf_leds_layout_cl_inppos": "Vstupní poloha",

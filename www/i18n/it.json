@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "In basso a destra (angolo)",
   "conf_leds_layout_cl_cornergap": "Spazio d'angolo",
   "conf_leds_layout_cl_edgegap": "Spazio sul bordo",
-  "conf_leds_layout_cl_gaglength": "Lunghezza del gioco",
+  "conf_leds_layout_cl_gaplength": "Lunghezza del gioco",
   "conf_leds_layout_cl_gappos": "posizione gap",
   "conf_leds_layout_cl_hleddepth": "Profondità LED orizzontale",
   "conf_leds_layout_cl_inppos": "Posizione di inserimento",

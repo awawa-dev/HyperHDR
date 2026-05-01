@@ -61,7 +61,7 @@
   "conf_leds_layout_cl_bottomright": "Esquina inferior derecha",
   "conf_leds_layout_cl_cornergap": "Espacio en la esquina",
   "conf_leds_layout_cl_edgegap": "Espacio de borde",
-  "conf_leds_layout_cl_gaglength": "Longitud de la brecha",
+  "conf_leds_layout_cl_gaplength": "Longitud de la brecha",
   "conf_leds_layout_cl_gappos": "posición de la brecha",
   "conf_leds_layout_cl_hleddepth": "Profundidad LED horizontal",
   "conf_leds_layout_cl_inppos": "Posición de entrada",
