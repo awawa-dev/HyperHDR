@@ -21,6 +21,11 @@ class WebServer : public QObject
 {
 	Q_OBJECT
 
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+		Q_MOC_INCLUDE(<webserver/QtHttpReply.h>)
+		Q_MOC_INCLUDE(<webserver/QtHttpClientWrapper.h>)
+	#endif
+
 public:
 	WebServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, bool useSsl, QObject* parent = nullptr);
 	~WebServer() override;

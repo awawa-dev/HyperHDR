@@ -1,55 +1,51 @@
+/* DriverSpiWs2812SPI.cpp
+*
+*  MIT License
+*
+*  Copyright (c) 2020-2026 awawa-dev
+*
+*  Project homesite: https://github.com/awawa-dev/HyperHDR
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in all
+*  copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*  SOFTWARE.
+ */
+
 #include <led-drivers/spi/DriverSpiWs2812SPI.h>
 
-/*
-From the data sheet:
-
-(TH+TL=1.25μs±600ns)
-
-T0H,	 0 code, high level time,	 0.40µs ±0.150ns
-T0L,	 0 code, low level time,	 0.85µs ±0.150ns
-T1H,	 1 code, high level time,	 0.80µs ±0.150ns
-T1L,	 1 code, low level time,	 0.45µs ±0.150ns
-WT,	 Wait for the processing time,	 NA
-Trst,	 Reset code,low level time,	 50µs (not anymore... need 300uS for latest revision)
-
-To normalise the pulse times so they fit in 4 SPI bits:
-
-On the assumption that the "low" time doesnt matter much
-
-A SPI bit time of 0.40uS = 2.5 Mbit/sec
-T0 is sent as 1000
-T1 is sent as 1100
-
-With a bit of excel testing, we can work out the maximum and minimum speeds:
-2106000 MIN
-2590500 AVG
-3075000 MAX
-
-Wait time:
-Not Applicable for WS2812
-
-Reset time:
-using the max of 3075000, the bit time is 0.325
-Reset time is 300uS = 923 bits = 116 bytes
-
-*/
+namespace {
+	constexpr int SPI_FRAME_END_LATCH_BYTES = 4;
+}
 
 DriverSpiWs2812SPI::DriverSpiWs2812SPI(const QJsonObject& deviceConfig)
 	: ProviderSpi(deviceConfig)
 	, SPI_BYTES_PER_COLOUR(4)
-	, SPI_FRAME_END_LATCH_BYTES(116)
 	, bitpair_to_byte{
 		0b10001000,
-		0b10001100,
-		0b11001000,
-		0b11001100,
+		0b10001110,
+		0b11101000,
+		0b11101110
 	}
 {
 }
 
 bool DriverSpiWs2812SPI::init(QJsonObject deviceConfig)
 {
-	deviceConfig["rate"] = 2600000;
+	deviceConfig["rate"] = std::max(deviceConfig["rate"].toInt(3200000), 3000000);
 
 	bool isInitOK = false;
 
@@ -58,7 +54,7 @@ bool DriverSpiWs2812SPI::init(QJsonObject deviceConfig)
 	{
 		auto rateHz = getRate();
 
-		WarningIf((rateHz < 2106000 || rateHz > 3075000), _log, "SPI rate {:d} outside recommended range (2106000 -> 3075000)", rateHz);
+		WarningIf((rateHz < 3000000 || rateHz > 3334000), _log, "Real SPI rate {:d} outside of recommended range (3000000-3334000, ideal: 3200000)", rateHz);
 
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
@@ -78,8 +74,7 @@ int DriverSpiWs2812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 		Warning(_log, "Ws2812SPI led's number has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
 		_ledCount = static_cast<uint>(ledValues.size());
 
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+		_ledBuffer.assign(SPI_BYTES_PER_LED * _ledCount + SPI_FRAME_END_LATCH_BYTES, 0x00);
 	}
 
 	for (const ColorRgb& color : ledValues)
@@ -94,11 +89,6 @@ int DriverSpiWs2812SPI::writeFiniteColors(const std::vector<ColorRgb>& ledValues
 			colorBits >>= 2;
 		}
 		spi_ptr += SPI_BYTES_PER_LED;
-	}
-
-	for (int j = 0; j < SPI_FRAME_END_LATCH_BYTES; j++)
-	{
-		_ledBuffer[spi_ptr++] = 0;
 	}
 
 	return writeBytes(static_cast<unsigned int>(_ledBuffer.size()), _ledBuffer.data());

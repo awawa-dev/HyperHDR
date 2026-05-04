@@ -165,7 +165,7 @@ function checkHueBridge(cb, hueUser)
                 {
                     useV2Api=parseInt(json.swversion)>1948086000&&useV2ApiConfig
                     conf_editor.getEditor("root.specificOptions.output").setValue(hueIPs[hueIPsinc].internalipaddress);
-                    $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+                    $('#wiz_hue_discovered').html(DOMPurify.sanitize(`Bridge: ${json.name}, Modelid: ${json.modelid}, API-Version: ${json.apiversion}`));
                     cb(true);
                 }
                 else
@@ -590,10 +590,10 @@ function get_hue_groups()
                 {
                     // Also get all entertainment resources and devices. this will be used later to identify a channel
                     tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment',{'hue-application-key':$("#user").val() }).then(value => {
-                        entertainmentResources=value?.data
+                        entertainmentResources=value?.data;
                     })
                     tunnel_hue_get($("#ip").val(), '/clip/v2/resource/device',{'hue-application-key':$("#user").val() }).then(value => {
-                        deviceResources=value?.data
+                        deviceResources=value?.data;
                     })
                     if (r.data.length>0)
                     {
@@ -604,7 +604,8 @@ function get_hue_groups()
                         groupIDs={};
                         for (const group of r.data) {
                             groupIDs[group.id] = group;
-                            $('.gidsb').append(createTableRowFlex([group.name + '<br> (' + group.id + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId("' + group.id + '")>' + $.i18n(useV2Api?'wiz_hue_e_use_entertainmentconfigurationid':'wiz_hue_e_use_groupid', group.id) + '</button>']));
+                            const clickButton = `<button class="btn btn-sm btn-primary" onClick="useGroupId('${DOMPurify.sanitize(group.id)}')">${$.i18n('wiz_hue_e_use_entertainmentconfigurationid', group.id)}</button>`;
+                            $('.gidsb').append(createTableRowFlex([DOMPurify.sanitize(`${group.name}<br> (${group.id})`), clickButton]));
                             gC++;
                         }
                         if (gC == 0)
@@ -636,7 +637,8 @@ function get_hue_groups()
                         {
                             if (r[groupid].type == 'Entertainment')
                             {
-                                $('.gidsb').append(createTableRowFlex([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
+                                const clickButton =`<button class="btn btn-sm btn-primary" onClick="useGroupId('${groupid}')">${$.i18n('wiz_hue_e_use_groupid', groupid)}</button>`;
+                                $('.gidsb').append(createTableRowFlex([DOMPurify.sanitize(`${groupid} (${r[groupid].name})`), clickButton]));
                                 gC++;
                             }
                         }
@@ -755,7 +757,7 @@ function get_hue_lights()
                     let ipVal = encodeURI($("#ip").val());
                     let userVal = encodeURI($("#user").val());                  
                     let buttonLightLink = `<button class="btn btn-sm btn-primary" onClick=identify_hue_device("${ipVal}","${userVal}",${lightid})>***${$.i18n(useV2Api?'wiz_hue_identify':'wiz_hue_blinkblue', lightid)}</button>`;                 
-                    $('.lidsb').append(createTableRowFlex([`${lightid} (${descLightVal})`, selectLightControl, buttonLightLink]));
+                    $('.lidsb').append(createTableRowFlex([DOMPurify.sanitize(`${lightid} (${descLightVal})`), selectLightControl, buttonLightLink]));
                 }
 
                 if (hueType != 'philipshueentertainment')

@@ -2,6 +2,7 @@
 
 // HyperHDR includes
 #include "ProviderSpi.h"
+#include <led-drivers/InfiniteColorEngineRgbw.h>
 
 class DriverSpiHyperSPI : public ProviderSpi
 {
@@ -16,9 +17,17 @@ private:
 	void createHeader();
 	bool init(QJsonObject deviceConfig) override;
 	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
+	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
 	void whiteChannelExtension(uint8_t*& writer);
 
 	int _headerSize;
+
+	InfiniteColorEngineRgbw _infiniteColorEngineRgbw;
+	bool _enable_ice_rgbw;
+	linalg::aliases::float3 _ice_white_temperatur;
+	float _ice_white_mixer_threshold;
+	float _ice_white_led_intensity;
+
 	bool _white_channel_calibration;
 	uint8_t _white_channel_limit;
 	uint8_t _white_channel_red;

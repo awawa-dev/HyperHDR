@@ -28,6 +28,11 @@ namespace FlatBuffersParser
 class FlatBuffersServer : public QObject, protected LutLoader
 {
 	Q_OBJECT
+
+	#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+		Q_MOC_INCLUDE(<flatbuffers/server/FlatBuffersServerConnection.h>)
+	#endif
+
 public:
 	FlatBuffersServer(std::shared_ptr<NetOrigin> netOrigin, const QJsonDocument& config, const QString& configurationPath, QObject* parent = nullptr);
 	~FlatBuffersServer() override;

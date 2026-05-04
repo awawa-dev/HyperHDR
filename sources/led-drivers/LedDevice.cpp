@@ -48,6 +48,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _log(QString("LEDDEVICE_%1").arg(deviceConfig["type"].toString("unknown").toUpper()))
 	, _ledBuffer(0)
 	, _refreshTimer(nullptr)
+	, _colorOrder(LedString::ColorOrder::ORDER_RGB)
 	, _currentInterval(0)
 	, _defaultInterval(0)
 	, _forcedInterval(0)
@@ -363,6 +364,9 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 bool LedDevice::init(QJsonObject deviceConfig)
 {
 	Debug(_log, "deviceConfig: [{:s}]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	_colorOrder = LedString::stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
+	Info(_log, "Device RGB order is: {:s}", LedString::colorOrderToString(_colorOrder));
 
 	_defaultInterval = deviceConfig["refreshTime"].toInt(0);
 	_forcedInterval = deviceConfig["forcedRefreshTime"].toInt(0);

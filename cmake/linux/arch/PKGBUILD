@@ -6,11 +6,15 @@ url="https://github.com/awawa-dev/HyperHDR"
 license=('MIT')
 arch=('x86_64')
 install=INSTALL
-depends=('xz' 'glibc>={GLIBC_VERSION}')
+depends=('xz' 'glibc>={GLIBC_VERSION}') #<depends>
 optdepends=('gtk3')
 # not needed fot Github Action
 # source=("git+https://github.com/awawa-dev/HyperHDR.git")
 # md5sums=('SKIP')
+
+prepare() {
+    sed -i 's|BUILD_WITH_INSTALL_RPATH FALSE|BUILD_WITH_INSTALL_RPATH TRUE|' ../sources/hyperhdr/CMakeLists.txt
+}
 
 build() {
     export LDFLAGS=${LDFLAGS/-Wl,-z,pack-relative-relocs/}
@@ -19,6 +23,8 @@ build() {
         -DCMAKE_INSTALL_PREFIX='/usr' \
         -Wno-dev {BUILD_OPTION}
     cmake --build build
+    mkdir -p build/lib/hyperhdr
+    cp -P build/lib/*.so* build/lib/hyperhdr/ 2>/dev/null || true
 }
 
 package() {
@@ -26,5 +32,5 @@ package() {
     rm -rf $pkgdir/usr/bin/flatc
     rm -rf $pkgdir/usr/cmake
     rm -rf $pkgdir/usr/include
-    rm -rf $pkgdir/usr/lib
+    find "$pkgdir/usr/lib" -maxdepth 1 -mindepth 1 ! -name "hyperhdr" ! -name "systemd" -exec rm -rf {} +
 }

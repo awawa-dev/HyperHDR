@@ -13,9 +13,9 @@ jobs:
     permissions:
       actions: write
     steps:
-      - uses: yumemi-inc/clean-cache-action@v1.0.5
-        with:
-          ref: 'refs/heads/${{ github.head_ref }}'
+      - run: gh cache delete --all --ref "refs/pull/${{ github.event.pull_request.number }}/merge" --repo ${{ github.repository }} || true
+        env:
+          GH_TOKEN: ${{ github.token }}
   clean_PR_artifacts:
     name: Delete old Artifacts
     runs-on: ubuntu-latest

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "Preparing to install HyperHDR..."
+FOUND_USR="${SUDO_USER:-${LOGNAME:-$(id -u -n)}}"
+if pgrep hyperhdr > /dev/null 2>&1; then
+    if grep -m1 systemd /proc/1/comm > /dev/null; then
+        systemctl stop hyperhdr"@${FOUND_USR}" 2> /dev/null
+    fi
+fi
+killall hyperhdr 2> /dev/null
+exit 0

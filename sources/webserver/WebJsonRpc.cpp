@@ -4,11 +4,11 @@
 #include <QSslSocket>
 #include <QTcpServer>
 
-#include "WebJsonRpc.h"
-#include "QtHttpReply.h"
-#include "QtHttpRequest.h"
-#include "QtHttpServer.h"
-#include "QtHttpClientWrapper.h"
+#include <webserver/WebJsonRpc.h>
+#include <webserver/QtHttpReply.h>
+#include <webserver/QtHttpRequest.h>
+#include <webserver/QtHttpServer.h>
+#include <webserver/QtHttpClientWrapper.h>
 
 #include <api/HyperAPI.h>
 

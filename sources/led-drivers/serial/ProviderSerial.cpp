@@ -338,7 +338,7 @@ QString ProviderSerial::discoverFirst()
 				quint16 vendor = port.vendorIdentifier();
 				quint16 prodId = port.productIdentifier();
 				bool knownESPA = ((vendor == 0x303a) && (prodId == 0x80c2)) ||
-								 ((vendor == 0x2e8a) && (prodId == 0xa));
+								 ((vendor == 0x2e8a) && (prodId == 0xa || prodId == 0x9));
 				bool knownESPB = (vendor == 0x303a) ||
 								 ((vendor == 0x10c4) && (prodId == 0xea60)) ||
 								 ((vendor == 0x1A86) && (prodId == 0x7523 || prodId == 0x55d4));
@@ -386,7 +386,7 @@ QJsonObject ProviderSerial::discover(const QJsonObject& /*params*/)
 		{
 			newRecord.type = DiscoveryRecord::Service::ESP32_S2;
 		}
-		else if ((vendor == 0x2e8a) && (prodId == 0xa))
+		else if ((vendor == 0x2e8a) && (prodId == 0xa || prodId == 0x9))
 		{
 			newRecord.type = DiscoveryRecord::Service::Pico;
 		}

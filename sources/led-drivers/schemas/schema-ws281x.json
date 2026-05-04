@@ -50,15 +50,133 @@
 			"default": false,
 			"propertyOrder" : 6
 		},
-		"whiteAlgorithm": {
+		"white_algorithm": {
 			"type": "string",
-			"title":"edt_dev_spec_whiteLedAlgor_title",
-			"enum" : ["subtract_minimum","sub_min_cool_adjust","sub_min_warm_adjust","white_off"],
-			"default": "subtract_minimum",
-			"options" : {
-				"enum_titles" : ["edt_dev_enum_subtract_minimum", "edt_dev_enum_sub_min_cool_adjust","edt_dev_enum_sub_min_warm_adjust", "edt_dev_enum_white_off"]
+			"title": "edt_dev_spec_whiteLedAlgor_title",
+			"required" : true,
+			"enum": [
+				"subtract_minimum",
+				"sub_min_cool_adjust",
+				"sub_min_warm_adjust",
+				"hyperserial_cold_white",
+				"hyperserial_neutral_white",
+				"wled_auto",
+				"wled_auto_max",
+				"wled_auto_accurate",
+				"white_off"				
+			],
+			"default": "hyperserial_cold_white",
+			"options": {
+				"enum_titles": [
+					"edt_dev_enum_subtract_minimum",
+					"edt_dev_enum_sub_min_cool_adjust",
+					"edt_dev_enum_sub_min_warm_adjust",
+					"edt_dev_enum_hyperserial_cold_white",
+					"edt_dev_enum_hyperserial_neutral_white",
+					"edt_dev_enum_wled_auto",
+					"edt_dev_enum_wled_auto_max",
+					"edt_dev_enum_wled_auto_accurate",
+					"edt_dev_enum_white_off"
+				],
+				"dependencies": {
+					"enable_ice_rgbw": false,
+					"rgbw": true
+				}
 			},
-			"propertyOrder" : 7
+			"propertyOrder": 7
+		},
+		"enable_ice_rgbw": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_enable_ice_rgbw",
+			"required" : true,
+			"default": false,
+			"options": {
+				"dependencies": {
+					"rgbw": true
+				}
+			},
+			"propertyOrder" : 8
+		},		
+		"ice_white_mixer_threshold": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_mixer_threshold",
+			"required" : true,
+			"default" : 0.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 9
+		},
+		"ice_white_led_intensity": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_led_intensity",
+			"required" : true,
+			"default" : 1.8,
+			"step": 0.05,
+			"minimum" : 0.5,
+			"maximum" : 5.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 10
+		},		
+		"ice_white_temperatur_red": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_r",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 11
+		},
+		"ice_white_temperatur_green": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_g",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 12
+		},
+		"ice_white_temperatur_blue": {
+			"type": "number",
+			"format" : "stepper",						
+			"title":"edt_ice_white_temperatur_b",
+			"required" : true,
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
+			"options": {
+				"dependencies": {
+					"enable_ice_rgbw": true
+				}
+			},
+			"propertyOrder" : 13
 		}
 	},
 	"additionalProperties": true

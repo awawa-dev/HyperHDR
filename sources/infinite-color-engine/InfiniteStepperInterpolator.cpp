@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -90,7 +90,14 @@ void InfiniteStepperInterpolator::setTargetColors(std::vector<float3>&& new_rgb_
 	_targetTime = startTimeMs + _initialDuration;
 }
 
-void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
+void InfiniteStepperInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_currentColorsRGB.clear();
+	_targetColorsRGB.clear();
+}
+
+void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{
@@ -117,7 +124,7 @@ void InfiniteStepperInterpolator::updateCurrentColors(float currentTimeMs)
 	// limits[2] = 60/255  => stary limitMax
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff) -> bool {
-		const float FINISH_COMPONENT_THRESHOLD = 0.2f / 255.0f;
+		constexpr float FINISH_COMPONENT_THRESHOLD = 0.0013732906f / 10.f;
 
 		float val = linalg::maxelem(linalg::abs(diff));
 
@@ -199,7 +206,7 @@ void InfiniteStepperInterpolator::test()
 				retargeted_to_B = true;
 			}
 
-			interpolator.updateCurrentColors(time_ms);
+			interpolator.updateCurrentColors(time_ms, 0.f);
 
 			auto temp_color = interpolator.getCurrentColors();
 			const auto& current_color = *(temp_color);

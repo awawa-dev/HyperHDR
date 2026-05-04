@@ -1,5 +1,5 @@
 // project includes
-#include "JsonClientConnection.h"
+#include <jsonserver/JsonClientConnection.h>
 #include <api/HyperAPI.h>
 
 // qt inc

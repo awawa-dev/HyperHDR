@@ -119,7 +119,10 @@ function compareHyperHdrVersion(compareA, compareB)
 		console.log(`Invalid length: A:${valueA.length} B:${valueB.length}`);
 		return true;
 	}
-	
+
+	if (valueA.length >= 4) valueA[2] += valueA[3];
+	if (valueB.length >= 4) valueB[2] += valueB[3];
+
 	var finalA = "";
 	for (var i = 0; i < valueA[2].length; i++)
 		if (!isNaN(valueA[2][i]))

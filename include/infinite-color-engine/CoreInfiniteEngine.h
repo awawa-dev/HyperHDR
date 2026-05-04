@@ -25,7 +25,7 @@ class CoreInfiniteEngine : public QObject
 	Q_OBJECT
 
 public:
-	CoreInfiniteEngine(HyperHdrInstance* hyperhdr, LedString::ColorOrder colorOrder);
+	CoreInfiniteEngine(HyperHdrInstance* hyperhdr);
 	~CoreInfiniteEngine() = default;
 
 	int getSuggestedInterval();

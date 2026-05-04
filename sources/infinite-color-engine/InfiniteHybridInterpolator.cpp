@@ -2,7 +2,7 @@
 *
 *  MIT License
 *
-*  Copyright (c) 2020-2025 awawa-dev
+*  Copyright (c) 2020-2026 awawa-dev
 *
 *  Project homesite: https://github.com/awawa-dev/HyperHDR
 *
@@ -109,7 +109,17 @@ void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_t
 	_currentColorsRGB.reset();
 }
 
-void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
+void InfiniteHybridInterpolator::resetState() {
+	_isAnimationComplete = true;
+	_lastUpdate = 0.0f;
+	_targetColorsRGB.clear();
+	_currentColorsRGB.reset();
+	_currentColorsYUV.clear();
+	_targetColorsYUV.clear();
+	_velocitiesYUV.clear();
+}
+
+void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness) {
 	if (_isAnimationComplete)
 	{
 		_lastUpdate = currentTimeMs;
@@ -120,14 +130,14 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff, float3& vel) -> bool {
-		const float FINISH_COMPONENT_THRESHOLD = 0.0013732906f / 10.f;
-		const float VELOCITY_THRESHOLD = 0.0005f;
+		constexpr float FINISH_COMPONENT_THRESHOLD = 0.0013732906f / 10.f;
+		constexpr float VELOCITY_THRESHOLD = 0.0005f;
 
 		if (linalg::maxelem(linalg::abs(diff)) < FINISH_COMPONENT_THRESHOLD && // color match
 			linalg::maxelem(linalg::abs(vel)) < VELOCITY_THRESHOLD) // speed should be almost zero
 		{
 			cur += diff;
-			vel = float3{ 0,0,0 };
+			vel = float3{ 0.f, 0.f, 0.f };
 			return false;
 		}
 		else
@@ -146,6 +156,14 @@ void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs) {
 				vel *= scale;
 			}
 			cur += step;
+
+			const float3 minLimits{ minBrightness, -0.5f, -0.5f };
+			constexpr float3 maxLimits{ 1.0f, 0.5f, 0.5f };
+			for(int i = 0; i < 3; i++)
+				if (cur[i] < minLimits[i] || cur[i] > maxLimits[i]){
+					vel[i] = 0.0f;
+					cur[i] = std::clamp(cur[i], minLimits[i], maxLimits[i]);
+				}
 
 			return true;
 		}
@@ -223,7 +241,7 @@ void InfiniteHybridInterpolator::test() {
 				retargeted_to_B = true;
 			}
 
-			interpolator.updateCurrentColors(time_ms);
+			interpolator.updateCurrentColors(time_ms, 0.f);
 
 			auto temp_color = interpolator.getCurrentColors();
 			const auto& current_color = *(temp_color);

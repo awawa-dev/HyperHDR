@@ -12,7 +12,7 @@ BlackBorderDetector::BlackBorderDetector(double threshold)
 {
 }
 
-uint8_t BlackBorderDetector::calculateThreshold(double threshold) const
+uint8_t BlackBorderDetector::calculateThreshold(double threshold)
 {
 	int rgbThreshold = int(std::ceil(threshold * 255));
 

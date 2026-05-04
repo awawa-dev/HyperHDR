@@ -133,7 +133,7 @@ bool LedDevicePhilipsHueBridge::init(QJsonObject deviceConfig)
 		}
 		else
 		{
-			QUrl url = QUrl::QUrl::fromUserInput(address);
+			QUrl url = QUrl::fromUserInput(address);
 
 			_hostname = url.host();
 			Debug(_log, "Hostname/IP: {:s}", (_hostname));
@@ -2141,21 +2141,12 @@ void DriverNetPhilipsHue::identify(const QJsonObject& params)
 		QString username = params["user"].toString("");
 		int lightId = params["lightId"].toInt(0);
 
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(':', Qt::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort, username);
+		QUrl url = QUrl::fromUserInput(host);
+		auto hostname = url.host();
+		Debug(_log, "Hostname/IP: {:s}", (hostname));
+		auto apiPort = url.port(url.scheme().toLower() == "https" ? 443 : 80);
+		Debug(_log, "Port: {:d}", apiPort);
+		initRestAPI(hostname, apiPort, username);
 
 		QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
 		_restApi->setPath(resource);

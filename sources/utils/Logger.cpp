@@ -136,7 +136,7 @@ Logger::~Logger()
 	{
 #ifndef _WIN32				
 		const char* reset_color = "\033[0m";
-		write(STDOUT_FILENO, reset_color, strlen(reset_color));
+		[[maybe_unused]] auto result = write(STDOUT_FILENO, reset_color, strlen(reset_color));
 #endif
 	}
 }

@@ -7,10 +7,10 @@
 
 #include <utils/NetOrigin.h>
 
-#include "QtHttpServer.h"
-#include "QtHttpRequest.h"
-#include "QtHttpReply.h"
-#include "QtHttpClientWrapper.h"
+#include <webserver/QtHttpServer.h>
+#include <webserver/QtHttpRequest.h>
+#include <webserver/QtHttpReply.h>
+#include <webserver/QtHttpClientWrapper.h>
 
 const QString& QtHttpServer::HTTP_VERSION = QStringLiteral("HTTP/1.1");
 

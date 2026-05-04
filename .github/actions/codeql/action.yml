@@ -51,13 +51,13 @@ runs:
         python3
 
   - name: Checkout repository
-    uses: actions/checkout@v4
+    uses: actions/checkout@v6
     with:
       submodules: true
 
   # Initializes the CodeQL tools for scanning.
   - name: Initialize CodeQL
-    uses: github/codeql-action/init@v3
+    uses: github/codeql-action/init@v4
     with:
       languages: ${{ inputs.language }}
       # If you wish to specify custom queries, you can do so here or in a config file.
@@ -71,7 +71,7 @@ runs:
   # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
   # If this step fails, then you should remove it and run the build manually (see below)
   - name: Autobuild
-    uses: github/codeql-action/autobuild@v3
+    uses: github/codeql-action/autobuild@v4
     env:
       CODEQL_EXTRACTOR_CPP_AUTOINSTALL_DEPENDENCIES: false
   # ℹ️ Command-line programs to run using the OS shell.
@@ -85,7 +85,7 @@ runs:
   #     ./location_of_script_within_repo/buildscript.sh
 
   - name: Perform CodeQL Analysis
-    uses: github/codeql-action/analyze@v3
+    uses: github/codeql-action/analyze@v4
     with:
       category: "/language:${{ inputs.language }}"
       upload: false
@@ -100,6 +100,6 @@ runs:
       output: sarif-results/${{ inputs.language }}.sarif
 
   - name: Upload SARIF
-    uses: github/codeql-action/upload-sarif@v3
+    uses: github/codeql-action/upload-sarif@v4
     with:
       sarif_file: sarif-results/${{ inputs.language }}.sarif
