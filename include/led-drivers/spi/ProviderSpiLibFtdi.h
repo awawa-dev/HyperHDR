@@ -8,6 +8,8 @@
 
 typedef struct ftdi_context* (*PTR_ftdi_new)(void);
 typedef int (*PTR_ftdi_usb_open_bus_addr)(struct ftdi_context* ftdi, uint8_t bus, uint8_t addr);
+typedef int (*PTR_ftdi_usb_open_string)(struct ftdi_context* ftdi, const char* description);
+typedef int (*PTR_ftdi_usb_get_strings)(struct ftdi_context* ftdi, struct libusb_device* dev, char* manufacturer, int mnf_len, char* description, int desc_len, char* serial, int serial_len);
 typedef void (*PTR_ftdi_free)(struct ftdi_context* ftdi);
 typedef int (*PTR_ftdi_usb_reset)(struct ftdi_context* ftdi);
 typedef int (*PTR_ftdi_set_baudrate)(struct ftdi_context* ftdi, int baudrate);
@@ -31,6 +33,8 @@ class ProviderSpiLibFtdi final : public QObject, public ProviderSpiInterface
 
 	PTR_ftdi_new				_fun_ftdi_new;
 	PTR_ftdi_usb_open_bus_addr	_fun_ftdi_usb_open_bus_addr;
+	PTR_ftdi_usb_open_string	_fun_ftdi_usb_open_string;
+	PTR_ftdi_usb_get_strings	_fun_ftdi_usb_get_strings;
 	PTR_ftdi_free				_fun_ftdi_free;
 	PTR_ftdi_usb_reset			_fun_ftdi_usb_reset;
 	PTR_ftdi_set_baudrate		_fun_ftdi_set_baudrate;

@@ -85,10 +85,16 @@ bool ProviderSpi::init(QJsonObject deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
-		bool isInt = false;
-		#ifdef ENABLE_SPI_FTDI			
-			deviceConfig["output"].toString().toLong(&isInt, 10);
-			if (isInt)
+		bool isFtdi = false;
+		#ifdef ENABLE_SPI_FTDI
+		{
+			QString output = deviceConfig["output"].toString();
+			bool isInt = false;
+			output.toLong(&isInt, 10);
+			// Use FTDI provider for numeric bus:addr locations or ftdi_usb_open_string identifiers
+			// (e.g. "s:0x0403:0x6014:serial", "i:0x0403:0x6014", "d:/dev/...")
+			isFtdi = isInt || output.startsWith("s:") || output.startsWith("i:") || output.startsWith("d:");
+			if (isFtdi)
 			{
 				#ifdef WIN32
 					_provider = std::make_unique<ProviderSpiFtdi>(_log);
@@ -96,10 +102,11 @@ bool ProviderSpi::init(QJsonObject deviceConfig)
 					_provider = std::make_unique<ProviderSpiLibFtdi>(_log);
 				#endif
 			}
+		}
 		#endif
 
 		#if !defined(WIN32) && !defined(__APPLE__)
-			if (!isInt)
+			if (!isFtdi)
 			{
 				_provider = std::make_unique<ProviderSpiGeneric>(_log);
 			}
