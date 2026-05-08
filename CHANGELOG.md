@@ -2,6 +2,7 @@
 - Migrate to standard OS config location if ~/.hyperhdr folder is missing (#1472) - v22beta2 🆕
 - Add Philips WiZ support (driver + web wizard) Thanks @user83749 (#1469) - v22beta2 🆕
 - Add aspect ratio detection for Amlogic grabber. Thanks @santievil (#1476) - v22beta2 🆕
+- Fix: Allow capturing non-primary macOS displays (#1530) - v22beta2 🆕
 - Fix remote tab JSON parsing error caused by missing black color in API JSON scheme (#1471) - v22beta2 🆕
 - Implement DDP / Hyperk drivers (#1467) - v22beta2 🆕
 - Fix: Initial smoothing surge after period of static video input (#1410) - v22beta2 🆕
