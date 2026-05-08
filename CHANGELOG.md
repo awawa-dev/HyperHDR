@@ -6,6 +6,7 @@
 - Integrate SignPath for automated Windows code signing (#1479) - v22beta2 🆕
 - Add Philips WiZ support (driver + web wizard) Thanks @user83749 (#1469) - v22beta2 🆕
 - Add aspect ratio detection for Amlogic grabber. Thanks @santievil (#1476) - v22beta2 🆕
+- Fix: Allow capturing non-primary macOS displays (#1530) - v22beta2 🆕
 - Fix remote tab JSON parsing error caused by missing black color in API JSON scheme (#1471) - v22beta2 🆕
 - Implement DDP / Hyperk drivers (#1467) - v22beta2 🆕
 - Prepare support for RP2350 in HyperSerialPico integration (#1521) - v22beta2 🆕
