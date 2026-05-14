@@ -165,7 +165,10 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-2025
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022]
     env:
       MSVC: 2022
       QT_VERSION: 6.8.3
@@ -181,7 +184,7 @@ jobs:
         id: cache-toolkit-windows
         with:
           path: ${{ env.TOOLKIT_DIR }}
-          key: ${{ runner.os }}-Toolkit-Qt.${{ env.QT_VERSION }}-NSIS-TurboJPEG
+          key: ${{ matrix.os }}-Toolkit-Qt.${{ env.QT_VERSION }}-NSIS-TurboJPEG
 
       - name: Python 3.13 for aqtinstall
         if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
