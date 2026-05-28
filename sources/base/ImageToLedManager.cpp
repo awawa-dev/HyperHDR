@@ -29,6 +29,7 @@
 #include <base/ImageToLedManager.h>
 #include <base/ImageColorAveraging.h>
 #include <blackborder/BlackBorderProcessor.h>
+#include <image/GaussianBlur.h>
 
 using namespace hyperhdr;
 using namespace linalg::aliases;
@@ -94,15 +95,34 @@ ImageToLedManager::ImageToLedManager(const LedString& ledString, HyperHdrInstanc
 
 void ImageToLedManager::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if (type == settings::type::COLOR)
-	{
-		const QJsonObject& obj = config.object();
-		int newType = mappingTypeToInt(obj["imageToLedMappingType"].toString());
-		setLedMappingType(newType);
+    if (type == settings::type::COLOR)
+    {
+        const QJsonObject& obj = config.object();
+        int newType = mappingTypeToInt(obj["imageToLedMappingType"].toString());
+        setLedMappingType(newType);
 
-		bool newSparse = obj["sparse_processing"].toBool(false);
-		setSparseProcessing(newSparse);
-	}
+        bool newSparse = obj["sparse_processing"].toBool(false);
+        setSparseProcessing(newSparse);
+
+		std::vector<LedBrightnessRange> ranges;
+		const QJsonArray rangesArray = obj["ledBrightnessRanges"].toArray();
+		for (const QJsonValue& v : rangesArray)
+		{
+			const QJsonObject o = v.toObject();
+			LedBrightnessRange r;
+			r.from       = o["from"].toInt(0);
+			r.to         = o["to"].toInt(0);
+			r.brightness = static_cast<float>(o["brightness"].toDouble(1.0));
+			ranges.push_back(r);
+		}
+		setLedBrightnessRanges(ranges);
+
+        // AJOUTER CES LIGNES :
+        int newBlurRadius = obj["gaussianBlurRadius"].toInt(0);
+        setGaussianBlurRadius(newBlurRadius);
+	int newBlackThreshold = obj["blackThreshold"].toInt(0);
+	setBlackThreshold(newBlackThreshold);
+    }
 }
 
 void ImageToLedManager::setSize(unsigned width, unsigned height)
@@ -142,15 +162,43 @@ bool ImageToLedManager::blackBorderDetectorEnabled() const
 	return _borderProcessor->enabled();
 }
 
-void ImageToLedManager::processFrame(std::vector<float3>& ledColors, const Image<ColorRgb>& frameBuffer)
+void ImageToLedManager::processFrame(std::vector<float3>& ledColors, const Image<ColorRgb>& frameBuffer, Image<ColorRgb>& outImage)
 {
-	setSize(frameBuffer);;
-	verifyBorder(frameBuffer);
+    if (_gaussianBlurRadius > 0)
+    {
+        outImage = Image<ColorRgb>(frameBuffer.width(), frameBuffer.height());
+        memcpy(outImage.rawMem(), frameBuffer.rawMem(), frameBuffer.size());
+        GaussianBlur::apply(outImage, _gaussianBlurRadius);
+        setSize(outImage);
+        verifyBorder(outImage);
+        if (_colorAveraging != nullptr && _colorAveraging->width() == outImage.width() && _colorAveraging->height() == outImage.height())
+            _colorAveraging->process(ledColors, outImage);
+    }
+    else
+    {
+    // radius == 0 : outImage reste vide (width==0), l'appelant utilisera l'image originale
+    setSize(frameBuffer);
+    verifyBorder(frameBuffer);
+    if (_colorAveraging != nullptr && _colorAveraging->width() == frameBuffer.width() && _colorAveraging->height() == frameBuffer.height())
+        _colorAveraging->process(ledColors, frameBuffer);
+    }
+    // Appliquer la luminosité par plage
+    for (const auto& range : _brightnessRanges)
+    {
+        int end = std::min(range.to, static_cast<int>(ledColors.size()) - 1);
+        for (int i = range.from; i <= end; ++i)
+            ledColors[i] = linalg::clamp(ledColors[i] * range.brightness, 0.0f, 1.0f);
+    }
 
-	if (_colorAveraging != nullptr && _colorAveraging->width() == frameBuffer.width() && _colorAveraging->height() == frameBuffer.height())
-	{
-		_colorAveraging->process(ledColors, frameBuffer);
-	}
+    // Forcer le noir absolu sous le seuil
+    if (_blackThreshold > 0.0f)
+    {
+        for (auto& color : ledColors)
+        {
+            if (color.x < _blackThreshold && color.y < _blackThreshold && color.z < _blackThreshold)
+                color = float3{ 0.0f, 0.0f, 0.0f };
+        }
+    }
 }
 
 void ImageToLedManager::setSparseProcessing(bool sparseProcessing)
@@ -240,4 +288,22 @@ void ImageToLedManager::setSize(const Image<ColorRgb>& image)
 int ImageToLedManager::getLedMappingType() const
 {
 	return _mappingType;
+}
+
+void ImageToLedManager::setGaussianBlurRadius(int radius)
+{
+    _gaussianBlurRadius = std::max(0, std::min(radius, 30));
+    Debug(_log, "Gaussian blur radius set to: {:d}", _gaussianBlurRadius);
+}
+
+void ImageToLedManager::setLedBrightnessRanges(const std::vector<LedBrightnessRange>& ranges)
+{
+    _brightnessRanges = ranges;
+    Debug(_log, "LED brightness ranges updated: {:d} range(s)", static_cast<int>(ranges.size()));
+}
+
+void ImageToLedManager::setBlackThreshold(int threshold)
+{
+    _blackThreshold = std::clamp(threshold, 0, 30) / 255.0f;
+    Debug(_log, "Black threshold set to: {:d}/255", threshold);
 }
