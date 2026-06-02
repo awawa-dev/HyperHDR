@@ -253,7 +253,7 @@ jobs:
       USE_SIGNPATH: ${{ vars.USE_SIGNPATH || 'false' }}
     steps:
       - name: Download unsigned artifact
-        uses: actions/download-artifact@v8.0.0
+        uses: actions/download-artifact@v8.0.1
         with:
           name: unsigned-windows-installer
           path: to_sign
