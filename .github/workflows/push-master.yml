@@ -235,7 +235,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload unsigned artifacts
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: unsigned-windows-installer
           path: build/Hyper*
@@ -272,7 +272,7 @@ jobs:
       - name: Upload unsigned ZIP to GitHub (SignPath V2 requirement)
         if: ${{ env.USE_SIGNPATH == 'true' }}
         id: upload-unsigned-artifact
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: signpath_upload
           path: to_sign/
