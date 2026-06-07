@@ -1214,6 +1214,7 @@
   "edt_conf_monitor_nits_title": "HDR 亮度补偿校正 (Nits)",
   "edt_conf_monitor_nits_expl": "执行硬件加速将 HDR 转换为 SDR 时设定的显示器目标亮度。如果设为 0，则禁用硬件级色彩转换（但仍保留分辨率缩放加速）。",
   "edt_append_nits": "nits (尼特)",
+  "edt_append_frames": "Frames (镜框)",
   "edt_conf_gen_disableOnLocked_title": "锁屏或显示器关闭时自动停止",
   "edt_conf_gen_disableOnLocked_expl": "当操作系统被锁定或显示器休眠时，自动停止软件屏幕截取处理。需要重新启动系统才能使更改生效。",
   "edt_conf_gen_disableLedsStartup_title": "开机默认关闭 LED",
