@@ -10,7 +10,8 @@ Known VID/PID pairs:
 - `0x1a86:0xfe07`
 - `0x1a86:0xfe0c`
 
-The driver sends Windows HID output reports. Each report is 65 bytes:
+The driver sends HID output reports. On Windows this uses the Windows HID API;
+on Linux this uses `/dev/hidraw`. Each report is 65 bytes:
 
 - byte `0`: HID report id, currently `0x00`
 - bytes `1..64`: protocol payload chunk
@@ -18,6 +19,20 @@ The driver sends Windows HID output reports. Each report is 65 bytes:
 Frames longer than 64 protocol bytes are split into sequential HID reports.
 Continuation reports do not add protocol headers; they carry the next 64 bytes
 of the same frame.
+
+## Linux permissions
+
+Linux distributions commonly create `/dev/hidraw*` nodes as root-only devices.
+Install a udev rule for both known SyncLight PID values:
+
+```text
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="fe07", MODE="0660", GROUP="uucp", TAG+="uaccess"
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="fe0c", MODE="0660", GROUP="uucp", TAG+="uaccess"
+```
+
+Reload udev rules and reconnect the USB device. The device node should then be
+writable by the desktop user, for example via logind `uaccess` ACLs or the
+`uucp` group.
 
 ## Checksum
 

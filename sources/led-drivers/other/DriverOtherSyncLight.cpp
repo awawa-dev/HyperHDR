@@ -1,6 +1,9 @@
 #include <led-drivers/other/DriverOtherSyncLight.h>
 
 #ifndef PCH_ENABLED
+	#include <QDir>
+	#include <QFile>
+	#include <QFileInfo>
 	#include <QJsonArray>
 	#include <QJsonDocument>
 	#include <QJsonObject>
@@ -10,9 +13,18 @@
 	#include <algorithm>
 #endif
 
+#include <QDirIterator>
+#include <cerrno>
+#include <cstring>
+
 #if defined(_WIN32)
 	#include <hidsdi.h>
 	#include <setupapi.h>
+#elif defined(__linux__)
+	#include <fcntl.h>
+	#include <linux/hidraw.h>
+	#include <sys/ioctl.h>
+	#include <unistd.h>
 #endif
 
 namespace
@@ -21,6 +33,156 @@ namespace
 		{ 0x1a86, 0xfe07 },
 		{ 0x1a86, 0xfe0c }
 	};
+
+	QString deviceIdString(quint16 vendorId, quint16 productId)
+	{
+		return QString("0x%1:0x%2")
+			.arg(vendorId, 4, 16, QLatin1Char('0'))
+			.arg(productId, 4, 16, QLatin1Char('0'));
+	}
+
+	bool isSupportedDevice(quint16 vendorId, quint16 productId, const QList<DriverOtherSyncLight::SupportedDevice>& supportedDevices)
+	{
+		return std::any_of(supportedDevices.cbegin(), supportedDevices.cend(), [vendorId, productId](const DriverOtherSyncLight::SupportedDevice& device) {
+			return vendorId == device.vendorId && productId == device.productId;
+		});
+	}
+
+#if defined(__linux__)
+	struct LinuxHidDeviceInfo
+	{
+		QString hidrawName;
+		QString path;
+		QString sysfsPath;
+		QString name;
+		QString manufacturer;
+		QString product;
+		QString serial;
+		quint16 vendorId = 0;
+		quint16 productId = 0;
+		bool hasIds = false;
+	};
+
+	QString readSysfsText(const QString& path)
+	{
+		QFile file(path);
+		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		{
+			return QString();
+		}
+
+		return QString::fromUtf8(file.readAll()).trimmed();
+	}
+
+	bool parseHex16(const QString& text, quint16& value)
+	{
+		bool ok = false;
+		const uint parsed = text.trimmed().toUInt(&ok, 16);
+		if (!ok || parsed > 0xffff)
+		{
+			return false;
+		}
+		value = static_cast<quint16>(parsed);
+		return true;
+	}
+
+	void readUsbParentInfo(LinuxHidDeviceInfo& device)
+	{
+		QDir current(device.sysfsPath);
+		for (int depth = 0; depth < 8 && current.cdUp(); ++depth)
+		{
+			quint16 vendorId = 0;
+			quint16 productId = 0;
+			if (parseHex16(readSysfsText(current.filePath("idVendor")), vendorId) &&
+				parseHex16(readSysfsText(current.filePath("idProduct")), productId))
+			{
+				device.vendorId = vendorId;
+				device.productId = productId;
+				device.hasIds = true;
+
+				if (device.manufacturer.isEmpty())
+				{
+					device.manufacturer = readSysfsText(current.filePath("manufacturer"));
+				}
+				if (device.product.isEmpty())
+				{
+					device.product = readSysfsText(current.filePath("product"));
+				}
+				if (device.serial.isEmpty())
+				{
+					device.serial = readSysfsText(current.filePath("serial"));
+				}
+				return;
+			}
+		}
+	}
+
+	void readHidUevent(LinuxHidDeviceInfo& device)
+	{
+		const QString uevent = readSysfsText(device.sysfsPath + "/uevent");
+		const QStringList lines = uevent.split('\n', Qt::SkipEmptyParts);
+
+		for (const QString& line : lines)
+		{
+			const int separator = line.indexOf('=');
+			if (separator <= 0)
+			{
+				continue;
+			}
+
+			const QString key = line.left(separator);
+			const QString value = line.mid(separator + 1).trimmed();
+
+			if (key == "HID_ID")
+			{
+				const QStringList parts = value.split(':');
+				quint16 vendorId = 0;
+				quint16 productId = 0;
+				if (parts.size() >= 3 && parseHex16(parts[1], vendorId) && parseHex16(parts[2], productId))
+				{
+					device.vendorId = vendorId;
+					device.productId = productId;
+					device.hasIds = true;
+				}
+			}
+			else if (key == "HID_NAME")
+			{
+				device.name = value;
+			}
+			else if (key == "HID_UNIQ")
+			{
+				device.serial = value;
+			}
+		}
+	}
+
+	QList<LinuxHidDeviceInfo> discoverLinuxHidrawDevices()
+	{
+		QList<LinuxHidDeviceInfo> devices;
+		QDirIterator iterator("/sys/class/hidraw", QDir::Dirs | QDir::NoDotAndDotDot | QDir::System);
+		while (iterator.hasNext())
+		{
+			const QString hidrawSysfsPath = iterator.next();
+			LinuxHidDeviceInfo device;
+			device.hidrawName = QFileInfo(hidrawSysfsPath).fileName();
+			device.path = QString("/dev/%1").arg(device.hidrawName);
+			device.sysfsPath = QFileInfo(hidrawSysfsPath + "/device").canonicalFilePath();
+			if (device.sysfsPath.isEmpty())
+			{
+				continue;
+			}
+
+			readHidUevent(device);
+			readUsbParentInfo(device);
+			if (device.name.isEmpty())
+			{
+				device.name = device.product;
+			}
+			devices.push_back(device);
+		}
+		return devices;
+	}
+#endif
 }
 
 DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
@@ -32,6 +194,8 @@ DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
 	, _outputMode(OutputMode::Global)
 #if defined(_WIN32)
 	, _deviceHandle(INVALID_HANDLE_VALUE)
+#elif defined(__linux__)
+	, _deviceHandle(-1)
 #endif
 {
 }
@@ -40,8 +204,8 @@ DriverOtherSyncLight::~DriverOtherSyncLight()
 {
 	QMutexLocker locker(&_transaction);
 
-#if defined(_WIN32)
-	if (_deviceHandle != INVALID_HANDLE_VALUE)
+#if defined(_WIN32) || defined(__linux__)
+	if (isDeviceHandleOpen())
 	{
 		sendBlackFrame();
 		closeDeviceHandle();
@@ -141,9 +305,7 @@ QJsonObject DriverOtherSyncLight::discover(const QJsonObject& /*params*/)
 			continue;
 		}
 
-		const bool supported = std::any_of(DEFAULT_DEVICES.cbegin(), DEFAULT_DEVICES.cend(), [&attributes](const SupportedDevice& device) {
-			return attributes.VendorID == device.vendorId && attributes.ProductID == device.productId;
-		});
+		const bool supported = isSupportedDevice(attributes.VendorID, attributes.ProductID, DEFAULT_DEVICES);
 
 		if (!supported)
 		{
@@ -194,8 +356,43 @@ QJsonObject DriverOtherSyncLight::discover(const QJsonObject& /*params*/)
 	}
 
 	SetupDiDestroyDeviceInfoList(deviceInfo);
+#elif defined(__linux__)
+	const QList<LinuxHidDeviceInfo> hidrawDevices = discoverLinuxHidrawDevices();
+	for (const LinuxHidDeviceInfo& hidDevice : hidrawDevices)
+	{
+		if (!hidDevice.hasIds || !isSupportedDevice(hidDevice.vendorId, hidDevice.productId, DEFAULT_DEVICES))
+		{
+			continue;
+		}
+
+		const QString vid = QString("0x%1").arg(hidDevice.vendorId, 4, 16, QLatin1Char('0'));
+		const QString pid = QString("0x%1").arg(hidDevice.productId, 4, 16, QLatin1Char('0'));
+		const QString displayName = hidDevice.name.isEmpty()
+			? QString("SyncLight HID (%1:%2)").arg(vid, pid)
+			: QString("%1 (%2:%3)").arg(hidDevice.name, vid, pid);
+
+		QJsonObject device;
+		device.insert("value", deviceIdString(hidDevice.vendorId, hidDevice.productId));
+		device.insert("name", displayName);
+		device.insert("vid", vid);
+		device.insert("pid", pid);
+		device.insert("path", hidDevice.path);
+		if (!hidDevice.manufacturer.isEmpty())
+		{
+			device.insert("manufacturer", hidDevice.manufacturer);
+		}
+		if (!hidDevice.product.isEmpty())
+		{
+			device.insert("product", hidDevice.product);
+		}
+		if (!hidDevice.serial.isEmpty())
+		{
+			device.insert("serial", hidDevice.serial);
+		}
+		deviceList.push_back(device);
+	}
 #else
-	Debug(_log, "SyncLight HID discovery is currently implemented for Windows only");
+	Debug(_log, "SyncLight HID discovery is currently implemented for Windows and Linux only");
 #endif
 
 	devicesDiscovered.insert("devices", deviceList);
@@ -209,8 +406,8 @@ int DriverOtherSyncLight::open()
 
 	_isDeviceReady = false;
 
-#if defined(_WIN32)
-	if (_deviceHandle != INVALID_HANDLE_VALUE)
+#if defined(_WIN32) || defined(__linux__)
+	if (isDeviceHandleOpen())
 	{
 		_isDeviceReady = true;
 		return 0;
@@ -240,7 +437,7 @@ int DriverOtherSyncLight::open()
 	_isDeviceReady = true;
 	return 0;
 #else
-	setInError("SyncLight HID driver is currently implemented for Windows only");
+	setInError("SyncLight HID driver is currently implemented for Windows and Linux only");
 	return -1;
 #endif
 }
@@ -269,6 +466,26 @@ void DriverOtherSyncLight::closeDeviceHandle()
 		CloseHandle(_deviceHandle);
 		_deviceHandle = INVALID_HANDLE_VALUE;
 	}
+#elif defined(__linux__)
+	if (_deviceHandle >= 0)
+	{
+		if (::close(_deviceHandle) != 0)
+		{
+			Error(_log, "Failed to close SyncLight HID device. errno={:d}, {:s}", errno, strerror(errno));
+		}
+		_deviceHandle = -1;
+	}
+#endif
+}
+
+bool DriverOtherSyncLight::isDeviceHandleOpen() const
+{
+#if defined(_WIN32)
+	return _deviceHandle != INVALID_HANDLE_VALUE;
+#elif defined(__linux__)
+	return _deviceHandle >= 0;
+#else
+	return false;
 #endif
 }
 
@@ -579,7 +796,7 @@ bool DriverOtherSyncLight::writeReport(const QByteArray& report)
 	}
 
 #if defined(_WIN32)
-	if (_deviceHandle == INVALID_HANDLE_VALUE)
+	if (!isDeviceHandleOpen())
 	{
 		Error(_log, "SyncLight HID device is not open");
 		return false;
@@ -590,6 +807,28 @@ bool DriverOtherSyncLight::writeReport(const QByteArray& report)
 	if (!ok || bytesWritten != static_cast<DWORD>(report.size()))
 	{
 		Error(_log, "SyncLight HID write failed. bytesWritten={:d}, expected={:d}", static_cast<int>(bytesWritten), report.size());
+		return false;
+	}
+	return true;
+#elif defined(__linux__)
+	if (!isDeviceHandleOpen())
+	{
+		Error(_log, "SyncLight HID device is not open");
+		return false;
+	}
+
+	ssize_t bytesWritten = -1;
+	do
+	{
+		bytesWritten = ::write(_deviceHandle, report.constData(), static_cast<size_t>(report.size()));
+	}
+	while (bytesWritten < 0 && errno == EINTR);
+
+	if (bytesWritten != report.size())
+	{
+		const int errorNumber = bytesWritten < 0 ? errno : 0;
+		Error(_log, "SyncLight HID write failed. bytesWritten={:d}, expected={:d}, errno={:d}, {:s}",
+			static_cast<int>(bytesWritten), report.size(), errorNumber, strerror(errorNumber));
 		return false;
 	}
 	return true;
@@ -651,9 +890,7 @@ QString DriverOtherSyncLight::openDeviceHandle()
 		attributes.Size = sizeof(HIDD_ATTRIBUTES);
 		if (HidD_GetAttributes(handle, &attributes))
 		{
-			const bool supported = std::any_of(_devices.cbegin(), _devices.cend(), [&attributes](const SupportedDevice& device) {
-				return attributes.VendorID == device.vendorId && attributes.ProductID == device.productId;
-			});
+			const bool supported = isSupportedDevice(attributes.VendorID, attributes.ProductID, _devices);
 
 			if (supported)
 			{
@@ -669,8 +906,67 @@ QString DriverOtherSyncLight::openDeviceHandle()
 
 	SetupDiDestroyDeviceInfoList(deviceInfo);
 	return error;
+#elif defined(__linux__)
+	const QList<LinuxHidDeviceInfo> hidrawDevices = discoverLinuxHidrawDevices();
+	const QString configuredOutput = _devConfig["output"].toString(_devConfig["path"].toString()).trimmed();
+	const QString configuredPath = configuredOutput.startsWith("/dev/") ? configuredOutput : QString();
+	QString lastOpenError;
+
+	for (const LinuxHidDeviceInfo& hidDevice : hidrawDevices)
+	{
+		if (!hidDevice.hasIds || !isSupportedDevice(hidDevice.vendorId, hidDevice.productId, _devices))
+		{
+			continue;
+		}
+		if (!configuredPath.isEmpty() && configuredPath != hidDevice.path)
+		{
+			continue;
+		}
+
+		const QByteArray pathUtf8 = hidDevice.path.toUtf8();
+		const int handle = ::open(pathUtf8.constData(), O_RDWR | O_CLOEXEC);
+		if (handle < 0)
+		{
+			lastOpenError = QString("Failed to open SyncLight HID device %1 (%2). Error: %3")
+				.arg(hidDevice.path, deviceIdString(hidDevice.vendorId, hidDevice.productId), strerror(errno));
+			continue;
+		}
+
+		hidraw_devinfo rawInfo;
+		memset(&rawInfo, 0, sizeof(rawInfo));
+		if (ioctl(handle, HIDIOCGRAWINFO, &rawInfo) != 0)
+		{
+			lastOpenError = QString("Failed to read SyncLight HID raw info for %1. Error: %2")
+				.arg(hidDevice.path, strerror(errno));
+			::close(handle);
+			continue;
+		}
+
+		const quint16 vendorId = static_cast<quint16>(rawInfo.vendor);
+		const quint16 productId = static_cast<quint16>(rawInfo.product);
+		if (!isSupportedDevice(vendorId, productId, _devices))
+		{
+			::close(handle);
+			continue;
+		}
+
+		_deviceHandle = handle;
+		Info(_log, "Opened SyncLight HID device {:s} VID=0x{:04x} PID=0x{:04x}",
+			hidDevice.path, static_cast<int>(vendorId), static_cast<int>(productId));
+		return QString();
+	}
+
+	if (!lastOpenError.isEmpty())
+	{
+		return lastOpenError;
+	}
+	if (!configuredPath.isEmpty())
+	{
+		return QString("SyncLight HID device not found at %1").arg(configuredPath);
+	}
+	return "SyncLight HID device not found";
 #else
-	return "SyncLight HID driver is currently implemented for Windows only";
+	return "SyncLight HID driver is currently implemented for Windows and Linux only";
 #endif
 }
 
