@@ -135,9 +135,30 @@ recordCount = 34
 frameLength = 177 bytes (`0x00b1`)
 ```
 
-HyperHDR layout LED count and physical controller LED count can differ. The
-driver maps HyperHDR input LEDs onto controller positions by averaging the input
-range covered by each two-position SC record.
+
+Validated layout for the 27 inch 65 LED U-shaped strip:
+
+```text
+LED Layout:
+Top: 31
+Bottom: 0
+Left: 17
+Right: 17
+Input position: 48
+Reverse direction: enabled
+
+LED Controller:
+Output mode: Per-LED
+Controller LEDs: 65
+```
+
+This matches the physical controller order:
+
+```text
+right side: bottom -> top
+top side: right -> left
+left side: top -> bottom
+```
 
 ## Color order
 
