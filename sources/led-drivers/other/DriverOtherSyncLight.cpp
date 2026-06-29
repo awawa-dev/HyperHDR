@@ -25,8 +25,7 @@ DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
 	, _idCounter(0)
 	, _brightness(0xff)
 	, _totalLedCount(0)
-	, _scLedSpan(DEFAULT_SC_LED_SPAN)
-	, _scSegmentCount(DEFAULT_SC_SEGMENTS)
+	, _controllerLedCount(DEFAULT_CONTROLLER_LED_COUNT)
 	, _outputMode(OutputMode::Global)
 #if defined(_WIN32)
 	, _deviceHandle(INVALID_HANDLE_VALUE)
@@ -42,8 +41,7 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 	_devices = configuredDevices();
 	_brightness = static_cast<quint8>(qBound(0, deviceConfig["brightness"].toInt(255), 255));
 	_totalLedCount = qBound(1, static_cast<int>(_ledCount), 254);
-	_scLedSpan = qBound(1, deviceConfig["scLedSpan"].toInt(DEFAULT_SC_LED_SPAN), 254);
-	_scSegmentCount = qBound(1, deviceConfig["scSegmentCount"].toInt(DEFAULT_SC_SEGMENTS), _scLedSpan);
+	_controllerLedCount = qBound(1, deviceConfig["controllerLedCount"].toInt(DEFAULT_CONTROLLER_LED_COUNT), 254);
 	const QString outputMode = deviceConfig["outputMode"].toString("global");
 	_outputMode = OutputMode::Global;
 	if (outputMode.compare("segments", Qt::CaseInsensitive) == 0)
@@ -60,8 +58,9 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 	}
 
 	const QString modeName = _outputMode == OutputMode::Segments ? "sc-segments" : "global";
-	Info(_log, "SyncLight HID devices: {:s}, brightness: {:d}, leds: {:d}, outputMode: {:s}, scLedSpan: {:d}, scSegments: {:d}",
-		ids.join(", "), _brightness, _totalLedCount, modeName, _scLedSpan, _scSegmentCount);
+	const int scAddressPairs = (_controllerLedCount + 3) / 2;
+	Info(_log, "SyncLight HID devices: {:s}, brightness: {:d}, layoutLeds: {:d}, controllerLeds: {:d}, outputMode: {:s}, scAddressMax: {:d}, scAddressPairs: {:d}",
+		ids.join(", "), _brightness, _totalLedCount, _controllerLedCount, modeName, _controllerLedCount, scAddressPairs);
 
 	return initOK;
 }
@@ -246,13 +245,14 @@ QByteArray DriverOtherSyncLight::buildRbFrame(quint8 action, const QByteArray& p
 	return frame;
 }
 
-QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int deviceLedSpan, int segmentCount, quint8 id)
+QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int controllerLedCount, quint8 id)
 {
 	const int inputLedCount = qMin(qBound(1, totalLedCount, 254), static_cast<int>(ledValues.size()));
-	const int deviceSpan = qBound(1, deviceLedSpan, 254);
-	const int devicePositions = deviceSpan + 1;
+	const int maxAddress = qBound(1, controllerLedCount, 254);
+	const int devicePositions = maxAddress + 1;
 	const int maxPairs = (devicePositions + 2) / 2;
-	const int segments = qMin(qBound(1, segmentCount, maxPairs), inputLedCount);
+	const int addressPairs = (maxAddress + 3) / 2;
+	const int segments = qMin(qBound(1, addressPairs, maxPairs), inputLedCount);
 	const int frameLength = SC_HEADER_SIZE + (segments * SC_RECORD_SIZE) + SC_FOOTER_SIZE + SC_CHECKSUM_SIZE;
 
 	QByteArray frame(frameLength, 0);
@@ -265,8 +265,8 @@ QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledVa
 	for (int segment = 0; segment < segments; ++segment)
 	{
 		// The SC record stores two physical positions, not a continuous range.
-		const int deviceStart = qMin(segment * 2, deviceSpan);
-		const int deviceEnd = qMin(deviceStart + 1, deviceSpan);
+		const int deviceStart = qMin(segment * 2, maxAddress);
+		const int deviceEnd = qMin(deviceStart + 1, maxAddress);
 		const int inputStart = (deviceStart * inputLedCount) / devicePositions;
 		const int inputEnd = qMax(inputStart + 1, ((deviceEnd + 1) * inputLedCount) / devicePositions);
 		const ColorRgb color = averageColorRange(ledValues, inputStart, inputEnd - inputStart);
@@ -285,7 +285,7 @@ QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledVa
 		frame[offset + 4] = static_cast<char>(color.blue);
 	}
 
-	frame[frameLength - 2] = static_cast<char>(deviceSpan);
+	frame[frameLength - 2] = static_cast<char>(maxAddress);
 	frame[frameLength - 1] = static_cast<char>(checksum(frame.left(frameLength - 1)));
 	return frame;
 }
@@ -389,7 +389,7 @@ bool DriverOtherSyncLight::sendAveragedSectionColor(const std::vector<ColorRgb>&
 
 bool DriverOtherSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues)
 {
-	const QByteArray frame = buildScFrame(ledValues, _totalLedCount, _scLedSpan, _scSegmentCount, nextId());
+	const QByteArray frame = buildScFrame(ledValues, _totalLedCount, _controllerLedCount, nextId());
 	for (int offset = 0; offset < frame.size(); offset += REPORT_SIZE)
 	{
 		if (!writeReport(buildReport(frame.mid(offset, REPORT_SIZE))))
