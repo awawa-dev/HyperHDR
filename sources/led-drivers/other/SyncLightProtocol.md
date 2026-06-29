@@ -1,7 +1,7 @@
 # SyncLight HID protocol notes
 
-The details were reconstructed from the official SyncLight traffic captures and
-validated against a 27 inch controller.
+The details were reconstructed from captured SyncLight traffic and validated
+against a 27-inch controller.
 
 ## USB HID devices
 
@@ -135,8 +135,7 @@ recordCount = 34
 frameLength = 177 bytes (`0x00b1`)
 ```
 
-
-Validated layout for the 27 inch 65 LED U-shaped strip:
+Validated layout for the 27-inch 65 LED U-shaped strip:
 
 ```text
 LED Layout:

@@ -2,7 +2,6 @@
 
 #ifndef PCH_ENABLED
 	#include <QByteArray>
-	#include <QElapsedTimer>
 	#include <QList>
 	#include <QMutex>
 	#include <QString>
@@ -33,7 +32,7 @@ public:
 	enum class OutputMode
 	{
 		Global,
-		Segments
+		PerLed
 	};
 
 protected:
@@ -52,7 +51,6 @@ private:
 	static constexpr int SC_FOOTER_SIZE = 1;
 	static constexpr int SC_CHECKSUM_SIZE = 1;
 	static constexpr int DEFAULT_CONTROLLER_LED_COUNT = 65;
-	static constexpr int KEEPALIVE_INTERVAL_MS = 3000;
 	static constexpr quint8 ACTION_COLOR = 0x86;
 	static constexpr quint8 ACTION_BRIGHTNESS = 0x87;
 	static constexpr quint8 ACTION_KEEPALIVE = 0x97;
@@ -76,7 +74,6 @@ private:
 	bool sendScColors(const std::vector<ColorRgb>& ledValues, int totalLedCount);
 	bool sendBlackFrame();
 	bool sendBrightness(quint8 value);
-	bool sendKeepaliveIfNeeded();
 
 	quint8 nextId();
 
@@ -87,7 +84,6 @@ private:
 	int _totalLedCount;
 	int _controllerLedCount;
 	OutputMode _outputMode;
-	QElapsedTimer _lastKeepalive;
 
 #if defined(_WIN32)
 	HANDLE _deviceHandle;
