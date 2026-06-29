@@ -25,6 +25,8 @@ DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
 	, _idCounter(0)
 	, _brightness(0xff)
 	, _totalLedCount(0)
+	, _scLedSpan(DEFAULT_SC_LED_SPAN)
+	, _scSegmentCount(DEFAULT_SC_SEGMENTS)
 	, _outputMode(OutputMode::Global)
 #if defined(_WIN32)
 	, _deviceHandle(INVALID_HANDLE_VALUE)
@@ -40,7 +42,14 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 	_devices = configuredDevices();
 	_brightness = static_cast<quint8>(qBound(0, deviceConfig["brightness"].toInt(255), 255));
 	_totalLedCount = qBound(1, static_cast<int>(_ledCount), 254);
-	_outputMode = deviceConfig["outputMode"].toString("global").compare("segments", Qt::CaseInsensitive) == 0 ? OutputMode::Segments : OutputMode::Global;
+	_scLedSpan = qBound(1, deviceConfig["scLedSpan"].toInt(DEFAULT_SC_LED_SPAN), 254);
+	_scSegmentCount = qBound(1, deviceConfig["scSegmentCount"].toInt(DEFAULT_SC_SEGMENTS), _scLedSpan);
+	const QString outputMode = deviceConfig["outputMode"].toString("global");
+	_outputMode = OutputMode::Global;
+	if (outputMode.compare("segments", Qt::CaseInsensitive) == 0)
+	{
+		_outputMode = OutputMode::Segments;
+	}
 
 	QStringList ids;
 	for (const auto& device : _devices)
@@ -50,7 +59,9 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 			.arg(device.productId, 4, 16, QLatin1Char('0'));
 	}
 
-	Info(_log, "SyncLight HID devices: {:s}, brightness: {:d}, leds: {:d}, outputMode: {:s}", ids.join(", "), _brightness, _totalLedCount, (_outputMode == OutputMode::Segments ? "segments" : "global"));
+	const QString modeName = _outputMode == OutputMode::Segments ? "sc-segments" : "global";
+	Info(_log, "SyncLight HID devices: {:s}, brightness: {:d}, leds: {:d}, outputMode: {:s}, scLedSpan: {:d}, scSegments: {:d}",
+		ids.join(", "), _brightness, _totalLedCount, modeName, _scLedSpan, _scSegmentCount);
 
 	return initOK;
 }
@@ -147,12 +158,17 @@ int DriverOtherSyncLight::writeFiniteColors(const std::vector<ColorRgb>& ledValu
 		Debug(_log, "SyncLight led count changed to {:d}", _totalLedCount);
 	}
 
-	if (_outputMode == OutputMode::Segments && !sendKeepaliveIfNeeded())
+	bool ok = false;
+	switch (_outputMode)
 	{
-		return -1;
+	case OutputMode::Segments:
+		ok = sendScColors(ledValues);
+		break;
+	case OutputMode::Global:
+	default:
+		ok = sendAveragedSectionColor(ledValues);
+		break;
 	}
-
-	const bool ok = _outputMode == OutputMode::Segments ? sendPerLedColors(ledValues) : sendAveragedSectionColor(ledValues);
 	return ok ? static_cast<int>(ledValues.size()) : -1;
 }
 
@@ -230,6 +246,50 @@ QByteArray DriverOtherSyncLight::buildRbFrame(quint8 action, const QByteArray& p
 	return frame;
 }
 
+QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int deviceLedSpan, int segmentCount, quint8 id)
+{
+	const int inputLedCount = qMin(qBound(1, totalLedCount, 254), static_cast<int>(ledValues.size()));
+	const int deviceSpan = qBound(1, deviceLedSpan, 254);
+	const int devicePositions = deviceSpan + 1;
+	const int maxPairs = (devicePositions + 2) / 2;
+	const int segments = qMin(qBound(1, segmentCount, maxPairs), inputLedCount);
+	const int frameLength = SC_HEADER_SIZE + (segments * SC_RECORD_SIZE) + SC_FOOTER_SIZE + SC_CHECKSUM_SIZE;
+
+	QByteArray frame(frameLength, 0);
+	frame[0] = 'S';
+	frame[1] = 'C';
+	frame[2] = static_cast<char>((frameLength >> 8) & 0xff);
+	frame[3] = static_cast<char>(frameLength & 0xff);
+	frame[4] = static_cast<char>(id);
+
+	for (int segment = 0; segment < segments; ++segment)
+	{
+		// The SC record stores two physical positions, not a continuous range.
+		const int deviceStart = qMin(segment * 2, deviceSpan);
+		const int deviceEnd = qMin(deviceStart + 1, deviceSpan);
+		const int inputStart = (deviceStart * inputLedCount) / devicePositions;
+		const int inputEnd = qMax(inputStart + 1, ((deviceEnd + 1) * inputLedCount) / devicePositions);
+		const ColorRgb color = averageColorRange(ledValues, inputStart, inputEnd - inputStart);
+
+		const int offset = SC_HEADER_SIZE + (segment * SC_RECORD_SIZE);
+		quint8 start = static_cast<quint8>(deviceStart);
+		if (segment == 0)
+		{
+			start = static_cast<quint8>(start | 0x80);
+		}
+
+		frame[offset] = static_cast<char>(start);
+		frame[offset + 1] = static_cast<char>(deviceEnd);
+		frame[offset + 2] = static_cast<char>(color.red);
+		frame[offset + 3] = static_cast<char>(color.green);
+		frame[offset + 4] = static_cast<char>(color.blue);
+	}
+
+	frame[frameLength - 2] = static_cast<char>(deviceSpan);
+	frame[frameLength - 1] = static_cast<char>(checksum(frame.left(frameLength - 1)));
+	return frame;
+}
+
 QByteArray DriverOtherSyncLight::buildReport(const QByteArray& frame)
 {
 	if (frame.size() > REPORT_SIZE)
@@ -259,46 +319,17 @@ QByteArray DriverOtherSyncLight::buildSectionPayload(quint8 section, quint8 red,
 	return payload;
 }
 
-QByteArray DriverOtherSyncLight::buildSegmentData(const std::vector<ColorRgb>& ledValues, int totalLedCount)
-{
-	const int total = qBound(1, totalLedCount, 254);
-	const int numLeds = qMin(total, static_cast<int>(ledValues.size()));
-	QByteArray segments;
-	segments.reserve((numLeds + 1) * 5);
-
-	int i = 0;
-	while (i < numLeds)
-	{
-		const ColorRgb& color = ledValues[static_cast<size_t>(i)];
-		int end = i;
-		while (end + 1 < numLeds && ledValues[static_cast<size_t>(end + 1)] == color)
-		{
-			++end;
-		}
-
-		segments.push_back(static_cast<char>(i + 1));
-		segments.push_back(static_cast<char>(color.red));
-		segments.push_back(static_cast<char>(color.green));
-		segments.push_back(static_cast<char>(color.blue));
-		segments.push_back(static_cast<char>(end + 1));
-		i = end + 1;
-	}
-
-	if (numLeds < total)
-	{
-		segments.push_back(static_cast<char>(numLeds + 1));
-		segments.push_back(static_cast<char>(0));
-		segments.push_back(static_cast<char>(0));
-		segments.push_back(static_cast<char>(0));
-		segments.push_back(static_cast<char>(total));
-	}
-
-	return segments;
-}
-
 ColorRgb DriverOtherSyncLight::averageColor(const std::vector<ColorRgb>& ledValues, int ledCount)
 {
 	const int count = qMin(qBound(1, ledCount, 254), static_cast<int>(ledValues.size()));
+	return averageColorRange(ledValues, 0, count);
+}
+
+ColorRgb DriverOtherSyncLight::averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count)
+{
+	const int first = qBound(0, offset, static_cast<int>(ledValues.size()));
+	const int last = qMin(first + qMax(0, count), static_cast<int>(ledValues.size()));
+	count = last - first;
 	if (count <= 0)
 	{
 		return ColorRgb::BLACK;
@@ -307,7 +338,7 @@ ColorRgb DriverOtherSyncLight::averageColor(const std::vector<ColorRgb>& ledValu
 	uint64_t red = 0;
 	uint64_t green = 0;
 	uint64_t blue = 0;
-	for (int i = 0; i < count; ++i)
+	for (int i = first; i < last; ++i)
 	{
 		const ColorRgb& color = ledValues[static_cast<size_t>(i)];
 		red += color.red;
@@ -356,20 +387,14 @@ bool DriverOtherSyncLight::sendAveragedSectionColor(const std::vector<ColorRgb>&
 	return sendRb(ACTION_COLOR, buildSectionPayload(SECTION_GLOBAL, color.red, color.green, color.blue));
 }
 
-bool DriverOtherSyncLight::sendPerLedColors(const std::vector<ColorRgb>& ledValues)
+bool DriverOtherSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues)
 {
-	const QByteArray segmentData = buildSegmentData(ledValues, _totalLedCount);
-	for (int offset = 0; offset < segmentData.size(); offset += PER_LED_CHUNK_SIZE)
+	const QByteArray frame = buildScFrame(ledValues, _totalLedCount, _scLedSpan, _scSegmentCount, nextId());
+	for (int offset = 0; offset < frame.size(); offset += REPORT_SIZE)
 	{
-		const QByteArray chunk = segmentData.mid(offset, PER_LED_CHUNK_SIZE);
-		if (!sendRb(ACTION_COLOR, chunk))
+		if (!writeReport(buildReport(frame.mid(offset, REPORT_SIZE))))
 		{
 			return false;
-		}
-
-		if (offset + PER_LED_CHUNK_SIZE < segmentData.size())
-		{
-			QThread::msleep(20);
 		}
 	}
 

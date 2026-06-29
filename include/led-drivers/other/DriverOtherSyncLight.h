@@ -45,7 +45,12 @@ protected:
 private:
 	static constexpr int REPORT_SIZE = 64;
 	static constexpr int RB_OVERHEAD = 6;
-	static constexpr int PER_LED_CHUNK_SIZE = 55;
+	static constexpr int SC_HEADER_SIZE = 5;
+	static constexpr int SC_RECORD_SIZE = 5;
+	static constexpr int SC_FOOTER_SIZE = 1;
+	static constexpr int SC_CHECKSUM_SIZE = 1;
+	static constexpr int DEFAULT_SC_LED_SPAN = 65;
+	static constexpr int DEFAULT_SC_SEGMENTS = 34;
 	static constexpr int KEEPALIVE_INTERVAL_MS = 3000;
 	static constexpr quint8 ACTION_COLOR = 0x86;
 	static constexpr quint8 ACTION_BRIGHTNESS = 0x87;
@@ -55,10 +60,11 @@ private:
 	static quint8 checksum(const QByteArray& frame);
 	static bool parseDeviceId(const QString& text, quint16& value);
 	static QByteArray buildRbFrame(quint8 action, const QByteArray& payload, quint8 id);
+	static QByteArray buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int deviceLedSpan, int segmentCount, quint8 id);
 	static QByteArray buildReport(const QByteArray& frame);
 	static QByteArray buildSectionPayload(quint8 section, quint8 red, quint8 green, quint8 blue);
-	static QByteArray buildSegmentData(const std::vector<ColorRgb>& ledValues, int totalLedCount);
 	static ColorRgb averageColor(const std::vector<ColorRgb>& ledValues, int ledCount);
+	static ColorRgb averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count);
 
 	QList<SupportedDevice> configuredDevices() const;
 	QString openDeviceHandle();
@@ -66,7 +72,7 @@ private:
 	bool writeReport(const QByteArray& report);
 	bool sendRb(quint8 action, const QByteArray& payload);
 	bool sendAveragedSectionColor(const std::vector<ColorRgb>& ledValues);
-	bool sendPerLedColors(const std::vector<ColorRgb>& ledValues);
+	bool sendScColors(const std::vector<ColorRgb>& ledValues);
 	bool sendBrightness(quint8 value);
 	bool sendKeepaliveIfNeeded();
 
@@ -77,6 +83,8 @@ private:
 	quint8 _idCounter;
 	quint8 _brightness;
 	int _totalLedCount;
+	int _scLedSpan;
+	int _scSegmentCount;
 	OutputMode _outputMode;
 	QElapsedTimer _lastKeepalive;
 
