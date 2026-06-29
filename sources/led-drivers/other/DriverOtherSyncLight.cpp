@@ -34,7 +34,6 @@ DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
 	, _deviceHandle(INVALID_HANDLE_VALUE)
 #endif
 {
-	_lastKeepalive.invalidate();
 }
 
 DriverOtherSyncLight::~DriverOtherSyncLight()
@@ -62,7 +61,7 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 	_outputMode = OutputMode::Global;
 	if (outputMode.compare("segments", Qt::CaseInsensitive) == 0)
 	{
-		_outputMode = OutputMode::Segments;
+		_outputMode = OutputMode::PerLed;
 	}
 
 	QStringList ids;
@@ -73,7 +72,7 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 			.arg(device.productId, 4, 16, QLatin1Char('0'));
 	}
 
-	const QString modeName = _outputMode == OutputMode::Segments ? "sc-segments" : "global";
+	const QString modeName = _outputMode == OutputMode::PerLed ? "per-led" : "global";
 	const int scAddressPairs = (_controllerLedCount + 3) / 2;
 	Info(_log, "SyncLight HID devices: {:s}, brightness: {:d}, layoutLeds: {:d}, controllerLeds: {:d}, outputMode: {:s}, scAddressMax: {:d}, scAddressPairs: {:d}",
 		ids.join(", "), _brightness, _totalLedCount, _controllerLedCount, modeName, _controllerLedCount, scAddressPairs);
@@ -238,7 +237,6 @@ int DriverOtherSyncLight::open()
 		return -1;
 	}
 
-	_lastKeepalive.restart();
 	_isDeviceReady = true;
 	return 0;
 #else
@@ -288,14 +286,14 @@ bool DriverOtherSyncLight::powerOff()
 
 bool DriverOtherSyncLight::sendBlackFrame()
 {
-	const int blackLedCount = _outputMode == OutputMode::Segments
+	const int blackLedCount = _outputMode == OutputMode::PerLed
 		? qMax(_totalLedCount, (_controllerLedCount + 3) / 2)
 		: _totalLedCount;
 	std::vector<ColorRgb> black(static_cast<size_t>(qBound(1, blackLedCount, 254)), ColorRgb::BLACK);
 
 	switch (_outputMode)
 	{
-	case OutputMode::Segments:
+	case OutputMode::PerLed:
 		return sendScColors(black, static_cast<int>(black.size()));
 	case OutputMode::Global:
 	default:
@@ -321,7 +319,7 @@ int DriverOtherSyncLight::writeFiniteColors(const std::vector<ColorRgb>& ledValu
 	bool ok = false;
 	switch (_outputMode)
 	{
-	case OutputMode::Segments:
+	case OutputMode::PerLed:
 		ok = sendScColors(ledValues, _totalLedCount);
 		break;
 	case OutputMode::Global:
@@ -570,19 +568,6 @@ bool DriverOtherSyncLight::sendBrightness(quint8 value)
 	QByteArray payload;
 	payload.push_back(static_cast<char>(value));
 	return sendRb(ACTION_BRIGHTNESS, payload);
-}
-
-bool DriverOtherSyncLight::sendKeepaliveIfNeeded()
-{
-	if (!_lastKeepalive.isValid() || _lastKeepalive.elapsed() >= KEEPALIVE_INTERVAL_MS)
-	{
-		if (!sendRb(ACTION_KEEPALIVE, QByteArray()))
-		{
-			return false;
-		}
-		_lastKeepalive.restart();
-	}
-	return true;
 }
 
 bool DriverOtherSyncLight::writeReport(const QByteArray& report)
