@@ -49,8 +49,7 @@ private:
 	static constexpr int SC_RECORD_SIZE = 5;
 	static constexpr int SC_FOOTER_SIZE = 1;
 	static constexpr int SC_CHECKSUM_SIZE = 1;
-	static constexpr int DEFAULT_SC_LED_SPAN = 65;
-	static constexpr int DEFAULT_SC_SEGMENTS = 34;
+	static constexpr int DEFAULT_CONTROLLER_LED_COUNT = 65;
 	static constexpr int KEEPALIVE_INTERVAL_MS = 3000;
 	static constexpr quint8 ACTION_COLOR = 0x86;
 	static constexpr quint8 ACTION_BRIGHTNESS = 0x87;
@@ -60,7 +59,7 @@ private:
 	static quint8 checksum(const QByteArray& frame);
 	static bool parseDeviceId(const QString& text, quint16& value);
 	static QByteArray buildRbFrame(quint8 action, const QByteArray& payload, quint8 id);
-	static QByteArray buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int deviceLedSpan, int segmentCount, quint8 id);
+	static QByteArray buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int controllerLedCount, quint8 id);
 	static QByteArray buildReport(const QByteArray& frame);
 	static QByteArray buildSectionPayload(quint8 section, quint8 red, quint8 green, quint8 blue);
 	static ColorRgb averageColor(const std::vector<ColorRgb>& ledValues, int ledCount);
@@ -83,8 +82,7 @@ private:
 	quint8 _idCounter;
 	quint8 _brightness;
 	int _totalLedCount;
-	int _scLedSpan;
-	int _scSegmentCount;
+	int _controllerLedCount;
 	OutputMode _outputMode;
 	QElapsedTimer _lastKeepalive;
 
