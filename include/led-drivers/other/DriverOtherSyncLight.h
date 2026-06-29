@@ -66,6 +66,7 @@ private:
 	static ColorRgb averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count);
 
 	QList<SupportedDevice> configuredDevices() const;
+	bool isDeviceHandleOpen() const;
 	QString openDeviceHandle();
 	void closeDeviceHandle();
 	bool writeReport(const QByteArray& report);
@@ -87,6 +88,8 @@ private:
 
 #if defined(_WIN32)
 	HANDLE _deviceHandle;
+#elif defined(__linux__)
+	int _deviceHandle;
 #endif
 
 	static bool isRegistered;
