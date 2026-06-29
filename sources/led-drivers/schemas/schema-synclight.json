@@ -34,10 +34,26 @@
 			"options": {
 				"enum_titles": [
 					"Global averaged color",
-					"Per-LED segments (experimental)"
+					"SC frame segments"
 				]
 			},
 			"propertyOrder": 4
+		},
+		"scLedSpan": {
+			"type": "integer",
+			"title": "SC device LED span",
+			"default": 65,
+			"minimum": 1,
+			"maximum": 254,
+			"propertyOrder": 5
+		},
+		"scSegmentCount": {
+			"type": "integer",
+			"title": "SC segment count",
+			"default": 34,
+			"minimum": 1,
+			"maximum": 254,
+			"propertyOrder": 6
 		}
 	},
 	"additionalProperties": true
