@@ -20,7 +20,9 @@ class DriverOtherSyncLight : public LedDevice
 {
 public:
 	explicit DriverOtherSyncLight(const QJsonObject& deviceConfig);
+	~DriverOtherSyncLight() override;
 	static LedDevice* construct(const QJsonObject& deviceConfig);
+	QJsonObject discover(const QJsonObject& params) override;
 
 	struct SupportedDevice
 	{
@@ -71,7 +73,8 @@ private:
 	bool writeReport(const QByteArray& report);
 	bool sendRb(quint8 action, const QByteArray& payload);
 	bool sendAveragedSectionColor(const std::vector<ColorRgb>& ledValues);
-	bool sendScColors(const std::vector<ColorRgb>& ledValues);
+	bool sendScColors(const std::vector<ColorRgb>& ledValues, int totalLedCount);
+	bool sendBlackFrame();
 	bool sendBrightness(quint8 value);
 	bool sendKeepaliveIfNeeded();
 
