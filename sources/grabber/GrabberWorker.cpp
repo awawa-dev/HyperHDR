@@ -255,7 +255,7 @@ void GrabberWorker::process_image_jpg_mt()
 	}
 	else if (image.width() != (uint)_width || image.height() != (uint)_height)
 	{
-		MemoryBuffer<uint8_t> jpgBuffer(_width * _height * 3);
+		MemoryBuffer<uint8_t> jpgBuffer(static_cast<size_t>(_width) * _height * 3);
 
 		if (tjDecompress2(_decompress, frameData, _size, jpgBuffer.data(), _width, 0, _height, TJPF_BGR, TJFLAG_BOTTOMUP | TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0 &&
 			tjGetErrorCode(_decompress) == TJERR_FATAL)
