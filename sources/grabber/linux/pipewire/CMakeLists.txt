@@ -2,7 +2,7 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber/linux/pipewire)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources/grabber/linux/pipewire)
 
-FILE ( GLOB SMARTPIPEWIRE_SOURCES "${CURRENT_HEADER_DIR}/smartPipewire.h" "${CURRENT_HEADER_DIR}/PipewireHandler.h" "${CURRENT_HEADER_DIR}/ScreenCastProxy.h" "${CURRENT_SOURCE_DIR}/smartPipewire.cpp" "${CURRENT_SOURCE_DIR}/PipewireHandler.cpp" )
+FILE ( GLOB SMARTPIPEWIRE_SOURCES "${CURRENT_HEADER_DIR}/smartPipewire.h" "${CURRENT_HEADER_DIR}/PipewireHandler.h" "${CURRENT_HEADER_DIR}/ScreenCastProxy.h" "${CURRENT_HEADER_DIR}/RemoteDesktopProxy.h" "${CURRENT_SOURCE_DIR}/smartPipewire.cpp" "${CURRENT_SOURCE_DIR}/PipewireHandler.cpp" )
 
 add_library(smart-pipewire SHARED ${SMARTPIPEWIRE_SOURCES} )
 

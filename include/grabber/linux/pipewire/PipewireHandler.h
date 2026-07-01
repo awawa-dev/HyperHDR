@@ -83,6 +83,7 @@ namespace sdbus{
 	class IProxy;
 }
 class ScreenCastProxy;
+class RemoteDesktopProxy;
 
 class PipewireHandler : public QObject
 {
@@ -93,7 +94,7 @@ public:
 	PipewireHandler();
 	~PipewireHandler();
 
-	void startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize);
+	void startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize, int selectedDisplay);
 	void closeSession();
 	bool hasError();
 	bool isRestartNeeded();
@@ -148,7 +149,9 @@ private:
 	QString _errorMessage;
 	bool	_portalStatus;
 	bool	_isError;
+	bool	_useRemoteDesktopPortal;
 	int		_version;
+	int		_remoteDesktopVersion;
 	uint	_streamNodeId;
 
 	QString _sender;
@@ -166,6 +169,7 @@ private:
 	struct pw_buffer*		_workingFrame;
 
 	int		_targetMaxSize;
+	int		_selectedDisplay;
 	int		_frameWidth;
 	int		_frameHeight;
 	bool	_frameOrderRgb;
@@ -184,6 +188,7 @@ private:
 
 	std::unique_ptr<sdbus::IConnection> _dbusConnection;
 	std::unique_ptr<ScreenCastProxy> _screenCastProxy;
+	std::unique_ptr<RemoteDesktopProxy> _remoteDesktopProxy;
 	std::unique_ptr<sdbus::IProxy> _createSessionProxy;
 	std::unique_ptr<sdbus::IProxy> _selectSourceProxy;
 	std::unique_ptr<sdbus::IProxy> _startProxy;
