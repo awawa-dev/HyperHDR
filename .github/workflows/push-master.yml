@@ -40,7 +40,7 @@ jobs:
             architecture: amd64
 
     steps:   
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
         with:
           submodules: true
 
@@ -112,7 +112,7 @@ jobs:
             NICE_NAME: x64
     steps:
       # Checkout
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
         with:
             submodules: true
 
@@ -175,7 +175,7 @@ jobs:
       TOOLKIT_DIR: "${{ github.workspace }}\\Toolkit"
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with:
           submodules: true
 
@@ -344,7 +344,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         if: env.USE_CODEQL == 'true'
         with:
           submodules: true
@@ -370,7 +370,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with:
           submodules: true
 
@@ -437,7 +437,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
 
       - name: Generate environment variables from version and tag
         run: |
