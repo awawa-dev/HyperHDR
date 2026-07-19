@@ -96,8 +96,12 @@ private:
 		size_t	length;
 	};
 
+	// consecutive undersized frames (bytesused < expected) tolerated before the stream is re-initialized
+	static constexpr int FRAME_SIZE_MISMATCH_RESTART_THRESHOLD = 8;
+
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
-	QSocketNotifier*	_streamNotifier;	
+	QSocketNotifier*	_streamNotifier;
 	GrabberManager      _V4L2WorkerManager;
+	int                 _consecutiveFrameSizeErrors;
 };

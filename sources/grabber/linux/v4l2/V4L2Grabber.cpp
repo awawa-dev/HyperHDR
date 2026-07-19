@@ -29,6 +29,7 @@
 #include <QFileInfo>
 #include <QSocketNotifier>
 #include <QByteArray>
+#include <QTimer>
 
 #include <cassert>
 #include <climits>
@@ -94,7 +95,7 @@ V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _streamNotifier(nullptr)
-
+	, _consecutiveFrameSizeErrors(0)
 {
 	// Refresh devices
 	getV4L2devices();
@@ -1195,9 +1196,27 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 	if (size < _frameByteSize && _actualVideoFormat != PixelFormat::MJPEG)
 	{
 		Error(_log, "Frame too small: {:d} != {:d}", size, _frameByteSize);
+
+		// transient capture error: not fed into the signal-detection path, but too many
+		// in a row means the stream is broken and needs to be re-initialized
+		if (++_consecutiveFrameSizeErrors >= FRAME_SIZE_MISMATCH_RESTART_THRESHOLD)
+		{
+			_consecutiveFrameSizeErrors = 0;
+			Warning(_log, "{:d} consecutive undersized frames: restarting the V4L2 stream", FRAME_SIZE_MISMATCH_RESTART_THRESHOLD);
+			QTimer::singleShot(0, this, [this]() {
+				if (_synchro.tryAcquire())
+				{
+					stop();
+					start();
+					_synchro.release();
+				}
+			});
+		}
 	}
 	else
 	{
+		_consecutiveFrameSizeErrors = 0;
+
 		if (_V4L2WorkerManager.isActive())
 		{
 			// stats
