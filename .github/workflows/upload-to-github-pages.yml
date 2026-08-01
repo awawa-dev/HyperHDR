@@ -39,7 +39,7 @@ jobs:
             architecture: amd64
 
     steps:   
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: true
 
@@ -89,7 +89,7 @@ jobs:
     needs: [Linux]
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: false
       - name: Download artifacts
