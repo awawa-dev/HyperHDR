@@ -202,7 +202,7 @@ jobs:
 
       - name: Python 3.13 for aqtinstall
         if: steps.cache-toolkit-windows.outputs.cache-hit != 'true'
-        uses: actions/setup-python@v6      
+        uses: actions/setup-python@v7      
         with:
           python-version: '3.13'
 
