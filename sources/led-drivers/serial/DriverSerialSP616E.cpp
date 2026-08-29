@@ -30,6 +30,14 @@ bool DriverSerialSP616E::init(QJsonObject deviceConfig)
 
 int DriverSerialSP616E::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
+	if (_ledCount != ledValues.size())
+	{
+		Warning(_log, "SP616E led count has changed (old: {:d}, new: {:d}). Rebuilding buffer.", _ledCount, ledValues.size());
+		setLedCount(static_cast<int>(ledValues.size()));
+		_ledBuffer.resize(_ledRGBCount + 1, 0x00);
+		_ledBuffer.back() = SP616E_TERMINATOR;
+	}
+
 	memcpy(_ledBuffer.data(), ledValues.data(), _ledRGBCount);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
