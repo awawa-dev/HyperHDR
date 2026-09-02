@@ -4,6 +4,8 @@
 
 #include <led-drivers/LedDevice.h>
 #include <led-drivers/spi/ProviderSpiInterface.h>
+
+#include <vector>
 #include <Windows.h>
 #include <led-drivers/spi/ftdi/ftd2xx.h>
 
@@ -23,6 +25,7 @@ class ProviderSpiFtdi : public QObject, public ProviderSpiInterface
 {
 	HMODULE				_dllHandle;
 	FT_HANDLE			_deviceHandle;
+	std::vector<uint8_t>		_writeCommand;
 
 	PTR_FT_ListDevices		_fun_FT_ListDevices;
 	PTR_FT_OpenEx			_fun_FT_OpenEx;
