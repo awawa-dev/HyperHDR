@@ -3,13 +3,12 @@
 #include <ssdp/SSDPDiscover.h>
 
 // Qt includes
-#include <QEventLoop>
-#include <QNetworkReply>
+#include <QThread>
 #include <QtEndian>
 
 //std includes
-#include <sstream>
-#include <iomanip>
+#include <algorithm>
+#include <cmath>
 
 // Constants
 namespace {
@@ -18,12 +17,13 @@ namespace {
 
 	// Configuration settings
 	const char CONFIG_ADDRESS[] = "host";
-	//const char CONFIG_PORT[] = "port";
 	const char CONFIG_AUTH_TOKEN[] = "token";
 
 	const char CONFIG_PANEL_ORDER_TOP_DOWN[] = "panelOrderTopDown";
 	const char CONFIG_PANEL_ORDER_LEFT_RIGHT[] = "panelOrderLeftRight";
 	const char CONFIG_PANEL_START_POS[] = "panelStartPos";
+	const char CONFIG_STREAM_LEDS_PER_DATAGRAM[] = "streamLedsPerDatagram";
+	const char CONFIG_STREAM_BATCH_GAP_MS[] = "streamBatchGapMs";
 
 	// Panel configuration settings
 	const char PANEL_LAYOUT[] = "layout";
@@ -31,7 +31,6 @@ namespace {
 	const char PANEL_ID[] = "panelId";
 	const char PANEL_POSITIONDATA[] = "positionData";
 	const char PANEL_SHAPE_TYPE[] = "shapeType";
-	//const char PANEL_ORIENTATION[] = "0";
 	const char PANEL_POS_X[] = "x";
 	const char PANEL_POS_Y[] = "y";
 
@@ -46,31 +45,34 @@ namespace {
 	const char DEV_DATA_MODEL[] = "model";
 	const char DEV_DATA_MANUFACTURER[] = "manufacturer";
 	const char DEV_DATA_FIRMWAREVERSION[] = "firmwareVersion";
+	const char DEV_DATA_NUM_LEDS[] = "numLEDs";
 
 	// Nanoleaf Stream Control elements
-	//const char STREAM_CONTROL_IP[] = "streamControlIpAddr";
 	const char STREAM_CONTROL_PORT[] = "streamControlPort";
-	//const char STREAM_CONTROL_PROTOCOL[] = "streamControlProtocol";
-	const quint16 STREAM_CONTROL_DEFAULT_PORT = 60222; //Fixed port for Canvas;
+	const quint16 STREAM_CONTROL_DEFAULT_PORT = 60222;
 
 	// Nanoleaf OpenAPI URLs
 	const int API_DEFAULT_PORT = 16021;
 	const char API_BASE_PATH[] = "/api/v1/%1/";
 	const char API_ROOT[] = "";
-	//const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
 	const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\", \"extControlVersion\" : \"v2\"}}";
 	const char API_STATE[] = "state";
 	const char API_PANELLAYOUT[] = "panelLayout";
 	const char API_EFFECT[] = "effects";
+	const char API_LENGTH[] = "length";
+	const char API_IDENTIFY[] = "identify";
 
-	//Nanoleaf Control data stream
+	// Nanoleaf Control data stream (v2)
 	const int STREAM_FRAME_PANEL_NUM_SIZE = 2;
 	const int STREAM_FRAME_PANEL_INFO_SIZE = 8;
+	// Ethernet MTU 1500 minus IP(20) and UDP(8). Batch only when a full frame would exceed this.
+	const int STREAM_MAX_UDP_PAYLOAD = 1472;
+	const int STREAM_MAX_LEDS_PER_DATAGRAM = (STREAM_MAX_UDP_PAYLOAD - STREAM_FRAME_PANEL_NUM_SIZE) / STREAM_FRAME_PANEL_INFO_SIZE;
 
 	// Nanoleaf ssdp services
 	const char SSDP_ID[] = "ssdp:all";
 	const char SSDP_FILTER_HEADER[] = "ST";
-	const char SSDP_CANVAS[] = "nanoleaf:nl29";
+	const char SSDP_NANOLEAF[] = "nanoleaf:nl*";
 	const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
 } //End of constants
 
@@ -98,268 +100,280 @@ DriverNetNanoleaf::DriverNetNanoleaf(const QJsonObject& deviceConfig)
 	, _leftRight(true)
 	, _startPos(0)
 	, _endPos(0)
-	, _extControlVersion(EXTCTRLVER_V2),
-	_panelLedCount(0)
+	, _extControlVersion(EXTCTRLVER_V2)
+	, _panelLedCount(0)
+	, _isLightstrip(false)
+	, _streamLedsPerDatagram(STREAM_MAX_LEDS_PER_DATAGRAM)
+	, _streamBatchGapMs(0)
 {
+}
+
+bool DriverNetNanoleaf::resolveApiEndpoint(const QString& host, QString& apiHost, int& apiPort) const
+{
+	if (host.isEmpty())
+		return false;
+
+	const QStringList addressparts = host.split(':', Qt::SkipEmptyParts);
+	apiHost = addressparts[0];
+	apiPort = (addressparts.size() > 1) ? addressparts[1].toInt() : API_DEFAULT_PORT;
+	return !apiHost.isEmpty();
+}
+
+int DriverNetNanoleaf::queryNumLeds()
+{
+	if (_restApi == nullptr)
+		return 0;
+
+	_restApi->setPath(API_LENGTH);
+	httpResponse response = _restApi->get();
+	if (response.error())
+	{
+		Debug(_log, "GET /length failed: {:s}", (response.getErrorReason()));
+		return 0;
+	}
+
+	return response.getBody().object()[DEV_DATA_NUM_LEDS].toInt(0);
+}
+
+bool DriverNetNanoleaf::applyConfiguredLedRange()
+{
+	const int configuredLedCount = this->getLedCount();
+	_endPos = _startPos + configuredLedCount - 1;
+
+	Debug(_log, "Sort Top>Down  : {:d}", _topDown);
+	Debug(_log, "Sort Left>Right: {:d}", _leftRight);
+	Debug(_log, "Start Panel Pos: {:d}", _startPos);
+	Debug(_log, "End Panel Pos  : {:d}", _endPos);
+	Debug(_log, "Hardware LEDs  : {:d}", _panelLedCount);
+
+	if (_panelLedCount < configuredLedCount)
+	{
+		this->setInError(QString("Not enough panels [%1] for configured LEDs [%2] found!")
+			.arg(_panelLedCount)
+			.arg(configuredLedCount));
+		return false;
+	}
+
+	if (_panelLedCount > configuredLedCount)
+	{
+		Info(_log, "{:s}: More panels [{:d}] than configured LEDs [{:d}].", (this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
+	}
+
+	if (_endPos >= _panelLedCount)
+	{
+		this->setInError(QString("Start panel [%1] out of range. Start panel position can be max [%2] given [%3] panel available!")
+			.arg(_startPos).arg(_panelLedCount - configuredLedCount).arg(_panelLedCount));
+		return false;
+	}
+
+	return true;
+}
+
+bool DriverNetNanoleaf::loadLightstripIds(int ledCount)
+{
+	_isLightstrip = true;
+	_panelIds.clear();
+	_panelIds.reserve(ledCount);
+
+	// Essentials OpenAPI: LED id == index in 0..N-1
+	if (_leftRight)
+	{
+		for (int i = 0; i < ledCount; ++i)
+			_panelIds.push_back(i);
+	}
+	else
+	{
+		for (int i = ledCount - 1; i >= 0; --i)
+			_panelIds.push_back(i);
+	}
+
+	_panelLedCount = _panelIds.size();
+	_devConfig["hardwareLedCount"] = _panelLedCount;
+	return applyConfiguredLedRange();
+}
+
+bool DriverNetNanoleaf::loadPanelIds(const QJsonArray& positionData)
+{
+	_isLightstrip = false;
+	std::map<int, std::map<int, int>> panelMap;
+
+	for (const auto& value : positionData)
+	{
+		const QJsonObject panelObj = value.toObject();
+		const int panelId = panelObj[PANEL_ID].toInt();
+		const int panelX = panelObj[PANEL_POS_X].toInt();
+		const int panelY = panelObj[PANEL_POS_Y].toInt();
+		const int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
+
+		DebugIf(verbose, _log, "Panel [{:d}] ({:d},{:d}) - Type: [{:d}]", panelId, panelX, panelY, panelshapeType);
+
+		if (panelshapeType != RHYTM)
+		{
+			panelMap[panelY][panelX] = panelId;
+		}
+		else
+		{
+			Info(_log, "Rhythm panel skipped.");
+		}
+	}
+
+	for (auto posY = panelMap.crbegin(); posY != panelMap.crend(); ++posY)
+	{
+		if (_leftRight)
+		{
+			for (auto posX = posY->second.cbegin(); posX != posY->second.cend(); ++posX)
+			{
+				if (_topDown)
+					_panelIds.push_back(posX->second);
+				else
+					_panelIds.push_front(posX->second);
+			}
+		}
+		else
+		{
+			for (auto posX = posY->second.crbegin(); posX != posY->second.crend(); ++posX)
+			{
+				if (_topDown)
+					_panelIds.push_back(posX->second);
+				else
+					_panelIds.push_front(posX->second);
+			}
+		}
+	}
+
+	_panelLedCount = _panelIds.size();
+	_devConfig["hardwareLedCount"] = _panelLedCount;
+	return applyConfiguredLedRange();
 }
 
 bool DriverNetNanoleaf::initLedsConfiguration()
 {
-	bool isInitOK = true;
+	_panelIds.clear();
+	_isLightstrip = false;
 
-	//Get Nanoleaf device details and configuration
-
-	// Read Panel count and panel Ids
 	_restApi->setPath(API_ROOT);
 	httpResponse response = _restApi->get();
 	if (response.error())
 	{
 		this->setInError(response.getErrorReason());
-		isInitOK = false;
+		return false;
 	}
-	else
+
+	const QJsonObject deviceInfo = response.getBody().object();
+	_deviceModel = deviceInfo[DEV_DATA_MODEL].toString();
+	_deviceFirmwareVersion = deviceInfo[DEV_DATA_FIRMWAREVERSION].toString();
+
+	Debug(_log, "Name           : {:s}", (deviceInfo[DEV_DATA_NAME].toString()));
+	Debug(_log, "Model          : {:s}", (_deviceModel));
+	Debug(_log, "Manufacturer   : {:s}", (deviceInfo[DEV_DATA_MANUFACTURER].toString()));
+	Debug(_log, "FirmwareVersion: {:s}", (_deviceFirmwareVersion));
+
+	const QJsonObject jsonLayout = deviceInfo[API_PANELLAYOUT].toObject()[PANEL_LAYOUT].toObject();
+	const QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
+
+	if (!positionData.isEmpty())
 	{
-		QJsonObject jsonAllPanelInfo = response.getBody().object();
-
-		QString deviceName = jsonAllPanelInfo[DEV_DATA_NAME].toString();
-		_deviceModel = jsonAllPanelInfo[DEV_DATA_MODEL].toString();
-		QString deviceManufacturer = jsonAllPanelInfo[DEV_DATA_MANUFACTURER].toString();
-		_deviceFirmwareVersion = jsonAllPanelInfo[DEV_DATA_FIRMWAREVERSION].toString();
-
-		Debug(_log, "Name           : {:s}", (deviceName));
-		Debug(_log, "Model          : {:s}", (_deviceModel));
-		Debug(_log, "Manufacturer   : {:s}", (deviceManufacturer));
-		Debug(_log, "FirmwareVersion: {:s}", (_deviceFirmwareVersion));
-
-		// Get panel details from /panelLayout/layout
-		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
-		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
-
-		int panelNum = jsonLayout[PANEL_NUM].toInt();
-		const QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
-
-		std::map<int, std::map<int, int>> panelMap;
-
-		// Loop over all children.
-		for (auto value : positionData)
-		{
-			QJsonObject panelObj = value.toObject();
-
-			int panelId = panelObj[PANEL_ID].toInt();
-			int panelX = panelObj[PANEL_POS_X].toInt();
-			int panelY = panelObj[PANEL_POS_Y].toInt();
-			int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
-			//int panelOrientation = panelObj[PANEL_ORIENTATION].toInt();
-
-			DebugIf(verbose, _log, "Panel [{:d}] ({:d},{:d}) - Type: [{:d}]", panelId, panelX, panelY, panelshapeType);
-
-			// Skip Rhythm panels
-			if (panelshapeType != RHYTM)
-			{
-				panelMap[panelY][panelX] = panelId;
-			}
-			else
-			{	// Reset non support/required features
-				Info(_log, "Rhythm panel skipped.");
-			}
-		}
-
-		// Travers panels top down
-		for (auto posY = panelMap.crbegin(); posY != panelMap.crend(); ++posY)
-		{
-			// Sort panels left to right
-			if (_leftRight)
-			{
-				for (auto posX = posY->second.cbegin(); posX != posY->second.cend(); ++posX)
-				{
-					DebugIf(verbose3, _log, "panelMap[{:d}][{:d}]={:d}", posY->first, posX->first, posX->second);
-
-					if (_topDown)
-					{
-						_panelIds.push_back(posX->second);
-					}
-					else
-					{
-						_panelIds.push_front(posX->second);
-					}
-				}
-			}
-			else
-			{
-				// Sort panels right to left
-				for (auto posX = posY->second.crbegin(); posX != posY->second.crend(); ++posX)
-				{
-					DebugIf(verbose3, _log, "panelMap[{:d}][{:d}]={:d}", posY->first, posX->first, posX->second);
-
-					if (_topDown)
-					{
-						_panelIds.push_back(posX->second);
-					}
-					else
-					{
-						_panelIds.push_front(posX->second);
-					}
-				}
-			}
-		}
-
-		this->_panelLedCount = _panelIds.size();
-		_devConfig["hardwareLedCount"] = _panelLedCount;
-
-		Debug(_log, "PanelsNum      : {:d}", panelNum);
-		Debug(_log, "PanelLedCount  : {:d}", _panelLedCount);
-
-		// Check. if enough panels were found.
-		int configuredLedCount = this->getLedCount();
-		_endPos = _startPos + configuredLedCount - 1;
-
-		Debug(_log, "Sort Top>Down  : {:d}", _topDown);
-		Debug(_log, "Sort Left>Right: {:d}", _leftRight);
-		Debug(_log, "Start Panel Pos: {:d}", _startPos);
-		Debug(_log, "End Panel Pos  : {:d}", _endPos);
-
-		if (_panelLedCount < configuredLedCount)
-		{
-			QString errorReason = QString("Not enough panels [%1] for configured LEDs [%2] found!")
-				.arg(_panelLedCount)
-				.arg(configuredLedCount);
-			this->setInError(errorReason);
-			isInitOK = false;
-		}
-		else
-		{
-			if (_panelLedCount > this->getLedCount())
-			{
-				Info(_log, "{:s}: More panels [{:d}] than configured LEDs [{:d}].", (this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
-			}
-
-			// Check, if start position + number of configured LEDs is greater than number of panels available
-			if (_endPos >= _panelLedCount)
-			{
-				QString errorReason = QString("Start panel [%1] out of range. Start panel position can be max [%2] given [%3] panel available!")
-					.arg(_startPos).arg(_panelLedCount - configuredLedCount).arg(_panelLedCount);
-
-				this->setInError(errorReason);
-				isInitOK = false;
-			}
-		}
+		Debug(_log, "PanelsNum      : {:d}", jsonLayout[PANEL_NUM].toInt());
+		return loadPanelIds(positionData);
 	}
-	return isInitOK;
+
+	// No panel layout: Essentials/lightstrip OpenAPI uses GET /length
+	const int numLeds = queryNumLeds();
+	if (numLeds <= 0)
+	{
+		this->setInError("Device has no panelLayout and GET /length returned no LEDs");
+		return false;
+	}
+
+	Info(_log, "Nanoleaf lightstrip API (model {:s}): {:d} LEDs from /length", (_deviceModel), numLeds);
+	return loadLightstripIds(numLeds);
 }
 
 bool DriverNetNanoleaf::init(QJsonObject deviceConfig)
 {
-	// Overwrite non supported/required features
-	setRefreshTime(0);
-
-	if (deviceConfig["refreshTime"].toInt(0) > 0)
-	{
-		Info(_log, "Device Nanoleaf does not require setting refresh time. Refresh time is ignored.");
-	}
-
 	DebugIf(verbose, _log, "deviceConfig: [{:s}]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	bool isInitOK = false;
+	if (!LedDevice::init(deviceConfig))
+		return false;
 
-	if (LedDevice::init(deviceConfig))
+	Debug(_log, "DeviceType   : {:s}", (this->getActiveDeviceType()));
+	Debug(_log, "LedCount     : {:d}", this->getLedCount());
+	Debug(_log, "RefreshTime  : {:d}", this->getRefreshTime());
+
+	if (deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].isString())
+		_topDown = deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].toString().toInt() == 0;
+	else
+		_topDown = deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].toInt() == 0;
+
+	if (deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].isString())
+		_leftRight = deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].toString().toInt() == 0;
+	else
+		_leftRight = deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].toInt() == 0;
+
+	_startPos = deviceConfig[CONFIG_PANEL_START_POS].toInt(0);
+
+	_hostname = deviceConfig[CONFIG_ADDRESS].toString();
+	_apiPort = API_DEFAULT_PORT;
+	_authToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
+
+	if (_hostname.isEmpty())
 	{
-		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : {:s}", (this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : {:d}", configuredLedCount);
-		Debug(_log, "RefreshTime  : {:d}", this->getRefreshTime());
-
-		// Read panel organisation configuration
-		if (deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].isString())
-		{
-			_topDown = deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].toString().toInt() == 0;
-		}
-		else
-		{
-			_topDown = deviceConfig[CONFIG_PANEL_ORDER_TOP_DOWN].toInt() == 0;
-		}
-
-		if (deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].isString())
-		{
-			_leftRight = deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].toString().toInt() == 0;
-		}
-		else
-		{
-			_leftRight = deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].toInt() == 0;
-		}
-
-		_startPos = deviceConfig[CONFIG_PANEL_START_POS].toInt(0);
-
-		// TODO: Allow to handle port dynamically
-
-		//Set hostname as per configuration and_defaultHost default port
-		_hostname = deviceConfig[CONFIG_ADDRESS].toString();
-		_apiPort = API_DEFAULT_PORT;
-		_authToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
-
-		//If host not configured the init failed
-		if (_hostname.isEmpty())
-		{
-			this->setInError("No target hostname nor IP defined");
-			isInitOK = false;
-		}
-		else
-		{
-			if (initRestAPI(_hostname, _apiPort, _authToken))
-			{
-				// Read LedDevice configuration and validate against device configuration
-				if (initLedsConfiguration())
-				{
-					// Set UDP streaming host and port
-					_devConfig["host"] = _hostname;
-					_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
-
-					isInitOK = ProviderUdp::init(_devConfig);
-					Debug(_log, "Hostname/IP  : {:s}", (_hostname));
-					Debug(_log, "Port         : {:d}", _port);
-				}
-			}
-		}
+		this->setInError("No target hostname nor IP defined");
+		return false;
 	}
+
+	if (!initRestAPI(_hostname, _apiPort, _authToken) || !initLedsConfiguration())
+		return false;
+
+	if (_isLightstrip)
+	{
+		// Default: one datagram with every LED (matches HyperHDR full-frame output).
+		// Override streamLedsPerDatagram if a controller cannot take a full frame.
+		const int defaultLedsPerDatagram = std::max(1, _panelLedCount);
+		_streamLedsPerDatagram = std::max(1, deviceConfig[CONFIG_STREAM_LEDS_PER_DATAGRAM].toInt(defaultLedsPerDatagram));
+		_streamBatchGapMs = std::max(0, deviceConfig[CONFIG_STREAM_BATCH_GAP_MS].toInt(0));
+		Info(_log, "Lightstrip stream: {:d} LEDs/datagram, {:d}ms batch gap (refresh follows smoothing)",
+			_streamLedsPerDatagram, _streamBatchGapMs);
+	}
+
+	_devConfig["host"] = _hostname;
+	_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
+
+	const bool isInitOK = ProviderUdp::init(_devConfig);
+	Debug(_log, "Hostname/IP  : {:s}", (_hostname));
+	Debug(_log, "Port         : {:d}", _port);
 	return isInitOK;
 }
 
 bool DriverNetNanoleaf::initRestAPI(const QString& hostname, int port, const QString& token)
 {
-	bool isInitOK = false;
-
 	if (_restApi == nullptr)
-	{
 		_restApi = std::make_unique<ProviderRestApi>(hostname, port);
+	else
+		_restApi->updateHost(hostname, port);
 
-		//Base-path is api-path + authentication token
-		_restApi->setBasePath(QString(API_BASE_PATH).arg(token));
-
-		isInitOK = true;
-	}
-	return isInitOK;
+	_restApi->setBasePath(QString(API_BASE_PATH).arg(token));
+	return true;
 }
 
 int DriverNetNanoleaf::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
-	QJsonDocument responseDoc = changeToExternalControlMode();
-	// Resolve port for Light Panels
-	QJsonObject jsonStreamControllInfo = responseDoc.object();
-	if (!jsonStreamControllInfo.isEmpty())
+	const QJsonObject streamInfo = changeToExternalControlMode().object();
+	if (streamInfo.contains(STREAM_CONTROL_PORT))
 	{
-		//Set default streaming port
-		_port = static_cast<uchar>(jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt());
+		const int streamPort = streamInfo[STREAM_CONTROL_PORT].toInt();
+		if (streamPort > 0)
+			_port = static_cast<quint16>(streamPort);
 	}
 
-	if (ProviderUdp::open() == 0)
-	{
-		// Everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
-	}
-	return retval;
+	if (ProviderUdp::open() != 0)
+		return -1;
+
+	applyStreamMasterBrightness();
+	_isDeviceReady = true;
+	return 0;
 }
 
 QJsonDocument DriverNetNanoleaf::changeToExternalControlMode()
@@ -367,15 +381,52 @@ QJsonDocument DriverNetNanoleaf::changeToExternalControlMode()
 	Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
 
 	if (_restApi == nullptr)
-		return QJsonDocument();
+		return {};
 
 	_extControlVersion = EXTCTRLVER_V2;
-	//Enable UDP Mode v2
-
 	_restApi->setPath(API_EFFECT);
-	httpResponse response = _restApi->put(API_EXT_MODE_STRING_V2);
+	return _restApi->put(API_EXT_MODE_STRING_V2).getBody();
+}
 
-	return response.getBody();
+bool DriverNetNanoleaf::applyStreamMasterBrightness()
+{
+	if (_restApi == nullptr)
+		return false;
+
+	// Essentials global brightness multiplies extControl / screen-mirror output.
+	_restApi->setPath(API_STATE);
+	httpResponse response = _restApi->put(QString("{\"brightness\":{\"value\":100}}"));
+	if (response.error())
+	{
+		Warning(_log, "Could not set Nanoleaf brightness to 100: {:s}", (response.getErrorReason()));
+		return false;
+	}
+
+	Info(_log, "Nanoleaf stream master brightness set to 100");
+	return true;
+}
+
+ColorRgb DriverNetNanoleaf::candyColor(const ColorRgb& color) const
+{
+	if (color.red == 0 && color.green == 0 && color.blue == 0)
+		return color;
+
+	uint16_t hue = 0;
+	uint8_t sat = 0;
+	uint8_t val = 0;
+	ColorRgb::rgb2hsv(color.red, color.green, color.blue, hue, sat, val);
+
+	// Neon saturation: keep hue, pull S toward 255.
+	sat = static_cast<uint8_t>(sat + static_cast<uint16_t>(255 - sat) * 3 / 5);
+
+	// Lift midtones so TV-content greys still punch on the strip.
+	const float v = val / 255.0f;
+	const int lifted = static_cast<int>(std::lround(255.0f * std::pow(v, 0.62f) * 1.12f));
+	val = static_cast<uint8_t>(std::clamp(lifted, 0, 255));
+
+	ColorRgb out;
+	ColorRgb::hsv2rgb(hue, sat, val, out.red, out.green, out.blue);
+	return out;
 }
 
 QJsonObject DriverNetNanoleaf::discover(const QJsonObject& /*params*/)
@@ -383,61 +434,34 @@ QJsonObject DriverNetNanoleaf::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
-	QJsonArray deviceList;
-
-	// Discover Nanoleaf Devices
 	SSDPDiscover discover;
+	discover.setSearchFilter(QString("%1|%2").arg(SSDP_NANOLEAF, SSDP_LIGHTPANELS), SSDP_FILTER_HEADER);
 
-	// Search for Canvas and Light-Panels
-	QString searchTargetFilter = QString("%1|%2").arg(SSDP_CANVAS, SSDP_LIGHTPANELS);
-
-	discover.setSearchFilter(searchTargetFilter, SSDP_FILTER_HEADER);
-	QString searchTarget = SSDP_ID;
-
-	if (discover.discoverServices(searchTarget) > 0)
-	{
+	QJsonArray deviceList;
+	if (discover.discoverServices(SSDP_ID) > 0)
 		deviceList = discover.getServicesDiscoveredJson();
-	}
 
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 	return devicesDiscovered;
 }
-
 
 void DriverNetNanoleaf::identify(const QJsonObject& params)
 {
 	Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	QString host = params["host"].toString("");
-	if (!host.isEmpty())
+	QString apiHost;
+	int apiPort = API_DEFAULT_PORT;
+	if (!resolveApiEndpoint(params["host"].toString(), apiHost, apiPort))
+		return;
+
+	initRestAPI(apiHost, apiPort, params["token"].toString());
+	_restApi->setPath(API_IDENTIFY);
+
+	httpResponse response = _restApi->put();
+	if (response.error())
 	{
-		QString authToken = params["token"].toString("");
-
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(':', Qt::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort, authToken);
-		_restApi->setPath("identify");
-
-		// Perform request
-		httpResponse response = _restApi->put();
-		if (response.error())
-		{
-			Warning(_log, "{:s} identification failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
-		}
+		Warning(_log, "{:s} identification failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
 	}
 }
 
@@ -446,49 +470,43 @@ QJsonObject DriverNetNanoleaf::getProperties(const QJsonObject& params)
 	Debug(_log, "params: [{:s}]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
-	// Get Nanoleaf device properties
-	QString host = params["host"].toString("");
-	if (!host.isEmpty())
+	QString apiHost;
+	int apiPort = API_DEFAULT_PORT;
+	if (!resolveApiEndpoint(params["host"].toString(), apiHost, apiPort))
+		return properties;
+
+	initRestAPI(apiHost, apiPort, params["token"].toString());
+	_restApi->setPath(params["filter"].toString());
+
+	httpResponse response = _restApi->get();
+	if (response.error())
 	{
-		QString authToken = params["token"].toString("");
-		QString filter = params["filter"].toString("");
-
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(':', Qt::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort, authToken);
-		_restApi->setPath(filter);
-
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
-		{
-			Warning(_log, "{:s} get properties failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
-		}
-
-		properties.insert("properties", response.getBody().object());
-
-		Debug(_log, "properties: [{:s}]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+		Warning(_log, "{:s} get properties failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
 	}
+
+	QJsonObject props = response.getBody().object();
+	const QJsonArray positionData = props[API_PANELLAYOUT].toObject()[PANEL_LAYOUT].toObject()[PANEL_POSITIONDATA].toArray();
+	if (positionData.isEmpty())
+	{
+		const int numLeds = queryNumLeds();
+		if (numLeds > 0)
+		{
+			props[DEV_DATA_NUM_LEDS] = numLeds;
+			props["hardwareLedCount"] = numLeds;
+		}
+	}
+
+	properties.insert("properties", props);
+	Debug(_log, "properties: [{:s}]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	return properties;
 }
 
-
 QString DriverNetNanoleaf::getOnOffRequest(bool isOn) const
 {
-	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
-	return QString("{\"%1\":{\"%2\":%3}}").arg(STATE_ON, STATE_ONOFF_VALUE, state);
+	if (isOn)
+		return QString("{\"%1\":{\"%2\":%3},\"brightness\":{\"value\":100}}").arg(STATE_ON, STATE_ONOFF_VALUE, STATE_VALUE_TRUE);
+
+	return QString("{\"%1\":{\"%2\":%3}}").arg(STATE_ON, STATE_ONOFF_VALUE, STATE_VALUE_FALSE);
 }
 
 bool DriverNetNanoleaf::powerOn()
@@ -496,8 +514,6 @@ bool DriverNetNanoleaf::powerOn()
 	if (_isDeviceReady)
 	{
 		changeToExternalControlMode();
-
-		//Power-on Nanoleaf device
 		_restApi->setPath(API_STATE);
 		_restApi->put(getOnOffRequest(true));
 	}
@@ -508,86 +524,70 @@ bool DriverNetNanoleaf::powerOff()
 {
 	if (_isDeviceReady)
 	{
-		//Power-off the Nanoleaf device physically
 		_restApi->setPath(API_STATE);
 		_restApi->put(getOnOffRequest(false));
 	}
 	return true;
 }
 
-
-
-int DriverNetNanoleaf::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
+int DriverNetNanoleaf::writeStreamBatch(const std::vector<ColorRgb>& ledValues, int startIndex, int count, int& ledCounter)
 {
-	int retVal = 0;
-
-	//
-	//    nPanels         2B
-	//    panelID         2B
-	//    <R> <G> <B>     3B
-	//    <W>             1B
-	//    tranitionTime   2B
-	//
-	// Note: Nanoleaf Light Panels (Aurora) now support External Control V2 (tested with FW 3.2.0)
-
-	int udpBufferSize = STREAM_FRAME_PANEL_NUM_SIZE + _panelLedCount * STREAM_FRAME_PANEL_INFO_SIZE;
-
 	QByteArray udpbuffer;
-	udpbuffer.resize(udpBufferSize);
+	udpbuffer.resize(STREAM_FRAME_PANEL_NUM_SIZE + count * STREAM_FRAME_PANEL_INFO_SIZE);
 
 	int i = 0;
-
-	// Set number of panels
-	qToBigEndian<quint16>(static_cast<quint16>(_panelLedCount), udpbuffer.data() + i);
+	qToBigEndian<quint16>(static_cast<quint16>(count), udpbuffer.data() + i);
 	i += 2;
 
-	ColorRgb color;
+	// Panels keep the original 100ms transition; lightstrips use 0 for video sync
+	const quint16 transitionTime = _isLightstrip ? 0 : 1;
 
-	//Maintain LED counter independent from PanelCounter
-	int ledCounter = 0;
-	for (int panelCounter = 0; panelCounter < _panelLedCount; panelCounter++)
+	for (int j = 0; j < count; ++j)
 	{
-		int panelID = _panelIds[panelCounter];
+		const int panelCounter = startIndex + j;
+		ColorRgb color = ColorRgb::BLACK;
 
-		// Set panels configured
-		if (panelCounter >= _startPos && panelCounter <= _endPos) {
-			color = static_cast<ColorRgb>(ledValues.at(ledCounter));
+		if (panelCounter >= _startPos && panelCounter <= _endPos && ledCounter < static_cast<int>(ledValues.size()))
+		{
+			color = ledValues[static_cast<size_t>(ledCounter)];
+			if (_isLightstrip)
+				color = candyColor(color);
 			++ledCounter;
 		}
-		else
-		{
-			// Set panels not configured to black;
-			color = ColorRgb::BLACK;
-			DebugIf(verbose3, _log, "[{:d}] >= panelLedCount [{:d}] => Set to BLACK", panelCounter, _panelLedCount);
-		}
 
-		// Set panelID
-		qToBigEndian<quint16>(static_cast<quint16>(panelID), udpbuffer.data() + i);
+		qToBigEndian<quint16>(static_cast<quint16>(_panelIds[panelCounter]), udpbuffer.data() + i);
 		i += 2;
-
-		// Set panel's color LEDs
 		udpbuffer[i++] = static_cast<char>(color.red);
 		udpbuffer[i++] = static_cast<char>(color.green);
 		udpbuffer[i++] = static_cast<char>(color.blue);
-
-		// Set white LED
-		udpbuffer[i++] = 0; // W not set manually
-
-		// Set transition time
-		unsigned char tranitionTime = 1; // currently fixed at value 1 which corresponds to 100ms
-		qToBigEndian<quint16>(static_cast<quint16>(tranitionTime), udpbuffer.data() + i);
+		udpbuffer[i++] = 0;
+		qToBigEndian<quint16>(transitionTime, udpbuffer.data() + i);
 		i += 2;
-
-		DebugIf(verbose3, _log, "[{:d}] Color: {{{:d},{:d},{:d}}}", panelCounter, color.red, color.green, color.blue);
 	}
 
-	if (verbose3)
+	return writeBytes(udpbuffer);
+}
+
+int DriverNetNanoleaf::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
+{
+	// v2 stream frame: nLeds(2B) + [id(2B) RGBW(4B) transition(2B)] * n
+	// Write rate is owned by HyperHDR smoothing / LedDevice refresh, not this driver.
+
+	const int batchSize = _isLightstrip ? _streamLedsPerDatagram : _panelLedCount;
+	int retVal = 0;
+	int ledCounter = 0;
+
+	for (int index = 0; index < _panelLedCount; index += batchSize)
 	{
-		Debug(_log, "UDP-Address [{:s}], UDP-Port [{:d}], udpBufferSize[{:d}], Bytes to send [{:d}]", (_address.toString()), _port, udpBufferSize, i);
-		Debug(_log, "packet: [{:s}]", (toHex(udpbuffer, 64)));
+		if (index > 0 && _streamBatchGapMs > 0)
+			QThread::msleep(static_cast<unsigned long>(_streamBatchGapMs));
+
+		const int count = std::min(batchSize, _panelLedCount - index);
+		retVal = writeStreamBatch(ledValues, index, count, ledCounter);
+		if (retVal < 0)
+			return retVal;
 	}
 
-	retVal = writeBytes(udpbuffer);
 	return retVal;
 }
 
