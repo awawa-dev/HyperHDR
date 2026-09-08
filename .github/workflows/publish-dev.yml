@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: "14 3 * * *"
   workflow_dispatch:
+  push:
 
 permissions:
   contents: write
@@ -13,7 +14,7 @@ env:
   DEV_TAG: latest-dev
   DEV_NAME: HyperHDR daily development build (master branch)
   DEV_BRANCH: master
-  BUILD_WORKFLOW_FILE: push-pull.yml
+  BUILD_WORKFLOW_FILE: push-master.yml
 
 jobs:
   publish-dev:
