@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: "14 3 * * *"
   workflow_dispatch:
-  push:
 
 permissions:
   contents: write
@@ -14,7 +13,7 @@ env:
   DEV_TAG: latest-build
   DEV_NAME: Latest daily development build
   DEV_BRANCH: master
-  BUILD_WORKFLOW_FILE: push-master.yml
+  BUILD_WORKFLOW_FILE: push-pull.yml
 
 jobs:
   publish-dev:
