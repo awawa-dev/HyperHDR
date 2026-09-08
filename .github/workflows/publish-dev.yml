@@ -94,9 +94,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if gh release view "$DEV_TAG" >/dev/null 2>&1; then
-            for id in $(gh release view "$DEV_TAG" --json assets -q '.assets[].id'); do
-              gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$id"
+          if rid="$(gh release view "$DEV_TAG" --json id -q .id 2>/dev/null)"; then
+            gh release view "$DEV_TAG" --json assets -q '.assets[].id' | while read -r id; do
+              gh api -X DELETE "/repos/${{ github.repository }}/releases/$rid/assets/$id"
             done
           fi
 
