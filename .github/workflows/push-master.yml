@@ -250,7 +250,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload unsigned artifacts
-        if:  github.event_name != 'pull_request'
+        if:  github.event_name != 'pull_request' && fromJSON(vars.USE_SIGNPATH || 'false')
         uses: actions/upload-artifact@v7.0.1
         with:
           name: unsigned-windows-installer
@@ -259,7 +259,7 @@ jobs:
 
       - name: Find artifact file
         id: find_artifact
-        if: startsWith(github.event.ref, 'refs/tags') == false
+        if: startsWith(github.event.ref, 'refs/tags') == false && fromJSON(vars.USE_SIGNPATH || 'false') == false
         shell: bash
         run: |
           ARTIFACT_FILE=$(ls -S build/Hyper*.exe 2>/dev/null | head -n 1)
@@ -280,9 +280,7 @@ jobs:
     name: Sign Windows Installer
     needs: [windows]
     runs-on: ubuntu-24.04
-    if:  github.event_name != 'pull_request'
-    env:
-      USE_SIGNPATH: ${{ vars.USE_SIGNPATH || 'false' }}
+    if:  github.event_name != 'pull_request' && fromJSON(vars.USE_SIGNPATH || 'false')
     steps:
       - name: Download unsigned artifact
         uses: actions/download-artifact@v8.0.1
@@ -291,18 +289,16 @@ jobs:
           path: to_sign
 
       - name: Check SignPath Secrets
-        if: env.USE_SIGNPATH == 'true' && github.event_name != 'pull_request'
         env:
           SIGNPATH_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
           SIGNPATH_ORGANIZATION_ID: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
         run: |
           if [ -z "$SIGNPATH_TOKEN" ] || [ -z "$SIGNPATH_ORGANIZATION_ID" ]; then
-            echo "USE_SIGNPATH=false" >> $GITHUB_ENV
-            echo "SignPath secrets not found. Skipping signing process."
+            echo "SignPath secrets not found."
+            exit 1
           fi
 
       - name: Upload unsigned ZIP to GitHub (SignPath V2 requirement)
-        if: ${{ env.USE_SIGNPATH == 'true' }}
         id: upload-unsigned-artifact
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -311,7 +307,6 @@ jobs:
           retention-days: 1
 
       - name: Sign artifact with SignPath
-        if: env.USE_SIGNPATH == 'true'
         id: signpath_step
         uses: signpath/github-action-submit-signing-request@v2
         with:
@@ -324,7 +319,7 @@ jobs:
           output-artifact-directory: signed_artifact
 
       - name: Check SignPath result & fail if needed
-        if: always() && env.USE_SIGNPATH == 'true'
+        if: always()
         run: |
           if [ "${{ steps.signpath_step.outcome }}" != "success" ]; then
             echo "::error::SignPath action failed technically (check logs for timeout/network issues)."
@@ -339,18 +334,18 @@ jobs:
           echo "Signing successful. Artifacts found in 'signed_artifact'."
           
       - name: Upload artifacts (release)
-        if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v7.0.1
         with:
           name: release-artifact-windows
-          path: ${{ env.USE_SIGNPATH == 'true' && 'signed_artifact' || 'to_sign' }}/Hyper*.exe
+          path: signed_artifact/Hyper*.exe
           
       - name: Upload artifacts from commit
-        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: Windows_x64_setup_${{ env.USE_SIGNPATH == 'true' && 'signed' || 'unsigned' }}
-          path: ${{ env.USE_SIGNPATH == 'true' && 'signed_artifact' || 'to_sign' }}/Hyper*.exe
+          name: Windows_x64_setup_signed
+          path: signed_artifact/Hyper*.exe
 
 ################################
 ####### CodeQL support #########
