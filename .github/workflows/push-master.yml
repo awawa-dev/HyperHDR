@@ -85,15 +85,19 @@ jobs:
           name: release-artifact-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}
           path: deploy/Hyper*
 
+      - name: Find artifact file
+        id: find_artifact
+        if: startsWith(github.event.ref, 'refs/tags') == false
+        run: |
+          ARTIFACT_FILE=$(find deploy -maxdepth 1 -type f \( -name "Hyper*.deb" -o -name "Hyper*.zst" -o -name "Hyper*.rpm" \) | head -n 1)
+          echo "installer_artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
+
       - name: Upload artifacts from commit
-        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && steps.find_artifact.outputs.installer_artifact_path != ''
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: Linux-${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-installer
-          path: |
-            deploy/Hyper*.deb
-            deploy/Hyper*.zst
-            deploy/Hyper*.rpm
+          path: ${{ steps.find_artifact.outputs.installer_artifact_path }}
+          archive: false
 
 ######################
 ######## macOS #######
@@ -153,12 +157,19 @@ jobs:
             name: release-artifact-${{ matrix.JOB_RUNNER }}      
             path: build/Hyper*.dmg
 
+      - name: Find artifact file
+        id: find_artifact
+        if: startsWith(github.event.ref, 'refs/tags') == false
+        run: |
+          ARTIFACT_FILE=$(ls -S build/Hyper*.dmg 2>/dev/null | head -n 1)
+          echo "installer_artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
+
       - name: Upload artifacts from commit
-        if: startsWith(github.event.ref, 'refs/tags') == false && github.event_name != 'pull_request'
+        if: startsWith(github.event.ref, 'refs/tags') == false && steps.find_artifact.outputs.installer_artifact_path != ''
         uses: actions/upload-artifact@v7.0.1
         with:
-            name: Apple_macOS_${{ matrix.NICE_NAME }}_DMG_installer
-            path: build/Hyper*.dmg
+            path: ${{ steps.find_artifact.outputs.installer_artifact_path }}
+            archive: false
 
 ######################
 ###### Windows #######
@@ -239,11 +250,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Upload unsigned artifacts
+        if:  github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: unsigned-windows-installer
-          path: build/Hyper*
+          path: build/Hyper*.exe
           retention-days: 1
+
+      - name: Find artifact file
+        id: find_artifact
+        if: startsWith(github.event.ref, 'refs/tags') == false
+        shell: bash
+        run: |
+          ARTIFACT_FILE=$(ls -S build/Hyper*.exe 2>/dev/null | head -n 1)
+          echo "installer_artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
+
+      - name: Upload artifacts from commit
+        if: startsWith(github.event.ref, 'refs/tags') == false && steps.find_artifact.outputs.installer_artifact_path != ''
+        uses: actions/upload-artifact@v7.0.1
+        with:
+            path: ${{ steps.find_artifact.outputs.installer_artifact_path }}
+            archive: false          
 
 ################################
 ###### Sign Windows ############
@@ -253,6 +280,7 @@ jobs:
     name: Sign Windows Installer
     needs: [windows]
     runs-on: ubuntu-24.04
+    if:  github.event_name != 'pull_request'
     env:
       USE_SIGNPATH: ${{ vars.USE_SIGNPATH || 'false' }}
     steps:
