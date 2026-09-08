@@ -5,9 +5,8 @@ on:
   pull_request:  
 
 env:
-    USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
-    RESET_CACHE: ${{ vars.RESET_CACHE && vars.RESET_CACHE || false }}
-    USE_CODEQL: ${{ vars.USE_CODEQL && vars.USE_CODEQL || false }}
+    USE_CACHE: ${{ fromJSON(vars.USE_CACHE || 'false') }}
+    RESET_CACHE: ${{ fromJSON(vars.RESET_CACHE || 'false') }}
     BUILD_ARCHIVES: ${{ startsWith(github.event.ref, 'refs/tags') && true || false }}
 
 jobs:
@@ -19,6 +18,7 @@ jobs:
   Linux:
     name: ${{ matrix.architecture }}/${{ matrix.distroName}}:${{ matrix.distroVersion }}
     runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository)
     env:
       platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
     strategy:      
@@ -106,6 +106,7 @@ jobs:
   macOS:
     name: ${{ matrix.JOB_NAME }}
     runs-on: ${{ matrix.JOB_RUNNER }}
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository)
     strategy:
       matrix:
         include:        
@@ -178,6 +179,7 @@ jobs:
   windows:
     name: Windows
     runs-on: ${{ matrix.os }}
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository)
     strategy:
       matrix:
         os: [windows-2022]
@@ -354,7 +356,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
-    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL || false }}
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository) && fromJSON(vars.USE_CODEQL || 'false')    
 
     permissions:
       actions: read
@@ -369,13 +371,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6.0.2
-        if: env.USE_CODEQL == 'true'
         with:
           submodules: true
 
       - name: Run composite CodeQL job for '${{matrix.language}}' language
         uses: ./.github/actions/codeql
-        if: env.USE_CODEQL == 'true'
         with:
           language: ${{matrix.language}}
 
@@ -386,7 +386,7 @@ jobs:
   clang-tidy-clazy:
     name: Analyze (clang and clazy)
     runs-on: ubuntu-latest
-    if: ${{ vars.USE_CODEQL == 'true' && vars.USE_CODEQL && false || false }}
+    if: fromJSON(vars.USE_CODEQL || 'false') && false
 
     permissions:
       contents: read
