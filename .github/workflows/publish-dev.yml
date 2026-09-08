@@ -35,7 +35,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          json="$(gh api "repos/${{ github.repository }}/commits/${DEV_BRANCH}")"
           echo "sha=$(gh api "repos/${{ github.repository }}/commits/${DEV_BRANCH}" --jq .sha)" >> "$GITHUB_OUTPUT"
+          echo "msg=$(jq -r '.commit.message | split("\n")[0]' <<<"$json")" >> "$GITHUB_OUTPUT"
 
       - name: Check if already published
         id: check
@@ -112,6 +114,7 @@ jobs:
             Latest development build (master branch)
 
             Git commit: ${{ steps.head.outputs.sha }}
+            Commit message: ${{ steps.head.outputs.msg }}
             Source branch: ${{ env.DEV_BRANCH }}
             Source workflow: ${{ env.BUILD_WORKFLOW_FILE }}
         env:
