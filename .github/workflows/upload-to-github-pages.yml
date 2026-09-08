@@ -22,7 +22,7 @@ jobs:
     strategy:      
       matrix:
         distroName: [debian]
-        distroVersion: [bullseye, bookworm, trixie]
+        distroVersion: [bullseye, bookworm, trixie, forky]
         architecture: [amd64, armhf, arm64]        
         include:
           - distroName: ubuntu

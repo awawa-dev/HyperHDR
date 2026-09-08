@@ -1,0 +1,127 @@
+name: Publish Daily Development Build
+
+on:
+  schedule:
+    - cron: "14 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  DEV_TAG: latest-build
+  DEV_NAME: Latest daily development build
+  DEV_BRANCH: master
+  BUILD_WORKFLOW_FILE: push-pull.yml
+
+jobs:
+  publish-dev:
+    runs-on: ubuntu-24.04
+    if: github.repository == 'awawa-dev/HyperHDR'
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ env.DEV_BRANCH }}
+          fetch-depth: 0    
+
+      - name: Get master HEAD
+        id: head
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          json="$(gh api "repos/${{ github.repository }}/commits/${DEV_BRANCH}")"
+          echo "sha=$(jq -r .sha <<<"$json")" >> "$GITHUB_OUTPUT"
+          echo "msg=$(jq -r '.commit.message | split("\n")[0]' <<<"$json")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if already published
+        id: check
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          body="$(gh release view "$DEV_TAG" --json body -q .body 2>/dev/null || true)"
+          old="$(sed -n 's/^Git commit: //p' <<<"$body" | head -n1 || true)"
+          if [[ "$old" == "${{ steps.head.outputs.sha }}" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.check.outputs.skip == 'true'
+        run: echo "No new commit on master since last dev release."
+
+      - name: Find successful build run for this commit
+        if: steps.check.outputs.skip != 'true'
+        id: run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id="$(
+            gh api "repos/${{ github.repository }}/actions/workflows/${BUILD_WORKFLOW_FILE}/runs?branch=${DEV_BRANCH}&status=completed&per_page=100" \
+              --jq '.workflow_runs[] | select(.head_sha=="${{ steps.head.outputs.sha }}" and .conclusion=="success") | .id' | head -n1
+          )"
+
+          if [[ -z "${run_id:-}" ]]; then            
+            echo "No successful ${BUILD_WORKFLOW_FILE} run yet for ${DEV_BRANCH}@${{ steps.head.outputs.sha }}. Skipping publish."
+            exit 0
+          fi
+
+          echo "id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts from selected run
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf artifacts all
+          mkdir -p artifacts all
+          gh run download "${{ steps.run.outputs.id }}" -D artifacts
+
+          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.zst' -o -name '*.zip' \) -exec cp -v {} all/ \;
+
+          test -n "$(find all -type f | head -n1)"
+
+      - name: Delete old dev release assets
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$DEV_TAG" >/dev/null 2>&1; then
+            gh release view "$DEV_TAG" --json assets -q '.assets[] | "\(.apiUrl) \(.name)"' | while read -r apiurl name; do
+              asset_id="${apiurl##*/}"
+              echo "Deleting asset: $asset_id $name"
+              gh api -X DELETE "/repos/${{ github.repository }}/releases/assets/$asset_id"
+            done
+          fi
+
+      - name: Publish dev release
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
+        uses: softprops/action-gh-release@v3.0.0
+        with:
+          tag_name: ${{ env.DEV_TAG }}
+          name: ${{ env.DEV_NAME }}
+          prerelease: true
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: all/*
+          body: |
+            Latest development build (master branch)
+            Fresh daily builds shipped at π time (3:14 UTC) whenever we have something new.
+
+            Git commit: ${{ steps.head.outputs.sha }}
+            Commit message: ${{ steps.head.outputs.msg }}
+            Source branch: ${{ env.DEV_BRANCH }}
+            Source workflow: ${{ env.BUILD_WORKFLOW_FILE }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
