@@ -48,8 +48,7 @@ jobs:
           body="$(gh release view "$DEV_TAG" --json body -q .body 2>/dev/null || true)"
           old="$(sed -n 's/^Git commit: //p' <<<"$body" | head -n1 || true)"
           if [[ "$old" == "${{ steps.head.outputs.sha }}" ]]; then
-            echo "TESTING!!!"
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
