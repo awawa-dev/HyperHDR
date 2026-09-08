@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euo pipefail
           json="$(gh api "repos/${{ github.repository }}/commits/${DEV_BRANCH}")"
-          echo "sha=$(gh api "repos/${{ github.repository }}/commits/${DEV_BRANCH}" --jq .sha)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(jq -r .sha <<<"$json")" >> "$GITHUB_OUTPUT"
           echo "msg=$(jq -r '.commit.message | split("\n")[0]' <<<"$json")" >> "$GITHUB_OUTPUT"
 
       - name: Check if already published
@@ -67,11 +67,16 @@ jobs:
             gh api "repos/${{ github.repository }}/actions/workflows/${BUILD_WORKFLOW_FILE}/runs?branch=${DEV_BRANCH}&status=completed&per_page=100" \
               --jq '.workflow_runs[] | select(.head_sha=="${{ steps.head.outputs.sha }}" and .conclusion=="success") | .id' | head -n1
           )"
-          [[ -n "$run_id" ]]
+
+          if [[ -z "${run_id:-}" ]]; then            
+            echo "No successful ${BUILD_WORKFLOW_FILE} run yet for ${DEV_BRANCH}@${{ steps.head.outputs.sha }}. Skipping publish."
+            exit 0
+          fi
+
           echo "id=$run_id" >> "$GITHUB_OUTPUT"
 
       - name: Download artifacts from selected run
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -81,12 +86,12 @@ jobs:
           mkdir -p artifacts all
           gh run download "${{ steps.run.outputs.id }}" -D artifacts
 
-          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.zst' -name '*.zip' \) -exec cp -v {} all/ \;
+          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.zst' -o -name '*.zip' \) -exec cp -v {} all/ \;
 
           test -n "$(find all -type f | head -n1)"
 
       - name: Debug old dev release assets
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -95,7 +100,7 @@ jobs:
           gh release view "$DEV_TAG" --json id,name,tagName,assets
 
       - name: Delete old dev release assets
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -110,7 +115,7 @@ jobs:
           fi
 
       - name: Publish dev release
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
         uses: softprops/action-gh-release@v3.0.0
         with:
           tag_name: ${{ env.DEV_TAG }}
