@@ -91,15 +91,6 @@ jobs:
 
           test -n "$(find all -type f | head -n1)"
 
-      - name: Debug old dev release assets
-        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          gh release view "$DEV_TAG" --json id,name,tagName,assets
-
       - name: Delete old dev release assets
         if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
         shell: bash
