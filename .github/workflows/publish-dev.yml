@@ -104,9 +104,10 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$DEV_TAG" >/dev/null 2>&1; then
-            gh release view "$DEV_TAG" --json assets -q '.assets[] | "\(.id) \(.name)"' | while read -r id name; do
-              echo "Deleting asset: $id $name"
-              gh api -X DELETE "/repos/${{ github.repository }}/releases/assets/$id"
+            gh release view "$DEV_TAG" --json assets -q '.assets[] | "\(.apiUrl) \(.name)"' | while read -r apiurl name; do
+              asset_id="${apiurl##*/}"
+              echo "Deleting asset: $asset_id $name"
+              gh api -X DELETE "/repos/${{ github.repository }}/releases/assets/$asset_id"
             done
           fi
 
