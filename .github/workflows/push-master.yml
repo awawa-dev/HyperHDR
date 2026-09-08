@@ -2,6 +2,7 @@ name: HyperHDR CI Build
 
 on:
   push:
+  pull_request:  
 
 env:
     USE_CACHE: ${{ vars.USE_CACHE && vars.USE_CACHE || true }}
@@ -23,7 +24,7 @@ jobs:
     strategy:      
       matrix:
         distroName: [debian]
-        distroVersion: [bullseye, bookworm, trixie]
+        distroVersion: [bullseye, bookworm, trixie, forky]
         architecture: [amd64, armhf, arm64]        
         include:
           - distroName: ubuntu
@@ -201,7 +202,7 @@ jobs:
           Invoke-WebRequest -UserAgent "Wget" -Uri "https://prdownloads.sourceforge.net/nsis/nsis-3.11-setup.exe" -OutFile nsis.exe
           Start-Process -Wait nsis.exe -ArgumentList "/S","/D=$env:TOOLKIT_DIR\nsis"
           New-Item -ItemType Directory -Force -Path "$env:TOOLKIT_DIR\ccache" | Out-Null
-          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.12/ccache-4.12-windows-x86_64.zip -OutFile "$env:TOOLKIT_DIR\ccache\ccache.zip" -UseBasicParsing
+          Invoke-WebRequest -Method Get -Uri https://github.com/ccache/ccache/releases/download/v4.14/ccache-4.14-windows-x86_64.zip -OutFile "$env:TOOLKIT_DIR\ccache\ccache.zip" -UseBasicParsing
           pip install aqtinstall
           aqt install-qt -O "$env:TOOLKIT_DIR\Qt" windows desktop $env:QT_VERSION "win64_msvc${env:MSVC}_64" -m qtserialport
 
