@@ -107,7 +107,7 @@ jobs:
 
       - name: Publish dev release
         if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: ${{ env.DEV_TAG }}
           name: ${{ env.DEV_NAME }}
