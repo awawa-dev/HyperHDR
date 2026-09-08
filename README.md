@@ -59,8 +59,8 @@ Windows installers are code-signed by [SignPath Foundation](https://signpath.org
 **Official Linux repository:**  
 [https://awawa-dev.github.io/](https://awawa-dev.github.io/)
 
-**Latest test builds** (GitHub Actions):  
-[View latest builds on master branch](https://github.com/awawa-dev/HyperHDR/actions?query=event:push+branch:master)
+**Latest test builds:**  
+[View latest builds on master branch](https://github.com/awawa-dev/HyperHDR/releases/tag/latest-build)
 
 Login required → select the latest build from the **master** branch → download setups from the ZIP artifacts.
 
