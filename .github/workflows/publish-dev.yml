@@ -23,6 +23,11 @@ jobs:
     if: github.repository == 'awawa-dev/HyperHDR'
 
     steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ env.DEV_BRANCH }}
+          fetch-depth: 0    
+
       - name: Get master HEAD
         id: head
         shell: bash
@@ -76,7 +81,7 @@ jobs:
           mkdir -p artifacts all
           gh run download "${{ steps.run.outputs.id }}" -D artifacts
 
-          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.zst' \) -exec cp -v {} all/ \;
+          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.zst' -name '*.zip' \) -exec cp -v {} all/ \;
 
           test -n "$(find all -type f | head -n1)"
 
