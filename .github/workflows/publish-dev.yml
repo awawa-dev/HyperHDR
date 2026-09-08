@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: "14 3 * * *"
   workflow_dispatch:
-  push:  
 
 permissions:
   contents: write
@@ -12,10 +11,9 @@ permissions:
 
 env:
   DEV_TAG: latest-dev
-  DEV_NAME: Latest development build (master branch)
+  DEV_NAME: HyperHDR daily development build (master branch)
   DEV_BRANCH: master
-  BUILD_WORKFLOW_FILE: push-master.yml
-#  BUILD_WORKFLOW_FILE: push-pull.yml
+  BUILD_WORKFLOW_FILE: push-pull.yml
 
 jobs:
   publish-dev:
@@ -49,11 +47,11 @@ jobs:
           body="$(gh release view "$DEV_TAG" --json body -q .body 2>/dev/null || true)"
           old="$(sed -n 's/^Git commit: //p' <<<"$body" | head -n1 || true)"
           if [[ "$old" == "${{ steps.head.outputs.sha }}" ]]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
-#            echo "skip=true" >> "$GITHUB_OUTPUT"
+
       - if: steps.check.outputs.skip == 'true'
         run: echo "No new commit on master since last dev release."
 
@@ -123,6 +121,7 @@ jobs:
           files: all/*
           body: |
             Latest development build (master branch)
+            Fresh daily builds shipped at π time (3:14 UTC) whenever we have something new.
 
             Git commit: ${{ steps.head.outputs.sha }}
             Commit message: ${{ steps.head.outputs.msg }}
