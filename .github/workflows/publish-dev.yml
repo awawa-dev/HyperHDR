@@ -12,7 +12,7 @@ permissions:
 
 env:
   DEV_TAG: latest-dev
-  DEV_NAME: HyperHDR daily development build (master branch)
+  DEV_NAME: Latest development build (master branch)
   DEV_BRANCH: master
   BUILD_WORKFLOW_FILE: push-master.yml
 #  BUILD_WORKFLOW_FILE: push-pull.yml
