@@ -11,8 +11,8 @@ permissions:
   actions: read
 
 env:
-  DEV_TAG: latest-dev
-  DEV_NAME: HyperHDR daily development build (master branch)
+  DEV_TAG: latest-build
+  DEV_NAME: Latest daily development build
   DEV_BRANCH: master
   BUILD_WORKFLOW_FILE: push-master.yml
 
