@@ -77,14 +77,21 @@ jobs:
 
       - name: Download artifacts from selected run
         if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
+        uses: actions/download-artifact@v8.0.1
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.run.outputs.id }}
+          path: artifacts
+          merge-multiple: true          
+
+      - name: Filter artifacts from selected run
+        if: steps.check.outputs.skip != 'true' && steps.run.outputs.id != ''
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          rm -rf artifacts all
-          mkdir -p artifacts all
-          gh run download "${{ steps.run.outputs.id }}" -D artifacts
+          rm -rf all
+          mkdir -p all
 
           find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' -o -name '*.rpm' -o -name '*.zst' -o -name '*.zip' \) -exec cp -v {} all/ \;
 
