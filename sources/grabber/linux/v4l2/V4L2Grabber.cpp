@@ -29,6 +29,7 @@
 #include <QFileInfo>
 #include <QSocketNotifier>
 #include <QByteArray>
+#include <QTimer>
 
 #include <cassert>
 #include <climits>
@@ -94,7 +95,8 @@ V4L2Grabber::V4L2Grabber(const QString& device, const QString& configurationPath
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _streamNotifier(nullptr)
-
+	, _consecutiveFrameSizeErrors(0)
+	, _restartAttempts(0)
 {
 	// Refresh devices
 	getV4L2devices();
@@ -1132,6 +1134,34 @@ void V4L2Grabber::stop_capturing()
 	ErrorIf((xioctl(VIDIOC_STREAMOFF, &type) == -1), _log, "VIDIOC_STREAMOFF  error code  {:d}, {:s}", errno, strerror(errno));
 }
 
+void V4L2Grabber::restartCapture()
+{
+	if (!_synchro.tryAcquire())
+	{
+		Warning(_log, "The V4L2 stream restart is already handled by another request");
+		return;
+	}
+
+	stop();
+	bool running = start();
+	_synchro.release();
+
+	if (running)
+	{
+		_restartAttempts = 0;
+	}
+	else if (++_restartAttempts < MAX_RESTART_ATTEMPTS)
+	{
+		Warning(_log, "The V4L2 stream failed to restart ({:d}/{:d}). Next attempt in 3s", _restartAttempts, MAX_RESTART_ATTEMPTS);
+		QTimer::singleShot(3000, this, &V4L2Grabber::restartCapture);
+	}
+	else
+	{
+		_restartAttempts = 0;
+		Error(_log, "The V4L2 stream failed to restart {:d} times. Giving up: toggle the grabber or check the capture device", MAX_RESTART_ATTEMPTS);
+	}
+}
+
 int V4L2Grabber::read_frame()
 {
 	bool rc = false;
@@ -1195,9 +1225,20 @@ bool V4L2Grabber::process_image(v4l2_buffer* buf, const void* frameImageBuffer, 
 	if (size < _frameByteSize && _actualVideoFormat != PixelFormat::MJPEG)
 	{
 		Error(_log, "Frame too small: {:d} != {:d}", size, _frameByteSize);
+
+		// transient capture error: not fed into the signal-detection path, but too many
+		// in a row means the stream is broken and needs to be re-initialized
+		if (++_consecutiveFrameSizeErrors >= FRAME_SIZE_MISMATCH_RESTART_THRESHOLD)
+		{
+			_consecutiveFrameSizeErrors = 0;
+			Warning(_log, "{:d} consecutive undersized frames: restarting the V4L2 stream", FRAME_SIZE_MISMATCH_RESTART_THRESHOLD);
+			QTimer::singleShot(0, this, &V4L2Grabber::restartCapture);
+		}
 	}
 	else
 	{
+		_consecutiveFrameSizeErrors = 0;
+
 		if (_V4L2WorkerManager.isActive())
 		{
 			// stats
