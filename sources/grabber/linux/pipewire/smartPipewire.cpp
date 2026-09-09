@@ -47,14 +47,21 @@
 #include <vector>
 
 #include <grabber/linux/pipewire/PipewireHandler.h>
+#include <grabber/linux/pipewire/RemoteDesktopProxy.h>
+
+using namespace sdbus;
+using namespace org::freedesktop::portal;
+
+constexpr const char* DESKTOP_SERVICE = "org.freedesktop.portal.Desktop";
+constexpr const char* DESKTOP_PATH = "/org/freedesktop/portal/desktop";
 
 PipewireHandler pipewireHandler;
 
 
-void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize)
+void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize, int selectedDisplay)
 {
 	QString qRestorationToken = QString("%1").arg(restorationToken);
-	pipewireHandler.startSession(qRestorationToken, requestedFPS, enableEGL, targetMaxSize);
+	pipewireHandler.startSession(qRestorationToken, requestedFPS, enableEGL, targetMaxSize, selectedDisplay);
 }
 
 void releaseFramePipewire()
@@ -119,6 +126,26 @@ bool hasPipewire()
 	{
 
 	}
+	return false;
+}
+
+bool hasPipewireRemoteDesktop()
+{
+	try
+	{
+		auto bus = sdbus::createSessionBusConnection();
+		auto proxy = sdbus::createProxy(*bus, ServiceName{ DESKTOP_SERVICE }, ObjectPath{ DESKTOP_PATH });
+
+		int version = proxy->getProperty("version").onInterface(RemoteDesktop_proxy::INTERFACE_NAME).get<uint32_t>();
+
+		std::cout << "Portal.RemoteDesktop: protocol version = " << version << std::endl;
+
+		return version >= PipewirePortal::MinRemoteDesktopPortalVersion;
+	}
+	catch (...)
+	{
+	}
+
 	return false;
 }
 
