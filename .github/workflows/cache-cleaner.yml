@@ -22,5 +22,5 @@ jobs:
     steps:
       - uses: stefanluptak/delete-old-pr-artifacts@v1
         with:
-          workflow_filename: push-master.yml
+          workflow_filename: push-pull.yml
           debug: true
