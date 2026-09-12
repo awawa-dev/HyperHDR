@@ -897,6 +897,11 @@ $(document).ready(function()
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.host',`select_${ledType}_intro`,`select_network_rescan`));
 				targetControl = 'host';
 			}
+			else if (ledType == "lightpack")
+			{
+				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.serial','edt_dev_spec_serial_title'));
+				targetControl = 'serial';
+			}
 			else if (selectedLedGroup == "leds_group_3_serial")
 				requestLedDeviceDiscovery(ledType).then( (result) => deviceListRefresh(ledType, result, 'root.specificOptions.output','edt_dev_spec_outputPath_title'));
 			else if (selectedLedGroup == "leds_group_0_SPI")
