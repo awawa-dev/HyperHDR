@@ -1,5 +1,5 @@
 /* PipewireHandler.cpp
-* 
+*
 *  MIT License
 *
 *  Copyright (c) 2020-2026 awawa-dev
@@ -51,7 +51,7 @@
 #include <utility>
 #include <vector>
 #include <mutex>
-	
+
 
 #include <grabber/linux/pipewire/smartPipewire.h>
 #include <grabber/linux/pipewire/PipewireHandler.h>
@@ -95,10 +95,18 @@ constexpr const char* PORTAL_RESPONSE = "Response";
 
 constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
+template <typename Handler>
+void registerPortalResponseHandler(sdbus::IConnection& connection, std::unique_ptr<sdbus::IProxy>& proxy,
+								   const QString& requestPath, Handler&& handler)
+{
+	proxy = sdbus::createProxy(connection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{ requestPath.toStdString() });
+	proxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(std::forward<Handler>(handler));
+}
+
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
-									_isError(false), _version(-1), _streamNodeId(0),
-									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
+									_startRequestPending(false), _isError(false), _version(-1), _streamNodeId(0),
+									_sender(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_targetMaxSize(512), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
 									_infoUpdate(DEFAULT_UPDATE_NUMBER), _initEGL(false), _enableEGL(true), _libEglHandle(nullptr), _libGlHandle(nullptr),
@@ -198,20 +206,16 @@ void PipewireHandler::closeSession()
 		}
 	}
 
-	_startReplyPath = "";
-	_sourceReplyPath = "";
-	_replySessionPath = "";
 	_sessionHandle = "";
-	
+
 	_screenCastProxy = nullptr;
-	_createSessionProxy = nullptr;
-	_selectSourceProxy = nullptr;
-	_startProxy = nullptr;
+	_requestProxy = nullptr;
 	_dbusConnection = nullptr;
 
 	_pwStreamListener = {};
-	_pwCoreListener = {};	
+	_pwCoreListener = {};
 	_portalStatus = false;
+	_startRequestPending = false;
 	_isError = false;
 	_errorMessage = "";
 	_streamNodeId = 0;
@@ -319,7 +323,7 @@ bool PipewireHandler::hasError()
 
 bool PipewireHandler::isRestartNeeded()
 {
-	return _isError || _replySessionPath.isEmpty() || (_startReplyPath.isEmpty() && !_portalStatus);
+	return _isError || (!_portalStatus && !_startRequestPending);
 }
 
 int PipewireHandler::getVersion()
@@ -425,18 +429,14 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 		};
 
 		const QString expectedRequestPath = getRequestPath(requestUUID);
-		_replySessionPath = expectedRequestPath;
-		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_replySessionPath.toStdString()});
-		_createSessionProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+		registerPortalResponseHandler(*_dbusConnection, _requestProxy, expectedRequestPath, responseSignalHandler);
 
 		const sdbus::ObjectPath requestPath = _screenCastProxy->CreateSession(createSessionParams);
 		const QString returnedRequestPath = QString::fromStdString(requestPath);
 		if (returnedRequestPath != expectedRequestPath)
 		{
 			qWarning().nospace() << "Pipewire: CreateSession returned an unexpected request path: " << qPrintable(returnedRequestPath);
-			_replySessionPath = returnedRequestPath;
-			_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_replySessionPath.toStdString()});
-			_createSessionProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+			registerPortalResponseHandler(*_dbusConnection, _requestProxy, returnedRequestPath, responseSignalHandler);
 		}
     }
 	catch(std::exception& ex)
@@ -483,18 +483,14 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 		};
 
 		const QString expectedRequestPath = getRequestPath(requestUUID);
-		_sourceReplyPath = expectedRequestPath;
-		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
-		_selectSourceProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+		registerPortalResponseHandler(*_dbusConnection, _requestProxy, expectedRequestPath, responseSignalHandler);
 
 		const sdbus::ObjectPath sourceRequestPath = _screenCastProxy->SelectSources(sdbus::ObjectPath{ _sessionHandle.toStdString() }, selectSourceParams);
 		const QString returnedRequestPath = QString::fromStdString(sourceRequestPath);
 		if (returnedRequestPath != expectedRequestPath)
 		{
 			qWarning().nospace() << "Pipewire: SelectSources returned an unexpected request path: " << qPrintable(returnedRequestPath);
-			_sourceReplyPath = returnedRequestPath;
-			_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
-			_selectSourceProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+			registerPortalResponseHandler(*_dbusConnection, _requestProxy, returnedRequestPath, responseSignalHandler);
 		}
 	}
 	catch(std::exception& ex)
@@ -523,7 +519,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 	{
 		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
-			_startReplyPath = "";
+			_startRequestPending = false;
 
 			if (resultCode != 0)
 			{
@@ -587,22 +583,20 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		};
 
 		const QString expectedRequestPath = getRequestPath(requestUUID);
-		_startReplyPath = expectedRequestPath;
-		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_startReplyPath.toStdString()});
-		_startProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+		_startRequestPending = true;
+		registerPortalResponseHandler(*_dbusConnection, _requestProxy, expectedRequestPath, responseSignalHandler);
 
 		const sdbus::ObjectPath startRequestPath = _screenCastProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams);
 		const QString returnedRequestPath = QString::fromStdString(startRequestPath);
 		if (returnedRequestPath != expectedRequestPath)
 		{
 			qWarning().nospace() << "Pipewire: Start returned an unexpected request path: " << qPrintable(returnedRequestPath);
-			_startReplyPath = returnedRequestPath;
-			_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_startReplyPath.toStdString()});
-			_startProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+			registerPortalResponseHandler(*_dbusConnection, _requestProxy, returnedRequestPath, responseSignalHandler);
 		}
 	}
 	catch(std::exception& ex)
 	{
+		_startRequestPending = false;
 		reportError(QString("Pipewire: Failed to select a source: %1").arg(QString::fromLocal8Bit(ex.what())));
 	}
 
