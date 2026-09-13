@@ -128,7 +128,6 @@ public Q_SLOTS:
 	void onReleaseBuffer(struct pw_buffer* buffer);
 	
 signals:
-	void onParamsChangedSignal(uint32_t id, const struct spa_pod* param);
 	void onStateChangedSignal(enum pw_stream_state old, enum pw_stream_state state, const char* error);
 	void onProcessFrameSignal();
 	void onCoreErrorSignal(uint32_t id, int seq, int res, const char *message);

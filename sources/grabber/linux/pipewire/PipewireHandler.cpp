@@ -110,7 +110,6 @@ PipewireHandler::PipewireHandler() :
 	qRegisterMetaType<uint32_t>();
 	qRegisterMetaType<pw_stream_state>();
 
-	connect(this, &PipewireHandler::onParamsChangedSignal,	this, &PipewireHandler::onParamsChanged);
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
@@ -764,13 +763,9 @@ void PipewireHandler::onParamsChanged(uint32_t id, const struct spa_pod* param)
 								SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(bufferTypes)));
 	}
 
-	pw_thread_loop_lock(_pwMainThreadLoop);
-
 	auto upParam = pw_stream_update_params(_pwStream, updatedParams, 2);
 	qDebug().nospace() << "Pipewire: updated parameters " << upParam;
 	_infoUpdate = DEFAULT_UPDATE_NUMBER;
-
-	pw_thread_loop_unlock(_pwMainThreadLoop);
 };
 
 void PipewireHandler::onProcessFrame()
@@ -1551,7 +1546,7 @@ pw_stream* PipewireHandler::createCapturingStream()
 			emit reinterpret_cast<PipewireHandler*>(handler)->onStateChangedSignal(old, state, error);
 		},		
 		.param_changed = [](void* handler, uint32_t id, const struct spa_pod* param) {
-			emit reinterpret_cast<PipewireHandler*>(handler)->onParamsChangedSignal(id, param);
+			reinterpret_cast<PipewireHandler*>(handler)->onParamsChanged(id, param);
 		},
 		.remove_buffer = [](void* handler, struct pw_buffer* b) {
 			auto master = reinterpret_cast<PipewireHandler*>(handler);
