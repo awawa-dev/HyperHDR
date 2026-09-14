@@ -56,6 +56,7 @@
 #include <grabber/linux/pipewire/smartPipewire.h>
 #include <grabber/linux/pipewire/PipewireHandler.h>
 #include <grabber/linux/pipewire/ScreenCastProxy.h>
+#include <grabber/linux/pipewire/RemoteDesktopProxy.h>
 #include <utils/Macros.h>
 
 #ifndef DRM_FORMAT_MOD_INVALID
@@ -80,6 +81,21 @@ public:
     }
 };
 
+class RemoteDesktopProxy final : public sdbus::ProxyInterfaces<org::freedesktop::portal::RemoteDesktop_proxy>
+{
+public:
+    RemoteDesktopProxy(sdbus::IConnection& connection, sdbus::ServiceName destination, sdbus::ObjectPath path)
+    : ProxyInterfaces(connection, std::move(destination), std::move(path))
+    {
+        registerProxy();
+    }
+
+    ~RemoteDesktopProxy()
+    {
+        unregisterProxy();
+    }
+};
+
 // Pipewire screen grabber using Portal access interface
 
 Q_DECLARE_METATYPE(QList<PipewireHandler::PipewireStructure>);
@@ -97,10 +113,10 @@ constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
-									_isError(false), _version(-1), _streamNodeId(0),
+									_isError(false), _useRemoteDesktopPortal(false), _version(-1), _remoteDesktopVersion(-1), _streamNodeId(0),
 									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
-									_targetMaxSize(512), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
+									_targetMaxSize(512), _selectedDisplay(0), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
 									_infoUpdate(DEFAULT_UPDATE_NUMBER), _initEGL(false), _enableEGL(true), _libEglHandle(nullptr), _libGlHandle(nullptr),
 									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image{}
 {
@@ -205,6 +221,7 @@ void PipewireHandler::closeSession()
 	_sessionHandle = "";
 	
 	_screenCastProxy = nullptr;
+	_remoteDesktopProxy = nullptr;
 	_createSessionProxy = nullptr;
 	_selectSourceProxy = nullptr;
 	_startProxy = nullptr;
@@ -214,8 +231,10 @@ void PipewireHandler::closeSession()
 	_pwCoreListener = {};	
 	_portalStatus = false;
 	_isError = false;
+	_useRemoteDesktopPortal = false;
 	_errorMessage = "";
 	_streamNodeId = 0;
+	_selectedDisplay = 0;
 	_frameWidth = 0;
 	_frameHeight = 0;
 	_frameOrderRgb = false;
@@ -340,7 +359,7 @@ int PipewireHandler::readVersion()
 	return version;
 }
 
-void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize)
+void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize, int selectedDisplay)
 {
 	qDebug().nospace() << "Pipewire: initialization invoked. Cleaning up first...";
 
@@ -348,6 +367,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 	_enableEGL = enableEGL;
 	_targetMaxSize = targetMaxSize;
+	_selectedDisplay = selectedDisplay;
 
 	#ifdef ENABLE_PIPEWIRE_EGL
 		qDebug().nospace() << "Pipewire: support for EGL is " << ((_enableEGL) ? "enabled" : "disabled");
@@ -377,6 +397,22 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 		_version = -1;
 	}
 
+	if (_dbusConnection != nullptr)
+	{
+		try
+		{
+			_remoteDesktopProxy = std::make_unique<RemoteDesktopProxy>(*_dbusConnection, ServiceName{ DESKTOP_SERVICE }, ObjectPath{ DESKTOP_PATH });
+			_remoteDesktopVersion = _remoteDesktopProxy->version();
+			_useRemoteDesktopPortal = (_selectedDisplay == PipewirePortal::ScreenID_RemoteDesktop && _remoteDesktopVersion >= PipewirePortal::MinRemoteDesktopPortalVersion);
+		}
+		catch(std::exception& e)
+		{
+			qWarning().nospace() << "Pipewire: could not read Portal RemoteDesktop version, falling back to ScreenCast session";
+			_remoteDesktopVersion = -1;
+			_useRemoteDesktopPortal = false;
+		}
+	}
+
 	_restorationToken = QString("%1").arg(restorationToken);
 
 	_image.version = _version;
@@ -394,6 +430,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 		_sender = _sender.right(_sender.length()-1);
 
 	qDebug().nospace() << "Sender: " << qPrintable(_sender);
+	qDebug().nospace() << "Portal.RemoteDesktop: protocol version = " << _remoteDesktopVersion << ", screen capture via remote desktop = " << ((_useRemoteDesktopPortal) ? "true" : "false");
 
 	QString requestUUID = getRequestToken();
 
@@ -417,7 +454,9 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 			}
 		};
 
-		sdbus::ObjectPath requestPath = _screenCastProxy->CreateSession(createSessionParams);
+		sdbus::ObjectPath requestPath = (_useRemoteDesktopPortal)
+			? _remoteDesktopProxy->CreateSession(createSessionParams)
+			: _screenCastProxy->CreateSession(createSessionParams);
 		_replySessionPath = QString::fromStdString(static_cast<std::string>(requestPath));
 
 		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_replySessionPath.toStdString()});
@@ -451,13 +490,17 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 		{ "multiple", sdbus::Variant(false)},
 		{ "types", sdbus::Variant((uint)1)},
 		{ "cursor_mode", sdbus::Variant((uint)1) },
-		{ "handle_token", sdbus::Variant(requestUUID.toStdString()) },
-		{ "persist_mode", sdbus::Variant((uint)2) } };
+		{ "handle_token", sdbus::Variant(requestUUID.toStdString()) } };
 
-	if (!_restorationToken.isEmpty())
+	if (!_useRemoteDesktopPortal)
 	{
-		selectSourceParams["restore_token"] = sdbus::Variant(_restorationToken.toStdString());
-		qDebug().nospace() << "Pipewire: Has restoration token: " << qPrintable(QString(_restorationToken).right(12));
+		selectSourceParams["persist_mode"] = sdbus::Variant((uint)2);
+
+		if (!_restorationToken.isEmpty())
+		{
+			selectSourceParams["restore_token"] = sdbus::Variant(_restorationToken.toStdString());
+			qDebug().nospace() << "Pipewire: Has restoration token: " << qPrintable(QString(_restorationToken).right(12));
+		}
 	}
 
 	try
@@ -490,6 +533,9 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		reportError(QString("Pipewire: Failed to select sources: %1").arg(response));
 		return;
 	}
+
+	if (_useRemoteDesktopPortal)
+		qDebug().nospace() << "Pipewire: Starting remote desktop session without input devices";
 
 	QString requestUUID = getRequestToken();
 
@@ -562,7 +608,9 @@ void PipewireHandler::selectSourcesResponse(uint response)
 			}
 		};
 
-		sdbus::ObjectPath startRequestPath = _screenCastProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams);
+		sdbus::ObjectPath startRequestPath = (_useRemoteDesktopPortal)
+			? _remoteDesktopProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams)
+			: _screenCastProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams);
 
 		_startReplyPath = QString::fromStdString(static_cast<std::string>(startRequestPath));
 
@@ -1676,4 +1724,3 @@ pw_stream* PipewireHandler::createCapturingStream()
 
 	return stream;
 }
-
