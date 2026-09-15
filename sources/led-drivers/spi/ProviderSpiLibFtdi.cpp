@@ -142,7 +142,7 @@ bool ProviderSpiLibFtdi::init(QJsonObject deviceConfig)
 
 	_deviceName = deviceConfig["output"].toString(_deviceName);
 	if (_deviceName.startsWith(ProviderSpiLibFtdi::DEVICE_TAG)) {
-		_deviceName = _deviceName.sliced(strlen(ProviderSpiLibFtdi::DEVICE_TAG));
+		_deviceName = _deviceName.mid(strlen(ProviderSpiLibFtdi::DEVICE_TAG));
 	}
 
 	_spiType = deviceConfig["spitype"].toString("");
