@@ -60,7 +60,7 @@ void InfiniteExponentialInterpolator::resetToColors(std::vector<float3>&& colors
 	setTargetColors(std::move(colors), startTimeMs);
 }
 
-void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug)
+void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, long long startTimeMs, bool debug)
 {
 	if (new_rgb_targets.empty())
 		return;
@@ -89,12 +89,12 @@ void InfiniteExponentialInterpolator::setTargetColors(std::vector<float3>&& new_
 
 void InfiniteExponentialInterpolator::resetState() {
 	_isAnimationComplete = true;
-	_lastUpdate = 0.0f;
+	_lastUpdate = 0;
 	_currentColorsRGB.clear();
 	_targetColorsRGB.clear();
 }
 
-void InfiniteExponentialInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
+void InfiniteExponentialInterpolator::updateCurrentColors(long long currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{

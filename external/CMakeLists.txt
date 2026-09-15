@@ -85,6 +85,7 @@ endif()
 
 if(ENABLE_WS281XPWM)
 	file(READ "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/CMakeLists.txt" FILE_CONTENTS)
+	string(REPLACE "cmake_minimum_required(VERSION 3.0.0)" "cmake_minimum_required(VERSION 3.5.0)" FILE_CONTENTS "${FILE_CONTENTS}")
 	string(REPLACE "if(BUILD_SHARED)" "if(USE_SHARED_LIBS AND ENABLE_DEPENDENCY_PACKAGING)" FILE_CONTENTS "${FILE_CONTENTS}")
 	if(NOT USE_PRECOMPILED_HEADERS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/rpi_ws281x/version")
 		message("Renaming ws281x version file to avoid conflicts with c++20")

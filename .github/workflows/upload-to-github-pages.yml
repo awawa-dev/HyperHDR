@@ -22,7 +22,7 @@ jobs:
     strategy:      
       matrix:
         distroName: [debian]
-        distroVersion: [bullseye, bookworm, trixie]
+        distroVersion: [bullseye, bookworm, trixie, forky]
         architecture: [amd64, armhf, arm64]        
         include:
           - distroName: ubuntu
@@ -39,13 +39,13 @@ jobs:
             architecture: amd64
 
     steps:   
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: true
 
       - name: Download ccache files
         if: env.USE_CACHE == 'true'
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
            path: .ccache
            key: ${{ matrix.architecture }}-${{ matrix.distroName }}-${{ matrix.distroVersion }}-ccache-${{ github.run_id }}
@@ -89,7 +89,7 @@ jobs:
     needs: [Linux]
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: false
       - name: Download artifacts
@@ -101,7 +101,7 @@ jobs:
       - name: Display structure of artifacts
         run: ls -R repo
       - name: Deploy the packages
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
         with:
           repository-name: awawa-dev/awawa-dev.github.io
           branch: upload

@@ -51,7 +51,6 @@ namespace
 	const uint32_t VECTOR_ROOT_E131_DATA = 0x00000004;
 	const uint8_t VECTOR_DMP_SET_PROPERTY = 0x02;
 	const uint32_t VECTOR_E131_DATA_PACKET = 0x00000002;
-	const int DMX_MAX = 512;
 }
 
 DriverNetUdpE131::DriverNetUdpE131(const QJsonObject& deviceConfig)
@@ -71,6 +70,7 @@ bool DriverNetUdpE131::init(QJsonObject deviceConfig)
 	{
 		_e131_universe = deviceConfig["universe"].toInt(1);
 		_e131_source_name = deviceConfig["source-name"].toString("hyperhdr on " + QHostInfo::localHostName());
+		_disableSplitting = deviceConfig["disableSplitting"].toBool(false);
 		QString _json_cid = deviceConfig["cid"].toString("");
 
 		if (_json_cid.isEmpty())
@@ -138,6 +138,7 @@ int DriverNetUdpE131::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 	int thisChannelCount = 0;
 	int dmxChannelCount = _ledRGBCount;
 	const uint8_t* rawdata = reinterpret_cast<const uint8_t*>(ledValues.data());
+	const int DMX_MAX = (_disableSplitting) ? 510 : 512;
 
 	_e131_seq++;
 

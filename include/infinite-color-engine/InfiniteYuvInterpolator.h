@@ -15,8 +15,8 @@ class InfiniteYuvInterpolator : public InfiniteInterpolator
 public:
 	InfiniteYuvInterpolator();
 
-	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug = false) override;
-	void updateCurrentColors(float currentTimeMs, float minBrightness) override;
+	void setTargetColors(std::vector<linalg::aliases::float3>&& new_rgb_to_yuv_targets, long long startTimeMs, bool debug = false) override;
+	void updateCurrentColors(long long currentTimeMs, float minBrightness) override;
 	SharedOutputColors getCurrentColors(float minBrightness = 0.f) override;
 	void resetState() override;
 
@@ -34,9 +34,9 @@ private:
 	std::vector<linalg::aliases::float3> _targetColorsYUV;
 
 	float _initialDuration = 150.0f;
-	float _startAnimationTimeMs = 0.0f;
-	float _targetTime = 0.0f;
-	float _lastUpdate = 0.0f;
+	long long _startAnimationTimeMs = 0;
+	long long _targetTime = 0;
+	long long _lastUpdate = 0;
 	float _maxLuminanceChangePerStep = 0.02f;
 	float _smoothingFactor = 0.0f;
 };

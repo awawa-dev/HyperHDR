@@ -60,12 +60,12 @@ void InfiniteRgbInterpolator::resetToColors(std::vector<float3> colors)
 	_isAnimationComplete = true;
 }
 
-void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, float startTimeMs, bool debug)
+void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targets, long long startTimeMs, bool debug)
 {
 	if (new_rgb_targets.empty())
 		return;
 
-	const float delta = (!_isAnimationComplete) ? std::clamp(startTimeMs - _lastUpdate, 0.f, 100.0f) : 0.f;
+	const float delta = (!_isAnimationComplete) ? std::clamp(static_cast<float>(startTimeMs - _lastUpdate), 0.f, 100.0f) : 0.f;
 
 	if (debug)
 	{
@@ -108,7 +108,7 @@ void InfiniteRgbInterpolator::setTargetColors(std::vector<float3>&& new_rgb_targ
 
 void InfiniteRgbInterpolator::resetState() {
 	_isAnimationComplete = true;
-	_lastUpdate = 0.0f;
+	_lastUpdate = 0;
 	_currentColorsRGB.clear();
 	_targetColorsRGB.clear();
 }
@@ -118,7 +118,7 @@ void InfiniteRgbInterpolator::setSmoothingFactor(float factor)
 	_smoothingFactor = std::max(0.0f, std::min(factor, 1.0f));
 }
 
-void InfiniteRgbInterpolator::updateCurrentColors(float currentTimeMs, float /*minBrightness*/)
+void InfiniteRgbInterpolator::updateCurrentColors(long long currentTimeMs, float /*minBrightness*/)
 {
 	if (_isAnimationComplete)
 	{

@@ -70,11 +70,11 @@ void InfiniteHybridInterpolator::resetToColors(std::vector<float3> colors, float
 	setTargetColors(std::move(colors), startTimeMs);
 }
 
-void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_yuv_targets, float startTimeMs, bool debug) {
+void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_to_yuv_targets, long long startTimeMs, bool debug) {
 	if (new_rgb_to_yuv_targets.empty())
 		return;
 
-	const float delta = (!_isAnimationComplete) ? std::clamp(startTimeMs - _lastUpdate, 0.f, 100.0f) : 0.f;
+	const float delta = (!_isAnimationComplete) ? std::clamp(static_cast<float>(startTimeMs - _lastUpdate), 0.f, 100.0f) : 0.f;
 
 	if (debug)
 	{
@@ -111,7 +111,7 @@ void InfiniteHybridInterpolator::setTargetColors(std::vector<float3>&& new_rgb_t
 
 void InfiniteHybridInterpolator::resetState() {
 	_isAnimationComplete = true;
-	_lastUpdate = 0.0f;
+	_lastUpdate = 0;
 	_targetColorsRGB.clear();
 	_currentColorsRGB.reset();
 	_currentColorsYUV.clear();
@@ -119,14 +119,14 @@ void InfiniteHybridInterpolator::resetState() {
 	_velocitiesYUV.clear();
 }
 
-void InfiniteHybridInterpolator::updateCurrentColors(float currentTimeMs, float minBrightness) {
+void InfiniteHybridInterpolator::updateCurrentColors(long long currentTimeMs, float minBrightness) {
 	if (_isAnimationComplete)
 	{
 		_lastUpdate = currentTimeMs;
 		return;
 	}
 
-	float dt = std::clamp(currentTimeMs - _lastUpdate, 0.001f, 100.0f);
+	float dt = std::clamp(static_cast<float>(currentTimeMs - _lastUpdate), 0.001f, 100.0f);
 	_lastUpdate = currentTimeMs;
 
 	auto computeChannelVec = [&](float3& cur, const float3& diff, float3& vel) -> bool {

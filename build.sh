@@ -227,7 +227,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		fi
 
 		echo ${executeCommand}
-		sed -i "s/{VERSION}/${versionFile}/" PKGBUILD
+		sed -i "s/{VERSION}/${versionFile//-/.}/" PKGBUILD
 		sed -i "s/{BUILD_OPTION}/${BUILD_OPTION}/" PKGBUILD
 		chmod -R a+rw ${CI_BUILD_DIR}/.ccache
 	else

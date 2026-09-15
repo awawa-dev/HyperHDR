@@ -1,3 +1,5 @@
+- Fix RGB splitting across E1.31 universes (#1585) - v22 🆕
+- Fix smoothing algorithm drift in long-running sessions (#1561) - v22 🆕
 - RGBW with Temporal Dithering - powered by Infinite Color Engine (#1483) - v22beta2 🆕
    - Temporal Dithering: Improved Precision and Adaptive Stabilization (#1490) - v22beta2 🆕
    - Add RGBW dithering for legacy RPi PWM & SPI sk6812 driver (#1498) - v22beta2 🆕
