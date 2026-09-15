@@ -78,7 +78,7 @@ IF ( HAVE_SERIAL_LED )
 endif()
 
 if(WIN32)
-	target_link_libraries(led-drivers ws2_32)
+	target_link_libraries(led-drivers ws2_32 hid setupapi)
 endif()
 
 if(ENABLE_WS281XPWM)
