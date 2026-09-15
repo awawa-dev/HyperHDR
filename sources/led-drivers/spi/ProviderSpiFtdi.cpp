@@ -25,9 +25,7 @@
 *  SOFTWARE.
  */
 
-#include <algorithm>
 #include <cstring>
-#include <iterator>
 #include <led-drivers/spi/ProviderSpiFtdi.h>
 #include <utils/Logger.h>
 
@@ -248,43 +246,34 @@ int ProviderSpiFtdi::close()
 
 int ProviderSpiFtdi::writeBytes(unsigned size, const uint8_t* data)
 {
-	if (size == 0 || size > 65536)
-	{
-		return -1;
-	}
-
 	DWORD dwNumBytesSent = 0;
-	_writeCommand.clear();
-	if (_writeCommand.capacity() < 3 + 3 + size + 3)
-	{
-		_writeCommand.reserve(3 + 3 + size + 3);
-	}
+	std::vector<uint8_t> command;
 
 	// cs & clock low
-	_writeCommand.push_back(0x80);
-	_writeCommand.push_back(0);
-	_writeCommand.push_back(0x08 | 0x02 | 0x01);
+	command.push_back(0x80);
+	command.push_back(0);
+	command.push_back(0x08 | 0x02 | 0x01);
+	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
 
-	// MPSSE DO_WRITE command + length
-	_writeCommand.push_back(0x11);
-	_writeCommand.push_back((size - 1) & 0xFF);
-	_writeCommand.push_back(((size - 1) >> 8) & 0xFF);
-
-	// data payload
-	_writeCommand.insert(_writeCommand.end(), data, data + size);
-
-	// cs high
-	_writeCommand.push_back(0x80);
-	_writeCommand.push_back(0x08);
-	_writeCommand.push_back(0x08 | 0x02 | 0x01);
-
-	if (_fun_FT_Write(_deviceHandle, _writeCommand.data(), static_cast<DWORD>(_writeCommand.size()), &dwNumBytesSent) != FT_OK)
+	command.push_back(0x11);
+	command.push_back((size - 1) & 0xFF);
+	command.push_back(((size - 1) >> 8) & 0xFF);
+	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
+	if (_fun_FT_Write(_deviceHandle, const_cast<uint8_t*>(data), size, &dwNumBytesSent) != FT_OK)
 	{
 		Error(_log, "The FTDI device reports error while writing");
 		return -1;
 	}
 
-	return size;
+	// cs high
+	command.clear();
+	command.push_back(0x80);
+	command.push_back(0x08);
+	command.push_back(0x08 | 0x02 | 0x01);
+	_fun_FT_Write(_deviceHandle, command.data(), static_cast<DWORD>(command.size()), &dwNumBytesSent);
+
+
+	return dwNumBytesSent;
 }
 
 int ProviderSpiFtdi::getRate()
@@ -319,11 +308,13 @@ QJsonObject ProviderSpiFtdi::discover(const QJsonObject& /*params*/)
 			QJsonArray deviceList;
 			QStringList files;
 
-			for (DWORD i = 0, count = std::min(numDevs, DWORD(std::size(deviceIds))); i < count; i++)
+			for (DWORD i = 0, count = std::min(numDevs, DWORD(std::size(deviceIds))); i < count; ++i)
+			{
 				deviceList.push_back(QJsonObject{
 					{"value", QJsonValue(static_cast<qint64>(deviceIds[i]))},
 					{"name", QString("FTDI SPI device location: %1").arg(QString::number(deviceIds[i]))}
 					});
+			}
 
 			devicesDiscovered.insert("devices", deviceList);
 
