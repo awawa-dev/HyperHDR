@@ -615,9 +615,9 @@ async function tunnel_hue_post(_ip, _path, _data)
 		return r["info"];
 }
 
-async function tunnel_hue_put(_ip, _path, _data)
+async function tunnel_hue_put(_ip, _path, _data, header={})
 {
-	let data = { service: "hue", ip: _ip, path: _path, data: _data };
+	let data = { service: "hue", ip: _ip, path: _path, data: _data, header };
 	let r = await sendAsyncToHyperhdr("tunnel", "put", data, Math.floor(Math.random() * 1000));
 	if (r["success"] != true || r["isTunnelOk"] != true)
 		return null;

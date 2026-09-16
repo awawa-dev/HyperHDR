@@ -8,7 +8,6 @@
 
 //std includes
 #include <algorithm>
-#include <cmath>
 
 // Constants
 namespace {
@@ -72,7 +71,7 @@ namespace {
 	// Nanoleaf ssdp services
 	const char SSDP_ID[] = "ssdp:all";
 	const char SSDP_FILTER_HEADER[] = "ST";
-	const char SSDP_NANOLEAF[] = "nanoleaf:nl*";
+	const char SSDP_CANVAS[] = "nanoleaf:nl29";
 	const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
 } //End of constants
 
@@ -146,25 +145,31 @@ bool DriverNetNanoleaf::applyConfiguredLedRange()
 	Debug(_log, "End Panel Pos  : {:d}", _endPos);
 	Debug(_log, "Hardware LEDs  : {:d}", _panelLedCount);
 
-	if (_panelLedCount < configuredLedCount)
+	if (_panelLedCount < 1)
 	{
-		this->setInError(QString("Not enough panels [%1] for configured LEDs [%2] found!")
-			.arg(_panelLedCount)
-			.arg(configuredLedCount));
+		this->setInError("Nanoleaf device reported no LEDs");
 		return false;
 	}
 
-	if (_panelLedCount > configuredLedCount)
+	if (_startPos >= _panelLedCount)
+	{
+		this->setInError(QString("Start panel [%1] out of range. Device has [%2] LEDs.")
+			.arg(_startPos).arg(_panelLedCount));
+		return false;
+	}
+
+	if (_panelLedCount < configuredLedCount)
+	{
+		Warning(_log, "Layout has {:d} LEDs but the device reports {:d}. Extra layout LEDs will be ignored.",
+			configuredLedCount, _panelLedCount);
+	}
+	else if (_panelLedCount > configuredLedCount)
 	{
 		Info(_log, "{:s}: More panels [{:d}] than configured LEDs [{:d}].", (this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
 	}
 
 	if (_endPos >= _panelLedCount)
-	{
-		this->setInError(QString("Start panel [%1] out of range. Start panel position can be max [%2] given [%3] panel available!")
-			.arg(_startPos).arg(_panelLedCount - configuredLedCount).arg(_panelLedCount));
-		return false;
-	}
+		_endPos = _panelLedCount - 1;
 
 	return true;
 }
@@ -406,40 +411,26 @@ bool DriverNetNanoleaf::applyStreamMasterBrightness()
 	return true;
 }
 
-ColorRgb DriverNetNanoleaf::candyColor(const ColorRgb& color) const
-{
-	if (color.red == 0 && color.green == 0 && color.blue == 0)
-		return color;
-
-	uint16_t hue = 0;
-	uint8_t sat = 0;
-	uint8_t val = 0;
-	ColorRgb::rgb2hsv(color.red, color.green, color.blue, hue, sat, val);
-
-	// Neon saturation: keep hue, pull S toward 255.
-	sat = static_cast<uint8_t>(sat + static_cast<uint16_t>(255 - sat) * 3 / 5);
-
-	// Lift midtones so TV-content greys still punch on the strip.
-	const float v = val / 255.0f;
-	const int lifted = static_cast<int>(std::lround(255.0f * std::pow(v, 0.62f) * 1.12f));
-	val = static_cast<uint8_t>(std::clamp(lifted, 0, 255));
-
-	ColorRgb out;
-	ColorRgb::hsv2rgb(hue, sat, val, out.red, out.green, out.blue);
-	return out;
-}
-
 QJsonObject DriverNetNanoleaf::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
-	SSDPDiscover discover;
-	discover.setSearchFilter(QString("%1|%2").arg(SSDP_NANOLEAF, SSDP_LIGHTPANELS), SSDP_FILTER_HEADER);
-
 	QJsonArray deviceList;
-	if (discover.discoverServices(SSDP_ID) > 0)
+
+	// Discover Nanoleaf Devices
+	SSDPDiscover discover;
+
+	// Search for Canvas and Light-Panels
+	QString searchTargetFilter = QString("%1|%2").arg(SSDP_CANVAS, SSDP_LIGHTPANELS);
+
+	discover.setSearchFilter(searchTargetFilter, SSDP_FILTER_HEADER);
+	QString searchTarget = SSDP_ID;
+
+	if (discover.discoverServices(searchTarget) > 0)
+	{
 		deviceList = discover.getServicesDiscoveredJson();
+	}
 
 	devicesDiscovered.insert("devices", deviceList);
 	Debug(_log, "devicesDiscovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
@@ -539,8 +530,9 @@ int DriverNetNanoleaf::writeStreamBatch(const std::vector<ColorRgb>& ledValues, 
 	qToBigEndian<quint16>(static_cast<quint16>(count), udpbuffer.data() + i);
 	i += 2;
 
-	// Panels keep the original 100ms transition; lightstrips use 0 for video sync
-	const quint16 transitionTime = _isLightstrip ? 0 : 1;
+	// One transition for the whole datagram. Mixing 0 and 1 froze Essentials.
+	// 1 = 100ms, same as Hyperion / Nanoleaf's own stream protocol.
+	const quint16 transitionTime = 1;
 
 	for (int j = 0; j < count; ++j)
 	{
@@ -550,8 +542,6 @@ int DriverNetNanoleaf::writeStreamBatch(const std::vector<ColorRgb>& ledValues, 
 		if (panelCounter >= _startPos && panelCounter <= _endPos && ledCounter < static_cast<int>(ledValues.size()))
 		{
 			color = ledValues[static_cast<size_t>(ledCounter)];
-			if (_isLightstrip)
-				color = candyColor(color);
 			++ledCounter;
 		}
 

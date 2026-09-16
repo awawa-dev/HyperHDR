@@ -38,7 +38,6 @@ private:
 	QJsonDocument changeToExternalControlMode();
 	bool applyStreamMasterBrightness();
 	QString getOnOffRequest(bool isOn) const;
-	ColorRgb candyColor(const ColorRgb& color) const;
 	bool resolveApiEndpoint(const QString& host, QString& apiHost, int& apiPort) const;
 
 	std::unique_ptr<ProviderRestApi> _restApi;
