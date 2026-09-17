@@ -98,7 +98,7 @@ constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
 									_isError(false), _version(-1), _streamNodeId(0),
-									_sender(""), _replySessionPath(""), _sourceReplyPath(""), _startReplyPath(""),
+									_sender(""),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_targetMaxSize(512), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
 									_infoUpdate(DEFAULT_UPDATE_NUMBER), _initEGL(false), _enableEGL(true), _libEglHandle(nullptr), _libGlHandle(nullptr),
@@ -114,6 +114,10 @@ PipewireHandler::PipewireHandler() :
 	connect(this, &PipewireHandler::onStateChangedSignal,	this, &PipewireHandler::onStateChanged);
 	connect(this, &PipewireHandler::onProcessFrameSignal,	this, &PipewireHandler::onProcessFrame);
 	connect(this, &PipewireHandler::onCoreErrorSignal,		this, &PipewireHandler::onCoreError);
+
+	
+	qRegisterMetaType<SdbusVariantMap>("SdbusVariantMap");
+	qRegisterMetaType<struct pw_buffer*>("struct pw_buffer*");
 
 	static std::once_flag pwInitOnce;
 	std::call_once(pwInitOnce, [] {
@@ -199,15 +203,10 @@ void PipewireHandler::closeSession()
 		}
 	}
 
-	_startReplyPath = "";
-	_sourceReplyPath = "";
-	_replySessionPath = "";
 	_sessionHandle = "";
-	
-	_screenCastProxy = nullptr;
-	_createSessionProxy = nullptr;
-	_selectSourceProxy = nullptr;
-	_startProxy = nullptr;
+
+	_portalHandlers.clear();
+	_screenCastProxy = nullptr;	
 	_dbusConnection = nullptr;
 
 	_pwStreamListener = {};
@@ -312,7 +311,7 @@ bool PipewireHandler::hasError()
 
 bool PipewireHandler::isRestartNeeded()
 {
-	return _isError || _replySessionPath.isEmpty() || (_startReplyPath.isEmpty() && !_portalStatus);
+	return _isError || (_portalHandlers.empty() && !_portalStatus);
 }
 
 int PipewireHandler::getVersion()
@@ -395,6 +394,54 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 	qDebug().nospace() << "Sender: " << qPrintable(_sender);
 
+	// register Portal namespace listener
+	QString portalRequestNamespaceRule = QString("type='signal',path_namespace='/org/freedesktop/portal/desktop/request/%1'").arg(_sender);
+
+	try {
+		// forward sdbus calls via signal to QObject thread
+		_dbusConnection->addMatch(portalRequestNamespaceRule.toStdString(),
+			[this](sdbus::Message msg) {
+				std::string msgPath = msg.getPath();
+				std::string msgInterface = msg.getInterfaceName();
+				std::string msgMember = msg.getMemberName();
+				
+				if (msgInterface == PORTAL_REQUEST && msgMember == PORTAL_RESPONSE)
+				{
+					qDebug().nospace() << "Pipewire: incoming dbus message...";
+
+					uint32_t responseCode;
+					std::map<std::string, sdbus::Variant> results;
+
+					try {
+						msg >> responseCode >> results;						
+						QMetaObject::invokeMethod(this, [this, msgPath, responseCode, results = std::move(results)]() {
+							// sdbus signals to QObject thread receiver
+							auto it = _portalHandlers.find(msgPath);
+							if (it != _portalHandlers.end()) {
+								qDebug().nospace() << "Pipewire: processing dbus message...";
+								it->second(responseCode, results);
+								_portalHandlers.erase(it);
+							}
+							else {
+								qWarning().nospace() << "Pipewire: do not have a handler for the incoming dbus message";
+							}
+						});
+					}
+					catch (const sdbus::Error& e) {
+						qCritical().nospace() << "Pipewire: error while decoding dbus message: " << e.what();
+					}
+				}
+				else {
+					qWarning().nospace() << "Pipewire: ignored dbus message: " << msgInterface.c_str() << ", " << msgMember.c_str();
+				}
+			});
+
+		qDebug().nospace() << "Pipewire: registered DBus namespace matcher: " << qPrintable(portalRequestNamespaceRule);
+	}
+	catch (const sdbus::Error& e) {
+		qCritical().nospace() << "Pipewire: failed to register DBus matcher: " << e.getMessage().c_str();
+	}
+
 	QString requestUUID = getRequestToken();
 
 	std::map<std::string, sdbus::Variant> createSessionParams{
@@ -413,16 +460,12 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 			else
 			{
 				QString session = QString::fromStdString(sessionHandleIter->second.get<std::string>());
-				QUEUE_CALL_2(this, createSessionResponse, uint, resultCode, QString, session );
+				createSessionResponse(resultCode, session);
 			}
 		};
 
 		sdbus::ObjectPath requestPath = _screenCastProxy->CreateSession(createSessionParams);
-		_replySessionPath = QString::fromStdString(static_cast<std::string>(requestPath));
-
-		_createSessionProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_replySessionPath.toStdString()});
-
-		_createSessionProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+		_portalHandlers[static_cast<std::string>(requestPath)] = responseSignalHandler;
     }
 	catch(std::exception& ex)
     {
@@ -464,14 +507,11 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 	{
 		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
-			QUEUE_CALL_1(this, selectSourcesResponse, uint, resultCode);
+			selectSourcesResponse(resultCode);
 		};
 
 		sdbus::ObjectPath sourceRequestPath = _screenCastProxy->SelectSources(sdbus::ObjectPath{ _sessionHandle.toStdString() }, selectSourceParams);
-		_sourceReplyPath = QString::fromStdString(static_cast<std::string>(sourceRequestPath));
-
-		_selectSourceProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_sourceReplyPath.toStdString()});
-		_selectSourceProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+		_portalHandlers[static_cast<std::string>(sourceRequestPath)] = responseSignalHandler;
 	}
 	catch(std::exception& ex)
 	{
@@ -499,8 +539,6 @@ void PipewireHandler::selectSourcesResponse(uint response)
 	{
 		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
 		{
-			_startReplyPath = "";
-
 			if (resultCode != 0)
 			{
 				reportError(QString("Start session returned an error code: %1").arg(((resultCode == 1) ? "cancelled" : "other")));
@@ -552,7 +590,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 						nodeStreamHeight = dim.get<1>();
 					}
 
-					QUEUE_CALL_5(this, startResponse, uint, resultCode, QString, restoreHandle, uint32_t, nodeId, int, nodeStreamWidth, int, nodeStreamHeight);
+					startResponse(resultCode, restoreHandle, nodeId, nodeStreamWidth, nodeStreamHeight);
 
 				}
 			}
@@ -563,11 +601,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		};
 
 		sdbus::ObjectPath startRequestPath = _screenCastProxy->Start(ObjectPath{ _sessionHandle.toStdString() }, "", startParams);
-
-		_startReplyPath = QString::fromStdString(static_cast<std::string>(startRequestPath));
-
-		_startProxy = sdbus::createProxy(*_dbusConnection, sdbus::ServiceName{ DESKTOP_SERVICE }, sdbus::ObjectPath{_startReplyPath.toStdString()});
-		_startProxy->uponSignal(SignalName{ PORTAL_RESPONSE }).onInterface(InterfaceName{ PORTAL_REQUEST }).call(responseSignalHandler);
+		_portalHandlers[static_cast<std::string>(startRequestPath)] = responseSignalHandler;
 	}
 	catch(std::exception& ex)
 	{
