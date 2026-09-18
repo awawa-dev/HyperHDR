@@ -410,7 +410,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 					qDebug().nospace() << "Pipewire: incoming dbus message...";
 
 					uint32_t responseCode;
-					std::map<std::string, sdbus::Variant> results;
+					SdbusVariantMap results;
 
 					try {
 						msg >> responseCode >> results;						
@@ -450,7 +450,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	};
     try
     {
-		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, const SdbusVariantMap& results)
 		{
 			auto sessionHandleIter = results.find("session_handle");
 			if (sessionHandleIter == results.end())
@@ -505,7 +505,7 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 
 	try
 	{
-		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, const SdbusVariantMap& results)
 		{
 			selectSourcesResponse(resultCode);
 		};
@@ -537,7 +537,7 @@ void PipewireHandler::selectSourcesResponse(uint response)
 
 	try
 	{
-		auto responseSignalHandler = [this] (uint32_t resultCode, std::map<std::string, sdbus::Variant> results)
+		auto responseSignalHandler = [this] (uint32_t resultCode, const SdbusVariantMap& results)
 		{
 			if (resultCode != 0)
 			{
