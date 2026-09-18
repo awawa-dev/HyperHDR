@@ -85,21 +85,24 @@ bool ProviderSpi::init(QJsonObject deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
-		bool isInt = false;
+		const QString output = deviceConfig["output"].toString();
+		bool isFtdi = false;
 		#ifdef ENABLE_SPI_FTDI			
-			deviceConfig["output"].toString().toLong(&isInt, 10);
-			if (isInt)
-			{
-				#ifdef WIN32
+			output.toLong(&isFtdi, 10);
+			#ifdef WIN32
+				if (isFtdi) {
 					_provider = std::make_unique<ProviderSpiFtdi>(_log);
-				#else
+				}
+			#else
+				if (isFtdi || output.startsWith(ProviderSpiLibFtdi::DEVICE_TAG)) {
+					isFtdi = true;
 					_provider = std::make_unique<ProviderSpiLibFtdi>(_log);
-				#endif
-			}
+				}
+			#endif
 		#endif
 
 		#if !defined(WIN32) && !defined(__APPLE__)
-			if (!isInt)
+			if (!isFtdi)
 			{
 				_provider = std::make_unique<ProviderSpiGeneric>(_log);
 			}
