@@ -17,11 +17,6 @@ sudo apt-get update
 sudo apt-get install build-essential cmake flatbuffers-compiler git libasound2-dev libayatana-appindicator3-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev libgtk-3-dev liblzma-dev libpipewire-0.3-dev libssl-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev libx11-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget chrpath
 ```
 
-For Raspberry Pi CEC support (optional)
-```console
-sudo apt-get install libcec-dev libp8-platform-dev libudev-dev
-```
-
 ### Fedora
 
 ```console
@@ -146,6 +141,9 @@ DISTRO_NAME  | DISTRO_VERSION | ARCHITECTURE - these are only for linux targets
    debian    | trixie         | armhf
    debian    | trixie         | arm64
    debian    | trixie         | amd64
+   debian    | forky          | armhf
+   debian    | forky          | arm64
+   debian    | forky          | amd64
    ubuntu    | noble          | amd64
    ubuntu    | resolute       | amd64
    fedora    | 44             | amd64
@@ -204,7 +202,7 @@ Use -D prefix when configuring the build.
 
 * SERVICE SUPPORT
     * ENABLE_BONJOUR = ON | OFF, enables mDNS (do not disable unless required)
-    * ENABLE_CEC = ON | OFF, enables the HDMI-CEC support (Linux)
+    * ENABLE_CEC = ON | OFF, enables the Kernel CEC support (Linux)
     * ENABLE_MQTT = ON | OFF, enables the MQTT support
     * ENABLE_POWER_MANAGEMENT = ON | OFF, enables sleep/wake up OS events support
     * ENABLE_PROTOBUF = ON | OFF, enables Proto-Buffer server

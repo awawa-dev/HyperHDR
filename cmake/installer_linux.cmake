@@ -75,32 +75,6 @@ macro(InstallerLinux TARGET)
                 get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
                 execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS OUTPUT_VARIABLE QT_PLUGINS_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
             endif()
-
-            # CEC lib
-            if (ENABLE_CEC)
-                find_library(XRANDR_LIBRARY NAMES Xrandr libXrandr libXrandr.so.2)
-                if (XRANDR_LIBRARY)
-                    get_filename_component(resolvedXrandr ${XRANDR_LIBRARY} ABSOLUTE)
-                    list (APPEND cecFiles ${resolvedXrandr})
-                endif()
-
-                foreach(resolved_file_in ${CEC_LIBRARIES})
-                    unset(LIBCEC CACHE)
-                    find_library(LIBCEC NAMES ${resolved_file_in})
-                    if (LIBCEC)
-                        get_filename_component(resolvedCec ${LIBCEC} ABSOLUTE)
-                        list (APPEND cecFiles ${resolvedCec})
-                    endif()
-                endforeach()            
-
-                foreach(cecFile ${cecFiles})
-                    FILE(GLOB foundCec "${cecFile}*")
-                    foreach(installCec ${foundCec})
-                        include(GetPrerequisites)
-                        gp_append_unique(PREREQUISITE_LIBS ${installCec})
-                    endforeach()                
-                endforeach()
-            endif()
                     
             # Install CODE dla zależności
             install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")" COMPONENT "HyperHDR")
