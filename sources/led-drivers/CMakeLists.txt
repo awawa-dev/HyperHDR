@@ -24,6 +24,11 @@ IF ( HAVE_SERIAL_LED )
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_HEADER_DIR}/serial/*.h" "${CURRENT_SOURCE_DIR}/serial/*.cpp")
 endif()
 
+if (ENABLE_LIGHTPACK)
+	find_package(hidapi 0.15 CONFIG REQUIRED COMPONENTS libusb)
+	FILE (GLOB Leddevice_HID_SOURCES "${CURRENT_HEADER_DIR}/hid/*.h" "${CURRENT_SOURCE_DIR}/hid/*.cpp")
+endif()
+
 if (UNIX AND NOT APPLE)
 	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_HEADER_DIR}/pwm/rpi_pio/*.h" "${CURRENT_SOURCE_DIR}/pwm/rpi_pio/*.cpp")
 	FILE ( GLOB Leddevice_rpi_blaster "${CURRENT_HEADER_DIR}/pwm/pi-blaster/*.h" "${CURRENT_SOURCE_DIR}/pwm/pi-blaster/*.cpp")
@@ -61,6 +66,7 @@ SET( Leddevice_SOURCES
 	${Leddevice_SOURCES}
 	${LedDevice_RESOURCES}
 	${Leddevice_SERIAL_SOURCES}
+	${Leddevice_HID_SOURCES}
 	${Leddevice_SPI_SOURCES}
 	${Leddevice_PWM_SOURCES}
 )
@@ -75,6 +81,10 @@ target_link_libraries(led-drivers
 
 IF ( HAVE_SERIAL_LED )
 	target_link_libraries(led-drivers Qt${Qt_VERSION}::SerialPort)
+endif()
+
+if (ENABLE_LIGHTPACK)
+	target_link_libraries(led-drivers hidapi::libusb)
 endif()
 
 if(WIN32)

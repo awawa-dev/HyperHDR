@@ -128,7 +128,6 @@ public Q_SLOTS:
 	void onReleaseBuffer(struct pw_buffer* buffer);
 	
 signals:
-	void onParamsChangedSignal(uint32_t id, const struct spa_pod* param);
 	void onStateChangedSignal(enum pw_stream_state old, enum pw_stream_state state, const char* error);
 	void onProcessFrameSignal();
 	void onCoreErrorSignal(uint32_t id, int seq, int res, const char *message);
@@ -141,20 +140,19 @@ private:
 	pw_stream*	createCapturingStream();
 	QString		getSessionToken();
 	QString		getRequestToken();
+	QString		getRequestPath(const QString& requestToken) const;
 	void		captureFrame();
 
 	QString _sessionHandle;
 	QString _restorationToken;
 	QString _errorMessage;
 	bool	_portalStatus;
+	std::atomic_bool _startRequestPending;
 	bool	_isError;
 	int		_version;
 	uint	_streamNodeId;
 
 	QString _sender;
-	QString _replySessionPath;
-	QString _sourceReplyPath;
-	QString _startReplyPath;
 
 	struct pw_thread_loop*	_pwMainThreadLoop;
 	struct pw_context*		_pwNewContext;
@@ -184,9 +182,7 @@ private:
 
 	std::unique_ptr<sdbus::IConnection> _dbusConnection;
 	std::unique_ptr<ScreenCastProxy> _screenCastProxy;
-	std::unique_ptr<sdbus::IProxy> _createSessionProxy;
-	std::unique_ptr<sdbus::IProxy> _selectSourceProxy;
-	std::unique_ptr<sdbus::IProxy> _startProxy;
+	std::unique_ptr<sdbus::IProxy> _requestProxy;
 
 #ifdef ENABLE_PIPEWIRE_EGL
 	eglGetProcAddressFun eglGetProcAddress = nullptr;
