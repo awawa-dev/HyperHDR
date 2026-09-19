@@ -617,10 +617,9 @@ QMap<QString, QJsonObject>& LedDevicePhilipsHueBridge::getLightStateMapV2()
 	return _lightStateMapV2;
 }
 
-QStringList LedDevicePhilipsHueBridge::getLightIdsInChannelV2(QJsonObject& channel)
+QStringList LedDevicePhilipsHueBridge::getLightIdsInChannelV2(QJsonObject channel)
 {
 	QStringList lightIDS;
-	QStringList deviceNames;
 	const auto memberItems = channel["members"].toArray();
 	for (const auto& item : memberItems)
 	{
@@ -635,9 +634,6 @@ QStringList LedDevicePhilipsHueBridge::getLightIdsInChannelV2(QJsonObject& chann
 				QJsonDocument deviceDocument = get(
 					QString("%1/%2/%3").arg(API_RESOURCE_PATH_V2).arg("device", entertainment["owner"].toObject()["rid"].toString()));
 				QJsonObject device = deviceDocument.object()["data"].toArray().first().toObject();
-				const QString deviceName = device["metadata"].toObject()["name"].toString().trimmed();
-				if (!deviceName.isEmpty())
-					deviceNames.append(deviceName);
 				const auto serviceItems = device["services"].toArray();
 				for (const auto& itemS : serviceItems)
 				{
@@ -651,8 +647,6 @@ QStringList LedDevicePhilipsHueBridge::getLightIdsInChannelV2(QJsonObject& chann
 			}
 		}
 	}
-	if (!deviceNames.isEmpty())
-		channel["name"] = deviceNames.join(", ");
 	return lightIDS;
 }
 
@@ -929,9 +923,8 @@ bool DriverNetPhilipsHue::setLights()
 			unsigned int ledidx = 0;
 			for (const auto& channel : std::as_const(lArray))
 			{
-				QJsonObject channelObj = channel.toObject();
-				QStringList lightIds = getLightIdsInChannelV2(channelObj);
-				_lights.emplace_back(_log, channelObj["channel_id"].toInt(), channelObj, std::move(lightIds), ledidx);
+				_lights.emplace_back(_log, channel.toObject()["channel_id"].toInt(), channel.toObject(),
+					getLightIdsInChannelV2(channel.toObject()), ledidx);
 				ledidx++;
 				if (!lightIDStr.isEmpty())
 				{
@@ -2140,59 +2133,36 @@ void DriverNetPhilipsHue::identify(const QJsonObject& params)
 		return;
 	}
 
+	QJsonObject properties;
 	QString host = params["host"].toString("");
-	if (host.isEmpty())
-		return;
 
-	QString username = params["user"].toString("");
-	QString deviceId = params["deviceId"].toString("");
-	QString lightIdV2 = params["lightId"].toString("");
-	int lightIdV1 = params["lightId"].toInt(0);
-
-	QUrl url = QUrl::fromUserInput(host);
-	auto hostname = url.host();
-	Debug(_log, "Hostname/IP: {:s}", (hostname));
-	auto apiPort = url.port(url.scheme().toLower() == "https" ? 443 : 80);
-	Debug(_log, "Port: {:d}", apiPort);
-
-	const bool useClipV2 = !deviceId.isEmpty() || (!lightIdV2.isEmpty() && lightIdV1 == 0);
-	if (useClipV2)
-		setApiV2(true);
-
-	initRestAPI(hostname, apiPort, username);
-
-	if (useClipV2)
+	if (!host.isEmpty())
 	{
-		QString path;
-		QString body;
-		if (!deviceId.isEmpty())
-		{
-			path = QString("%1/%2/%3").arg(API_RESOURCE_PATH_V2).arg("device", deviceId);
-			body = QStringLiteral("{\"identify\":{\"action\":\"identify\"}}");
-		}
-		else
-		{
-			path = QString("%1/%2/%3").arg(API_RESOURCE_PATH_V2).arg(API_LIGHT_V2, lightIdV2);
-			body = QStringLiteral("{\"alert\":{\"action\":\"breathe\"}}");
-		}
-		_restApi->setPath(path);
-		httpResponse response = _restApi->put(body);
+		QString username = params["user"].toString("");
+		int lightId = params["lightId"].toInt(0);
+
+		QUrl url = QUrl::fromUserInput(host);
+		auto hostname = url.host();
+		Debug(_log, "Hostname/IP: {:s}", (hostname));
+		auto apiPort = url.port(url.scheme().toLower() == "https" ? 443 : 80);
+		Debug(_log, "Port: {:d}", apiPort);
+		initRestAPI(hostname, apiPort, username);
+
+		QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
+		_restApi->setPath(resource);
+
+		QString stateCmd;
+		stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
+		stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
+		stateCmd = "{" + stateCmd + "}";
+
+		// Perform request
+		httpResponse response = _restApi->put(stateCmd);
 		if (response.error())
+		{
 			Warning(_log, "{:s} identification failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
-		return;
+		}
 	}
-
-	QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightIdV1).arg(API_STATE);
-	_restApi->setPath(resource);
-
-	QString stateCmd;
-	stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
-	stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
-	stateCmd = "{" + stateCmd + "}";
-
-	httpResponse response = _restApi->put(stateCmd);
-	if (response.error())
-		Warning(_log, "{:s} identification failed with error: '{:s}'", (_activeDeviceType), (response.getErrorReason()));
 }
 
 ColorXYB DriverNetPhilipsHue::nonLinearRgbToColorXYB(bool convertToLinearRgb, const linalg::vec<float, 3>& nonlinear)

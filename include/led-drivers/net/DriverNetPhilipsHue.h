@@ -130,7 +130,7 @@ protected:
 
 	QJsonDocument getGroupStateV2(QString groupId);
 	QJsonDocument setGroupStateV2(QString groupId, bool state);
-	QStringList getLightIdsInChannelV2(QJsonObject& channel);
+	QStringList getLightIdsInChannelV2(QJsonObject channel);
 	QMap<QString, QJsonObject>& getLightStateMapV2();
 	void setLightsMapV2(const QJsonDocument& doc);
 	void setGroupMapV2(const QJsonDocument& doc);

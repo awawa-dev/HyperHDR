@@ -195,20 +195,10 @@ function useGroupId(id)
                     for (const entertainmentResource of entertainmentResources) {
                         if(service.rid==entertainmentResource.id){
                             if(entertainmentResource.owner?.rtype=="device"){
-                                const deviceId = entertainmentResource.owner.rid;
-                                const ch = channels[channel.channel_id+""];
-                                if (ch.deviceIds) {
-                                    ch.deviceIds.push(deviceId);
-                                } else {
-                                    ch.deviceIds = [deviceId];
-                                }
-                                const device = (deviceResources || []).find(d => d.id === deviceId);
-                                const lightService = (device?.services || []).find(s => s.rtype === "light");
-                                if (lightService?.rid) {
-                                    if (ch.lightIds)
-                                        ch.lightIds.push(lightService.rid);
-                                    else
-                                        ch.lightIds = [lightService.rid];
+                                if(channels[channel.channel_id+""].deviceIds){
+                                    channels[channel.channel_id+""].deviceIds.push(entertainmentResource.owner?.rid)
+                                }else{
+                                    channels[channel.channel_id+""].deviceIds=[entertainmentResource.owner?.rid]
                                 }
                             }
                         }
@@ -294,26 +284,23 @@ async function discover_hue_bridges()
 
 function identify_hue_device(hostAddress, username, id)
 {
-    const headers = { 'hue-application-key': username };
-    if (useV2Api)
+    if(useV2Api)
     {
-        const channel = channels[id + ""];
-        const deviceId = channel?.deviceIds?.[0];
-        const lightId = channel?.lightIds?.[0];
-        if (deviceId)
-        {
-            tunnel_hue_put(hostAddress, '/clip/v2/resource/device/' + deviceId, JSON.stringify({ identify: { action: "identify" } }), headers);
-            return;
-        }
-        if (lightId)
-        {
-            tunnel_hue_put(hostAddress, '/clip/v2/resource/light/' + lightId, JSON.stringify({ alert: { action: "breathe" } }), headers);
-            return;
-        }
+        //  flash the channel
+        let params = {
+            host: hostAddress,
+            clientkey: $('#clientkey').val()||conf_editor.getEditor("root.specificOptions.clientkey")?.getValue(),
+            user: username,
+            entertainmentConfigurationId: $('#entertainmentConfigurationId').val(),
+            channelId: id
+        };
+        requestLedDeviceIdentification("philipshuev2", params);
     }
-
-    let params = { host: hostAddress, user: username, lightId: id };
-    requestLedDeviceIdentification("philipshue", params);
+    else
+    {
+        let params = { host: hostAddress, user: username, lightId: id };
+        requestLedDeviceIdentification("philipshue", params);
+    }
 }
 
 async function getProperties_hue_bridge(hostAddress, username, resourceFilter)
@@ -597,17 +584,17 @@ function get_hue_groups()
 {
     if(useV2Api){
         // api v2 uses entertainment configurations not groups
-        const headers = {'hue-application-key':$("#user").val() };
-        tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment_configuration', headers).then( async (r) =>
+        tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment_configuration',{'hue-application-key':$("#user").val() }).then( (r) =>
             {
                 if (r != null)
                 {
-                    const [ent, devices] = await Promise.all([
-                        tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment', headers),
-                        tunnel_hue_get($("#ip").val(), '/clip/v2/resource/device', headers)
-                    ]);
-                    entertainmentResources = ent?.data || [];
-                    deviceResources = devices?.data || [];
+                    // Also get all entertainment resources and devices. this will be used later to identify a channel
+                    tunnel_hue_get($("#ip").val(), '/clip/v2/resource/entertainment',{'hue-application-key':$("#user").val() }).then(value => {
+                        entertainmentResources=value?.data;
+                    })
+                    tunnel_hue_get($("#ip").val(), '/clip/v2/resource/device',{'hue-application-key':$("#user").val() }).then(value => {
+                        deviceResources=value?.data;
+                    })
                     if (r.data.length>0)
                     {
                         $('#wh_topcontainer').toggle(false);
@@ -617,9 +604,8 @@ function get_hue_groups()
                         groupIDs={};
                         for (const group of r.data) {
                             groupIDs[group.id] = group;
-                            const groupName = group.metadata?.name || group.name || group.id;
                             const clickButton = `<button class="btn btn-sm btn-primary" onClick="useGroupId('${DOMPurify.sanitize(group.id)}')">${$.i18n('wiz_hue_e_use_entertainmentconfigurationid', group.id)}</button>`;
-                            $('.gidsb').append(createTableRowFlex([DOMPurify.sanitize(`${groupName}<br> (${group.id})`), clickButton]));
+                            $('.gidsb').append(createTableRowFlex([DOMPurify.sanitize(`${group.name}<br> (${group.id})`), clickButton]));
                             gC++;
                         }
                         if (gC == 0)
@@ -766,19 +752,7 @@ function get_hue_lights()
                         if (pos == val) options += ' selected="selected"';
                         options += '>' + $.i18n(txt + val) + '</option>';
                     }
-                    let descLightVal;
-                    if (useV2Api)
-                    {
-                        const names = (r[lightid].deviceIds || []).map(id => {
-                            const device = (deviceResources || []).find(d => d.id === id);
-                            return device?.metadata?.name;
-                        }).filter(Boolean);
-                        descLightVal = names.length ? names.join(", ") : `Channel ${lightid}`;
-                    }
-                    else
-                    {
-                        descLightVal = r[lightid].name;
-                    }
+                    let descLightVal = (useV2Api) ? `Channel ${lightid}` : r[lightid].name;
                     let selectLightControl = `<select id="hue_${lightid}" class="hue_sel_watch form-select">${options}</select>`;
                     let ipVal = encodeURI($("#ip").val());
                     let userVal = encodeURI($("#user").val());                  
