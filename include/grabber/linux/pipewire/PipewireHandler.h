@@ -5,6 +5,7 @@
 #include <QVector>
 #include <QList>
 #include <QTimer>
+#include <QVariantList>
 #include <QVariantMap>
 #include <image/MemoryBuffer.h>
 #include <pipewire/pipewire.h>
@@ -79,14 +80,7 @@ typedef void (*glTexImage2DFun)(GLenum target, GLint level, GLint internalformat
 #define DRM_FORMAT_ABGR8888	fourcc_code('A', 'B', '2', '4')
 #endif
 
-namespace sdbus{
-	class IConnection;
-	class IProxy;
-	class Variant;
-}
-class ScreenCastProxy;
-
-using SdbusVariantMap = std::map<std::string, sdbus::Variant>;
+class PortalDBus;
 
 class PipewireHandler : public QObject
 {
@@ -156,8 +150,6 @@ private:
 	int		_version;
 	uint	_streamNodeId;
 
-	QString _sender;
-
 	struct pw_thread_loop*	_pwMainThreadLoop;
 	struct pw_context*		_pwNewContext;
 	struct pw_core*			_pwContextConnection;
@@ -184,9 +176,8 @@ private:
 
 	MemoryBuffer<uint8_t> _memoryCache;
 
-	std::unique_ptr<sdbus::IConnection> _dbusConnection;
-	std::unique_ptr<ScreenCastProxy> _screenCastProxy;
-	std::map<std::string, std::function<void(uint32_t responseCode, const SdbusVariantMap& results)>> _portalHandlers;
+	std::unique_ptr<PortalDBus> _dbusConnection;
+	std::map<std::string, std::function<void(const QVariantList&, bool)>> _portalHandlers;
 
 #ifdef ENABLE_PIPEWIRE_EGL
 	eglGetProcAddressFun eglGetProcAddress = nullptr;

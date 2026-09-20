@@ -1,6 +1,6 @@
 #pragma once
 
-/* SuspendHandlerLinux.h
+/* SuspendHandlerLinuxDBus.h
 *
 *  MIT License
 *
@@ -26,24 +26,35 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
  */
-#include <QObject>
-#include <utils/Components.h>
 
-#define HAVE_POWER_MANAGEMENT
+#include <micro-dbus/HelperDBus.h>
 
-class SessionMonitorDBus;
-class SystemSuspendDBus;
-
-class SuspendHandler : public QObject {
+class SessionMonitorDBus final : public HelperDBus
+{
 	Q_OBJECT
 
-	SessionMonitorDBus* _sessionMonitor = nullptr;
-	SystemSuspendDBus* _systemSuspend = nullptr;
+public:
+	explicit SessionMonitorDBus(QObject* parent = nullptr);
+	bool open();
 
 signals:
-	void SignalHibernate(bool wakeUp, hyperhdr::SystemComponent source);
+	void monitorStateChanged(const QString& source, bool active);
+
+private slots:
+	void handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError);
+};
+
+class SystemSuspendDBus final : public HelperDBus
+{
+	Q_OBJECT
 
 public:
-	SuspendHandler(bool sessionLocker = false);
-	~SuspendHandler();
+	explicit SystemSuspendDBus(QObject* parent = nullptr);
+	bool open();
+
+signals:
+	void prepareForSleep(bool sleeping);
+
+private slots:
+	void handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError);
 };
