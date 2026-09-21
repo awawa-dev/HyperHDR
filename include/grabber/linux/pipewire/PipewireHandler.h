@@ -34,6 +34,10 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#ifdef Bool
+	#undef Bool
+#endif
+
 typedef void* (*eglGetProcAddressFun)(const char*);
 typedef EGLDisplay(*eglGetPlatformDisplayFun)(EGLenum platform, void* native_display, const EGLAttrib* attrib_list);
 typedef EGLBoolean(*eglTerminateFun)(EGLDisplay display);
