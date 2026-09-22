@@ -28,6 +28,8 @@
  */
 
 #include <micro-dbus/HelperDBus.h>
+#include <optional>
+#include <utils/Components.h>
 
 class SessionMonitorDBus final : public HelperDBus
 {
@@ -38,7 +40,7 @@ public:
 	bool open();
 
 signals:
-	void monitorStateChanged(const QString& source, bool active);
+	void monitorStateChanged(bool wakeUp, hyperhdr::SystemComponent source);
 
 private slots:
 	void handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError);
@@ -48,12 +50,17 @@ class SystemSuspendDBus final : public HelperDBus
 {
 	Q_OBJECT
 
+	std::optional<bool> getLockHint(const QString& sessionPath);
+	QString getSessionPath();
+
+	bool _delayedWakeup = false;
+	QString _sessionPath;
 public:
 	explicit SystemSuspendDBus(QObject* parent = nullptr);
-	bool open();
+	bool open(bool sessionLocker);
 
 signals:
-	void prepareForSleep(bool sleeping);
+	void prepareForSleep(bool wakeUp, hyperhdr::SystemComponent source);
 
 private slots:
 	void handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError);

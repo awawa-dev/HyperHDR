@@ -41,12 +41,16 @@
 
 namespace
 {
+	constexpr QLatin1String ActiveChanged{ "ActiveChanged" };
 	constexpr QLatin1String GnomeService{ "org.gnome.ScreenSaver" };
 	constexpr QLatin1String GnomePath{ "/org/gnome/ScreenSaver" };
 	constexpr QLatin1String KdeService{ "org.freedesktop.ScreenSaver" };
 	constexpr QLatin1String KdePath{ "/org/freedesktop/ScreenSaver" };
 	constexpr QLatin1String XfceService{ "org.xfce.ScreenSaver" };
 	constexpr QLatin1String XfcePath{ "/org/xfce/ScreenSaver" };
+	constexpr QLatin1String DBusProperties{ "org.freedesktop.DBus.Properties" };
+	constexpr QLatin1String PrepareForSleep{ "PrepareForSleep" };
+	constexpr QLatin1String PropertiesChanged { "PropertiesChanged" };
 	constexpr QLatin1String Login1Service{ "org.freedesktop.login1" };
 	constexpr QLatin1String Login1Path{ "/org/freedesktop/login1" };
 	constexpr QLatin1String Login1Interface{ "org.freedesktop.login1.Manager" };
@@ -60,7 +64,7 @@ bool SessionMonitorDBus::open() {
 	if (!HelperDBus::open(DBUS_BUS_SESSION))
 		return false;
 
-	if (!(addSignalMatch(GnomeService, GnomePath, GnomeService, "ActiveChanged") | addSignalMatch(KdeService, KdePath, KdeService, "ActiveChanged") | addSignalMatch(XfceService, XfcePath, XfceService, "ActiveChanged")))
+	if (!(addSignalMatch(GnomeService, GnomePath, GnomeService, ActiveChanged) | addSignalMatch(KdeService, KdePath, KdeService, ActiveChanged) | addSignalMatch(XfceService, XfcePath, XfceService, ActiveChanged)))
 	{
 		closeConnection();
 		return false;
@@ -73,30 +77,127 @@ void SessionMonitorDBus::handleSignal(const QString& , const QString& , const QS
 	if (parseError || arguments.size() < 1 || !HelperDBus::isType<bool>(arguments[0]))
 		return;
 	
-	emit monitorStateChanged("ScreenSaver", arguments[0].toBool());	
+	bool monitorOff = arguments[0].toBool();
+
+	qDebug().nospace() << "Display event: monitor is " << (monitorOff ? "OFF" : "ON");
+	emit monitorStateChanged(!monitorOff, hyperhdr::SystemComponent::MONITOR);
 }
 
 SystemSuspendDBus::SystemSuspendDBus(QObject* parent) : HelperDBus(parent) {
 	connect(this, &HelperDBus::signalReceived, this, &SystemSuspendDBus::handleSignal);
 }
 
-bool SystemSuspendDBus::open() {
+bool SystemSuspendDBus::open(bool sessionLocker) {
 	if (!HelperDBus::open(DBUS_BUS_SYSTEM))
 		return false;
 
-	if (!addSignalMatch(Login1Service, Login1Path, Login1Interface, "PrepareForSleep")) {
+	if (!addSignalMatch(Login1Service, Login1Path, Login1Interface, PrepareForSleep)) {
 		closeConnection();
 		return false;
+	}
+
+	if (sessionLocker) {
+		_sessionPath = getSessionPath();
+		if (_sessionPath.isEmpty() || !addSignalMatch(Login1Service, _sessionPath, DBusProperties, PropertiesChanged)) {
+			_sessionPath.clear();
+			qWarning() << "SystemSuspendDBus: cannot watch Session.PropertiesChanged";
+		}
 	}
 
 	return true;
 }
 
-void SystemSuspendDBus::handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError) {
-	if (parseError || arguments.size() < 1 || !HelperDBus::isType<bool>(arguments[0]))
-		return;
+QString SystemSuspendDBus::getSessionPath() {
+	QString userPath = QStringLiteral("/org/freedesktop/login1/user/_%1").arg(getuid());
 
-	emit prepareForSleep(arguments[0].toBool());
+	if (DBusMessage* message = makeMethodCall(Login1Service.latin1(), userPath.toUtf8().constData(), DBusProperties.latin1(), "Get"))
+	{
+		DBusMessageIter args;
+		dbus_message_iter_init_append(message, &args);
+
+		if (const char* interface = "org.freedesktop.login1.User", *property = "Display";
+			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface) ||
+			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
+		{
+			dbus_message_unref(message);
+		}
+		else if (DBusMessage* reply = callSync(message, "User.Display"))
+		{
+			if (QVariantList values; readMessage(reply, values) && values.size() == 1 && isType<QVariantMap>(values.first()))
+			{
+				if (const QVariant session = values.first().toMap().value(QStringLiteral("1")); isType<QString>(session))
+				{
+					return session.toString();
+				}
+			}
+
+			dbus_message_unref(reply);
+		}
+	}
+
+	qDebug() << "SystemSuspendDBus: cannot read sessionPath";
+	return {};
+}
+
+std::optional<bool> SystemSuspendDBus::getLockHint(const QString& sessionPath) {
+	std::optional<bool> lockHint;
+
+	if (DBusMessage* message = makeMethodCall(Login1Service.latin1(), sessionPath.toUtf8().constData(), DBusProperties.latin1(), "Get"); message)
+	{
+		DBusMessageIter args;
+		dbus_message_iter_init_append(message, &args);
+
+		if (const char* interface = "org.freedesktop.login1.Session", *property = "LockedHint";
+			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface) ||
+			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
+		{
+			dbus_message_unref(message);
+		}
+		else if (DBusMessage* reply = callSync(message, "Session.LockedHint"))
+		{
+			if (QVariantList values; readMessage(reply, values) && values.size() == 1 && isType<bool>(values.first()))
+			{
+				lockHint = values.first().toBool();
+				qDebug() << "SystemSuspendDBus: lockHint =" << lockHint.value();
+			}
+
+			dbus_message_unref(reply);
+		}
+	}
+
+	return lockHint;
+}
+
+void SystemSuspendDBus::handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError) {
+	if (!parseError && interface == DBusProperties && member == PropertiesChanged &&
+		arguments.size() >= 2 && isType<QString>(arguments[0]) && isType<QVariantMap>(arguments[1]) && arguments[0].toString() == "org.freedesktop.login1.Session")
+	{
+		if (const QVariant value = arguments[1].toMap().value("LockedHint"); isType<bool>(value)) {
+			const bool lockHint = value.toBool();
+			qDebug() << "SystemSuspendDBus: LockedHint changed =" << lockHint;
+
+			if (_delayedWakeup && !lockHint) {
+				_delayedWakeup = false;
+				qDebug().nospace() << "OS event: waking up (delayed)";
+				emit prepareForSleep(true, hyperhdr::SystemComponent::SUSPEND);
+			}
+		}
+	}
+	else if (!parseError && interface == Login1Interface && member == PrepareForSleep &&
+			arguments.size() && HelperDBus::isType<bool>(arguments[0]))
+	{
+		if (bool isGoingSleep = arguments[0].toBool(); !isGoingSleep && !_sessionPath.isEmpty() && getLockHint(_sessionPath) == true)
+		{
+			_delayedWakeup = true;
+			qDebug() << "SystemSuspendDBus: skipping resume from sleep for now — the session is locked";
+		}
+		else
+		{
+			_delayedWakeup = false;
+			qDebug().nospace() << ((isGoingSleep) ? "OS event: going to sleep" : "OS event: waking up");
+			emit prepareForSleep(!isGoingSleep, hyperhdr::SystemComponent::SUSPEND);
+		}
+	}
 }
 
 SuspendHandler::SuspendHandler(bool sessionLocker)
@@ -105,28 +206,29 @@ SuspendHandler::SuspendHandler(bool sessionLocker)
 	{
 		_sessionMonitor = new SessionMonitorDBus(this);
 
-		connect(_sessionMonitor, &SessionMonitorDBus::monitorStateChanged, this, [this](const QString& source, bool monitorOff) {
-			qDebug().nospace() << "Display event: monitor is " << (monitorOff ? "OFF" : "ON") << " (reporting: " << source << ")";
-			emit SignalHibernate(!monitorOff, hyperhdr::SystemComponent::MONITOR);
-		}, Qt::QueuedConnection);
-
-		if (_sessionMonitor->open())
+		if (_sessionMonitor->open()) {
+			connect(_sessionMonitor, &SessionMonitorDBus::monitorStateChanged, this, &SuspendHandler::SignalHibernate, Qt::QueuedConnection);
 			qDebug() << "THE MONITOR STATE HANDLER IS REGISTERED!";
-		else
+		}
+		else {
+			sessionLocker = false;
+			_sessionMonitor->deleteLater();
+			_sessionMonitor = nullptr;
 			qCritical() << "COULD NOT REGISTER MONITOR STATE HANDLER NEEDED BY, FOR EXAMPLE, PIPEWIRE GRABBER (WHICH WONT WORK AS A SERVICE)";
+		}
 	}
 
 	_systemSuspend = new SystemSuspendDBus(this);
 
-	connect(_systemSuspend, &SystemSuspendDBus::prepareForSleep, this, [this](bool sleep){
-		qDebug().nospace() << ((sleep) ? "OS event: going to sleep" : "OS event: waking up");
-		emit SignalHibernate(!sleep, hyperhdr::SystemComponent::SUSPEND);
-	}, Qt::QueuedConnection);
-
-	if (_systemSuspend->open())
+	if (_systemSuspend->open(sessionLocker)) {
+		connect(_systemSuspend, &SystemSuspendDBus::prepareForSleep, this, &SuspendHandler::SignalHibernate, Qt::QueuedConnection);
 		qDebug() << "THE SLEEP HANDLER IS REGISTERED!";
-	else
+	}
+	else {
+		_systemSuspend->deleteLater();
+		_systemSuspend = nullptr;
 		qCritical() << "COULD NOT REGISTER THE SLEEP HANDLER";
+	}
 }
 
 SuspendHandler::~SuspendHandler()

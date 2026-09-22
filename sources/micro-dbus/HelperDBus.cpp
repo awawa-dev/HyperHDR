@@ -226,6 +226,10 @@ bool HelperDBus::appendVariant(DBusMessageIter& iter, const QVariant& value)
 			const dbus_uint32_t data = value.toUInt();
 			return dbus_message_iter_append_basic(&iter, DBUS_TYPE_UINT32, &data) == TRUE;
 		}
+		case QMetaType::ULongLong: {
+			const dbus_uint64_t data = value.toULongLong();
+			return dbus_message_iter_append_basic(&iter, DBUS_TYPE_UINT64, &data) == TRUE;
+		}
 		case QMetaType::Int: {
 			const dbus_int32_t data = value.toInt();
 			return dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32, &data) == TRUE;
@@ -275,6 +279,11 @@ bool HelperDBus::readValue(DBusMessageIter& iter, QVariant& value)
 			dbus_message_iter_get_basic(&iter, &number);
 			return value = static_cast<quint32>(number), true;
 		}
+		case DBUS_TYPE_UINT64: {
+			dbus_uint64_t number = 0;
+			dbus_message_iter_get_basic(&iter, &number);
+			return value = static_cast<quint64>(number), true;
+		}
 		case DBUS_TYPE_INT32: {
 			dbus_int32_t number = 0;
 			dbus_message_iter_get_basic(&iter, &number);
@@ -290,7 +299,7 @@ bool HelperDBus::readValue(DBusMessageIter& iter, QVariant& value)
 		case DBUS_TYPE_ARRAY:  return readArray(iter, value);
 		case DBUS_TYPE_STRUCT: return readStruct(iter, value);
 		default:
-			qWarning().nospace() << "HelperDBus: unsupported D-Bus type = '" << iterType << "' received by readValue";
+			//qWarning().nospace() << "HelperDBus: unsupported D-Bus type = '" << iterType << "' received by readValue";
 			return true;
 	}
 }
@@ -329,7 +338,7 @@ bool HelperDBus::readMap(DBusMessageIter& iter, QVariant& value)
 		dbus_message_iter_recurse(&entries, &entry);
 
 		if (dbus_message_iter_get_arg_type(&entry) != DBUS_TYPE_STRING) {
-			qWarning().nospace() << "HelperDBus: unsupported D-Bus type = '" << dbus_message_iter_get_arg_type(&entry) << "' received by readMap";
+			//qWarning().nospace() << "HelperDBus: unsupported D-Bus type = '" << dbus_message_iter_get_arg_type(&entry) << "' received by readMap";
 			value = QVariant{};
 			return true;
 		}
@@ -402,9 +411,7 @@ DBusHandlerResult HelperDBus::filter(DBusConnection*, DBusMessage* message, void
 
 void HelperDBus::logError(const char* operation, DBusError& error) const
 {
-	qWarning().nospace() << "HelperDBus: " << operation << ": "
-		<< (error.name ? error.name : "D-Bus error") << ": "
-		<< (error.message ? error.message : "");
+	qWarning().nospace() << "HelperDBus: " << operation << ": " << (error.name ? error.name : "D-Bus error") << ": " << (error.message ? error.message : "");
 	dbus_error_free(&error);
 }
 
