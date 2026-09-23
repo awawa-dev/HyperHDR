@@ -26,15 +26,16 @@
  */
 
 #include <algorithm>
-#include <base/HyperHdrManager.h>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <image/Image.h>
 #include <iostream>
 #include <limits>
+#include <unistd.h>
 #include <QLatin1String>
+#include <base/HyperHdrManager.h>
+#include <image/Image.h>
 #include <suspend-handler/SuspendHandlerLinux.h>
 #include <suspend-handler/SuspendHandlerLinuxDBus.h>
 #include <utils/Components.h>
