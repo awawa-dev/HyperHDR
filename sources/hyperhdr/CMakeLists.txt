@@ -46,6 +46,10 @@ target_link_libraries(hyperhdr
 	${APPKIT_FRAMEWORK}
 )
 
+if(ENABLE_POWER_MANAGEMENT AND UNIX AND NOT APPLE)
+	target_link_libraries(hyperhdr micro-dbus)
+endif()
+
 if (WIN32 OR APPLE)
 	target_link_libraries(hyperhdr systray-widget)
 else()

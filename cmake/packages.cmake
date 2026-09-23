@@ -108,7 +108,7 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/linux/debian/preinst;${CMAKE_SOURCE_DIR}/cmake/linux/debian/postinst;${CMAKE_SOURCE_DIR}/cmake/linux/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0 | libglib2.0-0t64" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0 | libglib2.0-0t64, libdbus-1-3" )
 
 SET ( CPACK_DEBIAN_PACKAGE_SUGGESTS "libx11-6" )
 if ( ENABLE_SYSTRAY )
@@ -121,7 +121,7 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
-SET ( CPACK_RPM_PACKAGE_REQUIRES "xz" )
+SET ( CPACK_RPM_PACKAGE_REQUIRES "xz, dbus-libs" )
 SET ( CPACK_RPM_PACKAGE_AUTOREQPROV 0 )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%pre" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%post")

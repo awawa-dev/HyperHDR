@@ -84,7 +84,7 @@ macro(InstallerLinux TARGET)
 
             install(CODE [[
                 set(SYSTEM_LIBS_SKIP
-                    "libc" "libglib-2" "libsystemd0" "libdl" "libexpat" "libfontconfig" "libgcc_s"
+                    "libc" "libglib-2" "libsystemd0" "libdbus-1" "libdl" "libexpat" "libfontconfig" "libgcc_s"
                     "libm" "libpthread" "librt" "libstdc++" "libudev" "libz.so" "libxrender1"
                     "libxi6" "libxext6" "libx11-xcb1" "libsm" "libice6" "libdrm2" "libxkbcommon0"
                     "libwacom2" "libmtdev1" "libinput10" "libgudev-1.0-0" "libffi6" "libevdev2"

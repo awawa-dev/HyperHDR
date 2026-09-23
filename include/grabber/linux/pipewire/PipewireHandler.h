@@ -5,6 +5,7 @@
 #include <QVector>
 #include <QList>
 #include <QTimer>
+#include <QVariantList>
 #include <QVariantMap>
 #include <image/MemoryBuffer.h>
 #include <pipewire/pipewire.h>
@@ -19,6 +20,7 @@
 #include <memory>
 #include <atomic>
 #include <array>
+#include <map>
 
 #if !PW_CHECK_VERSION(0, 3, 29)
 #define SPA_POD_PROP_FLAG_MANDATORY (1u << 3)
@@ -31,6 +33,10 @@
 #include <GL/gl.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+
+#ifdef Bool
+	#undef Bool
+#endif
 
 typedef void* (*eglGetProcAddressFun)(const char*);
 typedef EGLDisplay(*eglGetPlatformDisplayFun)(EGLenum platform, void* native_display, const EGLAttrib* attrib_list);
@@ -78,11 +84,7 @@ typedef void (*glTexImage2DFun)(GLenum target, GLint level, GLint internalformat
 #define DRM_FORMAT_ABGR8888	fourcc_code('A', 'B', '2', '4')
 #endif
 
-namespace sdbus{
-	class IConnection;
-	class IProxy;
-}
-class ScreenCastProxy;
+class PortalDBus;
 
 class PipewireHandler : public QObject
 {
@@ -117,9 +119,6 @@ public:
 public Q_SLOTS:
 	void releaseWorkingFrame();
 	void getImage(PipewireImage& retVal);
-	void createSessionResponse(uint response, QString session);
-	void selectSourcesResponse(uint response);
-	void startResponse(uint response, QString restoreHandle, uint32_t nodeId, int nodeStreamWidth, int nodeStreamHeight);
 
 	void onParamsChanged(uint32_t id, const struct spa_pod* param);
 	void onStateChanged(enum pw_stream_state old, enum pw_stream_state state, const char* error);
@@ -138,6 +137,10 @@ private:
 	void reportError(const QString& input);
 	QString fourCCtoString(int64_t val);
 
+	void createSessionResponse(uint response, QString session);
+	void selectSourcesResponse(uint response);
+	void startResponse(uint response, QString restoreHandle, uint32_t nodeId, int nodeStreamWidth, int nodeStreamHeight);
+
 	pw_stream*	createCapturingStream();
 	QString		getSessionToken();
 	QString		getRequestToken();
@@ -150,11 +153,6 @@ private:
 	bool	_isError;
 	int		_version;
 	uint	_streamNodeId;
-
-	QString _sender;
-	QString _replySessionPath;
-	QString _sourceReplyPath;
-	QString _startReplyPath;
 
 	struct pw_thread_loop*	_pwMainThreadLoop;
 	struct pw_context*		_pwNewContext;
@@ -182,11 +180,8 @@ private:
 
 	MemoryBuffer<uint8_t> _memoryCache;
 
-	std::unique_ptr<sdbus::IConnection> _dbusConnection;
-	std::unique_ptr<ScreenCastProxy> _screenCastProxy;
-	std::unique_ptr<sdbus::IProxy> _createSessionProxy;
-	std::unique_ptr<sdbus::IProxy> _selectSourceProxy;
-	std::unique_ptr<sdbus::IProxy> _startProxy;
+	std::unique_ptr<PortalDBus> _dbusConnection;
+	std::map<std::string, std::function<void(const QVariantList&, bool)>> _portalHandlers;
 
 #ifdef ENABLE_PIPEWIRE_EGL
 	eglGetProcAddressFun eglGetProcAddress = nullptr;
