@@ -225,7 +225,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		if [ ${INCLUDE_DEP_LIB} = true ]; then
 			executeCommand=${executeCommand}" && makepkg"
 		else
-			executeCommand=${executeCommand}" && sed -i 's|) #<depends>| alsa-lib libftdi gtk3 hicolor-icon-theme libayatana-appindicator libjpeg-turbo libusb libx11 libglvnd mesa openssl pipewire qt6-base qt6-serialport systemd-libs wayland xz zstd)|' PKGBUILD"
+			executeCommand=${executeCommand}" && sed -i 's|) #<depends>| alsa-lib libftdi hicolor-icon-theme libjpeg-turbo libusb libglvnd mesa openssl pipewire qt6-base qt6-serialport wayland xz zstd)|' PKGBUILD"
 			executeCommand=${executeCommand}" && makepkg -d"
 		fi
 

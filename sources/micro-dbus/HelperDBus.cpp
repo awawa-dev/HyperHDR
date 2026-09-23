@@ -138,6 +138,11 @@ QString HelperDBus::uniqueName() const
 	return name ? QString::fromUtf8(name) : QString{};
 }
 
+DBusConnection* HelperDBus::connection() const
+{
+	return _connection;
+}
+
 void HelperDBus::dispatch()
 {
 	while (_connection && dbus_connection_get_dispatch_status(_connection) == DBUS_DISPATCH_DATA_REMAINS) {
@@ -428,13 +433,17 @@ dbus_bool_t HelperDBus::addWatch(DBusWatch* watch, void* data)
 
 	notifier->setEnabled(dbus_watch_get_enabled(watch));
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	connect(notifier, &QSocketNotifier::activated, self,
-		[self, watch]() { if (!dbus_watch_handle(watch, DBUS_WATCH_READABLE)) qWarning() << "HelperDBus: dbus_watch_handle() failed"; self->dispatch(); });
-#else
-	connect(notifier, qOverload<int>(&QSocketNotifier::activated), self,
-		[self, watch](int) { if (!dbus_watch_handle(watch, DBUS_WATCH_READABLE)) qWarning() << "HelperDBus: dbus_watch_handle() failed"; self->dispatch(); });
-#endif
+	auto handler = [self, watch]() {
+		if (!dbus_watch_handle(watch, DBUS_WATCH_READABLE))
+			qWarning() << "HelperDBus: dbus_watch_handle() failed";
+		self->dispatch();
+	};
+
+	#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)	
+		connect(notifier, &QSocketNotifier::activated, self, handler);
+	#else
+		connect(notifier, []<class T>(void (QSocketNotifier::*signal)(QSocketDescriptor, QSocketNotifier::Type, T)) { return signal;}(&QSocketNotifier::activated), self, handler);
+	#endif
 
 	dbus_watch_set_data(watch, notifier, &HelperDBus::freeWatchData);
 	return TRUE;
@@ -457,4 +466,103 @@ void HelperDBus::toggleWatch(DBusWatch* watch, void*)
 void HelperDBus::freeWatchData(void* data)
 {
 	delete static_cast<QSocketNotifier*>(data);
+}
+
+bool HelperDBus::send(DBusMessage* message) const
+{
+	if (!message || !_connection)
+	{
+		if (message) dbus_message_unref(message);
+		return false;
+	}
+
+	const bool ok = dbus_connection_send(_connection, message, nullptr) == TRUE;
+	dbus_message_unref(message);
+	if (ok)
+		dbus_connection_flush(_connection);
+	return ok;
+}
+
+bool HelperDBus::emitSignal(const char* path, const char* interface, const char* name) const
+{
+	return send(dbus_message_new_signal(path, interface, name));
+}
+
+bool HelperDBus::replyVoid(DBusMessage* request) const
+{
+	return send(dbus_message_new_method_return(request));
+}
+
+bool HelperDBus::replyError(DBusMessage* request, const char* name, const char* text) const
+{
+	return send(dbus_message_new_error(request, name, text ? text : ""));
+}
+
+void HelperDBus::replyString(DBusMessage* request, const char* value) const
+{
+	replyWith(request, "Introspect", [&](auto& iter) {
+		return appendVariant(iter, QString::fromUtf8(value ? value : ""));
+		});
+}
+
+bool HelperDBus::registerObjectPath(const char* path, DBusObjectPathMessageFunction messageFunction, void* userData)
+{
+	if (!_connection || !path || !messageFunction)
+		return false;
+
+	DBusObjectPathVTable vtable{};
+	vtable.message_function = messageFunction;
+
+	DBusError error;
+	dbus_error_init(&error);
+	const bool ok = dbus_connection_try_register_object_path(
+		_connection, path, &vtable, userData, &error) == TRUE;
+	if (!ok)
+	{
+		if (dbus_error_is_set(&error))
+			logError("Could not register D-Bus object path", error);
+		else
+			dbus_error_free(&error);
+		return false;
+	}
+
+	dbus_error_free(&error);
+	return true;
+}
+
+QVariant HelperDBus::getProperty(const QString& destination, const QString& path, const QString& interface, const QString& property, const char* operation)
+{
+	const QByteArray destinationUtf8 = destination.toUtf8();
+	const QByteArray pathUtf8 = path.toUtf8();
+	const QByteArray interfaceUtf8 = interface.toUtf8();
+	const QByteArray propertyUtf8 = property.toUtf8();
+
+	DBusMessage* message = makeMethodCall(
+		destinationUtf8.constData(),
+		pathUtf8.constData(),
+		HelperDBus::DBusProperties.latin1(),
+		"Get");
+	if (!message)
+		return {};
+
+	DBusMessageIter args;
+	dbus_message_iter_init_append(message, &args);
+	const char* interfacePtr = interfaceUtf8.constData();
+	const char* propertyPtr = propertyUtf8.constData();
+	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interfacePtr) ||
+		!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &propertyPtr))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	DBusMessage* reply = callSync(message, operation);
+	if (!reply)
+		return {};
+
+	QVariantList values;
+	const bool ok = readMessage(reply, values) && values.size() == 1;
+	const QVariant value = ok ? values.first() : QVariant{};
+	dbus_message_unref(reply);
+	return value;
 }

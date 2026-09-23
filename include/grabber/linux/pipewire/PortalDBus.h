@@ -31,5 +31,4 @@ private:
 	static constexpr auto ScreenCastInterface = "org.freedesktop.portal.ScreenCast";
 	static constexpr auto RequestInterface = "org.freedesktop.portal.Request";
 	static constexpr auto SessionInterface = "org.freedesktop.portal.Session";
-	static constexpr auto PropertiesInterface = "org.freedesktop.DBus.Properties";
 };

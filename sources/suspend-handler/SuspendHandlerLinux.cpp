@@ -49,16 +49,15 @@ namespace
 	constexpr QLatin1String KdePath{ "/org/freedesktop/ScreenSaver" };
 	constexpr QLatin1String XfceService{ "org.xfce.ScreenSaver" };
 	constexpr QLatin1String XfcePath{ "/org/xfce/ScreenSaver" };
-	constexpr QLatin1String DBusProperties{ "org.freedesktop.DBus.Properties" };
 	constexpr QLatin1String PrepareForSleep{ "PrepareForSleep" };
-	constexpr QLatin1String PropertiesChanged { "PropertiesChanged" };
+	constexpr QLatin1String PropertiesChanged{ "PropertiesChanged" };
 	constexpr QLatin1String Login1Service{ "org.freedesktop.login1" };
 	constexpr QLatin1String Login1Path{ "/org/freedesktop/login1" };
 	constexpr QLatin1String Login1Interface{ "org.freedesktop.login1.Manager" };
 }
 
 SessionMonitorDBus::SessionMonitorDBus(QObject* parent) : HelperDBus(parent) {
-	connect(this, &HelperDBus::signalReceived, this, &SessionMonitorDBus::handleSignal);
+	connect(this, &HelperDBus::signalReceived, this, &SessionMonitorDBus::handleSignal, Qt::QueuedConnection);
 };
 
 bool SessionMonitorDBus::open() {
@@ -74,10 +73,10 @@ bool SessionMonitorDBus::open() {
 	return true;
 };
 
-void SessionMonitorDBus::handleSignal(const QString& , const QString& , const QString& , const QVariantList& arguments, bool parseError) {
+void SessionMonitorDBus::handleSignal(const QString&, const QString&, const QString&, const QVariantList& arguments, bool parseError) {
 	if (parseError || arguments.size() < 1 || !HelperDBus::isType<bool>(arguments[0]))
 		return;
-	
+
 	bool monitorOff = arguments[0].toBool();
 
 	qDebug().nospace() << "Display event: monitor is " << (monitorOff ? "OFF" : "ON");
@@ -85,7 +84,7 @@ void SessionMonitorDBus::handleSignal(const QString& , const QString& , const QS
 }
 
 SystemSuspendDBus::SystemSuspendDBus(QObject* parent) : HelperDBus(parent) {
-	connect(this, &HelperDBus::signalReceived, this, &SystemSuspendDBus::handleSignal);
+	connect(this, &HelperDBus::signalReceived, this, &SystemSuspendDBus::handleSignal, Qt::QueuedConnection);
 }
 
 bool SystemSuspendDBus::open(bool sessionLocker) {
@@ -111,29 +110,12 @@ bool SystemSuspendDBus::open(bool sessionLocker) {
 QString SystemSuspendDBus::getSessionPath() {
 	QString userPath = QStringLiteral("/org/freedesktop/login1/user/_%1").arg(getuid());
 
-	if (DBusMessage* message = makeMethodCall(Login1Service.latin1(), userPath.toUtf8().constData(), DBusProperties.latin1(), "Get"))
-	{
-		DBusMessageIter args;
-		dbus_message_iter_init_append(message, &args);
+	const QVariant value = getProperty(Login1Service, userPath, QStringLiteral("org.freedesktop.login1.User"),
+										QStringLiteral("Display"),"User.Display");
 
-		if (const char* interface = "org.freedesktop.login1.User", *property = "Display";
-			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface) ||
-			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
-		{
-			dbus_message_unref(message);
-		}
-		else if (DBusMessage* reply = callSync(message, "User.Display"))
-		{
-			if (QVariantList values; readMessage(reply, values) && values.size() == 1 && isType<QVariantMap>(values.first()))
-			{
-				if (const QVariant session = values.first().toMap().value(QStringLiteral("1")); isType<QString>(session))
-				{
-					return session.toString();
-				}
-			}
-
-			dbus_message_unref(reply);
-		}
+	if (isType<QVariantMap>(value)) {
+		if (const QVariant session = value.toMap().value(QStringLiteral("1")); isType<QString>(session))
+			return session.toString();
 	}
 
 	qDebug() << "SystemSuspendDBus: cannot read sessionPath";
@@ -143,34 +125,19 @@ QString SystemSuspendDBus::getSessionPath() {
 std::optional<bool> SystemSuspendDBus::getLockHint(const QString& sessionPath) {
 	std::optional<bool> lockHint;
 
-	if (DBusMessage* message = makeMethodCall(Login1Service.latin1(), sessionPath.toUtf8().constData(), DBusProperties.latin1(), "Get"); message)
-	{
-		DBusMessageIter args;
-		dbus_message_iter_init_append(message, &args);
+	const QVariant value = getProperty(Login1Service, sessionPath, QStringLiteral("org.freedesktop.login1.Session"),
+										QStringLiteral("LockedHint"), "Session.LockedHint");
 
-		if (const char* interface = "org.freedesktop.login1.Session", *property = "LockedHint";
-			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface) ||
-			!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
-		{
-			dbus_message_unref(message);
-		}
-		else if (DBusMessage* reply = callSync(message, "Session.LockedHint"))
-		{
-			if (QVariantList values; readMessage(reply, values) && values.size() == 1 && isType<bool>(values.first()))
-			{
-				lockHint = values.first().toBool();
-				qDebug() << "SystemSuspendDBus: lockHint =" << lockHint.value();
-			}
-
-			dbus_message_unref(reply);
-		}
+	if (isType<bool>(value)) {
+		lockHint = value.toBool();
+		qDebug() << "SystemSuspendDBus: lockHint =" << lockHint.value();
 	}
 
 	return lockHint;
 }
 
 void SystemSuspendDBus::handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError) {
-	if (!parseError && interface == DBusProperties && member == PropertiesChanged &&
+	if (!parseError && interface == HelperDBus::DBusProperties && member == PropertiesChanged &&
 		arguments.size() >= 2 && isType<QString>(arguments[0]) && isType<QVariantMap>(arguments[1]) && arguments[0].toString() == "org.freedesktop.login1.Session")
 	{
 		if (const QVariant value = arguments[1].toMap().value("LockedHint"); isType<bool>(value)) {
@@ -233,6 +200,6 @@ SuspendHandler::SuspendHandler(bool sessionLocker)
 }
 
 SuspendHandler::~SuspendHandler()
-{	
+{
 	qDebug().nospace() << "THE SLEEP HANDLER IS DEREGISTERED!";
 }

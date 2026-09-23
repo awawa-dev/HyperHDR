@@ -6,8 +6,6 @@ FILE ( GLOB MICRO_DBUS_SOURCES "${CURRENT_HEADER_DIR}/*.h" "${CURRENT_SOURCE_DIR
 
 add_library(micro-dbus OBJECT ${MICRO_DBUS_SOURCES})
 
-pkg_check_modules(DBUS REQUIRED dbus-1)
-
 target_include_directories(micro-dbus PUBLIC ${DBUS_INCLUDE_DIRS})
 target_link_directories(micro-dbus PUBLIC ${DBUS_LIBRARY_DIRS})
 target_link_libraries(micro-dbus

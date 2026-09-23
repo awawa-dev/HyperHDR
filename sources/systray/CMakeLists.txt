@@ -34,8 +34,7 @@ endif()
 
 if(ENABLE_SYSTRAY AND UNIX)
 	if(NOT APPLE)
-		target_include_directories(systray-widget PRIVATE ${AppIndicator_INCLUDE_DIRS} )
-		target_link_libraries(systray-widget PRIVATE ${AppIndicator_LIBRARIES} )
+		target_link_libraries(systray-widget PUBLIC micro-dbus )		
 	endif()
 endif()
 

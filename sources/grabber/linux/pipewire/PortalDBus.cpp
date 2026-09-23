@@ -69,40 +69,13 @@ bool PortalDBus::open()
 
 int PortalDBus::screenCastVersion()
 {
-	DBusMessage* message = makeMethodCall(DesktopService, DesktopPath, PropertiesInterface, "Get");
-	if (!message)
-		return -1;
+	const QVariant value = getProperty(QLatin1String(DesktopService), QLatin1String(DesktopPath), QLatin1String(ScreenCastInterface), QStringLiteral("version"), "ScreenCast.version");
 
-	DBusMessageIter args;
-	dbus_message_iter_init_append(message, &args);
-
-	const char* interface = ScreenCastInterface;
-	const char* property = "version";
-
-	if (!dbus_message_iter_append_basic( &args, DBUS_TYPE_STRING, &interface) ||
-		!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
-	{
-		dbus_message_unref(message);
-		qWarning() << "PortalDBus: could not encode ScreenCast.version";
+	if (!isType<quint32>(value)) {
+		qWarning() << "PortalDBus: invalid ScreenCast.version reply";
 		return -1;
 	}
-
-	DBusMessage* reply = callSync(message, "ScreenCast.version");
-	if (!reply)
-		return -1;
-
-	QVariantList values;
-	const bool valid = readMessage(reply, values) &&
-		values.size() == 1 &&
-		values.first().canConvert<quint32>();
-
-	const int version = valid ? values.first().toUInt() : -1;
-	dbus_message_unref(reply);
-
-	if (!valid)
-		qWarning() << "PortalDBus: invalid ScreenCast.version reply";
-
-	return version;
+	return static_cast<int>(value.toUInt());
 }
 
 QString PortalDBus::createSession(const QString& sessionToken, const QString& requestToken)
