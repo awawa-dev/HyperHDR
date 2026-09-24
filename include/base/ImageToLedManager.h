@@ -8,12 +8,21 @@
 #endif
 
 #include <image/Image.h>
+#include <image/GaussianBlur.h>
 #include <utils/Logger.h>
 #include <base/LedString.h>
 #include <base/ImageColorAveraging.h>
 #include <blackborder/BlackBorderProcessor.h>
 
 #include <linalg.h>
+#include <vector>
+
+struct LedBrightnessRange
+{
+    int from;
+    int to;
+    float brightness;
+};
 
 class HyperHdrInstance;
 
@@ -33,7 +42,10 @@ public:
 	static QString mappingTypeToStr(int mappingType);
 
 	void setSparseProcessing(bool sparseProcessing);
-	void processFrame(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& frameBuffer);
+	void setGaussianBlurRadius(int radius);
+	void setLedBrightnessRanges(const std::vector<LedBrightnessRange>& ranges);
+	void setBlackThreshold(int threshold);
+	void processFrame(std::vector<linalg::aliases::float3>& ledColors, const Image<ColorRgb>& frameBuffer, Image<ColorRgb>& outImage);
 
 signals:
 	void SignalImageToLedsMappingChanged(int mappingType);
@@ -65,4 +77,7 @@ private:
 	std::unique_ptr<hyperhdr::ImageColorAveraging> _colorAveraging;
 	int		_mappingType;
 	bool	_sparseProcessing;
+	int _gaussianBlurRadius = 0;
+	std::vector<LedBrightnessRange> _brightnessRanges;
+	float _blackThreshold = 0.0f;
 };
