@@ -70,6 +70,8 @@ private:
 
 	void stop_capturing();
 
+	void restartCapture();
+
 	bool process_image(v4l2_buffer* buf, const void* frameImageBuffer, int size);
 
 	int xioctl(int request, void* arg);
@@ -96,8 +98,15 @@ private:
 		size_t	length;
 	};
 
+	// consecutive undersized frames (bytesused < expected) tolerated before the stream is re-initialized
+	static constexpr int FRAME_SIZE_MISMATCH_RESTART_THRESHOLD = 8;
+	// how many times a failed stream re-initialization is retried (3s apart) before giving up
+	static constexpr int MAX_RESTART_ATTEMPTS = 5;
+
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
-	QSocketNotifier*	_streamNotifier;	
+	QSocketNotifier*	_streamNotifier;
 	GrabberManager      _V4L2WorkerManager;
+	int                 _consecutiveFrameSizeErrors;
+	int                 _restartAttempts;
 };
