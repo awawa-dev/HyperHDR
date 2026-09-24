@@ -215,6 +215,7 @@ protected:
 		QStringList					framerates = QStringList();
 		DeviceControlCapability		brightness, contrast, saturation, hue;
 		QList<DevicePropertiesItem> valid = QList<DevicePropertiesItem>();
+		bool						isPrimary = false;
 	};
 
 	QMap<QString, DeviceProperties> _deviceProperties;

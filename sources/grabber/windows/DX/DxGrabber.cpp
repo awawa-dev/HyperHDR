@@ -166,7 +166,7 @@ bool DxGrabber::init()
 	{
 		QString foundDevice = "";
 		bool    autoDiscovery = (QString::compare(_deviceName, Grabber::AUTO_SETTING, Qt::CaseInsensitive) == 0);
-
+		
 		enumerateDevices(true);
 
 
@@ -181,7 +181,15 @@ bool DxGrabber::init()
 		if (autoDiscovery)
 		{
 			Debug(_log, "Forcing auto discovery device");
-			if (!_deviceProperties.isEmpty())
+			for (auto [key, properties] : _deviceProperties.asKeyValueRange())
+			{
+				if (properties.isPrimary)
+				{
+					foundDevice = key;
+				}
+			}
+
+			if (foundDevice.isNull()) //fallback in case none is primary.. unsure if that can happen
 			{
 				foundDevice = _deviceProperties.firstKey();
 				Debug(_log, "Auto discovery set to {:s}", (foundDevice));
@@ -234,7 +242,7 @@ void DxGrabber::enumerateDevices(bool /*silent*/)
 	{
 		DeviceProperties properties;
 		DXGI_ADAPTER_DESC1 pDesc;
-
+		MONITORINFOEX mi{}; mi.cbSize = sizeof(mi);
 		pAdapter->GetDesc1(&pDesc);
 
 		IDXGIOutput* pOutput;
@@ -243,15 +251,15 @@ void DxGrabber::enumerateDevices(bool /*silent*/)
 		{
 			DXGI_OUTPUT_DESC oDesc;
 			pOutput->GetDesc(&oDesc);
-
+			properties.isPrimary = (GetMonitorInfo(oDesc.Monitor, &mi) && (mi.dwFlags & MONITORINFOF_PRIMARY));
 			QString dev = QString::fromWCharArray(oDesc.DeviceName) + "|" + QString::fromWCharArray(pDesc.Description);
 			_deviceProperties.insert(dev, properties);
-
 			SafeRelease(&pOutput);
 		}
 
 		if (j > 1)
 		{
+			properties = DeviceProperties();
 			_deviceProperties.insert(MULTI_MONITOR + "|" + QString::fromWCharArray(pDesc.Description), properties);
 		}
 
