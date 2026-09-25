@@ -32,7 +32,6 @@ SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_SPI_FTDI                    ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON  )
 SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
-SET ( DEFAULT_USE_SYSTEM_SDBUS_CPP_LIBS   OFF )
 SET ( DEFAULT_USE_SYSTEM_LUNASVG_LIBS     OFF )
 SET ( DEFAULT_USE_SYSTEM_NANOPB_LIBS      OFF )
 SET ( DEFAULT_USE_SYSTEM_STB_LIBS         OFF )
@@ -63,7 +62,7 @@ SET ( DEFAULT_EMBEDDED_WEB_RESOURCES      OFF )
 option(USE_CCACHE_CACHING "Enable CCache caching" ON )
 if (USE_CCACHE_CACHING)
 	find_program(CCACHE_FOUND ccache HINTS "${CMAKE_CURRENT_SOURCE_DIR}/build")
-	if ( CCACHE_FOUND )		
+	if ( CCACHE_FOUND )
 		if (DEFINED ENV{CCACHE_DIR})
 			set (CCACHE_DIR_CACHE_LOCATION $ENV{CCACHE_DIR})
 			message ( STATUS "Found CCache (${CCACHE_FOUND}) and its env settings: ${CCACHE_DIR_CACHE_LOCATION}. Will try to use it." )			
@@ -85,13 +84,23 @@ if (USE_CCACHE_CACHING)
 			configure_file(${OUR_CMAKE_MODULES}/ccache.windows.conf.in $ENV{USERPROFILE}/.ccache/ccache.conf)
 			configure_file(${OUR_CMAKE_MODULES}/Directory.Build.props.in ${CMAKE_BINARY_DIR}/Directory.Build.props)
 		else()
-			set(HYPERHDR_CCACHE_PARAMS
+			if ( APPLE )
+				set(HYPERHDR_CCACHE_PARAMS
+				CCACHE_MAXSIZE=600M
+				CCACHE_NOCOMPRESS=true
+				CCACHE_DIR=${CCACHE_DIR_CACHE_LOCATION}
+				CCACHE_SLOPPINESS=pch_defines,time_macros,include_file_mtime,include_file_ctime,file_macro
+				CACHE STRING "CCache parameters")
+
+				add_compile_options(-Xclang -fno-pch-timestamp)
+			else()
+				set(HYPERHDR_CCACHE_PARAMS
 				CCACHE_MAXSIZE=600M
 				CCACHE_NOCOMPRESS=true
 				CCACHE_DIR=${CCACHE_DIR_CACHE_LOCATION}
 				CCACHE_SLOPPINESS=pch_defines,time_macros
-				CCACHE_INODECACHE=true
 				CACHE STRING "CCache parameters")
+			endif()
 			mark_as_advanced(HYPERHDR_CCACHE_PARAMS)
 
 			set(CMAKE_C_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env ${HYPERHDR_CCACHE_PARAMS} ${CCACHE_FOUND})
@@ -312,7 +321,7 @@ set ( HYPERHDR_HAVE_DBUS                  OFF )
 if (DEFAULT_POWER_MANAGEMENT OR DEFAULT_PIPEWIRE OR DEFAULT_SYSTRAY)
 	if(UNIX AND NOT APPLE)
 		find_package(PkgConfig REQUIRED)
-		pkg_check_modules(DBUS REQUIRED dbus-1)
+		pkg_check_modules(DBUS dbus-1)
 		if (NOT DBUS_FOUND)
 			message( WARNING "Libdbus dev package not found. Disabling support for the systray/pipewire/powermanagement.")
 			SET ( DEFAULT_POWER_MANAGEMENT               OFF )
@@ -360,24 +369,6 @@ if (DEFAULT_PIPEWIRE)
 		else()
 			SET ( DEFAULT_PIPEWIRE_EGL                ON )
 		endif()
-	endif()
-endif()
-
-# CEC library
-find_library (CEC_SUPPORT p8-platform NAMES libp8-platform.so.2 libp8-platform p8-platform )
-if(NOT CEC_SUPPORT AND DEFAULT_CEC)
-	message( WARNING "libp8-platform library not found. Install libp8-platform-dev. CEC support is disabled." )
-	SET ( DEFAULT_CEC OFF )
-elseif(DEFAULT_CEC)
-	message( STATUS "libCEC support library found: " ${CEC_SUPPORT} )
-endif()
-
-if(DEFAULT_CEC)
-	FIND_PACKAGE(PkgConfig REQUIRED)
-	pkg_check_modules (CEC libcec>=6.0.0)
-	if(NOT CEC_FOUND)
-		message( WARNING "Could not find: libcec>=6. Disabling CEC support." )
-		SET ( DEFAULT_CEC OFF )
 	endif()
 endif()
 
@@ -541,6 +532,10 @@ SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
 find_package(GitVersion)
 
+if(ENABLE_ZSTD)
+	find_package(zstd)
+endif()
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/../../HyperhdrConfig.h.in" "${PROJECT_BINARY_DIR}/HyperhdrConfig.h")
@@ -572,20 +567,16 @@ else()
 endif()
 message(STATUS "C++20 support has been enabled.")
 
-# Use lld then ld.gold linker if available
-if((CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang") AND NOT WIN32 AND NOT APPLE)
-	find_program(LLD_EXECUTABLE lld)
-	find_program(GOLD_EXECUTABLE ld.gold)
+# Use lld linker if available
+if((CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang") AND NOT WIN32 AND NOT APPLE)
+    find_program(LLD_EXECUTABLE ld.lld)
 
-	if(LLD_EXECUTABLE)
-		message(STATUS "Found 'lld' linker, enabling...")
-		add_compile_options("-fuse-ld=lld")
-	elseif(GOLD_EXECUTABLE)
-		message(STATUS "Found 'gold' linker, enabling...")
-		add_compile_options("-fuse-ld=gold")
-	else()
-		message(STATUS "Using default system linker (lld and gold not found).")
-	endif()
+    if(LLD_EXECUTABLE)
+        message(STATUS "Found 'lld' linker, enabling...")
+        add_link_options("-fuse-ld=lld")
+    else()
+        message(STATUS "Using default system linker (ld.lld not found).")
+    endif()
 endif()
 
 # Don't create new dynamic tags (RUNPATH)
