@@ -9,7 +9,6 @@ add_library(cechandler OBJECT ${CECHANDLER_SOURCES})
 target_include_directories(cechandler PUBLIC ${CEC_INCLUDE_DIRS})
 
 target_link_libraries(cechandler
-	${CEC_LIBRARIES}
 	Qt${Qt_VERSION}::Network
 	Qt${Qt_VERSION}::Core
 )

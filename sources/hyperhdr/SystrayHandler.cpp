@@ -65,6 +65,10 @@
 #define SYSTRAY_WIDGET_LIB "libsystray-widget.so"
 #include <cstdlib>
 #include <dlfcn.h>
+#include <QStandardPaths>
+#include <QSaveFile>
+#include <QRegularExpression>
+
 namespace
 {
 	void* _library = nullptr;
@@ -72,6 +76,25 @@ namespace
 	SystrayLoopFun SystrayLoop = nullptr;
 	SystrayUpdateFun SystrayUpdate = nullptr;
 	SystrayCloseFun SystrayClose = nullptr;
+	SystrayDarkmodeFun SystrayDarkmode = nullptr;
+
+	QString makeIconName(const QString& filename)
+	{
+		QString name = QFileInfo(filename).completeBaseName();
+		name.replace(QRegularExpression(QStringLiteral("[^A-Za-z0-9_-]+")), QStringLiteral("-"));
+		while (name.contains(QStringLiteral("--")))
+			name.replace(QStringLiteral("--"), QStringLiteral("-"));
+		name = name.trimmed();
+		if (!name.startsWith(QStringLiteral("hyperhdr-"), Qt::CaseInsensitive))
+			name.prepend(QStringLiteral("hyperhdr-"));
+		return name;
+	}
+}
+#endif
+
+#if defined(__linux__) || defined(__APPLE__)
+namespace {
+	bool isDarkMode = false;
 }
 #endif
 
@@ -101,8 +124,9 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 		SystrayLoop = (SystrayLoopFun)dlsym(_library, "SystrayLoop");
 		SystrayUpdate = (SystrayUpdateFun)dlsym(_library, "SystrayUpdate");
 		SystrayClose = (SystrayCloseFun)dlsym(_library, "SystrayClose");
+		SystrayDarkmode = (SystrayDarkmodeFun)dlsym(_library, "SystrayDarkmode");
 
-		if (SystrayInitialize == nullptr || SystrayLoop == nullptr || SystrayUpdate == nullptr || SystrayClose == nullptr)
+		if (SystrayInitialize == nullptr || SystrayLoop == nullptr || SystrayUpdate == nullptr || SystrayClose == nullptr || SystrayDarkmode == nullptr)
 		{
 			printf("Could not resolve libSystrayWidget.so functions\n");
 			dlclose(_library);
@@ -116,7 +140,14 @@ SystrayHandler::SystrayHandler(HyperHdrDaemon* hyperhdrDaemon, quint16 webPort, 
 		_haveSystray = SystrayInitialize(nullptr);
 #else
 	_haveSystray = SystrayInitialize(nullptr);
-#endif	
+#endif
+
+#if defined(__linux__) || defined(__APPLE__)
+	if (_haveSystray) {
+		isDarkMode = SystrayDarkmode();
+		qDebug().nospace() << "System theme mode: " << ((isDarkMode) ? "dark" : "standard");
+	}
+#endif
 }
 
 SystrayHandler::~SystrayHandler()
@@ -170,61 +201,63 @@ static QString preloadSvg(const QString& filename)
 
 static void loadSvg(std::unique_ptr<SystrayMenu>& menu, QString filename, [[maybe_unused]] QString rootFolder, [[maybe_unused]] QString destFilename = "")
 {
+	if (!menu)
+		return;
 
-#ifdef __linux__
-			int iconDim = 16;
-	#else
-		#ifdef __APPLE__
-			int iconDim = 18;
-		#else
-			int iconDim = 22;
-
-			if (filename == ":/hyperhdr-tray-icon.svg")
-				iconDim = 32;
-	#endif
+	int iconDim = 16;
+#ifdef __APPLE__
+	iconDim = 18;
+#elif defined(__linux__)
+	iconDim = 22;
 #endif
 
+	if (filename == ":/hyperhdr-tray-icon.svg")
+		iconDim = 32;
+
 #ifdef __linux__
-	if (destFilename.isEmpty())
+	menu->iconName.clear();
+
+	const QString iconsRoot = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QStringLiteral("/icons");
+	const QString iconName = makeIconName(destFilename.isEmpty() ? QFileInfo(filename).fileName() : destFilename);
+	if (!iconsRoot.isEmpty() && !iconName.isEmpty())
 	{
-		destFilename = filename;
-		if (destFilename.indexOf(":/") == 0)
-			destFilename = destFilename.right(destFilename.size() - 2);
-		destFilename.replace(".svg", ".png");
-	}
+		if (QString targetDir = QDir(iconsRoot).filePath(QStringLiteral("hicolor/%1/apps").arg(QStringLiteral("%1x%1").arg(iconDim))); QDir().mkpath(targetDir))
+		{
+			QString target = QDir(targetDir).filePath(iconName + QStringLiteral(".png"));
+			if (!QFileInfo::exists(target))
+			{
+				std::vector<uint8_t> data;
+				QString svgFile = preloadSvg(filename);
+				
+				const QString clearColor = isDarkMode ? QStringLiteral("#F4A100") : QStringLiteral("#996A00");
+				const QString settingsColor = isDarkMode ? QStringLiteral("#33D17A") : QStringLiteral("#0E8420");
 
-	QString fullPath = rootFolder + "/systray-icons/" + destFilename;
-	QFileInfo iconFile(fullPath);
+				if (filename.contains(QStringLiteral("clear.svg"), Qt::CaseInsensitive))
+					svgFile.replace(QStringLiteral("fill=\"black\""), QString("fill=\"%1\"").arg(clearColor));
+				else if (filename.contains(QStringLiteral("settings.svg"), Qt::CaseInsensitive))
+					svgFile.replace(QStringLiteral("fill=\"black\""), QString("fill=\"%1\"").arg(settingsColor));
 
-	if (!iconFile.exists())
-	{
-		QDir().mkpath(iconFile.absolutePath());
+				utils_image::svg2png(svgFile.toStdString(), iconDim, iconDim, data);
+				if (data.empty())
+					return;
 
-		std::vector<uint8_t> ar;
-
-		QString svgData = preloadSvg(filename);
-
-		if (filename.contains("clear.svg", Qt::CaseInsensitive)) {			
-			svgData.replace("fill=\"black\"", QString("fill=\"#FFFF00\""));
+				QSaveFile file(target);
+				if (!file.open(QIODevice::WriteOnly) ||
+					file.write(reinterpret_cast<const char*>(data.data()), static_cast<qint64>(data.size())) != static_cast<qint64>(data.size()) ||
+					!file.commit())
+				{
+					qWarning() << "Systray: cannot write Linux tray icon" << target;
+					return;
+				}
+			}
+			menu->iconName = iconName.toStdString();
 		}
-		else if (filename.contains("settings.svg", Qt::CaseInsensitive)) {
-			svgData.replace("fill=\"black\"", QString("fill=\"#00FF00\""));
-		}
-
-		utils_image::svg2png(svgData.toStdString(), iconDim, iconDim, ar);
-
-		QFile newIcon(fullPath);
-		newIcon.open(QIODevice::WriteOnly);
-		newIcon.write(reinterpret_cast<char*>(ar.data()), ar.size());
-		newIcon.close();
 	}
-
-	menu->tooltip = fullPath.toStdString();
 #else
 	std::vector<uint8_t> ar;
 	QString svgFile = preloadSvg(filename);
 	#ifdef __APPLE__
-	if (filename.indexOf(":/") == 0 && SystrayDarkmode())
+	if (filename.indexOf(":/") == 0 && isDarkMode)
 	{
 		svgFile.replace("fill=\"black\"", "fill=\"white\"");
 	}

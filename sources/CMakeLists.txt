@@ -53,6 +53,10 @@ if(ENABLE_MQTT)
 	add_subdirectory(mqtt)
 endif()
 
+if (UNIX AND NOT APPLE AND (ENABLE_POWER_MANAGEMENT OR ENABLE_PIPEWIRE OR ENABLE_SYSTRAY))
+	add_subdirectory(micro-dbus)
+endif()
+
 # Executables
 add_subdirectory(hyperhdr)
 

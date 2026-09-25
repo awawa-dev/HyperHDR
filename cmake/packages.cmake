@@ -108,7 +108,7 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/linux/debian/preinst;${CMAKE_SOURCE_DIR}/cmake/linux/debian/postinst;${CMAKE_SOURCE_DIR}/cmake/linux/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0 | libglib2.0-0t64" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "xz-utils, libglib2.0-0 | libglib2.0-0t64, libdbus-1-3" )
 
 SET ( CPACK_DEBIAN_PACKAGE_SUGGESTS "libx11-6" )
 if ( ENABLE_SYSTRAY )
@@ -121,7 +121,7 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
-SET ( CPACK_RPM_PACKAGE_REQUIRES "xz" )
+SET ( CPACK_RPM_PACKAGE_REQUIRES "xz, dbus-libs" )
 SET ( CPACK_RPM_PACKAGE_AUTOREQPROV 0 )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%pre" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/rpm/%post")
@@ -144,21 +144,16 @@ if ( UNIX AND NOT APPLE )
 		message("Adding system runtime dependencies (ENABLE_DEPENDENCY_PACKAGING=OFF)")
 
 		set(HYPERHDR_DEB_RUNTIME_DEPS
-			"libasound2 | libasound2t64, libayatana-appindicator3-1, libegl1, libgl1, libglvnd0, libglx0, libgtk-3-0 | libgtk-3-0t64, liblzma5, libpipewire-0.3-0, libssl3 | libssl3t64 | libssl1.1, libsystemd0, libturbojpeg0, libftdi1 | libftdi1-2, libusb-1.0-0, libx11-6, libzstd1, libqt6core6, libqt6network6, libqt6serialport6"
+			"libasound2 | libasound2t64, libegl1, libgl1, libglvnd0, libglx0, liblzma5, libpipewire-0.3-0, libssl3 | libssl3t64 | libssl1.1, libturbojpeg0, libftdi1 | libftdi1-2, libusb-1.0-0, libzstd1, libqt6core6, libqt6network6, libqt6serialport6"
 		)
 
 		string(CONCAT CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${HYPERHDR_DEB_RUNTIME_DEPS}")
 
 		set(HYPERHDR_RPM_RUNTIME_DEPS
-			"alsa-lib, libayatana-appindicator-gtk3, libftdi, gtk3, libX11, libglvnd, mesa-libEGL, mesa-libGL, libusb1, libzstd, openssl-libs, pipewire-libs, qt6-qtbase, qt6-qtserialport, systemd-libs, turbojpeg, xz-libs, hicolor-icon-theme"
+			"alsa-lib, libftdi, libglvnd, mesa-libEGL, mesa-libGL, libusb1, libzstd, openssl-libs, pipewire-libs, qt6-qtbase, qt6-qtserialport, turbojpeg, xz-libs, hicolor-icon-theme"
 		)
 
 		string(CONCAT CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, ${HYPERHDR_RPM_RUNTIME_DEPS}")
-
-		if(ENABLE_CEC)
-			string(CONCAT CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libcec7 | libcec6 | libcec4 | libcec-dev")
-			string(CONCAT CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, libcec")
-		endif()
 	endif()
 
 	message("DEB deps: ${CPACK_DEBIAN_PACKAGE_DEPENDS}")

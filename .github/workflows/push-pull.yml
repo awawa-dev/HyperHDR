@@ -17,7 +17,7 @@ jobs:
 
   Linux:
     name: ${{ matrix.architecture }}/${{ matrix.distroName}}:${{ matrix.distroVersion }}
-    runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ${{ startsWith(matrix.architecture, 'arm') && 'ubuntu-26.04-arm' || 'ubuntu-26.04' }}
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository)
     env:
       platform: ${{ startsWith(matrix.architecture, 'arm') && 'rpi' || 'linux' }}
@@ -281,7 +281,7 @@ jobs:
   sign-windows:
     name: Sign Windows Installer
     needs: [windows]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if:  github.event_name != 'pull_request' && fromJSON(vars.USE_SIGNPATH || 'false')
     steps:
       - name: Download unsigned artifact
@@ -355,8 +355,8 @@ jobs:
 
   analyze:
     name: Analyze (CodeQL)
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository) && fromJSON(vars.USE_CODEQL || 'true')    
+    runs-on: ubuntu-26.04
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository) && fromJSON(vars.USE_CODEQL || 'true')
 
     permissions:
       actions: read
@@ -385,7 +385,7 @@ jobs:
 
   clang-tidy-clazy:
     name: Analyze (clang and clazy)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: fromJSON(vars.USE_CODEQL || 'false') && false
 
     permissions:
@@ -456,7 +456,7 @@ jobs:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags') && github.event_name != 'pull_request'
     needs: [Linux, sign-windows, macOS]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:

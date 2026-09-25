@@ -25,6 +25,9 @@ print_manual()
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}armhf${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}arm64${ColorReset}"
 	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}trixie${ColorReset}         | ${YellowColor2}amd64${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}forky${ColorReset}          | ${YellowColor2}armhf${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}forky${ColorReset}          | ${YellowColor2}arm64${ColorReset}"
+	printf "\n   ${YellowColor2}debian${ColorReset}    | ${YellowColor2}forky${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}noble${ColorReset}          | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}ubuntu${ColorReset}    | ${YellowColor2}resolute${ColorReset}       | ${YellowColor2}amd64${ColorReset}"
 	printf "\n   ${YellowColor2}fedora${ColorReset}    | ${YellowColor2}44${ColorReset}             | ${YellowColor2}amd64${ColorReset}"
@@ -222,7 +225,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		if [ ${INCLUDE_DEP_LIB} = true ]; then
 			executeCommand=${executeCommand}" && makepkg"
 		else
-			executeCommand=${executeCommand}" && sed -i 's|) #<depends>| alsa-lib libftdi gtk3 hicolor-icon-theme libayatana-appindicator libjpeg-turbo libusb libx11 libglvnd mesa openssl pipewire qt6-base qt6-serialport systemd-libs wayland xz zstd)|' PKGBUILD"
+			executeCommand=${executeCommand}" && sed -i 's|) #<depends>| alsa-lib libftdi hicolor-icon-theme libjpeg-turbo libusb libglvnd mesa openssl pipewire qt6-base qt6-serialport wayland xz zstd)|' PKGBUILD"
 			executeCommand=${executeCommand}" && makepkg -d"
 		fi
 

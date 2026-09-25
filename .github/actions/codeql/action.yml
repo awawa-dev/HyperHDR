@@ -23,35 +23,38 @@ runs:
     shell: bash
     run: |
       sudo apt-get update && sudo apt-get install \
+        cmake \
+        libqt5serialport5-dev \
+        qtbase5-dev \
         build-essential \
         cmake \
+        flatbuffers-compiler \
         git \
-        libgtk-3-dev \
-        libayatana-appindicator3-dev \
         libasound2-dev \
+        libdbus-1-dev \
+        libdrm-dev \
         libegl-dev \
-        libflatbuffers-dev flatbuffers-compiler \
+        libflatbuffers-dev \
         libftdi1-dev \
         libgl-dev \
         libglvnd-dev \
         liblzma-dev \
         libpipewire-0.3-dev \
-        libqt5serialport5-dev \
         libssl-dev \
-        libsystemd-dev \
         libturbojpeg0-dev \
+        libudev-dev \
         libusb-1.0-0-dev \
-        libx11-dev \
         libzstd-dev \
+        lld \
+        ninja-build \
+        patchelf \
         pkg-config \
-        qtbase5-dev \
-        wget \
+        python3 \
         unzip \
-        pkg-config \
-        python3
+        wget;
 
   - name: Checkout repository
-    uses: actions/checkout@v6
+    uses: actions/checkout@v7
     with:
       submodules: true
 
