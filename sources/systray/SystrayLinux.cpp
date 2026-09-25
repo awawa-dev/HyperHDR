@@ -116,8 +116,7 @@ namespace
 			const int nameResult = dbus_bus_request_name(connection(), _serviceName.c_str(), DBUS_NAME_FLAG_DO_NOT_QUEUE, &error);
 			if (dbus_error_is_set(&error) ||
 				(nameResult != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER && nameResult != DBUS_REQUEST_NAME_REPLY_ALREADY_OWNER))
-			{
-				if (dbus_error_is_set(&error)) qWarning().nospace() << "SystraySni: " << error.name << ": " << error.message;
+			{				
 				dbus_error_free(&error);
 				closeConnection();
 				return false;
