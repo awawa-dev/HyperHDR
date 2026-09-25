@@ -83,6 +83,8 @@ macro(InstallerLinux TARGET)
             install(CODE "set(DEST_DIR \"${CMAKE_INSTALL_LIBDIR}/hyperhdr/external\")" COMPONENT "HyperHDR")
 
             install(CODE [[
+                include(GetPrerequisites)
+                
                 set(SYSTEM_LIBS_SKIP
                     "libc" "libglib-2" "libsystemd0" "libdbus-1" "libdl" "libexpat" "libfontconfig" "libgcc_s"
                     "libm" "libpthread" "librt" "libstdc++" "libudev" "libz.so" "libxrender1"
