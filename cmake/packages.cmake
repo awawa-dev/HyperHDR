@@ -144,13 +144,13 @@ if ( UNIX AND NOT APPLE )
 		message("Adding system runtime dependencies (ENABLE_DEPENDENCY_PACKAGING=OFF)")
 
 		set(HYPERHDR_DEB_RUNTIME_DEPS
-			"libasound2 | libasound2t64, libayatana-appindicator3-1, libegl1, libgl1, libglvnd0, libglx0, libgtk-3-0 | libgtk-3-0t64, liblzma5, libpipewire-0.3-0, libssl3 | libssl3t64 | libssl1.1, libsystemd0, libturbojpeg0, libftdi1 | libftdi1-2, libusb-1.0-0, libx11-6, libzstd1, libqt6core6, libqt6network6, libqt6serialport6"
+			"libasound2 | libasound2t64, libegl1, libgl1, libglvnd0, libglx0, liblzma5, libpipewire-0.3-0, libssl3 | libssl3t64 | libssl1.1, libturbojpeg0, libftdi1 | libftdi1-2, libusb-1.0-0, libzstd1, libqt6core6, libqt6network6, libqt6serialport6"
 		)
 
 		string(CONCAT CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, ${HYPERHDR_DEB_RUNTIME_DEPS}")
 
 		set(HYPERHDR_RPM_RUNTIME_DEPS
-			"alsa-lib, libayatana-appindicator-gtk3, libftdi, gtk3, libX11, libglvnd, mesa-libEGL, mesa-libGL, libusb1, libzstd, openssl-libs, pipewire-libs, qt6-qtbase, qt6-qtserialport, systemd-libs, turbojpeg, xz-libs, hicolor-icon-theme"
+			"alsa-lib, libftdi, libglvnd, mesa-libEGL, mesa-libGL, libusb1, libzstd, openssl-libs, pipewire-libs, qt6-qtbase, qt6-qtserialport, turbojpeg, xz-libs, hicolor-icon-theme"
 		)
 
 		string(CONCAT CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}, ${HYPERHDR_RPM_RUNTIME_DEPS}")

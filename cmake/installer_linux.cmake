@@ -83,6 +83,8 @@ macro(InstallerLinux TARGET)
             install(CODE "set(DEST_DIR \"${CMAKE_INSTALL_LIBDIR}/hyperhdr/external\")" COMPONENT "HyperHDR")
 
             install(CODE [[
+                include(GetPrerequisites)
+                
                 set(SYSTEM_LIBS_SKIP
                     "libc" "libglib-2" "libsystemd0" "libdbus-1" "libdl" "libexpat" "libfontconfig" "libgcc_s"
                     "libm" "libpthread" "librt" "libstdc++" "libudev" "libz.so" "libxrender1"
@@ -96,20 +98,6 @@ macro(InstallerLinux TARGET)
                     "libnghttp" "libsystemd" "libpsl" "libunistring" "libssh" "libselinux"
                     "libevent-2" "libldap" "libutils" "libsqlite3" "libqmqtt"
                 )
-
-                include(GetPrerequisites)        
-                if (NOT CMAKE_CROSSCOMPILING)
-                    file(GET_RUNTIME_DEPENDENCIES RESOLVED_DEPENDENCIES_VAR DEPENDENCIES EXECUTABLES ${TARGET_FILE})
-
-                    file(GET_RUNTIME_DEPENDENCIES RESOLVED_DEPENDENCIES_VAR SYS_DEPENDENCIES EXECUTABLES $<TARGET_FILE:systray-widget>)
-                    foreach(systrayLib ${SYS_DEPENDENCIES})
-                        string(FIND ${systrayLib} "libayatana" _sysindex)
-                        string(FIND ${systrayLib} "libdbusmenu" _sysDBusindex)
-                        if (${_sysindex} GREATER -1 OR ${_sysDBusindex} GREATER -1)
-                            list(APPEND DEPENDENCIES ${systrayLib})
-                        endif()
-                    endforeach()                        
-                endif()
 
                 # Kopiowanie pluginów QT do lib/hyperhdr/external/plugins
                 foreach(PLUGIN "tls")

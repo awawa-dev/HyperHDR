@@ -43,6 +43,8 @@ struct SystrayMenu
 	std::string label;
 	std::string tooltip;
 
+	std::string iconName;
+
 	bool isDisabled = false;
 	bool isChecked = false;
 	int checkGroup = false;
@@ -59,6 +61,7 @@ struct SystrayMenu
 	typedef int (*SystrayLoopFun)(void);
 	typedef void (*SystrayUpdateFun)(SystrayMenu* tray);
 	typedef void (*SystrayCloseFun)(void);
+	typedef bool (*SystrayDarkmodeFun)(void);
 #else
 	bool SystrayInitialize(SystrayMenu* tray);
 	int SystrayLoop();

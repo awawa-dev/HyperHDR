@@ -46,7 +46,7 @@ target_link_libraries(hyperhdr
 	${APPKIT_FRAMEWORK}
 )
 
-if(ENABLE_POWER_MANAGEMENT AND UNIX AND NOT APPLE)
+if((ENABLE_POWER_MANAGEMENT OR ENABLE_SYSTRAY) AND UNIX AND NOT APPLE)
 	target_link_libraries(hyperhdr micro-dbus)
 endif()
 

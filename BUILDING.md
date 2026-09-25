@@ -14,13 +14,13 @@
 ```console
 sudo apt-get update
 
-sudo apt-get install build-essential cmake flatbuffers-compiler git libasound2-dev libayatana-appindicator3-dev libdbus-1-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev libgtk-3-dev liblzma-dev libpipewire-0.3-dev libssl-dev libsystemd-dev libturbojpeg0-dev libusb-1.0-0-dev libx11-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget chrpath
+sudo apt-get install build-essential cmake flatbuffers-compiler git libasound2-dev libdbus-1-dev libegl-dev libflatbuffers-dev libftdi1-dev libgl-dev libglvnd-dev liblzma-dev libpipewire-0.3-dev libssl-dev libturbojpeg0-dev libusb-1.0-0-dev libzstd-dev ninja-build patchelf pkg-config python3 qt6-serialport-dev qt6-base-dev unzip wget chrpath
 ```
 
 ### Fedora
 
 ```console
-sudo dnf -y install alsa-lib-devel chrpath cmake dbus-devel fedora-packager flatbuffers-compiler flatbuffers-devel gcc gcc-c++ git gtk3-devel libX11-devel libayatana-appindicator-gtk3-devel libftdi-c++-devel libglvnd-devel libusb1-devel libzstd-devel mesa-libEGL-devel mesa-libGL-devel ninja-build openssl-devel pipewire-devel pkg-config qt6-qtbase-devel qt6-qtserialport-devel systemd-devel turbojpeg-devel unzip wget xz-devel chrpath
+sudo dnf -y install alsa-lib-devel chrpath cmake dbus-devel fedora-packager flatbuffers-compiler flatbuffers-devel gcc gcc-c++ git libftdi-c++-devel libglvnd-devel libusb1-devel libzstd-devel mesa-libEGL-devel mesa-libGL-devel ninja-build openssl-devel pipewire-devel pkg-config qt6-qtbase-devel qt6-qtserialport-devel turbojpeg-devel unzip wget xz-devel chrpath
 
 ```
 
@@ -29,7 +29,7 @@ sudo dnf -y install alsa-lib-devel chrpath cmake dbus-devel fedora-packager flat
 ```console
 sudo pacman -Syy
 
-sudo pacman -S alsa-lib base-devel bash binutils chrpath cmake dbus dpkg fakeroot flatbuffers freetds git gtk3 libayatana-appindicator libfbclient libftdi libglvnd libjpeg-turbo libx11 mariadb-libs mesa ninja openssl pipewire pkgfile postgresql-libs python qt6-base qt6-serialport sdbus-cpp systemd-libs unzip wayland wget xz chrpath
+sudo pacman -S alsa-lib base-devel bash binutils chrpath cmake dbus dpkg fakeroot flatbuffers freetds git libfbclient libftdi libglvnd libjpeg-turbo mariadb-libs mesa ninja openssl pipewire pkgfile postgresql-libs python qt6-base qt6-serialport unzip wayland wget xz chrpath
 ```
 
 ### Windows
@@ -96,28 +96,6 @@ cmake --build . --config Release -- -maxcpucount
 
 # Run it from the build directory
 bin/Release/hyperhdr -d
-```
-
-### LibreELEC 
-
-You can find the add-on sources here on branches of my LibreELEC fork: [link](https://github.com/awawa-dev/LibreELEC.tv) For example `libreelec-11.0-hyperhdr` branch. Adjust HyperHDR package properties in `packages/addons/service/hyperhdr/package.mk` Follow LibreELEC's manual on how to build the image. For example: 
-
-LibreELEC 11/RPi:
-```
-PROJECT=RPi ARCH=arm DEVICE=RPi4 make image
-PROJECT=RPi DEVICE=RPi4 ARCH=arm ./scripts/create_addon hyperhdr
-```
-
-LibreELEC 12/RPi:
-```
-PROJECT=RPi ARCH=aarch64 DEVICE=RPi4 make image
-PROJECT=RPi DEVICE=RPi4 ARCH=aarch64 ./scripts/create_addon hyperhdr
-```
-
-PC(x86_64):
-```
-PROJECT=Generic ARCH=x86_64 DEVICE=Generic make image
-PROJECT=Generic DEVICE=Generic ARCH=x86_64 ./scripts/create_addon hyperhdr
 ```
 
 ----
