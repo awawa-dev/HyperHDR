@@ -87,15 +87,15 @@ bool ProviderSpi::init(QJsonObject deviceConfig)
 	{
 		const QString output = deviceConfig["output"].toString();
 		bool isFtdi = false;
-		#ifdef ENABLE_SPI_FTDI			
-			output.toLong(&isFtdi, 10);
+		#ifdef ENABLE_SPI_FTDI						
 			#ifdef WIN32
+				output.toLong(&isFtdi, 10);
 				if (isFtdi) {
 					_provider = std::make_unique<ProviderSpiFtdi>(_log);
 				}
 			#else
-				if (isFtdi || output.startsWith(ProviderSpiLibFtdi::DEVICE_TAG)) {
-					isFtdi = true;
+				isFtdi = output.startsWith(ProviderSpiLibFtdi::DEVICE_TAG);
+				if (isFtdi) {
 					_provider = std::make_unique<ProviderSpiLibFtdi>(_log);
 				}
 			#endif
