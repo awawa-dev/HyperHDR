@@ -356,7 +356,7 @@ jobs:
   analyze:
     name: Analyze (CodeQL)
     runs-on: ubuntu-26.04
-    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository) && fromJSON(vars.USE_CODEQL || 'false')    
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository) && fromJSON(vars.USE_CODEQL || 'true')
 
     permissions:
       actions: read
