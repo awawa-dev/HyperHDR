@@ -1214,6 +1214,7 @@
   "edt_conf_monitor_nits_title": "Corecția luminozității HDR",
   "edt_conf_monitor_nits_expl": "Luminozitatea țintă SDR utilizată pentru conversia HDR în SDR. Dacă este 0, dezactivează conversia hardware a culorilor, menținând în același timp scalarea accelerată.",
   "edt_append_nits": "nits",
+  "edt_append_frames": "Frames",
   "edt_conf_gen_disableOnLocked_title": "Dezactivare la blocarea sistemului de operare sau oprirea monitorului",
   "edt_conf_gen_disableOnLocked_expl": "Oprește procesarea fișierului de captare software în timpul evenimentelor de blocare a sistemului de operare sau oprire a monitorului.",
   "edt_conf_gen_disableLedsStartup_title": "Opriți LED-urile la pornire",
