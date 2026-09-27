@@ -1,0 +1,397 @@
+name: Build Raspberry Pi Imager Image (Release)
+
+# Automatically builds a Raspberry Pi Imager compatible .img
+# (Raspberry Pi OS Lite + pinned HyperHDR .deb from THIS release)
+# and attaches it to the release assets.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build the image from (e.g. v21.0.0.0). Defaults to the latest release.'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  CUSTOMPIOS_REF: '' # empty = CustomPiOS default branch; pin a tag here if builds become unstable
+
+jobs:
+  build-image:
+    name: Pi Imager image (${{ matrix.pi_arch }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pi_arch: armhf
+            workspace_variant: ''
+            image_subdir: image
+            workspace_dir: CustomPiOS/HyperHDR/src/workspace
+          - pi_arch: arm64
+            workspace_variant: raspios_lite_arm64
+            image_subdir: image-raspios_lite_arm64
+            workspace_dir: CustomPiOS/HyperHDR/src/workspace-raspios_lite_arm64
+
+    steps:
+      - name: Resolve release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG}" ]; then
+            TAG="${INPUT_TAG}"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="$(gh release view --repo '${{ github.repository }}' --json tagName -q .tagName)"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "Building image for release tag: ${TAG} (version ${TAG#v})"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y coreutils p7zip-full qemu-user-static xz-utils jq
+
+      - name: Checkout CustomPiOS
+        uses: actions/checkout@v4
+        with:
+          repository: guysoft/CustomPiOS
+          ref: ${{ env.CUSTOMPIOS_REF }}
+          path: CustomPiOS
+
+      - name: Prepare HyperHDR CustomPiOS module
+        run: |
+          cd CustomPiOS
+          sudo bash -x src/make_custom_pi_os HyperHDR
+          sudo chown -R runner HyperHDR
+
+      - name: Download Raspberry Pi OS Lite base image
+        env:
+          PI_ARCH: ${{ matrix.pi_arch }}
+          IMAGE_SUBDIR: ${{ matrix.image_subdir }}
+        run: |
+          set -euo pipefail
+          mkdir -p "CustomPiOS/HyperHDR/src/${IMAGE_SUBDIR}"
+          cd "CustomPiOS/HyperHDR/src/${IMAGE_SUBDIR}"
+          if [ "${PI_ARCH}" = "arm64" ]; then
+            wget -c --trust-server-names 'https://downloads.raspberrypi.org/raspios_lite_arm64_latest'
+          else
+            wget -c --trust-server-names 'https://downloads.raspberrypi.org/raspios_lite_armhf_latest'
+          fi
+          ls -lh
+
+      # Resolve the exact HyperHDR .deb asset belonging to THIS release.
+      # Priority: trixie > bookworm > bullseye (matches current Pi OS Lite lineage),
+      # confined to the release tag so the image never pulls "latest" from apt.
+      - name: Resolve pinned HyperHDR .deb asset for this release
+        id: deb
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PI_ARCH: ${{ matrix.pi_arch }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          ASSETS="$(gh release view "${TAG}" --repo '${{ github.repository }}' --json assets -q '.assets[].name')"
+          echo "Release assets:"
+          echo "${ASSETS}"
+
+          if [ "${PI_ARCH}" = "arm64" ]; then
+            ARCH_PAT='arm64|aarch64'
+          else
+            # bullseye-era builds may be named armv6l/armv7l/armhf
+            ARCH_PAT='armhf|armv7l|armv6l|armel'
+          fi
+
+          CANDIDATES="$(echo "${ASSETS}" | grep -iE "\.deb$" | grep -iE "${ARCH_PAT}" || true)"
+          if [ -z "${CANDIDATES}" ]; then
+            echo "::error::No .deb asset matching arch '${PI_ARCH}' found in release ${TAG}"
+            exit 1
+          fi
+
+          pick() { echo "${CANDIDATES}" | grep -i "$1" | head -n1 || true; }
+
+          DEB_NAME="$(pick 'trixie')"
+          [ -z "${DEB_NAME}" ] && DEB_NAME="$(pick 'bookworm')"
+          [ -z "${DEB_NAME}" ] && DEB_NAME="$(pick 'bullseye')"
+          [ -z "${DEB_NAME}" ] && DEB_NAME="$(echo "${CANDIDATES}" | head -n1)"
+
+          DEB_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${DEB_NAME}"
+          echo "Selected .deb: ${DEB_NAME}"
+          echo "URL: ${DEB_URL}"
+          echo "name=${DEB_NAME}" >> "$GITHUB_OUTPUT"
+          echo "url=${DEB_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CustomPiOS image (pinned HyperHDR, no apt latest)
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+          DEB_URL: ${{ steps.deb.outputs.url }}
+          DEB_NAME: ${{ steps.deb.outputs.name }}
+        run: |
+          set -euo pipefail
+          cd CustomPiOS/HyperHDR/src
+          {
+            echo 'export DIST_NAME=HyperHDR'
+            echo "export DIST_VERSION=${VERSION}"
+            echo 'export MODULES="base(network,hyperhdr)"'
+            echo 'export RPI_IMAGER_NAME="${DIST_NAME} version ${DIST_VERSION}"'
+            echo 'export RPI_IMAGER_DESCRIPTION="HyperHDR is an open-source ambient lighting system for TVs and music setups. It performs real-time analysis of video and audio streams to create immersive LED lighting."'
+            echo 'export RPI_IMAGER_ICON="https://github.com/awawa-dev/HyperHDR/blob/master/resources/icons/hyperhdr-icon-32px.png"'
+            echo 'export BASE_IMAGE_ENLARGEROOT=2000'
+            echo 'export BASE_IMAGE_RESIZEROOT=200'
+          } > config
+          cat config
+
+          cd modules/hyperhdr
+          cat > start_chroot_script <<EOF
+          #!/usr/bin/env bash
+          set -x
+          set -e
+          source /common.sh
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y curl ca-certificates openssl xz-utils
+          cd /tmp
+          # Pinned .deb from THIS release only - never 'apt install hyperhdr' (would float to latest)
+          curl -fSL '${DEB_URL}' -o 'hyperhdr.deb'
+          apt-get install -y ./hyperhdr.deb
+          rm -f ./hyperhdr.deb
+          apt-get clean
+          # First-boot defaults: SSH on, pi/raspberry login (change via Imager settings!), hostname HyperHDR
+          for BOOT in /boot /boot/firmware; do
+            [ -d "\$BOOT" ] || continue
+            touch "\$BOOT/ssh"
+            echo -n 'pi:' > "\$BOOT/userconf"
+            echo 'raspberry' | openssl passwd -6 -stdin >> "\$BOOT/userconf"
+          done
+          echo "HyperHDR" > /etc/hostname
+          sed -i "s/raspberrypi/HyperHDR/" /etc/hosts
+          systemctl -q enable hyperhdr@pi.service || true
+          # SPI for LED drivers + hotplug so headless grabbers work; handle both old (/boot) and new (/boot/firmware) layouts
+          for CFG in /boot/config.txt /boot/firmware/config.txt; do
+            [ -f "\$CFG" ] || continue
+            sed -i "s/^#dtparam=spi=on.*/dtparam=spi=on/" "\$CFG"
+            grep -q "^dtparam=spi=on" "\$CFG" || echo "dtparam=spi=on" >> "\$CFG"
+            sed -i "s/^#hdmi_force_hotplug=1.*/hdmi_force_hotplug=1/" "\$CFG"
+            grep -q "^hdmi_force_hotplug=1" "\$CFG" || echo "hdmi_force_hotplug=1" >> "\$CFG"
+          done
+          EOF
+          chmod +x start_chroot_script
+          cat start_chroot_script
+
+      - name: Build image with CustomPiOS
+        env:
+          WORKSPACE_VARIANT: ${{ matrix.workspace_variant }}
+        run: |
+          set -euo pipefail
+          sudo modprobe loop || true
+          cd CustomPiOS/HyperHDR
+          sudo bash -x src/build_dist ${WORKSPACE_VARIANT}
+          sudo chown -R runner src/workspace* || true
+          ls -lh src/workspace*/ 2>/dev/null || ls -lh src/
+
+      - name: Compress, checksum and rename output
+        id: img
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          PI_ARCH: ${{ matrix.pi_arch }}
+          WORKSPACE_DIR: ${{ matrix.workspace_dir }}
+        run: |
+          set -euo pipefail
+          IMG_SRC="$(ls -S ${WORKSPACE_DIR}/*.img | head -n1)"
+          echo "Source image: ${IMG_SRC}"
+          OUT_BASENAME="HyperHDR-${VERSION}-RPi-${PI_ARCH}"
+          cp "${IMG_SRC}" "${OUT_BASENAME}.img"
+          # Keep Imager metadata if CustomPiOS generated it (*.info / os.json)
+          for f in "${WORKSPACE_DIR}"/*.info "${WORKSPACE_DIR}"/os.json; do
+            [ -f "$f" ] || continue
+            cp -v "$f" "${OUT_BASENAME}$(echo "$f" | sed 's/.*\(\.info\|os\.json\)/-\1/; s/-os\.json/-os.json/')" || true
+          done
+          # Uncompressed image hashes/sizes (for rpi-imager extract_* fields)
+          EXTRACT_SIZE="$(stat -c%s "${OUT_BASENAME}.img")"
+          EXTRACT_SHA256="$(sha256sum "${OUT_BASENAME}.img" | cut -d' ' -f1)"
+          xz -v9 -T0 "${OUT_BASENAME}.img"
+          DOWNLOAD_SIZE="$(stat -c%s "${OUT_BASENAME}.img.xz")"
+          DOWNLOAD_SHA256="$(sha256sum "${OUT_BASENAME}.img.xz" | cut -d' ' -f1)"
+          echo "${DOWNLOAD_SHA256}  ${OUT_BASENAME}.img.xz" | tee "${OUT_BASENAME}.img.xz.sha256"
+          ls -lh "${OUT_BASENAME}"*
+          echo "basename=${OUT_BASENAME}" >> "$GITHUB_OUTPUT"
+          echo "file=${OUT_BASENAME}.img.xz" >> "$GITHUB_OUTPUT"
+          echo "extract_size=${EXTRACT_SIZE}" >> "$GITHUB_OUTPUT"
+          echo "extract_sha256=${EXTRACT_SHA256}" >> "$GITHUB_OUTPUT"
+          echo "download_size=${DOWNLOAD_SIZE}" >> "$GITHUB_OUTPUT"
+          echo "download_sha256=${DOWNLOAD_SHA256}" >> "$GITHUB_OUTPUT"
+          # Per-arch metadata fragment consumed by the update-imager-json job
+          jq -n \
+            --arg pi_arch "${PI_ARCH}" \
+            --arg tag "${TAG}" \
+            --arg version "${VERSION}" \
+            --arg basename "${OUT_BASENAME}" \
+            --argjson extract_size "${EXTRACT_SIZE}" \
+            --arg extract_sha256 "${EXTRACT_SHA256}" \
+            --argjson image_download_size "${DOWNLOAD_SIZE}" \
+            --arg image_download_sha256 "${DOWNLOAD_SHA256}" \
+            '{pi_arch: $pi_arch, tag: $tag, version: $version, basename: $basename,
+              extract_size: $extract_size, extract_sha256: $extract_sha256,
+              image_download_size: $image_download_size, image_download_sha256: $image_download_sha256}' \
+            | tee "imager-meta-${PI_ARCH}.json"
+
+      - name: Upload imager metadata fragment
+        uses: actions/upload-artifact@v4
+        with:
+          name: imager-meta-${{ matrix.pi_arch }}
+          path: imager-meta-${{ matrix.pi_arch }}.json
+
+      - name: Upload image to this release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          BASENAME: ${{ steps.img.outputs.basename }}
+        run: |
+          set -euo pipefail
+          gh release upload "${TAG}" --repo '${{ github.repository }}' --clobber \
+            "${BASENAME}.img.xz" \
+            "${BASENAME}.img.xz.sha256"
+          # upload Imager sidecar metadata too, if present
+          for extra in "${BASENAME}"*.info "${BASENAME}"*os.json; do
+            [ -f "${extra}" ] || continue
+            gh release upload "${TAG}" --repo '${{ github.repository }}' --clobber "${extra}"
+          done
+          echo "Uploaded ${BASENAME}.img.xz to release ${TAG}"
+
+  # Regenerates rpi-imager/rpi-imager_hyperhdr.json from the freshly built
+  # images (real URLs, sizes and sha256) and commits it back so Raspberry Pi
+  # Imager custom-repo lists always point at the latest release images.
+  update-imager-json:
+    name: Update rpi-imager JSON
+    needs: [build-image]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Download imager metadata fragments
+        uses: actions/download-artifact@v4
+        with:
+          pattern: imager-meta-*
+          path: imager-meta
+          merge-multiple: true
+
+      - name: Resolve release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG}" ]; then
+            TAG="${INPUT_TAG}"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="$(gh release view --repo '${{ github.repository }}' --json tagName -q .tagName)"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate rpi-imager_hyperhdr.json
+        env:
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          ls -l imager-meta/
+          python3 - "$REPO" "$TAG" "$VERSION" <<'PYEOF'
+          import datetime
+          import glob
+          import json
+          import os
+          import sys
+
+          repo, tag, version = sys.argv[1], sys.argv[2], sys.argv[3]
+
+          metas = {}
+          for path in glob.glob('imager-meta/imager-meta-*.json'):
+              with open(path) as f:
+                  meta = json.load(f)
+              metas[meta['pi_arch']] = meta
+
+          release_date = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')
+          icon = f'https://raw.githubusercontent.com/{repo}/master/resources/icons/hyperhdr-icon-32px.png'
+          website = 'https://www.hyperhdr.eu/'
+
+          def entry(pi_arch, name_suffix, description, devices):
+              meta = metas[pi_arch]
+              return {
+                  'name': f'HyperHDR {version} ({name_suffix})',
+                  'description': description,
+                  'url': f'https://github.com/{repo}/releases/download/{tag}/{meta["basename"]}.img.xz',
+                  'icon': icon,
+                  'init_format': 'none',
+                  'website': website,
+                  'extract_size': meta['extract_size'],
+                  'extract_sha256': meta['extract_sha256'],
+                  'image_download_size': meta['image_download_size'],
+                  'image_download_sha256': meta['image_download_sha256'],
+                  'release_date': release_date,
+                  'devices': devices,
+              }
+
+          os_list = []
+          if 'armhf' in metas:
+              os_list.append(entry(
+                  'armhf', '32-bit',
+                  'HyperHDR is an open-source ambient lighting system for TVs and music setups. It performs real-time analysis of video and audio streams to create immersive LED lighting (32-bit, all Pi models).',
+                  ['pi1-32bit', 'pi2-32bit', 'pi3-32bit', 'pi4-32bit', 'pi5-32bit'],
+              ))
+          if 'arm64' in metas:
+              os_list.append(entry(
+                  'arm64', '64-bit',
+                  'HyperHDR is an open-source ambient lighting system for TVs and music setups. It performs real-time analysis of video and audio streams to create immersive LED lighting (64-bit, Pi 3/4/5).',
+                  ['pi3-64bit', 'pi4-64bit', 'pi5-64bit'],
+              ))
+
+          if not os_list:
+              raise SystemExit('No imager metadata fragments found; refusing to write empty os_list')
+
+          os.makedirs('rpi-imager', exist_ok=True)
+          with open('rpi-imager/rpi-imager_hyperhdr.json', 'w') as f:
+              json.dump({'os_list': os_list}, f, indent=4)
+              f.write('\n')
+
+          print(open('rpi-imager/rpi-imager_hyperhdr.json').read())
+          PYEOF
+
+      - name: Commit updated JSON
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add rpi-imager/rpi-imager_hyperhdr.json
+          if git diff --cached --quiet; then
+            echo "rpi-imager JSON unchanged, nothing to commit."
+          else
+            git commit -m "Update rpi-imager JSON for ${{ steps.tag.outputs.tag }}"
+            git push origin HEAD:${{ github.event.repository.default_branch }}
+          fi
+
+      - name: Attach JSON to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "${TAG}" --repo '${{ github.repository }}' --clobber rpi-imager/rpi-imager_hyperhdr.json
