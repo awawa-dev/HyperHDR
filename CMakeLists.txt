@@ -36,7 +36,6 @@ SET ( DEFAULT_PROTOBUF                    ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_SPI_FTDI                    ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON  )
-SET ( DEFAULT_USE_SYSTEM_MQTT_LIBS        OFF )
 SET ( DEFAULT_USE_SYSTEM_LUNASVG_LIBS     OFF )
 SET ( DEFAULT_USE_SYSTEM_NANOPB_LIBS      OFF )
 SET ( DEFAULT_USE_SYSTEM_STB_LIBS         OFF )
@@ -501,9 +500,6 @@ colorMe("USE_PRECOMPILED_HEADERS = " ${USE_PRECOMPILED_HEADERS})
 
 colorMe("USE_CCACHE_CACHING = " ${USE_CCACHE_CACHING})
 
-option(USE_SYSTEM_MQTT_LIBS "Use system qmqtt libs" ${DEFAULT_USE_SYSTEM_MQTT_LIBS})
-colorMe("USE_SYSTEM_MQTT_LIBS = " ${USE_SYSTEM_MQTT_LIBS})
-
 option(USE_SYSTEM_FLATBUFFERS_LIBS "Use system flatbuffers libs" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
 colorMe("USE_SYSTEM_FLATBUFFERS_LIBS = " ${USE_SYSTEM_FLATBUFFERS_LIBS})
 
@@ -717,8 +713,8 @@ add_subdirectory(resources)
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
 
 # external targets
-if (WIN32 AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET qmqtt AND TARGET libzstd_static AND TARGET libzstd_shared AND TARGET clean-all AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers )
-	set_target_properties(stb qmqtt flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
+if (WIN32 AND TARGET core_mqtt AND TARGET stb AND TARGET flatbuffers AND TARGET protobuf-nanopb AND TARGET lunasvg AND TARGET flatc AND TARGET libzstd_static AND TARGET libzstd_shared AND TARGET clean-all AND TARGET sqlite3 AND TARGET precompiled_hyperhdr_headers )
+	set_target_properties(core_mqtt stb flatbuffers protobuf-nanopb lunasvg flatc resources uninstall libzstd_static libzstd_shared clean-all sqlite3 precompiled_hyperhdr_headers PROPERTIES FOLDER ExternalLibsTargets)	
 else()
 	set_target_properties(resources uninstall PROPERTIES FOLDER ExternalLibsTargets)
 endif()

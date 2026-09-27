@@ -265,43 +265,9 @@ endfunction()
 #=============================================================================
 
 if ( ENABLE_MQTT )
-	if (USE_SYSTEM_MQTT_LIBS)
-		message(STATUS "${YellowColor}Try using the qmqtt system libraries instead of the embedded submodule. Absolutely no guarantee.${ColorReset}")
-
-		find_package(Qmqtt)
-
-		if (NOT QMQTT_FOUND)
-			message(WARNING "${RedColor}Could NOT find qmqtt system libraries, build static qmqtt libraries${ColorReset}")
-			#Fallback: build qmqtt static libray inside project
-			set(DEFAULT_USE_SYSTEM_MQTT_LIBS OFF PARENT_SCOPE)
-			set(USE_SYSTEM_MQTT_LIBS OFF)
-		else()
-			message(STATUS "Found system QMQTT libs.")
-		endif()
-	endif()
-
-	if (NOT USE_SYSTEM_MQTT_LIBS)
-		# HyperHDR workaround for fixed Qt5 version
-		file(READ "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt/CMakeLists.txt" FILE_CONTENTS)
-		string(REPLACE "Qt5" "Qt${Qt_VERSION}" FILE_CONTENTS "${FILE_CONTENTS}")
-		string(REPLACE "find_package" "#find_package" FILE_CONTENTS "${FILE_CONTENTS}")
-		file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt/CMakeLists.txt" "${FILE_CONTENTS}")
-
-		cmake_policy(PUSH)
-
-		if (NOT USE_SHARED_LIBS)
-			set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-			set(qmqtt_SHARED OFF)
-		endif()
-
-		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/qmqtt)
-
-		if (NOT USE_SHARED_LIBS)
-			target_compile_definitions(qmqtt INTERFACE MQTT_PROJECT_INCLUDE_SRC)
-		endif()
-
-		cmake_policy(POP)
-	endif()
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core_mqtt)
+		set_target_properties(core_mqtt PROPERTIES INTERFACE_SOURCES "")
+		target_include_directories(core_mqtt PUBLIC ${CMAKE_SOURCE_DIR}/include/mqtt)
 endif()
 
 #=============================================================================

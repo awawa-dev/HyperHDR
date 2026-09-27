@@ -9,10 +9,6 @@
 [submodule "external/mbedtls"]
 	path = external/mbedtls
 	url = https://github.com/ARMmbed/mbedtls
-[submodule "external/qmqtt"]
-	path = external/qmqtt
-	url = https://github.com/emqx/qmqtt.git
-	ignore = dirty
 [submodule "external/mdns"]
 	path = external/mdns
 	url = https://github.com/mjansson/mdns.git
@@ -31,3 +27,6 @@
 [submodule "external/zstd"]
 	path = external/zstd
 	url = https://github.com/facebook/zstd.git
+[submodule "external/core_mqtt"]
+	path = external/core_mqtt
+	url = https://github.com/freertos/coreMQTT

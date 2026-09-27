@@ -30,7 +30,7 @@ macro(InstallerLinux TARGET)
         endif()
 
         # Optymalizacja: Pętla dla naszych wewnętrznych bibliotek, customizowanej wersji sqlite lub jesli ich nie ma w publicznym repo
-        set(CUSTOM_INTERNAL_LIBS smart-x11 smart-pipewire utils-image utils-zstd systray-widget qmqtt sqlite3 )
+        set(CUSTOM_INTERNAL_LIBS smart-x11 smart-pipewire utils-image utils-zstd systray-widget sqlite3 )
         foreach(custom_lib ${CUSTOM_INTERNAL_LIBS})
             if (TARGET ${custom_lib})
                 get_target_property(TYPE ${custom_lib} TYPE)
@@ -96,7 +96,7 @@ macro(InstallerLinux TARGET)
                     "libxcb-xfixes0" "libxcb-xkb1" "libxkbcommon-x11-0" "ld-" "libasound"
                     "libblkid" "libffi" "libgio-2" "libgmodule-2" "libgobject-2" "libidn2"
                     "libnghttp" "libsystemd" "libpsl" "libunistring" "libssh" "libselinux"
-                    "libevent-2" "libldap" "libutils" "libsqlite3" "libqmqtt"
+                    "libevent-2" "libldap" "libutils" "libsqlite3"
                 )
 
                 # Kopiowanie pluginów QT do lib/hyperhdr/external/plugins
