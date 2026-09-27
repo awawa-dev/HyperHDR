@@ -2,51 +2,50 @@
 # SQLite
 #=============================================================================
 
-if (NOT USE_SHARED_LIBS)
-	add_library(sqlite3 "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
-else()
-	add_library(sqlite3 SHARED "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
-	if(WIN32)
-	   target_compile_definitions(sqlite3
-		  INTERFACE
-			 "SQLITE_API=__declspec(dllimport)"
-		  PRIVATE
-			 "SQLITE_API=__declspec(dllexport)"
-	   )
-	else()
-	   target_compile_definitions(sqlite3
-		  INTERFACE
-			 "SQLITE_API=__attribute__((visibility(\"default\")))"
-	   )
-	endif()
-endif()
+add_library(sqlite3 STATIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite/sqlite3.c")
 
 target_include_directories(sqlite3 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sqlite")
-target_link_libraries(sqlite3 PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
-install(
-    TARGETS   sqlite3
-    LIBRARY   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE   DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-)
+target_link_libraries(sqlite3 PRIVATE Threads::Threads)
 
-set_target_properties(sqlite3 PROPERTIES
-    OUTPUT_NAME   sqlite3
-)
+target_compile_definitions(sqlite3 PRIVATE
 
-target_compile_definitions(sqlite3 PUBLIC
-	SQLITE_THREADSAFE=2
-	SQLITE_DEFAULT_MEMSTATUS=0
-	SQLITE_DEFAULT_SYNCHRONOUS=3
-	SQLITE_OMIT_AUTHORIZATION
-	SQLITE_OMIT_DEPRECATED
+    # HyperHDR uses one SQLite connection per thread.
+    SQLITE_THREADSAFE=2
+
+    # Less allocator/statistics overhead.
+    SQLITE_DEFAULT_MEMSTATUS=0
+
+    # HyperHDR SQL does not depend on these historical behaviors.
+    SQLITE_DQS=0
+    SQLITE_LIKE_DOESNT_MATCH_BLOBS
+    SQLITE_MAX_EXPR_DEPTH=0
+
+    # Not used by HyperHDR's SQLite wrapper.
+    SQLITE_OMIT_AUTHORIZATION
+    SQLITE_OMIT_DEPRECATED
+    SQLITE_OMIT_UTF16
+    SQLITE_OMIT_LOAD_EXTENSION
+    SQLITE_OMIT_PROGRESS_CALLBACK
+    SQLITE_OMIT_DECLTYPE
+    SQLITE_OMIT_COMPILEOPTION_DIAGS
+    SQLITE_OMIT_DESERIALIZE
+    SQLITE_OMIT_GET_TABLE
+    SQLITE_OMIT_COMPLETE
+    SQLITE_OMIT_INCRBLOB
+    SQLITE_OMIT_TRACE
+    SQLITE_OMIT_JSON
+    SQLITE_OMIT_INTROSPECTION_PRAGMAS
+    SQLITE_OMIT_LOOKASIDE
 )
 
 if(MSVC)
-    target_compile_options(sqlite3 PRIVATE /W0)
+     target_compile_options(sqlite3 PRIVATE /W0 $<$<CONFIG:Release>:/O1> $<$<CONFIG:RelWithDebInfo>:/O1> $<$<CONFIG:MinSizeRel>:/O1>)
 else()
-    target_compile_options(sqlite3 PRIVATE -w)
+    target_compile_options(sqlite3 PRIVATE -Os -w)
 endif()
+
+set_target_properties(sqlite3 PROPERTIES OUTPUT_NAME sqlite3)
 
 #=============================================================================
 # Protobuf-nanopb
