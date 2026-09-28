@@ -87,6 +87,7 @@ private:
 	bool _stopping = false;
 	bool _brokerDisconnected = false;
 	bool _disableApiAccess = false;
+	uint16_t _apiSubscribePacketId = MQTT_PACKET_ID_INVALID;
 
 	QTimer* _processTimer = nullptr;
 	QTimer* _retryTimer = nullptr;

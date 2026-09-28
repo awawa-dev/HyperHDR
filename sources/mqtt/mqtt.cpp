@@ -117,9 +117,36 @@ bool mqtt::eventCallback(MQTTContext_t* context, MQTTPacketInfo_t* packetInfo, M
 		const QString payload = publish->payloadLength ? QString::fromUtf8(static_cast<const char*>(publish->pPayload), static_cast<int>(publish->payloadLength)) : QString{};
 		self->received(topic, payload);
 	}
+	else if (packetInfo->type == MQTT_PACKET_TYPE_SUBACK || packetInfo->type == MQTT_PACKET_TYPE_UNSUBACK)
+	{
+		const auto* reasons = deserializedInfo->pReasonCode;
+		if (!reasons || reasons->reasonCodeLength == 0)
+			return true;
+
+		for (size_t i = 0; i < reasons->reasonCodeLength; ++i)
+		{
+			const uint8_t code = reasons->reasonCode[i];
+			const bool success = (packetInfo->type == MQTT_PACKET_TYPE_UNSUBACK) ? code == MQTT_REASON_UNSUBACK_SUCCESS
+								: code == MQTT_REASON_SUBACK_GRANTED_QOS0 || code == MQTT_REASON_SUBACK_GRANTED_QOS1 || code == MQTT_REASON_SUBACK_GRANTED_QOS2;
+
+			if (!success)
+			{
+				const char* packetType = packetInfo->type == MQTT_PACKET_TYPE_SUBACK ? "SUBACK" : "UNSUBACK";
+				Error(self->_log, "{:s} rejected: packetId={:d}, reasonCode=0x{:02X}", packetType, deserializedInfo->packetIdentifier, code);
+			}
+			else if (packetInfo->type == MQTT_PACKET_TYPE_SUBACK && deserializedInfo->packetIdentifier == self->_apiSubscribePacketId)
+			{
+				Debug(self->_log, "MQTT API subscription accepted: packetId={:d}, qos={:d}", deserializedInfo->packetIdentifier, code);
+			}
+		}
+	}
 	else if (packetInfo->type == MQTT_PACKET_TYPE_DISCONNECT)
 	{
 		self->_brokerDisconnected = true;
+		if (const auto* reason = deserializedInfo->pReasonCode; reason && reason->reasonCodeLength > 0 && reason->reasonCode[0] != MQTT_REASON_DISCONNECT_NORMAL_DISCONNECTION)
+			Error(self->_log, "Broker disconnected: reasonCode=0x{:02X}", reason->reasonCode[0]);
+		else
+			Debug(self->_log, "Broker disconnected normally");
 	}
 
 	return true;
@@ -132,6 +159,7 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 
 	_stopping = false;
 	_brokerDisconnected = false;
+	_apiSubscribePacketId = MQTT_PACKET_ID_INVALID;
 	_retryTimer->stop();
 	_host = std::move(host);
 	_port = port;
@@ -425,12 +453,18 @@ void mqtt::subscribe(const QString& topic, MQTTQoS_t qos)
 	subscription.pTopicFilter = filter.constData();
 	subscription.topicFilterLength = static_cast<size_t>(filter.size());
 	subscription.retainHandlingOption = retainSendOnSub;
+
+	const uint16_t packetId = MQTT_GetPacketId(&_mqttContext);
 	
-	if (const auto status = MQTT_Subscribe(&_mqttContext, &subscription, 1, MQTT_GetPacketId(&_mqttContext), nullptr); status != MQTTSuccess)
+	if (const auto status = MQTT_Subscribe(&_mqttContext, &subscription, 1, packetId, nullptr); status != MQTTSuccess)
 	{
 		error(status);
 		if (status == MQTTSendFailed)
 			transportFailure();
+	}
+	else if (topic == HYPERHDRAPI)
+	{
+		_apiSubscribePacketId = packetId;
 	}
 }
 
