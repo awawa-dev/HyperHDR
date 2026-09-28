@@ -78,6 +78,23 @@ int PortalDBus::screenCastVersion()
 	return static_cast<int>(value.toUInt());
 }
 
+int PortalDBus::remoteDesktopVersion()
+{
+	const QVariant value = getProperty(
+		QLatin1String(DesktopService),
+		QLatin1String(DesktopPath),
+		QStringLiteral("org.freedesktop.portal.RemoteDesktop"),
+		QStringLiteral("version"),
+		"RemoteDesktop.version");
+
+	if (!isType<quint32>(value)) {
+		qWarning() << "PortalDBus: invalid RemoteDesktop.version reply";
+		return -1;
+	}
+
+	return static_cast<int>(value.toUInt());
+}
+
 QString PortalDBus::createSession(const QString& sessionToken, const QString& requestToken)
 {
 	DBusMessage* message = makeMethodCall(
@@ -100,6 +117,30 @@ QString PortalDBus::createSession(const QString& sessionToken, const QString& re
 	}
 
 	return requestPath(message, "CreateSession");
+}
+
+QString PortalDBus::createRemoteDesktopSession(const QString& sessionToken, const QString& requestToken)
+{
+	DBusMessage* message = makeMethodCall(
+		DesktopService, DesktopPath, "org.freedesktop.portal.RemoteDesktop", "CreateSession");
+	if (!message)
+		return {};
+
+	DBusMessageIter args;
+	dbus_message_iter_init_append(message, &args);
+
+	const QVariantMap options{
+		{QStringLiteral("session_handle_token"), sessionToken},
+		{QStringLiteral("handle_token"), requestToken}
+	};
+
+	if (!appendVariantMap(args, options))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	return requestPath(message, "RemoteDesktop.CreateSession");
 }
 
 QString PortalDBus::selectSources(const QString& sessionHandle, const QString& requestToken, const QString& restoreToken)
@@ -138,6 +179,72 @@ QString PortalDBus::selectSources(const QString& sessionHandle, const QString& r
 	return requestPath(message, "SelectSources");
 }
 
+QString PortalDBus::selectSourcesRemoteDesktop(const QString& sessionHandle, const QString& requestToken)
+{
+	DBusMessage* message = makeMethodCall(DesktopService, DesktopPath, ScreenCastInterface, "SelectSources");
+
+	if (!message)
+		return {};
+
+	DBusMessageIter args;
+	dbus_message_iter_init_append(message, &args);
+
+	if (!appendObjectPath(args, sessionHandle))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	const QVariantMap options{
+		{QStringLiteral("multiple"), false},
+		{QStringLiteral("types"), quint32(1)},
+		{QStringLiteral("cursor_mode"), quint32(1)},
+		{QStringLiteral("handle_token"), requestToken}
+	};
+
+	if (!appendVariantMap(args, options))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	return requestPath(message, "ScreenCast.SelectSources(RemoteDesktop)");
+}
+
+QString PortalDBus::selectDevicesRemoteDesktop(const QString& sessionHandle, const QString& requestToken, const QString& restoreToken)
+{
+	DBusMessage* message = makeMethodCall(
+		DesktopService, DesktopPath, "org.freedesktop.portal.RemoteDesktop", "SelectDevices");
+	if (!message)
+		return {};
+
+	DBusMessageIter args;
+	dbus_message_iter_init_append(message, &args);
+
+	if (!appendObjectPath(args, sessionHandle))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	QVariantMap options{
+		{QStringLiteral("handle_token"), requestToken},
+		{QStringLiteral("types"), quint32(0)},
+		{QStringLiteral("persist_mode"), quint32(2)}
+	};
+
+	if (!restoreToken.isEmpty())
+		options.insert(QStringLiteral("restore_token"), restoreToken);
+
+	if (!appendVariantMap(args, options))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	return requestPath(message, "RemoteDesktop.SelectDevices");
+}
+
 QString PortalDBus::start(const QString& sessionHandle, const QString& requestToken)
 {
 	DBusMessage* message = makeMethodCall(DesktopService, DesktopPath, ScreenCastInterface, "Start");
@@ -162,6 +269,33 @@ QString PortalDBus::start(const QString& sessionHandle, const QString& requestTo
 	}
 
 	return requestPath(message, "Start");
+}
+
+QString PortalDBus::startRemoteDesktop(const QString& sessionHandle, const QString& requestToken)
+{
+	DBusMessage* message = makeMethodCall(
+		DesktopService, DesktopPath, "org.freedesktop.portal.RemoteDesktop", "Start");
+
+	if (!message)
+		return {};
+
+	DBusMessageIter args;
+	dbus_message_iter_init_append(message, &args);
+
+	const char* parentWindow = "";
+	const QVariantMap options{
+		{QStringLiteral("handle_token"), requestToken}
+	};
+
+	if (!appendObjectPath(args, sessionHandle) ||
+		!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &parentWindow) ||
+		!appendVariantMap(args, options))
+	{
+		dbus_message_unref(message);
+		return {};
+	}
+
+	return requestPath(message, "RemoteDesktop.Start");
 }
 
 bool PortalDBus::closeSession(const QString& sessionHandle)

@@ -18,6 +18,13 @@ public:
 	QString start(const QString& sessionHandle, const QString& requestToken);
 	bool closeSession(const QString& sessionHandle);
 
+	int remoteDesktopVersion();
+
+	QString createRemoteDesktopSession(const QString& sessionToken, const QString& requestToken);
+	QString selectSourcesRemoteDesktop(const QString& sessionHandle, const QString& requestToken);
+	QString selectDevicesRemoteDesktop(const QString& sessionHandle, const QString& requestToken, const QString& restoreToken);
+	QString startRemoteDesktop(const QString& sessionHandle, const QString& requestToken);
+
 signals:
 	void responseReceived(const QString& path, const QVariantList& arguments, bool parseError);
 

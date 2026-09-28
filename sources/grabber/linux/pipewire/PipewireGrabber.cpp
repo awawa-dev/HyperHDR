@@ -25,6 +25,7 @@
 *  SOFTWARE.
  */
 
+#include <algorithm>
 #include <cassert>
 #include <climits>
 #include <cstdio>
@@ -225,8 +226,10 @@ bool PipewireGrabber::init()
 		{
 			Debug(_log, "Forcing auto discovery device");
 			if (!_deviceProperties.isEmpty())
-			{				
-				foundDevice = _deviceProperties.firstKey();
+			{
+				foundDevice = std::min_element(_deviceProperties.cbegin(), _deviceProperties.cend(), [](const auto& a, const auto& b) {
+						return a.valid.first().input < b.valid.first().input;
+					}).key();
 				_deviceName = foundDevice;
 				Debug(_log, "Auto discovery set to {:s}", (_deviceName));
 			}

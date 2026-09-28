@@ -47,13 +47,7 @@
 #include <vector>
 
 #include <grabber/linux/pipewire/PipewireHandler.h>
-#include <grabber/linux/pipewire/RemoteDesktopProxy.h>
-
-using namespace sdbus;
-using namespace org::freedesktop::portal;
-
-constexpr const char* DESKTOP_SERVICE = "org.freedesktop.portal.Desktop";
-constexpr const char* DESKTOP_PATH = "/org/freedesktop/portal/desktop";
+#include <grabber/linux/pipewire/PortalDBus.h>
 
 PipewireHandler pipewireHandler;
 
@@ -131,22 +125,14 @@ bool hasPipewire()
 
 bool hasPipewireRemoteDesktop()
 {
-	try
-	{
-		auto bus = sdbus::createSessionBusConnection();
-		auto proxy = sdbus::createProxy(*bus, ServiceName{ DESKTOP_SERVICE }, ObjectPath{ DESKTOP_PATH });
+	PortalDBus portalDBus;
+	if (!portalDBus.open())
+		return false;
 
-		int version = proxy->getProperty("version").onInterface(RemoteDesktop_proxy::INTERFACE_NAME).get<uint32_t>();
+	const int version = portalDBus.remoteDesktopVersion();
+	std::cout << "Portal.RemoteDesktop: protocol version = " << version << std::endl;
 
-		std::cout << "Portal.RemoteDesktop: protocol version = " << version << std::endl;
-
-		return version >= PipewirePortal::MinRemoteDesktopPortalVersion;
-	}
-	catch (...)
-	{
-	}
-
-	return false;
+	return version >= PipewirePortal::MinRemoteDesktopPortalVersion;
 }
 
 PipewireImage getFramePipewire()
