@@ -131,6 +131,15 @@ class ProviderHid : public LedDevice
 
 
 		/**
+		 * Open a single HID device.
+		 *
+		 * @param path The device path.
+		 * @return the device, or nothing on failure.
+		 */
+		std::optional<Device> open (const Device& deviceInfo);
+
+
+		/**
 		 * Closes all open HID devices.
 		 *
 		 * @return `0`.
@@ -373,15 +382,6 @@ class ProviderHid : public LedDevice
 
 		/* Open HID handles and their metadata. */
 		std::vector<Device> open_devices;
-
-
-		/**
-		 * Open a single device by path.
-		 *
-		 * @param path The device path.
-		 * @return
-		 */
-		std::optional<Device> open_device (const Device& deviceInfo);
 
 
 		/**

@@ -133,7 +133,7 @@ int ProviderHid::open ()
 			continue;
 		}
 
-		auto device = open_device (device_info);
+		auto device = open (device_info);
 
 		if (!device) {
 			success = false;
@@ -206,7 +206,7 @@ open_done:
 }
 
 
-std::optional<ProviderHid::Device> ProviderHid::open_device (const Device& deviceInfo)
+std::optional<ProviderHid::Device> ProviderHid::open (const Device& deviceInfo)
 {
 	Device device = deviceInfo;
 	device.handle = hid_open_path (device.path.c_str());
