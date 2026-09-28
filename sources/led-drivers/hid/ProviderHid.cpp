@@ -113,7 +113,7 @@ int ProviderHid::open ()
 	/* Close all already-open devices first. */
 	close ();
 
-	const auto devices = enumerate ();
+	auto devices = enumerate ();
 	if (!devices)
 	{
 		setInError (QStringLiteral ("Could not enumerate supported HID devices"));
@@ -123,24 +123,23 @@ int ProviderHid::open ()
 
 	open_devices.reserve (devices->size ());
 
-	for (const auto& device_info : *devices)
+	for (auto& device : *devices)
 	{
 		/* Only process configured devices. */
 		if (serial != all_devices_serial
-				&& serial != device_info.serial
-				&& serial != QString::fromStdString (device_info.path))
+				&& serial != device.serial
+				&& serial != QString::fromStdString (device.path))
 		{
 			continue;
 		}
 
-		auto device = open (device_info);
-
-		if (!device) {
+		bool success = open (device);
+		if (!success) {
 			success = false;
 			goto open_done;
 		}
 
-		open_devices.push_back (std::move (*device));
+		open_devices.push_back (std::move (device));
 
 		success = init_device (open_devices.back ());
 		if (!success) {
@@ -206,18 +205,17 @@ open_done:
 }
 
 
-std::optional<ProviderHid::Device> ProviderHid::open (const Device& deviceInfo)
+bool ProviderHid::open (Device& device)
 {
-	Device device = deviceInfo;
 	device.handle = hid_open_path (device.path.c_str());
 	if (!device.handle)
 	{
 		setInError (QString ("Could not open HID device %1: %2")
 				.arg (QString::fromStdString (device.path), getHidError ()));
-		return std::nullopt;
+		return false;
 	}
 
-	return device;
+	return true;
 }
 
 

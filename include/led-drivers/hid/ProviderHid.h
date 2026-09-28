@@ -133,10 +133,10 @@ class ProviderHid : public LedDevice
 		/**
 		 * Open a single HID device.
 		 *
-		 * @param path The device path.
-		 * @return the device, or nothing on failure.
+		 * @param device Enumerated device. Its handle is set on success.
+		 * @return `true` on success. `false` otherwise.
 		 */
-		std::optional<Device> open (const Device& deviceInfo);
+		bool open (Device& device);
 
 
 		/**
