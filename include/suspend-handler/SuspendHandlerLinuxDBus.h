@@ -1,6 +1,6 @@
 #pragma once
 
-/* SuspendHandlerLinux.h
+/* SuspendHandlerLinuxDBus.h
 *
 *  MIT License
 *
@@ -26,24 +26,42 @@
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 *  SOFTWARE.
  */
-#include <QObject>
+
+#include <micro-dbus/HelperDBus.h>
+#include <optional>
 #include <utils/Components.h>
 
-#define HAVE_POWER_MANAGEMENT
-
-class SessionMonitorDBus;
-class SystemSuspendDBus;
-
-class SuspendHandler : public QObject {
+class SessionMonitorDBus final : public HelperDBus
+{
 	Q_OBJECT
 
-	SessionMonitorDBus* _sessionMonitor = nullptr;
-	SystemSuspendDBus* _systemSuspend = nullptr;
+public:
+	explicit SessionMonitorDBus(QObject* parent = nullptr);
+	bool open();
 
 signals:
-	void SignalHibernate(bool wakeUp, hyperhdr::SystemComponent source);
+	void monitorStateChanged(bool wakeUp, hyperhdr::SystemComponent source);
 
+private slots:
+	void handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError);
+};
+
+class SystemSuspendDBus final : public HelperDBus
+{
+	Q_OBJECT
+
+	std::optional<bool> getLockHint(const QString& sessionPath);
+	QString getSessionPath();
+
+	bool _delayedWakeup = false;
+	QString _sessionPath;
 public:
-	SuspendHandler(bool sessionLocker = false);
-	~SuspendHandler();
+	explicit SystemSuspendDBus(QObject* parent = nullptr);
+	bool open(bool sessionLocker);
+
+signals:
+	void prepareForSleep(bool wakeUp, hyperhdr::SystemComponent source);
+
+private slots:
+	void handleSignal(const QString& path, const QString& interface, const QString& member, const QVariantList& arguments, bool parseError);
 };

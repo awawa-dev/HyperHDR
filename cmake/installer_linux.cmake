@@ -30,7 +30,7 @@ macro(InstallerLinux TARGET)
         endif()
 
         # Optymalizacja: Pętla dla naszych wewnętrznych bibliotek, customizowanej wersji sqlite lub jesli ich nie ma w publicznym repo
-        set(CUSTOM_INTERNAL_LIBS smart-x11 smart-pipewire utils-image utils-zstd systray-widget qmqtt sqlite3 )
+        set(CUSTOM_INTERNAL_LIBS smart-x11 smart-pipewire utils-image utils-zstd systray-widget sqlite3 )
         foreach(custom_lib ${CUSTOM_INTERNAL_LIBS})
             if (TARGET ${custom_lib})
                 get_target_property(TYPE ${custom_lib} TYPE)
@@ -75,32 +75,6 @@ macro(InstallerLinux TARGET)
                 get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
                 execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS OUTPUT_VARIABLE QT_PLUGINS_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
             endif()
-
-            # CEC lib
-            if (ENABLE_CEC)
-                find_library(XRANDR_LIBRARY NAMES Xrandr libXrandr libXrandr.so.2)
-                if (XRANDR_LIBRARY)
-                    get_filename_component(resolvedXrandr ${XRANDR_LIBRARY} ABSOLUTE)
-                    list (APPEND cecFiles ${resolvedXrandr})
-                endif()
-
-                foreach(resolved_file_in ${CEC_LIBRARIES})
-                    unset(LIBCEC CACHE)
-                    find_library(LIBCEC NAMES ${resolved_file_in})
-                    if (LIBCEC)
-                        get_filename_component(resolvedCec ${LIBCEC} ABSOLUTE)
-                        list (APPEND cecFiles ${resolvedCec})
-                    endif()
-                endforeach()            
-
-                foreach(cecFile ${cecFiles})
-                    FILE(GLOB foundCec "${cecFile}*")
-                    foreach(installCec ${foundCec})
-                        include(GetPrerequisites)
-                        gp_append_unique(PREREQUISITE_LIBS ${installCec})
-                    endforeach()                
-                endforeach()
-            endif()
                     
             # Install CODE dla zależności
             install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")" COMPONENT "HyperHDR")
@@ -109,8 +83,10 @@ macro(InstallerLinux TARGET)
             install(CODE "set(DEST_DIR \"${CMAKE_INSTALL_LIBDIR}/hyperhdr/external\")" COMPONENT "HyperHDR")
 
             install(CODE [[
+                include(GetPrerequisites)
+                
                 set(SYSTEM_LIBS_SKIP
-                    "libc" "libglib-2" "libsystemd0" "libdl" "libexpat" "libfontconfig" "libgcc_s"
+                    "libc" "libglib-2" "libsystemd0" "libdbus-1" "libdl" "libexpat" "libfontconfig" "libgcc_s"
                     "libm" "libpthread" "librt" "libstdc++" "libudev" "libz.so" "libxrender1"
                     "libxi6" "libxext6" "libx11-xcb1" "libsm" "libice6" "libdrm2" "libxkbcommon0"
                     "libwacom2" "libmtdev1" "libinput10" "libgudev-1.0-0" "libffi6" "libevdev2"
@@ -120,22 +96,8 @@ macro(InstallerLinux TARGET)
                     "libxcb-xfixes0" "libxcb-xkb1" "libxkbcommon-x11-0" "ld-" "libasound"
                     "libblkid" "libffi" "libgio-2" "libgmodule-2" "libgobject-2" "libidn2"
                     "libnghttp" "libsystemd" "libpsl" "libunistring" "libssh" "libselinux"
-                    "libevent-2" "libldap" "libutils" "libsqlite3" "libqmqtt"
+                    "libevent-2" "libldap" "libutils" "libsqlite3"
                 )
-
-                include(GetPrerequisites)        
-                if (NOT CMAKE_CROSSCOMPILING)
-                    file(GET_RUNTIME_DEPENDENCIES RESOLVED_DEPENDENCIES_VAR DEPENDENCIES EXECUTABLES ${TARGET_FILE})
-
-                    file(GET_RUNTIME_DEPENDENCIES RESOLVED_DEPENDENCIES_VAR SYS_DEPENDENCIES EXECUTABLES $<TARGET_FILE:systray-widget>)
-                    foreach(systrayLib ${SYS_DEPENDENCIES})
-                        string(FIND ${systrayLib} "libayatana" _sysindex)
-                        string(FIND ${systrayLib} "libdbusmenu" _sysDBusindex)
-                        if (${_sysindex} GREATER -1 OR ${_sysDBusindex} GREATER -1)
-                            list(APPEND DEPENDENCIES ${systrayLib})
-                        endif()
-                    endforeach()                        
-                endif()
 
                 # Kopiowanie pluginów QT do lib/hyperhdr/external/plugins
                 foreach(PLUGIN "tls")

@@ -9,7 +9,7 @@ add_library(mqtt OBJECT ${mqtt_SOURCES} )
 target_link_libraries(mqtt
 	Qt${Qt_VERSION}::Core
 	Qt${Qt_VERSION}::Network
-	qmqtt
+	core_mqtt
 )
 
 if(USE_PRECOMPILED_HEADERS AND COMMAND target_precompile_headers)

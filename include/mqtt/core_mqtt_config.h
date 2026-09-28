@@ -1,0 +1,9 @@
+#pragma once
+
+#ifndef MQTT_RECV_POLLING_TIMEOUT_MS
+	#define MQTT_RECV_POLLING_TIMEOUT_MS 1U
+#endif
+
+#ifndef MQTT_SEND_TIMEOUT_MS
+	#define MQTT_SEND_TIMEOUT_MS 100U
+#endif
