@@ -9,12 +9,11 @@
 	#include <QString>
 	#include <array>
 	#include <cstdint>
-	#include <string>
 	#include <vector>
 #endif
 
-#include <hidapi.h>
-#include <led-drivers/LedDevice.h>
+#include <led-drivers/hid/ProviderHid.h>
+
 
 /* LED device driver for one or more USB HID Lightpack devices.
  *
@@ -23,145 +22,159 @@
  *
  * See https://github.com/psieg/Lightpack
  */
-class DriverHidLightpack : public LedDevice
+class DriverHidLightpack : public ProviderHid
 {
-public:
+	public:
 
-	/* Constructor
-	 *
-	 * @param[in] deviceConfig Device configuration.
-	 */
-	explicit DriverHidLightpack(const QJsonObject& deviceConfig);
-
-
-	/* Destructor. */
-	~DriverHidLightpack() override;
+		/* Constructor
+		 *
+		 * @param deviceConfig Device configuration.
+		 */
+		explicit DriverHidLightpack (const QJsonObject& deviceConfig)
+		: ProviderHid (deviceConfig)
+		{}
 
 
-	/* Construct a `DriverHidLightpack` instance.
-	 *
-	 * @param[in] deviceConfig Device configuration.
-	 * @returns Constructed instance.
-	 */
-	static LedDevice* construct(const QJsonObject& deviceConfig);
+		/* Destructor. */
+		~DriverHidLightpack() override = default;
 
 
-	/* Discovers connected Lightpack devices.
-	 *
-	 * @param[in] params Discovery parameters.
-	 * @returns JSON description of the discovered devices.
-	 */
-	QJsonObject discover(const QJsonObject& params) override;
+		/* Construct a `DriverHidLightpack` instance.
+		 *
+		 * @param[in] deviceConfig Device configuration.
+		 * @returns Constructed instance.
+		 */
+		static LedDevice* construct (const QJsonObject& deviceConfig);
 
 
-protected:
+	protected:
 
-	/* Initializes the Lightpack configuration and HID library.
-	 *
-	 * @param[in] deviceConfig Device configuration.
-	 * @returns True on success, false otherwise.
-	 */
-	bool init(QJsonObject deviceConfig) override;
-
-
-	/* Opens the configured Lightpack devices.
-	 *
-	 * @returns 0 on success, negative otherwise.
-	 */
-	int open() override;
+		/* Configures one open Lightpack device.
+		 *
+		 * This driver disables hardware smoothing, so that
+		 * `LedDevice` can take care of that.
+		 *
+		 * @param device Open Lightpack device.
+		 * @returns True on success, false otherwise.
+		 */
+		[[nodiscard]]
+		bool init_device (const Device& device) override;
 
 
-	/* Closes all open Lightpack devices.
-	 *
-	 * @returns Zero on success.
-	 */
-	int close() override;
+		/* Returns the LED capacity of one Lightpack device.
+		 *
+		 * @param device Open Lightpack device.
+		 * @returns Number of LEDs supported by the device.
+		 */
+		[[nodiscard]]
+		size_t getLedCount (const Device& device) const final
+		{
+			return lightpack_led_count;
+		}
 
 
-	/* Turns off every LED on each open Lightpack device.
-	 *
-	 * @returns True on success, otherwise false.
-	 */
-	bool powerOff() override;
+		/* Returns the Lightpack label used for discovery and logging. */
+		[[nodiscard]]
+		std::string getDeviceName () const final
+		{
+			return "Lightpack";
+		}
 
 
-	/* Send new colors to the device.
-	 *
-	 * For the Lightpack device, this converts 8-bit RGB values
-	 * to 12-bit values and writes them to the devices.
-	 *
-	 * @param[in] ledValues RGB color for each LED.
-	 * @returns Zero on success, otherwise negative.
-	 */
-	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
+		/* Turns off every LED off.
+		 *
+		 * @param device Open Lightpack device.
+		 * @returns True on success, otherwise false.
+		 */
+		bool powerOff (const Device& device) override;
 
 
-	/* Send new colors to the device.
-	 *
-	 * For the Lightpack device, this converts normalized RGB
-	 * values to 12-bit values and writes them to the devices.
-	 *
-	 * @param[in] nonlinearRgbColors Normalized RGB color for each LED.
-	 * @returns A handled flag and the write status.
-	 */
-	std::pair<bool, int> writeInfiniteColors(SharedOutputColors nonlinearRgbColors) override;
+		/* Send new colors to the device.
+		 *
+		 * For the Lightpack device, this converts normalized RGB
+		 * values to 12-bit values and writes them to the device.
+		 *
+		 * @param device Lightpack device.
+		 * @param nonlinearRgbColors Normalized RGB colors assigned to the device.
+		 * @returns A handled flag and the write status.
+		 */
+		std::pair<bool, int> writeInfiniteColors (
+				const Device& device,
+				std::span<const linalg::aliases::float3> nonlinearRgbColors) final;
 
 
-	/* Close all devices, then set the driver error state.
-	 *
-	 * @param[in] errorMsg Error description.
-	 */
-	void setInError(const QString& errorMsg) override;
+		/**
+		 * Set the LED colors using `uint8_t` colors.
+		 *
+		 * For the Lightpack device, this converts 24-bit RGB values
+		 * to 36-bit RGB values and writes them to the devices.
+		 *
+		 * @param device Lightpack device.
+		 * @param ledValues 24-bit RGB colors assigned to the device.
+		 * @returns 0 on success, -1 otherwise.
+		 */
+		int writeFiniteColors (
+				const Device& device,
+				std::span<const ColorRgb> ledValues) final;
 
 
-private:
-
-	/* Type to hold identifying information of a Lightpack device. */
-	struct Device
-	{
-		/* Native HID device handle. */
-		hid_device* handle;
-
-		/* Device serial number. */
-		QString serial;
-
-		/* Platform-specific HID path. */
-		std::string path;
-	};
-
-	/* A 12-bit RGB color stored in 16-bit channels. */
-	using DeepColor = std::array<uint16_t, 3>;
-
-	/* A fixed-size Lightpack HID command. */
-	using Command = std::array<uint8_t, 65>;
+		/**
+		 * Returns the device ids supported by the Lightpack driver.
+		 */
+		[[nodiscard]]
+		std::vector<DeviceId> getSupportedDeviceIds () const final
+		{
+			return {
+				{ .vendorId=0x1d50, .productId=0x6022 },
+				{ .vendorId=0x03eb, .productId=0x204f },
+			};
+		}
 
 
-	/* Writes 12-bit RGB values across the open Lightpack devices.
-	 *
-	 * @param[in] ledValues RGB color for each LED.
-	 * @returns Zero on success, otherwise negative.
-	 */
-	int writeColors(const std::vector<DeepColor>& ledValues);
+	private:
+
+		/* A 12-bit RGB color stored in 16-bit channels. */
+		using DeepColor = std::array<uint16_t, 3>;
 
 
-	/* Sends a command to a Lightpack device.
-	 *
-	 * @param[in] device Lightpack device.
-	 * @param[in] command Command to send.
-	 * @param[out] error Error description when sending fails.
-	 * @returns True when the complete command was written, otherwise false.
-	 */
-	bool sendCommand(const Device& device, const Command& command, QString& error) const;
+		/* A fixed-size Lightpack HID command. */
+		using Command = std::array<uint8_t, 65>;
 
 
-	/* Configured serial number, or "all" to use every discovered device. */
-	QString serial;
+		/* Number of leds on a Lightpack device. */
+		static constexpr auto lightpack_led_count = 10;
 
 
-	/* List of open Lightpack devices. */
-	std::vector<Device> devices;
+		/* Lightpack use 16 bits to store 12 bits colors per channel. */
+		static constexpr size_t bytes_per_led = 6;
 
 
-	/* Use to register this driver with the LED device factory. */
-	static bool isRegistered;
+		/* The numbering the Lightpack firmware does not match the ordering
+		 * on the hardware. We need to remap leds. */
+		static constexpr std::array<size_t, lightpack_led_count> led_remap = { 4, 3, 0, 1, 2, 5, 6, 7, 8, 9 };
+
+
+		/* Command to update LED colors. */
+		static constexpr uint8_t update_led_command = 0x01;
+
+
+		/* Command to configure hardware smoothing. */
+		static constexpr uint8_t set_smoothing_command = 0x05;
+
+
+		/* Use to register this driver with the LED device factory. */
+		static bool isRegistered;
+
+
+		/* Writes 12-bit RGB values to one open Lightpack device.
+		 *
+		 * @param device Open Lightpack device.
+		 * @param ledValues RGB color for each LED.
+		 * @returns Zero on success, otherwise negative.
+		 */
+		int writeColors (const Device& device, std::span<const DeepColor> ledValues);
+
+		//TODO: remove. we are the only driver to actuall use _colorOrder.
+		std::array<uint16_t, 3> reorderColor(std::array<uint16_t, 3> color, LedString::ColorOrder order);
+
 };
