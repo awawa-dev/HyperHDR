@@ -71,17 +71,13 @@ class ProviderHid : public LedDevice
 
 
 		/**
-		 * Describes a HID interface returned by HIDAPI enumeration.
+		 * Describes a HID device.
 		 *
-		 * @details String fields are empty when the corresponding descriptor is not
-		 * exposed by the device. A physical device can expose multiple entries when
-		 * it has multiple HID interfaces.
-		 *
-		 * @see hid_device_info
+		 * @see `hid_device_info`
 		 */
-		struct DeviceMeta
+		struct Device
 		{
-			/* Platform-specific path accepted by hid_open_path(). */
+			/* Platform-specific HID path. */
 			std::string path;
 
 			/* USB vendor identifier reported by HIDAPI. */
@@ -93,25 +89,8 @@ class ProviderHid : public LedDevice
 			/* Device serial number, or an empty string when unavailable. */
 			QString serial;
 
-		};
-
-
-		struct Device
-		{
 			/* HIDAPI device handle. */
 			hid_device* handle;
-
-			/* Device serial number. */
-			QString serial;
-
-			/* Platform-specific HID path. */
-			std::string path;
-
-			/* USB vendor identifier reported by HIDAPI. */
-			uint16_t vendorId;
-
-			/* USB product identifier reported by HIDAPI. */
-			uint16_t productId;
 		};
 
 
@@ -305,7 +284,7 @@ class ProviderHid : public LedDevice
 		 * @return A list of found devices, or `std::nullopt` on failure.
 		 */
 		[[nodiscard]]
-		std::optional<std::vector<DeviceMeta>> enumerate () const;
+		std::optional<std::vector<Device>> enumerate () const;
 
 
 		/**
@@ -316,7 +295,7 @@ class ProviderHid : public LedDevice
 		 * @return `true` on success, `false` otherwise.
 		 */
 		[[nodiscard]]
-		bool enumerateForDeviceId (std::vector<DeviceMeta>& info, const DeviceId& id) const;
+		bool enumerateForDeviceId (std::vector<Device>& info, const DeviceId& id) const;
 
 
 		/**
@@ -402,7 +381,7 @@ class ProviderHid : public LedDevice
 		 * @param path The device path.
 		 * @return
 		 */
-		std::optional<Device> open_device (const DeviceMeta& meta);
+		std::optional<Device> open_device (const Device& deviceInfo);
 
 
 		/**

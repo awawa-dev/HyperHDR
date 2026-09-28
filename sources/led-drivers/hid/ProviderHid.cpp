@@ -206,23 +206,18 @@ open_done:
 }
 
 
-std::optional<ProviderHid::Device> ProviderHid::open_device (const DeviceMeta& meta)
+std::optional<ProviderHid::Device> ProviderHid::open_device (const Device& deviceInfo)
 {
-	hid_device* handle = hid_open_path (meta.path.c_str());
-	if (!handle)
+	Device device = deviceInfo;
+	device.handle = hid_open_path (device.path.c_str());
+	if (!device.handle)
 	{
 		setInError (QString ("Could not open HID device %1: %2")
-				.arg (QString::fromStdString (meta.path), getHidError ()));
+				.arg (QString::fromStdString (device.path), getHidError ()));
 		return std::nullopt;
 	}
 
-	return Device {
-		.handle=handle,
-		.serial=meta.serial,
-		.path=meta.path,
-		.vendorId=meta.vendorId,
-		.productId=meta.productId
-	};
+	return device;
 }
 
 
@@ -378,9 +373,9 @@ int ProviderHid::writeFiniteColors (const std::vector<ColorRgb>& ledValues)
 }
 
 
-std::optional<std::vector<ProviderHid::DeviceMeta>> ProviderHid::enumerate () const
+std::optional<std::vector<ProviderHid::Device>> ProviderHid::enumerate () const
 {
-	std::vector<DeviceMeta> devices;
+	std::vector<Device> devices;
 
 	if (hid_init () == -1)
 	{
@@ -422,7 +417,7 @@ std::optional<std::vector<ProviderHid::DeviceMeta>> ProviderHid::enumerate () co
 
 
 bool ProviderHid::enumerateForDeviceId (
-		std::vector<DeviceMeta>& info,
+		std::vector<Device>& info,
 		const DeviceId& id) const
 {
 	bool success = true;
@@ -461,7 +456,7 @@ bool ProviderHid::enumerateForDeviceId (
 			serial = QString::fromWCharArray (device->serial_number);
 		}
 
-		DeviceMeta infoEntry {
+		Device infoEntry {
 			.path=std::string (device->path),
 			.vendorId=device->vendor_id,
 			.productId=device->product_id,
