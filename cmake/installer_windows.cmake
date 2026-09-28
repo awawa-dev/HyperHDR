@@ -64,11 +64,6 @@ macro(InstallerWindows TARGET)
 			install(FILES ${webserver-resources-path} DESTINATION "lib" COMPONENT "HyperHDR" )
 		endif()
 
-		# Copy QMQTT
-		if (USE_SHARED_LIBS AND TARGET qmqtt)
-			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:qmqtt> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")
-		endif()
-
 		# Copy SQLITE3
 		if (USE_SHARED_LIBS AND TARGET sqlite3)
 			install(CODE [[ file(INSTALL FILES $<TARGET_FILE:sqlite3> DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY) ]] COMPONENT "HyperHDR")

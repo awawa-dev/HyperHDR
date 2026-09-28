@@ -192,7 +192,6 @@ Use -D prefix when configuring the build.
     * USE_EMBEDDED_WEB_RESOURCES = ON | OFF, embed web content into the app
     * USE_PRECOMPILED_HEADERS = ON | OFF, use pre-compiled headers when building
     * USE_CCACHE_CACHING = ON | OFF, enable CCache support if available
-    * USE_SYSTEM_MQTT_LIBS = ON | OFF, prefer system qMQTT libs
     * USE_SYSTEM_FLATBUFFERS_LIBS = ON | OFF, prefer system Flatbuffers libs
     * USE_SYSTEM_LUNASVG_LIBS = ON | OFF, prefer system lunasvg libs
     * USE_SYSTEM_NANOPB_LIBS = ON | OFF, prefer system nanopb libs
