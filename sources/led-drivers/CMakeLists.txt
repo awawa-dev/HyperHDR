@@ -24,7 +24,7 @@ IF ( HAVE_SERIAL_LED )
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_HEADER_DIR}/serial/*.h" "${CURRENT_SOURCE_DIR}/serial/*.cpp")
 endif()
 
-if (ENABLE_LIGHTPACK)
+if (ENABLE_HID)
 	find_package(hidapi 0.15 CONFIG REQUIRED COMPONENTS libusb)
 	FILE (GLOB Leddevice_HID_SOURCES "${CURRENT_HEADER_DIR}/hid/*.h" "${CURRENT_SOURCE_DIR}/hid/*.cpp")
 endif()
@@ -83,7 +83,7 @@ IF ( HAVE_SERIAL_LED )
 	target_link_libraries(led-drivers Qt${Qt_VERSION}::SerialPort)
 endif()
 
-if (ENABLE_LIGHTPACK)
+if (ENABLE_HID)
 	target_link_libraries(led-drivers hidapi::libusb)
 endif()
 
