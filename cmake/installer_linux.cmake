@@ -83,8 +83,6 @@ macro(InstallerLinux TARGET)
             install(CODE "set(DEST_DIR \"${CMAKE_INSTALL_LIBDIR}/hyperhdr/external\")" COMPONENT "HyperHDR")
 
             install(CODE [[
-                include(GetPrerequisites)
-                
                 set(SYSTEM_LIBS_SKIP
                     "libc" "libglib-2" "libsystemd0" "libdbus-1" "libdl" "libexpat" "libfontconfig" "libgcc_s"
                     "libm" "libpthread" "librt" "libstdc++" "libudev" "libz.so" "libxrender1"
@@ -98,6 +96,12 @@ macro(InstallerLinux TARGET)
                     "libnghttp" "libsystemd" "libpsl" "libunistring" "libssh" "libselinux"
                     "libevent-2" "libldap" "libutils" "libsqlite3"
                 )
+
+                include(GetPrerequisites)
+                
+                if (NOT CMAKE_CROSSCOMPILING)
+                    file(GET_RUNTIME_DEPENDENCIES RESOLVED_DEPENDENCIES_VAR DEPENDENCIES EXECUTABLES ${TARGET_FILE})
+                endif()
 
                 # Kopiowanie pluginów QT do lib/hyperhdr/external/plugins
                 foreach(PLUGIN "tls")
