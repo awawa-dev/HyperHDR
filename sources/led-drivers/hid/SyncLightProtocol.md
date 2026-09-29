@@ -187,7 +187,7 @@ The driver sends a black frame from:
 
 - `powerOff()`
 - `close()`
-- `~DriverOtherSyncLight()`
+- `~DriverHidSyncLight()`
 
 The destructor path is required because quitting HyperHDR from the tray may
 destroy the driver without going through the normal instance-disable path.

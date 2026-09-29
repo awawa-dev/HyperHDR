@@ -1,4 +1,4 @@
-#include <led-drivers/other/DriverOtherSyncLight.h>
+#include <led-drivers/hid/DriverHidSyncLight.h>
 
 #ifndef PCH_ENABLED
 	#include <QDir>
@@ -29,7 +29,7 @@
 
 namespace
 {
-	const QList<DriverOtherSyncLight::SupportedDevice> DEFAULT_DEVICES = {
+	const QList<DriverHidSyncLight::SupportedDevice> DEFAULT_DEVICES = {
 		{ 0x1a86, 0xfe07 },
 		{ 0x1a86, 0xfe0c }
 	};
@@ -41,9 +41,9 @@ namespace
 			.arg(productId, 4, 16, QLatin1Char('0'));
 	}
 
-	bool isSupportedDevice(quint16 vendorId, quint16 productId, const QList<DriverOtherSyncLight::SupportedDevice>& supportedDevices)
+	bool isSupportedDevice(quint16 vendorId, quint16 productId, const QList<DriverHidSyncLight::SupportedDevice>& supportedDevices)
 	{
-		return std::any_of(supportedDevices.cbegin(), supportedDevices.cend(), [vendorId, productId](const DriverOtherSyncLight::SupportedDevice& device) {
+		return std::any_of(supportedDevices.cbegin(), supportedDevices.cend(), [vendorId, productId](const DriverHidSyncLight::SupportedDevice& device) {
 			return vendorId == device.vendorId && productId == device.productId;
 		});
 	}
@@ -185,7 +185,7 @@ namespace
 #endif
 }
 
-DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
+DriverHidSyncLight::DriverHidSyncLight(const QJsonObject& deviceConfig)
 	: LedDevice(deviceConfig)
 	, _idCounter(0)
 	, _brightness(0xff)
@@ -200,7 +200,7 @@ DriverOtherSyncLight::DriverOtherSyncLight(const QJsonObject& deviceConfig)
 {
 }
 
-DriverOtherSyncLight::~DriverOtherSyncLight()
+DriverHidSyncLight::~DriverHidSyncLight()
 {
 	QMutexLocker locker(&_transaction);
 
@@ -213,7 +213,7 @@ DriverOtherSyncLight::~DriverOtherSyncLight()
 #endif
 }
 
-bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
+bool DriverHidSyncLight::init(QJsonObject deviceConfig)
 {
 	bool initOK = LedDevice::init(deviceConfig);
 
@@ -244,7 +244,7 @@ bool DriverOtherSyncLight::init(QJsonObject deviceConfig)
 	return initOK;
 }
 
-QJsonObject DriverOtherSyncLight::discover(const QJsonObject& /*params*/)
+QJsonObject DriverHidSyncLight::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	QJsonArray deviceList;
@@ -400,7 +400,7 @@ QJsonObject DriverOtherSyncLight::discover(const QJsonObject& /*params*/)
 	return devicesDiscovered;
 }
 
-int DriverOtherSyncLight::open()
+int DriverHidSyncLight::open()
 {
 	QMutexLocker locker(&_transaction);
 
@@ -442,7 +442,7 @@ int DriverOtherSyncLight::open()
 #endif
 }
 
-int DriverOtherSyncLight::close()
+int DriverHidSyncLight::close()
 {
 	QMutexLocker locker(&_transaction);
 	if (_isDeviceReady)
@@ -456,7 +456,7 @@ int DriverOtherSyncLight::close()
 	return 0;
 }
 
-void DriverOtherSyncLight::closeDeviceHandle()
+void DriverHidSyncLight::closeDeviceHandle()
 {
 	_isDeviceReady = false;
 
@@ -478,7 +478,7 @@ void DriverOtherSyncLight::closeDeviceHandle()
 #endif
 }
 
-bool DriverOtherSyncLight::isDeviceHandleOpen() const
+bool DriverHidSyncLight::isDeviceHandleOpen() const
 {
 #if defined(_WIN32)
 	return _deviceHandle != INVALID_HANDLE_VALUE;
@@ -489,19 +489,19 @@ bool DriverOtherSyncLight::isDeviceHandleOpen() const
 #endif
 }
 
-bool DriverOtherSyncLight::powerOn()
+bool DriverHidSyncLight::powerOn()
 {
 	QMutexLocker locker(&_transaction);
 	return sendBrightness(_brightness);
 }
 
-bool DriverOtherSyncLight::powerOff()
+bool DriverHidSyncLight::powerOff()
 {
 	QMutexLocker locker(&_transaction);
 	return sendBlackFrame();
 }
 
-bool DriverOtherSyncLight::sendBlackFrame()
+bool DriverHidSyncLight::sendBlackFrame()
 {
 	const int blackLedCount = _outputMode == OutputMode::PerLed
 		? qMax(_totalLedCount, (_controllerLedCount + 3) / 2)
@@ -518,7 +518,7 @@ bool DriverOtherSyncLight::sendBlackFrame()
 	}
 }
 
-int DriverOtherSyncLight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
+int DriverHidSyncLight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
 {
 	QMutexLocker locker(&_transaction);
 
@@ -547,7 +547,7 @@ int DriverOtherSyncLight::writeFiniteColors(const std::vector<ColorRgb>& ledValu
 	return ok ? static_cast<int>(ledValues.size()) : -1;
 }
 
-quint8 DriverOtherSyncLight::checksum(const QByteArray& frame)
+quint8 DriverHidSyncLight::checksum(const QByteArray& frame)
 {
 	quint8 sum = 0;
 	for (char byte : frame)
@@ -557,7 +557,7 @@ quint8 DriverOtherSyncLight::checksum(const QByteArray& frame)
 	return sum;
 }
 
-bool DriverOtherSyncLight::parseDeviceId(const QString& text, quint16& value)
+bool DriverHidSyncLight::parseDeviceId(const QString& text, quint16& value)
 {
 	bool ok = false;
 	uint parsed = text.trimmed().toUInt(&ok, 0);
@@ -569,7 +569,7 @@ bool DriverOtherSyncLight::parseDeviceId(const QString& text, quint16& value)
 	return true;
 }
 
-QList<DriverOtherSyncLight::SupportedDevice> DriverOtherSyncLight::configuredDevices() const
+QList<DriverHidSyncLight::SupportedDevice> DriverHidSyncLight::configuredDevices() const
 {
 	QList<SupportedDevice> devices;
 
@@ -599,7 +599,7 @@ QList<DriverOtherSyncLight::SupportedDevice> DriverOtherSyncLight::configuredDev
 	return devices.isEmpty() ? DEFAULT_DEVICES : devices;
 }
 
-QByteArray DriverOtherSyncLight::buildRbFrame(quint8 action, const QByteArray& payload, quint8 id)
+QByteArray DriverHidSyncLight::buildRbFrame(quint8 action, const QByteArray& payload, quint8 id)
 {
 	const int totalLength = RB_OVERHEAD + payload.size();
 	if (totalLength > REPORT_SIZE)
@@ -621,7 +621,7 @@ QByteArray DriverOtherSyncLight::buildRbFrame(quint8 action, const QByteArray& p
 	return frame;
 }
 
-QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int controllerLedCount, quint8 id)
+QByteArray DriverHidSyncLight::buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int controllerLedCount, quint8 id)
 {
 	const int inputLedCount = qMin(qBound(1, totalLedCount, 254), static_cast<int>(ledValues.size()));
 	const int maxAddress = qBound(1, controllerLedCount, 254);
@@ -668,7 +668,7 @@ QByteArray DriverOtherSyncLight::buildScFrame(const std::vector<ColorRgb>& ledVa
 	return frame;
 }
 
-QByteArray DriverOtherSyncLight::buildReport(const QByteArray& frame)
+QByteArray DriverHidSyncLight::buildReport(const QByteArray& frame)
 {
 	if (frame.size() > REPORT_SIZE)
 	{
@@ -680,7 +680,7 @@ QByteArray DriverOtherSyncLight::buildReport(const QByteArray& frame)
 	return report;
 }
 
-QByteArray DriverOtherSyncLight::buildSectionPayload(quint8 section, quint8 red, quint8 green, quint8 blue)
+QByteArray DriverHidSyncLight::buildSectionPayload(quint8 section, quint8 red, quint8 green, quint8 blue)
 {
 	QByteArray payload;
 	payload.reserve(10);
@@ -697,13 +697,13 @@ QByteArray DriverOtherSyncLight::buildSectionPayload(quint8 section, quint8 red,
 	return payload;
 }
 
-ColorRgb DriverOtherSyncLight::averageColor(const std::vector<ColorRgb>& ledValues, int ledCount)
+ColorRgb DriverHidSyncLight::averageColor(const std::vector<ColorRgb>& ledValues, int ledCount)
 {
 	const int count = qMin(qBound(1, ledCount, 254), static_cast<int>(ledValues.size()));
 	return averageColorRange(ledValues, 0, count);
 }
 
-ColorRgb DriverOtherSyncLight::averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count)
+ColorRgb DriverHidSyncLight::averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count)
 {
 	const int first = qBound(0, offset, static_cast<int>(ledValues.size()));
 	const int last = qMin(first + qMax(0, count), static_cast<int>(ledValues.size()));
@@ -730,7 +730,7 @@ ColorRgb DriverOtherSyncLight::averageColorRange(const std::vector<ColorRgb>& le
 		static_cast<uint8_t>(blue / static_cast<uint64_t>(count)));
 }
 
-quint8 DriverOtherSyncLight::nextId()
+quint8 DriverHidSyncLight::nextId()
 {
 	_idCounter = static_cast<quint8>(_idCounter + 1);
 	if (_idCounter == 0)
@@ -740,7 +740,7 @@ quint8 DriverOtherSyncLight::nextId()
 	return _idCounter;
 }
 
-bool DriverOtherSyncLight::sendRb(quint8 action, const QByteArray& payload)
+bool DriverHidSyncLight::sendRb(quint8 action, const QByteArray& payload)
 {
 	const QByteArray frame = buildRbFrame(action, payload, nextId());
 	if (frame.isEmpty())
@@ -752,7 +752,7 @@ bool DriverOtherSyncLight::sendRb(quint8 action, const QByteArray& payload)
 	return writeReport(buildReport(frame));
 }
 
-bool DriverOtherSyncLight::sendAveragedSectionColor(const std::vector<ColorRgb>& ledValues)
+bool DriverHidSyncLight::sendAveragedSectionColor(const std::vector<ColorRgb>& ledValues)
 {
 	const ColorRgb color = averageColor(ledValues, _totalLedCount);
 
@@ -766,7 +766,7 @@ bool DriverOtherSyncLight::sendAveragedSectionColor(const std::vector<ColorRgb>&
 	return sendRb(ACTION_COLOR, buildSectionPayload(SECTION_GLOBAL, color.red, color.green, color.blue));
 }
 
-bool DriverOtherSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues, int totalLedCount)
+bool DriverHidSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues, int totalLedCount)
 {
 	const QByteArray frame = buildScFrame(ledValues, totalLedCount, _controllerLedCount, nextId());
 	for (int offset = 0; offset < frame.size(); offset += REPORT_SIZE)
@@ -780,14 +780,14 @@ bool DriverOtherSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues, 
 	return true;
 }
 
-bool DriverOtherSyncLight::sendBrightness(quint8 value)
+bool DriverHidSyncLight::sendBrightness(quint8 value)
 {
 	QByteArray payload;
 	payload.push_back(static_cast<char>(value));
 	return sendRb(ACTION_BRIGHTNESS, payload);
 }
 
-bool DriverOtherSyncLight::writeReport(const QByteArray& report)
+bool DriverHidSyncLight::writeReport(const QByteArray& report)
 {
 	if (report.size() != REPORT_SIZE + 1)
 	{
@@ -838,7 +838,7 @@ bool DriverOtherSyncLight::writeReport(const QByteArray& report)
 #endif
 }
 
-QString DriverOtherSyncLight::openDeviceHandle()
+QString DriverHidSyncLight::openDeviceHandle()
 {
 #if defined(_WIN32)
 	GUID hidGuid;
@@ -970,9 +970,9 @@ QString DriverOtherSyncLight::openDeviceHandle()
 #endif
 }
 
-LedDevice* DriverOtherSyncLight::construct(const QJsonObject& deviceConfig)
+LedDevice* DriverHidSyncLight::construct(const QJsonObject& deviceConfig)
 {
-	return new DriverOtherSyncLight(deviceConfig);
+	return new DriverHidSyncLight(deviceConfig);
 }
 
-bool DriverOtherSyncLight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("synclight", "leds_group_3_serial", DriverOtherSyncLight::construct);
+bool DriverHidSyncLight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("synclight", "leds_group_3_serial", DriverHidSyncLight::construct);

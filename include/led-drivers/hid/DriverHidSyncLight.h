@@ -15,11 +15,11 @@
 	#include <windows.h>
 #endif
 
-class DriverOtherSyncLight : public LedDevice
+class DriverHidSyncLight : public LedDevice
 {
 public:
-	explicit DriverOtherSyncLight(const QJsonObject& deviceConfig);
-	~DriverOtherSyncLight() override;
+	explicit DriverHidSyncLight(const QJsonObject& deviceConfig);
+	~DriverHidSyncLight() override;
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 	QJsonObject discover(const QJsonObject& params) override;
 
