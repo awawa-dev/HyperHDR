@@ -10,8 +10,8 @@ Known VID/PID pairs:
 - `0x1a86:0xfe07`
 - `0x1a86:0xfe0c`
 
-The driver sends HID output reports. On Windows this uses the Windows HID API;
-on Linux this uses `/dev/hidraw`. Each report is 65 bytes:
+The driver sends HID output reports through `ProviderHid` and HIDAPI. Each
+report is 65 bytes:
 
 - byte `0`: HID report id, currently `0x00`
 - bytes `1..64`: protocol payload chunk
@@ -186,8 +186,8 @@ SyncLight frame builder would double-swap channels.
 The driver sends a black frame from:
 
 - `powerOff()`
-- `close()`
 - `~DriverHidSyncLight()`
 
-The destructor path is required because quitting HyperHDR from the tray may
-destroy the driver without going through the normal instance-disable path.
+`ProviderHid` owns and closes the HID handles. The destructor power-off remains
+as a fallback because quitting HyperHDR from the tray may destroy the driver
+without going through the normal instance-disable path.

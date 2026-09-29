@@ -1,715 +1,287 @@
 #include <led-drivers/hid/DriverHidSyncLight.h>
 
 #ifndef PCH_ENABLED
-	#include <QDir>
-	#include <QFile>
-	#include <QFileInfo>
-	#include <QJsonArray>
-	#include <QJsonDocument>
 	#include <QJsonObject>
-	#include <QMutexLocker>
 	#include <QStringList>
 	#include <QThread>
 	#include <algorithm>
 #endif
 
-#include <QDirIterator>
-#include <cerrno>
-#include <cstring>
 
-#if defined(_WIN32)
-	#include <hidsdi.h>
-	#include <setupapi.h>
-#elif defined(__linux__)
-	#include <fcntl.h>
-	#include <linux/hidraw.h>
-	#include <sys/ioctl.h>
-	#include <unistd.h>
-#endif
-
-namespace
+DriverHidSyncLight::~DriverHidSyncLight ()
 {
-	const QList<DriverHidSyncLight::SupportedDevice> DEFAULT_DEVICES = {
-		{ 0x1a86, 0xfe07 },
-		{ 0x1a86, 0xfe0c }
-	};
-
-	QString deviceIdString(quint16 vendorId, quint16 productId)
-	{
-		return QString("0x%1:0x%2")
-			.arg(vendorId, 4, 16, QLatin1Char('0'))
-			.arg(productId, 4, 16, QLatin1Char('0'));
-	}
-
-	bool isSupportedDevice(quint16 vendorId, quint16 productId, const QList<DriverHidSyncLight::SupportedDevice>& supportedDevices)
-	{
-		return std::any_of(supportedDevices.cbegin(), supportedDevices.cend(), [vendorId, productId](const DriverHidSyncLight::SupportedDevice& device) {
-			return vendorId == device.vendorId && productId == device.productId;
-		});
-	}
-
-#if defined(__linux__)
-	struct LinuxHidDeviceInfo
-	{
-		QString hidrawName;
-		QString path;
-		QString sysfsPath;
-		QString name;
-		QString manufacturer;
-		QString product;
-		QString serial;
-		quint16 vendorId = 0;
-		quint16 productId = 0;
-		bool hasIds = false;
-	};
-
-	QString readSysfsText(const QString& path)
-	{
-		QFile file(path);
-		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		{
-			return QString();
-		}
-
-		return QString::fromUtf8(file.readAll()).trimmed();
-	}
-
-	bool parseHex16(const QString& text, quint16& value)
-	{
-		bool ok = false;
-		const uint parsed = text.trimmed().toUInt(&ok, 16);
-		if (!ok || parsed > 0xffff)
-		{
-			return false;
-		}
-		value = static_cast<quint16>(parsed);
-		return true;
-	}
-
-	void readUsbParentInfo(LinuxHidDeviceInfo& device)
-	{
-		QDir current(device.sysfsPath);
-		for (int depth = 0; depth < 8 && current.cdUp(); ++depth)
-		{
-			quint16 vendorId = 0;
-			quint16 productId = 0;
-			if (parseHex16(readSysfsText(current.filePath("idVendor")), vendorId) &&
-				parseHex16(readSysfsText(current.filePath("idProduct")), productId))
-			{
-				device.vendorId = vendorId;
-				device.productId = productId;
-				device.hasIds = true;
-
-				if (device.manufacturer.isEmpty())
-				{
-					device.manufacturer = readSysfsText(current.filePath("manufacturer"));
-				}
-				if (device.product.isEmpty())
-				{
-					device.product = readSysfsText(current.filePath("product"));
-				}
-				if (device.serial.isEmpty())
-				{
-					device.serial = readSysfsText(current.filePath("serial"));
-				}
-				return;
-			}
-		}
-	}
-
-	void readHidUevent(LinuxHidDeviceInfo& device)
-	{
-		const QString uevent = readSysfsText(device.sysfsPath + "/uevent");
-		const QStringList lines = uevent.split('\n', Qt::SkipEmptyParts);
-
-		for (const QString& line : lines)
-		{
-			const int separator = line.indexOf('=');
-			if (separator <= 0)
-			{
-				continue;
-			}
-
-			const QString key = line.left(separator);
-			const QString value = line.mid(separator + 1).trimmed();
-
-			if (key == "HID_ID")
-			{
-				const QStringList parts = value.split(':');
-				quint16 vendorId = 0;
-				quint16 productId = 0;
-				if (parts.size() >= 3 && parseHex16(parts[1], vendorId) && parseHex16(parts[2], productId))
-				{
-					device.vendorId = vendorId;
-					device.productId = productId;
-					device.hasIds = true;
-				}
-			}
-			else if (key == "HID_NAME")
-			{
-				device.name = value;
-			}
-			else if (key == "HID_UNIQ")
-			{
-				device.serial = value;
-			}
-		}
-	}
-
-	QList<LinuxHidDeviceInfo> discoverLinuxHidrawDevices()
-	{
-		QList<LinuxHidDeviceInfo> devices;
-		QDirIterator iterator("/sys/class/hidraw", QDir::Dirs | QDir::NoDotAndDotDot | QDir::System);
-		while (iterator.hasNext())
-		{
-			const QString hidrawSysfsPath = iterator.next();
-			LinuxHidDeviceInfo device;
-			device.hidrawName = QFileInfo(hidrawSysfsPath).fileName();
-			device.path = QString("/dev/%1").arg(device.hidrawName);
-			device.sysfsPath = QFileInfo(hidrawSysfsPath + "/device").canonicalFilePath();
-			if (device.sysfsPath.isEmpty())
-			{
-				continue;
-			}
-
-			readHidUevent(device);
-			readUsbParentInfo(device);
-			if (device.name.isEmpty())
-			{
-				device.name = device.product;
-			}
-			devices.push_back(device);
-		}
-		return devices;
-	}
-#endif
+	/* LedDevice shutdown normally powers the device off before closing it.
+	 * Keep the destructor fallback used by the original SyncLight driver. */
+	//TODO: shutdown with taskbar icon should use normal shutdown process
+	ProviderHid::powerOff ();
 }
 
-DriverHidSyncLight::DriverHidSyncLight(const QJsonObject& deviceConfig)
-	: LedDevice(deviceConfig)
-	, _idCounter(0)
-	, _brightness(0xff)
-	, _totalLedCount(0)
-	, _controllerLedCount(DEFAULT_CONTROLLER_LED_COUNT)
-	, _outputMode(OutputMode::Global)
-#if defined(_WIN32)
-	, _deviceHandle(INVALID_HANDLE_VALUE)
-#elif defined(__linux__)
-	, _deviceHandle(-1)
-#endif
-{
-}
 
-DriverHidSyncLight::~DriverHidSyncLight()
+bool DriverHidSyncLight::init (QJsonObject deviceConfig)
 {
-	QMutexLocker locker(&_transaction);
-
-#if defined(_WIN32) || defined(__linux__)
-	if (isDeviceHandleOpen())
-	{
-		sendBlackFrame();
-		closeDeviceHandle();
+	if (!ProviderHid::init (deviceConfig)) {
+		return false;
 	}
-#endif
-}
 
-bool DriverHidSyncLight::init(QJsonObject deviceConfig)
-{
-	bool initOK = LedDevice::init(deviceConfig);
+	_brightness = static_cast<quint8> (
+			qBound (0, deviceConfig["brightness"].toInt (255), 255));
+	_totalLedCount = qBound (1, static_cast<int> (_ledCount), static_cast<int> (maximum_led_count));
+	_controllerLedCount = qBound (
+			1,
+			deviceConfig["controllerLedCount"].toInt (default_controller_led_count),
+			static_cast<int> (maximum_led_count));
 
-	_devices = configuredDevices();
-	_brightness = static_cast<quint8>(qBound(0, deviceConfig["brightness"].toInt(255), 255));
-	_totalLedCount = qBound(1, static_cast<int>(_ledCount), 254);
-	_controllerLedCount = qBound(1, deviceConfig["controllerLedCount"].toInt(DEFAULT_CONTROLLER_LED_COUNT), 254);
-	const QString outputMode = deviceConfig["outputMode"].toString("global");
 	_outputMode = OutputMode::Global;
-	if (outputMode.compare("segments", Qt::CaseInsensitive) == 0)
+	QString modeName = QStringLiteral ("global");
+	const QString outputMode = deviceConfig["outputMode"].toString ("global");
+	if (outputMode.compare ("segments", Qt::CaseInsensitive) == 0)
 	{
 		_outputMode = OutputMode::PerLed;
+		modeName = QStringLiteral ("per-led");
 	}
 
 	QStringList ids;
-	for (const auto& device : _devices)
+	for (const auto& device : getSupportedDeviceIds ())
 	{
-		ids << QString("0x%1:0x%2")
-			.arg(device.vendorId, 4, 16, QLatin1Char('0'))
-			.arg(device.productId, 4, 16, QLatin1Char('0'));
+		ids << QString ("0x%1:0x%2")
+			.arg (device.vendorId, 4, 16, QLatin1Char ('0'))
+			.arg (device.productId, 4, 16, QLatin1Char ('0'));
 	}
 
-	const QString modeName = _outputMode == OutputMode::PerLed ? "per-led" : "global";
 	const int scAddressPairs = (_controllerLedCount + 3) / 2;
-	Info(_log, "SyncLight HID devices: {:s}, brightness: {:d}, layoutLeds: {:d}, controllerLeds: {:d}, outputMode: {:s}, scAddressMax: {:d}, scAddressPairs: {:d}",
-		ids.join(", "), _brightness, _totalLedCount, _controllerLedCount, modeName, _controllerLedCount, scAddressPairs);
+	Info (_log, "SyncLight HID devices: {:s}, brightness: {:d}, layoutLeds: {:d}, controllerLeds: {:d}, outputMode: {:s}, scAddressMax: {:d}, scAddressPairs: {:d}",
+			ids.join (", "),
+			_brightness,
+			_totalLedCount,
+			_controllerLedCount,
+			modeName,
+			_controllerLedCount,
+			scAddressPairs);
 
-	return initOK;
+	return true;
 }
 
-QJsonObject DriverHidSyncLight::discover(const QJsonObject& /*params*/)
+
+bool DriverHidSyncLight::init_device (const Device& device)
 {
-	QJsonObject devicesDiscovered;
-	QJsonArray deviceList;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
-#if defined(_WIN32)
-	GUID hidGuid;
-	HidD_GetHidGuid(&hidGuid);
-
-	HDEVINFO deviceInfo = SetupDiGetClassDevsW(&hidGuid, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-	if (deviceInfo == INVALID_HANDLE_VALUE)
+	if (!sendRb (device, action_keepalive, QByteArray ()))
 	{
-		Error(_log, "SetupDiGetClassDevsW failed while discovering SyncLight HID devices");
-		devicesDiscovered.insert("devices", deviceList);
-		return devicesDiscovered;
+		setInError (QString ("SyncLight keepalive failed after opening HID device %1")
+				.arg (QString::fromStdString (device.path)));
+		return false;
 	}
 
-	SP_DEVICE_INTERFACE_DATA interfaceData;
-	interfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
-
-	for (DWORD index = 0; SetupDiEnumDeviceInterfaces(deviceInfo, nullptr, &hidGuid, index, &interfaceData); ++index)
+	if (!sendBrightness (device, _brightness))
 	{
-		DWORD requiredSize = 0;
-		SetupDiGetDeviceInterfaceDetailW(deviceInfo, &interfaceData, nullptr, 0, &requiredSize, nullptr);
-		if (requiredSize == 0)
-		{
-			continue;
-		}
-
-		QByteArray detailBuffer(static_cast<int>(requiredSize), 0);
-		auto* detailData = reinterpret_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA_W>(detailBuffer.data());
-		detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_W);
-
-		if (!SetupDiGetDeviceInterfaceDetailW(deviceInfo, &interfaceData, detailData, requiredSize, nullptr, nullptr))
-		{
-			continue;
-		}
-
-		HANDLE handle = CreateFileW(
-			detailData->DevicePath,
-			0,
-			FILE_SHARE_READ | FILE_SHARE_WRITE,
-			nullptr,
-			OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,
-			nullptr);
-
-		if (handle == INVALID_HANDLE_VALUE)
-		{
-			continue;
-		}
-
-		HIDD_ATTRIBUTES attributes;
-		attributes.Size = sizeof(HIDD_ATTRIBUTES);
-		if (!HidD_GetAttributes(handle, &attributes))
-		{
-			CloseHandle(handle);
-			continue;
-		}
-
-		const bool supported = isSupportedDevice(attributes.VendorID, attributes.ProductID, DEFAULT_DEVICES);
-
-		if (!supported)
-		{
-			CloseHandle(handle);
-			continue;
-		}
-
-		auto readHidString = [handle](BOOLEAN (__stdcall *reader)(HANDLE, PVOID, ULONG)) {
-			wchar_t buffer[126] = {};
-			if (reader(handle, buffer, sizeof(buffer)))
-			{
-				return QString::fromWCharArray(buffer);
-			}
-			return QString();
-		};
-
-		const QString manufacturer = readHidString(HidD_GetManufacturerString);
-		const QString product = readHidString(HidD_GetProductString);
-		const QString serial = readHidString(HidD_GetSerialNumberString);
-		const QString vid = QString("0x%1").arg(attributes.VendorID, 4, 16, QLatin1Char('0'));
-		const QString pid = QString("0x%1").arg(attributes.ProductID, 4, 16, QLatin1Char('0'));
-		const QString path = QString::fromWCharArray(detailData->DevicePath);
-		const QString displayName = product.isEmpty()
-			? QString("SyncLight HID (%1:%2)").arg(vid, pid)
-			: QString("%1 (%2:%3)").arg(product, vid, pid);
-
-		QJsonObject device;
-		device.insert("value", QString("%1:%2").arg(vid, pid));
-		device.insert("name", displayName);
-		device.insert("vid", vid);
-		device.insert("pid", pid);
-		device.insert("path", path);
-		if (!manufacturer.isEmpty())
-		{
-			device.insert("manufacturer", manufacturer);
-		}
-		if (!product.isEmpty())
-		{
-			device.insert("product", product);
-		}
-		if (!serial.isEmpty())
-		{
-			device.insert("serial", serial);
-		}
-		deviceList.push_back(device);
-
-		CloseHandle(handle);
+		setInError (QString ("SyncLight brightness setup failed after opening HID device %1")
+				.arg (QString::fromStdString (device.path)));
+		return false;
 	}
 
-	SetupDiDestroyDeviceInfoList(deviceInfo);
-#elif defined(__linux__)
-	const QList<LinuxHidDeviceInfo> hidrawDevices = discoverLinuxHidrawDevices();
-	for (const LinuxHidDeviceInfo& hidDevice : hidrawDevices)
-	{
-		if (!hidDevice.hasIds || !isSupportedDevice(hidDevice.vendorId, hidDevice.productId, DEFAULT_DEVICES))
-		{
-			continue;
-		}
-
-		const QString vid = QString("0x%1").arg(hidDevice.vendorId, 4, 16, QLatin1Char('0'));
-		const QString pid = QString("0x%1").arg(hidDevice.productId, 4, 16, QLatin1Char('0'));
-		const QString displayName = hidDevice.name.isEmpty()
-			? QString("SyncLight HID (%1:%2)").arg(vid, pid)
-			: QString("%1 (%2:%3)").arg(hidDevice.name, vid, pid);
-
-		QJsonObject device;
-		device.insert("value", deviceIdString(hidDevice.vendorId, hidDevice.productId));
-		device.insert("name", displayName);
-		device.insert("vid", vid);
-		device.insert("pid", pid);
-		device.insert("path", hidDevice.path);
-		if (!hidDevice.manufacturer.isEmpty())
-		{
-			device.insert("manufacturer", hidDevice.manufacturer);
-		}
-		if (!hidDevice.product.isEmpty())
-		{
-			device.insert("product", hidDevice.product);
-		}
-		if (!hidDevice.serial.isEmpty())
-		{
-			device.insert("serial", hidDevice.serial);
-		}
-		deviceList.push_back(device);
-	}
-#else
-	Debug(_log, "SyncLight HID discovery is currently implemented for Windows and Linux only");
-#endif
-
-	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "SyncLight devices discovered: [{:s}]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	return devicesDiscovered;
+	return true;
 }
 
-int DriverHidSyncLight::open()
+
+bool DriverHidSyncLight::powerOn (const Device& device)
 {
-	QMutexLocker locker(&_transaction);
+	return sendBrightness (device, _brightness);
+}
 
-	_isDeviceReady = false;
 
-#if defined(_WIN32) || defined(__linux__)
-	if (isDeviceHandleOpen())
-	{
-		_isDeviceReady = true;
+bool DriverHidSyncLight::powerOff (const Device& device)
+{
+	return sendBlackFrame (device);
+}
+
+
+int DriverHidSyncLight::writeFiniteColors (
+		const Device& device,
+		std::span<const ColorRgb> ledValues)
+{
+	if (ledValues.empty ()) {
 		return 0;
 	}
 
-	QString error = openDeviceHandle();
-	if (!error.isEmpty())
+	const int totalLedCount = qBound (
+			1,
+			static_cast<int> (ledValues.size ()),
+			static_cast<int> (maximum_led_count));
+
+	bool success = false;
+	switch (_outputMode)
 	{
-		setInError(error);
+		case OutputMode::PerLed:
+			success = sendScColors (device, ledValues, totalLedCount);
+			break;
+		case OutputMode::Global:
+		default:
+			success = sendAveragedSectionColor (device, ledValues, totalLedCount);
+			break;
+	}
+
+	if (!success)
+	{
+		setInError (QString ("Could not write colors to SyncLight %1")
+				.arg (QString::fromStdString (device.path)));
 		return -1;
 	}
-
-	if (!sendRb(ACTION_KEEPALIVE, QByteArray()))
-	{
-		closeDeviceHandle();
-		setInError("SyncLight keepalive failed after opening HID device");
-		return -1;
-	}
-
-	if (!sendBrightness(_brightness))
-	{
-		closeDeviceHandle();
-		setInError("SyncLight brightness setup failed after opening HID device");
-		return -1;
-	}
-
-	_isDeviceReady = true;
-	return 0;
-#else
-	setInError("SyncLight HID driver is currently implemented for Windows and Linux only");
-	return -1;
-#endif
-}
-
-int DriverHidSyncLight::close()
-{
-	QMutexLocker locker(&_transaction);
-	if (_isDeviceReady)
-	{
-		sendBlackFrame();
-	}
-
-	_isDeviceReady = false;
-	closeDeviceHandle();
 
 	return 0;
 }
 
-void DriverHidSyncLight::closeDeviceHandle()
-{
-	_isDeviceReady = false;
 
-#if defined(_WIN32)
-	if (_deviceHandle != INVALID_HANDLE_VALUE)
-	{
-		CloseHandle(_deviceHandle);
-		_deviceHandle = INVALID_HANDLE_VALUE;
-	}
-#elif defined(__linux__)
-	if (_deviceHandle >= 0)
-	{
-		if (::close(_deviceHandle) != 0)
-		{
-			Error(_log, "Failed to close SyncLight HID device. errno={:d}, {:s}", errno, strerror(errno));
-		}
-		_deviceHandle = -1;
-	}
-#endif
-}
-
-bool DriverHidSyncLight::isDeviceHandleOpen() const
-{
-#if defined(_WIN32)
-	return _deviceHandle != INVALID_HANDLE_VALUE;
-#elif defined(__linux__)
-	return _deviceHandle >= 0;
-#else
-	return false;
-#endif
-}
-
-bool DriverHidSyncLight::powerOn()
-{
-	QMutexLocker locker(&_transaction);
-	return sendBrightness(_brightness);
-}
-
-bool DriverHidSyncLight::powerOff()
-{
-	QMutexLocker locker(&_transaction);
-	return sendBlackFrame();
-}
-
-bool DriverHidSyncLight::sendBlackFrame()
-{
-	const int blackLedCount = _outputMode == OutputMode::PerLed
-		? qMax(_totalLedCount, (_controllerLedCount + 3) / 2)
-		: _totalLedCount;
-	std::vector<ColorRgb> black(static_cast<size_t>(qBound(1, blackLedCount, 254)), ColorRgb::BLACK);
-
-	switch (_outputMode)
-	{
-	case OutputMode::PerLed:
-		return sendScColors(black, static_cast<int>(black.size()));
-	case OutputMode::Global:
-	default:
-		return sendAveragedSectionColor(black);
-	}
-}
-
-int DriverHidSyncLight::writeFiniteColors(const std::vector<ColorRgb>& ledValues)
-{
-	QMutexLocker locker(&_transaction);
-
-	if (ledValues.empty())
-	{
-		return 0;
-	}
-
-	if (_totalLedCount != static_cast<int>(ledValues.size()))
-	{
-		_totalLedCount = qBound(1, static_cast<int>(ledValues.size()), 254);
-		Debug(_log, "SyncLight led count changed to {:d}", _totalLedCount);
-	}
-
-	bool ok = false;
-	switch (_outputMode)
-	{
-	case OutputMode::PerLed:
-		ok = sendScColors(ledValues, _totalLedCount);
-		break;
-	case OutputMode::Global:
-	default:
-		ok = sendAveragedSectionColor(ledValues);
-		break;
-	}
-	return ok ? static_cast<int>(ledValues.size()) : -1;
-}
-
-quint8 DriverHidSyncLight::checksum(const QByteArray& frame)
+quint8 DriverHidSyncLight::checksum (const QByteArray& frame)
 {
 	quint8 sum = 0;
-	for (char byte : frame)
-	{
-		sum = static_cast<quint8>(sum + static_cast<quint8>(byte));
+	for (char byte : frame) {
+		sum = static_cast<quint8> (sum + static_cast<quint8> (byte));
 	}
 	return sum;
 }
 
-bool DriverHidSyncLight::parseDeviceId(const QString& text, quint16& value)
+
+QByteArray DriverHidSyncLight::buildRbFrame (
+		quint8 action,
+		const QByteArray& payload,
+		quint8 id)
 {
-	bool ok = false;
-	uint parsed = text.trimmed().toUInt(&ok, 0);
-	if (!ok || parsed > 0xffff)
-	{
-		return false;
-	}
-	value = static_cast<quint16>(parsed);
-	return true;
-}
-
-QList<DriverHidSyncLight::SupportedDevice> DriverHidSyncLight::configuredDevices() const
-{
-	QList<SupportedDevice> devices;
-
-	quint16 vendorId = 0;
-	quint16 productId = 0;
-	const QString vendorText = _devConfig["VID"].toString("0x1a86");
-	const QString productText = _devConfig["PID"].toString("auto");
-
-	if (parseDeviceId(vendorText, vendorId))
-	{
-		if (productText.compare("auto", Qt::CaseInsensitive) == 0 || productText.trimmed().isEmpty())
-		{
-			for (const auto& device : DEFAULT_DEVICES)
-			{
-				if (device.vendorId == vendorId)
-				{
-					devices.push_back(device);
-				}
-			}
-		}
-		else if (parseDeviceId(productText, productId))
-		{
-			devices.push_back({ vendorId, productId });
-		}
+	const int totalLength = rb_overhead + payload.size ();
+	if (totalLength > report_size) {
+		return {};
 	}
 
-	return devices.isEmpty() ? DEFAULT_DEVICES : devices;
-}
-
-QByteArray DriverHidSyncLight::buildRbFrame(quint8 action, const QByteArray& payload, quint8 id)
-{
-	const int totalLength = RB_OVERHEAD + payload.size();
-	if (totalLength > REPORT_SIZE)
-	{
-		return QByteArray();
-	}
-
-	QByteArray frame(totalLength, 0);
+	QByteArray frame (totalLength, 0);
 	frame[0] = 'R';
 	frame[1] = 'B';
-	frame[2] = static_cast<char>(totalLength);
-	frame[3] = static_cast<char>(id);
-	frame[4] = static_cast<char>(action);
-	if (!payload.isEmpty())
-	{
-		std::copy(payload.cbegin(), payload.cend(), frame.begin() + 5);
+	frame[2] = static_cast<char> (totalLength);
+	frame[3] = static_cast<char> (id);
+	frame[4] = static_cast<char> (action);
+	if (!payload.isEmpty ()) {
+		std::ranges::copy (payload, frame.begin () + 5);
 	}
-	frame[totalLength - 1] = static_cast<char>(checksum(frame.left(totalLength - 1)));
+	frame[totalLength - 1] = static_cast<char> (checksum (frame.left (totalLength - 1)));
 	return frame;
 }
 
-QByteArray DriverHidSyncLight::buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int controllerLedCount, quint8 id)
+
+QByteArray DriverHidSyncLight::buildScFrame (
+		std::span<const ColorRgb> ledValues,
+		int totalLedCount,
+		int controllerLedCount,
+		quint8 id)
 {
-	const int inputLedCount = qMin(qBound(1, totalLedCount, 254), static_cast<int>(ledValues.size()));
-	const int maxAddress = qBound(1, controllerLedCount, 254);
+	const int inputLedCount = qMin (
+			qBound (1, totalLedCount, static_cast<int> (maximum_led_count)),
+			static_cast<int> (ledValues.size ()));
+	const int maxAddress = qBound (
+			1,
+			controllerLedCount,
+			static_cast<int> (maximum_led_count));
 	const int devicePositions = maxAddress + 1;
 	const int maxPairs = (devicePositions + 2) / 2;
 	const int addressPairs = (maxAddress + 3) / 2;
-	const int segments = qMin(qBound(1, addressPairs, maxPairs), inputLedCount);
-	const int frameLength = SC_HEADER_SIZE + (segments * SC_RECORD_SIZE) + SC_FOOTER_SIZE + SC_CHECKSUM_SIZE;
+	const int segments = qMin (qBound (1, addressPairs, maxPairs), inputLedCount);
+	const int frameLength = sc_header_size
+			+ segments * sc_record_size
+			+ sc_footer_size
+			+ sc_checksum_size;
 
-	QByteArray frame(frameLength, 0);
+	QByteArray frame (frameLength, 0);
 	frame[0] = 'S';
 	frame[1] = 'C';
-	frame[2] = static_cast<char>((frameLength >> 8) & 0xff);
-	frame[3] = static_cast<char>(frameLength & 0xff);
-	frame[4] = static_cast<char>(id);
+	frame[2] = static_cast<char> ((frameLength >> 8) & 0xff);
+	frame[3] = static_cast<char> (frameLength & 0xff);
+	frame[4] = static_cast<char> (id);
 
 	for (int segment = 0; segment < segments; ++segment)
 	{
-		// The SC record stores two physical positions, not a continuous range.
-		const int deviceStart = qMin(segment * 2, maxAddress);
-		const int deviceEnd = qMin(deviceStart + 1, maxAddress);
-		const int inputStart = (deviceStart * inputLedCount) / devicePositions;
-		const int inputEnd = qMax(inputStart + 1, ((deviceEnd + 1) * inputLedCount) / devicePositions);
-		const ColorRgb color = averageColorRange(ledValues, inputStart, inputEnd - inputStart);
+		/* The SC record stores two physical positions, not a range. */
+		const int deviceStart = qMin (segment * 2, maxAddress);
+		const int deviceEnd = qMin (deviceStart + 1, maxAddress);
+		const int inputStart = deviceStart * inputLedCount / devicePositions;
+		const int inputEnd = qMax (
+				inputStart + 1,
+				(deviceEnd + 1) * inputLedCount / devicePositions);
+		const ColorRgb color = averageColorRange (
+				ledValues,
+				inputStart,
+				inputEnd - inputStart);
 
-		// HyperHDR applies the configured RGB byte order before LedDevice::write().
-		// The ColorRgb fields here are already device-ordered payload bytes.
-		const int offset = SC_HEADER_SIZE + (segment * SC_RECORD_SIZE);
-		quint8 start = static_cast<quint8>(deviceStart);
-		if (segment == 0)
-		{
-			start = static_cast<quint8>(start | 0x80);
+		const int offset = sc_header_size + segment * sc_record_size;
+		quint8 start = static_cast<quint8> (deviceStart);
+		if (segment == 0) {
+			start = static_cast<quint8> (start | 0x80);
 		}
 
-		frame[offset] = static_cast<char>(start);
-		frame[offset + 1] = static_cast<char>(deviceEnd);
-		frame[offset + 2] = static_cast<char>(color.red);
-		frame[offset + 3] = static_cast<char>(color.green);
-		frame[offset + 4] = static_cast<char>(color.blue);
+		frame[offset] = static_cast<char> (start);
+		frame[offset + 1] = static_cast<char> (deviceEnd);
+		frame[offset + 2] = static_cast<char> (color.red);
+		frame[offset + 3] = static_cast<char> (color.green);
+		frame[offset + 4] = static_cast<char> (color.blue);
 	}
 
-	frame[frameLength - 2] = static_cast<char>(maxAddress);
-	frame[frameLength - 1] = static_cast<char>(checksum(frame.left(frameLength - 1)));
+	frame[frameLength - 2] = static_cast<char> (maxAddress);
+	frame[frameLength - 1] = static_cast<char> (checksum (frame.left (frameLength - 1)));
 	return frame;
 }
 
-QByteArray DriverHidSyncLight::buildReport(const QByteArray& frame)
+
+QByteArray DriverHidSyncLight::buildReport (const QByteArray& frame)
 {
-	if (frame.size() > REPORT_SIZE)
-	{
-		return QByteArray();
+	if (frame.size () > report_size) {
+		return {};
 	}
 
-	QByteArray report(REPORT_SIZE + 1, 0);
-	std::copy(frame.cbegin(), frame.cend(), report.begin() + 1);
+	QByteArray report (report_size + 1, 0);
+	std::ranges::copy (frame, report.begin () + 1);
 	return report;
 }
 
-QByteArray DriverHidSyncLight::buildSectionPayload(quint8 section, quint8 red, quint8 green, quint8 blue)
+
+QByteArray DriverHidSyncLight::buildSectionPayload (
+		quint8 section,
+		quint8 red,
+		quint8 green,
+		quint8 blue)
 {
 	QByteArray payload;
-	payload.reserve(10);
-	payload.push_back(static_cast<char>(section));
-	payload.push_back(static_cast<char>(red));
-	payload.push_back(static_cast<char>(green));
-	payload.push_back(static_cast<char>(blue));
-	payload.push_back(static_cast<char>(0x47));
-	payload.push_back(static_cast<char>(0x48));
-	payload.push_back(static_cast<char>(0x00));
-	payload.push_back(static_cast<char>(0x00));
-	payload.push_back(static_cast<char>(0x00));
-	payload.push_back(static_cast<char>(0xfe));
+	payload.reserve (10);
+	payload.push_back (static_cast<char> (section));
+	payload.push_back (static_cast<char> (red));
+	payload.push_back (static_cast<char> (green));
+	payload.push_back (static_cast<char> (blue));
+	payload.push_back (static_cast<char> (0x47));
+	payload.push_back (static_cast<char> (0x48));
+	payload.push_back (static_cast<char> (0x00));
+	payload.push_back (static_cast<char> (0x00));
+	payload.push_back (static_cast<char> (0x00));
+	payload.push_back (static_cast<char> (0xfe));
 	return payload;
 }
 
-ColorRgb DriverHidSyncLight::averageColor(const std::vector<ColorRgb>& ledValues, int ledCount)
+
+ColorRgb DriverHidSyncLight::averageColor (
+		std::span<const ColorRgb> ledValues,
+		int ledCount)
 {
-	const int count = qMin(qBound(1, ledCount, 254), static_cast<int>(ledValues.size()));
-	return averageColorRange(ledValues, 0, count);
+	const int count = qMin (
+			qBound (1, ledCount, static_cast<int> (maximum_led_count)),
+			static_cast<int> (ledValues.size ()));
+	return averageColorRange (ledValues, 0, count);
 }
 
-ColorRgb DriverHidSyncLight::averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count)
+
+ColorRgb DriverHidSyncLight::averageColorRange (
+		std::span<const ColorRgb> ledValues,
+		int offset,
+		int count)
 {
-	const int first = qBound(0, offset, static_cast<int>(ledValues.size()));
-	const int last = qMin(first + qMax(0, count), static_cast<int>(ledValues.size()));
+	const int first = qBound (0, offset, static_cast<int> (ledValues.size ()));
+	const int last = qMin (
+			first + qMax (0, count),
+			static_cast<int> (ledValues.size ()));
 	count = last - first;
-	if (count <= 0)
-	{
+	if (count <= 0) {
 		return ColorRgb::BLACK;
 	}
 
@@ -718,61 +290,80 @@ ColorRgb DriverHidSyncLight::averageColorRange(const std::vector<ColorRgb>& ledV
 	uint64_t blue = 0;
 	for (int i = first; i < last; ++i)
 	{
-		const ColorRgb& color = ledValues[static_cast<size_t>(i)];
+		const ColorRgb& color = ledValues[static_cast<size_t> (i)];
 		red += color.red;
 		green += color.green;
 		blue += color.blue;
 	}
 
-	return ColorRgb(
-		static_cast<uint8_t>(red / static_cast<uint64_t>(count)),
-		static_cast<uint8_t>(green / static_cast<uint64_t>(count)),
-		static_cast<uint8_t>(blue / static_cast<uint64_t>(count)));
+	return ColorRgb (
+			static_cast<uint8_t> (red / static_cast<uint64_t> (count)),
+			static_cast<uint8_t> (green / static_cast<uint64_t> (count)),
+			static_cast<uint8_t> (blue / static_cast<uint64_t> (count)));
 }
 
-quint8 DriverHidSyncLight::nextId()
+
+quint8 DriverHidSyncLight::nextId ()
 {
-	_idCounter = static_cast<quint8>(_idCounter + 1);
-	if (_idCounter == 0)
-	{
+	_idCounter = static_cast<quint8> (_idCounter + 1);
+	if (_idCounter == 0) {
 		_idCounter = 1;
 	}
 	return _idCounter;
 }
 
-bool DriverHidSyncLight::sendRb(quint8 action, const QByteArray& payload)
+
+bool DriverHidSyncLight::sendRb (
+		const Device& device,
+		quint8 action,
+		const QByteArray& payload)
 {
-	const QByteArray frame = buildRbFrame(action, payload, nextId());
-	if (frame.isEmpty())
+	const QByteArray frame = buildRbFrame (action, payload, nextId ());
+	if (frame.isEmpty ())
 	{
-		Error(_log, "SyncLight RB frame too large for action 0x{:02x}", static_cast<int>(action));
+		Error (_log, "SyncLight RB frame too large for action 0x{:02x}",
+				static_cast<int> (action));
 		return false;
 	}
 
-	return writeReport(buildReport(frame));
+	return writeReport (device, buildReport (frame));
 }
 
-bool DriverHidSyncLight::sendAveragedSectionColor(const std::vector<ColorRgb>& ledValues)
-{
-	const ColorRgb color = averageColor(ledValues, _totalLedCount);
 
-	// This mirrors the confirmed working sequence from the original Rust UI.
-	// The color channels are already reordered by InfiniteProcessing.
-	if (!sendRb(ACTION_KEEPALIVE, QByteArray()))
-	{
+bool DriverHidSyncLight::sendAveragedSectionColor (
+		const Device& device,
+		std::span<const ColorRgb> ledValues,
+		int totalLedCount)
+{
+	const ColorRgb color = averageColor (ledValues, totalLedCount);
+
+	/* This mirrors the confirmed working sequence from the original Rust UI. */
+	if (!sendRb (device, action_keepalive, QByteArray ())) {
 		return false;
 	}
-	QThread::msleep(20);
-	return sendRb(ACTION_COLOR, buildSectionPayload(SECTION_GLOBAL, color.red, color.green, color.blue));
+
+	QThread::msleep (20);
+	return sendRb (
+			device,
+			action_color,
+			buildSectionPayload (section_global, color.red, color.green, color.blue));
 }
 
-bool DriverHidSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues, int totalLedCount)
+
+bool DriverHidSyncLight::sendScColors (
+		const Device& device,
+		std::span<const ColorRgb> ledValues,
+		int totalLedCount)
 {
-	const QByteArray frame = buildScFrame(ledValues, totalLedCount, _controllerLedCount, nextId());
-	for (int offset = 0; offset < frame.size(); offset += REPORT_SIZE)
+	const QByteArray frame = buildScFrame (
+			ledValues,
+			totalLedCount,
+			_controllerLedCount,
+			nextId ());
+
+	for (int offset = 0; offset < frame.size (); offset += report_size)
 	{
-		if (!writeReport(buildReport(frame.mid(offset, REPORT_SIZE))))
-		{
+		if (!writeReport (device, buildReport (frame.mid (offset, report_size)))) {
 			return false;
 		}
 	}
@@ -780,199 +371,73 @@ bool DriverHidSyncLight::sendScColors(const std::vector<ColorRgb>& ledValues, in
 	return true;
 }
 
-bool DriverHidSyncLight::sendBrightness(quint8 value)
+
+bool DriverHidSyncLight::sendBlackFrame (const Device& device)
+{
+	int blackLedCount = _totalLedCount;
+	if (_outputMode == OutputMode::PerLed) {
+		blackLedCount = qMax (_totalLedCount, (_controllerLedCount + 3) / 2);
+	}
+
+	std::vector<ColorRgb> black (
+			static_cast<size_t> (qBound (
+					1,
+					blackLedCount,
+					static_cast<int> (maximum_led_count))),
+			ColorRgb::BLACK);
+	const std::span<const ColorRgb> blackColors (black);
+
+	if (_outputMode == OutputMode::PerLed) {
+		return sendScColors (device, blackColors, static_cast<int> (black.size ()));
+	}
+
+	return sendAveragedSectionColor (
+			device,
+			blackColors,
+			static_cast<int> (black.size ()));
+}
+
+
+bool DriverHidSyncLight::sendBrightness (const Device& device, quint8 value)
 {
 	QByteArray payload;
-	payload.push_back(static_cast<char>(value));
-	return sendRb(ACTION_BRIGHTNESS, payload);
+	payload.push_back (static_cast<char> (value));
+	return sendRb (device, action_brightness, payload);
 }
 
-bool DriverHidSyncLight::writeReport(const QByteArray& report)
+
+bool DriverHidSyncLight::writeReport (
+		const Device& device,
+		const QByteArray& report)
 {
-	if (report.size() != REPORT_SIZE + 1)
+	if (report.size () != report_size + 1)
 	{
-		Error(_log, "Invalid SyncLight HID report size: {:d}", report.size());
+		Error (_log, "Invalid SyncLight HID report size: {:d}", report.size ());
 		return false;
 	}
 
-#if defined(_WIN32)
-	if (!isDeviceHandleOpen())
+	const auto* data = reinterpret_cast<const uint8_t*> (report.constData ());
+	const std::span<const uint8_t> bytes (data, static_cast<size_t> (report.size ()));
+	QString error;
+	if (!ProviderHid::write (device, bytes, error))
 	{
-		Error(_log, "SyncLight HID device is not open");
+		Error (_log, "SyncLight HID write failed for {:s}: {:s}",
+				QString::fromStdString (device.path),
+				error);
 		return false;
 	}
 
-	DWORD bytesWritten = 0;
-	BOOL ok = WriteFile(_deviceHandle, report.constData(), static_cast<DWORD>(report.size()), &bytesWritten, nullptr);
-	if (!ok || bytesWritten != static_cast<DWORD>(report.size()))
-	{
-		Error(_log, "SyncLight HID write failed. bytesWritten={:d}, expected={:d}", static_cast<int>(bytesWritten), report.size());
-		return false;
-	}
 	return true;
-#elif defined(__linux__)
-	if (!isDeviceHandleOpen())
-	{
-		Error(_log, "SyncLight HID device is not open");
-		return false;
-	}
-
-	ssize_t bytesWritten = -1;
-	do
-	{
-		bytesWritten = ::write(_deviceHandle, report.constData(), static_cast<size_t>(report.size()));
-	}
-	while (bytesWritten < 0 && errno == EINTR);
-
-	if (bytesWritten != report.size())
-	{
-		const int errorNumber = bytesWritten < 0 ? errno : 0;
-		Error(_log, "SyncLight HID write failed. bytesWritten={:d}, expected={:d}, errno={:d}, {:s}",
-			static_cast<int>(bytesWritten), report.size(), errorNumber, strerror(errorNumber));
-		return false;
-	}
-	return true;
-#else
-	Q_UNUSED(report)
-	return false;
-#endif
 }
 
-QString DriverHidSyncLight::openDeviceHandle()
+
+LedDevice* DriverHidSyncLight::construct (const QJsonObject& deviceConfig)
 {
-#if defined(_WIN32)
-	GUID hidGuid;
-	HidD_GetHidGuid(&hidGuid);
-
-	HDEVINFO deviceInfo = SetupDiGetClassDevsW(&hidGuid, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-	if (deviceInfo == INVALID_HANDLE_VALUE)
-	{
-		return "SetupDiGetClassDevsW failed while searching for SyncLight HID device";
-	}
-
-	QString error = "SyncLight HID device not found";
-	SP_DEVICE_INTERFACE_DATA interfaceData;
-	interfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
-
-	for (DWORD index = 0; SetupDiEnumDeviceInterfaces(deviceInfo, nullptr, &hidGuid, index, &interfaceData); ++index)
-	{
-		DWORD requiredSize = 0;
-		SetupDiGetDeviceInterfaceDetailW(deviceInfo, &interfaceData, nullptr, 0, &requiredSize, nullptr);
-		if (requiredSize == 0)
-		{
-			continue;
-		}
-
-		QByteArray detailBuffer(static_cast<int>(requiredSize), 0);
-		auto* detailData = reinterpret_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA_W>(detailBuffer.data());
-		detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_W);
-
-		if (!SetupDiGetDeviceInterfaceDetailW(deviceInfo, &interfaceData, detailData, requiredSize, nullptr, nullptr))
-		{
-			continue;
-		}
-
-		HANDLE handle = CreateFileW(
-			detailData->DevicePath,
-			GENERIC_READ | GENERIC_WRITE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE,
-			nullptr,
-			OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,
-			nullptr);
-
-		if (handle == INVALID_HANDLE_VALUE)
-		{
-			continue;
-		}
-
-		HIDD_ATTRIBUTES attributes;
-		attributes.Size = sizeof(HIDD_ATTRIBUTES);
-		if (HidD_GetAttributes(handle, &attributes))
-		{
-			const bool supported = isSupportedDevice(attributes.VendorID, attributes.ProductID, _devices);
-
-			if (supported)
-			{
-				_deviceHandle = handle;
-				Info(_log, "Opened SyncLight HID device VID=0x{:04x} PID=0x{:04x}", static_cast<int>(attributes.VendorID), static_cast<int>(attributes.ProductID));
-				SetupDiDestroyDeviceInfoList(deviceInfo);
-				return QString();
-			}
-		}
-
-		CloseHandle(handle);
-	}
-
-	SetupDiDestroyDeviceInfoList(deviceInfo);
-	return error;
-#elif defined(__linux__)
-	const QList<LinuxHidDeviceInfo> hidrawDevices = discoverLinuxHidrawDevices();
-	const QString configuredOutput = _devConfig["output"].toString(_devConfig["path"].toString()).trimmed();
-	const QString configuredPath = configuredOutput.startsWith("/dev/") ? configuredOutput : QString();
-	QString lastOpenError;
-
-	for (const LinuxHidDeviceInfo& hidDevice : hidrawDevices)
-	{
-		if (!hidDevice.hasIds || !isSupportedDevice(hidDevice.vendorId, hidDevice.productId, _devices))
-		{
-			continue;
-		}
-		if (!configuredPath.isEmpty() && configuredPath != hidDevice.path)
-		{
-			continue;
-		}
-
-		const QByteArray pathUtf8 = hidDevice.path.toUtf8();
-		const int handle = ::open(pathUtf8.constData(), O_RDWR | O_CLOEXEC);
-		if (handle < 0)
-		{
-			lastOpenError = QString("Failed to open SyncLight HID device %1 (%2). Error: %3")
-				.arg(hidDevice.path, deviceIdString(hidDevice.vendorId, hidDevice.productId), strerror(errno));
-			continue;
-		}
-
-		hidraw_devinfo rawInfo;
-		memset(&rawInfo, 0, sizeof(rawInfo));
-		if (ioctl(handle, HIDIOCGRAWINFO, &rawInfo) != 0)
-		{
-			lastOpenError = QString("Failed to read SyncLight HID raw info for %1. Error: %2")
-				.arg(hidDevice.path, strerror(errno));
-			::close(handle);
-			continue;
-		}
-
-		const quint16 vendorId = static_cast<quint16>(rawInfo.vendor);
-		const quint16 productId = static_cast<quint16>(rawInfo.product);
-		if (!isSupportedDevice(vendorId, productId, _devices))
-		{
-			::close(handle);
-			continue;
-		}
-
-		_deviceHandle = handle;
-		Info(_log, "Opened SyncLight HID device {:s} VID=0x{:04x} PID=0x{:04x}",
-			hidDevice.path, static_cast<int>(vendorId), static_cast<int>(productId));
-		return QString();
-	}
-
-	if (!lastOpenError.isEmpty())
-	{
-		return lastOpenError;
-	}
-	if (!configuredPath.isEmpty())
-	{
-		return QString("SyncLight HID device not found at %1").arg(configuredPath);
-	}
-	return "SyncLight HID device not found";
-#else
-	return "SyncLight HID driver is currently implemented for Windows and Linux only";
-#endif
+	return new DriverHidSyncLight (deviceConfig);
 }
 
-LedDevice* DriverHidSyncLight::construct(const QJsonObject& deviceConfig)
-{
-	return new DriverHidSyncLight(deviceConfig);
-}
 
-bool DriverHidSyncLight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE("synclight", "leds_group_3_serial", DriverHidSyncLight::construct);
+bool DriverHidSyncLight::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE (
+		"synclight",
+		"leds_group_3_serial",
+		DriverHidSyncLight::construct);

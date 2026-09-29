@@ -2,95 +2,122 @@
 
 #ifndef PCH_ENABLED
 	#include <QByteArray>
-	#include <QList>
-	#include <QMutex>
 	#include <QString>
-	#include <cstdint>
+	#include <string>
 	#include <vector>
 #endif
 
-#include <led-drivers/LedDevice.h>
+#include <led-drivers/hid/ProviderHid.h>
 
-#if defined(_WIN32)
-	#include <windows.h>
-#endif
 
-class DriverHidSyncLight : public LedDevice
+class DriverHidSyncLight : public ProviderHid
 {
-public:
-	explicit DriverHidSyncLight(const QJsonObject& deviceConfig);
-	~DriverHidSyncLight() override;
-	static LedDevice* construct(const QJsonObject& deviceConfig);
-	QJsonObject discover(const QJsonObject& params) override;
+	public:
 
-	struct SupportedDevice
-	{
-		quint16 vendorId;
-		quint16 productId;
-	};
+		explicit DriverHidSyncLight (const QJsonObject& deviceConfig)
+		: ProviderHid (deviceConfig)
+		{}
 
-	enum class OutputMode
-	{
-		Global,
-		PerLed
-	};
+		~DriverHidSyncLight () override;
 
-protected:
-	bool init(QJsonObject deviceConfig) override;
-	int open() override;
-	int close() override;
-	int writeFiniteColors(const std::vector<ColorRgb>& ledValues) override;
-	bool powerOn() override;
-	bool powerOff() override;
+		static LedDevice* construct (const QJsonObject& deviceConfig);
 
-private:
-	static constexpr int REPORT_SIZE = 64;
-	static constexpr int RB_OVERHEAD = 6;
-	static constexpr int SC_HEADER_SIZE = 5;
-	static constexpr int SC_RECORD_SIZE = 5;
-	static constexpr int SC_FOOTER_SIZE = 1;
-	static constexpr int SC_CHECKSUM_SIZE = 1;
-	static constexpr int DEFAULT_CONTROLLER_LED_COUNT = 65;
-	static constexpr quint8 ACTION_COLOR = 0x86;
-	static constexpr quint8 ACTION_BRIGHTNESS = 0x87;
-	static constexpr quint8 ACTION_KEEPALIVE = 0x97;
-	static constexpr quint8 SECTION_GLOBAL = 1;
 
-	static quint8 checksum(const QByteArray& frame);
-	static bool parseDeviceId(const QString& text, quint16& value);
-	static QByteArray buildRbFrame(quint8 action, const QByteArray& payload, quint8 id);
-	static QByteArray buildScFrame(const std::vector<ColorRgb>& ledValues, int totalLedCount, int controllerLedCount, quint8 id);
-	static QByteArray buildReport(const QByteArray& frame);
-	static QByteArray buildSectionPayload(quint8 section, quint8 red, quint8 green, quint8 blue);
-	static ColorRgb averageColor(const std::vector<ColorRgb>& ledValues, int ledCount);
-	static ColorRgb averageColorRange(const std::vector<ColorRgb>& ledValues, int offset, int count);
+	protected:
 
-	QList<SupportedDevice> configuredDevices() const;
-	bool isDeviceHandleOpen() const;
-	QString openDeviceHandle();
-	void closeDeviceHandle();
-	bool writeReport(const QByteArray& report);
-	bool sendRb(quint8 action, const QByteArray& payload);
-	bool sendAveragedSectionColor(const std::vector<ColorRgb>& ledValues);
-	bool sendScColors(const std::vector<ColorRgb>& ledValues, int totalLedCount);
-	bool sendBlackFrame();
-	bool sendBrightness(quint8 value);
+		bool init (QJsonObject deviceConfig) override;
+		bool init_device (const Device& device) override;
 
-	quint8 nextId();
+		bool powerOn (const Device& device) override;
+		bool powerOff (const Device& device) override;
 
-	QMutex _transaction;
-	QList<SupportedDevice> _devices;
-	quint8 _idCounter;
-	quint8 _brightness;
-	int _totalLedCount;
-	int _controllerLedCount;
-	OutputMode _outputMode;
+		int writeFiniteColors (
+				const Device& device,
+				std::span<const ColorRgb> ledValues) final;
 
-#if defined(_WIN32)
-	HANDLE _deviceHandle;
-#elif defined(__linux__)
-	int _deviceHandle;
-#endif
+		[[nodiscard]]
+		std::vector<DeviceId> getSupportedDeviceIds () const final
+		{
+			return {
+				{ .vendorId=0x1a86, .productId=0xfe07 },
+				{ .vendorId=0x1a86, .productId=0xfe0c },
+			};
+		}
 
-	static bool isRegistered;
+		[[nodiscard]]
+		size_t getLedCount (const Device& /*device*/) const final
+		{
+			return maximum_led_count;
+		}
+
+		[[nodiscard]]
+		std::string getDeviceName () const final
+		{
+			return "SyncLight";
+		}
+
+
+	private:
+
+		enum class OutputMode
+		{
+			Global,
+			PerLed
+		};
+
+		//TODO: since report_size is fixed, we can introduce a type for it, instead of using qbytearray. also, the real report size is 64+1
+		static constexpr int report_size = 64;
+		static constexpr int rb_overhead = 6;
+		static constexpr int sc_header_size = 5;
+		static constexpr int sc_record_size = 5;
+		static constexpr int sc_footer_size = 1;
+		static constexpr int sc_checksum_size = 1;
+		static constexpr int default_controller_led_count = 65;
+		static constexpr size_t maximum_led_count = 254;
+		static constexpr quint8 action_color = 0x86;
+		static constexpr quint8 action_brightness = 0x87;
+		static constexpr quint8 action_keepalive = 0x97;
+		static constexpr quint8 section_global = 1;
+
+		static quint8 checksum (const QByteArray& frame);
+		static QByteArray buildRbFrame (quint8 action, const QByteArray& payload, quint8 id);
+		static QByteArray buildScFrame (
+				std::span<const ColorRgb> ledValues,
+				int totalLedCount,
+				int controllerLedCount,
+				quint8 id);
+		static QByteArray buildReport (const QByteArray& frame);
+		static QByteArray buildSectionPayload (
+				quint8 section,
+				quint8 red,
+				quint8 green,
+				quint8 blue);
+		static ColorRgb averageColor (std::span<const ColorRgb> ledValues, int ledCount);
+		static ColorRgb averageColorRange (
+				std::span<const ColorRgb> ledValues,
+				int offset,
+				int count);
+
+		bool writeReport (const Device& device, const QByteArray& report);
+		bool sendRb (const Device& device, quint8 action, const QByteArray& payload);
+		bool sendAveragedSectionColor (
+				const Device& device,
+				std::span<const ColorRgb> ledValues,
+				int totalLedCount);
+		bool sendScColors (
+				const Device& device,
+				std::span<const ColorRgb> ledValues,
+				int totalLedCount);
+		bool sendBlackFrame (const Device& device);
+		bool sendBrightness (const Device& device, quint8 value);
+
+		quint8 nextId ();
+
+		quint8 _idCounter = 0;
+		quint8 _brightness = 0xff;
+		int _totalLedCount = 0;
+		int _controllerLedCount = default_controller_led_count;
+		OutputMode _outputMode = OutputMode::Global;
+
+		static bool isRegistered;
 };
