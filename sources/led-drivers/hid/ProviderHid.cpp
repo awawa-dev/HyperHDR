@@ -133,9 +133,8 @@ int ProviderHid::open ()
 			continue;
 		}
 
-		bool success = open (device);
+		success = open (device);
 		if (!success) {
-			success = false;
 			goto open_done;
 		}
 
