@@ -229,7 +229,7 @@ QString PortalDBus::selectDevicesRemoteDesktop(const QString& sessionHandle, con
 
 	QVariantMap options{
 		{QStringLiteral("handle_token"), requestToken},
-		//{QStringLiteral("types"), quint32(0)}, KDE workaround
+		{QStringLiteral("types"), quint32(4)},
 		{QStringLiteral("persist_mode"), quint32(2)}
 	};
 
