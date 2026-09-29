@@ -174,7 +174,4 @@ class DriverHidLightpack : public ProviderHid
 		 */
 		int writeColors (const Device& device, std::span<const DeepColor> ledValues);
 
-		//TODO: remove. we are the only driver to actuall use _colorOrder.
-		std::array<uint16_t, 3> reorderColor(std::array<uint16_t, 3> color, LedString::ColorOrder order);
-
 };

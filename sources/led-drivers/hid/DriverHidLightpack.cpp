@@ -56,11 +56,11 @@ int DriverHidLightpack::writeFiniteColors (
 	{
 		/* We could also do ((col * 4095) / 255), but that is not as fast
 		 * and we don't need the accuracy. */
-		colors.push_back ( reorderColor ({
+		colors.push_back ({
 			static_cast<uint16_t>((color.red << 4) | (color.red >> 4)),
 			static_cast<uint16_t>((color.green << 4) | (color.green >> 4)),
 			static_cast<uint16_t>((color.blue << 4) | (color.blue >> 4))
-		}, _colorOrder));
+		});
 	}
 
 	return writeColors (device, colors);
@@ -85,11 +85,11 @@ std::pair<bool, int> DriverHidLightpack::writeInfiniteColors (
 
 	for (const auto& color : nonlinearRgbColors)
 	{
-		colors.push_back(reorderColor({
+		colors.push_back({
 			normalizeTo12Bit(color.x),
 			normalizeTo12Bit(color.y),
 			normalizeTo12Bit(color.z)
-		}, _colorOrder));
+		});
 	}
 	return { true, writeColors (device, colors) };
 }
@@ -141,30 +141,6 @@ LedDevice* DriverHidLightpack::construct (const QJsonObject& deviceConfig)
 {
 	return new DriverHidLightpack(deviceConfig);
 }
-
-
-inline
-std::array<uint16_t, 3> DriverHidLightpack::reorderColor (std::array<uint16_t, 3> color, LedString::ColorOrder order)
-{
-	switch (order)
-	{
-		case LedString::ColorOrder::ORDER_RBG:
-			return { color[0], color[2], color[1] };
-		case LedString::ColorOrder::ORDER_GRB:
-			return { color[1], color[0], color[2] };
-		case LedString::ColorOrder::ORDER_BRG:
-			return { color[2], color[0], color[1] };
-		case LedString::ColorOrder::ORDER_GBR:
-			return { color[1], color[2], color[0] };
-		case LedString::ColorOrder::ORDER_BGR:
-			return { color[2], color[1], color[0] };
-		case LedString::ColorOrder::ORDER_RGB:
-			return color;
-	}
-
-	return color;
-}
-
 
 bool DriverHidLightpack::isRegistered = hyperhdr::leds::REGISTER_LED_DEVICE(
 		"lightpack",
