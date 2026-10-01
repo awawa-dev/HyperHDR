@@ -21,7 +21,7 @@ jobs:
     if: github.repository == 'awawa-dev/HyperHDR'
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ env.DEV_BRANCH }}
           fetch-depth: 0    
