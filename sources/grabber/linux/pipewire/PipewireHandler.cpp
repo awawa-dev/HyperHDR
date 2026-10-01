@@ -73,9 +73,9 @@ constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
 PipewireHandler::PipewireHandler() :
 									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
-									_isError(false), _version(-1), _streamNodeId(0),
+									_isError(false), _useRemoteDesktopPortal(false), _version(-1), _remoteDesktopVersion(-1), _streamNodeId(0),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
-									_targetMaxSize(512), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
+									_targetMaxSize(512), _selectedDisplay(0), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
 									_infoUpdate(DEFAULT_UPDATE_NUMBER), _initEGL(false), _enableEGL(true), _libEglHandle(nullptr), _libGlHandle(nullptr),
 									_frameDrmFormat(DRM_FORMAT_MOD_INVALID), _frameDrmModifier(DRM_FORMAT_MOD_INVALID), _image{}
 {
@@ -173,8 +173,11 @@ void PipewireHandler::closeSession()
 	_pwCoreListener = {};	
 	_portalStatus = false;
 	_isError = false;
+	_useRemoteDesktopPortal = false;
+	_remoteDesktopVersion = -1;
 	_errorMessage = "";
 	_streamNodeId = 0;
+	_selectedDisplay = 0;
 	_frameWidth = 0;
 	_frameHeight = 0;
 	_frameOrderRgb = false;
@@ -290,7 +293,7 @@ int PipewireHandler::readVersion()
 	return portalDBus.screenCastVersion();
 }
 
-void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize)
+void PipewireHandler::startSession(QString restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize, int selectedDisplay)
 {
 	qDebug().nospace() << "Pipewire: initialization invoked. Cleaning up first...";
 
@@ -298,6 +301,7 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 	_enableEGL = enableEGL;
 	_targetMaxSize = targetMaxSize;
+	_selectedDisplay = selectedDisplay;
 
 	#ifdef ENABLE_PIPEWIRE_EGL
 		qDebug().nospace() << "Pipewire: support for EGL is " << ((_enableEGL) ? "enabled" : "disabled");
@@ -317,12 +321,25 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 
 	if (!_dbusConnection->open()){
 		_version = -1;
+		_remoteDesktopVersion = -1;
+		_useRemoteDesktopPortal = false;
 		reportError("Pipewire: couldn't connect to the Portal D-Bus session");
 		return;
 	}
 
 	_version = _dbusConnection->screenCastVersion();
 	
+	if (_selectedDisplay == PipewirePortal::ScreenID_RemoteDesktop)
+	{
+		_remoteDesktopVersion = _dbusConnection->remoteDesktopVersion();
+		_useRemoteDesktopPortal = _remoteDesktopVersion >= PipewirePortal::MinRemoteDesktopPortalVersion;
+
+		if (!_useRemoteDesktopPortal)
+		{
+			qWarning().nospace() << "Pipewire: Portal RemoteDesktop protocol version = " << _remoteDesktopVersion << ", falling back to ScreenCast session";
+		}
+	}
+
 	_restorationToken = QString("%1").arg(restorationToken);
 
 	_image.version = _version;
@@ -334,6 +351,8 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 	}
 
 	_requestedFPS = requestedFPS;
+
+	qDebug().nospace() << "Portal.RemoteDesktop: protocol version = " << _remoteDesktopVersion << ", screen capture via remote desktop = " << ((_useRemoteDesktopPortal) ? "true" : "false");
 
 	// register Portal namespace listener
 	connect(_dbusConnection.get(), &PortalDBus::responseReceived, this,
@@ -354,8 +373,12 @@ void PipewireHandler::startSession(QString restorationToken, uint32_t requestedF
 		},
 		Qt::QueuedConnection);
 
-	
-	if (const QString requestPath = _dbusConnection->createSession(getSessionToken(), getRequestToken()); requestPath.isEmpty()){
+	const QString requestPath = _useRemoteDesktopPortal
+		? _dbusConnection->createRemoteDesktopSession(getSessionToken(), getRequestToken())
+		: _dbusConnection->createSession(getSessionToken(), getRequestToken());
+
+	if (requestPath.isEmpty())
+	{
 		reportError("Pipewire: failed to create session");
 	}
 	else {
@@ -397,24 +420,69 @@ void PipewireHandler::createSessionResponse(uint response, QString session)
 
 	_sessionHandle = session;
 
-	auto responseSignalHandler = [this] (const QVariantList& arguments, bool parseError)
+	auto selectSources = [this]()
+		{
+			auto responseSelectSourceSignalHandler = [this](const QVariantList& arguments, bool parseError)
+				{
+					if (parseError || arguments.size() < 1 || !HelperDBus::isType<uint>(arguments.at(0)))
+						reportError("Pipewire: invalid SelectSources response");
+					else
+						selectSourcesResponse(arguments.at(0).toUInt());
+				};
+
+			const QString requestPath = _useRemoteDesktopPortal
+				? _dbusConnection->selectSourcesRemoteDesktop(_sessionHandle, getRequestToken())
+				: _dbusConnection->selectSources(_sessionHandle, getRequestToken(), _restorationToken);
+
+			if (requestPath.isEmpty())
+			{
+				reportError("Pipewire: failed to select sources");
+			}
+			else
+			{
+				_portalHandlers[requestPath.toStdString()] = responseSelectSourceSignalHandler;
+			}
+
+			qDebug().nospace() << "Pipewire: SelectSources finished";
+		};
+
+	if (_useRemoteDesktopPortal)
 	{
-		if (parseError || arguments.size() < 1 || !HelperDBus::isType<uint>(arguments.at(0))){
-			reportError("Pipewire: invalid SelectSources response");
-			return;
+		auto responseSelectDeviceRemoteSignalHandler = [this, selectSources](const QVariantList& arguments, bool parseError)
+			{
+				if (parseError || arguments.size() < 1 || !HelperDBus::isType<uint>(arguments.at(0)))
+				{
+					reportError("Pipewire: invalid SelectDevices response");
+				}
+				else
+					if (const quint32 response = arguments.at(0).toUInt(); response != 0)
+					{
+						reportError(QString("Pipewire: Failed to select remote desktop devices: %1").arg(response));
+					}
+					else
+					{
+						selectSources();
+					}
+			};
+
+		const QString requestPath = _dbusConnection->selectDevicesRemoteDesktop(
+			_sessionHandle, getRequestToken(), _restorationToken);
+
+		if (requestPath.isEmpty())
+		{
+			reportError("Pipewire: failed to select remote desktop devices");
+		}
+		else
+		{
+			_portalHandlers[requestPath.toStdString()] = responseSelectDeviceRemoteSignalHandler;
 		}
 
-		selectSourcesResponse(arguments.at(0).toUInt());
-	};
-	
-	if (const QString requestPath = _dbusConnection->selectSources(_sessionHandle, getRequestToken(), _restorationToken); requestPath.isEmpty()){
-		reportError("Pipewire: failed to select sources");
+		qDebug().nospace() << "Pipewire: SelectDevices finished";
 	}
-	else {
-		_portalHandlers[requestPath.toStdString()] = responseSignalHandler;
+	else
+	{
+		selectSources();
 	}
-
-	qDebug().nospace() << "Pipewire: SelectSources finished";
 }
 
 
@@ -426,6 +494,9 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		reportError(QString("Pipewire: Failed to select sources: %1").arg(response));
 		return;
 	}
+
+	if (_useRemoteDesktopPortal)
+		qDebug().nospace() << "Pipewire: Starting remote desktop session without input devices";
 
 	auto responseSignalHandler = [this] (const QVariantList& arguments, bool parseError)
 	{
@@ -495,7 +566,12 @@ void PipewireHandler::selectSourcesResponse(uint response)
 		startResponse(code, restoreToken, nodeId, width, height);
 	};		
 
-	if (const QString requestPath = _dbusConnection->start(_sessionHandle, getRequestToken()); requestPath.isEmpty()) {
+	const QString requestPath = _useRemoteDesktopPortal
+		? _dbusConnection->startRemoteDesktop(_sessionHandle, getRequestToken())
+		: _dbusConnection->start(_sessionHandle, getRequestToken());
+
+	if (requestPath.isEmpty())
+	{
 		reportError("Pipewire: failed to start session");
 		return;
 	}
@@ -521,6 +597,11 @@ void PipewireHandler::startResponse(uint response, QString restoreHandle, uint32
 	{
 		_restorationToken = restoreHandle;
 		qDebug().nospace() << "Received restoration token: " << qPrintable(QString(_restorationToken).right(12));
+	}
+	else if (_useRemoteDesktopPortal)
+	{
+		_restorationToken.clear();
+		qDebug() << "No RemoteDesktop restoration token returned";
 	}
 	else
 		qDebug().nospace() << "No restoration token (portal protocol version 4 required and must be implemented by the backend GNOME/KDE... etc)";

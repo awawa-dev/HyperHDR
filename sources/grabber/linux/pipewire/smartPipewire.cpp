@@ -47,14 +47,15 @@
 #include <vector>
 
 #include <grabber/linux/pipewire/PipewireHandler.h>
+#include <grabber/linux/pipewire/PortalDBus.h>
 
 PipewireHandler pipewireHandler;
 
 
-void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize)
+void initPipewireDisplay(const char* restorationToken, uint32_t requestedFPS, bool enableEGL, int targetMaxSize, int selectedDisplay)
 {
 	QString qRestorationToken = QString("%1").arg(restorationToken);
-	pipewireHandler.startSession(qRestorationToken, requestedFPS, enableEGL, targetMaxSize);
+	pipewireHandler.startSession(qRestorationToken, requestedFPS, enableEGL, targetMaxSize, selectedDisplay);
 }
 
 void releaseFramePipewire()
@@ -120,6 +121,18 @@ bool hasPipewire()
 
 	}
 	return false;
+}
+
+bool hasPipewireRemoteDesktop()
+{
+	PortalDBus portalDBus;
+	if (!portalDBus.open())
+		return false;
+
+	const int version = portalDBus.remoteDesktopVersion();
+	std::cout << "Portal.RemoteDesktop: protocol version = " << version << std::endl;
+
+	return version >= PipewirePortal::MinRemoteDesktopPortalVersion;
 }
 
 PipewireImage getFramePipewire()

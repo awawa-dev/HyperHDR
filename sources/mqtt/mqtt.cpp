@@ -207,7 +207,7 @@ void mqtt::start(QString host, int port, QString username, QString password, boo
 		_socket = socket;
 
 		if (_ignore_ssl_errors)
-			connect(socket, &QSslSocket::sslErrors, socket, [socket](const QList<QSslError>&) { socket->ignoreSslErrors(); });
+			connect(socket, qOverload<const QList<QSslError>&>(&QSslSocket::sslErrors), socket, [socket](const QList<QSslError>&) { socket->ignoreSslErrors(); });
 
 		connect(socket, &QSslSocket::encrypted, this, &mqtt::connectMqtt);
 	}
