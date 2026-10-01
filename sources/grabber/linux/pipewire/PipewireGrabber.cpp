@@ -32,9 +32,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -44,6 +47,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QProcessEnvironment>
 
 #include <grabber/linux/pipewire/PipewireGrabber.h>
 #include <grabber/linux/pipewire/smartPipewire.h>
@@ -61,6 +65,26 @@ namespace
 	const char* (*_getPipewireToken)() = nullptr;
 	bool (*_isRestartNeeded)() = nullptr;
 	bool (*_hasPipewireRemoteDesktop)() = nullptr;
+
+	bool isGamescopeRunning()
+	{
+		for (const auto& entry : std::filesystem::directory_iterator("/proc")) {
+			if (!entry.is_directory())
+				continue;
+
+			const auto name = entry.path().filename().string();
+			if (name.find_first_not_of("0123456789") != std::string::npos)
+				continue;
+
+			std::ifstream comm(entry.path() / "comm");
+			std::string processName;
+
+			if (comm && std::getline(comm, processName) && processName.starts_with("gamescope"))
+				return true;
+		}
+
+		return false;
+	}
 }
 
 PipewireGrabber::PipewireGrabber(const QString& device, const QString& configurationPath)
@@ -151,7 +175,12 @@ bool PipewireGrabber::hasPipewire(bool force)
 		return false;
 
 	bool retVal = _hasPipewire();
-	if (!retVal && force)
+	if (!retVal && isGamescopeRunning())
+	{
+		Warning(_log, "Detected Gamescope process, portal ScreenCast grabber is not recommended");
+		retVal = true;
+	}
+	else if (!retVal && force)
 	{
 		Warning(_log, "Portal grabber is not recommended but it's forced by the user");
 		retVal = true;
@@ -286,6 +315,17 @@ void PipewireGrabber::enumerateDevices(bool silent)
 
 			_deviceProperties.insert("Pipewire All Screens (RemoteDesktop API)", remoteProperties);
 		}
+
+		if (isGamescopeRunning())
+		{
+			DeviceProperties gamescopeProperties;
+			DevicePropertiesItem gamescopeDpi;
+
+			gamescopeDpi.input = PipewirePortal::ScreenID_Gamescope;
+			gamescopeProperties.valid.append(gamescopeDpi);
+
+			_deviceProperties.insert("Pipewire All Screens (Gamescope)", gamescopeProperties);
+		}
 	}	
 }
 
@@ -379,7 +419,7 @@ void PipewireGrabber::grabFrame()
 		{
 			if (data.version >= 4)
 				Info(_log, "Portal protocol version: {:d}", data.version);
-			else
+			else if (_actualDisplay != PipewirePortal::ScreenID_Gamescope)
 				Warning(_log, "Legacy portal protocol version: {:d}. To enjoy persistant autorization since version 4, you should update xdg-desktop-portal at least to version 1.12.1 *AND* provide backend that can implement it (for example newest xdg-desktop-portal-gnome).", data.version);
 
 			_versionCheck = true;
