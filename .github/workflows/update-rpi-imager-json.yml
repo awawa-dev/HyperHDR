@@ -1,0 +1,219 @@
+name: Update RPi Imager JSON
+
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Stable release tag to sync (e.g. v22.0.0.0). Empty = latest stable with a .img.xz asset'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rpi-imager-json
+  cancel-in-progress: false
+
+jobs:
+  update-imager-json:
+    name: Update rpi-imager JSON
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      JSON_PATH: rpi-imager/rpi-imager_hyperhdr.json
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Resolve target tag
+        id: resolve
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "release" ]; then
+            TAG="$EVENT_TAG"
+          elif [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          else
+            echo "No tag input; searching latest stable release with a .img.xz asset..."
+            TAG=""
+            while IFS=$'\t' read -r candidate; do
+              if gh release view "$candidate" --json assets --jq '.assets[].name' 2>/dev/null | grep -q '\.img\.xz$'; then
+                TAG="$candidate"
+                break
+              fi
+            done < <(gh release list --exclude-drafts --exclude-pre-releases --limit 20 --json tagName --jq '.[].tagName')
+            if [ -z "$TAG" ]; then
+              echo "No stable release with a .img.xz asset found. Nothing to do."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "Target tag: $TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Stable release guard
+        id: guard
+        if: steps.resolve.outputs.skip != 'true'
+        shell: bash
+        env:
+          TARGET_TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="$TARGET_TAG"
+          META="$(gh release view "$TAG" --json isDraft,isPrerelease,name,tagName,publishedAt)"
+          echo "$META" | jq .
+
+          if [ "$(jq -r .isDraft <<<"$META")" = "true" ] || [ "$(jq -r .isPrerelease <<<"$META")" = "true" ]; then
+            echo "Skipping: $TAG is a draft or pre-release; stable Imager feed must not be overwritten."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          {
+            echo "release_name=$(jq -r '.name // empty' <<<"$META")"
+            echo "published_at=$(jq -r '.publishedAt // empty' <<<"$META")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Select .img.xz asset
+        id: asset
+        if: steps.resolve.outputs.skip != 'true' && steps.guard.outputs.skip != 'true'
+        shell: bash
+        env:
+          TARGET_TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="$TARGET_TAG"
+          mapfile -t CANDIDATES < <(gh release view "$TAG" --json assets --jq '.assets[].name' | grep '\.img\.xz$' || true)
+
+          if [ "${#CANDIDATES[@]}" -eq 0 ]; then
+            echo "No .img.xz asset on release $TAG. Nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          printf 'Candidates:\n%s\n' "${CANDIDATES[@]}"
+
+          if [ "${#CANDIDATES[@]}" -eq 1 ]; then
+            ASSET="${CANDIDATES[0]}"
+          else
+            # Prefer the 64-bit lite image when several are attached.
+            ARM64="$(printf '%s\n' "${CANDIDATES[@]}" | grep -i 'arm64' || true)"
+            if [ "$(printf '%s\n' "$ARM64" | grep -c .)" -eq 1 ]; then
+              ASSET="$ARM64"
+            else
+              echo "::error::Multiple .img.xz assets on $TAG; cannot choose unambiguously: ${CANDIDATES[*]}"
+              exit 1
+            fi
+          fi
+
+          echo "Selected asset: $ASSET"
+          echo "name=$ASSET" >> "$GITHUB_OUTPUT"
+
+      - name: Download image and compute sizes/hashes
+        id: hashes
+        if: steps.resolve.outputs.skip != 'true' && steps.guard.outputs.skip != 'true' && steps.asset.outputs.skip != 'true'
+        shell: bash
+        env:
+          TARGET_TAG: ${{ steps.resolve.outputs.tag }}
+          ASSET_NAME: ${{ steps.asset.outputs.name }}
+          PUBLISHED_AT: ${{ steps.guard.outputs.published_at }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="$TARGET_TAG"
+          ASSET="$ASSET_NAME"
+          rm -rf ./imager-dl && mkdir -p ./imager-dl
+          gh release download "$TAG" --pattern "$ASSET" --clobber --dir ./imager-dl
+          FILE="./imager-dl/$ASSET"
+
+          IMAGE_DOWNLOAD_SIZE="$(stat -c%s "$FILE")"
+          IMAGE_DOWNLOAD_SHA256="$(sha256sum "$FILE" | awk '{print $1}')"
+          echo "compressed: $IMAGE_DOWNLOAD_SIZE bytes $IMAGE_DOWNLOAD_SHA256"
+
+          xz -d -k -f "$FILE"
+          IMG="${FILE%.xz}"
+          EXTRACT_SIZE="$(stat -c%s "$IMG")"
+          EXTRACT_SHA256="$(sha256sum "$IMG" | awk '{print $1}')"
+          echo "extracted: $EXTRACT_SIZE bytes $EXTRACT_SHA256"
+
+          # Keep the exact filename so a re-run is idempotent; strip only a trailing .xz.
+          echo "img_file=$IMG" >> "$GITHUB_OUTPUT"
+          echo "download_size=$IMAGE_DOWNLOAD_SIZE" >> "$GITHUB_OUTPUT"
+          echo "download_sha=$IMAGE_DOWNLOAD_SHA256" >> "$GITHUB_OUTPUT"
+          echo "extract_size=$EXTRACT_SIZE" >> "$GITHUB_OUTPUT"
+          echo "extract_sha=$EXTRACT_SHA256" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$PUBLISHED_AT" ]; then
+            echo "::error::Release $TAG has no publishedAt timestamp; cannot set release_date."
+            exit 1
+          fi
+          RELEASE_DATE="$(date -d "$PUBLISHED_AT" +%F)"
+          echo "release_date=$RELEASE_DATE" >> "$GITHUB_OUTPUT"
+          echo "url=https://github.com/$REPO/releases/download/$TAG/$ASSET" >> "$GITHUB_OUTPUT"
+
+      - name: Update JSON
+        if: steps.resolve.outputs.skip != 'true' && steps.guard.outputs.skip != 'true' && steps.asset.outputs.skip != 'true'
+        shell: bash
+        env:
+          RELEASE_NAME_IN: ${{ steps.guard.outputs.release_name }}
+          FALLBACK_TAG: ${{ steps.resolve.outputs.tag }}
+          IMAGER_URL: ${{ steps.hashes.outputs.url }}
+          DOWNLOAD_SIZE: ${{ steps.hashes.outputs.download_size }}
+          DOWNLOAD_SHA: ${{ steps.hashes.outputs.download_sha }}
+          EXTRACT_SIZE: ${{ steps.hashes.outputs.extract_size }}
+          EXTRACT_SHA: ${{ steps.hashes.outputs.extract_sha }}
+          RELEASE_DATE_IN: ${{ steps.hashes.outputs.release_date }}
+        run: |
+          set -euo pipefail
+          RELEASE_NAME="$RELEASE_NAME_IN"
+          if [ -z "$RELEASE_NAME" ]; then
+            # Fall back to the tag without a leading 'v' so unnamed releases still work.
+            RELEASE_NAME="HyperHDR $FALLBACK_TAG"
+            RELEASE_NAME="${RELEASE_NAME/HyperHDR v/HyperHDR }"
+          fi
+          python3 rpi-imager/update_imager_json.py \
+            --json "$JSON_PATH" \
+            --release-name "$RELEASE_NAME" \
+            --url "$IMAGER_URL" \
+            --download-size "$DOWNLOAD_SIZE" \
+            --download-sha "$DOWNLOAD_SHA" \
+            --extract-size "$EXTRACT_SIZE" \
+            --extract-sha "$EXTRACT_SHA" \
+            --release-date "$RELEASE_DATE_IN"
+          jq empty "$JSON_PATH"
+          git diff -- "$JSON_PATH"
+
+      - name: Commit and push
+        if: steps.resolve.outputs.skip != 'true' && steps.guard.outputs.skip != 'true' && steps.asset.outputs.skip != 'true'
+        shell: bash
+        env:
+          SYNC_TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$JSON_PATH"
+          if git diff --cached --quiet; then
+            echo "JSON already up to date. Nothing to commit."
+            exit 0
+          fi
+          git pull --rebase origin "$BRANCH" || true
+          git commit -m "Update rpi-imager JSON for $SYNC_TAG"
+          git push origin "HEAD:$BRANCH"
