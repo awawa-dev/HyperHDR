@@ -2,7 +2,6 @@
 
 #ifndef PCH_ENABLED
 	#include <array>
-	#include <QByteArray>
 	#include <QString>
 	#include <cstdint>
 	#include <string>
@@ -67,8 +66,8 @@ class DriverHidSyncLight : public ProviderHid
 			PerLed
 		};
 
-		static constexpr int report_size = 64;
-		static constexpr int rb_overhead = 6;
+		static constexpr size_t report_size = 64;
+		static constexpr size_t rb_overhead = 6;
 		static constexpr int sc_header_size = 5;
 		static constexpr int sc_record_size = 5;
 		static constexpr int sc_footer_size = 1;
@@ -86,12 +85,11 @@ class DriverHidSyncLight : public ProviderHid
 				quint8 action,
 				std::span<const uint8_t> payload,
 				quint8 id);
-		static QByteArray buildScFrame (
+		static std::vector<uint8_t> buildScFrame (
 				std::span<const ColorRgb> ledValues,
 				int totalLedCount,
 				int controllerLedCount,
 				quint8 id);
-		static HidReport buildReport (const QByteArray& frame);
 		static std::array<uint8_t, 10> buildSectionPayload (
 				quint8 section,
 				quint8 red,

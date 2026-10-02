@@ -144,8 +144,8 @@ bool DriverHidSyncLight::buildRbFrame (
 		std::span<const uint8_t> payload,
 		quint8 id)
 {
-	const size_t totalLength = static_cast<size_t> (rb_overhead) + payload.size ();
-	if (totalLength > static_cast<size_t> (report_size)) {
+	const size_t totalLength = rb_overhead + payload.size ();
+	if (totalLength > report_size) {
 		return false;
 	}
 
@@ -166,7 +166,7 @@ bool DriverHidSyncLight::buildRbFrame (
 }
 
 
-QByteArray DriverHidSyncLight::buildScFrame (
+std::vector<uint8_t> DriverHidSyncLight::buildScFrame (
 		std::span<const ColorRgb> ledValues,
 		int totalLedCount,
 		int controllerLedCount,
@@ -187,13 +187,14 @@ QByteArray DriverHidSyncLight::buildScFrame (
 			+ segments * sc_record_size
 			+ sc_footer_size
 			+ sc_checksum_size;
+	const size_t frameSize = static_cast<size_t> (frameLength);
 
-	QByteArray frame (frameLength, 0);
+	std::vector<uint8_t> frame (frameSize, 0);
 	frame[0] = 'S';
 	frame[1] = 'C';
-	frame[2] = static_cast<char> ((frameLength >> 8) & 0xff);
-	frame[3] = static_cast<char> (frameLength & 0xff);
-	frame[4] = static_cast<char> (id);
+	frame[2] = static_cast<uint8_t> ((frameLength >> 8) & 0xff);
+	frame[3] = static_cast<uint8_t> (frameLength & 0xff);
+	frame[4] = id;
 
 	for (int segment = 0; segment < segments; ++segment)
 	{
@@ -209,34 +210,26 @@ QByteArray DriverHidSyncLight::buildScFrame (
 				inputStart,
 				inputEnd - inputStart);
 
-		const int offset = sc_header_size + segment * sc_record_size;
+		const size_t offset = static_cast<size_t> (
+				sc_header_size + segment * sc_record_size);
 		quint8 start = static_cast<quint8> (deviceStart);
 		if (segment == 0) {
 			start = static_cast<quint8> (start | 0x80);
 		}
 
-		frame[offset] = static_cast<char> (start);
-		frame[offset + 1] = static_cast<char> (deviceEnd);
-		frame[offset + 2] = static_cast<char> (color.red);
-		frame[offset + 3] = static_cast<char> (color.green);
-		frame[offset + 4] = static_cast<char> (color.blue);
+		frame[offset + 0] = start;
+		frame[offset + 1] = static_cast<uint8_t> (deviceEnd);
+		frame[offset + 2] = color.red;
+		frame[offset + 3] = color.green;
+		frame[offset + 4] = color.blue;
 	}
 
-	frame[frameLength - 2] = static_cast<char> (maxAddress);
+	frame[frameSize - 2] = static_cast<uint8_t> (maxAddress);
 	const std::span<const uint8_t> checksumData (
-			reinterpret_cast<const uint8_t*> (frame.constData ()),
-			static_cast<size_t> (frameLength - 1));
-	frame[frameLength - 1] = static_cast<char> (checksum (checksumData));
+			frame.data (),
+			frameSize - 1);
+	frame[frameSize - 1] = checksum (checksumData);
 	return frame;
-}
-
-
-DriverHidSyncLight::HidReport DriverHidSyncLight::buildReport (const QByteArray& frame)
-{
-	Q_ASSERT (frame.size () <= report_size);
-	HidReport report {};
-	std::ranges::copy (frame, report.begin () + 1);
-	return report;
 }
 
 
@@ -371,15 +364,20 @@ bool DriverHidSyncLight::sendScColors (
 		std::span<const ColorRgb> ledValues,
 		int totalLedCount)
 {
-	const QByteArray frame = buildScFrame (
+	const std::vector<uint8_t> frame = buildScFrame (
 			ledValues,
 			totalLedCount,
 			_controllerLedCount,
 			nextId ());
 
-	for (int offset = 0; offset < frame.size (); offset += report_size)
+	for (size_t offset = 0; offset < frame.size (); offset += report_size)
 	{
-		if (!writeReport (device, buildReport (frame.mid (offset, report_size)))) {
+		const size_t chunkSize = std::min (report_size, frame.size () - offset);
+		const std::span<const uint8_t> chunk (frame.data () + offset, chunkSize);
+		HidReport report {};
+		std::ranges::copy (chunk, report.begin () + 1);
+
+		if (!writeReport (device, report)) {
 			return false;
 		}
 	}
