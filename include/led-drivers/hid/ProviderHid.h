@@ -8,6 +8,7 @@
 
 #include "infinite-color-engine/SharedOutputColors.h"
 #ifndef PCH_ENABLED
+	#include <array>
 	#include <cstdint>
 	#include <optional>
 	#include <QString>
@@ -56,6 +57,10 @@ class ProviderHid : public LedDevice
 
 
 	protected:
+
+		/* A fixed-size HID report, including its report ID. */
+		using HidReport = std::array<uint8_t, 65>;
+
 
 		/**
 		 * Identifies supported HID devices.

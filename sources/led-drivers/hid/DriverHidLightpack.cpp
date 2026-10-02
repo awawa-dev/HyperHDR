@@ -13,7 +13,7 @@
 
 bool DriverHidLightpack::init_device (const Device& device)
 {
-	Command cmd{};
+	HidReport cmd{};
 	cmd[1] = set_smoothing_command;
 	QString error;
 	if (!sendOutputReport(device, cmd, error)) {
@@ -28,7 +28,7 @@ bool DriverHidLightpack::init_device (const Device& device)
 
 bool DriverHidLightpack::powerOff (const Device& device)
 {
-	Command cmd{};
+	HidReport cmd{};
 	QString error;
 
 	cmd[1] = update_led_command;
@@ -108,7 +108,7 @@ int DriverHidLightpack::writeColors (
 		return -1;
 	}
 
-	Command cmd{};
+	HidReport cmd{};
 	cmd[1] = update_led_command;
 
 	for (size_t led = 0; led < ledValues.size(); ++led)

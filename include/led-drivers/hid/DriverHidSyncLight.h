@@ -3,6 +3,7 @@
 #ifndef PCH_ENABLED
 	#include <QByteArray>
 	#include <QString>
+	#include <cstdint>
 	#include <string>
 	#include <vector>
 #endif
@@ -47,7 +48,7 @@ class DriverHidSyncLight : public ProviderHid
 		[[nodiscard]]
 		size_t getLedCount (const Device& /*device*/) const final
 		{
-			return maximum_led_count;
+			return static_cast<size_t> (_controllerLedCount);
 		}
 
 		[[nodiscard]]
@@ -65,7 +66,6 @@ class DriverHidSyncLight : public ProviderHid
 			PerLed
 		};
 
-		//TODO: since report_size is fixed, we can introduce a type for it, instead of using qbytearray. also, the real report size is 64+1
 		static constexpr int report_size = 64;
 		static constexpr int rb_overhead = 6;
 		static constexpr int sc_header_size = 5;
@@ -86,7 +86,7 @@ class DriverHidSyncLight : public ProviderHid
 				int totalLedCount,
 				int controllerLedCount,
 				quint8 id);
-		static QByteArray buildReport (const QByteArray& frame);
+		static HidReport buildReport (const QByteArray& frame);
 		static QByteArray buildSectionPayload (
 				quint8 section,
 				quint8 red,
@@ -98,7 +98,7 @@ class DriverHidSyncLight : public ProviderHid
 				int offset,
 				int count);
 
-		bool writeReport (const Device& device, const QByteArray& report);
+		bool writeReport (const Device& device, const HidReport& report);
 		bool sendRb (const Device& device, quint8 action, const QByteArray& payload);
 		bool sendAveragedSectionColor (
 				const Device& device,

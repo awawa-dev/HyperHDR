@@ -226,13 +226,10 @@ QByteArray DriverHidSyncLight::buildScFrame (
 }
 
 
-QByteArray DriverHidSyncLight::buildReport (const QByteArray& frame)
+DriverHidSyncLight::HidReport DriverHidSyncLight::buildReport (const QByteArray& frame)
 {
-	if (frame.size () > report_size) {
-		return {};
-	}
-
-	QByteArray report (report_size + 1, 0);
+	Q_ASSERT (frame.size () <= report_size);
+	HidReport report {};
 	std::ranges::copy (frame, report.begin () + 1);
 	return report;
 }
@@ -408,18 +405,10 @@ bool DriverHidSyncLight::sendBrightness (const Device& device, quint8 value)
 
 bool DriverHidSyncLight::writeReport (
 		const Device& device,
-		const QByteArray& report)
+		const HidReport& report)
 {
-	if (report.size () != report_size + 1)
-	{
-		Error (_log, "Invalid SyncLight HID report size: {:d}", report.size ());
-		return false;
-	}
-
-	const auto* data = reinterpret_cast<const uint8_t*> (report.constData ());
-	const std::span<const uint8_t> bytes (data, static_cast<size_t> (report.size ()));
 	QString error;
-	if (!ProviderHid::write (device, bytes, error))
+	if (!ProviderHid::write (device, report, error))
 	{
 		Error (_log, "SyncLight HID write failed for {:s}: {:s}",
 				QString::fromStdString (device.path),

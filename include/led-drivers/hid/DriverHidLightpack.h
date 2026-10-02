@@ -137,10 +137,6 @@ class DriverHidLightpack : public ProviderHid
 		using DeepColor = std::array<uint16_t, 3>;
 
 
-		/* A fixed-size Lightpack HID command. */
-		using Command = std::array<uint8_t, 65>;
-
-
 		/* Number of leds on a Lightpack device. */
 		static constexpr auto lightpack_led_count = 10;
 
