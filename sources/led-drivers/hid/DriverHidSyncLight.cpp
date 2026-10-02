@@ -141,11 +141,11 @@ quint8 DriverHidSyncLight::checksum (std::span<const uint8_t> data)
 bool DriverHidSyncLight::buildRbFrame (
 		HidReport& report,
 		quint8 action,
-		const QByteArray& payload,
+		std::span<const uint8_t> payload,
 		quint8 id)
 {
-	const int totalLength = rb_overhead + payload.size ();
-	if (totalLength > report_size) {
+	const size_t totalLength = static_cast<size_t> (rb_overhead) + payload.size ();
+	if (totalLength > static_cast<size_t> (report_size)) {
 		return false;
 	}
 
@@ -155,12 +155,12 @@ bool DriverHidSyncLight::buildRbFrame (
 	report[3] = static_cast<uint8_t> (totalLength);
 	report[4] = id;
 	report[5] = action;
-	if (!payload.isEmpty ()) {
+	if (!payload.empty ()) {
 		std::ranges::copy (payload, report.begin () + 6);
 	}
 	const std::span<const uint8_t> checksumData (
 			report.data () + 1,
-			static_cast<size_t> (totalLength - 1));
+			totalLength - 1);
 	report[totalLength] = checksum (checksumData);
 	return true;
 }
@@ -240,25 +240,24 @@ DriverHidSyncLight::HidReport DriverHidSyncLight::buildReport (const QByteArray&
 }
 
 
-QByteArray DriverHidSyncLight::buildSectionPayload (
+std::array<uint8_t, 10> DriverHidSyncLight::buildSectionPayload (
 		quint8 section,
 		quint8 red,
 		quint8 green,
 		quint8 blue)
 {
-	QByteArray payload;
-	payload.reserve (10);
-	payload.push_back (static_cast<char> (section));
-	payload.push_back (static_cast<char> (red));
-	payload.push_back (static_cast<char> (green));
-	payload.push_back (static_cast<char> (blue));
-	payload.push_back (static_cast<char> (0x47));
-	payload.push_back (static_cast<char> (0x48));
-	payload.push_back (static_cast<char> (0x00));
-	payload.push_back (static_cast<char> (0x00));
-	payload.push_back (static_cast<char> (0x00));
-	payload.push_back (static_cast<char> (0xfe));
-	return payload;
+	return {
+		section,
+		red,
+		green,
+		blue,
+		0x47,
+		0x48,
+		0x00,
+		0x00,
+		0x00,
+		0xfe,
+	};
 }
 
 
@@ -327,7 +326,7 @@ bool DriverHidSyncLight::sendKeepalive (const Device& device)
 {
 	HidReport report {};
 
-	if (!buildRbFrame (report, action_keepalive, QByteArray (), nextId ())) {
+	if (!buildRbFrame (report, action_keepalive, {}, nextId ())) {
 		return false;
 	}
 
@@ -349,7 +348,7 @@ bool DriverHidSyncLight::sendAveragedSectionColor (
 
 	QThread::msleep (20);
 	HidReport report {};
-	const QByteArray payload = buildSectionPayload (
+	const std::array<uint8_t, 10> payload = buildSectionPayload (
 			section_global,
 			color.red,
 			color.green,
@@ -417,10 +416,8 @@ bool DriverHidSyncLight::sendBlackFrame (const Device& device)
 
 bool DriverHidSyncLight::sendBrightness (const Device& device, quint8 value)
 {
-	QByteArray payload;
+	const std::array<uint8_t, 1> payload = { value };
 	HidReport report {};
-
-	payload.push_back (static_cast<char> (value));
 
 	if (!buildRbFrame (report, action_brightness, payload, nextId ())) {
 		return false;

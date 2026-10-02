@@ -1,6 +1,7 @@
 #pragma once
 
 #ifndef PCH_ENABLED
+	#include <array>
 	#include <QByteArray>
 	#include <QString>
 	#include <cstdint>
@@ -83,7 +84,7 @@ class DriverHidSyncLight : public ProviderHid
 		static bool buildRbFrame (
 				HidReport& report,
 				quint8 action,
-				const QByteArray& payload,
+				std::span<const uint8_t> payload,
 				quint8 id);
 		static QByteArray buildScFrame (
 				std::span<const ColorRgb> ledValues,
@@ -91,7 +92,7 @@ class DriverHidSyncLight : public ProviderHid
 				int controllerLedCount,
 				quint8 id);
 		static HidReport buildReport (const QByteArray& frame);
-		static QByteArray buildSectionPayload (
+		static std::array<uint8_t, 10> buildSectionPayload (
 				quint8 section,
 				quint8 red,
 				quint8 green,
