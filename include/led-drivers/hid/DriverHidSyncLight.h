@@ -79,8 +79,12 @@ class DriverHidSyncLight : public ProviderHid
 		static constexpr quint8 action_keepalive = 0x97;
 		static constexpr quint8 section_global = 1;
 
-		static quint8 checksum (const QByteArray& frame);
-		static QByteArray buildRbFrame (quint8 action, const QByteArray& payload, quint8 id);
+		static quint8 checksum (std::span<const uint8_t> data);
+		static bool buildRbFrame (
+				HidReport& report,
+				quint8 action,
+				const QByteArray& payload,
+				quint8 id);
 		static QByteArray buildScFrame (
 				std::span<const ColorRgb> ledValues,
 				int totalLedCount,
@@ -99,7 +103,7 @@ class DriverHidSyncLight : public ProviderHid
 				int count);
 
 		bool writeReport (const Device& device, const HidReport& report);
-		bool sendRb (const Device& device, quint8 action, const QByteArray& payload);
+		bool sendRb (const Device& device, const HidReport& report);
 		bool sendKeepalive (const Device& device);
 		bool sendAveragedSectionColor (
 				const Device& device,

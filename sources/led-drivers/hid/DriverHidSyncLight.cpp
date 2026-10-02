@@ -5,6 +5,7 @@
 	#include <QStringList>
 	#include <QThread>
 	#include <algorithm>
+	#include <numeric>
 #endif
 
 
@@ -130,37 +131,38 @@ int DriverHidSyncLight::writeFiniteColors (
 }
 
 
-quint8 DriverHidSyncLight::checksum (const QByteArray& frame)
+quint8 DriverHidSyncLight::checksum (std::span<const uint8_t> data)
 {
-	quint8 sum = 0;
-	for (char byte : frame) {
-		sum = static_cast<quint8> (sum + static_cast<quint8> (byte));
-	}
-	return sum;
+	return static_cast<quint8> (
+			std::reduce (data.begin (), data.end (), uint32_t {0}));
 }
 
 
-QByteArray DriverHidSyncLight::buildRbFrame (
+bool DriverHidSyncLight::buildRbFrame (
+		HidReport& report,
 		quint8 action,
 		const QByteArray& payload,
 		quint8 id)
 {
 	const int totalLength = rb_overhead + payload.size ();
 	if (totalLength > report_size) {
-		return {};
+		return false;
 	}
 
-	QByteArray frame (totalLength, 0);
-	frame[0] = 'R';
-	frame[1] = 'B';
-	frame[2] = static_cast<char> (totalLength);
-	frame[3] = static_cast<char> (id);
-	frame[4] = static_cast<char> (action);
+	report = {};
+	report[1] = 'R';
+	report[2] = 'B';
+	report[3] = static_cast<uint8_t> (totalLength);
+	report[4] = id;
+	report[5] = action;
 	if (!payload.isEmpty ()) {
-		std::ranges::copy (payload, frame.begin () + 5);
+		std::ranges::copy (payload, report.begin () + 6);
 	}
-	frame[totalLength - 1] = static_cast<char> (checksum (frame.left (totalLength - 1)));
-	return frame;
+	const std::span<const uint8_t> checksumData (
+			report.data () + 1,
+			static_cast<size_t> (totalLength - 1));
+	report[totalLength] = checksum (checksumData);
+	return true;
 }
 
 
@@ -221,7 +223,10 @@ QByteArray DriverHidSyncLight::buildScFrame (
 	}
 
 	frame[frameLength - 2] = static_cast<char> (maxAddress);
-	frame[frameLength - 1] = static_cast<char> (checksum (frame.left (frameLength - 1)));
+	const std::span<const uint8_t> checksumData (
+			reinterpret_cast<const uint8_t*> (frame.constData ()),
+			static_cast<size_t> (frameLength - 1));
+	frame[frameLength - 1] = static_cast<char> (checksum (checksumData));
 	return frame;
 }
 
@@ -312,24 +317,21 @@ quint8 DriverHidSyncLight::nextId ()
 
 bool DriverHidSyncLight::sendRb (
 		const Device& device,
-		quint8 action,
-		const QByteArray& payload)
+		const HidReport& report)
 {
-	const QByteArray frame = buildRbFrame (action, payload, nextId ());
-	if (frame.isEmpty ())
-	{
-		Error (_log, "SyncLight RB frame too large for action 0x{:02x}",
-				static_cast<int> (action));
-		return false;
-	}
-
-	return writeReport (device, buildReport (frame));
+	return writeReport (device, report);
 }
 
 
 bool DriverHidSyncLight::sendKeepalive (const Device& device)
 {
-	return sendRb (device, action_keepalive, QByteArray ());
+	HidReport report {};
+
+	if (!buildRbFrame (report, action_keepalive, QByteArray (), nextId ())) {
+		return false;
+	}
+
+	return sendRb (device, report);
 }
 
 
@@ -346,10 +348,22 @@ bool DriverHidSyncLight::sendAveragedSectionColor (
 	}
 
 	QThread::msleep (20);
-	return sendRb (
-			device,
+	HidReport report {};
+	const QByteArray payload = buildSectionPayload (
+			section_global,
+			color.red,
+			color.green,
+			color.blue);
+	if (!buildRbFrame (
+			report,
 			action_color,
-			buildSectionPayload (section_global, color.red, color.green, color.blue));
+			payload,
+			nextId ()))
+	{
+		return false;
+	}
+
+	return sendRb (device, report);
 }
 
 
@@ -404,8 +418,15 @@ bool DriverHidSyncLight::sendBlackFrame (const Device& device)
 bool DriverHidSyncLight::sendBrightness (const Device& device, quint8 value)
 {
 	QByteArray payload;
+	HidReport report {};
+
 	payload.push_back (static_cast<char> (value));
-	return sendRb (device, action_brightness, payload);
+
+	if (!buildRbFrame (report, action_brightness, payload, nextId ())) {
+		return false;
+	}
+
+	return sendRb (device, report);
 }
 
 
