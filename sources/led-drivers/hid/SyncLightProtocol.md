@@ -20,20 +20,6 @@ Frames longer than 64 protocol bytes are split into sequential HID reports.
 Continuation reports do not add protocol headers; they carry the next 64 bytes
 of the same frame.
 
-## Linux permissions
-
-Linux distributions commonly create `/dev/hidraw*` nodes as root-only devices.
-Install a udev rule for both known SyncLight PID values:
-
-```text
-KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="fe07", MODE="0660", GROUP="uucp", TAG+="uaccess"
-KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="fe0c", MODE="0660", GROUP="uucp", TAG+="uaccess"
-```
-
-Reload udev rules and reconnect the USB device. The device node should then be
-writable by the desktop user, for example via logind `uaccess` ACLs or the
-`uucp` group.
-
 ## Checksum
 
 Both `RB` and `SC` frames use an 8-bit additive checksum:
