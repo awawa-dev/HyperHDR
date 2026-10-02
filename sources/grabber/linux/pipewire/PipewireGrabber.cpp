@@ -47,7 +47,6 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QCoreApplication>
-#include <QProcessEnvironment>
 
 #include <grabber/linux/pipewire/PipewireGrabber.h>
 #include <grabber/linux/pipewire/smartPipewire.h>

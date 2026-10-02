@@ -73,7 +73,7 @@ Q_DECLARE_METATYPE(uint32_t);
 constexpr const int DEFAULT_UPDATE_NUMBER = 4;
 
 PipewireHandler::PipewireHandler() :
-									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false),
+									_sessionHandle(""), _restorationToken(""), _errorMessage(""), _portalStatus(false), _pipewireStatus(false),
 									_isError(false), _useRemoteDesktopPortal(false), _version(-1), _remoteDesktopVersion(-1), _streamNodeId(SPA_ID_INVALID),
 									_pwMainThreadLoop(nullptr), _pwNewContext(nullptr), _pwContextConnection(nullptr), _pwStream(nullptr),
 									_targetMaxSize(512), _selectedDisplay(0), _frameWidth(0),_frameHeight(0),_frameOrderRgb(false), _requestedFPS(10), _incomingFrame(nullptr),
@@ -173,6 +173,7 @@ void PipewireHandler::closeSession()
 	_pwStreamListener = {};
 	_pwCoreListener = {};	
 	_portalStatus = false;
+	_pipewireStatus = false;
 	_isError = false;
 	_useRemoteDesktopPortal = false;
 	_remoteDesktopVersion = -1;
@@ -275,7 +276,7 @@ bool PipewireHandler::hasError()
 
 bool PipewireHandler::isRestartNeeded()
 {
-	return _isError || (_portalHandlers.empty() && !_portalStatus);
+	return _isError || (_portalHandlers.empty() && !_portalStatus && !_pipewireStatus);
 }
 
 int PipewireHandler::getVersion()
@@ -655,6 +656,10 @@ void PipewireHandler::startPipewire()
 	else if (pw_thread_loop_start(_pwMainThreadLoop) < 0)
 	{
 		reportError("Pipewire: could not start main Pipewire loop");
+	}
+	else
+	{
+		_pipewireStatus = true;
 	}
 
 	pw_thread_loop_unlock(_pwMainThreadLoop);

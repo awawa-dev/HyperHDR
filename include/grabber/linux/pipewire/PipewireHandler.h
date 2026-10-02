@@ -152,6 +152,7 @@ private:
 	QString _restorationToken;
 	QString _errorMessage;
 	bool	_portalStatus;
+	bool	_pipewireStatus;
 	bool	_isError;
 	bool	_useRemoteDesktopPortal;
 	int		_version;
